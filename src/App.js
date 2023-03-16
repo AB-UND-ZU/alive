@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import './App.css';
 
 function App() {
   const [running, setRunning] = useState(true);
   const [score, setScore] = useState(0);
+  const scoreRef = useRef(0);
 
+  // load Rune once on mount
   useEffect(() => {
     window.Rune.init({
       resumeGame: () => setRunning(true),
@@ -14,9 +16,14 @@ function App() {
         setScore(0);
         setRunning(true);
       },
-      getScore: () => score,
+      getScore: () => scoreRef.current,
     });
   }, []);
+
+  // since Rune expects a function at creation, we sadly need to keep a ref in sync manually
+  useEffect(() => {
+    scoreRef.current = score;
+  }, [score]);
 
   const handleIncrease = () => {
     if (!running) return;
