@@ -46,12 +46,17 @@ function Chest() {
       <span className="Entity Chest">{'\u0115'}</span>
       <span className="Entity Chest">{'\u011f'}</span>
     </>
-  )
+  );
 }
 
 function Monster({ value }) {
   const sizes = ['\u011d', '\u010f', '\u011e', '\u0110'];
-  return <span className="Entity Monster">{sizes[value]}</span>
+  return (
+    <>
+      <span className="Entity Monster">{sizes[value]}</span>
+      <span className="Entity Bar">{'\u0126'}</span>
+    </>
+  );
 }
 
 function Path() {
@@ -101,10 +106,12 @@ const cellTypes = [
   () => <Door />,
   () => [<Door />, <Lock />],
 
+  () => [<Plant value={0} />],
   () => [<Item size="single" type="Drink" />, <Plant value={0} />],
   () => [<Item size="double" type="Drink" />, <Plant value={0} />],
   () => [<Item size="triple" type="Drink" />, <Plant value={0} />],
 
+  () => [<Plant value={1} />],
   () => [<Item size="small" type="Food" />, <Plant value={1} />],
   () => [<Item size="medium" type="Food" />, <Plant value={1} />],
   () => [<Item size="large" type="Food" />, <Plant value={1} />],
