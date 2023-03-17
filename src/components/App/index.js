@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
-import './App.css';
+import Terminal from '../Terminal';
+import './index.css';
 
 function App() {
   const [running, setRunning] = useState(true);
@@ -25,13 +26,7 @@ function App() {
     scoreRef.current = score;
   }, [score]);
 
-  const handleIncrease = () => {
-    if (!running) return;
-
-    setScore(prevScore => prevScore + 1);
-  };
-
-  const handleFinish = () => {
+  const handleGameOver = () => {
     if (!running) return;
 
     setRunning(false);
@@ -40,9 +35,7 @@ function App() {
 
   return (
     <div className="App">
-      <div className="Score">{score}</div>
-      <button className="Increase" onClick={handleIncrease}>Increase</button>
-      <button className="Finish" onClick={handleFinish}>Finish</button>
+      <Terminal score={score} setScore={setScore} gameOver={handleGameOver} />
     </div>
   );
 }

@@ -1,0 +1,68 @@
+@font-face {
+  font-family: "Perfect DOS VGA 437 Win";
+  src: url("../../fonts/MostPerfectDOSVGA.woff2") format("woff2"),
+       url("../../fonts/MostPerfectDOSVGA.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --black: #000000;
+	--maroon: #800000;
+	--green: #008000;
+	--olive: #808000;
+	--navy: #000080;
+	--purple: #800080;
+	--teal: #008080;
+	--silver: #c0c0c0;
+	--grey: #808080;
+	--red: #ff0000;
+	--lime: #00ff00;
+	--yellow: #ffff00;
+	--blue: #0000ff;
+	--fuchsia: #ff00ff;
+	--aqua: #00ffff;
+	--white: #ffffff;
+}
+
+html {
+  background-color: var(--white);
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--white);
+}
+
+.App {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.Row {
+  white-space: nowrap;
+}
+
+.Door {
+  color: var(--maroon);
+}
+
+.Wall {
+  color: var(--grey);
+}
+
+.Object {
+  color: var(--yellow);
+}
+
+.Monster {
+  color: var(--red);
+}
+
+.Player {
+  color: var(--white);
+}
