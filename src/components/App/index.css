@@ -23,6 +23,8 @@
 	--fuchsia: #ff00ff;
 	--aqua: #00ffff;
 	--white: #ffffff;
+
+  --size: 32px;
 }
 
 html {
@@ -45,24 +47,103 @@ body {
 
 .Row {
   white-space: nowrap;
+  height: var(--size);
+}
+
+.Cell {
+  position: relative;
+  display: inline-block;
+  height: var(--size);
+  color: var(--white);
+}
+
+.Cell::after {
+  content: "\00a0";
+  font-size: var(--size);
+  line-height: var(--size);
+}
+
+.Entity {
+  position: absolute;
+  font-size: var(--size);
+  line-height: var(--size);
 }
 
 .Door {
   color: var(--maroon);
 }
 
+.Handle {
+  color: var(--grey);
+}
+
+.Lock {
+  color: var(--grey);
+}
+
+.Path {
+  color: var(--grey);
+}
+
+.Water {
+  color: var(--navy);
+}
+
+.Sand {
+  color: var(--olive);
+}
+
 .Wall {
   color: var(--grey);
 }
 
-.Object {
+.Item {
+}
+
+.Coin {
   color: var(--yellow);
+}
+
+.Food {
+  color: var(--red);
+}
+
+.Drink {
+  color: var(--aqua);
+}
+
+.Plant {
+  color: var(--green);
 }
 
 .Monster {
   color: var(--red);
 }
 
-.Player {
+.Equipment {
+
+}
+
+.Shield {
+  color: var(--maroon);
+}
+
+.Weapon {
+  color: var(--grey);
+}
+
+.Frame {
+  color: var(--black);
+}
+
+.Chest {
+  color: var(--maroon);
+}
+
+.Hair {
+  color: var(--olive);
+}
+
+.Body {
   color: var(--white);
 }
