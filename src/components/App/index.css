@@ -69,6 +69,27 @@ body {
   line-height: var(--size);
 }
 
+
+/* Materials */
+
+.Wood {
+  color: var(--maroon);
+}
+
+.Iron {
+  color: var(--silver);
+}
+
+.Fire {
+  color: var(--red);
+}
+
+.Ice {
+  color: var(--aqua);
+}
+
+
+
 .Door {
   color: var(--maroon);
 }
@@ -108,7 +129,7 @@ body {
   color: var(--red);
 }
 
-.Drink {
+.Mana {
   color: var(--aqua);
 }
 
@@ -117,7 +138,7 @@ body {
 }
 
 .Monster {
-  color: var(--white);
+  color: var(--silver);
 }
 
 .Bar {
@@ -150,4 +171,12 @@ body {
 
 .Body {
   color: var(--white);
+}
+
+.Health {
+  color: var(--lime);
+}
+
+.Eye {
+  color: var(--black);
 }
