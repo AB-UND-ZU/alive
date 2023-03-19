@@ -1,16 +1,39 @@
 import { useEffect, useReducer, useState } from "react";
+import { Air, Plant, Wall } from "./entities";
 import { generateLevel, generateDungeon } from "./generate";
 
 const sliceCenter = (array, index, width) => [...array, ...array, ...array].slice(array.length + index - (width - 1) / 2, array.length + index + (width + 1) / 2);
+
+const updateBoard = (board, x, y, value) => {
+  const newBoard = [
+    ...board.slice(0, y),
+    [
+      ...board[y].slice(0, x),
+      value,
+      ...board[y].slice(x + 1),
+    ],
+    ...board.slice(y + 1),
+  ];
+  return newBoard;
+}
 
 function reducer(state, action) {
   switch (action.type) {
     case 'move': {
       const { deltaX = 0, deltaY = 0 } = action;
+      const newX = (state.x + deltaX + state.width) % state.width;
+      const newY = (state.y + deltaY + state.height) % state.height;
+
+
+      if ([Plant, Wall].includes(state.board[newY][newX].type)) return state;
+      let newBoard = updateBoard(state.board, newX, newY, state.board[state.y][state.x]);
+      newBoard = updateBoard(newBoard, state.x, state.y, <Air />);
+
       return {
         ...state,
-        x: (state.x + deltaX + state.width) % state.width,
-        y: (state.y + deltaY + state.height) % state.height,
+        board: newBoard,
+        x: newX,
+        y: newY,
       };
     }
   }
@@ -27,7 +50,7 @@ function Terminal({ score, setScore, gameOver }) {
   }, generateLevel);
 
   useEffect(() => {
-    window.addEventListener('keydown', event => {
+    const handleMove = event => {
       if (event.key === 'ArrowUp') {
         dispatch({ type: 'move', deltaY: -1 });
       } else if (event.key === 'ArrowRight') {
@@ -40,9 +63,13 @@ function Terminal({ score, setScore, gameOver }) {
         return;
       }
       event.preventDefault();
-    });
+    };
 
-    console.log(generateDungeon({ width: 250, height: 250 }));
+    window.addEventListener('keydown', handleMove);
+
+    return () => {
+      window.removeEventListener('keydown', handleMove);
+    }
   }, []);
 
   return (

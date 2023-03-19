@@ -81,4 +81,13 @@
 - Alphabet (Z)
   - Static, shooting
 
+
+## Stats
+
+- Bare hands: 1 dmg
+- Wooden sword: 2 dmg
+- Iron sword: 5 dmg
+- Fire burn: 3 dmg
+
+
 ## Presets

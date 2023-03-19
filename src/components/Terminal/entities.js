@@ -1,8 +1,8 @@
-function Air() {
+export function Air() {
   return null;
 }
 
-function Player() {
+export function Player() {
   return (
     <>
       <span className="Entity Eye">{'\u0128'}</span>
@@ -13,7 +13,7 @@ function Player() {
   )
 }
 
-function Equipment({ type, material }) {
+export function Equipment({ type, material }) {
   const types = {
     Shield: '\u00ac',
     Weapon: '/',
@@ -22,7 +22,7 @@ function Equipment({ type, material }) {
   return <span className={`Entity Equipment ${type} ${material}`}>{types[type]}</span>
 }
 
-function Item({ size, type }) {
+export function Item({ size, type }) {
   const sizes = {
     small: '·',
     medium: '∙',
@@ -40,7 +40,7 @@ function Item({ size, type }) {
   return <span className={`Entity Item ${type}`}>{sizes[size]}</span>
 }
 
-function Chest() {
+export function Chest() {
   return (
     <>
       <span className="Entity Coin">{'\u011d'}</span>
@@ -50,7 +50,7 @@ function Chest() {
   );
 }
 
-function Fire() {
+export function Fire() {
   return (
     <>
       <span className="Entity Wood">{'\u010e'}</span>
@@ -60,7 +60,7 @@ function Fire() {
   );
 }
 
-function Monster({ value }) {
+export function Monster({ value }) {
   const sizes = ['\u011d', '\u010f', '\u011e', '\u0110'];
   return (
     <>
@@ -70,19 +70,19 @@ function Monster({ value }) {
   );
 }
 
-function Path() {
+export function Path() {
   return <span className="Entity Path">{'░'}</span>
 }
 
-function Water() {
+export function Water() {
   return <span className="Entity Water">{'▓'}</span>
 }
 
-function Sand() {
+export function Sand() {
   return <span className="Entity Sand">{'▒'}</span>
 }
 
-function Wall({ direction = "none" }) {
+export function Wall({ direction = "none" }) {
   const directions = {
     up: '▀',
     right: '▐',
@@ -93,7 +93,7 @@ function Wall({ direction = "none" }) {
   return <span className="Entity Wall">{directions[direction]}</span>
 }
 
-function Plant({ size }) {
+export function Plant({ size }) {
   if (size === "small") return <span className="Entity Plant">,</span>;
   if (size === "medium") return <span className="Entity Plant">{'\u03c4'}</span>;
   return (
@@ -104,11 +104,11 @@ function Plant({ size }) {
   );
 }
 
-function Lock() {
+export function Lock() {
   return <span className={`Entity Lock`}>{'\u011c'}</span>
 }
 
-function Door() {
+export function Door() {
   return (
     <>
       <span className="Entity Door">{'\u0107'}</span>
@@ -117,14 +117,18 @@ function Door() {
 }
 
 export const forestCells = [
-  () => [<Equipment type="Shield" />, <Player />, <Equipment type="Weapon" />],
 
   () => <Monster value={0} />,
   
   () => <Item size="one" type="Wood" />,
-  () => <Item size="two" type="Wood" />,
-  () => <Item size="three" type="Wood" />,
 
+  () => <Air />,
+  () => <Air />,
+  () => <Air />,
+  () => <Air />,
+  () => <Air />,
+  () => <Air />,
+  () => <Air />,
   () => <Air />,
   () => <Air />,
   () => <Air />,
@@ -140,20 +144,15 @@ export const forestCells = [
   () => <Wall />,
 
   () => [<Wall />, <Item size="first" type="Iron" />,],
-  () => [<Wall />, <Item size="second" type="Iron" />,],
-  () => [<Wall />, <Item size="third" type="Iron" />,],
-
-  () => <Fire />,
 
   () => [<Plant size="small" />, <Item size="small" type="Mana" />],
-  () => [<Plant size="small" />, <Item size="medium" type="Mana" />],
-  () => [<Plant size="small" />, <Item size="large" type="Mana" />],
-  () => [<Plant size="small" />],
   () => [<Plant size="small" />],
 
   () => [<Item size="single" type="Food" />,<Plant size="medium" />,],
   () => [<Plant size="medium" />],
 
+  () => [<Plant size="large" />],
+  () => [<Plant size="large" />],
   () => [<Plant size="large" />],
 ];
 

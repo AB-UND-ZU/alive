@@ -1,5 +1,5 @@
 import Dungeon from "dungeon-generator";
-import { forestCells } from "./entities";
+import { forestCells, Player, Equipment } from "./entities";
 
 const getDeterministicRandomInt = (minimum, maximum) => {
   return Math.floor(
@@ -72,6 +72,8 @@ function generateLevel(state) {
     });
     return row;
   });
+
+  rows[state.y][state.x] = [<Equipment type="Shield" />, <Player />, <Equipment type="Weapon" />];
   return { ...state, board: rows };
 }
 
