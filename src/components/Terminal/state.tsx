@@ -62,9 +62,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
         newState = reducer(newState, { type: 'collect', inventory: newCell.item.props.inventory, amount: newCell.item.props.amount });
         newCell.item = undefined;
         newBoard = updateBoard(newBoard, newX, newY, newCell);
-      }
-
-      if (!newCell.terrain && !newCell.creature) {
+      } else if (!newCell.terrain && !newCell.creature) {
         newCell.creature = cell.creature;
         newCell.equipments = cell.equipments;
         newBoard = updateBoard(newBoard, newX, newY, newCell);
