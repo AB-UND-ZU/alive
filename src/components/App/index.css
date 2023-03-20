@@ -89,7 +89,7 @@ body {
 }
 
 
-
+/*
 .Door {
   color: var(--maroon);
 }
@@ -101,27 +101,30 @@ body {
 .Lock {
   color: var(--grey);
 }
+*/
 
 .Path {
   color: var(--grey);
 }
 
-.Water {
+.DeepWater {
   color: var(--navy);
+}
+
+.ShallowWater {
+  color: var(--blue);
 }
 
 .Sand {
   color: var(--olive);
 }
 
-.Wall {
+.Rock {
   color: var(--grey);
 }
 
-.Item {
-}
 
-.Coin {
+.Gold {
   color: var(--yellow);
 }
 
@@ -137,7 +140,7 @@ body {
   color: var(--green);
 }
 
-.Monster {
+.Triangle {
   color: var(--silver);
 }
 
@@ -145,18 +148,15 @@ body {
   color: var(--red);
 }
 
-.Equipment {
-
-}
-
-.Shield {
+.Armor {
   color: var(--maroon);
 }
 
-.Weapon {
+.Sword {
   color: var(--grey);
 }
 
+/*
 .Frame {
   color: var(--black);
 }
@@ -164,9 +164,10 @@ body {
 .Chest {
   color: var(--maroon);
 }
+*/
 
 .Hair {
-  color: var(--olive);
+  color: var(--aqua);
 }
 
 .Body {

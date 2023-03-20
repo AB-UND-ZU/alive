@@ -65,11 +65,11 @@
 - Chest
 - Fairy ring
 - Endboss
-- Food store
-- Mana store
-- Shield store
-- Weapon store
-- Spell store
+- Food store (red)
+- Mana store (aqua)
+- Shield store (maroon)
+- Weapon store (grey)
+- Spell store 
 
 ## Monsters
 

@@ -3,7 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 import Terminal from '../Terminal';
 import './index.css';
 
-function App() {
+declare global {
+  interface Window {
+    Rune: any;
+  }
+}
+
+const App = () => {
   const [running, setRunning] = useState(true);
   const [score, setScore] = useState(0);
   const scoreRef = useRef(0);
