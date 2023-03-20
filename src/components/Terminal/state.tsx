@@ -1,4 +1,4 @@
-import { Cell, Inventory, items } from "./entities";
+import { Cell, Inventory, inventories, ShallowWater, Swimming } from "./entities";
 
 const updateBoard = (board: Cell[][], x: number, y: number, value: Cell) => {
   const newBoard = [
@@ -47,28 +47,46 @@ export type TerminalState = {
   board: Cell[][],
 }
 
+const wrapCoordinates = (state: TerminalState, x: number, y: number) => [
+  (x + state.width) % state.width,
+  (y + state.height) % state.height,
+];
+const getCell = (state: TerminalState, x: number, y: number) => {
+  const [newX, newY] = wrapCoordinates(state, x, y);
+  return state.board[newY][newX];
+};
+const isWater = (state: TerminalState, x: number, y: number) => {
+  const cell = getCell(state, x, y);
+  return cell.grounds?.length === 1 && cell.grounds[0].type === ShallowWater && cell.grounds[0].props.amount === 4;
+}
+const isLand = (state: TerminalState, x: number, y: number) => [-1, 0, 1].map(deltaX => [-1, 0, 1].map(deltaY => !isWater(state, x + deltaX, y + deltaY))).flat().some(Boolean);
+
 export const reducer = (state: TerminalState, action: TerminalAction): TerminalState => {
   switch (action.type) {
     case 'move': {
       const { deltaX = 0, deltaY = 0 } = action;
       let newState = { ...state };
-      const newX = (state.x + deltaX + state.width) % state.width;
-      const newY = (state.y + deltaY + state.height) % state.height;
+      const [newX, newY] = wrapCoordinates(state, state.x + deltaX, state.y + deltaY);
       const cell = state.board[state.y][state.x];
       let newCell = { ...state.board[newY][newX] };
       let newBoard = newState.board;
 
       if (newCell.item) {
-        newState = reducer(newState, { type: 'collect', inventory: newCell.item.props.inventory, amount: newCell.item.props.amount });
+        newState = reducer(newState, { type: 'collect', inventory: inventories.get(newCell.item.type) || 'gold', amount: newCell.item.props.amount });
         newCell.item = undefined;
         newBoard = updateBoard(newBoard, newX, newY, newCell);
-      } else if (!newCell.terrain && !newCell.creature) {
+      } else if (!newCell.terrain && !newCell.creature && isLand(state, newX, newY)) {
         newCell.creature = cell.creature;
         newCell.equipments = cell.equipments;
         newBoard = updateBoard(newBoard, newX, newY, newCell);
         newBoard = updateBoard(newBoard, state.x, state.y, { ...cell, creature: undefined, equipments: undefined });
         newState.x = newX;
         newState.y = newY;
+
+        if (isWater(state, newX, newY)) {
+          newCell.particles = [...(newCell.particles || []), <Swimming />];
+        }
+        cell.particles = (cell.particles || []).filter(particle => particle.type !== Swimming);
       }
 
       return {

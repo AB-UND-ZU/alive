@@ -1,42 +1,64 @@
-import { ReactComponentElement, ReactElement } from "react";
+import { ReactComponentElement } from "react";
 
-export type Status = 'xp' | 'mp';
-export type Inventory = 'gold' | 'food' | 'mana' | 'wood' | 'iron';
-export type Stats = Status | Inventory;
-export type Material = "wood" | "iron" | "fire" | "ice";
-export type Direction = "up" | "right" | "down" | "left";
+// ------------------------ GROUND --------------------------------
 
+export type Ground = React.FC<{ amount: number }>;
 
-export type Creature = React.FC<{ direction: Direction }>;
-export const Player: Creature = () => {
-  return (
-    <>
-      <span className="Entity Eye">{'\u0128'}</span>
-      <span className="Entity Player">{'\u010b'}</span>
-      <span className="Entity Hair">~</span>
-      <span className="Entity Health">{'\u0120'}</span>
-    </>
-  )
+const densities = ['░', '▒', '▓', '█'];
+export const Path: Ground = ({ amount }) => {
+  return <span className="Entity Path">{densities[amount - 1]}</span>
 }
 
-export const Triangle: Creature = ({ direction }) => {
-  const directions = {
-    up: '\u011d',
-    right: '\u010f',
-    down: '\u011e',
-    left: '\u0110',
+export const Sand: Ground = ({ amount }) => {
+  return <span className="Entity Sand">{densities[amount - 1]}</span>
+}
+
+export const ShallowWater: Ground = ({ amount }) => {
+  return <span className="Entity ShallowWater">{densities[amount - 1]}</span>
+}
+
+export const Ice: Ground = ({ amount }) => {
+  return <span className="Entity Ice">{densities[amount - 1]}</span>
+}
+
+export const grounds = [ShallowWater, Ice, Sand, Path];
+
+
+// ------------------------ TERRAIN --------------------------------
+
+export type Terrain = React.FC<{direction?: Direction }>;
+
+export const Rock: Terrain = ({ direction }) => {
+  const directions: Record<Direction, string> = {
+    up: '▀',
+    right: '▐',
+    down: '▄',
+    left: '▌',
   };
+
+  return <span className="Entity Rock">{direction ? directions[direction] : '█'}</span>
+}
+
+export const DeepWater: Terrain = () => {
+  return <span className="Entity DeepWater">{'█'}</span>
+}
+
+export const Tree: Terrain = () => {
   return (
     <>
-      <span className="Entity Monster">{directions[direction]}</span>
-      <span className="Entity Bar">{'\u0126'}</span>
+      <span className="Entity Wood">{'\u2510'}</span>
+      <span className="Entity Plant">{'#'}</span>
     </>
   );
 }
 
-export const creatures = { Player, Triangle };
+export const terrains = [DeepWater, Rock, Tree];
 
-export type Item = React.FC<{ amount: number, inventory: Inventory }>;
+
+
+// ------------------------ ITEM --------------------------------
+
+export type Item = React.FC<{ amount: number }>;
 
 export const Gold: Item = ({ amount }: { amount: number }) => {
   if (amount === 1) return <span className="Entity Gold">{'\u0108'}</span>;
@@ -68,71 +90,10 @@ export const Iron: Item = ({ amount }: { amount: number }) => {
   return <span className="Entity Iron">{'\u00f7'}</span>;
 }
 
-export const items = { Gold, Food, Mana, Wood, Iron };
+export const items = [Wood, Iron, Mana, Food, Gold];
 
-export type Equipment = React.FC<{ material: Material }>;
 
-export const Sword: Equipment = ({ material }) => {
-  return <span className={`Entity Sword ${material}`}>{'/'}</span>
-}
-
-export const Armor: Equipment = ({ material }) => {
-  return <span className={`Entity Armor ${material}`}>{'\u00ac'}</span>
-}
-
-export const Spell: Equipment = ({ material }) => {
-  return <span className={`Entity Spell ${material}`}>{'\u0128'}</span>
-}
-
-export const equipments = { Sword, Armor, Spell };
-
-export type Terrain = React.FC<{direction?: Direction }>;
-
-export const Rock: Terrain = ({ direction }) => {
-  const directions: Record<Direction, string> = {
-    up: '▀',
-    right: '▐',
-    down: '▄',
-    left: '▌',
-  };
-
-  return <span className="Entity Rock">{direction ? directions[direction] : '█'}</span>
-}
-
-export const DeepWater: Terrain = () => {
-  return <span className="Entity DeepWater">{'▓'}</span>
-}
-
-export const Tree: Terrain = () => {
-  return (
-    <>
-      <span className="Entity Wood">{'\u2510'}</span>
-      <span className="Entity Plant">{'#'}</span>
-    </>
-  );
-}
-
-export const terrains = { Rock, DeepWater, Tree };
-
-export type Ground = React.FC;
-
-export const Path: Ground = () => {
-  return <span className="Entity Path">{'░'}</span>
-}
-
-export const Sand: Ground = () => {
-  return <span className="Entity Sand">{'▒'}</span>
-}
-
-export const ShallowWater: Ground = () => {
-  return <span className="Entity ShallowWater">{'▓'}</span>
-}
-
-export const Ice: Ground = () => {
-  return <span className="Entity Ice">{'▓'}</span>
-}
-
-export const grounds = { Path, Sand, ShallowWater, Ice };
+// ------------------------ SPRITE --------------------------------
 
 export type Sprite = React.FC;
 
@@ -148,7 +109,61 @@ export const Campfire: Sprite = () => {
   return <span className="Entity Wood">{'\u010e'}</span>;
 }
 
-export const sprites = { Flower, Bush, Campfire };
+export const sprites = [Flower, Bush, Campfire];
+
+
+// ------------------------ CREATURE --------------------------------
+
+export type Creature = React.FC<{ direction: Direction }>;
+export const Player: Creature = () => {
+  return (
+    <>
+      <span className="Entity Eye">{'\u0128'}</span>
+      <span className="Entity Player">{'\u010b'}</span>
+      <span className="Entity Hair">~</span>
+      <span className="Entity Health">{'\u0120'}</span>
+    </>
+  )
+}
+
+export const Triangle: Creature = ({ direction }) => {
+  const directions = {
+    up: '\u011d',
+    right: '\u010f',
+    down: '\u011e',
+    left: '\u0110',
+  };
+  return (
+    <>
+      <span className="Entity Monster">{directions[direction]}</span>
+      <span className="Entity Bar">{'\u0126'}</span>
+    </>
+  );
+}
+
+export const creatures = [Triangle, Player];
+
+
+// ------------------------ EQUIPMENT --------------------------------
+
+export type Equipment = React.FC<{ material: Material }>;
+
+export const Sword: Equipment = ({ material }) => {
+  return <span className={`Entity Sword ${material}`}>{'/'}</span>
+}
+
+export const Armor: Equipment = ({ material }) => {
+  return <span className={`Entity Armor ${material}`}>{'\u00ac'}</span>
+}
+
+export const Spell: Equipment = ({ material }) => {
+  return <span className={`Entity Spell ${material}`}>{'\u0128'}</span>
+}
+
+export const equipments = [Armor, Sword, Spell];
+
+
+// ------------------------ PARTICLE --------------------------------
 
 export type Particle = React.FC;
 
@@ -165,10 +180,30 @@ export const Burning: Particle = () => {
   );
 }
 
-export const particles = { Swimming, Burning };
+export const particles = [Swimming, Burning];
 
+// ------------------------ CONSTANTS --------------------------------
+ 
+export type Status = 'xp' | 'mp';
+export const inventories = new Map<Item, Inventory>([
+  [Gold, 'gold'],
+  [Food, 'food'],
+  [Mana, 'mana'],
+  [Wood, 'wood'],
+  [Iron, 'iron'],
+]);
+export type Inventory = 'gold' | 'food' | 'mana' | 'wood' | 'iron';
+export type Stats = Status | Inventory;
+export type Material = "wood" | "iron" | "fire" | "ice";
 
-export const entities = {
+export const directions = ['up', 'right', 'down', 'left'] as const;
+export type Direction = typeof directions[number];
+
+// ------------------------ ENTITY --------------------------------
+
+export type Entity = Ground | Terrain | Item | Sprite | Creature | Equipment | Particle;
+
+export const entities = [
   ...grounds,
   ...terrains,
   ...items,
@@ -176,14 +211,15 @@ export const entities = {
   ...creatures,
   ...equipments,
   ...particles
-};
+];
 
-
+export type SingleCategories = 'terrain' | 'item' | 'sprite' | 'creature';
+export type MultipleCategories = 'grounds' | 'equipments' | 'particles';
 export type Cell = {
-  ground?: ReactComponentElement<Ground>,
+  grounds?: ReactComponentElement<Ground>[],
   terrain?: ReactComponentElement<Terrain>,
   item?: ReactComponentElement<Item>,
-  sprites?: ReactComponentElement<Sprite>[],
+  sprite?: ReactComponentElement<Sprite>,
   creature?: ReactComponentElement<Creature>,
   equipments?: ReactComponentElement<Equipment>[],
   particles?: ReactComponentElement<Particle>[],
@@ -212,63 +248,3 @@ export function Door() {
   );
 }
 */
-
-export const forestCells: Cell[] = [
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-
-  { creature: <Triangle direction="up" /> },
-
-  { item: <Gold amount={1} inventory="gold" /> },
-  { item: <Gold amount={2} inventory="gold" /> },
-  { item: <Gold amount={5} inventory="gold" /> },
-  
-  { item: <Wood amount={1} inventory="wood" /> },
-  { item: <Wood amount={2} inventory="wood" /> },
-  { item: <Wood amount={5} inventory="wood" /> },
-  
-  { terrain: <Rock />, item: <Iron amount={1} inventory="iron" /> },
-  { terrain: <Rock />, item: <Iron amount={2} inventory="iron" /> },
-  { terrain: <Rock />, item: <Iron amount={5} inventory="iron" /> },
-
-  { terrain: <Rock direction="up" /> },
-  { terrain: <Rock direction="right" /> },
-  { terrain: <Rock direction="down" /> },
-  { terrain: <Rock direction="left" /> },
-  { terrain: <Rock /> },
-  { terrain: <Rock /> },
-  { terrain: <Rock /> },
-  { terrain: <Rock /> },
-
-  { terrain: <Tree /> },
-  { terrain: <Tree /> },
-  { terrain: <Tree /> },
-  { terrain: <Tree /> },
-  { terrain: <DeepWater /> },
-
-  { ground: <Path /> },
-  { ground: <Sand /> },
-  { ground: <ShallowWater /> },
-  { ground: <Ice /> },
-
-  { sprites: [<Flower />] },
-  { sprites: [<Flower />], item: <Mana amount={1} inventory="mana" /> },
-  { sprites: [<Flower />], item: <Mana amount={2} inventory="mana" /> },
-  { sprites: [<Flower />], item: <Mana amount={5} inventory="mana" /> },
-
-  { sprites: [<Bush />] },
-  { sprites: [<Bush />], item: <Food amount={1} inventory="food" /> },
-  { sprites: [<Bush />], item: <Food amount={2} inventory="food" /> },
-  { sprites: [<Bush />], item: <Food amount={5} inventory="food" /> },
-  { sprites: [<Campfire />] },
-  { sprites: [<Campfire />], particles: [<Burning />] },
-];

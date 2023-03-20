@@ -1,17 +1,17 @@
 import { useEffect, useReducer, useState } from "react";
-import { generateLevel, generateDungeon } from "./generate";
+import { generateLevel } from "./generate";
 import { reducer } from "./state";
 
 const sliceCenter = <T,>(array: T[], index: number, width: number) => [...array, ...array, ...array].slice(array.length + index - (width - 1) / 2, array.length + index + (width + 1) / 2);
 
 const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: React.Dispatch<React.SetStateAction<number>>, gameOver: () => void}) => {
   const [state, dispatch] = useReducer(reducer, {
-    width: 300,
-    height: 250,
+    width: 150,
+    height: 150,
     screenWidth: 19,
     screenHeight: 15,
-    x: 150,
-    y: 100,
+    x: 0,
+    y: 0,
     gold: 0,
     food: 0,
     mana: 0,
@@ -59,10 +59,10 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
             <div className="Row">
               {sliceCenter(row, state.x, state.screenWidth).map(cell => (
                 <span className="Cell">
-                  {cell.ground}
+                  {cell.grounds}
                   {cell.terrain}
                   {cell.item}
-                  {cell.sprites}
+                  {cell.sprite}
                   {cell.creature}
                   {cell.equipments}
                   {cell.particles}

@@ -80,6 +80,8 @@
   - A* path finding
 - Alphabet (Z)
   - Static, shooting
+- Shark (clover)
+  - Swimming only
 
 
 ## Stats
