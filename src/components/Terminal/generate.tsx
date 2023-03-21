@@ -66,8 +66,6 @@ function generateLevel(state: TerminalState): TerminalState {
     tileTypes: world.tileTypes,
   });
 
-  console.log(world, mapGenerator)
-
   mapGenerator.generate();
   
   const rows = Array.from({ length: state.height }).map((_, rowIndex) => {
@@ -160,6 +158,7 @@ function generateLevel(state: TerminalState): TerminalState {
     return row;
   });
 
+  // insert player at initial coords
   rows[state.y][state.x].creature = <Player direction="up" />;
   rows[state.y][state.x].equipments = [<Armor material="wood" />, <Sword material="iron" />];
   return { ...state, board: rows };

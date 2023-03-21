@@ -51,7 +51,7 @@ const wrapCoordinates = (state: TerminalState, x: number, y: number) => [
   (x + state.width) % state.width,
   (y + state.height) % state.height,
 ];
-const getCell = (state: TerminalState, x: number, y: number) => {
+export const getCell = (state: TerminalState, x: number, y: number) => {
   const [newX, newY] = wrapCoordinates(state, x, y);
   return state.board[newY][newX];
 };

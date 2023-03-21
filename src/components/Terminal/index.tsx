@@ -1,6 +1,7 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { generateLevel } from "./generate";
 import { reducer } from "./state";
+import { visibleFogOfWar } from "./fog";
 
 const sliceCenter = <T,>(array: T[], index: number, width: number) => [...array, ...array, ...array].slice(array.length + index - (width - 1) / 2, array.length + index + (width + 1) / 2);
 
@@ -19,6 +20,9 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     iron: 0,
     board: [[{}]],
   }, generateLevel);
+
+
+  console.log(visibleFogOfWar(state));
 
   useEffect(() => {
     const handleMove = (event: KeyboardEvent) => {
