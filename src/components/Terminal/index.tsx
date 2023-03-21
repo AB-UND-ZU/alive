@@ -8,8 +8,8 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
   const [state, dispatch] = useReducer(reducer, {
     width: 150,
     height: 150,
-    screenWidth: 19,
-    screenHeight: 15,
+    screenWidth: 21,
+    screenHeight: 13,
     x: 0,
     y: 0,
     gold: 0,
@@ -44,35 +44,23 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
   }, []);
 
   return (
-    <div className="window">
-      <div className="title-bar">
-        <div className="title-bar-text">Alive.exe</div>
-        <div className="title-bar-controls">
-          <button aria-label="Minimize"></button>
-          <button aria-label="Maximize"></button>
-          <button aria-label="Close"></button>
-        </div>
-      </div>
-      <div className="window-body">
-        <pre>
-          {sliceCenter(state.board, state.y, state.screenHeight).map(row => (
-            <div className="Row">
-              {sliceCenter(row, state.x, state.screenWidth).map(cell => (
-                <span className="Cell">
-                  {cell.grounds}
-                  {cell.terrain}
-                  {cell.item}
-                  {cell.sprite}
-                  {cell.creature}
-                  {cell.equipments}
-                  {cell.particles}
-                </span>
-              ))}
-            </div>
+    <pre className="Terminal">
+      {sliceCenter(state.board, state.y, state.screenHeight).map(row => (
+        <div className="Row">
+          {sliceCenter(row, state.x, state.screenWidth).map(cell => (
+            <span className="Cell">
+              {cell.grounds}
+              {cell.terrain}
+              {cell.item}
+              {cell.sprite}
+              {cell.creature}
+              {cell.equipments}
+              {cell.particles}
+            </span>
           ))}
-        </pre>
-      </div>
-    </div>
+        </div>
+      ))}
+    </pre>
   );
 }
 
