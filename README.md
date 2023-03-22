@@ -34,6 +34,10 @@
 - Shockwave spell
   - Elements
 
+- Boat
+  - Wood shallow water
+  - Iron deep water
+
 ## Elements
 
 - Fire

@@ -1,7 +1,5 @@
 import { Direction } from "./entities";
-
-// x, y
-export type Point = [number, number];
+import { Point } from "./utils";
 
 export const angleToCornerDirections = (angle: number): [Direction, Direction] => {
   const normalizedAngle = (angle + 360) % 360;

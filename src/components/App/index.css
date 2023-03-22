@@ -61,6 +61,14 @@ body {
   color: var(--white);
 }
 
+.Fog {
+  opacity: 50%;
+}
+
+.Dark {
+  opacity: 10%;
+}
+
 .Cell::after {
   content: "\00a0";
   font-size: var(--size);

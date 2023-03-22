@@ -1,9 +1,7 @@
 import { useEffect, useReducer } from "react";
 import { generateLevel } from "./generate";
 import { reducer } from "./state";
-import { visibleFogOfWar } from "./fog";
-
-const sliceCenter = <T,>(array: T[], index: number, width: number) => [...array, ...array, ...array].slice(array.length + index - (width - 1) / 2, array.length + index + (width + 1) / 2);
+import { getCell, getFog, pointRange } from "./utils";
 
 const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: React.Dispatch<React.SetStateAction<number>>, gameOver: () => void}) => {
   const [state, dispatch] = useReducer(reducer, {
@@ -18,11 +16,9 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     mana: 0,
     wood: 0,
     iron: 0,
-    board: [[{}]],
+    board: [[]],
+    fog: [[]],
   }, generateLevel);
-
-
-  console.log(visibleFogOfWar(state));
 
   useEffect(() => {
     const handleMove = (event: KeyboardEvent) => {
@@ -39,6 +35,8 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
       }
       event.preventDefault();
     };
+    
+    dispatch({ type: 'move' });
 
     window.addEventListener('keydown', handleMove);
 
@@ -49,19 +47,30 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
 
   return (
     <pre className="Terminal">
-      {sliceCenter(state.board, state.y, state.screenHeight).map(row => (
-        <div className="Row">
-          {sliceCenter(row, state.x, state.screenWidth).map(cell => (
-            <span className="Cell">
-              {cell.grounds}
-              {cell.terrain}
-              {cell.item}
-              {cell.sprite}
-              {cell.creature}
-              {cell.equipments}
-              {cell.particles}
-            </span>
-          ))}
+      {pointRange(state.screenHeight, offsetY => [state.x, state.y + offsetY - (state.screenHeight - 1) / 2]).map(([_, rowY]) => (
+        <div className="Row" key={rowY}>
+          {pointRange(state.screenWidth, offsetX => [state.x + offsetX - (state.screenWidth - 1) / 2, rowY]).map(([cellX, cellY]) => {
+            const cell = getCell(state, cellX, cellY);
+            const fog = getFog(state, cellX, cellY);
+
+            return (
+              <span className={`Cell ${fog === 'fog' ? 'Fog' : ''}`} key={`${cellX}-${cellY}`}>
+                {fog === 'dark' ? (
+                  <span className="Entity Dark">{'\u2248'}</span>
+                ) : (
+                  <>
+                    {cell.grounds}
+                    {cell.terrain}
+                    {cell.item}
+                    {cell.sprite}
+                    {cell.creature}
+                    {cell.equipments}
+                    {cell.particles}
+                  </>
+                )}
+              </span>
+            );
+          })}
         </div>
       ))}
     </pre>

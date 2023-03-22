@@ -1,16 +1,12 @@
-import { angleToCornerDirections, corners, Point } from "./corners";
+import { angleToCornerDirections, corners } from "./corners";
 import { Direction, Rock } from "./entities";
-import { getCell, TerminalState } from "./state";
+import { getCell, Point, pointRange, TerminalState } from "./utils";
 
 // begin, end in degrees
 type Interval = [number, number];
 
 // to make code a bit more readable
 const x = 0, y = 1, start = 0, end = 1;
-
-// helper to create point ranges fast
-const pointRange = (length: number, generator: (index: number) => Point) =>
-  Array.from({ length }).map<Point>((_, index) => generator(index));
 
 // degrees are counted from top center clockwise, from 0 to 360
 const pointToDegree = (point: Point) => {
@@ -35,20 +31,20 @@ const isVisible = (target: Point, visible: Interval[]) => {
   const targetIntervals = cellToIntervals(target);
 
   // check if start and end points are contained by any sub interval, inclusively
-  return targetIntervals.some(targetInterval => visible.some(interval => (
-    (interval[start] <= targetInterval[start] && targetInterval[start] <= interval[end]) ||
-    (interval[start] <= targetInterval[end] && targetInterval[end] <= interval[end])
+  return targetIntervals.some(targetInterval => visible.some(visibleInterval => (
+    (visibleInterval[start] <= targetInterval[start] && targetInterval[start] <= visibleInterval[end]) ||
+    (visibleInterval[start] <= targetInterval[end] && targetInterval[end] <= visibleInterval[end])
   )));
 }
 
 // this algorithm assumes screen width is larger than screen height
-export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visible: Interval[] = [[0, 360]]) => {
+export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visible: Interval[] = [[0, 360]], previousVisible: Point[] = [[0, 0]]): Point[] => {
   const maxHorizontal = (state.screenWidth - 1) / 2;
   const maxVertical = (state.screenHeight - 1) / 2;
   const relativeRing: Point[] = [];
 
   // bail out if we reached outer boundaries
-  if (distance > maxHorizontal) return;
+  if (distance > maxHorizontal) return previousVisible;
 
   // add left and right sides
   const trimmedVertical = Math.min(maxVertical, distance);
@@ -76,7 +72,7 @@ export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visi
 
     terrainIntervals.forEach(terrainInterval => {
       const newVisible: Interval[] = [];
-      console.log({ copy: [...newVisible], terrainInterval, point})
+
       // find first overlapping visible interval
       const firstOverlapping = visible.find(visibleInterval => (
         (visibleInterval[start] <= terrainInterval[start] && terrainInterval[start] <= visibleInterval[end]) ||
@@ -111,11 +107,12 @@ export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visi
         // add remaning intervals
         newVisible.push(...visible.slice(remainingIndex));
         visible = newVisible;
-      } else {
-        console.log('This shouldn\'t happen!', { visible: [...newVisible], terrainInterval, point })
       }
     });
   });
 
-  return { visibleCells, newVisible: [...visible] };
+  return [
+    ...previousVisible,
+    ...visibleFogOfWar(state, distance + 1, visible, visibleCells)
+  ];
 }

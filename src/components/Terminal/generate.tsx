@@ -3,7 +3,7 @@ import WorldmapGenerator, { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
 import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, directions, Direction, Flower, Tree, Bush, DeepWater, grounds, items, Campfire, Equipment, Particle } from "./entities";
-import { TerminalState } from "./state";
+import { Fog, TerminalState } from "./utils";
 
 // patch infite borders
 const getCell = WorldmapGenerator.prototype.getCell;
@@ -101,10 +101,6 @@ function generateLevel(state: TerminalState): TerminalState {
         }
       }
 
-      // 1 -> 0
-      // 2 -> 4
-      // 3 -> 4
-
       // Terrain: use angled rocks and move deep water to ground
       const terrainElements = getSingleElements(world, mapCells, 'terrain');
 
@@ -161,7 +157,12 @@ function generateLevel(state: TerminalState): TerminalState {
   // insert player at initial coords
   rows[state.y][state.x].creature = <Player direction="up" />;
   rows[state.y][state.x].equipments = [<Armor material="wood" />, <Sword material="iron" />];
-  return { ...state, board: rows };
+
+  // generate initial darkness
+  const fog: Fog[][] = Array.from({ length: state.height }).map(
+    () => Array.from<Fog>({ length: state.width }).fill('dark')
+  );
+  return { ...state, board: rows, fog };
 }
 
 
