@@ -2,7 +2,7 @@ import { ReactComponentElement } from 'react';
 import WorldmapGenerator, { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, directions, Direction, Flower, Tree, Bush, DeepWater, grounds, items, Campfire, Equipment, Particle, ShallowWater, containers, Triangle } from "./entities";
+import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, directions, Direction, Flower, Tree, Bush, grounds, Campfire, Equipment, Particle, containers, Triangle } from "./entities";
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
 import { Fog, getDeterministicRandomInt, Point, sum, TerminalState } from "./utils";
 
@@ -152,18 +152,12 @@ function generateLevel(state: TerminalState): TerminalState {
         cell.terrain = <Rock direction={rockLayout.direction} />;
       }
 
-      const deepWaterLayout = getCellEntities(terrainElements, DeepWater);
-      if (deepWaterLayout.length > 0) {
-        if (cell.grounds?.length) cell.grounds = undefined;
-        cell.terrain = <DeepWater />;
-      }
-
       // Sprite: collapse into bushes or tress, or override campfire
       const spriteElements = getSingleElements(world, mapCells, 'sprite');
       if (!cell.terrain && !cell.grounds?.length) {
         const plantLayout = getCellEntities(spriteElements, Flower);
         if (plantLayout.length > 2) {
-          cell.terrain = <Tree />;
+          cell.terrain = <Tree direction={directions[getDeterministicRandomInt(0, 7)]} />;
         } else if (plantLayout.length > 0) {
           cell.sprite = plantLayout.length === 2 ? <Bush /> : <Flower />;
         }

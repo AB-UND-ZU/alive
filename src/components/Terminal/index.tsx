@@ -1,7 +1,8 @@
 import { useEffect, useReducer, useRef, useState } from "react";
-import { Bush, Flower, Food, Mana } from "./entities";
+import { Amulet, Armor, Boat, Bush, Flower, Seed, Key, Sword, Herb } from "./entities";
 import { generateLevel } from "./generate";
 import { reducer } from "./state";
+import { padDirections } from "./textures";
 import { getCell, getFog, pointRange } from "./utils";
 
 const TICK_INTERVAL = 500;
@@ -15,12 +16,13 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     screenHeight: 13,
     x: 0,
     y: 0,
+    direction: undefined,
     hp: 10,
     mp: 0,
     xp: 0,
     gold: 0,
-    food: 0,
-    mana: 0,
+    seed: 0,
+    herb: 0,
     wood: 0,
     iron: 0,
     board: [[{}]],
@@ -49,13 +51,13 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     const handleMove = (event: KeyboardEvent) => {
       const processKey = (key: string) => {
         if (event.key === 'ArrowUp') {
-          dispatch({ type: 'move', deltaY: -1 });
+          dispatch({ type: 'move', direction: 'up' });
         } else if (event.key === 'ArrowRight') {
-          dispatch({ type: 'move', deltaX: 1 });
+          dispatch({ type: 'move', direction: 'right' });
         } else if (event.key === 'ArrowDown') {
-          dispatch({ type: 'move', deltaY: 1 });
+          dispatch({ type: 'move', direction: 'down' });
         } else if (event.key === 'ArrowLeft') {
-          dispatch({ type: 'move', deltaX: -1 });
+          dispatch({ type: 'move', direction: 'left' });
         }
       };
 
@@ -84,39 +86,46 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
   return (
     <pre className="Terminal">
       <div className="Row">
-        {renderText('║ ')}
-        {renderText(`${state.hp.toString().padStart(2)}\u0102 `, 'Food')}
+        {renderText(`${state.hp.toString().padStart(2)}\u0102 `, 'Life')}
         {renderText(`${state.gold.toString().padStart(2)}\u0108 `, 'Gold')}
-        {renderText('│ ')}
         {renderText(`${state.wood.toString().padStart(2)}\u2261 `, 'Wood')}
-        {renderText(`${state.food.toString().padStart(2)}`, 'Food')}
+        {renderText(`${state.seed.toString().padStart(2)}`, 'Seed')}
         <span className="Cell">
-          <Food amount={3} />
+          <Seed amount={3} />
           <Bush />
         </span>
-        {renderText(' ║')}
+        {renderText('│')}
+        <span className="Cell">
+          <Sword material="iron" />
+        </span>
+        <span className="Cell">
+          <Armor material="wood" />
+        </span>
+        <span className="Cell">
+          <Amulet material="fire" />
+        </span>
       </div>
 
       <div className="Row">
-        {renderText('║ ')}
         {renderText(`${state.mp.toString().padStart(2)}\u0103 `, 'Mana')}
-        {renderText(`${state.xp.toString().padStart(2)}+ `, 'Score')}
-        {renderText('│ ')}
+        {renderText(`${state.xp.toString().padStart(2)}+ `, 'Experience')}
         {renderText(`${state.iron.toString().padStart(2)}\u00f7 `, 'Iron')}
-        {renderText(`${state.mana.toString().padStart(2)}`, 'Mana')}
+        {renderText(`${state.herb.toString().padStart(2)}`, 'Herb')}
         <span className="Cell">
-          <Mana amount={3} />
+          <Herb amount={3} />
           <Flower />
         </span>
-        {renderText(' ║')}
+        {renderText('│')}
+        <span className="Cell">
+          <Boat material="iron" />
+        </span>
+        <span className="Cell">
+          <Key material="wood" />
+        </span>
       </div>
 
       <div className="Row">
-        {renderText('╚')}
-        {Array.from({ length: (state.screenWidth - 3) / 2 }).map(() => renderText('═'))}
-        {renderText('╧')}
-        {Array.from({ length: (state.screenWidth - 3) / 2 }).map(() => renderText('═'))}
-        {renderText('╝')}
+        {renderText('═══════════════╧═════')}
       </div>
 
       {pointRange(state.screenHeight, offsetY => [state.x, state.y + offsetY - (state.screenHeight - 1) / 2]).map(([_, rowY]) => (
@@ -149,6 +158,20 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
           })}
         </div>
       ))}
+
+      <div className="Row">
+        {renderText('══════╤═══════╤══════')}
+      </div>
+
+      <div className="Row">
+        {renderText('      │       │ ')}
+        {renderText(padDirections[state.direction || 'none'][0])}
+      </div>
+
+      <div className="Row">
+        {renderText('      │       │ ')}
+        {renderText(padDirections[state.direction || 'none'][1])}
+      </div>
     </pre>
   );
 }

@@ -1,12 +1,11 @@
 import React, { ReactComponentElement, ReactElement } from "react";
-import { Cell, Inventory, inventories, ShallowWater, Swimming, Gold, Entity, Triangle, directionOffset, directions } from "./entities";
+import { Cell, Inventory, inventories, Water, Swimming, Gold, Entity, Triangle, directionOffset, directions, Direction } from "./entities";
 import { visibleFogOfWar } from "./fog";
 import { getCell, getDeterministicRandomInt, getFog, Point, pointRange, TerminalState, wrapCoordinates } from "./utils";
 
 type MoveAction = {
   type: 'move',
-  deltaX?: number,
-  deltaY?: number,
+  direction?: Direction,
 };
 
 type CollectAction = {
@@ -39,7 +38,7 @@ const updateBoard = (board: Cell[][], x: number, y: number, value: Cell) => {
 }
 const isWater = (state: TerminalState, x: number, y: number) => {
   const cell = getCell(state, x, y);
-  return cell.grounds?.length === 1 && cell.grounds[0].type === ShallowWater && cell.grounds[0].props.amount === 4;
+  return cell.grounds?.length === 1 && cell.grounds[0].type === Water && cell.grounds[0].props.amount === 4;
 }
 const isLand = (state: TerminalState, x: number, y: number) => [-1, 0, 1].map(deltaX => [-1, 0, 1].map(deltaY => !isWater(state, x + deltaX, y + deltaY))).flat().some(Boolean);
 const isWalkable = (state: TerminalState, x: number, y: number) => {
@@ -50,8 +49,9 @@ const isWalkable = (state: TerminalState, x: number, y: number) => {
 export const reducer = (state: TerminalState, action: TerminalAction): TerminalState => {
   switch (action.type) {
     case 'move': {
-      const { deltaX = 0, deltaY = 0 } = action;
-      let newState = { ...state };
+      const { direction } = action;
+      const [deltaX, deltaY] = direction ? directionOffset[direction] : [0, 0];
+      let newState: TerminalState = { ...state, direction };
       const [newX, newY] = wrapCoordinates(newState, newState.x + deltaX, newState.y + deltaY);
       const cell = newState.board[newState.y][newState.x];
       let newCell = { ...newState.board[newY][newX] };
@@ -129,7 +129,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     }
 
     case 'tick': {
-      const newState = { ...state };
+      const newState = { ...state, direction: undefined };
       const newCreatures = newState.creatures.map<Point>(([creatureX, creatureY]) => {
         const creatureCell = getCell(newState, creatureX, creatureY);
         

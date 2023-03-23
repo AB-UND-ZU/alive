@@ -14,8 +14,8 @@ export const Sand: Ground = ({ amount }) => {
   return <span className="Entity Sand">{densities[amount - 1]}</span>
 }
 
-export const ShallowWater: Ground = ({ amount }) => {
-  return <span className="Entity ShallowWater">{densities[amount - 1]}</span>
+export const Water: Ground = ({ amount }) => {
+  return <span className="Entity Water">{densities[amount - 1]}</span>
 }
 
 export const Ice: Ground = ({ amount }) => {
@@ -28,7 +28,7 @@ export const Lily: Ground = ({ amount }) => {
 }
 */
 
-export const grounds = [ShallowWater, Ice, Sand, Path];
+export const grounds = [Water, Ice, Sand, Path];
 
 
 // ------------------------ TERRAIN --------------------------------
@@ -46,20 +46,16 @@ export const Rock: Terrain = ({ direction }) => {
   return <span className="Entity Rock">{direction ? directions[direction] : '█'}</span>
 }
 
-export const DeepWater: Terrain = () => {
-  return <span className="Entity DeepWater">{'█'}</span>
-}
-
-export const Tree: Terrain = () => {
+export const Tree: Terrain = ({ direction }) => {
   return (
     <>
       <span className="Entity Wood">{'\u2510'}</span>
-      <span className="Entity Plant">{'#'}</span>
+      <span className="Entity Plant">{direction ? '\u0398' : '#'}</span>
     </>
   );
 }
 
-export const terrains = [DeepWater, Rock, Tree];
+export const terrains = [Rock, Tree];
 
 
 
@@ -67,22 +63,51 @@ export const terrains = [DeepWater, Rock, Tree];
 
 export type Item = React.FC<{ amount: number }>;
 
+export const Life: Item = ({ amount }: { amount: number }) => {
+  return (
+    <>
+      {amount > 0 && <span className="Entity Life">{amount}</span>}
+      <span className="Entity Life">{'\u0102'}</span>
+    </>
+  );
+}
+
+export const Mana: Item = ({ amount }: { amount: number }) => {
+  return (
+    <>
+      {amount > 0 && <span className="Entity Mana">{amount}</span>}
+      <span className="Entity Mana">{'\u0103'}</span>
+    </>
+  );
+}
+
+export const Experience: Item = ({ amount }: { amount: number }) => {
+  if (amount === 1) return <span className="Entity Experience">{'+'}</span>;
+  if (amount === 2) return (
+    <>
+      <span className="Entity Experience">{'-'}</span>
+      <span className="Entity Experience">{'|'}</span>
+    </>
+  );
+  return <span className="Entity Experience">{'┼'}</span>;
+}
+
 export const Gold: Item = ({ amount }: { amount: number }) => {
   if (amount === 1) return <span className="Entity Gold">{'\u0108'}</span>;
   if (amount === 2) return <span className="Entity Gold">{'o'}</span>;
   return <span className="Entity Gold">{'O'}</span>;
 }
 
-export const Food: Item = ({ amount }: { amount: number }) => {
-  if (amount === 1) return <span className="Entity Food">{'\''}</span>;
-  if (amount === 2) return <span className="Entity Food">{'"'}</span>;
-  return <span className="Entity Food">{'°'}</span>;
+export const Seed: Item = ({ amount }: { amount: number }) => {
+  if (amount === 1) return <span className="Entity Seed">{'\''}</span>;
+  if (amount === 2) return <span className="Entity Seed">{'"'}</span>;
+  return <span className="Entity Seed">{'°'}</span>;
 }
 
-export const Mana: Item = ({ amount }: { amount: number }) => {
-  if (amount === 1) return <span className="Entity Mana">{'·'}</span>;
-  if (amount === 2) return <span className="Entity Mana">{'∙'}</span>;
-  return <span className="Entity Mana">{'\u0106'}</span>;
+export const Herb: Item = ({ amount }: { amount: number }) => {
+  if (amount === 1) return <span className="Entity Herb">{'·'}</span>;
+  if (amount === 2) return <span className="Entity Herb">{'∙'}</span>;
+  return <span className="Entity Herb">{'\u0106'}</span>;
 }
 
 export const Wood: Item = ({ amount }: { amount: number }) => {
@@ -92,12 +117,12 @@ export const Wood: Item = ({ amount }: { amount: number }) => {
 }
 
 export const Iron: Item = ({ amount }: { amount: number }) => {
-  if (amount === 1) return <span className="Entity Iron">{'.'}</span>;
-  if (amount === 2) return <span className="Entity Iron">{':'}</span>;
-  return <span className="Entity Iron">{'\u00f7'}</span>;
+  if (amount === 1) return <span className="Entity Ore">{'.'}</span>;
+  if (amount === 2) return <span className="Entity Ore">{':'}</span>;
+  return <span className="Entity Ore">{'\u00f7'}</span>;
 }
 
-export const items = [Wood, Iron, Mana, Food, Gold];
+export const items = [Life, Mana, Wood, Iron, Herb, Seed, Gold, Experience];
 
 
 // ------------------------ SPRITE --------------------------------
@@ -167,7 +192,19 @@ export const Spell: Equipment = ({ material }) => {
   return <span className={`Entity Spell ${material}`}>{'\u0128'}</span>
 }
 
-export const equipments = [Armor, Sword, Spell];
+export const Amulet: Equipment = ({ material }) => {
+  return <span className={`Entity Amulet ${material}`}>{'@'}</span>
+}
+
+export const Boat: Equipment = ({ material }) => {
+  return <span className={`Entity Boat ${material}`}>{'\u0115'}</span>
+}
+
+export const Key: Equipment = ({ material }) => {
+  return <span className={`Entity Key ${material}`}>{'\u011c'}</span>
+}
+
+export const equipments = [Armor, Sword, Spell, Amulet];
 
 
 // ------------------------ PARTICLE --------------------------------
@@ -175,7 +212,7 @@ export const equipments = [Armor, Sword, Spell];
 export type Particle = React.FC;
 
 export const Swimming: Particle = () => {
-  return <span className="Entity ShallowWater">{'▄'}</span>;
+  return <span className="Entity Water">{'▄'}</span>;
 }
 
 export const Burning: Particle = () => {
@@ -191,15 +228,18 @@ export const particles = [Swimming, Burning];
 
 // ------------------------ CONSTANTS --------------------------------
  
-export type Status = 'xp' | 'mp';
-export const inventories = new Map<Item | undefined, Inventory>([
+export type Status = 'hp' | 'xp' | 'mp';
+export const inventories = new Map<Item | undefined, Stats>([
+  [Life, 'hp'],
+  [Experience, 'xp'],
+  [Mana, 'mp'],
   [Gold, 'gold'],
-  [Food, 'food'],
-  [Mana, 'mana'],
+  [Herb, 'herb'],
+  [Seed, 'seed'],
   [Wood, 'wood'],
   [Iron, 'iron'],
 ]);
-export type Inventory = 'gold' | 'food' | 'mana' | 'wood' | 'iron';
+export type Inventory = 'gold' | 'seed' | 'herb' | 'wood' | 'iron';
 export type Stats = Status | Inventory;
 export type Material = "wood" | "iron" | "fire" | "ice";
 
@@ -212,7 +252,7 @@ export const directionOffset: Record<Direction, Point> = {
 }
 export type Direction = typeof directions[number];
 
-export const containers = new Map<Entity | undefined, Item>([[Flower, Mana], [Bush, Food], [Tree, Wood], [Rock, Iron]]);
+export const containers = new Map<Entity | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);
 
 // ------------------------ ENTITY --------------------------------
 

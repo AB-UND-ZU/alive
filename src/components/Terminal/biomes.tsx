@@ -1,5 +1,5 @@
 import { TileType } from "worldmap-generator";
-import { Burning, Campfire, Cell, DeepWater, Flower, Ice, Mana, Path, Rock, Sand, ShallowWater } from "./entities";
+import { Burning, Campfire, Cell, Flower, Ice, Mana, Path, Rock, Sand, Water } from "./entities";
 
 export class World {
   tileTypes: TileType[] = [];
@@ -38,7 +38,7 @@ class Biome {
 export const basic = new Biome({
   water: {
     size: 300,
-    cell: { grounds: [<ShallowWater amount={1} />] },
+    cell: { grounds: [<Water amount={1} />] },
     connections: { sand: 1, air: 1 }
   },
   sand: {
@@ -84,7 +84,7 @@ export const frozen = new Biome({
   },
   frozen_shallow: {
     size: 20,
-    cell: { grounds: [<ShallowWater amount={1} />] },
+    cell: { grounds: [<Water amount={1} />] },
     connections: { ocean_shallow: 1 }
   },
 });
@@ -108,14 +108,9 @@ export const island = new Biome({
 });
 
 export const ocean = new Biome({
-  ocean_deep: {
-    size: 300,
-    cell: { terrain: <DeepWater /> },
-    connections: { ocean_shallow: 1 }
-  },
   ocean_shallow: {
     size: 100,
-    cell: { grounds: [<ShallowWater amount={1} />] },
+    cell: { grounds: [<Water amount={1} />] },
     connections: { beach_sand: 5, meadow_air: 1, meadow_green: 1 }
   },
 });

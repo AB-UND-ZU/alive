@@ -1,4 +1,4 @@
-import { Cell } from "./entities";
+import { Cell, Direction } from "./entities";
 
 export const sum = (numbers: number[]) => numbers.reduce((total, number) => total + number, 0);
 
@@ -21,22 +21,27 @@ export type TerminalState = {
   // player
   x: number,
   y: number,
+  direction?: Direction,
+
+  // stats
   hp: number,
   mp: number,
   xp: number,
 
   // inventory
   gold: number,
-  food: number,
-  mana: number,
+  seed: number,
+  herb: number,
   wood: number,
   iron: number,
+
+  // display
+  screenWidth: number,
+  screenHeight: number,
 
   // board
   width: number,
   height: number,
-  screenWidth: number,
-  screenHeight: number,
   board: Cell[][],
   fog: Fog[][],
   creatures: Point[],
