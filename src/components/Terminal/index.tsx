@@ -64,6 +64,7 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     window.addEventListener('keydown', handleMove);
 
     nextTick();
+    dispatch({ type: 'move' });
 
     return () => {
       window.removeEventListener('keydown', handleMove);

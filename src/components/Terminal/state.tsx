@@ -144,10 +144,22 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
             return [targetX, targetY];
           }
 
-          const newDirection = directions[(directions.indexOf(direction) + getDeterministicRandomInt(1, directions.length - 1)) % directions.length];
+          // find first free cell in either counter- or clockwise direction by random
+          const rotation = getDeterministicRandomInt(0, 1) * 2 - 1;
+          const newDirection = Array.from({ length: 3 }).map((_, offset) => {
+            const attemptDirection = directions[(directions.indexOf(direction) + (offset + 1) * rotation + directions.length) % directions.length];
+            const [attemptX, attemptY] = directionOffset[attemptDirection];
+            if (isWalkable(state, creatureX + attemptX, creatureY + attemptY)) {
+              return attemptDirection;
+            }
+          }).filter(Boolean)[0];
+
+          // if creature is stuck, make it circle around
+          const stuckDirection = directions[(directions.indexOf(direction) + getDeterministicRandomInt(1, directions.length - 1)) % directions.length];
+
           newState.board = updateBoard(newState.board, creatureX, creatureY, {
             ...creatureCell,
-            creature: <Triangle direction={newDirection} />
+            creature: <Triangle direction={newDirection || stuckDirection} />
           });
         }
 
