@@ -21,6 +21,12 @@ export const Ice: Ground = ({ amount }) => {
   return <span className="Entity Ice">{densities[amount - 1]}</span>
 }
 
+/*
+export const Lily: Ground = ({ amount }) => {
+  return <span className="Entity Plant">{'\u221e'}</span>;
+}
+*/
+
 export const grounds = [ShallowWater, Ice, Sand, Path];
 
 
@@ -185,7 +191,7 @@ export const particles = [Swimming, Burning];
 // ------------------------ CONSTANTS --------------------------------
  
 export type Status = 'xp' | 'mp';
-export const inventories = new Map<Item, Inventory>([
+export const inventories = new Map<Item | undefined, Inventory>([
   [Gold, 'gold'],
   [Food, 'food'],
   [Mana, 'mana'],
@@ -198,6 +204,8 @@ export type Material = "wood" | "iron" | "fire" | "ice";
 
 export const directions = ['up', 'right', 'down', 'left'] as const;
 export type Direction = typeof directions[number];
+
+export const containers = new Map<Entity | undefined, Item>([[Flower, Mana], [Bush, Food], [Tree, Wood], [Rock, Iron]]);
 
 // ------------------------ ENTITY --------------------------------
 

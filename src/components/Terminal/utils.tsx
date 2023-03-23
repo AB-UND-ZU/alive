@@ -1,5 +1,7 @@
 import { Cell } from "./entities";
 
+export const sum = (numbers: number[]) => numbers.reduce((total, number) => total + number, 0);
+
 // x, y
 export type Point = [number, number];
 

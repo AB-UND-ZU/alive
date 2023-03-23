@@ -1,4 +1,5 @@
-import { Cell, Inventory, inventories, ShallowWater, Swimming } from "./entities";
+import React, { ReactComponentElement, ReactElement } from "react";
+import { Cell, Inventory, inventories, ShallowWater, Swimming, Gold, Entity } from "./entities";
 import { visibleFogOfWar } from "./fog";
 import { getCell, getFog, Point, pointRange, TerminalState, wrapCoordinates } from "./utils";
 
@@ -10,8 +11,8 @@ type MoveAction = {
 
 type CollectAction = {
   type: 'collect',
-  inventory: Inventory,
-  amount: number,
+  itemX: number,
+  itemY: number,
 };
 
 type FogAction = {
@@ -39,6 +40,8 @@ const isWater = (state: TerminalState, x: number, y: number) => {
 const isLand = (state: TerminalState, x: number, y: number) => [-1, 0, 1].map(deltaX => [-1, 0, 1].map(deltaY => !isWater(state, x + deltaX, y + deltaY))).flat().some(Boolean);
 
 export const reducer = (state: TerminalState, action: TerminalAction): TerminalState => {
+  console.log(state);
+  
   switch (action.type) {
     case 'move': {
       const { deltaX = 0, deltaY = 0 } = action;
@@ -49,9 +52,8 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
 
       // if walking into item, stop and collect instead
       if (newCell.item) {
-        newState = reducer(newState, { type: 'collect', inventory: inventories.get(newCell.item.type) || 'gold', amount: newCell.item.props.amount });
-        newCell.item = undefined;
-        newState.board = updateBoard(newState.board, newX, newY, newCell);
+        newState = reducer(newState, { type: 'collect', itemX: newX, itemY: newY });
+        
       } else if (!newCell.terrain && !newCell.creature && isLand(newState, newX, newY)) {
         newCell.creature = cell.creature;
         newCell.equipments = cell.equipments;
@@ -72,10 +74,23 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     }
 
     case 'collect': {
-      const { inventory, amount } = action;
+      const { itemX, itemY } = action;
+      const itemCell = { ...getCell(state, itemX, itemY) };
+      const ItemEntity = itemCell.item?.type;
+      const inventory = inventories.get(ItemEntity);
+      const amount = itemCell.item?.props.amount || 0;
+
+      if (!inventory || !ItemEntity) return state;
+        
+      if (amount <= 1) {
+        itemCell.item = undefined;
+      } else {
+        itemCell.item = <ItemEntity amount={amount - 1} />;
+      }
       return {
         ...state,
-        [inventory]: state[inventory] + amount,
+        board: updateBoard(state.board, itemX, itemY, itemCell),
+        [inventory]: state[inventory] + 1,
       };
     }
 

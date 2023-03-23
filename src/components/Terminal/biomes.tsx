@@ -1,5 +1,5 @@
 import { TileType } from "worldmap-generator";
-import { Burning, Campfire, Cell, DeepWater, Flower, Ice, Mana, Rock, Sand, ShallowWater } from "./entities";
+import { Burning, Campfire, Cell, DeepWater, Flower, Ice, Mana, Path, Rock, Sand, ShallowWater } from "./entities";
 
 export class World {
   tileTypes: TileType[] = [];
@@ -64,6 +64,12 @@ export const basic = new Biome({
   air: {
     size: 500,
     cell: {},
+  },
+
+  path: {
+    size: 0,
+    cell: { grounds: [<Path amount={1} />] },
+    connections: {}
   },
 });
 

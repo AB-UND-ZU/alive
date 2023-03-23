@@ -2,8 +2,9 @@ import { ReactComponentElement } from 'react';
 import WorldmapGenerator, { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, directions, Direction, Flower, Tree, Bush, DeepWater, grounds, items, Campfire, Equipment, Particle } from "./entities";
-import { Fog, TerminalState } from "./utils";
+import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, directions, Direction, Flower, Tree, Bush, DeepWater, grounds, items, Campfire, Equipment, Particle, ShallowWater, containers } from "./entities";
+import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
+import { Fog, sum, TerminalState } from "./utils";
 
 // patch infite borders
 const getCell = WorldmapGenerator.prototype.getCell;
@@ -32,7 +33,6 @@ const getMultipleElements = (world: World, cells: MapCell[], category: MultipleC
   ...(world.tileCells[cell.name][category] || [])
 ], []);
 
-const sum = (numbers: number[]) => numbers.reduce((total, number) => total + number, 0);
 
 const getCellEntities = (elements: (ReactComponentElement<Entity> | undefined)[], target: Entity) => {
   return elements.filter(element => element?.type === target);
@@ -57,7 +57,54 @@ const getBlockLayout = (elements: (ReactComponentElement<Entity> | undefined)[],
   return { length, direction };
 }
 
+const noiseMatrix = (
+  width: number,
+  height: number,
+  iterations: number
+) => {
+  const noiseMatrix = generateWhiteNoise(width, height, -1, 1); // window.Rune.deterministicRandom
+  const valueMatrix = valueNoise(noiseMatrix, iterations);
+
+  return createMatrix(width, height, (x, y) => valueMatrix[y][x] * Math.sqrt(iterations || 0.25) * 100);
+};
+
 function generateLevel(state: TerminalState): TerminalState {
+  const width = state.width * 2;
+  const height = state.height * 2;
+
+  const terrainMatrix = noiseMatrix(width, height, 20);
+  const greenMatrix = noiseMatrix(width, height, 1);
+  const itemMatrix = noiseMatrix(width / 2, height / 2, 0);
+  const elevationMatrix = noiseMatrix(width / 8, height / 8, 20);
+  const temperatureMatrix = noiseMatrix(width / 8, height / 8, 20);
+
+  console.log({itemMatrix});
+  const worldMap = createMatrix(width, height, (x, y) => {
+    const terrainNoise = terrainMatrix[y][x];
+    const greenNoise = greenMatrix[y][x];
+    const elevationNoise = elevationMatrix[Math.floor(y / 8)][Math.floor(x / 8)];
+    const temperatureNoise = temperatureMatrix[Math.floor(y / 8)][Math.floor(x / 8)];
+
+    const height = terrainNoise + elevationNoise * 2;
+    let name = 'water';
+    if (height >= 10) {
+      name = 'rock';
+    } else if (height >= -30) {
+      name = 'air';
+    } else if (height >= -40) {
+      name = 'sand';
+    }
+    if (name === 'air' && greenNoise >= 20) name = 'green';
+
+    return {
+      name,
+      frequencies: {},
+      resolved: true,
+    };
+  });
+
+
+  /*
   const mapGenerator = new WorldmapGenerator({
     size: {
       width: state.width * 2,
@@ -67,14 +114,15 @@ function generateLevel(state: TerminalState): TerminalState {
   });
 
   mapGenerator.generate();
+  */
   
   const rows = Array.from({ length: state.height }).map((_, rowIndex) => {
     const row = Array.from({ length: state.width }).map((_, columnIndex) => {
       const mapCells = [
-        mapGenerator.map[rowIndex * 2][columnIndex * 2],
-        mapGenerator.map[rowIndex * 2][columnIndex * 2 + 1],
-        mapGenerator.map[rowIndex * 2 + 1][columnIndex * 2],
-        mapGenerator.map[rowIndex * 2 + 1][columnIndex * 2 + 1],
+        worldMap[rowIndex * 2][columnIndex * 2],
+        worldMap[rowIndex * 2][columnIndex * 2 + 1],
+        worldMap[rowIndex * 2 + 1][columnIndex * 2],
+        worldMap[rowIndex * 2 + 1][columnIndex * 2 + 1],
       ];
       
       // resolve four cells into highest matching entity
@@ -115,15 +163,6 @@ function generateLevel(state: TerminalState): TerminalState {
         cell.terrain = <DeepWater />;
       }
 
-      // Item: highest amount wins
-      const itemElements = getSingleElements(world, mapCells, 'item');
-      const itemAmounts = items.map(item => sum(getCellEntities(itemElements, item).map(entity => entity && 'amount' in entity ? entity.amount as number : 0)));
-      const mostAmount = Math.max(...itemAmounts);
-      if (mostAmount > 0) {
-        const ItemElement = items[itemAmounts.lastIndexOf(mostAmount)];
-        cell.item = <ItemElement amount={mostAmount} />;
-      }
-
       // Sprite: collapse into bushes or tress, or override campfire
       const spriteElements = getSingleElements(world, mapCells, 'sprite');
       if (!cell.terrain && !cell.grounds?.length) {
@@ -132,6 +171,17 @@ function generateLevel(state: TerminalState): TerminalState {
           cell.terrain = <Tree />;
         } else if (plantLayout.length > 0) {
           cell.sprite = plantLayout.length === 2 ? <Bush /> : <Flower />;
+        }
+      }
+
+      // Item: add container item if overlapping with noise
+      const itemNoise = itemMatrix[rowIndex][columnIndex];
+      const CellItem = containers.get(cell.sprite?.type || cell.terrain?.type);
+      if (CellItem && itemNoise > 48 && !cell.terrain?.props.direction) {
+        cell.item = <CellItem amount={Math.floor(itemNoise - 46.5 )} />;
+        
+        if (cell.terrain?.type === Tree) {
+          cell.terrain = undefined;
         }
       }
 

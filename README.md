@@ -6,6 +6,8 @@
 - Red: food
 -
 
+Make FoV round
+
 ## Layers
 
 - Deep water
@@ -15,6 +17,7 @@
 - Path
 - Rock
 - Ice
+- lily
 
 ## Items
 

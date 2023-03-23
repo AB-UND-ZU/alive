@@ -5,8 +5,8 @@ import { getCell, getFog, pointRange } from "./utils";
 
 const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: React.Dispatch<React.SetStateAction<number>>, gameOver: () => void}) => {
   const [state, dispatch] = useReducer(reducer, {
-    width: 150,
-    height: 150,
+    width: 160,
+    height: 160,
     screenWidth: 21,
     screenHeight: 13,
     x: 0,

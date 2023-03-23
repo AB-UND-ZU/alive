@@ -100,7 +100,6 @@ body {
   color: var(--aqua);
 }
 
-
 /*
 .Door {
   color: var(--maroon);
@@ -133,6 +132,10 @@ body {
 
 .Rock {
   color: var(--grey);
+}
+
+.Lily {
+  color: var(--fuchsia);
 }
 
 
