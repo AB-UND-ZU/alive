@@ -61,12 +61,16 @@ body {
   color: var(--white);
 }
 
+.HUD {
+  color: var(--grey);
+}
+
 .Fog {
   opacity: 50%;
 }
 
 .Dark {
-  opacity: 10%;
+  opacity: 15%;
 }
 
 .Cell::after {
@@ -135,6 +139,10 @@ body {
 }
 
 .Lily {
+  color: var(--fuchsia);
+}
+
+.Score {
   color: var(--fuchsia);
 }
 

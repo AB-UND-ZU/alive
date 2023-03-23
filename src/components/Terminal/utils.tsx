@@ -21,6 +21,9 @@ export type TerminalState = {
   // player
   x: number,
   y: number,
+  hp: number,
+  mp: number,
+  xp: number,
 
   // inventory
   gold: number,
