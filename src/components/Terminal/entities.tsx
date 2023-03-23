@@ -1,4 +1,5 @@
 import { ReactComponentElement } from "react";
+import { Point } from "./utils";
 
 // ------------------------ GROUND --------------------------------
 
@@ -142,7 +143,7 @@ export const Triangle: Creature = ({ direction }) => {
   return (
     <>
       <span className="Entity Monster">{directions[direction]}</span>
-      <span className="Entity Bar">{'\u0126'}</span>
+      <span className="Entity Bar">{'\u0120'}</span>
     </>
   );
 }
@@ -203,6 +204,12 @@ export type Stats = Status | Inventory;
 export type Material = "wood" | "iron" | "fire" | "ice";
 
 export const directions = ['up', 'right', 'down', 'left'] as const;
+export const directionOffset: Record<Direction, Point> = {
+  up: [0, -1],
+  right: [1, 0],
+  down: [0, 1],
+  left: [-1, 0],
+}
 export type Direction = typeof directions[number];
 
 export const containers = new Map<Entity | undefined, Item>([[Flower, Mana], [Bush, Food], [Tree, Wood], [Rock, Iron]]);

@@ -1,7 +1,7 @@
 import React, { ReactComponentElement, ReactElement } from "react";
-import { Cell, Inventory, inventories, ShallowWater, Swimming, Gold, Entity } from "./entities";
+import { Cell, Inventory, inventories, ShallowWater, Swimming, Gold, Entity, Triangle, directionOffset, directions } from "./entities";
 import { visibleFogOfWar } from "./fog";
-import { getCell, getFog, Point, pointRange, TerminalState, wrapCoordinates } from "./utils";
+import { getCell, getDeterministicRandomInt, getFog, Point, pointRange, TerminalState, wrapCoordinates } from "./utils";
 
 type MoveAction = {
   type: 'move',
@@ -19,7 +19,11 @@ type FogAction = {
   type: 'fog',
 };
 
-type TerminalAction = MoveAction | CollectAction | FogAction;
+type TickAction = {
+  type: 'tick',
+};
+
+type TerminalAction = MoveAction | CollectAction | FogAction | TickAction;
 
 const updateBoard = (board: Cell[][], x: number, y: number, value: Cell) => {
   const newBoard = [
@@ -38,10 +42,12 @@ const isWater = (state: TerminalState, x: number, y: number) => {
   return cell.grounds?.length === 1 && cell.grounds[0].type === ShallowWater && cell.grounds[0].props.amount === 4;
 }
 const isLand = (state: TerminalState, x: number, y: number) => [-1, 0, 1].map(deltaX => [-1, 0, 1].map(deltaY => !isWater(state, x + deltaX, y + deltaY))).flat().some(Boolean);
+const isWalkable = (state: TerminalState, x: number, y: number) => {
+  const cell = getCell(state, x, y);
+  return isLand(state, x, y) && !cell.terrain && !cell.creature && !cell.item;
+}
 
 export const reducer = (state: TerminalState, action: TerminalAction): TerminalState => {
-  console.log(state);
-  
   switch (action.type) {
     case 'move': {
       const { deltaX = 0, deltaY = 0 } = action;
@@ -54,7 +60,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       if (newCell.item) {
         newState = reducer(newState, { type: 'collect', itemX: newX, itemY: newY });
         
-      } else if (!newCell.terrain && !newCell.creature && isLand(newState, newX, newY)) {
+      } else if (isWalkable(state, newX, newY)) {
         newCell.creature = cell.creature;
         newCell.equipments = cell.equipments;
         newState.board = updateBoard(newState.board, newX, newY, newCell);
@@ -120,6 +126,38 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
 
 
       return newState;
+    }
+
+    case 'tick': {
+      const newState = { ...state };
+      const newCreatures = newState.creatures.map<Point>(([creatureX, creatureY]) => {
+        const creatureCell = getCell(newState, creatureX, creatureY);
+        
+        if (creatureCell.creature?.type === Triangle) {
+          const direction = creatureCell.creature.props.direction;
+          const [moveX, moveY] = directionOffset[direction];
+          const [targetX, targetY] = wrapCoordinates(newState, creatureX + moveX, creatureY + moveY);
+          const targetCell = getCell(newState, targetX, targetY);
+          if (isWalkable(newState, targetX, targetY)) {
+            newState.board = updateBoard(newState.board, targetX, targetY, {...targetCell, creature: creatureCell.creature});
+            newState.board = updateBoard(newState.board, creatureX, creatureY, { ...creatureCell, creature: undefined });
+            return [targetX, targetY];
+          }
+
+          const newDirection = directions[(directions.indexOf(direction) + getDeterministicRandomInt(1, directions.length - 1)) % directions.length];
+          newState.board = updateBoard(newState.board, creatureX, creatureY, {
+            ...creatureCell,
+            creature: <Triangle direction={newDirection} />
+          });
+        }
+
+        return [creatureX, creatureY];
+      });
+
+      return {
+        ...newState,
+        creatures: newCreatures,
+      };
     }
 
     default: {

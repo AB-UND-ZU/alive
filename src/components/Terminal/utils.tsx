@@ -2,6 +2,12 @@ import { Cell } from "./entities";
 
 export const sum = (numbers: number[]) => numbers.reduce((total, number) => total + number, 0);
 
+export const getDeterministicRandomInt = (minimum: number, maximum: number) => {
+  return Math.floor(
+    window.Rune.deterministicRandom() * (maximum - minimum + 1) + minimum
+  );
+};
+
 // x, y
 export type Point = [number, number];
 
@@ -30,6 +36,7 @@ export type TerminalState = {
   screenHeight: number,
   board: Cell[][],
   fog: Fog[][],
+  creatures: Point[],
 }
 
 export const wrapCoordinates = (state: TerminalState, x: number, y: number) => [

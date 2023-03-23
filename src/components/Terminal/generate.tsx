@@ -2,9 +2,9 @@ import { ReactComponentElement } from 'react';
 import WorldmapGenerator, { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, directions, Direction, Flower, Tree, Bush, DeepWater, grounds, items, Campfire, Equipment, Particle, ShallowWater, containers } from "./entities";
+import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, directions, Direction, Flower, Tree, Bush, DeepWater, grounds, items, Campfire, Equipment, Particle, ShallowWater, containers, Triangle } from "./entities";
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { Fog, sum, TerminalState } from "./utils";
+import { Fog, getDeterministicRandomInt, Point, sum, TerminalState } from "./utils";
 
 // patch infite borders
 const getCell = WorldmapGenerator.prototype.getCell;
@@ -20,12 +20,6 @@ WorldmapGenerator.prototype.resolveMapCell = function(x, y, name) {
   const fencedY = (y + this.size.height) % this.size.height;
   return resolveMapCell.call(this, fencedX, fencedY, name);
 }
-
-const getDeterministicRandomInt = (minimum: number, maximum: number) => {
-  return Math.floor(
-    window.Rune.deterministicRandom() * (maximum - minimum + 1) + minimum
-  );
-};
 
 const getSingleElements = (world: World, cells: MapCell[], category: SingleCategories) => cells.map(cell => world.tileCells[cell.name][category]);
 const getMultipleElements = (world: World, cells: MapCell[], category: MultipleCategories) => cells.reduce<ReactComponentElement<Entity>[]>((cellTypes, cell) => [
@@ -78,7 +72,6 @@ function generateLevel(state: TerminalState): TerminalState {
   const elevationMatrix = noiseMatrix(width / 8, height / 8, 20);
   const temperatureMatrix = noiseMatrix(width / 8, height / 8, 20);
 
-  console.log({itemMatrix});
   const worldMap = createMatrix(width, height, (x, y) => {
     const terrainNoise = terrainMatrix[y][x];
     const greenNoise = greenMatrix[y][x];
@@ -88,12 +81,13 @@ function generateLevel(state: TerminalState): TerminalState {
     const height = terrainNoise + elevationNoise * 2;
     let name = 'water';
     if (height >= 10) {
-      name = 'rock';
+      name = temperatureNoise * 2 + height >= 40 ? 'green' :  'rock';
     } else if (height >= -30) {
       name = 'air';
     } else if (height >= -40) {
       name = 'sand';
     }
+    //if (temperatureNoise <= 30 && height + temperatureNoise <= -45) name = 'ice';
     if (name === 'air' && greenNoise >= 20) name = 'green';
 
     return {
@@ -116,6 +110,7 @@ function generateLevel(state: TerminalState): TerminalState {
   mapGenerator.generate();
   */
   
+  const creatures: Point[] = [];
   const rows = Array.from({ length: state.height }).map((_, rowIndex) => {
     const row = Array.from({ length: state.width }).map((_, columnIndex) => {
       const mapCells = [
@@ -185,6 +180,13 @@ function generateLevel(state: TerminalState): TerminalState {
         }
       }
 
+      if (!cell.terrain && !cell.grounds && !cell.sprite) {
+        if (itemNoise < -48) {
+          creatures.push([columnIndex, rowIndex]);
+          cell.creature = <Triangle direction='up' />;
+        }
+      }
+
       const campfireLayout = getCellEntities(spriteElements, Campfire);
       if (campfireLayout.length > 0) {
         cell.terrain = undefined;
@@ -206,13 +208,13 @@ function generateLevel(state: TerminalState): TerminalState {
 
   // insert player at initial coords
   rows[state.y][state.x].creature = <Player direction="up" />;
-  rows[state.y][state.x].equipments = [<Armor material="wood" />, <Sword material="iron" />];
+  //rows[state.y][state.x].equipments = [<Armor material="wood" />, <Sword material="iron" />];
 
   // generate initial darkness
   const fog: Fog[][] = Array.from({ length: state.height }).map(
     () => Array.from<Fog>({ length: state.width }).fill('dark')
   );
-  return { ...state, board: rows, fog };
+  return { ...state, board: rows, fog, creatures };
 }
 
 
