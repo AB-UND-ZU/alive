@@ -1,4 +1,4 @@
-import { angleToCornerDirections, corners } from "./corners";
+import { angleToCornerDirections, corners, quarterCircle } from "./geometry";
 import { Direction, Rock } from "./entities";
 import { getCell, Point, pointRange, TerminalState } from "./utils";
 
@@ -37,6 +37,16 @@ const isVisible = (target: Point, visible: Interval[]) => {
   )));
 }
 
+const getQuarterRing = (horizontalSign: number, verticalSign: number, distance: number) => {
+  return quarterCircle.map(
+    (row, rowIndex) => row.map(
+      (column, columnIndex) => column === distance ? [
+        (row.length - columnIndex - 1) * horizontalSign,
+        (quarterCircle.length - rowIndex - 1) * verticalSign
+      ] : null).filter(Boolean) as Point[]
+    ).flat();
+};
+
 // this algorithm assumes screen width is larger than screen height
 export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visible: Interval[] = [[0, 360]], previousVisible: Point[] = [[0, 0]]): Point[] => {
   const maxHorizontal = (state.screenWidth - 1) / 2;
@@ -46,17 +56,13 @@ export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visi
   // bail out if we reached outer boundaries
   if (distance > maxHorizontal) return previousVisible;
 
-  // add left and right sides
-  const trimmedVertical = Math.min(maxVertical, distance);
-  relativeRing.push(...pointRange(trimmedVertical * 2 + 1, index => [distance * -1, index - trimmedVertical]));
-  relativeRing.push(...pointRange(trimmedVertical * 2 + 1, index => [distance, index - trimmedVertical]));
+  // top left
+  relativeRing.push(...getQuarterRing(-1, -1, distance));
 
-  // if not cut off, add top and bottom sides excluding corner
-  if (distance <= maxVertical) {
-    const trimmedHorizontal = distance - 1;
-    relativeRing.push(...pointRange(trimmedHorizontal * 2 + 1, index => [index - trimmedHorizontal, distance * -1]));
-    relativeRing.push(...pointRange(trimmedHorizontal * 2 + 1, index => [index - trimmedHorizontal, distance]));
-  }
+  // other corners excluding center lines
+  [[1, -1], [1, 1], [-1, 1]].forEach(([horizontal, vertical]) => {
+    relativeRing.push(...getQuarterRing(horizontal, vertical, distance));
+  });
 
   // add obstructed interval for each point that is not already obstructed
   const visibleCells = relativeRing.filter(relativePoint => isVisible(relativePoint, visible));

@@ -1,6 +1,16 @@
 import { Direction } from "./entities";
 import { Point } from "./utils";
 
+export const quarterCircle = [
+  [  ,  ,  ,  ,  ,  ,  ,10,10,10,10],
+  [  ,  ,  ,  , 10,10,10,8, 8, 8, 8],
+  [  ,  , 10,10,9 ,8, 8, 7, 6, 6, 6],
+  [  , 10,9, 9, 8, 7, 6, 6, 4, 4, 4],
+  [  , 10,9, 8, 7, 6, 5, 4, 3, 2, 2],
+  [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1],
+  [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+];
+
 export const angleToCornerDirections = (angle: number): [Direction, Direction] => {
   const normalizedAngle = (angle + 360) % 360;
   if (normalizedAngle === 0) return ['up', 'up'];
@@ -114,5 +124,4 @@ export const corners: Record<Direction | 'full', Record<Direction, Partial<Recor
       up: [[-0.5, 0.5], [0, -0.5]],
     },
   },
-
-}
+};
