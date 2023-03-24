@@ -172,12 +172,14 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
       </div>
 
       <div className="Row">
-        {renderText('  /\\  │       │ ')}
+        {renderText('  /\\  ', state.inventory.spell ? 'Freezing' : 'HUD')}
+        {renderText('│       │ ')}
         {renderText(padOrientation[state.orientation || center][0], 'Pad')}
       </div>
 
       <div className="Row">
-        {renderText('  \\/  │       │ ')}
+        {renderText('  \\/  ', state.inventory.spell ? 'Freezing' : 'HUD')}
+        {renderText('│       │ ')}
         {renderText(padOrientation[state.orientation || center][1], 'Pad')}
       </div>
     </pre>

@@ -267,7 +267,7 @@ export const Shock: Particle = ({ direction }) => {
     leftUp: '┌',
     center: '',
   };
-  return <span className="Entity Ice">{shockDirections[direction || 'center']}</span>;
+  return <span className="Entity Freezing">{shockDirections[direction || 'center']}</span>;
 }
 
 export const particles = [Swimming, Burning, Shock];

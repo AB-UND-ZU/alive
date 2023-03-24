@@ -84,9 +84,10 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
         }
         newState[counter] = newState[counter] + 1;
       } else if (inventory) {
+        const InventoryEntity = inventory[1];
         newState.inventory[inventory[0]] = {
           ...item,
-          type: inventory[1],
+          type: ItemEntity,
         };
         itemCell.item = undefined;
 
@@ -96,7 +97,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
           ...playerProcessor.entity,
           props: {
             ...playerProcessor.entity.props,
-            equipments: [...(playerProcessor.entity.props.equipments || []), item],
+            equipments: [...(playerProcessor.entity.props.equipments || []), <InventoryEntity amount={amount} />],
           }
         };
         const newCreatures = [...newState.creatures];
@@ -163,6 +164,9 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
 
     case 'spell': {
       const newState = { ...state };
+      
+      if (!newState.inventory.spell) return newState;
+
       const centerParticle = {
         x: newState.x,
         y: newState.y,

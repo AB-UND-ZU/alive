@@ -101,7 +101,7 @@ body {
 }
 
 .Ice {
-  color: var(--aqua);
+  color: var(--teal);
 }
 
 /*
@@ -184,6 +184,10 @@ body {
   z-index: 3;
 }
 
+.Spell {
+  color: var(--aqua);
+}
+
 .Amulet {
   color: var(--aqua);
 }
@@ -202,7 +206,7 @@ body {
 }
 
 .Freezing {
-  color: var(--teal);
+  color: var(--aqua);
   z-index: 10;
 }
 
