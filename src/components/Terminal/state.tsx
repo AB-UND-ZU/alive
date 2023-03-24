@@ -68,11 +68,12 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       const newState = { ...state };
       const itemCell = { ...getCell(state, itemX, itemY) };
 
-      if (!itemCell.item) return state;
-      const ItemEntity = itemCell.item.type;
+      const item = itemCell.item;
+      if (!item) return state;
+      const ItemEntity = item.type;
       const counter = counters.get(ItemEntity);
       const inventory = inventories.get(ItemEntity);
-      const amount = itemCell.item.props.amount;
+      const amount = item.props.amount;
 
       if (counter) {
         if (amount > 1) {
@@ -83,10 +84,23 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
         newState[counter] = newState[counter] + 1;
       } else if (inventory) {
         newState.inventory[inventory[0]] = {
-          ...itemCell.item,
+          ...item,
           type: inventory[1],
         };
         itemCell.item = undefined;
+
+        const playerIndex = newState.creatures.findIndex(processor => processor.entity.type === Player);
+        const playerProcessor = { ...newState.creatures[playerIndex] };
+        playerProcessor.entity = {
+          ...playerProcessor.entity,
+          props: {
+            ...playerProcessor.entity.props,
+            equipments: [...(playerProcessor.entity.props.equipments || []), item],
+          }
+        };
+        const newCreatures = [...newState.creatures];
+        newCreatures.splice(playerIndex, 1, playerProcessor);
+        newState.creatures = newCreatures;
       }
         
       newState.board = updateBoard(state.board, itemX, itemY, itemCell);

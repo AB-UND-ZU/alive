@@ -236,7 +236,7 @@ export const creatures = [Triangle, Player];
 export type Particle = React.FC<{ direction?: Direction }>;
 
 export const Swimming: Particle = () => {
-  return <span className="Entity Water">{'▄'}</span>;
+  return <span className="Entity Swimming">{'▄'}</span>;
 }
 
 export const Burning: Particle = () => {

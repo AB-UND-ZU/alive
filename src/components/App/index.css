@@ -180,6 +180,7 @@ body {
 
 .Sword {
   color: var(--grey);
+  z-index: 3;
 }
 
 .Amulet {
@@ -194,6 +195,11 @@ body {
   color: var(--yellow);
 }
 
+.Swimming {
+  color: var(--navy);
+  z-index: 10;
+}
+
 /*
 .Frame {
   color: var(--black);
@@ -204,16 +210,19 @@ body {
 }
 */
 
-.Hair {
-  color: var(--olive);
+.Player {
+  color: var(--white);
+  z-index: 1;
 }
 
-.Body {
-  color: var(--white);
+.Hair {
+  color: var(--olive);
+  z-index: 2;
 }
 
 .Health {
   color: var(--lime);
+  z-index: 11;
 }
 
 .Eye {
