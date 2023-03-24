@@ -1,4 +1,5 @@
-import { Cell, Water } from "./entities";
+import { ReactComponentElement } from "react";
+import { Cell, Creature, Particle, Water, Entity, Inventory } from "./entities";
 
 export const sum = (numbers: number[]) => numbers.reduce((total, number) => total + number, 0);
 
@@ -38,11 +39,18 @@ export const pointRange = (length: number, generator: (index: number) => Point) 
 
 export type Fog = 'visible' | 'fog' | 'dark';
 
+export type Processor<T extends Entity> = {
+  x: number,
+  y: number,
+  entity: ReactComponentElement<T>,
+}
+
 export type TerminalState = {
   // player
   x: number,
   y: number,
   orientation?: Orientation,
+  inventory: Inventory,
 
   // stats
   hp: number,
@@ -65,8 +73,9 @@ export type TerminalState = {
   height: number,
   board: Cell[][],
   fog: Fog[][],
-  creatures: Point[],
-  particles: Point[],
+  creatures: Processor<Creature>[],
+  particles: Processor<Particle>[],
+  spells: Processor<Particle>[],
 }
 
 export const wrapCoordinates = (state: TerminalState, x: number, y: number): Point => [
@@ -103,5 +112,6 @@ export const isWater = (state: TerminalState, x: number, y: number) => {
 export const isLand = (state: TerminalState, x: number, y: number) => [-1, 0, 1].map(deltaX => [-1, 0, 1].map(deltaY => !isWater(state, x + deltaX, y + deltaY))).flat().some(Boolean);
 export const isWalkable = (state: TerminalState, x: number, y: number) => {
   const cell = getCell(state, x, y);
-  return isLand(state, x, y) && !cell.terrain && !cell.creature && !cell.item;
+  const creature = state.creatures.find(processor => processor.x === x && processor.y === y);
+  return isLand(state, x, y) && !cell.terrain && !creature && !cell.item;
 }

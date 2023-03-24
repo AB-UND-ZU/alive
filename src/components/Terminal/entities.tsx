@@ -58,12 +58,44 @@ export const Tree: Terrain = ({ orientation }) => {
 export const terrains = [Rock, Tree];
 
 
+// ------------------------ EQUIPMENT --------------------------------
+
+export type Equipment = React.FC<{ amount: number }>;
+
+export const Sword: Equipment = ({ amount }) => {
+  const material = materials[amount];
+  return <span className={`Entity Sword ${material}`}>{'/'}</span>
+}
+
+export const Armor: Equipment = ({ amount }) => {
+  const material = materials[amount];
+  return <span className={`Entity Armor ${material}`}>{'\u00ac'}</span>
+}
+
+export const Amulet: Equipment = ({ amount }) => {
+  const material = materials[amount];
+  return <span className={`Entity Amulet ${material}`}>{'\u0128'}</span>
+}
+
+export const Boat: Equipment = ({ amount }) => {
+  const material = materials[amount];
+  return <span className={`Entity Boat ${material}`}>{'\u0115'}</span>
+}
+
+export const Key: Equipment = ({ amount }) => {
+  const material = materials[amount];
+  return <span className={`Entity Key ${material}`}>{'\u011c'}</span>
+}
+
+export const equipments = [Armor, Sword, Amulet, Boat, Key];
+
+
 
 // ------------------------ ITEM --------------------------------
 
 export type Item = React.FC<{ amount: number }>;
 
-export const Life: Item = ({ amount }: { amount: number }) => {
+export const Life: Item = ({ amount }) => {
   return (
     <>
       {amount > 0 && <span className="Entity Life">{amount}</span>}
@@ -72,7 +104,7 @@ export const Life: Item = ({ amount }: { amount: number }) => {
   );
 }
 
-export const Mana: Item = ({ amount }: { amount: number }) => {
+export const Mana: Item = ({ amount }) => {
   return (
     <>
       {amount > 0 && <span className="Entity Mana">{amount}</span>}
@@ -81,7 +113,7 @@ export const Mana: Item = ({ amount }: { amount: number }) => {
   );
 }
 
-export const Experience: Item = ({ amount }: { amount: number }) => {
+export const Experience: Item = ({ amount }) => {
   if (amount === 1) return <span className="Entity Experience">{'+'}</span>;
   if (amount === 2) return (
     <>
@@ -92,37 +124,45 @@ export const Experience: Item = ({ amount }: { amount: number }) => {
   return <span className="Entity Experience">{'┼'}</span>;
 }
 
-export const Gold: Item = ({ amount }: { amount: number }) => {
+export const Gold: Item = ({ amount }) => {
   if (amount === 1) return <span className="Entity Gold">{'\u0108'}</span>;
   if (amount === 2) return <span className="Entity Gold">{'o'}</span>;
   return <span className="Entity Gold">{'O'}</span>;
 }
 
-export const Seed: Item = ({ amount }: { amount: number }) => {
+export const Seed: Item = ({ amount }) => {
   if (amount === 1) return <span className="Entity Seed">{'\''}</span>;
   if (amount === 2) return <span className="Entity Seed">{'"'}</span>;
   return <span className="Entity Seed">{'°'}</span>;
 }
 
-export const Herb: Item = ({ amount }: { amount: number }) => {
+export const Herb: Item = ({ amount }) => {
   if (amount === 1) return <span className="Entity Herb">{'·'}</span>;
   if (amount === 2) return <span className="Entity Herb">{'∙'}</span>;
   return <span className="Entity Herb">{'\u0106'}</span>;
 }
 
-export const Wood: Item = ({ amount }: { amount: number }) => {
+export const Wood: Item = ({ amount }) => {
   if (amount === 1) return <span className="Entity Wood">{'-'}</span>;
   if (amount === 2) return <span className="Entity Wood">{'='}</span>;
   return <span className="Entity Wood">{'\u2261'}</span>;
 }
 
-export const Iron: Item = ({ amount }: { amount: number }) => {
+export const Iron: Item = ({ amount }) => {
   if (amount === 1) return <span className="Entity Ore">{'.'}</span>;
   if (amount === 2) return <span className="Entity Ore">{':'}</span>;
   return <span className="Entity Ore">{'\u00f7'}</span>;
 }
 
-export const items = [Life, Mana, Wood, Iron, Herb, Seed, Gold, Experience];
+export const Spell: Item = ({ amount }) => {
+  const material = materials[amount]
+  return <span className={`Entity Spell ${material}`}>{'@'}</span>
+}
+
+export const items = [
+  Life, Mana, Wood, Iron, Herb, Seed, Gold, Experience,
+  Spell, Sword, Armor, Boat, Key,
+];
 
 
 // ------------------------ SPRITE --------------------------------
@@ -146,7 +186,7 @@ export const sprites = [Flower, Bush, Campfire];
 
 // ------------------------ CREATURE --------------------------------
 
-export type Creature = React.FC<{ orientation: Orientation }>;
+export type Creature = React.FC<{ orientation: Orientation, equipments?: ReactComponentElement<Equipment>[], particles?: ReactComponentElement<Particle>[] }>;
 export const Player: Creature = () => {
   return (
     <>
@@ -173,38 +213,22 @@ export const Triangle: Creature = ({ orientation }) => {
   );
 }
 
+export const Circle: Creature = ({ orientation }) => {
+  const circleOrientations = {
+    up: '\u011d',
+    right: '\u010f',
+    down: '\u011e',
+    left: '\u0110',
+  };
+  return (
+    <>
+      <span className="Entity Monster">{circleOrientations[orientation]}</span>
+      <span className="Entity Bar">{'\u0120'}</span>
+    </>
+  );
+}
+
 export const creatures = [Triangle, Player];
-
-
-// ------------------------ EQUIPMENT --------------------------------
-
-export type Equipment = React.FC<{ material: Material }>;
-
-export const Sword: Equipment = ({ material }) => {
-  return <span className={`Entity Sword ${material}`}>{'/'}</span>
-}
-
-export const Armor: Equipment = ({ material }) => {
-  return <span className={`Entity Armor ${material}`}>{'\u00ac'}</span>
-}
-
-export const Spell: Equipment = ({ material }) => {
-  return <span className={`Entity Spell ${material}`}>{'\u0128'}</span>
-}
-
-export const Amulet: Equipment = ({ material }) => {
-  return <span className={`Entity Amulet ${material}`}>{'@'}</span>
-}
-
-export const Boat: Equipment = ({ material }) => {
-  return <span className={`Entity Boat ${material}`}>{'\u0115'}</span>
-}
-
-export const Key: Equipment = ({ material }) => {
-  return <span className={`Entity Key ${material}`}>{'\u011c'}</span>
-}
-
-export const equipments = [Armor, Sword, Spell, Amulet];
 
 
 // ------------------------ PARTICLE --------------------------------
@@ -226,13 +250,13 @@ export const Burning: Particle = () => {
 
 export const Shock: Particle = ({ direction }) => {
   const shockDirections = {
-    up: '^',
+    up: '─',
     upRight: '┐',
-    right: '>',
+    right: '│',
     rightDown: '┘',
-    down: 'v',
+    down: '─',
     downLeft: '└',
-    left: '<',
+    left: '│',
     leftUp: '┌',
     center: '',
   };
@@ -243,8 +267,10 @@ export const particles = [Swimming, Burning, Shock];
 
 // ------------------------ CONSTANTS --------------------------------
  
-export type Status = 'hp' | 'xp' | 'mp';
-export const inventories = new Map<Item | undefined, Stats>([
+export type Stats = 'hp' | 'xp' | 'mp';
+export type Slots = 'gold' | 'seed' | 'herb' | 'wood' | 'iron';
+export type Counters = Slots | Stats;
+export const counters = new Map<Item | undefined, Counters>([
   [Life, 'hp'],
   [Experience, 'xp'],
   [Mana, 'mp'],
@@ -254,11 +280,26 @@ export const inventories = new Map<Item | undefined, Stats>([
   [Wood, 'wood'],
   [Iron, 'iron'],
 ]);
-export type Inventory = 'gold' | 'seed' | 'herb' | 'wood' | 'iron';
-export type Stats = Status | Inventory;
-export type Material = "wood" | "iron" | "fire" | "ice";
 
-export const containers = new Map<Entity | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);
+export type Inventory = {
+  sword?: ReactComponentElement<Equipment>,
+  armor?: ReactComponentElement<Equipment>,
+  spell?: ReactComponentElement<Equipment>,
+  boat?: ReactComponentElement<Equipment>,
+  key?: ReactComponentElement<Equipment>,
+};
+export const inventories = new Map<Item | undefined, [keyof Inventory, Equipment]>([
+  [Sword, ['sword', Sword]],
+  [Armor, ['armor', Armor]],
+  [Spell, ['spell', Amulet]],
+  [Boat, ['boat', Boat]],
+  [Key, ['key', Key]],
+]);
+
+export const materials = ['wood', 'iron', 'fire', 'ice'] as const;
+export type Material = typeof materials[number];
+
+export const containers = new Map<Entity | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);
 
 // ------------------------ ENTITY --------------------------------
 
@@ -274,17 +315,19 @@ export const entities = [
   ...particles
 ];
 
-export type SingleCategories = 'terrain' | 'item' | 'sprite' | 'creature';
-export type MultipleCategories = 'grounds' | 'equipments' | 'particles';
+export type SingleCategories = 'terrain' | 'item' | 'sprite';
+export type MultipleCategories = 'grounds';
 export type Cell = {
   grounds?: ReactComponentElement<Ground>[],
   terrain?: ReactComponentElement<Terrain>,
   item?: ReactComponentElement<Item>,
   sprite?: ReactComponentElement<Sprite>,
+};
+export type Unit = {
   creature?: ReactComponentElement<Creature>,
   equipments?: ReactComponentElement<Equipment>[],
   particles?: ReactComponentElement<Particle>[],
-};
+}
 
 /*
 export function Chest() {

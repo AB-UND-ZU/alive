@@ -2,9 +2,9 @@ import { ReactComponentElement } from 'react';
 import WorldmapGenerator, { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, Equipment, Particle, containers, Triangle } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature } from "./entities";
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { Fog, getDeterministicRandomInt, Orientation, orientations, Point, sum, TerminalState } from "./utils";
+import { Fog, getDeterministicRandomInt, Orientation, orientations, Point, Processor, sum, TerminalState } from "./utils";
 
 // patch infite borders
 const getCell = WorldmapGenerator.prototype.getCell;
@@ -110,7 +110,7 @@ function generateLevel(state: TerminalState): TerminalState {
   mapGenerator.generate();
   */
   
-  const creatures: Point[] = [];
+  const creatures: Processor<Creature>[] = [];
   const rows = Array.from({ length: state.height }).map((_, rowIndex) => {
     const row = Array.from({ length: state.width }).map((_, columnIndex) => {
       const mapCells = [
@@ -176,8 +176,11 @@ function generateLevel(state: TerminalState): TerminalState {
 
       if (!cell.terrain && !cell.grounds && !cell.sprite) {
         if (itemNoise < -48) {
-          creatures.push([columnIndex, rowIndex]);
-          cell.creature = <Triangle orientation='up' />;
+          creatures.push({
+            entity: <Triangle orientation='up' />,
+            x: columnIndex,
+            y: rowIndex,
+          });
         }
       }
 
@@ -187,22 +190,17 @@ function generateLevel(state: TerminalState): TerminalState {
         cell.sprite = <Campfire />;
       }
 
-      // Equipment: stack from all cells
-      const equipmentElements = getMultipleElements(world, mapCells, 'equipments');
-      cell.equipments = equipmentElements as ReactComponentElement<Equipment>[];
-
-      // Particle: stack from all cells
-      const particleElements = getMultipleElements(world, mapCells, 'particles');
-      cell.particles = particleElements as ReactComponentElement<Particle>[];
-
       return cell;
     });
     return row;
   });
 
   // insert player at initial coords
-  rows[state.y][state.x].creature = <Player orientation="up" />;
-  //rows[state.y][state.x].equipments = [<Armor material="wood" />, <Sword material="iron" />];
+  creatures.push({
+    entity: <Player orientation='up' />,
+    x: state.x,
+    y: state.y,
+  })
 
   // generate initial darkness
   const fog: Fog[][] = Array.from({ length: state.height }).map(

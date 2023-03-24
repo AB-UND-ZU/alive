@@ -1,8 +1,8 @@
 import { tickCreature } from "./creatures";
-import { inventories, Shock  } from "./entities";
+import { counters, Creature, inventories, Particle, Player, Shock  } from "./entities";
 import { visibleFogOfWar } from "./fog";
 import { tickParticle } from "./particles";
-import { addPoints, directionOffset, directions, getCell, getFog, isWalkable, Orientation, Point, pointRange, TerminalState, updateBoard, wrapCoordinates } from "./utils";
+import { addPoints, center, directionOffset, directions, getCell, getFog, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
 
 type MoveAction = {
   type: 'move',
@@ -33,29 +33,31 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
   switch (action.type) {
     case 'move': {
       const { orientation } = action;
-      const [deltaX, deltaY] = orientation ? directionOffset[orientation] : [0, 0];
+      const [deltaX, deltaY] = directionOffset[orientation || center];
       let newState: TerminalState = { ...state, orientation };
       const [newX, newY] = wrapCoordinates(newState, newState.x + deltaX, newState.y + deltaY);
-      const playerCell = { ...newState.board[newState.y][newState.x] };
       let newCell = { ...newState.board[newY][newX] };
+
+      const playerIndex = newState.creatures.findIndex(processor => processor.entity.type === Player);
+      const newProcessor = { ...newState.creatures[playerIndex] };
 
       // if walking into item, stop and collect instead
       if (newCell.item) {
         newState = reducer(newState, { type: 'collect', itemX: newX, itemY: newY });
         
       } else if (isWalkable(state, newX, newY)) {
-        newCell.creature = playerCell.creature
-        newCell.equipments = playerCell.equipments
-        newState.board = updateBoard(newState.board, newX, newY, newCell);
-        playerCell.creature = undefined;
-        playerCell.equipments = undefined;
-        newState.board = updateBoard(newState.board, newState.x, newState.y, playerCell);
+        newProcessor.x = newX;
+        newProcessor.y = newY;
+        // process nested particles
+        const [creatureState, playerProcessor] = tickCreature(newState, newProcessor);
+        newState.board = creatureState.board;
+
+        const newCreatures = [...newState.creatures];
+        newCreatures.splice(playerIndex, 1, playerProcessor);
+        newState.creatures = newCreatures;
         newState.x = newX;
         newState.y = newY;
       }
-
-      const [particleState] = tickParticle(newState, newState.x, newState.y);
-      newState.board = particleState.board;
 
       newState = reducer(newState, { type: 'fog' });
       return newState;
@@ -63,23 +65,32 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
 
     case 'collect': {
       const { itemX, itemY } = action;
+      const newState = { ...state };
       const itemCell = { ...getCell(state, itemX, itemY) };
-      const ItemEntity = itemCell.item?.type;
-      const inventory = inventories.get(ItemEntity);
-      const amount = itemCell.item?.props.amount || 0;
 
-      if (!inventory || !ItemEntity) return state;
-        
-      if (amount <= 1) {
+      if (!itemCell.item) return state;
+      const ItemEntity = itemCell.item.type;
+      const counter = counters.get(ItemEntity);
+      const inventory = inventories.get(ItemEntity);
+      const amount = itemCell.item.props.amount;
+
+      if (counter) {
+        if (amount > 1) {
+          itemCell.item = <ItemEntity amount={amount - 1} />;
+        } else {
+          itemCell.item = undefined;
+        }
+        newState[counter] = newState[counter] + 1;
+      } else if (inventory) {
+        newState.inventory[inventory[0]] = {
+          ...itemCell.item,
+          type: inventory[1],
+        };
         itemCell.item = undefined;
-      } else {
-        itemCell.item = <ItemEntity amount={amount - 1} />;
       }
-      return {
-        ...state,
-        board: updateBoard(state.board, itemX, itemY, itemCell),
-        [inventory]: state[inventory] + 1,
-      };
+        
+      newState.board = updateBoard(state.board, itemX, itemY, itemCell);
+      return newState;
     }
 
     case 'fog': {
@@ -113,23 +124,16 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     case 'tick': {
       const newState = { ...state, orientation: undefined };
 
-      newState.creatures = newState.creatures.map<Point>(([creatureX, creatureY]) => {
-        const [creatureState, [targetX, targetY]] = tickCreature(newState, creatureX, creatureY);
+      newState.creatures = newState.creatures.map(processor => {
+        const [creatureState, creatureProcessor] = tickCreature(newState, processor);
         newState.board = creatureState.board;
-        
-        // update swimming display
-        const [particleState] = tickParticle(newState, targetX, targetY);
+        return creatureProcessor;
+      }).filter(Boolean) as Processor<Creature>[];
+      newState.particles = newState.particles.map(processor => {
+        const [particleState, particleProcessor] = tickParticle(newState, processor);
         newState.board = particleState.board;
-
-        return [targetX, targetY];
-      });
-
-      newState.particles = newState.particles.reduce((particles, [particleX, particleY]) => {
-        const [particleState, [movedX, movedY]] = tickParticle(newState, particleX, particleY);
-        newState.board = particleState.board;
-        particles.push([movedX, movedY]);
-        return particles;
-      }, [] as Point[]);
+        return particleProcessor;
+      }).filter(Boolean) as Processor<Particle>[];
 
       return newState;
     }
@@ -141,10 +145,11 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       // create all shocks around player
       directions.forEach(direction => {
         const [shockX, shockY] = addPoints(newState, [newState.x, newState.y], directionOffset[direction]);
-        const shockCell = { ...getCell(newState, shockX, shockY) };
-        newParticles.push([shockX, shockY]);
-        shockCell.particles = [...(shockCell.particles || []), <Shock direction={direction} />];
-        newState.board = updateBoard(newState.board, shockX, shockY, shockCell);
+        newParticles.push({
+          x: shockX,
+          y: shockY,
+          entity: <Shock direction={direction} />
+        });
       });
       newState.particles = newParticles;
 

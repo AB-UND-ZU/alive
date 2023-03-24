@@ -1,8 +1,9 @@
-import { useEffect, useReducer, useRef, useState } from "react";
-import { Amulet, Armor, Boat, Bush, Flower, Seed, Key, Sword, Herb } from "./entities";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { Bush, Flower, Seed, Herb } from "./entities";
 import { generateLevel } from "./generate";
 import { reducer } from "./state";
 import { padOrientation } from "./textures";
+import { computeUnits, getUnit } from "./units";
 import { center, getCell, getFog, pointRange } from "./utils";
 
 const TICK_INTERVAL = 500;
@@ -29,8 +30,11 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     fog: [[]],
     creatures: [],
     particles: [],
+    spells: [],
+    inventory: {},
   }, generateLevel);
 
+  const units = useMemo(() => computeUnits(state), [state]);
   const lastTick = useRef(0);
   const tickTimeout = useRef<NodeJS.Timeout>();
   const moved = useRef(false);
@@ -99,13 +103,13 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
         </span>
         {renderText('│')}
         <span className="Cell">
-          <Sword material="iron" />
+          {state.inventory.sword}
         </span>
         <span className="Cell">
-          <Armor material="wood" />
+          {state.inventory.armor}
         </span>
         <span className="Cell">
-          <Amulet material="fire" />
+          {state.inventory.spell}
         </span>
       </div>
 
@@ -120,10 +124,10 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
         </span>
         {renderText('│')}
         <span className="Cell">
-          <Boat material="iron" />
+          {state.inventory.boat}
         </span>
         <span className="Cell">
-          <Key material="wood" />
+          {state.inventory.key}
         </span>
       </div>
 
@@ -136,6 +140,7 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
           {pointRange(state.screenWidth, offsetX => [state.x + offsetX - (state.screenWidth - 1) / 2, rowY]).map(([cellX, cellY]) => {
             const cell = getCell(state, cellX, cellY);
             const fog = getFog(state, cellX, cellY);
+            const unit = getUnit(state, units, cellX, cellY);
 
             return (
               <span className={`Cell ${fog === 'fog' ? 'Fog' : ''}`} key={`${cellX}-${cellY}`}>
@@ -147,11 +152,11 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
                     {cell.terrain}
                     {cell.item}
                     {cell.sprite}
-                    {fog === 'visible' && (
+                    {fog === 'visible' && unit && (
                       <>
-                        {cell.creature}
-                        {cell.equipments}
-                        {cell.particles}
+                        {unit.creature}
+                        {unit.equipments}
+                        {unit.particles}
                       </>
                     )}
                   </>

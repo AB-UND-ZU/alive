@@ -1,40 +1,67 @@
-import { Cell, Triangle } from "./entities";
-import { isWalkable, updateBoard, getCell, getDeterministicRandomInt, Point, TerminalState, wrapCoordinates, directionOffset, orientations } from "./utils";
+import { ReactComponentElement } from "react";
+import { Creature, Particle, Swimming, Triangle } from "./entities";
+import { tickParticle } from "./particles";
+import { isWalkable, getCell, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, Processor, isWater } from "./utils";
 
-export const tickCreature = (state: TerminalState, x: number, y: number): [TerminalState, Point] => {
+export const tickCreature = (state: TerminalState, processor: Processor<Creature>): [TerminalState, Processor<Creature>] => {
   const newState = { ...state };
-  const cell = { ...getCell(newState, x, y) };
-  if (cell.creature?.type === Triangle) {
-    const orientation = cell.creature.props.orientation;
+  const newProcessor = { ...processor };
+  const creature = { ...newProcessor.entity };
+
+  if (creature.type === Triangle) {
+    const orientation = creature.props.orientation;
     const [moveX, moveY] = directionOffset[orientation];
-    const [targetX, targetY] = wrapCoordinates(newState, x + moveX, y + moveY);
-    const targetCell = { ...getCell(newState, targetX, targetY) };
+    const [targetX, targetY] = wrapCoordinates(newState, newProcessor.x + moveX, newProcessor.y + moveY);
+
     if (isWalkable(newState, targetX, targetY)) {
-      targetCell.creature = cell.creature;
-      targetCell.particles = cell.particles;
-      newState.board = updateBoard(newState.board, targetX, targetY, targetCell);
-      cell.creature = undefined;
-      cell.particles = undefined;
-      newState.board = updateBoard(newState.board, x, y, cell);
-      return [newState, [targetX, targetY]];
+      newProcessor.x = targetX;
+      newProcessor.y = targetY;
+    } else {
+      // find first free cell in either counter- or clockwise orientation by random
+      const rotation = getDeterministicRandomInt(0, 1) * 2 - 1;
+      const newOrientation = Array.from({ length: 3 }).map((_, offset) => {
+        const attemptOrientation = orientations[(orientations.indexOf(orientation) + (offset + 1) * rotation + orientations.length) % orientations.length];
+        const [attemptX, attemptY] = directionOffset[attemptOrientation];
+        if (isWalkable(newState, newProcessor.x + attemptX, newProcessor.y + attemptY)) {
+          return attemptOrientation;
+        }
+      }).filter(Boolean)[0];
+
+      // if creature is stuck, make it circle around
+      const stuckOrientation = orientations[(orientations.indexOf(orientation) + getDeterministicRandomInt(1, orientations.length - 1)) % orientations.length];
+
+      creature.props = {
+        ...creature.props,
+        orientation: newOrientation || stuckOrientation,
+      };
     }
-
-    // find first free cell in either counter- or clockwise orientation by random
-    const rotation = getDeterministicRandomInt(0, 1) * 2 - 1;
-    const newOrientation = Array.from({ length: 3 }).map((_, offset) => {
-      const attemptOrientation = orientations[(orientations.indexOf(orientation) + (offset + 1) * rotation + orientations.length) % orientations.length];
-      const [attemptX, attemptY] = directionOffset[attemptOrientation];
-      if (isWalkable(newState, x + attemptX, y + attemptY)) {
-        return attemptOrientation;
-      }
-    }).filter(Boolean)[0];
-
-    // if creature is stuck, make it circle around
-    const stuckOrientation = orientations[(orientations.indexOf(orientation) + getDeterministicRandomInt(1, orientations.length - 1)) % orientations.length];
-
-    cell.creature = <Triangle orientation={newOrientation || stuckOrientation} />;
-    newState.board = updateBoard(newState.board, x, y, cell);
   }
 
-  return [newState, [x, y]];
+  // add swimming state
+  const swimming = creature.props.particles?.find(particle => particle.type === Swimming);
+  if (!swimming && isWater(state, newProcessor.x, newProcessor.y)) {
+    creature.props = {
+      ...creature.props,
+      particles: [...(creature.props.particles || []), <Swimming />],
+    };
+  };
+
+  // process contained particles
+  const newParticles = creature.props.particles?.map(particle => {
+    const [particleState, processor] = tickParticle(newState, {
+      x: newProcessor.x,
+      y: newProcessor.y,
+      entity: particle,
+    });
+    newState.board = particleState.board;
+    return processor?.entity;
+  }).filter(Boolean) as ReactComponentElement<Particle>[];
+
+  creature.props = {
+    ...creature.props,
+    particles: newParticles,
+  };
+  newProcessor.entity = creature;
+
+  return [newState, newProcessor];
 }

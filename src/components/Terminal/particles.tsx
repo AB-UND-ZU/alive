@@ -1,36 +1,22 @@
-import { ReactComponentElement } from "react";
 import { Particle, Shock, Swimming, Water } from "./entities";
-import { addPoints, center, directionOffset, getCell, isWater, Point, TerminalState, updateBoard } from "./utils";
+import { addPoints, center, directionOffset, getCell, isWater, Processor, TerminalState } from "./utils";
 
-export const tickParticle = (state: TerminalState, x: number, y: number): [TerminalState, Point] => {
+export const tickParticle = (state: TerminalState, processor: Processor<Particle>): [TerminalState, Processor<Particle> | undefined] => {
   const newState = { ...state };
-  let newLocation: Point = [x, y];
-  const cell = { ...getCell(newState, x, y) };
+  const newProcessor = { ...processor };
+  const particle = newProcessor.entity;
 
-  cell.particles = cell.particles?.reduce((cellParticles, particle) => {
-    if (particle.type === Shock) {
-      const [movedX, movedY] = addPoints(state, [x, y], directionOffset[particle.props.direction || center]);
-      const movedCell = { ...getCell(newState, movedX, movedY) };
-      movedCell.particles = [...(movedCell.particles || []), particle];
-      newState.board = updateBoard(newState.board, movedX, movedY, movedCell);
-      newLocation = [movedX, movedY];
-    } else {
-      cellParticles.push(particle);
-    }
-    return cellParticles;
-  }, [] as ReactComponentElement<Particle>[]);
-
-  if (
-    isWater(newState, x, y) &&
-    cell.grounds?.length === 1 &&
-    cell.grounds[0].type === Water &&
-    cell.grounds[0].props.amount === 4
-  ) {
-    cell.particles = [...(cell.particles || []), <Swimming />];
-  } else {
-    cell.particles = cell.particles?.filter(particle => particle.type !== Swimming);
+  if (particle.type === Shock) {
+    const [movedX, movedY] = addPoints(state, [newProcessor.x, newProcessor.y], directionOffset[particle.props.direction || center]);
+    newProcessor.x = movedX;
+    newProcessor.y = movedY;
   }
-  newState.board = updateBoard(newState.board, x, y, cell);
 
-  return [newState, newLocation];
+  if (particle.type === Swimming) {
+    if (!isWater(newState, newProcessor.x, newProcessor.y)) {
+      return [newState, undefined];
+    }
+  }
+
+  return [newState, newProcessor];
 }
