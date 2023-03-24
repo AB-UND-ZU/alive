@@ -172,7 +172,7 @@ body {
 
 .Bar {
   color: var(--red);
-  z-index: 11;
+  z-index: 20;
 }
 
 .Armor {
@@ -201,6 +201,11 @@ body {
   z-index: 10;
 }
 
+.Freezing {
+  color: var(--teal);
+  z-index: 10;
+}
+
 /*
 .Frame {
   color: var(--black);
@@ -223,7 +228,7 @@ body {
 
 .Health {
   color: var(--lime);
-  z-index: 11;
+  z-index: 20;
 }
 
 .Eye {

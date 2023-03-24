@@ -1,9 +1,9 @@
 import { tickCreature } from "./creatures";
-import { counters, Creature, Equipment, inventories, Particle, Player, Shock, Spell  } from "./entities";
+import { Amulet, counters, Creature, Equipment, inventories, Particle, Player, Shock  } from "./entities";
 import { visibleFogOfWar } from "./fog";
 import { tickParticle } from "./particles";
 import { tickSpell } from "./spells";
-import { addPoints, center, directionOffset, directions, getCell, getFog, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
+import { center, directionOffset, getCell, getFog, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
 
 type MoveAction = {
   type: 'move',
@@ -142,6 +142,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       newState.spells = newState.spells.map(processor => {
         const [spellState, spellProcessor] = tickSpell(newState, processor);
         newState.board = spellState.board;
+        newState.creatures = spellState.creatures;
         return spellProcessor;
       }).filter(Boolean) as Processor<Equipment>[];
 
@@ -162,14 +163,19 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
 
     case 'spell': {
       const newState = { ...state };
-      const newParticles = [...newState.particles];
+      const centerParticle = {
+        x: newState.x,
+        y: newState.y,
+        entity: <Shock direction={center} />
+      };
       const processor = {
         x: newState.x,
         y: newState.y,
-        entity: <Spell amount={1} />,
+        entity: <Amulet amount={1} particles={[centerParticle]} />,
       };
       const [spellState, spellProcessor] = tickSpell(newState, processor);
       newState.board = spellState.board;
+      newState.creatures = spellState.creatures;
       newState.spells = [...newState.spells, spellProcessor];
 
       return newState;

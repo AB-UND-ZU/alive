@@ -1,5 +1,5 @@
 import { ReactComponentElement } from "react";
-import { Direction, Orientation, Processor } from "./utils";
+import { Center, Direction, Orientation, Processor } from "./utils";
 
 // ------------------------ GROUND --------------------------------
 
@@ -233,7 +233,7 @@ export const creatures = [Triangle, Player];
 
 // ------------------------ PARTICLE --------------------------------
 
-export type Particle = React.FC<{ direction?: Direction }>;
+export type Particle = React.FC<{ direction?: Direction | Center, amount?: number }>;
 
 export const Swimming: Particle = () => {
   return <span className="Entity Swimming">{'▄'}</span>;
@@ -246,6 +246,13 @@ export const Burning: Particle = () => {
       <span className="Entity Spark">{'·'}</span>
     </>
   );
+}
+
+export const Freezing: Particle = ({ amount }) => {
+  if (!amount) return null;
+  if (amount > 4) return <span className="Entity Freezing">{'▓'}</span>;
+  if (amount > 2) return <span className="Entity Freezing">{'▒'}</span>;
+  return <span className="Entity Freezing">{'░'}</span>;
 }
 
 export const Shock: Particle = ({ direction }) => {

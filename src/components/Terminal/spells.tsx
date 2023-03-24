@@ -1,6 +1,6 @@
 import { ReactComponentElement } from "react";
-import { Equipment, Particle, Shock } from "./entities";
-import { addPoints, directionOffset, directions, Point, Processor, TerminalState, wrapCoordinates } from "./utils";
+import { Amulet, Equipment, Freezing, Ice, Particle, particles, Player, Shock, Water } from "./entities";
+import { addPoints, directionOffset, directions, getCell, Point, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
 
 const SHOCK_RADIUS = 5;
 
@@ -19,6 +19,60 @@ export const tickSpell = (state: TerminalState, processor: Processor<Equipment>)
   const radius = newProcessor.entity.props.amount;
   const newParticles: Processor<Particle>[] = [];
 
+  // apply effects of last wave
+  newProcessor.entity.props.particles?.forEach(particle => {
+    if (newProcessor.entity.type === Amulet) {
+      // freeze grounds
+      const cell = getCell(state, particle.x, particle.y);
+      const frozen = cell.grounds?.map(
+        ground => ground.type === Water ? {
+          ...ground,
+          type: Ice,
+        } : ground,
+      );
+      newState.board = updateBoard(newState.board, particle.x, particle.y, {
+        ...cell,
+        grounds: frozen,
+      });
+
+      // freeze creatures
+      const affectedIndex = newState.creatures.findIndex(creature => (
+        creature.entity.type !== Player &&
+        creature.x === particle.x &&
+        creature.y === particle.y
+      ));
+      const affectedCreature = { ...newState.creatures[affectedIndex] };
+      if (affectedCreature.entity) {
+        const frozenParticles = affectedCreature.entity.props.particles || [];
+        const frozenIndex = frozenParticles.findIndex(particle => particle.type === Freezing);
+        const alreadyFrozen = frozenParticles[frozenIndex];
+        if (alreadyFrozen) {
+          frozenParticles.splice(frozenIndex, 1,{
+            ...alreadyFrozen,
+            props: {
+              ...alreadyFrozen.props,
+              amount: 8
+            }
+          });
+         } else {
+          frozenParticles.push(<Freezing amount={8} />);
+         }
+        affectedCreature.entity = {
+          ...affectedCreature.entity,
+          props: {
+            ...affectedCreature.entity.props,
+            particles: frozenParticles
+          }
+        }
+        const newCreatures = [...newState.creatures];
+        newCreatures.splice(affectedIndex, 1, affectedCreature);
+        newState.creatures = newCreatures;
+      }
+
+    }
+  });
+
+  // create new wave
   if (radius <= SHOCK_RADIUS) {
     // top row
     newParticles.push(

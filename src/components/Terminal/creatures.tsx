@@ -1,5 +1,5 @@
 import { ReactComponentElement } from "react";
-import { Creature, Particle, Swimming, Triangle } from "./entities";
+import { Creature, Freezing, Particle, Swimming, Triangle } from "./entities";
 import { tickParticle } from "./particles";
 import { isWalkable, getCell, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, Processor, isWater } from "./utils";
 
@@ -8,7 +8,27 @@ export const tickCreature = (state: TerminalState, processor: Processor<Creature
   const newProcessor = { ...processor };
   const creature = { ...newProcessor.entity };
 
-  if (creature.type === Triangle) {
+  const freezingIndex = (creature.props.particles || []).findIndex(particle => particle.type === Freezing);
+  const freezing = creature.props.particles?.[freezingIndex];
+
+  if (freezing) {
+    const frozenParticles = [...(creature.props.particles || [])];
+    frozenParticles.splice(freezingIndex, 1);
+    const newAmount = (freezing.props.amount || 0) - 1;
+    if (newAmount > 0) {
+      frozenParticles.push({
+        ...freezing,
+        props: {
+          ...freezing.props,
+          amount: newAmount,
+        }
+      });
+    }
+    creature.props = {
+      ...creature.props,
+      particles: frozenParticles
+    };
+  } else if (creature.type === Triangle) {
     const orientation = creature.props.orientation;
     const [moveX, moveY] = directionOffset[orientation];
     const [targetX, targetY] = wrapCoordinates(newState, newProcessor.x + moveX, newProcessor.y + moveY);
