@@ -186,7 +186,14 @@ export const sprites = [Flower, Bush, Campfire];
 
 // ------------------------ CREATURE --------------------------------
 
-export type Creature = React.FC<{ orientation: Orientation, equipments?: ReactComponentElement<Equipment>[], particles?: ReactComponentElement<Particle>[] }>;
+export type Creature = React.FC<{
+  amount: number,
+  maximum: number,
+  orientation: Orientation,
+  equipments?: ReactComponentElement<Equipment>[],
+  particles?: ReactComponentElement<Particle>[],
+}>;
+
 export const Player: Creature = () => {
   return (
     <>
@@ -198,7 +205,7 @@ export const Player: Creature = () => {
   )
 }
 
-export const Triangle: Creature = ({ orientation }) => {
+export const Triangle: Creature = ({ amount, maximum, orientation }) => {
   const triangleOrientations = {
     up: '\u011d',
     right: '\u010f',
@@ -208,7 +215,7 @@ export const Triangle: Creature = ({ orientation }) => {
   return (
     <>
       <span className="Entity Monster">{triangleOrientations[orientation]}</span>
-      <span className="Entity Bar">{'\u0120'}</span>
+      <span className="Entity Bar">{getBar(amount, maximum)}</span>
     </>
   );
 }
@@ -287,6 +294,9 @@ export const counters = new Map<Item | undefined, Counters>([
   [Wood, 'wood'],
   [Iron, 'iron'],
 ]);
+
+export const bars = ['\u0127', '\u0126', '\u0125', '\u0124', '\u0123', '\u0122', '\u0121', '\u0120'];
+export const getBar = (amount: number, maximum: number) => bars[Math.floor((bars.length - 1) * amount / maximum)];
 
 export type Inventory = {
   sword?: ReactComponentElement<Equipment>,

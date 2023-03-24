@@ -10,6 +10,12 @@ type MoveAction = {
   orientation?: Orientation,
 };
 
+type AttackAction = {
+  type: 'attack',
+  creatureX: number,
+  creatureY: number,
+};
+
 type SpellAction = {
   type: 'spell',
 };
@@ -28,7 +34,7 @@ type TickAction = {
   type: 'tick',
 };
 
-type TerminalAction = MoveAction | SpellAction | CollectAction | FogAction | TickAction;
+type TerminalAction = MoveAction | AttackAction | SpellAction | CollectAction | FogAction | TickAction;
 
 export const reducer = (state: TerminalState, action: TerminalAction): TerminalState => {
   switch (action.type) {
@@ -42,13 +48,24 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       const playerIndex = newState.creatures.findIndex(processor => processor.entity.type === Player);
       const newProcessor = { ...newState.creatures[playerIndex] };
 
+      const attackedCreature = newState.creatures.find(creature => (
+        creature.entity.type !== Player &&
+        creature.x === newX &&
+        creature.y === newY
+      ));
+
       // if walking into item, stop and collect instead
       if (newCell.item) {
         newState = reducer(newState, { type: 'collect', itemX: newX, itemY: newY });
+
+      } else if (attackedCreature) {
+        // hit creature if found
+        newState = reducer(newState, { type: 'attack', creatureX: newX, creatureY: newY });
         
       } else if (isWalkable(state, newX, newY)) {
         newProcessor.x = newX;
         newProcessor.y = newY;
+
         // process nested particles
         const [creatureState, playerProcessor] = tickCreature(newState, newProcessor);
         newState.board = creatureState.board;
@@ -158,6 +175,40 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
         newState.board = creatureState.board;
         return creatureProcessor;
       }).filter(Boolean) as Processor<Creature>[];
+
+      return newState;
+    }
+
+    case 'attack': {
+      const { creatureX, creatureY } = action;
+      const newState = { ...state };
+
+      const newCreatures = [...newState.creatures];
+      const attackedIndex = newCreatures.findIndex(creature => (
+        creature.entity.type !== Player &&
+        creature.x === creatureX &&
+        creature.y === creatureY
+      ));
+      const attackedCreature = newState.creatures[attackedIndex];
+
+      if (!attackedCreature || !newState.inventory.sword) return newState;
+
+      newCreatures.splice(attackedIndex, 1);
+      const newAmount = attackedCreature.entity.props.amount - 1;
+
+      if (newAmount > 0) {
+        newCreatures.push({
+          ...attackedCreature,
+          entity: {
+            ...attackedCreature.entity,
+            props: {
+              ...attackedCreature.entity.props,
+              amount: newAmount
+            }
+          }
+        });
+      }
+      newState.creatures = newCreatures;
 
       return newState;
     }

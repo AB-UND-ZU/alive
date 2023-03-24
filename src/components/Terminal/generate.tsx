@@ -2,7 +2,7 @@ import { ReactComponentElement } from 'react';
 import WorldmapGenerator, { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor } from "./entities";
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
 import { Fog, getDeterministicRandomInt, Orientation, orientations, Point, Processor, sum, TerminalState } from "./utils";
 
@@ -177,7 +177,7 @@ function generateLevel(state: TerminalState): TerminalState {
       if (!cell.terrain && !cell.grounds && !cell.sprite) {
         if (itemNoise < -48) {
           creatures.push({
-            entity: <Triangle orientation='up' />,
+            entity: <Triangle orientation='up' amount={3} maximum={3} />,
             x: columnIndex,
             y: rowIndex,
           });
@@ -197,10 +197,16 @@ function generateLevel(state: TerminalState): TerminalState {
 
   // insert player at initial coords
   creatures.push({
-    entity: <Player orientation='up' />,
+    entity: <Player orientation='up' amount={10} maximum={10} />,
     x: state.x,
     y: state.y,
-  })
+  });
+
+  /*
+  rows[1][1].item = <Sword amount={0} />;
+  rows[2][2].item = <Armor amount={1} />;
+  rows[3][3].item = <Spell amount={3} />;
+  */
 
   // generate initial darkness
   const fog: Fog[][] = Array.from({ length: state.height }).map(
