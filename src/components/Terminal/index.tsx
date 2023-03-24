@@ -2,11 +2,11 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import { Amulet, Armor, Boat, Bush, Flower, Seed, Key, Sword, Herb } from "./entities";
 import { generateLevel } from "./generate";
 import { reducer } from "./state";
-import { padDirections } from "./textures";
-import { getCell, getFog, pointRange } from "./utils";
+import { padOrientation } from "./textures";
+import { center, getCell, getFog, pointRange } from "./utils";
 
 const TICK_INTERVAL = 500;
-const SKIP_INTERVAL = TICK_INTERVAL / 5;
+const SKIP_INTERVAL = 100;
 
 const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: React.Dispatch<React.SetStateAction<number>>, gameOver: () => void}) => {
   const [state, dispatch] = useReducer(reducer, {
@@ -16,7 +16,7 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     screenHeight: 13,
     x: 0,
     y: 0,
-    direction: undefined,
+    orientation: undefined,
     hp: 10,
     mp: 0,
     xp: 0,
@@ -52,13 +52,15 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     const handleMove = (event: KeyboardEvent) => {
       const processKey = (key: string) => {
         if (event.key === 'ArrowUp') {
-          dispatch({ type: 'move', direction: 'up' });
+          dispatch({ type: 'move', orientation: 'up' });
         } else if (event.key === 'ArrowRight') {
-          dispatch({ type: 'move', direction: 'right' });
+          dispatch({ type: 'move', orientation: 'right' });
         } else if (event.key === 'ArrowDown') {
-          dispatch({ type: 'move', direction: 'down' });
+          dispatch({ type: 'move', orientation: 'down' });
         } else if (event.key === 'ArrowLeft') {
-          dispatch({ type: 'move', direction: 'left' });
+          dispatch({ type: 'move', orientation: 'left' });
+        } else if (event.key === ' ') {
+          dispatch({ type: 'spell' });
         }
       };
 
@@ -165,13 +167,13 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
       </div>
 
       <div className="Row">
-        {renderText('      │       │ ')}
-        {renderText(padDirections[state.direction || 'none'][0])}
+        {renderText('  /\\  │       │ ')}
+        {renderText(padOrientation[state.orientation || center][0], 'Pad')}
       </div>
 
       <div className="Row">
-        {renderText('      │       │ ')}
-        {renderText(padDirections[state.direction || 'none'][1])}
+        {renderText('  \\/  │       │ ')}
+        {renderText(padOrientation[state.orientation || center][1], 'Pad')}
       </div>
     </pre>
   );

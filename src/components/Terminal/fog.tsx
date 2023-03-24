@@ -1,6 +1,6 @@
-import { angleToCornerDirections, corners, quarterCircle } from "./geometry";
-import { Direction, Rock } from "./entities";
-import { getCell, Point, pointRange, TerminalState } from "./utils";
+import { angleToCornerDirections, cellBoundaries, quarterCircle } from "./geometry";
+import { Rock } from "./entities";
+import { center, getCell, Point, TerminalState, Orientation } from "./utils";
 
 // begin, end in degrees
 type Interval = [number, number];
@@ -16,9 +16,9 @@ const pointToDegree = (point: Point) => {
 
 // return the degree interval for the outermost visible corners relative from viewer.
 // if it crosses 360°, create two separate intervals
-const cellToIntervals = (cell: Point, direction?: Direction): [Interval] | [Interval, Interval] => {
-  const [primary, secondary] = angleToCornerDirections(pointToDegree(cell));
-  const visibleCorners = corners[direction || 'full'][primary][secondary]!;
+const cellToIntervals = (cell: Point, orientation?: Orientation): [Interval] | [Interval, Interval] => {
+  const direction = angleToCornerDirections(pointToDegree(cell));
+  const visibleCorners = cellBoundaries[orientation || center][direction];
 
   const left = pointToDegree([cell[x] + visibleCorners[0][x], cell[y] + visibleCorners[0][y]]);
   const right = pointToDegree([cell[x] + visibleCorners[1][x], cell[y] + visibleCorners[1][y]]);
@@ -74,7 +74,7 @@ export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visi
   );
 
   visibleRocks.forEach(({ point, terrain }) => {
-    const terrainIntervals = cellToIntervals(point, terrain!.props.direction);
+    const terrainIntervals = cellToIntervals(point, terrain!.props.orientation);
 
     terrainIntervals.forEach(terrainInterval => {
       const newVisible: Interval[] = [];

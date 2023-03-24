@@ -1,12 +1,12 @@
-import { Cell, directionOffset, directions, Triangle } from "./entities";
-import { isWalkable, updateBoard, getCell, getDeterministicRandomInt, Point, TerminalState, wrapCoordinates } from "./utils";
+import { Cell, Triangle } from "./entities";
+import { isWalkable, updateBoard, getCell, getDeterministicRandomInt, Point, TerminalState, wrapCoordinates, directionOffset, orientations } from "./utils";
 
 export const tickCreature = (state: TerminalState, x: number, y: number): [TerminalState, Point] => {
   const newState = { ...state };
   const cell = { ...getCell(newState, x, y) };
   if (cell.creature?.type === Triangle) {
-    const direction = cell.creature.props.direction;
-    const [moveX, moveY] = directionOffset[direction];
+    const orientation = cell.creature.props.orientation;
+    const [moveX, moveY] = directionOffset[orientation];
     const [targetX, targetY] = wrapCoordinates(newState, x + moveX, y + moveY);
     const targetCell = { ...getCell(newState, targetX, targetY) };
     if (isWalkable(newState, targetX, targetY)) {
@@ -19,20 +19,20 @@ export const tickCreature = (state: TerminalState, x: number, y: number): [Termi
       return [newState, [targetX, targetY]];
     }
 
-    // find first free cell in either counter- or clockwise direction by random
+    // find first free cell in either counter- or clockwise orientation by random
     const rotation = getDeterministicRandomInt(0, 1) * 2 - 1;
-    const newDirection = Array.from({ length: 3 }).map((_, offset) => {
-      const attemptDirection = directions[(directions.indexOf(direction) + (offset + 1) * rotation + directions.length) % directions.length];
-      const [attemptX, attemptY] = directionOffset[attemptDirection];
+    const newOrientation = Array.from({ length: 3 }).map((_, offset) => {
+      const attemptOrientation = orientations[(orientations.indexOf(orientation) + (offset + 1) * rotation + orientations.length) % orientations.length];
+      const [attemptX, attemptY] = directionOffset[attemptOrientation];
       if (isWalkable(newState, x + attemptX, y + attemptY)) {
-        return attemptDirection;
+        return attemptOrientation;
       }
     }).filter(Boolean)[0];
 
     // if creature is stuck, make it circle around
-    const stuckDirection = directions[(directions.indexOf(direction) + getDeterministicRandomInt(1, directions.length - 1)) % directions.length];
+    const stuckOrientation = orientations[(orientations.indexOf(orientation) + getDeterministicRandomInt(1, orientations.length - 1)) % orientations.length];
 
-    cell.creature = <Triangle direction={newDirection || stuckDirection} />;
+    cell.creature = <Triangle orientation={newOrientation || stuckOrientation} />;
     newState.board = updateBoard(newState.board, x, y, cell);
   }
 

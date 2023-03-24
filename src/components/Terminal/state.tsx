@@ -1,12 +1,16 @@
 import { tickCreature } from "./creatures";
-import { inventories, Swimming, directionOffset, Direction, Water } from "./entities";
+import { inventories, Shock  } from "./entities";
 import { visibleFogOfWar } from "./fog";
-import { tickParticles } from "./particles";
-import { getCell, getFog, isWalkable, isWater, Point, pointRange, TerminalState, updateBoard, wrapCoordinates } from "./utils";
+import { tickParticle } from "./particles";
+import { addPoints, directionOffset, directions, getCell, getFog, isWalkable, Orientation, Point, pointRange, TerminalState, updateBoard, wrapCoordinates } from "./utils";
 
 type MoveAction = {
   type: 'move',
-  direction?: Direction,
+  orientation?: Orientation,
+};
+
+type SpellAction = {
+  type: 'spell',
 };
 
 type CollectAction = {
@@ -23,14 +27,14 @@ type TickAction = {
   type: 'tick',
 };
 
-type TerminalAction = MoveAction | CollectAction | FogAction | TickAction;
+type TerminalAction = MoveAction | SpellAction | CollectAction | FogAction | TickAction;
 
 export const reducer = (state: TerminalState, action: TerminalAction): TerminalState => {
   switch (action.type) {
     case 'move': {
-      const { direction } = action;
-      const [deltaX, deltaY] = direction ? directionOffset[direction] : [0, 0];
-      let newState: TerminalState = { ...state, direction };
+      const { orientation } = action;
+      const [deltaX, deltaY] = orientation ? directionOffset[orientation] : [0, 0];
+      let newState: TerminalState = { ...state, orientation };
       const [newX, newY] = wrapCoordinates(newState, newState.x + deltaX, newState.y + deltaY);
       const playerCell = { ...newState.board[newState.y][newState.x] };
       let newCell = { ...newState.board[newY][newX] };
@@ -50,7 +54,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
         newState.y = newY;
       }
 
-      const particleState = tickParticles(newState, newState.x, newState.y);
+      const [particleState] = tickParticle(newState, newState.x, newState.y);
       newState.board = particleState.board;
 
       newState = reducer(newState, { type: 'fog' });
@@ -107,18 +111,42 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     }
 
     case 'tick': {
-      const newState = { ...state, direction: undefined };
+      const newState = { ...state, orientation: undefined };
 
       newState.creatures = newState.creatures.map<Point>(([creatureX, creatureY]) => {
         const [creatureState, [targetX, targetY]] = tickCreature(newState, creatureX, creatureY);
         newState.board = creatureState.board;
         
         // update swimming display
-        const particleState = tickParticles(newState, targetX, targetY);
+        const [particleState] = tickParticle(newState, targetX, targetY);
         newState.board = particleState.board;
 
         return [targetX, targetY];
       });
+
+      newState.particles = newState.particles.reduce((particles, [particleX, particleY]) => {
+        const [particleState, [movedX, movedY]] = tickParticle(newState, particleX, particleY);
+        newState.board = particleState.board;
+        particles.push([movedX, movedY]);
+        return particles;
+      }, [] as Point[]);
+
+      return newState;
+    }
+
+    case 'spell': {
+      const newState = { ...state };
+      const newParticles = [...newState.particles];
+
+      // create all shocks around player
+      directions.forEach(direction => {
+        const [shockX, shockY] = addPoints(newState, [newState.x, newState.y], directionOffset[direction]);
+        const shockCell = { ...getCell(newState, shockX, shockY) };
+        newParticles.push([shockX, shockY]);
+        shockCell.particles = [...(shockCell.particles || []), <Shock direction={direction} />];
+        newState.board = updateBoard(newState.board, shockX, shockY, shockCell);
+      });
+      newState.particles = newParticles;
 
       return newState;
     }

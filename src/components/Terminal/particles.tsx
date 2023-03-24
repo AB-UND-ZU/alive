@@ -1,21 +1,36 @@
-import { Swimming, Water } from "./entities";
-import { getCell, isWater, TerminalState, updateBoard } from "./utils";
+import { ReactComponentElement } from "react";
+import { Particle, Shock, Swimming, Water } from "./entities";
+import { addPoints, center, directionOffset, getCell, isWater, Point, TerminalState, updateBoard } from "./utils";
 
-export const tickParticles = (state: TerminalState, x: number, y: number) => {
+export const tickParticle = (state: TerminalState, x: number, y: number): [TerminalState, Point] => {
   const newState = { ...state };
-  const swimmingCell = { ...getCell(newState, x, y) };
+  let newLocation: Point = [x, y];
+  const cell = { ...getCell(newState, x, y) };
+
+  cell.particles = cell.particles?.reduce((cellParticles, particle) => {
+    if (particle.type === Shock) {
+      const [movedX, movedY] = addPoints(state, [x, y], directionOffset[particle.props.direction || center]);
+      const movedCell = { ...getCell(newState, movedX, movedY) };
+      movedCell.particles = [...(movedCell.particles || []), particle];
+      newState.board = updateBoard(newState.board, movedX, movedY, movedCell);
+      newLocation = [movedX, movedY];
+    } else {
+      cellParticles.push(particle);
+    }
+    return cellParticles;
+  }, [] as ReactComponentElement<Particle>[]);
 
   if (
     isWater(newState, x, y) &&
-    swimmingCell.grounds?.length === 1 &&
-    swimmingCell.grounds[0].type === Water &&
-    swimmingCell.grounds[0].props.amount === 4
+    cell.grounds?.length === 1 &&
+    cell.grounds[0].type === Water &&
+    cell.grounds[0].props.amount === 4
   ) {
-    swimmingCell.particles = [...(swimmingCell.particles || []), <Swimming />];
+    cell.particles = [...(cell.particles || []), <Swimming />];
   } else {
-    swimmingCell.particles = swimmingCell.particles?.filter(cell => cell.type !== Swimming);
+    cell.particles = cell.particles?.filter(particle => particle.type !== Swimming);
   }
-  newState.board = updateBoard(newState.board, x, y, swimmingCell);
+  newState.board = updateBoard(newState.board, x, y, cell);
 
-  return newState;
+  return [newState, newLocation];
 }

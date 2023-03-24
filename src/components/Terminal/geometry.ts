@@ -1,5 +1,4 @@
-import { Direction } from "./entities";
-import { Point } from "./utils";
+import { center, Center, Direction, Orientation, Point } from "./utils";
 
 export const quarterCircle = [
   [  ,  ,  ,  ,  ,  ,  ,10,10,10,10],
@@ -11,117 +10,77 @@ export const quarterCircle = [
   [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
 ];
 
-export const angleToCornerDirections = (angle: number): [Direction, Direction] => {
+export const angleToCornerDirections = (angle: number): Direction => {
   const normalizedAngle = (angle + 360) % 360;
-  if (normalizedAngle === 0) return ['up', 'up'];
-  else if (normalizedAngle < 90) return ['up', 'right'];
-  else if (normalizedAngle === 90) return ['right', 'right'];
-  else if (normalizedAngle < 180) return ['right', 'down'];
-  else if (normalizedAngle === 180) return ['down', 'down'];
-  else if (normalizedAngle < 270) return ['down', 'left'];
-  else if (normalizedAngle === 270) return ['left', 'left'];
-  else return ['left', 'up'];
+  if (normalizedAngle === 0) return 'up';
+  else if (normalizedAngle < 90) return 'upRight'
+  else if (normalizedAngle === 90) return 'right';
+  else if (normalizedAngle < 180) return 'rightDown';
+  else if (normalizedAngle === 180) return 'down';
+  else if (normalizedAngle < 270) return 'downLeft';
+  else if (normalizedAngle === 270) return 'left';
+  else return 'leftUp';
 }
 
-// corners[rockPlacement][primaryDirection][secondaryDirection]
-export const corners: Record<Direction | 'full', Record<Direction, Partial<Record<Direction, [Point, Point]>>>> = {
+// cellBoundaries[rockOrientation][direction]
+export const cellBoundaries: Record<Orientation | Center, Record<Direction, [Point, Point]>> = {
   // "█"
-  full: {
-    up: {
-      up: [[-0.5, 0.5], [0.5, 0.5]],
-      right: [[-0.5, -0.5], [0.5, 0.5]],
-    },
-    right: {
-      right: [[-0.5, -0.5], [-0.5, 0.5]],
-      down: [[0.5, -0.5], [-0.5, 0.5]],
-    },
-    down: {
-      down: [[0.5, -0.5], [-0.5, -0.5]],
-      left: [[0.5, 0.5], [-0.5, -0.5]],
-    },
-    left: {
-      left: [[0.5, 0.5], [0.5, -0.5]],
-      up: [[-0.5, 0.5], [0.5, -0.5]],
-    },
+  [center]: {
+    up: [[-0.5, 0.5], [0.5, 0.5]],
+    upRight: [[-0.5, -0.5], [0.5, 0.5]],
+    right: [[-0.5, -0.5], [-0.5, 0.5]],
+    rightDown: [[0.5, -0.5], [-0.5, 0.5]],
+    down: [[0.5, -0.5], [-0.5, -0.5]],
+    downLeft: [[0.5, 0.5], [-0.5, -0.5]],
+    left: [[0.5, 0.5], [0.5, -0.5]],
+    leftUp: [[-0.5, 0.5], [0.5, -0.5]],
   },
 
   // "▀"
   up: {
-    up: {
-      up: [[-0.5, 0], [0.5, 0]],
-      right: [[-0.5, 0], [0.5, 0.5]],
-    },
-    right: {
-      right: [[-0.5, -0.5], [-0.5, 0]],
-      down: [[0.5, -0.5], [-0.5, 0]],
-    },
-    down: {
-      down: [[0.5, -0.5], [-0.5, -0.5]],
-      left: [[0.5, 0], [-0.5, -0.5]],
-    },
-    left: {
-      left: [[0.5, 0], [0.5, -0.5]],
-      up: [[-0.5, 0.5], [0.5, 0]],
-    },
+    up: [[-0.5, 0], [0.5, 0]],
+    upRight: [[-0.5, 0], [0.5, 0.5]],
+    right: [[-0.5, -0.5], [-0.5, 0]],
+    rightDown: [[0.5, -0.5], [-0.5, 0]],
+    down: [[0.5, -0.5], [-0.5, -0.5]],
+    downLeft: [[0.5, 0], [-0.5, -0.5]],
+    left: [[0.5, 0], [0.5, -0.5]],
+    leftUp: [[-0.5, 0.5], [0.5, 0]],
   },
 
   // "▐"
   right: {
-    up: {
-      up: [[0, 0.5], [0.5, 0.5]],
-      right: [[0, -0.5], [0.5, 0.5]],
-    },
-    right: {
-      right: [[0, -0.5], [0, 0.5]],
-      down: [[0.5, -0.5], [0, 0.5]],
-    },
-    down: {
-      down: [[0.5, -0.5], [0, -0.5]],
-      left: [[0.5, 0.5], [0, -0.5]],
-    },
-    left: {
-      left: [[0.5, 0.5], [0.5, -0.5]],
-      up: [[0, 0.5], [0.5, -0.5]],
-    },
+    up: [[0, 0.5], [0.5, 0.5]],
+    upRight: [[0, -0.5], [0.5, 0.5]],
+    right: [[0, -0.5], [0, 0.5]],
+    rightDown: [[0.5, -0.5], [0, 0.5]],
+    down: [[0.5, -0.5], [0, -0.5]],
+    downLeft: [[0.5, 0.5], [0, -0.5]],
+    left: [[0.5, 0.5], [0.5, -0.5]],
+    leftUp: [[0, 0.5], [0.5, -0.5]],
   },
 
   // "▄"
   down: {
-    up: {
-      up: [[-0.5, 0.5], [0.5, 0.5]],
-      right: [[-0.5, 0], [0.5, 0.5]],
-    },
-    right: {
-      right: [[-0.5, 0], [-0.5, 0.5]],
-      down: [[0.5, 0], [-0.5, 0.5]],
-    },
-    down: {
-      down: [[0.5, 0], [-0.5, 0]],
-      left: [[0.5, 0.5], [-0.5, 0]],
-    },
-    left: {
-      left: [[0.5, 0.5], [0.5, 0]],
-      up: [[-0.5, 0.5], [0.5, 0]],
-    },
+    up: [[-0.5, 0.5], [0.5, 0.5]],
+    upRight: [[-0.5, 0], [0.5, 0.5]],
+    right: [[-0.5, 0], [-0.5, 0.5]],
+    rightDown: [[0.5, 0], [-0.5, 0.5]],
+    down: [[0.5, 0], [-0.5, 0]],
+    downLeft: [[0.5, 0.5], [-0.5, 0]],
+    left: [[0.5, 0.5], [0.5, 0]],
+    leftUp: [[-0.5, 0.5], [0.5, 0]],
   },
 
   // ▌
   left: {
-    up: {
-      up: [[-0.5, 0.5], [0, 0.5]],
-      right: [[-0.5, -0.5], [0, 0.5]],
-    },
-    right: {
-      right: [[-0.5, -0.5], [-0.5, 0.5]],
-      down: [[0, -0.5], [-0.5, 0.5]],
-    },
-    down: {
-      down: [[0, -0.5], [-0.5, -0.5]],
-      left: [[0, 0.5], [-0.5, -0.5]],
-    },
-    left: {
-      left: [[0, 0.5], [0, -0.5]],
-      up: [[-0.5, 0.5], [0, -0.5]],
-    },
+    up: [[-0.5, 0.5], [0, 0.5]],
+    upRight: [[-0.5, -0.5], [0, 0.5]],
+    right: [[-0.5, -0.5], [-0.5, 0.5]],
+    rightDown: [[0, -0.5], [-0.5, 0.5]],
+    down: [[0, -0.5], [-0.5, -0.5]],
+    downLeft: [[0, 0.5], [-0.5, -0.5]],
+    left: [[0, 0.5], [0, -0.5]],
+    leftUp: [[-0.5, 0.5], [0, -0.5]],
   },
 };

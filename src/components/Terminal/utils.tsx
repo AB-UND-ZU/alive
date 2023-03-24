@@ -1,4 +1,4 @@
-import { Cell, Direction, Water } from "./entities";
+import { Cell, Water } from "./entities";
 
 export const sum = (numbers: number[]) => numbers.reduce((total, number) => total + number, 0);
 
@@ -8,8 +8,29 @@ export const getDeterministicRandomInt = (minimum: number, maximum: number) => {
   );
 };
 
+export const orientations = ['up', 'right', 'down', 'left'] as const;
+export const corners = ['upRight', 'rightDown', 'downLeft', 'leftUp'] as const;
+export const center = 'center';
+export type Center = typeof center;
+export const directions = [...orientations, ...corners] as const;
+export const directionOffset: Record<Direction | Center, Point> = {
+  up: [0, -1],
+  upRight: [1, -1],
+  right: [1, 0],
+  rightDown: [1, 1],
+  down: [0, 1],
+  downLeft: [-1, 1],
+  left: [-1, 0],
+  leftUp: [-1, -1],
+  [center]: [0, 0],
+}
+export type Direction = typeof directions[number];
+export type Orientation = typeof orientations[number];
+
 // x, y
 export type Point = [number, number];
+
+export const addPoints = (state: TerminalState, left: Point, right: Point): Point => wrapCoordinates(state, left[0] + right[0], left[1] + right[1]);
 
 // helper to create point ranges fast
 export const pointRange = (length: number, generator: (index: number) => Point) =>
@@ -21,7 +42,7 @@ export type TerminalState = {
   // player
   x: number,
   y: number,
-  direction?: Direction,
+  orientation?: Orientation,
 
   // stats
   hp: number,
@@ -48,7 +69,7 @@ export type TerminalState = {
   particles: Point[],
 }
 
-export const wrapCoordinates = (state: TerminalState, x: number, y: number) => [
+export const wrapCoordinates = (state: TerminalState, x: number, y: number): Point => [
   (x + state.width) % state.width,
   (y + state.height) % state.height,
 ];

@@ -1,5 +1,5 @@
 import { ReactComponentElement } from "react";
-import { Point } from "./utils";
+import { Direction, Orientation, Point } from "./utils";
 
 // ------------------------ GROUND --------------------------------
 
@@ -33,24 +33,24 @@ export const grounds = [Water, Ice, Sand, Path];
 
 // ------------------------ TERRAIN --------------------------------
 
-export type Terrain = React.FC<{direction?: Direction }>;
+export type Terrain = React.FC<{orientation?: Orientation }>;
 
-export const Rock: Terrain = ({ direction }) => {
-  const directions: Record<Direction, string> = {
+export const Rock: Terrain = ({ orientation }) => {
+  const rockOrientations: Record<Orientation, string> = {
     up: '▀',
     right: '▐',
     down: '▄',
     left: '▌',
   };
 
-  return <span className="Entity Rock">{direction ? directions[direction] : '█'}</span>
+  return <span className="Entity Rock">{orientation ? rockOrientations[orientation] : '█'}</span>
 }
 
-export const Tree: Terrain = ({ direction }) => {
+export const Tree: Terrain = ({ orientation }) => {
   return (
     <>
       <span className="Entity Wood">{'\u2510'}</span>
-      <span className="Entity Plant">{direction ? '\u0398' : '#'}</span>
+      <span className="Entity Plant">{orientation ? '\u0398' : '#'}</span>
     </>
   );
 }
@@ -146,7 +146,7 @@ export const sprites = [Flower, Bush, Campfire];
 
 // ------------------------ CREATURE --------------------------------
 
-export type Creature = React.FC<{ direction: Direction }>;
+export type Creature = React.FC<{ orientation: Orientation }>;
 export const Player: Creature = () => {
   return (
     <>
@@ -158,8 +158,8 @@ export const Player: Creature = () => {
   )
 }
 
-export const Triangle: Creature = ({ direction }) => {
-  const directions = {
+export const Triangle: Creature = ({ orientation }) => {
+  const triangleOrientations = {
     up: '\u011d',
     right: '\u010f',
     down: '\u011e',
@@ -167,7 +167,7 @@ export const Triangle: Creature = ({ direction }) => {
   };
   return (
     <>
-      <span className="Entity Monster">{directions[direction]}</span>
+      <span className="Entity Monster">{triangleOrientations[orientation]}</span>
       <span className="Entity Bar">{'\u0120'}</span>
     </>
   );
@@ -209,7 +209,7 @@ export const equipments = [Armor, Sword, Spell, Amulet];
 
 // ------------------------ PARTICLE --------------------------------
 
-export type Particle = React.FC;
+export type Particle = React.FC<{ direction?: Direction }>;
 
 export const Swimming: Particle = () => {
   return <span className="Entity Water">{'▄'}</span>;
@@ -224,7 +224,22 @@ export const Burning: Particle = () => {
   );
 }
 
-export const particles = [Swimming, Burning];
+export const Shock: Particle = ({ direction }) => {
+  const shockDirections = {
+    up: '^',
+    upRight: '┐',
+    right: '>',
+    rightDown: '┘',
+    down: 'v',
+    downLeft: '└',
+    left: '<',
+    leftUp: '┌',
+    center: '',
+  };
+  return <span className="Entity Ice">{shockDirections[direction || 'center']}</span>;
+}
+
+export const particles = [Swimming, Burning, Shock];
 
 // ------------------------ CONSTANTS --------------------------------
  
@@ -242,15 +257,6 @@ export const inventories = new Map<Item | undefined, Stats>([
 export type Inventory = 'gold' | 'seed' | 'herb' | 'wood' | 'iron';
 export type Stats = Status | Inventory;
 export type Material = "wood" | "iron" | "fire" | "ice";
-
-export const directions = ['up', 'right', 'down', 'left'] as const;
-export const directionOffset: Record<Direction, Point> = {
-  up: [0, -1],
-  right: [1, 0],
-  down: [0, 1],
-  left: [-1, 0],
-}
-export type Direction = typeof directions[number];
 
 export const containers = new Map<Entity | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);
 

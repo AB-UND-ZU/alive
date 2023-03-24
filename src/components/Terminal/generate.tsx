@@ -2,9 +2,9 @@ import { ReactComponentElement } from 'react';
 import WorldmapGenerator, { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, directions, Direction, Flower, Tree, Bush, grounds, Campfire, Equipment, Particle, containers, Triangle } from "./entities";
+import { Player, Armor, Sword, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, Equipment, Particle, containers, Triangle } from "./entities";
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { Fog, getDeterministicRandomInt, Point, sum, TerminalState } from "./utils";
+import { Fog, getDeterministicRandomInt, Orientation, orientations, Point, sum, TerminalState } from "./utils";
 
 // patch infite borders
 const getCell = WorldmapGenerator.prototype.getCell;
@@ -32,23 +32,23 @@ const getCellEntities = (elements: (ReactComponentElement<Entity> | undefined)[]
   return elements.filter(element => element?.type === target);
 }
 
-// get count and approximate direction for a specific entity in a 2x2 block of map cells
+// get count and approximate orientation for a specific entity in a 2x2 block of map cells
 const getBlockLayout = (elements: (ReactComponentElement<Entity> | undefined)[], target: Entity) => {
   const targetedIndizes = elements.map(element => element?.type === target ? 1 : 0);
   const length = sum(targetedIndizes);
   const first = targetedIndizes.indexOf(1);
   const last = targetedIndizes.lastIndexOf(1);
-  let direction: Direction | undefined;
+  let orientation: Orientation | undefined;
 
   if (length === 1) {
-    direction = directions[first];
+    orientation = orientations[first];
   } else if (length === 2) {
     const distance = last - first;
     const offset = distance === 2 ? getDeterministicRandomInt(0, 1) * 2 : distance - 1;
-    direction = directions[(first - offset + directions.length) % directions.length];
+    orientation = orientations[(first - offset + orientations.length) % orientations.length];
   }
 
-  return { length, direction };
+  return { length, orientation };
 }
 
 const noiseMatrix = (
@@ -149,7 +149,7 @@ function generateLevel(state: TerminalState): TerminalState {
 
       const rockLayout = getBlockLayout(terrainElements, Rock);
       if (rockLayout.length > 0) {
-        cell.terrain = <Rock direction={rockLayout.direction} />;
+        cell.terrain = <Rock orientation={rockLayout.orientation} />;
       }
 
       // Sprite: collapse into bushes or tress, or override campfire
@@ -157,7 +157,7 @@ function generateLevel(state: TerminalState): TerminalState {
       if (!cell.terrain && !cell.grounds?.length) {
         const plantLayout = getCellEntities(spriteElements, Flower);
         if (plantLayout.length > 2) {
-          cell.terrain = <Tree direction={directions[getDeterministicRandomInt(0, 7)]} />;
+          cell.terrain = <Tree orientation={orientations[getDeterministicRandomInt(0, 7)]} />;
         } else if (plantLayout.length > 0) {
           cell.sprite = plantLayout.length === 2 ? <Bush /> : <Flower />;
         }
@@ -166,7 +166,7 @@ function generateLevel(state: TerminalState): TerminalState {
       // Item: add container item if overlapping with noise
       const itemNoise = itemMatrix[rowIndex][columnIndex];
       const CellItem = containers.get(cell.sprite?.type || cell.terrain?.type);
-      if (CellItem && itemNoise > 48 && !cell.terrain?.props.direction) {
+      if (CellItem && itemNoise > 48 && !cell.terrain?.props.orientation) {
         cell.item = <CellItem amount={Math.floor(itemNoise - 46.5 )} />;
         
         if (cell.terrain?.type === Tree) {
@@ -177,7 +177,7 @@ function generateLevel(state: TerminalState): TerminalState {
       if (!cell.terrain && !cell.grounds && !cell.sprite) {
         if (itemNoise < -48) {
           creatures.push([columnIndex, rowIndex]);
-          cell.creature = <Triangle direction='up' />;
+          cell.creature = <Triangle orientation='up' />;
         }
       }
 
@@ -201,7 +201,7 @@ function generateLevel(state: TerminalState): TerminalState {
   });
 
   // insert player at initial coords
-  rows[state.y][state.x].creature = <Player direction="up" />;
+  rows[state.y][state.x].creature = <Player orientation="up" />;
   //rows[state.y][state.x].equipments = [<Armor material="wood" />, <Sword material="iron" />];
 
   // generate initial darkness

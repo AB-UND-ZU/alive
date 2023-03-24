@@ -1,7 +1,7 @@
-import { Direction } from "./entities";
+import { Orientation, Center, center } from "./utils";
 
-export const padDirections: Record<Direction | 'none', [string, string]> = {
-  none: [
+export const padOrientation: Record<Orientation | Center, [string, string]> = {
+  [center]: [
     ' ▄▄ ',
     ' ▀▀ '
   ],
