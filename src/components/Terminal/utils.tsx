@@ -1,5 +1,5 @@
 import { ReactComponentElement } from "react";
-import { Cell, Creature, Particle, Water, Entity, Inventory } from "./entities";
+import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment } from "./entities";
 
 export const sum = (numbers: number[]) => numbers.reduce((total, number) => total + number, 0);
 
@@ -75,7 +75,7 @@ export type TerminalState = {
   fog: Fog[][],
   creatures: Processor<Creature>[],
   particles: Processor<Particle>[],
-  spells: Processor<Particle>[],
+  spells: Processor<Equipment>[],
 }
 
 export const wrapCoordinates = (state: TerminalState, x: number, y: number): Point => [

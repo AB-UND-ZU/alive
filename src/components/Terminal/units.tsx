@@ -25,7 +25,7 @@ export const computeUnits = (state: TerminalState) => {
   const particles = [...state.particles];
   const equipments: Processor<Equipment>[] = [];
 
-  // render creatures, equipments and particles
+  // render creatures, spells, equipments and particles
   state.creatures.forEach(processor => {
     setUnit(state, units, processor.x, processor.y, { creature: processor.entity });
     particles.push(...(processor.entity.props.particles || []).map(particle => ({
@@ -38,6 +38,10 @@ export const computeUnits = (state: TerminalState) => {
       y: processor.y,
       entity: equipment,
     })));
+  });
+
+  state.spells.forEach(processor => {
+    particles.push(...(processor.entity.props.particles || []));
   });
 
   particles.forEach(processor => {

@@ -1,7 +1,8 @@
 import { tickCreature } from "./creatures";
-import { counters, Creature, inventories, Particle, Player, Shock  } from "./entities";
+import { counters, Creature, Equipment, inventories, Particle, Player, Shock, Spell  } from "./entities";
 import { visibleFogOfWar } from "./fog";
 import { tickParticle } from "./particles";
+import { tickSpell } from "./spells";
 import { addPoints, center, directionOffset, directions, getCell, getFog, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
 
 type MoveAction = {
@@ -138,16 +139,23 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     case 'tick': {
       const newState = { ...state, orientation: undefined };
 
-      newState.creatures = newState.creatures.map(processor => {
-        const [creatureState, creatureProcessor] = tickCreature(newState, processor);
-        newState.board = creatureState.board;
-        return creatureProcessor;
-      }).filter(Boolean) as Processor<Creature>[];
+      newState.spells = newState.spells.map(processor => {
+        const [spellState, spellProcessor] = tickSpell(newState, processor);
+        newState.board = spellState.board;
+        return spellProcessor;
+      }).filter(Boolean) as Processor<Equipment>[];
+
       newState.particles = newState.particles.map(processor => {
         const [particleState, particleProcessor] = tickParticle(newState, processor);
         newState.board = particleState.board;
         return particleProcessor;
       }).filter(Boolean) as Processor<Particle>[];
+
+      newState.creatures = newState.creatures.map(processor => {
+        const [creatureState, creatureProcessor] = tickCreature(newState, processor);
+        newState.board = creatureState.board;
+        return creatureProcessor;
+      }).filter(Boolean) as Processor<Creature>[];
 
       return newState;
     }
@@ -155,17 +163,14 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     case 'spell': {
       const newState = { ...state };
       const newParticles = [...newState.particles];
-
-      // create all shocks around player
-      directions.forEach(direction => {
-        const [shockX, shockY] = addPoints(newState, [newState.x, newState.y], directionOffset[direction]);
-        newParticles.push({
-          x: shockX,
-          y: shockY,
-          entity: <Shock direction={direction} />
-        });
-      });
-      newState.particles = newParticles;
+      const processor = {
+        x: newState.x,
+        y: newState.y,
+        entity: <Spell amount={1} />,
+      };
+      const [spellState, spellProcessor] = tickSpell(newState, processor);
+      newState.board = spellState.board;
+      newState.spells = [...newState.spells, spellProcessor];
 
       return newState;
     }

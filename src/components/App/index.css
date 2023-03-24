@@ -172,6 +172,7 @@ body {
 
 .Bar {
   color: var(--red);
+  z-index: 11;
 }
 
 .Armor {

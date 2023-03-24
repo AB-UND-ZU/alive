@@ -1,5 +1,5 @@
 import { ReactComponentElement } from "react";
-import { Direction, Orientation, Point } from "./utils";
+import { Direction, Orientation, Processor } from "./utils";
 
 // ------------------------ GROUND --------------------------------
 
@@ -60,7 +60,7 @@ export const terrains = [Rock, Tree];
 
 // ------------------------ EQUIPMENT --------------------------------
 
-export type Equipment = React.FC<{ amount: number }>;
+export type Equipment = React.FC<{ amount: number, particles?: Processor<Particle>[] }>;
 
 export const Sword: Equipment = ({ amount }) => {
   const material = materials[amount];

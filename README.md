@@ -6,6 +6,7 @@
 - Red: food
 - Fix seeing between rocks
 - Average drop: 10wood 10iron 15 food 20 mana
+- Swimming: air?
 
 ## Layers
 
