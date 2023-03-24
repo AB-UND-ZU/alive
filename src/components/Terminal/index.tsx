@@ -28,6 +28,7 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     board: [[{}]],
     fog: [[]],
     creatures: [],
+    particles: [],
   }, generateLevel);
 
   const lastTick = useRef(0);

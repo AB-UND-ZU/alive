@@ -1,7 +1,8 @@
-import React, { ReactComponentElement, ReactElement } from "react";
-import { Cell, Inventory, inventories, Water, Swimming, Gold, Entity, Triangle, directionOffset, directions, Direction } from "./entities";
+import { tickCreature } from "./creatures";
+import { inventories, Swimming, directionOffset, Direction, Water } from "./entities";
 import { visibleFogOfWar } from "./fog";
-import { getCell, getDeterministicRandomInt, getFog, Point, pointRange, TerminalState, wrapCoordinates } from "./utils";
+import { tickParticles } from "./particles";
+import { getCell, getFog, isWalkable, isWater, Point, pointRange, TerminalState, updateBoard, wrapCoordinates } from "./utils";
 
 type MoveAction = {
   type: 'move',
@@ -24,28 +25,6 @@ type TickAction = {
 
 type TerminalAction = MoveAction | CollectAction | FogAction | TickAction;
 
-const updateBoard = (board: Cell[][], x: number, y: number, value: Cell) => {
-  const newBoard = [
-    ...board.slice(0, y),
-    [
-      ...board[y].slice(0, x),
-      value,
-      ...board[y].slice(x + 1),
-    ],
-    ...board.slice(y + 1),
-  ];
-  return newBoard;
-}
-const isWater = (state: TerminalState, x: number, y: number) => {
-  const cell = getCell(state, x, y);
-  return cell.grounds?.length === 1 && cell.grounds[0].type === Water && cell.grounds[0].props.amount === 4;
-}
-const isLand = (state: TerminalState, x: number, y: number) => [-1, 0, 1].map(deltaX => [-1, 0, 1].map(deltaY => !isWater(state, x + deltaX, y + deltaY))).flat().some(Boolean);
-const isWalkable = (state: TerminalState, x: number, y: number) => {
-  const cell = getCell(state, x, y);
-  return isLand(state, x, y) && !cell.terrain && !cell.creature && !cell.item;
-}
-
 export const reducer = (state: TerminalState, action: TerminalAction): TerminalState => {
   switch (action.type) {
     case 'move': {
@@ -53,7 +32,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       const [deltaX, deltaY] = direction ? directionOffset[direction] : [0, 0];
       let newState: TerminalState = { ...state, direction };
       const [newX, newY] = wrapCoordinates(newState, newState.x + deltaX, newState.y + deltaY);
-      const cell = newState.board[newState.y][newState.x];
+      const playerCell = { ...newState.board[newState.y][newState.x] };
       let newCell = { ...newState.board[newY][newX] };
 
       // if walking into item, stop and collect instead
@@ -61,19 +40,18 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
         newState = reducer(newState, { type: 'collect', itemX: newX, itemY: newY });
         
       } else if (isWalkable(state, newX, newY)) {
-        newCell.creature = cell.creature;
-        newCell.equipments = cell.equipments;
+        newCell.creature = playerCell.creature
+        newCell.equipments = playerCell.equipments
         newState.board = updateBoard(newState.board, newX, newY, newCell);
-        newState.board = updateBoard(newState.board, newState.x, newState.y, { ...cell, creature: undefined, equipments: undefined });
+        playerCell.creature = undefined;
+        playerCell.equipments = undefined;
+        newState.board = updateBoard(newState.board, newState.x, newState.y, playerCell);
         newState.x = newX;
         newState.y = newY;
-
-        // update swimming display
-        cell.particles = (cell.particles || []).filter(particle => particle.type !== Swimming);
-        if (isWater(newState, newX, newY)) {
-          newCell.particles = [...(newCell.particles || []), <Swimming />];
-        }
       }
+
+      const particleState = tickParticles(newState, newState.x, newState.y);
+      newState.board = particleState.board;
 
       newState = reducer(newState, { type: 'fog' });
       return newState;
@@ -130,46 +108,19 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
 
     case 'tick': {
       const newState = { ...state, direction: undefined };
-      const newCreatures = newState.creatures.map<Point>(([creatureX, creatureY]) => {
-        const creatureCell = getCell(newState, creatureX, creatureY);
+
+      newState.creatures = newState.creatures.map<Point>(([creatureX, creatureY]) => {
+        const [creatureState, [targetX, targetY]] = tickCreature(newState, creatureX, creatureY);
+        newState.board = creatureState.board;
         
-        if (creatureCell.creature?.type === Triangle) {
-          const direction = creatureCell.creature.props.direction;
-          const [moveX, moveY] = directionOffset[direction];
-          const [targetX, targetY] = wrapCoordinates(newState, creatureX + moveX, creatureY + moveY);
-          const targetCell = getCell(newState, targetX, targetY);
-          if (isWalkable(newState, targetX, targetY)) {
-            newState.board = updateBoard(newState.board, targetX, targetY, {...targetCell, creature: creatureCell.creature});
-            newState.board = updateBoard(newState.board, creatureX, creatureY, { ...creatureCell, creature: undefined });
-            return [targetX, targetY];
-          }
+        // update swimming display
+        const particleState = tickParticles(newState, targetX, targetY);
+        newState.board = particleState.board;
 
-          // find first free cell in either counter- or clockwise direction by random
-          const rotation = getDeterministicRandomInt(0, 1) * 2 - 1;
-          const newDirection = Array.from({ length: 3 }).map((_, offset) => {
-            const attemptDirection = directions[(directions.indexOf(direction) + (offset + 1) * rotation + directions.length) % directions.length];
-            const [attemptX, attemptY] = directionOffset[attemptDirection];
-            if (isWalkable(state, creatureX + attemptX, creatureY + attemptY)) {
-              return attemptDirection;
-            }
-          }).filter(Boolean)[0];
-
-          // if creature is stuck, make it circle around
-          const stuckDirection = directions[(directions.indexOf(direction) + getDeterministicRandomInt(1, directions.length - 1)) % directions.length];
-
-          newState.board = updateBoard(newState.board, creatureX, creatureY, {
-            ...creatureCell,
-            creature: <Triangle direction={newDirection || stuckDirection} />
-          });
-        }
-
-        return [creatureX, creatureY];
+        return [targetX, targetY];
       });
 
-      return {
-        ...newState,
-        creatures: newCreatures,
-      };
+      return newState;
     }
 
     default: {
