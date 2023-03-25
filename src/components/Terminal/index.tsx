@@ -30,7 +30,7 @@ const Terminal = ({ score, setScore, gameOver }: { score: number, setScore: Reac
     fog: [[]],
     creatures: [],
     particles: [],
-    spells: [],
+    equipments: [],
     inventory: {},
   }, generateLevel);
 

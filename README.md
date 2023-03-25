@@ -37,9 +37,8 @@
 - Shockwave spell
   - Elements
 
-- Boat
-  - Wood shallow water
-  - Iron deep water
+- Boat: Wood
+- Bomb
 
 ## Elements
 
@@ -89,6 +88,7 @@
   - Static, shooting
 - Shark (clover)
   - Swimming only
+- Shock wave tower
 
 
 ## Stats

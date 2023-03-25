@@ -1,8 +1,9 @@
+import { ReactComponentElement } from "react";
 import { tickCreature } from "./creatures";
-import { Amulet, Attacked, counters, Creature, Equipment, inventories, Particle, Player, Shock  } from "./entities";
+import { Attacked, counters, Creature, Equipment, inventories, Item, Particle, Player, Shock, Spell, Sword, Wood  } from "./entities";
 import { visibleFogOfWar } from "./fog";
 import { tickParticle } from "./particles";
-import { tickSpell } from "./spells";
+import { tickEquipment } from "./equipments";
 import { center, directionOffset, getCell, getFog, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
 
 type MoveAction = {
@@ -54,8 +55,14 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
         creature.y === newY
       ));
 
+      const equipmentIndex = newState.equipments.findIndex(processor => (
+        processor.x === newX &&
+        processor.y === newY &&
+        processor.entity.props.interaction === undefined
+      ));
+
       // if walking into item, stop and collect instead
-      if (newCell.item) {
+      if (newCell.item || equipmentIndex !== -1) {
         newState = reducer(newState, { type: 'collect', itemX: newX, itemY: newY });
 
       } else if (attackedCreature) {
@@ -84,45 +91,81 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     case 'collect': {
       const { itemX, itemY } = action;
       const newState = { ...state };
-      const itemCell = { ...getCell(state, itemX, itemY) };
+      const collectCell = { ...getCell(state, itemX, itemY) };
+      const newEquipments = [...newState.equipments];
 
-      const item = itemCell.item;
-      if (!item) return state;
-      const ItemEntity = item.type;
-      const counter = counters.get(ItemEntity);
-      const inventory = inventories.get(ItemEntity);
-      const amount = item.props.amount;
+      const equipmentIndex = newEquipments.findIndex(processor => processor.x === itemX && processor.y === itemY);
+      const newProcessor = { ...newEquipments[equipmentIndex] };
 
-      if (counter) {
+      console.log('collect')
+      if (collectCell.item) {
+        console.log('item')
+        const item: ReactComponentElement<Item> = { ...collectCell.item };
+        const ItemEntity = item.type;
+        const counter = counters.get(ItemEntity);
+        const amount = item.props.amount;
+
         if (amount > 1) {
-          itemCell.item = <ItemEntity amount={amount - 1} />;
+          console.log('amount')
+          collectCell.item = {
+            ...collectCell.item,
+            props: {
+              ...collectCell.item.props,
+              amount: amount - 1,
+            },
+          };
         } else {
-          itemCell.item = undefined;
+          collectCell.item = undefined;
         }
-        newState[counter] = newState[counter] + 1;
-      } else if (inventory) {
-        const InventoryEntity = inventory[1];
-        newState.inventory[inventory[0]] = {
-          ...item,
-          type: ItemEntity,
-        };
-        itemCell.item = undefined;
 
-        const playerIndex = newState.creatures.findIndex(processor => processor.entity.type === Player);
-        const playerProcessor = { ...newState.creatures[playerIndex] };
-        playerProcessor.entity = {
-          ...playerProcessor.entity,
-          props: {
-            ...playerProcessor.entity.props,
-            equipments: [...(playerProcessor.entity.props.equipments || []), <InventoryEntity amount={amount} />],
-          }
-        };
-        const newCreatures = [...newState.creatures];
-        newCreatures.splice(playerIndex, 1, playerProcessor);
-        newState.creatures = newCreatures;
+        // special case: first wood to be picked up can be used as sword
+        if (!newState.inventory.sword && ItemEntity === Wood) {
+          console.log('wood')
+          newProcessor.x = itemX;
+          newProcessor.y = itemY;
+          newProcessor.entity = <Sword amount={1} material="wood" />; 
+        } else if (counter) {
+          console.log('counter')
+          newState[counter] = newState[counter] + 1;
+        }
       }
+
+      if (newProcessor.entity) {
+        console.log('entity')
+        const inventory = inventories.get(newProcessor.entity.type);
         
-      newState.board = updateBoard(state.board, itemX, itemY, itemCell);
+        if (inventory) {
+          console.log('inventory')
+          newEquipments.splice(equipmentIndex, 1);
+          newState.inventory = {
+            ...newState.inventory,
+            [inventory]: newProcessor.entity
+          };
+
+          const playerIndex = newState.creatures.findIndex(processor => processor.entity.type === Player);
+          const playerProcessor = { ...newState.creatures[playerIndex] };
+          const newEquipment: ReactComponentElement<Equipment> = {
+            ...newProcessor.entity,
+            props: {
+              ...newProcessor.entity.props,
+              interaction: 'equipped',
+            }
+          };
+          playerProcessor.entity = {
+            ...playerProcessor.entity,
+            props: {
+              ...playerProcessor.entity.props,
+              equipments: [...(playerProcessor.entity.props.equipments || []), newEquipment],
+            }
+          };
+          const newCreatures = [...newState.creatures];
+          newCreatures.splice(playerIndex, 1, playerProcessor);
+          newState.creatures = newCreatures;
+        }
+      }
+      
+      newState.equipments = newEquipments;
+      newState.board = updateBoard(state.board, itemX, itemY, collectCell);
       return newState;
     }
 
@@ -157,11 +200,11 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     case 'tick': {
       const newState = { ...state, orientation: undefined };
 
-      newState.spells = newState.spells.map(processor => {
-        const [spellState, spellProcessor] = tickSpell(newState, processor);
-        newState.board = spellState.board;
-        newState.creatures = spellState.creatures;
-        return spellProcessor;
+      newState.equipments = newState.equipments.map(processor => {
+        const [equipmentState, equipmentProcessor] = tickEquipment(newState, processor);
+        newState.board = equipmentState.board;
+        newState.creatures = equipmentState.creatures;
+        return equipmentProcessor;
       }).filter(Boolean) as Processor<Equipment>[];
 
       newState.particles = newState.particles.map(processor => {
@@ -227,12 +270,15 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       const processor = {
         x: newState.x,
         y: newState.y,
-        entity: <Amulet amount={1} particles={[centerParticle]} />,
+        entity: <Spell amount={1} particles={[centerParticle]} material="ice" interaction="using" />,
       };
-      const [spellState, spellProcessor] = tickSpell(newState, processor);
-      newState.board = spellState.board;
-      newState.creatures = spellState.creatures;
-      newState.spells = [...newState.spells, spellProcessor];
+      const [equipmentState, equipmentProcessor] = tickEquipment(newState, processor);
+      newState.board = equipmentState.board;
+      newState.creatures = equipmentState.creatures;
+
+      if (equipmentProcessor) {
+        newState.equipments = [...newState.equipments, equipmentProcessor];
+      }
 
       return newState;
     }

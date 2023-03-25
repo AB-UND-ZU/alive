@@ -75,7 +75,7 @@ export type TerminalState = {
   fog: Fog[][],
   creatures: Processor<Creature>[],
   particles: Processor<Particle>[],
-  spells: Processor<Equipment>[],
+  equipments: Processor<Equipment>[],
 }
 
 export const wrapCoordinates = (state: TerminalState, x: number, y: number): Point => [

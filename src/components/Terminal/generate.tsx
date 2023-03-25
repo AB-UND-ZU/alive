@@ -202,17 +202,25 @@ function generateLevel(state: TerminalState): TerminalState {
     y: state.y,
   });
 
-  /*
-  rows[1][1].item = <Sword amount={0} />;
-  rows[2][2].item = <Armor amount={1} />;
-  rows[3][3].item = <Spell amount={3} />;
-  */
+  const equipments = [{
+    x: 1,
+    y: 1,
+    entity: <Sword amount={0} material="iron" />,
+  }, {
+    x: 2,
+    y: 2,
+    entity: <Armor amount={1} material="wood" />,
+  }, {
+    x: 3,
+    y: 3,
+    entity: <Spell amount={3} material="ice" />,
+  }];
 
   // generate initial darkness
   const fog: Fog[][] = Array.from({ length: state.height }).map(
     () => Array.from<Fog>({ length: state.width }).fill('dark')
   );
-  return { ...state, board: rows, fog, creatures };
+  return { ...state, board: rows, fog, creatures, equipments };
 }
 
 

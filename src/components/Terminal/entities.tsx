@@ -60,34 +60,35 @@ export const terrains = [Rock, Tree];
 
 // ------------------------ EQUIPMENT --------------------------------
 
-export type Equipment = React.FC<{ amount: number, particles?: Processor<Particle>[] }>;
+export type Equipment = React.FC<{
+  amount: number,
+  particles?: Processor<Particle>[],
+  material: Material,
+  interaction?: Interaction,
+}>;
 
-export const Sword: Equipment = ({ amount }) => {
-  const material = materials[amount];
+export const Sword: Equipment = ({ material }) => {
   return <span className={`Entity Sword ${material}`}>{'/'}</span>
 }
 
-export const Armor: Equipment = ({ amount }) => {
-  const material = materials[amount];
+export const Armor: Equipment = ({ material }) => {
   return <span className={`Entity Armor ${material}`}>{'\u00ac'}</span>
 }
 
-export const Amulet: Equipment = ({ amount }) => {
-  const material = materials[amount];
-  return <span className={`Entity Amulet ${material}`}>{'\u0128'}</span>
+export const Spell: Equipment = ({ interaction, material }) => {
+  if (interaction === "using") return null;
+  return <span className={`Entity Spell ${material}`}>{interaction === 'equipped' ? '\u0128' : '@'}</span>
 }
 
-export const Boat: Equipment = ({ amount }) => {
-  const material = materials[amount];
+export const Boat: Equipment = ({ material }) => {
   return <span className={`Entity Boat ${material}`}>{'\u0115'}</span>
 }
 
-export const Key: Equipment = ({ amount }) => {
-  const material = materials[amount];
+export const Key: Equipment = ({ material }) => {
   return <span className={`Entity Key ${material}`}>{'\u011c'}</span>
 }
 
-export const equipments = [Armor, Sword, Amulet, Boat, Key];
+export const equipments = [Armor, Sword, Spell, Boat, Key];
 
 
 
@@ -154,15 +155,7 @@ export const Iron: Item = ({ amount }) => {
   return <span className="Entity Ore">{'\u00f7'}</span>;
 }
 
-export const Spell: Item = ({ amount }) => {
-  const material = materials[amount]
-  return <span className={`Entity Spell ${material}`}>{'@'}</span>
-}
-
-export const items = [
-  Life, Mana, Wood, Iron, Herb, Seed, Gold, Experience,
-  Spell, Sword, Armor, Boat, Key,
-];
+export const items = [Life, Mana, Wood, Iron, Herb, Seed, Gold, Experience];
 
 
 // ------------------------ SPRITE --------------------------------
@@ -309,18 +302,20 @@ export type Inventory = {
   boat?: ReactComponentElement<Equipment>,
   key?: ReactComponentElement<Equipment>,
 };
-export const inventories = new Map<Item | undefined, [keyof Inventory, Equipment]>([
-  [Sword, ['sword', Sword]],
-  [Armor, ['armor', Armor]],
-  [Spell, ['spell', Amulet]],
-  [Boat, ['boat', Boat]],
-  [Key, ['key', Key]],
+export const inventories = new Map<Equipment | undefined, keyof Inventory>([
+  [Sword, 'sword'],
+  [Armor, 'armor'],
+  [Spell, 'spell'],
+  [Boat, 'boat'],
+  [Key, 'key'],
 ]);
+
+export type Interaction = 'equipped' | 'using';
 
 export const materials = ['wood', 'iron', 'fire', 'ice'] as const;
 export type Material = typeof materials[number];
 
-export const containers = new Map<Entity | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);
+export const containers = new Map<Sprite | Terrain | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);
 
 // ------------------------ ENTITY --------------------------------
 

@@ -180,8 +180,15 @@ body {
 }
 
 .Sword {
-  color: var(--grey);
   z-index: 3;
+}
+
+.Sword.wood {
+  color: var(--maroon);
+}
+
+.Sword.iron {
+  color: var(--grey);
 }
 
 .Spell {

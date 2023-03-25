@@ -23,7 +23,7 @@ export const getUnit = (state: TerminalState, units: Units, x: number, y: number
 export const computeUnits = (state: TerminalState) => {
   const units: Units = {};
   const particles = [...state.particles];
-  const equipments: Processor<Equipment>[] = [];
+  const equipments: Processor<Equipment>[] = [...state.equipments];
 
   // render creatures, spells, equipments and particles
   state.creatures.forEach(processor => {
@@ -40,16 +40,13 @@ export const computeUnits = (state: TerminalState) => {
     })));
   });
 
-  state.spells.forEach(processor => {
+  equipments.forEach(processor => {
+    setUnit(state, units, processor.x, processor.y, { equipments: [processor.entity] });
     particles.push(...(processor.entity.props.particles || []));
   });
 
   particles.forEach(processor => {
     setUnit(state, units, processor.x, processor.y, { particles: [processor.entity] });
-  });
-
-  equipments.forEach(processor => {
-    setUnit(state, units, processor.x, processor.y, { equipments: [processor.entity] });
   });
 
   return units;
