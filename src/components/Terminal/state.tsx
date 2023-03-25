@@ -1,5 +1,5 @@
 import { tickCreature } from "./creatures";
-import { Amulet, counters, Creature, Equipment, inventories, Particle, Player, Shock  } from "./entities";
+import { Amulet, Attacked, counters, Creature, Equipment, inventories, Particle, Player, Shock  } from "./entities";
 import { visibleFogOfWar } from "./fog";
 import { tickParticle } from "./particles";
 import { tickSpell } from "./spells";
@@ -203,6 +203,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
             ...attackedCreature.entity,
             props: {
               ...attackedCreature.entity.props,
+              particles: [...(attackedCreature.entity.props.particles || []), <Attacked />],
               amount: newAmount
             }
           }

@@ -262,6 +262,10 @@ export const Freezing: Particle = ({ amount }) => {
   return <span className="Entity Freezing">{'░'}</span>;
 }
 
+export const Attacked: Particle = () => {
+  return <span className="Entity Attacked">{'x'}</span>;
+}
+
 export const Shock: Particle = ({ direction }) => {
   const shockDirections = {
     up: '─',

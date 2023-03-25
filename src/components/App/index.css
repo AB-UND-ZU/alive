@@ -210,6 +210,11 @@ body {
   z-index: 10;
 }
 
+.Attacked {
+  color: var(--grey);
+  z-index: 11;
+}
+
 /*
 .Frame {
   color: var(--black);
