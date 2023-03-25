@@ -113,6 +113,14 @@ export const tickSpell = (state: TerminalState, processor: Processor<Equipment>)
       createParticle(state, newProcessor, <Shock direction="down" />, [0, radius]),
       createParticle(state, newProcessor, <Shock direction="rightDown" />, [1, radius]),
     );
+
+    // invisible particles to prevent mobs passing through
+    newParticles.push(
+      createParticle(state, newProcessor, <Shock direction="center" />, [0, (radius + 1) * -1]),
+      createParticle(state, newProcessor, <Shock direction="center" />, [radius + 1, 0]),
+      createParticle(state, newProcessor, <Shock direction="center" />, [0, radius + 1]),
+      createParticle(state, newProcessor, <Shock direction="center" />, [(radius + 1) * -1, 0]),
+    );
   }
 
   newProcessor.entity = {
