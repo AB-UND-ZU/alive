@@ -183,8 +183,8 @@ export type Creature = React.FC<{
   amount: number,
   maximum: number,
   orientation: Orientation,
-  equipments?: ReactComponentElement<Equipment>[],
-  particles?: ReactComponentElement<Particle>[],
+  equipments?: Processor<Equipment>[],
+  particles?: Processor<Particle>[],
 }>;
 
 export const Player: Creature = () => {

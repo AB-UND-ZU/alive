@@ -314,12 +314,17 @@ describe('Terminal', () => {
     const setScore = jest.fn();
     const gameOver = jest.fn();
     const spell = <Spell material='ice' amount={1} />;
+    const spellProcessor = {
+      x: 0,
+      y: 0,
+      entity: <Spell material='ice' amount={1} />,
+    };
     const generateLevel = generateMap('basic', {
       inventory: { spell },
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} equipments={[spell]} />,
+        entity: <Player orientation='up' amount={10} maximum={10} equipments={[spellProcessor]} />,
       }, {
         x: 0,
         y: 1,

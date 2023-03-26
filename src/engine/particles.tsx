@@ -1,26 +1,22 @@
 import { Attacked, Particle, Shock, Swimming, Water } from "./entities";
 import { addPoints, center, directionOffset, getCell, isWater, Processor, TerminalState } from "./utils";
 
-export const tickParticle = (state: TerminalState, processor: Processor<Particle>): [TerminalState, Processor<Particle> | undefined] => {
-  const newState = { ...state };
-  const newProcessor = { ...processor };
-  const particle = newProcessor.entity;
-
-  if (particle.type === Shock) {
-    const [movedX, movedY] = addPoints(state, [newProcessor.x, newProcessor.y], directionOffset[particle.props.direction || center]);
-    newProcessor.x = movedX;
-    newProcessor.y = movedY;
+export const tickParticle = (state: TerminalState, processor: Processor<Particle>, parent: Processor<Particle>[] = state.particles) => {
+  if (processor.entity.type === Shock) {
+    const [movedX, movedY] = addPoints(state, [processor.x, processor.y], directionOffset[processor.entity.props.direction || center]);
+    processor.x = movedX;
+    processor.y = movedY;
   }
 
-  if (particle.type === Attacked) {
-    return [newState, undefined];
+  if (processor.entity.type === Attacked) {
+    parent.splice(parent.indexOf(processor));
+    return;
   }
 
-  if (particle.type === Swimming) {
-    if (!isWater(newState, newProcessor.x, newProcessor.y)) {
-      return [newState, undefined];
+  if (processor.entity.type === Swimming) {
+    if (!isWater(state, processor.x, processor.y)) {
+      parent.splice(parent.indexOf(processor));
+      return;
     }
   }
-
-  return [newState, newProcessor];
 }

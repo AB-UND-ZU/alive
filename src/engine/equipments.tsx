@@ -1,3 +1,4 @@
+import produce from "immer";
 import { ReactComponentElement } from "react";
 import { Equipment, Freezing, Ice, Particle, Player, Shock, Spell, Water } from "./entities";
 import { getCell, Point, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
@@ -13,128 +14,110 @@ const createParticle = (state: TerminalState, origin: Processor<Equipment>, part
   };
 }
 
-export const tickEquipment = (state: TerminalState, processor: Processor<Equipment>): [TerminalState, Processor<Equipment> | undefined] => {
-  const newState = { ...state };
-  const newProcessor = { ...processor };
-  const radius = newProcessor.entity.props.amount;
-  const newParticles: Processor<Particle>[] = [];
+export const tickEquipment = (
+  state: TerminalState,
+  processor: Processor<Equipment>,
+  parent: Processor<Equipment>[] = state.equipments
+) => {
+  const radius = processor.entity.props.amount;
+
+  processor.entity.props = produce(processor.entity.props, props => {
+    if (!props.particles) {
+      props.particles = [];
+    }
+  })
 
   // apply effects of last wave
-  newProcessor.entity.props.particles?.forEach(particle => {
-    if (newProcessor.entity.type === Spell && newProcessor.entity.props.interaction === 'using') {
+  processor.entity.props.particles!.forEach(particle => {
+    if (processor.entity.type === Spell && processor.entity.props.interaction === 'using') {
       // freeze grounds
       const cell = getCell(state, particle.x, particle.y);
-      const frozen = cell.grounds?.map(
-        ground => ground.type === Water ? {
-          ...ground,
-          type: Ice,
-        } : ground,
-      );
-      newState.board = updateBoard(newState.board, particle.x, particle.y, {
-        ...cell,
-        grounds: frozen,
+      cell.grounds?.forEach(ground => {
+        if (ground.type === Water) {
+          ground.type = Ice;
+        }
       });
 
       // freeze creatures
-      const affectedIndex = newState.creatures.findIndex(creature => (
+      const affectedCreature = state.creatures.find(creature => (
         creature.entity.type !== Player &&
         creature.x === particle.x &&
         creature.y === particle.y
       ));
-      const affectedCreature = { ...newState.creatures[affectedIndex] };
-      if (affectedCreature.entity) {
-        const frozenParticles = affectedCreature.entity.props.particles || [];
-        const frozenIndex = frozenParticles.findIndex(particle => particle.type === Freezing);
-        const alreadyFrozen = frozenParticles[frozenIndex];
-        if (alreadyFrozen) {
-          frozenParticles.splice(frozenIndex, 1,{
-            ...alreadyFrozen,
-            props: {
-              ...alreadyFrozen.props,
-              amount: 8
-            }
-          });
-         } else {
-          frozenParticles.push(<Freezing amount={8} />);
-         }
-        affectedCreature.entity = {
-          ...affectedCreature.entity,
-          props: {
-            ...affectedCreature.entity.props,
-            particles: frozenParticles
-          }
-        }
-        const newCreatures = [...newState.creatures];
-        newCreatures.splice(affectedIndex, 1, affectedCreature);
-        newState.creatures = newCreatures;
-      }
 
+      if (affectedCreature) {
+        if (!affectedCreature.entity.props.particles) {
+          affectedCreature.entity.props.particles = [];
+        }
+        const frozenProcessor = affectedCreature.entity.props.particles.find(particle => particle.entity.type === Freezing);
+        if (frozenProcessor) {
+          frozenProcessor.entity.props.amount = 8;
+         } else {
+          const newFrozenProcessor = {
+            x: particle.x,
+            y: particle.x,
+            entity: <Freezing amount={8} />,
+          };
+          affectedCreature.entity.props.particles.push(newFrozenProcessor);
+         }
+      }
     }
   });
 
-  if (newProcessor.entity.type === Spell && newProcessor.entity.props.interaction === 'using') {
+  if (processor.entity.type === Spell && processor.entity.props.interaction === 'using') {
     // create new wave
     if (radius > SHOCK_RADIUS) {
-      return [newState, undefined];
+      parent.splice(parent.indexOf(processor), 1);
     } else {
       // top row
-      newParticles.push(
-        createParticle(state, newProcessor, <Shock direction="leftUp" />, [-1, radius * -1]),
-        createParticle(state, newProcessor, <Shock direction="up" />, [0, radius * -1]),
-        createParticle(state, newProcessor, <Shock direction="upRight" />, [1, radius * -1]),
+      processor.entity.props.particles.push(
+        createParticle(state, processor, <Shock direction="leftUp" />, [-1, radius * -1]),
+        createParticle(state, processor, <Shock direction="up" />, [0, radius * -1]),
+        createParticle(state, processor, <Shock direction="upRight" />, [1, radius * -1]),
       );
 
       // upper rows
       Array.from({ length: radius - 1 }).forEach((_, index) => {
-        newParticles.push(
-          createParticle(state, newProcessor, <Shock direction="leftUp" />, [(index + 2) * -1, (radius - index - 1) * -1]),
-          createParticle(state, newProcessor, <Shock direction="rightDown" />, [(index + 1) * -1, (radius - index - 1) * -1]),
-          createParticle(state, newProcessor, <Shock direction="downLeft" />, [index + 1, (radius - index - 1) * -1]),
-          createParticle(state, newProcessor, <Shock direction="upRight" />, [index + 2, (radius - index - 1) * -1]),
+        processor.entity.props.particles!.push(
+          createParticle(state, processor, <Shock direction="leftUp" />, [(index + 2) * -1, (radius - index - 1) * -1]),
+          createParticle(state, processor, <Shock direction="rightDown" />, [(index + 1) * -1, (radius - index - 1) * -1]),
+          createParticle(state, processor, <Shock direction="downLeft" />, [index + 1, (radius - index - 1) * -1]),
+          createParticle(state, processor, <Shock direction="upRight" />, [index + 2, (radius - index - 1) * -1]),
         );
       });
 
       // horizontal edges
-      newParticles.push(
-        createParticle(state, newProcessor, <Shock direction="left" />, [radius * -1, 0]),
-        createParticle(state, newProcessor, <Shock direction="right" />, [radius, 0]),
+      processor.entity.props.particles.push(
+        createParticle(state, processor, <Shock direction="left" />, [radius * -1, 0]),
+        createParticle(state, processor, <Shock direction="right" />, [radius, 0]),
       );
 
       // lower rows
       Array.from({ length: radius - 1 }).forEach((_, index) => {
-        newParticles.push(
-          createParticle(state, newProcessor, <Shock direction="downLeft" />, [(index + 2) * -1, radius - index - 1]),
-          createParticle(state, newProcessor, <Shock direction="upRight" />, [(index + 1) * -1, radius - index - 1]),
-          createParticle(state, newProcessor, <Shock direction="leftUp" />, [index + 1, radius - index - 1]),
-          createParticle(state, newProcessor, <Shock direction="rightDown" />, [index + 2, radius - index - 1]),
+        processor.entity.props.particles!.push(
+          createParticle(state, processor, <Shock direction="downLeft" />, [(index + 2) * -1, radius - index - 1]),
+          createParticle(state, processor, <Shock direction="upRight" />, [(index + 1) * -1, radius - index - 1]),
+          createParticle(state, processor, <Shock direction="leftUp" />, [index + 1, radius - index - 1]),
+          createParticle(state, processor, <Shock direction="rightDown" />, [index + 2, radius - index - 1]),
         );
       });
 
       // bottom row
-      newParticles.push(
-        createParticle(state, newProcessor, <Shock direction="downLeft" />, [-1, radius]),
-        createParticle(state, newProcessor, <Shock direction="down" />, [0, radius]),
-        createParticle(state, newProcessor, <Shock direction="rightDown" />, [1, radius]),
+      processor.entity.props.particles.push(
+        createParticle(state, processor, <Shock direction="downLeft" />, [-1, radius]),
+        createParticle(state, processor, <Shock direction="down" />, [0, radius]),
+        createParticle(state, processor, <Shock direction="rightDown" />, [1, radius]),
       );
 
       // invisible particles to prevent mobs passing through
-      newParticles.push(
-        createParticle(state, newProcessor, <Shock direction="center" />, [0, (radius + 1) * -1]),
-        createParticle(state, newProcessor, <Shock direction="center" />, [radius + 1, 0]),
-        createParticle(state, newProcessor, <Shock direction="center" />, [0, radius + 1]),
-        createParticle(state, newProcessor, <Shock direction="center" />, [(radius + 1) * -1, 0]),
+      processor.entity.props.particles.push(
+        createParticle(state, processor, <Shock direction="center" />, [0, (radius + 1) * -1]),
+        createParticle(state, processor, <Shock direction="center" />, [radius + 1, 0]),
+        createParticle(state, processor, <Shock direction="center" />, [0, radius + 1]),
+        createParticle(state, processor, <Shock direction="center" />, [(radius + 1) * -1, 0]),
       );
     }
 
-    newProcessor.entity = {
-      ...newProcessor.entity,
-      props: {
-        ...newProcessor.entity.props,
-        amount: radius + 1,
-        particles: newParticles,
-      },
-    }
+    processor.entity.props.amount = radius + 1;
   }
-
-  return [newState, newProcessor];
 }

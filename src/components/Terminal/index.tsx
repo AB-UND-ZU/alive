@@ -5,9 +5,10 @@ import Stats from "../Stats";
 import { reducer } from "./state";
 import { computeUnits } from "../../engine/units";
 import { defaultState, TerminalState } from "../../engine/utils";
+import { useImmerReducer } from "use-immer";
 
-const TICK_INTERVAL = 500;
-const SKIP_INTERVAL = 100;
+const TICK_INTERVAL = 200;
+const SKIP_INTERVAL = 50;
 
 const Terminal = ({
   score,
@@ -24,7 +25,7 @@ const Terminal = ({
   stats?: boolean,
   controls?: boolean,
 }) => {
-  const [state, dispatch] = useReducer(reducer, defaultState, generateLevel);
+  const [state, dispatch] = useImmerReducer(reducer, defaultState, generateLevel);
 
   const units = useMemo(() => computeUnits(state), [state]);
   const lastTick = useRef(0);
