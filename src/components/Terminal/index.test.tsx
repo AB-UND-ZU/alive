@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import FakeTimers from "@sinonjs/fake-timers";
 
 import { Armor, Player, Spell, Sword, Triangle } from '../../engine/entities';
-import { armorChar, downChar, downTriangleChar, fullChar, generateMap, getLocation, health3Char, health5Char, health8Char, mediumChar, playerChar } from '../../engine/testUtils';
+import { armorChar, darkChar, downChar, downTriangleChar, fullChar, generateMap, getLocation, health3Char, health5Char, health8Char, mediumChar, playerChar } from '../../engine/testUtils';
 
 import Terminal from '.';
 
@@ -308,5 +308,38 @@ describe('Terminal', () => {
     expect(blocks[0]).toHaveClass('Ice');
     expect(getLocation(half)).toEqual([1, 2]);
     expect(half).toHaveClass('Sand');
+  });
+
+  test('freeze a triangle', async () => {
+    const setScore = jest.fn();
+    const gameOver = jest.fn();
+    const spell = <Spell material='ice' amount={1} />;
+    const generateLevel = generateMap('basic', {
+      inventory: { spell },
+      creatures: [{
+        x: 0,
+        y: 0,
+        entity: <Player orientation='up' amount={10} maximum={10} equipments={[spell]} />,
+      }, {
+        x: 0,
+        y: 1,
+        entity: <Triangle orientation='down' amount={3} maximum={3} />,
+      }],
+    });
+
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} />);
+    
+    await user.keyboard('[Space]');
+    clock!.tick(500);
+    await user.keyboard('[ArrowUp]');
+    clock!.tick(500);
+    await user.keyboard('[ArrowDown]');
+    clock!.tick(500);
+
+    const dark = screen.getByText(darkChar);
+    expect(getLocation(screen.getByText(playerChar))).toEqual([0, 0]);
+    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 1]);
+    expect(getLocation(dark)).toEqual([0, 1]);
+    expect(dark).toHaveClass('Freezing');
   });
 });

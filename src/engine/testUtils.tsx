@@ -52,7 +52,7 @@ export const maps: Record<string, Cell[][]> = {
   ]
 };
 
-export const generateMap = (name: keyof typeof maps, units?: Partial<Pick<TerminalState, 'creatures' | 'equipments' | 'particles'>>) => jest.fn<TerminalState, [TerminalState]>((state: TerminalState) => {
+export const generateMap = (name: keyof typeof maps, initialState?: Partial<TerminalState>) => jest.fn<TerminalState, [TerminalState]>((state: TerminalState) => {
   const map = maps[name];
   const width = map[0].length;
   const height = map.length;
@@ -62,7 +62,7 @@ export const generateMap = (name: keyof typeof maps, units?: Partial<Pick<Termin
     height,
     screenWidth: width,
     screenHeight: height,
-    ...units,
+    ...initialState,
   };
 
   return {
