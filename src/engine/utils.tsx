@@ -9,6 +9,12 @@ export const getDeterministicRandomInt = (minimum: number, maximum: number) => {
   );
 };
 
+export const renderText = (text: string, color: string = 'HUD') => text.split('').map((character, index) => (
+  <span className="Cell" key={index}>
+    <span className={`Entity ${color}`}>{character}</span>
+  </span>
+));
+
 export const orientations = ['up', 'right', 'down', 'left'] as const;
 export const corners = ['upRight', 'rightDown', 'downLeft', 'leftUp'] as const;
 export const center = 'center';
@@ -76,11 +82,35 @@ export type TerminalState = {
   creatures: Processor<Creature>[],
   particles: Processor<Particle>[],
   equipments: Processor<Equipment>[],
-}
+};
+
+export const defaultState = {
+  width: 160,
+  height: 160,
+  screenWidth: 21,
+  screenHeight: 13,
+  x: 0,
+  y: 0,
+  orientation: undefined,
+  hp: 10,
+  mp: 0,
+  xp: 0,
+  gold: 0,
+  seed: 0,
+  herb: 0,
+  wood: 0,
+  iron: 0,
+  board: [[{}]],
+  fog: [[]],
+  creatures: [],
+  particles: [],
+  equipments: [],
+  inventory: {},
+};
 
 export const wrapCoordinates = (state: TerminalState, x: number, y: number): Point => [
-  (x + state.width) % state.width,
-  (y + state.height) % state.height,
+  ((x % state.width) + state.width) % state.width,
+  ((y % state.height) + state.height) % state.height,
 ];
 
 export const getCell = (state: TerminalState, x: number, y: number) => {

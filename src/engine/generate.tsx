@@ -3,6 +3,7 @@ import WorldmapGenerator, { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
 import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor } from "./entities";
+import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
 import { Fog, getDeterministicRandomInt, Orientation, orientations, Point, Processor, sum, TerminalState } from "./utils";
 
@@ -205,7 +206,7 @@ function generateLevel(state: TerminalState): TerminalState {
   const equipments = [{
     x: 1,
     y: 1,
-    entity: <Sword amount={0} material="iron" />,
+    entity: <Sword amount={2} material="iron" />,
   }, {
     x: 2,
     y: 2,
@@ -216,10 +217,8 @@ function generateLevel(state: TerminalState): TerminalState {
     entity: <Spell amount={3} material="ice" />,
   }];
 
-  // generate initial darkness
-  const fog: Fog[][] = Array.from({ length: state.height }).map(
-    () => Array.from<Fog>({ length: state.width }).fill('dark')
-  );
+  const fog = generateFog(state);
+
   return { ...state, board: rows, fog, creatures, equipments };
 }
 

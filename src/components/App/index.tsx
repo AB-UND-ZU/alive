@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import Terminal from '../Terminal';
+import { generateLevel } from "../../engine/generate";
 import './index.css';
 
 declare global {
@@ -41,7 +42,7 @@ const App = () => {
 
   return (
     <div className="App">
-      <Terminal score={score} setScore={setScore} gameOver={handleGameOver} />
+      <Terminal score={score} setScore={setScore} gameOver={handleGameOver} generateLevel={generateLevel} />
     </div>
   );
 }

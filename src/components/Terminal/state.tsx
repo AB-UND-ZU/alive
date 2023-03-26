@@ -1,10 +1,10 @@
 import { ReactComponentElement } from "react";
-import { tickCreature } from "./creatures";
-import { Attacked, counters, Creature, Equipment, inventories, Item, Particle, Player, Shock, Spell, Sword, Wood  } from "./entities";
-import { visibleFogOfWar } from "./fog";
-import { tickParticle } from "./particles";
-import { tickEquipment } from "./equipments";
-import { center, directionOffset, getCell, getFog, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
+import { tickCreature } from "../../engine/creatures";
+import { Attacked, counters, Creature, Equipment, inventories, Item, Particle, Player, Shock, Spell, Sword, Wood  } from "../../engine/entities";
+import { visibleFogOfWar } from "../../engine/fog";
+import { tickParticle } from "../../engine/particles";
+import { tickEquipment } from "../../engine/equipments";
+import { center, directionOffset, getCell, getFog, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "../../engine/utils";
 
 type MoveAction = {
   type: 'move',
@@ -97,16 +97,13 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       const equipmentIndex = newEquipments.findIndex(processor => processor.x === itemX && processor.y === itemY);
       const newProcessor = { ...newEquipments[equipmentIndex] };
 
-      console.log('collect')
       if (collectCell.item) {
-        console.log('item')
         const item: ReactComponentElement<Item> = { ...collectCell.item };
         const ItemEntity = item.type;
         const counter = counters.get(ItemEntity);
         const amount = item.props.amount;
 
         if (amount > 1) {
-          console.log('amount')
           collectCell.item = {
             ...collectCell.item,
             props: {
@@ -120,22 +117,18 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
 
         // special case: first wood to be picked up can be used as sword
         if (!newState.inventory.sword && ItemEntity === Wood) {
-          console.log('wood')
           newProcessor.x = itemX;
           newProcessor.y = itemY;
           newProcessor.entity = <Sword amount={1} material="wood" />; 
         } else if (counter) {
-          console.log('counter')
           newState[counter] = newState[counter] + 1;
         }
       }
 
       if (newProcessor.entity) {
-        console.log('entity')
         const inventory = inventories.get(newProcessor.entity.type);
         
         if (inventory) {
-          console.log('inventory')
           newEquipments.splice(equipmentIndex, 1);
           newState.inventory = {
             ...newState.inventory,
