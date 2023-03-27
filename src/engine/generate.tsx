@@ -1,26 +1,11 @@
 import { ReactComponentElement } from 'react';
-import WorldmapGenerator, { MapCell } from 'worldmap-generator';
+import { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
 import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
 import { Fog, getDeterministicRandomInt, getId, Orientation, orientations, Point, Processor, sum, TerminalState } from "./utils";
-
-// patch infite borders
-const getCell = WorldmapGenerator.prototype.getCell;
-WorldmapGenerator.prototype.getCell = function(x, y) {
-  const fencedX = (x + this.size.width) % this.size.width;
-  const fencedY = (y + this.size.height) % this.size.height;
-  return getCell.call(this, fencedX, fencedY);
-}
-
-const resolveMapCell = WorldmapGenerator.prototype.resolveMapCell;
-WorldmapGenerator.prototype.resolveMapCell = function(x, y, name) {
-  const fencedX = (x + this.size.width) % this.size.width;
-  const fencedY = (y + this.size.height) % this.size.height;
-  return resolveMapCell.call(this, fencedX, fencedY, name);
-}
 
 const getSingleElements = (world: World, cells: MapCell[], category: SingleCategories) => cells.map(cell => world.tileCells[cell.name][category]);
 const getMultipleElements = (world: World, cells: MapCell[], category: MultipleCategories) => cells.reduce<ReactComponentElement<Entity>[]>((cellTypes, cell) => [
