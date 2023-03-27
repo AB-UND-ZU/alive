@@ -4,7 +4,7 @@ import { Attacked, counters, Creature, Equipment, inventories, Item, Particle, P
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
-import { center, directionOffset, getCell, getFog, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "../../engine/utils";
+import { center, directionOffset, getCell, getFog, getId, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "../../engine/utils";
 
 type MoveAction = {
   type: 'move',
@@ -43,7 +43,8 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       const { orientation } = action;
       const [deltaX, deltaY] = directionOffset[orientation || center];
       let newState: TerminalState = { ...state, orientation };
-      const [newX, newY] = wrapCoordinates(newState, newState.x + deltaX, newState.y + deltaY);
+      const [movedX, movedY] = [newState.x + deltaX, newState.y + deltaY];
+      const [newX, newY] = wrapCoordinates(newState, movedX, movedY);
       let newCell = { ...newState.board[newY][newX] };
 
       const playerIndex = newState.creatures.findIndex(processor => processor.entity.type === Player);
@@ -72,6 +73,8 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       } else if (isWalkable(state, newX, newY)) {
         newProcessor.x = newX;
         newProcessor.y = newY;
+        newState.repeatX = newState.repeatX + Math.sign(movedX - newX);
+        newState.repeatY = newState.repeatY + Math.sign(movedY - newY);
 
         // process nested particles
         const [creatureState, playerProcessor] = tickCreature(newState, newProcessor);
@@ -119,7 +122,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
         if (!newState.inventory.sword && ItemEntity === Wood) {
           newProcessor.x = itemX;
           newProcessor.y = itemY;
-          newProcessor.entity = <Sword amount={1} material="wood" />; 
+          newProcessor.entity = <Sword amount={1} material="wood" id={getId()} />; 
         } else if (counter) {
           newState[counter] = newState[counter] + 1;
         }
@@ -239,7 +242,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
             ...attackedCreature.entity,
             props: {
               ...attackedCreature.entity.props,
-              particles: [...(attackedCreature.entity.props.particles || []), <Attacked />],
+              particles: [...(attackedCreature.entity.props.particles || []), <Attacked id={getId()} />],
               amount: newAmount
             }
           }
@@ -258,12 +261,12 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       const centerParticle = {
         x: newState.x,
         y: newState.y,
-        entity: <Shock direction={center} />
+        entity: <Shock direction={center} id={getId()} />
       };
       const processor = {
         x: newState.x,
         y: newState.y,
-        entity: <Spell amount={1} particles={[centerParticle]} material="ice" interaction="using" />,
+        entity: <Spell amount={1} particles={[centerParticle]} material="ice" interaction="using" id={getId()} />,
       };
       const [equipmentState, equipmentProcessor] = tickEquipment(newState, processor);
       newState.board = equipmentState.board;

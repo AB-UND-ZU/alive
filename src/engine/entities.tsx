@@ -61,6 +61,7 @@ export const terrains = [Rock, Tree];
 // ------------------------ EQUIPMENT --------------------------------
 
 export type Equipment = React.FC<{
+  id: number,
   amount: number,
   particles?: Processor<Particle>[],
   material: Material,
@@ -180,6 +181,7 @@ export const sprites = [Flower, Bush, Campfire];
 // ------------------------ CREATURE --------------------------------
 
 export type Creature = React.FC<{
+  id: number,
   amount: number,
   maximum: number,
   orientation: Orientation,
@@ -233,7 +235,11 @@ export const creatures = [Triangle, Player];
 
 // ------------------------ PARTICLE --------------------------------
 
-export type Particle = React.FC<{ direction?: Direction | Center, amount?: number }>;
+export type Particle = React.FC<{
+  id: number,
+  direction?: Direction | Center,
+  amount?: number,
+}>;
 
 export const Swimming: Particle = () => {
   return <span className="Entity Swimming">{'▄'}</span>;

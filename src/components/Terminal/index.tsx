@@ -4,10 +4,10 @@ import Controls from "../Controls";
 import Stats from "../Stats";
 import { reducer } from "./state";
 import { computeUnits } from "../../engine/units";
-import { defaultState, TerminalState } from "../../engine/utils";
+import { Center, center, defaultState, keyToOrientation, Orientation, TerminalState } from "../../engine/utils";
 
 const TICK_INTERVAL = 500;
-const SKIP_INTERVAL = 100;
+const SKIP_INTERVAL = 200;
 
 const Terminal = ({
   score,
@@ -16,6 +16,7 @@ const Terminal = ({
   generateLevel,
   stats = true,
   controls = true,
+  animation = true,
 }: {
   score: number,
   setScore: React.Dispatch<React.SetStateAction<number>>,
@@ -23,13 +24,14 @@ const Terminal = ({
   generateLevel: (state: TerminalState) => TerminalState,
   stats?: boolean,
   controls?: boolean,
+  animation?: boolean,
 }) => {
   const [state, dispatch] = useReducer(reducer, defaultState, generateLevel);
 
-  const units = useMemo(() => computeUnits(state), [state]);
+  const [unitMap, unitList] = useMemo(() => computeUnits(state), [state]);
   const lastTick = useRef(0);
   const tickTimeout = useRef<NodeJS.Timeout>();
-  const moved = useRef(false);
+  const moved = useRef<[Orientation | Center, number]>([center, 0]);
 
   const nextTick = () => {
     const remaining = lastTick.current + SKIP_INTERVAL - Date.now();
@@ -37,7 +39,7 @@ const Terminal = ({
     if (remaining > 0) return remaining;
 
     dispatch({ type: 'tick' });
-    moved.current = false;
+    moved.current = [center, 0];
     lastTick.current = Date.now();
     clearTimeout(tickTimeout.current);
     tickTimeout.current = setTimeout(nextTick, TICK_INTERVAL);
@@ -46,6 +48,7 @@ const Terminal = ({
 
   useEffect(() => {
     const handleMove = (event: KeyboardEvent) => {
+      const orientation = keyToOrientation[event.key];
       const processKey = (key: string) => {
         if (event.key === 'ArrowUp') {
           dispatch({ type: 'move', orientation: 'up' });
@@ -60,8 +63,9 @@ const Terminal = ({
         }
       };
 
-      if (!moved.current || nextTick() === 0) {
-        moved.current = true;
+      if (moved.current[0] === center || nextTick() === 0) {
+        const remaining = lastTick.current + TICK_INTERVAL - Date.now();
+        moved.current = [orientation, remaining];
         processKey(event.key);
       }
     };
@@ -77,9 +81,9 @@ const Terminal = ({
   }, []);
 
   return (
-    <pre className="Terminal">
+    <pre className={`Terminal ${animation ? 'Animation' : ''} ${moved.current[0]}`}>
       {stats && <Stats state={state} />}
-      <Board state={state} units={units} />
+      <Board animation={animation} state={state} unitMap={unitMap} unitList={unitList} remaining={moved.current[1]} />
       {controls && <Controls state={state} />}
     </pre>
   );

@@ -1,6 +1,6 @@
 import { ReactComponentElement } from "react";
 import { Equipment, Freezing, Ice, Particle, Player, Shock, Spell, Water } from "./entities";
-import { getCell, Point, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
+import { getCell, getId, Point, Processor, TerminalState, updateBoard, wrapCoordinates } from "./utils";
 
 const SHOCK_RADIUS = 5;
 
@@ -55,7 +55,7 @@ export const tickEquipment = (state: TerminalState, processor: Processor<Equipme
             }
           });
          } else {
-          frozenParticles.push(<Freezing amount={8} />);
+          frozenParticles.push(<Freezing amount={8} id={getId()} />);
          }
         affectedCreature.entity = {
           ...affectedCreature.entity,
@@ -79,50 +79,50 @@ export const tickEquipment = (state: TerminalState, processor: Processor<Equipme
     } else {
       // top row
       newParticles.push(
-        createParticle(state, newProcessor, <Shock direction="leftUp" />, [-1, radius * -1]),
-        createParticle(state, newProcessor, <Shock direction="up" />, [0, radius * -1]),
-        createParticle(state, newProcessor, <Shock direction="upRight" />, [1, radius * -1]),
+        createParticle(state, newProcessor, <Shock direction="leftUp" id={getId()} />, [-1, radius * -1]),
+        createParticle(state, newProcessor, <Shock direction="up" id={getId()} />, [0, radius * -1]),
+        createParticle(state, newProcessor, <Shock direction="upRight" id={getId()} />, [1, radius * -1]),
       );
 
       // upper rows
       Array.from({ length: radius - 1 }).forEach((_, index) => {
         newParticles.push(
-          createParticle(state, newProcessor, <Shock direction="leftUp" />, [(index + 2) * -1, (radius - index - 1) * -1]),
-          createParticle(state, newProcessor, <Shock direction="rightDown" />, [(index + 1) * -1, (radius - index - 1) * -1]),
-          createParticle(state, newProcessor, <Shock direction="downLeft" />, [index + 1, (radius - index - 1) * -1]),
-          createParticle(state, newProcessor, <Shock direction="upRight" />, [index + 2, (radius - index - 1) * -1]),
+          createParticle(state, newProcessor, <Shock direction="leftUp" id={getId()} />, [(index + 2) * -1, (radius - index - 1) * -1]),
+          createParticle(state, newProcessor, <Shock direction="rightDown" id={getId()} />, [(index + 1) * -1, (radius - index - 1) * -1]),
+          createParticle(state, newProcessor, <Shock direction="downLeft" id={getId()} />, [index + 1, (radius - index - 1) * -1]),
+          createParticle(state, newProcessor, <Shock direction="upRight" id={getId()} />, [index + 2, (radius - index - 1) * -1]),
         );
       });
 
       // horizontal edges
       newParticles.push(
-        createParticle(state, newProcessor, <Shock direction="left" />, [radius * -1, 0]),
-        createParticle(state, newProcessor, <Shock direction="right" />, [radius, 0]),
+        createParticle(state, newProcessor, <Shock direction="left" id={getId()} />, [radius * -1, 0]),
+        createParticle(state, newProcessor, <Shock direction="right" id={getId()} />, [radius, 0]),
       );
 
       // lower rows
       Array.from({ length: radius - 1 }).forEach((_, index) => {
         newParticles.push(
-          createParticle(state, newProcessor, <Shock direction="downLeft" />, [(index + 2) * -1, radius - index - 1]),
-          createParticle(state, newProcessor, <Shock direction="upRight" />, [(index + 1) * -1, radius - index - 1]),
-          createParticle(state, newProcessor, <Shock direction="leftUp" />, [index + 1, radius - index - 1]),
-          createParticle(state, newProcessor, <Shock direction="rightDown" />, [index + 2, radius - index - 1]),
+          createParticle(state, newProcessor, <Shock direction="downLeft" id={getId()} />, [(index + 2) * -1, radius - index - 1]),
+          createParticle(state, newProcessor, <Shock direction="upRight" id={getId()} />, [(index + 1) * -1, radius - index - 1]),
+          createParticle(state, newProcessor, <Shock direction="leftUp" id={getId()} />, [index + 1, radius - index - 1]),
+          createParticle(state, newProcessor, <Shock direction="rightDown" id={getId()} />, [index + 2, radius - index - 1]),
         );
       });
 
       // bottom row
       newParticles.push(
-        createParticle(state, newProcessor, <Shock direction="downLeft" />, [-1, radius]),
-        createParticle(state, newProcessor, <Shock direction="down" />, [0, radius]),
-        createParticle(state, newProcessor, <Shock direction="rightDown" />, [1, radius]),
+        createParticle(state, newProcessor, <Shock direction="downLeft" id={getId()} />, [-1, radius]),
+        createParticle(state, newProcessor, <Shock direction="down" id={getId()} />, [0, radius]),
+        createParticle(state, newProcessor, <Shock direction="rightDown" id={getId()} />, [1, radius]),
       );
 
       // invisible particles to prevent mobs passing through
       newParticles.push(
-        createParticle(state, newProcessor, <Shock direction="center" />, [0, (radius + 1) * -1]),
-        createParticle(state, newProcessor, <Shock direction="center" />, [radius + 1, 0]),
-        createParticle(state, newProcessor, <Shock direction="center" />, [0, radius + 1]),
-        createParticle(state, newProcessor, <Shock direction="center" />, [(radius + 1) * -1, 0]),
+        createParticle(state, newProcessor, <Shock direction="center" id={getId()} />, [0, (radius + 1) * -1]),
+        createParticle(state, newProcessor, <Shock direction="center" id={getId()} />, [radius + 1, 0]),
+        createParticle(state, newProcessor, <Shock direction="center" id={getId()} />, [0, radius + 1]),
+        createParticle(state, newProcessor, <Shock direction="center" id={getId()} />, [(radius + 1) * -1, 0]),
       );
     }
 

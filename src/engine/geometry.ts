@@ -1,4 +1,20 @@
-import { center, Center, Direction, Orientation, Point } from "./utils";
+import { center, Center, Direction, Orientation, Point, TerminalState } from "./utils";
+
+export const getSmoothStyle = (state: TerminalState, x: number, y: number, overscan: number = 0) => {
+  const offsetX = (state.width * state.repeatX + x) * 18;
+  const offsetY = (state.height * state.repeatY + y) * 32;
+
+  const style = {
+    transform: `translate(${offsetX * -1}px, ${offsetY * -1}px)`,
+    marginLeft: `${offsetX - overscan * 18}px`,
+    marginRight: `${offsetX * -1}px`,
+  
+    marginBottom: `${offsetY * -1}px`,
+    marginTop: `${offsetY - overscan * 32}px`,
+  };
+
+  return style;
+};
 
 export const quarterCircle = [
   [  ,  ,  ,  ,  ,  ,  ,10,10,10,10],

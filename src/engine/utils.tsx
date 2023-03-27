@@ -1,6 +1,11 @@
 import { ReactComponentElement } from "react";
 import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment } from "./entities";
 
+let lastId = -1;
+export const getId = () => {
+  lastId += 1;
+  return lastId;
+}
 export const sum = (numbers: number[]) => numbers.reduce((total, number) => total + number, 0);
 
 export const getDeterministicRandomInt = (minimum: number, maximum: number) => {
@@ -34,6 +39,13 @@ export const directionOffset: Record<Direction | Center, Point> = {
 export type Direction = typeof directions[number];
 export type Orientation = typeof orientations[number];
 
+export const keyToOrientation: Record<KeyboardEvent["key"], Orientation>  = {
+  ArrowUp: 'up',
+  ArrowRight: 'right',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+};
+
 // x, y
 export type Point = [number, number];
 
@@ -55,8 +67,10 @@ export type TerminalState = {
   // player
   x: number,
   y: number,
-  orientation?: Orientation,
+  repeatX: number,
+  repeatY: number,
   inventory: Inventory,
+  orientation?: Orientation,
 
   // stats
   hp: number,
@@ -84,13 +98,15 @@ export type TerminalState = {
   equipments: Processor<Equipment>[],
 };
 
-export const defaultState = {
+export const defaultState: TerminalState = {
   width: 160,
   height: 160,
   screenWidth: 21,
   screenHeight: 13,
   x: 0,
   y: 0,
+  repeatX: 0,
+  repeatY: 0,
   orientation: undefined,
   hp: 10,
   mp: 0,

@@ -49,6 +49,32 @@ body {
   margin: 0;
 }
 
+.Viewport {
+  height: calc(var(--size) * 13);
+  width: calc(18px * 21);
+  overflow: hidden;
+  margin: -16px 0;
+  padding: 16px 0;
+}
+
+.Animation .Board {
+  transition: transform 200ms linear;
+}
+
+.Animation .Units {
+  transition: margin 100ms ease-out, transform 200ms linear;
+}
+
+.UnitCell {
+  position: absolute;
+  color: var(--white);
+  opacity: 100%;
+}
+
+.Animation .UnitCell {
+  transition: top 200ms linear, left 200ms linear, opacity 200ms linear;
+}
+
 .Row {
   white-space: nowrap;
   height: var(--size);
@@ -61,16 +87,36 @@ body {
   color: var(--white);
 }
 
+.Animation .Cell,
+.Animation .Entity {
+  transition: opacity 200ms linear;
+  opacity: 100%;
+}
+
 .HUD {
   color: var(--grey);
 }
 
-.Fog {
+.Cell.fog {
   opacity: 50%;
 }
 
-.Dark {
+.Cell.dark .Entity,
+.UnitCell.fog .Entity,
+.UnitCell.dark .Entity {
+  opacity: 0%;
+}
+
+.Cell .Placeholder {
+  opacity: 0%;
+}
+
+.Cell.dark .Entity.Placeholder {
   opacity: 15%;
+}
+
+.Hidden {
+  opacity: 0%;
 }
 
 .Cell::after {

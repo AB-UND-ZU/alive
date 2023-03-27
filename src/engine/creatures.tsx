@@ -1,7 +1,7 @@
 import { ReactComponentElement } from "react";
 import { Creature, Freezing, Particle, Swimming, Triangle } from "./entities";
 import { tickParticle } from "./particles";
-import { isWalkable, getCell, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, Processor, isWater } from "./utils";
+import { isWalkable, getCell, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, Processor, isWater, getId } from "./utils";
 
 export const tickCreature = (state: TerminalState, processor: Processor<Creature>): [TerminalState, Processor<Creature>] => {
   const newState = { ...state };
@@ -62,7 +62,7 @@ export const tickCreature = (state: TerminalState, processor: Processor<Creature
   if (!swimming && isWater(state, newProcessor.x, newProcessor.y)) {
     creature.props = {
       ...creature.props,
-      particles: [...(creature.props.particles || []), <Swimming />],
+      particles: [...(creature.props.particles || []), <Swimming id={getId()} />],
     };
   };
 

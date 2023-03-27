@@ -5,7 +5,7 @@ import { World, world } from './biomes';
 import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { Fog, getDeterministicRandomInt, Orientation, orientations, Point, Processor, sum, TerminalState } from "./utils";
+import { Fog, getDeterministicRandomInt, getId, Orientation, orientations, Point, Processor, sum, TerminalState } from "./utils";
 
 // patch infite borders
 const getCell = WorldmapGenerator.prototype.getCell;
@@ -178,7 +178,7 @@ function generateLevel(state: TerminalState): TerminalState {
       if (!cell.terrain && !cell.grounds && !cell.sprite) {
         if (itemNoise < -48) {
           creatures.push({
-            entity: <Triangle orientation='up' amount={3} maximum={3} />,
+            entity: <Triangle orientation='up' amount={3} maximum={3} id={getId()} />,
             x: columnIndex,
             y: rowIndex,
           });
@@ -198,7 +198,7 @@ function generateLevel(state: TerminalState): TerminalState {
 
   // insert player at initial coords
   creatures.push({
-    entity: <Player orientation='up' amount={10} maximum={10} />,
+    entity: <Player orientation='up' amount={10} maximum={10} id={getId()} />,
     x: state.x,
     y: state.y,
   });
@@ -206,15 +206,15 @@ function generateLevel(state: TerminalState): TerminalState {
   const equipments = [{
     x: 1,
     y: 1,
-    entity: <Sword amount={2} material="iron" />,
+    entity: <Sword amount={2} material="iron" id={getId()} />,
   }, {
     x: 2,
     y: 2,
-    entity: <Armor amount={1} material="wood" />,
+    entity: <Armor amount={1} material="wood" id={getId()} />,
   }, {
     x: 3,
     y: 3,
-    entity: <Spell amount={3} material="ice" />,
+    entity: <Spell amount={3} material="ice" id={getId()} />,
   }];
 
   const fog = generateFog(state);
