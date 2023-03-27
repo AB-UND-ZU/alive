@@ -34,9 +34,6 @@ export const computeUnits = (state: TerminalState): [UnitMap, UnitList] => {
     // setUnit(state, staticUnits, movingUnits, processor.x, processor.y, { creature: processor.entity });
 
     processor.entity.props.particles?.forEach(particle => {
-      // if (processor.entity.type === Player) {
-      //   setUnit(state, staticUnits, movingUnits, processor.x, processor.y, { particles: [particle] });
-      // } else {}
       movingUnits.push({
         x: processor.x,
         y: processor.y,

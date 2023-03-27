@@ -21,36 +21,22 @@ export const unitInViewport = (state: TerminalState, x: number, y: number, overs
   return true;
 };
 
-export const getStaticStyle = (state: TerminalState, x: number, y: number) => {
-  const [relativeX, relativeY] = getRelativePosition(state, x, y);
+export const getStaticStyle = (state: TerminalState, x: number, y: number, overscan: number) => {
+  const [infinitePlayerX, infinitePlayerY] = getInfinitePosition(state, state.x, state.y);
+  const [relativeTargetX, relativeTargetY] = getRelativePosition(state, x, y);
+  const [infiniteTargetX, infiniteTargetY] = [infinitePlayerX + relativeTargetX, infinitePlayerY + relativeTargetY];
 
-  const stats = 0.5;
+  // using margin instead of transform to avoid creating a new stacking layer
   const style = {
-    top: `${192 + relativeY * 32 + stats * 32}px`,
-    left: `${180 + relativeX * 18}px`,
-    // ...(isPlayer ? getSmoothStyle(state, entry.x, entry.y) : {})
+    marginLeft: `${infinitePlayerX * -18 + 180}px`,
+    marginTop: `${infinitePlayerY * -32 + 192 + overscan * 32}px`,
+
+    top: `${infiniteTargetY * 32}px`,
+    left: `${infiniteTargetX * 18}px`,
   };
 
   return style;
 }
-
-
-export const getSmoothStyle = (state: TerminalState, x: number, y: number, overscan: number = 0) => {
-  // getInifitnite
-  const offsetX = (state.width * state.repeatX + x) * 18;
-  const offsetY = (state.height * state.repeatY + y) * 32;
-
-  const style = {
-    transform: `translate(${offsetX * -1}px, ${offsetY * -1}px)`,
-    marginLeft: `${offsetX - overscan * 18}px`,
-    marginRight: `${offsetX * -1}px`,
-  
-    marginBottom: `${offsetY * -1}px`,
-    marginTop: `${offsetY - overscan * 32}px`,
-  };
-
-  return style;
-};
 
 export const quarterCircle = [
   [  ,  ,  ,  ,  ,  ,  ,10,10,10,10],
