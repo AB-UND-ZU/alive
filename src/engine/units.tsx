@@ -1,4 +1,4 @@
-import { Creature, Entity, Equipment, Particle, Unit } from "./entities";
+import { Creature, Entity, Equipment, Particle, Player, Unit } from "./entities";
 import { Processor, TerminalState, wrapCoordinates } from "./utils";
 
 export type UnitMap = Record<number, Record<number, Unit>>;
@@ -9,47 +9,67 @@ const setUnit = (state: TerminalState, unitMap: UnitMap, unitList: UnitList, x: 
   if (!unitMap[x]) unitMap[x] = {};
   if (!unitMap[x][y]) unitMap[x][y] = {};
   
-  const currentUnit = getUnit(state, unitMap, unitList, x, y);
+  const currentUnit = getUnit(state, unitMap, unitList, x, y)!;
   currentUnit.creature = unit.creature || currentUnit.creature;
   currentUnit.equipments = [...(currentUnit.equipments || []), ...(unit.equipments || [])];
   currentUnit.particles = [...(currentUnit.particles || []), ...(unit.particles || [])];
 }
-export const getUnit = (state: TerminalState, unitMap: UnitMap, unitList: UnitList, x: number, y: number) => {
+export const getUnit = (state: TerminalState, unitMap: UnitMap, unitList: UnitList, x: number, y: number): Unit | undefined => {
   const [wrappedX, wrappedY] = wrapCoordinates(state, x, y);
   return unitMap[wrappedX]?.[wrappedY];
 }
 
 export const computeUnits = (state: TerminalState): [UnitMap, UnitList] => {
-  const unitList: UnitList = [];
-  const unitMap: UnitMap = {};
-  const particles = [...state.particles];
-  const equipments: Processor<Equipment>[] = [...state.equipments];
+  const staticUnits: UnitMap = {};
+  const movingUnits: UnitList = [];
 
   // render creatures, spells, equipments and particles
   state.creatures.forEach(processor => {
-    setUnit(state, unitMap, unitList, processor.x, processor.y, { creature: processor.entity });
-    particles.push(...(processor.entity.props.particles || []).map(particle => ({
-      x: processor.x,
-      y: processor.y,
-      entity: particle,
-    })));
-    equipments.push(...(processor.entity.props.equipments || []).map(equipment => ({
-      x: processor.x,
-      y: processor.y,
-      entity: equipment,
-    })));
-  
-    unitList.push({
+    movingUnits.push({
       x: processor.x,
       y: processor.y,
       entity: processor.entity,
       id: processor.entity.props.id
     });
+    // setUnit(state, staticUnits, movingUnits, processor.x, processor.y, { creature: processor.entity });
+
+    processor.entity.props.particles?.forEach(particle => {
+      // if (processor.entity.type === Player) {
+      //   setUnit(state, staticUnits, movingUnits, processor.x, processor.y, { particles: [particle] });
+      // } else {}
+      movingUnits.push({
+        x: processor.x,
+        y: processor.y,
+        entity: particle,
+        id: particle.props.id,
+      });
+    });
+
+    processor.entity.props.equipments?.forEach(equipment => {
+      movingUnits.push({
+        x: processor.x,
+        y: processor.y,
+        entity: equipment,
+        id: equipment.props.id,
+      })
+
+      equipment.props.particles?.forEach(particle => {
+        movingUnits.push({
+          x: particle.x,
+          y: particle.y,
+          entity: particle.entity,
+          id: particle.entity.props.id,
+        });
+      })
+    });
   });
 
-  equipments.forEach(processor => {
-    setUnit(state, unitMap, unitList, processor.x, processor.y, { equipments: [processor.entity] });
-    particles.push(...(processor.entity.props.particles || []));
+  state.equipments?.forEach(processor => {
+    setUnit(state, staticUnits, movingUnits, processor.x, processor.y, { equipments: [processor.entity] });
+    // particles.push(...(processor.entity.props.particles || []));
+    processor.entity.props.particles?.forEach(particle => {
+      setUnit(state, staticUnits, movingUnits, particle.x, particle.y, { particles: [particle.entity] });
+    })
   
     /*
     unitList.push({
@@ -61,8 +81,8 @@ export const computeUnits = (state: TerminalState): [UnitMap, UnitList] => {
     */
   });
 
-  particles.forEach(processor => {
-    setUnit(state, unitMap, unitList, processor.x, processor.y, { particles: [processor.entity] });
+  state.particles?.forEach(processor => {
+    setUnit(state, staticUnits, movingUnits, processor.x, processor.y, { particles: [processor.entity] });
   
     // unitList.push({
     //   x: processor.x,
@@ -72,5 +92,5 @@ export const computeUnits = (state: TerminalState): [UnitMap, UnitList] => {
     // });
   });
 
-  return [unitMap, unitList];
+  return [staticUnits, movingUnits];
 };

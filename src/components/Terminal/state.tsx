@@ -38,6 +38,8 @@ type TickAction = {
 type TerminalAction = MoveAction | AttackAction | SpellAction | CollectAction | FogAction | TickAction;
 
 export const reducer = (state: TerminalState, action: TerminalAction): TerminalState => {
+  // return state;
+
   switch (action.type) {
     case 'move': {
       const { orientation } = action;

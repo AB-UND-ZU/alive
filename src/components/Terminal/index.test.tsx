@@ -27,7 +27,7 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} />,
+        entity: <Player orientation='up' amount={10} maximum={10} id={0} />,
       }]
     });
 
@@ -44,7 +44,7 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} />,
+        entity: <Player orientation='up' amount={10} maximum={10} id={0} />,
       }]
     });
 
@@ -69,7 +69,7 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} />,
+        entity: <Player orientation='up' amount={10} maximum={10} id={0} />,
       }]
     });
 
@@ -96,7 +96,7 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} />,
+        entity: <Player orientation='up' amount={10} maximum={10} id={0} />,
       }]
     });
 
@@ -120,7 +120,7 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} />,
+        entity: <Player orientation='up' amount={10} maximum={10} id={0} />,
       }]
     });
 
@@ -152,7 +152,7 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} />,
+        entity: <Player orientation='up' amount={10} maximum={10} id={0} />,
       }],
       equipments: [{
         x: 0,
@@ -188,7 +188,7 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} />,
+        entity: <Player orientation='up' amount={10} maximum={10} id={0} />,
       }]
     });
 
@@ -220,11 +220,11 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} />,
+        entity: <Player orientation='up' amount={10} maximum={10} id={0} />,
       }, {
         x: 0,
         y: 1,
-        entity: <Triangle orientation='down' amount={3} maximum={3} />,
+        entity: <Triangle orientation='down' amount={3} maximum={3} id={1} />,
       }],
       equipments: [{
         x: 2,
@@ -279,7 +279,7 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} />,
+        entity: <Player orientation='up' amount={10} maximum={10} id={0} />,
       }],
       equipments: [{
         x: 0,
@@ -319,11 +319,11 @@ describe('Terminal', () => {
       creatures: [{
         x: 0,
         y: 0,
-        entity: <Player orientation='up' amount={10} maximum={10} equipments={[spell]} />,
+        entity: <Player orientation='up' amount={10} maximum={10} equipments={[spell]} id={0} />,
       }, {
         x: 0,
         y: 1,
-        entity: <Triangle orientation='down' amount={3} maximum={3} />,
+        entity: <Triangle orientation='down' amount={3} maximum={3} id={1} />,
       }],
     });
 

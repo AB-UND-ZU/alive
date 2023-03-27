@@ -1,6 +1,42 @@
 import { center, Center, Direction, Orientation, Point, TerminalState } from "./utils";
 
+const getRelativePosition = (state: TerminalState, x: number, y: number) => {
+  const relativeX = (x - state.x + state.width * 3 / 2) % state.width - state.width / 2;
+  const relativeY = (y - state.y + state.height * 3 / 2) % state.height - state.height / 2;
+  return [relativeX, relativeY];
+}
+
+export const getInfinitePosition = (state: TerminalState, x: number, y: number) => {
+  const infiniteX = state.width * state.repeatX + x;
+  const infiniteY = state.height * state.repeatY + y;
+  return [infiniteX, infiniteY];
+}
+
+export const unitInViewport = (state: TerminalState, x: number, y: number, overscan: number): boolean => {
+  const [relativeX, relativeY] = getRelativePosition(state, x, y);
+
+  if (Math.abs(relativeX) > (state.screenWidth - 1 + overscan * 2) / 2) return false;
+  if (Math.abs(relativeY) > (state.screenHeight - 1 + overscan * 2) / 2) return false;
+
+  return true;
+};
+
+export const getStaticStyle = (state: TerminalState, x: number, y: number) => {
+  const [relativeX, relativeY] = getRelativePosition(state, x, y);
+
+  const stats = 0.5;
+  const style = {
+    top: `${192 + relativeY * 32 + stats * 32}px`,
+    left: `${180 + relativeX * 18}px`,
+    // ...(isPlayer ? getSmoothStyle(state, entry.x, entry.y) : {})
+  };
+
+  return style;
+}
+
+
 export const getSmoothStyle = (state: TerminalState, x: number, y: number, overscan: number = 0) => {
+  // getInifitnite
   const offsetX = (state.width * state.repeatX + x) * 18;
   const offsetY = (state.height * state.repeatY + y) * 32;
 

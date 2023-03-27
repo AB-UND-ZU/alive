@@ -41,7 +41,7 @@ test('renders map with units', () => {
   const generateLevel = generateMap('basic', { creatures: [{
     x: 0,
     y: 0,
-    entity: <Triangle orientation='up' amount={3} maximum={3} />,
+    entity: <Triangle orientation='up' amount={3} maximum={3} id={1} />,
   }]});
   const state = generateLevel(defaultState);
   const units = computeUnits(state);

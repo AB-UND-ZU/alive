@@ -24,7 +24,8 @@
 	--aqua: #00ffff;
 	--white: #ffffff;
 
-  --size: 32px;
+  --height: 32px;
+  --width: 18px;
 }
 
 html {
@@ -46,45 +47,112 @@ body {
 
 .Terminal {
   font-family: "Perfect DOS VGA 437 Win";
-  margin: 0;
+}
+
+.Row {
+  white-space: nowrap;
+  height: var(--height);
+}
+
+.HUD {
+  color: var(--grey);
 }
 
 .Viewport {
-  height: calc(var(--size) * 13);
+  height: calc(var(--height) * 13);
   width: calc(18px * 21);
   overflow: hidden;
-  margin: -16px 0;
-  padding: 16px 0;
+  position: relative;
+  margin: -16px 0 -12px;
+  padding: 16px 0 12px;
 }
+
+.Cell {
+  display: inline-block;
+  height: var(--height);
+  width: var(--width);
+  color: var(--white);
+}
+
+.StaticCell,
+.StaticUnit,
+.MovingUnit,
+.PlayerUnit {
+  position: absolute;
+  height: var(--height);
+  width: var(--width);
+  color: var(--white);
+}
+
+.StaticCell.visible .Entity,
+.StaticUnit.visible .Entity,
+.MovingUnit.visible .Entity,
+.PlayerUnit .Entity {
+  opacity: 100%;
+}
+
+.StaticCell.fog .Entity {
+  opacity: 50%;
+}
+
+.StaticCell.dark .Placeholder {
+  opacity: 15%;
+}
+
+.StaticCell.dark .Entity,
+.StaticCell.visible .Placeholder,
+.StaticCell.fog .Placeholder,
+.StaticUnit.fog .Entity,
+.StaticUnit.dark .Entity,
+.MovingUnit.fog .Entity,
+.MovingUnit.dark .Entity {
+  opacity: 0%;
+}
+
+.Placeholder,
+.Entity {
+  position: absolute;
+  font-size: var(--height);
+  line-height: var(--height);
+}
+
+
+/* --------------------------- ANIMATIONS --------------------------- */
+
+.Animation .StaticCell .Entity,
+.Animation .StaticCell .Placeholder,
+.Animation .StaticUnit .Entity,
+.Animation .MovingUnit .Entity {
+  transition: opacity 200ms linear;
+}
+
+.Animation .StaticUnit,
+.Animation .StaticCell {
+  transition: top 200ms linear, left 200ms linear;
+}
+
+.Animation .MovingUnit {
+  transition: top 200ms linear, left 200ms linear;
+}
+
+/*
 
 .Animation .Board {
   transition: transform 200ms linear;
 }
 
-.Animation .Units {
-  transition: margin 100ms ease-out, transform 200ms linear;
-}
-
-.UnitCell {
+.Unit {
   position: absolute;
   color: var(--white);
   opacity: 100%;
 }
 
-.Animation .UnitCell {
+.Animation .Unit {
   transition: top 200ms linear, left 200ms linear, opacity 200ms linear;
 }
 
-.Row {
-  white-space: nowrap;
-  height: var(--size);
-}
-
-.Cell {
-  position: relative;
-  display: inline-block;
-  height: var(--size);
-  color: var(--white);
+.Animation .PlayerUnit {
+  transition: margin 100ms ease-out, transform 200ms linear;
 }
 
 .Animation .Cell,
@@ -93,9 +161,6 @@ body {
   opacity: 100%;
 }
 
-.HUD {
-  color: var(--grey);
-}
 
 .Cell.fog {
   opacity: 50%;
@@ -121,15 +186,11 @@ body {
 
 .Cell::after {
   content: "\00a0";
-  font-size: var(--size);
-  line-height: var(--size);
+  font-size: var(--height);
+  line-height: var(--height);
 }
 
-.Entity {
-  position: absolute;
-  font-size: var(--size);
-  line-height: var(--size);
-}
+*/
 
 
 /* Materials */
@@ -218,23 +279,7 @@ body {
 
 .Bar {
   color: var(--red);
-  z-index: 20;
-}
-
-.Armor {
-  color: var(--maroon);
-}
-
-.Sword {
-  z-index: 3;
-}
-
-.Sword.wood {
-  color: var(--maroon);
-}
-
-.Sword.iron {
-  color: var(--grey);
+  z-index: 30;
 }
 
 .Spell {
@@ -255,17 +300,17 @@ body {
 
 .Swimming {
   color: var(--navy);
-  z-index: 10;
+  z-index: 20;
 }
 
 .Freezing {
   color: var(--aqua);
-  z-index: 10;
+  z-index: 21;
 }
 
 .Attacked {
   color: var(--grey);
-  z-index: 11;
+  z-index: 22;
 }
 
 /*
@@ -278,21 +323,47 @@ body {
 }
 */
 
+.Armor {
+  color: var(--maroon);
+  z-index: 10;
+}
+
+.Sword {
+  z-index: 14;
+}
+
+.Sword.wood {
+  color: var(--maroon);
+}
+
+.Sword.iron {
+  color: var(--grey);
+}
+
 .Player {
   color: var(--white);
-  z-index: 1;
+  z-index: 12;
 }
 
 .Hair {
   color: var(--olive);
-  z-index: 2;
-}
-
-.Health {
-  color: var(--lime);
-  z-index: 20;
+  z-index: 13;
 }
 
 .Eye {
   color: var(--black);
+  z-index: 11;
 }
+
+.Health {
+  color: var(--lime);
+  z-index: 30;
+}
+
+/*
+z-index
+- 0-9: Terrain
+- 10-19: Player
+- 20-29: Particles
+- 30-39: Health bars
+*/
