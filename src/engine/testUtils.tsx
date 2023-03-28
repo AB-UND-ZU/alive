@@ -1,4 +1,4 @@
-import { Bush, Cell, Flower, Rock, Sand, Seed, Tree, Triangle, Water } from './entities';
+import { Bush, Cell, Flower, Rock, Sand, Seed, Tree, Water } from './entities';
 import { generateFog } from './fog';
 import { TerminalState } from './utils';
 

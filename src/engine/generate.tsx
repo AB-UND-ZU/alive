@@ -5,7 +5,7 @@ import { World, world } from './biomes';
 import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { Fog, getDeterministicRandomInt, getId, Orientation, orientations, Point, Processor, sum, TerminalState } from "./utils";
+import { getDeterministicRandomInt, getId, Orientation, orientations, Processor, sum, TerminalState } from "./utils";
 
 const getSingleElements = (world: World, cells: MapCell[], category: SingleCategories) => cells.map(cell => world.tileCells[cell.name][category]);
 const getMultipleElements = (world: World, cells: MapCell[], category: MultipleCategories) => cells.reduce<ReactComponentElement<Entity>[]>((cellTypes, cell) => [
@@ -115,7 +115,7 @@ function generateLevel(state: TerminalState): TerminalState {
         const cellEntities = getCellEntities(groundElements, ground);
         return {
           ground,
-          amount: sum(cellEntities.map(entity => entity?.props && 'amount' in entity.props && entity.props.amount as number || 0)),
+          amount: sum(cellEntities.map(entity => (entity?.props && 'amount' in entity.props && entity.props.amount as number) || 0)),
         };
       }, {});
       const sortedGrounds = [...groundAmounts].sort((left, right) => right.amount - left.amount);

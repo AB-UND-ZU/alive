@@ -1,4 +1,4 @@
-import { Creature, Entity, Equipment, Particle, Player, Unit } from "./entities";
+import { Creature, Equipment, Particle, Unit } from "./entities";
 import { Processor, TerminalState, wrapCoordinates } from "./utils";
 
 export type UnitMap = Record<number, Record<number, Unit>>;

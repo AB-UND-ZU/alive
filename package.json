@@ -27,6 +27,7 @@
     "start:rune": "rune start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "lint": "eslint src/",
     "eject": "react-scripts eject",
     "rune": "npm run build && npm run start:rune -- build/"
   },

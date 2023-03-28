@@ -172,7 +172,7 @@ const Terminal = ({
       window.removeEventListener('touchend', handleTouchMove);
       window.removeEventListener('touchcancel', handleTouchMove);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>

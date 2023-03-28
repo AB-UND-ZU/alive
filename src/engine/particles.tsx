@@ -1,5 +1,5 @@
-import { Attacked, Particle, Shock, Swimming, Water } from "./entities";
-import { addPoints, center, directionOffset, getCell, isWater, Processor, TerminalState } from "./utils";
+import { Attacked, Particle, Shock, Swimming } from "./entities";
+import { addPoints, center, directionOffset, isWater, Processor, TerminalState } from "./utils";
 
 export const tickParticle = (state: TerminalState, processor: Processor<Particle>): [TerminalState, Processor<Particle> | undefined] => {
   const newState = { ...state };

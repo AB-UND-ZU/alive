@@ -4,7 +4,7 @@ import { Attacked, counters, Creature, Equipment, inventories, Item, Particle, P
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
-import { center, directionOffset, getCell, getFog, getId, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "../../engine/utils";
+import { center, directionOffset, getCell, getFog, getId, isWalkable, Orientation, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "../../engine/utils";
 
 type QueueAction = {
   type: 'queue',

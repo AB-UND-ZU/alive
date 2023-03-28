@@ -19,7 +19,7 @@ const Board = ({ state, unitMap, unitList, animation }: { state: TerminalState, 
       <div className="Board" style={boardStyle}>
         <div className="Static">
           {pointRange(state.screenHeight + overscan * 2, offsetY => [state.x, state.y + offsetY - (state.screenHeight - 1 + overscan * 2) / 2]).map(([_, rowY]) => {
-            const [__, infiniteRow] = getInfinitePosition(state, 0, rowY);
+            const infiniteRow = getInfinitePosition(state, 0, rowY)[1];
 
             return (
               <div className="Row" key={infiniteRow}>
@@ -59,7 +59,7 @@ const Board = ({ state, unitMap, unitList, animation }: { state: TerminalState, 
 
         <div className="Moving">
           {unitList.map(entry => {
-            if (!unitInViewport(state, entry.x, entry.y, overscan)) return;
+            if (!unitInViewport(state, entry.x, entry.y, overscan)) return null;
 
             const isPlayer = entry.x === state.x && entry.y === state.y;
             const fog = getFog(state, entry.x, entry.y);

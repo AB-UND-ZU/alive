@@ -1,7 +1,7 @@
 import { ReactComponentElement } from "react";
 import { Creature, Freezing, Particle, Swimming, Triangle } from "./entities";
 import { tickParticle } from "./particles";
-import { isWalkable, getCell, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, Processor, isWater, getId } from "./utils";
+import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, Processor, isWater, getId } from "./utils";
 
 export const tickCreature = (state: TerminalState, processor: Processor<Creature>): [TerminalState, Processor<Creature>] => {
   const newState = { ...state };
@@ -45,6 +45,7 @@ export const tickCreature = (state: TerminalState, processor: Processor<Creature
         if (isWalkable(newState, newProcessor.x + attemptX, newProcessor.y + attemptY)) {
           return attemptOrientation;
         }
+        return undefined;
       }).filter(Boolean)[0];
 
       // if creature is stuck, make it circle around

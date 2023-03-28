@@ -1,5 +1,5 @@
 import { TileType } from "worldmap-generator";
-import { Burning, Campfire, Cell, Flower, Ice, Mana, Path, Rock, Sand, Water } from "./entities";
+import { Cell, Flower, Ice, Path, Rock, Sand, Water } from "./entities";
 
 export class World {
   tileTypes: TileType[] = [];
