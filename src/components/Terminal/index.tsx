@@ -34,6 +34,7 @@ const Terminal = ({
   const queuedMove = useRef<Orientation | undefined>(undefined);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
   const pressedOrientations = useRef<Orientation[]>([]);
+  const spellRef = useRef<HTMLDivElement>(null);
 
   const handleTick = () => {
     if (lastTick.current) {
@@ -123,7 +124,12 @@ const Terminal = ({
     const degrees = pointToDegree([deltaX, deltaY]);
     let nextOrientation: Orientation | undefined = undefined;
 
-    if (Math.sqrt(deltaX ** 2 + deltaY ** 2) > 5) {
+    if (Math.sqrt(deltaX ** 2 + deltaY ** 2) <= 5) {
+      if (event.touches[0].target === spellRef.current) {
+        dispatch({ type: 'spell' });
+        return;
+      }
+    } else {
       if (315 < degrees || degrees <= 45) nextOrientation = 'up';
       if (45 < degrees && degrees <= 135) nextOrientation = 'right';
       if (135 < degrees && degrees <= 225) nextOrientation = 'down';
@@ -170,7 +176,8 @@ const Terminal = ({
 
   return (
     <>
-      <div className="Overlay" />
+      <div className="MoveOverlay" />
+      <div className="SpellOverlay" ref={spellRef} />
       <pre className={`Terminal ${animation ? 'Animation' : ''}`}>
         {stats && <Stats state={state} />}
         <Board animation={animation} state={state} unitMap={unitMap} unitList={unitList} />
