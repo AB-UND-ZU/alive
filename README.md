@@ -2,6 +2,8 @@
 
 Try it here: https://ab-und-zu.github.io/alive
 
+Intended to be used with https://www.rune.ai/
+
 ## HUD
 
 - Fix seeing between rocks
