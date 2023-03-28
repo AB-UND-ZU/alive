@@ -2,6 +2,7 @@
   "name": "alive",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://ab-und-zu.github.io/alive",
   "dependencies": {
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
@@ -31,7 +32,6 @@
     "eject": "react-scripts eject",
     "rune": "npm run build && npm run start:rune -- build/"
   },
-  "proxy": "http://localhost:54302",
   "eslintConfig": {
     "extends": [
       "react-app",
