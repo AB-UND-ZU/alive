@@ -1,5 +1,7 @@
 # Alive
 
+Try it here: https://ab-und-zu.github.io/alive
+
 ## HUD
 
 - Fix seeing between rocks
