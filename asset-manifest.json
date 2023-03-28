@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/static/css/main.faac9c83.css",
-    "main.js": "/static/js/main.484a7b88.js",
-    "static/js/496.c409c195.chunk.js": "/static/js/496.c409c195.chunk.js",
-    "static/media/MostPerfectDOSVGA.woff": "/static/media/MostPerfectDOSVGA.45ae80bd0c1b3f0ff6a5.woff",
-    "static/media/MostPerfectDOSVGA.woff2": "/static/media/MostPerfectDOSVGA.c52c1591ab42d87ad585.woff2",
-    "index.html": "/index.html",
-    "main.faac9c83.css.map": "/static/css/main.faac9c83.css.map",
-    "main.484a7b88.js.map": "/static/js/main.484a7b88.js.map",
-    "496.c409c195.chunk.js.map": "/static/js/496.c409c195.chunk.js.map"
+    "main.css": "/alive/static/css/main.066f68ed.css",
+    "main.js": "/alive/static/js/main.3d92b565.js",
+    "static/js/496.c409c195.chunk.js": "/alive/static/js/496.c409c195.chunk.js",
+    "static/media/MostPerfectDOSVGA.woff": "/alive/static/media/MostPerfectDOSVGA.45ae80bd0c1b3f0ff6a5.woff",
+    "static/media/MostPerfectDOSVGA.woff2": "/alive/static/media/MostPerfectDOSVGA.c52c1591ab42d87ad585.woff2",
+    "index.html": "/alive/index.html",
+    "main.066f68ed.css.map": "/alive/static/css/main.066f68ed.css.map",
+    "main.3d92b565.js.map": "/alive/static/js/main.3d92b565.js.map",
+    "496.c409c195.chunk.js.map": "/alive/static/js/496.c409c195.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.faac9c83.css",
-    "static/js/main.484a7b88.js"
+    "static/css/main.066f68ed.css",
+    "static/js/main.3d92b565.js"
   ]
 }
