@@ -10,7 +10,7 @@ export const sum = (numbers: number[]) => numbers.reduce((total, number) => tota
 
 export const getDeterministicRandomInt = (minimum: number, maximum: number) => {
   return Math.floor(
-    window.Rune.deterministicRandom() * (maximum - minimum + 1) + minimum
+    (window.Rune ? window.Rune.deterministicRandom () : Math.random()) * (maximum - minimum + 1) + minimum
   );
 };
 
