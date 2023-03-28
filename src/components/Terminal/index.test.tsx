@@ -5,7 +5,7 @@ import FakeTimers from "@sinonjs/fake-timers";
 import { Armor, Player, Spell, Sword, Triangle } from '../../engine/entities';
 import { armorChar, darkChar, downChar, downTriangleChar, fullChar, generateMap, getLocation, health3Char, health5Char, health8Char, mediumChar, playerChar } from '../../engine/testUtils';
 
-import Terminal from '.';
+import Terminal, { PLAYER_INTERVAL, WORLD_INTERVAL } from '.';
 
 const user = userEvent.setup({ delay: null });
 
@@ -31,7 +31,7 @@ describe('Terminal', () => {
       }]
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} animation={false} />);
 
     const player = screen.getByText(playerChar);
     expect(player).toBeInTheDocument();
@@ -48,16 +48,16 @@ describe('Terminal', () => {
       }]
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} animation={false} />);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([0, 0]);
 
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([1, 2]);
   });
@@ -73,18 +73,18 @@ describe('Terminal', () => {
       }]
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} animation={false} />);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([0, 0]);
 
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowUp]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([1, 2]);
   });
@@ -100,16 +100,16 @@ describe('Terminal', () => {
       }]
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} animation={false} />);
 
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     expect(getLocation(screen.getByText(playerChar))).toEqual([0, 1]);
 
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     expect(getLocation(screen.getByText(playerChar))).toEqual([0, 0]);
   });
 
@@ -124,22 +124,22 @@ describe('Terminal', () => {
       }]
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} animation={false} />);
 
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([0, 1]);
     expect(screen.getByText(2)).toBeInTheDocument();
 
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([1, 1]);
     expect(screen.getByText(3)).toBeInTheDocument();
@@ -157,22 +157,22 @@ describe('Terminal', () => {
       equipments: [{
         x: 0,
         y: 2,
-        entity: <Armor material='wood' amount={1} />,
+        entity: <Armor material='wood' amount={1} id={1} />,
       }],
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} animation={false} />);
 
     expect(getLocation(screen.getByText(armorChar))).toEqual([0, 2]);
 
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([1, 2]);
     const armors = screen.getAllByText(armorChar);
@@ -192,22 +192,22 @@ describe('Terminal', () => {
       }]
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} animation={false} />);
 
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([2, 2]);
     expect(getLocation(screen.getByText(downChar))).toEqual([2, 2]);
 
     await user.keyboard('[ArrowLeft]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([1, 2]);
     expect(screen.queryByText(downChar)).toBeNull();
@@ -229,47 +229,46 @@ describe('Terminal', () => {
       equipments: [{
         x: 2,
         y: 2,
-        entity: <Sword material='wood' amount={1} />,
+        entity: <Sword material='wood' amount={1} id={2} />,
       }],
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} animation={false} />);
 
-    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 1]);
+    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 2]);
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(WORLD_INTERVAL);
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
-    await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowRight]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL * 2);
 
     expect(getLocation(screen.getByText(playerChar))).toEqual([1, 2]);
-    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 0]);
+    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 2]);
     const healths = screen.getAllByText(health8Char);
     expect(healths).toHaveLength(2);
     expect(getLocation(healths[0])).toEqual([1, 2]);
-    expect(getLocation(healths[1])).toEqual([0, 0]);
+    expect(getLocation(healths[1])).toEqual([0, 2]);
 
-    clock!.tick(1000);
     await user.keyboard('[ArrowLeft]');
-    clock!.tick(500);
-    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 0]);
-    expect(getLocation(screen.getByText(health5Char))).toEqual([0, 0]);
+    clock!.tick(WORLD_INTERVAL * 3);
+    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 2]);
+    expect(getLocation(screen.getByText(health5Char))).toEqual([0, 2]);
 
-    clock!.tick(1000);
     await user.keyboard('[ArrowLeft]');
-    clock!.tick(500);
-    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 0]);
-    expect(getLocation(screen.getByText(health3Char))).toEqual([0, 0]);
+    clock!.tick(WORLD_INTERVAL * 3);
+    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 2]);
+    expect(getLocation(screen.getByText(health3Char))).toEqual([0, 2]);
 
-    clock!.tick(1000);
     await user.keyboard('[ArrowLeft]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
+    await user.keyboard('[ArrowLeft]');
+    clock!.tick(PLAYER_INTERVAL);
+  
     expect(screen.queryByText(downTriangleChar)).toBeNull();
+    expect(getLocation(screen.getByText(playerChar))).toEqual([0, 2]);
   });
 
   test('freeze water', async () => {
@@ -284,11 +283,11 @@ describe('Terminal', () => {
       equipments: [{
         x: 0,
         y: 1,
-        entity: <Spell material='ice' amount={1} />,
+        entity: <Spell material='ice' amount={1} id={1} />,
       }],
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} animation={false} />);
 
     let blocks = screen.getAllByText(fullChar);
     let half = screen.getByText(mediumChar);
@@ -298,9 +297,9 @@ describe('Terminal', () => {
     expect(half).toHaveClass('Sand');
     
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[Space]');
-    clock!.tick(2500);
+    clock!.tick(PLAYER_INTERVAL * 5);
 
     blocks = screen.getAllByText(fullChar);
     half = screen.getByText(mediumChar);
@@ -313,7 +312,7 @@ describe('Terminal', () => {
   test('freeze a triangle', async () => {
     const setScore = jest.fn();
     const gameOver = jest.fn();
-    const spell = <Spell material='ice' amount={1} />;
+    const spell = <Spell material='ice' amount={1} id={2} />;
     const generateLevel = generateMap('basic', {
       inventory: { spell },
       creatures: [{
@@ -327,19 +326,19 @@ describe('Terminal', () => {
       }],
     });
 
-    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} />);
+    render(<Terminal score={0} setScore={setScore} gameOver={gameOver} generateLevel={generateLevel} controls={false} stats={false} animation={false} />);
     
     await user.keyboard('[Space]');
-    clock!.tick(500);
-    await user.keyboard('[ArrowUp]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
     await user.keyboard('[ArrowDown]');
-    clock!.tick(500);
+    clock!.tick(PLAYER_INTERVAL);
+    await user.keyboard('[ArrowUp]');
+    clock!.tick(PLAYER_INTERVAL);
 
     const dark = screen.getByText(darkChar);
     expect(getLocation(screen.getByText(playerChar))).toEqual([0, 0]);
-    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 1]);
-    expect(getLocation(dark)).toEqual([0, 1]);
+    expect(getLocation(screen.getByText(downTriangleChar))).toEqual([0, 2]);
+    expect(getLocation(dark)).toEqual([0, 2]);
     expect(dark).toHaveClass('Freezing');
   });
 });

@@ -73,6 +73,6 @@ export const generateMap = (name: keyof typeof maps, initialState?: Partial<Term
 });
 
 export const getLocation = (element: HTMLElement) => {
-  const cell = element.closest('.Cell') as HTMLElement;
+  const cell = element.closest('[data-testid]') as HTMLElement;
   return cell.dataset.testid!.split(',').map(offset => parseInt(offset, 10));
 }

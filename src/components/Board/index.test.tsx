@@ -11,9 +11,9 @@ import { Triangle } from '../../engine/entities';
 test('renders map of cells', () => {
   const generateLevel = generateMap('basic');
   const state = generateLevel(defaultState);
-  const units = computeUnits(state);
+  const [staticUnits, movingUnits] = computeUnits(state);
 
-  render(<Board state={state} units={units} />);
+  render(<Board state={state} unitMap={staticUnits} unitList={movingUnits} animation={false} />);
 
   const rightRock = screen.getByText(rightChar);
   expect(rightRock).toBeInTheDocument();
@@ -44,9 +44,9 @@ test('renders map with units', () => {
     entity: <Triangle orientation='up' amount={3} maximum={3} id={1} />,
   }]});
   const state = generateLevel(defaultState);
-  const units = computeUnits(state);
+  const [staticUnits, movingUnits] = computeUnits(state);
 
-  render(<Board state={state} units={units} />);
+  render(<Board state={state} unitMap={staticUnits} unitList={movingUnits} animation={false} />);
 
   const triangle = screen.getByText(upTriangleChar);
   expect(triangle).toBeInTheDocument();

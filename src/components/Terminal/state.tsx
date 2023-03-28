@@ -6,6 +6,11 @@ import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
 import { center, directionOffset, getCell, getFog, getId, isWalkable, Orientation, Point, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "../../engine/utils";
 
+type QueueAction = {
+  type: 'queue',
+  orientation?: Orientation,
+};
+
 type MoveAction = {
   type: 'move',
   orientation?: Orientation,
@@ -35,14 +40,19 @@ type TickAction = {
   type: 'tick',
 };
 
-type TerminalAction = MoveAction | AttackAction | SpellAction | CollectAction | FogAction | TickAction;
+type TerminalAction = QueueAction | MoveAction | AttackAction | SpellAction | CollectAction | FogAction | TickAction;
 
 export const reducer = (state: TerminalState, action: TerminalAction): TerminalState => {
   switch (action.type) {
+    case 'queue': {
+      const { orientation } = action;
+      return { ...state, orientation };
+    };
+
     case 'move': {
       const { orientation } = action;
       const [deltaX, deltaY] = directionOffset[orientation || center];
-      let newState: TerminalState = { ...state, orientation };
+      let newState: TerminalState = { ...state };
       const [movedX, movedY] = [newState.x + deltaX, newState.y + deltaY];
       const [newX, newY] = wrapCoordinates(newState, movedX, movedY);
       let newCell = { ...newState.board[newY][newX] };
@@ -194,7 +204,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     }
 
     case 'tick': {
-      const newState = { ...state, orientation: undefined };
+      const newState = { ...state };
 
       newState.equipments = newState.equipments.map(processor => {
         const [equipmentState, equipmentProcessor] = tickEquipment(newState, processor);

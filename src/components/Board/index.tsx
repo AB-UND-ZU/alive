@@ -3,7 +3,7 @@ import { getInfinitePosition, getStaticStyle, unitInViewport } from "../../engin
 import { getUnit, UnitList, UnitMap } from "../../engine/units";
 import { getCell, getFog, pointRange, TerminalState, wrapCoordinates } from "../../engine/utils";
 
-const Board = ({ state, unitMap, unitList, remaining, animation }: { state: TerminalState, unitMap: UnitMap, unitList: UnitList, remaining?: number, animation?: boolean }) => {
+const Board = ({ state, unitMap, unitList, animation }: { state: TerminalState, unitMap: UnitMap, unitList: UnitList, animation?: boolean }) => {
   const overscan = animation ? 2 : 0;
 
   const [boardX, boardY] = getInfinitePosition(state, state.x, state.y);
@@ -68,7 +68,7 @@ const Board = ({ state, unitMap, unitList, remaining, animation }: { state: Term
             const style = getStaticStyle(state, entry.x, entry.y, overscan);
 
             return (
-              <span className={`${isPlayer ? 'PlayerUnit' : 'MovingUnit'} ${fog}`} key={key} data-testid={key} style={style}>
+              <span className={`${isPlayer ? 'PlayerUnit' : 'MovingUnit'} ${fog}`} key={key} data-testid={`${entry.x},${entry.y}`} style={style}>
                 {entry.entity}
               </span>
             );

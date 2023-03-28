@@ -42,6 +42,13 @@ html {
   transform: translate(-50%, -50%);
 }
 
+.Overlay {
+  position: fixed;
+  z-index: 100;
+  height: 100vh;
+  width: 100vw;
+}
+
 .Terminal {
   font-family: "Perfect DOS VGA 437 Win";
 }
@@ -148,7 +155,7 @@ html {
 }
 
 .Animation .PlayerUnit {
-  transition: top 200ms cubic-bezier(0,1,1,1), left 200ms cubic-bezier(0,1,1,1);
+  transition: top 200ms cubic-bezier(0.2,1,1,1), left 200ms cubic-bezier(0.2,1,1,1);
 }
 
 
@@ -322,4 +329,5 @@ z-index
 - 10-19: Player
 - 20-29: Particles
 - 30-39: Health bars
+- 100: Touch overlay
 */

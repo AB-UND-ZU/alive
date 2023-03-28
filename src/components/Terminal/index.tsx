@@ -4,10 +4,10 @@ import Controls from "../Controls";
 import Stats from "../Stats";
 import { reducer } from "./state";
 import { computeUnits } from "../../engine/units";
-import { Center, center, defaultState, keyToOrientation, Orientation, TerminalState } from "../../engine/utils";
+import { defaultState, keyToOrientation, Orientation, pointToDegree, TerminalState } from "../../engine/utils";
 
-const TICK_INTERVAL = 500;
-const SKIP_INTERVAL = 200;
+export const WORLD_INTERVAL = 350;
+export const PLAYER_INTERVAL = 250;
 
 const Terminal = ({
   score,
@@ -29,63 +29,154 @@ const Terminal = ({
   const [state, dispatch] = useReducer(reducer, defaultState, generateLevel);
 
   const [unitMap, unitList] = useMemo(() => computeUnits(state), [state]);
-  const lastTick = useRef(0);
-  const tickTimeout = useRef<NodeJS.Timeout>();
-  const moved = useRef<[Orientation | Center, number]>([center, 0]);
+  const lastTick = useRef<[number, NodeJS.Timeout]>();
+  const lastMove = useRef<[number, NodeJS.Timeout]>();
+  const queuedMove = useRef<Orientation | undefined>(undefined);
+  const touchOrigin = useRef<[number, number] | undefined>(undefined);
+  const pressedOrientations = useRef<Orientation[]>([]);
 
-  const nextTick = () => {
-    const remaining = lastTick.current + SKIP_INTERVAL - Date.now();
-    
-    if (remaining > 0) return remaining;
+  const handleTick = () => {
+    if (lastTick.current) {
+      clearTimeout(lastTick.current[1]);
+    }
 
     dispatch({ type: 'tick' });
-    moved.current = [center, 0];
-    lastTick.current = Date.now();
-    clearTimeout(tickTimeout.current);
-    tickTimeout.current = setTimeout(nextTick, TICK_INTERVAL);
-    return 0;
+    lastTick.current = [
+      Date.now(),
+      setTimeout(handleTick, WORLD_INTERVAL),
+    ];
+  };
+
+  const handleMove = (orientation: Orientation) => {
+    const now = Date.now();
+    if (lastMove.current) {
+      clearTimeout(lastMove.current[1]);
+      queuedMove.current = orientation;
+      const remaining = lastMove.current[0] + PLAYER_INTERVAL - now;
+
+      lastMove.current = [
+        now,
+        setTimeout(() => {
+          lastMove.current = undefined;
+          queuedMove.current = undefined;
+          handleMove(orientation);
+        }, remaining),
+      ];
+      return;
+    }
+
+    dispatch({ type: 'queue', orientation });
+    dispatch({ type: 'move', orientation });
+    lastMove.current = [
+      now,
+      setTimeout(() => {
+        lastMove.current = undefined;
+        queuedMove.current = undefined;
+
+        const nextOrientation = pressedOrientations.current[0];
+        if (nextOrientation) {
+          handleMove(nextOrientation);
+        } else {
+          dispatch({ type: 'queue', orientation: undefined });
+        }
+      }, PLAYER_INTERVAL)
+    ];
+  };
+
+  const handleKeyMove = (event: KeyboardEvent) => {
+    const orientation = keyToOrientation[event.key];
+    const orientations = pressedOrientations.current;
+    const lastOrientation = orientations[0];
+    if (event.type === 'keyup') {
+      if (orientation) orientations.splice(orientations.indexOf(orientation), 1)
+      return;
+    }
+    if (event.repeat) return;
+
+    if (orientation) {
+      orientations.unshift(orientation);
+      const nextOrientation = pressedOrientations.current[0];
+      if (nextOrientation && nextOrientation !== lastOrientation) {
+        handleMove(nextOrientation);
+      }
+    } else if (event.key === ' ') {
+      dispatch({ type: 'spell' });
+    }
+  };
+
+  const handleTouchMove = (event: TouchEvent) => {
+    if (event.touches.length !== 1) {
+      touchOrigin.current = undefined;
+      pressedOrientations.current = [];
+      return;
+    }
+
+    event.preventDefault();
+
+    const [x, y] = [event.touches[0].clientX, event.touches[0].clientY];
+
+    if (!touchOrigin.current) {
+      touchOrigin.current = [x, y];
+    }
+
+    const [deltaX, deltaY] = [(x - touchOrigin.current[0]) , y - touchOrigin.current[1]];
+    const degrees = pointToDegree([deltaX, deltaY]);
+    let nextOrientation: Orientation | undefined = undefined;
+
+    if (Math.sqrt(deltaX ** 2 + deltaY ** 2) > 5) {
+      if (315 < degrees || degrees <= 45) nextOrientation = 'up';
+      if (45 < degrees && degrees <= 135) nextOrientation = 'right';
+      if (135 < degrees && degrees <= 225) nextOrientation = 'down';
+      if (225 < degrees && degrees <= 315) nextOrientation = 'left';
+    }
+
+    const lastOrientation = pressedOrientations.current[0];
+
+    if (nextOrientation) {
+      pressedOrientations.current = [nextOrientation];
+      if (nextOrientation!== lastOrientation) {
+        handleMove(nextOrientation);
+      }
+    } else {
+      pressedOrientations.current = [];
+    }
   };
 
   useEffect(() => {
-    const handleMove = (event: KeyboardEvent) => {
-      const orientation = keyToOrientation[event.key];
-      const processKey = (key: string) => {
-        if (event.key === 'ArrowUp') {
-          dispatch({ type: 'move', orientation: 'up' });
-        } else if (event.key === 'ArrowRight') {
-          dispatch({ type: 'move', orientation: 'right' });
-        } else if (event.key === 'ArrowDown') {
-          dispatch({ type: 'move', orientation: 'down' });
-        } else if (event.key === 'ArrowLeft') {
-          dispatch({ type: 'move', orientation: 'left' });
-        } else if (event.key === ' ') {
-          dispatch({ type: 'spell' });
-        }
-      };
+    window.addEventListener('keydown', handleKeyMove);
+    window.addEventListener('keyup', handleKeyMove);
 
-      if (moved.current[0] === center || nextTick() === 0) {
-        const remaining = lastTick.current + TICK_INTERVAL - Date.now();
-        moved.current = [orientation, remaining];
-        processKey(event.key);
-      }
-    };
+    window.addEventListener('touchstart', handleTouchMove);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleTouchMove);
+    window.addEventListener('touchcancel', handleTouchMove);
 
-    window.addEventListener('keydown', handleMove);
-
-    nextTick();
+    handleTick();
     dispatch({ type: 'move' });
 
     return () => {
-      window.removeEventListener('keydown', handleMove);
+      clearTimeout(lastTick.current?.[1]);
+      clearTimeout(lastMove.current?.[1]);
+
+      window.removeEventListener('keydown', handleKeyMove);
+      window.removeEventListener('keyup', handleKeyMove);
+
+      window.removeEventListener('touchstart', handleTouchMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchMove);
+      window.removeEventListener('touchcancel', handleTouchMove);
     }
   }, []);
 
   return (
-    <pre className={`Terminal ${animation ? 'Animation' : ''} ${moved.current[0]}`}>
-      {stats && <Stats state={state} />}
-      <Board animation={animation} state={state} unitMap={unitMap} unitList={unitList} remaining={moved.current[1]} />
-      {controls && <Controls state={state} />}
-    </pre>
+    <>
+      <div className="Overlay" />
+      <pre className={`Terminal ${animation ? 'Animation' : ''}`}>
+        {stats && <Stats state={state} />}
+        <Board animation={animation} state={state} unitMap={unitMap} unitList={unitList} />
+        {controls && <Controls state={state} />}
+      </pre>
+    </>
   );
 }
 

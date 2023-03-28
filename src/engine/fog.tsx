@@ -1,18 +1,12 @@
 import { angleToCornerDirections, cellBoundaries, quarterCircle } from "./geometry";
 import { Rock } from "./entities";
-import { center, getCell, Point, TerminalState, Orientation, Fog } from "./utils";
+import { center, getCell, Point, TerminalState, Orientation, Fog, pointToDegree } from "./utils";
 
 // begin, end in degrees
 type Interval = [number, number];
 
 // to make code a bit more readable
 const x = 0, y = 1, start = 0, end = 1;
-
-// degrees are counted from top center clockwise, from 0 to 360
-const pointToDegree = (point: Point) => {
-  const radian = Math.atan2(point[y], point[x]);
-  return (radian * 180 / Math.PI + 450) % 360;
-}
 
 // return the degree interval for the outermost visible corners relative from viewer.
 // if it crosses 360°, create two separate intervals
@@ -57,7 +51,6 @@ export const generateFog = (state: TerminalState, fog: Fog = 'dark'): Fog[][] =>
 // this algorithm assumes screen width is larger than screen height
 export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visible: Interval[] = [[0, 360]], previousVisible: Point[] = [[0, 0]]): Point[] => {
   const maxHorizontal = (state.screenWidth - 1) / 2;
-  const maxVertical = (state.screenHeight - 1) / 2;
   const relativeRing: Point[] = [];
 
   // bail out if we reached outer boundaries

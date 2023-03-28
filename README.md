@@ -2,11 +2,10 @@
 
 ## HUD
 
-- Lime: HP
-- Red: food
 - Fix seeing between rocks
 - Average drop: 10wood 10iron 15 food 20 mana
-- Swimming: air?
+- Swimming: oxygen count?
+- Swipe distance = speed?
 
 ## Layers
 
@@ -39,6 +38,7 @@
 
 - Boat: Wood
 - Bomb
+- Torch
 
 ## Elements
 

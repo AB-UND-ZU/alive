@@ -51,6 +51,12 @@ export type Point = [number, number];
 
 export const addPoints = (state: TerminalState, left: Point, right: Point): Point => wrapCoordinates(state, left[0] + right[0], left[1] + right[1]);
 
+// degrees are counted from top center clockwise, from 0 to 360
+export const pointToDegree = (point: Point) => {
+  const radian = Math.atan2(point[1], point[0]);
+  return (radian * 180 / Math.PI + 450) % 360;
+}
+
 // helper to create point ranges fast
 export const pointRange = (length: number, generator: (index: number) => Point) =>
   Array.from({ length }).map<Point>((_, index) => generator(index));
