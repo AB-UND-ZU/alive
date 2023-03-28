@@ -17,15 +17,17 @@ const App = () => {
 
   // load Rune once on mount
   useEffect(() => {
-    window.Rune.init({
-      resumeGame: () => setRunning(true),
-      pauseGame: () => setRunning(false),
-      restartGame: () => {
-        setScore(0);
-        setRunning(true);
-      },
-      getScore: () => scoreRef.current,
-    });
+    if (window.Rune) {
+      window.Rune.init({
+        resumeGame: () => setRunning(true),
+        pauseGame: () => setRunning(false),
+        restartGame: () => {
+          setScore(0);
+          setRunning(true);
+        },
+        getScore: () => scoreRef.current,
+      });
+    }
   }, []);
 
   // since Rune expects a function at creation, we sadly need to keep a ref in sync manually
