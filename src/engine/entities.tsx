@@ -50,7 +50,7 @@ export const Tree: Terrain = ({ orientation }) => {
   return (
     <>
       <span className="Entity Wood">{'\u2510'}</span>
-      <span className="Entity Plant">{orientation ? '\u0398' : '#'}</span>
+      <span className="Entity Tree">{orientation ? '\u0398' : '#'}</span>
     </>
   );
 }

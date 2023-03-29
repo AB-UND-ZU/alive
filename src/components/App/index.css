@@ -44,8 +44,9 @@ html {
 
 .MoveOverlay,
 .SpellOverlay,
-.Stats,
-.Controls {
+.Stats span,
+.Board span,
+.Controls span {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -257,8 +258,12 @@ html {
   color: var(--purple);
 }
 
-.Plant {
+.Tree {
   color: var(--green);
+}
+
+.Plant {
+  color: var(--olive);
 }
 
 .Triangle {
