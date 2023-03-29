@@ -143,10 +143,11 @@ html {
 }
 
 .Animation .Board {
-  transition: transform 200ms linear;
+  transition: margin-top 250ms linear, margin-left 250ms linear;
 }
 
 .Animation .Static {
+  display: inline-block; /* to prevent margin collapsing */
   margin-left: -36px;
   margin-top: -64px;
 }
@@ -155,15 +156,15 @@ html {
 .Animation .StaticCell .Placeholder,
 .Animation .StaticUnit .Entity,
 .Animation .MovingUnit .Entity {
-  transition: opacity 200ms linear;
+  transition: opacity 250ms linear;
 }
 
 .Animation .MovingUnit {
-  transition: top 200ms linear, left 200ms linear;
+  transition: top 250ms linear, left 250ms linear;
 }
 
 .Animation .PlayerUnit {
-  transition: top 200ms cubic-bezier(0.2,1,1,1), left 200ms cubic-bezier(0.2,1,1,1);
+  transition: top 250ms cubic-bezier(0.2,0.8,0,0.8), left 250ms cubic-bezier(0.2,0.8,0,0.8);
 }
 
 

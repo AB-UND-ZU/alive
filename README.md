@@ -111,3 +111,4 @@ Intended to be used with https://www.rune.ai/
 
 - I'm spending quite a lot of time on awesome details, but the game is not Alive yet
 - I tried implementing Immer, which was actually quite fun and revealed some referencing bugs in my code. However the performance dropped significantly, actually unplayable, didn't even bother to measure. Auf Nimmerwiedersehen!
+- iOS Safari opacity transition not working, but not caring about it either

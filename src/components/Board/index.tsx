@@ -8,10 +8,11 @@ const Board = ({ state, unitMap, unitList, animation }: { state: TerminalState, 
 
   const [boardX, boardY] = getInfinitePosition(state, state.x, state.y);
 
-  const boardStyle = {
+  const boardStyle: React.CSSProperties = {
     top: `${boardY * 32}px`,
     left: `${boardX * 18}px`,
-    transform: `translate(${boardX * -18}px, ${boardY * -32}px)`,
+    marginLeft: `${boardX * -18}px`,
+    marginTop: `${boardY * -32}px`,
   };
 
   return (
@@ -65,7 +66,7 @@ const Board = ({ state, unitMap, unitList, animation }: { state: TerminalState, 
             const fog = getFog(state, entry.x, entry.y);
             const key = entry.id;
 
-            const style = getStaticStyle(state, entry.x, entry.y, overscan);
+            const style = getStaticStyle(state, entry.x, entry.y);
 
             return (
               <span className={`${isPlayer ? 'PlayerUnit' : 'MovingUnit'} ${fog}`} key={key} data-testid={`${entry.x},${entry.y}`} style={style}>

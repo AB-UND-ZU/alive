@@ -21,7 +21,7 @@ export const unitInViewport = (state: TerminalState, x: number, y: number, overs
   return true;
 };
 
-export const getStaticStyle = (state: TerminalState, x: number, y: number, overscan: number) => {
+export const getStaticStyle = (state: TerminalState, x: number, y: number, overscan: number = 0) => {
   const [infinitePlayerX, infinitePlayerY] = getInfinitePosition(state, state.x, state.y);
   const [relativeTargetX, relativeTargetY] = getRelativePosition(state, x, y);
   const [infiniteTargetX, infiniteTargetY] = [infinitePlayerX + relativeTargetX, infinitePlayerY + relativeTargetY];
