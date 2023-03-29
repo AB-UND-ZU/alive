@@ -262,7 +262,12 @@ html {
   color: var(--green);
 }
 
-.Plant {
+.Bush {
+  color: var(--olive);
+  z-index: 20;
+}
+
+.Flower {
   color: var(--olive);
 }
 
@@ -272,7 +277,7 @@ html {
 
 .Bar {
   color: var(--red);
-  z-index: 30;
+  z-index: 40;
 }
 
 .Boat {
@@ -285,17 +290,17 @@ html {
 
 .Swimming {
   color: var(--navy);
-  z-index: 20;
+  z-index: 30;
 }
 
 .Freezing {
   color: var(--aqua);
-  z-index: 21;
+  z-index: 31;
 }
 
 .Attacked {
   color: var(--grey);
-  z-index: 22;
+  z-index: 32;
 }
 
 /*
@@ -347,14 +352,15 @@ html {
 
 .Health {
   color: var(--lime);
-  z-index: 30;
+  z-index: 40;
 }
 
 /*
 z-index
 - 0-9: Terrain
 - 10-19: Player
-- 20-29: Particles
-- 30-39: Health bars
+- 20-29: Terrain
+- 30-39: Particles
+- 40-49: Health bars
 - 100: Touch overlay
 */

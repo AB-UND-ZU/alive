@@ -164,11 +164,11 @@ export const items = [Life, Mana, Wood, Iron, Herb, Seed, Gold, Experience];
 export type Sprite = React.FC;
 
 export const Flower: Sprite = () => {
-  return <span className="Entity Plant">,</span>;
+  return <span className="Entity Flower">,</span>;
 }
 
 export const Bush: Sprite = () => {
-  return <span className="Entity Plant">{'\u03c4'}</span>;
+  return <span className="Entity Bush">{'\u03c4'}</span>;
 }
 
 export const Campfire: Sprite = () => {
