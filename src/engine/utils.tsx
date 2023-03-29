@@ -14,11 +14,18 @@ export const getDeterministicRandomInt = (minimum: number, maximum: number) => {
   );
 };
 
-export const renderText = (text: string, color: string = 'HUD') => text.split('').map((character, index) => (
-  <span className="Cell" key={index}>
-    <span className={`Entity ${color}`}>{character}</span>
-  </span>
-));
+export const renderText = (text: string | string[], color: string = 'HUD', background: string = '') => {
+  const layers = Array.isArray(text) ? [...text].reverse() : [text];
+
+  return layers[0].split('').map((_, index) => (
+    <span className="Cell" key={index}>
+      {background && <span className={`Entity ${background}`}>{'█'}</span>}
+      {layers.map((layer, layerIndex) => (
+        <span className={`Entity ${layerIndex === layers.length - 1 ? color : 'HUD'}`}>{layer[index]}</span>
+      ))}
+    </span>
+  ));
+};
 
 export const orientations = ['up', 'right', 'down', 'left'] as const;
 export const corners = ['upRight', 'rightDown', 'downLeft', 'leftUp'] as const;

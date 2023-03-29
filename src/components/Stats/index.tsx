@@ -3,7 +3,7 @@ import { renderText, TerminalState } from "../../engine/utils";
 
 const Stats = ({ state }: { state: TerminalState }) => {
   return (
-    <>
+    <div className="Stats">
       <div className="Row">
         {renderText(`${state.hp.toString().padStart(2)}\u0102 `, 'Life')}
         {renderText(`${state.gold.toString().padStart(2)}\u0108 `, 'Gold')}
@@ -46,7 +46,7 @@ const Stats = ({ state }: { state: TerminalState }) => {
       <div className="Row">
         {renderText('═══════════════╧═════')}
       </div>
-    </>
+    </div>
   )
 };
 
