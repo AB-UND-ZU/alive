@@ -332,17 +332,17 @@ html {
 
 .Spell {
   color: var(--aqua);
-  z-index: 12;
+  z-index: 14;
 }
 
 .Player {
   color: var(--white);
-  z-index: 13;
+  z-index: 12;
 }
 
 .Hair {
   color: var(--olive);
-  z-index: 14;
+  z-index: 13;
 }
 
 .Eye {

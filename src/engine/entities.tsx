@@ -78,7 +78,7 @@ export const Armor: Equipment = ({ material }) => {
 
 export const Spell: Equipment = ({ interaction, material }) => {
   if (interaction === "using") return null;
-  return <span className={`Entity Spell ${material}`}>{interaction === 'equipped' ? '\u0128' : '@'}</span>
+  return <span className={`Entity Spell ${material}`}>{interaction === 'equipped' ? '~' : '@'}</span>
 }
 
 export const Boat: Equipment = ({ material }) => {
@@ -192,7 +192,6 @@ export type Creature = React.FC<{
 export const Player: Creature = () => {
   return (
     <>
-      <span className="Entity Eye">{'\u0128'}</span>
       <span className="Entity Player">{'\u010b'}</span>
       <span className="Entity Hair">~</span>
       <span className="Entity Health">{'\u0120'}</span>
