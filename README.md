@@ -4,6 +4,31 @@ Try it here: https://ab-und-zu.github.io/alive
 
 Intended to be used with https://www.rune.ai/
 
+## Plan
+
+- v1
+  - Loading screen for level generation
+  - Score / Experience
+  - Portal to next level, increased difficulty
+  - Spawn area not blocked
+  - Shops
+  - Epic monsters: boss and fairy
+  - Normal monsters: circle and question mark
+  - Applying damage: monsters, weapon types, armor
+  - Fire spell
+  - Paths between waypoints
+  - Release on Rune
+- v2
+  - Character select menu
+  - Fix fog of war corners
+  - Map zoom out
+  - Torches, view radius with zoom
+  - Music / FX
+  - More elemental spells?
+  - Chests and keys
+  - Perlin noise terrain generation
+  - World presets: normal, desert, ocean, forest, mountain
+
 ## HUD
 
 - Player: Female symbol, note symbol, arrow up, exclamation mark, ampersand, uppercase letter, numbers
