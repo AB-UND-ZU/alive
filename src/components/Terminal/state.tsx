@@ -76,7 +76,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       if (newCell.item || equipmentIndex !== -1) {
         newState = reducer(newState, { type: 'collect', itemX: newX, itemY: newY });
 
-      } else if (attackedCreature) {
+      } else if (attackedCreature && newState.inventory.sword) {
         // hit creature if found
         newState = reducer(newState, { type: 'attack', creatureX: newX, creatureY: newY });
         
@@ -229,9 +229,12 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
     }
 
     case 'attack': {
+      if (!state.inventory.sword) {
+        return state;
+      }
+
       const { creatureX, creatureY } = action;
       const newState = { ...state };
-
       const newCreatures = [...newState.creatures];
       const attackedIndex = newCreatures.findIndex(creature => (
         creature.entity.type !== Player &&
@@ -243,7 +246,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
       if (!attackedCreature || !newState.inventory.sword) return newState;
 
       newCreatures.splice(attackedIndex, 1);
-      const newAmount = attackedCreature.entity.props.amount - 1;
+      const newAmount = attackedCreature.entity.props.amount - state.inventory.sword.props.amount;
 
       if (newAmount > 0) {
         newCreatures.push({
@@ -252,7 +255,7 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
             ...attackedCreature.entity,
             props: {
               ...attackedCreature.entity.props,
-              particles: [...(attackedCreature.entity.props.particles || []), <Attacked id={getId()} />],
+              particles: [...(attackedCreature.entity.props.particles || []), <Attacked id={getId()} material={state.inventory.sword.props.material} />],
               amount: newAmount
             }
           }

@@ -238,6 +238,7 @@ export type Particle = React.FC<{
   id: number,
   direction?: Direction | Center,
   amount?: number,
+  material?: Material,
 }>;
 
 export const Swimming: Particle = () => {
@@ -260,8 +261,8 @@ export const Freezing: Particle = ({ amount }) => {
   return <span className="Entity Freezing">{'░'}</span>;
 }
 
-export const Attacked: Particle = () => {
-  return <span className="Entity Attacked">{'x'}</span>;
+export const Attacked: Particle = ({ material }) => {
+  return <span className={`Entity Attacked ${material}`}>{'x'}</span>;
 }
 
 export const Shock: Particle = ({ direction }) => {

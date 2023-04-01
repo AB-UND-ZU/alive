@@ -299,8 +299,15 @@ html {
 }
 
 .Attacked {
-  color: var(--grey);
   z-index: 32;
+}
+
+.Attacked.iron {
+  color: var(--grey);
+}
+
+.Attacked.wood {
+  color: var(--maroon);
 }
 
 /*
