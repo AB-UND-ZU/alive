@@ -1,5 +1,6 @@
+import React from "react";
 import { ReactComponentElement } from "react";
-import { Creature, Freezing, Particle, Swimming, Triangle } from "./entities";
+import { Creature, equipments, Freezing, Particle, Player, Swimming, Sword, Triangle } from "./entities";
 import { tickParticle } from "./particles";
 import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, Processor, isWater, getId } from "./utils";
 
@@ -28,6 +29,19 @@ export const tickCreature = (state: TerminalState, processor: Processor<Creature
       ...creature.props,
       particles: frozenParticles
     };
+  } else if (creature.type === Player) {
+    const newEquipments = [...(creature.props.equipments || [])];
+    const swordIndex = newEquipments.findIndex(equipment => equipment.type === Sword);
+
+    if (swordIndex !== -1) {
+      const sword = newEquipments[swordIndex];
+      newEquipments.splice(swordIndex, 1, React.cloneElement(sword, { direction: undefined }));
+      creature.props = {
+        ...creature.props,
+        equipments: newEquipments,
+      };
+    }
+
   } else if (creature.type === Triangle) {
     const orientation = creature.props.orientation;
     const [moveX, moveY] = directionOffset[orientation];

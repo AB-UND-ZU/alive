@@ -1,5 +1,5 @@
 import { ReactComponentElement } from "react";
-import { Center, Direction, Orientation, Processor } from "./utils";
+import { center, Center, Direction, Orientation, Processor } from "./utils";
 
 // ------------------------ GROUND --------------------------------
 
@@ -66,10 +66,17 @@ export type Equipment = React.FC<{
   particles?: Processor<Particle>[],
   material: Material,
   interaction?: Interaction,
+  direction?: Direction,
 }>;
 
-export const Sword: Equipment = ({ material }) => {
-  return <span className={`Entity Sword ${material}`}>{'/'}</span>
+export const Sword: Equipment = ({ material, direction }) => {
+  const swordDirections: Partial<Record<Direction, string>> = {
+    up: '|',
+    right: '─',
+    down: '|',
+    left: '─',
+  };
+  return <span className={`Entity Sword ${material}`}>{(direction && swordDirections[direction]) || '/'}</span>
 }
 
 export const Armor: Equipment = ({ material }) => {

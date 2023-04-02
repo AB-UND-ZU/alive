@@ -1,10 +1,11 @@
 import { ReactComponentElement } from "react";
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, counters, Creature, Equipment, inventories, Item, Particle, Player, Shock, Spell, Sword, Wood  } from "../../engine/entities";
+import { Attacked, counters, Creature, Equipment, equipments, inventories, Item, Particle, Player, Shock, Spell, Sword, Wood  } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
-import { center, directionOffset, getCell, getFog, getId, isWalkable, Orientation, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "../../engine/utils";
+import { center, Direction, directionOffset, getCell, getFog, getId, isWalkable, Orientation, pointRange, Processor, TerminalState, updateBoard, wrapCoordinates } from "../../engine/utils";
+import React from "react";
 
 type QueueAction = {
   type: 'queue',
@@ -245,6 +246,25 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
 
       if (!attackedCreature || !newState.inventory.sword) return newState;
 
+      // get attacking angle
+      const attackingDirection = Object.entries(directionOffset).find(([_, [offsetX, offsetY]]) => (
+        offsetX === creatureX - newState.x &&
+        offsetY === creatureY - newState.y
+      ))?.[0] as Direction | undefined;
+
+      // update sword animation
+      const playerIndex = newCreatures.findIndex(processor => processor.entity.type === Player);
+      const newProcessor = { ...newCreatures[playerIndex] };
+      const newEquipments = [...(newProcessor.entity.props.equipments || [])];
+      const swordIndex = newEquipments.findIndex(equipment => equipment.type === Sword);
+
+      if (swordIndex === -1) return newState;
+
+      newEquipments.splice(swordIndex, 1, React.cloneElement(newEquipments[swordIndex], { direction: attackingDirection }));
+      newProcessor.entity = React.cloneElement(newProcessor.entity, { equipments: newEquipments });
+      newCreatures.splice(playerIndex, 1, newProcessor);
+
+      // reduce health or kill creature
       newCreatures.splice(attackedIndex, 1);
       const newAmount = attackedCreature.entity.props.amount - state.inventory.sword.props.amount;
 
