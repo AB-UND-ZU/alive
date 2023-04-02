@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/alive/static/css/main.4374c3c2.css",
-    "main.js": "/alive/static/js/main.2d8789df.js",
+    "main.css": "/alive/static/css/main.72d57d79.css",
+    "main.js": "/alive/static/js/main.acf5d4ee.js",
     "static/js/496.c409c195.chunk.js": "/alive/static/js/496.c409c195.chunk.js",
-    "static/media/MostPerfectDOSVGA.woff": "/alive/static/media/MostPerfectDOSVGA.45ae80bd0c1b3f0ff6a5.woff",
-    "static/media/MostPerfectDOSVGA.woff2": "/alive/static/media/MostPerfectDOSVGA.c52c1591ab42d87ad585.woff2",
+    "static/media/MostPerfectDOSVGA.woff": "/alive/static/media/MostPerfectDOSVGA.0bc407725d7835147f83.woff",
+    "static/media/MostPerfectDOSVGA.woff2": "/alive/static/media/MostPerfectDOSVGA.600be739af3f9caf080f.woff2",
     "index.html": "/alive/index.html",
-    "main.4374c3c2.css.map": "/alive/static/css/main.4374c3c2.css.map",
-    "main.2d8789df.js.map": "/alive/static/js/main.2d8789df.js.map",
+    "main.72d57d79.css.map": "/alive/static/css/main.72d57d79.css.map",
+    "main.acf5d4ee.js.map": "/alive/static/js/main.acf5d4ee.js.map",
     "496.c409c195.chunk.js.map": "/alive/static/js/496.c409c195.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.4374c3c2.css",
-    "static/js/main.2d8789df.js"
+    "static/css/main.72d57d79.css",
+    "static/js/main.acf5d4ee.js"
   ]
 }
