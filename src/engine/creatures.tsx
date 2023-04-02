@@ -1,6 +1,6 @@
 import React from "react";
 import { ReactComponentElement } from "react";
-import { Creature, equipments, Freezing, Particle, Player, Swimming, Sword, Triangle } from "./entities";
+import { Creature, Freezing, Particle, Player, Swimming, Sword, Triangle } from "./entities";
 import { tickParticle } from "./particles";
 import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, Processor, isWater, getId } from "./utils";
 

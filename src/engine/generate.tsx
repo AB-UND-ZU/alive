@@ -2,10 +2,10 @@ import { ReactComponentElement } from 'react';
 import { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor, Terrain, Sand, Water, Ground } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor, Terrain, Sand, Water } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { corners, getDeterministicRandomInt, getId, Orientation, orientations, Processor, sum, TerminalState } from "./utils";
+import { corners, getDeterministicRandomInt, getId, orientations, Processor, sum, TerminalState } from "./utils";
 
 const getSingleElements = (world: World, cells: MapCell[], category: SingleCategories) => cells.map(cell => world.tileCells[cell.name][category]);
 const getMultipleElements = (world: World, cells: MapCell[], category: MultipleCategories) => cells.reduce<ReactComponentElement<Entity>[]>((cellTypes, cell) => [

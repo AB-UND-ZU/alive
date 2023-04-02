@@ -1,4 +1,4 @@
-import { center, Center, Direction, Orientation, Point, TerminalState } from "./utils";
+import { Direction, Point, TerminalState } from "./utils";
 
 const getRelativePosition = (state: TerminalState, x: number, y: number) => {
   const relativeX = (x - state.x + state.width * 3 / 2) % state.width - state.width / 2;

@@ -1,6 +1,6 @@
 import { ReactComponentElement } from "react";
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, counters, Creature, Equipment, equipments, inventories, Item, Particle, Player, Shock, Spell, Sword, Wood  } from "../../engine/entities";
+import { Attacked, counters, Creature, Equipment, inventories, Item, Particle, Player, Shock, Spell, Sword, Wood  } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";

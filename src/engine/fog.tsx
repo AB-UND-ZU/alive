@@ -1,6 +1,6 @@
 import { angleToCornerDirections, cellBoundaries, quarterCircle } from "./geometry";
 import { Rock } from "./entities";
-import { center, getCell, Point, TerminalState, Orientation, Fog, pointToDegree } from "./utils";
+import { getCell, Point, TerminalState, Fog, pointToDegree } from "./utils";
 
 // begin, end in degrees
 type Interval = [number, number];
