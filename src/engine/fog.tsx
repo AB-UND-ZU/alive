@@ -10,9 +10,9 @@ const x = 0, y = 1, start = 0, end = 1;
 
 // return the degree interval for the outermost visible corners relative from viewer.
 // if it crosses 360°, create two separate intervals
-const cellToIntervals = (cell: Point, orientation?: Orientation): [Interval] | [Interval, Interval] => {
+const cellToIntervals = (cell: Point): [Interval] | [Interval, Interval] => {
   const direction = angleToCornerDirections(pointToDegree(cell));
-  const visibleCorners = cellBoundaries[orientation || center][direction];
+  const visibleCorners = cellBoundaries[direction];
 
   const left = pointToDegree([cell[x] + visibleCorners[0][x], cell[y] + visibleCorners[0][y]]);
   const right = pointToDegree([cell[x] + visibleCorners[1][x], cell[y] + visibleCorners[1][y]]);
@@ -74,7 +74,7 @@ export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visi
   );
 
   visibleRocks.forEach(({ point, terrain }) => {
-    const terrainIntervals = cellToIntervals(point, terrain!.props.orientation);
+    const terrainIntervals = cellToIntervals(point);
 
     terrainIntervals.forEach(terrainInterval => {
       const newVisible: Interval[] = [];

@@ -28,7 +28,7 @@ export const renderText = (text: string | string[], color: string = 'HUD', backg
 };
 
 export const orientations = ['up', 'right', 'down', 'left'] as const;
-export const corners = ['upRight', 'rightDown', 'downLeft', 'leftUp'] as const;
+export const corners = ['leftUp', 'upRight', 'downLeft', 'rightDown'] as const;
 export const center = 'center';
 export type Center = typeof center;
 export const directions = [...orientations, ...corners] as const;

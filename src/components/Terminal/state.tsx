@@ -143,14 +143,24 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
         const inventory = inventories.get(newProcessor.entity.type);
         
         if (inventory) {
+          const playerIndex = newState.creatures.findIndex(processor => processor.entity.type === Player);
+          const playerProcessor = { ...newState.creatures[playerIndex] };
+          const playerEquipments = [...(playerProcessor.entity.props.equipments || [])];
+
+          if (newState.inventory[inventory]) {
+            const previousEquipment = playerEquipments.findIndex(equipment => equipment.type === newProcessor.entity.type);
+
+            if (previousEquipment !== -1) {
+              playerEquipments.splice(previousEquipment, 1);
+            }
+          }
+
           newEquipments.splice(equipmentIndex, 1);
           newState.inventory = {
             ...newState.inventory,
             [inventory]: newProcessor.entity
           };
 
-          const playerIndex = newState.creatures.findIndex(processor => processor.entity.type === Player);
-          const playerProcessor = { ...newState.creatures[playerIndex] };
           const newEquipment: ReactComponentElement<Equipment> = {
             ...newProcessor.entity,
             props: {
@@ -158,11 +168,12 @@ export const reducer = (state: TerminalState, action: TerminalAction): TerminalS
               interaction: 'equipped',
             }
           };
+
           playerProcessor.entity = {
             ...playerProcessor.entity,
             props: {
               ...playerProcessor.entity.props,
-              equipments: [...(playerProcessor.entity.props.equipments || []), newEquipment],
+              equipments: [...playerEquipments, newEquipment],
             }
           };
           const newCreatures = [...newState.creatures];

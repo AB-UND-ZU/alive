@@ -2,10 +2,10 @@ import { ReactComponentElement } from 'react';
 import { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor, Terrain } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { getDeterministicRandomInt, getId, Orientation, orientations, Processor, sum, TerminalState } from "./utils";
+import { corners, getDeterministicRandomInt, getId, Orientation, orientations, Processor, sum, TerminalState } from "./utils";
 
 const getSingleElements = (world: World, cells: MapCell[], category: SingleCategories) => cells.map(cell => world.tileCells[cell.name][category]);
 const getMultipleElements = (world: World, cells: MapCell[], category: MultipleCategories) => cells.reduce<ReactComponentElement<Entity>[]>((cellTypes, cell) => [
@@ -19,23 +19,12 @@ const getCellEntities = (elements: (ReactComponentElement<Entity> | undefined)[]
 }
 
 // get count and approximate orientation for a specific entity in a 2x2 block of map cells
-const getBlockLayout = (elements: (ReactComponentElement<Entity> | undefined)[], target: Entity) => {
-  const targetedIndizes = elements.map(element => element?.type === target ? 1 : 0);
-  const length = sum(targetedIndizes);
-  const first = targetedIndizes.indexOf(1);
-  const last = targetedIndizes.lastIndexOf(1);
-  let orientation: Orientation | undefined;
-
-  if (length === 1) {
-    orientation = orientations[first];
-  } else if (length === 2) {
-    const distance = last - first;
-    const offset = distance === 2 ? getDeterministicRandomInt(0, 1) * 2 : distance - 1;
-    orientation = orientations[(first - offset + orientations.length) % orientations.length];
-  }
-
-  return { length, orientation };
-}
+const getBlockLayout = (elements: (ReactComponentElement<Entity> | undefined)[], target: Terrain) => {
+  const TargetElement = target;
+  return elements.map(
+    (element, elementIndex) => element?.type === target ? <TargetElement direction={corners[elementIndex]} /> : undefined
+  ).filter(Boolean) as ReactComponentElement<Terrain>[];
+};
 
 const noiseMatrix = (
   width: number,
@@ -83,19 +72,6 @@ function generateLevel(state: TerminalState): TerminalState {
     };
   });
 
-
-  /*
-  const mapGenerator = new WorldmapGenerator({
-    size: {
-      width: state.width * 2,
-      height: state.height * 2,
-    },
-    tileTypes: world.tileTypes,
-  });
-
-  mapGenerator.generate();
-  */
-  
   const creatures: Processor<Creature>[] = [];
   const rows = Array.from({ length: state.height }).map((_, rowIndex) => {
     const row = Array.from({ length: state.width }).map((_, columnIndex) => {
@@ -130,12 +106,12 @@ function generateLevel(state: TerminalState): TerminalState {
         }
       }
 
-      // Terrain: use angled rocks and move deep water to ground
+      // Terrain: use quarter sized rocks
       const terrainElements = getSingleElements(world, mapCells, 'terrain');
 
-      const rockLayout = getBlockLayout(terrainElements, Rock);
-      if (rockLayout.length > 0) {
-        cell.terrain = <Rock orientation={rockLayout.orientation} />;
+      const rocks = getBlockLayout(terrainElements, Rock);
+      if (rocks.length > 0) {
+        cell.terrain = <Rock />;
       }
 
       // Sprite: collapse into bushes or tress, or override campfire
@@ -143,7 +119,7 @@ function generateLevel(state: TerminalState): TerminalState {
       if (!cell.terrain && !cell.grounds?.length) {
         const plantLayout = getCellEntities(spriteElements, Flower);
         if (plantLayout.length > 2) {
-          cell.terrain = <Tree orientation={orientations[getDeterministicRandomInt(0, 7)]} />;
+          cell.terrain = <Tree direction={orientations[getDeterministicRandomInt(0, 7)]} />;
         } else if (plantLayout.length > 0) {
           cell.sprite = plantLayout.length === 2 ? <Bush /> : <Flower />;
         }
@@ -152,7 +128,7 @@ function generateLevel(state: TerminalState): TerminalState {
       // Item: add container item if overlapping with noise
       const itemNoise = itemMatrix[rowIndex][columnIndex];
       const CellItem = containers.get(cell.sprite?.type || cell.terrain?.type);
-      if (CellItem && itemNoise > 48 && !cell.terrain?.props.orientation) {
+      if (CellItem && itemNoise > 48 && !cell.terrain?.props.direction) {
         cell.item = <CellItem amount={Math.floor(itemNoise - 46.5 )} />;
         
         if (cell.terrain?.type === Tree) {

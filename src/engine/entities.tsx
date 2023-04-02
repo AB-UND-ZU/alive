@@ -33,24 +33,30 @@ export const grounds = [Water, Ice, Sand, Path];
 
 // ------------------------ TERRAIN --------------------------------
 
-export type Terrain = React.FC<{orientation?: Orientation }>;
+export type Terrain = React.FC<{direction?: Direction }>;
 
-export const Rock: Terrain = ({ orientation }) => {
-  const rockOrientations: Record<Orientation, string> = {
-    up: '▀',
-    right: '▐',
-    down: '▄',
-    left: '▌',
-  };
+/*
+Record<Direction, string> = {
+  up: '▀',
+  upRight: '\u259d',
+  right: '▐',
+  rightDown: '\u2597',
+  down: '▄',
+  downLeft: '\u2596',
+  left: '▌',
+  leftUp: '\u2598',
+};
+*/
 
-  return <span className="Entity Rock">{orientation ? rockOrientations[orientation] : '█'}</span>
+export const Rock: Terrain = () => {
+  return <span className="Entity Rock">{'█'}</span>
 }
 
-export const Tree: Terrain = ({ orientation }) => {
+export const Tree: Terrain = ({ direction }) => {
   return (
     <>
       <span className="Entity Wood">{'\u2510'}</span>
-      <span className="Entity Tree">{orientation ? '\u0398' : '#'}</span>
+      <span className="Entity Tree">{direction ? '\u0398' : '#'}</span>
     </>
   );
 }
