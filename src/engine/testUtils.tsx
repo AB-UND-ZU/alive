@@ -36,7 +36,7 @@ export const maps: Record<string, Cell[][]> = {
   basic: [
     [
       {},
-      { terrain: <Rock orientation='right' /> },
+      { terrain: <Rock /> },
       { terrain: <Rock /> },
     ],
     [

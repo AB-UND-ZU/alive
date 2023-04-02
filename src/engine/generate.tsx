@@ -2,7 +2,7 @@ import { ReactComponentElement } from 'react';
 import { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor, Terrain } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor, Terrain, Sand, Water, Ground } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
 import { corners, getDeterministicRandomInt, getId, Orientation, orientations, Processor, sum, TerminalState } from "./utils";
@@ -34,8 +34,29 @@ const noiseMatrix = (
   const noiseMatrix = generateWhiteNoise(width, height, -1, 1); // window.Rune.deterministicRandom
   const valueMatrix = valueNoise(noiseMatrix, iterations);
 
-  return createMatrix(width, height, (x, y) => valueMatrix[y][x] * Math.sqrt(iterations || 0.25) * 100);
+  return createMatrix(width, height, (x, y) => valueMatrix[y][x] * Math.sqrt(iterations || 0.25) * 100);
 };
+
+const getInterpolatedValue = (matrix: number[][], ratio: number, x: number, y: number) => {
+  const baseX = x - x % ratio;
+  const baseY = y - y % ratio;
+
+  const wrappedX = (x + ratio) % (matrix[0].length * ratio);
+  const wrappedY = (y + ratio) % (matrix.length * ratio);
+
+  const values = [
+    matrix[Math.floor(baseY / ratio)][Math.floor(baseX / ratio)],
+    matrix[Math.floor(baseY / ratio)][Math.floor(wrappedX / ratio)],
+    matrix[Math.floor(wrappedY / ratio)][Math.floor(baseX / ratio)],
+    matrix[Math.floor(wrappedY / ratio)][Math.floor(wrappedX / ratio)],
+  ];
+
+  return sum(values.map((value, index) => {
+    const factorX = index % 2 === 0 ? (ratio - x % ratio) : x % ratio;
+    const factorY = index < 2 ? (ratio - y % ratio) : y % ratio;
+    return value * factorX * factorY / ratio ** 2;
+  }));
+}
 
 function generateLevel(state: TerminalState): TerminalState {
   const width = state.width * 2;
@@ -50,14 +71,14 @@ function generateLevel(state: TerminalState): TerminalState {
   const worldMap = createMatrix(width, height, (x, y) => {
     const terrainNoise = terrainMatrix[y][x];
     const greenNoise = greenMatrix[y][x];
-    const elevationNoise = elevationMatrix[Math.floor(y / 8)][Math.floor(x / 8)];
-    const temperatureNoise = temperatureMatrix[Math.floor(y / 8)][Math.floor(x / 8)];
+    const elevationNoise = getInterpolatedValue(elevationMatrix, 8, x, y);
+    const temperatureNoise = getInterpolatedValue(temperatureMatrix, 8, x, y);
 
-    const height = terrainNoise + elevationNoise * 2;
+    const height = terrainNoise + elevationNoise * 3.5;
     let name = 'water';
     if (height >= 10) {
-      name = temperatureNoise * 2 + height >= 40 ? 'green' :  'rock';
-    } else if (height >= -30) {
+      name = temperatureNoise * 3 + height >= 40 ? 'green' :  'rock';
+    } else if (height >= -35) {
       name = 'air';
     } else if (height >= -40) {
       name = 'sand';
@@ -94,15 +115,15 @@ function generateLevel(state: TerminalState): TerminalState {
           amount: sum(cellEntities.map(entity => (entity?.props && 'amount' in entity.props && entity.props.amount as number) || 0)),
         };
       }, {});
-      const sortedGrounds = [...groundAmounts].sort((left, right) => right.amount - left.amount);
-      if (sortedGrounds[0].amount > 0) {
-        const FrontElement = sortedGrounds[0].ground;
-        cell.grounds = [<FrontElement amount={sortedGrounds[0].amount} />];
-
-        if (sortedGrounds[1].amount > 0) {
-          const BackElement = sortedGrounds[1].ground;
-          const complementaryAmount = sortedGrounds[0].amount === 1 ? 0 : 4;
-          cell.grounds.unshift(<BackElement amount={complementaryAmount} />);
+      const sand = groundAmounts.find(({ ground }) => ground === Sand);
+      const water = groundAmounts.find(({ ground }) => ground === Water);
+      if (sand && sand.amount > 0) {
+        cell.grounds = [<Sand amount={1} />];
+      }
+      if (water && water.amount > 0) {
+        const newWaterAmount = sand ? 4 : water.amount - water.amount % 2;
+        if (newWaterAmount > 0) {
+          cell.grounds = [<Water amount={newWaterAmount} />, ...(cell.grounds || [])];
         }
       }
 
