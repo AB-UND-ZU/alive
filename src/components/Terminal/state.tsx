@@ -270,6 +270,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       state = updateProcessorProps(state, { container: 'equipments', id: spell.id }, { particles: [centerParticle.id] });
       
       state = tickEquipment(state, spell.id);
+      state = tickCreature(state, state.playerId);
 
       return state;
     }

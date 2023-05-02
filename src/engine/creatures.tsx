@@ -97,27 +97,5 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
     state = tickParticle(state, particleId);
   });
 
-  /*
-  // process contained particles
-  const newParticles = creature.props.particles?.map(particle => {
-    newState.particles = {
-      ...newState.particles,
-
-    }
-    const particleState = tickParticle(newState, {
-      x: newProcessor.x,
-      y: newProcessor.y,
-      entity: particle,
-    });
-    newState.board = particleState.board;
-    return processor?.entity;
-  }).filter(Boolean) as ReactComponentElement<Particle>[];
-
-  creature.props = {
-    ...creature.props,
-    particles: newParticles,
-  };
-  */
-
   return state;
 }
