@@ -1,5 +1,5 @@
 import { ReactComponentElement } from "react";
-import { Center, Direction, Orientation, Processor } from "./utils";
+import { Center, Direction, Orientation } from "./utils";
 
 // ------------------------ GROUND --------------------------------
 

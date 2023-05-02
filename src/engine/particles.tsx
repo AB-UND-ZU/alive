@@ -1,5 +1,5 @@
-import { Attacked, Shock, Swimming } from "./entities";
-import { addPoints, center, directionOffset, getAbsolutePosition, isOrphaned, isWater, removeProcessor, resolveCompositeId, TerminalState, updateProcessorProps } from "./utils";
+import { Attacked, Swimming } from "./entities";
+import { getAbsolutePosition, isOrphaned, isWater, removeProcessor, resolveCompositeId, TerminalState, updateProcessorProps } from "./utils";
 
 export const tickParticle = (prevState: TerminalState, id: number) => {
   let state = { ...prevState };

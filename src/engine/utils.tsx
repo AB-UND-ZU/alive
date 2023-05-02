@@ -1,5 +1,5 @@
 import React, { ReactComponentElement } from "react";
-import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment, equipments } from "./entities";
+import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment } from "./entities";
 
 let lastId = 0;
 export const getId = () => {

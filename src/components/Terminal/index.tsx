@@ -4,7 +4,7 @@ import Controls from "../Controls";
 import Stats from "../Stats";
 import { reducer } from "./state";
 import { computeUnits } from "../../engine/units";
-import { defaultState, getPlayerProcessor, keyToOrientation, Orientation, pointToDegree, TerminalState } from "../../engine/utils";
+import { defaultState, keyToOrientation, Orientation, pointToDegree, TerminalState } from "../../engine/utils";
 
 export const WORLD_INTERVAL = 350;
 export const PLAYER_INTERVAL = 250;

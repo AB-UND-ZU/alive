@@ -1,10 +1,9 @@
-import { ReactComponentElement } from "react";
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, counters, Creature, creatures, Equipment, equipments, inventories, Item, Particle, Player, Shock, Spell, Sword, Wood  } from "../../engine/entities";
+import { Attacked, counters, inventories, Shock, Spell, Sword, Wood  } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
-import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getId, getPlayerProcessor, isWalkable, Orientation, pointRange, Processor, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity } from "../../engine/utils";
+import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity } from "../../engine/utils";
 import React from "react";
 
 type QueueAction = {

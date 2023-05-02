@@ -1,8 +1,6 @@
-import React from "react";
-import { ReactComponentElement } from "react";
-import { Attacked, Freezing, Particle, Player, Swimming, Sword, Triangle } from "./entities";
+import { Attacked, Freezing, Swimming, Triangle } from "./entities";
 import { tickParticle } from "./particles";
-import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, getId, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor, isOrphaned } from "./utils";
+import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor, isOrphaned } from "./utils";
 
 export const tickCreature = (prevState: TerminalState, id: number): TerminalState => {
   let state = { ...prevState };
