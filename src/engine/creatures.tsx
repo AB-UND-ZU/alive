@@ -1,5 +1,4 @@
 import { Attacked, Freezing, Swimming, Triangle } from "./entities";
-import { tickParticle } from "./particles";
 import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor, isOrphaned } from "./utils";
 
 export const tickCreature = (prevState: TerminalState, id: number): TerminalState => {
@@ -15,20 +14,11 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
 
   const player = getPlayerProcessor(state);
 
-  // thaw creature
+  // don't move frozen creatures
   const freezingIndex = creatureParticles.findIndex(particleId => state.particles[particleId]?.entity.type === Freezing);
 
   if (freezingIndex !== -1) {
-    const freezingParticle = state.particles[creatureParticles[freezingIndex]];
-    const newAmount = (freezingParticle.entity.props.amount || 0) - 1;
-
-    if (newAmount > 0) {
-      state = updateProcessorProps(state, { container: 'particles', id: freezingParticle.id }, { amount: newAmount });
-    } else {
-      state = removeProcessor(state, { container: 'particles', id: freezingParticle.id });
-      creatureParticles.splice(freezingIndex, 1);
-      state = updateProcessorProps(state, { container: 'creatures', id }, { particles: creatureParticles });
-    }
+    return state;
 
   } else if (creatureProcessor.entity.type === Triangle) {
     // move triangle
@@ -49,8 +39,8 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
         Attacked,
         {}
       );
-      state = updateProcessorProps(state, { container: 'creatures', id: player.id }, {
-        particles: [...player.entity.props.particles, attacked.id]
+      state = updateProcessorProps(state, { container: 'creatures', id }, {
+        particles: [...creatureProcessor.entity.props.particles, attacked.id]
       });
 
     } else if (isWalkable(state, targetX, targetY)) {
@@ -78,8 +68,9 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
     }
   }
 
-  // add swimming state
+  // update swimming state
   const swimmingIndex = creatureParticles.findIndex(particleId => state.particles[particleId]?.entity.type === Swimming);
+
   if (swimmingIndex === -1 && isWater(state, state.creatures[id].x, state.creatures[id].y)) {
     let swimming;
     [state, swimming] = createParticle(state, {
@@ -90,12 +81,9 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
 
     creatureParticles.push(swimming.id);
     state = updateProcessorProps(state, { container: 'creatures', id }, { particles: creatureParticles });
-  };
-
-  // process contained particles
-  Object.values(state.creatures[id].entity.props.particles).forEach(particleId => {
-    state = tickParticle(state, particleId);
-  });
+  } else if (swimmingIndex !== -1 && !isWater(state, state.creatures[id].x, state.creatures[id].y)) {
+    state = removeProcessor(state, { container: 'particles', id: creatureParticles[swimmingIndex] });
+  }
 
   return state;
 }

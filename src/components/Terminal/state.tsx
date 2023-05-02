@@ -56,10 +56,10 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         state = updateProcessorProps(state, { container: 'equipments', id: state.inventory.sword }, { direction: undefined });
       }
       
-      Object.values(state.particles).forEach(particle => {
-        if (getParentEntity(state, particle)?.id !== state.playerId) return;
-
-        state = tickParticle(state, particle.id);
+      // reset attacking animations
+      const player = getPlayerProcessor(state);
+      Object.values(player.entity.props.particles).forEach(particleId => {
+        state = tickParticle(state, particleId);
       });
 
       return state;
@@ -100,6 +100,9 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
 
         // process nested particles
         state = tickCreature(state, player.id);
+        Object.values(getPlayerProcessor(state).entity.props.particles).forEach(particleId => {
+          state = tickParticle(state, particleId);
+        });
       } 
 
       state = reducer(state, { type: 'fog' });
@@ -142,13 +145,11 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         const inventoryKey = inventories.get(equipmentProcessor.entity.type);
         
         if (inventoryKey) {
-          const playerEquipments = [...player.entity.props.equipments];
           const existingInventory = state.inventory[inventoryKey];
 
           // remove previous equipment
           if (existingInventory) {
             state = removeProcessor(state, { container: 'equipments', id: existingInventory });
-            playerEquipments.splice(playerEquipments.indexOf(existingInventory), 1);
           }
 
           // equip in inventory
@@ -161,8 +162,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
           state = updateInventory(state, inventoryKey, equipmentProcessor.id);
 
           // equip on player
-          playerEquipments.push(equipmentProcessor.id);
-          state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { equipments: playerEquipments });
+          state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { equipments: [...getPlayerProcessor(state).entity.props.equipments, equipmentProcessor.id ] });
         }
       }
       
@@ -196,7 +196,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
     }
 
     case 'tick': {
-      // update creatures, equipments and particles (except for player particles)
+      // update particles, equipments and creatures except for player in that order 
       Object.values(state.particles).forEach(particle => {
         if (getParentEntity(state, particle)?.id === state.playerId) return;
 
@@ -269,8 +269,10 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       [state, centerParticle] = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: spell.id } }, Shock, { direction: 'center' });
       state = updateProcessorProps(state, { container: 'equipments', id: spell.id }, { particles: [centerParticle.id] });
       
+      // start first tick
+      state = tickParticle(state, centerParticle.id);
+      state = tickCreature(state, player.id);
       state = tickEquipment(state, spell.id);
-      state = tickCreature(state, state.playerId);
 
       return state;
     }

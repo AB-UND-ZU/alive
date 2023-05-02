@@ -1,12 +1,13 @@
 import { Fragment } from "react";
 import { getInfinitePosition, getStaticStyle, unitInViewport } from "../../engine/geometry";
 import { Units } from "../../engine/units";
-import { getCell, getFog, pointRange, TerminalState, wrapCoordinates } from "../../engine/utils";
+import { getCell, getFog, getPlayerProcessor, pointRange, TerminalState, wrapCoordinates } from "../../engine/utils";
 
 const Board = ({ state, units, animation }: { state: TerminalState, units: Units, animation?: boolean }) => {
   const overscan = animation ? 2 : 0;
 
   const [boardX, boardY] = getInfinitePosition(state, state.cameraX, state.cameraY);
+  const player = getPlayerProcessor(state);
 
   const boardStyle: React.CSSProperties = {
     top: `${boardY * 32}px`,
@@ -53,7 +54,7 @@ const Board = ({ state, units, animation }: { state: TerminalState, units: Units
           {units.map(unit => {
             if (!unitInViewport(state, unit.x, unit.y, overscan)) return null;
 
-            const isPlayer = unit.x === state.cameraX && unit.y === state.cameraY;
+            const isPlayer = unit.x === player.x && unit.y === player.y;
             const fog = getFog(state, unit.x, unit.y);
             const key = unit.id;
 

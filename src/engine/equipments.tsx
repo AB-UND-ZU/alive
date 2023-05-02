@@ -1,5 +1,5 @@
-import { Freezing, Ice, Player, Shock, Spell, Water } from "./entities";
-import { CompositeId, createParticle, getAbsolutePosition, getCell, getCreature, isOrphaned, removeProcessor, TerminalState, updateCell, updateProcessorProps } from "./utils";
+import { Shock, Spell } from "./entities";
+import { CompositeId, createParticle, isOrphaned, removeProcessor, TerminalState, updateProcessorProps } from "./utils";
 
 const SHOCK_RADIUS = 5;
 
@@ -12,51 +12,6 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
   }
 
   const equipmentProcessor = state.equipments[id];
-
-  // apply effects of last wave
-  equipmentProcessor.entity.props.particles.forEach(particleId => {
-    const particle = state.particles[particleId];
-    if (equipmentProcessor.entity.type === Spell && equipmentProcessor.entity.props.interaction === 'using') {
-      // freeze grounds
-      const [particleX, particleY] = getAbsolutePosition(state, particle);
-      const cell = getCell(state, particleX, particleY);
-      const frozen = cell.grounds?.map(
-        ground => ground.type === Water ? {
-          ...ground,
-          type: Ice,
-        } : ground,
-      );
-
-      state = updateCell(state, particleX, particleY, { grounds: frozen });
-
-      // freeze creatures
-      const affectedId = getCreature(state, particleX, particleY, creature => creature.entity.type !== Player)?.id;
-
-      if (affectedId) {
-        const affectedCreature = state.creatures[affectedId];
-        const creatureParticles = [...affectedCreature.entity.props.particles];
-        const frozenIndex = creatureParticles.findIndex(particleId => state.particles[particleId]?.entity.type === Freezing);
-
-        // refresh freezing count
-        if (frozenIndex !== -1) {
-          state = updateProcessorProps(state, { container: 'particles', id: creatureParticles[frozenIndex]}, { amount: 8 });
-
-        } else {
-          let frozen;
-          [state, frozen] = createParticle(state, {
-            x: 0,
-            y: 0,
-            parent: { container: 'creatures', id: affectedId }
-          }, Freezing, { amount: 8 });
-
-          creatureParticles.push(frozen.id);
-          state = updateProcessorProps(state, { container: 'creatures', id: affectedId }, { particles: creatureParticles });
-        }
-      }
-
-      state = removeProcessor(state, { container: 'particles', id: particleId });
-    }
-  });
 
   if (equipmentProcessor.entity.type === Spell && equipmentProcessor.entity.props.interaction === 'using') {
     const radius = equipmentProcessor.entity.props.amount;

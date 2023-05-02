@@ -192,7 +192,26 @@ export const getEquipment = (state: TerminalState, x: number, y: number, predica
 };
 
 export const removeProcessor = (state: TerminalState, compositeId: CompositeId): TerminalState => {
+  // remove reference from parent
+  const removed = resolveCompositeId(state, compositeId);
+  const parent = removed?.parent ? resolveCompositeId(state, removed.parent) : undefined;
+
+  if (removed?.parent && parent && compositeId.container in parent.entity.props) {
+    // @ts-ignore
+    const parentContainer = [...parent.entity.props[compositeId.container]];
+
+    if (parentContainer) {
+      const childIndex = parentContainer.indexOf(compositeId.id);
+      if (childIndex !== -1) {
+        parentContainer.splice(childIndex, 1);
+        state = updateProcessorProps(state, removed.parent, { [compositeId.container]: parentContainer });
+      }
+    }
+  }
+
+  // remove from root container
   const { [compositeId.id]: _, ...remaining } = state[compositeId.container];
+
   return {
     ...state,
     [compositeId.container]: remaining
