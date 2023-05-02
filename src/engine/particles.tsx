@@ -1,26 +1,36 @@
-import { Attacked, Particle, Shock, Swimming } from "./entities";
-import { addPoints, center, directionOffset, isWater, Processor, TerminalState } from "./utils";
+import { Attacked, Shock, Swimming } from "./entities";
+import { addPoints, center, directionOffset, getAbsolutePosition, isOrphaned, isWater, removeProcessor, resolveCompositeId, TerminalState, updateProcessorProps } from "./utils";
 
-export const tickParticle = (state: TerminalState, processor: Processor<Particle>): [TerminalState, Processor<Particle> | undefined] => {
-  const newState = { ...state };
-  const newProcessor = { ...processor };
-  const particle = newProcessor.entity;
+export const tickParticle = (prevState: TerminalState, id: number) => {
+  let state = { ...prevState };
 
-  if (particle.type === Shock) {
-    const [movedX, movedY] = addPoints(state, [newProcessor.x, newProcessor.y], directionOffset[particle.props.direction || center]);
-    newProcessor.x = movedX;
-    newProcessor.y = movedY;
+  if (isOrphaned(state, { container: 'particles', id })) {
+    state = removeProcessor(state, { container: 'particles', id });
+    return state;
   }
 
-  if (particle.type === Attacked) {
-    return [newState, undefined];
-  }
+  const particleProcessor = state.particles[id];
+  const [x, y] = getAbsolutePosition(state, particleProcessor);
 
-  if (particle.type === Swimming) {
-    if (!isWater(newState, newProcessor.x, newProcessor.y)) {
-      return [newState, undefined];
+  // remove fading particles
+  if (
+    particleProcessor.entity.type === Attacked ||
+    (particleProcessor.entity.type === Swimming && !isWater(state, x, y))
+  ) {
+    // remove from parent
+    if (particleProcessor.parent) {
+      const parent = resolveCompositeId(state, particleProcessor.parent);
+
+      if (parent && 'particles' in parent.entity.props) {
+        const parentParticles = [...parent.entity.props.particles];
+        parentParticles.splice(parentParticles.indexOf(id), 1);
+        state = updateProcessorProps(state, particleProcessor.parent, { particles: parentParticles });
+      }
     }
+
+    state = removeProcessor(state, { container: 'particles', id });
+    return state;
   }
 
-  return [newState, newProcessor];
+  return state;
 }

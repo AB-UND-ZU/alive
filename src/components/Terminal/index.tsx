@@ -4,7 +4,7 @@ import Controls from "../Controls";
 import Stats from "../Stats";
 import { reducer } from "./state";
 import { computeUnits } from "../../engine/units";
-import { defaultState, keyToOrientation, Orientation, pointToDegree, TerminalState } from "../../engine/utils";
+import { defaultState, getPlayerProcessor, keyToOrientation, Orientation, pointToDegree, TerminalState } from "../../engine/utils";
 
 export const WORLD_INTERVAL = 350;
 export const PLAYER_INTERVAL = 250;
@@ -28,7 +28,7 @@ const Terminal = ({
 }) => {
   const [state, dispatch] = useReducer(reducer, defaultState, generateLevel);
 
-  const [unitMap, unitList] = useMemo(() => computeUnits(state), [state]);
+  const units = useMemo(() => computeUnits(state), [state]);
   const lastTick = useRef<[number, NodeJS.Timeout]>();
   const lastMove = useRef<[number, NodeJS.Timeout]>();
   const queuedMove = useRef<Orientation | undefined>(undefined);
@@ -68,6 +68,7 @@ const Terminal = ({
 
     dispatch({ type: 'queue', orientation });
     dispatch({ type: 'move', orientation });
+
     lastMove.current = [
       now,
       setTimeout(() => {
@@ -89,7 +90,7 @@ const Terminal = ({
     const orientations = pressedOrientations.current;
     const lastOrientation = orientations[0];
     if (event.type === 'keyup') {
-      if (orientation) orientations.splice(orientations.indexOf(orientation), 1)
+      if (orientation) orientations.splice(orientations.indexOf(orientation), 1);
       return;
     }
     if (event.repeat) return;
@@ -180,7 +181,7 @@ const Terminal = ({
       <div className="SpellOverlay" ref={spellRef} />
       <pre className={`Terminal ${animation ? 'Animation' : ''}`}>
         {stats && <Stats state={state} />}
-        <Board animation={animation} state={state} unitMap={unitMap} unitList={unitList} />
+        <Board animation={animation} state={state} units={units} />
         {controls && <Controls state={state} />}
       </pre>
     </>

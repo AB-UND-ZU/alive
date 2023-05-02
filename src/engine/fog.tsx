@@ -1,6 +1,6 @@
 import { angleToCornerDirections, cellBoundaries, quarterCircle } from "./geometry";
 import { Rock } from "./entities";
-import { getCell, Point, TerminalState, Fog, pointToDegree } from "./utils";
+import { getCell, Point, TerminalState, Fog, pointToDegree, getPlayerProcessor } from "./utils";
 
 // begin, end in degrees
 type Interval = [number, number];
@@ -50,6 +50,7 @@ export const generateFog = (state: TerminalState, fog: Fog = 'dark'): Fog[][] =>
 
 // this algorithm assumes screen width is larger than screen height
 export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visible: Interval[] = [[0, 360]], previousVisible: Point[] = [[0, 0]]): Point[] => {
+  const player = getPlayerProcessor(state);
   const maxHorizontal = (state.screenWidth - 1) / 2;
   const relativeRing: Point[] = [];
 
@@ -68,7 +69,7 @@ export const visibleFogOfWar = (state: TerminalState, distance: number = 1, visi
   const visibleCells = relativeRing.filter(relativePoint => isVisible(relativePoint, visible));
   const visibleRocks = visibleCells.map(visibleCell => ({
     point: visibleCell,
-    terrain: getCell(state, state.x + visibleCell[x], state.y + visibleCell[y]).terrain
+    terrain: getCell(state, player.x + visibleCell[x], player.y + visibleCell[y]).terrain
   })).filter(
     ({ terrain }) => terrain?.type === Rock
   );

@@ -1,89 +1,112 @@
 import React from "react";
 import { ReactComponentElement } from "react";
-import { Creature, Freezing, Particle, Player, Swimming, Sword, Triangle } from "./entities";
+import { Attacked, Freezing, Particle, Player, Swimming, Sword, Triangle } from "./entities";
 import { tickParticle } from "./particles";
-import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, Processor, isWater, getId } from "./utils";
+import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, getId, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor, isOrphaned } from "./utils";
 
-export const tickCreature = (state: TerminalState, processor: Processor<Creature>): [TerminalState, Processor<Creature>] => {
-  const newState = { ...state };
-  const newProcessor = { ...processor };
-  const creature = { ...newProcessor.entity };
+export const tickCreature = (prevState: TerminalState, id: number): TerminalState => {
+  let state = { ...prevState };
 
-  const freezingIndex = (creature.props.particles || []).findIndex(particle => particle.type === Freezing);
-  const freezing = creature.props.particles?.[freezingIndex];
+  if (isOrphaned(state, { container: 'creatures', id })) {
+    state = removeProcessor(state, { container: 'creatures', id });
+    return state;
+  }
 
-  if (freezing) {
-    const frozenParticles = [...(creature.props.particles || [])];
-    frozenParticles.splice(freezingIndex, 1);
-    const newAmount = (freezing.props.amount || 0) - 1;
+  const creatureProcessor = state.creatures[id];
+  const creatureParticles = [...creatureProcessor.entity.props.particles];
+
+  const player = getPlayerProcessor(state);
+
+  // thaw creature
+  const freezingIndex = creatureParticles.findIndex(particleId => state.particles[particleId]?.entity.type === Freezing);
+
+  if (freezingIndex !== -1) {
+    const freezingParticle = state.particles[creatureParticles[freezingIndex]];
+    const newAmount = (freezingParticle.entity.props.amount || 0) - 1;
+
     if (newAmount > 0) {
-      frozenParticles.push({
-        ...freezing,
-        props: {
-          ...freezing.props,
-          amount: newAmount,
-        }
-      });
-    }
-    creature.props = {
-      ...creature.props,
-      particles: frozenParticles
-    };
-  } else if (creature.type === Player) {
-    const newEquipments = [...(creature.props.equipments || [])];
-    const swordIndex = newEquipments.findIndex(equipment => equipment.type === Sword);
-
-    if (swordIndex !== -1) {
-      const sword = newEquipments[swordIndex];
-      newEquipments.splice(swordIndex, 1, React.cloneElement(sword, { direction: undefined }));
-      creature.props = {
-        ...creature.props,
-        equipments: newEquipments,
-      };
-    }
-
-  } else if (creature.type === Triangle) {
-    const orientation = creature.props.orientation;
-    const [moveX, moveY] = directionOffset[orientation];
-    const [targetX, targetY] = wrapCoordinates(newState, newProcessor.x + moveX, newProcessor.y + moveY);
-
-    if (isWalkable(newState, targetX, targetY)) {
-      newProcessor.x = targetX;
-      newProcessor.y = targetY;
+      state = updateProcessorProps(state, { container: 'particles', id: freezingParticle.id }, { amount: newAmount });
     } else {
-      // find first free cell in either counter- or clockwise orientation by random
+      state = removeProcessor(state, { container: 'particles', id: freezingParticle.id });
+      creatureParticles.splice(freezingIndex, 1);
+      state = updateProcessorProps(state, { container: 'creatures', id }, { particles: creatureParticles });
+    }
+
+  } else if (creatureProcessor.entity.type === Triangle) {
+    // move triangle
+    const orientation = creatureProcessor.entity.props.orientation;
+    const [moveX, moveY] = directionOffset[orientation];
+    const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + moveX, creatureProcessor.y + moveY);
+
+    // hit player
+    if (targetX === player.x && targetY === player.y) {
+      state.hp = state.hp - 3;
+      state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });
+
+      // add attacked particle
+      let attacked;
+      [state, attacked] = createParticle(
+        state,
+        { x: moveX, y: moveY, parent: { container: 'creatures', id } },
+        Attacked,
+        {}
+      );
+      state = updateProcessorProps(state, { container: 'creatures', id: player.id }, {
+        particles: [...player.entity.props.particles, attacked.id]
+      });
+
+    } else if (isWalkable(state, targetX, targetY)) {
+      // move in straight line
+      state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
+
+    } else {
+      // find first free cell (or player) in either counter- or clockwise orientation by random
       const rotation = getDeterministicRandomInt(0, 1) * 2 - 1;
       const newOrientation = Array.from({ length: 3 }).map((_, offset) => {
-        const attemptOrientation = orientations[(orientations.indexOf(orientation) + (offset + 1) * rotation + orientations.length) % orientations.length];
+        const attemptOrientation: Orientation = orientations[(orientations.indexOf(orientation) + (offset + 1) * rotation + orientations.length) % orientations.length];
         const [attemptX, attemptY] = directionOffset[attemptOrientation];
-        if (isWalkable(newState, newProcessor.x + attemptX, newProcessor.y + attemptY)) {
+        const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + attemptX, creatureProcessor.y + attemptY);
+
+        if ((targetX === player.x && targetY === player.y) || isWalkable(state, targetX, targetY)) {
           return attemptOrientation;
         }
         return undefined;
       }).filter(Boolean)[0];
 
-      // if creature is stuck, make it circle around
+      // if creature is stuck, make it circle around randomly
       const stuckOrientation = orientations[(orientations.indexOf(orientation) + getDeterministicRandomInt(1, orientations.length - 1)) % orientations.length];
 
-      creature.props = {
-        ...creature.props,
-        orientation: newOrientation || stuckOrientation,
-      };
+      state = updateProcessorProps(state, { container: 'creatures', id }, { orientation: newOrientation || stuckOrientation });
     }
   }
 
   // add swimming state
-  const swimming = creature.props.particles?.find(particle => particle.type === Swimming);
-  if (!swimming && isWater(state, newProcessor.x, newProcessor.y)) {
-    creature.props = {
-      ...creature.props,
-      particles: [...(creature.props.particles || []), <Swimming id={getId()} />],
-    };
+  const swimmingIndex = creatureParticles.findIndex(particleId => state.particles[particleId]?.entity.type === Swimming);
+  if (swimmingIndex === -1 && isWater(state, state.creatures[id].x, state.creatures[id].y)) {
+    let swimming;
+    [state, swimming] = createParticle(state, {
+      x: 0,
+      y: 0,
+      parent: { container: 'creatures', id },
+    }, Swimming, {});
+
+    creatureParticles.push(swimming.id);
+    state = updateProcessorProps(state, { container: 'creatures', id }, { particles: creatureParticles });
   };
 
   // process contained particles
+  Object.values(state.creatures[id].entity.props.particles).forEach(particleId => {
+    state = tickParticle(state, particleId);
+  });
+
+  /*
+  // process contained particles
   const newParticles = creature.props.particles?.map(particle => {
-    const [particleState, processor] = tickParticle(newState, {
+    newState.particles = {
+      ...newState.particles,
+
+    }
+    const particleState = tickParticle(newState, {
       x: newProcessor.x,
       y: newProcessor.y,
       entity: particle,
@@ -96,7 +119,7 @@ export const tickCreature = (state: TerminalState, processor: Processor<Creature
     ...creature.props,
     particles: newParticles,
   };
-  newProcessor.entity = creature;
+  */
 
-  return [newState, newProcessor];
+  return state;
 }

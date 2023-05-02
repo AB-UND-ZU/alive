@@ -69,7 +69,7 @@ export const terrains = [Rock, Tree];
 export type Equipment = React.FC<{
   id: number,
   amount: number,
-  particles?: Processor<Particle>[],
+  particles: number[],
   material: Material,
   interaction?: Interaction,
   direction?: Direction,
@@ -198,16 +198,16 @@ export type Creature = React.FC<{
   amount: number,
   maximum: number,
   orientation: Orientation,
-  equipments?: ReactComponentElement<Equipment>[],
-  particles?: ReactComponentElement<Particle>[],
+  equipments: number[],
+  particles: number[],
 }>;
 
-export const Player: Creature = () => {
+export const Player: Creature = ({ amount, maximum }) => {
   return (
     <>
       <span className="Entity Player">{'\u010b'}</span>
       <span className="Entity Hair">~</span>
-      <span className="Entity Health">{'\u0120'}</span>
+      <span className="Entity Health">{getBar(amount, maximum)}</span>
     </>
   )
 }
@@ -275,7 +275,7 @@ export const Freezing: Particle = ({ amount }) => {
 }
 
 export const Attacked: Particle = ({ material }) => {
-  return <span className={`Entity Attacked ${material}`}>{'x'}</span>;
+  return <span className={`Entity Attacked ${material || 'blood'}`}>{'x'}</span>;
 }
 
 export const Shock: Particle = ({ direction }) => {
@@ -315,11 +315,11 @@ export const bars = ['\u0127', '\u0126', '\u0125', '\u0124', '\u0123', '\u0122',
 export const getBar = (amount: number, maximum: number) => bars[Math.floor((bars.length - 1) * amount / maximum)];
 
 export type Inventory = {
-  sword?: ReactComponentElement<Equipment>,
-  armor?: ReactComponentElement<Equipment>,
-  spell?: ReactComponentElement<Equipment>,
-  boat?: ReactComponentElement<Equipment>,
-  key?: ReactComponentElement<Equipment>,
+  sword?: number,
+  armor?: number,
+  spell?: number,
+  boat?: number,
+  key?: number,
 };
 export const inventories = new Map<Equipment | undefined, keyof Inventory>([
   [Sword, 'sword'],

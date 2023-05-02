@@ -1,5 +1,12 @@
+import React from "react";
 import { Bush, Flower, Herb, Seed } from "../../engine/entities";
 import { renderText, TerminalState } from "../../engine/utils";
+
+const renderInventory = (state: TerminalState, id?: number) => {
+  if (!id) return null;
+  
+  return React.cloneElement(state.equipments[id].entity, { interaction: undefined });
+};
 
 const Stats = ({ state }: { state: TerminalState }) => {
   return (
@@ -15,13 +22,13 @@ const Stats = ({ state }: { state: TerminalState }) => {
         </span>
         {renderText('│')}
         <span className="Cell">
-          {state.inventory.sword}
+          {renderInventory(state, state.inventory.sword)}
         </span>
         <span className="Cell">
-          {state.inventory.armor}
+          {renderInventory(state, state.inventory.armor)}
         </span>
         <span className="Cell">
-          {state.inventory.spell}
+          {renderInventory(state, state.inventory.spell)}
         </span>
       </div>
 

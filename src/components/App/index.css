@@ -310,6 +310,10 @@ html {
   color: var(--maroon);
 }
 
+.Attacked.blood {
+  color: var(--red);
+}
+
 /*
 .Frame {
   color: var(--black);

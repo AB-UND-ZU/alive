@@ -1,8 +1,8 @@
 import { Direction, Point, TerminalState } from "./utils";
 
 const getRelativePosition = (state: TerminalState, x: number, y: number) => {
-  const relativeX = (x - state.x + state.width * 3 / 2) % state.width - state.width / 2;
-  const relativeY = (y - state.y + state.height * 3 / 2) % state.height - state.height / 2;
+  const relativeX = (x - state.cameraX + state.width * 3 / 2) % state.width - state.width / 2;
+  const relativeY = (y - state.cameraY + state.height * 3 / 2) % state.height - state.height / 2;
   return [relativeX, relativeY];
 }
 
@@ -22,7 +22,7 @@ export const unitInViewport = (state: TerminalState, x: number, y: number, overs
 };
 
 export const getStaticStyle = (state: TerminalState, x: number, y: number, overscan: number = 0) => {
-  const [infinitePlayerX, infinitePlayerY] = getInfinitePosition(state, state.x, state.y);
+  const [infinitePlayerX, infinitePlayerY] = getInfinitePosition(state, state.cameraX, state.cameraY);
   const [relativeTargetX, relativeTargetY] = getRelativePosition(state, x, y);
   const [infiniteTargetX, infiniteTargetY] = [infinitePlayerX + relativeTargetX, infinitePlayerY + relativeTargetY];
 

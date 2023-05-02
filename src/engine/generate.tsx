@@ -5,7 +5,7 @@ import { World, world } from './biomes';
 import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Creature, Spell, Sword, Armor, Terrain, Sand, Water } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { corners, getDeterministicRandomInt, getId, orientations, Processor, sum, TerminalState } from "./utils";
+import { corners, createCreature, createEquipment, getDeterministicRandomInt, getId, orientations, Processor, sum, TerminalState } from "./utils";
 
 const getSingleElements = (world: World, cells: MapCell[], category: SingleCategories) => cells.map(cell => world.tileCells[cell.name][category]);
 const getMultipleElements = (world: World, cells: MapCell[], category: MultipleCategories) => cells.reduce<ReactComponentElement<Entity>[]>((cellTypes, cell) => [
@@ -93,7 +93,6 @@ function generateLevel(state: TerminalState): TerminalState {
     };
   });
 
-  const creatures: Processor<Creature>[] = [];
   const rows = Array.from({ length: state.height }).map((_, rowIndex) => {
     const row = Array.from({ length: state.width }).map((_, columnIndex) => {
       const mapCells = [
@@ -159,11 +158,12 @@ function generateLevel(state: TerminalState): TerminalState {
 
       if (!cell.terrain && !cell.grounds && !cell.sprite) {
         if (itemNoise < -48) {
-          creatures.push({
-            entity: <Triangle orientation='up' amount={3} maximum={3} id={getId()} />,
-            x: columnIndex,
-            y: rowIndex,
-          });
+          state = createCreature(
+            state,
+            { x: columnIndex, y: rowIndex },
+            Triangle,
+            { orientation: 'up', amount: 3, maximum: 3, equipments: [], particles: [] }
+          )[0];
         }
       }
 
@@ -179,30 +179,22 @@ function generateLevel(state: TerminalState): TerminalState {
   });
 
   // insert player at initial coords
-  creatures.push({
-    entity: <Player orientation='up' amount={10} maximum={10} id={getId()} />,
-    x: state.x,
-    y: state.y,
-  });
+  
+  const [newState, player] = createCreature(
+    state,
+    { x: state.cameraX, y: state.cameraY },
+    Player,
+    { orientation: 'up', amount: 10, maximum: 10, equipments: [], particles: [] }
+  );
+  state = newState;
 
-  const equipments = [{
-    x: 1,
-    y: 1,
-    entity: <Sword amount={2} material="iron" id={getId()} />,
-  }, {
-    x: 2,
-    y: 2,
-    entity: <Armor amount={1} material="wood" id={getId()} />,
-  }, {
-    x: 3,
-    y: 3,
-    entity: <Spell amount={3} material="ice" id={getId()} />,
-  }];
+  state = createEquipment(state, { x: 1, y: 1}, Sword, { amount: 2, material: 'iron', particles: [] })[0];
+  state = createEquipment(state, { x: 2, y: 2}, Armor, { amount: 1, material: 'wood', particles: [] })[0];
+  state = createEquipment(state, { x: 3, y: 3}, Spell, { amount: 3, material: 'ice', particles: [] })[0];
 
   const fog = generateFog(state);
 
-  return { ...state, board: rows, fog, creatures, equipments };
+  return { ...state, board: rows, fog, playerId: player.id };
 }
-
 
 export { generateLevel };

@@ -4,6 +4,16 @@ Try it here: https://ab-und-zu.github.io/alive
 
 Intended to be used with https://www.rune.ai/
 
+
+current WIP:
+- implement damage to player
+- refactor to containers, containing all processors
+- simple units separated from world
+- start using helper methods
+- parent entity position as reference 
+- React.cloneElement where possible
+- Create new state in reducer root, otherwise mutate => undo
+
 ## Plan
 
 - v1
@@ -131,7 +141,11 @@ Intended to be used with https://www.rune.ai/
 
 ## Presets
 
-...
+- Normal (lakes, forests)
+- Ocean (allow swimming with air)
+- Forest
+- Dark (no fog of war)
+- Desert
 
 ## Random observations
 
