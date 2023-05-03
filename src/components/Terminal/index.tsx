@@ -86,6 +86,9 @@ const Terminal = ({
   };
 
   const handleKeyMove = (event: KeyboardEvent) => {
+    // since macOS doesn't fire keyup when meta key is pressed, prevent it from moving.
+    // still not working: arrow keydown -> meta keydown -> arrow keyup -> meta keyup
+    if (event.type === 'keydown' && (event.altKey || event.shiftKey || event.metaKey)) return;
     const orientation = keyToOrientation[event.key];
     const orientations = pressedOrientations.current;
     const lastOrientation = orientations[0];
