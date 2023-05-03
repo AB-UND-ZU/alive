@@ -136,6 +136,7 @@ Intended to be used with https://www.rune.ai/
 - Forest
 - Dark (no fog of war)
 - Desert
+- Ice world
 
 ## Random observations
 

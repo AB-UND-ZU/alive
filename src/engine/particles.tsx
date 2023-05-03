@@ -1,5 +1,6 @@
+import { tickCreature } from "./creatures";
 import { Attacked, Collecting, Freezing, Ice, Player, Shock, Water } from "./entities";
-import { createParticle, getAbsolutePosition, getCell, getCreature, isOrphaned, removeProcessor, TerminalState, updateCell, updateProcessorProps } from "./utils";
+import { createParticle, getAbsolutePosition, getCell, getCreature, getPlayerProcessor, isOrphaned, removeProcessor, TerminalState, updateCell, updateProcessorProps } from "./utils";
 
 export const tickParticle = (prevState: TerminalState, id: number) => {
   let state = { ...prevState };
@@ -44,6 +45,12 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
     );
 
     state = updateCell(state, particleX, particleY, { grounds: frozen });
+
+    // update if player is standing on it
+    const player = getPlayerProcessor(state);
+    if (particleX === player.x && particleY === player.y) {
+      state = tickCreature(state, state.playerId);
+    }
 
     // freeze creatures
     const affectedId = getCreature(state, particleX, particleY, creature => creature.entity.type !== Player)?.id;

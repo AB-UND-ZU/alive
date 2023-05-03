@@ -1,13 +1,8 @@
 import { Attacked, Freezing, Swimming, Triangle } from "./entities";
-import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor, isOrphaned } from "./utils";
+import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor } from "./utils";
 
 export const tickCreature = (prevState: TerminalState, id: number): TerminalState => {
   let state = { ...prevState };
-
-  if (isOrphaned(state, { container: 'creatures', id })) {
-    state = removeProcessor(state, { container: 'creatures', id });
-    return state;
-  }
 
   const creatureProcessor = state.creatures[id];
   const creatureParticles = [...creatureProcessor.entity.props.particles];
