@@ -1,5 +1,5 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, Collecting, counters, Experience, Gold, inventories, Life, Mana, Shock, Spell, Sword, Triangle, Wood } from "../../engine/entities";
+import { Attacked, Circle, Collecting, counters, Experience, Gold, inventories, Life, Mana, Shock, Spell, Sword, Triangle, Wood } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
@@ -259,7 +259,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         state = updateProcessorProps(state, { container: 'creatures', id: attackedCreature.id }, { amount: newAmount });
       } else {
         // add drops
-        if (attackedCreature.entity.type === Triangle) {
+        if (attackedCreature.entity.type === Triangle || attackedCreature.entity.type === Circle) {
           const drops = [Life, Mana, Gold, Experience];
           const Drop = drops[getDeterministicRandomInt(0, 3)];
           state = updateCell(state, x, y, { item: <Drop amount={1} /> });
