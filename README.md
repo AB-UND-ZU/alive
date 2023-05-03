@@ -121,12 +121,21 @@ Intended to be used with https://www.rune.ai/
 - Shock wave tower
 
 
-## Stats
+## Balancing
 
-- Bare hands: 1 dmg
-- Wooden sword: 2 dmg
-- Iron sword: 5 dmg
-- Fire burn: 3 dmg
+- No weapon: 0 dmg
+- Wooden sword: 1 dmg
+- Iron sword: 2 dmg
+
+- No armor: full dmg
+- Wooden armor: -1 dmg
+- Iron armor: -2 dmg
+
+- Ice spell freeze: 8 ticks
+- Fire spell dmg: 3 ticks 
+
+- Triangle: 5 hp 3 dmg
+- Circle: 2 hp 3 dmg
 
 
 ## Presets

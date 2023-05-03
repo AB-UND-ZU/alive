@@ -58,10 +58,30 @@ export type Point = [number, number];
 
 export const addPoints = (state: TerminalState, left: Point, right: Point): Point => wrapCoordinates(state, left[0] + right[0], left[1] + right[1]);
 
+// distance between two processors in an overlapping grid
+export const relativeDistance = (state: TerminalState, source: Processor<Entity>, target: Processor<Entity>): Point => {
+  const distanceX = target.x - source.x;
+  const distanceY = target.y - source.y;
+
+  return [
+    distanceX - (Math.abs(distanceX) > state.width / 2 ? Math.sign(distanceX) * state.width : 0),
+    distanceY - (Math.abs(distanceY) > state.height / 2 ? Math.sign(distanceY) * state.height : 0),
+  ]
+}
+
 // degrees are counted from top center clockwise, from 0 to 360
 export const pointToDegree = (point: Point) => {
   const radian = Math.atan2(point[1], point[0]);
   return (radian * 180 / Math.PI + 450) % 360;
+};
+
+export const degreesToOrientation = (degrees: number): Orientation => {
+  const normalized = degrees % 360;
+
+  if (45 < normalized && normalized <= 135) return 'right';
+  if (135 < normalized && normalized <= 225) return 'down';
+  if (225 < normalized && normalized <= 315) return 'left';
+  return 'up';
 }
 
 // helper to create point ranges fast

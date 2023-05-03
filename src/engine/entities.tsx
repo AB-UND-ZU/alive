@@ -217,17 +217,11 @@ export const Triangle: Creature = ({ amount, maximum, orientation }) => {
   );
 }
 
-export const Circle: Creature = ({ orientation }) => {
-  const circleOrientations = {
-    up: '\u011d',
-    right: '\u010f',
-    down: '\u011e',
-    left: '\u0110',
-  };
+export const Circle: Creature = ({ amount, maximum }) => {
   return (
     <>
-      <span className="Entity Monster">{circleOrientations[orientation]}</span>
-      <span className="Entity Bar">{'\u0120'}</span>
+      <span className="Entity Monster">0</span>
+      <span className="Entity Bar">{getBar(amount, maximum)}</span>
     </>
   );
 }

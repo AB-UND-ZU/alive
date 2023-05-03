@@ -1,5 +1,5 @@
-import { Attacked, Freezing, Swimming, Triangle } from "./entities";
-import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor } from "./utils";
+import { Attacked, Circle, Freezing, Swimming, Triangle } from "./entities";
+import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor, pointToDegree, degreesToOrientation, relativeDistance } from "./utils";
 
 export const tickCreature = (prevState: TerminalState, id: number): TerminalState => {
   let state = { ...prevState };
@@ -54,6 +54,35 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
         const stuckOrientation = orientations[(orientations.indexOf(orientation) + getDeterministicRandomInt(1, orientations.length - 1)) % orientations.length];
 
         state = updateProcessorProps(state, { container: 'creatures', id }, { orientation: newOrientation || stuckOrientation });
+      }
+
+    } else if (creatureProcessor.entity.type === Circle) {
+      // only move if visible
+      if (state.fog[creatureProcessor.y][creatureProcessor.x] === 'visible') {
+        const distance = relativeDistance(state, creatureProcessor, player);
+        const degrees = pointToDegree(distance);
+        const orientation = degreesToOrientation(degrees);
+
+        const [attemptX, attemptY] = directionOffset[orientation];
+        const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + attemptX, creatureProcessor.y + attemptY);
+
+        // hit player
+        if (targetX === player.x && targetY === player.y) {
+          state.hp = state.hp - 3;
+          state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });
+
+          // add attacked particle
+          state = createParticle(
+            state,
+            { x: attemptX, y: attemptY, parent: { container: 'creatures', id } },
+            Attacked,
+            {}
+          )[0];
+
+        } else if (isWalkable(state, targetX, targetY)) {
+          // move in straight line
+          state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
+        }
       }
     }
   }

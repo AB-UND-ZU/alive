@@ -2,7 +2,7 @@ import { ReactComponentElement } from 'react';
 import { MapCell } from 'worldmap-generator';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Spell, Sword, Armor, Terrain, Sand, Water } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Spell, Sword, Armor, Terrain, Sand, Water, Circle } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
 import { corners, createCreature, createEquipment, getDeterministicRandomInt, orientations, sum, TerminalState } from "./utils";
@@ -158,10 +158,12 @@ function generateLevel(state: TerminalState): TerminalState {
 
       if (!cell.terrain && !cell.grounds && !cell.sprite) {
         if (itemNoise < -48) {
+          const spawns = [Triangle, Circle];
+          const Creature = spawns[getDeterministicRandomInt(0, 1)];
           state = createCreature(
             state,
             { x: columnIndex, y: rowIndex },
-            Triangle,
+            Creature,
             { orientation: 'up', amount: 3, maximum: 3, equipments: [], particles: [] }
           )[0];
         }

@@ -4,7 +4,7 @@ import Controls from "../Controls";
 import Stats from "../Stats";
 import { reducer } from "./state";
 import { computeUnits } from "../../engine/units";
-import { defaultState, keyToOrientation, Orientation, pointToDegree, TerminalState } from "../../engine/utils";
+import { defaultState, degreesToOrientation, keyToOrientation, Orientation, pointToDegree, TerminalState } from "../../engine/utils";
 
 export const WORLD_INTERVAL = 350;
 export const PLAYER_INTERVAL = 250;
@@ -134,10 +134,7 @@ const Terminal = ({
         return;
       }
     } else {
-      if (315 < degrees || degrees <= 45) nextOrientation = 'up';
-      if (45 < degrees && degrees <= 135) nextOrientation = 'right';
-      if (135 < degrees && degrees <= 225) nextOrientation = 'down';
-      if (225 < degrees && degrees <= 315) nextOrientation = 'left';
+      nextOrientation = degreesToOrientation(degrees);
     }
 
     const lastOrientation = pressedOrientations.current[0];
