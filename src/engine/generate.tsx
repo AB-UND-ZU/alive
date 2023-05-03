@@ -160,12 +160,11 @@ function generateLevel(state: TerminalState): TerminalState {
       if (!cell.terrain && !cell.grounds && !cell.sprite) {
         if (itemNoise < -48) {
           const [creature, props] = getRandomDistribution(creatureSpawns);
-          const hp = creatureStats.get(creature)?.hp || 1;
           state = createCreature(
             state,
             { x: columnIndex, y: rowIndex },
             creature,
-            { orientation: 'up', amount: hp, maximum: hp, equipments: [], particles: [], ...props }
+            props,
           )[0];
         }
       }
@@ -193,7 +192,8 @@ function generateLevel(state: TerminalState): TerminalState {
 
   state = createEquipment(state, { x: 1, y: 1 }, Sword, { amount: 2, material: 'iron', particles: [] })[0];
   state = createEquipment(state, { x: 2, y: 2 }, Armor, { amount: 1, material: 'wood', particles: [] })[0];
-  state = createEquipment(state, { x: 3, y: 3 }, Spell, { amount: 3, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: 3, y: 3 }, Spell, { amount: 1, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: 4, y: 4 }, Spell, { amount: 1, material: 'fire', particles: [] })[0];
 
   const fog = generateFog(state);
 

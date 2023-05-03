@@ -4,17 +4,17 @@ import { getDeterministicRandomInt } from "./utils";
 export type Distribution<T extends Entity> = {
   ratio: number,
   entity: T,
-  props: Partial<React.ComponentProps<T>>,
+  props: Omit<React.ComponentProps<T>, 'id'>,
 };
 
 export type CreatureStats = {
   hp: number,
   dmg: number,
-  drops?: Distribution<Item>[],
+  drops: Distribution<Item>[],
 };
 
 export const creatureStats = new Map<Creature, CreatureStats>([
-  [Player, { hp: 10, dmg: 0 }],
+  [Player, { hp: 10, dmg: 0, drops: [] }],
   [Triangle, { hp: 4, dmg: 3, drops: [
     { ratio: 25, entity: Life, props: { amount: 1 } },
     { ratio: 25, entity: Mana, props: { amount: 1 } },
@@ -30,8 +30,8 @@ export const creatureStats = new Map<Creature, CreatureStats>([
 ]);
 
 export const creatureSpawns: Distribution<Creature>[] = [
-  { ratio: 50, entity: Triangle, props: {} },
-  { ratio: 50, entity: Circle, props: {} },
+  { ratio: 50, entity: Triangle, props: { amount: 4, maximum: 4, orientation: 'up', particles: [], equipments: [] } },
+  { ratio: 50, entity: Circle, props: { amount: 1, maximum: 1, orientation: 'up', particles: [], equipments: [] } },
 ];
 
 export type EquipmentStats = Partial<Record<Material, number>>;

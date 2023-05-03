@@ -1,11 +1,11 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, Circle, Collecting, counters, Experience, Gold, inventories, Life, Mana, Shock, Spell, Sword, Triangle, Wood } from "../../engine/entities";
+import { Attacked, Circle, Collecting, counters, Experience, Gold, inventories, Item, Life, Mana, Shock, Spell, Sword, Triangle, Wood } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
 import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, getDeterministicRandomInt } from "../../engine/utils";
 import React from "react";
-import { equipmentStats } from "../../engine/balancing";
+import { creatureStats, equipmentStats, getRandomDistribution } from "../../engine/balancing";
 
 type QueueAction = {
   type: 'queue',
@@ -261,10 +261,10 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         state = updateProcessorProps(state, { container: 'creatures', id: attackedCreature.id }, { amount: newAmount });
       } else {
         // add drops
-        if (attackedCreature.entity.type === Triangle || attackedCreature.entity.type === Circle) {
-          const drops = [Life, Mana, Gold, Experience];
-          const Drop = drops[getDeterministicRandomInt(0, 3)];
-          state = updateCell(state, x, y, { item: <Drop amount={1} /> });
+        const drops = creatureStats.get(attackedCreature.entity.type);
+        if (drops) {
+          const [Drop, props] = getRandomDistribution<Item>(drops.drops);
+          state = updateCell(state, x, y, { item: <Drop {...props} /> });
         }
 
         state = removeProcessor(state, { container: 'creatures', id: attackedCreature.id });
@@ -280,16 +280,17 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       state.mp = state.mp - 1;
 
       const player = getPlayerProcessor(state);
+      const spell = state.equipments[state.inventory.spell];
 
       // create spell and initial particle
-      let spell, centerParticle;
-      [state, spell] = createEquipment(state, { x: player.x, y: player.y }, Spell, { amount: 1, material: 'ice', interaction: 'using', particles: [] });
-      [state, centerParticle] = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: spell.id } }, Shock, { direction: 'center' });
+      let wave, centerParticle;
+      [state, wave] = createEquipment(state, { x: player.x, y: player.y }, Spell, { amount: 1, material: spell.entity.props.material, interaction: 'using', particles: [] });
+      [state, centerParticle] = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: wave.id } }, Shock, { direction: 'center' });
       
       // start first tick
       state = tickParticle(state, centerParticle.id);
       state = tickCreature(state, player.id);
-      state = tickEquipment(state, spell.id);
+      state = tickEquipment(state, wave.id);
 
       return state;
     }

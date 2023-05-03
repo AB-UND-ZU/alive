@@ -66,9 +66,9 @@ html {
 .SpellOverlay {
   position: fixed;
   z-index: 101;
-  top: 50vh;
-  height: 50vh;
-  width: 50vw;
+  top: 75vh;
+  height: 25vh;
+  width: 25vw;
 }
 
 .Terminal {
@@ -280,14 +280,6 @@ html {
   z-index: 40;
 }
 
-.Boat {
-  color: var(--maroon);
-}
-
-.Key {
-  color: var(--yellow);
-}
-
 .Swimming {
   color: var(--navy);
   z-index: 30;
@@ -296,6 +288,16 @@ html {
 .Freezing {
   color: var(--aqua);
   z-index: 31;
+}
+
+.Burning {
+  color: var(--red);
+  z-index: 35;
+}
+
+.Spark {
+  color: var(--yellow);
+  z-index: 36;
 }
 
 .Attacked {
@@ -387,6 +389,14 @@ html {
 }
 
 /*
+.Boat {
+  color: var(--maroon);
+}
+
+.Key {
+  color: var(--yellow);
+}
+
 .Frame {
   color: var(--black);
 }
@@ -414,8 +424,27 @@ html {
 }
 
 .Spell {
-  color: var(--aqua);
   z-index: 14;
+}
+
+.Spell.ice {
+  color: var(--aqua);
+}
+
+.Spell.fire {
+  color: var(--red);
+}
+
+.Shock {
+  z-index: 34;
+}
+
+.Shock.ice {
+  color: var(--aqua);
+}
+
+.Shock.fire {
+  color: var(--red);
 }
 
 .Player {

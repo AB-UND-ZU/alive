@@ -243,10 +243,23 @@ export const Swimming: Particle = () => {
   return <span className="Entity Swimming">{'▄'}</span>;
 }
 
-export const Burning: Particle = () => {
+export const Burning: Particle = ({ amount }) => {
+  if (!amount) return null;
+  if (amount > 2) return (
+    <>
+      <span className="Entity Burning">{'\u010e'}</span>
+      <span className="Entity Spark">{'*'}</span>
+    </>
+  );
+  if (amount > 1) return (
+    <>
+      <span className="Entity Burning">{'*'}</span>
+      <span className="Entity Spark">{'+'}</span>
+    </>
+  );
   return (
     <>
-      <span className="Entity Fire">{'*'}</span>
+      <span className="Entity Burning">{'+'}</span>
       <span className="Entity Spark">{'·'}</span>
     </>
   );
@@ -263,7 +276,7 @@ export const Attacked: Particle = ({ material }) => {
   return <span className={`Entity Attacked ${material || 'blood'}`}>{'x'}</span>;
 }
 
-export const Shock: Particle = ({ direction }) => {
+export const Shock: Particle = ({ direction, material }) => {
   const shockDirections = {
     up: '─',
     upRight: '┐',
@@ -275,7 +288,7 @@ export const Shock: Particle = ({ direction }) => {
     leftUp: '┌',
     center: '',
   };
-  return <span className="Entity Freezing">{shockDirections[direction || 'center']}</span>;
+  return <span className={`Entity Shock ${material}`}>{shockDirections[direction || 'center']}</span>;
 }
 
 export const Collecting: Particle = ({ counter, direction }) => {
@@ -292,7 +305,7 @@ export const Collecting: Particle = ({ counter, direction }) => {
   return <span className={`Entity Collecting ${counter} ${direction}`}>{counter ? counterParticles[counter] : null}</span>;
 }
 
-export const particles = [Swimming, Burning, Shock];
+export const particles = [Swimming, Burning, Attacked, Shock, Collecting];
 
 // ------------------------ CONSTANTS --------------------------------
  

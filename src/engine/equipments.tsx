@@ -24,59 +24,59 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
 
     // create new wave
     type CreateParticles = Parameters<typeof createParticle>;
-    const newWave: [CreateParticles[1], CreateParticles[2], CreateParticles[3]][] = [];
+    const newWave: [CreateParticles[1], CreateParticles[3]][] = [];
 
     // top row
     newWave.push(
-      [{ x: -1, y: radius * -1 }, Shock, { direction: "leftUp" }],
-      [{ x: 0, y: radius * -1 }, Shock, { direction: "up" }],
-      [{ x: 1, y: radius * -1 }, Shock, { direction: "upRight" }],
+      [{ x: -1, y: radius * -1 }, { direction: "leftUp" }],
+      [{ x: 0, y: radius * -1 }, { direction: "up" }],
+      [{ x: 1, y: radius * -1 }, { direction: "upRight" }],
     );
 
     // upper rows
     Array.from({ length: radius - 1 }).forEach((_, index) => {
       newWave.push(
-        [{ x: (index + 2) * -1, y: (radius - index - 1) * -1 }, Shock, { direction: "leftUp" }],
-        [{ x: (index + 1) * -1, y: (radius - index - 1) * -1 }, Shock, { direction: "rightDown" }],
-        [{ x: index + 1, y: (radius - index - 1) * -1 }, Shock, { direction: "downLeft" }],
-        [{ x: index + 2, y: (radius - index - 1) * -1 }, Shock, { direction: "upRight" }],
+        [{ x: (index + 2) * -1, y: (radius - index - 1) * -1 }, { direction: "leftUp" }],
+        [{ x: (index + 1) * -1, y: (radius - index - 1) * -1 }, { direction: "rightDown" }],
+        [{ x: index + 1, y: (radius - index - 1) * -1 }, { direction: "downLeft" }],
+        [{ x: index + 2, y: (radius - index - 1) * -1 }, { direction: "upRight" }],
       );
     });
 
     // horizontal edges
     newWave.push(
-      [{ x: radius * -1, y: 0 }, Shock, { direction: "left" }],
-      [{ x: radius, y: 0 }, Shock, { direction: "right" }],
+      [{ x: radius * -1, y: 0 }, { direction: "left" }],
+      [{ x: radius, y: 0 }, { direction: "right" }],
     );
 
     // lower rows
     Array.from({ length: radius - 1 }).forEach((_, index) => {
       newWave.push(
-        [{ x: (index + 2) * -1, y: radius - index - 1 }, Shock, { direction: "downLeft" }],
-        [{ x: (index + 1) * -1, y: radius - index - 1 }, Shock, { direction: "upRight" }],
-        [{ x: index + 1, y: radius - index - 1 }, Shock, { direction: "leftUp" }],
-        [{ x: index + 2, y: radius - index - 1 }, Shock, { direction: "rightDown" }],
+        [{ x: (index + 2) * -1, y: radius - index - 1 }, { direction: "downLeft" }],
+        [{ x: (index + 1) * -1, y: radius - index - 1 }, { direction: "upRight" }],
+        [{ x: index + 1, y: radius - index - 1 }, { direction: "leftUp" }],
+        [{ x: index + 2, y: radius - index - 1 }, { direction: "rightDown" }],
       );
     });
 
     // bottom row
     newWave.push(
-      [{ x: -1, y: radius }, Shock, { direction: "downLeft" }],
-      [{ x: 0, y: radius }, Shock, { direction: "down" }],
-      [{ x: 1, y: radius }, Shock, { direction: "rightDown" }],
+      [{ x: -1, y: radius }, { direction: "downLeft" }],
+      [{ x: 0, y: radius }, { direction: "down" }],
+      [{ x: 1, y: radius }, { direction: "rightDown" }],
     );
 
     // invisible particles to prevent mobs passing through
     newWave.push(
-      [{ x: 0, y: (radius + 1) * -1 }, Shock, { direction: "center" }],
-      [{ x: radius + 1, y: 0 }, Shock, { direction: "center" }],
-      [{ x: 0, y: radius + 1 }, Shock, { direction: "center" }],
-      [{ x: (radius + 1) * -1, y: 0 }, Shock, { direction: "center" }],
+      [{ x: 0, y: (radius + 1) * -1 }, { direction: "center" }],
+      [{ x: radius + 1, y: 0 }, { direction: "center" }],
+      [{ x: 0, y: radius + 1 }, { direction: "center" }],
+      [{ x: (radius + 1) * -1, y: 0 }, { direction: "center" }],
     );
 
     const parent: CompositeId = { container: 'equipments', id };
-    newWave.forEach(([processor, ...wave]) => {
-      state = createParticle(state, { ...processor, parent }, ...wave)[0];
+    newWave.forEach(([processor, props]) => {
+      state = createParticle(state, { ...processor, parent }, Shock, { ...props, material: equipmentProcessor.entity.props.material })[0];
     });
 
     state = updateProcessorProps(state, { container: 'equipments', id }, { amount: radius + 1 });

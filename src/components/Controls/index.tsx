@@ -2,6 +2,8 @@ import { padOrientation } from "./textures";
 import { center, renderText, TerminalState } from "../../engine/utils";
 
 const Controls = ({ state }: { state: TerminalState }) => {
+  const spell = state.inventory.spell ? state.equipments[state.inventory.spell].entity.props.material : undefined;
+
   return (
     <div className="Controls">
       <div className="Row">
@@ -10,7 +12,7 @@ const Controls = ({ state }: { state: TerminalState }) => {
 
       <div className="Row">
         {state.inventory.spell ? (
-          renderText('  /\\  ', state.mp > 0 ? 'Freezing' : 'HUD')
+          renderText('  /\\  ', state.mp > 0 ? `Spell ${spell}` : 'HUD')
         ) : (
           renderText('      ')
         )}
@@ -20,7 +22,7 @@ const Controls = ({ state }: { state: TerminalState }) => {
 
       <div className="Row">
         {state.inventory.spell ? (
-          renderText('  \\/  ', state.mp > 0 ? 'Freezing' : 'HUD')
+          renderText('  \\/  ', state.mp > 0 ? `Spell ${spell}` : 'HUD')
         ) : (
           renderText('      ')
         )}

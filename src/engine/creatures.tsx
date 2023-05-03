@@ -1,5 +1,5 @@
 import { creatureStats, equipmentStats } from "./balancing";
-import { Armor, Attacked, Circle, Creature, Freezing, Swimming, Triangle } from "./entities";
+import { Armor, Attacked, Burning, Circle, Creature, Freezing, Swimming, Triangle } from "./entities";
 import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor, pointToDegree, degreesToOrientation, relativeDistance, CompositeId, resolveCompositeId, Processor } from "./utils";
 
 export const attackPlayer = (state: TerminalState, compositeId: CompositeId) => {
@@ -92,14 +92,21 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
 
   // update swimming state
   const swimmingIndex = creatureParticles.findIndex(particleId => state.particles[particleId]?.entity.type === Swimming);
+  const burningIndex = creatureParticles.findIndex(particleId => state.particles[particleId]?.entity.type === Burning);
 
   if (swimmingIndex === -1 && isWater(state, state.creatures[id].x, state.creatures[id].y)) {
+    // in water, add swimming
     state = createParticle(state, {
       x: 0,
       y: 0,
       parent: { container: 'creatures', id },
     }, Swimming, {})[0];
+
+    // remove burning
+    state = removeProcessor(state, { container: 'particles', id: creatureParticles[burningIndex] })
+
   } else if (swimmingIndex !== -1 && !isWater(state, state.creatures[id].x, state.creatures[id].y)) {
+    // not in water, remove swimming
     state = removeProcessor(state, { container: 'particles', id: creatureParticles[swimmingIndex] });
   }
 
