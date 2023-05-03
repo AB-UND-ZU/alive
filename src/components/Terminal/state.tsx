@@ -273,6 +273,9 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
 
     case 'spell': {
       if (!state.inventory.spell) return state;
+      if (state.mp <= 0) return state;
+
+      state.mp = state.mp - 1;
 
       const player = getPlayerProcessor(state);
 

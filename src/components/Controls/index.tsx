@@ -10,7 +10,7 @@ const Controls = ({ state }: { state: TerminalState }) => {
 
       <div className="Row">
         {state.inventory.spell ? (
-          renderText('  /\\  ', 'Freezing')
+          renderText('  /\\  ', state.mp > 0 ? 'Freezing' : 'HUD')
         ) : (
           renderText('      ')
         )}
@@ -20,7 +20,7 @@ const Controls = ({ state }: { state: TerminalState }) => {
 
       <div className="Row">
         {state.inventory.spell ? (
-          renderText('  \\/  ', 'Freezing')
+          renderText('  \\/  ', state.mp > 0 ? 'Freezing' : 'HUD')
         ) : (
           renderText('      ')
         )}
