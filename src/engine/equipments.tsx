@@ -75,16 +75,11 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
     );
 
     const parent: CompositeId = { container: 'equipments', id };
-    const particleIds = newWave.map(([processor, ...wave]) => {
-      let particle;
-      [state, particle] = createParticle(state, { ...processor, parent }, ...wave);
-      return particle.id;
+    newWave.forEach(([processor, ...wave]) => {
+      state = createParticle(state, { ...processor, parent }, ...wave)[0];
     });
 
-    state = updateProcessorProps(state, { container: 'equipments', id }, {
-      amount: radius + 1,
-      particles: particleIds
-    });
+    state = updateProcessorProps(state, { container: 'equipments', id }, { amount: radius + 1 });
   }
 
   return state;

@@ -131,7 +131,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         if (!state.inventory.sword && ItemEntity === Wood) {
           [state, equipmentProcessor] = createEquipment(
             state,
-            { parent: { container: 'creatures', id: player.id }, x, y },
+            { x, y },
             Sword,
             { amount: 1, material: 'wood', particles: [] }
           );
@@ -237,16 +237,12 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       const newAmount = attackedCreature.entity.props.amount - sword.entity.props.amount;
 
       if (attackingDirection) {
-        let attacked;
-        [state, attacked] = createParticle(
+        state = createParticle(
           state,
           { x: directionOffset[attackingDirection][0], y: directionOffset[attackingDirection][1], parent: { container: 'creatures', id: player.id } },
           Attacked,
           { material: sword.entity.props.material }
-        );
-        state = updateProcessorProps(state, { container: 'creatures', id: player.id }, {
-          particles: [...player.entity.props.particles, attacked.id]
-        });
+        )[0];
       }
 
       if (newAmount > 0) {
@@ -267,7 +263,6 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       let spell, centerParticle;
       [state, spell] = createEquipment(state, { x: player.x, y: player.y }, Spell, { amount: 1, material: 'ice', interaction: 'using', particles: [] });
       [state, centerParticle] = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: spell.id } }, Shock, { direction: 'center' });
-      state = updateProcessorProps(state, { container: 'equipments', id: spell.id }, { particles: [centerParticle.id] });
       
       // start first tick
       state = tickParticle(state, centerParticle.id);

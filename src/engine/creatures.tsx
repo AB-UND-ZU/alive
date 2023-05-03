@@ -32,16 +32,12 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
       state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });
 
       // add attacked particle
-      let attacked;
-      [state, attacked] = createParticle(
+      state = createParticle(
         state,
         { x: moveX, y: moveY, parent: { container: 'creatures', id } },
         Attacked,
         {}
-      );
-      state = updateProcessorProps(state, { container: 'creatures', id }, {
-        particles: [...creatureProcessor.entity.props.particles, attacked.id]
-      });
+      )[0];
 
     } else if (isWalkable(state, targetX, targetY)) {
       // move in straight line
@@ -72,15 +68,11 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
   const swimmingIndex = creatureParticles.findIndex(particleId => state.particles[particleId]?.entity.type === Swimming);
 
   if (swimmingIndex === -1 && isWater(state, state.creatures[id].x, state.creatures[id].y)) {
-    let swimming;
-    [state, swimming] = createParticle(state, {
+    state = createParticle(state, {
       x: 0,
       y: 0,
       parent: { container: 'creatures', id },
-    }, Swimming, {});
-
-    creatureParticles.push(swimming.id);
-    state = updateProcessorProps(state, { container: 'creatures', id }, { particles: creatureParticles });
+    }, Swimming, {})[0];
   } else if (swimmingIndex !== -1 && !isWater(state, state.creatures[id].x, state.creatures[id].y)) {
     state = removeProcessor(state, { container: 'particles', id: creatureParticles[swimmingIndex] });
   }

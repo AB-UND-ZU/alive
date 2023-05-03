@@ -55,15 +55,11 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
         state = updateProcessorProps(state, { container: 'particles', id: creatureParticles[frozenIndex]}, { amount: 8 });
 
       } else {
-        let frozen;
-        [state, frozen] = createParticle(state, {
+        state = createParticle(state, {
           x: 0,
           y: 0,
           parent: { container: 'creatures', id: affectedId }
-        }, Freezing, { amount: 8 });
-
-        creatureParticles.push(frozen.id);
-        state = updateProcessorProps(state, { container: 'creatures', id: affectedId }, { particles: creatureParticles });
+        }, Freezing, { amount: 8 })[0];
       }
     }
 

@@ -301,6 +301,15 @@ export const createParticle = (state: TerminalState, processor: Pick<Processor<P
     entity: <ParticleComponent {...props} id={id} />
   };
   state = updateProcessor(state, { container: 'particles', id }, particle);
+
+  // add to parent
+  const parent = particle.parent ? resolveCompositeId(state, particle.parent) : undefined
+  if (particle.parent && parent && 'particles' in parent.entity.props) {
+    state = updateProcessorProps(state, particle.parent, {
+      particles: [...parent.entity.props.particles, id],
+    });
+  }
+
   return [state, particle];
 };
 
@@ -313,6 +322,15 @@ export const createEquipment = (state: TerminalState, processor: Pick<Processor<
     entity: <EquipmentComponent {...props} id={id} />
   };
   state = updateProcessor(state, { container: 'equipments', id }, equipment);
+
+  // add to parent
+  const parent = equipment.parent ? resolveCompositeId(state, equipment.parent) : undefined
+  if (equipment.parent && parent && 'equipments' in parent.entity.props) {
+    state = updateProcessorProps(state, equipment.parent, {
+      equipments: [...parent.entity.props.equipments, id],
+    });
+  }
+
   return [state, equipment];
 };
 
@@ -325,6 +343,7 @@ export const createCreature = (state: TerminalState, processor: Pick<Processor<C
     entity: <CreatureComponent {...props} id={id} />
   };
   state = updateProcessor(state, { container: 'creatures', id }, creature);
+
   return [state, creature];
 };
 
