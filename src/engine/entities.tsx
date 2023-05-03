@@ -111,21 +111,11 @@ export const equipments = [Armor, Sword, Spell, Boat, Key];
 export type Item = React.FC<{ amount: number }>;
 
 export const Life: Item = ({ amount }) => {
-  return (
-    <>
-      {amount > 0 && <span className="Entity Life">{amount}</span>}
-      <span className="Entity Life">{'\u0102'}</span>
-    </>
-  );
+  return <span className="Entity Life">{'\u0102'}</span>;
 }
 
 export const Mana: Item = ({ amount }) => {
-  return (
-    <>
-      {amount > 0 && <span className="Entity Mana">{amount}</span>}
-      <span className="Entity Mana">{'\u0103'}</span>
-    </>
-  );
+  return <span className="Entity Mana">{'\u0103'}</span>;
 }
 
 export const Experience: Item = ({ amount }) => {

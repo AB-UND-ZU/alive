@@ -1,9 +1,9 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, Collecting, counters, inventories, Shock, Spell, Sword, Wood  } from "../../engine/entities";
+import { Attacked, Collecting, counters, Experience, Gold, inventories, Life, Mana, Shock, Spell, Sword, Triangle, Wood } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
-import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity } from "../../engine/utils";
+import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, getDeterministicRandomInt } from "../../engine/utils";
 import React from "react";
 
 type QueueAction = {
@@ -258,6 +258,13 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       if (newAmount > 0) {
         state = updateProcessorProps(state, { container: 'creatures', id: attackedCreature.id }, { amount: newAmount });
       } else {
+        // add drops
+        if (attackedCreature.entity.type === Triangle) {
+          const drops = [Life, Mana, Gold, Experience];
+          const Drop = drops[getDeterministicRandomInt(0, 3)];
+          state = updateCell(state, x, y, { item: <Drop amount={1} /> });
+        }
+
         state = removeProcessor(state, { container: 'creatures', id: attackedCreature.id });
       }
 

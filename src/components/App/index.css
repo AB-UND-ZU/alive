@@ -326,6 +326,10 @@ html {
   color: var(--blue);
 }
 
+.Collecting.xp {
+  color: var(--lime);
+}
+
 .Collecting.gold {
   color: var(--yellow);
 }

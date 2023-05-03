@@ -12,50 +12,49 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
   // don't move frozen creatures
   const freezingIndex = creatureParticles.findIndex(particleId => state.particles[particleId]?.entity.type === Freezing);
 
-  if (freezingIndex !== -1) {
-    return state;
+  if (freezingIndex === -1) {
+    if (creatureProcessor.entity.type === Triangle) {
+      // move triangle
+      const orientation = creatureProcessor.entity.props.orientation;
+      const [moveX, moveY] = directionOffset[orientation];
+      const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + moveX, creatureProcessor.y + moveY);
 
-  } else if (creatureProcessor.entity.type === Triangle) {
-    // move triangle
-    const orientation = creatureProcessor.entity.props.orientation;
-    const [moveX, moveY] = directionOffset[orientation];
-    const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + moveX, creatureProcessor.y + moveY);
+      // hit player
+      if (targetX === player.x && targetY === player.y) {
+        state.hp = state.hp - 3;
+        state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });
 
-    // hit player
-    if (targetX === player.x && targetY === player.y) {
-      state.hp = state.hp - 3;
-      state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });
+        // add attacked particle
+        state = createParticle(
+          state,
+          { x: moveX, y: moveY, parent: { container: 'creatures', id } },
+          Attacked,
+          {}
+        )[0];
 
-      // add attacked particle
-      state = createParticle(
-        state,
-        { x: moveX, y: moveY, parent: { container: 'creatures', id } },
-        Attacked,
-        {}
-      )[0];
+      } else if (isWalkable(state, targetX, targetY)) {
+        // move in straight line
+        state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
 
-    } else if (isWalkable(state, targetX, targetY)) {
-      // move in straight line
-      state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
+      } else {
+        // find first free cell (or player) in either counter- or clockwise orientation by random
+        const rotation = getDeterministicRandomInt(0, 1) * 2 - 1;
+        const newOrientation = Array.from({ length: 3 }).map((_, offset) => {
+          const attemptOrientation: Orientation = orientations[(orientations.indexOf(orientation) + (offset + 1) * rotation + orientations.length) % orientations.length];
+          const [attemptX, attemptY] = directionOffset[attemptOrientation];
+          const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + attemptX, creatureProcessor.y + attemptY);
 
-    } else {
-      // find first free cell (or player) in either counter- or clockwise orientation by random
-      const rotation = getDeterministicRandomInt(0, 1) * 2 - 1;
-      const newOrientation = Array.from({ length: 3 }).map((_, offset) => {
-        const attemptOrientation: Orientation = orientations[(orientations.indexOf(orientation) + (offset + 1) * rotation + orientations.length) % orientations.length];
-        const [attemptX, attemptY] = directionOffset[attemptOrientation];
-        const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + attemptX, creatureProcessor.y + attemptY);
+          if ((targetX === player.x && targetY === player.y) || isWalkable(state, targetX, targetY)) {
+            return attemptOrientation;
+          }
+          return undefined;
+        }).filter(Boolean)[0];
 
-        if ((targetX === player.x && targetY === player.y) || isWalkable(state, targetX, targetY)) {
-          return attemptOrientation;
-        }
-        return undefined;
-      }).filter(Boolean)[0];
+        // if creature is stuck, make it circle around randomly
+        const stuckOrientation = orientations[(orientations.indexOf(orientation) + getDeterministicRandomInt(1, orientations.length - 1)) % orientations.length];
 
-      // if creature is stuck, make it circle around randomly
-      const stuckOrientation = orientations[(orientations.indexOf(orientation) + getDeterministicRandomInt(1, orientations.length - 1)) % orientations.length];
-
-      state = updateProcessorProps(state, { container: 'creatures', id }, { orientation: newOrientation || stuckOrientation });
+        state = updateProcessorProps(state, { container: 'creatures', id }, { orientation: newOrientation || stuckOrientation });
+      }
     }
   }
 
