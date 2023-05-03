@@ -1,5 +1,6 @@
 import { ReactComponentElement } from 'react';
 import { MapCell } from 'worldmap-generator';
+import { creatureSpawns, creatureStats, getRandomDistribution } from './balancing';
 import { World, world } from './biomes';
 
 import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Triangle, Spell, Sword, Armor, Terrain, Sand, Water, Circle } from "./entities";
@@ -158,13 +159,13 @@ function generateLevel(state: TerminalState): TerminalState {
 
       if (!cell.terrain && !cell.grounds && !cell.sprite) {
         if (itemNoise < -48) {
-          const spawns = [Triangle, Circle];
-          const Creature = spawns[getDeterministicRandomInt(0, 1)];
+          const [creature, props] = getRandomDistribution(creatureSpawns);
+          const hp = creatureStats.get(creature)?.hp || 1;
           state = createCreature(
             state,
             { x: columnIndex, y: rowIndex },
-            Creature,
-            { orientation: 'up', amount: 3, maximum: 3, equipments: [], particles: [] }
+            creature,
+            { orientation: 'up', amount: hp, maximum: hp, equipments: [], particles: [], ...props }
           )[0];
         }
       }
@@ -181,18 +182,18 @@ function generateLevel(state: TerminalState): TerminalState {
   });
 
   // insert player at initial coords
-  
+  const hp = creatureStats.get(Player)?.hp || 1;
   const [newState, player] = createCreature(
     state,
     { x: state.cameraX, y: state.cameraY },
     Player,
-    { orientation: 'up', amount: 10, maximum: 10, equipments: [], particles: [] }
+    { orientation: 'up', amount: hp, maximum: hp, equipments: [], particles: [] }
   );
   state = newState;
 
-  state = createEquipment(state, { x: 1, y: 1}, Sword, { amount: 2, material: 'iron', particles: [] })[0];
-  state = createEquipment(state, { x: 2, y: 2}, Armor, { amount: 1, material: 'wood', particles: [] })[0];
-  state = createEquipment(state, { x: 3, y: 3}, Spell, { amount: 3, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: 1, y: 1 }, Sword, { amount: 2, material: 'iron', particles: [] })[0];
+  state = createEquipment(state, { x: 2, y: 2 }, Armor, { amount: 1, material: 'wood', particles: [] })[0];
+  state = createEquipment(state, { x: 3, y: 3 }, Spell, { amount: 3, material: 'ice', particles: [] })[0];
 
   const fog = generateFog(state);
 

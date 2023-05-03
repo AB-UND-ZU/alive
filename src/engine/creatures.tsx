@@ -1,5 +1,26 @@
-import { Attacked, Circle, Freezing, Swimming, Triangle } from "./entities";
-import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor, pointToDegree, degreesToOrientation, relativeDistance } from "./utils";
+import { creatureStats, equipmentStats } from "./balancing";
+import { Armor, Attacked, Circle, Creature, Freezing, Swimming, Triangle } from "./entities";
+import { isWalkable, getDeterministicRandomInt, TerminalState, wrapCoordinates, directionOffset, orientations, isWater, updateProcessorProps, getPlayerProcessor, Orientation, createParticle, removeProcessor, updateProcessor, pointToDegree, degreesToOrientation, relativeDistance, CompositeId, resolveCompositeId, Processor } from "./utils";
+
+export const attackPlayer = (state: TerminalState, compositeId: CompositeId) => {
+  const player = getPlayerProcessor(state);
+  const creature = resolveCompositeId(state, compositeId) as Processor<Creature>;
+
+  const armor = state.inventory.armor ? (equipmentStats.get(Armor)?.[state.equipments[state.inventory.armor].entity.props.material] || 0) : 0;
+  const dmg = Math.max((creatureStats.get(creature.entity.type)?.dmg || 1) - armor, 1);
+  state.hp = state.hp - dmg;
+  state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });
+
+  // add attacked particle
+  state = createParticle(
+    state,
+    { x: player.x -  creature.x, y: player.y - creature.y, parent: compositeId },
+    Attacked,
+    {}
+  )[0];
+
+  return state;
+}
 
 export const tickCreature = (prevState: TerminalState, id: number): TerminalState => {
   let state = { ...prevState };
@@ -21,16 +42,7 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
 
       // hit player
       if (targetX === player.x && targetY === player.y) {
-        state.hp = state.hp - 3;
-        state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });
-
-        // add attacked particle
-        state = createParticle(
-          state,
-          { x: moveX, y: moveY, parent: { container: 'creatures', id } },
-          Attacked,
-          {}
-        )[0];
+        state = attackPlayer(state, { container: 'creatures', id });
 
       } else if (isWalkable(state, targetX, targetY)) {
         // move in straight line
@@ -68,16 +80,7 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
 
         // hit player
         if (targetX === player.x && targetY === player.y) {
-          state.hp = state.hp - 3;
-          state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });
-
-          // add attacked particle
-          state = createParticle(
-            state,
-            { x: attemptX, y: attemptY, parent: { container: 'creatures', id } },
-            Attacked,
-            {}
-          )[0];
+          state = attackPlayer(state, { container: 'creatures', id });
 
         } else if (isWalkable(state, targetX, targetY)) {
           // move in straight line

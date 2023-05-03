@@ -5,6 +5,7 @@ import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
 import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, getDeterministicRandomInt } from "../../engine/utils";
 import React from "react";
+import { equipmentStats } from "../../engine/balancing";
 
 type QueueAction = {
   type: 'queue',
@@ -244,7 +245,8 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       state = updateProcessorProps(state, { container: 'equipments', id: sword.id }, { direction: attackingDirection });
 
       // reduce health or kill creature
-      const newAmount = attackedCreature.entity.props.amount - sword.entity.props.amount;
+      const dmg = equipmentStats.get(Sword)?.[sword.entity.props.material] || 1;
+      const newAmount = attackedCreature.entity.props.amount - dmg;
 
       if (attackingDirection) {
         state = createParticle(

@@ -119,6 +119,7 @@ Intended to be used with https://www.rune.ai/
 - Shark (clover)
   - Swimming only
 - Shock wave tower
+- Fairy (running away)
 
 
 ## Balancing
@@ -146,6 +147,7 @@ Intended to be used with https://www.rune.ai/
 - Dark (no fog of war)
 - Desert
 - Ice world
+- Lava world
 
 ## Random observations
 
