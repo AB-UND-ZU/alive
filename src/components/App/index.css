@@ -314,6 +314,74 @@ html {
   color: var(--red);
 }
 
+.Collecting {
+  z-index: 33;
+}
+
+.Collecting.hp {
+  color: var(--red);
+}
+
+.Collecting.mp {
+  color: var(--blue);
+}
+
+.Collecting.gold {
+  color: var(--yellow);
+}
+
+.Collecting.wood {
+  color: var(--maroon);
+}
+
+.Collecting.iron {
+  color: var(--silver);
+}
+
+.Collecting.herb {
+  color: var(--purple);
+}
+
+.Collecting.seed {
+  color: var(--teal);
+}
+
+.Collecting.up {
+  animation: slidedown 250ms;
+}
+
+.Collecting.right {
+  animation: slideleft 250ms;
+}
+
+.Collecting.down {
+  animation: slideup 250ms;
+}
+
+.Collecting.left {
+  animation: slideright 250ms;
+}
+
+@keyframes slidedown {
+  from { transform: translateY(calc(var(--height) * -1)); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slideleft {
+  from { transform: translateX(var(--width)); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideup {
+  from { transform: translateY(var(--height)); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slideright {
+  from { transform: translateX(calc(var(--width) * -1)); }
+  to { transform: translateX(0); }
+}
+
 /*
 .Frame {
   color: var(--black);

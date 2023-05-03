@@ -252,6 +252,7 @@ export type Particle = React.FC<{
   direction?: Direction | Center,
   amount?: number,
   material?: Material,
+  counter?: Counters,
 }>;
 
 export const Swimming: Particle = () => {
@@ -291,6 +292,20 @@ export const Shock: Particle = ({ direction }) => {
     center: '',
   };
   return <span className="Entity Freezing">{shockDirections[direction || 'center']}</span>;
+}
+
+export const Collecting: Particle = ({ counter, direction }) => {
+  const counterParticles = {
+    hp: '\u0102',
+    xp: '+',
+    mp: '\u0103',
+    gold: '\u0108',
+    seed: '\'',
+    herb: '·',
+    wood: '-',
+    iron: '.',
+  };
+  return <span className={`Entity Collecting ${counter} ${direction}`}>{counter ? counterParticles[counter] : null}</span>;
 }
 
 export const particles = [Swimming, Burning, Shock];

@@ -1,4 +1,4 @@
-import { Attacked, Freezing, Ice, Player, Shock, Water } from "./entities";
+import { Attacked, Collecting, Freezing, Ice, Player, Shock, Water } from "./entities";
 import { createParticle, getAbsolutePosition, getCell, getCreature, isOrphaned, removeProcessor, TerminalState, updateCell, updateProcessorProps } from "./utils";
 
 export const tickParticle = (prevState: TerminalState, id: number) => {
@@ -12,7 +12,10 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
   const particleProcessor = state.particles[id];
 
   // remove fading particles
-  if (particleProcessor.entity.type === Attacked) {
+  if (
+    particleProcessor.entity.type === Attacked ||
+    particleProcessor.entity.type === Collecting
+  ) {
     state = removeProcessor(state, { container: 'particles', id });
     return state;
   }

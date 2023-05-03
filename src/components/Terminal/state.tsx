@@ -1,5 +1,5 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, counters, inventories, Shock, Spell, Sword, Wood  } from "../../engine/entities";
+import { Attacked, Collecting, counters, inventories, Shock, Spell, Sword, Wood  } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
@@ -28,6 +28,7 @@ type SpellAction = {
 
 type CollectAction = {
   type: 'collect',
+  orientation?: Orientation,
   x: number,
   y: number,
 };
@@ -79,7 +80,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       // if walking into item, stop and collect instead
       const targetCell = getCell(state, targetX, targetY);
       if (targetCell.item || collectedEquipment) {
-        state = reducer(state, { type: 'collect', x: targetX, y: targetY });
+        state = reducer(state, { type: 'collect', x: targetX, y: targetY, orientation });
 
       } else if (attackedCreature && state.inventory.sword) {
         // hit creature if found
@@ -110,7 +111,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
     }
 
     case 'collect': {
-      const { x, y } = action;
+      const { x, y, orientation } = action;
       const player = getPlayerProcessor(state);
       const collectCell = getCell(state, x, y);
       let equipmentProcessor = getEquipment(state, x, y);
@@ -135,8 +136,17 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
             Sword,
             { amount: 1, material: 'wood', particles: [] }
           );
+
         } else if (counter) {
+          // add collect animation
           state[counter] = state[counter] + 1;
+
+          state = createParticle(
+            state,
+            { x: 0, y: 0, parent: { container: 'creatures', id: player.id } },
+            Collecting,
+            { counter, direction: orientation }
+          )[0];
         }
       }
 
