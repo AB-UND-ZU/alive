@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/alive/static/css/main.e95d4085.css",
-    "main.js": "/alive/static/js/main.0ce91df1.js",
+    "main.css": "/alive/static/css/main.0dc6256f.css",
+    "main.js": "/alive/static/js/main.8fc5b24d.js",
     "static/js/496.c409c195.chunk.js": "/alive/static/js/496.c409c195.chunk.js",
     "static/media/MostPerfectDOSVGA.woff": "/alive/static/media/MostPerfectDOSVGA.0bc407725d7835147f83.woff",
     "static/media/MostPerfectDOSVGA.woff2": "/alive/static/media/MostPerfectDOSVGA.600be739af3f9caf080f.woff2",
     "index.html": "/alive/index.html",
-    "main.e95d4085.css.map": "/alive/static/css/main.e95d4085.css.map",
-    "main.0ce91df1.js.map": "/alive/static/js/main.0ce91df1.js.map",
+    "main.0dc6256f.css.map": "/alive/static/css/main.0dc6256f.css.map",
+    "main.8fc5b24d.js.map": "/alive/static/js/main.8fc5b24d.js.map",
     "496.c409c195.chunk.js.map": "/alive/static/js/496.c409c195.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.e95d4085.css",
-    "static/js/main.0ce91df1.js"
+    "static/css/main.0dc6256f.css",
+    "static/js/main.8fc5b24d.js"
   ]
 }
