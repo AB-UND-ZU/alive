@@ -264,7 +264,7 @@ export const updateProcessor = <T extends Entity>(state: TerminalState, composit
 export const updateProcessorProps = <T extends Entity>(state: TerminalState, compositeId: CompositeId, props: Partial<React.ComponentProps<T>>) => {
   const processor = resolveCompositeId(state, compositeId);
 
-  if (!processor) return state;
+  if (!processor.entity) return state;
 
   return updateProcessor(state, compositeId, {
     // didn't manage to convice TypeScript here
