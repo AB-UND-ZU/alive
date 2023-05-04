@@ -118,6 +118,7 @@ export type TerminalState = {
   inventory: Inventory,
   orientation?: Orientation,
   playerId: number,
+  tick: number,
 
   // stats
   hp: number,
@@ -154,6 +155,7 @@ export const defaultState: TerminalState = {
   repeatX: 0,
   repeatY: 0,
   orientation: undefined,
+  tick: 0,
   hp: 10,
   mp: 0,
   xp: 0,

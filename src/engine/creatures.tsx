@@ -8,7 +8,7 @@ export const attackPlayer = (state: TerminalState, compositeId: CompositeId) => 
 
   const armor = state.inventory.armor ? (equipmentStats.get(Armor)?.[state.equipments[state.inventory.armor].entity.props.material] || 0) : 0;
   const dmg = Math.max((creatureStats.get(creature.entity.type)?.dmg || 1) - armor, 1);
-  state.hp = state.hp - dmg;
+  state.hp = Math.max(state.hp - dmg, 0);
   state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });
 
   // add attacked particle

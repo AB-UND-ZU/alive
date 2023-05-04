@@ -16,7 +16,9 @@ const Controls = ({ state }: { state: TerminalState }) => {
         ) : (
           renderText('      ')
         )}
-        {renderText('│       │ ')}
+        {renderText('│ ')}
+        {renderText('Alive', 'Pad')}
+        {renderText(' │ ')}
         {renderText(padOrientation[state.orientation || center][0], 'Pad')}
       </div>
 
@@ -26,7 +28,7 @@ const Controls = ({ state }: { state: TerminalState }) => {
         ) : (
           renderText('      ')
         )}
-        {renderText('│       │ ')}
+        {renderText(`│ ${Math.floor(state.tick / 3).toString().padStart(5)} │ `)}
         {renderText(padOrientation[state.orientation || center][1], 'Pad')}
       </div>
     </div>

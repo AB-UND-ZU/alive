@@ -35,8 +35,15 @@ const Terminal = ({
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
   const pressedOrientations = useRef<Orientation[]>([]);
   const spellRef = useRef<HTMLDivElement>(null);
+  const gameOverRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    gameOverRef.current = state.hp <= 0;
+  }, [state.hp]);
 
   const handleTick = () => {
+    if (gameOverRef.current) return;
+
     if (lastTick.current) {
       clearTimeout(lastTick.current[1]);
     }
@@ -49,6 +56,8 @@ const Terminal = ({
   };
 
   const handleMove = (orientation: Orientation) => {
+    if (gameOverRef.current) return;
+
     const now = Date.now();
     if (lastMove.current) {
       clearTimeout(lastMove.current[1]);

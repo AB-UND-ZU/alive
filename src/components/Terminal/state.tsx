@@ -1,9 +1,9 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, Circle, Collecting, counters, Experience, Gold, inventories, Item, Life, Mana, Shock, Spell, Sword, Triangle, Wood } from "../../engine/entities";
+import { Attacked, Collecting, counters, inventories, Item, Shock, Spell, Sword, Wood } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
-import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, getDeterministicRandomInt } from "../../engine/utils";
+import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity } from "../../engine/utils";
 import React from "react";
 import { creatureStats, equipmentStats, getRandomDistribution } from "../../engine/balancing";
 
@@ -223,6 +223,8 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
 
         state = tickCreature(state, creature.id);
       });
+
+      state.tick = state.tick + 1;
 
       return state;
     }

@@ -16,16 +16,16 @@ export type CreatureStats = {
 export const creatureStats = new Map<Creature, CreatureStats>([
   [Player, { hp: 10, dmg: 0, drops: [] }],
   [Triangle, { hp: 4, dmg: 3, drops: [
-    { ratio: 25, entity: Life, props: { amount: 1 } },
-    { ratio: 25, entity: Mana, props: { amount: 1 } },
-    { ratio: 25, entity: Gold, props: { amount: 1 } },
-    { ratio: 25, entity: Experience, props: { amount: 1 } },
+    { ratio: 40, entity: Life, props: { amount: 1 } },
+    { ratio: 30, entity: Mana, props: { amount: 1 } },
+    { ratio: 20, entity: Gold, props: { amount: 1 } },
+    { ratio: 10, entity: Experience, props: { amount: 1 } },
   ] }],
   [Circle, { hp: 1, dmg: 3, drops: [
-    { ratio: 25, entity: Life, props: { amount: 1 } },
-    { ratio: 25, entity: Mana, props: { amount: 1 } },
-    { ratio: 25, entity: Gold, props: { amount: 1 } },
-    { ratio: 25, entity: Experience, props: { amount: 1 } },
+    { ratio: 40, entity: Life, props: { amount: 1 } },
+    { ratio: 30, entity: Mana, props: { amount: 1 } },
+    { ratio: 20, entity: Gold, props: { amount: 1 } },
+    { ratio: 10, entity: Experience, props: { amount: 1 } },
   ] }],
 ]);
 
