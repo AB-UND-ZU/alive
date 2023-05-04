@@ -40,6 +40,10 @@ html {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+
+  max-width: 100vw;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 .MoveOverlay,
@@ -86,7 +90,7 @@ html {
 
 .Viewport {
   height: calc(var(--height) * 13);
-  width: calc(18px * 21);
+  width: calc(var(--width) * 21);
   overflow: hidden;
   position: relative;
 }
