@@ -264,8 +264,8 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       } else {
         // add drops
         const drops = creatureStats.get(attackedCreature.entity.type);
-        if (drops) {
-          const [Drop, props] = getRandomDistribution<Item>(drops.drops);
+        const [Drop, props] = getRandomDistribution<Item>(drops?.drops || []);
+        if (Drop) {
           state = updateCell(state, x, y, { item: <Drop {...props} /> });
         }
 
@@ -287,7 +287,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       // create spell and initial particle
       let wave, centerParticle;
       [state, wave] = createEquipment(state, { x: player.x, y: player.y }, Spell, { amount: 1, material: spell.entity.props.material, interaction: 'using', particles: [] });
-      [state, centerParticle] = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: wave.id } }, Shock, { direction: 'center' });
+      [state, centerParticle] = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: wave.id } }, Shock, { direction: 'center', material: spell.entity.props.material });
       
       // start first tick
       state = tickParticle(state, centerParticle.id);

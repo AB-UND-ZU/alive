@@ -52,6 +52,10 @@ export const Rock: Terrain = () => {
   return <span className="Entity Rock">{'█'}</span>
 }
 
+export const Stub: Terrain = () => {
+  return <span className="Entity Wood">{'\u2510'}</span>;
+}
+
 export const Tree: Terrain = ({ direction }) => {
   return (
     <>
@@ -61,7 +65,7 @@ export const Tree: Terrain = ({ direction }) => {
   );
 }
 
-export const terrains = [Rock, Tree];
+export const terrains = [Rock, Stub, Tree];
 
 
 // ------------------------ EQUIPMENT --------------------------------

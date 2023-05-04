@@ -1,6 +1,6 @@
-import { creatureStats, getRandomDistribution } from "./balancing";
+import { creatureStats, getRandomDistribution, terrainStats } from "./balancing";
 import { tickCreature } from "./creatures";
-import { Attacked, Burning, Collecting, Creature, Freezing, Ice, Item, Player, Shock, Tree, Water } from "./entities";
+import { Attacked, Burning, Collecting, Creature, Freezing, Ice, Item, Player, Shock, Stub, Tree, Water } from "./entities";
 import { createParticle, getAbsolutePosition, getCell, getCreature, getDeterministicRandomInt, getPlayerProcessor, isOrphaned, isWater, Processor, removeProcessor, resolveCompositeId, TerminalState, updateCell, updateProcessorProps } from "./utils";
 
 export const tickParticle = (prevState: TerminalState, id: number) => {
@@ -49,8 +49,8 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
       } else {
         // add drops
         const drops = creatureStats.get(parent.entity.type);
-        if (drops) {
-          const [Drop, props] = getRandomDistribution<Item>(drops.drops);
+        const [Drop, props] = getRandomDistribution<Item>(drops?.drops || []);
+        if (Drop) {
           state = updateCell(state, particleX, particleY, { item: <Drop {...props} /> });
         }
 
@@ -65,8 +65,11 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
 
     } else {
       // burn down tree
-      if (cell.terrain?.type === Tree) {
-        state = updateCell(state, particleX, particleY, { terrain: undefined });
+      if (cell.terrain?.type === Stub) {
+        // add drops
+        const drops = terrainStats.get(cell.terrain.type);
+        const [Drop, props] = getRandomDistribution<Item>(drops?.drops || []);
+        state = updateCell(state, particleX, particleY, { terrain: undefined, item: Drop ? <Drop {...props} /> : undefined });
       }
 
       state = removeProcessor(state, { container: 'particles', id });
@@ -114,7 +117,7 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
       }
 
     } else if (particleProcessor.entity.props.material === 'fire') {
-      // thaw ground and burn plants and items
+      // thaw ground
       const thawed = cell.grounds?.map(
         ground => ground.type === Ice ? {
           ...ground,
@@ -122,15 +125,17 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
         } : ground,
       );
 
-      state = updateCell(state, particleX, particleY, { grounds: thawed, sprite: undefined, item: undefined });
-
       // burn tree
-      if (cell.terrain?.type === Tree) {
+      const isTree = cell.terrain?.type === Tree;
+      if (isTree) {
         state = createParticle(state, {
           x: particleX,
           y: particleY,
         }, Burning, { amount: 3 })[0];
       }
+
+      // burn plants and items
+      state = updateCell(state, particleX, particleY, { grounds: thawed, sprite: undefined, item: undefined, terrain: isTree ? <Stub /> : cell.terrain });
 
       // update if player is standing on it
       const player = getPlayerProcessor(state);
