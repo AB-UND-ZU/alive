@@ -38,7 +38,7 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
   // burn things
   if (particleProcessor.entity.type === Burning) {
     // 50% chance to do nothing
-    if (getDeterministicRandomInt(0, 1) === 1) return state;
+    if (getDeterministicRandomInt(1, 2) !== 2) return state;
 
     // damage or kill creature
     if (particleProcessor.parent?.container === 'creatures') {
@@ -105,14 +105,14 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
 
         // refresh freezing count
         if (frozenIndex !== -1) {
-          state = updateProcessorProps(state, { container: 'particles', id: creatureParticles[frozenIndex] }, { amount: 8 });
+          state = updateProcessorProps(state, { container: 'particles', id: creatureParticles[frozenIndex] }, { amount: 12 });
 
         } else {
           state = createParticle(state, {
             x: 0,
             y: 0,
             parent: { container: 'creatures', id: affectedId }
-          }, Freezing, { amount: 8 })[0];
+          }, Freezing, { amount: 12 })[0];
         }
       }
 

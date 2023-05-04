@@ -271,9 +271,10 @@ export const Burning: Particle = ({ amount }) => {
 
 export const Freezing: Particle = ({ amount }) => {
   if (!amount) return null;
-  if (amount > 4) return <span className="Entity Freezing">{'▓'}</span>;
-  if (amount > 2) return <span className="Entity Freezing">{'▒'}</span>;
-  return <span className="Entity Freezing">{'░'}</span>;
+  if (amount > 9) return <span className="Entity Freezing">{'▓'}</span>;
+  if (amount > 5) return <span className="Entity Freezing">{'▒'}</span>;
+  if (amount > 1) return <span className="Entity Freezing">{'░'}</span>;
+  return null
 }
 
 export const Attacked: Particle = ({ material }) => {
