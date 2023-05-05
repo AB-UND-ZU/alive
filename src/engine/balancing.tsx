@@ -15,7 +15,7 @@ export type CreatureStats = {
 
 export const creatureStats = new Map<Creature, CreatureStats>([
   [Player, { hp: 10, dmg: 0, drops: [] }],
-  [Triangle, { hp: 4, dmg: 3, drops: [
+  [Triangle, { hp: 3, dmg: 3, drops: [
     { percentage: 10, entity: Life, props: { amount: 1 } },
     { percentage: 60, entity: Mana, props: { amount: 1 } },
     { percentage: 20, entity: Gold, props: { amount: 1 } },

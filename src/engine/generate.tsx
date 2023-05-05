@@ -58,10 +58,10 @@ const getInterpolatedValue = (matrix: number[][], ratio: number, x: number, y: n
   }));
 };
 
-const whiteNoiseWithFlatCorners = (width: number, height: number, corners: number) => {
+const whiteNoiseWithFlatCorners = (width: number, height: number, cornersX: number, cornersY: number) => {
   const noiseMatrix = generateWhiteNoise(width, height, -1, 1);
-  Array.from({ length: corners }).forEach((_, x) => {
-    Array.from({ length: corners }).forEach((_, y) => {
+  Array.from({ length: cornersX }).forEach((_, x) => {
+    Array.from({ length: cornersY }).forEach((_, y) => {
       noiseMatrix[y][x] = 0;
       noiseMatrix[y][width - x - 1] = 0;
       noiseMatrix[height - y - 1][x] = 0;
@@ -75,10 +75,10 @@ function generateLevel(state: TerminalState): TerminalState {
   const width = state.width * 2;
   const height = state.height * 2;
 
-  const terrainMatrix = valueNoiseMatrix(width, height, 20, whiteNoiseWithFlatCorners(width, height, 6));
-  const greenMatrix = valueNoiseMatrix(width, height, 1, whiteNoiseWithFlatCorners(width, height, 6));
-  const itemMatrix = valueNoiseMatrix(width / 2, height / 2, 0, whiteNoiseWithFlatCorners(width / 2, height / 2, 12));
-  const elevationMatrix = valueNoiseMatrix(width / 8, height / 8, 20, whiteNoiseWithFlatCorners(width / 8, height / 8, 32));
+  const terrainMatrix = valueNoiseMatrix(width, height, 20, whiteNoiseWithFlatCorners(width, height, 21, 12));
+  const greenMatrix = valueNoiseMatrix(width, height, 1, whiteNoiseWithFlatCorners(width, height, 12, 12));
+  const itemMatrix = valueNoiseMatrix(width / 2, height / 2, 0, whiteNoiseWithFlatCorners(width / 2, height / 2, 10, 6));
+  const elevationMatrix = valueNoiseMatrix(width / 8, height / 8, 20, whiteNoiseWithFlatCorners(width / 8, height / 8, 21, 12));
   const temperatureMatrix = valueNoiseMatrix(width / 8, height / 8, 20);
 
   const worldMap = createMatrix(width, height, (x, y) => {
