@@ -76,7 +76,7 @@ function generateLevel(state: TerminalState): TerminalState {
   const height = state.height * 2;
 
   const terrainMatrix = valueNoiseMatrix(width, height, 20, whiteNoiseWithFlatCorners(width, height, 21, 12));
-  const greenMatrix = valueNoiseMatrix(width, height, 1, whiteNoiseWithFlatCorners(width, height, 12, 12));
+  const greenMatrix = valueNoiseMatrix(width, height, 1, whiteNoiseWithFlatCorners(width, height, 21, 12));
   const itemMatrix = valueNoiseMatrix(width / 2, height / 2, 0, whiteNoiseWithFlatCorners(width / 2, height / 2, 10, 6));
   const elevationMatrix = valueNoiseMatrix(width / 8, height / 8, 20, whiteNoiseWithFlatCorners(width / 8, height / 8, 21, 12));
   const temperatureMatrix = valueNoiseMatrix(width / 8, height / 8, 20);
