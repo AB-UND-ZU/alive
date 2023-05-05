@@ -1,5 +1,5 @@
 import React, { ReactComponentElement } from "react";
-import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment } from "./entities";
+import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment, equipments } from "./entities";
 
 let lastId = 0;
 export const getId = () => {
@@ -206,11 +206,14 @@ export const getCreature = (state: TerminalState, x: number, y: number, predicat
 
 export const getEquipment = (state: TerminalState, x: number, y: number, predicate: (creature: Processor<Equipment>) => boolean = () => true) => {
   const [wrappedX, wrappedY] = wrapCoordinates(state, x, y);
-  return Object.values(state.equipments).find(equipment => (
-    equipment.x === wrappedX &&
-    equipment.y === wrappedY &&
-    predicate(equipment)
-  ));
+  return Object.values(state.equipments).find(equipment => {
+    const [equipmentX, equipmentY] = getAbsolutePosition(state, equipment);
+    return (
+      equipmentX === wrappedX &&
+      equipmentY === wrappedY &&
+      predicate(equipment)
+    );
+  })
 };
 
 export const removeProcessor = (state: TerminalState, compositeId: CompositeId): TerminalState => {
@@ -266,7 +269,7 @@ export const updateProcessor = <T extends Entity>(state: TerminalState, composit
 export const updateProcessorProps = <T extends Entity>(state: TerminalState, compositeId: CompositeId, props: Partial<React.ComponentProps<T>>) => {
   const processor = resolveCompositeId(state, compositeId);
 
-  if (!processor.entity) return state;
+  if (!processor) return state;
 
   return updateProcessor(state, compositeId, {
     // didn't manage to convice TypeScript here
