@@ -1,10 +1,10 @@
 import { Armor, Circle, Creature, Entity, Equipment, Experience, Gold, Item, Life, Mana, Material, Player, Stub, Sword, Terrain, Triangle, Wood } from "./entities";
 import { getDeterministicRandomInt } from "./utils";
 
-export type Distribution<T extends Entity> = {
+export type Distribution<T extends Entity, O extends string = 'id'> = {
   percentage: number,
   entity: T,
-  props: Omit<React.ComponentProps<T>, 'id'>,
+  props: Omit<React.ComponentProps<T>, O>,
 };
 
 export type CreatureStats = {
@@ -29,9 +29,9 @@ export const creatureStats = new Map<Creature, CreatureStats>([
   ] }],
 ]);
 
-export const creatureSpawns: Distribution<Creature>[] = [
-  { percentage: 50, entity: Triangle, props: { amount: 4, maximum: 4, orientation: 'up', particles: [], equipments: [] } },
-  { percentage: 50, entity: Circle, props: { amount: 1, maximum: 1, orientation: 'up', particles: [], equipments: [] } },
+export const creatureSpawns: Distribution<Creature, 'id' | 'amount' | 'maximum'>[] = [
+  { percentage: 50, entity: Triangle, props: { orientation: 'up', particles: [], equipments: [] } },
+  { percentage: 50, entity: Circle, props: { orientation: 'up', particles: [], equipments: [] } },
 ];
 
 export type EquipmentStats = Partial<Record<Material, number>>;
@@ -51,7 +51,7 @@ export const terrainStats = new Map<Terrain, TerrainStats>([
   ] }],
 ]);
 
-export const getRandomDistribution = <T extends Entity>(distributions: Distribution<T>[]) => {
+export const getRandomDistribution = <T extends Entity, O extends string>(distributions: Distribution<T, O>[]) => {
   const random = getDeterministicRandomInt(1, 100);
 
   let skipped = 0;

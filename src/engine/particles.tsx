@@ -1,6 +1,6 @@
 import { creatureStats, getRandomDistribution, terrainStats } from "./balancing";
 import { tickCreature } from "./creatures";
-import { Attacked, Burning, Collecting, Creature, Freezing, Ice, Item, Player, Shock, Stub, Tree, Water } from "./entities";
+import { Attacked, Burning, Collecting, Creature, Freezing, Ice, Player, Shock, Stub, Tree, Water } from "./entities";
 import { createParticle, getAbsolutePosition, getCell, getCreature, getDeterministicRandomInt, getPlayerProcessor, isOrphaned, isWater, Processor, removeProcessor, resolveCompositeId, TerminalState, updateCell, updateProcessorProps } from "./utils";
 
 export const tickParticle = (prevState: TerminalState, id: number) => {
@@ -49,7 +49,7 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
       } else {
         // add drops
         const drops = creatureStats.get(parent.entity.type);
-        const [Drop, props] = getRandomDistribution<Item>(drops?.drops || []);
+        const [Drop, props] = getRandomDistribution(drops?.drops || []);
         if (Drop) {
           state = updateCell(state, particleX, particleY, { item: <Drop {...props} /> });
         }
@@ -68,7 +68,7 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
       if (cell.terrain?.type === Stub) {
         // add drops
         const drops = terrainStats.get(cell.terrain.type);
-        const [Drop, props] = getRandomDistribution<Item>(drops?.drops || []);
+        const [Drop, props] = getRandomDistribution(drops?.drops || []);
         state = updateCell(state, particleX, particleY, { terrain: undefined, item: Drop ? <Drop {...props} /> : undefined });
       }
 

@@ -171,12 +171,13 @@ function generateLevel(state: TerminalState): TerminalState {
 
       if (!cell.terrain && !cell.grounds && !cell.sprite) {
         const [creature, props] = getRandomDistribution(creatureSpawns);
-        if (itemNoise < -48 && creature) {
+        const spawnedStats = creatureStats.get(creature!);
+        if (itemNoise < -48 && creature && spawnedStats) {
           state = createCreature(
             state,
             { x: columnIndex, y: rowIndex },
             creature,
-            props,
+            { amount: spawnedStats.hp, maximum: spawnedStats.hp, ...props },
           )[0];
         }
       }

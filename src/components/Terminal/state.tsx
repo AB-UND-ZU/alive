@@ -1,5 +1,5 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, Collecting, counters, inventories, Item, Shock, Spell, Sword, Wood } from "../../engine/entities";
+import { Attacked, Collecting, counters, inventories, Shock, Spell, Sword, Wood } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
@@ -264,7 +264,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       } else {
         // add drops
         const drops = creatureStats.get(attackedCreature.entity.type);
-        const [Drop, props] = getRandomDistribution<Item>(drops?.drops || []);
+        const [Drop, props] = getRandomDistribution(drops?.drops || []);
         if (Drop) {
           state = updateCell(state, x, y, { item: <Drop {...props} /> });
         }
