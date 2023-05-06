@@ -1,8 +1,20 @@
 import { equipmentStats } from "./balancing";
-import { Wave, Spell } from "./entities";
-import { CompositeId, createParticle, isOrphaned, removeProcessor, TerminalState, updateProcessorProps } from "./utils";
+import { Wave, Spell, Blocked } from "./entities";
+import { CompositeId, createEquipment, createParticle, Direction, directionOffset, isOrphaned, removeProcessor, TerminalState, updateProcessorProps } from "./utils";
 
 const MAX_RADIUS = 7;
+
+export const decayEquipment = (state: TerminalState, id: number) => {
+  const equipmentProcessor = state.equipments[id];
+  const amount = equipmentProcessor.entity.props.amount;
+  state = updateProcessorProps(state, { container: 'equipments', id }, { amount: amount - 1 });
+
+  // clear equipment once amount runs out
+  if (amount <= 0) {
+    state = removeProcessor(state, { container: 'equipments', id });
+  }
+  return state;
+}
 
 export const tickEquipment = (prevState: TerminalState, id: number): TerminalState => {
   let state = { ...prevState };
@@ -14,20 +26,36 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
 
   const equipmentProcessor = state.equipments[id];
 
-  if (equipmentProcessor.entity.type === Spell && equipmentProcessor.entity.props.interaction === 'using') {
+  if (equipmentProcessor.entity.type === Blocked && equipmentProcessor.entity.props.interaction === 'using') {
+    // clear equipment once amount runs out
+    state = decayEquipment(state, id);
+
+  } else if (equipmentProcessor.entity.type === Spell && equipmentProcessor.entity.props.interaction === 'using') {
     const amount = equipmentProcessor.entity.props.amount;
     const level = equipmentProcessor.entity.props.maximum;
     const maximum = equipmentStats.get(Spell)?.[level - 1][equipmentProcessor.entity.props.material] || 1;
 
-    state = updateProcessorProps(state, { container: 'equipments', id }, { amount: amount - 1 });
-
     // clear equipment once amount runs out
-    if (amount <= 0) {
-      state = removeProcessor(state, { container: 'equipments', id });
+    state = decayEquipment(state, id);
+
+    // spawn bubble blockers
+    if (equipmentProcessor.entity.props.material === 'plant') {
+      if (amount === maximum) {
+        const deltas = Object.entries(directionOffset);
+        deltas.forEach(([direction, delta]) => {
+          let blocker;
+          [state, blocker] = createEquipment(state, { x: delta[0], y: delta[1], parent: { container: 'creatures', id: state.playerId } }, Blocked, {
+            particles: [], amount: maximum, maximum: 0, material: 'plant', interaction: 'using',
+          });
+          state = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: blocker.id } }, Wave, {
+            direction: direction as Direction, material: equipmentProcessor.entity.props.material
+          })[0];
+        });
+      }
       return state;
     }
 
-    let radius = 1;
+    let radius: number;
     if (maximum >= MAX_RADIUS) {
       radius = amount >= MAX_RADIUS ? MAX_RADIUS * 2 - amount : amount;
     } else {

@@ -100,6 +100,10 @@ export const Spell: Equipment = ({ maximum, interaction, material }) => {
   return <span className={`Entity Spell ${material}`}>{interaction === 'equipped' ? '~' : spellLevels[maximum - 1]}</span>
 }
 
+export const Blocked: Equipment = () => {
+  return null;
+}
+
 export const Boat: Equipment = ({ material }) => {
   return <span className={`Entity Boat ${material}`}>{'\u0115'}</span>
 }
@@ -108,7 +112,7 @@ export const Key: Equipment = ({ material }) => {
   return <span className={`Entity Key ${material}`}>{'\u011c'}</span>
 }
 
-export const equipments = [Armor, Sword, Spell, Boat, Key];
+export const equipments = [Armor, Sword, Spell, Blocked, Boat, Key];
 
 
 
@@ -351,7 +355,7 @@ export const inventories = new Map<Equipment | undefined, keyof Inventory>([
 
 export type Interaction = 'equipped' | 'using';
 
-export const materials = ['wood', 'iron', 'fire', 'ice', 'plant'] as const;
+export const materials = ['wood', 'iron', 'gold', 'fire', 'ice', 'plant'] as const;
 export type Material = typeof materials[number];
 
 export const containers = new Map<Sprite | Terrain | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);

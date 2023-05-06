@@ -76,7 +76,10 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       const [targetX, targetY] = wrapCoordinates(state, movedX, movedY);
 
       const attackedCreature = getCreature(state, targetX, targetY);
-      const collectedEquipment = getEquipment(state, targetX, targetY, equipment => !equipment.entity.props.interaction)
+      const collectedEquipment = getEquipment(state, targetX, targetY, equipment => (
+        !equipment.entity.props.interaction &&
+        !getParentEntity(state, equipment)
+      ));
 
       // if walking into item, stop and collect instead
       const targetCell = getCell(state, targetX, targetY);
@@ -88,7 +91,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         state = reducer(state, { type: 'attack', x: targetX, y: targetY });
         
       } else {
-        if (isWalkable(state, targetX, targetY)) {
+        if (isWalkable(state, targetX, targetY, player.id)) {
           // move both player and camera
           state = updateProcessor(state, { container: 'creatures', id: player.id }, { x: targetX, y: targetY });
 
@@ -100,8 +103,9 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
           state.repeatY = state.repeatY + Math.sign(movedY - targetY);
         }
 
-        // process nested particles
+        // process all player updates
         state = tickCreature(state, player.id);
+
         Object.values(getPlayerProcessor(state).entity.props.particles).forEach(particleId => {
           state = tickParticle(state, particleId);
         });

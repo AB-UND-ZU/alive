@@ -1,5 +1,5 @@
 import React, { ReactComponentElement } from "react";
-import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment } from "./entities";
+import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment, Blocked } from "./entities";
 
 let lastId = 0;
 export const getId = () => {
@@ -388,9 +388,10 @@ export const isWater = (state: TerminalState, x: number, y: number) => {
   return cell.grounds?.length === 1 && cell.grounds[0].type === Water && cell.grounds[0].props.amount === 4;
 }
 export const isLand = (state: TerminalState, x: number, y: number) => [-1, 0, 1].map(deltaX => [-1, 0, 1].map(deltaY => !isWater(state, x + deltaX, y + deltaY))).flat().some(Boolean);
-export const isWalkable = (state: TerminalState, x: number, y: number) => {
+export const isWalkable = (state: TerminalState, x: number, y: number, id: number) => {
   const cell = getCell(state, x, y);
   const creature = getCreature(state, x, y);
-  const equipment = getEquipment(state, x, y, equipment => !equipment.entity.props.interaction)
-  return isLand(state, x, y) && !cell.terrain && !creature && !cell.item && !equipment;
+  const equipment = getEquipment(state, x, y, equipment => !equipment.entity.props.interaction || equipment.entity.type === Blocked)
+  const passableEquipment = equipment ? getParentEntity(state, equipment)?.id === id : true;
+  return isLand(state, x, y) && !cell.terrain && !creature && !cell.item && passableEquipment;
 }

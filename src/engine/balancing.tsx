@@ -39,7 +39,7 @@ export type EquipmentStats = Partial<Record<Material, number>>;
 export const equipmentStats = new Map<Equipment, EquipmentStats[]>([
   [Sword, [{ wood: 1, iron: 2 }]],
   [Armor, [{ wood: 1, iron: 2 }]],
-  [Spell, [{ ice: 5, fire: 5, plant: 12 }, { ice: 13, fire: 13, plant: 20 }]],
+  [Spell, [{ ice: 5, fire: 5, plant: 15 }, { ice: 13, fire: 13, plant: 25 }]],
 ]);
 
 export type TerrainStats = {

@@ -40,13 +40,13 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
       const [moveX, moveY] = directionOffset[orientation];
       const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + moveX, creatureProcessor.y + moveY);
 
-      // hit player
-      if (targetX === player.x && targetY === player.y) {
-        state = attackPlayer(state, { container: 'creatures', id });
-
-      } else if (isWalkable(state, targetX, targetY)) {
-        // move in straight line
+      // move in straight line
+      if (isWalkable(state, targetX, targetY, id)) {
         state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
+
+      } else if (targetX === player.x && targetY === player.y) {
+        // hit player
+        state = attackPlayer(state, { container: 'creatures', id });
 
       } else {
         // find first free cell (or player) in either counter- or clockwise orientation by random
@@ -56,7 +56,7 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
           const [attemptX, attemptY] = directionOffset[attemptOrientation];
           const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + attemptX, creatureProcessor.y + attemptY);
 
-          if ((targetX === player.x && targetY === player.y) || isWalkable(state, targetX, targetY)) {
+          if ((targetX === player.x && targetY === player.y) || isWalkable(state, targetX, targetY, id)) {
             return attemptOrientation;
           }
           return undefined;
@@ -78,13 +78,14 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
         const [attemptX, attemptY] = directionOffset[orientation];
         const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + attemptX, creatureProcessor.y + attemptY);
 
-        // hit player
-        if (targetX === player.x && targetY === player.y) {
+        // move towards player
+        if (isWalkable(state, targetX, targetY, id)) {
+          state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
+
+        } else if (targetX === player.x && targetY === player.y) {
+          // hit player
           state = attackPlayer(state, { container: 'creatures', id });
 
-        } else if (isWalkable(state, targetX, targetY)) {
-          // move in straight line
-          state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
         }
       }
     }
