@@ -41,6 +41,10 @@ body,
   overflow: hidden;
 }
 
+.App {
+  position: relative;
+}
+
 .MoveOverlay,
 .SpellOverlay,
 .Stats span,
@@ -65,9 +69,9 @@ body,
 .SpellOverlay {
   position: absolute;
   z-index: 101;
-  top: 85%;
+  bottom: 0%;
   height: 15%;
-  width: 30%;
+  width: 33%;
 }
 
 .Terminal {
