@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useReducer, useRef } from "react";
+import { disableBodyScroll } from 'body-scroll-lock';
+
 import Board from "../Board";
 import Controls from "../Controls";
 import Stats from "../Stats";
@@ -166,6 +168,8 @@ const Terminal = ({
     window.addEventListener('touchmove', handleTouchMove);
     window.addEventListener('touchend', handleTouchMove);
     window.addEventListener('touchcancel', handleTouchMove);
+
+    disableBodyScroll(document.querySelector('.MoveOverlay')!);
 
     handleTick();
     dispatch({ type: 'move' });
