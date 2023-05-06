@@ -1,4 +1,4 @@
-import { Armor, Circle, Creature, Entity, Equipment, Experience, Gold, Item, Life, Mana, Material, Player, Stub, Sword, Terrain, Triangle, Wood } from "./entities";
+import { Armor, Circle, Creature, Entity, Equipment, Experience, Gold, Item, Life, Mana, Material, Player, Spell, Stub, Sword, Terrain, Triangle, Wood } from "./entities";
 import { getDeterministicRandomInt } from "./utils";
 
 export type Distribution<T extends Entity, O extends string = 'id'> = {
@@ -36,9 +36,10 @@ export const creatureSpawns: Distribution<Creature, 'id' | 'amount' | 'maximum'>
 
 export type EquipmentStats = Partial<Record<Material, number>>;
 
-export const equipmentStats = new Map<Equipment, EquipmentStats>([
-  [Sword, { wood: 1, iron: 2 }],
-  [Armor, { wood: 1, iron: 2 }],
+export const equipmentStats = new Map<Equipment, EquipmentStats[]>([
+  [Sword, [{ wood: 1, iron: 2 }]],
+  [Armor, [{ wood: 1, iron: 2 }]],
+  [Spell, [{ ice: 5, fire: 5, plant: 12 }, { ice: 13, fire: 13, plant: 20 }]],
 ]);
 
 export type TerrainStats = {

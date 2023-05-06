@@ -1,7 +1,30 @@
 import { creatureStats, getRandomDistribution, terrainStats } from "./balancing";
 import { tickCreature } from "./creatures";
-import { Attacked, Burning, Collecting, Creature, Freezing, Ice, Player, Shock, Stub, Tree, Water } from "./entities";
-import { createParticle, getAbsolutePosition, getCell, getCreature, getDeterministicRandomInt, getPlayerProcessor, isOrphaned, isWater, Processor, removeProcessor, resolveCompositeId, TerminalState, updateCell, updateProcessorProps } from "./utils";
+import { Attacked, Burning, Collecting, Creature, Freezing, Ice, Player, Wave, Stub, Tree, Water } from "./entities";
+import { createParticle, getAbsolutePosition, getCell, getCreature, getDeterministicRandomInt, getPlayerProcessor, isOrphaned, isWater, Processor, removeProcessor, resolveCompositeId, TerminalState, updateCell, updateProcessor, updateProcessorProps } from "./utils";
+
+export const killCreature = (state: TerminalState, id: number) => {
+  const creature = state.creatures[id];
+  // add drops
+  const drops = creatureStats.get(creature.entity.type);
+  const [Drop, props] = getRandomDistribution(drops?.drops || []);
+  if (Drop) {
+    state = updateCell(state, creature.x, creature.y, { item: <Drop {...props} /> });
+  }
+
+  // keep attack particles
+  const attacked = creature.entity.props.particles.map(
+    particleId => state.particles[particleId]
+  ).filter(particle => particle.entity.type === Attacked);
+
+  attacked.forEach(particle => {
+    const [x, y] = getAbsolutePosition(state, particle);
+    state = updateProcessor(state, { container: 'particles', id: particle.id }, { x, y, parent: undefined });
+  })
+
+  state = removeProcessor(state, { container: 'creatures', id });
+  return state;
+}
 
 export const tickParticle = (prevState: TerminalState, id: number) => {
   let state = { ...prevState };
@@ -47,14 +70,7 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
       if (newHp > 0) {
         state = updateProcessorProps(state, particleProcessor.parent, { amount: newHp });
       } else {
-        // add drops
-        const drops = creatureStats.get(parent.entity.type);
-        const [Drop, props] = getRandomDistribution(drops?.drops || []);
-        if (Drop) {
-          state = updateCell(state, particleX, particleY, { item: <Drop {...props} /> });
-        }
-
-        state = removeProcessor(state, particleProcessor.parent);
+        state = killCreature(state, particleProcessor.parent.id);
       }
     }
 
@@ -77,7 +93,7 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
   }
 
   // apply freezing or burning wave
-  if (particleProcessor.entity.type === Shock) {
+  if (particleProcessor.entity.type === Wave) {
     if (particleProcessor.entity.props.material === 'ice') {
       // freeze ground
       const frozen = cell.grounds?.map(

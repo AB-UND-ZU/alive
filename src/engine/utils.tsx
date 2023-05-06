@@ -322,8 +322,11 @@ export const updateCell = (state: TerminalState, x: number, y: number, cell: Cel
 export const createParticle = (state: TerminalState, processor: Pick<Processor<Particle>, 'x' | 'y' | 'parent'>, component: Particle, props: Omit<React.ComponentProps<Particle>, 'id'>): [TerminalState, Processor<Particle>] => {
   const ParticleComponent = component;
   const id = getId();
+  const [wrappedX, wrappedY] = wrapCoordinates(state, processor.x, processor.y);
   const particle = {
-    ...processor,
+    x: wrappedX,
+    y: wrappedY,
+    parent: processor.parent,
     id,
     entity: <ParticleComponent {...props} id={id} />
   };
@@ -343,8 +346,11 @@ export const createParticle = (state: TerminalState, processor: Pick<Processor<P
 export const createEquipment = (state: TerminalState, processor: Pick<Processor<Equipment>, 'x' | 'y' | 'parent'>, component: Equipment, props: Omit<React.ComponentProps<Equipment>, 'id'>): [TerminalState, Processor<Equipment>] => {
   const EquipmentComponent = component;
   const id = getId();
+  const [wrappedX, wrappedY] = wrapCoordinates(state, processor.x, processor.y);
   const equipment = {
-    ...processor,
+    x: wrappedX,
+    y: wrappedY,
+    parent: processor.parent,
     id,
     entity: <EquipmentComponent {...props} id={id} />
   };
@@ -364,8 +370,11 @@ export const createEquipment = (state: TerminalState, processor: Pick<Processor<
 export const createCreature = (state: TerminalState, processor: Pick<Processor<Creature>, 'x' | 'y' | 'parent'>, component: Creature, props: Omit<React.ComponentProps<Creature>, 'id'>): [TerminalState, Processor<Creature>] => {
   const CreatureComponent = component;
   const id = getId();
+  const [wrappedX, wrappedY] = wrapCoordinates(state, processor.x, processor.y);
   const creature = {
-    ...processor,
+    x: wrappedX,
+    y: wrappedY,
+    parent: processor.parent,
     id,
     entity: <CreatureComponent {...props} id={id} />
   };
@@ -381,6 +390,7 @@ export const isWater = (state: TerminalState, x: number, y: number) => {
 export const isLand = (state: TerminalState, x: number, y: number) => [-1, 0, 1].map(deltaX => [-1, 0, 1].map(deltaY => !isWater(state, x + deltaX, y + deltaY))).flat().some(Boolean);
 export const isWalkable = (state: TerminalState, x: number, y: number) => {
   const cell = getCell(state, x, y);
-  const creature = Object.values(state.creatures).find(processor => processor.x === x && processor.y === y);
-  return isLand(state, x, y) && !cell.terrain && !creature && !cell.item;
+  const creature = getCreature(state, x, y);
+  const equipment = getEquipment(state, x, y, equipment => !equipment.entity.props.interaction)
+  return isLand(state, x, y) && !cell.terrain && !creature && !cell.item && !equipment;
 }

@@ -1,7 +1,8 @@
-import { Shock, Spell } from "./entities";
+import { equipmentStats } from "./balancing";
+import { Wave, Spell } from "./entities";
 import { CompositeId, createParticle, isOrphaned, removeProcessor, TerminalState, updateProcessorProps } from "./utils";
 
-const SHOCK_RADIUS = 5;
+const MAX_RADIUS = 7;
 
 export const tickEquipment = (prevState: TerminalState, id: number): TerminalState => {
   let state = { ...prevState };
@@ -14,12 +15,23 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
   const equipmentProcessor = state.equipments[id];
 
   if (equipmentProcessor.entity.type === Spell && equipmentProcessor.entity.props.interaction === 'using') {
-    const radius = equipmentProcessor.entity.props.amount;
+    const amount = equipmentProcessor.entity.props.amount;
+    const level = equipmentProcessor.entity.props.maximum;
+    const maximum = equipmentStats.get(Spell)?.[level - 1][equipmentProcessor.entity.props.material] || 1;
 
-    // clear equipment once radius is reached
-    if (radius > SHOCK_RADIUS) {
+    state = updateProcessorProps(state, { container: 'equipments', id }, { amount: amount - 1 });
+
+    // clear equipment once amount runs out
+    if (amount <= 0) {
       state = removeProcessor(state, { container: 'equipments', id });
       return state;
+    }
+
+    let radius = 1;
+    if (maximum >= MAX_RADIUS) {
+      radius = amount >= MAX_RADIUS ? MAX_RADIUS * 2 - amount : amount;
+    } else {
+      radius = maximum - amount + 1;
     }
 
     // create new wave
@@ -76,10 +88,8 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
 
     const parent: CompositeId = { container: 'equipments', id };
     newWave.forEach(([processor, props]) => {
-      state = createParticle(state, { ...processor, parent }, Shock, { ...props, material: equipmentProcessor.entity.props.material })[0];
+      state = createParticle(state, { ...processor, parent }, Wave, { ...props, material: equipmentProcessor.entity.props.material, amount: level })[0];
     });
-
-    state = updateProcessorProps(state, { container: 'equipments', id }, { amount: radius + 1 });
   }
 
   return state;

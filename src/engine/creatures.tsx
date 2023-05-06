@@ -6,7 +6,7 @@ export const attackPlayer = (state: TerminalState, compositeId: CompositeId) => 
   const player = getPlayerProcessor(state);
   const creature = resolveCompositeId(state, compositeId) as Processor<Creature>;
 
-  const armor = state.inventory.armor ? (equipmentStats.get(Armor)?.[state.equipments[state.inventory.armor].entity.props.material] || 0) : 0;
+  const armor = state.inventory.armor ? (equipmentStats.get(Armor)?.[0][state.equipments[state.inventory.armor].entity.props.material] || 0) : 0;
   const dmg = Math.max((creatureStats.get(creature.entity.type)?.dmg || 1) - armor, 1);
   state.hp = Math.max(state.hp - dmg, 0);
   state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state.hp });

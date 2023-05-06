@@ -439,16 +439,24 @@ html {
   color: var(--red);
 }
 
-.Shock {
+.Spell.plant {
+  color: var(--lime);
+}
+
+.Wave {
   z-index: 34;
 }
 
-.Shock.ice {
+.Wave.ice {
   color: var(--aqua);
 }
 
-.Shock.fire {
+.Wave.fire {
   color: var(--red);
+}
+
+.Wave.plant {
+  color: var(--lime);
 }
 
 .Player {

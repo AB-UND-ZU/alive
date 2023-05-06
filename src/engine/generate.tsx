@@ -77,7 +77,7 @@ function generateLevel(state: TerminalState): TerminalState {
 
   const terrainMatrix = valueNoiseMatrix(width, height, 20, whiteNoiseWithFlatCorners(width, height, 21, 12));
   const greenMatrix = valueNoiseMatrix(width, height, 1, whiteNoiseWithFlatCorners(width, height, 21, 12));
-  const itemMatrix = valueNoiseMatrix(width / 2, height / 2, 0, whiteNoiseWithFlatCorners(width / 2, height / 2, 10, 6));
+  const itemMatrix = valueNoiseMatrix(width / 2, height / 2, 0, whiteNoiseWithFlatCorners(width / 2, height / 2, 12, 7));
   const elevationMatrix = valueNoiseMatrix(width / 8, height / 8, 20, whiteNoiseWithFlatCorners(width / 8, height / 8, 21, 12));
   const temperatureMatrix = valueNoiseMatrix(width / 8, height / 8, 20);
 
@@ -203,10 +203,14 @@ function generateLevel(state: TerminalState): TerminalState {
   );
   state = newState;
 
-  state = createEquipment(state, { x: 1, y: 1 }, Sword, { amount: 2, material: 'iron', particles: [] })[0];
-  state = createEquipment(state, { x: 2, y: 2 }, Armor, { amount: 1, material: 'wood', particles: [] })[0];
-  state = createEquipment(state, { x: 3, y: 3 }, Spell, { amount: 1, material: 'ice', particles: [] })[0];
-  state = createEquipment(state, { x: 4, y: 4 }, Spell, { amount: 1, material: 'fire', particles: [] })[0];
+  state = createEquipment(state, { x: -2, y: 0 }, Sword, { amount: 0, maximum: 1, material: 'iron', particles: [] })[0];
+  state = createEquipment(state, { x: 2, y: 0 }, Armor, { amount: 0, maximum: 1, material: 'wood', particles: [] })[0];
+  state = createEquipment(state, { x: -1, y: 2 }, Spell, { amount: 0, maximum: 1, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: 0, y: 2 }, Spell, { amount: 0, maximum: 1, material: 'fire', particles: [] })[0];
+  state = createEquipment(state, { x: 1, y: 2 }, Spell, { amount: 0, maximum: 1, material: 'plant', particles: [] })[0];
+  state = createEquipment(state, { x: -1, y: 3 }, Spell, { amount: 0, maximum: 2, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: 0, y: 3 }, Spell, { amount: 0, maximum: 2, material: 'fire', particles: [] })[0];
+  state = createEquipment(state, { x: 1, y: 3 }, Spell, { amount: 0, maximum: 2, material: 'plant', particles: [] })[0];
 
   const fog = generateFog(state);
 

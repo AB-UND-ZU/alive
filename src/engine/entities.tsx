@@ -73,6 +73,7 @@ export const terrains = [Rock, Stub, Tree];
 export type Equipment = React.FC<{
   id: number,
   amount: number,
+  maximum: number,
   particles: number[],
   material: Material,
   interaction?: Interaction,
@@ -93,9 +94,10 @@ export const Armor: Equipment = ({ material }) => {
   return <span className={`Entity Armor ${material}`}>{'\u00ac'}</span>
 }
 
-export const Spell: Equipment = ({ interaction, material }) => {
+export const Spell: Equipment = ({ maximum, interaction, material }) => {
   if (interaction === "using") return null;
-  return <span className={`Entity Spell ${material}`}>{interaction === 'equipped' ? '~' : '@'}</span>
+  const spellLevels = ['\u03b4', '\u0114'];
+  return <span className={`Entity Spell ${material}`}>{interaction === 'equipped' ? '~' : spellLevels[maximum - 1]}</span>
 }
 
 export const Boat: Equipment = ({ material }) => {
@@ -281,19 +283,20 @@ export const Attacked: Particle = ({ material }) => {
   return <span className={`Entity Attacked ${material || 'blood'}`}>{'x'}</span>;
 }
 
-export const Shock: Particle = ({ direction, material }) => {
+export const Wave: Particle = ({ direction, material, amount }) => {
+  const level = amount ? amount - 1 : 0;
   const shockDirections = {
-    up: '─',
-    upRight: '┐',
-    right: '│',
-    rightDown: '┘',
-    down: '─',
-    downLeft: '└',
-    left: '│',
-    leftUp: '┌',
-    center: '',
+    up: ['─', '═'],
+    upRight: ['┐', '╗'],
+    right: ['│', '║'],
+    rightDown: ['┘', '╝'],
+    down: ['─', '═'],
+    downLeft: ['└', '╚'],
+    left: ['│', '║'],
+    leftUp: ['┌', '╔'],
+    center: ['', ''],
   };
-  return <span className={`Entity Shock ${material}`}>{shockDirections[direction || 'center']}</span>;
+  return <span className={`Entity Wave ${material}`}>{shockDirections[direction || 'center'][level]}</span>;
 }
 
 export const Collecting: Particle = ({ counter, direction }) => {
@@ -310,7 +313,7 @@ export const Collecting: Particle = ({ counter, direction }) => {
   return <span className={`Entity Collecting ${counter} ${direction}`}>{counter ? counterParticles[counter] : null}</span>;
 }
 
-export const particles = [Swimming, Burning, Attacked, Shock, Collecting];
+export const particles = [Swimming, Burning, Attacked, Wave, Collecting];
 
 // ------------------------ CONSTANTS --------------------------------
  
@@ -348,7 +351,7 @@ export const inventories = new Map<Equipment | undefined, keyof Inventory>([
 
 export type Interaction = 'equipped' | 'using';
 
-export const materials = ['wood', 'iron', 'fire', 'ice'] as const;
+export const materials = ['wood', 'iron', 'fire', 'ice', 'plant'] as const;
 export type Material = typeof materials[number];
 
 export const containers = new Map<Sprite | Terrain | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);

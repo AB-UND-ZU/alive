@@ -70,6 +70,15 @@ Intended to be used with https://www.rune.ai/
 - Bomb
 - Torch
 
+
+## Spells
+
+- Ice
+- Fire
+- Bubble
+- Trap
+
+
 ## Elements
 
 - Fire
