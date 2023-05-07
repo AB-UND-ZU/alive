@@ -317,6 +317,10 @@ body,
   color: var(--maroon);
 }
 
+.Attacked.plant {
+  color: var(--lime);
+}
+
 .Attacked.blood {
   color: var(--red);
 }

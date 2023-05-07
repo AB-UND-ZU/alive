@@ -203,14 +203,14 @@ function generateLevel(state: TerminalState): TerminalState {
   );
   state = newState;
 
-  state = createEquipment(state, { x: -2, y: 0 }, Sword, { amount: 0, maximum: 1, material: 'iron', particles: [] })[0];
-  state = createEquipment(state, { x: 2, y: 0 }, Armor, { amount: 0, maximum: 1, material: 'wood', particles: [] })[0];
-  state = createEquipment(state, { x: -1, y: 2 }, Spell, { amount: 0, maximum: 1, material: 'ice', particles: [] })[0];
-  state = createEquipment(state, { x: 0, y: 2 }, Spell, { amount: 0, maximum: 1, material: 'fire', particles: [] })[0];
-  state = createEquipment(state, { x: 1, y: 2 }, Spell, { amount: 0, maximum: 1, material: 'plant', particles: [] })[0];
-  state = createEquipment(state, { x: -1, y: 3 }, Spell, { amount: 0, maximum: 2, material: 'ice', particles: [] })[0];
-  state = createEquipment(state, { x: 0, y: 3 }, Spell, { amount: 0, maximum: 2, material: 'fire', particles: [] })[0];
-  state = createEquipment(state, { x: 1, y: 3 }, Spell, { amount: 0, maximum: 2, material: 'plant', particles: [] })[0];
+  state = createEquipment(state, { x: -2, y: 0 }, Sword, { amount: 0, maximum: 0, level: 1, material: 'iron', particles: [] })[0];
+  state = createEquipment(state, { x: 2, y: 0 }, Armor, { amount: 0, maximum: 0, level: 1, material: 'wood', particles: [] })[0];
+  state = createEquipment(state, { x: -1, y: 2 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: 0, y: 2 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'fire', particles: [] })[0];
+  state = createEquipment(state, { x: 1, y: 2 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'plant', particles: [] })[0];
+  state = createEquipment(state, { x: -1, y: 3 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: 0, y: 3 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'fire', particles: [] })[0];
+  state = createEquipment(state, { x: 1, y: 3 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'plant', particles: [] })[0];
 
   const fog = generateFog(state);
 

@@ -1,9 +1,9 @@
 import { tickCreature } from "../../engine/creatures";
 import { Attacked, Collecting, counters, inventories, Wave, Spell, Sword, Wood } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
-import { killCreature, tickParticle } from "../../engine/particles";
+import { attackCreature, tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
-import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity } from "../../engine/utils";
+import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, resolveCompositeId } from "../../engine/utils";
 import React from "react";
 import { equipmentStats } from "../../engine/balancing";
 
@@ -139,7 +139,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
             state,
             { x, y },
             Sword,
-            { amount: 0, maximum: 1, material: 'wood', particles: [] }
+            { amount: 0, maximum: 0, level: 1, material: 'wood', particles: [] }
           );
 
         } else if (counter) {
@@ -213,7 +213,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
     case 'tick': {
       // update particles, equipments and creatures except for player in that order 
       Object.values(state.particles).forEach(particle => {
-        if (getParentEntity(state, particle)?.id === state.playerId) return;
+        if (particle.parent && resolveCompositeId(state, particle.parent)?.id === state.playerId) return;
 
         state = tickParticle(state, particle.id);
       });
@@ -251,9 +251,6 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       state = updateProcessorProps(state, { container: 'equipments', id: sword.id }, { direction: attackingDirection });
 
       // reduce health or kill creature
-      const dmg = equipmentStats.get(Sword)?.[0][sword.entity.props.material] || 1;
-      const newAmount = attackedCreature.entity.props.amount - dmg;
-
       if (attackingDirection) {
         state = createParticle(
           state,
@@ -263,11 +260,8 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         )[0];
       }
 
-      if (newAmount > 0) {
-        state = updateProcessorProps(state, { container: 'creatures', id: attackedCreature.id }, { amount: newAmount });
-      } else {
-        state = killCreature(state, attackedCreature.id);
-      }
+      const dmg = equipmentStats.get(Sword)?.[0][sword.entity.props.material] || 1;
+      state = attackCreature(state, attackedCreature.id, dmg)
 
       return state;
     }
@@ -281,13 +275,17 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       const player = getPlayerProcessor(state);
       const spell = state.equipments[state.inventory.spell];
 
-      // create spell and initial particle
-      const level = spell.entity.props.maximum;
+      // update equipped spell
+      const level = spell.entity.props.level;
       const amount = equipmentStats.get(Spell)?.[level - 1][spell.entity.props.material] || 1;
+      state = updateProcessorProps(state, { container: 'equipments', id: spell.id }, { amount, maximum: amount });
+
+      // create spell and initial particle
       let wave, centerParticle;
       [state, wave] = createEquipment(state, { x: player.x, y: player.y }, Spell, {
         amount,
-        maximum: level,
+        maximum: amount,
+        level,
         material: spell.entity.props.material,
         interaction: 'using',
         particles: []

@@ -30,9 +30,17 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
     // clear equipment once amount runs out
     state = decayEquipment(state, id);
 
-  } else if (equipmentProcessor.entity.type === Spell && equipmentProcessor.entity.props.interaction === 'using') {
+  } else if (equipmentProcessor.entity.type === Spell) {
+    if (equipmentProcessor.entity.props.interaction === 'equipped') {
+      const amount = equipmentProcessor.entity.props.amount;
+      if (amount > 0) {
+        state = updateProcessorProps(state, { container: 'equipments', id }, { amount: amount - 1 });
+      }
+    }
+    if (equipmentProcessor.entity.props.interaction !== 'using') return state;
+
     const amount = equipmentProcessor.entity.props.amount;
-    const level = equipmentProcessor.entity.props.maximum;
+    const level = equipmentProcessor.entity.props.level;
     const maximum = equipmentStats.get(Spell)?.[level - 1][equipmentProcessor.entity.props.material] || 1;
 
     // clear equipment once amount runs out
@@ -45,10 +53,10 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
         deltas.forEach(([direction, delta]) => {
           let blocker;
           [state, blocker] = createEquipment(state, { x: delta[0], y: delta[1], parent: { container: 'creatures', id: state.playerId } }, Blocked, {
-            particles: [], amount: maximum, maximum: 0, material: 'plant', interaction: 'using',
+            particles: [], amount: maximum, maximum, level, material: 'plant', interaction: 'using',
           });
           state = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: blocker.id } }, Wave, {
-            direction: direction as Direction, material: equipmentProcessor.entity.props.material
+            direction: direction as Direction, material: equipmentProcessor.entity.props.material, amount: level
           })[0];
         });
       }

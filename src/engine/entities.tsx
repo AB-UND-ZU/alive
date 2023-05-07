@@ -74,6 +74,7 @@ export type Equipment = React.FC<{
   id: number,
   amount: number,
   maximum: number,
+  level: number,
   particles: number[],
   material: Material,
   interaction?: Interaction,
@@ -94,10 +95,16 @@ export const Armor: Equipment = ({ material }) => {
   return <span className={`Entity Armor ${material}`}>{'\u00ac'}</span>
 }
 
-export const Spell: Equipment = ({ maximum, interaction, material }) => {
+export const Spell: Equipment = ({ amount, maximum, level, interaction, material }) => {
   if (interaction === "using") return null;
   const spellLevels = ['\u03b4', '\u0114'];
-  return <span className={`Entity Spell ${material}`}>{interaction === 'equipped' ? '~' : spellLevels[maximum - 1]}</span>
+
+  return (
+    <>
+      <span className={`Entity Spell ${material}`}>{interaction === 'equipped' ? '~' : spellLevels[level - 1]}</span>
+      {material === 'plant' && !interaction && <span className="Entity Bar">{getBar(amount, maximum)}</span>}
+    </>
+  );
 }
 
 export const Blocked: Equipment = () => {
@@ -336,7 +343,7 @@ export const counters = new Map<Item | undefined, Counters>([
 ]);
 
 export const bars = ['\u0127', '\u0126', '\u0125', '\u0124', '\u0123', '\u0122', '\u0121', '\u0120'];
-export const getBar = (amount: number, maximum: number) => bars[Math.floor((bars.length - 1) * amount / maximum)];
+export const getBar = (amount: number, maximum: number) => amount === 0 ? ' ' : bars[Math.floor((bars.length - 1) * amount / maximum)];
 
 export type Inventory = {
   sword?: number,

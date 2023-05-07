@@ -1,10 +1,19 @@
 import { creatureStats, getRandomDistribution, terrainStats } from "./balancing";
 import { tickCreature } from "./creatures";
-import { Attacked, Burning, Collecting, Creature, Freezing, Ice, Player, Wave, Stub, Tree, Water } from "./entities";
-import { createParticle, getAbsolutePosition, getCell, getCreature, getDeterministicRandomInt, getPlayerProcessor, isOrphaned, isWater, Processor, removeProcessor, resolveCompositeId, TerminalState, updateCell, updateProcessor, updateProcessorProps } from "./utils";
+import { Attacked, Burning, Collecting, Freezing, Ice, Player, Wave, Stub, Tree, Water, Equipment } from "./entities";
+import { CompositeId, createParticle, getAbsolutePosition, getCell, getCreature, getDeterministicRandomInt, getPlayerProcessor, isOrphaned, isWater, Processor, removeProcessor, resolveCompositeId, TerminalState, updateCell, updateProcessor, updateProcessorProps } from "./utils";
 
-export const killCreature = (state: TerminalState, id: number) => {
+export const attackCreature = (state: TerminalState, id: number, damage: number) => {
   const creature = state.creatures[id];
+  const compositeId: CompositeId = { container: 'creatures', id };
+  const newHp = creature.entity.props.amount - damage;
+
+  // reduce hp
+  if (newHp > 0) {
+    state = updateProcessorProps(state, compositeId, { amount: newHp });
+    return state;
+  }
+
   // add drops
   const drops = creatureStats.get(creature.entity.type);
   const [Drop, props] = getRandomDistribution(drops?.drops || []);
@@ -37,6 +46,7 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
   const particleProcessor = state.particles[id];
   const [particleX, particleY] = getAbsolutePosition(state, particleProcessor);
   const cell = getCell(state, particleX, particleY);
+  const affectedId = getCreature(state, particleX, particleY, creature => creature.entity.type !== Player)?.id;
 
   // remove fading particles
   if (
@@ -61,17 +71,11 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
   // burn things
   if (particleProcessor.entity.type === Burning) {
     // 50% chance to do nothing
-    if (getDeterministicRandomInt(1, 2) !== 2) return state;
+    if (getDeterministicRandomInt(1, 2) !== 1) return state;
 
     // damage or kill creature
     if (particleProcessor.parent?.container === 'creatures') {
-      const parent = resolveCompositeId(state, particleProcessor.parent) as Processor<Creature>;
-      const newHp = parent.entity.props.amount - 1;
-      if (newHp > 0) {
-        state = updateProcessorProps(state, particleProcessor.parent, { amount: newHp });
-      } else {
-        state = killCreature(state, particleProcessor.parent.id);
-      }
+      state = attackCreature(state, particleProcessor.parent.id, 1);
     }
 
     const newAmount = (particleProcessor.entity.props.amount || 0) - 1;
@@ -112,8 +116,6 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
       }
 
       // freeze creatures
-      const affectedId = getCreature(state, particleX, particleY, creature => creature.entity.type !== Player)?.id;
-
       if (affectedId) {
         const affectedCreature = state.creatures[affectedId];
         const creatureParticles = [...affectedCreature.entity.props.particles];
@@ -160,8 +162,6 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
       }
 
       // burn creatures
-      const affectedId = getCreature(state, particleX, particleY, creature => creature.entity.type !== Player)?.id;
-
       if (affectedId && !isWater(state, particleX, particleY)) {
         const affectedCreature = state.creatures[affectedId];
         const creatureParticles = [...affectedCreature.entity.props.particles];
@@ -179,6 +179,23 @@ export const tickParticle = (prevState: TerminalState, id: number) => {
           }, Burning, { amount: 3 })[0];
         }
       }
+    } else if (particleProcessor.entity.props.material === 'plant') {
+      // 75% chance to do nothing
+      if (getDeterministicRandomInt(1, 4) !== 1) return state;
+
+      const spell = particleProcessor.parent && resolveCompositeId(state, particleProcessor.parent) as Processor<Equipment>;
+      
+      if (spell && spell.entity.props.level === 2 && affectedId) {
+        state = createParticle(
+          state,
+          { x: 0, y: 0, parent: { container: 'creatures', id: affectedId } },
+          Attacked,
+          { material: particleProcessor.entity.props.material }
+        )[0];
+        state = attackCreature(state, affectedId, 1);
+      }
+
+      return state;
     }
 
     state = removeProcessor(state, { container: 'particles', id });
