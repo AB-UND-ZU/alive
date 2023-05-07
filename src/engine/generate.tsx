@@ -210,7 +210,7 @@ function generateLevel(state: TerminalState): TerminalState {
       const cellLayout = layout[rowIndex][columnIndex];
       if (!cellLayout) return;
 
-      const { equipment, ...cell } = cellLayout;
+      const { equipment, creature, ...cell } = cellLayout;
       state = updateCell(state, x, y, { terrain: undefined, sprite: undefined, grounds: [], ...cell });
 
       if (equipment) {
@@ -221,19 +221,23 @@ function generateLevel(state: TerminalState): TerminalState {
           state = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: newEquipment.id } }, particle[0], particle[1])[0];
         }
       }
+
+      if (creature) {
+        state = createCreature(state, { x, y }, creature[0], creature[1])[0];
+      }
     });
   });
 
-  /*
-  state = createEquipment(state, { x: -2, y: 0 }, Sword, { amount: 0, maximum: 0, level: 1, material: 'iron', particles: [] })[0];
-  state = createEquipment(state, { x: 2, y: 0 }, Armor, { amount: 0, maximum: 0, level: 1, material: 'wood', particles: [] })[0];
-  state = createEquipment(state, { x: -1, y: 2 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'ice', particles: [] })[0];
-  state = createEquipment(state, { x: 0, y: 2 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'fire', particles: [] })[0];
-  state = createEquipment(state, { x: 1, y: 2 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'plant', particles: [] })[0];
-  state = createEquipment(state, { x: -1, y: 3 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'ice', particles: [] })[0];
-  state = createEquipment(state, { x: 0, y: 3 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'fire', particles: [] })[0];
-  state = createEquipment(state, { x: 1, y: 3 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'plant', particles: [] })[0];
-  */
+  state = createEquipment(state, { x: 3, y: -2 }, Armor, { amount: 0, maximum: 0, level: 1, material: 'wood', particles: [] })[0];
+
+  state = createEquipment(state, { x: -4, y: 1 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: -5, y: 1 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'ice', particles: [] })[0];
+
+  state = createEquipment(state, { x: 5, y: 1 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'fire', particles: [] })[0];
+  state = createEquipment(state, { x: 5, y: 0 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'fire', particles: [] })[0];
+
+  state = createEquipment(state, { x: -4, y: -1 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'plant', particles: [] })[0];
+  state = createEquipment(state, { x: -3, y: -2 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'plant', particles: [] })[0];
 
   return state;
 }

@@ -248,9 +248,9 @@ export const Circle: Creature = ({ amount, maximum }) => {
 export const Chest: Creature = ({ amount, maximum }) => {
   return (
     <>
-      <span className="Entity Gold">{'\u011d'}</span>
-      <span className="Entity Chest">{'\u0115'}</span>
-      <span className="Entity Chest">{'\u011f'}</span>
+      <span className="Entity Chest">{'\u011d'}</span>
+      <span className="Entity Frame">{'\u011f'}</span>
+      <span className="Entity Frame">{'-'}</span>
       <span className="Entity Bar">{getBar(amount, maximum)}</span>
     </>
   );
@@ -411,7 +411,6 @@ export type Unit = {
 /*
 
 export function Lock() {
-  return <span className={`Entity Lock`}>{'\u011c'}</span>
 }
 
 export function Door() {

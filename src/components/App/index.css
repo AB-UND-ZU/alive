@@ -276,6 +276,10 @@ body,
   color: var(--olive);
 }
 
+.Portal.water {
+  color: var(--blue);
+}
+
 .Triangle {
   color: var(--silver);
 }
@@ -401,19 +405,15 @@ body,
 .Boat {
   color: var(--maroon);
 }
-
-.Key {
-  color: var(--yellow);
-}
+*/
 
 .Frame {
-  color: var(--black);
+  color: var(--grey);
 }
 
 .Chest {
   color: var(--maroon);
 }
-*/
 
 .Armor {
   color: var(--maroon);

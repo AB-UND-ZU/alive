@@ -1,4 +1,4 @@
-import { Armor, Circle, Creature, Entity, Equipment, Experience, Gold, Item, Life, Mana, Material, Player, Spell, Stub, Sword, Terrain, Triangle, Wood } from "./entities";
+import { Armor, Chest, Circle, Creature, Entity, Equipment, Experience, Gold, Item, Life, Mana, Material, Player, Spell, Stub, Sword, Terrain, Triangle, Wood } from "./entities";
 import { getDeterministicRandomInt } from "./utils";
 
 export type Distribution<T extends Entity, O extends string = 'id'> = {
@@ -26,6 +26,10 @@ export const creatureStats = new Map<Creature, CreatureStats>([
     { percentage: 10, entity: Mana, props: { amount: 1 } },
     { percentage: 20, entity: Gold, props: { amount: 1 } },
     { percentage: 10, entity: Experience, props: { amount: 1 } },
+  ] }],
+  [Chest, { hp: 10, dmg: 0, drops: [
+    { percentage: 67, entity: Gold, props: { amount: 3 } },
+    { percentage: 33, entity: Experience, props: { amount: 3 } },
   ] }],
 ]);
 

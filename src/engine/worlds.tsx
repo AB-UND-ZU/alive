@@ -58,7 +58,7 @@ const bush: LayoutCell = { sprite: <Bush /> };
 const seed: LayoutCell = { sprite: <Bush />, item: <Seed amount={1} /> };
 const flwr: LayoutCell = { sprite: <Flower /> };
 const herb: LayoutCell = { sprite: <Flower />, item: <Herb amount={1} /> };
-const chst: LayoutCell = { creature: [Chest, { amount: 5, maximum: 5, orientation: 'up', equipments: [], particles: [] }] };
+const chst: LayoutCell = { creature: [Chest, { amount: 8, maximum: 8, orientation: 'up', equipments: [], particles: [] }] };
 
 const getBlockedProps = (direction: Direction): EquipmentProps => (
   { amount: 0, maximum: 0, level: 0, material: 'wood', interaction: 'equipped', particle: [
