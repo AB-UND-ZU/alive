@@ -1,6 +1,18 @@
 import { padOrientation } from "./textures";
 import { center, renderText, TerminalState } from "../../engine/utils";
 
+const truncate = 7;
+const marquee = (state: TerminalState, text: string) => {
+  const offset = state.tick % (text.length + truncate);
+  const padding = ' '.repeat(truncate);
+  const visible = `${padding}${text}${padding}`.substring(offset, offset + truncate);
+  return visible.split('').map((char, index) => (
+    <span className="Cell" key={index}>
+      <span className="Entity HUD">{char}</span>
+    </span>
+  ));
+};
+
 const Controls = ({ state }: { state: TerminalState }) => {
   const spell = state.inventory.spell ? state.equipments[state.inventory.spell].entity.props.material : undefined;
 
@@ -17,7 +29,7 @@ const Controls = ({ state }: { state: TerminalState }) => {
           renderText('      ')
         )}
         {renderText('│ ')}
-        {renderText('Alive', 'Pad')}
+        {renderText('Quest', 'Pad')}
         {renderText(' │ ')}
         {renderText(padOrientation[state.orientation || center][0], 'Pad')}
       </div>
@@ -28,7 +40,9 @@ const Controls = ({ state }: { state: TerminalState }) => {
         ) : (
           renderText('      ')
         )}
-        {renderText(`│ ${Math.floor(state.tick / 3).toString().padStart(5)} │ `)}
+        {renderText('│')}
+        {marquee(state, 'Find a stick')}
+        {renderText('│ ')}
         {renderText(padOrientation[state.orientation || center][1], 'Pad')}
       </div>
     </div>
