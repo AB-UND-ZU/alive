@@ -1,4 +1,4 @@
-import { Blocked, Bush, Cell, Chest, Creature, Equipment, Flower, Herb, Material, Particle, Portal, Seed, Tree, Wave } from "./entities"
+import { Blocked, Bush, Cell, Chest, Creature, Equipment, Flower, Herb, Particle, Portal, Seed, Tree, Wave } from "./entities"
 import { Direction } from "./utils";
 
 /* Worlds
