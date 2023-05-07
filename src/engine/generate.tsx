@@ -3,10 +3,11 @@ import { MapCell } from 'worldmap-generator';
 import { creatureSpawns, creatureStats, getRandomDistribution } from './balancing';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, Campfire, containers, Spell, Sword, Armor, Terrain, Sand, Water } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, containers, Spell, Sword, Armor, Terrain, Sand, Water } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { corners, createCreature, createEquipment, getDeterministicRandomInt, orientations, sum, TerminalState } from "./utils";
+import { corners, createCreature, createEquipment, createParticle, getDeterministicRandomInt, orientations, sum, TerminalState, updateCell, wrapCoordinates } from "./utils";
+import { rural } from './worlds';
 
 const getSingleElements = (world: World, cells: MapCell[], category: SingleCategories) => cells.map(cell => world.tileCells[cell.name][category]);
 const getMultipleElements = (world: World, cells: MapCell[], category: MultipleCategories) => cells.reduce<ReactComponentElement<Entity>[]>((cellTypes, cell) => [
@@ -75,9 +76,9 @@ function generateLevel(state: TerminalState): TerminalState {
   const width = state.width * 2;
   const height = state.height * 2;
 
-  const terrainMatrix = valueNoiseMatrix(width, height, 20, whiteNoiseWithFlatCorners(width, height, 21, 12));
+  const terrainMatrix = valueNoiseMatrix(width, height, 20, whiteNoiseWithFlatCorners(width, height, 25, 14));
   const greenMatrix = valueNoiseMatrix(width, height, 1, whiteNoiseWithFlatCorners(width, height, 21, 12));
-  const itemMatrix = valueNoiseMatrix(width / 2, height / 2, 0, whiteNoiseWithFlatCorners(width / 2, height / 2, 12, 7));
+  const itemMatrix = valueNoiseMatrix(width / 2, height / 2, 0, whiteNoiseWithFlatCorners(width / 2, height / 2, 16, 9));
   const elevationMatrix = valueNoiseMatrix(width / 8, height / 8, 20, whiteNoiseWithFlatCorners(width / 8, height / 8, 21, 12));
   const temperatureMatrix = valueNoiseMatrix(width / 8, height / 8, 20);
 
@@ -147,7 +148,7 @@ function generateLevel(state: TerminalState): TerminalState {
         cell.terrain = <Rock />;
       }
 
-      // Sprite: collapse into bushes or tress, or override campfire
+      // Sprite: collapse into bushes or tress
       const spriteElements = getSingleElements(world, mapCells, 'sprite');
       if (!cell.terrain && !cell.grounds?.length) {
         const plantLayout = getCellEntities(spriteElements, Flower);
@@ -182,12 +183,6 @@ function generateLevel(state: TerminalState): TerminalState {
         }
       }
 
-      const campfireLayout = getCellEntities(spriteElements, Campfire);
-      if (campfireLayout.length > 0) {
-        cell.terrain = undefined;
-        cell.sprite = <Campfire />;
-      }
-
       return cell;
     });
     return row;
@@ -203,6 +198,33 @@ function generateLevel(state: TerminalState): TerminalState {
   );
   state = newState;
 
+  // populate state
+  const fog = generateFog(state);
+  state = { ...state, board: rows, fog, playerId: player.id };
+
+  // insert spawn room
+  const layout = rural.rooms.spawn.layout;
+  Array.from({ length: layout.length }).forEach((_, rowIndex) => {
+    Array.from({ length: layout[0].length }).forEach((_, columnIndex) => {
+      const [x, y] = wrapCoordinates(state, player.x - (layout[0].length - 1) / 2 + columnIndex, player.y - (layout.length - 1) / 2 + rowIndex);
+      const cellLayout = layout[rowIndex][columnIndex];
+      if (!cellLayout) return;
+
+      const { equipment, ...cell } = cellLayout;
+      state = updateCell(state, x, y, { terrain: undefined, sprite: undefined, grounds: [], ...cell });
+
+      if (equipment) {
+        const [equipmentEntity, { particle, ...props }] = equipment;
+        let newEquipment;
+        [state, newEquipment] = createEquipment(state, { x, y }, equipmentEntity, { ...props, particles: [] });
+        if (particle) {
+          state = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: newEquipment.id } }, particle[0], particle[1])[0];
+        }
+      }
+    });
+  });
+
+  /*
   state = createEquipment(state, { x: -2, y: 0 }, Sword, { amount: 0, maximum: 0, level: 1, material: 'iron', particles: [] })[0];
   state = createEquipment(state, { x: 2, y: 0 }, Armor, { amount: 0, maximum: 0, level: 1, material: 'wood', particles: [] })[0];
   state = createEquipment(state, { x: -1, y: 2 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'ice', particles: [] })[0];
@@ -211,10 +233,9 @@ function generateLevel(state: TerminalState): TerminalState {
   state = createEquipment(state, { x: -1, y: 3 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'ice', particles: [] })[0];
   state = createEquipment(state, { x: 0, y: 3 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'fire', particles: [] })[0];
   state = createEquipment(state, { x: 1, y: 3 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'plant', particles: [] })[0];
+  */
 
-  const fog = generateFog(state);
-
-  return { ...state, board: rows, fog, playerId: player.id };
+  return state;
 }
 
 export { generateLevel };

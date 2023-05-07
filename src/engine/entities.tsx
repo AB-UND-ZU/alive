@@ -181,7 +181,9 @@ export const items = [Life, Mana, Wood, Iron, Herb, Seed, Gold, Experience];
 
 // ------------------------ SPRITE --------------------------------
 
-export type Sprite = React.FC;
+export type Sprite = React.FC<{
+  material?: Material,
+}>;
 
 export const Flower: Sprite = () => {
   return <span className="Entity Flower">,</span>;
@@ -191,11 +193,11 @@ export const Bush: Sprite = () => {
   return <span className="Entity Bush">{'\u03c4'}</span>;
 }
 
-export const Campfire: Sprite = () => {
-  return <span className="Entity Wood">{'\u010e'}</span>;
+export const Portal: Sprite = ({ material }) => {
+  return <span className={`Entity Portal ${material}`}>{'\u2229'}</span>;
 }
 
-export const sprites = [Flower, Bush, Campfire];
+export const sprites = [Flower, Bush, Portal];
 
 
 // ------------------------ CREATURE --------------------------------
@@ -243,7 +245,18 @@ export const Circle: Creature = ({ amount, maximum }) => {
   );
 }
 
-export const creatures = [Triangle, Player];
+export const Chest: Creature = ({ amount, maximum }) => {
+  return (
+    <>
+      <span className="Entity Gold">{'\u011d'}</span>
+      <span className="Entity Chest">{'\u0115'}</span>
+      <span className="Entity Chest">{'\u011f'}</span>
+      <span className="Entity Bar">{getBar(amount, maximum)}</span>
+    </>
+  );
+}
+
+export const creatures = [Triangle, Circle, Player];
 
 
 // ------------------------ PARTICLE --------------------------------
@@ -362,7 +375,7 @@ export const inventories = new Map<Equipment | undefined, keyof Inventory>([
 
 export type Interaction = 'equipped' | 'using';
 
-export const materials = ['wood', 'iron', 'gold', 'fire', 'ice', 'plant'] as const;
+export const materials = ['wood', 'iron', 'gold', 'fire', 'ice', 'plant', 'water'] as const;
 export type Material = typeof materials[number];
 
 export const containers = new Map<Sprite | Terrain | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);
@@ -396,15 +409,6 @@ export type Unit = {
 }
 
 /*
-export function Chest() {
-  return (
-    <>
-      <span className="Entity Gold">{'\u011d'}</span>
-      <span className="Entity Chest">{'\u0115'}</span>
-      <span className="Entity Chest">{'\u011f'}</span>
-    </>
-  );
-}
 
 export function Lock() {
   return <span className={`Entity Lock`}>{'\u011c'}</span>
