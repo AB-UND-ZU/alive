@@ -40,14 +40,15 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
       const [moveX, moveY] = directionOffset[orientation];
       const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + moveX, creatureProcessor.y + moveY);
 
-      // move in straight line
       if (isWalkable(state, targetX, targetY, id)) {
-        state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
+        if (targetX === player.x && targetY === player.y) {
+          // hit player
+          state = attackPlayer(state, { container: 'creatures', id });
 
-      } else if (targetX === player.x && targetY === player.y) {
-        // hit player
-        state = attackPlayer(state, { container: 'creatures', id });
-
+        } else {
+          // move in straight line
+          state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
+        }
       } else {
         // find first free cell (or player) in either counter- or clockwise orientation by random
         const rotation = getDeterministicRandomInt(0, 1) * 2 - 1;
@@ -78,14 +79,15 @@ export const tickCreature = (prevState: TerminalState, id: number): TerminalStat
         const [attemptX, attemptY] = directionOffset[orientation];
         const [targetX, targetY] = wrapCoordinates(state, creatureProcessor.x + attemptX, creatureProcessor.y + attemptY);
 
-        // move towards player
         if (isWalkable(state, targetX, targetY, id)) {
-          state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
+          if (targetX === player.x && targetY === player.y) {
+            // hit player
+            state = attackPlayer(state, { container: 'creatures', id });
 
-        } else if (targetX === player.x && targetY === player.y) {
-          // hit player
-          state = attackPlayer(state, { container: 'creatures', id });
-
+          } else {
+            // move towards player
+            state = updateProcessor(state, { container: 'creatures', id }, { x: targetX, y: targetY });
+          }
         }
       }
     }

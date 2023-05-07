@@ -391,7 +391,8 @@ export const isLand = (state: TerminalState, x: number, y: number) => [-1, 0, 1]
 export const isWalkable = (state: TerminalState, x: number, y: number, id: number) => {
   const cell = getCell(state, x, y);
   const creature = getCreature(state, x, y);
+  const passableCreature = creature ? creature.id === state.playerId : true;
   const equipment = getEquipment(state, x, y, equipment => !equipment.entity.props.interaction || equipment.entity.type === Blocked)
   const passableEquipment = equipment ? getParentEntity(state, equipment)?.id === id : true;
-  return isLand(state, x, y) && !cell.terrain && !creature && !cell.item && passableEquipment;
+  return isLand(state, x, y) && !cell.terrain && !cell.item && passableCreature && passableEquipment;
 }
