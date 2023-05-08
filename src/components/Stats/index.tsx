@@ -45,6 +45,7 @@ const Stats = ({ state }: { state: TerminalState }) => {
         <span className="Cell" />
         <span className="Cell" />
         <span className="Cell" />
+        <span className="Cell" />
         <span className="Cell">
           {renderInventory(state, state.inventory.compass)}
         </span>

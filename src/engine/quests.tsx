@@ -1,5 +1,4 @@
-import { Portal } from "./entities";
-import { degreesToOrientation, getPlayerProcessor, pointToDegree, relativeDistance, TerminalState } from "./utils";
+import { getPlayerProcessor, TerminalState } from "./utils";
 
 export type Quest = {
   render: (state: TerminalState) => [string[], string[][]],
