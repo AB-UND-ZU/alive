@@ -1,6 +1,6 @@
 import { equipmentStats } from "./balancing";
-import { Wave, Spell, Blocked } from "./entities";
-import { CompositeId, createEquipment, createParticle, Direction, directionOffset, isOrphaned, removeProcessor, TerminalState, updateProcessorProps } from "./utils";
+import { Wave, Spell, Blocked, Compass } from "./entities";
+import { CompositeId, createEquipment, createParticle, degreesToOrientation, Direction, directionOffset, getPlayerProcessor, isOrphaned, pointToDegree, relativeDistance, removeProcessor, TerminalState, updateProcessorProps } from "./utils";
 
 const MAX_RADIUS = 7;
 
@@ -26,7 +26,15 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
 
   const equipmentProcessor = state.equipments[id];
 
-  if (equipmentProcessor.entity.type === Blocked && equipmentProcessor.entity.props.interaction === 'using') {
+  if (equipmentProcessor.entity.type === Compass && !equipmentProcessor.entity.props.interaction) {
+    // let compass needle follow player
+    const player = getPlayerProcessor(state);
+    const distance = relativeDistance(state, equipmentProcessor, player);
+    const degrees = pointToDegree(distance);
+    const orientation = degreesToOrientation(degrees);
+    state = updateProcessorProps(state, { container: 'equipments', id }, { direction: orientation });
+
+  } else if (equipmentProcessor.entity.type === Blocked && equipmentProcessor.entity.props.interaction === 'using') {
     // clear equipment once amount runs out
     state = decayEquipment(state, id);
 

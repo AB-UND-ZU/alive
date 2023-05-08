@@ -162,7 +162,7 @@ function generateLevel(state: TerminalState): TerminalState {
       // Item: add container item if overlapping with noise
       const itemNoise = itemMatrix[rowIndex][columnIndex];
       const CellItem = containers.get(cell.sprite?.type || cell.terrain?.type);
-      if (CellItem && itemNoise > 48 && !cell.terrain?.props.direction) {
+      if (CellItem && itemNoise > 48) {
         cell.item = <CellItem amount={Math.floor(itemNoise - 46.5 )} />;
         
         if (cell.terrain?.type === Tree) {
@@ -228,16 +228,16 @@ function generateLevel(state: TerminalState): TerminalState {
     });
   });
 
-  state = createEquipment(state, { x: 3, y: -2 }, Armor, { amount: 0, maximum: 0, level: 1, material: 'wood', particles: [] })[0];
+  state = createEquipment(state, { x: 0, y: -6 }, Armor, { amount: 0, maximum: 0, level: 1, material: 'wood', particles: [] })[0];
 
-  state = createEquipment(state, { x: -4, y: 1 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'ice', particles: [] })[0];
-  state = createEquipment(state, { x: -5, y: 1 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: 1, y: -6 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: 2, y: -6 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'fire', particles: [] })[0];
+  state = createEquipment(state, { x: 3, y: -6 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'plant', particles: [] })[0];
 
-  state = createEquipment(state, { x: 5, y: 1 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'fire', particles: [] })[0];
-  state = createEquipment(state, { x: 5, y: 0 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'fire', particles: [] })[0];
+  state = createEquipment(state, { x: -1, y: -6 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'ice', particles: [] })[0];
+  state = createEquipment(state, { x: -2, y: -6 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'fire', particles: [] })[0];
+  state = createEquipment(state, { x: -3, y: -6 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'plant', particles: [] })[0];
 
-  state = createEquipment(state, { x: -4, y: -1 }, Spell, { amount: 0, maximum: 0, level: 1, material: 'plant', particles: [] })[0];
-  state = createEquipment(state, { x: -3, y: -2 }, Spell, { amount: 0, maximum: 0, level: 2, material: 'plant', particles: [] })[0];
 
   return state;
 }

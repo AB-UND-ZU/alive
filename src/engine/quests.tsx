@@ -1,42 +1,34 @@
-import { getPlayerProcessor, TerminalState } from "./utils";
+import { Portal } from "./entities";
+import { degreesToOrientation, getPlayerProcessor, pointToDegree, relativeDistance, TerminalState } from "./utils";
 
 export type Quest = {
-  display: [string[], string[][]],
+  render: (state: TerminalState) => [string[], string[][]],
   tick: (state: TerminalState) => TerminalState,
 };
 
 export const quests: Record<string, Quest> = {
   spawn: {
-    display: [['\u011a\u25a0\u0119 Move using joystick'], [['HUD', 'White', 'HUD']]],
+    render: () => [['\u011a\u25a0\u0119 Move using joystick'], [['HUD', 'White', 'HUD']]],
     tick: (state: TerminalState) => {
       const player = getPlayerProcessor(state);
 
-      if (player.x !== 0 || player.y !== 0) return { ...state, quest: 'herb' };
+      if (player.x !== 0 || player.y !== 0) return { ...state, quest: 'compass' };
 
       return state;
     }
   },
 
-  herb: {
-    display: [['· Pick up herb', ','], [['Herb'], ['Flower']]],
+  compass: {
+    render: () => [['\u0108 Pick up compass', '\u0117'], [['Compass'], ['Needle']]],
     tick: (state: TerminalState) => {
-      if (state.herb > 0) return { ...state, quest: 'seed' };
-
-      return state;
-    }
-  },
-
-  seed: {
-    display: [['\' Pick up seed', '\u03c4'], [['Seed'], ['Bush']]],
-    tick: (state: TerminalState) => {
-      if (state.seed > 0) return { ...state, quest: 'stick' };
+      if (state.inventory.compass) return { ...state, quest: 'stick' };
 
       return state;
     }
   },
 
   stick: {
-    display: [['1\u2261 Find a stick'], [['Wood', 'Wood']]],
+    render: () => [['\u2261 Find a stick'], [['Wood']]],
     tick: (state: TerminalState) => {
       if (state.inventory.sword) return { ...state, quest: 'chest' };
 
@@ -45,18 +37,25 @@ export const quests: Record<string, Quest> = {
   },
 
   chest: {
-    display: [['\u011d Open the chest', '\u011f', '-'], [['Chest'], ['Frame'], ['Frame']]],
+    render: () => [['\u011d Open a chest', '\u011f', '-'], [['Chest'], ['Frame'], ['Frame']]],
     tick: (state: TerminalState) => {
-      if (state.xp > 0) return { ...state, quest: 'portal' };
+      if (state.xp > 0) return { ...state, quest: 'strength' };
 
       return state;
     }
   },
 
-  portal: {
-    display: [['10+ Collect experience'], [['Experience', 'Experience', 'Experience']]],
+  strength: {
+    render: (state) => [[`${10 - state.xp}+ Collect strength`], [['Experience', 'Experience', 'Experience']]],
     tick: (state: TerminalState) => {
+      if (state.xp >= 10) return { ...state, quest: 'portal' };
+      return state;
+    }
+  },
 
+  portal: {
+    render: () => [[`\u2229 Enter portal`], [['Water']]],
+    tick: (state: TerminalState) => {
       return state;
     }
   },

@@ -42,11 +42,11 @@ const Stats = ({ state }: { state: TerminalState }) => {
           <Flower />
         </span>
         {renderText('│')}
+        <span className="Cell" />
+        <span className="Cell" />
+        <span className="Cell" />
         <span className="Cell">
-          {state.inventory.boat}
-        </span>
-        <span className="Cell">
-          {state.inventory.key}
+          {renderInventory(state, state.inventory.compass)}
         </span>
       </div>
 

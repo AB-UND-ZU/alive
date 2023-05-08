@@ -59,7 +59,7 @@ const Controls = ({ state }: { state: TerminalState }) => {
           renderText('      ')
         )}
         {renderText('│')}
-        {marquee(state, ...quests[state.quest].display)}
+        {marquee(state, ...quests[state.quest].render(state))}
         {renderText('│ ')}
         {renderText(padOrientation[state.orientation || center][1], 'Pad')}
       </div>

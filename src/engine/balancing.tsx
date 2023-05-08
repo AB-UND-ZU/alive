@@ -16,18 +16,16 @@ export type CreatureStats = {
 export const creatureStats = new Map<Creature, CreatureStats>([
   [Player, { hp: 10, dmg: 0, drops: [] }],
   [Triangle, { hp: 3, dmg: 3, drops: [
-    { percentage: 10, entity: Life, props: { amount: 1 } },
-    { percentage: 60, entity: Mana, props: { amount: 1 } },
-    { percentage: 20, entity: Gold, props: { amount: 1 } },
-    { percentage: 10, entity: Experience, props: { amount: 1 } },
+    { percentage: 70, entity: Gold, props: { amount: 1 } },
+    { percentage: 20, entity: Life, props: { amount: 1 } },
+    { percentage: 10, entity: Mana, props: { amount: 1 } },
   ] }],
   [Circle, { hp: 1, dmg: 3, drops: [
-    { percentage: 60, entity: Life, props: { amount: 1 } },
+    { percentage: 70, entity: Gold, props: { amount: 1 } },
+    { percentage: 20, entity: Life, props: { amount: 1 } },
     { percentage: 10, entity: Mana, props: { amount: 1 } },
-    { percentage: 20, entity: Gold, props: { amount: 1 } },
-    { percentage: 10, entity: Experience, props: { amount: 1 } },
   ] }],
-  [Chest, { hp: 10, dmg: 0, drops: [
+  [Chest, { hp: 8, dmg: 0, drops: [
     { percentage: 60, entity: Experience, props: { amount: 1 } },
     { percentage: 30, entity: Experience, props: { amount: 2 } },
     { percentage: 10, entity: Experience, props: { amount: 3 } },
@@ -35,8 +33,9 @@ export const creatureStats = new Map<Creature, CreatureStats>([
 ]);
 
 export const creatureSpawns: Distribution<Creature, 'id' | 'amount' | 'maximum'>[] = [
-  { percentage: 50, entity: Triangle, props: { orientation: 'up', particles: [], equipments: [] } },
-  { percentage: 50, entity: Circle, props: { orientation: 'up', particles: [], equipments: [] } },
+  { percentage: 45, entity: Triangle, props: { orientation: 'up', particles: [], equipments: [] } },
+  { percentage: 45, entity: Circle, props: { orientation: 'up', particles: [], equipments: [] } },
+  { percentage: 10, entity: Chest, props: { orientation: 'up', particles: [], equipments: [] } },
 ];
 
 export type EquipmentStats = Partial<Record<Material, number>>;

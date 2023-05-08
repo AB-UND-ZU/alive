@@ -115,11 +115,28 @@ export const Boat: Equipment = ({ material }) => {
   return <span className={`Entity Boat ${material}`}>{'\u0115'}</span>
 }
 
-export const Key: Equipment = ({ material }) => {
-  return <span className={`Entity Key ${material}`}>{'\u011c'}</span>
+export const Compass: Equipment = ({ direction, interaction }) => {
+  if (interaction === "equipped" && direction) return null;
+  const arrows = {
+    up: '\u0117',
+    upRight: '\u0117',
+    right: '\u0119',
+    rightDown: '\u0119',
+    down: '\u0118',
+    downLeft: '\u0118',
+    left: '\u011a',
+    leftUp: '\u011a',
+  };
+  const arrow = arrows[direction || 'up'];
+  return (
+    <>
+      <span className="Entity Compass">{'\u0108'}</span>
+      <span className="Entity Needle">{arrow}</span>
+    </>
+  );
 }
 
-export const equipments = [Armor, Sword, Spell, Blocked, Boat, Key];
+export const equipments = [Armor, Sword, Spell, Blocked, Boat, Compass];
 
 
 
@@ -363,14 +380,14 @@ export type Inventory = {
   armor?: number,
   spell?: number,
   boat?: number,
-  key?: number,
+  compass?: number,
 };
 export const inventories = new Map<Equipment | undefined, keyof Inventory>([
   [Sword, 'sword'],
   [Armor, 'armor'],
   [Spell, 'spell'],
   [Boat, 'boat'],
-  [Key, 'key'],
+  [Compass, 'compass'],
 ]);
 
 export type Interaction = 'equipped' | 'using';

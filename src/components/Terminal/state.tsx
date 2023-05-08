@@ -1,9 +1,9 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, Collecting, counters, inventories, Wave, Spell, Sword, Wood } from "../../engine/entities";
+import { Attacked, Collecting, counters, inventories, Wave, Spell, Sword, Wood, Portal } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { attackCreature, tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
-import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, resolveCompositeId } from "../../engine/utils";
+import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, resolveCompositeId, relativeDistance, pointToDegree, degreesToOrientation } from "../../engine/utils";
 import React from "react";
 import { equipmentStats } from "../../engine/balancing";
 import { quests } from "../../engine/quests";
@@ -68,6 +68,14 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       Object.values(player.entity.props.particles).forEach(particleId => {
         state = tickParticle(state, particleId);
       });
+
+      // update compass
+      if (state.inventory.compass) {
+        const distance = relativeDistance(state, player, { x: 0, y: -3, id: -1, entity: <Portal /> });
+        const degrees = pointToDegree(distance);
+        const orientation = degreesToOrientation(degrees);
+        state = updateProcessorProps(state, { container: 'equipments', id: state.inventory.compass }, { direction: orientation });
+      }
 
       return state;
     };

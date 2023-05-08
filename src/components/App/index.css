@@ -411,6 +411,14 @@ body,
 }
 */
 
+.Compass {
+  color: var(--maroon);
+}
+
+.Needle {
+  color: var(--silver);
+}
+
 .Frame {
   color: var(--grey);
 }
