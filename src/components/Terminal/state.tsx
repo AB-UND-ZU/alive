@@ -1,11 +1,11 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, Collecting, counters, inventories, Wave, Spell, Sword, Wood, Portal } from "../../engine/entities";
+import { Attacked, Collecting, counters, inventories, Wave, Spell, Sword, Wood, Portal, Player } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { attackCreature, tickParticle } from "../../engine/particles";
 import { tickEquipment } from "../../engine/equipments";
 import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, resolveCompositeId, relativeDistance, pointToDegree, degreesToOrientation } from "../../engine/utils";
 import React from "react";
-import { equipmentStats } from "../../engine/balancing";
+import { creatureStats, equipmentStats } from "../../engine/balancing";
 import { quests } from "../../engine/quests";
 
 type QueueAction = {
@@ -141,6 +141,15 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         const counter = counters.get(ItemEntity);
         const amount = collectCell.item.props.amount;
 
+        // limit hp and mp stats
+        if (
+          (counter && state[counter] >= 99) ||
+          (counter === 'hp' && state.hp >= state.xp + (creatureStats.get(Player)?.hp || 10)) ||
+          (counter === 'mp' && state.mp >= state.xp)
+        ) {
+          return state;
+        }
+
         state = updateCell(state, x, y, {
           item: amount > 1
             ? React.cloneElement(collectCell.item, { amount: amount - 1 })
@@ -187,7 +196,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
             { container: 'equipments', id: equipmentProcessor.id },
             { parent: { container: 'creatures', id: player.id }, x: 0, y: 0 }
           );
-          state = updateProcessorProps(state, { container: 'equipments', id: equipmentProcessor.id }, { interaction: 'equipped' });
+          state = updateProcessorProps(state, { container: 'equipments', id: equipmentProcessor.id }, { interaction: 'equipped', direction: undefined });
           state = updateInventory(state, inventoryKey, equipmentProcessor.id);
 
           // equip on player
