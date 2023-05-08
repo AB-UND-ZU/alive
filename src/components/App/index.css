@@ -84,6 +84,10 @@ body,
   color: var(--grey);
 }
 
+.Text {
+  color: var(--white);
+}
+
 .Row {
   white-space: nowrap;
   height: var(--height);

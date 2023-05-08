@@ -111,6 +111,7 @@ export type TerminalState = {
   screenHeight: number,
   cameraX: number,
   cameraY: number,
+  quest: string,
 
   // player
   repeatX: number,
@@ -151,6 +152,7 @@ export const defaultState: TerminalState = {
   screenHeight: 13,
   cameraX: 0,
   cameraY: 0,
+  quest: 'spawn',
   playerId: 0,
   repeatX: 0,
   repeatY: 0,

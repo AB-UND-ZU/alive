@@ -1,8 +1,9 @@
 import { padOrientation } from "./textures";
 import { center, renderText, TerminalState } from "../../engine/utils";
+import { quests } from "../../engine/quests";
 
 const clampOffset = (state: TerminalState, length: number, truncate: number, index: number, duration: number) => {
-  const offset = state.tick % (length + truncate + duration);
+  const offset = (state.tick + index) % (length + truncate + duration);
 
   if (index <= offset && offset < index + duration) return index;
 
@@ -10,15 +11,24 @@ const clampOffset = (state: TerminalState, length: number, truncate: number, ind
 }
 
 const truncate = 7;
-const marquee = (state: TerminalState, text: string, backgrounds: string[] = []) => {
-  const offset = clampOffset(state, text.length, truncate, truncate - 1, truncate * 2);
+const marquee = (state: TerminalState, layers: string[], backgrounds: string[][] = []) => {
+  const length = layers[0].length;
+  const offset = clampOffset(state, length, truncate, truncate - 1, truncate * 2);
   const padding = ' '.repeat(truncate);
-  const visible = `${padding}${text}${padding}`.substring(offset, offset + truncate);
-  return visible.split('').map((char, index) => (
-    <span className="Cell" key={index}>
-      <span className={`Entity ${backgrounds[offset + index - truncate] || 'HUD'}`}>{char}</span>
-    </span>
-  ));
+
+  return Array.from({ length: truncate }).map((_, visibleIndex) => {
+    const index = offset + visibleIndex - truncate;
+    return (
+      <span className="Cell" key={index}>
+        {layers.map((text, layerIndex) => {
+          const char = `${padding}${text}${padding}`[index + truncate];
+          return (
+            <span key={layerIndex} className={`Entity ${backgrounds[layerIndex][index] || 'HUD'}`}>{char}</span>
+          );
+        })}
+      </span>
+    );
+  });
 };
 
 const Controls = ({ state }: { state: TerminalState }) => {
@@ -49,7 +59,7 @@ const Controls = ({ state }: { state: TerminalState }) => {
           renderText('      ')
         )}
         {renderText('│')}
-        {marquee(state, '1\u2261 Find a stick', ['Wood', 'Wood'])}
+        {marquee(state, ...quests[state.quest].display)}
         {renderText('│ ')}
         {renderText(padOrientation[state.orientation || center][1], 'Pad')}
       </div>

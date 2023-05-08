@@ -6,6 +6,7 @@ import { tickEquipment } from "../../engine/equipments";
 import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, resolveCompositeId } from "../../engine/utils";
 import React from "react";
 import { equipmentStats } from "../../engine/balancing";
+import { quests } from "../../engine/quests";
 
 type QueueAction = {
   type: 'queue',
@@ -42,7 +43,11 @@ type TickAction = {
   type: 'tick',
 };
 
-type TerminalAction = QueueAction | MoveAction | AttackAction | SpellAction | CollectAction | FogAction | TickAction;
+type QuestAction = {
+  type: 'quest',
+};
+
+type TerminalAction = QueueAction | MoveAction | AttackAction | SpellAction | CollectAction | FogAction | TickAction | QuestAction;
 
 export const reducer = (prevState: TerminalState, action: TerminalAction): TerminalState => {
   let state = { ...prevState };
@@ -112,6 +117,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       } 
 
       state = reducer(state, { type: 'fog' });
+      state = reducer(state, { type: 'quest' });
       return state;
     }
 
@@ -297,6 +303,11 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       state = tickCreature(state, player.id);
       state = tickEquipment(state, wave.id);
 
+      return state;
+    }
+
+    case 'quest': {
+      state = quests[state.quest].tick(state);
       return state;
     }
 
