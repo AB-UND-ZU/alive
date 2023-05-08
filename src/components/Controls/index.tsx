@@ -1,14 +1,22 @@
 import { padOrientation } from "./textures";
 import { center, renderText, TerminalState } from "../../engine/utils";
 
+const clampOffset = (state: TerminalState, length: number, truncate: number, index: number, duration: number) => {
+  const offset = state.tick % (length + truncate + duration);
+
+  if (index <= offset && offset < index + duration) return index;
+
+  return offset < index ? offset : offset - duration;
+}
+
 const truncate = 7;
-const marquee = (state: TerminalState, text: string) => {
-  const offset = state.tick % (text.length + truncate);
+const marquee = (state: TerminalState, text: string, backgrounds: string[] = []) => {
+  const offset = clampOffset(state, text.length, truncate, truncate - 1, truncate * 2);
   const padding = ' '.repeat(truncate);
   const visible = `${padding}${text}${padding}`.substring(offset, offset + truncate);
   return visible.split('').map((char, index) => (
     <span className="Cell" key={index}>
-      <span className="Entity HUD">{char}</span>
+      <span className={`Entity ${backgrounds[offset + index - truncate] || 'HUD'}`}>{char}</span>
     </span>
   ));
 };
@@ -41,7 +49,7 @@ const Controls = ({ state }: { state: TerminalState }) => {
           renderText('      ')
         )}
         {renderText('│')}
-        {marquee(state, 'Find a stick')}
+        {marquee(state, '1\u2261 Find a stick', ['Wood', 'Wood'])}
         {renderText('│ ')}
         {renderText(padOrientation[state.orientation || center][1], 'Pad')}
       </div>

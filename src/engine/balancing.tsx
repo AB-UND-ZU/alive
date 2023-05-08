@@ -28,8 +28,9 @@ export const creatureStats = new Map<Creature, CreatureStats>([
     { percentage: 10, entity: Experience, props: { amount: 1 } },
   ] }],
   [Chest, { hp: 10, dmg: 0, drops: [
-    { percentage: 67, entity: Gold, props: { amount: 3 } },
-    { percentage: 33, entity: Experience, props: { amount: 3 } },
+    { percentage: 60, entity: Experience, props: { amount: 1 } },
+    { percentage: 30, entity: Experience, props: { amount: 2 } },
+    { percentage: 10, entity: Experience, props: { amount: 3 } },
   ] }],
 ]);
 
