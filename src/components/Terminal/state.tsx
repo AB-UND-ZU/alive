@@ -1,12 +1,13 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, Collecting, counters, inventories, Wave, Spell, Sword, Wood, Portal, Player } from "../../engine/entities";
+import { Attacked, Collecting, counters, Wave, Spell, Sword, Wood, Player, Tree } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { attackCreature, tickParticle } from "../../engine/particles";
-import { tickEquipment } from "../../engine/equipments";
-import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, removeProcessor, updateInventory, getParentEntity, resolveCompositeId, relativeDistance, pointToDegree, degreesToOrientation } from "../../engine/utils";
+import { collectEquipment, tickEquipment } from "../../engine/equipments";
+import { center, updateProcessorProps, Direction, directionOffset, getCell, getCreature, getEquipment, getFog, getPlayerProcessor, isWalkable, Orientation, pointRange, TerminalState, updateCell, wrapCoordinates, createParticle, createEquipment, updateProcessor, getParentEntity, resolveCompositeId, relativeDistance, pointToDegree, degreesToOrientation, getInteraction } from "../../engine/utils";
 import React from "react";
 import { creatureStats, equipmentStats } from "../../engine/balancing";
-import { quests } from "../../engine/quests";
+import { acceptQuest, finishQuest, quests } from "../../engine/quests";
+import { gameLogic } from "../../engine/interactions";
 
 type QueueAction = {
   type: 'queue',
@@ -47,7 +48,14 @@ type QuestAction = {
   type: 'quest',
 };
 
-type TerminalAction = QueueAction | MoveAction | AttackAction | SpellAction | CollectAction | FogAction | TickAction | QuestAction;
+type InteractAction = {
+  type: 'interact',
+  orientation?: Orientation,
+  x: number,
+  y: number,
+};
+
+type TerminalAction = QueueAction | MoveAction | AttackAction | SpellAction | CollectAction | FogAction | TickAction | QuestAction | InteractAction;
 
 export const reducer = (prevState: TerminalState, action: TerminalAction): TerminalState => {
   let state = { ...prevState };
@@ -71,7 +79,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
 
       // update compass
       if (state.inventory.compass) {
-        const distance = relativeDistance(state, player, { x: 0, y: -3, id: -1, entity: <Portal /> });
+        const distance = relativeDistance(state, player, { x: 0, y: -3, id: -1, entity: <Tree /> });
         const degrees = pointToDegree(distance);
         const orientation = degreesToOrientation(degrees);
         state = updateProcessorProps(state, { container: 'equipments', id: state.inventory.compass }, { direction: orientation });
@@ -85,18 +93,23 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       const [deltaX, deltaY] = directionOffset[orientation || center];
 
       const player = getPlayerProcessor(state);
+      const interaction = getInteraction(state, player.x, player.y);
       const [movedX, movedY] = [player.x + deltaX, player.y + deltaY];
       const [targetX, targetY] = wrapCoordinates(state, movedX, movedY);
+      const targetCell = getCell(state, targetX, targetY);
 
       const attackedCreature = getCreature(state, targetX, targetY);
       const collectedEquipment = getEquipment(state, targetX, targetY, equipment => (
-        !equipment.entity.props.interaction &&
+        !equipment.entity.props.mode &&
         !getParentEntity(state, equipment)
       ));
 
+      // perform interactions
+      if (interaction && orientation) {
+        state = reducer(state, { type: 'interact', orientation, x: interaction.x, y: interaction.y });
+
       // if walking into item, stop and collect instead
-      const targetCell = getCell(state, targetX, targetY);
-      if (targetCell.item || collectedEquipment) {
+      } else if (orientation && (targetCell.item || collectedEquipment)) {
         state = reducer(state, { type: 'collect', x: targetX, y: targetY, orientation });
 
       } else if (attackedCreature && state.inventory.sword) {
@@ -114,6 +127,11 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
           // to assign globally enumerated coordinates, keep track of number of overlaps
           state.repeatX = state.repeatX + Math.sign(movedX - targetX);
           state.repeatY = state.repeatY + Math.sign(movedY - targetY);
+
+          if (interaction) {
+            console.log('cancel')
+            state = finishQuest(state, interaction.entity.props.quest);
+          }
         }
 
         // process all player updates
@@ -122,6 +140,13 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         Object.values(getPlayerProcessor(state).entity.props.particles).forEach(particleId => {
           state = tickParticle(state, particleId);
         });
+
+        // assign quest
+        const targetInteraction = getInteraction(state, player.x, player.y);
+
+        if (targetInteraction) {
+          state = acceptQuest(state, targetInteraction.entity.props.quest);
+        }
       } 
 
       state = reducer(state, { type: 'fog' });
@@ -180,28 +205,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
 
       // add to or replace equipment in player's inventory
       if (equipmentProcessor) {
-        const inventoryKey = inventories.get(equipmentProcessor.entity.type);
-        
-        if (inventoryKey) {
-          const existingInventory = state.inventory[inventoryKey];
-
-          // remove previous equipment
-          if (existingInventory) {
-            state = removeProcessor(state, { container: 'equipments', id: existingInventory });
-          }
-
-          // equip in inventory
-          state = updateProcessor(
-            state,
-            { container: 'equipments', id: equipmentProcessor.id },
-            { parent: { container: 'creatures', id: player.id }, x: 0, y: 0 }
-          );
-          state = updateProcessorProps(state, { container: 'equipments', id: equipmentProcessor.id }, { interaction: 'equipped', direction: undefined });
-          state = updateInventory(state, inventoryKey, equipmentProcessor.id);
-
-          // equip on player
-          state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { equipments: [...getPlayerProcessor(state).entity.props.equipments, equipmentProcessor.id ] });
-        }
+        state = collectEquipment(state, equipmentProcessor.id);
       }
       
       return state;
@@ -290,12 +294,20 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
     }
 
     case 'spell': {
+      // perform interactions
+      const player = getPlayerProcessor(state);
+      const interaction = getInteraction(state, player.x, player.y);
+      if (interaction) {
+        state = reducer(state, { type: 'interact', x: player.x, y: player.y });
+        state = reducer(state, { type: 'quest' });
+        return state
+      }
+
       if (!state.inventory.spell) return state;
       if (state.mp <= 0) return state;
 
       state.mp = state.mp - 1;
 
-      const player = getPlayerProcessor(state);
       const spell = state.equipments[state.inventory.spell];
 
       // update equipped spell
@@ -310,7 +322,7 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
         maximum: amount,
         level,
         material: spell.entity.props.material,
-        interaction: 'using',
+        mode: 'using',
         particles: []
       });
       [state, centerParticle] = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: wave.id } }, Wave, { direction: 'center', material: spell.entity.props.material, amount: level });
@@ -324,7 +336,21 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
     }
 
     case 'quest': {
-      state = quests[state.quest].tick(state);
+      const quest = state.questStack.slice(-1)[0];
+      if (quest) {
+        state = quests[quest].tick(state);
+      }
+      return state;
+    }
+
+    case 'interact': {
+      const { x, y, orientation } = action;
+      const interaction = getInteraction(state, x, y);
+      const logic = interaction && gameLogic.get(interaction.entity.type);
+
+      if (!logic) return state;
+
+      state = logic.execute(state, interaction.id, orientation);
       return state;
     }
 

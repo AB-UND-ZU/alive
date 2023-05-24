@@ -1,11 +1,54 @@
+import { Skin } from "./entities";
 import { getPlayerProcessor, TerminalState } from "./utils";
+
+export const getQuest = (state: TerminalState) => {
+  return quests[state.questStack.slice(-1)[0]];
+};
+
+export const acceptQuest = (state: TerminalState, quest: string) => {
+  return {
+    ...state,
+    questStack: [...state.questStack, quest],
+  };
+};
+
+export const finishQuest = (state: TerminalState, quest: string) => {
+  const stack = [...state.questStack];
+
+  if (stack.slice(-1)[0] === quest) {
+    stack.pop();
+    return {
+      ...state,
+      questStack: stack,
+    };
+  }
+
+  return state;
+};
 
 export type Quest = {
   render: (state: TerminalState) => [string[], string[][]],
   tick: (state: TerminalState) => TerminalState,
+  title?: string,
+  action?: string,
 };
 
 export const quests: Record<string, Quest> = {
+  characterSelect: {
+    render: () => [[], []],
+    tick: (state: TerminalState) => {
+      // check if player selected skin
+      const player = getPlayerProcessor(state);
+      
+      const skin = player.entity.props.equipments.find(equipmentId => state.equipments[equipmentId]?.entity.type === Skin);
+      if (skin) return finishQuest(state, 'characterSelect');
+
+      return state;
+    },
+    title: '12345',
+    action: 'OK',
+  },
+
   spawn: {
     render: () => [['\u011a\u25a0\u0119 Move using joystick'], [['HUD', 'White', 'HUD']]],
     tick: (state: TerminalState) => {

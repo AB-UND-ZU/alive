@@ -4,6 +4,34 @@ Try it here: https://ab-und-zu.github.io/alive
 
 Intended to be used with https://www.rune.ai/
 
+## Onboarding
+
+Concepts
+- Character select
+- Press action button
+- Picking up stuff
+- Attacking
+- Stats
+- Monsters walk
+- Portal
+- Walk through grass
+
+Option 1
+- Spawn circle
+- Top says "ALIVE" in big font
+- Center character
+- Below "Select character , Press OK"
+- Action: Press ok
+
+- Top "INTRO" portal
+- Bottom opening
+- Left right flowers and bushes with items
+- No chest, compass later
+
+Tutorial
+-
+
+
 ## Plan
 
 - v1

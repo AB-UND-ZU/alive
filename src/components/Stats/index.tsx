@@ -5,7 +5,7 @@ import { renderText, TerminalState } from "../../engine/utils";
 const renderInventory = (state: TerminalState, id?: number) => {
   if (!id) return null;
   
-  return React.cloneElement(state.equipments[id].entity, { interaction: undefined });
+  return React.cloneElement(state.equipments[id].entity, { mode: undefined });
 };
 
 const Stats = ({ state }: { state: TerminalState }) => {

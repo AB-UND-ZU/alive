@@ -1,4 +1,4 @@
-import { Blocked, Bush, Cell, Chest, Compass, Creature, Equipment, Flower, Herb, Particle, Portal, Seed, Tree, Wave } from "./entities"
+import { Blocked, Bush, Cell, Chest, Compass, Creature, Equipment, Flower, Herb, Particle, Seed, Tree, Wave } from "./entities"
 import { Direction } from "./utils";
 
 /* Worlds
@@ -62,12 +62,11 @@ const chst: LayoutCell = { creature: [Chest, { amount: 8, maximum: 8, orientatio
 const cmps: LayoutCell = { equipment: [Compass, { material: 'iron', amount: 0, maximum: 0, level: 0 }] };
 
 const getBlockedProps = (direction: Direction): EquipmentProps => (
-  { amount: 0, maximum: 0, level: 0, material: 'wood', interaction: 'equipped', particle: [
+  { amount: 0, maximum: 0, level: 0, material: 'wood', mode: 'equipped', particle: [
     Wave, { direction, material: 'plant' }
   ] }
 );
 
-const prtl: LayoutCell = { sprite: <Portal material="water" /> };
 const pluu: LayoutCell = { equipment: [Blocked, getBlockedProps('up') ] };
 const plur: LayoutCell = { equipment: [Blocked, getBlockedProps('upRight') ], sprite: <Flower /> };
 const plrr: LayoutCell = { equipment: [Blocked, getBlockedProps('right') ] };
@@ -104,7 +103,7 @@ export const rural: World = {
         [null,null,null,null,null,air, air, air, air, air, air, air, air, air, null,null,null,null,null],
         [null,null,null,air, air, air, tre2,tree,tre2,tree,tre2,tree,tre2,air, air, air, null,null,null],
         [null,null,air, air, tre2,tree,bush,bush,pllu,pluu,plur,bush,bush,tree,tre2,air, air, null,null],
-        [null,air, air, tree,bush,bush,flwr,flwr,plll,prtl,plrr,flwr,flwr,bush,bush,tree,air, air, null],
+        [null,air, air, tree,bush,bush,flwr,flwr,plll,null,plrr,flwr,flwr,bush,bush,tree,air, air, null],
         [air, air, tre2,bush,flwr,flwr,null,null,pldl,pldd,plrd,null,null,flwr,flwr,bush,tre2,air, air ],
         [air, tree,bush,flwr,null,null,flwr,null,null,null,null,null,herb,null,null,flwr,bush,tree,air ],
         [air, tre2,bush,flwr,null,flwr,chst,flwr,null,null,null,flwr,seed,herb,null,flwr,bush,tre2,air ],

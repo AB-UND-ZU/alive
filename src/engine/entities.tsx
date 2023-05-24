@@ -70,6 +70,10 @@ export const terrains = [Rock, Stub, Tree];
 
 // ------------------------ EQUIPMENT --------------------------------
 
+export const Skin: Equipment = ({ level, material }) => {
+  return <span className={`Entity Skin ${material}`}>{String.fromCharCode(level)}</span>
+};
+
 export type Equipment = React.FC<{
   id: number,
   amount: number,
@@ -77,7 +81,7 @@ export type Equipment = React.FC<{
   level: number,
   particles: number[],
   material: Material,
-  interaction?: Interaction,
+  mode?: Mode,
   direction?: Direction,
 }>;
 
@@ -95,14 +99,14 @@ export const Armor: Equipment = ({ material }) => {
   return <span className={`Entity Armor ${material}`}>{'\u00ac'}</span>
 }
 
-export const Spell: Equipment = ({ amount, maximum, level, interaction, material }) => {
-  if (interaction === "using") return null;
+export const Spell: Equipment = ({ amount, maximum, level, mode, material }) => {
+  if (mode === "using") return null;
   const spellLevels = ['\u03b4', '\u0114'];
 
   return (
     <>
-      <span className={`Entity Spell ${material}`}>{interaction === 'equipped' ? '~' : spellLevels[level - 1]}</span>
-      {material === 'plant' && !interaction && <span className="Entity Bar">{getBar(amount, maximum)}</span>}
+      <span className={`Entity Spell ${material}`}>{mode === 'equipped' ? '~' : spellLevels[level - 1]}</span>
+      {material === 'plant' && !mode && <span className="Entity Bar">{getBar(amount, maximum)}</span>}
     </>
   );
 }
@@ -115,8 +119,8 @@ export const Boat: Equipment = ({ material }) => {
   return <span className={`Entity Boat ${material}`}>{'\u0115'}</span>
 }
 
-export const Compass: Equipment = ({ direction, interaction }) => {
-  if (interaction === "equipped" && direction) return null;
+export const Compass: Equipment = ({ direction, mode }) => {
+  if (mode === "equipped" && direction) return null;
   const arrows = {
     up: '\u0117',
     upRight: '\u0117',
@@ -210,11 +214,7 @@ export const Bush: Sprite = () => {
   return <span className="Entity Bush">{'\u03c4'}</span>;
 }
 
-export const Portal: Sprite = ({ material }) => {
-  return <span className={`Entity Portal ${material}`}>{'\u2229'}</span>;
-}
-
-export const sprites = [Flower, Bush, Portal];
+export const sprites = [Flower, Bush];
 
 
 // ------------------------ CREATURE --------------------------------
@@ -231,7 +231,6 @@ export type Creature = React.FC<{
 export const Player: Creature = ({ amount, maximum }) => {
   return (
     <>
-      <span className="Entity Player">{'\u010b'}</span>
       <span className="Entity Hair">~</span>
       <span className="Entity Health">{getBar(amount, maximum)}</span>
     </>
@@ -356,6 +355,25 @@ export const Collecting: Particle = ({ counter, direction }) => {
 
 export const particles = [Swimming, Burning, Attacked, Wave, Collecting];
 
+
+// ------------------------ INTERACTION --------------------------------
+
+export type Interaction = React.FC<{
+  id: number,
+  quest: string,
+  equipments: number[],
+}>;
+
+export const CharacterSelect: Interaction = () => {
+  return null;
+}
+
+export const Portal: Interaction = ({ quest }) => {
+  return <span className={`Entity Portal ${quest}`}>{'\u2229'}</span>;
+}
+
+export const interactions = [CharacterSelect, Portal];
+
 // ------------------------ CONSTANTS --------------------------------
  
 export type Stats = 'hp' | 'xp' | 'mp';
@@ -381,6 +399,7 @@ export type Inventory = {
   spell?: number,
   boat?: number,
   compass?: number,
+  skin?: number,
 };
 export const inventories = new Map<Equipment | undefined, keyof Inventory>([
   [Sword, 'sword'],
@@ -388,9 +407,10 @@ export const inventories = new Map<Equipment | undefined, keyof Inventory>([
   [Spell, 'spell'],
   [Boat, 'boat'],
   [Compass, 'compass'],
+  [Skin, 'skin']
 ]);
 
-export type Interaction = 'equipped' | 'using';
+export type Mode = 'equipped' | 'using';
 
 export const materials = ['wood', 'iron', 'gold', 'fire', 'ice', 'plant', 'water'] as const;
 export type Material = typeof materials[number];
@@ -399,7 +419,7 @@ export const containers = new Map<Sprite | Terrain | undefined, Item>([[Flower, 
 
 // ------------------------ ENTITY --------------------------------
 
-export type Entity = Ground | Terrain | Item | Sprite | Creature | Equipment | Particle;
+export type Entity = Ground | Terrain | Item | Sprite | Creature | Equipment | Particle | Interaction;
 
 export const entities = [
   ...grounds,

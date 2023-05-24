@@ -3,10 +3,10 @@ import { MapCell } from 'worldmap-generator';
 import { creatureSpawns, creatureStats, getRandomDistribution } from './balancing';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, containers, Spell, Armor, Terrain, Sand, Water } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, containers, Spell, Armor, Terrain, Sand, Water, Skin, CharacterSelect, Interaction } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { corners, createCreature, createEquipment, createParticle, getDeterministicRandomInt, orientations, sum, TerminalState, updateCell, wrapCoordinates } from "./utils";
+import { corners, createCreature, createEquipment, createInteraction, createParticle, getDeterministicRandomInt, orientations, Processor, sum, TerminalState, updateCell, wrapCoordinates } from "./utils";
 import { rural } from './worlds';
 
 const getSingleElements = (world: World, cells: MapCell[], category: SingleCategories) => cells.map(cell => world.tileCells[cell.name][category]);
@@ -227,6 +227,19 @@ function generateLevel(state: TerminalState): TerminalState {
       }
     });
   });
+
+  // load world
+  let characterSelect: Processor<Interaction>;
+  [state, characterSelect] = createInteraction(state, { x: 0, y: 0 }, CharacterSelect, { quest: 'characterSelect', equipments: [] });
+
+  const skins = [...Array.from('123456789'), '&', '\u010b', '\u010c', ...Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ')];
+  skins.forEach((skin, index) => {
+    const [targetX] = wrapCoordinates(state, (index - 10) * 3, 0);
+    state = createEquipment(state, { x: targetX, y: 0, parent: { container: 'interactions', id: characterSelect.id } }, Skin, { amount: 0, maximum: 0, level: skin.charCodeAt(0), particles: [], material: 'gold' })[0];
+  })
+
+
+  // spawn equipment for development purposes
 
   state = createEquipment(state, { x: 0, y: -6 }, Armor, { amount: 0, maximum: 0, level: 1, material: 'wood', particles: [] })[0];
 

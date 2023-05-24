@@ -1,8 +1,37 @@
 import { equipmentStats } from "./balancing";
-import { Wave, Spell, Blocked, Compass } from "./entities";
-import { CompositeId, createEquipment, createParticle, degreesToOrientation, Direction, directionOffset, getPlayerProcessor, isOrphaned, pointToDegree, relativeDistance, removeProcessor, TerminalState, updateProcessorProps } from "./utils";
+import { Wave, Spell, Blocked, Compass, inventories } from "./entities";
+import { CompositeId, createEquipment, createParticle, degreesToOrientation, Direction, directionOffset, getPlayerProcessor, isOrphaned, pointToDegree, relativeDistance, removeProcessor, TerminalState, updateInventory, updateProcessor, updateProcessorProps } from "./utils";
 
 const MAX_RADIUS = 7;
+
+export const collectEquipment = (state: TerminalState, id: number): TerminalState => {
+  const equipment = state.equipments[id];
+  const inventoryKey = inventories.get(equipment.entity.type);
+
+  if (inventoryKey) {
+    const player = getPlayerProcessor(state);
+    const existingInventory = state.inventory[inventoryKey];
+
+    // remove previous equipment
+    if (existingInventory) {
+      state = removeProcessor(state, { container: 'equipments', id: existingInventory });
+    }
+
+    // equip in inventory
+    state = updateProcessor(
+      state,
+      { container: 'equipments', id: equipment.id },
+      { parent: { container: 'creatures', id: player.id }, x: 0, y: 0 }
+    );
+    state = updateProcessorProps(state, { container: 'equipments', id: equipment.id }, { mode: 'equipped', direction: undefined });
+    state = updateInventory(state, inventoryKey, equipment.id);
+
+    // equip on player
+    state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { equipments: [...getPlayerProcessor(state).entity.props.equipments, equipment.id] });
+  }
+
+  return state;
+};
 
 export const decayEquipment = (state: TerminalState, id: number) => {
   const equipmentProcessor = state.equipments[id];
@@ -26,7 +55,7 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
 
   const equipmentProcessor = state.equipments[id];
 
-  if (equipmentProcessor.entity.type === Compass && !equipmentProcessor.entity.props.interaction) {
+  if (equipmentProcessor.entity.type === Compass && !equipmentProcessor.entity.props.mode) {
     // let compass needle follow player
     const player = getPlayerProcessor(state);
     const distance = relativeDistance(state, equipmentProcessor, player);
@@ -34,18 +63,18 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
     const orientation = degreesToOrientation(degrees);
     state = updateProcessorProps(state, { container: 'equipments', id }, { direction: orientation });
 
-  } else if (equipmentProcessor.entity.type === Blocked && equipmentProcessor.entity.props.interaction === 'using') {
+  } else if (equipmentProcessor.entity.type === Blocked && equipmentProcessor.entity.props.mode === 'using') {
     // clear equipment once amount runs out
     state = decayEquipment(state, id);
 
   } else if (equipmentProcessor.entity.type === Spell) {
-    if (equipmentProcessor.entity.props.interaction === 'equipped') {
+    if (equipmentProcessor.entity.props.mode === 'equipped') {
       const amount = equipmentProcessor.entity.props.amount;
       if (amount > 0) {
         state = updateProcessorProps(state, { container: 'equipments', id }, { amount: amount - 1 });
       }
     }
-    if (equipmentProcessor.entity.props.interaction !== 'using') return state;
+    if (equipmentProcessor.entity.props.mode !== 'using') return state;
 
     const amount = equipmentProcessor.entity.props.amount;
     const level = equipmentProcessor.entity.props.level;
@@ -61,7 +90,7 @@ export const tickEquipment = (prevState: TerminalState, id: number): TerminalSta
         deltas.forEach(([direction, delta]) => {
           let blocker;
           [state, blocker] = createEquipment(state, { x: delta[0], y: delta[1], parent: { container: 'creatures', id: state.playerId } }, Blocked, {
-            particles: [], amount: maximum, maximum, level, material: 'plant', interaction: 'using',
+            particles: [], amount: maximum, maximum, level, material: 'plant', mode: 'using',
           });
           state = createParticle(state, { x: 0, y: 0, parent: { container: 'equipments', id: blocker.id } }, Wave, {
             direction: direction as Direction, material: equipmentProcessor.entity.props.material, amount: level

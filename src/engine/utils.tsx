@@ -1,5 +1,5 @@
 import React, { ReactComponentElement } from "react";
-import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment, Blocked } from "./entities";
+import { Cell, Creature, Particle, Water, Entity, Inventory, Equipment, Blocked, Interaction } from "./entities";
 
 let lastId = 0;
 export const getId = () => {
@@ -92,7 +92,7 @@ export type Fog = 'visible' | 'fog' | 'dark';
 
 export type CompositeId = {
   id: number,
-  container: 'creatures' | 'equipments' | 'particles',
+  container: 'creatures' | 'equipments' | 'particles' | 'interactions',
 };
 
 export type Processor<T extends Entity> = {
@@ -111,7 +111,7 @@ export type TerminalState = {
   screenHeight: number,
   cameraX: number,
   cameraY: number,
-  quest: string,
+  questStack: string[],
 
   // player
   repeatX: number,
@@ -141,6 +141,7 @@ export type TerminalState = {
   creatures: Container<Creature>,
   equipments: Container<Equipment>,
   particles: Container<Particle>,
+  interactions: Container<Interaction>,
 
   // maybe add some reverse index of mapping coordinates to entities
 };
@@ -152,7 +153,7 @@ export const defaultState: TerminalState = {
   screenHeight: 13,
   cameraX: 0,
   cameraY: 0,
-  quest: 'spawn',
+  questStack: [],
   playerId: 0,
   repeatX: 0,
   repeatY: 0,
@@ -170,6 +171,7 @@ export const defaultState: TerminalState = {
   fog: [[]],
   creatures: {},
   equipments: {},
+  interactions: {},
   particles: {},
   inventory: {},
 };
@@ -195,6 +197,15 @@ export const getCell = (state: TerminalState, x: number, y: number) => {
 export const getFog = (state: TerminalState, x: number, y: number) => {
   const [wrappedX, wrappedY] = wrapCoordinates(state, x, y);
   return state.fog[wrappedY][wrappedX];
+};
+
+export const getInteraction = (state: TerminalState, x: number, y: number, predicate: (creature: Processor<Interaction>) => boolean = () => true) => {
+  const [wrappedX, wrappedY] = wrapCoordinates(state, x, y);
+  return Object.values(state.interactions).find(interaction => (
+    interaction.x === wrappedX &&
+    interaction.y === wrappedY &&
+    predicate(interaction)
+  ));
 };
 
 export const getCreature = (state: TerminalState, x: number, y: number, predicate: (creature: Processor<Creature>) => boolean = () => true) => {
@@ -284,7 +295,7 @@ export const getPlayerProcessor = (state: TerminalState) => state.creatures[stat
 
 export const resolveCompositeId = (state: TerminalState, compositeId: CompositeId) => state[compositeId.container][compositeId.id];
 
-export const getParentEntity = (state: TerminalState, processor: Processor<Entity>): Processor<Creature> | Processor<Equipment> | Processor<Particle> | undefined => {
+export const getParentEntity = (state: TerminalState, processor: Processor<Entity>): Processor<Creature> | Processor<Equipment> | Processor<Particle> | Processor<Interaction> | undefined => {
   if (!processor.parent) return undefined;
 
   const parent = resolveCompositeId(state, processor.parent)
@@ -345,6 +356,22 @@ export const createParticle = (state: TerminalState, processor: Pick<Processor<P
   return [state, particle];
 };
 
+export const createInteraction = (state: TerminalState, processor: Pick<Processor<Interaction>, 'x' | 'y' | 'parent'>, component: Interaction, props: Omit<React.ComponentProps<Interaction>, 'id'>): [TerminalState, Processor<Interaction>] => {
+  const InteractionComponent = component;
+  const id = getId();
+  const [wrappedX, wrappedY] = wrapCoordinates(state, processor.x, processor.y);
+  const interaction = {
+    x: wrappedX,
+    y: wrappedY,
+    parent: processor.parent,
+    id,
+    entity: <InteractionComponent {...props} id={id} />
+  };
+  state = updateProcessor(state, { container: 'interactions', id }, interaction);
+
+  return [state, interaction];
+};
+
 export const createEquipment = (state: TerminalState, processor: Pick<Processor<Equipment>, 'x' | 'y' | 'parent'>, component: Equipment, props: Omit<React.ComponentProps<Equipment>, 'id'>): [TerminalState, Processor<Equipment>] => {
   const EquipmentComponent = component;
   const id = getId();
@@ -394,7 +421,7 @@ export const isWalkable = (state: TerminalState, x: number, y: number, id: numbe
   const cell = getCell(state, x, y);
   const creature = getCreature(state, x, y);
   const passableCreature = creature ? creature.id === state.playerId : true;
-  const equipment = getEquipment(state, x, y, equipment => !equipment.entity.props.interaction || equipment.entity.type === Blocked)
+  const equipment = getEquipment(state, x, y, equipment => !equipment.entity.props.mode || equipment.entity.type === Blocked)
   const passableEquipment = equipment ? getParentEntity(state, equipment)?.id === id : true;
   return isLand(state, x, y) && !cell.terrain && !cell.item && passableCreature && passableEquipment;
 }
