@@ -59,8 +59,6 @@ Tutorial
 
 ## Todos
 
-- x/y 159 hitting over edge no attack particle
-- collect HP bar not updated
 - item in water swimming
 - fog opactity replace to overlay
 

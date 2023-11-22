@@ -194,6 +194,11 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
           // add collect animation
           state[counter] = state[counter] + 1;
 
+          // update player health
+          if (counter === 'hp') {
+            state = updateProcessorProps(state, { container: 'creatures', id: player.id }, { amount: state[counter] });
+          }
+
           state = createParticle(
             state,
             { x: 0, y: 0, parent: { container: 'creatures', id: player.id } },

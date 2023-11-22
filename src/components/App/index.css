@@ -485,6 +485,11 @@ body,
   z-index: 12;
 }
 
+.Skin {
+  color: var(--white);
+  z-index: 12;
+}
+
 .Hair {
   color: var(--olive);
   z-index: 13;
