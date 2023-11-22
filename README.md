@@ -57,6 +57,13 @@ Tutorial
   - Perlin noise terrain generation
   - World presets: normal, desert, ocean, forest, mountain
 
+## Todos
+
+- x/y 159 hitting over edge no attack particle
+- collect HP bar not updated
+- item in water swimming
+- fog opactity replace to overlay
+
 ## HUD
 
 - Player: Female symbol, note symbol, arrow up, exclamation mark, ampersand, uppercase letter, numbers
@@ -83,7 +90,7 @@ Tutorial
 - ○ Mana
 - ≡ Wood
 - ÷ Iron
-- 
+- . Apple
 
 - Weapon
   - Wood / Iron
