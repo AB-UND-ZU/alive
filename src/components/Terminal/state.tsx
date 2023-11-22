@@ -268,9 +268,10 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
       if (!attackedCreature || !state.inventory.sword) return state;
 
       // get attacking angle
+      const distance = relativeDistance(state, player, { x, y, id: -1, entity: <Tree /> });
       const attackingDirection = Object.entries(directionOffset).find(([_, [offsetX, offsetY]]) => (
-        offsetX === x - player.x &&
-        offsetY === y - player.y
+        offsetX === distance[0] &&
+        offsetY === distance[1]
       ))?.[0] as Direction | undefined;
 
       // update sword animation
