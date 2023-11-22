@@ -1,5 +1,5 @@
 import { tickCreature } from "../../engine/creatures";
-import { Attacked, Collecting, counters, Wave, Spell, Sword, Wood, Player, Tree } from "../../engine/entities";
+import { Attacked, Collecting, counters, Wave, Spell, Sword, Wood, Player, Tree, Swimming } from "../../engine/entities";
 import { visibleFogOfWar } from "../../engine/fog";
 import { attackCreature, tickParticle } from "../../engine/particles";
 import { collectEquipment, tickEquipment } from "../../engine/equipments";
@@ -180,6 +180,11 @@ export const reducer = (prevState: TerminalState, action: TerminalAction): Termi
             ? React.cloneElement(collectCell.item, { amount: amount - 1 })
             : undefined
         });
+
+        // remove swimming if item disappeared
+        if (amount <= 1 && collectCell.sprite?.type === Swimming) {
+          state = updateCell(state, x, y, { sprite: undefined });
+        }
 
         // special case: first wood to be picked up will be used as sword
         if (!state.inventory.sword && ItemEntity === Wood) {

@@ -1,7 +1,7 @@
 import { creatureStats, getRandomDistribution, terrainStats } from "./balancing";
 import { tickCreature } from "./creatures";
-import { Attacked, Burning, Collecting, Freezing, Ice, Player, Wave, Stub, Tree, Water, Equipment } from "./entities";
-import { CompositeId, createParticle, getAbsolutePosition, getCell, getCreature, getDeterministicRandomInt, getPlayerProcessor, isOrphaned, isWater, Processor, removeProcessor, resolveCompositeId, TerminalState, updateCell, updateProcessor, updateProcessorProps } from "./utils";
+import { Attacked, Burning, Collecting, Freezing, Ice, Player, Wave, Stub, Tree, Water, Equipment, Swimming } from "./entities";
+import { CompositeId, createParticle, getAbsolutePosition, getCell, getCreature, getDeterministicRandomInt, getId, getPlayerProcessor, isOrphaned, isWater, Processor, removeProcessor, resolveCompositeId, TerminalState, updateCell, updateProcessor, updateProcessorProps } from "./utils";
 
 export const attackCreature = (state: TerminalState, id: number, damage: number) => {
   const creature = state.creatures[id];
@@ -19,6 +19,11 @@ export const attackCreature = (state: TerminalState, id: number, damage: number)
   const [Drop, props] = getRandomDistribution(drops?.drops || []);
   if (Drop) {
     state = updateCell(state, creature.x, creature.y, { item: <Drop {...props} /> });
+
+    // add swimming
+    if (isWater(state, creature.x, creature.y)) {
+      state = updateCell(state, creature.x, creature.y, { sprite: <Swimming id={getId()} /> });
+    }
   }
 
   // keep attack particles
@@ -38,12 +43,12 @@ export const attackCreature = (state: TerminalState, id: number, damage: number)
 export const tickParticle = (prevState: TerminalState, id: number) => {
   let state = { ...prevState };
 
+  const particleProcessor = state.particles[id];
   if (isOrphaned(state, { container: 'particles', id })) {
     state = removeProcessor(state, { container: 'particles', id });
     return state;
   }
 
-  const particleProcessor = state.particles[id];
   const [particleX, particleY] = getAbsolutePosition(state, particleProcessor);
   const cell = getCell(state, particleX, particleY);
   const affectedId = getCreature(state, particleX, particleY, creature => creature.entity.type !== Player)?.id;

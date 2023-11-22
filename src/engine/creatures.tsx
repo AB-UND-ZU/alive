@@ -14,7 +14,7 @@ export const attackPlayer = (state: TerminalState, compositeId: CompositeId) => 
   // add attacked particle
   state = createParticle(
     state,
-    { x: player.x -  creature.x, y: player.y - creature.y, parent: compositeId },
+    { x: player.x - creature.x, y: player.y - creature.y, parent: compositeId },
     Attacked,
     {}
   )[0];

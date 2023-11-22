@@ -17,6 +17,11 @@ export const collectEquipment = (state: TerminalState, id: number): TerminalStat
       state = removeProcessor(state, { container: 'equipments', id: existingInventory });
     }
 
+    // remove any active particles
+    equipment.entity.props.particles.forEach(particleId => {
+      state = removeProcessor(state, { container: 'particles', id: particleId });
+    });
+
     // equip in inventory
     state = updateProcessor(
       state,

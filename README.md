@@ -59,7 +59,6 @@ Tutorial
 
 ## Todos
 
-- item in water swimming
 - fog opactity replace to overlay
 
 ## HUD
