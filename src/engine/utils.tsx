@@ -48,9 +48,13 @@ export type Orientation = typeof orientations[number];
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation>  = {
   ArrowUp: 'up',
+  w: 'up',
   ArrowRight: 'right',
+  d: 'right',
   ArrowDown: 'down',
+  s: 'down',
   ArrowLeft: 'left',
+  a: 'left',
 };
 
 // x, y

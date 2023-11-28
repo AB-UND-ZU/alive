@@ -3,11 +3,12 @@ import { MapCell } from 'worldmap-generator';
 import { creatureSpawns, creatureStats, getRandomDistribution } from './balancing';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, containers, Spell, Armor, Terrain, Sand, Water, Skin, CharacterSelect, Interaction, Lily, Apple, Blossom } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, containers, Spell, Armor, Terrain, Sand, Water, Skin, CharacterSelect, Interaction, Lily, Apple, Blossom, Equipment } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
 import { corners, createCreature, createEquipment, createInteraction, createParticle, getDeterministicRandomInt, orientations, Processor, sum, TerminalState, updateCell, wrapCoordinates } from "./utils";
 import { rural } from './worlds';
+import { collectEquipment } from './equipments';
 
 const getSingleElements = (world: World, cells: MapCell[], category: SingleCategories) => cells.map(cell => world.tileCells[cell.name][category]);
 const getMultipleElements = (world: World, cells: MapCell[], category: MultipleCategories) => cells.reduce<ReactComponentElement<Entity>[]>((cellTypes, cell) => [
@@ -250,7 +251,8 @@ function generateLevel(state: TerminalState): TerminalState {
     });
   });
 
-  // load world
+  /*
+  // load character select
   let characterSelect: Processor<Interaction>;
   [state, characterSelect] = createInteraction(state, { x: 0, y: 0 }, CharacterSelect, { quest: 'characterSelect', equipments: [] });
 
@@ -259,6 +261,12 @@ function generateLevel(state: TerminalState): TerminalState {
     const [targetX] = wrapCoordinates(state, (index - 10) * 3, 0);
     state = createEquipment(state, { x: targetX, y: 0, parent: { container: 'interactions', id: characterSelect.id } }, Skin, { amount: 0, maximum: 0, level: skin.charCodeAt(0), particles: [], material: 'gold' })[0];
   })
+  */
+
+  // apply default skin
+  let skin: Processor<Equipment>;
+  [state, skin] = createEquipment(state, { x: 0, y: 0 }, Skin, { amount: 0, maximum: 0, level: '\u010b'.charCodeAt(0), particles: [], material: 'gold' });
+  state = collectEquipment(state, skin.id);
 
 
   // spawn equipment for development purposes
