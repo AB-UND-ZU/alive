@@ -275,6 +275,10 @@ body,
   color: var(--green);
 }
 
+.Lily {
+  color: var(--green);
+}
+
 .Bush {
   color: var(--olive);
   z-index: 20;

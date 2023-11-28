@@ -1,5 +1,5 @@
 import { TileType } from "worldmap-generator";
-import { Cell, Flower, Ice, Path, Rock, Sand, Water } from "./entities";
+import { Cell, Flower, Ice, Lily, Path, Rock, Sand, Water } from "./entities";
 
 export class World {
   tileTypes: TileType[] = [];
@@ -50,6 +50,11 @@ export const basic = new Biome({
     size: 100,
     cell: { sprite: <Flower /> },
     connections: { air: 50 }
+  },
+  lily: {
+    size: 5,
+    cell: { grounds: [<Lily amount={1} />] },
+    connections: { water: 1 }
   },
   ice: {
     size: 50,

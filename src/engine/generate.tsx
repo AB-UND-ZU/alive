@@ -3,7 +3,7 @@ import { MapCell } from 'worldmap-generator';
 import { creatureSpawns, creatureStats, getRandomDistribution } from './balancing';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, containers, Spell, Armor, Terrain, Sand, Water, Skin, CharacterSelect, Interaction } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, containers, Spell, Armor, Terrain, Sand, Water, Skin, CharacterSelect, Interaction, Lily, Apple, Blossom } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
 import { corners, createCreature, createEquipment, createInteraction, createParticle, getDeterministicRandomInt, orientations, Processor, sum, TerminalState, updateCell, wrapCoordinates } from "./utils";
@@ -99,6 +99,7 @@ function generateLevel(state: TerminalState): TerminalState {
     }
     //if (temperatureNoise <= 30 && height + temperatureNoise <= -45) name = 'ice';
     if (name === 'air' && greenNoise >= 20) name = 'green';
+    if (name === 'water' && greenNoise >= 33 && height <= -47) name = 'lily';
 
     return {
       name,
@@ -130,6 +131,7 @@ function generateLevel(state: TerminalState): TerminalState {
       }, {});
       const sand = groundAmounts.find(({ ground }) => ground === Sand);
       const water = groundAmounts.find(({ ground }) => ground === Water);
+      const lily = groundAmounts.find(({ ground }) => ground === Lily);
       if (sand && sand.amount > 0) {
         cell.grounds = [<Sand amount={1} />];
       }
@@ -138,6 +140,9 @@ function generateLevel(state: TerminalState): TerminalState {
         if (newWaterAmount > 0) {
           cell.grounds = [<Water amount={newWaterAmount} />, ...(cell.grounds || [])];
         }
+      }
+      if (lily && lily.amount > 2 && !(sand && sand.amount > 0)) {
+        cell.grounds = [<Water amount={4} />, <Lily amount={1} />];
       }
 
       // Terrain: use quarter sized rocks
@@ -161,12 +166,29 @@ function generateLevel(state: TerminalState): TerminalState {
 
       // Item: add container item if overlapping with noise
       const itemNoise = itemMatrix[rowIndex][columnIndex];
-      const CellItem = containers.get(cell.sprite?.type || cell.terrain?.type);
-      if (CellItem && itemNoise > 48) {
-        cell.item = <CellItem amount={Math.floor(itemNoise - 46.5 )} />;
+      const CellItem = containers.get(cell.sprite?.type || cell.terrain?.type || cell.grounds?.[0]?.type);
+      if (CellItem && itemNoise > 46) {
+        const amount = Math.max(1, Math.floor((itemNoise - 48.7) * 2) + 1);
+        cell.item = <CellItem amount={amount} />;
         
         if (cell.terrain?.type === Tree) {
-          cell.terrain = undefined;
+          if (Math.random() < 0.11) {
+            // apple tree
+            cell.item = <Apple amount={1} />;
+          } else {
+            // wood
+            cell.terrain = undefined;
+          }
+        }
+
+        // ensure only 1 mana
+        if (CellItem === Blossom) {
+          if (itemNoise > 49.87) {
+            cell.item = <Blossom amount={1} />;
+            cell.grounds = [<Water amount={4} />, <Lily amount={1} />];
+          } else {
+            cell.item = undefined;
+          }
         }
       }
 

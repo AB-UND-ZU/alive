@@ -22,13 +22,11 @@ export const Ice: Ground = ({ amount }) => {
   return <span className="Entity Ice">{densities[amount - 1]}</span>
 }
 
-/*
 export const Lily: Ground = ({ amount }) => {
-  return <span className="Entity Plant">{'\u221e'}</span>;
+  return <span className="Entity Lily">{'\u221e'}</span>;
 }
-*/
 
-export const grounds = [Water, Ice, Sand, Path];
+export const grounds = [Water, Ice, Sand, Path, Lily];
 
 
 // ------------------------ TERRAIN --------------------------------
@@ -152,8 +150,16 @@ export const Life: Item = ({ amount }) => {
   return <span className="Entity Life">{'\u0102'}</span>;
 }
 
+export const Apple: Item = ({ amount }) => {
+  return <span className="Entity Life">.</span>;
+}
+
 export const Mana: Item = ({ amount }) => {
   return <span className="Entity Mana">{'\u0103'}</span>;
+}
+
+export const Blossom: Item = ({ amount }) => {
+  return <span className="Entity Mana">{'\u011c'}</span>;
 }
 
 export const Experience: Item = ({ amount }) => {
@@ -197,7 +203,7 @@ export const Iron: Item = ({ amount }) => {
   return <span className="Entity Ore">{'\u00f7'}</span>;
 }
 
-export const items = [Life, Mana, Wood, Iron, Herb, Seed, Gold, Experience];
+export const items = [Life, Apple, Blossom, Mana, Wood, Iron, Herb, Seed, Gold, Experience];
 
 
 // ------------------------ SPRITE --------------------------------
@@ -388,6 +394,8 @@ export const counters = new Map<Item | undefined, Counters>([
   [Seed, 'seed'],
   [Wood, 'wood'],
   [Iron, 'iron'],
+  [Apple, 'hp'],
+  [Blossom, 'mp'],
 ]);
 
 export const bars = ['\u0127', '\u0126', '\u0125', '\u0124', '\u0123', '\u0122', '\u0121', '\u0120'];
@@ -415,7 +423,7 @@ export type Mode = 'equipped' | 'using';
 export const materials = ['wood', 'iron', 'gold', 'fire', 'ice', 'plant', 'water'] as const;
 export type Material = typeof materials[number];
 
-export const containers = new Map<Sprite | Terrain | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron]]);
+export const containers = new Map<Sprite | Terrain | Ground | undefined, Item>([[Flower, Herb], [Bush, Seed], [Tree, Wood], [Rock, Iron], [Water, Blossom]]);
 
 // ------------------------ ENTITY --------------------------------
 
