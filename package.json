@@ -32,7 +32,7 @@
     "test": "react-scripts test",
     "lint": "eslint src/",
     "eject": "react-scripts eject",
-    "rune": "npm run build && npm run start:rune -- build/"
+    "rune": "yarn build && yarn start:rune -- build/"
   },
   "eslintConfig": {
     "extends": [
