@@ -3,10 +3,10 @@ import { MapCell } from 'worldmap-generator';
 import { creatureSpawns, creatureStats, getRandomDistribution } from './balancing';
 import { World, world } from './biomes';
 
-import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, containers, Spell, Armor, Terrain, Sand, Water, Skin, CharacterSelect, Interaction, Lily, Apple, Blossom, Equipment } from "./entities";
+import { Player, Cell, SingleCategories, MultipleCategories, Entity, Rock, Flower, Tree, Bush, grounds, containers, Spell, Armor, Terrain, Sand, Water, Skin, Lily, Apple, Blossom, Equipment } from "./entities";
 import { generateFog } from './fog';
 import { createMatrix, generateWhiteNoise, valueNoise } from './noise';
-import { corners, createCreature, createEquipment, createInteraction, createParticle, getDeterministicRandomInt, orientations, Processor, sum, TerminalState, updateCell, wrapCoordinates } from "./utils";
+import { corners, createCreature, createEquipment, createParticle, getDeterministicRandomInt, orientations, Processor, sum, TerminalState, updateCell, wrapCoordinates } from "./utils";
 import { rural } from './worlds';
 import { collectEquipment } from './equipments';
 
