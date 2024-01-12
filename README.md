@@ -5,9 +5,11 @@ Play it here: https://ab-und-zu.github.io/alive
 ## Media
 
 ![Spawn](public/Spawn.gif)
+
 _Using a stick as sword to fight first monsters_
 
 ![Spell](public/Spell.gif)
+
 _Casting ice spell to freeze monsters and water_
 
 ## Onboarding
