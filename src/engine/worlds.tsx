@@ -63,7 +63,7 @@ const cellMap: Record<string, LayoutCell> = {
   '#': { terrain: <Tree /> },
   'Θ': { terrain: <Tree direction="up" /> },
   'τ': { sprite: <Bush /> },
-  'T': { sprite: <Bush />, item: <Seed amount={3} /> },
+  '°': { sprite: <Bush />, item: <Seed amount={3} /> },
   ',': { sprite: <Flower /> },
   ';': { sprite: <Flower />, item: <Herb amount={1} /> },
   '+': { creature: [Chest, { amount: 8, maximum: 8, orientation: 'up', equipments: [], particles: [] }] },
@@ -76,7 +76,7 @@ const cellMap: Record<string, LayoutCell> = {
   '└': { equipment: [Blocked, getBlockedProps('downLeft') ] },
 };
 
-const mapToCells = (map: string) => map.split('\n').map(row => row.split('').map(cell => cellMap[cell]));
+const mapToCells = (map: string) => map.split('\n').map(row => row.split('').map(cell => cell in cellMap ? cellMap[cell] : cell));
 
 
 export type EquipmentProps = Omit<React.ComponentProps<Equipment>, 'id' | 'particles'> & {
@@ -98,14 +98,14 @@ export type World = {
   rooms: Record<string, Room>,
 };
 
-const ruralMap = `\
+const spawnMap = `\
 00000         00000
 000   Θ#Θ#Θ#Θ   000
 00  Θ#ττ┌─┐ττ#Θ  00
 0  #ττ,,│ │,,ττ#  0
   Θτ,,  └─┘  ,,τΘ  
  #τ,  ,     ;  ,τ# 
- Θτ, ,+,   ,T; ,τΘ 
+ Θτ, ,+,   ,°; ,τΘ 
  #τ,  ,     ;  ,τ# 
   Θτ,,   ^   ,,τΘ  
 0  #ττ,,   ,,ττ#  0
@@ -114,11 +114,26 @@ const ruralMap = `\
 00000         00000\
 `;
 
+const introMap = `\
+00 ,τ#τ,   ,τ#τ, 00
+00 ,τ#τ,   ,τ#τ, 00
+00 ,τΘτ,   ,τΘτ, 00
+00 ,τ#τ,   ,τ#τ, 00
+00 ,τΘτ,   ,τΘτ, 00
+00 ,τ#τ,   ,τ#τ, 00
+00 ,τΘτ,   ,τΘτ, 00
+00 ,τΘτ,   ,τΘτ, 00
+00000         00000\
+`;
+
 export const rural: World = {
   rooms: {
     spawn: {
       // 19x13
-      layout: mapToCells(ruralMap),
-    }
+      layout: mapToCells(spawnMap),
+    },
+    intro: {
+      layout: mapToCells(introMap),
+    },
   }
 }

@@ -83,14 +83,14 @@ export type Equipment = React.FC<{
   direction?: Direction,
 }>;
 
-export const Sword: Equipment = ({ material, direction }) => {
+export const Sword: Equipment = ({ material, direction, mode }) => {
   const swordDirections: Partial<Record<Direction, string>> = {
     up: '|',
     right: '─',
     down: '|',
     left: '─',
   };
-  return <span className={`Entity Sword ${material}`}>{(direction && swordDirections[direction]) || '/'}</span>
+  return <span className={`Entity Sword ${material}`}>{(direction && mode === 'equipped' && swordDirections[direction]) || '/'}</span>
 }
 
 export const Armor: Equipment = ({ material }) => {
