@@ -1,23 +1,19 @@
-import './index.css';
+import { useRef } from "react";
+import Controls from "../Controls";
+import Dimensions from "../Dimensions";
+import Screen from "../Screen";
+import Stats from "../Stats";
+import "./index.css";
 
-function App() {
+export default function App() {
+  const appRef = useRef<HTMLDivElement>(null);
   return (
     <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Stats />
+      <Screen />
+      <Controls />
+
+      <Dimensions appRef={appRef} />
     </div>
   );
 }
-
-export default App;
