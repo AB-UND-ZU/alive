@@ -8,7 +8,7 @@ import "./index.css";
 export default function App() {
   const appRef = useRef<HTMLDivElement>(null);
   return (
-    <div className="App">
+    <div className="App" ref={appRef}>
       <Stats />
       <Screen />
       <Controls />
