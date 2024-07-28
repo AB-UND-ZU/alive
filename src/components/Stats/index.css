@@ -1,3 +1,4 @@
 .Stats {
   height: calc(var(--cell-height) * 3);
+  margin-bottom: calc(var(--cell-height) / -2);
 }
