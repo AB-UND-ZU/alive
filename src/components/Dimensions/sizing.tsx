@@ -14,14 +14,16 @@ export type Dimensions = {
   cellHeight: number;
   columns: number;
   rows: number;
+  horizontalOffset: number;
 };
 
 const visibleColumns = 21;
 const visibleRows = 19;
-const aspectRatio = 18 / 32;
+const aspectRatio = 18 / 32; // of DOS font
+const extraOffset = 3; // to allow common mobile width of 375px to display 378px (18px * 21)
 
 const calculateDimensions: () => Dimensions = () => {
-  const screenWidth = window.innerWidth;
+  const screenWidth = window.innerWidth + extraOffset;
   const screenHeight = window.innerHeight;
   const horizontalMinimum = Math.floor(screenWidth / visibleColumns / aspectRatio);
   const verticalMinimum = Math.floor(screenHeight / visibleRows);
@@ -29,6 +31,7 @@ const calculateDimensions: () => Dimensions = () => {
   const cellWidth = cellHeight * aspectRatio;
   const columns = Math.ceil(screenWidth / cellWidth);
   const rows = Math.ceil(screenHeight / cellHeight);
+  const horizontalOffset = Math.ceil((screenWidth - columns * cellWidth) / 2)
 
   return {
     screenWidth,
@@ -37,6 +40,7 @@ const calculateDimensions: () => Dimensions = () => {
     cellHeight,
     columns,
     rows,
+    horizontalOffset,
   };
 };
 
