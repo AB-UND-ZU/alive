@@ -1,5 +1,14 @@
+import { useDimensions } from "../Dimensions";
 import "./index.css";
 
 export default function Stats() {
-  return <header className="Stats">Stats</header>;
+  const dimensions = useDimensions();
+
+  return (
+    <header className="Stats">
+      <br />
+      <br />
+      {'═'.repeat(dimensions.columns)}
+    </header>
+  );
 }

@@ -12,6 +12,8 @@
   flex-direction: column;
   text-align: center;
 
+  margin-left: var(--horizontal-offset);
+
   color: white;
   background: black;
   font-family: "Perfect DOS VGA 437 Win";
