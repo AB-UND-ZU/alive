@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "Perfect DOS VGA 437 Win";
+  src: url("../../fonts/MostPerfectDOSVGA.woff2") format("woff2"),
+       url("../../fonts/MostPerfectDOSVGA.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
 .App {
   height: var(--100vh);
   display: flex;
@@ -6,4 +14,7 @@
 
   color: white;
   background: black;
+  font-family: "Perfect DOS VGA 437 Win";
+  line-height: var(--cell-height);
+  font-size: var(--cell-height);
 }
