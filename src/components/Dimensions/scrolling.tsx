@@ -21,7 +21,9 @@ export default function ScrollLock(props: React.ComponentProps<"div">) {
     document.documentElement.style.setProperty("--100vh", `${dimensions.screenHeight}px`);
     document.documentElement.style.setProperty("--cell-height", `${dimensions.cellHeight}px`);
     document.documentElement.style.setProperty("--cell-width", `${dimensions.cellWidth}px`);
-    document.documentElement.style.setProperty("--horizontal-offset", `${dimensions.horizontalOffset}px`);
+    document.documentElement.style.setProperty("--left-offset", `${dimensions.leftOffset}px`);
+    document.documentElement.style.setProperty("--top-offset", `${dimensions.topOffset}px`);
+    document.documentElement.style.setProperty("--bottom-offset", `${dimensions.bottomOffset}px`);
   });
 
   return <div {...props} ref={containerRef} />;

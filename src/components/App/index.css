@@ -31,7 +31,7 @@
   flex-direction: column;
   text-align: center;
 
-  margin-left: var(--horizontal-offset);
+  margin-left: var(--left-offset);
 
   color: var(--grey);
   background: var(--black);

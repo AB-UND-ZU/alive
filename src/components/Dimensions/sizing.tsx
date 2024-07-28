@@ -14,7 +14,10 @@ export type Dimensions = {
   cellHeight: number;
   columns: number;
   rows: number;
-  horizontalOffset: number;
+  leftOffset: number;
+  topOffset: number;
+  bottomOffset: number;
+  terminalHeight: number;
 };
 
 const visibleColumns = 21;
@@ -25,13 +28,19 @@ const extraOffset = 3; // to allow common mobile width of 375px to display 378px
 const calculateDimensions: () => Dimensions = () => {
   const screenWidth = window.innerWidth + extraOffset;
   const screenHeight = window.innerHeight;
-  const horizontalMinimum = Math.floor(screenWidth / visibleColumns / aspectRatio);
+  const horizontalMinimum = Math.floor(
+    screenWidth / visibleColumns / aspectRatio
+  );
   const verticalMinimum = Math.floor(screenHeight / visibleRows);
   const cellHeight = Math.min(horizontalMinimum, verticalMinimum);
   const cellWidth = cellHeight * aspectRatio;
   const columns = Math.ceil(screenWidth / cellWidth);
   const rows = Math.ceil(screenHeight / cellHeight);
-  const horizontalOffset = Math.ceil((screenWidth - columns * cellWidth) / 2)
+  const leftOffset = Math.ceil((screenWidth - columns * cellWidth) / 2);
+  const topOffset = cellHeight / -2;
+  const bottomOffset = cellHeight / -3;
+  const terminalHeight =
+    screenHeight - cellHeight * 6 - topOffset - bottomOffset;
 
   return {
     screenWidth,
@@ -40,7 +49,10 @@ const calculateDimensions: () => Dimensions = () => {
     cellHeight,
     columns,
     rows,
-    horizontalOffset,
+    leftOffset,
+    topOffset,
+    bottomOffset,
+    terminalHeight,
   };
 };
 
