@@ -1,9 +1,28 @@
 @font-face {
   font-family: "Perfect DOS VGA 437 Win";
   src: url("../../fonts/MostPerfectDOSVGA.woff2") format("woff2"),
-       url("../../fonts/MostPerfectDOSVGA.woff") format("woff");
+    url("../../fonts/MostPerfectDOSVGA.woff") format("woff");
   font-weight: normal;
   font-style: normal;
+}
+
+:root {
+  --black: #000000;
+  --maroon: #800000;
+  --green: #008000;
+  --olive: #808000;
+  --navy: #000080;
+  --purple: #800080;
+  --teal: #008080;
+  --silver: #c0c0c0;
+  --grey: #808080;
+  --red: #ff0000;
+  --lime: #00ff00;
+  --yellow: #ffff00;
+  --blue: #0000ff;
+  --fuchsia: #ff00ff;
+  --aqua: #00ffff;
+  --white: #ffffff;
 }
 
 .App {
@@ -14,8 +33,8 @@
 
   margin-left: var(--horizontal-offset);
 
-  color: white;
-  background: black;
+  color: var(--grey);
+  background: var(--black);
   font-family: "Perfect DOS VGA 437 Win";
   line-height: var(--cell-height);
   font-size: var(--cell-height);
