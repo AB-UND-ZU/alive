@@ -1,4 +1,4 @@
-import { OrbitControls, Text } from "@react-three/drei";
+import { OrbitControls, Text, Text3D } from "@react-three/drei";
 import { Canvas, ThreeElements } from "@react-three/fiber";
 import { useDimensions } from "../Dimensions";
 import "./index.css";
@@ -36,16 +36,17 @@ export default function Terminal() {
       >
         <OrbitControls />
         <pointLight
-          position={[0, 0, 1.02]}
+          position={[5, 3, 1.02]}
           decay={0}
           intensity={Math.PI * 100}
           castShadow
         />
 
-        <Text color="white" font="/fonts/MostPerfectDOSVGA.woff">
+        <Text3D font="/fonts/MostPerfectDOSVGA.json" receiveShadow castShadow position={[dimensions.aspectRatio / -2, -0.5, -0.5]}>
           {"\u010b"}
-        </Text>
-
+          <meshStandardMaterial color="white" />
+        </Text3D>
+        
         <Box position={[-dimensions.aspectRatio, 0, 0]} />
         <Box position={[dimensions.aspectRatio, 0, 0]} />
       </Canvas>
