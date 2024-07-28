@@ -18,6 +18,7 @@ export type Dimensions = {
   topOffset: number;
   bottomOffset: number;
   terminalHeight: number;
+  aspectRatio: number;
 };
 
 const visibleColumns = 21;
@@ -53,6 +54,7 @@ const calculateDimensions: () => Dimensions = () => {
     topOffset,
     bottomOffset,
     terminalHeight,
+    aspectRatio,
   };
 };
 

@@ -1,7 +1,7 @@
 @font-face {
   font-family: "Perfect DOS VGA 437 Win";
-  src: url("../../fonts/MostPerfectDOSVGA.woff2") format("woff2"),
-    url("../../fonts/MostPerfectDOSVGA.woff") format("woff");
+  src: url("../../../public/fonts/MostPerfectDOSVGA.woff2") format("woff2"),
+    url("../../../public/fonts/MostPerfectDOSVGA.woff") format("woff");
   font-weight: normal;
   font-style: normal;
 }
