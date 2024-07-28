@@ -1,32 +1,17 @@
-import { enableBodyScroll } from "body-scroll-lock";
-
-import { useEffect, useLayoutEffect } from "react";
+import { DimensionsProvider } from "./sizing";
+import ScrollLock from "./scrolling";
 import "./index.css";
-import React from "react";
 
-const updateDimensions = () => {
-  const fullHeight = window.innerHeight;
-  document.documentElement.style.setProperty("--100vh", `${fullHeight}px`);
-};
+export { useDimensions } from './sizing';
 
 /**
- * Prevent mobile browsers from trying to scroll and thus collapse the window height
+ * Prevent mobile browsers from trying to scroll and thus collapse the window height.
+ * Provides screen dimensions as context.
  */
-export default function Dimensions({
-  appRef,
-}: {
-  appRef: React.RefObject<HTMLDivElement>;
-}) {
-  useLayoutEffect(updateDimensions, []);
-
-  useEffect(() => {
-    if (!appRef.current) return;
-
-    enableBodyScroll(appRef.current);
-    window.addEventListener("resize", updateDimensions, true);
-
-    return () => window.removeEventListener("resize", updateDimensions);
-  }, [appRef]);
-
-  return null;
+export default function Dimensions(props: React.ComponentProps<"div">) {
+  return (
+    <DimensionsProvider>
+      <ScrollLock {...props} />
+    </DimensionsProvider>
+  );
 }
