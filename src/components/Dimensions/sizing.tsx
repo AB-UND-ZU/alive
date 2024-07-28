@@ -8,16 +8,39 @@ import {
 } from "react";
 
 export type Dimensions = {
-  width: number;
-  height: number;
-  lineHeight: number;
+  screenWidth: number;
+  screenHeight: number;
+  cellWidth: number;
+  cellHeight: number;
+  columns: number;
+  rows: number;
 };
 
-const initialDimensions: Dimensions = {
-  width: 378,
-  height: 608,
-  lineHeight: 32,
+const visibleColumns = 21;
+const visibleRows = 19;
+const aspectRatio = 18 / 32;
+
+const calculateDimensions: () => Dimensions = () => {
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+  const horizontalMinimum = Math.floor(screenWidth / visibleColumns / aspectRatio);
+  const verticalMinimum = Math.floor(screenHeight / visibleRows);
+  const cellHeight = Math.min(horizontalMinimum, verticalMinimum);
+  const cellWidth = cellHeight * aspectRatio;
+  const columns = Math.ceil(screenWidth / cellWidth);
+  const rows = Math.ceil(screenHeight / cellHeight);
+
+  return {
+    screenWidth,
+    screenHeight,
+    cellWidth,
+    cellHeight,
+    columns,
+    rows,
+  };
 };
+
+const initialDimensions: Dimensions = calculateDimensions();
 
 export const DimensionsContext = createContext<Dimensions>(initialDimensions);
 
@@ -30,12 +53,6 @@ export function DimensionsProvider(props: React.PropsWithChildren) {
 
   return <DimensionsContext.Provider {...props} value={dimensions} />;
 }
-
-const calculateDimensions: () => Dimensions = () => ({
-  width: window.innerWidth,
-  height: window.innerHeight,
-  lineHeight: 32,
-});
 
 export const useResizeListener = (
   listener: (dimensions: Dimensions) => void

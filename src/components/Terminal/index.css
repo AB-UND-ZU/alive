@@ -1,4 +1,5 @@
-.Screen {
+.Terminal {
+  min-height: calc(var(--cell-height) * 7);
   flex: 1;
   display: flex;
   flex-direction: column;
