@@ -1,3 +1,4 @@
 .Controls {
   height: calc(var(--cell-height) * 3);
+  margin-top: calc(var(--cell-height) / -3);
 }
