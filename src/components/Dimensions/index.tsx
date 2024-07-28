@@ -1,8 +1,8 @@
-import { DimensionsProvider } from "./sizing";
+import { DimensionsProvider, useDimensions } from "./sizing";
 import ScrollLock from "./scrolling";
 import "./index.css";
 
-export { useDimensions } from './sizing';
+export { useDimensions };
 
 /**
  * Prevent mobile browsers from trying to scroll and thus collapse the window height.

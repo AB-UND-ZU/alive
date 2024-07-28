@@ -1,2 +1,3 @@
 .Stats {
+  height: calc(var(--cell-height) * 3);
 }

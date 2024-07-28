@@ -18,8 +18,9 @@ export default function ScrollLock(props: React.ComponentProps<"div">) {
   const containerRef = useScrollLock();
 
   useResizeListener(dimensions => {
-    document.documentElement.style.setProperty("--100vh", `${dimensions.height}px`);
-    document.documentElement.style.setProperty("--lineHeight", `${dimensions.lineHeight}px`);
+    document.documentElement.style.setProperty("--100vh", `${dimensions.screenHeight}px`);
+    document.documentElement.style.setProperty("--cell-height", `${dimensions.cellHeight}px`);
+    document.documentElement.style.setProperty("--cell-width", `${dimensions.cellWidth}px`);
   });
 
   return <div {...props} ref={containerRef} />;
