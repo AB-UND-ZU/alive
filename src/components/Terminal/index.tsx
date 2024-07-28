@@ -1,26 +1,9 @@
-import { OrbitControls, Text, Text3D } from "@react-three/drei";
-import { Canvas, ThreeElements } from "@react-three/fiber";
-import { useDimensions } from "../Dimensions";
+import { Canvas } from "@react-three/fiber";
 import "./index.css";
+import System from "../System";
+import { World } from "../../engine";
 
-function Box(props: ThreeElements["mesh"]) {
-  const dimensions = useDimensions();
-
-  return (
-    <mesh
-      castShadow
-      receiveShadow
-      {...props}
-    >
-      <boxGeometry args={[dimensions.aspectRatio, 1, 1]} />
-      <meshStandardMaterial color="white" />
-    </mesh>
-  );
-}
-
-export default function Terminal() {
-  const dimensions = useDimensions();
-
+export default function Terminal({ world }: { world: World }) {
   return (
     <main className="Terminal">
       <Canvas
@@ -34,21 +17,7 @@ export default function Terminal() {
         shadows
         flat
       >
-        <OrbitControls />
-        <pointLight
-          position={[5, 3, 1.02]}
-          decay={0}
-          intensity={Math.PI * 100}
-          castShadow
-        />
-
-        <Text3D font="/fonts/MostPerfectDOSVGA.json" receiveShadow castShadow position={[dimensions.aspectRatio / -2, -0.5, -0.5]}>
-          {"\u010b"}
-          <meshStandardMaterial color="white" />
-        </Text3D>
-        
-        <Box position={[-dimensions.aspectRatio, 0, 0]} />
-        <Box position={[dimensions.aspectRatio, 0, 0]} />
+        <System world={world} />
       </Canvas>
     </main>
   );
