@@ -12,6 +12,9 @@ export default function createWorld() {
 
   const addSystem = ECS.addSystem.bind(ECS, world);
 
+  const update = ECS.update.bind(ECS, world);
+  const cleanup = ECS.cleanup.bind(ECS, world);
+
   return {
     world,
     createEntity,
@@ -20,6 +23,8 @@ export default function createWorld() {
     getEntities,
     addComponentToEntity,
     addSystem,
+    update,
+    cleanup,
   };
 }
 
