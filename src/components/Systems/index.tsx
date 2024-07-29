@@ -1,9 +1,20 @@
-import { World } from "../../engine";
+import { useFrame } from "@react-three/fiber";
 import { Position, POSITION } from "../../engine/components/position";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import Entity from "../Entity";
+import { useWorld } from "../World";
 
-export default function System({ world }: { world: World }) {
+export default function Systems() {
+  const { world } = useWorld();
+
+  useFrame((_, delta) => {
+    if (!world) return null;
+    world.update(delta);
+    world.cleanup();
+  });
+
+  if (!world) return null;
+
   return (
     <>
       {world.getEntities([POSITION, SPRITE]).map((entity: any) => {

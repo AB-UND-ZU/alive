@@ -3,6 +3,7 @@ import { entities, World } from "../engine";
 import { Position, POSITION } from "../engine/components/position";
 import { SPRITE } from "../engine/components/sprite";
 import { LIGHT } from "../engine/components/light";
+import { PLAYER } from "../engine/components/player";
 
 const mapString = `\
    █ ████  █
@@ -20,10 +21,11 @@ export const generate = (world: World) => {
   > = {
     "█": (entity) => entities.createTerrain(world, { ...entity, [SPRITE]: { layers: ['█']}, [LIGHT]: { brightness: 0, darkness: 1 }}),
     P: (entity) =>
-      entities.createPlayer(world, {
+      entities.createHero(world, {
         ...entity,
         [SPRITE]: { layers: ["\u010b"] },
-        [LIGHT]: { brightness: 11, darkness: 0 }
+        [LIGHT]: { brightness: 11, darkness: 0 },
+        [PLAYER]: {}
       }),
   };
 
