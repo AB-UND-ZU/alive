@@ -1,5 +1,2 @@
-import setupRenderer from "./renderer";
-
-const systems = { setupRenderer };
-
-export default systems;
+export { default as setupRenderer } from "./renderer";
+export { default as setupMovement } from "./movement";
