@@ -7,6 +7,7 @@ import { PLAYER } from "../engine/components/player";
 import { setupMovement } from "../engine/systems";
 import { RENDERABLE } from "../engine/components/renderable";
 import { MAP } from "../engine/components/map";
+import { MOVABLE } from "../engine/components/movable";
 
 const mapString = `\
    █ ████  █
@@ -38,6 +39,7 @@ export const generate = (world: World) => {
         [LIGHT]: { brightness: 11, darkness: 0 },
         [PLAYER]: {},
         [RENDERABLE]: { generation: 0 },
+        [MOVABLE]: { dx: 1, dy: 1 },
       }),
   };
 
