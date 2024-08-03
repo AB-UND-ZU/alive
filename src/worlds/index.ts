@@ -5,7 +5,6 @@ import { SPRITE } from "../engine/components/sprite";
 import { LIGHT } from "../engine/components/light";
 import { PLAYER } from "../engine/components/player";
 import { RENDERABLE } from "../engine/components/renderable";
-import { MAP } from "../engine/components/map";
 import { MOVABLE } from "../engine/components/movable";
 
 const mapString = `\
@@ -18,11 +17,6 @@ const mapString = `\
 `;
 
 export const generate = (world: World) => {
-  entities.createMetadata(world, {
-    [MAP]: { entities: {}, listeners: {} },
-    [RENDERABLE]: { generation: 0 },
-  });
-
   const cellEntities: Record<
     string,
     (entity: { [POSITION]: Position }) => Entity
