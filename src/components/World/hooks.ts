@@ -3,7 +3,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useId,
   useRef,
   useState,
 } from "react";
@@ -12,7 +11,6 @@ import type { World as WorldType } from "../../engine";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { Entity } from "ecs";
 import { PLAYER } from "../../engine/components/player";
-import { MAP } from "../../engine/components/map";
 import { POSITION } from "../../engine/components/position";
 
 export type WorldContext = {
@@ -26,6 +24,20 @@ export const WorldProvider = Context.Provider;
 
 export const useWorld = () => useContext(Context);
 
+// somehow React's useId can give duplicate IDs, hence why generating own sequence
+let lastId = 0;
+
+const useId = () => {
+  const id = useRef<number>();
+
+  if (!id.current) {
+    lastId += 1;
+    id.current = lastId;
+  }
+
+  return id.current;
+};
+
 export const useRenderable = (componentNames: string[]) => {
   const { ecs } = useWorld();
   const id = useId();
@@ -35,10 +47,6 @@ export const useRenderable = (componentNames: string[]) => {
   const [entities, setEntities] = useState<Entity[]>([]);
   const listener = useCallback(() => {
     if (!ecs) return null;
-
-    const metadata = ecs.getEntity([MAP]);
-
-    if (!metadata) return;
 
     const entities = ecs.getEntities([RENDERABLE, ...componentNames]);
     const nextGeneration = entities.reduce(
@@ -57,14 +65,10 @@ export const useRenderable = (componentNames: string[]) => {
   useEffect(() => {
     if (!ecs) return;
 
-    const metadata = ecs.getEntity([MAP]);
-
-    if (!metadata) return;
-
-    metadata[MAP].listeners[id] = listener;
+    ecs.metadata.listeners[id] = listener;
 
     return () => {
-      delete metadata[MAP].listeners[id];
+      delete ecs.metadata.listeners[id];
     };
   }, [id, ecs, listener]);
 
