@@ -1,17 +1,15 @@
-import { useRenderable } from "../World/hooks";
-import { PLAYER } from "../../engine/components/player";
+import { useHero } from "../World/hooks";
 import { POSITION } from "../../engine/components/position";
 import { OrthographicCamera } from "@react-three/drei";
 import { useDimensions } from "../Dimensions";
 
 export default function Camera() {
   const dimensions = useDimensions();
-  const players = useRenderable([PLAYER]);
-  const player = players[0];
+  const hero = useHero();
 
-  if (!player) return null;
+  if (!hero) return null;
 
-  const position = player[POSITION];
+  const position = hero[POSITION];
 
   return (
     <OrthographicCamera

@@ -9,9 +9,9 @@ export default function World(props: React.PropsWithChildren) {
   // generate initial world
   // TODO: find better way to prevent double generation
   const [context] = useState(() => {
-    const world = createWorld();
-    setTimeout(generate, 0, world);
-    return { world };
+    const ecs = createWorld();
+    setTimeout(generate, 0, ecs);
+    return { ecs };
   });
 
   return <WorldProvider value={context} {...props} />;

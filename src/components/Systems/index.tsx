@@ -7,17 +7,17 @@ import { useRenderable } from "../World/hooks";
 import { Entity as ECSEntity } from "ecs";
 
 export default function Systems() {
-  const { world } = useWorld();
+  const { ecs } = useWorld();
   const entities = useRenderable([POSITION, SPRITE]);
   
   useFrame((_, delta) => {
-    if (!world) return null;
+    if (!ecs) return null;
 
-    world.update(delta * 1000);
-    world.cleanup();
+    ecs.update(delta * 1000);
+    ecs.cleanup();
   });
 
-  if (!world) return null;
+  if (!ecs) return null;
 
   return (
     <>
@@ -28,7 +28,7 @@ export default function Systems() {
           [SPRITE]: Sprite;
         };
         return (
-          <Entity key={world.getEntityId(typedEntity)} entity={typedEntity} />
+          <Entity key={ecs.getEntityId(typedEntity)} entity={typedEntity} />
         );
       })}
     </>

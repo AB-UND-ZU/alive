@@ -2,7 +2,8 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Map = {
-  entities: {}
+  entities: {},
+  listeners: {},
 };
 
 export const MAP = "MAP";
