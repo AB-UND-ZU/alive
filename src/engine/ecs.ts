@@ -1,4 +1,7 @@
-import ECS, { System, World as ECSWorld } from "ecs";
+import ECS, { System, World as ECSWorld, Entity } from "ecs";
+import { entities } from ".";
+import { RENDERABLE } from "./components/renderable";
+import { REFERENCE } from "./components/reference";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
@@ -31,10 +34,13 @@ export default function createWorld() {
     cleanup,
 
     metadata: {
-      generation: 0,
+      gameEntity: {} as Entity,
       listeners: {} as Record<number, () => void>,
     },
   };
+
+  // create global render counter and reference frame
+  ecs.metadata.gameEntity = entities.createGame(ecs, { [RENDERABLE]: { generation: 0 }, [REFERENCE]: { tick: 350, delta: 0 }})
 
   world.ecs = ecs;
 

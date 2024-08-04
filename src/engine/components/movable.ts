@@ -13,6 +13,7 @@ export const orientationPoints: Record<Orientation, Point> = {
 
 export type Movable = {
   orientations: Orientation[];
+  reference: Entity;
 };
 
 export const MOVABLE = "MOVABLE";
