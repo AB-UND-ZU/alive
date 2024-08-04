@@ -6,6 +6,7 @@ import { LIGHT } from "../engine/components/light";
 import { PLAYER } from "../engine/components/player";
 import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
+import { REFERENCE } from "../engine/components/reference";
 
 const mapString = `\
    █ ████  █
@@ -28,15 +29,22 @@ export const generateWorld = (world: World) => {
         [LIGHT]: { brightness: 0, darkness: 1 },
         [RENDERABLE]: { generation: 0 },
       }),
-    P: (entity) =>
-      entities.createHero(world, {
+    P: (entity) => {
+      const hero = entities.createHero(world, {
         ...entity,
         [SPRITE]: { layers: ["\u010b"] },
         [LIGHT]: { brightness: 11, darkness: 0 },
         [PLAYER]: {},
+        [REFERENCE]: { tick: 250, delta: 0 },
         [RENDERABLE]: { generation: 0 },
-        [MOVABLE]: { orientations: [] },
-      }),
+        [MOVABLE]: { orientations: [], reference: world.metadata.gameEntity },
+      });
+
+      // set hero as own reference frame
+      hero[MOVABLE].reference = hero;
+
+      return hero
+    },
   };
 
   mapString.split("\n").forEach((row, rowIndex) => {

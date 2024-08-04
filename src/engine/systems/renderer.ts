@@ -1,3 +1,4 @@
+import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 
 export default function setupRenderer(world: World) {
@@ -5,7 +6,7 @@ export default function setupRenderer(world: World) {
 
   const onUpdate = (delta: number) => {
 
-    const generation = world.metadata.generation;
+    const generation = world.metadata.gameEntity[RENDERABLE].generation;
     if (lastGeneration === generation) return;
 
     lastGeneration = generation;
