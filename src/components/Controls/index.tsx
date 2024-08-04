@@ -5,15 +5,15 @@ import { MOVABLE, Orientation } from "../../engine/components/movable";
 import { useHero } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 
-export const keyToOrientation: Record<KeyboardEvent["key"], Orientation>  = {
-  ArrowUp: 'up',
-  w: 'up',
-  ArrowRight: 'right',
-  d: 'right',
-  ArrowDown: 'down',
-  s: 'down',
-  ArrowLeft: 'left',
-  a: 'left',
+export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
+  ArrowUp: "up",
+  w: "up",
+  ArrowRight: "right",
+  d: "right",
+  ArrowDown: "down",
+  s: "down",
+  ArrowLeft: "left",
+  a: "left",
 };
 
 export default function Controls() {
@@ -26,8 +26,18 @@ export default function Controls() {
       if (!hero) return;
 
       hero[MOVABLE].orientations = orientations;
-      
-      hero[REFERENCE].suspended = orientations.length === 0;
+      const pendingOrientation = orientations[0];
+
+      if (pendingOrientation) {
+        hero[MOVABLE].pendingOrientation = pendingOrientation;
+      }
+
+      if (orientations.length === 0) {
+        hero[REFERENCE].pendingSuspended = true;
+      } else {
+        hero[REFERENCE].pendingSuspended = false;
+        hero[REFERENCE].suspended = false;
+      }
     },
     [hero]
   );

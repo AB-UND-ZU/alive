@@ -5,6 +5,7 @@ export type Reference = {
   tick: number;
   delta: number;
   suspended: boolean;
+  pendingSuspended: boolean;
 };
 
 export const isProcessable = (reference: Reference) =>
