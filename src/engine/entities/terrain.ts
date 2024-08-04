@@ -3,7 +3,7 @@ import { LIGHT, Light } from "../components/light";
 import { POSITION, Position } from "../components/position";
 import { Renderable, RENDERABLE } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
-import { World } from "../ecs";
+import type { World } from "../ecs";
 
 export default function createTerrain(
   world: World,

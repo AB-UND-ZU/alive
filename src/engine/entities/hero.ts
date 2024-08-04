@@ -5,7 +5,7 @@ import { Player, PLAYER } from "../components/player";
 import { POSITION, Position } from "../components/position";
 import { Renderable, RENDERABLE } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
-import { World } from "../ecs";
+import type { World } from "../ecs";
 
 export default function createHero(
   world: World,
