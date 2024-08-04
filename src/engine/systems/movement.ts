@@ -17,16 +17,31 @@ export default function setupMovement(world: World) {
     }
 
     for (const entity of world.getEntities([POSITION, MOVABLE, RENDERABLE])) {
-      if (entity[MOVABLE].orientations.length === 0) continue;
+      const attemptedOrientations: Orientation[] = [
+        ...entity[MOVABLE].orientations,
+      ];
+      const pendingOrientation = entity[MOVABLE].pendingOrientation;
+
+      if (pendingOrientation) {
+        attemptedOrientations.unshift(pendingOrientation);
+      }
+
+      if (attemptedOrientations.length === 0) continue;
 
       const reference = entity[MOVABLE].reference[REFERENCE];
 
-      if (!isProcessable(reference) || reference.suspended) continue;
+      if (
+        !isProcessable(reference) ||
+        (reference.suspended && !pendingOrientation)
+      )
+        continue;
 
-      const orientation = entity[MOVABLE].orientations[0] as Orientation;
+      const orientation = attemptedOrientations[0];
       const point = orientationPoints[orientation];
       entity[POSITION].x += point[0];
       entity[POSITION].y += point[1];
+
+      entity[MOVABLE].pendingOrientation = null;
 
       entity[RENDERABLE].generation += 1;
       world.metadata.gameEntity[RENDERABLE].generation += 1;
@@ -37,6 +52,10 @@ export default function setupMovement(world: World) {
       const reference = entity[REFERENCE];
       if (isProcessable(reference) && !reference.suspended) {
         reference.delta -= reference.tick;
+
+        if (reference.pendingSuspended) {
+          reference.suspended = true;
+        }
       }
     }
   };

@@ -35,7 +35,7 @@ export const generateWorld = (world: World) => {
         [SPRITE]: { layers: ["\u010b"] },
         [LIGHT]: { brightness: 11, darkness: 0 },
         [PLAYER]: {},
-        [REFERENCE]: { tick: 250, delta: 0, suspended: true },
+        [REFERENCE]: { tick: 250, delta: 0, suspended: true, pendingSuspended: false },
         [RENDERABLE]: { generation: 0 },
         [MOVABLE]: { orientations: [], reference: world.metadata.gameEntity },
       });

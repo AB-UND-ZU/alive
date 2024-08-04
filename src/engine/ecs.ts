@@ -42,7 +42,7 @@ export default function createWorld() {
   // create global render counter and reference frame
   ecs.metadata.gameEntity = entities.createGame(ecs, {
     [RENDERABLE]: { generation: 0 },
-    [REFERENCE]: { tick: 350, delta: 0, suspended: false },
+    [REFERENCE]: { tick: 350, delta: 0, suspended: false, pendingSuspended: false },
   });
 
   world.ecs = ecs;
