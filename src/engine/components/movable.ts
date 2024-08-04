@@ -1,9 +1,18 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
+export type Point = [number, number];
+export const orientations = ['up', 'right', 'down', 'left'] as const;
+export type Orientation = typeof orientations[number];
+export const orientationPoints: Record<Orientation, Point> = {
+  up: [0, -1],
+  right: [1, 0],
+  down: [0, 1],
+  left: [-1, 0],
+}
+
 export type Movable = {
-  dx: number;
-  dy: number;
+  orientations: Orientation[];
 };
 
 export const MOVABLE = "MOVABLE";

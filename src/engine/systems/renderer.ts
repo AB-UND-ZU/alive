@@ -11,8 +11,7 @@ export default function setupRenderer(world: World) {
     lastGeneration = generation;
 
     for (const listener of Object.values(world.metadata.listeners)) {
-      // TODO: fix type
-      (listener as () => void)();
+      listener();
     }
   }
 

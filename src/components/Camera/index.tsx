@@ -1,7 +1,7 @@
-import { useHero } from "../World/hooks";
 import { POSITION } from "../../engine/components/position";
 import { OrthographicCamera } from "@react-three/drei";
 import { useDimensions } from "../Dimensions";
+import { useHero } from "../../bindings/hooks";
 
 export default function Camera() {
   const dimensions = useDimensions();

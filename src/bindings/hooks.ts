@@ -1,3 +1,4 @@
+import { Entity } from "ecs";
 import {
   createContext,
   useCallback,
@@ -6,12 +7,10 @@ import {
   useRef,
   useState,
 } from "react";
-
-import type { World as WorldType } from "../../engine";
-import { RENDERABLE } from "../../engine/components/renderable";
-import { Entity } from "ecs";
-import { PLAYER } from "../../engine/components/player";
-import { POSITION } from "../../engine/components/position";
+import type { World as WorldType } from "../engine";
+import { RENDERABLE } from "../engine/components/renderable";
+import { PLAYER } from "../engine/components/player";
+import { POSITION } from "../engine/components/position";
 
 export type WorldContext = {
   ecs: WorldType | null;
@@ -27,12 +26,16 @@ export const useWorld = () => useContext(Context);
 // somehow React's useId can give duplicate IDs, hence why generating own sequence
 let lastId = 0;
 
+const generateId = () => {
+  lastId += 1;
+  return lastId;
+}
+
 const useId = () => {
   const id = useRef<number>();
 
   if (!id.current) {
-    lastId += 1;
-    id.current = lastId;
+    id.current = generateId();
   }
 
   return id.current;
@@ -41,8 +44,8 @@ const useId = () => {
 export const useRenderable = (componentNames: string[]) => {
   const { ecs } = useWorld();
   const id = useId();
-  const pendingGeneration = useRef(0);
-  const setGeneration = useState(0)[1];
+  const pendingGeneration = useRef(-1);
+  const setGeneration = useState(-1)[1];
 
   const [entities, setEntities] = useState<Entity[]>([]);
   const listener = useCallback(() => {

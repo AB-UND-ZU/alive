@@ -1,16 +1,14 @@
 import { useState } from "react";
-import { generate } from "../../worlds";
+import { generateWorld } from "../../bindings";
 import { createWorld } from "../../engine";
-import { WorldProvider, useWorld } from "./hooks";
-
-export { useWorld };
+import { WorldProvider } from "../../bindings/hooks";
 
 export default function World(props: React.PropsWithChildren) {
   // generate initial world
   // TODO: find better way to prevent double generation
   const [context] = useState(() => {
     const ecs = createWorld();
-    setTimeout(generate, 0, ecs);
+    setTimeout(generateWorld, 0, ecs);
     return { ecs };
   });
 

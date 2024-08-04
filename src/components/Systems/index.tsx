@@ -2,9 +2,8 @@ import { useFrame } from "@react-three/fiber";
 import { Position, POSITION } from "../../engine/components/position";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import Entity from "../Entity";
-import { useWorld } from "../World";
-import { useRenderable } from "../World/hooks";
 import { Entity as ECSEntity } from "ecs";
+import { useRenderable, useWorld } from "../../bindings/hooks";
 
 export default function Systems() {
   const { ecs } = useWorld();

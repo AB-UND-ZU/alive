@@ -16,7 +16,7 @@ const mapString = `\
    █████████\
 `;
 
-export const generate = (world: World) => {
+export const generateWorld = (world: World) => {
   const cellEntities: Record<
     string,
     (entity: { [POSITION]: Position }) => Entity
@@ -35,7 +35,7 @@ export const generate = (world: World) => {
         [LIGHT]: { brightness: 11, darkness: 0 },
         [PLAYER]: {},
         [RENDERABLE]: { generation: 0 },
-        [MOVABLE]: { dx: 1, dy: 1 },
+        [MOVABLE]: { orientations: [] },
       }),
   };
 
