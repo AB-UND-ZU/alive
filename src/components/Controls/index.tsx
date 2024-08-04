@@ -3,6 +3,7 @@ import { useDimensions } from "../Dimensions";
 import "./index.css";
 import { MOVABLE, Orientation } from "../../engine/components/movable";
 import { useHero } from "../../bindings/hooks";
+import { REFERENCE } from "../../engine/components/reference";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation>  = {
   ArrowUp: 'up',
@@ -25,6 +26,8 @@ export default function Controls() {
       if (!hero) return;
 
       hero[MOVABLE].orientations = orientations;
+      
+      hero[REFERENCE].suspended = orientations.length === 0;
     },
     [hero]
   );
