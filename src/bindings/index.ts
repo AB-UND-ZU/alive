@@ -8,14 +8,14 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
-import { player, wall } from "../assets/sprites";
+import { player, tree, triangle, wall } from "../assets/sprites";
 
 const mapString = `\
-   █ ████  █
-   █  █ █   ██
-  █           █
- █       P   █
-  █         █
+  # █ ████  █
+## █  █ █   ██
+  █>          █
+ █  #    P   █
+  █ ##      █
    █████████\
 `;
 
@@ -31,6 +31,29 @@ export const generateWorld = (world: World) => {
         [LIGHT]: { brightness: 0, darkness: 1 },
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
+      }),
+    "#": (entity) =>
+      entities.createTree(world, {
+        ...entity,
+        [SPRITE]: tree,
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      }),
+    ">": (entity) =>
+      entities.createTriangle(world, {
+        ...entity,
+        [SPRITE]: triangle,
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+        [MOVABLE]: {
+          orientations: ['right', 'left'],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            mass: 0.1,
+            friction: 50,
+            tension: 1000,
+          }
+        },
       }),
     P: (entity) => {
       const hero = entities.createHero(world, {

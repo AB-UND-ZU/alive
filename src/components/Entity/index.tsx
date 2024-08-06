@@ -53,13 +53,13 @@ export default function Entity({
       ]}
       spring={spring}
     >
-      <Sprite sprite={entity[SPRITE] }/>
+      <Sprite sprite={entity[SPRITE]} light={entity[LIGHT]} />
 
       {(entity[LIGHT]?.brightness || 0) > 0 && (
         <pointLight
-          position={[0, 0, 1.02]}
-          decay={0}
-          intensity={Math.PI * 100}
+          position={[0, 0, 1.5]}
+          decay={-1}
+          intensity={Math.PI * 2 / 3}
           castShadow
         />
       )}

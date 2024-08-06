@@ -7,6 +7,7 @@ export default function Terminal() {
   return (
     <main className="Terminal">
       <Canvas shadows flat>
+        <ambientLight intensity={Math.PI / 5} />
         <Camera />
         <Systems />
       </Canvas>
