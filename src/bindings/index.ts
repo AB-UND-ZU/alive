@@ -8,6 +8,7 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
+import { player, wall } from "../assets/sprites";
 
 const mapString = `\
    █ ████  █
@@ -26,7 +27,7 @@ export const generateWorld = (world: World) => {
     "█": (entity) =>
       entities.createTerrain(world, {
         ...entity,
-        [SPRITE]: { layers: ["█"] },
+        [SPRITE]: wall,
         [LIGHT]: { brightness: 0, darkness: 1 },
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
@@ -35,7 +36,7 @@ export const generateWorld = (world: World) => {
       const hero = entities.createHero(world, {
         ...entity,
         [COLLIDABLE]: {},
-        [SPRITE]: { layers: ["\u010b"] },
+        [SPRITE]: player,
         [LIGHT]: { brightness: 11, darkness: 0 },
         [PLAYER]: {},
         [REFERENCE]: {
@@ -50,7 +51,7 @@ export const generateWorld = (world: World) => {
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: {
             mass: 0.1,
-            friction: 70,
+            friction: 50,
             tension: 1000,
           }
         },

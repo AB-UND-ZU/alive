@@ -1,8 +1,12 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
+export type Layer = {
+  char: string,
+  color: string,
+}
 export type Sprite = {
-  layers: string[]
+  layers: Layer[]
 };
 
 export const SPRITE = "SPRITE";

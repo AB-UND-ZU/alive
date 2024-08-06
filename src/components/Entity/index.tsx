@@ -1,23 +1,11 @@
-import { Text3D } from "@react-three/drei";
-import { ThreeElements } from "@react-three/fiber";
 import { useSpring, animated, SpringConfig } from "@react-spring/three";
 import { useDimensions } from "../Dimensions";
 import { Position, POSITION } from "../../engine/components/position";
-import { SPRITE, Sprite } from "../../engine/components/sprite";
+import { SPRITE, Sprite as SpriteType } from "../../engine/components/sprite";
 import { Light, LIGHT } from "../../engine/components/light";
 import { Movable, MOVABLE } from "../../engine/components/movable";
 import { Vector3Tuple } from "three";
-
-function Box(props: ThreeElements["mesh"]) {
-  const dimensions = useDimensions();
-
-  return (
-    <mesh castShadow receiveShadow {...props}>
-      <boxGeometry args={[dimensions.aspectRatio, 1, 1]} />
-      <meshStandardMaterial color="white" />
-    </mesh>
-  );
-}
+import Sprite from "../Sprite";
 
 function Animated({
   position,
@@ -46,7 +34,7 @@ export default function Entity({
 }: {
   entity: {
     [POSITION]: Position;
-    [SPRITE]: Sprite;
+    [SPRITE]: SpriteType;
     [LIGHT]?: Light;
     [MOVABLE]?: Movable;
   };
@@ -65,22 +53,8 @@ export default function Entity({
       ]}
       spring={spring}
     >
-      {entity[SPRITE].layers.map((layer, index) => {
-        if (layer === "█") {
-          return <Box key={index} />;
-        }
-        return (
-          <Text3D
-            key={index}
-            font="/fonts/MostPerfectDOSVGA.json"
-            receiveShadow
-            size={1}
-            position={[-0.5 * dimensions.aspectRatio, -0.5, index * 0.1 - 0.5]}
-          >
-            {layer}
-          </Text3D>
-        );
-      })}
+      <Sprite sprite={entity[SPRITE] }/>
+
       {(entity[LIGHT]?.brightness || 0) > 0 && (
         <pointLight
           position={[0, 0, 1.02]}
