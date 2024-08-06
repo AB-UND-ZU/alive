@@ -1,20 +1,33 @@
-import { POSITION } from "../../engine/components/position";
 import { OrthographicCamera } from "@react-three/drei";
+import { useSpring, animated } from "@react-spring/three";
 import { useDimensions } from "../Dimensions";
 import { useHero } from "../../bindings/hooks";
+import { POSITION } from "../../engine/components/position";
+
+const AnimatedOrthographicCamera = animated(OrthographicCamera);
 
 export default function Camera() {
   const dimensions = useDimensions();
   const hero = useHero();
 
-  if (!hero) return null;
-
-  const position = hero[POSITION];
+  const position = hero?.[POSITION] || { x: 0, y: 0 };
+  const spring = useSpring({
+    x: position.x * dimensions.aspectRatio,
+    y: -position.y,
+    z: 32,
+    config: {
+      mass: 1,
+      friction: 20,
+      tension: 50,
+    }
+  });
 
   return (
-    <OrthographicCamera
+    <AnimatedOrthographicCamera
       makeDefault
-      position={[(position.x || 0) * dimensions.aspectRatio, -(position.y || 0), 32]}
+      position-x={spring.x}
+      position-y={spring.y}
+      position-z={spring.z}
       zoom={32}
       near={0.1}
       far={64}

@@ -48,6 +48,11 @@ export const generateWorld = (world: World) => {
         [MOVABLE]: {
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            mass: 0.1,
+            friction: 70,
+            tension: 1000,
+          }
         },
       });
 

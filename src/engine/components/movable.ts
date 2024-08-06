@@ -1,7 +1,8 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import { SpringConfig } from "@react-spring/three";
 
-export type Point = { x: number, y: number };
+export type Point = { x: number; y: number };
 export const orientations = ["up", "right", "down", "left"] as const;
 export type Orientation = (typeof orientations)[number];
 export const orientationPoints: Record<Orientation, Point> = {
@@ -15,6 +16,7 @@ export type Movable = {
   orientations: Orientation[];
   pendingOrientation?: Orientation;
   reference: number;
+  spring?: SpringConfig;
 };
 
 export const MOVABLE = "MOVABLE";
