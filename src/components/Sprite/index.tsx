@@ -17,6 +17,8 @@ function Box(props: ThreeElements["mesh"]) {
   );
 }
 
+const textSize = 18 / 25;
+
 function Layer({ layer, index }: { layer: LayerType; index: number }) {
   const dimensions = useDimensions();
   if (layer.char === "█") {
@@ -27,8 +29,8 @@ function Layer({ layer, index }: { layer: LayerType; index: number }) {
     <Text3D
       font="/fonts/MostPerfectDOSVGA.json"
       receiveShadow
-      size={0.725}
-      position={[-0.5 * dimensions.aspectRatio, -0.5, index * 0.1 - 0.5]}
+      size={textSize}
+      position={[-0.5 * dimensions.aspectRatio, -0.25, index * 0.1 - 0.5]}
     >
       {layer.char}
     </Text3D>
