@@ -49,9 +49,7 @@ export const generateWorld = (world: World) => {
           orientations: ['right', 'left'],
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: {
-            mass: 0.1,
-            friction: 50,
-            tension: 1000,
+            duration: 200
           }
         },
       }),

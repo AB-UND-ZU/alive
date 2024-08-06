@@ -59,7 +59,7 @@ export default function Entity({
         <pointLight
           position={[0, 0, 1.5]}
           decay={-1}
-          intensity={Math.PI * 2 / 3}
+          intensity={Math.PI * 0.7}
           castShadow
         />
       )}
