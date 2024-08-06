@@ -7,6 +7,7 @@ import { PLAYER } from "../engine/components/player";
 import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
+import { COLLIDABLE } from "../engine/components/collidable";
 
 const mapString = `\
    █ ████  █
@@ -28,22 +29,32 @@ export const generateWorld = (world: World) => {
         [SPRITE]: { layers: ["█"] },
         [LIGHT]: { brightness: 0, darkness: 1 },
         [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
       }),
     P: (entity) => {
       const hero = entities.createHero(world, {
         ...entity,
+        [COLLIDABLE]: {},
         [SPRITE]: { layers: ["\u010b"] },
         [LIGHT]: { brightness: 11, darkness: 0 },
         [PLAYER]: {},
-        [REFERENCE]: { tick: 250, delta: 0, suspended: true, pendingSuspended: false },
+        [REFERENCE]: {
+          tick: 250,
+          delta: 0,
+          suspended: true,
+          pendingSuspended: false,
+        },
         [RENDERABLE]: { generation: 0 },
-        [MOVABLE]: { orientations: [], reference: world.metadata.gameEntity },
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+        },
       });
 
       // set hero as own reference frame
-      hero[MOVABLE].reference = hero;
+      hero[MOVABLE].reference = world.getEntityId(hero);
 
-      return hero
+      return hero;
     },
   };
 
@@ -56,6 +67,7 @@ export const generateWorld = (world: World) => {
     });
   });
 
+  world.addSystem(systems.setupCollision);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupRenderer);
 };

@@ -1,4 +1,4 @@
-import ECS, { System, World as ECSWorld, Entity } from "ecs";
+import ECS, { System, World as ECSWorld, Entity, ListenerType } from "ecs";
 import { entities } from ".";
 import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
@@ -11,8 +11,14 @@ export default function createWorld() {
 
   const createEntity = ECS.createEntity.bind(ECS, world);
   const getEntity = ECS.getEntity.bind(ECS, world);
+  const getEntityById = ECS.getEntityById.bind(ECS, world);
   const getEntityId = ECS.getEntityId.bind(ECS, world);
-  const getEntities = ECS.getEntities.bind(ECS, world);
+
+  const getEntities = ECS.getEntities.bind(ECS, world) as (
+    componentNames: string[],
+    listenerType?: ListenerType,
+    listenerEntities?: { count: number; entries: Record<number, Entity> }
+  ) => Entity[];
 
   const addComponentToEntity = ECS.addComponentToEntity.bind(ECS, world);
 
@@ -26,6 +32,7 @@ export default function createWorld() {
   const ecs = {
     createEntity,
     getEntity,
+    getEntityById,
     getEntityId,
     getEntities,
     addComponentToEntity,
@@ -36,13 +43,22 @@ export default function createWorld() {
     metadata: {
       gameEntity: {} as Entity,
       listeners: {} as Record<number, () => void>,
+      collisionMap: {} as Record<
+        number,
+        Record<number, Record<number, Entity>>
+      >,
     },
   };
 
   // create global render counter and reference frame
   ecs.metadata.gameEntity = entities.createGame(ecs, {
     [RENDERABLE]: { generation: 0 },
-    [REFERENCE]: { tick: 350, delta: 0, suspended: false, pendingSuspended: false },
+    [REFERENCE]: {
+      tick: 350,
+      delta: 0,
+      suspended: false,
+      pendingSuspended: false,
+    },
   });
 
   world.ecs = ecs;

@@ -3,6 +3,11 @@ import { RENDERABLE } from "../components/renderable";
 import { MOVABLE, Orientation, orientationPoints } from "../components/movable";
 import { World } from "../ecs";
 import { isProcessable, REFERENCE } from "../components/reference";
+import {
+  isCollision,
+  registerEntityCollision,
+  unregisterEntityCollision,
+} from "./collision";
 
 export default function setupMovement(world: World) {
   const onUpdate = (delta: number) => {
@@ -28,7 +33,9 @@ export default function setupMovement(world: World) {
 
       if (attemptedOrientations.length === 0) continue;
 
-      const reference = entity[MOVABLE].reference[REFERENCE];
+      const reference = world.getEntityById(entity[MOVABLE].reference)[
+        REFERENCE
+      ];
 
       if (
         !isProcessable(reference) ||
@@ -36,15 +43,28 @@ export default function setupMovement(world: World) {
       )
         continue;
 
-      const orientation = attemptedOrientations[0];
-      const point = orientationPoints[orientation];
-      entity[POSITION].x += point[0];
-      entity[POSITION].y += point[1];
+      for (const orientation of attemptedOrientations) {
+        const delta = orientationPoints[orientation];
+        const position = {
+          x: entity[POSITION].x + delta.x,
+          y: entity[POSITION].y + delta.y,
+        };
+
+        if (!isCollision(world, position)) {
+          unregisterEntityCollision(world, entity);
+
+          entity[POSITION].x = position.x;
+          entity[POSITION].y = position.y;
+
+          registerEntityCollision(world, entity);
+
+          entity[RENDERABLE].generation += 1;
+          world.metadata.gameEntity[RENDERABLE].generation += 1;
+          break;
+        }
+      }
 
       entity[MOVABLE].pendingOrientation = null;
-
-      entity[RENDERABLE].generation += 1;
-      world.metadata.gameEntity[RENDERABLE].generation += 1;
     }
 
     // mark reference frames as processed
