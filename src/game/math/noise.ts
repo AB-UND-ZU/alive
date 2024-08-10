@@ -12,7 +12,7 @@ export const iterateMatrix = <T>(
       columnIndex < matrix[rowIndex].length;
       columnIndex += 1
     ) {
-      callback(columnIndex, rowIndex, matrix[rowIndex][columnIndex]);
+      callback(columnIndex, rowIndex, matrix[columnIndex][rowIndex]);
     }
   }
 };
@@ -43,7 +43,7 @@ export const getOverlappingCell = <T>(
   const height = matrix.length;
   const normalizedX = (x + width) % width;
   const normalizedY = (y + height) % height;
-  return matrix[normalizedY][normalizedX];
+  return matrix[normalizedX][normalizedY];
 };
 
 // set each cell to the average of cells in a distance of the interpolation value
