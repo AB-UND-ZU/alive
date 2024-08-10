@@ -43,7 +43,7 @@ export default function createWorld() {
     metadata: {
       gameEntity: {} as Entity,
       listeners: {} as Record<number, () => void>,
-      collisionMap: {} as Record<
+      map: {} as Record<
         number,
         Record<number, Record<number, Entity>>
       >,
