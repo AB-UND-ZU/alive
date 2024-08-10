@@ -6,6 +6,7 @@ export type Layer = {
   color: string,
 }
 export type Sprite = {
+  name: string,
   layers: Layer[]
 };
 

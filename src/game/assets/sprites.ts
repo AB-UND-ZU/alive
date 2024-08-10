@@ -2,6 +2,7 @@ import * as colors from "./colors";
 import { Sprite } from "../../engine/components/sprite";
 
 export const wall: Sprite = {
+  name: 'wall_solid',
   layers: [
     {
       char: "█",
@@ -11,6 +12,7 @@ export const wall: Sprite = {
 };
 
 export const tree: Sprite = {
+  name: 'tree_hash',
   layers: [
     {
       char: "┐",
@@ -24,6 +26,7 @@ export const tree: Sprite = {
 };
 
 export const player: Sprite = {
+  name: 'player_symbol',
   layers: [
     {
       char: "\u010b",
@@ -33,6 +36,7 @@ export const player: Sprite = {
 };
 
 export const triangle: Sprite = {
+  name: 'triangle_right',
   layers: [
     {
       char: "\u010f",
