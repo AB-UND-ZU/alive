@@ -8,18 +8,25 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
-import { player, tree, triangle, wall } from "../assets/sprites";
+import { player, tree, triangle, wall } from "../game/assets/sprites";
+import {
+  iterateMatrix,
+  valueNoiseMatrix,
+  whiteNoiseMatrix,
+} from "../game/math/noise";
 
+/*
 const mapString = `\
   # █ ████  █
 ## █  █ █   ██
   █>          █
  █  #    P   █
   █ ##      █
-   █████████\
+   ████ ████
+     ██████
+       ███
+        █
 `;
-
-export const generateWorld = (world: World) => {
   const cellEntities: Record<
     string,
     (entity: { [POSITION]: Position }) => Entity
@@ -54,34 +61,6 @@ export const generateWorld = (world: World) => {
         },
       }),
     P: (entity) => {
-      const hero = entities.createHero(world, {
-        ...entity,
-        [COLLIDABLE]: {},
-        [SPRITE]: player,
-        [LIGHT]: { brightness: 11, darkness: 0 },
-        [PLAYER]: {},
-        [REFERENCE]: {
-          tick: 250,
-          delta: 0,
-          suspended: true,
-          pendingSuspended: false,
-        },
-        [RENDERABLE]: { generation: 0 },
-        [MOVABLE]: {
-          orientations: [],
-          reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
-            mass: 0.1,
-            friction: 50,
-            tension: 1000,
-          }
-        },
-      });
-
-      // set hero as own reference frame
-      hero[MOVABLE].reference = world.getEntityId(hero);
-
-      return hero;
     },
   };
 
@@ -93,6 +72,49 @@ export const generateWorld = (world: World) => {
       createEntity({ [POSITION]: { x: columnIndex, y: rowIndex } });
     });
   });
+  */
+
+export const generateWorld = (world: World) => {
+  const size = 160;
+  const terrainMatrix = valueNoiseMatrix(size, size, 10, -100, 100);
+
+  iterateMatrix(terrainMatrix, (x, y, terrain) => {
+    if (terrain < 0) return;
+    entities.createTerrain(world, {
+      [POSITION]: { x, y },
+      [SPRITE]: wall,
+      [LIGHT]: { brightness: 0, darkness: 1 },
+      [RENDERABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+    });
+  });
+
+  const hero = entities.createHero(world, {
+    [POSITION]: { x: 0, y: 0 },
+    [COLLIDABLE]: {},
+    [SPRITE]: player,
+    [LIGHT]: { brightness: 11, darkness: 0 },
+    [PLAYER]: {},
+    [REFERENCE]: {
+      tick: 250,
+      delta: 0,
+      suspended: true,
+      pendingSuspended: false,
+    },
+    [RENDERABLE]: { generation: 0 },
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        mass: 0.1,
+        friction: 50,
+        tension: 1000,
+      },
+    },
+  });
+
+  // set hero as own reference frame
+  hero[MOVABLE].reference = world.getEntityId(hero);
 
   world.addSystem(systems.setupCollision);
   world.addSystem(systems.setupMovement);
