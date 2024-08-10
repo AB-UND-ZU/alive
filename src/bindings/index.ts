@@ -11,8 +11,8 @@ import { COLLIDABLE } from "../engine/components/collidable";
 import { player, tree, triangle, wall } from "../game/assets/sprites";
 import {
   iterateMatrix,
+  matrixFactory,
   valueNoiseMatrix,
-  whiteNoiseMatrix,
 } from "../game/math/noise";
 
 /*
@@ -40,12 +40,6 @@ const mapString = `\
         [COLLIDABLE]: {},
       }),
     "#": (entity) =>
-      entities.createTree(world, {
-        ...entity,
-        [SPRITE]: tree,
-        [RENDERABLE]: { generation: 0 },
-        [COLLIDABLE]: {},
-      }),
     ">": (entity) =>
       entities.createTriangle(world, {
         ...entity,
@@ -77,16 +71,30 @@ const mapString = `\
 export const generateWorld = (world: World) => {
   const size = 160;
   const terrainMatrix = valueNoiseMatrix(size, size, 10, -100, 100);
+  const greenMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
 
-  iterateMatrix(terrainMatrix, (x, y, terrain) => {
-    if (terrain < 0) return;
-    entities.createTerrain(world, {
-      [POSITION]: { x, y },
-      [SPRITE]: wall,
-      [LIGHT]: { brightness: 0, darkness: 1 },
-      [RENDERABLE]: { generation: 0 },
-      [COLLIDABLE]: {},
-    });
+  const worldMatrix = matrixFactory(size, size, (x, y) => {
+    if (terrainMatrix[y][x] > 5) return "terrain";
+    if (greenMatrix[y][x] > 60) return "green";
+  });
+
+  iterateMatrix(worldMatrix, (x, y, cell) => {
+    if (cell === "terrain") {
+      entities.createTerrain(world, {
+        [POSITION]: { x, y },
+        [SPRITE]: wall,
+        [LIGHT]: { brightness: 0, darkness: 1 },
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      });
+    } else if (cell === "green") {
+      entities.createTree(world, {
+        [POSITION]: { x, y },
+        [SPRITE]: tree,
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      });
+    }
   });
 
   const hero = entities.createHero(world, {

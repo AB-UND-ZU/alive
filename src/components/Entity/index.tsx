@@ -6,6 +6,8 @@ import { Light, LIGHT } from "../../engine/components/light";
 import { Movable, MOVABLE } from "../../engine/components/movable";
 import { Vector3Tuple } from "three";
 import Sprite from "../Sprite";
+import { Renderable, RENDERABLE } from "../../engine/components/renderable";
+import React from "react";
 
 function Animated({
   position,
@@ -29,7 +31,7 @@ function Animated({
   );
 }
 
-export default function Entity({
+function Entity({
   entity,
 }: {
   entity: {
@@ -37,7 +39,9 @@ export default function Entity({
     [SPRITE]: SpriteType;
     [LIGHT]?: Light;
     [MOVABLE]?: Movable;
+    [RENDERABLE]: Renderable;
   };
+  generation: number;
 }) {
   const dimensions = useDimensions();
 
@@ -61,8 +65,19 @@ export default function Entity({
           decay={-1}
           intensity={Math.PI * 0.7}
           castShadow
+          shadow-mapSize-width={256}
+          shadow-mapSize-height={256}
+          shadow-camera-near={0.1}
+          shadow-camera-far={10}
         />
       )}
     </Container>
   );
 }
+
+const MemoizedEntity = React.memo(
+  Entity,
+  (prevProps, nextProps) => prevProps.generation === nextProps.generation
+);
+
+export default MemoizedEntity;
