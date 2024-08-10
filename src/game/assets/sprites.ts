@@ -1,5 +1,5 @@
 import * as colors from "./colors";
-import { Sprite } from "../engine/components/sprite";
+import { Sprite } from "../../engine/components/sprite";
 
 export const wall: Sprite = {
   layers: [
