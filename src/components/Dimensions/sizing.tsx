@@ -19,12 +19,20 @@ export type Dimensions = {
   bottomOffset: number;
   terminalHeight: number;
   aspectRatio: number;
+  renderedColumns: number;
+  renderedRows: number;
+  renderedDiagonal: number;
+  mapSize: number;
 };
 
 const visibleColumns = 21;
 const visibleRows = 19;
 const aspectRatio = 18 / 32; // of DOS font
 const extraOffset = 3; // to allow common mobile width of 375px to display 378px (18px * 21)
+const hudColumns = 6;
+const overscanColumns = 4;
+const overscanRows = 6;
+const mapSize = 160;
 
 const calculateDimensions: () => Dimensions = () => {
   const screenWidth = window.innerWidth + extraOffset;
@@ -41,7 +49,12 @@ const calculateDimensions: () => Dimensions = () => {
   const topOffset = cellHeight / -2;
   const bottomOffset = cellHeight / -3;
   const terminalHeight =
-    screenHeight - cellHeight * 6 - topOffset - bottomOffset;
+    screenHeight - cellHeight * hudColumns - topOffset - bottomOffset;
+  const renderedColumns = visibleColumns + overscanColumns;
+  const renderedRows = visibleRows - hudColumns + overscanRows;
+  const renderedDiagonal = Math.sqrt(
+    renderedColumns ** 2 * aspectRatio + renderedRows ** 2
+  );
 
   return {
     screenWidth,
@@ -55,6 +68,10 @@ const calculateDimensions: () => Dimensions = () => {
     bottomOffset,
     terminalHeight,
     aspectRatio,
+    renderedColumns,
+    renderedRows,
+    renderedDiagonal,
+    mapSize,
   };
 };
 

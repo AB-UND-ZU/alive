@@ -68,8 +68,7 @@ const mapString = `\
   });
   */
 
-export const generateWorld = (world: World) => {
-  const size = 160;
+export const generateWorld = (world: World, size: number) => {
   const terrainMatrix = valueNoiseMatrix(size, size, 10, -100, 100);
   const greenMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
 

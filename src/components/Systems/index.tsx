@@ -2,14 +2,15 @@ import { useFrame } from "@react-three/fiber";
 import { Position, POSITION } from "../../engine/components/position";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import Entity from "../Entity";
-import { Entity as ECSEntity } from "ecs";
-import { useRenderable, useWorld } from "../../bindings/hooks";
+import { useHero, useWorld } from "../../bindings/hooks";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
+import { useDimensions } from "../Dimensions";
 
 export default function Systems() {
   const { ecs } = useWorld();
-  const entities = useRenderable([POSITION, SPRITE, RENDERABLE]);
-  
+  const dimensions = useDimensions();
+  const hero = useHero();
+
   useFrame((_, delta) => {
     if (!ecs) return null;
 
@@ -17,21 +18,47 @@ export default function Systems() {
     ecs.cleanup();
   });
 
-  if (!ecs) return null;
+  if (!ecs || !hero) return null;
+
+  const position = hero[POSITION];
 
   return (
     <>
-      {entities.map((entity: ECSEntity) => {
-        // TODO: fix types of entities
-        const typedEntity = entity as {
-          [POSITION]: Position;
-          [SPRITE]: Sprite;
-          [RENDERABLE]: Renderable;
-        };
-        return (
-          <Entity key={ecs.getEntityId(typedEntity)} entity={typedEntity} generation={typedEntity[RENDERABLE].generation} />
-        );
-      })}
+      {Array.from({ length: dimensions.renderedColumns })
+        .map((_, x) =>
+          Array.from({ length: dimensions.renderedRows })
+            .map((_, y) =>
+              Object.entries(
+                ecs.metadata.map[
+                  (x -
+                    (dimensions.renderedColumns - 1) / 2 +
+                    position.x +
+                    dimensions.mapSize) %
+                    dimensions.mapSize
+                ]?.[
+                  (y -
+                    (dimensions.renderedRows - 1) / 2 +
+                    position.y +
+                    dimensions.mapSize) %
+                    dimensions.mapSize
+                ] || {}
+              ).map(([entityId, entity]) => (
+                <Entity
+                  key={entityId}
+                  entity={
+                    entity as {
+                      [POSITION]: Position;
+                      [SPRITE]: Sprite;
+                      [RENDERABLE]: Renderable;
+                    }
+                  }
+                  generation={entity[RENDERABLE].generation}
+                />
+              ))
+            )
+            .flat()
+        )
+        .flat()}
     </>
   );
 }
