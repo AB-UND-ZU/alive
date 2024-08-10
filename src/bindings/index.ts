@@ -74,8 +74,8 @@ export const generateWorld = (world: World) => {
   const greenMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
 
   const worldMatrix = matrixFactory(size, size, (x, y) => {
-    if (terrainMatrix[y][x] > 5) return "terrain";
-    if (greenMatrix[y][x] > 60) return "green";
+    if (terrainMatrix[x][y] > 5) return "terrain";
+    if (greenMatrix[x][y] > 60) return "green";
   });
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
