@@ -6,7 +6,7 @@ import Camera from "../Camera";
 export default function Terminal() {
   return (
     <main className="Terminal">
-      <Canvas shadows flat>
+      <Canvas shadows="basic" flat>
         <ambientLight intensity={Math.PI / 8} />
         <Camera />
         <Systems />

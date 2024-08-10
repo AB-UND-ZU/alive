@@ -65,10 +65,10 @@ function Entity({
           decay={-1}
           intensity={Math.PI * 0.7}
           castShadow
-          shadow-mapSize-width={256}
-          shadow-mapSize-height={256}
+          shadow-mapSize-width={128}
+          shadow-mapSize-height={128}
           shadow-camera-near={0.1}
-          shadow-camera-far={10}
+          shadow-camera-far={dimensions.renderedDiagonal}
         />
       )}
     </Container>
