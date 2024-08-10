@@ -1,13 +1,15 @@
-import { POSITION } from "../components/position";
+import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { MOVABLE, Orientation, orientationPoints } from "../components/movable";
 import { World } from "../ecs";
 import { isProcessable, REFERENCE } from "../components/reference";
-import {
-  isCollision,
-  registerEntityCollision,
-  unregisterEntityCollision,
-} from "./collision";
+import { registerEntity, unregisterEntity } from "./map";
+import { COLLIDABLE } from "../components/collidable";
+
+const isCollision = (world: World, position: Position) =>
+  Object.values(world.metadata.map[position.x]?.[position.y] || {}).some(
+    (cell) => COLLIDABLE in cell
+  );
 
 export default function setupMovement(world: World) {
   const onUpdate = (delta: number) => {
@@ -51,12 +53,12 @@ export default function setupMovement(world: World) {
         };
 
         if (!isCollision(world, position)) {
-          unregisterEntityCollision(world, entity);
+          unregisterEntity(world, entity);
 
           entity[POSITION].x = position.x;
           entity[POSITION].y = position.y;
 
-          registerEntityCollision(world, entity);
+          registerEntity(world, entity);
 
           entity[RENDERABLE].generation += 1;
           world.metadata.gameEntity[RENDERABLE].generation += 1;
