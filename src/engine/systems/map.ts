@@ -3,6 +3,7 @@ import { World } from "../ecs";
 import { POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
 import { RENDERABLE } from "../components/renderable";
+import { normalize } from "../../game/math/std";
 
 export const registerEntity = (world: World, entity: Entity) => {
   const position = entity[POSITION];
@@ -11,10 +12,13 @@ export const registerEntity = (world: World, entity: Entity) => {
     throw new Error(`Unable to register position for entity ${entity}!`);
   }
 
-  const map = world.metadata.gameEntity[LEVEL].map;
+  const level = world.metadata.gameEntity[LEVEL];
 
-  const column = (map[position.x] = map[position.x] || {});
-  const cell = (column[position.y] = column[position.y] || {});
+  const normalizedX = normalize(position.x, level.size);
+  const normalizedY = normalize(position.y, level.size);
+
+  const column = (level.map[normalizedX] = level.map[normalizedX] || {});
+  const cell = (column[normalizedY] = column[normalizedY] || {});
 
   cell[world.getEntityId(entity)] = entity;
 };
@@ -26,9 +30,12 @@ export const unregisterEntity = (world: World, entity: Entity) => {
     throw new Error(`Unable to unregister position for entity ${entity}!`);
   }
 
-  const map = world.metadata.gameEntity[LEVEL].map;
+  const level = world.metadata.gameEntity[LEVEL];
 
-  delete map[position.x]?.[position.y]?.[world.getEntityId(entity)];
+  const normalizedX = normalize(position.x, level.size);
+  const normalizedY = normalize(position.y, level.size);
+
+  delete level.map[normalizedX]?.[normalizedY]?.[world.getEntityId(entity)];
 };
 
 export default function setupMap(world: World) {

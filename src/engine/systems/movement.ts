@@ -7,11 +7,16 @@ import { registerEntity, unregisterEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { LEVEL } from "../components/level";
 import { Entity } from "ecs";
+import { normalize } from "../../game/math/std";
 
-const isCollision = (world: World, position: Position) =>
-  Object.values(world.metadata.gameEntity[LEVEL].map[position.x]?.[position.y] || {}).some(
+const isCollision = (world: World, position: Position) => {
+  const level = world.metadata.gameEntity[LEVEL];
+  const normalizedX = normalize(position.x, level.size);
+  const normalizedY = normalize(position.y, level.size);
+  return Object.values(level.map[normalizedX]?.[normalizedY] || {}).some(
     (cell) => COLLIDABLE in (cell as Entity)
   );
+};
 
 export default function setupMovement(world: World) {
   const onUpdate = (delta: number) => {

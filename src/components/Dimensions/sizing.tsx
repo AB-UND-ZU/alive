@@ -29,7 +29,7 @@ const visibleColumns = 21;
 const visibleRows = 19;
 const aspectRatio = 18 / 32; // of DOS font
 const extraOffset = 3; // to allow common mobile width of 375px to display 378px (18px * 21)
-const hudColumns = 6;
+const hudRows = 6;
 const overscanColumns = 4;
 const overscanRows = 6;
 const mapSize = 160;
@@ -49,9 +49,9 @@ const calculateDimensions: () => Dimensions = () => {
   const topOffset = cellHeight / -2;
   const bottomOffset = cellHeight / -3;
   const terminalHeight =
-    screenHeight - cellHeight * hudColumns - topOffset - bottomOffset;
-  const renderedColumns = visibleColumns + overscanColumns;
-  const renderedRows = visibleRows - hudColumns + overscanRows;
+    screenHeight - cellHeight * hudRows - topOffset - bottomOffset;
+  const renderedColumns = columns + overscanColumns;
+  const renderedRows = rows - hudRows + overscanRows;
   const renderedDiagonal = Math.sqrt(
     renderedColumns ** 2 * aspectRatio + renderedRows ** 2
   );

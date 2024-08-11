@@ -1,30 +1,5 @@
-import { sum } from "./utils";
-
-export type Matrix<T> = T[][];
-
-export const iterateMatrix = <T>(
-  matrix: Matrix<T>,
-  callback: (x: number, y: number, value: T) => void
-) => {
-  for (let rowIndex = 0; rowIndex < matrix.length; rowIndex += 1) {
-    for (
-      let columnIndex = 0;
-      columnIndex < matrix[rowIndex].length;
-      columnIndex += 1
-    ) {
-      callback(columnIndex, rowIndex, matrix[columnIndex][rowIndex]);
-    }
-  }
-};
-
-export const matrixFactory = <T>(
-  width: number,
-  height: number,
-  generator: (x: number, y: number) => T
-): Matrix<T> =>
-  Array.from({ length: height }).map((_, yIndex) =>
-    Array.from({ length: width }).map((_, xIndex) => generator(xIndex, yIndex))
-  );
+import { getOverlappingCell, matrixFactory } from "./matrix";
+import { sum } from "./std";
 
 export const whiteNoiseMatrix = (
   width: number,
@@ -33,18 +8,6 @@ export const whiteNoiseMatrix = (
   maximum: number = 1,
   rng: () => number = Math.random
 ) => matrixFactory(width, height, () => rng() * (maximum - minimum) + minimum);
-
-export const getOverlappingCell = <T>(
-  matrix: Matrix<T>,
-  x: number,
-  y: number
-) => {
-  const width = matrix[0].length;
-  const height = matrix.length;
-  const normalizedX = (x + width) % width;
-  const normalizedY = (y + height) % height;
-  return matrix[normalizedX][normalizedY];
-};
 
 // set each cell to the average of cells in a distance of the interpolation value
 export const lerpMatrix = (

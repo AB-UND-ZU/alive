@@ -7,7 +7,7 @@ import { LEVEL } from "./components/level";
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
 
-export default function createWorld() {
+export default function createWorld(size: number) {
   const world = ECS.createWorld() as PatchedWorld;
 
   const createEntity = ECS.createEntity.bind(ECS, world);
@@ -49,7 +49,7 @@ export default function createWorld() {
 
   // create global render counter and reference frame
   ecs.metadata.gameEntity = entities.createGame(ecs, {
-    [LEVEL]: { map: {} },
+    [LEVEL]: { map: {}, size },
     [RENDERABLE]: { generation: 0 },
     [REFERENCE]: {
       tick: 350,

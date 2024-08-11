@@ -6,6 +6,7 @@ import { useGame, useHero, useWorld } from "../../bindings/hooks";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { Level, LEVEL } from "../../engine/components/level";
+import { normalize } from "../../game/math/std";
 
 export default function Systems() {
   const { ecs } = useWorld();
@@ -22,7 +23,7 @@ export default function Systems() {
 
   if (!ecs || !hero || !game) return null;
 
-  const map = game[LEVEL].map as Level['map'];
+  const map = game[LEVEL].map as Level["map"];
   const position = hero[POSITION];
 
   return (
@@ -30,35 +31,35 @@ export default function Systems() {
       {Array.from({ length: dimensions.renderedColumns })
         .map((_, x) =>
           Array.from({ length: dimensions.renderedRows })
-            .map((_, y) =>
-              Object.entries(
-                map[
-                  (x -
-                    (dimensions.renderedColumns - 1) / 2 +
-                    position.x +
-                    dimensions.mapSize) %
-                    dimensions.mapSize
-                ]?.[
-                  (y -
-                    (dimensions.renderedRows - 1) / 2 +
-                    position.y +
-                    dimensions.mapSize) %
-                    dimensions.mapSize
-                ] || {}
-              ).map(([entityId, entity]) => (
-                <Entity
-                  key={entityId}
-                  entity={
-                    entity as {
-                      [POSITION]: Position;
-                      [SPRITE]: Sprite;
-                      [RENDERABLE]: Renderable;
+            .map((_, y) => {
+              const offsetX = dimensions.renderedColumns % 2;
+              const renderedX =
+                x - (dimensions.renderedColumns - offsetX) / 2 + position.x;
+              const normalizedX = normalize(renderedX, dimensions.mapSize);
+
+              const offsetY = dimensions.renderedRows % 2;
+              const renderedY =
+                y - (dimensions.renderedRows - offsetY) / 2 + position.y;
+              const normalizedY = normalize(renderedY, dimensions.mapSize);
+
+              return Object.entries(map[normalizedX]?.[normalizedY] || {}).map(
+                ([entityId, entity]) => (
+                  <Entity
+                    key={entityId}
+                    entity={
+                      entity as {
+                        [POSITION]: Position;
+                        [SPRITE]: Sprite;
+                        [RENDERABLE]: Renderable;
+                      }
                     }
-                  }
-                  generation={entity[RENDERABLE].generation}
-                />
-              ))
-            )
+                    x={renderedX}
+                    y={renderedY}
+                    generation={entity[RENDERABLE].generation}
+                  />
+                )
+              );
+            })
             .flat()
         )
         .flat()}

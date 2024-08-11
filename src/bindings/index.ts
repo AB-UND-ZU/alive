@@ -9,11 +9,9 @@ import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
 import { player, tree, triangle, wall } from "../game/assets/sprites";
-import {
-  iterateMatrix,
-  matrixFactory,
-  valueNoiseMatrix,
-} from "../game/math/noise";
+import { valueNoiseMatrix } from "../game/math/noise";
+import { LEVEL } from "../engine/components/level";
+import { iterateMatrix, matrixFactory } from "../game/math/matrix";
 
 /*
 const mapString = `\
@@ -68,7 +66,9 @@ const mapString = `\
   });
   */
 
-export const generateWorld = async (world: World, size: number) => {
+export const generateWorld = async (world: World) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+
   const terrainMatrix = valueNoiseMatrix(size, size, 10, -100, 100);
   const greenMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
 
