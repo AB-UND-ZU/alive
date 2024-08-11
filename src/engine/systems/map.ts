@@ -43,7 +43,7 @@ export default function setupMap(world: World) {
   const removedEntities = { count: 0, entries: [] };
 
   const onUpdate = (delta: number) => {
-    // ensure components added to ECS are reflected in collision map
+    // ensure components added to ECS are reflected in map
     world.getEntities([POSITION], "added", addedEntities);
     world.getEntities([POSITION], "removed", removedEntities);
 
