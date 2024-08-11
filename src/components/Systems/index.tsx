@@ -9,6 +9,7 @@ import { Level, LEVEL } from "../../engine/components/level";
 import { normalize } from "../../game/math/std";
 import { FOG } from "../../engine/components/fog";
 import { fog } from "../../game/assets/sprites";
+import { LIGHT } from "../../engine/components/light";
 
 export default function Systems() {
   const { ecs } = useWorld();
@@ -62,6 +63,7 @@ export default function Systems() {
                       [POSITION]: { x: normalizedX, y: normalizedX },
                       [SPRITE]: fog,
                       [RENDERABLE]: { generation: 0 },
+                      [LIGHT]: { darkness: 1, brightness: 0 },
                     }}
                     x={renderedX}
                     y={renderedY}
