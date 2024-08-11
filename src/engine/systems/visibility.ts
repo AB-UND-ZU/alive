@@ -7,6 +7,7 @@ import { FOG, Fog } from "../components/fog";
 import { PLAYER } from "../components/player";
 import { LIGHT } from "../components/light";
 import { aspectRatio } from "../../components/Dimensions/sizing";
+import { traceCircularVisiblity } from "../../game/math/tracing";
 
 export const setVisibility = (
   world: World,
@@ -30,8 +31,7 @@ export const setVisibility = (
   for (const entityId in cell) {
     const fog = cell[entityId][FOG];
 
-    if (!fog || (visibility === "fog" && fog.visibility === "hidden"))
-      continue;
+    if (!fog || (visibility === "fog" && fog.visibility === "hidden")) continue;
 
     fog.visibility = visibility;
   }
@@ -46,7 +46,8 @@ export default function setupVisibility(world: World) {
 
     if (!hero || lastGeneration === generation) return;
 
-    const visionHorizontal = Math.floor(hero[LIGHT].brightness / aspectRatio);
+    const radius = hero[LIGHT].brightness;
+    const visionHorizontal = Math.floor(radius / aspectRatio);
     const visionVertical = hero[LIGHT].brightness;
 
     // apply fog with one extra cell around player
@@ -59,18 +60,13 @@ export default function setupVisibility(world: World) {
           "fog"
         );
       }
-    }
+  }
 
     // reveal visible area
-    for (let x = 0; x < visionHorizontal * 2 + 1; x += 1) {
-      for (let y = 0; y < visionVertical * 2 + 1; y += 1) {
-        setVisibility(
-          world,
-          x - visionHorizontal + hero[POSITION].x,
-          y - visionVertical + hero[POSITION].y,
-          "visible"
-        );
-      }
+    const visibleCells = traceCircularVisiblity(world, hero[POSITION], radius);
+
+    for (const cell of visibleCells) {
+      setVisibility(world, cell.x, cell.y, "visible");
     }
 
     lastGeneration = generation;
