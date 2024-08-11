@@ -2,14 +2,16 @@ import { useFrame } from "@react-three/fiber";
 import { Position, POSITION } from "../../engine/components/position";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import Entity from "../Entity";
-import { useHero, useWorld } from "../../bindings/hooks";
+import { useGame, useHero, useWorld } from "../../bindings/hooks";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
+import { Level, LEVEL } from "../../engine/components/level";
 
 export default function Systems() {
   const { ecs } = useWorld();
   const dimensions = useDimensions();
   const hero = useHero();
+  const game = useGame();
 
   useFrame((_, delta) => {
     if (!ecs) return null;
@@ -18,8 +20,9 @@ export default function Systems() {
     ecs.cleanup();
   });
 
-  if (!ecs || !hero) return null;
+  if (!ecs || !hero || !game) return null;
 
+  const map = game[LEVEL].map as Level['map'];
   const position = hero[POSITION];
 
   return (
@@ -29,7 +32,7 @@ export default function Systems() {
           Array.from({ length: dimensions.renderedRows })
             .map((_, y) =>
               Object.entries(
-                ecs.metadata.map[
+                map[
                   (x -
                     (dimensions.renderedColumns - 1) / 2 +
                     position.x +

@@ -1,6 +1,8 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { POSITION } from "../components/position";
+import { LEVEL } from "../components/level";
+import { RENDERABLE } from "../components/renderable";
 
 export const registerEntity = (world: World, entity: Entity) => {
   const position = entity[POSITION];
@@ -9,8 +11,9 @@ export const registerEntity = (world: World, entity: Entity) => {
     throw new Error(`Unable to register position for entity ${entity}!`);
   }
 
-  const column = (world.metadata.map[position.x] =
-    world.metadata.map[position.x] || {});
+  const map = world.metadata.gameEntity[LEVEL].map;
+
+  const column = (map[position.x] = map[position.x] || {});
   const cell = (column[position.y] = column[position.y] || {});
 
   cell[world.getEntityId(entity)] = entity;
@@ -23,9 +26,9 @@ export const unregisterEntity = (world: World, entity: Entity) => {
     throw new Error(`Unable to unregister position for entity ${entity}!`);
   }
 
-  delete world.metadata.map[position.x]?.[position.y]?.[
-    world.getEntityId(entity)
-  ];
+  const map = world.metadata.gameEntity[LEVEL].map;
+
+  delete map[position.x]?.[position.y]?.[world.getEntityId(entity)];
 };
 
 export default function setupMap(world: World) {
@@ -43,6 +46,10 @@ export default function setupMap(world: World) {
 
     for (let i = 0; i < addedEntities.count; i++) {
       registerEntity(world, addedEntities.entries[i]);
+    }
+
+    if (addedEntities.count > 0 || removedEntities.count > 0) {
+      world.metadata.gameEntity[RENDERABLE].generation += 1;
     }
   };
 

@@ -68,7 +68,7 @@ const mapString = `\
   });
   */
 
-export const generateWorld = (world: World, size: number) => {
+export const generateWorld = async (world: World, size: number) => {
   const terrainMatrix = valueNoiseMatrix(size, size, 10, -100, 100);
   const greenMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
 
@@ -123,7 +123,7 @@ export const generateWorld = (world: World, size: number) => {
   // set hero as own reference frame
   hero[MOVABLE].reference = world.getEntityId(hero);
 
-  world.addSystem(systems.setupCollision);
+  world.addSystem(systems.setupMap);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupRenderer);
 };

@@ -5,10 +5,12 @@ import { World } from "../ecs";
 import { isProcessable, REFERENCE } from "../components/reference";
 import { registerEntity, unregisterEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
+import { LEVEL } from "../components/level";
+import { Entity } from "ecs";
 
 const isCollision = (world: World, position: Position) =>
-  Object.values(world.metadata.map[position.x]?.[position.y] || {}).some(
-    (cell) => COLLIDABLE in cell
+  Object.values(world.metadata.gameEntity[LEVEL].map[position.x]?.[position.y] || {}).some(
+    (cell) => COLLIDABLE in (cell as Entity)
   );
 
 export default function setupMovement(world: World) {

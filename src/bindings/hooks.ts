@@ -11,6 +11,7 @@ import type { World as WorldType } from "../engine";
 import { RENDERABLE } from "../engine/components/renderable";
 import { PLAYER } from "../engine/components/player";
 import { POSITION } from "../engine/components/position";
+import { LEVEL } from "../engine/components/level";
 
 export type WorldContext = {
   ecs: WorldType | null;
@@ -23,7 +24,7 @@ export const WorldProvider = Context.Provider;
 
 export const useWorld = () => useContext(Context);
 
-// somehow React's useId can give duplicate IDs, hence why generating own sequence
+// R3F mounts a second React tree, hence React.useId leads to duplicate IDs
 let lastId = 0;
 
 const generateId = () => {
@@ -83,4 +84,12 @@ export const useHero = () => {
   const players = useRenderable([PLAYER, POSITION]);
 
   return players.length === 0 ? null : players[0];
+};
+
+export const useGame = () => {
+  const { ecs } = useWorld();
+  
+  useRenderable([LEVEL]);
+
+  return ecs?.metadata.gameEntity
 };
