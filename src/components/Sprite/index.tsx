@@ -6,43 +6,43 @@ import {
   Sprite as SpriteType,
 } from "../../engine/components/sprite";
 import { Light } from "../../engine/components/light";
+import * as colors from "../../game/assets/colors";
 
-function Box({ color, ...props }: ThreeElements["mesh"] & { color: string }) {
+const textSize = 18 / 25;
+const stack = 20;
+const height = 2;
+
+function Box({
+  color,
+  height,
+  offset = 0,
+  ...props
+}: ThreeElements["mesh"] & { height: number; offset?: number; color: string }) {
   const dimensions = useDimensions();
 
   return (
-    <mesh castShadow {...props} position={[0, 0, 1]}>
-      <boxGeometry args={[dimensions.aspectRatio, 1, 2]} />
+    <mesh castShadow {...props} position={[0, 0, height / 2 + offset]}>
+      <boxGeometry args={[dimensions.aspectRatio, 1, height]} />
       <meshBasicMaterial color={color} />
     </mesh>
   );
 }
 
-const textSize = 18 / 25;
-
-function Layer({
-  layer,
-  index,
-  light,
-}: {
-  layer: LayerType;
-  index: number;
-  light?: Light;
-}) {
+function Layer({ layer, offset, darkness }: { layer: LayerType; offset: number, darkness: boolean }) {
   const dimensions = useDimensions();
 
-  if (light && light.darkness > 0) {
-    return <Box color={layer.color} />;
+  if (layer.char === "█") {
+    return <Box color={layer.color} height={height / stack} offset={offset} />;
   }
 
   return (
     <Text3D
       font="/fonts/MostPerfectDOSVGA.json"
-      receiveShadow
+      receiveShadow={!darkness}
       size={textSize}
-      position={[-0.5 * dimensions.aspectRatio, -0.25, index * 0.1]}
+      position={[-0.5 * dimensions.aspectRatio, -0.25, offset]}
+      height={height / stack}
     >
-
       <meshPhongMaterial color={layer.color} />
       {layer.char}
     </Text3D>
@@ -56,10 +56,17 @@ export default function Sprite({
   sprite: SpriteType;
   light?: Light;
 }) {
+  const darkness = !!light && light.darkness > 0;
   return (
     <>
+      {darkness && <Box color={colors.black} height={height} />}
       {sprite.layers.map((layer, index) => (
-        <Layer layer={layer} key={index} index={index} light={light} />
+        <Layer
+          darkness={darkness}
+          layer={layer}
+          key={index}
+          offset={((index + (darkness ? stack : 0)) * height) / stack}
+        />
       ))}
     </>
   );
