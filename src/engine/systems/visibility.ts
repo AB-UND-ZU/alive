@@ -5,6 +5,8 @@ import { RENDERABLE } from "../components/renderable";
 import { normalize } from "../../game/math/std";
 import { FOG, Fog } from "../components/fog";
 import { PLAYER } from "../components/player";
+import { LIGHT } from "../components/light";
+import { aspectRatio } from "../../components/Dimensions/sizing";
 
 export const setVisibility = (
   world: World,
@@ -26,8 +28,12 @@ export const setVisibility = (
   }
 
   for (const entityId in cell) {
-    if (!(FOG in cell[entityId])) continue;
-    cell[entityId][FOG].visibility = visibility;
+    const fog = cell[entityId][FOG];
+
+    if (!fog || (visibility === "fog" && fog.visibility === "hidden"))
+      continue;
+
+    fog.visibility = visibility;
   }
 };
 
@@ -40,25 +46,28 @@ export default function setupVisibility(world: World) {
 
     if (!hero || lastGeneration === generation) return;
 
-    // apply fog
-    for (let x = 0; x < 11; x += 1) {
-      for (let y = 0; y < 11; y += 1) {
+    const visionHorizontal = Math.floor(hero[LIGHT].brightness / aspectRatio);
+    const visionVertical = hero[LIGHT].brightness;
+
+    // apply fog with one extra cell around player
+    for (let x = 0; x < visionHorizontal * 2 + 3; x += 1) {
+      for (let y = 0; y < visionVertical * 2 + 3; y += 1) {
         setVisibility(
           world,
-          x - 5 + hero[POSITION].x,
-          y - 5 + hero[POSITION].y,
+          x - (visionHorizontal + 1) + hero[POSITION].x,
+          y - (visionVertical + 1) + hero[POSITION].y,
           "fog"
         );
       }
     }
 
     // reveal visible area
-    for (let x = 0; x < 9; x += 1) {
-      for (let y = 0; y < 9; y += 1) {
+    for (let x = 0; x < visionHorizontal * 2 + 1; x += 1) {
+      for (let y = 0; y < visionVertical * 2 + 1; y += 1) {
         setVisibility(
           world,
-          x - 4 + hero[POSITION].x,
-          y - 4 + hero[POSITION].y,
+          x - visionHorizontal + hero[POSITION].x,
+          y - visionVertical + hero[POSITION].y,
           "visible"
         );
       }

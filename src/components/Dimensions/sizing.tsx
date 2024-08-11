@@ -27,7 +27,7 @@ export type Dimensions = {
 
 const visibleColumns = 21;
 const visibleRows = 19;
-const aspectRatio = 18 / 32; // of DOS font
+export const aspectRatio = 18 / 32; // of DOS font
 const extraOffset = 3; // to allow common mobile width of 375px to display 378px (18px * 21)
 const hudRows = 6;
 const overscanColumns = 4;

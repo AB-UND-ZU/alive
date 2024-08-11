@@ -15,7 +15,7 @@ export default function Camera() {
     x:
       (position.x + dimensions.leftOffset / dimensions.cellWidth / 2) *
       dimensions.aspectRatio,
-    y: (position.y + dimensions.topOffset / dimensions.cellHeight / 2) * -1,
+    y: -position.y,
     z: dimensions.cellHeight,
     config: {
       mass: 1,
