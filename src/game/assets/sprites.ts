@@ -1,6 +1,16 @@
 import * as colors from "./colors";
 import { Sprite } from "../../engine/components/sprite";
 
+export const fog: Sprite = {
+  name: 'fog_hidden',
+  layers: [
+    {
+      char: "≈",
+      color: colors.grey,
+    },
+  ],
+};
+
 export const wall: Sprite = {
   name: 'wall_solid',
   layers: [
