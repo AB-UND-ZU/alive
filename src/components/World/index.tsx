@@ -9,8 +9,8 @@ export default function World(props: React.PropsWithChildren) {
   // generate initial world
   // TODO: find better way to prevent double generation
   const [context] = useState(() => {
-    const ecs = createWorld();
-    setTimeout(generateWorld, 0, ecs, dimensions.mapSize);
+    const ecs = createWorld(dimensions.mapSize);
+    setTimeout(generateWorld, 0, ecs);
     return { ecs };
   });
 

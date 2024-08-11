@@ -33,6 +33,8 @@ function Animated({
 
 function Entity({
   entity,
+  x,
+  y,
 }: {
   entity: {
     [POSITION]: Position;
@@ -42,6 +44,8 @@ function Entity({
     [RENDERABLE]: Renderable;
   };
   generation: number;
+  x: number;
+  y: number;
 }) {
   const dimensions = useDimensions();
 
@@ -49,14 +53,7 @@ function Entity({
   const Container = spring ? Animated : "group";
 
   return (
-    <Container
-      position={[
-        entity[POSITION].x * dimensions.aspectRatio,
-        -entity[POSITION].y,
-        0,
-      ]}
-      spring={spring}
-    >
+    <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={spring}>
       <Sprite sprite={entity[SPRITE]} light={entity[LIGHT]} />
 
       {(entity[LIGHT]?.brightness || 0) > 0 && (

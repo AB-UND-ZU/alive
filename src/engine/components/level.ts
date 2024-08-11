@@ -4,6 +4,7 @@ import { World } from "../ecs";
 export type Level = {
   // { [x]: { [y]: { [entityId]: entity } } }
   map: Record<number, Record<number, Record<number, Entity>>>;
+  size: number;
 };
 
 export const LEVEL = "LEVEL";
