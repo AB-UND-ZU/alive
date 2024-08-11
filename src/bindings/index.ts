@@ -12,6 +12,7 @@ import { player, tree, triangle, wall } from "../game/assets/sprites";
 import { valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../game/math/matrix";
+import { FOG } from "../engine/components/fog";
 
 /*
 const mapString = `\
@@ -80,6 +81,7 @@ export const generateWorld = async (world: World) => {
   iterateMatrix(worldMatrix, (x, y, cell) => {
     if (cell === "terrain") {
       entities.createTerrain(world, {
+        [FOG]: { visibility: 'hidden' },
         [POSITION]: { x, y },
         [SPRITE]: wall,
         [LIGHT]: { brightness: 0, darkness: 1 },
@@ -88,6 +90,7 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "green") {
       entities.createTree(world, {
+        [FOG]: { visibility: 'hidden' },
         [POSITION]: { x, y },
         [SPRITE]: tree,
         [RENDERABLE]: { generation: 0 },
@@ -126,4 +129,5 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupRenderer);
+  world.addSystem(systems.setupVisibility);
 };
