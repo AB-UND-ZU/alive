@@ -3,3 +3,9 @@ export const sum = (numbers: number[]) =>
 
 export const normalize = (number: number, modulo: number) =>
   ((number % modulo) + modulo) % modulo;
+
+export function* reversed<T>(array: T[]) {
+  for (let i = array.length - 1; i >= 0; i--) {
+    yield array[i];
+  }
+}
