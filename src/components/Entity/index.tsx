@@ -8,6 +8,7 @@ import { Vector3Tuple } from "three";
 import Sprite from "../Sprite";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import React from "react";
+import { Fog, FOG } from "../../engine/components/fog";
 
 function Animated({
   position,
@@ -31,12 +32,35 @@ function Animated({
   );
 }
 
+function CoveredLight({ brightness, shadow }: { brightness: number, shadow: number}) {
+  return (
+        <>
+          <pointLight
+            position={[0, 0, 1.5]}
+            decay={-1}
+            intensity={Math.PI * 0.58}
+            castShadow
+            shadow-mapSize-width={256}
+            shadow-mapSize-height={256}
+            shadow-camera-near={0.1}
+            shadow-camera-far={brightness - 0.056}
+          />
+          <mesh position={[0, 0, 3]}>
+            <ringGeometry args={[brightness - 0.25, shadow, 128]} />
+            <meshBasicMaterial color="black" opacity={0.64} transparent />
+          </mesh>
+        </>
+
+  )
+}
+
 function Entity({
   entity,
   x,
   y,
 }: {
   entity: {
+    [FOG]?: Fog;
     [POSITION]: Position;
     [SPRITE]: SpriteType;
     [LIGHT]?: Light;
@@ -54,19 +78,10 @@ function Entity({
 
   return (
     <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={spring}>
-      <Sprite sprite={entity[SPRITE]} light={entity[LIGHT]} />
+      <Sprite sprite={entity[SPRITE]} light={entity[LIGHT]} fog={entity[FOG]} />
 
-      {(entity[LIGHT]?.brightness || 0) > 0 && (
-        <pointLight
-          position={[0, 0, 1.5]}
-          decay={-1}
-          intensity={Math.PI * 0.7}
-          castShadow
-          shadow-mapSize-width={128}
-          shadow-mapSize-height={128}
-          shadow-camera-near={0.1}
-          shadow-camera-far={dimensions.renderedDiagonal}
-        />
+      {!!entity[LIGHT] && entity[LIGHT].brightness > 0 && (
+        <CoveredLight brightness={entity[LIGHT].brightness} shadow={dimensions.renderedDiagonal} />
       )}
     </Container>
   );

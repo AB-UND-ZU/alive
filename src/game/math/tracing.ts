@@ -141,27 +141,37 @@ const isObstructing = (world: World, point: Point) => {
 // manually adjusted extension of radius
 const bias = 0.25;
 
-const processCell = (
-  world: World,
-  radius: number,
-  direction: number,
-  normal: number,
-  iteration: Iteration,
-  intervals: Interval[],
-  cell: Point,
-  level: Level,
-  visibleCells: Point[]
-) => {
+const isInRadius = (delta: Point, radius: number) =>
+  Math.sqrt((delta.x * aspectRatio) ** 2 + delta.y ** 2) <= radius + bias;
+
+const processCell = ({
+  world,
+  level,
+  visibleCells,
+  radius,
+  direction,
+  normal,
+  iteration,
+  intervals,
+  cell,
+}: {
+  world: World;
+  level: Level;
+  visibleCells: Point[];
+  radius: number;
+  direction: number;
+  normal: number;
+  iteration: Iteration;
+  intervals: Interval[];
+  cell: Point;
+}) => {
   const delta = {
     x: direction * iteration.direction.x + normal * iteration.normal.x,
     y: direction * iteration.direction.y + normal * iteration.normal.y,
   };
 
   // break if out of radius or already obstructed
-  if (
-    Math.sqrt((delta.x * aspectRatio) ** 2 + delta.y ** 2) > radius + bias ||
-    !isVisible(iteration, delta, intervals)
-  ) {
+  if (!isInRadius(delta, radius) || !isVisible(iteration, delta, intervals)) {
     return intervals;
   }
 
@@ -234,64 +244,53 @@ export const traceCircularVisiblity = (
   const visibleCells: Point[] = [point];
   const level = world.metadata.gameEntity[LEVEL];
   let visibleIntervals: Interval[] = [{ start: 0, end: 360 }];
+  const args = { world, level, visibleCells, radius };
 
   for (let direction = 1; direction <= radius / aspectRatio; direction += 1) {
     // process side normals before corners
     for (const iteration of iterations) {
       // center
-      visibleIntervals = processCell(
-        world,
-        radius,
+      visibleIntervals = processCell({
+        ...args,
         direction,
-        0,
+        normal: 0,
         iteration,
-        visibleIntervals,
-        point,
-        level,
-        visibleCells
-      );
+        intervals: visibleIntervals,
+        cell: point,
+      });
 
       for (let normal = 1; normal < direction; normal += 1) {
         // forwards
-        visibleIntervals = processCell(
-          world,
-          radius,
+        visibleIntervals = processCell({
+          ...args,
           direction,
           normal,
           iteration,
-          visibleIntervals,
-          point,
-          level,
-          visibleCells
-        );
+          intervals: visibleIntervals,
+          cell: point,
+        });
         // backwards
-        visibleIntervals = processCell(
-          world,
-          radius,
+        visibleIntervals = processCell({
+          ...args,
           direction,
-          -normal,
+          normal: -normal,
           iteration,
-          visibleIntervals,
-          point,
-          level,
-          visibleCells
-        );
+          intervals: visibleIntervals,
+          cell: point,
+        });
       }
     }
 
     // process corners
     for (const iteration of iterations) {
-      visibleIntervals = processCell(
-        world,
-        radius,
+      visibleIntervals = processCell({
+        ...args,
         direction,
-        direction,
+        normal: direction,
         iteration,
-        visibleIntervals,
-        point,
-        level,
-        visibleCells
-      );
+        intervals: visibleIntervals,
+        cell: point,
+      });
     }
   }
 

@@ -2,8 +2,8 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Level = {
-  // { [x]: { [y]: { [entityId]: entity } } }
-  map: Record<number, Record<number, Record<number, Entity>>>;
+  // map[x][y][entityId] = entity
+  map: Record<number, Entity>[][];
   size: number;
 };
 

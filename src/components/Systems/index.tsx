@@ -7,9 +7,6 @@ import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { Level, LEVEL } from "../../engine/components/level";
 import { normalize } from "../../game/math/std";
-import { FOG } from "../../engine/components/fog";
-import { fog } from "../../game/assets/sprites";
-import { LIGHT } from "../../engine/components/light";
 
 export default function Systems() {
   const { ecs } = useWorld();
@@ -48,29 +45,6 @@ export default function Systems() {
               const entities = Object.entries(
                 map[normalizedX]?.[normalizedY] || {}
               );
-
-              if (
-                !entities.some(
-                  ([_, entity]) =>
-                    entity[FOG]?.visibility &&
-                    entity[FOG].visibility !== "hidden"
-                )
-              ) {
-                return (
-                  <Entity
-                    key={`fog-${normalizedX}-${normalizedY}`}
-                    entity={{
-                      [POSITION]: { x: normalizedX, y: normalizedX },
-                      [SPRITE]: fog,
-                      [RENDERABLE]: { generation: 0 },
-                      [LIGHT]: { darkness: 1, brightness: 0 },
-                    }}
-                    x={renderedX}
-                    y={renderedY}
-                    generation={0}
-                  />
-                );
-              }
 
               const renderableEntities = entities.filter(
                 ([_, entity]) => RENDERABLE in entity
