@@ -3,7 +3,7 @@ import { World } from "../../engine";
 import { Level, LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { Point } from "../../engine/components/movable";
-import { normalize } from "./std";
+import { normalize, reversed } from "./std";
 
 type Interval = { start: number; end: number };
 type Iteration = {
@@ -110,13 +110,16 @@ const isVisible = (
   const targetIntervals = cellToIntervals(iteration, point);
 
   // check if start and end points are contained by any sub interval, inclusively
+  // or if any interval is only within the cell's boundaries
   return targetIntervals.some((targetInterval) =>
     intervals.some(
       (visibleInterval) =>
         (visibleInterval.start <= targetInterval.start &&
           targetInterval.start <= visibleInterval.end) ||
         (visibleInterval.start <= targetInterval.end &&
-          targetInterval.end <= visibleInterval.end)
+          targetInterval.end <= visibleInterval.end) ||
+        (targetInterval.start <= visibleInterval.start &&
+          visibleInterval.end <= targetInterval.end)
     )
   );
 };
@@ -185,7 +188,7 @@ const processCell = ({
   if (isObstructing(world, normalized)) {
     const cellIntervals = cellToIntervals(iteration, delta);
 
-    // we can assume that at least one interval overlaps because the cell is visible
+    // the cell is visible therefore there is at least one overlap, or an interval within the cell boundaries
     for (const cellInterval of cellIntervals) {
       // find overlapping visible interval
       const newIntervals: Interval[] = [];
@@ -194,16 +197,19 @@ const processCell = ({
           visibleInterval.start <= cellInterval.start &&
           cellInterval.start <= visibleInterval.end
       );
-      const endIndex = intervals.findIndex(
+      const endIndex = intervals.findLastIndex(
         (visibleInterval) =>
           visibleInterval.start <= cellInterval.end &&
           cellInterval.end <= visibleInterval.end
       );
 
       // add any previous intervals
-      newIntervals.push(
-        ...intervals.slice(0, startIndex === -1 ? endIndex : startIndex)
-      );
+      for (const interval of intervals) {
+        // entered the cell interval
+        if (cellInterval.start <= interval.end) break;
+
+        newIntervals.push(interval);
+      }
 
       // add trimmed start interval
       if (
@@ -225,9 +231,14 @@ const processCell = ({
       }
 
       // add any following intervals
-      newIntervals.push(
-        ...intervals.slice(endIndex === -1 ? startIndex + 1 : endIndex + 1)
-      );
+      const followingIntervals = [];
+      for (const interval of reversed(intervals)) {
+        // entered the cell interval
+        if (interval.start <= cellInterval.end) break;
+
+        followingIntervals.unshift(interval);
+      }
+      newIntervals.push.apply(newIntervals, followingIntervals);
 
       intervals = newIntervals;
     }
