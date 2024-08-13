@@ -12,18 +12,19 @@ import { valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../game/math/matrix";
 import { FOG } from "../engine/components/fog";
+import { NPC } from "../engine/components/npc";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
   const terrainMatrix = valueNoiseMatrix(size, size, 6, -100, 100);
   const greenMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
-  // const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
+  const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
 
   const worldMatrix = matrixFactory(size, size, (x, y) => {
     if (terrainMatrix[x][y] > 5) return "terrain";
     if (greenMatrix[x][y] > 60) return "green";
-    // if (spawnMatrix[x][y] < -99) return "triangle";
+    if (spawnMatrix[x][y] < -99) return "triangle";
   });
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
@@ -53,17 +54,19 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "triangle") {
       entities.createTriangle(world, {
+        [FOG]: { visibility: "hidden" },
+        [MOVABLE]: {
+          orientations: ["right", "left"],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 200,
+          },
+        },
+        [NPC]: {},
         [POSITION]: { x, y },
         [SPRITE]: triangle,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
-        [MOVABLE]: {
-          orientations: ['right', 'left'],
-          reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
-            duration: 200
-          }
-        }
       });
     }
   });

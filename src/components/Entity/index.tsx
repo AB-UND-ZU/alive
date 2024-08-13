@@ -78,7 +78,7 @@ function Entity({
 
   return (
     <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={spring}>
-      <Sprite sprite={entity[SPRITE]} light={entity[LIGHT]} fog={entity[FOG]} />
+      <Sprite entity={entity} />
 
       {!!entity[LIGHT] && entity[LIGHT].brightness > 0 && (
         <CoveredLight brightness={entity[LIGHT].brightness} shadow={dimensions.renderedDiagonal} />

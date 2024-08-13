@@ -4,14 +4,16 @@ import { ThreeElements } from "@react-three/fiber";
 import { useDimensions } from "../Dimensions";
 import {
   Layer as LayerType,
+  SPRITE,
   Sprite as SpriteType,
 } from "../../engine/components/sprite";
-import { Light } from "../../engine/components/light";
+import { LIGHT, Light } from "../../engine/components/light";
 import * as colors from "../../game/assets/colors";
-import { Fog } from "../../engine/components/fog";
+import { FOG, Fog } from "../../engine/components/fog";
 import { fog as fogSprite } from "../../game/assets/sprites";
 import { animated, useSpring } from "@react-spring/three";
 import { useRef, useState } from "react";
+import { NPC, Npc } from "../../engine/components/npc";
 
 const textSize = 18 / 25;
 const stack = 1000;
@@ -40,23 +42,27 @@ function Box({
 function Layer({
   layer,
   offset,
-  fog,
+  visibility,
   isAir,
   isOpaque,
+  isUnit,
 }: {
   layer: LayerType;
   offset: number;
-  fog?: Fog;
+  visibility?: Fog["visibility"];
   isAir: boolean;
   isOpaque: boolean;
+  isUnit: boolean;
 }) {
   const dimensions = useDimensions();
+
+  const isFog = visibility === "fog";
+  const isHidden =
+    !!visibility && (visibility === "hidden" || (isUnit && isFog));
+
   const shadowColor = useRef(
     `#${new THREE.Color(layer.color).multiplyScalar(0.125).getHexString()}`
   );
-
-  const isHidden = !!fog && fog.visibility === "hidden";
-
   let color = layer.color;
 
   if (isAir && isHidden) color = shadowColor.current;
@@ -70,8 +76,8 @@ function Layer({
     to: {
       color,
     },
-    config: { duration: isAir ? 150 : 400 },
-    delay: isAir ? 0 : 50,
+    config: { duration: isAir || isUnit ? 150 : 400 },
+    delay: isAir || isUnit ? 0 : 50,
     onRest: (result) => {
       setBlack(result.value.color === "black");
     },
@@ -79,10 +85,10 @@ function Layer({
 
   const [black, setBlack] = useState(spring.color.get() === "rgba(0, 0, 0, 1)");
 
-  if (!isAir && isHidden) return null;
+  if (!isAir && isHidden && !(isUnit && isFog)) return null;
   if (isAir && black) return null;
 
-  const receiveShadow = !isAir && !isOpaque && !isHidden;
+  const receiveShadow = !isAir && !isOpaque && !isHidden && !isUnit;
 
   if (layer.char === "█") {
     return <Box color={spring.color} height={height / stack} offset={offset} />;
@@ -93,11 +99,17 @@ function Layer({
       font="/fonts/MostPerfectDOSVGA.json"
       receiveShadow={receiveShadow}
       size={textSize}
-      position={[-0.5 * dimensions.aspectRatio, -0.25, offset]}
+      position={[
+        -0.5 * dimensions.aspectRatio,
+        -0.25,
+        offset + (isUnit ? 5 : 0),
+      ]}
       height={height / stack}
     >
       {isAir ? (
         <meshBasicMaterial color={shadowColor.current} />
+      ) : isUnit ? (
+        <animated.meshBasicMaterial color={spring.color} />
       ) : (
         <animated.meshLambertMaterial color={spring.color} />
       )}
@@ -107,26 +119,30 @@ function Layer({
 }
 
 export default function Sprite({
-  sprite,
-  light,
-  fog,
+  entity,
 }: {
-  sprite: SpriteType;
-  light?: Light;
-  fog?: Fog;
+  entity: {
+    [FOG]?: Fog;
+    [LIGHT]?: Light;
+    [NPC]?: Npc;
+    [SPRITE]: SpriteType;
+  };
 }) {
-  const isAir = sprite === fogSprite;
-  const isVisible = !!fog && fog.visibility === "visible";
-  const isOpaque = !!light && light.darkness > 0;
+  const isAir = entity[SPRITE] === fogSprite;
+  const visibility = entity[FOG]?.visibility;
+  const isVisible = visibility === "visible";
+  const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
+  const isUnit = !!entity[NPC];
 
   return (
     <>
       {isOpaque && isVisible && <Box color={colors.black} height={height} />}
-      {sprite.layers.map((layer, index) => (
+      {entity[SPRITE].layers.map((layer, index) => (
         <Layer
           isAir={isAir}
           isOpaque={isOpaque}
-          fog={fog}
+          isUnit={isUnit}
+          visibility={visibility}
           layer={layer}
           key={index}
           offset={

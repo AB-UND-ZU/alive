@@ -3,6 +3,7 @@ export { default as addFog } from "./fog";
 export { default as addLevel } from "./level";
 export { default as addLight } from "./light";
 export { default as addMovable } from "./movable";
+export { default as addNpc } from "./npc";
 export { default as addPlayer } from "./player";
 export { default as addPosition } from "./position";
 export { default as addReference } from "./reference";
