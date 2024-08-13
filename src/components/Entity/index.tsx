@@ -1,13 +1,13 @@
+import { Vector3Tuple } from "three";
 import { useSpring, animated, SpringConfig } from "@react-spring/three";
+import React from "react";
 import { useDimensions } from "../Dimensions";
 import { Position, POSITION } from "../../engine/components/position";
 import { SPRITE, Sprite as SpriteType } from "../../engine/components/sprite";
 import { Light, LIGHT } from "../../engine/components/light";
 import { Movable, MOVABLE } from "../../engine/components/movable";
-import { Vector3Tuple } from "three";
 import Sprite from "../Sprite";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
-import React from "react";
 import { Fog, FOG } from "../../engine/components/fog";
 
 function Animated({
@@ -32,26 +32,31 @@ function Animated({
   );
 }
 
-function CoveredLight({ brightness, shadow }: { brightness: number, shadow: number}) {
+function CoveredLight({
+  brightness,
+  shadow,
+}: {
+  brightness: number;
+  shadow: number;
+}) {
   return (
-        <>
-          <pointLight
-            position={[0, 0, 1.5]}
-            decay={-1}
-            intensity={Math.PI * 0.58}
-            castShadow
-            shadow-mapSize-width={256}
-            shadow-mapSize-height={256}
-            shadow-camera-near={0.1}
-            shadow-camera-far={brightness - 0.056}
-          />
-          <mesh position={[0, 0, 3]}>
-            <ringGeometry args={[brightness - 0.25, shadow, 128]} />
-            <meshBasicMaterial color="black" opacity={0.64} transparent />
-          </mesh>
-        </>
-
-  )
+    <>
+      <pointLight
+        position={[0, 0, 1.5]}
+        decay={-1}
+        intensity={Math.PI * 0.58}
+        castShadow
+        shadow-mapSize-width={256}
+        shadow-mapSize-height={256}
+        shadow-camera-near={0.1}
+        shadow-camera-far={brightness - 0.056}
+      />
+      <mesh position={[0, 0, 3]}>
+        <ringGeometry args={[brightness - 0.25, shadow, 128]} />
+        <meshBasicMaterial color="black" opacity={0.64} transparent />
+      </mesh>
+    </>
+  );
 }
 
 function Entity({
@@ -81,7 +86,10 @@ function Entity({
       <Sprite entity={entity} />
 
       {!!entity[LIGHT] && entity[LIGHT].brightness > 0 && (
-        <CoveredLight brightness={entity[LIGHT].brightness} shadow={dimensions.renderedDiagonal} />
+        <CoveredLight
+          brightness={entity[LIGHT].brightness + 0.7}
+          shadow={dimensions.renderedDiagonal}
+        />
       )}
     </Container>
   );
