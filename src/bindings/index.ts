@@ -1,6 +1,5 @@
-import { Entity } from "ecs";
 import { entities, World, systems } from "../engine";
-import { Position, POSITION } from "../engine/components/position";
+import { POSITION } from "../engine/components/position";
 import { SPRITE } from "../engine/components/sprite";
 import { LIGHT } from "../engine/components/light";
 import { PLAYER } from "../engine/components/player";
@@ -8,40 +7,53 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
-import { player, tree, triangle, wall } from "../game/assets/sprites";
+import { fog, player, tree, triangle, wall } from "../game/assets/sprites";
 import { valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../game/math/matrix";
 import { FOG } from "../engine/components/fog";
 
-/*
-const mapString = `\
-  # █ ████  █
-## █  █ █   ██
-  █>          █
- █  #    P   █
-  █ ##      █
-   ████ ████
-     ██████
-       ███
-        █
-`;
-  const cellEntities: Record<
-    string,
-    (entity: { [POSITION]: Position }) => Entity
-  > = {
-    "█": (entity) =>
+export const generateWorld = async (world: World) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+
+  const terrainMatrix = valueNoiseMatrix(size, size, 6, -100, 100);
+  const greenMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
+  // const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
+
+  const worldMatrix = matrixFactory(size, size, (x, y) => {
+    if (terrainMatrix[x][y] > 5) return "terrain";
+    if (greenMatrix[x][y] > 60) return "green";
+    // if (spawnMatrix[x][y] < -99) return "triangle";
+  });
+
+  iterateMatrix(worldMatrix, (x, y, cell) => {
+    entities.createAir(world, {
+      [FOG]: { visibility: "hidden" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: fog,
+    });
+
+    if (cell === "terrain") {
       entities.createTerrain(world, {
-        ...entity,
+        [FOG]: { visibility: "hidden" },
+        [POSITION]: { x, y },
         [SPRITE]: wall,
         [LIGHT]: { brightness: 0, darkness: 1 },
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
-      }),
-    "#": (entity) =>
-    ">": (entity) =>
+      });
+    } else if (cell === "green") {
+      entities.createTree(world, {
+        [FOG]: { visibility: "hidden" },
+        [POSITION]: { x, y },
+        [SPRITE]: tree,
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      });
+    } else if (cell === "triangle") {
       entities.createTriangle(world, {
-        ...entity,
+        [POSITION]: { x, y },
         [SPRITE]: triangle,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
@@ -51,50 +63,7 @@ const mapString = `\
           spring: {
             duration: 200
           }
-        },
-      }),
-    P: (entity) => {
-    },
-  };
-
-  mapString.split("\n").forEach((row, rowIndex) => {
-    row.split("").forEach((cell, columnIndex) => {
-      const createEntity = cellEntities[cell];
-      if (!createEntity) return;
-
-      createEntity({ [POSITION]: { x: columnIndex, y: rowIndex } });
-    });
-  });
-  */
-
-export const generateWorld = async (world: World) => {
-  const size = world.metadata.gameEntity[LEVEL].size;
-
-  const terrainMatrix = valueNoiseMatrix(size, size, 10, -100, 100);
-  const greenMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
-
-  const worldMatrix = matrixFactory(size, size, (x, y) => {
-    if (terrainMatrix[x][y] > 5) return "terrain";
-    if (greenMatrix[x][y] > 60) return "green";
-  });
-
-  iterateMatrix(worldMatrix, (x, y, cell) => {
-    if (cell === "terrain") {
-      entities.createTerrain(world, {
-        [FOG]: { visibility: 'hidden' },
-        [POSITION]: { x, y },
-        [SPRITE]: wall,
-        [LIGHT]: { brightness: 0, darkness: 1 },
-        [RENDERABLE]: { generation: 0 },
-        [COLLIDABLE]: {},
-      });
-    } else if (cell === "green") {
-      entities.createTree(world, {
-        [FOG]: { visibility: 'hidden' },
-        [POSITION]: { x, y },
-        [SPRITE]: tree,
-        [RENDERABLE]: { generation: 0 },
-        [COLLIDABLE]: {},
+        }
       });
     }
   });

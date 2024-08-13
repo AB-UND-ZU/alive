@@ -49,7 +49,7 @@ export default function createWorld(size: number) {
 
   // create global render counter and reference frame
   ecs.metadata.gameEntity = entities.createGame(ecs, {
-    [LEVEL]: { map: {}, size },
+    [LEVEL]: { map: [], size },
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
       tick: 350,
