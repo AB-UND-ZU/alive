@@ -30,12 +30,10 @@
   display: flex;
   flex-direction: column;
   text-align: center;
-
-  margin-left: var(--left-offset);
-
   color: var(--grey);
   background: var(--black);
   font-family: "Perfect DOS VGA 437 Win";
   line-height: var(--cell-height);
   font-size: var(--cell-height);
+  overflow: hidden;
 }

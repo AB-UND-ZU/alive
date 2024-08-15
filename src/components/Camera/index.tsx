@@ -10,13 +10,13 @@ export default function Camera() {
   const dimensions = useDimensions();
   const hero = useHero();
 
+  const zoom = dimensions.cellHeight;
+
   const position = hero?.[POSITION] || { x: 0, y: 0 };
   const spring = useSpring({
-    x:
-      (position.x + dimensions.leftOffset / dimensions.cellWidth / 2) *
-      dimensions.aspectRatio,
+    x: position.x * dimensions.aspectRatio,
     y: -position.y,
-    z: dimensions.cellHeight,
+    z: 10,
     config: {
       mass: 1,
       friction: 20,
@@ -30,9 +30,9 @@ export default function Camera() {
       position-x={spring.x}
       position-y={spring.y}
       position-z={spring.z}
-      zoom={spring.z}
+      zoom={zoom}
       near={0.1}
-      far={64}
+      far={10}
     />
   );
 }

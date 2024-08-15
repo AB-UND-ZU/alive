@@ -102,7 +102,7 @@ function Layer({
       position={[
         -0.5 * dimensions.aspectRatio,
         -0.25,
-        offset + (isUnit ? 5 : 0),
+        offset + (isUnit ? 3 : 0),
       ]}
       height={height / stack}
     >
