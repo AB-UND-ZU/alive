@@ -14,6 +14,7 @@ import { fog as fogSprite } from "../../game/assets/sprites";
 import { animated, useSpring } from "@react-spring/three";
 import { useRef, useState } from "react";
 import { NPC, Npc } from "../../engine/components/npc";
+import { Player, PLAYER } from "../../engine/components/player";
 
 const textSize = 18 / 25;
 const stack = 1000;
@@ -66,20 +67,24 @@ function Layer({
   let color = layer.color;
 
   if (isAir && isHidden) color = shadowColor.current;
-  if (isAir && !isHidden) color = "black";
-  if (!isAir && isHidden) color = "black";
+  if (isAir && !isHidden) color = "#000000";
+  if (!isAir && isHidden) color = "#000000";
+
+  const transparent = color === '#000000';
 
   const spring = useSpring({
     from: {
-      color: "black",
+      color: "#000000",
+      opacity: 1,
     },
     to: {
       color,
+      opacity: transparent ? 0 : 1,
     },
     config: { duration: isAir || isUnit ? 150 : 400 },
     delay: isAir || isUnit ? 0 : 50,
     onRest: (result) => {
-      setBlack(result.value.color === "black");
+      setBlack(result.value.color === "#000000");
     },
   });
 
@@ -109,7 +114,11 @@ function Layer({
       {isAir ? (
         <meshBasicMaterial color={shadowColor.current} />
       ) : isUnit ? (
-        <animated.meshBasicMaterial color={spring.color} />
+        <animated.meshBasicMaterial
+          color={layer.color}
+          transparent={black || transparent}
+          opacity={spring.opacity}
+        />
       ) : (
         <animated.meshLambertMaterial color={spring.color} />
       )}
@@ -125,6 +134,7 @@ export default function Sprite({
     [FOG]?: Fog;
     [LIGHT]?: Light;
     [NPC]?: Npc;
+    [PLAYER]?: Player;
     [SPRITE]: SpriteType;
   };
 }) {
@@ -132,7 +142,7 @@ export default function Sprite({
   const visibility = entity[FOG]?.visibility;
   const isVisible = visibility === "visible";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
-  const isUnit = !!entity[NPC];
+  const isUnit = !!entity[NPC] || !!entity[PLAYER];
 
   return (
     <>

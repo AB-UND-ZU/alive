@@ -7,7 +7,7 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
-import { fog, player, tree, triangle, wall } from "../game/assets/sprites";
+import { bush, flower, fog, player, tree, triangle, wall } from "../game/assets/sprites";
 import { valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../game/math/matrix";
@@ -23,7 +23,9 @@ export const generateWorld = async (world: World) => {
 
   const worldMatrix = matrixFactory(size, size, (x, y) => {
     if (terrainMatrix[x][y] > 5) return "terrain";
-    if (greenMatrix[x][y] > 60) return "green";
+    if (greenMatrix[x][y] > 60) return "tree";
+    if (greenMatrix[x][y] > 58) return "bush";
+    if (greenMatrix[x][y] > 54) return "flower";
     if (spawnMatrix[x][y] < -99) return "triangle";
   });
 
@@ -44,13 +46,27 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
-    } else if (cell === "green") {
+    } else if (cell === "tree") {
       entities.createTree(world, {
         [FOG]: { visibility: "hidden" },
         [POSITION]: { x, y },
         [SPRITE]: tree,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
+      });
+    } else if (cell === "bush") {
+      entities.createBush(world, {
+        [FOG]: { visibility: "hidden" },
+        [POSITION]: { x, y },
+        [SPRITE]: bush,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "flower") {
+      entities.createFlower(world, {
+        [FOG]: { visibility: "hidden" },
+        [POSITION]: { x, y },
+        [SPRITE]: flower,
+        [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "triangle") {
       entities.createTriangle(world, {

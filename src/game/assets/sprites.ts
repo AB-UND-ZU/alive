@@ -35,6 +35,26 @@ export const tree: Sprite = {
   ],
 };
 
+export const bush: Sprite = {
+  name: 'bush_empty',
+  layers: [
+    {
+      char: "\u03c4",
+      color: colors.olive,
+    },
+  ],
+};
+
+export const flower: Sprite = {
+  name: 'flower_empty',
+  layers: [
+    {
+      char: ",",
+      color: colors.olive,
+    },
+  ],
+};
+
 export const player: Sprite = {
   name: 'player_symbol',
   layers: [

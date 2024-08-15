@@ -87,7 +87,7 @@ function Entity({
 
       {!!entity[LIGHT] && entity[LIGHT].brightness > 0 && (
         <CoveredLight
-          brightness={entity[LIGHT].brightness + 0.7}
+          brightness={entity[LIGHT].brightness}
           shadow={dimensions.renderedDiagonal}
         />
       )}
