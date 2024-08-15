@@ -167,5 +167,9 @@ export default function Controls() {
     };
   }, [handleKeyMove, handleTouchMove, hero]);
 
-  return <footer className="Controls">{"═".repeat(dimensions.columns)}</footer>;
+  return (
+    <footer className="Controls">
+      {"═".repeat(dimensions.columns + 1 - (dimensions.columns % 2))}
+    </footer>
+  );
 }

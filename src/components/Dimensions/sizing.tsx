@@ -15,6 +15,7 @@ export type Dimensions = {
   columns: number;
   rows: number;
   leftOffset: number;
+  rightOffset: number;
   topOffset: number;
   bottomOffset: number;
   terminalHeight: number;
@@ -45,7 +46,9 @@ const calculateDimensions: () => Dimensions = () => {
   const cellWidth = cellHeight * aspectRatio;
   const columns = Math.ceil(screenWidth / cellWidth);
   const rows = Math.ceil(screenHeight / cellHeight);
-  const leftOffset = Math.ceil((screenWidth - columns * cellWidth) / 2);
+  const gap = screenWidth - columns * cellWidth;
+  const leftOffset = gap / 2;
+  const rightOffset = gap - leftOffset;
   const topOffset = cellHeight / -2;
   const bottomOffset = cellHeight / -3;
   const terminalHeight =
@@ -64,6 +67,7 @@ const calculateDimensions: () => Dimensions = () => {
     columns,
     rows,
     leftOffset,
+    rightOffset,
     topOffset,
     bottomOffset,
     terminalHeight,
