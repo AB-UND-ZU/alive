@@ -21,8 +21,48 @@ export const wall: Sprite = {
   ],
 };
 
-export const tree: Sprite = {
-  name: 'tree_hash',
+export const water: Sprite = {
+  name: 'water_shallow',
+  layers: [
+    {
+      char: "█",
+      color: colors.navy,
+    },
+  ],
+};
+
+export const ice: Sprite = {
+  name: 'water_ice',
+  layers: [
+    {
+      char: "█",
+      color: colors.teal,
+    },
+  ],
+};
+
+export const frozen: Sprite = {
+  name: 'water_frozen',
+  layers: [
+    {
+      char: "▓",
+      color: colors.aqua,
+    },
+  ],
+};
+
+export const sand: Sprite = {
+  name: 'sand_dry',
+  layers: [
+    {
+      char: "▒",
+      color: colors.olive,
+    },
+  ],
+};
+
+export const tree1: Sprite = {
+  name: 'tree_one',
   layers: [
     {
       char: "┐",
@@ -30,6 +70,20 @@ export const tree: Sprite = {
     },
     {
       char: "#",
+      color: colors.green,
+    },
+  ],
+};
+
+export const tree2: Sprite = {
+  name: 'tree_two',
+  layers: [
+    {
+      char: "┐",
+      color: colors.maroon,
+    },
+    {
+      char: "Θ",
       color: colors.green,
     },
   ],
@@ -51,6 +105,34 @@ export const flower: Sprite = {
     {
       char: ",",
       color: colors.olive,
+    },
+  ],
+};
+
+export const cactus1: Sprite = {
+  name: 'cactus_empty',
+  layers: [
+    {
+      char: "▒",
+      color: colors.olive,
+    },
+    {
+      char: "╣",
+      color: colors.green,
+    },
+  ],
+};
+
+export const cactus2: Sprite = {
+  name: 'cactus_empty',
+  layers: [
+    {
+      char: "▒",
+      color: colors.olive,
+    },
+    {
+      char: "¥",
+      color: colors.green,
     },
   ],
 };
