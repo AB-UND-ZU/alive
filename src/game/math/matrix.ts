@@ -22,8 +22,8 @@ export const matrixFactory = <T>(
   height: number,
   generator: (x: number, y: number) => T
 ): Matrix<T> =>
-  Array.from({ length: height }).map((_, yIndex) =>
-    Array.from({ length: width }).map((_, xIndex) => generator(xIndex, yIndex))
+  Array.from({ length: width }).map((_, xIndex) =>
+    Array.from({ length: height }).map((_, yIndex) => generator(xIndex, yIndex))
   );
 
 export const getOverlappingCell = <T>(

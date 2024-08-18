@@ -7,8 +7,8 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
-import { bush, flower, fog, player, tree, triangle, wall } from "../game/assets/sprites";
-import { valueNoiseMatrix } from "../game/math/noise";
+import { bush, cactus1, cactus2, flower, fog, frozen, ice, player, sand, tree1, tree2, triangle, wall, water } from "../game/assets/sprites";
+import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../game/math/matrix";
 import { FOG } from "../engine/components/fog";
@@ -17,16 +17,40 @@ import { NPC } from "../engine/components/npc";
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
-  const terrainMatrix = valueNoiseMatrix(size, size, 6, -100, 100);
-  const greenMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
+  const elevationMatrix = simplexNoiseMatrix(size, size, 0, -50, 100, 1);
+  const terrainMatrix = simplexNoiseMatrix(size, size, 0 ,-40,100,1/2);
+  const temperatureMatrix = simplexNoiseMatrix(size, size, 0, -80, 100, 4);
+  const greenMatrix = valueNoiseMatrix(size, size, 1, -80, 100);
   const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
-
+  
   const worldMatrix = matrixFactory(size, size, (x, y) => {
-    if (terrainMatrix[x][y] > 5) return "terrain";
-    if (greenMatrix[x][y] > 60) return "tree";
-    if (greenMatrix[x][y] > 58) return "bush";
-    if (greenMatrix[x][y] > 54) return "flower";
-    if (spawnMatrix[x][y] < -99) return "triangle";
+    const elevation = elevationMatrix[x][y];
+    const terrain = terrainMatrix[x][y];
+    const temperature = temperatureMatrix[x][y];
+    const green = greenMatrix[x][y];
+    const spawn = spawnMatrix[x][y];
+
+    // ice
+    // if (elevation < 0 && temperature < -40) return 20 < green && green < 25 ? "frozen" : "ice";
+
+    // beach and islands (if not desert)
+    if (temperature < 65 && elevation < 0 && (elevation > -32 || temperature > 0)) return "water";
+    if (temperature < 65 && elevation < 6 && (elevation > -35 || temperature > 0)) return "sand";
+
+    // forest
+    if (elevation > 25 && terrain > 30) return temperature < 0 && terrain < 75 ? "tree" : "rock";
+
+    // desert, oasis and cactus
+    if (temperature > 65 && terrain > 70) return "water";
+    if (temperature > 65) return 20 < green && green < 25 ? "cactus" : "sand";
+
+    // greens
+    if (green > 30) return "tree";
+    if (green > 20) return "bush";
+    if (green > 10) return "flower";
+    
+    // npcs
+    if (spawn < -99) return "triangle";
   });
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
@@ -37,8 +61,8 @@ export const generateWorld = async (world: World) => {
       [SPRITE]: fog,
     });
 
-    if (cell === "terrain") {
-      entities.createTerrain(world, {
+    if (cell === "rock") {
+      entities.createWall(world, {
         [FOG]: { visibility: "hidden" },
         [POSITION]: { x, y },
         [SPRITE]: wall,
@@ -46,11 +70,39 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
+    } else if (cell === "sand") {
+      entities.createSand(world, {
+        [FOG]: { visibility: "hidden" },
+        [POSITION]: { x, y },
+        [SPRITE]: sand,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "water") {
+      entities.createWater(world, {
+        [FOG]: { visibility: "hidden" },
+        [POSITION]: { x, y },
+        [SPRITE]: water,
+        [RENDERABLE]: { generation: 0 },
+      });
+    // } else if (cell === "ice") {
+    //   entities.createIce(world, {
+    //     [FOG]: { visibility: "hidden" },
+    //     [POSITION]: { x, y },
+    //     [SPRITE]: ice,
+    //     [RENDERABLE]: { generation: 0 },
+    //   });
+    // } else if (cell === "frozen") {
+    //   entities.createIce(world, {
+    //     [FOG]: { visibility: "hidden" },
+    //     [POSITION]: { x, y },
+    //     [SPRITE]: frozen,
+    //     [RENDERABLE]: { generation: 0 },
+    //   });
     } else if (cell === "tree") {
       entities.createTree(world, {
         [FOG]: { visibility: "hidden" },
         [POSITION]: { x, y },
-        [SPRITE]: tree,
+        [SPRITE]: Math.random() < 0.5 ? tree1 : tree2,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
@@ -67,6 +119,14 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [SPRITE]: flower,
         [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "cactus") {
+      entities.createCactus(world, {
+        [FOG]: { visibility: "hidden" },
+        [POSITION]: { x, y },
+        [SPRITE]: Math.random() < 0.5 ? cactus1 : cactus2,
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
       });
     } else if (cell === "triangle") {
       entities.createTriangle(world, {

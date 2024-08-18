@@ -1,8 +1,12 @@
 export { default as createAir } from "./air";
 export { default as createBush } from "./bush";
+export { default as createCactus } from "./cactus";
 export { default as createFlower } from "./flower";
 export { default as createGame } from "./game";
 export { default as createHero } from "./hero";
-export { default as createTerrain } from "./terrain";
+export { default as createIce } from "./ice";
+export { default as createSand } from "./sand";
 export { default as createTree } from "./tree";
 export { default as createTriangle } from "./triangle";
+export { default as createWall } from "./wall";
+export { default as createWater } from "./water";

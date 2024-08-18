@@ -7,7 +7,7 @@ import { Renderable, RENDERABLE } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
 import type { World } from "../ecs";
 
-export default function createTerrain(
+export default function createWall(
   world: World,
   entity: {
     [COLLIDABLE]: Collidable;
@@ -18,14 +18,14 @@ export default function createTerrain(
     [RENDERABLE]: Renderable;
   }
 ) {
-  const terrainEntity = world.createEntity();
+  const wallEntity = world.createEntity();
 
-  components.addCollidable(world, terrainEntity, entity[COLLIDABLE]);
-  components.addFog(world, terrainEntity , entity[FOG]);
-  components.addPosition(world, terrainEntity, entity[POSITION]);
-  components.addSprite(world, terrainEntity, entity[SPRITE]);
-  components.addRenderable(world, terrainEntity, entity[RENDERABLE]);
-  components.addLight(world, terrainEntity, entity[LIGHT]);
+  components.addCollidable(world, wallEntity, entity[COLLIDABLE]);
+  components.addFog(world, wallEntity , entity[FOG]);
+  components.addPosition(world, wallEntity, entity[POSITION]);
+  components.addSprite(world, wallEntity, entity[SPRITE]);
+  components.addRenderable(world, wallEntity, entity[RENDERABLE]);
+  components.addLight(world, wallEntity, entity[LIGHT]);
 
-  return terrainEntity;
+  return wallEntity;
 }
