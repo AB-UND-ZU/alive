@@ -19,8 +19,8 @@ export default function Camera() {
     z: 10,
     config: {
       mass: 1,
-      friction: 20,
-      tension: 50,
+      friction: 25,
+      tension: 65,
     },
   });
 

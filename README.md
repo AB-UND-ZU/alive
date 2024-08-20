@@ -1,15 +1,94 @@
 # Alive
 
+## Creatures
+
+- Player
+- Villager (trade)
+- Triangle (linear)
+- Circle (following)
+- Fairy (fleeing)
+- Question mark (mimicking)
+- Shark (swimming)
+- Alphabet boss (towers casting)
+
+## Units
+
+- Chest
+- Portal
+- Door
+
 ## Items
 
-- Sword
+- Heart
+- Mana
+- Experience
+- Gold
+- Seed
+- Herb
+- Sword (wood, iron, gold, fire, ice)
 - Shield
 - Compass
-- Spell
+- Spell (lvl 1 and 2)
 - Pickaxe
 - Boat
+- Bow
+- Arrow
 
-## Water
+## Spells
 
-- Water splash waves
-- Dropping when leaving
+- Fire (burning)
+- Ice (freezing)
+- Shield (attacking)
+- Bow (elemental, dropping arrow on miss)
+
+## Conditions
+
+- Burning (damage)
+- Frozen (rooted)
+- Swimming (slowed)
+- Diving (oxygen)
+
+## Biomes
+
+- Spawn
+- Village
+- Boss
+- Forest (trees)
+- Rocks
+- Lakes (islands)
+- Desert (cacti)
+- Ocean (deep water)
+- Ice
+- Volcano (lava)
+
+## Worlds
+
+- Green (forest, rocks, lakes, desert)
+- Red (rocks, volcano, desert)
+- Blue (rocks, lakes, ocean, ice)
+
+## Weather
+
+- Snowing (freezing)
+- Raining (darker)
+
+## Terrain
+
+- Air (empty)
+- Path
+- Rock
+- Sand
+- Ice (slippery?)
+- Water (splash waves, dripping)
+- Soil (plant)
+- Fence
+- Tree
+- Cactus (spikes)
+- Flower
+- Bush
+- Fence and door
+
+## Animations
+
+- Damage (number behind target)
+- Collect (flow up)
