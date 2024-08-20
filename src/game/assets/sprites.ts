@@ -117,7 +117,7 @@ export const cactus1: Sprite = {
       color: colors.olive,
     },
     {
-      char: "╣",
+      char: "╬",
       color: colors.green,
     },
   ],
@@ -141,8 +141,20 @@ export const player: Sprite = {
   name: 'player_symbol',
   layers: [
     {
+      char: "¬",
+      color: colors.maroon,
+    },
+    {
       char: "\u010b",
       color: colors.white,
+    },
+    {
+      char: "/",
+      color: colors.grey,
+    },
+    {
+      char: "~",
+      color: colors.olive,
     },
   ],
 };

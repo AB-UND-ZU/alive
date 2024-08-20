@@ -49,7 +49,7 @@ function CoveredLight({
         shadow-mapSize-width={256}
         shadow-mapSize-height={256}
         shadow-camera-near={0.1}
-        shadow-camera-far={brightness - 0.056}
+        shadow-camera-far={brightness - 0.04}
       />
       <mesh position={[0, 0, 3]}>
         <ringGeometry args={[brightness - 0.25, shadow, 128]} />

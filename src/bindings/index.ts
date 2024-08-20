@@ -151,7 +151,7 @@ export const generateWorld = async (world: World) => {
     [POSITION]: { x: 0, y: 0 },
     [COLLIDABLE]: {},
     [SPRITE]: player,
-    [LIGHT]: { brightness: 6, darkness: 0 },
+    [LIGHT]: { brightness: 5.55, darkness: 0 },
     [PLAYER]: {},
     [REFERENCE]: {
       tick: 250,

@@ -91,8 +91,8 @@ export default function setupVisibility(world: World) {
     if (!hero || lastGeneration === generation) return;
 
     const radius = hero[LIGHT].brightness;
-    const visionHorizontal = Math.floor(radius / aspectRatio);
-    const visionVertical = hero[LIGHT].brightness;
+    const visionHorizontal = Math.ceil(radius / aspectRatio);
+    const visionVertical = Math.ceil(radius);
     const pendingChanges: PendingChanges = {};
 
     // apply fog with one extra cell around player
