@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useDimensions } from "../Dimensions";
 import "./index.css";
-import { MOVABLE, Orientation, Point } from "../../engine/components/movable";
-import { useHero } from "../../bindings/hooks";
+import { MOVABLE, Orientation } from "../../engine/components/movable";
+import { useHero, useWorld } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
+import { Point } from "../../game/math/std";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -44,13 +45,18 @@ export const degreesToOrientations = (degrees: number): Orientation[] => {
 
 export default function Controls() {
   const dimensions = useDimensions();
+  const { ecs } = useWorld();
   const hero = useHero();
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
 
   const handleMove = useCallback(
     (orientations: Orientation[]) => {
-      if (!hero) return;
+      if (!hero || !ecs) return;
+
+      const reference = ecs.getEntityById(hero[MOVABLE].reference)[REFERENCE];
+
+      if (!reference) return;
 
       hero[MOVABLE].orientations = orientations;
       const pendingOrientation = orientations[0];
@@ -60,13 +66,13 @@ export default function Controls() {
       }
 
       if (orientations.length === 0) {
-        hero[REFERENCE].pendingSuspended = true;
+        reference.pendingSuspended = true;
       } else {
-        hero[REFERENCE].pendingSuspended = false;
-        hero[REFERENCE].suspended = false;
+        reference.pendingSuspended = false;
+        reference.suspended = false;
       }
     },
-    [hero]
+    [hero, ecs]
   );
 
   const handleKeyMove = useCallback(

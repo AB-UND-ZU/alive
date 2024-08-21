@@ -2,6 +2,7 @@ export { default as createAir } from "./air";
 export { default as createBush } from "./bush";
 export { default as createCactus } from "./cactus";
 export { default as createFlower } from "./flower";
+export { default as createFrame } from "./frame";
 export { default as createGame } from "./game";
 export { default as createHero } from "./hero";
 export { default as createIce } from "./ice";

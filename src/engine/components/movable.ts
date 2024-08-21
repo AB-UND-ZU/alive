@@ -1,8 +1,8 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { SpringConfig } from "@react-spring/three";
+import { Point } from "../../game/math/std";
 
-export type Point = { x: number; y: number };
 export const orientations = ["up", "right", "down", "left"] as const;
 export type Orientation = (typeof orientations)[number];
 export const orientationPoints: Record<Orientation, Point> = {

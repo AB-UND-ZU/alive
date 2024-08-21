@@ -6,6 +6,7 @@ import { SWIMMABLE } from "../components/swimmable";
 import { World } from "../ecs";
 import { getCell } from "./map";
 import { rerenderEntity } from "./renderer";
+import { REFERENCE } from "../components/reference";
 
 export const isImmersible = (world: World, position: Position) => {
   const cell = getCell(world, position);
@@ -15,26 +16,29 @@ export const isImmersible = (world: World, position: Position) => {
 export const isWalkable = (world: World, position: Position) =>
   [-1, 0, 1]
     .map((xOffset) =>
-      [-1, 0, 1].map((yOffset) =>
-        !isImmersible(world, {
-          x: position.x + xOffset,
-          y: position.y + yOffset,
-        })
+      [-1, 0, 1].map(
+        (yOffset) =>
+          !isImmersible(world, {
+            x: position.x + xOffset,
+            y: position.y + yOffset,
+          })
       )
     )
     .flat()
     .some(Boolean);
 
 export default function setupImmersion(world: World) {
-  const gameId = world.getEntityId(world.metadata.gameEntity);
-  const entityGenerations = { [gameId]: -1 };
+  let referencesGeneration = -1;
+  const entityGenerations: Record<string, number> = {};
 
   const onUpdate = (delta: number) => {
-    const generation = world.metadata.gameEntity[RENDERABLE].generation;
+    const generation = world
+      .getEntities([RENDERABLE, REFERENCE])
+      .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
 
-    if (entityGenerations[gameId] === generation) return;
+    if (referencesGeneration === generation) return;
 
-    entityGenerations[gameId] = generation;
+    referencesGeneration = generation;
 
     for (const entity of world.getEntities([POSITION, SWIMMABLE])) {
       const entityId = world.getEntityId(entity);

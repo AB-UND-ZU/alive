@@ -1,3 +1,4 @@
+export { default as addBehaviour } from "./behaviour";
 export { default as addCollidable } from "./collidable";
 export { default as addFog } from "./fog";
 export { default as addImmersible } from "./immersible";

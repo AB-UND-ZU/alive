@@ -7,6 +7,7 @@ import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { Level, LEVEL } from "../../engine/components/level";
 import { normalize } from "../../game/math/std";
+import { getEntityGeneration } from "../../engine/systems/renderer";
 
 export default function Systems() {
   const { ecs } = useWorld();
@@ -62,7 +63,7 @@ export default function Systems() {
                   }
                   x={renderedX}
                   y={renderedY}
-                  generation={entity[RENDERABLE].generation}
+                  generation={getEntityGeneration(ecs, entity)}
                 />
               ));
             })
