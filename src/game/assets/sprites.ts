@@ -167,4 +167,30 @@ export const triangle: Sprite = {
       color: colors.white,
     },
   ],
+  facing: {
+    up: [
+      {
+        char: "\u011d",
+        color: colors.white,
+      },
+    ],
+    right: [
+      {
+        char: "\u010f",
+        color: colors.white,
+      },
+    ],
+    down: [
+      {
+        char: "\u011e",
+        color: colors.white,
+      },
+    ],
+    left: [
+      {
+        char: "\u0110",
+        color: colors.white,
+      },
+    ],
+  }
 };

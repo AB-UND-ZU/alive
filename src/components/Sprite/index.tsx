@@ -17,7 +17,7 @@ import { NPC, Npc } from "../../engine/components/npc";
 import { Player, PLAYER } from "../../engine/components/player";
 import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
 import { Entity } from "ecs";
-import { MOVABLE } from "../../engine/components/movable";
+import { Movable, MOVABLE } from "../../engine/components/movable";
 import { aspectRatio } from "../Dimensions/sizing";
 import { effectHeight, fogHeight, unitHeight, wallHeight } from "../Camera";
 
@@ -236,22 +236,27 @@ export default function Sprite({
     [PLAYER]?: Player;
     [SPRITE]: SpriteType;
     [SWIMMABLE]?: Swimmable;
+    [MOVABLE]?: Movable;
   };
 }) {
   const visibility = entity[FOG]?.visibility;
   const isPlayer = !!entity[PLAYER];
-  const isAir = entity[SPRITE] === fogSprite;
+  const sprite = entity[SPRITE];
+  const isAir = sprite === fogSprite;
   const isVisible = visibility === "visible";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
   const isUnit = !!entity[NPC] || isPlayer;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
+  const facing = entity[MOVABLE]?.facing;
+
+  const layers = facing && sprite.facing ? sprite.facing[facing] : sprite.layers;
 
   return (
     <>
       {isOpaque && isVisible && (
         <Box color={colors.black} height={wallHeight} castShadow />
       )}
-      {entity[SPRITE].layers.map((layer, index) => (
+      {layers.map((layer, index) => (
         <Layer
           isAir={isAir}
           isOpaque={isOpaque}
