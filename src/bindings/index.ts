@@ -13,6 +13,8 @@ import { LEVEL } from "../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../game/math/matrix";
 import { FOG } from "../engine/components/fog";
 import { NPC } from "../engine/components/npc";
+import { IMMERSIBLE } from "../engine/components/immersible";
+import { SWIMMABLE } from "../engine/components/swimmable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -50,7 +52,7 @@ export const generateWorld = async (world: World) => {
     if (green > 10) return "flower";
     
     // npcs
-    if (spawn < -99) return "triangle";
+    if (spawn < -96) return "triangle";
   });
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
@@ -80,6 +82,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "water") {
       entities.createWater(world, {
         [FOG]: { visibility: "hidden" },
+        [IMMERSIBLE]: {},
         [POSITION]: { x, y },
         [SPRITE]: water,
         [RENDERABLE]: { generation: 0 },
@@ -130,6 +133,7 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "triangle") {
       entities.createTriangle(world, {
+        [SWIMMABLE]: { swimming: false },
         [FOG]: { visibility: "hidden" },
         [MOVABLE]: {
           orientations: ["right", "left"],
@@ -148,6 +152,7 @@ export const generateWorld = async (world: World) => {
   });
 
   const hero = entities.createHero(world, {
+    [SWIMMABLE]: { swimming: false },
     [POSITION]: { x: 0, y: 0 },
     [COLLIDABLE]: {},
     [SPRITE]: player,
@@ -176,6 +181,7 @@ export const generateWorld = async (world: World) => {
 
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupMovement);
-  world.addSystem(systems.setupRenderer);
+  world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupVisibility);
+  world.addSystem(systems.setupRenderer);
 };

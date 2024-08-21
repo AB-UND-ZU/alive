@@ -7,6 +7,7 @@ import { POSITION, Position } from "../components/position";
 import { Reference, REFERENCE } from "../components/reference";
 import { Renderable, RENDERABLE } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
+import { SWIMMABLE, Swimmable } from "../components/swimmable";
 import type { World } from "../ecs";
 
 export default function createHero(
@@ -16,10 +17,11 @@ export default function createHero(
     [POSITION]: Position;
     [SPRITE]: Sprite;
     [LIGHT]: Light;
+    [MOVABLE]: Movable;
     [PLAYER]: Player;
     [REFERENCE]: Reference;
     [RENDERABLE]: Renderable;
-    [MOVABLE]: Movable;
+    [SWIMMABLE]: Swimmable;
   }
 ) {
   const heroEntity = world.createEntity();
@@ -32,6 +34,7 @@ export default function createHero(
   components.addReference(world, heroEntity, entity[REFERENCE]);
   components.addRenderable(world, heroEntity, entity[RENDERABLE]);
   components.addSprite(world, heroEntity, entity[SPRITE]);
+  components.addSwimmable(world, heroEntity, entity[SWIMMABLE]);
 
   return heroEntity;
 }

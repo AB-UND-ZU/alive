@@ -9,6 +9,7 @@ import { Movable, MOVABLE } from "../../engine/components/movable";
 import Sprite from "../Sprite";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { Fog, FOG } from "../../engine/components/fog";
+import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
 
 function Animated({
   position,
@@ -71,6 +72,7 @@ function Entity({
     [LIGHT]?: Light;
     [MOVABLE]?: Movable;
     [RENDERABLE]: Renderable;
+    [SWIMMABLE]?: Swimmable;
   };
   generation: number;
   x: number;
