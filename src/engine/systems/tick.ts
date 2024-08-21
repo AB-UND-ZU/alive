@@ -13,6 +13,10 @@ export default function setupTick(world: World) {
 
       reference.delta += delta;
 
+      // clamp suspended references
+      if (reference.suspended && reference.delta > reference.tick) {
+        reference.delta = reference.tick;
+      }
 
       // tick reference frames
       if (!isProcessable(reference) || reference.suspended) continue;
