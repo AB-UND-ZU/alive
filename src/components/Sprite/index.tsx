@@ -60,22 +60,22 @@ function Swimming({
   isVisible: boolean;
 }) {
   const dimensions = useDimensions();
-  const movement = entity[MOVABLE].movement;
+  const facing = entity[MOVABLE].facing;
   const activeRef = useRef(false);
-  const [black, setBlack] = useState(isVisible);
+  const [black, setBlack] = useState(!isVisible);
   const [spring, api] = useSpring(
     () => ({
       opacity: isVisible ? 1 : 0,
       scaleY: active ? 1 : 0,
       translateX:
-        movement === "left"
+        facing === "left"
           ? dimensions.aspectRatio
-          : movement === "right"
+          : facing === "right"
           ? -dimensions.aspectRatio
           : 0,
       translateY: active ? (aspectRatio - 1) / 2 : -0.5,
       config:
-        !active && movement === "down"
+        !active && facing === "down"
           ? { duration: 0 }
           : entity[MOVABLE].spring,
       delay: active ? 100 : 0,
@@ -90,16 +90,16 @@ function Swimming({
     if (active && !activeRef.current) {
       api.set({
         translateX:
-          movement === "left"
+          facing === "left"
             ? -dimensions.aspectRatio
-            : movement === "right"
+            : facing === "right"
             ? dimensions.aspectRatio
             : 0,
       });
       api.start({ translateX: 0 });
     }
     activeRef.current = active;
-  }, [active, api, dimensions.aspectRatio, movement]);
+  }, [active, api, dimensions.aspectRatio, facing]);
 
   if (black && !active) return null;
 

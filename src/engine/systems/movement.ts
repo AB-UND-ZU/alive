@@ -36,10 +36,7 @@ export default function setupMovement(world: World) {
         attemptedOrientations.unshift(pendingOrientation);
       }
 
-      if (attemptedOrientations.length === 0) {
-        entity[MOVABLE].movement = null;
-        continue;
-      }
+      if (attemptedOrientations.length === 0) continue;
 
       const reference = world.getEntityById(entity[MOVABLE].reference)[
         REFERENCE
@@ -63,7 +60,7 @@ export default function setupMovement(world: World) {
 
           entity[POSITION].x = position.x;
           entity[POSITION].y = position.y;
-          entity[MOVABLE].movement = orientation;
+          entity[MOVABLE].facing = orientation;
 
           registerEntity(world, entity);
 
