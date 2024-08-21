@@ -2,31 +2,43 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { MOVABLE, Orientation, orientationPoints } from "../components/movable";
 import { World } from "../ecs";
-import { isProcessable, REFERENCE } from "../components/reference";
+import { REFERENCE } from "../components/reference";
 import { getCell, registerEntity, unregisterEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
 import { isWalkable } from "./immersion";
+import { add } from "../../game/math/std";
 
-const isCollision = (world: World, position: Position) =>
+export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
     (entity) => COLLIDABLE in (entity as Entity)
   );
 
 export default function setupMovement(world: World) {
+  let referenceGenerations = -1;
+  const entityReferences: Record<string, number> = {};
+
   const onUpdate = (delta: number) => {
-    // add delta to reference frames
-    for (const entity of world.getEntities([REFERENCE])) {
-      const reference = entity[REFERENCE];
+    const generation = world
+      .getEntities([RENDERABLE, REFERENCE])
+      .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
 
-      // skip if suspended reference has passed
-      if (isProcessable(reference) && reference.suspended) continue;
+    if (referenceGenerations === generation) return;
 
-      reference.delta += delta;
-    }
+    referenceGenerations = generation;
 
     for (const entity of world.getEntities([POSITION, MOVABLE, RENDERABLE])) {
+      const entityId = world.getEntityId(entity);
+      const entityReference = world.getEntityById(entity[MOVABLE].reference)[
+        RENDERABLE
+      ].generation;
+
+      // skip of reference frame is unchanged
+      if (entityReferences[entityId] === entityReference) continue;
+
+      entityReferences[entityId] = entityReference;
+
       const attemptedOrientations: Orientation[] = [
         ...entity[MOVABLE].orientations,
       ];
@@ -36,24 +48,12 @@ export default function setupMovement(world: World) {
         attemptedOrientations.unshift(pendingOrientation);
       }
 
+      // skip if no attempted movement
       if (attemptedOrientations.length === 0) continue;
-
-      const reference = world.getEntityById(entity[MOVABLE].reference)[
-        REFERENCE
-      ];
-
-      if (
-        !isProcessable(reference) ||
-        (reference.suspended && !pendingOrientation)
-      )
-        continue;
 
       for (const orientation of attemptedOrientations) {
         const delta = orientationPoints[orientation];
-        const position = {
-          x: entity[POSITION].x + delta.x,
-          y: entity[POSITION].y + delta.y,
-        };
+        const position = add(entity[POSITION], delta);
 
         if (!isCollision(world, position) && isWalkable(world, position)) {
           unregisterEntity(world, entity);
@@ -64,24 +64,12 @@ export default function setupMovement(world: World) {
 
           registerEntity(world, entity);
 
-          rerenderEntity(world, entity)
+          rerenderEntity(world, entity);
           break;
         }
       }
 
       entity[MOVABLE].pendingOrientation = null;
-    }
-
-    // mark reference frames as processed
-    for (const entity of world.getEntities([REFERENCE])) {
-      const reference = entity[REFERENCE];
-      if (isProcessable(reference) && !reference.suspended) {
-        reference.delta -= reference.tick;
-
-        if (reference.pendingSuspended) {
-          reference.suspended = true;
-        }
-      }
     }
   };
 

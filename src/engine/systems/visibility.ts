@@ -8,6 +8,7 @@ import { PLAYER } from "../components/player";
 import { LIGHT } from "../components/light";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { traceCircularVisiblity } from "../../game/math/tracing";
+import { getEntityGeneration } from "./renderer";
 
 type PendingChanges = Record<
   number,
@@ -86,9 +87,14 @@ export default function setupVisibility(world: World) {
 
   const onUpdate = (delta: number) => {
     const hero = world.getEntity([PLAYER]);
-    const generation = world.metadata.gameEntity[RENDERABLE].generation;
 
-    if (!hero || lastGeneration === generation) return;
+    if (!hero || world.metadata.gameEntity[LEVEL].map.length === 0) return;
+
+    const generation = getEntityGeneration(world, hero);
+
+    if (lastGeneration === generation) return;
+
+    lastGeneration = generation;
 
     const radius = hero[LIGHT].brightness;
     const visionHorizontal = Math.ceil(radius / aspectRatio);
@@ -117,8 +123,6 @@ export default function setupVisibility(world: World) {
 
     // apply changes
     commitVisibility(world, pendingChanges);
-
-    lastGeneration = generation;
   };
 
   return { onUpdate };

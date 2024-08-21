@@ -2,8 +2,7 @@ import { aspectRatio } from "../../components/Dimensions/sizing";
 import { World } from "../../engine";
 import { Level, LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
-import { Point } from "../../engine/components/movable";
-import { normalize, reversed } from "./std";
+import { normalize, Point, reversed } from "./std";
 
 type Interval = { start: number; end: number };
 type Iteration = {

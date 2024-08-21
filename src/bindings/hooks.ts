@@ -12,6 +12,7 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { PLAYER } from "../engine/components/player";
 import { POSITION } from "../engine/components/position";
 import { LEVEL } from "../engine/components/level";
+import { getEntityGeneration } from "../engine/systems/renderer";
 
 export type WorldContext = {
   ecs: WorldType | null;
@@ -30,7 +31,7 @@ let lastId = 0;
 const generateId = () => {
   lastId += 1;
   return lastId;
-}
+};
 
 const useId = () => {
   const id = useRef<number>();
@@ -54,7 +55,7 @@ export const useRenderable = (componentNames: string[]) => {
 
     const entities = ecs.getEntities([RENDERABLE, ...componentNames]);
     const nextGeneration = entities.reduce(
-      (total, entity) => total + entity[RENDERABLE].generation,
+      (total, entity) => total + getEntityGeneration(ecs, entity),
       0
     );
 
@@ -88,8 +89,8 @@ export const useHero = () => {
 
 export const useGame = () => {
   const { ecs } = useWorld();
-  
+
   useRenderable([LEVEL]);
 
-  return ecs?.metadata.gameEntity
+  return ecs?.metadata.gameEntity;
 };

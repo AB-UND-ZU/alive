@@ -7,7 +7,22 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
-import { bush, cactus1, cactus2, flower, fog, frozen, ice, player, sand, tree1, tree2, triangle, wall, water } from "../game/assets/sprites";
+import {
+  bush,
+  cactus1,
+  cactus2,
+  flower,
+  fog,
+  frozen,
+  ice,
+  player,
+  sand,
+  tree1,
+  tree2,
+  triangle,
+  wall,
+  water,
+} from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../game/math/matrix";
@@ -15,16 +30,17 @@ import { FOG } from "../engine/components/fog";
 import { NPC } from "../engine/components/npc";
 import { IMMERSIBLE } from "../engine/components/immersible";
 import { SWIMMABLE } from "../engine/components/swimmable";
+import { BEHAVIOUR } from "../engine/components/behaviour";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
   const elevationMatrix = simplexNoiseMatrix(size, size, 0, -50, 100, 1);
-  const terrainMatrix = simplexNoiseMatrix(size, size, 0 ,-40,100,1/2);
+  const terrainMatrix = simplexNoiseMatrix(size, size, 0, -40, 100, 1 / 2);
   const temperatureMatrix = simplexNoiseMatrix(size, size, 0, -80, 100, 4);
   const greenMatrix = valueNoiseMatrix(size, size, 1, -80, 100);
   const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
-  
+
   const worldMatrix = matrixFactory(size, size, (x, y) => {
     const elevation = elevationMatrix[x][y];
     const terrain = terrainMatrix[x][y];
@@ -36,11 +52,22 @@ export const generateWorld = async (world: World) => {
     // if (elevation < 0 && temperature < -40) return 20 < green && green < 25 ? "frozen" : "ice";
 
     // beach and islands (if not desert)
-    if (temperature < 65 && elevation < 0 && (elevation > -32 || temperature > 0)) return "water";
-    if (temperature < 65 && elevation < 6 && (elevation > -35 || temperature > 0)) return "sand";
+    if (
+      temperature < 65 &&
+      elevation < 0 &&
+      (elevation > -32 || temperature > 0)
+    )
+      return "water";
+    if (
+      temperature < 65 &&
+      elevation < 6 &&
+      (elevation > -35 || temperature > 0)
+    )
+      return "sand";
 
     // forest
-    if (elevation > 25 && terrain > 30) return temperature < 0 && terrain < 75 ? "tree" : "rock";
+    if (elevation > 25 && terrain > 30)
+      return temperature < 0 && terrain < 75 ? "tree" : "rock";
 
     // desert, oasis and cactus
     if (temperature > 65 && terrain > 70) return "water";
@@ -50,7 +77,7 @@ export const generateWorld = async (world: World) => {
     if (green > 30) return "tree";
     if (green > 20) return "bush";
     if (green > 10) return "flower";
-    
+
     // npcs
     if (spawn < -96) return "triangle";
   });
@@ -87,20 +114,20 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: water,
         [RENDERABLE]: { generation: 0 },
       });
-    // } else if (cell === "ice") {
-    //   entities.createIce(world, {
-    //     [FOG]: { visibility: "hidden" },
-    //     [POSITION]: { x, y },
-    //     [SPRITE]: ice,
-    //     [RENDERABLE]: { generation: 0 },
-    //   });
-    // } else if (cell === "frozen") {
-    //   entities.createIce(world, {
-    //     [FOG]: { visibility: "hidden" },
-    //     [POSITION]: { x, y },
-    //     [SPRITE]: frozen,
-    //     [RENDERABLE]: { generation: 0 },
-    //   });
+      // } else if (cell === "ice") {
+      //   entities.createIce(world, {
+      //     [FOG]: { visibility: "hidden" },
+      //     [POSITION]: { x, y },
+      //     [SPRITE]: ice,
+      //     [RENDERABLE]: { generation: 0 },
+      //   });
+      // } else if (cell === "frozen") {
+      //   entities.createIce(world, {
+      //     [FOG]: { visibility: "hidden" },
+      //     [POSITION]: { x, y },
+      //     [SPRITE]: frozen,
+      //     [RENDERABLE]: { generation: 0 },
+      //   });
     } else if (cell === "tree") {
       entities.createTree(world, {
         [FOG]: { visibility: "hidden" },
@@ -133,10 +160,12 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "triangle") {
       entities.createTriangle(world, {
+        [BEHAVIOUR]: { patterns: ["triangle"] },
         [SWIMMABLE]: { swimming: false },
         [FOG]: { visibility: "hidden" },
         [MOVABLE]: {
-          orientations: ["right", "left"],
+          orientations: [],
+          facing: "right",
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: {
             duration: 200,
@@ -151,13 +180,7 @@ export const generateWorld = async (world: World) => {
     }
   });
 
-  const hero = entities.createHero(world, {
-    [SWIMMABLE]: { swimming: false },
-    [POSITION]: { x: 0, y: 0 },
-    [COLLIDABLE]: {},
-    [SPRITE]: player,
-    [LIGHT]: { brightness: 5.55, darkness: 0 },
-    [PLAYER]: {},
+  const frame = entities.createFrame(world, {
     [REFERENCE]: {
       tick: 250,
       delta: 0,
@@ -165,9 +188,19 @@ export const generateWorld = async (world: World) => {
       pendingSuspended: false,
     },
     [RENDERABLE]: { generation: 0 },
+  });
+
+  entities.createHero(world, {
+    [SWIMMABLE]: { swimming: false },
+    [POSITION]: { x: 0, y: 0 },
+    [COLLIDABLE]: {},
+    [SPRITE]: player,
+    [LIGHT]: { brightness: 5.55, darkness: 0 },
+    [PLAYER]: {},
+    [RENDERABLE]: { generation: 0 },
     [MOVABLE]: {
       orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
+      reference: world.getEntityId(frame),
       spring: {
         mass: 0.1,
         friction: 50,
@@ -176,10 +209,9 @@ export const generateWorld = async (world: World) => {
     },
   });
 
-  // set hero as own reference frame
-  hero[MOVABLE].reference = world.getEntityId(hero);
-
   world.addSystem(systems.setupMap);
+  world.addSystem(systems.setupTick);
+  world.addSystem(systems.setupAi);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupVisibility);
