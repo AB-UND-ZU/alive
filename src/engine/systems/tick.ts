@@ -8,10 +8,12 @@ export default function setupTick(world: World) {
     for (const entity of world.getEntities([REFERENCE])) {
       const reference = entity[REFERENCE];
 
+      const frameSkipped = Math.min(delta, reference.tick);
+
       // skip if suspended reference has passed
       if (isProcessable(reference) && reference.suspended) continue;
 
-      reference.delta += delta;
+      reference.delta += frameSkipped;
 
       // clamp suspended references
       if (reference.suspended && reference.delta > reference.tick) {
