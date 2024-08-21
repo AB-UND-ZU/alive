@@ -19,6 +19,7 @@ import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
 import { Entity } from "ecs";
 import { MOVABLE } from "../../engine/components/movable";
 import { aspectRatio } from "../Dimensions/sizing";
+import { effectHeight, fogHeight, unitHeight, wallHeight } from "../Camera";
 
 const textSize = 18 / 25;
 const stack = 10;
@@ -47,7 +48,7 @@ function Box({
   );
 }
 
-const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(8);
+const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(1.72);
 
 function Swimming({
   active,
@@ -79,7 +80,7 @@ function Swimming({
           : entity[MOVABLE].spring,
       delay: active ? 100 : 0,
       onRest: (result) => {
-        setBlack(result.value.opacity === 0);
+        setBlack(result.value.opacity === 0 || result.value.scaleY === 0);
       },
     }),
     [active, entity]
@@ -100,14 +101,14 @@ function Swimming({
     activeRef.current = active;
   }, [active, api, dimensions.aspectRatio, movement]);
 
-  if (black) return null;
+  if (black && !active) return null;
 
   return (
     <animated.mesh
       receiveShadow
       position-x={spring.translateX}
       position-y={spring.translateY}
-      position-z={stackHeight * 2}
+      position-z={stackHeight * effectHeight}
       scale-y={spring.scaleY}
     >
       <boxGeometry
@@ -183,7 +184,7 @@ function Layer({
         castShadow={isOpaque}
         color={spring.color}
         height={stackHeight / stack}
-        offset={offset + (isOpaque ? stack : 0)}
+        offset={offset + (isOpaque ? stack * wallHeight : 0)}
       />
     );
   }
@@ -197,9 +198,9 @@ function Layer({
         -0.5 * dimensions.aspectRatio,
         -0.25,
         ((offset +
-          (isUnit ? stack * 1 * 1 : 0) +
-          (isOpaque ? stack : 0) +
-          (isAir ? stack * 2 : 0)) *
+          (isUnit ? stack * unitHeight : 0) +
+          (isOpaque ? stack * wallHeight : 0) +
+          (isAir ? stack * fogHeight : 0)) *
           stackHeight) /
           stack,
       ]}

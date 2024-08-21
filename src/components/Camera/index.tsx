@@ -6,6 +6,16 @@ import { POSITION } from "../../engine/components/position";
 
 const AnimatedOrthographicCamera = animated(OrthographicCamera);
 
+export const terrainHeight = 0;
+export const unitHeight = 1;
+export const effectHeight = 2;
+export const particleHeight = 3;
+export const lightHeight = 4;
+export const wallHeight = 5;
+export const fogHeight = 6;
+export const shadowHeight = 7;
+export const cameraHeight = 10;
+
 export default function Camera() {
   const dimensions = useDimensions();
   const hero = useHero();
@@ -16,7 +26,7 @@ export default function Camera() {
   const spring = useSpring({
     x: position.x * dimensions.aspectRatio,
     y: -position.y,
-    z: 10,
+    z: cameraHeight,
     config: {
       mass: 1,
       friction: 25,
@@ -32,7 +42,7 @@ export default function Camera() {
       position-z={spring.z}
       zoom={zoom}
       near={0.1}
-      far={10}
+      far={cameraHeight}
     />
   );
 }
