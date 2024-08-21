@@ -124,14 +124,6 @@ export const valueNoiseMatrix = (
   );
   const scaledMatrix = scaleMatrix(multipliedMatrix, scale);
 
-  console.log({
-    noiseMatrix,
-    averagedMatrix,
-    valueMatrix,
-    multipliedMatrix,
-    scaledMatrix,
-  });
-
   return scaledMatrix;
 };
 

@@ -17,6 +17,7 @@ export type Movable = {
   pendingOrientation?: Orientation;
   reference: number;
   spring?: SpringConfig;
+  movement?: Orientation;
 };
 
 export const MOVABLE = "MOVABLE";

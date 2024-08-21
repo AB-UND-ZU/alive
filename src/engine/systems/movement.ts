@@ -3,20 +3,16 @@ import { RENDERABLE } from "../components/renderable";
 import { MOVABLE, Orientation, orientationPoints } from "../components/movable";
 import { World } from "../ecs";
 import { isProcessable, REFERENCE } from "../components/reference";
-import { registerEntity, unregisterEntity } from "./map";
+import { getCell, registerEntity, unregisterEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
-import { LEVEL } from "../components/level";
 import { Entity } from "ecs";
-import { normalize } from "../../game/math/std";
+import { rerenderEntity } from "./renderer";
+import { isWalkable } from "./immersion";
 
-const isCollision = (world: World, position: Position) => {
-  const level = world.metadata.gameEntity[LEVEL];
-  const normalizedX = normalize(position.x, level.size);
-  const normalizedY = normalize(position.y, level.size);
-  return Object.values(level.map[normalizedX]?.[normalizedY] || {}).some(
-    (cell) => COLLIDABLE in (cell as Entity)
+const isCollision = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).some(
+    (entity) => COLLIDABLE in (entity as Entity)
   );
-};
 
 export default function setupMovement(world: World) {
   const onUpdate = (delta: number) => {
@@ -40,7 +36,10 @@ export default function setupMovement(world: World) {
         attemptedOrientations.unshift(pendingOrientation);
       }
 
-      if (attemptedOrientations.length === 0) continue;
+      if (attemptedOrientations.length === 0) {
+        entity[MOVABLE].movement = null;
+        continue;
+      }
 
       const reference = world.getEntityById(entity[MOVABLE].reference)[
         REFERENCE
@@ -59,16 +58,16 @@ export default function setupMovement(world: World) {
           y: entity[POSITION].y + delta.y,
         };
 
-        if (!isCollision(world, position)) {
+        if (!isCollision(world, position) && isWalkable(world, position)) {
           unregisterEntity(world, entity);
 
           entity[POSITION].x = position.x;
           entity[POSITION].y = position.y;
+          entity[MOVABLE].movement = orientation;
 
           registerEntity(world, entity);
 
-          entity[RENDERABLE].generation += 1;
-          world.metadata.gameEntity[RENDERABLE].generation += 1;
+          rerenderEntity(world, entity)
           break;
         }
       }

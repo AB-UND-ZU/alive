@@ -12,13 +12,17 @@ import * as colors from "../../game/assets/colors";
 import { FOG, Fog } from "../../engine/components/fog";
 import { fog as fogSprite } from "../../game/assets/sprites";
 import { animated, useSpring } from "@react-spring/three";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NPC, Npc } from "../../engine/components/npc";
 import { Player, PLAYER } from "../../engine/components/player";
+import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
+import { Entity } from "ecs";
+import { MOVABLE } from "../../engine/components/movable";
+import { aspectRatio } from "../Dimensions/sizing";
 
 const textSize = 18 / 25;
-const stack = 1000;
-const height = 2;
+const stack = 10;
+const stackHeight = 1;
 
 function Box({
   color,
@@ -33,10 +37,88 @@ function Box({
   const dimensions = useDimensions();
 
   return (
-    <mesh castShadow {...props} position={[0, 0, height / 2 + offset]}>
+    <mesh
+      {...props}
+      position={[0, 0, height / 2 + (offset * stackHeight) / stack]}
+    >
       <boxGeometry args={[dimensions.aspectRatio, 1, height]} />
       <animated.meshBasicMaterial color={color} />
     </mesh>
+  );
+}
+
+const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(8);
+
+function Swimming({
+  active,
+  entity,
+  isVisible,
+}: {
+  active: boolean;
+  entity: Entity;
+  isVisible: boolean;
+}) {
+  const dimensions = useDimensions();
+  const movement = entity[MOVABLE].movement;
+  const activeRef = useRef(false);
+  const [black, setBlack] = useState(isVisible);
+  const [spring, api] = useSpring(
+    () => ({
+      opacity: isVisible ? 1 : 0,
+      scaleY: active ? 1 : 0,
+      translateX:
+        movement === "left"
+          ? dimensions.aspectRatio
+          : movement === "right"
+          ? -dimensions.aspectRatio
+          : 0,
+      translateY: active ? (aspectRatio - 1) / 2 : -0.5,
+      config:
+        !active && movement === "down"
+          ? { duration: 0 }
+          : entity[MOVABLE].spring,
+      delay: active ? 100 : 0,
+      onRest: (result) => {
+        setBlack(result.value.opacity === 0);
+      },
+    }),
+    [active, entity]
+  );
+
+  useEffect(() => {
+    if (active && !activeRef.current) {
+      api.set({
+        translateX:
+          movement === "left"
+            ? -dimensions.aspectRatio
+            : movement === "right"
+            ? dimensions.aspectRatio
+            : 0,
+      });
+      api.start({ translateX: 0 });
+    }
+    activeRef.current = active;
+  }, [active, api, dimensions.aspectRatio, movement]);
+
+  if (black) return null;
+
+  return (
+    <animated.mesh
+      receiveShadow
+      position-x={spring.translateX}
+      position-y={spring.translateY}
+      position-z={stackHeight * 2}
+      scale-y={spring.scaleY}
+    >
+      <boxGeometry
+        args={[dimensions.aspectRatio, dimensions.aspectRatio, 1 / stack]}
+      />
+      <animated.meshLambertMaterial
+        color={swimmingColor}
+        opacity={spring.opacity}
+        transparent
+      />
+    </animated.mesh>
   );
 }
 
@@ -70,7 +152,7 @@ function Layer({
   if (isAir && !isHidden) color = "#000000";
   if (!isAir && isHidden) color = "#000000";
 
-  const transparent = color === '#000000';
+  const transparent = color === "#000000";
 
   const spring = useSpring({
     from: {
@@ -96,7 +178,14 @@ function Layer({
   const receiveShadow = !isAir && !isOpaque && !isHidden && !isUnit;
 
   if (layer.char === "█") {
-    return <Box color={spring.color} height={height / stack} offset={offset} />;
+    return (
+      <Box
+        castShadow={isOpaque}
+        color={spring.color}
+        height={stackHeight / stack}
+        offset={offset + (isOpaque ? stack : 0)}
+      />
+    );
   }
 
   return (
@@ -107,9 +196,14 @@ function Layer({
       position={[
         -0.5 * dimensions.aspectRatio,
         -0.25,
-        offset + (isUnit ? 3 : 0),
+        ((offset +
+          (isUnit ? stack * 1 * 1 : 0) +
+          (isOpaque ? stack : 0) +
+          (isAir ? stack * 2 : 0)) *
+          stackHeight) /
+          stack,
       ]}
-      height={height / stack}
+      height={stackHeight / stack}
     >
       {isAir ? (
         <meshBasicMaterial color={shadowColor.current} />
@@ -136,17 +230,22 @@ export default function Sprite({
     [NPC]?: Npc;
     [PLAYER]?: Player;
     [SPRITE]: SpriteType;
+    [SWIMMABLE]?: Swimmable;
   };
 }) {
-  const isAir = entity[SPRITE] === fogSprite;
   const visibility = entity[FOG]?.visibility;
+  const isPlayer = !!entity[PLAYER];
+  const isAir = entity[SPRITE] === fogSprite;
   const isVisible = visibility === "visible";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
-  const isUnit = !!entity[NPC] || !!entity[PLAYER];
+  const isUnit = !!entity[NPC] || isPlayer;
+  const isSwimming = !!entity[SWIMMABLE]?.swimming;
 
   return (
     <>
-      {isOpaque && isVisible && <Box color={colors.black} height={height} />}
+      {isOpaque && isVisible && (
+        <Box color={colors.black} height={stackHeight} castShadow />
+      )}
       {entity[SPRITE].layers.map((layer, index) => (
         <Layer
           isAir={isAir}
@@ -155,13 +254,17 @@ export default function Sprite({
           visibility={visibility}
           layer={layer}
           key={index}
-          offset={
-            ((index + (isOpaque ? stack : 0) + (isAir ? stack * 2 : 0)) *
-              height) /
-            stack
-          }
+          offset={index}
         />
       ))}
+
+      {!!entity[SWIMMABLE] && (
+        <Swimming
+          entity={entity}
+          active={isSwimming}
+          isVisible={isPlayer || isVisible}
+        />
+      )}
     </>
   );
 }
