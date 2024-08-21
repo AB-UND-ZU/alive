@@ -10,7 +10,7 @@ import Sprite from "../Sprite";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { Fog, FOG } from "../../engine/components/fog";
 import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
-import { lightHeight, shadowHeight } from "../Camera";
+import { lightHeight, shadowHeight, wallHeight } from "../Camera";
 
 function Animated({
   position,
@@ -51,7 +51,7 @@ function CoveredLight({
         shadow-mapSize-width={256}
         shadow-mapSize-height={256}
         shadow-camera-near={0.1}
-        shadow-camera-far={brightness - 0.066}
+        shadow-camera-far={brightness + wallHeight - lightHeight + 0.09}
       />
       <mesh position={[0, 0, shadowHeight]}>
         <ringGeometry args={[brightness - 0.25, shadow, 128]} />
