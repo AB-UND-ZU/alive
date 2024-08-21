@@ -22,7 +22,7 @@ import { aspectRatio } from "../Dimensions/sizing";
 import { effectHeight, fogHeight, unitHeight, wallHeight } from "../Camera";
 
 const textSize = 18 / 25;
-const stack = 10;
+const stack = 1000;
 const stackHeight = 1;
 
 function Box({
@@ -43,7 +43,11 @@ function Box({
       position={[0, 0, height / 2 + (offset * stackHeight) / stack]}
     >
       <boxGeometry args={[dimensions.aspectRatio, 1, height]} />
-      <animated.meshBasicMaterial color={color} />
+      {props.receiveShadow ? (
+        <animated.meshLambertMaterial color={color} />
+      ) : (
+        <animated.meshBasicMaterial color={color} />
+      )}
     </mesh>
   );
 }
@@ -62,28 +66,27 @@ function Swimming({
   const dimensions = useDimensions();
   const facing = entity[MOVABLE].facing;
   const activeRef = useRef(false);
-  const [black, setBlack] = useState(!isVisible);
+  const [black, setBlack] = useState(!isVisible && !active);
   const [spring, api] = useSpring(
     () => ({
       opacity: isVisible ? 1 : 0,
       scaleY: active ? 1 : 0,
-      translateX:
-        facing === "left"
-          ? dimensions.aspectRatio
-          : facing === "right"
-          ? -dimensions.aspectRatio
-          : 0,
+      translateX: active
+        ? 0
+        : facing === "left"
+        ? dimensions.aspectRatio
+        : facing === "right"
+        ? -dimensions.aspectRatio
+        : 0,
       translateY: active ? (aspectRatio - 1) / 2 : -0.5,
       config:
-        !active && facing === "down"
-          ? { duration: 0 }
-          : entity[MOVABLE].spring,
+        !active && facing === "down" ? { duration: 0 } : entity[MOVABLE].spring,
       delay: active ? 100 : 0,
       onRest: (result) => {
         setBlack(result.value.opacity === 0 || result.value.scaleY === 0);
       },
     }),
-    [active, entity]
+    [active, entity, isVisible, facing]
   );
 
   useEffect(() => {
@@ -182,6 +185,7 @@ function Layer({
     return (
       <Box
         castShadow={isOpaque}
+        receiveShadow={receiveShadow}
         color={spring.color}
         height={stackHeight / stack}
         offset={offset + (isOpaque ? stack * wallHeight : 0)}
@@ -245,7 +249,7 @@ export default function Sprite({
   return (
     <>
       {isOpaque && isVisible && (
-        <Box color={colors.black} height={stackHeight} castShadow />
+        <Box color={colors.black} height={wallHeight} castShadow />
       )}
       {entity[SPRITE].layers.map((layer, index) => (
         <Layer
