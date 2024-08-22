@@ -18,7 +18,7 @@ export default function Bar({
   const max = entity[ATTACKABLE].max;
   const spring = useSpring({
     scaleX: hp / max,
-    translateX: ((hp - max - 0.5) / max) * dimensions.aspectRatio,
+    translateX: ((hp - max) / max) * dimensions.aspectRatio - 0.5 / pixels,
     opacity: isVisible ? 1 : 0,
     config: { duration: 200 },
   });
