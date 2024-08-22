@@ -1,130 +1,27 @@
 import * as THREE from "three";
 import { Text3D } from "@react-three/drei";
-import { ThreeElements } from "@react-three/fiber";
 import { useDimensions } from "../Dimensions";
 import {
   Layer as LayerType,
   SPRITE,
   Sprite as SpriteType,
 } from "../../engine/components/sprite";
+import { Attackable, ATTACKABLE } from "../../engine/components/attackable";
 import { LIGHT, Light } from "../../engine/components/light";
 import * as colors from "../../game/assets/colors";
 import { FOG, Fog } from "../../engine/components/fog";
 import { fog as fogSprite } from "../../game/assets/sprites";
 import { animated, useSpring } from "@react-spring/three";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { NPC, Npc } from "../../engine/components/npc";
 import { Player, PLAYER } from "../../engine/components/player";
 import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
-import { Entity } from "ecs";
 import { Movable, MOVABLE } from "../../engine/components/movable";
-import { aspectRatio } from "../Dimensions/sizing";
-import { effectHeight, fogHeight, unitHeight, wallHeight } from "../Camera";
-
-const textSize = 18 / 25;
-const stack = 1000;
-const stackHeight = 1;
-
-function Box({
-  color,
-  height,
-  offset = 0,
-  ...props
-}: ThreeElements["mesh"] & {
-  height: number;
-  offset?: number;
-  color: string | any;
-}) {
-  const dimensions = useDimensions();
-
-  return (
-    <mesh
-      {...props}
-      position={[0, 0, height / 2 + (offset * stackHeight) / stack]}
-    >
-      <boxGeometry args={[dimensions.aspectRatio, 1, height]} />
-      {props.receiveShadow ? (
-        <animated.meshLambertMaterial color={color} />
-      ) : (
-        <animated.meshBasicMaterial color={color} />
-      )}
-    </mesh>
-  );
-}
-
-const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(1.72);
-
-function Swimming({
-  active,
-  entity,
-  isVisible,
-}: {
-  active: boolean;
-  entity: Entity;
-  isVisible: boolean;
-}) {
-  const dimensions = useDimensions();
-  const facing = entity[MOVABLE].facing;
-  const activeRef = useRef(false);
-  const [black, setBlack] = useState(!isVisible && !active);
-  const [spring, api] = useSpring(
-    () => ({
-      opacity: isVisible ? 1 : 0,
-      scaleY: active ? 1 : 0,
-      translateX: active
-        ? 0
-        : facing === "left"
-        ? dimensions.aspectRatio
-        : facing === "right"
-        ? -dimensions.aspectRatio
-        : 0,
-      translateY: active ? (aspectRatio - 1) / 2 : -0.5,
-      config:
-        !active && facing === "down" ? { duration: 0 } : entity[MOVABLE].spring,
-      delay: active ? 100 : 0,
-      onRest: (result) => {
-        setBlack(result.value.opacity === 0 || result.value.scaleY === 0);
-      },
-    }),
-    [active, entity, isVisible, facing]
-  );
-
-  useEffect(() => {
-    if (active && !activeRef.current) {
-      api.set({
-        translateX:
-          facing === "left"
-            ? -dimensions.aspectRatio
-            : facing === "right"
-            ? dimensions.aspectRatio
-            : 0,
-      });
-      api.start({ translateX: 0 });
-    }
-    activeRef.current = active;
-  }, [active, api, dimensions.aspectRatio, facing]);
-
-  if (black && !active) return null;
-
-  return (
-    <animated.mesh
-      receiveShadow
-      position-x={spring.translateX}
-      position-y={spring.translateY}
-      position-z={stackHeight * effectHeight}
-      scale-y={spring.scaleY}
-    >
-      <boxGeometry
-        args={[dimensions.aspectRatio, dimensions.aspectRatio, 1 / stack]}
-      />
-      <animated.meshLambertMaterial
-        color={swimmingColor}
-        opacity={spring.opacity}
-        transparent
-      />
-    </animated.mesh>
-  );
-}
+import { fogHeight, unitHeight, wallHeight } from "../Camera";
+import { stack, stackHeight, textSize } from "./utils";
+import Swimming from "./Swimming";
+import Box from "./Box";
+import Bar from "./Bar";
 
 function Layer({
   layer,
@@ -230,6 +127,7 @@ export default function Sprite({
   entity,
 }: {
   entity: {
+    [ATTACKABLE]?: Attackable;
     [FOG]?: Fog;
     [LIGHT]?: Light;
     [NPC]?: Npc;
@@ -248,8 +146,10 @@ export default function Sprite({
   const isUnit = !!entity[NPC] || isPlayer;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const facing = entity[MOVABLE]?.facing;
+  const isAttackable = !!entity[ATTACKABLE];
 
-  const layers = facing && sprite.facing ? sprite.facing[facing] : sprite.layers;
+  const layers =
+    facing && sprite.facing ? sprite.facing[facing] : sprite.layers;
 
   return (
     <>
@@ -274,6 +174,10 @@ export default function Sprite({
           active={isSwimming}
           isVisible={isPlayer || isVisible}
         />
+      )}
+
+      {isAttackable && (
+        <Bar entity={entity} isVisible={isPlayer || isVisible} />
       )}
     </>
   );

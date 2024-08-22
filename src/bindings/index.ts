@@ -31,6 +31,7 @@ import { NPC } from "../engine/components/npc";
 import { IMMERSIBLE } from "../engine/components/immersible";
 import { SWIMMABLE } from "../engine/components/swimmable";
 import { BEHAVIOUR } from "../engine/components/behaviour";
+import { ATTACKABLE } from "../engine/components/attackable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -160,6 +161,7 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "triangle") {
       entities.createTriangle(world, {
+        [ATTACKABLE]: { max: 3, hp: 3, enemy: true },
         [BEHAVIOUR]: { patterns: ["triangle"] },
         [SWIMMABLE]: { swimming: false },
         [FOG]: { visibility: "hidden" },
@@ -191,6 +193,7 @@ export const generateWorld = async (world: World) => {
   });
 
   entities.createHero(world, {
+    [ATTACKABLE]: { max: 10, hp: 10, enemy: false },
     [SWIMMABLE]: { swimming: false },
     [POSITION]: { x: 0, y: 0 },
     [COLLIDABLE]: {},
