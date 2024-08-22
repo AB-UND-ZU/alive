@@ -7,6 +7,6 @@ export type Fog = {
 
 export const FOG = "FOG";
 
-export default function addLight(world: World, entity: Entity, fog: Fog) {
+export default function addFog(world: World, entity: Entity, fog: Fog) {
   world.addComponentToEntity(entity, FOG, fog);
 }

@@ -5,6 +5,6 @@ export type Npc = {};
 
 export const NPC = "NPC";
 
-export default function addLight(world: World, entity: Entity, npc: Npc) {
+export default function addNpc(world: World, entity: Entity, npc: Npc) {
   world.addComponentToEntity(entity, NPC, npc);
 }

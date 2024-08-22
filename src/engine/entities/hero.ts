@@ -1,4 +1,5 @@
 import * as components from "../components";
+import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Collidable, COLLIDABLE } from "../components/collidable";
 import { LIGHT, Light } from "../components/light";
 import { Movable, MOVABLE } from "../components/movable";
@@ -12,6 +13,7 @@ import type { World } from "../ecs";
 export default function createHero(
   world: World,
   entity: {
+    [ATTACKABLE]: Attackable;
     [COLLIDABLE]: Collidable;
     [POSITION]: Position;
     [SPRITE]: Sprite;
@@ -24,6 +26,7 @@ export default function createHero(
 ) {
   const heroEntity = world.createEntity();
 
+  components.addAttackable(world, heroEntity, entity[ATTACKABLE]);
   components.addCollidable(world, heroEntity, entity[COLLIDABLE]);
   components.addLight(world, heroEntity, entity[LIGHT]);
   components.addMovable(world, heroEntity, entity[MOVABLE]);

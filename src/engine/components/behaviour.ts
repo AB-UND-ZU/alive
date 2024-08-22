@@ -9,7 +9,7 @@ export type Behaviour = {
 
 export const BEHAVIOUR = "BEHAVIOUR";
 
-export default function addCollidable(
+export default function addBehaviour(
   world: World,
   entity: Entity,
   behaviour: Behaviour

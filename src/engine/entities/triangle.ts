@@ -1,4 +1,5 @@
 import * as components from "../components";
+import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
 import { Collidable, COLLIDABLE } from "../components/collidable";
 import { FOG, Fog } from "../components/fog";
@@ -13,6 +14,7 @@ import type { World } from "../ecs";
 export default function createTriangle(
   world: World,
   entity: {
+    [ATTACKABLE]: Attackable;
     [BEHAVIOUR]: Behaviour;
     [COLLIDABLE]: Collidable;
     [FOG]: Fog;
@@ -26,6 +28,7 @@ export default function createTriangle(
 ) {
   const triangleEntity = world.createEntity();
 
+  components.addAttackable(world, triangleEntity, entity[ATTACKABLE]);
   components.addBehaviour(world, triangleEntity, entity[BEHAVIOUR]);
   components.addCollidable(world, triangleEntity, entity[COLLIDABLE]);
   components.addFog(world, triangleEntity , entity[FOG]);
