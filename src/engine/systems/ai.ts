@@ -66,7 +66,7 @@ export default function setupAi(world: World) {
               );
               if (
                 isWalkable(world, attemptedPosition) &&
-                !isCollision(world, attemptedPosition)
+                (!isCollision(world, attemptedPosition) || getAttackable(world, attemptedPosition))
               ) {
                 newFacing = attemptedFacing;
                 break;
