@@ -9,6 +9,7 @@ import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
 import { isWalkable } from "./immersion";
 import { add } from "../../game/math/std";
+import { isDead } from "./loot";
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
@@ -34,10 +35,13 @@ export default function setupMovement(world: World) {
         RENDERABLE
       ].generation;
 
-      // skip of reference frame is unchanged
+      // skip if reference frame is unchanged
       if (entityReferences[entityId] === entityReference) continue;
 
       entityReferences[entityId] = entityReference;
+
+      // skip if dead
+      if (isDead(world, entity)) continue;
 
       const attemptedOrientations: Orientation[] = [
         ...entity[MOVABLE].orientations,

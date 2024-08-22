@@ -2,7 +2,6 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
-import { RENDERABLE } from "../components/renderable";
 import { normalize } from "../../game/math/std";
 
 export const registerEntity = (world: World, entity: Entity) => {
@@ -29,7 +28,7 @@ export const unregisterEntity = (world: World, entity: Entity) => {
   if (!position) {
     throw new Error(`Unable to unregister position for entity ${entity}!`);
   }
-
+  
   delete getCell(world, position)[world.getEntityId(entity)];
 };
 
@@ -40,9 +39,11 @@ export const getCell = (world: World, position: Position) => {
   return level.map[normalizedX]?.[normalizedY] || {};
 };
 
+type ListenerEntities = { count: number, entries: Entity[] }
+
 export default function setupMap(world: World) {
-  const addedEntities = { count: 0, entries: [] };
-  const removedEntities = { count: 0, entries: [] };
+  const addedEntities: ListenerEntities = { count: 0, entries: [] };
+  const removedEntities: ListenerEntities = { count: 0, entries: [] };
 
   const onUpdate = (delta: number) => {
     // ensure components added to ECS are reflected in map
@@ -50,15 +51,11 @@ export default function setupMap(world: World) {
     world.getEntities([POSITION], "removed", removedEntities);
 
     for (let i = 0; i < removedEntities.count; i++) {
-      unregisterEntity(world, removedEntities.entries[i]);
+      unregisterEntity(world, removedEntities.entries[i])
     }
 
     for (let i = 0; i < addedEntities.count; i++) {
       registerEntity(world, addedEntities.entries[i]);
-    }
-
-    if (addedEntities.count > 0 || removedEntities.count > 0) {
-      world.metadata.gameEntity[RENDERABLE].generation += 1;
     }
   };
 

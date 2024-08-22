@@ -11,6 +11,7 @@ export default function createWorld(size: number) {
   const world = ECS.createWorld() as PatchedWorld;
 
   const createEntity = ECS.createEntity.bind(ECS, world);
+  const removeEntity = ECS.removeEntity.bind(ECS, world);
   const getEntity = ECS.getEntity.bind(ECS, world);
   const getEntityById = ECS.getEntityById.bind(ECS, world);
   const getEntityId = ECS.getEntityId.bind(ECS, world);
@@ -32,6 +33,7 @@ export default function createWorld(size: number) {
 
   const ecs = {
     createEntity,
+    removeEntity,
     getEntity,
     getEntityById,
     getEntityId,

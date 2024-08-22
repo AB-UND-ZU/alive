@@ -12,6 +12,7 @@ import { BEHAVIOUR } from "../components/behaviour";
 import { isWalkable } from "./immersion";
 import { isCollision } from "./movement";
 import { add, random } from "../../game/math/std";
+import { getAttackable, isFriendlyFire } from "./damage";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -34,7 +35,13 @@ export default function setupAi(world: World) {
 
           const facing = entity[MOVABLE].facing as Orientation;
           const position = add(entity[POSITION], orientationPoints[facing]);
+          const attackedEntity = getAttackable(world, position);
 
+          // attackable, proceed
+          if (attackedEntity && !isFriendlyFire(world, entity, attackedEntity))
+            continue;
+
+          // unable to move, attempt reorienting
           if (!isWalkable(world, position) || isCollision(world, position)) {
             const preferredFacing =
               orientations[
