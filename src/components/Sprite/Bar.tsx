@@ -18,9 +18,10 @@ export default function Bar({
   const max = entity[ATTACKABLE].max;
   const spring = useSpring({
     scaleX: hp / max,
-    translateX: ((hp - max) / max) * dimensions.aspectRatio - 0.5 / pixels,
+    translateX:
+      (((hp - max) / max) * dimensions.aspectRatio) / 2 - 0.5 / pixels,
     opacity: isVisible ? 1 : 0,
-    config: { duration: 200 },
+    config: { duration: 75 },
   });
 
   if (hp <= 0) return null;
@@ -32,7 +33,9 @@ export default function Bar({
       position-z={stackHeight * particleHeight}
       scale-x={spring.scaleX}
     >
-      <boxGeometry args={[dimensions.aspectRatio - 1 / pixels, 1 / pixels, 1 / stack]} />
+      <boxGeometry
+        args={[dimensions.aspectRatio - 1 / pixels, 1 / pixels, 1 / stack]}
+      />
       <animated.meshBasicMaterial
         color={entity[ATTACKABLE].enemy ? colors.red : colors.lime}
         opacity={spring.opacity}

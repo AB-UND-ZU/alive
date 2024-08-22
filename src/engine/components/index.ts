@@ -5,6 +5,7 @@ export { default as addFog } from "./fog";
 export { default as addImmersible } from "./immersible";
 export { default as addLevel } from "./level";
 export { default as addLight } from "./light";
+export { default as addMelee } from "./melee";
 export { default as addMovable } from "./movable";
 export { default as addNpc } from "./npc";
 export { default as addPlayer } from "./player";

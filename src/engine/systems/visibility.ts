@@ -8,7 +8,6 @@ import { PLAYER } from "../components/player";
 import { LIGHT } from "../components/light";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { traceCircularVisiblity } from "../../game/math/tracing";
-import { getEntityGeneration } from "./renderer";
 import { REFERENCE } from "../components/reference";
 
 type PendingChanges = Record<

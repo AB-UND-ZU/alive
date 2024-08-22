@@ -32,6 +32,7 @@ import { IMMERSIBLE } from "../engine/components/immersible";
 import { SWIMMABLE } from "../engine/components/swimmable";
 import { BEHAVIOUR } from "../engine/components/behaviour";
 import { ATTACKABLE } from "../engine/components/attackable";
+import { MELEE } from "../engine/components/melee";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -163,8 +164,9 @@ export const generateWorld = async (world: World) => {
       entities.createTriangle(world, {
         [ATTACKABLE]: { max: 3, hp: 3, enemy: true },
         [BEHAVIOUR]: { patterns: ["triangle"] },
-        [SWIMMABLE]: { swimming: false },
+        [COLLIDABLE]: {},
         [FOG]: { visibility: "hidden" },
+        [MELEE]: { dmg: 3 },
         [MOVABLE]: {
           orientations: [],
           facing: "right",
@@ -175,9 +177,9 @@ export const generateWorld = async (world: World) => {
         },
         [NPC]: {},
         [POSITION]: { x, y },
-        [SPRITE]: triangle,
         [RENDERABLE]: { generation: 0 },
-        [COLLIDABLE]: {},
+        [SPRITE]: triangle,
+        [SWIMMABLE]: { swimming: false },
       });
     }
   });
@@ -194,13 +196,9 @@ export const generateWorld = async (world: World) => {
 
   entities.createHero(world, {
     [ATTACKABLE]: { max: 10, hp: 10, enemy: false },
-    [SWIMMABLE]: { swimming: false },
-    [POSITION]: { x: 0, y: 0 },
     [COLLIDABLE]: {},
-    [SPRITE]: player,
     [LIGHT]: { brightness: 5.55, darkness: 0 },
-    [PLAYER]: {},
-    [RENDERABLE]: { generation: 0 },
+    [MELEE]: { dmg: 1 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(frame),
@@ -210,13 +208,20 @@ export const generateWorld = async (world: World) => {
         tension: 1000,
       },
     },
+    [PLAYER]: {},
+    [POSITION]: { x: 0, y: 0 },
+    [RENDERABLE]: { generation: 0 },
+    [SPRITE]: player,
+    [SWIMMABLE]: { swimming: false },
   });
 
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupTick);
   world.addSystem(systems.setupAi);
+  world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupImmersion);
+  world.addSystem(systems.setupLoot);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);
 };

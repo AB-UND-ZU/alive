@@ -3,6 +3,7 @@ import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
 import { Collidable, COLLIDABLE } from "../components/collidable";
 import { FOG, Fog } from "../components/fog";
+import { Melee, MELEE } from "../components/melee";
 import { Movable, MOVABLE } from "../components/movable";
 import { Npc, NPC } from "../components/npc";
 import { POSITION, Position } from "../components/position";
@@ -18,6 +19,7 @@ export default function createTriangle(
     [BEHAVIOUR]: Behaviour;
     [COLLIDABLE]: Collidable;
     [FOG]: Fog;
+    [MELEE]: Melee;
     [MOVABLE]: Movable;
     [NPC]: Npc;
     [POSITION]: Position;
@@ -32,6 +34,7 @@ export default function createTriangle(
   components.addBehaviour(world, triangleEntity, entity[BEHAVIOUR]);
   components.addCollidable(world, triangleEntity, entity[COLLIDABLE]);
   components.addFog(world, triangleEntity , entity[FOG]);
+  components.addMelee(world, triangleEntity, entity[MELEE]);
   components.addMovable(world, triangleEntity, entity[MOVABLE]);
   components.addNpc(world, triangleEntity , entity[NPC]);
   components.addPosition(world, triangleEntity, entity[POSITION]);
