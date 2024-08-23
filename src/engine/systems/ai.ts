@@ -64,10 +64,12 @@ export default function setupAi(world: World) {
                 entity[POSITION],
                 orientationPoints[attemptedFacing]
               );
+              const attackTarget = getAttackable(world, attemptedPosition);
               if (
                 isWalkable(world, attemptedPosition) &&
                 (!isCollision(world, attemptedPosition) ||
-                  getAttackable(world, attemptedPosition))
+                  (attackTarget &&
+                    !isFriendlyFire(world, entity, attackTarget)))
               ) {
                 newFacing = attemptedFacing;
                 break;

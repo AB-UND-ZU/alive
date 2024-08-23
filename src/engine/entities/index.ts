@@ -8,6 +8,7 @@ export { default as createHero } from "./hero";
 export { default as createHit } from "./hit";
 export { default as createIce } from "./ice";
 export { default as createSand } from "./sand";
+export { default as createSword } from "./sword";
 export { default as createTree } from "./tree";
 export { default as createTriangle } from "./triangle";
 export { default as createWall } from "./wall";

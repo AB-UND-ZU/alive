@@ -1,6 +1,7 @@
 import * as components from "../components";
 import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Collidable, COLLIDABLE } from "../components/collidable";
+import { Inventory, INVENTORY } from "../components/inventory";
 import { LIGHT, Light } from "../components/light";
 import { Melee, MELEE } from "../components/melee";
 import { Movable, MOVABLE } from "../components/movable";
@@ -16,6 +17,7 @@ export default function createHero(
   entity: {
     [ATTACKABLE]: Attackable;
     [COLLIDABLE]: Collidable;
+    [INVENTORY]: Inventory;
     [POSITION]: Position;
     [SPRITE]: Sprite;
     [LIGHT]: Light;
@@ -30,6 +32,7 @@ export default function createHero(
 
   components.addAttackable(world, heroEntity, entity[ATTACKABLE]);
   components.addCollidable(world, heroEntity, entity[COLLIDABLE]);
+  components.addInventory(world, heroEntity, entity[INVENTORY]);
   components.addLight(world, heroEntity, entity[LIGHT]);
   components.addMelee(world, heroEntity, entity[MELEE]);
   components.addMovable(world, heroEntity, entity[MOVABLE]);

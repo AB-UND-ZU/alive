@@ -15,8 +15,10 @@ import {
   fog,
   frozen,
   ice,
+  none,
   player,
   sand,
+  sword,
   tree1,
   tree2,
   triangle,
@@ -33,6 +35,8 @@ import { SWIMMABLE } from "../engine/components/swimmable";
 import { BEHAVIOUR } from "../engine/components/behaviour";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { MELEE } from "../engine/components/melee";
+import { INVENTORY } from "../engine/components/inventory";
+import { ITEM } from "../engine/components/item";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -161,12 +165,19 @@ export const generateWorld = async (world: World) => {
         [COLLIDABLE]: {},
       });
     } else if (cell === "triangle") {
+      const clawsId = world.getEntityId(
+        entities.createSword(world, {
+          [ITEM]: { dmg: 3 },
+          [RENDERABLE]: { generation: 0 },
+          [SPRITE]: none,
+        })
+      );
       entities.createTriangle(world, {
         [ATTACKABLE]: { max: 3, hp: 3, enemy: true },
         [BEHAVIOUR]: { patterns: ["triangle"] },
         [COLLIDABLE]: {},
         [FOG]: { visibility: "hidden" },
-        [MELEE]: { dmg: 3 },
+        [MELEE]: { item: clawsId },
         [MOVABLE]: {
           orientations: [],
           facing: "right",
@@ -184,24 +195,35 @@ export const generateWorld = async (world: World) => {
     }
   });
 
-  const frame = entities.createFrame(world, {
-    [REFERENCE]: {
-      tick: 250,
-      delta: 0,
-      suspended: true,
-      pendingSuspended: false,
-    },
-    [RENDERABLE]: { generation: 0 },
-  });
+  const swordId = world.getEntityId(
+    entities.createSword(world, {
+      [ITEM]: { dmg: 1 },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: sword,
+    })
+  );
+
+  const frameId = world.getEntityId(
+    entities.createFrame(world, {
+      [REFERENCE]: {
+        tick: 250,
+        delta: 0,
+        suspended: true,
+        pendingSuspended: false,
+      },
+      [RENDERABLE]: { generation: 0 },
+    })
+  );
 
   entities.createHero(world, {
     [ATTACKABLE]: { max: 10, hp: 10, enemy: false },
     [COLLIDABLE]: {},
+    [INVENTORY]: { items: [swordId] },
     [LIGHT]: { brightness: 5.55, darkness: 0 },
-    [MELEE]: { dmg: 1 },
+    [MELEE]: { item: swordId },
     [MOVABLE]: {
       orientations: [],
-      reference: world.getEntityId(frame),
+      reference: frameId,
       spring: {
         mass: 0.1,
         friction: 50,
