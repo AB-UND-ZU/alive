@@ -12,16 +12,17 @@ import * as colors from "../../game/assets/colors";
 import { FOG, Fog } from "../../engine/components/fog";
 import { fog as fogSprite } from "../../game/assets/sprites";
 import { animated, useSpring } from "@react-spring/three";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NPC, Npc } from "../../engine/components/npc";
 import { Player, PLAYER } from "../../engine/components/player";
 import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
 import { Movable, MOVABLE } from "../../engine/components/movable";
-import { fogHeight, unitHeight, wallHeight } from "../Camera";
+import { fogHeight, particleHeight, unitHeight, wallHeight } from "../Camera";
 import { stack, stackHeight, textSize } from "./utils";
 import Swimming from "./Swimming";
 import Box from "./Box";
 import Bar from "./Bar";
+import { Particle, PARTICLE } from "../../engine/components/particle";
 
 function Layer({
   layer,
@@ -30,6 +31,7 @@ function Layer({
   isAir,
   isOpaque,
   isUnit,
+  isParticle,
 }: {
   layer: LayerType;
   offset: number;
@@ -37,6 +39,7 @@ function Layer({
   isAir: boolean;
   isOpaque: boolean;
   isUnit: boolean;
+  isParticle: boolean;
 }) {
   const dimensions = useDimensions();
 
@@ -100,6 +103,7 @@ function Layer({
         -0.25,
         ((offset +
           (isUnit ? stack * unitHeight : 0) +
+          (isParticle ? stack * particleHeight : 0) +
           (isOpaque ? stack * wallHeight : 0) +
           (isAir ? stack * fogHeight : 0)) *
           stackHeight) /
@@ -109,6 +113,8 @@ function Layer({
     >
       {isAir ? (
         <meshBasicMaterial color={shadowColor.current} />
+      ) : isParticle ? (
+        <meshBasicMaterial color={color} />
       ) : isUnit ? (
         <animated.meshBasicMaterial
           color={layer.color}
@@ -125,17 +131,20 @@ function Layer({
 
 export default function Sprite({
   entity,
+  hide,
 }: {
   entity: {
     [ATTACKABLE]?: Attackable;
     [FOG]?: Fog;
     [LIGHT]?: Light;
+    [MOVABLE]?: Movable;
     [NPC]?: Npc;
+    [PARTICLE]?: Particle;
     [PLAYER]?: Player;
     [SPRITE]: SpriteType;
     [SWIMMABLE]?: Swimmable;
-    [MOVABLE]?: Movable;
   };
+  hide: () => void;
 }) {
   const visibility = entity[FOG]?.visibility;
   const isPlayer = !!entity[PLAYER];
@@ -147,9 +156,16 @@ export default function Sprite({
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const facing = entity[MOVABLE]?.facing;
   const isAttackable = !!entity[ATTACKABLE];
+  const isParticle = !!entity[PARTICLE];
 
   const layers =
     facing && sprite.facing ? sprite.facing[facing] : sprite.layers;
+
+  useEffect(() => {
+    if (entity[PARTICLE]) {
+      setTimeout(hide, entity[PARTICLE].ttl);
+    }
+  }, [entity, hide]);
 
   return (
     <>
@@ -161,6 +177,7 @@ export default function Sprite({
           isAir={isAir}
           isOpaque={isOpaque}
           isUnit={isUnit}
+          isParticle={isParticle}
           visibility={visibility}
           layer={layer}
           key={index}

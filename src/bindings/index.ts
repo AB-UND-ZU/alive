@@ -222,6 +222,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupLoot);
+  world.addSystem(systems.setupDecay);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);
 };

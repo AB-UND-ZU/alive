@@ -2,7 +2,7 @@ import * as colors from "./colors";
 import { Sprite } from "../../engine/components/sprite";
 
 export const fog: Sprite = {
-  name: 'fog_hidden',
+  name: "fog_hidden",
   layers: [
     {
       char: "≈",
@@ -12,7 +12,7 @@ export const fog: Sprite = {
 };
 
 export const wall: Sprite = {
-  name: 'wall_solid',
+  name: "wall_solid",
   layers: [
     {
       char: "█",
@@ -22,7 +22,7 @@ export const wall: Sprite = {
 };
 
 export const water: Sprite = {
-  name: 'water_shallow',
+  name: "water_shallow",
   layers: [
     {
       char: "█",
@@ -32,7 +32,7 @@ export const water: Sprite = {
 };
 
 export const ice: Sprite = {
-  name: 'water_ice',
+  name: "water_ice",
   layers: [
     {
       char: "█",
@@ -42,7 +42,7 @@ export const ice: Sprite = {
 };
 
 export const frozen: Sprite = {
-  name: 'water_frozen',
+  name: "water_frozen",
   layers: [
     {
       char: "▓",
@@ -52,7 +52,7 @@ export const frozen: Sprite = {
 };
 
 export const sand: Sprite = {
-  name: 'sand_dry',
+  name: "sand_dry",
   layers: [
     {
       char: "▒",
@@ -62,7 +62,7 @@ export const sand: Sprite = {
 };
 
 export const tree1: Sprite = {
-  name: 'tree_one',
+  name: "tree_one",
   layers: [
     {
       char: "┐",
@@ -76,7 +76,7 @@ export const tree1: Sprite = {
 };
 
 export const tree2: Sprite = {
-  name: 'tree_two',
+  name: "tree_two",
   layers: [
     {
       char: "┐",
@@ -90,7 +90,7 @@ export const tree2: Sprite = {
 };
 
 export const bush: Sprite = {
-  name: 'bush_empty',
+  name: "bush_empty",
   layers: [
     {
       char: "\u03c4",
@@ -100,7 +100,7 @@ export const bush: Sprite = {
 };
 
 export const flower: Sprite = {
-  name: 'flower_empty',
+  name: "flower_empty",
   layers: [
     {
       char: ",",
@@ -110,7 +110,7 @@ export const flower: Sprite = {
 };
 
 export const cactus1: Sprite = {
-  name: 'cactus_empty',
+  name: "cactus_empty",
   layers: [
     {
       char: "▒",
@@ -124,7 +124,7 @@ export const cactus1: Sprite = {
 };
 
 export const cactus2: Sprite = {
-  name: 'cactus_empty',
+  name: "cactus_empty",
   layers: [
     {
       char: "▒",
@@ -138,7 +138,7 @@ export const cactus2: Sprite = {
 };
 
 export const player: Sprite = {
-  name: 'player_symbol',
+  name: "player_symbol",
   layers: [
     {
       char: "¬",
@@ -160,7 +160,7 @@ export const player: Sprite = {
 };
 
 export const triangle: Sprite = {
-  name: 'triangle_right',
+  name: "triangle_right",
   layers: [
     {
       char: "\u010f",
@@ -192,5 +192,15 @@ export const triangle: Sprite = {
         color: colors.white,
       },
     ],
-  }
+  },
+};
+
+export const hit: Sprite = {
+  name: "hit_melee",
+  layers: [
+    {
+      char: "x",
+      color: colors.red,
+    },
+  ],
 };

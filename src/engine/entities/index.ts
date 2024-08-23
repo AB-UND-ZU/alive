@@ -5,6 +5,7 @@ export { default as createFlower } from "./flower";
 export { default as createFrame } from "./frame";
 export { default as createGame } from "./game";
 export { default as createHero } from "./hero";
+export { default as createHit } from "./hit";
 export { default as createIce } from "./ice";
 export { default as createSand } from "./sand";
 export { default as createTree } from "./tree";

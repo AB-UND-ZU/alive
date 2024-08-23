@@ -28,7 +28,7 @@ export const unregisterEntity = (world: World, entity: Entity) => {
   if (!position) {
     throw new Error(`Unable to unregister position for entity ${entity}!`);
   }
-  
+
   delete getCell(world, position)[world.getEntityId(entity)];
 };
 
@@ -39,7 +39,7 @@ export const getCell = (world: World, position: Position) => {
   return level.map[normalizedX]?.[normalizedY] || {};
 };
 
-type ListenerEntities = { count: number, entries: Entity[] }
+type ListenerEntities = { count: number; entries: Entity[] };
 
 export default function setupMap(world: World) {
   const addedEntities: ListenerEntities = { count: 0, entries: [] };
@@ -51,7 +51,7 @@ export default function setupMap(world: World) {
     world.getEntities([POSITION], "removed", removedEntities);
 
     for (let i = 0; i < removedEntities.count; i++) {
-      unregisterEntity(world, removedEntities.entries[i])
+      unregisterEntity(world, removedEntities.entries[i]);
     }
 
     for (let i = 0; i < addedEntities.count; i++) {

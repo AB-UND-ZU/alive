@@ -1,6 +1,6 @@
-import { Vector3Tuple } from "three";
+import { Group, Vector3Tuple } from "three";
 import { useSpring, animated, SpringConfig } from "@react-spring/three";
-import React from "react";
+import React, { forwardRef, useCallback, useRef } from "react";
 import { useDimensions } from "../Dimensions";
 import { Position, POSITION } from "../../engine/components/position";
 import { SPRITE, Sprite as SpriteType } from "../../engine/components/sprite";
@@ -12,11 +12,10 @@ import { Fog, FOG } from "../../engine/components/fog";
 import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
 import { lightHeight, shadowHeight, wallHeight } from "../Camera";
 
-function Animated({
-  position,
-  spring,
-  ...props
-}: React.PropsWithChildren<{ position: Vector3Tuple; spring?: SpringConfig }>) {
+const Animated = forwardRef<
+  Group,
+  { position: Vector3Tuple; spring?: SpringConfig }
+>(({ position, spring, ...props }, ref) => {
   const values = useSpring({
     x: position[0],
     y: position[1],
@@ -26,13 +25,14 @@ function Animated({
 
   return (
     <animated.group
+      ref={ref}
       position-x={values.x}
       position-y={values.y}
       position-z={values.z}
       {...props}
     />
   );
-}
+});
 
 function CoveredLight({
   brightness,
@@ -80,13 +80,22 @@ function Entity({
   y: number;
 }) {
   const dimensions = useDimensions();
+  const containerRef = useRef<Group>(null);
+  const hide = useCallback(() => {
+    if (!containerRef.current) return;
+    containerRef.current.visible = false;
+  }, []);
 
   const spring = entity[MOVABLE]?.spring;
   const Container = spring ? Animated : "group";
 
   return (
-    <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={spring}>
-      <Sprite entity={entity} />
+    <Container
+      ref={containerRef}
+      position={[x * dimensions.aspectRatio, -y, 0]}
+      spring={spring}
+    >
+      <Sprite entity={entity} hide={hide} />
 
       {!!entity[LIGHT] && entity[LIGHT].brightness > 0 && (
         <CoveredLight
