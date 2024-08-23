@@ -1,5 +1,6 @@
 export { default as setupAi } from "./ai";
 export { default as setupDamage } from "./damage";
+export { default as setupDecay } from "./decay";
 export { default as setupImmersion } from "./immersion";
 export { default as setupLoot } from "./loot";
 export { default as setupMap } from "./map";

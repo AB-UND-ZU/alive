@@ -6,10 +6,14 @@ import { add } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE, Orientation, orientationPoints } from "../components/movable";
 import { MELEE } from "../components/melee";
-import { getCell } from "./map";
+import { getCell, registerEntity } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
 import { NPC } from "../components/npc";
+import { entities } from "..";
+import { PARTICLE } from "../components/particle";
+import { SPRITE } from "../components/sprite";
+import { hit } from "../../game/assets/sprites";
 
 export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -63,11 +67,19 @@ export default function setupDamage(world: World) {
       if (!targetEntity || isFriendlyFire(world, entity, targetEntity))
         continue;
 
+      // handle attacking
       targetEntity[ATTACKABLE].hp = Math.max(
         0,
         targetEntity[ATTACKABLE].hp - entity[MELEE].dmg
       );
 
+      const hitEntity = entities.createHit(world, {
+        [PARTICLE]: { ttl: 200, reference: world.getEntityId(entity) },
+        [POSITION]: targetPosition,
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: hit,
+      });
+      registerEntity(world, hitEntity);
       rerenderEntity(world, targetEntity);
     }
   };
