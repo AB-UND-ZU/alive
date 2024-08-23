@@ -1,6 +1,11 @@
 import * as colors from "./colors";
 import { Sprite } from "../../engine/components/sprite";
 
+export const none: Sprite = {
+  name: "none",
+  layers: [],
+};
+
 export const fog: Sprite = {
   name: "fog_hidden",
   layers: [
@@ -141,16 +146,8 @@ export const player: Sprite = {
   name: "player_symbol",
   layers: [
     {
-      char: "¬",
-      color: colors.maroon,
-    },
-    {
       char: "\u010b",
       color: colors.white,
-    },
-    {
-      char: "/",
-      color: colors.grey,
     },
     {
       char: "~",
@@ -193,6 +190,16 @@ export const triangle: Sprite = {
       },
     ],
   },
+};
+
+export const sword: Sprite = {
+  name: "sword_wood",
+  layers: [
+    {
+      char: "/",
+      color: colors.maroon,
+    },
+  ],
 };
 
 export const hit: Sprite = {

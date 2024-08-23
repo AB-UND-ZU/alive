@@ -18,11 +18,13 @@ import { Player, PLAYER } from "../../engine/components/player";
 import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
 import { Movable, MOVABLE } from "../../engine/components/movable";
 import { fogHeight, particleHeight, unitHeight, wallHeight } from "../Camera";
-import { stack, stackHeight, textSize } from "./utils";
+import { getFacingLayers, stack, stackHeight, textSize } from "./utils";
 import Swimming from "./Swimming";
 import Box from "./Box";
 import Bar from "./Bar";
 import { Particle, PARTICLE } from "../../engine/components/particle";
+import { Melee, MELEE } from "../../engine/components/melee";
+import { useWorld } from "../../bindings/hooks";
 
 function Layer({
   layer,
@@ -137,6 +139,7 @@ export default function Sprite({
     [ATTACKABLE]?: Attackable;
     [FOG]?: Fog;
     [LIGHT]?: Light;
+    [MELEE]?: Melee;
     [MOVABLE]?: Movable;
     [NPC]?: Npc;
     [PARTICLE]?: Particle;
@@ -146,6 +149,8 @@ export default function Sprite({
   };
   hide: () => void;
 }) {
+  const { ecs } = useWorld();
+
   const visibility = entity[FOG]?.visibility;
   const isPlayer = !!entity[PLAYER];
   const sprite = entity[SPRITE];
@@ -158,8 +163,11 @@ export default function Sprite({
   const isAttackable = !!entity[ATTACKABLE];
   const isParticle = !!entity[PARTICLE];
 
-  const layers =
-    facing && sprite.facing ? sprite.facing[facing] : sprite.layers;
+  const layers = getFacingLayers(sprite, facing);
+  const melee =
+    entity[MELEE] && ecs
+      ? getFacingLayers(ecs.getEntityById(entity[MELEE].item)[SPRITE], facing)
+      : [];
 
   useEffect(() => {
     if (entity[PARTICLE]) {
@@ -182,6 +190,19 @@ export default function Sprite({
           layer={layer}
           key={index}
           offset={index}
+        />
+      ))}
+
+      {melee.map((layer, index) => (
+        <Layer
+          isAir={isAir}
+          isOpaque={isOpaque}
+          isUnit={isUnit}
+          isParticle={isParticle}
+          visibility={visibility}
+          layer={layer}
+          key={index}
+          offset={index + layers.length}
         />
       ))}
 

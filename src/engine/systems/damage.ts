@@ -14,6 +14,7 @@ import { entities } from "..";
 import { PARTICLE } from "../components/particle";
 import { SPRITE } from "../components/sprite";
 import { hit } from "../../game/assets/sprites";
+import { ITEM } from "../components/item";
 
 export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -68,9 +69,10 @@ export default function setupDamage(world: World) {
         continue;
 
       // handle attacking
+      const damage = world.getEntityById(entity[MELEE].item)[ITEM].dmg;
       targetEntity[ATTACKABLE].hp = Math.max(
         0,
-        targetEntity[ATTACKABLE].hp - entity[MELEE].dmg
+        targetEntity[ATTACKABLE].hp - damage
       );
 
       const hitEntity = entities.createHit(world, {
