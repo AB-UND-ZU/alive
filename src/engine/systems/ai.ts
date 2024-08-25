@@ -2,17 +2,18 @@ import { POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { rerenderEntity } from "./renderer";
-import {
-  MOVABLE,
-  Orientation,
-  orientationPoints,
-  orientations,
-} from "../components/movable";
+import { MOVABLE } from "../components/movable";
 import { BEHAVIOUR } from "../components/behaviour";
 import { isWalkable } from "./immersion";
 import { isCollision } from "./movement";
 import { add, random } from "../../game/math/std";
 import { getAttackable, isFriendlyFire } from "./damage";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientationPoints,
+  orientations,
+} from "../components/orientable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -28,12 +29,13 @@ export default function setupAi(world: World) {
 
       for (const pattern of patterns) {
         if (pattern === "triangle") {
+          const facing = (entity[ORIENTABLE].facing || "right") as Orientation;
+
           if (entity[MOVABLE].orientations.length === 0) {
-            entity[MOVABLE].orientations = [entity[MOVABLE].facing];
+            entity[MOVABLE].orientations = [facing];
             rerenderEntity(world, entity);
           }
 
-          const facing = entity[MOVABLE].facing as Orientation;
           const position = add(entity[POSITION], orientationPoints[facing]);
           const attackedEntity = getAttackable(world, position);
 
@@ -84,7 +86,7 @@ export default function setupAi(world: World) {
                 ];
             }
 
-            entity[MOVABLE].facing = newFacing;
+            entity[ORIENTABLE].facing = newFacing;
             entity[MOVABLE].orientations = [];
             rerenderEntity(world, entity);
           }

@@ -12,7 +12,7 @@ import * as colors from "../../game/assets/colors";
 import { FOG, Fog } from "../../engine/components/fog";
 import { fog as fogSprite } from "../../game/assets/sprites";
 import { animated, useSpring } from "@react-spring/three";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { NPC, Npc } from "../../engine/components/npc";
 import { Player, PLAYER } from "../../engine/components/player";
 import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
@@ -25,6 +25,7 @@ import Bar from "./Bar";
 import { Particle, PARTICLE } from "../../engine/components/particle";
 import { Melee, MELEE } from "../../engine/components/melee";
 import { useWorld } from "../../bindings/hooks";
+import { Orientable, ORIENTABLE } from "../../engine/components/orientable";
 
 function Layer({
   layer,
@@ -133,7 +134,6 @@ function Layer({
 
 export default function Sprite({
   entity,
-  hide,
 }: {
   entity: {
     [ATTACKABLE]?: Attackable;
@@ -142,12 +142,12 @@ export default function Sprite({
     [MELEE]?: Melee;
     [MOVABLE]?: Movable;
     [NPC]?: Npc;
+    [ORIENTABLE]?: Orientable;
     [PARTICLE]?: Particle;
     [PLAYER]?: Player;
     [SPRITE]: SpriteType;
     [SWIMMABLE]?: Swimmable;
   };
-  hide: () => void;
 }) {
   const { ecs } = useWorld();
 
@@ -159,21 +159,16 @@ export default function Sprite({
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
   const isUnit = !!entity[NPC] || isPlayer;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
-  const facing = entity[MOVABLE]?.facing;
   const isAttackable = !!entity[ATTACKABLE];
   const isParticle = !!entity[PARTICLE];
 
-  const layers = getFacingLayers(sprite, facing);
+  const spriteLayers = getFacingLayers(entity);
   const melee =
     entity[MELEE] && ecs
-      ? getFacingLayers(ecs.getEntityById(entity[MELEE].item)[SPRITE], facing)
+      ? getFacingLayers(ecs.getEntityById(entity[MELEE].item))
       : [];
 
-  useEffect(() => {
-    if (entity[PARTICLE]) {
-      setTimeout(hide, entity[PARTICLE].ttl);
-    }
-  }, [entity, hide]);
+  const layers = spriteLayers.concat(melee);
 
   return (
     <>
@@ -190,19 +185,6 @@ export default function Sprite({
           layer={layer}
           key={index}
           offset={index}
-        />
-      ))}
-
-      {melee.map((layer, index) => (
-        <Layer
-          isAir={isAir}
-          isOpaque={isOpaque}
-          isUnit={isUnit}
-          isParticle={isParticle}
-          visibility={visibility}
-          layer={layer}
-          key={index}
-          offset={index + layers.length}
         />
       ))}
 

@@ -46,6 +46,7 @@ export default function createWorld(size: number) {
     metadata: {
       gameEntity: {} as Entity,
       listeners: {} as Record<number, () => void>,
+      generationOffset: 0, // to keep track of last generations of removed reference frame
     },
   };
 

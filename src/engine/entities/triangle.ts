@@ -6,6 +6,7 @@ import { FOG, Fog } from "../components/fog";
 import { Melee, MELEE } from "../components/melee";
 import { Movable, MOVABLE } from "../components/movable";
 import { Npc, NPC } from "../components/npc";
+import { Orientable, ORIENTABLE } from "../components/orientable";
 import { POSITION, Position } from "../components/position";
 import { Renderable, RENDERABLE } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
@@ -22,6 +23,7 @@ export default function createTriangle(
     [MELEE]: Melee;
     [MOVABLE]: Movable;
     [NPC]: Npc;
+    [ORIENTABLE]: Orientable;
     [POSITION]: Position;
     [SPRITE]: Sprite;
     [RENDERABLE]: Renderable;
@@ -37,6 +39,7 @@ export default function createTriangle(
   components.addMelee(world, triangleEntity, entity[MELEE]);
   components.addMovable(world, triangleEntity, entity[MOVABLE]);
   components.addNpc(world, triangleEntity , entity[NPC]);
+  components.addOrientable(world, triangleEntity , entity[ORIENTABLE]);
   components.addPosition(world, triangleEntity, entity[POSITION]);
   components.addSprite(world, triangleEntity, entity[SPRITE]);
   components.addRenderable(world, triangleEntity, entity[RENDERABLE]);

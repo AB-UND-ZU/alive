@@ -9,7 +9,7 @@ export type Reference = {
 };
 
 export const isProcessable = (reference: Reference) =>
-  reference.delta >= reference.tick;
+  reference.tick > 0 && reference.delta >= reference.tick;
 
 export const REFERENCE = "REFERENCE";
 

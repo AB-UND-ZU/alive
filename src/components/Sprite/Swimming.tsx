@@ -2,11 +2,12 @@ import * as THREE from "three";
 import * as colors from "../../game/assets/colors";
 import { Entity } from "ecs";
 import { useDimensions } from "../Dimensions";
-import { MOVABLE } from "../../engine/components/movable";
 import { useEffect, useRef, useState } from "react";
 import { animated, useSpring } from "@react-spring/three";
 import { stack, stackHeight } from "./utils";
 import { effectHeight } from "../Camera";
+import { ORIENTABLE } from "../../engine/components/orientable";
+import { MOVABLE } from "../../engine/components/movable";
 
 const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(1.72);
 
@@ -20,7 +21,7 @@ export default function Swimming({
   isVisible: boolean;
 }) {
   const dimensions = useDimensions();
-  const facing = entity[MOVABLE].facing;
+  const facing = entity[ORIENTABLE].facing;
   const activeRef = useRef(false);
   const [black, setBlack] = useState(!isVisible && !active);
   const [spring, api] = useSpring(
@@ -36,7 +37,9 @@ export default function Swimming({
         : 0,
       translateY: active ? (dimensions.aspectRatio - 1) / 2 : -0.5,
       config:
-        !active && facing === "down" ? { duration: 0 } : entity[MOVABLE].spring,
+        !active && facing === "down"
+          ? { duration: 0 }
+          : entity[MOVABLE].spring,
       delay: active ? 100 : 0,
       onRest: (result) => {
         setBlack(result.value.opacity === 0 || result.value.scaleY === 0);

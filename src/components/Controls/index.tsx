@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useDimensions } from "../Dimensions";
 import "./index.css";
-import { MOVABLE, Orientation } from "../../engine/components/movable";
+import { MOVABLE } from "../../engine/components/movable";
 import { useHero, useWorld } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 import { Point } from "../../game/math/std";
+import { Orientation } from "../../engine/components/orientable";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
