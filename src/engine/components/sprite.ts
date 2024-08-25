@@ -1,6 +1,6 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
-import { Orientation } from "./movable";
+import { Orientation } from "./orientable";
 
 export type Layer = {
   char: string;

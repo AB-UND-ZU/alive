@@ -13,8 +13,8 @@ import {
   cactus2,
   flower,
   fog,
-  frozen,
-  ice,
+  // frozen,
+  // ice,
   none,
   player,
   sand,
@@ -37,6 +37,8 @@ import { ATTACKABLE } from "../engine/components/attackable";
 import { MELEE } from "../engine/components/melee";
 import { INVENTORY } from "../engine/components/inventory";
 import { ITEM } from "../engine/components/item";
+import { ORIENTABLE } from "../engine/components/orientable";
+import { ANIMATABLE } from "../engine/components/animatable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -167,7 +169,9 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "triangle") {
       const clawsId = world.getEntityId(
         entities.createSword(world, {
+          [ANIMATABLE]: { states: {}, generationOffset: 0 },
           [ITEM]: { dmg: 3 },
+          [ORIENTABLE]: {},
           [RENDERABLE]: { generation: 0 },
           [SPRITE]: none,
         })
@@ -180,13 +184,13 @@ export const generateWorld = async (world: World) => {
         [MELEE]: { item: clawsId },
         [MOVABLE]: {
           orientations: [],
-          facing: "right",
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: {
             duration: 200,
           },
         },
         [NPC]: {},
+        [ORIENTABLE]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: triangle,
@@ -197,7 +201,9 @@ export const generateWorld = async (world: World) => {
 
   const swordId = world.getEntityId(
     entities.createSword(world, {
+      [ANIMATABLE]: { states: {}, generationOffset: 0 },
       [ITEM]: { dmg: 1 },
+      [ORIENTABLE]: {},
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: sword,
     })
@@ -230,6 +236,7 @@ export const generateWorld = async (world: World) => {
         tension: 1000,
       },
     },
+    [ORIENTABLE]: {},
     [PLAYER]: {},
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
@@ -244,7 +251,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupLoot);
-  world.addSystem(systems.setupDecay);
+  world.addSystem(systems.setupAnimate);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);
 };

@@ -200,6 +200,32 @@ export const sword: Sprite = {
       color: colors.maroon,
     },
   ],
+  facing: {
+    up: [
+      {
+        char: "|",
+        color: colors.maroon,
+      },
+    ],
+    right: [
+      {
+        char: "-",
+        color: colors.maroon,
+      },
+    ],
+    down: [
+      {
+        char: "|",
+        color: colors.maroon,
+      },
+    ],
+    left: [
+      {
+        char: "-",
+        color: colors.maroon,
+      },
+    ],
+  },
 };
 
 export const hit: Sprite = {

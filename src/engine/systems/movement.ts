@@ -1,6 +1,6 @@
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { MOVABLE, Orientation, orientationPoints } from "../components/movable";
+import { MOVABLE } from "../components/movable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
 import { getCell, registerEntity, unregisterEntity } from "./map";
@@ -10,6 +10,12 @@ import { rerenderEntity } from "./renderer";
 import { isWalkable } from "./immersion";
 import { add } from "../../game/math/std";
 import { isDead } from "./loot";
+import { getAttackable, isFriendlyFire } from "./damage";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientationPoints,
+} from "../components/orientable";
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
@@ -59,15 +65,19 @@ export default function setupMovement(world: World) {
         const delta = orientationPoints[orientation];
         const position = add(entity[POSITION], delta);
 
+        // don't move if attacked earlier
+        const attackable = getAttackable(world, position);
+        if (attackable && !isFriendlyFire(world, entity, attackable)) break;
+
         if (!isCollision(world, position) && isWalkable(world, position)) {
           unregisterEntity(world, entity);
 
           entity[POSITION].x = position.x;
           entity[POSITION].y = position.y;
-          entity[MOVABLE].facing = orientation;
+
+          if (entity[ORIENTABLE]) entity[ORIENTABLE].facing = orientation;
 
           registerEntity(world, entity);
-
           rerenderEntity(world, entity);
           break;
         }

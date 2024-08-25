@@ -4,17 +4,16 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { add } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
-import { MOVABLE, Orientation, orientationPoints } from "../components/movable";
+import { MOVABLE } from "../components/movable";
 import { MELEE } from "../components/melee";
-import { getCell, registerEntity } from "./map";
+import { getCell } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
 import { NPC } from "../components/npc";
 import { entities } from "..";
-import { PARTICLE } from "../components/particle";
-import { SPRITE } from "../components/sprite";
-import { hit } from "../../game/assets/sprites";
 import { ITEM } from "../components/item";
+import { ANIMATABLE, Animatable } from "../components/animatable";
+import { Orientation, orientationPoints } from "../components/orientable";
 
 export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -69,19 +68,47 @@ export default function setupDamage(world: World) {
         continue;
 
       // handle attacking
-      const damage = world.getEntityById(entity[MELEE].item)[ITEM].dmg;
+      const sword = world.getEntityById(entity[MELEE].item);
+      const damage = sword[ITEM].dmg;
       targetEntity[ATTACKABLE].hp = Math.max(
         0,
         targetEntity[ATTACKABLE].hp - damage
       );
 
-      const hitEntity = entities.createHit(world, {
-        [PARTICLE]: { ttl: 200, reference: world.getEntityId(entity) },
-        [POSITION]: targetPosition,
+      const animationEntity = entities.createAnimation(world, {
+        [REFERENCE]: {
+          tick: -1,
+          delta: 0,
+          suspended: false,
+          pendingSuspended: false,
+        },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: hit,
       });
-      registerEntity(world, hitEntity);
+      const swordAnimation = sword[ANIMATABLE] as Animatable;
+      const targetAnimation = targetEntity[ANIMATABLE] as Animatable;
+
+      if (swordAnimation) {
+        // TODO: clear previous particles if existing
+        swordAnimation.states.melee = {
+          name: "swordAttack",
+          reference: world.getEntityId(animationEntity),
+          elapsed: 0,
+          args: { facing: targetOrientation },
+          particles: {},
+        };
+      }
+
+      if (targetAnimation) {
+        // TODO: clear previous particles if existing
+        targetAnimation.states.hit = {
+          name: "damageHit",
+          reference: world.getEntityId(animationEntity),
+          elapsed: 0,
+          args: { dmg: damage },
+          particles: {},
+        };
+      }
+
       rerenderEntity(world, targetEntity);
     }
   };

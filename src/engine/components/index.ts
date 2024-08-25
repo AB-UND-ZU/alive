@@ -1,3 +1,4 @@
+export { default as addAnimatable } from "./animatable";
 export { default as addAttackable } from "./attackable";
 export { default as addBehaviour } from "./behaviour";
 export { default as addCollidable } from "./collidable";
@@ -10,7 +11,7 @@ export { default as addLight } from "./light";
 export { default as addMelee } from "./melee";
 export { default as addMovable } from "./movable";
 export { default as addNpc } from "./npc";
-export { default as addParticle } from "./particle";
+export { default as addOrientable } from "./orientable";
 export { default as addPlayer } from "./player";
 export { default as addPosition } from "./position";
 export { default as addReference } from "./reference";
