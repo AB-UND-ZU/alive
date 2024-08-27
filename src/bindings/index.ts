@@ -37,6 +37,7 @@ import { INVENTORY } from "../engine/components/inventory";
 import { ITEM } from "../engine/components/item";
 import { ORIENTABLE } from "../engine/components/orientable";
 import { ANIMATABLE } from "../engine/components/animatable";
+import { aspectRatio } from "../components/Dimensions/sizing";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -48,11 +49,21 @@ export const generateWorld = async (world: World) => {
   const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
 
   const worldMatrix = matrixFactory(size, size, (x, y) => {
-    const elevation = elevationMatrix[x][y];
-    const terrain = terrainMatrix[x][y];
-    const temperature = temperatureMatrix[x][y];
-    const green = greenMatrix[x][y];
-    const spawn = spawnMatrix[x][y];
+    // distance from zero
+    const deltaX = size / 2 - Math.abs(x - size / 2);
+    const deltaY = size / 2 - Math.abs(y - size / 2);
+    const distance = Math.sqrt((deltaX * aspectRatio) ** 2 + deltaY ** 2);
+
+    // create clean elevation around menu
+    const menu = 100000 / distance ** 4;
+    const menuElevation = Math.min(20, menu);
+    const menuDip = 1 / (1 + menu / 16);
+
+    const elevation = elevationMatrix[x][y] * menuDip + menuElevation;
+    const terrain = terrainMatrix[x][y] * menuDip + menuElevation;
+    const temperature = temperatureMatrix[x][y] * menuDip;
+    const green = greenMatrix[x][y] * menuDip;
+    const spawn = spawnMatrix[x][y] * menuDip;
 
     // beach and islands (if not desert)
     if (
