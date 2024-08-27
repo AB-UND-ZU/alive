@@ -169,7 +169,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "triangle") {
       const clawsId = world.getEntityId(
         entities.createSword(world, {
-          [ANIMATABLE]: { states: {}, generationOffset: 0 },
+          [ANIMATABLE]: { states: {} },
           [ITEM]: { dmg: 3 },
           [ORIENTABLE]: {},
           [RENDERABLE]: { generation: 0 },
@@ -177,6 +177,7 @@ export const generateWorld = async (world: World) => {
         })
       );
       entities.createTriangle(world, {
+        [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { max: 3, hp: 3, enemy: true },
         [BEHAVIOUR]: { patterns: ["triangle"] },
         [COLLIDABLE]: {},
@@ -201,7 +202,7 @@ export const generateWorld = async (world: World) => {
 
   const swordId = world.getEntityId(
     entities.createSword(world, {
-      [ANIMATABLE]: { states: {}, generationOffset: 0 },
+      [ANIMATABLE]: { states: {} },
       [ITEM]: { dmg: 1 },
       [ORIENTABLE]: {},
       [RENDERABLE]: { generation: 0 },
@@ -222,6 +223,7 @@ export const generateWorld = async (world: World) => {
   );
 
   entities.createHero(world, {
+    [ANIMATABLE]: { states: {} },
     [ATTACKABLE]: { max: 10, hp: 10, enemy: false },
     [COLLIDABLE]: {},
     [INVENTORY]: { items: [swordId] },

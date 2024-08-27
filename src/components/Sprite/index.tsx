@@ -26,6 +26,8 @@ import { Particle, PARTICLE } from "../../engine/components/particle";
 import { Melee, MELEE } from "../../engine/components/melee";
 import { useWorld } from "../../bindings/hooks";
 import { Orientable, ORIENTABLE } from "../../engine/components/orientable";
+import { Animatable, ANIMATABLE } from "../../engine/components/animatable";
+import { Entity } from "ecs";
 
 function Layer({
   layer,
@@ -34,7 +36,7 @@ function Layer({
   isAir,
   isOpaque,
   isUnit,
-  isParticle,
+  particle,
 }: {
   layer: LayerType;
   offset: number;
@@ -42,7 +44,7 @@ function Layer({
   isAir: boolean;
   isOpaque: boolean;
   isUnit: boolean;
-  isParticle: boolean;
+  particle?: Particle;
 }) {
   const dimensions = useDimensions();
 
@@ -102,11 +104,11 @@ function Layer({
       receiveShadow={receiveShadow}
       size={textSize}
       position={[
-        -0.5 * dimensions.aspectRatio,
-        -0.25,
+        ((particle ? particle.offsetX : 0) - 0.5) * dimensions.aspectRatio,
+        -0.25 - (particle ? particle.offsetY : 0),
         ((offset +
           (isUnit ? stack * unitHeight : 0) +
-          (isParticle ? stack * particleHeight : 0) +
+          (particle ? stack * particleHeight : 0) +
           (isOpaque ? stack * wallHeight : 0) +
           (isAir ? stack * fogHeight : 0)) *
           stackHeight) /
@@ -116,7 +118,7 @@ function Layer({
     >
       {isAir ? (
         <meshBasicMaterial color={shadowColor.current} />
-      ) : isParticle ? (
+      ) : particle ? (
         <meshBasicMaterial color={color} />
       ) : isUnit ? (
         <animated.meshBasicMaterial
@@ -137,6 +139,7 @@ export default function Sprite({
 }: {
   entity: {
     [ATTACKABLE]?: Attackable;
+    [ANIMATABLE]?: Animatable;
     [FOG]?: Fog;
     [LIGHT]?: Light;
     [MELEE]?: Melee;
@@ -160,15 +163,36 @@ export default function Sprite({
   const isUnit = !!entity[NPC] || isPlayer;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const isAttackable = !!entity[ATTACKABLE];
-  const isParticle = !!entity[PARTICLE];
 
   const spriteLayers = getFacingLayers(entity);
-  const melee =
-    entity[MELEE] && ecs
-      ? getFacingLayers(ecs.getEntityById(entity[MELEE].item))
-      : [];
-
+  const meleeItem =
+    entity[MELEE] && ecs && ecs.getEntityById(entity[MELEE].item);
+  const melee = meleeItem ? getFacingLayers(meleeItem) : [];
   const layers = spriteLayers.concat(melee);
+
+  const particles = entity[ANIMATABLE]
+    ? Object.values(entity[ANIMATABLE].states)
+        .concat(meleeItem ? Object.values(meleeItem[ANIMATABLE].states) : [])
+        .reduce<Entity[]>(
+          (all, animation) =>
+            all.concat(
+              Object.values(animation.particles).map((entityId) =>
+                ecs?.getEntityById(entityId)
+              )
+            ),
+          []
+        )
+    : [];
+  const particleLayers = particles.reduce<[Particle, LayerType][]>(
+    (layers, particle) =>
+      layers.concat(
+        particle[SPRITE].layers.map((layer: LayerType) => [
+          particle[PARTICLE],
+          layer,
+        ])
+      ),
+    []
+  );
 
   return (
     <>
@@ -180,7 +204,19 @@ export default function Sprite({
           isAir={isAir}
           isOpaque={isOpaque}
           isUnit={isUnit}
-          isParticle={isParticle}
+          visibility={visibility}
+          layer={layer}
+          key={index}
+          offset={index}
+        />
+      ))}
+
+      {particleLayers.map(([particle, layer], index) => (
+        <Layer
+          isAir={isAir}
+          isOpaque={isOpaque}
+          isUnit={isUnit}
+          particle={particle}
           visibility={visibility}
           layer={layer}
           key={index}

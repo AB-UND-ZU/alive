@@ -237,3 +237,13 @@ export const hit: Sprite = {
     },
   ],
 };
+
+export const createCounter: (amount: number) => Sprite = (amount) => ({
+  name: "counter_generic",
+  layers: [
+    {
+      char: amount.toString(),
+      color: colors.red,
+    },
+  ],
+});

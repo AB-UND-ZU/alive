@@ -1,4 +1,5 @@
 import * as components from "../components";
+import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
 import { Collidable, COLLIDABLE } from "../components/collidable";
@@ -16,6 +17,7 @@ import type { World } from "../ecs";
 export default function createTriangle(
   world: World,
   entity: {
+    [ANIMATABLE]: Animatable;
     [ATTACKABLE]: Attackable;
     [BEHAVIOUR]: Behaviour;
     [COLLIDABLE]: Collidable;
@@ -32,6 +34,7 @@ export default function createTriangle(
 ) {
   const triangleEntity = world.createEntity();
 
+  components.addAnimatable(world, triangleEntity, entity[ANIMATABLE]);
   components.addAttackable(world, triangleEntity, entity[ATTACKABLE]);
   components.addBehaviour(world, triangleEntity, entity[BEHAVIOUR]);
   components.addCollidable(world, triangleEntity, entity[COLLIDABLE]);

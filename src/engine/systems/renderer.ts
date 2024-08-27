@@ -10,28 +10,31 @@ export const rerenderEntity = (world: World, entity: Entity) => {
   entity[RENDERABLE].generation += 1;
 };
 
-const getAnimatableGeneration = (world: World, entity?: Entity) => {
-  const animatable = entity?.[ANIMATABLE] as Animatable;
-  if (!entity || !animatable) return 0;
-
-  return Object.values(animatable.states).reduce(
-    (total, state) =>
-      total + world.getEntityById(state.reference)[RENDERABLE].generation,
-    animatable.generationOffset
-  );
-};
-
 export const getEntityGeneration = (world: World, entity: Entity) => {
-  const generation = entity[RENDERABLE].generation;
+  const renderableGeneration = entity[RENDERABLE].generation;
   const movable = entity[MOVABLE];
+  const movableGeneration = movable
+    ? world.getEntityById(movable.reference)[RENDERABLE].generation
+    : 0;
+  const animatable = entity[ANIMATABLE] as Animatable;
+  const animatableGeneration = animatable
+    ? Object.values(animatable.states).reduce(
+        (total, state) =>
+          total + world.getEntityById(state.reference)[RENDERABLE].generation,
+        0
+      )
+    : 0;
+
+  const melee = entity[MELEE]?.item;
+  const meleeGeneration: number = melee
+    ? getEntityGeneration(world, world.getEntityById(melee))
+    : 0;
 
   return (
-    generation +
-    (movable
-      ? world.getEntityById(movable.reference)[RENDERABLE].generation
-      : 0) +
-    getAnimatableGeneration(world, entity) +
-    getAnimatableGeneration(world, world.getEntityById(entity[MELEE]?.item))
+    renderableGeneration +
+    movableGeneration +
+    animatableGeneration +
+    meleeGeneration
   );
 };
 
@@ -41,10 +44,7 @@ export default function setupRenderer(world: World) {
   const onUpdate = (delta: number) => {
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
-      .reduce(
-        (total, entity) => entity[RENDERABLE].generation + total,
-        world.metadata.generationOffset
-      );
+      .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
 
     if (referencesGeneration === generation) return;
 

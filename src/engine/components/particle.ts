@@ -2,8 +2,8 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Particle = {
-  ttl: number;
-  reference: number;
+  offsetX: number;
+  offsetY: number;
 };
 
 export const PARTICLE = "PARTICLE";

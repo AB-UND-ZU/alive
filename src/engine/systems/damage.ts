@@ -58,10 +58,8 @@ export default function setupDamage(world: World) {
 
       if (!targetOrientation) continue;
 
-      const targetPosition = add(
-        entity[POSITION],
-        orientationPoints[targetOrientation]
-      );
+      const delta = orientationPoints[targetOrientation];
+      const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getAttackable(world, targetPosition);
 
       if (!targetEntity || isFriendlyFire(world, entity, targetEntity))
@@ -88,24 +86,25 @@ export default function setupDamage(world: World) {
       const targetAnimation = targetEntity[ANIMATABLE] as Animatable;
 
       if (swordAnimation) {
-        // TODO: clear previous particles if existing
         swordAnimation.states.melee = {
           name: "swordAttack",
           reference: world.getEntityId(animationEntity),
           elapsed: 0,
           args: { facing: targetOrientation },
-          particles: {},
+          particles: swordAnimation.states.melee?.particles || {},
         };
       }
 
       if (targetAnimation) {
-        // TODO: clear previous particles if existing
-        targetAnimation.states.hit = {
-          name: "damageHit",
+        targetAnimation.states.counter = {
+          name: "damageCounter",
           reference: world.getEntityId(animationEntity),
           elapsed: 0,
-          args: { dmg: damage },
-          particles: {},
+          args: {
+            facing: targetOrientation,
+            amount: damage + (targetAnimation.states.counter?.args.amount || 0),
+          },
+          particles: targetAnimation.states.counter?.particles || {},
         };
       }
 
