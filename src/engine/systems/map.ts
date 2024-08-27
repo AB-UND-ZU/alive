@@ -1,7 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
-import { LEVEL } from "../components/level";
+import { Level, LEVEL } from "../components/level";
 import { normalize } from "../../game/math/std";
 
 export const registerEntity = (world: World, entity: Entity) => {
@@ -33,7 +33,7 @@ export const unregisterEntity = (world: World, entity: Entity) => {
 };
 
 export const getCell = (world: World, position: Position) => {
-  const level = world.metadata.gameEntity[LEVEL];
+  const level = world.metadata.gameEntity[LEVEL] as Level;
   const normalizedX = normalize(position.x, level.size);
   const normalizedY = normalize(position.y, level.size);
   return level.map[normalizedX]?.[normalizedY] || {};

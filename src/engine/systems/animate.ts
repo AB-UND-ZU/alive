@@ -25,21 +25,23 @@ export default function setupAnimate(world: World) {
       for (const animationName in animatable.states) {
         const animationType = animationName as keyof AnimationArgument;
         const animationState = animatable.states[animationType]!;
+        const animationEntity = world.getEntityById(animationState.reference);
         animationState.elapsed += delta;
         const animation = animations[animationState.name];
-        const result = animation(world, entity, animationState as any); // trust me i'm an engineer
+        const result = animation(world, entity, animationState as any); // trust me TypeScript i'm an engineer
 
         animationFrames[animationState.reference][world.getEntityId(entity)] =
           result.finished;
 
         if (result.updated || result.finished) {
-          rerenderEntity(world, world.getEntityById(animationState.reference));
-          rerenderEntity(world, entity);
+          rerenderEntity(world, animationEntity);
         }
 
         if (result.finished) {
           // TODO: handle cleaning up of particles
           delete animatable.states[animationType];
+          entity[RENDERABLE].generation +=
+            animationEntity[RENDERABLE].generation;
         }
       }
     }
@@ -55,14 +57,8 @@ export default function setupAnimate(world: World) {
       ) {
         // persist last generation in frame and entities to allow safely removing frame and ensuring proper rendering
         const lastGeneration = frame[RENDERABLE].generation;
-        world.metadata.generationOffset += lastGeneration;
-        for (const [entityId] of entityAnimations) {
-          world.getEntityById(parseInt(entityId))[
-            ANIMATABLE
-          ].generationOffset += lastGeneration;
-        }
-
-        world.removeEntity(frame);
+        world.metadata.animationEntity[RENDERABLE].generation += lastGeneration;
+        world.removeEntity(frame, false);
       }
     }
   };

@@ -46,7 +46,7 @@ export default function createWorld(size: number) {
     metadata: {
       gameEntity: {} as Entity,
       listeners: {} as Record<number, () => void>,
-      generationOffset: 0, // to keep track of last generations of removed reference frame
+      animationEntity: {} as Entity,
     },
   };
 
@@ -56,6 +56,17 @@ export default function createWorld(size: number) {
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
       tick: 350,
+      delta: 0,
+      suspended: false,
+      pendingSuspended: false,
+    },
+  });
+
+  // to keep track of last generations of removed reference frame
+  ecs.metadata.animationEntity = entities.createAnimation(ecs, {
+    [RENDERABLE]: { generation: 0 },
+    [REFERENCE]: {
+      tick: -1,
       delta: 0,
       suspended: false,
       pendingSuspended: false,

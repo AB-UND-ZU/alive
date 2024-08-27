@@ -29,7 +29,8 @@ export default function setupAi(world: World) {
 
       for (const pattern of patterns) {
         if (pattern === "triangle") {
-          const facing = (entity[ORIENTABLE].facing || "right") as Orientation;
+          const facing = (entity[ORIENTABLE].facing ||
+            orientations[random(0, orientations.length - 1)]) as Orientation;
 
           if (entity[MOVABLE].orientations.length === 0) {
             entity[MOVABLE].orientations = [facing];

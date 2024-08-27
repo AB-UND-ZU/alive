@@ -9,7 +9,7 @@ import { effectHeight } from "../Camera";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { MOVABLE } from "../../engine/components/movable";
 
-const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(1.72);
+const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(2.35);
 
 export default function Swimming({
   active,
@@ -37,9 +37,7 @@ export default function Swimming({
         : 0,
       translateY: active ? (dimensions.aspectRatio - 1) / 2 : -0.5,
       config:
-        !active && facing === "down"
-          ? { duration: 0 }
-          : entity[MOVABLE].spring,
+        !active && facing === "down" ? { duration: 0 } : entity[MOVABLE].spring,
       delay: active ? 100 : 0,
       onRest: (result) => {
         setBlack(result.value.opacity === 0 || result.value.scaleY === 0);

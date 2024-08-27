@@ -11,8 +11,8 @@ import type { World as WorldType } from "../engine";
 import { RENDERABLE } from "../engine/components/renderable";
 import { PLAYER } from "../engine/components/player";
 import { POSITION } from "../engine/components/position";
-import { LEVEL } from "../engine/components/level";
 import { getEntityGeneration } from "../engine/systems/renderer";
+import { REFERENCE } from "../engine/components/reference";
 
 export type WorldContext = {
   ecs: WorldType | null;
@@ -90,7 +90,7 @@ export const useHero = () => {
 export const useGame = () => {
   const { ecs } = useWorld();
 
-  useRenderable([LEVEL]);
+  useRenderable([REFERENCE]);
 
   return ecs?.metadata.gameEntity;
 };

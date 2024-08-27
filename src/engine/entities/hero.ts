@@ -1,4 +1,5 @@
 import * as components from "../components";
+import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Collidable, COLLIDABLE } from "../components/collidable";
 import { Inventory, INVENTORY } from "../components/inventory";
@@ -16,6 +17,7 @@ import type { World } from "../ecs";
 export default function createHero(
   world: World,
   entity: {
+    [ANIMATABLE]: Animatable;
     [ATTACKABLE]: Attackable;
     [COLLIDABLE]: Collidable;
     [INVENTORY]: Inventory;
@@ -32,6 +34,7 @@ export default function createHero(
 ) {
   const heroEntity = world.createEntity();
 
+  components.addAnimatable(world, heroEntity, entity[ANIMATABLE]);
   components.addAttackable(world, heroEntity, entity[ATTACKABLE]);
   components.addCollidable(world, heroEntity, entity[COLLIDABLE]);
   components.addInventory(world, heroEntity, entity[INVENTORY]);
