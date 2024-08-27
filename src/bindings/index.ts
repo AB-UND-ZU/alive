@@ -13,8 +13,6 @@ import {
   cactus2,
   flower,
   fog,
-  // frozen,
-  // ice,
   none,
   player,
   sand,
@@ -55,9 +53,6 @@ export const generateWorld = async (world: World) => {
     const temperature = temperatureMatrix[x][y];
     const green = greenMatrix[x][y];
     const spawn = spawnMatrix[x][y];
-
-    // ice
-    // if (elevation < 0 && temperature < -40) return 20 < green && green < 25 ? "frozen" : "ice";
 
     // beach and islands (if not desert)
     if (
@@ -122,20 +117,6 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: water,
         [RENDERABLE]: { generation: 0 },
       });
-      // } else if (cell === "ice") {
-      //   entities.createIce(world, {
-      //     [FOG]: { visibility: "hidden" },
-      //     [POSITION]: { x, y },
-      //     [SPRITE]: ice,
-      //     [RENDERABLE]: { generation: 0 },
-      //   });
-      // } else if (cell === "frozen") {
-      //   entities.createIce(world, {
-      //     [FOG]: { visibility: "hidden" },
-      //     [POSITION]: { x, y },
-      //     [SPRITE]: frozen,
-      //     [RENDERABLE]: { generation: 0 },
-      //   });
     } else if (cell === "tree") {
       entities.createTree(world, {
         [FOG]: { visibility: "hidden" },
