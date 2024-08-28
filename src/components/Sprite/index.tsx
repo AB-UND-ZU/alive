@@ -89,7 +89,6 @@ function Layer({
   if (layer.char === "█") {
     return (
       <Box
-        castShadow={isOpaque}
         receiveShadow={receiveShadow}
         color={spring.color}
         height={stackHeight / stack}
@@ -116,7 +115,9 @@ function Layer({
       ]}
       height={stackHeight / stack}
     >
-      {isAir ? (
+      {isOpaque ? (
+        <animated.meshBasicMaterial color={spring.color} />
+      ) : isAir ? (
         <meshBasicMaterial color={shadowColor.current} />
       ) : particle ? (
         <meshBasicMaterial color={color} />

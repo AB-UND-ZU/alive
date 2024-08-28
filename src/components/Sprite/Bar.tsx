@@ -24,7 +24,8 @@ export default function Bar({
   const spring = useSpring({
     scaleX: hp / max,
     translateX:
-      (((hp - max) / max) * dimensions.aspectRatio) / 2 - 0.5 / pixels,
+      (((hp - max) / max) * (dimensions.aspectRatio - 1 / pixels)) / 2 -
+      0.5 / pixels,
     opacity: isVisible ? 1 : 0,
     config: { duration: 75 },
   });

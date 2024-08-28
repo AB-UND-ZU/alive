@@ -26,6 +26,36 @@ export const wall: Sprite = {
   ],
 };
 
+export const block: Sprite = {
+  name: "block_solid",
+  layers: [
+    {
+      char: "█",
+      color: colors.maroon,
+    },
+  ],
+};
+
+export const block_down: Sprite = {
+  name: "block_down",
+  layers: [
+    {
+      char: "▄",
+      color: colors.maroon,
+    },
+  ],
+};
+
+export const block_up: Sprite = {
+  name: "block_up",
+  layers: [
+    {
+      char: "▀",
+      color: colors.maroon,
+    },
+  ],
+};
+
 export const water: Sprite = {
   name: "water_shallow",
   layers: [
@@ -156,6 +186,20 @@ export const player: Sprite = {
   ],
 };
 
+export const door: Sprite = {
+  name: "door_wood",
+  layers: [
+    {
+      char: "\u0109",
+      color: colors.maroon,
+    },
+    {
+      char: "\u0108",
+      color: colors.silver,
+    },
+  ],
+};
+
 export const triangle: Sprite = {
   name: "triangle_right",
   layers: [
@@ -244,6 +288,16 @@ export const createCounter: (amount: number) => Sprite = (amount) => ({
     {
       char: amount.toString(),
       color: colors.red,
+    },
+  ],
+});
+
+export const createText: (char: string) => Sprite = (char) => ({
+  name: "text_generic",
+  layers: [
+    {
+      char,
+      color: colors.white,
     },
   ],
 });
