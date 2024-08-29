@@ -5,6 +5,7 @@ export { default as createBush } from "./bush";
 export { default as createCactus } from "./cactus";
 export { default as createChest } from "./chest";
 export { default as createCounter } from "./counter";
+export { default as createDecay } from "./decay";
 export { default as createDoor } from "./door";
 export { default as createFlower } from "./flower";
 export { default as createFrame } from "./frame";

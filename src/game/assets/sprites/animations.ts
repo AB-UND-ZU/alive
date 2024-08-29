@@ -51,6 +51,16 @@ export const hit: Sprite = {
   ],
 };
 
+export const decay: Sprite = {
+  name: "unit_decay",
+  layers: [
+    {
+      char: "▒",
+      color: colors.black,
+    },
+  ],
+};
+
 export const createCounter: (amount: number) => Sprite = (amount) => ({
   name: "counter_generic",
   layers: [
