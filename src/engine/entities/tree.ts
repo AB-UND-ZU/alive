@@ -1,6 +1,7 @@
 import * as components from "../components";
 import { COLLIDABLE, Collidable } from "../components/collidable";
 import { FOG, Fog } from "../components/fog";
+import { Orientable, ORIENTABLE } from "../components/orientable";
 import { POSITION, Position } from "../components/position";
 import { RENDERABLE, Renderable } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
@@ -11,6 +12,7 @@ export default function createTree(
   entity: {
     [COLLIDABLE]: Collidable;
     [FOG]: Fog;
+    [ORIENTABLE]: Orientable;
     [POSITION]: Position;
     [SPRITE]: Sprite;
     [RENDERABLE]: Renderable;
@@ -19,7 +21,8 @@ export default function createTree(
   const treeEntity = world.createEntity();
 
   components.addCollidable(world, treeEntity, entity[COLLIDABLE]);
-  components.addFog(world, treeEntity , entity[FOG]);
+  components.addFog(world, treeEntity, entity[FOG]);
+  components.addOrientable(world, treeEntity, entity[ORIENTABLE]);
   components.addPosition(world, treeEntity, entity[POSITION]);
   components.addSprite(world, treeEntity, entity[SPRITE]);
   components.addRenderable(world, treeEntity, entity[RENDERABLE]);

@@ -56,7 +56,7 @@ export const sand: Sprite = {
   ],
 };
 
-export const tree1: Sprite = {
+export const tree: Sprite = {
   name: "tree_one",
   layers: [
     {
@@ -68,20 +68,28 @@ export const tree1: Sprite = {
       color: colors.green,
     },
   ],
-};
-
-export const tree2: Sprite = {
-  name: "tree_two",
-  layers: [
-    {
-      char: "┐",
-      color: colors.maroon,
-    },
-    {
-      char: "Θ",
-      color: colors.green,
-    },
-  ],
+  facing: {
+    right: [
+      {
+        char: "┐",
+        color: colors.maroon,
+      },
+      {
+        char: "Θ",
+        color: colors.green,
+      },
+    ],
+    left: [
+      {
+        char: "┐",
+        color: colors.maroon,
+      },
+      {
+        char: "Θ",
+        color: colors.green,
+      },
+    ],
+  },
 };
 
 export const bush: Sprite = {
@@ -92,6 +100,38 @@ export const bush: Sprite = {
       color: colors.olive,
     },
   ],
+  amounts: {
+    single: [
+      {
+        char: "'",
+        color: colors.teal,
+      },
+      {
+        char: "\u03c4",
+        color: colors.olive,
+      },
+    ],
+    double: [
+      {
+        char: '"',
+        color: colors.teal,
+      },
+      {
+        char: "\u03c4",
+        color: colors.olive,
+      },
+    ],
+    multiple: [
+      {
+        char: "°",
+        color: colors.teal,
+      },
+      {
+        char: "\u03c4",
+        color: colors.olive,
+      },
+    ],
+  },
 };
 
 export const flower: Sprite = {
@@ -102,9 +142,41 @@ export const flower: Sprite = {
       color: colors.olive,
     },
   ],
+  amounts: {
+    single: [
+      {
+        char: "·",
+        color: colors.purple,
+      },
+      {
+        char: ",",
+        color: colors.olive,
+      },
+    ],
+    double: [
+      {
+        char: "∙",
+        color: colors.purple,
+      },
+      {
+        char: ",",
+        color: colors.olive,
+      },
+    ],
+    multiple: [
+      {
+        char: "\u0106",
+        color: colors.purple,
+      },
+      {
+        char: ",",
+        color: colors.olive,
+      },
+    ],
+  },
 };
 
-export const cactus1: Sprite = {
+export const cactus: Sprite = {
   name: "cactus_empty",
   layers: [
     {
@@ -116,18 +188,26 @@ export const cactus1: Sprite = {
       color: colors.green,
     },
   ],
-};
-
-export const cactus2: Sprite = {
-  name: "cactus_empty",
-  layers: [
-    {
-      char: "▒",
-      color: colors.olive,
-    },
-    {
-      char: "¥",
-      color: colors.green,
-    },
-  ],
+  facing: {
+    right: [
+      {
+        char: "▒",
+        color: colors.olive,
+      },
+      {
+        char: "¥",
+        color: colors.green,
+      },
+    ],
+    left: [
+      {
+        char: "▒",
+        color: colors.olive,
+      },
+      {
+        char: "¥",
+        color: colors.green,
+      },
+    ],
+  },
 };

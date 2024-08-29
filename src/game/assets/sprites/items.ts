@@ -1,6 +1,60 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
+export const heart: Sprite = {
+  name: "heart_drop",
+  layers: [
+    {
+      char: "\u0102",
+      color: colors.red,
+    },
+  ],
+};
+
+export const mana: Sprite = {
+  name: "mana_drop",
+  layers: [
+    {
+      char: "\u0103",
+      color: colors.blue,
+    },
+  ],
+};
+
+export const xp: Sprite = {
+  name: "xp_drop",
+  layers: [
+    {
+      char: "+",
+      color: colors.lime,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "+",
+        color: colors.lime,
+      },
+    ],
+    double: [
+      {
+        char: "-",
+        color: colors.lime,
+      },
+      {
+        char: "|",
+        color: colors.lime,
+      },
+    ],
+    multiple: [
+      {
+        char: "┼",
+        color: colors.lime,
+      },
+    ],
+  },
+};
+
 export const gold: Sprite = {
   name: "gold_drop",
   layers: [
@@ -26,6 +80,66 @@ export const gold: Sprite = {
       {
         char: "O",
         color: colors.yellow,
+      },
+    ],
+  },
+};
+
+export const wood: Sprite = {
+  name: "wood_drop",
+  layers: [
+    {
+      char: "-",
+      color: colors.maroon,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "-",
+        color: colors.maroon,
+      },
+    ],
+    double: [
+      {
+        char: "=",
+        color: colors.maroon,
+      },
+    ],
+    multiple: [
+      {
+        char: "≡",
+        color: colors.maroon,
+      },
+    ],
+  },
+};
+
+export const iron: Sprite = {
+  name: "iron_drop",
+  layers: [
+    {
+      char: ".",
+      color: colors.grey,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: ".",
+        color: colors.grey,
+      },
+    ],
+    double: [
+      {
+        char: ":",
+        color: colors.grey,
+      },
+    ],
+    multiple: [
+      {
+        char: "÷",
+        color: colors.grey,
       },
     ],
   },

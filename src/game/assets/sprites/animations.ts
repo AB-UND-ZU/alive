@@ -61,12 +61,11 @@ export const createCounter: (amount: number) => Sprite = (amount) => ({
   ],
 });
 
-export const createText: (char: string) => Sprite = (char) => ({
-  name: "text_generic",
-  layers: [
-    {
-      char,
-      color: colors.white,
-    },
-  ],
-});
+export const createText: (text: string, color: string) => Sprite[] = (
+  text,
+  color
+) =>
+  text.split("").map((char) => ({
+    name: "text_generic",
+    layers: [{ char, color }],
+  }));

@@ -12,8 +12,7 @@ import {
   block_down,
   block_up,
   bush,
-  cactus1,
-  cactus2,
+  cactus,
   chest,
   createText,
   door,
@@ -25,13 +24,13 @@ import {
   player,
   sand,
   sword,
-  tree1,
-  tree2,
+  tree,
   triangle,
   wall,
   water,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
+import * as colors from "../game/assets/colors";
 import { LEVEL } from "../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../game/math/matrix";
 import { FOG } from "../engine/components/fog";
@@ -42,11 +41,11 @@ import { BEHAVIOUR } from "../engine/components/behaviour";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { MELEE } from "../engine/components/melee";
 import { ITEM } from "../engine/components/item";
-import { ORIENTABLE } from "../engine/components/orientable";
+import { ORIENTABLE, orientations } from "../engine/components/orientable";
 import { ANIMATABLE } from "../engine/components/animatable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import { menuArea } from "../game/assets/areas";
-import { normalize } from "../game/math/std";
+import { normalize, random } from "../game/math/std";
 import { LOOTABLE } from "../engine/components/lootable";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { INVENTORY } from "../engine/components/inventory";
@@ -138,7 +137,7 @@ export const generateWorld = async (world: World) => {
         entities.createBlock(world, {
           [COLLIDABLE]: {},
           [POSITION]: { x, y },
-          [SPRITE]: createText(cell),
+          [SPRITE]: createText(cell, colors.white)[0],
           [RENDERABLE]: { generation: 0 },
         });
       }
@@ -213,10 +212,13 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "tree") {
       entities.createTree(world, {
         [FOG]: { visibility },
-        [POSITION]: { x, y },
-        [SPRITE]: Math.random() < 0.5 ? tree1 : tree2,
-        [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
+        [ORIENTABLE]: {
+          facing: orientations[random(0, orientations.length - 1)],
+        },
+        [POSITION]: { x, y },
+        [SPRITE]: tree,
+        [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "bush") {
       entities.createBush(world, {
@@ -235,10 +237,13 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "cactus") {
       entities.createCactus(world, {
         [FOG]: { visibility },
-        [POSITION]: { x, y },
-        [SPRITE]: Math.random() < 0.5 ? cactus1 : cactus2,
-        [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
+        [ORIENTABLE]: {
+          facing: orientations[random(0, orientations.length - 1)],
+        },
+        [POSITION]: { x, y },
+        [SPRITE]: cactus,
+        [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "door") {
       entities.createDoor(world, {
@@ -262,8 +267,18 @@ export const generateWorld = async (world: World) => {
       );
       entities.createChest(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 10, hp: 10, enemy: true },
+        [ATTACKABLE]: { max: 10, enemy: true },
         [COLLIDABLE]: {},
+        [COUNTABLE]: {
+          hp: 10,
+          mp: 0,
+          xp: 0,
+          gold: 0,
+          wood: 0,
+          iron: 0,
+          herb: 0,
+          seed: 0,
+        },
         [INVENTORY]: { items: [keyId] },
         [LOOTABLE]: {},
         [FOG]: { visibility },
@@ -284,8 +299,18 @@ export const generateWorld = async (world: World) => {
       );
       entities.createChest(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 10, hp: 0, enemy: true },
+        [ATTACKABLE]: { max: 10, enemy: true },
         [COLLIDABLE]: {},
+        [COUNTABLE]: {
+          hp: 0,
+          mp: 0,
+          xp: 0,
+          gold: 0,
+          wood: 0,
+          iron: 0,
+          herb: 0,
+          seed: 0,
+        },
         [INVENTORY]: { items: [swordId] },
         [LOOTABLE]: {},
         [FOG]: { visibility },
@@ -314,9 +339,19 @@ export const generateWorld = async (world: World) => {
       );
       entities.createTriangle(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 3, hp: 3, enemy: true },
+        [ATTACKABLE]: { max: 3, enemy: true },
         [BEHAVIOUR]: { patterns: ["triangle"] },
         [COLLIDABLE]: {},
+        [COUNTABLE]: {
+          hp: 3,
+          mp: 0,
+          xp: 0,
+          gold: 0,
+          wood: 0,
+          iron: 0,
+          herb: 0,
+          seed: 0,
+        },
         [EQUIPPABLE]: { melee: clawsId },
         [FOG]: { visibility },
         [INVENTORY]: { items: [goldId] },
@@ -354,9 +389,18 @@ export const generateWorld = async (world: World) => {
 
   entities.createHero(world, {
     [ANIMATABLE]: { states: {} },
-    [ATTACKABLE]: { max: 10, hp: 10, enemy: false },
+    [ATTACKABLE]: { max: 10, enemy: false },
     [COLLIDABLE]: {},
-    [COUNTABLE]: { xp: 0, gold: 0, wood: 0, iron: 0, herb: 0, seed: 0 },
+    [COUNTABLE]: {
+      hp: 10,
+      mp: 0,
+      xp: 0,
+      gold: 0,
+      wood: 0,
+      iron: 0,
+      herb: 0,
+      seed: 0,
+    },
     [EQUIPPABLE]: {},
     [INVENTORY]: { items: [] },
     [LIGHT]: { brightness: 5.55, darkness: 0 },

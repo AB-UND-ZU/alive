@@ -1,0 +1,16 @@
+.Row {
+  display: flex;
+  justify-content: center;
+}
+
+.Cell {
+  position: relative;
+  width: var(--cell-width);
+  height: var(--cell-height);
+}
+
+.Layer {
+  display: block;
+  position: absolute;
+  inset: 0;
+}

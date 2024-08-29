@@ -4,7 +4,7 @@ import Systems from "../Systems";
 import Camera from "../Camera";
 import { OrbitControls, Stats } from "@react-three/drei";
 
-const stats = true;
+const stats = false;
 const controls = false;
 
 export default function Terminal() {

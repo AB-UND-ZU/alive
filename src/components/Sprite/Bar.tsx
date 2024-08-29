@@ -6,9 +6,10 @@ import { ATTACKABLE } from "../../engine/components/attackable";
 import { pixels, stack, stackHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
 import { particleHeight } from "../Camera";
+import { COUNTABLE } from "../../engine/components/countable";
 
-const playerBar = new THREE.Color(colors.green).multiplyScalar(0.1);
-const enemyBar = new THREE.Color(colors.maroon).multiplyScalar(0.175);
+const playerBar = new THREE.Color(colors.green).multiplyScalar(0.15);
+const enemyBar = new THREE.Color(colors.maroon).multiplyScalar(0.2);
 
 export default function Bar({
   entity,
@@ -18,7 +19,7 @@ export default function Bar({
   isVisible: boolean;
 }) {
   const dimensions = useDimensions();
-  const hp = entity[ATTACKABLE].hp;
+  const hp = entity[COUNTABLE].hp;
   const max = entity[ATTACKABLE].max;
   const isEnemy = entity[ATTACKABLE].enemy;
   const spring = useSpring({

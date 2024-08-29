@@ -2,6 +2,8 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Countable = {
+  hp: number;
+  mp: number;
   xp: number;
   gold: number;
   wood: number;
