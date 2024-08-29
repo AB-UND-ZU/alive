@@ -2,6 +2,7 @@ export { default as addAnimatable } from "./animatable";
 export { default as addAttackable } from "./attackable";
 export { default as addBehaviour } from "./behaviour";
 export { default as addCollidable } from "./collidable";
+export { default as addEquippable } from "./equippable";
 export { default as addFog } from "./fog";
 export { default as addImmersible } from "./immersible";
 export { default as addInventory } from "./inventory";

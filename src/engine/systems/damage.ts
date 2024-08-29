@@ -14,7 +14,7 @@ import { entities } from "..";
 import { ITEM } from "../components/item";
 import { ANIMATABLE, Animatable } from "../components/animatable";
 import { Orientation, orientationPoints } from "../components/orientable";
-import { INVENTORY } from "../components/inventory";
+import { EQUIPPABLE } from "../components/equippable";
 
 export const isDead = (world: World, entity: Entity) =>
   entity[ATTACKABLE].hp <= 0;
@@ -52,7 +52,7 @@ export default function setupDamage(world: World) {
       POSITION,
       MOVABLE,
       MELEE,
-      INVENTORY,
+      EQUIPPABLE,
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);
@@ -67,7 +67,7 @@ export default function setupDamage(world: World) {
 
       // skip if entity has no sword equipped or already interacted
       if (
-        !entity[INVENTORY].melee ||
+        !entity[EQUIPPABLE].melee ||
         entity[MOVABLE].lastInteraction === entityReference
       )
         continue;
@@ -87,7 +87,7 @@ export default function setupDamage(world: World) {
       if (!targetEntity) continue;
 
       // handle attacking
-      const sword = world.getEntityById(entity[INVENTORY].melee);
+      const sword = world.getEntityById(entity[EQUIPPABLE].melee);
       const damage = sword[ITEM].amount;
       targetEntity[ATTACKABLE].hp = Math.max(
         0,

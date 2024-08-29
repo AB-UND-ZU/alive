@@ -32,9 +32,9 @@ export default function setupDrop(world: World) {
         unregisterEntity(world, entity);
         world.removeEntity(entity);
       } else if (isDead(world, entity) && LOOTABLE in entity) {
-        entity[SPRITE] = world.getEntityById(
-          Object.values(entity[INVENTORY])[0]
-        )[SPRITE];
+        entity[SPRITE] = world.getEntityById(entity[INVENTORY].items[0])[
+          SPRITE
+        ];
       }
     }
   };

@@ -28,7 +28,7 @@ import { useWorld } from "../../bindings/hooks";
 import { Orientable, ORIENTABLE } from "../../engine/components/orientable";
 import { Animatable, ANIMATABLE } from "../../engine/components/animatable";
 import { Entity } from "ecs";
-import { Inventory, INVENTORY } from "../../engine/components/inventory";
+import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
 
 function Layer({
   layer,
@@ -143,7 +143,7 @@ export default function Sprite({
     [ATTACKABLE]?: Attackable;
     [ANIMATABLE]?: Animatable;
     [FOG]?: Fog;
-    [INVENTORY]?: Inventory;
+    [EQUIPPABLE]?: Equippable;
     [LIGHT]?: Light;
     [MELEE]?: Melee;
     [MOVABLE]?: Movable;
@@ -170,9 +170,9 @@ export default function Sprite({
   const spriteLayers = getFacingLayers(entity);
   const meleeItem =
     entity[MELEE] &&
-    entity[INVENTORY] &&
+    entity[EQUIPPABLE] &&
     ecs &&
-    ecs.getEntityById(entity[INVENTORY].melee);
+    ecs.getEntityById(entity[EQUIPPABLE].melee);
   const melee = meleeItem ? getFacingLayers(meleeItem) : [];
   const layers = spriteLayers.concat(melee);
 

@@ -2,8 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Inventory = {
-  melee?: number,
-  key?: number
+  items: number[];
 };
 
 export const INVENTORY = "INVENTORY";
