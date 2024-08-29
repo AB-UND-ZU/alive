@@ -1,6 +1,5 @@
 import * as components from "../components";
 import { Animatable, ANIMATABLE } from "../components/animatable";
-import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Collidable, COLLIDABLE } from "../components/collidable";
 import { FOG, Fog } from "../components/fog";
 import { Light, LIGHT } from "../components/light";
@@ -14,7 +13,6 @@ export default function createDoor(
   world: World,
   entity: {
     [ANIMATABLE]: Animatable;
-    [ATTACKABLE]: Attackable;
     [COLLIDABLE]: Collidable;
     [FOG]: Fog;
     [LIGHT]: Light;
@@ -27,7 +25,6 @@ export default function createDoor(
   const doorEntity = world.createEntity();
 
   components.addAnimatable(world, doorEntity, entity[ANIMATABLE]);
-  components.addAttackable(world, doorEntity, entity[ATTACKABLE]);
   components.addCollidable(world, doorEntity, entity[COLLIDABLE]);
   components.addFog(world, doorEntity , entity[FOG]);
   components.addLight(world, doorEntity, entity[LIGHT]);

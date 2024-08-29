@@ -1,8 +1,9 @@
 export { default as setupAi } from "./ai";
 export { default as setupAnimate } from "./animate";
+export { default as setupCollect } from "./collect";
 export { default as setupDamage } from "./damage";
+export { default as setupDrop } from "./drop";
 export { default as setupImmersion } from "./immersion";
-export { default as setupLoot } from "./loot";
 export { default as setupMap } from "./map";
 export { default as setupMovement } from "./movement";
 export { default as setupRenderer } from "./renderer";

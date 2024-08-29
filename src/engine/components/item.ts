@@ -1,8 +1,10 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import { Inventory } from "./inventory";
 
 export type Item = {
-  dmg: number;
+  amount: number;
+  slot: keyof Inventory
 };
 
 export const ITEM = "ITEM";

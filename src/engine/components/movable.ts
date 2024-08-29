@@ -8,6 +8,7 @@ export type Movable = {
   pendingOrientation?: Orientation;
   reference: number;
   spring?: SpringConfig;
+  lastInteraction: number;
 };
 
 export const MOVABLE = "MOVABLE";

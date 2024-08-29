@@ -23,6 +23,10 @@ export default function createWorld(size: number) {
   ) => Entity[];
 
   const addComponentToEntity = ECS.addComponentToEntity.bind(ECS, world);
+  const removeComponentFromEntity = ECS.removeComponentFromEntity.bind(
+    ECS,
+    world
+  );
 
   // pass patched world to systems
   const addSystem: (system: (world: World) => System) => void = (system) =>
@@ -39,6 +43,7 @@ export default function createWorld(size: number) {
     getEntityId,
     getEntities,
     addComponentToEntity,
+    removeComponentFromEntity,
     addSystem,
     update,
     cleanup,

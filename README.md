@@ -33,12 +33,15 @@
 - Boat
 - Bow
 - Arrow
+- Key
 
 ## Spells
 
 - Fire (burning)
 - Ice (freezing)
 - Shield (attacking)
+- Heal (healing)
+- Amulet (increase drop chance)
 - Bow (elemental, dropping arrow on miss)
 
 ## Conditions

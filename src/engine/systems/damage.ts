@@ -14,14 +14,25 @@ import { entities } from "..";
 import { ITEM } from "../components/item";
 import { ANIMATABLE, Animatable } from "../components/animatable";
 import { Orientation, orientationPoints } from "../components/orientable";
+import { INVENTORY } from "../components/inventory";
 
-export const getAttackable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => ATTACKABLE in (entity as Entity)
-  ) as Entity;
+export const isDead = (world: World, entity: Entity) =>
+  entity[ATTACKABLE].hp <= 0;
 
 export const isFriendlyFire = (world: World, entity: Entity, target: Entity) =>
   target[ATTACKABLE].enemy === NPC in entity;
+
+export const getAttackable = (
+  world: World,
+  entity: Entity,
+  position: Position
+) =>
+  Object.values(getCell(world, position)).find(
+    (target) =>
+      ATTACKABLE in target &&
+      !isDead(world, target) &&
+      !isFriendlyFire(world, entity, target)
+  ) as Entity;
 
 export default function setupDamage(world: World) {
   let referenceGenerations = -1;
@@ -41,6 +52,7 @@ export default function setupDamage(world: World) {
       POSITION,
       MOVABLE,
       MELEE,
+      INVENTORY,
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);
@@ -53,6 +65,16 @@ export default function setupDamage(world: World) {
 
       entityReferences[entityId] = entityReference;
 
+      // skip if entity has no sword equipped or already interacted
+      if (
+        !entity[INVENTORY].melee ||
+        entity[MOVABLE].lastInteraction === entityReference
+      )
+        continue;
+
+      // skip if dead
+      if (isDead(world, entity)) continue;
+
       const targetOrientation: Orientation | null =
         entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];
 
@@ -60,14 +82,13 @@ export default function setupDamage(world: World) {
 
       const delta = orientationPoints[targetOrientation];
       const targetPosition = add(entity[POSITION], delta);
-      const targetEntity = getAttackable(world, targetPosition);
+      const targetEntity = getAttackable(world, entity, targetPosition);
 
-      if (!targetEntity || isFriendlyFire(world, entity, targetEntity))
-        continue;
+      if (!targetEntity) continue;
 
       // handle attacking
-      const sword = world.getEntityById(entity[MELEE].item);
-      const damage = sword[ITEM].dmg;
+      const sword = world.getEntityById(entity[INVENTORY].melee);
+      const damage = sword[ITEM].amount;
       targetEntity[ATTACKABLE].hp = Math.max(
         0,
         targetEntity[ATTACKABLE].hp - damage
@@ -83,7 +104,6 @@ export default function setupDamage(world: World) {
         [RENDERABLE]: { generation: 1 },
       });
       const swordAnimation = sword[ANIMATABLE] as Animatable;
-      const targetAnimation = targetEntity[ANIMATABLE] as Animatable;
 
       if (swordAnimation) {
         swordAnimation.states.melee = {
@@ -95,20 +115,10 @@ export default function setupDamage(world: World) {
         };
       }
 
-      if (targetAnimation) {
-        targetAnimation.states.counter = {
-          name: "damageCounter",
-          reference: world.getEntityId(animationEntity),
-          elapsed: 0,
-          args: {
-            facing: targetOrientation,
-            amount: damage + (targetAnimation.states.counter?.args.amount || 0),
-          },
-          particles: targetAnimation.states.counter?.particles || {},
-        };
-      }
-
       rerenderEntity(world, targetEntity);
+
+      // mark as interacted
+      entity[MOVABLE].lastInteraction = entityReference;
     }
   };
 
