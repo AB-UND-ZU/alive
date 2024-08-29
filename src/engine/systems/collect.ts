@@ -14,6 +14,8 @@ import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { COUNTABLE } from "../components/countable";
+import { getAnimations } from "./animate";
+import { getEntityGeneration, rerenderEntity } from "./renderer";
 
 export const getLootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -74,40 +76,78 @@ export default function setupCollect(world: World) {
       const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getLootable(world, targetPosition);
 
-      if (!targetEntity) continue;
+      if (!targetEntity || !targetEntity[LOOTABLE].accessible) continue;
 
       // handle pick up
       const targetId = targetEntity[INVENTORY].items[0];
 
       if (!targetId) continue;
 
+      // initiate collecting animation
+      targetEntity[LOOTABLE].target = entityId;
+
+      // mark as interacted
+      entity[MOVABLE].lastInteraction = entityReference;
+    }
+
+    // handle items being received
+    for (const entity of world.getEntities([
+      POSITION,
+      MOVABLE,
+      LOOTABLE,
+      INVENTORY,
+      COUNTABLE,
+      RENDERABLE,
+    ])) {
+      const entityId = world.getEntityId(entity);
+      const entityReference = getEntityGeneration(world, entity);
+
+      // skip if entity hasn't had any changes
+      if (entityReferences[entityId] === entityReference) continue;
+
+      entityReferences[entityId] = entityReference;
+
+      const targetId = entity[INVENTORY].items[0];
+
+      // wait until target is set and animation is finished
+      if (
+        !targetId ||
+        !entity[LOOTABLE].target ||
+        getAnimations(world, entity).length > 0
+      )
+        continue;
+
       const targetItem = world.getEntityById(targetId);
       const targetSlot = targetItem[ITEM].slot;
       const targetCounter = targetItem[ITEM].counter;
+      const recevingEntity = world.getEntityById(entity[LOOTABLE].target);
 
       if (targetSlot) {
-        const existingId = entity[EQUIPPABLE][targetSlot];
+        const existingId = recevingEntity[EQUIPPABLE][targetSlot];
 
         // add existing render count if item is replaced
         if (existingId) {
           const existingItem = world.getEntityById(existingId);
-          targetItem[RENDERABLE].generation +=
-            existingItem[RENDERABLE].generation;
+          targetItem[RENDERABLE].generation += getEntityGeneration(
+            world,
+            existingItem
+          );
+          console.log(Date.now(), "existing");
         }
 
-        entity[EQUIPPABLE][targetSlot] = targetId;
-        entity[INVENTORY].items.push(targetId);
+        recevingEntity[EQUIPPABLE][targetSlot] = targetId;
+        recevingEntity[INVENTORY].items.push(targetId);
       } else if (targetCounter) {
-        entity[COUNTABLE][targetCounter] += targetItem[ITEM].amount;
+        recevingEntity[COUNTABLE][targetCounter] += targetItem[ITEM].amount;
       }
 
-      targetEntity[INVENTORY].items.splice(
-        targetEntity[INVENTORY].items.indexOf(targetId),
+      entity[INVENTORY].items.splice(
+        entity[INVENTORY].items.indexOf(targetId),
         1
       );
 
-      // mark as interacted
-      entity[MOVABLE].lastInteraction = entityReference;
+      // rerender target
+      rerenderEntity(world, recevingEntity);
     }
   };
 

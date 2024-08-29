@@ -6,6 +6,7 @@ import { Countable, COUNTABLE } from "../components/countable";
 import { FOG, Fog } from "../components/fog";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { Lootable, LOOTABLE } from "../components/lootable";
+import { Movable, MOVABLE } from "../components/movable";
 import { Npc, NPC } from "../components/npc";
 import { POSITION, Position } from "../components/position";
 import { Renderable, RENDERABLE } from "../components/renderable";
@@ -22,6 +23,7 @@ export default function createChest(
     [FOG]: Fog;
     [INVENTORY]: Inventory;
     [LOOTABLE]: Lootable;
+    [MOVABLE]: Movable;
     [NPC]: Npc;
     [POSITION]: Position;
     [SPRITE]: Sprite;
@@ -37,6 +39,7 @@ export default function createChest(
   components.addFog(world, chestEntity, entity[FOG]);
   components.addInventory(world, chestEntity, entity[INVENTORY]);
   components.addLootable(world, chestEntity, entity[LOOTABLE]);
+  components.addMovable(world, chestEntity, entity[MOVABLE]);
   components.addNpc(world, chestEntity, entity[NPC]);
   components.addPosition(world, chestEntity, entity[POSITION]);
   components.addSprite(world, chestEntity, entity[SPRITE]);

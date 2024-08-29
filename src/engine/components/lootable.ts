@@ -1,7 +1,10 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Lootable = {};
+export type Lootable = {
+  accessible: boolean;
+  target?: number;
+};
 
 export const LOOTABLE = "LOOTABLE";
 

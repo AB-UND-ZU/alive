@@ -4,11 +4,12 @@ import { REFERENCE } from "../components/reference";
 import { unregisterEntity } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { isEmpty } from "./collect";
-import { SPRITE } from "../components/sprite";
 import { LOOTABLE } from "../components/lootable";
 import { isDead } from "./damage";
 import { PLAYER } from "../components/player";
-import { INVENTORY } from "../components/inventory";
+import { Animatable, ANIMATABLE } from "../components/animatable";
+import { getAnimations } from "./animate";
+import { entities } from "..";
 
 export default function setupDrop(world: World) {
   let referencesGeneration = -1;
@@ -27,14 +28,33 @@ export default function setupDrop(world: World) {
       if (
         isDead(world, entity) &&
         isEmpty(world, entity) &&
-        !(PLAYER in entity)
+        !(PLAYER in entity) &&
+        getAnimations(world, entity).length === 0
       ) {
         unregisterEntity(world, entity);
         world.removeEntity(entity);
-      } else if (isDead(world, entity) && LOOTABLE in entity) {
-        entity[SPRITE] = world.getEntityById(entity[INVENTORY].items[0])[
-          SPRITE
-        ];
+      } else if (
+        isDead(world, entity) &&
+        LOOTABLE in entity &&
+        !entity[LOOTABLE].target &&
+        getAnimations(world, entity).length === 0
+      ) {
+        const animationEntity = entities.createAnimation(world, {
+          [REFERENCE]: {
+            tick: -1,
+            delta: 0,
+            suspended: false,
+            pendingSuspended: false,
+          },
+          [RENDERABLE]: { generation: 1 },
+        });
+        (entity[ANIMATABLE] as Animatable).states.decay = {
+          name: "creatureDecay",
+          reference: world.getEntityId(animationEntity),
+          elapsed: 0,
+          args: {},
+          particles: {},
+        };
       }
     }
   };

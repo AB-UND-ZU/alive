@@ -6,6 +6,7 @@ import { Orientation } from "./orientable";
 export type AnimationArgument = {
   melee: { facing: Orientation };
   counter: { facing: Orientation; amount: number };
+  decay: { timestamp?: number };
 };
 export type AnimationState<A extends keyof AnimationArgument> = {
   name: keyof typeof animations; // TODO: only allow valid keys

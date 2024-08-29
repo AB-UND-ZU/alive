@@ -8,6 +8,10 @@ import {
 import { REFERENCE } from "../components/reference";
 import * as animations from "../../game/assets/animations";
 import { rerenderEntity } from "./renderer";
+import { Entity } from "ecs";
+
+export const getAnimations = (world: World, entity: Entity) =>
+  Object.values(entity[ANIMATABLE]?.states || {});
 
 export default function setupAnimate(world: World) {
   const onUpdate = (delta: number) => {
