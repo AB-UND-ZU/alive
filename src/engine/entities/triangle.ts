@@ -3,6 +3,7 @@ import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
 import { Collidable, COLLIDABLE } from "../components/collidable";
+import { Countable, COUNTABLE } from "../components/countable";
 import { Equippable, EQUIPPABLE } from "../components/equippable";
 import { FOG, Fog } from "../components/fog";
 import { Inventory, INVENTORY } from "../components/inventory";
@@ -24,6 +25,7 @@ export default function createTriangle(
     [ATTACKABLE]: Attackable;
     [BEHAVIOUR]: Behaviour;
     [COLLIDABLE]: Collidable;
+    [COUNTABLE]: Countable;
     [EQUIPPABLE]: Equippable;
     [FOG]: Fog;
     [INVENTORY]: Inventory;
@@ -44,6 +46,7 @@ export default function createTriangle(
   components.addAttackable(world, triangleEntity, entity[ATTACKABLE]);
   components.addBehaviour(world, triangleEntity, entity[BEHAVIOUR]);
   components.addCollidable(world, triangleEntity, entity[COLLIDABLE]);
+  components.addCountable(world, triangleEntity, entity[COUNTABLE]);
   components.addEquippable(world, triangleEntity, entity[EQUIPPABLE]);
   components.addFog(world, triangleEntity, entity[FOG]);
   components.addInventory(world, triangleEntity, entity[INVENTORY]);

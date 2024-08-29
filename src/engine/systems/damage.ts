@@ -15,9 +15,10 @@ import { ITEM } from "../components/item";
 import { ANIMATABLE, Animatable } from "../components/animatable";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
+import { COUNTABLE } from "../components/countable";
 
 export const isDead = (world: World, entity: Entity) =>
-  entity[ATTACKABLE].hp <= 0;
+  ATTACKABLE in entity && entity[COUNTABLE].hp <= 0;
 
 export const isFriendlyFire = (world: World, entity: Entity, target: Entity) =>
   target[ATTACKABLE].enemy === NPC in entity;
@@ -30,6 +31,7 @@ export const getAttackable = (
   Object.values(getCell(world, position)).find(
     (target) =>
       ATTACKABLE in target &&
+      COUNTABLE in target &&
       !isDead(world, target) &&
       !isFriendlyFire(world, entity, target)
   ) as Entity;
@@ -89,9 +91,9 @@ export default function setupDamage(world: World) {
       // handle attacking
       const sword = world.getEntityById(entity[EQUIPPABLE].melee);
       const damage = sword[ITEM].amount;
-      targetEntity[ATTACKABLE].hp = Math.max(
+      targetEntity[COUNTABLE].hp = Math.max(
         0,
-        targetEntity[ATTACKABLE].hp - damage
+        targetEntity[COUNTABLE].hp - damage
       );
 
       const animationEntity = entities.createAnimation(world, {

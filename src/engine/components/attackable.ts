@@ -3,7 +3,6 @@ import { World } from "../ecs";
 
 export type Attackable = {
   max: number;
-  hp: number;
   enemy: boolean;
 };
 
