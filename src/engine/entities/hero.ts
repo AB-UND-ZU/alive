@@ -2,6 +2,7 @@ import * as components from "../components";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Collidable, COLLIDABLE } from "../components/collidable";
+import { Countable, COUNTABLE } from "../components/countable";
 import { Equippable, EQUIPPABLE } from "../components/equippable";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { LIGHT, Light } from "../components/light";
@@ -21,6 +22,7 @@ export default function createHero(
     [ANIMATABLE]: Animatable;
     [ATTACKABLE]: Attackable;
     [COLLIDABLE]: Collidable;
+    [COUNTABLE]: Countable;
     [EQUIPPABLE]: Equippable;
     [INVENTORY]: Inventory;
     [LIGHT]: Light;
@@ -41,6 +43,7 @@ export default function createHero(
   components.addEquippable(world, heroEntity, entity[EQUIPPABLE]);
   components.addInventory(world, heroEntity, entity[INVENTORY]);
   components.addCollidable(world, heroEntity, entity[COLLIDABLE]);
+  components.addCountable(world, heroEntity, entity[COUNTABLE]);
   components.addLight(world, heroEntity, entity[LIGHT]);
   components.addMelee(world, heroEntity, entity[MELEE]);
   components.addMovable(world, heroEntity, entity[MOVABLE]);

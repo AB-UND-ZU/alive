@@ -19,6 +19,7 @@ import {
   door,
   flower,
   fog,
+  gold,
   key,
   none,
   player,
@@ -49,6 +50,7 @@ import { normalize } from "../game/math/std";
 import { LOOTABLE } from "../engine/components/lootable";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { INVENTORY } from "../engine/components/inventory";
+import { COUNTABLE } from "../engine/components/countable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -133,7 +135,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "╒") entity = "key";
       else if (cell === "/") entity = "sword";
       else {
-        entities.createText(world, {
+        entities.createBlock(world, {
           [COLLIDABLE]: {},
           [POSITION]: { x, y },
           [SPRITE]: createText(cell),
@@ -302,6 +304,14 @@ export const generateWorld = async (world: World) => {
           [SPRITE]: none,
         })
       );
+      const goldId = world.getEntityId(
+        entities.createItem(world, {
+          [ANIMATABLE]: { states: {} },
+          [ITEM]: { amount: 1, counter: "gold" },
+          [RENDERABLE]: { generation: 0 },
+          [SPRITE]: gold,
+        })
+      );
       entities.createTriangle(world, {
         [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { max: 3, hp: 3, enemy: true },
@@ -309,6 +319,8 @@ export const generateWorld = async (world: World) => {
         [COLLIDABLE]: {},
         [EQUIPPABLE]: { melee: clawsId },
         [FOG]: { visibility },
+        [INVENTORY]: { items: [goldId] },
+        [LOOTABLE]: {},
         [MELEE]: {},
         [MOVABLE]: {
           orientations: [],
@@ -344,6 +356,7 @@ export const generateWorld = async (world: World) => {
     [ANIMATABLE]: { states: {} },
     [ATTACKABLE]: { max: 10, hp: 10, enemy: false },
     [COLLIDABLE]: {},
+    [COUNTABLE]: { xp: 0, gold: 0, wood: 0, iron: 0, herb: 0, seed: 0 },
     [EQUIPPABLE]: {},
     [INVENTORY]: { items: [] },
     [LIGHT]: { brightness: 5.55, darkness: 0 },
