@@ -40,7 +40,6 @@ import { SWIMMABLE } from "../engine/components/swimmable";
 import { BEHAVIOUR } from "../engine/components/behaviour";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { MELEE } from "../engine/components/melee";
-import { INVENTORY } from "../engine/components/inventory";
 import { ITEM } from "../engine/components/item";
 import { ORIENTABLE } from "../engine/components/orientable";
 import { ANIMATABLE } from "../engine/components/animatable";
@@ -48,6 +47,8 @@ import { aspectRatio } from "../components/Dimensions/sizing";
 import { menuArea } from "../game/assets/areas";
 import { normalize } from "../game/math/std";
 import { LOOTABLE } from "../engine/components/lootable";
+import { EQUIPPABLE } from "../engine/components/equippable";
+import { INVENTORY } from "../engine/components/inventory";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -261,7 +262,7 @@ export const generateWorld = async (world: World) => {
         [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { max: 10, hp: 10, enemy: true },
         [COLLIDABLE]: {},
-        [INVENTORY]: { key: keyId },
+        [INVENTORY]: { items: [keyId] },
         [LOOTABLE]: {},
         [FOG]: { visibility },
         [NPC]: {},
@@ -283,7 +284,7 @@ export const generateWorld = async (world: World) => {
         [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { max: 10, hp: 0, enemy: true },
         [COLLIDABLE]: {},
-        [INVENTORY]: { melee: swordId },
+        [INVENTORY]: { items: [swordId] },
         [LOOTABLE]: {},
         [FOG]: { visibility },
         [NPC]: {},
@@ -306,8 +307,8 @@ export const generateWorld = async (world: World) => {
         [ATTACKABLE]: { max: 3, hp: 3, enemy: true },
         [BEHAVIOUR]: { patterns: ["triangle"] },
         [COLLIDABLE]: {},
+        [EQUIPPABLE]: { melee: clawsId },
         [FOG]: { visibility },
-        [INVENTORY]: { melee: clawsId },
         [MELEE]: {},
         [MOVABLE]: {
           orientations: [],
@@ -343,7 +344,8 @@ export const generateWorld = async (world: World) => {
     [ANIMATABLE]: { states: {} },
     [ATTACKABLE]: { max: 10, hp: 10, enemy: false },
     [COLLIDABLE]: {},
-    [INVENTORY]: {},
+    [EQUIPPABLE]: {},
+    [INVENTORY]: { items: [] },
     [LIGHT]: { brightness: 5.55, darkness: 0 },
     [MELEE]: {},
     [MOVABLE]: {

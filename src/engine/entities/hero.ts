@@ -2,6 +2,7 @@ import * as components from "../components";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Collidable, COLLIDABLE } from "../components/collidable";
+import { Equippable, EQUIPPABLE } from "../components/equippable";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { LIGHT, Light } from "../components/light";
 import { Melee, MELEE } from "../components/melee";
@@ -20,15 +21,16 @@ export default function createHero(
     [ANIMATABLE]: Animatable;
     [ATTACKABLE]: Attackable;
     [COLLIDABLE]: Collidable;
+    [EQUIPPABLE]: Equippable;
     [INVENTORY]: Inventory;
-    [POSITION]: Position;
-    [SPRITE]: Sprite;
     [LIGHT]: Light;
     [MELEE]: Melee;
     [MOVABLE]: Movable;
     [ORIENTABLE]: Orientable;
     [PLAYER]: Player;
+    [POSITION]: Position;
     [RENDERABLE]: Renderable;
+    [SPRITE]: Sprite;
     [SWIMMABLE]: Swimmable;
   }
 ) {
@@ -36,8 +38,9 @@ export default function createHero(
 
   components.addAnimatable(world, heroEntity, entity[ANIMATABLE]);
   components.addAttackable(world, heroEntity, entity[ATTACKABLE]);
-  components.addCollidable(world, heroEntity, entity[COLLIDABLE]);
+  components.addEquippable(world, heroEntity, entity[EQUIPPABLE]);
   components.addInventory(world, heroEntity, entity[INVENTORY]);
+  components.addCollidable(world, heroEntity, entity[COLLIDABLE]);
   components.addLight(world, heroEntity, entity[LIGHT]);
   components.addMelee(world, heroEntity, entity[MELEE]);
   components.addMovable(world, heroEntity, entity[MOVABLE]);

@@ -9,8 +9,10 @@ import { getCell } from "./map";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { LOOTABLE } from "../components/lootable";
 import { PLAYER } from "../components/player";
-import { INVENTORY } from "../components/inventory";
 import { isDead } from "./damage";
+import { EQUIPPABLE } from "../components/equippable";
+import { INVENTORY } from "../components/inventory";
+import { ITEM } from "../components/item";
 
 export const getLootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -21,7 +23,7 @@ export const getLootable = (world: World, position: Position) =>
 export const isEmpty = (world: World, entity: Entity) =>
   !(INVENTORY in entity) ||
   !(LOOTABLE in entity) ||
-  Object.values(entity[INVENTORY]).filter(Boolean).length === 0;
+  entity[INVENTORY].items.length === 0;
 
 export default function setupCollect(world: World) {
   let referenceGenerations = -1;
@@ -41,6 +43,8 @@ export default function setupCollect(world: World) {
       POSITION,
       MOVABLE,
       PLAYER,
+      EQUIPPABLE,
+      INVENTORY,
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);
@@ -71,14 +75,14 @@ export default function setupCollect(world: World) {
       if (!targetEntity) continue;
 
       // handle pick up
-      const targetSlot = Object.keys(targetEntity[INVENTORY])[0];
+      const targetId = targetEntity[INVENTORY].items[0];
 
-      if (!targetSlot) continue;
+      if (!targetId) continue;
 
-      const existingId = entity[INVENTORY][targetSlot];
-      const targetItem = world.getEntityById(
-        targetEntity[INVENTORY][targetSlot]
-      );
+      const targetItem = world.getEntityById(targetId);
+      const targetSlot = targetItem[ITEM].slot;
+      const existingId = entity[EQUIPPABLE][targetSlot];
+
       // add existing render count if item is replaced
       if (existingId) {
         const existingItem = world.getEntityById(existingId);
@@ -86,8 +90,12 @@ export default function setupCollect(world: World) {
           existingItem[RENDERABLE].generation;
       }
 
-      entity[INVENTORY][targetSlot] = targetEntity[INVENTORY][targetSlot];
-      targetEntity[INVENTORY][targetSlot] = undefined;
+      entity[EQUIPPABLE][targetSlot] = targetId;
+      entity[INVENTORY].items.push(targetId);
+      targetEntity[INVENTORY].items.splice(
+        targetEntity[INVENTORY].items.indexOf(targetId),
+        1
+      );
 
       // mark as interacted
       entity[MOVABLE].lastInteraction = entityReference;

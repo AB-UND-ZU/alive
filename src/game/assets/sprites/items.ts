@@ -1,6 +1,36 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
+export const gold: Sprite = {
+  name: "gold_drop",
+  layers: [
+    {
+      char: "\u0108",
+      color: colors.yellow,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "\u0108",
+        color: colors.yellow,
+      },
+    ],
+    double: [
+      {
+        char: "o",
+        color: colors.yellow,
+      },
+    ],
+    multiple: [
+      {
+        char: "O",
+        color: colors.yellow,
+      },
+    ],
+  },
+};
+
 export const key: Sprite = {
   name: "key_iron",
   layers: [
@@ -9,7 +39,7 @@ export const key: Sprite = {
       color: colors.maroon,
     },
     {
-      char: "\"",
+      char: '"',
       color: colors.grey,
     },
     {
