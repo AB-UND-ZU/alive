@@ -9,13 +9,12 @@ import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
 import { isWalkable } from "./immersion";
 import { add } from "../../game/math/std";
-import { isDead } from "./loot";
-import { getAttackable, isFriendlyFire } from "./damage";
 import {
   ORIENTABLE,
   Orientation,
   orientationPoints,
 } from "../components/orientable";
+import { isDead } from "./damage";
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
@@ -46,13 +45,18 @@ export default function setupMovement(world: World) {
 
       entityReferences[entityId] = entityReference;
 
+
+      const pendingOrientation = entity[MOVABLE].pendingOrientation;
+      entity[MOVABLE].pendingOrientation = null;
+      // skip if already interacted
+      if (entity[MOVABLE].lastInteraction === entityReference ) continue;
+
       // skip if dead
       if (isDead(world, entity)) continue;
 
       const attemptedOrientations: Orientation[] = [
         ...entity[MOVABLE].orientations,
       ];
-      const pendingOrientation = entity[MOVABLE].pendingOrientation;
 
       if (pendingOrientation) {
         attemptedOrientations.unshift(pendingOrientation);
@@ -64,10 +68,6 @@ export default function setupMovement(world: World) {
       for (const orientation of attemptedOrientations) {
         const delta = orientationPoints[orientation];
         const position = add(entity[POSITION], delta);
-
-        // don't move if attacked earlier
-        const attackable = getAttackable(world, position);
-        if (attackable && !isFriendlyFire(world, entity, attackable)) break;
 
         if (!isCollision(world, position) && isWalkable(world, position)) {
           unregisterEntity(world, entity);
@@ -83,7 +83,8 @@ export default function setupMovement(world: World) {
         }
       }
 
-      entity[MOVABLE].pendingOrientation = null;
+      // mark as interacted
+      entity[MOVABLE].lastInteraction = entityReference;
     }
   };
 

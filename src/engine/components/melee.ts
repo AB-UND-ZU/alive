@@ -1,9 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Melee = {
-  item: number
-};
+export type Melee = {};
 
 export const MELEE = "MELEE";
 

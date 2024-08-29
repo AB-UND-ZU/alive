@@ -14,10 +14,12 @@ import {
   bush,
   cactus1,
   cactus2,
+  chest,
   createText,
   door,
   flower,
   fog,
+  key,
   none,
   player,
   sand,
@@ -45,6 +47,7 @@ import { ANIMATABLE } from "../engine/components/animatable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import { menuArea } from "../game/assets/areas";
 import { normalize } from "../game/math/std";
+import { LOOTABLE } from "../engine/components/lootable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -126,6 +129,8 @@ export const generateWorld = async (world: World) => {
       else if (cell === "▄") entity = "block_down";
       else if (cell === "▀") entity = "block_up";
       else if (cell === "◙") entity = "door";
+      else if (cell === "╒") entity = "key";
+      else if (cell === "/") entity = "sword";
       else {
         entities.createText(world, {
           [COLLIDABLE]: {},
@@ -235,7 +240,6 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "door") {
       entities.createDoor(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 10, hp: 10, enemy: true },
         [COLLIDABLE]: {},
         [FOG]: { visibility },
         [LIGHT]: { brightness: 0, darkness: 1 },
@@ -244,11 +248,54 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: door,
       });
+    } else if (cell === "key") {
+      const keyId = world.getEntityId(
+        entities.createKey(world, {
+          [ANIMATABLE]: { states: {} },
+          [ITEM]: { amount: 1, slot: "key" },
+          [RENDERABLE]: { generation: 0 },
+          [SPRITE]: key,
+        })
+      );
+      entities.createChest(world, {
+        [ANIMATABLE]: { states: {} },
+        [ATTACKABLE]: { max: 10, hp: 10, enemy: true },
+        [COLLIDABLE]: {},
+        [INVENTORY]: { key: keyId },
+        [LOOTABLE]: {},
+        [FOG]: { visibility },
+        [NPC]: {},
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: chest,
+      });
+    } else if (cell === "sword") {
+      const swordId = world.getEntityId(
+        entities.createSword(world, {
+          [ANIMATABLE]: { states: {} },
+          [ITEM]: { amount: 1, slot: "melee" },
+          [ORIENTABLE]: {},
+          [RENDERABLE]: { generation: 0 },
+          [SPRITE]: sword,
+        })
+      );
+      entities.createChest(world, {
+        [ANIMATABLE]: { states: {} },
+        [ATTACKABLE]: { max: 10, hp: 0, enemy: true },
+        [COLLIDABLE]: {},
+        [INVENTORY]: { melee: swordId },
+        [LOOTABLE]: {},
+        [FOG]: { visibility },
+        [NPC]: {},
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: chest,
+      });
     } else if (cell === "triangle") {
       const clawsId = world.getEntityId(
         entities.createSword(world, {
           [ANIMATABLE]: { states: {} },
-          [ITEM]: { dmg: 3 },
+          [ITEM]: { amount: 3, slot: "melee" },
           [ORIENTABLE]: {},
           [RENDERABLE]: { generation: 0 },
           [SPRITE]: none,
@@ -260,13 +307,15 @@ export const generateWorld = async (world: World) => {
         [BEHAVIOUR]: { patterns: ["triangle"] },
         [COLLIDABLE]: {},
         [FOG]: { visibility },
-        [MELEE]: { item: clawsId },
+        [INVENTORY]: { melee: clawsId },
+        [MELEE]: {},
         [MOVABLE]: {
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: {
             duration: 200,
           },
+          lastInteraction: 0,
         },
         [NPC]: {},
         [ORIENTABLE]: {},
@@ -277,16 +326,6 @@ export const generateWorld = async (world: World) => {
       });
     }
   });
-
-  const swordId = world.getEntityId(
-    entities.createSword(world, {
-      [ANIMATABLE]: { states: {} },
-      [ITEM]: { dmg: 1 },
-      [ORIENTABLE]: {},
-      [RENDERABLE]: { generation: 0 },
-      [SPRITE]: sword,
-    })
-  );
 
   const frameId = world.getEntityId(
     entities.createFrame(world, {
@@ -304,9 +343,9 @@ export const generateWorld = async (world: World) => {
     [ANIMATABLE]: { states: {} },
     [ATTACKABLE]: { max: 10, hp: 10, enemy: false },
     [COLLIDABLE]: {},
-    [INVENTORY]: { items: [swordId] },
+    [INVENTORY]: {},
     [LIGHT]: { brightness: 5.55, darkness: 0 },
-    [MELEE]: { item: swordId },
+    [MELEE]: {},
     [MOVABLE]: {
       orientations: [],
       reference: frameId,
@@ -315,6 +354,7 @@ export const generateWorld = async (world: World) => {
         friction: 50,
         tension: 1000,
       },
+      lastInteraction: 0,
     },
     [ORIENTABLE]: {},
     [PLAYER]: {},
@@ -328,9 +368,10 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupTick);
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupDamage);
+  world.addSystem(systems.setupCollect);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupImmersion);
-  world.addSystem(systems.setupLoot);
+  world.addSystem(systems.setupDrop);
   world.addSystem(systems.setupAnimate);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);

@@ -28,6 +28,7 @@ import { useWorld } from "../../bindings/hooks";
 import { Orientable, ORIENTABLE } from "../../engine/components/orientable";
 import { Animatable, ANIMATABLE } from "../../engine/components/animatable";
 import { Entity } from "ecs";
+import { Inventory, INVENTORY } from "../../engine/components/inventory";
 
 function Layer({
   layer,
@@ -106,7 +107,7 @@ function Layer({
         ((particle ? particle.offsetX : 0) - 0.5) * dimensions.aspectRatio,
         -0.25 - (particle ? particle.offsetY : 0),
         ((offset +
-          (isUnit ? stack * unitHeight : 0) +
+          (isUnit && !isOpaque ? stack * unitHeight : 0) +
           (particle ? stack * particleHeight : 0) +
           (isOpaque ? stack * wallHeight : 0) +
           (isAir ? stack * fogHeight : 0)) *
@@ -142,6 +143,7 @@ export default function Sprite({
     [ATTACKABLE]?: Attackable;
     [ANIMATABLE]?: Animatable;
     [FOG]?: Fog;
+    [INVENTORY]?: Inventory;
     [LIGHT]?: Light;
     [MELEE]?: Melee;
     [MOVABLE]?: Movable;
@@ -167,7 +169,10 @@ export default function Sprite({
 
   const spriteLayers = getFacingLayers(entity);
   const meleeItem =
-    entity[MELEE] && ecs && ecs.getEntityById(entity[MELEE].item);
+    entity[MELEE] &&
+    entity[INVENTORY] &&
+    ecs &&
+    ecs.getEntityById(entity[INVENTORY].melee);
   const melee = meleeItem ? getFacingLayers(meleeItem) : [];
   const layers = spriteLayers.concat(melee);
 

@@ -7,7 +7,7 @@ import { BEHAVIOUR } from "../components/behaviour";
 import { isWalkable } from "./immersion";
 import { isCollision } from "./movement";
 import { add, random } from "../../game/math/std";
-import { getAttackable, isFriendlyFire } from "./damage";
+import { getAttackable, isDead, isFriendlyFire } from "./damage";
 import {
   ORIENTABLE,
   Orientation,
@@ -25,6 +25,9 @@ export default function setupAi(world: World) {
     lastGeneration = generation;
 
     for (const entity of world.getEntities([POSITION, MOVABLE, BEHAVIOUR])) {
+      // skip if dead
+      if (isDead(world, entity)) continue;
+
       const patterns = entity[BEHAVIOUR].patterns;
 
       for (const pattern of patterns) {
@@ -38,7 +41,7 @@ export default function setupAi(world: World) {
           }
 
           const position = add(entity[POSITION], orientationPoints[facing]);
-          const attackedEntity = getAttackable(world, position);
+          const attackedEntity = getAttackable(world, entity, position);
 
           // attackable, proceed
           if (attackedEntity && !isFriendlyFire(world, entity, attackedEntity))
@@ -67,7 +70,7 @@ export default function setupAi(world: World) {
                 entity[POSITION],
                 orientationPoints[attemptedFacing]
               );
-              const attackTarget = getAttackable(world, attemptedPosition);
+              const attackTarget = getAttackable(world, entity, attemptedPosition);
               if (
                 isWalkable(world, attemptedPosition) &&
                 (!isCollision(world, attemptedPosition) ||

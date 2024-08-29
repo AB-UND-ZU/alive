@@ -39,7 +39,7 @@ export const swordAttack: Animation<"melee"> = (world, entity, state) => {
 };
 
 export const damageCounter: Animation<"counter"> = (world, entity, state) => {
-  const finished = state.elapsed > 1000;
+  const finished = state.elapsed > 200;
   let updated = false;
 
   if (!state.particles.counter) {

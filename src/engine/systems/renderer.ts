@@ -5,6 +5,7 @@ import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { MELEE } from "../components/melee";
+import { INVENTORY } from "../components/inventory";
 
 export const rerenderEntity = (world: World, entity: Entity) => {
   entity[RENDERABLE].generation += 1;
@@ -25,7 +26,7 @@ export const getEntityGeneration = (world: World, entity: Entity) => {
       )
     : 0;
 
-  const melee = entity[MELEE]?.item;
+  const melee = entity[MELEE] && entity[INVENTORY]?.melee;
   const meleeGeneration: number = melee
     ? getEntityGeneration(world, world.getEntityById(melee))
     : 0;

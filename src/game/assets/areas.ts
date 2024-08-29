@@ -9,9 +9,9 @@ export const menuArea = `\
 #                     #
 #    arrow keys or    #
 #    swipe to move    #
+#    /           ╒    #
 #                     #
-#                     #
-###########◙###########\
+##########◙ ###########\
 `;
 
 /*

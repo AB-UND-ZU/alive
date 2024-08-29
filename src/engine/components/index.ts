@@ -8,6 +8,7 @@ export { default as addInventory } from "./inventory";
 export { default as addItem } from "./item";
 export { default as addLevel } from "./level";
 export { default as addLight } from "./light";
+export { default as addLootable } from "./lootable";
 export { default as addMelee } from "./melee";
 export { default as addMovable } from "./movable";
 export { default as addNpc } from "./npc";

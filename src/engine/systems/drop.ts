@@ -2,13 +2,15 @@ import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
 import { unregisterEntity } from "./map";
-import { Entity } from "ecs";
 import { ATTACKABLE } from "../components/attackable";
+import { isEmpty } from "./collect";
+import { SPRITE } from "../components/sprite";
+import { LOOTABLE } from "../components/lootable";
+import { isDead } from "./damage";
+import { PLAYER } from "../components/player";
+import { INVENTORY } from "../components/inventory";
 
-export const isDead = (world: World, entity: Entity) =>
-  entity[ATTACKABLE].hp <= 0;
-
-export default function setupLoot(world: World) {
+export default function setupDrop(world: World) {
   let referencesGeneration = -1;
 
   const onUpdate = (delta: number) => {
@@ -22,9 +24,17 @@ export default function setupLoot(world: World) {
 
     for (const entity of world.getEntities([ATTACKABLE, RENDERABLE])) {
       // remove entity on death
-      if (isDead(world, entity)) {
+      if (
+        isDead(world, entity) &&
+        isEmpty(world, entity) &&
+        !(PLAYER in entity)
+      ) {
         unregisterEntity(world, entity);
         world.removeEntity(entity);
+      } else if (isDead(world, entity) && LOOTABLE in entity) {
+        entity[SPRITE] = world.getEntityById(
+          Object.values(entity[INVENTORY])[0]
+        )[SPRITE];
       }
     }
   };
