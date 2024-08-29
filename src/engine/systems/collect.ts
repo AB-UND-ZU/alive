@@ -13,6 +13,7 @@ import { isDead } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
+import { COUNTABLE } from "../components/countable";
 
 export const getLootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -45,6 +46,7 @@ export default function setupCollect(world: World) {
       PLAYER,
       EQUIPPABLE,
       INVENTORY,
+      COUNTABLE,
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);
@@ -81,17 +83,24 @@ export default function setupCollect(world: World) {
 
       const targetItem = world.getEntityById(targetId);
       const targetSlot = targetItem[ITEM].slot;
-      const existingId = entity[EQUIPPABLE][targetSlot];
+      const targetCounter = targetItem[ITEM].counter;
 
-      // add existing render count if item is replaced
-      if (existingId) {
-        const existingItem = world.getEntityById(existingId);
-        targetItem[RENDERABLE].generation +=
-          existingItem[RENDERABLE].generation;
+      if (targetSlot) {
+        const existingId = entity[EQUIPPABLE][targetSlot];
+
+        // add existing render count if item is replaced
+        if (existingId) {
+          const existingItem = world.getEntityById(existingId);
+          targetItem[RENDERABLE].generation +=
+            existingItem[RENDERABLE].generation;
+        }
+
+        entity[EQUIPPABLE][targetSlot] = targetId;
+        entity[INVENTORY].items.push(targetId);
+      } else if (targetCounter) {
+        entity[COUNTABLE][targetCounter] += targetItem[ITEM].amount;
       }
 
-      entity[EQUIPPABLE][targetSlot] = targetId;
-      entity[INVENTORY].items.push(targetId);
       targetEntity[INVENTORY].items.splice(
         targetEntity[INVENTORY].items.indexOf(targetId),
         1

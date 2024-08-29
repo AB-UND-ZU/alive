@@ -1,10 +1,12 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Equippable } from "./equippable";
+import { Countable } from "./countable";
 
 export type Item = {
   amount: number;
-  slot: keyof Equippable;
+  slot?: keyof Equippable;
+  counter?: keyof Countable;
 };
 
 export const ITEM = "ITEM";

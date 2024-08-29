@@ -5,7 +5,7 @@ import { RENDERABLE, Renderable } from "../components/renderable";
 import { Sprite, SPRITE } from "../components/sprite";
 import type { World } from "../ecs";
 
-export default function createText(
+export default function createBlock(
   world: World,
   entity: {
     [COLLIDABLE]: Collidable;
@@ -14,12 +14,12 @@ export default function createText(
     [SPRITE]: Sprite;
   }
 ) {
-  const textEntity = world.createEntity();
+  const blockEntity = world.createEntity();
 
-  components.addCollidable(world, textEntity, entity[COLLIDABLE]);
-  components.addPosition(world, textEntity, entity[POSITION]);
-  components.addRenderable(world, textEntity, entity[RENDERABLE]);
-  components.addSprite(world, textEntity, entity[SPRITE]);
+  components.addCollidable(world, blockEntity, entity[COLLIDABLE]);
+  components.addPosition(world, blockEntity, entity[POSITION]);
+  components.addRenderable(world, blockEntity, entity[RENDERABLE]);
+  components.addSprite(world, blockEntity, entity[SPRITE]);
 
-  return textEntity;
+  return blockEntity;
 }

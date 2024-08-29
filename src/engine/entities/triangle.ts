@@ -5,6 +5,8 @@ import { Behaviour, BEHAVIOUR } from "../components/behaviour";
 import { Collidable, COLLIDABLE } from "../components/collidable";
 import { Equippable, EQUIPPABLE } from "../components/equippable";
 import { FOG, Fog } from "../components/fog";
+import { Inventory, INVENTORY } from "../components/inventory";
+import { Lootable, LOOTABLE } from "../components/lootable";
 import { Melee, MELEE } from "../components/melee";
 import { Movable, MOVABLE } from "../components/movable";
 import { Npc, NPC } from "../components/npc";
@@ -24,6 +26,8 @@ export default function createTriangle(
     [COLLIDABLE]: Collidable;
     [EQUIPPABLE]: Equippable;
     [FOG]: Fog;
+    [INVENTORY]: Inventory;
+    [LOOTABLE]: Lootable;
     [MELEE]: Melee;
     [MOVABLE]: Movable;
     [NPC]: Npc;
@@ -42,6 +46,8 @@ export default function createTriangle(
   components.addCollidable(world, triangleEntity, entity[COLLIDABLE]);
   components.addEquippable(world, triangleEntity, entity[EQUIPPABLE]);
   components.addFog(world, triangleEntity, entity[FOG]);
+  components.addInventory(world, triangleEntity, entity[INVENTORY]);
+  components.addLootable(world, triangleEntity, entity[LOOTABLE]);
   components.addMelee(world, triangleEntity, entity[MELEE]);
   components.addMovable(world, triangleEntity, entity[MOVABLE]);
   components.addNpc(world, triangleEntity, entity[NPC]);
