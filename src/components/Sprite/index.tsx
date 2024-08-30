@@ -167,13 +167,13 @@ export default function Sprite({
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const isAttackable = !!entity[ATTACKABLE];
 
-  const spriteLayers = getFacingLayers(entity);
+  const spriteLayers = ecs ? getFacingLayers(ecs, entity) : [];
   const meleeItem =
     entity[MELEE] &&
     entity[EQUIPPABLE] &&
     ecs &&
     ecs.getEntityById(entity[EQUIPPABLE].melee);
-  const melee = meleeItem ? getFacingLayers(meleeItem) : [];
+  const melee = meleeItem ? getFacingLayers(ecs, meleeItem) : [];
   const layers = spriteLayers.concat(melee);
 
   const particles = entity[ANIMATABLE]

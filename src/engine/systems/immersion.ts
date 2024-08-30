@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { SWIMMABLE } from "../components/swimmable";
 import { World } from "../ecs";
 import { getCell } from "./map";
-import { rerenderEntity } from "./renderer";
+import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { REFERENCE } from "../components/reference";
 
 export const isImmersible = (world: World, position: Position) => {
@@ -42,7 +42,7 @@ export default function setupImmersion(world: World) {
 
     for (const entity of world.getEntities([POSITION, SWIMMABLE])) {
       const entityId = world.getEntityId(entity);
-      const entityGeneration = entity[RENDERABLE].generation;
+      const entityGeneration = getEntityGeneration(world, entity);
 
       if (entityGenerations[entityId] === entityGeneration) continue;
 

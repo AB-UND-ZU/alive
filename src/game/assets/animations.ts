@@ -5,6 +5,7 @@ import { LOOTABLE } from "../../engine/components/lootable";
 import {
   ORIENTABLE,
   orientationPoints,
+  orientations,
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { POSITION } from "../../engine/components/position";
@@ -67,7 +68,7 @@ export const damageCounter: Animation<"counter"> = (world, entity, state) => {
   return { finished, updated };
 };
 
-const decayTime = 600;
+const decayTime = 500;
 
 export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
   const finished =
@@ -80,7 +81,7 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
 
   if (
     !state.particles.decay &&
-    state.elapsed > decayTime / 2 &&
+    state.elapsed > 200 &&
     state.elapsed < decayTime
   ) {
     const deathParticle = entities.createDecay(world, {
@@ -100,11 +101,15 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
 
   if (entity[LOOTABLE].target && !state.args.timestamp) {
     unregisterEntity(world, entity);
-    const targetPosition = world.getEntityById(entity[LOOTABLE].target)[
-      POSITION
-    ];
-    entity[POSITION].x = targetPosition.x;
-    entity[POSITION].y = targetPosition.y;
+    const targetEntity = world.getEntityById(entity[LOOTABLE].target);
+    entity[POSITION].x = targetEntity[POSITION].x;
+    entity[POSITION].y = targetEntity[POSITION].y;
+    
+    if (entity[ORIENTABLE]) {
+      const orientation = targetEntity[ORIENTABLE].facing;
+      entity[ORIENTABLE].facing = orientations[(orientations.indexOf(orientation) + 2) % orientations.length];
+    }
+
     registerEntity(world, entity);
     state.args.timestamp = state.elapsed + 200;
     updated = true;
