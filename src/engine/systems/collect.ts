@@ -132,7 +132,6 @@ export default function setupCollect(world: World) {
             world,
             existingItem
           );
-          console.log(Date.now(), "existing");
         }
 
         recevingEntity[EQUIPPABLE][targetSlot] = targetId;

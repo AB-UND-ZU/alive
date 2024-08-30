@@ -45,11 +45,8 @@ export default function setupMovement(world: World) {
 
       entityReferences[entityId] = entityReference;
 
-
       const pendingOrientation = entity[MOVABLE].pendingOrientation;
       entity[MOVABLE].pendingOrientation = null;
-      // skip if already interacted
-      if (entity[MOVABLE].lastInteraction === entityReference ) continue;
 
       // skip if dead
       if (isDead(world, entity)) continue;
@@ -65,6 +62,13 @@ export default function setupMovement(world: World) {
       // skip if no attempted movement
       if (attemptedOrientations.length === 0) continue;
 
+      // set facing regardless of movement
+      if (entity[ORIENTABLE])
+        entity[ORIENTABLE].facing = attemptedOrientations[0];
+
+      // skip if already interacted
+      if (entity[MOVABLE].lastInteraction === entityReference) continue;
+
       for (const orientation of attemptedOrientations) {
         const delta = orientationPoints[orientation];
         const position = add(entity[POSITION], delta);
@@ -75,6 +79,7 @@ export default function setupMovement(world: World) {
           entity[POSITION].x = position.x;
           entity[POSITION].y = position.y;
 
+          // set facing to actual movement
           if (entity[ORIENTABLE]) entity[ORIENTABLE].facing = orientation;
 
           registerEntity(world, entity);

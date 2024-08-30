@@ -291,6 +291,7 @@ export const generateWorld = async (world: World) => {
           lastInteraction: 0,
         },
         [NPC]: {},
+        [ORIENTABLE]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: chest,
@@ -331,6 +332,7 @@ export const generateWorld = async (world: World) => {
           lastInteraction: 0,
         },
         [NPC]: {},
+        [ORIENTABLE]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: chest,
@@ -445,9 +447,9 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupCollect);
   world.addSystem(systems.setupMovement);
-  world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupDrop);
   world.addSystem(systems.setupAnimate);
+  world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);
 };
