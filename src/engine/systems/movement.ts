@@ -7,19 +7,34 @@ import { getCell, registerEntity, unregisterEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
-import { isWalkable } from "./immersion";
 import { add } from "../../game/math/std";
 import {
   ORIENTABLE,
   Orientation,
   orientationPoints,
 } from "../components/orientable";
-import { isDead } from "./damage";
+import { getAttackable, isDead, isFriendlyFire } from "./damage";
+import { isLocked } from "./unlock";
+import { getLootable } from "./collect";
+import { isSubmerged } from "./immersion";
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
     (entity) => COLLIDABLE in (entity as Entity)
   );
+
+export const isWalkable = (world: World, position: Position) =>
+  !isCollision(world, position) &&
+  !isSubmerged(world, position) &&
+  !isLocked(world, position) &&
+  !getAttackable(world, position) &&
+  !getLootable(world, position);
+
+export const isMovable = (world: World, entity: Entity, position: Position) => {
+  if (isWalkable(world, position)) return true;
+  const attackable = getAttackable(world, position);
+  return !!attackable && !isFriendlyFire(world, entity, attackable);
+};
 
 export default function setupMovement(world: World) {
   let referenceGenerations = -1;
@@ -73,7 +88,7 @@ export default function setupMovement(world: World) {
         const delta = orientationPoints[orientation];
         const position = add(entity[POSITION], delta);
 
-        if (!isCollision(world, position) && isWalkable(world, position)) {
+        if (isWalkable(world, position)) {
           unregisterEntity(world, entity);
 
           entity[POSITION].x = position.x;

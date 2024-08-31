@@ -13,19 +13,18 @@ export const isImmersible = (world: World, position: Position) => {
   return Object.values(cell).some((entity) => IMMERSIBLE in (entity as Entity));
 };
 
-export const isWalkable = (world: World, position: Position) =>
+export const isSubmerged = (world: World, position: Position) =>
   [-1, 0, 1]
     .map((xOffset) =>
-      [-1, 0, 1].map(
-        (yOffset) =>
-          !isImmersible(world, {
-            x: position.x + xOffset,
-            y: position.y + yOffset,
-          })
+      [-1, 0, 1].map((yOffset) =>
+        isImmersible(world, {
+          x: position.x + xOffset,
+          y: position.y + yOffset,
+        })
       )
     )
     .flat()
-    .some(Boolean);
+    .every(Boolean);
 
 export default function setupImmersion(world: World) {
   let referencesGeneration = -1;

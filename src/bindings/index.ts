@@ -222,29 +222,23 @@ export const generateWorld = async (world: World) => {
         [COLLIDABLE]: {},
       });
     } else if (cell === "block") {
-      entities.createWall(world, {
-        [FOG]: { visibility },
+      entities.createBlock(world, {
         [POSITION]: { x, y },
         [SPRITE]: block,
-        [LIGHT]: { brightness: 0, darkness: 1 },
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
     } else if (cell === "block_down") {
-      entities.createWall(world, {
-        [FOG]: { visibility },
+      entities.createBlock(world, {
         [POSITION]: { x, y },
         [SPRITE]: block_down,
-        [LIGHT]: { brightness: 0, darkness: 1 },
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
     } else if (cell === "block_up") {
-      entities.createWall(world, {
-        [FOG]: { visibility },
+      entities.createBlock(world, {
         [POSITION]: { x, y },
         [SPRITE]: block_up,
-        [LIGHT]: { brightness: 0, darkness: 1 },
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });

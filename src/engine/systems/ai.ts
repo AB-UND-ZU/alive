@@ -4,10 +4,9 @@ import { World } from "../ecs";
 import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
 import { BEHAVIOUR } from "../components/behaviour";
-import { isWalkable } from "./immersion";
-import { isCollision } from "./movement";
+import { isMovable } from "./movement";
 import { add, random } from "../../game/math/std";
-import { getAttackable, isDead, isFriendlyFire } from "./damage";
+import { isDead } from "./damage";
 import {
   ORIENTABLE,
   Orientation,
@@ -41,14 +40,9 @@ export default function setupAi(world: World) {
           }
 
           const position = add(entity[POSITION], orientationPoints[facing]);
-          const attackedEntity = getAttackable(world, entity, position);
-
-          // attackable, proceed
-          if (attackedEntity && !isFriendlyFire(world, entity, attackedEntity))
-            continue;
 
           // unable to move, attempt reorienting
-          if (!isWalkable(world, position) || isCollision(world, position)) {
+          if (!isMovable(world, entity, position)) {
             const preferredFacing =
               orientations[
                 (orientations.indexOf(facing) + 1 + random(0, 1) * 2) %
@@ -70,13 +64,7 @@ export default function setupAi(world: World) {
                 entity[POSITION],
                 orientationPoints[attemptedFacing]
               );
-              const attackTarget = getAttackable(world, entity, attemptedPosition);
-              if (
-                isWalkable(world, attemptedPosition) &&
-                (!isCollision(world, attemptedPosition) ||
-                  (attackTarget &&
-                    !isFriendlyFire(world, entity, attackTarget)))
-              ) {
+              if (isMovable(world, entity, attemptedPosition)) {
                 newFacing = attemptedFacing;
                 break;
               }
