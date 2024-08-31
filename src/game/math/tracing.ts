@@ -2,6 +2,7 @@ import { aspectRatio } from "../../components/Dimensions/sizing";
 import { World } from "../../engine";
 import { Level, LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
+import { Orientation } from "../../engine/components/orientable";
 import { normalize, Point, reversed } from "./std";
 
 type Interval = { start: number; end: number };
@@ -98,6 +99,26 @@ const cellToIntervals = (iteration: Iteration, point: Point): Interval[] => {
         { start: 0, end },
         { start, end: 360 },
       ];
+};
+
+export const degreesToOrientations = (degrees: number): Orientation[] => {
+  const normalized = degrees % 360;
+
+  const step = 360 / 16;
+
+  if (normalized <= step) return ["up"];
+  if (normalized <= step * 2) return ["up", "right"];
+  if (normalized <= step * 3) return ["right", "up"];
+  if (normalized <= step * 5) return ["right"];
+  if (normalized <= step * 6) return ["right", "down"];
+  if (normalized <= step * 7) return ["down", "right"];
+  if (normalized <= step * 9) return ["down"];
+  if (normalized <= step * 10) return ["down", "left"];
+  if (normalized <= step * 11) return ["left", "down"];
+  if (normalized <= step * 13) return ["left"];
+  if (normalized <= step * 14) return ["left", "up"];
+  if (normalized <= step * 15) return ["up", "left"];
+  return ["up"];
 };
 
 // given a list of angle intervals for visible ranges, determine if any part of the target is visible

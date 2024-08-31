@@ -14,6 +14,7 @@ import {
   bush,
   cactus,
   chest,
+  compass,
   createText,
   door,
   flower,
@@ -51,6 +52,7 @@ import { EQUIPPABLE } from "../engine/components/equippable";
 import { INVENTORY } from "../engine/components/inventory";
 import { COUNTABLE } from "../engine/components/countable";
 import { LOCKABLE } from "../engine/components/lockable";
+import { TRACKABLE } from "../engine/components/trackable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -134,6 +136,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "◙") entity = "door";
       else if (cell === "╒") entity = "key";
       else if (cell === "/") entity = "sword";
+      else if (cell === "↑") entity = "compass";
       else {
         entities.createBlock(world, {
           [COLLIDABLE]: {},
@@ -146,6 +149,56 @@ export const generateWorld = async (world: World) => {
       worldMatrix[x][y] = entity;
     });
   });
+
+  const frameId = world.getEntityId(
+    entities.createFrame(world, {
+      [REFERENCE]: {
+        tick: 250,
+        delta: 0,
+        suspended: true,
+        pendingSuspended: false,
+      },
+      [RENDERABLE]: { generation: 0 },
+    })
+  );
+
+  const heroId = world.getEntityId(
+    entities.createHero(world, {
+      [ANIMATABLE]: { states: {} },
+      [ATTACKABLE]: { max: 10, enemy: false },
+      [COLLIDABLE]: {},
+      [COUNTABLE]: {
+        hp: 10,
+        mp: 0,
+        xp: 0,
+        gold: 0,
+        wood: 0,
+        iron: 0,
+        herb: 0,
+        seed: 0,
+      },
+      [EQUIPPABLE]: {},
+      [INVENTORY]: { items: [] },
+      [LIGHT]: { brightness: 5.55, darkness: 0 },
+      [MELEE]: {},
+      [MOVABLE]: {
+        orientations: [],
+        reference: frameId,
+        spring: {
+          mass: 0.1,
+          friction: 50,
+          tension: 1000,
+        },
+        lastInteraction: 0,
+      },
+      [ORIENTABLE]: {},
+      [PLAYER]: {},
+      [POSITION]: { x: 0, y: 0 },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: player,
+      [SWIMMABLE]: { swimming: false },
+    })
+  );
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
@@ -259,15 +312,13 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: door,
       });
     } else if (cell === "key") {
-      const keyId = world.getEntityId(
-        entities.createKey(world, {
-          [ANIMATABLE]: { states: {} },
-          [ITEM]: { amount: 1, slot: "key" },
-          [RENDERABLE]: { generation: 0 },
-          [SPRITE]: key,
-        })
-      );
-      entities.createChest(world, {
+      const keyEntity = entities.createKey(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, slot: "key" },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: key,
+      });
+      const chestEntity = entities.createChest(world, {
         [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { max: 10, enemy: true },
         [COLLIDABLE]: {},
@@ -281,7 +332,7 @@ export const generateWorld = async (world: World) => {
           herb: 0,
           seed: 0,
         },
-        [INVENTORY]: { items: [keyId] },
+        [INVENTORY]: { items: [world.getEntityId(keyEntity)] },
         [LOOTABLE]: { accessible: false },
         [FOG]: { visibility },
         [MOVABLE]: {
@@ -298,17 +349,16 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: chest,
       });
+      keyEntity[ITEM].carrier = world.getEntityId(chestEntity);
     } else if (cell === "sword") {
-      const swordId = world.getEntityId(
-        entities.createSword(world, {
-          [ANIMATABLE]: { states: {} },
-          [ITEM]: { amount: 1, slot: "melee" },
-          [ORIENTABLE]: {},
-          [RENDERABLE]: { generation: 0 },
-          [SPRITE]: sword,
-        })
-      );
-      entities.createChest(world, {
+      const swordEntity = entities.createSword(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, slot: "melee" },
+        [ORIENTABLE]: {},
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: sword,
+      });
+      const chestEntity = entities.createChest(world, {
         [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { max: 10, enemy: true },
         [COLLIDABLE]: {},
@@ -322,7 +372,7 @@ export const generateWorld = async (world: World) => {
           herb: 0,
           seed: 0,
         },
-        [INVENTORY]: { items: [swordId] },
+        [INVENTORY]: { items: [world.getEntityId(swordEntity)] },
         [LOOTABLE]: { accessible: false },
         [FOG]: { visibility },
         [MOVABLE]: {
@@ -339,25 +389,63 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: chest,
       });
+      swordEntity[ITEM].carrier = world.getEntityId(chestEntity);
+    } else if (cell === "compass") {
+      const compassEntity = entities.createCompass(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, slot: "compass" },
+        [ORIENTABLE]: {},
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: compass,
+        [TRACKABLE]: { target: heroId },
+      });
+      const chestEntity = entities.createChest(world, {
+        [ANIMATABLE]: { states: {} },
+        [ATTACKABLE]: { max: 10, enemy: true },
+        [COLLIDABLE]: {},
+        [COUNTABLE]: {
+          hp: 0,
+          mp: 0,
+          xp: 0,
+          gold: 0,
+          wood: 0,
+          iron: 0,
+          herb: 0,
+          seed: 0,
+        },
+        [INVENTORY]: { items: [world.getEntityId(compassEntity)] },
+        [LOOTABLE]: { accessible: false },
+        [FOG]: { visibility },
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 200,
+          },
+          lastInteraction: 0,
+        },
+        [NPC]: {},
+        [ORIENTABLE]: {},
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: chest,
+      });
+      compassEntity[ITEM].carrier = world.getEntityId(chestEntity);
     } else if (cell === "triangle") {
-      const clawsId = world.getEntityId(
-        entities.createSword(world, {
-          [ANIMATABLE]: { states: {} },
-          [ITEM]: { amount: 3, slot: "melee" },
-          [ORIENTABLE]: {},
-          [RENDERABLE]: { generation: 0 },
-          [SPRITE]: none,
-        })
-      );
-      const goldId = world.getEntityId(
-        entities.createItem(world, {
-          [ANIMATABLE]: { states: {} },
-          [ITEM]: { amount: 1, counter: "gold" },
-          [RENDERABLE]: { generation: 0 },
-          [SPRITE]: gold,
-        })
-      );
-      entities.createTriangle(world, {
+      const clawsEntity = entities.createSword(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 3, slot: "melee" },
+        [ORIENTABLE]: {},
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: none,
+      });
+      const goldEntity = entities.createItem(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, counter: "gold" },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: gold,
+      });
+      const triangleEntity = entities.createTriangle(world, {
         [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { max: 3, enemy: true },
         [BEHAVIOUR]: { patterns: ["triangle"] },
@@ -372,9 +460,9 @@ export const generateWorld = async (world: World) => {
           herb: 0,
           seed: 0,
         },
-        [EQUIPPABLE]: { melee: clawsId },
+        [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
         [FOG]: { visibility },
-        [INVENTORY]: { items: [goldId] },
+        [INVENTORY]: { items: [world.getEntityId(goldEntity)] },
         [LOOTABLE]: { accessible: false },
         [MELEE]: {},
         [MOVABLE]: {
@@ -392,55 +480,9 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: triangle,
         [SWIMMABLE]: { swimming: false },
       });
+      clawsEntity[ITEM].carrier = world.getEntityId(triangleEntity);
+      goldEntity[ITEM].carrier = world.getEntityId(triangleEntity);
     }
-  });
-
-  const frameId = world.getEntityId(
-    entities.createFrame(world, {
-      [REFERENCE]: {
-        tick: 250,
-        delta: 0,
-        suspended: true,
-        pendingSuspended: false,
-      },
-      [RENDERABLE]: { generation: 0 },
-    })
-  );
-
-  entities.createHero(world, {
-    [ANIMATABLE]: { states: {} },
-    [ATTACKABLE]: { max: 10, enemy: false },
-    [COLLIDABLE]: {},
-    [COUNTABLE]: {
-      hp: 10,
-      mp: 0,
-      xp: 0,
-      gold: 0,
-      wood: 0,
-      iron: 0,
-      herb: 0,
-      seed: 0,
-    },
-    [EQUIPPABLE]: {},
-    [INVENTORY]: { items: [] },
-    [LIGHT]: { brightness: 5.55, darkness: 0 },
-    [MELEE]: {},
-    [MOVABLE]: {
-      orientations: [],
-      reference: frameId,
-      spring: {
-        mass: 0.1,
-        friction: 50,
-        tension: 1000,
-      },
-      lastInteraction: 0,
-    },
-    [ORIENTABLE]: {},
-    [PLAYER]: {},
-    [POSITION]: { x: 0, y: 0 },
-    [RENDERABLE]: { generation: 0 },
-    [SPRITE]: player,
-    [SWIMMABLE]: { swimming: false },
   });
 
   world.addSystem(systems.setupMap);
@@ -452,6 +494,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupDrop);
   world.addSystem(systems.setupAnimate);
+  world.addSystem(systems.setupNeedle);
   world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);
