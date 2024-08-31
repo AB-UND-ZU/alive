@@ -54,21 +54,24 @@ export default function setupNeedle(world: World) {
 
       entityReferences[entityId] = entityReference;
 
-      const currentOrientation = entity[ORIENTABLE].facing;
       const delta = {
         x: targetEntity[POSITION].x - originEntity[POSITION].x,
         y: targetEntity[POSITION].y - originEntity[POSITION].y,
       };
       const targetOrientation = degreesToOrientations(pointToDegree(delta))[0];
 
-      if (currentOrientation === targetOrientation) continue;
-
       // reorient needle
-      entity[ORIENTABLE].facing = targetOrientation;
-      rerenderEntity(world, entity);
+      if (entity[ORIENTABLE].facing !== targetOrientation) {
+        entity[ORIENTABLE].facing = targetOrientation;
+        rerenderEntity(world, entity);
+      }
 
       // reorient lootable container
-      if (isDead(world, originEntity) && originEntity[LOOTABLE].accessible) {
+      if (
+        isDead(world, originEntity) &&
+        originEntity[LOOTABLE].accessible &&
+        originEntity[ORIENTABLE].facing !== targetOrientation
+      ) {
         originEntity[ORIENTABLE].facing = targetOrientation;
         rerenderEntity(world, originEntity);
       }

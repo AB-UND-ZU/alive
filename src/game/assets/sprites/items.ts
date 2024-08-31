@@ -208,10 +208,6 @@ export const compass: Sprite = {
       char: "\u0108",
       color: colors.maroon,
     },
-    {
-      char: "\u0117",
-      color: colors.grey,
-    },
   ],
   facing: {
     up: [

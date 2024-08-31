@@ -425,7 +425,7 @@ export const generateWorld = async (world: World) => {
           lastInteraction: 0,
         },
         [NPC]: {},
-        [ORIENTABLE]: {},
+        [ORIENTABLE]: { facing: "up" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: chest,
