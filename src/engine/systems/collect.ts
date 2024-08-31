@@ -21,7 +21,7 @@ export const getLootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
     (entity) =>
       LOOTABLE in entity && INVENTORY in entity && !isEmpty(world, entity)
-  ) as Entity;
+  ) as Entity | undefined;
 
 export const isEmpty = (world: World, entity: Entity) =>
   !(INVENTORY in entity) ||

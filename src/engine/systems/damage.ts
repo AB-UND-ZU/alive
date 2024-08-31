@@ -23,18 +23,11 @@ export const isDead = (world: World, entity: Entity) =>
 export const isFriendlyFire = (world: World, entity: Entity, target: Entity) =>
   target[ATTACKABLE].enemy === NPC in entity;
 
-export const getAttackable = (
-  world: World,
-  entity: Entity,
-  position: Position
-) =>
+export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
     (target) =>
-      ATTACKABLE in target &&
-      COUNTABLE in target &&
-      !isDead(world, target) &&
-      !isFriendlyFire(world, entity, target)
-  ) as Entity;
+      ATTACKABLE in target && COUNTABLE in target && !isDead(world, target)
+  ) as Entity | undefined;
 
 export default function setupDamage(world: World) {
   let referenceGenerations = -1;
@@ -84,9 +77,10 @@ export default function setupDamage(world: World) {
 
       const delta = orientationPoints[targetOrientation];
       const targetPosition = add(entity[POSITION], delta);
-      const targetEntity = getAttackable(world, entity, targetPosition);
+      const targetEntity = getAttackable(world, targetPosition);
 
-      if (!targetEntity) continue;
+      if (!targetEntity || isFriendlyFire(world, entity, targetEntity))
+        continue;
 
       // handle attacking
       const sword = world.getEntityById(entity[EQUIPPABLE].melee);

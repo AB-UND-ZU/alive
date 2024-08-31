@@ -22,7 +22,10 @@ import { LIGHT } from "../components/light";
 export const getLockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
     (entity) => LOCKABLE in entity
-  ) as Entity;
+  ) as Entity | undefined;
+
+export const isLocked = (world: World, position: Position) =>
+  !!getLockable(world, position)?.[LOCKABLE]?.locked;
 
 export default function setupUnlock(world: World) {
   let referenceGenerations = -1;
@@ -70,7 +73,7 @@ export default function setupUnlock(world: World) {
       const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getLockable(world, targetPosition);
 
-      if (!targetEntity || !targetEntity[LOCKABLE].locked) continue;
+      if (!targetEntity || !isLocked(world, targetPosition)) continue;
 
       // mark as interacted
       entity[MOVABLE].lastInteraction = entityReference;
