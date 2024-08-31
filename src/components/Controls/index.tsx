@@ -6,6 +6,9 @@ import { useHero, useWorld } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 import { Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
+import Row from "../Row";
+import { createText } from "../../game/assets/sprites";
+import * as colors from "../../game/assets/colors";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -150,7 +153,12 @@ export default function Controls() {
 
   return (
     <footer className="Controls">
-      {"═".repeat(dimensions.columns + 1 - (dimensions.columns % 2))}
+      <Row
+        cells={createText(
+          "═".repeat(dimensions.columns + 1 - (dimensions.columns % 2)),
+          colors.grey
+        )}
+      />
     </footer>
   );
 }
