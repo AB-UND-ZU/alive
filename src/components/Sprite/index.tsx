@@ -29,6 +29,7 @@ import { Orientable, ORIENTABLE } from "../../engine/components/orientable";
 import { Animatable, ANIMATABLE } from "../../engine/components/animatable";
 import { Entity } from "ecs";
 import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
+import { Lockable, LOCKABLE } from "../../engine/components/lockable";
 
 function Layer({
   layer,
@@ -37,6 +38,7 @@ function Layer({
   isAir,
   isOpaque,
   isUnit,
+  isLockable,
   particle,
 }: {
   layer: LayerType;
@@ -45,13 +47,15 @@ function Layer({
   isAir: boolean;
   isOpaque: boolean;
   isUnit: boolean;
+  isLockable: boolean;
   particle?: Particle;
 }) {
   const dimensions = useDimensions();
 
   const isFog = visibility === "fog";
   const isHidden =
-    !!visibility && (visibility === "hidden" || (isUnit && isFog));
+    !!visibility &&
+    (visibility === "hidden" || (isUnit && isFog && !isLockable));
 
   const shadowColor = useRef(
     `#${new THREE.Color(layer.color).multiplyScalar(0.125).getHexString()}`
@@ -145,6 +149,7 @@ export default function Sprite({
     [FOG]?: Fog;
     [EQUIPPABLE]?: Equippable;
     [LIGHT]?: Light;
+    [LOCKABLE]?: Lockable;
     [MELEE]?: Melee;
     [MOVABLE]?: Movable;
     [NPC]?: Npc;
@@ -164,6 +169,7 @@ export default function Sprite({
   const isVisible = visibility === "visible";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
   const isUnit = !!entity[NPC] || isPlayer;
+  const isLockable = !!entity[LOCKABLE];
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const isAttackable = !!entity[ATTACKABLE];
 
@@ -210,6 +216,7 @@ export default function Sprite({
           isAir={isAir}
           isOpaque={isOpaque}
           isUnit={isUnit}
+          isLockable={isLockable}
           visibility={visibility}
           layer={layer}
           key={index}
@@ -222,6 +229,7 @@ export default function Sprite({
           isAir={isAir}
           isOpaque={isOpaque}
           isUnit={isUnit}
+          isLockable={isLockable}
           particle={particle}
           visibility={visibility}
           layer={layer}

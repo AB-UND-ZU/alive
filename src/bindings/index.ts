@@ -181,8 +181,7 @@ export const generateWorld = async (world: World) => {
       },
       [EQUIPPABLE]: {},
       [INVENTORY]: { items: [] },
-      [LIGHT]: { brightness: 10, darkness: 0 },
-      //[LIGHT]: { brightness: 5.55, darkness: 0 },
+      [LIGHT]: { brightness: 5.55, darkness: 0 },
       [MELEE]: {},
       [MOVABLE]: {
         orientations: [],
@@ -207,7 +206,7 @@ export const generateWorld = async (world: World) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
     const deltaY = size / 2 - Math.abs(y - size / 2);
     const visibility =
-      deltaX < menuRows[0].length / 2 && deltaY < menuRows.length / 2
+      deltaX < menuRows[0].length / 2 && deltaY < menuRows.length / 2 && (y < menuRows.length / 2 - 2 || y > menuRows.length)
         ? "visible"
         : "hidden";
 
