@@ -4,8 +4,8 @@ import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
 import { useHero, useWorld } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
-import { Point } from "../../game/math/std";
 import { Orientation } from "../../engine/components/orientable";
+import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -16,32 +16,6 @@ export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   s: "down",
   ArrowLeft: "left",
   a: "left",
-};
-
-// degrees are counted from top center clockwise, from 0 to 360
-export const pointToDegree = (point: Point) => {
-  const radian = Math.atan2(point.y, point.x);
-  return ((radian * 180) / Math.PI + 450) % 360;
-};
-
-export const degreesToOrientations = (degrees: number): Orientation[] => {
-  const normalized = degrees % 360;
-
-  const step = 360 / 16;
-
-  if (normalized <= step) return ["up"];
-  if (normalized <= step * 2) return ["up", "right"];
-  if (normalized <= step * 3) return ["right", "up"];
-  if (normalized <= step * 5) return ["right"];
-  if (normalized <= step * 6) return ["right", "down"];
-  if (normalized <= step * 7) return ["down", "right"];
-  if (normalized <= step * 9) return ["down"];
-  if (normalized <= step * 10) return ["down", "left"];
-  if (normalized <= step * 11) return ["left", "down"];
-  if (normalized <= step * 13) return ["left"];
-  if (normalized <= step * 14) return ["left", "up"];
-  if (normalized <= step * 15) return ["up", "left"];
-  return ["up"];
 };
 
 export default function Controls() {

@@ -79,12 +79,14 @@ export default function setupCollect(world: World) {
       if (!targetEntity || !targetEntity[LOOTABLE].accessible) continue;
 
       // handle pick up
-      const targetId = targetEntity[INVENTORY].items[0];
+      const itemId = targetEntity[INVENTORY].items[0];
 
-      if (!targetId) continue;
+      if (!itemId) continue;
 
       // initiate collecting animation
       targetEntity[LOOTABLE].target = entityId;
+      const itemEntity = world.getEntityById(itemId);
+      itemEntity[ITEM].carrier = entityId;
 
       // mark as interacted
       entity[MOVABLE].lastInteraction = entityReference;
@@ -132,6 +134,9 @@ export default function setupCollect(world: World) {
             world,
             existingItem
           );
+
+          // TODO: handle dropping existing item instead
+          world.removeEntity(existingId);
         }
 
         recevingEntity[EQUIPPABLE][targetSlot] = targetId;

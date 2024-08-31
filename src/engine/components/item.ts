@@ -4,6 +4,7 @@ import { Equippable } from "./equippable";
 import { Countable } from "./countable";
 
 export type Item = {
+  carrier?: number;
   amount: number;
   slot?: keyof Equippable;
   counter?: keyof Countable;

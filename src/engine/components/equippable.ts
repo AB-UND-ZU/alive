@@ -4,6 +4,7 @@ import { World } from "../ecs";
 export type Equippable = {
   melee?: number;
   key?: number;
+  compass?: number;
 };
 
 export const EQUIPPABLE = "EQUIPPABLE";
