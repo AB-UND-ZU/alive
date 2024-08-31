@@ -63,13 +63,16 @@ export const generateWorld = async (world: World) => {
   const greenMatrix = valueNoiseMatrix(size, size, 1, -80, 100);
   const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
 
+  const menuRows = menuArea.split("\n");
+
   const worldMatrix = matrixFactory<string>(size, size, (x, y) => {
     // distance from zero
     const deltaX = size / 2 - Math.abs(x - size / 2);
     const deltaY = size / 2 - Math.abs(y - size / 2);
 
     // clear square menu area
-    if (deltaX <= 9 && deltaY <= 6) return "";
+    if (deltaX < menuRows[0].length / 2 && deltaY < menuRows.length / 2)
+      return "";
 
     // clear triangular exit
     if (y > 6 && y < 12 && y > 5 + deltaX) return "";
@@ -78,7 +81,7 @@ export const generateWorld = async (world: World) => {
 
     // create clean elevation around menu
     const menu = 100000 / distance ** 4;
-    const menuElevation = Math.min(35, menu * 2);
+    const menuElevation = Math.min(35, menu * 3);
     const menuDip = 1 / (1 + menu / 2);
 
     const elevation = elevationMatrix[x][y] * menuDip + menuElevation;
@@ -121,13 +124,12 @@ export const generateWorld = async (world: World) => {
   });
 
   // insert menu
-  const rows = menuArea.split("\n");
-  rows.forEach((row, rowIndex) => {
+  menuRows.forEach((row, rowIndex) => {
     row.split("").forEach((cell, columnIndex) => {
       if (cell === " ") return;
 
       const x = normalize(columnIndex - (row.length - 1) / 2, size);
-      const y = normalize(rowIndex - (rows.length - 1) / 2, size);
+      const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
       let entity = "";
       if (cell === "#") entity = "rock";
       else if (cell === "█") entity = "block";
@@ -136,7 +138,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "◙") entity = "door";
       else if (cell === "╒") entity = "key";
       else if (cell === "/") entity = "sword";
-      else if (cell === "↑") entity = "compass";
+      else if (cell === "¢") entity = "compass";
       else {
         entities.createBlock(world, {
           [COLLIDABLE]: {},
@@ -179,7 +181,8 @@ export const generateWorld = async (world: World) => {
       },
       [EQUIPPABLE]: {},
       [INVENTORY]: { items: [] },
-      [LIGHT]: { brightness: 5.55, darkness: 0 },
+      [LIGHT]: { brightness: 10, darkness: 0 },
+      //[LIGHT]: { brightness: 5.55, darkness: 0 },
       [MELEE]: {},
       [MOVABLE]: {
         orientations: [],
@@ -203,7 +206,10 @@ export const generateWorld = async (world: World) => {
   iterateMatrix(worldMatrix, (x, y, cell) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
     const deltaY = size / 2 - Math.abs(y - size / 2);
-    const visibility = deltaX <= 10 && deltaY <= 6 ? "visible" : "hidden";
+    const visibility =
+      deltaX < menuRows[0].length / 2 && deltaY < menuRows.length / 2
+        ? "visible"
+        : "hidden";
 
     entities.createAir(world, {
       [FOG]: { visibility },

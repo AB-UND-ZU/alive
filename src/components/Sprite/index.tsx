@@ -67,7 +67,7 @@ function Layer({
   const spring = useSpring({
     from: {
       color: "#000000",
-      opacity: 1,
+      opacity: transparent ? 0 : 1,
     },
     to: {
       color,
