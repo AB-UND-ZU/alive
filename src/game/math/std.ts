@@ -11,6 +11,12 @@ export const sum = (numbers: number[]) =>
 export const normalize = (number: number, modulo: number) =>
   ((number % modulo) + modulo) % modulo;
 
+export const signedDistance = (start: number, end: number, size: number) => {
+  const distance = (end - start) % size;
+  const overlap = Math.abs(distance) > size / 2 ? Math.sign(distance) * size : 0;
+  return distance - overlap;
+}
+
 export function* reversed<T>(array: T[]) {
   for (let i = array.length - 1; i >= 0; i--) {
     yield array[i];
