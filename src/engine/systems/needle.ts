@@ -10,6 +10,8 @@ import { rerenderEntity } from "./renderer";
 import { TRACKABLE } from "../components/trackable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import { LOOTABLE } from "../components/lootable";
+import { LEVEL } from "../components/level";
+import { signedDistance } from "../../game/math/std";
 
 export default function setupNeedle(world: World) {
   let referenceGenerations = -1;
@@ -54,9 +56,10 @@ export default function setupNeedle(world: World) {
 
       entityReferences[entityId] = entityReference;
 
+      const size = world.metadata.gameEntity[LEVEL].size;
       const delta = {
-        x: targetEntity[POSITION].x - originEntity[POSITION].x,
-        y: targetEntity[POSITION].y - originEntity[POSITION].y,
+        x: signedDistance(originEntity[POSITION].x, targetEntity[POSITION].x, size),
+        y: signedDistance(originEntity[POSITION].y, targetEntity[POSITION].y, size),
       };
       const targetOrientation = degreesToOrientations(pointToDegree(delta))[0];
 
