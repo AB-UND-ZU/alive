@@ -9,6 +9,7 @@ export { default as addImmersible } from "./immersible";
 export { default as addInventory } from "./inventory";
 export { default as addItem } from "./item";
 export { default as addLevel } from "./level";
+export { default as addLockable } from "./lockable";
 export { default as addLight } from "./light";
 export { default as addLootable } from "./lootable";
 export { default as addMelee } from "./melee";

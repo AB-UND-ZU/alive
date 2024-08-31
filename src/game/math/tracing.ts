@@ -252,6 +252,9 @@ export const traceCircularVisiblity = (
   radius: number
 ) => {
   const visibleCells: Point[] = [point];
+  // if standing within obstructred terrain
+  if (isObstructing(world, point)) return visibleCells;
+
   const level = world.metadata.gameEntity[LEVEL];
   let visibleIntervals: Interval[] = [{ start: 0, end: 360 }];
   const args = { world, level, visibleCells, radius };

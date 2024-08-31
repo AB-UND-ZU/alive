@@ -50,6 +50,7 @@ import { LOOTABLE } from "../engine/components/lootable";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { INVENTORY } from "../engine/components/inventory";
 import { COUNTABLE } from "../engine/components/countable";
+import { LOCKABLE } from "../engine/components/lockable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -248,10 +249,11 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "door") {
       entities.createDoor(world, {
         [ANIMATABLE]: { states: {} },
-        [COLLIDABLE]: {},
         [FOG]: { visibility },
         [LIGHT]: { brightness: 0, darkness: 1 },
+        [LOCKABLE]: { locked: true },
         [NPC]: {},
+        [ORIENTABLE]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: door,
@@ -446,6 +448,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupCollect);
+  world.addSystem(systems.setupUnlock);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupDrop);
   world.addSystem(systems.setupAnimate);

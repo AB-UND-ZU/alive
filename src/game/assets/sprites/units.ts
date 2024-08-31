@@ -27,4 +27,25 @@ export const door: Sprite = {
       color: colors.grey,
     },
   ],
+  facing: {
+    down: [
+      // empty layers to appear above player
+      {
+        char: "",
+        color: colors.black,
+      },
+      {
+        char: "",
+        color: colors.black,
+      },
+      {
+        char: "",
+        color: colors.black,
+      },
+      {
+        char: "\u0109",
+        color: colors.maroon,
+      },
+    ],
+  },
 };
