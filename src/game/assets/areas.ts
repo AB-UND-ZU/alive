@@ -1,21 +1,23 @@
+import { isTouch } from "../../components/Dimensions";
+
 export const menuArea = `\
 #######################
-#                     #
 #                     #
 #  █▀▄ █   █ █ █ ▄▀▀  #
 #  █▄█ █   █ █ █ █▄▄  #
 #  █ █ ▀▄▄ █ █▄▀ █▄▄  #
 #                     #
-#                     #
-#                     #
-#                     #
-#       /  ¢  ╒       #
-#                     #
 ${
-  window.matchMedia("(pointer: coarse)").matches
+  isTouch
     ? "#    swipe to move    #"
     : "#   \u011a \u0117 \u0118 \u0119 to move   #"
 }
+#                     #
+#                     #
+#                     #
+#                     #
+#     /    ¢    ╒     #
+#                     #
 #                     #
 ###########◙###########
 ##########   ##########

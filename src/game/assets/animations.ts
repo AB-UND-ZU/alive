@@ -131,7 +131,6 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
   return { finished, updated };
 };
 
-// const lineSprites = createText("|/-\\|/-\\", colors.olive);
 const lineSprites = createText("─┐│┘─└│┌", colors.olive);
 
 export const focusCircle: Animation<"focus"> = (world, entity, state) => {
@@ -169,16 +168,26 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
       (lineIndex) =>
         world.getEntityById(state.particles[`line-${lineIndex}`])[SPRITE].layers
           .length > 0
-    ) || "0"
+    ) || "-1"
   );
   const focusIndex =
     Math.floor(
       (state.elapsed - state.args.offset) /
         world.metadata.gameEntity[REFERENCE].tick
     ) % 4;
+  const currentActive = currentIndex !== -1;
+  const isActive = entity[FOCUSABLE].active
 
-  // rotate focus by toggling visibility of 8 individual particles
-  if (currentIndex !== focusIndex) {
+  // disable all on inactive
+  if (currentActive && !isActive) {
+    for (let i = 0; i < 8; i += 1) {
+      const particle = world.getEntityById(state.particles[`line-${i}`]);
+      particle[SPRITE] = none;
+    }
+
+    updated = true;
+  } else if (isActive && currentIndex !== focusIndex) {
+    // rotate focus by toggling visibility of 8 individual particles
     for (let i = 0; i < 8; i += 1) {
       const particle = world.getEntityById(state.particles[`line-${i}`]);
       const particleIndex = i % 4;
