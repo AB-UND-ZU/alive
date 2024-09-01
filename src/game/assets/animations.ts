@@ -1,5 +1,6 @@
 import { entities } from "../../engine";
 import { Animation } from "../../engine/components/animatable";
+import { FOCUSABLE } from "../../engine/components/focusable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { LOOTABLE } from "../../engine/components/lootable";
 import {
@@ -9,10 +10,13 @@ import {
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { POSITION } from "../../engine/components/position";
+import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { registerEntity, unregisterEntity } from "../../engine/systems/map";
-import { createCounter, decay, hit } from "./sprites";
+import * as colors from "../assets/colors";
+import { iterations } from "../math/tracing";
+import { createCounter, createText, decay, hit, none } from "./sprites";
 
 export const swordAttack: Animation<"melee"> = (world, entity, state) => {
   // align sword with facing direction
@@ -104,10 +108,13 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     const targetEntity = world.getEntityById(entity[LOOTABLE].target);
     entity[POSITION].x = targetEntity[POSITION].x;
     entity[POSITION].y = targetEntity[POSITION].y;
-    
+
     if (entity[ORIENTABLE]) {
       const orientation = targetEntity[ORIENTABLE].facing;
-      entity[ORIENTABLE].facing = orientations[(orientations.indexOf(orientation) + 2) % orientations.length];
+      entity[ORIENTABLE].facing =
+        orientations[
+          (orientations.indexOf(orientation) + 2) % orientations.length
+        ];
     }
 
     registerEntity(world, entity);
@@ -118,6 +125,66 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
   if (state.elapsed > decayTime && state.particles.decay) {
     world.removeEntity(world.getEntityById(state.particles.decay));
     delete state.particles.decay;
+    updated = true;
+  }
+
+  return { finished, updated };
+};
+
+// const lineSprites = createText("|/-\\|/-\\", colors.olive);
+const lineSprites = createText("─┐│┘─└│┌", colors.olive);
+
+export const focusCircle: Animation<"focus"> = (world, entity, state) => {
+  const finished = false;
+  let updated = false;
+
+  // create all 8 surrounding particles
+  if (Object.keys(state.particles).length !== 8) {
+    for (let i = 0; i < 4; i += 1) {
+      const iteration = iterations[i];
+      const sideParticle = entities.createCounter(world, {
+        [PARTICLE]: {
+          offsetX: iteration.direction.x,
+          offsetY: iteration.direction.y,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: none,
+      });
+      const cornerParticle = entities.createCounter(world, {
+        [PARTICLE]: {
+          offsetX: iteration.direction.x + iteration.normal.x,
+          offsetY: iteration.direction.y + iteration.normal.y,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: none,
+      });
+      state.particles[`line-${i * 2}`] = world.getEntityId(sideParticle);
+      state.particles[`line-${i * 2 + 1}`] = world.getEntityId(cornerParticle);
+    }
+    updated = true;
+  }
+
+  const currentIndex = parseInt(
+    Object.keys(Array.from({ length: 8 })).find(
+      (lineIndex) =>
+        world.getEntityById(state.particles[`line-${lineIndex}`])[SPRITE].layers
+          .length > 0
+    ) || "0"
+  );
+  const focusIndex =
+    Math.floor(
+      (state.elapsed - state.args.offset) /
+        world.metadata.gameEntity[REFERENCE].tick
+    ) % 4;
+
+  // rotate focus by toggling visibility of 8 individual particles
+  if (currentIndex !== focusIndex) {
+    for (let i = 0; i < 8; i += 1) {
+      const particle = world.getEntityById(state.particles[`line-${i}`]);
+      const particleIndex = i % 4;
+      particle[SPRITE] = particleIndex === focusIndex ? lineSprites[i] : none;
+    }
+
     updated = true;
   }
 
