@@ -53,6 +53,7 @@ import { INVENTORY } from "../engine/components/inventory";
 import { COUNTABLE } from "../engine/components/countable";
 import { LOCKABLE } from "../engine/components/lockable";
 import { TRACKABLE } from "../engine/components/trackable";
+import { FOCUSABLE } from "../engine/components/focusable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -143,7 +144,7 @@ export const generateWorld = async (world: World) => {
         entities.createBlock(world, {
           [COLLIDABLE]: {},
           [POSITION]: { x, y },
-          [SPRITE]: createText(cell, colors.white)[0],
+          [SPRITE]: createText(cell, colors.grey)[0],
           [RENDERABLE]: { generation: 0 },
         });
       }
@@ -514,6 +515,7 @@ export const generateWorld = async (world: World) => {
         },
       },
     },
+    [FOCUSABLE]: { active: true },
     [POSITION]: { x: compassEntity[POSITION].x, y: compassEntity[POSITION].y },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
