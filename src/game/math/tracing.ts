@@ -19,7 +19,7 @@ const corners = {
   leftUp: { x: -0.5, y: -0.5 },
 };
 
-const iterations: Iteration[] = [
+export const iterations: Iteration[] = [
   // up
   {
     direction: { x: 0, y: -1 },

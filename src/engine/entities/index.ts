@@ -9,6 +9,7 @@ export { default as createCounter } from "./counter";
 export { default as createDecay } from "./decay";
 export { default as createDoor } from "./door";
 export { default as createFlower } from "./flower";
+export { default as createFocus } from "./focus";
 export { default as createFrame } from "./frame";
 export { default as createGame } from "./game";
 export { default as createHero } from "./hero";

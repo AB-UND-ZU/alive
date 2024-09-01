@@ -4,9 +4,10 @@ import * as animations from "../../game/assets/animations";
 import { Orientation } from "./orientable";
 
 export type AnimationArgument = {
-  melee: { facing: Orientation };
   counter: { facing: Orientation; amount: number };
   decay: { timestamp?: number };
+  focus: { offset: number };
+  melee: { facing: Orientation };
 };
 export type AnimationState<A extends keyof AnimationArgument> = {
   name: keyof typeof animations; // TODO: only allow valid keys

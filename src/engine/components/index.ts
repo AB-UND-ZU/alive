@@ -4,6 +4,7 @@ export { default as addBehaviour } from "./behaviour";
 export { default as addCollidable } from "./collidable";
 export { default as addCountable } from "./countable";
 export { default as addEquippable } from "./equippable";
+export { default as addFocusable } from "./focusable";
 export { default as addFog } from "./fog";
 export { default as addImmersible } from "./immersible";
 export { default as addInventory } from "./inventory";

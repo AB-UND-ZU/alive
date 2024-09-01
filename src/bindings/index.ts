@@ -75,7 +75,7 @@ export const generateWorld = async (world: World) => {
       return "";
 
     // clear triangular exit
-    if (y > 6 && y < 12 && y > 5 + deltaX) return "";
+    if (y > 6 && y < 14 && y > 5 + deltaX) return "";
 
     const distance = Math.sqrt((deltaX * aspectRatio) ** 2 + deltaY ** 2);
 
@@ -206,7 +206,9 @@ export const generateWorld = async (world: World) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
     const deltaY = size / 2 - Math.abs(y - size / 2);
     const visibility =
-      deltaX < menuRows[0].length / 2 && deltaY < menuRows.length / 2 && (y < menuRows.length / 2 - 2 || y > menuRows.length)
+      deltaX < menuRows[0].length / 2 &&
+      deltaY < menuRows.length / 2 &&
+      (y < menuRows.length / 2 - 2 || y > menuRows.length)
         ? "visible"
         : "hidden";
 
@@ -482,6 +484,39 @@ export const generateWorld = async (world: World) => {
       clawsEntity[ITEM].carrier = world.getEntityId(triangleEntity);
       goldEntity[ITEM].carrier = world.getEntityId(triangleEntity);
     }
+  });
+
+  const compassEntity = world.getEntityId(
+    world
+      .getEntities([ITEM])
+      .find((entity) => entity[ITEM].slot === "compass")?.[ITEM].carrier
+  );
+
+  const animationEntity = entities.createAnimation(world, {
+    [REFERENCE]: {
+      tick: -1,
+      delta: 0,
+      suspended: false,
+      pendingSuspended: false,
+    },
+    [RENDERABLE]: { generation: 1 },
+  });
+
+  entities.createFocus(world, {
+    [ANIMATABLE]: {
+      states: {
+        focus: {
+          name: "focusCircle",
+          reference: world.getEntityId(animationEntity),
+          elapsed: 0,
+          args: { offset: 0 },
+          particles: {},
+        },
+      },
+    },
+    [POSITION]: { x: compassEntity[POSITION].x, y: compassEntity[POSITION].y },
+    [RENDERABLE]: { generation: 0 },
+    [SPRITE]: none,
   });
 
   world.addSystem(systems.setupMap);
