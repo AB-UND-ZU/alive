@@ -14,6 +14,7 @@ import { POSITION, Position } from "../components/position";
 import { Renderable, RENDERABLE } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
 import { SWIMMABLE, Swimmable } from "../components/swimmable";
+import { Viewable, VIEWABLE } from "../components/viewable";
 import type { World } from "../ecs";
 
 export default function createHero(
@@ -34,6 +35,7 @@ export default function createHero(
     [RENDERABLE]: Renderable;
     [SPRITE]: Sprite;
     [SWIMMABLE]: Swimmable;
+    [VIEWABLE]: Viewable;
   }
 ) {
   const heroEntity = world.createEntity();
@@ -53,6 +55,7 @@ export default function createHero(
   components.addRenderable(world, heroEntity, entity[RENDERABLE]);
   components.addSprite(world, heroEntity, entity[SPRITE]);
   components.addSwimmable(world, heroEntity, entity[SWIMMABLE]);
+  components.addViewable(world, heroEntity, entity[VIEWABLE]);
 
   return heroEntity;
 }

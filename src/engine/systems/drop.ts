@@ -31,7 +31,6 @@ export default function setupDrop(world: World) {
         !(PLAYER in entity) &&
         getAnimations(world, entity).length === 0
       ) {
-        unregisterEntity(world, entity);
         world.removeEntity(entity);
       } else if (
         isDead(world, entity) &&

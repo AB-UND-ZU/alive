@@ -105,3 +105,4 @@
 - Door needs empty layers to appear above player
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
 - Animations mutate state and don't really animate things
+- Changing position manually requires to re-register entity

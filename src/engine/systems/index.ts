@@ -3,6 +3,7 @@ export { default as setupAnimate } from "./animate";
 export { default as setupCollect } from "./collect";
 export { default as setupDamage } from "./damage";
 export { default as setupDrop } from "./drop";
+export { default as setupFocus } from "./focus";
 export { default as setupImmersion } from "./immersion";
 export { default as setupMap } from "./map";
 export { default as setupMovement } from "./movement";

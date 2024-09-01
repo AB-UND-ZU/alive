@@ -2,6 +2,7 @@ import { aspectRatio } from "../../components/Dimensions/sizing";
 import { World } from "../../engine";
 import { Level, LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
+import { LOCKABLE } from "../../engine/components/lockable";
 import { Orientation } from "../../engine/components/orientable";
 import { normalize, Point, reversed } from "./std";
 
@@ -155,7 +156,11 @@ const isObstructing = (world: World, point: Point) => {
   for (const entityId in cell) {
     const entity = cell[entityId];
 
-    if (LIGHT in entity && entity[LIGHT].darkness > 0) return true;
+    if (
+      (LIGHT in entity && entity[LIGHT].darkness > 0) ||
+      entity[LOCKABLE]?.locked
+    )
+      return true;
   }
 
   return false;

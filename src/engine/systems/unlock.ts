@@ -18,6 +18,7 @@ import { ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { LOCKABLE } from "../components/lockable";
 import { LIGHT } from "../components/light";
+import { EQUIPPABLE } from "../components/equippable";
 
 export const getLockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -94,6 +95,7 @@ export default function setupUnlock(world: World) {
       // remove key
       world.removeEntity(keyIndex);
       entity[INVENTORY].items.splice(keyIndex, 1);
+      entity[EQUIPPABLE].key = undefined;
       rerenderEntity(world, entity);
     }
   };

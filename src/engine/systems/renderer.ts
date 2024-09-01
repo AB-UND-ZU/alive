@@ -26,7 +26,7 @@ export const getEntityGeneration = (world: World, entity: Entity) => {
     : 0;
 
   const equipmentGenerations: number = entity[EQUIPPABLE]
-    ? Object.values<number>(entity[EQUIPPABLE]).reduce(
+    ? Object.values<number>(entity[EQUIPPABLE]).filter(Boolean).reduce(
         (total, item) =>
           total + getEntityGeneration(world, world.getEntityById(item)),
         0

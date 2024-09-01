@@ -2,7 +2,8 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Focusable = {
-  active: boolean;
+  target?: number;
+  pendingTarget?: number;
 };
 
 export const FOCUSABLE = "FOCUSABLE";
