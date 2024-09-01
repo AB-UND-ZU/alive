@@ -1,7 +1,13 @@
 import { entities } from "../../engine";
 import { Animation } from "../../engine/components/animatable";
+import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
+import { FOG } from "../../engine/components/fog";
+import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { INVENTORY } from "../../engine/components/inventory";
+import { LEVEL } from "../../engine/components/level";
+import { LIGHT } from "../../engine/components/light";
+import { LOCKABLE } from "../../engine/components/lockable";
 import { LOOTABLE } from "../../engine/components/lootable";
 import {
   ORIENTABLE,
@@ -9,13 +15,22 @@ import {
   orientations,
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
+import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
-import { registerEntity, unregisterEntity } from "../../engine/systems/map";
+import { VIEWABLE } from "../../engine/components/viewable";
+import {
+  getCell,
+  registerEntity,
+  unregisterEntity,
+} from "../../engine/systems/map";
+import { rerenderEntity } from "../../engine/systems/renderer";
 import * as colors from "../assets/colors";
+import { normalize } from "../math/std";
 import { iterations } from "../math/tracing";
+import { menuArea } from "./areas";
 import { createCounter, createText, decay, hit, none } from "./sprites";
 
 export const swordAttack: Animation<"melee"> = (world, entity, state) => {
@@ -176,7 +191,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         world.metadata.gameEntity[REFERENCE].tick
     ) % 4;
   const currentActive = currentIndex !== -1;
-  const isActive = entity[FOCUSABLE].active
+  const isActive = !!entity[FOCUSABLE].target;
 
   // disable all on inactive
   if (currentActive && !isActive) {
@@ -195,6 +210,119 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
     }
 
     updated = true;
+  }
+
+  return { finished, updated };
+};
+
+export const mainQuest: Animation<"quest"> = (world, entity, state) => {
+  let finished = false;
+  let updated = false;
+  const playerEntity = world.getEntity([PLAYER]);
+  const focusEntity = world.getEntity([FOCUSABLE]);
+
+  if (!focusEntity || !playerEntity) {
+    return { finished, updated };
+  }
+
+  if (state.args.step === "move") {
+    if (playerEntity[POSITION].x !== 0 || playerEntity[POSITION].y !== 0) {
+      const compassEntity = world
+        .getEntities([IDENTIFIABLE])
+        .find((entity) => entity[IDENTIFIABLE].name === "compass");
+      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(compassEntity);
+      state.args.step = "compass";
+      updated = true;
+    }
+  } else if (state.args.step === "compass") {
+    if (playerEntity[EQUIPPABLE].compass) {
+      const swordEntity = world
+        .getEntities([IDENTIFIABLE])
+        .find((entity) => entity[IDENTIFIABLE].name === "sword");
+      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(swordEntity);
+      state.args.step = "sword";
+      updated = true;
+    }
+  } else if (state.args.step === "sword") {
+    if (playerEntity[EQUIPPABLE].melee) {
+      const keyEntity = world
+        .getEntities([IDENTIFIABLE])
+        .find((entity) => entity[IDENTIFIABLE].name === "key");
+      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(keyEntity);
+      state.args.step = "key";
+      updated = true;
+    }
+  } else if (state.args.step === "key") {
+    if (playerEntity[EQUIPPABLE].key) {
+      const doorEntity = world
+        .getEntities([IDENTIFIABLE])
+        .find((entity) => entity[IDENTIFIABLE].name === "door");
+      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(doorEntity);
+      state.args.step = "door";
+      updated = true;
+    }
+  } else if (state.args.step === "door") {
+    if (!playerEntity[EQUIPPABLE].key) {
+      focusEntity[FOCUSABLE].pendingTarget = undefined;
+      state.args.step = "world";
+      updated = true;
+    }
+  }
+
+  if (playerEntity[POSITION].x === 0 && playerEntity[POSITION].y === 7) {
+    state.args.step = "done";
+    finished = true;
+    updated = true;
+    focusEntity[FOCUSABLE].pendingTarget = undefined;
+
+    // set camera to player
+    playerEntity[VIEWABLE].active = true;
+
+    // close door
+    const doorEntity = world
+      .getEntities([IDENTIFIABLE])
+      .find((entity) => entity[IDENTIFIABLE].name === "door");
+    if (doorEntity) {
+      doorEntity[LOCKABLE].locked = true;
+      doorEntity[ORIENTABLE].facing = undefined;
+      rerenderEntity(world, doorEntity);
+    }
+
+    // set player light
+    playerEntity[LIGHT].brightness = 5.55;
+    playerEntity[LIGHT].visibility = 5.55;
+
+    // clear spawn area
+    const menuRows = menuArea.split("\n");
+    const menuColumns = menuRows[0].split("");
+    const size = world.metadata.gameEntity[LEVEL].size;
+    for (
+      let columnIndex = 0;
+      columnIndex <= menuColumns.length;
+      columnIndex += 1
+    ) {
+      for (let rowIndex = 0; rowIndex <= menuRows.length; rowIndex += 1) {
+        const x = normalize(columnIndex - (menuColumns.length - 1) / 2, size);
+        const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
+        const cell = getCell(world, { x, y });
+        Object.values(cell).forEach((cellEntity) => {
+          if (
+            cellEntity === playerEntity ||
+            cellEntity === focusEntity ||
+            cellEntity === entity
+          )
+            return;
+
+          if (!(FOG in cellEntity)) {
+            world.removeEntity(cellEntity);
+            return;
+          }
+
+          cellEntity[FOG].visibility = "hidden";
+          rerenderEntity(world, cellEntity);
+        });
+      }
+    }
   }
 
   return { finished, updated };

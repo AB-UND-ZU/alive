@@ -13,6 +13,7 @@ import { PLAYER } from "../engine/components/player";
 import { POSITION } from "../engine/components/position";
 import { getEntityGeneration } from "../engine/systems/renderer";
 import { REFERENCE } from "../engine/components/reference";
+import { VIEWABLE } from "../engine/components/viewable";
 
 export type WorldContext = {
   ecs: WorldType | null;
@@ -59,7 +60,7 @@ export const useRenderable = (componentNames: string[]) => {
       0
     );
 
-    if (nextGeneration > pendingGeneration.current) {
+    if (nextGeneration !== pendingGeneration.current) {
       pendingGeneration.current = nextGeneration;
       setGeneration(nextGeneration);
       setEntities(entities);
@@ -93,4 +94,9 @@ export const useGame = () => {
   useRenderable([REFERENCE]);
 
   return ecs?.metadata.gameEntity;
+};
+
+export const useViewable = () => {
+  const viewables = useRenderable([VIEWABLE]);
+  return viewables.find((entity) => entity[VIEWABLE].active);
 };

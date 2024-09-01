@@ -1,28 +1,31 @@
 import * as components from "../components";
 import { Animatable, ANIMATABLE } from "../components/animatable";
-import { Focusable, FOCUSABLE } from "../components/focusable";
 import { POSITION, Position } from "../components/position";
+import { Reference, REFERENCE } from "../components/reference";
 import { RENDERABLE, Renderable } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
+import { Viewable, VIEWABLE } from "../components/viewable";
 import type { World } from "../ecs";
 
-export default function createFocus(
+export default function createQuest(
   world: World,
   entity: {
     [ANIMATABLE]: Animatable;
-    [FOCUSABLE]: Focusable;
     [POSITION]: Position;
-    [SPRITE]: Sprite;
+    [REFERENCE]: Reference;
     [RENDERABLE]: Renderable;
+    [SPRITE]: Sprite;
+    [VIEWABLE]: Viewable;
   }
 ) {
   const focusEntity = world.createEntity();
 
   components.addAnimatable(world, focusEntity, entity[ANIMATABLE]);
-  components.addFocusable(world, focusEntity, entity[FOCUSABLE]);
   components.addPosition(world, focusEntity, entity[POSITION]);
-  components.addSprite(world, focusEntity, entity[SPRITE]);
+  components.addReference(world, focusEntity, entity[REFERENCE]);
   components.addRenderable(world, focusEntity, entity[RENDERABLE]);
+  components.addSprite(world, focusEntity, entity[SPRITE]);
+  components.addViewable(world, focusEntity, entity[VIEWABLE]);
 
   return focusEntity;
 }

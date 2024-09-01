@@ -8,6 +8,7 @@ export type AnimationArgument = {
   decay: { timestamp?: number };
   focus: { offset: number };
   melee: { facing: Orientation };
+  quest: { step: string };
 };
 export type AnimationState<A extends keyof AnimationArgument> = {
   name: keyof typeof animations; // TODO: only allow valid keys

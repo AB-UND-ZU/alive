@@ -29,7 +29,12 @@ export const unregisterEntity = (world: World, entity: Entity) => {
     throw new Error(`Unable to unregister position for entity ${entity}!`);
   }
 
-  delete getCell(world, position)[world.getEntityId(entity)];
+  const cell = getCell(world, position);
+  
+  const entityId = parseInt(
+    Object.entries(cell).find(([_, cellEntity]) => cellEntity === entity)![0]
+  );
+  delete cell[entityId];
 };
 
 export const getCell = (world: World, position: Position) => {

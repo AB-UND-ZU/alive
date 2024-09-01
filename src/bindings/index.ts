@@ -1,4 +1,5 @@
 import { entities, World, systems } from "../engine";
+import * as components from "../engine/components";
 import { POSITION } from "../engine/components/position";
 import { SPRITE } from "../engine/components/sprite";
 import { LIGHT } from "../engine/components/light";
@@ -54,6 +55,7 @@ import { COUNTABLE } from "../engine/components/countable";
 import { LOCKABLE } from "../engine/components/lockable";
 import { TRACKABLE } from "../engine/components/trackable";
 import { FOCUSABLE } from "../engine/components/focusable";
+import { VIEWABLE } from "../engine/components/viewable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -182,7 +184,7 @@ export const generateWorld = async (world: World) => {
       },
       [EQUIPPABLE]: {},
       [INVENTORY]: { items: [] },
-      [LIGHT]: { brightness: 5.55, darkness: 0 },
+      [LIGHT]: { brightness: 0, visibility: 13, darkness: 0 },
       [MELEE]: {},
       [MOVABLE]: {
         orientations: [],
@@ -200,6 +202,7 @@ export const generateWorld = async (world: World) => {
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: player,
       [SWIMMABLE]: { swimming: false },
+      [VIEWABLE]: { active: false },
     })
   );
 
@@ -225,7 +228,7 @@ export const generateWorld = async (world: World) => {
         [FOG]: { visibility },
         [POSITION]: { x, y },
         [SPRITE]: wall,
-        [LIGHT]: { brightness: 0, darkness: 1 },
+        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
@@ -302,10 +305,10 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "door") {
-      entities.createDoor(world, {
+      const doorEntity = entities.createDoor(world, {
         [ANIMATABLE]: { states: {} },
         [FOG]: { visibility },
-        [LIGHT]: { brightness: 0, darkness: 1 },
+        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [LOCKABLE]: { locked: true },
         [NPC]: {},
         [ORIENTABLE]: {},
@@ -313,6 +316,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: door,
       });
+      components.addIdentifiable(world, doorEntity, { name: "door" });
     } else if (cell === "key") {
       const keyEntity = entities.createKey(world, {
         [ANIMATABLE]: { states: {} },
@@ -352,6 +356,7 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: chest,
       });
       keyEntity[ITEM].carrier = world.getEntityId(chestEntity);
+      components.addIdentifiable(world, chestEntity, { name: "key" });
     } else if (cell === "sword") {
       const swordEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
@@ -392,6 +397,7 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: chest,
       });
       swordEntity[ITEM].carrier = world.getEntityId(chestEntity);
+      components.addIdentifiable(world, chestEntity, { name: "sword" });
     } else if (cell === "compass") {
       const compassEntity = entities.createCompass(world, {
         [ANIMATABLE]: { states: {} },
@@ -433,6 +439,7 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: chest,
       });
       compassEntity[ITEM].carrier = world.getEntityId(chestEntity);
+      components.addIdentifiable(world, chestEntity, { name: "compass" });
     } else if (cell === "triangle") {
       const clawsEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
@@ -487,12 +494,7 @@ export const generateWorld = async (world: World) => {
     }
   });
 
-  const compassEntity = world.getEntityId(
-    world
-      .getEntities([ITEM])
-      .find((entity) => entity[ITEM].slot === "compass")?.[ITEM].carrier
-  );
-
+  // set initial focus on hero
   const animationEntity = entities.createAnimation(world, {
     [REFERENCE]: {
       tick: -1,
@@ -503,7 +505,7 @@ export const generateWorld = async (world: World) => {
     [RENDERABLE]: { generation: 1 },
   });
 
-  entities.createFocus(world, {
+  entities.createHighlight(world, {
     [ANIMATABLE]: {
       states: {
         focus: {
@@ -515,8 +517,51 @@ export const generateWorld = async (world: World) => {
         },
       },
     },
-    [FOCUSABLE]: { active: true },
-    [POSITION]: { x: compassEntity[POSITION].x, y: compassEntity[POSITION].y },
+    [FOCUSABLE]: { pendingTarget: heroId },
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(animationEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+    },
+    [POSITION]: { x: 0, y: 0 },
+    [RENDERABLE]: { generation: 0 },
+    [SPRITE]: none,
+  });
+
+  // create main quest entity with itself as reference frame
+  const questEntity = entities.createQuest(world, {
+    [ANIMATABLE]: {
+      states: {
+        quest: {
+          name: "mainQuest",
+          reference: world.getEntityId(world.metadata.gameEntity),
+          elapsed: 0,
+          args: { step: "move" },
+          particles: {},
+        },
+      },
+    },
+    [POSITION]: { x: 0, y: 0 },
+    [REFERENCE]: {
+      tick: -1,
+      delta: 0,
+      suspended: false,
+      pendingSuspended: false,
+    },
+    [RENDERABLE]: { generation: 1 },
+    [SPRITE]: none,
+    [VIEWABLE]: { active: true },
+  });
+  questEntity[ANIMATABLE].states.quest.reference =
+    world.getEntityId(questEntity);
+
+  // create torch for menu area
+  entities.createTorch(world, {
+    [LIGHT]: { brightness: 13, darkness: 0, visibility: 0 },
+    [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
   });
@@ -531,6 +576,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupDrop);
   world.addSystem(systems.setupAnimate);
   world.addSystem(systems.setupNeedle);
+  world.addSystem(systems.setupFocus);
   world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);

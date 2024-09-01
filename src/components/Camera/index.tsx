@@ -1,7 +1,7 @@
 import { OrthographicCamera } from "@react-three/drei";
 import { useSpring, animated } from "@react-spring/three";
 import { useDimensions } from "../Dimensions";
-import { useHero } from "../../bindings/hooks";
+import { useViewable } from "../../bindings/hooks";
 import { POSITION } from "../../engine/components/position";
 
 const AnimatedOrthographicCamera = animated(OrthographicCamera);
@@ -18,11 +18,10 @@ export const cameraHeight = 10;
 
 export default function Camera() {
   const dimensions = useDimensions();
-  const hero = useHero();
+  const viewable = useViewable();
 
   const zoom = dimensions.cellHeight;
-
-  const position = hero?.[POSITION] || { x: 0, y: 0 };
+  const position = viewable?.[POSITION] || { x: 0, y: 0 };
   const spring = useSpring({
     x: position.x * dimensions.aspectRatio,
     y: -position.y,

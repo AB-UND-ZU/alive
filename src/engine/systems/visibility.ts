@@ -98,7 +98,10 @@ export default function setupVisibility(world: World) {
 
     referencesGeneration = generation;
 
-    const radius = hero[LIGHT].brightness;
+    const radius = hero[LIGHT].visibility;
+
+    if (radius === 0) return;
+
     const visionHorizontal = Math.ceil(radius / aspectRatio);
     const visionVertical = Math.ceil(radius);
     const pendingChanges: PendingChanges = {};

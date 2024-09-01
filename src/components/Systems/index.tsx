@@ -2,7 +2,7 @@ import { useFrame } from "@react-three/fiber";
 import { Position, POSITION } from "../../engine/components/position";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import Entity from "../Entity";
-import { useGame, useHero, useWorld } from "../../bindings/hooks";
+import { useGame, useViewable, useWorld } from "../../bindings/hooks";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { getEntityGeneration } from "../../engine/systems/renderer";
@@ -11,7 +11,7 @@ import { getCell } from "../../engine/systems/map";
 export default function Systems() {
   const { ecs } = useWorld();
   const dimensions = useDimensions();
-  const hero = useHero();
+  const viewable = useViewable();
   const game = useGame();
 
   useFrame((_, delta) => {
@@ -21,9 +21,9 @@ export default function Systems() {
     ecs.cleanup();
   });
 
-  if (!ecs || !hero || !game) return null;
+  if (!ecs || !viewable || !game) return null;
 
-  const position = hero[POSITION];
+  const position = viewable[POSITION];
 
   return (
     <>

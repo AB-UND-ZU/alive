@@ -2,7 +2,8 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Light = {
-  brightness: number;
+  brightness: number; // for rendered light
+  visibility: number; // for fog of war
   darkness: number;
 };
 
