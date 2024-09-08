@@ -95,7 +95,7 @@ export default function setupDamage(world: World) {
           tick: -1,
           delta: 0,
           suspended: false,
-          pendingSuspended: false,
+          suspensionCounter: -1,
         },
         [RENDERABLE]: { generation: 1 },
       });
@@ -114,6 +114,7 @@ export default function setupDamage(world: World) {
       rerenderEntity(world, targetEntity);
 
       // mark as interacted
+      entity[MOVABLE].pendingOrientation = undefined;
       entity[MOVABLE].lastInteraction = entityReference;
     }
   };

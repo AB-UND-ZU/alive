@@ -77,6 +77,7 @@ export default function setupUnlock(world: World) {
       if (!targetEntity || !isLocked(world, targetPosition)) continue;
 
       // mark as interacted
+      entity[MOVABLE].pendingOrientation = undefined;
       entity[MOVABLE].lastInteraction = entityReference;
 
       // handle unlocking

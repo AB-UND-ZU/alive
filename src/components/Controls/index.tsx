@@ -44,9 +44,13 @@ export default function Controls() {
       }
 
       if (orientations.length === 0) {
-        reference.pendingSuspended = true;
+        reference.suspensionCounter = 1;
+
+        if (hero[MOVABLE].pendingOrientation) {
+          reference.suspensionCounter += 1;
+        }
       } else {
-        reference.pendingSuspended = false;
+        reference.suspensionCounter = -1;
         reference.suspended = false;
       }
     },
@@ -114,6 +118,7 @@ export default function Controls() {
 
       if (nextOrientations.length > 0) {
         if (
+          nextOrientations.length !== pressedOrientations.current.length ||
           !nextOrientations.every(
             (orientation, index) =>
               orientation === pressedOrientations.current[index]

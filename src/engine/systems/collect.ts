@@ -89,6 +89,7 @@ export default function setupCollect(world: World) {
       itemEntity[ITEM].carrier = entityId;
 
       // mark as interacted
+      entity[MOVABLE].pendingOrientation = undefined;
       entity[MOVABLE].lastInteraction = entityReference;
     }
 
