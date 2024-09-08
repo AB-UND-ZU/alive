@@ -569,8 +569,8 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupTick);
   world.addSystem(systems.setupAi);
-  world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupCollect);
+  world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupUnlock);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupDrop);

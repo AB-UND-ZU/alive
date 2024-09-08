@@ -25,8 +25,7 @@ export const isFriendlyFire = (world: World, entity: Entity, target: Entity) =>
 
 export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
-    (target) =>
-      ATTACKABLE in target && COUNTABLE in target && !isDead(world, target)
+    (target) => ATTACKABLE in target && COUNTABLE in target
   ) as Entity | undefined;
 
 export default function setupDamage(world: World) {
@@ -82,6 +81,13 @@ export default function setupDamage(world: World) {
       if (!targetEntity || isFriendlyFire(world, entity, targetEntity))
         continue;
 
+      // mark as interacted
+      entity[MOVABLE].pendingOrientation = undefined;
+      entity[MOVABLE].lastInteraction = entityReference;
+
+      // do nothing if target is dead and pending drop
+      if (isDead(world, targetEntity)) continue;
+
       // handle attacking
       const sword = world.getEntityById(entity[EQUIPPABLE].melee);
       const damage = sword[ITEM].amount;
@@ -112,10 +118,6 @@ export default function setupDamage(world: World) {
       }
 
       rerenderEntity(world, targetEntity);
-
-      // mark as interacted
-      entity[MOVABLE].pendingOrientation = undefined;
-      entity[MOVABLE].lastInteraction = entityReference;
     }
   };
 
