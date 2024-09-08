@@ -161,7 +161,7 @@ export const generateWorld = async (world: World) => {
         tick: 250,
         delta: 0,
         suspended: true,
-        pendingSuspended: false,
+        suspensionCounter: -1,
       },
       [RENDERABLE]: { generation: 0 },
     })
@@ -500,7 +500,7 @@ export const generateWorld = async (world: World) => {
       tick: -1,
       delta: 0,
       suspended: false,
-      pendingSuspended: false,
+      suspensionCounter: -1,
     },
     [RENDERABLE]: { generation: 1 },
   });
@@ -549,7 +549,7 @@ export const generateWorld = async (world: World) => {
       tick: -1,
       delta: 0,
       suspended: false,
-      pendingSuspended: false,
+      suspensionCounter: -1,
     },
     [RENDERABLE]: { generation: 1 },
     [SPRITE]: none,

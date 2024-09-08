@@ -63,7 +63,7 @@ export default function createWorld(size: number) {
       tick: 350,
       delta: 0,
       suspended: false,
-      pendingSuspended: false,
+      suspensionCounter: -1,
     },
   });
 
@@ -74,7 +74,7 @@ export default function createWorld(size: number) {
       tick: -1,
       delta: 0,
       suspended: false,
-      pendingSuspended: false,
+      suspensionCounter: -1,
     },
   });
 

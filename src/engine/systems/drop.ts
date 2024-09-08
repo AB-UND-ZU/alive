@@ -43,7 +43,7 @@ export default function setupDrop(world: World) {
             tick: -1,
             delta: 0,
             suspended: false,
-            pendingSuspended: false,
+            suspensionCounter: -1,
           },
           [RENDERABLE]: { generation: 1 },
         });

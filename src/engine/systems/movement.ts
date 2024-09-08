@@ -61,7 +61,7 @@ export default function setupMovement(world: World) {
       entityReferences[entityId] = entityReference;
 
       const pendingOrientation = entity[MOVABLE].pendingOrientation;
-      entity[MOVABLE].pendingOrientation = null;
+      entity[MOVABLE].pendingOrientation = undefined;
 
       // skip if dead
       if (isDead(world, entity)) continue;
@@ -103,7 +103,7 @@ export default function setupMovement(world: World) {
         }
       }
 
-      // mark as interacted
+      // mark as interacted but keep pending movement
       entity[MOVABLE].lastInteraction = entityReference;
     }
   };
