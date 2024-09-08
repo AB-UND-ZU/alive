@@ -1,10 +1,12 @@
 import { entities } from "../../engine";
 import { Animation } from "../../engine/components/animatable";
+import { COUNTABLE } from "../../engine/components/countable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { FOG } from "../../engine/components/fog";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { INVENTORY } from "../../engine/components/inventory";
+import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { LOCKABLE } from "../../engine/components/lockable";
@@ -12,7 +14,6 @@ import { LOOTABLE } from "../../engine/components/lootable";
 import {
   ORIENTABLE,
   orientationPoints,
-  orientations,
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { PLAYER } from "../../engine/components/player";
@@ -21,12 +22,11 @@ import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { VIEWABLE } from "../../engine/components/viewable";
+import { getCell } from "../../engine/systems/map";
 import {
-  getCell,
-  registerEntity,
-  unregisterEntity,
-} from "../../engine/systems/map";
-import { rerenderEntity } from "../../engine/systems/renderer";
+  getEntityGeneration,
+  rerenderEntity,
+} from "../../engine/systems/renderer";
 import * as colors from "../assets/colors";
 import { normalize } from "../math/std";
 import { iterations } from "../math/tracing";
@@ -87,20 +87,19 @@ export const damageCounter: Animation<"counter"> = (world, entity, state) => {
   return { finished, updated };
 };
 
+const haltTime = 200;
 const decayTime = 500;
 
 export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
-  const finished =
-    !!state.args.timestamp &&
-    state.elapsed > state.args.timestamp &&
-    entity[LOOTABLE].target;
   const dropId = entity[INVENTORY].items[0];
   const drop = world.getEntityById(dropId);
   let updated = false;
+  let finished = false;
 
+  // create death particle
   if (
     !state.particles.decay &&
-    state.elapsed > 200 &&
+    state.elapsed > haltTime &&
     state.elapsed < decayTime
   ) {
     const deathParticle = entities.createDecay(world, {
@@ -112,34 +111,81 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     updated = true;
   }
 
+  // delete death particle, drop items and make entity lootable
   if (!entity[LOOTABLE].accessible && state.elapsed > decayTime) {
-    entity[SPRITE] = drop[SPRITE];
-    entity[LOOTABLE].accessible = true;
-    updated = true;
-  }
-
-  if (entity[LOOTABLE].target && !state.args.timestamp) {
-    unregisterEntity(world, entity);
-    const targetEntity = world.getEntityById(entity[LOOTABLE].target);
-    entity[POSITION].x = targetEntity[POSITION].x;
-    entity[POSITION].y = targetEntity[POSITION].y;
-
-    if (entity[ORIENTABLE]) {
-      const orientation = targetEntity[ORIENTABLE].facing;
-      entity[ORIENTABLE].facing =
-        orientations[
-          (orientations.indexOf(orientation) + 2) % orientations.length
-        ];
-    }
-
-    registerEntity(world, entity);
-    state.args.timestamp = state.elapsed + 200;
-    updated = true;
-  }
-
-  if (state.elapsed > decayTime && state.particles.decay) {
     world.removeEntity(world.getEntityById(state.particles.decay));
     delete state.particles.decay;
+
+    entity[SPRITE] = drop[SPRITE];
+    entity[LOOTABLE].accessible = true;
+    finished = true;
+  }
+
+  return { finished, updated };
+};
+
+const lootTime = 200;
+
+export const itemCollect: Animation<"collect"> = (world, entity, state) => {
+  let updated = false;
+  let finished = false;
+  const lootId = state.particles.loot;
+  const lootParticle = lootId && world.getEntityId(lootId);
+  const itemId = state.args.itemId;
+  const itemEntity = world.getEntityId(itemId);
+
+  // add item to player's inventory
+  if (lootParticle && state.elapsed >= lootTime) {
+    world.removeEntity(world.getEntityById(state.particles.loot));
+    delete state.particles.loot;
+
+    const targetSlot = itemEntity[ITEM].slot;
+    const targetCounter = itemEntity[ITEM].counter;
+
+    if (targetSlot) {
+      const existingId = entity[EQUIPPABLE][targetSlot];
+
+      // add existing render count if item is replaced
+      if (existingId) {
+        const existingItem = world.getEntityById(existingId);
+        itemEntity[RENDERABLE].generation += getEntityGeneration(
+          world,
+          existingItem
+        );
+
+        // TODO: handle dropping existing item instead
+        world.removeEntity(existingId);
+      }
+
+      entity[EQUIPPABLE][targetSlot] = itemId;
+      entity[INVENTORY].items.push(itemId);
+    } else if (targetCounter) {
+      entity[COUNTABLE][targetCounter] += itemEntity[ITEM].amount;
+    }
+
+    finished = true;
+  }
+
+  // move loot particle to collecting entity
+  if (
+    lootParticle &&
+    (lootParticle[PARTICLE].offsetX !== 0 ||
+      lootParticle[PARTICLE].offsetY !== 0)
+  ) {
+    lootParticle[PARTICLE].offsetX = 0;
+    lootParticle[PARTICLE].offsetY = 0;
+    updated = true;
+  }
+
+  // create loot particle
+  if (!lootId && state.elapsed < lootTime) {
+    const delta = orientationPoints[state.args.facing];
+    const lootParticle = entities.createDecay(world, {
+      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: itemEntity[SPRITE],
+    });
+    state.particles.loot = world.getEntityId(lootParticle);
     updated = true;
   }
 

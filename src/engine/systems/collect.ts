@@ -14,8 +14,8 @@ import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { COUNTABLE } from "../components/countable";
-import { getAnimations } from "./animate";
-import { getEntityGeneration, rerenderEntity } from "./renderer";
+import { entities } from "..";
+import { Animatable, ANIMATABLE } from "../components/animatable";
 
 export const getLootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -83,76 +83,35 @@ export default function setupCollect(world: World) {
 
       if (!itemId) continue;
 
-      // initiate collecting animation
-      targetEntity[LOOTABLE].target = entityId;
+      // initiate collecting animation on player
       const itemEntity = world.getEntityById(itemId);
       itemEntity[ITEM].carrier = entityId;
+      const animationEntity = entities.createAnimation(world, {
+        [REFERENCE]: {
+          tick: -1,
+          delta: 0,
+          suspended: false,
+          suspensionCounter: -1,
+        },
+        [RENDERABLE]: { generation: 1 },
+      });
+      (entity[ANIMATABLE] as Animatable).states.collect = {
+        name: "itemCollect",
+        reference: world.getEntityId(animationEntity),
+        elapsed: 0,
+        args: { facing: targetOrientation, itemId },
+        particles: {},
+      };
+
+      // remove from target inventory
+      targetEntity[INVENTORY].items.splice(
+        targetEntity[INVENTORY].items.indexOf(itemId),
+        1
+      );
 
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;
       entity[MOVABLE].lastInteraction = entityReference;
-    }
-
-    // handle items being received
-    for (const entity of world.getEntities([
-      POSITION,
-      MOVABLE,
-      LOOTABLE,
-      INVENTORY,
-      COUNTABLE,
-      RENDERABLE,
-    ])) {
-      const entityId = world.getEntityId(entity);
-      const entityReference = getEntityGeneration(world, entity);
-
-      // skip if entity hasn't had any changes
-      if (entityReferences[entityId] === entityReference) continue;
-
-      entityReferences[entityId] = entityReference;
-
-      const targetId = entity[INVENTORY].items[0];
-
-      // wait until target is set and animation is finished
-      if (
-        !targetId ||
-        !entity[LOOTABLE].target ||
-        getAnimations(world, entity).length > 0
-      )
-        continue;
-
-      const targetItem = world.getEntityById(targetId);
-      const targetSlot = targetItem[ITEM].slot;
-      const targetCounter = targetItem[ITEM].counter;
-      const recevingEntity = world.getEntityById(entity[LOOTABLE].target);
-
-      if (targetSlot) {
-        const existingId = recevingEntity[EQUIPPABLE][targetSlot];
-
-        // add existing render count if item is replaced
-        if (existingId) {
-          const existingItem = world.getEntityById(existingId);
-          targetItem[RENDERABLE].generation += getEntityGeneration(
-            world,
-            existingItem
-          );
-
-          // TODO: handle dropping existing item instead
-          world.removeEntity(existingId);
-        }
-
-        recevingEntity[EQUIPPABLE][targetSlot] = targetId;
-        recevingEntity[INVENTORY].items.push(targetId);
-      } else if (targetCounter) {
-        recevingEntity[COUNTABLE][targetCounter] += targetItem[ITEM].amount;
-      }
-
-      entity[INVENTORY].items.splice(
-        entity[INVENTORY].items.indexOf(targetId),
-        1
-      );
-
-      // rerender target
-      rerenderEntity(world, recevingEntity);
     }
   };
 

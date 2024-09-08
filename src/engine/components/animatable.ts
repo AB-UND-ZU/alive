@@ -5,7 +5,8 @@ import { Orientation } from "./orientable";
 
 export type AnimationArgument = {
   counter: { facing: Orientation; amount: number };
-  decay: { timestamp?: number };
+  decay: {};
+  collect: { facing: Orientation; itemId: number };
   focus: { offset: number };
   melee: { facing: Orientation };
   quest: { step: string };
