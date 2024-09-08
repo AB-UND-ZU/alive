@@ -38,7 +38,6 @@ export default function setupFocus(world: World) {
 
       // handle target disappearing
       if (!targetEntity && targetId === pendingId) {
-        console.log('lost', targetId);
         entity[FOCUSABLE].target = undefined;
         entity[FOCUSABLE].pendingTarget = undefined;
         rerenderEntity(world, entity);

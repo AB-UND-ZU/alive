@@ -573,10 +573,10 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupUnlock);
   world.addSystem(systems.setupMovement);
-  world.addSystem(systems.setupDrop);
   world.addSystem(systems.setupAnimate);
   world.addSystem(systems.setupNeedle);
   world.addSystem(systems.setupFocus);
+  world.addSystem(systems.setupDrop);
   world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);

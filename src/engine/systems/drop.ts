@@ -1,14 +1,12 @@
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
-import { unregisterEntity } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { isEmpty } from "./collect";
 import { LOOTABLE } from "../components/lootable";
 import { isDead } from "./damage";
 import { PLAYER } from "../components/player";
 import { Animatable, ANIMATABLE } from "../components/animatable";
-import { getAnimations } from "./animate";
 import { entities } from "..";
 
 export default function setupDrop(world: World) {
@@ -24,20 +22,21 @@ export default function setupDrop(world: World) {
     referencesGeneration = generation;
 
     for (const entity of world.getEntities([ATTACKABLE, RENDERABLE])) {
-      // remove entity on death
       if (
         isDead(world, entity) &&
         isEmpty(world, entity) &&
-        !(PLAYER in entity) &&
-        getAnimations(world, entity).length === 0
+        !(PLAYER in entity)
       ) {
+        // remove entity on death and fully looted
         world.removeEntity(entity);
       } else if (
         isDead(world, entity) &&
         LOOTABLE in entity &&
-        !entity[LOOTABLE].target &&
-        getAnimations(world, entity).length === 0
+        !entity[LOOTABLE].accessible &&
+        ANIMATABLE in entity &&
+        !(entity[ANIMATABLE] as Animatable).states.decay
       ) {
+        // start decaying animation
         const animationEntity = entities.createAnimation(world, {
           [REFERENCE]: {
             tick: -1,

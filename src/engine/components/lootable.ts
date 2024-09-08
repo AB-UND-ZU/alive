@@ -3,7 +3,6 @@ import { World } from "../ecs";
 
 export type Lootable = {
   accessible: boolean;
-  target?: number;
 };
 
 export const LOOTABLE = "LOOTABLE";

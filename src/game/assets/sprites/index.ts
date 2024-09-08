@@ -1,4 +1,4 @@
-export * from "./animations";
+export * from "./particles";
 export * from "./creatures";
 export * from "./items";
 export * from "./terrain";
