@@ -145,6 +145,7 @@ export const generateWorld = async (world: World) => {
       else {
         entities.createBlock(world, {
           [COLLIDABLE]: {},
+          [FOG]: { visibility: "visible", type: "terrain" },
           [POSITION]: { x, y },
           [SPRITE]: createText(cell, colors.grey)[0],
           [RENDERABLE]: { generation: 0 },
@@ -183,6 +184,7 @@ export const generateWorld = async (world: World) => {
         seed: 0,
       },
       [EQUIPPABLE]: {},
+      [FOG]: { visibility: "visible", type: "unit" },
       [INVENTORY]: { items: [] },
       [LIGHT]: { brightness: 0, visibility: 13, darkness: 0 },
       [MELEE]: {},
@@ -217,7 +219,7 @@ export const generateWorld = async (world: World) => {
         : "hidden";
 
     entities.createAir(world, {
-      [FOG]: { visibility },
+      [FOG]: { visibility, type: "air" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: fog,
@@ -225,7 +227,7 @@ export const generateWorld = async (world: World) => {
 
     if (cell === "rock") {
       entities.createWall(world, {
-        [FOG]: { visibility },
+        [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: wall,
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
@@ -234,6 +236,7 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "block") {
       entities.createBlock(world, {
+        [FOG]: { visibility: "visible", type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: block,
         [RENDERABLE]: { generation: 0 },
@@ -241,6 +244,7 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "block_down") {
       entities.createBlock(world, {
+        [FOG]: { visibility: "visible", type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: block_down,
         [RENDERABLE]: { generation: 0 },
@@ -248,6 +252,7 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "block_up") {
       entities.createBlock(world, {
+        [FOG]: { visibility: "visible", type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: block_up,
         [RENDERABLE]: { generation: 0 },
@@ -255,14 +260,14 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "sand") {
       entities.createSand(world, {
-        [FOG]: { visibility },
+        [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: sand,
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "water") {
       entities.createWater(world, {
-        [FOG]: { visibility },
+        [FOG]: { visibility, type: "terrain" },
         [IMMERSIBLE]: {},
         [POSITION]: { x, y },
         [SPRITE]: water,
@@ -270,7 +275,7 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "tree") {
       entities.createTree(world, {
-        [FOG]: { visibility },
+        [FOG]: { visibility, type: "terrain" },
         [COLLIDABLE]: {},
         [ORIENTABLE]: {
           facing: orientations[random(0, orientations.length - 1)],
@@ -281,21 +286,21 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "bush") {
       entities.createBush(world, {
-        [FOG]: { visibility },
+        [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: bush,
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "grass") {
       entities.createFlower(world, {
-        [FOG]: { visibility },
+        [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: flower,
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "cactus") {
       entities.createCactus(world, {
-        [FOG]: { visibility },
+        [FOG]: { visibility, type: "terrain" },
         [COLLIDABLE]: {},
         [ORIENTABLE]: {
           facing: orientations[random(0, orientations.length - 1)],
@@ -307,7 +312,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "door") {
       const doorEntity = entities.createDoor(world, {
         [ANIMATABLE]: { states: {} },
-        [FOG]: { visibility },
+        [FOG]: { visibility, type: "terrain" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [LOCKABLE]: { locked: true },
         [NPC]: {},
@@ -340,15 +345,7 @@ export const generateWorld = async (world: World) => {
         },
         [INVENTORY]: { items: [world.getEntityId(keyEntity)] },
         [LOOTABLE]: { accessible: false },
-        [FOG]: { visibility },
-        [MOVABLE]: {
-          orientations: [],
-          reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
-            duration: 200,
-          },
-          lastInteraction: 0,
-        },
+        [FOG]: { visibility, type: "terrain" },
         [NPC]: {},
         [ORIENTABLE]: {},
         [POSITION]: { x, y },
@@ -381,15 +378,7 @@ export const generateWorld = async (world: World) => {
         },
         [INVENTORY]: { items: [world.getEntityId(swordEntity)] },
         [LOOTABLE]: { accessible: false },
-        [FOG]: { visibility },
-        [MOVABLE]: {
-          orientations: [],
-          reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
-            duration: 200,
-          },
-          lastInteraction: 0,
-        },
+        [FOG]: { visibility, type: "terrain" },
         [NPC]: {},
         [ORIENTABLE]: {},
         [POSITION]: { x, y },
@@ -423,15 +412,7 @@ export const generateWorld = async (world: World) => {
         },
         [INVENTORY]: { items: [world.getEntityId(compassEntity)] },
         [LOOTABLE]: { accessible: false },
-        [FOG]: { visibility },
-        [MOVABLE]: {
-          orientations: [],
-          reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
-            duration: 200,
-          },
-          lastInteraction: 0,
-        },
+        [FOG]: { visibility, type: "terrain" },
         [NPC]: {},
         [ORIENTABLE]: { facing: "up" },
         [POSITION]: { x, y },
@@ -470,7 +451,7 @@ export const generateWorld = async (world: World) => {
           seed: 0,
         },
         [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
-        [FOG]: { visibility },
+        [FOG]: { visibility, type: "unit" },
         [INVENTORY]: { items: [world.getEntityId(goldEntity)] },
         [LOOTABLE]: { accessible: false },
         [MELEE]: {},

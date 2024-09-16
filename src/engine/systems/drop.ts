@@ -8,6 +8,7 @@ import { isDead } from "./damage";
 import { PLAYER } from "../components/player";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { entities } from "..";
+import { disposeEntity } from "./map";
 
 export default function setupDrop(world: World) {
   let referencesGeneration = -1;
@@ -28,7 +29,7 @@ export default function setupDrop(world: World) {
         !(PLAYER in entity)
       ) {
         // remove entity on death and fully looted
-        world.removeEntity(entity);
+        disposeEntity(world, entity);
       } else if (
         isDead(world, entity) &&
         LOOTABLE in entity &&

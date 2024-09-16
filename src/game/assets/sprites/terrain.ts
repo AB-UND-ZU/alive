@@ -11,7 +11,7 @@ export const fog: Sprite = {
   layers: [
     {
       char: "≈",
-      color: colors.grey,
+      color: "#2e2e2e" // colors.grey with shadow,
     },
   ],
 };

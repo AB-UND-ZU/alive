@@ -22,7 +22,7 @@ import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { VIEWABLE } from "../../engine/components/viewable";
-import { getCell } from "../../engine/systems/map";
+import { disposeEntity, getCell } from "../../engine/systems/map";
 import {
   getEntityGeneration,
   rerenderEntity,
@@ -31,7 +31,7 @@ import * as colors from "../assets/colors";
 import { normalize } from "../math/std";
 import { iterations } from "../math/tracing";
 import { menuArea } from "./areas";
-import { createCounter, createText, decay, hit, none } from "./sprites";
+import { createCounter, createText, decay, fog, hit, none } from "./sprites";
 
 export const swordAttack: Animation<"melee"> = (world, entity, state) => {
   // align sword with facing direction
@@ -55,7 +55,7 @@ export const swordAttack: Animation<"melee"> = (world, entity, state) => {
   }
 
   if (finished && state.particles.hit) {
-    world.removeEntity(world.getEntityById(state.particles.hit));
+    disposeEntity(world, world.getEntityById(state.particles.hit));
     delete state.particles.hit;
   }
 
@@ -113,7 +113,7 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
 
   // delete death particle, drop items and make entity lootable
   if (!entity[LOOTABLE].accessible && state.elapsed > decayTime) {
-    world.removeEntity(world.getEntityById(state.particles.decay));
+    disposeEntity(world, world.getEntityById(state.particles.decay));
     delete state.particles.decay;
 
     entity[SPRITE] = drop[SPRITE];
@@ -136,7 +136,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
 
   // add item to player's inventory
   if (lootParticle && state.elapsed >= lootTime) {
-    world.removeEntity(world.getEntityById(state.particles.loot));
+    disposeEntity(world, world.getEntityById(state.particles.loot));
     delete state.particles.loot;
 
     const targetSlot = itemEntity[ITEM].slot;
@@ -154,7 +154,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
         );
 
         // TODO: handle dropping existing item instead
-        world.removeEntity(existingId);
+        disposeEntity(world, existingId);
       }
 
       entity[EQUIPPABLE][targetSlot] = itemId;
@@ -351,6 +351,7 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
         const x = normalize(columnIndex - (menuColumns.length - 1) / 2, size);
         const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
         const cell = getCell(world, { x, y });
+        let hasAir = false;
         Object.values(cell).forEach((cellEntity) => {
           if (
             cellEntity === playerEntity ||
@@ -360,13 +361,25 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
             return;
 
           if (!(FOG in cellEntity)) {
-            world.removeEntity(cellEntity);
+            disposeEntity(world, cellEntity);
             return;
           }
+
+          if (!hasAir && cellEntity[FOG].type === "air") hasAir = true;
 
           cellEntity[FOG].visibility = "hidden";
           rerenderEntity(world, cellEntity);
         });
+
+        // restore removed air particles
+        if (!hasAir) {
+          entities.createAir(world, {
+            [FOG]: { visibility: "hidden", type: "air" },
+            [POSITION]: { x, y },
+            [RENDERABLE]: { generation: 0 },
+            [SPRITE]: fog,
+          });
+        }
       }
     }
   }

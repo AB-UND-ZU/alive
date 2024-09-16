@@ -98,11 +98,10 @@
 
 ## Tech debt
 
-- <Entity>, <Sprite> and <Layer> rendering are not cleanly separated
 - Items of an entity are not rendered separately but instead pushed as layers of <Sprite>
 - Dropped items need a parent chest or mob to be lootable
 - Item drops simply replace the sprite of its container, should be a separate entity
+- Picking up items resets orientation (e.g. of Compass)
 - Door needs empty layers to appear above player
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
 - Animations mutate state and don't really animate things, maybe better called Sequences
-- Changing position manually requires to re-register entity

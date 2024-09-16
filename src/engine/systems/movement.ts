@@ -3,7 +3,7 @@ import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
-import { getCell, registerEntity, unregisterEntity } from "./map";
+import { getCell, moveEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
@@ -89,15 +89,11 @@ export default function setupMovement(world: World) {
         const position = add(entity[POSITION], delta);
 
         if (isWalkable(world, position)) {
-          unregisterEntity(world, entity);
-
-          entity[POSITION].x = position.x;
-          entity[POSITION].y = position.y;
+          moveEntity(world, entity, position);
 
           // set facing to actual movement
           if (entity[ORIENTABLE]) entity[ORIENTABLE].facing = orientation;
 
-          registerEntity(world, entity);
           rerenderEntity(world, entity);
           break;
         }

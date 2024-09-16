@@ -4,14 +4,30 @@ import {
   Animatable,
   ANIMATABLE,
   AnimationArgument,
+  AnimationState,
 } from "../components/animatable";
 import { REFERENCE } from "../components/reference";
 import * as animations from "../../game/assets/animations";
 import { rerenderEntity } from "./renderer";
 import { Entity } from "ecs";
+import { disposeEntity } from "./map";
 
-export const getAnimations = (world: World, entity: Entity) =>
+export const getAnimations: (
+  world: World,
+  entity: Entity
+) => AnimationState<any>[] = (world, entity) =>
   Object.values(entity[ANIMATABLE]?.states || {});
+
+export const getParticles = (world: World, entity: Entity) =>
+  Object.values(getAnimations(world, entity)).reduce<Entity[]>(
+    (all, animation) =>
+      all.concat(
+        Object.values(animation.particles).map((entityId) =>
+          world.getEntityById(entityId)
+        )
+      ),
+    []
+  );
 
 export default function setupAnimate(world: World) {
   const onUpdate = (delta: number) => {
@@ -59,10 +75,10 @@ export default function setupAnimate(world: World) {
         entityAnimations.length > 0 &&
         entityAnimations.every(([_, finished]) => finished)
       ) {
-        // persist last generation in frame and entities to allow safely removing frame and ensuring proper rendering
+        // persist last generation in frame and entities to allow safely removing frame immediately and ensuring proper rendering
         const lastGeneration = frame[RENDERABLE].generation;
         world.metadata.animationEntity[RENDERABLE].generation += lastGeneration;
-        world.removeEntity(frame, false);
+        disposeEntity(world, frame, false);
       }
     }
   };

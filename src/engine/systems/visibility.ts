@@ -9,6 +9,8 @@ import { LIGHT } from "../components/light";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { traceCircularVisiblity } from "../../game/math/tracing";
 import { REFERENCE } from "../components/reference";
+import { disposeEntity, getCell } from "./map";
+import { rerenderEntity } from "./renderer";
 
 type PendingChanges = Record<
   number,
@@ -29,8 +31,7 @@ const markVisibility = (
 
   const normalizedX = normalize(x, level.size);
   const normalizedY = normalize(y, level.size);
-
-  const cell = level.map[normalizedX][normalizedY];
+  const cell = getCell(world, { x, y });
 
   for (const entityId in cell) {
     const fog = cell[entityId][FOG];
@@ -75,8 +76,17 @@ const commitVisibility = (world: World, pendingChanges: PendingChanges) => {
       const pendingChange = column[y];
       for (const entityId in pendingChange) {
         const entity = level.map[x][y][entityId];
+
+        // remove revealed air
+        if (
+          entity[FOG].type === "air" &&
+          pendingChange[entityId].to !== "hidden"
+        ) {
+          disposeEntity(world, entity);
+          continue;
+        }
         entity[FOG].visibility = pendingChange[entityId].to;
-        entity[RENDERABLE].generation += 1;
+        rerenderEntity(world, entity);
       }
     }
   }
