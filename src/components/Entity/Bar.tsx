@@ -3,9 +3,8 @@ import { Entity } from "ecs";
 import { animated, useSpring } from "@react-spring/three";
 import * as colors from "../../game/assets/colors";
 import { ATTACKABLE } from "../../engine/components/attackable";
-import { pixels, stack, stackHeight } from "./utils";
+import { particleHeight, pixels, stack, stackHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
-import { particleHeight } from "../Camera";
 import { COUNTABLE } from "../../engine/components/countable";
 
 const playerBar = new THREE.Color(colors.green).multiplyScalar(0.15);

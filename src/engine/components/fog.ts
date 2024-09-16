@@ -2,7 +2,8 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Fog = {
-  visibility: 'hidden' | 'fog' | 'visible'
+  visibility: "hidden" | "fog" | "visible";
+  type: "air" | "terrain" | "unit";
 };
 
 export const FOG = "FOG";

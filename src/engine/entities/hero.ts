@@ -4,6 +4,7 @@ import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Collidable, COLLIDABLE } from "../components/collidable";
 import { Countable, COUNTABLE } from "../components/countable";
 import { Equippable, EQUIPPABLE } from "../components/equippable";
+import { Fog, FOG } from "../components/fog";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { LIGHT, Light } from "../components/light";
 import { Melee, MELEE } from "../components/melee";
@@ -25,6 +26,7 @@ export default function createHero(
     [COLLIDABLE]: Collidable;
     [COUNTABLE]: Countable;
     [EQUIPPABLE]: Equippable;
+    [FOG]: Fog;
     [INVENTORY]: Inventory;
     [LIGHT]: Light;
     [MELEE]: Melee;
@@ -46,6 +48,7 @@ export default function createHero(
   components.addInventory(world, heroEntity, entity[INVENTORY]);
   components.addCollidable(world, heroEntity, entity[COLLIDABLE]);
   components.addCountable(world, heroEntity, entity[COUNTABLE]);
+  components.addFog(world, heroEntity, entity[FOG]);
   components.addLight(world, heroEntity, entity[LIGHT]);
   components.addMelee(world, heroEntity, entity[MELEE]);
   components.addMovable(world, heroEntity, entity[MOVABLE]);

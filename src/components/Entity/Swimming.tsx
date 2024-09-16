@@ -4,8 +4,7 @@ import { Entity } from "ecs";
 import { useDimensions } from "../Dimensions";
 import { useEffect, useRef, useState } from "react";
 import { animated, useSpring } from "@react-spring/three";
-import { stack, stackHeight } from "./utils";
-import { effectHeight } from "../Camera";
+import { effectHeight, stack, stackHeight } from "./utils";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { MOVABLE } from "../../engine/components/movable";
 

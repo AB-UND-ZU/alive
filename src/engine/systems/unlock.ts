@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { add } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { getCell } from "./map";
+import { disposeEntity, getCell } from "./map";
 import {
   ORIENTABLE,
   Orientation,
@@ -87,6 +87,8 @@ export default function setupUnlock(world: World) {
 
       if (keyIndex === -1) continue;
 
+      const keyEntity = world.getEntityById(entity[INVENTORY].items[keyIndex]);
+
       // unlock door
       targetEntity[LOCKABLE].locked = false;
       targetEntity[ORIENTABLE].facing = "down";
@@ -94,7 +96,7 @@ export default function setupUnlock(world: World) {
       rerenderEntity(world, targetEntity);
 
       // remove key
-      world.removeEntity(keyIndex);
+      disposeEntity(world, keyEntity);
       entity[INVENTORY].items.splice(keyIndex, 1);
       entity[EQUIPPABLE].key = undefined;
       rerenderEntity(world, entity);

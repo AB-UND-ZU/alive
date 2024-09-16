@@ -4,7 +4,7 @@ import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { rerenderEntity } from "./renderer";
 import { FOCUSABLE } from "../components/focusable";
-import { registerEntity, unregisterEntity } from "./map";
+import { moveEntity } from "./map";
 
 export default function setupFocus(world: World) {
   let referenceGenerations = -1;
@@ -55,10 +55,7 @@ export default function setupFocus(world: World) {
         entity[POSITION].x !== targetEntity[POSITION].x ||
         entity[POSITION].y !== targetEntity[POSITION].y
       ) {
-        unregisterEntity(world, entity);
-        entity[POSITION].x = targetEntity[POSITION].x;
-        entity[POSITION].y = targetEntity[POSITION].y;
-        registerEntity(world, entity);
+        moveEntity(world, entity, targetEntity[POSITION]);
         rerenderEntity(world, entity);
       }
     }

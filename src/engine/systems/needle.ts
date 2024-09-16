@@ -41,11 +41,11 @@ export default function setupNeedle(world: World) {
       const entityId = world.getEntityId(entity);
       const originEntity = world.getEntityById(originId);
       const targetEntity = world.getEntityById(targetId);
-      const originReference = originEntity[MOVABLE].reference
+      const originReference = originEntity[MOVABLE]?.reference
         ? world.getEntityById(originEntity[MOVABLE].reference)[RENDERABLE]
             .generation
         : 0;
-      const targetReference = targetEntity[MOVABLE].reference
+      const targetReference = targetEntity[MOVABLE]?.reference
         ? world.getEntityById(targetEntity[MOVABLE].reference)[RENDERABLE]
             .generation
         : 0;
