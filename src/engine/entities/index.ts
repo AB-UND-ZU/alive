@@ -4,6 +4,7 @@ export { default as createBlock } from "./block";
 export { default as createBush } from "./bush";
 export { default as createCactus } from "./cactus";
 export { default as createChest } from "./chest";
+export { default as createCollecting } from "./collecting";
 export { default as createCompass } from "./compass";
 export { default as createCounter } from "./counter";
 export { default as createDecay } from "./decay";

@@ -141,6 +141,7 @@ function Entity({
 
   const particleSegments: Segment[] = orderedParticles.map((particle) => ({
     sprite: particle[SPRITE],
+    facing: particle[ORIENTABLE]?.facing,
     offsetX: particle[PARTICLE].offsetX,
     offsetY: particle[PARTICLE].offsetY,
     layerProps: {
