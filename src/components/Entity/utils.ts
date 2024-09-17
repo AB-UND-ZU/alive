@@ -21,10 +21,17 @@ export const cameraHeight = 10 * stackHeight;
 export const getFacingLayers = (
   world: World,
   sprite: Sprite,
-  facing?: Orientation
+  facing?: Orientation,
+  amount?: number
 ) => {
-  if (facing && sprite.facing?.[facing])
-    return sprite.facing[facing] as Layer[];
+  let layers;
+  if (facing && sprite.facing?.[facing]) layers = sprite.facing[facing];
 
-  return sprite.layers;
+  if (amount && sprite.amounts) {
+    if (amount === 1) layers = sprite.amounts.single;
+    else if (amount === 2) layers = sprite.amounts.double;
+    else layers = sprite.amounts.multiple;
+  }
+
+  return layers || sprite.layers;
 };

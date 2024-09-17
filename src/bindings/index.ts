@@ -431,7 +431,7 @@ export const generateWorld = async (world: World) => {
       });
       const goldEntity = entities.createItem(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 1, counter: "gold" },
+        [ITEM]: { amount: 4, counter: "gold" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: gold,
       });
