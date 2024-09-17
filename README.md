@@ -99,7 +99,7 @@
 ## Tech debt
 
 - Dropped items need a parent chest or mob to be lootable
-- Item drops simply replace the sprite of its container, should be a separate entity
+- Multiple item drops stack, should be placed next to each other
 - Door needs empty layers to appear above player
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
 - Animations mutate state and don't really animate things, maybe better called Sequences

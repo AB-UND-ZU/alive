@@ -28,7 +28,7 @@ import {
   rerenderEntity,
 } from "../../engine/systems/renderer";
 import * as colors from "../assets/colors";
-import { normalize } from "../math/std";
+import { normalize, signedDistance } from "../math/std";
 import { iterations } from "../math/tracing";
 import { menuArea } from "./areas";
 import { createCounter, createText, decay, fog, hit, none } from "./sprites";
@@ -370,7 +370,7 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
         });
 
         // restore removed air particles
-        if (!hasAir) {
+        if (signedDistance(y, 0, size) < 7 && !hasAir) {
           entities.createAir(world, {
             [FOG]: { visibility: "hidden", type: "air" },
             [POSITION]: { x, y },

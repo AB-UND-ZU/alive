@@ -82,30 +82,29 @@ function Entity({
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const isAttackable = !!entity[ATTACKABLE];
 
+  const isTransparent =
+    (isHidden && !isAir) || (!isHidden && isAir) || (isUnit && !isVisible);
+
+  const spring = useSpring({
+    opacity: isTransparent ? 0 : 1,
+    config: { duration: 200 },
+    onRest: (result) => {
+      setOpacity(result.value.opacity);
+    },
+  });
+
   const layerProps: LayerProps = {
-    isTransparent:
-      (isHidden && !isAir) || (!isHidden && isAir) || (isUnit && !isVisible),
-    animateTransparency: isUnit || isTerrain,
+    isTransparent,
+    opacity: spring.opacity,
     animateOffset: false,
     receiveShadow: (isTerrain && !isOpaque) || isUnit,
   };
 
-  const [transparent, setTransparent] = useState(
-    layerProps.isTransparent ? 0 : 1
-  );
-
-  useSpring({
-    transparent: layerProps.isTransparent ? 0 : 1,
-    config: { duration: isAir ? 0 : isTerrain ? 400 : 150 },
-    delay: isTerrain ? 150 : 0,
-    onRest: (result) => {
-      setTransparent(result.value.transparent);
-    },
-  });
+  const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
 
   const { ecs } = useWorld();
 
-  if (!ecs || (transparent === 0 && layerProps.isTransparent)) return null;
+  if (!ecs || (opacity === 0 && layerProps.isTransparent)) return null;
 
   const offsetZ = isOpaque
     ? wallHeight
@@ -155,7 +154,6 @@ function Entity({
       offsetY: 0,
       layerProps: {
         isTransparent: false,
-        animateTransparency: false,
         animateOffset: false,
         receiveShadow: layerProps.receiveShadow,
       },

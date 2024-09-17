@@ -21,6 +21,7 @@ import {
   flower,
   fog,
   gold,
+  heart,
   key,
   none,
   player,
@@ -176,7 +177,7 @@ export const generateWorld = async (world: World) => {
       [COUNTABLE]: {
         hp: 10,
         mp: 0,
-        xp: 0,
+        xp: 10,
         gold: 0,
         wood: 0,
         iron: 0,
@@ -431,9 +432,15 @@ export const generateWorld = async (world: World) => {
       });
       const goldEntity = entities.createItem(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 4, counter: "gold" },
+        [ITEM]: { amount: 3, counter: "gold" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: gold,
+      });
+      const heartEntity = entities.createItem(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, counter: "hp" },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: heart,
       });
       const triangleEntity = entities.createTriangle(world, {
         [ANIMATABLE]: { states: {} },
@@ -452,7 +459,7 @@ export const generateWorld = async (world: World) => {
         },
         [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
         [FOG]: { visibility, type: "unit" },
-        [INVENTORY]: { items: [world.getEntityId(goldEntity)] },
+        [INVENTORY]: { items: [world.getEntityId(goldEntity), world.getEntityId(heartEntity)] },
         [LOOTABLE]: { accessible: false },
         [MELEE]: {},
         [MOVABLE]: {
@@ -472,6 +479,7 @@ export const generateWorld = async (world: World) => {
       });
       clawsEntity[ITEM].carrier = world.getEntityId(triangleEntity);
       goldEntity[ITEM].carrier = world.getEntityId(triangleEntity);
+      heartEntity[ITEM].carrier = world.getEntityId(triangleEntity);
     }
   });
 
