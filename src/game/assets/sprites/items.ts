@@ -11,6 +11,58 @@ export const heart: Sprite = {
   ],
 };
 
+export const apple1: Sprite = {
+  name: "apple1_drop",
+  layers: [
+    {
+      char: "∙",
+      color: colors.red,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "┐",
+        color: colors.maroon,
+      },
+      {
+        char: "#",
+        color: colors.green,
+      },
+      {
+        char: "∙",
+        color: colors.red,
+      },
+    ],
+  },
+};
+
+export const apple2: Sprite = {
+  name: "apple2_drop",
+  layers: [
+    {
+      char: "∙",
+      color: colors.red,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "┐",
+        color: colors.maroon,
+      },
+      {
+        char: "Θ",
+        color: colors.green,
+      },
+      {
+        char: "∙",
+        color: colors.red,
+      },
+    ],
+  },
+};
+
 export const mana: Sprite = {
   name: "mana_drop",
   layers: [

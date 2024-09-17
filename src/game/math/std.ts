@@ -12,7 +12,7 @@ export const normalize = (number: number, modulo: number) =>
   ((number % modulo) + modulo) % modulo;
 
 export const signedDistance = (start: number, end: number, size: number) => {
-  const distance = Math.abs(end - start) % size;
+  const distance = (end - start) % size;
   const overlap = Math.abs(distance) > size / 2 ? Math.sign(distance) * size : 0;
   return distance - overlap;
 }

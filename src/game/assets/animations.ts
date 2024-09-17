@@ -109,7 +109,7 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     updated = true;
   }
 
-  // delete death particle, drop items and make entity lootable
+  // delete death particle and make entity lootable
   if (!entity[LOOTABLE].accessible && state.elapsed > decayTime) {
     disposeEntity(world, world.getEntityById(state.particles.decay));
     delete state.particles.decay;
@@ -151,7 +151,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
         );
 
         // TODO: handle dropping existing item instead
-        disposeEntity(world, existingId);
+        disposeEntity(world, existingItem);
       }
 
       entity[EQUIPPABLE][targetSlot] = itemId;
@@ -370,7 +370,7 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
         });
 
         // restore removed air particles
-        if (signedDistance(y, 0, size) < 7 && !hasAir) {
+        if (Math.abs(signedDistance(0, y, size)) < 7 && !hasAir) {
           entities.createAir(world, {
             [FOG]: { visibility: "hidden", type: "air" },
             [POSITION]: { x, y },

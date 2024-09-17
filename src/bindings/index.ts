@@ -9,6 +9,8 @@ import { MOVABLE } from "../engine/components/movable";
 import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
+  apple1,
+  apple2,
   block,
   block_down,
   block_up,
@@ -27,7 +29,8 @@ import {
   player,
   sand,
   sword,
-  tree,
+  tree1,
+  tree2,
   triangle,
   wall,
   water,
@@ -110,18 +113,22 @@ export const generateWorld = async (world: World) => {
 
     // forest
     if (elevation > 25 && terrain > 30)
-      return temperature < 0 && terrain < 75 && menu < 5 ? "tree" : "rock";
+      return temperature < 0 && terrain < 75 && menu < 5
+        ? spawn > 96
+          ? "fruit"
+          : "tree"
+        : "rock";
 
     // desert, oasis and cactus
     if (temperature > 65 && terrain > 70) return "water";
     if (temperature > 65) return 20 < green && green < 25 ? "cactus" : "sand";
 
     // greens
-    if (green > 30) return "tree";
+    if (green > 30) return spawn > 96 ? "fruit" : "tree";
     if (green > 20) return "bush";
     if (green > 10) return "grass";
 
-    // npcs
+    // spawn
     if (spawn < -96) return "triangle";
 
     return "";
@@ -274,15 +281,32 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: water,
         [RENDERABLE]: { generation: 0 },
       });
+    } else if (cell === "fruit") {
+      const [apple, tree] = [
+        [apple1, tree1],
+        [apple2, tree2],
+      ][random(0, 1)];
+      const appleEntity = entities.createApple(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, counter: "hp" },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: apple,
+      });
+      entities.createFruit(world, {
+        [COLLIDABLE]: {},
+        [FOG]: { visibility, type: "terrain" },
+        [INVENTORY]: { items: [world.getEntityId(appleEntity)] },
+        [LOOTABLE]: { accessible: true },
+        [POSITION]: { x, y },
+        [SPRITE]: tree,
+        [RENDERABLE]: { generation: 0 },
+      });
     } else if (cell === "tree") {
       entities.createTree(world, {
         [FOG]: { visibility, type: "terrain" },
         [COLLIDABLE]: {},
-        [ORIENTABLE]: {
-          facing: orientations[random(0, orientations.length - 1)],
-        },
         [POSITION]: { x, y },
-        [SPRITE]: tree,
+        [SPRITE]: [tree1, tree2][random(0, 1)],
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "bush") {
@@ -378,7 +402,7 @@ export const generateWorld = async (world: World) => {
           seed: 0,
         },
         [INVENTORY]: { items: [world.getEntityId(swordEntity)] },
-        [LOOTABLE]: { accessible: false },
+        [LOOTABLE]: { accessible: true },
         [FOG]: { visibility, type: "terrain" },
         [NPC]: {},
         [ORIENTABLE]: {},
@@ -412,7 +436,7 @@ export const generateWorld = async (world: World) => {
           seed: 0,
         },
         [INVENTORY]: { items: [world.getEntityId(compassEntity)] },
-        [LOOTABLE]: { accessible: false },
+        [LOOTABLE]: { accessible: true },
         [FOG]: { visibility, type: "terrain" },
         [NPC]: {},
         [ORIENTABLE]: { facing: "up" },
@@ -459,7 +483,12 @@ export const generateWorld = async (world: World) => {
         },
         [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
         [FOG]: { visibility, type: "unit" },
-        [INVENTORY]: { items: [world.getEntityId(goldEntity), world.getEntityId(heartEntity)] },
+        [INVENTORY]: {
+          items: [
+            world.getEntityId(goldEntity),
+            world.getEntityId(heartEntity),
+          ],
+        },
         [LOOTABLE]: { accessible: false },
         [MELEE]: {},
         [MOVABLE]: {

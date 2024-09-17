@@ -11,7 +11,7 @@ export const fog: Sprite = {
   layers: [
     {
       char: "≈",
-      color: "#2e2e2e" // colors.grey with shadow,
+      color: "#2e2e2e", // colors.grey with shadow,
     },
   ],
 };
@@ -56,7 +56,7 @@ export const sand: Sprite = {
   ],
 };
 
-export const tree: Sprite = {
+export const tree1: Sprite = {
   name: "tree_one",
   layers: [
     {
@@ -68,28 +68,20 @@ export const tree: Sprite = {
       color: colors.green,
     },
   ],
-  facing: {
-    right: [
-      {
-        char: "┐",
-        color: colors.maroon,
-      },
-      {
-        char: "Θ",
-        color: colors.green,
-      },
-    ],
-    left: [
-      {
-        char: "┐",
-        color: colors.maroon,
-      },
-      {
-        char: "Θ",
-        color: colors.green,
-      },
-    ],
-  },
+};
+
+export const tree2: Sprite = {
+  name: "tree_two",
+  layers: [
+    {
+      char: "┐",
+      color: colors.maroon,
+    },
+    {
+      char: "Θ",
+      color: colors.green,
+    },
+  ],
 };
 
 export const bush: Sprite = {

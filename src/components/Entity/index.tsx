@@ -122,7 +122,7 @@ function Entity({
   const orderedParticles: EntityType[] = [];
 
   // 2. body/loot
-  if (isLootable(ecs, entity) && entity[INVENTORY]) {
+  if (isLootable(ecs, entity) && entity[INVENTORY] && (isVisible || !isTerrain)) {
     for (const itemId of entity[INVENTORY].items) {
       const item = ecs.getEntityById(itemId);
       orderedSegments.push({
