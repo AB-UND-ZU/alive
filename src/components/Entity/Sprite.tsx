@@ -26,16 +26,13 @@ export function AnimatedSprite({
   const { ecs } = useWorld();
   const dimensions = useDimensions();
 
-  // animate opacity and particle offset
+  // animate particle offset
   const spring = useSpring({
     from: {
-      opacity: layerProps.animateTransparency ? 0 : 1,
       offsetX: undefined,
       offsetY: undefined,
     },
     to: {
-      opacity:
-        layerProps.animateTransparency && layerProps.isTransparent ? 0 : 1,
       offsetX: layerProps.animateOffset ? offsetX * dimensions.aspectRatio : 0,
       offsetY: layerProps.animateOffset ? -offsetY : 0,
     },
@@ -58,7 +55,6 @@ export function AnimatedSprite({
           layer={layer}
           key={index}
           offsetZ={(index * stackHeight) / stack}
-          opacity={spring.opacity}
         />
       ))}
     </animated.group>

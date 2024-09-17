@@ -1,5 +1,5 @@
 import { Orientation } from "../../engine/components/orientable";
-import { Layer, Sprite } from "../../engine/components/sprite";
+import { Sprite } from "../../engine/components/sprite";
 import { World } from "../../engine";
 
 export const pixels = 16;

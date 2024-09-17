@@ -18,8 +18,8 @@ export default function Bar({
   isVisible: boolean;
 }) {
   const dimensions = useDimensions();
-  const hp = entity[COUNTABLE].hp;
   const max = entity[ATTACKABLE].max;
+  const hp = Math.min(entity[COUNTABLE].hp, max);
   const isEnemy = entity[ATTACKABLE].enemy;
   const spring = useSpring({
     scaleX: hp / max,

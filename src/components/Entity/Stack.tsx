@@ -30,13 +30,15 @@ export default function Stack({
   for (let i = 0; i < segments.length; i += 1) {
     const segment = segments[i];
 
-    const layers = getFacingLayers(ecs, segment.sprite, segment.facing, segment.amount);
+    const layers = getFacingLayers(
+      ecs,
+      segment.sprite,
+      segment.facing,
+      segment.amount
+    );
     layerCount += layers.length;
 
-    if (
-      segment.layerProps.animateOffset ||
-      segment.layerProps.animateTransparency
-    ) {
+    if (segment.layerProps.animateOffset) {
       sprites.push(
         <AnimatedSprite
           key={i}

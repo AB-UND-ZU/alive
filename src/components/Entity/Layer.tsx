@@ -7,7 +7,7 @@ import Box from "./Box";
 
 export type LayerProps = {
   isTransparent: boolean;
-  animateTransparency: boolean;
+  opacity?: SpringValue<number>;
   animateOffset: boolean;
   receiveShadow: boolean;
 };
@@ -16,12 +16,10 @@ export default function Layer({
   layer,
   offsetZ,
   props,
-  opacity,
 }: {
   props: LayerProps;
   layer: LayerType;
   offsetZ: number;
-  opacity?: SpringValue<number>;
 }) {
   const dimensions = useDimensions();
 
@@ -29,8 +27,8 @@ export default function Layer({
     ? "meshLambertMaterial"
     : "meshBasicMaterial";
   const AnimatedMaterial = animated[Material];
-  const materialElement = opacity ? (
-    <AnimatedMaterial color={layer.color} transparent opacity={opacity} />
+  const materialElement = props.opacity ? (
+    <AnimatedMaterial color={layer.color} transparent opacity={props.opacity} />
   ) : (
     <Material color={layer.color} />
   );
