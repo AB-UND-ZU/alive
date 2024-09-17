@@ -1,4 +1,5 @@
 export { default as createAir } from "./air";
+export { default as createApple } from "./apple";
 export { default as createAnimation } from "./animation";
 export { default as createBlock } from "./block";
 export { default as createBush } from "./bush";
@@ -11,6 +12,7 @@ export { default as createDecay } from "./decay";
 export { default as createDoor } from "./door";
 export { default as createFlower } from "./flower";
 export { default as createFrame } from "./frame";
+export { default as createFruit } from "./fruit";
 export { default as createGame } from "./game";
 export { default as createHero } from "./hero";
 export { default as createHighlight } from "./highlight";
