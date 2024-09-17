@@ -180,7 +180,8 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
   // create loot particle
   if (!lootId && state.elapsed < lootTime) {
     const delta = orientationPoints[state.args.facing];
-    const lootParticle = entities.createDecay(world, {
+    const lootParticle = entities.createCollecting(world, {
+      [ORIENTABLE]: itemEntity[ORIENTABLE],
       [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: itemEntity[SPRITE],
