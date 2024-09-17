@@ -87,7 +87,6 @@ export default function setupCollect(world: World) {
 
       // initiate collecting animation on player
       const itemEntity = world.getEntityById(itemId);
-      itemEntity[ITEM].carrier = entityId;
       const animationEntity = entities.createAnimation(world, {
         [REFERENCE]: {
           tick: -1,
@@ -105,11 +104,19 @@ export default function setupCollect(world: World) {
         particles: {},
       };
 
+      // reduce counter items
+      if (itemEntity[ITEM].counter) {
+        itemEntity[ITEM].amount -= 1;
+      }
+
       // remove from target inventory
-      targetEntity[INVENTORY].items.splice(
-        targetEntity[INVENTORY].items.indexOf(itemId),
-        1
-      );
+      if (itemEntity[ITEM].slot || itemEntity[ITEM].amount === 0) {
+        itemEntity[ITEM].carrier = entityId;
+        targetEntity[INVENTORY].items.splice(
+          targetEntity[INVENTORY].items.indexOf(itemId),
+          1
+        );
+      }
 
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;

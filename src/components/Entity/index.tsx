@@ -36,6 +36,7 @@ import Bar from "./Bar";
 import { LayerProps } from "./Layer";
 import { isLootable } from "../../engine/systems/collect";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
+import { ITEM } from "../../engine/components/item";
 
 function Entity({
   entity,
@@ -128,6 +129,7 @@ function Entity({
       orderedSegments.push({
         sprite: item[SPRITE],
         facing: item[ORIENTABLE]?.facing,
+        amount: item[ITEM].amount,
         offsetX: 0,
         offsetY: 0,
         layerProps,

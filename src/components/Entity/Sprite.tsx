@@ -9,6 +9,7 @@ import { useDimensions } from "../Dimensions";
 export function AnimatedSprite({
   sprite,
   facing,
+  amount,
   offsetX,
   offsetY,
   offsetZ,
@@ -16,6 +17,7 @@ export function AnimatedSprite({
 }: {
   sprite: SpriteType;
   facing?: Orientation;
+  amount?: number;
   offsetX: number;
   offsetY: number;
   offsetZ: number;
@@ -42,7 +44,7 @@ export function AnimatedSprite({
 
   if (!ecs) return null;
 
-  const layers = getFacingLayers(ecs, sprite, facing);
+  const layers = getFacingLayers(ecs, sprite, facing, amount);
 
   return (
     <animated.group
@@ -66,11 +68,13 @@ export function AnimatedSprite({
 export default function Sprite({
   sprite,
   facing,
+  amount,
   offsetZ,
   layerProps,
 }: {
   sprite: SpriteType;
   facing?: Orientation;
+  amount?: number;
   offsetZ: number;
   layerProps: LayerProps;
 }) {
@@ -78,7 +82,7 @@ export default function Sprite({
 
   if (!ecs) return null;
 
-  const layers = getFacingLayers(ecs, sprite, facing);
+  const layers = getFacingLayers(ecs, sprite, facing, amount);
 
   return (
     <group position-z={offsetZ}>

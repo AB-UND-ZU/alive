@@ -157,7 +157,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
       entity[EQUIPPABLE][targetSlot] = itemId;
       entity[INVENTORY].items.push(itemId);
     } else if (targetCounter) {
-      entity[COUNTABLE][targetCounter] += itemEntity[ITEM].amount;
+      entity[COUNTABLE][targetCounter] += 1;
     }
 
     finished = true;
