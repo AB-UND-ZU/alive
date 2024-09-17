@@ -17,10 +17,12 @@ import { COUNTABLE } from "../components/countable";
 import { entities } from "..";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 
+export const isLootable = (world: World, entity: Entity) =>
+  LOOTABLE in entity && entity[LOOTABLE].accessible && INVENTORY in entity && !isEmpty(world, entity);
+
 export const getLootable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) =>
-      LOOTABLE in entity && INVENTORY in entity && !isEmpty(world, entity)
+  Object.values(getCell(world, position)).find((entity) =>
+    isLootable(world, entity)
   ) as Entity | undefined;
 
 export const isEmpty = (world: World, entity: Entity) =>
