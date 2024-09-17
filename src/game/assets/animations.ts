@@ -91,8 +91,6 @@ const haltTime = 200;
 const decayTime = 500;
 
 export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
-  const dropId = entity[INVENTORY].items[0];
-  const drop = world.getEntityById(dropId);
   let updated = false;
   let finished = false;
 
@@ -116,7 +114,6 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     disposeEntity(world, world.getEntityById(state.particles.decay));
     delete state.particles.decay;
 
-    entity[SPRITE] = drop[SPRITE];
     entity[LOOTABLE].accessible = true;
     finished = true;
   }

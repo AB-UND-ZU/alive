@@ -34,6 +34,8 @@ import { Particle, PARTICLE } from "../../engine/components/particle";
 import Swimming from "./Swimming";
 import Bar from "./Bar";
 import { LayerProps } from "./Layer";
+import { isLootable } from "../../engine/systems/collect";
+import { Inventory, INVENTORY } from "../../engine/components/inventory";
 
 function Entity({
   entity,
@@ -45,6 +47,7 @@ function Entity({
     [ATTACKABLE]?: Attackable;
     [EQUIPPABLE]?: Equippable;
     [FOG]?: Fog;
+    [INVENTORY]?: Inventory;
     [POSITION]: Position;
     [SPRITE]: SpriteType;
     [LIGHT]?: Light;
@@ -114,13 +117,32 @@ function Entity({
   const meleeEntity =
     entity[EQUIPPABLE]?.melee && ecs.getEntityById(entity[EQUIPPABLE].melee);
 
-  // from back to front: armor, body, spell, melee
+  // from back to front: armor, body/loot, spell, melee
   const orderedSegments: Segment[] = [];
   const orderedParticles: EntityType[] = [];
 
-  // 2. body
-  orderedSegments.push({ sprite, facing, offsetX: 0, offsetY: 0, layerProps });
-  orderedParticles.push(...getParticles(ecs, entity));
+  // 2. body/loot
+  if (isLootable(ecs, entity) && entity[INVENTORY]) {
+    for (const itemId of entity[INVENTORY].items) {
+      const item = ecs.getEntityById(itemId);
+      orderedSegments.push({
+        sprite: item[SPRITE],
+        facing: item[ORIENTABLE]?.facing,
+        offsetX: 0,
+        offsetY: 0,
+        layerProps,
+      });
+    }
+  } else {
+    orderedSegments.push({
+      sprite,
+      facing,
+      offsetX: 0,
+      offsetY: 0,
+      layerProps,
+    });
+    orderedParticles.push(...getParticles(ecs, entity));
+  }
 
   // 4. melee
   if (meleeEntity) {
