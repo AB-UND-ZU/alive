@@ -28,7 +28,7 @@ import {
   rerenderEntity,
 } from "../../engine/systems/renderer";
 import * as colors from "../assets/colors";
-import { normalize, signedDistance } from "../math/std";
+import { normalize } from "../math/std";
 import { iterations } from "../math/tracing";
 import { menuArea } from "./areas";
 import { createCounter, createText, decay, fog, hit, none } from "./sprites";
@@ -42,7 +42,7 @@ export const swordAttack: Animation<"melee"> = (world, entity, state) => {
 
   if (!state.particles.hit) {
     const delta = orientationPoints[state.args.facing];
-    const hitParticle = entities.createHit(world, {
+    const hitParticle = entities.createParticle(world, {
       [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: hit,
@@ -68,7 +68,7 @@ export const damageCounter: Animation<"counter"> = (world, entity, state) => {
 
   if (!state.particles.counter) {
     const delta = orientationPoints[state.args.facing];
-    const counterParticle = entities.createCounter(world, {
+    const counterParticle = entities.createParticle(world, {
       [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: createCounter(state.args.amount),
@@ -100,7 +100,7 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     state.elapsed > haltTime &&
     state.elapsed < decayTime
   ) {
-    const deathParticle = entities.createDecay(world, {
+    const deathParticle = entities.createParticle(world, {
       [PARTICLE]: { offsetX: 0, offsetY: 0 },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: decay,
@@ -200,7 +200,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
   if (Object.keys(state.particles).length !== 8) {
     for (let i = 0; i < 4; i += 1) {
       const iteration = iterations[i];
-      const sideParticle = entities.createCounter(world, {
+      const sideParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX: iteration.direction.x,
           offsetY: iteration.direction.y,
@@ -208,7 +208,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,
       });
-      const cornerParticle = entities.createCounter(world, {
+      const cornerParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX: iteration.direction.x + iteration.normal.x,
           offsetY: iteration.direction.y + iteration.normal.y,
@@ -370,8 +370,8 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
         });
 
         // restore removed air particles
-        if (Math.abs(signedDistance(0, y, size)) < 7 && !hasAir) {
-          entities.createAir(world, {
+        if ((y < 7 || y > size / 2) && !hasAir) {
+          entities.createTerrain(world, {
             [FOG]: { visibility: "hidden", type: "air" },
             [POSITION]: { x, y },
             [RENDERABLE]: { generation: 0 },

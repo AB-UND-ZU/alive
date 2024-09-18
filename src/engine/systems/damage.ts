@@ -85,7 +85,7 @@ export default function setupDamage(world: World) {
       entity[MOVABLE].pendingOrientation = undefined;
       entity[MOVABLE].lastInteraction = entityReference;
 
-      // do nothing if target is dead and pending drop
+      // do nothing if target is dead and pending decay
       if (isDead(world, targetEntity)) continue;
 
       // handle attacking
@@ -96,7 +96,7 @@ export default function setupDamage(world: World) {
         targetEntity[COUNTABLE].hp - damage
       );
 
-      const animationEntity = entities.createAnimation(world, {
+      const animationEntity = entities.createFrame(world, {
         [REFERENCE]: {
           tick: -1,
           delta: 0,

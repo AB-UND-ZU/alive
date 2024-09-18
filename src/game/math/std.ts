@@ -13,9 +13,10 @@ export const normalize = (number: number, modulo: number) =>
 
 export const signedDistance = (start: number, end: number, size: number) => {
   const distance = (end - start) % size;
-  const overlap = Math.abs(distance) > size / 2 ? Math.sign(distance) * size : 0;
+  const overlap =
+    Math.abs(distance) > size / 2 ? Math.sign(distance) * size : 0;
   return distance - overlap;
-}
+};
 
 export function* reversed<T>(array: T[]) {
   for (let i = array.length - 1; i >= 0; i--) {
@@ -24,4 +25,25 @@ export function* reversed<T>(array: T[]) {
 }
 
 export const random = (minimum: number, maximum: number) =>
-  Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+  Math.min(
+    Math.floor(Math.random() * (maximum - minimum + 1)) + minimum,
+    maximum
+  );
+
+export const distribution = (...counts: number[]) => {
+  const total = sum(counts);
+  const selection = random(1, total);
+
+  let index = 0;
+  let accumulated = 0;
+
+  while (index < counts.length - 1) {
+    accumulated += counts[index];
+
+    if (selection <= accumulated) break;
+
+    index += 1;
+  }
+
+  return index;
+};

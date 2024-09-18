@@ -167,6 +167,90 @@ export const wood: Sprite = {
   },
 };
 
+export const seed: Sprite = {
+  name: "seed_drop",
+  layers: [
+    {
+      char: "'",
+      color: colors.teal,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "'",
+        color: colors.teal,
+      },
+      {
+        char: "\u03c4",
+        color: colors.olive,
+      },
+    ],
+    double: [
+      {
+        char: '"',
+        color: colors.teal,
+      },
+      {
+        char: "\u03c4",
+        color: colors.olive,
+      },
+    ],
+    multiple: [
+      {
+        char: "°",
+        color: colors.teal,
+      },
+      {
+        char: "\u03c4",
+        color: colors.olive,
+      },
+    ],
+  },
+};
+
+export const herb: Sprite = {
+  name: "herb_drop",
+  layers: [
+    {
+      char: "·",
+      color: colors.purple,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "·",
+        color: colors.purple,
+      },
+      {
+        char: ",",
+        color: colors.olive,
+      },
+    ],
+    double: [
+      {
+        char: "∙",
+        color: colors.purple,
+      },
+      {
+        char: ",",
+        color: colors.olive,
+      },
+    ],
+    multiple: [
+      {
+        char: "\u0106",
+        color: colors.purple,
+      },
+      {
+        char: ",",
+        color: colors.olive,
+      },
+    ],
+  },
+};
+
 export const iron: Sprite = {
   name: "iron_drop",
   layers: [

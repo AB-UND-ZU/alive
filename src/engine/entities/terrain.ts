@@ -5,21 +5,21 @@ import { RENDERABLE, Renderable } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
 import type { World } from "../ecs";
 
-export default function createBush(
+export default function createTerrain(
   world: World,
   entity: {
     [FOG]: Fog;
     [POSITION]: Position;
-    [SPRITE]: Sprite;
     [RENDERABLE]: Renderable;
+    [SPRITE]: Sprite;
   }
 ) {
-  const bushEntity = world.createEntity();
+  const terrainEntity = world.createEntity();
 
-  components.addFog(world, bushEntity , entity[FOG]);
-  components.addPosition(world, bushEntity, entity[POSITION]);
-  components.addSprite(world, bushEntity, entity[SPRITE]);
-  components.addRenderable(world, bushEntity, entity[RENDERABLE]);
+  components.addFog(world, terrainEntity , entity[FOG]);
+  components.addPosition(world, terrainEntity, entity[POSITION]);
+  components.addRenderable(world, terrainEntity, entity[RENDERABLE]);
+  components.addSprite(world, terrainEntity, entity[SPRITE]);
 
-  return bushEntity;
+  return terrainEntity;
 }

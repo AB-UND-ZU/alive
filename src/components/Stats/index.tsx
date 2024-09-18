@@ -1,13 +1,13 @@
 import { useHero } from "../../bindings/hooks";
 import {
-  bush,
   createText,
-  flower,
   gold,
   heart,
+  herb,
   iron,
   mana,
   none,
+  seed,
   wood,
   xp,
 } from "../../game/assets/sprites";
@@ -49,7 +49,7 @@ function StatsInner({
           wood,
           none,
           ...stat(countable.seed, colors.teal),
-          bush,
+          seed,
           none,
           none,
         ]}
@@ -66,7 +66,7 @@ function StatsInner({
           iron,
           none,
           ...stat(countable.herb, colors.purple),
-          flower,
+          herb,
           none,
           none,
         ]}
