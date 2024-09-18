@@ -103,3 +103,4 @@
 - Door needs empty layers to appear above player
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
 - Animations mutate state and don't really animate things, maybe better called Sequences
+- Collecting items can disappear if animation is interrupted

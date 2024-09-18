@@ -152,8 +152,8 @@ function Entity({
   }
 
   // 5. loot
-  if (isLootable(ecs, entity) && entity[INVENTORY] && (isVisible || !isTerrain)) {
-    for (const itemId of entity[INVENTORY].items) {
+  if (isLootable(ecs, entity) && (isVisible || !isTerrain || (isTerrain && isOpaque))) {
+    for (const itemId of entity[INVENTORY]!.items) {
       const item = ecs.getEntityById(itemId);
       orderedSegments.push({
         sprite: item[SPRITE],

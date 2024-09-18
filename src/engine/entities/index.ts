@@ -10,6 +10,7 @@ export { default as createGame } from "./game";
 export { default as createHero } from "./hero";
 export { default as createHighlight } from "./highlight";
 export { default as createItem } from "./item";
+export { default as createOre } from "./ore";
 export { default as createParticle } from "./particle";
 export { default as createQuest } from "./quest";
 export { default as createSword } from "./sword";

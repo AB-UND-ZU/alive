@@ -18,14 +18,15 @@ import {
   cactus1,
   cactus2,
   chest,
+  coin,
   compass,
   createText,
   door,
   flower,
   fog,
   gold,
-  heart,
   herb,
+  iron,
   key,
   none,
   player,
@@ -99,7 +100,7 @@ export const generateWorld = async (world: World) => {
     const terrain = terrainMatrix[x][y] * menuDip + menuElevation;
     const temperature = temperatureMatrix[x][y] * menuDip;
     const green = greenMatrix[x][y] * menuDip;
-    const spawn = spawnMatrix[x][y] * menuDip;
+    const spawn = spawnMatrix[x][y] * (menuDip ** 0.25);
 
     // beach and islands (if not desert)
     if (
@@ -120,9 +121,13 @@ export const generateWorld = async (world: World) => {
       return temperature < 0 && terrain < 75 && menu < 5
         ? spawn > 97
           ? "fruit"
-          : spawn > 92
+          : spawn > 91
           ? "wood"
           : "tree"
+        : spawn > 99
+        ? "gold"
+        : spawn > 86
+        ? "iron"
         : "rock";
 
     // desert, oasis and cactus
@@ -130,9 +135,9 @@ export const generateWorld = async (world: World) => {
     if (temperature > 65) return 20 < green && green < 25 ? "cactus" : "sand";
 
     // greens
-    if (green > 30) return spawn > 97 ? "fruit" : spawn > 92 ? "wood" : "tree";
+    if (green > 30) return spawn > 97 ? "fruit" : spawn > 91 ? "wood" : "tree";
     if (green > 20) return spawn > 91 ? "seed" : "bush";
-    if (green > 10) return spawn > 91 ? "herb" : "grass";
+    if (green > 10) return spawn > 92 ? "herb" : "grass";
 
     // spawn
     if (spawn < -96) return "triangle";
@@ -248,6 +253,42 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
+    } else if (cell === "gold") {
+      const ironEntity = entities.createItem(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, counter: "gold" },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: gold,
+      });
+      const oreEntity = entities.createOre(world, {
+        [INVENTORY]: { items: [world.getEntityId(ironEntity)] },
+        [LOOTABLE]: { accessible: true, disposable: false },
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: wall,
+        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+        [COLLIDABLE]: {},
+      });
+      ironEntity[ITEM].carrier = world.getEntityId(oreEntity);
+    } else if (cell === "iron") {
+      const ironEntity = entities.createItem(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "iron" },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: iron,
+      });
+      const oreEntity = entities.createOre(world, {
+        [INVENTORY]: { items: [world.getEntityId(ironEntity)] },
+        [LOOTABLE]: { accessible: true, disposable: false },
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: wall,
+        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+        [COLLIDABLE]: {},
+      });
+      ironEntity[ITEM].carrier = world.getEntityId(oreEntity);
     } else if (cell === "block") {
       entities.createBlock(world, {
         [FOG]: { visibility: "visible", type: "terrain" },
@@ -290,7 +331,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "wood") {
       const woodEntity = entities.createItem(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: distribution(60, 30, 10) + 1, counter: "wood" },
+        [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "wood" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: wood,
       });
@@ -335,7 +376,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "seed") {
       const seedEntity = entities.createItem(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: distribution(60, 30, 10) + 1, counter: "seed" },
+        [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "seed" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: seed,
       });
@@ -358,7 +399,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "herb") {
       const herbEntity = entities.createItem(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: distribution(60, 30, 10) + 1, counter: "herb" },
+        [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "herb" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: herb,
       });
@@ -478,15 +519,9 @@ export const generateWorld = async (world: World) => {
       });
       const goldEntity = entities.createItem(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 3, counter: "gold" },
+        [ITEM]: { amount: 1, counter: "gold" },
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: gold,
-      });
-      const heartEntity = entities.createItem(world, {
-        [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 1, counter: "hp" },
-        [RENDERABLE]: { generation: 0 },
-        [SPRITE]: heart,
+        [SPRITE]: coin,
       });
       const triangleEntity = entities.createTriangle(world, {
         [ANIMATABLE]: { states: {} },
@@ -506,10 +541,7 @@ export const generateWorld = async (world: World) => {
         [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
         [FOG]: { visibility, type: "unit" },
         [INVENTORY]: {
-          items: [
-            world.getEntityId(goldEntity),
-            world.getEntityId(heartEntity),
-          ],
+          items: [world.getEntityId(goldEntity)],
         },
         [LOOTABLE]: { accessible: false, disposable: true },
         [MELEE]: {},
@@ -530,7 +562,6 @@ export const generateWorld = async (world: World) => {
       });
       clawsEntity[ITEM].carrier = world.getEntityId(triangleEntity);
       goldEntity[ITEM].carrier = world.getEntityId(triangleEntity);
-      heartEntity[ITEM].carrier = world.getEntityId(triangleEntity);
     }
   });
 
