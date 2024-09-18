@@ -1,15 +1,15 @@
 import { useHero } from "../../bindings/hooks";
 import {
   createText,
-  gold,
+  coin,
   heart,
   herb,
-  iron,
   mana,
   none,
   seed,
   wood,
   xp,
+  ironDisplay,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
@@ -43,7 +43,7 @@ function StatsInner({
           heart,
           none,
           ...stat(countable.gold, colors.yellow),
-          nonCountable(gold),
+          nonCountable(coin),
           none,
           ...stat(countable.wood, colors.maroon),
           wood,
@@ -63,7 +63,7 @@ function StatsInner({
           nonCountable(xp),
           none,
           ...stat(countable.iron, colors.grey),
-          iron,
+          ironDisplay,
           none,
           ...stat(countable.herb, colors.purple),
           herb,

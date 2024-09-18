@@ -107,8 +107,8 @@ export const xp: Sprite = {
   },
 };
 
-export const gold: Sprite = {
-  name: "gold_drop",
+export const coin: Sprite = {
+  name: "coin_drop",
   layers: [
     {
       char: "\u0108",
@@ -251,8 +251,8 @@ export const herb: Sprite = {
   },
 };
 
-export const iron: Sprite = {
-  name: "iron_drop",
+export const ironDisplay: Sprite = {
+  name: "iron_display",
   layers: [
     {
       char: ".",
@@ -260,22 +260,74 @@ export const iron: Sprite = {
     },
   ],
   amounts: {
-    single: [
-      {
-        char: ".",
-        color: colors.grey,
-      },
-    ],
-    double: [
-      {
-        char: ":",
-        color: colors.grey,
-      },
-    ],
     multiple: [
       {
         char: "÷",
         color: colors.grey,
+      },
+    ],
+  },
+};
+
+export const iron: Sprite = {
+  name: "iron_drop",
+  layers: [
+    {
+      char: ".",
+      color: colors.silver,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "█",
+        color: colors.grey,
+      },
+      {
+        char: ".",
+        color: colors.silver,
+      },
+    ],
+    double: [
+      {
+        char: "█",
+        color: colors.grey,
+      },
+      {
+        char: ":",
+        color: colors.silver,
+      },
+    ],
+    multiple: [
+      {
+        char: "█",
+        color: colors.grey,
+      },
+      {
+        char: "÷",
+        color: colors.silver,
+      },
+    ],
+  },
+};
+
+export const gold: Sprite = {
+  name: "gold_drop",
+  layers: [
+    {
+      char: "°",
+      color: colors.yellow,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "█",
+        color: colors.grey,
+      },
+      {
+        char: "°",
+        color: colors.yellow,
       },
     ],
   },
