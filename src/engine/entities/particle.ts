@@ -4,7 +4,7 @@ import { RENDERABLE, Renderable } from "../components/renderable";
 import { Sprite, SPRITE } from "../components/sprite";
 import type { World } from "../ecs";
 
-export default function createCounter(
+export default function createParticle(
   world: World,
   entity: {
     [PARTICLE]: Particle;
@@ -12,11 +12,11 @@ export default function createCounter(
     [SPRITE]: Sprite;
   }
 ) {
-  const counterEntity = world.createEntity();
+  const particleEntity = world.createEntity();
 
-  components.addParticle(world, counterEntity, entity[PARTICLE]);
-  components.addRenderable(world, counterEntity, entity[RENDERABLE]);
-  components.addSprite(world, counterEntity, entity[SPRITE]);
+  components.addParticle(world, particleEntity, entity[PARTICLE]);
+  components.addRenderable(world, particleEntity, entity[RENDERABLE]);
+  components.addSprite(world, particleEntity, entity[SPRITE]);
 
-  return counterEntity;
+  return particleEntity;
 }

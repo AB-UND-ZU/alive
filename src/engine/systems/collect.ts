@@ -117,7 +117,7 @@ export default function setupCollect(world: World) {
         }
 
         // initiate collecting animation on player
-        const animationEntity = entities.createAnimation(world, {
+        const animationEntity = entities.createFrame(world, {
           [REFERENCE]: {
             tick: -1,
             delta: 0,

@@ -92,38 +92,6 @@ export const bush: Sprite = {
       color: colors.olive,
     },
   ],
-  amounts: {
-    single: [
-      {
-        char: "'",
-        color: colors.teal,
-      },
-      {
-        char: "\u03c4",
-        color: colors.olive,
-      },
-    ],
-    double: [
-      {
-        char: '"',
-        color: colors.teal,
-      },
-      {
-        char: "\u03c4",
-        color: colors.olive,
-      },
-    ],
-    multiple: [
-      {
-        char: "°",
-        color: colors.teal,
-      },
-      {
-        char: "\u03c4",
-        color: colors.olive,
-      },
-    ],
-  },
 };
 
 export const flower: Sprite = {
@@ -134,42 +102,10 @@ export const flower: Sprite = {
       color: colors.olive,
     },
   ],
-  amounts: {
-    single: [
-      {
-        char: "·",
-        color: colors.purple,
-      },
-      {
-        char: ",",
-        color: colors.olive,
-      },
-    ],
-    double: [
-      {
-        char: "∙",
-        color: colors.purple,
-      },
-      {
-        char: ",",
-        color: colors.olive,
-      },
-    ],
-    multiple: [
-      {
-        char: "\u0106",
-        color: colors.purple,
-      },
-      {
-        char: ",",
-        color: colors.olive,
-      },
-    ],
-  },
 };
 
-export const cactus: Sprite = {
-  name: "cactus_empty",
+export const cactus1: Sprite = {
+  name: "cactus_one",
   layers: [
     {
       char: "▒",
@@ -180,26 +116,18 @@ export const cactus: Sprite = {
       color: colors.green,
     },
   ],
-  facing: {
-    right: [
-      {
-        char: "▒",
-        color: colors.olive,
-      },
-      {
-        char: "¥",
-        color: colors.green,
-      },
-    ],
-    left: [
-      {
-        char: "▒",
-        color: colors.olive,
-      },
-      {
-        char: "¥",
-        color: colors.green,
-      },
-    ],
-  },
+};
+
+export const cactus2: Sprite = {
+  name: "cactus_two",
+  layers: [
+    {
+      char: "▒",
+      color: colors.olive,
+    },
+    {
+      char: "¥",
+      color: colors.green,
+    },
+  ],
 };

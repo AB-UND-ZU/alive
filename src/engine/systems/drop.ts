@@ -5,7 +5,6 @@ import { ATTACKABLE } from "../components/attackable";
 import { isEmpty } from "./collect";
 import { LOOTABLE } from "../components/lootable";
 import { isDead } from "./damage";
-import { PLAYER } from "../components/player";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { entities } from "..";
 import { disposeEntity } from "./map";
@@ -22,23 +21,19 @@ export default function setupDrop(world: World) {
 
     referencesGeneration = generation;
 
-    for (const entity of world.getEntities([ATTACKABLE, RENDERABLE])) {
+    // create decay animation to make lootable
+    for (const entity of world.getEntities([
+      ATTACKABLE,
+      LOOTABLE,
+      ANIMATABLE,
+      RENDERABLE,
+    ])) {
       if (
         isDead(world, entity) &&
-        isEmpty(world, entity) &&
-        !(PLAYER in entity)
-      ) {
-        // remove entity on death and fully looted
-        disposeEntity(world, entity);
-      } else if (
-        isDead(world, entity) &&
-        LOOTABLE in entity &&
         !entity[LOOTABLE].accessible &&
-        ANIMATABLE in entity &&
         !(entity[ANIMATABLE] as Animatable).states.decay
       ) {
-        // start decaying animation
-        const animationEntity = entities.createAnimation(world, {
+        const animationEntity = entities.createFrame(world, {
           [REFERENCE]: {
             tick: -1,
             delta: 0,
@@ -54,6 +49,13 @@ export default function setupDrop(world: World) {
           args: {},
           particles: {},
         };
+      }
+    }
+
+    // remove entity on death and fully looted
+    for (const entity of world.getEntities([LOOTABLE, RENDERABLE])) {
+      if (isEmpty(world, entity) && entity[LOOTABLE].disposable) {
+        disposeEntity(world, entity);
       }
     }
   };

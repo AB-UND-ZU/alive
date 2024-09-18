@@ -68,7 +68,7 @@ export default function createWorld(size: number) {
   });
 
   // to keep track of last generations of removed reference frame
-  ecs.metadata.animationEntity = entities.createAnimation(ecs, {
+  ecs.metadata.animationEntity = entities.createFrame(ecs, {
     [RENDERABLE]: { generation: 0 },
     [REFERENCE]: {
       tick: -1,

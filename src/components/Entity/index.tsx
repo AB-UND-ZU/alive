@@ -37,6 +37,7 @@ import { LayerProps } from "./Layer";
 import { isLootable } from "../../engine/systems/collect";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
+import { Lootable, LOOTABLE } from "../../engine/components/lootable";
 
 function Entity({
   entity,
@@ -52,6 +53,7 @@ function Entity({
     [POSITION]: Position;
     [SPRITE]: SpriteType;
     [LIGHT]?: Light;
+    [LOOTABLE]?: Lootable;
     [MELEE]?: Melee;
     [MOVABLE]?: Movable;
     [NPC]?: Npc;
@@ -117,24 +119,12 @@ function Entity({
   const meleeEntity =
     entity[EQUIPPABLE]?.melee && ecs.getEntityById(entity[EQUIPPABLE].melee);
 
-  // from back to front: armor, body/loot, spell, melee
+  // from back to front: armor, body, spell, melee, loot
   const orderedSegments: Segment[] = [];
   const orderedParticles: EntityType[] = [];
 
-  // 2. body/loot
-  if (isLootable(ecs, entity) && entity[INVENTORY] && (isVisible || !isTerrain)) {
-    for (const itemId of entity[INVENTORY].items) {
-      const item = ecs.getEntityById(itemId);
-      orderedSegments.push({
-        sprite: item[SPRITE],
-        facing: item[ORIENTABLE]?.facing,
-        amount: item[ITEM].amount,
-        offsetX: 0,
-        offsetY: 0,
-        layerProps,
-      });
-    }
-  } else {
+  // 2. body
+  if (!isLootable(ecs, entity) || !entity[LOOTABLE]?.disposable) {
     orderedSegments.push({
       sprite,
       facing,
@@ -160,6 +150,22 @@ function Entity({
     });
     orderedParticles.push(...getParticles(ecs, meleeEntity));
   }
+
+  // 5. loot
+  if (isLootable(ecs, entity) && entity[INVENTORY] && (isVisible || !isTerrain)) {
+    for (const itemId of entity[INVENTORY].items) {
+      const item = ecs.getEntityById(itemId);
+      orderedSegments.push({
+        sprite: item[SPRITE],
+        facing: item[ORIENTABLE]?.facing,
+        amount: item[ITEM].amount,
+        offsetX: 0,
+        offsetY: 0,
+        layerProps,
+      });
+    }
+  } 
+
 
   const particleSegments: Segment[] = orderedParticles.map((particle) => ({
     sprite: particle[SPRITE],
