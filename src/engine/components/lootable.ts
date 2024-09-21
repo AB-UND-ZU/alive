@@ -2,7 +2,6 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Lootable = {
-  accessible: boolean;
   disposable: boolean;
 };
 

@@ -4,7 +4,7 @@ import { Position, POSITION } from "../components/position";
 import { Level, LEVEL } from "../components/level";
 import { normalize } from "../../game/math/std";
 
-const registerEntity = (world: World, entity: Entity) => {
+export const registerEntity = (world: World, entity: Entity) => {
   const position = entity[POSITION];
 
   if (!position) {

@@ -4,12 +4,10 @@ import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { ORIENTABLE } from "../components/orientable";
-import { isDead } from "./damage";
 import { ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { TRACKABLE } from "../components/trackable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
-import { LOOTABLE } from "../components/lootable";
 import { LEVEL } from "../components/level";
 import { signedDistance } from "../../game/math/std";
 
@@ -58,8 +56,16 @@ export default function setupNeedle(world: World) {
 
       const size = world.metadata.gameEntity[LEVEL].size;
       const delta = {
-        x: signedDistance(originEntity[POSITION].x, targetEntity[POSITION].x, size),
-        y: signedDistance(originEntity[POSITION].y, targetEntity[POSITION].y, size),
+        x: signedDistance(
+          originEntity[POSITION].x,
+          targetEntity[POSITION].x,
+          size
+        ),
+        y: signedDistance(
+          originEntity[POSITION].y,
+          targetEntity[POSITION].y,
+          size
+        ),
       };
       const targetOrientation = degreesToOrientations(pointToDegree(delta))[0];
 
@@ -67,15 +73,6 @@ export default function setupNeedle(world: World) {
       if (entity[ORIENTABLE].facing !== targetOrientation) {
         entity[ORIENTABLE].facing = targetOrientation;
         rerenderEntity(world, entity);
-      }
-
-      // reorient lootable container
-      if (
-        isDead(world, originEntity) &&
-        originEntity[LOOTABLE].accessible &&
-        originEntity[ORIENTABLE].facing !== targetOrientation
-      ) {
-        originEntity[ORIENTABLE].facing = targetOrientation;
         rerenderEntity(world, originEntity);
       }
     }

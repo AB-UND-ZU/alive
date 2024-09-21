@@ -9,6 +9,7 @@ export { default as setupMap } from "./map";
 export { default as setupMovement } from "./movement";
 export { default as setupNeedle } from "./needle";
 export { default as setupRenderer } from "./renderer";
+export { default as setupText } from "./text";
 export { default as setupTick } from "./tick";
 export { default as setupUnlock } from "./unlock";
 export { default as setupVisibility } from "./visibility";

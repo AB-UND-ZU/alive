@@ -2,7 +2,7 @@ import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const chest: Sprite = {
-  name: "chest_common",
+  name: "Chest",
   layers: [
     {
       char: "■",

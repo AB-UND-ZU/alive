@@ -12,7 +12,7 @@ import { rerenderEntity } from "./renderer";
 import { NPC } from "../components/npc";
 import { entities } from "..";
 import { ITEM } from "../components/item";
-import { ANIMATABLE, Animatable } from "../components/animatable";
+import { ANIMATABLE } from "../components/animatable";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { COUNTABLE } from "../components/countable";
@@ -105,15 +105,14 @@ export default function setupDamage(world: World) {
         },
         [RENDERABLE]: { generation: 1 },
       });
-      const swordAnimation = sword[ANIMATABLE] as Animatable;
 
-      if (swordAnimation) {
-        swordAnimation.states.melee = {
+      if (entity[ANIMATABLE]) {
+        entity[ANIMATABLE].states.melee = {
           name: "swordAttack",
           reference: world.getEntityId(animationEntity),
           elapsed: 0,
           args: { facing: targetOrientation },
-          particles: swordAnimation.states.melee?.particles || {},
+          particles: entity[ANIMATABLE].states.melee?.particles || {},
         };
       }
 

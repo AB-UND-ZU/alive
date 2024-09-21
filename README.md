@@ -98,9 +98,10 @@
 
 ## Tech debt
 
-- Dropped items need a parent chest or mob to be lootable
 - Multiple item drops stack, should be placed next to each other
 - Door needs empty layers to appear above player
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
 - Animations mutate state and don't really animate things, maybe better called Sequences
 - Collecting items can disappear if animation is interrupted
+- Compass needle could be an animation and particle
+- Focus circle should appear on top and over tooltip

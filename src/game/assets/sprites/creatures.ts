@@ -30,7 +30,7 @@ export const villager: Sprite = {
 };
 
 export const triangle: Sprite = {
-  name: "triangle_right",
+  name: "Prism",
   layers: [
     {
       char: "\u010f",

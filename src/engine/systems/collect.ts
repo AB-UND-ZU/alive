@@ -19,10 +19,7 @@ import { Animatable, ANIMATABLE } from "../components/animatable";
 import { rerenderEntity } from "./renderer";
 
 export const isLootable = (world: World, entity: Entity) =>
-  LOOTABLE in entity &&
-  entity[LOOTABLE].accessible &&
-  INVENTORY in entity &&
-  !isEmpty(world, entity);
+  LOOTABLE in entity && INVENTORY in entity && !isEmpty(world, entity);
 
 export const getLootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
@@ -30,8 +27,8 @@ export const getLootable = (world: World, position: Position) =>
   ) as Entity | undefined;
 
 export const isEmpty = (world: World, entity: Entity) =>
-  !(INVENTORY in entity) ||
-  !(LOOTABLE in entity) ||
+  INVENTORY in entity &&
+  LOOTABLE in entity &&
   entity[INVENTORY].items.length === 0;
 
 export default function setupCollect(world: World) {
@@ -82,7 +79,7 @@ export default function setupCollect(world: World) {
       const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getLootable(world, targetPosition);
 
-      if (!targetEntity || !targetEntity[LOOTABLE].accessible) continue;
+      if (!targetEntity?.[LOOTABLE]) continue;
 
       // handle pick up
       for (

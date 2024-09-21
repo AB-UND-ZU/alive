@@ -2,7 +2,7 @@ import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const heart: Sprite = {
-  name: "heart_drop",
+  name: "Heart",
   layers: [
     {
       char: "\u0102",
@@ -12,7 +12,7 @@ export const heart: Sprite = {
 };
 
 export const apple1: Sprite = {
-  name: "apple1_drop",
+  name: "Apple",
   layers: [
     {
       char: "∙",
@@ -38,7 +38,7 @@ export const apple1: Sprite = {
 };
 
 export const apple2: Sprite = {
-  name: "apple2_drop",
+  name: "Apple",
   layers: [
     {
       char: "∙",
@@ -64,7 +64,7 @@ export const apple2: Sprite = {
 };
 
 export const mana: Sprite = {
-  name: "mana_drop",
+  name: "Mana",
   layers: [
     {
       char: "\u0103",
@@ -74,7 +74,7 @@ export const mana: Sprite = {
 };
 
 export const xp: Sprite = {
-  name: "xp_drop",
+  name: "XP",
   layers: [
     {
       char: "+",
@@ -108,7 +108,7 @@ export const xp: Sprite = {
 };
 
 export const coin: Sprite = {
-  name: "coin_drop",
+  name: "Coin",
   layers: [
     {
       char: "\u0108",
@@ -138,7 +138,7 @@ export const coin: Sprite = {
 };
 
 export const wood: Sprite = {
-  name: "wood_drop",
+  name: "Wood",
   layers: [
     {
       char: "-",
@@ -168,7 +168,7 @@ export const wood: Sprite = {
 };
 
 export const seed: Sprite = {
-  name: "seed_drop",
+  name: "Seed",
   layers: [
     {
       char: "'",
@@ -210,7 +210,7 @@ export const seed: Sprite = {
 };
 
 export const herb: Sprite = {
-  name: "herb_drop",
+  name: "Herb",
   layers: [
     {
       char: "·",
@@ -252,7 +252,7 @@ export const herb: Sprite = {
 };
 
 export const ironDisplay: Sprite = {
-  name: "iron_display",
+  name: "Iron",
   layers: [
     {
       char: ".",
@@ -312,7 +312,7 @@ export const iron: Sprite = {
 };
 
 export const gold: Sprite = {
-  name: "gold_drop",
+  name: "Gold",
   layers: [
     {
       char: "°",
@@ -334,7 +334,7 @@ export const gold: Sprite = {
 };
 
 export const key: Sprite = {
-  name: "key_iron",
+  name: "Key",
   layers: [
     {
       char: "|",
@@ -352,7 +352,7 @@ export const key: Sprite = {
 };
 
 export const boat: Sprite = {
-  name: "boat_wood",
+  name: "Boat",
   layers: [
     {
       char: "■",
@@ -362,7 +362,7 @@ export const boat: Sprite = {
 };
 
 export const arrow: Sprite = {
-  name: "arrow_wood",
+  name: "Arrow",
   layers: [
     {
       char: "}",
@@ -372,7 +372,7 @@ export const arrow: Sprite = {
 };
 
 export const potion: Sprite = {
-  name: "potion_health",
+  name: "Potion",
   layers: [
     {
       char: "º",
@@ -390,7 +390,7 @@ export const potion: Sprite = {
 };
 
 export const compass: Sprite = {
-  name: "compass_pointer",
+  name: "Compass",
   layers: [
     {
       char: "\u0108",
@@ -442,7 +442,7 @@ export const compass: Sprite = {
 };
 
 export const sword: Sprite = {
-  name: "sword_wood",
+  name: "Sword",
   layers: [
     {
       char: "/",

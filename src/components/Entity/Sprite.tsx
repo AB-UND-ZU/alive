@@ -4,7 +4,16 @@ import { useWorld } from "../../bindings/hooks";
 import { Orientation } from "../../engine/components/orientable";
 import { animated, useSpring } from "@react-spring/three";
 import Layer, { LayerProps } from "./Layer";
-import { useDimensions } from "../Dimensions";
+
+type SpriteProps = {
+  sprite: SpriteType;
+  facing?: Orientation;
+  amount?: number;
+  offsetX: number;
+  offsetY: number;
+  offsetZ: number;
+  layerProps: LayerProps;
+};
 
 export function AnimatedSprite({
   sprite,
@@ -14,17 +23,8 @@ export function AnimatedSprite({
   offsetY,
   offsetZ,
   layerProps,
-}: {
-  sprite: SpriteType;
-  facing?: Orientation;
-  amount?: number;
-  offsetX: number;
-  offsetY: number;
-  offsetZ: number;
-  layerProps: LayerProps;
-}) {
+}: SpriteProps) {
   const { ecs } = useWorld();
-  const dimensions = useDimensions();
 
   // animate particle offset
   const spring = useSpring({
@@ -33,8 +33,8 @@ export function AnimatedSprite({
       offsetY: undefined,
     },
     to: {
-      offsetX: layerProps.animateOffset ? offsetX * dimensions.aspectRatio : 0,
-      offsetY: layerProps.animateOffset ? -offsetY : 0,
+      offsetX,
+      offsetY,
     },
     config: { duration: 200 },
   });
@@ -65,15 +65,11 @@ export default function Sprite({
   sprite,
   facing,
   amount,
+  offsetX,
+  offsetY,
   offsetZ,
   layerProps,
-}: {
-  sprite: SpriteType;
-  facing?: Orientation;
-  amount?: number;
-  offsetZ: number;
-  layerProps: LayerProps;
-}) {
+}: SpriteProps) {
   const { ecs } = useWorld();
 
   if (!ecs) return null;
@@ -81,7 +77,7 @@ export default function Sprite({
   const layers = getFacingLayers(ecs, sprite, facing, amount);
 
   return (
-    <group position-z={offsetZ}>
+    <group position={[offsetX, offsetY, offsetZ]}>
       {layers.map((layer, index) => (
         <Layer
           props={layerProps}
