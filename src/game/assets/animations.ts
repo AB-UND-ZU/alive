@@ -1,6 +1,7 @@
 import { entities } from "../../engine";
-import { Animation } from "../../engine/components/animatable";
+import { ANIMATABLE, Animation } from "../../engine/components/animatable";
 import { COUNTABLE } from "../../engine/components/countable";
+import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { FOG } from "../../engine/components/fog";
@@ -10,7 +11,7 @@ import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { LOCKABLE } from "../../engine/components/lockable";
-import { LOOTABLE } from "../../engine/components/lootable";
+import { MOVABLE } from "../../engine/components/movable";
 import {
   ORIENTABLE,
   orientationPoints,
@@ -22,13 +23,15 @@ import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { VIEWABLE } from "../../engine/components/viewable";
+import { isEmpty } from "../../engine/systems/collect";
+import { isDead } from "../../engine/systems/damage";
 import { disposeEntity, getCell } from "../../engine/systems/map";
 import {
   getEntityGeneration,
   rerenderEntity,
 } from "../../engine/systems/renderer";
 import * as colors from "../assets/colors";
-import { normalize } from "../math/std";
+import { add, normalize, signedDistance } from "../math/std";
 import { iterations } from "../math/tracing";
 import { menuArea } from "./areas";
 import { createCounter, createText, decay, fog, hit, none } from "./sprites";
@@ -36,14 +39,15 @@ import { createCounter, createText, decay, fog, hit, none } from "./sprites";
 export const swordAttack: Animation<"melee"> = (world, entity, state) => {
   // align sword with facing direction
   const finished = state.elapsed > 150;
-  const currentFacing = entity[ORIENTABLE].facing;
+  const meleeEntity = world.getEntityById(entity[EQUIPPABLE].melee);
+  const currentFacing = meleeEntity[ORIENTABLE].facing;
   const facing = finished ? undefined : state.args.facing;
   const updated = currentFacing !== facing;
 
   if (!state.particles.hit) {
     const delta = orientationPoints[state.args.facing];
     const hitParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
+      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y, animated: false },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: hit,
     });
@@ -51,7 +55,7 @@ export const swordAttack: Animation<"melee"> = (world, entity, state) => {
   }
 
   if (updated) {
-    entity[ORIENTABLE].facing = facing;
+    meleeEntity[ORIENTABLE].facing = facing;
   }
 
   if (finished && state.particles.hit) {
@@ -69,7 +73,7 @@ export const damageCounter: Animation<"counter"> = (world, entity, state) => {
   if (!state.particles.counter) {
     const delta = orientationPoints[state.args.facing];
     const counterParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
+      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y, animated: false },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: createCounter(state.args.amount),
     });
@@ -101,7 +105,7 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     state.elapsed < decayTime
   ) {
     const deathParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: 0, offsetY: 0 },
+      [PARTICLE]: { offsetX: 0, offsetY: 0, animated: false },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: decay,
     });
@@ -110,11 +114,11 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
   }
 
   // delete death particle and make entity lootable
-  if (!entity[LOOTABLE].accessible && state.elapsed > decayTime) {
+  if (!entity[DROPPABLE].decayed && state.elapsed > decayTime) {
     disposeEntity(world, world.getEntityById(state.particles.decay));
     delete state.particles.decay;
 
-    entity[LOOTABLE].accessible = true;
+    entity[DROPPABLE].decayed = true;
     finished = true;
   }
 
@@ -179,7 +183,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
     const delta = orientationPoints[state.args.facing];
     const lootParticle = entities.createCollecting(world, {
       [ORIENTABLE]: itemEntity[ORIENTABLE],
-      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
+      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y, animated: true },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: itemEntity[SPRITE],
     });
@@ -204,6 +208,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x,
           offsetY: iteration.direction.y,
+          animated: true,
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,
@@ -212,6 +217,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x + iteration.normal.x,
           offsetY: iteration.direction.y + iteration.normal.y,
+          animated: true,
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,
@@ -254,6 +260,119 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
     }
 
     updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const charDelay = 33;
+const tooltipDelay = 500;
+
+export const dialogText: Animation<"dialog"> = (world, entity, state) => {
+  const hero = world.getEntity([PLAYER]);
+
+  // display if located in any adjacent cell
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const delta = hero
+    ? {
+        x: signedDistance(hero[POSITION].x, entity[POSITION].x, size),
+        y: signedDistance(hero[POSITION].y, entity[POSITION].y, size),
+      }
+    : { x: 0, y: 0 };
+  const pending =
+    state.args.after &&
+    world.getEntityById(state.args.after)?.[ANIMATABLE].states.dialog;
+  const active =
+    !isDead(world, entity) &&
+    !isEmpty(world, entity) &&
+    Math.abs(delta.x) <= 1 &&
+    Math.abs(delta.y) <= 1;
+  const totalLength = state.args.text.length;
+  const particlesLength = Object.keys(state.particles).length;
+
+  // create char particles
+  if (particlesLength === 0) {
+    for (let i = 0; i < totalLength; i += 1) {
+      const origin = add(orientationPoints[state.args.orientation], {
+        x: -Math.floor(totalLength / 2),
+        y: 0,
+      });
+      const charPosition = add(origin, { x: i, y: 0 });
+      const particleName = `char-${i}`;
+
+      const charParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: charPosition.x,
+          offsetY: charPosition.y,
+          animated: false,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: none,
+      });
+      state.particles[particleName] = world.getEntityId(charParticle);
+    }
+  }
+
+  const cursorIndex = Array.from({ length: totalLength }).findIndex((_, i) => {
+    const particleName = `char-${i}`;
+    const particleEntity = world.getEntityById(state.particles[particleName]);
+    return particleEntity[SPRITE] === none;
+  });
+  const currentLength = cursorIndex === -1 ? totalLength : cursorIndex;
+
+  // update timestamp on active change
+  if (active !== state.args.active || !!pending !== !!state.args.after) {
+    state.args.timestamp =
+      !active && entity[MOVABLE] && !isDead(world, entity)
+        ? state.elapsed + tooltipDelay
+        : state.elapsed;
+    state.args.active = active;
+    state.args.lengthOffset = currentLength;
+    state.args.after = pending && state.args.after;
+  }
+
+  const charCount = Math.floor(
+    (state.elapsed - state.args.timestamp) / charDelay
+  );
+  const targetLength =
+    active && !pending
+      ? Math.min(state.args.lengthOffset + charCount, totalLength)
+      : Math.max(Math.min(totalLength, state.args.lengthOffset) - charCount, 0);
+
+  const orientation = delta.y < 0 ? "up" : "down";
+  const finished = false;
+  const updated =
+    currentLength !== targetLength ||
+    (orientation !== state.args.orientation && delta.y !== 0);
+
+  if (updated) {
+    state.args.orientation = orientation;
+
+    const origin = add(orientationPoints[state.args.orientation], {
+      x: -Math.floor(totalLength / 2),
+      y: 0,
+    });
+
+    for (let i = 0; i < totalLength; i += 1) {
+      const charSprite = i < targetLength ? state.args.text[i] : none;
+      const charPosition = add(origin, { x: i, y: 0 });
+      const particleName = `char-${i}`;
+
+      const charParticle = world.getEntityById(state.particles[particleName]);
+      charParticle[PARTICLE].offsetX = charPosition.x;
+      charParticle[PARTICLE].offsetY = charPosition.y;
+      charParticle[SPRITE] = charSprite;
+    }
+  }
+
+  // remove particles if player is not in adjacent position anymore and text is fully hidden
+  if (!active && currentLength === 0) {
+    for (let i = 0; i < totalLength; i += 1) {
+      const particleName = `char-${i}`;
+      disposeEntity(world, world.getEntityById(state.particles[particleName]));
+      delete state.particles[particleName];
+    }
+    return { finished: true, updated };
   }
 
   return { finished, updated };

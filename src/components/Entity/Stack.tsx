@@ -4,6 +4,7 @@ import { useWorld } from "../../bindings/hooks";
 import { Orientation } from "../../engine/components/orientable";
 import Sprite, { AnimatedSprite } from "./Sprite";
 import { LayerProps } from "./Layer";
+import { useDimensions } from "../Dimensions";
 
 export type Segment = {
   sprite: SpriteType;
@@ -22,6 +23,7 @@ export default function Stack({
   segments: Segment[];
 }) {
   const { ecs } = useWorld();
+  const dimensions = useDimensions();
   const sprites: JSX.Element[] = [];
   let layerCount = 0;
 
@@ -38,29 +40,18 @@ export default function Stack({
     );
     layerCount += layers.length;
 
-    if (segment.layerProps.animateOffset) {
-      sprites.push(
-        <AnimatedSprite
-          key={i}
-          layerProps={segment.layerProps}
-          sprite={segment.sprite}
-          facing={segment.facing}
-          amount={segment.amount}
-          offsetX={segment.offsetX}
-          offsetY={segment.offsetY}
-          offsetZ={offsetZ + (layerCount * stackHeight) / stack}
-        />
-      );
-      continue;
-    }
-
+    const SpriteComponent = segment.layerProps.animateOffset
+      ? AnimatedSprite
+      : Sprite;
     sprites.push(
-      <Sprite
+      <SpriteComponent
         key={i}
         layerProps={segment.layerProps}
         sprite={segment.sprite}
         facing={segment.facing}
         amount={segment.amount}
+        offsetX={segment.offsetX * dimensions.aspectRatio}
+        offsetY={-segment.offsetY}
         offsetZ={offsetZ + (layerCount * stackHeight) / stack}
       />
     );

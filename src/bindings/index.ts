@@ -65,6 +65,8 @@ import { LOCKABLE } from "../engine/components/lockable";
 import { TRACKABLE } from "../engine/components/trackable";
 import { FOCUSABLE } from "../engine/components/focusable";
 import { VIEWABLE } from "../engine/components/viewable";
+import { TOOLTIP } from "../engine/components/tooltip";
+import { DROPPABLE } from "../engine/components/droppable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -100,7 +102,7 @@ export const generateWorld = async (world: World) => {
     const terrain = terrainMatrix[x][y] * menuDip + menuElevation;
     const temperature = temperatureMatrix[x][y] * menuDip;
     const green = greenMatrix[x][y] * menuDip;
-    const spawn = spawnMatrix[x][y] * (menuDip ** 0.25);
+    const spawn = spawnMatrix[x][y] * menuDip ** 0.25;
 
     // beach and islands (if not desert)
     if (
@@ -255,14 +257,13 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "gold") {
       const ironEntity = entities.createItem(world, {
-        [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: 1, counter: "gold" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: gold,
       });
       const oreEntity = entities.createOre(world, {
         [INVENTORY]: { items: [world.getEntityId(ironEntity)] },
-        [LOOTABLE]: { accessible: true, disposable: false },
+        [LOOTABLE]: { disposable: false },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
@@ -273,14 +274,13 @@ export const generateWorld = async (world: World) => {
       ironEntity[ITEM].carrier = world.getEntityId(oreEntity);
     } else if (cell === "iron") {
       const ironEntity = entities.createItem(world, {
-        [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "iron" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: iron,
       });
       const oreEntity = entities.createOre(world, {
         [INVENTORY]: { items: [world.getEntityId(ironEntity)] },
-        [LOOTABLE]: { accessible: true, disposable: false },
+        [LOOTABLE]: { disposable: false },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
@@ -330,18 +330,19 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "wood") {
       const woodEntity = entities.createItem(world, {
-        [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "wood" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: wood,
       });
       const containerEntity = entities.createContainer(world, {
+        [ANIMATABLE]: { states: {} },
         [INVENTORY]: { items: [world.getEntityId(woodEntity)] },
-        [LOOTABLE]: { accessible: true, disposable: true },
+        [LOOTABLE]: { disposable: true },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
+        [TOOLTIP]: {},
       });
       woodEntity[ITEM].carrier = world.getEntityId(containerEntity);
     } else if (cell === "fruit") {
@@ -350,7 +351,6 @@ export const generateWorld = async (world: World) => {
         [apple2, tree2],
       ][random(0, 1)];
       const appleEntity = entities.createItem(world, {
-        [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: 1, counter: "hp" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: apple,
@@ -359,7 +359,7 @@ export const generateWorld = async (world: World) => {
         [COLLIDABLE]: {},
         [FOG]: { visibility, type: "terrain" },
         [INVENTORY]: { items: [world.getEntityId(appleEntity)] },
-        [LOOTABLE]: { accessible: true, disposable: false },
+        [LOOTABLE]: { disposable: false },
         [POSITION]: { x, y },
         [SPRITE]: tree,
         [RENDERABLE]: { generation: 0 },
@@ -375,18 +375,19 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "seed") {
       const seedEntity = entities.createItem(world, {
-        [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "seed" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: seed,
       });
       const containerEntity = entities.createContainer(world, {
+        [ANIMATABLE]: { states: {} },
         [FOG]: { visibility, type: "terrain" },
         [INVENTORY]: { items: [world.getEntityId(seedEntity)] },
-        [LOOTABLE]: { accessible: true, disposable: false },
+        [LOOTABLE]: { disposable: false },
         [POSITION]: { x, y },
-        [SPRITE]: bush,
         [RENDERABLE]: { generation: 0 },
+        [SPRITE]: bush,
+        [TOOLTIP]: {},
       });
       seedEntity[ITEM].carrier = world.getEntityId(containerEntity);
     } else if (cell === "bush") {
@@ -398,18 +399,19 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "herb") {
       const herbEntity = entities.createItem(world, {
-        [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "herb" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: herb,
       });
       const containerEntity = entities.createContainer(world, {
+        [ANIMATABLE]: { states: {} },
         [FOG]: { visibility, type: "terrain" },
         [INVENTORY]: { items: [world.getEntityId(herbEntity)] },
-        [LOOTABLE]: { accessible: true, disposable: false },
+        [LOOTABLE]: { disposable: false },
         [POSITION]: { x, y },
-        [SPRITE]: flower,
         [RENDERABLE]: { generation: 0 },
+        [SPRITE]: flower,
+        [TOOLTIP]: {},
       });
       herbEntity[ITEM].carrier = world.getEntityId(containerEntity);
     } else if (cell === "grass") {
@@ -442,7 +444,6 @@ export const generateWorld = async (world: World) => {
       components.addIdentifiable(world, doorEntity, { name: "door" });
     } else if (cell === "key") {
       const keyEntity = entities.createItem(world, {
-        [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: 1, slot: "key" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: key,
@@ -461,14 +462,15 @@ export const generateWorld = async (world: World) => {
           herb: 0,
           seed: 0,
         },
-        [INVENTORY]: { items: [world.getEntityId(keyEntity)] },
-        [LOOTABLE]: { accessible: false, disposable: true },
+        [DROPPABLE]: { decayed: false },
         [FOG]: { visibility, type: "terrain" },
+        [INVENTORY]: { items: [world.getEntityId(keyEntity)] },
         [NPC]: {},
         [ORIENTABLE]: { facing: "up" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: chest,
+        [TOOLTIP]: {},
       });
       keyEntity[ITEM].carrier = world.getEntityId(chestEntity);
       components.addIdentifiable(world, chestEntity, { name: "key" });
@@ -481,12 +483,14 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: sword,
       });
       const containerEntity = entities.createContainer(world, {
+        [ANIMATABLE]: { states: {} },
         [INVENTORY]: { items: [world.getEntityId(swordEntity)] },
-        [LOOTABLE]: { accessible: true, disposable: true },
+        [LOOTABLE]: { disposable: true },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: chest,
+        [SPRITE]: none,
+        [TOOLTIP]: {},
       });
       swordEntity[ITEM].carrier = world.getEntityId(containerEntity);
       components.addIdentifiable(world, containerEntity, { name: "sword" });
@@ -500,12 +504,14 @@ export const generateWorld = async (world: World) => {
         [TRACKABLE]: { target: heroId },
       });
       const containerEntity = entities.createContainer(world, {
+        [ANIMATABLE]: { states: {} },
         [INVENTORY]: { items: [world.getEntityId(compassEntity)] },
-        [LOOTABLE]: { accessible: true, disposable: true },
+        [LOOTABLE]: { disposable: true },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
+        [TOOLTIP]: {},
       });
       compassEntity[ITEM].carrier = world.getEntityId(containerEntity);
       components.addIdentifiable(world, containerEntity, { name: "compass" });
@@ -518,7 +524,6 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: none,
       });
       const goldEntity = entities.createItem(world, {
-        [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: 1, counter: "gold" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: coin,
@@ -538,12 +543,12 @@ export const generateWorld = async (world: World) => {
           herb: 0,
           seed: 0,
         },
+        [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
         [FOG]: { visibility, type: "unit" },
         [INVENTORY]: {
           items: [world.getEntityId(goldEntity)],
         },
-        [LOOTABLE]: { accessible: false, disposable: true },
         [MELEE]: {},
         [MOVABLE]: {
           orientations: [],
@@ -559,6 +564,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: triangle,
         [SWIMMABLE]: { swimming: false },
+        [TOOLTIP]: {},
       });
       clawsEntity[ITEM].carrier = world.getEntityId(triangleEntity);
       goldEntity[ITEM].carrier = world.getEntityId(triangleEntity);
@@ -644,6 +650,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupUnlock);
   world.addSystem(systems.setupMovement);
+  world.addSystem(systems.setupText);
   world.addSystem(systems.setupAnimate);
   world.addSystem(systems.setupNeedle);
   world.addSystem(systems.setupFocus);

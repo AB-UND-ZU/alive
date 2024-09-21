@@ -4,6 +4,7 @@ import { World } from "../ecs";
 export type Particle = {
   offsetX: number;
   offsetY: number;
+  animated: boolean;
 };
 
 export const PARTICLE = "PARTICLE";

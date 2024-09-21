@@ -12,14 +12,28 @@ import { rerenderEntity } from "./renderer";
 import { Entity } from "ecs";
 import { disposeEntity } from "./map";
 
+const animationOrder: (keyof AnimationArgument)[] = [
+  "collect",
+  "counter",
+  "melee",
+  "decay",
+  "dialog",
+  "focus",
+  "quest",
+];
+
 export const getAnimations: (
   world: World,
   entity: Entity
 ) => AnimationState<any>[] = (world, entity) =>
-  Object.values(entity[ANIMATABLE]?.states || {});
+  entity[ANIMATABLE]
+    ? animationOrder
+        .map((animationName) => entity[ANIMATABLE].states[animationName])
+        .filter(Boolean)
+    : [];
 
 export const getParticles = (world: World, entity: Entity) =>
-  Object.values(getAnimations(world, entity)).reduce<Entity[]>(
+  getAnimations(world, entity).reduce<Entity[]>(
     (all, animation) =>
       all.concat(
         Object.values(animation.particles).map((entityId) =>

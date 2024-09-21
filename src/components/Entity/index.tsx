@@ -25,7 +25,6 @@ import {
 import { Melee, MELEE } from "../../engine/components/melee";
 import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
 import { Animatable, ANIMATABLE } from "../../engine/components/animatable";
-import { Entity as EntityType } from "ecs";
 import Stack, { Segment } from "./Stack";
 import { Orientable, ORIENTABLE } from "../../engine/components/orientable";
 import Box from "./Box";
@@ -121,7 +120,6 @@ function Entity({
 
   // from back to front: armor, body, spell, melee, loot
   const orderedSegments: Segment[] = [];
-  const orderedParticles: EntityType[] = [];
 
   // 2. body
   if (!isLootable(ecs, entity) || !entity[LOOTABLE]?.disposable) {
@@ -132,7 +130,6 @@ function Entity({
       offsetY: 0,
       layerProps,
     });
-    orderedParticles.push(...getParticles(ecs, entity));
   }
 
   // 4. melee
@@ -148,11 +145,13 @@ function Entity({
         receiveShadow: layerProps.receiveShadow,
       },
     });
-    orderedParticles.push(...getParticles(ecs, meleeEntity));
   }
 
   // 5. loot
-  if (isLootable(ecs, entity) && (isVisible || !isTerrain || (isTerrain && isOpaque))) {
+  if (
+    isLootable(ecs, entity) &&
+    (isVisible || !isTerrain || (isTerrain && isOpaque))
+  ) {
     for (const itemId of entity[INVENTORY]!.items) {
       const item = ecs.getEntityById(itemId);
       orderedSegments.push({
@@ -164,21 +163,23 @@ function Entity({
         layerProps,
       });
     }
-  } 
+  }
 
-
-  const particleSegments: Segment[] = orderedParticles.map((particle) => ({
-    sprite: particle[SPRITE],
-    facing: particle[ORIENTABLE]?.facing,
-    offsetX: particle[PARTICLE].offsetX,
-    offsetY: particle[PARTICLE].offsetY,
-    layerProps: {
-      isTransparent: false,
-      animateTransparency: false,
-      animateOffset: true,
-      receiveShadow: false,
-    },
-  }));
+  // particles are rendered in their own stack
+  const particleSegments: Segment[] = getParticles(ecs, entity).map(
+    (particle) => ({
+      sprite: particle[SPRITE],
+      facing: particle[ORIENTABLE]?.facing,
+      offsetX: particle[PARTICLE].offsetX,
+      offsetY: particle[PARTICLE].offsetY,
+      layerProps: {
+        isTransparent: false,
+        animateTransparency: false,
+        animateOffset: particle[PARTICLE].animated,
+        receiveShadow: false,
+      },
+    })
+  );
 
   return (
     <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={config}>
