@@ -23,11 +23,11 @@ export default function setupFocus(world: World) {
       const targetId = entity[FOCUSABLE].target;
       const pendingId = entity[FOCUSABLE].pendingTarget;
 
-      // skip if no target
-      if (!targetId && !pendingId) continue;
-
       let targetEntity = world.getEntityById(targetId);
       const pendingEntity = world.getEntityById(pendingId);
+
+      // skip if no target
+      if (!targetEntity && !pendingEntity) continue;
 
       // handle removing focus
       if (targetEntity && !pendingEntity) {

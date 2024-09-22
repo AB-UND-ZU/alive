@@ -40,7 +40,7 @@ export default function Stack({
     );
     layerCount += layers.length;
 
-    const SpriteComponent = segment.layerProps.animateOffset
+    const SpriteComponent = segment.layerProps.animatedOrigin
       ? AnimatedSprite
       : Sprite;
     sprites.push(

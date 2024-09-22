@@ -4,11 +4,12 @@ import { Layer as LayerType } from "../../engine/components/sprite";
 import { animated, SpringValue } from "@react-spring/three";
 import { stack, stackHeight, textSize } from "./utils";
 import Box from "./Box";
+import { Point } from "../../game/math/std";
 
 export type LayerProps = {
   isTransparent: boolean;
   opacity?: SpringValue<number>;
-  animateOffset: boolean;
+  animatedOrigin?: Point;
   receiveShadow: boolean;
 };
 

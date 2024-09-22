@@ -97,7 +97,6 @@ function Entity({
   const layerProps: LayerProps = {
     isTransparent,
     opacity: spring.opacity,
-    animateOffset: false,
     receiveShadow: (isTerrain && !isOpaque) || isUnit,
   };
 
@@ -141,7 +140,6 @@ function Entity({
       offsetY: 0,
       layerProps: {
         isTransparent: false,
-        animateOffset: false,
         receiveShadow: layerProps.receiveShadow,
       },
     });
@@ -175,7 +173,7 @@ function Entity({
       layerProps: {
         isTransparent: false,
         animateTransparency: false,
-        animateOffset: particle[PARTICLE].animated,
+        animatedOrigin: particle[PARTICLE].animatedOrigin,
         receiveShadow: false,
       },
     })
