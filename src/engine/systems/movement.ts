@@ -7,7 +7,7 @@ import { getCell, moveEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
-import { add } from "../../game/math/std";
+import { normalize } from "../../game/math/std";
 import {
   ORIENTABLE,
   Orientation,
@@ -17,6 +17,7 @@ import { getAttackable, isDead, isFriendlyFire } from "./damage";
 import { isLocked } from "./unlock";
 import { getLootable } from "./collect";
 import { isSubmerged } from "./immersion";
+import { LEVEL } from "../components/level";
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
@@ -39,6 +40,7 @@ export const isMovable = (world: World, entity: Entity, position: Position) => {
 export default function setupMovement(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
+  const size = world.metadata.gameEntity[LEVEL].size;
 
   const onUpdate = (delta: number) => {
     const generation = world
@@ -86,7 +88,10 @@ export default function setupMovement(world: World) {
 
       for (const orientation of attemptedOrientations) {
         const delta = orientationPoints[orientation];
-        const position = add(entity[POSITION], delta);
+        const position = {
+          x: normalize(entity[POSITION].x + delta.x, size),
+          y: normalize(entity[POSITION].y + delta.y, size),
+        };
 
         if (isWalkable(world, position)) {
           moveEntity(world, entity, position);

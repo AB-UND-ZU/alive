@@ -10,7 +10,7 @@ export const player: Sprite = {
     },
     {
       char: "~",
-      color: colors.grey,
+      color: colors.olive,
     },
   ],
 };
@@ -24,7 +24,7 @@ export const villager: Sprite = {
     },
     {
       char: "'",
-      color: colors.grey,
+      color: colors.olive,
     },
   ],
 };

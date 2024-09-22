@@ -1,7 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-type Pattern = 'triangle';
+type Pattern = 'triangle' | 'merchant';
 
 export type Behaviour = {
   patterns: Pattern[]

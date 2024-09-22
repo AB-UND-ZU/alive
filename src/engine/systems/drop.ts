@@ -77,7 +77,7 @@ export default function setupDrop(world: World) {
           [POSITION]: entity[POSITION],
           [RENDERABLE]: { generation: 0 },
           [SPRITE]: none,
-          [TOOLTIP]: {},
+          [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
         });
         registerEntity(world, containerEntity);
         const containerId = world.getEntityId(containerEntity);

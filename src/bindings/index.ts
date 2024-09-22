@@ -1,5 +1,4 @@
 import { entities, World, systems } from "../engine";
-import * as components from "../engine/components";
 import { POSITION } from "../engine/components/position";
 import { SPRITE } from "../engine/components/sprite";
 import { LIGHT } from "../engine/components/light";
@@ -20,28 +19,28 @@ import {
   chest,
   coin,
   compass,
-  createText,
   door,
   flower,
   fog,
   gold,
   herb,
   iron,
+  ironSword,
   key,
   none,
   player,
   sand,
   seed,
-  sword,
   tree1,
   tree2,
   triangle,
+  villager,
   wall,
   water,
   wood,
+  woodSword,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
-import * as colors from "../game/assets/colors";
 import { LEVEL } from "../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../game/math/matrix";
 import { FOG } from "../engine/components/fog";
@@ -67,6 +66,7 @@ import { FOCUSABLE } from "../engine/components/focusable";
 import { VIEWABLE } from "../engine/components/viewable";
 import { TOOLTIP } from "../engine/components/tooltip";
 import { DROPPABLE } from "../engine/components/droppable";
+import { isTouch } from "../components/Dimensions";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -155,22 +155,19 @@ export const generateWorld = async (world: World) => {
       const x = normalize(columnIndex - (row.length - 1) / 2, size);
       const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
       let entity = "";
-      if (cell === "#") entity = "rock";
-      else if (cell === "█") entity = "block";
+      if (cell === "█") entity = "rock";
+      else if (cell === "▓") entity = "block";
       else if (cell === "▄") entity = "block_down";
       else if (cell === "▀") entity = "block_up";
       else if (cell === "◙") entity = "door";
       else if (cell === "╒") entity = "key";
       else if (cell === "/") entity = "sword";
       else if (cell === "¢") entity = "compass";
+      else if (cell === "#") entity = "tree";
+      else if (cell === "♀") entity = "merchant";
+      else if (cell === "►") entity = "triangle";
       else {
-        entities.createBlock(world, {
-          [COLLIDABLE]: {},
-          [FOG]: { visibility: "visible", type: "terrain" },
-          [POSITION]: { x, y },
-          [SPRITE]: createText(cell, colors.grey)[0],
-          [RENDERABLE]: { generation: 0 },
-        });
+        console.error(`Unrecognized cell: ${cell}!`);
       }
 
       worldMatrix[x][y] = entity;
@@ -193,7 +190,6 @@ export const generateWorld = async (world: World) => {
     entities.createHero(world, {
       [ANIMATABLE]: { states: {} },
       [ATTACKABLE]: { max: 10, enemy: false },
-      [COLLIDABLE]: {},
       [COUNTABLE]: {
         hp: 10,
         mp: 0,
@@ -342,7 +338,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
-        [TOOLTIP]: {},
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       woodEntity[ITEM].carrier = world.getEntityId(containerEntity);
     } else if (cell === "fruit") {
@@ -387,7 +383,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: bush,
-        [TOOLTIP]: {},
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       seedEntity[ITEM].carrier = world.getEntityId(containerEntity);
     } else if (cell === "bush") {
@@ -411,7 +407,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: flower,
-        [TOOLTIP]: {},
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       herbEntity[ITEM].carrier = world.getEntityId(containerEntity);
     } else if (cell === "grass") {
@@ -441,7 +437,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: door,
       });
-      components.addIdentifiable(world, doorEntity, { name: "door" });
+      world.setIdentifier(doorEntity, 'door');
     } else if (cell === "key") {
       const keyEntity = entities.createItem(world, {
         [ITEM]: { amount: 1, slot: "key" },
@@ -470,17 +466,17 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: chest,
-        [TOOLTIP]: {},
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       keyEntity[ITEM].carrier = world.getEntityId(chestEntity);
-      components.addIdentifiable(world, chestEntity, { name: "key" });
+      world.setIdentifier(chestEntity, 'key');
     } else if (cell === "sword") {
       const swordEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: 1, slot: "melee" },
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: sword,
+        [SPRITE]: woodSword,
       });
       const containerEntity = entities.createContainer(world, {
         [ANIMATABLE]: { states: {} },
@@ -490,10 +486,10 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
-        [TOOLTIP]: {},
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       swordEntity[ITEM].carrier = world.getEntityId(containerEntity);
-      components.addIdentifiable(world, containerEntity, { name: "sword" });
+      world.setIdentifier(containerEntity, 'sword');
     } else if (cell === "compass") {
       const compassEntity = entities.createCompass(world, {
         [ANIMATABLE]: { states: {} },
@@ -511,14 +507,64 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
-        [TOOLTIP]: {},
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       compassEntity[ITEM].carrier = world.getEntityId(containerEntity);
-      components.addIdentifiable(world, containerEntity, { name: "compass" });
+      world.setIdentifier(containerEntity, 'compass');
+    } else if (cell === "merchant") {
+      const swordEntity = entities.createSword(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, slot: "melee" },
+        [ORIENTABLE]: {},
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: ironSword,
+      });
+      const merchantEntity = entities.createNpc(world, {
+        [ANIMATABLE]: { states: {} },
+        [ATTACKABLE]: { max: 10, enemy: false },
+        [BEHAVIOUR]: { patterns: ["merchant"] },
+        [COUNTABLE]: {
+          hp: 10,
+          mp: 0,
+          xp: 0,
+          gold: 0,
+          wood: 0,
+          iron: 0,
+          herb: 0,
+          seed: 0,
+        },
+        [DROPPABLE]: { decayed: false },
+        [EQUIPPABLE]: { melee: world.getEntityId(swordEntity) },
+        [FOG]: { visibility, type: "unit" },
+        [INVENTORY]: {
+          items: [],
+        },
+        [MELEE]: {},
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 200,
+          },
+          lastInteraction: 0,
+        },
+        [NPC]: {},
+        [ORIENTABLE]: {},
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: villager,
+        [SWIMMABLE]: { swimming: false },
+        [TOOLTIP]: {
+          dialogs: ["Hi stranger.", "How are you?", "Welcome.", "Stay safe."],
+          persistent: false,
+          nextDialog: 0,
+        },
+      });
+      swordEntity[ITEM].carrier = world.getEntityId(merchantEntity);
     } else if (cell === "triangle") {
       const clawsEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 3, slot: "melee" },
+        [ITEM]: { amount: 1, slot: "melee" },
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
@@ -528,13 +574,12 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: coin,
       });
-      const triangleEntity = entities.createTriangle(world, {
+      const triangleEntity = entities.createNpc(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 3, enemy: true },
+        [ATTACKABLE]: { max: 2, enemy: true },
         [BEHAVIOUR]: { patterns: ["triangle"] },
-        [COLLIDABLE]: {},
         [COUNTABLE]: {
-          hp: 3,
+          hp: 2,
           mp: 0,
           xp: 0,
           gold: 0,
@@ -564,12 +609,14 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: triangle,
         [SWIMMABLE]: { swimming: false },
-        [TOOLTIP]: {},
+        [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
       });
       clawsEntity[ITEM].carrier = world.getEntityId(triangleEntity);
       goldEntity[ITEM].carrier = world.getEntityId(triangleEntity);
     }
   });
+
+  const compassId = world.getEntityId(world.getIdentifier('compass'));
 
   // set initial focus on hero
   const animationEntity = entities.createFrame(world, {
@@ -594,7 +641,7 @@ export const generateWorld = async (world: World) => {
         },
       },
     },
-    [FOCUSABLE]: { pendingTarget: heroId },
+    [FOCUSABLE]: { pendingTarget: compassId },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(animationEntity),
@@ -603,7 +650,7 @@ export const generateWorld = async (world: World) => {
       },
       lastInteraction: 0,
     },
-    [POSITION]: { x: 0, y: 0 },
+    [POSITION]: { x: 7, y: 0 },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
   });
@@ -621,27 +668,35 @@ export const generateWorld = async (world: World) => {
         },
       },
     },
-    [POSITION]: { x: 0, y: 0 },
+    [POSITION]: { x: 0, y: size - 1 },
     [REFERENCE]: {
       tick: -1,
       delta: 0,
       suspended: false,
       suspensionCounter: -1,
     },
-    [RENDERABLE]: { generation: 1 },
+    [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
-    [VIEWABLE]: { active: true },
+    [TOOLTIP]: {
+      dialogs: [
+        isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move",
+      ],
+      nextDialog: 0,
+      persistent: false,
+    },
   });
   questEntity[ANIMATABLE].states.quest.reference =
     world.getEntityId(questEntity);
 
   // create torch for menu area
-  entities.createTorch(world, {
+  const torchEntity = entities.createTorch(world, {
     [LIGHT]: { brightness: 13, darkness: 0, visibility: 0 },
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
+    [VIEWABLE]: { active: true },
   });
+  world.setIdentifier(torchEntity, 'torch')
 
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupTick);

@@ -11,7 +11,6 @@ import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { LOCKABLE } from "../../engine/components/lockable";
-import { MOVABLE } from "../../engine/components/movable";
 import {
   ORIENTABLE,
   orientationPoints,
@@ -22,6 +21,7 @@ import { POSITION } from "../../engine/components/position";
 import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
+import { TOOLTIP } from "../../engine/components/tooltip";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { isEmpty } from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
@@ -201,7 +201,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x,
           offsetY: iteration.direction.y,
-          animatedOrigin: { x: entity[POSITION].x, y: entity[POSITION].y },
+          animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,
@@ -210,7 +210,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x + iteration.normal.x,
           offsetY: iteration.direction.y + iteration.normal.y,
-          animatedOrigin: { x: entity[POSITION].x, y: entity[POSITION].y },
+          animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,
@@ -276,10 +276,12 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
     state.args.after &&
     world.getEntityById(state.args.after)?.[ANIMATABLE].states.dialog;
   const active =
-    !isDead(world, entity) &&
-    !isEmpty(world, entity) &&
-    Math.abs(delta.x) <= 1 &&
-    Math.abs(delta.y) <= 1;
+    entity[TOOLTIP].override ||
+    (entity[TOOLTIP].override !== false &&
+      !isDead(world, entity) &&
+      !isEmpty(world, entity) &&
+      Math.abs(delta.x) <= 1 &&
+      Math.abs(delta.y) <= 1);
   const totalLength = state.args.text.length;
   const particlesLength = Object.keys(state.particles).length;
 
@@ -287,7 +289,7 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
   if (particlesLength === 0) {
     for (let i = 0; i < totalLength; i += 1) {
       const origin = add(orientationPoints[state.args.orientation], {
-        x: -Math.floor(totalLength / 2),
+        x: -Math.floor((totalLength - 1) / 2),
         y: 0,
       });
       const charPosition = add(origin, { x: i, y: 0 });
@@ -315,7 +317,7 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
   // update timestamp on active change
   if (active !== state.args.active || !!pending !== !!state.args.after) {
     state.args.timestamp =
-      !active && entity[MOVABLE] && !isDead(world, entity)
+      !active && entity[TOOLTIP].persistent && !isDead(world, entity)
         ? state.elapsed + tooltipDelay
         : state.elapsed;
     state.args.active = active;
@@ -341,7 +343,7 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
     state.args.orientation = orientation;
 
     const origin = add(orientationPoints[state.args.orientation], {
-      x: -Math.floor(totalLength / 2),
+      x: -Math.floor((totalLength - 1) / 2),
       y: 0,
     });
 
@@ -375,43 +377,35 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
   let updated = false;
   const playerEntity = world.getEntity([PLAYER]);
   const focusEntity = world.getEntity([FOCUSABLE]);
+  const torchEntity = world.getIdentifier('torch')
 
-  if (!focusEntity || !playerEntity) {
+  if (!focusEntity || !playerEntity || !torchEntity) {
     return { finished, updated };
   }
 
   if (state.args.step === "move") {
     if (playerEntity[POSITION].x !== 0 || playerEntity[POSITION].y !== 0) {
-      const compassEntity = world
-        .getEntities([IDENTIFIABLE])
-        .find((entity) => entity[IDENTIFIABLE].name === "compass");
-      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(compassEntity);
+      entity[TOOLTIP].override = false;
       state.args.step = "compass";
       updated = true;
     }
   } else if (state.args.step === "compass") {
     if (playerEntity[EQUIPPABLE].compass) {
-      const swordEntity = world
-        .getEntities([IDENTIFIABLE])
-        .find((entity) => entity[IDENTIFIABLE].name === "sword");
+      const swordEntity = world.getIdentifier('sword')
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(swordEntity);
       state.args.step = "sword";
       updated = true;
     }
   } else if (state.args.step === "sword") {
     if (playerEntity[EQUIPPABLE].melee) {
-      const keyEntity = world
-        .getEntities([IDENTIFIABLE])
-        .find((entity) => entity[IDENTIFIABLE].name === "key");
+      const keyEntity = world.getIdentifier('key')
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(keyEntity);
       state.args.step = "key";
       updated = true;
     }
   } else if (state.args.step === "key") {
     if (playerEntity[EQUIPPABLE].key) {
-      const doorEntity = world
-        .getEntities([IDENTIFIABLE])
-        .find((entity) => entity[IDENTIFIABLE].name === "door");
+      const doorEntity = world.getIdentifier('door')
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(doorEntity);
       state.args.step = "door";
       updated = true;
@@ -423,7 +417,7 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   }
-
+  
   if (playerEntity[POSITION].x === 0 && playerEntity[POSITION].y === 7) {
     state.args.step = "done";
     finished = true;
@@ -431,6 +425,7 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
     focusEntity[FOCUSABLE].pendingTarget = undefined;
 
     // set camera to player
+    torchEntity[VIEWABLE].active = false;
     playerEntity[VIEWABLE].active = true;
 
     // close door
