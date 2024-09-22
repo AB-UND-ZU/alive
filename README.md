@@ -17,6 +17,12 @@
 - Portal
 - Door
 
+## Actions
+
+- Door unlock
+- Villager shop ($)
+- Villager quest (!)
+
 ## Items
 
 - Heart

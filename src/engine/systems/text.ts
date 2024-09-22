@@ -2,7 +2,7 @@ import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
 import { RENDERABLE } from "../components/renderable";
-import { add } from "../../game/math/std";
+import { add, normalize } from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { REFERENCE } from "../components/reference";
 import { getCell } from "./map";
@@ -18,6 +18,7 @@ import { getLootable, isEmpty } from "./collect";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { isDead } from "./damage";
+import * as colors from "../../game/assets/colors";
 
 export const getTooltip = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -40,7 +41,8 @@ export default function setupText(world: World) {
 
     referencesGeneration = generation;
 
-    const tooltips: { orientation: Orientation; entity: Entity }[] = [];
+    const tooltips: { orientation?: Orientation; entity: Entity }[] = [];
+    let overrides = 0;
 
     // check any adjacent tooltips
     for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
@@ -48,58 +50,86 @@ export default function setupText(world: World) {
         const delta = { x: offsetX, y: offsetY };
         const targetPosition = add(hero[POSITION], delta);
         const tooltipEntity = getTooltip(world, targetPosition);
-        const lootable = tooltipEntity && getLootable(world, tooltipEntity[POSITION]);
-        const item = lootable && world.getEntityById(lootable[INVENTORY].items.slice(-1)[0]);
 
-        // don't show tooltips for countable items
-        if (!tooltipEntity || !tooltipEntity[ANIMATABLE] || item?.[ITEM].counter || isDead(world, tooltipEntity || isEmpty(world, tooltipEntity))) continue;
+        if (!tooltipEntity?.[ANIMATABLE]) continue;
 
-        // skip if there's already one tooltip displayed
-        if (tooltipEntity[ANIMATABLE].states.dialog) return;
+        const lootable = getLootable(world, tooltipEntity[POSITION]);
+        const item =
+          lootable &&
+          world.getEntityById(lootable[INVENTORY].items.slice(-1)[0]);
+
+        const isPending = !!tooltipEntity[ANIMATABLE].states.dialog;
+        const isCounter = item?.[ITEM].counter;
+        const isDone =
+          isDead(world, tooltipEntity) || isEmpty(world, tooltipEntity);
+        const isOverride = tooltipEntity[TOOLTIP].override;
+        const isDisplayed =
+          tooltipEntity[TOOLTIP].override !== false &&
+          (isOverride || tooltips.length === overrides);
+        if (isPending || isCounter || isDone || !isDisplayed) continue;
+
+        if (isOverride) overrides += 1;
 
         tooltips.push({
-          orientation: delta.y < 0 ? "up" : "down",
+          orientation: delta.y < 0 ? "up" : delta.y > 0 ? "down" : undefined,
           entity: tooltipEntity,
         });
       }
     }
 
-    const tooltip = tooltips[0];
-    if (!tooltip) return;
+    for (const tooltip of tooltips) {
+      // create tooltip animation
+      const animationEntity = entities.createFrame(world, {
+        [REFERENCE]: {
+          tick: -1,
+          delta: 0,
+          suspended: false,
+          suspensionCounter: -1,
+        },
+        [RENDERABLE]: { generation: 1 },
+      });
 
-    // create tooltip animation
-    const animationEntity = entities.createFrame(world, {
-      [REFERENCE]: {
-        tick: -1,
-        delta: 0,
-        suspended: false,
-        suspensionCounter: -1,
-      },
-      [RENDERABLE]: { generation: 1 },
-    });
+      const lootable = getLootable(world, tooltip.entity[POSITION]);
+      const dialogs = tooltip.entity[TOOLTIP].dialogs;
+      const dialog = dialogs[tooltip.entity[TOOLTIP].nextDialog];
+      if (dialogs.length > 0) {
+        tooltip.entity[TOOLTIP].nextDialog = normalize(
+          tooltip.entity[TOOLTIP].nextDialog + 1,
+          dialogs.length
+        );
+      }
+      const text =
+        dialog ||
+        (lootable &&
+          world.getEntityById(lootable[INVENTORY].items.slice(-1)[0])[SPRITE]
+            .name) ||
+        tooltip.entity[SPRITE].name;
 
-    const lootable = getLootable(world, tooltip.entity[POSITION]);
-    const text = lootable
-      ? world.getEntityById(lootable[INVENTORY].items.slice(-1)[0])[SPRITE].name
-      : tooltip.entity[SPRITE].name;
+      const previousTooltip = world
+        .getEntities([TOOLTIP, ANIMATABLE])
+        .find(
+          (entity) =>
+            entity[ANIMATABLE].states.dialog && !entity[TOOLTIP].override
+        );
+      tooltip.entity[ANIMATABLE].states.dialog = {
+        name: "dialogText",
+        reference: world.getEntityId(animationEntity),
+        elapsed: 0,
+        args: {
+          orientation: tooltip.orientation || (dialog ? "up" : "down"),
+          text: createText(text, dialog ? colors.silver : "#2e2e2e"),
+          timestamp: 0,
+          active: true,
+          after: previousTooltip
+            ? world.getEntityId(previousTooltip)
+            : undefined,
+          lengthOffset: 0,
+        },
+        particles: {},
+      };
 
-    const previousTooltip = world.getEntities([TOOLTIP, ANIMATABLE]).find(entity => entity[ANIMATABLE].states.dialog);
-    tooltip.entity[ANIMATABLE].states.dialog = {
-      name: "dialogText",
-      reference: world.getEntityId(animationEntity),
-      elapsed: 0,
-      args: {
-        orientation: tooltip.orientation,
-        text: createText(text, "#2e2e2e"),
-        timestamp: 0,
-        active: true,
-        after: previousTooltip ? world.getEntityId(previousTooltip) : undefined,
-        lengthOffset: 0,
-      },
-      particles: {},
-    };
-
-    rerenderEntity(world, tooltip.entity);
+      rerenderEntity(world, tooltip.entity);
+    }
   };
 
   return { onUpdate };

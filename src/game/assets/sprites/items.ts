@@ -441,7 +441,7 @@ export const compass: Sprite = {
   },
 };
 
-export const sword: Sprite = {
+export const woodSword: Sprite = {
   name: "Sword",
   layers: [
     {
@@ -472,6 +472,42 @@ export const sword: Sprite = {
       {
         char: "-",
         color: colors.maroon,
+      },
+    ],
+  },
+};
+
+export const ironSword: Sprite = {
+  name: "Sword",
+  layers: [
+    {
+      char: "/",
+      color: colors.grey,
+    },
+  ],
+  facing: {
+    up: [
+      {
+        char: "|",
+        color: colors.grey,
+      },
+    ],
+    right: [
+      {
+        char: "-",
+        color: colors.grey,
+      },
+    ],
+    down: [
+      {
+        char: "|",
+        color: colors.grey,
+      },
+    ],
+    left: [
+      {
+        char: "-",
+        color: colors.grey,
       },
     ],
   },

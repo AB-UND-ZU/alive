@@ -2,7 +2,6 @@ import * as components from "../components";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
-import { Collidable, COLLIDABLE } from "../components/collidable";
 import { Countable, COUNTABLE } from "../components/countable";
 import { Droppable, DROPPABLE } from "../components/droppable";
 import { Equippable, EQUIPPABLE } from "../components/equippable";
@@ -19,13 +18,12 @@ import { SWIMMABLE, Swimmable } from "../components/swimmable";
 import { Tooltip, TOOLTIP } from "../components/tooltip";
 import type { World } from "../ecs";
 
-export default function createTriangle(
+export default function createNpc(
   world: World,
   entity: {
     [ANIMATABLE]: Animatable;
     [ATTACKABLE]: Attackable;
     [BEHAVIOUR]: Behaviour;
-    [COLLIDABLE]: Collidable;
     [COUNTABLE]: Countable;
     [DROPPABLE]: Droppable;
     [EQUIPPABLE]: Equippable;
@@ -42,26 +40,25 @@ export default function createTriangle(
     [TOOLTIP]: Tooltip;
   }
 ) {
-  const triangleEntity = world.createEntity();
+  const npcEntity = world.createEntity();
 
-  components.addAnimatable(world, triangleEntity, entity[ANIMATABLE]);
-  components.addAttackable(world, triangleEntity, entity[ATTACKABLE]);
-  components.addBehaviour(world, triangleEntity, entity[BEHAVIOUR]);
-  components.addCollidable(world, triangleEntity, entity[COLLIDABLE]);
-  components.addCountable(world, triangleEntity, entity[COUNTABLE]);
-  components.addDroppable(world, triangleEntity, entity[DROPPABLE]);
-  components.addEquippable(world, triangleEntity, entity[EQUIPPABLE]);
-  components.addFog(world, triangleEntity, entity[FOG]);
-  components.addInventory(world, triangleEntity, entity[INVENTORY]);
-  components.addMelee(world, triangleEntity, entity[MELEE]);
-  components.addMovable(world, triangleEntity, entity[MOVABLE]);
-  components.addNpc(world, triangleEntity, entity[NPC]);
-  components.addOrientable(world, triangleEntity, entity[ORIENTABLE]);
-  components.addPosition(world, triangleEntity, entity[POSITION]);
-  components.addRenderable(world, triangleEntity, entity[RENDERABLE]);
-  components.addSprite(world, triangleEntity, entity[SPRITE]);
-  components.addSwimmable(world, triangleEntity, entity[SWIMMABLE]);
-  components.addTooltip(world, triangleEntity, entity[TOOLTIP]);
+  components.addAnimatable(world, npcEntity, entity[ANIMATABLE]);
+  components.addAttackable(world, npcEntity, entity[ATTACKABLE]);
+  components.addBehaviour(world, npcEntity, entity[BEHAVIOUR]);
+  components.addCountable(world, npcEntity, entity[COUNTABLE]);
+  components.addDroppable(world, npcEntity, entity[DROPPABLE]);
+  components.addEquippable(world, npcEntity, entity[EQUIPPABLE]);
+  components.addFog(world, npcEntity, entity[FOG]);
+  components.addInventory(world, npcEntity, entity[INVENTORY]);
+  components.addMelee(world, npcEntity, entity[MELEE]);
+  components.addMovable(world, npcEntity, entity[MOVABLE]);
+  components.addNpc(world, npcEntity, entity[NPC]);
+  components.addOrientable(world, npcEntity, entity[ORIENTABLE]);
+  components.addPosition(world, npcEntity, entity[POSITION]);
+  components.addRenderable(world, npcEntity, entity[RENDERABLE]);
+  components.addSprite(world, npcEntity, entity[SPRITE]);
+  components.addSwimmable(world, npcEntity, entity[SWIMMABLE]);
+  components.addTooltip(world, npcEntity, entity[TOOLTIP]);
 
-  return triangleEntity;
+  return npcEntity;
 }

@@ -3,6 +3,7 @@ import { entities } from ".";
 import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
 import { LEVEL } from "./components/level";
+import { IDENTIFIABLE } from "./components/identifiable";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
@@ -35,6 +36,15 @@ export default function createWorld(size: number) {
   const update = ECS.update.bind(ECS, world);
   const cleanup = ECS.cleanup.bind(ECS, world);
 
+  const setIdentifier = (entity: Entity, identifier: string) => {
+    addComponentToEntity(entity, IDENTIFIABLE, { name: identifier });
+  };
+
+  const getIdentifier = (identifier: string) =>
+    getEntities([IDENTIFIABLE]).find(
+      (entity) => entity[IDENTIFIABLE].name === identifier
+    );
+
   const ecs = {
     createEntity,
     removeEntity,
@@ -47,6 +57,9 @@ export default function createWorld(size: number) {
     addSystem,
     update,
     cleanup,
+
+    getIdentifier,
+    setIdentifier,
 
     metadata: {
       gameEntity: {} as Entity,
