@@ -4,6 +4,7 @@ import { useWorld } from "../../bindings/hooks";
 import { Orientation } from "../../engine/components/orientable";
 import { animated, useSpring } from "@react-spring/three";
 import Layer, { LayerProps } from "./Layer";
+import { useDimensions } from "../Dimensions";
 
 type SpriteProps = {
   sprite: SpriteType;
@@ -25,12 +26,13 @@ export function AnimatedSprite({
   layerProps,
 }: SpriteProps) {
   const { ecs } = useWorld();
+  const dimensions = useDimensions();
 
   // animate particle offset
   const spring = useSpring({
     from: {
-      offsetX: undefined,
-      offsetY: undefined,
+      offsetX: (layerProps.animatedOrigin?.x || 0) * dimensions.aspectRatio,
+      offsetY: -(layerProps.animatedOrigin?.y || 0),
     },
     to: {
       offsetX,

@@ -47,7 +47,7 @@ export const swordAttack: Animation<"melee"> = (world, entity, state) => {
   if (!state.particles.hit) {
     const delta = orientationPoints[state.args.facing];
     const hitParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y, animated: false },
+      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: hit,
     });
@@ -73,7 +73,7 @@ export const damageCounter: Animation<"counter"> = (world, entity, state) => {
   if (!state.particles.counter) {
     const delta = orientationPoints[state.args.facing];
     const counterParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y, animated: false },
+      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: createCounter(state.args.amount),
     });
@@ -105,7 +105,7 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     state.elapsed < decayTime
   ) {
     const deathParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: 0, offsetY: 0, animated: false },
+      [PARTICLE]: { offsetX: 0, offsetY: 0 },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: decay,
     });
@@ -167,23 +167,16 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
     finished = true;
   }
 
-  // move loot particle to collecting entity
-  if (
-    lootParticle &&
-    (lootParticle[PARTICLE].offsetX !== 0 ||
-      lootParticle[PARTICLE].offsetY !== 0)
-  ) {
-    lootParticle[PARTICLE].offsetX = 0;
-    lootParticle[PARTICLE].offsetY = 0;
-    updated = true;
-  }
-
   // create loot particle
   if (!lootId && state.elapsed < lootTime) {
     const delta = orientationPoints[state.args.facing];
     const lootParticle = entities.createCollecting(world, {
       [ORIENTABLE]: itemEntity[ORIENTABLE],
-      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y, animated: true },
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        animatedOrigin: delta,
+      },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: itemEntity[SPRITE],
     });
@@ -208,7 +201,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x,
           offsetY: iteration.direction.y,
-          animated: true,
+          animatedOrigin: { x: entity[POSITION].x, y: entity[POSITION].y },
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,
@@ -217,7 +210,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x + iteration.normal.x,
           offsetY: iteration.direction.y + iteration.normal.y,
-          animated: true,
+          animatedOrigin: { x: entity[POSITION].x, y: entity[POSITION].y },
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,
@@ -304,7 +297,6 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: charPosition.x,
           offsetY: charPosition.y,
-          animated: false,
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,
@@ -339,11 +331,11 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
       ? Math.min(state.args.lengthOffset + charCount, totalLength)
       : Math.max(Math.min(totalLength, state.args.lengthOffset) - charCount, 0);
 
-  const orientation = delta.y < 0 ? "up" : "down";
+  const orientation =
+    delta.y === 0 ? state.args.orientation : delta.y < 0 ? "up" : "down";
   const finished = false;
   const updated =
-    currentLength !== targetLength ||
-    (orientation !== state.args.orientation && delta.y !== 0);
+    currentLength !== targetLength || orientation !== state.args.orientation;
 
   if (updated) {
     state.args.orientation = orientation;

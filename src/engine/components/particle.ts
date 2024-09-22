@@ -1,10 +1,11 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import { Point } from "../../game/math/std";
 
 export type Particle = {
   offsetX: number;
   offsetY: number;
-  animated: boolean;
+  animatedOrigin?: Point;
 };
 
 export const PARTICLE = "PARTICLE";
