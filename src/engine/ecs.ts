@@ -4,6 +4,7 @@ import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
 import { LEVEL } from "./components/level";
 import { IDENTIFIABLE } from "./components/identifiable";
+import { TOOLTIP } from "./components/tooltip";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
@@ -77,6 +78,11 @@ export default function createWorld(size: number) {
       delta: 0,
       suspended: false,
       suspensionCounter: -1,
+    },
+    [TOOLTIP]: {
+      dialogs: [],
+      nextDialog: -1,
+      persistent: false,
     },
   });
 

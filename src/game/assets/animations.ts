@@ -1,3 +1,4 @@
+import { isTouch } from "../../components/Dimensions";
 import { entities } from "../../engine";
 import { ANIMATABLE, Animation } from "../../engine/components/animatable";
 import { COUNTABLE } from "../../engine/components/countable";
@@ -33,7 +34,7 @@ import {
 import * as colors from "../assets/colors";
 import { add, normalize, signedDistance } from "../math/std";
 import { iterations } from "../math/tracing";
-import { menuArea } from "./areas";
+import { initialPosition, menuArea } from "./areas";
 import { createCounter, createText, decay, fog, hit, none } from "./sprites";
 
 export const swordAttack: Animation<"melee"> = (world, entity, state) => {
@@ -377,35 +378,57 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
   let updated = false;
   const playerEntity = world.getEntity([PLAYER]);
   const focusEntity = world.getEntity([FOCUSABLE]);
-  const torchEntity = world.getIdentifier('torch')
+  const torchEntity = world.getIdentifier("torch");
+  const merchantEntity = world.getIdentifier("merchant");
 
-  if (!focusEntity || !playerEntity || !torchEntity) {
+  if (!focusEntity || !playerEntity || !torchEntity || !merchantEntity) {
     return { finished, updated };
   }
 
-  if (state.args.step === "move") {
-    if (playerEntity[POSITION].x !== 0 || playerEntity[POSITION].y !== 0) {
-      entity[TOOLTIP].override = false;
+  if (state.args.step === "initial") {
+    merchantEntity[TOOLTIP].dialogs = [
+      isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move",
+    ];
+    merchantEntity[TOOLTIP].nextDialog = 0;
+    merchantEntity[TOOLTIP].override = true;
+    state.args.step = "move";
+    updated = true;
+  } else if (state.args.step === "move") {
+    if (
+      playerEntity[POSITION].x !== initialPosition.x ||
+      playerEntity[POSITION].y !== initialPosition.y
+    ) {
+      merchantEntity[TOOLTIP].override = undefined;
+      merchantEntity[TOOLTIP].dialogs = [
+        "Hi stranger.",
+        "How are you?",
+        "Welcome.",
+        "Stay safe.",
+      ];
+      const dialogs = world.metadata.gameEntity[TOOLTIP].dialogs;
+      dialogs.splice(dialogs.indexOf(world.getEntityById(merchantEntity)), 1);
+      const compassEntity = world.getIdentifier("compass");
+      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(compassEntity);
       state.args.step = "compass";
       updated = true;
     }
   } else if (state.args.step === "compass") {
     if (playerEntity[EQUIPPABLE].compass) {
-      const swordEntity = world.getIdentifier('sword')
+      const swordEntity = world.getIdentifier("sword");
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(swordEntity);
       state.args.step = "sword";
       updated = true;
     }
   } else if (state.args.step === "sword") {
     if (playerEntity[EQUIPPABLE].melee) {
-      const keyEntity = world.getIdentifier('key')
+      const keyEntity = world.getIdentifier("key");
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(keyEntity);
       state.args.step = "key";
       updated = true;
     }
   } else if (state.args.step === "key") {
     if (playerEntity[EQUIPPABLE].key) {
-      const doorEntity = world.getIdentifier('door')
+      const doorEntity = world.getIdentifier("door");
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(doorEntity);
       state.args.step = "door";
       updated = true;
@@ -417,7 +440,7 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   }
-  
+
   if (playerEntity[POSITION].x === 0 && playerEntity[POSITION].y === 7) {
     state.args.step = "done";
     finished = true;

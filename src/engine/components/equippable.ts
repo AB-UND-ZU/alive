@@ -3,6 +3,7 @@ import { World } from "../ecs";
 
 export type Equippable = {
   melee?: number;
+  armor?: number;
   key?: number;
   compass?: number;
 };

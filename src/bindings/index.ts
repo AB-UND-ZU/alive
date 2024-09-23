@@ -38,6 +38,7 @@ import {
   wall,
   water,
   wood,
+  woodShield,
   woodSword,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
@@ -54,7 +55,7 @@ import { ITEM } from "../engine/components/item";
 import { ORIENTABLE } from "../engine/components/orientable";
 import { ANIMATABLE } from "../engine/components/animatable";
 import { aspectRatio } from "../components/Dimensions/sizing";
-import { menuArea } from "../game/assets/areas";
+import { initialPosition, menuArea } from "../game/assets/areas";
 import { distribution, normalize, random } from "../game/math/std";
 import { LOOTABLE } from "../engine/components/lootable";
 import { EQUIPPABLE } from "../engine/components/equippable";
@@ -66,7 +67,6 @@ import { FOCUSABLE } from "../engine/components/focusable";
 import { VIEWABLE } from "../engine/components/viewable";
 import { TOOLTIP } from "../engine/components/tooltip";
 import { DROPPABLE } from "../engine/components/droppable";
-import { isTouch } from "../components/Dimensions";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -217,7 +217,7 @@ export const generateWorld = async (world: World) => {
       },
       [ORIENTABLE]: {},
       [PLAYER]: {},
-      [POSITION]: { x: 0, y: 0 },
+      [POSITION]: { ...initialPosition },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: player,
       [SWIMMABLE]: { swimming: false },
@@ -437,7 +437,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: door,
       });
-      world.setIdentifier(doorEntity, 'door');
+      world.setIdentifier(doorEntity, "door");
     } else if (cell === "key") {
       const keyEntity = entities.createItem(world, {
         [ITEM]: { amount: 1, slot: "key" },
@@ -469,7 +469,7 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       keyEntity[ITEM].carrier = world.getEntityId(chestEntity);
-      world.setIdentifier(chestEntity, 'key');
+      world.setIdentifier(chestEntity, "key");
     } else if (cell === "sword") {
       const swordEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
@@ -489,7 +489,7 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       swordEntity[ITEM].carrier = world.getEntityId(containerEntity);
-      world.setIdentifier(containerEntity, 'sword');
+      world.setIdentifier(containerEntity, "sword");
     } else if (cell === "compass") {
       const compassEntity = entities.createCompass(world, {
         [ANIMATABLE]: { states: {} },
@@ -510,7 +510,7 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       compassEntity[ITEM].carrier = world.getEntityId(containerEntity);
-      world.setIdentifier(containerEntity, 'compass');
+      world.setIdentifier(containerEntity, "compass");
     } else if (cell === "merchant") {
       const swordEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
@@ -518,6 +518,13 @@ export const generateWorld = async (world: World) => {
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: ironSword,
+      });
+      const shieldEntity = entities.createSword(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, slot: "armor" },
+        [ORIENTABLE]: {},
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: woodShield,
       });
       const merchantEntity = entities.createNpc(world, {
         [ANIMATABLE]: { states: {} },
@@ -534,7 +541,10 @@ export const generateWorld = async (world: World) => {
           seed: 0,
         },
         [DROPPABLE]: { decayed: false },
-        [EQUIPPABLE]: { melee: world.getEntityId(swordEntity) },
+        [EQUIPPABLE]: {
+          melee: world.getEntityId(swordEntity),
+          armor: world.getEntityId(shieldEntity),
+        },
         [FOG]: { visibility, type: "unit" },
         [INVENTORY]: {
           items: [],
@@ -554,13 +564,13 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: villager,
         [SWIMMABLE]: { swimming: false },
-        [TOOLTIP]: {
-          dialogs: ["Hi stranger.", "How are you?", "Welcome.", "Stay safe."],
-          persistent: false,
-          nextDialog: 0,
-        },
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
-      swordEntity[ITEM].carrier = world.getEntityId(merchantEntity);
+      const merchantId = world.getEntityId(merchantEntity);
+      swordEntity[ITEM].carrier = merchantId;
+      shieldEntity[ITEM].carrier = merchantId;
+      world.setIdentifier(merchantEntity, "merchant");
+      world.metadata.gameEntity[TOOLTIP].dialogs = [merchantId];
     } else if (cell === "triangle") {
       const clawsEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
@@ -616,8 +626,6 @@ export const generateWorld = async (world: World) => {
     }
   });
 
-  const compassId = world.getEntityId(world.getIdentifier('compass'));
-
   // set initial focus on hero
   const animationEntity = entities.createFrame(world, {
     [REFERENCE]: {
@@ -641,7 +649,7 @@ export const generateWorld = async (world: World) => {
         },
       },
     },
-    [FOCUSABLE]: { pendingTarget: compassId },
+    [FOCUSABLE]: { pendingTarget: heroId },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(animationEntity),
@@ -650,7 +658,7 @@ export const generateWorld = async (world: World) => {
       },
       lastInteraction: 0,
     },
-    [POSITION]: { x: 7, y: 0 },
+    [POSITION]: { ...initialPosition },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
   });
@@ -661,9 +669,9 @@ export const generateWorld = async (world: World) => {
       states: {
         quest: {
           name: "mainQuest",
-          reference: world.getEntityId(world.metadata.gameEntity),
+          reference: -1, // to be self-referenced
           elapsed: 0,
-          args: { step: "move" },
+          args: { step: "initial" },
           particles: {},
         },
       },
@@ -677,16 +685,9 @@ export const generateWorld = async (world: World) => {
     },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
-    [TOOLTIP]: {
-      dialogs: [
-        isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move",
-      ],
-      nextDialog: 0,
-      persistent: false,
-    },
   });
-  questEntity[ANIMATABLE].states.quest.reference =
-    world.getEntityId(questEntity);
+  const questId = world.getEntityId(questEntity);
+  questEntity[ANIMATABLE].states.quest.reference = questId;
 
   // create torch for menu area
   const torchEntity = entities.createTorch(world, {
@@ -696,8 +697,9 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: none,
     [VIEWABLE]: { active: true },
   });
-  world.setIdentifier(torchEntity, 'torch')
+  world.setIdentifier(torchEntity, "torch");
 
+  // start ordered systems
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupTick);
   world.addSystem(systems.setupAi);
