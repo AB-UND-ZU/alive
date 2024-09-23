@@ -114,11 +114,24 @@ function Entity({
     ? fogHeight
     : terrainHeight;
 
-  const meleeEntity =
-    entity[EQUIPPABLE]?.melee && ecs.getEntityById(entity[EQUIPPABLE].melee);
-
   // from back to front: armor, body, spell, melee, loot
   const orderedSegments: Segment[] = [];
+
+  // 1. armor
+  const armorEntity =
+    entity[EQUIPPABLE]?.armor && ecs.getEntityById(entity[EQUIPPABLE].armor);
+  if (armorEntity) {
+    orderedSegments.push({
+      sprite: armorEntity[SPRITE],
+      facing: armorEntity[ORIENTABLE].facing,
+      offsetX: 0,
+      offsetY: 0,
+      layerProps: {
+        isTransparent: false,
+        receiveShadow: layerProps.receiveShadow,
+      },
+    });
+  }
 
   // 2. body
   if (!isLootable(ecs, entity) || !entity[LOOTABLE]?.disposable) {
@@ -132,6 +145,8 @@ function Entity({
   }
 
   // 4. melee
+  const meleeEntity =
+    entity[EQUIPPABLE]?.melee && ecs.getEntityById(entity[EQUIPPABLE].melee);
   if (meleeEntity) {
     orderedSegments.push({
       sprite: meleeEntity[SPRITE],
