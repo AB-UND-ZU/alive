@@ -160,10 +160,16 @@ export const generateWorld = async (world: World) => {
       else if (cell === "▄") entity = "block_down";
       else if (cell === "▀") entity = "block_up";
       else if (cell === "◙") entity = "door";
+      else if (cell === "◘") entity = "gold";
+      else if (cell === "÷") entity = "iron";
       else if (cell === "╒") entity = "key";
       else if (cell === "/") entity = "sword";
       else if (cell === "¢") entity = "compass";
       else if (cell === "#") entity = "tree";
+      else if (cell === "τ") entity = "bush";
+      else if (cell === "°") entity = "seed";
+      else if (cell === ",") entity = "grass";
+      else if (cell === "•") entity = "herb";
       else if (cell === "♀") entity = "merchant";
       else if (cell === "►") entity = "triangle";
       else {
