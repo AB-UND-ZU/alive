@@ -8,6 +8,7 @@ import { Orientable, ORIENTABLE } from "../components/orientable";
 import { POSITION, Position } from "../components/position";
 import { Renderable, RENDERABLE } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
+import { Tooltip, TOOLTIP } from "../components/tooltip";
 import type { World } from "../ecs";
 
 export default function createDoor(
@@ -20,8 +21,9 @@ export default function createDoor(
     [NPC]: Npc;
     [ORIENTABLE]: Orientable;
     [POSITION]: Position;
-    [SPRITE]: Sprite;
     [RENDERABLE]: Renderable;
+    [SPRITE]: Sprite;
+    [TOOLTIP]: Tooltip;
   }
 ) {
   const doorEntity = world.createEntity();
@@ -33,8 +35,9 @@ export default function createDoor(
   components.addNpc(world, doorEntity, entity[NPC]);
   components.addOrientable(world, doorEntity, entity[ORIENTABLE]);
   components.addPosition(world, doorEntity, entity[POSITION]);
-  components.addSprite(world, doorEntity, entity[SPRITE]);
   components.addRenderable(world, doorEntity, entity[RENDERABLE]);
+  components.addSprite(world, doorEntity, entity[SPRITE]);
+  components.addTooltip(world, doorEntity, entity[TOOLTIP]);
 
   return doorEntity;
 }

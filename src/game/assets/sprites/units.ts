@@ -16,7 +16,7 @@ export const chest: Sprite = {
 };
 
 export const door: Sprite = {
-  name: "door_wood",
+  name: "Door",
   layers: [
     {
       char: "\u0109",
