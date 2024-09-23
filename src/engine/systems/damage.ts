@@ -9,7 +9,6 @@ import { MELEE } from "../components/melee";
 import { getCell } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
-import { NPC } from "../components/npc";
 import { entities } from "..";
 import { ITEM } from "../components/item";
 import { ANIMATABLE } from "../components/animatable";
@@ -20,8 +19,11 @@ import { COUNTABLE } from "../components/countable";
 export const isDead = (world: World, entity: Entity) =>
   ATTACKABLE in entity && entity[COUNTABLE].hp <= 0;
 
+export const isEnemy = (world: World, entity: Entity) =>
+  entity[ATTACKABLE].enemy;
+
 export const isFriendlyFire = (world: World, entity: Entity, target: Entity) =>
-  target[ATTACKABLE].enemy === NPC in entity;
+  isEnemy(world, entity) === isEnemy(world, target);
 
 export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(

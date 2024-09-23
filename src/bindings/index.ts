@@ -436,7 +436,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: door,
-        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+        [TOOLTIP]: { dialogs: ['Locked'], persistent: false, nextDialog: 0 },
       });
       world.setIdentifier(doorEntity, "door");
     } else if (cell === "key") {

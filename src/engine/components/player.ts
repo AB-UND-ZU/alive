@@ -5,6 +5,10 @@ export type Player = {};
 
 export const PLAYER = "PLAYER";
 
-export default function addLight(world: World, entity: Entity, player: Player) {
+export default function addPlayer(
+  world: World,
+  entity: Entity,
+  player: Player
+) {
   world.addComponentToEntity(entity, PLAYER, player);
 }

@@ -25,8 +25,11 @@ export const getLockable = (world: World, position: Position) =>
     (entity) => LOCKABLE in entity
   ) as Entity | undefined;
 
-export const isLocked = (world: World, position: Position) =>
-  !!getLockable(world, position)?.[LOCKABLE]?.locked;
+export const isLocked = (world: World, entity: Entity) =>
+  !!entity[LOCKABLE]?.locked;
+
+export const isUnlocked = (world: World, entity: Entity) =>
+  entity[LOCKABLE]?.locked === false;
 
 export default function setupUnlock(world: World) {
   let referenceGenerations = -1;
@@ -41,7 +44,7 @@ export default function setupUnlock(world: World) {
 
     referenceGenerations = generation;
 
-    // handle player collecting
+    // handle player unlocking
     for (const entity of world.getEntities([
       POSITION,
       MOVABLE,
@@ -74,7 +77,7 @@ export default function setupUnlock(world: World) {
       const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getLockable(world, targetPosition);
 
-      if (!targetEntity || !isLocked(world, targetPosition)) continue;
+      if (!targetEntity || !isLocked(world, targetEntity)) continue;
 
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;

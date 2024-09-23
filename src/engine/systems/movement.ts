@@ -13,8 +13,8 @@ import {
   Orientation,
   orientationPoints,
 } from "../components/orientable";
-import { getAttackable, isDead, isFriendlyFire } from "./damage";
-import { isLocked } from "./unlock";
+import { getAttackable, isDead, isEnemy, isFriendlyFire } from "./damage";
+import { getLockable, isUnlocked } from "./unlock";
 import { getLootable } from "./collect";
 import { isSubmerged } from "./immersion";
 import { LEVEL } from "../components/level";
@@ -24,17 +24,30 @@ export const isCollision = (world: World, position: Position) =>
     (entity) => COLLIDABLE in (entity as Entity)
   );
 
-export const isWalkable = (world: World, position: Position) =>
-  !isCollision(world, position) &&
-  !isSubmerged(world, position) &&
-  !isLocked(world, position) &&
-  !getAttackable(world, position) &&
-  !getLootable(world, position);
+export const isWalkable = (
+  world: World,
+  entity: Entity,
+  position: Position
+) => {
+  const lockable = getLockable(world, position);
+  return (
+    !isCollision(world, position) &&
+    !isSubmerged(world, position) &&
+    (!lockable || (isUnlocked(world, lockable) && !isEnemy(world, entity))) &&
+    !getAttackable(world, position) &&
+    !getLootable(world, position)
+  );
+};
 
 export const isMovable = (world: World, entity: Entity, position: Position) => {
-  if (isWalkable(world, position)) return true;
+  if (entity.PLAYER) console.log("move");
+  if (isWalkable(world, entity, position)) return true;
+
+  // allow attacking opposing entities
   const attackable = getAttackable(world, position);
-  return !!attackable && !isFriendlyFire(world, entity, attackable);
+  if (attackable && !isFriendlyFire(world, entity, attackable)) return true;
+
+  return false;
 };
 
 export default function setupMovement(world: World) {
@@ -93,7 +106,7 @@ export default function setupMovement(world: World) {
           y: normalize(entity[POSITION].y + delta.y, size),
         };
 
-        if (isWalkable(world, position)) {
+        if (isWalkable(world, entity, position)) {
           moveEntity(world, entity, position);
 
           // set facing to actual movement

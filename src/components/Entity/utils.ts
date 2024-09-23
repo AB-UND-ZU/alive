@@ -13,9 +13,9 @@ export const unitHeight = 1 * stackHeight;
 export const effectHeight = 2 * stackHeight;
 export const lightHeight = 3 * stackHeight;
 export const wallHeight = 4 * stackHeight;
-export const particleHeight = 5 * stackHeight;
-export const shadowHeight = 7 * stackHeight;
-export const fogHeight = 8 * stackHeight;
+export const shadowHeight = 6 * stackHeight;
+export const fogHeight = 7 * stackHeight;
+export const particleHeight = 8 * stackHeight;
 export const cameraHeight = 10 * stackHeight;
 
 export const getFacingLayers = (

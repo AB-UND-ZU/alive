@@ -31,6 +31,7 @@ import {
   getEntityGeneration,
   rerenderEntity,
 } from "../../engine/systems/renderer";
+import { isUnlocked } from "../../engine/systems/unlock";
 import * as colors from "../assets/colors";
 import { add, normalize, signedDistance } from "../math/std";
 import { iterations } from "../math/tracing";
@@ -281,6 +282,7 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
     (entity[TOOLTIP].override !== false &&
       !isDead(world, entity) &&
       !isEmpty(world, entity) &&
+      !isUnlocked(world, entity) &&
       Math.abs(delta.x) <= 1 &&
       Math.abs(delta.y) <= 1);
   const totalLength = state.args.text.length;
