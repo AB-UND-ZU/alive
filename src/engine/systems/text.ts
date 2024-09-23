@@ -18,6 +18,7 @@ import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { isDead } from "./damage";
 import * as colors from "../../game/assets/colors";
+import { isUnlocked } from "./unlock";
 
 export const getTooltip = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -84,7 +85,7 @@ export default function setupText(world: World) {
       const isPending = !!tooltipEntity[ANIMATABLE].states.dialog;
       const isCounter = item?.[ITEM].counter;
       const isDone =
-        isDead(world, tooltipEntity) || isEmpty(world, tooltipEntity);
+        isDead(world, tooltipEntity) || isEmpty(world, tooltipEntity) || isUnlocked(world, tooltipEntity);
 
       return !isPending && !isCounter && !isDone;
     });
