@@ -59,7 +59,7 @@
 
 ## Biomes
 
-- Spawn
+- Spawn (walk, collect, attack, talk, use)
 - Village
 - Boss
 - Forest (trees)
@@ -79,7 +79,8 @@
 ## Weather
 
 - Snowing (freezing)
-- Raining (darker)
+- Raining (extinguish)
+- Mist (fog)
 
 ## Terrain
 
@@ -100,7 +101,7 @@
 ## Animations
 
 - Damage (number behind target)
-- Collect (flow up)
+- Collect (flow towards entity)
 
 ## Tech debt
 

@@ -14,6 +14,8 @@ import { POSITION } from "../engine/components/position";
 import { getEntityGeneration } from "../engine/systems/renderer";
 import { REFERENCE } from "../engine/components/reference";
 import { VIEWABLE } from "../engine/components/viewable";
+import { signedDistance } from "../game/math/std";
+import { LEVEL } from "../engine/components/level";
 
 export type WorldContext = {
   ecs: WorldType | null;
@@ -98,5 +100,28 @@ export const useGame = () => {
 
 export const useViewable = () => {
   const viewables = useRenderable([VIEWABLE]);
+
   return viewables.find((entity) => entity[VIEWABLE].active);
+};
+
+export const useViewpoint = () => {
+  const viewable = useViewable();
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const { ecs } = useWorld();
+
+  const x = viewable?.[POSITION].x;
+  const y = viewable?.[POSITION].y;
+
+  useEffect(() => {
+    if (!ecs || x === undefined || y === undefined) return;
+
+    const size = ecs.metadata.gameEntity[LEVEL].size;
+
+    setPosition((prevPosition) => ({
+      x: prevPosition.x + signedDistance(prevPosition.x, x, size),
+      y: prevPosition.y + signedDistance(prevPosition.y, y, size),
+    }));
+  }, [x, y, ecs]);
+
+  return position;
 };
