@@ -458,6 +458,7 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
     if (doorEntity) {
       doorEntity[LOCKABLE].locked = true;
       doorEntity[ORIENTABLE].facing = undefined;
+      doorEntity[LIGHT].darkness = 1;
       rerenderEntity(world, doorEntity);
     }
 

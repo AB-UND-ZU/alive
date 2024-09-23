@@ -7,15 +7,15 @@ export const menuArea = `\
 █                     █
 █                     █
 █          ♀          █
-█   ╒             ¢   █
 █                     █
-█  ############ ##### █
-█##     #            #█
-█►#  /                █
-█       #             █
+█    ╒           ¢    █
+█                     █
+█                     █
+█    /                █
+█                     █
 ███████████◙███████████
 ██████████   ██████████
 █████████     █████████\
 `;
 
-export const initialPosition = { x: 7, y: 4 };
+export const initialPosition = { x: 6, y: 4 };
