@@ -8,7 +8,7 @@ import { effectHeight, stack, stackHeight } from "./utils";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { MOVABLE } from "../../engine/components/movable";
 
-const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(2.35);
+const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(8.3);
 
 export default function Swimming({
   active,

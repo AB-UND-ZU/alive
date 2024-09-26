@@ -140,6 +140,7 @@ export default function setupText(world: World) {
           text: createText(text, dialog ? colors.silver : "#2e2e2e"),
           timestamp: 0,
           active: true,
+          dialog: !!dialog,
           after: previousTooltip
             ? world.getEntityId(previousTooltip)
             : undefined,

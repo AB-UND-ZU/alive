@@ -1,4 +1,5 @@
 import { isTouch } from "../../components/Dimensions";
+import { particleHeight, tooltipHeight } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { ANIMATABLE, Animation } from "../../engine/components/animatable";
 import { COUNTABLE } from "../../engine/components/countable";
@@ -49,7 +50,11 @@ export const swordAttack: Animation<"melee"> = (world, entity, state) => {
   if (!state.particles.hit) {
     const delta = orientationPoints[state.args.facing];
     const hitParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
+      [PARTICLE]: {
+        offsetX: delta.x,
+        offsetY: delta.y,
+        offsetZ: particleHeight,
+      },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: hit,
     });
@@ -75,7 +80,11 @@ export const damageCounter: Animation<"counter"> = (world, entity, state) => {
   if (!state.particles.counter) {
     const delta = orientationPoints[state.args.facing];
     const counterParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: delta.x, offsetY: delta.y },
+      [PARTICLE]: {
+        offsetX: delta.x,
+        offsetY: delta.y,
+        offsetZ: particleHeight,
+      },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: createCounter(state.args.amount),
     });
@@ -107,7 +116,7 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     state.elapsed < decayTime
   ) {
     const deathParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: 0, offsetY: 0 },
+      [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: particleHeight },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: decay,
     });
@@ -177,6 +186,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
       [PARTICLE]: {
         offsetX: 0,
         offsetY: 0,
+        offsetZ: tooltipHeight,
         animatedOrigin: delta,
       },
       [RENDERABLE]: { generation: 1 },
@@ -203,6 +213,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x,
           offsetY: iteration.direction.y,
+          offsetZ: particleHeight,
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
@@ -212,6 +223,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x + iteration.normal.x,
           offsetY: iteration.direction.y + iteration.normal.y,
+          offsetZ: particleHeight,
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
@@ -302,6 +314,7 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: charPosition.x,
           offsetY: charPosition.y,
+          offsetZ: state.args.dialog ? particleHeight : tooltipHeight,
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,

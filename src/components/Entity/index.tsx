@@ -97,7 +97,7 @@ function Entity({
   const layerProps: LayerProps = {
     isTransparent,
     opacity: spring.opacity,
-    receiveShadow: (isTerrain && !isOpaque) || isUnit,
+    receiveShadow: (isTerrain && !isOpaque),
   };
 
   const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
@@ -126,6 +126,7 @@ function Entity({
       facing: armorEntity[ORIENTABLE].facing,
       offsetX: 0,
       offsetY: 0,
+      offsetZ,
       layerProps: {
         isTransparent: false,
         receiveShadow: layerProps.receiveShadow,
@@ -140,6 +141,7 @@ function Entity({
       facing,
       offsetX: 0,
       offsetY: 0,
+      offsetZ,
       layerProps,
     });
   }
@@ -153,6 +155,7 @@ function Entity({
       facing: meleeEntity[ORIENTABLE].facing,
       offsetX: 0,
       offsetY: 0,
+      offsetZ,
       layerProps: {
         isTransparent: false,
         receiveShadow: layerProps.receiveShadow,
@@ -173,6 +176,7 @@ function Entity({
         amount: item[ITEM].amount,
         offsetX: 0,
         offsetY: 0,
+        offsetZ,
         layerProps,
       });
     }
@@ -185,6 +189,7 @@ function Entity({
       facing: particle[ORIENTABLE]?.facing,
       offsetX: particle[PARTICLE].offsetX,
       offsetY: particle[PARTICLE].offsetY,
+      offsetZ: particle[PARTICLE].offsetZ,
       layerProps: {
         isTransparent: false,
         animateTransparency: false,
@@ -201,8 +206,8 @@ function Entity({
           <meshBasicMaterial color={colors.black} />
         </Box>
       )}
-      <Stack offsetZ={offsetZ} segments={orderedSegments} />
-      <Stack offsetZ={particleHeight} segments={particleSegments} />
+      <Stack segments={orderedSegments} />
+      <Stack segments={particleSegments} />
 
       {isBright && (
         <CoveredLight

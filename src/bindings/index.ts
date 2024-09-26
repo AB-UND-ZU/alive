@@ -166,6 +166,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "/") entity = "sword";
       else if (cell === "¢") entity = "compass";
       else if (cell === "#") entity = "tree";
+      else if (cell === ".") entity = "fruit";
       else if (cell === "τ") entity = "bush";
       else if (cell === "°") entity = "seed";
       else if (cell === ",") entity = "grass";
