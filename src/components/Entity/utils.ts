@@ -9,11 +9,12 @@ export const stack = 1000;
 export const stackHeight = 1;
 
 export const terrainHeight = 0 * stackHeight;
-export const unitHeight = 1 * stackHeight;
-export const effectHeight = 2 * stackHeight;
-export const lightHeight = 3 * stackHeight;
-export const wallHeight = 4 * stackHeight;
-export const shadowHeight = 6 * stackHeight;
+export const lightHeight = 1 * stackHeight;
+export const wallHeight = 2 * stackHeight;
+export const shadowHeight = 3 * stackHeight;
+export const tooltipHeight = 4 * stackHeight;
+export const unitHeight = 5 * stackHeight;
+export const effectHeight = 6 * stackHeight;
 export const fogHeight = 7 * stackHeight;
 export const particleHeight = 8 * stackHeight;
 export const cameraHeight = 10 * stackHeight;

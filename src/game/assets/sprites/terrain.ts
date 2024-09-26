@@ -50,7 +50,7 @@ export const sand: Sprite = {
   name: "sand_dry",
   layers: [
     {
-      char: "▒",
+      char: "░",
       color: colors.olive,
     },
   ],
@@ -108,11 +108,11 @@ export const cactus1: Sprite = {
   name: "cactus_one",
   layers: [
     {
-      char: "▒",
+      char: "░",
       color: colors.olive,
     },
     {
-      char: "╬",
+      char: "╠",
       color: colors.green,
     },
   ],
@@ -122,7 +122,7 @@ export const cactus2: Sprite = {
   name: "cactus_two",
   layers: [
     {
-      char: "▒",
+      char: "░",
       color: colors.olive,
     },
     {

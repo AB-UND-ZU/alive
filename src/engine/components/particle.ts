@@ -5,6 +5,7 @@ import { Point } from "../../game/math/std";
 export type Particle = {
   offsetX: number;
   offsetY: number;
+  offsetZ: number;
   animatedOrigin?: Point;
 };
 

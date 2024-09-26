@@ -18,6 +18,7 @@ export type AnimationArgument = {
     timestamp: number;
     lengthOffset: number;
     after?: number;
+    dialog: boolean;
   };
 };
 export type AnimationState<A extends keyof AnimationArgument> = {

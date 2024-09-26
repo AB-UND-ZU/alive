@@ -12,16 +12,11 @@ export type Segment = {
   amount?: number;
   offsetX: number;
   offsetY: number;
+  offsetZ: number;
   layerProps: LayerProps;
 };
 
-export default function Stack({
-  offsetZ,
-  segments,
-}: {
-  offsetZ: number;
-  segments: Segment[];
-}) {
+export default function Stack({ segments }: { segments: Segment[] }) {
   const { ecs } = useWorld();
   const dimensions = useDimensions();
   const sprites: JSX.Element[] = [];
@@ -52,7 +47,7 @@ export default function Stack({
         amount={segment.amount}
         offsetX={segment.offsetX * dimensions.aspectRatio}
         offsetY={-segment.offsetY}
-        offsetZ={offsetZ + (layerCount * stackHeight) / stack}
+        offsetZ={segment.offsetZ + (layerCount * stackHeight) / stack}
       />
     );
   }
