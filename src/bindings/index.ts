@@ -19,6 +19,7 @@ import {
   chest,
   coin,
   compass,
+  createDialog,
   door,
   flower,
   fog,
@@ -29,6 +30,7 @@ import {
   key,
   none,
   player,
+  quest,
   sand,
   seed,
   tree1,
@@ -345,6 +347,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
+        [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       woodEntity[ITEM].carrier = world.getEntityId(containerEntity);
@@ -390,6 +393,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: bush,
+        [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       seedEntity[ITEM].carrier = world.getEntityId(containerEntity);
@@ -414,6 +418,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: flower,
+        [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       herbEntity[ITEM].carrier = world.getEntityId(containerEntity);
@@ -443,7 +448,11 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: door,
-        [TOOLTIP]: { dialogs: ['Locked'], persistent: false, nextDialog: 0 },
+        [TOOLTIP]: {
+          dialogs: [createDialog("Locked")],
+          persistent: false,
+          nextDialog: 0,
+        },
       });
       world.setIdentifier(doorEntity, "door");
     } else if (cell === "key") {
@@ -494,6 +503,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
+        [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       swordEntity[ITEM].carrier = world.getEntityId(containerEntity);
@@ -515,6 +525,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
+        [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       compassEntity[ITEM].carrier = world.getEntityId(containerEntity);
@@ -572,13 +583,17 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: villager,
         [SWIMMABLE]: { swimming: false },
-        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+        [TOOLTIP]: {
+          dialogs: [],
+          persistent: false,
+          nextDialog: -1,
+          idle: quest,
+        },
       });
       const merchantId = world.getEntityId(merchantEntity);
       swordEntity[ITEM].carrier = merchantId;
       shieldEntity[ITEM].carrier = merchantId;
       world.setIdentifier(merchantEntity, "merchant");
-      world.metadata.gameEntity[TOOLTIP].dialogs = [merchantId];
     } else if (cell === "triangle") {
       const clawsEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },

@@ -17,6 +17,7 @@ import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
 import { none } from "../../game/assets/sprites";
 import { ITEM } from "../components/item";
+import { SWIMMABLE } from "../components/swimmable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -77,6 +78,7 @@ export default function setupDrop(world: World) {
           [POSITION]: entity[POSITION],
           [RENDERABLE]: { generation: 0 },
           [SPRITE]: none,
+          [SWIMMABLE]: { swimming: false },
           [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
         });
         registerEntity(world, containerEntity);
@@ -88,10 +90,29 @@ export default function setupDrop(world: World) {
       }
     }
 
-    // remove entity when fully looted
+    // schedule entity removal when fully looted
     for (const entity of world.getEntities([LOOTABLE, RENDERABLE])) {
-      if (entity[LOOTABLE].disposable && isEmpty(world, entity)) {
-        disposeEntity(world, entity);
+      if (
+        entity[LOOTABLE].disposable &&
+        isEmpty(world, entity) &&
+        !(entity[ANIMATABLE] as Animatable).states.dispose
+      ) {
+        const animationEntity = entities.createFrame(world, {
+          [REFERENCE]: {
+            tick: -1,
+            delta: 0,
+            suspended: false,
+            suspensionCounter: -1,
+          },
+          [RENDERABLE]: { generation: 1 },
+        });
+        (entity[ANIMATABLE] as Animatable).states.dispose = {
+          name: "entityDispose",
+          reference: world.getEntityId(animationEntity),
+          elapsed: 0,
+          args: {},
+          particles: {},
+        };
       }
     }
   };

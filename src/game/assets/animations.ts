@@ -1,5 +1,9 @@
 import { isTouch } from "../../components/Dimensions";
-import { particleHeight, tooltipHeight } from "../../components/Entity/utils";
+import {
+  barHeight,
+  particleHeight,
+  tooltipHeight,
+} from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { ANIMATABLE, Animation } from "../../engine/components/animatable";
 import { COUNTABLE } from "../../engine/components/countable";
@@ -37,7 +41,15 @@ import * as colors from "../assets/colors";
 import { add, normalize, signedDistance } from "../math/std";
 import { iterations } from "../math/tracing";
 import { initialPosition, menuArea } from "./areas";
-import { createCounter, createText, decay, fog, hit, none } from "./sprites";
+import {
+  createCounter,
+  createDialog,
+  createText,
+  decay,
+  fog,
+  hit,
+  none,
+} from "./sprites";
 
 export const swordAttack: Animation<"melee"> = (world, entity, state) => {
   // align sword with facing direction
@@ -53,7 +65,7 @@ export const swordAttack: Animation<"melee"> = (world, entity, state) => {
       [PARTICLE]: {
         offsetX: delta.x,
         offsetY: delta.y,
-        offsetZ: particleHeight,
+        offsetZ: barHeight,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: hit,
@@ -131,6 +143,19 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
 
     entity[DROPPABLE].decayed = true;
     finished = true;
+  }
+
+  return { finished, updated };
+};
+
+const disposeTime = 200;
+
+export const entityDispose: Animation<"dispose"> = (world, entity, state) => {
+  const updated = false;
+  const finished = state.elapsed > disposeTime;
+
+  if (finished) {
+    disposeEntity(world, entity);
   }
 
   return { finished, updated };
@@ -278,6 +303,8 @@ const tooltipDelay = 500;
 export const dialogText: Animation<"dialog"> = (world, entity, state) => {
   const hero = world.getEntity([PLAYER]);
 
+  let updated = false;
+
   // display if located in any adjacent cell
   const size = world.metadata.gameEntity[LEVEL].size;
   const delta = hero
@@ -286,21 +313,34 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
         y: signedDistance(hero[POSITION].y, entity[POSITION].y, size),
       }
     : { x: 0, y: 0 };
+  const isAdjacent = Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
+  const changed = entity[TOOLTIP].changed;
   const pending =
     state.args.after &&
     world.getEntityById(state.args.after)?.[ANIMATABLE].states.dialog;
   const active =
-    entity[TOOLTIP].override ||
-    (entity[TOOLTIP].override !== false &&
-      !isDead(world, entity) &&
-      !isEmpty(world, entity) &&
-      !isUnlocked(world, entity) &&
-      Math.abs(delta.x) <= 1 &&
-      Math.abs(delta.y) <= 1);
+    !changed &&
+    (entity[TOOLTIP].override === "visible" ||
+      (state.args.isIdle && !isAdjacent) ||
+      (isAdjacent &&
+        !entity[TOOLTIP].override &&
+        !isDead(world, entity) &&
+        !isEmpty(world, entity) &&
+        !isUnlocked(world, entity)));
   const totalLength = state.args.text.length;
-  const particlesLength = Object.keys(state.particles).length;
+  const orientation =
+    (isAdjacent && (delta.y > 0 ? "down" : delta.y < 0 && "up")) ||
+    state.args.orientation ||
+    (state.args.isDialog || state.args.isIdle ? "up" : "down");
+
+  if (state.args.orientation !== orientation) {
+    // prevent idle text from reorienting
+    updated = !state.args.isIdle;
+    state.args.orientation = orientation;
+  }
 
   // create char particles
+  const particlesLength = Object.keys(state.particles).length;
   if (particlesLength === 0) {
     for (let i = 0; i < totalLength; i += 1) {
       const origin = add(orientationPoints[state.args.orientation], {
@@ -314,7 +354,10 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: charPosition.x,
           offsetY: charPosition.y,
-          offsetZ: state.args.dialog ? particleHeight : tooltipHeight,
+          offsetZ:
+            state.args.isDialog || state.args.isIdle
+              ? particleHeight
+              : tooltipHeight,
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,
@@ -341,23 +384,21 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
     state.args.after = pending && state.args.after;
   }
 
-  const charCount = Math.floor(
-    (state.elapsed - state.args.timestamp) / charDelay
+  const charCount = Math.max(
+    Math.floor((state.elapsed - state.args.timestamp) / charDelay),
+    currentLength - totalLength
   );
   const targetLength =
     active && !pending
       ? Math.min(state.args.lengthOffset + charCount, totalLength)
       : Math.max(Math.min(totalLength, state.args.lengthOffset) - charCount, 0);
 
-  const orientation =
-    delta.y === 0 ? state.args.orientation : delta.y < 0 ? "up" : "down";
   const finished = false;
-  const updated =
-    currentLength !== targetLength || orientation !== state.args.orientation;
+  if (currentLength !== targetLength) {
+    updated = true;
+  }
 
   if (updated) {
-    state.args.orientation = orientation;
-
     const origin = add(orientationPoints[state.args.orientation], {
       x: -Math.floor((totalLength - 1) / 2),
       y: 0,
@@ -382,6 +423,7 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
       disposeEntity(world, world.getEntityById(state.particles[particleName]));
       delete state.particles[particleName];
     }
+    entity[TOOLTIP].changed = undefined;
     return { finished: true, updated };
   }
 
@@ -402,10 +444,12 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
 
   if (state.args.step === "initial") {
     merchantEntity[TOOLTIP].dialogs = [
-      isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move",
+      createDialog(
+        isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move"
+      ),
     ];
     merchantEntity[TOOLTIP].nextDialog = 0;
-    merchantEntity[TOOLTIP].override = true;
+    merchantEntity[TOOLTIP].override = "visible";
     state.args.step = "move";
     updated = true;
   } else if (state.args.step === "move") {
@@ -414,14 +458,13 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
       playerEntity[POSITION].y !== initialPosition.y
     ) {
       merchantEntity[TOOLTIP].override = undefined;
+      merchantEntity[TOOLTIP].changed = true;
       merchantEntity[TOOLTIP].dialogs = [
-        "Hi stranger.",
-        "How are you?",
-        "Welcome.",
-        "Stay safe.",
+        createDialog("Hi stranger."),
+        createDialog("How are you?"),
+        createDialog("Welcome."),
+        createDialog("Stay safe."),
       ];
-      const dialogs = world.metadata.gameEntity[TOOLTIP].dialogs;
-      dialogs.splice(dialogs.indexOf(world.getEntityById(merchantEntity)), 1);
       const compassEntity = world.getIdentifier("compass");
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(compassEntity);
       state.args.step = "compass";

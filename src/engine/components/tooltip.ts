@@ -1,11 +1,14 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import { Sprite } from "./sprite";
 
 export type Tooltip = {
-  dialogs: string[];
+  idle?: Sprite;
+  dialogs: Sprite[][];
   nextDialog: number;
   persistent: boolean;
-  override?: boolean;
+  override?: "visible" | "hidden";
+  changed?: boolean;
 };
 
 export const TOOLTIP = "TOOLTIP";

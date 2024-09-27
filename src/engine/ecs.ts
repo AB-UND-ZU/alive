@@ -79,11 +79,6 @@ export default function createWorld(size: number) {
       suspended: false,
       suspensionCounter: -1,
     },
-    [TOOLTIP]: {
-      dialogs: [],
-      nextDialog: -1,
-      persistent: false,
-    },
   });
 
   // to keep track of last generations of removed reference frame

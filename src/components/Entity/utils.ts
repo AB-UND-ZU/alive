@@ -14,9 +14,10 @@ export const wallHeight = 2 * stackHeight;
 export const shadowHeight = 3 * stackHeight;
 export const tooltipHeight = 4 * stackHeight;
 export const unitHeight = 5 * stackHeight;
-export const effectHeight = 6 * stackHeight;
-export const fogHeight = 7 * stackHeight;
-export const particleHeight = 8 * stackHeight;
+export const fogHeight = 6 * stackHeight;
+export const particleHeight = 7 * stackHeight;
+export const immersibleHeight = 8 * stackHeight;
+export const barHeight = 9 * stackHeight;
 export const cameraHeight = 10 * stackHeight;
 
 export const getFacingLayers = (

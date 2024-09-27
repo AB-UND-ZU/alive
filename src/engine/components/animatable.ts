@@ -7,18 +7,20 @@ import { Sprite } from "./sprite";
 export type AnimationArgument = {
   counter: { facing: Orientation; amount: number };
   decay: {};
+  dispose: {};
   collect: { facing: Orientation; itemId: number };
   focus: { offset: number };
   melee: { facing: Orientation };
   quest: { step: string };
   dialog: {
-    orientation: Orientation;
+    orientation?: Orientation;
     text: Sprite[];
     active: boolean;
     timestamp: number;
     lengthOffset: number;
     after?: number;
-    dialog: boolean;
+    isDialog: boolean;
+    isIdle: boolean;
   };
 };
 export type AnimationState<A extends keyof AnimationArgument> = {
