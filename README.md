@@ -111,4 +111,3 @@
 - Animations mutate state and don't really animate things, maybe better called Sequences
 - Collecting items can disappear if animation is interrupted
 - Compass needle could be an animation and particle
-- Focus circle should appear on top and over tooltip

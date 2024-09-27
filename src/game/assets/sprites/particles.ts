@@ -79,3 +79,10 @@ export const createText: (text: string, color: string) => Sprite[] = (
     name: "text_generic",
     layers: [{ char, color }],
   }));
+
+export const createDialog = (text: string) => createText(text, colors.silver);
+export const createTooltip = (text: string) => createText(text, "#2e2e2e");
+
+export const quest = createText("!", colors.olive)[0];
+
+export const shop = createText("$", colors.green)[0];

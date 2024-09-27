@@ -6,6 +6,7 @@ import { Lootable, LOOTABLE } from "../components/lootable";
 import { POSITION, Position } from "../components/position";
 import { Renderable, RENDERABLE } from "../components/renderable";
 import { SPRITE, Sprite } from "../components/sprite";
+import { Swimmable, SWIMMABLE } from "../components/swimmable";
 import { Tooltip, TOOLTIP } from "../components/tooltip";
 import type { World } from "../ecs";
 
@@ -19,6 +20,7 @@ export default function createContainer(
     [POSITION]: Position;
     [RENDERABLE]: Renderable;
     [SPRITE]: Sprite;
+    [SWIMMABLE]: Swimmable;
     [TOOLTIP]: Tooltip;
   }
 ) {
@@ -31,6 +33,7 @@ export default function createContainer(
   components.addPosition(world, containerEntity, entity[POSITION]);
   components.addRenderable(world, containerEntity, entity[RENDERABLE]);
   components.addSprite(world, containerEntity, entity[SPRITE]);
+  components.addSwimmable(world, containerEntity, entity[SWIMMABLE]);
   components.addTooltip(world, containerEntity, entity[TOOLTIP]);
 
   return containerEntity;
