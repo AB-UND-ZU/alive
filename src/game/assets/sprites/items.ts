@@ -332,3 +332,17 @@ export const gold: Sprite = {
     ],
   },
 };
+
+export const arrow: Sprite = {
+  name: "Arrow",
+  layers: [
+    {
+      char: "»",
+      color: colors.grey,
+    },
+    {
+      char: "─",
+      color: colors.maroon,
+    },
+  ],
+};
