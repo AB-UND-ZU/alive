@@ -9,7 +9,7 @@ export type AnimationArgument = {
   decay: {};
   dispose: {};
   collect: { facing: Orientation; itemId: number };
-  focus: { offset: number };
+  focus: {};
   melee: { facing: Orientation };
   quest: { step: string };
   dialog: {
