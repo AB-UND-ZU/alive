@@ -1,5 +1,7 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
+import { Countable } from "../../../engine/components/countable";
+import { coin, heart, herb, ironDisplay, mana, seed, wood, xp } from "./items";
 
 export const block: Sprite = {
   name: "block_solid",
@@ -82,6 +84,31 @@ export const createText: (text: string, color: string) => Sprite[] = (
 
 export const createDialog = (text: string) => createText(text, colors.silver);
 export const createTooltip = (text: string) => createText(text, "#2e2e2e");
+
+const nonCountable = (sprite: Sprite) => ({
+  name: sprite.name,
+  layers: sprite.layers,
+});
+
+const stats: Record<keyof Countable, { color: string; sprite: Sprite }> = {
+  hp: { color: colors.red, sprite: heart },
+  mp: { color: colors.blue, sprite: mana },
+  xp: { color: colors.lime, sprite: nonCountable(xp) },
+  gold: { color: colors.yellow, sprite: nonCountable(coin) },
+  wood: { color: colors.maroon, sprite: wood },
+  iron: { color: colors.grey, sprite: ironDisplay },
+  herb: { color: colors.teal, sprite: herb },
+  seed: { color: colors.purple, sprite: seed },
+};
+
+export const createStat = (
+  amount: number,
+  countable: keyof Countable,
+  padded: boolean = false
+) => {
+  const text = padded ? amount.toString().padStart(2, " ") : amount.toString();
+  return [...createText(text, stats[countable].color), stats[countable].sprite];
+};
 
 export const quest = createText("!", colors.olive)[0];
 

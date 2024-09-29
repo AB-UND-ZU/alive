@@ -27,12 +27,11 @@ import {
   herb,
   iron,
   ironSword,
-  key,
   none,
   player,
-  quest,
   sand,
   seed,
+  shop,
   tree1,
   tree2,
   triangle,
@@ -163,18 +162,18 @@ export const generateWorld = async (world: World) => {
       else if (cell === "▀") entity = "block_up";
       else if (cell === "◙") entity = "door";
       else if (cell === "◘") entity = "gold";
-      else if (cell === "÷") entity = "iron";
-      else if (cell === "╒") entity = "key";
+      else if (cell === "÷") entity = "iron_one";
+      else if (cell === "O") entity = "chest";
       else if (cell === "/") entity = "sword";
       else if (cell === "¢") entity = "compass";
       else if (cell === "#") entity = "tree";
       else if (cell === ".") entity = "fruit";
       else if (cell === "τ") entity = "bush";
-      else if (cell === "°") entity = "seed";
+      else if (cell === "°") entity = "seed_one";
       else if (cell === ",") entity = "grass";
-      else if (cell === "•") entity = "herb";
+      else if (cell === "•") entity = "herb_one";
       else if (cell === "♀") entity = "merchant";
-      else if (cell === "►") entity = "triangle";
+      else if (cell === "►") entity = "triangle_spawn";
       else {
         console.error(`Unrecognized cell: ${cell}!`);
       }
@@ -277,9 +276,12 @@ export const generateWorld = async (world: World) => {
         [COLLIDABLE]: {},
       });
       ironEntity[ITEM].carrier = world.getEntityId(oreEntity);
-    } else if (cell === "iron") {
+    } else if (cell === "iron" || cell === "iron_one") {
       const ironEntity = entities.createItem(world, {
-        [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "iron" },
+        [ITEM]: {
+          amount: cell === "iron" ? distribution(80, 15, 5) + 1 : 1,
+          counter: "iron",
+        },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: iron,
       });
@@ -379,9 +381,12 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: [tree1, tree2][random(0, 1)],
         [RENDERABLE]: { generation: 0 },
       });
-    } else if (cell === "seed") {
+    } else if (cell === "seed" || cell === "seed_one") {
       const seedEntity = entities.createItem(world, {
-        [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "seed" },
+        [ITEM]: {
+          amount: cell === "seed" ? distribution(80, 15, 5) + 1 : 1,
+          counter: "seed",
+        },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: seed,
       });
@@ -404,9 +409,12 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: bush,
         [RENDERABLE]: { generation: 0 },
       });
-    } else if (cell === "herb") {
+    } else if (cell === "herb" || cell === "herb_one") {
       const herbEntity = entities.createItem(world, {
-        [ITEM]: { amount: distribution(80, 15, 5) + 1, counter: "herb" },
+        [ITEM]: {
+          amount: cell === "herb" ? distribution(80, 15, 5) + 1 : 1,
+          counter: "herb",
+        },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: herb,
       });
@@ -455,11 +463,11 @@ export const generateWorld = async (world: World) => {
         },
       });
       world.setIdentifier(doorEntity, "door");
-    } else if (cell === "key") {
-      const keyEntity = entities.createItem(world, {
-        [ITEM]: { amount: 1, slot: "key" },
+    } else if (cell === "chest") {
+      const coinEntity = entities.createItem(world, {
+        [ITEM]: { amount: 3, counter: "gold" },
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: key,
+        [SPRITE]: coin,
       });
       const chestEntity = entities.createChest(world, {
         [ANIMATABLE]: { states: {} },
@@ -477,7 +485,7 @@ export const generateWorld = async (world: World) => {
         },
         [DROPPABLE]: { decayed: false },
         [FOG]: { visibility, type: "terrain" },
-        [INVENTORY]: { items: [world.getEntityId(keyEntity)] },
+        [INVENTORY]: { items: [world.getEntityId(coinEntity)] },
         [NPC]: {},
         [ORIENTABLE]: { facing: "up" },
         [POSITION]: { x, y },
@@ -485,8 +493,8 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: chest,
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
-      keyEntity[ITEM].carrier = world.getEntityId(chestEntity);
-      world.setIdentifier(chestEntity, "key");
+      coinEntity[ITEM].carrier = world.getEntityId(chestEntity);
+      world.setIdentifier(chestEntity, "chest");
     } else if (cell === "sword") {
       const swordEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
@@ -587,14 +595,14 @@ export const generateWorld = async (world: World) => {
           dialogs: [],
           persistent: false,
           nextDialog: -1,
-          idle: quest,
+          idle: shop,
         },
       });
       const merchantId = world.getEntityId(merchantEntity);
       swordEntity[ITEM].carrier = merchantId;
       shieldEntity[ITEM].carrier = merchantId;
       world.setIdentifier(merchantEntity, "merchant");
-    } else if (cell === "triangle") {
+    } else if (cell === "triangle" || cell === "triangle_spawn") {
       const clawsEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: 1, slot: "melee" },
@@ -646,6 +654,10 @@ export const generateWorld = async (world: World) => {
       });
       clawsEntity[ITEM].carrier = world.getEntityId(triangleEntity);
       goldEntity[ITEM].carrier = world.getEntityId(triangleEntity);
+
+      if (cell === "triangle_spawn") {
+        world.setIdentifier(triangleEntity, "triangle");
+      }
     }
   });
 
