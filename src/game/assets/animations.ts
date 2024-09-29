@@ -482,8 +482,24 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   } else if (state.args.step === "chest") {
-    if (playerEntity[COUNTABLE].gold >= 3) {
-      const merchantEntity = world.getIdentifier("merchant");
+    const chestEntity = world.getIdentifier("chest");
+    if (!chestEntity) {
+      const triangleEntity = world.getIdentifier("triangle");
+      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(triangleEntity);
+      state.args.step = "triangle";
+      updated = true;
+    }
+  } else if (state.args.step === "triangle") {
+    const triangleEntity = world.getIdentifier("triangle");
+    if (!triangleEntity) {
+      const goldEntity = world.getIdentifier("gold");
+      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(goldEntity);
+      state.args.step = "gold";
+      updated = true;
+    }
+  } else if (state.args.step === "gold") {
+    const goldEntity = world.getIdentifier("gold");
+    if (goldEntity?.[INVENTORY].items.length === 0) {
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(merchantEntity);
       state.args.step = "merchant";
       updated = true;
