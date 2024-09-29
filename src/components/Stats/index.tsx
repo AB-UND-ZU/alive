@@ -48,8 +48,8 @@ function StatsInner({
           ...stat(countable.wood, colors.maroon),
           wood,
           none,
-          ...stat(countable.seed, colors.teal),
-          seed,
+          ...stat(countable.herb, colors.teal),
+          herb,
           none,
           none,
         ]}
@@ -65,8 +65,8 @@ function StatsInner({
           ...stat(countable.iron, colors.grey),
           ironDisplay,
           none,
-          ...stat(countable.herb, colors.purple),
-          herb,
+          ...stat(countable.seed, colors.purple),
+          seed,
           none,
           none,
         ]}

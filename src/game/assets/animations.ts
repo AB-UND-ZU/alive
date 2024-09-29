@@ -375,18 +375,19 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
 
   // update timestamp on active change
   if (active !== state.args.active || !!pending !== !!state.args.after) {
-    state.args.timestamp =
-      !active && entity[TOOLTIP].persistent && !isDead(world, entity)
-        ? state.elapsed + tooltipDelay
-        : state.elapsed;
+    const isDelayed =
+      !active && entity[TOOLTIP].persistent && !isDead(world, entity);
+    state.args.timestamp = isDelayed
+      ? state.elapsed + tooltipDelay
+      : state.elapsed;
     state.args.active = active;
-    state.args.lengthOffset = currentLength;
+    state.args.lengthOffset = isDelayed ? totalLength : currentLength;
     state.args.after = pending && state.args.after;
   }
 
   const charCount = Math.max(
     Math.floor((state.elapsed - state.args.timestamp) / charDelay),
-    currentLength - totalLength
+    0
   );
   const targetLength =
     active && !pending

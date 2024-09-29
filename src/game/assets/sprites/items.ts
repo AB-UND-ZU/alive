@@ -172,14 +172,14 @@ export const seed: Sprite = {
   layers: [
     {
       char: "'",
-      color: colors.teal,
+      color: colors.purple,
     },
   ],
   amounts: {
     single: [
       {
         char: "'",
-        color: colors.teal,
+        color: colors.purple,
       },
       {
         char: "\u03c4",
@@ -189,7 +189,7 @@ export const seed: Sprite = {
     double: [
       {
         char: '"',
-        color: colors.teal,
+        color: colors.purple,
       },
       {
         char: "\u03c4",
@@ -199,7 +199,7 @@ export const seed: Sprite = {
     multiple: [
       {
         char: "°",
-        color: colors.teal,
+        color: colors.purple,
       },
       {
         char: "\u03c4",
@@ -214,14 +214,14 @@ export const herb: Sprite = {
   layers: [
     {
       char: "·",
-      color: colors.purple,
+      color: colors.teal,
     },
   ],
   amounts: {
     single: [
       {
         char: "·",
-        color: colors.purple,
+        color: colors.teal,
       },
       {
         char: ",",
@@ -231,7 +231,7 @@ export const herb: Sprite = {
     double: [
       {
         char: "∙",
-        color: colors.purple,
+        color: colors.teal,
       },
       {
         char: ",",
@@ -241,7 +241,7 @@ export const herb: Sprite = {
     multiple: [
       {
         char: "\u0106",
-        color: colors.purple,
+        color: colors.teal,
       },
       {
         char: ",",
