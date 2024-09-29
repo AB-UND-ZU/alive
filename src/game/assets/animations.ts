@@ -267,11 +267,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
           .length > 0
     ) || "-1"
   );
-  const focusIndex =
-    Math.floor(
-      (state.elapsed - state.args.offset) /
-        world.metadata.gameEntity[REFERENCE].tick
-    ) % 4;
+  const focusIndex = world.metadata.gameEntity[RENDERABLE].generation % 4;
   const currentActive = currentIndex !== -1;
   const isActive = !!entity[FOCUSABLE].target;
 
