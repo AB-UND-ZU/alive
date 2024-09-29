@@ -1,6 +1,7 @@
 .Row {
   display: flex;
   justify-content: center;
+  height: var(--cell-height);
 }
 
 .Cell {

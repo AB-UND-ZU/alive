@@ -24,7 +24,6 @@ import {
 import { PARTICLE } from "../../engine/components/particle";
 import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
-import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
@@ -44,6 +43,7 @@ import { initialPosition, menuArea } from "./areas";
 import {
   createCounter,
   createDialog,
+  createStat,
   createText,
   decay,
   fog,
@@ -459,7 +459,7 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
       merchantEntity[TOOLTIP].dialogs = [
         createDialog("Hi stranger."),
         createDialog("How are you?"),
-        createDialog("Welcome."),
+        [...createDialog("Bring me "), ...createStat(5, "gold")],
         createDialog("Stay safe."),
       ];
       const compassEntity = world.getIdentifier("compass");
@@ -476,12 +476,19 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
     }
   } else if (state.args.step === "sword") {
     if (playerEntity[EQUIPPABLE].melee) {
-      const keyEntity = world.getIdentifier("key");
-      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(keyEntity);
-      state.args.step = "key";
+      const chestEntity = world.getIdentifier("chest");
+      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(chestEntity);
+      state.args.step = "chest";
       updated = true;
     }
-  } else if (state.args.step === "key") {
+  } else if (state.args.step === "chest") {
+    if (playerEntity[COUNTABLE].gold >= 3) {
+      const merchantEntity = world.getIdentifier("merchant");
+      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(merchantEntity);
+      state.args.step = "merchant";
+      updated = true;
+    }
+  } else if (state.args.step === "merchant") {
     if (playerEntity[EQUIPPABLE].key) {
       const doorEntity = world.getIdentifier("door");
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(doorEntity);
