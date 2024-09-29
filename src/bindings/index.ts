@@ -161,7 +161,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "▄") entity = "block_down";
       else if (cell === "▀") entity = "block_up";
       else if (cell === "◙") entity = "door";
-      else if (cell === "◘") entity = "gold";
+      else if (cell === "◘") entity = "gold_one";
       else if (cell === "÷") entity = "iron_one";
       else if (cell === "O") entity = "chest";
       else if (cell === "/") entity = "sword";
@@ -259,7 +259,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
-    } else if (cell === "gold") {
+    } else if (cell === "gold" || cell === "gold_one") {
       const ironEntity = entities.createItem(world, {
         [ITEM]: { amount: 1, counter: "gold" },
         [RENDERABLE]: { generation: 0 },
@@ -276,6 +276,10 @@ export const generateWorld = async (world: World) => {
         [COLLIDABLE]: {},
       });
       ironEntity[ITEM].carrier = world.getEntityId(oreEntity);
+
+      if (cell === "gold_one") {
+        world.setIdentifier(oreEntity, "gold");
+      }
     } else if (cell === "iron" || cell === "iron_one") {
       const ironEntity = entities.createItem(world, {
         [ITEM]: {
