@@ -63,6 +63,58 @@ export const decay: Sprite = {
   ],
 };
 
+export const shot: Sprite = {
+  name: "arrow_show",
+  layers: [
+    {
+      char: "\u0108",
+      color: colors.maroon,
+    },
+  ],
+  facing: {
+    up: [
+      {
+        char: "\u0117",
+        color: colors.grey,
+      },
+      {
+        char: "|",
+        color: colors.maroon,
+      },
+    ],
+    right: [
+      {
+        char: "\u0119",
+        color: colors.grey,
+      },
+      {
+        char: "-",
+        color: colors.maroon,
+      },
+    ],
+    down: [
+      {
+        char: "\u0118",
+        color: colors.grey,
+      },
+      {
+        char: "|",
+        color: colors.maroon,
+      },
+    ],
+    left: [
+      {
+        char: "\u011a",
+        color: colors.grey,
+      },
+      {
+        char: "-",
+        color: colors.maroon,
+      },
+    ],
+  },
+};
+
 export const createCounter: (amount: number) => Sprite = (amount) => ({
   name: "counter_generic",
   layers: [

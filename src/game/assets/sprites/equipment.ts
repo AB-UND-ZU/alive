@@ -29,8 +29,8 @@ export const boat: Sprite = {
   ],
 };
 
-export const arrow: Sprite = {
-  name: "Arrow",
+export const bow: Sprite = {
+  name: "Bow",
   layers: [
     {
       char: "}",
