@@ -27,6 +27,7 @@ import { POSITION } from "../../engine/components/position";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
+import { TRACKABLE } from "../../engine/components/trackable";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { isEmpty } from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
@@ -49,6 +50,7 @@ import {
   fog,
   hit,
   none,
+  quest,
 } from "./sprites";
 
 export const swordAttack: Animation<"melee"> = (world, entity, state) => {
@@ -325,7 +327,9 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
         !isUnlocked(world, entity)));
   const totalLength = state.args.text.length;
   const orientation =
-    (isAdjacent && (delta.y > 0 ? "down" : delta.y < 0 && "up")) ||
+    (!state.args.isIdle &&
+      active &&
+      (delta.y > 0 ? "down" : delta.y < 0 && "up")) ||
     state.args.orientation ||
     (state.args.isDialog || state.args.isIdle ? "up" : "down");
 
@@ -427,7 +431,7 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
   return { finished, updated };
 };
 
-export const mainQuest: Animation<"quest"> = (world, entity, state) => {
+export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
   let finished = false;
   let updated = false;
   const playerEntity = world.getEntity([PLAYER]);
@@ -459,9 +463,9 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
       merchantEntity[TOOLTIP].dialogs = [
         createDialog("Hi stranger."),
         createDialog("How are you?"),
-        [...createDialog("Bring me "), ...createStat(5, "gold")],
         createDialog("Stay safe."),
       ];
+
       const compassEntity = world.getIdentifier("compass");
       focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(compassEntity);
       state.args.step = "compass";
@@ -469,11 +473,40 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
     }
   } else if (state.args.step === "compass") {
     if (playerEntity[EQUIPPABLE].compass) {
-      const swordEntity = world.getIdentifier("sword");
-      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(swordEntity);
-      state.args.step = "sword";
-      updated = true;
+      world.addQuest(merchantEntity, { id: "merchantQuest" });
+      merchantEntity[TOOLTIP].idle = quest;
+      merchantEntity[TOOLTIP].changed = true;
+      merchantEntity[TOOLTIP].dialogs = [
+        [...createDialog("Bring me "), ...createStat(5, "gold")],
+      ];
+
+      focusEntity[FOCUSABLE].pendingTarget = undefined;
+      world.getEntityById(playerEntity[EQUIPPABLE].compass)[TRACKABLE].target =
+        world.getEntityId(merchantEntity);
+
+      state.args.step = "done";
+      finished = true;
     }
+  }
+
+  return { finished, updated };
+};
+
+export const merchantQuest: Animation<"quest"> = (world, entity, state) => {
+  let finished = false;
+  let updated = false;
+  const playerEntity = world.getEntity([PLAYER]);
+  const focusEntity = world.getEntity([FOCUSABLE]);
+  const torchEntity = world.getIdentifier("torch");
+  const merchantEntity = world.getIdentifier("merchant");
+
+  if (!focusEntity || !playerEntity || !torchEntity || !merchantEntity) {
+    return { finished, updated };
+  }
+
+  if (state.args.step === "initial") {
+    state.args.step = "sword";
+    updated = true;
   } else if (state.args.step === "sword") {
     if (playerEntity[EQUIPPABLE].melee) {
       const chestEntity = world.getIdentifier("chest");
@@ -500,7 +533,12 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
   } else if (state.args.step === "gold") {
     const goldEntity = world.getIdentifier("gold");
     if (goldEntity?.[INVENTORY].items.length === 0) {
-      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(merchantEntity);
+      focusEntity[FOCUSABLE].pendingTarget = undefined;
+      merchantEntity[TOOLTIP].idle = quest;
+      merchantEntity[TOOLTIP].changed = true;
+      merchantEntity[TOOLTIP].dialogs = [
+        [...createDialog("Bring me "), ...createStat(5, "gold")],
+      ];
       state.args.step = "merchant";
       updated = true;
     }
@@ -559,12 +597,7 @@ export const mainQuest: Animation<"quest"> = (world, entity, state) => {
         const cell = getCell(world, { x, y });
         let hasAir = false;
         Object.values(cell).forEach((cellEntity) => {
-          if (
-            cellEntity === playerEntity ||
-            cellEntity === focusEntity ||
-            cellEntity === entity
-          )
-            return;
+          if (cellEntity === playerEntity || cellEntity === focusEntity) return;
 
           if (!(FOG in cellEntity)) {
             disposeEntity(world, cellEntity);

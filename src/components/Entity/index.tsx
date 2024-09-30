@@ -15,13 +15,7 @@ import { useWorld } from "../../bindings/hooks";
 import { Player, PLAYER } from "../../engine/components/player";
 import { Npc, NPC } from "../../engine/components/npc";
 import { Attackable, ATTACKABLE } from "../../engine/components/attackable";
-import {
-  fogHeight,
-  particleHeight,
-  terrainHeight,
-  unitHeight,
-  wallHeight,
-} from "./utils";
+import { getSegments, wallHeight } from "./utils";
 import { Melee, MELEE } from "../../engine/components/melee";
 import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
 import { Animatable, ANIMATABLE } from "../../engine/components/animatable";
@@ -33,9 +27,7 @@ import { Particle, PARTICLE } from "../../engine/components/particle";
 import Swimming from "./Swimming";
 import Bar from "./Bar";
 import { LayerProps } from "./Layer";
-import { isLootable } from "../../engine/systems/collect";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
-import { ITEM } from "../../engine/components/item";
 import { Lootable, LOOTABLE } from "../../engine/components/lootable";
 
 function Entity({
@@ -71,8 +63,6 @@ function Entity({
   const Container = config ? Animated : "group";
 
   const visibility = entity[FOG]?.visibility;
-  const sprite = entity[SPRITE];
-  const facing = entity[ORIENTABLE]?.facing;
   const isAir = entity[FOG]?.type === "air";
   const isTerrain = entity[FOG]?.type === "terrain";
   const isUnit = entity[FOG]?.type === "unit";
@@ -97,7 +87,7 @@ function Entity({
   const layerProps: LayerProps = {
     isTransparent,
     opacity: spring.opacity,
-    receiveShadow: (isTerrain && !isOpaque),
+    receiveShadow: isTerrain && !isOpaque,
   };
 
   const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
@@ -106,81 +96,7 @@ function Entity({
 
   if (!ecs || (opacity === 0 && layerProps.isTransparent)) return null;
 
-  const offsetZ = isOpaque
-    ? wallHeight
-    : isUnit
-    ? unitHeight
-    : isAir
-    ? fogHeight
-    : terrainHeight;
-
-  // from back to front: armor, body, spell, melee, loot
-  const orderedSegments: Segment[] = [];
-
-  // 1. armor
-  const armorEntity =
-    entity[EQUIPPABLE]?.armor && ecs.getEntityById(entity[EQUIPPABLE].armor);
-  if (armorEntity) {
-    orderedSegments.push({
-      sprite: armorEntity[SPRITE],
-      facing: armorEntity[ORIENTABLE].facing,
-      offsetX: 0,
-      offsetY: 0,
-      offsetZ,
-      layerProps: {
-        isTransparent: false,
-        receiveShadow: layerProps.receiveShadow,
-      },
-    });
-  }
-
-  // 2. body
-  if (!isLootable(ecs, entity) || !entity[LOOTABLE]?.disposable) {
-    orderedSegments.push({
-      sprite,
-      facing,
-      offsetX: 0,
-      offsetY: 0,
-      offsetZ,
-      layerProps,
-    });
-  }
-
-  // 4. melee
-  const meleeEntity =
-    entity[EQUIPPABLE]?.melee && ecs.getEntityById(entity[EQUIPPABLE].melee);
-  if (meleeEntity) {
-    orderedSegments.push({
-      sprite: meleeEntity[SPRITE],
-      facing: meleeEntity[ORIENTABLE].facing,
-      offsetX: 0,
-      offsetY: 0,
-      offsetZ,
-      layerProps: {
-        isTransparent: false,
-        receiveShadow: layerProps.receiveShadow,
-      },
-    });
-  }
-
-  // 5. loot
-  if (
-    isLootable(ecs, entity) &&
-    (isVisible || !isTerrain || (isTerrain && isOpaque))
-  ) {
-    for (const itemId of entity[INVENTORY]!.items) {
-      const item = ecs.getEntityById(itemId);
-      orderedSegments.push({
-        sprite: item[SPRITE],
-        facing: item[ORIENTABLE]?.facing,
-        amount: item[ITEM].amount,
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ,
-        layerProps,
-      });
-    }
-  }
+  const orderedSegments = getSegments(ecs, entity, layerProps);
 
   // particles are rendered in their own stack
   const particleSegments: Segment[] = getParticles(ecs, entity).map(

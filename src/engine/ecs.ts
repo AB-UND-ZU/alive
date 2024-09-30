@@ -4,7 +4,7 @@ import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
 import { LEVEL } from "./components/level";
 import { IDENTIFIABLE } from "./components/identifiable";
-import { TOOLTIP } from "./components/tooltip";
+import { Quest, QUEST } from "./components/quest";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
@@ -37,6 +37,11 @@ export default function createWorld(size: number) {
   const update = ECS.update.bind(ECS, world);
   const cleanup = ECS.cleanup.bind(ECS, world);
 
+  // util methods to avoid calling ECS directly
+  const addQuest = (entity: Entity, quest: Quest) => {
+    addComponentToEntity(entity, QUEST, quest);
+  };
+
   const setIdentifier = (entity: Entity, identifier: string) => {
     addComponentToEntity(entity, IDENTIFIABLE, { name: identifier });
   };
@@ -58,6 +63,8 @@ export default function createWorld(size: number) {
     addSystem,
     update,
     cleanup,
+
+    addQuest,
 
     getIdentifier,
     setIdentifier,

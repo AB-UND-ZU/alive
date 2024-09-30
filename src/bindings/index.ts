@@ -31,7 +31,6 @@ import {
   player,
   sand,
   seed,
-  shop,
   tree1,
   tree2,
   triangle,
@@ -68,6 +67,7 @@ import { FOCUSABLE } from "../engine/components/focusable";
 import { VIEWABLE } from "../engine/components/viewable";
 import { TOOLTIP } from "../engine/components/tooltip";
 import { DROPPABLE } from "../engine/components/droppable";
+import { ACTIONABLE } from "../engine/components/actionable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -196,6 +196,7 @@ export const generateWorld = async (world: World) => {
 
   const heroId = world.getEntityId(
     entities.createHero(world, {
+      [ACTIONABLE]: {},
       [ANIMATABLE]: { states: {} },
       [ATTACKABLE]: { max: 10, enemy: false },
       [COUNTABLE]: {
@@ -599,7 +600,6 @@ export const generateWorld = async (world: World) => {
           dialogs: [],
           persistent: false,
           nextDialog: -1,
-          idle: shop,
         },
       });
       const merchantId = world.getEntityId(merchantEntity);
@@ -702,12 +702,12 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: none,
   });
 
-  // create main quest entity with itself as reference frame
-  const questEntity = entities.createQuest(world, {
+  // create spawn quest processor with itself as reference frame
+  const processorEntity = entities.createProcessor(world, {
     [ANIMATABLE]: {
       states: {
         quest: {
-          name: "mainQuest",
+          name: "spawnQuest",
           reference: -1, // to be self-referenced
           elapsed: 0,
           args: { step: "initial" },
@@ -715,7 +715,6 @@ export const generateWorld = async (world: World) => {
         },
       },
     },
-    [POSITION]: { x: 0, y: size - 1 },
     [REFERENCE]: {
       tick: -1,
       delta: 0,
@@ -723,10 +722,9 @@ export const generateWorld = async (world: World) => {
       suspensionCounter: -1,
     },
     [RENDERABLE]: { generation: 0 },
-    [SPRITE]: none,
   });
-  const questId = world.getEntityId(questEntity);
-  questEntity[ANIMATABLE].states.quest.reference = questId;
+  const processorId = world.getEntityId(processorEntity);
+  processorEntity[ANIMATABLE].states.quest.reference = processorId;
 
   // create torch for menu area
   const torchEntity = entities.createTorch(world, {
@@ -746,6 +744,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupUnlock);
   world.addSystem(systems.setupMovement);
+  world.addSystem(systems.setupAction);
   world.addSystem(systems.setupText);
   world.addSystem(systems.setupAnimate);
   world.addSystem(systems.setupNeedle);

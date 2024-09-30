@@ -59,27 +59,20 @@ export default function setupText(world: World) {
     }
 
     // add global tooltips
-    let pendingTooltip: Entity | undefined = undefined;
     for (const tooltipEntity of world.getEntities([TOOLTIP, ANIMATABLE])) {
       const isVisible = tooltipEntity[TOOLTIP].override === "visible";
       const isIdle = !!tooltipEntity[TOOLTIP].idle;
-      const lootable = getLootable(world, tooltipEntity[POSITION]);
-      const item =
-        lootable && world.getEntityById(lootable[INVENTORY].items.slice(-1)[0]);
-      const isCounter = !!item?.[ITEM].counter;
-      const isPending = !!tooltipEntity[ANIMATABLE].states.dialog;
       const isAdded = activeTooltips.some(
         (tooltip) => tooltip === tooltipEntity
       );
-
-      if (!pendingTooltip && isPending && !isCounter && !isVisible && !isIdle)
-        pendingTooltip = tooltipEntity;
 
       if (isAdded || !(isVisible || isIdle)) continue;
 
       activeTooltips.push(tooltipEntity);
     }
 
+    // create or update tooltips
+    let pendingTooltip: Entity | undefined = undefined;
     const updatedTooltips = activeTooltips.filter((tooltipEntity) => {
       const delta = {
         x: signedDistance(hero[POSITION].x, tooltipEntity[POSITION].x, size),
@@ -91,6 +84,7 @@ export default function setupText(world: World) {
         lootable && world.getEntityById(lootable[INVENTORY].items.slice(-1)[0]);
       const isCounter = !!item?.[ITEM].counter;
 
+      const isVisible = tooltipEntity[TOOLTIP].override === "visible";
       const isIdle = !!tooltipEntity[ANIMATABLE].states.dialog?.args.isIdle;
       const isPending = !!tooltipEntity[ANIMATABLE].states.dialog;
       const isChanged = isIdle && isAdjacent;
@@ -100,6 +94,9 @@ export default function setupText(world: World) {
         isDead(world, tooltipEntity) ||
         isEmpty(world, tooltipEntity) ||
         isUnlocked(world, tooltipEntity);
+
+      if (!pendingTooltip && isPending && !isCounter && !isVisible && !isIdle)
+        pendingTooltip = tooltipEntity;
 
       return needsUpdate && !isCounter && !isDone;
     });
@@ -116,7 +113,7 @@ export default function setupText(world: World) {
       const idle = tooltipEntity[TOOLTIP].idle;
       const isIdle = !isVisible && !isAdjacent;
       const dialogs = tooltipEntity[TOOLTIP].dialogs;
-      const dialog = dialogs[tooltipEntity[TOOLTIP].nextDialog];
+      const dialog = dialogs[tooltipEntity[TOOLTIP].nextDialog] || dialogs[0];
       const spriteTooltip = createTooltip(
         (lootable &&
           world.getEntityById(lootable[INVENTORY].items.slice(-1)[0])[SPRITE]

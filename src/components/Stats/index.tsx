@@ -1,4 +1,4 @@
-import { useHero } from "../../bindings/hooks";
+import { useHero, useWorld } from "../../bindings/hooks";
 import { createText, none, createStat } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
@@ -6,41 +6,63 @@ import Row from "../Row";
 import "./index.css";
 import { COUNTABLE, Countable } from "../../engine/components/countable";
 import React from "react";
+import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
+import { createSprite } from "../Entity/utils";
+import { World } from "../../engine";
+import { ORIENTABLE } from "../../engine/components/orientable";
+import { Inventory, INVENTORY } from "../../engine/components/inventory";
 
 function StatsInner({
-  columns,
-  ...countable
+  world,
+  padding,
+  inventory,
+  ...stats
 }: {
-  columns: number; } & Countable
-) {
+  world: World;
+  padding: number;
+  inventory: Inventory;
+} & Countable &
+  Equippable) {
+  const { ecs } = useWorld();
+
+  const itemSprites =
+    ecs && inventory
+      ? inventory.items.map((itemId) => createSprite(ecs, itemId))
+      : [];
+  const itemRows = [0, 1].map((row) =>
+    Array.from({ length: 5 }).map(
+      (_, column) => itemSprites[row * 5 + column] || none
+    )
+  );
+
   return (
     <header className="Stats">
-      {Object.keys(countable).length > 0 ? (
+      {Object.keys(stats).length > 0 ? (
         <>
           <Row
             cells={[
-              ...createStat(countable.hp, "hp", true),
+              ...createStat(stats.hp, "hp", true),
               none,
-              ...createStat(countable.gold, "gold", true),
+              ...createStat(stats.gold, "gold", true),
               none,
-              ...createStat(countable.wood, "wood", true),
+              ...createStat(stats.wood, "wood", true),
               none,
-              ...createStat(countable.herb, "herb", true),
-              none,
-              none,
+              ...createStat(stats.herb, "herb", true),
+              ...createText("│", colors.grey),
+              ...itemRows[0],
             ]}
           />
           <Row
             cells={[
-              ...createStat(countable.mp, "mp", true),
+              ...createStat(stats.mp, "mp", true),
               none,
-              ...createStat(countable.xp, "xp", true),
+              ...createStat(stats.xp, "xp", true),
               none,
-              ...createStat(countable.iron, "iron", true),
+              ...createStat(stats.iron, "iron", true),
               none,
-              ...createStat(countable.seed, "seed", true),
-              none,
-              none,
+              ...createStat(stats.seed, "seed", true),
+              ...createText("│", colors.grey),
+              ...itemRows[1],
             ]}
           />
         </>
@@ -51,7 +73,11 @@ function StatsInner({
         </>
       )}
       <Row
-        cells={createText("═".repeat(columns + 1 - (columns % 2)), colors.grey)}
+        cells={[
+          ...createText("═".repeat(padding + 15), colors.grey),
+          ...createText("╧", colors.grey),
+          ...createText("═".repeat(5 + padding), colors.grey),
+        ]}
       />
     </header>
   );
@@ -60,10 +86,21 @@ function StatsInner({
 const PureState = React.memo(StatsInner);
 
 export default function Stats() {
+  const { ecs } = useWorld();
   const dimensions = useDimensions();
   const hero = useHero();
 
   return (
-    <PureState columns={dimensions.columns} {...(hero?.[COUNTABLE] || {})} />
+    <PureState
+      padding={dimensions.padding}
+      {...(hero?.[COUNTABLE] || {})}
+      inventory={hero?.[INVENTORY]}
+      _={[
+        ecs &&
+          hero?.[EQUIPPABLE] &&
+          ecs.getEntityById(hero[EQUIPPABLE].compass)?.[ORIENTABLE]?.facing,
+        ...(hero?.[INVENTORY]?.items || []),
+      ].join()}
+    />
   );
 }

@@ -4,6 +4,7 @@ import "./index.css";
 function Cell({ layers }: { layers: Layer[] }) {
   return (
     <div className="Cell">
+      &nbsp;
       {layers.map((layer, index) => (
         <span key={index} style={{ color: layer.color }} className="Layer">
           {layer.char}
