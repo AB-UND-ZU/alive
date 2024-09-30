@@ -111,3 +111,4 @@
 - Animations mutate state and don't really animate things, maybe better called Sequences
 - Collecting items can disappear if animation is interrupted
 - Compass needle could be an animation and particle
+- Make banner text floating

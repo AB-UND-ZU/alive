@@ -137,6 +137,37 @@ export const createText: (text: string, color: string) => Sprite[] = (
 export const createDialog = (text: string) => createText(text, colors.silver);
 export const createTooltip = (text: string) => createText(text, "#2e2e2e");
 
+export const buttonColor = colors.black;
+export const buttonBackground = colors.white;
+export const buttonShadow = colors.grey;
+
+export const createButton: (
+  sprites: Sprite[],
+  width: number
+) => [Sprite[], Sprite[]] = (sprites, width) => {
+  const paddingLeft = Math.max(0, Math.floor((width - sprites.length - 1) / 2));
+  const paddingRight = Math.max(0, Math.ceil((width - sprites.length - 1) / 2));
+
+  return [
+    [
+      ...createText("█".repeat(paddingLeft), buttonBackground),
+      ...sprites.map((sprite) => ({
+        name: "button_generic",
+        layers: [
+          {
+            char: "█",
+            color: buttonBackground,
+          },
+          ...sprite.layers,
+        ],
+      })),
+      ...createText("█".repeat(paddingRight), buttonBackground),
+      ...createText("┐", buttonShadow),
+    ],
+    createText(`└${"─".repeat(width - 2)}┘`, buttonShadow),
+  ];
+};
+
 const nonCountable = (sprite: Sprite) => ({
   name: sprite.name,
   layers: sprite.layers,
@@ -158,7 +189,8 @@ export const createStat = (
   countable: keyof Countable,
   padded: boolean = false
 ) => {
-  const text = padded ? amount.toString().padStart(2, " ") : amount.toString();
+  const stat = (amount || 0).toString();
+  const text = padded ? stat.padStart(2, " ") : stat;
   return [...createText(text, stats[countable].color), stats[countable].sprite];
 };
 

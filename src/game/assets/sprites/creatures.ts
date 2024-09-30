@@ -16,7 +16,7 @@ export const player: Sprite = {
 };
 
 export const villager: Sprite = {
-  name: "villager_normal",
+  name: "Druid",
   layers: [
     {
       char: "\u010b",

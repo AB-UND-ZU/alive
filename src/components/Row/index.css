@@ -6,7 +6,6 @@
 
 .Cell {
   position: relative;
-  width: var(--cell-width);
   height: var(--cell-height);
 }
 
@@ -14,4 +13,5 @@
   display: block;
   position: absolute;
   inset: 0;
+  font-size: calc(var(--cell-height) * 1.02);
 }

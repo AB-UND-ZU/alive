@@ -1,3 +1,4 @@
+export { default as addActionable } from "./actionable";
 export { default as addAnimatable } from "./animatable";
 export { default as addAttackable } from "./attackable";
 export { default as addBehaviour } from "./behaviour";
@@ -22,6 +23,7 @@ export { default as addOrientable } from "./orientable";
 export { default as addParticle } from "./particle";
 export { default as addPlayer } from "./player";
 export { default as addPosition } from "./position";
+export { default as addQuest } from "./quest";
 export { default as addReference } from "./reference";
 export { default as addRenderable } from "./renderable";
 export { default as addSprite } from "./sprite";

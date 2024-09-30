@@ -23,7 +23,7 @@ export const boat: Sprite = {
   name: "Boat",
   layers: [
     {
-      char: "■",
+      char: "\u0115",
       color: colors.maroon,
     },
   ],

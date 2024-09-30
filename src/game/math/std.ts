@@ -47,3 +47,11 @@ export const distribution = (...counts: number[]) => {
 
   return index;
 };
+
+export const repeat = <T>(obj: T, count: number) =>
+  Array.from({ length: count }).map(() => obj);
+
+export const padCenter = (text: string, length: number) =>
+  text
+    .padStart(Math.floor((text.length + length) / 2), " ")
+    .padEnd(length, " ");

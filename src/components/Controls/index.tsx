@@ -7,8 +7,15 @@ import { REFERENCE } from "../../engine/components/reference";
 import { Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import Row from "../Row";
-import { createText } from "../../game/assets/sprites";
+import {
+  createButton,
+  createText,
+  none,
+  quest,
+} from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
+import { ACTIONABLE } from "../../engine/components/actionable";
+import { repeat } from "../../game/math/std";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -156,13 +163,59 @@ export default function Controls() {
     };
   }, [handleKeyMove, handleTouchMove, hero]);
 
+  const questId = hero?.[ACTIONABLE].quest;
+  const questButton = questId
+    ? createButton(createText("Quest", colors.black), 6)
+    : [repeat(none, 6), repeat(none, 6)];
+
   return (
     <footer className="Controls">
       <Row
-        cells={createText(
-          "═".repeat(dimensions.columns + 1 - (dimensions.columns % 2)),
-          colors.grey
-        )}
+        cells={[
+          ...createText("═".repeat(dimensions.padding + 10), colors.grey),
+          ...createText("╤", colors.grey),
+          ...createText("═".repeat(dimensions.padding + 10), colors.grey),
+        ]}
+      />
+      <Row
+        cells={[
+          none,
+          ...questButton[0],
+          none,
+          questId ? quest : none,
+          none,
+          ...createText("│", colors.grey),
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+        ]}
+      />
+      <Row
+        cells={[
+          none,
+          ...questButton[1],
+          none,
+          none,
+          none,
+          ...createText("│", colors.grey),
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+          none,
+        ]}
       />
     </footer>
   );

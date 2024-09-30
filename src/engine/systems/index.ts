@@ -1,3 +1,4 @@
+export { default as setupAction } from "./action";
 export { default as setupAi } from "./ai";
 export { default as setupAnimate } from "./animate";
 export { default as setupCollect } from "./collect";

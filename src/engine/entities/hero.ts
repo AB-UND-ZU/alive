@@ -1,4 +1,5 @@
 import * as components from "../components";
+import { Actionable, ACTIONABLE } from "../components/actionable";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Countable, COUNTABLE } from "../components/countable";
@@ -20,6 +21,7 @@ import type { World } from "../ecs";
 export default function createHero(
   world: World,
   entity: {
+    [ACTIONABLE]: Actionable;
     [ANIMATABLE]: Animatable;
     [ATTACKABLE]: Attackable;
     [COUNTABLE]: Countable;
@@ -40,6 +42,7 @@ export default function createHero(
 ) {
   const heroEntity = world.createEntity();
 
+  components.addActionable(world, heroEntity, entity[ACTIONABLE]);
   components.addAnimatable(world, heroEntity, entity[ANIMATABLE]);
   components.addAttackable(world, heroEntity, entity[ATTACKABLE]);
   components.addEquippable(world, heroEntity, entity[EQUIPPABLE]);
