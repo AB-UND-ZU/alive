@@ -110,7 +110,6 @@ function Entity({
       amount: particle[PARTICLE].amount,
       layerProps: {
         isTransparent: false,
-        animateTransparency: false,
         animatedOrigin: particle[PARTICLE].animatedOrigin,
         receiveShadow: false,
       },

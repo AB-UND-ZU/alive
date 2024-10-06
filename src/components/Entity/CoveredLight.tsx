@@ -12,7 +12,7 @@ export default function CoveredLight({
       <pointLight
         position={[0, 0, lightHeight]}
         decay={-1}
-        intensity={Math.PI * 0.29}
+        intensity={Math.PI * 0.293}
         castShadow
         shadow-mapSize-width={256}
         shadow-mapSize-height={256}
