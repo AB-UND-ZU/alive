@@ -1,16 +1,7 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 import { Countable } from "../../../engine/components/countable";
-import {
-  coin,
-  heart,
-  herb,
-  ironDisplay,
-  mana,
-  seed,
-  wood,
-  xp,
-} from "./items";
+import { coin, heart, herb, ironDisplay, mana, seed, wood, xp } from "./items";
 import { repeat } from "../../math/std";
 
 export const block: Sprite = {
@@ -225,6 +216,30 @@ export const buttonColor = colors.black;
 export const buttonBackground = colors.white;
 export const buttonShadow = colors.grey;
 
+export const button: Sprite = {
+  name: "button_empty",
+  layers: [
+    {
+      char: "█",
+      color: buttonBackground,
+    },
+  ],
+};
+
+export const buttonDisabled: Sprite = {
+  name: "button_disabled",
+  layers: [
+    {
+      char: "█",
+      color: buttonShadow,
+    },
+    {
+      char: "░",
+      color: colors.black,
+    },
+  ],
+};
+
 export const buttonLeftUp: Sprite = {
   name: "button_left_up",
   layers: [
@@ -348,26 +363,15 @@ export const createButton: (
 
   return [
     [
-      ...createText("█".repeat(paddingLeft), buttonBackground),
+      ...repeat(disabled ? buttonDisabled : button, paddingLeft),
       ...sprites.map((sprite) => ({
         name: "button_generic",
         layers: [
-          {
-            char: "█",
-            color: buttonBackground,
-          },
+          ...(disabled ? buttonDisabled.layers : button.layers),
           ...sprite.layers,
-          ...(disabled
-            ? [
-                {
-                  char: "░",
-                  color: colors.grey,
-                },
-              ]
-            : []),
         ],
       })),
-      ...createText("█".repeat(paddingRight), buttonBackground),
+      ...repeat(disabled ? buttonDisabled : button, paddingRight),
       ...createText("┐", buttonShadow),
     ],
     createText(`└${"─".repeat(width - 2)}┘`, buttonShadow),

@@ -10,7 +10,7 @@ import { entities } from "..";
 import { ANIMATABLE } from "../components/animatable";
 import { TOOLTIP } from "../components/tooltip";
 import { INVENTORY } from "../components/inventory";
-import { ITEM, Material } from "../components/item";
+import { Material } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
 import {
   doorUnlocked,
@@ -23,6 +23,7 @@ import { Sprite, SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
 import { disposeEntity, updateWalkable } from "./map";
+import { getUnlockKey } from "./action";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -97,18 +98,11 @@ export default function setupTrigger(world: World) {
         questEntity[TOOLTIP].idle = undefined;
       } else if (entity[ACTIONABLE].unlock) {
         const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
-        const material = unlockEntity[LOCKABLE].material;
 
         // check if entity has correct key
-        const keyIndex = entity[INVENTORY].items.findIndex((item: Entity) => {
-          const itemEntity = world.getEntityById(item);
-          return (
-            itemEntity[ITEM].consume === "key" &&
-            itemEntity[ITEM].material === material
-          );
-        });
+        const keyEntity = getUnlockKey(world, entity, unlockEntity);
 
-        if (keyIndex === -1) continue;
+        if (!keyEntity) continue;
 
         // unlock door
         unlockEntity[LOCKABLE].locked = false;
@@ -118,10 +112,10 @@ export default function setupTrigger(world: World) {
         updateWalkable(world, unlockEntity[POSITION]);
 
         // remove key
-        const keyEntity = world.getEntityById(
-          entity[INVENTORY].items[keyIndex]
-        );
         disposeEntity(world, keyEntity);
+        const keyIndex = entity[INVENTORY].items.indexOf(
+          world.getEntityId(keyEntity)
+        );
         entity[INVENTORY].items.splice(keyIndex, 1);
         rerenderEntity(world, entity);
       }

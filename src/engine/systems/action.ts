@@ -10,6 +10,8 @@ import { QUEST } from "../components/quest";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
+import { INVENTORY } from "../components/inventory";
+import { ITEM } from "../components/item";
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
@@ -26,6 +28,22 @@ export const isLocked = (world: World, entity: Entity) =>
 
 export const isUnlocked = (world: World, entity: Entity) =>
   entity[LOCKABLE]?.locked === false;
+
+export const getUnlockKey = (
+  world: World,
+  entity: Entity,
+  lockable: Entity
+) => {
+  const material = lockable[LOCKABLE].material;
+  const keyId = entity[INVENTORY].items.find((item: Entity) => {
+    const itemEntity = world.getEntityById(item);
+    return (
+      itemEntity[ITEM].consume === "key" &&
+      itemEntity[ITEM].material === material
+    );
+  });
+  return keyId && world.getEntityById(keyId);
+};
 
 export default function setupAction(world: World) {
   let referenceGenerations = -1;
