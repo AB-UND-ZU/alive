@@ -64,11 +64,12 @@ function Entity({
 
   const visibility = entity[FOG]?.visibility;
   const isAir = entity[FOG]?.type === "air";
-  const isTerrain = entity[FOG]?.type === "terrain";
+  const isFloat = entity[FOG]?.type === "float";
   const isUnit = entity[FOG]?.type === "unit";
   const isVisible = visibility === "visible";
   const isHidden = visibility === "hidden";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
+  const opaqueOrientation = isOpaque ? entity[LIGHT]?.orientation : undefined;
   const isBright = !!entity[LIGHT] && entity[LIGHT].brightness > 0;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const isAttackable = !!entity[ATTACKABLE];
@@ -87,7 +88,7 @@ function Entity({
   const layerProps: LayerProps = {
     isTransparent,
     opacity: spring.opacity,
-    receiveShadow: isTerrain && !isOpaque,
+    receiveShadow: !isAir && !isOpaque && !isFloat,
   };
 
   const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
@@ -106,6 +107,7 @@ function Entity({
       offsetX: particle[PARTICLE].offsetX,
       offsetY: particle[PARTICLE].offsetY,
       offsetZ: particle[PARTICLE].offsetZ,
+      amount: particle[PARTICLE].amount,
       layerProps: {
         isTransparent: false,
         animateTransparency: false,
@@ -118,7 +120,7 @@ function Entity({
   return (
     <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={config}>
       {isOpaque && isVisible && (
-        <Box height={wallHeight} castShadow>
+        <Box height={wallHeight} castShadow orientation={opaqueOrientation}>
           <meshBasicMaterial color={colors.black} />
         </Box>
       )}

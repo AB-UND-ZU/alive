@@ -1,11 +1,13 @@
 import { isTouch } from "../../components/Dimensions";
 import {
   barHeight,
+  focusHeight,
   particleHeight,
   tooltipHeight,
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { ANIMATABLE, Animation } from "../../engine/components/animatable";
+import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { COUNTABLE } from "../../engine/components/countable";
 import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
@@ -17,6 +19,8 @@ import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { LOCKABLE } from "../../engine/components/lockable";
+import { MELEE } from "../../engine/components/melee";
+import { MOVABLE } from "../../engine/components/movable";
 import {
   ORIENTABLE,
   orientationPoints,
@@ -24,11 +28,13 @@ import {
 import { PARTICLE } from "../../engine/components/particle";
 import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
+import { QUEST } from "../../engine/components/quest";
+import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
-import { TRACKABLE } from "../../engine/components/trackable";
 import { VIEWABLE } from "../../engine/components/viewable";
+import { isUnlocked } from "../../engine/systems/action";
 import { isEmpty } from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
 import { disposeEntity, getCell } from "../../engine/systems/map";
@@ -36,9 +42,8 @@ import {
   getEntityGeneration,
   rerenderEntity,
 } from "../../engine/systems/renderer";
-import { isUnlocked } from "../../engine/systems/unlock";
 import * as colors from "../assets/colors";
-import { add, normalize, signedDistance } from "../math/std";
+import { add, distribution, normalize, signedDistance } from "../math/std";
 import { iterations } from "../math/tracing";
 import { initialPosition, menuArea } from "./areas";
 import {
@@ -47,10 +52,13 @@ import {
   createStat,
   createText,
   decay,
+  fire,
   fog,
+  goldKey,
   hit,
   none,
   quest,
+  woodStick,
 } from "./sprites";
 
 export const swordAttack: Animation<"melee"> = (world, entity, state) => {
@@ -150,6 +158,51 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
   return { finished, updated };
 };
 
+export const fireBurn: Animation<"burn"> = (world, entity, state) => {
+  let updated = false;
+  let finished = false;
+
+  // create death particle
+  if (!state.particles.fire) {
+    const fireParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: 1,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: fire,
+    });
+    state.particles.fire = world.getEntityId(fireParticle);
+    updated = true;
+  }
+
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+
+  if (generation !== state.args.generation) {
+    state.args.generation = generation;
+    const fireParticle = world.getEntityById(state.particles.fire);
+    const amount = fireParticle[PARTICLE].amount;
+    fireParticle[PARTICLE].amount =
+      amount === 2 ? [1, 3][distribution(40, 60)] : 2;
+    //rerenderEntity(world, fireParticle);
+    updated = true;
+  }
+
+  // delete death particle and make entity lootable
+  // if (!entity[DROPPABLE].decayed && state.elapsed > decayTime) {
+  //   disposeEntity(world, world.getEntityById(state.particles.decay));
+  //   delete state.particles.decay;
+
+  //   entity[DROPPABLE].decayed = true;
+  //   finished = true;
+  // }
+
+  return { finished, updated };
+};
+
+// keep entities around to keep swimmable animation for collecting particles
 const disposeTime = 200;
 
 export const entityDispose: Animation<"dispose"> = (world, entity, state) => {
@@ -157,13 +210,11 @@ export const entityDispose: Animation<"dispose"> = (world, entity, state) => {
   const finished = state.elapsed > disposeTime;
 
   if (finished) {
-    disposeEntity(world, entity);
+    disposeEntity(world, entity, false);
   }
 
   return { finished, updated };
 };
-
-const lootTime = 200;
 
 export const itemCollect: Animation<"collect"> = (world, entity, state) => {
   let updated = false;
@@ -172,14 +223,39 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
   const lootParticle = lootId && world.getEntityId(lootId);
   const itemId = state.args.itemId;
   const itemEntity = world.getEntityId(itemId);
+  const lootDelay =
+    world.getEntityById(entity[MOVABLE].reference)[REFERENCE].tick - 50;
 
   // add item to player's inventory
-  if (lootParticle && state.elapsed >= lootTime) {
-    disposeEntity(world, world.getEntityById(state.particles.loot));
-    delete state.particles.loot;
+  if (lootParticle && state.elapsed >= lootDelay) {
+    if (state.particles.loot) {
+      disposeEntity(world, world.getEntityById(state.particles.loot));
+      delete state.particles.loot;
+    }
 
-    const targetSlot = itemEntity[ITEM].slot;
-    const targetCounter = itemEntity[ITEM].counter;
+    let targetSlot = itemEntity[ITEM].slot;
+    let targetCounter = itemEntity[ITEM].counter;
+    let targetConsume = itemEntity[ITEM].consume;
+    let targetItem = itemEntity;
+
+    // if no sword is equipped, use wood as stick
+    if (
+      entity[MELEE] &&
+      !entity[EQUIPPABLE].melee &&
+      targetCounter === "wood"
+    ) {
+      targetSlot = "melee";
+      targetCounter = undefined;
+      targetItem = entities.createSword(world, {
+        [ANIMATABLE]: { states: {} },
+        [ITEM]: { amount: 1, slot: "melee" },
+        [ORIENTABLE]: {},
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: woodStick,
+      });
+    }
+
+    const targetId = world.getEntityId(targetItem);
 
     if (targetSlot) {
       const existingId = entity[EQUIPPABLE][targetSlot];
@@ -187,7 +263,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
       // add existing render count if item is replaced
       if (existingId) {
         const existingItem = world.getEntityById(existingId);
-        itemEntity[RENDERABLE].generation += getEntityGeneration(
+        targetItem[RENDERABLE].generation += getEntityGeneration(
           world,
           existingItem
         );
@@ -196,8 +272,10 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
         disposeEntity(world, existingItem);
       }
 
-      entity[EQUIPPABLE][targetSlot] = itemId;
-      entity[INVENTORY].items.push(itemId);
+      entity[EQUIPPABLE][targetSlot] = targetId;
+      entity[INVENTORY].items.push(targetId);
+    } else if (targetConsume) {
+      entity[INVENTORY].items.push(targetId);
     } else if (targetCounter) {
       entity[COUNTABLE][targetCounter] += 1;
     }
@@ -206,7 +284,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
   }
 
   // create loot particle
-  if (!lootId && state.elapsed < lootTime) {
+  if (!lootId && state.elapsed < lootDelay) {
     const delta = orientationPoints[state.args.facing];
     const lootParticle = entities.createCollecting(world, {
       [ORIENTABLE]: itemEntity[ORIENTABLE],
@@ -240,7 +318,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x,
           offsetY: iteration.direction.y,
-          offsetZ: particleHeight,
+          offsetZ: focusHeight,
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
@@ -250,7 +328,7 @@ export const focusCircle: Animation<"focus"> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: iteration.direction.x + iteration.normal.x,
           offsetY: iteration.direction.y + iteration.normal.y,
-          offsetZ: particleHeight,
+          offsetZ: focusHeight,
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
@@ -315,7 +393,9 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
   const changed = entity[TOOLTIP].changed;
   const pending =
     state.args.after &&
-    world.getEntityById(state.args.after)?.[ANIMATABLE].states.dialog;
+    world.getEntityById(state.args.after)?.[ANIMATABLE].states.dialog &&
+    !world.getEntityById(state.args.after)?.[ANIMATABLE].states.dialog?.args
+      .isIdle;
   const active =
     !changed &&
     (entity[TOOLTIP].override === "visible" ||
@@ -424,7 +504,9 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
       disposeEntity(world, world.getEntityById(state.particles[particleName]));
       delete state.particles[particleName];
     }
+
     entity[TOOLTIP].changed = undefined;
+
     return { finished: true, updated };
   }
 
@@ -434,55 +516,216 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
 export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
   let finished = false;
   let updated = false;
-  const playerEntity = world.getEntity([PLAYER]);
-  const focusEntity = world.getEntity([FOCUSABLE]);
-  const torchEntity = world.getIdentifier("torch");
-  const merchantEntity = world.getIdentifier("merchant");
+  const heroEntity = world.getIdentifier("hero");
+  const viewpointEntity = world.getIdentifier("viewpoint");
 
-  if (!focusEntity || !playerEntity || !torchEntity || !merchantEntity) {
+  if (!heroEntity || !viewpointEntity) {
     return { finished, updated };
   }
 
   if (state.args.step === "initial") {
-    merchantEntity[TOOLTIP].dialogs = [
-      createDialog(
-        isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move"
-      ),
-    ];
-    merchantEntity[TOOLTIP].nextDialog = 0;
-    merchantEntity[TOOLTIP].override = "visible";
+    entity[BEHAVIOUR].patterns.push({
+      name: "dialog",
+      memory: {
+        override: "visible",
+        dialogs: [
+          createDialog(
+            isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move"
+          ),
+        ],
+      },
+    });
     state.args.step = "move";
     updated = true;
   } else if (state.args.step === "move") {
     if (
-      playerEntity[POSITION].x !== initialPosition.x ||
-      playerEntity[POSITION].y !== initialPosition.y
+      heroEntity[POSITION].x !== initialPosition.x ||
+      heroEntity[POSITION].y !== initialPosition.y
     ) {
-      merchantEntity[TOOLTIP].override = undefined;
-      merchantEntity[TOOLTIP].changed = true;
-      merchantEntity[TOOLTIP].dialogs = [
-        createDialog("Hi stranger."),
-        createDialog("How are you?"),
-        createDialog("Stay safe."),
-      ];
-
-      const compassEntity = world.getIdentifier("compass");
-      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(compassEntity);
-      state.args.step = "compass";
+      world.addQuest(entity, { id: "guideQuest" });
+      entity[BEHAVIOUR].patterns.push({
+        name: "dialog",
+        memory: {
+          override: undefined,
+          changed: true,
+          idle: quest,
+          dialogs: [
+            createDialog("Hi stranger."),
+            createDialog("How are you?"),
+            createDialog("A new quest!"),
+            createDialog("Let's do it."),
+          ],
+        },
+      });
+      state.args.step = "chest";
       updated = true;
     }
-  } else if (state.args.step === "compass") {
-    if (playerEntity[EQUIPPABLE].compass) {
-      world.addQuest(merchantEntity, { id: "merchantQuest" });
-      merchantEntity[TOOLTIP].idle = quest;
-      merchantEntity[TOOLTIP].changed = true;
-      merchantEntity[TOOLTIP].dialogs = [
-        [...createDialog("Bring me "), ...createStat(5, "gold")],
-      ];
+  } else if (state.args.step === "chest") {
+    if (!entity[QUEST].id) {
+      const chestEntity = world.getIdentifier("compass_chest");
+      entity[BEHAVIOUR].patterns.push(
+        {
+          name: "dialog",
+          memory: {
+            override: "visible",
+            changed: true,
+            dialogs: [createDialog("Grab this!")],
+          },
+        },
+        {
+          name: "kill",
+          memory: {
+            target: world.getEntityId(chestEntity),
+          },
+        },
+        {
+          name: "dialog",
+          memory: {
+            override: undefined,
+          },
+        },
+        {
+          name: "move",
+          memory: {
+            position: { x: entity[POSITION].x, y: entity[POSITION].y },
+          },
+        }
+      );
+      state.args.step = "sword";
+      updated = true;
+    }
+  } else if (state.args.step === "sword") {
+    if (heroEntity[EQUIPPABLE].melee && heroEntity[EQUIPPABLE].compass) {
+      entity[BEHAVIOUR].patterns.push({
+        name: "dialog",
+        memory: {
+          changed: true,
+          dialogs: [[...createDialog("Collect "), ...createStat(5, "gold")]],
+        },
+      });
+      state.args.step = "collect";
+      updated = true;
+    }
+  } else if (state.args.step === "collect") {
+    const doorEntity = world.getIdentifier("door");
+    if (doorEntity && heroEntity[COUNTABLE].gold >= 5) {
+      entity[BEHAVIOUR].patterns.push(
+        {
+          name: "dialog",
+          memory: {
+            override: "visible",
+            changed: true,
+            dialogs: [[...createDialog("Use this "), goldKey]],
+          },
+        },
+        {
+          name: "unlock",
+          memory: {
+            target: world.getEntityId(doorEntity),
+          },
+        },
+        {
+          name: "dialog",
+          memory: {
+            override: undefined,
+          },
+        },
+        {
+          name: "collect",
+          memory: {
+            item: world.getEntityId(world.getIdentifier("key")),
+          },
+        },
+        {
+          name: "move",
+          memory: {
+            position: add(doorEntity[POSITION], { x: 0, y: 1 }),
+          },
+        },
+        {
+          name: "lock",
+          memory: {
+            target: world.getEntityId(doorEntity),
+          },
+        },
+        {
+          name: "move",
+          memory: {
+            position: { x: 0, y: 159 },
+          },
+        },
+        {
+          name: "dialog",
+          memory: {
+            override: "visible",
+            changed: true,
+            dialogs: [createDialog("Good luck!")],
+          },
+        }
+      );
+      state.args.step = "door";
+      updated = true;
+    }
+  } else if (state.args.step === "world") {
+    if (heroEntity[POSITION].x === 0 && heroEntity[POSITION].y === 7) {
+      // set camera to player
+      viewpointEntity[VIEWABLE].active = false;
+      heroEntity[VIEWABLE].active = true;
 
-      focusEntity[FOCUSABLE].pendingTarget = undefined;
-      world.getEntityById(playerEntity[EQUIPPABLE].compass)[TRACKABLE].target =
-        world.getEntityId(merchantEntity);
+      // close door
+      const doorEntity = world
+        .getEntities([IDENTIFIABLE])
+        .find((entity) => entity[IDENTIFIABLE].name === "door");
+      if (doorEntity) {
+        doorEntity[LOCKABLE].locked = true;
+        doorEntity[ORIENTABLE].facing = undefined;
+        doorEntity[LIGHT].darkness = 1;
+        rerenderEntity(world, doorEntity);
+      }
+
+      // set player light
+      heroEntity[LIGHT].brightness = 5.55;
+      heroEntity[LIGHT].visibility = 5.55;
+
+      // clear spawn area
+      const menuRows = menuArea.split("\n");
+      const menuColumns = menuRows[0].split("");
+      const size = world.metadata.gameEntity[LEVEL].size;
+      for (
+        let columnIndex = 0;
+        columnIndex <= menuColumns.length;
+        columnIndex += 1
+      ) {
+        for (let rowIndex = 0; rowIndex <= menuRows.length; rowIndex += 1) {
+          const x = normalize(columnIndex - (menuColumns.length - 1) / 2, size);
+          const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
+          const cell = getCell(world, { x, y });
+          let hasAir = false;
+          Object.values(cell).forEach((cellEntity) => {
+            if (cellEntity[PLAYER]) return;
+
+            if (!(FOG in cellEntity)) {
+              disposeEntity(world, cellEntity);
+              return;
+            }
+
+            if (!hasAir && cellEntity[FOG].type === "air") hasAir = true;
+
+            cellEntity[FOG].visibility = "hidden";
+            rerenderEntity(world, cellEntity);
+          });
+
+          // restore removed air particles
+          if ((y < 7 || y > size / 2) && !hasAir) {
+            entities.createGround(world, {
+              [FOG]: { visibility: "hidden", type: "air" },
+              [POSITION]: { x, y },
+              [RENDERABLE]: { generation: 0 },
+              [SPRITE]: fog,
+            });
+          }
+        }
+      }
 
       state.args.step = "done";
       finished = true;
@@ -492,134 +735,47 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
   return { finished, updated };
 };
 
-export const merchantQuest: Animation<"quest"> = (world, entity, state) => {
+export const guideQuest: Animation<"quest"> = (world, entity, state) => {
   let finished = false;
   let updated = false;
-  const playerEntity = world.getEntity([PLAYER]);
-  const focusEntity = world.getEntity([FOCUSABLE]);
-  const torchEntity = world.getIdentifier("torch");
-  const merchantEntity = world.getIdentifier("merchant");
+  const guideEntity = world.getIdentifier("guide");
 
-  if (!focusEntity || !playerEntity || !torchEntity || !merchantEntity) {
+  if (!guideEntity) {
     return { finished, updated };
   }
 
   if (state.args.step === "initial") {
-    state.args.step = "sword";
-    updated = true;
-  } else if (state.args.step === "sword") {
-    if (playerEntity[EQUIPPABLE].melee) {
-      const chestEntity = world.getIdentifier("chest");
-      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(chestEntity);
-      state.args.step = "chest";
+    if (entity[EQUIPPABLE].compass) {
+      world.setFocus(world.getIdentifier("wood_two"));
+      state.args.step = "sword";
       updated = true;
     }
-  } else if (state.args.step === "chest") {
-    const chestEntity = world.getIdentifier("chest");
-    if (!chestEntity) {
-      const triangleEntity = world.getIdentifier("triangle");
-      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(triangleEntity);
+  } else if (state.args.step === "sword") {
+    if (entity[EQUIPPABLE].melee) {
+      world.setFocus(world.getIdentifier("pot"));
+      state.args.step = "pot";
+      updated = true;
+    }
+  } else if (state.args.step === "pot") {
+    const potEntity = world.getIdentifier("pot");
+    if (!potEntity) {
+      world.setFocus(world.getIdentifier("triangle"));
       state.args.step = "triangle";
       updated = true;
     }
   } else if (state.args.step === "triangle") {
     const triangleEntity = world.getIdentifier("triangle");
     if (!triangleEntity) {
-      const goldEntity = world.getIdentifier("gold");
-      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(goldEntity);
+      world.setFocus(world.getIdentifier("gold"));
       state.args.step = "gold";
       updated = true;
     }
   } else if (state.args.step === "gold") {
     const goldEntity = world.getIdentifier("gold");
-    if (goldEntity?.[INVENTORY].items.length === 0) {
-      focusEntity[FOCUSABLE].pendingTarget = undefined;
-      merchantEntity[TOOLTIP].idle = quest;
-      merchantEntity[TOOLTIP].changed = true;
-      merchantEntity[TOOLTIP].dialogs = [
-        [...createDialog("Bring me "), ...createStat(5, "gold")],
-      ];
-      state.args.step = "merchant";
+    if (goldEntity && goldEntity[INVENTORY].items.length === 0) {
+      world.setFocus();
+      state.args.step = "key";
       updated = true;
-    }
-  } else if (state.args.step === "merchant") {
-    if (playerEntity[EQUIPPABLE].key) {
-      const doorEntity = world.getIdentifier("door");
-      focusEntity[FOCUSABLE].pendingTarget = world.getEntityId(doorEntity);
-      state.args.step = "door";
-      updated = true;
-    }
-  } else if (state.args.step === "door") {
-    if (!playerEntity[EQUIPPABLE].key) {
-      focusEntity[FOCUSABLE].pendingTarget = undefined;
-      state.args.step = "world";
-      updated = true;
-    }
-  }
-
-  if (playerEntity[POSITION].x === 0 && playerEntity[POSITION].y === 7) {
-    state.args.step = "done";
-    finished = true;
-    updated = true;
-    focusEntity[FOCUSABLE].pendingTarget = undefined;
-
-    // set camera to player
-    torchEntity[VIEWABLE].active = false;
-    playerEntity[VIEWABLE].active = true;
-
-    // close door
-    const doorEntity = world
-      .getEntities([IDENTIFIABLE])
-      .find((entity) => entity[IDENTIFIABLE].name === "door");
-    if (doorEntity) {
-      doorEntity[LOCKABLE].locked = true;
-      doorEntity[ORIENTABLE].facing = undefined;
-      doorEntity[LIGHT].darkness = 1;
-      rerenderEntity(world, doorEntity);
-    }
-
-    // set player light
-    playerEntity[LIGHT].brightness = 5.55;
-    playerEntity[LIGHT].visibility = 5.55;
-
-    // clear spawn area
-    const menuRows = menuArea.split("\n");
-    const menuColumns = menuRows[0].split("");
-    const size = world.metadata.gameEntity[LEVEL].size;
-    for (
-      let columnIndex = 0;
-      columnIndex <= menuColumns.length;
-      columnIndex += 1
-    ) {
-      for (let rowIndex = 0; rowIndex <= menuRows.length; rowIndex += 1) {
-        const x = normalize(columnIndex - (menuColumns.length - 1) / 2, size);
-        const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
-        const cell = getCell(world, { x, y });
-        let hasAir = false;
-        Object.values(cell).forEach((cellEntity) => {
-          if (cellEntity === playerEntity || cellEntity === focusEntity) return;
-
-          if (!(FOG in cellEntity)) {
-            disposeEntity(world, cellEntity);
-            return;
-          }
-
-          if (!hasAir && cellEntity[FOG].type === "air") hasAir = true;
-
-          cellEntity[FOG].visibility = "hidden";
-          rerenderEntity(world, cellEntity);
-        });
-
-        // restore removed air particles
-        if ((y < 7 || y > size / 2) && !hasAir) {
-          entities.createTerrain(world, {
-            [FOG]: { visibility: "hidden", type: "air" },
-            [POSITION]: { x, y },
-            [RENDERABLE]: { generation: 0 },
-            [SPRITE]: fog,
-          });
-        }
-      }
     }
   }
 

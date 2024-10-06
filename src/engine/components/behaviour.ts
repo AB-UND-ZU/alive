@@ -1,10 +1,13 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-type Pattern = 'triangle' | 'merchant';
+type Pattern = {
+  name: 'triangle' | 'move' | 'kill' | 'dialog' | 'lock' | 'unlock' | 'collect';
+  memory: any;
+}
 
 export type Behaviour = {
-  patterns: Pattern[]
+  patterns: Pattern[];
 };
 
 export const BEHAVIOUR = "BEHAVIOUR";

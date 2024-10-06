@@ -1,4 +1,5 @@
 import * as components from "../components";
+import { Actionable, ACTIONABLE } from "../components/actionable";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Attackable, ATTACKABLE } from "../components/attackable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
@@ -21,6 +22,7 @@ import type { World } from "../ecs";
 export default function createNpc(
   world: World,
   entity: {
+    [ACTIONABLE]: Actionable;
     [ANIMATABLE]: Animatable;
     [ATTACKABLE]: Attackable;
     [BEHAVIOUR]: Behaviour;
@@ -42,6 +44,7 @@ export default function createNpc(
 ) {
   const npcEntity = world.createEntity();
 
+  components.addActionable(world, npcEntity, entity[ACTIONABLE]);
   components.addAnimatable(world, npcEntity, entity[ANIMATABLE]);
   components.addAttackable(world, npcEntity, entity[ATTACKABLE]);
   components.addBehaviour(world, npcEntity, entity[BEHAVIOUR]);

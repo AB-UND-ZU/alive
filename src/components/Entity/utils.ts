@@ -20,16 +20,17 @@ export const stack = 1000;
 export const stackHeight = 1;
 
 export const terrainHeight = 0 * stackHeight;
-export const lightHeight = 1 * stackHeight;
-export const wallHeight = 2 * stackHeight;
-export const shadowHeight = 3 * stackHeight;
-export const tooltipHeight = 4 * stackHeight;
-export const unitHeight = 5 * stackHeight;
+export const unitHeight = 1 * stackHeight;
+export const immersibleHeight = 2 * stackHeight;
+export const lightHeight = 3 * stackHeight;
+export const wallHeight = 4 * stackHeight;
+export const shadowHeight = 5 * stackHeight;
 export const fogHeight = 6 * stackHeight;
-export const particleHeight = 7 * stackHeight;
-export const immersibleHeight = 8 * stackHeight;
-export const barHeight = 9 * stackHeight;
-export const cameraHeight = 10 * stackHeight;
+export const tooltipHeight = 7 * stackHeight;
+export const focusHeight = 8 * stackHeight;
+export const particleHeight = 9 * stackHeight;
+export const barHeight = 10 * stackHeight;
+export const cameraHeight = 11 * stackHeight;
 
 export const getFacingLayers = (
   world: World,
@@ -57,6 +58,7 @@ export const getSegments = (
   const visibility = entity[FOG]?.visibility;
   const isAir = entity[FOG]?.type === "air";
   const isTerrain = entity[FOG]?.type === "terrain";
+  const isFloat = entity[FOG]?.type === "float";
   const isUnit = entity[FOG]?.type === "unit";
   const isVisible = visibility === "visible";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
@@ -66,6 +68,8 @@ export const getSegments = (
     : isUnit
     ? unitHeight
     : isAir
+    ? fogHeight
+    : isFloat
     ? fogHeight
     : terrainHeight;
 
@@ -78,13 +82,12 @@ export const getSegments = (
   if (armorEntity) {
     orderedSegments.push({
       sprite: armorEntity[SPRITE],
-      facing: armorEntity[ORIENTABLE].facing,
       offsetX: 0,
       offsetY: 0,
       offsetZ,
       layerProps: {
+        ...layerProps,
         isTransparent: false,
-        receiveShadow: layerProps.receiveShadow,
       },
     });
   }
@@ -112,8 +115,8 @@ export const getSegments = (
       offsetY: 0,
       offsetZ,
       layerProps: {
+        ...layerProps,
         isTransparent: false,
-        receiveShadow: layerProps.receiveShadow,
       },
     });
   }

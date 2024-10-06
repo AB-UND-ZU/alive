@@ -2,7 +2,42 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { Level, LEVEL } from "../components/level";
-import { normalize } from "../../game/math/std";
+import { add, normalize } from "../../game/math/std";
+import { getWalkableMatrix } from "../../game/math/path";
+import { isWalkable } from "./movement";
+import { getOverlappingCell } from "../../game/math/matrix";
+
+export const updateWalkable = (world: World, position: Position) => {
+  // update walkable map after initialization
+  const level = world.metadata.gameEntity[LEVEL];
+
+  if (level.walkable.length > 0) {
+    for (let x = -1; x <= 1; x += 1) {
+      for (let y = -1; y <= 1; y += 1) {
+        const target = add(position, { x, y });
+        const walkable = getOverlappingCell(level.walkable, target.x, target.y);
+        const newWalkable = isWalkable(world, target) ? 1 : 0;
+
+        // update duplicated values
+        if (walkable !== newWalkable) {
+          for (let offsetX = 0; offsetX <= 1; offsetX += 1) {
+            for (let offsetY = 0; offsetY <= 1; offsetY += 1) {
+              const normalizedX = normalize(
+                target.x + offsetX * level.size,
+                level.size * 2
+              );
+              const normalizedY = normalize(
+                target.y + offsetY * level.size,
+                level.size * 2
+              );
+              level.walkable[normalizedX][normalizedY] = newWalkable;
+            }
+          }
+        }
+      }
+    }
+  }
+};
 
 export const registerEntity = (world: World, entity: Entity) => {
   const position = entity[POSITION];
@@ -20,6 +55,8 @@ export const registerEntity = (world: World, entity: Entity) => {
   const cell = (column[normalizedY] = column[normalizedY] || {});
 
   cell[world.getEntityId(entity)] = entity;
+
+  updateWalkable(world, position);
 };
 
 const unregisterEntity = (world: World, entity: Entity) => {
@@ -35,6 +72,8 @@ const unregisterEntity = (world: World, entity: Entity) => {
     Object.entries(cell).find(([_, cellEntity]) => cellEntity === entity)![0]
   );
   delete cell[entityId];
+
+  updateWalkable(world, position);
 };
 
 export const disposeEntity = (
@@ -73,13 +112,16 @@ export default function setupMap(world: World) {
   const removedEntities: ListenerEntities = { count: 0, entries: [] };
 
   const onUpdate = (delta: number) => {
+    const level = world.metadata.gameEntity[LEVEL] as Level;
+
     // ensure components added to ECS are reflected in map
     world.getEntities([POSITION], "added", addedEntities);
     world.getEntities([POSITION], "removed", removedEntities);
 
     // automatically register mapped entities but expect removal to happen through disposeEntity()
     for (let i = 0; i < addedEntities.count; i++) {
-      registerEntity(world, addedEntities.entries[i]);
+      const addedEntity = addedEntities.entries[i];
+      registerEntity(world, addedEntity);
     }
 
     // nonetheless warn if not disposed properly
@@ -96,6 +138,11 @@ export default function setupMap(world: World) {
           removedEntity
         );
       }
+    }
+
+    // initally create walkable matrix
+    if (level.walkable.length === 0 && addedEntities.count > 0) {
+      level.walkable = getWalkableMatrix(world);
     }
   };
 

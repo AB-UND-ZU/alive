@@ -7,6 +7,7 @@ export type Particle = {
   offsetY: number;
   offsetZ: number;
   animatedOrigin?: Point;
+  amount?: number
 };
 
 export const PARTICLE = "PARTICLE";

@@ -24,7 +24,7 @@ export const villager: Sprite = {
     },
     {
       char: "'",
-      color: colors.silver,
+      color: colors.red,
     },
   ],
 };

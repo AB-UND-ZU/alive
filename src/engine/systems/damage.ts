@@ -98,17 +98,17 @@ export default function setupDamage(world: World) {
         targetEntity[COUNTABLE].hp - damage
       );
 
-      const animationEntity = entities.createFrame(world, {
-        [REFERENCE]: {
-          tick: -1,
-          delta: 0,
-          suspended: false,
-          suspensionCounter: -1,
-        },
-        [RENDERABLE]: { generation: 1 },
-      });
-
       if (entity[ANIMATABLE]) {
+        const animationEntity = entities.createFrame(world, {
+          [REFERENCE]: {
+            tick: -1,
+            delta: 0,
+            suspended: false,
+            suspensionCounter: -1,
+          },
+          [RENDERABLE]: { generation: 1 },
+        });
+
         entity[ANIMATABLE].states.melee = {
           name: "swordAttack",
           reference: world.getEntityId(animationEntity),

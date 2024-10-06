@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Quest = {
-  id: string;
+  id?: string;
 };
 
 export const QUEST = "QUEST";

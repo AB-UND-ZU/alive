@@ -5,6 +5,8 @@ import { REFERENCE } from "./components/reference";
 import { LEVEL } from "./components/level";
 import { IDENTIFIABLE } from "./components/identifiable";
 import { Quest, QUEST } from "./components/quest";
+import { TRACKABLE } from "./components/trackable";
+import { FOCUSABLE } from "./components/focusable";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
@@ -51,6 +53,17 @@ export default function createWorld(size: number) {
       (entity) => entity[IDENTIFIABLE].name === identifier
     );
 
+  const setFocus = (entity?: Entity) => {
+    const entityId = entity && getEntityId(entity);
+    const focusEntity = getIdentifier("focus");
+    const compassEntity = getIdentifier("compass");
+
+    if (!focusEntity || !compassEntity) return;
+
+    compassEntity[TRACKABLE].target = entityId;
+    focusEntity[FOCUSABLE].pendingTarget = entityId;
+  };
+
   const ecs = {
     createEntity,
     removeEntity,
@@ -65,6 +78,7 @@ export default function createWorld(size: number) {
     cleanup,
 
     addQuest,
+    setFocus,
 
     getIdentifier,
     setIdentifier,
@@ -78,7 +92,7 @@ export default function createWorld(size: number) {
 
   // create global render counter and reference frame
   ecs.metadata.gameEntity = entities.createGame(ecs, {
-    [LEVEL]: { map: [], size },
+    [LEVEL]: { map: [], size, walkable: [] },
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
       tick: 350,

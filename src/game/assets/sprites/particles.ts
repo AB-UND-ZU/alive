@@ -1,7 +1,17 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 import { Countable } from "../../../engine/components/countable";
-import { coin, heart, herb, ironDisplay, mana, seed, wood, xp } from "./items";
+import {
+  coin,
+  heart,
+  herb,
+  ironDisplay,
+  mana,
+  seed,
+  wood,
+  xp,
+} from "./items";
+import { repeat } from "../../math/std";
 
 export const block: Sprite = {
   name: "block_solid",
@@ -51,6 +61,76 @@ export const hit: Sprite = {
       color: colors.red,
     },
   ],
+  amounts: {
+    single: [
+      {
+        char: "x",
+        color: colors.red,
+      },
+    ],
+    double: [
+      {
+        char: "/",
+        color: colors.red,
+      },
+      {
+        char: "\\",
+        color: colors.red,
+      },
+    ],
+    multiple: [
+      {
+        char: "X",
+        color: colors.red,
+      },
+    ],
+  },
+};
+
+export const fire: Sprite = {
+  name: "fire_burn",
+  layers: [
+    {
+      char: "\u010e",
+      color: colors.red,
+    },
+    {
+      char: "*",
+      color: colors.yellow,
+    },
+  ],
+  amounts: {
+    single: [
+      {
+        char: "+",
+        color: colors.red,
+      },
+      {
+        char: "·",
+        color: colors.yellow,
+      },
+    ],
+    double: [
+      {
+        char: "*",
+        color: colors.red,
+      },
+      {
+        char: "+",
+        color: colors.yellow,
+      },
+    ],
+    multiple: [
+      {
+        char: "\u010e",
+        color: colors.red,
+      },
+      {
+        char: "*",
+        color: colors.yellow,
+      },
+    ],
+  },
 };
 
 export const decay: Sprite = {
@@ -64,10 +144,14 @@ export const decay: Sprite = {
 };
 
 export const shot: Sprite = {
-  name: "arrow_show",
+  name: "arrow_shot",
   layers: [
     {
-      char: "\u0108",
+      char: "\u0119",
+      color: colors.grey,
+    },
+    {
+      char: "-",
       color: colors.maroon,
     },
   ],
@@ -134,19 +218,133 @@ export const createText: (text: string, color: string) => Sprite[] = (
     layers: [{ char, color }],
   }));
 
-export const createDialog = (text: string) => createText(text, colors.silver);
+export const createDialog = (text: string) => createText(text, colors.white);
 export const createTooltip = (text: string) => createText(text, "#2e2e2e");
 
 export const buttonColor = colors.black;
 export const buttonBackground = colors.white;
 export const buttonShadow = colors.grey;
 
+export const buttonLeftUp: Sprite = {
+  name: "button_left_up",
+  layers: [
+    {
+      char: "▄",
+      color: buttonBackground,
+    },
+    {
+      char: "▌",
+      color: colors.black,
+    },
+    {
+      char: "┌",
+      color: buttonShadow,
+    },
+  ],
+};
+
+export const buttonUp: Sprite = {
+  name: "button_up",
+  layers: [
+    {
+      char: "▄",
+      color: buttonBackground,
+    },
+    {
+      char: "─",
+      color: buttonShadow,
+    },
+  ],
+};
+
+export const buttonUpRight: Sprite = {
+  name: "button_up_right",
+  layers: [
+    {
+      char: "▄",
+      color: buttonBackground,
+    },
+    {
+      char: "▐",
+      color: colors.black,
+    },
+    {
+      char: "┐",
+      color: buttonShadow,
+    },
+  ],
+};
+
+export const buttonRightDown: Sprite = {
+  name: "button_right_down",
+  layers: [
+    {
+      char: "▀",
+      color: buttonBackground,
+    },
+    {
+      char: "▐",
+      color: colors.black,
+    },
+    {
+      char: "┘",
+      color: buttonShadow,
+    },
+  ],
+};
+
+export const buttonDown: Sprite = {
+  name: "button_down",
+  layers: [
+    {
+      char: "▀",
+      color: buttonBackground,
+    },
+    {
+      char: "─",
+      color: buttonShadow,
+    },
+  ],
+};
+
+export const buttonDownLeft: Sprite = {
+  name: "button_down_left",
+  layers: [
+    {
+      char: "▀",
+      color: buttonBackground,
+    },
+    {
+      char: "▌",
+      color: colors.black,
+    },
+    {
+      char: "└",
+      color: buttonShadow,
+    },
+  ],
+};
+
 export const createButton: (
   sprites: Sprite[],
-  width: number
-) => [Sprite[], Sprite[]] = (sprites, width) => {
+  width: number,
+  disabled?: boolean,
+  pressed?: boolean
+) => [Sprite[], Sprite[]] = (
+  sprites,
+  width,
+  disabled = false,
+  pressed = false
+) => {
   const paddingLeft = Math.max(0, Math.floor((width - sprites.length - 1) / 2));
   const paddingRight = Math.max(0, Math.ceil((width - sprites.length - 1) / 2));
+
+  if (pressed) {
+    return [
+      [buttonLeftUp, ...repeat(buttonUp, width - 2), buttonUpRight],
+      [buttonDownLeft, ...repeat(buttonDown, width - 2), buttonRightDown],
+    ];
+  }
 
   return [
     [
@@ -159,6 +357,14 @@ export const createButton: (
             color: buttonBackground,
           },
           ...sprite.layers,
+          ...(disabled
+            ? [
+                {
+                  char: "░",
+                  color: colors.grey,
+                },
+              ]
+            : []),
         ],
       })),
       ...createText("█".repeat(paddingRight), buttonBackground),
@@ -179,7 +385,7 @@ const stats: Record<keyof Countable, { color: string; sprite: Sprite }> = {
   xp: { color: colors.lime, sprite: nonCountable(xp) },
   gold: { color: colors.yellow, sprite: nonCountable(coin) },
   wood: { color: colors.maroon, sprite: wood },
-  iron: { color: colors.grey, sprite: ironDisplay },
+  iron: { color: colors.silver, sprite: ironDisplay },
   herb: { color: colors.teal, sprite: herb },
   seed: { color: colors.purple, sprite: seed },
 };

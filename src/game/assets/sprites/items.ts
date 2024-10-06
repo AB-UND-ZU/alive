@@ -111,26 +111,34 @@ export const coin: Sprite = {
   name: "Coin",
   layers: [
     {
-      char: "\u0108",
+      char: "\u0106",
       color: colors.yellow,
+    },
+    {
+      char: "∙",
+      color: colors.black,
     },
   ],
   amounts: {
     single: [
       {
-        char: "\u0108",
+        char: "\u0106",
         color: colors.yellow,
+      },
+      {
+        char: "∙",
+        color: colors.black,
       },
     ],
     double: [
       {
-        char: "o",
+        char: "\u0108",
         color: colors.yellow,
       },
     ],
     multiple: [
       {
-        char: "O",
+        char: "o",
         color: colors.yellow,
       },
     ],
@@ -256,14 +264,14 @@ export const ironDisplay: Sprite = {
   layers: [
     {
       char: ".",
-      color: colors.grey,
+      color: colors.silver,
     },
   ],
   amounts: {
     multiple: [
       {
         char: "÷",
-        color: colors.grey,
+        color: colors.silver,
       },
     ],
   },
@@ -341,8 +349,30 @@ export const arrow: Sprite = {
       color: colors.grey,
     },
     {
-      char: "─",
+      char: "-",
       color: colors.maroon,
+    },
+  ],
+};
+
+export const map: Sprite = {
+  name: "Map",
+  layers: [
+    {
+      char: "■",
+      color: colors.silver,
+    },
+    {
+      char: "≡",
+      color: colors.olive,
+    },
+    {
+      char: "-",
+      color: colors.black,
+    },
+    {
+      char: "+",
+      color: colors.silver,
     },
   ],
 };

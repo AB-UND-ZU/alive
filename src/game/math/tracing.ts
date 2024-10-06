@@ -2,15 +2,17 @@ import { aspectRatio } from "../../components/Dimensions/sizing";
 import { World } from "../../engine";
 import { Level, LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
-import { LOCKABLE } from "../../engine/components/lockable";
 import { Orientation } from "../../engine/components/orientable";
+import { getCell } from "../../engine/systems/map";
 import { normalize, Point, reversed } from "./std";
 
 type Interval = { start: number; end: number };
+type Corner = { start: [Point, Point, Point]; end: [Point, Point, Point] };
 type Iteration = {
   direction: Point;
   normal: Point;
-  corners: { start: Point[]; end: Point[] };
+  corners: Corner;
+  orientations?: Partial<Record<Orientation, Corner>>;
 };
 
 const corners = {
@@ -18,6 +20,13 @@ const corners = {
   rightDown: { x: 0.5, y: 0.5 },
   downLeft: { x: -0.5, y: 0.5 },
   leftUp: { x: -0.5, y: -0.5 },
+};
+
+const sides = {
+  up: { x: 0, y: -0.5 },
+  right: { x: 0.5, y: 0 },
+  down: { x: 0, y: 0.5 },
+  left: { x: -0.5, y: 0 },
 };
 
 export const iterations: Iteration[] = [
@@ -29,6 +38,16 @@ export const iterations: Iteration[] = [
       start: [corners.downLeft, corners.downLeft, corners.leftUp],
       end: [corners.upRight, corners.rightDown, corners.rightDown],
     },
+    orientations: {
+      left: {
+        start: [corners.downLeft, corners.downLeft, corners.leftUp],
+        end: [sides.up, sides.down, sides.down],
+      },
+      right: {
+        start: [sides.down, sides.down, sides.up],
+        end: [corners.upRight, corners.rightDown, corners.rightDown],
+      },
+    },
   },
   // right
   {
@@ -37,6 +56,16 @@ export const iterations: Iteration[] = [
     corners: {
       start: [corners.leftUp, corners.leftUp, corners.upRight],
       end: [corners.rightDown, corners.downLeft, corners.downLeft],
+    },
+    orientations: {
+      left: {
+        start: [corners.leftUp, corners.leftUp, sides.up],
+        end: [sides.down, corners.downLeft, corners.downLeft],
+      },
+      right: {
+        start: [sides.up, sides.up, corners.upRight],
+        end: [corners.rightDown, sides.down, sides.down],
+      },
     },
   },
   // down
@@ -47,6 +76,16 @@ export const iterations: Iteration[] = [
       start: [corners.upRight, corners.upRight, corners.rightDown],
       end: [corners.downLeft, corners.leftUp, corners.leftUp],
     },
+    orientations: {
+      left: {
+        start: [sides.up, sides.up, sides.down],
+        end: [corners.downLeft, corners.leftUp, corners.leftUp],
+      },
+      right: {
+        start: [corners.upRight, corners.upRight, corners.rightDown],
+        end: [sides.down, sides.up, sides.up],
+      },
+    },
   },
   // left
   {
@@ -56,11 +95,24 @@ export const iterations: Iteration[] = [
       start: [corners.rightDown, corners.rightDown, corners.downLeft],
       end: [corners.leftUp, corners.upRight, corners.upRight],
     },
+    orientations: {
+      left: {
+        start: [sides.down, sides.down, corners.downLeft],
+        end: [corners.leftUp, sides.up, sides.up],
+      },
+      right: {
+        start: [corners.rightDown, corners.rightDown, sides.down],
+        end: [sides.up, corners.upRight, corners.upRight],
+      },
+    },
   },
 ];
 
+const getOrientedBoundaries = (iteration: Iteration, orientation?: Orientation) => (orientation && iteration.orientations?.[orientation]) || iteration.corners;
+
 // select respective corner along the direction of normal
-const getCorner = (boundaries: Point[], normal: number, point: number) => {
+const getCorner = (iteration: Iteration, segment: keyof Corner, orientation: Orientation | undefined, normal: number, point: number) => {
+  const boundaries = getOrientedBoundaries(iteration, orientation)[segment];
   if (normal * point < 0) return boundaries[0];
   if (normal * point > 0) return boundaries[2];
   return boundaries[1];
@@ -74,21 +126,25 @@ export const pointToDegree = (point: Point) => {
 
 // return the degree interval for the outermost visible corners relative from viewer.
 // if it crosses 360°, create two separate intervals
-const cellToIntervals = (iteration: Iteration, point: Point): Interval[] => {
+const cellToIntervals = (
+  iteration: Iteration,
+  point: Point,
+  orientation?: Orientation
+): Interval[] => {
   const startPoint = {
     x:
       point.x +
-      getCorner(iteration.corners.start, iteration.normal.y, point.y).x,
+      getCorner(iteration, 'start', orientation, iteration.normal.y, point.y).x,
     y:
       point.y +
-      getCorner(iteration.corners.start, iteration.normal.x, point.x).y,
+      getCorner(iteration, 'start', orientation, iteration.normal.x, point.x).y,
   };
 
   const endPoint = {
     x:
-      point.x + getCorner(iteration.corners.end, iteration.normal.y, point.y).x,
+      point.x + getCorner(iteration, 'end', orientation, iteration.normal.y, point.y).x,
     y:
-      point.y + getCorner(iteration.corners.end, iteration.normal.x, point.x).y,
+      point.y + getCorner(iteration, 'end', orientation, iteration.normal.x, point.x).y,
   };
 
   const start = pointToDegree(startPoint);
@@ -145,25 +201,18 @@ const isVisible = (
   );
 };
 
-const isObstructing = (world: World, point: Point) => {
-  const level = world.metadata.gameEntity[LEVEL];
-  const normalizedX = normalize(point.x, level.size);
-  const normalizedY = normalize(point.y, level.size);
-  const cell = level.map[normalizedX]?.[normalizedY];
+const getObstructing = (world: World, point: Point) => {
+  const cell = getCell(world, point);
 
-  if (!cell) return false;
+  if (!cell) return;
 
   for (const entityId in cell) {
     const entity = cell[entityId];
 
-    if (
-      (LIGHT in entity && entity[LIGHT].darkness > 0) ||
-      entity[LOCKABLE]?.locked
-    )
-      return true;
+    if (LIGHT in entity && entity[LIGHT].darkness > 0) return entity;
   }
 
-  return false;
+  return;
 };
 
 // manually adjusted extension of radius
@@ -210,8 +259,13 @@ const processCell = ({
 
   visibleCells.push(normalized);
 
-  if (isObstructing(world, normalized)) {
-    const cellIntervals = cellToIntervals(iteration, delta);
+  const obstructingEntity = getObstructing(world, normalized);
+  if (obstructingEntity) {
+    const cellIntervals = cellToIntervals(
+      iteration,
+      delta,
+      obstructingEntity[LIGHT].orientation
+    );
 
     // the cell is visible therefore there is at least one overlap, or an interval within the cell boundaries
     for (const cellInterval of cellIntervals) {
@@ -279,7 +333,7 @@ export const traceCircularVisiblity = (
 ) => {
   const visibleCells: Point[] = [point];
   // if standing within obstructred terrain
-  if (isObstructing(world, point)) return visibleCells;
+  if (getObstructing(world, point)) return visibleCells;
 
   const level = world.metadata.gameEntity[LEVEL];
   let visibleIntervals: Interval[] = [{ start: 0, end: 360 }];
