@@ -13,12 +13,10 @@ import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { FOG } from "../../engine/components/fog";
-import { IDENTIFIABLE } from "../../engine/components/identifiable";
-import { INVENTORY } from "../../engine/components/inventory";
+import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
-import { LOCKABLE } from "../../engine/components/lockable";
 import { MELEE } from "../../engine/components/melee";
 import { MOVABLE } from "../../engine/components/movable";
 import {
@@ -42,6 +40,7 @@ import {
   getEntityGeneration,
   rerenderEntity,
 } from "../../engine/systems/renderer";
+import { lockDoor } from "../../engine/systems/trigger";
 import * as colors from "../assets/colors";
 import { add, distribution, normalize, signedDistance } from "../math/std";
 import { iterations } from "../math/tracing";
@@ -607,7 +606,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   } else if (state.args.step === "collect") {
-    const doorEntity = world.getIdentifier("door");
+    const doorEntity = world.getIdentifier("house_door");
     const keyEntity = world.getIdentifier("key");
     if (doorEntity && keyEntity && heroEntity[COUNTABLE].gold >= 5) {
       entity[BEHAVIOUR].patterns.push(
@@ -668,29 +667,40 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
           name: "dialog",
           memory: {
             changed: true,
-            dialogs: [[goldKey, ...createDialog(" for "), ...createStat(5, 'gold')]],
+            dialogs: [createDialog("Ready?")],
           },
         }
       );
       state.args.step = "door";
       updated = true;
     }
+  } else if (state.args.step === "door") {
+    const doorEntity = world.getIdentifier("door");
+    if (doorEntity && isUnlocked(world, doorEntity)) {
+      entity[BEHAVIOUR].patterns.push({
+        name: "dialog",
+        memory: {
+          override: "visible",
+          changed: true,
+          dialogs: [createDialog("Good luck!")],
+        },
+      });
+      state.args.step = "world";
+      updated = true;
+    }
   } else if (state.args.step === "world") {
-    if (heroEntity[POSITION].x === 0 && heroEntity[POSITION].y === 7) {
+    const doorEntity = world.getIdentifier("door");
+    if (
+      doorEntity &&
+      heroEntity[POSITION].x === 0 &&
+      heroEntity[POSITION].y === 7
+    ) {
       // set camera to player
       viewpointEntity[VIEWABLE].active = false;
       heroEntity[VIEWABLE].active = true;
 
       // close door
-      const doorEntity = world
-        .getEntities([IDENTIFIABLE])
-        .find((entity) => entity[IDENTIFIABLE].name === "door");
-      if (doorEntity) {
-        doorEntity[LOCKABLE].locked = true;
-        doorEntity[ORIENTABLE].facing = undefined;
-        doorEntity[LIGHT].darkness = 1;
-        rerenderEntity(world, doorEntity);
-      }
+      lockDoor(world, doorEntity);
 
       // set player light
       heroEntity[LIGHT].brightness = 5.55;
@@ -783,8 +793,35 @@ export const guideQuest: Animation<"quest"> = (world, entity, state) => {
     const goldEntity = world.getIdentifier("gold");
     if (goldEntity && goldEntity[INVENTORY].items.length === 0) {
       world.setFocus();
+      state.args.step = "buy";
+      updated = true;
+    }
+  } else if (state.args.step === "buy") {
+    const keyEntity = world.getIdentifier("key");
+    const containerEntity =
+      keyEntity && world.getEntityById(keyEntity[ITEM].carrier);
+    if (containerEntity && containerEntity[TOOLTIP].idle) {
+      world.setFocus(containerEntity);
       state.args.step = "key";
       updated = true;
+    }
+  } else if (state.args.step === "key") {
+    const doorEntity = world.getIdentifier("door");
+    if (
+      (entity[INVENTORY] as Inventory).items.some(
+        (itemId) => world.getEntityById(itemId)[ITEM].consume === "key"
+      )
+    ) {
+      world.setFocus(doorEntity);
+      state.args.step = "door";
+      updated = true;
+    }
+  } else if (state.args.step === "door") {
+    const doorEntity = world.getIdentifier("door");
+    if (doorEntity && isUnlocked(world, doorEntity)) {
+      world.setFocus();
+      state.args.step = "finished";
+      finished = true;
     }
   }
 

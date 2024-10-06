@@ -37,6 +37,23 @@ export const lockMaterials: Partial<
   iron: { key: ironKey, door: lockedIron },
 };
 
+export const unlockDoor = (world: World, entity: Entity) => {
+  entity[LOCKABLE].locked = false;
+  entity[SPRITE] = doorUnlocked;
+  entity[LIGHT].orientation = "left";
+  rerenderEntity(world, entity);
+  updateWalkable(world, entity[POSITION]);
+};
+
+export const lockDoor = (world: World, entity: Entity) => {
+  entity[LOCKABLE].locked = true;
+  entity[SPRITE] =
+    lockMaterials[entity[LOCKABLE].material as Material]?.door || lockedIron;
+  entity[LIGHT].orientation = undefined;
+  rerenderEntity(world, entity);
+  updateWalkable(world, entity[POSITION]);
+};
+
 export default function setupTrigger(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
@@ -104,14 +121,8 @@ export default function setupTrigger(world: World) {
 
         if (!keyEntity) continue;
 
-        // unlock door
-        unlockEntity[LOCKABLE].locked = false;
-        unlockEntity[SPRITE] = doorUnlocked;
-        unlockEntity[LIGHT].orientation = "left";
-        rerenderEntity(world, unlockEntity);
-        updateWalkable(world, unlockEntity[POSITION]);
-
-        // remove key
+        // unlock door and remove key
+        unlockDoor(world, unlockEntity);
         disposeEntity(world, keyEntity);
         const keyIndex = entity[INVENTORY].items.indexOf(
           world.getEntityId(keyEntity)
