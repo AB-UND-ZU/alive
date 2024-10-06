@@ -23,7 +23,8 @@ import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { updateWalkable } from "./map";
 import { lockMaterials } from "./trigger";
-import { lockedIron } from "../../game/assets/sprites";
+import { lockedIron, shop } from "../../game/assets/sprites";
+import { dropItem } from "./drop";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -160,13 +161,19 @@ export default function setupAi(world: World) {
       } else if (
         pattern.name === "kill" ||
         pattern.name === "unlock" ||
-        pattern.name === "collect"
+        pattern.name === "collect" ||
+        pattern.name === "drop" ||
+        pattern.name === "sell"
       ) {
+        const movablePattern = ["kill", "collect"].includes(pattern.name);
+        const itemPattern = ["drop", "sell"].includes(pattern.name);
         const memory = pattern.memory;
         const itemEntity = world.getEntityById(memory.item);
         const targetEntity =
           pattern.name === "collect"
             ? world.getEntityById(itemEntity[ITEM].carrier)
+            : itemPattern
+            ? { [POSITION]: pattern.memory.position }
             : world.getEntityById(memory.target);
         entity[MOVABLE].orientations = [];
 
@@ -180,12 +187,16 @@ export default function setupAi(world: World) {
           pattern.name === "collect" &&
           itemEntity &&
           itemEntity[ITEM].carrier === entityId;
+        const dropped =
+          itemPattern &&
+          itemEntity &&
+          itemEntity[ITEM].carrier !== entityId;
         const unlocked =
           pattern.name === "unlock" &&
           targetEntity &&
           !isLocked(world, targetEntity);
 
-        if (killed || unlocked || collected) {
+        if (killed || unlocked || collected || dropped) {
           patterns.shift();
           continue;
         }
@@ -224,11 +235,7 @@ export default function setupAi(world: World) {
 
         // move or act depending on pattern
         if (attemptedPosition && !pathObstructed) {
-          if (
-            !hasArrived ||
-            pattern.name === "kill" ||
-            pattern.name === "collect"
-          ) {
+          if (!hasArrived || movablePattern) {
             const targetOrientation = relativeOrientation(
               world,
               entity[POSITION],
@@ -239,13 +246,19 @@ export default function setupAi(world: World) {
 
           if (hasArrived && pattern.name === "unlock") {
             entity[ACTIONABLE].triggered = true;
+          } else if (hasArrived && itemPattern) {
+            const containerEntity = dropItem(
+              world,
+              [memory.item],
+              memory.position
+            );
+
+            if (pattern.name === "sell") {
+              containerEntity[TOOLTIP].idle = shop;
+            }
           }
 
-          if (
-            !hasArrived ||
-            (pattern.name !== "kill" && pattern.name !== "collect")
-          )
-            memory.path.shift();
+          if (!hasArrived || !movablePattern) memory.path.shift();
         }
       }
     }

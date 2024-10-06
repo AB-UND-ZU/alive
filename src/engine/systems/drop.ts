@@ -12,7 +12,7 @@ import { DROPPABLE } from "../components/droppable";
 import { Entity } from "ecs";
 import { FOG } from "../components/fog";
 import { Inventory, INVENTORY } from "../components/inventory";
-import { POSITION } from "../components/position";
+import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
 import { none } from "../../game/assets/sprites";
@@ -21,6 +21,32 @@ import { SWIMMABLE } from "../components/swimmable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
+
+export const dropItem = (
+  world: World,
+  items: Inventory["items"],
+  position: Position
+) => {
+  const containerEntity = entities.createContainer(world, {
+    [ANIMATABLE]: { states: {} },
+    [FOG]: { visibility: "fog", type: "unit" },
+    [INVENTORY]: { items, size: items.length },
+    [LOOTABLE]: { disposable: true },
+    [POSITION]: position,
+    [RENDERABLE]: { generation: 0 },
+    [SPRITE]: none,
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+  });
+  registerEntity(world, containerEntity);
+  const containerId = world.getEntityId(containerEntity);
+  items.forEach((item) => {
+    const itemEntity = world.getEntityById(item);
+    itemEntity[ITEM].carrier = containerId;
+  });
+
+  return containerEntity;
+};
 
 export default function setupDrop(world: World) {
   let referencesGeneration = -1;
@@ -70,23 +96,7 @@ export default function setupDrop(world: World) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
         disposeEntity(world, entity);
 
-        const containerEntity = entities.createContainer(world, {
-          [ANIMATABLE]: { states: {} },
-          [FOG]: entity[FOG],
-          [INVENTORY]: entity[INVENTORY],
-          [LOOTABLE]: { disposable: true },
-          [POSITION]: entity[POSITION],
-          [RENDERABLE]: { generation: 0 },
-          [SPRITE]: none,
-          [SWIMMABLE]: { swimming: false },
-          [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-        });
-        registerEntity(world, containerEntity);
-        const containerId = world.getEntityId(containerEntity);
-        (entity[INVENTORY] as Inventory).items.forEach((item) => {
-          const itemEntity = world.getEntityById(item);
-          itemEntity[ITEM].carrier = containerId;
-        });
+        dropItem(world, entity[INVENTORY].items, entity[POSITION]);
       }
     }
 
