@@ -131,3 +131,4 @@
 - Patterns could execute directly after each other, maybe by indicating a return value once finished
 - Dialog does not need to flip if out of range
 - Button should be disabled if not actionable
+- Moving units appearing do not move out of opacity

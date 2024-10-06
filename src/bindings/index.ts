@@ -21,7 +21,6 @@ import {
   coin,
   compass,
   createDialog,
-  fireSword,
   flower,
   fog,
   gold,
@@ -29,7 +28,7 @@ import {
   herb,
   iron,
   ironKey,
-  ironShield,
+  ironSword,
   lockedGold,
   lockedIron,
   none,
@@ -44,6 +43,7 @@ import {
   wall,
   water,
   wood,
+  woodShield,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
@@ -60,7 +60,7 @@ import { ORIENTABLE } from "../engine/components/orientable";
 import { ANIMATABLE } from "../engine/components/animatable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import { initialPosition, menuArea } from "../game/assets/areas";
-import { distribution, normalize, random } from "../game/math/std";
+import { copy, distribution, normalize, random } from "../game/math/std";
 import { LOOTABLE } from "../engine/components/lootable";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { INVENTORY } from "../engine/components/inventory";
@@ -592,10 +592,10 @@ export const generateWorld = async (world: World) => {
       });
       const swordEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 3, slot: "melee", material: "fire" },
+        [ITEM]: { amount: 2, slot: "melee", material: "iron" },
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: fireSword,
+        [SPRITE]: ironSword,
       });
       const keyEntity = entities.createItem(world, {
         [ITEM]: { amount: 1, consume: "key", material: "iron" },
@@ -603,9 +603,9 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: ironKey,
       });
       const shieldEntity = entities.createItem(world, {
-        [ITEM]: { amount: 2, slot: "armor", material: "iron" },
+        [ITEM]: { amount: 1, slot: "armor", material: "wood" },
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: ironShield,
+        [SPRITE]: woodShield,
       });
 
       const guideEntity = entities.createNpc(world, {
@@ -876,7 +876,9 @@ export const generateWorld = async (world: World) => {
       },
       lastInteraction: 0,
     },
-    [POSITION]: { ...initialPosition },
+    [POSITION]: copy(
+      world.getIdentifier("compass_chest")?.[POSITION] || { x: 0, y: 0 }
+    ),
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
   });
