@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 type Pattern = {
-  name: 'triangle' | 'move' | 'kill' | 'dialog' | 'lock' | 'unlock' | 'collect';
+  name: 'triangle' | 'move' | 'kill' | 'dialog' | 'lock' | 'unlock' | 'collect' | 'drop' | 'sell';
   memory: any;
 }
 

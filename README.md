@@ -132,3 +132,4 @@
 - Dialog does not need to flip if out of range
 - Button should be disabled if not actionable
 - Moving units appearing do not move out of opacity
+- Units moving in front of AI in the right time will disupt pathfinding due to discarded path items

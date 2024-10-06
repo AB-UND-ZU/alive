@@ -608,7 +608,8 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
     }
   } else if (state.args.step === "collect") {
     const doorEntity = world.getIdentifier("door");
-    if (doorEntity && heroEntity[COUNTABLE].gold >= 5) {
+    const keyEntity = world.getIdentifier("key");
+    if (doorEntity && keyEntity && heroEntity[COUNTABLE].gold >= 5) {
       entity[BEHAVIOUR].patterns.push(
         {
           name: "dialog",
@@ -628,12 +629,14 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
           name: "dialog",
           memory: {
             override: undefined,
+            changed: true,
+            dialogs: [],
           },
         },
         {
           name: "collect",
           memory: {
-            item: world.getEntityId(world.getIdentifier("key")),
+            item: world.getEntityId(keyEntity),
           },
         },
         {
@@ -649,6 +652,13 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
           },
         },
         {
+          name: "sell",
+          memory: {
+            position: { x: 155, y: 159 },
+            item: world.getEntityId(keyEntity),
+          },
+        },
+        {
           name: "move",
           memory: {
             position: { x: 0, y: 159 },
@@ -657,9 +667,8 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
         {
           name: "dialog",
           memory: {
-            override: "visible",
             changed: true,
-            dialogs: [createDialog("Good luck!")],
+            dialogs: [[goldKey, ...createDialog(" for "), ...createStat(5, 'gold')]],
           },
         }
       );
