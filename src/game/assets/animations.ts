@@ -818,8 +818,10 @@ export const guideQuest: Animation<"quest"> = (world, entity, state) => {
     }
   } else if (state.args.step === "door") {
     const doorEntity = world.getIdentifier("door");
-    if (doorEntity && isUnlocked(world, doorEntity)) {
-      world.setFocus();
+    const focusEntity = world.getIdentifier("focus");
+    if (doorEntity && focusEntity && isUnlocked(world, doorEntity)) {
+      // keep compass pointing to door
+      focusEntity[FOCUSABLE].pendingTarget = undefined;
       state.args.step = "finished";
       finished = true;
     }
