@@ -24,6 +24,7 @@ import { getAction, lockMaterials } from "../../engine/systems/trigger";
 import { Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { Material } from "../../engine/components/item";
+import { getUnlockKey } from "../../engine/systems/action";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -41,29 +42,33 @@ export const actionKeys = [" ", "Enter"];
 const buttonWidth = 6;
 const inventoryWidth = 10;
 
+type Action = {
+    name: string;
+    activation: [Sprite[], Sprite[]];
+    disabled: boolean;
+  }
+
 export default function Controls() {
   const dimensions = useDimensions();
   const { ecs } = useWorld();
   const hero = useHero();
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
-  const [action, setAction] = useState<{
-    name: string;
-    activation: [Sprite[], Sprite[]];
-  }>();
+  const [action, setAction] = useState<Action>();
 
   const questId = hero?.[ACTIONABLE].quest;
-  const questAction = useMemo(
+  const questAction = useMemo<Action | undefined>(
     () =>
       questId && {
         name: "Quest",
         activation: [[none, questId ? quest : none, none], repeat(none, 3)],
+        disabled: false,
       },
     [questId]
   );
 
   const unlockId = hero?.[ACTIONABLE].unlock;
-  const unlockAction = useMemo(
+  const unlockAction = useMemo<Action | undefined>(
     () =>
       unlockId &&
       ecs && {
@@ -80,8 +85,9 @@ export default function Controls() {
           ],
           repeat(none, 3),
         ],
+        disabled: !getUnlockKey(ecs, hero, ecs.getEntityById(unlockId)),
       },
-    [unlockId, ecs]
+    [unlockId, ecs, hero]
   );
 
   const activeAction = questAction || unlockAction;
@@ -102,7 +108,7 @@ export default function Controls() {
       if (!reference) return;
 
       // skip if waiting for cooldown or not actionable
-      if (hero[ACTIONABLE].triggered || !getAction(ecs, hero)) return;
+      if (hero[ACTIONABLE].triggered || !getAction(ecs, hero) || activeAction?.disabled) return;
 
       hero[ACTIONABLE].triggered = true;
 
@@ -263,7 +269,7 @@ export default function Controls() {
     action && createButton(repeat(none, buttonWidth), buttonWidth, false, true);
   const emptyButton = [repeat(none, buttonWidth), repeat(none, buttonWidth)];
   const actionButton =
-    activeAction && createButton(createText(activeAction.name, buttonColor), buttonWidth);
+    activeAction && createButton(createText(activeAction.name, buttonColor), buttonWidth, activeAction.disabled);
   const button = pressedButton || actionButton || emptyButton;
 
   const emptyActivation = [repeat(none, 3), repeat(none, 3)];
