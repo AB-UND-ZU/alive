@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDimensions } from "../Dimensions";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
@@ -8,14 +8,22 @@ import { Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import Row from "../Row";
 import {
+  buttonColor,
   createButton,
   createText,
+  ironKey,
   none,
   quest,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { repeat } from "../../game/math/std";
+import { Inventory, INVENTORY } from "../../engine/components/inventory";
+import { createSprite } from "../Entity/utils";
+import { getAction, lockMaterials } from "../../engine/systems/trigger";
+import { Sprite } from "../../engine/components/sprite";
+import { LOCKABLE } from "../../engine/components/lockable";
+import { Material } from "../../engine/components/item";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -28,12 +36,86 @@ export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   a: "left",
 };
 
+export const actionKeys = [" ", "Enter"];
+
+const buttonWidth = 6;
+const inventoryWidth = 10;
+
 export default function Controls() {
   const dimensions = useDimensions();
   const { ecs } = useWorld();
   const hero = useHero();
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
+  const [action, setAction] = useState<{
+    name: string;
+    activation: [Sprite[], Sprite[]];
+  }>();
+
+  const questId = hero?.[ACTIONABLE].quest;
+  const questAction = useMemo(
+    () =>
+      questId && {
+        name: "Quest",
+        activation: [[none, questId ? quest : none, none], repeat(none, 3)],
+      },
+    [questId]
+  );
+
+  const unlockId = hero?.[ACTIONABLE].unlock;
+  const unlockAction = useMemo(
+    () =>
+      unlockId &&
+      ecs && {
+        name: "Open",
+        activation: [
+          [
+            none,
+            (unlockId &&
+              lockMaterials[
+                ecs.getEntityById(unlockId)[LOCKABLE].material as Material
+              ]?.key) ||
+              ironKey,
+            none,
+          ],
+          repeat(none, 3),
+        ],
+      },
+    [unlockId, ecs]
+  );
+
+  const activeAction = questAction || unlockAction;
+
+  const handleAction = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+
+      if (action || !hero || !ecs) return;
+
+      const reference = ecs.getEntityById(hero[MOVABLE].reference)[REFERENCE];
+
+      if (!reference) return;
+
+      // skip if waiting for cooldown or not actionable
+      if (hero[ACTIONABLE].triggered || !getAction(ecs, hero)) return;
+
+      hero[ACTIONABLE].triggered = true;
+
+      reference.suspensionCounter = reference.suspensionCounter === -1 ? -1 : 1;
+      reference.suspended = false;
+
+      if (activeAction) {
+        setAction(activeAction);
+        setTimeout(setAction, reference.tick, undefined);
+      }
+    },
+    [activeAction, action, hero, ecs]
+  );
 
   const handleMove = useCallback(
     (orientations: Orientation[]) => {
@@ -51,7 +133,7 @@ export default function Controls() {
       }
 
       if (orientations.length === 0) {
-        reference.suspensionCounter = 1;
+        reference.suspensionCounter = 0;
 
         if (hero[MOVABLE].pendingOrientation) {
           reference.suspensionCounter += 1;
@@ -64,7 +146,7 @@ export default function Controls() {
     [hero, ecs]
   );
 
-  const handleKeyMove = useCallback(
+  const handleKey = useCallback(
     (event: KeyboardEvent) => {
       // since macOS doesn't fire keyup when meta key is pressed, prevent it from moving.
       // still not working: arrow keydown -> meta keydown -> arrow keyup -> meta keyup
@@ -75,9 +157,13 @@ export default function Controls() {
       )
         return;
 
+      if (actionKeys.includes(event.key) && event.type === "keydown") {
+        handleAction(event);
+        return;
+      }
+
       const orientation = keyToOrientation[event.key];
 
-      // TODO: add spell handling
       if (!orientation) return;
 
       const orientations = pressedOrientations.current;
@@ -90,19 +176,27 @@ export default function Controls() {
 
       handleMove(orientations);
     },
-    [handleMove]
+    [handleMove, handleAction]
   );
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
+      // prevent touches over action bar
+      if (
+        [...event.changedTouches].some(
+          (touch) => (touch.target as HTMLElement).id === "action"
+        )
+      )
+        return;
+
+      event.preventDefault();
+
       if (event.touches.length !== 1) {
         touchOrigin.current = undefined;
         pressedOrientations.current = [];
         handleMove(pressedOrientations.current);
-        return;
+        return false;
       }
-
-      event.preventDefault();
 
       const [x, y] = [event.touches[0].clientX, event.touches[0].clientY];
 
@@ -117,7 +211,7 @@ export default function Controls() {
 
       if (Math.sqrt(deltaX ** 2 + deltaY ** 2) <= 5) {
         // handle spell
-        return;
+        return false;
       }
 
       const degrees = pointToDegree({ x: deltaX, y: deltaY });
@@ -137,6 +231,8 @@ export default function Controls() {
       } else {
         pressedOrientations.current = [];
       }
+
+      return false;
     },
     [handleMove]
   );
@@ -144,8 +240,8 @@ export default function Controls() {
   useEffect(() => {
     if (!hero) return;
 
-    window.addEventListener("keydown", handleKeyMove);
-    window.addEventListener("keyup", handleKeyMove);
+    window.addEventListener("keydown", handleKey);
+    window.addEventListener("keyup", handleKey);
 
     window.addEventListener("touchstart", handleTouchMove);
     window.addEventListener("touchmove", handleTouchMove);
@@ -153,20 +249,37 @@ export default function Controls() {
     window.addEventListener("touchcancel", handleTouchMove);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyMove);
-      window.removeEventListener("keyup", handleKeyMove);
+      window.removeEventListener("keydown", handleKey);
+      window.removeEventListener("keyup", handleKey);
 
       window.removeEventListener("touchstart", handleTouchMove);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchMove);
       window.removeEventListener("touchcancel", handleTouchMove);
     };
-  }, [handleKeyMove, handleTouchMove, hero]);
+  }, [handleKey, handleTouchMove, hero]);
 
-  const questId = hero?.[ACTIONABLE].quest;
-  const questButton = questId
-    ? createButton(createText("Quest", colors.black), 6)
-    : [repeat(none, 6), repeat(none, 6)];
+  const pressedButton =
+    action && createButton(repeat(none, buttonWidth), buttonWidth, false, true);
+  const emptyButton = [repeat(none, buttonWidth), repeat(none, buttonWidth)];
+  const actionButton =
+    activeAction && createButton(createText(activeAction.name, buttonColor), buttonWidth);
+  const button = pressedButton || actionButton || emptyButton;
+
+  const emptyActivation = [repeat(none, 3), repeat(none, 3)];
+  const activation = action?.activation || activeAction?.activation || emptyActivation;
+
+  const itemSprites =
+    ecs && hero?.[INVENTORY]
+      ? (hero[INVENTORY] as Inventory).items.map((itemId) =>
+          createSprite(ecs, itemId)
+        )
+      : [];
+  const itemRows = [0, 1].map((row) =>
+    Array.from({ length: inventoryWidth }).map(
+      (_, column) => itemSprites[row * inventoryWidth + column] || none
+    )
+  );
 
   return (
     <footer className="Controls">
@@ -180,43 +293,22 @@ export default function Controls() {
       <Row
         cells={[
           none,
-          ...questButton[0],
-          none,
-          questId ? quest : none,
-          none,
+          ...button[0],
+          ...activation[0],
           ...createText("│", colors.grey),
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
+          ...itemRows[0],
         ]}
       />
       <Row
         cells={[
           none,
-          ...questButton[1],
-          none,
-          none,
-          none,
+          ...button[1],
+          ...activation[1],
           ...createText("│", colors.grey),
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
-          none,
+          ...itemRows[1],
         ]}
       />
+      <div className="Action" id="action" onClick={handleAction} />
     </footer>
   );
 }

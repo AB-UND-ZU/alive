@@ -13,11 +13,11 @@ import {
   Orientation,
   orientationPoints,
 } from "../components/orientable";
-import { getAttackable, isDead, isEnemy, isFriendlyFire } from "./damage";
-import { getLockable, isUnlocked } from "./unlock";
+import { getAttackable, isDead, isFriendlyFire } from "./damage";
 import { getLootable } from "./collect";
 import { isSubmerged } from "./immersion";
 import { LEVEL } from "../components/level";
+import { getLockable, isLocked } from "./action";
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
@@ -26,22 +26,20 @@ export const isCollision = (world: World, position: Position) =>
 
 export const isWalkable = (
   world: World,
-  entity: Entity,
   position: Position
 ) => {
   const lockable = getLockable(world, position);
   return (
     !isCollision(world, position) &&
     !isSubmerged(world, position) &&
-    (!lockable || (isUnlocked(world, lockable) && !isEnemy(world, entity))) &&
+    !(lockable && isLocked(world, lockable)) &&
     !getAttackable(world, position) &&
     !getLootable(world, position)
   );
 };
 
 export const isMovable = (world: World, entity: Entity, position: Position) => {
-  if (entity.PLAYER) console.log("move");
-  if (isWalkable(world, entity, position)) return true;
+  if (isWalkable(world, position)) return true;
 
   // allow attacking opposing entities
   const attackable = getAttackable(world, position);
@@ -106,7 +104,7 @@ export default function setupMovement(world: World) {
           y: normalize(entity[POSITION].y + delta.y, size),
         };
 
-        if (isWalkable(world, entity, position)) {
+        if (isWalkable(world, position)) {
           moveEntity(world, entity, position);
 
           // set facing to actual movement

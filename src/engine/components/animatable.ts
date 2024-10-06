@@ -7,6 +7,7 @@ import { Sprite } from "./sprite";
 export type AnimationArgument = {
   counter: { facing: Orientation; amount: number };
   decay: {};
+  burn: { generation: 0 };
   dispose: {};
   collect: { facing: Orientation; itemId: number };
   focus: {};

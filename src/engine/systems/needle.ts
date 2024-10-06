@@ -7,9 +7,7 @@ import { ORIENTABLE } from "../components/orientable";
 import { ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { TRACKABLE } from "../components/trackable";
-import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
-import { LEVEL } from "../components/level";
-import { signedDistance } from "../../game/math/std";
+import { relativeOrientation } from "../../game/math/path";
 
 export default function setupNeedle(world: World) {
   let referenceGenerations = -1;
@@ -39,6 +37,13 @@ export default function setupNeedle(world: World) {
       const entityId = world.getEntityId(entity);
       const originEntity = world.getEntityById(originId);
       const targetEntity = world.getEntityById(targetId);
+
+      // clear target if focus is lost
+      if (!targetEntity) {
+        entity[TRACKABLE].target = undefined;
+        continue;
+      }
+
       const originReference = originEntity[MOVABLE]?.reference
         ? world.getEntityById(originEntity[MOVABLE].reference)[RENDERABLE]
             .generation
@@ -54,20 +59,11 @@ export default function setupNeedle(world: World) {
 
       entityReferences[entityId] = entityReference;
 
-      const size = world.metadata.gameEntity[LEVEL].size;
-      const delta = {
-        x: signedDistance(
-          originEntity[POSITION].x,
-          targetEntity[POSITION].x,
-          size
-        ),
-        y: signedDistance(
-          originEntity[POSITION].y,
-          targetEntity[POSITION].y,
-          size
-        ),
-      };
-      const targetOrientation = degreesToOrientations(pointToDegree(delta))[0];
+      const targetOrientation = relativeOrientation(
+        world,
+        originEntity[POSITION],
+        targetEntity[POSITION]
+      );
 
       // reorient needle
       if (entity[ORIENTABLE].facing !== targetOrientation) {

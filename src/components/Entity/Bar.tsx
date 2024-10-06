@@ -6,9 +6,14 @@ import { ATTACKABLE } from "../../engine/components/attackable";
 import { barHeight, pixels, stack, stackHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
 import { COUNTABLE } from "../../engine/components/countable";
+import { NPC } from "../../engine/components/npc";
 
-const playerBar = new THREE.Color(colors.green).multiplyScalar(0.15);
-const enemyBar = new THREE.Color(colors.maroon).multiplyScalar(0.2);
+const unitColor = colors.silver;
+const unitBar = new THREE.Color(unitColor).multiplyScalar(0.075);
+const playerColor = colors.lime;
+const playerBar = new THREE.Color(playerColor).multiplyScalar(0.075);
+const enemyColor = colors.red;
+const enemyBar = new THREE.Color(enemyColor).multiplyScalar(0.15);
 
 export default function Bar({
   entity,
@@ -21,6 +26,7 @@ export default function Bar({
   const max = entity[ATTACKABLE].max;
   const hp = Math.min(entity[COUNTABLE].hp, max);
   const isEnemy = entity[ATTACKABLE].enemy;
+  const isUnit = isEnemy && !entity[NPC];
   const spring = useSpring({
     scaleX: hp / max,
     translateX:
@@ -42,7 +48,7 @@ export default function Bar({
           args={[dimensions.aspectRatio - 1 / pixels, 1 / pixels, 1 / stack]}
         />
         <animated.meshBasicMaterial
-          color={isEnemy ? colors.red : colors.lime}
+          color={isUnit ? unitColor : isEnemy ? enemyColor : playerColor}
           opacity={spring.opacity}
           transparent
         />
@@ -58,7 +64,7 @@ export default function Bar({
             args={[dimensions.aspectRatio - 1 / pixels, 1 / pixels, 1 / stack]}
           />
           <animated.meshBasicMaterial
-            color={isEnemy ? enemyBar : playerBar}
+            color={isUnit ? unitBar : isEnemy ? enemyBar : playerBar}
             opacity={spring.opacity}
             transparent
           />

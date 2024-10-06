@@ -23,15 +23,15 @@ export default function setupTick(world: World) {
       // tick reference frames
       if (!isProcessable(reference) || reference.suspended) continue;
 
-      if (reference.suspensionCounter > 0) {
-        reference.suspensionCounter -= 1;
-      }
-
       if (reference.suspensionCounter === 0) {
         reference.suspended = true;
       } else {
         reference.delta -= reference.tick;
         rerenderEntity(world, entity);
+      }
+
+      if (reference.suspensionCounter > 0) {
+        reference.suspensionCounter -= 1;
       }
     }
   };

@@ -1,19 +1,29 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
-export const key: Sprite = {
+export const goldKey: Sprite = {
   name: "Key",
   layers: [
     {
-      char: "|",
-      color: colors.maroon,
+      char: '\u011c',
+      color: colors.yellow,
     },
     {
-      char: '"',
+      char: '─',
       color: colors.grey,
     },
+  ],
+};
+
+export const ironKey: Sprite = {
+  name: "Key",
+  layers: [
     {
-      char: "╕",
+      char: '\u011c',
+      color: colors.silver,
+    },
+    {
+      char: '─',
       color: colors.grey,
     },
   ],
@@ -39,19 +49,19 @@ export const bow: Sprite = {
   ],
 };
 
-export const potion: Sprite = {
-  name: "Potion",
+export const flask: Sprite = {
+  name: "Flask",
   layers: [
     {
-      char: "º",
-      color: colors.grey,
-    },
-    {
       char: "\u011d",
-      color: colors.red,
+      color: colors.blue,
     },
     {
       char: "\u011f",
+      color: colors.grey,
+    },
+    {
+      char: "°",
       color: colors.grey,
     },
   ],
@@ -109,8 +119,8 @@ export const compass: Sprite = {
   },
 };
 
-export const woodSword: Sprite = {
-  name: "Sword",
+export const woodStick: Sprite = {
+  name: "Stick",
   layers: [
     {
       char: "/",
@@ -181,12 +191,58 @@ export const ironSword: Sprite = {
   },
 };
 
+export const fireSword: Sprite = {
+  name: "Sword",
+  layers: [
+    {
+      char: "/",
+      color: colors.red,
+    },
+  ],
+  facing: {
+    up: [
+      {
+        char: "|",
+        color: colors.red,
+      },
+    ],
+    right: [
+      {
+        char: "-",
+        color: colors.red,
+      },
+    ],
+    down: [
+      {
+        char: "|",
+        color: colors.red,
+      },
+    ],
+    left: [
+      {
+        char: "-",
+        color: colors.red,
+      },
+    ],
+  },
+};
+
 export const woodShield: Sprite = {
   name: "Armor",
   layers: [
     {
       char: "¬",
       color: colors.maroon,
+    },
+  ],
+};
+
+export const ironShield: Sprite = {
+  name: "Armor",
+  layers: [
+    {
+      char: "¬",
+      color: colors.grey,
     },
   ],
 };

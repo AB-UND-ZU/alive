@@ -5,10 +5,9 @@ import { RENDERABLE } from "../components/renderable";
 import { add } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { getCell } from "./map";
+import { getCell, updateWalkable } from "./map";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { LOOTABLE } from "../components/lootable";
-import { PLAYER } from "../components/player";
 import { isDead } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
@@ -31,6 +30,10 @@ export const isEmpty = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
   entity[INVENTORY].items.length === 0;
 
+export const isFull = (world: World, entity: Entity) =>
+  INVENTORY in entity &&
+  entity[INVENTORY].items.length >= entity[INVENTORY].size;
+
 export default function setupCollect(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
@@ -48,7 +51,6 @@ export default function setupCollect(world: World) {
     for (const entity of world.getEntities([
       POSITION,
       MOVABLE,
-      PLAYER,
       EQUIPPABLE,
       INVENTORY,
       COUNTABLE,
@@ -92,8 +94,10 @@ export default function setupCollect(world: World) {
 
         // reduce counter items
         const counter = itemEntity[ITEM].counter;
+        const slot = itemEntity[ITEM].slot;
+        const consume = itemEntity[ITEM].consume;
         if (counter) {
-          // skip if full
+          // skip if counter exceeded
           if (
             entity[COUNTABLE][counter] >= 99 ||
             (["hp", "mp"].includes(counter) &&
@@ -102,10 +106,13 @@ export default function setupCollect(world: World) {
             continue;
 
           itemEntity[ITEM].amount -= 1;
+        } else if (slot && isFull(world, entity)) {
+          // skip if inventory full
+          continue;
         }
 
         // remove from target inventory
-        if (itemEntity[ITEM].slot || itemEntity[ITEM].amount === 0) {
+        if (slot || consume || itemEntity[ITEM].amount === 0) {
           itemEntity[ITEM].carrier = entityId;
           targetEntity[INVENTORY].items.splice(
             targetEntity[INVENTORY].items.indexOf(itemId),
@@ -130,6 +137,9 @@ export default function setupCollect(world: World) {
           args: { facing: targetOrientation, itemId },
           particles: {},
         };
+
+        // update walkable
+        updateWalkable(world, targetPosition);
 
         rerenderEntity(world, targetEntity);
         break;

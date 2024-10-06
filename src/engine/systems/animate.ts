@@ -17,9 +17,11 @@ const animationOrder: (keyof AnimationArgument)[] = [
   "counter",
   "melee",
   "decay",
+  "burn",
   "dialog",
   "focus",
   "quest",
+  "dispose",
 ];
 
 export const getAnimations: (

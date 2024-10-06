@@ -1,6 +1,15 @@
 .Controls {
+  position: relative;
   height: calc(var(--cell-height) * 3);
   margin-top: var(--bottom-offset);
   margin-left: calc(var(--left-offset) - var(--cell-width));
   margin-right: calc(var(--right-offset) - var(--cell-width));
+}
+
+.Action {
+  position: absolute;
+  left: 0;
+  top: calc(var(--bottom-offset) * -1);
+  bottom: 0;
+  width: 50%;
 }

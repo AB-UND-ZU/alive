@@ -5,6 +5,8 @@ import { REFERENCE } from "../components/reference";
 import { rerenderEntity } from "./renderer";
 import { FOCUSABLE } from "../components/focusable";
 import { moveEntity } from "./map";
+import { ITEM } from "../components/item";
+import { isLootable } from "./collect";
 
 export default function setupFocus(world: World) {
   let referenceGenerations = -1;
@@ -20,14 +22,23 @@ export default function setupFocus(world: World) {
 
     // handle focus highlights and trigger on any reference frame changes for simplicity
     for (const entity of world.getEntities([FOCUSABLE, RENDERABLE])) {
-      const targetId = entity[FOCUSABLE].target;
-      const pendingId = entity[FOCUSABLE].pendingTarget;
+      let targetId = entity[FOCUSABLE].target;
+      let pendingId = entity[FOCUSABLE].pendingTarget;
+
+      // focus compass on drop
+      const compassEntity = world.getIdentifier('compass');
+      const carrierEntity = compassEntity && world.getEntityById(compassEntity[ITEM].carrier)
+
+      if (!targetId && !pendingId && carrierEntity && isLootable(world, carrierEntity)) {
+        entity[FOCUSABLE].pendingTarget = compassEntity[ITEM].carrier
+        pendingId = entity[FOCUSABLE].pendingTarget;
+      }
 
       let targetEntity = world.getEntityById(targetId);
       const pendingEntity = world.getEntityById(pendingId);
 
       // skip if no target
-      if (!targetEntity && !pendingEntity) continue;
+      if (!targetId && !pendingId) continue;
 
       // handle removing focus
       if (targetEntity && !pendingEntity) {
@@ -37,7 +48,7 @@ export default function setupFocus(world: World) {
       }
 
       // handle target disappearing
-      if (!targetEntity && targetId === pendingId) {
+      if (!targetEntity && !pendingEntity) {
         entity[FOCUSABLE].target = undefined;
         entity[FOCUSABLE].pendingTarget = undefined;
         rerenderEntity(world, entity);

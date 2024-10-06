@@ -1,5 +1,7 @@
 export type Point = { x: number; y: number };
 
+export const copy = (position: Point) => ({ x: position.x, y: position.y });
+
 export const add = (first: Point, second: Point) => ({
   x: first.x + second.x,
   y: first.y + second.y,
@@ -24,10 +26,10 @@ export function* reversed<T>(array: T[]) {
   }
 }
 
-export const random = (minimum: number, maximum: number) =>
+export const random = (minimum: number, maximumInclusive: number) =>
   Math.min(
-    Math.floor(Math.random() * (maximum - minimum + 1)) + minimum,
-    maximum
+    Math.floor(Math.random() * (maximumInclusive - minimum + 1)) + minimum,
+    maximumInclusive
   );
 
 export const distribution = (...counts: number[]) => {

@@ -3,6 +3,7 @@ import { World } from "../ecs";
 
 export type Inventory = {
   items: number[];
+  size: number;
 };
 
 export const INVENTORY = "INVENTORY";

@@ -1,9 +1,11 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import { Matrix } from "../../game/math/matrix";
 
 export type Level = {
   // map[x][y][entityId] = entity
   map: Record<number, Entity>[][];
+  walkable: Matrix<0 | 1>;
   size: number;
 };
 

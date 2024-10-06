@@ -3,13 +3,22 @@
 ## Creatures
 
 - Player
-- Villager (trade)
-- Triangle (linear)
-- Circle (following)
+- Prism (linear)
+- Eye (following)
 - Fairy (fleeing)
 - Question mark (mimicking)
 - Shark (swimming)
 - Alphabet boss (towers casting)
+
+## Tribes
+
+- Fire (red hair, burn trees)
+- Water (blue hair, freeze water)
+- Earth (green hair, mine rocks)
+
+## Villagers
+
+- Druid/Nomad/Smith/Guard/Rogue/Scout/Baker/Forge/Chief/Elder/Miner/Mage (trade)
 
 ## Units
 
@@ -106,9 +115,19 @@
 ## Tech debt
 
 - Multiple item drops stack, should be placed next to each other
-- Door needs empty layers to appear above player
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
 - Animations mutate state and don't really animate things, maybe better called Sequences
-- Collecting items can disappear if animation is interrupted
 - Compass needle could be an animation and particle
 - Make banner text floating
+- Attacking should have a bump movement
+- Colors should be available without star import
+- Pressed button could be implemented in ECS system rather than React state
+- Sprite "none" should be obsolete
+- Opacity overlaps individual sprites, should be animated color to black
+- Touch origin should create an anchor and display current direction
+- Unlocking could be a reverse collecting animation
+- Houses should be part of a larger structure
+- It's possible to look inside a house from top
+- Patterns could execute directly after each other, maybe by indicating a return value once finished
+- Dialog does not need to flip if out of range
+- Button should be disabled if not actionable
