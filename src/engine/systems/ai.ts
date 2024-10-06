@@ -17,13 +17,9 @@ import { findPath, relativeOrientation } from "../../game/math/path";
 import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
 import { isLocked } from "./action";
-import { ITEM, Material } from "../components/item";
-import { LOCKABLE } from "../components/lockable";
-import { SPRITE } from "../components/sprite";
-import { LIGHT } from "../components/light";
-import { updateWalkable } from "./map";
-import { lockMaterials } from "./trigger";
-import { lockedIron, shop } from "../../game/assets/sprites";
+import { ITEM } from "../components/item";
+import { lockDoor } from "./trigger";
+import { shop } from "../../game/assets/sprites";
 import { dropItem } from "./drop";
 
 export default function setupAi(world: World) {
@@ -104,16 +100,10 @@ export default function setupAi(world: World) {
         patterns.shift();
       } else if (pattern.name === "lock") {
         const memory = pattern.memory;
-        const targetEntity = world.getEntityById(memory.target);
 
         // lock door
-        targetEntity[LOCKABLE].locked = true;
-        targetEntity[SPRITE] =
-          lockMaterials[targetEntity[LOCKABLE].material as Material]?.door ||
-          lockedIron;
-        targetEntity[LIGHT].orientation = undefined;
-        rerenderEntity(world, targetEntity);
-        updateWalkable(world, targetEntity[POSITION]);
+        const targetEntity = world.getEntityById(memory.target);
+        lockDoor(world, targetEntity);
 
         patterns.shift();
       } else if (pattern.name === "move") {
@@ -188,9 +178,7 @@ export default function setupAi(world: World) {
           itemEntity &&
           itemEntity[ITEM].carrier === entityId;
         const dropped =
-          itemPattern &&
-          itemEntity &&
-          itemEntity[ITEM].carrier !== entityId;
+          itemPattern && itemEntity && itemEntity[ITEM].carrier !== entityId;
         const unlocked =
           pattern.name === "unlock" &&
           targetEntity &&

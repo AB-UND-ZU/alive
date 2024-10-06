@@ -503,7 +503,7 @@ export const generateWorld = async (world: World) => {
           nextDialog: 0,
         },
       });
-      if (cell === "house_door") world.setIdentifier(doorEntity, "door");
+      world.setIdentifier(doorEntity, cell);
     } else if (cell === "campfire") {
       entities.createFire(world, {
         [ANIMATABLE]: { states: {} },
