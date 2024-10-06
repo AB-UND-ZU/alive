@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { Text3D } from "@react-three/drei";
 import { useDimensions } from "../Dimensions";
 import { Layer as LayerType } from "../../engine/components/sprite";
@@ -27,11 +28,14 @@ export default function Layer({
   const Material = props.receiveShadow
     ? "meshLambertMaterial"
     : "meshBasicMaterial";
+  const color = props.receiveShadow
+    ? new THREE.Color(layer.color).multiplyScalar(1.41)
+    : layer.color;
   const AnimatedMaterial = animated[Material];
   const materialElement = props.opacity ? (
-    <AnimatedMaterial color={layer.color} transparent opacity={props.opacity} />
+    <AnimatedMaterial color={color} transparent opacity={props.opacity} />
   ) : (
-    <Material color={layer.color} />
+    <Material color={color} />
   );
 
   if (layer.char === "█") {
