@@ -28,7 +28,7 @@ export default function Layer({
   const Material = props.receiveShadow
     ? "meshLambertMaterial"
     : "meshBasicMaterial";
-  const color = props.receiveShadow
+  const color = props.receiveShadow && offsetZ === 1
     ? new THREE.Color(layer.color).multiplyScalar(1.41)
     : layer.color;
   const AnimatedMaterial = animated[Material];
