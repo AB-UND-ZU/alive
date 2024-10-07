@@ -166,3 +166,8 @@ export const createSprite = (world: World, entityId: number) => {
     layers,
   };
 };
+
+// depending on the distance between camera, object and light, the brightness might need to be adjust to original
+export const offsetFactors: Record<number, number> = {
+  1: 1.41
+}

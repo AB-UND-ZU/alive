@@ -12,6 +12,7 @@ export type LayerProps = {
   opacity?: SpringValue<number>;
   animatedOrigin?: Point;
   receiveShadow: boolean;
+  colorFactor?: number;
 };
 
 export default function Layer({
@@ -25,12 +26,10 @@ export default function Layer({
 }) {
   const dimensions = useDimensions();
 
+  const color = props.colorFactor ? new THREE.Color(layer.color).multiplyScalar(props.colorFactor) : layer.color;
   const Material = props.receiveShadow
     ? "meshLambertMaterial"
     : "meshBasicMaterial";
-  const color = props.receiveShadow && offsetZ === 1
-    ? new THREE.Color(layer.color).multiplyScalar(1.41)
-    : layer.color;
   const AnimatedMaterial = animated[Material];
   const materialElement = props.opacity ? (
     <AnimatedMaterial color={color} transparent opacity={props.opacity} />
