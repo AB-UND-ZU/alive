@@ -31,4 +31,5 @@ export { default as addSprite } from "./sprite";
 export { default as addSwimmable } from "./swimmable";
 export { default as addTooltip } from "./tooltip";
 export { default as addTrackable } from "./trackable";
+export { default as addTradable } from "./tradable";
 export { default as addViewable } from "./viewable";

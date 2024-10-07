@@ -3,15 +3,36 @@ import { Layer, SPRITE, Sprite } from "../../engine/components/sprite";
 import { World } from "../../engine";
 import { Segment } from "./Stack";
 import { Entity } from "ecs";
-import { EQUIPPABLE } from "../../engine/components/equippable";
+import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
 import { isLootable } from "../../engine/systems/collect";
 import { LOOTABLE } from "../../engine/components/lootable";
 import { LayerProps } from "./Layer";
 import { INVENTORY } from "../../engine/components/inventory";
-import { ITEM } from "../../engine/components/item";
+import {
+  Consumable,
+  ITEM,
+  Material,
+  Materialized,
+} from "../../engine/components/item";
 import { LIGHT } from "../../engine/components/light";
 import { FOG } from "../../engine/components/fog";
 import { TRACKABLE } from "../../engine/components/trackable";
+import {
+  compass,
+  fireSword,
+  goldKey,
+  ironKey,
+  ironShield,
+  ironSword,
+  lockedFire,
+  lockedGold,
+  lockedIron,
+  map,
+  none,
+  woodShield,
+  woodStick,
+} from "../../game/assets/sprites";
+import { isTradable } from "../../engine/systems/action";
 
 export const pixels = 16;
 export const textSize = 18 / 25 + 0.001;
@@ -123,7 +144,7 @@ export const getSegments = (
 
   // 5. loot
   if (
-    isLootable(world, entity) &&
+    (isLootable(world, entity) || isTradable(world, entity)) &&
     (isVisible || !isTerrain || (isTerrain && isOpaque))
   ) {
     for (const itemId of entity[INVENTORY]!.items) {
@@ -167,7 +188,47 @@ export const createSprite = (world: World, entityId: number) => {
   };
 };
 
-// depending on the distance between camera, object and light, the brightness might need to be adjust to original
+// depending on the distance between camera, object and light,
+// the brightness might need to be adjusted to match the original
 export const offsetFactors: Record<number, number> = {
-  1: 1.41
-}
+  1: 1.41,
+};
+
+const entitySprites: Record<
+  keyof Equippable | Consumable | Materialized,
+  Partial<Record<Material, Sprite>>
+> = {
+  melee: {
+    wood: woodStick,
+    iron: ironSword,
+    fire: fireSword,
+  },
+  armor: {
+    wood: woodShield,
+    iron: ironShield,
+  },
+  compass: {
+    iron: compass,
+  },
+  map: {
+    iron: map,
+  },
+  key: {
+    iron: ironKey,
+    gold: goldKey,
+  },
+  door: {
+    iron: lockedIron,
+    gold: lockedGold,
+    fire: lockedFire,
+  },
+};
+
+export const getMaterialSprite = (
+  lookup?: keyof typeof entitySprites,
+  material?: Material
+) => {
+  if (!lookup) return none;
+
+  return entitySprites[lookup][material || "iron"] || none;
+};

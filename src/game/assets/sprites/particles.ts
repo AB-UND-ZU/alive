@@ -406,4 +406,4 @@ export const createStat = (
 
 export const quest = createText("!", colors.olive)[0];
 
-export const shop = createText("$", colors.green)[0];
+export const shop = createText("$", colors.olive)[0];

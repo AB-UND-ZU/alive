@@ -32,7 +32,7 @@ import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { VIEWABLE } from "../../engine/components/viewable";
-import { isUnlocked } from "../../engine/systems/action";
+import { isTradable, isUnlocked } from "../../engine/systems/action";
 import { isEmpty } from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
 import { disposeEntity, getCell } from "../../engine/systems/map";
@@ -221,6 +221,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
   const lootId = state.particles.loot;
   const lootParticle = lootId && world.getEntityId(lootId);
   const itemId = state.args.itemId;
+  const size = world.metadata.gameEntity[LEVEL].size;
   const itemEntity = world.getEntityId(itemId);
   const lootDelay =
     world.getEntityById(entity[MOVABLE].reference)[REFERENCE].tick - 50;
@@ -284,7 +285,10 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
 
   // create loot particle
   if (!lootId && state.elapsed < lootDelay) {
-    const delta = orientationPoints[state.args.facing];
+    const delta = {
+      x: signedDistance(entity[POSITION].x, state.args.origin.x, size),
+      y: signedDistance(entity[POSITION].y, state.args.origin.y, size),
+    };
     const lootParticle = entities.createCollecting(world, {
       [ORIENTABLE]: itemEntity[ORIENTABLE],
       [PARTICLE]: {
@@ -655,6 +659,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
           memory: {
             position: { x: 155, y: 159 },
             item: world.getEntityId(keyEntity),
+            activation: [{ counter: "gold", amount: 5 }],
           },
         },
         {
@@ -792,6 +797,12 @@ export const guideQuest: Animation<"quest"> = (world, entity, state) => {
   } else if (state.args.step === "gold") {
     const goldEntity = world.getIdentifier("gold");
     if (goldEntity && goldEntity[INVENTORY].items.length === 0) {
+      world.setFocus(guideEntity);
+      state.args.step = "collect";
+      updated = true;
+    }
+  } else if (state.args.step === "collect") {
+    if (entity[COUNTABLE].gold >= 5) {
       world.setFocus();
       state.args.step = "buy";
       updated = true;
@@ -800,8 +811,7 @@ export const guideQuest: Animation<"quest"> = (world, entity, state) => {
     const keyEntity = world.getIdentifier("key");
     const containerEntity =
       keyEntity && world.getEntityById(keyEntity[ITEM].carrier);
-    if (containerEntity && containerEntity[TOOLTIP].idle) {
-      world.setFocus(containerEntity);
+    if (containerEntity && isTradable(world, containerEntity)) {
       state.args.step = "key";
       updated = true;
     }

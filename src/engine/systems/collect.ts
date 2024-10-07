@@ -16,9 +16,14 @@ import { COUNTABLE } from "../components/countable";
 import { entities } from "..";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { rerenderEntity } from "./renderer";
+import { isTradable } from "./action";
+import { removeFromInventory } from "./trigger";
 
 export const isLootable = (world: World, entity: Entity) =>
-  LOOTABLE in entity && INVENTORY in entity && !isEmpty(world, entity);
+  LOOTABLE in entity &&
+  INVENTORY in entity &&
+  !isEmpty(world, entity) &&
+  !isTradable(world, entity);
 
 export const getLootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
@@ -33,6 +38,66 @@ export const isEmpty = (world: World, entity: Entity) =>
 export const isFull = (world: World, entity: Entity) =>
   INVENTORY in entity &&
   entity[INVENTORY].items.length >= entity[INVENTORY].size;
+
+export const collectItem = (world: World, entity: Entity, target: Entity) => {
+  // handle pick up
+  for (
+    let itemIndex = target[INVENTORY].items.length - 1;
+    itemIndex >= 0;
+    itemIndex -= 1
+  ) {
+    const itemId = target[INVENTORY].items[itemIndex];
+    const itemEntity = world.getEntityById(itemId);
+    // reduce counter items
+    const counter = itemEntity[ITEM].counter;
+    const slot = itemEntity[ITEM].slot;
+    const consume = itemEntity[ITEM].consume;
+    if (counter) {
+      // skip if counter exceeded
+      if (
+        entity[COUNTABLE][counter] >= 99 ||
+        (["hp", "mp"].includes(counter) &&
+          entity[COUNTABLE][counter] >= entity[COUNTABLE].xp)
+      )
+        continue;
+
+      itemEntity[ITEM].amount -= 1;
+    } else if (slot && isFull(world, entity)) {
+      // skip if inventory full
+      continue;
+    }
+
+    // remove from target inventory
+    if (slot || consume || itemEntity[ITEM].amount === 0) {
+      itemEntity[ITEM].carrier = world.getEntityId(entity);
+      removeFromInventory(world, target, itemEntity);
+    }
+
+    // initiate collecting animation on player
+    const animationEntity = entities.createFrame(world, {
+      [REFERENCE]: {
+        tick: -1,
+        delta: 0,
+        suspended: false,
+        suspensionCounter: -1,
+      },
+      [RENDERABLE]: { generation: 1 },
+    });
+    (entity[ANIMATABLE] as Animatable).states.collect = {
+      name: "itemCollect",
+      reference: world.getEntityId(animationEntity),
+      elapsed: 0,
+      args: { origin: target[POSITION], itemId },
+      particles: {},
+    };
+    
+    // update walkable
+    updateWalkable(world, target[POSITION]);
+
+    rerenderEntity(world, target);
+    break;
+  }
+};
 
 export default function setupCollect(world: World) {
   let referenceGenerations = -1;
@@ -81,69 +146,9 @@ export default function setupCollect(world: World) {
       const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getLootable(world, targetPosition);
 
-      if (!targetEntity?.[LOOTABLE]) continue;
+      if (!targetEntity) continue;
 
-      // handle pick up
-      for (
-        let itemIndex = targetEntity[INVENTORY].items.length - 1;
-        itemIndex >= 0;
-        itemIndex -= 1
-      ) {
-        const itemId = targetEntity[INVENTORY].items[itemIndex];
-        const itemEntity = world.getEntityById(itemId);
-
-        // reduce counter items
-        const counter = itemEntity[ITEM].counter;
-        const slot = itemEntity[ITEM].slot;
-        const consume = itemEntity[ITEM].consume;
-        if (counter) {
-          // skip if counter exceeded
-          if (
-            entity[COUNTABLE][counter] >= 99 ||
-            (["hp", "mp"].includes(counter) &&
-              entity[COUNTABLE][counter] >= entity[COUNTABLE].xp)
-          )
-            continue;
-
-          itemEntity[ITEM].amount -= 1;
-        } else if (slot && isFull(world, entity)) {
-          // skip if inventory full
-          continue;
-        }
-
-        // remove from target inventory
-        if (slot || consume || itemEntity[ITEM].amount === 0) {
-          itemEntity[ITEM].carrier = entityId;
-          targetEntity[INVENTORY].items.splice(
-            targetEntity[INVENTORY].items.indexOf(itemId),
-            1
-          );
-        }
-
-        // initiate collecting animation on player
-        const animationEntity = entities.createFrame(world, {
-          [REFERENCE]: {
-            tick: -1,
-            delta: 0,
-            suspended: false,
-            suspensionCounter: -1,
-          },
-          [RENDERABLE]: { generation: 1 },
-        });
-        (entity[ANIMATABLE] as Animatable).states.collect = {
-          name: "itemCollect",
-          reference: world.getEntityId(animationEntity),
-          elapsed: 0,
-          args: { facing: targetOrientation, itemId },
-          particles: {},
-        };
-
-        // update walkable
-        updateWalkable(world, targetPosition);
-
-        rerenderEntity(world, targetEntity);
-        break;
-      }
+      collectItem(world, entity, targetEntity);
 
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;

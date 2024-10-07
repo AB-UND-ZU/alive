@@ -15,6 +15,7 @@ export { default as createItem } from "./item";
 export { default as createNpc } from "./npc";
 export { default as createOre } from "./ore";
 export { default as createParticle } from "./particle";
+export { default as createShop } from "./shop";
 export { default as createSword } from "./sword";
 export { default as createTerrain } from "./terrain";
 export { default as createViewpoint } from "./viewpoint";

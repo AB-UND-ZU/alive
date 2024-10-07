@@ -15,9 +15,11 @@ import { Inventory, INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
-import { none } from "../../game/assets/sprites";
+import { createDialog, none, shop } from "../../game/assets/sprites";
 import { ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
+import { Tradable, TRADABLE } from "../components/tradable";
+import { COLLIDABLE } from "../components/collidable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -46,6 +48,42 @@ export const dropItem = (
   });
 
   return containerEntity;
+};
+
+export const sellItem = (
+  world: World,
+  items: Inventory["items"],
+  position: Position,
+  activation: Tradable["activation"]
+) => {
+  const itemNames = items
+    .map((itemId) => world.getEntityById(itemId)[SPRITE].name.toLowerCase())
+    .join(", ");
+  const shopEntity = entities.createShop(world, {
+    [ANIMATABLE]: { states: {} },
+    [COLLIDABLE]: {},
+    [FOG]: { visibility: "fog", type: "unit" },
+    [INVENTORY]: { items, size: items.length },
+    [LOOTABLE]: { disposable: true },
+    [POSITION]: position,
+    [RENDERABLE]: { generation: 0 },
+    [SPRITE]: none,
+    [TRADABLE]: { activation },
+    [TOOLTIP]: {
+      dialogs: [createDialog(`Buy ${itemNames}`)],
+      persistent: false,
+      nextDialog: -1,
+      idle: shop,
+    },
+  });
+  registerEntity(world, shopEntity);
+  const shopId = world.getEntityId(shopEntity);
+  items.forEach((item) => {
+    const itemEntity = world.getEntityById(item);
+    itemEntity[ITEM].carrier = shopId;
+  });
+
+  return shopEntity;
 };
 
 export default function setupDrop(world: World) {
