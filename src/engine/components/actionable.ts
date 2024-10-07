@@ -4,6 +4,7 @@ import { World } from "../ecs";
 export type Actionable = {
   quest?: number;
   unlock?: number;
+  trade?: number;
   triggered: boolean;
 };
 

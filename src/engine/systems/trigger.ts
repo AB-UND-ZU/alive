@@ -9,33 +9,25 @@ import { MOVABLE } from "../components/movable";
 import { entities } from "..";
 import { ANIMATABLE } from "../components/animatable";
 import { TOOLTIP } from "../components/tooltip";
-import { INVENTORY } from "../components/inventory";
-import { Material } from "../components/item";
+import { Inventory, INVENTORY } from "../components/inventory";
+import { ITEM } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
-import {
-  doorUnlocked,
-  goldKey,
-  ironKey,
-  lockedGold,
-  lockedIron,
-} from "../../game/assets/sprites";
-import { Sprite, SPRITE } from "../components/sprite";
+import { doorUnlocked } from "../../game/assets/sprites";
+import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
 import { disposeEntity, updateWalkable } from "./map";
-import { getUnlockKey } from "./action";
+import { canTrade, getUnlockKey, isTradable } from "./action";
+import { Tradable, TRADABLE } from "../components/tradable";
+import { COUNTABLE } from "../components/countable";
+import { getMaterialSprite } from "../../components/Entity/utils";
+import { collectItem } from "./collect";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
   (world.getEntityById(entity[ACTIONABLE].quest) ||
-    world.getEntityById(entity[ACTIONABLE].unlock));
-
-export const lockMaterials: Partial<
-  Record<Material, { door: Sprite; key: Sprite }>
-> = {
-  gold: { key: goldKey, door: lockedGold },
-  iron: { key: ironKey, door: lockedIron },
-};
+    world.getEntityById(entity[ACTIONABLE].unlock) ||
+    world.getEntityById(entity[ACTIONABLE].trade));
 
 export const unlockDoor = (world: World, entity: Entity) => {
   entity[LOCKABLE].locked = false;
@@ -47,11 +39,61 @@ export const unlockDoor = (world: World, entity: Entity) => {
 
 export const lockDoor = (world: World, entity: Entity) => {
   entity[LOCKABLE].locked = true;
-  entity[SPRITE] =
-    lockMaterials[entity[LOCKABLE].material as Material]?.door || lockedIron;
+  entity[SPRITE] = getMaterialSprite("door", entity[LOCKABLE].material);
   entity[LIGHT].orientation = undefined;
   rerenderEntity(world, entity);
   updateWalkable(world, entity[POSITION]);
+};
+
+export const removeFromInventory = (
+  world: World,
+  entity: Entity,
+  item: Entity
+) => {
+  const itemIndex = entity[INVENTORY].items.indexOf(world.getEntityId(item));
+  entity[INVENTORY].items.splice(itemIndex, 1);
+};
+
+export const performTrade = (world: World, entity: Entity, trade: Entity) => {
+  // remove counters and items
+  for (const activationItem of (trade[TRADABLE] as Tradable).activation) {
+    if (activationItem.counter) {
+      entity[COUNTABLE][activationItem.counter] -= activationItem.amount;
+    } else {
+      const tradedId = (entity[INVENTORY] as Inventory).items.find((itemId) => {
+        const itemEntity = world.getEntityById(itemId);
+        const matchesSlot =
+          activationItem.slot &&
+          itemEntity[ITEM].slot === activationItem.slot &&
+          itemEntity[ITEM].material === activationItem.material;
+        const matchesConsume =
+          activationItem.consume &&
+          itemEntity[ITEM].consume === activationItem.consume &&
+          itemEntity[ITEM].material === activationItem.material;
+        return matchesSlot || matchesConsume;
+      });
+
+      if (tradedId) {
+        const tradedEntity = world.getEntityById(tradedId);
+        removeFromInventory(world, entity, tradedEntity);
+        disposeEntity(world, tradedEntity);
+      } else {
+        console.error("Unable to perform trade!", {
+          entity,
+          trade,
+          item: activationItem,
+        });
+      }
+    }
+  }
+
+  // mark tradable as done
+  trade[TRADABLE].activation = [];
+  trade[TOOLTIP].dialogs = [];
+  trade[TOOLTIP].changed = true;
+  trade[TOOLTIP].idle = undefined;
+
+  rerenderEntity(world, trade);
 };
 
 export default function setupTrigger(world: World) {
@@ -123,12 +165,20 @@ export default function setupTrigger(world: World) {
 
         // unlock door and remove key
         unlockDoor(world, unlockEntity);
+        removeFromInventory(world, entity, keyEntity);
         disposeEntity(world, keyEntity);
-        const keyIndex = entity[INVENTORY].items.indexOf(
-          world.getEntityId(keyEntity)
-        );
-        entity[INVENTORY].items.splice(keyIndex, 1);
         rerenderEntity(world, entity);
+      } else if (entity[ACTIONABLE].trade) {
+        const tradeEntity = world.getEntityById(entity[ACTIONABLE].trade);
+
+        if (
+          !isTradable(world, tradeEntity) ||
+          !canTrade(world, entity, tradeEntity)
+        )
+          continue;
+
+        performTrade(world, entity, tradeEntity);
+        collectItem(world, entity, tradeEntity);
       }
     }
   };

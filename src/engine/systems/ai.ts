@@ -18,9 +18,8 @@ import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
 import { isLocked } from "./action";
 import { ITEM } from "../components/item";
-import { lockDoor } from "./trigger";
-import { shop } from "../../game/assets/sprites";
-import { dropItem } from "./drop";
+import { lockDoor, removeFromInventory } from "./trigger";
+import { dropItem, sellItem } from "./drop";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -158,7 +157,7 @@ export default function setupAi(world: World) {
         const movablePattern = ["kill", "collect"].includes(pattern.name);
         const itemPattern = ["drop", "sell"].includes(pattern.name);
         const memory = pattern.memory;
-        const itemEntity = world.getEntityById(memory.item);
+        const itemEntity = memory.item && world.getEntityById(memory.item);
         const targetEntity =
           pattern.name === "collect"
             ? world.getEntityById(itemEntity[ITEM].carrier)
@@ -235,15 +234,22 @@ export default function setupAi(world: World) {
           if (hasArrived && pattern.name === "unlock") {
             entity[ACTIONABLE].triggered = true;
           } else if (hasArrived && itemPattern) {
-            const containerEntity = dropItem(
-              world,
-              [memory.item],
-              memory.position
-            );
-
-            if (pattern.name === "sell") {
-              containerEntity[TOOLTIP].idle = shop;
+            if (pattern.name === 'drop') {
+              dropItem(
+                world,
+                [memory.item],
+                memory.position
+              );
+            } else if (pattern.name === "sell") {
+              sellItem(
+                world,
+                [memory.item],
+                memory.position,
+                memory.activation,
+              );
             }
+
+            removeFromInventory(world, entity, itemEntity)
           }
 
           if (!hasArrived || !movablePattern) memory.path.shift();

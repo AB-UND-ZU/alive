@@ -10,8 +10,8 @@ import Row from "../Row";
 import {
   buttonColor,
   createButton,
+  createStat,
   createText,
-  ironKey,
   none,
   quest,
 } from "../../game/assets/sprites";
@@ -19,12 +19,13 @@ import * as colors from "../../game/assets/colors";
 import { ACTIONABLE } from "../../engine/components/actionable";
 import { repeat } from "../../game/math/std";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
-import { createSprite } from "../Entity/utils";
-import { getAction, lockMaterials } from "../../engine/systems/trigger";
+import { createSprite, getMaterialSprite } from "../Entity/utils";
+import { getAction } from "../../engine/systems/trigger";
 import { Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
-import { Material } from "../../engine/components/item";
-import { getUnlockKey } from "../../engine/systems/action";
+import { Item } from "../../engine/components/item";
+import { canTrade, getUnlockKey } from "../../engine/systems/action";
+import { TRADABLE } from "../../engine/components/tradable";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -39,14 +40,26 @@ export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
 
 export const actionKeys = [" ", "Enter"];
 
+const getActivationRow = (item?: Item) => {
+  if (!item) return repeat(none, 3);
+
+  if (item.counter) return createStat(item.amount, item.counter, true);
+
+  return [
+    none,
+    getMaterialSprite(item.slot || item.consume, item.material),
+    none,
+  ];
+};
+
 const buttonWidth = 6;
 const inventoryWidth = 10;
 
 type Action = {
-    name: string;
-    activation: [Sprite[], Sprite[]];
-    disabled: boolean;
-  }
+  name: string;
+  activation: [Sprite[], Sprite[]];
+  disabled: boolean;
+};
 
 export default function Controls() {
   const dimensions = useDimensions();
@@ -76,11 +89,11 @@ export default function Controls() {
         activation: [
           [
             none,
-            (unlockId &&
-              lockMaterials[
-                ecs.getEntityById(unlockId)[LOCKABLE].material as Material
-              ]?.key) ||
-              ironKey,
+            unlockId &&
+              getMaterialSprite(
+                "key",
+                ecs.getEntityById(unlockId)[LOCKABLE].material
+              ),
             none,
           ],
           repeat(none, 3),
@@ -90,7 +103,23 @@ export default function Controls() {
     [unlockId, ecs, hero]
   );
 
-  const activeAction = questAction || unlockAction;
+  const tradeId = hero?.[ACTIONABLE].trade;
+  const tradeAction = useMemo<Action | undefined>(() => {
+    if (!ecs || !tradeId) return;
+
+    const tradeEntity = ecs.getEntityById(tradeId);
+    const activation = tradeEntity[TRADABLE].activation;
+    return {
+      name: "Buy",
+      activation: [
+        getActivationRow(activation[0]),
+        getActivationRow(activation[1]),
+      ],
+      disabled: !canTrade(ecs, hero, ecs.getEntityById(tradeId)),
+    };
+  }, [ecs, hero, tradeId]);
+
+  const activeAction = questAction || unlockAction || tradeAction;
 
   const handleAction = useCallback(
     (
@@ -108,7 +137,12 @@ export default function Controls() {
       if (!reference) return;
 
       // skip if waiting for cooldown or not actionable
-      if (hero[ACTIONABLE].triggered || !getAction(ecs, hero) || activeAction?.disabled) return;
+      if (
+        hero[ACTIONABLE].triggered ||
+        !getAction(ecs, hero) ||
+        activeAction?.disabled
+      )
+        return;
 
       hero[ACTIONABLE].triggered = true;
 
@@ -269,11 +303,17 @@ export default function Controls() {
     action && createButton(repeat(none, buttonWidth), buttonWidth, false, true);
   const emptyButton = [repeat(none, buttonWidth), repeat(none, buttonWidth)];
   const actionButton =
-    activeAction && createButton(createText(activeAction.name, buttonColor), buttonWidth, activeAction.disabled);
+    activeAction &&
+    createButton(
+      createText(activeAction.name, buttonColor),
+      buttonWidth,
+      activeAction.disabled
+    );
   const button = pressedButton || actionButton || emptyButton;
 
   const emptyActivation = [repeat(none, 3), repeat(none, 3)];
-  const activation = action?.activation || activeAction?.activation || emptyActivation;
+  const activation =
+    action?.activation || activeAction?.activation || emptyActivation;
 
   const itemSprites =
     ecs && hero?.[INVENTORY]

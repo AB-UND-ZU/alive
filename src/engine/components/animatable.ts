@@ -3,13 +3,14 @@ import { World } from "../ecs";
 import * as animations from "../../game/assets/animations";
 import { Orientation } from "./orientable";
 import { Sprite } from "./sprite";
+import { Position } from "./position";
 
 export type AnimationArgument = {
   counter: { facing: Orientation; amount: number };
   decay: {};
   burn: { generation: 0 };
   dispose: {};
-  collect: { facing: Orientation; itemId: number };
+  collect: { origin: Position; itemId: number };
   focus: {};
   melee: { facing: Orientation };
   quest: { step: string };

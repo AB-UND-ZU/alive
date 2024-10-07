@@ -3,9 +3,11 @@ import { World } from "../ecs";
 import { Equippable } from "./equippable";
 import { Countable } from "./countable";
 
-export type Material = 'wood' | 'iron' | 'gold' | 'fire' | 'water';
+export type Material = "wood" | "iron" | "gold" | "fire" | "water";
 
-export type Consumable = 'key'
+export type Consumable = "key";
+
+export type Materialized = "door";
 
 export type Item = {
   carrier?: number;
