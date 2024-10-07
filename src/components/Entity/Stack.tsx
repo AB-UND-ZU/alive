@@ -1,5 +1,10 @@
 import { Sprite as SpriteType } from "../../engine/components/sprite";
-import { getFacingLayers, stack, stackHeight } from "./utils";
+import {
+  getFacingLayers,
+  offsetFactors,
+  stack,
+  stackHeight,
+} from "./utils";
 import { useWorld } from "../../bindings/hooks";
 import { Orientation } from "../../engine/components/orientable";
 import Sprite, { AnimatedSprite } from "./Sprite";
@@ -34,13 +39,19 @@ export default function Stack({ segments }: { segments: Segment[] }) {
     );
     layerCount += layers.length;
 
+    let layerProps = segment.layerProps;
+    const colorFactor = offsetFactors[segment.offsetZ];
+    if (colorFactor && layerProps.receiveShadow) {
+      layerProps = { ...layerProps, colorFactor };
+    }
+
     const SpriteComponent = segment.layerProps.animatedOrigin
       ? AnimatedSprite
       : Sprite;
     sprites.push(
       <SpriteComponent
         key={i}
-        layerProps={segment.layerProps}
+        layerProps={layerProps}
         sprite={segment.sprite}
         facing={segment.facing}
         amount={segment.amount}
