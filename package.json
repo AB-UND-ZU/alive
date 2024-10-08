@@ -4,7 +4,6 @@
   "private": true,
   "homepage": "https://ab-und-zu.github.io/alive",
   "dependencies": {
-    "@react-spring/three": "^9.7.4",
     "@react-three/drei": "^9.109.2",
     "@react-three/fiber": "^8.16.8",
     "@testing-library/jest-dom": "^5.17.0",
