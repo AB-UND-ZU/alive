@@ -2,7 +2,7 @@
 
 ASCII-based 2D adventure game. Using React and Three.js (with react-three-fiber).
 
-Only the 256 characters from the "DOS Font" (code page 437) are used, along with original 16 terminal colors. To create all sprites, characters are stacked over each other (with the only exception of health bars, they are underscores `_` transformed to the appropriate length).
+Only the 256 characters in code page 437 from the "DOS Font" are used (available here: https://laemeur.sdf.org/fonts/), along with original 16 terminal colors. To create all sprites, characters are stacked over each other (with the only exception of health bars, they are underscores `_` transformed to the appropriate length).
 
 
 ## Demo

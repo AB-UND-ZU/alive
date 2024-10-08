@@ -51,7 +51,7 @@ export default function Layer({
 
   return (
     <Text3D
-      font="/fonts/MostPerfectDOSVGA.json"
+      font={`${process.env.PUBLIC_URL}/fonts/MostPerfectDOSVGA.json`}
       receiveShadow={props.receiveShadow}
       size={textSize}
       position={[-0.5 * dimensions.aspectRatio, -0.25, offsetZ]}
