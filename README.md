@@ -1,5 +1,18 @@
 # Alive
 
+ASCII-based 2D adventure game. Using React and Three.js (with react-three-fiber).
+
+Only the 256 characters from the "DOS Font" (code page 437) are used, along with original 16 terminal colors. To create all sprites, characters are stacked over each other (with the only exception of health bars, they are underscores `_` transformed to the appropriate length).
+
+
+## Demo
+
+Play it here: https://ab-und-zu.github.io/alive
+
+![Spawn](docs/spawn.png)
+
+_Spawn area with intro quest_
+
 ## Creatures
 
 - Player
