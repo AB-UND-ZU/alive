@@ -1,6 +1,23 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
+export const sign: Sprite = {
+  name: "Sign",
+  layers: [
+    { char: "i", color: colors.maroon },
+    { char: "▀", color: colors.grey },
+  ],
+};
+
+export const anvil: Sprite = {
+  name: "Anvil",
+  layers: [
+    { char: "\u2261", color: colors.grey },
+    { char: "-", color: colors.silver },
+    { char: "\u011e", color: colors.grey },
+  ],
+};
+
 export const roofUp: Sprite = {
   name: "roof_up",
   layers: [
@@ -68,12 +85,7 @@ export const roofLeftUp: Sprite = {
 
 export const house: Sprite = {
   name: "house",
-  layers: [
-    {
-      char: "█",
-      color: colors.grey,
-    },
-  ],
+  layers: [{ char: "█", color: colors.grey }],
 };
 
 export const houseLeft: Sprite = {
