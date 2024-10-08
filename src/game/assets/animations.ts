@@ -24,15 +24,17 @@ import {
   orientationPoints,
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
-import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
-import { QUEST } from "../../engine/components/quest";
 import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { VIEWABLE } from "../../engine/components/viewable";
-import { isTradable, isUnlocked } from "../../engine/systems/action";
+import {
+  hasAvailableQuest,
+  isTradable,
+  isUnlocked,
+} from "../../engine/systems/action";
 import { isEmpty } from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
 import { disposeEntity, getCell } from "../../engine/systems/map";
@@ -56,7 +58,6 @@ import {
   goldKey,
   hit,
   none,
-  quest,
   woodStick,
 } from "./sprites";
 
@@ -380,16 +381,16 @@ const charDelay = 33;
 const tooltipDelay = 500;
 
 export const dialogText: Animation<"dialog"> = (world, entity, state) => {
-  const hero = world.getEntity([PLAYER]);
+  const heroEntity = world.getIdentifier("hero");
 
   let updated = false;
 
   // display if located in any adjacent cell
   const size = world.metadata.gameEntity[LEVEL].size;
-  const delta = hero
+  const delta = heroEntity
     ? {
-        x: signedDistance(hero[POSITION].x, entity[POSITION].x, size),
-        y: signedDistance(hero[POSITION].y, entity[POSITION].y, size),
+        x: signedDistance(heroEntity[POSITION].x, entity[POSITION].x, size),
+        y: signedDistance(heroEntity[POSITION].y, entity[POSITION].y, size),
       }
     : { x: 0, y: 0 };
   const isAdjacent = Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
@@ -520,9 +521,10 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
   let finished = false;
   let updated = false;
   const heroEntity = world.getIdentifier("hero");
+  const focusEntity = world.getIdentifier("focus");
   const viewpointEntity = world.getIdentifier("viewpoint");
 
-  if (!heroEntity || !viewpointEntity) {
+  if (!heroEntity || !viewpointEntity || !focusEntity) {
     return { finished, updated };
   }
 
@@ -545,13 +547,12 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       heroEntity[POSITION].x !== initialPosition.x ||
       heroEntity[POSITION].y !== initialPosition.y
     ) {
-      world.addQuest(entity, { id: "guideQuest" });
+      world.addQuest(entity, { name: "guideQuest" });
       entity[BEHAVIOUR].patterns.push({
         name: "dialog",
         memory: {
           override: undefined,
           changed: true,
-          idle: quest,
           dialogs: [
             createDialog("Hi stranger."),
             createDialog("How are you?"),
@@ -564,7 +565,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   } else if (state.args.step === "chest") {
-    if (!entity[QUEST].id) {
+    if (!hasAvailableQuest(world, entity)) {
       const chestEntity = world.getIdentifier("compass_chest");
       entity[BEHAVIOUR].patterns.push(
         {
@@ -726,7 +727,8 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
           const cell = getCell(world, { x, y });
           let hasAir = false;
           Object.values(cell).forEach((cellEntity) => {
-            if (cellEntity[PLAYER]) return;
+            // don't remove player and focus
+            if (cellEntity === heroEntity || cellEntity === focusEntity) return;
 
             if (!(FOG in cellEntity)) {
               disposeEntity(world, cellEntity);
@@ -830,11 +832,38 @@ export const guideQuest: Animation<"quest"> = (world, entity, state) => {
     const doorEntity = world.getIdentifier("door");
     const focusEntity = world.getIdentifier("focus");
     if (doorEntity && focusEntity && isUnlocked(world, doorEntity)) {
-      // keep compass pointing to door
-      focusEntity[FOCUSABLE].pendingTarget = undefined;
-      state.args.step = "finished";
+      world.setFocus();
+      state.args.step = "done";
       finished = true;
     }
+  }
+
+  return { finished, updated };
+};
+
+export const townQuest: Animation<"quest"> = (world, entity, state) => {
+  let finished = false;
+  let updated = false;
+  const signEntity = world.getIdentifier("sign");
+
+  if (!signEntity) {
+    return { finished, updated };
+  }
+
+  if (state.args.step === "initial") {
+    signEntity[TOOLTIP].changed = true;
+    signEntity[TOOLTIP].dialogs = [createDialog("Use compass")];
+
+    const viewpointEntity = entities.createViewpoint(world, {
+      [POSITION]: { x: 60, y: 60 },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: none,
+      [VIEWABLE]: { active: false },
+    });
+    world.setFocus(viewpointEntity);
+
+    state.args.step = "done";
+    finished = true;
   }
 
   return { finished, updated };

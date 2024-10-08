@@ -18,8 +18,8 @@ export default function createTerrain(
 ) {
   const terrainEntity = world.createEntity();
 
-  components.addCollidable(world, terrainEntity , entity[COLLIDABLE]);
-  components.addFog(world, terrainEntity , entity[FOG]);
+  components.addCollidable(world, terrainEntity, entity[COLLIDABLE]);
+  components.addFog(world, terrainEntity, entity[FOG]);
   components.addPosition(world, terrainEntity, entity[POSITION]);
   components.addRenderable(world, terrainEntity, entity[RENDERABLE]);
   components.addSprite(world, terrainEntity, entity[SPRITE]);

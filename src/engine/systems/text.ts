@@ -53,7 +53,7 @@ export default function setupText(world: World) {
         // handle overrides in next step
         if (!tooltipEntity?.[ANIMATABLE] || tooltipEntity?.[TOOLTIP].override)
           continue;
-
+        
         activeTooltips.push(tooltipEntity);
       }
     }
