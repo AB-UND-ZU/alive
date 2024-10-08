@@ -32,6 +32,9 @@ export default function setupNeedle(world: World) {
       const originId = entity[ITEM].carrier;
       const targetId = entity[TRACKABLE].target;
 
+      // reset needle
+      if (!targetId) entity[ORIENTABLE].facing = undefined;
+
       if (!originId || !targetId || originId === targetId) continue;
 
       const entityId = world.getEntityId(entity);

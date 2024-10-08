@@ -20,6 +20,9 @@ export const getQuest = (world: World, position: Position) =>
     | Entity
     | undefined;
 
+export const hasAvailableQuest = (world: World, entity: Entity) =>
+  !!entity[QUEST]?.name;
+
 export const getLockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
     (entity) => LOCKABLE in entity
@@ -119,7 +122,12 @@ export default function setupAction(world: World) {
           const tradeEntity = getTrade(world, targetPosition);
 
           // only player can accept quests
-          if (PLAYER in entity && !quest && questEntity?.[QUEST].id)
+          if (
+            !quest &&
+            questEntity &&
+            PLAYER in entity &&
+            hasAvailableQuest(world, questEntity)
+          )
             quest = questEntity;
 
           // only locked doors can be unlocked

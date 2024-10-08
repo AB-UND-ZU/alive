@@ -7,6 +7,9 @@ import { IDENTIFIABLE } from "./components/identifiable";
 import { Quest, QUEST } from "./components/quest";
 import { TRACKABLE } from "./components/trackable";
 import { FOCUSABLE } from "./components/focusable";
+import { TOOLTIP } from "./components/tooltip";
+import { quest as questSprite } from "../game/assets/sprites";
+import { rerenderEntity } from "./systems/renderer";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
@@ -42,6 +45,12 @@ export default function createWorld(size: number) {
   // util methods to avoid calling ECS directly
   const addQuest = (entity: Entity, quest: Quest) => {
     addComponentToEntity(entity, QUEST, quest);
+    entity[TOOLTIP].idle = questSprite;
+  };
+
+  const removeQuest = (entity: Entity) => {
+    entity[QUEST].name = undefined;
+    entity[TOOLTIP].idle = undefined;
   };
 
   const setIdentifier = (entity: Entity, identifier: string) => {
@@ -61,7 +70,10 @@ export default function createWorld(size: number) {
     if (!focusEntity || !compassEntity) return;
 
     compassEntity[TRACKABLE].target = entityId;
+    rerenderEntity(ecs, compassEntity);
+
     focusEntity[FOCUSABLE].pendingTarget = entityId;
+    rerenderEntity(ecs, focusEntity);
   };
 
   const ecs = {
@@ -78,6 +90,7 @@ export default function createWorld(size: number) {
     cleanup,
 
     addQuest,
+    removeQuest,
     setFocus,
 
     getIdentifier,

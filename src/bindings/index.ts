@@ -60,7 +60,13 @@ import { ORIENTABLE } from "../engine/components/orientable";
 import { ANIMATABLE } from "../engine/components/animatable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import { initialPosition, menuArea } from "../game/assets/areas";
-import { copy, distribution, normalize, random } from "../game/math/std";
+import {
+  copy,
+  distribution,
+  normalize,
+  random,
+  signedDistance,
+} from "../game/math/std";
 import { LOOTABLE } from "../engine/components/lootable";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { INVENTORY } from "../engine/components/inventory";
@@ -82,6 +88,7 @@ import {
   roofRightDown,
   roofUp,
   roofUpRight,
+  sign,
   window,
 } from "../game/assets/sprites/structures";
 import { BURNABLE } from "../engine/components/burnable";
@@ -99,8 +106,8 @@ export const generateWorld = async (world: World) => {
 
   const worldMatrix = matrixFactory<string>(size, size, (x, y) => {
     // distance from zero
-    const deltaX = size / 2 - Math.abs(x - size / 2);
-    const deltaY = size / 2 - Math.abs(y - size / 2);
+    const deltaX = Math.abs(signedDistance(0, x, size));
+    const deltaY = Math.abs(signedDistance(0, y, size));
 
     // clear square menu area
     if (deltaX < menuRows[0].length / 2 && deltaY < menuRows.length / 2)
@@ -197,15 +204,15 @@ export const generateWorld = async (world: World) => {
       else if (cell === "↔") entity = "key";
       else if (cell === "├") entity = "house_left";
       else if (cell === "┤") entity = "house_right";
-      else if (cell === "┼") entity = "house";
+      else if (cell === "─") entity = "house";
       else if (cell === "┴") entity = "house_window";
       else if (cell === "Φ") entity = "house_door";
-      else if (cell === "╕") entity = "roof_left_up";
-      else if (cell === "═") entity = "roof_up";
-      else if (cell === "╒") entity = "roof_up_right";
-      else if (cell === "╡") entity = "roof_down_left";
-      else if (cell === "─") entity = "roof_down";
-      else if (cell === "╞") entity = "roof_right_down";
+      else if (cell === "╒") entity = "roof_left_up";
+      else if (cell === "╤") entity = "roof_up";
+      else if (cell === "╕") entity = "roof_up_right";
+      else if (cell === "╞") entity = "roof_down_left";
+      else if (cell === "╧") entity = "roof_down";
+      else if (cell === "╡") entity = "roof_right_down";
       else {
         console.error(`Unrecognized cell: ${cell}!`);
       }
@@ -884,7 +891,7 @@ export const generateWorld = async (world: World) => {
   });
   world.setIdentifier(highlighEntity, "focus");
 
-  // create viewpoimt for menu area
+  // create viewpoint for menu area
   const viewpointEntity = entities.createViewpoint(world, {
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
@@ -892,6 +899,23 @@ export const generateWorld = async (world: World) => {
     [VIEWABLE]: { active: true },
   });
   world.setIdentifier(viewpointEntity, "viewpoint");
+
+  // add quest sign after exiting
+  const signEntity = entities.createSign(world, {
+    [ANIMATABLE]: { states: {} },
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [COLLIDABLE]: {},
+    [POSITION]: { x: 0, y: 10 },
+    [RENDERABLE]: { generation: 0 },
+    [SPRITE]: sign,
+    [TOOLTIP]: {
+      dialogs: [createDialog("Find the town")],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  world.setIdentifier(signEntity, "sign");
+  world.addQuest(signEntity, { name: "townQuest" });
 
   // start ordered systems
   world.addSystem(systems.setupMap);

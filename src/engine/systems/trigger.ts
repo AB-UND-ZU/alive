@@ -145,7 +145,7 @@ export default function setupTrigger(world: World) {
           [RENDERABLE]: { generation: 1 },
         });
         entity[ANIMATABLE].states.quest = {
-          name: questEntity[QUEST].id,
+          name: questEntity[QUEST].name,
           reference: world.getEntityId(animationEntity),
           elapsed: 0,
           args: { step: "initial" },
@@ -153,8 +153,8 @@ export default function setupTrigger(world: World) {
         };
 
         // remove quest from target
-        questEntity[QUEST].id = undefined;
-        questEntity[TOOLTIP].idle = undefined;
+        world.removeQuest(questEntity)
+
       } else if (entity[ACTIONABLE].unlock) {
         const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
 
