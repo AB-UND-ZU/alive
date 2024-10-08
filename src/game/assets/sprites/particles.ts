@@ -6,198 +6,93 @@ import { repeat } from "../../math/std";
 
 export const block: Sprite = {
   name: "block_solid",
-  layers: [
-    {
-      char: "█",
-      color: colors.maroon,
-    },
-  ],
+  layers: [{ char: "█", color: colors.maroon }],
 };
 
 export const block_down: Sprite = {
   name: "block_down",
-  layers: [
-    {
-      char: "▄",
-      color: colors.maroon,
-    },
-  ],
+  layers: [{ char: "▄", color: colors.maroon }],
 };
 
 export const block_up: Sprite = {
   name: "block_up",
-  layers: [
-    {
-      char: "▀",
-      color: colors.maroon,
-    },
-  ],
+  layers: [{ char: "▀", color: colors.maroon }],
 };
 
 export const frozen: Sprite = {
   name: "water_frozen",
-  layers: [
-    {
-      char: "▓",
-      color: colors.aqua,
-    },
-  ],
+  layers: [{ char: "▓", color: colors.aqua }],
 };
 
 export const hit: Sprite = {
   name: "hit_melee",
-  layers: [
-    {
-      char: "x",
-      color: colors.red,
-    },
-  ],
+  layers: [{ char: "x", color: colors.red }],
   amounts: {
-    single: [
-      {
-        char: "x",
-        color: colors.red,
-      },
-    ],
+    single: [{ char: "x", color: colors.red }],
     double: [
-      {
-        char: "/",
-        color: colors.red,
-      },
-      {
-        char: "\\",
-        color: colors.red,
-      },
+      { char: "/", color: colors.red },
+      { char: "\\", color: colors.red },
     ],
-    multiple: [
-      {
-        char: "X",
-        color: colors.red,
-      },
-    ],
+    multiple: [{ char: "X", color: colors.red }],
   },
 };
 
 export const fire: Sprite = {
   name: "fire_burn",
   layers: [
-    {
-      char: "\u010e",
-      color: colors.red,
-    },
-    {
-      char: "*",
-      color: colors.yellow,
-    },
+    { char: "\u010e", color: colors.red },
+    { char: "*", color: colors.yellow },
   ],
   amounts: {
     single: [
-      {
-        char: "+",
-        color: colors.red,
-      },
-      {
-        char: "·",
-        color: colors.yellow,
-      },
+      { char: "+", color: colors.red },
+      { char: "·", color: colors.yellow },
     ],
     double: [
-      {
-        char: "*",
-        color: colors.red,
-      },
-      {
-        char: "+",
-        color: colors.yellow,
-      },
+      { char: "*", color: colors.red },
+      { char: "+", color: colors.yellow },
     ],
     multiple: [
-      {
-        char: "\u010e",
-        color: colors.red,
-      },
-      {
-        char: "*",
-        color: colors.yellow,
-      },
+      { char: "\u010e", color: colors.red },
+      { char: "*", color: colors.yellow },
     ],
   },
 };
 
 export const decay: Sprite = {
   name: "unit_decay",
-  layers: [
-    {
-      char: "▒",
-      color: colors.black,
-    },
-  ],
+  layers: [{ char: "▒", color: colors.black }],
 };
 
 export const shot: Sprite = {
   name: "arrow_shot",
   layers: [
-    {
-      char: "\u0119",
-      color: colors.grey,
-    },
-    {
-      char: "-",
-      color: colors.maroon,
-    },
+    { char: "\u0119", color: colors.grey },
+    { char: "-", color: colors.maroon },
   ],
   facing: {
     up: [
-      {
-        char: "\u0117",
-        color: colors.grey,
-      },
-      {
-        char: "|",
-        color: colors.maroon,
-      },
+      { char: "\u0117", color: colors.grey },
+      { char: "|", color: colors.maroon },
     ],
     right: [
-      {
-        char: "\u0119",
-        color: colors.grey,
-      },
-      {
-        char: "-",
-        color: colors.maroon,
-      },
+      { char: "\u0119", color: colors.grey },
+      { char: "-", color: colors.maroon },
     ],
     down: [
-      {
-        char: "\u0118",
-        color: colors.grey,
-      },
-      {
-        char: "|",
-        color: colors.maroon,
-      },
+      { char: "\u0118", color: colors.grey },
+      { char: "|", color: colors.maroon },
     ],
     left: [
-      {
-        char: "\u011a",
-        color: colors.grey,
-      },
-      {
-        char: "-",
-        color: colors.maroon,
-      },
+      { char: "\u011a", color: colors.grey },
+      { char: "-", color: colors.maroon },
     ],
   },
 };
 
 export const createCounter: (amount: number) => Sprite = (amount) => ({
   name: "counter_generic",
-  layers: [
-    {
-      char: amount.toString(),
-      color: colors.red,
-    },
-  ],
+  layers: [{ char: amount.toString(), color: colors.red }],
 });
 
 export const createText: (text: string, color: string) => Sprite[] = (
@@ -218,125 +113,66 @@ export const buttonShadow = colors.grey;
 
 export const button: Sprite = {
   name: "button_empty",
-  layers: [
-    {
-      char: "█",
-      color: buttonBackground,
-    },
-  ],
+  layers: [{ char: "█", color: buttonBackground }],
 };
 
 export const buttonDisabled: Sprite = {
   name: "button_disabled",
   layers: [
-    {
-      char: "█",
-      color: buttonShadow,
-    },
-    {
-      char: "░",
-      color: colors.black,
-    },
+    { char: "█", color: buttonShadow },
+    { char: "░", color: colors.black },
   ],
 };
 
 export const buttonLeftUp: Sprite = {
   name: "button_left_up",
   layers: [
-    {
-      char: "▄",
-      color: buttonBackground,
-    },
-    {
-      char: "▌",
-      color: colors.black,
-    },
-    {
-      char: "┌",
-      color: buttonShadow,
-    },
+    { char: "▄", color: buttonBackground },
+    { char: "▌", color: colors.black },
+    { char: "┌", color: buttonShadow },
   ],
 };
 
 export const buttonUp: Sprite = {
   name: "button_up",
   layers: [
-    {
-      char: "▄",
-      color: buttonBackground,
-    },
-    {
-      char: "─",
-      color: buttonShadow,
-    },
+    { char: "▄", color: buttonBackground },
+    { char: "─", color: buttonShadow },
   ],
 };
 
 export const buttonUpRight: Sprite = {
   name: "button_up_right",
   layers: [
-    {
-      char: "▄",
-      color: buttonBackground,
-    },
-    {
-      char: "▐",
-      color: colors.black,
-    },
-    {
-      char: "┐",
-      color: buttonShadow,
-    },
+    { char: "▄", color: buttonBackground },
+    { char: "▐", color: colors.black },
+    { char: "┐", color: buttonShadow },
   ],
 };
 
 export const buttonRightDown: Sprite = {
   name: "button_right_down",
   layers: [
-    {
-      char: "▀",
-      color: buttonBackground,
-    },
-    {
-      char: "▐",
-      color: colors.black,
-    },
-    {
-      char: "┘",
-      color: buttonShadow,
-    },
+    { char: "▀", color: buttonBackground },
+    { char: "▐", color: colors.black },
+    { char: "┘", color: buttonShadow },
   ],
 };
 
 export const buttonDown: Sprite = {
   name: "button_down",
   layers: [
-    {
-      char: "▀",
-      color: buttonBackground,
-    },
-    {
-      char: "─",
-      color: buttonShadow,
-    },
+    { char: "▀", color: buttonBackground },
+    { char: "─", color: buttonShadow },
   ],
 };
 
 export const buttonDownLeft: Sprite = {
   name: "button_down_left",
   layers: [
-    {
-      char: "▀",
-      color: buttonBackground,
-    },
-    {
-      char: "▌",
-      color: colors.black,
-    },
-    {
-      char: "└",
-      color: buttonShadow,
-    },
+    { char: "▀", color: buttonBackground },
+    { char: "▌", color: colors.black },
+    { char: "└", color: buttonShadow },
   ],
 };
 

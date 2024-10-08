@@ -4,63 +4,26 @@ import { Sprite } from "../../../engine/components/sprite";
 export const player: Sprite = {
   name: "player_symbol",
   layers: [
-    {
-      char: "\u010b",
-      color: colors.white,
-    },
-    {
-      char: "~",
-      color: colors.olive,
-    },
+    { char: "\u010b", color: colors.white },
+    { char: "~", color: colors.olive },
   ],
 };
 
 export const villager: Sprite = {
   name: "Druid",
   layers: [
-    {
-      char: "\u010b",
-      color: colors.white,
-    },
-    {
-      char: "'",
-      color: colors.red,
-    },
+    { char: "\u010b", color: colors.white },
+    { char: "'", color: colors.red },
   ],
 };
 
 export const triangle: Sprite = {
   name: "Prism",
-  layers: [
-    {
-      char: "\u010f",
-      color: colors.white,
-    },
-  ],
+  layers: [{ char: "\u010f", color: colors.white }],
   facing: {
-    up: [
-      {
-        char: "\u011d",
-        color: colors.white,
-      },
-    ],
-    right: [
-      {
-        char: "\u010f",
-        color: colors.white,
-      },
-    ],
-    down: [
-      {
-        char: "\u011e",
-        color: colors.white,
-      },
-    ],
-    left: [
-      {
-        char: "\u0110",
-        color: colors.white,
-      },
-    ],
+    up: [{ char: "\u011d", color: colors.white }],
+    right: [{ char: "\u010f", color: colors.white }],
+    down: [{ char: "\u011e", color: colors.white }],
+    left: [{ char: "\u0110", color: colors.white }],
   },
 };
