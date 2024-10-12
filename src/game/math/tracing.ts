@@ -12,7 +12,7 @@ type Iteration = {
   direction: Point;
   normal: Point;
   corners: Corner;
-  orientations?: Partial<Record<Orientation, Corner>>;
+  orientations: Record<Orientation, Corner>;
 };
 
 const corners = {
@@ -39,13 +39,21 @@ export const iterations: Iteration[] = [
       end: [corners.upRight, corners.rightDown, corners.rightDown],
     },
     orientations: {
-      left: {
-        start: [corners.downLeft, corners.downLeft, corners.leftUp],
-        end: [sides.up, sides.down, sides.down],
+      up: {
+        start: [sides.left, sides.left, corners.leftUp],
+        end: [corners.upRight, sides.right, sides.right],
       },
       right: {
         start: [sides.down, sides.down, sides.up],
         end: [corners.upRight, corners.rightDown, corners.rightDown],
+      },
+      down: {
+        start: [corners.downLeft, corners.downLeft, sides.left],
+        end: [sides.right, corners.rightDown, corners.rightDown],
+      },
+      left: {
+        start: [corners.downLeft, corners.downLeft, corners.leftUp],
+        end: [sides.up, sides.down, sides.down],
       },
     },
   },
@@ -58,13 +66,21 @@ export const iterations: Iteration[] = [
       end: [corners.rightDown, corners.downLeft, corners.downLeft],
     },
     orientations: {
-      left: {
-        start: [corners.leftUp, corners.leftUp, sides.up],
-        end: [sides.down, corners.downLeft, corners.downLeft],
+      up: {
+        start: [corners.leftUp, corners.leftUp, corners.upRight],
+        end: [sides.right, sides.left, sides.left],
       },
       right: {
         start: [sides.up, sides.up, corners.upRight],
         end: [corners.rightDown, sides.down, sides.down],
+      },
+      down: {
+        start: [sides.left, sides.left, sides.right],
+        end: [corners.rightDown, corners.downLeft, corners.downLeft],
+      },
+      left: {
+        start: [corners.leftUp, corners.leftUp, sides.up],
+        end: [sides.down, corners.downLeft, corners.downLeft],
       },
     },
   },
@@ -77,13 +93,21 @@ export const iterations: Iteration[] = [
       end: [corners.downLeft, corners.leftUp, corners.leftUp],
     },
     orientations: {
-      left: {
-        start: [sides.up, sides.up, sides.down],
-        end: [corners.downLeft, corners.leftUp, corners.leftUp],
+      up: {
+        start: [corners.upRight, corners.upRight, sides.right],
+        end: [sides.left, corners.leftUp, corners.leftUp],
       },
       right: {
         start: [corners.upRight, corners.upRight, corners.rightDown],
         end: [sides.down, sides.up, sides.up],
+      },
+      down: {
+        start: [sides.right, sides.right, corners.rightDown],
+        end: [corners.downLeft, sides.left, sides.left],
+      },
+      left: {
+        start: [sides.up, sides.up, sides.down],
+        end: [corners.downLeft, corners.leftUp, corners.leftUp],
       },
     },
   },
@@ -96,22 +120,39 @@ export const iterations: Iteration[] = [
       end: [corners.leftUp, corners.upRight, corners.upRight],
     },
     orientations: {
-      left: {
-        start: [sides.down, sides.down, corners.downLeft],
-        end: [corners.leftUp, sides.up, sides.up],
+      up: {
+        start: [sides.right, sides.right, sides.left],
+        end: [corners.leftUp, corners.upRight, corners.upRight],
       },
       right: {
         start: [corners.rightDown, corners.rightDown, sides.down],
         end: [sides.up, corners.upRight, corners.upRight],
       },
+      down: {
+        start: [corners.rightDown, corners.rightDown, corners.downLeft],
+        end: [sides.left, sides.right, sides.right],
+      },
+      left: {
+        start: [sides.down, sides.down, corners.downLeft],
+        end: [corners.leftUp, sides.up, sides.up],
+      },
     },
   },
 ];
 
-const getOrientedBoundaries = (iteration: Iteration, orientation?: Orientation) => (orientation && iteration.orientations?.[orientation]) || iteration.corners;
+const getOrientedBoundaries = (
+  iteration: Iteration,
+  orientation?: Orientation
+) => (orientation ? iteration.orientations[orientation] : iteration.corners);
 
 // select respective corner along the direction of normal
-const getCorner = (iteration: Iteration, segment: keyof Corner, orientation: Orientation | undefined, normal: number, point: number) => {
+const getCorner = (
+  iteration: Iteration,
+  segment: keyof Corner,
+  orientation: Orientation | undefined,
+  normal: number,
+  point: number
+) => {
   const boundaries = getOrientedBoundaries(iteration, orientation)[segment];
   if (normal * point < 0) return boundaries[0];
   if (normal * point > 0) return boundaries[2];
@@ -134,17 +175,19 @@ const cellToIntervals = (
   const startPoint = {
     x:
       point.x +
-      getCorner(iteration, 'start', orientation, iteration.normal.y, point.y).x,
+      getCorner(iteration, "start", orientation, iteration.normal.y, point.y).x,
     y:
       point.y +
-      getCorner(iteration, 'start', orientation, iteration.normal.x, point.x).y,
+      getCorner(iteration, "start", orientation, iteration.normal.x, point.x).y,
   };
 
   const endPoint = {
     x:
-      point.x + getCorner(iteration, 'end', orientation, iteration.normal.y, point.y).x,
+      point.x +
+      getCorner(iteration, "end", orientation, iteration.normal.y, point.y).x,
     y:
-      point.y + getCorner(iteration, 'end', orientation, iteration.normal.x, point.x).y,
+      point.y +
+      getCorner(iteration, "end", orientation, iteration.normal.x, point.x).y,
   };
 
   const start = pointToDegree(startPoint);
@@ -332,8 +375,10 @@ export const traceCircularVisiblity = (
   radius: number
 ) => {
   const visibleCells: Point[] = [point];
-  // if standing within obstructred terrain
-  if (getObstructing(world, point)) return visibleCells;
+  // if standing within full obstructed terrain
+  const obstructingCenter = getObstructing(world, point);
+  if (obstructingCenter && !obstructingCenter[LIGHT].orientation)
+    return visibleCells;
 
   const level = world.metadata.gameEntity[LEVEL];
   let visibleIntervals: Interval[] = [{ start: 0, end: 360 }];

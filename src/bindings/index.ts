@@ -622,12 +622,12 @@ export const generateWorld = async (world: World) => {
             },
           },
         },
-        [ATTACKABLE]: { max: 50, enemy: false },
+        [ATTACKABLE]: { max: 20, enemy: false },
         [BEHAVIOUR]: { patterns: [] },
         [COUNTABLE]: {
-          hp: 50,
+          hp: 20,
           mp: 0,
-          xp: 50,
+          xp: 20,
           gold: 0,
           wood: 0,
           iron: 0,
@@ -658,7 +658,7 @@ export const generateWorld = async (world: World) => {
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: {
           dialogs: [],
-          persistent: false,
+          persistent: true,
           nextDialog: -1,
         },
       });
@@ -783,9 +783,15 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "roof_up") {
-      entities.createTerrain(world, {
+      entities.createWall(world, {
         [COLLIDABLE]: {},
         [FOG]: { visibility: "visible", type: "float" },
+        [LIGHT]: {
+          brightness: 0,
+          darkness: 1,
+          visibility: 0,
+          orientation: 'down',
+        },
         [POSITION]: { x, y },
         [SPRITE]: roofUp,
         [RENDERABLE]: { generation: 0 },
