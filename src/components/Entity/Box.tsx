@@ -19,8 +19,12 @@ export default function Box({
     <mesh
       {...props}
       position={[
-        orientation === "right" ? dimensions.aspectRatio / 4 : orientation === 'left' ? dimensions.aspectRatio / -4 : 0,
-        0,
+        orientation === "right"
+          ? dimensions.aspectRatio / 4
+          : orientation === "left"
+          ? dimensions.aspectRatio / -4
+          : 0,
+        orientation === "down" ? -0.25 : 0,
         height / 2 + offset,
       ]}
     >
@@ -29,7 +33,7 @@ export default function Box({
           orientation === "left" || orientation === "right"
             ? dimensions.aspectRatio / 2
             : dimensions.aspectRatio,
-          1,
+          orientation === "up" || orientation === "down" ? 0.5 : 1,
           height,
         ]}
       />
