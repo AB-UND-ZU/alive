@@ -18,7 +18,7 @@ import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
 import { isLocked } from "./action";
 import { ITEM } from "../components/item";
-import { lockDoor, removeFromInventory } from "./trigger";
+import { lockDoor } from "./trigger";
 import { dropItem, sellItem } from "./drop";
 
 export default function setupAi(world: World) {
@@ -38,7 +38,14 @@ export default function setupAi(world: World) {
       // skip if dead or no pattern
       if (isDead(world, entity) || !pattern) continue;
 
-      if (pattern.name === "triangle") {
+      if (pattern.name === "wait") {
+        if (pattern.memory.ticks === 0) {
+          patterns.shift()
+          continue;
+        }
+
+        pattern.memory.ticks -= 1;
+      } else if (pattern.name === "triangle") {
         const facing = (entity[ORIENTABLE].facing ||
           orientations[random(0, orientations.length - 1)]) as Orientation;
 
@@ -248,8 +255,6 @@ export default function setupAi(world: World) {
                 memory.activation,
               );
             }
-
-            removeFromInventory(world, entity, itemEntity)
           }
 
           if (!hasArrived || !movablePattern) memory.path.shift();

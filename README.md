@@ -143,6 +143,6 @@ _Spawn area with intro quest_
 - Patterns could execute directly after each other, maybe by indicating a return value once finished
 - Dialog does not need to flip if out of range
 - Units moving in front of AI in the right time will disupt pathfinding due to discarded path items
-- Trading doesn't support requirung multiple items of same type or with amount larger than 1
+- Trading doesn't support requiring multiple items of same type or with amount larger than 1
 - Trading action displays maximum of 2 items
 

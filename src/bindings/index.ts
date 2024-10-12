@@ -586,16 +586,6 @@ export const generateWorld = async (world: World) => {
       compassEntity[ITEM].carrier = world.getEntityId(chestEntity);
       world.setIdentifier(chestEntity, "compass_chest");
     } else if (cell === "guide") {
-      // create reference frame for spawn quest
-      const animationEntity = entities.createFrame(world, {
-        [REFERENCE]: {
-          tick: -1,
-          delta: 0,
-          suspended: false,
-          suspensionCounter: -1,
-        },
-        [RENDERABLE]: { generation: 1 },
-      });
       const swordEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
         [ITEM]: { amount: 2, slot: "melee", material: "iron" },
@@ -611,17 +601,7 @@ export const generateWorld = async (world: World) => {
 
       const guideEntity = entities.createNpc(world, {
         [ACTIONABLE]: { triggered: false },
-        [ANIMATABLE]: {
-          states: {
-            quest: {
-              name: "spawnQuest",
-              reference: world.getEntityId(animationEntity),
-              elapsed: 0,
-              args: { step: "initial" },
-              particles: {},
-            },
-          },
-        },
+        [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { max: 20, enemy: false },
         [BEHAVIOUR]: { patterns: [] },
         [COUNTABLE]: {
@@ -640,7 +620,13 @@ export const generateWorld = async (world: World) => {
           armor: world.getEntityId(shieldEntity),
         },
         [FOG]: { visibility, type: "unit" },
-        [INVENTORY]: { items: [], size: 5 },
+        [INVENTORY]: {
+          items: [
+            world.getEntityId(swordEntity),
+            world.getEntityId(shieldEntity),
+          ],
+          size: 5,
+        },
         [MELEE]: {},
         [MOVABLE]: {
           orientations: [],
@@ -790,7 +776,7 @@ export const generateWorld = async (world: World) => {
           brightness: 0,
           darkness: 1,
           visibility: 0,
-          orientation: 'down',
+          orientation: "down",
         },
         [POSITION]: { x, y },
         [SPRITE]: roofUp,
@@ -892,7 +878,27 @@ export const generateWorld = async (world: World) => {
   world.setIdentifier(highlighEntity, "focus");
 
   // create viewpoint for menu area
+  const highlightAnimationEntity = entities.createFrame(world, {
+    [REFERENCE]: {
+      tick: -1,
+      delta: 0,
+      suspended: false,
+      suspensionCounter: -1,
+    },
+    [RENDERABLE]: { generation: 1 },
+  });
   const viewpointEntity = entities.createViewpoint(world, {
+    [ANIMATABLE]: {
+      states: {
+        quest: {
+          name: "spawnQuest",
+          reference: world.getEntityId(highlightAnimationEntity),
+          elapsed: 0,
+          args: { step: "initial" },
+          particles: {},
+        },
+      },
+    },
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,

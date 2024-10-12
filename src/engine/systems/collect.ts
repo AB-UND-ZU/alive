@@ -69,7 +69,6 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
 
     // remove from target inventory
     if (slot || consume || itemEntity[ITEM].amount === 0) {
-      itemEntity[ITEM].carrier = world.getEntityId(entity);
       removeFromInventory(world, target, itemEntity);
     }
 

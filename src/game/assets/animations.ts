@@ -6,6 +6,7 @@ import {
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { ANIMATABLE, Animation } from "../../engine/components/animatable";
+import { ATTACKABLE } from "../../engine/components/attackable";
 import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { COUNTABLE } from "../../engine/components/countable";
 import { DROPPABLE } from "../../engine/components/droppable";
@@ -24,6 +25,7 @@ import {
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { POSITION } from "../../engine/components/position";
+import { QUEST } from "../../engine/components/quest";
 import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPRITE } from "../../engine/components/sprite";
@@ -34,14 +36,14 @@ import {
   isTradable,
   isUnlocked,
 } from "../../engine/systems/action";
-import { isEmpty } from "../../engine/systems/collect";
+import { collectItem, isEmpty } from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
 import { disposeEntity, getCell } from "../../engine/systems/map";
 import {
   getEntityGeneration,
   rerenderEntity,
 } from "../../engine/systems/renderer";
-import { lockDoor } from "../../engine/systems/trigger";
+import { lockDoor, removeFromInventory } from "../../engine/systems/trigger";
 import * as colors from "../assets/colors";
 import { add, distribution, normalize, signedDistance } from "../math/std";
 import { iterations } from "../math/tracing";
@@ -189,14 +191,7 @@ export const fireBurn: Animation<"burn"> = (world, entity, state) => {
     updated = true;
   }
 
-  // delete death particle and make entity lootable
-  // if (!entity[DROPPABLE].decayed && state.elapsed > decayTime) {
-  //   disposeEntity(world, world.getEntityById(state.particles.decay));
-  //   delete state.particles.decay;
-
-  //   entity[DROPPABLE].decayed = true;
-  //   finished = true;
-  // }
+  // TODO: decay of fire
 
   return { finished, updated };
 };
@@ -219,7 +214,6 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
   let updated = false;
   let finished = false;
   const lootId = state.particles.loot;
-  const lootParticle = lootId && world.getEntityId(lootId);
   const itemId = state.args.itemId;
   const size = world.metadata.gameEntity[LEVEL].size;
   const itemEntity = world.getEntityId(itemId);
@@ -227,11 +221,14 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
     world.getEntityById(entity[MOVABLE].reference)[REFERENCE].tick - 50;
 
   // add item to player's inventory
-  if (lootParticle && state.elapsed >= lootDelay) {
-    if (state.particles.loot) {
-      disposeEntity(world, world.getEntityById(state.particles.loot));
+  if (state.elapsed >= lootDelay) {
+    if (lootId) {
+      const lootParticle = world.getEntityId(lootId);
+      disposeEntity(world, lootParticle);
       delete state.particles.loot;
     }
+
+    itemEntity[ITEM].carrier = world.getEntityId(entity);
 
     let targetSlot = itemEntity[ITEM].slot;
     let targetCounter = itemEntity[ITEM].counter;
@@ -269,6 +266,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
         );
 
         // TODO: handle dropping existing item instead
+        removeFromInventory(world, entity, existingItem);
         disposeEntity(world, existingItem);
       }
 
@@ -459,7 +457,11 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
   // update timestamp on active change
   if (active !== state.args.active || !!pending !== !!state.args.after) {
     const isDelayed =
-      !active && entity[TOOLTIP].persistent && !isDead(world, entity);
+      !active &&
+      entity[TOOLTIP].persistent &&
+      !isDead(world, entity) &&
+      !state.args.isIdle &&
+      !state.args.isDialog;
     state.args.timestamp = isDelayed
       ? state.elapsed + tooltipDelay
       : state.elapsed;
@@ -521,34 +523,46 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
   let updated = false;
   const heroEntity = world.getIdentifier("hero");
   const focusEntity = world.getIdentifier("focus");
-  const viewpointEntity = world.getIdentifier("viewpoint");
+  const guideEntity = world.getIdentifier("guide");
   const doorEntity = world.getIdentifier("door");
+  const houseDoor = world.getIdentifier("house_door");
+  const keyEntity = world.getIdentifier("key");
+  const compassEntity = world.getIdentifier("compass");
 
-  if (!heroEntity || !viewpointEntity || !focusEntity || !doorEntity) {
+  if (
+    !heroEntity ||
+    !focusEntity ||
+    !doorEntity ||
+    !houseDoor ||
+    !compassEntity
+  ) {
     return { finished, updated };
   }
 
   if (state.args.step === "initial") {
-    entity[BEHAVIOUR].patterns.push({
-      name: "dialog",
-      memory: {
-        override: "visible",
-        dialogs: [
-          createDialog(
-            isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move"
-          ),
-        ],
-      },
-    });
+    if (guideEntity) {
+      guideEntity[BEHAVIOUR].patterns.push({
+        name: "dialog",
+        memory: {
+          override: "visible",
+          dialogs: [
+            createDialog(
+              isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move"
+            ),
+          ],
+        },
+      });
+    }
     state.args.step = "move";
     updated = true;
   } else if (state.args.step === "move") {
     if (
-      heroEntity[POSITION].x !== initialPosition.x ||
-      heroEntity[POSITION].y !== initialPosition.y
+      guideEntity &&
+      (heroEntity[POSITION].x !== initialPosition.x ||
+        heroEntity[POSITION].y !== initialPosition.y)
     ) {
-      world.addQuest(entity, { name: "guideQuest" });
-      entity[BEHAVIOUR].patterns.push({
+      world.addQuest(guideEntity, { name: "guideQuest" });
+      guideEntity[BEHAVIOUR].patterns.push({
         name: "dialog",
         memory: {
           override: undefined,
@@ -565,9 +579,9 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   } else if (state.args.step === "chest") {
-    if (!hasAvailableQuest(world, entity)) {
+    if (guideEntity && !hasAvailableQuest(world, guideEntity)) {
       const chestEntity = world.getIdentifier("compass_chest");
-      entity[BEHAVIOUR].patterns.push(
+      guideEntity[BEHAVIOUR].patterns.push(
         {
           name: "dialog",
           memory: {
@@ -591,7 +605,10 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
         {
           name: "move",
           memory: {
-            position: { x: entity[POSITION].x, y: entity[POSITION].y },
+            position: {
+              x: guideEntity[POSITION].x,
+              y: guideEntity[POSITION].y,
+            },
           },
         }
       );
@@ -599,8 +616,12 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   } else if (state.args.step === "sword") {
-    if (heroEntity[EQUIPPABLE].melee && heroEntity[EQUIPPABLE].compass) {
-      entity[BEHAVIOUR].patterns.push({
+    if (
+      guideEntity &&
+      heroEntity[EQUIPPABLE].melee &&
+      heroEntity[EQUIPPABLE].compass
+    ) {
+      guideEntity[BEHAVIOUR].patterns.push({
         name: "dialog",
         memory: {
           changed: true,
@@ -611,10 +632,8 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   } else if (state.args.step === "collect") {
-    const houseDoor = world.getIdentifier("house_door");
-    const keyEntity = world.getIdentifier("key");
-    if (houseDoor && keyEntity && heroEntity[COUNTABLE].gold >= 5) {
-      entity[BEHAVIOUR].patterns.push(
+    if (guideEntity && keyEntity && heroEntity[COUNTABLE].gold >= 5) {
+      guideEntity[BEHAVIOUR].patterns.push(
         {
           name: "dialog",
           memory: {
@@ -681,8 +700,8 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   } else if (state.args.step === "door") {
-    if (isUnlocked(world, doorEntity)) {
-      entity[BEHAVIOUR].patterns.push({
+    if (guideEntity && isUnlocked(world, doorEntity)) {
+      guideEntity[BEHAVIOUR].patterns.push({
         name: "dialog",
         memory: {
           override: "visible",
@@ -695,11 +714,55 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
     }
   }
 
+  // chase player if key is stolen
+  if (
+    guideEntity &&
+    state.args.step !== "door" &&
+    state.args.step !== "world" &&
+    keyEntity &&
+    keyEntity[ITEM].carrier === world.getEntityId(heroEntity)
+  ) {
+    guideEntity[ATTACKABLE].enemy = true;
+    guideEntity[QUEST].name = undefined;
+    guideEntity[BEHAVIOUR].patterns = [
+      {
+        name: "dialog",
+        memory: {
+          override: "visible",
+          changed: true,
+          dialogs: [createText("Thief!", colors.red)],
+        },
+      },
+      {
+        name: "kill",
+        memory: {
+          target: world.getEntityId(heroEntity),
+        },
+      },
+      {
+        name: "dialog",
+        memory: {
+          override: undefined,
+          changed: true,
+          dialogs: [],
+        },
+      },
+      {
+        name: "move",
+        memory: {
+          position: { x: 0, y: 159 },
+        },
+      },
+    ];
+    state.args.step = "world";
+    updated = true;
+  }
+
   // finish regardless of state if player reached exit
   if (heroEntity[POSITION].x === 0 && heroEntity[POSITION].y === 7) {
     // set camera to player
-    // world.setFocus();
-    viewpointEntity[VIEWABLE].active = false;
+    world.setFocus();
+    entity[VIEWABLE].active = false;
     heroEntity[VIEWABLE].active = true;
 
     // close door
@@ -708,6 +771,13 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
     // set player light
     heroEntity[LIGHT].brightness = 5.55;
     heroEntity[LIGHT].visibility = 5.55;
+
+    // give player compass if not already done
+    const compassCarrier = compassEntity[ITEM].carrier;
+    if (compassCarrier !== world.getEntityId(heroEntity)) {
+      const containerEntity = world.getEntityById(compassEntity[ITEM].carrier);
+      collectItem(world, heroEntity, containerEntity);
+    }
 
     // clear spawn area
     const menuRows = menuArea.split("\n");
@@ -729,7 +799,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
           if (
             cellEntity === heroEntity ||
             cellEntity === focusEntity ||
-            cellEntity === viewpointEntity
+            cellEntity === entity
           )
             return;
 
@@ -847,23 +917,17 @@ export const townQuest: Animation<"quest"> = (world, entity, state) => {
   let finished = false;
   let updated = false;
   const signEntity = world.getIdentifier("sign");
+  const viewpointEntity = world.getIdentifier("viewpoint");
 
-  if (!signEntity) {
+  if (!signEntity || !viewpointEntity) {
     return { finished, updated };
   }
 
   if (state.args.step === "initial") {
     signEntity[TOOLTIP].changed = true;
-    signEntity[TOOLTIP].dialogs = entity[EQUIPPABLE].compass
-      ? [createDialog("Use compass")]
-      : [];
+    signEntity[TOOLTIP].dialogs = [createDialog("Use compass")];
 
-    const viewpointEntity = entities.createViewpoint(world, {
-      [POSITION]: { x: 60, y: 60 },
-      [RENDERABLE]: { generation: 0 },
-      [SPRITE]: none,
-      [VIEWABLE]: { active: false },
-    });
+    viewpointEntity[POSITION] = { x: 60, y: 60 };
     world.setFocus(viewpointEntity);
 
     state.args.step = "done";

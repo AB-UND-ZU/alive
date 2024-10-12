@@ -11,7 +11,7 @@ import { relativeOrientation } from "../../game/math/path";
 
 export default function setupNeedle(world: World) {
   let referenceGenerations = -1;
-  const entityReferences: Record<string, number> = {};
+  const entityReferences: Record<string, string> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world
@@ -33,9 +33,10 @@ export default function setupNeedle(world: World) {
       const targetId = entity[TRACKABLE].target;
 
       // reset needle
-      if (!targetId) entity[ORIENTABLE].facing = undefined;
-
-      if (!originId || !targetId || originId === targetId) continue;
+      if (!originId || !targetId || originId === targetId) {
+        entity[ORIENTABLE].facing = undefined;
+        continue;
+      }
 
       const entityId = world.getEntityId(entity);
       const originEntity = world.getEntityById(originId);
@@ -55,7 +56,7 @@ export default function setupNeedle(world: World) {
         ? world.getEntityById(targetEntity[MOVABLE].reference)[RENDERABLE]
             .generation
         : 0;
-      const entityReference = originReference + targetReference;
+      const entityReference = `${originId}.${originReference}:${targetId}.${targetReference}`;
 
       // skip if reference frame is unchanged
       if (entityReferences[entityId] === entityReference) continue;

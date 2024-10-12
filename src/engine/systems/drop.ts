@@ -20,6 +20,7 @@ import { ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { Tradable, TRADABLE } from "../components/tradable";
 import { COLLIDABLE } from "../components/collidable";
+import { removeFromInventory } from "./trigger";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -29,10 +30,11 @@ export const dropItem = (
   items: Inventory["items"],
   position: Position
 ) => {
+  const previousItems = [...items];
   const containerEntity = entities.createContainer(world, {
     [ANIMATABLE]: { states: {} },
     [FOG]: { visibility: "fog", type: "unit" },
-    [INVENTORY]: { items, size: items.length },
+    [INVENTORY]: { items: previousItems, size: previousItems.length },
     [LOOTABLE]: { disposable: true },
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
@@ -42,8 +44,15 @@ export const dropItem = (
   });
   registerEntity(world, containerEntity);
   const containerId = world.getEntityId(containerEntity);
-  items.forEach((item) => {
+  previousItems.forEach((item) => {
     const itemEntity = world.getEntityById(item);
+    const previousCarrier = itemEntity[ITEM].carrier;
+
+    if (previousCarrier) {
+      const carrierEntity = world.getEntityById(previousCarrier);
+      removeFromInventory(world, carrierEntity, itemEntity);
+    }
+
     itemEntity[ITEM].carrier = containerId;
   });
 
@@ -56,6 +65,7 @@ export const sellItem = (
   position: Position,
   activation: Tradable["activation"]
 ) => {
+  const previousItems = [...items];
   const itemNames = items
     .map((itemId) => world.getEntityById(itemId)[SPRITE].name.toLowerCase())
     .join(", ");
@@ -63,7 +73,7 @@ export const sellItem = (
     [ANIMATABLE]: { states: {} },
     [COLLIDABLE]: {},
     [FOG]: { visibility: "fog", type: "unit" },
-    [INVENTORY]: { items, size: items.length },
+    [INVENTORY]: { items: previousItems, size: previousItems.length },
     [LOOTABLE]: { disposable: true },
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
@@ -78,8 +88,15 @@ export const sellItem = (
   });
   registerEntity(world, shopEntity);
   const shopId = world.getEntityId(shopEntity);
-  items.forEach((item) => {
+  previousItems.forEach((item) => {
     const itemEntity = world.getEntityById(item);
+    const previousCarrier = itemEntity[ITEM].carrier;
+    
+    if (previousCarrier) {
+      const carrierEntity = world.getEntityById(previousCarrier);
+      removeFromInventory(world, carrierEntity, itemEntity);
+    }
+
     itemEntity[ITEM].carrier = shopId;
   });
 
@@ -132,9 +149,8 @@ export default function setupDrop(world: World) {
     // replace decayed entities
     for (const entity of world.getEntities([DROPPABLE, RENDERABLE])) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
-        disposeEntity(world, entity);
-
         dropItem(world, entity[INVENTORY].items, entity[POSITION]);
+        disposeEntity(world, entity);
       }
     }
 

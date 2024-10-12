@@ -6,6 +6,7 @@ import { add, normalize } from "../../game/math/std";
 import { getWalkableMatrix } from "../../game/math/path";
 import { isWalkable } from "./movement";
 import { getOverlappingCell } from "../../game/math/matrix";
+import { INVENTORY } from "../components/inventory";
 
 export const updateWalkable = (world: World, position: Position) => {
   // update walkable map after initialization
@@ -84,6 +85,14 @@ export const disposeEntity = (
   if (POSITION in entity) {
     unregisterEntity(world, entity);
   }
+
+  if (INVENTORY in entity) {
+    for (const itemId of entity[INVENTORY].items) {
+      const itemEntity = world.getEntityById(itemId);
+      world.removeEntity(itemEntity, deferredRemoval);
+    }
+  }
+
   world.removeEntity(entity, deferredRemoval);
 };
 

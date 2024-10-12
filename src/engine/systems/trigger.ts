@@ -50,6 +50,7 @@ export const removeFromInventory = (
   entity: Entity,
   item: Entity
 ) => {
+  item[ITEM].carrier = undefined;
   const itemIndex = entity[INVENTORY].items.indexOf(world.getEntityId(item));
   entity[INVENTORY].items.splice(itemIndex, 1);
 };
