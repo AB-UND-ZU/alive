@@ -145,7 +145,7 @@ export default function setupAi(world: World) {
             entity[POSITION],
             attemptedPosition
           );
-          entity[MOVABLE].orientations = [targetOrientation];
+          entity[MOVABLE].orientations = targetOrientation ? [targetOrientation] : [];
         }
       } else if (
         pattern.name === "kill" ||

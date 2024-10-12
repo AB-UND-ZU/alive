@@ -21,6 +21,8 @@ export const relativeOrientation = (
   origin: Position,
   target: Position
 ) => {
+  if (origin.x === target.x && origin.y === target.y) return;
+
   const size = world.metadata.gameEntity[LEVEL].size;
   const delta = {
     x: signedDistance(origin.x, target.x, size),
