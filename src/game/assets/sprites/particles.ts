@@ -105,7 +105,7 @@ export const createText: (text: string, color: string) => Sprite[] = (
   }));
 
 export const createDialog = (text: string) => createText(text, colors.white);
-export const createTooltip = (text: string) => createText(text, "#2e2e2e");
+export const createTooltip = (text: string) => createText(text, "#404040"); // 50% of grey
 
 export const buttonColor = colors.black;
 export const buttonBackground = colors.white;

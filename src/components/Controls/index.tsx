@@ -24,7 +24,7 @@ import { getAction } from "../../engine/systems/trigger";
 import { Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { Item } from "../../engine/components/item";
-import { canTrade, getUnlockKey } from "../../engine/systems/action";
+import { canTrade, canUnlock } from "../../engine/systems/action";
 import { TRADABLE } from "../../engine/components/tradable";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
@@ -98,7 +98,7 @@ export default function Controls() {
           ],
           repeat(none, 3),
         ],
-        disabled: !getUnlockKey(ecs, hero, ecs.getEntityById(unlockId)),
+        disabled: !canUnlock(ecs, hero, ecs.getEntityById(unlockId)),
       },
     [unlockId, ecs, hero]
   );

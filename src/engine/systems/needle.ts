@@ -42,7 +42,7 @@ export default function setupNeedle(world: World) {
       const targetEntity = world.getEntityById(targetId);
 
       // clear target if focus is lost
-      if (!targetEntity) {
+      if (!targetEntity || !originEntity) {
         entity[TRACKABLE].target = undefined;
         continue;
       }

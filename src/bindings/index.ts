@@ -21,16 +21,15 @@ import {
   coin,
   compass,
   createDialog,
+  doorClosedGold,
+  doorClosedWood,
   flower,
   fog,
   gold,
   goldKey,
   herb,
   iron,
-  ironKey,
   ironSword,
-  lockedGold,
-  lockedIron,
   none,
   player,
   pot,
@@ -498,14 +497,14 @@ export const generateWorld = async (world: World) => {
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [LOCKABLE]: {
           locked: true,
-          material: cell === "door" ? "gold" : "iron",
+          material: cell === "door" ? "gold" : undefined,
         },
         [NPC]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: cell === "door" ? lockedGold : lockedIron,
+        [SPRITE]: cell === "door" ? doorClosedGold : doorClosedWood,
         [TOOLTIP]: {
-          dialogs: [createDialog("Locked")],
+          dialogs: [createDialog(cell === "door" ? "Locked" : "Closed")],
           persistent: false,
           nextDialog: 0,
         },
@@ -604,11 +603,6 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: ironSword,
       });
-      const keyEntity = entities.createItem(world, {
-        [ITEM]: { amount: 1, consume: "key", material: "iron" },
-        [RENDERABLE]: { generation: 0 },
-        [SPRITE]: ironKey,
-      });
       const shieldEntity = entities.createItem(world, {
         [ITEM]: { amount: 1, slot: "armor", material: "wood" },
         [RENDERABLE]: { generation: 0 },
@@ -646,7 +640,7 @@ export const generateWorld = async (world: World) => {
           armor: world.getEntityId(shieldEntity),
         },
         [FOG]: { visibility, type: "unit" },
-        [INVENTORY]: { items: [world.getEntityId(keyEntity)], size: 5 },
+        [INVENTORY]: { items: [], size: 5 },
         [MELEE]: {},
         [MOVABLE]: {
           orientations: [],
@@ -905,7 +899,7 @@ export const generateWorld = async (world: World) => {
     [ANIMATABLE]: { states: {} },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [COLLIDABLE]: {},
-    [POSITION]: { x: 0, y: 10 },
+    [POSITION]: { x: 0, y: 12 },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: sign,
     [TOOLTIP]: {

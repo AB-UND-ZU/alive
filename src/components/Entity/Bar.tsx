@@ -3,7 +3,7 @@ import { Entity } from "ecs";
 import { animated, useSpring } from "@react-spring/three";
 import * as colors from "../../game/assets/colors";
 import { ATTACKABLE } from "../../engine/components/attackable";
-import { barHeight, pixels, stack, stackHeight } from "./utils";
+import { pixels, stack, stackHeight, tooltipHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
 import { COUNTABLE } from "../../engine/components/countable";
 import { NPC } from "../../engine/components/npc";
@@ -41,7 +41,7 @@ export default function Bar({
       <animated.mesh
         position-x={spring.translateX}
         position-y={-5.5 / pixels}
-        position-z={stackHeight * barHeight + 1 / stack}
+        position-z={stackHeight * tooltipHeight + 1 / stack}
         scale-x={spring.scaleX}
       >
         <boxGeometry
@@ -58,7 +58,7 @@ export default function Bar({
         <mesh
           position-x={-0.5 / pixels}
           position-y={-5.5 / pixels}
-          position-z={stackHeight * barHeight}
+          position-z={stackHeight * tooltipHeight}
         >
           <boxGeometry
             args={[dimensions.aspectRatio - 1 / pixels, 1 / pixels, 1 / stack]}

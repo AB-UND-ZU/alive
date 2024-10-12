@@ -34,6 +34,9 @@ export const isLocked = (world: World, entity: Entity) =>
 export const isUnlocked = (world: World, entity: Entity) =>
   entity[LOCKABLE]?.locked === false;
 
+export const canUnlock = (world: World, entity: Entity, lockable: Entity) =>
+  !lockable[LOCKABLE].material || !!getUnlockKey(world, entity, lockable);
+
 export const getUnlockKey = (
   world: World,
   entity: Entity,
@@ -81,7 +84,6 @@ export const canTrade = (world: World, entity: Entity, trade: Entity) =>
 
 export default function setupAction(world: World) {
   let referenceGenerations = -1;
-  const entityReferences: Record<string, number> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world
@@ -98,16 +100,6 @@ export default function setupAction(world: World) {
       MOVABLE,
       RENDERABLE,
     ])) {
-      const entityId = world.getEntityId(entity);
-      const entityReference = world.getEntityById(entity[MOVABLE].reference)[
-        RENDERABLE
-      ].generation;
-
-      // skip if reference frame is unchanged
-      if (entityReferences[entityId] === entityReference) continue;
-
-      entityReferences[entityId] = entityReference;
-
       let quest: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;

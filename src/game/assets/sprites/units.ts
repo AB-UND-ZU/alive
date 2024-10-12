@@ -35,12 +35,22 @@ export const pot: Sprite = {
   ],
 };
 
-export const doorUnlocked: Sprite = {
+export const doorOpen: Sprite = {
   name: "Door",
   layers: [{ char: "▌", color: colors.maroon }],
 };
 
-export const lockedIron: Sprite = {
+export const doorClosedWood: Sprite = {
+  name: "Door",
+  layers: [
+    { char: "\u0107", color: colors.maroon },
+    { char: "\u0106", color: colors.maroon },
+    { char: "\u011c", color: colors.black },
+    { char: "-", color: colors.maroon },
+  ],
+};
+
+export const doorClosedIron: Sprite = {
   name: "Door",
   layers: [
     { char: "\u0107", color: colors.maroon },
@@ -50,7 +60,7 @@ export const lockedIron: Sprite = {
   ],
 };
 
-export const lockedFire: Sprite = {
+export const doorClosedFire: Sprite = {
   name: "Door",
   layers: [
     { char: "\u0107", color: colors.maroon },
@@ -60,7 +70,7 @@ export const lockedFire: Sprite = {
   ],
 };
 
-export const lockedGold: Sprite = {
+export const doorClosedGold: Sprite = {
   name: "Door",
   layers: [
     { char: "\u0107", color: colors.maroon },

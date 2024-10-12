@@ -1,6 +1,5 @@
 import { isTouch } from "../../components/Dimensions";
 import {
-  barHeight,
   focusHeight,
   particleHeight,
   tooltipHeight,
@@ -75,7 +74,7 @@ export const swordAttack: Animation<"melee"> = (world, entity, state) => {
       [PARTICLE]: {
         offsetX: delta.x,
         offsetY: delta.y,
-        offsetZ: barHeight,
+        offsetZ: particleHeight,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: hit,
@@ -523,8 +522,9 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
   const heroEntity = world.getIdentifier("hero");
   const focusEntity = world.getIdentifier("focus");
   const viewpointEntity = world.getIdentifier("viewpoint");
+  const doorEntity = world.getIdentifier("door");
 
-  if (!heroEntity || !viewpointEntity || !focusEntity) {
+  if (!heroEntity || !viewpointEntity || !focusEntity || !doorEntity) {
     return { finished, updated };
   }
 
@@ -611,9 +611,9 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   } else if (state.args.step === "collect") {
-    const doorEntity = world.getIdentifier("house_door");
+    const houseDoor = world.getIdentifier("house_door");
     const keyEntity = world.getIdentifier("key");
-    if (doorEntity && keyEntity && heroEntity[COUNTABLE].gold >= 5) {
+    if (houseDoor && keyEntity && heroEntity[COUNTABLE].gold >= 5) {
       entity[BEHAVIOUR].patterns.push(
         {
           name: "dialog",
@@ -626,7 +626,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
         {
           name: "unlock",
           memory: {
-            target: world.getEntityId(doorEntity),
+            target: world.getEntityId(houseDoor),
           },
         },
         {
@@ -646,13 +646,13 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
         {
           name: "move",
           memory: {
-            position: add(doorEntity[POSITION], { x: 0, y: 1 }),
+            position: add(houseDoor[POSITION], { x: 0, y: 1 }),
           },
         },
         {
           name: "lock",
           memory: {
-            target: world.getEntityId(doorEntity),
+            target: world.getEntityId(houseDoor),
           },
         },
         {
@@ -681,8 +681,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       updated = true;
     }
   } else if (state.args.step === "door") {
-    const doorEntity = world.getIdentifier("door");
-    if (doorEntity && isUnlocked(world, doorEntity)) {
+    if (isUnlocked(world, doorEntity)) {
       entity[BEHAVIOUR].patterns.push({
         name: "dialog",
         memory: {
@@ -694,68 +693,71 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       state.args.step = "world";
       updated = true;
     }
-  } else if (state.args.step === "world") {
-    const doorEntity = world.getIdentifier("door");
-    if (
-      doorEntity &&
-      heroEntity[POSITION].x === 0 &&
-      heroEntity[POSITION].y === 7
+  }
+
+  // finish regardless of state if player reached exit
+  if (heroEntity[POSITION].x === 0 && heroEntity[POSITION].y === 7) {
+    // set camera to player
+    // world.setFocus();
+    viewpointEntity[VIEWABLE].active = false;
+    heroEntity[VIEWABLE].active = true;
+
+    // close door
+    lockDoor(world, doorEntity);
+
+    // set player light
+    heroEntity[LIGHT].brightness = 5.55;
+    heroEntity[LIGHT].visibility = 5.55;
+
+    // clear spawn area
+    const menuRows = menuArea.split("\n");
+    const menuColumns = menuRows[0].split("");
+    const size = world.metadata.gameEntity[LEVEL].size;
+    for (
+      let columnIndex = 0;
+      columnIndex <= menuColumns.length;
+      columnIndex += 1
     ) {
-      // set camera to player
-      viewpointEntity[VIEWABLE].active = false;
-      heroEntity[VIEWABLE].active = true;
+      for (let rowIndex = 0; rowIndex <= menuRows.length; rowIndex += 1) {
+        const x = normalize(columnIndex - (menuColumns.length - 1) / 2, size);
+        const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
+        const cell = getCell(world, { x, y });
+        const shouldDiscard = (y < 6 || y > 153) && (x < 11 || x > 149);
+        let hasAir = false;
+        Object.values(cell).forEach((cellEntity) => {
+          // don't remove player and focus
+          if (
+            cellEntity === heroEntity ||
+            cellEntity === focusEntity ||
+            cellEntity === viewpointEntity
+          )
+            return;
 
-      // close door
-      lockDoor(world, doorEntity);
+          if (!hasAir && cellEntity[FOG].type === "air") hasAir = true;
 
-      // set player light
-      heroEntity[LIGHT].brightness = 5.55;
-      heroEntity[LIGHT].visibility = 5.55;
-
-      // clear spawn area
-      const menuRows = menuArea.split("\n");
-      const menuColumns = menuRows[0].split("");
-      const size = world.metadata.gameEntity[LEVEL].size;
-      for (
-        let columnIndex = 0;
-        columnIndex <= menuColumns.length;
-        columnIndex += 1
-      ) {
-        for (let rowIndex = 0; rowIndex <= menuRows.length; rowIndex += 1) {
-          const x = normalize(columnIndex - (menuColumns.length - 1) / 2, size);
-          const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
-          const cell = getCell(world, { x, y });
-          let hasAir = false;
-          Object.values(cell).forEach((cellEntity) => {
-            // don't remove player and focus
-            if (cellEntity === heroEntity || cellEntity === focusEntity) return;
-
-            if (!(FOG in cellEntity)) {
-              disposeEntity(world, cellEntity);
-              return;
-            }
-
-            if (!hasAir && cellEntity[FOG].type === "air") hasAir = true;
-
-            cellEntity[FOG].visibility = "hidden";
-            rerenderEntity(world, cellEntity);
-          });
-
-          // restore removed air particles
-          if ((y < 7 || y > size / 2) && !hasAir) {
-            entities.createGround(world, {
-              [FOG]: { visibility: "hidden", type: "air" },
-              [POSITION]: { x, y },
-              [RENDERABLE]: { generation: 0 },
-              [SPRITE]: fog,
-            });
+          if (shouldDiscard && cellEntity[FOG].type !== "air") {
+            disposeEntity(world, cellEntity);
+            return;
           }
+
+          cellEntity[FOG].visibility = "hidden";
+          rerenderEntity(world, cellEntity);
+        });
+
+        // restore removed air particles
+        if (!hasAir) {
+          entities.createGround(world, {
+            [FOG]: { visibility: "hidden", type: "air" },
+            [POSITION]: { x, y },
+            [RENDERABLE]: { generation: 0 },
+            [SPRITE]: fog,
+          });
         }
       }
-
-      state.args.step = "done";
-      finished = true;
     }
+
+    state.args.step = "done";
+    finished = true;
   }
 
   return { finished, updated };
@@ -852,7 +854,9 @@ export const townQuest: Animation<"quest"> = (world, entity, state) => {
 
   if (state.args.step === "initial") {
     signEntity[TOOLTIP].changed = true;
-    signEntity[TOOLTIP].dialogs = [createDialog("Use compass")];
+    signEntity[TOOLTIP].dialogs = entity[EQUIPPABLE].compass
+      ? [createDialog("Use compass")]
+      : [];
 
     const viewpointEntity = entities.createViewpoint(world, {
       [POSITION]: { x: 60, y: 60 },

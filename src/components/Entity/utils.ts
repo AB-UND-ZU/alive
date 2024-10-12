@@ -19,14 +19,15 @@ import { FOG } from "../../engine/components/fog";
 import { TRACKABLE } from "../../engine/components/trackable";
 import {
   compass,
+  doorClosedFire,
+  doorClosedGold,
+  doorClosedIron,
+  doorClosedWood,
   fireSword,
   goldKey,
   ironKey,
   ironShield,
   ironSword,
-  lockedFire,
-  lockedGold,
-  lockedIron,
   map,
   none,
   woodShield,
@@ -45,12 +46,12 @@ export const unitHeight = 1 * stackHeight;
 export const immersibleHeight = 2 * stackHeight;
 export const lightHeight = 3 * stackHeight;
 export const wallHeight = 4 * stackHeight;
-export const shadowHeight = 5 * stackHeight;
-export const fogHeight = 6 * stackHeight;
-export const tooltipHeight = 7 * stackHeight;
-export const focusHeight = 8 * stackHeight;
-export const particleHeight = 9 * stackHeight;
-export const barHeight = 10 * stackHeight;
+export const floatHeight = 5 * stackHeight;
+export const shadowHeight = 6 * stackHeight;
+export const fogHeight = 7 * stackHeight;
+export const tooltipHeight = 8 * stackHeight;
+export const focusHeight = 9 * stackHeight;
+export const particleHeight = 10 * stackHeight;
 export const cameraHeight = 11 * stackHeight;
 
 export const getFacingLayers = (
@@ -91,7 +92,7 @@ export const getSegments = (
     : isAir
     ? fogHeight
     : isFloat
-    ? fogHeight
+    ? floatHeight
     : terrainHeight;
 
   // from back to front: armor, body, spell, melee, loot
@@ -208,19 +209,21 @@ const entitySprites: Record<
     iron: ironShield,
   },
   compass: {
-    iron: compass,
+    wood: compass,
   },
   map: {
-    iron: map,
+    wood: map,
   },
   key: {
+    wood: none,
     iron: ironKey,
     gold: goldKey,
   },
   door: {
-    iron: lockedIron,
-    gold: lockedGold,
-    fire: lockedFire,
+    wood: doorClosedWood,
+    iron: doorClosedIron,
+    gold: doorClosedGold,
+    fire: doorClosedFire,
   },
 };
 
@@ -230,5 +233,5 @@ export const getMaterialSprite = (
 ) => {
   if (!lookup) return none;
 
-  return entitySprites[lookup][material || "iron"] || none;
+  return entitySprites[lookup][material || "wood"] || none;
 };

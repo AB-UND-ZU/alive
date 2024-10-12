@@ -10,7 +10,7 @@ export const player: Sprite = {
 };
 
 export const villager: Sprite = {
-  name: "Druid",
+  name: "Nomad",
   layers: [
     { char: "\u010b", color: colors.white },
     { char: "'", color: colors.red },

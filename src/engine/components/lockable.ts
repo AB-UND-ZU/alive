@@ -4,7 +4,7 @@ import { Material } from "./item";
 
 export type Lockable = {
   locked: boolean;
-  material: Material;
+  material?: Material;
 };
 
 export const LOCKABLE = "LOCKABLE";

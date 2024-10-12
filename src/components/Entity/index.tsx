@@ -95,7 +95,8 @@ function Entity({
 
   const { ecs } = useWorld();
 
-  if (!ecs || (opacity === 0 && layerProps.isTransparent)) return null;
+  if (!ecs || (opacity === 0 && layerProps.isTransparent && !isUnit))
+    return null;
 
   const orderedSegments = getSegments(ecs, entity, layerProps);
 

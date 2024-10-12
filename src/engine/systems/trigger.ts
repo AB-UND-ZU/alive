@@ -12,12 +12,12 @@ import { TOOLTIP } from "../components/tooltip";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
-import { doorUnlocked } from "../../game/assets/sprites";
+import { doorOpen } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
 import { disposeEntity, updateWalkable } from "./map";
-import { canTrade, getUnlockKey, isTradable } from "./action";
+import { canTrade, canUnlock, getUnlockKey, isTradable } from "./action";
 import { Tradable, TRADABLE } from "../components/tradable";
 import { COUNTABLE } from "../components/countable";
 import { getMaterialSprite } from "../../components/Entity/utils";
@@ -31,7 +31,7 @@ export const getAction = (world: World, entity: Entity) =>
 
 export const unlockDoor = (world: World, entity: Entity) => {
   entity[LOCKABLE].locked = false;
-  entity[SPRITE] = doorUnlocked;
+  entity[SPRITE] = doorOpen;
   entity[LIGHT].orientation = "left";
   rerenderEntity(world, entity);
   updateWalkable(world, entity[POSITION]);
@@ -153,20 +153,22 @@ export default function setupTrigger(world: World) {
         };
 
         // remove quest from target
-        world.removeQuest(questEntity)
-
+        world.removeQuest(questEntity);
       } else if (entity[ACTIONABLE].unlock) {
         const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
 
         // check if entity has correct key
-        const keyEntity = getUnlockKey(world, entity, unlockEntity);
-
-        if (!keyEntity) continue;
+        if (!canUnlock(world, entity, unlockEntity)) continue;
 
         // unlock door and remove key
         unlockDoor(world, unlockEntity);
-        removeFromInventory(world, entity, keyEntity);
-        disposeEntity(world, keyEntity);
+
+        const keyEntity = getUnlockKey(world, entity, unlockEntity);
+        if (keyEntity) {
+          removeFromInventory(world, entity, keyEntity);
+          disposeEntity(world, keyEntity);
+        }
+
         rerenderEntity(world, entity);
       } else if (entity[ACTIONABLE].trade) {
         const tradeEntity = world.getEntityById(entity[ACTIONABLE].trade);
