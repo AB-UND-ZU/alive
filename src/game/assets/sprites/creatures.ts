@@ -13,7 +13,7 @@ export const villager: Sprite = {
   name: "Nomad",
   layers: [
     { char: "\u010b", color: colors.white },
-    { char: "'", color: colors.red },
+    { char: "'", color: colors.silver },
   ],
 };
 

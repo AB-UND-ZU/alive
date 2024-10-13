@@ -32,6 +32,11 @@ export const sand: Sprite = {
   layers: [{ char: "░", color: colors.olive }],
 };
 
+export const path: Sprite = {
+  name: "path_normal",
+  layers: [{ char: "░", color: colors.silver }],
+};
+
 export const tree1: Sprite = {
   name: "tree_one",
   layers: [

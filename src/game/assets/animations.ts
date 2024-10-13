@@ -571,7 +571,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
             createDialog("Hi stranger."),
             createDialog("How are you?"),
             createDialog("A new quest!"),
-            createDialog("Let's do it."),
+            createDialog("Let's leave."),
           ],
         },
       });
