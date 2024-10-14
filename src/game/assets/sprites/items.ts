@@ -20,7 +20,7 @@ export const apple1: Sprite = {
 
 export const apple2: Sprite = {
   name: "Apple",
-  layers: [{ char: ".", color: colors.red }],
+  layers: [{ char: "∙", color: colors.red }],
   amounts: {
     single: [
       { char: "┐", color: colors.maroon },

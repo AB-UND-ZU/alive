@@ -12,7 +12,9 @@ type Pattern = {
     | "unlock"
     | "collect"
     | "drop"
-    | "sell";
+    | "sell"
+    | "enrage"
+    | "soothe";
   memory: any;
 };
 

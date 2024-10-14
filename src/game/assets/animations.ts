@@ -6,7 +6,6 @@ import {
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { ANIMATABLE, Animation } from "../../engine/components/animatable";
-import { ATTACKABLE } from "../../engine/components/attackable";
 import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { COUNTABLE } from "../../engine/components/countable";
 import { DROPPABLE } from "../../engine/components/droppable";
@@ -611,7 +610,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
         {
           name: "move",
           memory: {
-            position: {
+            targetPosition: {
               x: guideEntity[POSITION].x,
               y: guideEntity[POSITION].y,
             },
@@ -679,7 +678,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
               {
                 name: "move",
                 memory: {
-                  position: add(houseDoor[POSITION], { x: 0, y: 1 }),
+                  targetPosition: add(houseDoor[POSITION], { x: 0, y: 1 }),
                 },
               },
               {
@@ -692,7 +691,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
         {
           name: "sell",
           memory: {
-            position: { x: 155, y: 159 },
+            targetPosition: { x: 155, y: 159 },
             item: world.getEntityId(keyEntity),
             activation: [{ counter: "gold", amount: 5 }],
           },
@@ -700,7 +699,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
         {
           name: "move",
           memory: {
-            position: { x: 0, y: 159 },
+            targetPosition: { x: 0, y: 159 },
           },
         },
         {
@@ -762,7 +761,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       {
         name: "wait",
         memory: {
-          ticks: 3,
+          ticks: 4,
         },
       },
       {
@@ -782,21 +781,20 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
   ) {
     state.args.memory.keyCollected = true;
     const previousDialog = { ...guideEntity[TOOLTIP], changed: true };
-    guideEntity[ATTACKABLE].enemy = true;
     guideEntity[BEHAVIOUR].patterns.unshift(
       {
-        name: "dialog",
-        memory: {
-          override: "visible",
-          changed: true,
-          dialogs: [createText("Thief\u0112", colors.red)],
-        },
+        name: "enrage",
+        memory: { shout: "Thief\u0112" },
       },
       {
         name: "kill",
         memory: {
           target: world.getEntityId(heroEntity),
         },
+      },
+      {
+        name: "soothe",
+        memory: {},
       },
       {
         name: "dialog",
@@ -811,7 +809,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       {
         name: "move",
         memory: {
-          position: add(houseDoor[POSITION], { x: 0, y: 1 }),
+          targetPosition: add(houseDoor[POSITION], { x: 0, y: 1 }),
         },
       },
       {
@@ -819,14 +817,21 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
         memory: {
           target: world.getEntityId(houseDoor),
         },
-      },
-      {
-        name: "move",
-        memory: {
-          position: { x: 0, y: 159 },
-        },
       }
     );
+
+    guideEntity[BEHAVIOUR].patterns.push({
+      name: "move",
+      memory: {
+        targetPosition: { x: 0, y: 159 },
+      },
+    });
+    updated = true;
+  }
+
+  // if door was opened, advance to final steps
+  if (!keyEntity && state.args.step !== "door" && state.args.step !== "world") {
+    state.args.step = "door";
     updated = true;
   }
 

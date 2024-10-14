@@ -130,7 +130,6 @@ _Spawn area with intro quest_
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
 - Animations mutate state and don't really animate things, maybe better called Sequences
 - Compass needle could be an animation and particle
-- Make banner text floating
 - Attacking should have a bump movement
 - Colors should be available without star import
 - Pressed button could be implemented in ECS system rather than React state
@@ -139,7 +138,6 @@ _Spawn area with intro quest_
 - Touch origin should create an anchor and display current direction
 - Unlocking could be a reverse collecting animation
 - Houses should be part of a larger structure
-- Patterns could execute directly after each other, maybe by indicating a return value once finished
 - Dialog does not need to flip if out of range
 - Units moving in front of AI in the right time will disupt pathfinding due to discarded path items
 - Trading doesn't support requiring multiple items of same type or with amount larger than 1

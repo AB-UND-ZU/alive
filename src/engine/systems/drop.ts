@@ -260,7 +260,7 @@ export default function setupDrop(world: World) {
           //   },
           //   [RENDERABLE]: { generation: 1 },
           // });
-          entities.createTombstone(world, {
+          const tombstoneEntity = entities.createTombstone(world, {
             [ANIMATABLE]: { states: { }, },
             [LIGHT]: { ...entity[LIGHT] },
             [POSITION]: copy(entity[POSITION]),
@@ -270,6 +270,7 @@ export default function setupDrop(world: World) {
             [TOOLTIP]: { dialogs: [], nextDialog: -1, persistent: false },
             [VIEWABLE]: { active: entity[VIEWABLE].active },
           });
+          registerEntity(world, tombstoneEntity);
         }
       }
     }

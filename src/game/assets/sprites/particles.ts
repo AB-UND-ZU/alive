@@ -105,6 +105,7 @@ export const createText: (text: string, color: string) => Sprite[] = (
   }));
 
 export const createDialog = (text: string) => createText(text, colors.white);
+export const createShout = (text: string) => createText(text, colors.red);
 export const createTooltip = (text: string) => createText(text, "#404040"); // 50% of grey
 
 export const buttonColor = colors.black;
@@ -243,3 +244,5 @@ export const createStat = (
 export const quest = createText("!", colors.olive)[0];
 
 export const shop = createText("$", colors.olive)[0];
+
+export const rage = createShout("\u0112")[0];

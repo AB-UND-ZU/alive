@@ -1,4 +1,5 @@
 import { Layer, Sprite } from "../../engine/components/sprite";
+import * as colors from "../../game/assets/colors";
 import "./index.css";
 
 function Cell({ layers }: { layers: Layer[] }) {
@@ -6,7 +7,11 @@ function Cell({ layers }: { layers: Layer[] }) {
     <div className="Cell">
       &nbsp;
       {layers.map((layer, index) => (
-        <span key={index} style={{ color: layer.color }} className="Layer">
+        <span
+          key={index}
+          style={{ color: layer.color }}
+          className={`Layer ${layer.color === colors.black ? "Black" : ""}`}
+        >
           {layer.char}
         </span>
       ))}
