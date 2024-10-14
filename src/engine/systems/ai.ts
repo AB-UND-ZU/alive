@@ -35,12 +35,17 @@ export default function setupAi(world: World) {
       const pattern = patterns[0];
       const entityId = world.getEntityId(entity);
 
+      // always reset movement first to cover cases of changed patterns
+      if (entity[MOVABLE]) {
+        entity[MOVABLE].orientations = []
+      }
+
       // skip if dead or no pattern
       if (isDead(world, entity) || !pattern) continue;
 
       if (pattern.name === "wait") {
         if (pattern.memory.ticks === 0) {
-          patterns.shift()
+          patterns.shift();
           continue;
         }
 
@@ -49,10 +54,7 @@ export default function setupAi(world: World) {
         const facing = (entity[ORIENTABLE].facing ||
           orientations[random(0, orientations.length - 1)]) as Orientation;
 
-        if (entity[MOVABLE].orientations.length === 0) {
-          entity[MOVABLE].orientations = [facing];
-          continue;
-        }
+        entity[MOVABLE].orientations = [facing];
 
         const position = add(entity[POSITION], orientationPoints[facing]);
 
@@ -152,7 +154,9 @@ export default function setupAi(world: World) {
             entity[POSITION],
             attemptedPosition
           );
-          entity[MOVABLE].orientations = targetOrientation ? [targetOrientation] : [];
+          entity[MOVABLE].orientations = targetOrientation
+            ? [targetOrientation]
+            : [];
         }
       } else if (
         pattern.name === "kill" ||
@@ -162,13 +166,13 @@ export default function setupAi(world: World) {
         pattern.name === "sell"
       ) {
         const movablePattern = ["kill", "collect"].includes(pattern.name);
-        const itemPattern = ["drop", "sell"].includes(pattern.name);
+        const placementPattern = ["drop", "sell"].includes(pattern.name);
         const memory = pattern.memory;
         const itemEntity = memory.item && world.getEntityById(memory.item);
         const targetEntity =
           pattern.name === "collect"
             ? world.getEntityById(itemEntity[ITEM].carrier)
-            : itemPattern
+            : placementPattern
             ? { [POSITION]: pattern.memory.position }
             : world.getEntityById(memory.target);
         entity[MOVABLE].orientations = [];
@@ -181,10 +185,13 @@ export default function setupAi(world: World) {
             isFriendlyFire(world, entity, targetEntity));
         const collected =
           pattern.name === "collect" &&
-          itemEntity &&
-          itemEntity[ITEM].carrier === entityId;
+          (!itemEntity ||
+            !targetEntity ||
+            (itemEntity && itemEntity[ITEM].carrier === entityId));
         const dropped =
-          itemPattern && itemEntity && itemEntity[ITEM].carrier !== entityId;
+          placementPattern &&
+          itemEntity &&
+          itemEntity[ITEM].carrier !== entityId;
         const unlocked =
           pattern.name === "unlock" &&
           targetEntity &&
@@ -209,8 +216,10 @@ export default function setupAi(world: World) {
           !hasArrived &&
           attemptedPosition &&
           !isWalkable(world, attemptedPosition);
-
-        if (uninitialized || targetMoved || pathObstructed) {
+        const remainingPath =
+          !uninitialized && !hasArrived && memory.path.length === 0;
+        
+        if (uninitialized || targetMoved || pathObstructed || remainingPath) {
           memory.position = copy(targetEntity[POSITION]);
           const path = findPath(world, entity[POSITION], memory.position, true);
 
@@ -240,19 +249,15 @@ export default function setupAi(world: World) {
 
           if (hasArrived && pattern.name === "unlock") {
             entity[ACTIONABLE].triggered = true;
-          } else if (hasArrived && itemPattern) {
-            if (pattern.name === 'drop') {
-              dropItem(
-                world,
-                [memory.item],
-                memory.position
-              );
+          } else if (hasArrived && placementPattern) {
+            if (pattern.name === "drop") {
+              dropItem(world, [memory.item], memory.position);
             } else if (pattern.name === "sell") {
               sellItem(
                 world,
                 [memory.item],
                 memory.position,
-                memory.activation,
+                memory.activation
               );
             }
           }

@@ -7,11 +7,17 @@ import { FOCUSABLE } from "../components/focusable";
 import { moveEntity } from "./map";
 import { ITEM } from "../components/item";
 import { isLootable } from "./collect";
+import { isDead } from "./damage";
+import { PLAYER } from "../components/player";
 
 export default function setupFocus(world: World) {
   let referenceGenerations = -1;
 
   const onUpdate = (delta: number) => {
+    const hero = world.getEntity([PLAYER]);
+
+    if (!hero) return;
+
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
@@ -25,11 +31,11 @@ export default function setupFocus(world: World) {
       let targetId = entity[FOCUSABLE].target;
       let pendingId = entity[FOCUSABLE].pendingTarget;
 
-      // focus compass on drop
+      // focus compass on inital drop
       const compassEntity = world.getIdentifier('compass');
       const carrierEntity = compassEntity && world.getEntityById(compassEntity[ITEM].carrier)
 
-      if (!targetId && !pendingId && carrierEntity && isLootable(world, carrierEntity)) {
+      if (!targetId && !pendingId && carrierEntity && isLootable(world, carrierEntity) && !isDead(world, hero)) {
         entity[FOCUSABLE].pendingTarget = compassEntity[ITEM].carrier
         pendingId = entity[FOCUSABLE].pendingTarget;
       }

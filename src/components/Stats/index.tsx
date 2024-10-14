@@ -19,9 +19,10 @@ function StatsInner({
   padding: number;
 } & Countable &
   Equippable) {
+  const hasStats = Object.keys(stats).length > 0;
   return (
     <header className="Stats">
-      {Object.keys(stats).length > 0 ? (
+      {hasStats ? (
         <>
           <Row
             cells={[
@@ -34,7 +35,7 @@ function StatsInner({
               none,
               ...createStat(stats.seed, "seed", true),
               none,
-              ...createText('│', colors.grey),
+              ...createText("│", colors.grey),
               ...repeat(none, 3),
             ]}
           />
@@ -49,7 +50,7 @@ function StatsInner({
               none,
               ...createStat(stats.herb, "herb", true),
               none,
-              ...createText('│', colors.grey),
+              ...createText("│", colors.grey),
               none,
               stats.map ? map : none,
               none,
@@ -62,11 +63,13 @@ function StatsInner({
           <Row cells={[]} />
         </>
       )}
-      <Row cells={[
-        ...createText("═".repeat(padding + 17), colors.grey),
-        ...createText("╧", colors.grey),
-        ...createText("═".repeat(padding + 3), colors.grey),
-      ]} />
+      <Row
+        cells={[
+          ...createText("═".repeat(padding + 17), colors.grey),
+          ...createText(hasStats ? "╧" : "═", colors.grey),
+          ...createText("═".repeat(padding + 3), colors.grey),
+        ]}
+      />
     </header>
   );
 }
@@ -78,6 +81,10 @@ export default function Stats() {
   const hero = useHero();
 
   return (
-    <PureState padding={dimensions.padding} {...hero?.[COUNTABLE]} {...hero?.[EQUIPPABLE]} />
+    <PureState
+      padding={dimensions.padding}
+      {...hero?.[COUNTABLE]}
+      {...hero?.[EQUIPPABLE]}
+    />
   );
 }

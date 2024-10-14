@@ -24,7 +24,7 @@ import { getAction } from "../../engine/systems/trigger";
 import { Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { Item } from "../../engine/components/item";
-import { canTrade, canUnlock } from "../../engine/systems/action";
+import { canAcceptQuest, canTrade, canUnlock } from "../../engine/systems/action";
 import { TRADABLE } from "../../engine/components/tradable";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
@@ -72,12 +72,12 @@ export default function Controls() {
   const questId = hero?.[ACTIONABLE].quest;
   const questAction = useMemo<Action | undefined>(
     () =>
-      questId && {
+      ecs && questId && {
         name: "Quest",
         activation: [[none, questId ? quest : none, none], repeat(none, 3)],
-        disabled: false,
+        disabled: !canAcceptQuest(ecs, hero, ecs.getEntityById(questId)),
       },
-    [questId]
+    [questId, ecs, hero]
   );
 
   const unlockId = hero?.[ACTIONABLE].unlock;

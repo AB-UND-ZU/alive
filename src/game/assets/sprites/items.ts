@@ -20,7 +20,7 @@ export const apple1: Sprite = {
 
 export const apple2: Sprite = {
   name: "Apple",
-  layers: [{ char: "∙", color: colors.red }],
+  layers: [{ char: ".", color: colors.red }],
   amounts: {
     single: [
       { char: "┐", color: colors.maroon },
@@ -95,18 +95,19 @@ export const seed: Sprite = {
 
 export const herb: Sprite = {
   name: "Herb",
-  layers: [{ char: "·", color: colors.teal }],
+  layers: [{ char: "∙", color: colors.teal }],
   amounts: {
     single: [
-      { char: "·", color: colors.teal },
+      { char: "∙", color: colors.teal },
       { char: ",", color: colors.olive },
+      { char: "\u011b", color: colors.black },
     ],
     double: [
-      { char: "∙", color: colors.teal },
+      { char: "\u0106", color: colors.teal },
       { char: ",", color: colors.olive },
     ],
     multiple: [
-      { char: "\u0106", color: colors.teal },
+      { char: "*", color: colors.teal },
       { char: ",", color: colors.olive },
     ],
   },
@@ -114,19 +115,24 @@ export const herb: Sprite = {
 
 export const ironDisplay: Sprite = {
   name: "Iron",
-  layers: [{ char: ".", color: colors.silver }],
+  layers: [{ char: "∙", color: colors.silver }],
   amounts: {
-    multiple: [{ char: "÷", color: colors.silver }],
+    multiple: [
+      { char: ":", color: colors.silver },
+      { char: "∙", color: colors.silver },
+      { char: "\u011b", color: colors.black },
+      { char: ".", color: colors.silver },
+    ]
   },
 };
 
 export const iron: Sprite = {
   name: "iron_drop",
-  layers: [{ char: ".", color: colors.silver }],
+  layers: [{ char: "∙", color: colors.silver }],
   amounts: {
     single: [
       { char: "█", color: colors.grey },
-      { char: ".", color: colors.silver },
+      { char: "∙", color: colors.silver },
     ],
     double: [
       { char: "█", color: colors.grey },
@@ -134,18 +140,21 @@ export const iron: Sprite = {
     ],
     multiple: [
       { char: "█", color: colors.grey },
-      { char: "÷", color: colors.silver },
+      { char: ":", color: colors.silver },
+      { char: "∙", color: colors.silver },
+      { char: "\u011b", color: colors.grey },
+      { char: ".", color: colors.silver },
     ],
   },
 };
 
 export const gold: Sprite = {
   name: "Gold",
-  layers: [{ char: "°", color: colors.yellow }],
+  layers: [{ char: "∙", color: colors.yellow }],
   amounts: {
     single: [
       { char: "█", color: colors.grey },
-      { char: "°", color: colors.yellow },
+      { char: "∙", color: colors.yellow },
     ],
   },
 };

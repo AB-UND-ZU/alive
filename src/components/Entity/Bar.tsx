@@ -32,9 +32,11 @@ export default function Bar({
     translateX:
       (((hp - max) / max) * (dimensions.aspectRatio - 1 / pixels)) / 2 -
       0.5 / pixels,
-    opacity: isVisible ? 1 : 0,
+    opacity: isVisible || isUnit ? 1 : 0,
     config: { duration: 75 },
   });
+
+  if (hp === max && isUnit) return null;
 
   return (
     <>

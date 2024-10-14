@@ -6,6 +6,8 @@ export const chest: Sprite = {
   layers: [
     { char: "■", color: colors.grey },
     { char: "\u00b1", color: colors.maroon },
+    { char: "∙", color: colors.yellow },
+    { char: "·", color: colors.maroon },
   ],
 };
 
@@ -31,7 +33,10 @@ export const pot: Sprite = {
     { char: "I", color: colors.maroon },
     { char: "\u0106", color: colors.maroon },
     { char: "\u0108", color: colors.maroon },
-    { char: "\u2219", color: colors.grey },
+    { char: "+", color: colors.grey },
+    { char: "|", color: colors.maroon },
+    { char: "∙", color: colors.grey },
+    { char: "·", color: colors.maroon },
   ],
 };
 
@@ -44,9 +49,8 @@ export const doorClosedWood: Sprite = {
   name: "Door",
   layers: [
     { char: "\u0107", color: colors.maroon },
-    { char: "\u0106", color: colors.maroon },
-    { char: "\u011c", color: colors.black },
-    { char: "-", color: colors.maroon },
+    { char: "∙", color: colors.maroon },
+    { char: ".", color: colors.black },
   ],
 };
 
@@ -54,9 +58,9 @@ export const doorClosedIron: Sprite = {
   name: "Door",
   layers: [
     { char: "\u0107", color: colors.maroon },
-    { char: "\u0106", color: colors.maroon },
-    { char: "\u011c", color: colors.silver },
-    { char: "-", color: colors.maroon },
+    { char: "\u0106", color: colors.silver },
+    { char: "∙", color: colors.maroon },
+    { char: ".", color: colors.silver },
   ],
 };
 
@@ -64,9 +68,9 @@ export const doorClosedFire: Sprite = {
   name: "Door",
   layers: [
     { char: "\u0107", color: colors.maroon },
-    { char: "\u0106", color: colors.maroon },
-    { char: "\u011c", color: colors.red },
-    { char: "-", color: colors.maroon },
+    { char: "\u0106", color: colors.red },
+    { char: "∙", color: colors.maroon },
+    { char: ".", color: colors.red },
   ],
 };
 
@@ -74,8 +78,8 @@ export const doorClosedGold: Sprite = {
   name: "Door",
   layers: [
     { char: "\u0107", color: colors.maroon },
-    { char: "\u0106", color: colors.maroon },
-    { char: "\u011c", color: colors.yellow },
-    { char: "-", color: colors.maroon },
+    { char: "\u0106", color: colors.yellow },
+    { char: "∙", color: colors.maroon },
+    { char: ".", color: colors.yellow },
   ],
 };

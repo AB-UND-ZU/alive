@@ -4,16 +4,18 @@ import { Sprite } from "../../../engine/components/sprite";
 export const goldKey: Sprite = {
   name: "Key",
   layers: [
-    { char: "\u011c", color: colors.yellow },
-    { char: "─", color: colors.grey },
+    { char: "\u0103", color: colors.yellow },
+    { char: "\u011c", color: colors.black },
+    { char: "º", color: colors.yellow },
   ],
 };
 
 export const ironKey: Sprite = {
   name: "Key",
   layers: [
-    { char: "\u011c", color: colors.silver },
-    { char: "─", color: colors.grey },
+    { char: "\u0103", color: colors.silver },
+    { char: "\u011c", color: colors.black },
+    { char: "º", color: colors.silver },
   ],
 };
 

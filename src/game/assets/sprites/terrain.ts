@@ -78,3 +78,12 @@ export const cactus2: Sprite = {
     { char: "¥", color: colors.green },
   ],
 };
+
+export const rip: Sprite = {
+  name: "RIP",
+  layers: [
+    { char: "┐", color: colors.white },
+    { char: "─", color: colors.black },
+    { char: "+", color: colors.white },
+  ],
+};

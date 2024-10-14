@@ -13,7 +13,7 @@ export type AnimationArgument = {
   collect: { origin: Position; itemId: number };
   focus: {};
   melee: { facing: Orientation };
-  quest: { step: string };
+  quest: { step: string, memory: any };
   dialog: {
     orientation?: Orientation;
     text: Sprite[];

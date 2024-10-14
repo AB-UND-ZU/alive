@@ -17,7 +17,7 @@ import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
 import { disposeEntity, updateWalkable } from "./map";
-import { canTrade, canUnlock, getUnlockKey, isTradable } from "./action";
+import { canAcceptQuest, canTrade, canUnlock, getUnlockKey, isTradable } from "./action";
 import { Tradable, TRADABLE } from "../components/tradable";
 import { COUNTABLE } from "../components/countable";
 import { getMaterialSprite } from "../../components/Entity/utils";
@@ -135,6 +135,9 @@ export default function setupTrigger(world: World) {
       if (entity[ACTIONABLE].quest) {
         const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
 
+        // ensure player meets conditions for quest
+        if (!canAcceptQuest(world, entity, questEntity)) continue;
+
         // create reference frame for quest
         const animationEntity = entities.createFrame(world, {
           [REFERENCE]: {
@@ -149,7 +152,7 @@ export default function setupTrigger(world: World) {
           name: questEntity[QUEST].name,
           reference: world.getEntityId(animationEntity),
           elapsed: 0,
-          args: { step: "initial" },
+          args: { step: "initial", memory: {} },
           particles: {},
         };
 

@@ -20,7 +20,7 @@ export const isDead = (world: World, entity: Entity) =>
   ATTACKABLE in entity && entity[COUNTABLE].hp <= 0;
 
 export const isEnemy = (world: World, entity: Entity) =>
-  entity[ATTACKABLE].enemy;
+  entity[ATTACKABLE]?.enemy;
 
 export const isFriendlyFire = (world: World, entity: Entity, target: Entity) =>
   isEnemy(world, entity) === isEnemy(world, target);

@@ -19,6 +19,7 @@ export { default as createSign } from "./sign";
 export { default as createShop } from "./shop";
 export { default as createSword } from "./sword";
 export { default as createTerrain } from "./terrain";
+export { default as createTombstone } from "./tombstone";
 export { default as createViewpoint } from "./viewpoint";
 export { default as createWall } from "./wall";
 export { default as createWater } from "./water";

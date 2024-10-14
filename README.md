@@ -127,7 +127,6 @@ _Spawn area with intro quest_
 
 ## Tech debt
 
-- Multiple item drops stack, should be placed next to each other
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
 - Animations mutate state and don't really animate things, maybe better called Sequences
 - Compass needle could be an animation and particle

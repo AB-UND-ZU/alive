@@ -27,6 +27,7 @@ export { default as addPosition } from "./position";
 export { default as addQuest } from "./quest";
 export { default as addReference } from "./reference";
 export { default as addRenderable } from "./renderable";
+export { default as addSpawnable } from "./spawnable";
 export { default as addSprite } from "./sprite";
 export { default as addSwimmable } from "./swimmable";
 export { default as addTooltip } from "./tooltip";

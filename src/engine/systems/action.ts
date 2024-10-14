@@ -14,11 +14,15 @@ import { Inventory, INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { Tradable, TRADABLE } from "../components/tradable";
 import { COUNTABLE } from "../components/countable";
+import { isEnemy } from "./damage";
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
     | Entity
     | undefined;
+
+export const canAcceptQuest = (world: World, entity: Entity, quest: Entity) =>
+  !isEnemy(world, quest) && hasAvailableQuest(world, quest);
 
 export const hasAvailableQuest = (world: World, entity: Entity) =>
   !!entity[QUEST]?.name;
