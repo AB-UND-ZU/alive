@@ -24,7 +24,12 @@ import { getAction } from "../../engine/systems/trigger";
 import { Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { Item } from "../../engine/components/item";
-import { canAcceptQuest, canTrade, canUnlock } from "../../engine/systems/action";
+import {
+  canAcceptQuest,
+  canTrade,
+  canUnlock,
+  isTradable,
+} from "../../engine/systems/action";
 import { TRADABLE } from "../../engine/components/tradable";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
@@ -70,44 +75,47 @@ export default function Controls() {
   const [action, setAction] = useState<Action>();
 
   const questId = hero?.[ACTIONABLE].quest;
+  const questEntity = ecs && hero && questId && ecs.getEntityById(questId);
+  const questActive = questEntity && canAcceptQuest(ecs, hero, questEntity);
   const questAction = useMemo<Action | undefined>(
     () =>
-      ecs && questId && {
+      questEntity && {
         name: "Quest",
         activation: [[none, questId ? quest : none, none], repeat(none, 3)],
-        disabled: !canAcceptQuest(ecs, hero, ecs.getEntityById(questId)),
+        disabled: !questActive,
       },
-    [questId, ecs, hero]
+    [questId, questEntity, questActive]
   );
 
   const unlockId = hero?.[ACTIONABLE].unlock;
+  const unlockEntity = ecs && hero && unlockId && ecs.getEntityById(unlockId);
+  const unlockActive = unlockEntity && canUnlock(ecs, hero, unlockEntity);
   const unlockAction = useMemo<Action | undefined>(
     () =>
-      unlockId &&
-      ecs && {
+      unlockEntity && {
         name: "Open",
         activation: [
           [
             none,
-            unlockId &&
-              getMaterialSprite(
-                "key",
-                ecs.getEntityById(unlockId)[LOCKABLE].material
-              ),
+            getMaterialSprite("key", unlockEntity[LOCKABLE].material),
             none,
           ],
           repeat(none, 3),
         ],
-        disabled: !canUnlock(ecs, hero, ecs.getEntityById(unlockId)),
+        disabled: !unlockActive,
       },
-    [unlockId, ecs, hero]
+    [unlockEntity, unlockActive]
   );
 
   const tradeId = hero?.[ACTIONABLE].trade;
+  const tradeEntity = ecs && hero && tradeId && ecs.getEntityById(tradeId);
+  const tradeActive =
+    tradeEntity &&
+    isTradable(ecs, tradeEntity) &&
+    canTrade(ecs, hero, tradeEntity);
   const tradeAction = useMemo<Action | undefined>(() => {
-    if (!ecs || !tradeId) return;
+    if (!tradeEntity) return;
 
-    const tradeEntity = ecs.getEntityById(tradeId);
     const activation = tradeEntity[TRADABLE].activation;
     return {
       name: "Buy",
@@ -115,11 +123,15 @@ export default function Controls() {
         getActivationRow(activation[0]),
         getActivationRow(activation[1]),
       ],
-      disabled: !canTrade(ecs, hero, ecs.getEntityById(tradeId)),
+      disabled: !tradeActive,
     };
-  }, [ecs, hero, tradeId]);
+  }, [tradeEntity, tradeActive]);
 
-  const activeAction = questAction || unlockAction || tradeAction;
+  const availableActions = [questAction, unlockAction, tradeAction].filter(
+    Boolean
+  ) as Action[];
+  const activeAction =
+    availableActions.find((action) => !action.disabled) || availableActions[0];
 
   const handleAction = useCallback(
     (

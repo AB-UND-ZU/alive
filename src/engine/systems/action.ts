@@ -15,6 +15,7 @@ import { ITEM } from "../components/item";
 import { Tradable, TRADABLE } from "../components/tradable";
 import { COUNTABLE } from "../components/countable";
 import { isEnemy } from "./damage";
+import { ANIMATABLE } from "../components/animatable";
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
@@ -39,7 +40,8 @@ export const isUnlocked = (world: World, entity: Entity) =>
   entity[LOCKABLE]?.locked === false;
 
 export const canUnlock = (world: World, entity: Entity, lockable: Entity) =>
-  !lockable[LOCKABLE].material || !!getUnlockKey(world, entity, lockable);
+  !lockable[ANIMATABLE].states.unlock &&
+  (!lockable[LOCKABLE].material || !!getUnlockKey(world, entity, lockable));
 
 export const getUnlockKey = (
   world: World,

@@ -181,13 +181,11 @@ export default function setupTrigger(world: World) {
 
       entity[ACTIONABLE].triggered = false;
       entity[MOVABLE].lastInteraction = entityReference;
+      const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
+      const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
+      const tradeEntity = world.getEntityById(entity[ACTIONABLE].trade);
 
-      if (entity[ACTIONABLE].quest) {
-        const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
-
-        // ensure player meets conditions for quest
-        if (!canAcceptQuest(world, entity, questEntity)) continue;
-
+      if (questEntity && canAcceptQuest(world, entity, questEntity)) {
         // create reference frame for quest
         const animationEntity = entities.createFrame(world, {
           [REFERENCE]: {
@@ -198,6 +196,8 @@ export default function setupTrigger(world: World) {
           },
           [RENDERABLE]: { generation: 1 },
         });
+
+        // accept quest and remove from target
         entity[ANIMATABLE].states.quest = {
           name: questEntity[QUEST].name,
           reference: world.getEntityId(animationEntity),
@@ -205,28 +205,16 @@ export default function setupTrigger(world: World) {
           args: { step: "initial", memory: {} },
           particles: {},
         };
-
-        // remove quest from target
         world.removeQuest(questEntity);
-      } else if (entity[ACTIONABLE].unlock) {
-        const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
-
-        // check if entity has correct key
-        if (!canUnlock(world, entity, unlockEntity)) continue;
-
-        // unlock door and remove key
+      } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
+        // unlock door and remove key if used
         unlockDoor(world, entity, unlockEntity);
-
         rerenderEntity(world, entity);
-      } else if (entity[ACTIONABLE].trade) {
-        const tradeEntity = world.getEntityById(entity[ACTIONABLE].trade);
-
-        if (
-          !isTradable(world, tradeEntity) ||
-          !canTrade(world, entity, tradeEntity)
-        )
-          continue;
-
+      } else if (
+        tradeEntity &&
+        isTradable(world, tradeEntity) &&
+        canTrade(world, entity, tradeEntity)
+      ) {
         performTrade(world, entity, tradeEntity);
         collectItem(world, entity, tradeEntity);
       }
