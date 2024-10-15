@@ -33,7 +33,8 @@ export const getLootable = (world: World, position: Position) =>
 export const isEmpty = (world: World, entity: Entity) =>
   INVENTORY in entity &&
   LOOTABLE in entity &&
-  entity[INVENTORY].items.length === 0;
+  entity[INVENTORY].items.length === 0 &&
+  !entity[ANIMATABLE]?.states.collect;
 
 export const isFull = (world: World, entity: Entity) =>
   INVENTORY in entity &&
@@ -68,8 +69,13 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
     }
 
     // remove from target inventory
-    if (slot || consume || itemEntity[ITEM].amount === 0) {
+    if (slot || consume || (counter && itemEntity[ITEM].amount === 0)) {
       removeFromInventory(world, target, itemEntity);
+    }
+
+    // assign new carrier on discrete items
+    if (!counter){
+      itemEntity[ITEM].carrier = world.getEntityId(entity)
     }
 
     // initiate collecting animation on player
@@ -86,10 +92,10 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
       name: "itemCollect",
       reference: world.getEntityId(animationEntity),
       elapsed: 0,
-      args: { origin: target[POSITION], itemId },
+      args: { origin: target[POSITION], itemId, drop: false },
       particles: {},
     };
-    
+
     // update walkable
     updateWalkable(world, target[POSITION]);
 

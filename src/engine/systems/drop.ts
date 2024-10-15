@@ -119,36 +119,65 @@ export const dropItem = (
   }
 
   const previousItems = [...items];
-  previousItems.forEach((item, index) => {
+  previousItems.forEach((itemId, index) => {
     const dropPosition = findAdjacentWalkable(
       world,
       position,
       loot ? index === 0 && loot && !remains : undefined
     );
 
+    const isCentered =
+      dropPosition.x === position.x && dropPosition.y === position.y;
+
+    const itemEntity = world.getEntityById(itemId);
+    const previousCarrier = itemEntity[ITEM].carrier;
+    const carrierEntity =
+      previousCarrier && world.getEntityById(previousCarrier);
+
     const containerEntity = entities.createContainer(world, {
       [ANIMATABLE]: { states: {} },
       [FOG]: { visibility: "fog", type: "terrain" },
-      [INVENTORY]: { items: [item], size: 1 },
-      [LOOTABLE]: { disposable: true },
+      [INVENTORY]: { items: isCentered ? [itemId] : [], size: 1 },
+      [LOOTABLE]: { disposable: isCentered },
       [POSITION]: dropPosition,
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: none,
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
     });
-    registerEntity(world, containerEntity);
-    const containerId = world.getEntityId(containerEntity);
 
-    const itemEntity = world.getEntityById(item);
-    const previousCarrier = itemEntity[ITEM].carrier;
+    // animate drop if not on center position
+    if (!isCentered) {
+      const animationEntity = entities.createFrame(world, {
+        [REFERENCE]: {
+          tick: -1,
+          delta: 0,
+          suspended: false,
+          suspensionCounter: -1,
+        },
+        [RENDERABLE]: { generation: 1 },
+      });
+      (containerEntity[ANIMATABLE] as Animatable).states.collect = {
+        name: "itemCollect",
+        reference: world.getEntityId(animationEntity),
+        elapsed: 0,
+        args: {
+          origin: copy(carrierEntity?.[POSITION] || dropPosition),
+          itemId,
+          drop: true,
+        },
+        particles: {},
+      };
+    }
 
-    if (previousCarrier) {
-      const carrierEntity = world.getEntityById(previousCarrier);
+    if (carrierEntity) {
       removeFromInventory(world, carrierEntity, itemEntity);
     }
 
+    const containerId = world.getEntityId(containerEntity);
     itemEntity[ITEM].carrier = containerId;
+
+    registerEntity(world, containerEntity);
   });
 };
 
@@ -159,6 +188,7 @@ export const sellItem = (
   activation: Tradable["activation"]
 ) => {
   const previousItems = [...items];
+  const sellPosition = findAdjacentWalkable(world, position);
   const itemNames = items
     .map((itemId) => world.getEntityById(itemId)[SPRITE].name.toLowerCase())
     .join(", ");
@@ -168,7 +198,7 @@ export const sellItem = (
     [FOG]: { visibility: "fog", type: "unit" },
     [INVENTORY]: { items: previousItems, size: previousItems.length },
     [LOOTABLE]: { disposable: true },
-    [POSITION]: position,
+    [POSITION]: sellPosition,
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
     [TRADABLE]: { activation },
@@ -261,7 +291,7 @@ export default function setupDrop(world: World) {
           //   [RENDERABLE]: { generation: 1 },
           // });
           const tombstoneEntity = entities.createTombstone(world, {
-            [ANIMATABLE]: { states: { }, },
+            [ANIMATABLE]: { states: {} },
             [LIGHT]: { ...entity[LIGHT] },
             [POSITION]: copy(entity[POSITION]),
             [RENDERABLE]: { generation: 0 },

@@ -14,6 +14,7 @@ import { disposeEntity } from "./map";
 
 const animationOrder: (keyof AnimationArgument)[] = [
   "collect",
+  "unlock",
   "counter",
   "melee",
   "decay",

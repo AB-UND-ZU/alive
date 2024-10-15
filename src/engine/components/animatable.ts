@@ -10,10 +10,11 @@ export type AnimationArgument = {
   decay: {};
   burn: { generation: 0 };
   dispose: {};
-  collect: { origin: Position; itemId: number };
+  collect: { origin: Position; itemId: number; drop: boolean };
+  unlock: { origin: Position; itemId: number };
   focus: {};
   melee: { facing: Orientation };
-  quest: { step: string, memory: any };
+  quest: { step: string; memory: any };
   dialog: {
     orientation?: Orientation;
     text: Sprite[];

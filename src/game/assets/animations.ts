@@ -3,6 +3,7 @@ import {
   focusHeight,
   particleHeight,
   tooltipHeight,
+  wallHeight,
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { ANIMATABLE, Animation } from "../../engine/components/animatable";
@@ -16,6 +17,7 @@ import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
+import { LOOTABLE } from "../../engine/components/lootable";
 import { MELEE } from "../../engine/components/melee";
 import { MOVABLE } from "../../engine/components/movable";
 import {
@@ -41,7 +43,11 @@ import {
   getEntityGeneration,
   rerenderEntity,
 } from "../../engine/systems/renderer";
-import { lockDoor, removeFromInventory } from "../../engine/systems/trigger";
+import {
+  lockDoor,
+  openDoor,
+  removeFromInventory,
+} from "../../engine/systems/trigger";
 import * as colors from "../assets/colors";
 import { add, distribution, normalize, signedDistance } from "../math/std";
 import { iterations } from "../math/tracing";
@@ -52,6 +58,7 @@ import {
   createStat,
   createText,
   decay,
+  doorClosedWood,
   fire,
   fog,
   goldKey,
@@ -137,7 +144,7 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     state.elapsed < decayTime
   ) {
     const deathParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: particleHeight },
+      [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: wallHeight },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: decay,
     });
@@ -194,6 +201,54 @@ export const fireBurn: Animation<"burn"> = (world, entity, state) => {
   return { finished, updated };
 };
 
+// keep door locked until animation is finished
+const keyTime = 200;
+const unlockTime = 500;
+
+export const doorUnlock: Animation<"unlock"> = (world, entity, state) => {
+  let updated = false;
+  const finished = state.elapsed > unlockTime;
+  const keyEntity = world.getEntityById(state.args.itemId);
+
+  // create key particle
+  if (!state.particles.key && !finished) {
+    const size = world.metadata.gameEntity[LEVEL].size;
+    const delta = {
+      x: signedDistance(entity[POSITION].x, state.args.origin.x, size),
+      y: signedDistance(entity[POSITION].y, state.args.origin.y, size),
+    };
+
+    const keyParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: tooltipHeight,
+        animatedOrigin: delta,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: keyEntity[SPRITE],
+    });
+    state.particles.key = world.getEntityId(keyParticle);
+    updated = true;
+  }
+
+  if (state.particles.key && (finished || state.elapsed > keyTime)) {
+    disposeEntity(world, world.getEntityById(state.particles.key));
+    delete state.particles.key;
+
+    // disarm door
+    entity[SPRITE] = doorClosedWood;
+  }
+
+  if (finished) {
+    // discard key
+    disposeEntity(world, keyEntity);
+    openDoor(world, entity);
+  }
+
+  return { finished, updated };
+};
+
 // keep entities around to keep swimmable animation for collecting particles
 const disposeTime = 200;
 
@@ -211,12 +266,14 @@ export const entityDispose: Animation<"dispose"> = (world, entity, state) => {
 export const itemCollect: Animation<"collect"> = (world, entity, state) => {
   let updated = false;
   let finished = false;
+  const entityId = world.getEntityId(entity);
   const lootId = state.particles.loot;
   const itemId = state.args.itemId;
   const size = world.metadata.gameEntity[LEVEL].size;
   const itemEntity = world.getEntityId(itemId);
-  const lootDelay =
-    world.getEntityById(entity[MOVABLE].reference)[REFERENCE].tick - 50;
+  const lootDelay = entity[MOVABLE]
+    ? world.getEntityById(entity[MOVABLE].reference)[REFERENCE].tick - 50
+    : 200;
 
   // add item to player's inventory
   if (state.elapsed >= lootDelay) {
@@ -226,57 +283,59 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
       delete state.particles.loot;
     }
 
-    let targetSlot = itemEntity[ITEM].slot;
-    let targetCounter = itemEntity[ITEM].counter;
-    let targetConsume = itemEntity[ITEM].consume;
-    let targetItem = itemEntity;
+    // set disposable if it is a dropped loot
+    if (state.args.drop) {
+      entity[LOOTABLE].disposable = true;
+      itemEntity[ITEM].carrier = entityId;
+      entity[INVENTORY].items.push(itemId);
+    } else {
+      let targetSlot = itemEntity[ITEM].slot;
+      let targetCounter = itemEntity[ITEM].counter;
+      let targetConsume = itemEntity[ITEM].consume;
+      let targetItem = itemEntity;
 
-    // if no sword is equipped, use wood as stick
-    if (
-      entity[MELEE] &&
-      !entity[EQUIPPABLE].melee &&
-      targetCounter === "wood"
-    ) {
-      targetSlot = "melee";
-      targetCounter = undefined;
-      targetItem = entities.createSword(world, {
-        [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 1, slot: "melee" },
-        [ORIENTABLE]: {},
-        [RENDERABLE]: { generation: 0 },
-        [SPRITE]: woodStick,
-      });
-    }
-
-    // change carrier for discrete items
-    if (!targetCounter) {
-      targetItem[ITEM].carrier = world.getEntityId(entity);
-    }
-
-    const targetId = world.getEntityId(targetItem);
-
-    if (targetSlot) {
-      const existingId = entity[EQUIPPABLE][targetSlot];
-
-      // add existing render count if item is replaced
-      if (existingId) {
-        const existingItem = world.getEntityById(existingId);
-        targetItem[RENDERABLE].generation += getEntityGeneration(
-          world,
-          existingItem
-        );
-
-        // TODO: handle dropping existing item instead
-        removeFromInventory(world, entity, existingItem);
-        disposeEntity(world, existingItem);
+      // if no sword is equipped, use wood as stick
+      if (
+        entity[MELEE] &&
+        !entity[EQUIPPABLE].melee &&
+        targetCounter === "wood"
+      ) {
+        targetSlot = "melee";
+        targetCounter = undefined;
+        targetItem = entities.createSword(world, {
+          [ANIMATABLE]: { states: {} },
+          [ITEM]: { amount: 1, slot: "melee", carrier: entityId },
+          [ORIENTABLE]: {},
+          [RENDERABLE]: { generation: 0 },
+          [SPRITE]: woodStick,
+        });
       }
 
-      entity[EQUIPPABLE][targetSlot] = targetId;
-      entity[INVENTORY].items.push(targetId);
-    } else if (targetConsume) {
-      entity[INVENTORY].items.push(targetId);
-    } else if (targetCounter) {
-      entity[COUNTABLE][targetCounter] += 1;
+      const targetId = world.getEntityId(targetItem);
+
+      if (targetSlot) {
+        const existingId = entity[EQUIPPABLE][targetSlot];
+
+        // add existing render count if item is replaced
+        if (existingId) {
+          const existingItem = world.getEntityById(existingId);
+          targetItem[RENDERABLE].generation += getEntityGeneration(
+            world,
+            existingItem
+          );
+
+          // TODO: handle dropping existing item instead
+          removeFromInventory(world, entity, existingItem);
+          disposeEntity(world, existingItem);
+        }
+
+        entity[EQUIPPABLE][targetSlot] = targetId;
+        entity[INVENTORY].items.push(targetId);
+      } else if (targetConsume) {
+        entity[INVENTORY].items.push(targetId);
+      } else if (targetCounter) {
+        entity[COUNTABLE][targetCounter] += 1;
+      }
     }
 
     finished = true;
@@ -400,6 +459,8 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
       .isIdle;
   const active =
     !changed &&
+    !!heroEntity &&
+    !isDead(world, heroEntity) &&
     (entity[TOOLTIP].override === "visible" ||
       (state.args.isIdle && !isAdjacent) ||
       (isAdjacent &&

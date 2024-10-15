@@ -15,9 +15,3 @@
   inset: 0;
   font-size: calc(var(--cell-height) * 1.02);
 }
-
-.Layer.Black {
-  line-height: calc(var(--cell-height) * 1.03);
-  inset: calc(var(--cell-width) * -0.01);
-  font-size: calc(var(--cell-height) * 1.05);
-}
