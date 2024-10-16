@@ -13,21 +13,30 @@ import { Entity } from "ecs";
 import { FOG } from "../components/fog";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
-import { Sprite, SPRITE } from "../components/sprite";
+import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
-import { createDialog, none, rip, shop } from "../../game/assets/sprites";
+import {
+  createDialog,
+  none,
+  tombstone,
+  shop,
+  getCountableSprite,
+} from "../../game/assets/sprites";
 import { ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { Tradable, TRADABLE } from "../components/tradable";
 import { COLLIDABLE } from "../components/collidable";
 import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
-import { iterations } from "../../game/math/tracing";
+import { turnedIterations } from "../../game/math/tracing";
 import { copy, normalize } from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { LIGHT } from "../components/light";
 import { VIEWABLE } from "../components/viewable";
 import { SPAWNABLE } from "../components/spawnable";
+import { EQUIPPABLE } from "../components/equippable";
+import { MOVABLE } from "../components/movable";
+import { Countable, COUNTABLE } from "../components/countable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -40,6 +49,9 @@ export const findAdjacentWalkable = (
 ) => {
   const level = world.metadata.gameEntity[LEVEL] as Level;
 
+  // allow using dropEntity during world generation
+  if (level.walkable.length === 0) return position;
+
   if (
     overrideCenter !== false &&
     (overrideCenter === true || level.walkable[position.x][position.y])
@@ -49,7 +61,7 @@ export const findAdjacentWalkable = (
 
   for (let direction = 1; direction <= MAX_DROP_RADIUS; direction += 1) {
     // centers
-    for (const iteration of iterations) {
+    for (const iteration of turnedIterations) {
       let normal = 0;
       const centerPosition = {
         x: normalize(
@@ -71,7 +83,7 @@ export const findAdjacentWalkable = (
     }
 
     // sides
-    for (const iteration of iterations) {
+    for (const iteration of turnedIterations) {
       for (let normal = 1; normal <= direction; normal += 1) {
         const sidePosition = {
           x: normalize(
@@ -102,28 +114,51 @@ export const findAdjacentWalkable = (
   return position;
 };
 
-export const dropItem = (
+export const dropEntity = (
   world: World,
-  items: Inventory["items"],
+  entity: Entity,
   position: Position,
-  loot: boolean = false,
-  remains?: Sprite
+  dropAside: boolean = false
 ) => {
+  const remains = entity[DROPPABLE]?.remains;
+
   if (remains) {
     entities.createGround(world, {
-      [FOG]: { visibility: "fog", type: "terrain" },
+      [FOG]: { visibility: "hidden", type: "terrain" },
       [POSITION]: position,
       [SPRITE]: remains,
       [RENDERABLE]: { generation: 0 },
     });
   }
 
-  const previousItems = [...items];
-  previousItems.forEach((itemId, index) => {
+  const droppedCountables: (keyof Countable)[] = [
+    "gold",
+    "iron",
+    "wood",
+    "herb",
+    "seed",
+  ];
+
+  const items = [
+    ...(entity[INVENTORY]?.items || []),
+    ...droppedCountables
+      .filter((counter) => entity[COUNTABLE]?.[counter])
+      .map((counter) =>
+        world.getEntityId(
+          entities.createItem(world, {
+            [ITEM]: { amount: entity[COUNTABLE][counter], counter },
+            [RENDERABLE]: { generation: 0 },
+            [SPRITE]: getCountableSprite(counter, !!remains),
+          })
+        )
+      ),
+  ];
+
+  return items.map((itemId, index) => {
     const dropPosition = findAdjacentWalkable(
       world,
       position,
-      loot ? index === 0 && loot && !remains : undefined
+      dropAside ? index === 0 && dropAside : undefined
     );
 
     const isCentered =
@@ -162,9 +197,9 @@ export const dropItem = (
         reference: world.getEntityId(animationEntity),
         elapsed: 0,
         args: {
-          origin: copy(carrierEntity?.[POSITION] || dropPosition),
+          origin: copy(carrierEntity?.[POSITION] || position),
           itemId,
-          drop: true,
+          drop: itemEntity[ITEM].amount,
         },
         particles: {},
       };
@@ -178,6 +213,8 @@ export const dropItem = (
     itemEntity[ITEM].carrier = containerId;
 
     registerEntity(world, containerEntity);
+
+    return containerEntity;
   });
 };
 
@@ -271,37 +308,76 @@ export default function setupDrop(world: World) {
     for (const entity of world.getEntities([DROPPABLE, RENDERABLE])) {
       const isPlayer = entity[PLAYER];
       if (isDead(world, entity) && isDecayed(world, entity)) {
-        dropItem(
-          world,
-          entity[INVENTORY].items,
-          entity[POSITION],
-          !isPlayer,
-          entity[DROPPABLE].remains
-        );
-        disposeEntity(world, entity);
-
         if (isPlayer) {
-          // const animationEntity = entities.createFrame(world, {
-          //   [REFERENCE]: {
-          //     tick: -1,
-          //     delta: 0,
-          //     suspended: false,
-          //     suspensionCounter: -1,
-          //   },
-          //   [RENDERABLE]: { generation: 1 },
-          // });
+          // abort any pending quest and focus
+          world.abortQuest(entity);
+          world.setFocus();
+
+          // create tombstone and soul, and start revive animation
           const tombstoneEntity = entities.createTombstone(world, {
             [ANIMATABLE]: { states: {} },
-            [LIGHT]: { ...entity[LIGHT] },
+            [FOG]: { visibility: "visible", type: "terrain" },
             [POSITION]: copy(entity[POSITION]),
             [RENDERABLE]: { generation: 0 },
-            [SPAWNABLE]: { position: copy(entity[POSITION]) },
-            [SPRITE]: rip,
+            [SPRITE]: tombstone,
+            [SWIMMABLE]: { swimming: false },
             [TOOLTIP]: { dialogs: [], nextDialog: -1, persistent: false },
-            [VIEWABLE]: { active: entity[VIEWABLE].active },
           });
           registerEntity(world, tombstoneEntity);
+
+          const animationEntity = entities.createFrame(world, {
+            [REFERENCE]: {
+              tick: -1,
+              delta: 0,
+              suspended: false,
+              suspensionCounter: -1,
+            },
+            [RENDERABLE]: { generation: 1 },
+          });
+          const soulEntity = entities.createSoul(world, {
+            [ANIMATABLE]: {
+              states: {
+                revive: {
+                  name: "heroRevive",
+                  reference: world.getEntityId(animationEntity),
+                  elapsed: 0,
+                  args: {
+                    tombstoneId: world.getEntityById(tombstoneEntity),
+                    target: entity[SPAWNABLE].position,
+                    viewable: { active: entity[VIEWABLE].active },
+                    light: { ...entity[LIGHT] },
+                    compassId: entity[EQUIPPABLE].compass,
+                  },
+                  particles: {},
+                },
+              },
+            },
+            [EQUIPPABLE]: {},
+            [INVENTORY]: { items: [], size: 10 },
+            [LIGHT]: { ...entity[LIGHT] },
+            [MOVABLE]: {
+              orientations: [],
+              reference: world.getEntityId(animationEntity),
+              spring: {
+                mass: 5,
+                friction: 100,
+                tension: 200,
+              },
+              lastInteraction: 0,
+            },
+            [POSITION]: copy(entity[POSITION]),
+            [RENDERABLE]: { generation: 0 },
+            [SPRITE]: none,
+            [VIEWABLE]: {
+              active: entity[VIEWABLE].active,
+              spring: { duration: 200 },
+            },
+          });
+          registerEntity(world, soulEntity);
         }
+
+        dropEntity(world, entity, entity[POSITION], !isPlayer);
+        disposeEntity(world, entity);
       }
     }
 

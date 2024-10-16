@@ -57,10 +57,13 @@ export const useRenderable = (componentNames: string[]) => {
     if (!ecs) return null;
 
     const entities = ecs.getEntities([RENDERABLE, ...componentNames]);
-    const nextGeneration = entities.reduce(
-      (total, entity) => total + getEntityGeneration(ecs, entity),
-      0
-    );
+    const nextGeneration =
+      entities.length === 0
+        ? -1
+        : entities.reduce(
+            (total, entity) => total + getEntityGeneration(ecs, entity),
+            0
+          );
 
     if (nextGeneration !== pendingGeneration.current) {
       pendingGeneration.current = nextGeneration;
@@ -104,6 +107,12 @@ export const useViewable = () => {
   return viewables.find((entity) => entity[VIEWABLE].active);
 };
 
+const defaultSpring = {
+  mass: 1,
+  friction: 25,
+  tension: 65,
+};
+
 export const useViewpoint = () => {
   const viewable = useViewable();
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -123,5 +132,8 @@ export const useViewpoint = () => {
     }));
   }, [x, y, ecs]);
 
-  return position;
+  return {
+    position,
+    config: viewable?.[VIEWABLE].spring || defaultSpring,
+  };
 };

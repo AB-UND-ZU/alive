@@ -13,6 +13,7 @@ export type LayerProps = {
   animatedOrigin?: Point;
   receiveShadow: boolean;
   colorFactor?: number;
+  duration?: number;
 };
 
 export default function Layer({

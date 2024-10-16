@@ -31,7 +31,7 @@ export default function setupText(world: World) {
     const hero = world.getEntity([PLAYER]);
     const size = world.metadata.gameEntity[LEVEL].size;
 
-    if (!hero || world.metadata.gameEntity[LEVEL].map.length === 0) return;
+    if (world.metadata.gameEntity[LEVEL].map.length === 0) return;
 
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
@@ -44,17 +44,19 @@ export default function setupText(world: World) {
     const activeTooltips: Entity[] = [];
 
     // check any adjacent tooltips
-    for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-      for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-        const delta = { x: offsetX, y: offsetY };
-        const targetPosition = add(hero[POSITION], delta);
-        const tooltipEntity = getTooltip(world, targetPosition);
+    if (hero) {
+      for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+        for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+          const delta = { x: offsetX, y: offsetY };
+          const targetPosition = add(hero[POSITION], delta);
+          const tooltipEntity = getTooltip(world, targetPosition);
 
-        // handle overrides in next step
-        if (!tooltipEntity?.[ANIMATABLE] || tooltipEntity?.[TOOLTIP].override)
-          continue;
-        
-        activeTooltips.push(tooltipEntity);
+          // handle overrides in next step
+          if (!tooltipEntity?.[ANIMATABLE] || tooltipEntity?.[TOOLTIP].override)
+            continue;
+
+          activeTooltips.push(tooltipEntity);
+        }
       }
     }
 
@@ -86,11 +88,12 @@ export default function setupText(world: World) {
 
     // create or update tooltips
     const updatedTooltips = activeTooltips.filter((tooltipEntity) => {
-      const delta = {
+      const delta = hero && {
         x: signedDistance(hero[POSITION].x, tooltipEntity[POSITION].x, size),
         y: signedDistance(hero[POSITION].y, tooltipEntity[POSITION].y, size),
       };
-      const isAdjacent = Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
+      const isAdjacent =
+        delta && Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
       const lootable = getLootable(world, tooltipEntity[POSITION]);
       const item =
         lootable && world.getEntityById(lootable[INVENTORY].items.slice(-1)[0]);
@@ -110,11 +113,14 @@ export default function setupText(world: World) {
     });
 
     for (const tooltipEntity of updatedTooltips) {
-      const delta = {
+      
+      const delta = hero && {
         x: signedDistance(hero[POSITION].x, tooltipEntity[POSITION].x, size),
         y: signedDistance(hero[POSITION].y, tooltipEntity[POSITION].y, size),
       };
-      const isAdjacent = Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
+
+      const isAdjacent =
+        delta && Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
       const isVisible = tooltipEntity[TOOLTIP].override === "visible";
 
       const lootable = getLootable(world, tooltipEntity[POSITION]);

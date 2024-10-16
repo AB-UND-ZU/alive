@@ -23,6 +23,7 @@ const animationOrder: (keyof AnimationArgument)[] = [
   "focus",
   "quest",
   "dispose",
+  "revive",
 ];
 
 export const getAnimations: (
@@ -67,8 +68,11 @@ export default function setupAnimate(world: World) {
         const animation = animations[animationState.name];
         const result = animation(world, entity, animationState as any); // trust me TypeScript i'm an engineer
 
-        animationFrames[animationState.reference][world.getEntityId(entity)] =
-          result.finished;
+        // ignore newly added animation frames
+        if (animationState.reference in animationFrames) {
+          animationFrames[animationState.reference][world.getEntityId(entity)] =
+            result.finished;
+        }
 
         if (result.updated || result.finished) {
           rerenderEntity(world, animationEntity);

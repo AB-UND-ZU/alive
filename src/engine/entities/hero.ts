@@ -14,6 +14,7 @@ import { Orientable, ORIENTABLE } from "../components/orientable";
 import { Player, PLAYER } from "../components/player";
 import { POSITION, Position } from "../components/position";
 import { Renderable, RENDERABLE } from "../components/renderable";
+import { Spawnable, SPAWNABLE } from "../components/spawnable";
 import { SPRITE, Sprite } from "../components/sprite";
 import { SWIMMABLE, Swimmable } from "../components/swimmable";
 import { Viewable, VIEWABLE } from "../components/viewable";
@@ -37,6 +38,7 @@ export default function createHero(
     [PLAYER]: Player;
     [POSITION]: Position;
     [RENDERABLE]: Renderable;
+    [SPAWNABLE]: Spawnable;
     [SPRITE]: Sprite;
     [SWIMMABLE]: Swimmable;
     [VIEWABLE]: Viewable;
@@ -59,6 +61,7 @@ export default function createHero(
   components.addPlayer(world, heroEntity, entity[PLAYER]);
   components.addPosition(world, heroEntity, entity[POSITION]);
   components.addRenderable(world, heroEntity, entity[RENDERABLE]);
+  components.addSpawnable(world, heroEntity, entity[SPAWNABLE]);
   components.addSprite(world, heroEntity, entity[SPRITE]);
   components.addSwimmable(world, heroEntity, entity[SWIMMABLE]);
   components.addViewable(world, heroEntity, entity[VIEWABLE]);

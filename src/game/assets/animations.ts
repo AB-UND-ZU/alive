@@ -1,12 +1,18 @@
 import { isTouch } from "../../components/Dimensions";
 import {
+  decayHeight,
   focusHeight,
   particleHeight,
   tooltipHeight,
-  wallHeight,
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
-import { ANIMATABLE, Animation } from "../../engine/components/animatable";
+import { ACTIONABLE } from "../../engine/components/actionable";
+import {
+  Animatable,
+  ANIMATABLE,
+  Animation,
+} from "../../engine/components/animatable";
+import { ATTACKABLE } from "../../engine/components/attackable";
 import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { COUNTABLE } from "../../engine/components/countable";
 import { DROPPABLE } from "../../engine/components/droppable";
@@ -25,11 +31,15 @@ import {
   orientationPoints,
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
+import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { REFERENCE } from "../../engine/components/reference";
 import { RENDERABLE } from "../../engine/components/renderable";
+import { SPAWNABLE } from "../../engine/components/spawnable";
 import { SPRITE } from "../../engine/components/sprite";
+import { SWIMMABLE } from "../../engine/components/swimmable";
 import { TOOLTIP } from "../../engine/components/tooltip";
+import { TRACKABLE } from "../../engine/components/trackable";
 import { VIEWABLE } from "../../engine/components/viewable";
 import {
   hasAvailableQuest,
@@ -38,7 +48,12 @@ import {
 } from "../../engine/systems/action";
 import { collectItem, isEmpty } from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
-import { disposeEntity, getCell } from "../../engine/systems/map";
+import {
+  disposeEntity,
+  getCell,
+  moveEntity,
+  registerEntity,
+} from "../../engine/systems/map";
 import {
   getEntityGeneration,
   rerenderEntity,
@@ -49,7 +64,13 @@ import {
   removeFromInventory,
 } from "../../engine/systems/trigger";
 import * as colors from "../assets/colors";
-import { add, distribution, normalize, signedDistance } from "../math/std";
+import {
+  add,
+  copy,
+  distribution,
+  normalize,
+  signedDistance,
+} from "../math/std";
 import { iterations } from "../math/tracing";
 import { initialPosition, menuArea } from "./areas";
 import {
@@ -64,6 +85,8 @@ import {
   goldKey,
   hit,
   none,
+  player,
+  soul,
   woodStick,
 } from "./sprites";
 
@@ -82,6 +105,7 @@ export const swordAttack: Animation<"melee"> = (world, entity, state) => {
         offsetX: delta.x,
         offsetY: delta.y,
         offsetZ: particleHeight,
+        amount: state.args.damage,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: hit,
@@ -144,7 +168,7 @@ export const creatureDecay: Animation<"decay"> = (world, entity, state) => {
     state.elapsed < decayTime
   ) {
     const deathParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: wallHeight },
+      [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: decayHeight },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: decay,
     });
@@ -249,6 +273,256 @@ export const doorUnlock: Animation<"unlock"> = (world, entity, state) => {
   return { finished, updated };
 };
 
+// animate light on tombstone before respawning hero
+const arriveTime = 2500;
+const compassDuration = 500;
+const soulSpeed = 1 / 70;
+const soulTime = 4500;
+const ripTime = 3500;
+const circleTime = 2000;
+
+export const heroRevive: Animation<"revive"> = (world, entity, state) => {
+  let updated = false;
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const tombstoneEntity = world.getEntityById(state.args.tombstoneId);
+  let heroEntity = world.getIdentifier("hero");
+  const compassEntity = world.getIdentifier("compass");
+  const compassId = state.args.compassId;
+  const delta = {
+    x: signedDistance(tombstoneEntity[POSITION].x, state.args.target.x, size),
+    y: signedDistance(tombstoneEntity[POSITION].y, state.args.target.y, size),
+  };
+  const spawnDistance = Math.sqrt(delta.x ** 2 + delta.y ** 2);
+  const soulDuration = spawnDistance / soulSpeed;
+  const soulCollectTime = soulTime + (compassId ? compassDuration : 0);
+  const moveTime = soulCollectTime + soulDuration + arriveTime;
+  const finished = state.elapsed > moveTime + circleTime / 2;
+
+  // floor at non-zero value to render full shadow
+  const minimum = Math.max(
+    0.02,
+    Math.min(1.5, (soulTime - state.elapsed) / (circleTime / 4))
+  );
+  const factor = (circleTime - state.elapsed) / circleTime;
+  const newBrightness = Math.max(minimum, state.args.light.brightness * factor);
+  const newVisibility = Math.max(minimum, state.args.light.visibility * factor);
+
+  // reduce circular light radius
+  if (
+    state.elapsed < soulTime &&
+    (newBrightness !== entity[LIGHT].brightness ||
+      newVisibility !== entity[LIGHT].visibility)
+  ) {
+    entity[LIGHT].brightness = newBrightness;
+    entity[LIGHT].visibility = newVisibility;
+    updated = true;
+  }
+
+  // show RIP dialog
+  if (
+    state.elapsed > circleTime &&
+    state.elapsed < ripTime &&
+    !tombstoneEntity[TOOLTIP].override
+  ) {
+    tombstoneEntity[TOOLTIP].override = "visible";
+    tombstoneEntity[TOOLTIP].changed = true;
+    tombstoneEntity[TOOLTIP].dialogs = [createDialog("RIP")];
+    rerenderEntity(world, tombstoneEntity);
+    updated = true;
+  }
+
+  // hide RIP dialog
+  if (state.elapsed > ripTime && tombstoneEntity[TOOLTIP].override) {
+    tombstoneEntity[TOOLTIP].override = undefined;
+    tombstoneEntity[TOOLTIP].changed = true;
+    tombstoneEntity[TOOLTIP].dialogs = [];
+    rerenderEntity(world, tombstoneEntity);
+    updated = true;
+  }
+
+  // create soul and collect existing compass
+  if (
+    state.elapsed > soulTime &&
+    state.elapsed < moveTime &&
+    !state.particles.soul
+  ) {
+    const soulParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: soul,
+    });
+    state.particles.soul = world.getEntityId(soulParticle);
+
+    if (compassId && compassEntity) {
+      collectItem(
+        world,
+        entity,
+        world.getEntityById(compassEntity[ITEM].carrier)
+      );
+    }
+    updated = true;
+  }
+
+  // update viewpoint if moved
+  const ratio = (state.elapsed - soulCollectTime) / soulDuration;
+  const flightLocation = {
+    x: normalize(
+      Math.round(tombstoneEntity[POSITION].x + delta.x * ratio),
+      size
+    ),
+    y: normalize(
+      Math.round(tombstoneEntity[POSITION].y + delta.y * ratio),
+      size
+    ),
+  };
+
+  if (
+    state.elapsed > soulCollectTime &&
+    state.elapsed < soulCollectTime + soulDuration &&
+    (flightLocation.x !== entity[POSITION].x ||
+      flightLocation.y !== entity[POSITION].y)
+  ) {
+    moveEntity(world, entity, flightLocation);
+    rerenderEntity(world, entity);
+    updated = true;
+  }
+
+  if (state.elapsed > moveTime && !heroEntity) {
+    if (state.particles.soul) {
+      disposeEntity(world, world.getEntityById(state.particles.soul));
+      delete state.particles.soul;
+    }
+
+    // disable light and focus
+    entity[VIEWABLE] = { active: false };
+    entity[LIGHT].brightness = 0;
+    entity[LIGHT].visibility = 0;
+    rerenderEntity(world, entity);
+
+    // spawn new hero
+    const frameId = world.getEntityId(
+      entities.createFrame(world, {
+        [REFERENCE]: {
+          tick: 250,
+          delta: 0,
+          suspended: true,
+          suspensionCounter: -1,
+        },
+        [RENDERABLE]: { generation: 0 },
+      })
+    );
+
+    heroEntity = entities.createHero(world, {
+      [ACTIONABLE]: { triggered: false },
+      [ANIMATABLE]: { states: {} },
+      [ATTACKABLE]: { max: 10, enemy: false },
+      [COUNTABLE]: {
+        hp: 10,
+        mp: 0,
+        xp: 10,
+        gold: 0,
+        wood: 0,
+        iron: 0,
+        herb: 0,
+        seed: 0,
+      },
+      [DROPPABLE]: { decayed: false },
+      [EQUIPPABLE]: {},
+      [FOG]: { visibility: "visible", type: "unit" },
+      [INVENTORY]: { items: [], size: 20 },
+      [LIGHT]: { visibility: 1, brightness: 1, darkness: 0 },
+      [MELEE]: {},
+      [MOVABLE]: {
+        orientations: [],
+        reference: frameId,
+        spring: {
+          mass: 0.1,
+          friction: 50,
+          tension: 1000,
+        },
+        lastInteraction: 0,
+      },
+      [ORIENTABLE]: {},
+      [PLAYER]: {},
+      [POSITION]: copy(state.args.target),
+      [RENDERABLE]: { generation: 0 },
+      [SPAWNABLE]: { position: state.args.target },
+      [SPRITE]: player,
+      [SWIMMABLE]: { swimming: false },
+      [VIEWABLE]: state.args.viewable,
+    });
+    world.setIdentifier(heroEntity, "hero");
+
+    if (compassEntity) {
+      const heroId = world.getEntityId(heroEntity);
+
+      if (compassId) {
+        // transfer compass to player
+        removeFromInventory(world, entity, compassEntity);
+        compassEntity[ITEM].carrier = heroId;
+        heroEntity[INVENTORY].items.push(compassId);
+        heroEntity[EQUIPPABLE].compass = compassId;
+
+        // set waypoint quest
+        const animationEntity = entities.createFrame(world, {
+          [REFERENCE]: {
+            tick: -1,
+            delta: 0,
+            suspended: false,
+            suspensionCounter: -1,
+          },
+          [RENDERABLE]: { generation: 1 },
+        });
+
+        // point to tombstone
+        (heroEntity[ANIMATABLE] as Animatable).states.waypoint = {
+          name: "waypointDistance",
+          reference: world.getEntityId(animationEntity),
+          elapsed: 0,
+          args: { target: state.args.tombstoneId, distance: 2.5 },
+          particles: {},
+        };
+      } else {
+        // only update needle
+        compassEntity[TRACKABLE].target = heroId;
+      }
+    }
+
+    registerEntity(world, heroEntity);
+    updated = true;
+  }
+
+  // increase vision radius of hero
+  if (state.elapsed > moveTime && heroEntity) {
+    const increase = Math.min(1, (state.elapsed - moveTime) / (circleTime / 2));
+    heroEntity[LIGHT].brightness = Math.max(
+      1,
+      state.args.light.brightness * increase
+    );
+    heroEntity[LIGHT].visibility = Math.max(
+      1,
+      state.args.light.visibility * increase
+    );
+    rerenderEntity(world, heroEntity);
+    updated = true;
+  }
+
+  if (finished) {
+    if (heroEntity) {
+      heroEntity[LIGHT].brightness = state.args.light.brightness;
+      heroEntity[LIGHT].visibility = state.args.light.visibility;
+    }
+
+    disposeEntity(world, entity, false);
+  }
+
+  return { finished, updated };
+};
+
 // keep entities around to keep swimmable animation for collecting particles
 const disposeTime = 200;
 
@@ -263,6 +537,34 @@ export const entityDispose: Animation<"dispose"> = (world, entity, state) => {
   return { finished, updated };
 };
 
+export const waypointDistance: Animation<"waypoint"> = (
+  world,
+  entity,
+  state
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const waypoint = world.getEntityById(state.args.target);
+  const delta = {
+    x: signedDistance(entity[POSITION].x, waypoint[POSITION].x, size),
+    y: signedDistance(entity[POSITION].y, waypoint[POSITION].y, size),
+  };
+
+  const updated = !state.args.initialized;
+  const finished =
+    Math.sqrt(delta.x ** 2 + delta.y ** 2) <= state.args.distance;
+
+  if (updated) {
+    state.args.initialized = true;
+    world.setFocus(waypoint);
+  }
+
+  if (finished) {
+    world.setFocus();
+  }
+
+  return { finished, updated };
+};
+
 export const itemCollect: Animation<"collect"> = (world, entity, state) => {
   let updated = false;
   let finished = false;
@@ -271,9 +573,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
   const itemId = state.args.itemId;
   const size = world.metadata.gameEntity[LEVEL].size;
   const itemEntity = world.getEntityId(itemId);
-  const lootDelay = entity[MOVABLE]
-    ? world.getEntityById(entity[MOVABLE].reference)[REFERENCE].tick - 50
-    : 200;
+  const lootDelay = 200;
 
   // add item to player's inventory
   if (state.elapsed >= lootDelay) {
@@ -354,6 +654,7 @@ export const itemCollect: Animation<"collect"> = (world, entity, state) => {
         offsetY: 0,
         offsetZ: tooltipHeight,
         animatedOrigin: delta,
+        amount: state.args.drop,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: itemEntity[SPRITE],
@@ -444,13 +745,12 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
 
   // display if located in any adjacent cell
   const size = world.metadata.gameEntity[LEVEL].size;
-  const delta = heroEntity
-    ? {
-        x: signedDistance(heroEntity[POSITION].x, entity[POSITION].x, size),
-        y: signedDistance(heroEntity[POSITION].y, entity[POSITION].y, size),
-      }
-    : { x: 0, y: 0 };
-  const isAdjacent = Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
+  const delta = heroEntity && {
+    x: signedDistance(heroEntity[POSITION].x, entity[POSITION].x, size),
+    y: signedDistance(heroEntity[POSITION].y, entity[POSITION].y, size),
+  };
+  const isAdjacent =
+    !!delta && Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
   const changed = entity[TOOLTIP].changed;
   const pending =
     state.args.after &&
@@ -459,19 +759,21 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
       .isIdle;
   const active =
     !changed &&
-    !!heroEntity &&
-    !isDead(world, heroEntity) &&
     (entity[TOOLTIP].override === "visible" ||
       (state.args.isIdle && !isAdjacent) ||
       (isAdjacent &&
+        !!heroEntity &&
+        !isDead(world, heroEntity) &&
         !entity[TOOLTIP].override &&
         !isDead(world, entity) &&
         !isEmpty(world, entity) &&
         !isUnlocked(world, entity)));
+
   const totalLength = state.args.text.length;
   const orientation =
     (!state.args.isIdle &&
       active &&
+      delta &&
       (delta.y > 0 ? "down" : delta.y < 0 && "up")) ||
     state.args.orientation ||
     (state.args.isDialog || state.args.isIdle ? "up" : "down");
@@ -583,6 +885,7 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
 export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
   let finished = false;
   let updated = false;
+
   const heroEntity = world.getIdentifier("hero");
   const focusEntity = world.getIdentifier("focus");
   const guideEntity = world.getIdentifier("guide");
@@ -625,7 +928,7 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
       (heroEntity[POSITION].x !== initialPosition.x ||
         heroEntity[POSITION].y !== initialPosition.y)
     ) {
-      world.addQuest(guideEntity, { name: "guideQuest" });
+      world.addQuest(guideEntity, { name: "guideQuest", available: true });
       guideEntity[BEHAVIOUR].patterns.push({
         name: "dialog",
         memory: {
@@ -714,7 +1017,23 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
           },
         },
         ...(state.args.memory.keyCollected
-          ? []
+          ? [
+              {
+                name: "wait",
+                memory: {
+                  ticks: 4,
+                },
+              },
+
+              {
+                name: "dialog",
+                memory: {
+                  override: undefined,
+                  changed: true,
+                  dialogs: [],
+                },
+              },
+            ]
           : [
               {
                 name: "unlock",
@@ -906,9 +1225,10 @@ export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
     // close door
     lockDoor(world, doorEntity);
 
-    // set player light
+    // set player light and spawn
     heroEntity[LIGHT].brightness = 5.55;
     heroEntity[LIGHT].visibility = 5.55;
+    heroEntity[SPAWNABLE].position = { x: 0, y: 9 };
 
     // give player compass if not already done
     const compassCarrier = compassEntity[ITEM].carrier;
@@ -990,6 +1310,15 @@ export const guideQuest: Animation<"quest"> = (world, entity, state) => {
 
   if (state.args.step === "sword") {
     if (entity[EQUIPPABLE].melee) {
+      world.setFocus(world.getIdentifier("coin"));
+      state.args.step = "coin";
+      updated = true;
+    }
+  }
+
+  if (state.args.step === "coin") {
+    const coinEntity = world.getIdentifier("coin");
+    if (!coinEntity) {
       world.setFocus(world.getIdentifier("pot"));
       state.args.step = "pot";
       updated = true;
@@ -1008,15 +1337,6 @@ export const guideQuest: Animation<"quest"> = (world, entity, state) => {
   if (state.args.step === "triangle") {
     const triangleEntity = world.getIdentifier("triangle");
     if (!triangleEntity) {
-      world.setFocus(world.getIdentifier("gold"));
-      state.args.step = "gold";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "gold") {
-    const goldEntity = world.getIdentifier("gold");
-    if (goldEntity && goldEntity[INVENTORY].items.length === 0) {
       world.setFocus(guideEntity);
       state.args.step = "collect";
       updated = true;

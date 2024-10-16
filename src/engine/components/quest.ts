@@ -2,7 +2,8 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Quest = {
-  name?: string;
+  name: string;
+  available: boolean;
 };
 
 export const QUEST = "QUEST";

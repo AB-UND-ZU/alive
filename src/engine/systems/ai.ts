@@ -19,9 +19,10 @@ import { ACTIONABLE } from "../components/actionable";
 import { isLocked } from "./action";
 import { ITEM } from "../components/item";
 import { lockDoor } from "./trigger";
-import { dropItem, sellItem } from "./drop";
+import { dropEntity, sellItem } from "./drop";
 import { createShout, rage } from "../../game/assets/sprites";
 import { ATTACKABLE } from "../components/attackable";
+import { INVENTORY } from "../components/inventory";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -309,7 +310,11 @@ export default function setupAi(world: World) {
               entity[ACTIONABLE].triggered = true;
             } else if (hasArrived && placementPattern) {
               if (pattern.name === "drop") {
-                dropItem(world, [memory.item], memory.targetPosition);
+                dropEntity(
+                  world,
+                  { [INVENTORY]: { items: [memory.item] } },
+                  memory.targetPosition
+                );
               } else if (pattern.name === "sell") {
                 sellItem(
                   world,

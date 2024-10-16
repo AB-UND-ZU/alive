@@ -8,7 +8,8 @@ import { immersibleHeight, stack, stackHeight } from "./utils";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { MOVABLE } from "../../engine/components/movable";
 
-const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(2.4);
+const swimmingColor = new THREE.Color(colors.navy).multiplyScalar(3);
+const whiteTexture = new THREE.DataTexture(new Uint8Array([255, 255, 255]), 1, 1, THREE.RGBFormat);
 
 export default function Swimming({
   active,
@@ -79,6 +80,8 @@ export default function Swimming({
         color={swimmingColor}
         opacity={spring.opacity}
         transparent
+        aoMap={whiteTexture}
+        aoMapIntensity={2/3}
       />
     </animated.mesh>
   );

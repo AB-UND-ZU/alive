@@ -31,6 +31,7 @@ import {
   isTradable,
 } from "../../engine/systems/action";
 import { TRADABLE } from "../../engine/components/tradable";
+import { Entity } from "ecs";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -70,9 +71,15 @@ export default function Controls() {
   const dimensions = useDimensions();
   const { ecs } = useWorld();
   const hero = useHero();
+  const heroRef = useRef<Entity>();
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
   const [action, setAction] = useState<Action>();
+  const actionRef = useRef<Action>();
+  const activeRef = useRef<Action>();
+
+  // update ref for listeners to consume
+  heroRef.current = hero || undefined;
 
   const questId = hero?.[ACTIONABLE].quest;
   const questEntity = ecs && hero && questId && ecs.getEntityById(questId);
@@ -133,6 +140,8 @@ export default function Controls() {
   const activeAction =
     availableActions.find((action) => !action.disabled) || availableActions[0];
 
+  activeRef.current = activeAction;
+
   const handleAction = useCallback(
     (
       event:
@@ -142,52 +151,65 @@ export default function Controls() {
     ) => {
       event.preventDefault();
 
-      if (action || !hero || !ecs) return;
+      const heroEntity = heroRef.current;
+      const currentAction = actionRef.current;
+      const active = activeRef.current;
 
-      const reference = ecs.getEntityById(hero[MOVABLE].reference)[REFERENCE];
+      if (currentAction || !heroEntity || !ecs) return;
+
+      const reference = ecs.getEntityById(heroEntity[MOVABLE].reference)[
+        REFERENCE
+      ];
 
       if (!reference) return;
 
       // skip if waiting for cooldown or not actionable
       if (
-        hero[ACTIONABLE].triggered ||
-        !getAction(ecs, hero) ||
-        activeAction?.disabled
+        heroEntity[ACTIONABLE].triggered ||
+        !getAction(ecs, heroEntity) ||
+        active?.disabled
       )
         return;
 
-      hero[ACTIONABLE].triggered = true;
+      heroEntity[ACTIONABLE].triggered = true;
 
       reference.suspensionCounter = reference.suspensionCounter === -1 ? -1 : 1;
       reference.suspended = false;
 
-      if (activeAction) {
-        setAction(activeAction);
-        setTimeout(setAction, reference.tick, undefined);
+      if (active) {
+        setAction(active);
+        actionRef.current = active;
+        setTimeout(() => {
+          setAction(undefined);
+          actionRef.current = undefined;
+        }, reference.tick);
       }
     },
-    [activeAction, action, hero, ecs]
+    [ecs]
   );
 
   const handleMove = useCallback(
     (orientations: Orientation[]) => {
-      if (!hero || !ecs) return;
+      const heroEntity = heroRef.current;
+      if (!heroEntity || !ecs) return;
 
-      const reference = ecs.getEntityById(hero[MOVABLE].reference)[REFERENCE];
+      const reference = ecs.getEntityById(heroEntity[MOVABLE].reference)[
+        REFERENCE
+      ];
 
       if (!reference) return;
 
-      hero[MOVABLE].orientations = orientations;
+      heroEntity[MOVABLE].orientations = orientations;
       const pendingOrientation = orientations[0];
 
       if (pendingOrientation) {
-        hero[MOVABLE].pendingOrientation = pendingOrientation;
+        heroEntity[MOVABLE].pendingOrientation = pendingOrientation;
       }
 
       if (orientations.length === 0) {
         reference.suspensionCounter = 0;
 
-        if (hero[MOVABLE].pendingOrientation) {
+        if (heroEntity[MOVABLE].pendingOrientation) {
           reference.suspensionCounter += 1;
         }
       } else {
@@ -195,7 +217,7 @@ export default function Controls() {
         reference.suspended = false;
       }
     },
-    [hero, ecs]
+    [ecs]
   );
 
   const handleKey = useCallback(
@@ -290,8 +312,6 @@ export default function Controls() {
   );
 
   useEffect(() => {
-    if (!hero) return;
-
     window.addEventListener("keydown", handleKey);
     window.addEventListener("keyup", handleKey);
 
@@ -309,7 +329,7 @@ export default function Controls() {
       window.removeEventListener("touchend", handleTouchMove);
       window.removeEventListener("touchcancel", handleTouchMove);
     };
-  }, [handleKey, handleTouchMove, hero]);
+  }, [handleKey, handleTouchMove]);
 
   const pressedButton =
     action && createButton(repeat(none, buttonWidth), buttonWidth, false, true);

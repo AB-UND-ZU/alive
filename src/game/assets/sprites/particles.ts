@@ -1,7 +1,18 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 import { Countable } from "../../../engine/components/countable";
-import { coin, heart, herb, ironDisplay, mana, seed, wood, xp } from "./items";
+import {
+  coin,
+  heart,
+  herb,
+  herbDrop,
+  ironDrop,
+  mana,
+  seed,
+  seedDrop,
+  wood,
+  xp,
+} from "./items";
 import { repeat } from "../../math/std";
 
 export const block: Sprite = {
@@ -28,11 +39,12 @@ export const hit: Sprite = {
   name: "hit_melee",
   layers: [{ char: "x", color: colors.red }],
   amounts: {
-    single: [{ char: "x", color: colors.red }],
-    double: [
-      { char: "/", color: colors.red },
-      { char: "\\", color: colors.red },
+    single: [
+      { char: "*", color: colors.red },
+      { char: "─", color: colors.black },
+      { char: "·", color: colors.red },
     ],
+    double: [{ char: "x", color: colors.red }],
     multiple: [{ char: "X", color: colors.red }],
   },
 };
@@ -220,29 +232,40 @@ const nonCountable = (sprite: Sprite) => ({
   layers: sprite.layers,
 });
 
-const stats: Record<keyof Countable, { color: string; sprite: Sprite }> = {
+const statSprites: Record<
+  keyof Countable,
+  { color: string; sprite: Sprite; drop?: Sprite }
+> = {
   hp: { color: colors.red, sprite: heart },
   mp: { color: colors.blue, sprite: mana },
-  xp: { color: colors.lime, sprite: nonCountable(xp) },
-  gold: { color: colors.yellow, sprite: nonCountable(coin) },
+  xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp },
+  gold: { color: colors.yellow, sprite: nonCountable(coin), drop: coin },
   wood: { color: colors.maroon, sprite: wood },
-  iron: { color: colors.silver, sprite: ironDisplay },
-  herb: { color: colors.teal, sprite: herb },
-  seed: { color: colors.purple, sprite: seed },
+  iron: { color: colors.silver, sprite: ironDrop },
+  herb: { color: colors.teal, sprite: herb, drop: herbDrop },
+  seed: { color: colors.purple, sprite: seed, drop: seedDrop },
 };
 
 export const createStat = (
   amount: number,
-  countable: keyof Countable,
+  counter: keyof Countable,
   padded: boolean = false
 ) => {
   const stat = (amount || 0).toString();
   const text = padded ? stat.padStart(2, " ") : stat;
-  return [...createText(text, stats[countable].color), stats[countable].sprite];
+  return [
+    ...createText(text, statSprites[counter].color),
+    getCountableSprite(counter, true),
+  ];
 };
+
+export const getCountableSprite = (
+  counter: keyof Countable,
+  spriteOnly: boolean = false
+) => (!spriteOnly && statSprites[counter].drop) || statSprites[counter].sprite;
 
 export const quest = createText("!", colors.olive)[0];
 
-export const shop = createText("$", colors.olive)[0];
+export const shop = createText("$", colors.green)[0];
 
 export const rage = createShout("\u0112")[0];

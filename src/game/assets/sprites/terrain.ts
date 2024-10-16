@@ -79,9 +79,10 @@ export const cactus2: Sprite = {
   ],
 };
 
-export const rip: Sprite = {
+export const tombstone: Sprite = {
   name: "RIP",
   layers: [
+    { char: "!", color: colors.black },
     { char: "\u0115", color: colors.grey },
     { char: "\u011c", color: colors.grey },
     { char: "Ω", color: colors.grey },

@@ -136,7 +136,6 @@ _Spawn area with intro quest_
 - Sprite "none" should be obsolete
 - Opacity overlaps individual sprites, should be animated color to black
 - Touch origin should create an anchor and display current direction
-- Unlocking could be a reverse collecting animation
 - Houses should be part of a larger structure
 - Dialog does not need to flip if out of range
 - Units moving in front of AI in the right time will disupt pathfinding due to discarded path items

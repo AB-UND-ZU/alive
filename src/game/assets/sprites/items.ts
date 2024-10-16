@@ -74,6 +74,16 @@ export const wood: Sprite = {
   },
 };
 
+export const seedDrop: Sprite = {
+  name: "Seed",
+  layers: [{ char: "'", color: colors.purple }],
+  amounts: {
+    single: [{ char: "'", color: colors.purple }],
+    double: [{ char: '"', color: colors.purple }],
+    multiple: [{ char: "°", color: colors.purple }],
+  },
+};
+
 export const seed: Sprite = {
   name: "Seed",
   layers: [{ char: "'", color: colors.purple }],
@@ -93,6 +103,16 @@ export const seed: Sprite = {
   },
 };
 
+export const herbDrop: Sprite = {
+  name: "Herb",
+  layers: [{ char: "∙", color: colors.teal }],
+  amounts: {
+    single: [{ char: "∙", color: colors.teal }],
+    double: [{ char: "\u0106", color: colors.teal }],
+    multiple: [{ char: "*", color: colors.teal }],
+  },
+};
+
 export const herb: Sprite = {
   name: "Herb",
   layers: [{ char: "∙", color: colors.teal }],
@@ -105,15 +125,17 @@ export const herb: Sprite = {
     double: [
       { char: "\u0106", color: colors.teal },
       { char: ",", color: colors.olive },
+      { char: "\u011b", color: colors.black },
     ],
     multiple: [
-      { char: "*", color: colors.teal },
       { char: ",", color: colors.olive },
+      { char: "\u011b", color: colors.black },
+      { char: "*", color: colors.teal },
     ],
   },
 };
 
-export const ironDisplay: Sprite = {
+export const ironDrop: Sprite = {
   name: "Iron",
   layers: [{ char: "∙", color: colors.silver }],
   amounts: {
@@ -122,12 +144,12 @@ export const ironDisplay: Sprite = {
       { char: "∙", color: colors.silver },
       { char: "\u011b", color: colors.black },
       { char: ".", color: colors.silver },
-    ]
+    ],
   },
 };
 
 export const iron: Sprite = {
-  name: "iron_drop",
+  name: "iron_ore",
   layers: [{ char: "∙", color: colors.silver }],
   amounts: {
     single: [
@@ -148,13 +170,18 @@ export const iron: Sprite = {
   },
 };
 
-export const gold: Sprite = {
+export const goldOre: Sprite = {
   name: "Gold",
-  layers: [{ char: "∙", color: colors.yellow }],
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "÷", color: colors.yellow },
+    { char: "·", color: colors.grey },
+  ],
   amounts: {
     single: [
       { char: "█", color: colors.grey },
-      { char: "∙", color: colors.yellow },
+      { char: "÷", color: colors.yellow },
+      { char: "·", color: colors.grey },
     ],
   },
 };

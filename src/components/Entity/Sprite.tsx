@@ -38,7 +38,7 @@ export function AnimatedSprite({
       offsetX,
       offsetY,
     },
-    config: { duration: 200 },
+    config: { duration: layerProps.duration || 200 },
   });
 
   if (!ecs) return null;

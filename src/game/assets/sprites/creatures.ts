@@ -27,3 +27,12 @@ export const triangle: Sprite = {
     left: [{ char: "\u0110", color: colors.white }],
   },
 };
+
+export const soul: Sprite = {
+  name: "Soul",
+  layers: [
+    { char: "\u010b", color: colors.grey },
+    { char: "~", color: colors.grey },
+    { char: "°", color: colors.yellow }
+  ],
+};

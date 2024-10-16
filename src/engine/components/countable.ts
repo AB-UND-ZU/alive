@@ -12,6 +12,17 @@ export type Countable = {
   seed: number;
 };
 
+export const emptyCountable: Countable = {
+  hp: 0,
+  mp: 0,
+  xp: 0,
+  gold: 0,
+  wood: 0,
+  iron: 0,
+  herb: 0,
+  seed: 0,
+};
+
 export const COUNTABLE = "COUNTABLE";
 
 export default function addCountable(

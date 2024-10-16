@@ -43,6 +43,7 @@ export const stackHeight = 1;
 
 export const terrainHeight = 0 * stackHeight;
 export const unitHeight = 1 * stackHeight;
+export const decayHeight = 1.5 * stackHeight; // i don't want to recalculate brightness values.
 export const immersibleHeight = 2 * stackHeight;
 export const lightHeight = 3 * stackHeight;
 export const wallHeight = 4 * stackHeight;

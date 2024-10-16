@@ -26,7 +26,7 @@ export const canAcceptQuest = (world: World, entity: Entity, quest: Entity) =>
   !isEnemy(world, quest) && hasAvailableQuest(world, quest);
 
 export const hasAvailableQuest = (world: World, entity: Entity) =>
-  !!entity[QUEST]?.name;
+  !!entity[QUEST]?.available;
 
 export const getLockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(

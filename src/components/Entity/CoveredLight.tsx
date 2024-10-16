@@ -7,6 +7,8 @@ export default function CoveredLight({
   brightness: number;
   shadow: number;
 }) {
+  const adjustedBrightness = Math.max(0, brightness - 0.25);
+
   return (
     <>
       <pointLight
@@ -18,11 +20,15 @@ export default function CoveredLight({
         shadow-mapSize-height={256}
         shadow-camera-near={0.1}
         shadow-camera-far={Math.sqrt(
-          (brightness - 0.25) ** 2 + lightHeight ** 2
+          adjustedBrightness ** 2 + lightHeight ** 2
         )}
+        onUpdate={(self) => {
+          // ensure shadow-camera-far changes are applied
+          self.shadow.camera.updateProjectionMatrix();
+        }}
       />
       <mesh position={[0, 0, shadowHeight]}>
-        <ringGeometry args={[brightness - 0.25, shadow, 128]} />
+        <ringGeometry args={[adjustedBrightness, shadow, 128]} />
         <meshBasicMaterial color="black" opacity={0.64} transparent />
       </mesh>
     </>

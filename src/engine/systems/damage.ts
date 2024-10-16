@@ -11,7 +11,7 @@ import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
 import { ITEM } from "../components/item";
-import { ANIMATABLE } from "../components/animatable";
+import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { COUNTABLE } from "../components/countable";
@@ -109,11 +109,11 @@ export default function setupDamage(world: World) {
           [RENDERABLE]: { generation: 1 },
         });
 
-        entity[ANIMATABLE].states.melee = {
+        (entity[ANIMATABLE] as Animatable).states.melee = {
           name: "swordAttack",
           reference: world.getEntityId(animationEntity),
           elapsed: 0,
-          args: { facing: targetOrientation },
+          args: { facing: targetOrientation, damage },
           particles: entity[ANIMATABLE].states.melee?.particles || {},
         };
       }

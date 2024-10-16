@@ -197,15 +197,22 @@ export default function setupTrigger(world: World) {
           [RENDERABLE]: { generation: 1 },
         });
 
+        // abort any existing quests
+        world.abortQuest(entity);
+
         // accept quest and remove from target
-        entity[ANIMATABLE].states.quest = {
+        (entity[ANIMATABLE] as Animatable).states.quest = {
           name: questEntity[QUEST].name,
           reference: world.getEntityId(animationEntity),
           elapsed: 0,
-          args: { step: "initial", memory: {} },
+          args: {
+            step: "initial",
+            memory: {},
+            giver: entity[ACTIONABLE].quest,
+          },
           particles: {},
         };
-        world.removeQuest(questEntity);
+        world.acceptQuest(questEntity);
       } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
         // unlock door and remove key if used
         unlockDoor(world, entity, unlockEntity);

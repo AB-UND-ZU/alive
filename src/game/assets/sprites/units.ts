@@ -5,9 +5,21 @@ export const chest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
-    { char: "\u00b1", color: colors.maroon },
+    { char: "±", color: colors.maroon },
     { char: "∙", color: colors.yellow },
     { char: "·", color: colors.maroon },
+  ],
+};
+
+export const dummy: Sprite = {
+  name: "Dummy",
+  layers: [
+    { char: "│", color: colors.maroon },
+    { char: "└", color: colors.black },
+    { char: "|", color: colors.maroon },
+    { char: "\u0108", color: colors.white },
+    { char: "\u0106", color: colors.red },
+    { char: "∙", color: colors.white },
   ],
 };
 

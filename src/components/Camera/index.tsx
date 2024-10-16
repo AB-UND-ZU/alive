@@ -8,18 +8,14 @@ const AnimatedOrthographicCamera = animated(OrthographicCamera);
 
 export default function Camera() {
   const dimensions = useDimensions();
-  const position = useViewpoint();
+  const { position, config } = useViewpoint();
 
   const zoom = dimensions.cellHeight;
   const spring = useSpring({
     x: position.x * dimensions.aspectRatio,
     y: -position.y,
     z: cameraHeight,
-    config: {
-      mass: 1,
-      friction: 25,
-      tension: 65,
-    },
+    config,
   });
 
   return (

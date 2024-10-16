@@ -139,6 +139,7 @@ export const iterations: Iteration[] = [
     },
   },
 ];
+export const turnedIterations = [...iterations.slice(1), iterations[0]]
 
 const getOrientedBoundaries = (
   iteration: Iteration,

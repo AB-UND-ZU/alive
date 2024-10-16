@@ -92,7 +92,7 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
       name: "itemCollect",
       reference: world.getEntityId(animationEntity),
       elapsed: 0,
-      args: { origin: target[POSITION], itemId, drop: false },
+      args: { origin: target[POSITION], itemId },
       particles: {},
     };
 

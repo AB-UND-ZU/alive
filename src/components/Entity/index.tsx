@@ -113,6 +113,7 @@ function Entity({
         isTransparent: false,
         animatedOrigin: particle[PARTICLE].animatedOrigin,
         receiveShadow: false,
+        duration: particle[PARTICLE].duration,
       },
     })
   );
@@ -135,7 +136,7 @@ function Entity({
       )}
 
       {!!entity[SWIMMABLE] && (
-        <Swimming entity={entity} active={isSwimming} isVisible={isVisible} />
+        <Swimming entity={entity} active={isSwimming} isVisible={!isTransparent} />
       )}
 
       {isAttackable && <Bar entity={entity} isVisible={isVisible} />}

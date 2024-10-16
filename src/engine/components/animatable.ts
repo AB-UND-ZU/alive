@@ -4,17 +4,27 @@ import * as animations from "../../game/assets/animations";
 import { Orientation } from "./orientable";
 import { Sprite } from "./sprite";
 import { Position } from "./position";
+import { Viewable } from "./viewable";
+import { Light } from "./light";
 
 export type AnimationArgument = {
   counter: { facing: Orientation; amount: number };
   decay: {};
   burn: { generation: 0 };
   dispose: {};
-  collect: { origin: Position; itemId: number; drop: boolean };
+  revive: {
+    tombstoneId: number;
+    target: Position;
+    viewable: Viewable;
+    light: Light;
+    compassId?: number;
+  };
+  collect: { origin: Position; itemId: number; drop?: number };
   unlock: { origin: Position; itemId: number };
   focus: {};
-  melee: { facing: Orientation };
-  quest: { step: string; memory: any };
+  waypoint: { target: number; distance: number; initialized?: true };
+  melee: { facing: Orientation; damage: number };
+  quest: { step: string; memory: any; giver: number };
   dialog: {
     orientation?: Orientation;
     text: Sprite[];

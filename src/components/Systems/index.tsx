@@ -11,7 +11,7 @@ import { getCell } from "../../engine/systems/map";
 export default function Systems() {
   const { ecs } = useWorld();
   const dimensions = useDimensions();
-  const position = useViewpoint();
+  const { position } = useViewpoint();
   const game = useGame();
 
   useFrame((_, delta) => {
