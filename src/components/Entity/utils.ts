@@ -25,6 +25,7 @@ import {
   doorClosedWood,
   fireSword,
   goldKey,
+  goldSword,
   ironKey,
   ironShield,
   ironSword,
@@ -204,6 +205,7 @@ const entitySprites: Record<
     wood: woodStick,
     iron: ironSword,
     fire: fireSword,
+    gold: goldSword,
   },
   armor: {
     wood: woodShield,

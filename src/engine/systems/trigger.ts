@@ -28,6 +28,7 @@ import { Tradable, TRADABLE } from "../components/tradable";
 import { COUNTABLE } from "../components/countable";
 import { getMaterialSprite } from "../../components/Entity/utils";
 import { collectItem } from "./collect";
+import { START_STEP } from "../../game/assets/utils";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -206,7 +207,7 @@ export default function setupTrigger(world: World) {
           reference: world.getEntityId(animationEntity),
           elapsed: 0,
           args: {
-            step: "initial",
+            step: START_STEP,
             memory: {},
             giver: entity[ACTIONABLE].quest,
           },

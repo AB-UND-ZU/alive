@@ -177,13 +177,6 @@ export const goldOre: Sprite = {
     { char: "÷", color: colors.yellow },
     { char: "·", color: colors.grey },
   ],
-  amounts: {
-    single: [
-      { char: "█", color: colors.grey },
-      { char: "÷", color: colors.yellow },
-      { char: "·", color: colors.grey },
-    ],
-  },
 };
 
 export const arrow: Sprite = {

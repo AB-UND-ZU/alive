@@ -48,7 +48,7 @@ export default function setupAi(world: World) {
       for (const pattern of [...patterns]) {
         if (pattern.name === "wait") {
           if (pattern.memory.ticks === 0) {
-            patterns.shift();
+            patterns.splice(patterns.indexOf(pattern), 1);
             continue;
           }
 
@@ -111,7 +111,7 @@ export default function setupAi(world: World) {
             entity[TOOLTIP][key] = value;
           }
 
-          patterns.shift();
+          patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "lock") {
           const memory = pattern.memory;
 
@@ -119,7 +119,7 @@ export default function setupAi(world: World) {
           const targetEntity = world.getEntityById(memory.target);
           lockDoor(world, targetEntity);
 
-          patterns.shift();
+          patterns.splice(patterns.indexOf(pattern), 1);
           break;
         } else if (pattern.name === "enrage") {
           const memory = pattern.memory;
@@ -131,7 +131,7 @@ export default function setupAi(world: World) {
             ? [createShout(memory.shout)]
             : [];
 
-          patterns.shift();
+          patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "soothe") {
           entity[ATTACKABLE].enemy = false;
           entity[TOOLTIP].changed = true;
@@ -139,7 +139,7 @@ export default function setupAi(world: World) {
           entity[TOOLTIP].override = undefined;
           entity[TOOLTIP].dialogs = [];
 
-          patterns.shift();
+          patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "move") {
           const memory = pattern.memory;
           entity[MOVABLE].orientations = [];
@@ -153,7 +153,7 @@ export default function setupAi(world: World) {
 
           // finish if path reached
           if (hasArrived) {
-            patterns.shift();
+            patterns.splice(patterns.indexOf(pattern), 1);
             continue;
           }
 
@@ -241,7 +241,7 @@ export default function setupAi(world: World) {
             !isLocked(world, targetEntity);
 
           if (killed || unlocked || collected || dropped) {
-            patterns.shift();
+            patterns.splice(patterns.indexOf(pattern), 1);
             continue;
           }
 
@@ -325,7 +325,7 @@ export default function setupAi(world: World) {
               }
             }
 
-            if (!hasArrived || !movablePattern) memory.path.shift();
+            if (!hasArrived || !movablePattern || !memory.path) memory.path.shift();
           }
           break;
         } else {

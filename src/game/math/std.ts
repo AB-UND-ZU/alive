@@ -20,6 +20,15 @@ export const signedDistance = (start: number, end: number, size: number) => {
   return distance - overlap;
 };
 
+export const getDistance = (origin: Point, target: Point, size: number) => {
+  const delta = {
+    x: signedDistance(origin.x, target.x, size),
+    y: signedDistance(origin.y, target.y, size),
+  };
+
+  return Math.sqrt(delta.x ** 2 + delta.y ** 2);
+};
+
 export function* reversed<T>(array: T[]) {
   for (let i = array.length - 1; i >= 0; i--) {
     yield array[i];

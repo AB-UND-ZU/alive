@@ -22,9 +22,8 @@ export type AnimationArgument = {
   collect: { origin: Position; itemId: number; drop?: number };
   unlock: { origin: Position; itemId: number };
   focus: {};
-  waypoint: { target: number; distance: number; initialized?: true };
   melee: { facing: Orientation; damage: number };
-  quest: { step: string; memory: any; giver: number };
+  quest: { step: string; lastStep?: string; memory: any; giver: number };
   dialog: {
     orientation?: Orientation;
     text: Sprite[];

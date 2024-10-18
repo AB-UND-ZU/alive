@@ -26,7 +26,7 @@ import {
   flower,
   fog,
   goldKey,
-  goldOre,
+  goldMine,
   iron,
   ironSword,
   none,
@@ -91,6 +91,7 @@ import { BURNABLE } from "../engine/components/burnable";
 import { SPAWNABLE } from "../engine/components/spawnable";
 import { dropEntity } from "../engine/systems/drop";
 import { IDENTIFIABLE } from "../engine/components/identifiable";
+import { START_STEP } from "../game/assets/utils";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -296,7 +297,7 @@ export const generateWorld = async (world: World) => {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: goldOre,
+        [SPRITE]: goldMine,
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [COLLIDABLE]: {},
       });
@@ -489,9 +490,9 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "pot") {
       const potEntity = entities.createChest(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 3, enemy: true },
+        [ATTACKABLE]: { max: 5, enemy: true },
         [COLLIDABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 3, gold: 3 },
+        [COUNTABLE]: { ...emptyCountable, hp: 5, gold: 3 },
         [DROPPABLE]: { decayed: false },
         [FOG]: { visibility, type: "terrain" },
         [INVENTORY]: { items: [], size: 1 },
@@ -540,9 +541,32 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: woodShield,
       });
 
+      const animationEntity = entities.createFrame(world, {
+        [REFERENCE]: {
+          tick: -1,
+          delta: 0,
+          suspended: false,
+          suspensionCounter: -1,
+        },
+        [RENDERABLE]: { generation: 1 },
+      });
       const guideEntity = entities.createNpc(world, {
         [ACTIONABLE]: { triggered: false },
-        [ANIMATABLE]: { states: {} },
+        [ANIMATABLE]: {
+          states: {
+            quest: {
+              name: "guideNpc",
+              reference: world.getEntityId(animationEntity),
+              elapsed: 0,
+              args: {
+                step: START_STEP,
+                memory: {},
+                giver: world.getEntityId(world.metadata.gameEntity),
+              },
+              particles: {},
+            },
+          },
+        },
         [ATTACKABLE]: { max: 20, enemy: false },
         [BEHAVIOUR]: { patterns: [] },
         [COUNTABLE]: { ...emptyCountable, hp: 20 },
@@ -811,11 +835,11 @@ export const generateWorld = async (world: World) => {
     [ANIMATABLE]: {
       states: {
         quest: {
-          name: "spawnQuest",
+          name: "worldNpc",
           reference: world.getEntityId(highlightAnimationEntity),
           elapsed: 0,
           args: {
-            step: "initial",
+            step: START_STEP,
             memory: {},
             giver: world.getEntityId(world.metadata.gameEntity),
           },
@@ -831,21 +855,44 @@ export const generateWorld = async (world: World) => {
   world.setIdentifier(viewpointEntity, "viewpoint");
 
   // add quest sign after exiting
+  const signAnimationEntity = entities.createFrame(world, {
+    [REFERENCE]: {
+      tick: -1,
+      delta: 0,
+      suspended: false,
+      suspensionCounter: -1,
+    },
+    [RENDERABLE]: { generation: 1 },
+  });
   const signEntity = entities.createSign(world, {
-    [ANIMATABLE]: { states: {} },
+    [ANIMATABLE]: {
+      states: {
+        quest: {
+          name: "signNpc",
+          reference: world.getEntityId(signAnimationEntity),
+          elapsed: 0,
+          args: {
+            step: START_STEP,
+            memory: {},
+            giver: world.getEntityId(world.metadata.gameEntity),
+          },
+          particles: {},
+        },
+      },
+    },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [COLLIDABLE]: {},
     [POSITION]: { x: 0, y: 12 },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: sign,
     [TOOLTIP]: {
-      dialogs: [createDialog("Find the town")],
+      dialogs: [],
       persistent: false,
       nextDialog: -1,
     },
   });
   world.setIdentifier(signEntity, "sign");
-  world.addQuest(signEntity, { name: "townQuest", available: true });
+  world.offerQuest(signEntity, "townQuest");
 
   // start ordered systems
   world.addSystem(systems.setupMap);

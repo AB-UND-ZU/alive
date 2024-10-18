@@ -113,7 +113,6 @@ export default function setupText(world: World) {
     });
 
     for (const tooltipEntity of updatedTooltips) {
-      
       const delta = hero && {
         x: signedDistance(hero[POSITION].x, tooltipEntity[POSITION].x, size),
         y: signedDistance(hero[POSITION].y, tooltipEntity[POSITION].y, size),

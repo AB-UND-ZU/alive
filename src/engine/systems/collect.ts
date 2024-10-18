@@ -22,7 +22,7 @@ import { removeFromInventory } from "./trigger";
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
   INVENTORY in entity &&
-  !isEmpty(world, entity) &&
+  entity[INVENTORY].items.length > 0 &&
   !isTradable(world, entity);
 
 export const getLootable = (world: World, position: Position) =>
@@ -30,11 +30,22 @@ export const getLootable = (world: World, position: Position) =>
     isLootable(world, entity)
   ) as Entity | undefined;
 
+export const isCollecting = (world: World, entity: Entity) => {
+  const collectingId = entity[ANIMATABLE]?.states.collect?.args.itemId;
+  if (!collectingId) return;
+  return world.getEntityById(collectingId);
+};
+
+export const getCollecting = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).find((entity) =>
+    isCollecting(world, entity)
+  ) as Entity | undefined;
+
 export const isEmpty = (world: World, entity: Entity) =>
   INVENTORY in entity &&
   LOOTABLE in entity &&
   entity[INVENTORY].items.length === 0 &&
-  !entity[ANIMATABLE]?.states.collect;
+  !isCollecting(world, entity);
 
 export const isFull = (world: World, entity: Entity) =>
   INVENTORY in entity &&
@@ -74,8 +85,8 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
     }
 
     // assign new carrier on discrete items
-    if (!counter){
-      itemEntity[ITEM].carrier = world.getEntityId(entity)
+    if (!counter) {
+      itemEntity[ITEM].carrier = world.getEntityId(entity);
     }
 
     // initiate collecting animation on player

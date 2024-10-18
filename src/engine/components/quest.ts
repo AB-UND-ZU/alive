@@ -1,8 +1,9 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import * as quests from '../../game/assets/quests'
 
 export type Quest = {
-  name: string;
+  name: keyof typeof quests;
   available: boolean;
 };
 

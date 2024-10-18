@@ -2,7 +2,7 @@ import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const none: Sprite = {
-  name: "none",
+  name: "",
   layers: [],
 };
 
@@ -15,6 +15,15 @@ export const fog: Sprite = {
 export const wall: Sprite = {
   name: "wall_solid",
   layers: [{ char: "█", color: colors.grey }],
+};
+
+export const goldMine: Sprite = {
+  name: "Gold",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "÷", color: colors.yellow },
+    { char: "·", color: colors.grey },
+  ],
 };
 
 export const water: Sprite = {

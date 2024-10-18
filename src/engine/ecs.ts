@@ -8,7 +8,7 @@ import { Quest, QUEST } from "./components/quest";
 import { TRACKABLE } from "./components/trackable";
 import { FOCUSABLE } from "./components/focusable";
 import { TOOLTIP } from "./components/tooltip";
-import { quest, quest as questSprite } from "../game/assets/sprites";
+import { quest as questSprite } from "../game/assets/sprites";
 import { rerenderEntity } from "./systems/renderer";
 import { Animatable, ANIMATABLE } from "./components/animatable";
 
@@ -44,8 +44,13 @@ export default function createWorld(size: number) {
   const cleanup = ECS.cleanup.bind(ECS, world);
 
   // util methods to avoid calling ECS directly
-  const addQuest = (entity: Entity, quest: Quest) => {
-    addComponentToEntity(entity, QUEST, quest);
+  const offerQuest = (entity: Entity, name: Quest['name']) => {
+    if (entity[QUEST]) {
+      entity[QUEST].name = name;
+      entity[QUEST].available = true;
+    } else {
+      addComponentToEntity(entity, QUEST, { name, available: true });
+    }
     entity[TOOLTIP].idle = questSprite;
   };
 
@@ -61,10 +66,9 @@ export default function createWorld(size: number) {
 
     const giverEntity = ecs.getEntityById(activeQuest.args.giver);
 
-    if (!giverEntity || giverEntity[QUEST].name !== activeQuest.name) return;
+    if (!giverEntity?.[QUEST] || giverEntity[QUEST].name !== activeQuest.name) return;
 
-    giverEntity[QUEST].available = true;
-    giverEntity[TOOLTIP].idle = quest;
+    offerQuest(giverEntity, activeQuest.name as Quest['name'])
   };
 
   const setIdentifier = (entity: Entity, identifier: string) => {
@@ -103,7 +107,7 @@ export default function createWorld(size: number) {
     update,
     cleanup,
 
-    addQuest,
+    offerQuest,
     acceptQuest,
     abortQuest,
     setFocus,

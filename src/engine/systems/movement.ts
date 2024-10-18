@@ -14,7 +14,7 @@ import {
   orientationPoints,
 } from "../components/orientable";
 import { getAttackable, isDead, isFriendlyFire } from "./damage";
-import { getLootable } from "./collect";
+import { getCollecting, getLootable } from "./collect";
 import { isSubmerged } from "./immersion";
 import { LEVEL } from "../components/level";
 import { getLockable, isLocked } from "./action";
@@ -34,7 +34,8 @@ export const isWalkable = (
     !isSubmerged(world, position) &&
     !(lockable && isLocked(world, lockable)) &&
     !getAttackable(world, position) &&
-    !getLootable(world, position)
+    !getLootable(world, position) &&
+    !getCollecting(world, position)
   );
 };
 

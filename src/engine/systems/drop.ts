@@ -45,6 +45,7 @@ const MAX_DROP_RADIUS = 5;
 export const findAdjacentWalkable = (
   world: World,
   position: Position,
+  maxRadius: number = MAX_DROP_RADIUS,
   overrideCenter?: boolean
 ) => {
   const level = world.metadata.gameEntity[LEVEL] as Level;
@@ -59,7 +60,7 @@ export const findAdjacentWalkable = (
     return position;
   }
 
-  for (let direction = 1; direction <= MAX_DROP_RADIUS; direction += 1) {
+  for (let direction = 1; direction <= maxRadius; direction += 1) {
     // centers
     for (const iteration of turnedIterations) {
       let normal = 0;
@@ -118,7 +119,8 @@ export const dropEntity = (
   world: World,
   entity: Entity,
   position: Position,
-  dropAside: boolean = false
+  dropAside: boolean = false,
+  maxRadius: number = MAX_DROP_RADIUS
 ) => {
   const remains = entity[DROPPABLE]?.remains;
 
@@ -158,6 +160,7 @@ export const dropEntity = (
     const dropPosition = findAdjacentWalkable(
       world,
       position,
+      maxRadius,
       dropAside ? index === 0 && dropAside : undefined
     );
 

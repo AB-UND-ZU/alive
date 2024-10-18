@@ -100,6 +100,17 @@ export const fireSword: Sprite = {
   },
 };
 
+export const goldSword: Sprite = {
+  name: "Sword",
+  layers: [{ char: "/", color: colors.olive }],
+  facing: {
+    up: [{ char: "|", color: colors.olive }],
+    right: [{ char: "-", color: colors.olive }],
+    down: [{ char: "|", color: colors.olive }],
+    left: [{ char: "-", color: colors.olive }],
+  },
+};
+
 export const woodShield: Sprite = {
   name: "Armor",
   layers: [{ char: "¬", color: colors.maroon }],

@@ -14,10 +14,7 @@ export default function setupFocus(world: World) {
   let referenceGenerations = -1;
 
   const onUpdate = (delta: number) => {
-    const hero = world.getEntity([PLAYER]);
-
-    if (!hero) return;
-
+    const heroEntity = world.getEntity([PLAYER]);
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
@@ -32,11 +29,19 @@ export default function setupFocus(world: World) {
       let pendingId = entity[FOCUSABLE].pendingTarget;
 
       // focus compass on inital drop
-      const compassEntity = world.getIdentifier('compass');
-      const carrierEntity = compassEntity && world.getEntityById(compassEntity[ITEM].carrier)
+      const compassEntity = world.getIdentifier("compass");
+      const carrierEntity =
+        compassEntity && world.getEntityById(compassEntity[ITEM].carrier);
 
-      if (!targetId && !pendingId && carrierEntity && isLootable(world, carrierEntity) && !isDead(world, hero)) {
-        entity[FOCUSABLE].pendingTarget = compassEntity[ITEM].carrier
+      if (
+        !targetId &&
+        !pendingId &&
+        carrierEntity &&
+        isLootable(world, carrierEntity) &&
+        heroEntity &&
+        !isDead(world, heroEntity)
+      ) {
+        entity[FOCUSABLE].pendingTarget = compassEntity[ITEM].carrier;
         pendingId = entity[FOCUSABLE].pendingTarget;
       }
 

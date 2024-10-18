@@ -1,4 +1,3 @@
-import { isTouch } from "../../components/Dimensions";
 import {
   decayHeight,
   focusHeight,
@@ -13,13 +12,12 @@ import {
   Animation,
 } from "../../engine/components/animatable";
 import { ATTACKABLE } from "../../engine/components/attackable";
-import { BEHAVIOUR } from "../../engine/components/behaviour";
 import { COUNTABLE } from "../../engine/components/countable";
 import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { FOG } from "../../engine/components/fog";
-import { Inventory, INVENTORY } from "../../engine/components/inventory";
+import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
@@ -41,16 +39,11 @@ import { SWIMMABLE } from "../../engine/components/swimmable";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { TRACKABLE } from "../../engine/components/trackable";
 import { VIEWABLE } from "../../engine/components/viewable";
-import {
-  hasAvailableQuest,
-  isTradable,
-  isUnlocked,
-} from "../../engine/systems/action";
+import { isUnlocked } from "../../engine/systems/action";
 import { collectItem, isEmpty } from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
 import {
   disposeEntity,
-  getCell,
   moveEntity,
   registerEntity,
 } from "../../engine/systems/map";
@@ -58,11 +51,7 @@ import {
   getEntityGeneration,
   rerenderEntity,
 } from "../../engine/systems/renderer";
-import {
-  lockDoor,
-  openDoor,
-  removeFromInventory,
-} from "../../engine/systems/trigger";
+import { openDoor, removeFromInventory } from "../../engine/systems/trigger";
 import * as colors from "../assets/colors";
 import {
   add,
@@ -72,23 +61,22 @@ import {
   signedDistance,
 } from "../math/std";
 import { iterations } from "../math/tracing";
-import { initialPosition, menuArea } from "./areas";
 import {
   createCounter,
   createDialog,
-  createStat,
   createText,
   decay,
   doorClosedWood,
   fire,
-  fog,
-  goldKey,
   hit,
   none,
   player,
   soul,
   woodStick,
 } from "./sprites";
+import { START_STEP } from "./utils";
+
+export * from "./quests";
 
 export const swordAttack: Animation<"melee"> = (world, entity, state) => {
   // align sword with facing direction
@@ -467,7 +455,7 @@ export const heroRevive: Animation<"revive"> = (world, entity, state) => {
         heroEntity[INVENTORY].items.push(compassId);
         heroEntity[EQUIPPABLE].compass = compassId;
 
-        // set waypoint quest
+        // set waypoint quest to tombstone
         const animationEntity = entities.createFrame(world, {
           [REFERENCE]: {
             tick: -1,
@@ -477,13 +465,11 @@ export const heroRevive: Animation<"revive"> = (world, entity, state) => {
           },
           [RENDERABLE]: { generation: 1 },
         });
-
-        // point to tombstone
-        (heroEntity[ANIMATABLE] as Animatable).states.waypoint = {
-          name: "waypointDistance",
+        (heroEntity[ANIMATABLE] as Animatable).states.quest = {
+          name: "tombstoneQuest",
           reference: world.getEntityId(animationEntity),
           elapsed: 0,
-          args: { target: state.args.tombstoneId, distance: 2.5 },
+          args: { step: START_STEP, memory: {}, giver: state.args.tombstoneId },
           particles: {},
         };
       } else {
@@ -532,34 +518,6 @@ export const entityDispose: Animation<"dispose"> = (world, entity, state) => {
 
   if (finished) {
     disposeEntity(world, entity, false);
-  }
-
-  return { finished, updated };
-};
-
-export const waypointDistance: Animation<"waypoint"> = (
-  world,
-  entity,
-  state
-) => {
-  const size = world.metadata.gameEntity[LEVEL].size;
-  const waypoint = world.getEntityById(state.args.target);
-  const delta = {
-    x: signedDistance(entity[POSITION].x, waypoint[POSITION].x, size),
-    y: signedDistance(entity[POSITION].y, waypoint[POSITION].y, size),
-  };
-
-  const updated = !state.args.initialized;
-  const finished =
-    Math.sqrt(delta.x ** 2 + delta.y ** 2) <= state.args.distance;
-
-  if (updated) {
-    state.args.initialized = true;
-    world.setFocus(waypoint);
-  }
-
-  if (finished) {
-    world.setFocus();
   }
 
   return { finished, updated };
@@ -877,535 +835,6 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
     entity[TOOLTIP].changed = undefined;
 
     return { finished: true, updated };
-  }
-
-  return { finished, updated };
-};
-
-export const spawnQuest: Animation<"quest"> = (world, entity, state) => {
-  let finished = false;
-  let updated = false;
-
-  const heroEntity = world.getIdentifier("hero");
-  const focusEntity = world.getIdentifier("focus");
-  const guideEntity = world.getIdentifier("guide");
-  const doorEntity = world.getIdentifier("door");
-  const houseDoor = world.getIdentifier("house_door");
-  const keyEntity = world.getIdentifier("key");
-  const compassEntity = world.getIdentifier("compass");
-
-  if (
-    !heroEntity ||
-    !focusEntity ||
-    !doorEntity ||
-    !houseDoor ||
-    !compassEntity
-  ) {
-    return { finished, updated };
-  }
-
-  if (state.args.step === "initial") {
-    if (guideEntity) {
-      guideEntity[BEHAVIOUR].patterns.push({
-        name: "dialog",
-        memory: {
-          override: "visible",
-          dialogs: [
-            createDialog(
-              isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move"
-            ),
-          ],
-        },
-      });
-    }
-    state.args.step = "move";
-    updated = true;
-  }
-
-  if (state.args.step === "move") {
-    if (
-      guideEntity &&
-      (heroEntity[POSITION].x !== initialPosition.x ||
-        heroEntity[POSITION].y !== initialPosition.y)
-    ) {
-      world.addQuest(guideEntity, { name: "guideQuest", available: true });
-      guideEntity[BEHAVIOUR].patterns.push({
-        name: "dialog",
-        memory: {
-          override: undefined,
-          changed: true,
-          dialogs: [
-            createDialog("Hi stranger."),
-            createDialog("How are you?"),
-            createDialog("A new quest!"),
-            createDialog("Let's leave."),
-          ],
-        },
-      });
-      state.args.step = "chest";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "chest") {
-    if (guideEntity && !hasAvailableQuest(world, guideEntity)) {
-      const chestEntity = world.getIdentifier("compass_chest");
-      guideEntity[BEHAVIOUR].patterns.push(
-        {
-          name: "dialog",
-          memory: {
-            override: "visible",
-            changed: true,
-            dialogs: [createDialog("Grab this!")],
-          },
-        },
-        {
-          name: "kill",
-          memory: {
-            target: world.getEntityId(chestEntity),
-          },
-        },
-        {
-          name: "dialog",
-          memory: {
-            override: undefined,
-          },
-        },
-        {
-          name: "move",
-          memory: {
-            targetPosition: {
-              x: guideEntity[POSITION].x,
-              y: guideEntity[POSITION].y,
-            },
-          },
-        }
-      );
-      state.args.step = "sword";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "sword") {
-    if (
-      guideEntity &&
-      heroEntity[EQUIPPABLE].melee &&
-      heroEntity[EQUIPPABLE].compass
-    ) {
-      guideEntity[BEHAVIOUR].patterns.push({
-        name: "dialog",
-        memory: {
-          changed: true,
-          dialogs: [[...createDialog("Collect "), ...createStat(5, "gold")]],
-        },
-      });
-      state.args.step = "collect";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "collect") {
-    if (guideEntity && keyEntity && heroEntity[COUNTABLE].gold >= 5) {
-      state.args.memory.doorOpened = true;
-      guideEntity[BEHAVIOUR].patterns.push(
-        {
-          name: "dialog",
-          memory: {
-            override: "visible",
-            changed: true,
-            dialogs: [[...createDialog("Use this "), goldKey]],
-          },
-        },
-        ...(state.args.memory.keyCollected
-          ? [
-              {
-                name: "wait",
-                memory: {
-                  ticks: 4,
-                },
-              },
-
-              {
-                name: "dialog",
-                memory: {
-                  override: undefined,
-                  changed: true,
-                  dialogs: [],
-                },
-              },
-            ]
-          : [
-              {
-                name: "unlock",
-                memory: {
-                  target: world.getEntityId(houseDoor),
-                },
-              },
-              {
-                name: "dialog",
-                memory: {
-                  override: undefined,
-                  changed: true,
-                  dialogs: [],
-                },
-              },
-              {
-                name: "collect",
-                memory: {
-                  item: world.getEntityId(keyEntity),
-                },
-              },
-              {
-                name: "move",
-                memory: {
-                  targetPosition: add(houseDoor[POSITION], { x: 0, y: 1 }),
-                },
-              },
-              {
-                name: "lock",
-                memory: {
-                  target: world.getEntityId(houseDoor),
-                },
-              },
-            ]),
-        {
-          name: "sell",
-          memory: {
-            targetPosition: { x: 155, y: 159 },
-            item: world.getEntityId(keyEntity),
-            activation: [{ counter: "gold", amount: 5 }],
-          },
-        },
-        {
-          name: "move",
-          memory: {
-            targetPosition: { x: 0, y: 159 },
-          },
-        },
-        {
-          name: "dialog",
-          memory: {
-            changed: true,
-            dialogs: [createDialog("Ready?")],
-          },
-        }
-      );
-      state.args.step = "sell";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "sell") {
-    const carrierEntity =
-      keyEntity && world.getEntityById(keyEntity[ITEM].carrier);
-    if (carrierEntity && isTradable(world, carrierEntity)) {
-      state.args.memory.keyCollected = true;
-      state.args.step = "door";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "door") {
-    if (guideEntity && isUnlocked(world, doorEntity)) {
-      guideEntity[BEHAVIOUR].patterns.push({
-        name: "dialog",
-        memory: {
-          override: "visible",
-          changed: true,
-          dialogs: [createDialog("Good luck!")],
-        },
-      });
-      state.args.step = "world";
-      updated = true;
-    }
-  }
-
-  // warn player if door is opened
-  if (
-    !state.args.memory.doorOpened &&
-    guideEntity &&
-    houseDoor &&
-    isUnlocked(world, houseDoor)
-  ) {
-    state.args.memory.doorOpened = true;
-    const previousDialog = { ...guideEntity[TOOLTIP], changed: true };
-    guideEntity[BEHAVIOUR].patterns.unshift(
-      {
-        name: "dialog",
-        memory: {
-          override: "visible",
-          changed: true,
-          dialogs: [createDialog("Keep out!")],
-        },
-      },
-      {
-        name: "wait",
-        memory: {
-          ticks: 4,
-        },
-      },
-      {
-        name: "dialog",
-        memory: previousDialog,
-      }
-    );
-    updated = true;
-  }
-
-  // chase player if key is stolen
-  if (
-    !state.args.memory.keyCollected &&
-    guideEntity &&
-    keyEntity &&
-    keyEntity[ITEM].carrier === world.getEntityId(heroEntity)
-  ) {
-    state.args.memory.keyCollected = true;
-    const previousDialog = { ...guideEntity[TOOLTIP], changed: true };
-    guideEntity[BEHAVIOUR].patterns.unshift(
-      {
-        name: "enrage",
-        memory: { shout: "Thief\u0112" },
-      },
-      {
-        name: "kill",
-        memory: {
-          target: world.getEntityId(heroEntity),
-        },
-      },
-      {
-        name: "soothe",
-        memory: {},
-      },
-      {
-        name: "dialog",
-        memory: previousDialog,
-      },
-      {
-        name: "collect",
-        memory: {
-          item: world.getEntityId(keyEntity),
-        },
-      },
-      {
-        name: "move",
-        memory: {
-          targetPosition: add(houseDoor[POSITION], { x: 0, y: 1 }),
-        },
-      },
-      {
-        name: "lock",
-        memory: {
-          target: world.getEntityId(houseDoor),
-        },
-      }
-    );
-
-    guideEntity[BEHAVIOUR].patterns.push({
-      name: "move",
-      memory: {
-        targetPosition: { x: 0, y: 159 },
-      },
-    });
-    updated = true;
-  }
-
-  // if door was opened, advance to final steps
-  if (!keyEntity && state.args.step !== "door" && state.args.step !== "world") {
-    state.args.step = "door";
-    updated = true;
-  }
-
-  // finish regardless of state if player reached exit
-  if (heroEntity[POSITION].x === 0 && heroEntity[POSITION].y === 7) {
-    // set camera to player
-    world.setFocus();
-    entity[VIEWABLE].active = false;
-    heroEntity[VIEWABLE].active = true;
-
-    // close door
-    lockDoor(world, doorEntity);
-
-    // set player light and spawn
-    heroEntity[LIGHT].brightness = 5.55;
-    heroEntity[LIGHT].visibility = 5.55;
-    heroEntity[SPAWNABLE].position = { x: 0, y: 9 };
-
-    // give player compass if not already done
-    const compassCarrier = compassEntity[ITEM].carrier;
-    if (compassCarrier !== world.getEntityId(heroEntity)) {
-      const containerEntity = world.getEntityById(compassEntity[ITEM].carrier);
-      collectItem(world, heroEntity, containerEntity);
-    }
-
-    // clear spawn area
-    const menuRows = menuArea.split("\n");
-    const menuColumns = menuRows[0].split("");
-    const size = world.metadata.gameEntity[LEVEL].size;
-    for (
-      let columnIndex = 0;
-      columnIndex <= menuColumns.length;
-      columnIndex += 1
-    ) {
-      for (let rowIndex = 0; rowIndex <= menuRows.length; rowIndex += 1) {
-        const x = normalize(columnIndex - (menuColumns.length - 1) / 2, size);
-        const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
-        const cell = getCell(world, { x, y });
-        const shouldDiscard = (y < 6 || y > 153) && (x < 11 || x > 149);
-        let hasAir = false;
-        Object.values(cell).forEach((cellEntity) => {
-          // don't remove player and focus
-          if (
-            cellEntity === heroEntity ||
-            cellEntity === focusEntity ||
-            cellEntity === entity
-          )
-            return;
-
-          if (!hasAir && cellEntity[FOG].type === "air") hasAir = true;
-
-          if (shouldDiscard && cellEntity[FOG].type !== "air") {
-            disposeEntity(world, cellEntity);
-            return;
-          }
-
-          cellEntity[FOG].visibility = "hidden";
-          rerenderEntity(world, cellEntity);
-        });
-
-        // restore removed air particles
-        if (!hasAir) {
-          entities.createGround(world, {
-            [FOG]: { visibility: "hidden", type: "air" },
-            [POSITION]: { x, y },
-            [RENDERABLE]: { generation: 0 },
-            [SPRITE]: fog,
-          });
-        }
-      }
-    }
-
-    state.args.step = "done";
-    finished = true;
-  }
-
-  return { finished, updated };
-};
-
-export const guideQuest: Animation<"quest"> = (world, entity, state) => {
-  let finished = false;
-  let updated = false;
-  const guideEntity = world.getIdentifier("guide");
-
-  if (!guideEntity) {
-    return { finished, updated };
-  }
-
-  if (state.args.step === "initial") {
-    if (entity[EQUIPPABLE].compass) {
-      world.setFocus(world.getIdentifier("wood_two"));
-      state.args.step = "sword";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "sword") {
-    if (entity[EQUIPPABLE].melee) {
-      world.setFocus(world.getIdentifier("coin"));
-      state.args.step = "coin";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "coin") {
-    const coinEntity = world.getIdentifier("coin");
-    if (!coinEntity) {
-      world.setFocus(world.getIdentifier("pot"));
-      state.args.step = "pot";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "pot") {
-    const potEntity = world.getIdentifier("pot");
-    if (!potEntity) {
-      world.setFocus(world.getIdentifier("triangle"));
-      state.args.step = "triangle";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "triangle") {
-    const triangleEntity = world.getIdentifier("triangle");
-    if (!triangleEntity) {
-      world.setFocus(guideEntity);
-      state.args.step = "collect";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "collect") {
-    if (entity[COUNTABLE].gold >= 5) {
-      world.setFocus();
-      state.args.step = "buy";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "buy") {
-    const keyEntity = world.getIdentifier("key");
-    const containerEntity =
-      keyEntity && world.getEntityById(keyEntity[ITEM].carrier);
-    if (containerEntity && isTradable(world, containerEntity)) {
-      state.args.step = "key";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "key") {
-    const doorEntity = world.getIdentifier("door");
-    if (
-      (entity[INVENTORY] as Inventory).items.some(
-        (itemId) => world.getEntityById(itemId)[ITEM].consume === "key"
-      )
-    ) {
-      world.setFocus(doorEntity);
-      state.args.step = "door";
-      updated = true;
-    }
-  }
-
-  if (state.args.step === "door") {
-    const doorEntity = world.getIdentifier("door");
-    const focusEntity = world.getIdentifier("focus");
-    if (doorEntity && focusEntity && isUnlocked(world, doorEntity)) {
-      world.setFocus();
-      state.args.step = "done";
-      finished = true;
-    }
-  }
-
-  return { finished, updated };
-};
-
-export const townQuest: Animation<"quest"> = (world, entity, state) => {
-  let finished = false;
-  let updated = false;
-  const signEntity = world.getIdentifier("sign");
-  const viewpointEntity = world.getIdentifier("viewpoint");
-
-  if (!signEntity || !viewpointEntity) {
-    return { finished, updated };
-  }
-
-  if (state.args.step === "initial") {
-    signEntity[TOOLTIP].changed = true;
-    signEntity[TOOLTIP].dialogs = [createDialog("Use compass")];
-
-    viewpointEntity[POSITION] = { x: 60, y: 60 };
-    world.setFocus(viewpointEntity);
-
-    state.args.step = "done";
-    finished = true;
   }
 
   return { finished, updated };

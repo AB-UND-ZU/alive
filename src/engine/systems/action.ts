@@ -23,10 +23,10 @@ export const getQuest = (world: World, position: Position) =>
     | undefined;
 
 export const canAcceptQuest = (world: World, entity: Entity, quest: Entity) =>
-  !isEnemy(world, quest) && hasAvailableQuest(world, quest);
+  !isEnemy(world, quest) && !!getAvailableQuest(world, quest);
 
-export const hasAvailableQuest = (world: World, entity: Entity) =>
-  !!entity[QUEST]?.available;
+export const getAvailableQuest = (world: World, entity: Entity) =>
+  entity[QUEST]?.available && entity[QUEST].name;
 
 export const getLockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -124,7 +124,7 @@ export default function setupAction(world: World) {
             !quest &&
             questEntity &&
             PLAYER in entity &&
-            hasAvailableQuest(world, questEntity)
+            getAvailableQuest(world, questEntity)
           )
             quest = questEntity;
 
