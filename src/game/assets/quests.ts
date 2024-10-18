@@ -570,7 +570,8 @@ export const guideNpc: Animation<"quest"> = (world, entity, state) => {
     isCompleted: () =>
       entity[POSITION].x === guidePosition.x &&
       entity[POSITION].y === guidePosition.y &&
-      keyEntity?.[ITEM].carrier === world.getEntityId(entity),
+      ((!keyEntity && heroEntity && !isDead(world, heroEntity)) ||
+        (!!keyEntity && keyEntity[ITEM].carrier === world.getEntityId(entity))),
     onLeave: () => {
       state.args.memory.warned = false;
       return "quest";

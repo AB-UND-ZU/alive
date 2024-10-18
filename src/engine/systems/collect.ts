@@ -30,11 +30,10 @@ export const getLootable = (world: World, position: Position) =>
     isLootable(world, entity)
   ) as Entity | undefined;
 
-export const isCollecting = (world: World, entity: Entity) => {
-  const collectingId = entity[ANIMATABLE]?.states.collect?.args.itemId;
-  if (!collectingId) return;
-  return world.getEntityById(collectingId);
-};
+export const isCollecting = (world: World, entity: Entity) =>
+  LOOTABLE in entity &&
+  INVENTORY in entity &&
+  entity[ANIMATABLE]?.states.collect?.args.itemId;
 
 export const getCollecting = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>

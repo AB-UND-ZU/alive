@@ -16,6 +16,7 @@ import { REFERENCE } from "../engine/components/reference";
 import { VIEWABLE } from "../engine/components/viewable";
 import { signedDistance } from "../game/math/std";
 import { LEVEL } from "../engine/components/level";
+import { LIGHT } from "../engine/components/light";
 
 export type WorldContext = {
   ecs: WorldType | null;
@@ -135,5 +136,6 @@ export const useViewpoint = () => {
   return {
     position,
     config: viewable?.[VIEWABLE].spring || defaultSpring,
+    radius: viewable?.[LIGHT]?.brightness || Infinity,
   };
 };

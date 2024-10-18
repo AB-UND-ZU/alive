@@ -52,6 +52,17 @@ export const tree1: Sprite = {
     { char: "┐", color: colors.maroon },
     { char: "#", color: colors.green },
   ],
+  amounts: {
+    single: [{ char: "┐", color: colors.maroon }],
+    double: [
+      { char: "┐", color: colors.maroon },
+      { char: "+", color: colors.green },
+    ],
+    multiple: [
+      { char: "┐", color: colors.maroon },
+      { char: "#", color: colors.green },
+    ],
+  },
 };
 
 export const tree2: Sprite = {
@@ -59,6 +70,34 @@ export const tree2: Sprite = {
   layers: [
     { char: "┐", color: colors.maroon },
     { char: "Θ", color: colors.green },
+  ],
+  amounts: {
+    single: [{ char: "┐", color: colors.maroon }],
+    double: [
+      { char: "┐", color: colors.maroon },
+      { char: "\u0108", color: colors.green },
+    ],
+    multiple: [
+      { char: "┐", color: colors.maroon },
+      { char: "Θ", color: colors.green },
+    ],
+  },
+};
+
+export const sapling1: Sprite = {
+  name: "Sapling",
+  layers: [
+    { char: "+", color: colors.green },
+    { char: ",", color: colors.maroon },
+  ],
+};
+
+export const sapling2: Sprite = {
+  name: "Sapling",
+  layers: [
+    { char: ",", color: colors.maroon },
+    { char: "\u0106", color: colors.green },
+    { char: "∙", color: colors.black },
   ],
 };
 

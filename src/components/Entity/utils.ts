@@ -4,13 +4,9 @@ import { World } from "../../engine";
 import { Segment } from "./Stack";
 import { Entity } from "ecs";
 import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
-import { isLootable } from "../../engine/systems/collect";
-import { LOOTABLE } from "../../engine/components/lootable";
 import { LayerProps } from "./Layer";
-import { INVENTORY } from "../../engine/components/inventory";
 import {
   Consumable,
-  ITEM,
   Material,
   Materialized,
 } from "../../engine/components/item";
@@ -34,7 +30,6 @@ import {
   woodShield,
   woodStick,
 } from "../../game/assets/sprites";
-import { isTradable } from "../../engine/systems/action";
 
 export const pixels = 16;
 export const textSize = 18 / 25 + 0.001;
@@ -42,12 +37,15 @@ export const textSize = 18 / 25 + 0.001;
 export const stack = 1000;
 export const stackHeight = 1;
 
+// odd values because i don't want to recalculate brightness values
 export const terrainHeight = 0 * stackHeight;
 export const unitHeight = 1 * stackHeight;
-export const decayHeight = 1.5 * stackHeight; // i don't want to recalculate brightness values.
+export const lootHeight = 1.1 * stackHeight;
+export const decayHeight = 1.8 * stackHeight;
 export const immersibleHeight = 2 * stackHeight;
 export const lightHeight = 3 * stackHeight;
 export const wallHeight = 4 * stackHeight;
+export const oreHeight = 4.5 * stackHeight;
 export const floatHeight = 5 * stackHeight;
 export const shadowHeight = 6 * stackHeight;
 export const fogHeight = 7 * stackHeight;
@@ -79,12 +77,9 @@ export const getSegments = (
   entity: Entity,
   layerProps: LayerProps
 ) => {
-  const visibility = entity[FOG]?.visibility;
   const isAir = entity[FOG]?.type === "air";
-  const isTerrain = entity[FOG]?.type === "terrain";
   const isFloat = entity[FOG]?.type === "float";
   const isUnit = entity[FOG]?.type === "unit";
-  const isVisible = visibility === "visible";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
 
   const offsetZ = isOpaque
@@ -97,7 +92,7 @@ export const getSegments = (
     ? floatHeight
     : terrainHeight;
 
-  // from back to front: armor, body, spell, melee, loot
+  // from back to front: armor, body, spell, melee
   const orderedSegments: Segment[] = [];
 
   // 1. armor
@@ -117,16 +112,14 @@ export const getSegments = (
   }
 
   // 2. body
-  if (!isLootable(world, entity) || !entity[LOOTABLE]?.disposable) {
-    orderedSegments.push({
-      sprite: entity[SPRITE],
-      facing: entity[ORIENTABLE]?.facing,
-      offsetX: 0,
-      offsetY: 0,
-      offsetZ,
-      layerProps,
-    });
-  }
+  orderedSegments.push({
+    sprite: entity[SPRITE],
+    facing: entity[ORIENTABLE]?.facing,
+    offsetX: 0,
+    offsetY: 0,
+    offsetZ,
+    layerProps,
+  });
 
   // 4. melee
   const meleeEntity =
@@ -143,25 +136,6 @@ export const getSegments = (
         isTransparent: false,
       },
     });
-  }
-
-  // 5. loot
-  if (
-    (isLootable(world, entity) || isTradable(world, entity)) &&
-    (isVisible || !isTerrain || (isTerrain && isOpaque))
-  ) {
-    for (const itemId of entity[INVENTORY]!.items) {
-      const item = world.getEntityById(itemId);
-      orderedSegments.push({
-        sprite: item[SPRITE],
-        facing: item[ORIENTABLE]?.facing,
-        amount: item[ITEM].amount,
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ,
-        layerProps,
-      });
-    }
   }
 
   return orderedSegments;
@@ -195,6 +169,8 @@ export const createSprite = (world: World, entityId: number) => {
 // the brightness might need to be adjusted to match the original
 export const offsetFactors: Record<number, number> = {
   1: 1.41,
+  1.1: 1.46,
+  1.5: 1.77,
 };
 
 const entitySprites: Record<

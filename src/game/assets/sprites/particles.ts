@@ -88,7 +88,8 @@ export const shot: Sprite = {
       { char: "|", color: colors.maroon },
     ],
     right: [
-      { char: "\u0119", color: colors.grey },
+      { char: "\u011c", color: colors.grey },
+      { char: "\u011a", color: colors.black },
       { char: "-", color: colors.maroon },
     ],
     down: [
@@ -96,7 +97,8 @@ export const shot: Sprite = {
       { char: "|", color: colors.maroon },
     ],
     left: [
-      { char: "\u011a", color: colors.grey },
+      { char: "\u011c", color: colors.grey },
+      { char: "\u0119", color: colors.black },
       { char: "-", color: colors.maroon },
     ],
   },

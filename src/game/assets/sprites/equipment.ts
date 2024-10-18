@@ -121,6 +121,24 @@ export const ironShield: Sprite = {
   layers: [{ char: "¬", color: colors.grey }],
 };
 
+export const axe: Sprite = {
+  name: "Axe",
+  layers: [
+    { char: "'", color: colors.grey },
+    { char: "º", color: colors.grey },
+    { char: "-", color: colors.black },
+    { char: "\\", color: colors.maroon },
+  ],
+};
+
+export const pickaxe: Sprite = {
+  name: "Pickaxe",
+  layers: [
+    { char: "\u0119", color: colors.grey },
+    { char: "─", color: colors.black },
+  ],
+};
+
 export const hammer: Sprite = {
   name: "Hammer",
   layers: [

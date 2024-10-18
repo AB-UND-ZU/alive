@@ -141,4 +141,5 @@ _Spawn area with intro quest_
 - Units moving in front of AI in the right time will disupt pathfinding due to discarded path items
 - Trading doesn't support requiring multiple items of same type or with amount larger than 1
 - Trading action displays maximum of 2 items
+- Tiny shadow on lootable items extends a bit further than on terrains due to loot height
 

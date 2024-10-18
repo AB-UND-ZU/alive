@@ -7,11 +7,13 @@ import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { getEntityGeneration } from "../../engine/systems/renderer";
 import { getCell } from "../../engine/systems/map";
+import { getDistance } from "../../game/math/std";
+import { LEVEL } from "../../engine/components/level";
 
 export default function Systems() {
   const { ecs } = useWorld();
   const dimensions = useDimensions();
-  const { position } = useViewpoint();
+  const { position, radius } = useViewpoint();
   const game = useGame();
 
   useFrame((_, delta) => {
@@ -22,6 +24,8 @@ export default function Systems() {
   });
 
   if (!ecs || !game) return null;
+
+  const size = ecs.metadata.gameEntity[LEVEL].size;
 
   return (
     <>
@@ -56,6 +60,9 @@ export default function Systems() {
                   }
                   x={renderedX}
                   y={renderedY}
+                  inRadius={
+                    getDistance(position, entity[POSITION], size) < radius
+                  }
                   generation={getEntityGeneration(ecs, entity)}
                 />
               ));

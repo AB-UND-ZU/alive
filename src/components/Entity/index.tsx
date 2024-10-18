@@ -15,7 +15,7 @@ import { useWorld } from "../../bindings/hooks";
 import { Player, PLAYER } from "../../engine/components/player";
 import { Npc, NPC } from "../../engine/components/npc";
 import { Attackable, ATTACKABLE } from "../../engine/components/attackable";
-import { getSegments, wallHeight } from "./utils";
+import { getSegments, lootHeight, oreHeight, wallHeight } from "./utils";
 import { Melee, MELEE } from "../../engine/components/melee";
 import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
 import { Animatable, ANIMATABLE } from "../../engine/components/animatable";
@@ -29,11 +29,15 @@ import Bar from "./Bar";
 import { LayerProps } from "./Layer";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { Lootable, LOOTABLE } from "../../engine/components/lootable";
+import { isCollecting, isLootable } from "../../engine/systems/collect";
+import { isTradable } from "../../engine/systems/action";
+import { ITEM } from "../../engine/components/item";
 
 function Entity({
   entity,
   x,
   y,
+  inRadius,
 }: {
   entity: {
     [ANIMATABLE]?: Animatable;
@@ -57,8 +61,10 @@ function Entity({
   generation: number;
   x: number;
   y: number;
+  inRadius: boolean;
 }) {
   const dimensions = useDimensions();
+  const { ecs } = useWorld();
   const config = entity[MOVABLE]?.spring;
   const Container = config ? Animated : "group";
 
@@ -77,8 +83,16 @@ function Entity({
   const isTransparent =
     (isHidden && !isAir) || (!isHidden && isAir) || (isUnit && !isVisible);
 
+  const hasLoot =
+    ecs &&
+    (isLootable(ecs, entity) ||
+      isCollecting(ecs, entity) ||
+      isTradable(ecs, entity));
+  const isLootTransparent = !hasLoot || (isOpaque ? !inRadius : !isVisible);
+
   const spring = useSpring({
     opacity: isTransparent ? 0 : 1,
+    lootOpacity: isLootTransparent ? 0 : 1,
     config: { duration: 200 },
     onRest: (result) => {
       setOpacity(result.value.opacity);
@@ -92,8 +106,6 @@ function Entity({
   };
 
   const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
-
-  const { ecs } = useWorld();
 
   if (!ecs || (opacity === 0 && layerProps.isTransparent && !isUnit))
     return null;
@@ -118,6 +130,27 @@ function Entity({
     })
   );
 
+  // add loot between entity and particles
+  const lootSegments: Segment[] = [];
+  if (hasLoot) {
+    for (const itemId of entity[INVENTORY]!.items) {
+      const item = ecs.getEntityById(itemId);
+      lootSegments.push({
+        sprite: item[SPRITE],
+        facing: item[ORIENTABLE]?.facing,
+        amount: item[ITEM].amount,
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: isOpaque ? oreHeight : lootHeight,
+        layerProps: {
+          isTransparent,
+          opacity: spring.lootOpacity,
+          receiveShadow: !isOpaque && inRadius,
+        },
+      });
+    }
+  }
+
   return (
     <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={config}>
       {isOpaque && isVisible && (
@@ -125,8 +158,9 @@ function Entity({
           <meshBasicMaterial color={colors.black} />
         </Box>
       )}
-      <Stack segments={orderedSegments} />
-      <Stack segments={particleSegments} />
+      {orderedSegments.length > 0 && <Stack segments={orderedSegments} />}
+      {lootSegments.length > 0 && <Stack segments={lootSegments} />}
+      {particleSegments.length > 0 && <Stack segments={particleSegments} />}
 
       {isBright && (
         <CoveredLight
@@ -136,7 +170,11 @@ function Entity({
       )}
 
       {!!entity[SWIMMABLE] && (
-        <Swimming entity={entity} active={isSwimming} isVisible={!isTransparent} />
+        <Swimming
+          entity={entity}
+          active={isSwimming}
+          isVisible={!isTransparent}
+        />
       )}
 
       {isAttackable && <Bar entity={entity} isVisible={isVisible} />}
@@ -146,7 +184,9 @@ function Entity({
 
 const MemoizedEntity = React.memo(
   Entity,
-  (prevProps, nextProps) => prevProps.generation === nextProps.generation
+  (prevProps, nextProps) =>
+    prevProps.generation === nextProps.generation &&
+    prevProps.inRadius === nextProps.inRadius
 );
 
 export default MemoizedEntity;

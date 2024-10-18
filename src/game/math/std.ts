@@ -1,3 +1,5 @@
+import { aspectRatio } from "../../components/Dimensions/sizing";
+
 export type Point = { x: number; y: number };
 
 export const copy = (position: Point) => ({ x: position.x, y: position.y });
@@ -22,7 +24,7 @@ export const signedDistance = (start: number, end: number, size: number) => {
 
 export const getDistance = (origin: Point, target: Point, size: number) => {
   const delta = {
-    x: signedDistance(origin.x, target.x, size),
+    x: signedDistance(origin.x, target.x, size) * aspectRatio,
     y: signedDistance(origin.y, target.y, size),
   };
 

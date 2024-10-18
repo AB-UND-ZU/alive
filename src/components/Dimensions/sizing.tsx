@@ -47,7 +47,10 @@ const calculateDimensions: () => Dimensions = () => {
   const cellWidth = cellHeight * aspectRatio;
   const columns = Math.ceil(screenWidth / cellWidth);
   const rows = Math.ceil(screenHeight / cellHeight);
-  const padding = Math.max(0, Math.ceil(columns / 2) - (visibleColumns - 1) / 2 - (columns % 2));
+  const padding = Math.max(
+    0,
+    Math.ceil(columns / 2) - (visibleColumns - 1) / 2 - (columns % 2)
+  );
   const gap = screenWidth - columns * cellWidth;
   const leftOffset = gap / 2;
   const rightOffset = gap - leftOffset;
