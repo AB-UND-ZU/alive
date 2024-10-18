@@ -23,6 +23,7 @@ import {
   createDialog,
   doorClosedGold,
   doorClosedWood,
+  eye,
   flower,
   fog,
   goldKey,
@@ -92,6 +93,7 @@ import { SPAWNABLE } from "../engine/components/spawnable";
 import { dropEntity } from "../engine/systems/drop";
 import { IDENTIFIABLE } from "../engine/components/identifiable";
 import { START_STEP } from "../game/assets/utils";
+import { COLLECTABLE } from "../engine/components/collectable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -167,7 +169,7 @@ export const generateWorld = async (world: World) => {
     if (green > 10) return spawn > 92 ? "herb" : "grass";
 
     // spawn
-    if (spawn < -96) return "triangle";
+    if (spawn < -96) return "mob";
 
     return "";
   });
@@ -199,7 +201,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === ",") entity = "grass";
       else if (cell === "·") entity = "herb_one";
       else if (cell === "♀") entity = "guide";
-      else if (cell === "►") entity = "triangle_spawn";
+      else if (cell === "►") entity = "triangle";
       else if (cell === "*") entity = "campfire";
       else if (cell === "↔") entity = "key";
       else if (cell === "├") entity = "house_left";
@@ -237,6 +239,7 @@ export const generateWorld = async (world: World) => {
     [ACTIONABLE]: { triggered: false },
     [ANIMATABLE]: { states: {} },
     [ATTACKABLE]: { max: 10, enemy: false },
+    [COLLECTABLE]: {},
     [COUNTABLE]: { ...emptyCountable, hp: 10, xp: 10 },
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
@@ -550,7 +553,7 @@ export const generateWorld = async (world: World) => {
         },
         [RENDERABLE]: { generation: 1 },
       });
-      const guideEntity = entities.createNpc(world, {
+      const guideEntity = entities.createVillager(world, {
         [ACTIONABLE]: { triggered: false },
         [ANIMATABLE]: {
           states: {
@@ -569,6 +572,7 @@ export const generateWorld = async (world: World) => {
         },
         [ATTACKABLE]: { max: 20, enemy: false },
         [BEHAVIOUR]: { patterns: [] },
+        [COLLECTABLE]: {},
         [COUNTABLE]: { ...emptyCountable, hp: 20 },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {
@@ -608,24 +612,31 @@ export const generateWorld = async (world: World) => {
       swordEntity[ITEM].carrier = guideId;
       shieldEntity[ITEM].carrier = guideId;
       world.setIdentifier(guideEntity, "guide");
-    } else if (cell === "triangle" || cell === "triangle_spawn") {
+    } else if (cell === "mob" || cell === "triangle") {
+      const mobStats = (
+        [
+          { damage: 1, gold: 1, hp: 2, pattern: "triangle", sprite: triangle },
+          { damage: 1, gold: 1, hp: 1, pattern: "eye", sprite: eye },
+        ] as const
+      )[cell === "triangle" ? 0 : distribution(70, 30)];
+
       const clawsEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 1, slot: "melee" },
+        [ITEM]: { amount: mobStats.damage, slot: "melee" },
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
       });
       const goldEntity = entities.createItem(world, {
-        [ITEM]: { amount: 1, counter: "gold" },
+        [ITEM]: { amount: mobStats.gold, counter: "gold" },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: coin,
       });
-      const triangleEntity = entities.createMob(world, {
+      const mobEntity = entities.createMob(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 2, enemy: true },
-        [BEHAVIOUR]: { patterns: [{ name: "triangle", memory: {} }] },
-        [COUNTABLE]: { ...emptyCountable, hp: 2 },
+        [ATTACKABLE]: { max: mobStats.hp, enemy: true },
+        [BEHAVIOUR]: { patterns: [{ name: mobStats.pattern, memory: {} }] },
+        [COUNTABLE]: { ...emptyCountable, hp: mobStats.hp },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
         [FOG]: { visibility, type: "unit" },
@@ -643,15 +654,14 @@ export const generateWorld = async (world: World) => {
         [ORIENTABLE]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: triangle,
+        [SPRITE]: mobStats.sprite,
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
       });
-      clawsEntity[ITEM].carrier = world.getEntityId(triangleEntity);
-      goldEntity[ITEM].carrier = world.getEntityId(triangleEntity);
+      clawsEntity[ITEM].carrier = world.getEntityId(mobEntity);
+      goldEntity[ITEM].carrier = world.getEntityId(mobEntity);
 
-      if (cell === "triangle_spawn")
-        world.setIdentifier(triangleEntity, "triangle");
+      if (cell === "triangle") world.setIdentifier(mobEntity, "triangle");
     } else if (cell === "key") {
       const keyEntity = entities.createItem(world, {
         [ITEM]: {

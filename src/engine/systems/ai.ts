@@ -13,7 +13,7 @@ import {
   orientationPoints,
   orientations,
 } from "../components/orientable";
-import { findPath, relativeOrientation } from "../../game/math/path";
+import { findPath, relativeOrientations } from "../../game/math/path";
 import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
 import { isLocked } from "./action";
@@ -23,6 +23,7 @@ import { dropEntity, sellItem } from "./drop";
 import { createShout, rage } from "../../game/assets/sprites";
 import { ATTACKABLE } from "../components/attackable";
 import { INVENTORY } from "../components/inventory";
+import { FOG } from "../components/fog";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -103,6 +104,19 @@ export default function setupAi(world: World) {
             entity[MOVABLE].orientations = [];
             rerenderEntity(world, entity);
           }
+          break;
+        } else if (pattern.name === "eye") {
+          const heroEntity = world.getIdentifier("hero");
+
+          entity[MOVABLE].orientations =
+            heroEntity && entity[FOG].visibility === "visible"
+              ? relativeOrientations(
+                  world,
+                  entity[POSITION],
+                  heroEntity[POSITION]
+                )
+              : [];
+          rerenderEntity(world, entity);
           break;
         } else if (pattern.name === "dialog") {
           const memory = pattern.memory;
@@ -191,11 +205,11 @@ export default function setupAi(world: World) {
           if (attemptedPosition && !pathObstructed) {
             memory.path.shift();
 
-            const targetOrientation = relativeOrientation(
+            const targetOrientation = relativeOrientations(
               world,
               entity[POSITION],
               attemptedPosition
-            );
+            )[0];
             entity[MOVABLE].orientations = targetOrientation
               ? [targetOrientation]
               : [];
@@ -298,11 +312,11 @@ export default function setupAi(world: World) {
           // move or act depending on pattern
           if (attemptedPosition && !pathObstructed) {
             if (!hasArrived || movablePattern) {
-              const targetOrientation = relativeOrientation(
+              const targetOrientation = relativeOrientations(
                 world,
                 entity[POSITION],
                 attemptedPosition
-              );
+              )[0];
               entity[MOVABLE].orientations = [targetOrientation];
             }
 
@@ -325,7 +339,8 @@ export default function setupAi(world: World) {
               }
             }
 
-            if (!hasArrived || !movablePattern || !memory.path) memory.path.shift();
+            if (!hasArrived || !movablePattern || !memory.path)
+              memory.path.shift();
           }
           break;
         } else {

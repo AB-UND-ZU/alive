@@ -12,6 +12,7 @@ import {
   Animation,
 } from "../../engine/components/animatable";
 import { ATTACKABLE } from "../../engine/components/attackable";
+import { COLLECTABLE } from "../../engine/components/collectable";
 import { COUNTABLE } from "../../engine/components/countable";
 import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
@@ -408,6 +409,7 @@ export const heroRevive: Animation<"revive"> = (world, entity, state) => {
       [ACTIONABLE]: { triggered: false },
       [ANIMATABLE]: { states: {} },
       [ATTACKABLE]: { max: 10, enemy: false },
+      [COLLECTABLE]: {},
       [COUNTABLE]: {
         hp: 10,
         mp: 0,

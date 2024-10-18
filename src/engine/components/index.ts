@@ -3,6 +3,7 @@ export { default as addAnimatable } from "./animatable";
 export { default as addAttackable } from "./attackable";
 export { default as addBehaviour } from "./behaviour";
 export { default as addBurnable } from "./burnable";
+export { default as addCollectable } from "./collectable";
 export { default as addCollidable } from "./collidable";
 export { default as addCountable } from "./countable";
 export { default as addDroppable } from "./droppable";

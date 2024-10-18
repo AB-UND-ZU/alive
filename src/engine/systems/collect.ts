@@ -18,6 +18,7 @@ import { Animatable, ANIMATABLE } from "../components/animatable";
 import { rerenderEntity } from "./renderer";
 import { isTradable } from "./action";
 import { removeFromInventory } from "./trigger";
+import { COLLECTABLE } from "../components/collectable";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -130,6 +131,7 @@ export default function setupCollect(world: World) {
     // handle player collecting
     for (const entity of world.getEntities([
       POSITION,
+      COLLECTABLE,
       MOVABLE,
       EQUIPPABLE,
       INVENTORY,

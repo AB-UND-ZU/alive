@@ -3,8 +3,9 @@ import { World } from "../ecs";
 
 type Pattern = {
   name:
-    | "wait"
     | "triangle"
+    | "eye"
+    | "wait"
     | "move"
     | "kill"
     | "dialog"

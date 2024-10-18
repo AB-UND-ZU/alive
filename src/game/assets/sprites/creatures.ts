@@ -28,6 +28,11 @@ export const triangle: Sprite = {
   },
 };
 
+export const eye: Sprite = {
+  name: "Eye",
+  layers: [{ char: "0", color: colors.white }],
+};
+
 export const soul: Sprite = {
   name: "Soul",
   layers: [

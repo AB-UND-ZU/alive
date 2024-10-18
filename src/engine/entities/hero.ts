@@ -2,6 +2,7 @@ import * as components from "../components";
 import { Actionable, ACTIONABLE } from "../components/actionable";
 import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Attackable, ATTACKABLE } from "../components/attackable";
+import { Collectable, COLLECTABLE } from "../components/collectable";
 import { Countable, COUNTABLE } from "../components/countable";
 import { Droppable, DROPPABLE } from "../components/droppable";
 import { Equippable, EQUIPPABLE } from "../components/equippable";
@@ -26,6 +27,7 @@ export default function createHero(
     [ACTIONABLE]: Actionable;
     [ANIMATABLE]: Animatable;
     [ATTACKABLE]: Attackable;
+    [COLLECTABLE]: Collectable;
     [COUNTABLE]: Countable;
     [DROPPABLE]: Droppable;
     [EQUIPPABLE]: Equippable;
@@ -49,6 +51,7 @@ export default function createHero(
   components.addActionable(world, heroEntity, entity[ACTIONABLE]);
   components.addAnimatable(world, heroEntity, entity[ANIMATABLE]);
   components.addAttackable(world, heroEntity, entity[ATTACKABLE]);
+  components.addCollectable(world, heroEntity, entity[COLLECTABLE]);
   components.addCountable(world, heroEntity, entity[COUNTABLE]);
   components.addDroppable(world, heroEntity, entity[DROPPABLE]);
   components.addEquippable(world, heroEntity, entity[EQUIPPABLE]);

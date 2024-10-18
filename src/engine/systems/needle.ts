@@ -7,7 +7,7 @@ import { ORIENTABLE } from "../components/orientable";
 import { ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { TRACKABLE } from "../components/trackable";
-import { relativeOrientation } from "../../game/math/path";
+import { relativeOrientations } from "../../game/math/path";
 
 export default function setupNeedle(world: World) {
   let referenceGenerations = -1;
@@ -63,11 +63,11 @@ export default function setupNeedle(world: World) {
 
       entityReferences[entityId] = entityReference;
 
-      const targetOrientation = relativeOrientation(
+      const targetOrientation = relativeOrientations(
         world,
         originEntity[POSITION],
         targetEntity[POSITION]
-      );
+      )[0];
 
       // reorient needle
       if (entity[ORIENTABLE].facing !== targetOrientation) {
