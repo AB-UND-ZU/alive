@@ -633,7 +633,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "mob" || cell === "triangle") {
       const mobStats = (
         [
-          { damage: 1, gold: 1, hp: 2, pattern: "triangle", sprite: triangle },
+          { damage: 1, gold: 1, hp: 3, pattern: "triangle", sprite: triangle },
           { damage: 1, gold: 1, hp: 1, pattern: "eye", sprite: eye },
         ] as const
       )[cell === "triangle" ? 0 : distribution(70, 30)];

@@ -150,7 +150,7 @@ export const dropEntity = (
           entities.createItem(world, {
             [ITEM]: { amount: entity[COUNTABLE][counter], counter },
             [RENDERABLE]: { generation: 0 },
-            [SPRITE]: getCountableSprite(counter, !!remains),
+            [SPRITE]: getCountableSprite(counter, remains ? undefined : 'drop'),
           })
         )
       ),

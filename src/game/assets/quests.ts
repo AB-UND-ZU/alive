@@ -363,7 +363,7 @@ export const guideNpc: Animation<"quest"> = (world, entity, state) => {
       entity[TOOLTIP].changed = undefined;
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].dialogs = [
-        [...createDialog("Collect "), ...createStat(5, "gold")],
+        [...createDialog("Collect "), ...createStat({ gold: 5 }, "gold")],
       ];
       return true;
     },

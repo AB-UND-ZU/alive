@@ -49,7 +49,8 @@ export const actionKeys = [" ", "Enter"];
 const getActivationRow = (item?: Item) => {
   if (!item) return repeat(none, 3);
 
-  if (item.counter) return createStat(item.amount, item.counter, true);
+  if (item.counter)
+    return createStat({ [item.counter]: item.amount }, item.counter, true);
 
   return [
     none,

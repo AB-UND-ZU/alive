@@ -4,10 +4,12 @@ import { Countable } from "../../../engine/components/countable";
 import {
   coin,
   heart,
+  heartUp,
   herb,
   herbDrop,
   ironDrop,
   mana,
+  manaUp,
   seed,
   seedDrop,
   wood,
@@ -234,12 +236,13 @@ const nonCountable = (sprite: Sprite) => ({
   layers: sprite.layers,
 });
 
+type StatVariant = "drop" | "up";
 const statSprites: Record<
   keyof Countable,
-  { color: string; sprite: Sprite; drop?: Sprite }
+  Partial<Record<StatVariant, Sprite>> & { color: string; sprite: Sprite }
 > = {
-  hp: { color: colors.red, sprite: heart },
-  mp: { color: colors.blue, sprite: mana },
+  hp: { color: colors.red, sprite: heart, up: heartUp },
+  mp: { color: colors.blue, sprite: mana, up: manaUp },
   xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp },
   gold: { color: colors.yellow, sprite: nonCountable(coin), drop: coin },
   wood: { color: colors.maroon, sprite: wood },
@@ -249,22 +252,26 @@ const statSprites: Record<
 };
 
 export const createStat = (
-  amount: number,
+  stats: Partial<Countable>,
   counter: keyof Countable,
   padded: boolean = false
 ) => {
-  const stat = (amount || 0).toString();
+  const stat = (stats[counter] || 0).toString();
   const text = padded ? stat.padStart(2, " ") : stat;
+  const isUp = statSprites[counter].up && stats[counter] === stats.xp;
   return [
     ...createText(text, statSprites[counter].color),
-    getCountableSprite(counter, true),
+    getCountableSprite(counter, isUp ? 'up' : undefined),
   ];
 };
 
 export const getCountableSprite = (
   counter: keyof Countable,
-  spriteOnly: boolean = false
-) => (!spriteOnly && statSprites[counter].drop) || statSprites[counter].sprite;
+  variant?: StatVariant
+) =>
+  (variant === "up" && statSprites[counter].up) ||
+  (variant === "drop" && statSprites[counter].drop) ||
+  statSprites[counter].sprite;
 
 export const quest = createText("!", colors.olive)[0];
 

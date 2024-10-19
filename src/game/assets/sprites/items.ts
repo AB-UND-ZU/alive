@@ -6,6 +6,14 @@ export const heart: Sprite = {
   layers: [{ char: "\u0102", color: colors.red }],
 };
 
+export const heartUp: Sprite = {
+  name: "Heart",
+  layers: [
+    { char: "\u0102", color: colors.red },
+    { char: "^", color: colors.lime },
+  ],
+};
+
 export const apple1: Sprite = {
   name: "Apple",
   layers: [{ char: "∙", color: colors.red }],
@@ -33,6 +41,14 @@ export const apple2: Sprite = {
 export const mana: Sprite = {
   name: "Mana",
   layers: [{ char: "\u0103", color: colors.blue }],
+};
+
+export const manaUp: Sprite = {
+  name: "Mana",
+  layers: [
+    { char: "\u0103", color: colors.blue },
+    { char: "^", color: colors.lime },
+  ],
 };
 
 export const xp: Sprite = {
