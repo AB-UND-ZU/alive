@@ -294,9 +294,9 @@ export const pointer: Sprite = {
   name: "arrow_pointer",
   layers: [],
   facing: {
-    up: [{ char: "\u0117", color: colors.olive }],
-    right: [{ char: "\u0119", color: colors.olive }],
-    down: [{ char: "\u0118", color: colors.olive }],
-    left: [{ char: "\u011a", color: colors.olive }],
+    up: [{ char: "\u0117", color: colors.silver }],
+    right: [{ char: "\u0119", color: colors.silver }],
+    down: [{ char: "\u0118", color: colors.silver }],
+    left: [{ char: "\u011a", color: colors.silver }],
   },
 };

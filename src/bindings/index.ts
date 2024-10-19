@@ -33,6 +33,8 @@ import {
   player,
   pot,
   sand,
+  strongEye,
+  strongTriangle,
   tree1,
   tree2,
   triangle,
@@ -632,14 +634,39 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "mob" || cell === "triangle") {
       const mobStats = (
         [
-          { damage: 1, gold: 1, hp: 3, pattern: "triangle", sprite: triangle },
-          { damage: 1, gold: 1, hp: 1, pattern: "eye", sprite: eye },
+          {
+            damage: 1,
+            gold: 1,
+            hp: 3,
+            maxHp: 3,
+            pattern: "triangle",
+            sprite: triangle,
+          },
+          {
+            damage: 2,
+            xp: 1,
+            hp: 15,
+            maxHp: 15,
+            pattern: "triangle",
+            sprite: strongTriangle,
+          },
+          { damage: 1, gold: 1, hp: 1, maxHp: 1, pattern: "eye", sprite: eye },
+          {
+            damage: 5,
+            xp: 1,
+            hp: 1,
+            maxHp: 1,
+            pattern: "eye",
+            sprite: strongEye,
+          },
         ] as const
-      )[cell === "triangle" ? 0 : distribution(70, 30)];
+      )[cell === "triangle" ? 0 : distribution(60, 30, 5, 5)];
+
+      const { damage, pattern, sprite, ...mobCountable } = mobStats;
 
       const clawsEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: mobStats.damage, slot: "melee" },
+        [ITEM]: { amount: damage, slot: "melee" },
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
@@ -647,12 +674,10 @@ export const generateWorld = async (world: World) => {
       const mobEntity = entities.createMob(world, {
         [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { enemy: true },
-        [BEHAVIOUR]: { patterns: [{ name: mobStats.pattern, memory: {} }] },
+        [BEHAVIOUR]: { patterns: [{ name: pattern, memory: {} }] },
         [COUNTABLE]: {
           ...emptyCountable,
-          hp: mobStats.hp,
-          maxHp: mobStats.hp,
-          gold: mobStats.gold,
+          ...mobCountable,
         },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
@@ -671,7 +696,7 @@ export const generateWorld = async (world: World) => {
         [ORIENTABLE]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: mobStats.sprite,
+        [SPRITE]: sprite,
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
       });
