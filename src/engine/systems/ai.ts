@@ -116,10 +116,10 @@ export default function setupAi(world: World) {
           const heroEntity = world.getIdentifier("hero");
           const size = world.metadata.gameEntity[LEVEL].size;
           const distance = heroEntity
-            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.8)
+            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.69)
             : Infinity;
-          const aggro = distance < 3.4;
-          const close = distance < 4.3;
+          const aggro = distance < 3.5;
+          const close = distance < 4.25;
           const isVisible = entity[FOG].visibility === "visible";
           const isMoving = !entity[TOOLTIP].idle;
 

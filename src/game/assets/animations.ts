@@ -869,7 +869,8 @@ export const pointerArrow: Animation<"pointer"> = (world, entity, state) => {
   let finished = false;
 
   const compassEntity = world.getEntityById(entity[EQUIPPABLE].compass);
-  const targetEntity = world.getEntityById(compassEntity?.[TRACKABLE].target);
+  const targetId = compassEntity?.[TRACKABLE].target;
+  const targetEntity = world.getEntityById(targetId);
 
   if (!state.args.lastOrientation && (!compassEntity || !targetEntity)) {
     return { updated, finished };
@@ -898,30 +899,42 @@ export const pointerArrow: Animation<"pointer"> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const inRange =
     getDistance(entity[POSITION], targetEntity[POSITION], size) <
-    entity[LIGHT].visibility - 1;
+    entity[LIGHT].visibility;
+  const targetChanged = state.args.target !== targetId;
   if (
     state.args.lastOrientation &&
-    (!compassEntity || !targetEntity || inRange)
+    (!compassEntity || !targetEntity || targetChanged || inRange)
   ) {
     pointerParticle[ORIENTABLE].facing = undefined;
+    if (targetChanged) {
+      disposeEntity(world, pointerParticle);
+      delete state.particles.pointer;
+      state.args.target = undefined;
+    }
     state.args.lastOrientation = undefined;
     updated = true;
   } else if (compassEntity && targetEntity && !inRange) {
-    const orientations = relativeOrientations(
+    const orientation = relativeOrientations(
       world,
       entity[POSITION],
       targetEntity[POSITION]
-    );
-    const orientation = orientations[0];
+    )[0];
     if (
       !state.args.lastOrientation ||
-      (orientations.length === 1 && state.args.lastOrientation !== orientation)
+      state.args.lastOrientation !== orientation
     ) {
       const delta = orientationPoints[orientation];
+      if (
+        state.args.lastOrientation &&
+        pointerParticle[PARTICLE].animatedOrigin
+      ) {
+        pointerParticle[PARTICLE].animatedOrigin = undefined;
+      }
       pointerParticle[PARTICLE].offsetX = delta.x * 8;
       pointerParticle[PARTICLE].offsetY = delta.y * 5;
       pointerParticle[ORIENTABLE].facing = orientation;
       state.args.lastOrientation = orientation;
+      state.args.target = targetId;
       updated = true;
     }
   }
