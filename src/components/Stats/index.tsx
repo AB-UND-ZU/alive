@@ -16,23 +16,22 @@ import { COUNTABLE, Countable } from "../../engine/components/countable";
 import { EQUIPPABLE, Equippable } from "../../engine/components/equippable";
 import { World } from "../../engine";
 import { repeat } from "../../game/math/std";
+import { isDead } from "../../engine/systems/damage";
 
 function StatsInner({
   world,
   padding,
+  hidden,
   ...stats
 }: {
   world: World;
   padding: number;
+  hidden: boolean;
 } & Countable &
   Equippable) {
   const { paused, setPaused } = useWorld();
   const handleMenu = useCallback(
-    (
-      event:
-        | TouchEvent
-        | React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
+    (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
 
       setPaused((prevPaused) => !prevPaused);
@@ -40,11 +39,14 @@ function StatsInner({
     [setPaused]
   );
 
-  const hasStats = Object.keys(stats).length > 0;
-
   return (
     <header className="Stats">
-      {hasStats ? (
+      {hidden ? (
+        <>
+          <Row />
+          <Row />
+        </>
+      ) : (
         <>
           <Row
             cells={[
@@ -79,16 +81,11 @@ function StatsInner({
             ]}
           />
         </>
-      ) : (
-        <>
-          <Row />
-          <Row />
-        </>
       )}
       <Row
         cells={[
           ...createText("═".repeat(padding + 17), colors.grey),
-          ...createText(hasStats ? "╧" : "═", colors.grey),
+          ...createText(hidden ? "═" : "╧", colors.grey),
           ...createText("═".repeat(padding + 3), colors.grey),
         ]}
       />
@@ -100,6 +97,7 @@ function StatsInner({
 const PureState = React.memo(StatsInner);
 
 export default function Stats() {
+  const { ecs } = useWorld();
   const dimensions = useDimensions();
   const hero = useHero();
 
@@ -108,6 +106,7 @@ export default function Stats() {
       padding={dimensions.padding}
       {...hero?.[COUNTABLE]}
       {...hero?.[EQUIPPABLE]}
+      hidden={!ecs || !hero || isDead(ecs, hero)}
     />
   );
 }

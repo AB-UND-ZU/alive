@@ -9,7 +9,6 @@ import { getEntityGeneration } from "../../engine/systems/renderer";
 import { getCell } from "../../engine/systems/map";
 import { getDistance } from "../../game/math/std";
 import { LEVEL } from "../../engine/components/level";
-import Paused from "../Paused";
 
 export default function Systems() {
   const { ecs, paused } = useWorld();

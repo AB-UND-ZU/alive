@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { generateWorld } from "../../bindings";
 import { createWorld } from "../../engine";
 import { WorldProvider } from "../../bindings/hooks";
@@ -8,6 +8,7 @@ import { isDead } from "../../engine/systems/damage";
 
 export default function World(props: React.PropsWithChildren) {
   const [paused, setPaused] = useState(false);
+  const pauseRef = useRef(paused);
   const dimensions = useDimensions();
 
   // generate initial world
@@ -19,17 +20,17 @@ export default function World(props: React.PropsWithChildren) {
   });
 
   const handlePause = useCallback(
-    (newPaused: React.SetStateAction<boolean>) => {
+    (action: React.SetStateAction<boolean>) => {
       // only prevent pausing when hero is dead
       const heroEntity = ecs.getEntity([PLAYER]);
-      const pauseAttempt =
-        newPaused === true ||
-        (typeof newPaused === "function" && newPaused(false));
-      if (pauseAttempt && (!heroEntity || isDead(ecs, heroEntity))) return;
+      const newPause = typeof action === 'function' ? action(pauseRef.current) : action;
+        
+      if (newPause && (!heroEntity || isDead(ecs, heroEntity))) return;
 
-      setPaused(newPaused);
+      setPaused(newPause);
+      pauseRef.current = newPause;
     },
-    [setPaused, ecs]
+    [setPaused, ecs, pauseRef]
   );
 
   const context = useMemo(
