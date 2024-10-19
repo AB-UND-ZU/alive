@@ -757,7 +757,7 @@ export const signNpc: Animation<"quest"> = (world, entity, state) => {
 
       const swordEntity = entities.createSword(world, {
         [ANIMATABLE]: { states: {} },
-        [ITEM]: { slot: "melee", amount: 99, material: "gold" },
+        [ITEM]: { slot: "melee", amount: 4, material: "gold" },
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: goldSword,
