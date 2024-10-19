@@ -19,6 +19,7 @@ import { rerenderEntity } from "./renderer";
 import { isTradable } from "./action";
 import { removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
+import { getMaxCounter } from "../../game/assets/sprites";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -66,10 +67,11 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
     const consume = itemEntity[ITEM].consume;
     if (counter) {
       // skip if counter exceeded
+      const maxCounter = getMaxCounter(counter);
       if (
         entity[COUNTABLE][counter] >= 99 ||
-        (["hp", "mp"].includes(counter) &&
-          entity[COUNTABLE][counter] >= entity[COUNTABLE].xp)
+        (maxCounter !== counter &&
+          entity[COUNTABLE][counter] === entity[COUNTABLE][maxCounter])
       )
         continue;
 

@@ -18,7 +18,6 @@ import {
   cactus2,
   campfire,
   chest,
-  coin,
   compass,
   createDialog,
   doorClosedGold,
@@ -256,9 +255,9 @@ export const generateWorld = async (world: World) => {
         },
       },
     },
-    [ATTACKABLE]: { max: 10, enemy: false },
+    [ATTACKABLE]: { enemy: false },
     [COLLECTABLE]: {},
-    [COUNTABLE]: { ...emptyCountable, hp: 10, xp: 10 },
+    [COUNTABLE]: { ...emptyCountable, hp: 10, maxHp: 10, maxMp: 5 },
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "visible", type: "unit" },
@@ -511,9 +510,9 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "pot") {
       const potEntity = entities.createChest(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 5, enemy: true },
+        [ATTACKABLE]: { enemy: true },
         [COLLIDABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 5, gold: 3 },
+        [COUNTABLE]: { ...emptyCountable, hp: 5, maxHp: 5, gold: 3 },
         [DROPPABLE]: { decayed: false },
         [FOG]: { visibility, type: "terrain" },
         [INVENTORY]: { items: [], size: 1 },
@@ -535,9 +534,9 @@ export const generateWorld = async (world: World) => {
       world.setIdentifier(compassEntity, "compass");
       const chestEntity = entities.createChest(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 10, enemy: true },
+        [ATTACKABLE]: { enemy: true },
         [COLLIDABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 10 },
+        [COUNTABLE]: { ...emptyCountable, hp: 10, maxHp: 10 },
         [DROPPABLE]: { decayed: false },
         [INVENTORY]: { items: [world.getEntityId(compassEntity)], size: 1 },
         [FOG]: { visibility, type: "terrain" },
@@ -588,10 +587,10 @@ export const generateWorld = async (world: World) => {
             },
           },
         },
-        [ATTACKABLE]: { max: 20, enemy: false },
+        [ATTACKABLE]: { enemy: false },
         [BEHAVIOUR]: { patterns: [] },
         [COLLECTABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 20 },
+        [COUNTABLE]: { ...emptyCountable, hp: 20, maxHp: 20 },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {
           melee: world.getEntityId(swordEntity),
@@ -645,20 +644,20 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
       });
-      const goldEntity = entities.createItem(world, {
-        [ITEM]: { amount: mobStats.gold, counter: "gold" },
-        [RENDERABLE]: { generation: 0 },
-        [SPRITE]: coin,
-      });
       const mobEntity = entities.createMob(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: mobStats.hp, enemy: true },
+        [ATTACKABLE]: { enemy: true },
         [BEHAVIOUR]: { patterns: [{ name: mobStats.pattern, memory: {} }] },
-        [COUNTABLE]: { ...emptyCountable, hp: mobStats.hp },
+        [COUNTABLE]: {
+          ...emptyCountable,
+          hp: mobStats.hp,
+          maxHp: mobStats.hp,
+          gold: mobStats.gold,
+        },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
         [FOG]: { visibility, type: "unit" },
-        [INVENTORY]: { items: [world.getEntityId(goldEntity)], size: 1 },
+        [INVENTORY]: { items: [], size: 1 },
         [MELEE]: {},
         [MOVABLE]: {
           orientations: [],
@@ -677,7 +676,6 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
       });
       clawsEntity[ITEM].carrier = world.getEntityId(mobEntity);
-      goldEntity[ITEM].carrier = world.getEntityId(mobEntity);
 
       if (cell === "triangle") world.setIdentifier(mobEntity, "triangle");
     } else if (cell === "key") {

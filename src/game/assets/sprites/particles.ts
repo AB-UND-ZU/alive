@@ -236,13 +236,14 @@ const nonCountable = (sprite: Sprite) => ({
   layers: sprite.layers,
 });
 
-type StatVariant = "drop" | "up";
 const statSprites: Record<
   keyof Countable,
-  Partial<Record<StatVariant, Sprite>> & { color: string; sprite: Sprite }
+  { color: string; sprite: Sprite; drop?: Sprite; max?: keyof Countable }
 > = {
-  hp: { color: colors.red, sprite: heart, up: heartUp },
-  mp: { color: colors.blue, sprite: mana, up: manaUp },
+  hp: { color: colors.red, sprite: heart, max: "maxHp" },
+  maxHp: { color: colors.red, sprite: heartUp },
+  mp: { color: colors.blue, sprite: mana, max: "maxMp" },
+  maxMp: { color: colors.blue, sprite: manaUp },
   xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp },
   gold: { color: colors.yellow, sprite: nonCountable(coin), drop: coin },
   wood: { color: colors.maroon, sprite: wood },
@@ -256,20 +257,25 @@ export const createStat = (
   counter: keyof Countable,
   padded: boolean = false
 ) => {
-  const stat = (stats[counter] || 0).toString();
+  const maxCounter = getMaxCounter(counter);
+  const value = stats[counter] || 0;
+  const stat = value.toString();
   const text = padded ? stat.padStart(2, " ") : stat;
-  const isUp = statSprites[counter].up && stats[counter] === stats.xp;
+  const isMax = value === stats[maxCounter];
   return [
     ...createText(text, statSprites[counter].color),
-    getCountableSprite(counter, isUp ? 'up' : undefined),
+    getCountableSprite(isMax ? maxCounter : counter),
   ];
 };
 
+export const getMaxCounter = (counter: keyof Countable) =>
+  statSprites[counter].max || counter;
+
 export const getCountableSprite = (
   counter: keyof Countable,
-  variant?: StatVariant
+  variant?: "max" | "drop"
 ) =>
-  (variant === "up" && statSprites[counter].up) ||
+  (variant === "max" && statSprites[getMaxCounter(counter)].sprite) ||
   (variant === "drop" && statSprites[counter].drop) ||
   statSprites[counter].sprite;
 

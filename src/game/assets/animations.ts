@@ -13,7 +13,7 @@ import {
 } from "../../engine/components/animatable";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { COLLECTABLE } from "../../engine/components/collectable";
-import { COUNTABLE } from "../../engine/components/countable";
+import { COUNTABLE, emptyCountable } from "../../engine/components/countable";
 import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
@@ -430,18 +430,9 @@ export const heroRevive: Animation<"revive"> = (world, entity, state) => {
           },
         },
       },
-      [ATTACKABLE]: { max: 10, enemy: false },
+      [ATTACKABLE]: { enemy: false },
       [COLLECTABLE]: {},
-      [COUNTABLE]: {
-        hp: 10,
-        mp: 0,
-        xp: 10,
-        gold: 0,
-        wood: 0,
-        iron: 0,
-        herb: 0,
-        seed: 0,
-      },
+      [COUNTABLE]: { ...emptyCountable, hp: 10, maxHp: 10, maxMp: 5 },
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility: "visible", type: "unit" },

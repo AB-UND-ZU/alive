@@ -5,8 +5,9 @@ import * as colors from "../../game/assets/colors";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { pixels, stack, stackHeight, tooltipHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
-import { COUNTABLE } from "../../engine/components/countable";
+import { Countable, COUNTABLE } from "../../engine/components/countable";
 import { NPC } from "../../engine/components/npc";
+import { getMaxCounter } from "../../game/assets/sprites";
 
 const unitColor = colors.silver;
 const unitBar = new THREE.Color(unitColor).multiplyScalar(0.075);
@@ -18,25 +19,27 @@ const enemyBar = new THREE.Color(enemyColor).multiplyScalar(0.15);
 export default function Bar({
   entity,
   isVisible,
+  counter,
 }: {
   entity: Entity;
   isVisible: boolean;
+  counter: keyof Countable;
 }) {
   const dimensions = useDimensions();
-  const max = entity[ATTACKABLE].max;
-  const hp = Math.min(entity[COUNTABLE].hp, max);
+  const max = entity[COUNTABLE][getMaxCounter(counter)];
+  const value = Math.min(entity[COUNTABLE][counter], max);
   const isEnemy = entity[ATTACKABLE].enemy;
   const isUnit = isEnemy && !entity[NPC];
   const spring = useSpring({
-    scaleX: hp / max,
+    scaleX: value / max,
     translateX:
-      (((hp - max) / max) * (dimensions.aspectRatio - 1 / pixels)) / 2 -
+      (((value - max) / max) * (dimensions.aspectRatio - 1 / pixels)) / 2 -
       0.5 / pixels,
     opacity: isVisible || isUnit ? 1 : 0,
     config: { duration: 75 },
   });
 
-  if (hp === max && isUnit) return null;
+  if (value === max && isUnit) return null;
 
   return (
     <>
@@ -56,7 +59,7 @@ export default function Bar({
         />
       </animated.mesh>
 
-      {max !== hp && (
+      {max !== value && (
         <mesh
           position-x={-0.5 / pixels}
           position-y={-5.5 / pixels}

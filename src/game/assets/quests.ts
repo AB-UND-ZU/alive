@@ -764,9 +764,9 @@ export const signNpc: Animation<"quest"> = (world, entity, state) => {
       });
       const townEntity = entities.createChest(world, {
         [ANIMATABLE]: { states: {} },
-        [ATTACKABLE]: { max: 99, enemy: true },
+        [ATTACKABLE]: { enemy: true },
         [COLLIDABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 99 },
+        [COUNTABLE]: { ...emptyCountable, hp: 99, maxHp: 99 },
         [DROPPABLE]: { decayed: false },
         [FOG]: { visibility: "hidden", type: "terrain" },
         [INVENTORY]: { items: [world.getEntityId(swordEntity)], size: 1 },

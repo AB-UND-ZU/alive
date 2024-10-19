@@ -2,7 +2,6 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Attackable = {
-  max: number;
   enemy: boolean;
 };
 

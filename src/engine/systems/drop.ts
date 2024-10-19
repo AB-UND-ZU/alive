@@ -134,6 +134,7 @@ export const dropEntity = (
   }
 
   const droppedCountables: (keyof Countable)[] = [
+    "xp",
     "gold",
     "iron",
     "wood",

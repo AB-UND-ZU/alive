@@ -179,7 +179,7 @@ function Entity({
         />
       )}
 
-      {isAttackable && <Bar entity={entity} isVisible={isVisible} />}
+      {isAttackable && <Bar counter="hp" entity={entity} isVisible={isVisible} />}
     </Container>
   );
 }
