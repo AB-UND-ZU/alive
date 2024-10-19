@@ -25,7 +25,7 @@ export function AnimatedSprite({
   offsetZ,
   layerProps,
 }: SpriteProps) {
-  const { ecs } = useWorld();
+  const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
 
   // animate particle offset
@@ -39,6 +39,7 @@ export function AnimatedSprite({
       offsetY,
     },
     config: { duration: layerProps.duration || 200 },
+    pause: paused,
   });
 
   if (!ecs) return null;

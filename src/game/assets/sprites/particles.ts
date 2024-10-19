@@ -197,15 +197,18 @@ export const createButton: (
   sprites: Sprite[],
   width: number,
   disabled?: boolean,
-  pressed?: boolean
+  pressed?: boolean,
+  highlight?: number
 ) => [Sprite[], Sprite[]] = (
   sprites,
   width,
   disabled = false,
-  pressed = false
+  pressed = false,
+  highlight
 ) => {
   const paddingLeft = Math.max(0, Math.floor((width - sprites.length - 1) / 2));
   const paddingRight = Math.max(0, Math.ceil((width - sprites.length - 1) / 2));
+  const activeHighlight = !disabled && highlight;
 
   if (pressed) {
     return [
@@ -225,9 +228,15 @@ export const createButton: (
         ],
       })),
       ...repeat(disabled ? buttonDisabled : button, paddingRight),
-      ...createText("┐", buttonShadow),
+      ...createText(activeHighlight === 6 ? " " : "┐", buttonShadow),
     ],
-    createText(`└${"─".repeat(width - 2)}┘`, buttonShadow),
+    createText(
+      `└${"─".repeat(width - 2)}┘`
+        .split("")
+        .map((char, index) => (index === activeHighlight ? " " : char))
+        .join(""),
+      buttonShadow
+    ),
   ];
 };
 
@@ -299,4 +308,20 @@ export const pointer: Sprite = {
     down: [{ char: "\u0118", color: colors.silver }],
     left: [{ char: "\u011a", color: colors.silver }],
   },
+};
+
+export const pause: Sprite = {
+  name: "Pause",
+  layers: [
+    { char: "■", color: colors.white },
+    { char: "║", color: colors.black },
+  ],
+};
+
+export const resume: Sprite = {
+  name: "Resume",
+  layers: [
+    { char: ">", color: colors.white },
+    { char: "»", color: colors.white },
+  ],
 };

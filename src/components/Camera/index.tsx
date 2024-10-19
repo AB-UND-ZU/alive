@@ -1,12 +1,13 @@
 import { OrthographicCamera } from "@react-three/drei";
 import { useSpring, animated } from "@react-spring/three";
 import { useDimensions } from "../Dimensions";
-import { useViewpoint } from "../../bindings/hooks";
+import { useViewpoint, useWorld } from "../../bindings/hooks";
 import { cameraHeight } from "../Entity/utils";
 
 const AnimatedOrthographicCamera = animated(OrthographicCamera);
 
 export default function Camera() {
+  const { paused } = useWorld();
   const dimensions = useDimensions();
   const { position, config } = useViewpoint();
 
@@ -15,6 +16,7 @@ export default function Camera() {
     x: position.x * dimensions.aspectRatio,
     y: -position.y,
     z: cameraHeight,
+    pause: paused,
     config,
   });
 

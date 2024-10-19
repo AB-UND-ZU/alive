@@ -1,6 +1,15 @@
 .Stats {
+  position: relative;
   height: calc(var(--cell-height) * 3);
   margin-bottom: var(--top-offset);
   margin-left: calc(var(--left-offset) - var(--cell-width));
   margin-right: calc(var(--right-offset) - var(--cell-width));
+}
+
+.Menu {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: calc(var(--top-offset) * -1);
+  width: calc(50% - var(--cell-width) * 7);
 }

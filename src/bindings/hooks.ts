@@ -20,9 +20,15 @@ import { LIGHT } from "../engine/components/light";
 
 export type WorldContext = {
   ecs: WorldType | null;
+  paused: boolean,
+  setPaused: React.Dispatch<React.SetStateAction<boolean>>
 };
 
-const initialContext: WorldContext = { ecs: null };
+const initialContext: WorldContext = {
+  ecs: null,
+  paused: true,
+  setPaused: () => {}
+};
 const Context = createContext(initialContext);
 
 export const WorldProvider = Context.Provider;

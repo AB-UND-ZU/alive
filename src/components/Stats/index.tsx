@@ -1,11 +1,18 @@
-import { useHero } from "../../bindings/hooks";
-import { createText, none, createStat, map } from "../../game/assets/sprites";
+import React, { useCallback } from "react";
+import { useHero, useWorld } from "../../bindings/hooks";
+import {
+  createText,
+  none,
+  createStat,
+  map,
+  pause,
+  resume,
+} from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
 import { COUNTABLE, Countable } from "../../engine/components/countable";
-import React from "react";
 import { EQUIPPABLE, Equippable } from "../../engine/components/equippable";
 import { World } from "../../engine";
 import { repeat } from "../../game/math/std";
@@ -19,7 +26,22 @@ function StatsInner({
   padding: number;
 } & Countable &
   Equippable) {
+  const { paused, setPaused } = useWorld();
+  const handleMenu = useCallback(
+    (
+      event:
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+
+      setPaused((prevPaused) => !prevPaused);
+    },
+    [setPaused]
+  );
+
   const hasStats = Object.keys(stats).length > 0;
+
   return (
     <header className="Stats">
       {hasStats ? (
@@ -52,15 +74,15 @@ function StatsInner({
               none,
               ...createText("│", colors.grey),
               none,
-              stats.map ? map : none,
+              paused ? resume : stats.map ? map : pause,
               none,
             ]}
           />
         </>
       ) : (
         <>
-          <Row cells={[]} />
-          <Row cells={[]} />
+          <Row />
+          <Row />
         </>
       )}
       <Row
@@ -70,6 +92,7 @@ function StatsInner({
           ...createText("═".repeat(padding + 3), colors.grey),
         ]}
       />
+      <div className="Menu" id="menu" onClick={handleMenu} />
     </header>
   );
 }

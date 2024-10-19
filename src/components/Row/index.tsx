@@ -14,7 +14,7 @@ function Cell({ layers }: { layers: Layer[] }) {
   );
 }
 
-export default function Row({ cells }: { cells: Sprite[] }) {
+export default function Row({ cells = [] }: { cells?: Sprite[] }) {
   return (
     <div className="Row">
       {cells.map((cell, index) => (

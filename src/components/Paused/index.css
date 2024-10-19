@@ -1,0 +1,21 @@
+.Paused {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.Cover,
+.Overlay,
+.Resume {
+  position: absolute;
+  height: calc(var(--100vh) - var(--cell-height) * 4 - var(--top-offset) - var(--bottom-offset));
+  top: calc(var(--cell-height) * -1);
+  bottom: calc(var(--cell-height) * -1);
+  left: 0;
+  right: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

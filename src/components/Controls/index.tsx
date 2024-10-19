@@ -17,7 +17,7 @@ import {
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { ACTIONABLE } from "../../engine/components/actionable";
-import { repeat } from "../../game/math/std";
+import { normalize, repeat } from "../../game/math/std";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { createSprite, getMaterialSprite } from "../Entity/utils";
 import { getAction } from "../../engine/systems/trigger";
@@ -70,12 +70,14 @@ type Action = {
 
 export default function Controls() {
   const dimensions = useDimensions();
-  const { ecs } = useWorld();
+  const { ecs, paused, setPaused } = useWorld();
   const hero = useHero();
   const heroRef = useRef<Entity>();
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
   const [action, setAction] = useState<Action>();
+  const [highlight, setHighlight] = useState(10);
+  const highlightRef = useRef<NodeJS.Timeout>();
   const actionRef = useRef<Action>();
   const activeRef = useRef<Action>();
 
@@ -138,10 +140,26 @@ export default function Controls() {
   const availableActions = [questAction, unlockAction, tradeAction].filter(
     Boolean
   ) as Action[];
-  const activeAction =
-    availableActions.find((action) => !action.disabled) || availableActions[0];
+  const activeAction = paused
+    ? undefined
+    : availableActions.find((action) => !action.disabled) ||
+      availableActions[0];
 
   activeRef.current = activeAction;
+
+  // rotate button shadow
+  useEffect(() => {
+    if (highlightRef.current) {
+      clearInterval(highlightRef.current);
+      highlightRef.current = undefined;
+    }
+
+    if (!activeAction || activeAction.disabled) return;
+
+    highlightRef.current = setInterval(() => {
+      setHighlight((prevHighlight) => normalize(prevHighlight - 1, 14));
+    }, 100);
+  }, [activeAction]);
 
   const handleAction = useCallback(
     (
@@ -223,6 +241,12 @@ export default function Controls() {
 
   const handleKey = useCallback(
     (event: KeyboardEvent) => {
+      // handle pause and resume
+      if (event.type === "keydown" && event.key === "Escape") {
+        setPaused((prevPaused) => !prevPaused);
+        return;
+      }
+
       // since macOS doesn't fire keyup when meta key is pressed, prevent it from moving.
       // still not working: arrow keydown -> meta keydown -> arrow keyup -> meta keyup
       // also prevent repeat events
@@ -251,15 +275,17 @@ export default function Controls() {
 
       handleMove(orientations);
     },
-    [handleMove, handleAction]
+    [handleMove, handleAction, setPaused]
   );
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
       // prevent touches over action bar
       if (
-        [...event.changedTouches].some(
-          (touch) => (touch.target as HTMLElement).id === "action"
+        [...event.changedTouches].some((touch) =>
+          ["action", "menu", "resume"].includes(
+            (touch.target as HTMLElement).id
+          )
         )
       )
         return;
@@ -340,7 +366,9 @@ export default function Controls() {
     createButton(
       createText(activeAction.name, buttonColor),
       buttonWidth,
-      activeAction.disabled
+      activeAction.disabled,
+      false,
+      highlight
     );
   const button = pressedButton || actionButton || emptyButton;
 

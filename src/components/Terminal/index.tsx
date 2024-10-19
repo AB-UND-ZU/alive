@@ -3,11 +3,14 @@ import "./index.css";
 import Systems from "../Systems";
 import Camera from "../Camera";
 import { OrbitControls, Stats } from "@react-three/drei";
+import { useWorld } from "../../bindings/hooks";
+import Paused from "../Paused";
 
 const stats = false;
 const controls = false;
 
 export default function Terminal() {
+  const { paused } = useWorld();
   return (
     <main className="Terminal">
       <Canvas shadows="basic" flat>
@@ -17,6 +20,7 @@ export default function Terminal() {
         <Camera />
         <Systems />
       </Canvas>
+      {paused && <Paused />}
     </main>
   );
 }

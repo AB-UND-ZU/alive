@@ -9,15 +9,16 @@ import { getEntityGeneration } from "../../engine/systems/renderer";
 import { getCell } from "../../engine/systems/map";
 import { getDistance } from "../../game/math/std";
 import { LEVEL } from "../../engine/components/level";
+import Paused from "../Paused";
 
 export default function Systems() {
-  const { ecs } = useWorld();
+  const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
   const { position, radius } = useViewpoint();
   const game = useGame();
 
   useFrame((_, delta) => {
-    if (!ecs) return null;
+    if (!ecs || paused) return;
 
     ecs.update(delta * 1000);
     ecs.cleanup();

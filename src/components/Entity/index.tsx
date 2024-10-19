@@ -64,7 +64,7 @@ function Entity({
   inRadius: boolean;
 }) {
   const dimensions = useDimensions();
-  const { ecs } = useWorld();
+  const { ecs, paused } = useWorld();
   const config = entity[MOVABLE]?.spring;
   const Container = config ? Animated : "group";
 
@@ -97,6 +97,7 @@ function Entity({
     onRest: (result) => {
       setOpacity(result.value.opacity);
     },
+    pause: paused,
   });
 
   const layerProps: LayerProps = {
@@ -179,7 +180,9 @@ function Entity({
         />
       )}
 
-      {isAttackable && <Bar counter="hp" entity={entity} isVisible={isVisible} />}
+      {isAttackable && (
+        <Bar counter="hp" entity={entity} isVisible={isVisible} />
+      )}
     </Container>
   );
 }
