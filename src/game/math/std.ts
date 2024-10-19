@@ -22,9 +22,9 @@ export const signedDistance = (start: number, end: number, size: number) => {
   return distance - overlap;
 };
 
-export const getDistance = (origin: Point, target: Point, size: number) => {
+export const getDistance = (origin: Point, target: Point, size: number, ratio: number = aspectRatio) => {
   const delta = {
-    x: signedDistance(origin.x, target.x, size) * aspectRatio,
+    x: signedDistance(origin.x, target.x, size) * ratio,
     y: signedDistance(origin.y, target.y, size),
   };
 

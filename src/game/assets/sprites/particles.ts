@@ -271,3 +271,8 @@ export const quest = createText("!", colors.olive)[0];
 export const shop = createText("$", colors.green)[0];
 
 export const rage = createShout("\u0112")[0];
+
+export const sleep1 = createText("z", colors.grey)[0];
+export const sleep2 = createText("Z", colors.grey)[0];
+
+export const confused = createText("?", colors.grey)[0];

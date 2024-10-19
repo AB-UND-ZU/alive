@@ -5,7 +5,7 @@ import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
 import { isMovable, isWalkable } from "./movement";
-import { add, copy, random } from "../../game/math/std";
+import { add, copy, getDistance, random } from "../../game/math/std";
 import { isDead, isFriendlyFire } from "./damage";
 import {
   ORIENTABLE,
@@ -20,10 +20,17 @@ import { isLocked } from "./action";
 import { ITEM } from "../components/item";
 import { lockDoor } from "./trigger";
 import { dropEntity, sellItem } from "./drop";
-import { createShout, rage } from "../../game/assets/sprites";
+import {
+  confused,
+  createShout,
+  rage,
+  sleep1,
+  sleep2,
+} from "../../game/assets/sprites";
 import { ATTACKABLE } from "../components/attackable";
 import { INVENTORY } from "../components/inventory";
 import { FOG } from "../components/fog";
+import { LEVEL } from "../components/level";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -107,15 +114,38 @@ export default function setupAi(world: World) {
           break;
         } else if (pattern.name === "eye") {
           const heroEntity = world.getIdentifier("hero");
+          const size = world.metadata.gameEntity[LEVEL].size;
+          const distance = heroEntity
+            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.8)
+            : Infinity;
+          const aggro = distance < 3.4;
+          const close = distance < 4.3;
+          const isVisible = entity[FOG].visibility === "visible";
+          const isMoving = !entity[TOOLTIP].idle;
 
-          entity[MOVABLE].orientations =
-            heroEntity && entity[FOG].visibility === "visible"
-              ? relativeOrientations(
-                  world,
-                  entity[POSITION],
-                  heroEntity[POSITION]
-                )
-              : [];
+          if (!heroEntity || (!aggro && !isMoving) || !isVisible) {
+            const sprite = close
+              ? confused
+              : [sleep1, sleep2][
+                  world.metadata.gameEntity[RENDERABLE].generation % 2
+                ];
+            if (entity[TOOLTIP].idle !== sprite) {
+              entity[TOOLTIP].idle = sprite;
+              entity[TOOLTIP].changed = true;
+            }
+            break;
+          }
+
+          if (!isMoving) {
+            entity[TOOLTIP].idle = undefined;
+            entity[TOOLTIP].changed = true;
+          }
+
+          entity[MOVABLE].orientations = relativeOrientations(
+            world,
+            entity[POSITION],
+            heroEntity[POSITION]
+          );
           rerenderEntity(world, entity);
           break;
         } else if (pattern.name === "dialog") {
