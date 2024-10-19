@@ -142,4 +142,5 @@ _Spawn area with intro quest_
 - Trading doesn't support requiring multiple items of same type or with amount larger than 1
 - Trading action displays maximum of 2 items
 - Tiny shadow on lootable items extends a bit further than on terrains due to loot height
+- Mobs walking around the death animation might not receive fog hidden
 

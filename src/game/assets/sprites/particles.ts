@@ -276,3 +276,14 @@ export const sleep1 = createText("z", colors.grey)[0];
 export const sleep2 = createText("Z", colors.grey)[0];
 
 export const confused = createText("?", colors.grey)[0];
+
+export const pointer: Sprite = {
+  name: "arrow_pointer",
+  layers: [],
+  facing: {
+    up: [{ char: "\u0117", color: colors.olive }],
+    right: [{ char: "\u0119", color: colors.olive }],
+    down: [{ char: "\u0118", color: colors.olive }],
+    left: [{ char: "\u011a", color: colors.olive }],
+  },
+};

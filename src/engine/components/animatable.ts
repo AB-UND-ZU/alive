@@ -8,6 +8,7 @@ import { Viewable } from "./viewable";
 import { Light } from "./light";
 
 export type AnimationArgument = {
+  pointer: { lastOrientation?: Orientation };
   counter: { facing: Orientation; amount: number };
   decay: {};
   burn: { generation: 0 };

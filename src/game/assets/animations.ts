@@ -54,10 +54,12 @@ import {
 } from "../../engine/systems/renderer";
 import { openDoor, removeFromInventory } from "../../engine/systems/trigger";
 import * as colors from "../assets/colors";
+import { relativeOrientations } from "../math/path";
 import {
   add,
   copy,
   distribution,
+  getDistance,
   normalize,
   signedDistance,
 } from "../math/std";
@@ -72,6 +74,7 @@ import {
   hit,
   none,
   player,
+  pointer,
   soul,
   woodStick,
 } from "./sprites";
@@ -405,9 +408,28 @@ export const heroRevive: Animation<"revive"> = (world, entity, state) => {
       })
     );
 
+    const pointerAnimation = entities.createFrame(world, {
+      [REFERENCE]: {
+        tick: -1,
+        delta: 0,
+        suspended: false,
+        suspensionCounter: -1,
+      },
+      [RENDERABLE]: { generation: 1 },
+    });
     heroEntity = entities.createHero(world, {
       [ACTIONABLE]: { triggered: false },
-      [ANIMATABLE]: { states: {} },
+      [ANIMATABLE]: {
+        states: {
+          pointer: {
+            name: "pointerArrow",
+            reference: world.getEntityId(pointerAnimation),
+            elapsed: 0,
+            args: {},
+            particles: {},
+          },
+        },
+      },
       [ATTACKABLE]: { max: 10, enemy: false },
       [COLLECTABLE]: {},
       [COUNTABLE]: {
@@ -837,6 +859,71 @@ export const dialogText: Animation<"dialog"> = (world, entity, state) => {
     entity[TOOLTIP].changed = undefined;
 
     return { finished: true, updated };
+  }
+
+  return { finished, updated };
+};
+
+export const pointerArrow: Animation<"pointer"> = (world, entity, state) => {
+  let updated = false;
+  let finished = false;
+
+  const compassEntity = world.getEntityById(entity[EQUIPPABLE].compass);
+  const targetEntity = world.getEntityById(compassEntity?.[TRACKABLE].target);
+
+  if (!state.args.lastOrientation && (!compassEntity || !targetEntity)) {
+    return { updated, finished };
+  }
+
+  // create pointer particle
+  if (!state.particles.pointer) {
+    const pointerParticle = entities.createCollecting(world, {
+      [ORIENTABLE]: {},
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: tooltipHeight,
+        animatedOrigin: { x: 0, y: 0 },
+        duration: 400,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: pointer,
+    });
+    state.particles.pointer = world.getEntityId(pointerParticle);
+    updated = true;
+  }
+
+  const pointerParticle = world.getEntityById(state.particles.pointer);
+
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const inRange =
+    getDistance(entity[POSITION], targetEntity[POSITION], size) <
+    entity[LIGHT].visibility - 1;
+  if (
+    state.args.lastOrientation &&
+    (!compassEntity || !targetEntity || inRange)
+  ) {
+    pointerParticle[ORIENTABLE].facing = undefined;
+    state.args.lastOrientation = undefined;
+    updated = true;
+  } else if (compassEntity && targetEntity && !inRange) {
+    const orientations = relativeOrientations(
+      world,
+      entity[POSITION],
+      targetEntity[POSITION]
+    );
+    const orientation = orientations[0];
+    if (
+      !state.args.lastOrientation ||
+      (orientations.length === 1 && state.args.lastOrientation !== orientation)
+    ) {
+      const delta = orientationPoints[orientation];
+      pointerParticle[PARTICLE].offsetX = delta.x * 8;
+      pointerParticle[PARTICLE].offsetY = delta.y * 5;
+      pointerParticle[ORIENTABLE].facing = orientation;
+      state.args.lastOrientation = orientation;
+      updated = true;
+    }
   }
 
   return { finished, updated };

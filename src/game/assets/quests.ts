@@ -714,7 +714,7 @@ export const introQuest: Animation<"quest"> = (world, entity, state) => {
   return { updated: stage.updated, finished: stage.finished };
 };
 
-const townDistance = 5;
+const townDistance = 2;
 const townPosition = { x: 60, y: 60 };
 export const signNpc: Animation<"quest"> = (world, entity, state) => {
   const stage: QuestStage = {

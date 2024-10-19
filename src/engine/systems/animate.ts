@@ -19,6 +19,7 @@ const animationOrder: (keyof AnimationArgument)[] = [
   "melee",
   "decay",
   "burn",
+  "pointer",
   "dialog",
   "focus",
   "quest",

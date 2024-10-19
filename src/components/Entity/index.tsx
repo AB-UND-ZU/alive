@@ -115,6 +115,7 @@ function Entity({
   // particles are rendered in their own stack
   const particleSegments: Segment[] = getParticles(ecs, entity).map(
     (particle) => ({
+      id: ecs.getEntityId(particle),
       sprite: particle[SPRITE],
       facing: particle[ORIENTABLE]?.facing,
       offsetX: particle[PARTICLE].offsetX,
@@ -136,6 +137,7 @@ function Entity({
     for (const itemId of entity[INVENTORY]!.items) {
       const item = ecs.getEntityById(itemId);
       lootSegments.push({
+        id: itemId,
         sprite: item[SPRITE],
         facing: item[ORIENTABLE]?.facing,
         amount: item[ITEM].amount,

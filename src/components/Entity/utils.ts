@@ -100,6 +100,7 @@ export const getSegments = (
     entity[EQUIPPABLE]?.armor && world.getEntityById(entity[EQUIPPABLE].armor);
   if (armorEntity) {
     orderedSegments.push({
+      id: entity[EQUIPPABLE].armor,
       sprite: armorEntity[SPRITE],
       offsetX: 0,
       offsetY: 0,
@@ -113,6 +114,7 @@ export const getSegments = (
 
   // 2. body
   orderedSegments.push({
+    id: world.getEntityId(entity),
     sprite: entity[SPRITE],
     facing: entity[ORIENTABLE]?.facing,
     offsetX: 0,
@@ -126,6 +128,7 @@ export const getSegments = (
     entity[EQUIPPABLE]?.melee && world.getEntityById(entity[EQUIPPABLE].melee);
   if (meleeEntity) {
     orderedSegments.push({
+      id: entity[EQUIPPABLE].melee,
       sprite: meleeEntity[SPRITE],
       facing: meleeEntity[ORIENTABLE].facing,
       offsetX: 0,

@@ -234,10 +234,28 @@ export const generateWorld = async (world: World) => {
       [RENDERABLE]: { generation: 0 },
     })
   );
-
+  const pointerAnimation = entities.createFrame(world, {
+    [REFERENCE]: {
+      tick: -1,
+      delta: 0,
+      suspended: false,
+      suspensionCounter: -1,
+    },
+    [RENDERABLE]: { generation: 1 },
+  });
   const heroEntity = entities.createHero(world, {
     [ACTIONABLE]: { triggered: false },
-    [ANIMATABLE]: { states: {} },
+    [ANIMATABLE]: {
+      states: {
+        pointer: {
+          name: "pointerArrow",
+          reference: world.getEntityId(pointerAnimation),
+          elapsed: 0,
+          args: {},
+          particles: {},
+        },
+      },
+    },
     [ATTACKABLE]: { max: 10, enemy: false },
     [COLLECTABLE]: {},
     [COUNTABLE]: { ...emptyCountable, hp: 10, xp: 10 },
@@ -792,7 +810,7 @@ export const generateWorld = async (world: World) => {
   });
 
   // set initial focus on hero
-  const animationEntity = entities.createFrame(world, {
+  const focusAnimation = entities.createFrame(world, {
     [REFERENCE]: {
       tick: -1,
       delta: 0,
@@ -807,7 +825,7 @@ export const generateWorld = async (world: World) => {
       states: {
         focus: {
           name: "focusCircle",
-          reference: world.getEntityId(animationEntity),
+          reference: world.getEntityId(focusAnimation),
           elapsed: 0,
           args: { offset: 0 },
           particles: {},
@@ -817,7 +835,7 @@ export const generateWorld = async (world: World) => {
     [FOCUSABLE]: {},
     [MOVABLE]: {
       orientations: [],
-      reference: world.getEntityId(animationEntity),
+      reference: world.getEntityId(focusAnimation),
       spring: {
         duration: 200,
       },

@@ -12,6 +12,7 @@ import { LayerProps } from "./Layer";
 import { useDimensions } from "../Dimensions";
 
 export type Segment = {
+  id: number;
   sprite: SpriteType;
   facing?: Orientation;
   amount?: number;
@@ -50,7 +51,7 @@ export default function Stack({ segments }: { segments: Segment[] }) {
       : Sprite;
     sprites.push(
       <SpriteComponent
-        key={i}
+        key={segment.id}
         layerProps={layerProps}
         sprite={segment.sprite}
         facing={segment.facing}
