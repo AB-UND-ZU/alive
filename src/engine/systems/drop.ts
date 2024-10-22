@@ -149,7 +149,7 @@ export const createItemInInventory = <
   entity: Omit<T, "ITEM" | "RENDERABLE"> & {
     [ITEM]: Omit<Item, "carrier">;
   },
-  skipInventory: boolean = false
+  attachType?: "inventoryOnly" | "equipOnly"
 ) => {
   const itemEntity = factory(world, {
     ...entity,
@@ -166,7 +166,9 @@ export const createItemInInventory = <
   const targetCounter = itemEntity[ITEM].counter;
   const targetConsume = itemEntity[ITEM].consume;
 
-  if (targetSlot) {
+  if (attachType === "inventoryOnly") {
+    carrier[INVENTORY].items.push(itemId);
+  } else if (targetSlot) {
     if (carrier[EQUIPPABLE]) {
       const existingId = carrier[EQUIPPABLE][targetSlot];
 
@@ -185,14 +187,14 @@ export const createItemInInventory = <
       carrier[EQUIPPABLE][targetSlot] = itemId;
     }
 
-    if (!skipInventory) carrier[INVENTORY].items.push(itemId);
+    if (attachType !== "equipOnly") carrier[INVENTORY].items.push(itemId);
   } else if (targetConsume) {
-    if (!skipInventory) carrier[INVENTORY].items.push(itemId);
+    carrier[INVENTORY].items.push(itemId);
   } else if (targetCounter) {
     if (carrier[COUNTABLE]) {
       carrier[COUNTABLE][targetCounter] += 1;
     } else {
-      if (!skipInventory) carrier[INVENTORY].items.push(itemId);
+      carrier[INVENTORY].items.push(itemId);
     }
   }
   return itemEntity;
@@ -238,7 +240,7 @@ export const dropEntity = (
               carrier: -1,
             },
             [RENDERABLE]: { generation: 0 },
-            [SPRITE]: getCountableSprite(counter, remains ? undefined : "drop"),
+            [SPRITE]: getCountableSprite(counter, "drop"),
           })
         )
       ),

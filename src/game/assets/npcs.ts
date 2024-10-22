@@ -27,7 +27,7 @@ import {
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { lockDoor } from "../../engine/systems/trigger";
 import { add, getDistance, normalize } from "../math/std";
-import { initialPosition, menuArea } from "./areas";
+import { initialPosition, menuArea } from "../levels/areas";
 import {
   button,
   buttonColor,

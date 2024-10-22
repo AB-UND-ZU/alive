@@ -22,9 +22,9 @@ import {
   createDialog,
   doorClosedGold,
   doorClosedWood,
-  eye,
   flower,
   fog,
+  getCountableSprite,
   ghost,
   goldKey,
   goldMine,
@@ -35,11 +35,8 @@ import {
   pot,
   sand,
   seed,
-  strongEye,
-  strongTriangle,
   tree1,
   tree2,
-  triangle,
   villager,
   wall,
   water,
@@ -59,7 +56,7 @@ import { MELEE } from "../engine/components/melee";
 import { ITEM } from "../engine/components/item";
 import { ORIENTABLE } from "../engine/components/orientable";
 import { aspectRatio } from "../components/Dimensions/sizing";
-import { initialPosition, menuArea } from "../game/assets/areas";
+import { initialPosition, menuArea } from "../game/levels/areas";
 import {
   copy,
   distribution,
@@ -103,6 +100,8 @@ import { createSequence } from "../engine/systems/sequence";
 import { npcSequence } from "../game/assets/utils";
 import { SPAWNABLE } from "../engine/components/spawnable";
 import { REFERENCE } from "../engine/components/reference";
+import { generateMobKey, generateMobStat } from "../game/balancing/mobs";
+import { greenMobDistribution } from "../game/levels/green";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -585,44 +584,19 @@ export const generateWorld = async (world: World) => {
 
       world.setIdentifier(guideEntity, "guide");
     } else if (cell === "mob" || cell === "triangle") {
-      const mobStats = (
-        [
-          {
-            damage: 1,
-            gold: 1,
-            hp: 3,
-            maxHp: 3,
-            pattern: "triangle",
-            sprite: triangle,
-          },
-          {
-            damage: 2,
-            xp: 1,
-            hp: 15,
-            maxHp: 15,
-            pattern: "triangle",
-            sprite: strongTriangle,
-          },
-          { damage: 1, gold: 1, hp: 1, maxHp: 1, pattern: "eye", sprite: eye },
-          {
-            damage: 5,
-            xp: 1,
-            hp: 1,
-            maxHp: 1,
-            pattern: "eye",
-            sprite: strongEye,
-          },
-        ] as const
-      )[cell === "triangle" ? 0 : distribution(60, 5, 30, 5)];
-
-      const { damage, pattern, sprite, ...mobCountable } = mobStats;
+      const { damage, pattern, items, sprite, hp } = generateMobStat(
+        cell === "triangle"
+          ? "spawnTriangle"
+          : generateMobKey(greenMobDistribution)
+      );
 
       const mobEntity = entities.createMob(world, {
         [ATTACKABLE]: { enemy: true },
         [BEHAVIOUR]: { patterns: [{ name: pattern, memory: {} }] },
         [COUNTABLE]: {
           ...emptyCountable,
-          ...mobCountable,
+          hp,
+          maxHp: hp,
         },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {},
@@ -646,6 +620,20 @@ export const generateWorld = async (world: World) => {
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
       });
+      for (const item of items) {
+        createItemInInventory(
+          world,
+          mobEntity,
+          entities.createItem,
+          {
+            [ITEM]: item,
+            [SPRITE]: getCountableSprite(item.counter, "drop"),
+          },
+          "inventoryOnly"
+        );
+      }
+
+      // add claws for damage
       createItemInInventory(
         world,
         mobEntity,
@@ -656,7 +644,7 @@ export const generateWorld = async (world: World) => {
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: none,
         },
-        true
+        "equipOnly"
       );
 
       if (cell === "triangle") world.setIdentifier(mobEntity, "triangle");

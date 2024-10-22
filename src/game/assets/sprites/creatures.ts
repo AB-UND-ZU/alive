@@ -28,7 +28,7 @@ export const triangle: Sprite = {
   },
 };
 
-export const strongTriangle: Sprite = {
+export const goldTriangle: Sprite = {
   name: "Prism",
   layers: [{ char: "\u010f", color: colors.yellow }],
   facing: {
@@ -66,7 +66,7 @@ export const eye: Sprite = {
   layers: [{ char: "0", color: colors.silver }],
 };
 
-export const strongEye: Sprite = {
+export const goldEye: Sprite = {
   name: "Eye",
   layers: [{ char: "0", color: colors.yellow }],
 };

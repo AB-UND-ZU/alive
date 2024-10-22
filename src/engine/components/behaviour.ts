@@ -1,7 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-type Pattern = {
+export type Pattern = {
   name:
     | "triangle"
     | "eye"
