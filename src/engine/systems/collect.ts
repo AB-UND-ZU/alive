@@ -13,13 +13,13 @@ import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { COUNTABLE } from "../components/countable";
-import { entities } from "..";
-import { Animatable, ANIMATABLE } from "../components/animatable";
 import { rerenderEntity } from "./renderer";
 import { isTradable } from "./action";
 import { removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
 import { getMaxCounter } from "../../game/assets/sprites";
+import { createSequence, getSequence } from "./sequence";
+import { CollectSequence } from "../components/sequencable";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -35,7 +35,7 @@ export const getLootable = (world: World, position: Position) =>
 export const isCollecting = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
   INVENTORY in entity &&
-  entity[ANIMATABLE]?.states.collect?.args.itemId;
+  getSequence(world, entity, "collect");
 
 export const getCollecting = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
@@ -60,7 +60,7 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
     itemIndex -= 1
   ) {
     const itemId = target[INVENTORY].items[itemIndex];
-    const itemEntity = world.getEntityById(itemId);
+    const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
     // reduce counter items
     const counter = itemEntity[ITEM].counter;
     const slot = itemEntity[ITEM].slot;
@@ -92,22 +92,13 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
     }
 
     // initiate collecting animation on player
-    const animationEntity = entities.createFrame(world, {
-      [REFERENCE]: {
-        tick: -1,
-        delta: 0,
-        suspended: false,
-        suspensionCounter: -1,
-      },
-      [RENDERABLE]: { generation: 1 },
-    });
-    (entity[ANIMATABLE] as Animatable).states.collect = {
-      name: "itemCollect",
-      reference: world.getEntityId(animationEntity),
-      elapsed: 0,
-      args: { origin: target[POSITION], itemId },
-      particles: {},
-    };
+    createSequence<"collect", CollectSequence>(
+      world,
+      entity,
+      "collect",
+      "itemCollect",
+      { origin: target[POSITION], itemId }
+    );
 
     // update walkable
     updateWalkable(world, target[POSITION]);
@@ -141,9 +132,10 @@ export default function setupCollect(world: World) {
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);
-      const entityReference = world.getEntityById(entity[MOVABLE].reference)[
-        RENDERABLE
-      ].generation;
+      const entityReference = world.assertByIdAndComponents(
+        entity[MOVABLE].reference,
+        [RENDERABLE]
+      )[RENDERABLE].generation;
 
       // skip if reference frame is unchanged
       if (entityReferences[entityId] === entityReference) continue;

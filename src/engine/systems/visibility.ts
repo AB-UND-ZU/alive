@@ -96,9 +96,9 @@ export default function setupVisibility(world: World) {
   let referencesGeneration = -1;
 
   const onUpdate = (delta: number) => {
-    const hero = world.getEntity([PLAYER]);
+    const hero = world.getEntity([PLAYER, LIGHT, POSITION]);
 
-    if (!hero || world.metadata.gameEntity[LEVEL].map.length === 0) return;
+    if (!hero || !world.metadata.gameEntity[LEVEL].initialized) return;
 
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
@@ -110,7 +110,7 @@ export default function setupVisibility(world: World) {
 
     const radius = hero[LIGHT].visibility;
 
-    if (radius === 0) return;
+    if (radius < aspectRatio) return;
 
     const visionHorizontal = Math.ceil(radius / aspectRatio);
     const visionVertical = Math.ceil(radius);

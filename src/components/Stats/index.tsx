@@ -14,20 +14,17 @@ import Row from "../Row";
 import "./index.css";
 import { COUNTABLE, Countable } from "../../engine/components/countable";
 import { EQUIPPABLE, Equippable } from "../../engine/components/equippable";
-import { World } from "../../engine";
 import { repeat } from "../../game/math/std";
 import { isDead } from "../../engine/systems/damage";
 
 function StatsInner({
-  world,
   padding,
   hidden,
   ...stats
 }: {
-  world: World;
   padding: number;
   hidden: boolean;
-} & Countable &
+} & Partial<Countable> &
   Equippable) {
   const { paused, setPaused } = useWorld();
   const handleMenu = useCallback(
@@ -50,43 +47,41 @@ function StatsInner({
         <>
           <Row
             cells={[
-              none,
-              ...createStat(stats, "hp", true),
-              none,
-              ...createStat(stats, "xp", true),
-              none,
-              ...createStat(stats, "iron", true),
-              none,
-              ...createStat(stats, "seed", true),
-              none,
-              ...createText("│", colors.grey),
               ...repeat(none, 3),
+              ...createText("│", colors.grey),
+              ...createStat(stats, "hp", "countable"),
+              ...createStat(stats, "maxHp", "max"),
+              none,
+              ...createStat(stats, "xp", "countable"),
+              none,
+              ...createStat(stats, "iron", "countable"),
+              none,
+              ...createStat(stats, "seed", "countable"),
             ]}
           />
           <Row
             cells={[
               none,
-              ...createStat(stats, "mp", true),
-              none,
-              ...createStat(stats, "gold", true),
-              none,
-              ...createStat(stats, "wood", true),
-              none,
-              ...createStat(stats, "herb", true),
-              none,
-              ...createText("│", colors.grey),
-              none,
               paused ? resume : stats.map ? map : pause,
               none,
+              ...createText("│", colors.grey),
+              ...createStat(stats, "mp", "countable"),
+              ...createStat(stats, "maxMp", "max"),
+              none,
+              ...createStat(stats, "gold", "countable"),
+              none,
+              ...createStat(stats, "wood", "countable"),
+              none,
+              ...createStat(stats, "herb", "countable"),
             ]}
           />
         </>
       )}
       <Row
         cells={[
-          ...createText("═".repeat(padding + 17), colors.grey),
-          ...createText(hidden ? "═" : "╧", colors.grey),
           ...createText("═".repeat(padding + 3), colors.grey),
+          ...createText(hidden ? "═" : "╧", colors.grey),
+          ...createText("═".repeat(padding + 17), colors.grey),
         ]}
       />
       <div className="Menu" id="menu" onClick={handleMenu} />

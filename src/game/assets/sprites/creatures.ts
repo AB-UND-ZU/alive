@@ -81,11 +81,16 @@ export const waterRye: Sprite = {
   layers: [{ char: "0", color: colors.blue }],
 };
 
-export const soul: Sprite = {
+export const ghost: Sprite = {
   name: "Soul",
   layers: [
     { char: "\u010b", color: colors.grey },
     { char: "~", color: colors.grey },
     { char: "°", color: colors.yellow },
   ],
+};
+
+export const halo: Sprite = {
+  name: "Soul",
+  layers: [{ char: "°", color: colors.yellow }],
 };

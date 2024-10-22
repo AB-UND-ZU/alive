@@ -10,7 +10,7 @@ export type Consumable = "key";
 export type Materialized = "door";
 
 export type Item = {
-  carrier?: number;
+  carrier: number;
   amount: number;
   material?: Material;
   slot?: keyof Equippable;

@@ -5,6 +5,7 @@ import * as quests from '../../game/assets/quests'
 export type Quest = {
   name: keyof typeof quests;
   available: boolean;
+  retry: boolean;
 };
 
 export const QUEST = "QUEST";

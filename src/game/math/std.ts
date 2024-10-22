@@ -22,7 +22,12 @@ export const signedDistance = (start: number, end: number, size: number) => {
   return distance - overlap;
 };
 
-export const getDistance = (origin: Point, target: Point, size: number, ratio: number = aspectRatio) => {
+export const getDistance = (
+  origin: Point,
+  target: Point,
+  size: number,
+  ratio: number = aspectRatio
+) => {
   const delta = {
     x: signedDistance(origin.x, target.x, size) * ratio,
     y: signedDistance(origin.y, target.y, size),
@@ -68,3 +73,6 @@ export const padCenter = (text: string, length: number) =>
   text
     .padStart(Math.floor((text.length + length) / 2), " ")
     .padEnd(length, " ");
+
+export const lerp = (start: number, end: number, ratio: number) =>
+  start + (end - start) * ratio;

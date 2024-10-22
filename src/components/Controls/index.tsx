@@ -12,11 +12,12 @@ import {
   createButton,
   createStat,
   createText,
+  ghost,
   none,
   quest,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
-import { ACTIONABLE } from "../../engine/components/actionable";
+import { ACTIONABLE, actions } from "../../engine/components/actionable";
 import { normalize, repeat } from "../../game/math/std";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { createSprite, getMaterialSprite } from "../Entity/utils";
@@ -32,6 +33,9 @@ import {
 } from "../../engine/systems/action";
 import { TRADABLE } from "../../engine/components/tradable";
 import { Entity } from "ecs";
+import { World } from "../../engine";
+import { canRevive } from "../../engine/systems/fate";
+import { isDead } from "../../engine/systems/damage";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -50,7 +54,7 @@ const getActivationRow = (item?: Item) => {
   if (!item) return repeat(none, 3);
 
   if (item.counter)
-    return createStat({ [item.counter]: item.amount }, item.counter, true);
+    return createStat({ [item.counter]: item.amount }, item.counter, "countable");
 
   return [
     none,
@@ -68,9 +72,36 @@ type Action = {
   disabled: boolean;
 };
 
+const useAction = (
+  action: (typeof actions)[number],
+  isDisabled: (world: World, hero: Entity, actionEntity: Entity) => boolean,
+  name: string,
+  getActivation: (actionEntity: Entity) => [Sprite[], Sprite[]]
+) => {
+  const { ecs, paused } = useWorld();
+  const heroEntity = useHero();
+
+  return useMemo<Action | undefined>(() => {
+    if (paused || !ecs || !heroEntity) return;
+
+    const actionId = heroEntity[ACTIONABLE]?.[action];
+    const actionEntity = ecs.getEntityById(actionId);
+    const disabled = !actionEntity || isDisabled(ecs, heroEntity, actionEntity);
+    const activation = actionEntity
+      ? getActivation(actionEntity)
+      : ([repeat(none, 3), repeat(none, 3)] as [Sprite[], Sprite[]]);
+
+    return {
+      name,
+      activation,
+      disabled,
+    };
+  }, [paused, ecs, action, isDisabled, heroEntity, name, getActivation]);
+};
+
 export default function Controls() {
   const dimensions = useDimensions();
-  const { ecs, paused, setPaused } = useWorld();
+  const { ecs, setPaused } = useWorld();
   const hero = useHero();
   const heroRef = useRef<Entity>();
   const pressedOrientations = useRef<Orientation[]>([]);
@@ -84,66 +115,56 @@ export default function Controls() {
   // update ref for listeners to consume
   heroRef.current = hero || undefined;
 
-  const questId = hero?.[ACTIONABLE].quest;
-  const questEntity = ecs && hero && questId && ecs.getEntityById(questId);
-  const questActive = questEntity && canAcceptQuest(ecs, hero, questEntity);
-  const questAction = useMemo<Action | undefined>(
-    () =>
-      questEntity && {
-        name: "Quest",
-        activation: [[none, questId ? quest : none, none], repeat(none, 3)],
-        disabled: !questActive,
-      },
-    [questId, questEntity, questActive]
+  const spawnAction = useAction(
+    "spawn",
+    (world, hero, spawnEntity) => !canRevive(world, spawnEntity, hero),
+    "Spawn",
+    (spawnEntity) => [[none, spawnEntity ? ghost : none, none], repeat(none, 3)]
   );
 
-  const unlockId = hero?.[ACTIONABLE].unlock;
-  const unlockEntity = ecs && hero && unlockId && ecs.getEntityById(unlockId);
-  const unlockActive = unlockEntity && canUnlock(ecs, hero, unlockEntity);
-  const unlockAction = useMemo<Action | undefined>(
-    () =>
-      unlockEntity && {
-        name: "Open",
-        activation: [
-          [
-            none,
-            getMaterialSprite("key", unlockEntity[LOCKABLE].material),
-            none,
-          ],
-          repeat(none, 3),
-        ],
-        disabled: !unlockActive,
-      },
-    [unlockEntity, unlockActive]
+  const questAction = useAction(
+    "quest",
+    (world, hero, questEntity) => !canAcceptQuest(world, hero, questEntity),
+    "Quest",
+    (questEntity) => [[none, questEntity ? quest : none, none], repeat(none, 3)]
   );
 
-  const tradeId = hero?.[ACTIONABLE].trade;
-  const tradeEntity = ecs && hero && tradeId && ecs.getEntityById(tradeId);
-  const tradeActive =
-    tradeEntity &&
-    isTradable(ecs, tradeEntity) &&
-    canTrade(ecs, hero, tradeEntity);
-  const tradeAction = useMemo<Action | undefined>(() => {
-    if (!tradeEntity) return;
-
-    const activation = tradeEntity[TRADABLE].activation;
-    return {
-      name: "Buy",
-      activation: [
-        getActivationRow(activation[0]),
-        getActivationRow(activation[1]),
+  const unlockAction = useAction(
+    "unlock",
+    (world, hero, unlockEntity) => !canUnlock(world, hero, unlockEntity),
+    "Open",
+    (unlockEntity) => [
+      [
+        none,
+        unlockEntity
+          ? getMaterialSprite("key", unlockEntity[LOCKABLE].material)
+          : none,
+        none,
       ],
-      disabled: !tradeActive,
-    };
-  }, [tradeEntity, tradeActive]);
+      repeat(none, 3),
+    ]
+  );
 
-  const availableActions = [questAction, unlockAction, tradeAction].filter(
-    Boolean
-  ) as Action[];
-  const activeAction = paused
-    ? undefined
-    : availableActions.find((action) => !action.disabled) ||
-      availableActions[0];
+  const tradeAction = useAction(
+    "trade",
+    (world, hero, tradeEntity) =>
+      !isTradable(world, tradeEntity) || !canTrade(world, hero, tradeEntity),
+    "Buy",
+    (tradeEntity) => [
+      getActivationRow(tradeEntity && tradeEntity[TRADABLE].activation[0]),
+      getActivationRow(tradeEntity && tradeEntity[TRADABLE].activation[1]),
+    ]
+  );
+
+  const availableActions = [
+    spawnAction,
+    questAction,
+    unlockAction,
+    tradeAction,
+  ];
+  const activeAction = availableActions.find(
+    (action) => action && !action.disabled
+  );
 
   activeRef.current = activeAction;
 
@@ -176,9 +197,10 @@ export default function Controls() {
 
       if (currentAction || !heroEntity || !ecs) return;
 
-      const reference = ecs.getEntityById(heroEntity[MOVABLE].reference)[
-        REFERENCE
-      ];
+      const reference = ecs.assertByIdAndComponents(
+        heroEntity[MOVABLE].reference,
+        [REFERENCE]
+      )[REFERENCE];
 
       if (!reference) return;
 
@@ -210,11 +232,12 @@ export default function Controls() {
   const handleMove = useCallback(
     (orientations: Orientation[]) => {
       const heroEntity = heroRef.current;
-      if (!heroEntity || !ecs) return;
+      if (!heroEntity || !ecs || isDead(ecs, heroEntity)) return;
 
-      const reference = ecs.getEntityById(heroEntity[MOVABLE].reference)[
-        REFERENCE
-      ];
+      const reference = ecs.assertByIdAndComponents(
+        heroEntity[MOVABLE].reference,
+        [REFERENCE]
+      )[REFERENCE];
 
       if (!reference) return;
 

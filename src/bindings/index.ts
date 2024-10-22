@@ -5,19 +5,19 @@ import { LIGHT } from "../engine/components/light";
 import { PLAYER } from "../engine/components/player";
 import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
-import { REFERENCE } from "../engine/components/reference";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
   apple1,
   apple2,
   block,
-  block_down,
-  block_up,
+  blockDown,
+  blockUp,
   bush,
   cactus1,
   cactus2,
   campfire,
   chest,
+  coin,
   compass,
   createDialog,
   doorClosedGold,
@@ -25,14 +25,16 @@ import {
   eye,
   flower,
   fog,
+  ghost,
   goldKey,
   goldMine,
+  herb,
   iron,
   ironSword,
   none,
-  player,
   pot,
   sand,
+  seed,
   strongEye,
   strongTriangle,
   tree1,
@@ -41,6 +43,7 @@ import {
   villager,
   wall,
   water,
+  wood,
   woodShield,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
@@ -55,7 +58,6 @@ import { ATTACKABLE } from "../engine/components/attackable";
 import { MELEE } from "../engine/components/melee";
 import { ITEM } from "../engine/components/item";
 import { ORIENTABLE } from "../engine/components/orientable";
-import { ANIMATABLE } from "../engine/components/animatable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import { initialPosition, menuArea } from "../game/assets/areas";
 import {
@@ -90,11 +92,17 @@ import {
   window,
 } from "../game/assets/sprites/structures";
 import { BURNABLE } from "../engine/components/burnable";
-import { SPAWNABLE } from "../engine/components/spawnable";
-import { dropEntity } from "../engine/systems/drop";
-import { IDENTIFIABLE } from "../engine/components/identifiable";
-import { START_STEP } from "../game/assets/utils";
+import {
+  createItemAsDrop,
+  createItemInInventory,
+} from "../engine/systems/drop";
 import { COLLECTABLE } from "../engine/components/collectable";
+import { SOUL } from "../engine/components/soul";
+import { FocusSequence, SEQUENCABLE } from "../engine/components/sequencable";
+import { createSequence } from "../engine/systems/sequence";
+import { npcSequence } from "../game/assets/utils";
+import { SPAWNABLE } from "../engine/components/spawnable";
+import { REFERENCE } from "../engine/components/reference";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -189,6 +197,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "▓") entity = "block";
       else if (cell === "▄") entity = "block_down";
       else if (cell === "▀") entity = "block_up";
+      else if (cell === "i") entity = "alive";
       else if (cell === "◙") entity = "door";
       else if (cell === "◘") entity = "iron_one";
       else if (cell === "∙") entity = "coin_one";
@@ -224,70 +233,6 @@ export const generateWorld = async (world: World) => {
     });
   });
 
-  const frameId = world.getEntityId(
-    entities.createFrame(world, {
-      [REFERENCE]: {
-        tick: 250,
-        delta: 0,
-        suspended: true,
-        suspensionCounter: -1,
-      },
-      [RENDERABLE]: { generation: 0 },
-    })
-  );
-  const pointerAnimation = entities.createFrame(world, {
-    [REFERENCE]: {
-      tick: -1,
-      delta: 0,
-      suspended: false,
-      suspensionCounter: -1,
-    },
-    [RENDERABLE]: { generation: 1 },
-  });
-  const heroEntity = entities.createHero(world, {
-    [ACTIONABLE]: { triggered: false },
-    [ANIMATABLE]: {
-      states: {
-        pointer: {
-          name: "pointerArrow",
-          reference: world.getEntityId(pointerAnimation),
-          elapsed: 0,
-          args: {},
-          particles: {},
-        },
-      },
-    },
-    [ATTACKABLE]: { enemy: false },
-    [COLLECTABLE]: {},
-    [COUNTABLE]: { ...emptyCountable, hp: 10, maxHp: 10, maxMp: 5 },
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "visible", type: "unit" },
-    [INVENTORY]: { items: [], size: 20 },
-    [LIGHT]: { brightness: 13, visibility: 13, darkness: 0 },
-    [MELEE]: {},
-    [MOVABLE]: {
-      orientations: [],
-      reference: frameId,
-      spring: {
-        mass: 0.1,
-        friction: 50,
-        tension: 1000,
-      },
-      lastInteraction: 0,
-    },
-    [ORIENTABLE]: {},
-    [PLAYER]: {},
-    [POSITION]: copy(initialPosition),
-    [RENDERABLE]: { generation: 0 },
-    [SPAWNABLE]: { position: copy(initialPosition) },
-    [SPRITE]: player,
-    [SWIMMABLE]: { swimming: false },
-    [VIEWABLE]: { active: false },
-  });
-  const heroId = world.getEntityId(heroEntity);
-  world.setIdentifier(heroEntity, "hero");
-
   iterateMatrix(worldMatrix, (x, y, cell) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
     const deltaY = size / 2 - Math.abs(y - size / 2);
@@ -305,7 +250,55 @@ export const generateWorld = async (world: World) => {
       [SPRITE]: fog,
     });
 
-    if (cell === "rock") {
+    if (cell === "alive") {
+      const frameId = world.getEntityId(
+        entities.createFrame(world, {
+          [REFERENCE]: {
+            tick: 250,
+            delta: 0,
+            suspended: true,
+            suspensionCounter: -1,
+          },
+          [RENDERABLE]: { generation: 0 },
+        })
+      );
+      entities.createHalo(world, {
+        [ACTIONABLE]: { triggered: false },
+        [EQUIPPABLE]: {},
+        [INVENTORY]: { items: [], size: 10 },
+        [LIGHT]: { brightness: 15, visibility: 15, darkness: 0 },
+        [MOVABLE]: {
+          orientations: [],
+          reference: frameId,
+          spring: {
+            mass: 5,
+            friction: 100,
+            tension: 200,
+          },
+          lastInteraction: 0,
+        },
+        [POSITION]: copy(initialPosition),
+        [PLAYER]: { ghost: true },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SOUL]: { ready: true },
+        [SPAWNABLE]: {
+          position: copy(initialPosition),
+          viewable: { active: false },
+          light: { brightness: 15, visibility: 15, darkness: 0 },
+        },
+        [SPRITE]: ghost,
+        [VIEWABLE]: { active: false },
+      });
+
+      entities.createTerrain(world, {
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [SPRITE]: block,
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      });
+    } else if (cell === "rock") {
       entities.createWall(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
@@ -324,16 +317,8 @@ export const generateWorld = async (world: World) => {
         [COLLIDABLE]: {},
       });
     } else if (cell === "iron" || cell === "iron_one") {
-      const ironEntity = entities.createItem(world, {
-        [ITEM]: {
-          amount: cell === "iron" ? distribution(80, 15, 5) + 1 : 1,
-          counter: "iron",
-        },
-        [RENDERABLE]: { generation: 0 },
-        [SPRITE]: iron,
-      });
       const oreEntity = entities.createOre(world, {
-        [INVENTORY]: { items: [world.getEntityId(ironEntity)], size: 1 },
+        [INVENTORY]: { items: [], size: 1 },
         [LOOTABLE]: { disposable: false },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
@@ -342,7 +327,13 @@ export const generateWorld = async (world: World) => {
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [COLLIDABLE]: {},
       });
-      ironEntity[ITEM].carrier = world.getEntityId(oreEntity);
+      createItemInInventory(world, oreEntity, entities.createItem, {
+        [ITEM]: {
+          amount: cell === "iron" ? distribution(80, 15, 5) + 1 : 1,
+          counter: "iron",
+        },
+        [SPRITE]: iron,
+      });
     } else if (cell === "block") {
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -355,7 +346,7 @@ export const generateWorld = async (world: World) => {
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
-        [SPRITE]: block_down,
+        [SPRITE]: blockDown,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
@@ -363,7 +354,7 @@ export const generateWorld = async (world: World) => {
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
-        [SPRITE]: block_up,
+        [SPRITE]: blockUp,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
@@ -383,37 +374,41 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "wood" || cell === "wood_two") {
-      const woodContainers = dropEntity(
+      const woodEntity = createItemAsDrop(
         world,
+        { x, y },
+        entities.createItem,
         {
-          [COUNTABLE]: {
-            ...emptyCountable,
-            wood: cell === "wood" ? distribution(80, 15, 5) + 1 : 2,
+          [ITEM]: {
+            counter: "wood",
+            amount: cell === "wood" ? distribution(80, 15, 5) + 1 : 2,
           },
-        },
-        { x, y }
+          [SPRITE]: wood,
+        }
       );
-      if (cell === "wood_two") world.setIdentifier(woodContainers[0], cell);
+      if (cell === "wood_two")
+        world.setIdentifier(world.assertById(woodEntity[ITEM].carrier), cell);
     } else if (cell === "fruit") {
       const [apple, tree] = [
         [apple1, tree1],
         [apple2, tree2],
       ][random(0, 1)];
-      const appleEntity = entities.createItem(world, {
-        [ITEM]: { amount: 1, counter: "hp" },
-        [RENDERABLE]: { generation: 0 },
-        [SPRITE]: apple,
-      });
       const fruitEntity = entities.createFruit(world, {
         [COLLIDABLE]: {},
         [FOG]: { visibility, type: "terrain" },
-        [INVENTORY]: { items: [world.getEntityId(appleEntity)], size: 1 },
+        [INVENTORY]: { items: [], size: 1 },
         [LOOTABLE]: { disposable: false },
         [POSITION]: { x, y },
         [SPRITE]: tree,
         [RENDERABLE]: { generation: 0 },
       });
-      appleEntity[ITEM].carrier = world.getEntityId(fruitEntity);
+      createItemInInventory(world, fruitEntity, entities.createItem, {
+        [ITEM]: {
+          amount: 1,
+          counter: "hp",
+        },
+        [SPRITE]: apple,
+      });
     } else if (cell === "tree") {
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -422,54 +417,48 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: [tree1, tree2][random(0, 1)],
         [RENDERABLE]: { generation: 0 },
       });
-    } else if (cell === "seed" || cell === "seed_one") {
-      dropEntity(
-        world,
-        {
-          [COUNTABLE]: {
-            ...emptyCountable,
-            seed: cell === "seed" ? distribution(80, 15, 5) + 1 : 1,
-          },
-          [DROPPABLE]: { decayed: false, remains: bush },
-        },
-        { x, y }
-      );
-    } else if (cell === "bush") {
+    } else if (cell === "bush" || cell === "seed" || cell === "seed_one") {
       entities.createGround(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: bush,
         [RENDERABLE]: { generation: 0 },
       });
-    } else if (cell === "herb" || cell === "herb_one") {
-      dropEntity(
-        world,
-        {
-          [COUNTABLE]: {
-            ...emptyCountable,
-            herb: cell === "herb" ? distribution(80, 15, 5) + 1 : 1,
+
+      if (cell === "seed" || cell === "seed_one") {
+        createItemAsDrop(world, { x, y }, entities.createItem, {
+          [ITEM]: {
+            counter: "seed",
+            amount: cell === "seed" ? distribution(80, 15, 5) + 1 : 1,
           },
-          [DROPPABLE]: { decayed: false, remains: flower },
-        },
-        { x, y }
-      );
-    } else if (cell === "coin_one") {
-      const coinContainers = dropEntity(
-        world,
-        {
-          [COUNTABLE]: { ...emptyCountable, gold: 1 },
-          [IDENTIFIABLE]: { name: "coin" },
-        },
-        { x, y }
-      );
-      world.setIdentifier(coinContainers[0], "coin");
-    } else if (cell === "grass") {
+          [SPRITE]: seed,
+        });
+      }
+    } else if (cell === "grass" || cell === "herb" || cell === "herb_one") {
       entities.createGround(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: flower,
         [RENDERABLE]: { generation: 0 },
       });
+      if (cell === "herb" || cell === "herb_one") {
+        createItemAsDrop(world, { x, y }, entities.createItem, {
+          [ITEM]: {
+            counter: "herb",
+            amount: cell === "herb" ? distribution(80, 15, 5) + 1 : 1,
+          },
+          [SPRITE]: herb,
+        });
+      }
+    } else if (cell === "coin_one") {
+      const coinItem = createItemAsDrop(world, { x, y }, entities.createItem, {
+        [ITEM]: {
+          counter: "gold",
+          amount: 1,
+        },
+        [SPRITE]: coin,
+      });
+      world.setIdentifier(world.assertById(coinItem[ITEM].carrier), "coin");
     } else if (cell === "cactus") {
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -480,7 +469,6 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "door" || cell === "house_door") {
       const doorEntity = entities.createDoor(world, {
-        [ANIMATABLE]: { states: {} },
         [FOG]: { visibility, type: "float" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [LOCKABLE]: {
@@ -490,6 +478,7 @@ export const generateWorld = async (world: World) => {
         [NPC]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
         [SPRITE]: cell === "door" ? doorClosedGold : doorClosedWood,
         [TOOLTIP]: {
           dialogs: [createDialog(cell === "door" ? "Locked" : "Closed")],
@@ -500,18 +489,17 @@ export const generateWorld = async (world: World) => {
       world.setIdentifier(doorEntity, cell);
     } else if (cell === "campfire") {
       entities.createFire(world, {
-        [ANIMATABLE]: { states: {} },
         [BURNABLE]: { burning: true, eternal: true },
         [COLLIDABLE]: {},
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
         [SPRITE]: campfire,
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
     } else if (cell === "pot") {
       const potEntity = entities.createChest(world, {
-        [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { enemy: true },
         [COLLIDABLE]: {},
         [COUNTABLE]: { ...emptyCountable, hp: 5, maxHp: 5, gold: 3 },
@@ -520,22 +508,22 @@ export const generateWorld = async (world: World) => {
         [INVENTORY]: { items: [], size: 1 },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
         [SPRITE]: pot,
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       world.setIdentifier(potEntity, "pot");
     } else if (cell === "compass") {
       const compassEntity = entities.createCompass(world, {
-        [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 1, slot: "compass" },
+        [ITEM]: { amount: 1, slot: "compass", carrier: -1 },
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
         [SPRITE]: compass,
-        [TRACKABLE]: { target: heroId },
+        [TRACKABLE]: {},
       });
       world.setIdentifier(compassEntity, "compass");
       const chestEntity = entities.createChest(world, {
-        [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { enemy: true },
         [COLLIDABLE]: {},
         [COUNTABLE]: { ...emptyCountable, hp: 10, maxHp: 10 },
@@ -544,68 +532,23 @@ export const generateWorld = async (world: World) => {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
         [SPRITE]: chest,
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       compassEntity[ITEM].carrier = world.getEntityId(chestEntity);
       world.setIdentifier(chestEntity, "compass_chest");
     } else if (cell === "guide") {
-      const swordEntity = entities.createSword(world, {
-        [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: 2, slot: "melee", material: "iron" },
-        [ORIENTABLE]: {},
-        [RENDERABLE]: { generation: 0 },
-        [SPRITE]: ironSword,
-      });
-      const shieldEntity = entities.createItem(world, {
-        [ITEM]: { amount: 1, slot: "armor", material: "wood" },
-        [RENDERABLE]: { generation: 0 },
-        [SPRITE]: woodShield,
-      });
-
-      const animationEntity = entities.createFrame(world, {
-        [REFERENCE]: {
-          tick: -1,
-          delta: 0,
-          suspended: false,
-          suspensionCounter: -1,
-        },
-        [RENDERABLE]: { generation: 1 },
-      });
       const guideEntity = entities.createVillager(world, {
         [ACTIONABLE]: { triggered: false },
-        [ANIMATABLE]: {
-          states: {
-            quest: {
-              name: "guideNpc",
-              reference: world.getEntityId(animationEntity),
-              elapsed: 0,
-              args: {
-                step: START_STEP,
-                memory: {},
-                giver: world.getEntityId(world.metadata.gameEntity),
-              },
-              particles: {},
-            },
-          },
-        },
         [ATTACKABLE]: { enemy: false },
         [BEHAVIOUR]: { patterns: [] },
         [COLLECTABLE]: {},
         [COUNTABLE]: { ...emptyCountable, hp: 20, maxHp: 20 },
         [DROPPABLE]: { decayed: false },
-        [EQUIPPABLE]: {
-          melee: world.getEntityId(swordEntity),
-          armor: world.getEntityId(shieldEntity),
-        },
+        [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
-        [INVENTORY]: {
-          items: [
-            world.getEntityId(swordEntity),
-            world.getEntityId(shieldEntity),
-          ],
-          size: 5,
-        },
+        [INVENTORY]: { items: [], size: 5 },
         [MELEE]: {},
         [MOVABLE]: {
           orientations: [],
@@ -619,6 +562,7 @@ export const generateWorld = async (world: World) => {
         [ORIENTABLE]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
         [SPRITE]: villager,
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: {
@@ -627,9 +571,18 @@ export const generateWorld = async (world: World) => {
           nextDialog: -1,
         },
       });
-      const guideId = world.getEntityId(guideEntity);
-      swordEntity[ITEM].carrier = guideId;
-      shieldEntity[ITEM].carrier = guideId;
+      createItemInInventory(world, guideEntity, entities.createSword, {
+        [ITEM]: { amount: 2, slot: "melee", material: "iron" },
+        [ORIENTABLE]: {},
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: ironSword,
+      });
+      createItemInInventory(world, guideEntity, entities.createItem, {
+        [ITEM]: { amount: 1, slot: "armor", material: "wood" },
+        [SPRITE]: woodShield,
+      });
+      npcSequence(world, guideEntity, "guideNpc");
+
       world.setIdentifier(guideEntity, "guide");
     } else if (cell === "mob" || cell === "triangle") {
       const mobStats = (
@@ -660,19 +613,11 @@ export const generateWorld = async (world: World) => {
             sprite: strongEye,
           },
         ] as const
-      )[cell === "triangle" ? 0 : distribution(60, 30, 5, 5)];
+      )[cell === "triangle" ? 0 : distribution(60, 5, 30, 5)];
 
       const { damage, pattern, sprite, ...mobCountable } = mobStats;
 
-      const clawsEntity = entities.createSword(world, {
-        [ANIMATABLE]: { states: {} },
-        [ITEM]: { amount: damage, slot: "melee" },
-        [ORIENTABLE]: {},
-        [RENDERABLE]: { generation: 0 },
-        [SPRITE]: none,
-      });
       const mobEntity = entities.createMob(world, {
-        [ANIMATABLE]: { states: {} },
         [ATTACKABLE]: { enemy: true },
         [BEHAVIOUR]: { patterns: [{ name: pattern, memory: {} }] },
         [COUNTABLE]: {
@@ -680,7 +625,7 @@ export const generateWorld = async (world: World) => {
           ...mobCountable,
         },
         [DROPPABLE]: { decayed: false },
-        [EQUIPPABLE]: { melee: world.getEntityId(clawsEntity) },
+        [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
         [INVENTORY]: { items: [], size: 1 },
         [MELEE]: {},
@@ -696,33 +641,35 @@ export const generateWorld = async (world: World) => {
         [ORIENTABLE]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
         [SPRITE]: sprite,
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
       });
-      clawsEntity[ITEM].carrier = world.getEntityId(mobEntity);
+      createItemInInventory(
+        world,
+        mobEntity,
+        entities.createSword,
+        {
+          [ITEM]: { amount: damage, slot: "melee" },
+          [ORIENTABLE]: {},
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: none,
+        },
+        true
+      );
 
       if (cell === "triangle") world.setIdentifier(mobEntity, "triangle");
     } else if (cell === "key") {
-      const keyEntity = entities.createItem(world, {
+      const keyEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
         [ITEM]: {
           amount: 1,
           consume: "key",
           material: "gold",
         },
-        [RENDERABLE]: { generation: 0 },
         [SPRITE]: goldKey,
       });
-      dropEntity(
-        world,
-        {
-          [INVENTORY]: {
-            items: [world.getEntityId(keyEntity)],
-            size: 1,
-          },
-        },
-        { x, y }
-      );
+
       world.setIdentifier(keyEntity, "key");
 
       // add roof above key
@@ -833,32 +780,11 @@ export const generateWorld = async (world: World) => {
   });
 
   // set initial focus on hero
-  const focusAnimation = entities.createFrame(world, {
-    [REFERENCE]: {
-      tick: -1,
-      delta: 0,
-      suspended: false,
-      suspensionCounter: -1,
-    },
-    [RENDERABLE]: { generation: 1 },
-  });
-
   const highlighEntity = entities.createHighlight(world, {
-    [ANIMATABLE]: {
-      states: {
-        focus: {
-          name: "focusCircle",
-          reference: world.getEntityId(focusAnimation),
-          elapsed: 0,
-          args: { offset: 0 },
-          particles: {},
-        },
-      },
-    },
     [FOCUSABLE]: {},
     [MOVABLE]: {
       orientations: [],
-      reference: world.getEntityId(focusAnimation),
+      reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
         duration: 200,
       },
@@ -868,73 +794,36 @@ export const generateWorld = async (world: World) => {
       world.getIdentifier("compass_chest")?.[POSITION] || { x: 0, y: 0 }
     ),
     [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
   });
+  createSequence<"focus", FocusSequence>(
+    world,
+    highlighEntity,
+    "focus",
+    "focusCircle",
+    {}
+  );
   world.setIdentifier(highlighEntity, "focus");
 
   // create viewpoint for menu area
-  const highlightAnimationEntity = entities.createFrame(world, {
-    [REFERENCE]: {
-      tick: -1,
-      delta: 0,
-      suspended: false,
-      suspensionCounter: -1,
-    },
-    [RENDERABLE]: { generation: 1 },
-  });
   const viewpointEntity = entities.createViewpoint(world, {
-    [ANIMATABLE]: {
-      states: {
-        quest: {
-          name: "worldNpc",
-          reference: world.getEntityId(highlightAnimationEntity),
-          elapsed: 0,
-          args: {
-            step: START_STEP,
-            memory: {},
-            giver: world.getEntityId(world.metadata.gameEntity),
-          },
-          particles: {},
-        },
-      },
-    },
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
     [VIEWABLE]: { active: true },
   });
+  npcSequence(world, viewpointEntity, "worldNpc");
   world.setIdentifier(viewpointEntity, "viewpoint");
 
   // add quest sign after exiting
-  const signAnimationEntity = entities.createFrame(world, {
-    [REFERENCE]: {
-      tick: -1,
-      delta: 0,
-      suspended: false,
-      suspensionCounter: -1,
-    },
-    [RENDERABLE]: { generation: 1 },
-  });
   const signEntity = entities.createSign(world, {
-    [ANIMATABLE]: {
-      states: {
-        quest: {
-          name: "signNpc",
-          reference: world.getEntityId(signAnimationEntity),
-          elapsed: 0,
-          args: {
-            step: START_STEP,
-            memory: {},
-            giver: world.getEntityId(world.metadata.gameEntity),
-          },
-          particles: {},
-        },
-      },
-    },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [COLLIDABLE]: {},
     [POSITION]: { x: 0, y: 12 },
     [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
     [SPRITE]: sign,
     [TOOLTIP]: {
       dialogs: [],
@@ -942,6 +831,7 @@ export const generateWorld = async (world: World) => {
       nextDialog: -1,
     },
   });
+  npcSequence(world, signEntity, "signNpc");
   world.setIdentifier(signEntity, "sign");
   world.offerQuest(signEntity, "townQuest");
 
@@ -956,11 +846,15 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupBurn);
   world.addSystem(systems.setupAction);
   world.addSystem(systems.setupText);
-  world.addSystem(systems.setupAnimate);
+  world.addSystem(systems.setupSequence);
   world.addSystem(systems.setupNeedle);
   world.addSystem(systems.setupFocus);
+  world.addSystem(systems.setupFate);
   world.addSystem(systems.setupDrop);
   world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);
+
+  // queue all added entities to added listener
+  world.cleanup();
 };

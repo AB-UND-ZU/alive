@@ -1,5 +1,4 @@
 export { default as addActionable } from "./actionable";
-export { default as addAnimatable } from "./animatable";
 export { default as addAttackable } from "./attackable";
 export { default as addBehaviour } from "./behaviour";
 export { default as addBurnable } from "./burnable";
@@ -28,6 +27,9 @@ export { default as addPosition } from "./position";
 export { default as addQuest } from "./quest";
 export { default as addReference } from "./reference";
 export { default as addRenderable } from "./renderable";
+export { default as addRevivable } from "./revivable";
+export { default as addSeqencable } from "./sequencable";
+export { default as addSoul } from "./soul";
 export { default as addSpawnable } from "./spawnable";
 export { default as addSprite } from "./sprite";
 export { default as addSwimmable } from "./swimmable";

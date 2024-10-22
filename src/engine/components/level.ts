@@ -4,9 +4,10 @@ import { Matrix } from "../../game/math/matrix";
 
 export type Level = {
   // map[x][y][entityId] = entity
-  map: Record<number, Entity>[][];
+  map: Record<string, Record<string, Record<string, Entity>>>;
   walkable: Matrix<0 | 1>;
   size: number;
+  initialized: boolean;
 };
 
 export const LEVEL = "LEVEL";

@@ -39,8 +39,12 @@ export default function setupNeedle(world: World) {
       }
 
       const entityId = world.getEntityId(entity);
-      const originEntity = world.getEntityById(originId);
-      const targetEntity = world.getEntityById(targetId);
+      const originEntity = world.getEntityByIdAndComponents(originId, [
+        POSITION,
+      ]);
+      const targetEntity = world.getEntityByIdAndComponents(targetId, [
+        POSITION,
+      ]);
 
       // clear target if focus is lost
       if (!targetEntity || !originEntity) {
@@ -48,13 +52,15 @@ export default function setupNeedle(world: World) {
         continue;
       }
 
-      const originReference = originEntity[MOVABLE]?.reference
-        ? world.getEntityById(originEntity[MOVABLE].reference)[RENDERABLE]
-            .generation
+      const originReference = originEntity[MOVABLE]
+        ? world.assertByIdAndComponents(originEntity[MOVABLE].reference, [
+            RENDERABLE,
+          ])[RENDERABLE].generation
         : 0;
-      const targetReference = targetEntity[MOVABLE]?.reference
-        ? world.getEntityById(targetEntity[MOVABLE].reference)[RENDERABLE]
-            .generation
+      const targetReference = targetEntity[MOVABLE]
+        ? world.assertByIdAndComponents(targetEntity[MOVABLE].reference, [
+            RENDERABLE,
+          ])[RENDERABLE].generation
         : 0;
       const entityReference = `${originId}.${originReference}:${targetId}.${targetReference}`;
 

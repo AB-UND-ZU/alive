@@ -22,12 +22,12 @@ export const block: Sprite = {
   layers: [{ char: "█", color: colors.maroon }],
 };
 
-export const block_down: Sprite = {
+export const blockDown: Sprite = {
   name: "block_down",
   layers: [{ char: "▄", color: colors.maroon }],
 };
 
-export const block_up: Sprite = {
+export const blockUp: Sprite = {
   name: "block_up",
   layers: [{ char: "▀", color: colors.maroon }],
 };
@@ -250,9 +250,9 @@ const statSprites: Record<
   { color: string; sprite: Sprite; drop?: Sprite; max?: keyof Countable }
 > = {
   hp: { color: colors.red, sprite: heart, max: "maxHp" },
-  maxHp: { color: colors.red, sprite: heartUp },
+  maxHp: { color: colors.grey, sprite: heartUp },
   mp: { color: colors.blue, sprite: mana, max: "maxMp" },
-  maxMp: { color: colors.blue, sprite: manaUp },
+  maxMp: { color: colors.grey, sprite: manaUp },
   xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp },
   gold: { color: colors.yellow, sprite: nonCountable(coin), drop: coin },
   wood: { color: colors.maroon, sprite: wood },
@@ -264,17 +264,21 @@ const statSprites: Record<
 export const createStat = (
   stats: Partial<Countable>,
   counter: keyof Countable,
-  padded: boolean = false
+  display: "text" | "countable" | "max" = "text"
 ) => {
-  const maxCounter = getMaxCounter(counter);
   const value = stats[counter] || 0;
   const stat = value.toString();
-  const text = padded ? stat.padStart(2, " ") : stat;
-  const isMax = value === stats[maxCounter];
-  return [
-    ...createText(text, statSprites[counter].color),
-    getCountableSprite(isMax ? maxCounter : counter),
-  ];
+  const color = statSprites[counter].color;
+
+  if (display === "countable")
+    return [
+      ...createText(stat.padStart(2, " "), color),
+      getCountableSprite(counter),
+    ];
+
+  if (display === "max") return createText(stat.padEnd(2, " "), color);
+
+  return [...createText(stat, color), getCountableSprite(counter)];
 };
 
 export const getMaxCounter = (counter: keyof Countable) =>
@@ -314,14 +318,11 @@ export const pause: Sprite = {
   name: "Pause",
   layers: [
     { char: "■", color: colors.white },
-    { char: "║", color: colors.black },
+    { char: "|", color: colors.black },
   ],
 };
 
 export const resume: Sprite = {
   name: "Resume",
-  layers: [
-    { char: ">", color: colors.white },
-    { char: "»", color: colors.white },
-  ],
+  layers: [{ char: "»", color: colors.white }],
 };

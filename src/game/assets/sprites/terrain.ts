@@ -133,6 +133,7 @@ export const tombstone: Sprite = {
     { char: "!", color: colors.black },
     { char: "\u0115", color: colors.grey },
     { char: "\u011c", color: colors.grey },
+    { char: "\u0106", color: colors.grey },
     { char: "Ω", color: colors.grey },
   ],
 };

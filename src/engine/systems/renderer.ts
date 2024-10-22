@@ -3,8 +3,8 @@ import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { Animatable, ANIMATABLE } from "../components/animatable";
 import { EQUIPPABLE } from "../components/equippable";
+import { Sequencable, SEQUENCABLE } from "../components/sequencable";
 
 export const rerenderEntity = (world: World, entity: Entity) => {
   entity[RENDERABLE].generation += 1;
@@ -14,29 +14,35 @@ export const getEntityGeneration = (world: World, entity: Entity) => {
   const renderableGeneration = entity[RENDERABLE].generation;
   const movable = entity[MOVABLE];
   const movableGeneration = movable
-    ? world.getEntityById(movable.reference)[RENDERABLE].generation
+    ? world.assertByIdAndComponents(movable.reference, [RENDERABLE])[RENDERABLE]
+        .generation
     : 0;
-  const animatable = entity[ANIMATABLE] as Animatable;
-  const animatableGeneration = animatable
-    ? Object.values(animatable.states).reduce(
+  const sequencable = entity[SEQUENCABLE] as Sequencable;
+  const sequencableGeneration = sequencable
+    ? Object.values(sequencable.states).reduce(
         (total, state) =>
-          total + world.getEntityById(state.reference)[RENDERABLE].generation,
+          total +
+          world.assertByIdAndComponents(state.reference, [RENDERABLE])[
+            RENDERABLE
+          ].generation,
         0
       )
     : 0;
 
   const equipmentGenerations: number = entity[EQUIPPABLE]
-    ? Object.values<number>(entity[EQUIPPABLE]).filter(Boolean).reduce(
-        (total, item) =>
-          total + getEntityGeneration(world, world.getEntityById(item)),
-        0
-      )
+    ? Object.values<number>(entity[EQUIPPABLE])
+        .filter(Boolean)
+        .reduce(
+          (total, item) =>
+            total + getEntityGeneration(world, world.assertById(item)),
+          0
+        )
     : 0;
 
   return (
     renderableGeneration +
     movableGeneration +
-    animatableGeneration +
+    sequencableGeneration +
     equipmentGenerations
   );
 };

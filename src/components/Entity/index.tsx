@@ -1,37 +1,30 @@
 import React, { useState } from "react";
 import { useSpring } from "@react-spring/three";
 import { useDimensions } from "../Dimensions";
-import { Position, POSITION } from "../../engine/components/position";
-import { SPRITE, Sprite as SpriteType } from "../../engine/components/sprite";
-import { Light, LIGHT } from "../../engine/components/light";
-import { Movable, MOVABLE } from "../../engine/components/movable";
-import { Renderable, RENDERABLE } from "../../engine/components/renderable";
-import { Fog, FOG } from "../../engine/components/fog";
-import { Swimmable, SWIMMABLE } from "../../engine/components/swimmable";
+import { SPRITE } from "../../engine/components/sprite";
+import { LIGHT } from "../../engine/components/light";
+import { MOVABLE } from "../../engine/components/movable";
+import { FOG } from "../../engine/components/fog";
+import { SWIMMABLE } from "../../engine/components/swimmable";
 import * as colors from "../../game/assets/colors";
 import Animated from "./Animated";
 import CoveredLight from "./CoveredLight";
 import { useWorld } from "../../bindings/hooks";
-import { Player, PLAYER } from "../../engine/components/player";
-import { Npc, NPC } from "../../engine/components/npc";
-import { Attackable, ATTACKABLE } from "../../engine/components/attackable";
+import { ATTACKABLE } from "../../engine/components/attackable";
 import { getSegments, lootHeight, oreHeight, wallHeight } from "./utils";
-import { Melee, MELEE } from "../../engine/components/melee";
-import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
-import { Animatable, ANIMATABLE } from "../../engine/components/animatable";
 import Stack, { Segment } from "./Stack";
-import { Orientable, ORIENTABLE } from "../../engine/components/orientable";
+import { ORIENTABLE } from "../../engine/components/orientable";
 import Box from "./Box";
-import { getParticles } from "../../engine/systems/animate";
-import { Particle, PARTICLE } from "../../engine/components/particle";
+import { PARTICLE } from "../../engine/components/particle";
 import Swimming from "./Swimming";
 import Bar from "./Bar";
 import { LayerProps } from "./Layer";
-import { Inventory, INVENTORY } from "../../engine/components/inventory";
-import { Lootable, LOOTABLE } from "../../engine/components/lootable";
+import { INVENTORY } from "../../engine/components/inventory";
 import { isCollecting, isLootable } from "../../engine/systems/collect";
 import { isTradable } from "../../engine/systems/action";
 import { ITEM } from "../../engine/components/item";
+import { TypedEntity } from "../../engine/entities";
+import { getParticles } from "../../engine/systems/sequence";
 
 function Entity({
   entity,
@@ -39,25 +32,7 @@ function Entity({
   y,
   inRadius,
 }: {
-  entity: {
-    [ANIMATABLE]?: Animatable;
-    [ATTACKABLE]?: Attackable;
-    [EQUIPPABLE]?: Equippable;
-    [FOG]?: Fog;
-    [INVENTORY]?: Inventory;
-    [POSITION]: Position;
-    [SPRITE]: SpriteType;
-    [LIGHT]?: Light;
-    [LOOTABLE]?: Lootable;
-    [MELEE]?: Melee;
-    [MOVABLE]?: Movable;
-    [NPC]?: Npc;
-    [ORIENTABLE]?: Orientable;
-    [PARTICLE]?: Particle;
-    [PLAYER]?: Player;
-    [RENDERABLE]: Renderable;
-    [SWIMMABLE]?: Swimmable;
-  };
+  entity: TypedEntity<"POSITION" | "SPRITE" | "RENDERABLE">;
   generation: number;
   x: number;
   y: number;
@@ -136,7 +111,7 @@ function Entity({
   const lootSegments: Segment[] = [];
   if (hasLoot) {
     for (const itemId of entity[INVENTORY]!.items) {
-      const item = ecs.getEntityById(itemId);
+      const item = ecs.assertByIdAndComponents(itemId, [SPRITE, ITEM]);
       lootSegments.push({
         id: itemId,
         sprite: item[SPRITE],

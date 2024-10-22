@@ -1,7 +1,9 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Player = {};
+export type Player = {
+  ghost: boolean;
+};
 
 export const PLAYER = "PLAYER";
 

@@ -68,10 +68,10 @@ const unregisterEntity = (world: World, entity: Entity) => {
   }
 
   const cell = getCell(world, position);
-
-  const entityId = parseInt(
-    Object.entries(cell).find(([_, cellEntity]) => cellEntity === entity)![0]
-  );
+  
+  const entityId = Object.entries(cell).find(
+    ([_, cellEntity]) => cellEntity === entity
+  )![0];
   delete cell[entityId];
 
   updateWalkable(world, position);
@@ -88,7 +88,7 @@ export const disposeEntity = (
 
   if (INVENTORY in entity) {
     for (const itemId of entity[INVENTORY].items) {
-      const itemEntity = world.getEntityById(itemId);
+      const itemEntity = world.assertById(itemId);
       world.removeEntity(itemEntity, deferredRemoval);
     }
   }
@@ -108,7 +108,7 @@ export const moveEntity = (
 };
 
 export const getCell = (world: World, position: Position) => {
-  const level = world.metadata.gameEntity[LEVEL] as Level;
+  const level = world.metadata.gameEntity[LEVEL];
   const normalizedX = normalize(position.x, level.size);
   const normalizedY = normalize(position.y, level.size);
   return level.map[normalizedX]?.[normalizedY] || {};
@@ -152,6 +152,7 @@ export default function setupMap(world: World) {
     // initally create walkable matrix
     if (level.walkable.length === 0 && addedEntities.count > 0) {
       level.walkable = getWalkableMatrix(world);
+      level.initialized = true;
     }
   };
 

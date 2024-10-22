@@ -1,4 +1,9 @@
-import ECS, { System, World as ECSWorld, Entity, ListenerType } from "ecs";
+import ECS, {
+  System,
+  World as ECSWorld,
+  Entity as ECSEntity,
+  ListenerType,
+} from "ecs";
 import { entities } from ".";
 import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
@@ -10,31 +15,137 @@ import { FOCUSABLE } from "./components/focusable";
 import { TOOLTIP } from "./components/tooltip";
 import { quest as questSprite } from "../game/assets/sprites";
 import { rerenderEntity } from "./systems/renderer";
-import { Animatable, ANIMATABLE } from "./components/animatable";
+import { getSequence } from "./systems/sequence";
+import { Entity, TypedEntity } from "./entities";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
+
+const ECS_DEBUG = false;
 
 export default function createWorld(size: number) {
   const world = ECS.createWorld() as PatchedWorld;
 
   const createEntity = ECS.createEntity.bind(ECS, world);
   const removeEntity = ECS.removeEntity.bind(ECS, world);
-  const getEntity = ECS.getEntity.bind(ECS, world);
-  const getEntityById = ECS.getEntityById.bind(ECS, world);
-  const getEntityId = ECS.getEntityId.bind(ECS, world);
+  const getEntity = <C extends keyof Entity>(componentNames: C[]) =>
+    ECS.getEntity(world, componentNames) as TypedEntity<C> | undefined;
+  const getEntityById = (entityId?: number) => {
+    if (!entityId) return;
 
-  const getEntities = ECS.getEntities.bind(ECS, world) as (
-    componentNames: string[],
+    const entity = ECS.getEntityById(world, entityId) as
+      | TypedEntity
+      | undefined;
+
+    if (!entity) {
+      if (ECS_DEBUG) {
+        const message = `${JSON.stringify(entityId)}: Could not find entity!`;
+        console.trace(Date.now(), message, entity);
+      }
+      return;
+    }
+
+    return entity;
+  };
+  const getEntityId = (entity: ECSEntity) =>
+    ECS.getEntityId(world, entity) as number;
+  const getEntities = <C extends keyof Entity>(
+    componentNames: C[],
     listenerType?: ListenerType,
-    listenerEntities?: { count: number; entries: Record<number, Entity> }
-  ) => Entity[];
+    listenerEntities?: { count: number; entries: Record<number, ECSEntity> }
+  ) =>
+    ECS.getEntities(
+      world,
+      componentNames,
+      listenerType,
+      listenerEntities as unknown as []
+    ) as TypedEntity<C>[];
 
-  const addComponentToEntity = ECS.addComponentToEntity.bind(ECS, world);
-  const removeComponentFromEntity = ECS.removeComponentFromEntity.bind(
-    ECS,
-    world
-  );
+  const getEntityComponents = <C extends keyof Entity>(
+    entity: TypedEntity,
+    componentNames: C[]
+  ) => {
+    for (const componentName of componentNames) {
+      if (!entity[componentName]) {
+        if (ECS_DEBUG) {
+          const message = `${getEntityId(
+            entity
+          )}: Missing component "${componentName}"!`;
+          console.trace(Date.now(), message, entity);
+        }
+        return;
+      }
+    }
+
+    return entity as TypedEntity<C>;
+  };
+
+  const getEntityByIdAndComponents = <C extends keyof Entity>(
+    entityId: number | undefined = undefined,
+    componentNames: C[]
+  ) => {
+    if (!entityId) return;
+
+    const entity = getEntityById(entityId);
+
+    if (!entity) return;
+
+    return getEntityComponents(entity, componentNames);
+  };
+
+  const assertComponents = <C extends keyof Entity>(
+    entity: TypedEntity,
+    componentNames: C[]
+  ) => {
+    for (const componentName of componentNames) {
+      if (!entity[componentName]) {
+        const message = `${getEntityId(
+          entity
+        )}: Missing component "${componentName}"!`;
+        if (ECS_DEBUG) console.info(Date.now(), "ASSERT", message, entity);
+        throw new Error(`Assertion failed for entity with ID ${message}`);
+      }
+    }
+
+    return entity as TypedEntity<C>;
+  };
+
+  const assertById = (entityId: number) => {
+    const entity = getEntityById(entityId);
+
+    if (!entity) {
+      const message = `${JSON.stringify(entityId)}: Could not find entity!`;
+      if (ECS_DEBUG) console.info(Date.now(), "ASSERT", message, entity);
+      throw new Error(`Assertion failed for entity with ID ${message}`);
+    }
+
+    return entity;
+  };
+
+  const assertByIdAndComponents = <C extends keyof Entity>(
+    entityId: number | undefined = undefined,
+    componentNames: C[]
+  ) => {
+    const entity = getEntityById(entityId);
+
+    if (!entity) {
+      const message = `${JSON.stringify(entityId)}: Could not find entity!`;
+      if (ECS_DEBUG) console.info(Date.now(), "ASSERT", message, entity);
+      throw new Error(`Assertion failed for entity with ID ${message}`);
+    }
+
+    return assertComponents(entity, componentNames);
+  };
+
+  const addComponentToEntity = <C extends keyof Entity>(
+    entity: ECSEntity,
+    componentName: C,
+    componentData: Entity[C]
+  ) => ECS.addComponentToEntity(world, entity, componentName, componentData);
+  const removeComponentFromEntity = <C extends keyof Entity>(
+    entity: TypedEntity<C>,
+    componentName: C
+  ) => ECS.removeComponentFromEntity(world, entity, componentName);
 
   // pass patched world to systems
   const addSystem: (system: (world: World) => System) => void = (system) =>
@@ -44,35 +155,55 @@ export default function createWorld(size: number) {
   const cleanup = ECS.cleanup.bind(ECS, world);
 
   // util methods to avoid calling ECS directly
-  const offerQuest = (entity: Entity, name: Quest['name']) => {
+  const offerQuest = (
+    entity: ECSEntity,
+    name: Quest["name"],
+    retry: boolean = true
+  ) => {
     if (entity[QUEST]) {
       entity[QUEST].name = name;
       entity[QUEST].available = true;
     } else {
-      addComponentToEntity(entity, QUEST, { name, available: true });
+      addComponentToEntity(entity, QUEST, { name, available: true, retry });
     }
     entity[TOOLTIP].idle = questSprite;
   };
 
-  const acceptQuest = (entity: Entity) => {
+  const acceptQuest = (entity: ECSEntity) => {
     entity[QUEST].available = false;
     entity[TOOLTIP].idle = undefined;
   };
 
-  const abortQuest = (entity: Entity) => {
-    const activeQuest = (entity[ANIMATABLE] as Animatable)?.states.quest;
+  const abortQuest = (entity: TypedEntity) => {
+    const activeQuest = getSequence(ecs, entity, "quest");
 
     if (!activeQuest) return;
 
-    const giverEntity = ecs.getEntityById(activeQuest.args.giver);
+    const giverEntity = getEntityById(activeQuest.args.giver);
 
-    if (!giverEntity?.[QUEST] || giverEntity[QUEST].name !== activeQuest.name) return;
+    if (
+      !giverEntity?.[QUEST]?.retry ||
+      giverEntity[QUEST].name !== activeQuest.name
+    )
+      return;
 
-    offerQuest(giverEntity, activeQuest.name as Quest['name'])
+    offerQuest(giverEntity, activeQuest.name as Quest["name"]);
   };
 
-  const setIdentifier = (entity: Entity, identifier: string) => {
+  const setIdentifier = (entity: TypedEntity, identifier: string) => {
     addComponentToEntity(entity, IDENTIFIABLE, { name: identifier });
+  };
+
+  const assertIdentifier = (identifier: string) => {
+    const entity = getIdentifier(identifier);
+
+    if (!entity) {
+      const message = `${JSON.stringify(identifier)}: Could not find entity!`;
+      if (ECS_DEBUG) console.info(Date.now(), "ASSERT", message, entity);
+      throw new Error(`Assertion failed for entity with identifier ${message}`);
+    }
+
+    return entity;
   };
 
   const getIdentifier = (identifier: string) =>
@@ -80,10 +211,19 @@ export default function createWorld(size: number) {
       (entity) => entity[IDENTIFIABLE].name === identifier
     );
 
-  const setFocus = (entity?: Entity) => {
+  const getIdentifierAndComponents = <C extends keyof Entity>(
+    identifier: string,
+    componentNames: C[]
+  ) => {
+    const entity = getIdentifier(identifier);
+    if (!entity) return;
+    return getEntityComponents(entity, componentNames);
+  };
+
+  const setFocus = (entity?: TypedEntity) => {
     const entityId = entity && getEntityId(entity);
-    const focusEntity = getIdentifier("focus");
-    const compassEntity = getIdentifier("compass");
+    const focusEntity = getIdentifierAndComponents("focus", ["FOCUSABLE"]);
+    const compassEntity = getIdentifierAndComponents("compass", ["TRACKABLE"]);
 
     if (!focusEntity || !compassEntity) return;
 
@@ -107,24 +247,31 @@ export default function createWorld(size: number) {
     update,
     cleanup,
 
+    getEntityByIdAndComponents,
+    assertById,
+    assertComponents,
+    assertByIdAndComponents,
+
     offerQuest,
     acceptQuest,
     abortQuest,
     setFocus,
 
     getIdentifier,
+    assertIdentifier,
+    getIdentifierAndComponents,
     setIdentifier,
 
     metadata: {
-      gameEntity: {} as Entity,
+      gameEntity: {} as TypedEntity<"LEVEL" | "RENDERABLE" | "REFERENCE">,
       listeners: {} as Record<number, () => void>,
-      animationEntity: {} as Entity,
+      sequenceEntity: {} as TypedEntity<"RENDERABLE" | "REFERENCE">,
     },
   };
 
   // create global render counter and reference frame
   ecs.metadata.gameEntity = entities.createGame(ecs, {
-    [LEVEL]: { map: [], size, walkable: [] },
+    [LEVEL]: { map: {}, size, walkable: [], initialized: false },
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
       tick: 350,
@@ -135,7 +282,7 @@ export default function createWorld(size: number) {
   });
 
   // to keep track of last generations of removed reference frame
-  ecs.metadata.animationEntity = entities.createFrame(ecs, {
+  ecs.metadata.sequenceEntity = entities.createFrame(ecs, {
     [RENDERABLE]: { generation: 0 },
     [REFERENCE]: {
       tick: -1,

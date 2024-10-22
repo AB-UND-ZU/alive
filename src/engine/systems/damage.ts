@@ -9,15 +9,16 @@ import { MELEE } from "../components/melee";
 import { getCell } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
-import { entities } from "..";
 import { ITEM } from "../components/item";
-import { Animatable, ANIMATABLE } from "../components/animatable";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { COUNTABLE } from "../components/countable";
+import { isGhost } from "./fate";
+import { createSequence } from "./sequence";
+import { MeleeSequence } from "../components/sequencable";
 
 export const isDead = (world: World, entity: Entity) =>
-  ATTACKABLE in entity && entity[COUNTABLE].hp <= 0;
+  (ATTACKABLE in entity && entity[COUNTABLE].hp <= 0) || isGhost(world, entity);
 
 export const isEnemy = (world: World, entity: Entity) =>
   entity[ATTACKABLE]?.enemy;
@@ -52,9 +53,10 @@ export default function setupDamage(world: World) {
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);
-      const entityReference = world.getEntityById(entity[MOVABLE].reference)[
-        RENDERABLE
-      ].generation;
+      const entityReference = world.assertByIdAndComponents(
+        entity[MOVABLE].reference,
+        [RENDERABLE]
+      )[RENDERABLE].generation;
 
       // skip if reference frame is unchanged
       if (entityReferences[entityId] === entityReference) continue;
@@ -91,32 +93,21 @@ export default function setupDamage(world: World) {
       if (isDead(world, targetEntity)) continue;
 
       // handle attacking
-      const sword = world.getEntityById(entity[EQUIPPABLE].melee);
+      const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].melee, [
+        ITEM,
+      ]);
       const damage = sword[ITEM].amount;
       targetEntity[COUNTABLE].hp = Math.max(
         0,
         targetEntity[COUNTABLE].hp - damage
       );
-
-      if (entity[ANIMATABLE]) {
-        const animationEntity = entities.createFrame(world, {
-          [REFERENCE]: {
-            tick: -1,
-            delta: 0,
-            suspended: false,
-            suspensionCounter: -1,
-          },
-          [RENDERABLE]: { generation: 1 },
-        });
-
-        (entity[ANIMATABLE] as Animatable).states.melee = {
-          name: "swordAttack",
-          reference: world.getEntityId(animationEntity),
-          elapsed: 0,
-          args: { facing: targetOrientation, damage },
-          particles: entity[ANIMATABLE].states.melee?.particles || {},
-        };
-      }
+      createSequence<"melee", MeleeSequence>(
+        world,
+        entity,
+        "melee",
+        "swordAttack",
+        { facing: targetOrientation, damage }
+      );
 
       rerenderEntity(world, targetEntity);
     }

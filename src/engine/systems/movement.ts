@@ -24,10 +24,7 @@ export const isCollision = (world: World, position: Position) =>
     (entity) => COLLIDABLE in (entity as Entity)
   );
 
-export const isWalkable = (
-  world: World,
-  position: Position
-) => {
+export const isWalkable = (world: World, position: Position) => {
   const lockable = getLockable(world, position);
   return (
     !isCollision(world, position) &&
@@ -65,9 +62,10 @@ export default function setupMovement(world: World) {
 
     for (const entity of world.getEntities([POSITION, MOVABLE, RENDERABLE])) {
       const entityId = world.getEntityId(entity);
-      const entityReference = world.getEntityById(entity[MOVABLE].reference)[
-        RENDERABLE
-      ].generation;
+      const entityReference = world.assertByIdAndComponents(
+        entity[MOVABLE].reference,
+        [RENDERABLE]
+      )[RENDERABLE].generation;
 
       // skip if reference frame is unchanged
       if (entityReferences[entityId] === entityReference) continue;

@@ -125,10 +125,18 @@ _Spawn area with intro quest_
 - Damage (number behind target)
 - Collect (flow towards entity)
 
+## Respawn sequence
+
+- Drop system: decay, drop and dispose on hero
+- Fate system: vision on new halo
+- Fate system: perish on new tombstone
+- Controls: wait for halo spawn action
+- Trigger system: spawn on halo
+- Fate system: vision on new hero
+
 ## Tech debt
 
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
-- Animations mutate state and don't really animate things, maybe better called Sequences
 - Compass needle could be an animation and particle
 - Attacking should have a bump movement
 - Colors should be available without star import

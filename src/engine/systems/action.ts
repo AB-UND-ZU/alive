@@ -14,8 +14,10 @@ import { Inventory, INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { Tradable, TRADABLE } from "../components/tradable";
 import { COUNTABLE } from "../components/countable";
-import { isEnemy } from "./damage";
-import { ANIMATABLE } from "../components/animatable";
+import { isDead, isEnemy } from "./damage";
+import { canRevive, getRevivable } from "./fate";
+import { getSequence } from "./sequence";
+import { rerenderEntity } from "./renderer";
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
@@ -23,7 +25,10 @@ export const getQuest = (world: World, position: Position) =>
     | undefined;
 
 export const canAcceptQuest = (world: World, entity: Entity, quest: Entity) =>
-  !isEnemy(world, quest) && !!getAvailableQuest(world, quest);
+  PLAYER in entity &&
+  !isDead(world, entity) &&
+  !isEnemy(world, quest) &&
+  !!getAvailableQuest(world, quest);
 
 export const getAvailableQuest = (world: World, entity: Entity) =>
   entity[QUEST]?.available && entity[QUEST].name;
@@ -40,7 +45,7 @@ export const isUnlocked = (world: World, entity: Entity) =>
   entity[LOCKABLE]?.locked === false;
 
 export const canUnlock = (world: World, entity: Entity, lockable: Entity) =>
-  !lockable[ANIMATABLE].states.unlock &&
+  !getSequence(world, lockable, "unlock") &&
   (!lockable[LOCKABLE].material || !!getUnlockKey(world, entity, lockable));
 
 export const getUnlockKey = (
@@ -49,8 +54,8 @@ export const getUnlockKey = (
   lockable: Entity
 ) => {
   const material = lockable[LOCKABLE].material;
-  const keyId = entity[INVENTORY].items.find((item: Entity) => {
-    const itemEntity = world.getEntityById(item);
+  const keyId = entity[INVENTORY].items.find((item: number) => {
+    const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
     return (
       itemEntity[ITEM].consume === "key" &&
       itemEntity[ITEM].material === material
@@ -59,7 +64,7 @@ export const getUnlockKey = (
   return keyId && world.getEntityById(keyId);
 };
 
-export const getTrade = (world: World, position: Position) =>
+export const getTradable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
     (entity) => TRADABLE in entity
   ) as Entity | undefined;
@@ -75,7 +80,7 @@ export const canTrade = (world: World, entity: Entity, trade: Entity) =>
     // or if item is contained in inventory (and ignore amount)
     else
       return (entity[INVENTORY] as Inventory).items.some((itemId) => {
-        const itemEntity = world.getEntityById(itemId);
+        const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
         const matchesSlot =
           item.slot &&
           itemEntity[ITEM].slot === item.slot &&
@@ -109,6 +114,7 @@ export default function setupAction(world: World) {
       let quest: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
+      let spawn: Entity | undefined = undefined;
 
       // check any adjacent actions
       for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
@@ -117,30 +123,59 @@ export default function setupAction(world: World) {
           const targetPosition = add(entity[POSITION], delta);
           const questEntity = getQuest(world, targetPosition);
           const lockableEntity = getLockable(world, targetPosition);
-          const tradeEntity = getTrade(world, targetPosition);
+          const tradeEntity = getTradable(world, targetPosition);
+          const spawnEntity = getRevivable(world, targetPosition);
 
           // only player can accept quests
           if (
             !quest &&
             questEntity &&
-            PLAYER in entity &&
-            getAvailableQuest(world, questEntity)
+            canAcceptQuest(world, entity, questEntity) &&
+            !isDead(world, entity)
           )
             quest = questEntity;
 
           // only locked doors can be unlocked
-          if (!unlock && lockableEntity && isLocked(world, lockableEntity))
+          if (
+            !unlock &&
+            lockableEntity &&
+            isLocked(world, lockableEntity) &&
+            !isDead(world, entity)
+          )
             unlock = lockableEntity;
 
           // only pending trades can be bought
-          if (!trade && tradeEntity && isTradable(world, tradeEntity))
+          if (
+            !trade &&
+            tradeEntity &&
+            isTradable(world, tradeEntity) &&
+            !isDead(world, entity)
+          )
             trade = tradeEntity;
+
+          // tombstones can revive player
+          if (!spawn && spawnEntity && canRevive(world, spawnEntity, entity))
+            spawn = spawnEntity;
         }
       }
 
-      entity[ACTIONABLE].quest = quest && world.getEntityId(quest);
-      entity[ACTIONABLE].unlock = unlock && world.getEntityId(unlock);
-      entity[ACTIONABLE].trade = trade && world.getEntityId(trade);
+      const questId = quest && world.getEntityId(quest);
+      const unlockId = unlock && world.getEntityId(unlock);
+      const tradeId = trade && world.getEntityId(trade);
+      const spawnId = spawn && world.getEntityId(spawn);
+
+      if (
+        entity[ACTIONABLE].quest !== questId ||
+        entity[ACTIONABLE].unlock !== unlockId ||
+        entity[ACTIONABLE].trade !== tradeId ||
+        entity[ACTIONABLE].spawn !== spawnId
+      ) {
+        entity[ACTIONABLE].quest = questId;
+        entity[ACTIONABLE].unlock = unlockId;
+        entity[ACTIONABLE].trade = tradeId;
+        entity[ACTIONABLE].spawn = spawnId;
+        rerenderEntity(world, entity);
+      }
     }
   };
 

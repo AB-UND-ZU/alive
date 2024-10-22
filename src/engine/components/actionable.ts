@@ -1,12 +1,11 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
+export const actions = ['spawn', 'unlock', 'trade', 'quest'] as const;
+
 export type Actionable = {
-  quest?: number;
-  unlock?: number;
-  trade?: number;
   triggered: boolean;
-};
+} & Partial<Record<typeof actions[number], number | undefined>>;
 
 export const ACTIONABLE = "ACTIONABLE";
 

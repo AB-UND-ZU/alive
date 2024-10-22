@@ -1,4 +1,3 @@
-import { Entity } from "ecs";
 import {
   createContext,
   useCallback,
@@ -17,6 +16,7 @@ import { VIEWABLE } from "../engine/components/viewable";
 import { signedDistance } from "../game/math/std";
 import { LEVEL } from "../engine/components/level";
 import { LIGHT } from "../engine/components/light";
+import { Entity, TypedEntity } from "../engine/entities";
 
 export type WorldContext = {
   ecs: WorldType | null;
@@ -53,13 +53,13 @@ const useId = () => {
   return id.current;
 };
 
-export const useRenderable = (componentNames: string[]) => {
+export const useRenderable = <C extends keyof Entity>(componentNames: C[]) => {
   const { ecs } = useWorld();
   const id = useId();
   const pendingGeneration = useRef(-1);
   const setGeneration = useState(-1)[1];
 
-  const [entities, setEntities] = useState<Entity[]>([]);
+  const [entities, setEntities] = useState<TypedEntity<"RENDERABLE" | C>[]>([]);
   const listener = useCallback(() => {
     if (!ecs) return null;
 
@@ -109,7 +109,7 @@ export const useGame = () => {
 };
 
 export const useViewable = () => {
-  const viewables = useRenderable([VIEWABLE]);
+  const viewables = useRenderable([VIEWABLE, POSITION]);
 
   return viewables.find((entity) => entity[VIEWABLE].active);
 };

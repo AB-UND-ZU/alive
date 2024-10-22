@@ -24,12 +24,12 @@ export default function setupFocus(world: World) {
     referenceGenerations = generation;
 
     // handle focus highlights and trigger on any reference frame changes for simplicity
-    for (const entity of world.getEntities([FOCUSABLE, RENDERABLE])) {
+    for (const entity of world.getEntities([FOCUSABLE, RENDERABLE, POSITION])) {
       let targetId = entity[FOCUSABLE].target;
       let pendingId = entity[FOCUSABLE].pendingTarget;
 
       // focus compass on inital drop
-      const compassEntity = world.getIdentifier("compass");
+      const compassEntity = world.getIdentifierAndComponents("compass", [ITEM]);
       const carrierEntity =
         compassEntity && world.getEntityById(compassEntity[ITEM].carrier);
 
@@ -45,8 +45,10 @@ export default function setupFocus(world: World) {
         pendingId = entity[FOCUSABLE].pendingTarget;
       }
 
-      let targetEntity = world.getEntityById(targetId);
-      const pendingEntity = world.getEntityById(pendingId);
+      let targetEntity = world.getEntityByIdAndComponents(targetId, [POSITION]);
+      const pendingEntity = world.getEntityByIdAndComponents(pendingId, [
+        POSITION,
+      ]);
 
       // skip if no target
       if (!targetId && !pendingId) continue;
@@ -74,8 +76,9 @@ export default function setupFocus(world: World) {
 
       // keep focused position on target
       if (
-        entity[POSITION].x !== targetEntity[POSITION].x ||
-        entity[POSITION].y !== targetEntity[POSITION].y
+        targetEntity &&
+        (entity[POSITION].x !== targetEntity[POSITION].x ||
+          entity[POSITION].y !== targetEntity[POSITION].y)
       ) {
         moveEntity(world, entity, targetEntity[POSITION]);
         rerenderEntity(world, entity);

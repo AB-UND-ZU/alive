@@ -146,7 +146,7 @@ export const getSegments = (
 
 export const createSprite = (world: World, entityId: number) => {
   const layers: Layer[] = [];
-  const entity = world.getEntityById(entityId);
+  const entity = world.assertById(entityId);
   const segments = getSegments(world, entity, {
     isTransparent: false,
     receiveShadow: false,

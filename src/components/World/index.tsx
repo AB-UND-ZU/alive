@@ -10,7 +10,7 @@ export default function World(props: React.PropsWithChildren) {
   const [paused, setPaused] = useState(false);
   const pauseRef = useRef(paused);
   const dimensions = useDimensions();
-
+  
   // generate initial world
   // TODO: find better way to prevent double generation
   const [ecs] = useState(() => {

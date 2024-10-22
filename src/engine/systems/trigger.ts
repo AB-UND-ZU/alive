@@ -6,8 +6,6 @@ import { Entity } from "ecs";
 import { QUEST } from "../components/quest";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
-import { entities } from "..";
-import { Animatable, ANIMATABLE } from "../components/animatable";
 import { TOOLTIP } from "../components/tooltip";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
@@ -28,13 +26,17 @@ import { Tradable, TRADABLE } from "../components/tradable";
 import { COUNTABLE } from "../components/countable";
 import { getMaterialSprite } from "../../components/Entity/utils";
 import { collectItem } from "./collect";
-import { START_STEP } from "../../game/assets/utils";
+import { questSequence } from "../../game/assets/utils";
+import { canRevive, isRevivable, reviveEntity } from "./fate";
+import { UnlockSequence } from "../components/sequencable";
+import { createSequence } from "./sequence";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
   (world.getEntityById(entity[ACTIONABLE].quest) ||
     world.getEntityById(entity[ACTIONABLE].unlock) ||
-    world.getEntityById(entity[ACTIONABLE].trade));
+    world.getEntityById(entity[ACTIONABLE].trade) ||
+    world.getEntityById(entity[ACTIONABLE].spawn));
 
 export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
   // open doors without locks
@@ -48,23 +50,16 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
 
   // start animation
   removeFromInventory(world, entity, keyEntity);
-  const animationEntity = entities.createFrame(world, {
-    [REFERENCE]: {
-      tick: -1,
-      delta: 0,
-      suspended: false,
-      suspensionCounter: -1,
-    },
-    [RENDERABLE]: { generation: 1 },
-  });
-
-  (lockable[ANIMATABLE] as Animatable).states.unlock = {
-    name: "doorUnlock",
-    reference: world.getEntityId(animationEntity),
-    elapsed: 0,
-    args: { origin: entity[POSITION], itemId: world.getEntityId(keyEntity) },
-    particles: {},
-  };
+  createSequence<"unlock", UnlockSequence>(
+    world,
+    lockable,
+    "unlock",
+    "doorUnlock",
+    {
+      origin: entity[POSITION],
+      itemId: world.getEntityId(keyEntity),
+    }
+  );
 
   rerenderEntity(world, lockable);
 };
@@ -104,6 +99,7 @@ export const removeFromInventory = (
   }
 
   entity[INVENTORY].items.splice(itemIndex, 1);
+  rerenderEntity(world, entity);
 };
 
 export const performTrade = (world: World, entity: Entity, trade: Entity) => {
@@ -113,7 +109,7 @@ export const performTrade = (world: World, entity: Entity, trade: Entity) => {
       entity[COUNTABLE][activationItem.counter] -= activationItem.amount;
     } else {
       const tradedId = (entity[INVENTORY] as Inventory).items.find((itemId) => {
-        const itemEntity = world.getEntityById(itemId);
+        const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
         const matchesSlot =
           activationItem.slot &&
           itemEntity[ITEM].slot === activationItem.slot &&
@@ -126,7 +122,7 @@ export const performTrade = (world: World, entity: Entity, trade: Entity) => {
       });
 
       if (tradedId) {
-        const tradedEntity = world.getEntityById(tradedId);
+        const tradedEntity = world.assertById(tradedId);
         removeFromInventory(world, entity, tradedEntity);
         disposeEntity(world, tradedEntity);
       } else {
@@ -146,6 +142,20 @@ export const performTrade = (world: World, entity: Entity, trade: Entity) => {
   trade[TOOLTIP].idle = undefined;
 
   rerenderEntity(world, trade);
+};
+
+export const acceptQuest = (world: World, entity: Entity, target: Entity) => {
+  // abort any existing quests
+  world.abortQuest(entity);
+
+  // accept quest and remove from target
+  questSequence(
+    world,
+    entity,
+    target[QUEST].name,
+    world.assertById(entity[ACTIONABLE].quest)
+  );
+  world.acceptQuest(target);
 };
 
 export default function setupTrigger(world: World) {
@@ -168,9 +178,10 @@ export default function setupTrigger(world: World) {
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);
-      const entityReference = world.getEntityById(entity[MOVABLE].reference)[
-        RENDERABLE
-      ].generation;
+      const entityReference = world.assertByIdAndComponents(
+        entity[MOVABLE].reference,
+        [RENDERABLE]
+      )[RENDERABLE].generation;
 
       // skip if reference frame is unchanged
       if (entityReferences[entityId] === entityReference) continue;
@@ -182,42 +193,16 @@ export default function setupTrigger(world: World) {
 
       entity[ACTIONABLE].triggered = false;
       entity[MOVABLE].lastInteraction = entityReference;
+
       const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
       const tradeEntity = world.getEntityById(entity[ACTIONABLE].trade);
+      const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
 
       if (questEntity && canAcceptQuest(world, entity, questEntity)) {
-        // create reference frame for quest
-        const animationEntity = entities.createFrame(world, {
-          [REFERENCE]: {
-            tick: -1,
-            delta: 0,
-            suspended: false,
-            suspensionCounter: -1,
-          },
-          [RENDERABLE]: { generation: 1 },
-        });
-
-        // abort any existing quests
-        world.abortQuest(entity);
-
-        // accept quest and remove from target
-        (entity[ANIMATABLE] as Animatable).states.quest = {
-          name: questEntity[QUEST].name,
-          reference: world.getEntityId(animationEntity),
-          elapsed: 0,
-          args: {
-            step: START_STEP,
-            memory: {},
-            giver: entity[ACTIONABLE].quest,
-          },
-          particles: {},
-        };
-        world.acceptQuest(questEntity);
+        acceptQuest(world, entity, questEntity);
       } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
-        // unlock door and remove key if used
         unlockDoor(world, entity, unlockEntity);
-        rerenderEntity(world, entity);
       } else if (
         tradeEntity &&
         isTradable(world, tradeEntity) &&
@@ -225,6 +210,12 @@ export default function setupTrigger(world: World) {
       ) {
         performTrade(world, entity, tradeEntity);
         collectItem(world, entity, tradeEntity);
+      } else if (
+        spawnEntity &&
+        isRevivable(world, spawnEntity) &&
+        canRevive(world, spawnEntity, entity)
+      ) {
+        reviveEntity(world, spawnEntity, entity);
       }
     }
   };

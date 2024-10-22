@@ -147,3 +147,14 @@ export const hammer: Sprite = {
     { char: "\u0115", color: colors.grey },
   ],
 };
+
+export const cloak: Sprite = {
+  name: "Cloak",
+  layers: [
+    { char: "\u011d", color: colors.silver },
+    { char: "▀", color: colors.black },
+    { char: "-", color: colors.black },
+    { char: "^", color: colors.grey },
+    { char: "Ω", color: colors.grey },
+  ],
+};

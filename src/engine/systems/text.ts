@@ -2,15 +2,18 @@ import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
 import { RENDERABLE } from "../components/renderable";
-import { add, normalize, signedDistance } from "../../game/math/std";
+import {
+  add,
+  getDistance,
+  normalize,
+  signedDistance,
+} from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { REFERENCE } from "../components/reference";
 import { getCell } from "./map";
 import { rerenderEntity } from "./renderer";
 import { TOOLTIP } from "../components/tooltip";
 import { Entity } from "ecs";
-import { ANIMATABLE } from "../components/animatable";
-import { entities } from "..";
 import { createTooltip } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
 import { getLootable, isEmpty } from "./collect";
@@ -18,6 +21,11 @@ import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { isDead } from "./damage";
 import { isUnlocked } from "./action";
+import { DialogSequence, SEQUENCABLE } from "../components/sequencable";
+import { createSequence, getSequence } from "./sequence";
+import { TypedEntity } from "../entities";
+import { LIGHT } from "../components/light";
+import { SPAWNABLE } from "../components/spawnable";
 
 export const getTooltip = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -28,10 +36,10 @@ export default function setupText(world: World) {
   let referencesGeneration = -1;
 
   const onUpdate = (delta: number) => {
-    const hero = world.getEntity([PLAYER]);
+    const hero = world.getEntity([PLAYER, POSITION, LIGHT, SPAWNABLE]);
     const size = world.metadata.gameEntity[LEVEL].size;
 
-    if (world.metadata.gameEntity[LEVEL].map.length === 0) return;
+    if (!world.metadata.gameEntity[LEVEL].initialized) return;
 
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
@@ -41,10 +49,12 @@ export default function setupText(world: World) {
 
     referencesGeneration = generation;
 
-    const activeTooltips: Entity[] = [];
+    const activeTooltips: TypedEntity<
+      "TOOLTIP" | "POSITION" | "SPRITE" | "SEQUENCABLE"
+    >[] = [];
 
     // check any adjacent tooltips
-    if (hero) {
+    if (hero && !isDead(world, hero)) {
       for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
         for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
           const delta = { x: offsetX, y: offsetY };
@@ -52,20 +62,49 @@ export default function setupText(world: World) {
           const tooltipEntity = getTooltip(world, targetPosition);
 
           // handle overrides in next step
-          if (!tooltipEntity?.[ANIMATABLE] || tooltipEntity?.[TOOLTIP].override)
+          if (
+            !tooltipEntity?.[SEQUENCABLE] ||
+            tooltipEntity?.[TOOLTIP].override
+          )
             continue;
 
-          activeTooltips.push(tooltipEntity);
+          activeTooltips.push(
+            world.assertComponents(tooltipEntity, [
+              POSITION,
+              SPRITE,
+              TOOLTIP,
+              SEQUENCABLE,
+            ])
+          );
         }
       }
     }
 
     // add global tooltips
     let pendingTooltip: Entity | undefined = undefined;
-    for (const tooltipEntity of world.getEntities([TOOLTIP, ANIMATABLE])) {
+    for (const tooltipEntity of world.getEntities([
+      TOOLTIP,
+      SEQUENCABLE,
+      POSITION,
+    ])) {
+      const inRange =
+        !hero ||
+        getDistance(hero[POSITION], tooltipEntity[POSITION], size) <
+          hero[SPAWNABLE].light.visibility + 2;
+
+      if (!inRange) continue;
+
+      const delta = hero && {
+        x: signedDistance(hero[POSITION].x, tooltipEntity[POSITION].x, size),
+        y: signedDistance(hero[POSITION].y, tooltipEntity[POSITION].y, size),
+      };
+
+      const isAdjacent =
+        delta && Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
+
       const isVisible = tooltipEntity[TOOLTIP].override === "visible";
       const hasIdle = !!tooltipEntity[TOOLTIP].idle;
-      const isIdle = !!tooltipEntity[ANIMATABLE].states.dialog?.args.isIdle;
+      const isIdle = !!tooltipEntity[SEQUENCABLE].states.dialog?.args.isIdle;
       const isAdded = activeTooltips.some(
         (tooltip) => tooltip === tooltipEntity
       );
@@ -73,34 +112,49 @@ export default function setupText(world: World) {
       // check pending tooltip
       const lootable = getLootable(world, tooltipEntity[POSITION]);
       const item =
-        lootable && world.getEntityById(lootable[INVENTORY].items.slice(-1)[0]);
+        lootable &&
+        world.assertByIdAndComponents(lootable[INVENTORY].items.slice(-1)[0], [
+          ITEM,
+        ]);
       const isCounter = !!item?.[ITEM].counter;
 
-      const isPending = !!tooltipEntity[ANIMATABLE].states.dialog;
+      const isPending = !!getSequence(world, tooltipEntity, "dialog");
 
       if (!pendingTooltip && isPending && !isCounter && !isVisible && !isIdle)
         pendingTooltip = tooltipEntity;
 
-      if (isAdded || !(isVisible || hasIdle)) continue;
+      if (isAdded || !(isVisible || hasIdle) || (isAdjacent && hasIdle))
+        continue;
 
-      activeTooltips.push(tooltipEntity);
+      activeTooltips.push(
+        world.assertComponents(tooltipEntity, [
+          POSITION,
+          SPRITE,
+          TOOLTIP,
+          SEQUENCABLE,
+        ])
+      );
     }
 
     // create or update tooltips
     const updatedTooltips = activeTooltips.filter((tooltipEntity) => {
-      const delta = hero && {
-        x: signedDistance(hero[POSITION].x, tooltipEntity[POSITION].x, size),
-        y: signedDistance(hero[POSITION].y, tooltipEntity[POSITION].y, size),
-      };
+      const delta = hero &&
+        !isDead(world, hero) && {
+          x: signedDistance(hero[POSITION].x, tooltipEntity[POSITION].x, size),
+          y: signedDistance(hero[POSITION].y, tooltipEntity[POSITION].y, size),
+        };
       const isAdjacent =
         delta && Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
       const lootable = getLootable(world, tooltipEntity[POSITION]);
       const item =
-        lootable && world.getEntityById(lootable[INVENTORY].items.slice(-1)[0]);
+        lootable &&
+        world.assertByIdAndComponents(lootable[INVENTORY].items.slice(-1)[0], [
+          ITEM,
+        ]);
       const isCounter = !!item?.[ITEM].counter;
 
-      const isIdle = !!tooltipEntity[ANIMATABLE].states.dialog?.args.isIdle;
-      const isPending = !!tooltipEntity[ANIMATABLE].states.dialog;
+      const isIdle = getSequence(world, tooltipEntity, "dialog")?.args.isIdle;
+      const isPending = !!getSequence(world, tooltipEntity, "dialog");
       const isChanged = isIdle && isAdjacent;
       const needsUpdate =
         !isPending || (!tooltipEntity[TOOLTIP].changed && isChanged);
@@ -129,13 +183,15 @@ export default function setupText(world: World) {
       const dialog = dialogs[tooltipEntity[TOOLTIP].nextDialog] || dialogs[0];
       const spriteTooltip = createTooltip(
         (lootable &&
-          world.getEntityById(lootable[INVENTORY].items.slice(-1)[0])[SPRITE]
-            .name) ||
+          world.assertByIdAndComponents(
+            lootable[INVENTORY].items.slice(-1)[0],
+            [SPRITE]
+          )[SPRITE].name) ||
           tooltipEntity[SPRITE].name
       );
-      const text = isIdle ? [idle] : dialog || spriteTooltip;
+      const text = isIdle && idle ? [idle] : dialog || spriteTooltip;
 
-      if (tooltipEntity[ANIMATABLE].states.dialog) {
+      if (getSequence(world, tooltipEntity, "dialog")) {
         // let idle dialog disappear
         tooltipEntity[TOOLTIP].changed = true;
       } else {
@@ -148,33 +204,28 @@ export default function setupText(world: World) {
         }
 
         // create tooltip animation
-        const animationEntity = entities.createFrame(world, {
-          [REFERENCE]: {
-            tick: -1,
-            delta: 0,
-            suspended: false,
-            suspensionCounter: -1,
-          },
-          [RENDERABLE]: { generation: 1 },
-        });
-        tooltipEntity[ANIMATABLE].states.dialog = {
-          name: "dialogText",
-          reference: world.getEntityId(animationEntity),
-          elapsed: 0,
-          args: {
+        createSequence<"dialog", DialogSequence>(
+          world,
+          tooltipEntity,
+          "dialog",
+          "dialogText",
+          {
             text,
             timestamp: 0,
             active: true,
             isDialog: !!dialog,
             isIdle,
             after:
-              pendingTooltip && !isIdle
+              pendingTooltip &&
+              !isIdle &&
+              !isVisible &&
+              pendingTooltip !== tooltipEntity
                 ? world.getEntityId(pendingTooltip)
                 : undefined,
             lengthOffset: 0,
-          },
-          particles: {},
-        };
+          }
+        );
+
         pendingTooltip = tooltipEntity;
       }
 

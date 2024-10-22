@@ -41,7 +41,14 @@ export default function setupAi(world: World) {
 
     lastGeneration = generation;
 
-    for (const entity of world.getEntities([POSITION, MOVABLE, BEHAVIOUR])) {
+    for (const entity of world.getEntities([
+      POSITION,
+      MOVABLE,
+      BEHAVIOUR,
+      FOG,
+      TOOLTIP,
+      ATTACKABLE,
+    ])) {
       const patterns = (entity[BEHAVIOUR] as Behaviour).patterns;
       const entityId = world.getEntityId(entity);
 
@@ -63,7 +70,7 @@ export default function setupAi(world: World) {
           pattern.memory.ticks -= 1;
           break;
         } else if (pattern.name === "triangle") {
-          const facing = (entity[ORIENTABLE].facing ||
+          const facing = (entity[ORIENTABLE]?.facing ||
             orientations[random(0, orientations.length - 1)]) as Orientation;
 
           entity[MOVABLE].orientations = [facing];
@@ -107,13 +114,15 @@ export default function setupAi(world: World) {
                 ];
             }
 
-            entity[ORIENTABLE].facing = newFacing;
+            if (entity[ORIENTABLE]) entity[ORIENTABLE].facing = newFacing;
             entity[MOVABLE].orientations = [];
             rerenderEntity(world, entity);
           }
           break;
         } else if (pattern.name === "eye") {
-          const heroEntity = world.getIdentifier("hero");
+          const heroEntity = world.getIdentifierAndComponents("hero", [
+            POSITION,
+          ]);
           const size = world.metadata.gameEntity[LEVEL].size;
           const distance = heroEntity
             ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.69)
@@ -152,7 +161,8 @@ export default function setupAi(world: World) {
           const memory = pattern.memory;
 
           for (const [key, value] of Object.entries(memory)) {
-            entity[TOOLTIP][key] = value;
+            // TODO: find a better way to infer types
+            (entity[TOOLTIP] as any)[key] = value;
           }
 
           patterns.splice(patterns.indexOf(pattern), 1);
@@ -160,7 +170,7 @@ export default function setupAi(world: World) {
           const memory = pattern.memory;
 
           // lock door
-          const targetEntity = world.getEntityById(memory.target);
+          const targetEntity = world.assertById(memory.target);
           lockDoor(world, targetEntity);
 
           patterns.splice(patterns.indexOf(pattern), 1);
@@ -256,6 +266,7 @@ export default function setupAi(world: World) {
           const placementPattern = ["drop", "sell"].includes(pattern.name);
           const memory = pattern.memory;
           const itemEntity = memory.item && world.getEntityById(memory.item);
+
           const targetEntity =
             pattern.name === "collect"
               ? itemEntity && world.getEntityById(itemEntity[ITEM].carrier)
@@ -350,7 +361,7 @@ export default function setupAi(world: World) {
               entity[MOVABLE].orientations = [targetOrientation];
             }
 
-            if (hasArrived && pattern.name === "unlock") {
+            if (hasArrived && pattern.name === "unlock" && entity[ACTIONABLE]) {
               entity[ACTIONABLE].triggered = true;
             } else if (hasArrived && placementPattern) {
               if (pattern.name === "drop") {
