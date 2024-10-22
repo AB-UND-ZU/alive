@@ -69,15 +69,19 @@ export default function setupNeedle(world: World) {
 
       entityReferences[entityId] = entityReference;
 
-      const targetOrientation = relativeOrientations(
+      const currentOrientation = entity[ORIENTABLE].facing;
+      const targetOrientations = relativeOrientations(
         world,
         originEntity[POSITION],
         targetEntity[POSITION]
-      )[0];
+      );
 
       // reorient needle
-      if (entity[ORIENTABLE].facing !== targetOrientation) {
-        entity[ORIENTABLE].facing = targetOrientation;
+      if (
+        (targetOrientations.length === 1 || !currentOrientation) &&
+        currentOrientation !== targetOrientations[0]
+      ) {
+        entity[ORIENTABLE].facing = targetOrientations[0];
         rerenderEntity(world, entity);
         rerenderEntity(world, originEntity);
       }

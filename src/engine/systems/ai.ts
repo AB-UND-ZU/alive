@@ -248,7 +248,8 @@ export default function setupAi(world: World) {
             const targetOrientation = relativeOrientations(
               world,
               entity[POSITION],
-              attemptedPosition
+              attemptedPosition,
+              1
             )[0];
             entity[MOVABLE].orientations = targetOrientation
               ? [targetOrientation]
@@ -356,7 +357,8 @@ export default function setupAi(world: World) {
               const targetOrientation = relativeOrientations(
                 world,
                 entity[POSITION],
-                attemptedPosition
+                attemptedPosition,
+                1
               )[0];
               entity[MOVABLE].orientations = [targetOrientation];
             }

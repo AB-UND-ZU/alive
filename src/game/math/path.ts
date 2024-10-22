@@ -7,6 +7,7 @@ import { matrixFactory } from "./matrix";
 import { isWalkable } from "../../engine/systems/movement";
 import { normalize, signedDistance } from "./std";
 import { degreesToOrientations, pointToDegree } from "./tracing";
+import { aspectRatio } from "../../components/Dimensions/sizing";
 
 export const getWalkableMatrix = (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -19,13 +20,14 @@ export const getWalkableMatrix = (world: World) => {
 export const relativeOrientations = (
   world: World,
   origin: Position,
-  target: Position
+  target: Position,
+  ratio: number = aspectRatio
 ) => {
   if (origin.x === target.x && origin.y === target.y) return [];
 
   const size = world.metadata.gameEntity[LEVEL].size;
   const delta = {
-    x: signedDistance(origin.x, target.x, size),
+    x: signedDistance(origin.x, target.x, size) * ratio,
     y: signedDistance(origin.y, target.y, size),
   };
   return degreesToOrientations(pointToDegree(delta));

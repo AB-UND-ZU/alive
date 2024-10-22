@@ -36,7 +36,6 @@ import {
 } from "../../engine/systems/renderer";
 import { openDoor, removeFromInventory } from "../../engine/systems/trigger";
 import * as colors from "./colors";
-import { relativeOrientations } from "../math/path";
 import {
   add,
   distribution,
@@ -809,7 +808,7 @@ export const pointerArrow: Sequence<PointerSequence> = (
 
   const compassEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].compass,
-    [TRACKABLE]
+    [TRACKABLE, ORIENTABLE]
   );
   const targetId = compassEntity?.[TRACKABLE].target;
   const targetEntity = world.getEntityByIdAndComponents(targetId, [POSITION]);
@@ -860,15 +859,8 @@ export const pointerArrow: Sequence<PointerSequence> = (
     state.args.lastOrientation = undefined;
     updated = true;
   } else if (compassEntity && targetEntity && !shouldDisplay) {
-    const orientation = relativeOrientations(
-      world,
-      entity[POSITION],
-      targetEntity[POSITION]
-    )[0];
-    if (
-      !state.args.lastOrientation ||
-      state.args.lastOrientation !== orientation
-    ) {
+    const orientation = compassEntity[ORIENTABLE].facing;
+    if (orientation && state.args.lastOrientation !== orientation) {
       const delta = orientationPoints[orientation];
       if (
         state.args.lastOrientation &&
