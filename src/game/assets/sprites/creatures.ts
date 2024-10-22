@@ -19,23 +19,23 @@ export const villager: Sprite = {
 
 export const triangle: Sprite = {
   name: "Prism",
-  layers: [{ char: "\u010f", color: colors.white }],
+  layers: [{ char: "\u010f", color: colors.silver }],
   facing: {
-    up: [{ char: "\u011d", color: colors.white }],
-    right: [{ char: "\u010f", color: colors.white }],
-    down: [{ char: "\u011e", color: colors.white }],
-    left: [{ char: "\u0110", color: colors.white }],
+    up: [{ char: "\u011d", color: colors.silver }],
+    right: [{ char: "\u010f", color: colors.silver }],
+    down: [{ char: "\u011e", color: colors.silver }],
+    left: [{ char: "\u0110", color: colors.silver }],
   },
 };
 
 export const strongTriangle: Sprite = {
   name: "Prism",
-  layers: [{ char: "\u010f", color: colors.lime }],
+  layers: [{ char: "\u010f", color: colors.yellow }],
   facing: {
-    up: [{ char: "\u011d", color: colors.lime }],
-    right: [{ char: "\u010f", color: colors.lime }],
-    down: [{ char: "\u011e", color: colors.lime }],
-    left: [{ char: "\u0110", color: colors.lime }],
+    up: [{ char: "\u011d", color: colors.yellow }],
+    right: [{ char: "\u010f", color: colors.yellow }],
+    down: [{ char: "\u011e", color: colors.yellow }],
+    left: [{ char: "\u0110", color: colors.yellow }],
   },
 };
 
@@ -63,12 +63,12 @@ export const fireTriangle: Sprite = {
 
 export const eye: Sprite = {
   name: "Eye",
-  layers: [{ char: "0", color: colors.white }],
+  layers: [{ char: "0", color: colors.silver }],
 };
 
 export const strongEye: Sprite = {
   name: "Eye",
-  layers: [{ char: "0", color: colors.lime }],
+  layers: [{ char: "0", color: colors.yellow }],
 };
 
 export const fireEye: Sprite = {

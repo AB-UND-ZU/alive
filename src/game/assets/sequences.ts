@@ -568,7 +568,7 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-const lineSprites = createText("─┐│┘─└│┌", colors.olive);
+const lineSprites = createText("─┐│┘─└│┌", colors.lime);
 
 export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
   const finished = false;

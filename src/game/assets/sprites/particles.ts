@@ -250,9 +250,9 @@ const statSprites: Record<
   { color: string; sprite: Sprite; drop?: Sprite; max?: keyof Countable }
 > = {
   hp: { color: colors.red, sprite: heart, max: "maxHp" },
-  maxHp: { color: colors.grey, sprite: heartUp },
+  maxHp: { color: "#404040", sprite: heartUp },
   mp: { color: colors.blue, sprite: mana, max: "maxMp" },
-  maxMp: { color: colors.grey, sprite: manaUp },
+  maxMp: { color: "#404040", sprite: manaUp },
   xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp },
   gold: { color: colors.yellow, sprite: nonCountable(coin), drop: coin },
   wood: { color: colors.maroon, sprite: wood },
@@ -292,25 +292,25 @@ export const getCountableSprite = (
   (variant === "drop" && statSprites[counter].drop) ||
   statSprites[counter].sprite;
 
-export const quest = createText("!", colors.olive)[0];
+export const quest = createText("!", colors.lime)[0];
 
-export const shop = createText("$", colors.green)[0];
+export const shop = createText("$", colors.lime)[0];
 
 export const rage = createShout("\u0112")[0];
 
-export const sleep1 = createText("z", colors.grey)[0];
-export const sleep2 = createText("Z", colors.grey)[0];
+export const sleep1 = createText("z", colors.white)[0];
+export const sleep2 = createText("Z", colors.white)[0];
 
-export const confused = createText("?", colors.grey)[0];
+export const confused = createText("?", colors.white)[0];
 
 export const pointer: Sprite = {
   name: "arrow_pointer",
   layers: [],
   facing: {
-    up: [{ char: "\u0117", color: colors.silver }],
-    right: [{ char: "\u0119", color: colors.silver }],
-    down: [{ char: "\u0118", color: colors.silver }],
-    left: [{ char: "\u011a", color: colors.silver }],
+    up: [{ char: "\u0117", color: colors.lime }],
+    right: [{ char: "\u0119", color: colors.lime }],
+    down: [{ char: "\u0118", color: colors.lime }],
+    left: [{ char: "\u011a", color: colors.lime }],
   },
 };
 
