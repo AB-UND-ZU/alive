@@ -572,7 +572,7 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  if (state.elapsed > moveTime && entity[VIEWABLE].fraction) {
+  if ((state.elapsed > moveTime && entity[VIEWABLE].fraction) || finished) {
     moveEntity(world, entity, state.args.target);
     entity[VIEWABLE].fraction = undefined;
   }

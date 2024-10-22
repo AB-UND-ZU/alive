@@ -15,7 +15,7 @@ import "./index.css";
 import { COUNTABLE, Countable } from "../../engine/components/countable";
 import { EQUIPPABLE, Equippable } from "../../engine/components/equippable";
 import { repeat } from "../../game/math/std";
-import { isDead } from "../../engine/systems/damage";
+import { isGhost } from "../../engine/systems/fate";
 
 function StatsInner({
   padding,
@@ -101,7 +101,7 @@ export default function Stats() {
       padding={dimensions.padding}
       {...hero?.[COUNTABLE]}
       {...hero?.[EQUIPPABLE]}
-      hidden={!ecs || !hero || isDead(ecs, hero)}
+      hidden={!ecs || !hero || isGhost(ecs, hero)}
     />
   );
 }

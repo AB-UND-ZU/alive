@@ -4,7 +4,7 @@ import { createWorld } from "../../engine";
 import { WorldProvider } from "../../bindings/hooks";
 import { useDimensions } from "../Dimensions";
 import { PLAYER } from "../../engine/components/player";
-import { isDead } from "../../engine/systems/damage";
+import { isGhost } from "../../engine/systems/fate";
 
 export default function World(props: React.PropsWithChildren) {
   const [paused, setPaused] = useState(false);
@@ -25,7 +25,7 @@ export default function World(props: React.PropsWithChildren) {
       const heroEntity = ecs.getEntity([PLAYER]);
       const newPause = typeof action === 'function' ? action(pauseRef.current) : action;
         
-      if (newPause && (!heroEntity || isDead(ecs, heroEntity))) return;
+      if (newPause && (!heroEntity || isGhost(ecs, heroEntity))) return;
 
       setPaused(newPause);
       pauseRef.current = newPause;
