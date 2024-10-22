@@ -181,7 +181,11 @@ export default function setupFate(world: World) {
           [SPRITE]: none,
           [VIEWABLE]: {
             active: entity[VIEWABLE].active,
-            spring: { duration: 200 },
+            spring: {
+              mass: 1,
+              friction: 30,
+              tension: 200,
+            },
           },
         });
         createSequence<"vision", VisionSequence>(

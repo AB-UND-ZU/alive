@@ -5,7 +5,7 @@ export const sign: Sprite = {
   name: "Sign",
   layers: [
     { char: "i", color: colors.maroon },
-    { char: "▀", color: colors.grey },
+    { char: "▀", color: colors.silver },
   ],
 };
 

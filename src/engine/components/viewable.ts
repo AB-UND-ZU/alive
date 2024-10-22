@@ -1,10 +1,12 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { SpringConfig } from "@react-spring/three";
+import { Position } from "./position";
 
 export type Viewable = {
   active: boolean;
   spring?: SpringConfig;
+  fraction?: Position;
 };
 
 export const VIEWABLE = "VIEWABLE";

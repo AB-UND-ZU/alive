@@ -77,6 +77,7 @@ import {
 } from "../../engine/components/sequencable";
 import { getSequence } from "../../engine/systems/sequence";
 import { SOUL } from "../../engine/components/soul";
+import { VIEWABLE } from "../../engine/components/viewable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -543,20 +544,37 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
   }
 
   // update viewpoint if moved
-  const ratio = (state.elapsed - collectTime) / soulDuration;
+  const ratio = Math.max(
+    0,
+    Math.min(1, (state.elapsed - collectTime) / soulDuration)
+  );
   const flightLocation = origin && {
-    x: normalize(Math.round(origin.x + delta.x * ratio), size),
-    y: normalize(Math.round(origin.y + delta.y * ratio), size),
+    x: normalize(origin.x + delta.x * ratio, size),
+    y: normalize(origin.y + delta.y * ratio, size),
   };
+  const roundedLocation = origin && {
+    x: normalize(Math.round(flightLocation.x), size),
+    y: normalize(Math.round(flightLocation.y), size),
+  };
+
   if (
     state.elapsed > collectTime &&
     state.elapsed < moveTime &&
-    (flightLocation.x !== entity[POSITION].x ||
-      flightLocation.y !== entity[POSITION].y)
+    (roundedLocation.x !== entity[POSITION].x ||
+      roundedLocation.y !== entity[POSITION].y)
   ) {
-    moveEntity(world, entity, flightLocation);
+    moveEntity(world, entity, roundedLocation);
+    entity[VIEWABLE].fraction = {
+      x: signedDistance(roundedLocation.x, flightLocation.x, size),
+      y: signedDistance(roundedLocation.y, flightLocation.y, size),
+    };
     rerenderEntity(world, entity);
     updated = true;
+  }
+
+  if (state.elapsed > moveTime && entity[VIEWABLE].fraction) {
+    moveEntity(world, entity, state.args.target);
+    entity[VIEWABLE].fraction = undefined;
   }
 
   // mark soul as ready to be spawned

@@ -81,7 +81,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
     stage,
     name: START_STEP,
     isCompleted: () =>
-      heroEntity[POSITION].x === 0 && heroEntity[POSITION].y === 7,
+      heroEntity[POSITION].x === 0 && heroEntity[POSITION].y === 6,
     onLeave: () => {
       // set camera to player
       entity[VIEWABLE].active = false;
@@ -120,7 +120,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
           const x = normalize(columnIndex - (menuColumns.length - 1) / 2, size);
           const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
           const cell = getCell(world, { x, y });
-          const shouldDiscard = (y < 6 || y > 153) && (x < 11 || x > 149);
+          const shouldDiscard = (y < 5 || y > 153) && (x < 11 || x > 149);
           let hasAir = false;
           Object.values(cell).forEach((cellEntity) => {
             // don't remove player and focus
@@ -415,7 +415,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     },
   });
 
-  const sellPosition = { x: 155, y: 159 };
+  const sellPosition = { x: 156, y: 159 };
   step({
     stage,
     name: "sell",

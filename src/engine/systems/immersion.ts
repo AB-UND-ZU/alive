@@ -7,6 +7,7 @@ import { World } from "../ecs";
 import { getCell } from "./map";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { REFERENCE } from "../components/reference";
+import { isCollision } from "./movement";
 
 export const isImmersible = (world: World, position: Position) => {
   const cell = getCell(world, position);
@@ -16,12 +17,15 @@ export const isImmersible = (world: World, position: Position) => {
 export const isSubmerged = (world: World, position: Position) =>
   [-1, 0, 1]
     .map((xOffset) =>
-      [-1, 0, 1].map((yOffset) =>
-        isImmersible(world, {
+      [-1, 0, 1].map((yOffset) => {
+        const newPosition = {
           x: position.x + xOffset,
           y: position.y + yOffset,
-        })
-      )
+        };
+        return (
+          isImmersible(world, newPosition) || isCollision(world, newPosition)
+        );
+      })
     )
     .flat()
     .every(Boolean);

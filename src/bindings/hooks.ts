@@ -20,14 +20,14 @@ import { Entity, TypedEntity } from "../engine/entities";
 
 export type WorldContext = {
   ecs: WorldType | null;
-  paused: boolean,
-  setPaused: React.Dispatch<React.SetStateAction<boolean>>
+  paused: boolean;
+  setPaused: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const initialContext: WorldContext = {
   ecs: null,
   paused: true,
-  setPaused: () => {}
+  setPaused: () => {},
 };
 const Context = createContext(initialContext);
 
@@ -120,6 +120,7 @@ const defaultSpring = {
   tension: 65,
 };
 
+const zeroFraction = { x: 0, y: 0 };
 export const useViewpoint = () => {
   const viewable = useViewable();
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -143,5 +144,6 @@ export const useViewpoint = () => {
     position,
     config: viewable?.[VIEWABLE].spring || defaultSpring,
     radius: viewable?.[LIGHT]?.brightness || Infinity,
+    fraction: viewable?.[VIEWABLE].fraction || zeroFraction,
   };
 };

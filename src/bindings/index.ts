@@ -124,7 +124,7 @@ export const generateWorld = async (world: World) => {
       return "";
 
     // clear triangular exit
-    if (y > 6 && y < 14 && y > 5 + deltaX) return "";
+    if (y > 5 && y < 14 && y > 4 + deltaX) return "";
 
     const distance = Math.sqrt((deltaX * aspectRatio) ** 2 + deltaY ** 2);
 
@@ -238,7 +238,7 @@ export const generateWorld = async (world: World) => {
     const visibility =
       deltaX < menuRows[0].length / 2 &&
       deltaY < menuRows.length / 2 &&
-      (y < menuRows.length / 2 - 2 || y > menuRows.length)
+      (y < menuRows.length / 2 - 3 || y > menuRows.length)
         ? "visible"
         : "hidden";
 
@@ -800,7 +800,7 @@ export const generateWorld = async (world: World) => {
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
-    [VIEWABLE]: { active: true },
+    [VIEWABLE]: { active: true, fraction: { x: 0, y: -0.5 } },
   });
   npcSequence(world, viewpointEntity, "worldNpc");
   world.setIdentifier(viewpointEntity, "viewpoint");
@@ -809,7 +809,7 @@ export const generateWorld = async (world: World) => {
   const signEntity = entities.createSign(world, {
     [FOG]: { visibility: "hidden", type: "terrain" },
     [COLLIDABLE]: {},
-    [POSITION]: { x: 0, y: 12 },
+    [POSITION]: { x: 0, y: 11 },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: sign,
