@@ -90,6 +90,14 @@ export const wood: Sprite = {
   },
 };
 
+export const plank: Sprite = {
+  name: "Plank",
+  layers: [
+    { char: "■", color: colors.maroon },
+    { char: "▒", color: colors.black },
+  ],
+};
+
 export const seedDrop: Sprite = {
   name: "Seed",
   layers: [{ char: "'", color: colors.purple }],
@@ -117,6 +125,11 @@ export const seed: Sprite = {
       { char: "\u03c4", color: colors.olive },
     ],
   },
+};
+
+export const seedStack: Sprite = {
+  name: "Seeds",
+  layers: [{ char: "\u0104", color: colors.purple }],
 };
 
 export const herbDrop: Sprite = {
@@ -149,6 +162,11 @@ export const herb: Sprite = {
       { char: "*", color: colors.teal },
     ],
   },
+};
+
+export const herbStack: Sprite = {
+  name: "Herbs",
+  layers: [{ char: "\u010e", color: colors.teal }],
 };
 
 export const ironDrop: Sprite = {

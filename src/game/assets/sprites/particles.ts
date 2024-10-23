@@ -111,18 +111,22 @@ export const createCounter: (amount: number) => Sprite = (amount) => ({
   layers: [{ char: amount.toString(), color: colors.red }],
 });
 
-export const createText: (text: string, color: string) => Sprite[] = (
-  text,
-  color
-) =>
+export const createText: (
+  text: string,
+  color: string,
+  background?: string
+) => Sprite[] = (text, color, background) =>
   text.split("").map((char) => ({
     name: "text_generic",
-    layers: [{ char, color }],
+    layers: [
+      ...(background ? [{ char: "█", color: background }] : []),
+      { char, color },
+    ],
   }));
 
-export const createDialog = (text: string) => createText(text, colors.white);
-export const createShout = (text: string) => createText(text, colors.red);
-export const createTooltip = (text: string) => createText(text, "#404040"); // 50% of grey
+export const createDialog = (text: string) => createText(text, colors.white, colors.black);
+export const createShout = (text: string) => createText(text, colors.red, colors.black);
+export const createTooltip = (text: string) => createText(text, "#404040", colors.black); // 50% of grey
 
 export const buttonColor = colors.black;
 export const buttonBackground = colors.white;
@@ -292,16 +296,16 @@ export const getCountableSprite = (
   (variant === "drop" && statSprites[counter].drop) ||
   statSprites[counter].sprite;
 
-export const quest = createText("!", colors.lime)[0];
+export const quest = createText("!", colors.lime, colors.black)[0];
 
-export const shop = createText("$", colors.lime)[0];
+export const shop = createText("$", colors.lime, colors.black)[0];
 
 export const rage = createShout("\u0112")[0];
 
-export const sleep1 = createText("z", colors.white)[0];
-export const sleep2 = createText("Z", colors.white)[0];
+export const sleep1 = createText("z", colors.white, colors.black)[0];
+export const sleep2 = createText("Z", colors.white, colors.black)[0];
 
-export const confused = createText("?", colors.white)[0];
+export const confused = createText("?", colors.white, colors.black)[0];
 
 export const pointer: Sprite = {
   name: "arrow_pointer",
