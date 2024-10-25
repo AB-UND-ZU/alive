@@ -19,7 +19,7 @@ const mapTiles: Record<string, string> = {
 const waveToString = (wfc: WaveFunctionCollapse, wave: Wave) => {
   return transpose(wave.chosen)
     .map((column) =>
-      column.map((cell) => mapTiles[wfc.tileNames[cell]]).join("")
+      column.map((cell) => mapTiles[wfc.tileNames[cell]] || ' ').join("")
     )
     .join("\n");
 };
@@ -162,7 +162,7 @@ const definition: Definition = {
 
 export default function wfc() {
   const wfc = new WaveFunctionCollapse(definition);
-
+  
   const wave = wfc.generate(20, 20, {
     10: { 10: "door" },
   });

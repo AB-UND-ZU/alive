@@ -40,11 +40,20 @@ export class Wave {
   constructor(width: number, height: number, weights: number[]) {
     this.width = width;
     this.height = height;
-    this.chosen = Array.from({ length: width }).map(() => new Array(height));
     this.remaining = width * height;
+    this.chosen = Array.from({ length: width }).map(() => new Array(height));
+    this.states = matrixFactory(this.width, this.height, () =>
+      Object.fromEntries(weights.map((weight, index) => [index, weight]))
+    );
+  }
 
+  reset(weights: number[]) {
     // initialize all possible weighted states
-    this.states = matrixFactory(width, height, () =>
+    this.remaining = this.width * this.height;
+    this.chosen = Array.from({ length: this.width }).map(
+      () => new Array(this.height)
+    );
+    this.states = matrixFactory(this.width, this.height, () =>
       Object.fromEntries(weights.map((weight, index) => [index, weight]))
     );
   }
@@ -87,7 +96,7 @@ export class Wave {
   }
 
   collapse(x: number, y: number, force?: number) {
-    if (DEBUG_WFC) console.log(Date.now(), "collapse", x, y, force)
+    if (DEBUG_WFC) console.log(Date.now(), "collapse", x, y, force);
 
     if (y in this.chosen[x])
       throw new Error(`Attempting to re-collapse cell X:${x} Y:${y}!`);
@@ -111,7 +120,7 @@ export class Wave {
   }
 
   ban(x: number, y: number, tileIndex: number) {
-    if (DEBUG_WFC) console.log(Date.now(), "ban", x, y, tileIndex)
+    if (DEBUG_WFC) console.log(Date.now(), "ban", x, y, tileIndex);
 
     const state = this.getState(x, y);
 
@@ -171,6 +180,7 @@ export class Wave {
 
 export class WaveFunctionCollapse {
   DEFAULT_WEIGHT = 1;
+  MAX_ATTEMPTS = 5;
 
   definition: Definition;
   weights: number[] = [];
@@ -228,7 +238,7 @@ export class WaveFunctionCollapse {
       let options = wave.getOptions(cell.x, cell.y);
       const adjacentCells = wave.getAdjacentCells(cell.x, cell.y);
 
-      if (DEBUG_WFC) console.log(Date.now(), "stack", x, y, options)
+      if (DEBUG_WFC) console.log(Date.now(), "stack", x, y, options);
 
       let cutOff = false;
       for (const tileIndex of options) {
@@ -306,7 +316,7 @@ export class WaveFunctionCollapse {
   }
 
   iterate(wave: Wave) {
-    if (DEBUG_WFC) console.log(Date.now(), "iterate", wave.remaining)
+    if (DEBUG_WFC) console.log(Date.now(), "iterate", wave.remaining);
     const cell = wave.getLowestEntropyCell();
     wave.collapse(cell.x, cell.y);
     this.propagate(wave, cell.x, cell.y);
@@ -317,30 +327,47 @@ export class WaveFunctionCollapse {
     height: number,
     forced?: Record<string, Record<string, string>>
   ) {
-    if (DEBUG_WFC) console.log(Date.now(), "generate", width, height)
     const wave = new Wave(width, height, this.weights);
 
-    // apply constraints before collapsing
-    for (let x = 0; x < width; x += 1) {
-      for (let y = 0; y < height; y += 1) {
-        this.propagate(wave, x, y);
+    let attempts = 0;
+
+    while (attempts < this.MAX_ATTEMPTS) {
+      attempts += 1;
+      if (DEBUG_WFC)
+        console.log(Date.now(), "generate", attempts, "attempt", width, height);
+
+      try {
+        // apply constraints before collapsing
+        for (let x = 0; x < width; x += 1) {
+          for (let y = 0; y < height; y += 1) {
+            this.propagate(wave, x, y);
+          }
+        }
+
+        // apply predefined fields
+        for (const column in forced) {
+          for (const row in forced[column]) {
+            const x = parseInt(column, 10);
+            const y = parseInt(row, 10);
+            const choice = this.tileIndizes[forced[column][row]];
+
+            wave.collapse(x, y, choice);
+            this.propagate(wave, x, y);
+          }
+        }
+
+        while (!wave.isCompleted()) {
+          this.iterate(wave);
+        }
+      } catch (error) {
+        if (DEBUG_WFC)
+          console.log(Date.now(), "failed", attempts, "attempt", error);
+
+        wave.reset(this.weights);
+        continue;
       }
-    }
 
-    // apply predefined fields
-    for (const column in forced) {
-      for (const row in forced[column]) {
-        const x = parseInt(column, 10);
-        const y = parseInt(row, 10);
-        const choice = this.tileIndizes[forced[column][row]];
-
-        wave.collapse(x, y, choice);
-        this.propagate(wave, x, y);
-      }
-    }
-
-    while (!wave.isCompleted()) {
-      this.iterate(wave);
+      break;
     }
 
     return wave;
