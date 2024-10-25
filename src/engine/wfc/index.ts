@@ -5,7 +5,12 @@ const mapTiles: Record<string, string> = {
   air: " ",
   door: "◙",
   wallLeft: "█",
+  groundLeft: "▐",
   wallRight: "█",
+  groundRight: "▌",
+  upperLeft: "▐",
+  house: "█",
+  upperRight: "▌",
   leaves: "#",
   trunk: "|",
   path: "░",
@@ -25,6 +30,7 @@ const definition: Definition = {
       weight: 100,
       tags: ["air"],
     },
+
     leaves: {
       weight: 2,
       tags: ["leaves"],
@@ -43,12 +49,13 @@ const definition: Definition = {
         },
       },
     },
+
     door: {
       weight: 1,
       tags: ["house", "door", "basement"],
       constraints: {
         neighbour: {
-          up: ["air"],
+          up: ["house"],
           right: ["basement_right"],
           down: ["path"],
           left: ["basement_left"],
@@ -60,10 +67,22 @@ const definition: Definition = {
       tags: ["house", "basement", "basement_left"],
       constraints: {
         neighbour: {
-          up: ["air"],
+          up: ["house"],
           right: ["basement_left", "door"],
           down: ["air"],
-          left: ["basement_left", "air"],
+          left: ["basement_left"],
+        },
+      },
+    },
+    groundLeft: {
+      weight: 2,
+      tags: ["house", "basement", "basement_left"],
+      constraints: {
+        neighbour: {
+          up: ["house_left"],
+          right: ["basement_left", "door"],
+          down: ["air"],
+          left: ["air"],
         },
       },
     },
@@ -72,13 +91,63 @@ const definition: Definition = {
       tags: ["house", "basement", "basement_right"],
       constraints: {
         neighbour: {
-          up: ["air"],
-          right: ["basement_right", "air"],
+          up: ["house"],
+          right: ["basement_right"],
           down: ["air"],
           left: ["basement_right", "door"],
         },
       },
     },
+    groundRight: {
+      weight: 2,
+      tags: ["house", "basement", "basement_right"],
+      constraints: {
+        neighbour: {
+          up: ["house_right"],
+          right: ["air"],
+          down: ["air"],
+          left: ["basement_right", "door"],
+        },
+      },
+    },
+
+    upperLeft: {
+      weight: 2,
+      tags: ["house", "house_left"],
+      constraints: {
+        neighbour: {
+          up: ["air", "house_left"],
+          right: ["house"],
+          down: ["house_left", "basement_left"],
+          left: ["air"],
+        },
+      },
+    },
+    house: {
+      weight: 2,
+      tags: ["house"],
+      constraints: {
+        neighbour: {
+          up: ["air", "house"],
+          right: ["house"],
+          down: ["house"],
+          left: ["house"],
+        },
+      },
+    },
+    upperRight: {
+      weight: 2,
+      tags: ["house", "house_right"],
+      constraints: {
+        neighbour: {
+          up: ["air", "house_right"],
+          right: ["air"],
+          down: ["house_right", "basement_right"],
+          left: ["house"],
+        },
+      },
+    },
+
     path: {
       weight: 1,
       tags: ["path"],

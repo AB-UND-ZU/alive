@@ -7,6 +7,8 @@ import {
 } from "../components/orientable";
 import { Position } from "../components/position";
 
+const DEBUG_WFC = false;
+
 export type Constraints = {
   neighbour?: {
     up?: string[];
@@ -85,6 +87,8 @@ export class Wave {
   }
 
   collapse(x: number, y: number, force?: number) {
+    if (DEBUG_WFC) console.log(Date.now(), "collapse", x, y, force)
+
     if (y in this.chosen[x])
       throw new Error(`Attempting to re-collapse cell X:${x} Y:${y}!`);
 
@@ -107,6 +111,8 @@ export class Wave {
   }
 
   ban(x: number, y: number, tileIndex: number) {
+    if (DEBUG_WFC) console.log(Date.now(), "ban", x, y, tileIndex)
+
     const state = this.getState(x, y);
 
     if (!state || !(tileIndex in state))
@@ -222,6 +228,8 @@ export class WaveFunctionCollapse {
       let options = wave.getOptions(cell.x, cell.y);
       const adjacentCells = wave.getAdjacentCells(cell.x, cell.y);
 
+      if (DEBUG_WFC) console.log(Date.now(), "stack", x, y, options)
+
       let cutOff = false;
       for (const tileIndex of options) {
         const tile = this.getTileFromIndex(tileIndex)[0];
@@ -298,6 +306,7 @@ export class WaveFunctionCollapse {
   }
 
   iterate(wave: Wave) {
+    if (DEBUG_WFC) console.log(Date.now(), "iterate", wave.remaining)
     const cell = wave.getLowestEntropyCell();
     wave.collapse(cell.x, cell.y);
     this.propagate(wave, cell.x, cell.y);
@@ -308,6 +317,7 @@ export class WaveFunctionCollapse {
     height: number,
     forced?: Record<string, Record<string, string>>
   ) {
+    if (DEBUG_WFC) console.log(Date.now(), "generate", width, height)
     const wave = new Wave(width, height, this.weights);
 
     // apply constraints before collapsing
