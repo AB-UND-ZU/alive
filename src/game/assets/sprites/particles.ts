@@ -296,16 +296,16 @@ export const getCountableSprite = (
   (variant === "drop" && statSprites[counter].drop) ||
   statSprites[counter].sprite;
 
-export const quest = createText("!", colors.lime, colors.black)[0];
+export const quest = createText("!", colors.lime)[0];
 
-export const shop = createText("$", colors.lime, colors.black)[0];
+export const shop = createText("$", colors.lime)[0];
 
 export const rage = createShout("\u0112")[0];
 
-export const sleep1 = createText("z", colors.white, colors.black)[0];
-export const sleep2 = createText("Z", colors.white, colors.black)[0];
+export const sleep1 = createText("z", colors.white)[0];
+export const sleep2 = createText("Z", colors.white)[0];
 
-export const confused = createText("?", colors.white, colors.black)[0];
+export const confused = createText("?", colors.white)[0];
 
 export const pointer: Sprite = {
   name: "arrow_pointer",

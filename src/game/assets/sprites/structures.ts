@@ -18,6 +18,32 @@ export const anvil: Sprite = {
   ],
 };
 
+export const roof: Sprite = {
+  name: "roof_center",
+  layers: [
+    { char: "█", color: colors.black },
+    { char: "▒", color: colors.red },
+  ],
+};
+
+export const roofLeft: Sprite = {
+  name: "roof_left",
+  layers: [
+    { char: "▒", color: colors.red },
+    { char: "▌", color: colors.black },
+    { char: "│", color: colors.maroon },
+  ],
+};
+
+export const roofRight: Sprite = {
+  name: "roof_right",
+  layers: [
+    { char: "▒", color: colors.red },
+    { char: "▐", color: colors.black },
+    { char: "│", color: colors.maroon },
+  ],
+};
+
 export const roofUp: Sprite = {
   name: "roof_up",
   layers: [
@@ -41,7 +67,6 @@ export const roofUpRight: Sprite = {
 export const roofDownLeft: Sprite = {
   name: "roof_down_left",
   layers: [
-    { char: "▀", color: colors.black },
     { char: "▒", color: colors.red },
     { char: "▄", color: colors.grey },
     { char: "▌", color: colors.black },
@@ -63,7 +88,6 @@ export const roofDown: Sprite = {
 export const roofRightDown: Sprite = {
   name: "roof_right_down",
   layers: [
-    { char: "▀", color: colors.black },
     { char: "▒", color: colors.red },
     { char: "▄", color: colors.grey },
     { char: "▐", color: colors.black },

@@ -79,9 +79,12 @@ import {
   house,
   houseLeft,
   houseRight,
+  roof,
   roofDown,
   roofDownLeft,
+  roofLeft,
   roofLeftUp,
+  roofRight,
   roofRightDown,
   roofUp,
   roofUpRight,
@@ -215,14 +218,19 @@ export const generateWorld = async (world: World) => {
       else if (cell === "↔") entity = "key";
       else if (cell === "├") entity = "house_left";
       else if (cell === "┤") entity = "house_right";
-      else if (cell === "─") entity = "house";
-      else if (cell === "┴") entity = "house_window";
+      else if (cell === "┴") entity = "wall";
+      else if (cell === "─") entity = "wall_window";
       else if (cell === "Φ") entity = "house_door";
-      else if (cell === "╒") entity = "roof_left_up";
-      else if (cell === "╤") entity = "roof_up";
-      else if (cell === "╕") entity = "roof_up_right";
+      else if (cell === "┼") entity = "house";
+      else if (cell === "┬") entity = "house_window";
+      else if (cell === "╬") entity = "roof";
+      else if (cell === "╠") entity = "roof_left";
+      else if (cell === "╣") entity = "roof_right";
+      else if (cell === "╔") entity = "roof_left_up";
+      else if (cell === "╦") entity = "roof_up";
+      else if (cell === "╗") entity = "roof_up_right";
       else if (cell === "╞") entity = "roof_down_left";
-      else if (cell === "╧") entity = "roof_down";
+      else if (cell === "╪") entity = "roof_down";
       else if (cell === "╡") entity = "roof_right_down";
       else {
         console.error(`Unrecognized cell: ${cell}!`);
@@ -681,13 +689,54 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: cell === "house_left" ? houseLeft : houseRight,
         [RENDERABLE]: { generation: 0 },
       });
-    } else if (cell === "house") {
+    } else if (cell === "wall") {
       entities.createWall(world, {
         [COLLIDABLE]: {},
         [FOG]: { visibility: "visible", type: "terrain" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [POSITION]: { x, y },
         [SPRITE]: house,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "wall_window") {
+      entities.createWall(world, {
+        [COLLIDABLE]: {},
+        [FOG]: { visibility: "visible", type: "terrain" },
+        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+        [POSITION]: { x, y },
+        [SPRITE]: window,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "house") {
+      entities.createFloat(world, {
+        [FOG]: { visibility: "visible", type: "float" },
+        [POSITION]: { x, y },
+        [SPRITE]: house,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "roof") {
+      entities.createFloat(world, {
+        [FOG]: { visibility: "visible", type: "float" },
+        [POSITION]: { x, y },
+        [SPRITE]: roof,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "roof_left") {
+      entities.createWall(world, {
+        [COLLIDABLE]: {},
+        [FOG]: { visibility: "visible", type: "terrain" },
+        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0, orientation: 'right' },
+        [POSITION]: { x, y },
+        [SPRITE]: roofLeft,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "roof_right") {
+      entities.createWall(world, {
+        [COLLIDABLE]: {},
+        [FOG]: { visibility: "visible", type: "terrain" },
+        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0, orientation: 'left' },
+        [POSITION]: { x, y },
+        [SPRITE]: roofRight,
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "roof_left_up") {
@@ -756,10 +805,8 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "house_window") {
-      entities.createWall(world, {
-        [COLLIDABLE]: {},
-        [FOG]: { visibility: "visible", type: "terrain" },
-        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      entities.createFloat(world, {
+        [FOG]: { visibility: "visible", type: "float" },
         [POSITION]: { x, y },
         [SPRITE]: window,
         [RENDERABLE]: { generation: 0 },
