@@ -54,7 +54,11 @@ const getActivationRow = (item?: Item) => {
   if (!item) return repeat(none, 3);
 
   if (item.counter)
-    return createStat({ [item.counter]: item.amount }, item.counter, "countable");
+    return createStat(
+      { [item.counter]: item.amount },
+      item.counter,
+      "countable"
+    );
 
   return [
     none,
@@ -80,23 +84,21 @@ const useAction = (
 ) => {
   const { ecs, paused } = useWorld();
   const heroEntity = useHero();
+  const actionId = heroEntity?.[ACTIONABLE]?.[action];
+  const actionEntity = ecs?.getEntityById(actionId);
 
   return useMemo<Action | undefined>(() => {
-    if (paused || !ecs || !heroEntity) return;
+    if (paused || !ecs || !heroEntity || !actionEntity) return;
 
-    const actionId = heroEntity[ACTIONABLE]?.[action];
-    const actionEntity = ecs.getEntityById(actionId);
-    const disabled = !actionEntity || isDisabled(ecs, heroEntity, actionEntity);
-    const activation = actionEntity
-      ? getActivation(actionEntity)
-      : ([repeat(none, 3), repeat(none, 3)] as [Sprite[], Sprite[]]);
+    const disabled = isDisabled(ecs, heroEntity, actionEntity);
+    const activation = getActivation(actionEntity);
 
     return {
       name,
       activation,
       disabled,
     };
-  }, [paused, ecs, action, isDisabled, heroEntity, name, getActivation]);
+  }, [paused, ecs, actionEntity, isDisabled, heroEntity, name, getActivation]);
 };
 
 export default function Controls() {
@@ -162,9 +164,7 @@ export default function Controls() {
     unlockAction,
     tradeAction,
   ];
-  const activeAction = availableActions.find(
-    (action) => action && !action.disabled
-  );
+  const activeAction = availableActions.find((action) => action);
 
   activeRef.current = activeAction;
 
