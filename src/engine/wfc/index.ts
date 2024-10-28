@@ -19,12 +19,24 @@ const mapTiles: Record<string, string> = {
 const waveToString = (wfc: WaveFunctionCollapse, wave: Wave) => {
   return transpose(wave.chosen)
     .map((column) =>
-      column.map((cell) => mapTiles[wfc.tileNames[cell]] || ' ').join("")
+      column.map((cell) => mapTiles[wfc.tileNames[cell]] || " ").join("")
     )
     .join("\n");
 };
 
 const definition: Definition = {
+  tags: {
+    house: {
+      constraints: {
+        dimensions: {
+          minWidth: 5,
+          maxWidth: 10,
+          minHeight: 3,
+          maxHeight: 6,
+        },
+      },
+    },
+  },
   tiles: {
     air: {
       weight: 100,
@@ -51,7 +63,7 @@ const definition: Definition = {
     },
 
     door: {
-      weight: 1,
+      weight: 10,
       tags: ["house", "door", "basement"],
       constraints: {
         neighbour: {
@@ -162,7 +174,7 @@ const definition: Definition = {
 
 export default function wfc() {
   const wfc = new WaveFunctionCollapse(definition);
-  
+
   const wave = wfc.generate(20, 20, {
     10: { 10: "door" },
   });

@@ -16,6 +16,16 @@ export type Constraints = {
     down?: string[];
     left?: string[];
   };
+  dimensions?: {
+    minWidth: number;
+    maxWidth: number;
+    minHeight: number;
+    maxHeight: number;
+  };
+};
+
+export type Tag = {
+  constraints?: Constraints;
 };
 
 export type Tile = {
@@ -25,6 +35,7 @@ export type Tile = {
 };
 
 export type Definition = {
+  tags: Record<string, Tag>;
   tiles: Record<string, Tile>;
 };
 
@@ -214,14 +225,24 @@ export class WaveFunctionCollapse {
 
     return Object.keys(state)
       .map((index) => parseInt(index, 10))
-      .map((tileIndex) => this.getTileFromIndex(tileIndex));
+      .map(
+        (tileIndex) => [this.getTileFromIndex(tileIndex), tileIndex] as const
+      );
   }
 
   getTileFromIndex(tileIndex: number) {
-    return [
-      this.definition.tiles[this.tileNames[tileIndex]],
-      tileIndex,
-    ] as const;
+    return this.definition.tiles[this.tileNames[tileIndex]];
+  }
+
+  getConstraints<T extends keyof Constraints>(tile: Tile, type: T) {
+    const tileConstraints = tile.constraints?.[type];
+    if (tileConstraints) return tileConstraints;
+
+    for (const tag of tile.tags) {
+      const tagConstraints = this.definition.tags[tag]?.constraints?.[type];
+
+      if (tagConstraints) return tagConstraints;
+    }
   }
 
   tileIntersectsTags(tile: Tile, tags: string[]) {
@@ -241,9 +262,11 @@ export class WaveFunctionCollapse {
       if (DEBUG_WFC) console.log(Date.now(), "stack", x, y, options);
 
       let cutOff = false;
+
+      // if neighbour is present, tile must not be on edge boundaries
       for (const tileIndex of options) {
-        const tile = this.getTileFromIndex(tileIndex)[0];
-        const neighbourConstraints = tile.constraints?.neighbour;
+        const tile = this.getTileFromIndex(tileIndex);
+        const neighbourConstraints = this.getConstraints(tile, "neighbour");
 
         if (!neighbourConstraints) continue;
 
@@ -256,6 +279,7 @@ export class WaveFunctionCollapse {
         }
       }
 
+      // refetch options on change
       if (cutOff) options = wave.getOptions(cell.x, cell.y);
 
       if (options.length === 0)
@@ -278,16 +302,18 @@ export class WaveFunctionCollapse {
         for (const [adjacentTile, adjacentIndex] of adjacentTiles) {
           let possibleNeighbour = false;
           for (const tileIndex of options) {
-            const tile = this.getTileFromIndex(tileIndex)[0];
+            const tile = this.getTileFromIndex(tileIndex);
 
-            const neighbourTags =
-              tile.constraints?.neighbour?.[adjacentDirection];
+            const neighbourTags = this.getConstraints(tile, "neighbour")?.[
+              adjacentDirection
+            ];
             const possibleForwards =
               !neighbourTags ||
               this.tileIntersectsTags(adjacentTile, neighbourTags);
 
-            const selfTags =
-              adjacentTile.constraints?.neighbour?.[oppositeDirection];
+            const selfTags = this.getConstraints(adjacentTile, "neighbour")?.[
+              oppositeDirection
+            ];
             const possibleBackwards =
               !selfTags || this.tileIntersectsTags(tile, selfTags);
 
