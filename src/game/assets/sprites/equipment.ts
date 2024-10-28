@@ -102,12 +102,12 @@ export const fireSword: Sprite = {
 
 export const goldSword: Sprite = {
   name: "Sword",
-  layers: [{ char: "/", color: colors.olive }],
+  layers: [{ char: "/", color: colors.yellow }],
   facing: {
-    up: [{ char: "|", color: colors.olive }],
-    right: [{ char: "-", color: colors.olive }],
-    down: [{ char: "|", color: colors.olive }],
-    left: [{ char: "-", color: colors.olive }],
+    up: [{ char: "|", color: colors.yellow }],
+    right: [{ char: "-", color: colors.yellow }],
+    down: [{ char: "|", color: colors.yellow }],
+    left: [{ char: "-", color: colors.yellow }],
   },
 };
 
@@ -135,7 +135,7 @@ export const pickaxe: Sprite = {
   name: "Pickaxe",
   layers: [
     { char: "\u0119", color: colors.grey },
-    { char: "─", color: colors.black },
+    { char: "-", color: colors.maroon },
   ],
 };
 

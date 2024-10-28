@@ -1,10 +1,11 @@
-import { createText, resume } from "../../game/assets/sprites";
+import { createText, overlay, resume } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
 import { useCallback } from "react";
 import { useWorld } from "../../bindings/hooks";
+import { repeat } from "../../game/math/std";
 
 export default function Paused() {
   const { setPaused } = useWorld();
@@ -25,10 +26,8 @@ export default function Paused() {
           (_, index) => (
             <Row
               key={index}
-              cells={createText(
-                "▓".repeat(21 + dimensions.padding * 2),
-                colors.black
-              )}
+              cells={repeat(overlay, 21 + dimensions.padding * 2)
+              }
             />
           ),
           dimensions.renderedRows - 5

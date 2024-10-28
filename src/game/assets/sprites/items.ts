@@ -64,6 +64,16 @@ export const xp: Sprite = {
   },
 };
 
+export const fireEssence: Sprite = {
+  name: "Fire",
+  layers: [{ char: "æ", color: colors.red }],
+};
+
+export const waterEssence: Sprite = {
+  name: "Water",
+  layers: [{ char: "æ", color: colors.blue }],
+};
+
 export const coin: Sprite = {
   name: "Coin",
   layers: [
@@ -80,8 +90,8 @@ export const coin: Sprite = {
   },
 };
 
-export const wood: Sprite = {
-  name: "Wood",
+export const stick: Sprite = {
+  name: "Stick",
   layers: [{ char: "-", color: colors.maroon }],
   amounts: {
     single: [{ char: "-", color: colors.maroon }],
@@ -90,11 +100,19 @@ export const wood: Sprite = {
   },
 };
 
-export const plank: Sprite = {
-  name: "Plank",
+export const wood: Sprite = {
+  name: "Wood",
   layers: [
     { char: "■", color: colors.maroon },
     { char: "▒", color: colors.black },
+  ],
+};
+
+export const spike: Sprite = {
+  name: "Spike",
+  layers: [
+    { char: "<", color: colors.green },
+    { char: ">", color: colors.green },
   ],
 };
 
@@ -129,7 +147,10 @@ export const seed: Sprite = {
 
 export const seedStack: Sprite = {
   name: "Seeds",
-  layers: [{ char: "\u0104", color: colors.purple }],
+  layers: [
+    { char: "\u011c", color: colors.purple },
+    { char: "-", color: colors.black },
+  ],
 };
 
 export const herbDrop: Sprite = {

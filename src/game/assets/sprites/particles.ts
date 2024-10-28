@@ -12,7 +12,7 @@ import {
   manaUp,
   seed,
   seedDrop,
-  wood,
+  stick,
   xp,
 } from "./items";
 import { repeat } from "../../math/std";
@@ -111,22 +111,36 @@ export const createCounter: (amount: number) => Sprite = (amount) => ({
   layers: [{ char: amount.toString(), color: colors.red }],
 });
 
+export const addBackground = (
+  sprites: Sprite[],
+  background: string = colors.black
+) =>
+  sprites.map((sprite) => ({
+    name: sprite.name,
+    layers: [{ char: "█", color: background }, ...sprite.layers],
+  }));
+
 export const createText: (
   text: string,
   color: string,
   background?: string
-) => Sprite[] = (text, color, background) =>
-  text.split("").map((char) => ({
+) => Sprite[] = (text, color, background) => {
+  const sprites = text.split("").map((char) => ({
     name: "text_generic",
-    layers: [
-      ...(background ? [{ char: "█", color: background }] : []),
-      { char, color },
-    ],
+    layers: [{ char, color }],
   }));
 
-export const createDialog = (text: string) => createText(text, colors.white, colors.black);
-export const createShout = (text: string) => createText(text, colors.red, colors.black);
-export const createTooltip = (text: string) => createText(text, "#404040", colors.black); // 50% of grey
+  if (background) return addBackground(sprites, background);
+
+  return sprites;
+};
+
+export const createDialog = (text: string) =>
+  createText(text, colors.white, colors.black);
+export const createShout = (text: string) =>
+  createText(text, colors.red, colors.black);
+export const createTooltip = (text: string) =>
+  createText(text, "#404040", colors.black); // 50% of grey
 
 export const buttonColor = colors.black;
 export const buttonBackground = colors.white;
@@ -259,7 +273,7 @@ const statSprites: Record<
   maxMp: { color: "#404040", sprite: manaUp },
   xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp },
   gold: { color: colors.yellow, sprite: nonCountable(coin), drop: coin },
-  wood: { color: colors.maroon, sprite: wood },
+  wood: { color: colors.maroon, sprite: stick },
   iron: { color: colors.silver, sprite: ironDrop },
   herb: { color: colors.teal, sprite: herb, drop: herbDrop },
   seed: { color: colors.purple, sprite: seed, drop: seedDrop },
@@ -329,4 +343,9 @@ export const pause: Sprite = {
 export const resume: Sprite = {
   name: "Resume",
   layers: [{ char: "»", color: colors.white }],
+};
+
+export const overlay: Sprite = {
+  name: "Overlay",
+  layers: [{ char: "▓", color: colors.black }],
 };

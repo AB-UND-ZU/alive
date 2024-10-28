@@ -43,7 +43,18 @@ export const sand: Sprite = {
 
 export const path: Sprite = {
   name: "path_normal",
-  layers: [{ char: "░", color: colors.silver }],
+  layers: [{ char: "░", color: colors.grey }],
+};
+
+export const oak: Sprite = {
+  name: "tree_oak",
+  layers: [
+    { char: "┐", color: colors.maroon },
+    { char: "─", color: colors.black },
+    { char: "Y", color: colors.green },
+    { char: "\u0118", color: colors.green },
+    { char: "∙", color: colors.maroon },
+  ],
 };
 
 export const tree1: Sprite = {
@@ -114,17 +125,16 @@ export const flower: Sprite = {
 export const cactus1: Sprite = {
   name: "cactus_one",
   layers: [
-    { char: "░", color: colors.olive },
-    { char: "╠", color: colors.green },
+    { char: "-", color: colors.green },
+    { char: "┐", color: colors.black },
+    { char: "\u011b", color: colors.green },
+    { char: "|", color: colors.green },
   ],
 };
 
 export const cactus2: Sprite = {
   name: "cactus_two",
-  layers: [
-    { char: "░", color: colors.olive },
-    { char: "¥", color: colors.green },
-  ],
+  layers: [{ char: "¥", color: colors.green }],
 };
 
 export const tombstone: Sprite = {

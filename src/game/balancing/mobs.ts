@@ -58,7 +58,7 @@ const mobDefinitions: Record<MobKey, MobDefinition> = {
         chance: 100,
         items: [
           { counter: "xp", amount: 1 },
-          { counter: "gold", amount: 2 },
+          { counter: "gold", amount: 3 },
           { counter: "mp", amount: 1 },
         ],
       },
@@ -84,7 +84,7 @@ const mobDefinitions: Record<MobKey, MobDefinition> = {
         chance: 100,
         items: [
           { counter: "xp", amount: 1 },
-          { counter: "gold", amount: 2 },
+          { counter: "gold", amount: 3 },
           { counter: "hp", amount: 1 },
         ],
       },

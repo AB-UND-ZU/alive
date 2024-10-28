@@ -29,6 +29,7 @@ import { lockDoor } from "../../engine/systems/trigger";
 import { add, getDistance, normalize } from "../math/std";
 import { initialPosition, menuArea } from "../levels/areas";
 import {
+  addBackground,
   button,
   buttonColor,
   createDialog,
@@ -304,7 +305,10 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
       entity[TOOLTIP].changed = undefined;
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].dialogs = [
-        [...createDialog("Collect "), ...createStat({ gold: 5 }, "gold")],
+        [
+          ...createDialog("Collect "),
+          ...addBackground(createStat({ gold: 5 }, "gold")),
+        ],
       ];
       return true;
     },
@@ -312,7 +316,9 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     onLeave: () => {
       entity[TOOLTIP].override = "visible";
       entity[TOOLTIP].changed = true;
-      entity[TOOLTIP].dialogs = [[...createDialog("Use this "), goldKey]];
+      entity[TOOLTIP].dialogs = [
+        [...createDialog("Use this "), ...addBackground([goldKey])],
+      ];
       const carrierEntity =
         keyEntity && world.getEntityById(keyEntity[ITEM].carrier);
 

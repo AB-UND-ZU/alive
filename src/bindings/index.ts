@@ -32,15 +32,16 @@ import {
   iron,
   ironSword,
   none,
+  oak,
   pot,
   sand,
   seed,
+  stick,
   tree1,
   tree2,
   villager,
   wall,
   water,
-  wood,
   woodShield,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
@@ -390,7 +391,7 @@ export const generateWorld = async (world: World) => {
             counter: "wood",
             amount: cell === "wood" ? distribution(80, 15, 5) + 1 : 2,
           },
-          [SPRITE]: wood,
+          [SPRITE]: stick,
         }
       );
       if (cell === "wood_two")
@@ -421,7 +422,7 @@ export const generateWorld = async (world: World) => {
         [FOG]: { visibility, type: "terrain" },
         [COLLIDABLE]: {},
         [POSITION]: { x, y },
-        [SPRITE]: [tree1, tree2][random(0, 1)],
+        [SPRITE]: [oak, tree1, tree2][distribution(2, 49, 49)],
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "bush" || cell === "seed" || cell === "seed_one") {

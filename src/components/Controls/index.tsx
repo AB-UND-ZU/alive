@@ -109,7 +109,7 @@ export default function Controls() {
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
   const [action, setAction] = useState<Action>();
-  const [highlight, setHighlight] = useState(10);
+  const [highlight, setHighlight] = useState(8);
   const highlightRef = useRef<NodeJS.Timeout>();
   const actionRef = useRef<Action>();
   const activeRef = useRef<Action>();
@@ -170,16 +170,22 @@ export default function Controls() {
 
   // rotate button shadow
   useEffect(() => {
-    if (highlightRef.current) {
+    // clear on fading action
+    if (highlightRef.current && !activeAction) {
       clearInterval(highlightRef.current);
       highlightRef.current = undefined;
     }
 
     if (!activeAction || activeAction.disabled) return;
 
-    highlightRef.current = setInterval(() => {
-      setHighlight((prevHighlight) => normalize(prevHighlight - 1, 14));
-    }, 100);
+    // reset on new action
+    if (!highlightRef.current) {
+      setHighlight(8);
+
+      highlightRef.current = setInterval(() => {
+        setHighlight((prevHighlight) => normalize(prevHighlight - 1, 14));
+      }, 100);
+    }
   }, [activeAction]);
 
   const handleAction = useCallback(

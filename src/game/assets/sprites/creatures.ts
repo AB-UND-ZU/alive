@@ -4,7 +4,7 @@ import { Sprite } from "../../../engine/components/sprite";
 export const player: Sprite = {
   name: "player_symbol",
   layers: [
-    { char: "\u010b", color: colors.white },
+    { char: "\u010b", color: colors.silver },
     { char: "~", color: colors.olive },
   ],
 };
@@ -12,8 +12,8 @@ export const player: Sprite = {
 export const villager: Sprite = {
   name: "Nomad",
   layers: [
-    { char: "\u010b", color: colors.white },
-    { char: "'", color: colors.silver },
+    { char: "\u010b", color: colors.silver },
+    { char: "'", color: colors.white },
   ],
 };
 
@@ -84,8 +84,9 @@ export const waterRye: Sprite = {
 export const ghost: Sprite = {
   name: "Soul",
   layers: [
-    { char: "\u010b", color: colors.grey },
-    { char: "~", color: colors.grey },
+    // 50% of silver
+    { char: "\u010b", color: "#606060" },
+    { char: "~", color: "#606060" },
     { char: "°", color: colors.yellow },
   ],
 };

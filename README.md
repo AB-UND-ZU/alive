@@ -134,6 +134,55 @@ _Spawn area with intro quest_
 - Trigger system: spawn on halo
 - Fate system: vision on new hero
 
+## Crafting
+
+- 10 stick + 3 coin = 1 wood
+- 10 ore + 3 coin = 1 iron
+- 10 seed + 3 coin = 1 seed stack
+- 10 herb + 3 coin = 1 herb stack
+
+- 10 wood + 5 coin = 1 iron
+- 10 iron + 10 coin = 1 gold
+- 10 gold + 20 coin = 1 diamond
+
+- 10 herb stack + 1 gold = 1 fire essence
+- 10 seed stack + 1 gold = 1 water essence
+
+## Weapons
+
+- 5 iron + 1 wood sword = iron sword
+- 5 gold + 1 iron sword = gold sword
+- 5 diamond + 1 gold sword = diamond sword
+
+- 5 wood = iron sword
+- 5 iron = iron sword
+- 5 gold = gold sword
+- 5 diamond = diamond sword
+
+- 10 wood = wood shield
+- 10 iron + 1 wood shield = iron shield
+- 10 gold + 1 iron shield = gold shield
+- 10 diamond + 1 gold shield = diamond shield
+
+## Spells
+
+- 5 xp + sword = sword slash
+- 5 xp + bow = bow volley
+- 10 xp + 10 coin = cape
+- 5 xp + 1 essence = spell lvl 1
+- 20 xp + 5 essence = spell lvl 2
+
+## Consumables
+
+- 1 wood + 1 iron block = 
+
+## Naming ideas
+
+- Seed = Berry
+- Herb = Flower
+- Pink element = Gem
+
+
 ## Tech debt
 
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
