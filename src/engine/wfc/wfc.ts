@@ -16,7 +16,7 @@ export type Constraints = {
     down?: string[];
     left?: string[];
   };
-  dimensions?: {
+  dimension?: {
     minWidth: number;
     maxWidth: number;
     minHeight: number;
@@ -44,7 +44,7 @@ export class Wave {
 
   width: number;
   height: number;
-  states: Matrix<Record<string, number> | undefined>;
+  options: Matrix<Record<string, number> | undefined>;
   chosen: Matrix<number>;
   remaining: number;
 
@@ -53,7 +53,7 @@ export class Wave {
     this.height = height;
     this.remaining = width * height;
     this.chosen = Array.from({ length: width }).map(() => new Array(height));
-    this.states = matrixFactory(this.width, this.height, () =>
+    this.options = matrixFactory(this.width, this.height, () =>
       Object.fromEntries(weights.map((weight, index) => [index, weight]))
     );
   }
@@ -64,26 +64,25 @@ export class Wave {
     this.chosen = Array.from({ length: this.width }).map(
       () => new Array(this.height)
     );
-    this.states = matrixFactory(this.width, this.height, () =>
+    this.options = matrixFactory(this.width, this.height, () =>
       Object.fromEntries(weights.map((weight, index) => [index, weight]))
     );
   }
 
-  getState(x: number, y: number) {
-    return this.states[x][y];
+  getOptions(x: number, y: number) {
+    return this.options[x][y];
   }
 
   getChosen(x: number, y: number) {
     return this.chosen[x][y];
   }
 
-  getOptions(x: number, y: number) {
-    const state = this.getState(x, y);
+  getStates(x: number, y: number) {
+    const options = this.getOptions(x, y);
 
-    if (state)
-      return Object.keys(state).map((tileIndex) => parseInt(tileIndex, 10));
+    if (options) return options;
 
-    return [this.getChosen(x, y)];
+    return { [this.getChosen(x, y)]: Infinity };
   }
 
   getAdjacentCells(
@@ -112,9 +111,9 @@ export class Wave {
     if (y in this.chosen[x])
       throw new Error(`Attempting to re-collapse cell X:${x} Y:${y}!`);
 
-    const state = this.states[x][y];
+    const options = this.getOptions(x, y);
 
-    if (!state) throw new Error(`Missing state for cell X:${x} Y:${y}!`);
+    if (!options) throw new Error(`Missing options for cell X:${x} Y:${y}!`);
 
     this.remaining -= 1;
 
@@ -122,25 +121,30 @@ export class Wave {
 
     // calculate choice of tile index from weighted distribution
     if (choice === undefined) {
-      const indizes = Object.keys(state);
-      choice = parseInt(indizes[distribution(...Object.values(state))], 10);
+      const indizes = Object.keys(options);
+      choice = parseInt(indizes[distribution(...Object.values(options))], 10);
     }
 
     this.chosen[x][y] = choice;
-    this.states[x][y] = undefined;
+    this.options[x][y] = undefined;
   }
 
   ban(x: number, y: number, tileIndex: number) {
     if (DEBUG_WFC) console.log(Date.now(), "ban", x, y, tileIndex);
 
-    const state = this.getState(x, y);
+    const options = this.getOptions(x, y);
 
-    if (!state || !(tileIndex in state))
+    if (!options || !(tileIndex in options))
       throw new Error(
         `Attempting to ban non-existing state on ${x}:${y} - ${tileIndex}`
       );
 
-    delete state[tileIndex];
+    delete options[tileIndex];
+
+    if (Object.keys(options).length === 0)
+      throw new Error(
+        `No valid options after banning ${tileIndex} at ${x}:${y}`
+      );
   }
 
   getLowestEntropyCell() {
@@ -150,10 +154,10 @@ export class Wave {
     for (let x = 0; x < this.width; x++) {
       for (let y = 0; y < this.height; y++) {
         // skip for defined states
-        const state = this.getState(x, y);
-        if (!state) continue;
+        const options = this.getOptions(x, y);
+        if (!options) continue;
 
-        const weights = Object.values(state);
+        const weights = Object.values(options);
 
         // add noise for even distribution
         const entropy = this.calculateShannonEntropy(weights);
@@ -220,10 +224,10 @@ export class WaveFunctionCollapse {
     }
   }
 
-  getTilesFromState(state?: Record<string, number>) {
-    if (!state) return [];
+  getTilesFromOptions(options?: Record<string, number>) {
+    if (!options) return [];
 
-    return Object.keys(state)
+    return Object.keys(options)
       .map((index) => parseInt(index, 10))
       .map(
         (tileIndex) => [this.getTileFromIndex(tileIndex), tileIndex] as const
@@ -256,52 +260,49 @@ export class WaveFunctionCollapse {
       const cell = stack.pop()!;
 
       // ban options that would be cut off by boundaries
-      let options = wave.getOptions(cell.x, cell.y);
       const adjacentCells = wave.getAdjacentCells(cell.x, cell.y);
+      let options = wave.getOptions(cell.x, cell.y);
 
-      if (DEBUG_WFC) console.log(Date.now(), "stack", x, y, options);
+      if (DEBUG_WFC) console.log(Date.now(), "stack", cell.x, cell.y, options);
 
-      let cutOff = false;
-
-      // if neighbour is present, tile must not be on edge boundaries
-      for (const tileIndex of options) {
+      for (const tileNumber in options) {
+        const tileIndex = parseInt(tileNumber, 10);
         const tile = this.getTileFromIndex(tileIndex);
-        const neighbourConstraints = this.getConstraints(tile, "neighbour");
 
-        if (!neighbourConstraints) continue;
+        // if neighbour is present, tile must not be on edge boundaries
+        const neighbourConstraints = this.getConstraints(tile, "neighbour");
 
         for (const direction in neighbourConstraints) {
           if (!(direction in adjacentCells)) {
             wave.ban(cell.x, cell.y, tileIndex);
-            cutOff = true;
             break;
           }
         }
+
+        // if dimension is present, ensure there is enough space until edge
       }
 
-      // refetch options on change
-      if (cutOff) options = wave.getOptions(cell.x, cell.y);
-
-      if (options.length === 0)
-        throw new Error(`No valid options after cutoff at ${cell.x}:${cell.y}`);
+      const states = wave.getStates(cell.x, cell.y);
 
       for (const [adjacentOrientation, adjacentCell] of Object.entries(
         adjacentCells
       )) {
         // skip if already chosen
-        const adjacentState = wave.getState(adjacentCell.x, adjacentCell.y);
-        if (!adjacentState) continue;
+        const adjacentOptions = wave.getOptions(adjacentCell.x, adjacentCell.y);
+        if (!adjacentOptions) continue;
 
         const adjacentDirection = adjacentOrientation as Orientation;
         const oppositeDirection =
           orientations[(orientations.indexOf(adjacentDirection) + 2) % 4];
-        const adjacentTiles = this.getTilesFromState(adjacentState);
+        const adjacentTiles = this.getTilesFromOptions(adjacentOptions);
         let modified = false;
 
         // restrict neighbour tiles
         for (const [adjacentTile, adjacentIndex] of adjacentTiles) {
           let possibleNeighbour = false;
-          for (const tileIndex of options) {
+
+          for (const tileNumber in states) {
+            const tileIndex = parseInt(tileNumber, 10);
             const tile = this.getTileFromIndex(tileIndex);
 
             const neighbourTags = this.getConstraints(tile, "neighbour")?.[
@@ -325,10 +326,6 @@ export class WaveFunctionCollapse {
 
           if (!possibleNeighbour) {
             wave.ban(adjacentCell.x, adjacentCell.y, adjacentIndex);
-            if (Object.keys(adjacentState).length === 0)
-              throw new Error(
-                `Target became unresolvable ${adjacentCell.x}:${adjacentCell.y}!`
-              );
             modified = true;
           }
         }

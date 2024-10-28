@@ -28,7 +28,7 @@ const definition: Definition = {
   tags: {
     house: {
       constraints: {
-        dimensions: {
+        dimension: {
           minWidth: 5,
           maxWidth: 10,
           minHeight: 3,
