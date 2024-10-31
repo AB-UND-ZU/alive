@@ -106,6 +106,28 @@ export const shot: Sprite = {
   },
 };
 
+export const bolt: Sprite = {
+  name: "spell_bolt",
+  layers: [
+    { char: "∙", color: colors.grey },
+    { char: "·", color: colors.silver },
+  ],
+  amounts: {
+    single: [
+      { char: "∙", color: colors.grey },
+      { char: "·", color: colors.silver },
+    ],
+    double: [
+      { char: "\u0106", color: colors.silver },
+      { char: "∙", color: colors.grey },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.silver },
+      { char: "\u0106", color: colors.grey },
+    ],
+  },
+};
+
 export const createCounter: (amount: number) => Sprite = (amount) => ({
   name: "counter_generic",
   layers: [{ char: amount.toString(), color: colors.red }],

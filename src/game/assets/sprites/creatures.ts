@@ -95,3 +95,11 @@ export const halo: Sprite = {
   name: "Soul",
   layers: [{ char: "°", color: colors.yellow }],
 };
+
+export const fireTower: Sprite = {
+  name: "tower_fire",
+  layers: [
+    { char: "Y", color: colors.silver },
+    { char: '"', color: colors.red },
+  ],
+};

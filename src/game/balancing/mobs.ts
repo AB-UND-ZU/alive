@@ -44,7 +44,8 @@ const mobDefinitions: Record<MobKey, MobDefinition> = {
     damage: 1,
     hp: 3,
     drops: [
-      { chance: 85, items: [{ counter: "gold", amount: 1 }] },
+      { chance: 70, items: [{ counter: "gold", amount: 1 }] },
+      { chance: 15, items: [{ counter: "xp", amount: 1 }] },
       { chance: 15, items: [{ counter: "mp", amount: 1 }] },
     ],
     pattern: "triangle",
@@ -57,8 +58,8 @@ const mobDefinitions: Record<MobKey, MobDefinition> = {
       {
         chance: 100,
         items: [
-          { counter: "xp", amount: 1 },
           { counter: "gold", amount: 3 },
+          { counter: "xp", amount: 1 },
           { counter: "mp", amount: 1 },
         ],
       },
@@ -70,7 +71,8 @@ const mobDefinitions: Record<MobKey, MobDefinition> = {
     damage: 1,
     hp: 1,
     drops: [
-      { chance: 85, items: [{ counter: "gold", amount: 1 }] },
+      { chance: 70, items: [{ counter: "gold", amount: 1 }] },
+      { chance: 15, items: [{ counter: "xp", amount: 1 }] },
       { chance: 15, items: [{ counter: "hp", amount: 1 }] },
     ],
     pattern: "eye",
@@ -83,8 +85,8 @@ const mobDefinitions: Record<MobKey, MobDefinition> = {
       {
         chance: 100,
         items: [
-          { counter: "xp", amount: 1 },
           { counter: "gold", amount: 3 },
+          { counter: "xp", amount: 1 },
           { counter: "hp", amount: 1 },
         ],
       },

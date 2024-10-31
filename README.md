@@ -180,7 +180,8 @@ _Spawn area with intro quest_
 
 - Seed = Berry
 - Herb = Flower
-- Pink element = Gem
+- Pink element = Ruby
+- White element = Aether
 
 
 ## Tech debt
