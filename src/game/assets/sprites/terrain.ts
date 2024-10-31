@@ -57,6 +57,19 @@ export const oak: Sprite = {
   ],
 };
 
+export const hedge1: Sprite = {
+  name: "hedge_one",
+  layers: [
+    { char: "ß", color: colors.green },
+    { char: "!", color: colors.green },
+  ],
+};
+
+export const hedge2: Sprite = {
+  name: "hedge_two",
+  layers: [{ char: "\u0104", color: colors.green }],
+};
+
 export const tree1: Sprite = {
   name: "tree_one",
   layers: [

@@ -103,3 +103,12 @@ export const fireTower: Sprite = {
     { char: '"', color: colors.red },
   ],
 };
+
+export const fly: Sprite = {
+  name: "Fly",
+  layers: [
+    { char: '"', color: colors.silver },
+    { char: ":", color: colors.grey },
+    { char: ",", color: colors.black },
+  ],
+};

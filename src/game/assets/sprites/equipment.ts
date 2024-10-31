@@ -158,3 +158,13 @@ export const cloak: Sprite = {
     { char: "Ω", color: colors.grey },
   ],
 };
+
+export const bomb: Sprite = {
+  name: "Bomb",
+  layers: [
+    { char: "`", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+    { char: "\u0108", color: colors.grey },
+    { char: "\u0106", color: colors.grey },
+  ],
+};
