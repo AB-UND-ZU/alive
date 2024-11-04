@@ -19,30 +19,50 @@ const mapTiles: Record<string, string> = {
 const waveToString = (wfc: WaveFunctionCollapse, wave: Wave) => {
   return transpose(wave.chosen)
     .map((column) =>
-      column.map((cell) => mapTiles[wfc.tileNames[cell]] || " ").join("")
+      column.map((cell) => mapTiles[wfc.tileNames[cell]] || "?").join("")
     )
     .join("\n");
 };
 
 const definition: Definition = {
   tags: {
-    house: {
-      constraints: {
-        dimension: {
-          minWidth: 5,
-          maxWidth: 10,
-          minHeight: 3,
-          maxHeight: 6,
-        },
-      },
-    },
+    // basement_left: {
+    //   constraints: {
+    //     limit: {
+    //       horizontal: 3
+    //     },
+    //   },
+    // },
+    // basement_right: {
+    //   constraints: {
+    //     limit: {
+    //       horizontal: 3
+    //     },
+    //   },
+    // },
+    // house_left: {
+    //   constraints: {
+    //     limit: {
+    //       horizontal: 3
+    //     },
+    //   },
+    // },
+    // house_right: {
+    //   constraints: {
+    //     limit: {
+    //       horizontal: 3
+    //     },
+    //   },
+    // },
   },
   tiles: {
+    // 0
     air: {
       weight: 100,
       tags: ["air"],
     },
 
+    // 1
     leaves: {
       weight: 2,
       tags: ["leaves"],
@@ -52,6 +72,7 @@ const definition: Definition = {
         },
       },
     },
+    // 2
     trunk: {
       weight: 2,
       tags: ["trunk"],
@@ -62,9 +83,10 @@ const definition: Definition = {
       },
     },
 
+    // 3
     door: {
       weight: 10,
-      tags: ["house", "door", "basement"],
+      tags: ["house", "door"],
       constraints: {
         neighbour: {
           up: ["house"],
@@ -74,6 +96,7 @@ const definition: Definition = {
         },
       },
     },
+    // 4
     wallLeft: {
       weight: 2,
       tags: ["house", "basement", "basement_left"],
@@ -86,9 +109,10 @@ const definition: Definition = {
         },
       },
     },
+    // 5
     groundLeft: {
       weight: 2,
-      tags: ["house", "basement", "basement_left"],
+      tags: ["basement", "basement_left"],
       constraints: {
         neighbour: {
           up: ["house_left"],
@@ -98,6 +122,7 @@ const definition: Definition = {
         },
       },
     },
+    // 6
     wallRight: {
       weight: 2,
       tags: ["house", "basement", "basement_right"],
@@ -110,9 +135,10 @@ const definition: Definition = {
         },
       },
     },
+    // 7
     groundRight: {
       weight: 2,
-      tags: ["house", "basement", "basement_right"],
+      tags: ["basement", "basement_right"],
       constraints: {
         neighbour: {
           up: ["house_right"],
@@ -123,9 +149,10 @@ const definition: Definition = {
       },
     },
 
+    // 8
     upperLeft: {
       weight: 2,
-      tags: ["house", "house_left"],
+      tags: ["house_left"],
       constraints: {
         neighbour: {
           up: ["air", "house_left"],
@@ -135,21 +162,23 @@ const definition: Definition = {
         },
       },
     },
+    // 9
     house: {
       weight: 2,
       tags: ["house"],
       constraints: {
         neighbour: {
           up: ["air", "house"],
-          right: ["house"],
+          right: ["house", "house_right"],
           down: ["house"],
-          left: ["house"],
+          left: ["house", "house_left"],
         },
       },
     },
+    // 10
     upperRight: {
       weight: 2,
-      tags: ["house", "house_right"],
+      tags: ["house_right"],
       constraints: {
         neighbour: {
           up: ["air", "house_right"],
@@ -160,6 +189,7 @@ const definition: Definition = {
       },
     },
 
+    // 11
     path: {
       weight: 1,
       tags: ["path"],
@@ -178,6 +208,14 @@ export default function wfc() {
   const wave = wfc.generate(20, 20, {
     10: { 10: "door" },
   });
+  console.log(wfc, wave);
+
+  if (!wave) return "error";
+
+  while (!wave.isCompleted()) {
+    console.info(waveToString(wfc, wave));
+    wfc.iterate(wave);
+  }
 
   return waveToString(wfc, wave);
 }
