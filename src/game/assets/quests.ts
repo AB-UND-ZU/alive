@@ -62,18 +62,18 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () => !coinEntity,
-    onLeave: () => "triangle",
+    onLeave: () => "prism",
   });
 
-  const triangleEntity = world.getIdentifier("triangle");
+  const prismEntity = world.getIdentifier("prism");
   step({
     stage,
-    name: "triangle",
+    name: "prism",
     onEnter: () => {
-      world.setFocus(triangleEntity);
+      world.setFocus(prismEntity);
       return true;
     },
-    isCompleted: () => !triangleEntity,
+    isCompleted: () => !prismEntity,
     onLeave: () => "collect",
   });
 

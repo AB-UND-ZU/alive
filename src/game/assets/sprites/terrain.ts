@@ -49,11 +49,38 @@ export const path: Sprite = {
 export const oak: Sprite = {
   name: "tree_oak",
   layers: [
-    { char: "┐", color: colors.maroon },
-    { char: "─", color: colors.black },
     { char: "Y", color: colors.green },
-    { char: "\u0118", color: colors.green },
+    { char: "▄", color: colors.black },
+    { char: "┐", color: colors.maroon },
+    { char: "w", color: colors.green },
+    { char: "─", color: colors.black },
+    { char: "±", color: colors.green },
     { char: "∙", color: colors.maroon },
+  ],
+};
+
+export const palm1: Sprite = {
+  name: "palm_one",
+  layers: [
+    { char: "T", color: colors.green },
+    { char: "\u0104", color: colors.green },
+    { char: "▄", color: colors.black },
+    { char: '"', color: colors.green },
+    { char: "┐", color: colors.olive },
+    { char: "+", color: colors.olive },
+    { char: "─", color: colors.black },
+    { char: "∙", color: colors.olive },
+  ],
+};
+
+export const palm2: Sprite = {
+  name: "palm_two",
+  layers: [
+    { char: "┐", color: colors.olive },
+    { char: "─", color: colors.black },
+    { char: "W", color: colors.green },
+    { char: "|", color: colors.green },
+    { char: ".", color: colors.olive },
   ],
 };
 
@@ -130,8 +157,8 @@ export const bush: Sprite = {
   layers: [{ char: "\u03c4", color: colors.olive }],
 };
 
-export const flower: Sprite = {
-  name: "flower_empty",
+export const grass: Sprite = {
+  name: "grass_empty",
   layers: [{ char: ",", color: colors.olive }],
 };
 
@@ -151,7 +178,7 @@ export const cactus2: Sprite = {
 };
 
 export const tombstone: Sprite = {
-  name: "RIP",
+  name: "",
   layers: [
     { char: "!", color: colors.black },
     { char: "\u0115", color: colors.grey },

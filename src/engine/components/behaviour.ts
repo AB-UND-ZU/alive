@@ -3,7 +3,7 @@ import { World } from "../ecs";
 
 export type Pattern = {
   name:
-    | "triangle"
+    | "prism"
     | "eye"
     | "wait"
     | "move"

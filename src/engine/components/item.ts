@@ -3,7 +3,10 @@ import { World } from "../ecs";
 import { Equippable } from "./equippable";
 import { Countable } from "./countable";
 
-export type Material = "wood" | "iron" | "gold" | "fire" | "water";
+export type Resource = "wood" | "iron" | "gold" | "diamond";
+export type Element = "fire" | "water" | "earth";
+export type Legendary = "ruby" | "aether" | "void" | "rainbow";
+export type Material = Resource | Element | Legendary;
 
 export type Consumable = "key";
 

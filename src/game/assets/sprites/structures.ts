@@ -9,6 +9,22 @@ export const sign: Sprite = {
   ],
 };
 
+export const fence: Sprite = {
+  name: "fence_wall",
+  layers: [
+    { char: "=", color: colors.maroon },
+    { char: "|", color: colors.maroon },
+  ],
+};
+
+export const fenceDoor: Sprite = {
+  name: "fence_door",
+  layers: [
+    { char: "⌐", color: colors.maroon },
+    { char: "¬", color: colors.maroon },
+  ],
+};
+
 export const anvil: Sprite = {
   name: "Anvil",
   layers: [

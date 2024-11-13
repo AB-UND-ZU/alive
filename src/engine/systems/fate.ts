@@ -19,7 +19,7 @@ import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
-import { none, tombstone, player } from "../../game/assets/sprites";
+import { none, scout, tombstone } from "../../game/assets/sprites";
 import { ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
@@ -231,11 +231,11 @@ export default function setupFate(world: World) {
         [ACTIONABLE]: { triggered: false },
         [ATTACKABLE]: { enemy: false },
         [COLLECTABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 10, maxHp: 10, maxMp: 5 },
+        [COUNTABLE]: { ...emptyCountable, hp: 20, maxHp: 20, maxMp: 10 },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {},
         [FOG]: { visibility: "visible", type: "unit" },
-        [INVENTORY]: { items: [], size: 20 },
+        [INVENTORY]: { items: [], size: 16 },
         [LIGHT]: { visibility: 1, brightness: 1, darkness: 0 },
         [MELEE]: {},
         [MOVABLE]: {
@@ -258,7 +258,7 @@ export default function setupFate(world: World) {
           light: entity[SPAWNABLE].light,
           viewable: entity[SPAWNABLE].viewable,
         },
-        [SPRITE]: player,
+        [SPRITE]: scout,
         [SWIMMABLE]: { swimming: false },
         [VIEWABLE]: entity[SPAWNABLE].viewable,
       });

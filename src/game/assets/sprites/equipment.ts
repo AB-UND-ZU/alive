@@ -111,12 +111,12 @@ export const goldSword: Sprite = {
   },
 };
 
-export const woodShield: Sprite = {
+export const woodArmor: Sprite = {
   name: "Armor",
   layers: [{ char: "¬", color: colors.maroon }],
 };
 
-export const ironShield: Sprite = {
+export const ironArmor: Sprite = {
   name: "Armor",
   layers: [{ char: "¬", color: colors.grey }],
 };
@@ -148,14 +148,100 @@ export const hammer: Sprite = {
   ],
 };
 
-export const cloak: Sprite = {
+export const slash1: Sprite = {
+  name: "Slash",
+  layers: [
+    { char: "σ", color: colors.silver },
+    { char: "\u0106", color: colors.grey },
+  ],
+};
+
+export const slash2: Sprite = {
+  name: "Slash",
+  layers: [
+    { char: "@", color: colors.silver },
+    { char: "\u0106", color: colors.grey },
+  ],
+};
+
+export const shield1: Sprite = {
+  name: "Shield",
+  layers: [
+    { char: "\u0106", color: colors.silver },
+    { char: "\u0108", color: colors.silver },
+    { char: "v", color: colors.silver },
+    { char: "+", color: colors.grey },
+  ],
+};
+
+export const shield2: Sprite = {
+  name: "Shield",
+  layers: [
+    { char: '"', color: colors.silver },
+    { char: "!", color: colors.silver },
+    { char: "\u0106", color: colors.silver },
+    { char: "\u0108", color: colors.silver },
+    { char: "v", color: colors.silver },
+    { char: "+", color: colors.grey },
+  ],
+};
+
+export const volley1: Sprite = {
+  name: "Volley",
+  layers: [
+    { char: "<", color: colors.silver },
+    { char: "-", color: colors.grey },
+  ],
+};
+
+export const volley2: Sprite = {
+  name: "Volley",
+  layers: [
+    { char: "«", color: colors.grey },
+    { char: "\u011a", color: colors.black },
+    { char: "<", color: colors.silver },
+    { char: "-", color: colors.silver },
+  ],
+};
+
+export const cloak1: Sprite = {
   name: "Cloak",
   layers: [
     { char: "\u011d", color: colors.silver },
     { char: "▀", color: colors.black },
     { char: "-", color: colors.black },
-    { char: "^", color: colors.grey },
     { char: "Ω", color: colors.grey },
+  ],
+};
+
+export const cloak2: Sprite = {
+  name: "Cloak",
+  layers: [
+    { char: "\u011d", color: colors.silver },
+    { char: "▀", color: colors.black },
+    { char: "-", color: colors.black },
+    { char: "Ω", color: colors.grey },
+    { char: "^", color: colors.grey },
+    { char: "°", color: colors.silver },
+  ],
+};
+
+export const amulet1: Sprite = {
+  name: "Amulet",
+  layers: [
+    { char: "|", color: colors.grey },
+    { char: "┐", color: colors.black },
+    { char: "*", color: colors.silver },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const amulet2: Sprite = {
+  name: "Amulet",
+  layers: [
+    { char: '"', color: colors.grey },
+    { char: "\u010e", color: colors.silver },
+    { char: "·", color: colors.grey },
   ],
 };
 
@@ -167,4 +253,47 @@ export const bomb: Sprite = {
     { char: "\u0108", color: colors.grey },
     { char: "\u0106", color: colors.grey },
   ],
+};
+
+export const haste: Sprite = {
+  name: "Haste",
+  layers: [
+    { char: "»", color: colors.grey },
+    { char: ">", color: colors.silver },
+  ],
+};
+
+export const spell: Sprite = {
+  name: "spell",
+  layers: [{ char: "δ", color: colors.silver }],
+};
+
+export const fireSpell1: Sprite = {
+  name: "spell_fire_1",
+  layers: [{ char: "δ", color: colors.red }],
+};
+
+export const waterSpell1: Sprite = {
+  name: "spell_water_1",
+  layers: [{ char: "δ", color: colors.blue }],
+};
+
+export const earthSpell1: Sprite = {
+  name: "spell_earth_1",
+  layers: [{ char: "δ", color: colors.lime }],
+};
+
+export const fireSpell2: Sprite = {
+  name: "spell_fire_2",
+  layers: [{ char: "§", color: colors.red }],
+};
+
+export const waterSpell2: Sprite = {
+  name: "spell_water_2",
+  layers: [{ char: "§", color: colors.blue }],
+};
+
+export const earthSpell2: Sprite = {
+  name: "spell_earth_2",
+  layers: [{ char: "§", color: colors.lime }],
 };

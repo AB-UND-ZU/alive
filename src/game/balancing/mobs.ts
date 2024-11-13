@@ -1,13 +1,13 @@
 import { Pattern } from "../../engine/components/behaviour";
 import { Countable } from "../../engine/components/countable";
-import { eye, goldEye, goldTriangle, triangle } from "../assets/sprites";
+import { eye, goldEye, goldPrism, prism } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
 
 export type MobKey =
-  | "spawnTriangle"
-  | "triangle"
-  | "goldTriangle"
+  | "spawnPrism"
+  | "prism"
+  | "goldPrism"
   | "eye"
   | "goldEye";
 
@@ -33,14 +33,14 @@ export type MobStat = {
 };
 
 const mobDefinitions: Record<MobKey, MobDefinition> = {
-  spawnTriangle: {
+  spawnPrism: {
     damage: 1,
     hp: 3,
     drops: [{ chance: 100, items: [{ counter: "gold", amount: 1 }] }],
-    pattern: "triangle",
-    sprite: triangle,
+    pattern: "prism",
+    sprite: prism,
   },
-  triangle: {
+  prism: {
     damage: 1,
     hp: 3,
     drops: [
@@ -48,10 +48,10 @@ const mobDefinitions: Record<MobKey, MobDefinition> = {
       { chance: 15, items: [{ counter: "xp", amount: 1 }] },
       { chance: 15, items: [{ counter: "mp", amount: 1 }] },
     ],
-    pattern: "triangle",
-    sprite: triangle,
+    pattern: "prism",
+    sprite: prism,
   },
-  goldTriangle: {
+  goldPrism: {
     damage: 2,
     hp: 15,
     drops: [
@@ -64,8 +64,8 @@ const mobDefinitions: Record<MobKey, MobDefinition> = {
         ],
       },
     ],
-    pattern: "triangle",
-    sprite: goldTriangle,
+    pattern: "prism",
+    sprite: goldPrism,
   },
   eye: {
     damage: 1,

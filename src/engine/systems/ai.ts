@@ -69,7 +69,7 @@ export default function setupAi(world: World) {
 
           pattern.memory.ticks -= 1;
           break;
-        } else if (pattern.name === "triangle") {
+        } else if (pattern.name === "prism") {
           const facing = (entity[ORIENTABLE]?.facing ||
             orientations[random(0, orientations.length - 1)]) as Orientation;
 
@@ -131,6 +131,13 @@ export default function setupAi(world: World) {
           const close = distance < 4.25;
           const isVisible = entity[FOG].visibility === "visible";
           const isMoving = !entity[TOOLTIP].idle;
+          const orientations = heroEntity
+            ? relativeOrientations(
+                world,
+                entity[POSITION],
+                heroEntity[POSITION]
+              )
+            : [];
 
           if (!heroEntity || (!aggro && !isMoving) || !isVisible) {
             const sprite = close
@@ -142,6 +149,14 @@ export default function setupAi(world: World) {
               entity[TOOLTIP].idle = sprite;
               entity[TOOLTIP].changed = true;
             }
+
+            // open eyes by setting orientation
+            if (entity[ORIENTABLE]) {
+              if (close && !entity[ORIENTABLE].facing)
+                entity[ORIENTABLE].facing = orientations[0];
+              else if (!close) entity[ORIENTABLE].facing = undefined;
+            }
+
             break;
           }
 
@@ -150,11 +165,7 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].changed = true;
           }
 
-          entity[MOVABLE].orientations = relativeOrientations(
-            world,
-            entity[POSITION],
-            heroEntity[POSITION]
-          );
+          entity[MOVABLE].orientations = orientations;
           rerenderEntity(world, entity);
           break;
         } else if (pattern.name === "dialog") {

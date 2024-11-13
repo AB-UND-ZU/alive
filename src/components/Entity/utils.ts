@@ -22,12 +22,12 @@ import {
   fireSword,
   goldKey,
   goldSword,
+  ironArmor,
   ironKey,
-  ironShield,
   ironSword,
   map,
   none,
-  woodShield,
+  woodArmor,
   woodStick,
 } from "../../game/assets/sprites";
 
@@ -187,8 +187,8 @@ const entitySprites: Record<
     gold: goldSword,
   },
   armor: {
-    wood: woodShield,
-    iron: ironShield,
+    wood: woodArmor,
+    iron: ironArmor,
   },
   compass: {
     wood: compass,

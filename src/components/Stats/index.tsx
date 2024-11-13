@@ -54,9 +54,9 @@ function StatsInner({
               none,
               ...createStat(stats, "xp", "countable"),
               none,
-              ...createStat(stats, "iron", "countable"),
+              ...createStat(stats, "ore", "countable"),
               none,
-              ...createStat(stats, "seed", "countable"),
+              ...createStat(stats, "berry", "countable"),
             ]}
           />
           <Row
@@ -72,7 +72,7 @@ function StatsInner({
               none,
               ...createStat(stats, "wood", "countable"),
               none,
-              ...createStat(stats, "herb", "countable"),
+              ...createStat(stats, "flower", "countable"),
             ]}
           />
         </>

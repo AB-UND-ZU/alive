@@ -1,13 +1,53 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
-export const chest: Sprite = {
+export const commonChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
     { char: "±", color: colors.maroon },
-    { char: "∙", color: colors.yellow },
+    { char: "∙", color: colors.silver },
     { char: "·", color: colors.maroon },
+  ],
+};
+
+export const uncommonChest: Sprite = {
+  name: "Chest",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "±", color: colors.lime },
+    { char: "∙", color: colors.silver },
+    { char: "·", color: colors.lime },
+  ],
+};
+
+export const rareChest: Sprite = {
+  name: "Chest",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "±", color: colors.yellow },
+    { char: "∙", color: colors.silver },
+    { char: "·", color: colors.yellow },
+  ],
+};
+
+export const epicChest: Sprite = {
+  name: "Chest",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "±", color: colors.aqua },
+    { char: "∙", color: colors.silver },
+    { char: "·", color: colors.aqua },
+  ],
+};
+
+export const legendaryChest: Sprite = {
+  name: "Chest",
+  layers: [
+    { char: "■", color: colors.white },
+    { char: "±", color: colors.fuchsia },
+    { char: "∙", color: colors.silver },
+    { char: "·", color: colors.fuchsia },
   ],
 };
 
@@ -93,5 +133,32 @@ export const doorClosedGold: Sprite = {
     { char: "\u0106", color: colors.yellow },
     { char: "∙", color: colors.black },
     { char: ".", color: colors.yellow },
+  ],
+};
+
+export const leverOff: Sprite = {
+  name: "Off",
+  layers: [
+    { char: "\\", color: colors.maroon },
+    { char: "\u0115", color: colors.grey },
+    { char: ".", color: colors.red },
+  ],
+};
+
+export const lever: Sprite = {
+  name: "Lever",
+  layers: [
+    { char: "|", color: colors.maroon },
+    { char: "\u0115", color: colors.grey },
+    { char: ".", color: colors.yellow },
+  ],
+};
+
+export const leverOn: Sprite = {
+  name: "On",
+  layers: [
+    { char: "/", color: colors.maroon },
+    { char: "\u0115", color: colors.grey },
+    { char: ".", color: colors.lime },
   ],
 };

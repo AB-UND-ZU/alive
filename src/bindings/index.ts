@@ -9,6 +9,8 @@ import { COLLIDABLE } from "../engine/components/collidable";
 import {
   apple1,
   apple2,
+  banana,
+  berry,
   block,
   blockDown,
   blockUp,
@@ -16,8 +18,9 @@ import {
   cactus1,
   cactus2,
   campfire,
-  chest,
+  coconut,
   coin,
+  commonChest,
   compass,
   createDialog,
   doorClosedGold,
@@ -28,21 +31,24 @@ import {
   ghost,
   goldKey,
   goldMine,
-  herb,
-  iron,
+  grass,
+  hedge1,
+  hedge2,
   ironSword,
   none,
   oak,
+  ore,
+  palm1,
+  palm2,
   pot,
   sand,
-  seed,
   stick,
   tree1,
   tree2,
   villager,
   wall,
   water,
-  woodShield,
+  woodArmor,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
@@ -105,7 +111,7 @@ import { npcSequence } from "../game/assets/utils";
 import { SPAWNABLE } from "../engine/components/spawnable";
 import { REFERENCE } from "../engine/components/reference";
 import { generateMobKey, generateMobStat } from "../game/balancing/mobs";
-import { greenMobDistribution } from "../game/levels/green";
+import { hillsMobDistribution } from "../game/levels/hills";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -143,6 +149,10 @@ export const generateWorld = async (world: World) => {
     const green = greenMatrix[x][y] * menuDip;
     const spawn = spawnMatrix[x][y] * menuDip ** 0.25;
 
+    // beach palms
+    if (temperature < 65 && elevation < 7 && elevation > 3 && spawn > 65)
+      return "palm";
+
     // beach and islands (if not desert)
     if (
       temperature < 65 &&
@@ -150,6 +160,7 @@ export const generateWorld = async (world: World) => {
       (elevation > -32 || temperature > 0)
     )
       return "water";
+
     if (
       temperature < 65 &&
       elevation < 6 &&
@@ -157,28 +168,36 @@ export const generateWorld = async (world: World) => {
     )
       return "sand";
 
+    // island palms
+    if (elevation <= -35 && temperature < 0 && green > 30) return "palm";
+
     // forest
     if (elevation > 25 && terrain > 30)
       return temperature < 0 && terrain < 75 && menu < 5
-        ? spawn > 97
+        ? terrain > 37
+          ? "tree"
+          : spawn > 93
           ? "fruit"
-          : spawn > 91
+          : spawn > 80
           ? "wood"
-          : "tree"
+          : "hedge"
         : spawn > 99
         ? "gold"
         : spawn > 86
-        ? "iron"
+        ? "ore"
         : "rock";
 
     // desert, oasis and cactus
-    if (temperature > 65 && terrain > 70) return "water";
-    if (temperature > 65) return 20 < green && green < 25 ? "cactus" : "sand";
+    if (temperature > 65 && terrain > 75) return "water";
+    if (temperature > 65 && terrain > 70) return "palm";
+    if (temperature > 65) return 21 < green && green < 25 ? "cactus" : "sand";
 
     // greens
-    if (green > 30) return spawn > 97 ? "fruit" : spawn > 91 ? "wood" : "tree";
-    if (green > 20) return spawn > 91 ? "seed" : "bush";
-    if (green > 10) return spawn > 92 ? "herb" : "grass";
+    if (green > 37 && elevation > 17) return "tree";
+    if (green > 30 && elevation > 14)
+      return spawn > 93 ? "fruit" : spawn > 80 ? "wood" : "hedge";
+    if (green > 20 && elevation > 11) return spawn > 91 ? "berry" : "bush";
+    if (green > 10 && elevation > 8) return spawn > 92 ? "flower" : "grass";
 
     // spawn
     if (spawn < -96) return "mob";
@@ -202,7 +221,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "▀") entity = "block_up";
       else if (cell === "i") entity = "alive";
       else if (cell === "◙") entity = "door";
-      else if (cell === "◘") entity = "iron_one";
+      else if (cell === "◘") entity = "ore_one";
       else if (cell === "∙") entity = "coin_one";
       else if (cell === "o") entity = "pot";
       else if (cell === "¢") entity = "compass";
@@ -210,11 +229,11 @@ export const generateWorld = async (world: World) => {
       else if (cell === "=") entity = "wood_two";
       else if (cell === ".") entity = "fruit";
       else if (cell === "τ") entity = "bush";
-      else if (cell === "'") entity = "seed_one";
+      else if (cell === "'") entity = "berry_one";
       else if (cell === ",") entity = "grass";
-      else if (cell === "·") entity = "herb_one";
+      else if (cell === "·") entity = "flower_one";
       else if (cell === "♀") entity = "guide";
-      else if (cell === "►") entity = "triangle";
+      else if (cell === "►") entity = "prism";
       else if (cell === "*") entity = "campfire";
       else if (cell === "↔") entity = "key";
       else if (cell === "├") entity = "house_left";
@@ -324,7 +343,7 @@ export const generateWorld = async (world: World) => {
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [COLLIDABLE]: {},
       });
-    } else if (cell === "iron" || cell === "iron_one") {
+    } else if (cell === "ore" || cell === "ore_one") {
       const oreEntity = entities.createOre(world, {
         [INVENTORY]: { items: [], size: 1 },
         [LOOTABLE]: { disposable: false },
@@ -337,10 +356,10 @@ export const generateWorld = async (world: World) => {
       });
       createItemInInventory(world, oreEntity, entities.createItem, {
         [ITEM]: {
-          amount: cell === "iron" ? distribution(80, 15, 5) + 1 : 1,
-          counter: "iron",
+          amount: cell === "ore" ? distribution(80, 15, 5) + 1 : 1,
+          counter: "ore",
         },
-        [SPRITE]: iron,
+        [SPRITE]: ore,
       });
     } else if (cell === "block") {
       entities.createTerrain(world, {
@@ -425,7 +444,47 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: [oak, tree1, tree2][distribution(2, 49, 49)],
         [RENDERABLE]: { generation: 0 },
       });
-    } else if (cell === "bush" || cell === "seed" || cell === "seed_one") {
+    } else if (cell === "palm") {
+      const [fruit, palm] = [
+        [coconut, palm1],
+        [banana, palm2],
+      ][random(0, 1)];
+
+      if (random(0, 19) === 0) {
+        const fruitEntity = entities.createFruit(world, {
+          [COLLIDABLE]: {},
+          [FOG]: { visibility, type: "terrain" },
+          [INVENTORY]: { items: [], size: 1 },
+          [LOOTABLE]: { disposable: false },
+          [POSITION]: { x, y },
+          [SPRITE]: palm,
+          [RENDERABLE]: { generation: 0 },
+        });
+        createItemInInventory(world, fruitEntity, entities.createItem, {
+          [ITEM]: {
+            amount: 1,
+            counter: "mp",
+          },
+          [SPRITE]: fruit,
+        });
+      } else {
+        entities.createTerrain(world, {
+          [FOG]: { visibility, type: "terrain" },
+          [COLLIDABLE]: {},
+          [POSITION]: { x, y },
+          [SPRITE]: palm,
+          [RENDERABLE]: { generation: 0 },
+        });
+      }
+    } else if (cell === "hedge") {
+      entities.createTerrain(world, {
+        [FOG]: { visibility, type: "terrain" },
+        [COLLIDABLE]: {},
+        [POSITION]: { x, y },
+        [SPRITE]: [hedge1, hedge2][distribution(50, 50)],
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "bush" || cell === "berry" || cell === "berry_one") {
       entities.createGround(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
@@ -433,29 +492,29 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
 
-      if (cell === "seed" || cell === "seed_one") {
+      if (cell === "berry" || cell === "berry_one") {
         createItemAsDrop(world, { x, y }, entities.createItem, {
           [ITEM]: {
-            counter: "seed",
-            amount: cell === "seed" ? distribution(80, 15, 5) + 1 : 1,
+            counter: "berry",
+            amount: cell === "berry" ? distribution(80, 15, 5) + 1 : 1,
           },
-          [SPRITE]: seed,
+          [SPRITE]: berry,
         });
       }
-    } else if (cell === "grass" || cell === "herb" || cell === "herb_one") {
+    } else if (cell === "grass" || cell === "flower" || cell === "flower_one") {
       entities.createGround(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
-        [SPRITE]: flower,
+        [SPRITE]: grass,
         [RENDERABLE]: { generation: 0 },
       });
-      if (cell === "herb" || cell === "herb_one") {
+      if (cell === "flower" || cell === "flower_one") {
         createItemAsDrop(world, { x, y }, entities.createItem, {
           [ITEM]: {
-            counter: "herb",
-            amount: cell === "herb" ? distribution(80, 15, 5) + 1 : 1,
+            counter: "flower",
+            amount: cell === "flower" ? distribution(80, 15, 5) + 1 : 1,
           },
-          [SPRITE]: herb,
+          [SPRITE]: flower,
         });
       }
     } else if (cell === "coin_one") {
@@ -541,7 +600,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SPRITE]: chest,
+        [SPRITE]: commonChest,
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       compassEntity[ITEM].carrier = world.getEntityId(chestEntity);
@@ -587,16 +646,16 @@ export const generateWorld = async (world: World) => {
       });
       createItemInInventory(world, guideEntity, entities.createItem, {
         [ITEM]: { amount: 1, slot: "armor", material: "wood" },
-        [SPRITE]: woodShield,
+        [SPRITE]: woodArmor,
       });
       npcSequence(world, guideEntity, "guideNpc");
 
       world.setIdentifier(guideEntity, "guide");
-    } else if (cell === "mob" || cell === "triangle") {
+    } else if (cell === "mob" || cell === "prism") {
       const { damage, pattern, items, sprite, hp } = generateMobStat(
-        cell === "triangle"
-          ? "spawnTriangle"
-          : generateMobKey(greenMobDistribution)
+        cell === "prism"
+          ? "spawnPrism"
+          : generateMobKey(hillsMobDistribution)
       );
 
       const mobEntity = entities.createMob(world, {
@@ -656,7 +715,7 @@ export const generateWorld = async (world: World) => {
         "equipOnly"
       );
 
-      if (cell === "triangle") world.setIdentifier(mobEntity, "triangle");
+      if (cell === "prism") world.setIdentifier(mobEntity, "prism");
     } else if (cell === "key") {
       const keyEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
         [ITEM]: {
@@ -726,7 +785,12 @@ export const generateWorld = async (world: World) => {
       entities.createWall(world, {
         [COLLIDABLE]: {},
         [FOG]: { visibility: "visible", type: "terrain" },
-        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0, orientation: 'right' },
+        [LIGHT]: {
+          brightness: 0,
+          darkness: 1,
+          visibility: 0,
+          orientation: "right",
+        },
         [POSITION]: { x, y },
         [SPRITE]: roofLeft,
         [RENDERABLE]: { generation: 0 },
@@ -735,7 +799,12 @@ export const generateWorld = async (world: World) => {
       entities.createWall(world, {
         [COLLIDABLE]: {},
         [FOG]: { visibility: "visible", type: "terrain" },
-        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0, orientation: 'left' },
+        [LIGHT]: {
+          brightness: 0,
+          darkness: 1,
+          visibility: 0,
+          orientation: "left",
+        },
         [POSITION]: { x, y },
         [SPRITE]: roofRight,
         [RENDERABLE]: { generation: 0 },

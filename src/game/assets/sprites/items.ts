@@ -38,6 +38,44 @@ export const apple2: Sprite = {
   },
 };
 
+export const banana: Sprite = {
+  name: "Banana",
+  layers: [
+    { char: "«", color: colors.yellow },
+    { char: "-", color: colors.black },
+  ],
+  amounts: {
+    single: [
+      { char: "┐", color: colors.olive },
+      { char: "─", color: colors.black },
+      { char: "W", color: colors.green },
+      { char: "|", color: colors.green },
+      { char: ".", color: colors.olive },
+      { char: "«", color: colors.yellow },
+      { char: "-", color: colors.green },
+    ],
+  },
+};
+
+export const coconut: Sprite = {
+  name: "Coconut",
+  layers: [{ char: "\u0106", color: colors.maroon }],
+  amounts: {
+    single: [
+      { char: "T", color: colors.green },
+      { char: "\u0104", color: colors.green },
+      { char: "▄", color: colors.black },
+      { char: '"', color: colors.green },
+      { char: "┐", color: colors.olive },
+      { char: "+", color: colors.olive },
+      { char: "─", color: colors.black },
+      { char: "∙", color: colors.olive },
+
+      { char: "\u0106", color: colors.maroon },
+    ],
+  },
+};
+
 export const mana: Sprite = {
   name: "Mana",
   layers: [{ char: "\u0103", color: colors.blue }],
@@ -72,6 +110,11 @@ export const fireEssence: Sprite = {
 export const waterEssence: Sprite = {
   name: "Water",
   layers: [{ char: "æ", color: colors.blue }],
+};
+
+export const earthEssence: Sprite = {
+  name: "Earth",
+  layers: [{ char: "æ", color: colors.lime }],
 };
 
 export const coin: Sprite = {
@@ -116,8 +159,8 @@ export const spike: Sprite = {
   ],
 };
 
-export const seedDrop: Sprite = {
-  name: "Seed",
+export const berryDrop: Sprite = {
+  name: "Berry",
   layers: [{ char: "'", color: colors.purple }],
   amounts: {
     single: [{ char: "'", color: colors.purple }],
@@ -126,8 +169,8 @@ export const seedDrop: Sprite = {
   },
 };
 
-export const seed: Sprite = {
-  name: "Seed",
+export const berry: Sprite = {
+  name: "Berry",
   layers: [{ char: "'", color: colors.purple }],
   amounts: {
     single: [
@@ -145,16 +188,13 @@ export const seed: Sprite = {
   },
 };
 
-export const seedStack: Sprite = {
-  name: "Seeds",
-  layers: [
-    { char: "\u011c", color: colors.purple },
-    { char: "-", color: colors.black },
-  ],
+export const berryStack: Sprite = {
+  name: "Berry",
+  layers: [{ char: "\u0105", color: colors.purple }],
 };
 
-export const herbDrop: Sprite = {
-  name: "Herb",
+export const flowerDrop: Sprite = {
+  name: "Flower",
   layers: [{ char: "∙", color: colors.teal }],
   amounts: {
     single: [{ char: "∙", color: colors.teal }],
@@ -163,8 +203,8 @@ export const herbDrop: Sprite = {
   },
 };
 
-export const herb: Sprite = {
-  name: "Herb",
+export const flower: Sprite = {
+  name: "Flower",
   layers: [{ char: "∙", color: colors.teal }],
   amounts: {
     single: [
@@ -185,13 +225,13 @@ export const herb: Sprite = {
   },
 };
 
-export const herbStack: Sprite = {
-  name: "Herbs",
+export const flowerStack: Sprite = {
+  name: "Flower",
   layers: [{ char: "\u010e", color: colors.teal }],
 };
 
-export const ironDrop: Sprite = {
-  name: "Iron",
+export const oreDrop: Sprite = {
+  name: "Ore",
   layers: [{ char: "∙", color: colors.silver }],
   amounts: {
     multiple: [
@@ -203,8 +243,8 @@ export const ironDrop: Sprite = {
   },
 };
 
-export const iron: Sprite = {
-  name: "iron_ore",
+export const ore: Sprite = {
+  name: "Ore",
   layers: [{ char: "∙", color: colors.silver }],
   amounts: {
     single: [
@@ -225,7 +265,16 @@ export const iron: Sprite = {
   },
 };
 
-export const goldOre: Sprite = {
+export const iron: Sprite = {
+  name: "Iron",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "÷", color: colors.silver },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const gold: Sprite = {
   name: "Gold",
   layers: [
     { char: "■", color: colors.grey },
@@ -234,10 +283,30 @@ export const goldOre: Sprite = {
   ],
 };
 
+export const diamond: Sprite = {
+  name: "Diamond",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "÷", color: colors.aqua },
+    { char: "·", color: colors.grey },
+  ],
+};
+
 export const arrow: Sprite = {
   name: "Arrow",
   layers: [
     { char: "»", color: colors.grey },
+    { char: ">", color: colors.black },
+    { char: "─", color: colors.grey },
+    { char: "-", color: colors.maroon },
+  ],
+};
+
+export const arrowStack: Sprite = {
+  name: "Arrows",
+  layers: [
+    { char: "»", color: colors.grey },
+    { char: "─", color: colors.grey },
     { char: "-", color: colors.maroon },
   ],
 };
@@ -250,4 +319,29 @@ export const map: Sprite = {
     { char: "-", color: colors.black },
     { char: "+", color: colors.silver },
   ],
+};
+
+export const rubyGem: Sprite = {
+  name: "Ruby",
+  layers: [{ char: "\u0103", color: colors.fuchsia }],
+};
+
+export const aetherGem: Sprite = {
+  name: "Aether",
+  layers: [{ char: "\u0103", color: colors.white }],
+};
+
+export const voidShard: Sprite = {
+  name: "Shard",
+  layers: [{ char: "\u011c", color: colors.grey }],
+};
+
+export const voidGem: Sprite = {
+  name: "Void",
+  layers: [{ char: "\u0103", color: colors.grey }],
+};
+
+export const rainbowGem: Sprite = {
+  name: "Rainbow",
+  layers: [{ char: "\u0103", color: colors.yellow }],
 };

@@ -2,16 +2,16 @@ import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 import { Countable } from "../../../engine/components/countable";
 import {
+  berry,
+  berryDrop,
   coin,
+  flower,
+  flowerDrop,
   heart,
   heartUp,
-  herb,
-  herbDrop,
-  ironDrop,
   mana,
   manaUp,
-  seed,
-  seedDrop,
+  oreDrop,
   stick,
   xp,
 } from "./items";
@@ -39,7 +39,7 @@ export const frozen: Sprite = {
 
 export const hit: Sprite = {
   name: "hit_melee",
-  layers: [{ char: "x", color: colors.red }],
+  layers: [{ char: "\u0108", color: colors.white }],
   amounts: {
     single: [
       { char: "*", color: colors.red },
@@ -124,6 +124,29 @@ export const bolt: Sprite = {
     multiple: [
       { char: "\u0108", color: colors.silver },
       { char: "\u0106", color: colors.grey },
+    ],
+  },
+};
+
+export const trap: Sprite = {
+  name: "spell_trap",
+  layers: [
+    { char: "\u011c", color: colors.red },
+    { char: "-", color: colors.black },
+  ],
+  amounts: {
+    single: [
+      { char: "\u011c", color: colors.red },
+      { char: "-", color: colors.black },
+    ],
+    double: [
+      { char: "■", color: colors.red },
+      { char: "|", color: colors.black },
+      { char: "-", color: colors.black },
+    ],
+    multiple: [
+      { char: "#", color: colors.red },
+      { char: "\u0103", color: colors.black },
     ],
   },
 };
@@ -296,9 +319,9 @@ const statSprites: Record<
   xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp },
   gold: { color: colors.yellow, sprite: nonCountable(coin), drop: coin },
   wood: { color: colors.maroon, sprite: stick },
-  iron: { color: colors.silver, sprite: ironDrop },
-  herb: { color: colors.teal, sprite: herb, drop: herbDrop },
-  seed: { color: colors.purple, sprite: seed, drop: seedDrop },
+  ore: { color: colors.silver, sprite: oreDrop },
+  flower: { color: colors.teal, sprite: flower, drop: flowerDrop },
+  berry: { color: colors.purple, sprite: berry, drop: berryDrop },
 };
 
 export const createStat = (

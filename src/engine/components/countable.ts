@@ -9,9 +9,9 @@ export type Countable = {
   xp: number;
   gold: number;
   wood: number;
-  iron: number;
-  herb: number;
-  seed: number;
+  ore: number;
+  flower: number;
+  berry: number;
 };
 
 export const emptyCountable: Countable = {
@@ -22,9 +22,9 @@ export const emptyCountable: Countable = {
   xp: 0,
   gold: 0,
   wood: 0,
-  iron: 0,
-  herb: 0,
-  seed: 0,
+  ore: 0,
+  flower: 0,
+  berry: 0,
 };
 
 export const COUNTABLE = "COUNTABLE";

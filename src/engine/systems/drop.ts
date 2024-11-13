@@ -221,10 +221,10 @@ export const dropEntity = (
   const droppedCountables: (keyof Countable)[] = [
     "xp",
     "gold",
-    "iron",
+    "ore",
     "wood",
-    "herb",
-    "seed",
+    "flower",
+    "berry",
   ];
 
   const items = [
