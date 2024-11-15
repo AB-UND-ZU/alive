@@ -31,7 +31,6 @@ import {
   woodStick,
 } from "../../game/assets/sprites";
 
-export const pixels = 16;
 export const textSize = 18 / 25 + 0.001;
 
 export const stack = 1000;
@@ -51,6 +50,7 @@ export const shadowHeight = 6 * stackHeight;
 export const fogHeight = 7 * stackHeight;
 export const tooltipHeight = 8 * stackHeight;
 export const focusHeight = 9 * stackHeight;
+export const dialogHeight = 9.5 * stackHeight;
 export const particleHeight = 10 * stackHeight;
 export const cameraHeight = 11 * stackHeight;
 

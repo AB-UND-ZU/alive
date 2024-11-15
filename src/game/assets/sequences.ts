@@ -1,5 +1,6 @@
 import {
   decayHeight,
+  dialogHeight,
   focusHeight,
   particleHeight,
   tooltipHeight,
@@ -756,7 +757,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
           offsetY: charPosition.y,
           offsetZ:
             state.args.isDialog || state.args.isIdle
-              ? particleHeight
+              ? dialogHeight
               : tooltipHeight,
         },
         [RENDERABLE]: { generation: 1 },
