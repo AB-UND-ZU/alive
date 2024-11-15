@@ -36,7 +36,7 @@ export const hpFlask1: Sprite = {
   name: "Flask",
   layers: [
     { char: "'", color: colors.grey },
-    { char: '\u0112', color: colors.black },
+    { char: "\u0112", color: colors.black },
     { char: "°", color: colors.silver },
     { char: "\u011d", color: colors.red },
     { char: "\u011f", color: colors.silver },
@@ -47,7 +47,7 @@ export const hpFlask2: Sprite = {
   name: "Flask",
   layers: [
     { char: "'", color: colors.olive },
-    { char: '\u0112', color: colors.black },
+    { char: "\u0112", color: colors.black },
     { char: "°", color: colors.yellow },
     { char: "\u011d", color: colors.red },
     { char: "\u011f", color: colors.yellow },
@@ -58,7 +58,7 @@ export const mpFlask1: Sprite = {
   name: "Flask",
   layers: [
     { char: "'", color: colors.grey },
-    { char: '\u0112', color: colors.black },
+    { char: "\u0112", color: colors.black },
     { char: "°", color: colors.silver },
     { char: "\u011d", color: colors.blue },
     { char: "\u011f", color: colors.silver },
@@ -69,7 +69,7 @@ export const mpFlask2: Sprite = {
   name: "Flask",
   layers: [
     { char: "'", color: colors.olive },
-    { char: '\u0112', color: colors.black },
+    { char: "\u0112", color: colors.black },
     { char: "°", color: colors.yellow },
     { char: "\u011d", color: colors.blue },
     { char: "\u011f", color: colors.yellow },
@@ -79,7 +79,7 @@ export const mpFlask2: Sprite = {
 export const bottle: Sprite = {
   name: "Bottle",
   layers: [
-    { char: "\"", color: colors.grey },
+    { char: '"', color: colors.grey },
     { char: "T", color: colors.silver },
     { char: "\u0106", color: colors.red },
     { char: "\u0108", color: colors.silver },
@@ -110,6 +110,42 @@ export const compass: Sprite = {
       { char: "\u011a", color: colors.grey },
     ],
   },
+};
+
+export const goldCompass: Sprite = {
+  name: "Compass",
+  layers: [
+    { char: "\u0108", color: colors.maroon },
+    { char: "+", color: colors.yellow },
+  ],
+  facing: {
+    up: [
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0117", color: colors.yellow },
+    ],
+    right: [
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0119", color: colors.yellow },
+    ],
+    down: [
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0118", color: colors.yellow },
+    ],
+    left: [
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u011a", color: colors.yellow },
+    ],
+  },
+};
+
+export const map: Sprite = {
+  name: "Map",
+  layers: [
+    { char: "■", color: colors.silver },
+    { char: "≡", color: colors.olive },
+    { char: "-", color: colors.black },
+    { char: "+", color: colors.silver },
+  ],
 };
 
 export const woodStick: Sprite = {

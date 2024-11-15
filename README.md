@@ -251,6 +251,7 @@ T5: legendary (fuchsia)
 - Magnet: automatically collect items
 - Torch: increase vision radius
 - Compass: point to target
+- Gold compass: point to fairy
 - Map: minimap on pause
 - Axe: chop trees
 - Pickaxe: mine minerals

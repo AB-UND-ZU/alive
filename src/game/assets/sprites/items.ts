@@ -311,16 +311,6 @@ export const arrowStack: Sprite = {
   ],
 };
 
-export const map: Sprite = {
-  name: "Map",
-  layers: [
-    { char: "■", color: colors.silver },
-    { char: "≡", color: colors.olive },
-    { char: "-", color: colors.black },
-    { char: "+", color: colors.silver },
-  ],
-};
-
 export const rubyGem: Sprite = {
   name: "Ruby",
   layers: [{ char: "\u0103", color: colors.fuchsia }],
