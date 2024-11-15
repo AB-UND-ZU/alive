@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/alive/static/css/main.6af19b35.css",
-    "main.js": "/alive/static/js/main.5fb27802.js",
+    "main.css": "/alive/static/css/main.cdb79cb0.css",
+    "main.js": "/alive/static/js/main.8487ceb0.js",
     "static/media/MostPerfectDOSVGA.woff": "/alive/static/media/MostPerfectDOSVGA.ff65b94f203e7b207f3c.woff",
     "static/media/MostPerfectDOSVGA.woff2": "/alive/static/media/MostPerfectDOSVGA.d0760396b796111f4b25.woff2",
     "index.html": "/alive/index.html",
-    "main.6af19b35.css.map": "/alive/static/css/main.6af19b35.css.map",
-    "main.5fb27802.js.map": "/alive/static/js/main.5fb27802.js.map"
+    "main.cdb79cb0.css.map": "/alive/static/css/main.cdb79cb0.css.map",
+    "main.8487ceb0.js.map": "/alive/static/js/main.8487ceb0.js.map"
   },
   "entrypoints": [
-    "static/css/main.6af19b35.css",
-    "static/js/main.5fb27802.js"
+    "static/css/main.cdb79cb0.css",
+    "static/js/main.8487ceb0.js"
   ]
 }
