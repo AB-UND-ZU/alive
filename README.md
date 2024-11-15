@@ -404,6 +404,8 @@ T5: legendary (fuchsia)
 - Multiplayer
 - Quicksand
 - Passive that generates hp or mp that can be collected
+- Crit chance
+- Slowing
 
 ## Animations
 

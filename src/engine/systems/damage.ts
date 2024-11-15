@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { add } from "../../game/math/std";
+import { add, random } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { MELEE } from "../components/melee";
@@ -92,15 +92,30 @@ export default function setupDamage(world: World) {
       // do nothing if target is dead and pending decay
       if (isDead(world, targetEntity)) continue;
 
-      // handle attacking
+      // calculate damage, with 1 / (x + 2) probability for 1 dmg if below 1
       const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].melee, [
         ITEM,
       ]);
-      const damage = sword[ITEM].amount;
+      const attack = sword[ITEM].amount;
+
+      const armor = world.getEntityByIdAndComponents(
+        targetEntity[EQUIPPABLE]?.armor,
+        [ITEM]
+      );
+      const defense = armor ? armor[ITEM].amount : 0;
+      const damage =
+        attack > defense
+          ? attack - defense
+          : random(0, defense - attack + 1) === 0
+          ? 1
+          : 0;
+
       targetEntity[COUNTABLE].hp = Math.max(
         0,
         targetEntity[COUNTABLE].hp - damage
       );
+
+      // handle attacking
       createSequence<"melee", MeleeSequence>(
         world,
         entity,
