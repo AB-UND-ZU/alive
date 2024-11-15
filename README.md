@@ -18,7 +18,7 @@ _Spawn area with intro quest_
 - Adventure: Single player
 - City: Trade with other players, enter worlds, build house
 - Casual: Multi player with global level advance
-- Free for all: battle royale with global level advance
+- Free for all: battle royale with global level advance (winner keeps items, special item for first death)
 - Groups: PvE raids epic dungeons
 - Tribes: PvP protect the chief and fortify village
 
@@ -26,9 +26,9 @@ _Spawn area with intro quest_
 
 - (base: 10/5)
 - Scout: max 50/30 + base 20/10 (can't join tribe, doesn't require account)
-- Knight (helmet): max 60/20 + wood armor + HP drop on decay
-- Mage (curls): max 40/40 + wave spell + mana + MP drop on decay
-- Rogue (mohawk): max 50/30 + wood bow + arrow stack + movement speed
+- Knight (helmet): max 60/20 + 1 defense + wood armor + HP drop on decay
+- Mage (curls): max 40/40 + 1 intellect + wave spell + mana + MP drop on decay
+- Rogue (mohawk): max 50/30 + 1 attack + wood bow + arrow stack + movement speed
 
 ## Creatures
 
@@ -236,14 +236,14 @@ T5: legendary (fuchsia)
 
 ## Amulets
 
-- Life amulet lvl 1: +5 max HP
-- Life amulet lvl 2: +15 max HP
-- Mana amulet lvl 1: +5 max MP
-- Mana amulet lvl 2: +15 max MP
-- Haste amulet lvl 1: small movement speed
-- Haste amulet lvl 2: large movement speed
-- Hero amulet lvl 1: unusable passive + increased drop chance
-- Hero amulet lvl 2: unusable active + guaranteed T5 drop on bosses
+- Fire amulet lvl 1: +1 dmg
+- Fire amulet lvl 2: +3 dmg
+- Water amulet lvl 1: +1 intellect
+- Water amulet lvl 2: +3 intellect
+- Earth amulet lvl 1: +1 defense
+- Earth amulet lvl 2: +3 defense
+- Golden amulet lvl 1: unusable passive + increased drop chance
+- Golden amulet lvl 2: unusable active + guaranteed T5 drop on bosses
 
 ## Tools
 
@@ -263,9 +263,9 @@ T5: legendary (fuchsia)
 - Extra life (max 1)
 - Max HP
 - Max MP
-- HP potion
-- MP potion
-- (max 3 potions total)
+- HP flask
+- MP flask
+- (max 3 flasks total)
 
 ## Passive
 
@@ -352,6 +352,8 @@ T5: legendary (fuchsia)
 - 1 diamond + 1 essence = 1 void shard
 - 10 void shards + 10 gold = 1 void gem
 
+- 99 coin = 1 gold
+
 ## Material enchanting
 
 - 1 stick = wood sword (on collect)
@@ -364,10 +366,10 @@ T5: legendary (fuchsia)
 - 10 gold + 1 iron shield = gold shield
 - 10 diamond + 1 gold shield = diamond shield
 
-- 5 wood + 20 xp = wood bow
-- 5 iron = iron bow
-- 5 gold = gold bow
-- 5 diamond = diamond bow
+- 10 wood + 20 xp = wood bow
+- 10 iron = iron bow
+- 10 gold = gold bow
+- 10 diamond = diamond bow
 
 ## Elemental enchanting
 
@@ -382,8 +384,13 @@ T5: legendary (fuchsia)
 
 ## Consumables
 
-- 3 berry stack + 1 iron = hp potion
-- 3 flower stack + 1 iron = mp potion
+- 3 berry + 1 coin = hp
+- 3 berry stack + 1 iron = hp flask 1
+- 1 fire essence + 1 gold = hp flask 2
+
+- 3 flower + 1 coin = mp
+- 3 flower stack + 1 iron = mp flask 1
+- 1 water essence + 1 gold = mp flask 2
 
 - 1 iron + 5 wood = arrow stack
 - 5 iron + 1 wood = bomb stack
@@ -442,8 +449,8 @@ T5: legendary (fuchsia)
 8. Arrow
 9. Spell
 10. Axe
-11. HP potion
-12. MP potion
+11. HP flask
+12. MP flask
 13. Diamond stack
 14. Iron stack
 15. Void shard

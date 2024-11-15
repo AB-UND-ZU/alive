@@ -177,7 +177,7 @@ export const cactus2: Sprite = {
   layers: [{ char: "¥", color: colors.green }],
 };
 
-export const tombstone: Sprite = {
+export const tombstone1: Sprite = {
   name: "",
   layers: [
     { char: "!", color: colors.black },
@@ -185,5 +185,17 @@ export const tombstone: Sprite = {
     { char: "\u011c", color: colors.grey },
     { char: "\u0106", color: colors.grey },
     { char: "Ω", color: colors.grey },
+  ],
+};
+
+export const tombstone2: Sprite = {
+  name: "",
+  layers: [
+    { char: "'", color: colors.black },
+    { char: "º", color: colors.grey },
+    { char: "^", color: colors.grey },
+    { char: "\u0115", color: colors.grey },
+    { char: "\u011d", color: colors.grey },
+    { char: "\u011f", color: colors.grey },
   ],
 };

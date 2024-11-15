@@ -19,7 +19,7 @@ import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
-import { none, scout, tombstone } from "../../game/assets/sprites";
+import { none, scout, tombstone1 } from "../../game/assets/sprites";
 import { ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
@@ -122,7 +122,7 @@ export default function setupFate(world: World) {
           [RENDERABLE]: { generation: 0 },
           [REVIVABLE]: { available: false },
           [SEQUENCABLE]: { states: {} },
-          [SPRITE]: tombstone,
+          [SPRITE]: tombstone1,
           [SWIMMABLE]: { swimming: false },
           [TOOLTIP]: { dialogs: [], nextDialog: -1, persistent: false },
         });
