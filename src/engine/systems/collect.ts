@@ -11,7 +11,7 @@ import { LOOTABLE } from "../components/lootable";
 import { isDead } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
-import { ITEM } from "../components/item";
+import { ITEM, STACK_SIZE, Stackable } from "../components/item";
 import { COUNTABLE } from "../components/countable";
 import { rerenderEntity } from "./renderer";
 import { isTradable } from "./action";
@@ -42,6 +42,22 @@ export const getCollecting = (world: World, position: Position) =>
     isCollecting(world, entity)
   ) as Entity | undefined;
 
+export const getStackable = (
+  world: World,
+  entity: Entity,
+  stackable: Stackable
+) => {
+  const stackId = entity[INVENTORY].items.find((itemId: number) => {
+    const inventoryItem = world.assertByIdAndComponents(itemId, [ITEM]);
+    return (
+      inventoryItem[ITEM].stackable === stackable &&
+      inventoryItem[ITEM].amount < STACK_SIZE
+    );
+  });
+
+  return world.getEntityByIdAndComponents(stackId, [ITEM]);
+};
+
 export const isEmpty = (world: World, entity: Entity) =>
   INVENTORY in entity &&
   LOOTABLE in entity &&
@@ -65,6 +81,8 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
     const counter = itemEntity[ITEM].counter;
     const slot = itemEntity[ITEM].slot;
     const consume = itemEntity[ITEM].consume;
+    const stackable = itemEntity[ITEM].stackable;
+
     if (counter) {
       // skip if counter exceeded
       const maxCounter = getMaxCounter(counter);
@@ -79,10 +97,21 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
     } else if (slot && isFull(world, entity)) {
       // skip if inventory full
       continue;
+    } else if (stackable) {
+      // skip if no more space to stack
+      if (isFull(world, entity) && !getStackable(world, entity, stackable)) {
+        continue;
+      } else {
+        itemEntity[ITEM].amount -= 1;
+      }
     }
 
     // remove from target inventory
-    if (slot || consume || (counter && itemEntity[ITEM].amount === 0)) {
+    if (
+      slot ||
+      consume ||
+      ((counter || stackable) && itemEntity[ITEM].amount === 0)
+    ) {
       removeFromInventory(world, target, itemEntity);
     }
 

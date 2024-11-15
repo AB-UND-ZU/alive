@@ -3,11 +3,12 @@ import { Entity } from "ecs";
 import { animated, useSpring } from "@react-spring/three";
 import * as colors from "../../game/assets/colors";
 import { ATTACKABLE } from "../../engine/components/attackable";
-import { pixels, stack, stackHeight, tooltipHeight } from "./utils";
+import { particleHeight, stack, stackHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
 import { Countable, COUNTABLE } from "../../engine/components/countable";
 import { NPC } from "../../engine/components/npc";
 import { getMaxCounter } from "../../game/assets/sprites";
+import { pixels } from "../Dimensions/sizing";
 
 const unitColor = colors.silver;
 const unitBar = new THREE.Color(unitColor).multiplyScalar(0.075);
@@ -46,7 +47,7 @@ export default function Bar({
       <animated.mesh
         position-x={spring.translateX}
         position-y={-5.5 / pixels}
-        position-z={stackHeight * tooltipHeight + 1 / stack}
+        position-z={stackHeight * particleHeight + 1 / stack}
         scale-x={spring.scaleX}
       >
         <boxGeometry
@@ -63,7 +64,7 @@ export default function Bar({
         <mesh
           position-x={-0.5 / pixels}
           position-y={-5.5 / pixels}
-          position-z={stackHeight * tooltipHeight}
+          position-z={stackHeight * particleHeight}
         >
           <boxGeometry
             args={[dimensions.aspectRatio - 1 / pixels, 1 / pixels, 1 / stack]}

@@ -19,6 +19,7 @@ export default function ScrollLock(props: React.ComponentProps<"div">) {
 
   useResizeListener(dimensions => {
     document.documentElement.style.setProperty("--100vh", `${dimensions.screenHeight}px`);
+    document.documentElement.style.setProperty("--pixel-size", `${dimensions.pixelSize}px`);
     document.documentElement.style.setProperty("--cell-height", `${dimensions.cellHeight}px`);
     document.documentElement.style.setProperty("--cell-width", `${dimensions.cellWidth}px`);
     document.documentElement.style.setProperty("--left-offset", `${dimensions.leftOffset}px`);

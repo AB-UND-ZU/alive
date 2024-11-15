@@ -25,6 +25,7 @@ import { isTradable } from "../../engine/systems/action";
 import { ITEM } from "../../engine/components/item";
 import { TypedEntity } from "../../engine/entities";
 import { getParticles } from "../../engine/systems/sequence";
+import Dots from "./Dots";
 
 function Entity({
   entity,
@@ -129,6 +130,9 @@ function Entity({
     }
   }
 
+  const lootSegment = lootSegments[0];
+  const isStackable = !!lootSegment && !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].stackable;
+
   return (
     <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={config}>
       {isOpaque && isVisible && (
@@ -157,6 +161,10 @@ function Entity({
 
       {isAttackable && (
         <Bar counter="hp" entity={entity} isVisible={isVisible} />
+      )}
+
+      {isStackable && (
+        <Dots segment={lootSegment} entity={entity} isVisible={isVisible} />
       )}
     </Container>
   );

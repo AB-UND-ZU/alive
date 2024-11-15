@@ -24,7 +24,7 @@ import { createSprite, getMaterialSprite } from "../Entity/utils";
 import { getAction } from "../../engine/systems/trigger";
 import { Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
-import { Item } from "../../engine/components/item";
+import { ITEM, Item } from "../../engine/components/item";
 import {
   canAcceptQuest,
   canTrade,
@@ -407,9 +407,14 @@ export default function Controls() {
 
   const itemSprites =
     ecs && hero?.[INVENTORY]
-      ? (hero[INVENTORY] as Inventory).items.map((itemId) =>
-          createSprite(ecs, itemId)
-        )
+      ? (hero[INVENTORY] as Inventory).items.map((itemId) => {
+          const inventoryItem = ecs.assertByIdAndComponents(itemId, [ITEM]);
+          return {
+            ...createSprite(ecs, itemId),
+            stackableAmount:
+              inventoryItem[ITEM].stackable && inventoryItem[ITEM].amount,
+          };
+        })
       : [];
   const itemRows = [0, 1].map((row) =>
     Array.from({ length: inventoryWidth }).map(

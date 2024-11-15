@@ -27,7 +27,11 @@ import { SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { TRACKABLE } from "../../engine/components/trackable";
 import { isUnlocked } from "../../engine/systems/action";
-import { collectItem, isEmpty } from "../../engine/systems/collect";
+import {
+  collectItem,
+  getStackable,
+  isEmpty,
+} from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
 import { disposeEntity, moveEntity } from "../../engine/systems/map";
 import {
@@ -400,6 +404,7 @@ export const itemCollect: Sequence<CollectSequence> = (
       let targetSlot = itemEntity[ITEM].slot;
       let targetCounter = itemEntity[ITEM].counter;
       let targetConsume = itemEntity[ITEM].consume;
+      let targetStackable = itemEntity[ITEM].stackable;
       let targetItem = itemEntity;
 
       // if no sword is equipped, use wood as stick
@@ -443,6 +448,28 @@ export const itemCollect: Sequence<CollectSequence> = (
         entity[INVENTORY].items.push(targetId);
       } else if (targetCounter) {
         entity[COUNTABLE][targetCounter] += 1;
+      } else if (targetStackable) {
+        // add to existing stack if available
+        const existingStack = getStackable(world, entity, targetStackable);
+
+        if (existingStack) {
+          existingStack[ITEM].amount += 1;
+        } else {
+          // create new stack
+          const stackEntity = entities.createItem(world, {
+            [ITEM]: { ...itemEntity[ITEM] },
+            [SPRITE]: itemEntity[SPRITE],
+            [RENDERABLE]: { generation: 0 },
+          });
+          const stackId = world.getEntityId(stackEntity);
+          stackEntity[ITEM].amount = 1;
+          entity[INVENTORY].items.push(stackId);
+        }
+
+        // delete old stack
+        if (itemEntity[ITEM].amount === 0) {
+          disposeEntity(world, itemEntity);
+        }
       }
     }
 

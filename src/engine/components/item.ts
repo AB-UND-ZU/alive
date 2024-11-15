@@ -12,6 +12,9 @@ export type Consumable = "key";
 
 export type Materialized = "door";
 
+export type Stackable = "wood" | "iron" | "gold" | "diamond";
+export const STACK_SIZE = 10;
+
 export type Item = {
   carrier: number;
   amount: number;
@@ -19,6 +22,7 @@ export type Item = {
   slot?: keyof Equippable;
   counter?: keyof Countable;
   consume?: Consumable;
+  stackable?: Stackable;
 };
 
 export const ITEM = "ITEM";

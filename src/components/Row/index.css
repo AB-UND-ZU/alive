@@ -15,3 +15,11 @@
   inset: 0;
   font-size: calc(var(--cell-height) * 1.02);
 }
+
+.Dot {
+  display: block;
+  position: absolute;
+  width: var(--pixel-size);
+  height: var(--pixel-size);
+  background-color: var(--grey);
+}

@@ -165,6 +165,7 @@ export const createItemInInventory = <
   const targetSlot = itemEntity[ITEM].slot;
   const targetCounter = itemEntity[ITEM].counter;
   const targetConsume = itemEntity[ITEM].consume;
+  const targetStackable = itemEntity[ITEM].stackable;
 
   if (attachType === "inventoryOnly") {
     carrier[INVENTORY].items.push(itemId);
@@ -188,7 +189,7 @@ export const createItemInInventory = <
     }
 
     if (attachType !== "equipOnly") carrier[INVENTORY].items.push(itemId);
-  } else if (targetConsume) {
+  } else if (targetConsume || targetStackable) {
     carrier[INVENTORY].items.push(itemId);
   } else if (targetCounter) {
     if (carrier[COUNTABLE]) {
