@@ -36,6 +36,7 @@ import { Entity } from "ecs";
 import { World } from "../../engine";
 import { canRevive } from "../../engine/systems/fate";
 import { isDead } from "../../engine/systems/damage";
+import Joystick from "../Joystick";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -108,6 +109,9 @@ export default function Controls() {
   const heroRef = useRef<Entity>();
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
+  const [joystickOrientations, setJoystickOrientations] = useState<
+    Orientation[]
+  >([]);
   const [action, setAction] = useState<Action>();
   const [highlight, setHighlight] = useState(8);
   const highlightRef = useRef<NodeJS.Timeout>();
@@ -324,6 +328,7 @@ export default function Controls() {
       if (event.touches.length !== 1) {
         touchOrigin.current = undefined;
         pressedOrientations.current = [];
+        setJoystickOrientations([]);
         handleMove(pressedOrientations.current);
         return false;
       }
@@ -355,6 +360,7 @@ export default function Controls() {
               orientation === pressedOrientations.current[index]
           )
         ) {
+          setJoystickOrientations(nextOrientations);
           handleMove(nextOrientations);
         }
         pressedOrientations.current = nextOrientations;
@@ -364,10 +370,12 @@ export default function Controls() {
 
       return false;
     },
-    [handleMove]
+    [handleMove, setJoystickOrientations]
   );
 
   useEffect(() => {
+    console.log(123);
+
     window.addEventListener("keydown", handleKey);
     window.addEventListener("keyup", handleKey);
 
@@ -424,6 +432,10 @@ export default function Controls() {
 
   return (
     <footer className="Controls">
+      <Joystick
+        orientations={joystickOrientations}
+        origin={touchOrigin.current}
+      />
       <Row
         cells={[
           ...createText("═".repeat(dimensions.padding + 10), colors.grey),
