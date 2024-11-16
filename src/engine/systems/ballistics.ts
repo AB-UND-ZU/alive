@@ -7,7 +7,7 @@ import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, registerEntity } from "./map";
 import { ITEM } from "../components/item";
-import { ORIENTABLE } from "../components/orientable";
+import { ORIENTABLE, orientations } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { COUNTABLE } from "../components/countable";
 import { createSequence, getSequence } from "./sequence";
@@ -22,15 +22,23 @@ import { SPRITE } from "../components/sprite";
 import { arrow, woodShot } from "../../game/assets/sprites";
 import { INVENTORY } from "../components/inventory";
 import { removeFromInventory } from "./trigger";
-import { createItemAsDrop } from "./drop";
+import { createItemAsDrop, dropEntity } from "./drop";
 import { BELONGABLE } from "../components/belongable";
 import { calculateDamage, isFriendlyFire } from "./damage";
 import { SHOOTABLE } from "../components/shootable";
+import { isCollision } from "./movement";
+import { isSubmerged } from "./immersion";
+import { getLootable } from "./collect";
 
 export const getShootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
     (target) => SHOOTABLE in target && COUNTABLE in target
   ) as Entity | undefined;
+
+export const isBouncable = (world: World, position: Position) =>
+  isCollision(world, position) ||
+  isSubmerged(world, position) ||
+  getLootable(world, position);
 
 export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
   // consume one arrow from inventory
@@ -145,6 +153,22 @@ export default function setupBallistics(world: World) {
 
         // increment arrow hit counter on target
         targetEntity[SHOOTABLE].hits += 1;
+        disposeEntity(world, entity, false);
+        continue;
+      }
+
+      // bounce off walls
+      if (isBouncable(world, entity[POSITION])) {
+        dropEntity(
+          world,
+          { [SHOOTABLE]: { hits: 1 } },
+          entity[POSITION],
+          true,
+          2,
+          orientations[
+            (orientations.indexOf(entity[ORIENTABLE]?.facing || "up") + 2) % 4
+          ]
+        );
         disposeEntity(world, entity, false);
         continue;
       }

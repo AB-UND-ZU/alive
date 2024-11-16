@@ -28,7 +28,7 @@ import { COLLIDABLE } from "../components/collidable";
 import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
 import { turnedIterations } from "../../game/math/tracing";
-import { copy, normalize } from "../../game/math/std";
+import { add, copy, normalize } from "../../game/math/std";
 import { Countable, COUNTABLE } from "../components/countable";
 import {
   CollectSequence,
@@ -42,6 +42,7 @@ import { EQUIPPABLE } from "../components/equippable";
 import { getEntityGeneration } from "./renderer";
 import { PLAYER } from "../components/player";
 import { SHOOTABLE } from "../components/shootable";
+import { Orientation, orientationPoints } from "../components/orientable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -208,7 +209,8 @@ export const dropEntity = (
   entity: Entity,
   position: Position,
   overrideCenterWalkable?: boolean,
-  maxRadius: number = MAX_DROP_RADIUS
+  maxRadius: number = MAX_DROP_RADIUS,
+  orientation?: Orientation
 ) => {
   const remains = entity[DROPPABLE]?.remains;
 
@@ -262,16 +264,18 @@ export const dropEntity = (
   ];
 
   return items.map((itemId, index) => {
-    const dropPosition = findAdjacentWalkable(
-      world,
-      position,
-      maxRadius,
-      overrideCenterWalkable
-        ? index === 0
-          ? overrideCenterWalkable
-          : undefined
-        : overrideCenterWalkable
-    );
+    const dropPosition = orientation
+      ? add(position, orientationPoints[orientation])
+      : findAdjacentWalkable(
+          world,
+          position,
+          maxRadius,
+          overrideCenterWalkable
+            ? index === 0
+              ? overrideCenterWalkable
+              : undefined
+            : overrideCenterWalkable
+        );
 
     const isCentered =
       dropPosition.x === position.x && dropPosition.y === position.y;

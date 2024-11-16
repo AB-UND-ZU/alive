@@ -86,8 +86,7 @@ import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
-import { isCollision } from "../../engine/systems/movement";
-import { isSubmerged } from "../../engine/systems/immersion";
+import { isBouncable } from "../../engine/systems/ballistics";
 
 export * from "./npcs";
 export * from "./quests";
@@ -146,17 +145,14 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
   let finished = targetDistance > state.args.range;
   let updated = false;
 
+  // move arrow forward
   while (!finished && targetDistance > currentDistance) {
-    const targetPosition = add(entity[POSITION], delta);
-
-    if (
-      isCollision(world, targetPosition) ||
-      isSubmerged(world, targetPosition)
-    ) {
+    if (isBouncable(world, entity[POSITION])) {
       finished = true;
       break;
     }
 
+    const targetPosition = add(entity[POSITION], delta);
     moveEntity(world, entity, targetPosition);
     currentDistance += 1;
     updated = true;
