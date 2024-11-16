@@ -53,6 +53,8 @@ import {
   SEQUENCABLE,
   Sequence,
 } from "../../engine/components/sequencable";
+import { BELONGABLE } from "../../engine/components/belongable";
+import { SHOOTABLE } from "../../engine/components/shootable";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -590,7 +592,8 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
         [SPRITE]: goldSword,
       });
       const townEntity = entities.createChest(world, {
-        [ATTACKABLE]: { enemy: true },
+        [ATTACKABLE]: {},
+        [BELONGABLE]: { tribe: "unit" },
         [COLLIDABLE]: {},
         [COUNTABLE]: { ...emptyCountable, hp: 99, maxHp: 99 },
         [DROPPABLE]: { decayed: false },
@@ -599,6 +602,7 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
         [POSITION]: findAdjacentWalkable(world, townPosition, 20),
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: heart,
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });

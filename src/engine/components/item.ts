@@ -12,7 +12,7 @@ export type Consumable = "key";
 
 export type Materialized = "door";
 
-export type Stackable = "wood" | "iron" | "gold" | "diamond";
+export type Stackable = "wood" | "iron" | "gold" | "diamond" | "arrow";
 export const STACK_SIZE = 10;
 
 export type Item = {

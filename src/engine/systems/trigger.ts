@@ -30,13 +30,15 @@ import { questSequence } from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
 import { UnlockSequence } from "../components/sequencable";
 import { createSequence } from "./sequence";
+import { shootArrow } from "./ballistics";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
   (world.getEntityById(entity[ACTIONABLE].quest) ||
     world.getEntityById(entity[ACTIONABLE].unlock) ||
     world.getEntityById(entity[ACTIONABLE].trade) ||
-    world.getEntityById(entity[ACTIONABLE].spawn));
+    world.getEntityById(entity[ACTIONABLE].spawn) ||
+    world.getEntityById(entity[ACTIONABLE].bow));
 
 export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
   // open doors without locks
@@ -198,6 +200,7 @@ export default function setupTrigger(world: World) {
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
       const tradeEntity = world.getEntityById(entity[ACTIONABLE].trade);
       const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
+      const bowEntity = world.getEntityById(entity[ACTIONABLE].bow);
 
       if (questEntity && canAcceptQuest(world, entity, questEntity)) {
         acceptQuest(world, entity, questEntity);
@@ -216,6 +219,8 @@ export default function setupTrigger(world: World) {
         canRevive(world, spawnEntity, entity)
       ) {
         reviveEntity(world, spawnEntity, entity);
+      } else if (bowEntity) {
+        shootArrow(world, entity, bowEntity);
       }
     }
   };

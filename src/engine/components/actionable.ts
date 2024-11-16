@@ -1,7 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export const actions = ['spawn', 'unlock', 'trade', 'quest'] as const;
+export const actions = ['spawn', 'unlock', 'trade', 'quest', 'bow'] as const;
 
 export type Actionable = {
   triggered: boolean;

@@ -110,6 +110,7 @@ export default function setupAction(world: World) {
       ACTIONABLE,
       MOVABLE,
       RENDERABLE,
+      INVENTORY,
     ])) {
       let quest: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
@@ -159,21 +160,36 @@ export default function setupAction(world: World) {
         }
       }
 
+      // check inventory actions
+      const arrowId = entity[INVENTORY].items.find(
+        (itemId) =>
+          world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
+          "arrow"
+      );
+
       const questId = quest && world.getEntityId(quest);
       const unlockId = unlock && world.getEntityId(unlock);
       const tradeId = trade && world.getEntityId(trade);
       const spawnId = spawn && world.getEntityId(spawn);
+      const bowId =
+        arrowId &&
+        entity[INVENTORY].items.find(
+          (itemId) =>
+            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].slot === "bow"
+        );
 
       if (
         entity[ACTIONABLE].quest !== questId ||
         entity[ACTIONABLE].unlock !== unlockId ||
         entity[ACTIONABLE].trade !== tradeId ||
-        entity[ACTIONABLE].spawn !== spawnId
+        entity[ACTIONABLE].spawn !== spawnId ||
+        entity[ACTIONABLE].bow !== bowId
       ) {
         entity[ACTIONABLE].quest = questId;
         entity[ACTIONABLE].unlock = unlockId;
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].spawn = spawnId;
+        entity[ACTIONABLE].bow = bowId;
         rerenderEntity(world, entity);
       }
     }

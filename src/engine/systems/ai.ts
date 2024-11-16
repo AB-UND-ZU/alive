@@ -31,6 +31,7 @@ import { ATTACKABLE } from "../components/attackable";
 import { INVENTORY } from "../components/inventory";
 import { FOG } from "../components/fog";
 import { LEVEL } from "../components/level";
+import { BELONGABLE } from "../components/belongable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -42,6 +43,7 @@ export default function setupAi(world: World) {
     lastGeneration = generation;
 
     for (const entity of world.getEntities([
+      BELONGABLE,
       POSITION,
       MOVABLE,
       BEHAVIOUR,
@@ -188,7 +190,7 @@ export default function setupAi(world: World) {
           break;
         } else if (pattern.name === "enrage") {
           const memory = pattern.memory;
-          entity[ATTACKABLE].enemy = true;
+          entity[BELONGABLE].tribe = 'hostile';
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = rage;
           entity[TOOLTIP].override = memory.shout ? "visible" : undefined;
@@ -198,7 +200,7 @@ export default function setupAi(world: World) {
 
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "soothe") {
-          entity[ATTACKABLE].enemy = false;
+          entity[BELONGABLE].tribe = 'neutral';
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = undefined;
           entity[TOOLTIP].override = undefined;

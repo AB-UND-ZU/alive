@@ -41,6 +41,8 @@ import { SOUL } from "../components/soul";
 import { questSequence } from "../../game/assets/utils";
 import { TRACKABLE } from "../components/trackable";
 import { createSequence } from "./sequence";
+import { BELONGABLE } from "../components/belongable";
+import { SHOOTABLE } from "../components/shootable";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -229,7 +231,8 @@ export default function setupFate(world: World) {
 
       const heroEntity = entities.createHero(world, {
         [ACTIONABLE]: { triggered: false },
-        [ATTACKABLE]: { enemy: false },
+        [ATTACKABLE]: {},
+        [BELONGABLE]: { tribe: "neutral" },
         [COLLECTABLE]: {},
         [COUNTABLE]: { ...emptyCountable, hp: 20, maxHp: 20, maxMp: 10 },
         [DROPPABLE]: { decayed: false },
@@ -253,6 +256,7 @@ export default function setupFate(world: World) {
         [POSITION]: copy(entity[POSITION]),
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { hits: 0 },
         [SPAWNABLE]: {
           position: copy(entity[SPAWNABLE].position),
           light: entity[SPAWNABLE].light,

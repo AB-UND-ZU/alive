@@ -2,13 +2,12 @@ import * as THREE from "three";
 import { Entity } from "ecs";
 import { animated, useSpring } from "@react-spring/three";
 import * as colors from "../../game/assets/colors";
-import { ATTACKABLE } from "../../engine/components/attackable";
 import { particleHeight, stack, stackHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
 import { Countable, COUNTABLE } from "../../engine/components/countable";
-import { NPC } from "../../engine/components/npc";
 import { getMaxCounter } from "../../game/assets/sprites";
 import { pixels } from "../Dimensions/sizing";
+import { BELONGABLE } from "../../engine/components/belongable";
 
 const unitColor = colors.silver;
 const unitBar = new THREE.Color(unitColor).multiplyScalar(0.075);
@@ -29,8 +28,8 @@ export default function Bar({
   const dimensions = useDimensions();
   const max = entity[COUNTABLE][getMaxCounter(counter)];
   const value = Math.min(entity[COUNTABLE][counter], max);
-  const isEnemy = entity[ATTACKABLE].enemy;
-  const isUnit = isEnemy && !entity[NPC];
+  const isEnemy = entity[BELONGABLE].tribe !== 'neutral';
+  const isUnit = entity[BELONGABLE].tribe === 'unit';
   const spring = useSpring({
     scaleX: value / max,
     translateX:

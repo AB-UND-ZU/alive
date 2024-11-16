@@ -2,6 +2,7 @@ import { World } from ".";
 import { Actionable, ACTIONABLE } from "./components/actionable";
 import { Attackable, ATTACKABLE } from "./components/attackable";
 import { Behaviour, BEHAVIOUR } from "./components/behaviour";
+import { Belongable, BELONGABLE } from "./components/belongable";
 import { Burnable, BURNABLE } from "./components/burnable";
 import { Collectable, COLLECTABLE } from "./components/collectable";
 import { COLLIDABLE, Collidable } from "./components/collidable";
@@ -25,11 +26,13 @@ import { Orientable, ORIENTABLE } from "./components/orientable";
 import { Particle, PARTICLE } from "./components/particle";
 import { Player, PLAYER } from "./components/player";
 import { Position, POSITION } from "./components/position";
+import { Projectile, PROJECTILE } from "./components/projectile";
 import { Quest, QUEST } from "./components/quest";
 import { Reference, REFERENCE } from "./components/reference";
 import { Renderable, RENDERABLE } from "./components/renderable";
 import { Revivable, REVIVABLE } from "./components/revivable";
 import { Sequencable, SEQUENCABLE } from "./components/sequencable";
+import { Shootable, SHOOTABLE } from "./components/shootable";
 import { Soul, SOUL } from "./components/soul";
 import { Spawnable, SPAWNABLE } from "./components/spawnable";
 import { Sprite, SPRITE } from "./components/sprite";
@@ -43,6 +46,7 @@ export type Entity = {
   [ACTIONABLE]: Actionable;
   [ATTACKABLE]: Attackable;
   [BEHAVIOUR]: Behaviour;
+  [BELONGABLE]: Belongable;
   [BURNABLE]: Burnable;
   [COLLECTABLE]: Collectable;
   [COLLIDABLE]: Collidable;
@@ -66,11 +70,13 @@ export type Entity = {
   [PARTICLE]: Particle;
   [PLAYER]: Player;
   [POSITION]: Position;
+  [PROJECTILE]: Projectile;
   [QUEST]: Quest;
   [RENDERABLE]: Renderable;
   [REFERENCE]: Reference;
   [REVIVABLE]: Revivable;
   [SEQUENCABLE]: Sequencable;
+  [SHOOTABLE]: Shootable;
   [SOUL]: Soul;
   [SPAWNABLE]: Spawnable;
   [SPRITE]: Sprite;
@@ -102,6 +108,7 @@ const entityFactory = <T extends keyof Entity>(components: T[]) => {
 
 export const createChest = entityFactory([
   ATTACKABLE,
+  BELONGABLE,
   COLLIDABLE,
   COUNTABLE,
   DROPPABLE,
@@ -110,6 +117,7 @@ export const createChest = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   TOOLTIP,
 ]);
@@ -202,6 +210,7 @@ export const createHalo = entityFactory([
 export const createHero = entityFactory([
   ACTIONABLE,
   ATTACKABLE,
+  BELONGABLE,
   COLLECTABLE,
   COUNTABLE,
   DROPPABLE,
@@ -216,6 +225,7 @@ export const createHero = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPAWNABLE,
   SPRITE,
   SWIMMABLE,
@@ -236,6 +246,7 @@ export const createItem = entityFactory([ITEM, RENDERABLE, SPRITE]);
 export const createMob = entityFactory([
   ATTACKABLE,
   BEHAVIOUR,
+  BELONGABLE,
   COUNTABLE,
   DROPPABLE,
   EQUIPPABLE,
@@ -248,6 +259,7 @@ export const createMob = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   SWIMMABLE,
   TOOLTIP,
@@ -277,6 +289,17 @@ export const createShop = entityFactory([
   SPRITE,
   TOOLTIP,
   TRADABLE,
+]);
+
+export const createShot = entityFactory([
+  BELONGABLE,
+  MOVABLE,
+  ORIENTABLE,
+  POSITION,
+  PROJECTILE,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
 ]);
 
 export const createSign = entityFactory([
@@ -328,6 +351,7 @@ export const createVillager = entityFactory([
   ACTIONABLE,
   ATTACKABLE,
   BEHAVIOUR,
+  BELONGABLE,
   COLLECTABLE,
   COUNTABLE,
   DROPPABLE,
@@ -341,6 +365,7 @@ export const createVillager = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   SWIMMABLE,
   TOOLTIP,

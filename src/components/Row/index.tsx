@@ -19,7 +19,7 @@ function Cell({
           {layer.char}
         </span>
       ))}
-      {stackableAmount && stackableAmount > 1 && (
+      {stackableAmount !== undefined && stackableAmount > 1 && (
         <>
           {Array.from({ length: stackableAmount }).map((_, index) => (
             <span

@@ -78,10 +78,11 @@ export const decay: Sprite = {
   layers: [{ char: "▒", color: colors.black }],
 };
 
-export const shot: Sprite = {
-  name: "arrow_shot",
+export const woodShot: Sprite = {
+  name: "shot_wood",
   layers: [
-    { char: "\u0119", color: colors.grey },
+    { char: "\u011c", color: colors.grey },
+    { char: "\u011a", color: colors.black },
     { char: "-", color: colors.maroon },
   ],
   facing: {

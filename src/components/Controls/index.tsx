@@ -8,6 +8,7 @@ import { Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import Row from "../Row";
 import {
+  arrow,
   buttonColor,
   createButton,
   createStat,
@@ -22,7 +23,7 @@ import { normalize, repeat } from "../../game/math/std";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { createSprite, getMaterialSprite } from "../Entity/utils";
 import { getAction } from "../../engine/systems/trigger";
-import { Sprite } from "../../engine/components/sprite";
+import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { ITEM, Item } from "../../engine/components/item";
 import {
@@ -162,11 +163,22 @@ export default function Controls() {
     ]
   );
 
+  const bowAction = useAction(
+    "bow",
+    (world, hero, bowEntity) => !bowEntity,
+    "Bow",
+    (bowEntity) => [
+      [none, bowEntity[SPRITE], none],
+      [none, arrow, none],
+    ]
+  );
+
   const availableActions = [
     spawnAction,
     questAction,
     unlockAction,
     tradeAction,
+    bowAction,
   ];
   const activeAction = availableActions.find((action) => action);
 
@@ -374,8 +386,6 @@ export default function Controls() {
   );
 
   useEffect(() => {
-    console.log(123);
-
     window.addEventListener("keydown", handleKey);
     window.addEventListener("keyup", handleKey);
 

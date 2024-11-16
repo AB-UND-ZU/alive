@@ -16,12 +16,13 @@ import { COUNTABLE } from "../components/countable";
 import { isGhost } from "./fate";
 import { createSequence } from "./sequence";
 import { MeleeSequence } from "../components/sequencable";
+import { BELONGABLE } from "../components/belongable";
 
 export const isDead = (world: World, entity: Entity) =>
   (ATTACKABLE in entity && entity[COUNTABLE].hp <= 0) || isGhost(world, entity);
 
 export const isEnemy = (world: World, entity: Entity) =>
-  entity[ATTACKABLE]?.enemy;
+  BELONGABLE in entity && entity[BELONGABLE].tribe !== "neutral";
 
 export const isFriendlyFire = (world: World, entity: Entity, target: Entity) =>
   isEnemy(world, entity) === isEnemy(world, target);
@@ -30,6 +31,14 @@ export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
     (target) => ATTACKABLE in target && COUNTABLE in target
   ) as Entity | undefined;
+
+// calculate damage, with 1 / (x + 2) probability for 1 dmg if below 1
+export const calculateDamage = (attack: number, defense: number) =>
+  attack > defense
+    ? attack - defense
+    : random(0, defense - attack + 1) === 0
+    ? 1
+    : 0;
 
 export default function setupDamage(world: World) {
   let referenceGenerations = -1;
@@ -92,7 +101,6 @@ export default function setupDamage(world: World) {
       // do nothing if target is dead and pending decay
       if (isDead(world, targetEntity)) continue;
 
-      // calculate damage, with 1 / (x + 2) probability for 1 dmg if below 1
       const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].melee, [
         ITEM,
       ]);
@@ -103,12 +111,7 @@ export default function setupDamage(world: World) {
         [ITEM]
       );
       const defense = armor ? armor[ITEM].amount : 0;
-      const damage =
-        attack > defense
-          ? attack - defense
-          : random(0, defense - attack + 1) === 0
-          ? 1
-          : 0;
+      const damage = calculateDamage(attack, defense);
 
       targetEntity[COUNTABLE].hp = Math.max(
         0,

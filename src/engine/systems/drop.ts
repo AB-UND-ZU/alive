@@ -19,6 +19,7 @@ import {
   none,
   shop,
   getCountableSprite,
+  arrow,
 } from "../../game/assets/sprites";
 import { Item, ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
@@ -40,6 +41,7 @@ import { TypedEntity } from "../entities";
 import { EQUIPPABLE } from "../components/equippable";
 import { getEntityGeneration } from "./renderer";
 import { PLAYER } from "../components/player";
+import { SHOOTABLE } from "../components/shootable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -228,6 +230,7 @@ export const dropEntity = (
     "berry",
   ];
 
+  const arrowHits = entity[SHOOTABLE]?.hits || 0;
   const items = [
     ...(entity[INVENTORY]?.items || []),
     ...droppedCountables
@@ -245,6 +248,17 @@ export const dropEntity = (
           })
         )
       ),
+    ...(arrowHits > 0
+      ? [
+          world.getEntityId(
+            entities.createItem(world, {
+              [ITEM]: { amount: arrowHits, stackable: "arrow", carrier: -1 },
+              [RENDERABLE]: { generation: 0 },
+              [SPRITE]: arrow,
+            })
+          ),
+        ]
+      : []),
   ];
 
   return items.map((itemId, index) => {

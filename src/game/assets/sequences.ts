@@ -18,6 +18,7 @@ import { LOOTABLE } from "../../engine/components/lootable";
 import { MELEE } from "../../engine/components/melee";
 import {
   ORIENTABLE,
+  Orientation,
   orientationPoints,
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
@@ -51,7 +52,6 @@ import {
 } from "../math/std";
 import { iterations } from "../math/tracing";
 import {
-  createCounter,
   createDialog,
   createText,
   decay,
@@ -64,13 +64,14 @@ import {
   woodStick,
 } from "./sprites";
 import {
+  ArrowSequence,
   BurnSequence,
   CollectSequence,
-  CounterSequence,
   DecaySequence,
   DialogSequence,
   DisposeSequence,
   FocusSequence,
+  HitSequence,
   MeleeSequence,
   PerishSequence,
   PointerSequence,
@@ -83,6 +84,10 @@ import {
 import { getSequence } from "../../engine/systems/sequence";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
+import { MOVABLE } from "../../engine/components/movable";
+import { REFERENCE } from "../../engine/components/reference";
+import { isCollision } from "../../engine/systems/movement";
+import { isSubmerged } from "../../engine/systems/immersion";
 
 export * from "./npcs";
 export * from "./quests";
@@ -124,37 +129,63 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-export const damageCounter: Sequence<CounterSequence> = (
-  world,
-  entity,
-  state
-) => {
-  const finished = state.elapsed > 200;
+export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
+  // align sword with facing direction
+  const tick = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+    REFERENCE,
+  ])[REFERENCE].tick;
+  const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
+  const targetDistance = Math.floor(state.elapsed / tick);
+  let currentDistance = getDistance(
+    state.args.origin,
+    entity[POSITION],
+    world.metadata.gameEntity[LEVEL].size,
+    1
+  );
+
+  let finished = targetDistance > state.args.range;
   let updated = false;
 
-  if (!state.particles.counter) {
-    const delta = orientationPoints[state.args.facing];
-    const counterParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: delta.x,
-        offsetY: delta.y,
-        offsetZ: particleHeight,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: createCounter(state.args.amount),
-    });
-    state.particles.counter = world.getEntityId(counterParticle);
+  while (!finished && targetDistance > currentDistance) {
+    const targetPosition = add(entity[POSITION], delta);
+
+    if (
+      isCollision(world, targetPosition) ||
+      isSubmerged(world, targetPosition)
+    ) {
+      finished = true;
+      break;
+    }
+
+    moveEntity(world, entity, targetPosition);
+    currentDistance += 1;
     updated = true;
   }
 
-  const counterParticle = world.assertByIdAndComponents(
-    state.particles.counter,
-    [SPRITE]
-  );
-  const char = state.args.amount > 9 ? "#" : state.args.amount.toString();
-  if (counterParticle[SPRITE].layers[0].char !== char) {
-    counterParticle[SPRITE].layers[0].char = char;
-    updated = true;
+  return { finished, updated };
+};
+
+export const damageHit: Sequence<HitSequence> = (world, entity, state) => {
+  const finished = state.elapsed > 150;
+  const updated = false;
+
+  if (!state.particles.hit) {
+    const hitParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: state.args.damage,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: hit,
+    });
+    state.particles.hit = world.getEntityId(hitParticle);
+  }
+
+  if (finished && state.particles.hit) {
+    disposeEntity(world, world.assertById(state.particles.hit));
+    delete state.particles.hit;
   }
 
   return { finished, updated };

@@ -9,6 +9,7 @@ import { COLLIDABLE } from "../engine/components/collidable";
 import {
   apple1,
   apple2,
+  arrow,
   banana,
   berry,
   block,
@@ -49,6 +50,7 @@ import {
   wall,
   water,
   woodArmor,
+  woodBow,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
@@ -112,6 +114,8 @@ import { SPAWNABLE } from "../engine/components/spawnable";
 import { REFERENCE } from "../engine/components/reference";
 import { generateMobKey, generateMobStat } from "../game/balancing/mobs";
 import { hillsMobDistribution } from "../game/levels/hills";
+import { BELONGABLE } from "../engine/components/belongable";
+import { SHOOTABLE } from "../engine/components/shootable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -567,7 +571,8 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "pot") {
       const potEntity = entities.createChest(world, {
-        [ATTACKABLE]: { enemy: true },
+        [ATTACKABLE]: {},
+        [BELONGABLE]: { tribe: "unit" },
         [COLLIDABLE]: {},
         [COUNTABLE]: { ...emptyCountable, hp: 5, maxHp: 5, gold: 3 },
         [DROPPABLE]: { decayed: false },
@@ -576,6 +581,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: pot,
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
@@ -591,7 +597,8 @@ export const generateWorld = async (world: World) => {
       });
       world.setIdentifier(compassEntity, "compass");
       const chestEntity = entities.createChest(world, {
-        [ATTACKABLE]: { enemy: true },
+        [ATTACKABLE]: {},
+        [BELONGABLE]: { tribe: "unit" },
         [COLLIDABLE]: {},
         [COUNTABLE]: { ...emptyCountable, hp: 10, maxHp: 10 },
         [DROPPABLE]: { decayed: false },
@@ -600,6 +607,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: commonChest,
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
@@ -608,8 +616,9 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "guide") {
       const guideEntity = entities.createVillager(world, {
         [ACTIONABLE]: { triggered: false },
-        [ATTACKABLE]: { enemy: false },
+        [ATTACKABLE]: {},
         [BEHAVIOUR]: { patterns: [] },
+        [BELONGABLE]: { tribe: "neutral" },
         [COLLECTABLE]: {},
         [COUNTABLE]: { ...emptyCountable, hp: 20, maxHp: 20 },
         [DROPPABLE]: { decayed: false },
@@ -630,6 +639,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: villager,
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: {
@@ -653,14 +663,13 @@ export const generateWorld = async (world: World) => {
       world.setIdentifier(guideEntity, "guide");
     } else if (cell === "mob" || cell === "prism") {
       const { damage, pattern, items, sprite, hp } = generateMobStat(
-        cell === "prism"
-          ? "spawnPrism"
-          : generateMobKey(hillsMobDistribution)
+        cell === "prism" ? "spawnPrism" : generateMobKey(hillsMobDistribution)
       );
 
       const mobEntity = entities.createMob(world, {
-        [ATTACKABLE]: { enemy: true },
+        [ATTACKABLE]: {},
         [BEHAVIOUR]: { patterns: [{ name: pattern, memory: {} }] },
+        [BELONGABLE]: { tribe: "wild" },
         [COUNTABLE]: {
           ...emptyCountable,
           hp,
@@ -684,6 +693,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: sprite,
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
@@ -940,6 +950,22 @@ export const generateWorld = async (world: World) => {
   world.setIdentifier(signEntity, "sign");
   world.offerQuest(signEntity, "townQuest");
 
+  createItemAsDrop(world, { x: 2, y: 11 }, entities.createItem, {
+    [ITEM]: {
+      stackable: "arrow",
+      amount: 10,
+    },
+    [SPRITE]: arrow,
+  });
+  createItemAsDrop(world, { x: 3, y: 11 }, entities.createItem, {
+    [ITEM]: {
+      slot: "bow",
+      material: "wood",
+      amount: 1,
+    },
+    [SPRITE]: woodBow,
+  });
+
   // start ordered systems
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupTick);
@@ -949,6 +975,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupBurn);
+  world.addSystem(systems.setupBallistics);
   world.addSystem(systems.setupAction);
   world.addSystem(systems.setupText);
   world.addSystem(systems.setupSequence);

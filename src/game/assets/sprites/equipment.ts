@@ -27,9 +27,34 @@ export const boat: Sprite = {
   ],
 };
 
-export const bow: Sprite = {
+export const woodBow: Sprite = {
   name: "Bow",
   layers: [{ char: "}", color: colors.maroon }],
+};
+
+export const ironBow: Sprite = {
+  name: "Bow",
+  layers: [{ char: "}", color: colors.grey }],
+};
+
+export const goldBow: Sprite = {
+  name: "Bow",
+  layers: [{ char: "}", color: colors.yellow }],
+};
+
+export const fireBow: Sprite = {
+  name: "Bow",
+  layers: [{ char: "}", color: colors.red }],
+};
+
+export const waterBow: Sprite = {
+  name: "Bow",
+  layers: [{ char: "}", color: colors.blue }],
+};
+
+export const earthBow: Sprite = {
+  name: "Bow",
+  layers: [{ char: "}", color: colors.lime }],
 };
 
 export const hpFlask1: Sprite = {
@@ -170,6 +195,17 @@ export const ironSword: Sprite = {
   },
 };
 
+export const goldSword: Sprite = {
+  name: "Sword",
+  layers: [{ char: "/", color: colors.yellow }],
+  facing: {
+    up: [{ char: "|", color: colors.yellow }],
+    right: [{ char: "-", color: colors.yellow }],
+    down: [{ char: "|", color: colors.yellow }],
+    left: [{ char: "-", color: colors.yellow }],
+  },
+};
+
 export const fireSword: Sprite = {
   name: "Sword",
   layers: [{ char: "/", color: colors.red }],
@@ -181,14 +217,25 @@ export const fireSword: Sprite = {
   },
 };
 
-export const goldSword: Sprite = {
+export const waterSword: Sprite = {
   name: "Sword",
-  layers: [{ char: "/", color: colors.yellow }],
+  layers: [{ char: "/", color: colors.blue }],
   facing: {
-    up: [{ char: "|", color: colors.yellow }],
-    right: [{ char: "-", color: colors.yellow }],
-    down: [{ char: "|", color: colors.yellow }],
-    left: [{ char: "-", color: colors.yellow }],
+    up: [{ char: "|", color: colors.blue }],
+    right: [{ char: "-", color: colors.blue }],
+    down: [{ char: "|", color: colors.blue }],
+    left: [{ char: "-", color: colors.blue }],
+  },
+};
+
+export const earthSword: Sprite = {
+  name: "Sword",
+  layers: [{ char: "/", color: colors.lime }],
+  facing: {
+    up: [{ char: "|", color: colors.lime }],
+    right: [{ char: "-", color: colors.lime }],
+    down: [{ char: "|", color: colors.lime }],
+    left: [{ char: "-", color: colors.lime }],
   },
 };
 

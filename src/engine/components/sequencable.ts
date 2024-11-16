@@ -15,7 +15,7 @@ export type PointerSequence = {
   target?: number;
   lastOrientation?: Orientation;
 };
-export type CounterSequence = { facing: Orientation; amount: number };
+export type HitSequence = { damage: number };
 export type DecaySequence = EmptyObject;
 export type BurnSequence = { generation: number };
 export type DisposeSequence = EmptyObject;
@@ -39,6 +39,7 @@ export type CollectSequence = {
 export type UnlockSequence = { origin: Position; itemId: number };
 export type FocusSequence = EmptyObject;
 export type MeleeSequence = { facing: Orientation; damage: number };
+export type ArrowSequence = { origin: Position; range: number; };
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
   step: string;
@@ -75,7 +76,7 @@ export type Sequencable = {
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;
-    counter?: SequenceState<CounterSequence>;
+    hit?: SequenceState<HitSequence>;
     decay?: SequenceState<DecaySequence>;
     burn?: SequenceState<BurnSequence>;
     dispose?: SequenceState<DisposeSequence>;
@@ -84,6 +85,7 @@ export type Sequencable = {
     unlock?: SequenceState<UnlockSequence>;
     focus?: SequenceState<FocusSequence>;
     melee?: SequenceState<MeleeSequence>;
+    arrow?: SequenceState<ArrowSequence>;
     npc?: SequenceState<NpcSequence>;
     quest?: SequenceState<QuestSequence>;
     dialog?: SequenceState<DialogSequence>;
