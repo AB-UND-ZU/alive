@@ -6,7 +6,7 @@ import { copy } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, registerEntity } from "./map";
-import { ITEM } from "../components/item";
+import { ITEM, STACK_SIZE } from "../components/item";
 import { ORIENTABLE, orientations } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { COUNTABLE } from "../components/countable";
@@ -29,6 +29,7 @@ import { SHOOTABLE } from "../components/shootable";
 import { isCollision } from "./movement";
 import { isSubmerged } from "./immersion";
 import { getLootable } from "./collect";
+import { rerenderEntity } from "./renderer";
 
 export const getShootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -39,6 +40,22 @@ export const isBouncable = (world: World, position: Position) =>
   isCollision(world, position) ||
   isSubmerged(world, position) ||
   getLootable(world, position);
+
+export const getStackableArrow = (world: World, position: Position) => {
+  const lootable = getLootable(world, position);
+
+  if (!lootable) return;
+
+  const arrowId = lootable[INVENTORY].items.find((itemId: number) => {
+    const arrowEntity = world.assertByIdAndComponents(itemId, [ITEM]);
+    return (
+      arrowEntity[ITEM].stackable === "arrow" &&
+      arrowEntity[ITEM].amount < STACK_SIZE
+    );
+  });
+
+  return arrowId && world.assertById(arrowId);
+};
 
 export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
   // consume one arrow from inventory
@@ -153,6 +170,16 @@ export default function setupBallistics(world: World) {
 
         // increment arrow hit counter on target
         targetEntity[SHOOTABLE].hits += 1;
+        disposeEntity(world, entity, false);
+        continue;
+      }
+
+      // stack into arrows
+      const arrowStack = getStackableArrow(world, entity[POSITION]);
+      if (arrowStack) {
+        arrowStack[ITEM].amount += 1;
+        const containerEntity = world.assertById(arrowStack[ITEM].carrier);
+        rerenderEntity(world, containerEntity);
         disposeEntity(world, entity, false);
         continue;
       }
