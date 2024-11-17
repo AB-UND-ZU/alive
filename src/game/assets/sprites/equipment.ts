@@ -354,7 +354,7 @@ export const cloak2: Sprite = {
   ],
 };
 
-export const amulet1: Sprite = {
+export const ironAmulet1: Sprite = {
   name: "Amulet",
   layers: [
     { char: "|", color: colors.grey },
@@ -364,12 +364,34 @@ export const amulet1: Sprite = {
   ],
 };
 
-export const amulet2: Sprite = {
+export const ironAmulet2: Sprite = {
   name: "Amulet",
   layers: [
     { char: '"', color: colors.grey },
     { char: "\u010e", color: colors.silver },
     { char: "·", color: colors.grey },
+  ],
+};
+
+export const ironRing1: Sprite = {
+  name: "Ring",
+  layers: [
+    { char: "|", color: colors.silver },
+    { char: ".", color: colors.black },
+    { char: "~", color: colors.black },
+    { char: "\u0108", color: colors.grey },
+    { char: "\u0106", color: colors.black },
+  ],
+};
+
+export const ironRing2: Sprite = {
+  name: "Ring",
+  layers: [
+    { char: "\u0117", color: colors.silver },
+    { char: ".", color: colors.black },
+    { char: ":", color: colors.grey },
+    { char: "\u0108", color: colors.grey },
+    { char: "\u0106", color: colors.black },
   ],
 };
 

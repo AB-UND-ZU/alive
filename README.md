@@ -27,8 +27,8 @@ _Spawn area with intro quest_
 - (base: 10/5)
 - Scout: max 50/30 + base 20/10 (can't join tribe, doesn't require account)
 - Knight (helmet): max 60/20 + 1 defense + wood armor + HP drop on decay
-- Mage (curls): max 40/40 + 1 intellect + wave spell + mana + MP drop on decay
-- Rogue (mohawk): max 50/30 + 1 attack + wood bow + arrow stack + movement speed
+- Mage (curls): max 40/30 + 1 intellect + wave spell + mana + MP drop on decay
+- Rogue (mohawk): max 50/20 + 1 attack + wood bow + arrow stack + movement speed
 
 ## Creatures
 
@@ -169,15 +169,18 @@ T1: common (maroon)
 
 T2: uncommon (lime)
 - Iron (Sword, Armor, Bow) - mining
+- Accessory (iron) - crafting / drops
 
 T3: rare (yellow)
 - Gold (Sword, Armor, Bow) - trading
+- Accessory lvl 1 (fire, water, earth, gold) - crafting / elites
 
 T4: epic (aqua)
 - Diamond (Sword, Armor, Bow) - mining / crafting
 - Fire (Sword, Armor, Bow) - farming / crafting
 - Water (Sword, Armor, Bow) - farming / crafting
 - Earth (Sword, Armor, Bow) - farming / crafting
+- Accessory lvl 2 (fire, water, earth, gold) - crafting / bosses
 
 T5: legendary (fuchsia)
 - Ruby (Sword, Armor, Bow) - mining / crafting
@@ -234,16 +237,29 @@ T5: legendary (fuchsia)
 - Elemental bomb: explode + pushable
 - Arrow: drop on miss or decay
 
-## Amulets
+## Accessories
 
-- Fire amulet lvl 1: +1 dmg
-- Fire amulet lvl 2: +3 dmg
-- Water amulet lvl 1: +1 intellect
-- Water amulet lvl 2: +3 intellect
-- Earth amulet lvl 1: +1 defense
-- Earth amulet lvl 2: +3 defense
-- Golden amulet lvl 1: unusable passive + increased drop chance
-- Golden amulet lvl 2: unusable active + guaranteed T5 drop on bosses
+- Amulet lvl 1: +5 max hp
+- Amulet lvl 2: +10 max hp
+- Fire amulet lvl 1: +1 hp reg
+- Fire amulet lvl 2: +2 hp reg
+- Water amulet lvl 1: +1 mp reg
+- Water amulet lvl 2: +2 mp reg
+- Earth amulet lvl 1: +1 haste
+- Earth amulet lvl 2: +2 haste
+- Golden amulet lvl 1: unusable active + increased drop chance
+- Golden amulet lvl 2: guaranteed T5 drop on bosses
+
+- Ring lvl 1: +5 max mp
+- Ring lvl 2: +10 max mp
+- Fire ring lvl 1: +1 dmg
+- Fire ring lvl 2: +2 dmg
+- Water ring lvl 1: +1 intellect
+- Water ring lvl 2: +2 intellect
+- Earth ring lvl 1: +1 defense
+- Earth ring lvl 2: +2 defense
+- Golden ring lvl 1: unusable passive + double coin drops
+- Golden ring lvl 2: double mine drops
 
 ## Tools
 
@@ -372,11 +388,17 @@ T5: legendary (fuchsia)
 - 10 gold = gold bow
 - 10 diamond = diamond bow
 
+- 10 iron + 50 coin = iron amulet
+- 5 iron + 50 coin = iron ring
+
 ## Elemental enchanting
 
-- 10 fire essence + 1 gold equipment = fire equipment
-- 10 water essence + 1 gold equipment = water equipment
-- 10 earth essence + 1 gold equipment = earth equipment
+- 10 fire essence + 1 gold equipment/accessory = fire equipment/accessory
+- 10 water essence + 1 gold equipment/accessory = water equipment/accessory
+- 10 earth essence + 1 gold equipment/accessory = earth equipment/accessory
+
+- 10 gold + 1 iron amulet = gold amulet
+- 10 diamonds + amulet lvl 1 = amulet lvl 2
 
 - 10 ruby gem + 1 diamond equipment = ruby equipment
 - 10 void gem + 1 diamond equipment = void equipment
