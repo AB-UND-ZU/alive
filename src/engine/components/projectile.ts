@@ -5,6 +5,7 @@ import { Material } from "./item";
 export type Projectile = {
   damage: number;
   material?: Material;
+  moved: boolean;
 };
 
 export const PROJECTILE = "PROJECTILE";

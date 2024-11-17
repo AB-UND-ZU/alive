@@ -21,7 +21,7 @@ import {
   getCountableSprite,
   arrow,
 } from "../../game/assets/sprites";
-import { Item, ITEM } from "../components/item";
+import { Item, ITEM, STACK_SIZE } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { Tradable, TRADABLE } from "../components/tradable";
 import { COLLIDABLE } from "../components/collidable";
@@ -233,6 +233,7 @@ export const dropEntity = (
   ];
 
   const arrowHits = entity[SHOOTABLE]?.hits || 0;
+  const arrowStacks = Math.ceil(arrowHits / STACK_SIZE);
   const items = [
     ...(entity[INVENTORY]?.items || []),
     ...droppedCountables
@@ -251,15 +252,22 @@ export const dropEntity = (
         )
       ),
     ...(arrowHits > 0
-      ? [
+      ? Array.from({ length: arrowStacks }).map((_, index) =>
           world.getEntityId(
             entities.createItem(world, {
-              [ITEM]: { amount: arrowHits, stackable: "arrow", carrier: -1 },
+              [ITEM]: {
+                amount:
+                  index === arrowStacks - 1
+                    ? arrowHits % STACK_SIZE
+                    : STACK_SIZE,
+                stackable: "arrow",
+                carrier: -1,
+              },
               [RENDERABLE]: { generation: 0 },
               [SPRITE]: arrow,
             })
-          ),
-        ]
+          )
+        )
       : []),
   ];
 

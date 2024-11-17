@@ -47,7 +47,7 @@ export const getStackable = (
   entity: Entity,
   stackable: Stackable
 ) => {
-  const stackId = entity[INVENTORY].items.find((itemId: number) => {
+  const stackId = entity[INVENTORY].items.findLast((itemId: number) => {
     const inventoryItem = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
       inventoryItem[ITEM].stackable === stackable &&
@@ -116,7 +116,7 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
     }
 
     // assign new carrier on discrete items
-    if (!counter) {
+    if (!counter && !stackable) {
       itemEntity[ITEM].carrier = world.getEntityId(entity);
     }
 

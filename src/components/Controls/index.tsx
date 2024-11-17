@@ -4,7 +4,7 @@ import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
 import { useHero, useWorld } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
-import { Orientation } from "../../engine/components/orientable";
+import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import Row from "../Row";
 import {
@@ -268,12 +268,16 @@ export default function Controls() {
 
       if (pendingOrientation) {
         heroEntity[MOVABLE].pendingOrientation = pendingOrientation;
+        heroEntity[ORIENTABLE].facing = pendingOrientation;
       }
 
       if (orientations.length === 0) {
         reference.suspensionCounter = 0;
 
-        if (heroEntity[MOVABLE].pendingOrientation) {
+        if (
+          heroEntity[MOVABLE].pendingOrientation ||
+          heroEntity[ACTIONABLE].triggered
+        ) {
           reference.suspensionCounter += 1;
         }
       } else {

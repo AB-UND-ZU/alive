@@ -7,6 +7,7 @@ import { getWalkableMatrix } from "../../game/math/path";
 import { isWalkable } from "./movement";
 import { getOverlappingCell } from "../../game/math/matrix";
 import { INVENTORY } from "../components/inventory";
+import { rerenderEntity } from "./renderer";
 
 export const updateWalkable = (world: World, position: Position) => {
   // update walkable map after initialization
@@ -68,7 +69,7 @@ const unregisterEntity = (world: World, entity: Entity) => {
   }
 
   const cell = getCell(world, position);
-  
+
   const entityId = Object.entries(cell).find(
     ([_, cellEntity]) => cellEntity === entity
   )![0];
@@ -130,7 +131,16 @@ export default function setupMap(world: World) {
     // automatically register mapped entities but expect removal to happen through disposeEntity()
     for (let i = 0; i < addedEntities.count; i++) {
       const addedEntity = addedEntities.entries[i];
+
+      // prevent registering if entity was removed in same frame
+      if (!world.getEntityId(addedEntity)) continue;
+
       registerEntity(world, addedEntity);
+    }
+
+    // force rerender to make new entities appear immediately
+    if (addedEntities.count > 0) {
+      rerenderEntity(world, world.metadata.sequenceEntity);
     }
 
     // nonetheless warn if not disposed properly

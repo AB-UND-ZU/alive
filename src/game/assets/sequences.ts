@@ -34,7 +34,7 @@ import {
   getStackable,
   isEmpty,
 } from "../../engine/systems/collect";
-import { isDead } from "../../engine/systems/damage";
+import { isDead, isFriendlyFire } from "../../engine/systems/damage";
 import { disposeEntity, moveEntity } from "../../engine/systems/map";
 import {
   getEntityGeneration,
@@ -86,7 +86,12 @@ import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
-import { isBouncable } from "../../engine/systems/ballistics";
+import {
+  getShootable,
+  getStackableArrow,
+  isBouncable,
+} from "../../engine/systems/ballistics";
+import { PROJECTILE } from "../../engine/components/projectile";
 
 export * from "./npcs";
 export * from "./quests";
@@ -147,13 +152,19 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
 
   // move arrow forward
   while (!finished && targetDistance > currentDistance) {
-    if (isBouncable(world, entity[POSITION])) {
+    const shootable = getShootable(world, entity[POSITION]);
+    if (
+      isBouncable(world, entity[POSITION]) ||
+      getStackableArrow(world, entity[POSITION]) ||
+      (shootable && !isFriendlyFire(world, entity, shootable))
+    ) {
       finished = true;
       break;
     }
 
     const targetPosition = add(entity[POSITION], delta);
     moveEntity(world, entity, targetPosition);
+    entity[PROJECTILE].moved = true;
     currentDistance += 1;
     updated = true;
   }
@@ -485,7 +496,7 @@ export const itemCollect: Sequence<CollectSequence> = (
         } else {
           // create new stack
           const stackEntity = entities.createItem(world, {
-            [ITEM]: { ...itemEntity[ITEM] },
+            [ITEM]: { ...itemEntity[ITEM], carrier: entityId },
             [SPRITE]: itemEntity[SPRITE],
             [RENDERABLE]: { generation: 0 },
           });

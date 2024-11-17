@@ -161,7 +161,7 @@ export default function setupAction(world: World) {
       }
 
       // check inventory actions
-      const arrowId = entity[INVENTORY].items.find(
+      const arrowId = entity[INVENTORY].items.findLast(
         (itemId) =>
           world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
           "arrow"

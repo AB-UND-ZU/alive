@@ -2,12 +2,16 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { copy } from "../../game/math/std";
+import { add, copy } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, registerEntity } from "./map";
 import { ITEM, STACK_SIZE } from "../components/item";
-import { ORIENTABLE, orientations } from "../components/orientable";
+import {
+  ORIENTABLE,
+  orientationPoints,
+  orientations,
+} from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { COUNTABLE } from "../components/countable";
 import { createSequence, getSequence } from "./sequence";
@@ -28,7 +32,7 @@ import { calculateDamage, isFriendlyFire } from "./damage";
 import { SHOOTABLE } from "../components/shootable";
 import { isCollision } from "./movement";
 import { isSubmerged } from "./immersion";
-import { getLootable } from "./collect";
+import { collectItem, getCollecting, getLootable } from "./collect";
 import { rerenderEntity } from "./renderer";
 
 export const getShootable = (world: World, position: Position) =>
@@ -46,7 +50,7 @@ export const getStackableArrow = (world: World, position: Position) => {
 
   if (!lootable) return;
 
-  const arrowId = lootable[INVENTORY].items.find((itemId: number) => {
+  const arrowId = lootable[INVENTORY].items.findLast((itemId: number) => {
     const arrowEntity = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
       arrowEntity[ITEM].stackable === "arrow" &&
@@ -59,7 +63,7 @@ export const getStackableArrow = (world: World, position: Position) => {
 
 export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
   // consume one arrow from inventory
-  const arrowId = entity[INVENTORY].items.find(
+  const arrowId = entity[INVENTORY].items.findLast(
     (itemId: number) =>
       world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable === "arrow"
   );
@@ -100,6 +104,7 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
     [PROJECTILE]: {
       damage: bow[ITEM].amount,
       material: bow[ITEM].material,
+      moved: false,
     },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
@@ -140,39 +145,64 @@ export default function setupBallistics(world: World) {
       SEQUENCABLE,
     ])) {
       // hit crossing enemies
-      const targetEntity = getShootable(world, entity[POSITION]);
+      const isFlying = getSequence(world, entity, "arrow");
+      const hitBoxes = [];
+      const oppositeOrientation =
+        orientations[
+          (orientations.indexOf(entity[ORIENTABLE]?.facing || "up") + 2) % 4
+        ];
 
-      if (targetEntity && !isFriendlyFire(world, entity, targetEntity)) {
-        // inflict damage
-        const attack = entity[PROJECTILE].damage;
-        const armor = world.getEntityByIdAndComponents(
-          targetEntity[EQUIPPABLE]?.armor,
-          [ITEM]
-        );
-        const defense = armor ? armor[ITEM].amount : 0;
-        const damage = calculateDamage(attack, defense);
-
-        targetEntity[COUNTABLE].hp = Math.max(
-          0,
-          targetEntity[COUNTABLE].hp - damage
-        );
-
-        // add hit marker
-        createSequence<"hit", HitSequence>(
-          world,
-          targetEntity,
-          "hit",
-          "damageHit",
-          {
-            damage: damage,
-          }
-        );
-
-        // increment arrow hit counter on target
-        targetEntity[SHOOTABLE].hits += 1;
-        disposeEntity(world, entity, false);
-        continue;
+      if (!isFlying) {
+        hitBoxes.push(entity[POSITION]);
       }
+
+      if (entity[PROJECTILE].moved) {
+        hitBoxes.push(
+          add(entity[POSITION], orientationPoints[oppositeOrientation])
+        );
+      }
+
+      let hit = false;
+      for (const hitBox of hitBoxes) {
+        const targetEntity = getShootable(world, hitBox);
+
+        if (targetEntity && !isFriendlyFire(world, entity, targetEntity)) {
+          // inflict damage
+          const attack = entity[PROJECTILE].damage;
+          const armor = world.getEntityByIdAndComponents(
+            targetEntity[EQUIPPABLE]?.armor,
+            [ITEM]
+          );
+          const defense = armor ? armor[ITEM].amount : 0;
+          const damage = calculateDamage(attack, defense);
+
+          targetEntity[COUNTABLE].hp = Math.max(
+            0,
+            targetEntity[COUNTABLE].hp - damage
+          );
+
+          // add hit marker
+          createSequence<"hit", HitSequence>(
+            world,
+            targetEntity,
+            "hit",
+            "damageHit",
+            {
+              damage: damage,
+            }
+          );
+
+          // increment arrow hit counter on target
+          targetEntity[SHOOTABLE].hits += 1;
+          disposeEntity(world, entity, false);
+          hit = true;
+          break;
+        }
+      }
+      if (hit) continue;
+
+      // drop arrows only after fully reaching end
+      if (isFlying) continue;
 
       // stack into arrows
       const arrowStack = getStackableArrow(world, entity[POSITION]);
@@ -186,39 +216,50 @@ export default function setupBallistics(world: World) {
 
       // bounce off walls
       if (isBouncable(world, entity[POSITION])) {
-        dropEntity(
+        const targetPosition = add(
+          entity[POSITION],
+          orientationPoints[oppositeOrientation]
+        );
+
+        const lootable = getLootable(world, targetPosition);
+        const collecting = getCollecting(world, targetPosition);
+        const container = collecting ? undefined : lootable;
+
+        const drop = dropEntity(
           world,
           { [SHOOTABLE]: { hits: 1 } },
           entity[POSITION],
-          true,
+          !!container,
           2,
-          orientations[
-            (orientations.indexOf(entity[ORIENTABLE]?.facing || "up") + 2) % 4
-          ]
-        );
+          container ? undefined : oppositeOrientation
+        )[0];
+
+        // add to container that finished bouncing
+        if (container) {
+          collectItem(world, container, drop);
+        }
+
         disposeEntity(world, entity, false);
         continue;
       }
 
       // drop finished projectiles
-      if (!getSequence(world, entity, "arrow")) {
-        const arrowEntity = createItemAsDrop(
-          world,
-          entity[POSITION],
-          entities.createItem,
-          {
-            [ITEM]: {
-              stackable: "arrow",
-              amount: 1,
-            },
-            [SPRITE]: arrow,
-          }
-        );
-        const containerEntity = world.assertById(arrowEntity[ITEM].carrier);
-        registerEntity(world, containerEntity);
-        disposeEntity(world, entity);
-        continue;
-      }
+      const arrowEntity = createItemAsDrop(
+        world,
+        entity[POSITION],
+        entities.createItem,
+        {
+          [ITEM]: {
+            stackable: "arrow",
+            amount: 1,
+          },
+          [SPRITE]: arrow,
+        }
+      );
+      const containerEntity = world.assertById(arrowEntity[ITEM].carrier);
+      registerEntity(world, containerEntity);
+      disposeEntity(world, entity);
+      continue;
     }
   };
 
