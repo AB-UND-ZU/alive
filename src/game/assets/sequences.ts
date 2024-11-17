@@ -151,7 +151,7 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
   let updated = false;
 
   // move arrow forward
-  while (!finished && targetDistance > currentDistance) {
+  while (!finished && targetDistance >= currentDistance) {
     const shootable = getShootable(world, entity[POSITION]);
     if (
       isBouncable(world, entity[POSITION]) ||
@@ -161,6 +161,8 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
       finished = true;
       break;
     }
+
+    if (targetDistance === currentDistance) break;
 
     const targetPosition = add(entity[POSITION], delta);
     moveEntity(world, entity, targetPosition);

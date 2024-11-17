@@ -257,7 +257,7 @@ export const dropEntity = (
             entities.createItem(world, {
               [ITEM]: {
                 amount:
-                  index === arrowStacks - 1
+                  index === arrowStacks - 1 && arrowHits % STACK_SIZE !== 0
                     ? arrowHits % STACK_SIZE
                     : STACK_SIZE,
                 stackable: "arrow",

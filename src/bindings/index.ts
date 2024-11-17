@@ -973,9 +973,9 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupTrigger);
   world.addSystem(systems.setupCollect);
   world.addSystem(systems.setupDamage);
+  world.addSystem(systems.setupBallistics);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupBurn);
-  world.addSystem(systems.setupBallistics);
   world.addSystem(systems.setupAction);
   world.addSystem(systems.setupText);
   world.addSystem(systems.setupSequence);
