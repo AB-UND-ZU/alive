@@ -348,6 +348,28 @@ T5: legendary (fuchsia)
 - Bush
 - Fence and door
 
+## Gathering
+
+- Axe: hedge (empty), tree (1 stick), oak, (1 wood)
+- Pickaxe: rock (1 ore), mines only on higher elevations (1 iron, gold, diamond)
+
+## Farming
+
+- Colored soils
+- Consume 1 resource, grow up to 3 or full stack
+
+## Fishing
+
+- Fishing rod
+- Reaction time (trigger)
+- Drop behind player
+- Stick (unlucky)
+- Sparkling fishing spots
+- Bait (higher chance)
+- Normal fish (hp or mp)
+- Elemental fish, pull on string (end fishing spot)
+- Golden fish
+
 ## Crafting
 
 - 10 stick + 3 coin = 1 wood

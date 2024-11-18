@@ -276,6 +276,15 @@ export const hammer: Sprite = {
   ],
 };
 
+export const fishingRod: Sprite = {
+  name: "Rod",
+  layers: [
+    { char: "┐", color: colors.maroon },
+    { char: "─", color: colors.black },
+    { char: "\u0115", color: colors.grey },
+  ],
+};
+
 export const slash1: Sprite = {
   name: "Slash",
   layers: [
