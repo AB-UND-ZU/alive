@@ -279,10 +279,39 @@ export const hammer: Sprite = {
 export const fishingRod: Sprite = {
   name: "Rod",
   layers: [
-    { char: "┐", color: colors.maroon },
-    { char: "─", color: colors.black },
-    { char: "\u0115", color: colors.grey },
+    { char: "│", color: colors.maroon },
+    { char: "┐", color: colors.black },
+    { char: "'", color: colors.grey },
+    { char: "|", color: colors.maroon },
+    { char: "\u0106", color: colors.grey },
+    { char: "∙", color: colors.maroon },
   ],
+  facing: {
+    up: [
+      { char: "┘", color: colors.grey },
+      { char: "┐", color: colors.maroon },
+      { char: "\u0106", color: colors.grey },
+      { char: "∙", color: colors.maroon },
+    ],
+    right: [
+      { char: "└", color: colors.grey },
+      { char: "│", color: colors.maroon },
+      { char: "\u0106", color: colors.grey },
+      { char: "∙", color: colors.maroon },
+    ],
+    down: [
+      { char: "┌", color: colors.grey },
+      { char: "└", color: colors.maroon },
+      { char: "\u0106", color: colors.grey },
+      { char: "∙", color: colors.maroon },
+    ],
+    left: [
+      { char: "┘", color: colors.grey },
+      { char: "│", color: colors.maroon },
+      { char: "\u0106", color: colors.grey },
+      { char: "∙", color: colors.maroon },
+    ],
+  },
 };
 
 export const slash1: Sprite = {

@@ -50,6 +50,20 @@ export const hit: Sprite = {
     multiple: [{ char: "X", color: colors.red }],
   },
 };
+export const wave: Sprite = {
+  name: "water_wave",
+  layers: [{ char: "≈", color: colors.white }],
+};
+
+export const bubble: Sprite = {
+  name: "water_bubble",
+  layers: [{ char: "\u0108", color: colors.grey }],
+  amounts: {
+    single: [{ char: "∙", color: colors.grey }],
+    double: [{ char: "\u0106", color: colors.grey }],
+    multiple: [{ char: "\u0108", color: colors.grey }],
+  },
+};
 
 export const fire: Sprite = {
   name: "fire_burn",

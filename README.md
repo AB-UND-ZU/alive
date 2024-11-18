@@ -364,7 +364,8 @@ T5: legendary (fuchsia)
 - Reaction time (trigger)
 - Drop behind player
 - Stick (unlucky)
-- Sparkling fishing spots
+- Bubble as fishing spots
+- Appears after X time of visibility
 - Bait (higher chance)
 - Normal fish (hp or mp)
 - Elemental fish, pull on string (end fishing spot)
@@ -437,6 +438,7 @@ T5: legendary (fuchsia)
 - 3 flower stack + 1 iron = mp flask 1
 - 1 water essence + 1 gold = mp flask 2
 
+- 10 berry + 10 flower = bait stack
 - 1 iron + 5 wood = arrow stack
 - 5 iron + 1 wood = bomb stack
 - 1 bomb stack + 1 essence = elemental bomb
@@ -451,6 +453,7 @@ T5: legendary (fuchsia)
 - Passive that generates hp or mp that can be collected
 - Crit chance
 - Slowing
+- Max stack size as stat
 
 ## Animations
 

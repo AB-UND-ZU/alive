@@ -311,6 +311,14 @@ export const arrowStack: Sprite = {
   ],
 };
 
+export const worm: Sprite = {
+  name: "Worm",
+  layers: [
+    { char: "≈", color: colors.maroon },
+    { char: "\u0115", color: colors.black },
+  ],
+};
+
 export const rubyGem: Sprite = {
   name: "Ruby",
   layers: [{ char: "\u0103", color: colors.fuchsia }],
