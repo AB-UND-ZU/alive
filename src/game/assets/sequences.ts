@@ -6,7 +6,6 @@ import {
   tooltipHeight,
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
-import { COUNTABLE } from "../../engine/components/countable";
 import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
@@ -92,6 +91,8 @@ import {
   isBouncable,
 } from "../../engine/systems/ballistics";
 import { PROJECTILE } from "../../engine/components/projectile";
+import { getGearStat } from "../balancing/equipment";
+import { STATS } from "../../engine/components/stats";
 
 export * from "./npcs";
 export * from "./quests";
@@ -410,7 +411,6 @@ export const entityDispose: Sequence<DisposeSequence> = (
   return { finished, updated };
 };
 
-const lootDelay = 200;
 export const itemCollect: Sequence<CollectSequence> = (
   world,
   entity,
@@ -427,6 +427,12 @@ export const itemCollect: Sequence<CollectSequence> = (
     ITEM,
     SPRITE,
   ]);
+  const lootDelay =
+    MOVABLE in entity
+      ? world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
+          REFERENCE
+        ].tick - 50
+      : 200;
 
   // add item to player's inventory
   if (state.elapsed >= lootDelay) {
@@ -442,22 +448,22 @@ export const itemCollect: Sequence<CollectSequence> = (
       itemEntity[ITEM].carrier = entityId;
       entity[INVENTORY].items.push(itemId);
     } else {
-      let targetSlot = itemEntity[ITEM].slot;
-      let targetCounter = itemEntity[ITEM].counter;
+      let targetEquipment = itemEntity[ITEM].equipment;
+      let targetStat = itemEntity[ITEM].stat;
       let targetConsume = itemEntity[ITEM].consume;
       let targetStackable = itemEntity[ITEM].stackable;
       let targetItem = itemEntity;
 
       // if no sword is equipped, use wood as stick
-      if (
-        entity[MELEE] &&
-        !entity[EQUIPPABLE].melee &&
-        targetCounter === "wood"
-      ) {
-        targetSlot = "melee";
-        targetCounter = undefined;
+      if (entity[MELEE] && !entity[EQUIPPABLE].melee && targetStat === "wood") {
+        targetEquipment = "melee";
+        targetStat = undefined;
         targetItem = entities.createSword(world, {
-          [ITEM]: { amount: 1, slot: "melee", carrier: entityId },
+          [ITEM]: {
+            amount: getGearStat("melee", "wood"),
+            equipment: "melee",
+            carrier: entityId,
+          },
           [ORIENTABLE]: {},
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
@@ -467,8 +473,8 @@ export const itemCollect: Sequence<CollectSequence> = (
 
       const targetId = world.getEntityId(targetItem);
 
-      if (targetSlot) {
-        const existingId = entity[EQUIPPABLE][targetSlot];
+      if (targetEquipment) {
+        const existingId = entity[EQUIPPABLE][targetEquipment];
 
         // add existing render count if item is replaced
         if (existingId) {
@@ -483,12 +489,12 @@ export const itemCollect: Sequence<CollectSequence> = (
           disposeEntity(world, existingItem);
         }
 
-        entity[EQUIPPABLE][targetSlot] = targetId;
+        entity[EQUIPPABLE][targetEquipment] = targetId;
         entity[INVENTORY].items.push(targetId);
       } else if (targetConsume) {
         entity[INVENTORY].items.push(targetId);
-      } else if (targetCounter) {
-        entity[COUNTABLE][targetCounter] += 1;
+      } else if (targetStat) {
+        entity[STATS][targetStat] += 1;
       } else if (targetStackable) {
         // add to existing stack if available
         const existingStack = getStackable(world, entity, targetStackable);
@@ -564,6 +570,10 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
     y: signedDistance(origin.y, state.args.target.y, size),
   };
 
+  const lootDelay =
+    world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
+      REFERENCE
+    ].tick - 50;
   const spawnDistance = Math.sqrt(delta.x ** 2 + delta.y ** 2);
   const soulDuration = spawnDistance / soulSpeed;
   const collectTime = state.args.compassId ? soulTime + lootDelay : soulTime;

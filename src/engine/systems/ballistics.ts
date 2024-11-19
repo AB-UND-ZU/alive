@@ -13,7 +13,6 @@ import {
   orientations,
 } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
-import { COUNTABLE } from "../components/countable";
 import { createSequence, getSequence } from "./sequence";
 import {
   ArrowSequence,
@@ -34,15 +33,18 @@ import { isCollision } from "./movement";
 import { isSubmerged } from "./immersion";
 import { collectItem, getCollecting, getLootable } from "./collect";
 import { rerenderEntity } from "./renderer";
+import { STATS } from "../components/stats";
+import { getLockable } from "./action";
 
 export const getShootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
-    (target) => SHOOTABLE in target && COUNTABLE in target
+    (target) => SHOOTABLE in target && STATS in target
   ) as Entity | undefined;
 
 export const isBouncable = (world: World, position: Position) =>
   isCollision(world, position) ||
   isSubmerged(world, position) ||
+  getLockable(world, position) ||
   getLootable(world, position);
 
 export const getStackableArrow = (world: World, position: Position) => {
@@ -102,7 +104,7 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
     [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
     [POSITION]: copy(entity[POSITION]),
     [PROJECTILE]: {
-      damage: bow[ITEM].amount,
+      damage: bow[ITEM].amount + entity[STATS].attack,
       material: bow[ITEM].material,
       moved: false,
     },
@@ -174,12 +176,14 @@ export default function setupBallistics(world: World) {
             [ITEM]
           );
           const defense = armor ? armor[ITEM].amount : 0;
-          const damage = calculateDamage(attack, defense);
-
-          targetEntity[COUNTABLE].hp = Math.max(
-            0,
-            targetEntity[COUNTABLE].hp - damage
+          const { damage, hp } = calculateDamage(
+            "physical",
+            attack,
+            defense,
+            {},
+            targetEntity[STATS]
           );
+          targetEntity[STATS].hp = hp;
 
           // add hit marker
           createSequence<"hit", HitSequence>(

@@ -3,26 +3,64 @@ import { Layer, SPRITE, Sprite } from "../../engine/components/sprite";
 import { World } from "../../engine";
 import { Segment } from "./Stack";
 import { Entity } from "ecs";
-import { Equippable, EQUIPPABLE } from "../../engine/components/equippable";
+import { EQUIPPABLE, Gear, Tools } from "../../engine/components/equippable";
 import { LayerProps } from "./Layer";
 import {
+  Active,
   Consumable,
+  Item,
   Material,
   Materialized,
+  Passive,
 } from "../../engine/components/item";
 import { LIGHT } from "../../engine/components/light";
 import { FOG } from "../../engine/components/fog";
 import { TRACKABLE } from "../../engine/components/trackable";
 import {
+  aetherArmor,
+  aetherBow,
+  aetherCharm2,
+  aetherPet2,
+  aetherSword,
+  bolt,
+  charm,
+  cloak1,
+  cloak2,
   compass,
+  diamondArmor,
+  diamondBow,
+  diamondCharm1,
+  diamondCharm2,
+  diamondPet1,
+  diamondPet2,
+  diamondSword,
   doorClosedFire,
   doorClosedGold,
   doorClosedIron,
   doorClosedWood,
+  earthArmor,
+  earthBolt,
   earthBow,
+  earthCharm1,
+  earthCharm2,
+  earthPet1,
+  earthPet2,
   earthSword,
+  earthTrap,
+  earthWave1,
+  earthWave2,
+  fireArmor,
+  fireBolt,
   fireBow,
+  fireCharm1,
+  fireCharm2,
+  firePet1,
+  firePet2,
   fireSword,
+  fireTrap,
+  fireWave1,
+  fireWave2,
+  goldArmor,
   goldBow,
   goldCompass,
   goldKey,
@@ -33,8 +71,41 @@ import {
   ironSword,
   map,
   none,
+  pet,
+  rainbowArmor,
+  rainbowBow,
+  rainbowCharm2,
+  rainbowPet2,
+  rainbowSword,
+  rubyArmor,
+  rubyBow,
+  rubyCharm2,
+  rubyPet2,
+  rubySword,
+  shield1,
+  shield2,
+  slash1,
+  slash2,
+  trap,
+  voidArmor,
+  voidBow,
+  voidCharm2,
+  voidPet2,
+  voidSword,
+  volley1,
+  volley2,
+  waterArmor,
+  waterBolt,
   waterBow,
+  waterCharm1,
+  waterCharm2,
+  waterPet1,
+  waterPet2,
   waterSword,
+  waterTrap,
+  waterWave1,
+  waterWave2,
+  wave,
   woodArmor,
   woodBow,
   woodStick,
@@ -58,8 +129,8 @@ export const floatHeight = 5 * stackHeight;
 export const shadowHeight = 6 * stackHeight;
 export const fogHeight = 7 * stackHeight;
 export const tooltipHeight = 8 * stackHeight;
-export const focusHeight = 9 * stackHeight;
-export const dialogHeight = 9.5 * stackHeight;
+export const dialogHeight = 9 * stackHeight;
+export const focusHeight = 9.5 * stackHeight;
 export const particleHeight = 10 * stackHeight;
 export const cameraHeight = 11 * stackHeight;
 
@@ -186,29 +257,165 @@ export const offsetFactors: Record<number, number> = {
 };
 
 const entitySprites: Record<
-  keyof Equippable | Consumable | Materialized,
+  Gear | Tools | Active | Passive | Consumable | Materialized,
   Partial<Record<Material, Sprite>>
 > = {
+  // gear
   melee: {
+    // T1-T3
     wood: woodStick,
     iron: ironSword,
     gold: goldSword,
+
+    // T4
+    diamond: diamondSword,
     fire: fireSword,
     water: waterSword,
     earth: earthSword,
+
+    // T5
+    ruby: rubySword,
+    aether: aetherSword,
+    void: voidSword,
+    rainbow: rainbowSword,
   },
   armor: {
+    // T1-T3
     wood: woodArmor,
     iron: ironArmor,
+    gold: goldArmor,
+
+    // T4
+    diamond: diamondArmor,
+    fire: fireArmor,
+    water: waterArmor,
+    earth: earthArmor,
+
+    // T5
+    ruby: rubyArmor,
+    aether: aetherArmor,
+    void: voidArmor,
+    rainbow: rainbowArmor,
   },
   bow: {
+    // T1-T3
     wood: woodBow,
     iron: ironBow,
     gold: goldBow,
+
+    // T4
+    diamond: diamondBow,
     fire: fireBow,
     water: waterBow,
     earth: earthBow,
+
+    // T5
+    ruby: rubyBow,
+    aether: aetherBow,
+    void: voidBow,
+    rainbow: rainbowBow,
   },
+
+  // equipments
+  slash1: {
+    wood: slash1,
+  },
+  slash2: {
+    wood: slash2,
+  },
+  volley1: {
+    wood: volley1,
+  },
+  volley2: {
+    wood: volley2,
+  },
+  shield1: {
+    wood: shield1,
+  },
+  shield2: {
+    wood: shield2,
+  },
+
+  // spells
+  wave1: {
+    wood: wave,
+    fire: fireWave1,
+    water: waterWave1,
+    earth: earthWave1,
+  },
+  wave2: {
+    fire: fireWave2,
+    water: waterWave2,
+    earth: earthWave2,
+  },
+  bolt1: {
+    wood: bolt,
+    fire: fireBolt,
+    water: waterBolt,
+    earth: earthBolt,
+  },
+  bolt2: {
+    fire: fireBolt,
+    water: waterBolt,
+    earth: earthBolt,
+  },
+  trap1: {
+    wood: trap,
+    fire: fireTrap,
+    water: waterTrap,
+    earth: earthTrap,
+  },
+  trap2: {
+    fire: fireTrap,
+    water: waterTrap,
+    earth: earthTrap,
+  },
+
+  // activatable
+  cloak1: {
+    wood: cloak1,
+  },
+  cloak2: {
+    wood: cloak2,
+  },
+
+  // passive
+  charm1: {
+    wood: charm,
+    diamond: diamondCharm1,
+    fire: fireCharm1,
+    water: waterCharm1,
+    earth: earthCharm1,
+  },
+  charm2: {
+    diamond: diamondCharm2,
+    fire: fireCharm2,
+    water: waterCharm2,
+    earth: earthCharm2,
+    ruby: rubyCharm2,
+    aether: aetherCharm2,
+    void: voidCharm2,
+    rainbow: rainbowCharm2,
+  },
+  pet1: {
+    wood: pet,
+    diamond: diamondPet1,
+    fire: firePet1,
+    water: waterPet1,
+    earth: earthPet1,
+  },
+  pet2: {
+    diamond: diamondPet2,
+    fire: firePet2,
+    water: waterPet2,
+    earth: earthPet2,
+    ruby: rubyPet2,
+    aether: aetherPet2,
+    void: voidPet2,
+    rainbow: rainbowPet2,
+  },
+
+  // tools
   compass: {
     wood: compass,
     gold: goldCompass,
@@ -216,11 +423,15 @@ const entitySprites: Record<
   map: {
     wood: map,
   },
+
+  // consumable
   key: {
     wood: none,
     iron: ironKey,
     gold: goldKey,
   },
+
+  // materialized
   door: {
     wood: doorClosedWood,
     iron: doorClosedIron,
@@ -230,10 +441,22 @@ const entitySprites: Record<
 };
 
 export const getMaterialSprite = (
-  lookup?: keyof typeof entitySprites,
-  material?: Material
+  item: Omit<Item, "amount" | "carrier"> & { materialized?: Materialized }
 ) => {
+  const lookup = item.equipment || item.consume || item.materialized;
+
   if (!lookup) return none;
 
-  return entitySprites[lookup][material || "wood"] || none;
+  if (lookup === "active")
+    return (
+      (item.active && entitySprites[item.active][item.material || "wood"]) ||
+      none
+    );
+  if (lookup === "passive")
+    return (
+      (item.passive && entitySprites[item.passive][item.material || "wood"]) ||
+      none
+    );
+
+  return entitySprites[lookup][item.material || "wood"] || none;
 };

@@ -6,8 +6,8 @@ export const scout: Sprite = {
   layers: [{ char: "\u010b", color: colors.silver }],
 };
 
-export const rogue: Sprite = {
-  name: "Rogue",
+export const hunter: Sprite = {
+  name: "Hunter",
   layers: [
     { char: "│", color: colors.olive },
     { char: "|", color: colors.black },

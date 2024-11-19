@@ -4,10 +4,10 @@ import { animated, useSpring } from "@react-spring/three";
 import * as colors from "../../game/assets/colors";
 import { particleHeight, stack, stackHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
-import { Countable, COUNTABLE } from "../../engine/components/countable";
 import { getMaxCounter } from "../../game/assets/sprites";
 import { pixels } from "../Dimensions/sizing";
 import { BELONGABLE } from "../../engine/components/belongable";
+import { Countable, STATS } from "../../engine/components/stats";
 
 const unitColor = colors.silver;
 const unitBar = new THREE.Color(unitColor).multiplyScalar(0.075);
@@ -26,10 +26,10 @@ export default function Bar({
   counter: keyof Countable;
 }) {
   const dimensions = useDimensions();
-  const max = entity[COUNTABLE][getMaxCounter(counter)];
-  const value = Math.min(entity[COUNTABLE][counter], max);
-  const isEnemy = entity[BELONGABLE].tribe !== 'neutral';
-  const isUnit = entity[BELONGABLE].tribe === 'unit';
+  const max = entity[STATS][getMaxCounter(counter)];
+  const value = Math.min(entity[STATS][counter], max);
+  const isEnemy = entity[BELONGABLE].tribe !== "neutral";
+  const isUnit = entity[BELONGABLE].tribe === "unit";
   const spring = useSpring({
     scaleX: value / max,
     translateX:

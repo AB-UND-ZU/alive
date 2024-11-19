@@ -1,9 +1,9 @@
-import { COUNTABLE } from "../../engine/components/countable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { POSITION } from "../../engine/components/position";
 import { QuestSequence, Sequence } from "../../engine/components/sequencable";
+import { STATS } from "../../engine/components/stats";
 import { isUnlocked } from "../../engine/systems/action";
 import { getDistance } from "../math/std";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
@@ -84,7 +84,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       world.setFocus(guideEntity);
       return true;
     },
-    isCompleted: () => entity[COUNTABLE].gold >= 5,
+    isCompleted: () => entity[STATS].gold >= 5,
     onLeave: () => "buy",
   });
 

@@ -6,7 +6,6 @@ import { Belongable, BELONGABLE } from "./components/belongable";
 import { Burnable, BURNABLE } from "./components/burnable";
 import { Collectable, COLLECTABLE } from "./components/collectable";
 import { COLLIDABLE, Collidable } from "./components/collidable";
-import { Countable, COUNTABLE } from "./components/countable";
 import { Droppable, DROPPABLE } from "./components/droppable";
 import { Equippable, EQUIPPABLE } from "./components/equippable";
 import { Focusable, FOCUSABLE } from "./components/focusable";
@@ -36,6 +35,7 @@ import { Shootable, SHOOTABLE } from "./components/shootable";
 import { Soul, SOUL } from "./components/soul";
 import { Spawnable, SPAWNABLE } from "./components/spawnable";
 import { Sprite, SPRITE } from "./components/sprite";
+import { Stats, STATS } from "./components/stats";
 import { Swimmable, SWIMMABLE } from "./components/swimmable";
 import { Tooltip, TOOLTIP } from "./components/tooltip";
 import { Trackable, TRACKABLE } from "./components/trackable";
@@ -50,7 +50,6 @@ export type Entity = {
   [BURNABLE]: Burnable;
   [COLLECTABLE]: Collectable;
   [COLLIDABLE]: Collidable;
-  [COUNTABLE]: Countable;
   [DROPPABLE]: Droppable;
   [EQUIPPABLE]: Equippable;
   [FOCUSABLE]: Focusable;
@@ -80,6 +79,7 @@ export type Entity = {
   [SOUL]: Soul;
   [SPAWNABLE]: Spawnable;
   [SPRITE]: Sprite;
+  [STATS]: Stats;
   [SWIMMABLE]: Swimmable;
   [TOOLTIP]: Tooltip;
   [TRACKABLE]: Trackable;
@@ -88,7 +88,8 @@ export type Entity = {
 };
 
 // create a typed entity from component names
-export type TypedEntity<C extends keyof Entity = never> = Pick<Entity, C> & Partial<Omit<Entity, C>>
+export type TypedEntity<C extends keyof Entity = never> = Pick<Entity, C> &
+  Partial<Omit<Entity, C>>;
 
 // allow creating entity factories for a given subset of components
 const entityFactory = <T extends keyof Entity>(components: T[]) => {
@@ -110,7 +111,6 @@ export const createChest = entityFactory([
   ATTACKABLE,
   BELONGABLE,
   COLLIDABLE,
-  COUNTABLE,
   DROPPABLE,
   FOG,
   INVENTORY,
@@ -119,6 +119,7 @@ export const createChest = entityFactory([
   SEQUENCABLE,
   SHOOTABLE,
   SPRITE,
+  STATS,
   TOOLTIP,
 ]);
 
@@ -212,7 +213,6 @@ export const createHero = entityFactory([
   ATTACKABLE,
   BELONGABLE,
   COLLECTABLE,
-  COUNTABLE,
   DROPPABLE,
   EQUIPPABLE,
   FOG,
@@ -228,6 +228,7 @@ export const createHero = entityFactory([
   SHOOTABLE,
   SPAWNABLE,
   SPRITE,
+  STATS,
   SWIMMABLE,
   VIEWABLE,
 ]);
@@ -247,7 +248,6 @@ export const createMob = entityFactory([
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,
-  COUNTABLE,
   DROPPABLE,
   EQUIPPABLE,
   FOG,
@@ -261,6 +261,7 @@ export const createMob = entityFactory([
   SEQUENCABLE,
   SHOOTABLE,
   SPRITE,
+  STATS,
   SWIMMABLE,
   TOOLTIP,
 ]);
@@ -353,7 +354,6 @@ export const createVillager = entityFactory([
   BEHAVIOUR,
   BELONGABLE,
   COLLECTABLE,
-  COUNTABLE,
   DROPPABLE,
   EQUIPPABLE,
   FOG,
@@ -367,6 +367,7 @@ export const createVillager = entityFactory([
   SEQUENCABLE,
   SHOOTABLE,
   SPRITE,
+  STATS,
   SWIMMABLE,
   TOOLTIP,
 ]);

@@ -29,7 +29,6 @@ import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
 import { turnedIterations } from "../../game/math/tracing";
 import { add, copy, normalize } from "../../game/math/std";
-import { Countable, COUNTABLE } from "../components/countable";
 import {
   CollectSequence,
   DecaySequence,
@@ -43,6 +42,7 @@ import { getEntityGeneration } from "./renderer";
 import { PLAYER } from "../components/player";
 import { SHOOTABLE } from "../components/shootable";
 import { Orientation, orientationPoints } from "../components/orientable";
+import { droppableCountables, STATS } from "../components/stats";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -165,16 +165,16 @@ export const createItemInInventory = <
 
   // add to inventory
   const itemId = world.getEntityId(itemEntity);
-  const targetSlot = itemEntity[ITEM].slot;
-  const targetCounter = itemEntity[ITEM].counter;
+  const targetEquipment = itemEntity[ITEM].equipment;
+  const targetStat = itemEntity[ITEM].stat;
   const targetConsume = itemEntity[ITEM].consume;
   const targetStackable = itemEntity[ITEM].stackable;
 
   if (attachType === "inventoryOnly") {
     carrier[INVENTORY].items.push(itemId);
-  } else if (targetSlot) {
+  } else if (targetEquipment) {
     if (carrier[EQUIPPABLE]) {
-      const existingId = carrier[EQUIPPABLE][targetSlot];
+      const existingId = carrier[EQUIPPABLE][targetEquipment];
 
       // add existing render count if item is replaced
       if (existingId) {
@@ -188,15 +188,15 @@ export const createItemInInventory = <
         removeFromInventory(world, carrier, existingItem);
         disposeEntity(world, existingItem);
       }
-      carrier[EQUIPPABLE][targetSlot] = itemId;
+      carrier[EQUIPPABLE][targetEquipment] = itemId;
     }
 
     if (attachType !== "equipOnly") carrier[INVENTORY].items.push(itemId);
   } else if (targetConsume || targetStackable) {
     carrier[INVENTORY].items.push(itemId);
-  } else if (targetCounter) {
-    if (carrier[COUNTABLE]) {
-      carrier[COUNTABLE][targetCounter] += 1;
+  } else if (targetStat) {
+    if (carrier[STATS]) {
+      carrier[STATS][targetStat] += 1;
     } else {
       carrier[INVENTORY].items.push(itemId);
     }
@@ -223,27 +223,18 @@ export const dropEntity = (
     });
   }
 
-  const droppedCountables: (keyof Countable)[] = [
-    "xp",
-    "gold",
-    "ore",
-    "wood",
-    "flower",
-    "berry",
-  ];
-
   const arrowHits = entity[SHOOTABLE]?.hits || 0;
   const arrowStacks = Math.ceil(arrowHits / STACK_SIZE);
   const items = [
     ...(entity[INVENTORY]?.items || []),
-    ...droppedCountables
-      .filter((counter) => entity[COUNTABLE]?.[counter])
+    ...droppableCountables
+      .filter((counter) => entity[STATS]?.[counter])
       .map((counter) =>
         world.getEntityId(
           entities.createItem(world, {
             [ITEM]: {
-              amount: entity[COUNTABLE][counter],
-              counter,
+              amount: entity[STATS][counter],
+              stat: counter,
               carrier: -1,
             },
             [RENDERABLE]: { generation: 0 },

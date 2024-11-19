@@ -23,7 +23,6 @@ import {
   isTradable,
 } from "./action";
 import { Tradable, TRADABLE } from "../components/tradable";
-import { COUNTABLE } from "../components/countable";
 import { getMaterialSprite } from "../../components/Entity/utils";
 import { collectItem } from "./collect";
 import { questSequence } from "../../game/assets/utils";
@@ -31,6 +30,7 @@ import { canRevive, isRevivable, reviveEntity } from "./fate";
 import { UnlockSequence } from "../components/sequencable";
 import { createSequence } from "./sequence";
 import { shootArrow } from "./ballistics";
+import { STATS } from "../components/stats";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -76,7 +76,10 @@ export const openDoor = (world: World, entity: Entity) => {
 
 export const lockDoor = (world: World, entity: Entity) => {
   entity[LOCKABLE].locked = true;
-  entity[SPRITE] = getMaterialSprite("door", entity[LOCKABLE].material);
+  entity[SPRITE] = getMaterialSprite({
+    materialized: "door",
+    material: entity[LOCKABLE].material,
+  });
   entity[LIGHT].orientation = undefined;
   rerenderEntity(world, entity);
   updateWalkable(world, entity[POSITION]);
@@ -105,22 +108,22 @@ export const removeFromInventory = (
 };
 
 export const performTrade = (world: World, entity: Entity, trade: Entity) => {
-  // remove counters and items
+  // remove stats and items
   for (const activationItem of (trade[TRADABLE] as Tradable).activation) {
-    if (activationItem.counter) {
-      entity[COUNTABLE][activationItem.counter] -= activationItem.amount;
+    if (activationItem.stat) {
+      entity[STATS][activationItem.stat] -= activationItem.amount;
     } else {
       const tradedId = (entity[INVENTORY] as Inventory).items.find((itemId) => {
         const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
-        const matchesSlot =
-          activationItem.slot &&
-          itemEntity[ITEM].slot === activationItem.slot &&
+        const matchesEquipment =
+          activationItem.equipment &&
+          itemEntity[ITEM].equipment === activationItem.equipment &&
           itemEntity[ITEM].material === activationItem.material;
         const matchesConsume =
           activationItem.consume &&
           itemEntity[ITEM].consume === activationItem.consume &&
           itemEntity[ITEM].material === activationItem.material;
-        return matchesSlot || matchesConsume;
+        return matchesEquipment || matchesConsume;
       });
 
       if (tradedId) {

@@ -26,9 +26,9 @@ _Spawn area with intro quest_
 
 - (base: 10/5)
 - Scout: max 50/30 + base 20/10 (can't join tribe, doesn't require account)
-- Knight (helmet): max 60/20 + 1 defense + wood armor + HP drop on decay
-- Mage (curls): max 40/30 + 1 intellect + wave spell + mana + MP drop on decay
-- Rogue (mohawk): max 50/20 + 1 attack + wood bow + arrow stack + movement speed
+- Knight (helmet): max 60/20 + 2 defense + wood armor + HP drop on decay
+- Mage (curls): max 40/30 + 2 intellect + wave spell + mana + MP drop on decay
+- Hunter (mohawk): max 50/20 + 1 attack + wood bow + arrow stack + movement speed
 
 ## Creatures
 
@@ -219,10 +219,10 @@ T5: legendary (fuchsia)
 - Wave: circular (10 gold + 10 xp)
 - Wave lvl 1: elemental (wave + 1 essence)
 - Wave lvl 2: added range + return (wave lvl 1 + 5 essence)
-- Bolt: fast projectile + pass terrain + pierce enemies
+- Bolt: fast projectile + pass terrain + pierce enemies + leave trail
 - Bolt lvl 1: elemental
-- Bolt lvl 2: range + split four directions 
-- Trap: single damage
+- Bolt lvl 2: range + trail duration + split T shape at end
+- Trap: single high damage
 - Trap lvl 1: elemental
 - Trap lvl 2: 4x size + wave damage + cooldown
 
@@ -233,8 +233,8 @@ T5: legendary (fuchsia)
 
 ## Consumable spells
 
-- Bomb: explode + pushable
-- Elemental bomb: explode + pushable
+- Bomb: explode + pushable + early explode
+- Elemental bomb: elemental
 - Arrow: drop on miss or decay
 
 ## Accessories
@@ -245,9 +245,9 @@ T5: legendary (fuchsia)
 - Fire amulet lvl 2: +2 hp reg
 - Water amulet lvl 1: +1 mp reg
 - Water amulet lvl 2: +2 mp reg
-- Earth amulet lvl 1: +1 haste
-- Earth amulet lvl 2: +2 haste
-- Golden amulet lvl 1: unusable active + increased drop chance
+- Earth amulet lvl 1: +1 speed
+- Earth amulet lvl 2: +2 speed
+- Golden amulet lvl 1: unusable active + increased item drop chance
 - Golden amulet lvl 2: guaranteed T5 drop on bosses
 
 - Ring lvl 1: +5 max mp
@@ -287,11 +287,11 @@ T5: legendary (fuchsia)
 ## Passive
 
 - Charm: circle around hero
-- Charm lvl 1: elemental
-- Charm lvl 2: increase radius and size
+- Elemental charm lvl 1: on hit effect
+- Elemental charm lvl 2: trigger small wave spell on hit
 - Pet: attack close enemies, heal by using hp, revive with mana
-- Pet lvl 1: elemental on hit
-- Pet lvl 2: casting short ranged spell + more hp and dmg
+- Elemental pet lvl 1: on hit effect + attack
+- Elemental pet lvl 2: armor effects + defense
 
 ## Conditions
 
@@ -314,6 +314,13 @@ T5: legendary (fuchsia)
 - Ocean (deep water)
 - Underwater world (oxygen breathe)
 - Ice
+
+## Weather
+
+- Day and night (fog)
+- Mist
+- Snowing
+- Raining
 
 ## Portals
 
@@ -357,6 +364,7 @@ T5: legendary (fuchsia)
 
 - Colored soils
 - Consume 1 resource, grow up to 3 or full stack
+- Bucket water, 10 water stacks
 
 ## Fishing
 
@@ -411,7 +419,10 @@ T5: legendary (fuchsia)
 - 10 gold = gold bow
 - 10 diamond = diamond bow
 
-- 10 iron + 50 coin = iron amulet
+- 20 max hp + 10 xp = pet
+- 10 max mp + 20 xp = charm
+
+- 10 iron + 25 coin = iron amulet
 - 5 iron + 50 coin = iron ring
 
 ## Elemental enchanting
@@ -420,13 +431,23 @@ T5: legendary (fuchsia)
 - 10 water essence + 1 gold equipment/accessory = water equipment/accessory
 - 10 earth essence + 1 gold equipment/accessory = earth equipment/accessory
 
-- 10 gold + 1 iron amulet = gold amulet
-- 10 diamonds + amulet lvl 1 = amulet lvl 2
-
 - 10 ruby gem + 1 diamond equipment = ruby equipment
 - 10 void gem + 1 diamond equipment = void equipment
 - 10 aether gem + 1 elemental equipment = aether equipment
 - 10 rainbow gem + 1 elemental equipment = rainbow equipment
+
+- T4 sword + passive = elemental passive lvl 1
+- same T4 shield + pet = elemental pet lvl 2
+- same T4 wave + charm = elemental charm lvl 2
+- 10 ruby gem + 1 diamond pet lvl 2 = ruby pet lvl 2
+- 10 void gem + 1 diamond pet lvl 2 = void pet lvl 2
+- 10 aether gem + 1 elemental pet lvl 2 = aether pet lvl 2
+- 10 rainbow gem + 1 elemental pet lvl 2 = rainbow pet lvl 2
+
+- 10 gold + 1 iron amulet = gold amulet
+- 5 gold + 1 iron ring = gold ring
+- 10 diamonds + amulet lvl 1 = amulet lvl 2
+- 5 diamonds + ring lvl 1 = ring lvl 2
 
 ## Consumables
 
@@ -478,7 +499,6 @@ T5: legendary (fuchsia)
 - Pressed button could be implemented in ECS system rather than React state
 - Sprite "none" should be obsolete
 - Opacity overlaps individual sprites, should be animated color to black
-- Touch origin should create an anchor and display current direction
 - Houses should be part of a larger structure
 - Dialog does not need to flip if out of range
 - Units moving in front of AI in the right time will disupt pathfinding due to discarded path items
@@ -486,6 +506,8 @@ T5: legendary (fuchsia)
 - Trading action displays maximum of 2 items
 - Tiny shadow on lootable items extends a bit further than on terrains due to loot height
 - Mobs walking around the death animation might not receive fog hidden
+- Inventory only renders correctly with multiples of 2
+- Sprite stacks don't seem to work properly
 
 ## Inventory example
 

@@ -19,6 +19,18 @@ import { isSubmerged } from "./immersion";
 import { LEVEL } from "../components/level";
 import { getLockable, isLocked } from "./action";
 
+// speed:-1 interval:350 (world)
+// speed:0 interval:300 (scout, mage, knight)
+// speed:1 interval:266 (hunter or others with haste)
+// speed:2 interval:242
+// speed:3 interval:225 (cap for scout, mage, knight)
+// speed:4 interval:211 (cap for hunter)
+// speed:5 interval:200
+// speed:6 interval:190
+// speed:7 interval:183 (cap with spell)
+export const getSpeedInterval = (world: World, speed: number) =>
+  Math.floor(1000 / (speed + 5) + 100);
+
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
     (entity) => COLLIDABLE in (entity as Entity)

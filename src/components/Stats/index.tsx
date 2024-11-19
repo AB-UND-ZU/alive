@@ -3,16 +3,16 @@ import { useHero, useWorld } from "../../bindings/hooks";
 import {
   createText,
   none,
-  createStat,
   map,
   pause,
   resume,
+  createCountable,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
-import { COUNTABLE, Countable } from "../../engine/components/countable";
+import { Countable, STATS } from "../../engine/components/stats";
 import { EQUIPPABLE, Equippable } from "../../engine/components/equippable";
 import { repeat } from "../../game/math/std";
 import { isGhost } from "../../engine/systems/fate";
@@ -49,14 +49,14 @@ function StatsInner({
             cells={[
               ...repeat(none, 3),
               ...createText("│", colors.grey),
-              ...createStat(stats, "hp", "countable"),
-              ...createStat(stats, "maxHp", "max"),
+              ...createCountable(stats, "hp", "countable"),
+              ...createCountable(stats, "maxHp", "max"),
               none,
-              ...createStat(stats, "xp", "countable"),
+              ...createCountable(stats, "xp", "countable"),
               none,
-              ...createStat(stats, "ore", "countable"),
+              ...createCountable(stats, "ore", "countable"),
               none,
-              ...createStat(stats, "berry", "countable"),
+              ...createCountable(stats, "berry", "countable"),
             ]}
           />
           <Row
@@ -65,14 +65,14 @@ function StatsInner({
               paused ? resume : stats.map ? map : pause,
               none,
               ...createText("│", colors.grey),
-              ...createStat(stats, "mp", "countable"),
-              ...createStat(stats, "maxMp", "max"),
+              ...createCountable(stats, "mp", "countable"),
+              ...createCountable(stats, "maxMp", "max"),
               none,
-              ...createStat(stats, "gold", "countable"),
+              ...createCountable(stats, "gold", "countable"),
               none,
-              ...createStat(stats, "wood", "countable"),
+              ...createCountable(stats, "wood", "countable"),
               none,
-              ...createStat(stats, "flower", "countable"),
+              ...createCountable(stats, "flower", "countable"),
             ]}
           />
         </>
@@ -99,7 +99,7 @@ export default function Stats() {
   return (
     <PureState
       padding={dimensions.padding}
-      {...hero?.[COUNTABLE]}
+      {...hero?.[STATS]}
       {...hero?.[EQUIPPABLE]}
       hidden={!ecs || !hero || isGhost(ecs, hero)}
     />

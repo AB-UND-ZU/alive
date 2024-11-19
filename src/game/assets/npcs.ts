@@ -1,7 +1,6 @@
 import { isTouch } from "../../components/Dimensions";
 import { entities } from "../../engine";
 import { BEHAVIOUR } from "../../engine/components/behaviour";
-import { COUNTABLE, emptyCountable } from "../../engine/components/countable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOG } from "../../engine/components/fog";
 import { ITEM } from "../../engine/components/item";
@@ -33,7 +32,7 @@ import {
   button,
   buttonColor,
   createDialog,
-  createStat,
+  createCountable,
   fog,
   goldKey,
   goldSword,
@@ -55,6 +54,8 @@ import {
 } from "../../engine/components/sequencable";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { SHOOTABLE } from "../../engine/components/shootable";
+import { emptyStats, STATS } from "../../engine/components/stats";
+import { getGearStat } from "../balancing/equipment";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -181,7 +182,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const heroEntity = world.getIdentifierAndComponents("hero", [
     POSITION,
     EQUIPPABLE,
-    COUNTABLE,
+    STATS,
   ]);
   const keyEntity = world.getIdentifierAndComponents("key", [ITEM]);
   const chestEntity = world.getIdentifier("compass_chest");
@@ -309,12 +310,12 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
       entity[TOOLTIP].dialogs = [
         [
           ...createDialog("Collect "),
-          ...addBackground(createStat({ gold: 5 }, "gold")),
+          ...addBackground(createCountable({ gold: 5 }, "gold")),
         ],
       ];
       return true;
     },
-    isCompleted: () => !!heroEntity && heroEntity[COUNTABLE].gold >= 5,
+    isCompleted: () => !!heroEntity && heroEntity[STATS].gold >= 5,
     onLeave: () => {
       entity[TOOLTIP].override = "visible";
       entity[TOOLTIP].changed = true;
@@ -434,7 +435,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
           memory: {
             targetPosition: sellPosition,
             item: world.getEntityId(world.assertIdentifier("key")),
-            activation: [{ counter: "gold", amount: 5 }],
+            activation: [{ stat: "gold", amount: 5 }],
           },
         },
         {
@@ -585,7 +586,7 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
       if (world.getIdentifier("town")) return true;
 
       const swordEntity = entities.createSword(world, {
-        [ITEM]: { slot: "melee", amount: 5, material: "gold", carrier: -1 },
+        [ITEM]: { equipment: "melee", amount: getGearStat("melee", "gold"), material: "gold", carrier: -1 },
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
@@ -595,7 +596,6 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
         [ATTACKABLE]: {},
         [BELONGABLE]: { tribe: "unit" },
         [COLLIDABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 99, maxHp: 99 },
         [DROPPABLE]: { decayed: false },
         [FOG]: { visibility: "hidden", type: "terrain" },
         [INVENTORY]: { items: [world.getEntityId(swordEntity)], size: 1 },
@@ -604,6 +604,7 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { hits: 0 },
         [SPRITE]: heart,
+        [STATS]: { ...emptyStats, hp: 99, maxHp: 99 },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       swordEntity[ITEM].carrier = world.getEntityId(townEntity);

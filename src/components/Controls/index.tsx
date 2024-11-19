@@ -11,7 +11,7 @@ import {
   arrow,
   buttonColor,
   createButton,
-  createStat,
+  createCountable,
   createText,
   ghost,
   none,
@@ -55,18 +55,14 @@ export const actionKeys = [" ", "Enter"];
 const getActivationRow = (item?: Item) => {
   if (!item) return repeat(none, 3);
 
-  if (item.counter)
-    return createStat(
-      { [item.counter]: item.amount },
-      item.counter,
+  if (item.stat)
+    return createCountable(
+      { [item.stat]: item.amount },
+      item.stat,
       "countable"
     );
 
-  return [
-    none,
-    getMaterialSprite(item.slot || item.consume, item.material),
-    none,
-  ];
+  return [none, getMaterialSprite(item), none];
 };
 
 const buttonWidth = 6;
@@ -107,6 +103,7 @@ export default function Controls() {
   const dimensions = useDimensions();
   const { ecs, setPaused } = useWorld();
   const hero = useHero();
+  const inventorySize = hero?.[INVENTORY]?.size || 0;
   const heroRef = useRef<Entity>();
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
@@ -144,7 +141,10 @@ export default function Controls() {
       [
         none,
         unlockEntity
-          ? getMaterialSprite("key", unlockEntity[LOCKABLE].material)
+          ? getMaterialSprite({
+              consume: "key",
+              material: unlockEntity[LOCKABLE].material,
+            })
           : none,
         none,
       ],
@@ -438,11 +438,14 @@ export default function Controls() {
           };
         })
       : [];
-  const itemRows = [0, 1].map((row) =>
-    Array.from({ length: inventoryWidth }).map(
-      (_, column) => itemSprites[row * inventoryWidth + column] || none
-    )
-  );
+  const itemRows = [0, 1].map((row) => {
+    return Array.from({ length: inventoryWidth }).map(
+      (_, columnIndex) =>
+        (columnIndex < inventorySize / 2 &&
+          itemSprites[row * (inventorySize / 2) + columnIndex]) ||
+        none
+    );
+  });
 
   return (
     <footer className="Controls">

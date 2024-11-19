@@ -116,11 +116,11 @@ export default function setupText(world: World) {
         world.assertByIdAndComponents(lootable[INVENTORY].items.slice(-1)[0], [
           ITEM,
         ]);
-      const isCounter = !!item?.[ITEM].counter;
+      const isStat = !!item?.[ITEM].stat;
 
       const isPending = !!getSequence(world, tooltipEntity, "dialog");
 
-      if (!pendingTooltip && isPending && !isCounter && !isVisible && !isIdle)
+      if (!pendingTooltip && isPending && !isStat && !isVisible && !isIdle)
         pendingTooltip = tooltipEntity;
 
       if (isAdded || !(isVisible || hasIdle) || (isAdjacent && hasIdle))
@@ -151,7 +151,7 @@ export default function setupText(world: World) {
         world.assertByIdAndComponents(lootable[INVENTORY].items.slice(-1)[0], [
           ITEM,
         ]);
-      const isCounter = !!item?.[ITEM].counter;
+      const isStat = !!item?.[ITEM].stat;
 
       const isIdle = getSequence(world, tooltipEntity, "dialog")?.args.isIdle;
       const isPending = !!getSequence(world, tooltipEntity, "dialog");
@@ -163,7 +163,7 @@ export default function setupText(world: World) {
         isEmpty(world, tooltipEntity) ||
         isUnlocked(world, tooltipEntity);
 
-      return needsUpdate && !isCounter && !isDone;
+      return needsUpdate && !isStat && !isDone;
     });
 
     for (const tooltipEntity of updatedTooltips) {

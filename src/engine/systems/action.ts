@@ -13,11 +13,11 @@ import { LOCKABLE } from "../components/lockable";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { Tradable, TRADABLE } from "../components/tradable";
-import { COUNTABLE } from "../components/countable";
 import { isDead, isEnemy } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
+import { STATS } from "../components/stats";
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
@@ -75,22 +75,24 @@ export const isTradable = (world: World, entity: Entity) =>
 export const canTrade = (world: World, entity: Entity, trade: Entity) =>
   isTradable(world, trade) &&
   (trade[TRADABLE] as Tradable).activation.every((item) => {
-    // check if entity has sufficient count
-    if (item.counter) return entity[COUNTABLE][item.counter] >= item.amount;
-    // or if item is contained in inventory (and ignore amount)
-    else
+    if (item.stat) {
+      // check if entity has sufficient of stat
+      return entity[STATS][item.stat] >= item.amount;
+    } else {
+      // or if item is contained in inventory (and ignore amount)
       return (entity[INVENTORY] as Inventory).items.some((itemId) => {
         const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
-        const matchesSlot =
-          item.slot &&
-          itemEntity[ITEM].slot === item.slot &&
+        const matchesEquipment =
+          item.equipment &&
+          itemEntity[ITEM].equipment === item.equipment &&
           itemEntity[ITEM].material === item.material;
         const matchesConsume =
           item.consume &&
           itemEntity[ITEM].consume === item.consume &&
           itemEntity[ITEM].material === item.material;
-        return matchesSlot || matchesConsume;
+        return matchesEquipment || matchesConsume;
       });
+    }
   });
 
 export default function setupAction(world: World) {
@@ -175,7 +177,8 @@ export default function setupAction(world: World) {
         arrowId &&
         entity[INVENTORY].items.find(
           (itemId) =>
-            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].slot === "bow"
+            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].equipment ===
+            "bow"
         );
 
       if (

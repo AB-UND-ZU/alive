@@ -3,8 +3,10 @@ import { World } from "../ecs";
 import { Position } from "./position";
 import { Light } from "./light";
 import { Viewable } from "./viewable";
+import { ClassKey } from "../../game/balancing/classes";
 
 export type Spawnable = {
+  classKey: ClassKey,
   position: Position;
   light: Light;
   viewable: Viewable;

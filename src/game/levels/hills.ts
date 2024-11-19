@@ -1,6 +1,6 @@
-import { MobDistribution } from "../balancing/mobs";
+import { UnitDistribution } from "../balancing/units";
 
-export const hillsMobDistribution: MobDistribution = {
+export const hillsUnitDistribution: UnitDistribution = {
   prism: 60,
   goldPrism: 6,
   eye: 30,

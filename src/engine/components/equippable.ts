@@ -1,12 +1,13 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
+export type Gear = "melee" | "armor" | "bow";
+export type Slot = Gear | "active" | "passive";
+export type Tools = "compass" | "map";
+export type Equipment = Slot | Tools
+
 export type Equippable = {
-  melee?: number;
-  armor?: number;
-  bow?: number;
-  compass?: number;
-  map?: number;
+  [key in Equipment]?: number;
 };
 
 export const EQUIPPABLE = "EQUIPPABLE";

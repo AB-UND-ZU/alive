@@ -21,7 +21,6 @@ import {
   campfire,
   coconut,
   coin,
-  commonChest,
   compass,
   createDialog,
   doorClosedGold,
@@ -35,21 +34,17 @@ import {
   grass,
   hedge1,
   hedge2,
-  ironSword,
   none,
   oak,
   ore,
   palm1,
   palm2,
-  pot,
   sand,
   stick,
   tree1,
   tree2,
-  villager,
   wall,
   water,
-  woodArmor,
   woodBow,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
@@ -76,7 +71,7 @@ import {
 import { LOOTABLE } from "../engine/components/lootable";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { INVENTORY } from "../engine/components/inventory";
-import { COUNTABLE, emptyCountable } from "../engine/components/countable";
+import { emptyStats, STATS } from "../engine/components/stats";
 import { LOCKABLE } from "../engine/components/lockable";
 import { TRACKABLE } from "../engine/components/trackable";
 import { FOCUSABLE } from "../engine/components/focusable";
@@ -112,10 +107,13 @@ import { createSequence } from "../engine/systems/sequence";
 import { npcSequence } from "../game/assets/utils";
 import { SPAWNABLE } from "../engine/components/spawnable";
 import { REFERENCE } from "../engine/components/reference";
-import { generateMobKey, generateMobStat } from "../game/balancing/mobs";
-import { hillsMobDistribution } from "../game/levels/hills";
+import { generateUnitData, generateUnitKey } from "../game/balancing/units";
+import { hillsUnitDistribution } from "../game/levels/hills";
 import { BELONGABLE } from "../engine/components/belongable";
 import { SHOOTABLE } from "../engine/components/shootable";
+import { getGearStat } from "../game/balancing/equipment";
+import { getMaterialSprite } from "../components/Entity/utils";
+import { getSpeedInterval } from "../engine/systems/movement";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -285,7 +283,7 @@ export const generateWorld = async (world: World) => {
       const frameId = world.getEntityId(
         entities.createFrame(world, {
           [REFERENCE]: {
-            tick: 250,
+            tick: getSpeedInterval(world, -1),
             delta: 0,
             suspended: true,
             suspensionCounter: -1,
@@ -314,6 +312,7 @@ export const generateWorld = async (world: World) => {
         [SEQUENCABLE]: { states: {} },
         [SOUL]: { ready: true },
         [SPAWNABLE]: {
+          classKey: "scout",
           position: copy(initialPosition),
           viewable: { active: false },
           light: { brightness: 15, visibility: 15, darkness: 0 },
@@ -361,7 +360,7 @@ export const generateWorld = async (world: World) => {
       createItemInInventory(world, oreEntity, entities.createItem, {
         [ITEM]: {
           amount: cell === "ore" ? distribution(80, 15, 5) + 1 : 1,
-          counter: "ore",
+          stat: "ore",
         },
         [SPRITE]: ore,
       });
@@ -411,7 +410,7 @@ export const generateWorld = async (world: World) => {
         entities.createItem,
         {
           [ITEM]: {
-            counter: "wood",
+            stat: "wood",
             amount: cell === "wood" ? distribution(80, 15, 5) + 1 : 2,
           },
           [SPRITE]: stick,
@@ -436,7 +435,7 @@ export const generateWorld = async (world: World) => {
       createItemInInventory(world, fruitEntity, entities.createItem, {
         [ITEM]: {
           amount: 1,
-          counter: "hp",
+          stat: "hp",
         },
         [SPRITE]: apple,
       });
@@ -467,7 +466,7 @@ export const generateWorld = async (world: World) => {
         createItemInInventory(world, fruitEntity, entities.createItem, {
           [ITEM]: {
             amount: 1,
-            counter: "mp",
+            stat: "mp",
           },
           [SPRITE]: fruit,
         });
@@ -499,7 +498,7 @@ export const generateWorld = async (world: World) => {
       if (cell === "berry" || cell === "berry_one") {
         createItemAsDrop(world, { x, y }, entities.createItem, {
           [ITEM]: {
-            counter: "berry",
+            stat: "berry",
             amount: cell === "berry" ? distribution(80, 15, 5) + 1 : 1,
           },
           [SPRITE]: berry,
@@ -515,7 +514,7 @@ export const generateWorld = async (world: World) => {
       if (cell === "flower" || cell === "flower_one") {
         createItemAsDrop(world, { x, y }, entities.createItem, {
           [ITEM]: {
-            counter: "flower",
+            stat: "flower",
             amount: cell === "flower" ? distribution(80, 15, 5) + 1 : 1,
           },
           [SPRITE]: flower,
@@ -524,7 +523,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "coin_one") {
       const coinItem = createItemAsDrop(world, { x, y }, entities.createItem, {
         [ITEM]: {
-          counter: "gold",
+          stat: "gold",
           amount: 1,
         },
         [SPRITE]: coin,
@@ -570,25 +569,26 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
     } else if (cell === "pot") {
+      const { sprite, stats, tribe } = generateUnitData("pot");
       const potEntity = entities.createChest(world, {
         [ATTACKABLE]: {},
-        [BELONGABLE]: { tribe: "unit" },
+        [BELONGABLE]: { tribe },
         [COLLIDABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 5, maxHp: 5, gold: 3 },
         [DROPPABLE]: { decayed: false },
         [FOG]: { visibility, type: "terrain" },
-        [INVENTORY]: { items: [], size: 1 },
+        [INVENTORY]: { items: [], size: 20 },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { hits: 0 },
-        [SPRITE]: pot,
+        [SPRITE]: sprite,
+        [STATS]: { ...emptyStats, ...stats, gold: 3 },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       world.setIdentifier(potEntity, "pot");
     } else if (cell === "compass") {
       const compassEntity = entities.createCompass(world, {
-        [ITEM]: { amount: 1, slot: "compass", carrier: -1 },
+        [ITEM]: { amount: 1, equipment: "compass", carrier: -1 },
         [ORIENTABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
@@ -596,31 +596,33 @@ export const generateWorld = async (world: World) => {
         [TRACKABLE]: {},
       });
       world.setIdentifier(compassEntity, "compass");
+      const { sprite, stats, tribe } = generateUnitData("commonChest");
       const chestEntity = entities.createChest(world, {
         [ATTACKABLE]: {},
-        [BELONGABLE]: { tribe: "unit" },
+        [BELONGABLE]: { tribe },
         [COLLIDABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 10, maxHp: 10 },
         [DROPPABLE]: { decayed: false },
-        [INVENTORY]: { items: [world.getEntityId(compassEntity)], size: 1 },
+        [INVENTORY]: { items: [world.getEntityId(compassEntity)], size: 20 },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { hits: 0 },
-        [SPRITE]: commonChest,
+        [SPRITE]: sprite,
+        [STATS]: { ...emptyStats, ...stats },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       compassEntity[ITEM].carrier = world.getEntityId(chestEntity);
       world.setIdentifier(chestEntity, "compass_chest");
     } else if (cell === "guide") {
+      const { sprite, equipments, stats, tribe, patterns } =
+        generateUnitData("guide");
       const guideEntity = entities.createVillager(world, {
         [ACTIONABLE]: { triggered: false },
         [ATTACKABLE]: {},
-        [BEHAVIOUR]: { patterns: [] },
-        [BELONGABLE]: { tribe: "neutral" },
+        [BEHAVIOUR]: { patterns },
+        [BELONGABLE]: { tribe },
         [COLLECTABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 20, maxHp: 20 },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
@@ -640,7 +642,8 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { hits: 0 },
-        [SPRITE]: villager,
+        [SPRITE]: sprite,
+        [STATS]: { ...emptyStats, ...stats },
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: {
           dialogs: [],
@@ -648,37 +651,45 @@ export const generateWorld = async (world: World) => {
           nextDialog: -1,
         },
       });
-      createItemInInventory(world, guideEntity, entities.createSword, {
-        [ITEM]: { amount: 2, slot: "melee", material: "iron" },
-        [ORIENTABLE]: {},
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: ironSword,
-      });
-      createItemInInventory(world, guideEntity, entities.createItem, {
-        [ITEM]: { amount: 1, slot: "armor", material: "wood" },
-        [SPRITE]: woodArmor,
-      });
+      for (const equipment of equipments) {
+        const itemData = {
+          [ITEM]: {
+            ...equipment,
+            amount: getGearStat(equipment.equipment, equipment.material),
+          },
+          [SPRITE]: getMaterialSprite(equipment),
+        };
+        if (equipment.equipment === "melee") {
+          createItemInInventory(world, guideEntity, entities.createSword, {
+            ...itemData,
+            [ORIENTABLE]: {},
+            [SEQUENCABLE]: { states: {} },
+          });
+        } else {
+          createItemInInventory(
+            world,
+            guideEntity,
+            entities.createItem,
+            itemData
+          );
+        }
+      }
       npcSequence(world, guideEntity, "guideNpc");
 
       world.setIdentifier(guideEntity, "guide");
     } else if (cell === "mob" || cell === "prism") {
-      const { damage, pattern, items, sprite, hp } = generateMobStat(
-        cell === "prism" ? "spawnPrism" : generateMobKey(hillsMobDistribution)
+      const { patterns, items, sprite, stats, tribe } = generateUnitData(
+        cell === "prism" ? "spawnPrism" : generateUnitKey(hillsUnitDistribution)
       );
 
       const mobEntity = entities.createMob(world, {
         [ATTACKABLE]: {},
-        [BEHAVIOUR]: { patterns: [{ name: pattern, memory: {} }] },
-        [BELONGABLE]: { tribe: "wild" },
-        [COUNTABLE]: {
-          ...emptyCountable,
-          hp,
-          maxHp: hp,
-        },
+        [BEHAVIOUR]: { patterns },
+        [BELONGABLE]: { tribe },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
-        [INVENTORY]: { items: [], size: 1 },
+        [INVENTORY]: { items: [], size: 20 },
         [MELEE]: {},
         [MOVABLE]: {
           orientations: [],
@@ -695,6 +706,7 @@ export const generateWorld = async (world: World) => {
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { hits: 0 },
         [SPRITE]: sprite,
+        [STATS]: { ...emptyStats, ...stats },
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
       });
@@ -705,7 +717,7 @@ export const generateWorld = async (world: World) => {
           entities.createItem,
           {
             [ITEM]: item,
-            [SPRITE]: getCountableSprite(item.counter, "drop"),
+            [SPRITE]: getCountableSprite(item.stat, "drop"),
           },
           "inventoryOnly"
         );
@@ -717,7 +729,7 @@ export const generateWorld = async (world: World) => {
         mobEntity,
         entities.createSword,
         {
-          [ITEM]: { amount: damage, slot: "melee" },
+          [ITEM]: { amount: 0, equipment: "melee" },
           [ORIENTABLE]: {},
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: none,
@@ -959,7 +971,7 @@ export const generateWorld = async (world: World) => {
   });
   createItemAsDrop(world, { x: 3, y: 11 }, entities.createItem, {
     [ITEM]: {
-      slot: "bow",
+      equipment: "bow",
       material: "wood",
       amount: 1,
     },

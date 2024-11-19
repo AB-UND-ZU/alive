@@ -19,7 +19,7 @@ import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
-import { none, scout, tombstone1 } from "../../game/assets/sprites";
+import { none, tombstone1 } from "../../game/assets/sprites";
 import { ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
@@ -30,7 +30,6 @@ import { VIEWABLE } from "../components/viewable";
 import { SPAWNABLE } from "../components/spawnable";
 import { EQUIPPABLE } from "../components/equippable";
 import { MOVABLE } from "../components/movable";
-import { COUNTABLE, emptyCountable } from "../components/countable";
 import { isDecayed } from "./drop";
 import { REVIVABLE } from "../components/revivable";
 import { ACTIONABLE } from "../components/actionable";
@@ -43,6 +42,9 @@ import { TRACKABLE } from "../components/trackable";
 import { createSequence } from "./sequence";
 import { BELONGABLE } from "../components/belongable";
 import { SHOOTABLE } from "../components/shootable";
+import { getClassData } from "../../game/balancing/classes";
+import { emptyStats, STATS } from "../components/stats";
+import { getSpeedInterval } from "./movement";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -141,7 +143,7 @@ export default function setupFate(world: World) {
         const frameId = world.getEntityId(
           entities.createFrame(world, {
             [REFERENCE]: {
-              tick: 250,
+              tick: getSpeedInterval(world, -1),
               delta: 0,
               suspended: true,
               suspensionCounter: -1,
@@ -175,6 +177,7 @@ export default function setupFate(world: World) {
             tombstoneId: world.getEntityId(tombstoneEntity),
           },
           [SPAWNABLE]: {
+            classKey: entity[SPAWNABLE].classKey,
             position: copy(entity[SPAWNABLE].position),
             light: { ...entity[LIGHT] },
             viewable: { ...entity[VIEWABLE] },
@@ -217,10 +220,11 @@ export default function setupFate(world: World) {
       if (!isSoulReady(world, entity)) continue;
 
       // spawn new hero
+      const { stats, sprite } = getClassData(entity[SPAWNABLE].classKey);
       const frameId = world.getEntityId(
         entities.createFrame(world, {
           [REFERENCE]: {
-            tick: 250,
+            tick: getSpeedInterval(world, stats.speed),
             delta: 0,
             suspended: true,
             suspensionCounter: -1,
@@ -234,7 +238,6 @@ export default function setupFate(world: World) {
         [ATTACKABLE]: {},
         [BELONGABLE]: { tribe: "neutral" },
         [COLLECTABLE]: {},
-        [COUNTABLE]: { ...emptyCountable, hp: 20, maxHp: 20, maxMp: 10 },
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {},
         [FOG]: { visibility: "visible", type: "unit" },
@@ -258,11 +261,13 @@ export default function setupFate(world: World) {
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { hits: 0 },
         [SPAWNABLE]: {
+          classKey: entity[SPAWNABLE].classKey,
           position: copy(entity[SPAWNABLE].position),
           light: entity[SPAWNABLE].light,
           viewable: entity[SPAWNABLE].viewable,
         },
-        [SPRITE]: scout,
+        [SPRITE]: sprite,
+        [STATS]: { ...emptyStats, ...stats },
         [SWIMMABLE]: { swimming: false },
         [VIEWABLE]: entity[SPAWNABLE].viewable,
       });

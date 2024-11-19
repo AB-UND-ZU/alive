@@ -12,7 +12,6 @@ import { isDead } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM, STACK_SIZE, Stackable } from "../components/item";
-import { COUNTABLE } from "../components/countable";
 import { rerenderEntity } from "./renderer";
 import { isTradable } from "./action";
 import { removeFromInventory } from "./trigger";
@@ -20,6 +19,7 @@ import { COLLECTABLE } from "../components/collectable";
 import { getMaxCounter } from "../../game/assets/sprites";
 import { createSequence, getSequence } from "./sequence";
 import { CollectSequence } from "../components/sequencable";
+import { STATS } from "../components/stats";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -77,24 +77,25 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
   ) {
     const itemId = target[INVENTORY].items[itemIndex];
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
+
     // reduce counter items
-    const counter = itemEntity[ITEM].counter;
-    const slot = itemEntity[ITEM].slot;
+    const stat = itemEntity[ITEM].stat;
+    const equipment = itemEntity[ITEM].equipment;
     const consume = itemEntity[ITEM].consume;
     const stackable = itemEntity[ITEM].stackable;
 
-    if (counter) {
+    if (stat) {
       // skip if counter exceeded
-      const maxCounter = getMaxCounter(counter);
+      const maxCounter = getMaxCounter(stat);
       if (
-        entity[COUNTABLE][counter] >= 99 ||
-        (maxCounter !== counter &&
-          entity[COUNTABLE][counter] === entity[COUNTABLE][maxCounter])
+        entity[STATS][stat] >= 99 ||
+        (maxCounter !== stat &&
+          entity[STATS][stat] === entity[STATS][maxCounter])
       )
         continue;
 
       itemEntity[ITEM].amount -= 1;
-    } else if (slot && isFull(world, entity)) {
+    } else if (equipment && isFull(world, entity)) {
       // skip if inventory full
       continue;
     } else if (stackable) {
@@ -108,15 +109,15 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
 
     // remove from target inventory
     if (
-      slot ||
+      equipment ||
       consume ||
-      ((counter || stackable) && itemEntity[ITEM].amount === 0)
+      ((stat || stackable) && itemEntity[ITEM].amount === 0)
     ) {
       removeFromInventory(world, target, itemEntity);
     }
 
     // assign new carrier on discrete items
-    if (!counter && !stackable) {
+    if (!stat && !stackable) {
       itemEntity[ITEM].carrier = world.getEntityId(entity);
     }
 
@@ -157,7 +158,7 @@ export default function setupCollect(world: World) {
       MOVABLE,
       EQUIPPABLE,
       INVENTORY,
-      COUNTABLE,
+      STATS,
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);

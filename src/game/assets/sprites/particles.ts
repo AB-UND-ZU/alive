@@ -1,6 +1,6 @@
 import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
-import { Countable } from "../../../engine/components/countable";
+import { Countable, Stats } from "../../../engine/components/stats";
 import {
   berry,
   berryDrop,
@@ -39,7 +39,7 @@ export const frozen: Sprite = {
 
 export const hit: Sprite = {
   name: "hit_melee",
-  layers: [{ char: "\u0108", color: colors.white }],
+  layers: [{ char: "O", color: colors.white }],
   amounts: {
     single: [
       { char: "*", color: colors.red },
@@ -50,8 +50,8 @@ export const hit: Sprite = {
     multiple: [{ char: "X", color: colors.red }],
   },
 };
-export const wave: Sprite = {
-  name: "water_wave",
+export const stream: Sprite = {
+  name: "water_stream",
   layers: [{ char: "≈", color: colors.white }],
 };
 
@@ -143,8 +143,97 @@ export const bolt: Sprite = {
   },
 };
 
+export const fireBolt: Sprite = {
+  name: "fire_bolt",
+  layers: [
+    { char: "∙", color: colors.maroon },
+    { char: "·", color: colors.red },
+  ],
+  amounts: {
+    single: [
+      { char: "∙", color: colors.maroon },
+      { char: "·", color: colors.red },
+    ],
+    double: [
+      { char: "\u0106", color: colors.red },
+      { char: "∙", color: colors.maroon },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.maroon },
+    ],
+  },
+};
+
+export const waterBolt: Sprite = {
+  name: "water_bolt",
+  layers: [
+    { char: "∙", color: colors.navy },
+    { char: "·", color: colors.blue },
+  ],
+  amounts: {
+    single: [
+      { char: "∙", color: colors.navy },
+      { char: "·", color: colors.blue },
+    ],
+    double: [
+      { char: "\u0106", color: colors.blue },
+      { char: "∙", color: colors.navy },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.navy },
+    ],
+  },
+};
+
+export const earthBolt: Sprite = {
+  name: "earth_bolt",
+  layers: [
+    { char: "∙", color: colors.green },
+    { char: "·", color: colors.lime },
+  ],
+  amounts: {
+    single: [
+      { char: "∙", color: colors.green },
+      { char: "·", color: colors.lime },
+    ],
+    double: [
+      { char: "\u0106", color: colors.lime },
+      { char: "∙", color: colors.green },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.green },
+    ],
+  },
+};
+
 export const trap: Sprite = {
   name: "spell_trap",
+  layers: [
+    { char: "\u011c", color: colors.silver },
+    { char: "-", color: colors.black },
+  ],
+  amounts: {
+    single: [
+      { char: "\u011c", color: colors.silver },
+      { char: "-", color: colors.black },
+    ],
+    double: [
+      { char: "■", color: colors.silver },
+      { char: "|", color: colors.black },
+      { char: "-", color: colors.black },
+    ],
+    multiple: [
+      { char: "#", color: colors.silver },
+      { char: "\u0103", color: colors.black },
+    ],
+  },
+};
+
+export const fireTrap: Sprite = {
+  name: "fire_trap",
   layers: [
     { char: "\u011c", color: colors.red },
     { char: "-", color: colors.black },
@@ -161,6 +250,52 @@ export const trap: Sprite = {
     ],
     multiple: [
       { char: "#", color: colors.red },
+      { char: "\u0103", color: colors.black },
+    ],
+  },
+};
+
+export const waterTrap: Sprite = {
+  name: "water_trap",
+  layers: [
+    { char: "\u011c", color: colors.blue },
+    { char: "-", color: colors.black },
+  ],
+  amounts: {
+    single: [
+      { char: "\u011c", color: colors.blue },
+      { char: "-", color: colors.black },
+    ],
+    double: [
+      { char: "■", color: colors.blue },
+      { char: "|", color: colors.black },
+      { char: "-", color: colors.black },
+    ],
+    multiple: [
+      { char: "#", color: colors.blue },
+      { char: "\u0103", color: colors.black },
+    ],
+  },
+};
+
+export const earthTrap: Sprite = {
+  name: "earth_trap",
+  layers: [
+    { char: "\u011c", color: colors.lime },
+    { char: "-", color: colors.black },
+  ],
+  amounts: {
+    single: [
+      { char: "\u011c", color: colors.lime },
+      { char: "-", color: colors.black },
+    ],
+    double: [
+      { char: "■", color: colors.lime },
+      { char: "|", color: colors.black },
+      { char: "-", color: colors.black },
+    ],
+    multiple: [
+      { char: "#", color: colors.lime },
       { char: "\u0103", color: colors.black },
     ],
   },
@@ -323,10 +458,13 @@ const nonCountable = (sprite: Sprite) => ({
   layers: sprite.layers,
 });
 
-const statSprites: Record<
-  keyof Countable,
-  { color: string; sprite: Sprite; drop?: Sprite; max?: keyof Countable }
-> = {
+const countableSprites: Partial<
+  Record<keyof Omit<Stats, keyof Countable>, never>
+> &
+  Record<
+    keyof Countable,
+    { color: string; sprite: Sprite; drop?: Sprite; max?: keyof Countable }
+  > = {
   hp: { color: colors.red, sprite: heart, max: "maxHp" },
   maxHp: { color: "#404040", sprite: heartUp },
   mp: { color: colors.blue, sprite: mana, max: "maxMp" },
@@ -339,36 +477,39 @@ const statSprites: Record<
   berry: { color: colors.purple, sprite: berry, drop: berryDrop },
 };
 
-export const createStat = (
+export const createCountable = (
   stats: Partial<Countable>,
-  counter: keyof Countable,
+  stat: keyof Stats,
   display: "text" | "countable" | "max" = "text"
 ) => {
+  if (!(stat in stats)) return [];
+
+  const counter = stat as keyof Countable;
   const value = stats[counter] || 0;
-  const stat = value.toString();
-  const color = statSprites[counter].color;
+  const stringified = value.toString();
+  const color = countableSprites[counter].color;
 
   if (display === "countable")
     return [
-      ...createText(stat.padStart(2, " "), color),
+      ...createText(stringified.padStart(2, " "), color),
       getCountableSprite(counter),
     ];
 
-  if (display === "max") return createText(stat.padEnd(2, " "), color);
+  if (display === "max") return createText(stringified.padEnd(2, " "), color);
 
-  return [...createText(stat, color), getCountableSprite(counter)];
+  return [...createText(stringified, color), getCountableSprite(counter)];
 };
 
-export const getMaxCounter = (counter: keyof Countable) =>
-  statSprites[counter].max || counter;
+export const getMaxCounter = (stat: keyof Stats) =>
+  (countableSprites[stat] && countableSprites[stat]?.max) || stat;
 
 export const getCountableSprite = (
   counter: keyof Countable,
   variant?: "max" | "drop"
 ) =>
-  (variant === "max" && statSprites[getMaxCounter(counter)].sprite) ||
-  (variant === "drop" && statSprites[counter].drop) ||
-  statSprites[counter].sprite;
+  (variant === "max" && countableSprites[getMaxCounter(counter)]?.sprite) ||
+  (variant === "drop" && countableSprites[counter].drop) ||
+  countableSprites[counter].sprite;
 
 export const quest = createText("!", colors.lime)[0];
 
