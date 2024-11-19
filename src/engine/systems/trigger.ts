@@ -23,7 +23,7 @@ import {
   isTradable,
 } from "./action";
 import { Tradable, TRADABLE } from "../components/tradable";
-import { getMaterialSprite } from "../../components/Entity/utils";
+import { getItemSprite } from "../../components/Entity/utils";
 import { collectItem } from "./collect";
 import { questSequence } from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
@@ -76,7 +76,7 @@ export const openDoor = (world: World, entity: Entity) => {
 
 export const lockDoor = (world: World, entity: Entity) => {
   entity[LOCKABLE].locked = true;
-  entity[SPRITE] = getMaterialSprite({
+  entity[SPRITE] = getItemSprite({
     materialized: "door",
     material: entity[LOCKABLE].material,
   });

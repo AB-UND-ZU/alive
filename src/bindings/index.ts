@@ -16,8 +16,6 @@ import {
   blockDown,
   blockUp,
   bush,
-  cactus1,
-  cactus2,
   campfire,
   coconut,
   coin,
@@ -30,10 +28,10 @@ import {
   getCountableSprite,
   ghost,
   goldKey,
-  goldMine,
   grass,
   hedge1,
   hedge2,
+  ironMine,
   none,
   oak,
   ore,
@@ -112,8 +110,9 @@ import { hillsUnitDistribution } from "../game/levels/hills";
 import { BELONGABLE } from "../engine/components/belongable";
 import { SHOOTABLE } from "../engine/components/shootable";
 import { getGearStat } from "../game/balancing/equipment";
-import { getMaterialSprite } from "../components/Entity/utils";
+import { getItemSprite } from "../components/Entity/utils";
 import { getSpeedInterval } from "../engine/systems/movement";
+import { SPIKABLE } from "../engine/components/spikable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -184,7 +183,7 @@ export const generateWorld = async (world: World) => {
           ? "wood"
           : "hedge"
         : spawn > 99
-        ? "gold"
+        ? "iron"
         : spawn > 86
         ? "ore"
         : "rock";
@@ -337,12 +336,12 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
-    } else if (cell === "gold") {
+    } else if (cell === "iron") {
       entities.createWall(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
-        [SPRITE]: goldMine,
+        [SPRITE]: ironMine,
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [COLLIDABLE]: {},
       });
@@ -530,13 +529,38 @@ export const generateWorld = async (world: World) => {
       });
       world.setIdentifier(world.assertById(coinItem[ITEM].carrier), "coin");
     } else if (cell === "cactus") {
-      entities.createTerrain(world, {
-        [FOG]: { visibility, type: "terrain" },
+      const { sprite, stats, tribe, items } = generateUnitData(
+        (["cactus1", "cactus2"] as const)[random(0, 1)]
+      );
+      const cactusEntity = entities.createCactus(world, {
+        [ATTACKABLE]: {},
+        [BELONGABLE]: { tribe },
         [COLLIDABLE]: {},
+        [DROPPABLE]: { decayed: false },
+        [FOG]: { visibility, type: "terrain" },
+        [INVENTORY]: { items: [], size: 20 },
         [POSITION]: { x, y },
-        [SPRITE]: [cactus1, cactus2][random(0, 1)],
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPIKABLE]: { damage: stats.attack },
+        [SPRITE]: sprite,
+        [STATS]: { ...emptyStats, ...stats },
       });
+      for (const item of items) {
+        createItemInInventory(
+          world,
+          cactusEntity,
+          entities.createItem,
+          {
+            [ITEM]: item,
+            [SPRITE]:
+              "stackable" in item
+                ? getItemSprite(item)
+                : getCountableSprite(item.stat, "drop"),
+          },
+          "inventoryOnly"
+        );
+      }
     } else if (cell === "door" || cell === "house_door") {
       const doorEntity = entities.createDoor(world, {
         [FOG]: { visibility, type: "float" },
@@ -657,7 +681,7 @@ export const generateWorld = async (world: World) => {
             ...equipment,
             amount: getGearStat(equipment.equipment, equipment.material),
           },
-          [SPRITE]: getMaterialSprite(equipment),
+          [SPRITE]: getItemSprite(equipment),
         };
         if (equipment.equipment === "melee") {
           createItemInInventory(world, guideEntity, entities.createSword, {
@@ -717,7 +741,10 @@ export const generateWorld = async (world: World) => {
           entities.createItem,
           {
             [ITEM]: item,
-            [SPRITE]: getCountableSprite(item.stat, "drop"),
+            [SPRITE]:
+              "stackable" in item
+                ? getItemSprite(item)
+                : getCountableSprite(item.stat, "drop"),
           },
           "inventoryOnly"
         );
@@ -984,6 +1011,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupTrigger);
   world.addSystem(systems.setupCollect);
+  world.addSystem(systems.setupSpike);
   world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupBallistics);
   world.addSystem(systems.setupMovement);

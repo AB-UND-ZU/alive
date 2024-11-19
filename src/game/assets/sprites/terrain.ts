@@ -17,11 +17,29 @@ export const wall: Sprite = {
   layers: [{ char: "█", color: colors.grey }],
 };
 
+export const ironMine: Sprite = {
+  name: "Iron",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "÷", color: colors.silver },
+    { char: "·", color: colors.grey },
+  ],
+};
+
 export const goldMine: Sprite = {
   name: "Gold",
   layers: [
     { char: "█", color: colors.grey },
     { char: "÷", color: colors.yellow },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const diamondMine: Sprite = {
+  name: "Diamond",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "÷", color: colors.aqua },
     { char: "·", color: colors.grey },
   ],
 };

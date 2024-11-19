@@ -34,6 +34,7 @@ import { Sequencable, SEQUENCABLE } from "./components/sequencable";
 import { Shootable, SHOOTABLE } from "./components/shootable";
 import { Soul, SOUL } from "./components/soul";
 import { Spawnable, SPAWNABLE } from "./components/spawnable";
+import { Spikable, SPIKABLE } from "./components/spikable";
 import { Sprite, SPRITE } from "./components/sprite";
 import { Stats, STATS } from "./components/stats";
 import { Swimmable, SWIMMABLE } from "./components/swimmable";
@@ -78,6 +79,7 @@ export type Entity = {
   [SHOOTABLE]: Shootable;
   [SOUL]: Soul;
   [SPAWNABLE]: Spawnable;
+  [SPIKABLE]: Spikable;
   [SPRITE]: Sprite;
   [STATS]: Stats;
   [SWIMMABLE]: Swimmable;
@@ -106,6 +108,21 @@ const entityFactory = <T extends keyof Entity>(components: T[]) => {
     return entity as EntityData;
   };
 };
+
+export const createCactus = entityFactory([
+  ATTACKABLE,
+  BELONGABLE,
+  COLLIDABLE,
+  DROPPABLE,
+  FOG,
+  INVENTORY,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  SPIKABLE,
+  STATS,
+]);
 
 export const createChest = entityFactory([
   ATTACKABLE,

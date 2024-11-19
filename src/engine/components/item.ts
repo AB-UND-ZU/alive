@@ -9,17 +9,25 @@ export type Legendary = "ruby" | "aether" | "void" | "rainbow";
 export type Material = Resource | Element | Legendary;
 
 export type Spell = "wave1" | "wave2" | "bolt1" | "bolt2" | "trap1" | "trap2";
-export type Empowerment = "slash1" | "slash2" | "volley1" | "volley2" | "shield1" | "shield2";
+export type Empowerment =
+  | "slash1"
+  | "slash2"
+  | "volley1"
+  | "volley2"
+  | "shield1"
+  | "shield2";
 export type Activatable = "cloak1" | "cloak2";
 export type Active = Spell | Empowerment | Activatable;
 
 export type Passive = "charm1" | "charm2" | "pet1" | "pet2";
 
-export type Consumable = "key";
+export type Consumable = "key" | "potion1" | "potion2";
 
 export type Materialized = "door";
 
-export type Stackable = Resource | "arrow" | "bomb";
+export type Craftable = "flower" | "berry" | "spike" | "worm";
+export type Reloadable = "arrow" | "bomb";
+export type Stackable = Resource | Craftable | Reloadable;
 export const STACK_SIZE = 10;
 
 export type Item = {

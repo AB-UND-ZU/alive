@@ -21,7 +21,7 @@ import * as colors from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
 import { normalize, repeat } from "../../game/math/std";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
-import { createSprite, getMaterialSprite } from "../Entity/utils";
+import { createSprite, getItemSprite } from "../Entity/utils";
 import { getAction } from "../../engine/systems/trigger";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
@@ -62,7 +62,7 @@ const getActivationRow = (item?: Item) => {
       "countable"
     );
 
-  return [none, getMaterialSprite(item), none];
+  return [none, getItemSprite(item), none];
 };
 
 const buttonWidth = 6;
@@ -141,7 +141,7 @@ export default function Controls() {
       [
         none,
         unlockEntity
-          ? getMaterialSprite({
+          ? getItemSprite({
               consume: "key",
               material: unlockEntity[LOCKABLE].material,
             })

@@ -1,6 +1,8 @@
 import { Pattern } from "../../engine/components/behaviour";
 import { Countable } from "../../engine/components/stats";
 import {
+  cactus1,
+  cactus2,
   commonChest,
   epicChest,
   eye,
@@ -17,7 +19,7 @@ import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
 import { Tribe } from "../../engine/components/belongable";
 import { Gear } from "../../engine/components/equippable";
-import { Material } from "../../engine/components/item";
+import { Material, Stackable } from "../../engine/components/item";
 
 export type UnitKey =
   | "guide"
@@ -27,6 +29,8 @@ export type UnitKey =
   | "epicChest"
   | "legendaryChest"
   | "pot"
+  | "cactus1"
+  | "cactus2"
   | "spawnPrism"
   | "prism"
   | "goldPrism"
@@ -43,7 +47,10 @@ export type UnitDefinition = {
   equipments: { equipment: Gear; material: Material }[];
   drops: {
     chance: number;
-    items: { stat: keyof Countable; amount: number }[];
+    items: (
+      | { stat: keyof Countable; amount: number }
+      | { stackable: Stackable; amount: number }
+    )[];
   }[];
   patternNames: Pattern["name"][];
   sprite: Sprite;
@@ -58,7 +65,10 @@ export type UnitData = {
     maxHp: number;
   };
   equipments: { equipment: Gear; material: Material }[];
-  items: { stat: keyof Countable; amount: number }[];
+  items: (
+    | { stat: keyof Countable; amount: number }
+    | { stackable: Stackable; amount: number }
+  )[];
   patterns: Pattern[];
   sprite: Sprite;
 };
@@ -136,6 +146,26 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: pot,
+  },
+  cactus1: {
+    tribe: "unit",
+    attack: 2,
+    defense: 1,
+    hp: 10,
+    equipments: [],
+    drops: [{ chance: 100, items: [{ stackable: "spike", amount: 1 }] }],
+    patternNames: [],
+    sprite: cactus1,
+  },
+  cactus2: {
+    tribe: "unit",
+    attack: 3,
+    defense: 0,
+    hp: 10,
+    equipments: [],
+    drops: [{ chance: 100, items: [{ stackable: "spike", amount: 1 }] }],
+    patternNames: [],
+    sprite: cactus2,
   },
   spawnPrism: {
     tribe: "wild",

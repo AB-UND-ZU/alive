@@ -12,6 +12,7 @@ import {
   Material,
   Materialized,
   Passive,
+  Stackable,
 } from "../../engine/components/item";
 import { LIGHT } from "../../engine/components/light";
 import { FOG } from "../../engine/components/fog";
@@ -22,11 +23,15 @@ import {
   aetherCharm2,
   aetherPet2,
   aetherSword,
+  arrow,
+  berryStack,
   bolt,
+  bomb,
   charm,
   cloak1,
   cloak2,
   compass,
+  diamond,
   diamondArmor,
   diamondBow,
   diamondCharm1,
@@ -60,16 +65,23 @@ import {
   fireTrap,
   fireWave1,
   fireWave2,
+  flowerStack,
+  gold,
   goldArmor,
   goldBow,
   goldCompass,
   goldKey,
   goldSword,
+  hpFlask1,
+  hpFlask2,
+  iron,
   ironArmor,
   ironBow,
   ironKey,
   ironSword,
   map,
+  mpFlask1,
+  mpFlask2,
   none,
   pet,
   rainbowArmor,
@@ -86,6 +98,7 @@ import {
   shield2,
   slash1,
   slash2,
+  spike,
   trap,
   voidArmor,
   voidBow,
@@ -106,9 +119,11 @@ import {
   waterWave1,
   waterWave2,
   wave,
+  wood,
   woodArmor,
   woodBow,
   woodStick,
+  worm,
 } from "../../game/assets/sprites";
 
 export const textSize = 18 / 25 + 0.001;
@@ -430,6 +445,14 @@ const entitySprites: Record<
     iron: ironKey,
     gold: goldKey,
   },
+  potion1: {
+    fire: hpFlask1,
+    water: mpFlask1,
+  },
+  potion2: {
+    fire: hpFlask2,
+    water: mpFlask2,
+  },
 
   // materialized
   door: {
@@ -440,9 +463,24 @@ const entitySprites: Record<
   },
 };
 
-export const getMaterialSprite = (
+const stackableSprites: Record<Stackable, Sprite> = {
+  flower: flowerStack,
+  berry: berryStack,
+  wood: wood,
+  iron: iron,
+  gold: gold,
+  diamond: diamond,
+  spike: spike,
+  worm: worm,
+  arrow: arrow,
+  bomb: bomb,
+};
+
+export const getItemSprite = (
   item: Omit<Item, "amount" | "carrier"> & { materialized?: Materialized }
 ) => {
+  if (item.stackable) return stackableSprites[item.stackable];
+
   const lookup = item.equipment || item.consume || item.materialized;
 
   if (!lookup) return none;

@@ -13,6 +13,7 @@ export { default as setupMovement } from "./movement";
 export { default as setupNeedle } from "./needle";
 export { default as setupRenderer } from "./renderer";
 export { default as setupSequence } from "./sequence";
+export { default as setupSpike } from "./spike";
 export { default as setupText } from "./text";
 export { default as setupTick } from "./tick";
 export { default as setupTrigger } from "./trigger";

@@ -33,6 +33,7 @@ export { default as addSeqencable } from "./sequencable";
 export { default as addShootable } from "./shootable";
 export { default as addSoul } from "./soul";
 export { default as addSpawnable } from "./spawnable";
+export { default as addSpikable } from "./spikable";
 export { default as addSprite } from "./sprite";
 export { default as addStats } from "./stats";
 export { default as addSwimmable } from "./swimmable";

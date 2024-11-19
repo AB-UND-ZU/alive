@@ -91,53 +91,37 @@ export const rainbowBow: Sprite = {
 export const hpFlask1: Sprite = {
   name: "Flask",
   layers: [
-    { char: "'", color: colors.grey },
-    { char: "\u0112", color: colors.black },
-    { char: "°", color: colors.silver },
     { char: "\u011d", color: colors.red },
     { char: "\u011f", color: colors.silver },
+    { char: "°", color: colors.grey },
   ],
 };
 
 export const hpFlask2: Sprite = {
   name: "Flask",
   layers: [
-    { char: "'", color: colors.olive },
-    { char: "\u0112", color: colors.black },
-    { char: "°", color: colors.yellow },
-    { char: "\u011d", color: colors.red },
-    { char: "\u011f", color: colors.yellow },
+    { char: '"', color: colors.grey },
+    { char: "T", color: colors.silver },
+    { char: "\u0106", color: colors.red },
+    { char: "\u0108", color: colors.silver },
   ],
 };
 
 export const mpFlask1: Sprite = {
   name: "Flask",
   layers: [
-    { char: "'", color: colors.grey },
-    { char: "\u0112", color: colors.black },
-    { char: "°", color: colors.silver },
     { char: "\u011d", color: colors.blue },
     { char: "\u011f", color: colors.silver },
+    { char: "°", color: colors.grey },
   ],
 };
 
 export const mpFlask2: Sprite = {
   name: "Flask",
   layers: [
-    { char: "'", color: colors.olive },
-    { char: "\u0112", color: colors.black },
-    { char: "°", color: colors.yellow },
-    { char: "\u011d", color: colors.blue },
-    { char: "\u011f", color: colors.yellow },
-  ],
-};
-
-export const bottle: Sprite = {
-  name: "Bottle",
-  layers: [
     { char: '"', color: colors.grey },
     { char: "T", color: colors.silver },
-    { char: "\u0106", color: colors.red },
+    { char: "\u0106", color: colors.blue },
     { char: "\u0108", color: colors.silver },
   ],
 };

@@ -154,8 +154,8 @@ export const wood: Sprite = {
 export const spike: Sprite = {
   name: "Spike",
   layers: [
-    { char: "<", color: colors.green },
-    { char: ">", color: colors.green },
+    { char: "<", color: colors.lime },
+    { char: ">", color: colors.lime },
   ],
 };
 
