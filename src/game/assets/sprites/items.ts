@@ -296,7 +296,7 @@ export const arrow: Sprite = {
   name: "Arrow",
   layers: [
     { char: "»", color: colors.grey },
-    { char: ">", color: colors.black },
+    { char: "\u0119", color: colors.black },
     { char: "─", color: colors.grey },
     { char: "-", color: colors.maroon },
   ],

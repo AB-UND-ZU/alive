@@ -36,13 +36,14 @@ _Spawn area with intro quest_
 - Ghost
 - Prism: linear, high damage
 - Eye: sleeping, simple approaching, low hp
-- Blob: slow walking, casting short wave after intervals
-- Blade: charging until hit when in line
 - Orb: aligning with player, casting bolt, fleeing
+- Cube: slow walking, casting short wave after intervals
+- Blade: charging until hit when in line
 - Fly: pass through terrain, explode as attack
-- Tower: casting wave in intervals
+- Bolt tower: casting bolt when aligning
+- Wave tower: casting wave in intervals or when getting close
 - Fake (chest, pot, tree, cactus, palm, ore): enrage when adjacent, drop stack
-- Fairy: fleeing, teleporting, only hittable with ranged attacks
+- Blob: fleeing, teleporting, only hittable with ranged attacks
 - Number: Duplicating
 - Question mark: mimicking
 - Shark: swimming
@@ -55,7 +56,7 @@ _Spawn area with intro quest_
 - Rogue: Melee and bow spells
 - Mage: Casting spells
 - Elder: Gives gold key to finish level
-- Scout: Fairy quest
+- Scout: Blob quest
 - Druid: consumables
 - Chief: Max stats
 - Nomad: Intro quest, sell key
@@ -157,10 +158,10 @@ Earth
 - Water: freezes on impact / freeze immunity
 - Earth: lifesteal / x2 life collection
 
-- Ruby: turn world pink on move or impact, speed up in pink area / extra armor + dmg while in pink
-- Aether: turn entities grayscale on impact, added damage / spike
+- Ruby: turn world pink on move or impact, speed up in pink area / +1 stats while in pink
+- Aether: turn entities grayscale on move or impact, added damage / spike attacker
 - Void: delete any sprites on impact / create black hole on hit
-- Rainbow: random elemental effect with coloring / elemental trail
+- Rainbow: random elemental effect with coloring on move or impact / spawn elemental blocks on movement
 
 ## Tiers
 
@@ -267,7 +268,7 @@ T5: legendary (fuchsia)
 - Magnet: automatically collect items
 - Torch: increase vision radius
 - Compass: point to target
-- Gold compass: point to fairy
+- Gold compass: point to blob
 - Map: minimap on pause
 - Axe: chop trees
 - Pickaxe: mine minerals
@@ -378,23 +379,23 @@ T5: legendary (fuchsia)
 - Normal fish (hp or mp)
 - Elemental fish, pull on string (end fishing spot)
 - Golden fish
+- After too many retries, shark appears and eats fish
 
 ## Crafting
 
 - 10 stick + 3 coin = 1 wood
 - 10 ore + 3 coin = 1 iron
-- 10 berry + 3 coin = 1 berry stack
-- 10 flower + 3 coin = 1 flower stack
-- 10 spike + 3 coin = 1 spike stack
+- 10 single berry + 3 coin = 1 berry
+- 10 single flower + 3 coin = 1 flower
 
 - 10 wood + 5 coin = 1 iron
 - 10 iron + 10 coin = 1 gold
 - 10 gold + 20 coin = 1 diamond
 - 10 diamond + 50 coin = 1 ruby gem
 
-- 10 flower stack + 25 gold = 1 fire essence
-- 10 berry stack + 25 gold = 1 water essence
-- 10 spike stack + 25 gold = 1 earth essence
+- 10 flower + 25 gold = 1 fire essence
+- 10 berry + 25 gold = 1 water essence
+- 10 spike + 25 gold = 1 earth essence
 - 10 fire essence + 10 water essence + 10 earth essence = 1 rainbow gem
 
 - 1 diamond + 1 essence = 1 void shard
