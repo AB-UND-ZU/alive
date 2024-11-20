@@ -509,6 +509,7 @@ T5: legendary (fuchsia)
 - Mobs walking around the death animation might not receive fog hidden
 - Inventory only renders correctly with multiples of 2
 - Sprite stacks don't seem to work properly
+- Walking against a wall or pushing a box with faster speed than the box causes a delay for next action even no interaction happened
 
 ## Inventory example
 

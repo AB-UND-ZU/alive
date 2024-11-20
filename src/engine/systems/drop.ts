@@ -1,7 +1,6 @@
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
-import { ATTACKABLE } from "../components/attackable";
 import { isEmpty } from "./collect";
 import { LOOTABLE } from "../components/lootable";
 import { isDead } from "./damage";
@@ -384,9 +383,9 @@ export default function setupDrop(world: World) {
 
     // create decay animation
     for (const entity of world.getEntities([
-      ATTACKABLE,
       DROPPABLE,
       RENDERABLE,
+      SEQUENCABLE,
     ])) {
       if (
         isDead(world, entity) &&

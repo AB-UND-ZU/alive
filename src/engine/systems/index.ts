@@ -11,6 +11,7 @@ export { default as setupImmersion } from "./immersion";
 export { default as setupMap } from "./map";
 export { default as setupMovement } from "./movement";
 export { default as setupNeedle } from "./needle";
+export { default as setupPush } from "./push";
 export { default as setupRenderer } from "./renderer";
 export { default as setupSequence } from "./sequence";
 export { default as setupSpike } from "./spike";

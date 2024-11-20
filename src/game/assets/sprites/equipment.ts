@@ -562,80 +562,104 @@ export const earthCharm1: Sprite = {
 export const diamondCharm2: Sprite = {
   name: "Charm",
   layers: [
-    { char: "\u011d", color: colors.teal },
-    { char: "\u011e", color: colors.teal },
-    { char: "\u0103", color: colors.aqua },
-    { char: "-", color: colors.black },
+    { char: "\u0117", color: colors.aqua },
+    { char: "\u0118", color: colors.aqua },
+    { char: "+", color: colors.black },
+    { char: ":", color: colors.teal },
+    { char: ".", color: colors.aqua },
+    { char: "∙", color: colors.teal },
+    { char: "·", color: colors.black },
   ],
 };
 
 export const fireCharm2: Sprite = {
   name: "Charm",
   layers: [
-    { char: "\u011d", color: colors.maroon },
-    { char: "\u011e", color: colors.maroon },
-    { char: "\u0103", color: colors.red },
-    { char: "-", color: colors.black },
+    { char: "\u0117", color: colors.red },
+    { char: "\u0118", color: colors.red },
+    { char: "+", color: colors.black },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.red },
+    { char: "∙", color: colors.maroon },
+    { char: "·", color: colors.black },
   ],
 };
 
 export const waterCharm2: Sprite = {
   name: "Charm",
   layers: [
-    { char: "\u011d", color: colors.navy },
-    { char: "\u011e", color: colors.navy },
-    { char: "\u0103", color: colors.blue },
-    { char: "-", color: colors.black },
+    { char: "\u0117", color: colors.blue },
+    { char: "\u0118", color: colors.blue },
+    { char: "+", color: colors.black },
+    { char: ":", color: colors.navy },
+    { char: ".", color: colors.blue },
+    { char: "∙", color: colors.navy },
+    { char: "·", color: colors.black },
   ],
 };
 
 export const earthCharm2: Sprite = {
   name: "Charm",
   layers: [
-    { char: "\u011d", color: colors.green },
-    { char: "\u011e", color: colors.green },
-    { char: "\u0103", color: colors.lime },
-    { char: "-", color: colors.black },
+    { char: "\u0117", color: colors.lime },
+    { char: "\u0118", color: colors.lime },
+    { char: "+", color: colors.black },
+    { char: ":", color: colors.green },
+    { char: ".", color: colors.lime },
+    { char: "∙", color: colors.green },
+    { char: "·", color: colors.black },
   ],
 };
 
 export const rubyCharm2: Sprite = {
   name: "Charm",
   layers: [
-    { char: "\u011d", color: colors.purple },
-    { char: "\u011e", color: colors.purple },
-    { char: "\u0103", color: colors.fuchsia },
-    { char: "-", color: colors.black },
+    { char: "\u0117", color: colors.fuchsia },
+    { char: "\u0118", color: colors.fuchsia },
+    { char: "+", color: colors.black },
+    { char: ":", color: colors.purple },
+    { char: ".", color: colors.fuchsia },
+    { char: "∙", color: colors.purple },
+    { char: "·", color: colors.black },
   ],
 };
 
 export const aetherCharm2: Sprite = {
   name: "Charm",
   layers: [
-    { char: "\u011d", color: colors.silver },
-    { char: "\u011e", color: colors.silver },
-    { char: "\u0103", color: colors.white },
-    { char: "-", color: colors.black },
+    { char: "\u0117", color: colors.white },
+    { char: "\u0118", color: colors.white },
+    { char: "+", color: colors.black },
+    { char: ":", color: colors.silver },
+    { char: ".", color: colors.white },
+    { char: "∙", color: colors.silver },
+    { char: "·", color: colors.black },
   ],
 };
 
 export const voidCharm2: Sprite = {
   name: "Charm",
   layers: [
-    { char: "\u011d", color: colors.silver },
-    { char: "\u011e", color: colors.silver },
-    { char: "\u0103", color: colors.white },
-    { char: "-", color: colors.black },
+    { char: "\u0117", color: colors.white },
+    { char: "\u0118", color: colors.white },
+    { char: "+", color: colors.black },
+    { char: ":", color: colors.silver },
+    { char: ".", color: colors.white },
+    { char: "∙", color: colors.silver },
+    { char: "·", color: colors.black },
   ],
 };
 
 export const rainbowCharm2: Sprite = {
   name: "Charm",
   layers: [
-    { char: "\u011d", color: colors.silver },
-    { char: "\u011e", color: colors.silver },
-    { char: "\u0103", color: colors.white },
-    { char: "-", color: colors.black },
+    { char: "\u0117", color: colors.white },
+    { char: "\u0118", color: colors.white },
+    { char: "+", color: colors.black },
+    { char: ":", color: colors.silver },
+    { char: ".", color: colors.white },
+    { char: "∙", color: colors.silver },
+    { char: "·", color: colors.black },
   ],
 };
 

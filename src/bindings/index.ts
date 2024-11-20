@@ -113,6 +113,7 @@ import { getGearStat } from "../game/balancing/equipment";
 import { getItemSprite } from "../components/Entity/utils";
 import { getSpeedInterval } from "../engine/systems/movement";
 import { SPIKABLE } from "../engine/components/spikable";
+import { DISPLACABLE } from "../engine/components/displacable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -225,6 +226,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "◘") entity = "ore_one";
       else if (cell === "∙") entity = "coin_one";
       else if (cell === "o") entity = "pot";
+      else if (cell === "■") entity = "box";
       else if (cell === "¢") entity = "compass";
       else if (cell === "#") entity = "tree";
       else if (cell === "=") entity = "wood_two";
@@ -610,6 +612,56 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       world.setIdentifier(potEntity, "pot");
+    } else if (cell === "box") {
+      const { items, sprite, stats, tribe } = generateUnitData("box");
+      const frameEntity = entities.createFrame(world, {
+        [REFERENCE]: {
+          tick: getSpeedInterval(world, 7),
+          delta: 0,
+          suspended: true,
+          suspensionCounter: -1,
+        },
+        [RENDERABLE]: { generation: 0 },
+      });
+      const boxEntity = entities.createBox(world, {
+        [BELONGABLE]: { tribe },
+        [COLLIDABLE]: {},
+        [DROPPABLE]: { decayed: false },
+        [DISPLACABLE]: {},
+        [FOG]: { visibility, type: "terrain" },
+        [INVENTORY]: { items: [], size: 20 },
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(frameEntity),
+          spring: {
+            duration: frameEntity[REFERENCE].tick,
+          },
+          lastInteraction: 0,
+        },
+        [POSITION]: { x, y: 11 },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { hits: 0 },
+        [SPRITE]: sprite,
+        [SWIMMABLE]: { swimming: false },
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+        [STATS]: { ...emptyStats, ...stats },
+      });
+      for (const item of items) {
+        createItemInInventory(
+          world,
+          boxEntity,
+          entities.createItem,
+          {
+            [ITEM]: item,
+            [SPRITE]:
+              "stackable" in item
+                ? getItemSprite(item)
+                : getCountableSprite(item.stat, "drop"),
+          },
+          "inventoryOnly"
+        );
+      }
     } else if (cell === "compass") {
       const compassEntity = entities.createCompass(world, {
         [ITEM]: { amount: 1, equipment: "compass", carrier: -1 },
@@ -989,14 +1041,14 @@ export const generateWorld = async (world: World) => {
   world.setIdentifier(signEntity, "sign");
   world.offerQuest(signEntity, "townQuest");
 
-  createItemAsDrop(world, { x: 2, y: 11 }, entities.createItem, {
+  createItemAsDrop(world, { x: 3, y: 11 }, entities.createItem, {
     [ITEM]: {
       stackable: "arrow",
       amount: 10,
     },
     [SPRITE]: arrow,
   });
-  createItemAsDrop(world, { x: 3, y: 11 }, entities.createItem, {
+  createItemAsDrop(world, { x: 4, y: 11 }, entities.createItem, {
     [ITEM]: {
       equipment: "bow",
       material: "wood",
@@ -1012,6 +1064,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupTrigger);
   world.addSystem(systems.setupCollect);
   world.addSystem(systems.setupSpike);
+  world.addSystem(systems.setupPush);
   world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupBallistics);
   world.addSystem(systems.setupMovement);

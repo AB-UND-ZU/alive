@@ -6,6 +6,7 @@ import { Belongable, BELONGABLE } from "./components/belongable";
 import { Burnable, BURNABLE } from "./components/burnable";
 import { Collectable, COLLECTABLE } from "./components/collectable";
 import { COLLIDABLE, Collidable } from "./components/collidable";
+import { Displacable, DISPLACABLE } from "./components/displacable";
 import { Droppable, DROPPABLE } from "./components/droppable";
 import { Equippable, EQUIPPABLE } from "./components/equippable";
 import { Focusable, FOCUSABLE } from "./components/focusable";
@@ -26,6 +27,7 @@ import { Particle, PARTICLE } from "./components/particle";
 import { Player, PLAYER } from "./components/player";
 import { Position, POSITION } from "./components/position";
 import { Projectile, PROJECTILE } from "./components/projectile";
+import { Pushable, PUSHABLE } from "./components/pushable";
 import { Quest, QUEST } from "./components/quest";
 import { Reference, REFERENCE } from "./components/reference";
 import { Renderable, RENDERABLE } from "./components/renderable";
@@ -51,6 +53,7 @@ export type Entity = {
   [BURNABLE]: Burnable;
   [COLLECTABLE]: Collectable;
   [COLLIDABLE]: Collidable;
+  [DISPLACABLE]: Displacable;
   [DROPPABLE]: Droppable;
   [EQUIPPABLE]: Equippable;
   [FOCUSABLE]: Focusable;
@@ -71,6 +74,7 @@ export type Entity = {
   [PLAYER]: Player;
   [POSITION]: Position;
   [PROJECTILE]: Projectile;
+  [PUSHABLE]: Pushable;
   [QUEST]: Quest;
   [RENDERABLE]: Renderable;
   [REFERENCE]: Reference;
@@ -108,6 +112,24 @@ const entityFactory = <T extends keyof Entity>(components: T[]) => {
     return entity as EntityData;
   };
 };
+
+export const createBox = entityFactory([
+  BELONGABLE,
+  COLLIDABLE,
+  DISPLACABLE,
+  DROPPABLE,
+  FOG,
+  INVENTORY,
+  MOVABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SHOOTABLE,
+  SPRITE,
+  SWIMMABLE,
+  TOOLTIP,
+  STATS,
+]);
 
 export const createCactus = entityFactory([
   ATTACKABLE,
@@ -240,6 +262,7 @@ export const createHero = entityFactory([
   ORIENTABLE,
   PLAYER,
   POSITION,
+  PUSHABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,

@@ -10,7 +10,6 @@ import * as colors from "../../game/assets/colors";
 import Animated from "./Animated";
 import CoveredLight from "./CoveredLight";
 import { useWorld } from "../../bindings/hooks";
-import { ATTACKABLE } from "../../engine/components/attackable";
 import { getSegments, lootHeight, oreHeight, wallHeight } from "./utils";
 import Stack, { Segment } from "./Stack";
 import { ORIENTABLE } from "../../engine/components/orientable";
@@ -26,6 +25,7 @@ import { ITEM } from "../../engine/components/item";
 import { TypedEntity } from "../../engine/entities";
 import { getParticles } from "../../engine/systems/sequence";
 import Dots from "./Dots";
+import { STATS } from "../../engine/components/stats";
 
 function Entity({
   entity,
@@ -54,7 +54,7 @@ function Entity({
   const opaqueOrientation = isOpaque ? entity[LIGHT]?.orientation : undefined;
   const isBright = !!entity[LIGHT] && entity[LIGHT].brightness > 0;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
-  const isAttackable = !!entity[ATTACKABLE];
+  const hasStats = !!entity[STATS];
 
   const isTransparent =
     (isHidden && !isAir) || (!isHidden && isAir) || (isUnit && !isVisible);
@@ -159,7 +159,7 @@ function Entity({
         />
       )}
 
-      {isAttackable && (
+      {hasStats && (
         <Bar counter="hp" entity={entity} isVisible={isVisible} />
       )}
 

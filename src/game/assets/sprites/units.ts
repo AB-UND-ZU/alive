@@ -162,3 +162,55 @@ export const leverOn: Sprite = {
     { char: ".", color: colors.lime },
   ],
 };
+
+export const box: Sprite = {
+  name: "Box",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "±", color: colors.grey },
+    { char: "\u0108", color: colors.maroon },
+    { char: "\u0106", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.maroon },
+  ],
+};
+
+export const ironCask: Sprite = {
+  name: "Cask",
+  layers: [
+    { char: "\u011d", color: colors.grey },
+    { char: "\u011e", color: colors.grey },
+    { char: "\u0103", color: colors.silver },
+    { char: "≡", color: colors.grey },
+  ],
+};
+
+export const fireCask: Sprite = {
+  name: "Cask",
+  layers: [
+    { char: "\u011d", color: colors.maroon },
+    { char: "\u011e", color: colors.maroon },
+    { char: "\u0103", color: colors.red },
+    { char: "≡", color: colors.maroon },
+  ],
+};
+
+export const waterCask: Sprite = {
+  name: "Cask",
+  layers: [
+    { char: "\u011d", color: colors.navy },
+    { char: "\u011e", color: colors.navy },
+    { char: "\u0103", color: colors.blue },
+    { char: "≡", color: colors.navy },
+  ],
+};
+
+export const earthCask: Sprite = {
+  name: "Cask",
+  layers: [
+    { char: "\u011d", color: colors.green },
+    { char: "\u011e", color: colors.green },
+    { char: "\u0103", color: colors.lime },
+    { char: "≡", color: colors.green },
+  ],
+};

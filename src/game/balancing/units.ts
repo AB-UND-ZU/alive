@@ -1,6 +1,7 @@
 import { Pattern } from "../../engine/components/behaviour";
 import { Countable } from "../../engine/components/stats";
 import {
+  box,
   cactus1,
   cactus2,
   commonChest,
@@ -29,6 +30,7 @@ export type UnitKey =
   | "epicChest"
   | "legendaryChest"
   | "pot"
+  | "box"
   | "cactus1"
   | "cactus2"
   | "spawnPrism"
@@ -146,6 +148,16 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: pot,
+  },
+  box: {
+    tribe: "unit",
+    attack: 0,
+    defense: 0,
+    hp: 10,
+    equipments: [],
+    drops: [{ chance: 100, items: [{ stat: "xp", amount: 1 }] }],
+    patternNames: [],
+    sprite: box,
   },
   cactus1: {
     tribe: "unit",

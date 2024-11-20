@@ -19,7 +19,7 @@ import { BELONGABLE } from "../components/belongable";
 import { Stats, STATS } from "../components/stats";
 
 export const isDead = (world: World, entity: Entity) =>
-  (ATTACKABLE in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
+  (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
 
 export const isEnemy = (world: World, entity: Entity) =>
   BELONGABLE in entity && entity[BELONGABLE].tribe !== "neutral";

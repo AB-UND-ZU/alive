@@ -45,6 +45,7 @@ import { SHOOTABLE } from "../components/shootable";
 import { getClassData } from "../../game/balancing/classes";
 import { emptyStats, STATS } from "../components/stats";
 import { getSpeedInterval } from "./movement";
+import { PUSHABLE } from "../components/pushable";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -257,6 +258,7 @@ export default function setupFate(world: World) {
         [ORIENTABLE]: {},
         [PLAYER]: { ghost: false },
         [POSITION]: copy(entity[POSITION]),
+        [PUSHABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { hits: 0 },
