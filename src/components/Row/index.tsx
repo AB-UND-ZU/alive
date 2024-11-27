@@ -37,10 +37,6 @@ function Cell({
           ))}
         </>
       )}
-      {/* 
-          position-x={((index % (STACK_SIZE / 2)) * 2 - 4) / pixels}
-          position-y={(-4.5 + (index >= STACK_SIZE / 2 ? -2 : 0)) / pixels}
-       */}
     </div>
   );
 }

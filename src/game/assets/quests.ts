@@ -134,13 +134,12 @@ export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
     updated: false,
   };
 
-  const townEntity = world.getIdentifierAndComponents("town", [POSITION]);
-  const size = world.metadata.gameEntity[LEVEL].size;
+  const bowEntity = world.getIdentifierAndComponents("bow", [POSITION]);
 
   step({
     stage,
     name: START_STEP,
-    isCompleted: () => !!townEntity,
+    isCompleted: () => !!bowEntity,
     onLeave: () => "search",
   });
 
@@ -148,12 +147,10 @@ export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "search",
     onEnter: () => {
-      world.setFocus(townEntity);
+      world.setFocus(bowEntity);
       return true;
     },
-    isCompleted: () =>
-      !!townEntity &&
-      getDistance(entity[POSITION], townEntity[POSITION], size) <= 2,
+    isCompleted: () => !bowEntity,
     onLeave: () => {
       world.setFocus();
       return END_STEP;

@@ -76,3 +76,9 @@ export const padCenter = (text: string, length: number) =>
 
 export const lerp = (start: number, end: number, ratio: number) =>
   start + (end - start) * ratio;
+
+export const sigmoid = (
+  value: number,
+  midpoint: number,
+  steepness: number = 1
+) => 1 / (1 + Math.exp(-steepness * (value - midpoint)));

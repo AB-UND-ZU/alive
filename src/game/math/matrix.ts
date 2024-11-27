@@ -6,11 +6,11 @@ export const iterateMatrix = <T>(
   matrix: Matrix<T>,
   callback: (x: number, y: number, value: T) => void
 ) => {
-  for (let rowIndex = 0; rowIndex < matrix.length; rowIndex += 1) {
+  for (let columnIndex = 0; columnIndex < matrix.length; columnIndex += 1) {
     for (
-      let columnIndex = 0;
-      columnIndex < matrix[rowIndex].length;
-      columnIndex += 1
+      let rowIndex = 0;
+      rowIndex < matrix[columnIndex].length;
+      rowIndex += 1
     ) {
       callback(columnIndex, rowIndex, matrix[columnIndex][rowIndex]);
     }

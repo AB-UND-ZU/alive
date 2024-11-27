@@ -7,40 +7,7 @@ import {
 } from "../components/orientable";
 import { Position } from "../components/position";
 
-const DEBUG_WFC = true;
-
-/*
-neighbour constraint
-
-for current tile options
-  self:
-    if direction given, must not be on edge
-    
-for adjacent tile options
-  forwards:
-    check if current cell has compatible option
-  backwards:
-    check if adjacent cell has compatible option
-
-
-dimension constraint
-
-for current tile options
-  self:
-    if any adjacent directions require minimum continuation,
-    ban unrelated options
-
-
-    v
-  +=????
-  |====|
-  +----+
-  |    |
-  |_#_?|
-      ^ 
-
-
-*/
+const DEBUG_WFC = false;
 
 export type Constraints = {
   neighbour?: {
@@ -48,11 +15,6 @@ export type Constraints = {
     right?: string[];
     down?: string[];
     left?: string[];
-  };
-  limit?: {
-    vertical?: number;
-    horizontal?: number;
-    adjacent?: number; // TODO: for groups of tiles
   };
 };
 
@@ -233,51 +195,8 @@ export class Wave {
   contains(x: number, y: number) {
     return x >= 0 && x < this.width && y >= 0 && y < this.height;
   }
-
-  // checks whether any new tiles would exceed the linear count limit
-  linearLimitExceeded(
-    x: number,
-    y: number,
-    tileIndizes: number[],
-    limit: number,
-    directions: Orientation[]
-  ) {
-    let count = 1;
-    let adjacentDefined = false;
-
-    while (directions.length > 0) {
-      const direction = directions.pop()!;
-      let steps = 1;
-
-      while (count < limit) {
-        const delta = orientationPoints[direction];
-        const newTile = {
-          x: x + delta.x * steps,
-          y: y + delta.y * steps,
-        };
-
-        if (!this.contains(newTile.x, newTile.y)) break;
-
-        const states = this.getStates(newTile.x, newTile.y);
-        const isDefined =
-          Object.keys(states).length === 1 &&
-          tileIndizes.some((tileIndex) => tileIndex in states);
-
-        if (!isDefined) break;
-
-        adjacentDefined = true;
-        steps += 1;
-        count += 1;
-      }
-    }
-
-    // console.log(
-    //   `${x}:${y} t${tileIndizes} !!${adjacentDefined} ${count}>${limit}`
-    // );
-
-    return adjacentDefined && count > limit;
-  }
 }
+
 type MappedConstraint<K extends keyof Constraints> = {
   constraint: Partial<NonNullable<Constraints[K]>>;
 } & (
@@ -297,7 +216,7 @@ type MappedConstraints = Required<{
 
 export class WaveFunctionCollapse {
   DEFAULT_WEIGHT = 1;
-  MAX_ATTEMPTS = 1;
+  MAX_ATTEMPTS = 5;
 
   definition: Definition;
   weights: number[] = [];
@@ -318,14 +237,9 @@ export class WaveFunctionCollapse {
       this.tileIndizes[name] = index;
 
       // populate available constraints per tile and type
-      this.tileConstraints[name] = { neighbour: [], limit: [] };
+      this.tileConstraints[name] = { neighbour: [] };
       const tileConstraints = this.tileConstraints[name];
 
-      if (tile.constraints?.limit)
-        tileConstraints.limit.push({
-          constraint: tile.constraints.limit,
-          tileIndex: index,
-        });
       if (tile.constraints?.neighbour)
         tileConstraints.neighbour.push({
           constraint: tile.constraints.neighbour,
@@ -338,11 +252,6 @@ export class WaveFunctionCollapse {
         this.tileTagsIndizes[tag].push(index);
         const tagConstraints = this.definition.tags[tag]?.constraints;
 
-        if (tagConstraints?.limit)
-          tileConstraints.limit.push({
-            constraint: tagConstraints.limit,
-            tag,
-          });
         if (tagConstraints?.neighbour)
           tileConstraints.neighbour.push({
             constraint: tagConstraints.neighbour,
@@ -409,45 +318,6 @@ export class WaveFunctionCollapse {
         }
 
         if (banned) continue;
-
-        // if limit constraints are present, ensure the linear count is not exceeded
-        const limitConstraints = this.getTileConstraints(tileIndex).limit;
-
-        for (const limitConstraint of limitConstraints) {
-          const maxVertical = limitConstraint.constraint.vertical;
-          const maxHorizontal = limitConstraint.constraint.horizontal;
-          const tileIndizes =
-            limitConstraint.tag === undefined
-              ? [limitConstraint.tileIndex]
-              : this.tileTagsIndizes[limitConstraint.tag];
-
-          if (
-            (maxVertical &&
-              wave.linearLimitExceeded(
-                cell.x,
-                cell.y,
-                tileIndizes,
-                maxVertical,
-                ["up", "down"]
-              )) ||
-            (maxHorizontal &&
-              wave.linearLimitExceeded(
-                cell.x,
-                cell.y,
-                tileIndizes,
-                maxHorizontal,
-                ["left", "right"]
-              ))
-          ) {
-            // console.warn("limited", tileIndizes, cell);
-
-            wave.ban(cell.x, cell.y, tileIndex);
-            banned = true;
-            break;
-          }
-        }
-
-        if (banned) continue;
       }
 
       const states = wave.getStates(cell.x, cell.y);
@@ -465,8 +335,6 @@ export class WaveFunctionCollapse {
           orientations[(orientations.indexOf(adjacentDirection) + 2) % 4];
         let modified = false;
 
-        // console.log("dir", adjacentDirection, adjacentOptions);
-
         // check each remaining option if it's still valid forwards and backwards
         for (const adjacentNumber in adjacentOptions) {
           const adjacentIndex = parseInt(adjacentNumber, 10);
@@ -475,15 +343,12 @@ export class WaveFunctionCollapse {
             ? Object.keys(states).map((tileNumber) => parseInt(tileNumber, 10))
             : [];
 
-          // console.log("check", adjacentTile);
-
           // check if any of the current cell's states is compatible
           let possibleNeighbour = false;
           for (const tileIndex of tileIndizes) {
             const tile = this.getTileFromIndex(tileIndex);
             const neighbourConstraints =
               this.getTileConstraints(tileIndex).neighbour;
-            // console.log("forward tile", tile);
 
             // only allow tiles that match all constraints
             let possibleForwards = true;
@@ -498,7 +363,6 @@ export class WaveFunctionCollapse {
                 neighbourTags &&
                 !this.tileIntersectsTags(adjacentTile, neighbourTags)
               ) {
-                // console.log("!forwards", neighbourTags);
                 possibleForwards = false;
                 break;
               }
@@ -508,15 +372,13 @@ export class WaveFunctionCollapse {
 
             const adjacentConstraints =
               this.getTileConstraints(adjacentIndex).neighbour;
-            // console.log("adjancent constraints", adjacentConstraints);
 
             // check if adjacent cell can have current cell as neighbour
             let possibleBackwards = true;
             for (const adjacentConstraint of adjacentConstraints) {
               const selfTags = adjacentConstraint.constraint[oppositeDirection];
-              // console.log("adjancent constraint", adjacentConstraint, selfTags);
+
               if (selfTags && !this.tileIntersectsTags(tile, selfTags)) {
-                // console.log("!backwards", selfTags);
                 possibleBackwards = false;
                 break;
               }
@@ -526,71 +388,14 @@ export class WaveFunctionCollapse {
               continue;
             }
 
-            // console.log("neighbour");
             possibleNeighbour = true;
             break;
           }
 
           if (!possibleNeighbour) {
-            // console.log("!neighbour");
             wave.ban(adjacentCell.x, adjacentCell.y, adjacentIndex);
             modified = true;
           }
-
-          // // restrict minimum dimensions
-          // if (tileIndizes.length === 1) {
-          //   const tileIndex = tileIndizes[0];
-          //   const tile = this.getTileFromIndex(tileIndex);
-          //   const dimensionConstraints =
-          //     this.getTileConstraints(tileIndex).dimension;
-
-          //   for (const dimensionConstraint of dimensionConstraints) {
-          //     // get linear size constraint from currently facing direction
-          //     const minSize = {
-          //       up: dimensionConstraint.constraint.minHeight,
-          //       right: dimensionConstraint.constraint.minWidth,
-          //       down: dimensionConstraint.constraint.minHeight,
-          //       left: dimensionConstraint.constraint.minWidth,
-          //     }[adjacentDirection];
-
-          //     const possibleTiles =
-          //       dimensionConstraint.tag === undefined
-          //         ? [dimensionConstraint.tileIndex]
-          //         : this.tileTagsIndizes[dimensionConstraint.tag];
-
-          //     if (
-          //       minSize &&
-          //       wave.linearMinimumRequired(
-          //         adjacentCell.x,
-          //         adjacentCell.y,
-          //         possibleTiles,
-          //         minSize,
-          //         [oppositeDirection]
-          //       )
-          //     ) {
-          //       // console.log("opt", this.tileNames[tileIndex], adjacentOptions);
-          //       // ban all unrelated tiles
-          //       for (const alternativeNumber in adjacentOptions) {
-          //         const alternativeIndex = parseInt(alternativeNumber, 10);
-          //         const alternativeTile =
-          //           this.getTileFromIndex(alternativeIndex);
-
-          //         if (
-          //           !possibleTiles.some((possibleTile) =>
-          //             alternativeTile.tags.includes(
-          //               this.tileNames[possibleTile]
-          //             )
-          //           )
-          //         ) {
-          //           console.log("ban alternative to", possibleTiles);
-
-          //           wave.ban(adjacentCell.x, adjacentCell.y, alternativeIndex);
-          //           modified = true;
-          //         }
-          //       }
-          //     }
-          //   }
-          // }
         }
 
         // recalculate from target if state has changed
@@ -611,7 +416,7 @@ export class WaveFunctionCollapse {
   generate(
     width: number,
     height: number,
-    forced?: Record<string, Record<string, string>>
+    forced: [number, number, string][] = []
   ) {
     const wave = new Wave(width, height, this.weights);
 
@@ -631,22 +436,15 @@ export class WaveFunctionCollapse {
         }
 
         // apply predefined fields
-        for (const column in forced) {
-          for (const row in forced[column]) {
-            console.log("force");
+        for (const [x, y, tile] of forced) {
+          const choice = this.tileIndizes[tile];
 
-            const x = parseInt(column, 10);
-            const y = parseInt(row, 10);
-            const choice = this.tileIndizes[forced[column][row]];
-
-            wave.collapse(x, y, choice);
-            this.propagate(wave, x, y);
-          }
+          wave.collapse(x, y, choice);
+          this.propagate(wave, x, y);
         }
 
         while (!wave.isCompleted()) {
-          // this.iterate(wave);
-          break;
+          this.iterate(wave);
         }
       } catch (error) {
         if (DEBUG_WFC)

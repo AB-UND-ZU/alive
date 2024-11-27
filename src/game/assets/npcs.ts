@@ -18,14 +18,10 @@ import {
   isUnlocked,
 } from "../../engine/systems/action";
 import { collectItem } from "../../engine/systems/collect";
-import {
-  disposeEntity,
-  getCell,
-  registerEntity,
-} from "../../engine/systems/map";
+import { disposeEntity, getCell } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { lockDoor } from "../../engine/systems/trigger";
-import { add, getDistance, normalize } from "../math/std";
+import { add, normalize } from "../math/std";
 import { initialPosition, menuArea } from "../levels/areas";
 import {
   addBackground,
@@ -35,26 +31,15 @@ import {
   createCountable,
   fog,
   goldKey,
-  goldSword,
-  heart,
-  quest,
 } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 import { isDead } from "../../engine/systems/damage";
-import { findAdjacentWalkable } from "../../engine/systems/drop";
-import { COLLIDABLE } from "../../engine/components/collidable";
-import { ATTACKABLE } from "../../engine/components/attackable";
-import { DROPPABLE } from "../../engine/components/droppable";
-import { INVENTORY } from "../../engine/components/inventory";
-import { ORIENTABLE } from "../../engine/components/orientable";
 import {
   NpcSequence,
   SEQUENCABLE,
   Sequence,
 } from "../../engine/components/sequencable";
-import { BELONGABLE } from "../../engine/components/belongable";
-import { emptyStats, STATS } from "../../engine/components/stats";
-import { getGearStat } from "../balancing/equipment";
+import { STATS } from "../../engine/components/stats";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -175,7 +160,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
   const focusEntity = world.getIdentifier("focus");
   const doorEntity = world.getIdentifier("door");
-  const houseDoor = world.getIdentifierAndComponents("house_door", [POSITION]);
+  const houseDoor = world.getIdentifierAndComponents("nomad_door", [POSITION]);
   const compassEntity = world.getIdentifier("compass");
 
   const heroEntity = world.getIdentifierAndComponents("hero", [
@@ -543,8 +528,6 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-const townDistance = 2;
-const townPosition = { x: 60, y: 60 };
 export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
@@ -555,11 +538,10 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
   };
 
   const heroEntity = world.getIdentifierAndComponents("hero", [POSITION]);
-  const townEntity = world.getIdentifierAndComponents("town", [
+  const bowEntity = world.getIdentifierAndComponents("bow", [
     POSITION,
     TOOLTIP,
   ]);
-  const size = world.metadata.gameEntity[LEVEL].size;
 
   step({
     stage,
@@ -581,50 +563,12 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
     onEnter: () => {
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].dialogs = [createDialog("See compass")];
-
-      if (world.getIdentifier("town")) return true;
-
-      const swordEntity = entities.createSword(world, {
-        [ITEM]: { equipment: "melee", amount: getGearStat("melee", "gold"), material: "gold", carrier: -1 },
-        [ORIENTABLE]: {},
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: goldSword,
-      });
-      const townEntity = entities.createChest(world, {
-        [ATTACKABLE]: {},
-        [BELONGABLE]: { tribe: "unit" },
-        [COLLIDABLE]: {},
-        [DROPPABLE]: { decayed: false },
-        [FOG]: { visibility: "hidden", type: "terrain" },
-        [INVENTORY]: { items: [world.getEntityId(swordEntity)], size: 1 },
-        [POSITION]: findAdjacentWalkable(world, townPosition, 20),
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: heart,
-        [STATS]: { ...emptyStats, hp: 99, maxHp: 99 },
-        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-      });
-      swordEntity[ITEM].carrier = world.getEntityId(townEntity);
-      registerEntity(world, townEntity);
-      world.setIdentifier(townEntity, "town");
       return true;
     },
-    isCompleted: () =>
-      !!heroEntity &&
-      !!townEntity &&
-      getDistance(heroEntity[POSITION], townEntity[POSITION], size) <=
-        townDistance,
+    isCompleted: () => !bowEntity,
     onLeave: () => {
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].dialogs = [];
-
-      if (townEntity) {
-        townEntity[TOOLTIP].idle = quest;
-        townEntity[TOOLTIP].changed = true;
-        townEntity[TOOLTIP].dialogs = [createDialog("Coming soon...")];
-      }
-
       return END_STEP;
     },
   });

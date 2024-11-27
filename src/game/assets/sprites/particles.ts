@@ -83,6 +83,7 @@ export const fire: Sprite = {
     multiple: [
       { char: "\u010e", color: colors.red },
       { char: "*", color: colors.yellow },
+      { char: "·", color: colors.red },
     ],
   },
 };

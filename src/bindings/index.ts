@@ -15,6 +15,7 @@ import {
   block,
   blockDown,
   blockUp,
+  bow,
   bush,
   campfire,
   coconut,
@@ -37,13 +38,13 @@ import {
   ore,
   palm1,
   palm2,
+  path,
   sand,
   stick,
   tree1,
   tree2,
   wall,
   water,
-  woodBow,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
@@ -64,6 +65,7 @@ import {
   distribution,
   normalize,
   random,
+  sigmoid,
   signedDistance,
 } from "../game/math/std";
 import { LOOTABLE } from "../engine/components/lootable";
@@ -78,6 +80,7 @@ import { TOOLTIP } from "../engine/components/tooltip";
 import { DROPPABLE } from "../engine/components/droppable";
 import { ACTIONABLE } from "../engine/components/actionable";
 import {
+  fence,
   house,
   houseLeft,
   houseRight,
@@ -114,6 +117,7 @@ import { getItemSprite } from "../components/Entity/utils";
 import { getSpeedInterval } from "../engine/systems/movement";
 import { SPIKABLE } from "../engine/components/spikable";
 import { DISPLACABLE } from "../engine/components/displacable";
+import generateTown from "../engine/wfc/town";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -125,31 +129,66 @@ export const generateWorld = async (world: World) => {
   const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
 
   const menuRows = menuArea.split("\n");
+  const menuWidth = menuRows[0].length;
+  const menuHeight = menuRows.length;
+  const menuX = 0;
+  const menuY = 0;
+
+  const townWidth = 38;
+  const townHeight = 24;
+  const townMatrix = await generateTown(townWidth, townHeight);
+  const townX = random(
+    Math.floor(size / 4),
+    Math.floor((size / 4) * 3) - townWidth
+  );
+  const townY = random(
+    Math.floor(size / 4),
+    Math.floor((size / 4) * 3) - townHeight
+  );
 
   const worldMatrix = matrixFactory<string>(size, size, (x, y) => {
     // distance from zero
-    const deltaX = Math.abs(signedDistance(0, x, size));
-    const deltaY = Math.abs(signedDistance(0, y, size));
+    const menuDeltaX = Math.abs(signedDistance(menuX, x, size));
+    const menuDeltaY = Math.abs(signedDistance(menuY, y, size));
+    const townDeltaX = Math.abs(signedDistance(townX, x, size));
+    const townDeltaY = Math.abs(signedDistance(townY, y, size));
 
-    // clear square menu area
-    if (deltaX < menuRows[0].length / 2 && deltaY < menuRows.length / 2)
+    // clear square menu and town areas
+    if (
+      (menuDeltaX < menuWidth / 2 && menuDeltaY < menuHeight / 2) ||
+      (townDeltaX < townWidth / 2 && townDeltaY < townHeight / 2)
+    )
       return "";
 
     // clear triangular exit
-    if (y > 5 && y < 14 && y > 4 + deltaX) return "";
+    if (y > 5 && y < 14 && y > 4 + menuDeltaX) return "";
 
-    const distance = Math.sqrt((deltaX * aspectRatio) ** 2 + deltaY ** 2);
+    const menuDistance = Math.sqrt(
+      (menuDeltaX * aspectRatio) ** 2 + menuDeltaY ** 2
+    );
 
     // create clean elevation around menu
-    const menu = 100000 / distance ** 4;
+    const menu = 100000 / menuDistance ** 4;
     const menuElevation = Math.min(35, menu * 3);
     const menuDip = 1 / (1 + menu / 2);
 
-    const elevation = elevationMatrix[x][y] * menuDip + menuElevation;
-    const terrain = terrainMatrix[x][y] * menuDip + menuElevation;
-    const temperature = temperatureMatrix[x][y] * menuDip;
-    const green = greenMatrix[x][y] * menuDip;
-    const spawn = spawnMatrix[x][y] * menuDip ** 0.25;
+    // clear edges of town
+    const clampedX = Math.max(0, Math.min(townDeltaX, townWidth / 4));
+    const clampedY = Math.max(0, Math.min(townDeltaY, townHeight / 4));
+    const dx = townDeltaX - clampedX;
+    const dy = townDeltaY - clampedY;
+    const townDistance = Math.sqrt((dx * aspectRatio) ** 2 + dy ** 2);
+    const townDip = sigmoid(townDistance, 10, 0.5);
+    const townElevation = 20 * (1 - townDip);
+
+    // set menu and town areas
+    const elevation =
+      elevationMatrix[x][y] * menuDip * townDip + menuElevation + townElevation;
+    const terrain =
+      terrainMatrix[x][y] * menuDip * townDip + menuElevation + townElevation;
+    const temperature = temperatureMatrix[x][y] * menuDip * townDip;
+    const green = greenMatrix[x][y] * menuDip * townDip;
+    const spawn = spawnMatrix[x][y] * menuDip ** 0.25 * townDip ** 0.25;
 
     // beach palms
     if (temperature < 65 && elevation < 7 && elevation > 3 && spawn > 65)
@@ -218,6 +257,7 @@ export const generateWorld = async (world: World) => {
       if (cell === "█") entity = "rock";
       else if (cell === "≈") entity = "water";
       else if (cell === "░") entity = "sand";
+      else if (cell === "▒") entity = "path";
       else if (cell === "▓") entity = "block";
       else if (cell === "▄") entity = "block_down";
       else if (cell === "▀") entity = "block_up";
@@ -243,7 +283,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "┤") entity = "house_right";
       else if (cell === "┴") entity = "wall";
       else if (cell === "─") entity = "wall_window";
-      else if (cell === "Φ") entity = "house_door";
+      else if (cell === "Φ") entity = "nomad_door";
       else if (cell === "┼") entity = "house";
       else if (cell === "┬") entity = "house_window";
       else if (cell === "╬") entity = "roof";
@@ -263,13 +303,29 @@ export const generateWorld = async (world: World) => {
     });
   });
 
+  // insert town
+  iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
+    if (!value) return;
+
+    const x = normalize(townX + offsetX - townWidth / 2, size);
+    const y = normalize(townY + offsetY - townHeight / 2, size);
+    worldMatrix[x][y] = value;
+  });
+
   iterateMatrix(worldMatrix, (x, y, cell) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
     const deltaY = size / 2 - Math.abs(y - size / 2);
+    const townDeltaX = Math.abs(signedDistance(townX, x, size));
+    const townDeltaY = Math.abs(signedDistance(townY, y, size));
     const visibility =
-      deltaX < menuRows[0].length / 2 &&
-      deltaY < menuRows.length / 2 &&
-      (y < menuRows.length / 2 - 3 || y > menuRows.length)
+      (deltaX < menuRows[0].length / 2 &&
+        deltaY < menuRows.length / 2 &&
+        (y < menuRows.length / 2 - 3 || y > menuRows.length)) ||
+      (townDeltaX < townWidth / 2 &&
+        townDeltaY < townHeight / 2 &&
+        ["house", "door", "wall", "roof"].some((structure) =>
+          cell.includes(structure)
+        ))
         ? "visible"
         : "hidden";
 
@@ -394,6 +450,13 @@ export const generateWorld = async (world: World) => {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: sand,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "path") {
+      entities.createGround(world, {
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [SPRITE]: path,
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "water") {
@@ -563,7 +626,11 @@ export const generateWorld = async (world: World) => {
           "inventoryOnly"
         );
       }
-    } else if (cell === "door" || cell === "house_door") {
+    } else if (
+      cell === "door" ||
+      cell === "house_door" ||
+      cell === "nomad_door"
+    ) {
       const doorEntity = entities.createDoor(world, {
         [FOG]: { visibility, type: "float" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
@@ -582,7 +649,7 @@ export const generateWorld = async (world: World) => {
           nextDialog: 0,
         },
       });
-      world.setIdentifier(doorEntity, cell);
+      if (cell !== "house_door") world.setIdentifier(doorEntity, cell);
     } else if (cell === "campfire") {
       entities.createFire(world, {
         [BURNABLE]: { burning: true, eternal: true },
@@ -606,12 +673,19 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: sprite,
         [STATS]: { ...emptyStats, ...stats, gold: 3 },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       world.setIdentifier(potEntity, "pot");
+    } else if (cell === "fence") {
+      entities.createTerrain(world, {
+        [FOG]: { visibility, type: "terrain" },
+        [COLLIDABLE]: {},
+        [POSITION]: { x, y },
+        [SPRITE]: fence,
+        [RENDERABLE]: { generation: 0 },
+      });
     } else if (cell === "box") {
       const { items, sprite, stats, tribe } = generateUnitData("box");
       const frameEntity = entities.createFrame(world, {
@@ -638,7 +712,7 @@ export const generateWorld = async (world: World) => {
           },
           lastInteraction: 0,
         },
-        [POSITION]: { x, y: 11 },
+        [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { hits: 0 },
@@ -683,7 +757,6 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: sprite,
         [STATS]: { ...emptyStats, ...stats },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
@@ -1041,21 +1114,44 @@ export const generateWorld = async (world: World) => {
   world.setIdentifier(signEntity, "sign");
   world.offerQuest(signEntity, "townQuest");
 
-  createItemAsDrop(world, { x: 3, y: 11 }, entities.createItem, {
+  // spawn elements in town
+  entities.createFire(world, {
+    [BURNABLE]: { burning: true, eternal: true },
+    [COLLIDABLE]: {},
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [POSITION]: { x: townX - 2, y: townY + 1 },
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: campfire,
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  createItemAsDrop(world, { x: townX + 2, y: townY + 1 }, entities.createItem, {
     [ITEM]: {
       stackable: "arrow",
       amount: 10,
     },
     [SPRITE]: arrow,
   });
-  createItemAsDrop(world, { x: 4, y: 11 }, entities.createItem, {
-    [ITEM]: {
-      equipment: "bow",
-      material: "wood",
-      amount: 1,
-    },
-    [SPRITE]: woodBow,
-  });
+  const bowEntity = createItemAsDrop(
+    world,
+    { x: townX + 1, y: townY + 1 },
+    entities.createItem,
+    {
+      [ITEM]: {
+        equipment: "active",
+        active: "bow",
+        material: "wood",
+        amount: 1,
+      },
+      [SPRITE]: bow,
+    }
+  );
+  const bowCotainer = world.assertById(bowEntity[ITEM].carrier);
+  world.setIdentifier(bowCotainer, "bow");
 
   // start ordered systems
   world.addSystem(systems.setupMap);

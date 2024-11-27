@@ -3,7 +3,7 @@ import { Graph as GraphImpl, astar as astarImpl } from "javascript-astar";
 import { World } from "../../engine";
 import { Position } from "../../engine/components/position";
 import { LEVEL } from "../../engine/components/level";
-import { matrixFactory } from "./matrix";
+import { Matrix, matrixFactory } from "./matrix";
 import { isWalkable } from "../../engine/systems/movement";
 import { normalize, signedDistance } from "./std";
 import { degreesToOrientations, pointToDegree } from "./tracing";
@@ -74,4 +74,22 @@ export const findPath = (
     x: normalize(node.x, size),
     y: normalize(node.y, size),
   }));
+};
+
+export const findPathSimple = (
+  matrix: Matrix<number>,
+  origin: Position,
+  target: Position
+) => {
+  const graph = new GraphImpl(matrix) as Graph;
+  const originNode = graph.grid[origin.x][origin.y];
+  const targetNode = graph.grid[target.x][target.y];
+
+  const path = (astarImpl as typeof astar).search(
+    graph,
+    originNode,
+    targetNode
+  );
+
+  return path.map((node) => ({ x: node.x, y: node.y }));
 };

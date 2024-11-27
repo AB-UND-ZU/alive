@@ -6,7 +6,7 @@ import { Segment } from "./Stack";
 import { STACK_SIZE } from "../../engine/components/item";
 import { pixels } from "../Dimensions/sizing";
 
-const dotColor = colors.grey;
+const dotColor = colors.silver;
 
 export default function Dots({
   entity,
