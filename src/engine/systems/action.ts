@@ -177,7 +177,7 @@ export default function setupAction(world: World) {
         arrowId &&
         entity[INVENTORY].items.find(
           (itemId) =>
-            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].equipment ===
+            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].active ===
             "bow"
         );
 

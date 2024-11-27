@@ -27,65 +27,9 @@ export const boat: Sprite = {
   ],
 };
 
-// T1-T3
-
-export const woodBow: Sprite = {
+export const bow: Sprite = {
   name: "Bow",
-  layers: [{ char: "}", color: colors.maroon }],
-};
-
-export const ironBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.grey }],
-};
-
-export const goldBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.yellow }],
-};
-
-// T4
-
-export const diamondBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.aqua }],
-};
-
-export const fireBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.red }],
-};
-
-export const waterBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.blue }],
-};
-
-export const earthBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.lime }],
-};
-
-// T5
-
-export const rubyBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.fuchsia }],
-};
-
-export const aetherBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.white }],
-};
-
-export const voidBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.white }],
-};
-
-export const rainbowBow: Sprite = {
-  name: "Bow",
-  layers: [{ char: "}", color: colors.white }],
+  layers: [{ char: "}", color: colors.silver }],
 };
 
 export const hpFlask1: Sprite = {
@@ -470,12 +414,35 @@ export const shield1: Sprite = {
 export const shield2: Sprite = {
   name: "Shield",
   layers: [
-    { char: '"', color: colors.silver },
+    { char: '"', color: colors.grey },
     { char: "!", color: colors.silver },
     { char: "\u0106", color: colors.silver },
     { char: "\u0108", color: colors.silver },
     { char: "v", color: colors.silver },
     { char: "+", color: colors.grey },
+    { char: "|", color: colors.grey },
+    { char: ".", color: colors.silver },
+  ],
+};
+
+export const block1: Sprite = {
+  name: "Block",
+  layers: [
+    { char: "■", color: colors.silver },
+    { char: "±", color: colors.silver },
+    { char: "\u0108", color: colors.black },
+    { char: "\u0106", color: colors.black },
+  ],
+};
+
+export const block2: Sprite = {
+  name: "Block",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "±", color: colors.grey },
+    { char: "\u0108", color: colors.black },
+    { char: "\u0106", color: colors.silver },
+    { char: "∙", color: colors.black },
   ],
 };
 

@@ -19,21 +19,21 @@ import { FOG } from "../../engine/components/fog";
 import { TRACKABLE } from "../../engine/components/trackable";
 import {
   aetherArmor,
-  aetherBow,
   aetherCharm2,
   aetherPet2,
   aetherSword,
   arrow,
   berryStack,
+  block2,
   bolt,
   bomb,
+  bow,
   charm,
   cloak1,
   cloak2,
   compass,
   diamond,
   diamondArmor,
-  diamondBow,
   diamondCharm1,
   diamondCharm2,
   diamondPet1,
@@ -45,7 +45,6 @@ import {
   doorClosedWood,
   earthArmor,
   earthBolt,
-  earthBow,
   earthCharm1,
   earthCharm2,
   earthPet1,
@@ -56,7 +55,6 @@ import {
   earthWave2,
   fireArmor,
   fireBolt,
-  fireBow,
   fireCharm1,
   fireCharm2,
   firePet1,
@@ -68,7 +66,6 @@ import {
   flowerStack,
   gold,
   goldArmor,
-  goldBow,
   goldCompass,
   goldKey,
   goldSword,
@@ -76,7 +73,6 @@ import {
   hpFlask2,
   iron,
   ironArmor,
-  ironBow,
   ironKey,
   ironSword,
   map,
@@ -85,31 +81,22 @@ import {
   none,
   pet,
   rainbowArmor,
-  rainbowBow,
   rainbowCharm2,
   rainbowPet2,
   rainbowSword,
   rubyArmor,
-  rubyBow,
   rubyCharm2,
   rubyPet2,
   rubySword,
-  shield1,
-  shield2,
-  slash1,
   slash2,
   spike,
   trap,
   voidArmor,
-  voidBow,
   voidCharm2,
   voidPet2,
   voidSword,
-  volley1,
-  volley2,
   waterArmor,
   waterBolt,
-  waterBow,
   waterCharm1,
   waterCharm2,
   waterPet1,
@@ -121,7 +108,6 @@ import {
   wave,
   wood,
   woodArmor,
-  woodBow,
   woodStick,
   worm,
 } from "../../game/assets/sprites";
@@ -312,43 +298,16 @@ const entitySprites: Record<
     void: voidArmor,
     rainbow: rainbowArmor,
   },
-  bow: {
-    // T1-T3
-    wood: woodBow,
-    iron: ironBow,
-    gold: goldBow,
-
-    // T4
-    diamond: diamondBow,
-    fire: fireBow,
-    water: waterBow,
-    earth: earthBow,
-
-    // T5
-    ruby: rubyBow,
-    aether: aetherBow,
-    void: voidBow,
-    rainbow: rainbowBow,
-  },
 
   // equipments
-  slash1: {
-    wood: slash1,
-  },
-  slash2: {
+  slash: {
     wood: slash2,
   },
-  volley1: {
-    wood: volley1,
+  bow: {
+    wood: bow,
   },
-  volley2: {
-    wood: volley2,
-  },
-  shield1: {
-    wood: shield1,
-  },
-  shield2: {
-    wood: shield2,
+  block: {
+    wood: block2,
   },
 
   // spells

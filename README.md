@@ -26,9 +26,9 @@ _Spawn area with intro quest_
 
 - (base: 10/5)
 - Scout: max 50/30 + base 20/10 (can't join tribe, doesn't require account)
-- Knight (helmet): max 60/20 + 2 defense + wood armor + HP drop on decay
-- Mage (curls): max 40/30 + 2 intellect + wave spell + mana + MP drop on decay
-- Hunter (mohawk): max 50/20 + 1 attack + wood bow + arrow stack + movement speed
+- Knight (helmet): max 60/20 + 1 defense + HP drop on decay
+- Mage (curls): max 40/30 + 1 intellect + MP drop on decay
+- Hunter (mohawk): max 50/20 + 1 attack + 1 movement speed
 
 ## Creatures
 
@@ -100,7 +100,7 @@ Fire
 - Stat: Max HP + 10
 - Tool: Pickaxe
 - Entry: wooden gate guard
-- Town: houses, cacti, water streams
+- Town: oasis, houses, cacti, water streams
 - House: grass beams, green dotted walls
 - Soil: brown for berries
 - Utility: burn trees
@@ -166,28 +166,28 @@ Earth
 ## Tiers
 
 T1: common (maroon)
-- Wood (Sword, Armor, Bow) - collecting
+- Wood (Sword, Armor) - collecting
 
 T2: uncommon (lime)
-- Iron (Sword, Armor, Bow) - mining
+- Iron (Sword, Armor) - mining
 - Accessory (iron) - crafting / drops
 
 T3: rare (yellow)
-- Gold (Sword, Armor, Bow) - trading
+- Gold (Sword, Armor) - trading
 - Accessory lvl 1 (fire, water, earth, gold) - crafting / elites
 
 T4: epic (aqua)
-- Diamond (Sword, Armor, Bow) - mining / crafting
-- Fire (Sword, Armor, Bow) - farming / crafting
-- Water (Sword, Armor, Bow) - farming / crafting
-- Earth (Sword, Armor, Bow) - farming / crafting
+- Diamond (Sword, Armor) - mining / crafting
+- Fire (Sword, Armor) - farming / crafting
+- Water (Sword, Armor) - farming / crafting
+- Earth (Sword, Armor) - farming / crafting
 - Accessory lvl 2 (fire, water, earth, gold) - crafting / bosses
 
 T5: legendary (fuchsia)
-- Ruby (Sword, Armor, Bow) - mining / crafting
-- Aether (Sword, Armor, Bow) - drops from dungeon bosses and chiefs
-- Void (Sword, Armor, Bow) - shards from crafting, fighting, quests
-- Rainbow (Sword, Armor, Bow) - farming / crafting
+- Ruby (Sword, Armor) - mining / crafting
+- Aether (Sword, Armor) - drops from dungeon bosses and chiefs
+- Void (Sword, Armor) - shards from crafting, fighting, quests
+- Rainbow (Sword, Armor) - farming / crafting
 
 ## Items
 
@@ -204,16 +204,13 @@ T5: legendary (fuchsia)
 
 - Sword: high damage
 - Armor: reduce damage, burn/freeze immunity or life multiplier
-- Bow: high damage, slow projectile speed but scaling with movement speed
 
-## Equipment spells
+## Equipment activation
 
-- Slash lvl 1: spin sword around with damage multiplier (5 xp)
-- Slash lvl 2: increase range, damage multiplier + on-hit proc (25 xp)
-- Volley lvl 1: 3 arrow wave (10 xp)
-- Volley lvl 2: 5 arrow wave + range + on-hit proc (25 xp)
-- Shield lvl 1: invincible (10 xp)
-- Shield lvl 2: more duration + attack radius + on-hit proc + speed boost (25 xp)
+- Slash + Charge: spin sword around + on hit, drop on receiving melee hit once per unit (10 xp)
+- Block + Charge: block next spell or reflect melee + shield on hit, drop on mana consume (10 xp)
+- Bow + Arrow: shoot arrow + on hit reduced damage + scale with movement speed, drops on miss or decay (10 xp)
+- Bomb: explode + pushable
 
 ## Elemental spells
 
@@ -227,16 +224,12 @@ T5: legendary (fuchsia)
 - Trap lvl 1: elemental
 - Trap lvl 2: 4x size + wave damage + cooldown
 
-## Item spells
+## Equipment spells
 
 - Cloak lvl 1: invisible but stunned on taking damage
 - Cloak lvl 2: speed boost + walk through terrain
-
-## Consumable spells
-
-- Bomb: explode + pushable + early explode
-- Elemental bomb: elemental
-- Arrow: drop on miss or decay
+- Shield lvl 1: invincible (10 xp)
+- Shield lvl 2: more duration + attack radius + on-hit proc + speed boost (25 xp)
 
 ## Accessories
 
@@ -415,11 +408,6 @@ T5: legendary (fuchsia)
 - 10 gold + 1 iron shield = gold shield
 - 10 diamond + 1 gold shield = diamond shield
 
-- 10 wood + 20 xp = wood bow
-- 10 iron = iron bow
-- 10 gold = gold bow
-- 10 diamond = diamond bow
-
 - 20 max hp + 10 xp = pet
 - 10 max mp + 20 xp = charm
 
@@ -471,11 +459,16 @@ T5: legendary (fuchsia)
 - Durability on equipment, repair with smith or get own hammer
 - Own home with chest, multiple characters
 - Multiplayer
-- Quicksand
+- Lava / Quicksand
 - Passive that generates hp or mp that can be collected
 - Crit chance
-- Slowing
+- Slowing / silencing / disarming
 - Max stack size as stat
+- Cute cube
+- Spray: 3 arrow wave + on-hit proc from bow, collect multiple (25 xp)
+- Smash: melee damage multiplier next attack, regenerate on dealing damage (10 xp)
+- Elemental bomb
+- Spell reflect
 
 ## Animations
 

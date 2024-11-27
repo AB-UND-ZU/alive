@@ -156,7 +156,6 @@ export const createChest = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
-  SHOOTABLE,
   SPRITE,
   STATS,
   TOOLTIP,

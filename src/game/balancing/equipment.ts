@@ -38,24 +38,6 @@ export const gearStats: Record<Gear, Record<Material, number>> = {
     void: 6,
     rainbow: 5,
   },
-  bow: {
-    // T1-T3
-    wood: 1,
-    iron: 2,
-    gold: 3,
-
-    // T4
-    diamond: 5,
-    fire: 3,
-    water: 3,
-    earth: 3,
-
-    // T5
-    ruby: 7,
-    aether: 7,
-    void: 7,
-    rainbow: 5,
-  },
 };
 
 export const getGearStat = (lookup: Gear, material: Material) => {

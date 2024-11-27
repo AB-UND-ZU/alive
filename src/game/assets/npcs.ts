@@ -53,7 +53,6 @@ import {
   Sequence,
 } from "../../engine/components/sequencable";
 import { BELONGABLE } from "../../engine/components/belongable";
-import { SHOOTABLE } from "../../engine/components/shootable";
 import { emptyStats, STATS } from "../../engine/components/stats";
 import { getGearStat } from "../balancing/equipment";
 
@@ -602,7 +601,6 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
         [POSITION]: findAdjacentWalkable(world, townPosition, 20),
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: heart,
         [STATS]: { ...emptyStats, hp: 99, maxHp: 99 },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },

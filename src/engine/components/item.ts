@@ -10,12 +10,9 @@ export type Material = Resource | Element | Legendary;
 
 export type Spell = "wave1" | "wave2" | "bolt1" | "bolt2" | "trap1" | "trap2";
 export type Empowerment =
-  | "slash1"
-  | "slash2"
-  | "volley1"
-  | "volley2"
-  | "shield1"
-  | "shield2";
+  | "slash"
+  | "block"
+  | "bow"
 export type Activatable = "cloak1" | "cloak2";
 export type Active = Spell | Empowerment | Activatable;
 

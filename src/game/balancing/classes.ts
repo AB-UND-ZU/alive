@@ -49,7 +49,7 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
   },
   knight: {
     sprite: knight,
-    items: [{ slot: "armor" }],
+    items: [],
 
     maxHpCap: 60,
     maxMpCap: 20,
@@ -63,13 +63,13 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
 
       attack: 0,
       intellect: 0,
-      defense: 2,
+      defense: 1,
       speed: 0,
     },
   },
   mage: {
     sprite: mage,
-    items: [{ slot: "active", active: "wave1" }],
+    items: [],
 
     maxHpCap: 40,
     maxMpCap: 30,
@@ -82,14 +82,14 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       maxMp: 5,
 
       attack: 0,
-      intellect: 2,
+      intellect: 1,
       defense: 0,
       speed: 0,
     },
   },
   hunter: {
     sprite: hunter,
-    items: [{ slot: "bow" }, { stackable: "arrow" }],
+    items: [],
 
     maxHpCap: 50,
     maxMpCap: 20,

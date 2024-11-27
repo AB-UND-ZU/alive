@@ -121,6 +121,34 @@ export const woodShot: Sprite = {
   },
 };
 
+export const woodShot2: Sprite = {
+  name: "shot_wood_2",
+  layers: [
+    { char: "»", color: colors.grey },
+    { char: "-", color: colors.maroon },
+  ],
+  facing: {
+    up: [
+      { char: "\u0117", color: colors.grey },
+      { char: "+", color: colors.grey },
+      { char: "|", color: colors.maroon },
+    ],
+    right: [
+      { char: "»", color: colors.grey },
+      { char: "-", color: colors.maroon },
+    ],
+    down: [
+      { char: "\u0118", color: colors.grey },
+      { char: "+", color: colors.grey },
+      { char: "|", color: colors.maroon },
+    ],
+    left: [
+      { char: "«", color: colors.grey },
+      { char: "-", color: colors.maroon },
+    ],
+  },
+};
+
 export const bolt: Sprite = {
   name: "spell_bolt",
   layers: [
