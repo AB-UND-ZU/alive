@@ -265,7 +265,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "◙") entity = "door";
       else if (cell === "◘") entity = "ore_one";
       else if (cell === "∙") entity = "coin_one";
-      else if (cell === "o") entity = "pot";
+      else if (cell === "o") entity = "intro_pot";
       else if (cell === "■") entity = "box";
       else if (cell === "¢") entity = "compass";
       else if (cell === "#") entity = "tree";
@@ -661,7 +661,7 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: campfire,
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
-    } else if (cell === "pot") {
+    } else if (cell === "pot" || cell === "intro_pot") {
       const { sprite, stats, tribe } = generateUnitData("pot");
       const potEntity = entities.createChest(world, {
         [ATTACKABLE]: {},
@@ -677,7 +677,7 @@ export const generateWorld = async (world: World) => {
         [STATS]: { ...emptyStats, ...stats, gold: 3 },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
-      world.setIdentifier(potEntity, "pot");
+      if (cell === "intro_pot") world.setIdentifier(potEntity, "pot");
     } else if (cell === "fence") {
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
