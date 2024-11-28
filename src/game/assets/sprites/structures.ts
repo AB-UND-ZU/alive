@@ -69,6 +69,14 @@ export const roofUp: Sprite = {
   ],
 };
 
+export const roofUpInside: Sprite = {
+  name: "roof_up_inside",
+  layers: [
+    { char: "▀", color: colors.grey },
+    { char: "─", color: colors.maroon },
+  ],
+};
+
 export const roofUpRight: Sprite = {
   name: "roof_up_right",
   layers: [
@@ -77,6 +85,15 @@ export const roofUpRight: Sprite = {
     { char: "▀", color: colors.black },
     { char: "┐", color: colors.maroon },
     { char: "\\", color: colors.maroon },
+  ],
+};
+
+export const roofUpRightInside: Sprite = {
+  name: "roof_up_right_inside",
+  layers: [
+    { char: "▐", color: colors.grey },
+    { char: "▀", color: colors.grey },
+    { char: "┐", color: colors.maroon },
   ],
 };
 
@@ -123,6 +140,15 @@ export const roofLeftUp: Sprite = {
   ],
 };
 
+export const roofLeftUpInside: Sprite = {
+  name: "roof_left_up_inside",
+  layers: [
+    { char: "▌", color: colors.grey },
+    { char: "▀", color: colors.grey },
+    { char: "┌", color: colors.maroon },
+  ],
+};
+
 export const house: Sprite = {
   name: "house",
   layers: [{ char: "█", color: colors.grey }],
@@ -136,6 +162,15 @@ export const houseLeft: Sprite = {
   ],
 };
 
+export const basementLeftInside: Sprite = {
+  name: "basement_left_inside",
+  layers: [
+    { char: "▌", color: colors.grey },
+    { char: "▄", color: colors.grey },
+    { char: "└", color: colors.maroon },
+  ],
+};
+
 export const houseRight: Sprite = {
   name: "house_right",
   layers: [
@@ -144,10 +179,34 @@ export const houseRight: Sprite = {
   ],
 };
 
+export const basementRightInside: Sprite = {
+  name: "basement_right_inside",
+  layers: [
+    { char: "▐", color: colors.grey },
+    { char: "▄", color: colors.grey },
+    { char: "┘", color: colors.maroon },
+  ],
+};
+
+export const wallInside: Sprite = {
+  name: "wall_inside",
+  layers: [
+    { char: "▄", color: colors.grey },
+    { char: "─", color: colors.maroon },
+  ],
+};
+
 export const window: Sprite = {
   name: "window",
   layers: [
     { char: "▄", color: colors.grey },
     { char: "┴", color: colors.maroon },
+  ],
+};
+
+export const windowInside: Sprite = {
+  name: "window_inside",
+  layers: [
+    { char: "┬", color: colors.maroon },
   ],
 };

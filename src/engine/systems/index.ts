@@ -5,6 +5,7 @@ export { default as setupBurn } from "./burn";
 export { default as setupCollect } from "./collect";
 export { default as setupDamage } from "./damage";
 export { default as setupDrop } from "./drop";
+export { default as setupEnter } from "./enter";
 export { default as setupFate } from "./fate";
 export { default as setupFocus } from "./focus";
 export { default as setupImmersion } from "./immersion";

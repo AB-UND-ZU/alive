@@ -167,7 +167,7 @@ export default function setupFate(world: World) {
             },
             lastInteraction: 0,
           },
-          [PLAYER]: { ghost: true },
+          [PLAYER]: { ghost: true, inside: false },
           [POSITION]: copy(entity[POSITION]),
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: {
@@ -256,7 +256,7 @@ export default function setupFate(world: World) {
           lastInteraction: 0,
         },
         [ORIENTABLE]: {},
-        [PLAYER]: { ghost: false },
+        [PLAYER]: { ghost: false, inside: false },
         [POSITION]: copy(entity[POSITION]),
         [PUSHABLE]: {},
         [RENDERABLE]: { generation: 0 },

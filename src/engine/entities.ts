@@ -8,6 +8,7 @@ import { Collectable, COLLECTABLE } from "./components/collectable";
 import { COLLIDABLE, Collidable } from "./components/collidable";
 import { Displacable, DISPLACABLE } from "./components/displacable";
 import { Droppable, DROPPABLE } from "./components/droppable";
+import { Enterable, ENTERABLE } from "./components/enterable";
 import { Equippable, EQUIPPABLE } from "./components/equippable";
 import { Focusable, FOCUSABLE } from "./components/focusable";
 import { Fog, FOG } from "./components/fog";
@@ -55,6 +56,7 @@ export type Entity = {
   [COLLIDABLE]: Collidable;
   [DISPLACABLE]: Displacable;
   [DROPPABLE]: Droppable;
+  [ENTERABLE]: Enterable;
   [EQUIPPABLE]: Equippable;
   [FOCUSABLE]: Focusable;
   [FOG]: Fog;
@@ -190,6 +192,7 @@ export const createContainer = entityFactory([
 ]);
 
 export const createDoor = entityFactory([
+  ENTERABLE,
   FOG,
   LIGHT,
   LOCKABLE,
@@ -212,7 +215,13 @@ export const createFire = entityFactory([
   TOOLTIP,
 ]);
 
-export const createFloat = entityFactory([FOG, POSITION, RENDERABLE, SPRITE]);
+export const createFloat = entityFactory([
+  ENTERABLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
 
 export const createFrame = entityFactory([RENDERABLE, REFERENCE]);
 
@@ -318,6 +327,15 @@ export const createOre = entityFactory([
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
+export const createRock = entityFactory([
+  COLLIDABLE,
+  FOG,
+  LIGHT,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createShop = entityFactory([
   COLLIDABLE,
   FOG,
@@ -413,6 +431,7 @@ export const createVillager = entityFactory([
 
 export const createWall = entityFactory([
   COLLIDABLE,
+  ENTERABLE,
   FOG,
   LIGHT,
   POSITION,

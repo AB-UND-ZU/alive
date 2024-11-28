@@ -131,7 +131,9 @@ function Entity({
   }
 
   const lootSegment = lootSegments[0];
-  const isStackable = !!lootSegment && !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].stackable;
+  const isStackable =
+    !!lootSegment &&
+    !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].stackable;
 
   return (
     <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={config}>
@@ -159,9 +161,7 @@ function Entity({
         />
       )}
 
-      {hasStats && (
-        <Bar counter="hp" entity={entity} isVisible={isVisible} />
-      )}
+      {hasStats && <Bar counter="hp" entity={entity} isVisible={isVisible} />}
 
       {isStackable && (
         <Dots segment={lootSegment} entity={entity} isVisible={isVisible} />

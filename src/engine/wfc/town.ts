@@ -27,7 +27,7 @@ const mapTiles: Record<string, string> = {
   windowLeft2: "wall_window",
   windowLeft1: "wall_window",
 
-  cornerLeft0: "house_left",
+  cornerLeft0: "basement_left",
 
   wallRight4: "wall",
   wallRight3: "wall",
@@ -38,7 +38,7 @@ const mapTiles: Record<string, string> = {
   windowRight2: "wall_window",
   windowRight1: "wall_window",
 
-  cornerRight0: "house_right",
+  cornerRight0: "basement_right",
 
   houseLeft: "house_left",
   houseRight: "house_right",

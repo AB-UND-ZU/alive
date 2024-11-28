@@ -111,6 +111,7 @@ import {
   woodStick,
   worm,
 } from "../../game/assets/sprites";
+import { ENTERABLE } from "../../engine/components/enterable";
 
 export const textSize = 18 / 25 + 0.001;
 
@@ -196,7 +197,8 @@ export const getSegments = (
   // 2. body
   orderedSegments.push({
     id: world.getEntityId(entity),
-    sprite: entity[SPRITE],
+    sprite:
+      (entity[ENTERABLE]?.inside && entity[ENTERABLE].sprite) || entity[SPRITE],
     facing: entity[ORIENTABLE]?.facing,
     offsetX: 0,
     offsetY: 0,

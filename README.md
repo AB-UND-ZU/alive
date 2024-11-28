@@ -503,6 +503,7 @@ T5: legendary (fuchsia)
 - Inventory only renders correctly with multiples of 2
 - Sprite stacks don't seem to work properly
 - Walking against a wall or pushing a box with faster speed than the box causes a delay for next action even no interaction happened
+- Entering a house only updates sprite correctly when the door is at the bottom
 
 ## Inventory example
 
