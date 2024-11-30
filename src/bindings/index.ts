@@ -271,7 +271,7 @@ export const generateWorld = async (world: World) => {
       else if (cell === "▄") entity = "block_down";
       else if (cell === "▀") entity = "block_up";
       else if (cell === "i") entity = "alive";
-      else if (cell === "◙") entity = "door";
+      else if (cell === "◙") entity = "gate";
       else if (cell === "◘") entity = "ore_one";
       else if (cell === "∙") entity = "coin_one";
       else if (cell === "o") entity = "intro_pot";
@@ -637,31 +637,44 @@ export const generateWorld = async (world: World) => {
           "inventoryOnly"
         );
       }
-    } else if (
-      cell === "door" ||
-      cell === "house_door" ||
-      cell === "nomad_door"
-    ) {
+    } else if (cell === "house_door" || cell === "nomad_door") {
       const doorEntity = entities.createDoor(world, {
         [ENTERABLE]: { inside: false, sprite: doorOpen, orientation: "down" },
         [FOG]: { visibility, type: "float" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [LOCKABLE]: {
           locked: true,
-          material: cell === "door" ? "gold" : undefined,
         },
-        [NPC]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SPRITE]: cell === "door" ? doorClosedGold : doorClosedWood,
+        [SPRITE]: doorClosedWood,
         [TOOLTIP]: {
-          dialogs: cell === "door" ? [createDialog("Locked")] : [],
+          dialogs: [],
           persistent: false,
           nextDialog: 0,
         },
       });
-      if (cell !== "house_door") world.setIdentifier(doorEntity, cell);
+      if (cell === "nomad_door") world.setIdentifier(doorEntity, "nomad_door");
+    } else if (cell === "gate") {
+      const doorEntity = entities.createGate(world, {
+        [FOG]: { visibility, type: "float" },
+        [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+        [LOCKABLE]: {
+          locked: true,
+          material: "gold",
+        },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: doorClosedGold,
+        [TOOLTIP]: {
+          dialogs: [createDialog("Locked")],
+          persistent: false,
+          nextDialog: 0,
+        },
+      });
+      world.setIdentifier(doorEntity, "gate");
     } else if (cell === "campfire") {
       entities.createFire(world, {
         [BURNABLE]: { burning: true, eternal: true },

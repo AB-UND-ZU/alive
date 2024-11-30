@@ -57,7 +57,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
     SPAWNABLE,
   ]);
   const focusEntity = world.getIdentifier("focus");
-  const doorEntity = world.getIdentifier("door");
+  const doorEntity = world.getIdentifier("gate");
   const compassEntity = world.getIdentifierAndComponents("compass", [ITEM]);
 
   if (!heroEntity || !focusEntity || !doorEntity || !compassEntity) {
@@ -159,7 +159,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
   };
 
   const focusEntity = world.getIdentifier("focus");
-  const doorEntity = world.getIdentifier("door");
+  const doorEntity = world.getIdentifier("gate");
   const houseDoor = world.getIdentifierAndComponents("nomad_door", [POSITION]);
   const compassEntity = world.getIdentifier("compass");
 

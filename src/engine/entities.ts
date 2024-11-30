@@ -196,7 +196,6 @@ export const createDoor = entityFactory([
   FOG,
   LIGHT,
   LOCKABLE,
-  NPC,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
@@ -236,6 +235,17 @@ export const createFruit = entityFactory([
 ]);
 
 export const createGame = entityFactory([LEVEL, RENDERABLE, REFERENCE]);
+
+export const createGate = entityFactory([
+  FOG,
+  LIGHT,
+  LOCKABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
+]);
 
 export const createGround = entityFactory([FOG, POSITION, RENDERABLE, SPRITE]);
 

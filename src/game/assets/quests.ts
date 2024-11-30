@@ -17,7 +17,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     updated: false,
   };
   const guideEntity = world.getEntityById(state.args.giver);
-  const doorEntity = world.getIdentifier("door");
+  const doorEntity = world.getIdentifier("gate");
 
   if (!doorEntity) {
     return { updated: stage.updated, finished: stage.finished };
