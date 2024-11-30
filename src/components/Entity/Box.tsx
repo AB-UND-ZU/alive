@@ -24,7 +24,7 @@ export default function Box({
           : orientation === "left"
           ? dimensions.aspectRatio / -4
           : 0,
-        orientation === "down" ? -0.25 : 0,
+        orientation === "down" ? -0.25 : orientation === "up" ? 0.25 : 0,
         height / 2 + offset,
       ]}
     >

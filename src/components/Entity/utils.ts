@@ -259,6 +259,9 @@ export const offsetFactors: Record<number, number> = {
   1.5: 1.77,
 };
 
+// scalar value factor for colors in shadow
+export const shadowFactor = 0.125;
+
 const entitySprites: Record<
   Gear | Tools | Active | Passive | Consumable | Materialized,
   Partial<Record<Material, Sprite>>

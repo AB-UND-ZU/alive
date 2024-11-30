@@ -1,5 +1,7 @@
+import { Entity } from "ecs";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { World } from "../../engine";
+import { ENTERABLE } from "../../engine/components/enterable";
 import { Level, LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { Orientation } from "../../engine/components/orientable";
@@ -139,7 +141,7 @@ export const iterations: Iteration[] = [
     },
   },
 ];
-export const turnedIterations = [...iterations.slice(1), iterations[0]]
+export const turnedIterations = [...iterations.slice(1), iterations[0]];
 
 const getOrientedBoundaries = (
   iteration: Iteration,
@@ -259,6 +261,16 @@ const getObstructing = (world: World, point: Point) => {
   return;
 };
 
+export const getOpaqueOrientation = (world: World, entity: Entity) => {
+  if (entity[ENTERABLE]?.inside) {
+    const insideOrientation = entity[ENTERABLE].orientation;
+    if (insideOrientation === null) return undefined;
+    if (insideOrientation) return insideOrientation;
+  }
+
+  return entity[LIGHT].orientation;
+};
+
 // manually adjusted extension of radius
 const bias = 0.25;
 
@@ -305,11 +317,8 @@ const processCell = ({
 
   const obstructingEntity = getObstructing(world, normalized);
   if (obstructingEntity) {
-    const cellIntervals = cellToIntervals(
-      iteration,
-      delta,
-      obstructingEntity[LIGHT].orientation
-    );
+    const opaqueOrientation = getOpaqueOrientation(world, obstructingEntity);
+    const cellIntervals = cellToIntervals(iteration, delta, opaqueOrientation);
 
     // the cell is visible therefore there is at least one overlap, or an interval within the cell boundaries
     for (const cellInterval of cellIntervals) {

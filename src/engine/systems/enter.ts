@@ -10,6 +10,8 @@ import { ENTERABLE } from "../components/enterable";
 import { PLAYER } from "../components/player";
 import { LEVEL } from "../components/level";
 import { add, copy, signedDistance } from "../../game/math/std";
+import { LIGHT } from "../components/light";
+import { FOG } from "../components/fog";
 
 export const isEnterable = (world: World, entity: Entity) =>
   ENTERABLE in entity;
@@ -18,6 +20,14 @@ export const getEnterable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
     isEnterable(world, entity)
   ) as Entity | undefined;
+
+export const isOpaque = (world: World, entity: Entity) =>
+  LIGHT in entity && entity[LIGHT].darkness > 0;
+
+export const isOutside = (world: World, entity: Entity) =>
+  (!isEnterable(world, entity) && isOpaque(world, entity)) ||
+  (!entity[ENTERABLE]?.inside &&
+    (isOpaque(world, entity) || entity[FOG]?.type === "float"));
 
 export default function setupEnter(world: World) {
   let referenceGenerations = -1;
@@ -52,14 +62,15 @@ export default function setupEnter(world: World) {
 
       const size = world.metadata.gameEntity[LEVEL].size;
       const enterable = getEnterable(world, entity[POSITION]);
-      const currentInside = !!enterable;
+      const currentInside = !!enterable && !entity[PLAYER].flying;
       const previousInside = entity[PLAYER].inside;
 
       if (currentInside !== previousInside) {
         entity[PLAYER].inside = currentInside;
+        rerenderEntity(world, entity);
         let enterableEntities: Entity[] = [];
 
-        if (enterable) {
+        if (enterable && currentInside) {
           enterableEntities.push(enterable);
 
           // find left edge of building

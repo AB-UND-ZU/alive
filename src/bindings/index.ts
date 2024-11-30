@@ -375,7 +375,7 @@ export const generateWorld = async (world: World) => {
           lastInteraction: 0,
         },
         [POSITION]: copy(initialPosition),
-        [PLAYER]: { ghost: true, inside: false },
+        [PLAYER]: { ghost: true, inside: false, flying: false },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SOUL]: { ready: true },
@@ -643,7 +643,7 @@ export const generateWorld = async (world: World) => {
       cell === "nomad_door"
     ) {
       const doorEntity = entities.createDoor(world, {
-        [ENTERABLE]: { inside: false, sprite: doorOpen },
+        [ENTERABLE]: { inside: false, sprite: doorOpen, orientation: "down" },
         [FOG]: { visibility, type: "float" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [LOCKABLE]: {
@@ -656,7 +656,7 @@ export const generateWorld = async (world: World) => {
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: cell === "door" ? doorClosedGold : doorClosedWood,
         [TOOLTIP]: {
-          dialogs: [createDialog(cell === "door" ? "Locked" : "Closed")],
+          dialogs: cell === "door" ? [createDialog("Locked")] : [],
           persistent: false,
           nextDialog: 0,
         },
@@ -938,13 +938,20 @@ export const generateWorld = async (world: World) => {
               basement_left: basementLeftInside,
               basement_right: basementRightInside,
             }[cell] || none,
+          orientation:
+            cell === "house_left" || cell === "basement_left"
+              ? "right"
+              : "left",
         },
         [FOG]: { visibility: "visible", type: "terrain" },
         [LIGHT]: {
           brightness: 0,
           darkness: 1,
           visibility: 0,
-          orientation: cell === "house_left" ? "right" : "left",
+          orientation:
+            cell === "house_left" || cell === "basement_left"
+              ? "right"
+              : "left",
         },
         [POSITION]: { x, y },
         [SPRITE]:
@@ -956,7 +963,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "wall") {
       entities.createWall(world, {
         [COLLIDABLE]: {},
-        [ENTERABLE]: { inside: false, sprite: wallInside },
+        [ENTERABLE]: { inside: false, sprite: wallInside, orientation: "down" },
         [FOG]: { visibility: "visible", type: "terrain" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [POSITION]: { x, y },
@@ -966,7 +973,11 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "wall_window") {
       entities.createWall(world, {
         [COLLIDABLE]: {},
-        [ENTERABLE]: { inside: false, sprite: windowInside },
+        [ENTERABLE]: {
+          inside: false,
+          sprite: windowInside,
+          orientation: "down",
+        },
         [FOG]: { visibility: "visible", type: "terrain" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [POSITION]: { x, y },

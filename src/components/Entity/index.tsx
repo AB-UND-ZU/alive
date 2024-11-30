@@ -10,7 +10,13 @@ import * as colors from "../../game/assets/colors";
 import Animated from "./Animated";
 import CoveredLight from "./CoveredLight";
 import { useWorld } from "../../bindings/hooks";
-import { getSegments, lootHeight, oreHeight, wallHeight } from "./utils";
+import {
+  getSegments,
+  lootHeight,
+  oreHeight,
+  shadowFactor,
+  wallHeight,
+} from "./utils";
 import Stack, { Segment } from "./Stack";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import Box from "./Box";
@@ -26,18 +32,23 @@ import { TypedEntity } from "../../engine/entities";
 import { getParticles } from "../../engine/systems/sequence";
 import Dots from "./Dots";
 import { STATS } from "../../engine/components/stats";
+import { getOpaqueOrientation } from "../../game/math/tracing";
 
 function Entity({
   entity,
   x,
   y,
   inRadius,
+  inside,
+  outside,
 }: {
   entity: TypedEntity<"POSITION" | "SPRITE" | "RENDERABLE">;
   generation: number;
   x: number;
   y: number;
   inRadius: boolean;
+  inside: boolean;
+  outside: boolean;
 }) {
   const dimensions = useDimensions();
   const { ecs, paused } = useWorld();
@@ -51,8 +62,9 @@ function Entity({
   const isVisible = visibility === "visible";
   const isHidden = visibility === "hidden";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
-  const opaqueOrientation = isOpaque ? entity[LIGHT]?.orientation : undefined;
-  const isBright = !!entity[LIGHT] && entity[LIGHT].brightness > 0;
+  const opaqueOrientation =
+    isOpaque && ecs ? getOpaqueOrientation(ecs, entity) : undefined;
+  const isBright = !!entity[LIGHT] && entity[LIGHT].brightness > 0 && !inside;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const hasStats = !!entity[STATS];
 
@@ -79,7 +91,8 @@ function Entity({
   const layerProps: LayerProps = {
     isTransparent,
     opacity: spring.opacity,
-    receiveShadow: !isAir && !isOpaque && !isFloat,
+    receiveShadow: !isAir && !isOpaque && !isFloat && !inside,
+    colorFactor: outside ? shadowFactor : undefined,
   };
 
   const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
@@ -124,7 +137,8 @@ function Entity({
         layerProps: {
           isTransparent,
           opacity: spring.lootOpacity,
-          receiveShadow: !isOpaque && inRadius,
+          receiveShadow: !isOpaque && inRadius && !inside,
+          colorFactor: outside ? shadowFactor : undefined,
         },
       });
     }
@@ -174,7 +188,9 @@ const MemoizedEntity = React.memo(
   Entity,
   (prevProps, nextProps) =>
     prevProps.generation === nextProps.generation &&
-    prevProps.inRadius === nextProps.inRadius
+    prevProps.inRadius === nextProps.inRadius &&
+    prevProps.inside === nextProps.inside &&
+    prevProps.outside === nextProps.outside
 );
 
 export default MemoizedEntity;

@@ -6,7 +6,7 @@ import { Viewable } from "./viewable";
 import { ClassKey } from "../../game/balancing/classes";
 
 export type Spawnable = {
-  classKey: ClassKey,
+  classKey: ClassKey;
   position: Position;
   light: Light;
   viewable: Viewable;

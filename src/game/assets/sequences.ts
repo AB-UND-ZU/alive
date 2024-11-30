@@ -93,6 +93,7 @@ import {
 import { PROJECTILE } from "../../engine/components/projectile";
 import { getGearStat } from "../balancing/equipment";
 import { STATS } from "../../engine/components/stats";
+import { PLAYER } from "../../engine/components/player";
 
 export * from "./npcs";
 export * from "./quests";
@@ -561,7 +562,6 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
     state.args.origin ||
     world.assertByIdAndComponents(state.args.tombstoneId, [POSITION])[POSITION];
   const compassEntity = world.getIdentifierAndComponents("compass", [ITEM]);
-  const compassId = state.args.compassId;
 
   if (!state.args.origin) state.args.origin = origin;
 
@@ -579,17 +579,6 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
   const collectTime = state.args.compassId ? soulTime + lootDelay : soulTime;
   const moveTime = collectTime + soulDuration;
   const finished = state.elapsed > moveTime + arriveTime;
-
-  // collect compass
-  if (
-    state.elapsed > collectTime &&
-    compassId &&
-    compassEntity &&
-    compassEntity[ITEM].carrier !== entityId
-  ) {
-    collectItem(world, entity, world.assertById(compassEntity[ITEM].carrier));
-    updated = true;
-  }
 
   // create soul particle
   if (
@@ -619,6 +608,13 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
     compassEntity[ITEM].carrier !== entityId
   ) {
     collectItem(world, entity, world.assertById(compassEntity[ITEM].carrier));
+    updated = true;
+  }
+
+  // exit any buildings by marking as flying
+  if (state.elapsed > collectTime && !entity[PLAYER].flying) {
+    entity[PLAYER].flying = true;
+    updated = true;
   }
 
   // update viewpoint if moved

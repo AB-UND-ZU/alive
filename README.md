@@ -62,6 +62,19 @@ _Spawn area with intro quest_
 - Nomad: Intro quest, sell key
 - Miner/Logger/Fisher: sell pickaxe
 
+## Towns
+
+Hills 1
+- Chief: locked iron key, quest for gold key, dungeon entry
+- Mage: bubble spell and charge
+- Hunter: bow and arrows
+- Knight: slash and charge
+- Scout: bomb
+- Cook: trade berries and flowers
+- Guard: at entrances
+- Miner: iron and pickaxe
+- Logger: wood and axe
+
 ## Bosses
 
 - Alphabet (different elements)
@@ -376,20 +389,20 @@ T5: legendary (fuchsia)
 
 ## Crafting
 
-- 10 stick + 3 coin = 1 wood
-- 10 ore + 3 coin = 1 iron
-- 10 single berry + 3 coin = 1 berry
-- 10 single flower + 3 coin = 1 flower
+- 10 stick + 2 coin = 1 wood
+- 10 ore + 5 coin = 1 iron
+- 20 single berry + 2 coin = 1 berry
+- 20 single flower + 2 coin = 1 flower
 
-- 10 wood + 5 coin = 1 iron
-- 10 iron + 10 coin = 1 gold
-- 10 gold + 20 coin = 1 diamond
+- 5 wood + 5 coin = 1 iron
+- 10 iron + 20 coin = 1 gold
+- 10 gold + 30 coin = 1 diamond
 - 10 diamond + 50 coin = 1 ruby gem
 
 - 10 flower + 25 gold = 1 fire essence
 - 10 berry + 25 gold = 1 water essence
 - 10 spike + 25 gold = 1 earth essence
-- 10 fire essence + 10 water essence + 10 earth essence = 1 rainbow gem
+- 3 fire essence + 3 water essence + 3 earth essence = 1 rainbow gem
 
 - 1 diamond + 1 essence = 1 void shard
 - 10 void shards + 10 gold = 1 void gem

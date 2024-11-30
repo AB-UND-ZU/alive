@@ -167,7 +167,7 @@ export default function setupFate(world: World) {
             },
             lastInteraction: 0,
           },
-          [PLAYER]: { ghost: true, inside: false },
+          [PLAYER]: { ghost: true, inside: entity[PLAYER].inside, flying: false },
           [POSITION]: copy(entity[POSITION]),
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: {
@@ -217,6 +217,7 @@ export default function setupFate(world: World) {
       POSITION,
       VIEWABLE,
       SPAWNABLE,
+      PLAYER,
     ])) {
       if (!isSoulReady(world, entity)) continue;
 
@@ -256,7 +257,7 @@ export default function setupFate(world: World) {
           lastInteraction: 0,
         },
         [ORIENTABLE]: {},
-        [PLAYER]: { ghost: false, inside: false },
+        [PLAYER]: { ghost: false, inside: false, flying: false },
         [POSITION]: copy(entity[POSITION]),
         [PUSHABLE]: {},
         [RENDERABLE]: { generation: 0 },

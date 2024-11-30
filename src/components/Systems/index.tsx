@@ -2,19 +2,23 @@ import { useFrame } from "@react-three/fiber";
 import { Position, POSITION } from "../../engine/components/position";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import Entity from "../Entity";
-import { useGame, useViewpoint, useWorld } from "../../bindings/hooks";
+import { useGame, useHero, useViewpoint, useWorld } from "../../bindings/hooks";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { getEntityGeneration } from "../../engine/systems/renderer";
 import { getCell } from "../../engine/systems/map";
 import { getDistance } from "../../game/math/std";
 import { LEVEL } from "../../engine/components/level";
+import { PLAYER } from "../../engine/components/player";
+import { getEnterable, isOutside } from "../../engine/systems/enter";
+import { ENTERABLE } from "../../engine/components/enterable";
 
 export default function Systems() {
   const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
   const { position, radius } = useViewpoint();
   const game = useGame();
+  const hero = useHero();
 
   useFrame((_, delta) => {
     if (!ecs || paused) return;
@@ -41,7 +45,10 @@ export default function Systems() {
               const renderedY =
                 y - (dimensions.renderedRows - offsetY) / 2 + position.y;
 
-              const cell = getCell(ecs, { x: renderedX, y: renderedY });
+              const renderedPosition = { x: renderedX, y: renderedY };
+              const cell = getCell(ecs, renderedPosition);
+              const inside = !!getEnterable(ecs, renderedPosition)?.[ENTERABLE]
+                .inside;
               const entities = Object.entries(cell);
 
               const renderableEntities = entities.filter(
@@ -63,6 +70,8 @@ export default function Systems() {
                   inRadius={
                     getDistance(position, entity[POSITION], size) < radius
                   }
+                  outside={!!hero?.[PLAYER]?.inside && isOutside(ecs, entity)}
+                  inside={inside}
                   generation={getEntityGeneration(ecs, entity)}
                 />
               ));

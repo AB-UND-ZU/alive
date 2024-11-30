@@ -1,10 +1,12 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Sprite } from "./sprite";
+import { Orientation } from "./orientable";
 
 export type Enterable = {
   sprite: Sprite;
   inside: boolean;
+  orientation?: Orientation | null;
 };
 
 export const ENTERABLE = "ENTERABLE";
