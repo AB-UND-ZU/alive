@@ -653,7 +653,7 @@ export default async function generateTown(width: number, height: number) {
   });
 
   // draw fence around town
-  return matrixFactory(width, height, (x, y) => {
+  const townMatrix = matrixFactory(width, height, (x, y) => {
     const horizontalEdge = x === 0 || x === width - 1;
     const verticalEdge = y === 0 || y === height - 1;
 
@@ -665,4 +665,9 @@ export default async function generateTown(width: number, height: number) {
 
     return mapTiles[wfc.tileNames[tileMatrix[x - 1][y - 1]]];
   });
+
+  // add campfire
+  townMatrix[innX - 1][innY + 2] = 'campfire';
+
+  return townMatrix;
 }

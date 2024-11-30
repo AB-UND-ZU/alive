@@ -69,11 +69,13 @@ Hills 1
 - Mage: bubble spell and charge
 - Hunter: bow and arrows
 - Knight: slash and charge
-- Scout: bomb
+- Scout: bomb and torch
 - Cook: trade berries and flowers
 - Guard: at entrances
 - Miner: iron and pickaxe
 - Logger: wood and axe
+- Fisher: rod and bait
+- Smith: sword and armor
 
 ## Bosses
 

@@ -3,9 +3,10 @@ import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { POSITION } from "../../engine/components/position";
 import { QuestSequence, Sequence } from "../../engine/components/sequencable";
+import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
 import { isUnlocked } from "../../engine/systems/action";
-import { getDistance } from "../math/std";
+import { add, getDistance } from "../math/std";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 
 export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
@@ -125,6 +126,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
   return { updated: stage.updated, finished: stage.finished };
 };
 
+const welcomeDistance = 1.5;
 export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
   const stage: QuestStage<QuestSequence> = {
     world,
@@ -134,12 +136,13 @@ export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
     updated: false,
   };
 
-  const bowEntity = world.getIdentifierAndComponents("bow", [POSITION]);
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const welcomeEntity = world.getIdentifierAndComponents("welcome", [POSITION]);
 
   step({
     stage,
     name: START_STEP,
-    isCompleted: () => !!bowEntity,
+    isCompleted: () => !!welcomeEntity,
     onLeave: () => "search",
   });
 
@@ -147,12 +150,21 @@ export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "search",
     onEnter: () => {
-      world.setFocus(bowEntity);
+      world.setFocus(welcomeEntity);
       return true;
     },
-    isCompleted: () => !bowEntity,
+    isCompleted: () =>
+      !!welcomeEntity &&
+      getDistance(entity[POSITION], welcomeEntity[POSITION], size) <=
+        welcomeDistance,
     onLeave: () => {
       world.setFocus();
+      if (welcomeEntity) {
+        entity[SPAWNABLE].position = add(welcomeEntity[POSITION], {
+          x: -2,
+          y: 0,
+        });
+      }
       return END_STEP;
     },
   });

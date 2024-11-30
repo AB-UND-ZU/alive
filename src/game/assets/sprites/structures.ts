@@ -4,8 +4,12 @@ import { Sprite } from "../../../engine/components/sprite";
 export const sign: Sprite = {
   name: "Sign",
   layers: [
+    { char: "┐", color: colors.maroon },
     { char: "i", color: colors.maroon },
-    { char: "▀", color: colors.silver },
+    { char: "-", color: colors.black },
+    { char: "■", color: colors.silver },
+    { char: "\u0106", color: colors.grey },
+    { char: "÷", color: colors.silver },
   ],
 };
 

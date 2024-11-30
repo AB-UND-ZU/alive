@@ -1184,20 +1184,20 @@ export const generateWorld = async (world: World) => {
   world.offerQuest(signEntity, "townQuest");
 
   // spawn elements in town
-  entities.createFire(world, {
-    [BURNABLE]: { burning: true, eternal: true },
-    [COLLIDABLE]: {},
+  const welcomeEntity = entities.createSign(world, {
     [FOG]: { visibility: "hidden", type: "terrain" },
-    [POSITION]: { x: townX - 2, y: townY + 1 },
+    [COLLIDABLE]: {},
+    [POSITION]: { x: townX + 2, y: townY + 1 },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: campfire,
+    [SPRITE]: sign,
     [TOOLTIP]: {
-      dialogs: [],
+      dialogs: [createDialog("Welcome!")],
       persistent: false,
-      nextDialog: -1,
+      nextDialog: 0,
     },
   });
+  world.setIdentifier(welcomeEntity, "welcome");
   createItemAsDrop(world, { x: townX + 2, y: townY - 2 }, entities.createItem, {
     [ITEM]: {
       stackable: "arrow",
