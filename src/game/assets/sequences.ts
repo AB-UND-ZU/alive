@@ -2,6 +2,7 @@ import {
   decayHeight,
   dialogHeight,
   focusHeight,
+  getItemSprite,
   particleHeight,
   tooltipHeight,
 } from "../../components/Entity/utils";
@@ -506,7 +507,7 @@ export const itemCollect: Sequence<CollectSequence> = (
           // create new stack
           const stackEntity = entities.createItem(world, {
             [ITEM]: { ...itemEntity[ITEM], carrier: entityId },
-            [SPRITE]: itemEntity[SPRITE],
+            [SPRITE]: getItemSprite(itemEntity[ITEM]),
             [RENDERABLE]: { generation: 0 },
           });
           const stackId = world.getEntityId(stackEntity);

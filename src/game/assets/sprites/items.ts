@@ -352,15 +352,6 @@ export const arrow: Sprite = {
   ],
 };
 
-export const arrowStack: Sprite = {
-  name: "Arrow",
-  layers: [
-    { char: "»", color: colors.grey },
-    { char: "─", color: colors.grey },
-    { char: "-", color: colors.maroon },
-  ],
-};
-
 export const charge: Sprite = {
   name: "Charge",
   layers: [{ char: "^", color: colors.silver }],
