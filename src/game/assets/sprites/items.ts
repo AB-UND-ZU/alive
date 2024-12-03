@@ -14,28 +14,61 @@ export const heartUp: Sprite = {
   ],
 };
 
+export const appleDrop: Sprite = {
+  name: "Apple",
+  layers: [
+    { char: "∙", color: colors.red },
+    { char: ":", color: colors.lime },
+    { char: ".", color: colors.black },
+    { char: "\u0106", color: colors.red },
+  ],
+};
+
 export const apple1: Sprite = {
   name: "Apple",
-  layers: [{ char: "∙", color: colors.red }],
+  layers: [
+    { char: "∙", color: colors.red },
+    { char: ":", color: colors.lime },
+    { char: ".", color: colors.black },
+    { char: "\u0106", color: colors.red },
+  ],
   amounts: {
     single: [
       { char: "┐", color: colors.maroon },
       { char: "#", color: colors.green },
-      { char: "∙", color: colors.red },
+
+      { char: ":", color: colors.lime },
+      { char: ".", color: colors.green },
+      { char: "\u0106", color: colors.red },
     ],
   },
 };
 
 export const apple2: Sprite = {
   name: "Apple",
-  layers: [{ char: "∙", color: colors.red }],
+  layers: [
+    { char: "∙", color: colors.red },
+    { char: ":", color: colors.lime },
+    { char: ".", color: colors.black },
+    { char: "\u0106", color: colors.red },
+  ],
   amounts: {
     single: [
       { char: "┐", color: colors.maroon },
       { char: "Θ", color: colors.green },
-      { char: "∙", color: colors.red },
+      { char: ":", color: colors.lime },
+      { char: ".", color: colors.green },
+      { char: "\u0106", color: colors.red },
     ],
   },
+};
+
+export const bananaDrop: Sprite = {
+  name: "Banana",
+  layers: [
+    { char: "«", color: colors.yellow },
+    { char: "-", color: colors.black },
+  ],
 };
 
 export const banana: Sprite = {
@@ -57,9 +90,24 @@ export const banana: Sprite = {
   },
 };
 
+export const coconutDrop: Sprite = {
+  name: "Coconut",
+  layers: [
+    { char: "\u0108", color: colors.maroon },
+    { char: "\u0106", color: colors.black },
+    { char: "+", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+  ],
+};
+
 export const coconut: Sprite = {
   name: "Coconut",
-  layers: [{ char: "\u0106", color: colors.maroon }],
+  layers: [
+    { char: "\u0108", color: colors.maroon },
+    { char: "\u0106", color: colors.black },
+    { char: "+", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+  ],
   amounts: {
     single: [
       { char: "T", color: colors.green },
@@ -70,8 +118,10 @@ export const coconut: Sprite = {
       { char: "+", color: colors.olive },
       { char: "─", color: colors.black },
       { char: "∙", color: colors.olive },
-
-      { char: "\u0106", color: colors.maroon },
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.black },
+      { char: "+", color: colors.maroon },
+      { char: ":", color: colors.maroon },
     ],
   },
 };

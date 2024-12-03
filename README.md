@@ -58,6 +58,7 @@ _Spawn area with intro quest_
 - Elder: Gives gold key to finish level
 - Scout: Blob quest
 - Druid: consumables
+- Cook: trade berries and flowers
 - Chief: Max stats
 - Nomad: Intro quest, sell key
 - Miner/Logger/Fisher: sell pickaxe
@@ -70,7 +71,6 @@ Hills 1
 - Hunter: bow and arrows
 - Knight: slash and charge
 - Scout: bomb and torch
-- Cook: trade berries and flowers
 - Guard: at entrances
 - Miner: iron and pickaxe
 - Logger: wood and axe

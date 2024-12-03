@@ -231,7 +231,9 @@ export const createFruit = entityFactory([
   LOOTABLE,
   POSITION,
   RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
+  TOOLTIP,
 ]);
 
 export const createGame = entityFactory([LEVEL, RENDERABLE, REFERENCE]);
@@ -301,6 +303,17 @@ export const createHighlight = entityFactory([
 ]);
 
 export const createItem = entityFactory([ITEM, RENDERABLE, SPRITE]);
+
+export const createMine = entityFactory([
+  COLLIDABLE,
+  FOG,
+  LIGHT,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
+]);
 
 export const createMob = entityFactory([
   ATTACKABLE,

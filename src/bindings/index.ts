@@ -406,13 +406,15 @@ export const generateWorld = async (world: World) => {
         [COLLIDABLE]: {},
       });
     } else if (cell === "iron") {
-      entities.createRock(world, {
+      entities.createMine(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
         [SPRITE]: ironMine,
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [COLLIDABLE]: {},
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
     } else if (cell === "ore" || cell === "ore_one") {
       const oreEntity = entities.createOre(world, {
@@ -504,13 +506,15 @@ export const generateWorld = async (world: World) => {
         [INVENTORY]: { items: [], size: 1 },
         [LOOTABLE]: { disposable: false },
         [POSITION]: { x, y },
+        [SEQUENCABLE]: { states: {} },
         [SPRITE]: tree,
         [RENDERABLE]: { generation: 0 },
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       createItemInInventory(world, fruitEntity, entities.createItem, {
         [ITEM]: {
           amount: 1,
-          stat: "hp",
+          stackable: "apple",
         },
         [SPRITE]: apple,
       });
@@ -523,25 +527,29 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "palm") {
-      const [fruit, palm] = [
-        [coconut, palm1],
-        [banana, palm2],
-      ][random(0, 1)];
+      const [stack, fruit, palm] = (
+        [
+          ["coconut", coconut, palm1],
+          ["banana", banana, palm2],
+        ] as const
+      )[random(0, 1)];
 
-      if (random(0, 19) === 0) {
+      if (random(0, 14) === 0) {
         const fruitEntity = entities.createFruit(world, {
           [COLLIDABLE]: {},
           [FOG]: { visibility, type: "terrain" },
           [INVENTORY]: { items: [], size: 1 },
           [LOOTABLE]: { disposable: false },
           [POSITION]: { x, y },
+          [SEQUENCABLE]: { states: {} },
           [SPRITE]: palm,
           [RENDERABLE]: { generation: 0 },
+          [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
         });
         createItemInInventory(world, fruitEntity, entities.createItem, {
           [ITEM]: {
             amount: 1,
-            stat: "mp",
+            stackable: stack,
           },
           [SPRITE]: fruit,
         });

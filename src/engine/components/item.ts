@@ -22,7 +22,7 @@ export type Consumable = "key" | "potion1" | "potion2";
 
 export type Materialized = "door";
 
-export type Craftable = "flower" | "berry" | "spike" | "worm";
+export type Craftable = "apple" | "banana" | "coconut" | "flower" | "berry" | "spike" | "worm";
 export type Reloadable = "arrow" | "bomb";
 export type Stackable = Resource | Craftable | Reloadable;
 export const STACK_SIZE = 10;

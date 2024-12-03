@@ -22,7 +22,9 @@ import {
   aetherCharm2,
   aetherPet2,
   aetherSword,
+  appleDrop,
   arrow,
+  bananaDrop,
   berryStack,
   block2,
   bolt,
@@ -31,6 +33,7 @@ import {
   charm,
   cloak1,
   cloak2,
+  coconutDrop,
   compass,
   diamond,
   diamondArmor,
@@ -428,6 +431,9 @@ const entitySprites: Record<
 };
 
 const stackableSprites: Record<Stackable, Sprite> = {
+  apple: appleDrop,
+  banana: bananaDrop,
+  coconut: coconutDrop,
   flower: flowerStack,
   berry: berryStack,
   wood: wood,

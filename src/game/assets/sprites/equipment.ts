@@ -74,24 +74,34 @@ export const compass: Sprite = {
   name: "Compass",
   layers: [
     { char: "\u0108", color: colors.maroon },
+    { char: "\u0106", color: colors.maroon },
     { char: "+", color: colors.grey },
+    { char: "·", color: colors.silver },
   ],
   facing: {
     up: [
       { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.maroon },
       { char: "\u0117", color: colors.grey },
+      { char: "·", color: colors.silver },
     ],
     right: [
       { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.maroon },
       { char: "\u0119", color: colors.grey },
+      { char: "·", color: colors.silver },
     ],
     down: [
       { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.maroon },
       { char: "\u0118", color: colors.grey },
+      { char: "·", color: colors.silver },
     ],
     left: [
       { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.maroon },
       { char: "\u011a", color: colors.grey },
+      { char: "·", color: colors.silver },
     ],
   },
 };

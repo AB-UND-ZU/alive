@@ -71,6 +71,15 @@ export const blade: Sprite = {
   },
 };
 
+export const fish: Sprite = {
+  name: "Fish",
+  layers: [
+    { char: "\u0106", color: colors.blue },
+    { char: "\u0119", color: colors.blue },
+    { char: "∞", color: colors.blue },
+  ],
+};
+
 export const shark: Sprite = {
   name: "Shark",
   layers: [
