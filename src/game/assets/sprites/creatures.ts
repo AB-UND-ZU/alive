@@ -37,7 +37,7 @@ export const villager: Sprite = {
   name: "Nomad",
   layers: [
     { char: "\u010b", color: colors.silver },
-    { char: "'", color: colors.olive },
+    { char: "'", color: colors.white },
   ],
 };
 
@@ -476,4 +476,9 @@ export const fly: Sprite = {
     { char: ":", color: colors.grey },
     { char: ",", color: colors.black },
   ],
+};
+
+export const fairy: Sprite = {
+  name: "Fairy",
+  layers: [{ char: "\u0100", color: colors.silver }],
 };

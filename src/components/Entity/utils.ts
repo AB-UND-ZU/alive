@@ -447,7 +447,7 @@ const stackableSprites: Record<Stackable, Sprite> = {
 };
 
 export const getItemSprite = (
-  item: Omit<Item, "amount" | "carrier"> & { materialized?: Materialized }
+  item: Omit<Item, "amount" | "carrier" | "bound"> & { materialized?: Materialized }
 ) => {
   if (item.stackable) return stackableSprites[item.stackable];
 

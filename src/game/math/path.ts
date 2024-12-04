@@ -8,6 +8,7 @@ import { isWalkable } from "../../engine/systems/movement";
 import { normalize, signedDistance } from "./std";
 import { degreesToOrientations, pointToDegree } from "./tracing";
 import { aspectRatio } from "../../components/Dimensions/sizing";
+import { Orientation, orientations } from "../../engine/components/orientable";
 
 export const getWalkableMatrix = (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -32,6 +33,9 @@ export const relativeOrientations = (
   };
   return degreesToOrientations(pointToDegree(delta));
 };
+
+export const invertOrientation = (orientation: Orientation) =>
+  orientations[(orientations.indexOf(orientation) + 2) % orientations.length];
 
 export const findPath = (
   world: World,

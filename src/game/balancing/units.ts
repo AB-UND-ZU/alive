@@ -1,5 +1,4 @@
 import { Pattern } from "../../engine/components/behaviour";
-import { Countable } from "../../engine/components/stats";
 import {
   box,
   cactus1,
@@ -7,9 +6,12 @@ import {
   commonChest,
   epicChest,
   eye,
+  fairy,
   goldEye,
+  goldOrb,
   goldPrism,
   legendaryChest,
+  orb,
   pot,
   prism,
   rareChest,
@@ -19,8 +21,7 @@ import {
 import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
 import { Tribe } from "../../engine/components/belongable";
-import { Gear } from "../../engine/components/equippable";
-import { Material, Stackable } from "../../engine/components/item";
+import { Item } from "../../engine/components/item";
 
 export type UnitKey =
   | "guide"
@@ -37,7 +38,10 @@ export type UnitKey =
   | "prism"
   | "goldPrism"
   | "eye"
-  | "goldEye";
+  | "goldEye"
+  | "orb"
+  | "goldOrb"
+  | "fairy";
 
 export type UnitDistribution = Partial<Record<UnitKey, number>>;
 
@@ -46,13 +50,10 @@ export type UnitDefinition = {
   attack: number;
   defense: number;
   hp: number;
-  equipments: { equipment: Gear; material: Material }[];
+  equipments: Omit<Item, "carrier" | "amount">[];
   drops: {
     chance: number;
-    items: (
-      | { stat: keyof Countable; amount: number }
-      | { stackable: Stackable; amount: number }
-    )[];
+    items: Omit<Item, "carrier" | "bound">[];
   }[];
   patternNames: Pattern["name"][];
   sprite: Sprite;
@@ -66,11 +67,8 @@ export type UnitData = {
     hp: number;
     maxHp: number;
   };
-  equipments: { equipment: Gear; material: Material }[];
-  items: (
-    | { stat: keyof Countable; amount: number }
-    | { stackable: Stackable; amount: number }
-  )[];
+  equipments: Omit<Item, "carrier" | "amount">[];
+  items: Omit<Item, "carrier">[];
   patterns: Pattern[];
   sprite: Sprite;
 };
@@ -82,8 +80,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     defense: 0,
     hp: 20,
     equipments: [
-      { equipment: "melee", material: "iron" },
-      { equipment: "armor", material: "wood" },
+      { equipment: "melee", material: "iron", bound: false },
+      { equipment: "armor", material: "wood", bound: false },
     ],
     drops: [],
     patternNames: [],
@@ -255,6 +253,72 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: ["eye"],
     sprite: goldEye,
   },
+  orb: {
+    tribe: "wild",
+    attack: 1,
+    defense: 0,
+    hp: 2,
+    equipments: [
+      {
+        equipment: "active",
+        active: "bow",
+        bound: true,
+      },
+      { stackable: "arrow", bound: true },
+    ],
+    drops: [
+      { chance: 70, items: [{ stat: "gold", amount: 1 }] },
+      { chance: 15, items: [{ stat: "xp", amount: 1 }] },
+      { chance: 15, items: [{ stat: "mp", amount: 1 }] },
+    ],
+    patternNames: ["orb"],
+    sprite: orb,
+  },
+  goldOrb: {
+    tribe: "wild",
+    attack: 5,
+    defense: 1,
+    hp: 5,
+    equipments: [
+      {
+        equipment: "active",
+        active: "bow",
+        bound: true,
+      },
+      { stackable: "arrow", bound: true },
+    ],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stat: "gold", amount: 3 },
+          { stat: "hp", amount: 1 },
+          { stat: "mp", amount: 1 },
+        ],
+      },
+    ],
+    patternNames: ["orb"],
+    sprite: goldOrb,
+  },
+  fairy: {
+    tribe: "wild",
+    attack: 0,
+    defense: 2,
+    hp: 10,
+    equipments: [],
+    drops: [
+      {
+        chance: 50,
+        items: [{ equipment: "armor", amount: 4, material: "gold" }],
+      },
+      {
+        chance: 50,
+        items: [{ equipment: "melee", amount: 4, material: "gold" }],
+      },
+    ],
+    patternNames: ["fairy"],
+    sprite: fairy,
+  },
 };
 
 export const generateUnitKey = (unitDistribution: UnitDistribution) => {
@@ -267,9 +331,12 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
     unitDefinitions[unitKey];
   const items =
     drops.length > 0
-      ? drops.map((drop) => drop.items)[
-          distribution(...drops.map((drop) => drop.chance))
-        ]
+      ? drops
+          .map((drop) => drop.items)
+          [distribution(...drops.map((drop) => drop.chance))].map((item) => ({
+            ...item,
+            bound: false,
+          }))
       : [];
 
   return {

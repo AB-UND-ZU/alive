@@ -316,6 +316,7 @@ export const createMine = entityFactory([
 ]);
 
 export const createMob = entityFactory([
+  ACTIONABLE,
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,

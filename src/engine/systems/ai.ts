@@ -5,7 +5,13 @@ import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
 import { isMovable, isWalkable } from "./movement";
-import { add, copy, getDistance, random } from "../../game/math/std";
+import {
+  add,
+  copy,
+  getDistance,
+  random,
+  signedDistance,
+} from "../../game/math/std";
 import { isDead, isFriendlyFire } from "./damage";
 import {
   ORIENTABLE,
@@ -13,7 +19,11 @@ import {
   orientationPoints,
   orientations,
 } from "../components/orientable";
-import { findPath, relativeOrientations } from "../../game/math/path";
+import {
+  findPath,
+  invertOrientation,
+  relativeOrientations,
+} from "../../game/math/path";
 import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
 import { isLocked } from "./action";
@@ -32,6 +42,7 @@ import { INVENTORY } from "../components/inventory";
 import { FOG } from "../components/fog";
 import { LEVEL } from "../components/level";
 import { BELONGABLE } from "../components/belongable";
+import { iterations } from "../../game/math/tracing";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -88,13 +99,8 @@ export default function setupAi(world: World) {
               ];
             const attemptedFacings = [
               preferredFacing,
-              orientations[
-                (orientations.indexOf(preferredFacing) + 2) %
-                  orientations.length
-              ],
-              orientations[
-                (orientations.indexOf(facing) + 2) % orientations.length
-              ],
+              invertOrientation(preferredFacing),
+              invertOrientation(facing),
             ];
             let newFacing;
             for (const attemptedFacing of attemptedFacings) {
@@ -170,6 +176,130 @@ export default function setupAi(world: World) {
           entity[MOVABLE].orientations = orientations;
           rerenderEntity(world, entity);
           break;
+        } else if (pattern.name === "orb") {
+          const heroEntity = world.getIdentifierAndComponents("hero", [
+            POSITION,
+            MOVABLE,
+          ]);
+          const size = world.metadata.gameEntity[LEVEL].size;
+          const distance = heroEntity
+            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.69)
+            : Infinity;
+          const isShooting = !!entity[TOOLTIP].idle;
+          const flee = distance < 3;
+          const attack = distance < 7;
+
+          if (isShooting && entity[ACTIONABLE]) {
+            entity[TOOLTIP].idle = undefined;
+            entity[TOOLTIP].changed = true;
+            entity[ACTIONABLE].triggered = true;
+          } else if (flee && heroEntity) {
+            // invert direction by argument order
+            const fleeingOrientations = relativeOrientations(
+              world,
+              heroEntity[POSITION],
+              entity[POSITION]
+            );
+            entity[MOVABLE].orientations = fleeingOrientations;
+            rerenderEntity(world, entity);
+            break;
+          } else if (attack && heroEntity) {
+            const delta = {
+              x: signedDistance(
+                entity[POSITION].x,
+                heroEntity[POSITION].x,
+                size
+              ),
+              y: signedDistance(
+                entity[POSITION].y,
+                heroEntity[POSITION].y,
+                size
+              ),
+            };
+
+            let shootingOrientation: Orientation | undefined;
+
+            // shoot straight
+            for (const direction in orientationPoints) {
+              const orientation = direction as Orientation;
+              if (
+                Math.sign(delta.x) ===
+                  Math.sign(orientationPoints[orientation].x) &&
+                Math.sign(delta.y) ===
+                  Math.sign(orientationPoints[orientation].y)
+              ) {
+                shootingOrientation = orientation;
+                break;
+              }
+            }
+
+            // shoot into momentum
+            for (const iteration of iterations) {
+              if (shootingOrientation) break;
+
+              const directionOffset =
+                delta.x * iteration.direction.x +
+                delta.y * iteration.direction.y;
+              const normalOffset =
+                delta.x * iteration.normal.x + delta.y * iteration.normal.y;
+              if (
+                directionOffset > 0 &&
+                Math.abs(normalOffset) < directionOffset / 1.2 &&
+                heroEntity[MOVABLE].orientations[0] ===
+                  orientations[
+                    (orientations.indexOf(iteration.orientation) +
+                      (normalOffset > 0 ? 3 : 1)) %
+                      4
+                  ]
+              ) {
+                shootingOrientation = iteration.orientation;
+              }
+            }
+
+            if (entity[ORIENTABLE] && entity[ACTIONABLE]) {
+              entity[ORIENTABLE].facing = undefined;
+              if (shootingOrientation) {
+                entity[ORIENTABLE].facing = shootingOrientation;
+                entity[TOOLTIP].idle = rage;
+                entity[TOOLTIP].changed = true;
+              }
+            }
+
+            rerenderEntity(world, entity);
+            break;
+          }
+        } else if (pattern.name === "fairy") {
+          const heroEntity = world.getIdentifierAndComponents("hero", [
+            POSITION,
+          ]);
+          const size = world.metadata.gameEntity[LEVEL].size;
+          const distance = heroEntity
+            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.69)
+            : Infinity;
+          const flee = distance < 5;
+
+          if (flee && heroEntity) {
+            // invert direction by argument order
+            const fleeingOrientations = relativeOrientations(
+              world,
+              heroEntity[POSITION],
+              entity[POSITION]
+            );
+            if (fleeingOrientations.length === 1) {
+              fleeingOrientations.push(
+                orientations[
+                  (orientations.indexOf(fleeingOrientations[0]) +
+                    1 +
+                    random(0, 1) * 2) %
+                    4
+                ]
+              );
+            }
+            fleeingOrientations.push(invertOrientation(fleeingOrientations[1]));
+            entity[MOVABLE].orientations = fleeingOrientations;
+            rerenderEntity(world, entity);
+            break;
+          }
         } else if (pattern.name === "dialog") {
           const memory = pattern.memory;
 
@@ -190,7 +320,7 @@ export default function setupAi(world: World) {
           break;
         } else if (pattern.name === "enrage") {
           const memory = pattern.memory;
-          entity[BELONGABLE].tribe = 'hostile';
+          entity[BELONGABLE].tribe = "hostile";
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = rage;
           entity[TOOLTIP].override = memory.shout ? "visible" : undefined;
@@ -200,7 +330,7 @@ export default function setupAi(world: World) {
 
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "soothe") {
-          entity[BELONGABLE].tribe = 'neutral';
+          entity[BELONGABLE].tribe = "neutral";
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = undefined;
           entity[TOOLTIP].override = undefined;

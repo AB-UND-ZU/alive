@@ -151,7 +151,7 @@ export const createItemInInventory = <
   entity: Omit<T, "ITEM" | "RENDERABLE"> & {
     [ITEM]: Omit<Item, "carrier">;
   },
-  attachType?: "inventoryOnly" | "equipOnly"
+  equip: boolean = true
 ) => {
   const itemEntity = factory(world, {
     ...entity,
@@ -169,7 +169,7 @@ export const createItemInInventory = <
   const targetConsume = itemEntity[ITEM].consume;
   const targetStackable = itemEntity[ITEM].stackable;
 
-  if (attachType === "inventoryOnly") {
+  if (!equip) {
     carrier[INVENTORY].items.push(itemId);
   } else if (targetEquipment) {
     if (carrier[EQUIPPABLE]) {
@@ -190,7 +190,7 @@ export const createItemInInventory = <
       carrier[EQUIPPABLE][targetEquipment] = itemId;
     }
 
-    if (attachType !== "equipOnly") carrier[INVENTORY].items.push(itemId);
+    carrier[INVENTORY].items.push(itemId);
   } else if (targetConsume || targetStackable) {
     carrier[INVENTORY].items.push(itemId);
   } else if (targetStat) {
@@ -225,7 +225,10 @@ export const dropEntity = (
   const arrowHits = entity[SHOOTABLE]?.hits || 0;
   const arrowStacks = Math.ceil(arrowHits / STACK_SIZE);
   const items = [
-    ...(entity[INVENTORY]?.items || []),
+    ...(entity[INVENTORY]?.items.filter(
+      (itemId: number) =>
+        !world.assertByIdAndComponents(itemId, [ITEM])[ITEM].bound
+    ) || []),
     ...droppableCountables
       .filter((counter) => entity[STATS]?.[counter])
       .map((counter) =>
@@ -235,6 +238,7 @@ export const dropEntity = (
               amount: entity[STATS][counter],
               stat: counter,
               carrier: -1,
+              bound: false,
             },
             [RENDERABLE]: { generation: 0 },
             [SPRITE]: getCountableSprite(counter, "drop"),
@@ -252,6 +256,7 @@ export const dropEntity = (
                     : STACK_SIZE,
                 stackable: "arrow",
                 carrier: -1,
+                bound: false,
               },
               [RENDERABLE]: { generation: 0 },
               [SPRITE]: arrow,

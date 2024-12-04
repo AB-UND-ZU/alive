@@ -7,11 +7,7 @@ import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, registerEntity } from "./map";
 import { ITEM, STACK_SIZE } from "../components/item";
-import {
-  ORIENTABLE,
-  orientationPoints,
-  orientations,
-} from "../components/orientable";
+import { ORIENTABLE, orientationPoints } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { createSequence, getSequence } from "./sequence";
 import {
@@ -27,7 +23,7 @@ import { INVENTORY } from "../components/inventory";
 import { removeFromInventory } from "./trigger";
 import { createItemAsDrop, dropEntity } from "./drop";
 import { BELONGABLE } from "../components/belongable";
-import { calculateDamage, isFriendlyFire } from "./damage";
+import { calculateDamage, isEnemy, isFriendlyFire } from "./damage";
 import { SHOOTABLE } from "../components/shootable";
 import { isCollision } from "./movement";
 import { isSubmerged } from "./immersion";
@@ -35,6 +31,12 @@ import { collectItem, getCollecting, getLootable } from "./collect";
 import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
 import { getLockable } from "./action";
+import { invertOrientation } from "../../game/math/path";
+
+export const getProjectiles = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).filter(
+    (target) => PROJECTILE in target
+  ) as Entity[]
 
 export const getShootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -70,11 +72,13 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
       world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable === "arrow"
   );
   const arrowEntity = world.assertByIdAndComponents(arrowId, [ITEM]);
-  if (arrowEntity[ITEM].amount === 1) {
-    removeFromInventory(world, entity, arrowEntity);
-    disposeEntity(world, arrowEntity);
-  } else {
-    arrowEntity[ITEM].amount -= 1;
+  if (!isEnemy(world, entity)) {
+    if (arrowEntity[ITEM].amount === 1) {
+      removeFromInventory(world, entity, arrowEntity);
+      disposeEntity(world, arrowEntity);
+    } else {
+      arrowEntity[ITEM].amount -= 1;
+    }
   }
 
   const tick =
@@ -149,10 +153,9 @@ export default function setupBallistics(world: World) {
       // hit crossing enemies
       const isFlying = getSequence(world, entity, "arrow");
       const hitBoxes = [];
-      const oppositeOrientation =
-        orientations[
-          (orientations.indexOf(entity[ORIENTABLE]?.facing || "up") + 2) % 4
-        ];
+      const oppositeOrientation = invertOrientation(
+        entity[ORIENTABLE]?.facing || "up"
+      );
 
       if (!isFlying) {
         hitBoxes.push(entity[POSITION]);
@@ -197,7 +200,12 @@ export default function setupBallistics(world: World) {
           );
 
           // increment arrow hit counter on target
-          targetEntity[SHOOTABLE].hits += 1;
+          if (!isEnemy(world, entity)) {
+            targetEntity[SHOOTABLE].hits = Math.min(
+              targetEntity[SHOOTABLE].hits + 1,
+              10
+            );
+          }
           disposeEntity(world, entity, false);
           hit = true;
           break;
@@ -207,6 +215,12 @@ export default function setupBallistics(world: World) {
 
       // drop arrows only after fully reaching end
       if (isFlying) continue;
+
+      // don't drop enemy arrows
+      if (isEnemy(world, entity)) {
+        disposeEntity(world, entity);
+        continue;
+      }
 
       // stack into arrows
       const arrowStack = getStackableArrow(world, entity[POSITION]);
@@ -256,6 +270,7 @@ export default function setupBallistics(world: World) {
           [ITEM]: {
             stackable: "arrow",
             amount: 1,
+            bound: false,
           },
           [SPRITE]: arrow,
         }

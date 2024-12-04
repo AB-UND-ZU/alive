@@ -1,4 +1,5 @@
 import { Matrix, matrixFactory } from "../../game/math/matrix";
+import { invertOrientation } from "../../game/math/path";
 import { add, distribution } from "../../game/math/std";
 import {
   Orientation,
@@ -331,8 +332,7 @@ export class WaveFunctionCollapse {
         if (!adjacentOptions) continue;
 
         const adjacentDirection = adjacentOrientation as Orientation;
-        const oppositeDirection =
-          orientations[(orientations.indexOf(adjacentDirection) + 2) % 4];
+        const oppositeDirection = invertOrientation(adjacentDirection);
         let modified = false;
 
         // check each remaining option if it's still valid forwards and backwards

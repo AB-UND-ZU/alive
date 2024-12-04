@@ -5,6 +5,8 @@ export type Pattern = {
   name:
     | "prism"
     | "eye"
+    | "orb"
+    | "fairy"
     | "wait"
     | "move"
     | "kill"

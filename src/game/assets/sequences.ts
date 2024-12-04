@@ -87,6 +87,7 @@ import { VIEWABLE } from "../../engine/components/viewable";
 import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
 import {
+  getProjectiles,
   getShootable,
   getStackableArrow,
   isBouncable,
@@ -156,10 +157,12 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
   // move arrow forward
   while (!finished && targetDistance >= currentDistance) {
     const shootable = getShootable(world, entity[POSITION]);
+    const projectiles = getProjectiles(world, entity[POSITION]);
     if (
       isBouncable(world, entity[POSITION]) ||
       getStackableArrow(world, entity[POSITION]) ||
-      (shootable && !isFriendlyFire(world, entity, shootable))
+      (shootable && !isFriendlyFire(world, entity, shootable)) ||
+      projectiles.length > 1
     ) {
       finished = true;
       break;
@@ -465,6 +468,7 @@ export const itemCollect: Sequence<CollectSequence> = (
             amount: getGearStat("melee", "wood"),
             equipment: "melee",
             carrier: entityId,
+            bound: false,
           },
           [ORIENTABLE]: {},
           [RENDERABLE]: { generation: 0 },

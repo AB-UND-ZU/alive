@@ -4,13 +4,17 @@ import { World } from "../../engine";
 import { ENTERABLE } from "../../engine/components/enterable";
 import { Level, LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
-import { Orientation } from "../../engine/components/orientable";
+import {
+  Orientation,
+  orientationPoints,
+} from "../../engine/components/orientable";
 import { getCell } from "../../engine/systems/map";
 import { normalize, Point, reversed } from "./std";
 
 type Interval = { start: number; end: number };
 type Corner = { start: [Point, Point, Point]; end: [Point, Point, Point] };
 type Iteration = {
+  orientation: Orientation;
   direction: Point;
   normal: Point;
   corners: Corner;
@@ -34,8 +38,9 @@ const sides = {
 export const iterations: Iteration[] = [
   // up
   {
-    direction: { x: 0, y: -1 },
-    normal: { x: 1, y: 0 },
+    orientation: "up",
+    direction: orientationPoints.up,
+    normal: orientationPoints.right,
     corners: {
       start: [corners.downLeft, corners.downLeft, corners.leftUp],
       end: [corners.upRight, corners.rightDown, corners.rightDown],
@@ -61,8 +66,9 @@ export const iterations: Iteration[] = [
   },
   // right
   {
-    direction: { x: 1, y: 0 },
-    normal: { x: 0, y: 1 },
+    orientation: "right",
+    direction: orientationPoints.right,
+    normal: orientationPoints.down,
     corners: {
       start: [corners.leftUp, corners.leftUp, corners.upRight],
       end: [corners.rightDown, corners.downLeft, corners.downLeft],
@@ -88,8 +94,9 @@ export const iterations: Iteration[] = [
   },
   // down
   {
-    direction: { x: 0, y: 1 },
-    normal: { x: -1, y: 0 },
+    orientation: "down",
+    direction: orientationPoints.down,
+    normal: orientationPoints.left,
     corners: {
       start: [corners.upRight, corners.upRight, corners.rightDown],
       end: [corners.downLeft, corners.leftUp, corners.leftUp],
@@ -115,8 +122,9 @@ export const iterations: Iteration[] = [
   },
   // left
   {
-    direction: { x: -1, y: 0 },
-    normal: { x: 0, y: -1 },
+    orientation: "left",
+    direction: orientationPoints.left,
+    normal: orientationPoints.up,
     corners: {
       start: [corners.rightDown, corners.rightDown, corners.downLeft],
       end: [corners.leftUp, corners.upRight, corners.upRight],
