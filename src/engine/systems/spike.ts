@@ -14,6 +14,8 @@ import { createSequence } from "./sequence";
 import { HitSequence } from "../components/sequencable";
 import { STATS } from "../components/stats";
 import { SPIKABLE } from "../components/spikable";
+import { ATTACKABLE } from "../components/attackable";
+import { MELEE } from "../components/melee";
 
 export const isSpikable = (world: World, entity: Entity) =>
   SPIKABLE in entity && !isDead(world, entity);
@@ -61,7 +63,6 @@ export default function setupSpike(world: World) {
     for (const entity of world.getEntities([
       POSITION,
       MOVABLE,
-      EQUIPPABLE,
       STATS,
       RENDERABLE,
     ])) {
@@ -94,6 +95,15 @@ export default function setupSpike(world: World) {
       if (!targetEntity) continue;
 
       stingEntity(world, targetEntity, entity);
+
+      // already mark as interacted if not able to attack
+      if (
+        targetEntity[ATTACKABLE] &&
+        !(entity[MELEE] && entity[EQUIPPABLE]?.melee)
+      ) {
+        entity[MOVABLE].pendingOrientation = undefined;
+        entity[MOVABLE].lastInteraction = entityReference;
+      }
     }
   };
 
