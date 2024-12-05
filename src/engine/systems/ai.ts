@@ -278,7 +278,7 @@ export default function setupAi(world: World) {
           const distance = heroEntity
             ? getDistance(entity[POSITION], heroEntity[POSITION], size)
             : Infinity;
-          const flee = distance < 5;
+          const flee = distance < 5.5;
           const sidestep = distance < 7;
           let sidestepped = false;
 
@@ -330,7 +330,7 @@ export default function setupAi(world: World) {
             );
             let randomize = 0;
             if (fleeingOrientations.length === 1) {
-              randomize = Math.random();
+              randomize = Math.random() ** (distance - 0.5);
               fleeingOrientations.push(
                 orientations[
                   (orientations.indexOf(fleeingOrientations[0]) +
@@ -342,10 +342,12 @@ export default function setupAi(world: World) {
             }
             fleeingOrientations.push(invertOrientation(fleeingOrientations[1]));
 
-            if (randomize > 0.96) {
-              fleeingOrientations.reverse();
-            } else if (randomize > 0.92) {
-              fleeingOrientations.push(fleeingOrientations.shift()!);
+            if (randomize > 0.9) {
+              if (Math.random() > 0.5) {
+                fleeingOrientations.reverse();
+              } else {
+                fleeingOrientations.push(fleeingOrientations.shift()!);
+              }
             }
 
             entity[MOVABLE].orientations = fleeingOrientations;
