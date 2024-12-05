@@ -43,6 +43,7 @@ import { FOG } from "../components/fog";
 import { LEVEL } from "../components/level";
 import { BELONGABLE } from "../components/belongable";
 import { iterations } from "../../game/math/tracing";
+import { getProjectiles } from "./ballistics";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -183,10 +184,10 @@ export default function setupAi(world: World) {
           ]);
           const size = world.metadata.gameEntity[LEVEL].size;
           const distance = heroEntity
-            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.69)
+            ? getDistance(entity[POSITION], heroEntity[POSITION], size)
             : Infinity;
           const isShooting = !!entity[TOOLTIP].idle;
-          const flee = distance < 3;
+          const flee = distance <= 2;
           const attack = distance < 7;
 
           if (isShooting && entity[ACTIONABLE]) {
@@ -198,7 +199,8 @@ export default function setupAi(world: World) {
             const fleeingOrientations = relativeOrientations(
               world,
               heroEntity[POSITION],
-              entity[POSITION]
+              entity[POSITION],
+              1
             );
             entity[MOVABLE].orientations = fleeingOrientations;
             rerenderEntity(world, entity);
@@ -244,7 +246,7 @@ export default function setupAi(world: World) {
                 delta.x * iteration.normal.x + delta.y * iteration.normal.y;
               if (
                 directionOffset > 0 &&
-                Math.abs(normalOffset) < directionOffset / 1.2 &&
+                Math.abs(normalOffset) < directionOffset &&
                 heroEntity[MOVABLE].orientations[0] ===
                   orientations[
                     (orientations.indexOf(iteration.orientation) +
@@ -274,18 +276,61 @@ export default function setupAi(world: World) {
           ]);
           const size = world.metadata.gameEntity[LEVEL].size;
           const distance = heroEntity
-            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.69)
+            ? getDistance(entity[POSITION], heroEntity[POSITION], size)
             : Infinity;
           const flee = distance < 5;
+          const sidestep = distance < 7;
+          let sidestepped = false;
 
-          if (flee && heroEntity) {
+          if (sidestep && heroEntity) {
+            // dodge incoming projectiles
+            for (const iteration of iterations) {
+              if (sidestepped) break;
+              for (let direction = 1; direction < 3; direction += 1) {
+                const position = add(entity[POSITION], {
+                  x: iteration.direction.x * direction,
+                  y: iteration.direction.y * direction,
+                });
+                const projectile = getProjectiles(world, position)[0];
+                if (
+                  projectile &&
+                  !isFriendlyFire(world, entity, projectile) &&
+                  projectile[ORIENTABLE].facing ===
+                    invertOrientation(iteration.orientation)
+                ) {
+                  const sidestepOrientations = [
+                    orientations[
+                      (orientations.indexOf(iteration.orientation) + 1) % 4
+                    ],
+                  ];
+                  sidestepOrientations.push(
+                    invertOrientation(sidestepOrientations[0])
+                  );
+                  if (Math.random() > 0.5) {
+                    sidestepOrientations.reverse();
+                  }
+                  sidestepOrientations.push(
+                    invertOrientation(iteration.orientation)
+                  );
+                  entity[MOVABLE].orientations = sidestepOrientations;
+                  rerenderEntity(world, entity);
+                  sidestepped = true;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (!sidestepped && flee && heroEntity) {
             // invert direction by argument order
             const fleeingOrientations = relativeOrientations(
               world,
               heroEntity[POSITION],
               entity[POSITION]
             );
+            let randomize = 0;
             if (fleeingOrientations.length === 1) {
+              randomize = Math.random();
               fleeingOrientations.push(
                 orientations[
                   (orientations.indexOf(fleeingOrientations[0]) +
@@ -296,6 +341,13 @@ export default function setupAi(world: World) {
               );
             }
             fleeingOrientations.push(invertOrientation(fleeingOrientations[1]));
+
+            if (randomize > 0.96) {
+              fleeingOrientations.reverse();
+            } else if (randomize > 0.92) {
+              fleeingOrientations.push(fleeingOrientations.shift()!);
+            }
+
             entity[MOVABLE].orientations = fleeingOrientations;
             rerenderEntity(world, entity);
             break;
