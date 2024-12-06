@@ -57,11 +57,17 @@ export const stream: Sprite = {
 
 export const bubble: Sprite = {
   name: "water_bubble",
-  layers: [{ char: "\u0108", color: colors.grey }],
+  layers: [{ char: "∙", color: colors.blue }],
   amounts: {
-    single: [{ char: "∙", color: colors.grey }],
-    double: [{ char: "\u0106", color: colors.grey }],
-    multiple: [{ char: "\u0108", color: colors.grey }],
+    single: [
+      { char: "\u0106", color: colors.blue },
+      { char: "∙", color: colors.navy },
+    ],
+    double: [{ char: "\u0108", color: colors.blue }],
+    multiple: [
+      { char: "\u0100", color: colors.blue },
+      { char: "■", color: colors.navy },
+    ],
   },
 };
 

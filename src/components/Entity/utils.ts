@@ -123,6 +123,7 @@ export const stackHeight = 1;
 
 // odd values because i don't want to recalculate brightness values
 export const terrainHeight = 0 * stackHeight;
+export const effectHeight = 0.5 * stackHeight;
 export const unitHeight = 1 * stackHeight;
 export const lootHeight = 1.1 * stackHeight;
 export const decayHeight = 1.8 * stackHeight;
@@ -447,7 +448,9 @@ const stackableSprites: Record<Stackable, Sprite> = {
 };
 
 export const getItemSprite = (
-  item: Omit<Item, "amount" | "carrier" | "bound"> & { materialized?: Materialized }
+  item: Omit<Item, "amount" | "carrier" | "bound"> & {
+    materialized?: Materialized;
+  }
 ) => {
   if (item.stackable) return stackableSprites[item.stackable];
 

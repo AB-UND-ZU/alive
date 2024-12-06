@@ -1,6 +1,7 @@
 import {
   decayHeight,
   dialogHeight,
+  effectHeight,
   focusHeight,
   getItemSprite,
   particleHeight,
@@ -52,6 +53,7 @@ import {
 } from "../math/std";
 import { iterations } from "../math/tracing";
 import {
+  bubble,
   createDialog,
   createText,
   decay,
@@ -65,6 +67,7 @@ import {
 } from "./sprites";
 import {
   ArrowSequence,
+  BubbleSequence,
   BurnSequence,
   CollectSequence,
   DecaySequence,
@@ -241,11 +244,54 @@ export const creatureDecay: Sequence<DecaySequence> = (
   return { finished, updated };
 };
 
+const bubbleTick = 200;
+
+export const bubbleSplash: Sequence<BubbleSequence> = (
+  world,
+  entity,
+  state
+) => {
+  let updated = false;
+  let finished = false;
+
+  // create bubble particle
+  if (!state.particles.bubble) {
+    const bubbleParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: effectHeight,
+        amount: 0,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: bubble,
+    });
+    state.particles.bubble = world.getEntityId(bubbleParticle);
+    updated = true;
+  }
+
+  const targetWidth = Math.floor(state.elapsed / bubbleTick);
+
+  if (targetWidth > 3) {
+    finished = true;
+  } else if (targetWidth !== state.args.width) {
+    state.args.width = targetWidth;
+    const bubbleParticle = world.assertByIdAndComponents(
+      state.particles.bubble,
+      [PARTICLE]
+    );
+    bubbleParticle[PARTICLE].amount = targetWidth;
+    updated = true;
+  }
+
+  return { finished, updated };
+};
+
 export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   let updated = false;
   let finished = false;
 
-  // create death particle
+  // create fire particle
   if (!state.particles.fire) {
     const fireParticle = entities.createParticle(world, {
       [PARTICLE]: {
@@ -271,7 +317,6 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     const amount = fireParticle[PARTICLE].amount;
     fireParticle[PARTICLE].amount =
       amount === 2 ? [1, 3][distribution(40, 60)] : 2;
-    //rerenderEntity(world, fireParticle);
     updated = true;
   }
 

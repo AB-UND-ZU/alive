@@ -9,6 +9,7 @@ import { Light } from "./light";
 
 type EmptyObject = Record<string, never>;
 
+export type BubbleSequence = { width: number };
 export type VisionSequence = { light?: Light; previousLight?: Light, fast: boolean };
 export type PerishSequence = EmptyObject;
 export type PointerSequence = {
@@ -73,6 +74,7 @@ export type Sequence<A> = (
 
 export type Sequencable = {
   states: {
+    bubble?: SequenceState<BubbleSequence>;
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;

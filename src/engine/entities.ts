@@ -3,6 +3,7 @@ import { Actionable, ACTIONABLE } from "./components/actionable";
 import { Attackable, ATTACKABLE } from "./components/attackable";
 import { Behaviour, BEHAVIOUR } from "./components/behaviour";
 import { Belongable, BELONGABLE } from "./components/belongable";
+import { Bubble, BUBBLE } from "./components/bubble";
 import { Burnable, BURNABLE } from "./components/burnable";
 import { Collectable, COLLECTABLE } from "./components/collectable";
 import { COLLIDABLE, Collidable } from "./components/collidable";
@@ -51,6 +52,7 @@ export type Entity = {
   [ATTACKABLE]: Attackable;
   [BEHAVIOUR]: Behaviour;
   [BELONGABLE]: Belongable;
+  [BUBBLE]: Bubble;
   [BURNABLE]: Burnable;
   [COLLECTABLE]: Collectable;
   [COLLIDABLE]: Collidable;
@@ -392,6 +394,15 @@ export const createSign = entityFactory([
   SEQUENCABLE,
   SPRITE,
   TOOLTIP,
+]);
+
+export const createSplash = entityFactory([
+  BUBBLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
 ]);
 
 export const createSword = entityFactory([

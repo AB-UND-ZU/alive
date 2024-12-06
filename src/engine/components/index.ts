@@ -2,6 +2,7 @@ export { default as addActionable } from "./actionable";
 export { default as addAttackable } from "./attackable";
 export { default as addBehaviour } from "./behaviour";
 export { default as addBelongable } from "./belongable";
+export { default as addBubble } from "./bubble";
 export { default as addBurnable } from "./burnable";
 export { default as addCollectable } from "./collectable";
 export { default as addCollidable } from "./collidable";

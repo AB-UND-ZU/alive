@@ -502,7 +502,6 @@ T5: legendary (fuchsia)
 ## Tech debt
 
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
-- Compass needle could be an animation and particle
 - Attacking should have a bump movement
 - Colors should be available without star import
 - Pressed button could be implemented in ECS system rather than React state
@@ -519,6 +518,7 @@ T5: legendary (fuchsia)
 - Sprite stacks don't seem to work properly
 - Walking against a wall or pushing a box with faster speed than the box causes a delay for next action even no interaction happened
 - Entering a house only updates sprite correctly when the door is at the bottom
+- Fire doesn't need to be a sequence
 
 ## Inventory example
 
