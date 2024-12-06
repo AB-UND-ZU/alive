@@ -15,9 +15,10 @@ import {
 } from "../components/orientable";
 import { getAttackable, isDead, isFriendlyFire } from "./damage";
 import { getCollecting, getLootable } from "./collect";
-import { isSubmerged } from "./immersion";
+import { isImmersible, isSubmerged } from "./immersion";
 import { LEVEL } from "../components/level";
 import { getLockable, isLocked } from "./action";
+import { createBubble } from "./water";
 
 // speed:-1 interval:350 (world)
 // speed:0 interval:300 (scout, mage, knight)
@@ -116,6 +117,11 @@ export default function setupMovement(world: World) {
         };
 
         if (isWalkable(world, position)) {
+          // leave bubble trail if in water
+          if (isImmersible(world, entity[POSITION])) {
+            createBubble(world, entity[POSITION]);
+          }
+
           moveEntity(world, entity, position);
 
           // set facing to actual movement

@@ -3,17 +3,21 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { Entity } from "ecs";
 import { disposeEntity, registerEntity } from "./map";
-import {  LIQUID } from "../components/liquid";
+import { LIQUID } from "../components/liquid";
 import { entities } from "..";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
 import { none } from "../../game/assets/sprites";
 import { copy } from "../../game/math/std";
-import { BubbleSequence, SEQUENCABLE } from "../components/sequencable";
-import { createSequence, getSequence } from "./sequence";
+import {
+  BubbleSequence,
+  SEQUENCABLE,
+  WaveSequence,
+} from "../components/sequencable";
+import { createSequence, getSequences } from "./sequence";
 
-export const isPopped = (world: World, entity: Entity) =>
-  LIQUID in entity && !getSequence(world, entity, "bubble");
+export const isStill = (world: World, entity: Entity) =>
+  LIQUID in entity && getSequences(world, entity).length === 0;
 
 export const createBubble = (world: World, position: Position) => {
   const bubbleEntity = entities.createSplash(world, {
@@ -34,6 +38,25 @@ export const createBubble = (world: World, position: Position) => {
   registerEntity(world, bubbleEntity);
 };
 
+export const createWave = (world: World, position: Position) => {
+  const waveEntity = entities.createSplash(world, {
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [LIQUID]: {},
+    [POSITION]: copy(position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: none,
+  });
+  createSequence<"wave", WaveSequence>(
+    world,
+    waveEntity,
+    "wave",
+    "waterWave",
+    { innerRadius: 0, outerRadius: 0 }
+  );
+  registerEntity(world, waveEntity);
+};
+
 export default function setupWater(world: World) {
   let referenceGenerations = -1;
 
@@ -50,7 +73,7 @@ export default function setupWater(world: World) {
       RENDERABLE,
       SEQUENCABLE,
     ])) {
-      if (isPopped(world, entity)) {
+      if (isStill(world, entity)) {
         disposeEntity(world, entity);
         continue;
       }

@@ -9,8 +9,13 @@ import { Light } from "./light";
 
 type EmptyObject = Record<string, never>;
 
+export type WaveSequence = { innerRadius: number; outerRadius: number };
 export type BubbleSequence = { width: number };
-export type VisionSequence = { light?: Light; previousLight?: Light, fast: boolean };
+export type VisionSequence = {
+  light?: Light;
+  previousLight?: Light;
+  fast: boolean;
+};
 export type PerishSequence = EmptyObject;
 export type PointerSequence = {
   target?: number;
@@ -25,13 +30,16 @@ export type ReviveSequence = {
   viewable: Viewable;
   light: Light;
   compassId?: number;
-} & ({
-  tombstoneId?: number;
-  origin: Position;
-} | {
-  tombstoneId: number;
-  origin?: Position;
-});
+} & (
+  | {
+      tombstoneId?: number;
+      origin: Position;
+    }
+  | {
+      tombstoneId: number;
+      origin?: Position;
+    }
+);
 export type CollectSequence = {
   origin: Position;
   itemId: number;
@@ -40,7 +48,7 @@ export type CollectSequence = {
 export type UnlockSequence = { origin: Position; itemId: number };
 export type FocusSequence = EmptyObject;
 export type MeleeSequence = { facing: Orientation; damage: number };
-export type ArrowSequence = { origin: Position; range: number; };
+export type ArrowSequence = { origin: Position; range: number };
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
   step: string;
@@ -74,6 +82,7 @@ export type Sequence<A> = (
 
 export type Sequencable = {
   states: {
+    wave?: SequenceState<WaveSequence>;
     bubble?: SequenceState<BubbleSequence>;
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;

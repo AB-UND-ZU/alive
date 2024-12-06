@@ -21,6 +21,7 @@ import {
   ORIENTABLE,
   Orientation,
   orientationPoints,
+  orientations,
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { POSITION } from "../../engine/components/position";
@@ -63,6 +64,8 @@ import {
   hit,
   none,
   pointer,
+  waveCorner,
+  waveSide,
   woodStick,
 } from "./sprites";
 import {
@@ -83,6 +86,7 @@ import {
   Sequence,
   UnlockSequence,
   VisionSequence,
+  WaveSequence,
 } from "../../engine/components/sequencable";
 import { getSequence } from "../../engine/systems/sequence";
 import { SOUL } from "../../engine/components/soul";
@@ -99,6 +103,8 @@ import { PROJECTILE } from "../../engine/components/projectile";
 import { getGearStat } from "../balancing/equipment";
 import { STATS } from "../../engine/components/stats";
 import { PLAYER } from "../../engine/components/player";
+import { isImmersible } from "../../engine/systems/immersion";
+import { invertOrientation } from "../math/path";
 
 export * from "./npcs";
 export * from "./quests";
@@ -244,7 +250,7 @@ export const creatureDecay: Sequence<DecaySequence> = (
   return { finished, updated };
 };
 
-const bubbleTick = 200;
+const bubbleTick = 250;
 
 export const bubbleSplash: Sequence<BubbleSequence> = (
   world,
@@ -281,6 +287,280 @@ export const bubbleSplash: Sequence<BubbleSequence> = (
       [PARTICLE]
     );
     bubbleParticle[PARTICLE].amount = targetWidth;
+    updated = true;
+  }
+
+  return { finished, updated };
+};
+
+/*           ┌─┐
+      ┌─┐   ╔┘ └╗
+╔─╗  ┌╝ ╚┐ ┌┘   └┐
+│1│  │ 2 │ │  3  │
+╚─╝  └╗ ╔┘ └┐   ┌┘
+      └─┘   ╚┐ ┌╝
+             └─┘    */
+
+const waveSpeed = 250;
+
+export const waterWave: Sequence<WaveSequence> = (world, entity, state) => {
+  let updated = false;
+  let finished = false;
+
+  const outerRadius = Math.ceil(state.elapsed / waveSpeed);
+  const innerRadius = Math.round(state.elapsed / waveSpeed);
+
+  // create wave sides and initial corners
+  if (state.args.outerRadius === 0) {
+    for (const orientation of orientations) {
+      const waveParticle = entities.createCollecting(world, {
+        [ORIENTABLE]: { facing: orientation },
+        [PARTICLE]: {
+          offsetX: 0,
+          offsetY: 0,
+          offsetZ: effectHeight,
+          amount: 0,
+          duration: waveSpeed,
+          animatedOrigin: { x: 0, y: 0 },
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: waveSide,
+      });
+      state.particles[`side-${orientation}`] = world.getEntityId(waveParticle);
+    }
+    updated = true;
+  }
+
+  // break sides and outer waves on shores after passing half of block width
+  if (innerRadius !== state.args.innerRadius && outerRadius === innerRadius) {
+    for (const particleName in state.particles) {
+      const waveParticle = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+      if (
+        !particleName.startsWith("inner") &&
+        !isImmersible(
+          world,
+          add(entity[POSITION], {
+            x: waveParticle[PARTICLE].offsetX,
+            y: waveParticle[PARTICLE].offsetY,
+          })
+        )
+      ) {
+        disposeEntity(world, waveParticle);
+        delete state.particles[particleName];
+        updated = true;
+      }
+    }
+  }
+
+  if (Object.keys(state.particles).length === 0) {
+    finished = true;
+    return { finished, updated };
+  }
+
+  if (outerRadius !== state.args.outerRadius) {
+    // move all existing particles in their respective orientation
+    for (const particleName in state.particles) {
+      const waveParticle = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE, ORIENTABLE]
+      );
+      const orientation = particleName.split("-").slice(-1)[0] as Orientation;
+      const delta = orientationPoints[orientation];
+      waveParticle[PARTICLE].offsetX += delta.x;
+      waveParticle[PARTICLE].offsetY += delta.y;
+
+      // break inner waves immediately
+      if (
+        particleName.startsWith('inner') &&
+        !isImmersible(
+          world,
+          add(entity[POSITION], {
+            x: waveParticle[PARTICLE].offsetX,
+            y: waveParticle[PARTICLE].offsetY,
+          })
+        )
+      ) {
+        disposeEntity(world, waveParticle);
+        delete state.particles[particleName];
+        updated = true;
+      }
+    }
+
+    // create new set of hidden inner corner pairs
+    if (outerRadius > 0 && outerRadius % 2 === 0) {
+      const cornerDistance = outerRadius / 2;
+      for (const iteration of iterations) {
+        const rotatedOrientation =
+          orientations[(orientations.indexOf(iteration.orientation) + 1) % 4];
+        const leftDelta = {
+          x:
+            iteration.direction.x * cornerDistance -
+            iteration.normal.x * cornerDistance,
+          y:
+            iteration.direction.y * cornerDistance -
+            iteration.normal.y * cornerDistance,
+        };
+        if (isImmersible(world, add(entity[POSITION], leftDelta))) {
+          const leftParticle = entities.createCollecting(world, {
+            [ORIENTABLE]: { facing: rotatedOrientation },
+            [PARTICLE]: {
+              offsetX: leftDelta.x,
+              offsetY: leftDelta.y,
+              offsetZ: effectHeight,
+              amount: 0,
+              duration: waveSpeed,
+              animatedOrigin: {
+                x:
+                  iteration.direction.x * cornerDistance -
+                  iteration.normal.x * cornerDistance,
+                y:
+                  iteration.direction.y * cornerDistance -
+                  iteration.normal.y * cornerDistance,
+              },
+            },
+            [RENDERABLE]: { generation: 1 },
+            [SPRITE]: none,
+          });
+          state.particles[
+            `inner-${innerRadius}-left-${iteration.orientation}`
+          ] = world.getEntityId(leftParticle);
+        }
+
+        const rightDelta = {
+          x:
+            iteration.direction.x * cornerDistance +
+            iteration.normal.x * cornerDistance,
+          y:
+            iteration.direction.y * cornerDistance +
+            iteration.normal.y * cornerDistance,
+        };
+        if (isImmersible(world, add(entity[POSITION], rightDelta))) {
+          const rightParticle = entities.createCollecting(world, {
+            [ORIENTABLE]: { facing: invertOrientation(iteration.orientation) },
+            [PARTICLE]: {
+              offsetX: rightDelta.x,
+              offsetY: rightDelta.y,
+              offsetZ: effectHeight,
+              amount: 0,
+              duration: waveSpeed,
+              animatedOrigin: {
+                x:
+                  iteration.direction.x * cornerDistance +
+                  iteration.normal.x * cornerDistance,
+                y:
+                  iteration.direction.y * cornerDistance +
+                  iteration.normal.y * cornerDistance,
+              },
+            },
+            [RENDERABLE]: { generation: 1 },
+            [SPRITE]: none,
+          });
+          state.particles[
+            `inner-${innerRadius}-right-${iteration.orientation}`
+          ] = world.getEntityId(rightParticle);
+        }
+      }
+    }
+
+    // create new set of hidden outer corner pairs
+    if (outerRadius % 2 === 1) {
+      const cornerDistance = Math.ceil(outerRadius / 2);
+      for (const iteration of iterations) {
+        const rotatedOrientation =
+          orientations[(orientations.indexOf(iteration.orientation) + 3) % 4];
+        const leftDelta = {
+          x:
+            iteration.direction.x * cornerDistance -
+            iteration.normal.x * cornerDistance,
+          y:
+            iteration.direction.y * cornerDistance -
+            iteration.normal.y * cornerDistance,
+        };
+        if (isImmersible(world, add(entity[POSITION], leftDelta))) {
+          const leftParticle = entities.createCollecting(world, {
+            [ORIENTABLE]: { facing: rotatedOrientation },
+            [PARTICLE]: {
+              offsetX: leftDelta.x,
+              offsetY: leftDelta.y,
+              offsetZ: effectHeight,
+              amount: 0,
+              duration: waveSpeed,
+              animatedOrigin: {
+                x:
+                  iteration.direction.x * (cornerDistance - 1) -
+                  iteration.normal.x * (cornerDistance - 1),
+                y:
+                  iteration.direction.y * (cornerDistance - 1) -
+                  iteration.normal.y * (cornerDistance - 1),
+              },
+            },
+            [RENDERABLE]: { generation: 1 },
+            [SPRITE]: none,
+          });
+          state.particles[
+            `outer-${outerRadius}-left-${iteration.orientation}`
+          ] = world.getEntityId(leftParticle);
+        }
+
+        const rightDelta = {
+          x:
+            iteration.direction.x * cornerDistance +
+            iteration.normal.x * cornerDistance,
+          y:
+            iteration.direction.y * cornerDistance +
+            iteration.normal.y * cornerDistance,
+        };
+        if (isImmersible(world, add(entity[POSITION], rightDelta))) {
+          const rightParticle = entities.createCollecting(world, {
+            [ORIENTABLE]: { facing: iteration.orientation },
+            [PARTICLE]: {
+              offsetX: rightDelta.x,
+              offsetY: rightDelta.y,
+              offsetZ: effectHeight,
+              amount: 0,
+              duration: waveSpeed,
+              animatedOrigin: {
+                x:
+                  iteration.direction.x * (cornerDistance - 1) +
+                  iteration.normal.x * (cornerDistance - 1),
+                y:
+                  iteration.direction.y * (cornerDistance - 1) +
+                  iteration.normal.y * (cornerDistance - 1),
+              },
+            },
+            [RENDERABLE]: { generation: 1 },
+            [SPRITE]: none,
+          });
+          state.particles[
+            `outer-${outerRadius}-right-${iteration.orientation}`
+          ] = world.getEntityId(rightParticle);
+        }
+      }
+    }
+
+    state.args.outerRadius = outerRadius;
+    updated = true;
+  }
+
+  if (innerRadius !== state.args.innerRadius) {
+    // move all existing particles in their respective orientation
+    for (const particleName in state.particles) {
+      if (particleName.startsWith("side")) continue;
+
+      const waveParticle = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [SPRITE]
+      );
+
+      if (waveParticle[SPRITE] === waveCorner) continue;
+
+      waveParticle[SPRITE] = waveCorner;
+      rerenderEntity(world, waveParticle);
+    }
+    state.args.innerRadius = innerRadius;
     updated = true;
   }
 

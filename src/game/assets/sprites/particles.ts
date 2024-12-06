@@ -50,9 +50,44 @@ export const hit: Sprite = {
     multiple: [{ char: "X", color: colors.red }],
   },
 };
+
 export const stream: Sprite = {
   name: "water_stream",
-  layers: [{ char: "≈", color: colors.white }],
+  layers: [{ char: "≈", color: colors.blue }],
+};
+
+export const waveSide: Sprite = {
+  name: "water_wave",
+  layers: [{ char: "┼", color: colors.blue }],
+  facing: {
+    up: [{ char: "─", color: colors.blue }],
+    right: [{ char: "│", color: colors.blue }],
+    down: [{ char: "─", color: colors.blue }],
+    left: [{ char: "│", color: colors.blue }],
+  },
+};
+
+export const waveCorner: Sprite = {
+  name: "water_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.blue },
+      { char: "·", color: colors.navy },
+    ],
+    right: [
+      { char: "┘", color: colors.blue },
+      { char: "·", color: colors.navy },
+    ],
+    down: [
+      { char: "└", color: colors.blue },
+      { char: "·", color: colors.navy },
+    ],
+    left: [
+      { char: "┌", color: colors.blue },
+      { char: "·", color: colors.navy },
+    ],
+  },
 };
 
 export const bubble: Sprite = {
