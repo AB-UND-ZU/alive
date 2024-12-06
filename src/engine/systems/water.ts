@@ -3,7 +3,7 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { Entity } from "ecs";
 import { disposeEntity, registerEntity } from "./map";
-import { BUBBLE } from "../components/bubble";
+import {  LIQUID } from "../components/liquid";
 import { entities } from "..";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
@@ -13,12 +13,12 @@ import { BubbleSequence, SEQUENCABLE } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
 
 export const isPopped = (world: World, entity: Entity) =>
-  BUBBLE in entity && !getSequence(world, entity, "bubble");
+  LIQUID in entity && !getSequence(world, entity, "bubble");
 
 export const createBubble = (world: World, position: Position) => {
-  const splashEntity = entities.createSplash(world, {
-    [BUBBLE]: {},
+  const bubbleEntity = entities.createSplash(world, {
     [FOG]: { visibility: "hidden", type: "unit" },
+    [LIQUID]: {},
     [POSITION]: copy(position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
@@ -26,15 +26,15 @@ export const createBubble = (world: World, position: Position) => {
   });
   createSequence<"bubble", BubbleSequence>(
     world,
-    splashEntity,
+    bubbleEntity,
     "bubble",
     "bubbleSplash",
     { width: 0 }
   );
-  registerEntity(world, splashEntity);
+  registerEntity(world, bubbleEntity);
 };
 
-export default function setupLiquid(world: World) {
+export default function setupWater(world: World) {
   let referenceGenerations = -1;
 
   const onUpdate = (delta: number) => {
@@ -45,8 +45,8 @@ export default function setupLiquid(world: World) {
     referenceGenerations = worldGeneration;
 
     for (const entity of world.getEntities([
+      LIQUID,
       POSITION,
-      BUBBLE,
       RENDERABLE,
       SEQUENCABLE,
     ])) {

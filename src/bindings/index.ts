@@ -1292,7 +1292,6 @@ export const generateWorld = async (world: World) => {
   // start ordered systems
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupTick);
-  world.addSystem(systems.setupLiquid);
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupTrigger);
   world.addSystem(systems.setupCollect);
@@ -1303,6 +1302,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupEnter);
   world.addSystem(systems.setupBurn);
+  world.addSystem(systems.setupWater);
   world.addSystem(systems.setupAction);
   world.addSystem(systems.setupText);
   world.addSystem(systems.setupSequence);

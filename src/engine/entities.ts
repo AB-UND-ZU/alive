@@ -3,7 +3,6 @@ import { Actionable, ACTIONABLE } from "./components/actionable";
 import { Attackable, ATTACKABLE } from "./components/attackable";
 import { Behaviour, BEHAVIOUR } from "./components/behaviour";
 import { Belongable, BELONGABLE } from "./components/belongable";
-import { Bubble, BUBBLE } from "./components/bubble";
 import { Burnable, BURNABLE } from "./components/burnable";
 import { Collectable, COLLECTABLE } from "./components/collectable";
 import { COLLIDABLE, Collidable } from "./components/collidable";
@@ -18,6 +17,7 @@ import { Immersible, IMMERSIBLE } from "./components/immersible";
 import { Inventory, INVENTORY } from "./components/inventory";
 import { Item, ITEM } from "./components/item";
 import { Level, LEVEL } from "./components/level";
+import { Liquid, LIQUID } from "./components/liquid";
 import { Light, LIGHT } from "./components/light";
 import { Lockable, LOCKABLE } from "./components/lockable";
 import { Lootable, LOOTABLE } from "./components/lootable";
@@ -52,7 +52,6 @@ export type Entity = {
   [ATTACKABLE]: Attackable;
   [BEHAVIOUR]: Behaviour;
   [BELONGABLE]: Belongable;
-  [BUBBLE]: Bubble;
   [BURNABLE]: Burnable;
   [COLLECTABLE]: Collectable;
   [COLLIDABLE]: Collidable;
@@ -67,6 +66,7 @@ export type Entity = {
   [INVENTORY]: Inventory;
   [ITEM]: Item;
   [LEVEL]: Level;
+  [LIQUID]: Liquid;
   [LIGHT]: Light;
   [LOCKABLE]: Lockable;
   [LOOTABLE]: Lootable;
@@ -397,8 +397,8 @@ export const createSign = entityFactory([
 ]);
 
 export const createSplash = entityFactory([
-  BUBBLE,
   FOG,
+  LIQUID,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
