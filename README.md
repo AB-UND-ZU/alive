@@ -4,7 +4,6 @@ ASCII-based 2D adventure game. Using React and Three.js (with react-three-fiber)
 
 Only the 256 characters in code page 437 from the "DOS Font" are used (available here: https://laemeur.sdf.org/fonts/), along with original 16 terminal colors. To create all sprites, characters are stacked over each other (with the only exception of health bars and stack counters, they are underscores `_` transformed to the appropriate length and dots, respectively).
 
-
 ## Demo
 
 Play it here: https://ab-und-zu.github.io/alive
@@ -36,11 +35,11 @@ _Spawn area with intro quest_
 - Ghost
 - Prism: linear, high damage
 - Eye: sleeping, simple approaching, low hp
-- Orb: aligning with player, casting bolt, fleeing
+- Orb: aligning with player, casting beam, fleeing
 - Cube: slow walking, casting short wave after intervals
 - Blade: charging until hit when in line
 - Fly: pass through terrain, explode as attack
-- Bolt tower: casting bolt when aligning
+- Beam tower: casting beam when aligning
 - Wave tower: casting wave in intervals or when getting close
 - Fake (chest, pot, tree, cactus, palm, ore): enrage when adjacent, drop stack
 - Blob: fleeing, teleporting, only hittable with ranged attacks
@@ -66,6 +65,7 @@ _Spawn area with intro quest_
 ## Towns
 
 Hills 1
+
 - Chief: locked iron key, quest for gold key, dungeon entry
 - Mage: bubble spell and charge
 - Hunter: bow and arrows
@@ -106,11 +106,13 @@ Hills 1
 - Each tribe has a chief that drops an elemental key, either through quest or killing
 
 No tribe (neutral)
+
 - Hair: white
 - House: wood beams, stone walls, red roof
 - World: Hills
 
 Fire
+
 - Hair: red
 - Stat: Max HP + 10
 - Tool: Pickaxe
@@ -124,6 +126,7 @@ Fire
 - Dungeon: Volcano
 
 Water
+
 - Hair: blue
 - Stat: Max MP + 10
 - Tool: Boat
@@ -137,6 +140,7 @@ Water
 - Dungeon: Glacier
 
 Earth
+
 - Hair: green
 - Stat: Max inventory + 4
 - Tool: Axe
@@ -181,17 +185,21 @@ Earth
 ## Tiers
 
 T1: common (maroon)
+
 - Wood (Sword, Armor) - collecting
 
 T2: uncommon (lime)
+
 - Iron (Sword, Armor) - mining
 - Accessory (iron) - crafting / drops
 
 T3: rare (yellow)
+
 - Gold (Sword, Armor) - trading
 - Accessory lvl 1 (fire, water, earth, gold) - crafting / elites
 
 T4: epic (aqua)
+
 - Diamond (Sword, Armor) - mining / crafting
 - Fire (Sword, Armor) - farming / crafting
 - Water (Sword, Armor) - farming / crafting
@@ -199,6 +207,7 @@ T4: epic (aqua)
 - Accessory lvl 2 (fire, water, earth, gold) - crafting / bosses
 
 T5: legendary (fuchsia)
+
 - Ruby (Sword, Armor) - mining / crafting
 - Aether (Sword, Armor) - drops from dungeon bosses and chiefs
 - Void (Sword, Armor) - shards from crafting, fighting, quests
@@ -232,9 +241,9 @@ T5: legendary (fuchsia)
 - Wave: circular (10 gold + 10 xp)
 - Wave lvl 1: elemental (wave + 1 essence)
 - Wave lvl 2: added range + return (wave lvl 1 + 5 essence)
-- Bolt: fast projectile + pass terrain + pierce enemies + leave trail
-- Bolt lvl 1: elemental
-- Bolt lvl 2: range + trail duration + split T shape at end
+- Beam: fast projectile + pass terrain + pierce enemies + leave trail
+- Beam lvl 1: elemental
+- Beam lvl 2: range + trail duration + split T shape at end
 - Trap: single high damage
 - Trap lvl 1: elemental
 - Trap lvl 2: 4x size + wave damage + cooldown

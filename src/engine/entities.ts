@@ -46,19 +46,25 @@ import { Tooltip, TOOLTIP } from "./components/tooltip";
 import { Trackable, TRACKABLE } from "./components/trackable";
 import { Tradable, TRADABLE } from "./components/tradable";
 import { Viewable, VIEWABLE } from "./components/viewable";
+import { Castable, CASTABLE } from "./components/castable";
+import { Affectable, AFFECTABLE } from "./components/affectable";
+import { Exertable, EXERTABLE } from "./components/exertable";
 
 export type Entity = {
   [ACTIONABLE]: Actionable;
+  [AFFECTABLE]: Affectable;
   [ATTACKABLE]: Attackable;
   [BEHAVIOUR]: Behaviour;
   [BELONGABLE]: Belongable;
   [BURNABLE]: Burnable;
+  [CASTABLE]: Castable;
   [COLLECTABLE]: Collectable;
   [COLLIDABLE]: Collidable;
   [DISPLACABLE]: Displacable;
   [DROPPABLE]: Droppable;
   [ENTERABLE]: Enterable;
   [EQUIPPABLE]: Equippable;
+  [EXERTABLE]: Exertable;
   [FOCUSABLE]: Focusable;
   [FOG]: Fog;
   [IDENTIFIABLE]: Identifiable;
@@ -117,7 +123,10 @@ const entityFactory = <T extends keyof Entity>(components: T[]) => {
   };
 };
 
+export const createAoe = entityFactory([EXERTABLE, POSITION]);
+
 export const createBox = entityFactory([
+  AFFECTABLE,
   BELONGABLE,
   COLLIDABLE,
   DISPLACABLE,
@@ -165,13 +174,6 @@ export const createChest = entityFactory([
   TOOLTIP,
 ]);
 
-export const createCollecting = entityFactory([
-  ORIENTABLE,
-  PARTICLE,
-  RENDERABLE,
-  SPRITE,
-]);
-
 export const createCompass = entityFactory([
   ITEM,
   ORIENTABLE,
@@ -203,6 +205,13 @@ export const createDoor = entityFactory([
   SEQUENCABLE,
   SPRITE,
   TOOLTIP,
+]);
+
+export const createFibre = entityFactory([
+  ORIENTABLE,
+  PARTICLE,
+  RENDERABLE,
+  SPRITE,
 ]);
 
 export const createFire = entityFactory([
@@ -255,6 +264,7 @@ export const createGround = entityFactory([FOG, POSITION, RENDERABLE, SPRITE]);
 
 export const createHalo = entityFactory([
   ACTIONABLE,
+  BELONGABLE,
   EQUIPPABLE,
   INVENTORY,
   LIGHT,
@@ -271,6 +281,7 @@ export const createHalo = entityFactory([
 
 export const createHero = entityFactory([
   ACTIONABLE,
+  AFFECTABLE,
   ATTACKABLE,
   BELONGABLE,
   COLLECTABLE,
@@ -319,6 +330,7 @@ export const createMine = entityFactory([
 
 export const createMob = entityFactory([
   ACTIONABLE,
+  AFFECTABLE,
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,
@@ -396,6 +408,16 @@ export const createSign = entityFactory([
   TOOLTIP,
 ]);
 
+export const createSpell = entityFactory([
+  BELONGABLE,
+  CASTABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+]);
+
 export const createSplash = entityFactory([
   FOG,
   LIQUID,
@@ -442,6 +464,7 @@ export const createViewpoint = entityFactory([
 
 export const createVillager = entityFactory([
   ACTIONABLE,
+  AFFECTABLE,
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,

@@ -10,6 +10,7 @@ import Row from "../Row";
 import {
   arrow,
   buttonColor,
+  charge,
   createButton,
   createCountable,
   createText,
@@ -38,6 +39,7 @@ import { World } from "../../engine";
 import { canRevive } from "../../engine/systems/fate";
 import { isDead } from "../../engine/systems/damage";
 import Joystick from "../Joystick";
+import { canCast } from "../../engine/systems/magic";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -51,6 +53,20 @@ export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
 };
 
 export const actionKeys = [" ", "Enter"];
+
+const getActiveActivations = (item: Item) => {
+  if (!item.active) return [none, none, none];
+
+  if (item.active === "bow") return [none, arrow, none];
+  else if (item.active === "slash" || item.active === "block")
+    return [none, charge, none];
+  else if (item.active.endsWith("1"))
+    return [...createCountable({ mp: 1 }, "mp"), none];
+  else if (item.active.endsWith("2"))
+    return [...createCountable({ mp: 2 }, "mp"), none];
+
+  return [none, none, none];
+};
 
 const getActivationRow = (item?: Item) => {
   if (!item) return repeat(none, 3);
@@ -77,7 +93,7 @@ type Action = {
 const useAction = (
   action: (typeof actions)[number],
   isDisabled: (world: World, hero: Entity, actionEntity: Entity) => boolean,
-  name: string,
+  getName: (actionEntity: Entity) => string,
   getActivation: (actionEntity: Entity) => [Sprite[], Sprite[]]
 ) => {
   const { ecs, paused } = useWorld();
@@ -90,13 +106,22 @@ const useAction = (
 
     const disabled = isDisabled(ecs, heroEntity, actionEntity);
     const activation = getActivation(actionEntity);
+    const name = getName(actionEntity);
 
     return {
       name,
       activation,
       disabled,
     };
-  }, [paused, ecs, actionEntity, isDisabled, heroEntity, name, getActivation]);
+  }, [
+    paused,
+    ecs,
+    actionEntity,
+    isDisabled,
+    heroEntity,
+    getName,
+    getActivation,
+  ]);
 };
 
 export default function Controls() {
@@ -122,21 +147,21 @@ export default function Controls() {
   const spawnAction = useAction(
     "spawn",
     (world, hero, spawnEntity) => !canRevive(world, spawnEntity, hero),
-    "Spawn",
+    () => "Spawn",
     (spawnEntity) => [[none, spawnEntity ? ghost : none, none], repeat(none, 3)]
   );
 
   const questAction = useAction(
     "quest",
     (world, hero, questEntity) => !canAcceptQuest(world, hero, questEntity),
-    "Quest",
+    () => "Quest",
     (questEntity) => [[none, questEntity ? quest : none, none], repeat(none, 3)]
   );
 
   const unlockAction = useAction(
     "unlock",
     (world, hero, unlockEntity) => !canUnlock(world, hero, unlockEntity),
-    "Open",
+    () => "Open",
     (unlockEntity) => [
       [
         none,
@@ -156,20 +181,22 @@ export default function Controls() {
     "trade",
     (world, hero, tradeEntity) =>
       !isTradable(world, tradeEntity) || !canTrade(world, hero, tradeEntity),
-    "Buy",
+    () => "Buy",
     (tradeEntity) => [
       getActivationRow(tradeEntity && tradeEntity[TRADABLE].activation[0]),
       getActivationRow(tradeEntity && tradeEntity[TRADABLE].activation[1]),
     ]
   );
 
-  const bowAction = useAction(
-    "bow",
-    (world, hero, bowEntity) => !bowEntity,
-    "Bow",
-    (bowEntity) => [
-      [none, bowEntity[SPRITE], none],
-      [none, arrow, none],
+  const activeAction = useAction(
+    "active",
+    (world, hero, activeEntity) =>
+      activeEntity[ITEM].active !== "bow" &&
+      !canCast(world, hero, activeEntity),
+    (activeEntity) => activeEntity[SPRITE].name,
+    (activeEntity) => [
+      [none, activeEntity[SPRITE], none],
+      getActiveActivations(activeEntity[ITEM]),
     ]
   );
 
@@ -178,21 +205,21 @@ export default function Controls() {
     questAction,
     unlockAction,
     tradeAction,
-    bowAction,
+    activeAction,
   ];
-  const activeAction = availableActions.find((action) => action);
+  const selectedAction = availableActions.find((action) => action);
 
-  activeRef.current = activeAction;
+  activeRef.current = selectedAction;
 
   // rotate button shadow
   useEffect(() => {
     // clear on fading action
-    if (highlightRef.current && !activeAction) {
+    if (highlightRef.current && !selectedAction) {
       clearInterval(highlightRef.current);
       highlightRef.current = undefined;
     }
 
-    if (!activeAction || activeAction.disabled) return;
+    if (!selectedAction || selectedAction.disabled) return;
 
     // reset on new action
     if (!highlightRef.current) {
@@ -202,7 +229,7 @@ export default function Controls() {
         setHighlight((prevHighlight) => normalize(prevHighlight - 1, 14));
       }, 100);
     }
-  }, [activeAction]);
+  }, [selectedAction]);
 
   const handleAction = useCallback(
     (
@@ -413,11 +440,11 @@ export default function Controls() {
     action && createButton(repeat(none, buttonWidth), buttonWidth, false, true);
   const emptyButton = [repeat(none, buttonWidth), repeat(none, buttonWidth)];
   const actionButton =
-    activeAction &&
+    selectedAction &&
     createButton(
-      createText(activeAction.name, buttonColor),
+      createText(selectedAction.name, buttonColor),
       buttonWidth,
-      activeAction.disabled,
+      selectedAction.disabled,
       false,
       highlight
     );
@@ -425,7 +452,7 @@ export default function Controls() {
 
   const emptyActivation = [repeat(none, 3), repeat(none, 3)];
   const activation =
-    action?.activation || activeAction?.activation || emptyActivation;
+    action?.activation || selectedAction?.activation || emptyActivation;
 
   const itemSprites =
     ecs && hero?.[INVENTORY]

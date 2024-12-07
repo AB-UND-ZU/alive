@@ -230,27 +230,27 @@ export const earthOrb: Sprite = {
   layers: [{ char: "0", color: colors.lime }],
 };
 
-export const boltTower: Sprite = {
+export const beamTower: Sprite = {
   name: "Tower",
   layers: [{ char: "Φ", color: colors.silver }],
 };
 
-export const goldBoltTower: Sprite = {
+export const goldBeamTower: Sprite = {
   name: "Tower",
   layers: [{ char: "Φ", color: colors.yellow }],
 };
 
-export const fireBoltTower: Sprite = {
+export const fireBeamTower: Sprite = {
   name: "Tower",
   layers: [{ char: "Φ", color: colors.red }],
 };
 
-export const waterBoltTower: Sprite = {
+export const waterBeamTower: Sprite = {
   name: "Tower",
   layers: [{ char: "Φ", color: colors.blue }],
 };
 
-export const earthBoltTower: Sprite = {
+export const earthBeamTower: Sprite = {
   name: "Tower",
   layers: [{ char: "Φ", color: colors.lime }],
 };

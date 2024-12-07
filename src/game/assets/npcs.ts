@@ -119,14 +119,14 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
             )
               return;
 
-            if (!hasAir && cellEntity[FOG].type === "air") hasAir = true;
+            if (!hasAir && cellEntity[FOG]?.type === "air") hasAir = true;
 
-            if (shouldDiscard && cellEntity[FOG].type !== "air") {
+            if (shouldDiscard && cellEntity[FOG]?.type !== "air") {
               disposeEntity(world, cellEntity);
               return;
             }
 
-            cellEntity[FOG].visibility = "hidden";
+            if (cellEntity[FOG]) cellEntity[FOG].visibility = "hidden";
             rerenderEntity(world, cellEntity);
           });
 

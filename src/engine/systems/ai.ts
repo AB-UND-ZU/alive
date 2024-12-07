@@ -44,6 +44,7 @@ import { LEVEL } from "../components/level";
 import { BELONGABLE } from "../components/belongable";
 import { iterations } from "../../game/math/tracing";
 import { getProjectiles } from "./ballistics";
+import { canCast } from "./magic";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -183,29 +184,48 @@ export default function setupAi(world: World) {
             MOVABLE,
           ]);
           const size = world.metadata.gameEntity[LEVEL].size;
-          const distance = heroEntity
+          const circularDistance = heroEntity
             ? getDistance(entity[POSITION], heroEntity[POSITION], size)
             : Infinity;
+          const blockDistance = heroEntity
+            ? getDistance(
+                entity[POSITION],
+                heroEntity[POSITION],
+                size,
+                1,
+                false
+              )
+            : Infinity;
+          const visualDistance = heroEntity
+            ? getDistance(
+                entity[POSITION],
+                heroEntity[POSITION],
+                size,
+                0.69,
+                false
+              )
+            : Infinity;
+          const canShoot = canCast(
+            world,
+            entity,
+            world.assertByIdAndComponents(
+              entity[INVENTORY]?.items.find(
+                (itemId) =>
+                  world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
+                    .equipment === "active"
+              ),
+              [ITEM]
+            )
+          );
           const isShooting = !!entity[TOOLTIP].idle;
-          const flee = distance <= 2;
-          const attack = distance < 7;
+          const flee = circularDistance < 4;
+          const attack = blockDistance > 2 && visualDistance < 7;
 
           if (isShooting && entity[ACTIONABLE]) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
             entity[ACTIONABLE].triggered = true;
-          } else if (flee && heroEntity) {
-            // invert direction by argument order
-            const fleeingOrientations = relativeOrientations(
-              world,
-              heroEntity[POSITION],
-              entity[POSITION],
-              1
-            );
-            entity[MOVABLE].orientations = fleeingOrientations;
-            rerenderEntity(world, entity);
-            break;
-          } else if (attack && heroEntity) {
+          } else if (canShoot && attack && heroEntity) {
             const delta = {
               x: signedDistance(
                 entity[POSITION].x,
@@ -236,12 +256,13 @@ export default function setupAi(world: World) {
             }
 
             // shoot into momentum
+            const speedFactor = 1.5;
             for (const iteration of iterations) {
               if (shootingOrientation) break;
 
               const directionOffset =
-                delta.x * iteration.direction.x +
-                delta.y * iteration.direction.y;
+                (delta.x * iteration.direction.x) / speedFactor +
+                (delta.y * iteration.direction.y) / speedFactor / 0.69;
               const normalOffset =
                 delta.x * iteration.normal.x + delta.y * iteration.normal.y;
               if (
@@ -264,9 +285,21 @@ export default function setupAi(world: World) {
                 entity[ORIENTABLE].facing = shootingOrientation;
                 entity[TOOLTIP].idle = rage;
                 entity[TOOLTIP].changed = true;
+                rerenderEntity(world, entity);
+                break;
               }
             }
+          }
 
+          if (flee && heroEntity) {
+            // invert direction by argument order
+            const fleeingOrientations = relativeOrientations(
+              world,
+              heroEntity[POSITION],
+              entity[POSITION],
+              1
+            );
+            entity[MOVABLE].orientations = fleeingOrientations;
             rerenderEntity(world, entity);
             break;
           }

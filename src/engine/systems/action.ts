@@ -18,6 +18,7 @@ import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
+import { TypedEntity } from "../entities";
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
@@ -95,6 +96,46 @@ export const canTrade = (world: World, entity: Entity, trade: Entity) =>
     }
   });
 
+export const getAvailableActive = (
+  world: World,
+  entity: TypedEntity<"INVENTORY">
+) => {
+  const itemEntity = world.getEntityByIdAndComponents(
+    entity[INVENTORY].items.find(
+      (itemId) =>
+        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].equipment ===
+        "active"
+    ),
+    [ITEM]
+  );
+
+  const active = itemEntity?.[ITEM].active;
+
+  if (!active) return;
+
+  if (active === "bow") {
+    // check if there is arrows for a bow
+    const hasArrow = entity[INVENTORY].items.some(
+      (itemId) =>
+        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
+        "arrow"
+    );
+    if (hasArrow) return itemEntity;
+  } else if (active === "slash" || active === "block") {
+    // check if there is charges for active items
+    const hasCharge = entity[INVENTORY].items.some(
+      (itemId) =>
+        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
+        "charge"
+    );
+    if (hasCharge) return itemEntity;
+  } else if (entity[STATS]) {
+    // check mana for spells
+    if (active.endsWith("1") && entity[STATS].mp >= 1) return itemEntity;
+    if (active.endsWith("2") && entity[STATS].mp >= 2) return itemEntity;
+  }
+};
+
 export default function setupAction(world: World) {
   let referenceGenerations = -1;
 
@@ -127,7 +168,6 @@ export default function setupAction(world: World) {
           const questEntity = getQuest(world, targetPosition);
           const lockableEntity = getLockable(world, targetPosition);
           const tradeEntity = getTradable(world, targetPosition);
-          const spawnEntity = getRevivable(world, targetPosition);
 
           // only player can accept quests
           if (
@@ -155,44 +195,39 @@ export default function setupAction(world: World) {
             !isDead(world, entity)
           )
             trade = tradeEntity;
-
-          // tombstones can revive player
-          if (!spawn && spawnEntity && canRevive(world, spawnEntity, entity))
-            spawn = spawnEntity;
         }
       }
 
+      // tombstones can revive player
+      const spawnEntity = getRevivable(world, entity[POSITION]);
+      if (
+        isDead(world, entity) &&
+        spawnEntity &&
+        canRevive(world, spawnEntity, entity)
+      )
+        spawn = spawnEntity;
+
       // check inventory actions
-      const arrowId = entity[INVENTORY].items.findLast(
-        (itemId) =>
-          world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
-          "arrow"
-      );
+      const active = getAvailableActive(world, entity);
 
       const questId = quest && world.getEntityId(quest);
       const unlockId = unlock && world.getEntityId(unlock);
       const tradeId = trade && world.getEntityId(trade);
       const spawnId = spawn && world.getEntityId(spawn);
-      const bowId =
-        arrowId &&
-        entity[INVENTORY].items.find(
-          (itemId) =>
-            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].active ===
-            "bow"
-        );
+      const activeId = active && world.getEntityId(active);
 
       if (
         entity[ACTIONABLE].quest !== questId ||
         entity[ACTIONABLE].unlock !== unlockId ||
         entity[ACTIONABLE].trade !== tradeId ||
         entity[ACTIONABLE].spawn !== spawnId ||
-        entity[ACTIONABLE].bow !== bowId
+        entity[ACTIONABLE].active !== activeId
       ) {
         entity[ACTIONABLE].quest = questId;
         entity[ACTIONABLE].unlock = unlockId;
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].spawn = spawnId;
-        entity[ACTIONABLE].bow = bowId;
+        entity[ACTIONABLE].active = activeId;
         rerenderEntity(world, entity);
       }
     }

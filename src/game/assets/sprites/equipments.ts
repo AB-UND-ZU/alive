@@ -27,9 +27,43 @@ export const boat: Sprite = {
   ],
 };
 
-export const bow: Sprite = {
+// active spells (no mana)
+
+export const bowActive: Sprite = {
   name: "Bow",
   layers: [{ char: "}", color: colors.silver }],
+};
+
+export const slashActive: Sprite = {
+  name: "Slash",
+  layers: [{ char: "@", color: colors.silver }],
+};
+
+export const blockActive: Sprite = {
+  name: "Block",
+  layers: [
+    { char: "0", color: colors.silver },
+    { char: "\u0106", color: colors.black },
+    { char: "\u0108", color: colors.black },
+  ],
+};
+
+export const bombActive: Sprite = {
+  name: "Bomb",
+  layers: [
+    { char: "`", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+    { char: "\u0108", color: colors.grey },
+    { char: "\u0106", color: colors.grey },
+  ],
+};
+
+export const haste: Sprite = {
+  name: "Haste",
+  layers: [
+    { char: "»", color: colors.grey },
+    { char: ">", color: colors.silver },
+  ],
 };
 
 export const hpFlask1: Sprite = {
@@ -395,22 +429,6 @@ export const fishingRod: Sprite = {
   },
 };
 
-export const slash1: Sprite = {
-  name: "Slash",
-  layers: [
-    { char: "σ", color: colors.silver },
-    { char: "\u0106", color: colors.grey },
-  ],
-};
-
-export const slash2: Sprite = {
-  name: "Slash",
-  layers: [
-    { char: "@", color: colors.silver },
-    { char: "\u0106", color: colors.grey },
-  ],
-};
-
 export const shield1: Sprite = {
   name: "Shield",
   layers: [
@@ -432,27 +450,6 @@ export const shield2: Sprite = {
     { char: "+", color: colors.grey },
     { char: "|", color: colors.grey },
     { char: ".", color: colors.silver },
-  ],
-};
-
-export const block1: Sprite = {
-  name: "Block",
-  layers: [
-    { char: "■", color: colors.silver },
-    { char: "±", color: colors.silver },
-    { char: "\u0108", color: colors.black },
-    { char: "\u0106", color: colors.black },
-  ],
-};
-
-export const block2: Sprite = {
-  name: "Block",
-  layers: [
-    { char: "■", color: colors.grey },
-    { char: "±", color: colors.grey },
-    { char: "\u0108", color: colors.black },
-    { char: "\u0106", color: colors.silver },
-    { char: "∙", color: colors.black },
   ],
 };
 
@@ -495,6 +492,8 @@ export const cloak2: Sprite = {
     { char: "°", color: colors.silver },
   ],
 };
+
+// passives
 
 export const charm: Sprite = {
   name: "Charm",
@@ -770,55 +769,163 @@ export const ironRing2: Sprite = {
   ],
 };
 
-export const bomb: Sprite = {
-  name: "Bomb",
+// spells
+
+export const beamSpell: Sprite = {
+  name: "Beam",
   layers: [
-    { char: "`", color: colors.maroon },
-    { char: ":", color: colors.maroon },
-    { char: "\u0108", color: colors.grey },
-    { char: "\u0106", color: colors.grey },
+    { char: "±", color: colors.grey },
+    { char: "■", color: colors.grey },
+    { char: "\u0108", color: colors.black },
+    { char: "\u0106", color: colors.silver },
+    { char: "∙", color: colors.grey },
   ],
 };
 
-export const haste: Sprite = {
-  name: "Haste",
+export const fireBeam1Spell: Sprite = {
+  name: "Beam",
   layers: [
-    { char: "»", color: colors.grey },
-    { char: ">", color: colors.silver },
+    { char: "±", color: colors.maroon },
+    { char: "■", color: colors.maroon },
+    { char: "\u0108", color: colors.black },
+    { char: "\u0106", color: colors.red },
+    { char: "∙", color: colors.maroon },
   ],
 };
 
-export const wave: Sprite = {
-  name: "Wave",
-  layers: [{ char: "δ", color: colors.silver }],
+export const waterBeam1Spell: Sprite = {
+  name: "Beam",
+  layers: [
+    { char: "±", color: colors.navy },
+    { char: "■", color: colors.navy },
+    { char: "\u0108", color: colors.black },
+    { char: "\u0106", color: colors.blue },
+    { char: "∙", color: colors.navy },
+  ],
 };
 
-export const fireWave1: Sprite = {
-  name: "Wave",
-  layers: [{ char: "δ", color: colors.red }],
+export const earthBeam1Spell: Sprite = {
+  name: "Beam",
+  layers: [
+    { char: "±", color: colors.green },
+    { char: "■", color: colors.green },
+    { char: "\u0108", color: colors.black },
+    { char: "\u0106", color: colors.lime },
+    { char: "∙", color: colors.green },
+  ],
 };
 
-export const waterWave1: Sprite = {
-  name: "Wave",
-  layers: [{ char: "δ", color: colors.blue }],
+export const fireBeam2Spell: Sprite = {
+  name: "Beam",
+  layers: [
+    { char: "\u0100", color: colors.maroon },
+    { char: "■", color: colors.black },
+    { char: "I", color: colors.black },
+    { char: "\u0108", color: colors.red },
+    { char: "\u0106", color: colors.maroon },
+  ],
 };
 
-export const earthWave1: Sprite = {
-  name: "Wave",
-  layers: [{ char: "δ", color: colors.lime }],
+export const waterBeam2Spell: Sprite = {
+  name: "Beam",
+  layers: [
+    { char: "\u0100", color: colors.navy },
+    { char: "■", color: colors.black },
+    { char: "I", color: colors.black },
+    { char: "\u0108", color: colors.blue },
+    { char: "\u0106", color: colors.navy },
+  ],
 };
 
-export const fireWave2: Sprite = {
-  name: "Wave",
-  layers: [{ char: "§", color: colors.red }],
+export const earthBeam2Spell: Sprite = {
+  name: "Beam",
+  layers: [
+    { char: "\u0100", color: colors.green },
+    { char: "■", color: colors.black },
+    { char: "I", color: colors.black },
+    { char: "\u0108", color: colors.lime },
+    { char: "\u0106", color: colors.green },
+  ],
 };
 
-export const waterWave2: Sprite = {
+export const waveSpell: Sprite = {
   name: "Wave",
-  layers: [{ char: "§", color: colors.blue }],
+  layers: [
+    { char: "*", color: colors.grey },
+    { char: "■", color: colors.black },
+    { char: "-", color: colors.grey },
+    { char: "|", color: colors.grey },
+    { char: "+", color: colors.silver },
+    { char: "·", color: colors.black },
+    { char: "~", color: colors.black },
+  ],
 };
 
-export const earthWave2: Sprite = {
+export const fireWave1Spell: Sprite = {
   name: "Wave",
-  layers: [{ char: "§", color: colors.lime }],
+  layers: [
+    { char: "*", color: colors.maroon },
+    { char: "■", color: colors.black },
+    { char: "-", color: colors.maroon },
+    { char: "|", color: colors.maroon },
+    { char: "+", color: colors.red },
+    { char: "·", color: colors.black },
+    { char: "~", color: colors.black },
+  ],
+};
+
+export const waterWave1Spell: Sprite = {
+  name: "Wave",
+  layers: [
+    { char: "*", color: colors.navy },
+    { char: "■", color: colors.black },
+    { char: "-", color: colors.navy },
+    { char: "|", color: colors.navy },
+    { char: "+", color: colors.blue },
+    { char: "·", color: colors.black },
+    { char: "~", color: colors.black },
+  ],
+};
+
+export const earthWave1Spell: Sprite = {
+  name: "Wave",
+  layers: [
+    { char: "*", color: colors.green },
+    { char: "■", color: colors.black },
+    { char: "-", color: colors.green },
+    { char: "|", color: colors.green },
+    { char: "+", color: colors.lime },
+    { char: "·", color: colors.black },
+    { char: "~", color: colors.black },
+  ],
+};
+
+export const fireWave2Spell: Sprite = {
+  name: "Wave",
+  layers: [
+    { char: "¬", color: colors.red },
+    { char: "Γ", color: colors.black },
+    { char: "|", color: colors.red },
+    { char: "╬", color: colors.maroon },
+  ],
+};
+
+export const waterWave2Spell: Sprite = {
+  name: "Wave",
+  layers: [
+    { char: "¬", color: colors.blue },
+    { char: "Γ", color: colors.black },
+    { char: "|", color: colors.blue },
+    { char: "╬", color: colors.navy },
+  ],
+};
+
+export const earthWave2Spell: Sprite = {
+  name: "Wave",
+  layers: [
+    { char: "¬", color: colors.lime },
+    { char: "Γ", color: colors.black },
+    { char: "|", color: colors.lime },
+    { char: "╬", color: colors.green },
+  ],
 };

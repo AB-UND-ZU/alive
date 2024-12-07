@@ -46,6 +46,7 @@ import { getClassData } from "../../game/balancing/classes";
 import { emptyStats, STATS } from "../components/stats";
 import { getSpeedInterval } from "./movement";
 import { PUSHABLE } from "../components/pushable";
+import { AFFECTABLE } from "../components/affectable";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -107,6 +108,7 @@ export default function setupFate(world: World) {
     // initiate respawn sequence before decaying
     for (const entity of world.getEntities([
       PLAYER,
+      BELONGABLE,
       DROPPABLE,
       RENDERABLE,
       POSITION,
@@ -154,6 +156,7 @@ export default function setupFate(world: World) {
         );
         const haloEntity = entities.createHalo(world, {
           [ACTIONABLE]: { triggered: false },
+          [BELONGABLE]: { tribe: entity[BELONGABLE].tribe },
           [EQUIPPABLE]: {},
           [INVENTORY]: { items: [], size: 10 },
           [LIGHT]: { ...entity[LIGHT] },
@@ -167,7 +170,11 @@ export default function setupFate(world: World) {
             },
             lastInteraction: 0,
           },
-          [PLAYER]: { ghost: true, inside: entity[PLAYER].inside, flying: false },
+          [PLAYER]: {
+            ghost: true,
+            inside: entity[PLAYER].inside,
+            flying: false,
+          },
           [POSITION]: copy(entity[POSITION]),
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: {
@@ -210,6 +217,7 @@ export default function setupFate(world: World) {
 
     // grant souls a new life
     for (const entity of world.getEntities([
+      BELONGABLE,
       SEQUENCABLE,
       RENDERABLE,
       SOUL,
@@ -237,8 +245,9 @@ export default function setupFate(world: World) {
 
       const heroEntity = entities.createHero(world, {
         [ACTIONABLE]: { triggered: false },
+        [AFFECTABLE]: {},
         [ATTACKABLE]: {},
-        [BELONGABLE]: { tribe: "neutral" },
+        [BELONGABLE]: { tribe: entity[BELONGABLE].tribe },
         [COLLECTABLE]: {},
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {},

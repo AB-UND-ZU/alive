@@ -15,7 +15,7 @@ import {
   block,
   blockDown,
   blockUp,
-  bow,
+  bowActive,
   bush,
   campfire,
   coconut,
@@ -127,6 +127,7 @@ import { SPIKABLE } from "../engine/components/spikable";
 import { DISPLACABLE } from "../engine/components/displacable";
 import generateTown from "../engine/wfc/town";
 import { ENTERABLE } from "../engine/components/enterable";
+import { AFFECTABLE } from "../engine/components/affectable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -361,6 +362,7 @@ export const generateWorld = async (world: World) => {
       );
       entities.createHalo(world, {
         [ACTIONABLE]: { triggered: false },
+        [BELONGABLE]: { tribe: "neutral" },
         [EQUIPPABLE]: {},
         [INVENTORY]: { items: [], size: 10 },
         [LIGHT]: { brightness: 15, visibility: 15, darkness: 0 },
@@ -737,6 +739,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
       const boxEntity = entities.createBox(world, {
+        [AFFECTABLE]: {},
         [BELONGABLE]: { tribe },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false },
@@ -806,6 +809,7 @@ export const generateWorld = async (world: World) => {
         generateUnitData("guide");
       const guideEntity = entities.createVillager(world, {
         [ACTIONABLE]: { triggered: false },
+        [AFFECTABLE]: {},
         [ATTACKABLE]: {},
         [BEHAVIOUR]: { patterns },
         [BELONGABLE]: { tribe },
@@ -885,6 +889,7 @@ export const generateWorld = async (world: World) => {
 
       const mobEntity = entities.createMob(world, {
         [ACTIONABLE]: { triggered: false },
+        [AFFECTABLE]: {},
         [ATTACKABLE]: {},
         [BEHAVIOUR]: { patterns },
         [BELONGABLE]: { tribe },
@@ -914,15 +919,21 @@ export const generateWorld = async (world: World) => {
       });
       for (const item of items) {
         if (item.material && item.equipment === "melee") {
-          createItemInInventory(world, mobEntity, entities.createSword, {
-            [ITEM]: {
-              ...item,
-              amount: getGearStat(item.equipment, item.material),
+          createItemInInventory(
+            world,
+            mobEntity,
+            entities.createSword,
+            {
+              [ITEM]: {
+                ...item,
+                amount: getGearStat(item.equipment, item.material),
+              },
+              [ORIENTABLE]: {},
+              [SEQUENCABLE]: { states: {} },
+              [SPRITE]: getItemSprite(item),
             },
-            [ORIENTABLE]: {},
-            [SEQUENCABLE]: { states: {} },
-            [SPRITE]: getItemSprite(item),
-          }, false);
+            false
+          );
         } else {
           createItemInInventory(
             world,
@@ -1283,11 +1294,11 @@ export const generateWorld = async (world: World) => {
         amount: 1,
         bound: false,
       },
-      [SPRITE]: bow,
+      [SPRITE]: bowActive,
     }
   );
-  const bowCotainer = world.assertById(bowEntity[ITEM].carrier);
-  world.setIdentifier(bowCotainer, "bow");
+  const bowContainer = world.assertById(bowEntity[ITEM].carrier);
+  world.setIdentifier(bowContainer, "bow");
 
   // start ordered systems
   world.addSystem(systems.setupMap);
@@ -1305,6 +1316,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupWater);
   world.addSystem(systems.setupAction);
   world.addSystem(systems.setupText);
+  world.addSystem(systems.setupMagic);
   world.addSystem(systems.setupSequence);
   world.addSystem(systems.setupNeedle);
   world.addSystem(systems.setupFocus);

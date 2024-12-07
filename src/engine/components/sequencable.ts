@@ -6,6 +6,7 @@ import { Sprite } from "./sprite";
 import { Position } from "./position";
 import { Viewable } from "./viewable";
 import { Light } from "./light";
+import { Element } from "./item";
 
 type EmptyObject = Record<string, never>;
 
@@ -48,6 +49,13 @@ export type CollectSequence = {
 export type UnlockSequence = { origin: Position; itemId: number };
 export type FocusSequence = EmptyObject;
 export type MeleeSequence = { facing: Orientation; damage: number };
+export type SpellSequence = {
+  amount: number;
+  element?: Element;
+  progress: number;
+  duration: number;
+  areas: number[];
+};
 export type ArrowSequence = { origin: Position; range: number };
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
@@ -82,6 +90,7 @@ export type Sequence<A> = (
 
 export type Sequencable = {
   states: {
+    spell?: SequenceState<SpellSequence>;
     wave?: SequenceState<WaveSequence>;
     bubble?: SequenceState<BubbleSequence>;
     vision?: SequenceState<VisionSequence>;

@@ -50,6 +50,7 @@ export type UnitDefinition = {
   attack: number;
   defense: number;
   hp: number;
+  mp: number;
   equipments: Omit<Item, "carrier" | "amount">[];
   drops: {
     chance: number;
@@ -66,6 +67,8 @@ export type UnitData = {
     defense: number;
     hp: number;
     maxHp: number;
+    mp: number;
+    maxMp: number;
   };
   equipments: Omit<Item, "carrier" | "amount">[];
   items: Omit<Item, "carrier">[];
@@ -79,6 +82,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 0,
     defense: 0,
     hp: 20,
+    mp: 0,
     equipments: [
       { equipment: "melee", material: "iron", bound: false },
       { equipment: "armor", material: "wood", bound: false },
@@ -92,6 +96,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 0,
     defense: 0,
     hp: 20,
+    mp: 0,
     equipments: [],
     drops: [],
     patternNames: [],
@@ -102,6 +107,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 0,
     defense: 1,
     hp: 25,
+    mp: 0,
     equipments: [],
     drops: [],
     patternNames: [],
@@ -112,6 +118,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 0,
     defense: 2,
     hp: 30,
+    mp: 0,
     equipments: [],
     drops: [],
     patternNames: [],
@@ -122,6 +129,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 0,
     defense: 3,
     hp: 35,
+    mp: 0,
     equipments: [],
     drops: [],
     patternNames: [],
@@ -132,6 +140,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 0,
     defense: 4,
     hp: 40,
+    mp: 0,
     equipments: [],
     drops: [],
     patternNames: [],
@@ -142,6 +151,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 0,
     defense: 0,
     hp: 10,
+    mp: 0,
     equipments: [],
     drops: [],
     patternNames: [],
@@ -152,6 +162,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 0,
     defense: 0,
     hp: 10,
+    mp: 0,
     equipments: [],
     drops: [{ chance: 100, items: [{ stat: "xp", amount: 1 }] }],
     patternNames: [],
@@ -162,6 +173,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 2,
     defense: 1,
     hp: 10,
+    mp: 0,
     equipments: [],
     drops: [{ chance: 100, items: [{ stackable: "spike", amount: 1 }] }],
     patternNames: [],
@@ -172,6 +184,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 3,
     defense: 0,
     hp: 10,
+    mp: 0,
     equipments: [],
     drops: [{ chance: 100, items: [{ stackable: "spike", amount: 1 }] }],
     patternNames: [],
@@ -182,6 +195,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 1,
     defense: 0,
     hp: 3,
+    mp: 0,
     equipments: [],
     drops: [{ chance: 100, items: [{ stat: "gold", amount: 1 }] }],
     patternNames: ["prism"],
@@ -192,6 +206,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 1,
     defense: 0,
     hp: 3,
+    mp: 0,
     equipments: [],
     drops: [
       { chance: 70, items: [{ stat: "gold", amount: 1 }] },
@@ -206,6 +221,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 2,
     defense: 1,
     hp: 15,
+    mp: 0,
     equipments: [],
     drops: [
       {
@@ -225,6 +241,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 1,
     defense: 0,
     hp: 1,
+    mp: 0,
     equipments: [],
     drops: [
       { chance: 70, items: [{ stat: "gold", amount: 1 }] },
@@ -239,6 +256,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 5,
     defense: 1,
     hp: 1,
+    mp: 0,
     equipments: [],
     drops: [
       {
@@ -258,10 +276,11 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 1,
     defense: 0,
     hp: 2,
+    mp: 1,
     equipments: [
       {
         equipment: "active",
-        active: "bow",
+        active: "beam1",
         bound: true,
       },
       { stackable: "arrow", bound: true },
@@ -279,10 +298,11 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 5,
     defense: 1,
     hp: 5,
+    mp: 2,
     equipments: [
       {
         equipment: "active",
-        active: "bow",
+        active: "beam1",
         bound: true,
       },
       { stackable: "arrow", bound: true },
@@ -305,6 +325,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     attack: 0,
     defense: 2,
     hp: 10,
+    mp: 0,
     equipments: [],
     drops: [
       {
@@ -327,7 +348,7 @@ export const generateUnitKey = (unitDistribution: UnitDistribution) => {
 };
 
 export const generateUnitData = (unitKey: UnitKey): UnitData => {
-  const { drops, hp, attack, defense, patternNames, ...unitDefinition } =
+  const { drops, hp, mp, attack, defense, patternNames, ...unitDefinition } =
     unitDefinitions[unitKey];
   const items =
     drops.length > 0
@@ -341,7 +362,7 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
 
   return {
     items,
-    stats: { hp, maxHp: hp, attack, defense },
+    stats: { hp, maxHp: hp, mp, maxMp: mp, attack, defense },
     patterns: patternNames.map((name) => ({ name, memory: {} })),
     ...unitDefinition,
   };

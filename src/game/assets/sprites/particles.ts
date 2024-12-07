@@ -56,7 +56,7 @@ export const stream: Sprite = {
   layers: [{ char: "≈", color: colors.blue }],
 };
 
-export const waveSide: Sprite = {
+export const wave: Sprite = {
   name: "water_wave",
   layers: [{ char: "┼", color: colors.blue }],
   facing: {
@@ -191,17 +191,11 @@ export const woodShot2: Sprite = {
   },
 };
 
-export const bolt: Sprite = {
-  name: "spell_bolt",
-  layers: [
-    { char: "∙", color: colors.grey },
-    { char: "·", color: colors.silver },
-  ],
+export const beam: Sprite = {
+  name: "spell_beam",
+  layers: [{ char: "∙", color: colors.silver }],
   amounts: {
-    single: [
-      { char: "∙", color: colors.grey },
-      { char: "·", color: colors.silver },
-    ],
+    single: [{ char: "∙", color: colors.silver }],
     double: [
       { char: "\u0106", color: colors.silver },
       { char: "∙", color: colors.grey },
@@ -213,17 +207,11 @@ export const bolt: Sprite = {
   },
 };
 
-export const fireBolt: Sprite = {
-  name: "fire_bolt",
-  layers: [
-    { char: "∙", color: colors.maroon },
-    { char: "·", color: colors.red },
-  ],
+export const fireBeam: Sprite = {
+  name: "fire_beam",
+  layers: [{ char: "∙", color: colors.red }],
   amounts: {
-    single: [
-      { char: "∙", color: colors.maroon },
-      { char: "·", color: colors.red },
-    ],
+    single: [{ char: "∙", color: colors.red }],
     double: [
       { char: "\u0106", color: colors.red },
       { char: "∙", color: colors.maroon },
@@ -235,17 +223,11 @@ export const fireBolt: Sprite = {
   },
 };
 
-export const waterBolt: Sprite = {
-  name: "water_bolt",
-  layers: [
-    { char: "∙", color: colors.navy },
-    { char: "·", color: colors.blue },
-  ],
+export const waterBeam: Sprite = {
+  name: "water_beam",
+  layers: [{ char: "∙", color: colors.blue }],
   amounts: {
-    single: [
-      { char: "∙", color: colors.navy },
-      { char: "·", color: colors.blue },
-    ],
+    single: [{ char: "∙", color: colors.blue }],
     double: [
       { char: "\u0106", color: colors.blue },
       { char: "∙", color: colors.navy },
@@ -257,17 +239,11 @@ export const waterBolt: Sprite = {
   },
 };
 
-export const earthBolt: Sprite = {
-  name: "earth_bolt",
-  layers: [
-    { char: "∙", color: colors.green },
-    { char: "·", color: colors.lime },
-  ],
+export const earthBeam: Sprite = {
+  name: "earth_beam",
+  layers: [{ char: "∙", color: colors.lime }],
   amounts: {
-    single: [
-      { char: "∙", color: colors.green },
-      { char: "·", color: colors.lime },
-    ],
+    single: [{ char: "∙", color: colors.lime }],
     double: [
       { char: "\u0106", color: colors.lime },
       { char: "∙", color: colors.green },
@@ -276,6 +252,50 @@ export const earthBolt: Sprite = {
       { char: "\u0108", color: colors.lime },
       { char: "\u0106", color: colors.green },
     ],
+  },
+};
+
+export const edge: Sprite = {
+  name: "beam_edge",
+  layers: [{ char: "┼", color: colors.grey }],
+  facing: {
+    up: [{ char: "─", color: colors.grey }],
+    right: [{ char: "│", color: colors.grey }],
+    down: [{ char: "─", color: colors.grey }],
+    left: [{ char: "│", color: colors.grey }],
+  },
+};
+
+export const fireEdge: Sprite = {
+  name: "fire_edge",
+  layers: [{ char: "┼", color: colors.maroon }],
+  facing: {
+    up: [{ char: "─", color: colors.maroon }],
+    right: [{ char: "│", color: colors.maroon }],
+    down: [{ char: "─", color: colors.maroon }],
+    left: [{ char: "│", color: colors.maroon }],
+  },
+};
+
+export const waterEdge: Sprite = {
+  name: "water_edge",
+  layers: [{ char: "┼", color: colors.navy }],
+  facing: {
+    up: [{ char: "─", color: colors.navy }],
+    right: [{ char: "│", color: colors.navy }],
+    down: [{ char: "─", color: colors.navy }],
+    left: [{ char: "│", color: colors.navy }],
+  },
+};
+
+export const earthEdge: Sprite = {
+  name: "earth_edge",
+  layers: [{ char: "┼", color: colors.green }],
+  facing: {
+    up: [{ char: "─", color: colors.green }],
+    right: [{ char: "│", color: colors.green }],
+    down: [{ char: "─", color: colors.green }],
+    left: [{ char: "│", color: colors.green }],
   },
 };
 

@@ -22,16 +22,22 @@ export const signedDistance = (start: number, end: number, size: number) => {
   return distance - overlap;
 };
 
+// euclidean distance for positive ratios, otherwise distance in blocks
 export const getDistance = (
   origin: Point,
   target: Point,
   size: number,
-  ratio: number = aspectRatio
+  ratio: number = aspectRatio,
+  euclidean: boolean = true
 ) => {
   const delta = {
     x: signedDistance(origin.x, target.x, size) * ratio,
     y: signedDistance(origin.y, target.y, size),
   };
+
+  if (!euclidean) {
+    return Math.max(Math.abs(delta.x), Math.abs(delta.y));
+  }
 
   return Math.sqrt(delta.x ** 2 + delta.y ** 2);
 };

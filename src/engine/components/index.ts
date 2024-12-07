@@ -1,14 +1,17 @@
 export { default as addActionable } from "./actionable";
+export { default as addAffectable } from "./affectable";
 export { default as addAttackable } from "./attackable";
 export { default as addBehaviour } from "./behaviour";
 export { default as addBelongable } from "./belongable";
 export { default as addBurnable } from "./burnable";
+export { default as addCastable } from "./castable";
 export { default as addCollectable } from "./collectable";
 export { default as addCollidable } from "./collidable";
 export { default as addDisplacable } from "./displacable";
 export { default as addDroppable } from "./droppable";
 export { default as addEnterable } from "./enterable";
 export { default as addEquippable } from "./equippable";
+export { default as addExertable } from "./exertable";
 export { default as addFocusable } from "./focusable";
 export { default as addFog } from "./fog";
 export { default as addIdentifiable } from "./identifiable";

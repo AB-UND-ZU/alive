@@ -353,8 +353,6 @@ export class WaveFunctionCollapse {
             // only allow tiles that match all constraints
             let possibleForwards = true;
             for (const neighbourConstraint of neighbourConstraints) {
-              // console.log("neighbour constraint", neighbourConstraint);
-
               // check if current cell can have adjacent cell as neighbour
               const neighbourTags =
                 neighbourConstraint.constraint[adjacentDirection];

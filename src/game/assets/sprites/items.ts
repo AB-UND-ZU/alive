@@ -354,11 +354,6 @@ export const arrow: Sprite = {
 
 export const charge: Sprite = {
   name: "Charge",
-  layers: [{ char: "^", color: colors.silver }],
-};
-
-export const chargeStack: Sprite = {
-  name: "Charge",
   layers: [
     { char: "^", color: colors.grey },
     { char: "\u011f", color: colors.silver },

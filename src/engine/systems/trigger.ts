@@ -10,7 +10,7 @@ import { TOOLTIP } from "../components/tooltip";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
-import { doorOpen } from "../../game/assets/sprites";
+import { doorOpen, none } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
@@ -27,18 +27,30 @@ import { getItemSprite } from "../../components/Entity/utils";
 import { collectItem } from "./collect";
 import { questSequence } from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
-import { UnlockSequence } from "../components/sequencable";
+import {
+  SEQUENCABLE,
+  SpellSequence,
+  UnlockSequence,
+} from "../components/sequencable";
 import { createSequence } from "./sequence";
 import { shootArrow } from "./ballistics";
 import { STATS } from "../components/stats";
+import { TypedEntity } from "../entities";
+import { entities } from "..";
+import { BELONGABLE } from "../components/belongable";
+import { copy } from "../../game/math/std";
+import { ORIENTABLE } from "../components/orientable";
+import { CASTABLE } from "../components/castable";
+import { isEnemy } from "./damage";
+import { canCast } from "./magic";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
-  (world.getEntityById(entity[ACTIONABLE].quest) ||
-    world.getEntityById(entity[ACTIONABLE].unlock) ||
-    world.getEntityById(entity[ACTIONABLE].trade) ||
-    world.getEntityById(entity[ACTIONABLE].spawn) ||
-    world.getEntityById(entity[ACTIONABLE].bow));
+  Object.keys(entity[ACTIONABLE]).some(
+    (actionName) =>
+      actionName !== "triggered" &&
+      world.getEntityById(entity[ACTIONABLE][actionName])
+  );
 
 export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
   // open doors without locks
@@ -163,6 +175,44 @@ export const acceptQuest = (world: World, entity: Entity, target: Entity) => {
   world.acceptQuest(target);
 };
 
+export const castSpell = (
+  world: World,
+  entity: TypedEntity<"BELONGABLE" | "POSITION">,
+  item: TypedEntity<"ITEM">
+) => {
+  const spellEntity = entities.createSpell(world, {
+    [BELONGABLE]: { tribe: entity[BELONGABLE].tribe },
+    [CASTABLE]: {
+      affected: {},
+      power: item[ITEM].amount,
+      caster: world.getEntityId(entity),
+    },
+    [ORIENTABLE]: { facing: entity[ORIENTABLE]?.facing },
+    [POSITION]: copy(entity[POSITION]),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: none,
+  });
+
+  createSequence<"spell", SpellSequence>(
+    world,
+    spellEntity,
+    "spell",
+    "castBeam1",
+    {
+      progress: 0,
+      duration: 30,
+      areas: [],
+      amount: 2,
+    }
+  );
+
+  if (entity[STATS] && !isEnemy(world, entity)) {
+    entity[STATS].mp -= 1;
+    rerenderEntity(world, entity);
+  }
+};
+
 export default function setupTrigger(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
@@ -177,9 +227,10 @@ export default function setupTrigger(world: World) {
     referenceGenerations = generation;
 
     for (const entity of world.getEntities([
-      POSITION,
       ACTIONABLE,
+      BELONGABLE,
       MOVABLE,
+      POSITION,
       RENDERABLE,
     ])) {
       const entityId = world.getEntityId(entity);
@@ -203,9 +254,18 @@ export default function setupTrigger(world: World) {
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
       const tradeEntity = world.getEntityById(entity[ACTIONABLE].trade);
       const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
-      const bowEntity = world.getEntityById(entity[ACTIONABLE].bow);
+      const activeEntity = world.getEntityByIdAndComponents(
+        entity[ACTIONABLE].active,
+        [ITEM]
+      );
 
-      if (questEntity && canAcceptQuest(world, entity, questEntity)) {
+      if (
+        spawnEntity &&
+        isRevivable(world, spawnEntity) &&
+        canRevive(world, spawnEntity, entity)
+      ) {
+        reviveEntity(world, spawnEntity, entity);
+      } else if (questEntity && canAcceptQuest(world, entity, questEntity)) {
         acceptQuest(world, entity, questEntity);
       } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
         unlockDoor(world, entity, unlockEntity);
@@ -216,14 +276,12 @@ export default function setupTrigger(world: World) {
       ) {
         performTrade(world, entity, tradeEntity);
         collectItem(world, entity, tradeEntity);
-      } else if (
-        spawnEntity &&
-        isRevivable(world, spawnEntity) &&
-        canRevive(world, spawnEntity, entity)
-      ) {
-        reviveEntity(world, spawnEntity, entity);
-      } else if (bowEntity) {
-        shootArrow(world, entity, bowEntity);
+      } else if (activeEntity) {
+        if (activeEntity[ITEM].active === "bow") {
+          shootArrow(world, entity, activeEntity);
+        } else if (canCast(world, entity, activeEntity)) {
+          castSpell(world, entity, activeEntity);
+        }
       }
     }
   };
