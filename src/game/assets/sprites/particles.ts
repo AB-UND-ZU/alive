@@ -100,6 +100,7 @@ export const bubble: Sprite = {
     ],
     double: [{ char: "\u0108", color: colors.blue }],
     multiple: [
+      { char: "\u0101", color: colors.navy },
       { char: "\u0100", color: colors.blue },
       { char: "■", color: colors.navy },
     ],
@@ -259,10 +260,10 @@ export const edge: Sprite = {
   name: "beam_edge",
   layers: [{ char: "┼", color: colors.grey }],
   facing: {
-    up: [{ char: "─", color: colors.grey }],
-    right: [{ char: "│", color: colors.grey }],
-    down: [{ char: "─", color: colors.grey }],
-    left: [{ char: "│", color: colors.grey }],
+    up: [{ char: "┴", color: colors.grey }],
+    right: [{ char: "├", color: colors.grey }],
+    down: [{ char: "┬", color: colors.grey }],
+    left: [{ char: "┤", color: colors.grey }],
   },
 };
 

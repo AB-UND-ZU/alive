@@ -22,6 +22,7 @@ import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
 import { Tribe } from "../../engine/components/belongable";
 import { Item } from "../../engine/components/item";
+import { getGearStat } from "./equipment";
 
 export type UnitKey =
   | "guide"
@@ -51,7 +52,7 @@ export type UnitDefinition = {
   defense: number;
   hp: number;
   mp: number;
-  equipments: Omit<Item, "carrier" | "amount">[];
+  equipments: Omit<Item, "carrier">[];
   drops: {
     chance: number;
     items: Omit<Item, "carrier" | "bound">[];
@@ -70,7 +71,7 @@ export type UnitData = {
     mp: number;
     maxMp: number;
   };
-  equipments: Omit<Item, "carrier" | "amount">[];
+  equipments: Omit<Item, "carrier">[];
   items: Omit<Item, "carrier">[];
   patterns: Pattern[];
   sprite: Sprite;
@@ -84,8 +85,18 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     hp: 20,
     mp: 0,
     equipments: [
-      { equipment: "melee", material: "iron", bound: false },
-      { equipment: "armor", material: "wood", bound: false },
+      {
+        equipment: "melee",
+        material: "iron",
+        bound: false,
+        amount: getGearStat("melee", "iron"),
+      },
+      {
+        equipment: "armor",
+        material: "wood",
+        bound: false,
+        amount: getGearStat("armor", "wood"),
+      },
     ],
     drops: [],
     patternNames: [],
@@ -282,8 +293,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         equipment: "active",
         active: "beam1",
         bound: true,
+        amount: 2,
       },
-      { stackable: "arrow", bound: true },
     ],
     drops: [
       { chance: 70, items: [{ stat: "gold", amount: 1 }] },
@@ -304,8 +315,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         equipment: "active",
         active: "beam1",
         bound: true,
+        amount: 5,
       },
-      { stackable: "arrow", bound: true },
     ],
     drops: [
       {

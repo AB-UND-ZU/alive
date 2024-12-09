@@ -40,6 +40,7 @@ import {
   Sequence,
 } from "../../engine/components/sequencable";
 import { STATS } from "../../engine/components/stats";
+import { CASTABLE } from "../../engine/components/castable";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -111,11 +112,13 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
           const shouldDiscard = (y < 5 || y > 153) && (x < 11 || x > 149);
           let hasAir = false;
           Object.values(cell).forEach((cellEntity) => {
-            // don't remove player and focus
+            // don't remove player and focus, and any unrelated entities
             if (
               cellEntity === heroEntity ||
               cellEntity === focusEntity ||
-              cellEntity === entity
+              cellEntity === entity ||
+              !(RENDERABLE in cellEntity) ||
+              CASTABLE in cellEntity
             )
               return;
 

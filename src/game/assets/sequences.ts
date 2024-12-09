@@ -50,6 +50,7 @@ import { openDoor, removeFromInventory } from "../../engine/systems/trigger";
 import * as colors from "./colors";
 import {
   add,
+  copy,
   distribution,
   getDistance,
   lerp,
@@ -243,12 +244,12 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   // create effect areas
   for (
     let aoeProgress = state.args.progress;
-    aoeProgress < progress && aoeProgress <= beam1Range;
+    aoeProgress < progress && aoeProgress < beam1Range;
     aoeProgress += 1
   ) {
     const offset = {
-      x: delta.x * aoeProgress,
-      y: delta.y * aoeProgress,
+      x: delta.x * (aoeProgress + 1),
+      y: delta.y * (aoeProgress + 1),
     };
     const aoeEntity = entities.createAoe(world, {
       [EXERTABLE]: { castable: entityId },
@@ -262,7 +263,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   // remove effect areas
   for (
     let clearProgress = state.args.progress - state.args.duration + beam1Range;
-    clearProgress >= 0 &&
+    clearProgress > 0 &&
     clearProgress < progress - state.args.duration + beam1Range;
     clearProgress += 1
   ) {
@@ -275,21 +276,18 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   // create beams
   if (
     state.args.progress !== progress &&
-    progress > 1 &&
+    progress > 2 &&
     progress <= state.args.duration - beam1Range &&
-    progress % state.args.amount === 0
+    (progress - 1) % Math.min(state.args.amount, 3) === 0
   ) {
     const beamParticle = entities.createParticle(world, {
       [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
+        offsetX: delta.x,
+        offsetY: delta.y,
         offsetZ: particleHeight,
         duration: beamSpeed,
         amount: state.args.amount,
-        animatedOrigin: {
-          x: 0,
-          y: 0,
-        },
+        animatedOrigin: copy(delta),
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: beam,
@@ -324,7 +322,8 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
       // move edges separately
       if (
         !particleName.startsWith("end") ||
-        (particleName === "end" && progress > state.args.duration - beam1Range)
+        (particleName === "end" &&
+          (progress > state.args.duration - beam1Range || progress === 1))
       ) {
         particleEntity[PARTICLE].offsetX += delta.x;
         particleEntity[PARTICLE].offsetY += delta.y;

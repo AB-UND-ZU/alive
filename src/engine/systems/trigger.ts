@@ -8,7 +8,7 @@ import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { TOOLTIP } from "../components/tooltip";
 import { Inventory, INVENTORY } from "../components/inventory";
-import { ITEM } from "../components/item";
+import { Element, elements, ITEM } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
 import { doorOpen, none } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
@@ -201,9 +201,12 @@ export const castSpell = (
     "castBeam1",
     {
       progress: 0,
-      duration: 30,
+      duration: 31,
       areas: [],
-      amount: 2,
+      amount: item[ITEM].amount,
+      element: elements.includes(item[ITEM].material as Element)
+        ? (item[ITEM].material as Element)
+        : undefined,
     }
   );
 
