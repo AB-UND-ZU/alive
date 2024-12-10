@@ -24,30 +24,37 @@ export const appleDrop: Sprite = {
   ],
 };
 
-export const apple1: Sprite = {
-  name: "Apple",
+export const plumDrop: Sprite = {
+  name: "Plum",
   layers: [
-    { char: "∙", color: colors.red },
-    { char: ":", color: colors.lime },
-    { char: ".", color: colors.black },
-    { char: "\u0106", color: colors.red },
+    { char: "\u0106", color: colors.fuchsia },
+    { char: "∙", color: colors.purple },
+    { char: "·", color: colors.fuchsia },
+  ],
+};
+
+export const plum: Sprite = {
+  name: "Plum",
+  layers: [
+    { char: "\u0106", color: colors.fuchsia },
+    { char: "∙", color: colors.purple },
+    { char: "·", color: colors.fuchsia },
   ],
   amounts: {
     single: [
       { char: "┐", color: colors.maroon },
       { char: "#", color: colors.green },
-
-      { char: ":", color: colors.lime },
+      { char: "\u0106", color: colors.fuchsia },
+      { char: "∙", color: colors.purple },
+      { char: "·", color: colors.fuchsia },
       { char: ".", color: colors.green },
-      { char: "\u0106", color: colors.red },
     ],
   },
 };
 
-export const apple2: Sprite = {
+export const apple: Sprite = {
   name: "Apple",
   layers: [
-    { char: "∙", color: colors.red },
     { char: ":", color: colors.lime },
     { char: ".", color: colors.black },
     { char: "\u0106", color: colors.red },
@@ -124,6 +131,24 @@ export const coconut: Sprite = {
       { char: ":", color: colors.maroon },
     ],
   },
+};
+
+export const gem: Sprite = {
+  name: "Gem",
+  layers: [
+    { char: "+", color: colors.red },
+    { char: "÷", color: colors.black },
+    { char: "·", color: colors.silver },
+  ],
+};
+
+export const crystal: Sprite = {
+  name: "Crystal",
+  layers: [
+    { char: "\u0106", color: colors.blue },
+    { char: "÷", color: colors.black },
+    { char: "∙", color: colors.blue },
+  ],
 };
 
 export const mana: Sprite = {
@@ -245,31 +270,32 @@ export const berryStack: Sprite = {
 
 export const flowerDrop: Sprite = {
   name: "Flower",
-  layers: [{ char: "∙", color: colors.teal }],
+  layers: [{ char: "\u0106", color: colors.teal }],
   amounts: {
-    single: [{ char: "∙", color: colors.teal }],
-    double: [{ char: "\u0106", color: colors.teal }],
+    single: [{ char: "\u0106", color: colors.teal }],
+    double: [
+      { char: "\u0106", color: colors.teal },
+      { char: "+", color: colors.teal },
+    ],
     multiple: [{ char: "*", color: colors.teal }],
   },
 };
 
 export const flower: Sprite = {
   name: "Flower",
-  layers: [{ char: "∙", color: colors.teal }],
+  layers: [{ char: "\u0106", color: colors.teal }],
   amounts: {
     single: [
-      { char: "∙", color: colors.teal },
+      { char: "\u0106", color: colors.teal },
       { char: ",", color: colors.olive },
-      { char: "\u011b", color: colors.black },
     ],
     double: [
       { char: "\u0106", color: colors.teal },
+      { char: "+", color: colors.teal },
       { char: ",", color: colors.olive },
-      { char: "\u011b", color: colors.black },
     ],
     multiple: [
       { char: ",", color: colors.olive },
-      { char: "\u011b", color: colors.black },
       { char: "*", color: colors.teal },
     ],
   },

@@ -7,8 +7,7 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
-  apple1,
-  apple2,
+  apple,
   arrow,
   banana,
   berry,
@@ -40,6 +39,7 @@ import {
   palm1,
   palm2,
   path,
+  plum,
   sand,
   stick,
   tree1,
@@ -57,7 +57,7 @@ import { SWIMMABLE } from "../engine/components/swimmable";
 import { BEHAVIOUR } from "../engine/components/behaviour";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { MELEE } from "../engine/components/melee";
-import { ITEM, STACK_SIZE } from "../engine/components/item";
+import { ITEM } from "../engine/components/item";
 import { ORIENTABLE } from "../engine/components/orientable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import { initialPosition, menuArea } from "../game/levels/areas";
@@ -236,11 +236,16 @@ export const generateWorld = async (world: World) => {
         ? "iron"
         : spawn > 86
         ? "ore"
-        : "rock";
+        : "mountain";
 
     // desert, oasis and cactus
     if (temperature > 65 && terrain > 75) return "water";
     if (temperature > 65 && terrain > 70) return "palm";
+    if (
+      temperature > 65 &&
+      ((-6 < terrain && terrain < -4) || (4 < terrain && terrain < 6))
+    )
+      return "rock";
     if (temperature > 65) return 21 < green && green < 25 ? "cactus" : "sand";
 
     // greens
@@ -264,7 +269,7 @@ export const generateWorld = async (world: World) => {
       const x = normalize(columnIndex - (row.length - 1) / 2, size);
       const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
       let entity = "";
-      if (cell === "█") entity = "rock";
+      if (cell === "█") entity = "mountain";
       else if (cell === "≈") entity = "water";
       else if (cell === "░") entity = "sand";
       else if (cell === "▒") entity = "path";
@@ -398,8 +403,8 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
-    } else if (cell === "rock") {
-      entities.createRock(world, {
+    } else if (cell === "mountain") {
+      entities.createMountain(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: wall,
@@ -407,6 +412,37 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
+    } else if (cell === "rock") {
+      const { items, sprite, stats, tribe } = generateUnitData(
+        (["rock1", "rock2"] as const)[random(0, 1)]
+      );
+      const rockEntity = entities.createRock(world, {
+        [ATTACKABLE]: {},
+        [BELONGABLE]: { tribe },
+        [COLLIDABLE]: {},
+        [DROPPABLE]: { decayed: false },
+        [FOG]: { visibility, type: "terrain" },
+        [INVENTORY]: { items: [], size: 20 },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: sprite,
+        [STATS]: { ...emptyStats, ...stats },
+      });
+      for (const item of items) {
+        createItemInInventory(
+          world,
+          rockEntity,
+          entities.createItem,
+          {
+            [ITEM]: item,
+            [SPRITE]: item.stat
+              ? getCountableSprite(item.stat, "drop")
+              : getItemSprite(item),
+          },
+          false
+        );
+      }
     } else if (cell === "iron") {
       entities.createMine(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -490,7 +526,7 @@ export const generateWorld = async (world: World) => {
         entities.createItem,
         {
           [ITEM]: {
-            stat: "wood",
+            stat: "stick",
             amount: cell === "wood" ? distribution(80, 15, 5) + 1 : 2,
             bound: false,
           },
@@ -500,10 +536,12 @@ export const generateWorld = async (world: World) => {
       if (cell === "wood_two")
         world.setIdentifier(world.assertById(woodEntity[ITEM].carrier), cell);
     } else if (cell === "fruit") {
-      const [apple, tree] = [
-        [apple1, tree1],
-        [apple2, tree2],
-      ][random(0, 1)];
+      const [fruit, tree, stack] = (
+        [
+          [plum, tree1, "plum"],
+          [apple, tree2, "apple"],
+        ] as const
+      )[random(0, 1)];
       const fruitEntity = entities.createFruit(world, {
         [COLLIDABLE]: {},
         [FOG]: { visibility, type: "terrain" },
@@ -518,10 +556,10 @@ export const generateWorld = async (world: World) => {
       createItemInInventory(world, fruitEntity, entities.createItem, {
         [ITEM]: {
           amount: 1,
-          stackable: "apple",
+          stackable: stack,
           bound: false,
         },
-        [SPRITE]: apple,
+        [SPRITE]: fruit,
       });
     } else if (cell === "tree") {
       entities.createTerrain(world, {
@@ -653,13 +691,18 @@ export const generateWorld = async (world: World) => {
           false
         );
       }
-    } else if (cell === "house_door" || cell === "nomad_door") {
+    } else if (
+      cell === "wood_door" ||
+      cell === "nomad_door" ||
+      cell === "iron_door"
+    ) {
       const doorEntity = entities.createDoor(world, {
         [ENTERABLE]: { inside: false, sprite: doorOpen, orientation: "down" },
         [FOG]: { visibility, type: "float" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [LOCKABLE]: {
           locked: true,
+          material: cell === "iron_door" ? "iron" : undefined,
         },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
@@ -843,35 +886,16 @@ export const generateWorld = async (world: World) => {
         },
       });
       for (const equipment of equipments) {
-        if (
-          equipment.material &&
-          (equipment.equipment === "melee" || equipment.equipment === "armor")
-        ) {
+        if (equipment.material && equipment.equipment === "melee") {
           createItemInInventory(world, guideEntity, entities.createSword, {
-            [ITEM]: {
-              ...equipment,
-              amount: getGearStat(equipment.equipment, equipment.material),
-            },
-            [ORIENTABLE]: {},
-            [SEQUENCABLE]: { states: {} },
-            [SPRITE]: getItemSprite(equipment),
-          });
-        } else if (equipment.stackable) {
-          createItemInInventory(world, guideEntity, entities.createSword, {
-            [ITEM]: {
-              ...equipment,
-              amount: STACK_SIZE,
-            },
+            [ITEM]: equipment,
             [ORIENTABLE]: {},
             [SEQUENCABLE]: { states: {} },
             [SPRITE]: getItemSprite(equipment),
           });
         } else {
           createItemInInventory(world, guideEntity, entities.createItem, {
-            [ITEM]: {
-              ...equipment,
-              amount: 1,
-            },
+            [ITEM]: equipment,
             [SPRITE]: getItemSprite(equipment),
           });
         }
@@ -953,30 +977,14 @@ export const generateWorld = async (world: World) => {
       for (const equipment of equipments) {
         if (equipment.material && equipment.equipment === "melee") {
           createItemInInventory(world, mobEntity, entities.createSword, {
-            [ITEM]: {
-              ...equipment,
-              amount: getGearStat(equipment.equipment, equipment.material),
-            },
-            [ORIENTABLE]: {},
-            [SEQUENCABLE]: { states: {} },
-            [SPRITE]: getItemSprite(equipment),
-          });
-        } else if (equipment.stackable) {
-          createItemInInventory(world, mobEntity, entities.createSword, {
-            [ITEM]: {
-              ...equipment,
-              amount: STACK_SIZE,
-            },
+            [ITEM]: equipment,
             [ORIENTABLE]: {},
             [SEQUENCABLE]: { states: {} },
             [SPRITE]: getItemSprite(equipment),
           });
         } else {
           createItemInInventory(world, mobEntity, entities.createItem, {
-            [ITEM]: {
-              ...equipment,
-              amount: 1,
-            },
+            [ITEM]: equipment,
             [SPRITE]: getItemSprite(equipment),
           });
         }

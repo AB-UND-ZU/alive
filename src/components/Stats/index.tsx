@@ -70,7 +70,7 @@ function StatsInner({
               none,
               ...createCountable(stats, "gold", "countable"),
               none,
-              ...createCountable(stats, "wood", "countable"),
+              ...createCountable(stats, "stick", "countable"),
               none,
               ...createCountable(stats, "flower", "countable"),
             ]}

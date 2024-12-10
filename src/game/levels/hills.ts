@@ -1,11 +1,11 @@
 import { UnitDistribution } from "../balancing/units";
 
 export const hillsUnitDistribution: UnitDistribution = {
-  prism: 40,
-  goldPrism: 5,
+  prism: 35,
+  goldPrism: 6,
   eye: 25,
-  goldEye: 5,
-  orb: 15,
-  goldOrb: 5,
-  fairy: 5,
+  goldEye: 6,
+  orb: 20,
+  goldOrb: 6,
+  fairy: 2,
 };

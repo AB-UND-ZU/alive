@@ -23,8 +23,11 @@ export type Materialized = "door";
 
 export type Craftable =
   | "apple"
+  | "plum"
   | "banana"
   | "coconut"
+  | "gem"
+  | "crystal"
   | "flower"
   | "berry"
   | "spike"

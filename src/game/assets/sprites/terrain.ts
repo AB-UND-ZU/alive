@@ -217,3 +217,22 @@ export const tombstone2: Sprite = {
     { char: "\u011f", color: colors.grey },
   ],
 };
+
+export const rock1: Sprite = {
+  name: "",
+  layers: [
+    { char: "\u011f", color: colors.grey },
+    { char: "\u0103", color: colors.grey },
+  ],
+};
+
+export const rock2: Sprite = {
+  name: "",
+  layers: [
+    { char: "\u0105", color: colors.grey },
+    { char: "I", color: colors.black },
+    { char: "+", color: colors.grey },
+    { char: ":", color: colors.grey },
+    { char: ",", color: colors.black },
+  ],
+};

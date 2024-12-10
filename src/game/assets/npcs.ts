@@ -42,6 +42,8 @@ import {
 import { STATS } from "../../engine/components/stats";
 import { CASTABLE } from "../../engine/components/castable";
 
+const defaultVision = 3.5;
+
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
@@ -80,12 +82,12 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       lockDoor(world, doorEntity);
 
       // set player light and spawn
-      heroEntity[LIGHT].brightness = 5.55;
-      heroEntity[LIGHT].visibility = 5.55;
+      heroEntity[LIGHT].brightness = defaultVision;
+      heroEntity[LIGHT].visibility = defaultVision;
       heroEntity[SPAWNABLE].position = { x: 0, y: 9 };
       heroEntity[SPAWNABLE].light = {
-        brightness: 5.55,
-        visibility: 5.55,
+        brightness: defaultVision,
+        visibility: defaultVision,
         darkness: 0,
       };
 

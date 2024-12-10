@@ -14,9 +14,9 @@ const mapTiles: Record<string, string> = {
   boxLeft: "box",
   boxRight: "box",
 
-  doorLeft: "house_door",
-  doorCenter: "house_door",
-  doorRight: "house_door",
+  doorLeft: "wood_door",
+  doorCenter: "wood_door",
+  doorRight: "wood_door",
 
   wallLeft4: "wall",
   wallLeft3: "wall",
@@ -65,7 +65,7 @@ const definition: Definition = {
   tags: {},
   tiles: {
     air: {
-      weight: 350,
+      weight: 200,
       tags: ["air"],
     },
     gap: {
@@ -120,7 +120,7 @@ const definition: Definition = {
     },
 
     hedge: {
-      weight: 40,
+      weight: 15,
       tags: ["hedge"],
     },
 
@@ -601,8 +601,6 @@ export default async function generateTown(width: number, height: number) {
   const exits: Point[] = [
     { x: 0, y: innY },
     { x: innerWidth - 1, y: innY },
-    { x: innX, y: 0 },
-    { x: innX, y: innerHeight - 1 },
   ];
 
   const wave = wfc.generate(innerWidth, innerHeight, [
@@ -658,16 +656,12 @@ export default async function generateTown(width: number, height: number) {
     const verticalEdge = y === 0 || y === height - 1;
 
     if (horizontalEdge && verticalEdge) return "air";
-    if ((verticalEdge && x === innX + 1) || (horizontalEdge && y === innY + 1))
-      return "path";
+    if (horizontalEdge && y === innY + 1) return "path";
 
     if (horizontalEdge || verticalEdge) return "fence";
 
     return mapTiles[wfc.tileNames[tileMatrix[x - 1][y - 1]]];
   });
-
-  // add campfire
-  townMatrix[innX - 1][innY + 2] = 'campfire';
 
   return townMatrix;
 }

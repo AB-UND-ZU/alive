@@ -949,7 +949,7 @@ export const itemCollect: Sequence<CollectSequence> = (
       let targetItem = itemEntity;
 
       // if no sword is equipped, use wood as stick
-      if (entity[MELEE] && !entity[EQUIPPABLE].melee && targetStat === "wood") {
+      if (entity[MELEE] && !entity[EQUIPPABLE].melee && targetStat === "stick") {
         targetEquipment = "melee";
         targetStat = undefined;
         targetItem = entities.createSword(world, {
@@ -1033,6 +1033,7 @@ export const itemCollect: Sequence<CollectSequence> = (
         offsetX: 0,
         offsetY: 0,
         offsetZ: tooltipHeight,
+        duration: lootDelay,
         animatedOrigin: delta,
         amount: state.args.drop,
       },

@@ -258,12 +258,12 @@ export const earthBeam: Sprite = {
 
 export const edge: Sprite = {
   name: "beam_edge",
-  layers: [{ char: "┼", color: colors.grey }],
+  layers: [{ char: "┼", color: colors.silver }],
   facing: {
-    up: [{ char: "┴", color: colors.grey }],
-    right: [{ char: "├", color: colors.grey }],
-    down: [{ char: "┬", color: colors.grey }],
-    left: [{ char: "┤", color: colors.grey }],
+    up: [{ char: "┴", color: colors.silver }],
+    right: [{ char: "├", color: colors.silver }],
+    down: [{ char: "┬", color: colors.silver }],
+    left: [{ char: "┤", color: colors.silver }],
   },
 };
 
@@ -449,6 +449,7 @@ export const buttonLeftUp: Sprite = {
   name: "button_left_up",
   layers: [
     { char: "▄", color: buttonBackground },
+    { char: "░", color: colors.black },
     { char: "▌", color: colors.black },
     { char: "┌", color: buttonShadow },
   ],
@@ -458,6 +459,7 @@ export const buttonUp: Sprite = {
   name: "button_up",
   layers: [
     { char: "▄", color: buttonBackground },
+    { char: "░", color: colors.black },
     { char: "─", color: buttonShadow },
   ],
 };
@@ -466,6 +468,7 @@ export const buttonUpRight: Sprite = {
   name: "button_up_right",
   layers: [
     { char: "▄", color: buttonBackground },
+    { char: "░", color: colors.black },
     { char: "▐", color: colors.black },
     { char: "┐", color: buttonShadow },
   ],
@@ -475,6 +478,7 @@ export const buttonRightDown: Sprite = {
   name: "button_right_down",
   layers: [
     { char: "▀", color: buttonBackground },
+    { char: "░", color: colors.black },
     { char: "▐", color: colors.black },
     { char: "┘", color: buttonShadow },
   ],
@@ -484,6 +488,7 @@ export const buttonDown: Sprite = {
   name: "button_down",
   layers: [
     { char: "▀", color: buttonBackground },
+    { char: "░", color: colors.black },
     { char: "─", color: buttonShadow },
   ],
 };
@@ -492,6 +497,7 @@ export const buttonDownLeft: Sprite = {
   name: "button_down_left",
   layers: [
     { char: "▀", color: buttonBackground },
+    { char: "░", color: colors.black },
     { char: "▌", color: colors.black },
     { char: "└", color: buttonShadow },
   ],
@@ -562,7 +568,7 @@ const countableSprites: Partial<
   maxMp: { color: "#404040", sprite: manaUp },
   xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp },
   gold: { color: colors.yellow, sprite: nonCountable(coin), drop: coin },
-  wood: { color: colors.maroon, sprite: stick },
+  stick: { color: colors.maroon, sprite: stick },
   ore: { color: colors.silver, sprite: oreDrop },
   flower: { color: colors.teal, sprite: flower, drop: flowerDrop },
   berry: { color: colors.purple, sprite: berry, drop: berryDrop },

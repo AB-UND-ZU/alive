@@ -214,3 +214,49 @@ export const windowInside: Sprite = {
     { char: "┬", color: colors.maroon },
   ],
 };
+
+export const bedLeft: Sprite = {
+  name: "bed_left",
+  layers: [
+    { char: "╞", color: colors.silver },
+    { char: "┌", color: colors.maroon },
+    { char: "│", color: colors.black },
+    { char: "|", color: colors.maroon },
+  ],
+};
+
+export const bedRight: Sprite = {
+  name: "bed_right",
+  layers: [
+    { char: "╕", color: colors.silver },
+    { char: "┐", color: colors.maroon },
+    { char: "│", color: colors.black },
+    { char: "|", color: colors.maroon },
+    { char: "°", color: colors.black },
+    { char: "'", color: colors.black },
+  ],
+};
+
+export const table: Sprite = {
+  name: "table",
+  layers: [
+    { char: "╥", color: colors.maroon },
+    { char: "─", color: colors.silver },
+  ],
+};
+
+export const chairLeft: Sprite = {
+  name: "chair_left",
+  layers: [
+    { char: "\u011f", color: colors.maroon },
+    { char: "\u0110", color: colors.black },
+  ],
+};
+
+export const chairRight: Sprite = {
+  name: "chair_right",
+  layers: [
+    { char: "\u011f", color: colors.maroon },
+    { char: "\u010f", color: colors.black },
+  ],
+};

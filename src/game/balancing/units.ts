@@ -15,6 +15,8 @@ import {
   pot,
   prism,
   rareChest,
+  rock1,
+  rock2,
   uncommonChest,
   villager,
 } from "../assets/sprites";
@@ -35,6 +37,8 @@ export type UnitKey =
   | "box"
   | "cactus1"
   | "cactus2"
+  | "rock1"
+  | "rock2"
   | "spawnPrism"
   | "prism"
   | "goldPrism"
@@ -100,7 +104,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: [],
-    sprite: villager,
+    sprite: { ...villager, name: 'Guide' },
   },
   commonChest: {
     tribe: "unit",
@@ -200,6 +204,38 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [{ chance: 100, items: [{ stackable: "spike", amount: 1 }] }],
     patternNames: [],
     sprite: cactus2,
+  },
+  rock1: {
+    tribe: "unit",
+    attack: 0,
+    defense: 3,
+    hp: 2,
+    mp: 0,
+    equipments: [],
+    drops: [
+      { chance: 40, items: [{ stat: "flower", amount: 1 }] },
+      { chance: 30, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 20, items: [{ stackable: "crystal", amount: 1 }] },
+      { chance: 10, items: [{ stat: "stick", amount: 1 }] },
+    ],
+    patternNames: [],
+    sprite: rock1,
+  },
+  rock2: {
+    tribe: "unit",
+    attack: 3,
+    defense: 2,
+    hp: 3,
+    mp: 0,
+    equipments: [],
+    drops: [
+      { chance: 40, items: [{ stat: "berry", amount: 1 }] },
+      { chance: 30, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 20, items: [{ stackable: "gem", amount: 1 }] },
+      { chance: 10, items: [{ stat: "stick", amount: 1 }] },
+    ],
+    patternNames: [],
+    sprite: rock2,
   },
   spawnPrism: {
     tribe: "wild",

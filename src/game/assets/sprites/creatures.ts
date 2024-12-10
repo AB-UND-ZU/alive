@@ -34,7 +34,7 @@ export const knight: Sprite = {
 };
 
 export const villager: Sprite = {
-  name: "Nomad",
+  name: "Villager",
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "'", color: colors.white },
@@ -207,52 +207,72 @@ export const firePrism: Sprite = {
 
 export const orb: Sprite = {
   name: "Orb",
-  layers: [{ char: "0", color: colors.silver }],
+  layers: [{ char: "Φ", color: colors.silver }],
 };
 
 export const goldOrb: Sprite = {
   name: "Orb",
-  layers: [{ char: "0", color: colors.yellow }],
+  layers: [{ char: "Φ", color: colors.yellow }],
 };
 
 export const fireOrb: Sprite = {
   name: "Orb",
-  layers: [{ char: "0", color: colors.red }],
+  layers: [{ char: "Φ", color: colors.red }],
 };
 
 export const waterOrb: Sprite = {
   name: "Orb",
-  layers: [{ char: "0", color: colors.blue }],
+  layers: [{ char: "Φ", color: colors.blue }],
 };
 
 export const earthOrb: Sprite = {
   name: "Orb",
-  layers: [{ char: "0", color: colors.lime }],
+  layers: [{ char: "Φ", color: colors.lime }],
 };
 
 export const beamTower: Sprite = {
   name: "Tower",
-  layers: [{ char: "Φ", color: colors.silver }],
+  layers: [
+    { char: "│", color: colors.silver },
+    { char: "|", color: colors.black },
+    { char: "0", color: colors.silver },
+  ],
 };
 
 export const goldBeamTower: Sprite = {
   name: "Tower",
-  layers: [{ char: "Φ", color: colors.yellow }],
+  layers: [
+    { char: "│", color: colors.yellow },
+    { char: "|", color: colors.black },
+    { char: "0", color: colors.yellow },
+  ],
 };
 
 export const fireBeamTower: Sprite = {
   name: "Tower",
-  layers: [{ char: "Φ", color: colors.red }],
+  layers: [
+    { char: "│", color: colors.red },
+    { char: "|", color: colors.black },
+    { char: "0", color: colors.red },
+  ],
 };
 
 export const waterBeamTower: Sprite = {
   name: "Tower",
-  layers: [{ char: "Φ", color: colors.blue }],
+  layers: [
+    { char: "│", color: colors.blue },
+    { char: "|", color: colors.black },
+    { char: "0", color: colors.blue },
+  ],
 };
 
 export const earthBeamTower: Sprite = {
   name: "Tower",
-  layers: [{ char: "Φ", color: colors.lime }],
+  layers: [
+    { char: "│", color: colors.lime },
+    { char: "|", color: colors.black },
+    { char: "0", color: colors.lime },
+  ],
 };
 
 export const eye: Sprite = {

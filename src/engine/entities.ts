@@ -352,6 +352,15 @@ export const createMob = entityFactory([
   TOOLTIP,
 ]);
 
+export const createMountain = entityFactory([
+  COLLIDABLE,
+  FOG,
+  LIGHT,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createOre = entityFactory([
   COLLIDABLE,
   FOG,
@@ -366,12 +375,17 @@ export const createOre = entityFactory([
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
 export const createRock = entityFactory([
+  ATTACKABLE,
+  BELONGABLE,
   COLLIDABLE,
+  DROPPABLE,
   FOG,
-  LIGHT,
+  INVENTORY,
   POSITION,
   RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
+  STATS,
 ]);
 
 export const createShop = entityFactory([

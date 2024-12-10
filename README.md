@@ -62,20 +62,35 @@ _Spawn area with intro quest_
 - Nomad: Intro quest, sell key
 - Miner/Logger/Fisher: sell pickaxe
 
-## Towns
+## Structures
 
-Hills 1
+Hills 1 town
 
-- Chief: locked iron key, quest for gold key, dungeon entry
-- Mage: bubble spell and charge
-- Hunter: bow and arrows
-- Knight: slash and charge
-- Scout: bomb and torch
+- 1. Chief: sign "Find key", door locked iron key, quest for gold key, dungeon entry
+- 2. Elder: hp and mp, quest for iron key
+- 3. Rogue: haste, torch, map quest
+- 4. Smith: sword and armor, gather quest
+- 5. Trader: wood and iron, gather quest
+- 6a. Mage: bubble spell and charge, kill quest orb
+- 6b. Hunter: bow and arrows, kill quest eye
+- 6c. Knight: slash and charge, kill quest triangle
+- 7. Druid: hp/mp potion lvl 1
+- 8. Quest: simple quest
+- 9. Quest: hard quest
 - Guard: at entrances
+
+Hills 1 world
+
+- Nomad: house with chest with gold key, gather quest (1x gold) or steal and fight
+- Scout: camp fire, bomb, map (5x power, 15x coin)
 - Miner: iron and pickaxe
 - Logger: wood and axe
 - Fisher: rod and bait
-- Smith: sword and armor
+
+## Quests
+
+- Kill quest: 5x prism/5x orb/5x eye, 1x gold prism/1x gold orb/1x gold eye
+- Gather quest: 5x apples/plums/coconut/banana/gem/crystal/red fish/blue fish
 
 ## Bosses
 
