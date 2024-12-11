@@ -258,12 +258,27 @@ export const earthBeam: Sprite = {
 
 export const edge: Sprite = {
   name: "beam_edge",
-  layers: [{ char: "┼", color: colors.silver }],
+  layers: [
+    { char: "┼", color: colors.silver },
+    { char: "·", color: colors.black },
+  ],
   facing: {
-    up: [{ char: "┴", color: colors.silver }],
-    right: [{ char: "├", color: colors.silver }],
-    down: [{ char: "┬", color: colors.silver }],
-    left: [{ char: "┤", color: colors.silver }],
+    up: [
+      { char: "┴", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "├", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "┬", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┤", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
   },
 };
 

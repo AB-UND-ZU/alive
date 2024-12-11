@@ -252,7 +252,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     tribe: "wild",
     attack: 1,
     defense: 0,
-    hp: 3,
+    hp: 4,
     mp: 0,
     equipments: [],
     drops: [
