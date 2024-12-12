@@ -136,9 +136,9 @@ export const coconut: Sprite = {
 export const gem: Sprite = {
   name: "Gem",
   layers: [
-    { char: "+", color: colors.red },
+    { char: "+", color: colors.green },
     { char: "÷", color: colors.black },
-    { char: "·", color: colors.silver },
+    { char: "·", color: colors.lime },
   ],
 };
 

@@ -10,6 +10,8 @@ import {
   goldEye,
   goldOrb,
   goldPrism,
+  hedge1,
+  hedge2,
   legendaryChest,
   orb,
   pot,
@@ -39,7 +41,8 @@ export type UnitKey =
   | "cactus2"
   | "rock1"
   | "rock2"
-  | "spawnPrism"
+  | "hedge1"
+  | "hedge2"
   | "prism"
   | "goldPrism"
   | "eye"
@@ -209,14 +212,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     tribe: "unit",
     attack: 0,
     defense: 3,
-    hp: 2,
+    hp: 3,
     mp: 0,
     equipments: [],
     drops: [
       { chance: 40, items: [{ stat: "flower", amount: 1 }] },
-      { chance: 30, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 40, items: [{ stat: "ore", amount: 1 }] },
       { chance: 20, items: [{ stackable: "crystal", amount: 1 }] },
-      { chance: 10, items: [{ stat: "stick", amount: 1 }] },
     ],
     patternNames: [],
     sprite: rock1,
@@ -225,28 +227,44 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     tribe: "unit",
     attack: 3,
     defense: 2,
-    hp: 3,
+    hp: 5,
     mp: 0,
     equipments: [],
     drops: [
       { chance: 40, items: [{ stat: "berry", amount: 1 }] },
-      { chance: 30, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 40, items: [{ stat: "ore", amount: 1 }] },
       { chance: 20, items: [{ stackable: "gem", amount: 1 }] },
-      { chance: 10, items: [{ stat: "stick", amount: 1 }] },
     ],
     patternNames: [],
     sprite: rock2,
   },
-  spawnPrism: {
-    tribe: "wild",
-    attack: 1,
+  hedge1: {
+    tribe: "unit",
+    attack: 0,
     defense: 0,
-    hp: 3,
+    hp: 8,
     mp: 0,
     equipments: [],
-    drops: [{ chance: 100, items: [{ stat: "gold", amount: 1 }] }],
-    patternNames: ["prism"],
-    sprite: prism,
+    drops: [
+      { chance: 10, items: [{ stat: "stick", amount: 1 }] },
+      { chance: 90, items: [] },
+    ],
+    patternNames: [],
+    sprite: hedge1,
+  },
+  hedge2: {
+    tribe: "unit",
+    attack: 0,
+    defense: 1,
+    hp: 5,
+    mp: 0,
+    equipments: [],
+    drops: [
+      { chance: 10, items: [{ stat: "stick", amount: 1 }] },
+      { chance: 90, items: [] },
+    ],
+    patternNames: [],
+    sprite: hedge2,
   },
   prism: {
     tribe: "wild",

@@ -905,6 +905,8 @@ export const entityDispose: Sequence<DisposeSequence> = (
   return { finished, updated };
 };
 
+const lootSpeed = 200;
+
 export const itemCollect: Sequence<CollectSequence> = (
   world,
   entity,
@@ -921,12 +923,13 @@ export const itemCollect: Sequence<CollectSequence> = (
     ITEM,
     SPRITE,
   ]);
+  const distance = getDistance(entity[POSITION], state.args.origin, size)
   const lootDelay =
     MOVABLE in entity
       ? world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
           REFERENCE
         ].tick - 50
-      : 200;
+      : lootSpeed * distance;
 
   // add item to player's inventory
   if (state.elapsed >= lootDelay) {

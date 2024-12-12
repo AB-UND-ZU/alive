@@ -374,7 +374,7 @@ export const createOre = entityFactory([
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
-export const createRock = entityFactory([
+export const createResource = entityFactory([
   ATTACKABLE,
   BELONGABLE,
   COLLIDABLE,
