@@ -11,6 +11,7 @@ import {
   heartUp,
   mana,
   manaUp,
+  ore,
   oreDrop,
   stick,
   xp,
@@ -575,18 +576,39 @@ const countableSprites: Partial<
 > &
   Record<
     keyof Countable,
-    { color: string; sprite: Sprite; drop?: Sprite; max?: keyof Countable }
+    {
+      color: string;
+      sprite: Sprite;
+      drop?: Sprite;
+      max?: keyof Countable;
+      resource?: Sprite;
+    }
   > = {
   hp: { color: colors.red, sprite: heart, max: "maxHp" },
   maxHp: { color: "#404040", sprite: heartUp },
   mp: { color: colors.blue, sprite: mana, max: "maxMp" },
   maxMp: { color: "#404040", sprite: manaUp },
-  xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp },
-  gold: { color: colors.yellow, sprite: nonCountable(coin), drop: coin },
+  xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp, resource: xp },
+  gold: {
+    color: colors.yellow,
+    sprite: nonCountable(coin),
+    drop: coin,
+    resource: coin,
+  },
   stick: { color: colors.maroon, sprite: stick },
-  ore: { color: colors.silver, sprite: oreDrop },
-  flower: { color: colors.teal, sprite: flower, drop: flowerDrop },
-  berry: { color: colors.purple, sprite: berry, drop: berryDrop },
+  ore: { color: colors.silver, sprite: oreDrop, resource: ore },
+  flower: {
+    color: colors.teal,
+    sprite: flower,
+    drop: flowerDrop,
+    resource: flower,
+  },
+  berry: {
+    color: colors.purple,
+    sprite: berry,
+    drop: berryDrop,
+    resource: berry,
+  },
 };
 
 export const createCountable = (
@@ -617,10 +639,11 @@ export const getMaxCounter = (stat: keyof Stats) =>
 
 export const getCountableSprite = (
   counter: keyof Countable,
-  variant?: "max" | "drop"
+  variant?: "max" | "drop" | "resource"
 ) =>
   (variant === "max" && countableSprites[getMaxCounter(counter)]?.sprite) ||
   (variant === "drop" && countableSprites[counter].drop) ||
+  (variant === "resource" && countableSprites[counter].resource) ||
   countableSprites[counter].sprite;
 
 export const quest = createText("!", colors.lime)[0];

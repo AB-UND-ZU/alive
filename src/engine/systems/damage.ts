@@ -15,17 +15,36 @@ import { EQUIPPABLE } from "../components/equippable";
 import { isGhost } from "./fate";
 import { createSequence } from "./sequence";
 import { MeleeSequence } from "../components/sequencable";
-import { BELONGABLE } from "../components/belongable";
+import { BELONGABLE, neutrals, tribes } from "../components/belongable";
 import { Stats, STATS } from "../components/stats";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
 
-export const isEnemy = (world: World, entity: Entity) =>
-  BELONGABLE in entity && entity[BELONGABLE].tribe !== "neutral";
+export const isTribe = (world: World, entity: Entity) =>
+  BELONGABLE in entity && tribes.includes(entity[BELONGABLE].faction);
 
-export const isFriendlyFire = (world: World, entity: Entity, target: Entity) =>
-  isEnemy(world, entity) === isEnemy(world, target);
+export const isEnemy = (world: World, entity: Entity) =>
+  BELONGABLE in entity && !tribes.includes(entity[BELONGABLE].faction);
+
+export const isNeutral = (world: World, entity: Entity) =>
+  BELONGABLE in entity && neutrals.includes(entity[BELONGABLE].faction);
+
+export const isFriendlyFire = (
+  world: World,
+  entity: Entity,
+  target: Entity
+) => {
+  const entityFaction = entity[BELONGABLE].faction;
+  const targetFaction = target[BELONGABLE].faction;
+
+  return (
+    entityFaction === targetFaction ||
+    (isTribe(world, entity) && isTribe(world, target)) ||
+    (isNeutral(world, entity) && isNeutral(world, target)) ||
+    (entityFaction === "wild" && targetFaction === "unit")
+  );
+};
 
 export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(

@@ -1,7 +1,8 @@
 import { matrixFactory } from "../../game/math/matrix";
 import { findPathSimple } from "../../game/math/path";
-import { Point } from "../../game/math/std";
-import { Definition, WaveFunctionCollapse } from "./wfc";
+import { add, Point, shuffle } from "../../game/math/std";
+import { Orientation } from "../components/orientable";
+import { Definition, Wave, WaveFunctionCollapse } from "./wfc";
 
 const mapTiles: Record<string, string> = {
   air: "",
@@ -590,8 +591,15 @@ const definition: Definition = {
 
 const airWeight = 20;
 const pathWeight = 1;
+const TOWN_TRIES = 5;
+const doorOffsets = {
+  doorLeft: { x: 2, y: -2 },
+  doorCenter: { x: 0, y: -1 },
+  doorRight: { x: -2, y: -2 },
+};
 
 export default async function generateTown(width: number, height: number) {
+  let wave: Wave | undefined;
   const wfc = new WaveFunctionCollapse(definition);
   const innerWidth = width - 2;
   const innerHeight = height - 2;
@@ -603,65 +611,105 @@ export default async function generateTown(width: number, height: number) {
     { x: innerWidth - 1, y: innY },
   ];
 
-  const wave = wfc.generate(innerWidth, innerHeight, [
-    // place inn in center
-    [innX, innY, "doorCenter"],
+  for (let attempt = 0; attempt < TOWN_TRIES; attempt += 1) {
+    wave = wfc.generate(innerWidth, innerHeight, [
+      // place inn in center
+      [innX, innY, "doorCenter"],
 
-    // clear entries
-    ...exits.map(({ x, y }): [number, number, string] => [x, y, "air"]),
-  ]);
+      // clear entries
+      ...exits.map(({ x, y }): [number, number, string] => [x, y, "air"]),
+    ]);
 
-  if (!wave) throw new Error("Could not generate town!");
+    if (!wave) continue;
 
-  const tileMatrix = wave.chosen;
-  const paths = [...exits];
+    const tileMatrix = wave.chosen;
+    let paths = [...exits];
+    let houses: {
+      position: Point;
+      orientation?: Orientation;
+      inn: boolean;
+    }[] = [];
 
-  // prefer reusing existing paths
-  const walkableMatrix = matrixFactory<number>(
-    innerWidth,
-    innerHeight,
-    (x, y) => {
-      const value = tileMatrix[x][y];
-      const tile = wfc.tileNames[value];
+    // prefer reusing existing paths
+    const walkableMatrix = matrixFactory<number>(
+      innerWidth,
+      innerHeight,
+      (x, y) => {
+        const value = tileMatrix[x][y];
+        const tile = wfc.tileNames[value];
 
-      if (["doorLeft", "doorCenter", "doorRight"].includes(tile)) {
-        if (x !== innX && y !== innY) paths.push({ x, y });
+        if (
+          tile === "doorLeft" ||
+          tile === "doorCenter" ||
+          tile === "doorRight"
+        ) {
+          if (x !== innX || y !== innY) {
+            paths.push({ x, y });
+            houses.push({
+              position: add({ x, y }, doorOffsets[tile]),
+              orientation:
+                tile === "doorLeft"
+                  ? "left"
+                  : tile === "doorRight"
+                  ? "right"
+                  : undefined,
+              inn: false,
+            });
+          }
 
-        return airWeight;
+          return airWeight;
+        }
+        return tile === "path" ? pathWeight : tile === "air" ? airWeight : 0;
       }
-      return tile === "path" ? pathWeight : tile === "air" ? airWeight : 0;
-    }
-  );
+    );
 
-  // draw paths from exits and houses to center inn
-  const innPath = { x: innX, y: innY + 2 };
-  const pathIndex = wfc.tileNames.indexOf("path");
-  paths.forEach((path) => {
-    const route = findPathSimple(walkableMatrix, path, innPath);
+    if (houses.length < 7) continue;
 
-    route.forEach((point) => {
-      tileMatrix[point.x][point.y] = pathIndex;
-      walkableMatrix[point.x][point.y] = pathWeight;
+    // randomize order of paths and adjusted houses but keep inn centered
+    paths = shuffle(paths);
+    houses = [
+      {
+        position: { x: innX, y: innY - 2 },
+        inn: true,
+      },
+      ...shuffle(houses),
+    ].map((house) => ({
+      ...house,
+      position: add(house.position, { x: 1, y: 1 }),
+    }));
+
+    // draw paths from exits and houses to center inn
+    const innPath = { x: innX, y: innY + 2 };
+    const pathIndex = wfc.tileNames.indexOf("path");
+    paths.forEach((path) => {
+      const route = findPathSimple(walkableMatrix, path, innPath);
+
+      route.forEach((point) => {
+        tileMatrix[point.x][point.y] = pathIndex;
+        walkableMatrix[point.x][point.y] = pathWeight;
+      });
     });
-  });
 
-  // replace free entry air with paths
-  exits.forEach((point) => {
-    tileMatrix[point.x][point.y] = pathIndex;
-  });
+    // replace free entry air with paths
+    exits.forEach((point) => {
+      tileMatrix[point.x][point.y] = pathIndex;
+    });
 
-  // draw fence around town
-  const townMatrix = matrixFactory(width, height, (x, y) => {
-    const horizontalEdge = x === 0 || x === width - 1;
-    const verticalEdge = y === 0 || y === height - 1;
+    // draw fence around town
+    const townMatrix = matrixFactory(width, height, (x, y) => {
+      const horizontalEdge = x === 0 || x === width - 1;
+      const verticalEdge = y === 0 || y === height - 1;
 
-    if (horizontalEdge && verticalEdge) return "air";
-    if (horizontalEdge && y === innY + 1) return "path";
+      if (horizontalEdge && verticalEdge) return "air";
+      if (horizontalEdge && y === innY + 1) return "path";
 
-    if (horizontalEdge || verticalEdge) return "fence";
+      if (horizontalEdge || verticalEdge) return "fence";
 
-    return mapTiles[wfc.tileNames[tileMatrix[x - 1][y - 1]]];
-  });
+      return mapTiles[wfc.tileNames[tileMatrix[x - 1][y - 1]]];
+    });
 
-  return townMatrix;
+    return { matrix: townMatrix, houses };
+  }
+
+  throw new Error("Could not generate town!");
 }

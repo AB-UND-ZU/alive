@@ -407,7 +407,7 @@ export default function setupAi(world: World) {
           break;
         } else if (pattern.name === "enrage") {
           const memory = pattern.memory;
-          entity[BELONGABLE].tribe = "hostile";
+          entity[BELONGABLE].faction = "hostile";
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = rage;
           entity[TOOLTIP].override = memory.shout ? "visible" : undefined;
@@ -417,7 +417,7 @@ export default function setupAi(world: World) {
 
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "soothe") {
-          entity[BELONGABLE].tribe = "neutral";
+          entity[BELONGABLE].faction = "settler";
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = undefined;
           entity[TOOLTIP].override = undefined;

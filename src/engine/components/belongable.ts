@@ -1,17 +1,17 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Tribe =
-  | "wild"
-  | "unit"
-  | "neutral"
-  | "fire"
-  | "water"
-  | "earth"
-  | "hostile";
+export const tribes = ["settler", "nomad", "fire", "water", "earth"] as const;
+export const enemies = ["wild", "hostile"] as const;
+export const neutrals = ["unit"] as const;
+
+export type Faction =
+  | (typeof tribes)[number]
+  | (typeof enemies)[number]
+  | (typeof neutrals)[number];
 
 export type Belongable = {
-  tribe: Tribe;
+  faction: Faction;
 };
 
 export const BELONGABLE = "BELONGABLE";

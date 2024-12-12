@@ -13,23 +13,25 @@ import {
   hedge1,
   hedge2,
   legendaryChest,
+  nomad,
   orb,
   pot,
   prism,
   rareChest,
   rock1,
   rock2,
+  settler,
   uncommonChest,
-  villager,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
-import { Tribe } from "../../engine/components/belongable";
 import { Item } from "../../engine/components/item";
 import { getGearStat } from "./equipment";
+import { Faction } from "../../engine/components/belongable";
 
 export type UnitKey =
   | "guide"
+  | "elder"
   | "commonChest"
   | "uncommonChest"
   | "rareChest"
@@ -54,7 +56,7 @@ export type UnitKey =
 export type UnitDistribution = Partial<Record<UnitKey, number>>;
 
 export type UnitDefinition = {
-  tribe: Tribe;
+  faction: Faction;
   attack: number;
   defense: number;
   hp: number;
@@ -69,7 +71,7 @@ export type UnitDefinition = {
 };
 
 export type UnitData = {
-  tribe: Tribe;
+  faction: Faction;
   stats: {
     attack: number;
     defense: number;
@@ -86,7 +88,7 @@ export type UnitData = {
 
 const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
-    tribe: "neutral",
+    faction: "nomad",
     attack: 0,
     defense: 0,
     hp: 20,
@@ -107,10 +109,21 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: [],
-    sprite: { ...villager, name: 'Guide' },
+    sprite: { ...nomad, name: "Guide" },
+  },
+  elder: {
+    faction: "settler",
+    attack: 0,
+    defense: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: { ...settler, name: "Elder" },
   },
   commonChest: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 0,
     hp: 20,
@@ -121,7 +134,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: commonChest,
   },
   uncommonChest: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 1,
     hp: 25,
@@ -132,7 +145,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: uncommonChest,
   },
   rareChest: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 2,
     hp: 30,
@@ -143,7 +156,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: rareChest,
   },
   epicChest: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 3,
     hp: 35,
@@ -154,7 +167,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: epicChest,
   },
   legendaryChest: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 4,
     hp: 40,
@@ -165,7 +178,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: legendaryChest,
   },
   pot: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 0,
     hp: 10,
@@ -176,7 +189,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: pot,
   },
   box: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 0,
     hp: 10,
@@ -187,7 +200,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: box,
   },
   cactus1: {
-    tribe: "unit",
+    faction: "unit",
     attack: 2,
     defense: 1,
     hp: 10,
@@ -198,7 +211,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: cactus1,
   },
   cactus2: {
-    tribe: "unit",
+    faction: "unit",
     attack: 3,
     defense: 0,
     hp: 10,
@@ -209,37 +222,37 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: cactus2,
   },
   rock1: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 3,
     hp: 3,
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 40, items: [{ stat: "flower", amount: 1 }] },
-      { chance: 40, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 50, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 30, items: [{ stat: "flower", amount: 1 }] },
       { chance: 20, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
     sprite: rock1,
   },
   rock2: {
-    tribe: "unit",
+    faction: "unit",
     attack: 3,
     defense: 2,
     hp: 5,
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 40, items: [{ stat: "berry", amount: 1 }] },
-      { chance: 40, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 50, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 30, items: [{ stat: "berry", amount: 1 }] },
       { chance: 20, items: [{ stackable: "gem", amount: 1 }] },
     ],
     patternNames: [],
     sprite: rock2,
   },
   hedge1: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 0,
     hp: 8,
@@ -253,7 +266,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: hedge1,
   },
   hedge2: {
-    tribe: "unit",
+    faction: "unit",
     attack: 0,
     defense: 1,
     hp: 5,
@@ -267,12 +280,18 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: hedge2,
   },
   prism: {
-    tribe: "wild",
-    attack: 1,
+    faction: "wild",
+    attack: 0,
     defense: 0,
     hp: 4,
     mp: 0,
-    equipments: [],
+    equipments: [
+      {
+        equipment: "melee",
+        bound: true,
+        amount: 1,
+      },
+    ],
     drops: [
       { chance: 70, items: [{ stat: "gold", amount: 1 }] },
       { chance: 15, items: [{ stat: "xp", amount: 1 }] },
@@ -282,12 +301,18 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: prism,
   },
   goldPrism: {
-    tribe: "wild",
-    attack: 2,
+    faction: "wild",
+    attack: 0,
     defense: 1,
     hp: 15,
     mp: 0,
-    equipments: [],
+    equipments: [
+      {
+        equipment: "melee",
+        bound: true,
+        amount: 2,
+      },
+    ],
     drops: [
       {
         chance: 100,
@@ -302,12 +327,18 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: goldPrism,
   },
   eye: {
-    tribe: "wild",
-    attack: 1,
+    faction: "wild",
+    attack: 0,
     defense: 0,
     hp: 1,
     mp: 0,
-    equipments: [],
+    equipments: [
+      {
+        equipment: "melee",
+        bound: true,
+        amount: 1,
+      },
+    ],
     drops: [
       { chance: 70, items: [{ stat: "gold", amount: 1 }] },
       { chance: 15, items: [{ stat: "xp", amount: 1 }] },
@@ -317,12 +348,18 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: eye,
   },
   goldEye: {
-    tribe: "wild",
-    attack: 5,
+    faction: "wild",
+    attack: 0,
     defense: 1,
     hp: 1,
     mp: 0,
-    equipments: [],
+    equipments: [
+      {
+        equipment: "melee",
+        bound: true,
+        amount: 5,
+      },
+    ],
     drops: [
       {
         chance: 100,
@@ -337,8 +374,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: goldEye,
   },
   orb: {
-    tribe: "wild",
-    attack: 1,
+    faction: "wild",
+    attack: 0,
     defense: 0,
     hp: 2,
     mp: 1,
@@ -359,8 +396,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: orb,
   },
   goldOrb: {
-    tribe: "wild",
-    attack: 5,
+    faction: "wild",
+    attack: 0,
     defense: 1,
     hp: 5,
     mp: 2,
@@ -386,7 +423,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: goldOrb,
   },
   fairy: {
-    tribe: "wild",
+    faction: "wild",
     attack: 0,
     defense: 2,
     hp: 10,

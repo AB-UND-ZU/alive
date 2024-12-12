@@ -98,7 +98,7 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
     })
   );
   const shotEntity = entities.createShot(world, {
-    [BELONGABLE]: { tribe: entity[BELONGABLE].tribe },
+    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [MOVABLE]: {
       orientations: [],
       reference: frameId,

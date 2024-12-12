@@ -156,7 +156,7 @@ export default function setupFate(world: World) {
         );
         const haloEntity = entities.createHalo(world, {
           [ACTIONABLE]: { triggered: false },
-          [BELONGABLE]: { tribe: entity[BELONGABLE].tribe },
+          [BELONGABLE]: { faction: entity[BELONGABLE].faction },
           [EQUIPPABLE]: {},
           [INVENTORY]: { items: [], size: 10 },
           [LIGHT]: { ...entity[LIGHT] },
@@ -247,7 +247,7 @@ export default function setupFate(world: World) {
         [ACTIONABLE]: { triggered: false },
         [AFFECTABLE]: {},
         [ATTACKABLE]: {},
-        [BELONGABLE]: { tribe: entity[BELONGABLE].tribe },
+        [BELONGABLE]: { faction: entity[BELONGABLE].faction },
         [COLLECTABLE]: {},
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {},

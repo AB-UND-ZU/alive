@@ -175,7 +175,9 @@ function Entity({
         />
       )}
 
-      {hasStats && <Bar counter="hp" entity={entity} isVisible={isVisible} />}
+      {hasStats && inRadius && (
+        <Bar world={ecs} counter="hp" entity={entity} isVisible={isVisible} />
+      )}
 
       {isStackable && (
         <Dots segment={lootSegment} entity={entity} isVisible={isVisible} />

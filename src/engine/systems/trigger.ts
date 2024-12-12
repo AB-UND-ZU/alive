@@ -181,7 +181,7 @@ export const castSpell = (
   item: TypedEntity<"ITEM">
 ) => {
   const spellEntity = entities.createSpell(world, {
-    [BELONGABLE]: { tribe: entity[BELONGABLE].tribe },
+    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [CASTABLE]: {
       affected: {},
       power: item[ITEM].amount,

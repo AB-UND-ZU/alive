@@ -67,25 +67,27 @@ _Spawn area with intro quest_
 Hills 1 town
 
 - 1. Chief: sign "Find key", door locked iron key, quest for gold key, dungeon entry
-- 2. Elder: hp and mp, quest for iron key
-- 3. Rogue: haste, torch, map quest
+- 2. Elder: hp and mp potion lvl 1, quest for iron key
+- 3. Scout: haste, torch, map quest
 - 4. Smith: sword and armor, gather quest
 - 5. Trader: wood and iron, gather quest
 - 6a. Mage: bubble spell and charge, kill quest orb
 - 6b. Hunter: bow and arrows, kill quest eye
 - 6c. Knight: slash and charge, kill quest triangle
-- 7. Druid: hp/mp potion lvl 1
+- 7. Druid: flower and berry, gather quest
 - 8. Quest: simple quest
 - 9. Quest: hard quest
-- Guard: at entrances
+- Guard: at entrances, entry fee
+- Guy: Walking around, quest
+- Girl: Walking around, quest
 
 Hills 1 world
 
-- Nomad: house with chest with gold key, gather quest (1x gold) or steal and fight
+- Nomad: house with chest with silver key, gather quest (1x gold) or steal and fight
 - Scout: camp fire, bomb, map (5x power, 15x coin)
-- Miner: iron and pickaxe
-- Logger: wood and axe
-- Fisher: rod and bait
+- Miner: path, mine entry, iron and pickaxe
+- Logger: path, camp fire, wood and axe
+- Fisher: path, docks, rod and bait
 
 ## Quests
 

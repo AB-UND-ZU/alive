@@ -6,21 +6,24 @@ import { particleHeight, stack, stackHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
 import { getMaxCounter } from "../../game/assets/sprites";
 import { pixels } from "../Dimensions/sizing";
-import { BELONGABLE } from "../../engine/components/belongable";
 import { Countable, STATS } from "../../engine/components/stats";
+import { isEnemy, isNeutral } from "../../engine/systems/damage";
+import { World } from "../../engine";
 
-const unitColor = colors.silver;
-const unitBar = new THREE.Color(unitColor).multiplyScalar(0.075);
+const neutralColor = colors.silver;
+const neutralBar = new THREE.Color(neutralColor).multiplyScalar(0.075);
 const playerColor = colors.lime;
 const playerBar = new THREE.Color(playerColor).multiplyScalar(0.075);
 const enemyColor = colors.red;
 const enemyBar = new THREE.Color(enemyColor).multiplyScalar(0.15);
 
 export default function Bar({
+  world,
   entity,
   isVisible,
   counter,
 }: {
+  world: World;
   entity: Entity;
   isVisible: boolean;
   counter: keyof Countable;
@@ -28,18 +31,18 @@ export default function Bar({
   const dimensions = useDimensions();
   const max = entity[STATS][getMaxCounter(counter)];
   const value = Math.min(entity[STATS][counter], max);
-  const isEnemy = entity[BELONGABLE].tribe !== "neutral";
-  const isUnit = entity[BELONGABLE].tribe === "unit";
+  const enemy = isEnemy(world, entity);
+  const neutral = isNeutral(world, entity);
   const spring = useSpring({
     scaleX: value / max,
     translateX:
       (((value - max) / max) * (dimensions.aspectRatio - 1 / pixels)) / 2 -
       0.5 / pixels,
-    opacity: isVisible || isUnit ? 1 : 0,
+    opacity: isVisible ? 1 : 0,
     config: { duration: 75 },
   });
 
-  if (value === max && isUnit) return null;
+  if (value === max && neutral) return null;
 
   return (
     <>
@@ -53,7 +56,7 @@ export default function Bar({
           args={[dimensions.aspectRatio - 1 / pixels, 1 / pixels, 1 / stack]}
         />
         <animated.meshBasicMaterial
-          color={isUnit ? unitColor : isEnemy ? enemyColor : playerColor}
+          color={neutral ? neutralColor : enemy ? enemyColor : playerColor}
           opacity={spring.opacity}
           transparent
         />
@@ -69,7 +72,7 @@ export default function Bar({
             args={[dimensions.aspectRatio - 1 / pixels, 1 / pixels, 1 / stack]}
           />
           <animated.meshBasicMaterial
-            color={isUnit ? unitBar : isEnemy ? enemyBar : playerBar}
+            color={neutral ? neutralBar : enemy ? enemyBar : playerBar}
             opacity={spring.opacity}
             transparent
           />

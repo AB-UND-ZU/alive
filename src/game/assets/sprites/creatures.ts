@@ -33,8 +33,16 @@ export const knight: Sprite = {
   ],
 };
 
-export const villager: Sprite = {
-  name: "Villager",
+export const settler: Sprite = {
+  name: "Settler",
+  layers: [
+    { char: "\u010b", color: colors.silver },
+    { char: "'", color: colors.olive },
+  ],
+};
+
+export const nomad: Sprite = {
+  name: "Nomad",
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "'", color: colors.white },

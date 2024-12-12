@@ -22,8 +22,10 @@ import {
   aetherCharm2,
   aetherPet2,
   aetherSword,
+  apple,
   appleDrop,
   arrow,
+  banana,
   bananaDrop,
   beamSpell,
   berryStack,
@@ -34,6 +36,7 @@ import {
   charm,
   cloak1,
   cloak2,
+  coconut,
   coconutDrop,
   compass,
   crystal,
@@ -88,6 +91,7 @@ import {
   mpFlask2,
   none,
   pet,
+  plum,
   plumDrop,
   rainbowArmor,
   rainbowCharm2,
@@ -438,32 +442,41 @@ const entitySprites: Record<
   },
 };
 
-const stackableSprites: Record<Stackable, Sprite> = {
-  apple: appleDrop,
-  plum: plumDrop,
-  banana: bananaDrop,
-  coconut: coconutDrop,
-  gem: gem,
-  crystal: crystal,
-  flower: flowerStack,
-  berry: berryStack,
-  wood: wood,
-  iron: iron,
-  gold: gold,
-  diamond: diamond,
-  spike: spike,
-  worm: worm,
-  arrow: arrow,
-  bomb: bombActive,
-  charge: charge,
+const stackableSprites: Record<
+  Stackable,
+  { sprite: Sprite; resource?: Sprite }
+> = {
+  apple: { sprite: appleDrop, resource: apple },
+  plum: { sprite: plumDrop, resource: plum },
+  banana: { sprite: bananaDrop, resource: banana },
+  coconut: { sprite: coconutDrop, resource: coconut },
+  gem: { sprite: gem },
+  crystal: { sprite: crystal },
+  flower: { sprite: flowerStack },
+  berry: { sprite: berryStack },
+  wood: { sprite: wood },
+  iron: { sprite: iron },
+  gold: { sprite: gold },
+  diamond: { sprite: diamond },
+  spike: { sprite: spike },
+  worm: { sprite: worm },
+  arrow: { sprite: arrow },
+  bomb: { sprite: bombActive },
+  charge: { sprite: charge },
 };
 
 export const getItemSprite = (
   item: Omit<Item, "amount" | "carrier" | "bound"> & {
     materialized?: Materialized;
-  }
+  },
+  variant?: "resource"
 ) => {
-  if (item.stackable) return stackableSprites[item.stackable];
+  if (item.stackable) {
+    const spriteConfig = stackableSprites[item.stackable];
+    return (
+      (variant === "resource" && spriteConfig.resource) || spriteConfig.sprite
+    );
+  }
 
   const lookup = item.equipment || item.consume || item.materialized;
 
@@ -479,6 +492,9 @@ export const getItemSprite = (
       (item.passive && entitySprites[item.passive][item.material || "wood"]) ||
       none
     );
+
+  // don't render claws
+  if (lookup === "melee" && !item.material) return none;
 
   return entitySprites[lookup][item.material || "wood"] || none;
 };
