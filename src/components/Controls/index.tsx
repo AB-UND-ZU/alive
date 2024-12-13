@@ -6,7 +6,7 @@ import { useHero, useWorld } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
-import Row from "../Row";
+import Row, { CellSprite } from "../Row";
 import {
   arrow,
   buttonColor,
@@ -78,7 +78,13 @@ const getActivationRow = (item?: Item) => {
       "countable"
     );
 
-  return [none, getItemSprite(item), none];
+  const sprite: CellSprite = { ...getItemSprite(item) };
+
+  if (item.stackable) {
+    sprite.stackableAmount = item.amount;
+  }
+
+  return [none, sprite, none];
 };
 
 const buttonWidth = 6;
@@ -181,7 +187,7 @@ export default function Controls() {
     "trade",
     (world, hero, tradeEntity) =>
       !isTradable(world, tradeEntity) || !canTrade(world, hero, tradeEntity),
-    () => "Buy",
+    () => "Trade",
     (tradeEntity) => [
       getActivationRow(tradeEntity && tradeEntity[TRADABLE].activation[0]),
       getActivationRow(tradeEntity && tradeEntity[TRADABLE].activation[1]),

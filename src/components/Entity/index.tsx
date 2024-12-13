@@ -175,7 +175,7 @@ function Entity({
         />
       )}
 
-      {hasStats && inRadius && (
+      {hasStats && (
         <Bar world={ecs} counter="hp" entity={entity} isVisible={isVisible} />
       )}
 

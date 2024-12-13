@@ -248,10 +248,10 @@ T5: legendary (fuchsia)
 
 ## Equipment activation
 
-- Slash + Charge: spin sword around + on hit, drop on receiving melee hit once per unit (10 xp)
-- Block + Charge: block next spell or reflect melee + shield on hit, drop on mana consume (10 xp)
-- Bow + Arrow: shoot arrow + on hit reduced damage + scale with movement speed, drops on miss or decay (10 xp)
-- Bomb: explode + pushable
+- Slash + Charge: spin sword around + on hit, drop on receiving melee hit once per unit (5 xp + 1 berry, 5 gold)
+- Block + Charge: block next spell or reflect melee + shield on hit, drop on mana consume (5 xp + 1 flower, 5 gold)
+- Bow + Arrow: shoot arrow + on hit reduced damage + scale with movement speed, drops on miss or decay (5 xp + 5 gold, 1 wood + 5 ore)
+- Bomb: explode + pushable, drop on entity kill (5 xp + 1 iron)
 
 ## Elemental spells
 

@@ -42,7 +42,7 @@ import {
 import { STATS } from "../../engine/components/stats";
 import { CASTABLE } from "../../engine/components/castable";
 
-const defaultVision = 3.5;
+const defaultVision = 3.7;
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {

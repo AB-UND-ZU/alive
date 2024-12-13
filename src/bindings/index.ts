@@ -26,8 +26,10 @@ import {
   ghost,
   goldKey,
   grass,
+  hpFlask1,
   ironKey,
   ironMine,
+  mpFlask1,
   none,
   oak,
   palm1,
@@ -99,7 +101,7 @@ import {
   windowInside,
 } from "../game/assets/sprites/structures";
 import { BURNABLE } from "../engine/components/burnable";
-import { createItemAsDrop } from "../engine/systems/drop";
+import { createItemAsDrop, sellItem } from "../engine/systems/drop";
 import { COLLECTABLE } from "../engine/components/collectable";
 import { SOUL } from "../engine/components/soul";
 import { FocusSequence, SEQUENCABLE } from "../engine/components/sequencable";
@@ -376,7 +378,7 @@ export const generateWorld = async (world: World) => {
         [BELONGABLE]: { faction: "settler" },
         [EQUIPPABLE]: {},
         [INVENTORY]: { items: [], size: 10 },
-        [LIGHT]: { brightness: 15, visibility: 15, darkness: 0 },
+        [LIGHT]: { brightness: 18, visibility: 18, darkness: 0 },
         [MOVABLE]: {
           orientations: [],
           reference: frameId,
@@ -396,7 +398,7 @@ export const generateWorld = async (world: World) => {
           classKey: "scout",
           position: copy(initialPosition),
           viewable: { active: false },
-          light: { brightness: 15, visibility: 15, darkness: 0 },
+          light: { brightness: 18, visibility: 18, darkness: 0 },
         },
         [SPRITE]: ghost,
         [VIEWABLE]: { active: false },
@@ -1261,6 +1263,41 @@ export const generateWorld = async (world: World) => {
     },
   });
   populateInventory(world, elderEntity, items, equipments);
+  world.setIdentifier(elderEntity, "elder");
+  const hpEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      consume: "potion1",
+      material: "fire",
+      amount: 10,
+      bound: false,
+    },
+    [SPRITE]: hpFlask1,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(hpEntity),
+    add(elderHouse.position, { x: -2, y: 0 }),
+    [{ stackable: "apple", amount: 3 }]
+  );
+  const mpEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      consume: "potion1",
+      material: "water",
+      amount: 10,
+      bound: false,
+    },
+    [SPRITE]: mpFlask1,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(mpEntity),
+    add(elderHouse.position, { x: 2, y: 0 }),
+    [{ stackable: "plum", amount: 3 }]
+  );
 
   // start ordered systems
   world.addSystem(systems.setupMap);

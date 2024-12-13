@@ -3,7 +3,7 @@ import { World } from "../ecs";
 import { Item } from "./item";
 
 export type Tradable = {
-  activation: Item[];
+  activation: Omit<Item, "carrier" | "bound">[];
 };
 
 export const TRADABLE = "TRADABLE";

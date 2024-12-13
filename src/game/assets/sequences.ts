@@ -959,6 +959,7 @@ export const itemCollect: Sequence<CollectSequence> = (
           [ITEM]: {
             amount: getGearStat("melee", "wood"),
             equipment: "melee",
+            material: "wood",
             carrier: entityId,
             bound: false,
           },

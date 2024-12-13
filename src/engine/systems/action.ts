@@ -75,23 +75,27 @@ export const isTradable = (world: World, entity: Entity) =>
 
 export const canTrade = (world: World, entity: Entity, trade: Entity) =>
   isTradable(world, trade) &&
-  (trade[TRADABLE] as Tradable).activation.every((item) => {
-    if (item.stat) {
+  (trade[TRADABLE] as Tradable).activation.every((activationItem) => {
+    if (activationItem.stat) {
       // check if entity has sufficient of stat
-      return entity[STATS][item.stat] >= item.amount;
+      return entity[STATS][activationItem.stat] >= activationItem.amount;
     } else {
-      // or if item is contained in inventory (and ignore amount)
+      // or if item is contained in inventory
       return (entity[INVENTORY] as Inventory).items.some((itemId) => {
         const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
         const matchesEquipment =
-          item.equipment &&
-          itemEntity[ITEM].equipment === item.equipment &&
-          itemEntity[ITEM].material === item.material;
+          activationItem.equipment &&
+          itemEntity[ITEM].equipment === activationItem.equipment &&
+          itemEntity[ITEM].material === activationItem.material;
         const matchesConsume =
-          item.consume &&
-          itemEntity[ITEM].consume === item.consume &&
-          itemEntity[ITEM].material === item.material;
-        return matchesEquipment || matchesConsume;
+          activationItem.consume &&
+          itemEntity[ITEM].consume === activationItem.consume &&
+          itemEntity[ITEM].material === activationItem.material;
+        const matchesStackable =
+          activationItem.stackable &&
+          itemEntity[ITEM].stackable === activationItem.stackable &&
+          itemEntity[ITEM].amount >= activationItem.amount;
+        return matchesEquipment || matchesConsume || matchesStackable;
       });
     }
   });

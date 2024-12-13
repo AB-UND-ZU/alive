@@ -26,8 +26,8 @@ import { Tradable, TRADABLE } from "../components/tradable";
 import { COLLIDABLE } from "../components/collidable";
 import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
-import { turnedIterations } from "../../game/math/tracing";
-import { add, copy, normalize } from "../../game/math/std";
+import { iterations } from "../../game/math/tracing";
+import { add, copy, normalize, shuffle } from "../../game/math/std";
 import {
   CollectSequence,
   DecaySequence,
@@ -41,7 +41,12 @@ import { getEntityGeneration } from "./renderer";
 import { PLAYER } from "../components/player";
 import { SHOOTABLE } from "../components/shootable";
 import { Orientation, orientationPoints } from "../components/orientable";
-import { droppableCountables, STATS } from "../components/stats";
+import {
+  droppableCountables,
+  emptyStats,
+  Stats,
+  STATS,
+} from "../components/stats";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -67,6 +72,7 @@ export const findAdjacentWalkable = (
 
   for (let direction = 1; direction <= maxRadius; direction += 1) {
     // centers
+    const turnedIterations = shuffle(iterations);
     for (const iteration of turnedIterations) {
       let normal = 0;
       const centerPosition = {
@@ -211,6 +217,8 @@ export const dropEntity = (
   maxRadius: number = MAX_DROP_RADIUS,
   orientation?: Orientation
 ) => {
+  const stats: Stats = { ...emptyStats, ...entity[STATS] };
+  const inventory = entity[INVENTORY]?.items || [];
   const remains = entity[DROPPABLE]?.remains;
 
   if (remains) {
@@ -222,20 +230,35 @@ export const dropEntity = (
     });
   }
 
+  // convert wood sword back to stick
+  const stickIndex = inventory.findIndex((itemId: number) => {
+    const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
+    return (
+      itemEntity[ITEM].equipment === "melee" &&
+      itemEntity[ITEM].material === "wood"
+    );
+  });
+  if (stickIndex !== -1) {
+    const stickEntity = world.assertById(inventory[stickIndex]);
+    disposeEntity(world, stickEntity);
+    inventory.splice(stickIndex, 1);
+    stats.stick += 1;
+  }
+
   const arrowHits = entity[SHOOTABLE]?.hits || 0;
   const arrowStacks = Math.ceil(arrowHits / STACK_SIZE);
   const items = [
-    ...(entity[INVENTORY]?.items.filter(
+    ...(inventory.filter(
       (itemId: number) =>
         !world.assertByIdAndComponents(itemId, [ITEM])[ITEM].bound
     ) || []),
     ...droppableCountables
-      .filter((counter) => entity[STATS]?.[counter])
+      .filter((counter) => stats[counter])
       .map((counter) =>
         world.getEntityId(
           entities.createItem(world, {
             [ITEM]: {
-              amount: entity[STATS][counter],
+              amount: stats[counter],
               stat: counter,
               carrier: -1,
               bound: false,
@@ -331,21 +354,18 @@ export const dropEntity = (
 
 export const sellItem = (
   world: World,
-  items: Inventory["items"],
+  itemId: Inventory["items"][number],
   position: Position,
   activation: Tradable["activation"]
 ) => {
-  const previousItems = [...items];
   const sellPosition = findAdjacentWalkable(world, position);
-  const itemNames = items
-    .map((itemId) =>
-      world.assertByIdAndComponents(itemId, [SPRITE])[SPRITE].name.toLowerCase()
-    )
-    .join(", ");
+  const itemEntity = world.assertByIdAndComponents(itemId, [ITEM, SPRITE]);
+  const previousCarrier = world.getEntityByIdAndComponents(itemEntity[ITEM].carrier, [POSITION]);
+  const itemName = itemEntity[SPRITE].name;
   const shopEntity = entities.createShop(world, {
     [COLLIDABLE]: {},
     [FOG]: { visibility: "fog", type: "unit" },
-    [INVENTORY]: { items: previousItems, size: previousItems.length },
+    [INVENTORY]: { items: previousCarrier ? [] : [itemId], size: 1 },
     [LOOTABLE]: { disposable: true },
     [POSITION]: sellPosition,
     [RENDERABLE]: { generation: 0 },
@@ -353,7 +373,7 @@ export const sellItem = (
     [SPRITE]: none,
     [TRADABLE]: { activation },
     [TOOLTIP]: {
-      dialogs: [createDialog(`Buy ${itemNames}`)],
+      dialogs: [createDialog(itemName)],
       persistent: false,
       nextDialog: -1,
       idle: shop,
@@ -361,17 +381,24 @@ export const sellItem = (
   });
   registerEntity(world, shopEntity);
   const shopId = world.getEntityId(shopEntity);
-  previousItems.forEach((item) => {
-    const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
-    const previousCarrier = itemEntity[ITEM].carrier;
 
-    if (previousCarrier) {
-      const carrierEntity = world.assertById(previousCarrier);
-      removeFromInventory(world, carrierEntity, itemEntity);
-    }
+  if (previousCarrier) {
+    removeFromInventory(world, previousCarrier, itemEntity);
 
-    itemEntity[ITEM].carrier = shopId;
-  });
+    createSequence<"collect", CollectSequence>(
+      world,
+      shopEntity,
+      "collect",
+      "itemCollect",
+      {
+        origin: copy(previousCarrier[POSITION]),
+        itemId,
+        drop: itemEntity[ITEM].amount,
+      }
+    );
+  }
+
+  itemEntity[ITEM].carrier = shopId;
 };
 
 export default function setupDrop(world: World) {

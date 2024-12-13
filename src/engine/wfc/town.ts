@@ -594,7 +594,7 @@ const pathWeight = 1;
 const TOWN_TRIES = 5;
 const doorOffsets = {
   doorLeft: { x: 2, y: -2 },
-  doorCenter: { x: 0, y: -1 },
+  doorCenter: { x: 0, y: -2 },
   doorRight: { x: -2, y: -2 },
 };
 

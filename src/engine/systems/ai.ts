@@ -605,7 +605,7 @@ export default function setupAi(world: World) {
               } else if (pattern.name === "sell") {
                 sellItem(
                   world,
-                  [memory.item],
+                  memory.item,
                   memory.targetPosition,
                   memory.activation
                 );

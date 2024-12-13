@@ -135,13 +135,25 @@ export const performTrade = (world: World, entity: Entity, trade: Entity) => {
           activationItem.consume &&
           itemEntity[ITEM].consume === activationItem.consume &&
           itemEntity[ITEM].material === activationItem.material;
-        return matchesEquipment || matchesConsume;
+        const matchesStackable =
+          activationItem.stackable &&
+          itemEntity[ITEM].stackable === activationItem.stackable &&
+          itemEntity[ITEM].amount >= activationItem.amount;
+        return matchesEquipment || matchesConsume || matchesStackable;
       });
 
       if (tradedId) {
-        const tradedEntity = world.assertById(tradedId);
-        removeFromInventory(world, entity, tradedEntity);
-        disposeEntity(world, tradedEntity);
+        const tradedEntity = world.assertByIdAndComponents(tradedId, [ITEM]);
+
+        if (
+          activationItem.stackable &&
+          tradedEntity[ITEM].amount > activationItem.amount
+        ) {
+          tradedEntity[ITEM].amount -= activationItem.amount;
+        } else {
+          removeFromInventory(world, entity, tradedEntity);
+          disposeEntity(world, tradedEntity);
+        }
       } else {
         console.error("Unable to perform trade!", {
           entity,
