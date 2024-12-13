@@ -3,6 +3,7 @@ export { default as setupAi } from "./ai";
 export { default as setupBallistics } from "./ballistics";
 export { default as setupBurn } from "./burn";
 export { default as setupCollect } from "./collect";
+export { default as setupConsume } from "./consume";
 export { default as setupDamage } from "./damage";
 export { default as setupDrop } from "./drop";
 export { default as setupEnter } from "./enter";

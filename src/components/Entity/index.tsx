@@ -147,7 +147,8 @@ function Entity({
   const lootSegment = lootSegments[0];
   const isStackable =
     !!lootSegment &&
-    !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].stackable;
+    (!!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].stackable ||
+      !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].consume);
 
   return (
     <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={config}>

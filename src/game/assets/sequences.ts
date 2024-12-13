@@ -4,6 +4,7 @@ import {
   effectHeight,
   focusHeight,
   getItemSprite,
+  lootHeight,
   particleHeight,
   tooltipHeight,
 } from "../../components/Entity/utils";
@@ -74,12 +75,17 @@ import {
   woodStick,
   edge,
   beam,
+  getMaxCounter,
+  getCountableSprite,
+  flask2,
+  flask1,
 } from "./sprites";
 import {
   ArrowSequence,
   BubbleSequence,
   BurnSequence,
   CollectSequence,
+  ConsumeSequence,
   DecaySequence,
   DialogSequence,
   DisposeSequence,
@@ -115,6 +121,7 @@ import { isImmersible } from "../../engine/systems/immersion";
 import { invertOrientation } from "../math/path";
 import { dropEntity } from "../../engine/systems/drop";
 import { EXERTABLE } from "../../engine/components/exertable";
+import { consumptionConfigs } from "../../engine/systems/consume";
 
 export * from "./npcs";
 export * from "./quests";
@@ -923,7 +930,7 @@ export const itemCollect: Sequence<CollectSequence> = (
     ITEM,
     SPRITE,
   ]);
-  const distance = getDistance(entity[POSITION], state.args.origin, size)
+  const distance = getDistance(entity[POSITION], state.args.origin, size);
   const lootDelay =
     MOVABLE in entity
       ? world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
@@ -952,7 +959,11 @@ export const itemCollect: Sequence<CollectSequence> = (
       let targetItem = itemEntity;
 
       // if no sword is equipped, use wood as stick
-      if (entity[MELEE] && !entity[EQUIPPABLE].melee && targetStat === "stick") {
+      if (
+        entity[MELEE] &&
+        !entity[EQUIPPABLE].melee &&
+        targetStat === "stick"
+      ) {
         targetEquipment = "melee";
         targetStat = undefined;
         targetItem = entities.createSword(world, {
@@ -1045,6 +1056,106 @@ export const itemCollect: Sequence<CollectSequence> = (
       [SPRITE]: itemEntity[SPRITE],
     });
     state.particles.loot = world.getEntityId(lootParticle);
+    updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const consumeSpeed = 350;
+
+export const flaskConsume: Sequence<ConsumeSequence> = (
+  world,
+  entity,
+  state
+) => {
+  let updated = false;
+  let finished = false;
+  const consumableId = state.particles.consumable;
+  const countableId = state.particles.countable;
+  const itemId = state.args.itemId;
+  const itemEntity = world.assertByIdAndComponents(itemId, [
+    RENDERABLE,
+    ITEM,
+    SPRITE,
+  ]);
+
+  const consumptionConfig =
+    consumptionConfigs[itemEntity[ITEM].consume!]?.[itemEntity[ITEM].material!];
+
+  if (!consumptionConfig) {
+    return { finished: true, updated: false };
+  }
+
+  // add item to player's inventory
+  if (state.elapsed >= consumeSpeed * 2) {
+    const maxCountable = getMaxCounter(consumptionConfig.countable);
+    entity[STATS][consumptionConfig.countable] = Math.min(
+      entity[STATS][maxCountable],
+      entity[STATS][consumptionConfig.countable] + consumptionConfig.amount
+    );
+
+    if (itemEntity[ITEM].amount === 0) {
+      disposeEntity(world, itemEntity);
+    }
+
+    if (consumableId) {
+      const consumableParticle = world.assertById(consumableId);
+      disposeEntity(world, consumableParticle);
+      delete state.particles.consumable;
+    }
+
+    if (countableId) {
+      const countableParticle = world.assertById(countableId);
+      disposeEntity(world, countableParticle);
+      delete state.particles.countable;
+    }
+
+    finished = true;
+  }
+
+  // create consumable particle
+  if (!consumableId) {
+    const consumableParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: -1,
+        offsetZ: effectHeight,
+        duration: consumeSpeed,
+        animatedOrigin: { x: 0, y: 0 },
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: itemEntity[SPRITE],
+    });
+    state.particles.consumable = world.getEntityId(consumableParticle);
+    updated = true;
+  }
+
+  // create countable particle and empty flask
+  if (!countableId && state.elapsed >= consumeSpeed) {
+    const consumableParticle = world.getEntityByIdAndComponents(
+      state.particles.consumable,
+      [SPRITE]
+    );
+
+    if (consumableParticle) {
+      consumableParticle[SPRITE] =
+        itemEntity[ITEM].consume === "potion2" ? flask2 : flask1;
+      rerenderEntity(world, consumableParticle);
+    }
+
+    const countableParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: lootHeight,
+        duration: consumeSpeed,
+        animatedOrigin: { x: 0, y: -1 },
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: getCountableSprite(consumptionConfig.countable),
+    });
+    state.particles.countable = world.getEntityId(countableParticle);
     updated = true;
   }
 

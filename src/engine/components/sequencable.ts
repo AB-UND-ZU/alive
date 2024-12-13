@@ -10,6 +10,7 @@ import { Element } from "./item";
 
 type EmptyObject = Record<string, never>;
 
+export type ConsumeSequence = { itemId: number };
 export type WaveSequence = { innerRadius: number; outerRadius: number };
 export type BubbleSequence = { width: number };
 export type VisionSequence = {
@@ -90,6 +91,7 @@ export type Sequence<A> = (
 
 export type Sequencable = {
   states: {
+    consume?: SequenceState<ConsumeSequence>;
     spell?: SequenceState<SpellSequence>;
     wave?: SequenceState<WaveSequence>;
     bubble?: SequenceState<BubbleSequence>;

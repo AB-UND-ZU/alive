@@ -66,6 +66,24 @@ export const haste: Sprite = {
   ],
 };
 
+export const flask1: Sprite = {
+  name: "Flask",
+  layers: [
+    { char: "\u011f", color: colors.silver },
+    { char: "°", color: colors.grey },
+  ],
+};
+
+export const flask2: Sprite = {
+  name: "Flask",
+  layers: [
+    { char: '"', color: colors.grey },
+    { char: "T", color: colors.silver },
+    { char: "\u0106", color: colors.black },
+    { char: "\u0108", color: colors.silver },
+  ],
+};
+
 export const hpFlask1: Sprite = {
   name: "Flask",
   layers: [

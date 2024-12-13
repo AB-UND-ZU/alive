@@ -1305,6 +1305,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupTrigger);
   world.addSystem(systems.setupCollect);
+  world.addSystem(systems.setupConsume);
   world.addSystem(systems.setupSpike);
   world.addSystem(systems.setupPush);
   world.addSystem(systems.setupDamage);

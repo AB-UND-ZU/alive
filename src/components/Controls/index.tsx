@@ -467,7 +467,8 @@ export default function Controls() {
           return {
             ...createSprite(ecs, itemId),
             stackableAmount:
-              inventoryItem[ITEM].stackable && inventoryItem[ITEM].amount,
+              (inventoryItem[ITEM].stackable || inventoryItem[ITEM].consume) &&
+              inventoryItem[ITEM].amount,
           };
         })
       : [];
