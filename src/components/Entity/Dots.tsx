@@ -1,7 +1,7 @@
 import { Entity } from "ecs";
 import { animated } from "@react-spring/three";
 import * as colors from "../../game/assets/colors";
-import { stack, stackHeight, tooltipHeight } from "./utils";
+import { lootHeight, stack, stackHeight } from "./utils";
 import { Segment } from "./Stack";
 import { STACK_SIZE } from "../../engine/components/item";
 import { pixels } from "../Dimensions/sizing";
@@ -28,7 +28,7 @@ export default function Dots({
           key={index}
           position-x={((index % (STACK_SIZE / 2)) * 2 - 4) / pixels}
           position-y={(-5.5 + (index >= STACK_SIZE / 2 ? -2 : 0)) / pixels}
-          position-z={stackHeight * tooltipHeight}
+          position-z={stackHeight * lootHeight}
         >
           <boxGeometry args={[1 / pixels, 1 / pixels, 1 / stack]} />
           <animated.meshBasicMaterial

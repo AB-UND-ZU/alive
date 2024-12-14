@@ -1070,9 +1070,10 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
   state
 ) => {
   let updated = false;
-  let finished = false;
+  const finished = state.elapsed >= consumeSpeed * 3;
   const consumableId = state.particles.consumable;
   const countableId = state.particles.countable;
+  const decayId = state.particles.decay;
   const itemId = state.args.itemId;
   const itemEntity = world.assertByIdAndComponents(itemId, [
     RENDERABLE,
@@ -1087,8 +1088,8 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     return { finished: true, updated: false };
   }
 
-  // add item to player's inventory
-  if (state.elapsed >= consumeSpeed * 2) {
+  // process item consumption and decay flask
+  if (!decayId && state.elapsed >= consumeSpeed * 2) {
     const maxCountable = getMaxCounter(consumptionConfig.countable);
     entity[STATS][consumptionConfig.countable] = Math.min(
       entity[STATS][maxCountable],
@@ -1099,19 +1100,19 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
       disposeEntity(world, itemEntity);
     }
 
-    if (consumableId) {
-      const consumableParticle = world.assertById(consumableId);
-      disposeEntity(world, consumableParticle);
-      delete state.particles.consumable;
-    }
-
     if (countableId) {
       const countableParticle = world.assertById(countableId);
       disposeEntity(world, countableParticle);
       delete state.particles.countable;
     }
 
-    finished = true;
+    const decayParticle = entities.createParticle(world, {
+      [PARTICLE]: { offsetX: 0, offsetY: -1, offsetZ: lootHeight },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: decay,
+    });
+    state.particles.decay = world.getEntityId(decayParticle);
+    updated = true;
   }
 
   // create consumable particle
@@ -1132,7 +1133,11 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
   }
 
   // create countable particle and empty flask
-  if (!countableId && state.elapsed >= consumeSpeed) {
+  if (
+    !countableId &&
+    state.elapsed >= consumeSpeed &&
+    state.elapsed < consumeSpeed * 2
+  ) {
     const consumableParticle = world.getEntityByIdAndComponents(
       state.particles.consumable,
       [SPRITE]
@@ -1157,6 +1162,20 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     });
     state.particles.countable = world.getEntityId(countableParticle);
     updated = true;
+  }
+
+  if (finished) {
+    if (state.particles.consumable) {
+      const consumableParticle = world.assertById(state.particles.consumable);
+      disposeEntity(world, consumableParticle);
+      delete state.particles.consumable;
+    }
+
+    if (state.particles.decay) {
+      const decayParticle = world.assertById(state.particles.decay);
+      disposeEntity(world, decayParticle);
+      delete state.particles.decay;
+    }
   }
 
   return { finished, updated };

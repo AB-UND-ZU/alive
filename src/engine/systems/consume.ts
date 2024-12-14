@@ -28,18 +28,23 @@ export const consumptionConfigs: Partial<
     Partial<
       Record<
         Material,
-        { cooldown: number; amount: number; countable: keyof Countable }
+        {
+          cooldown: number;
+          amount: number;
+          countable: keyof Countable;
+          buffer: number; // leave a few countables open so the player can still manually restore stats without wasting health
+        }
       >
     >
   >
 > = {
   potion1: {
-    fire: { cooldown: 10, amount: 2, countable: "hp" },
-    water: { cooldown: 10, amount: 1, countable: "mp" },
+    fire: { cooldown: 10, amount: 2, countable: "hp", buffer: 2 },
+    water: { cooldown: 10, amount: 1, countable: "mp", buffer: 2 },
   },
   potion2: {
-    fire: { cooldown: 7, amount: 5, countable: "hp" },
-    water: { cooldown: 7, amount: 2, countable: "mp" },
+    fire: { cooldown: 7, amount: 5, countable: "hp", buffer: 3 },
+    water: { cooldown: 7, amount: 2, countable: "mp", buffer: 3 },
   },
 };
 
@@ -81,7 +86,12 @@ export default function setupConsume(world: World) {
         const currentCountable = entity[STATS][consumptionConfig.countable];
         const maxCountable = entity[STATS][maxCounter];
 
-        if (currentCountable + consumptionConfig.amount > maxCountable)
+        if (
+          currentCountable +
+            consumptionConfig.amount +
+            consumptionConfig.buffer >
+          maxCountable
+        )
           continue;
 
         consumptions.push({
