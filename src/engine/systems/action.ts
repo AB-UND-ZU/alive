@@ -94,6 +94,7 @@ export const canTrade = (world: World, entity: Entity, trade: Entity) =>
         const matchesStackable =
           activationItem.stackable &&
           itemEntity[ITEM].stackable === activationItem.stackable &&
+          itemEntity[ITEM].material === activationItem.material &&
           itemEntity[ITEM].amount >= activationItem.amount;
         return matchesEquipment || matchesConsume || matchesStackable;
       });

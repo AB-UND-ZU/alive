@@ -1004,13 +1004,13 @@ export const itemCollect: Sequence<CollectSequence> = (
 
         entity[EQUIPPABLE][targetEquipment] = targetId;
         entity[INVENTORY].items.push(targetId);
-      } else if (targetConsume) {
+      } else if (targetConsume || (targetStackable && state.args.fullStack)) {
         entity[INVENTORY].items.push(targetId);
       } else if (targetStat) {
         entity[STATS][targetStat] += 1;
       } else if (targetStackable) {
         // add to existing stack if available
-        const existingStack = getStackable(world, entity, targetStackable);
+        const existingStack = getStackable(world, entity, itemEntity[ITEM]);
 
         if (existingStack) {
           existingStack[ITEM].amount += 1;
@@ -1081,7 +1081,8 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     SPRITE,
   ]);
 
-  const consumptionConfig = itemEntity &&
+  const consumptionConfig =
+    itemEntity &&
     consumptionConfigs[itemEntity[ITEM].consume!]?.[itemEntity[ITEM].material!];
 
   if (!consumptionConfig) {

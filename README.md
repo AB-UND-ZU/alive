@@ -71,10 +71,10 @@ Hills 1 town
 - 3. Scout: haste, torch, map quest
 - 4. Smith: sword and armor, gather quest
 - 5. Trader: wood and iron, gather quest
-- 6a. Mage: bubble spell and charge, kill quest orb
-- 6b. Hunter: bow and arrows, kill quest eye
-- 6c. Knight: slash and charge, kill quest triangle
-- 7. Druid: flower and berry, gather quest
+- 6. Druid: flower and berry, gather quest
+- 7a. Mage: bubble spell and charge, kill quest orb
+- 7b. Hunter: bow and arrows, kill quest eye
+- 7c. Knight: slash and charge, kill quest triangle
 - 8. Quest: simple quest
 - 9. Quest: hard quest
 - Guard: at entrances, entry fee

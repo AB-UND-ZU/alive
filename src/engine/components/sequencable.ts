@@ -46,6 +46,7 @@ export type CollectSequence = {
   origin: Position;
   itemId: number;
   drop?: number;
+  fullStack?: boolean;
 };
 export type UnlockSequence = { origin: Position; itemId: number };
 export type FocusSequence = EmptyObject;

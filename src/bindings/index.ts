@@ -8,10 +8,13 @@ import { MOVABLE } from "../engine/components/movable";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
   addBackground,
+  arrow,
   berry,
+  berryStack,
   block,
   blockDown,
   blockUp,
+  bowActive,
   bush,
   campfire,
   coin,
@@ -22,13 +25,17 @@ import {
   doorClosedWood,
   doorOpen,
   flower,
+  flowerStack,
   fog,
   ghost,
   goldKey,
   grass,
+  haste,
   hpFlask1,
+  iron,
   ironKey,
   ironMine,
+  ironSword,
   mpFlask1,
   none,
   oak,
@@ -37,10 +44,13 @@ import {
   path,
   sand,
   stick,
+  torch,
   tree1,
   tree2,
   wall,
   water,
+  wood,
+  woodArmor,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
@@ -121,6 +131,8 @@ import generateTown from "../engine/wfc/town";
 import { ENTERABLE } from "../engine/components/enterable";
 import { AFFECTABLE } from "../engine/components/affectable";
 import { populateInventory } from "./creation";
+import { getItemPrice } from "../game/balancing/trading";
+import { getGearStat } from "../game/balancing/equipment";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -1225,14 +1237,13 @@ export const generateWorld = async (world: World) => {
 
   // 2. elder's house
   const elderHouse = houses[1];
-  const { sprite, items, stats, faction, patterns, equipments } =
-    generateUnitData("elder");
+  const elderUnit = generateUnitData("elder");
   const elderEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
     [AFFECTABLE]: {},
     [ATTACKABLE]: {},
-    [BEHAVIOUR]: { patterns },
-    [BELONGABLE]: { faction },
+    [BEHAVIOUR]: { patterns: elderUnit.patterns },
+    [BELONGABLE]: { faction: elderUnit.faction },
     [COLLECTABLE]: {},
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
@@ -1253,8 +1264,8 @@ export const generateWorld = async (world: World) => {
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SHOOTABLE]: { hits: 0 },
-    [SPRITE]: sprite,
-    [STATS]: { ...emptyStats, ...stats },
+    [SPRITE]: elderUnit.sprite,
+    [STATS]: { ...emptyStats, ...elderUnit.stats },
     [SWIMMABLE]: { swimming: false },
     [TOOLTIP]: {
       dialogs: [],
@@ -1262,7 +1273,7 @@ export const generateWorld = async (world: World) => {
       nextDialog: -1,
     },
   });
-  populateInventory(world, elderEntity, items, equipments);
+  populateInventory(world, elderEntity, elderUnit.items, elderUnit.equipments);
   world.setIdentifier(elderEntity, "elder");
   const hpEntity = entities.createItem(world, {
     [ITEM]: {
@@ -1279,10 +1290,7 @@ export const generateWorld = async (world: World) => {
     world,
     world.getEntityId(hpEntity),
     add(elderHouse.position, { x: -2, y: 0 }),
-    [
-      { stackable: "apple", amount: 3 },
-      { stat: "stick", amount: 3 },
-    ],
+    getItemPrice(hpEntity[ITEM]),
     Infinity
   );
   const mpEntity = entities.createItem(world, {
@@ -1300,11 +1308,394 @@ export const generateWorld = async (world: World) => {
     world,
     world.getEntityId(mpEntity),
     add(elderHouse.position, { x: 2, y: 0 }),
-    [
-      { stackable: "plum", amount: 3 },
-      { stat: "stick", amount: 3 },
-    ],
+    getItemPrice(mpEntity[ITEM]),
     Infinity
+  );
+
+  // 3. scout's house
+  const scoutHouse = houses[2];
+  const scoutUnit = generateUnitData("scout");
+  const scoutEntity = entities.createVillager(world, {
+    [ACTIONABLE]: { triggered: false },
+    [AFFECTABLE]: {},
+    [ATTACKABLE]: {},
+    [BEHAVIOUR]: { patterns: scoutUnit.patterns },
+    [BELONGABLE]: { faction: scoutUnit.faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [INVENTORY]: { items: [], size: 5 },
+    [MELEE]: {},
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+    },
+    [NPC]: {},
+    [ORIENTABLE]: {},
+    [POSITION]: copy(scoutHouse.position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { hits: 0 },
+    [SPRITE]: scoutUnit.sprite,
+    [STATS]: { ...emptyStats, ...scoutUnit.stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(world, scoutEntity, scoutUnit.items, scoutUnit.equipments);
+  world.setIdentifier(scoutEntity, "scout");
+  const hasteEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      equipment: "haste",
+      amount: 1,
+      bound: false,
+    },
+    [SPRITE]: haste,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(hasteEntity),
+    add(scoutHouse.position, { x: -2, y: 0 }),
+    getItemPrice(hasteEntity[ITEM])
+  );
+  const torchEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      equipment: "torch",
+      amount: 1,
+      bound: false,
+    },
+    [SPRITE]: torch,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(torchEntity),
+    add(scoutHouse.position, { x: 2, y: 0 }),
+    getItemPrice(torchEntity[ITEM])
+  );
+
+  // 4. smith's house
+  const smithHouse = houses[4];
+  const smithUnit = generateUnitData("smith");
+  const smithEntity = entities.createVillager(world, {
+    [ACTIONABLE]: { triggered: false },
+    [AFFECTABLE]: {},
+    [ATTACKABLE]: {},
+    [BEHAVIOUR]: { patterns: smithUnit.patterns },
+    [BELONGABLE]: { faction: smithUnit.faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [INVENTORY]: { items: [], size: 5 },
+    [MELEE]: {},
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+    },
+    [NPC]: {},
+    [ORIENTABLE]: {},
+    [POSITION]: copy(smithHouse.position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { hits: 0 },
+    [SPRITE]: smithUnit.sprite,
+    [STATS]: { ...emptyStats, ...smithUnit.stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(world, smithEntity, smithUnit.items, smithUnit.equipments);
+  world.setIdentifier(smithEntity, "smith");
+  const armorEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      equipment: "armor",
+      material: "wood",
+      amount: getGearStat("armor", "wood"),
+      bound: false,
+    },
+    [SPRITE]: woodArmor,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(armorEntity),
+    add(smithHouse.position, { x: -2, y: 0 }),
+    getItemPrice(armorEntity[ITEM])
+  );
+  const swordEntity = entities.createSword(world, {
+    [ITEM]: {
+      carrier: -1,
+      equipment: "melee",
+      material: "iron",
+      amount: getGearStat("melee", "iron"),
+      bound: false,
+    },
+    [ORIENTABLE]: {},
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: ironSword,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(swordEntity),
+    add(smithHouse.position, { x: 2, y: 0 }),
+    getItemPrice(swordEntity[ITEM])
+  );
+
+  // 5. trader's house
+  const traderHouse = houses[5];
+  const traderUnit = generateUnitData("trader");
+  const traderEntity = entities.createVillager(world, {
+    [ACTIONABLE]: { triggered: false },
+    [AFFECTABLE]: {},
+    [ATTACKABLE]: {},
+    [BEHAVIOUR]: { patterns: traderUnit.patterns },
+    [BELONGABLE]: { faction: traderUnit.faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [INVENTORY]: { items: [], size: 5 },
+    [MELEE]: {},
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+    },
+    [NPC]: {},
+    [ORIENTABLE]: {},
+    [POSITION]: copy(traderHouse.position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { hits: 0 },
+    [SPRITE]: traderUnit.sprite,
+    [STATS]: { ...emptyStats, ...traderUnit.stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(
+    world,
+    traderEntity,
+    traderUnit.items,
+    traderUnit.equipments
+  );
+  world.setIdentifier(traderEntity, "trader");
+  const woodEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      stackable: "resource",
+      material: "wood",
+      amount: 1,
+      bound: false,
+    },
+    [SPRITE]: wood,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(woodEntity),
+    add(traderHouse.position, { x: -2, y: 0 }),
+    getItemPrice(woodEntity[ITEM]),
+    Infinity
+  );
+  const ironEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      stackable: "resource",
+      material: "iron",
+      amount: 1,
+      bound: false,
+    },
+    [SPRITE]: iron,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(ironEntity),
+    add(traderHouse.position, { x: 2, y: 0 }),
+    getItemPrice(ironEntity[ITEM]),
+    Infinity
+  );
+
+  // 6. druid's house
+  const druidHouse = houses[6];
+  const druidUnit = generateUnitData("druid");
+  const druidEntity = entities.createVillager(world, {
+    [ACTIONABLE]: { triggered: false },
+    [AFFECTABLE]: {},
+    [ATTACKABLE]: {},
+    [BEHAVIOUR]: { patterns: druidUnit.patterns },
+    [BELONGABLE]: { faction: druidUnit.faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [INVENTORY]: { items: [], size: 5 },
+    [MELEE]: {},
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+    },
+    [NPC]: {},
+    [ORIENTABLE]: {},
+    [POSITION]: copy(druidHouse.position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { hits: 0 },
+    [SPRITE]: druidUnit.sprite,
+    [STATS]: { ...emptyStats, ...druidUnit.stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(world, druidEntity, druidUnit.items, druidUnit.equipments);
+  world.setIdentifier(druidEntity, "druid");
+  const berryEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      stackable: "berry",
+      amount: 1,
+      bound: false,
+    },
+    [SPRITE]: berryStack,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(berryEntity),
+    add(druidHouse.position, { x: -2, y: 0 }),
+    getItemPrice(berryEntity[ITEM]),
+    Infinity
+  );
+  const flowerEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      stackable: "flower",
+      amount: 1,
+      bound: false,
+    },
+    [SPRITE]: flowerStack,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(flowerEntity),
+    add(druidHouse.position, { x: 2, y: 0 }),
+    getItemPrice(flowerEntity[ITEM]),
+    Infinity
+  );
+
+  // 7. hunter's house
+  const hunterHouse = houses[7];
+  const hunterUnit = generateUnitData("hunter");
+  const hunterEntity = entities.createVillager(world, {
+    [ACTIONABLE]: { triggered: false },
+    [AFFECTABLE]: {},
+    [ATTACKABLE]: {},
+    [BEHAVIOUR]: { patterns: hunterUnit.patterns },
+    [BELONGABLE]: { faction: hunterUnit.faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [INVENTORY]: { items: [], size: 5 },
+    [MELEE]: {},
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+    },
+    [NPC]: {},
+    [ORIENTABLE]: {},
+    [POSITION]: copy(hunterHouse.position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { hits: 0 },
+    [SPRITE]: hunterUnit.sprite,
+    [STATS]: { ...emptyStats, ...hunterUnit.stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(
+    world,
+    hunterEntity,
+    hunterUnit.items,
+    hunterUnit.equipments
+  );
+  world.setIdentifier(hunterEntity, "hunter");
+  const bowEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      equipment: "active",
+      active: "bow",
+      amount: 1,
+      bound: false,
+    },
+    [SPRITE]: bowActive,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(bowEntity),
+    add(hunterHouse.position, { x: -2, y: 0 }),
+    getItemPrice(bowEntity[ITEM])
+  );
+  const arrowEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      stackable: "arrow",
+      amount: 10,
+      bound: false,
+    },
+    [SPRITE]: arrow,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(arrowEntity),
+    add(hunterHouse.position, { x: 2, y: 0 }),
+    getItemPrice(arrowEntity[ITEM])
   );
 
   // start ordered systems

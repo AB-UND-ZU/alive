@@ -31,9 +31,10 @@ export type Craftable =
   | "flower"
   | "berry"
   | "spike"
-  | "worm";
+  | "worm"
+  | "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";
-export type Stackable = Resource | Craftable | Reloadable;
+export type Stackable = Craftable | Reloadable;
 export const STACK_SIZE = 10;
 
 export type Item = {

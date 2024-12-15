@@ -11,7 +11,7 @@ import { LOOTABLE } from "../components/lootable";
 import { isDead } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
-import { ITEM, STACK_SIZE, Stackable } from "../components/item";
+import { Item, ITEM, STACK_SIZE } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { isTradable } from "./action";
 import { removeFromInventory } from "./trigger";
@@ -42,14 +42,14 @@ export const getCollecting = (world: World, position: Position) =>
     isCollecting(world, entity)
   ) as Entity | undefined;
 
-export const getStackable = (
-  world: World,
-  entity: Entity,
-  stackable: Stackable
-) => {
+export const getStackable = (world: World, entity: Entity, item: Item) => {
   const stackId = entity[INVENTORY].items.find((itemId: number) => {
     const inventoryItem = world.assertByIdAndComponents(itemId, [ITEM]);
-    return inventoryItem[ITEM].stackable === stackable;
+    return (
+      inventoryItem[ITEM].stackable === item.stackable &&
+      inventoryItem[ITEM].material === item.material &&
+      inventoryItem[ITEM].amount < STACK_SIZE
+    );
   });
 
   return world.getEntityByIdAndComponents(stackId, [ITEM]);
@@ -65,7 +65,12 @@ export const isFull = (world: World, entity: Entity) =>
   INVENTORY in entity &&
   entity[INVENTORY].items.length >= entity[INVENTORY].size;
 
-export const collectItem = (world: World, entity: Entity, target: Entity) => {
+export const collectItem = (
+  world: World,
+  entity: Entity,
+  target: Entity,
+  fullStack = false
+) => {
   // handle pick up
   for (
     let itemIndex = target[INVENTORY].items.length - 1;
@@ -92,15 +97,17 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
         continue;
 
       itemEntity[ITEM].amount -= 1;
-    } else if (equipment && isFull(world, entity)) {
+    } else if (
+      (equipment || (stackable && fullStack)) &&
+      isFull(world, entity)
+    ) {
       // skip if inventory full
       continue;
-    } else if (stackable) {
+    } else if (stackable && !fullStack) {
       // skip if no more space to stack
-      const existingStackable = getStackable(world, entity, stackable);
       if (
-        isFull(world, entity) ||
-        existingStackable?.[ITEM].amount === STACK_SIZE
+        isFull(world, entity) &&
+        !getStackable(world, entity, itemEntity[ITEM])
       ) {
         continue;
       } else {
@@ -112,13 +119,14 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
     if (
       equipment ||
       consume ||
-      ((stat || stackable) && itemEntity[ITEM].amount === 0)
+      ((stat || stackable) && itemEntity[ITEM].amount === 0) ||
+      (stackable && fullStack)
     ) {
       removeFromInventory(world, target, itemEntity);
     }
 
     // assign new carrier on discrete items
-    if (!stat && !stackable) {
+    if (!stat && (!stackable || fullStack)) {
       itemEntity[ITEM].carrier = world.getEntityId(entity);
     }
 
@@ -128,7 +136,7 @@ export const collectItem = (world: World, entity: Entity, target: Entity) => {
       entity,
       "collect",
       "itemCollect",
-      { origin: target[POSITION], itemId }
+      { origin: target[POSITION], itemId, fullStack }
     );
 
     // update walkable

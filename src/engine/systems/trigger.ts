@@ -44,6 +44,7 @@ import { CASTABLE } from "../components/castable";
 import { isEnemy } from "./damage";
 import { canCast } from "./magic";
 import { createItemInInventory } from "./drop";
+import { EQUIPPABLE } from "../components/equippable";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -91,7 +92,7 @@ export const lockDoor = (world: World, entity: Entity) => {
   entity[LOCKABLE].locked = true;
   entity[SPRITE] = getItemSprite({
     materialized: "door",
-    material: entity[LOCKABLE].material,
+    material: entity[LOCKABLE].material || "wood",
   });
   entity[LIGHT].orientation = undefined;
   rerenderEntity(world, entity);
@@ -143,6 +144,7 @@ export const performTrade = (
         const matchesStackable =
           activationItem.stackable &&
           itemEntity[ITEM].stackable === activationItem.stackable &&
+          itemEntity[ITEM].material === activationItem.material &&
           itemEntity[ITEM].amount >= activationItem.amount;
         return matchesEquipment || matchesConsume || matchesStackable;
       });
@@ -158,6 +160,12 @@ export const performTrade = (
         } else {
           removeFromInventory(world, entity, tradedEntity);
           disposeEntity(world, tradedEntity);
+
+          // unequip if necessary
+          const equipment = tradedEntity[ITEM].equipment;
+          if (equipment && entity[EQUIPPABLE][equipment]) {
+            entity[EQUIPPABLE][equipment] = undefined;
+          }
         }
       } else {
         console.error("Unable to perform trade!", {
@@ -204,7 +212,7 @@ export const performTrade = (
     trade[TOOLTIP].idle = undefined;
   }
 
-  collectItem(world, entity, trade);
+  collectItem(world, entity, trade, true);
   trade[TRADABLE].stock = newStock;
 
   rerenderEntity(world, trade);

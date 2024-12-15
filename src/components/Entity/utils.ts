@@ -56,6 +56,7 @@ import {
   earthBeam2Spell,
   earthCharm1,
   earthCharm2,
+  earthEssence,
   earthPet1,
   earthPet2,
   earthSword,
@@ -67,6 +68,7 @@ import {
   fireBeam2Spell,
   fireCharm1,
   fireCharm2,
+  fireEssence,
   firePet1,
   firePet2,
   fireSword,
@@ -80,6 +82,7 @@ import {
   goldCompass,
   goldKey,
   goldSword,
+  haste,
   hpFlask1,
   hpFlask2,
   iron,
@@ -103,6 +106,7 @@ import {
   rubySword,
   slashActive,
   spike,
+  torch,
   trap,
   voidArmor,
   voidCharm2,
@@ -113,6 +117,7 @@ import {
   waterBeam2Spell,
   waterCharm1,
   waterCharm2,
+  waterEssence,
   waterPet1,
   waterPet2,
   waterSword,
@@ -278,191 +283,198 @@ export const offsetFactors: Record<number, number> = {
 export const shadowFactor = 0.125;
 
 const entitySprites: Record<
-  Gear | Tools | Active | Passive | Consumable | Materialized,
-  Partial<Record<Material, Sprite>>
+  Gear | Tools | Active | Passive | Stackable | Consumable | Materialized,
+  Partial<Record<Material | "default", { sprite: Sprite; resource?: Sprite }>>
 > = {
   // gear
   melee: {
     // T1-T3
-    wood: woodStick,
-    iron: ironSword,
-    gold: goldSword,
+    wood: { sprite: woodStick },
+    iron: { sprite: ironSword },
+    gold: { sprite: goldSword },
 
     // T4
-    diamond: diamondSword,
-    fire: fireSword,
-    water: waterSword,
-    earth: earthSword,
+    diamond: { sprite: diamondSword },
+    fire: { sprite: fireSword },
+    water: { sprite: waterSword },
+    earth: { sprite: earthSword },
 
     // T5
-    ruby: rubySword,
-    aether: aetherSword,
-    void: voidSword,
-    rainbow: rainbowSword,
+    ruby: { sprite: rubySword },
+    aether: { sprite: aetherSword },
+    void: { sprite: voidSword },
+    rainbow: { sprite: rainbowSword },
   },
   armor: {
     // T1-T3
-    wood: woodArmor,
-    iron: ironArmor,
-    gold: goldArmor,
+    wood: { sprite: woodArmor },
+    iron: { sprite: ironArmor },
+    gold: { sprite: goldArmor },
 
     // T4
-    diamond: diamondArmor,
-    fire: fireArmor,
-    water: waterArmor,
-    earth: earthArmor,
+    diamond: { sprite: diamondArmor },
+    fire: { sprite: fireArmor },
+    water: { sprite: waterArmor },
+    earth: { sprite: earthArmor },
 
     // T5
-    ruby: rubyArmor,
-    aether: aetherArmor,
-    void: voidArmor,
-    rainbow: rainbowArmor,
+    ruby: { sprite: rubyArmor },
+    aether: { sprite: aetherArmor },
+    void: { sprite: voidArmor },
+    rainbow: { sprite: rainbowArmor },
   },
 
   // equipments
   slash: {
-    wood: slashActive,
+    default: { sprite: slashActive },
   },
   bow: {
-    wood: bowActive,
+    default: { sprite: bowActive },
   },
   block: {
-    wood: blockActive,
+    default: { sprite: blockActive },
   },
 
   // spells
   wave1: {
-    wood: waveSpell,
-    fire: fireWave1Spell,
-    water: waterWave1Spell,
-    earth: earthWave1Spell,
+    wood: { sprite: waveSpell },
+    fire: { sprite: fireWave1Spell },
+    water: { sprite: waterWave1Spell },
+    earth: { sprite: earthWave1Spell },
   },
   wave2: {
-    fire: fireWave2Spell,
-    water: waterWave2Spell,
-    earth: earthWave2Spell,
+    fire: { sprite: fireWave2Spell },
+    water: { sprite: waterWave2Spell },
+    earth: { sprite: earthWave2Spell },
   },
   beam1: {
-    wood: beamSpell,
-    fire: fireBeam1Spell,
-    water: waterBeam1Spell,
-    earth: earthBeam1Spell,
+    wood: { sprite: beamSpell },
+    fire: { sprite: fireBeam1Spell },
+    water: { sprite: waterBeam1Spell },
+    earth: { sprite: earthBeam1Spell },
   },
   beam2: {
-    fire: fireBeam2Spell,
-    water: waterBeam2Spell,
-    earth: earthBeam2Spell,
+    fire: { sprite: fireBeam2Spell },
+    water: { sprite: waterBeam2Spell },
+    earth: { sprite: earthBeam2Spell },
   },
   trap1: {
-    wood: trap,
-    fire: fireTrap,
-    water: waterTrap,
-    earth: earthTrap,
+    wood: { sprite: trap },
+    fire: { sprite: fireTrap },
+    water: { sprite: waterTrap },
+    earth: { sprite: earthTrap },
   },
   trap2: {
-    fire: fireTrap,
-    water: waterTrap,
-    earth: earthTrap,
+    fire: { sprite: fireTrap },
+    water: { sprite: waterTrap },
+    earth: { sprite: earthTrap },
   },
 
   // activatable
   cloak1: {
-    wood: cloak1,
+    default: { sprite: cloak1 },
   },
   cloak2: {
-    wood: cloak2,
+    default: { sprite: cloak2 },
   },
 
   // passive
   charm1: {
-    wood: charm,
-    diamond: diamondCharm1,
-    fire: fireCharm1,
-    water: waterCharm1,
-    earth: earthCharm1,
+    wood: { sprite: charm },
+    diamond: { sprite: diamondCharm1 },
+    fire: { sprite: fireCharm1 },
+    water: { sprite: waterCharm1 },
+    earth: { sprite: earthCharm1 },
   },
   charm2: {
-    diamond: diamondCharm2,
-    fire: fireCharm2,
-    water: waterCharm2,
-    earth: earthCharm2,
-    ruby: rubyCharm2,
-    aether: aetherCharm2,
-    void: voidCharm2,
-    rainbow: rainbowCharm2,
+    diamond: { sprite: diamondCharm2 },
+    fire: { sprite: fireCharm2 },
+    water: { sprite: waterCharm2 },
+    earth: { sprite: earthCharm2 },
+    ruby: { sprite: rubyCharm2 },
+    aether: { sprite: aetherCharm2 },
+    void: { sprite: voidCharm2 },
+    rainbow: { sprite: rainbowCharm2 },
   },
   pet1: {
-    wood: pet,
-    diamond: diamondPet1,
-    fire: firePet1,
-    water: waterPet1,
-    earth: earthPet1,
+    wood: { sprite: pet },
+    diamond: { sprite: diamondPet1 },
+    fire: { sprite: firePet1 },
+    water: { sprite: waterPet1 },
+    earth: { sprite: earthPet1 },
   },
   pet2: {
-    diamond: diamondPet2,
-    fire: firePet2,
-    water: waterPet2,
-    earth: earthPet2,
-    ruby: rubyPet2,
-    aether: aetherPet2,
-    void: voidPet2,
-    rainbow: rainbowPet2,
+    diamond: { sprite: diamondPet2 },
+    fire: { sprite: firePet2 },
+    water: { sprite: waterPet2 },
+    earth: { sprite: earthPet2 },
+    ruby: { sprite: rubyPet2 },
+    aether: { sprite: aetherPet2 },
+    void: { sprite: voidPet2 },
+    rainbow: { sprite: rainbowPet2 },
   },
 
   // tools
   compass: {
-    wood: compass,
-    gold: goldCompass,
+    wood: { sprite: compass },
+    gold: { sprite: goldCompass },
   },
   map: {
-    wood: map,
+    default: { sprite: map },
+  },
+  haste: {
+    default: { sprite: haste },
+  },
+  torch: {
+    default: { sprite: torch },
   },
 
   // consumable
   key: {
-    wood: none,
-    iron: ironKey,
-    gold: goldKey,
+    wood: { sprite: none },
+    iron: { sprite: ironKey },
+    gold: { sprite: goldKey },
   },
   potion1: {
-    fire: hpFlask1,
-    water: mpFlask1,
+    fire: { sprite: hpFlask1 },
+    water: { sprite: mpFlask1 },
   },
   potion2: {
-    fire: hpFlask2,
-    water: mpFlask2,
+    fire: { sprite: hpFlask2 },
+    water: { sprite: mpFlask2 },
   },
 
   // materialized
   door: {
-    wood: doorClosedWood,
-    iron: doorClosedIron,
-    gold: doorClosedGold,
-    fire: doorClosedFire,
+    wood: { sprite: doorClosedWood },
+    iron: { sprite: doorClosedIron },
+    gold: { sprite: doorClosedGold },
+    fire: { sprite: doorClosedFire },
   },
-};
 
-const stackableSprites: Record<
-  Stackable,
-  { sprite: Sprite; resource?: Sprite }
-> = {
-  apple: { sprite: appleDrop, resource: apple },
-  plum: { sprite: plumDrop, resource: plum },
-  banana: { sprite: bananaDrop, resource: banana },
-  coconut: { sprite: coconutDrop, resource: coconut },
-  gem: { sprite: gem },
-  crystal: { sprite: crystal },
-  flower: { sprite: flowerStack },
-  berry: { sprite: berryStack },
-  wood: { sprite: wood },
-  iron: { sprite: iron },
-  gold: { sprite: gold },
-  diamond: { sprite: diamond },
-  spike: { sprite: spike },
-  worm: { sprite: worm },
-  arrow: { sprite: arrow },
-  bomb: { sprite: bombActive },
-  charge: { sprite: charge },
+  // stackable
+  apple: { default: { sprite: appleDrop, resource: apple } },
+  plum: { default: { sprite: plumDrop, resource: plum } },
+  banana: { default: { sprite: bananaDrop, resource: banana } },
+  coconut: { default: { sprite: coconutDrop, resource: coconut } },
+  gem: { default: { sprite: gem } },
+  crystal: { default: { sprite: crystal } },
+  flower: { default: { sprite: flowerStack } },
+  berry: { default: { sprite: berryStack } },
+  resource: {
+    wood: { sprite: wood },
+    iron: { sprite: iron },
+    gold: { sprite: gold },
+    fire: { sprite: fireEssence },
+    water: { sprite: waterEssence },
+    earth: { sprite: earthEssence },
+    diamond: { sprite: diamond },
+  },
+  spike: { default: { sprite: spike } },
+  worm: { default: { sprite: worm } },
+  arrow: { default: { sprite: arrow } },
+  bomb: { default: { sprite: bombActive } },
+  charge: { default: { sprite: charge } },
 };
 
 export const getItemSprite = (
@@ -471,10 +483,13 @@ export const getItemSprite = (
   },
   variant?: "resource"
 ) => {
+  const material = item.material || "default";
   if (item.stackable) {
-    const spriteConfig = stackableSprites[item.stackable];
+    const spriteConfig = entitySprites[item.stackable][material];
     return (
-      (variant === "resource" && spriteConfig.resource) || spriteConfig.sprite
+      (variant === "resource" && spriteConfig?.resource) ||
+      spriteConfig?.sprite ||
+      none
     );
   }
 
@@ -484,17 +499,15 @@ export const getItemSprite = (
 
   if (lookup === "active")
     return (
-      (item.active && entitySprites[item.active][item.material || "wood"]) ||
-      none
+      (item.active && entitySprites[item.active][material]?.sprite) || none
     );
   if (lookup === "passive")
     return (
-      (item.passive && entitySprites[item.passive][item.material || "wood"]) ||
-      none
+      (item.passive && entitySprites[item.passive][material]?.sprite) || none
     );
 
   // don't render claws
   if (lookup === "melee" && !item.material) return none;
 
-  return entitySprites[lookup][item.material || "wood"] || none;
+  return entitySprites[lookup][material]?.sprite || none;
 };

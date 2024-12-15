@@ -12,7 +12,10 @@ import {
   goldPrism,
   hedge1,
   hedge2,
+  hunter,
+  knight,
   legendaryChest,
+  mage,
   nomad,
   orb,
   pot,
@@ -20,6 +23,7 @@ import {
   rareChest,
   rock1,
   rock2,
+  scout,
   settler,
   uncommonChest,
 } from "../assets/sprites";
@@ -32,6 +36,11 @@ import { Faction } from "../../engine/components/belongable";
 export type UnitKey =
   | "guide"
   | "elder"
+  | "scout"
+  | "smith"
+  | "trader"
+  | "druid"
+  | "hunter"
   | "commonChest"
   | "uncommonChest"
   | "rareChest"
@@ -121,6 +130,63 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: { ...settler, name: "Elder" },
+  },
+  scout: {
+    faction: "settler",
+    attack: 0,
+    defense: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: { ...scout, name: "Scout" },
+  },
+  smith: {
+    faction: "settler",
+    attack: 0,
+    defense: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [
+      { equipment: "armor", material: "iron", amount: 2, bound: true },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: { ...knight, name: "Smith" },
+  },
+  trader: {
+    faction: "settler",
+    attack: 0,
+    defense: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: { ...settler, name: "Trader" },
+  },
+  druid: {
+    faction: "settler",
+    attack: 0,
+    defense: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: { ...mage, name: "Druid" },
+  },
+  hunter: {
+    faction: "settler",
+    attack: 0,
+    defense: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: { ...hunter, name: "Hunter" },
   },
   commonChest: {
     faction: "unit",
@@ -384,7 +450,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         equipment: "active",
         active: "beam1",
         bound: true,
-        amount: 2,
+        amount: 1,
       },
     ],
     drops: [
@@ -406,7 +472,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         equipment: "active",
         active: "beam1",
         bound: true,
-        amount: 5,
+        amount: 3,
       },
     ],
     drops: [

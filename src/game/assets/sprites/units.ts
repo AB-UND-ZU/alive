@@ -76,6 +76,8 @@ export const torch: Sprite = {
   layers: [
     { char: "┐", color: colors.maroon },
     { char: "─", color: colors.black },
+    { char: "*", color: colors.red },
+    { char: "+", color: colors.yellow },
   ],
 };
 

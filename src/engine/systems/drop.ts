@@ -357,11 +357,14 @@ export const sellItem = (
   itemId: Inventory["items"][number],
   position: Position,
   activation: Tradable["activation"],
-  stock = 1,
+  stock = 1
 ) => {
   const sellPosition = findAdjacentWalkable(world, position);
   const itemEntity = world.assertByIdAndComponents(itemId, [ITEM, SPRITE]);
-  const previousCarrier = world.getEntityByIdAndComponents(itemEntity[ITEM].carrier, [POSITION]);
+  const previousCarrier = world.getEntityByIdAndComponents(
+    itemEntity[ITEM].carrier,
+    [POSITION]
+  );
   const itemName = itemEntity[SPRITE].name;
   const shopEntity = entities.createShop(world, {
     [COLLIDABLE]: {},
@@ -400,6 +403,8 @@ export const sellItem = (
   }
 
   itemEntity[ITEM].carrier = shopId;
+
+  return shopEntity;
 };
 
 export default function setupDrop(world: World) {

@@ -3,7 +3,7 @@ import { World } from "../ecs";
 
 export type Gear = "melee" | "armor";
 export type Slot = Gear | "active" | "passive";
-export type Tools = "compass" | "map";
+export type Tools = "compass" | "map" | "haste" | "torch";
 export type Equipment = Slot | Tools
 
 export type Equippable = {
