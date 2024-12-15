@@ -20,17 +20,17 @@ import { LEVEL } from "../components/level";
 import { getLockable, isLocked } from "./action";
 import { createBubble } from "./water";
 
-// speed:-1 interval:350 (world)
-// speed:0 interval:300 (scout, mage, knight)
-// speed:1 interval:266 (hunter or others with haste)
-// speed:2 interval:242
-// speed:3 interval:225 (cap for scout, mage, knight)
-// speed:4 interval:211 (cap for hunter)
-// speed:5 interval:200
-// speed:6 interval:190
-// speed:7 interval:183 (cap with spell)
-export const getSpeedInterval = (world: World, speed: number) =>
-  Math.floor(1000 / (speed + 5) + 100);
+// haste:-1 interval:350 (world)
+// haste:0 interval:300 (scout, mage, knight)
+// haste:1 interval:266 (hunter or others with haste)
+// haste:2 interval:242
+// haste:3 interval:225 (cap for scout, mage, knight)
+// haste:4 interval:211 (cap for hunter)
+// haste:5 interval:200
+// haste:6 interval:190
+// haste:7 interval:183 (cap with spell)
+export const getHasteInterval = (world: World, haste: number) =>
+  Math.floor(1000 / (haste + 5) + 100);
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(

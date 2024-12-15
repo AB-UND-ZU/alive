@@ -4,7 +4,7 @@ import { World } from "../ecs";
 export type Castable = {
   caster: number;
   affected: Record<string, number>;
-  power: number;
+  damage: number;
 };
 
 export const CASTABLE = "CASTABLE";

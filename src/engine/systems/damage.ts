@@ -55,25 +55,25 @@ export const getAttackable = (world: World, position: Position) =>
 export const calculateDamage = (
   medium: "physical" | "magic",
   attack: number,
-  armor: number,
-  offensiveStats: Partial<Stats>,
-  defensiveStats: Stats
+  resistance: number,
+  attackerStats: Partial<Stats>,
+  defenderStats: Stats
 ) => {
   const offensive =
     medium === "physical"
-      ? attack + (offensiveStats.attack || 0)
-      : attack + (offensiveStats.intellect || 0);
+      ? attack + (attackerStats.power || 0)
+      : attack + (attackerStats.magic || 0);
   const defensive =
     medium === "physical"
-      ? armor + defensiveStats.defense
-      : defensiveStats.defense;
+      ? resistance + defenderStats.armor
+      : defenderStats.armor;
   const damage =
     offensive > defensive
       ? offensive - defensive
       : random(0, defensive - offensive + 1) === 0
       ? 1
       : 0;
-  return { damage, hp: Math.max(0, defensiveStats.hp - damage) };
+  return { damage, hp: Math.max(0, defenderStats.hp - damage) };
 };
 
 export default function setupDamage(world: World) {
@@ -111,7 +111,7 @@ export default function setupDamage(world: World) {
 
       // skip if entity has no sword equipped or already interacted
       if (
-        !entity[EQUIPPABLE].melee ||
+        !entity[EQUIPPABLE].sword ||
         entity[MOVABLE].lastInteraction === entityReference
       )
         continue;
@@ -138,20 +138,20 @@ export default function setupDamage(world: World) {
       // do nothing if target is dead and pending decay
       if (isDead(world, targetEntity)) continue;
 
-      const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].melee, [
+      const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
         ITEM,
       ]);
       const attack = sword[ITEM].amount;
 
-      const armor = world.getEntityByIdAndComponents(
-        targetEntity[EQUIPPABLE]?.armor,
+      const shield = world.getEntityByIdAndComponents(
+        targetEntity[EQUIPPABLE]?.shield,
         [ITEM]
       );
-      const defense = armor ? armor[ITEM].amount : 0;
+      const resistance = shield ? shield[ITEM].amount : 0;
       const { damage, hp } = calculateDamage(
         "physical",
         attack,
-        defense,
+        resistance,
         entity[STATS],
         targetEntity[STATS]
       );

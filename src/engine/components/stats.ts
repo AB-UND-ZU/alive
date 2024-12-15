@@ -10,7 +10,7 @@ export type Countable = {
 
   xp: number;
 
-  gold: number;
+  coin: number;
   stick: number;
   ore: number;
   flower: number;
@@ -19,7 +19,7 @@ export type Countable = {
 
 export const droppableCountables: (keyof Countable)[] = [
   "xp",
-  "gold",
+  "coin",
   "ore",
   "stick",
   "flower",
@@ -27,10 +27,10 @@ export const droppableCountables: (keyof Countable)[] = [
 ];
 
 export type Stats = Countable & {
-  attack: number;
-  intellect: number;
-  defense: number;
-  speed: number;
+  power: number;
+  magic: number;
+  armor: number;
+  haste: number;
 };
 
 export const emptyStats: Stats = {
@@ -42,16 +42,16 @@ export const emptyStats: Stats = {
 
   xp: 0,
 
-  gold: 0,
+  coin: 0,
   stick: 0,
   ore: 0,
   flower: 0,
   berry: 0,
 
-  attack: 0,
-  intellect: 0,
-  defense: 0,
-  speed: 0,
+  power: 0,
+  magic: 0,
+  armor: 0,
+  haste: 0,
 };
 
 export const STATS = "STATS";

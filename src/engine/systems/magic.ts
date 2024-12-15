@@ -73,7 +73,7 @@ export default function setupMagic(world: World) {
           (castableEntity[CASTABLE].affected[affectableId] || 0) + 1;
 
         // inflict damage
-        const attack = castableEntity[CASTABLE].power;
+        const attack = castableEntity[CASTABLE].damage;
         const { damage, hp } = calculateDamage(
           "magic",
           attack,

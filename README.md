@@ -25,9 +25,9 @@ _Spawn area with intro quest_
 
 - (base: 10/5)
 - Scout: max 50/30 + base 20/10 (can't join tribe, doesn't require account)
-- Knight (helmet): max 60/20 + 1 defense + HP drop on decay
-- Mage (curls): max 40/30 + 1 intellect + MP drop on decay
-- Hunter (mohawk): max 50/20 + 1 attack + 1 movement speed
+- Knight (helmet): max 60/20 + 1 armor + HP drop on decay
+- Mage (curls): max 40/30 + 1 magic + MP drop on decay
+- Hunter (mohawk): max 50/20 + 1 power + 1 haste
 
 ## Creatures
 
@@ -280,8 +280,8 @@ T5: legendary (fuchsia)
 - Fire amulet lvl 2: +2 hp reg
 - Water amulet lvl 1: +1 mp reg
 - Water amulet lvl 2: +2 mp reg
-- Earth amulet lvl 1: +1 speed
-- Earth amulet lvl 2: +2 speed
+- Earth amulet lvl 1: +1 haste
+- Earth amulet lvl 2: +2 haste
 - Golden amulet lvl 1: unusable active + increased item drop chance
 - Golden amulet lvl 2: guaranteed T5 drop on bosses
 
@@ -289,8 +289,8 @@ T5: legendary (fuchsia)
 - Ring lvl 2: +10 max mp
 - Fire ring lvl 1: +1 dmg
 - Fire ring lvl 2: +2 dmg
-- Water ring lvl 1: +1 intellect
-- Water ring lvl 2: +2 intellect
+- Water ring lvl 1: +1 magic
+- Water ring lvl 2: +2 magic
 - Earth ring lvl 1: +1 defense
 - Earth ring lvl 2: +2 defense
 - Golden ring lvl 1: unusable passive + double coin drops

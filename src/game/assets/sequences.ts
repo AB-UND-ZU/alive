@@ -76,9 +76,9 @@ import {
   edge,
   beam,
   getMaxCounter,
-  getCountableSprite,
   flask2,
   flask1,
+  getStatSprite,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -129,10 +129,10 @@ export * from "./quests";
 export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
   // align sword with facing direction
   const finished = state.elapsed > 150;
-  const meleeEntity = world.assertByIdAndComponents(entity[EQUIPPABLE].melee, [
+  const swordEntity = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
     ORIENTABLE,
   ]);
-  const currentFacing = meleeEntity[ORIENTABLE].facing;
+  const currentFacing = swordEntity[ORIENTABLE].facing;
   const facing = finished ? undefined : state.args.facing;
   const updated = currentFacing !== facing;
 
@@ -152,7 +152,7 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
   }
 
   if (updated) {
-    meleeEntity[ORIENTABLE].facing = facing;
+    swordEntity[ORIENTABLE].facing = facing;
   }
 
   if (finished && state.particles.hit) {
@@ -961,15 +961,15 @@ export const itemCollect: Sequence<CollectSequence> = (
       // if no sword is equipped, use wood as stick
       if (
         entity[MELEE] &&
-        !entity[EQUIPPABLE].melee &&
+        !entity[EQUIPPABLE].sword &&
         targetStat === "stick"
       ) {
-        targetEquipment = "melee";
+        targetEquipment = "sword";
         targetStat = undefined;
         targetItem = entities.createSword(world, {
           [ITEM]: {
-            amount: getGearStat("melee", "wood"),
-            equipment: "melee",
+            amount: getGearStat("sword", "wood"),
+            equipment: "sword",
             material: "wood",
             carrier: entityId,
             bound: false,
@@ -1159,7 +1159,7 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
         animatedOrigin: { x: 0, y: -1 },
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: getCountableSprite(consumptionConfig.countable),
+      [SPRITE]: getStatSprite(consumptionConfig.countable),
     });
     state.particles.countable = world.getEntityId(countableParticle);
     updated = true;

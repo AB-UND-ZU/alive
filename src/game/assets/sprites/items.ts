@@ -177,6 +177,42 @@ export const xp: Sprite = {
   },
 };
 
+export const power: Sprite = {
+  name: "Power",
+  layers: [
+    { char: "x", color: colors.lime },
+    { char: "∙", color: colors.green },
+    { char: "·", color: colors.lime },
+  ],
+};
+
+export const magic: Sprite = {
+  name: "Magic",
+  layers: [
+    { char: "\u0103", color: colors.lime },
+    { char: "\u011c", color: colors.green },
+    { char: "-", color: colors.lime },
+  ],
+};
+
+export const armor: Sprite = {
+  name: "Armor",
+  layers: [
+    { char: "\u0106", color: colors.lime },
+    { char: "\u0108", color: colors.lime },
+    { char: "v", color: colors.lime },
+    { char: "+", color: colors.green },
+  ],
+};
+
+export const haste: Sprite = {
+  name: "Haste",
+  layers: [
+    { char: "\u0119", color: colors.green },
+    { char: "»", color: colors.lime },
+  ],
+};
+
 export const fireEssence: Sprite = {
   name: "Fire",
   layers: [{ char: "æ", color: colors.red }],

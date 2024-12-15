@@ -99,7 +99,7 @@ export default function setupSpike(world: World) {
       // already mark as interacted if not able to attack
       if (
         targetEntity[ATTACKABLE] &&
-        !(entity[MELEE] && entity[EQUIPPABLE]?.melee)
+        !(entity[MELEE] && entity[EQUIPPABLE]?.sword)
       ) {
         entity[MOVABLE].pendingOrientation = undefined;
         entity[MOVABLE].lastInteraction = entityReference;

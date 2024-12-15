@@ -18,9 +18,9 @@ import { LIGHT } from "../../engine/components/light";
 import { FOG } from "../../engine/components/fog";
 import { TRACKABLE } from "../../engine/components/trackable";
 import {
-  aetherArmor,
   aetherCharm2,
   aetherPet2,
+  aetherShield,
   aetherSword,
   apple,
   appleDrop,
@@ -41,17 +41,16 @@ import {
   compass,
   crystal,
   diamond,
-  diamondArmor,
   diamondCharm1,
   diamondCharm2,
   diamondPet1,
   diamondPet2,
+  diamondShield,
   diamondSword,
   doorClosedFire,
   doorClosedGold,
   doorClosedIron,
   doorClosedWood,
-  earthArmor,
   earthBeam1Spell,
   earthBeam2Spell,
   earthCharm1,
@@ -59,11 +58,11 @@ import {
   earthEssence,
   earthPet1,
   earthPet2,
+  earthShield,
   earthSword,
   earthTrap,
   earthWave1Spell,
   earthWave2Spell,
-  fireArmor,
   fireBeam1Spell,
   fireBeam2Spell,
   fireCharm1,
@@ -71,6 +70,7 @@ import {
   fireEssence,
   firePet1,
   firePet2,
+  fireShield,
   fireSword,
   fireTrap,
   fireWave1Spell,
@@ -78,16 +78,16 @@ import {
   flowerStack,
   gem,
   gold,
-  goldArmor,
   goldCompass,
   goldKey,
+  goldShield,
   goldSword,
   haste,
   hpFlask1,
   hpFlask2,
   iron,
-  ironArmor,
   ironKey,
+  ironShield,
   ironSword,
   map,
   mpFlask1,
@@ -96,23 +96,22 @@ import {
   pet,
   plum,
   plumDrop,
-  rainbowArmor,
   rainbowCharm2,
   rainbowPet2,
+  rainbowShield,
   rainbowSword,
-  rubyArmor,
   rubyCharm2,
   rubyPet2,
+  rubyShield,
   rubySword,
   slashActive,
   spike,
   torch,
   trap,
-  voidArmor,
   voidCharm2,
   voidPet2,
+  voidShield,
   voidSword,
-  waterArmor,
   waterBeam1Spell,
   waterBeam2Spell,
   waterCharm1,
@@ -120,13 +119,14 @@ import {
   waterEssence,
   waterPet1,
   waterPet2,
+  waterShield,
   waterSword,
   waterTrap,
   waterWave1Spell,
   waterWave2Spell,
   waveSpell,
   wood,
-  woodArmor,
+  woodShield,
   woodStick,
   worm,
 } from "../../game/assets/sprites";
@@ -194,16 +194,16 @@ export const getSegments = (
     ? floatHeight
     : terrainHeight;
 
-  // from back to front: armor, body, spell, melee
+  // from back to front: shield, body, spell, sword
   const orderedSegments: Segment[] = [];
 
-  // 1. armor
-  const armorEntity =
-    entity[EQUIPPABLE]?.armor && world.getEntityById(entity[EQUIPPABLE].armor);
-  if (armorEntity) {
+  // 1. shield
+  const shieldEntity =
+    entity[EQUIPPABLE]?.shield && world.getEntityById(entity[EQUIPPABLE].shield);
+  if (shieldEntity) {
     orderedSegments.push({
-      id: entity[EQUIPPABLE].armor,
-      sprite: armorEntity[SPRITE],
+      id: entity[EQUIPPABLE].shield,
+      sprite: shieldEntity[SPRITE],
       offsetX: 0,
       offsetY: 0,
       offsetZ,
@@ -226,14 +226,14 @@ export const getSegments = (
     layerProps,
   });
 
-  // 4. melee
-  const meleeEntity =
-    entity[EQUIPPABLE]?.melee && world.getEntityById(entity[EQUIPPABLE].melee);
-  if (meleeEntity) {
+  // 4. sword
+  const swordEntity =
+    entity[EQUIPPABLE]?.sword && world.getEntityById(entity[EQUIPPABLE].sword);
+  if (swordEntity) {
     orderedSegments.push({
-      id: entity[EQUIPPABLE].melee,
-      sprite: meleeEntity[SPRITE],
-      facing: meleeEntity[ORIENTABLE].facing,
+      id: entity[EQUIPPABLE].sword,
+      sprite: swordEntity[SPRITE],
+      facing: swordEntity[ORIENTABLE].facing,
       offsetX: 0,
       offsetY: 0,
       offsetZ,
@@ -287,7 +287,7 @@ const entitySprites: Record<
   Partial<Record<Material | "default", { sprite: Sprite; resource?: Sprite }>>
 > = {
   // gear
-  melee: {
+  sword: {
     // T1-T3
     wood: { sprite: woodStick },
     iron: { sprite: ironSword },
@@ -305,23 +305,23 @@ const entitySprites: Record<
     void: { sprite: voidSword },
     rainbow: { sprite: rainbowSword },
   },
-  armor: {
+  shield: {
     // T1-T3
-    wood: { sprite: woodArmor },
-    iron: { sprite: ironArmor },
-    gold: { sprite: goldArmor },
+    wood: { sprite: woodShield },
+    iron: { sprite: ironShield },
+    gold: { sprite: goldShield },
 
     // T4
-    diamond: { sprite: diamondArmor },
-    fire: { sprite: fireArmor },
-    water: { sprite: waterArmor },
-    earth: { sprite: earthArmor },
+    diamond: { sprite: diamondShield },
+    fire: { sprite: fireShield },
+    water: { sprite: waterShield },
+    earth: { sprite: earthShield },
 
     // T5
-    ruby: { sprite: rubyArmor },
-    aether: { sprite: aetherArmor },
-    void: { sprite: voidArmor },
-    rainbow: { sprite: rainbowArmor },
+    ruby: { sprite: rubyShield },
+    aether: { sprite: aetherShield },
+    void: { sprite: voidShield },
+    rainbow: { sprite: rainbowShield },
   },
 
   // equipments
@@ -507,7 +507,7 @@ export const getItemSprite = (
     );
 
   // don't render claws
-  if (lookup === "melee" && !item.material) return none;
+  if (lookup === "sword" && !item.material) return none;
 
   return entitySprites[lookup][material]?.sprite || none;
 };

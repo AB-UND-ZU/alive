@@ -241,7 +241,7 @@ export const castSpell = (
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [CASTABLE]: {
       affected: {},
-      power: item[ITEM].amount,
+      damage: item[ITEM].amount,
       caster: world.getEntityId(entity),
     },
     [ORIENTABLE]: { facing: entity[ORIENTABLE]?.facing },

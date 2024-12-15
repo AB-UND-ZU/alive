@@ -38,7 +38,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       world.setFocus(world.getIdentifier("wood_two"));
       return true;
     },
-    isCompleted: () => !!entity[EQUIPPABLE].melee,
+    isCompleted: () => !!entity[EQUIPPABLE].sword,
     onLeave: () => "pot",
   });
 
@@ -85,7 +85,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       world.setFocus(guideEntity);
       return true;
     },
-    isCompleted: () => entity[STATS].gold >= 5,
+    isCompleted: () => entity[STATS].coin >= 5,
     onLeave: () => "buy",
   });
 

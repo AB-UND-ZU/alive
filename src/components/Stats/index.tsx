@@ -68,7 +68,7 @@ function StatsInner({
               ...createCountable(stats, "mp", "countable"),
               ...createCountable(stats, "maxMp", "max"),
               none,
-              ...createCountable(stats, "gold", "countable"),
+              ...createCountable(stats, "coin", "countable"),
               none,
               ...createCountable(stats, "stick", "countable"),
               none,

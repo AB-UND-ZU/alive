@@ -285,26 +285,26 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     },
     isCompleted: () =>
       !!heroEntity &&
-      !!heroEntity[EQUIPPABLE].melee &&
+      !!heroEntity[EQUIPPABLE].sword &&
       !!heroEntity[EQUIPPABLE].compass,
-    onLeave: () => "gold",
+    onLeave: () => "coin",
   });
 
   step({
     stage,
-    name: "gold",
+    name: "coin",
     onEnter: () => {
       entity[TOOLTIP].changed = undefined;
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].dialogs = [
         [
           ...createDialog("Collect "),
-          ...addBackground(createCountable({ gold: 5 }, "gold")),
+          ...addBackground(createCountable({ coin: 5 }, "coin")),
         ],
       ];
       return true;
     },
-    isCompleted: () => !!heroEntity && heroEntity[STATS].gold >= 5,
+    isCompleted: () => !!heroEntity && heroEntity[STATS].coin >= 5,
     onLeave: () => {
       entity[TOOLTIP].override = "visible";
       entity[TOOLTIP].changed = true;
@@ -424,7 +424,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
           memory: {
             targetPosition: sellPosition,
             item: world.getEntityId(world.assertIdentifier("key")),
-            activation: [{ stat: "gold", amount: 5 }],
+            activation: [{ stat: "coin", amount: 5 }],
           },
         },
         {

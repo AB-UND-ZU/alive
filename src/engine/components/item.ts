@@ -1,7 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Equipment } from "./equippable";
-import { Countable } from "./stats";
+import { Stats } from "./stats";
 
 export const elements = ["fire", "water", "earth"] as const;
 
@@ -44,7 +44,7 @@ export type Item = {
   equipment?: Equipment;
   active?: Active;
   passive?: Passive;
-  stat?: keyof Countable;
+  stat?: keyof Stats;
   consume?: Consumable;
   stackable?: Stackable;
   bound: boolean;

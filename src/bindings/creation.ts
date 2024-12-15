@@ -6,7 +6,7 @@ import { SEQUENCABLE } from "../engine/components/sequencable";
 import { SPRITE } from "../engine/components/sprite";
 import { TypedEntity } from "../engine/entities";
 import { createItemInInventory } from "../engine/systems/drop";
-import { getCountableSprite } from "../game/assets/sprites";
+import { getStatSprite } from "../game/assets/sprites";
 
 const populateItems = (
   world: World,
@@ -15,7 +15,7 @@ const populateItems = (
   equip: boolean = true
 ) => {
   for (const item of items) {
-    if (item.equipment === "melee") {
+    if (item.equipment === "sword") {
       createItemInInventory(
         world,
         entity,
@@ -36,7 +36,7 @@ const populateItems = (
         {
           [ITEM]: item,
           [SPRITE]: item.stat
-            ? getCountableSprite(item.stat, equip ? "resource" : "drop")
+            ? getStatSprite(item.stat, equip ? "resource" : "drop")
             : getItemSprite(item, equip ? "resource" : undefined),
         },
         equip

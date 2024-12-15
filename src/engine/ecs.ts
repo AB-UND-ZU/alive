@@ -17,7 +17,7 @@ import { quest as questSprite } from "../game/assets/sprites";
 import { rerenderEntity } from "./systems/renderer";
 import { getSequence } from "./systems/sequence";
 import { Entity, TypedEntity } from "./entities";
-import { getSpeedInterval } from "./systems/movement";
+import { getHasteInterval } from "./systems/movement";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
@@ -275,7 +275,7 @@ export default function createWorld(size: number) {
     [LEVEL]: { map: {}, size, walkable: [], initialized: false },
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
-      tick: getSpeedInterval(ecs, -1),
+      tick: getHasteInterval(ecs, -1),
       delta: 0,
       suspended: false,
       suspensionCounter: -1,

@@ -58,14 +58,6 @@ export const bombActive: Sprite = {
   ],
 };
 
-export const haste: Sprite = {
-  name: "Haste",
-  layers: [
-    { char: "»", color: colors.grey },
-    { char: ">", color: colors.silver },
-  ],
-};
-
 export const flask1: Sprite = {
   name: "Flask",
   layers: [
@@ -323,62 +315,62 @@ export const rainbowSword: Sprite = {
 
 // T1-T3
 
-export const woodArmor: Sprite = {
-  name: "Armor",
+export const woodShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.maroon }],
 };
 
-export const ironArmor: Sprite = {
-  name: "Armor",
+export const ironShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.grey }],
 };
 
-export const goldArmor: Sprite = {
-  name: "Armor",
+export const goldShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.yellow }],
 };
 
 // T4
 
-export const diamondArmor: Sprite = {
-  name: "Armor",
+export const diamondShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.aqua }],
 };
 
-export const fireArmor: Sprite = {
-  name: "Armor",
+export const fireShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.red }],
 };
 
-export const waterArmor: Sprite = {
-  name: "Armor",
+export const waterShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.blue }],
 };
 
-export const earthArmor: Sprite = {
-  name: "Armor",
+export const earthShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.lime }],
 };
 
 // T5
 
-export const rubyArmor: Sprite = {
-  name: "Armor",
+export const rubyShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.fuchsia }],
 };
 
-export const aetherArmor: Sprite = {
-  name: "Armor",
+export const aetherShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.white }],
 };
 
-export const voidArmor: Sprite = {
-  name: "Armor",
+export const voidShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.white }],
 };
 
-export const rainbowArmor: Sprite = {
-  name: "Armor",
+export const rainbowShield: Sprite = {
+  name: "Shield",
   layers: [{ char: "¬", color: colors.white }],
 };
 
@@ -447,45 +439,20 @@ export const fishingRod: Sprite = {
   },
 };
 
-export const shield1: Sprite = {
-  name: "Shield",
+export const rush1: Sprite = {
+  name: "Rush",
   layers: [
-    { char: "\u0106", color: colors.silver },
-    { char: "\u0108", color: colors.silver },
-    { char: "v", color: colors.silver },
-    { char: "+", color: colors.grey },
-  ],
-};
-
-export const shield2: Sprite = {
-  name: "Shield",
-  layers: [
-    { char: '"', color: colors.grey },
-    { char: "!", color: colors.silver },
-    { char: "\u0106", color: colors.silver },
-    { char: "\u0108", color: colors.silver },
-    { char: "v", color: colors.silver },
-    { char: "+", color: colors.grey },
-    { char: "|", color: colors.grey },
-    { char: ".", color: colors.silver },
-  ],
-};
-
-export const volley1: Sprite = {
-  name: "Volley",
-  layers: [
-    { char: "<", color: colors.silver },
     { char: "-", color: colors.grey },
+    { char: ">", color: colors.silver },
   ],
 };
 
-export const volley2: Sprite = {
-  name: "Volley",
+export const rush2: Sprite = {
+  name: "Rush",
   layers: [
-    { char: "«", color: colors.grey },
-    { char: "\u011a", color: colors.black },
-    { char: "<", color: colors.silver },
+    { char: "»", color: colors.grey },
     { char: "-", color: colors.silver },
+    { char: ">", color: colors.silver },
   ],
 };
 

@@ -19,10 +19,10 @@ export type ClassDefinition = {
     mp: number;
     maxMp: number;
 
-    attack: number;
-    intellect: number;
-    defense: number;
-    speed: number;
+    power: number;
+    magic: number;
+    armor: number;
+    haste: number;
   };
 };
 
@@ -41,10 +41,10 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       mp: 0,
       maxMp: 10,
 
-      attack: 0,
-      intellect: 0,
-      defense: 0,
-      speed: 0,
+      power: 0,
+      magic: 0,
+      armor: 0,
+      haste: 0,
     },
   },
   knight: {
@@ -61,10 +61,10 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       mp: 0,
       maxMp: 5,
 
-      attack: 0,
-      intellect: 0,
-      defense: 1,
-      speed: 0,
+      power: 0,
+      magic: 0,
+      armor: 1,
+      haste: 0,
     },
   },
   mage: {
@@ -81,10 +81,10 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       mp: 5,
       maxMp: 5,
 
-      attack: 0,
-      intellect: 1,
-      defense: 0,
-      speed: 0,
+      power: 0,
+      magic: 1,
+      armor: 0,
+      haste: 0,
     },
   },
   hunter: {
@@ -101,10 +101,10 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       mp: 0,
       maxMp: 5,
 
-      attack: 1,
-      intellect: 0,
-      defense: 0,
-      speed: 1,
+      power: 1,
+      magic: 0,
+      armor: 0,
+      haste: 1,
     },
   },
 };

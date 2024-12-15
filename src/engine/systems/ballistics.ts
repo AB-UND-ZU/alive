@@ -36,7 +36,7 @@ import { invertOrientation } from "../../game/math/path";
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
     (target) => PROJECTILE in target
-  ) as Entity[]
+  ) as Entity[];
 
 export const getShootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -108,7 +108,7 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
     [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
     [POSITION]: copy(entity[POSITION]),
     [PROJECTILE]: {
-      damage: bow[ITEM].amount + entity[STATS].attack,
+      damage: bow[ITEM].amount + entity[STATS].power,
       material: bow[ITEM].material,
       moved: false,
     },
@@ -174,15 +174,15 @@ export default function setupBallistics(world: World) {
         if (targetEntity && !isFriendlyFire(world, entity, targetEntity)) {
           // inflict damage
           const attack = entity[PROJECTILE].damage;
-          const armor = world.getEntityByIdAndComponents(
-            targetEntity[EQUIPPABLE]?.armor,
+          const shield = world.getEntityByIdAndComponents(
+            targetEntity[EQUIPPABLE]?.shield,
             [ITEM]
           );
-          const defense = armor ? armor[ITEM].amount : 0;
+          const resistance = shield ? shield[ITEM].amount : 0;
           const { damage, hp } = calculateDamage(
             "physical",
             attack,
-            defense,
+            resistance,
             {},
             targetEntity[STATS]
           );

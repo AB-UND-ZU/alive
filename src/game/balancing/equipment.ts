@@ -2,7 +2,7 @@ import { Gear } from "../../engine/components/equippable";
 import { Material } from "../../engine/components/item";
 
 export const gearStats: Record<Gear, Record<Material, number>> = {
-  melee: {
+  sword: {
     // T1-T3
     wood: 2,
     iron: 3,
@@ -20,7 +20,7 @@ export const gearStats: Record<Gear, Record<Material, number>> = {
     void: 8,
     rainbow: 6,
   },
-  armor: {
+  shield: {
     // T1-T3
     wood: 1,
     iron: 2,

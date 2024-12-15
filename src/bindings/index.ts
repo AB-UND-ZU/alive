@@ -50,7 +50,7 @@ import {
   wall,
   water,
   wood,
-  woodArmor,
+  woodShield,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
@@ -124,7 +124,7 @@ import { generateUnitData, generateUnitKey } from "../game/balancing/units";
 import { hillsUnitDistribution } from "../game/levels/hills";
 import { BELONGABLE } from "../engine/components/belongable";
 import { SHOOTABLE } from "../engine/components/shootable";
-import { getSpeedInterval } from "../engine/systems/movement";
+import { getHasteInterval } from "../engine/systems/movement";
 import { SPIKABLE } from "../engine/components/spikable";
 import { DISPLACABLE } from "../engine/components/displacable";
 import generateTown from "../engine/wfc/town";
@@ -377,7 +377,7 @@ export const generateWorld = async (world: World) => {
       const frameId = world.getEntityId(
         entities.createFrame(world, {
           [REFERENCE]: {
-            tick: getSpeedInterval(world, -1),
+            tick: getHasteInterval(world, -1),
             delta: 0,
             suspended: true,
             suspensionCounter: -1,
@@ -681,7 +681,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "coin_one") {
       const coinItem = createItemAsDrop(world, { x, y }, entities.createItem, {
         [ITEM]: {
-          stat: "gold",
+          stat: "coin",
           amount: 1,
           bound: false,
         },
@@ -702,7 +702,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SPIKABLE]: { damage: stats.attack },
+        [SPIKABLE]: { damage: stats.power },
         [SPRITE]: sprite,
         [STATS]: { ...emptyStats, ...stats },
       });
@@ -774,7 +774,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: sprite,
-        [STATS]: { ...emptyStats, ...stats, gold: 3 },
+        [STATS]: { ...emptyStats, ...stats, coin: 3 },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       if (cell === "intro_pot") world.setIdentifier(potEntity, "pot");
@@ -790,7 +790,7 @@ export const generateWorld = async (world: World) => {
       const { items, sprite, stats, faction } = generateUnitData("box");
       const frameEntity = entities.createFrame(world, {
         [REFERENCE]: {
-          tick: getSpeedInterval(world, 7),
+          tick: getHasteInterval(world, 7),
           delta: 0,
           suspended: true,
           suspensionCounter: -1,
@@ -927,7 +927,7 @@ export const generateWorld = async (world: World) => {
         [STATS]: {
           ...emptyStats,
           ...stats,
-          ...(cell === "prism" ? { gold: 1 } : {}),
+          ...(cell === "prism" ? { coin: 1 } : {}),
         },
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
@@ -1355,7 +1355,7 @@ export const generateWorld = async (world: World) => {
   const hasteEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
-      equipment: "haste",
+      stat: "haste",
       amount: 1,
       bound: false,
     },
@@ -1425,29 +1425,29 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, smithEntity, smithUnit.items, smithUnit.equipments);
   world.setIdentifier(smithEntity, "smith");
-  const armorEntity = entities.createItem(world, {
+  const shieldEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
-      equipment: "armor",
+      equipment: "shield",
       material: "wood",
-      amount: getGearStat("armor", "wood"),
+      amount: getGearStat("shield", "wood"),
       bound: false,
     },
-    [SPRITE]: woodArmor,
+    [SPRITE]: woodShield,
     [RENDERABLE]: { generation: 0 },
   });
   sellItem(
     world,
-    world.getEntityId(armorEntity),
+    world.getEntityId(shieldEntity),
     add(smithHouse.position, { x: -2, y: 0 }),
-    getItemPrice(armorEntity[ITEM])
+    getItemPrice(shieldEntity[ITEM])
   );
   const swordEntity = entities.createSword(world, {
     [ITEM]: {
       carrier: -1,
-      equipment: "melee",
+      equipment: "sword",
       material: "iron",
-      amount: getGearStat("melee", "iron"),
+      amount: getGearStat("sword", "iron"),
       bound: false,
     },
     [ORIENTABLE]: {},

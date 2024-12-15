@@ -44,7 +44,7 @@ import { BELONGABLE } from "../components/belongable";
 import { SHOOTABLE } from "../components/shootable";
 import { getClassData } from "../../game/balancing/classes";
 import { emptyStats, STATS } from "../components/stats";
-import { getSpeedInterval } from "./movement";
+import { getHasteInterval } from "./movement";
 import { PUSHABLE } from "../components/pushable";
 import { AFFECTABLE } from "../components/affectable";
 
@@ -146,7 +146,7 @@ export default function setupFate(world: World) {
         const frameId = world.getEntityId(
           entities.createFrame(world, {
             [REFERENCE]: {
-              tick: getSpeedInterval(world, -1),
+              tick: getHasteInterval(world, -1),
               delta: 0,
               suspended: true,
               suspensionCounter: -1,
@@ -234,7 +234,7 @@ export default function setupFate(world: World) {
       const frameId = world.getEntityId(
         entities.createFrame(world, {
           [REFERENCE]: {
-            tick: getSpeedInterval(world, stats.speed),
+            tick: getHasteInterval(world, stats.haste),
             delta: 0,
             suspended: true,
             suspensionCounter: -1,

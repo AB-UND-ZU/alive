@@ -17,8 +17,8 @@ import {
   createDialog,
   none,
   shop,
-  getCountableSprite,
   arrow,
+  getStatSprite,
 } from "../../game/assets/sprites";
 import { Item, ITEM, STACK_SIZE } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
@@ -234,7 +234,7 @@ export const dropEntity = (
   const stickIndex = inventory.findIndex((itemId: number) => {
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
-      itemEntity[ITEM].equipment === "melee" &&
+      itemEntity[ITEM].equipment === "sword" &&
       itemEntity[ITEM].material === "wood"
     );
   });
@@ -264,7 +264,7 @@ export const dropEntity = (
               bound: false,
             },
             [RENDERABLE]: { generation: 0 },
-            [SPRITE]: getCountableSprite(counter, "drop"),
+            [SPRITE]: getStatSprite(counter, "drop"),
           })
         )
       ),

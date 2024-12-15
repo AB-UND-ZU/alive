@@ -2,17 +2,21 @@ import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 import { Countable, Stats } from "../../../engine/components/stats";
 import {
+  armor,
   berry,
   berryDrop,
   coin,
   flower,
   flowerDrop,
+  haste,
   heart,
   heartUp,
+  magic,
   mana,
   manaUp,
   ore,
   oreDrop,
+  power,
   stick,
   xp,
 } from "./items";
@@ -571,11 +575,8 @@ const nonCountable = (sprite: Sprite) => ({
   layers: sprite.layers,
 });
 
-const countableSprites: Partial<
-  Record<keyof Omit<Stats, keyof Countable>, never>
-> &
-  Record<
-    keyof Countable,
+const statSprites:   Record<
+    keyof Stats,
     {
       color: string;
       sprite: Sprite;
@@ -589,7 +590,7 @@ const countableSprites: Partial<
   mp: { color: colors.blue, sprite: mana, max: "maxMp" },
   maxMp: { color: "#404040", sprite: manaUp },
   xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp, resource: xp },
-  gold: {
+  coin: {
     color: colors.yellow,
     sprite: nonCountable(coin),
     drop: coin,
@@ -609,6 +610,20 @@ const countableSprites: Partial<
     drop: berryDrop,
     resource: berry,
   },
+  power: {
+    color: colors.lime,
+    sprite: power,
+  },
+  magic: {
+    color: colors.lime,
+    sprite: magic,
+  },
+  armor: {
+    color: colors.lime, sprite: armor,
+  },
+  haste: {
+    color: colors.lime, sprite: haste,
+  }
 };
 
 export const createCountable = (
@@ -621,30 +636,30 @@ export const createCountable = (
   const counter = stat as keyof Countable;
   const value = stats[counter] || 0;
   const stringified = value.toString();
-  const color = countableSprites[counter].color;
+  const color = statSprites[counter].color;
 
   if (display === "countable")
     return [
       ...createText(stringified.padStart(2, " "), color),
-      getCountableSprite(counter),
+      getStatSprite(counter),
     ];
 
   if (display === "max") return createText(stringified.padEnd(2, " "), color);
 
-  return [...createText(stringified, color), getCountableSprite(counter)];
+  return [...createText(stringified, color), getStatSprite(counter)];
 };
 
 export const getMaxCounter = (stat: keyof Stats) =>
-  (countableSprites[stat] && countableSprites[stat]?.max) || stat;
+  (statSprites[stat] && statSprites[stat]?.max) || stat;
 
-export const getCountableSprite = (
-  counter: keyof Countable,
+export const getStatSprite = (
+  stat: keyof Stats,
   variant?: "max" | "drop" | "resource"
 ) =>
-  (variant === "max" && countableSprites[getMaxCounter(counter)]?.sprite) ||
-  (variant === "drop" && countableSprites[counter].drop) ||
-  (variant === "resource" && countableSprites[counter].resource) ||
-  countableSprites[counter].sprite;
+  (variant === "max" && statSprites[getMaxCounter(stat)]?.sprite) ||
+  (variant === "drop" && statSprites[stat].drop) ||
+  (variant === "resource" && statSprites[stat].resource) ||
+  statSprites[stat].sprite;
 
 export const quest = createText("!", colors.lime)[0];
 

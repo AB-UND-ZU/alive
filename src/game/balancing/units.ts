@@ -66,8 +66,8 @@ export type UnitDistribution = Partial<Record<UnitKey, number>>;
 
 export type UnitDefinition = {
   faction: Faction;
-  attack: number;
-  defense: number;
+  power: number;
+  armor: number;
   hp: number;
   mp: number;
   equipments: Omit<Item, "carrier">[];
@@ -82,8 +82,8 @@ export type UnitDefinition = {
 export type UnitData = {
   faction: Faction;
   stats: {
-    attack: number;
-    defense: number;
+    power: number;
+    armor: number;
     hp: number;
     maxHp: number;
     mp: number;
@@ -98,22 +98,22 @@ export type UnitData = {
 const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
     faction: "nomad",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 20,
     mp: 0,
     equipments: [
       {
-        equipment: "melee",
+        equipment: "sword",
         material: "iron",
         bound: false,
-        amount: getGearStat("melee", "iron"),
+        amount: getGearStat("sword", "iron"),
       },
       {
-        equipment: "armor",
+        equipment: "shield",
         material: "wood",
         bound: false,
-        amount: getGearStat("armor", "wood"),
+        amount: getGearStat("shield", "wood"),
       },
     ],
     drops: [],
@@ -122,8 +122,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   elder: {
     faction: "settler",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 20,
     mp: 0,
     equipments: [],
@@ -133,8 +133,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   scout: {
     faction: "settler",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 20,
     mp: 0,
     equipments: [],
@@ -144,12 +144,12 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   smith: {
     faction: "settler",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 20,
     mp: 0,
     equipments: [
-      { equipment: "armor", material: "iron", amount: 2, bound: true },
+      { equipment: "shield", material: "iron", amount: 2, bound: true },
     ],
     drops: [],
     patternNames: [],
@@ -157,8 +157,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   trader: {
     faction: "settler",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 20,
     mp: 0,
     equipments: [],
@@ -168,8 +168,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   druid: {
     faction: "settler",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 20,
     mp: 0,
     equipments: [],
@@ -179,8 +179,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hunter: {
     faction: "settler",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 20,
     mp: 0,
     equipments: [],
@@ -190,8 +190,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   commonChest: {
     faction: "unit",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 20,
     mp: 0,
     equipments: [],
@@ -201,8 +201,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   uncommonChest: {
     faction: "unit",
-    attack: 0,
-    defense: 1,
+    power: 0,
+    armor: 1,
     hp: 25,
     mp: 0,
     equipments: [],
@@ -212,8 +212,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rareChest: {
     faction: "unit",
-    attack: 0,
-    defense: 2,
+    power: 0,
+    armor: 2,
     hp: 30,
     mp: 0,
     equipments: [],
@@ -223,8 +223,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   epicChest: {
     faction: "unit",
-    attack: 0,
-    defense: 3,
+    power: 0,
+    armor: 3,
     hp: 35,
     mp: 0,
     equipments: [],
@@ -234,8 +234,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   legendaryChest: {
     faction: "unit",
-    attack: 0,
-    defense: 4,
+    power: 0,
+    armor: 4,
     hp: 40,
     mp: 0,
     equipments: [],
@@ -245,8 +245,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   pot: {
     faction: "unit",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 10,
     mp: 0,
     equipments: [],
@@ -256,8 +256,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   box: {
     faction: "unit",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 10,
     mp: 0,
     equipments: [],
@@ -267,8 +267,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   cactus1: {
     faction: "unit",
-    attack: 2,
-    defense: 1,
+    power: 2,
+    armor: 1,
     hp: 10,
     mp: 0,
     equipments: [],
@@ -278,8 +278,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   cactus2: {
     faction: "unit",
-    attack: 3,
-    defense: 0,
+    power: 3,
+    armor: 0,
     hp: 10,
     mp: 0,
     equipments: [],
@@ -289,8 +289,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rock1: {
     faction: "unit",
-    attack: 0,
-    defense: 3,
+    power: 0,
+    armor: 3,
     hp: 3,
     mp: 0,
     equipments: [],
@@ -304,8 +304,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rock2: {
     faction: "unit",
-    attack: 3,
-    defense: 2,
+    power: 3,
+    armor: 2,
     hp: 5,
     mp: 0,
     equipments: [],
@@ -319,8 +319,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hedge1: {
     faction: "unit",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 8,
     mp: 0,
     equipments: [],
@@ -333,8 +333,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hedge2: {
     faction: "unit",
-    attack: 0,
-    defense: 1,
+    power: 0,
+    armor: 1,
     hp: 5,
     mp: 0,
     equipments: [],
@@ -347,19 +347,19 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   prism: {
     faction: "wild",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 4,
     mp: 0,
     equipments: [
       {
-        equipment: "melee",
+        equipment: "sword",
         bound: true,
         amount: 1,
       },
     ],
     drops: [
-      { chance: 70, items: [{ stat: "gold", amount: 1 }] },
+      { chance: 70, items: [{ stat: "coin", amount: 1 }] },
       { chance: 15, items: [{ stat: "xp", amount: 1 }] },
       { chance: 15, items: [{ stat: "mp", amount: 1 }] },
     ],
@@ -368,13 +368,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldPrism: {
     faction: "wild",
-    attack: 0,
-    defense: 1,
+    power: 0,
+    armor: 1,
     hp: 15,
     mp: 0,
     equipments: [
       {
-        equipment: "melee",
+        equipment: "sword",
         bound: true,
         amount: 2,
       },
@@ -383,7 +383,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { stat: "gold", amount: 3 },
+          { stat: "coin", amount: 3 },
           { stat: "xp", amount: 1 },
           { stat: "mp", amount: 1 },
         ],
@@ -394,19 +394,19 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   eye: {
     faction: "wild",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 1,
     mp: 0,
     equipments: [
       {
-        equipment: "melee",
+        equipment: "sword",
         bound: true,
         amount: 1,
       },
     ],
     drops: [
-      { chance: 70, items: [{ stat: "gold", amount: 1 }] },
+      { chance: 70, items: [{ stat: "coin", amount: 1 }] },
       { chance: 15, items: [{ stat: "xp", amount: 1 }] },
       { chance: 15, items: [{ stat: "hp", amount: 1 }] },
     ],
@@ -415,13 +415,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldEye: {
     faction: "wild",
-    attack: 0,
-    defense: 1,
+    power: 0,
+    armor: 1,
     hp: 1,
     mp: 0,
     equipments: [
       {
-        equipment: "melee",
+        equipment: "sword",
         bound: true,
         amount: 5,
       },
@@ -430,7 +430,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { stat: "gold", amount: 3 },
+          { stat: "coin", amount: 3 },
           { stat: "xp", amount: 1 },
           { stat: "hp", amount: 1 },
         ],
@@ -441,8 +441,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   orb: {
     faction: "wild",
-    attack: 0,
-    defense: 0,
+    power: 0,
+    armor: 0,
     hp: 2,
     mp: 1,
     equipments: [
@@ -454,7 +454,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [
-      { chance: 70, items: [{ stat: "gold", amount: 1 }] },
+      { chance: 70, items: [{ stat: "coin", amount: 1 }] },
       { chance: 15, items: [{ stat: "xp", amount: 1 }] },
       { chance: 15, items: [{ stat: "mp", amount: 1 }] },
     ],
@@ -463,8 +463,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldOrb: {
     faction: "wild",
-    attack: 0,
-    defense: 1,
+    power: 0,
+    armor: 1,
     hp: 5,
     mp: 2,
     equipments: [
@@ -479,7 +479,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { stat: "gold", amount: 3 },
+          { stat: "coin", amount: 3 },
           { stat: "hp", amount: 1 },
           { stat: "mp", amount: 1 },
         ],
@@ -490,19 +490,19 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   fairy: {
     faction: "wild",
-    attack: 0,
-    defense: 2,
+    power: 0,
+    armor: 2,
     hp: 10,
     mp: 0,
     equipments: [],
     drops: [
       {
         chance: 50,
-        items: [{ equipment: "armor", amount: 4, material: "gold" }],
+        items: [{ equipment: "shield", amount: 4, material: "gold" }],
       },
       {
         chance: 50,
-        items: [{ equipment: "melee", amount: 4, material: "gold" }],
+        items: [{ equipment: "sword", amount: 4, material: "gold" }],
       },
     ],
     patternNames: ["fairy"],
@@ -516,7 +516,7 @@ export const generateUnitKey = (unitDistribution: UnitDistribution) => {
 };
 
 export const generateUnitData = (unitKey: UnitKey): UnitData => {
-  const { drops, hp, mp, attack, defense, patternNames, ...unitDefinition } =
+  const { drops, hp, mp, power, armor, patternNames, ...unitDefinition } =
     unitDefinitions[unitKey];
   const items =
     drops.length > 0
@@ -530,7 +530,7 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
 
   return {
     items,
-    stats: { hp, maxHp: hp, mp, maxMp: mp, attack, defense },
+    stats: { hp, maxHp: hp, mp, maxMp: mp, power, armor },
     patterns: patternNames.map((name) => ({ name, memory: {} })),
     ...unitDefinition,
   };
