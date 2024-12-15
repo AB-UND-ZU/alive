@@ -229,8 +229,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 50, items: [{ stat: "ore", amount: 1 }] },
-      { chance: 30, items: [{ stat: "flower", amount: 1 }] },
+      { chance: 40, items: [] },
+      { chance: 40, items: [{ stat: "ore", amount: 1 }] },
       { chance: 20, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
@@ -244,8 +244,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 50, items: [{ stat: "ore", amount: 1 }] },
-      { chance: 30, items: [{ stat: "berry", amount: 1 }] },
+      { chance: 40, items: [] },
+      { chance: 40, items: [{ stat: "ore", amount: 1 }] },
       { chance: 20, items: [{ stackable: "gem", amount: 1 }] },
     ],
     patternNames: [],
@@ -259,8 +259,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 10, items: [{ stat: "stick", amount: 1 }] },
-      { chance: 90, items: [] },
+      { chance: 20, items: [{ stat: "stick", amount: 1 }] },
+      { chance: 80, items: [] },
     ],
     patternNames: [],
     sprite: hedge1,
@@ -273,8 +273,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 10, items: [{ stat: "stick", amount: 1 }] },
-      { chance: 90, items: [] },
+      { chance: 20, items: [{ stat: "stick", amount: 1 }] },
+      { chance: 80, items: [] },
     ],
     patternNames: [],
     sprite: hedge2,

@@ -1279,7 +1279,11 @@ export const generateWorld = async (world: World) => {
     world,
     world.getEntityId(hpEntity),
     add(elderHouse.position, { x: -2, y: 0 }),
-    [{ stackable: "apple", amount: 3 }]
+    [
+      { stackable: "apple", amount: 3 },
+      { stat: "stick", amount: 3 },
+    ],
+    Infinity
   );
   const mpEntity = entities.createItem(world, {
     [ITEM]: {
@@ -1296,7 +1300,11 @@ export const generateWorld = async (world: World) => {
     world,
     world.getEntityId(mpEntity),
     add(elderHouse.position, { x: 2, y: 0 }),
-    [{ stackable: "plum", amount: 3 }]
+    [
+      { stackable: "plum", amount: 3 },
+      { stat: "stick", amount: 3 },
+    ],
+    Infinity
   );
 
   // start ordered systems

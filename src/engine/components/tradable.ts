@@ -4,6 +4,7 @@ import { Item } from "./item";
 
 export type Tradable = {
   activation: Omit<Item, "carrier" | "bound">[];
+  stock: number;
 };
 
 export const TRADABLE = "TRADABLE";

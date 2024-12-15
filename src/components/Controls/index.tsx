@@ -72,11 +72,10 @@ const getActivationRow = (item?: Item) => {
   if (!item) return repeat(none, 3);
 
   if (item.stat)
-    return createCountable(
-      { [item.stat]: item.amount },
-      item.stat,
-      "countable"
-    );
+    return [
+      ...createCountable({ [item.stat]: item.amount }, item.stat),
+      ...(item.amount < 10 ? [none] : []),
+    ];
 
   const sprite: CellSprite = { ...getItemSprite(item) };
 

@@ -1075,13 +1075,13 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
   const countableId = state.particles.countable;
   const decayId = state.particles.decay;
   const itemId = state.args.itemId;
-  const itemEntity = world.assertByIdAndComponents(itemId, [
+  const itemEntity = world.getEntityByIdAndComponents(itemId, [
     RENDERABLE,
     ITEM,
     SPRITE,
   ]);
 
-  const consumptionConfig =
+  const consumptionConfig = itemEntity &&
     consumptionConfigs[itemEntity[ITEM].consume!]?.[itemEntity[ITEM].material!];
 
   if (!consumptionConfig) {

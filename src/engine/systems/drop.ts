@@ -356,7 +356,8 @@ export const sellItem = (
   world: World,
   itemId: Inventory["items"][number],
   position: Position,
-  activation: Tradable["activation"]
+  activation: Tradable["activation"],
+  stock = 1,
 ) => {
   const sellPosition = findAdjacentWalkable(world, position);
   const itemEntity = world.assertByIdAndComponents(itemId, [ITEM, SPRITE]);
@@ -371,7 +372,7 @@ export const sellItem = (
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
-    [TRADABLE]: { activation },
+    [TRADABLE]: { activation, stock },
     [TOOLTIP]: {
       dialogs: [createDialog(itemName)],
       persistent: false,

@@ -43,6 +43,7 @@ import { ORIENTABLE } from "../components/orientable";
 import { CASTABLE } from "../components/castable";
 import { isEnemy } from "./damage";
 import { canCast } from "./magic";
+import { createItemInInventory } from "./drop";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -119,7 +120,11 @@ export const removeFromInventory = (
   rerenderEntity(world, entity);
 };
 
-export const performTrade = (world: World, entity: Entity, trade: Entity) => {
+export const performTrade = (
+  world: World,
+  entity: Entity,
+  trade: TypedEntity<"INVENTORY" | "TRADABLE" | "TOOLTIP">
+) => {
   // remove stats and items
   for (const activationItem of (trade[TRADABLE] as Tradable).activation) {
     if (activationItem.stat) {
@@ -160,15 +165,47 @@ export const performTrade = (world: World, entity: Entity, trade: Entity) => {
           trade,
           item: activationItem,
         });
+
+        return;
       }
     }
   }
 
-  // mark tradable as done
-  trade[TRADABLE].activation = [];
-  trade[TOOLTIP].dialogs = [];
-  trade[TOOLTIP].changed = true;
-  trade[TOOLTIP].idle = undefined;
+  // collect item and restock if necessary
+  const newStock = trade[TRADABLE].stock - 1;
+  const previousItems = [...trade[INVENTORY].items];
+
+  if (newStock > 0) {
+    for (const itemId of previousItems) {
+      const itemEntity = world.assertByIdAndComponents(itemId, [ITEM, SPRITE]);
+      if (ORIENTABLE in itemEntity) {
+        createItemInInventory(
+          world,
+          trade,
+          entities.createSword,
+          itemEntity as TypedEntity<
+            "ORIENTABLE" | "SEQUENCABLE" | "ITEM" | "SPRITE"
+          >
+        );
+      } else {
+        createItemInInventory(
+          world,
+          trade,
+          entities.createItem,
+          itemEntity as TypedEntity<"ITEM" | "SPRITE">
+        );
+      }
+    }
+  } else {
+    // mark tradable as done
+    trade[TRADABLE].activation = [];
+    trade[TOOLTIP].dialogs = [];
+    trade[TOOLTIP].changed = true;
+    trade[TOOLTIP].idle = undefined;
+  }
+
+  collectItem(world, entity, trade);
+  trade[TRADABLE].stock = newStock;
 
   rerenderEntity(world, trade);
 };
@@ -267,7 +304,10 @@ export default function setupTrigger(world: World) {
 
       const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
-      const tradeEntity = world.getEntityById(entity[ACTIONABLE].trade);
+      const tradeEntity = world.getEntityByIdAndComponents(
+        entity[ACTIONABLE].trade,
+        [INVENTORY, TOOLTIP, TRADABLE]
+      );
       const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
       const activeEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].active,
@@ -290,7 +330,6 @@ export default function setupTrigger(world: World) {
         canTrade(world, entity, tradeEntity)
       ) {
         performTrade(world, entity, tradeEntity);
-        collectItem(world, entity, tradeEntity);
       } else if (activeEntity) {
         if (activeEntity[ITEM].active === "bow") {
           shootArrow(world, entity, activeEntity);
