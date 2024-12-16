@@ -374,6 +374,18 @@ export const createOre = entityFactory([
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
+export const createPlate = entityFactory([
+  COLLIDABLE,
+  ENTERABLE,
+  FOG,
+  LIGHT,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
+]);
+
 export const createResource = entityFactory([
   ATTACKABLE,
   BELONGABLE,

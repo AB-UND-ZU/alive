@@ -92,7 +92,11 @@ import {
   basementRightInside,
   fence,
   house,
+  houseAid,
+  houseArmor,
+  houseHunter,
   houseLeft,
+  housePlate,
   houseRight,
   roof,
   roofDown,
@@ -347,8 +351,45 @@ export const generateWorld = async (world: World) => {
     worldMatrix[x][y] = value;
   });
 
-  // set inn door
-  worldMatrix[townX][townY] = "iron_door";
+  // preprocess town
+  const [
+    chiefHouse,
+    elderHouse,
+    scoutHouse,
+    smithHouse,
+    traderHouse,
+    druidHouse,
+    hunterHouse,
+  ] = houses;
+
+  worldMatrix[chiefHouse.position.x][chiefHouse.position.y + 2] = "iron_door";
+  const chiefOffset = random(0, 1) * 4 - 2;
+  worldMatrix[chiefHouse.position.x + chiefOffset][chiefHouse.position.y + 2] =
+    "air";
+  worldMatrix[elderHouse.position.x + random(0, 1) * 2 - 1][
+    elderHouse.position.y + 2
+  ] = "house_aid";
+  worldMatrix[scoutHouse.position.x + random(0, 1) * 2 - 1][
+    scoutHouse.position.y + 3
+  ] = "campfire";
+  worldMatrix[smithHouse.position.x + random(0, 1) * 2 - 1][
+    smithHouse.position.y + 2
+  ] = "house_armor";
+  const traderOffset = random(0, 1) * 2 - 1;
+  worldMatrix[traderHouse.position.x + traderOffset][
+    traderHouse.position.y + 3
+  ] = "fruit";
+  worldMatrix[traderHouse.position.x - traderOffset][
+    traderHouse.position.y + 3
+  ] = "rock";
+  const druidOffset = random(0, 1) * 2 - 1;
+  worldMatrix[druidHouse.position.x + druidOffset][druidHouse.position.y + 3] =
+    "flower";
+  worldMatrix[druidHouse.position.x - druidOffset][druidHouse.position.y + 3] =
+    "berry";
+  worldMatrix[hunterHouse.position.x + random(0, 1) * 2 - 1][
+    hunterHouse.position.y + 2
+  ] = "house_hunter";
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
@@ -374,7 +415,9 @@ export const generateWorld = async (world: World) => {
       [SPRITE]: fog,
     });
 
-    if (cell === "alive") {
+    if (!cell) {
+      return;
+    } else if (cell === "alive") {
       const frameId = world.getEntityId(
         entities.createFrame(world, {
           [REFERENCE]: {
@@ -1186,6 +1229,51 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: window,
         [RENDERABLE]: { generation: 0 },
       });
+    } else if (cell === "house_aid") {
+      entities.createWall(world, {
+        [COLLIDABLE]: {},
+        [ENTERABLE]: { inside: false, sprite: wallInside },
+        [FOG]: { visibility: "visible", type: "terrain" },
+        [LIGHT]: {
+          brightness: 0,
+          darkness: 1,
+          visibility: 0,
+          orientation: "down",
+        },
+        [POSITION]: { x, y },
+        [SPRITE]: houseAid,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "house_armor") {
+      entities.createWall(world, {
+        [COLLIDABLE]: {},
+        [ENTERABLE]: { inside: false, sprite: wallInside },
+        [FOG]: { visibility: "visible", type: "terrain" },
+        [LIGHT]: {
+          brightness: 0,
+          darkness: 1,
+          visibility: 0,
+          orientation: "down",
+        },
+        [POSITION]: { x, y },
+        [SPRITE]: houseArmor,
+        [RENDERABLE]: { generation: 0 },
+      });
+    } else if (cell === "house_hunter") {
+      entities.createWall(world, {
+        [COLLIDABLE]: {},
+        [ENTERABLE]: { inside: false, sprite: wallInside },
+        [FOG]: { visibility: "visible", type: "terrain" },
+        [LIGHT]: {
+          brightness: 0,
+          darkness: 1,
+          visibility: 0,
+          orientation: "down",
+        },
+        [POSITION]: { x, y },
+        [SPRITE]: houseHunter,
+        [RENDERABLE]: { generation: 0 },
+      });
     }
   });
 
@@ -1245,17 +1333,22 @@ export const generateWorld = async (world: World) => {
   world.setIdentifier(signEntity, "sign");
   world.offerQuest(signEntity, "townQuest");
 
-  // spawn elements in town
+  // postprocess town
 
   // 1. chief's house in center
-  const chiefHouse = houses[0];
-  const welcomeEntity = entities.createSign(world, {
-    [FOG]: { visibility: "hidden", type: "terrain" },
+  const welcomeEntity = entities.createPlate(world, {
     [COLLIDABLE]: {},
-    [POSITION]: add(chiefHouse.position, { x: 3, y: 3 }),
+    [ENTERABLE]: { inside: false, sprite: wallInside },
+    [FOG]: { visibility: "visible", type: "terrain" },
+    [LIGHT]: {
+      brightness: 0,
+      darkness: 1,
+      visibility: 0,
+    },
+    [POSITION]: add(chiefHouse.position, { x: chiefOffset, y: 2 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: sign,
+    [SPRITE]: housePlate,
     [TOOLTIP]: {
       dialogs: [
         createDialog("Chief's house"),
@@ -1272,7 +1365,6 @@ export const generateWorld = async (world: World) => {
   world.setIdentifier(welcomeEntity, "welcome");
 
   // 2. elder's house
-  const elderHouse = houses[1];
   const elderUnit = generateUnitData("elder");
   const elderEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
@@ -1349,7 +1441,6 @@ export const generateWorld = async (world: World) => {
   );
 
   // 3. scout's house
-  const scoutHouse = houses[2];
   const scoutUnit = generateUnitData("scout");
   const scoutEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
@@ -1422,7 +1513,6 @@ export const generateWorld = async (world: World) => {
   );
 
   // 4. smith's house
-  const smithHouse = houses[4];
   const smithUnit = generateUnitData("smith");
   const smithEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
@@ -1499,7 +1589,6 @@ export const generateWorld = async (world: World) => {
   );
 
   // 5. trader's house
-  const traderHouse = houses[5];
   const traderUnit = generateUnitData("trader");
   const traderEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
@@ -1581,7 +1670,6 @@ export const generateWorld = async (world: World) => {
   );
 
   // 6. druid's house
-  const druidHouse = houses[6];
   const druidUnit = generateUnitData("druid");
   const druidEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
@@ -1656,7 +1744,6 @@ export const generateWorld = async (world: World) => {
   );
 
   // 7. hunter's house
-  const hunterHouse = houses[7];
   const hunterUnit = generateUnitData("hunter");
   const hunterEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },

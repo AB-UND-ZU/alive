@@ -133,7 +133,7 @@ export const performTrade = (
     } else {
       const items = [
         ...entity[INVENTORY].items,
-        ...Object.values(entity[EQUIPPABLE]),
+        ...Object.values(entity[EQUIPPABLE]).filter(Boolean),
       ];
       const tradedId = items.find((itemId) => {
         const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);

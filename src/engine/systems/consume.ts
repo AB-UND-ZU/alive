@@ -10,7 +10,10 @@ import { rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
 import { getMaxCounter } from "../../game/assets/sprites";
 import { createSequence, getSequence } from "./sequence";
-import { ConsumeSequence } from "../components/sequencable";
+import { ConsumeSequence, VisionSequence } from "../components/sequencable";
+import { EQUIPPABLE } from "../components/equippable";
+import { LIGHT } from "../components/light";
+import { disposeEntity } from "./map";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -59,6 +62,7 @@ export default function setupConsume(world: World) {
 
     worldGeneration = generation;
 
+    // process consumable items in inventory
     for (const entity of world.getEntities([INVENTORY, PLAYER, STATS])) {
       // skip if currently consuming
       if (getSequence(world, entity, "consume")) continue;
@@ -122,6 +126,26 @@ export default function setupConsume(world: World) {
         "flaskConsume",
         { itemId: world.getEntityId(consumption.consumable) }
       );
+    }
+
+    // process consumable equipments
+    for (const entity of world.getEntities([PLAYER, EQUIPPABLE, LIGHT])) {
+      // increase vision radius
+      if (entity[EQUIPPABLE].torch) {
+        createSequence<"vision", VisionSequence>(
+          world,
+          entity,
+          "vision",
+          "changeRadius",
+          {
+            fast: false,
+            light: { visibility: 5.55, brightness: 5.55, darkness: 0 },
+          }
+        );
+
+        disposeEntity(world, world.assertById(entity[EQUIPPABLE].torch));
+        entity[EQUIPPABLE].torch = undefined;
+      }
     }
   };
 

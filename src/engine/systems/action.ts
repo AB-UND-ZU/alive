@@ -82,7 +82,7 @@ export const canTrade = (world: World, entity: Entity, trade: Entity) =>
       return entity[STATS][activationItem.stat] >= activationItem.amount;
     } else {
       // or if item is contained in inventory or equipments
-      const items = [...entity[INVENTORY].items, ...Object.values(entity[EQUIPPABLE])];
+      const items = [...entity[INVENTORY].items, ...Object.values(entity[EQUIPPABLE]).filter(Boolean)];
       return items.some((itemId) => {
         const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
         const matchesEquipment =

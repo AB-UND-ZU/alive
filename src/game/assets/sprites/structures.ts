@@ -13,6 +13,45 @@ export const sign: Sprite = {
   ],
 };
 
+export const housePlate: Sprite = {
+  name: "Sign",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "■", color: colors.maroon },
+    { char: "\u0106", color: colors.silver },
+    { char: "÷", color: colors.maroon },
+  ],
+};
+
+export const houseAid: Sprite = {
+  name: "house_aid",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "■", color: colors.white },
+    { char: "+", color: colors.red },
+  ],
+};
+
+export const houseArmor: Sprite = {
+  name: "house_armor",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u0106", color: colors.white },
+    { char: "\u0108", color: colors.white },
+    { char: "v", color: colors.white },
+    { char: "+", color: colors.silver },
+  ],
+};
+
+export const houseHunter: Sprite = {
+  name: "house_hunter",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u0119", color: colors.silver },
+    { char: "»", color: colors.white },
+  ],
+};
+
 export const fence: Sprite = {
   name: "fence_wall",
   layers: [
