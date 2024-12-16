@@ -142,6 +142,7 @@ export const terrainHeight = 0 * stackHeight;
 export const effectHeight = 0.5 * stackHeight;
 export const unitHeight = 1 * stackHeight;
 export const lootHeight = 1.1 * stackHeight;
+export const dotsHeight = 1.5 * stackHeight;
 export const decayHeight = 1.8 * stackHeight;
 export const immersibleHeight = 2 * stackHeight;
 export const lightHeight = 3 * stackHeight;

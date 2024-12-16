@@ -10,7 +10,7 @@ import {
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { DROPPABLE } from "../../engine/components/droppable";
-import { EQUIPPABLE } from "../../engine/components/equippable";
+import { EQUIPPABLE, gears } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
@@ -994,7 +994,9 @@ export const itemCollect: Sequence<CollectSequence> = (
             existingItem
           );
 
-          removeFromInventory(world, entity, existingItem);
+          if (!gears.includes(targetEquipment)) {
+            removeFromInventory(world, entity, existingItem);
+          }
           dropEntity(
             world,
             { [INVENTORY]: { items: [existingId] } },
@@ -1003,7 +1005,10 @@ export const itemCollect: Sequence<CollectSequence> = (
         }
 
         entity[EQUIPPABLE][targetEquipment] = targetId;
-        entity[INVENTORY].items.push(targetId);
+
+        if (!gears.includes(targetEquipment)) {
+          entity[INVENTORY].items.push(targetId);
+        }
       } else if (targetConsume || (targetStackable && state.args.fullStack)) {
         entity[INVENTORY].items.push(targetId);
       } else if (targetStat) {

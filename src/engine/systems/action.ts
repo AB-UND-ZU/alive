@@ -10,7 +10,7 @@ import { QUEST } from "../components/quest";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
-import { Inventory, INVENTORY } from "../components/inventory";
+import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { Tradable, TRADABLE } from "../components/tradable";
 import { isDead, isEnemy } from "./damage";
@@ -19,6 +19,7 @@ import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
+import { EQUIPPABLE } from "../components/equippable";
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
@@ -80,8 +81,9 @@ export const canTrade = (world: World, entity: Entity, trade: Entity) =>
       // check if entity has sufficient of stat
       return entity[STATS][activationItem.stat] >= activationItem.amount;
     } else {
-      // or if item is contained in inventory
-      return (entity[INVENTORY] as Inventory).items.some((itemId) => {
+      // or if item is contained in inventory or equipments
+      const items = [...entity[INVENTORY].items, ...Object.values(entity[EQUIPPABLE])];
+      return items.some((itemId) => {
         const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
         const matchesEquipment =
           activationItem.equipment &&

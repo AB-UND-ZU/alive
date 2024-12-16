@@ -788,7 +788,8 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
     } else if (cell === "pot" || cell === "intro_pot") {
-      const { sprite, stats, faction } = generateUnitData("pot");
+      const { sprite, stats, faction, items, equipments } =
+        generateUnitData("pot");
       const potEntity = entities.createChest(world, {
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction },
@@ -800,10 +801,18 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: sprite,
-        [STATS]: { ...emptyStats, ...stats, coin: 3 },
+        [STATS]: {
+          ...emptyStats,
+          ...stats,
+          ...(cell === "intro_pot" ? { coin: 3 } : {}),
+        },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
-      if (cell === "intro_pot") world.setIdentifier(potEntity, "pot");
+      if (cell === "intro_pot") {
+        world.setIdentifier(potEntity, "pot");
+      } else {
+        populateInventory(world, potEntity, items, equipments);
+      }
     } else if (cell === "fence") {
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -813,7 +822,8 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "box") {
-      const { items, sprite, stats, faction } = generateUnitData("box");
+      const { items, equipments, sprite, stats, faction } =
+        generateUnitData("box");
       const frameEntity = entities.createFrame(world, {
         [REFERENCE]: {
           tick: getHasteInterval(world, 7),
@@ -848,7 +858,7 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
         [STATS]: { ...emptyStats, ...stats },
       });
-      populateInventory(world, boxEntity, items);
+      populateInventory(world, boxEntity, items, equipments);
     } else if (cell === "compass") {
       const compassEntity = entities.createCompass(world, {
         [ITEM]: { amount: 1, equipment: "compass", carrier: -1, bound: false },

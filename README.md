@@ -545,6 +545,7 @@ T5: legendary (fuchsia)
 - Walking against a wall or pushing a box with faster speed than the box causes a delay for next action even no interaction happened
 - Entering a house only updates sprite correctly when the door is at the bottom
 - Fire doesn't need to be a sequence
+- For large trees, matrix iteration requires to go column by column
 
 ## Inventory example
 

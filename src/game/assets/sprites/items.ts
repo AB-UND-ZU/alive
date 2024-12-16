@@ -346,6 +346,8 @@ export const oreDrop: Sprite = {
   name: "Ore",
   layers: [{ char: "∙", color: colors.silver }],
   amounts: {
+    single: [{ char: "∙", color: colors.silver }],
+    double: [{ char: ":", color: colors.silver }],
     multiple: [
       { char: ":", color: colors.silver },
       { char: "∙", color: colors.silver },

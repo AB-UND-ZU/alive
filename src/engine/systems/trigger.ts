@@ -7,7 +7,7 @@ import { QUEST } from "../components/quest";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { TOOLTIP } from "../components/tooltip";
-import { Inventory, INVENTORY } from "../components/inventory";
+import { INVENTORY } from "../components/inventory";
 import { Element, elements, ITEM } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
 import { doorOpen, none } from "../../game/assets/sprites";
@@ -131,7 +131,11 @@ export const performTrade = (
     if (activationItem.stat) {
       entity[STATS][activationItem.stat] -= activationItem.amount;
     } else {
-      const tradedId = (entity[INVENTORY] as Inventory).items.find((itemId) => {
+      const items = [
+        ...entity[INVENTORY].items,
+        ...Object.values(entity[EQUIPPABLE]),
+      ];
+      const tradedId = items.find((itemId) => {
         const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
         const matchesEquipment =
           activationItem.equipment &&
@@ -157,15 +161,12 @@ export const performTrade = (
           tradedEntity[ITEM].amount > activationItem.amount
         ) {
           tradedEntity[ITEM].amount -= activationItem.amount;
+        } else if (tradedEntity[ITEM].equipment) {
+          entity[EQUIPPABLE][tradedEntity[ITEM].equipment] = undefined;
+          disposeEntity(world, tradedEntity);
         } else {
           removeFromInventory(world, entity, tradedEntity);
           disposeEntity(world, tradedEntity);
-
-          // unequip if necessary
-          const equipment = tradedEntity[ITEM].equipment;
-          if (equipment && entity[EQUIPPABLE][equipment]) {
-            entity[EQUIPPABLE][equipment] = undefined;
-          }
         }
       } else {
         console.error("Unable to perform trade!", {
