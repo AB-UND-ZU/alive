@@ -77,6 +77,25 @@ export const oak: Sprite = {
   ],
 };
 
+export const stem: Sprite = {
+  name: "tree_stem",
+  layers: [
+    { char: "│", color: colors.maroon },
+    { char: "┬", color: colors.black },
+    { char: "l", color: colors.maroon },
+  ],
+};
+
+export const leaves: Sprite = {
+  name: "tree_leaves",
+  layers: [
+    { char: "\u0107", color: colors.green },
+    { char: "\u0106", color: colors.green },
+    { char: "▀", color: colors.black },
+    { char: "░", color: colors.black },
+  ],
+};
+
 export const palm1: Sprite = {
   name: "palm_one",
   layers: [

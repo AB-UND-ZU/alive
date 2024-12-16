@@ -36,13 +36,14 @@ import {
   ironKey,
   ironMine,
   ironSword,
+  leaves,
   mpFlask1,
   none,
-  oak,
   palm1,
   palm2,
   path,
   sand,
+  stem,
   stick,
   torch,
   tree1,
@@ -576,12 +577,37 @@ export const generateWorld = async (world: World) => {
           },
         ]
       );
-    } else if (cell === "tree") {
+    } else if (cell === "tree" || cell === "leaves") {
+      if (
+        cell === "leaves" ||
+        (random(0, 29) === 0 &&
+          y < size - 1 &&
+          worldMatrix[x][y + 1] === "tree")
+      ) {
+        entities.createTerrain(world, {
+          [FOG]: { visibility, type: "terrain" },
+          [COLLIDABLE]: {},
+          [POSITION]: { x, y },
+          [SPRITE]: leaves,
+          [RENDERABLE]: { generation: 0 },
+        });
+
+        if (cell === "tree") worldMatrix[x][y + 1] = "stem";
+      } else {
+        entities.createTerrain(world, {
+          [FOG]: { visibility, type: "terrain" },
+          [COLLIDABLE]: {},
+          [POSITION]: { x, y },
+          [SPRITE]: [tree1, tree2][distribution(50, 50)],
+          [RENDERABLE]: { generation: 0 },
+        });
+      }
+    } else if (cell === "stem") {
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
         [COLLIDABLE]: {},
         [POSITION]: { x, y },
-        [SPRITE]: [oak, tree1, tree2][distribution(2, 49, 49)],
+        [SPRITE]: stem,
         [RENDERABLE]: { generation: 0 },
       });
     } else if (cell === "palm") {
