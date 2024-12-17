@@ -2,12 +2,7 @@ import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
 import { RENDERABLE } from "../components/renderable";
-import {
-  add,
-  getDistance,
-  normalize,
-  signedDistance,
-} from "../../game/math/std";
+import { add, getDistance, signedDistance } from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { REFERENCE } from "../components/reference";
 import { getCell } from "./map";
@@ -49,7 +44,8 @@ export default function setupText(world: World) {
 
     referencesGeneration = generation;
 
-    const activeTooltips: TypedEntity<
+    let pendingTooltip: Entity | undefined = undefined;
+    let activeTooltips: TypedEntity<
       "TOOLTIP" | "POSITION" | "SPRITE" | "SEQUENCABLE"
     >[] = [];
 
@@ -59,7 +55,15 @@ export default function setupText(world: World) {
         for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
           const delta = { x: offsetX, y: offsetY };
           const targetPosition = add(hero[POSITION], delta);
-          const tooltipEntity = getTooltip(world, targetPosition);
+          const tooltip = getTooltip(world, targetPosition);
+          const tooltipEntity =
+            tooltip &&
+            world.assertComponents(tooltip, [
+              POSITION,
+              SPRITE,
+              TOOLTIP,
+              SEQUENCABLE,
+            ]);
 
           // handle overrides in next step
           if (
@@ -68,20 +72,17 @@ export default function setupText(world: World) {
           )
             continue;
 
-          activeTooltips.push(
-            world.assertComponents(tooltipEntity, [
-              POSITION,
-              SPRITE,
-              TOOLTIP,
-              SEQUENCABLE,
-            ])
-          );
+          if (getSequence(world, tooltipEntity, "dialog")) {
+            pendingTooltip = tooltipEntity;
+            activeTooltips = [tooltipEntity];
+          } else if (!pendingTooltip) {
+            activeTooltips = [tooltipEntity];
+          }
         }
       }
     }
 
     // add global tooltips
-    let pendingTooltip: Entity | undefined = undefined;
     for (const tooltipEntity of world.getEntities([
       TOOLTIP,
       SEQUENCABLE,
@@ -195,13 +196,10 @@ export default function setupText(world: World) {
         // let idle dialog disappear
         tooltipEntity[TOOLTIP].changed = true;
       } else {
-        // advance dialog
-        if (dialogs.length > 0 && !isIdle) {
-          tooltipEntity[TOOLTIP].nextDialog = normalize(
-            tooltipEntity[TOOLTIP].nextDialog + 1,
-            dialogs.length
-          );
+        if (isIdle || isVisible) {
+          tooltipEntity[TOOLTIP].nextDialog = 0;
         }
+        tooltipEntity[TOOLTIP].changed = false;
 
         // create tooltip animation
         createSequence<"dialog", DialogSequence>(
@@ -215,14 +213,8 @@ export default function setupText(world: World) {
             active: true,
             isDialog: !isIdle && !!dialog,
             isIdle,
-            after:
-              pendingTooltip &&
-              !isIdle &&
-              !isVisible &&
-              pendingTooltip !== tooltipEntity
-                ? world.getEntityId(pendingTooltip)
-                : undefined,
             lengthOffset: 0,
+            overridden: tooltipEntity[TOOLTIP].override === "visible",
           }
         );
 

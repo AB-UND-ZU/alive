@@ -193,12 +193,12 @@ export const generateWorld = async (world: World) => {
       (menuDeltaX < menuWidth / 2 && menuDeltaY < menuHeight / 2) ||
       (townDeltaX < townWidth / 2 && townDeltaY < townHeight / 2)
     )
-      return "";
+      return "air";
 
     // clear triangular exit and create path
     if (y > 5 && y < 14 && y > 4 + menuDeltaX) {
-      pathMatrix[x][y] = 10;
-      return x === 0 && y < 12 ? "path" : "";
+      pathMatrix[x][y] = 30 - menuDeltaX - menuDeltaY * 2;
+      return x === 0 && y < 12 ? "path" : "air";
     }
 
     const menuDistance = Math.sqrt(
@@ -228,7 +228,7 @@ export const generateWorld = async (world: World) => {
     const green = greenMatrix[x][y] * menuDip * townDip;
     const spawn = spawnMatrix[x][y] * menuDip ** 0.25 * townDip ** 0.25;
 
-    let cell = "";
+    let cell = "air";
     // beach palms
     if (temperature < 65 && elevation < 7 && elevation > 3 && spawn > 65)
       cell = "palm";
@@ -286,7 +286,7 @@ export const generateWorld = async (world: World) => {
     else if (spawn < -96) cell = "mob";
 
     // set weighted elevation for curved pathfinding
-    if (["", "bush", "grass", "path", "desert", "hedge"].includes(cell)) {
+    if (["air", "bush", "grass", "path", "desert", "hedge"].includes(cell)) {
       pathMatrix[x][y] = Math.abs(elevation - pathHeight) + 1;
     }
 
@@ -300,7 +300,7 @@ export const generateWorld = async (world: World) => {
 
       const x = normalize(columnIndex - (row.length - 1) / 2, size);
       const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
-      let entity = "";
+      let entity = "air";
       if (cell === "█") entity = "mountain";
       else if (cell === "≈") entity = "water";
       else if (cell === "░") entity = "beach";
@@ -400,7 +400,7 @@ export const generateWorld = async (world: World) => {
   worldMatrix[chiefHouse.position.x][chiefHouse.position.y + 2] = "iron_door";
   const chiefOffset = random(0, 1) * 4 - 2;
   worldMatrix[chiefHouse.position.x + chiefOffset][chiefHouse.position.y + 2] =
-    "air";
+    "";
   worldMatrix[elderHouse.position.x + random(0, 1) * 2 - 1][
     elderHouse.position.y + 2
   ] = "house_aid";
@@ -443,7 +443,7 @@ export const generateWorld = async (world: World) => {
         ? "visible"
         : "hidden";
 
-    if (cell !== "air") {
+    if (cell !== "") {
       entities.createGround(world, {
         [FOG]: { visibility, type: "air" },
         [POSITION]: { x, y },

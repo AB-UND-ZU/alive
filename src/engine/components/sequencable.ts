@@ -72,9 +72,9 @@ export type DialogSequence = {
   active: boolean;
   timestamp: number;
   lengthOffset: number;
-  after?: number;
   isDialog: boolean;
   isIdle: boolean;
+  overridden: boolean;
 };
 
 export type SequenceState<A> = {

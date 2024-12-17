@@ -220,7 +220,6 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
               })),
             ]
           : createDialog("Press SPACE."),
-        createDialog("A new quest!"),
         createDialog("Let's leave."),
       ];
       return true;

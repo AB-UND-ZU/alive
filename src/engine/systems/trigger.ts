@@ -84,6 +84,7 @@ export const openDoor = (world: World, entity: Entity) => {
   entity[LOCKABLE].locked = false;
   entity[SPRITE] = doorOpen;
   entity[LIGHT].orientation = "left";
+  entity[TOOLTIP].override = "hidden";
   rerenderEntity(world, entity);
   updateWalkable(world, entity[POSITION]);
 };

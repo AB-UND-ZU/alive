@@ -173,6 +173,7 @@ export default function createWorld(size: number) {
   const acceptQuest = (entity: ECSEntity) => {
     entity[QUEST].available = false;
     entity[TOOLTIP].idle = pending;
+    entity[TOOLTIP].changed = true;
   };
 
   const abortQuest = (entity: TypedEntity) => {

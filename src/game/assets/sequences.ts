@@ -103,7 +103,6 @@ import {
   VisionSequence,
   WaveSequence,
 } from "../../engine/components/sequencable";
-import { getSequence } from "../../engine/systems/sequence";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1392,25 +1391,24 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   const isAdjacent =
     !!delta && Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
   const changed = entity[TOOLTIP].changed;
-  const pendingEntity =
-    state.args.after &&
-    world.getEntityByIdAndComponents(state.args.after, [SEQUENCABLE]);
-  const pendingSequence =
-    pendingEntity && getSequence(world, pendingEntity, "dialog");
-  const pending = pendingSequence && !pendingSequence.args.isIdle;
-  const active =
-    !changed &&
-    (entity[TOOLTIP].override === "visible" ||
-      (state.args.isIdle && !isAdjacent) ||
-      (isAdjacent &&
-        !!heroEntity &&
-        !isDead(world, heroEntity) &&
-        !entity[TOOLTIP].override &&
-        !isDead(world, entity) &&
-        !isEmpty(world, entity) &&
-        !isUnlocked(world, entity)));
-
   const totalLength = state.args.text.length;
+  const expired =
+    !state.args.overridden &&
+    !state.args.isIdle &&
+    state.elapsed / charDelay > totalLength + 30;
+  const isCloseBy =
+    isAdjacent &&
+    !!heroEntity &&
+    !isDead(world, heroEntity) &&
+    !entity[TOOLTIP].override &&
+    !isDead(world, entity) &&
+    !isEmpty(world, entity) &&
+    !isUnlocked(world, entity);
+  const active =
+    !expired &&
+    !changed &&
+    (state.args.overridden || (state.args.isIdle && !isAdjacent) || isCloseBy);
+
   const orientation =
     (!state.args.isIdle &&
       active &&
@@ -1427,7 +1425,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
 
   // create char particles
   const particlesLength = Object.keys(state.particles).length;
-  if (particlesLength === 0) {
+  if (particlesLength === 0 && !expired) {
     for (let i = 0; i < totalLength; i += 1) {
       const origin = add(orientationPoints[state.args.orientation], {
         x: -Math.floor((totalLength - 1) / 2),
@@ -1454,17 +1452,17 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   }
 
   const cursorIndex = Array.from({ length: totalLength }).findIndex((_, i) => {
-    const particleName = `char-${i}`;
-    const particleEntity = world.assertByIdAndComponents(
-      state.particles[particleName],
-      [SPRITE]
-    );
-    return particleEntity[SPRITE] === none;
-  });
+        const particleName = `char-${i}`;
+        const particleEntity = world.getEntityByIdAndComponents(
+          state.particles[particleName],
+          [SPRITE]
+        );
+        return !particleEntity || particleEntity[SPRITE] === none;
+      });
   const currentLength = cursorIndex === -1 ? totalLength : cursorIndex;
 
   // update timestamp on active change
-  if (active !== state.args.active || !!pending !== !!state.args.after) {
+  if (active !== state.args.active) {
     const isDelayed =
       !active &&
       entity[TOOLTIP].persistent &&
@@ -1476,7 +1474,6 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
       : state.elapsed;
     state.args.active = active;
     state.args.lengthOffset = isDelayed ? totalLength : currentLength;
-    state.args.after = pending ? state.args.after : undefined;
   }
 
   const charCount = Math.max(
@@ -1484,7 +1481,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     0
   );
   const targetLength =
-    active && !pending
+    active
       ? Math.min(state.args.lengthOffset + charCount, totalLength)
       : Math.max(Math.min(totalLength, state.args.lengthOffset) - charCount, 0);
 
@@ -1514,8 +1511,13 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     }
   }
 
-  // remove particles if player is not in adjacent position anymore and text is fully hidden
-  if (!active && currentLength === 0) {
+  // remove particles if player is not in adjacent position anymore and text is fully hidden,
+  // or auto advance dialog
+  if (
+    !active &&
+    currentLength === 0 &&
+    Object.keys(state.particles).length > 0 && !state.particles.idle
+  ) {
     for (let i = 0; i < totalLength; i += 1) {
       const particleName = `char-${i}`;
       disposeEntity(world, world.assertById(state.particles[particleName]));
@@ -1523,6 +1525,39 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     }
 
     entity[TOOLTIP].changed = undefined;
+
+    const nextDialog = entity[TOOLTIP].nextDialog + 1;
+    if (expired && entity[TOOLTIP].dialogs.length > nextDialog) {
+      entity[TOOLTIP].nextDialog = nextDialog;
+      finished = true;
+    } else if (entity[TOOLTIP].idle) {
+      // add idle particle
+      const idleParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: 0,
+          offsetY: -1,
+          offsetZ: idleHeight,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: entity[TOOLTIP].idle,
+      });
+      state.particles.idle = world.getEntityId(idleParticle);
+      updated = true;
+    }
+  }
+
+  if (
+    currentLength === 0 &&
+    ((!expired && !active) || (expired && (!isCloseBy || entity[TOOLTIP].changed)))
+  ) {
+    if (!isCloseBy) {
+      entity[TOOLTIP].nextDialog = 0;
+    }
+
+    if (state.particles.idle) {
+      disposeEntity(world, world.assertById(state.particles.idle));
+      delete state.particles.idle;
+    }
 
     finished = true;
   }

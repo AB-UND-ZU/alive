@@ -394,6 +394,7 @@ export default function setupAi(world: World) {
             // TODO: find a better way to infer types
             (entity[TOOLTIP] as any)[key] = value;
           }
+          entity[TOOLTIP].changed = true;
 
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "lock") {
