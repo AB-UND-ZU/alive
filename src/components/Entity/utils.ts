@@ -78,7 +78,6 @@ import {
   flowerStack,
   gem,
   gold,
-  goldCompass,
   goldKey,
   goldShield,
   goldSword,
@@ -418,8 +417,7 @@ const entitySprites: Record<
 
   // tools
   compass: {
-    wood: { sprite: compass },
-    gold: { sprite: goldCompass },
+    default: { sprite: compass },
   },
   map: {
     default: { sprite: map },

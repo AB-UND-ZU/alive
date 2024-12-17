@@ -14,7 +14,7 @@ import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE, gears } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { INVENTORY } from "../../engine/components/inventory";
-import { ITEM } from "../../engine/components/item";
+import { ITEM, STACK_SIZE } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { LOOTABLE } from "../../engine/components/lootable";
@@ -1009,10 +1009,15 @@ export const itemCollect: Sequence<CollectSequence> = (
         if (!gears.includes(targetEquipment)) {
           entity[INVENTORY].items.push(targetId);
         }
-      } else if (targetConsume || (targetStackable && state.args.fullStack)) {
+      } else if (
+        targetConsume ||
+        (targetStackable &&
+          state.args.fullStack &&
+          itemEntity[ITEM].amount === STACK_SIZE)
+      ) {
         entity[INVENTORY].items.push(targetId);
       } else if (targetStat) {
-        entity[STATS][targetStat] += 1;
+        entity[STATS][targetStat] += state.args.amount;
       } else if (targetStackable) {
         // add to existing stack if available
         const existingStack = getStackable(world, entity, itemEntity[ITEM]);
@@ -1055,10 +1060,12 @@ export const itemCollect: Sequence<CollectSequence> = (
         offsetZ: tooltipHeight,
         duration: lootDelay,
         animatedOrigin: delta,
-        amount: state.args.drop,
+        amount: state.args.amount,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: itemEntity[SPRITE],
+      [SPRITE]: itemEntity[ITEM].stat
+        ? getStatSprite(itemEntity[ITEM].stat, "drop")
+        : getItemSprite(itemEntity[ITEM]),
     });
     state.particles.loot = world.getEntityId(lootParticle);
     updated = true;
@@ -1395,7 +1402,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   const expired =
     !state.args.overridden &&
     !state.args.isIdle &&
-    state.elapsed / charDelay > totalLength + 30;
+    state.elapsed / charDelay > totalLength * 2 + 40;
   const isCloseBy =
     isAdjacent &&
     !!heroEntity &&
@@ -1452,13 +1459,13 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   }
 
   const cursorIndex = Array.from({ length: totalLength }).findIndex((_, i) => {
-        const particleName = `char-${i}`;
-        const particleEntity = world.getEntityByIdAndComponents(
-          state.particles[particleName],
-          [SPRITE]
-        );
-        return !particleEntity || particleEntity[SPRITE] === none;
-      });
+    const particleName = `char-${i}`;
+    const particleEntity = world.getEntityByIdAndComponents(
+      state.particles[particleName],
+      [SPRITE]
+    );
+    return !particleEntity || particleEntity[SPRITE] === none;
+  });
   const currentLength = cursorIndex === -1 ? totalLength : cursorIndex;
 
   // update timestamp on active change
@@ -1480,10 +1487,9 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     Math.floor((state.elapsed - state.args.timestamp) / charDelay),
     0
   );
-  const targetLength =
-    active
-      ? Math.min(state.args.lengthOffset + charCount, totalLength)
-      : Math.max(Math.min(totalLength, state.args.lengthOffset) - charCount, 0);
+  const targetLength = active
+    ? Math.min(state.args.lengthOffset + charCount, totalLength)
+    : Math.max(Math.min(totalLength, state.args.lengthOffset) - charCount, 0);
 
   let finished = false;
   if (currentLength !== targetLength) {
@@ -1516,7 +1522,8 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   if (
     !active &&
     currentLength === 0 &&
-    Object.keys(state.particles).length > 0 && !state.particles.idle
+    Object.keys(state.particles).length > 0 &&
+    !state.particles.idle
   ) {
     for (let i = 0; i < totalLength; i += 1) {
       const particleName = `char-${i}`;
@@ -1548,7 +1555,8 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
 
   if (
     currentLength === 0 &&
-    ((!expired && !active) || (expired && (!isCloseBy || entity[TOOLTIP].changed)))
+    ((!expired && !active) ||
+      (expired && (!isCloseBy || entity[TOOLTIP].changed)))
   ) {
     if (!isCloseBy) {
       entity[TOOLTIP].nextDialog = 0;

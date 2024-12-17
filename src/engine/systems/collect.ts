@@ -65,6 +65,12 @@ export const isFull = (world: World, entity: Entity) =>
   INVENTORY in entity &&
   entity[INVENTORY].items.length >= entity[INVENTORY].size;
 
+export const getCollectAmount = (world: World, item: Entity) => {
+  if (item[ITEM].amount >= 5) return 3;
+  if (item[ITEM].amount >= 4) return 2;
+  return 1;
+};
+
 export const collectItem = (
   world: World,
   entity: Entity,
@@ -85,6 +91,7 @@ export const collectItem = (
     const equipment = itemEntity[ITEM].equipment;
     const consume = itemEntity[ITEM].consume;
     const stackable = itemEntity[ITEM].stackable;
+    let amount = 1;
 
     if (stat) {
       // skip if counter exceeded
@@ -96,7 +103,8 @@ export const collectItem = (
       )
         continue;
 
-      itemEntity[ITEM].amount -= 1;
+      amount = getCollectAmount(world, itemEntity);
+      itemEntity[ITEM].amount -= amount;
     } else if (
       (equipment || (stackable && fullStack)) &&
       isFull(world, entity)
@@ -136,7 +144,7 @@ export const collectItem = (
       entity,
       "collect",
       "itemCollect",
-      { origin: target[POSITION], itemId, fullStack }
+      { origin: target[POSITION], itemId, fullStack, amount, drop: false }
     );
 
     // update walkable

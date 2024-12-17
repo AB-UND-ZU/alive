@@ -218,7 +218,10 @@ export const dropEntity = (
   orientation?: Orientation
 ) => {
   const stats: Stats = { ...emptyStats, ...entity[STATS] };
-  const inventory = entity[INVENTORY]?.items || [];
+  const inventory = [
+    ...(entity[INVENTORY]?.items || []),
+    ...Object.values(entity[EQUIPPABLE] || {}),
+  ];
   const remains = entity[DROPPABLE]?.remains;
 
   if (remains) {
@@ -289,7 +292,7 @@ export const dropEntity = (
       : []),
   ];
 
-  return items.map((itemId, index) => {
+  return shuffle(items).map((itemId, index) => {
     const dropPosition = orientation
       ? add(position, orientationPoints[orientation])
       : findAdjacentWalkable(
@@ -334,7 +337,8 @@ export const dropEntity = (
         {
           origin: copy(carrierEntity?.[POSITION] || position),
           itemId,
-          drop: itemEntity[ITEM].amount,
+          amount: itemEntity[ITEM].amount,
+          drop: true,
         }
       );
     }
@@ -397,7 +401,8 @@ export const sellItem = (
       {
         origin: copy(previousCarrier[POSITION]),
         itemId,
-        drop: itemEntity[ITEM].amount,
+        amount: itemEntity[ITEM].amount,
+        drop: true,
       }
     );
   }

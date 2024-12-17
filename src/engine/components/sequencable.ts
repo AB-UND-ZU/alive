@@ -45,7 +45,8 @@ export type ReviveSequence = {
 export type CollectSequence = {
   origin: Position;
   itemId: number;
-  drop?: number;
+  drop: boolean;
+  amount: number;
   fullStack?: boolean;
 };
 export type UnlockSequence = { origin: Position; itemId: number };
