@@ -129,9 +129,13 @@ export default function setupConsume(world: World) {
     }
 
     // process consumable equipments
-    for (const entity of world.getEntities([PLAYER, EQUIPPABLE, LIGHT])) {
-      // increase vision radius
-      if (entity[EQUIPPABLE].torch) {
+    for (const entity of world.getEntities([
+      PLAYER,
+      EQUIPPABLE,
+      LIGHT,
+    ])) {
+      // increase vision radius when stepping outside
+      if (entity[EQUIPPABLE].torch && !entity[PLAYER].inside) {
         createSequence<"vision", VisionSequence>(
           world,
           entity,

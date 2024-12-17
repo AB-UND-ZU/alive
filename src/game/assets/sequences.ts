@@ -4,6 +4,7 @@ import {
   effectHeight,
   focusHeight,
   getItemSprite,
+  idleHeight,
   lootHeight,
   particleHeight,
   tooltipHeight,
@@ -1439,10 +1440,11 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
         [PARTICLE]: {
           offsetX: charPosition.x,
           offsetY: charPosition.y,
-          offsetZ:
-            state.args.isDialog || state.args.isIdle
-              ? dialogHeight
-              : tooltipHeight,
+          offsetZ: state.args.isDialog
+            ? dialogHeight
+            : state.args.isIdle
+            ? idleHeight
+            : tooltipHeight,
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: none,

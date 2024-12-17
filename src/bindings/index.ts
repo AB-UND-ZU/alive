@@ -24,6 +24,7 @@ import {
   doorClosedIron,
   doorClosedWood,
   doorOpen,
+  flask1,
   flower,
   flowerStack,
   fog,
@@ -71,6 +72,7 @@ import {
   add,
   copy,
   distribution,
+  getDistance,
   normalize,
   random,
   sigmoid,
@@ -138,6 +140,7 @@ import { AFFECTABLE } from "../engine/components/affectable";
 import { populateInventory } from "./creation";
 import { getItemPrice } from "../game/balancing/trading";
 import { getGearStat } from "../game/balancing/equipment";
+import { findPath } from "../game/math/path";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -147,6 +150,8 @@ export const generateWorld = async (world: World) => {
   const temperatureMatrix = simplexNoiseMatrix(size, size, 0, -80, 100, 4);
   const greenMatrix = valueNoiseMatrix(size, size, 1, -80, 100);
   const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
+  const pathMatrix = matrixFactory(size * 2, size * 2, () => 0);
+  const pathHeight = 16;
 
   const menuRows = menuArea.split("\n");
   const menuWidth = menuRows[0].length;
@@ -190,8 +195,11 @@ export const generateWorld = async (world: World) => {
     )
       return "";
 
-    // clear triangular exit
-    if (y > 5 && y < 14 && y > 4 + menuDeltaX) return "";
+    // clear triangular exit and create path
+    if (y > 5 && y < 14 && y > 4 + menuDeltaX) {
+      pathMatrix[x][y] = 10;
+      return x === 0 && y < 12 ? "path" : "";
+    }
 
     const menuDistance = Math.sqrt(
       (menuDeltaX * aspectRatio) ** 2 + menuDeltaY ** 2
@@ -220,67 +228,69 @@ export const generateWorld = async (world: World) => {
     const green = greenMatrix[x][y] * menuDip * townDip;
     const spawn = spawnMatrix[x][y] * menuDip ** 0.25 * townDip ** 0.25;
 
+    let cell = "";
     // beach palms
     if (temperature < 65 && elevation < 7 && elevation > 3 && spawn > 65)
-      return "palm";
-
+      cell = "palm";
     // beach and islands (if not desert)
-    if (
+    else if (
       temperature < 65 &&
       elevation < 0 &&
       (elevation > -32 || temperature > 0)
     )
-      return "water";
-
-    if (
+      cell = "water";
+    else if (
       temperature < 65 &&
       elevation < 6 &&
       (elevation > -35 || temperature > 0)
     )
-      return "sand";
-
+      cell = "beach";
     // island palms
-    if (elevation <= -35 && temperature < 0 && green > 30) return "palm";
-
+    else if (elevation <= -35 && temperature < 0 && green > 30) cell = "palm";
     // forest
-    if (elevation > 25 && terrain > 30)
-      return temperature < 0 && terrain < 75 && menu < 5
-        ? terrain > 37
-          ? "tree"
-          : spawn > 93
-          ? "fruit"
-          : spawn > 80
-          ? "wood"
-          : "hedge"
-        : spawn > 99
-        ? "iron"
-        : spawn > 86
-        ? "ore"
-        : "mountain";
-
+    else if (elevation > 25 && terrain > 30)
+      cell =
+        temperature < 0 && terrain < 75 && menu < 5
+          ? terrain > 37
+            ? "tree"
+            : spawn > 93
+            ? "fruit"
+            : spawn > 80
+            ? "wood"
+            : "hedge"
+          : spawn > 99
+          ? "iron"
+          : spawn > 86
+          ? "ore"
+          : "mountain";
     // desert, oasis and cactus
-    if (temperature > 65 && terrain > 75) return "water";
-    if (temperature > 65 && terrain > 70) return "palm";
-    if (
+    else if (temperature > 65 && terrain > 75) cell = "water";
+    else if (temperature > 65 && terrain > 70) cell = "palm";
+    else if (
       temperature > 65 &&
       ((-11 < terrain && terrain < -10) ||
         (10 < terrain && terrain < 11) ||
         (20 < terrain && terrain < 21))
     )
-      return "rock";
-    if (temperature > 65) return 21 < green && green < 25 ? "cactus" : "sand";
-
+      cell = "rock";
+    else if (temperature > 65)
+      cell = 21 < green && green < 25 ? "cactus" : "desert";
     // greens
-    if (green > 37 && elevation > 17) return "tree";
-    if (green > 30 && elevation > 14)
-      return spawn > 93 ? "fruit" : spawn > 80 ? "wood" : "hedge";
-    if (green > 20 && elevation > 11) return spawn > 91 ? "berry" : "bush";
-    if (green > 10 && elevation > 8) return spawn > 92 ? "flower" : "grass";
-
+    else if (green > 37 && elevation > 17) cell = "tree";
+    else if (green > 30 && elevation > 14)
+      cell = spawn > 93 ? "fruit" : spawn > 80 ? "wood" : "hedge";
+    else if (green > 20 && elevation > 11) cell = spawn > 91 ? "berry" : "bush";
+    else if (green > 10 && elevation > 8)
+      cell = spawn > 92 ? "flower" : "grass";
     // spawn
-    if (spawn < -96) return "mob";
+    else if (spawn < -96) cell = "mob";
 
-    return "";
+    // set weighted elevation for curved pathfinding
+    if (["", "bush", "grass", "path", "desert", "hedge"].includes(cell)) {
+      pathMatrix[x][y] = Math.abs(elevation - pathHeight) + 1;
+    }
+
+    return cell;
   });
 
   // insert menu
@@ -293,7 +303,7 @@ export const generateWorld = async (world: World) => {
       let entity = "";
       if (cell === "█") entity = "mountain";
       else if (cell === "≈") entity = "water";
-      else if (cell === "░") entity = "sand";
+      else if (cell === "░") entity = "beach";
       else if (cell === "▒") entity = "path";
       else if (cell === "▓") entity = "block";
       else if (cell === "▄") entity = "block_down";
@@ -344,11 +354,36 @@ export const generateWorld = async (world: World) => {
 
   // insert town
   iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
-    if (!value) return;
-
     const x = normalize(townX + offsetX - townWidth / 2, size);
     const y = normalize(townY + offsetY - townHeight / 2, size);
+    pathMatrix[x][y] = 0;
+
+    if (!value) return;
+
     worldMatrix[x][y] = value;
+  });
+
+  // create shortes path between spawn and town
+  const signPosition = { x: 1, y: 11 };
+  pathMatrix[signPosition.x][signPosition.y] = 0;
+  iterateMatrix(worldMatrix, (x, y) => {
+    const height = pathMatrix[x][y];
+    pathMatrix[x][y + size] = height;
+    pathMatrix[x + size][y] = height;
+    pathMatrix[x + size][y + size] = height;
+  });
+
+  const spawnPath = { x: 0, y: 11 };
+  const townExits = [
+    { x: townX - townWidth / 2, y: townY },
+    { x: townX + townWidth / 2, y: townY },
+  ].sort(
+    (left, right) =>
+      getDistance(spawnPath, left, size) - getDistance(spawnPath, right, size)
+  );
+  const townPath = findPath(pathMatrix, spawnPath, townExits[0]);
+  townPath.forEach(({ x, y }) => {
+    worldMatrix[x][y] = "path";
   });
 
   // preprocess town
@@ -408,12 +443,14 @@ export const generateWorld = async (world: World) => {
         ? "visible"
         : "hidden";
 
-    entities.createGround(world, {
-      [FOG]: { visibility, type: "air" },
-      [POSITION]: { x, y },
-      [RENDERABLE]: { generation: 0 },
-      [SPRITE]: fog,
-    });
+    if (cell !== "air") {
+      entities.createGround(world, {
+        [FOG]: { visibility, type: "air" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: fog,
+      });
+    }
 
     if (!cell) {
       return;
@@ -552,7 +589,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
-    } else if (cell === "sand") {
+    } else if (cell === "beach" || cell === "desert") {
       entities.createGround(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
@@ -1319,7 +1356,7 @@ export const generateWorld = async (world: World) => {
   const signEntity = entities.createSign(world, {
     [FOG]: { visibility: "hidden", type: "terrain" },
     [COLLIDABLE]: {},
-    [POSITION]: { x: 0, y: 11 },
+    [POSITION]: copy(signPosition),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: sign,
@@ -1356,6 +1393,11 @@ export const generateWorld = async (world: World) => {
           ...createDialog("Find "),
           ...addBackground([ironKey], colors.black),
           ...createDialog(" key"),
+        ],
+        [
+          ...createDialog("Talk to "),
+          ...addBackground([flask1], colors.black),
+          ...createDialog(" Elder"),
         ],
       ],
       persistent: false,

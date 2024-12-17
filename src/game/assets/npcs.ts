@@ -21,7 +21,7 @@ import { collectItem } from "../../engine/systems/collect";
 import { disposeEntity, getCell } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { lockDoor } from "../../engine/systems/trigger";
-import { add, normalize } from "../math/std";
+import { add, getDistance, normalize } from "../math/std";
 import { initialPosition, menuArea } from "../levels/areas";
 import {
   addBackground,
@@ -31,6 +31,7 @@ import {
   createCountable,
   fog,
   goldKey,
+  pointer,
 } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 import { isDead } from "../../engine/systems/damage";
@@ -41,6 +42,7 @@ import {
 } from "../../engine/components/sequencable";
 import { STATS } from "../../engine/components/stats";
 import { CASTABLE } from "../../engine/components/castable";
+import * as colors from "./colors";
 
 const defaultVision = 3.7;
 
@@ -526,6 +528,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
       entity[TOOLTIP].override = "visible";
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].dialogs = [createDialog("Good luck!")];
+      entity[TOOLTIP].idle = undefined;
       return true;
     },
   });
@@ -533,6 +536,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
+const welcomeDistance = 1.3;
 export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
@@ -543,10 +547,8 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
   };
 
   const heroEntity = world.getIdentifierAndComponents("hero", [POSITION]);
-  const bowEntity = world.getIdentifierAndComponents("bow", [
-    POSITION,
-    TOOLTIP,
-  ]);
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const welcomeEntity = world.getIdentifierAndComponents("welcome", [POSITION]);
 
   step({
     stage,
@@ -567,12 +569,26 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
     name: "idle",
     onEnter: () => {
       entity[TOOLTIP].changed = true;
-      entity[TOOLTIP].dialogs = [createDialog("See compass")];
+      entity[TOOLTIP].dialogs = [
+        [
+          ...createDialog("Follow "),
+          ...addBackground(
+            [{ layers: pointer.facing!.up!, name: "" }],
+            colors.black
+          ),
+          ...createDialog(" arrow"),
+        ],
+      ];
       return true;
     },
-    isCompleted: () => !bowEntity,
+    isCompleted: () =>
+      !!welcomeEntity &&
+      !!heroEntity &&
+      getDistance(heroEntity[POSITION], welcomeEntity[POSITION], size) <=
+        welcomeDistance,
     onLeave: () => {
       entity[TOOLTIP].changed = true;
+      entity[TOOLTIP].idle = undefined;
       entity[TOOLTIP].dialogs = [];
       return END_STEP;
     },

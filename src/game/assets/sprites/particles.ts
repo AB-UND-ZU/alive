@@ -662,6 +662,7 @@ export const getStatSprite = (
   statSprites[stat].sprite;
 
 export const quest = createText("!", colors.lime)[0];
+export const pending = createText("!", colors.grey)[0];
 
 export const shop = createText("$", colors.lime)[0];
 

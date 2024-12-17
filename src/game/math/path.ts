@@ -37,27 +37,27 @@ export const relativeOrientations = (
 export const invertOrientation = (orientation: Orientation) =>
   orientations[(orientations.indexOf(orientation) + 2) % orientations.length];
 
+// finds shortes path in overlapping weighted matrix
 export const findPath = (
-  world: World,
+  matrix: Matrix<number>,
   origin: Position,
   target: Position,
   targetWalkable: boolean = false
 ) => {
-  const size = world.metadata.gameEntity[LEVEL].size;
-  const graph = new GraphImpl(
-    world.metadata.gameEntity[LEVEL].walkable
-  ) as Graph;
+  const width = matrix.length / 2;
+  const height = matrix[0].length / 2;
+  const graph = new GraphImpl(matrix) as Graph;
   const centeredOrigin = {
-    x: size + signedDistance(size, origin.x, size),
-    y: size + signedDistance(size, origin.y, size),
+    x: width + signedDistance(width, origin.x, width),
+    y: height + signedDistance(height, origin.y, height),
   };
   const originNode = graph.grid[centeredOrigin.x][
     centeredOrigin.y
   ] as GridNode & { weight: number };
   originNode.weight = 1;
   const centeredTarget = {
-    x: size + signedDistance(size, target.x, size),
-    y: size + signedDistance(size, target.y, size),
+    x: width + signedDistance(width, target.x, width),
+    y: height + signedDistance(height, target.y, height),
   };
   const targetNode = graph.grid[centeredTarget.x][
     centeredTarget.y
@@ -75,8 +75,8 @@ export const findPath = (
 
   // normalize path values
   return path.map((node) => ({
-    x: normalize(node.x, size),
-    y: normalize(node.y, size),
+    x: normalize(node.x, width),
+    y: normalize(node.y, height),
   }));
 };
 

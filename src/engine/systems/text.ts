@@ -213,7 +213,7 @@ export default function setupText(world: World) {
             text,
             timestamp: 0,
             active: true,
-            isDialog: !!dialog,
+            isDialog: !isIdle && !!dialog,
             isIdle,
             after:
               pendingTooltip &&

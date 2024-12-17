@@ -459,7 +459,7 @@ export default function setupAi(world: World) {
           ) {
             memory.originPosition = copy(entity[POSITION]);
             const path = findPath(
-              world,
+              world.metadata.gameEntity[LEVEL].walkable,
               memory.originPosition,
               memory.targetPosition
             );
@@ -562,7 +562,7 @@ export default function setupAi(world: World) {
             memory.originPosition = copy(entity[POSITION]);
             memory.targetPosition = copy(targetEntity[POSITION]);
             const path = findPath(
-              world,
+              world.metadata.gameEntity[LEVEL].walkable,
               entity[POSITION],
               memory.targetPosition,
               true

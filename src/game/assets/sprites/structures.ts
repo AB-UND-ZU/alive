@@ -27,8 +27,8 @@ export const houseAid: Sprite = {
   name: "house_aid",
   layers: [
     { char: "█", color: colors.grey },
-    { char: "■", color: colors.white },
-    { char: "+", color: colors.red },
+    { char: "\u011f", color: colors.white },
+    { char: "°", color: colors.silver },
   ],
 };
 

@@ -61,7 +61,11 @@ export const sand: Sprite = {
 
 export const path: Sprite = {
   name: "path_normal",
-  layers: [{ char: "░", color: colors.grey }],
+  layers: [
+    { char: "░", color: colors.grey },
+    { char: "▒", color: colors.black },
+    { char: "≡", color: colors.black },
+  ],
 };
 
 export const oak: Sprite = {

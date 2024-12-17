@@ -126,7 +126,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
   return { updated: stage.updated, finished: stage.finished };
 };
 
-const welcomeDistance = 1.5;
+const welcomeDistance = 1.3;
 export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
   const stage: QuestStage<QuestSequence> = {
     world,

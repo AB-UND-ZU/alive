@@ -13,7 +13,7 @@ import { Quest, QUEST } from "./components/quest";
 import { TRACKABLE } from "./components/trackable";
 import { FOCUSABLE } from "./components/focusable";
 import { TOOLTIP } from "./components/tooltip";
-import { quest as questSprite } from "../game/assets/sprites";
+import { pending, quest as questSprite } from "../game/assets/sprites";
 import { rerenderEntity } from "./systems/renderer";
 import { getSequence } from "./systems/sequence";
 import { Entity, TypedEntity } from "./entities";
@@ -172,7 +172,7 @@ export default function createWorld(size: number) {
 
   const acceptQuest = (entity: ECSEntity) => {
     entity[QUEST].available = false;
-    entity[TOOLTIP].idle = undefined;
+    entity[TOOLTIP].idle = pending;
   };
 
   const abortQuest = (entity: TypedEntity) => {
