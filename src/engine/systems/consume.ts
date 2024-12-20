@@ -13,7 +13,6 @@ import { createSequence, getSequence } from "./sequence";
 import { ConsumeSequence, VisionSequence } from "../components/sequencable";
 import { EQUIPPABLE } from "../components/equippable";
 import { LIGHT } from "../components/light";
-import { disposeEntity } from "./map";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -24,6 +23,9 @@ export const getConsumables = (world: World, entity: Entity) =>
     .filter((consumable: Entity) =>
       isConsumable(world, consumable)
     ) as TypedEntity<"ITEM">[];
+
+export const defaultLight = { visibility: 3.7, brightness: 3.7, darkness: 0 };
+export const torchLight = { visibility: 5.55, brightness: 5.55, darkness: 0 };
 
 export const consumptionConfigs: Partial<
   Record<
@@ -129,13 +131,15 @@ export default function setupConsume(world: World) {
     }
 
     // process consumable equipments
-    for (const entity of world.getEntities([
-      PLAYER,
-      EQUIPPABLE,
-      LIGHT,
-    ])) {
+    for (const entity of world.getEntities([PLAYER, EQUIPPABLE, LIGHT])) {
       // increase vision radius when stepping outside
-      if (entity[EQUIPPABLE].torch && !entity[PLAYER].inside) {
+      if (
+        entity[EQUIPPABLE].torch &&
+        entity[LIGHT].brightness === defaultLight.brightness &&
+        entity[LIGHT].visibility === defaultLight.visibility &&
+        !getSequence(world, entity, "vision") &&
+        !entity[PLAYER].inside
+      ) {
         createSequence<"vision", VisionSequence>(
           world,
           entity,
@@ -143,12 +147,9 @@ export default function setupConsume(world: World) {
           "changeRadius",
           {
             fast: false,
-            light: { visibility: 5.55, brightness: 5.55, darkness: 0 },
+            light: { ...torchLight },
           }
         );
-
-        disposeEntity(world, world.assertById(entity[EQUIPPABLE].torch));
-        entity[EQUIPPABLE].torch = undefined;
       }
     }
   };

@@ -44,7 +44,7 @@ import { CASTABLE } from "../components/castable";
 import { isEnemy } from "./damage";
 import { canCast } from "./magic";
 import { createItemInInventory } from "./drop";
-import { EQUIPPABLE } from "../components/equippable";
+import { EQUIPPABLE, gears } from "../components/equippable";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -105,20 +105,27 @@ export const removeFromInventory = (
   entity: Entity,
   item: Entity
 ) => {
-  item[ITEM].carrier = undefined;
-  const itemIndex = entity[INVENTORY].items.indexOf(world.getEntityId(item));
+  const itemId = world.getEntityId(item);
+  const itemIndex = entity[INVENTORY].items.indexOf(itemId);
 
   if (itemIndex === -1) {
-    console.error(
-      Date.now(),
-      "Unable to remove item from inventory",
-      item,
-      entity
-    );
-    return;
+    const equipment = item[ITEM].equipment;
+    if (gears.includes(equipment) && entity[EQUIPPABLE][equipment] === itemId) {
+      entity[EQUIPPABLE][equipment] = undefined;
+    } else {
+      console.error(
+        Date.now(),
+        "Unable to remove item from inventory",
+        item,
+        entity
+      );
+      return;
+    }
+  } else {
+    entity[INVENTORY].items.splice(itemIndex, 1);
   }
 
-  entity[INVENTORY].items.splice(itemIndex, 1);
+  item[ITEM].carrier = undefined;
   rerenderEntity(world, entity);
 };
 

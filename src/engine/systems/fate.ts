@@ -159,7 +159,7 @@ export default function setupFate(world: World) {
           [BELONGABLE]: { faction: entity[BELONGABLE].faction },
           [EQUIPPABLE]: {},
           [INVENTORY]: { items: [], size: 10 },
-          [LIGHT]: { ...entity[LIGHT] },
+          [LIGHT]: { ...entity[SPAWNABLE].light },
           [MOVABLE]: {
             orientations: [],
             reference: frameId,
@@ -187,7 +187,7 @@ export default function setupFate(world: World) {
           [SPAWNABLE]: {
             classKey: entity[SPAWNABLE].classKey,
             position: copy(entity[SPAWNABLE].position),
-            light: { ...entity[LIGHT] },
+            light: { ...entity[SPAWNABLE].light },
             viewable: { ...entity[VIEWABLE] },
             compassId: entity[EQUIPPABLE].compass,
           },

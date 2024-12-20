@@ -43,8 +43,7 @@ import {
 import { STATS } from "../../engine/components/stats";
 import { CASTABLE } from "../../engine/components/castable";
 import * as colors from "./colors";
-
-const defaultVision = 3.7;
+import { defaultLight } from "../../engine/systems/consume";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -84,14 +83,9 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       lockDoor(world, doorEntity);
 
       // set player light and spawn
-      heroEntity[LIGHT].brightness = defaultVision;
-      heroEntity[LIGHT].visibility = defaultVision;
+      heroEntity[LIGHT] = { ...defaultLight };
       heroEntity[SPAWNABLE].position = { x: 0, y: 9 };
-      heroEntity[SPAWNABLE].light = {
-        brightness: defaultVision,
-        visibility: defaultVision,
-        darkness: 0,
-      };
+      heroEntity[SPAWNABLE].light = { ...defaultLight };
 
       // give player compass if not already done
       const compassCarrier = compassEntity[ITEM].carrier;

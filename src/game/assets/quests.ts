@@ -162,7 +162,7 @@ export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
       if (welcomeEntity) {
         entity[SPAWNABLE].position = add(welcomeEntity[POSITION], {
           x: 0,
-          y: -1,
+          y: 1,
         });
       }
       return END_STEP;
