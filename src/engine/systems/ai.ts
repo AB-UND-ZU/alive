@@ -225,6 +225,7 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
             entity[ACTIONABLE].triggered = true;
+            break;
           } else if (canShoot && attack && heroEntity) {
             const delta = {
               x: signedDistance(
@@ -279,15 +280,16 @@ export default function setupAi(world: World) {
               }
             }
 
-            if (entity[ORIENTABLE] && entity[ACTIONABLE]) {
-              entity[ORIENTABLE].facing = undefined;
-              if (shootingOrientation) {
-                entity[ORIENTABLE].facing = shootingOrientation;
-                entity[TOOLTIP].idle = rage;
-                entity[TOOLTIP].changed = true;
-                rerenderEntity(world, entity);
-                break;
-              }
+            if (
+              entity[ORIENTABLE] &&
+              entity[ACTIONABLE] &&
+              shootingOrientation
+            ) {
+              entity[ORIENTABLE].facing = shootingOrientation;
+              entity[TOOLTIP].idle = rage;
+              entity[TOOLTIP].changed = true;
+              rerenderEntity(world, entity);
+              break;
             }
           }
 
@@ -299,7 +301,14 @@ export default function setupAi(world: World) {
               entity[POSITION],
               1
             );
-            entity[MOVABLE].orientations = fleeingOrientations;
+
+            // only walk every second tick
+            if (entity[ORIENTABLE]?.facing) {
+              entity[MOVABLE].orientations = [];
+              entity[ORIENTABLE].facing = undefined;
+            } else {
+              entity[MOVABLE].orientations = fleeingOrientations;
+            }
             rerenderEntity(world, entity);
             break;
           }

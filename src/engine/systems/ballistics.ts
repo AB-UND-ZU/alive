@@ -127,6 +127,7 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
     {
       range: 9,
       origin: copy(entity[POSITION]),
+      caster: world.getEntityId(entity),
     }
   );
 };
@@ -232,8 +233,12 @@ export default function setupBallistics(world: World) {
         continue;
       }
 
-      // bounce off walls
-      if (isBouncable(world, entity[POSITION])) {
+      // bounce off walls or allies
+      const shootable = getShootable(world, entity[POSITION]);
+      if (
+        isBouncable(world, entity[POSITION]) ||
+        (shootable && isFriendlyFire(world, entity, shootable))
+      ) {
         const targetPosition = add(
           entity[POSITION],
           orientationPoints[oppositeOrientation]

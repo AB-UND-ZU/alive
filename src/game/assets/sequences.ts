@@ -38,7 +38,7 @@ import {
   getStackable,
   isEmpty,
 } from "../../engine/systems/collect";
-import { isDead, isFriendlyFire } from "../../engine/systems/damage";
+import { isDead } from "../../engine/systems/damage";
 import {
   disposeEntity,
   moveEntity,
@@ -186,7 +186,7 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
     if (
       isBouncable(world, entity[POSITION]) ||
       getStackableArrow(world, entity[POSITION]) ||
-      (shootable && !isFriendlyFire(world, entity, shootable)) ||
+      (shootable && state.args.caster !== world.getEntityId(shootable)) ||
       projectiles.length > 1
     ) {
       finished = true;

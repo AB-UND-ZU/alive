@@ -390,7 +390,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     faction: "wild",
     power: 0,
     armor: 1,
-    hp: 15,
+    hp: 10,
     mp: 0,
     equipments: [
       {

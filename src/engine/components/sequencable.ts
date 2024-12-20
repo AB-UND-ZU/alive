@@ -59,7 +59,7 @@ export type SpellSequence = {
   duration: number;
   areas: number[];
 };
-export type ArrowSequence = { origin: Position; range: number };
+export type ArrowSequence = { origin: Position; range: number; caster: number };
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
   step: string;
