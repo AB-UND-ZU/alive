@@ -161,16 +161,37 @@ export const itemPrices: Partial<
       { stat: "ore", amount: 3 },
     ],
   },
-  berry: { default: [{ stat: "berry", amount: 10 }] },
-  flower: { default: [{ stat: "flower", amount: 10 }] },
+  berry: { default: [
+    { stat: "berry", amount: 10 },
+      { stat: "coin", amount: 1 },
+  ] },
+  flower: { default: [
+    { stat: "flower", amount: 10 },
+      { stat: "coin", amount: 1 },
+  ] },
 
   // resources
   resource: {
-    wood: [{ stat: "stick", amount: 10 }],
-    iron: [{ stat: "ore", amount: 10 }],
-    gold: [{ stackable: "resource", material: "iron", amount: 10 }],
-    diamond: [{ stackable: "resource", material: "iron", amount: 10 }],
-    ruby: [{ stackable: "resource", material: "diamond", amount: 10 }],
+    wood: [
+      { stat: "stick", amount: 10 },
+      { stat: "coin", amount: 3 },
+    ],
+    iron: [
+      { stat: "ore", amount: 10 },
+      { stat: "coin", amount: 3 },
+    ],
+    gold: [
+      { stackable: "resource", material: "iron", amount: 10 },
+      { stat: "coin", amount: 5 },
+    ],
+    diamond: [
+      { stackable: "resource", material: "iron", amount: 10 },
+      { stat: "coin", amount: 10 },
+    ],
+    ruby: [
+      { stackable: "resource", material: "diamond", amount: 10 },
+      { stat: "coin", amount: 20 },
+    ],
   },
 
   // stats

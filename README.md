@@ -92,7 +92,7 @@ Hills 1 world
 ## Quests
 
 - Kill quest: 5x prism/5x orb/5x eye, 1x gold prism/1x gold orb/1x gold eye
-- Gather quest: 5x apples/plums/coconut/banana/gem/crystal/red fish/blue fish
+- Gather quest: 5x apples/plums/coconut/banana/gem/crystal/fish/algae
 
 ## Bosses
 
@@ -100,12 +100,21 @@ Hills 1 world
 - Infinite waves arena (revive, loot as much as you can)
 - Chief (drops an elemental key to the void)
 - Nomad
-- Thief (unequip and steal)
-- Labyrinth
+- Thief (invisible, unequip and steal, catch and dodge traps)
+- Labyrinth (burning down)
 - Question mark (mimick)
 - (large creature multiple tiles)
 - Pushing puzzle
 - Lever puzzle
+
+## Ability progression
+
+- Sword
+- Lvl 1 mana spell
+- Active ability
+- Lvl 1 elemental spell
+- Passive
+- Lvl 2 elemental spell
 
 ## Units
 
@@ -294,7 +303,7 @@ T5: legendary (fuchsia)
 - Earth ring lvl 1: +1 defense
 - Earth ring lvl 2: +2 defense
 - Golden ring lvl 1: unusable passive + double coin drops
-- Golden ring lvl 2: double mine drops
+- Golden ring lvl 2: double mine, chop and fish  drops
 
 ## Tools
 
@@ -406,33 +415,33 @@ T5: legendary (fuchsia)
 - Fishing rod
 - Reaction time (trigger)
 - Drop behind player
-- Stick (unlucky)
+- Stick or ore (unlucky)
+- Drop nothing if too slow
 - Bubble as fishing spots
 - Appears after X time of visibility
-- Bait (higher chance)
-- Normal fish (hp or mp)
-- Elemental fish, pull on string (end fishing spot)
-- Golden fish
+- Each attempt uses one worm
+- Normal fish or algae (hp or mp)
+- Golden fish sell for 10 coin, pull on string (end fishing spot)
 - After too many retries, shark appears and eats fish
 
 ## Crafting
 
-- 10 stick + 2 coin = 1 wood
-- 10 ore + 5 coin = 1 iron
-- 20 single berry + 2 coin = 1 berry
-- 20 single flower + 2 coin = 1 flower
+- 10 stick + 3 coin = 1 wood
+- 10 ore + 3 coin = 1 iron
+- 10 single berry + 1 coin = 1 berry
+- 10 single flower + 1 coin = 1 flower
 
 - 5 wood + 5 coin = 1 iron
-- 10 iron + 20 coin = 1 gold
-- 10 gold + 30 coin = 1 diamond
-- 10 diamond + 50 coin = 1 ruby gem
+- 10 iron + 5 coin = 1 gold
+- 10 gold + 10 coin = 1 diamond
+- 10 diamond + 20 coin = 1 ruby gem
 
 - 10 flower + 25 gold = 1 fire essence
 - 10 berry + 25 gold = 1 water essence
 - 10 spike + 25 gold = 1 earth essence
-- 3 fire essence + 3 water essence + 3 earth essence = 1 rainbow gem
 
-- 1 diamond + 1 essence = 1 void shard
+- 1 gold + 1 essence = 1 rainbow shard
+- 10 rainbow shards + 10 gold = 1 rainbow gem
 - 10 void shards + 10 gold = 1 void gem
 
 - 99 coin = 1 gold
@@ -481,15 +490,33 @@ T5: legendary (fuchsia)
 
 ## Consumables
 
-- 3 berry + 1 coin = hp
-- 3 berry stack + 1 iron = hp flask 1
-- 1 fire essence + 1 gold = hp flask 2
+- hp flask 1 stack
+  - 1 berry stack + 3 stick
+  - 3 apple + 3 stick
+  - 3 coconut + 3 stick
+  - 3 gem + 3 stick
+  - 3 fish + 3 stick
+- hp flask 2 stack
+  - 3 berry stack + 1 wood
+  - 10 apple + 1 wood
+  - 10 coconut + 1 wood
+  - 10 gem + 1 wood
+  - 10 fish + 1 wood
 
-- 3 flower + 1 coin = mp
-- 3 flower stack + 1 iron = mp flask 1
-- 1 water essence + 1 gold = mp flask 2
+- mp flask 1 stack
+  - 1 flower stack + 3 stick
+  - 3 plum + 3 stick
+  - 3 banana + 3 stick
+  - 3 crystal + 3 stick
+  - 3 algae + 3 stick
+- mp flask 2 stack
+  - 3 flower stack + 1 wood
+  - 10 plum + 1 wood
+  - 10 banana + 1 wood
+  - 10 crystal + 1 wood
+  - 10 algae + 1 wood
 
-- 10 berry + 10 flower = bait stack
+- 5 berry + 5 flower = worm stack
 - 1 iron + 5 wood = arrow stack
 - 5 iron + 1 wood = bomb stack
 - 1 bomb stack + 1 essence = elemental bomb
@@ -546,21 +573,3 @@ T5: legendary (fuchsia)
 - Entering a house only updates sprite correctly when the door is at the bottom
 - Fire doesn't need to be a sequence
 - For large trees, matrix iteration requires to go column by column
-
-## Inventory example
-
-1. Compass
-2. Map
-3. Torch
-4. Haste
-5. Sword
-6. Armor
-7. Bow
-8. Arrow
-9. Spell
-10. Axe
-11. HP flask
-12. MP flask
-13. Diamond stack
-14. Iron stack
-15. Void shard

@@ -450,6 +450,15 @@ export const worm: Sprite = {
   ],
 };
 
+export const algae: Sprite = {
+  name: "Algae",
+  layers: [
+    { char: "v", color: colors.green },
+    { char: "|", color: colors.green },
+    { char: "~", color: colors.black },
+  ],
+};
+
 export const rubyGem: Sprite = {
   name: "Ruby",
   layers: [{ char: "\u0103", color: colors.fuchsia }],
@@ -468,6 +477,11 @@ export const voidShard: Sprite = {
 export const voidGem: Sprite = {
   name: "Void",
   layers: [{ char: "\u0103", color: colors.grey }],
+};
+
+export const rainbowShard: Sprite = {
+  name: "Shard",
+  layers: [{ char: "\u011c", color: colors.yellow }],
 };
 
 export const rainbowGem: Sprite = {
