@@ -13,6 +13,11 @@ import { createSequence, getSequence } from "./sequence";
 import { ConsumeSequence, VisionSequence } from "../components/sequencable";
 import { EQUIPPABLE } from "../components/equippable";
 import { LIGHT } from "../components/light";
+import { MOVABLE } from "../components/movable";
+import { entities } from "..";
+import { REFERENCE } from "../components/reference";
+import { getHasteInterval } from "./movement";
+import { disposeEntity } from "./map";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -37,7 +42,7 @@ export const consumptionConfigs: Partial<
           cooldown: number;
           amount: number;
           countable: keyof Countable;
-          buffer: number; // leave a few countables open so the player can still manually restore stats without wasting health
+          buffer: number; // leave a few countables open so the player can still manually restore stats without wasting consumable
         }
       >
     >
@@ -56,6 +61,7 @@ export const consumptionConfigs: Partial<
 export default function setupConsume(world: World) {
   let worldGeneration = -1;
   const entityConsumptions: Record<number, number> = {};
+  const entityHaste: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world.metadata.gameEntity[RENDERABLE].generation;
@@ -150,6 +156,32 @@ export default function setupConsume(world: World) {
             light: { ...torchLight },
           }
         );
+      }
+    }
+
+    // process changes in haste
+    for (const entity of world.getEntities([PLAYER, STATS, MOVABLE])) {
+      const entityId = world.getEntityId(entity);
+      const haste = entity[STATS].haste;
+
+      if (!(entityId in entityHaste)) {
+        entityHaste[entityId] = haste;
+      } else if (haste !== entityHaste[entityId]) {
+        const oldFrame = world.assertByIdAndComponents(
+          entity[MOVABLE].reference,
+          [REFERENCE, RENDERABLE]
+        );
+        const newFrame = entities.createFrame(world, {
+          [REFERENCE]: {
+            ...oldFrame[REFERENCE],
+            tick: getHasteInterval(world, haste),
+          },
+          [RENDERABLE]: { generation: oldFrame[RENDERABLE].generation },
+        });
+        entity[MOVABLE].reference = world.getEntityId(newFrame);
+        
+        entityHaste[entityId] = haste;
+        disposeEntity(world, oldFrame);
       }
     }
   };
