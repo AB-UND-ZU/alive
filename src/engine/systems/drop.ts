@@ -36,7 +36,7 @@ import {
 } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
 import { TypedEntity } from "../entities";
-import { EQUIPPABLE, gears } from "../components/equippable";
+import { EQUIPPABLE, Gear, gears } from "../components/equippable";
 import { getEntityGeneration } from "./renderer";
 import { PLAYER } from "../components/player";
 import { SHOOTABLE } from "../components/shootable";
@@ -222,7 +222,7 @@ export const dropEntity = (
     ...(entity[INVENTORY]?.items || []),
     ...Object.entries(entity[EQUIPPABLE] || {})
       .filter(
-        ([equipment, id]) => gears.includes(equipment) && id !== undefined
+        ([equipment, id]) => gears.includes(equipment as Gear) && id !== undefined
       )
       .map(([_, id]) => id),
   ];

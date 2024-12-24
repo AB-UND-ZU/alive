@@ -11,7 +11,6 @@ import { Element } from "./item";
 type EmptyObject = Record<string, never>;
 
 export type ConsumeSequence = { itemId: number };
-export type WaveSequence = { innerRadius: number; outerRadius: number };
 export type BubbleSequence = { width: number };
 export type VisionSequence = {
   light?: Light;
@@ -56,7 +55,9 @@ export type SpellSequence = {
   amount: number;
   element?: Element;
   progress: number;
+  memory?: any;
   duration: number;
+  range: number;
   areas: number[];
 };
 export type ArrowSequence = { origin: Position; range: number; caster: number };
@@ -95,7 +96,6 @@ export type Sequencable = {
   states: {
     consume?: SequenceState<ConsumeSequence>;
     spell?: SequenceState<SpellSequence>;
-    wave?: SequenceState<WaveSequence>;
     bubble?: SequenceState<BubbleSequence>;
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;

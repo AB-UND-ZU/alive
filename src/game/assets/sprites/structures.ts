@@ -32,6 +32,16 @@ export const houseAid: Sprite = {
   ],
 };
 
+export const houseMage: Sprite = {
+  name: "house_mage",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u0103", color: colors.white },
+    { char: "\u011c", color: colors.silver },
+    { char: "-", color: colors.white },
+  ],
+};
+
 export const houseArmor: Sprite = {
   name: "house_armor",
   layers: [

@@ -260,21 +260,42 @@ export const castSpell = (
     [SPRITE]: none,
   });
 
-  createSequence<"spell", SpellSequence>(
-    world,
-    spellEntity,
-    "spell",
-    "castBeam1",
-    {
-      progress: 0,
-      duration: 31,
-      areas: [],
-      amount: item[ITEM].amount,
-      element: elements.includes(item[ITEM].material as Element)
-        ? (item[ITEM].material as Element)
-        : undefined,
-    }
-  );
+  if (item[ITEM].active === "beam1") {
+    createSequence<"spell", SpellSequence>(
+      world,
+      spellEntity,
+      "spell",
+      "castBeam1",
+      {
+        progress: 0,
+        duration: 31,
+        range: 12,
+        areas: [],
+        amount: item[ITEM].amount,
+        element: elements.includes(item[ITEM].material as Element)
+          ? (item[ITEM].material as Element)
+          : undefined,
+      }
+    );
+  } else if (item[ITEM].active === "wave1") {
+    createSequence<"spell", SpellSequence>(
+      world,
+      spellEntity,
+      "spell",
+      "castWave1",
+      {
+        memory: { innerRadius: 0 },
+        progress: 0,
+        range: 7,
+        duration: 7,
+        areas: [],
+        amount: item[ITEM].amount,
+        element: elements.includes(item[ITEM].material as Element)
+          ? (item[ITEM].material as Element)
+          : undefined,
+      }
+    );
+  }
 
   if (entity[STATS] && !isEnemy(world, entity)) {
     entity[STATS].mp -= 1;

@@ -143,6 +143,12 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
         }
       }
 
+      // clear invisible walls
+      for (let offset = 0; offset < 3; offset += 1) {
+        const mountainEntity = world.getIdentifier(`mountain-${offset}`);
+        disposeEntity(world, mountainEntity!);
+      }
+
       return END_STEP;
     },
   });

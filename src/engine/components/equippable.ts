@@ -1,7 +1,9 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export const gears = ["sword", "shield", "torch", "map"];
+export const handhelds = ["sword", "shield"] as const;
+export type Handheld = (typeof handhelds)[number];
+export const gears = [...handhelds, "torch", "map"] as const;
 export type Gear = (typeof gears)[number];
 export type Slot = Gear | "active" | "passive";
 export type Tools = "compass";

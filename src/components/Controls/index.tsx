@@ -12,9 +12,10 @@ import {
   buttonColor,
   charge,
   createButton,
-  createCountable,
   createText,
+  getStatSprite,
   ghost,
+  mana,
   none,
   quest,
 } from "../../game/assets/sprites";
@@ -60,10 +61,9 @@ const getActiveActivations = (item: Item) => {
   if (item.active === "bow") return [none, arrow, none];
   else if (item.active === "slash" || item.active === "block")
     return [none, charge, none];
-  else if (item.active.endsWith("1"))
-    return [...createCountable({ mp: 1 }, "mp"), none];
+  else if (item.active.endsWith("1")) return [none, mana, none];
   else if (item.active.endsWith("2"))
-    return [...createCountable({ mp: 2 }, "mp"), none];
+    return [none, { ...mana, stackableAmount: 2 }, none];
 
   return [none, none, none];
 };
@@ -71,15 +71,11 @@ const getActiveActivations = (item: Item) => {
 const getActivationRow = (item?: Item) => {
   if (!item) return repeat(none, 3);
 
-  if (item.stat)
-    return [
-      ...createCountable({ [item.stat]: item.amount }, item.stat),
-      ...(item.amount < 10 ? [none] : []),
-    ];
+  const sprite: CellSprite = {
+    ...(item.stat ? getStatSprite(item.stat) : getItemSprite(item)),
+  };
 
-  const sprite: CellSprite = { ...getItemSprite(item) };
-
-  if (item.stackable) {
+  if (item.stackable || item.stat) {
     sprite.stackableAmount = item.amount;
   }
 

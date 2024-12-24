@@ -32,6 +32,7 @@ import { distribution } from "../math/std";
 import { Item } from "../../engine/components/item";
 import { getGearStat } from "./equipment";
 import { Faction } from "../../engine/components/belongable";
+import { SpringConfig } from "@react-spring/three";
 
 export type UnitKey =
   | "guide"
@@ -41,6 +42,7 @@ export type UnitKey =
   | "trader"
   | "druid"
   | "hunter"
+  | "mage"
   | "commonChest"
   | "uncommonChest"
   | "rareChest"
@@ -77,6 +79,7 @@ export type UnitDefinition = {
   }[];
   patternNames: Pattern["name"][];
   sprite: Sprite;
+  spring?: SpringConfig;
 };
 
 export type UnitData = {
@@ -93,6 +96,7 @@ export type UnitData = {
   items: Omit<Item, "carrier">[];
   patterns: Pattern[];
   sprite: Sprite;
+  spring?: SpringConfig;
 };
 
 const unitDefinitions: Record<UnitKey, UnitDefinition> = {
@@ -188,6 +192,17 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: [],
     sprite: { ...hunter, name: "Hunter" },
   },
+  mage: {
+    faction: "settler",
+    power: 0,
+    armor: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: { ...mage, name: "Mage" },
+  },
   commonChest: {
     faction: "unit",
     power: 0,
@@ -266,7 +281,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     faction: "unit",
     power: 0,
     armor: 0,
-    hp: 10,
+    hp: 5,
     mp: 0,
     equipments: [],
     drops: [
@@ -292,7 +307,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     hp: 10,
     mp: 0,
     equipments: [],
-    drops: [{ chance: 100, items: [{ stackable: "spike", amount: 1 }] }],
+    drops: [
+      { chance: 50, items: [{ stackable: "spike", amount: 1 }] },
+      { chance: 50, items: [{ stat: 'stick', amount: 1 }] },
+    ],
     patternNames: [],
     sprite: cactus1,
   },
@@ -303,7 +321,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     hp: 10,
     mp: 0,
     equipments: [],
-    drops: [{ chance: 100, items: [{ stackable: "spike", amount: 1 }] }],
+    drops: [
+      { chance: 50, items: [{ stackable: "spike", amount: 1 }] },
+      { chance: 50, items: [{ stat: 'stick', amount: 1 }] },
+    ],
     patternNames: [],
     sprite: cactus2,
   },
@@ -480,6 +501,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["orb"],
     sprite: orb,
+    spring: { duration: 400 },
   },
   goldOrb: {
     faction: "wild",
@@ -507,6 +529,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["orb"],
     sprite: goldOrb,
+    spring: { duration: 400 },
   },
   fairy: {
     faction: "wild",
@@ -518,11 +541,11 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [
       {
         chance: 50,
-        items: [{ equipment: "shield", amount: 4, material: "gold" }],
+        items: [{ stackable: "resource", amount: 3, material: "iron" }],
       },
       {
         chance: 50,
-        items: [{ equipment: "sword", amount: 4, material: "gold" }],
+        items: [{ stackable: "resource", amount: 3, material: "wood" }],
       },
     ],
     patternNames: ["fairy"],

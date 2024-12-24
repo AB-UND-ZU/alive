@@ -62,35 +62,38 @@ export const stream: Sprite = {
 };
 
 export const wave: Sprite = {
-  name: "water_wave",
-  layers: [{ char: "┼", color: colors.blue }],
+  name: "spell_wave",
+  layers: [
+    { char: "┼", color: colors.silver },
+    { char: "·", color: colors.black },
+  ],
   facing: {
-    up: [{ char: "─", color: colors.blue }],
-    right: [{ char: "│", color: colors.blue }],
-    down: [{ char: "─", color: colors.blue }],
-    left: [{ char: "│", color: colors.blue }],
+    up: [{ char: "─", color: colors.silver }],
+    right: [{ char: "│", color: colors.silver }],
+    down: [{ char: "─", color: colors.silver }],
+    left: [{ char: "│", color: colors.silver }],
   },
 };
 
 export const waveCorner: Sprite = {
-  name: "water_corner",
+  name: "spell_corner",
   layers: [],
   facing: {
     up: [
-      { char: "┐", color: colors.blue },
-      { char: "·", color: colors.navy },
+      { char: "┐", color: colors.silver },
+      { char: "·", color: colors.black },
     ],
     right: [
-      { char: "┘", color: colors.blue },
-      { char: "·", color: colors.navy },
+      { char: "┘", color: colors.silver },
+      { char: "·", color: colors.black },
     ],
     down: [
-      { char: "└", color: colors.blue },
-      { char: "·", color: colors.navy },
+      { char: "└", color: colors.silver },
+      { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┌", color: colors.blue },
-      { char: "·", color: colors.navy },
+      { char: "┌", color: colors.silver },
+      { char: "·", color: colors.black },
     ],
   },
 };
@@ -575,16 +578,16 @@ const nonCountable = (sprite: Sprite) => ({
   layers: sprite.layers,
 });
 
-const statSprites:   Record<
-    keyof Stats,
-    {
-      color: string;
-      sprite: Sprite;
-      drop?: Sprite;
-      max?: keyof Countable;
-      resource?: Sprite;
-    }
-  > = {
+const statSprites: Record<
+  keyof Stats,
+  {
+    color: string;
+    sprite: Sprite;
+    drop?: Sprite;
+    max?: keyof Countable;
+    resource?: Sprite;
+  }
+> = {
   hp: { color: colors.red, sprite: heart, max: "maxHp" },
   maxHp: { color: "#404040", sprite: heartUp },
   mp: { color: colors.blue, sprite: mana, max: "maxMp" },
@@ -619,11 +622,13 @@ const statSprites:   Record<
     sprite: magic,
   },
   armor: {
-    color: colors.lime, sprite: armor,
+    color: colors.lime,
+    sprite: armor,
   },
   haste: {
-    color: colors.lime, sprite: haste,
-  }
+    color: colors.lime,
+    sprite: haste,
+  },
 };
 
 export const createCountable = (

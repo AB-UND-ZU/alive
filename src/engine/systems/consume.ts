@@ -60,7 +60,7 @@ export const consumptionConfigs: Partial<
 
 export default function setupConsume(world: World) {
   let worldGeneration = -1;
-  const entityConsumptions: Record<number, number> = {};
+  const nextConsumptions: Record<number, Record<number, number>> = {};
   const entityHaste: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
@@ -78,6 +78,7 @@ export default function setupConsume(world: World) {
       const entityId = world.getEntityId(entity);
       const consumptions = [];
       for (const consumable of getConsumables(world, entity)) {
+        const consumableId = world.getEntityId(consumable);
         const consumptionConfig =
           consumptionConfigs[consumable[ITEM].consume!]?.[
             consumable[ITEM].material!
@@ -85,33 +86,38 @@ export default function setupConsume(world: World) {
 
         if (!consumptionConfig) continue;
 
-        // ensure consumable is not on cooldown
-        if (
-          entityId in entityConsumptions &&
-          consumptionConfig.cooldown + entityConsumptions[entityId] >
-            worldGeneration
-        )
-          continue;
-
         // ensure consumable is needed
         const maxCounter = getMaxCounter(consumptionConfig.countable);
         const currentCountable = entity[STATS][consumptionConfig.countable];
         const maxCountable = entity[STATS][maxCounter];
+        const nextConsumption = nextConsumptions[entityId]?.[consumableId];
 
         if (
           currentCountable +
             consumptionConfig.amount +
             consumptionConfig.buffer >
           maxCountable
-        )
+        ) {
+          if (nextConsumption) {
+            delete nextConsumptions[entityId][consumableId];
+          }
           continue;
+        }
 
-        consumptions.push({
-          consumable,
-          countable: consumptionConfig.countable,
-          amount: consumptionConfig.amount,
-          percentage: currentCountable / maxCountable,
-        });
+        // ensure consumable is not already scheduled
+        if (nextConsumption && nextConsumption <= worldGeneration) {
+          consumptions.push({
+            consumable,
+            countable: consumptionConfig.countable,
+            amount: consumptionConfig.amount,
+            percentage: currentCountable / maxCountable,
+          });
+        } else if (!nextConsumption) {
+          const entityConsumptions = nextConsumptions[entityId] || {};
+          nextConsumptions[entityId] = entityConsumptions;
+          entityConsumptions[consumableId] =
+            worldGeneration + consumptionConfig.cooldown;
+        }
       }
 
       consumptions.sort((left, right) => left.percentage - right.percentage);
@@ -120,8 +126,9 @@ export default function setupConsume(world: World) {
       if (!consumption) continue;
 
       consumption.consumable[ITEM].amount -= 1;
+      const consumableId = world.getEntityId(consumption.consumable);
       rerenderEntity(world, entity);
-      entityConsumptions[entityId] = worldGeneration;
+      delete nextConsumptions[entityId][consumableId];
 
       if (consumption.consumable[ITEM].amount === 0) {
         removeFromInventory(world, entity, consumption.consumable);
@@ -179,7 +186,7 @@ export default function setupConsume(world: World) {
           [RENDERABLE]: { generation: oldFrame[RENDERABLE].generation },
         });
         entity[MOVABLE].reference = world.getEntityId(newFrame);
-        
+
         entityHaste[entityId] = haste;
         disposeEntity(world, oldFrame);
       }

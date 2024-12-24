@@ -8,13 +8,12 @@ import { MOVABLE } from "../engine/components/movable";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
   addBackground,
-  arrow,
+  beamSpell,
   berry,
   berryStack,
   block,
   blockDown,
   blockUp,
-  bowActive,
   bush,
   campfire,
   coin,
@@ -40,6 +39,7 @@ import {
   leaves,
   mpFlask1,
   none,
+  oreDrop,
   palm1,
   palm2,
   path,
@@ -51,6 +51,7 @@ import {
   tree2,
   wall,
   water,
+  waveSpell,
   wood,
   woodShield,
 } from "../game/assets/sprites";
@@ -96,8 +97,8 @@ import {
   house,
   houseAid,
   houseArmor,
-  houseHunter,
   houseLeft,
+  houseMage,
   housePlate,
   houseRight,
   roof,
@@ -272,7 +273,7 @@ export const generateWorld = async (world: World) => {
         (10 < terrain && terrain < 11) ||
         (20 < terrain && terrain < 21))
     )
-      cell = "rock";
+      cell = spawn > 60 ? "stone" : "rock";
     else if (temperature > 65)
       cell = 21 < green && green < 25 ? "cactus" : "desert";
     // greens
@@ -365,7 +366,7 @@ export const generateWorld = async (world: World) => {
   });
 
   // create shortes path between spawn and town
-  const signPosition = { x: 1, y: 11 };
+  const signPosition = { x: normalize(random(0, 1) * 2 - 1, size), y: 11 };
   pathMatrix[signPosition.x][signPosition.y] = 0;
   iterateMatrix(worldMatrix, (x, y) => {
     const height = pathMatrix[x][y];
@@ -395,7 +396,7 @@ export const generateWorld = async (world: World) => {
     smithHouse,
     traderHouse,
     druidHouse,
-    hunterHouse,
+    mageHouse,
   ] = houses;
 
   worldMatrix[chiefHouse.position.x][chiefHouse.position.y + 2] = "iron_door";
@@ -423,9 +424,9 @@ export const generateWorld = async (world: World) => {
     "flower";
   worldMatrix[druidHouse.position.x - druidOffset][druidHouse.position.y + 3] =
     "berry";
-  worldMatrix[hunterHouse.position.x + random(0, 1) * 2 - 1][
-    hunterHouse.position.y + 2
-  ] = "house_hunter";
+  worldMatrix[mageHouse.position.x + random(0, 1) * 2 - 1][
+    mageHouse.position.y + 2
+  ] = "house_mage";
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
@@ -566,6 +567,15 @@ export const generateWorld = async (world: World) => {
           },
         ]
       );
+    } else if (cell === "stone") {
+      createItemAsDrop(world, { x, y }, entities.createItem, {
+        [ITEM]: {
+          stat: "ore",
+          amount: 1,
+          bound: false,
+        },
+        [SPRITE]: oreDrop,
+      });
     } else if (cell === "block") {
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -1010,7 +1020,7 @@ export const generateWorld = async (world: World) => {
 
       world.setIdentifier(guideEntity, "guide");
     } else if (cell === "mob" || cell === "prism") {
-      const { patterns, items, sprite, stats, faction, equipments } =
+      const { patterns, items, sprite, stats, faction, equipments, spring } =
         generateUnitData(
           cell === "prism" ? "prism" : generateUnitKey(hillsUnitDistribution)
         );
@@ -1029,7 +1039,7 @@ export const generateWorld = async (world: World) => {
         [MOVABLE]: {
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
+          spring: spring || {
             duration: 200,
           },
           lastInteraction: 0,
@@ -1297,7 +1307,7 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: houseArmor,
         [RENDERABLE]: { generation: 0 },
       });
-    } else if (cell === "house_hunter") {
+    } else if (cell === "house_mage") {
       entities.createWall(world, {
         [COLLIDABLE]: {},
         [ENTERABLE]: { inside: false, sprite: wallInside },
@@ -1309,7 +1319,7 @@ export const generateWorld = async (world: World) => {
           orientation: "down",
         },
         [POSITION]: { x, y },
-        [SPRITE]: houseHunter,
+        [SPRITE]: houseMage,
         [RENDERABLE]: { generation: 0 },
       });
     }
@@ -1352,6 +1362,19 @@ export const generateWorld = async (world: World) => {
   });
   npcSequence(world, viewpointEntity, "worldNpc");
   world.setIdentifier(viewpointEntity, "viewpoint");
+
+  // prevent revealing fog with large menu light range
+  for (let offset = 0; offset < 3; offset += 1) {
+    const mountainEntity = entities.createMountain(world, {
+      [FOG]: { visibility: "hidden", type: "terrain" },
+      [POSITION]: { x: -1 + offset, y: 7 },
+      [SPRITE]: none,
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [RENDERABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+    });
+    world.setIdentifier(mountainEntity, `mountain-${offset}`);
+  }
 
   // add quest sign after exiting
   const signEntity = entities.createSign(world, {
@@ -1786,14 +1809,14 @@ export const generateWorld = async (world: World) => {
     Infinity
   );
 
-  // 7. hunter's house
-  const hunterUnit = generateUnitData("hunter");
-  const hunterEntity = entities.createVillager(world, {
+  // 7. mage's house
+  const mageUnit = generateUnitData("mage");
+  const mageEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
     [AFFECTABLE]: {},
     [ATTACKABLE]: {},
-    [BEHAVIOUR]: { patterns: hunterUnit.patterns },
-    [BELONGABLE]: { faction: hunterUnit.faction },
+    [BEHAVIOUR]: { patterns: mageUnit.patterns },
+    [BELONGABLE]: { faction: mageUnit.faction },
     [COLLECTABLE]: {},
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
@@ -1810,12 +1833,12 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: {},
     [ORIENTABLE]: {},
-    [POSITION]: copy(hunterHouse.position),
+    [POSITION]: copy(mageHouse.position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SHOOTABLE]: { hits: 0 },
-    [SPRITE]: hunterUnit.sprite,
-    [STATS]: { ...emptyStats, ...hunterUnit.stats },
+    [SPRITE]: mageUnit.sprite,
+    [STATS]: { ...emptyStats, ...mageUnit.stats },
     [SWIMMABLE]: { swimming: false },
     [TOOLTIP]: {
       dialogs: [],
@@ -1823,45 +1846,41 @@ export const generateWorld = async (world: World) => {
       nextDialog: -1,
     },
   });
-  populateInventory(
-    world,
-    hunterEntity,
-    hunterUnit.items,
-    hunterUnit.equipments
-  );
-  world.setIdentifier(hunterEntity, "hunter");
-  const bowEntity = entities.createItem(world, {
+  populateInventory(world, mageEntity, mageUnit.items, mageUnit.equipments);
+  world.setIdentifier(mageEntity, "mage");
+  const waveEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
+      amount: 2,
       equipment: "active",
-      active: "bow",
-      amount: 1,
+      active: "wave1",
       bound: false,
     },
-    [SPRITE]: bowActive,
+    [SPRITE]: waveSpell,
     [RENDERABLE]: { generation: 0 },
   });
   sellItem(
     world,
-    world.getEntityId(bowEntity),
-    add(hunterHouse.position, { x: -2, y: 0 }),
-    getItemPrice(bowEntity[ITEM])
+    world.getEntityId(waveEntity),
+    add(mageHouse.position, { x: -2, y: 0 }),
+    getItemPrice(waveEntity[ITEM])
   );
-  const arrowEntity = entities.createItem(world, {
+  const beamEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
-      stackable: "arrow",
-      amount: 10,
+      amount: 4,
+      equipment: "active",
+      active: "beam1",
       bound: false,
     },
-    [SPRITE]: arrow,
+    [SPRITE]: beamSpell,
     [RENDERABLE]: { generation: 0 },
   });
   sellItem(
     world,
-    world.getEntityId(arrowEntity),
-    add(hunterHouse.position, { x: 2, y: 0 }),
-    getItemPrice(arrowEntity[ITEM])
+    world.getEntityId(beamEntity),
+    add(mageHouse.position, { x: 2, y: 0 }),
+    getItemPrice(beamEntity[ITEM])
   );
 
   // start ordered systems

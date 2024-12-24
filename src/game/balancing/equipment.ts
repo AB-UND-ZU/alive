@@ -1,7 +1,7 @@
-import { Gear } from "../../engine/components/equippable";
+import { Handheld } from "../../engine/components/equippable";
 import { Material } from "../../engine/components/item";
 
-export const gearStats: Record<Gear, Record<Material, number>> = {
+export const gearStats: Record<Handheld, Record<Material, number>> = {
   sword: {
     // T1-T3
     wood: 2,
@@ -40,6 +40,6 @@ export const gearStats: Record<Gear, Record<Material, number>> = {
   },
 };
 
-export const getGearStat = (lookup: Gear, material: Material) => {
+export const getGearStat = (lookup: Handheld, material: Material) => {
   return gearStats[lookup][material];
 };

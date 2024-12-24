@@ -11,7 +11,7 @@ import {
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { DROPPABLE } from "../../engine/components/droppable";
-import { EQUIPPABLE, gears } from "../../engine/components/equippable";
+import { EQUIPPABLE, Gear, gears } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM, STACK_SIZE } from "../../engine/components/item";
@@ -57,6 +57,7 @@ import {
   getDistance,
   lerp,
   normalize,
+  shuffle,
   signedDistance,
 } from "../math/std";
 import { iterations } from "../math/tracing";
@@ -101,7 +102,6 @@ import {
   SpellSequence,
   UnlockSequence,
   VisionSequence,
-  WaveSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
@@ -117,7 +117,6 @@ import { PROJECTILE } from "../../engine/components/projectile";
 import { getGearStat } from "../balancing/equipment";
 import { STATS } from "../../engine/components/stats";
 import { PLAYER } from "../../engine/components/player";
-import { isImmersible } from "../../engine/systems/immersion";
 import { invertOrientation } from "../math/path";
 import { dropEntity } from "../../engine/systems/drop";
 import { EXERTABLE } from "../../engine/components/exertable";
@@ -206,7 +205,6 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
 };
 
 const beamSpeed = 100;
-const beam1Range = 12;
 
 export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
@@ -251,7 +249,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   // create effect areas
   for (
     let aoeProgress = state.args.progress;
-    aoeProgress < progress && aoeProgress < beam1Range;
+    aoeProgress < progress && aoeProgress < state.args.range;
     aoeProgress += 1
   ) {
     const offset = {
@@ -269,13 +267,17 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
 
   // remove effect areas
   for (
-    let clearProgress = state.args.progress - state.args.duration + beam1Range;
+    let clearProgress =
+      state.args.progress - state.args.duration + state.args.range;
     clearProgress > 0 &&
-    clearProgress < progress - state.args.duration + beam1Range;
+    clearProgress < progress - state.args.duration + state.args.range;
     clearProgress += 1
   ) {
     const aoeId = state.args.areas.shift();
-    const aoeEntity = world.assertById(aoeId!);
+
+    if (!aoeId) break;
+
+    const aoeEntity = world.assertById(aoeId);
     disposeEntity(world, aoeEntity);
     updated = true;
   }
@@ -284,7 +286,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   if (
     state.args.progress !== progress &&
     progress > 2 &&
-    progress <= state.args.duration - beam1Range &&
+    progress <= state.args.duration - state.args.range &&
     (progress - 1) % Math.min(state.args.amount, 3) === 0
   ) {
     const beamParticle = entities.createParticle(world, {
@@ -306,7 +308,10 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   }
 
   // move particles
-  const limit = { x: delta.x * beam1Range, y: delta.y * beam1Range };
+  const limit = {
+    x: delta.x * state.args.range,
+    y: delta.y * state.args.range,
+  };
   if (state.args.progress !== progress) {
     for (const particleName in state.particles) {
       const particleEntity = world.assertByIdAndComponents(
@@ -330,7 +335,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
       if (
         !particleName.startsWith("end") ||
         (particleName === "end" &&
-          (progress > state.args.duration - beam1Range || progress === 1))
+          (progress > state.args.duration - state.args.range || progress === 1))
       ) {
         particleEntity[PARTICLE].offsetX += delta.x;
         particleEntity[PARTICLE].offsetY += delta.y;
@@ -472,24 +477,26 @@ export const bubbleSplash: Sequence<BubbleSequence> = (
       └─┘   ╚┐ ┌╝
              └─┘    */
 
-const waveSpeed = 250;
+const waveSpeed = 350;
+const waveDissolve = 1;
 
-export const waterWave: Sequence<WaveSequence> = (world, entity, state) => {
+export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
+  const entityId = world.getEntityId(entity);
   let updated = false;
   let finished = false;
 
   const outerRadius = Math.ceil(state.elapsed / waveSpeed);
   const innerRadius = Math.round(state.elapsed / waveSpeed);
 
-  // create wave sides and initial corners
-  if (state.args.outerRadius === 0) {
+  // create wave sides, initial corners and AoE
+  if (state.args.progress === 0) {
     for (const orientation of orientations) {
       const waveParticle = entities.createFibre(world, {
         [ORIENTABLE]: { facing: orientation },
         [PARTICLE]: {
           offsetX: 0,
           offsetY: 0,
-          offsetZ: effectHeight,
+          offsetZ: particleHeight,
           amount: 0,
           duration: waveSpeed,
           animatedOrigin: { x: 0, y: 0 },
@@ -499,39 +506,18 @@ export const waterWave: Sequence<WaveSequence> = (world, entity, state) => {
       });
       state.particles[`side-${orientation}`] = world.getEntityId(waveParticle);
     }
+
+    const aoeEntity = entities.createAoe(world, {
+      [EXERTABLE]: { castable: entityId },
+      [POSITION]: copy(entity[POSITION]),
+    });
+    registerEntity(world, aoeEntity);
+    state.args.areas.push(world.getEntityId(aoeEntity));
+
     updated = true;
   }
 
-  // break sides and outer waves on shores after passing half of block width
-  if (innerRadius !== state.args.innerRadius && outerRadius === innerRadius) {
-    for (const particleName in state.particles) {
-      const waveParticle = world.assertByIdAndComponents(
-        state.particles[particleName],
-        [PARTICLE]
-      );
-      if (
-        !particleName.startsWith("inner") &&
-        !isImmersible(
-          world,
-          add(entity[POSITION], {
-            x: waveParticle[PARTICLE].offsetX,
-            y: waveParticle[PARTICLE].offsetY,
-          })
-        )
-      ) {
-        disposeEntity(world, waveParticle);
-        delete state.particles[particleName];
-        updated = true;
-      }
-    }
-  }
-
-  if (Object.keys(state.particles).length === 0) {
-    finished = true;
-    return { finished, updated };
-  }
-
-  if (outerRadius !== state.args.outerRadius) {
+  if (outerRadius !== state.args.progress && outerRadius < state.args.range) {
     // move all existing particles in their respective orientation
     for (const particleName in state.particles) {
       const waveParticle = world.assertByIdAndComponents(
@@ -542,22 +528,6 @@ export const waterWave: Sequence<WaveSequence> = (world, entity, state) => {
       const delta = orientationPoints[orientation];
       waveParticle[PARTICLE].offsetX += delta.x;
       waveParticle[PARTICLE].offsetY += delta.y;
-
-      // break inner waves immediately
-      if (
-        particleName.startsWith("inner") &&
-        !isImmersible(
-          world,
-          add(entity[POSITION], {
-            x: waveParticle[PARTICLE].offsetX,
-            y: waveParticle[PARTICLE].offsetY,
-          })
-        )
-      ) {
-        disposeEntity(world, waveParticle);
-        delete state.particles[particleName];
-        updated = true;
-      }
     }
 
     // create new set of hidden inner corner pairs
@@ -574,31 +544,28 @@ export const waterWave: Sequence<WaveSequence> = (world, entity, state) => {
             iteration.direction.y * cornerDistance -
             iteration.normal.y * cornerDistance,
         };
-        if (isImmersible(world, add(entity[POSITION], leftDelta))) {
-          const leftParticle = entities.createFibre(world, {
-            [ORIENTABLE]: { facing: rotatedOrientation },
-            [PARTICLE]: {
-              offsetX: leftDelta.x,
-              offsetY: leftDelta.y,
-              offsetZ: effectHeight,
-              amount: 0,
-              duration: waveSpeed,
-              animatedOrigin: {
-                x:
-                  iteration.direction.x * cornerDistance -
-                  iteration.normal.x * cornerDistance,
-                y:
-                  iteration.direction.y * cornerDistance -
-                  iteration.normal.y * cornerDistance,
-              },
+        const leftParticle = entities.createFibre(world, {
+          [ORIENTABLE]: { facing: rotatedOrientation },
+          [PARTICLE]: {
+            offsetX: leftDelta.x,
+            offsetY: leftDelta.y,
+            offsetZ: particleHeight,
+            amount: 0,
+            duration: waveSpeed,
+            animatedOrigin: {
+              x:
+                iteration.direction.x * cornerDistance -
+                iteration.normal.x * cornerDistance,
+              y:
+                iteration.direction.y * cornerDistance -
+                iteration.normal.y * cornerDistance,
             },
-            [RENDERABLE]: { generation: 1 },
-            [SPRITE]: none,
-          });
-          state.particles[
-            `inner-${innerRadius}-left-${iteration.orientation}`
-          ] = world.getEntityId(leftParticle);
-        }
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: none,
+        });
+        state.particles[`inner-${innerRadius}-left-${iteration.orientation}`] =
+          world.getEntityId(leftParticle);
 
         const rightDelta = {
           x:
@@ -608,31 +575,28 @@ export const waterWave: Sequence<WaveSequence> = (world, entity, state) => {
             iteration.direction.y * cornerDistance +
             iteration.normal.y * cornerDistance,
         };
-        if (isImmersible(world, add(entity[POSITION], rightDelta))) {
-          const rightParticle = entities.createFibre(world, {
-            [ORIENTABLE]: { facing: invertOrientation(iteration.orientation) },
-            [PARTICLE]: {
-              offsetX: rightDelta.x,
-              offsetY: rightDelta.y,
-              offsetZ: effectHeight,
-              amount: 0,
-              duration: waveSpeed,
-              animatedOrigin: {
-                x:
-                  iteration.direction.x * cornerDistance +
-                  iteration.normal.x * cornerDistance,
-                y:
-                  iteration.direction.y * cornerDistance +
-                  iteration.normal.y * cornerDistance,
-              },
+        const rightParticle = entities.createFibre(world, {
+          [ORIENTABLE]: { facing: invertOrientation(iteration.orientation) },
+          [PARTICLE]: {
+            offsetX: rightDelta.x,
+            offsetY: rightDelta.y,
+            offsetZ: particleHeight,
+            amount: 0,
+            duration: waveSpeed,
+            animatedOrigin: {
+              x:
+                iteration.direction.x * cornerDistance +
+                iteration.normal.x * cornerDistance,
+              y:
+                iteration.direction.y * cornerDistance +
+                iteration.normal.y * cornerDistance,
             },
-            [RENDERABLE]: { generation: 1 },
-            [SPRITE]: none,
-          });
-          state.particles[
-            `inner-${innerRadius}-right-${iteration.orientation}`
-          ] = world.getEntityId(rightParticle);
-        }
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: none,
+        });
+        state.particles[`inner-${innerRadius}-right-${iteration.orientation}`] =
+          world.getEntityId(rightParticle);
       }
     }
 
@@ -650,31 +614,28 @@ export const waterWave: Sequence<WaveSequence> = (world, entity, state) => {
             iteration.direction.y * cornerDistance -
             iteration.normal.y * cornerDistance,
         };
-        if (isImmersible(world, add(entity[POSITION], leftDelta))) {
-          const leftParticle = entities.createFibre(world, {
-            [ORIENTABLE]: { facing: rotatedOrientation },
-            [PARTICLE]: {
-              offsetX: leftDelta.x,
-              offsetY: leftDelta.y,
-              offsetZ: effectHeight,
-              amount: 0,
-              duration: waveSpeed,
-              animatedOrigin: {
-                x:
-                  iteration.direction.x * (cornerDistance - 1) -
-                  iteration.normal.x * (cornerDistance - 1),
-                y:
-                  iteration.direction.y * (cornerDistance - 1) -
-                  iteration.normal.y * (cornerDistance - 1),
-              },
+        const leftParticle = entities.createFibre(world, {
+          [ORIENTABLE]: { facing: rotatedOrientation },
+          [PARTICLE]: {
+            offsetX: leftDelta.x,
+            offsetY: leftDelta.y,
+            offsetZ: particleHeight,
+            amount: 0,
+            duration: waveSpeed,
+            animatedOrigin: {
+              x:
+                iteration.direction.x * (cornerDistance - 1) -
+                iteration.normal.x * (cornerDistance - 1),
+              y:
+                iteration.direction.y * (cornerDistance - 1) -
+                iteration.normal.y * (cornerDistance - 1),
             },
-            [RENDERABLE]: { generation: 1 },
-            [SPRITE]: none,
-          });
-          state.particles[
-            `outer-${outerRadius}-left-${iteration.orientation}`
-          ] = world.getEntityId(leftParticle);
-        }
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: none,
+        });
+        state.particles[`outer-${outerRadius}-left-${iteration.orientation}`] =
+          world.getEntityId(leftParticle);
 
         const rightDelta = {
           x:
@@ -684,40 +645,37 @@ export const waterWave: Sequence<WaveSequence> = (world, entity, state) => {
             iteration.direction.y * cornerDistance +
             iteration.normal.y * cornerDistance,
         };
-        if (isImmersible(world, add(entity[POSITION], rightDelta))) {
-          const rightParticle = entities.createFibre(world, {
-            [ORIENTABLE]: { facing: iteration.orientation },
-            [PARTICLE]: {
-              offsetX: rightDelta.x,
-              offsetY: rightDelta.y,
-              offsetZ: effectHeight,
-              amount: 0,
-              duration: waveSpeed,
-              animatedOrigin: {
-                x:
-                  iteration.direction.x * (cornerDistance - 1) +
-                  iteration.normal.x * (cornerDistance - 1),
-                y:
-                  iteration.direction.y * (cornerDistance - 1) +
-                  iteration.normal.y * (cornerDistance - 1),
-              },
+        const rightParticle = entities.createFibre(world, {
+          [ORIENTABLE]: { facing: iteration.orientation },
+          [PARTICLE]: {
+            offsetX: rightDelta.x,
+            offsetY: rightDelta.y,
+            offsetZ: particleHeight,
+            amount: 0,
+            duration: waveSpeed,
+            animatedOrigin: {
+              x:
+                iteration.direction.x * (cornerDistance - 1) +
+                iteration.normal.x * (cornerDistance - 1),
+              y:
+                iteration.direction.y * (cornerDistance - 1) +
+                iteration.normal.y * (cornerDistance - 1),
             },
-            [RENDERABLE]: { generation: 1 },
-            [SPRITE]: none,
-          });
-          state.particles[
-            `outer-${outerRadius}-right-${iteration.orientation}`
-          ] = world.getEntityId(rightParticle);
-        }
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: none,
+        });
+        state.particles[`outer-${outerRadius}-right-${iteration.orientation}`] =
+          world.getEntityId(rightParticle);
       }
     }
 
-    state.args.outerRadius = outerRadius;
+    state.args.progress = outerRadius;
     updated = true;
   }
 
-  if (innerRadius !== state.args.innerRadius) {
-    // move all existing particles in their respective orientation
+  if (innerRadius !== state.args.memory.innerRadius) {
+    // make inner corners visible after passing half block width
     for (const particleName in state.particles) {
       if (particleName.startsWith("side")) continue;
 
@@ -731,8 +689,101 @@ export const waterWave: Sequence<WaveSequence> = (world, entity, state) => {
       waveParticle[SPRITE] = waveCorner;
       rerenderEntity(world, waveParticle);
     }
-    state.args.innerRadius = innerRadius;
+
+    // create AoE
+    for (const iteration of iterations) {
+      const aoeSide = entities.createAoe(world, {
+        [EXERTABLE]: { castable: entityId },
+        [POSITION]: add(entity[POSITION], {
+          x: innerRadius * iteration.direction.x,
+          y: innerRadius * iteration.direction.y,
+        }),
+      });
+      const aoeCorner = entities.createAoe(world, {
+        [EXERTABLE]: { castable: entityId },
+        [POSITION]: add(entity[POSITION], {
+          x: innerRadius * iteration.direction.x + iteration.normal.x,
+          y: innerRadius * iteration.direction.y + iteration.normal.y,
+        }),
+      });
+      registerEntity(world, aoeSide);
+      registerEntity(world, aoeCorner);
+      state.args.areas.push(
+        world.getEntityId(aoeSide),
+        world.getEntityId(aoeCorner)
+      );
+
+      for (let normal = 1; normal < innerRadius; normal += 1) {
+        const aoeDiagonal = entities.createAoe(world, {
+          [EXERTABLE]: { castable: entityId },
+          [POSITION]: add(entity[POSITION], {
+            x:
+              (innerRadius - normal) * iteration.direction.x +
+              iteration.normal.x * (normal + 1),
+            y:
+              (innerRadius - normal) * iteration.direction.y +
+              iteration.normal.y * (normal + 1),
+          }),
+        });
+        registerEntity(world, aoeDiagonal);
+        state.args.areas.push(world.getEntityId(aoeDiagonal));
+      }
+    }
+
+    state.args.memory.innerRadius = innerRadius;
     updated = true;
+  }
+
+  if (
+    outerRadius + waveDissolve >= state.args.range &&
+    outerRadius < state.args.duration
+  ) {
+    // slowly dissolve wave after hitting range
+    const particles = Object.keys(state.particles);
+    const dissolvePercentage =
+      (state.elapsed / waveSpeed + 1 + waveDissolve - state.args.range) /
+      (state.args.duration - state.args.range + waveDissolve);
+    const totalParticles = (state.args.range * 2 - 1) * 4;
+    const dissolvingCount =
+      particles.length - totalParticles * (1 - dissolvePercentage);
+
+    if (dissolvingCount > 0) {
+      shuffle(particles)
+        .slice(0, dissolvingCount)
+        .forEach((particleName) => {
+          const particleEntity = world.assertByIdAndComponents(
+            state.particles[particleName],
+            [PARTICLE]
+          );
+
+          disposeEntity(world, particleEntity);
+          delete state.particles[particleName];
+        });
+      updated = true;
+    }
+  } else if (outerRadius >= state.args.duration) {
+    console.log(Object.keys(state.particles).length);
+
+    // clear wave on end
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    // clear AoE
+    for (const aoeId of state.args.areas) {
+      const aoeEntity = world.assertById(aoeId);
+      disposeEntity(world, aoeEntity);
+    }
+    state.args.areas = [];
+
+    finished = true;
+    return { finished, updated };
   }
 
   return { finished, updated };
@@ -994,7 +1045,7 @@ export const itemCollect: Sequence<CollectSequence> = (
             existingItem
           );
 
-          if (!gears.includes(targetEquipment)) {
+          if (!gears.includes(targetEquipment as Gear)) {
             removeFromInventory(world, entity, existingItem);
           }
           dropEntity(
@@ -1006,7 +1057,7 @@ export const itemCollect: Sequence<CollectSequence> = (
 
         entity[EQUIPPABLE][targetEquipment] = targetId;
 
-        if (!gears.includes(targetEquipment)) {
+        if (!gears.includes(targetEquipment as Gear)) {
           entity[INVENTORY].items.push(targetId);
         }
       } else if (

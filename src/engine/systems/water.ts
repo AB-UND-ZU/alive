@@ -9,11 +9,7 @@ import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
 import { none } from "../../game/assets/sprites";
 import { copy } from "../../game/math/std";
-import {
-  BubbleSequence,
-  SEQUENCABLE,
-  WaveSequence,
-} from "../components/sequencable";
+import { BubbleSequence, SEQUENCABLE } from "../components/sequencable";
 import { createSequence, getSequences } from "./sequence";
 
 export const isStill = (world: World, entity: Entity) =>
@@ -36,25 +32,6 @@ export const createBubble = (world: World, position: Position) => {
     { width: 0 }
   );
   registerEntity(world, bubbleEntity);
-};
-
-export const createWave = (world: World, position: Position) => {
-  const waveEntity = entities.createSplash(world, {
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [LIQUID]: {},
-    [POSITION]: copy(position),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: none,
-  });
-  createSequence<"wave", WaveSequence>(
-    world,
-    waveEntity,
-    "wave",
-    "waterWave",
-    { innerRadius: 0, outerRadius: 0 }
-  );
-  registerEntity(world, waveEntity);
 };
 
 export default function setupWater(world: World) {

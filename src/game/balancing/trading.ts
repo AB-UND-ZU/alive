@@ -66,7 +66,10 @@ export const itemPrices: Partial<
   },
   shield: {
     // T1-T3
-    wood: [{ stackable: "resource", material: "wood", amount: 5 }],
+    wood: [
+      { stackable: "resource", material: "wood", amount: 5 },
+      { stat: "coin", amount: 5 },
+    ],
     iron: [
       { equipment: "shield", material: "wood", amount: 1 },
       { stackable: "resource", material: "iron", amount: 5 },
@@ -115,13 +118,21 @@ export const itemPrices: Partial<
 
   // equipments
   slash: {
-    default: [{ stat: "xp", amount: 5 }],
+    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 10 }]
   },
   bow: {
-    default: [{ stat: "xp", amount: 5 }],
+    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 10 }]
   },
   block: {
-    default: [{ stat: "xp", amount: 5 }],
+    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 10 }]
+  },
+
+  // spells
+  wave1: {
+    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 3 }]
+  },
+  beam1: {
+    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 3 }]
   },
 
   // tools

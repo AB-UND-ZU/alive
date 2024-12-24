@@ -81,7 +81,6 @@ import {
   goldKey,
   goldShield,
   goldSword,
-  haste,
   hpFlask1,
   hpFlask2,
   iron,
@@ -338,7 +337,7 @@ const entitySprites: Record<
 
   // spells
   wave1: {
-    wood: { sprite: waveSpell },
+    default: { sprite: waveSpell },
     fire: { sprite: fireWave1Spell },
     water: { sprite: waterWave1Spell },
     earth: { sprite: earthWave1Spell },
@@ -349,7 +348,7 @@ const entitySprites: Record<
     earth: { sprite: earthWave2Spell },
   },
   beam1: {
-    wood: { sprite: beamSpell },
+    default: { sprite: beamSpell },
     fire: { sprite: fireBeam1Spell },
     water: { sprite: waterBeam1Spell },
     earth: { sprite: earthBeam1Spell },
@@ -360,7 +359,7 @@ const entitySprites: Record<
     earth: { sprite: earthBeam2Spell },
   },
   trap1: {
-    wood: { sprite: trap },
+    default: { sprite: trap },
     fire: { sprite: fireTrap },
     water: { sprite: waterTrap },
     earth: { sprite: earthTrap },
@@ -421,9 +420,6 @@ const entitySprites: Record<
   },
   map: {
     default: { sprite: map },
-  },
-  haste: {
-    default: { sprite: haste },
   },
   torch: {
     default: { sprite: torch },
