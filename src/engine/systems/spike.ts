@@ -80,8 +80,8 @@ export default function setupSpike(world: World) {
       // skip if entity already interacted
       if (entity[MOVABLE].lastInteraction === entityReference) continue;
 
-      // skip if dead
-      if (isDead(world, entity)) continue;
+      // skip if dead or flying
+      if (isDead(world, entity) || entity[MOVABLE].flying) continue;
 
       const targetOrientation: Orientation | null =
         entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];

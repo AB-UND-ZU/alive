@@ -8,6 +8,7 @@ import { isWalkable } from "./movement";
 import { getOverlappingCell } from "../../game/math/matrix";
 import { INVENTORY } from "../components/inventory";
 import { rerenderEntity } from "./renderer";
+import { EQUIPPABLE } from "../components/equippable";
 
 export const updateWalkable = (world: World, position: Position) => {
   // update walkable map after initialization
@@ -81,15 +82,24 @@ const unregisterEntity = (world: World, entity: Entity) => {
 export const disposeEntity = (
   world: World,
   entity: Entity,
-  deferredRemoval?: boolean
+  deferredRemoval?: boolean,
+  removeItems = true
 ) => {
   if (POSITION in entity) {
     unregisterEntity(world, entity);
   }
 
-  if (INVENTORY in entity) {
+  if (removeItems && INVENTORY in entity) {
     for (const itemId of entity[INVENTORY].items) {
       const itemEntity = world.assertById(itemId);
+      world.removeEntity(itemEntity, deferredRemoval);
+    }
+  }
+
+  if (removeItems && EQUIPPABLE in entity) {
+    for (const itemId of Object.values(entity[EQUIPPABLE]) as number[]) {
+      const itemEntity = world.getEntityById(itemId);
+      if (!itemEntity) continue;
       world.removeEntity(itemEntity, deferredRemoval);
     }
   }
@@ -102,9 +112,11 @@ export const moveEntity = (
   entity: Entity,
   position: Position
 ) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+
   unregisterEntity(world, entity);
-  entity[POSITION].x = position.x;
-  entity[POSITION].y = position.y;
+  entity[POSITION].x = normalize(position.x, size);
+  entity[POSITION].y = normalize(position.y, size);
   registerEntity(world, entity);
 };
 

@@ -13,8 +13,7 @@ import { FOG } from "../components/fog";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
 
-export const isFragment = (world: World, entity: Entity) =>
-  FRAGMENT in entity;
+export const isFragment = (world: World, entity: Entity) => FRAGMENT in entity;
 
 export const isStructurable = (world: World, entity: Entity) =>
   STRUCTURABLE in entity;
@@ -34,6 +33,11 @@ export const getFragment = (world: World, position: Position) =>
 
 export const isOpaque = (world: World, entity: Entity) =>
   LIGHT in entity && entity[LIGHT].darkness > 0;
+
+export const getOpaque = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).find((entity) =>
+    isOpaque(world, entity)
+  ) as Entity | undefined;
 
 export const isOutside = (world: World, entity: Entity) =>
   (!isEnterable(world, entity) && isOpaque(world, entity)) ||
@@ -73,15 +77,23 @@ export default function setupEnter(world: World) {
 
       const fragment = getFragment(world, entity[POSITION]);
       const enterable = getEnterable(world, entity[POSITION]);
-      const currentStructure = enterable && !entity[PLAYER].flying && fragment ? fragment[FRAGMENT].structure : undefined;
+      const currentStructure =
+        enterable && !entity[MOVABLE].flying && fragment
+          ? fragment[FRAGMENT].structure
+          : undefined;
       const previousStructure = entity[PLAYER].structure;
 
       if (currentStructure !== previousStructure) {
-        
         entity[PLAYER].structure = currentStructure;
         rerenderEntity(world, entity);
 
-        const enterableEntities = world.getEntities([ENTERABLE, RENDERABLE, FRAGMENT]).filter(building => building[FRAGMENT].structure === (currentStructure || previousStructure));
+        const enterableEntities = world
+          .getEntities([ENTERABLE, RENDERABLE, FRAGMENT])
+          .filter(
+            (building) =>
+              building[FRAGMENT].structure ===
+              (currentStructure || previousStructure)
+          );
 
         for (const enterableEntity of enterableEntities) {
           enterableEntity[ENTERABLE].inside = currentStructure;

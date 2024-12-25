@@ -4,11 +4,12 @@ import { World } from "../ecs";
 import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
-import { isMovable, isWalkable } from "./movement";
+import { getBiomes, isMovable, isWalkable } from "./movement";
 import {
   add,
   copy,
   getDistance,
+  normalize,
   random,
   signedDistance,
 } from "../../game/math/std";
@@ -37,7 +38,6 @@ import {
   sleep1,
   sleep2,
 } from "../../game/assets/sprites";
-import { ATTACKABLE } from "../components/attackable";
 import { INVENTORY } from "../components/inventory";
 import { FOG } from "../components/fog";
 import { LEVEL } from "../components/level";
@@ -45,6 +45,9 @@ import { BELONGABLE } from "../components/belongable";
 import { iterations } from "../../game/math/tracing";
 import { getProjectiles } from "./ballistics";
 import { canCast } from "./magic";
+import { getCell, moveEntity } from "./map";
+import { getOpaque } from "./enter";
+import { TypedEntity } from "../entities";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -61,8 +64,6 @@ export default function setupAi(world: World) {
       MOVABLE,
       BEHAVIOUR,
       FOG,
-      TOOLTIP,
-      ATTACKABLE,
     ])) {
       const patterns = (entity[BEHAVIOUR] as Behaviour).patterns;
       const entityId = world.getEntityId(entity);
@@ -83,6 +84,70 @@ export default function setupAi(world: World) {
           }
 
           pattern.memory.ticks -= 1;
+          break;
+        } else if (pattern.name === "tumbleweed") {
+          const facingPosition = add(entity[POSITION], orientationPoints.right);
+
+          if (pattern.memory.hidden === true) {
+            let spawnPosition = copy(entity[POSITION]);
+            while (true) {
+              const newPosition = {
+                x: normalize(
+                  spawnPosition.x - 1,
+                  world.metadata.gameEntity[LEVEL].size
+                ),
+                y: spawnPosition.y,
+              };
+              spawnPosition.x = newPosition.x;
+              if (!getBiomes(world, newPosition).includes("desert")) break;
+            }
+            moveEntity(world, entity, spawnPosition);
+            pattern.memory.hidden = false;
+          } else if (pattern.memory.hidden === false) {
+            entity[FOG].fixed = false;
+            entity[MOVABLE].orientations = ["right"];
+            delete pattern.memory.hidden;
+          } else if (
+            !Object.values(getCell(world, facingPosition)).some(
+              (cell: TypedEntity) =>
+                (cell[BEHAVIOUR]?.patterns || []).some(
+                  (pattern) => pattern.name === "tumbleweed"
+                )
+            ) &&
+            random(0, 2) !== 0 &&
+            pattern.memory.idle
+          ) {
+            if (
+              !getBiomes(world, facingPosition).includes("desert") ||
+              getOpaque(world, facingPosition)
+            ) {
+              entity[FOG].fixed = true;
+              entity[FOG].visibility = "hidden";
+              pattern.memory.hidden = true;
+              moveEntity(
+                world,
+                entity,
+                add(entity[POSITION], orientationPoints.right)
+              );
+            } else {
+              entity[MOVABLE].orientations = ["right"];
+              pattern.memory.idle = false;
+            }
+          } else if (entity[ORIENTABLE] && !entity[ORIENTABLE].facing) {
+            entity[ORIENTABLE].facing = orientations[random(0, 3)];
+          } else {
+            pattern.memory.idle = true;
+          }
+
+          // rotate tumbleweed
+          if (entity[ORIENTABLE]?.facing) {
+            entity[ORIENTABLE].facing =
+              orientations[
+                (orientations.indexOf(entity[ORIENTABLE].facing) + 1) % 4
+              ];
+          }
+
+          rerenderEntity(world, entity);
           break;
         } else if (pattern.name === "prism") {
           const facing = (entity[ORIENTABLE]?.facing ||
@@ -130,6 +195,8 @@ export default function setupAi(world: World) {
           }
           break;
         } else if (pattern.name === "eye") {
+          if (!entity[TOOLTIP]) continue;
+
           const heroEntity = world.getIdentifierAndComponents("hero", [
             POSITION,
           ]);
@@ -179,6 +246,7 @@ export default function setupAi(world: World) {
           rerenderEntity(world, entity);
           break;
         } else if (pattern.name === "orb") {
+          if (!entity[TOOLTIP]) continue;
           const heroEntity = world.getIdentifierAndComponents("hero", [
             POSITION,
             MOVABLE,
@@ -397,6 +465,7 @@ export default function setupAi(world: World) {
             break;
           }
         } else if (pattern.name === "dialog") {
+          if (!entity[TOOLTIP]) continue;
           const memory = pattern.memory;
 
           for (const [key, value] of Object.entries(memory)) {
@@ -416,6 +485,7 @@ export default function setupAi(world: World) {
           patterns.splice(patterns.indexOf(pattern), 1);
           break;
         } else if (pattern.name === "enrage") {
+          if (!entity[TOOLTIP]) continue;
           const memory = pattern.memory;
           entity[BELONGABLE].faction = "hostile";
           entity[TOOLTIP].changed = true;
@@ -427,6 +497,7 @@ export default function setupAi(world: World) {
 
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "soothe") {
+          if (!entity[TOOLTIP]) continue;
           entity[BELONGABLE].faction = "settler";
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = undefined;

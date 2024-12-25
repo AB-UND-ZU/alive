@@ -108,20 +108,24 @@ export const removeFromInventory = (
   const itemId = world.getEntityId(item);
   const itemIndex = entity[INVENTORY].items.indexOf(itemId);
 
-  if (itemIndex === -1) {
-    const equipment = item[ITEM].equipment;
-    if (gears.includes(equipment) && entity[EQUIPPABLE][equipment] === itemId) {
-      entity[EQUIPPABLE][equipment] = undefined;
-    } else {
-      console.error(
-        Date.now(),
-        "Unable to remove item from inventory",
-        item,
-        entity
-      );
-      return;
-    }
-  } else {
+  const equipment = item[ITEM].equipment;
+  if (
+    EQUIPPABLE in entity &&
+    gears.includes(equipment) &&
+    entity[EQUIPPABLE][equipment] === itemId
+  ) {
+    entity[EQUIPPABLE][equipment] = undefined;
+  } else if (itemIndex === -1) {
+    console.error(
+      Date.now(),
+      "Unable to remove item from inventory",
+      item,
+      entity
+    );
+    return;
+  }
+
+  if (itemIndex !== -1) {
     entity[INVENTORY].items.splice(itemIndex, 1);
   }
 

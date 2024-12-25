@@ -1,13 +1,13 @@
 import { hunter, knight, mage, scout } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
-import { Slot } from "../../engine/components/equippable";
 import { Active, Stackable } from "../../engine/components/item";
+import { Equipment } from "../../engine/components/equippable";
 
 export type ClassKey = "scout" | "knight" | "mage" | "hunter";
 
 export type ClassDefinition = {
   sprite: Sprite;
-  items: ({ slot: Slot; active?: Active } | { stackable: Stackable })[];
+  items: ({ slot: Equipment; active?: Active } | { stackable: Stackable })[];
 
   maxHpCap: number;
   maxMpCap: number;

@@ -145,6 +145,7 @@ import { findPath } from "../game/math/path";
 import { FRAGMENT } from "../engine/components/fragment";
 import { STRUCTURABLE } from "../engine/components/structurable";
 import { registerEntity } from "../engine/systems/map";
+import { ENVIRONMENT } from "../engine/components/environment";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -268,8 +269,8 @@ export const generateWorld = async (world: World) => {
           ? "ore"
           : "mountain";
     // desert, oasis and cactus
-    else if (temperature > 65 && terrain > 75) cell = "water";
-    else if (temperature > 65 && terrain > 70) cell = "palm";
+    else if (temperature > 65 && terrain > 75) cell = "spring";
+    else if (temperature > 65 && terrain > 70) cell = "oasis";
     else if (
       temperature > 65 &&
       ((-11 < terrain && terrain < -10) ||
@@ -278,7 +279,12 @@ export const generateWorld = async (world: World) => {
     )
       cell = spawn > 60 ? "stone" : "rock";
     else if (temperature > 65)
-      cell = 21 < green && green < 25 ? "cactus" : "desert";
+      cell =
+        21 < green && green < 25
+          ? "cactus"
+          : spawn > 94
+          ? "tumbleweed"
+          : "desert";
     // greens
     else if (green > 37 && elevation > 17) cell = "tree";
     else if (green > 30 && elevation > 14)
@@ -435,9 +441,9 @@ export const generateWorld = async (world: World) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
     const deltaY = size / 2 - Math.abs(y - size / 2);
     const visibility =
-      (deltaX < menuRows[0].length / 2 &&
-        deltaY < menuRows.length / 2 &&
-        (y < menuRows.length / 2 - 3 || y > menuRows.length))
+      deltaX < menuRows[0].length / 2 &&
+      deltaY < menuRows.length / 2 &&
+      (y < menuRows.length / 2 - 3 || y > menuRows.length)
         ? "visible"
         : "hidden";
 
@@ -479,9 +485,10 @@ export const generateWorld = async (world: World) => {
             tension: 200,
           },
           lastInteraction: 0,
+          flying: false,
         },
         [POSITION]: copy(initialPosition),
-        [PLAYER]: { ghost: true, flying: false },
+        [PLAYER]: { ghost: true },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SOUL]: { ready: true },
@@ -515,6 +522,10 @@ export const generateWorld = async (world: World) => {
       const { items, sprite, stats, faction } = generateUnitData(
         (["rock1", "rock2"] as const)[random(0, 1)]
       );
+      entities.createArea(world, {
+        [ENVIRONMENT]: { biomes: ["desert"] },
+        [POSITION]: { x, y },
+      });
       const rockEntity = entities.createResource(world, {
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction },
@@ -564,6 +575,10 @@ export const generateWorld = async (world: World) => {
         ]
       );
     } else if (cell === "stone") {
+      entities.createArea(world, {
+        [ENVIRONMENT]: { biomes: ["desert"] },
+        [POSITION]: { x, y },
+      });
       createItemAsDrop(world, { x, y }, entities.createItem, {
         [ITEM]: {
           stat: "ore",
@@ -597,7 +612,8 @@ export const generateWorld = async (world: World) => {
         [COLLIDABLE]: {},
       });
     } else if (cell === "beach" || cell === "desert") {
-      entities.createGround(world, {
+      entities.createTile(world, {
+        [ENVIRONMENT]: { biomes: [cell] },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: sand,
@@ -610,7 +626,7 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: path,
         [RENDERABLE]: { generation: 0 },
       });
-    } else if (cell === "water") {
+    } else if (cell === "water" || cell === "spring") {
       entities.createWater(world, {
         [FOG]: { visibility, type: "terrain" },
         [IMMERSIBLE]: {},
@@ -618,6 +634,12 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: water,
         [RENDERABLE]: { generation: 0 },
       });
+      if (cell === "spring") {
+        entities.createArea(world, {
+          [ENVIRONMENT]: { biomes: ["desert"] },
+          [POSITION]: { x, y },
+        });
+      }
     } else if (cell === "wood" || cell === "wood_two") {
       const woodEntity = createItemAsDrop(
         world,
@@ -710,7 +732,7 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: stem,
         [RENDERABLE]: { generation: 0 },
       });
-    } else if (cell === "palm") {
+    } else if (cell === "palm" || cell === "oasis") {
       const [stack, palm] = (
         [
           ["coconut", palm1],
@@ -742,6 +764,12 @@ export const generateWorld = async (world: World) => {
             },
           ]
         );
+        if (cell === "oasis") {
+          entities.createArea(world, {
+            [ENVIRONMENT]: { biomes: ["desert"] },
+            [POSITION]: { x, y },
+          });
+        }
       } else {
         entities.createTerrain(world, {
           [FOG]: { visibility, type: "terrain" },
@@ -769,6 +797,44 @@ export const generateWorld = async (world: World) => {
         [STATS]: { ...emptyStats, ...stats },
       });
       populateInventory(world, hedgeEntity, items);
+    } else if (cell === "tumbleweed") {
+      const { items, sprite, stats, faction, patterns } =
+        generateUnitData("tumbleweed");
+      const tumbleweedEntity = entities.createTumbleweed(world, {
+        [ATTACKABLE]: {},
+        [BEHAVIOUR]: { patterns },
+        [BELONGABLE]: { faction },
+        [COLLIDABLE]: {},
+        [DROPPABLE]: { decayed: false },
+        [FOG]: { visibility, type: "unit" },
+        [INVENTORY]: { items: [], size: 20 },
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 200,
+          },
+          lastInteraction: 0,
+          flying: true,
+        },
+        [ORIENTABLE]: {},
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: sprite,
+        [STATS]: {
+          ...emptyStats,
+          ...stats,
+        },
+      });
+      entities.createTile(world, {
+        [ENVIRONMENT]: { biomes: ["desert"] },
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [SPRITE]: sand,
+        [RENDERABLE]: { generation: 0 },
+      });
+      populateInventory(world, tumbleweedEntity, items);
     } else if (cell === "bush" || cell === "berry" || cell === "berry_one") {
       entities.createGround(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -818,6 +884,10 @@ export const generateWorld = async (world: World) => {
       const { sprite, stats, faction, items } = generateUnitData(
         (["cactus1", "cactus2"] as const)[random(0, 1)]
       );
+      entities.createArea(world, {
+        [ENVIRONMENT]: { biomes: ["desert"] },
+        [POSITION]: { x, y },
+      });
       const cactusEntity = entities.createCactus(world, {
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction },
@@ -948,6 +1018,7 @@ export const generateWorld = async (world: World) => {
             duration: frameEntity[REFERENCE].tick,
           },
           lastInteraction: 0,
+          flying: false,
         },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
@@ -1008,6 +1079,7 @@ export const generateWorld = async (world: World) => {
             duration: 200,
           },
           lastInteraction: 0,
+          flying: false,
         },
         [NPC]: {},
         [ORIENTABLE]: {},
@@ -1052,6 +1124,7 @@ export const generateWorld = async (world: World) => {
             duration: 200,
           },
           lastInteraction: 0,
+          flying: false,
         },
         [NPC]: {},
         [ORIENTABLE]: {},
@@ -1344,6 +1417,7 @@ export const generateWorld = async (world: World) => {
         duration: 200,
       },
       lastInteraction: 0,
+      flying: false,
     },
     [POSITION]: copy(
       world.getIdentifier("compass_chest")?.[POSITION] || { x: 0, y: 0 }
@@ -1460,6 +1534,7 @@ export const generateWorld = async (world: World) => {
         duration: 200,
       },
       lastInteraction: 0,
+      flying: false,
     },
     [NPC]: {},
     [ORIENTABLE]: {},
@@ -1536,6 +1611,7 @@ export const generateWorld = async (world: World) => {
         duration: 200,
       },
       lastInteraction: 0,
+      flying: false,
     },
     [NPC]: {},
     [ORIENTABLE]: {},
@@ -1608,6 +1684,7 @@ export const generateWorld = async (world: World) => {
         duration: 200,
       },
       lastInteraction: 0,
+      flying: false,
     },
     [NPC]: {},
     [ORIENTABLE]: {},
@@ -1684,6 +1761,7 @@ export const generateWorld = async (world: World) => {
         duration: 200,
       },
       lastInteraction: 0,
+      flying: false,
     },
     [NPC]: {},
     [ORIENTABLE]: {},
@@ -1765,6 +1843,7 @@ export const generateWorld = async (world: World) => {
         duration: 200,
       },
       lastInteraction: 0,
+      flying: false,
     },
     [NPC]: {},
     [ORIENTABLE]: {},
@@ -1839,6 +1918,7 @@ export const generateWorld = async (world: World) => {
         duration: 200,
       },
       lastInteraction: 0,
+      flying: false,
     },
     [NPC]: {},
     [ORIENTABLE]: {},
@@ -1897,13 +1977,13 @@ export const generateWorld = async (world: World) => {
   registerableEntites.forEach((registerableEntity) => {
     registerEntity(world, registerableEntity);
   });
-  
+
   // assign buildings
-  const guideHouse = {position:{ x: -5, y: 2}}
+  const guideHouse = { position: { x: -5, y: 2 } };
   const buildings = [...houses, guideHouse];
-  buildings.forEach(building => {
+  buildings.forEach((building) => {
     assignBuilding(world, building.position);
-  })
+  });
 
   // start ordered systems
   world.addSystem(systems.setupMap);

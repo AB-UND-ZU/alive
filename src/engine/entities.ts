@@ -51,6 +51,7 @@ import { Affectable, AFFECTABLE } from "./components/affectable";
 import { Exertable, EXERTABLE } from "./components/exertable";
 import { Fragment, FRAGMENT } from "./components/fragment";
 import { Structurable, STRUCTURABLE } from "./components/structurable";
+import { Environment, ENVIRONMENT } from "./components/environment";
 
 export type Entity = {
   [ACTIONABLE]: Actionable;
@@ -65,6 +66,7 @@ export type Entity = {
   [DISPLACABLE]: Displacable;
   [DROPPABLE]: Droppable;
   [ENTERABLE]: Enterable;
+  [ENVIRONMENT]: Environment;
   [EQUIPPABLE]: Equippable;
   [EXERTABLE]: Exertable;
   [FOCUSABLE]: Focusable;
@@ -128,6 +130,8 @@ const entityFactory = <T extends keyof Entity>(components: T[]) => {
 };
 
 export const createAoe = entityFactory([EXERTABLE, POSITION]);
+
+export const createArea = entityFactory([ENVIRONMENT, POSITION]);
 
 export const createBox = entityFactory([
   AFFECTABLE,
@@ -508,6 +512,14 @@ export const createTerrain = entityFactory([
   SPRITE,
 ]);
 
+export const createTile = entityFactory([
+  ENVIRONMENT,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createTombstone = entityFactory([
   FOG,
   POSITION,
@@ -517,6 +529,23 @@ export const createTombstone = entityFactory([
   SPRITE,
   SWIMMABLE,
   TOOLTIP,
+]);
+
+export const createTumbleweed = entityFactory([
+  ATTACKABLE,
+  BEHAVIOUR,
+  BELONGABLE,
+  COLLIDABLE,
+  DROPPABLE,
+  FOG,
+  INVENTORY,
+  MOVABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  STATS,
 ]);
 
 export const createViewpoint = entityFactory([

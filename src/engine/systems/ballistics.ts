@@ -104,6 +104,7 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
       reference: frameId,
       lastInteraction: 0,
       spring: { duration: tick },
+      flying: false,
     },
     [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
     [POSITION]: copy(entity[POSITION]),

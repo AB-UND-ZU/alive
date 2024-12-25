@@ -79,8 +79,8 @@ const commitVisibility = (world: World, pendingChanges: PendingChanges) => {
       for (const entityId in pendingChange) {
         const entity = level.map[x][y][entityId];
 
-        // skip if air already removed
-        if (!entity) continue;
+        // skip if air already removed, or fixed
+        if (!entity || entity[FOG].fixed) continue;
 
         // remove revealed air
         if (

@@ -222,7 +222,8 @@ export const dropEntity = (
     ...(entity[INVENTORY]?.items || []),
     ...Object.entries(entity[EQUIPPABLE] || {})
       .filter(
-        ([equipment, id]) => gears.includes(equipment as Gear) && id !== undefined
+        ([equipment, id]) =>
+          gears.includes(equipment as Gear) && id !== undefined
       )
       .map(([_, id]) => id),
   ];
@@ -452,8 +453,13 @@ export default function setupDrop(world: World) {
     // replace decayed entities
     for (const entity of world.getEntities([DROPPABLE, RENDERABLE, POSITION])) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
-        dropEntity(world, entity, entity[POSITION], !entity[PLAYER]);
-        disposeEntity(world, entity);
+        disposeEntity(world, entity, true, false);
+        dropEntity(
+          world,
+          entity,
+          entity[POSITION],
+          entity[PLAYER] ? false : undefined
+        );
       }
     }
 

@@ -9,6 +9,7 @@ export type Movable = {
   reference: number;
   spring?: SpringConfig;
   lastInteraction: number;
+  flying: boolean;
 };
 
 export const MOVABLE = "MOVABLE";

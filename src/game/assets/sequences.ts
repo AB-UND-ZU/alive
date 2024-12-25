@@ -116,7 +116,6 @@ import {
 import { PROJECTILE } from "../../engine/components/projectile";
 import { getGearStat } from "../balancing/equipment";
 import { STATS } from "../../engine/components/stats";
-import { PLAYER } from "../../engine/components/player";
 import { invertOrientation } from "../math/path";
 import { dropEntity } from "../../engine/systems/drop";
 import { EXERTABLE } from "../../engine/components/exertable";
@@ -1308,8 +1307,8 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
   }
 
   // exit any buildings by marking as flying
-  if (state.elapsed > collectTime && !entity[PLAYER].flying) {
-    entity[PLAYER].flying = true;
+  if (state.elapsed > collectTime && !entity[MOVABLE].flying) {
+    entity[MOVABLE].flying = true;
     updated = true;
   }
 

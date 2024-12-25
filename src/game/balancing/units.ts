@@ -25,6 +25,7 @@ import {
   rock2,
   scout,
   settler,
+  tumbleweed,
   uncommonChest,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
@@ -54,6 +55,7 @@ export type UnitKey =
   | "cactus2"
   | "rock1"
   | "rock2"
+  | "tumbleweed"
   | "hedge1"
   | "hedge2"
   | "prism"
@@ -308,8 +310,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 50, items: [{ stackable: "spike", amount: 1 }] },
-      { chance: 50, items: [{ stat: 'stick', amount: 1 }] },
+      { chance: 60, items: [] },
+      { chance: 40, items: [{ stackable: "spike", amount: 1 }] },
     ],
     patternNames: [],
     sprite: cactus1,
@@ -322,8 +324,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 50, items: [{ stackable: "spike", amount: 1 }] },
-      { chance: 50, items: [{ stat: 'stick', amount: 1 }] },
+      { chance: 60, items: [] },
+      { chance: 40, items: [{ stackable: "spike", amount: 1 }] },
     ],
     patternNames: [],
     sprite: cactus2,
@@ -345,7 +347,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rock2: {
     faction: "unit",
-    power: 3,
+    power: 0,
     armor: 2,
     hp: 5,
     mp: 0,
@@ -357,6 +359,19 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: rock2,
+  },
+  tumbleweed: {
+    faction: "unit",
+    power: 0,
+    armor: 0,
+    hp: 5,
+    mp: 0,
+    equipments: [],
+    drops: [
+      { chance: 100, items: [{ stat: "stick", amount: 1 }] },
+    ],
+    patternNames: ["tumbleweed"],
+    sprite: tumbleweed,
   },
   hedge1: {
     faction: "unit",
@@ -501,7 +516,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["orb"],
     sprite: orb,
-    spring: { duration: 400 },
+    spring: { duration: 300 },
   },
   goldOrb: {
     faction: "wild",
@@ -529,7 +544,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["orb"],
     sprite: goldOrb,
-    spring: { duration: 400 },
+    spring: { duration: 300 },
   },
   fairy: {
     faction: "wild",

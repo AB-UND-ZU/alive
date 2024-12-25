@@ -10,6 +10,7 @@ export { default as addCollidable } from "./collidable";
 export { default as addDisplacable } from "./displacable";
 export { default as addDroppable } from "./droppable";
 export { default as addEnterable } from "./enterable";
+export { default as addEnvironment } from "./environment";
 export { default as addEquippable } from "./equippable";
 export { default as addExertable } from "./exertable";
 export { default as addFocusable } from "./focusable";

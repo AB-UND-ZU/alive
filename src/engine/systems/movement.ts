@@ -19,6 +19,9 @@ import { isImmersible, isSubmerged } from "./immersion";
 import { LEVEL } from "../components/level";
 import { getLockable, isLocked } from "./action";
 import { createBubble } from "./water";
+import { getOpaque } from "./enter";
+import { ENVIRONMENT } from "../components/environment";
+import { TypedEntity } from "../entities";
 
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
@@ -49,6 +52,13 @@ export const isWalkable = (world: World, position: Position) => {
   );
 };
 
+export const isFlyable = (world: World, position: Position) => {
+  const lockable = getLockable(world, position);
+  return (
+    !getOpaque(world, position) && !(lockable && isLocked(world, lockable))
+  );
+};
+
 export const isMovable = (world: World, entity: Entity, position: Position) => {
   if (isWalkable(world, position)) return true;
 
@@ -58,6 +68,15 @@ export const isMovable = (world: World, entity: Entity, position: Position) => {
 
   return false;
 };
+
+export const getBiomes = (world: World, position: Position) =>
+  Array.from(
+    new Set(
+      Object.values(getCell(world, position)).flatMap(
+        (cell: TypedEntity) => cell[ENVIRONMENT]?.biomes || []
+      )
+    )
+  );
 
 export default function setupMovement(world: World) {
   let referenceGenerations = -1;
@@ -103,7 +122,7 @@ export default function setupMovement(world: World) {
       if (attemptedOrientations.length === 0) continue;
 
       // set facing regardless of movement
-      if (entity[ORIENTABLE])
+      if (entity[ORIENTABLE] && !entity[MOVABLE].flying)
         entity[ORIENTABLE].facing = attemptedOrientations[0];
 
       // skip if already interacted
@@ -116,16 +135,23 @@ export default function setupMovement(world: World) {
           y: normalize(entity[POSITION].y + delta.y, size),
         };
 
-        if (isWalkable(world, position)) {
-          // leave bubble trail if in water
-          if (isImmersible(world, entity[POSITION])) {
+        if (
+          isWalkable(world, position) ||
+          (entity[MOVABLE].flying && isFlyable(world, position))
+        ) {
+          // leave bubble trail if walking through water
+          if (
+            isImmersible(world, entity[POSITION]) &&
+            !entity[MOVABLE].flying
+          ) {
             createBubble(world, entity[POSITION]);
           }
 
           moveEntity(world, entity, position);
 
           // set facing to actual movement
-          if (entity[ORIENTABLE]) entity[ORIENTABLE].facing = orientation;
+          if (entity[ORIENTABLE] && !entity[MOVABLE].flying)
+            entity[ORIENTABLE].facing = orientation;
 
           rerenderEntity(world, entity);
           break;

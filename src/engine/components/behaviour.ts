@@ -17,7 +17,8 @@ export type Pattern = {
     | "drop"
     | "sell"
     | "enrage"
-    | "soothe";
+    | "soothe"
+    | "tumbleweed";
   memory: any;
 };
 

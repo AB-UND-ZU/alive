@@ -216,3 +216,40 @@ export const earthCask: Sprite = {
     { char: "≡", color: colors.green },
   ],
 };
+
+export const tumbleweed: Sprite = {
+  name: "Bush",
+  layers: [
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+    { char: "\u0108", color: colors.olive },
+    { char: "+", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: "\u0100", color: colors.black },
+      { char: "\u0101", color: colors.black },
+      { char: "\u0108", color: colors.olive },
+      { char: "|", color: colors.olive },
+      { char: "~", color: colors.black },
+    ],
+    right: [
+      { char: "\u0100", color: colors.black },
+      { char: "\u0101", color: colors.black },
+      { char: "\u0108", color: colors.olive },
+      { char: "/", color: colors.olive },
+    ],
+    down: [
+      { char: "\u0100", color: colors.black },
+      { char: "\u0101", color: colors.black },
+      { char: "\u0108", color: colors.olive },
+      { char: "-", color: colors.olive },
+    ],
+    left: [
+      { char: "\u0100", color: colors.black },
+      { char: "\u0101", color: colors.black },
+      { char: "\u0108", color: colors.olive },
+      { char: "\\", color: colors.olive },
+    ],
+  },
+};
