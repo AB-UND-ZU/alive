@@ -30,7 +30,7 @@ export default function Bar({
 }) {
   const dimensions = useDimensions();
   const max = entity[STATS][getMaxCounter(counter)];
-  const value = Math.min(entity[STATS][counter], max);
+  const value = Math.ceil(Math.min(entity[STATS][counter], max));
   const enemy = isEnemy(world, entity);
   const neutral = isNeutral(world, entity);
   const spring = useSpring({

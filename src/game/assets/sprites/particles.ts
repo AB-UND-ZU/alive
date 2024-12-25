@@ -639,7 +639,7 @@ export const createCountable = (
   if (!(stat in stats)) return [];
 
   const counter = stat as keyof Countable;
-  const value = stats[counter] || 0;
+  const value = Math.ceil(stats[counter] || 0);
   const stringified = value.toString();
   const color = statSprites[counter].color;
 

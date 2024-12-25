@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { add, random } from "../../game/math/std";
+import { add } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { MELEE } from "../components/melee";
@@ -70,10 +70,11 @@ export const calculateDamage = (
   const damage =
     offensive > defensive
       ? offensive - defensive
-      : random(0, defensive - offensive + 1) === 0
-      ? 1
-      : 0;
-  return { damage, hp: Math.max(0, defenderStats.hp - damage) };
+      : 1 / (defensive - offensive + 2);
+  const hp = Math.max(0, defenderStats.hp - damage);
+  const visibleDamage =
+    damage >= 1 ? damage : Math.ceil(defenderStats.hp) > Math.ceil(hp) ? 1 : 0;
+  return { damage: visibleDamage, hp };
 };
 
 export default function setupDamage(world: World) {
