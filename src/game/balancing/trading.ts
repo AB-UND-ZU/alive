@@ -1,4 +1,4 @@
-import { Gear } from "../../engine/components/equippable";
+import { Gear, Tools } from "../../engine/components/equippable";
 import {
   Active,
   Consumable,
@@ -12,7 +12,7 @@ import { Tradable } from "../../engine/components/tradable";
 
 export const itemPrices: Partial<
   Record<
-    Gear | Active | Passive | Consumable | Stackable | keyof Stats,
+    Gear | Tools | Active | Passive | Consumable | Stackable | keyof Stats,
     Partial<Record<Material | "default", Tradable["activation"]>>
   >
 > = {

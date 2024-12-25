@@ -3,7 +3,7 @@ import { Layer, SPRITE, Sprite } from "../../engine/components/sprite";
 import { World } from "../../engine";
 import { Segment } from "./Stack";
 import { Entity } from "ecs";
-import { EQUIPPABLE, Gear } from "../../engine/components/equippable";
+import { EQUIPPABLE, Gear, Tools } from "../../engine/components/equippable";
 import { LayerProps } from "./Layer";
 import {
   Active,
@@ -283,7 +283,7 @@ export const offsetFactors: Record<number, number> = {
 export const shadowFactor = 0.125;
 
 const entitySprites: Record<
-  Gear | Active | Passive | Stackable | Consumable | Materialized,
+  Gear | Tools | Active | Passive | Stackable | Consumable | Materialized,
   Partial<Record<Material | "default", { sprite: Sprite; resource?: Sprite }>>
 > = {
   // gear

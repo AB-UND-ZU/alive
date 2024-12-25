@@ -99,7 +99,7 @@ export const collectItem = (
       if (
         entity[STATS][stat] >= 99 ||
         (maxCounter !== stat &&
-          entity[STATS][stat] === entity[STATS][maxCounter])
+          entity[STATS][stat] >= entity[STATS][maxCounter])
       )
         continue;
 

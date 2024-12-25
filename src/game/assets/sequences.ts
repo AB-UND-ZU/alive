@@ -761,8 +761,6 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
       updated = true;
     }
   } else if (outerRadius >= state.args.duration) {
-    console.log(Object.keys(state.particles).length);
-
     // clear wave on end
     for (const particleName in state.particles) {
       const particleEntity = world.assertByIdAndComponents(
@@ -1067,7 +1065,12 @@ export const itemCollect: Sequence<CollectSequence> = (
       ) {
         entity[INVENTORY].items.push(targetId);
       } else if (targetStat) {
-        entity[STATS][targetStat] += state.args.amount;
+        const maxStat = getMaxCounter(targetStat);
+        const maximum = maxStat !== targetStat ? entity[STATS][maxStat] : 99;
+        entity[STATS][targetStat] = Math.min(
+          entity[STATS][targetStat] + state.args.amount,
+          maximum
+        );
       } else if (targetStackable) {
         // add to existing stack if available
         const existingStack = getStackable(world, entity, itemEntity[ITEM]);

@@ -287,7 +287,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 40, items: [{ stat: "xp", amount: 1 }] },
+      { chance: 30, items: [{ stat: "xp", amount: 1 }] },
+      { chance: 20, items: [{ stackable: "apple", amount: 3 }] },
+      { chance: 20, items: [{ stackable: "plum", amount: 3 }] },
       {
         chance: 15,
         items: [{ stackable: "resource", material: "wood", amount: 1 }],
@@ -296,8 +298,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 15,
         items: [{ stackable: "resource", material: "iron", amount: 1 }],
       },
-      { chance: 15, items: [{ stackable: "apple", amount: 1 }] },
-      { chance: 15, items: [{ stackable: "plum", amount: 1 }] },
     ],
     patternNames: [],
     sprite: box,
@@ -367,9 +367,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     hp: 5,
     mp: 0,
     equipments: [],
-    drops: [
-      { chance: 100, items: [{ stat: "stick", amount: 1 }] },
-    ],
+    drops: [{ chance: 100, items: [{ stat: "stick", amount: 1 }] }],
     patternNames: ["tumbleweed"],
     sprite: tumbleweed,
   },

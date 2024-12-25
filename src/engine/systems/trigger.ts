@@ -44,7 +44,7 @@ import { CASTABLE } from "../components/castable";
 import { isEnemy } from "./damage";
 import { canCast } from "./magic";
 import { createItemInInventory } from "./drop";
-import { EQUIPPABLE, gears } from "../components/equippable";
+import { EQUIPPABLE } from "../components/equippable";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -96,6 +96,7 @@ export const lockDoor = (world: World, entity: Entity) => {
     material: entity[LOCKABLE].material || "wood",
   });
   entity[LIGHT].orientation = undefined;
+  entity[TOOLTIP].override = undefined;
   rerenderEntity(world, entity);
   updateWalkable(world, entity[POSITION]);
 };
@@ -109,11 +110,7 @@ export const removeFromInventory = (
   const itemIndex = entity[INVENTORY].items.indexOf(itemId);
 
   const equipment = item[ITEM].equipment;
-  if (
-    EQUIPPABLE in entity &&
-    gears.includes(equipment) &&
-    entity[EQUIPPABLE][equipment] === itemId
-  ) {
+  if (EQUIPPABLE in entity && entity[EQUIPPABLE][equipment] === itemId) {
     entity[EQUIPPABLE][equipment] = undefined;
   } else if (itemIndex === -1) {
     console.error(

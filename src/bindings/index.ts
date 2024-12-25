@@ -282,7 +282,7 @@ export const generateWorld = async (world: World) => {
       cell =
         21 < green && green < 25
           ? "cactus"
-          : spawn > 94
+          : spawn > 95
           ? "tumbleweed"
           : "desert";
     // greens

@@ -3,9 +3,11 @@ import { World } from "../ecs";
 
 export const handhelds = ["sword", "shield"] as const;
 export type Handheld = (typeof handhelds)[number];
-export const gears = [...handhelds, "torch", "map", "compass"] as const;
+export const gears = [...handhelds, "torch", "map"] as const;
 export type Gear = (typeof gears)[number];
-export type Equipment = Gear | "active" | "passive";
+export type Slot = Gear | "active" | "passive";
+export type Tools = "compass";
+export type Equipment = Slot | Tools;
 
 export type Equippable = {
   [key in Equipment]?: number;

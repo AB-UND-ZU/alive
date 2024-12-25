@@ -199,7 +199,7 @@ export default function Controls() {
       !canCast(world, hero, activeEntity),
     (activeEntity) => activeEntity[SPRITE].name,
     (activeEntity) => [
-      [none, activeEntity[SPRITE], none],
+      [none, none, activeEntity[SPRITE]],
       getActiveActivations(activeEntity[ITEM]),
     ]
   );

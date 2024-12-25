@@ -126,9 +126,8 @@ export default function setupConsume(world: World) {
       if (!consumption) continue;
 
       consumption.consumable[ITEM].amount -= 1;
-      const consumableId = world.getEntityId(consumption.consumable);
       rerenderEntity(world, entity);
-      delete nextConsumptions[entityId][consumableId];
+      delete nextConsumptions[entityId];
 
       if (consumption.consumable[ITEM].amount === 0) {
         removeFromInventory(world, entity, consumption.consumable);
