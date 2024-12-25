@@ -11,6 +11,8 @@ import { traceCircularVisiblity } from "../../game/math/tracing";
 import { REFERENCE } from "../components/reference";
 import { disposeEntity, getCell } from "./map";
 import { rerenderEntity } from "./renderer";
+import { FRAGMENT } from "../components/fragment";
+import { STRUCTURABLE } from "../components/structurable";
 
 type PendingChanges = Record<
   number,
@@ -77,6 +79,9 @@ const commitVisibility = (world: World, pendingChanges: PendingChanges) => {
       for (const entityId in pendingChange) {
         const entity = level.map[x][y][entityId];
 
+        // skip if air already removed
+        if (!entity) continue;
+
         // remove revealed air
         if (
           entity[FOG].type === "air" &&
@@ -85,6 +90,46 @@ const commitVisibility = (world: World, pendingChanges: PendingChanges) => {
           disposeEntity(world, entity);
           continue;
         }
+
+        // reveal attached structure and fragments
+        const structureId =
+          STRUCTURABLE in entity
+            ? parseInt(entityId, 10)
+            : entity[FRAGMENT]?.structure;
+        const structure = world.getEntityByIdAndComponents(structureId, [FOG]);
+        if (
+          structure &&
+          structure[FOG].visibility === "hidden" &&
+          pendingChange[entityId].to === "visible"
+        ) {
+          world
+            .getEntities([FRAGMENT, FOG, POSITION])
+            .filter((fragment) => fragment[FRAGMENT].structure === structureId)
+            .forEach((fragment) => {
+              if (fragment[FOG].visibility === "hidden") {
+                fragment[FOG].visibility = "fog";
+                rerenderEntity(world, fragment);
+
+                // also remove any air above fragments
+                Object.values(getCell(world, fragment[POSITION])).forEach(
+                  (cell) => {
+                    if (
+                      FOG in cell &&
+                      cell[FOG].type === "air" &&
+                      pendingChange[entityId].to !== "hidden"
+                    ) {
+                      disposeEntity(world, cell);
+                    }
+                  }
+                );
+              }
+            });
+
+          structure[FOG].visibility = "fog";
+          rerenderEntity(world, structure);
+        }
+
+        // reveal entity itself
         entity[FOG].visibility = pendingChange[entityId].to;
         rerenderEntity(world, entity);
       }

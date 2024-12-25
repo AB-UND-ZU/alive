@@ -49,6 +49,8 @@ import { Viewable, VIEWABLE } from "./components/viewable";
 import { Castable, CASTABLE } from "./components/castable";
 import { Affectable, AFFECTABLE } from "./components/affectable";
 import { Exertable, EXERTABLE } from "./components/exertable";
+import { Fragment, FRAGMENT } from "./components/fragment";
+import { Structurable, STRUCTURABLE } from "./components/structurable";
 
 export type Entity = {
   [ACTIONABLE]: Actionable;
@@ -67,6 +69,7 @@ export type Entity = {
   [EXERTABLE]: Exertable;
   [FOCUSABLE]: Focusable;
   [FOG]: Fog;
+  [FRAGMENT]: Fragment;
   [IDENTIFIABLE]: Identifiable;
   [IMMERSIBLE]: Immersible;
   [INVENTORY]: Inventory;
@@ -96,6 +99,7 @@ export type Entity = {
   [SPIKABLE]: Spikable;
   [SPRITE]: Sprite;
   [STATS]: Stats;
+  [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;
   [TOOLTIP]: Tooltip;
   [TRACKABLE]: Trackable;
@@ -142,6 +146,15 @@ export const createBox = entityFactory([
   SWIMMABLE,
   TOOLTIP,
   STATS,
+]);
+
+export const createBuilding = entityFactory([
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+  STRUCTURABLE,
+  VIEWABLE,
 ]);
 
 export const createCactus = entityFactory([
@@ -374,6 +387,15 @@ export const createOre = entityFactory([
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
+export const createPlant = entityFactory([
+  COLLIDABLE,
+  FOG,
+  FRAGMENT,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createPlate = entityFactory([
   COLLIDABLE,
   ENTERABLE,
@@ -398,6 +420,16 @@ export const createResource = entityFactory([
   SEQUENCABLE,
   SPRITE,
   STATS,
+]);
+
+export const createRoot = entityFactory([
+  COLLIDABLE,
+  FOG,
+  FRAGMENT,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+  STRUCTURABLE,
 ]);
 
 export const createShop = entityFactory([
@@ -451,6 +483,13 @@ export const createSplash = entityFactory([
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
+]);
+
+export const createStructure = entityFactory([
+  FOG,
+  POSITION,
+  RENDERABLE,
+  STRUCTURABLE,
 ]);
 
 export const createSword = entityFactory([

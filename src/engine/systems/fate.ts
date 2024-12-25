@@ -172,7 +172,7 @@ export default function setupFate(world: World) {
           },
           [PLAYER]: {
             ghost: true,
-            inside: entity[PLAYER].inside,
+            structure: entity[PLAYER].structure,
             flying: false,
           },
           [POSITION]: copy(entity[POSITION]),
@@ -266,7 +266,7 @@ export default function setupFate(world: World) {
           lastInteraction: 0,
         },
         [ORIENTABLE]: {},
-        [PLAYER]: { ghost: false, inside: false, flying: false },
+        [PLAYER]: { ghost: false, flying: false },
         [POSITION]: copy(entity[POSITION]),
         [PUSHABLE]: {},
         [RENDERABLE]: { generation: 0 },

@@ -1453,7 +1453,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   const expired =
     !state.args.overridden &&
     !state.args.isIdle &&
-    state.elapsed / charDelay > totalLength * 1.5 + 35;
+    state.elapsed / charDelay > totalLength * 1.5 + 30;
   const isCloseBy =
     isAdjacent &&
     !!heroEntity &&

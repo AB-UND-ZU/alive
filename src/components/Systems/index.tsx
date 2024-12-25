@@ -70,7 +70,7 @@ export default function Systems() {
                   inRadius={
                     getDistance(position, entity[POSITION], size) < radius
                   }
-                  outside={!!hero?.[PLAYER]?.inside && isOutside(ecs, entity)}
+                  outside={!!hero?.[PLAYER]?.structure && isOutside(ecs, entity)}
                   inside={inside}
                   generation={getEntityGeneration(ecs, entity)}
                 />

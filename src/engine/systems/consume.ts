@@ -29,7 +29,7 @@ export const getConsumables = (world: World, entity: Entity) =>
       isConsumable(world, consumable)
     ) as TypedEntity<"ITEM">[];
 
-export const defaultLight = { visibility: 3.7, brightness: 3.7, darkness: 0 };
+export const defaultLight = { visibility: 3.66, brightness: 3.66, darkness: 0 };
 export const torchLight = { visibility: 5.55, brightness: 5.55, darkness: 0 };
 
 export const consumptionConfigs: Partial<
@@ -151,7 +151,7 @@ export default function setupConsume(world: World) {
         entity[LIGHT].brightness === defaultLight.brightness &&
         entity[LIGHT].visibility === defaultLight.visibility &&
         !getSequence(world, entity, "vision") &&
-        !entity[PLAYER].inside
+        !entity[PLAYER].structure
       ) {
         createSequence<"vision", VisionSequence>(
           world,

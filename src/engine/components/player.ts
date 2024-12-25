@@ -3,7 +3,7 @@ import { World } from "../ecs";
 
 export type Player = {
   ghost: boolean;
-  inside: boolean;
+  structure?: number;
   flying: boolean;
 };
 
