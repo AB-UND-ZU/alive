@@ -6,16 +6,15 @@ import { useHero, useWorld } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
-import Row, { CellSprite } from "../Row";
+import Row from "../Row";
 import {
   arrow,
   buttonColor,
   charge,
   createButton,
+  createCountable,
   createText,
-  getStatSprite,
   ghost,
-  mana,
   none,
   quest,
 } from "../../game/assets/sprites";
@@ -58,12 +57,14 @@ export const actionKeys = [" ", "Enter"];
 const getActiveActivations = (item: Item) => {
   if (!item.active) return [none, none, none];
 
-  if (item.active === "bow") return [none, arrow, none];
+  if (item.active === "bow")
+    return [none, createText("1", colors.grey)[0], arrow];
   else if (item.active === "slash" || item.active === "block")
-    return [none, charge, none];
-  else if (item.active.endsWith("1")) return [none, mana, none];
+    return [none, createText("1", colors.grey)[0], charge];
+  else if (item.active.endsWith("1"))
+    return createCountable({ mp: 1 }, "mp", "countable");
   else if (item.active.endsWith("2"))
-    return [none, { ...mana, stackableAmount: 2 }, none];
+    return createCountable({ mp: 2 }, "mp", "countable");
 
   return [none, none, none];
 };
@@ -71,15 +72,17 @@ const getActiveActivations = (item: Item) => {
 const getActivationRow = (item?: Item) => {
   if (!item) return repeat(none, 3);
 
-  const sprite: CellSprite = {
-    ...(item.stat ? getStatSprite(item.stat) : getItemSprite(item)),
-  };
+  if (item.stat)
+    return createCountable(
+      { [item.stat]: item.amount },
+      item.stat,
+      "countable"
+    );
 
-  if (item.stackable || item.stat) {
-    sprite.stackableAmount = item.amount;
-  }
-
-  return [none, sprite, none];
+  return [
+    ...createText(item.amount.toString().padStart(2, " "), colors.grey),
+    getItemSprite(item),
+  ];
 };
 
 const buttonWidth = 6;
