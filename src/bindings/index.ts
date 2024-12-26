@@ -273,16 +273,14 @@ export const generateWorld = async (world: World) => {
     else if (temperature > 65 && terrain > 70) cell = "oasis";
     else if (
       temperature > 65 &&
-      ((-11 < terrain && terrain < -10) ||
-        (10 < terrain && terrain < 11) ||
-        (20 < terrain && terrain < 21))
+      ((-11 < terrain && terrain < -10) || (20 < terrain && terrain < 21))
     )
       cell = spawn > 60 ? "stone" : "rock";
     else if (temperature > 65)
       cell =
-        21 < green && green < 25
+        21 < green && green < 24
           ? "cactus"
-          : spawn > 95
+          : spawn > 96
           ? "tumbleweed"
           : "desert";
     // greens
@@ -634,12 +632,6 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: water,
         [RENDERABLE]: { generation: 0 },
       });
-      if (cell === "spring") {
-        entities.createArea(world, {
-          [ENVIRONMENT]: { biomes: ["desert"] },
-          [POSITION]: { x, y },
-        });
-      }
     } else if (cell === "wood" || cell === "wood_two") {
       const woodEntity = createItemAsDrop(
         world,
