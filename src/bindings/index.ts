@@ -500,6 +500,16 @@ export const generateWorld = async (world: World) => {
         [VIEWABLE]: { active: false },
       });
 
+      // create spawn dummy to set needle target
+      const spawnEntity = entities.createViewpoint(world, {
+        [POSITION]: copy(initialPosition),
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: none,
+        [VIEWABLE]: { active: false },
+      });
+      world.setIdentifier(spawnEntity, "spawn");
+
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
@@ -1411,12 +1421,14 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
+    [ORIENTABLE]: {},
     [POSITION]: copy(
       world.getIdentifier("compass_chest")?.[POSITION] || { x: 0, y: 0 }
     ),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
+    [TRACKABLE]: {},
   });
   createSequence<"focus", FocusSequence>(
     world,
@@ -1996,8 +2008,8 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupText);
   world.addSystem(systems.setupMagic);
   world.addSystem(systems.setupSequence);
-  world.addSystem(systems.setupNeedle);
   world.addSystem(systems.setupFocus);
+  world.addSystem(systems.setupNeedle);
   world.addSystem(systems.setupFate);
   world.addSystem(systems.setupDrop);
   world.addSystem(systems.setupImmersion);

@@ -18,6 +18,7 @@ import { rerenderEntity } from "./systems/renderer";
 import { getSequence } from "./systems/sequence";
 import { Entity, TypedEntity } from "./entities";
 import { getHasteInterval } from "./systems/movement";
+import { PLAYER } from "./components/player";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
@@ -222,18 +223,29 @@ export default function createWorld(size: number) {
     return getEntityComponents(entity, componentNames);
   };
 
-  const setFocus = (entity?: TypedEntity) => {
+  const setHighlight = (entity?: TypedEntity) => {
     const entityId = entity && getEntityId(entity);
-    const focusEntity = getIdentifierAndComponents("focus", ["FOCUSABLE"]);
-    const compassEntity = getIdentifierAndComponents("compass", ["TRACKABLE"]);
+    const focusEntity = getIdentifierAndComponents("focus", [
+      FOCUSABLE,
+      TRACKABLE,
+    ]);
+    const heroEntity = getIdentifierAndComponents("hero", [PLAYER]);
 
-    if (!focusEntity || !compassEntity) return;
+    if (!focusEntity) return;
+
+    focusEntity[FOCUSABLE].pendingTarget = entityId;
+    focusEntity[TRACKABLE].target = heroEntity && getEntityId(heroEntity);
+    rerenderEntity(ecs, focusEntity);
+  };
+
+  const setNeedle = (entity?: TypedEntity) => {
+    const entityId = entity && getEntityId(entity);
+    const compassEntity = getIdentifierAndComponents("compass", [TRACKABLE]);
+
+    if (!compassEntity) return;
 
     compassEntity[TRACKABLE].target = entityId;
     rerenderEntity(ecs, compassEntity);
-
-    focusEntity[FOCUSABLE].pendingTarget = entityId;
-    rerenderEntity(ecs, focusEntity);
   };
 
   const ecs = {
@@ -257,7 +269,8 @@ export default function createWorld(size: number) {
     offerQuest,
     acceptQuest,
     abortQuest,
-    setFocus,
+    setHighlight,
+    setNeedle,
 
     getIdentifier,
     assertIdentifier,

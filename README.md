@@ -201,7 +201,7 @@ Earth
 - Diamond: high damage / high defense
 - Fire: burns on impact / burn immunity
 - Water: freezes on impact / freeze immunity
-- Earth: lifesteal / x2 life collection
+- Earth: heal or lifesteal / x2 life collection
 
 - Ruby: turn world pink on move or impact, speed up in pink area / +1 stats while in pink
 - Aether: turn entities grayscale on move or impact, added damage / spike attacker

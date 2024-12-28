@@ -326,10 +326,12 @@ export const createHero = entityFactory([
 export const createHighlight = entityFactory([
   FOCUSABLE,
   MOVABLE,
+  ORIENTABLE,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
+  TRACKABLE,
 ]);
 
 export const createItem = entityFactory([ITEM, RENDERABLE, SPRITE]);

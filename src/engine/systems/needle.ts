@@ -22,14 +22,15 @@ export default function setupNeedle(world: World) {
 
     referenceGenerations = generation;
 
-    // handle compass needles
+    // handle needles
     for (const entity of world.getEntities([
-      ITEM,
       ORIENTABLE,
       TRACKABLE,
       RENDERABLE,
     ])) {
-      const originId = entity[ITEM].carrier;
+      const originId = entity[ITEM]
+        ? entity[ITEM].carrier
+        : world.getEntityId(entity);
       const targetId = entity[TRACKABLE].target;
 
       // reset needle
@@ -56,12 +57,12 @@ export default function setupNeedle(world: World) {
         ? world.assertByIdAndComponents(originEntity[MOVABLE].reference, [
             RENDERABLE,
           ])[RENDERABLE].generation
-        : 0;
+        : originEntity[RENDERABLE]?.generation || 0;
       const targetReference = targetEntity[MOVABLE]
         ? world.assertByIdAndComponents(targetEntity[MOVABLE].reference, [
             RENDERABLE,
           ])[RENDERABLE].generation
-        : 0;
+        : targetEntity[RENDERABLE]?.generation || 0;
       const entityReference = `${originId}.${originReference}:${targetId}.${targetReference}`;
 
       // skip if reference frame is unchanged
@@ -76,10 +77,12 @@ export default function setupNeedle(world: World) {
         targetEntity[POSITION]
       );
 
-      // reorient needle
+      // reorient needle lazily, only if within 45° of a linear direction
+      // is not matching current orientation, or if flipping edges
       if (
-        (targetOrientations.length === 1 || !currentOrientation) &&
-        currentOrientation !== targetOrientations[0]
+        ((targetOrientations.length === 1 || !currentOrientation) &&
+          currentOrientation !== targetOrientations[0]) ||
+        !targetOrientations.includes(currentOrientation)
       ) {
         entity[ORIENTABLE].facing = targetOrientations[0];
         rerenderEntity(world, entity);

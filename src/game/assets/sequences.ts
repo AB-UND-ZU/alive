@@ -1634,14 +1634,15 @@ export const pointerArrow: Sequence<PointerSequence> = (
   let updated = false;
   let finished = false;
 
-  const compassEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].compass,
-    [TRACKABLE, ORIENTABLE]
-  );
-  const targetId = compassEntity?.[TRACKABLE].target;
+  const highlighEntity = world.getEntities([
+    FOCUSABLE,
+    TRACKABLE,
+    ORIENTABLE,
+  ])[0];
+  const targetId = highlighEntity?.[FOCUSABLE].target;
   const targetEntity = world.getEntityByIdAndComponents(targetId, [POSITION]);
 
-  if (!state.args.lastOrientation && (!compassEntity || !targetEntity)) {
+  if (!state.args.lastOrientation && (!highlighEntity || !targetEntity)) {
     return { updated, finished };
   }
 
@@ -1676,7 +1677,7 @@ export const pointerArrow: Sequence<PointerSequence> = (
   const targetChanged = state.args.target !== targetId;
   if (
     state.args.lastOrientation &&
-    (!compassEntity || !targetEntity || targetChanged || shouldDisplay)
+    (!highlighEntity || !targetEntity || targetChanged || shouldDisplay)
   ) {
     pointerParticle[ORIENTABLE].facing = undefined;
     if (targetChanged) {
@@ -1686,10 +1687,15 @@ export const pointerArrow: Sequence<PointerSequence> = (
     }
     state.args.lastOrientation = undefined;
     updated = true;
-  } else if (compassEntity && targetEntity && !shouldDisplay) {
-    const orientation = compassEntity[ORIENTABLE].facing;
-    if (orientation && state.args.lastOrientation !== orientation) {
-      const delta = orientationPoints[orientation];
+  } else if (highlighEntity && targetEntity && !shouldDisplay) {
+    // invert orientation as needle from highlight is pointing to hero
+    const orientation = highlighEntity[ORIENTABLE].facing;
+    const invertedOrientation = orientation && invertOrientation(orientation);
+    if (
+      invertedOrientation &&
+      state.args.lastOrientation !== invertedOrientation
+    ) {
+      const delta = orientationPoints[invertedOrientation];
       if (
         state.args.lastOrientation &&
         pointerParticle[PARTICLE].animatedOrigin
@@ -1698,8 +1704,8 @@ export const pointerArrow: Sequence<PointerSequence> = (
       }
       pointerParticle[PARTICLE].offsetX = delta.x * 8;
       pointerParticle[PARTICLE].offsetY = delta.y * 5;
-      pointerParticle[ORIENTABLE].facing = orientation;
-      state.args.lastOrientation = orientation;
+      pointerParticle[ORIENTABLE].facing = invertedOrientation;
+      state.args.lastOrientation = invertedOrientation;
       state.args.target = targetId;
       updated = true;
     }

@@ -6,6 +6,7 @@ import { QuestSequence, Sequence } from "../../engine/components/sequencable";
 import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
 import { isUnlocked } from "../../engine/systems/action";
+import { moveEntity } from "../../engine/systems/map";
 import { add, getDistance } from "../math/std";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 
@@ -35,7 +36,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "sword",
     onEnter: () => {
-      world.setFocus(world.getIdentifier("wood_two"));
+      world.setHighlight(world.getIdentifier("wood_two"));
       return true;
     },
     isCompleted: () => !!entity[EQUIPPABLE].sword,
@@ -47,7 +48,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "pot",
     onEnter: () => {
-      world.setFocus(potEntity);
+      world.setHighlight(potEntity);
       return true;
     },
     isCompleted: () => !potEntity,
@@ -59,7 +60,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "coin",
     onEnter: () => {
-      world.setFocus(coinEntity);
+      world.setHighlight(coinEntity);
       return true;
     },
     isCompleted: () => !coinEntity,
@@ -71,7 +72,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "prism",
     onEnter: () => {
-      world.setFocus(prismEntity);
+      world.setHighlight(prismEntity);
       return true;
     },
     isCompleted: () => !prismEntity,
@@ -82,7 +83,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "collect",
     onEnter: () => {
-      world.setFocus(guideEntity);
+      world.setHighlight(guideEntity);
       return true;
     },
     isCompleted: () => entity[STATS].coin >= 5,
@@ -94,7 +95,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "buy",
     onEnter: () => {
-      world.setFocus();
+      world.setHighlight();
       return true;
     },
     isCompleted: () =>
@@ -106,7 +107,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "door",
     onEnter: () => {
-      world.setFocus(doorEntity);
+      world.setHighlight(doorEntity);
       return true;
     },
   });
@@ -117,7 +118,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     name: "finish",
     forceEnter: () => !guideEntity || isUnlocked(world, doorEntity),
     onEnter: () => {
-      world.setFocus();
+      world.setHighlight();
       return true;
     },
     isCompleted: () => true,
@@ -150,7 +151,7 @@ export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "search",
     onEnter: () => {
-      world.setFocus(welcomeEntity);
+      world.setHighlight(welcomeEntity);
       return true;
     },
     isCompleted: () =>
@@ -158,12 +159,18 @@ export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
       getDistance(entity[POSITION], welcomeEntity[POSITION], size) <=
         welcomeDistance,
     onLeave: () => {
-      world.setFocus();
+      world.setHighlight();
       if (welcomeEntity) {
         entity[SPAWNABLE].position = add(welcomeEntity[POSITION], {
           x: 0,
           y: 1,
         });
+        const spawnEntity = world.getIdentifier("spawn");
+
+        if (spawnEntity) {
+          moveEntity(world, spawnEntity, entity[SPAWNABLE].position);
+          world.setNeedle(spawnEntity);
+        }
       }
       return END_STEP;
     },
@@ -195,7 +202,7 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
     stage,
     name: START_STEP,
     onEnter: () => {
-      world.setFocus(tombstoneEntity);
+      world.setHighlight(tombstoneEntity);
       return true;
     },
     isCompleted: () =>
@@ -203,7 +210,7 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
       getDistance(entity[POSITION], tombstoneEntity[POSITION], size) <=
         tombstoneDistance,
     onLeave: () => {
-      world.setFocus();
+      world.setHighlight();
       return END_STEP;
     },
   });

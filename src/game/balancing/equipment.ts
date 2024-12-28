@@ -5,20 +5,20 @@ export const gearStats: Record<Handheld, Record<Material, number>> = {
   sword: {
     // T1-T3
     wood: 2,
-    iron: 3,
-    gold: 4,
+    iron: 4,
+    gold: 6,
 
     // T4
-    diamond: 6,
-    fire: 4,
-    water: 4,
-    earth: 4,
+    diamond: 8,
+    fire: 6,
+    water: 6,
+    earth: 6,
 
     // T5
-    ruby: 8,
+    ruby: 10,
     aether: 8,
     void: 8,
-    rainbow: 6,
+    rainbow: 8,
   },
   shield: {
     // T1-T3

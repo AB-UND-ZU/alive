@@ -18,7 +18,7 @@ import {
   isUnlocked,
 } from "../../engine/systems/action";
 import { collectItem } from "../../engine/systems/collect";
-import { disposeEntity, getCell } from "../../engine/systems/map";
+import { disposeEntity, getCell, moveEntity } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { lockDoor } from "../../engine/systems/trigger";
 import { add, getDistance, normalize } from "../math/std";
@@ -87,6 +87,12 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       heroEntity[SPAWNABLE].position = { x: 0, y: 9 };
       heroEntity[SPAWNABLE].light = { ...defaultLight };
 
+      const spawnEntity = world.getIdentifier("spawn");
+      if (spawnEntity) {
+        moveEntity(world, spawnEntity, heroEntity[SPAWNABLE].position);
+        world.setNeedle(spawnEntity);
+      }
+
       // give player compass if not already done
       const compassCarrier = compassEntity[ITEM].carrier;
       if (compassCarrier !== world.getEntityId(heroEntity)) {
@@ -115,6 +121,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
               cellEntity === heroEntity ||
               cellEntity === focusEntity ||
               cellEntity === entity ||
+              cellEntity === spawnEntity ||
               !(RENDERABLE in cellEntity) ||
               CASTABLE in cellEntity
             )

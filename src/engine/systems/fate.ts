@@ -120,7 +120,8 @@ export default function setupFate(world: World) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
         // abort any pending quest and focus
         world.abortQuest(entity);
-        world.setFocus();
+        world.setNeedle();
+        world.setHighlight();
 
         // create tombstone and play RIP animation
         const tombstoneEntity = entities.createTombstone(world, {
@@ -320,6 +321,12 @@ export default function setupFate(world: World) {
         const tombstoneEntity = world.getEntityById(entity[SOUL].tombstoneId);
         if (tombstoneEntity) {
           questSequence(world, heroEntity, "tombstoneQuest", tombstoneEntity);
+        }
+
+        // set needle to spawn
+        const spawnEntity = world.getIdentifier("spawn");
+        if (spawnEntity) {
+          world.setNeedle(spawnEntity);
         }
       } else if (compassEntity) {
         // only update needle
