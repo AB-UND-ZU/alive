@@ -295,7 +295,10 @@ export const generateWorld = async (world: World) => {
 
     // set weighted elevation for curved pathfinding
     if (["air", "bush", "grass", "path", "desert", "hedge"].includes(cell)) {
-      pathMatrix[x][y] = Math.abs(elevation - pathHeight) + 1;
+      pathMatrix[x][y] =
+        (Math.abs(elevation - pathHeight) + 4) ** 2 / 16 +
+        (townDeltaX - townWidth / 2 < 2 ? 20 : 0) +
+        (townDeltaY - townHeight / 2 < 2 ? 20 : 0);
     }
 
     return cell;
