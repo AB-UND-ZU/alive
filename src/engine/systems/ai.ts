@@ -48,6 +48,7 @@ import { canCast } from "./magic";
 import { getCell, moveEntity } from "./map";
 import { getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
+import { STATS } from "../components/stats";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -103,19 +104,24 @@ export default function setupAi(world: World) {
             }
             moveEntity(world, entity, spawnPosition);
             pattern.memory.hidden = false;
+
+            // restore full hp
+            if (entity[STATS]) {
+              entity[STATS].hp = entity[STATS].maxHp;
+            }
           } else if (pattern.memory.hidden === false) {
             entity[FOG].fixed = false;
             entity[MOVABLE].orientations = ["right"];
             delete pattern.memory.hidden;
+          } else if (entity[ORIENTABLE] && !entity[ORIENTABLE].facing) {
+            entity[ORIENTABLE].facing = orientations[random(0, 3)];
           } else if (
             !Object.values(getCell(world, facingPosition)).some(
               (cell: TypedEntity) =>
                 (cell[BEHAVIOUR]?.patterns || []).some(
                   (pattern) => pattern.name === "tumbleweed"
                 )
-            ) &&
-            random(0, 2) !== 0 &&
-            pattern.memory.idle
+            )
           ) {
             if (
               !getBiomes(world, facingPosition).includes("desert") ||
@@ -131,12 +137,7 @@ export default function setupAi(world: World) {
               );
             } else {
               entity[MOVABLE].orientations = ["right"];
-              pattern.memory.idle = false;
             }
-          } else if (entity[ORIENTABLE] && !entity[ORIENTABLE].facing) {
-            entity[ORIENTABLE].facing = orientations[random(0, 3)];
-          } else {
-            pattern.memory.idle = true;
           }
 
           // rotate tumbleweed

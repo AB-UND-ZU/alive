@@ -16,7 +16,7 @@ import { LIGHT } from "../components/light";
 import { MOVABLE } from "../components/movable";
 import { entities } from "..";
 import { REFERENCE } from "../components/reference";
-import { getHasteInterval } from "./movement";
+import { getEntityHaste, getHasteInterval } from "./movement";
 import { disposeEntity } from "./map";
 
 export const isConsumable = (world: World, entity: Entity) =>
@@ -168,7 +168,7 @@ export default function setupConsume(world: World) {
     // process changes in haste
     for (const entity of world.getEntities([PLAYER, STATS, MOVABLE])) {
       const entityId = world.getEntityId(entity);
-      const haste = entity[STATS].haste;
+      const haste = getEntityHaste(world, entity);
 
       if (!(entityId in entityHaste)) {
         entityHaste[entityId] = haste;

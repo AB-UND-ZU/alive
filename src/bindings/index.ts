@@ -150,6 +150,7 @@ import { FRAGMENT } from "../engine/components/fragment";
 import { STRUCTURABLE } from "../engine/components/structurable";
 import { registerEntity } from "../engine/systems/map";
 import { ENVIRONMENT } from "../engine/components/environment";
+import { TEMPO } from "../engine/components/tempo";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -194,25 +195,14 @@ export const generateWorld = async (world: World) => {
   }));
 
   // select nomad location in a 60 degrees offset from town angle
+  const angleOffset = 60 * (random(0, 1) * 2 - 1);
+  const nomadAngle = townAngle + angleOffset;
   const nomadX = normalize(
-    Math.round(
-      (Math.sin(
-        ((townAngle + 60 * (random(0, 1) * 2 - 1)) / 360) * Math.PI * 2
-      ) *
-        size) /
-        2
-    ),
+    Math.round((Math.sin((nomadAngle / 360) * Math.PI * 2) * size) / 2),
     size
   );
   const nomadY = normalize(
-    Math.round(
-      (Math.cos(
-        ((townAngle + 60 * (random(0, 1) * 2 - 1)) / 360) * Math.PI * 2
-      ) *
-        -1 *
-        size) /
-        2
-    ),
+    Math.round((Math.cos((nomadAngle / 360) * Math.PI * 2) * -1 * size) / 2),
     size
   );
   const nomadRadius = 3;
@@ -579,6 +569,7 @@ export const generateWorld = async (world: World) => {
       entities.createArea(world, {
         [ENVIRONMENT]: { biomes: ["desert"] },
         [POSITION]: { x, y },
+        [TEMPO]: { amount: -1 },
       });
       const rockEntity = entities.createResource(world, {
         [ATTACKABLE]: {},
@@ -632,6 +623,7 @@ export const generateWorld = async (world: World) => {
       entities.createArea(world, {
         [ENVIRONMENT]: { biomes: ["desert"] },
         [POSITION]: { x, y },
+        [TEMPO]: { amount: -1 },
       });
       createItemAsDrop(world, { x, y }, entities.createItem, {
         [ITEM]: {
@@ -670,23 +662,26 @@ export const generateWorld = async (world: World) => {
         [ENVIRONMENT]: { biomes: [cell] },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
-        [SPRITE]: sand,
         [RENDERABLE]: { generation: 0 },
+        [SPRITE]: sand,
+        [TEMPO]: { amount: -1 },
       });
     } else if (cell === "path") {
-      entities.createGround(world, {
+      entities.createPath(world, {
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
-        [SPRITE]: path,
         [RENDERABLE]: { generation: 0 },
+        [SPRITE]: path,
+        [TEMPO]: { amount: 3 },
       });
     } else if (cell === "water" || cell === "spring") {
       entities.createWater(world, {
         [FOG]: { visibility, type: "terrain" },
         [IMMERSIBLE]: {},
         [POSITION]: { x, y },
-        [SPRITE]: water,
         [RENDERABLE]: { generation: 0 },
+        [SPRITE]: water,
+        [TEMPO]: { amount: -2 },
       });
     } else if (cell === "wood" || cell === "wood_two") {
       const woodEntity = createItemAsDrop(
@@ -816,6 +811,7 @@ export const generateWorld = async (world: World) => {
           entities.createArea(world, {
             [ENVIRONMENT]: { biomes: ["desert"] },
             [POSITION]: { x, y },
+            [TEMPO]: { amount: -1 },
           });
         }
       } else {
@@ -879,8 +875,9 @@ export const generateWorld = async (world: World) => {
         [ENVIRONMENT]: { biomes: ["desert"] },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
-        [SPRITE]: sand,
         [RENDERABLE]: { generation: 0 },
+        [SPRITE]: sand,
+        [TEMPO]: { amount: -1 },
       });
       populateInventory(world, tumbleweedEntity, items);
     } else if (cell === "bush" || cell === "berry" || cell === "berry_one") {
@@ -935,6 +932,7 @@ export const generateWorld = async (world: World) => {
       entities.createArea(world, {
         [ENVIRONMENT]: { biomes: ["desert"] },
         [POSITION]: { x, y },
+        [TEMPO]: { amount: -1 },
       });
       const cactusEntity = entities.createCactus(world, {
         [ATTACKABLE]: {},

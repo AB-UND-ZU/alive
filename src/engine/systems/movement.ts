@@ -7,7 +7,7 @@ import { getCell, moveEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
-import { normalize } from "../../game/math/std";
+import { normalize, sum } from "../../game/math/std";
 import {
   ORIENTABLE,
   Orientation,
@@ -22,6 +22,8 @@ import { createBubble } from "./water";
 import { getOpaque } from "./enter";
 import { ENVIRONMENT } from "../components/environment";
 import { TypedEntity } from "../entities";
+import { TEMPO } from "../components/tempo";
+import { STATS } from "../components/stats";
 
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
@@ -33,7 +35,17 @@ import { TypedEntity } from "../entities";
 // haste:6 interval:190
 // haste:7 interval:183 (cap with spell)
 export const getHasteInterval = (world: World, haste: number) =>
-  Math.floor(1000 / (haste + 5) + 100);
+  Math.floor(1000 / (Math.max(haste, -4) + 5) + 100);
+
+export const getTempo = (world: World, position: Position) =>
+  sum(
+    Object.values(getCell(world, position)).map(
+      (target) => target[TEMPO]?.amount || 0
+    )
+  );
+
+export const getEntityHaste = (world: World, entity: Entity) =>
+  entity[STATS].haste + getTempo(world, entity[POSITION]);
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(

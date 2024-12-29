@@ -52,6 +52,7 @@ import { Exertable, EXERTABLE } from "./components/exertable";
 import { Fragment, FRAGMENT } from "./components/fragment";
 import { Structurable, STRUCTURABLE } from "./components/structurable";
 import { Environment, ENVIRONMENT } from "./components/environment";
+import { Tempo, TEMPO } from "./components/tempo";
 
 export type Entity = {
   [ACTIONABLE]: Actionable;
@@ -103,6 +104,7 @@ export type Entity = {
   [STATS]: Stats;
   [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;
+  [TEMPO]: Tempo;
   [TOOLTIP]: Tooltip;
   [TRACKABLE]: Trackable;
   [TRADABLE]: Tradable;
@@ -131,7 +133,7 @@ const entityFactory = <T extends keyof Entity>(components: T[]) => {
 
 export const createAoe = entityFactory([EXERTABLE, POSITION]);
 
-export const createArea = entityFactory([ENVIRONMENT, POSITION]);
+export const createArea = entityFactory([ENVIRONMENT, POSITION, TEMPO]);
 
 export const createBox = entityFactory([
   AFFECTABLE,
@@ -393,6 +395,14 @@ export const createOre = entityFactory([
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
+export const createPath = entityFactory([
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+  TEMPO,
+]);
+
 export const createPlant = entityFactory([
   COLLIDABLE,
   FOG,
@@ -520,6 +530,7 @@ export const createTile = entityFactory([
   POSITION,
   RENDERABLE,
   SPRITE,
+  TEMPO,
 ]);
 
 export const createTombstone = entityFactory([
@@ -599,4 +610,5 @@ export const createWater = entityFactory([
   POSITION,
   RENDERABLE,
   SPRITE,
+  TEMPO,
 ]);

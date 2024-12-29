@@ -136,7 +136,7 @@ export const assignBuilding = (world: World, position: Point) => {
   const height = Math.abs(signedDistance(leftCursor.y, upCursor.y, size)) + 1;
 
   buildingEntity[VIEWABLE].fraction = {
-    x: width % 2 === 0 ? -0.5 : 0,
+    x: width % 2 === 0 ? 0.5 : 0,
     y: height % 2 === 0 ? 0.5 : 0,
   };
 

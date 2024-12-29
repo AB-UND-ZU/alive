@@ -47,6 +47,7 @@ export { default as addSprite } from "./sprite";
 export { default as addStats } from "./stats";
 export { default as addStructurable } from "./structurable";
 export { default as addSwimmable } from "./swimmable";
+export { default as addTempo } from "./tempo";
 export { default as addTooltip } from "./tooltip";
 export { default as addTrackable } from "./trackable";
 export { default as addTradable } from "./tradable";
