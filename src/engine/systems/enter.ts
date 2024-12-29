@@ -12,6 +12,7 @@ import { LIGHT } from "../components/light";
 import { FOG } from "../components/fog";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
+import { VIEWABLE } from "../components/viewable";
 
 export const isFragment = (world: World, entity: Entity) => FRAGMENT in entity;
 
@@ -98,6 +99,21 @@ export default function setupEnter(world: World) {
         for (const enterableEntity of enterableEntities) {
           enterableEntity[ENTERABLE].inside = currentStructure;
           rerenderEntity(world, enterableEntity);
+        }
+
+        // center viewpoint in building
+        if (currentStructure) {
+          const currentEntity = world.assertByIdAndComponents(
+            currentStructure,
+            [STRUCTURABLE, VIEWABLE]
+          );
+          currentEntity[VIEWABLE].active = true;
+        } else if (previousStructure) {
+          const previousEntity = world.assertByIdAndComponents(
+            previousStructure,
+            [STRUCTURABLE, VIEWABLE]
+          );
+          previousEntity[VIEWABLE].active = false;
         }
       }
     }

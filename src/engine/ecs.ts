@@ -209,6 +209,14 @@ export default function createWorld(size: number) {
     return entity;
   };
 
+  const assertIdentifierAndComponents = <C extends keyof Entity>(
+    identifier: string,
+    componentNames: C[]
+  ) => {
+    const entity = assertIdentifier(identifier);
+    return assertComponents(entity, componentNames);
+  };
+
   const getIdentifier = (identifier: string) =>
     getEntities([IDENTIFIABLE]).find(
       (entity) => entity[IDENTIFIABLE].name === identifier
@@ -274,6 +282,7 @@ export default function createWorld(size: number) {
 
     getIdentifier,
     assertIdentifier,
+    assertIdentifierAndComponents,
     getIdentifierAndComponents,
     setIdentifier,
 

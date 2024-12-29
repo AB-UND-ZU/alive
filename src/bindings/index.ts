@@ -57,7 +57,7 @@ import {
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
-import { iterateMatrix, matrixFactory } from "../game/math/matrix";
+import { iterateMatrix, matrixFactory, setMatrix } from "../game/math/matrix";
 import { FOG } from "../engine/components/fog";
 import { NPC } from "../engine/components/npc";
 import { IMMERSIBLE } from "../engine/components/immersible";
@@ -68,12 +68,16 @@ import { MELEE } from "../engine/components/melee";
 import { ITEM } from "../engine/components/item";
 import { ORIENTABLE } from "../engine/components/orientable";
 import { aspectRatio } from "../components/Dimensions/sizing";
-import { initialPosition, menuArea } from "../game/levels/areas";
+import {
+  initialPosition,
+  menuArea,
+  nomadArea,
+  nomadOffset,
+} from "../game/levels/areas";
 import {
   add,
   copy,
   distribution,
-  getDistance,
   normalize,
   random,
   sigmoid,
@@ -138,7 +142,7 @@ import { DISPLACABLE } from "../engine/components/displacable";
 import generateTown from "../engine/wfc/town";
 import { ENTERABLE } from "../engine/components/enterable";
 import { AFFECTABLE } from "../engine/components/affectable";
-import { assignBuilding, populateInventory } from "./creation";
+import { assignBuilding, insertArea, populateInventory } from "./creation";
 import { getItemPrice } from "../game/balancing/trading";
 import { getGearStat } from "../game/balancing/equipment";
 import { findPath } from "../game/math/path";
@@ -170,13 +174,16 @@ export const generateWorld = async (world: World) => {
     townWidth,
     townHeight
   );
-  const townX = random(
-    Math.floor(size / 4),
-    Math.floor((size / 4) * 3) - townWidth
+
+  // choose town position in 50% size distance from spawn at a random angle
+  const townAngle = random(0, 359);
+  const townX = normalize(
+    Math.round((Math.sin((townAngle / 360) * Math.PI * 2) / 2) * size),
+    size
   );
-  const townY = random(
-    Math.floor(size / 4),
-    Math.floor((size / 4) * 3) - townHeight
+  const townY = normalize(
+    Math.round(((Math.cos((townAngle / 360) * Math.PI * 2) * -1) / 2) * size),
+    size
   );
   const houses = relativeHouses.map((house) => ({
     ...house,
@@ -186,17 +193,47 @@ export const generateWorld = async (world: World) => {
     }),
   }));
 
+  // select nomad location in a 60 degrees offset from town angle
+  const nomadX = normalize(
+    Math.round(
+      (Math.sin(
+        ((townAngle + 60 * (random(0, 1) * 2 - 1)) / 360) * Math.PI * 2
+      ) *
+        size) /
+        2
+    ),
+    size
+  );
+  const nomadY = normalize(
+    Math.round(
+      (Math.cos(
+        ((townAngle + 60 * (random(0, 1) * 2 - 1)) / 360) * Math.PI * 2
+      ) *
+        -1 *
+        size) /
+        2
+    ),
+    size
+  );
+  const nomadRadius = 3;
+
   const worldMatrix = matrixFactory<string>(size, size, (x, y) => {
     // distance from zero
     const menuDeltaX = Math.abs(signedDistance(menuX, x, size));
     const menuDeltaY = Math.abs(signedDistance(menuY, y, size));
     const townDeltaX = Math.abs(signedDistance(townX, x, size));
     const townDeltaY = Math.abs(signedDistance(townY, y, size));
+    const nomadDeltaX = Math.abs(signedDistance(nomadX, x, size));
+    const nomadDeltaY = Math.abs(signedDistance(nomadY, y, size));
+    const nomadDistance = Math.sqrt(
+      (nomadDeltaX * aspectRatio) ** 2 + nomadDeltaY ** 2
+    );
 
-    // clear square menu and town areas
+    // clear square menu and town areas, and circular nomad area
     if (
       (menuDeltaX < menuWidth / 2 && menuDeltaY < menuHeight / 2) ||
-      (townDeltaX < townWidth / 2 && townDeltaY < townHeight / 2)
+      (townDeltaX < townWidth / 2 && townDeltaY < townHeight / 2) ||
+      nomadDistance < nomadRadius
     )
       return "air";
 
@@ -218,20 +255,31 @@ export const generateWorld = async (world: World) => {
     // clear edges of town
     const clampedX = Math.max(0, Math.min(townDeltaX, townWidth / 4));
     const clampedY = Math.max(0, Math.min(townDeltaY, townHeight / 4));
-    const dx = townDeltaX - clampedX;
-    const dy = townDeltaY - clampedY;
-    const townDistance = Math.sqrt((dx * aspectRatio) ** 2 + dy ** 2);
+    const townDx = townDeltaX - clampedX;
+    const townDy = townDeltaY - clampedY;
+    const townDistance = Math.sqrt((townDx * aspectRatio) ** 2 + townDy ** 2);
     const townDip = sigmoid(townDistance, 10, 0.5);
-    const townElevation = 20 * (1 - townDip);
+    const townElevation = 17 * (1 - townDip);
+
+    // clear area for nomad
+    const nomadDip = sigmoid(nomadDistance, nomadRadius * 2, 1 / 2);
+    const nomadElevation = 17 * (1 - nomadDip);
 
     // set menu and town areas
     const elevation =
-      elevationMatrix[x][y] * menuDip * townDip + menuElevation + townElevation;
+      elevationMatrix[x][y] * menuDip * townDip * nomadDip +
+      menuElevation +
+      townElevation +
+      nomadElevation;
     const terrain =
-      terrainMatrix[x][y] * menuDip * townDip + menuElevation + townElevation;
-    const temperature = temperatureMatrix[x][y] * menuDip * townDip;
-    const green = greenMatrix[x][y] * menuDip * townDip;
-    const spawn = spawnMatrix[x][y] * menuDip ** 0.25 * townDip ** 0.25;
+      terrainMatrix[x][y] * menuDip * townDip * nomadDip +
+      menuElevation +
+      townElevation +
+      nomadElevation;
+    const temperature = temperatureMatrix[x][y] * menuDip * townDip * nomadDip;
+    const green = greenMatrix[x][y] * menuDip * townDip * nomadDip;
+    const spawn =
+      spawnMatrix[x][y] * menuDip ** 0.25 * townDip ** 0.25 * nomadDip ** 0.25;
 
     let cell = "air";
     // beach palms
@@ -278,9 +326,9 @@ export const generateWorld = async (world: World) => {
       cell = spawn > 60 ? "stone" : "rock";
     else if (temperature > 65)
       cell =
-        21 < green && green < 24
+        21 < green && green < 23
           ? "cactus"
-          : spawn > 96
+          : spawn > 97
           ? "tumbleweed"
           : "desert";
     // greens
@@ -305,77 +353,22 @@ export const generateWorld = async (world: World) => {
   });
 
   // insert menu
-  menuRows.forEach((row, rowIndex) => {
-    row.split("").forEach((cell, columnIndex) => {
-      if (cell === " ") return;
-
-      const x = normalize(columnIndex - (row.length - 1) / 2, size);
-      const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
-      let entity = "air";
-      if (cell === "█") entity = "mountain";
-      else if (cell === "≈") entity = "water";
-      else if (cell === "░") entity = "beach";
-      else if (cell === "▒") entity = "path";
-      else if (cell === "▓") entity = "block";
-      else if (cell === "▄") entity = "block_down";
-      else if (cell === "▀") entity = "block_up";
-      else if (cell === "i") entity = "alive";
-      else if (cell === "◙") entity = "gate";
-      else if (cell === "◘") entity = "ore_one";
-      else if (cell === "∙") entity = "coin_one";
-      else if (cell === "o") entity = "intro_pot";
-      else if (cell === "■") entity = "box";
-      else if (cell === "¢") entity = "compass";
-      else if (cell === "#") entity = "tree";
-      else if (cell === "=") entity = "wood_two";
-      else if (cell === ".") entity = "fruit";
-      else if (cell === "ß") entity = "hedge";
-      else if (cell === "τ") entity = "bush";
-      else if (cell === "'") entity = "berry_one";
-      else if (cell === ",") entity = "grass";
-      else if (cell === "·") entity = "flower_one";
-      else if (cell === "♀") entity = "guide";
-      else if (cell === "►") entity = "prism";
-      else if (cell === "*") entity = "campfire";
-      else if (cell === "↔") entity = "key";
-      else if (cell === "├") entity = "house_left";
-      else if (cell === "└") entity = "basement_left";
-      else if (cell === "┤") entity = "house_right";
-      else if (cell === "┘") entity = "basement_right";
-      else if (cell === "┴") entity = "wall";
-      else if (cell === "─") entity = "wall_window";
-      else if (cell === "Φ") entity = "nomad_door";
-      else if (cell === "┼") entity = "house";
-      else if (cell === "┬") entity = "house_window";
-      else if (cell === "╬") entity = "roof";
-      else if (cell === "╠") entity = "roof_left";
-      else if (cell === "╣") entity = "roof_right";
-      else if (cell === "╔") entity = "roof_left_up";
-      else if (cell === "╦") entity = "roof_up";
-      else if (cell === "╗") entity = "roof_up_right";
-      else if (cell === "╞") entity = "roof_down_left";
-      else if (cell === "╪") entity = "roof_down";
-      else if (cell === "╡") entity = "roof_right_down";
-      else {
-        console.error(`Unrecognized cell: ${cell}!`);
-      }
-
-      worldMatrix[x][y] = entity;
-    });
-  });
+  insertArea(worldMatrix, menuArea, 0, 0);
 
   // insert town
   iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
     const x = normalize(townX + offsetX - townWidth / 2, size);
     const y = normalize(townY + offsetY - townHeight / 2, size);
-    pathMatrix[x][y] = 0;
 
     if (!value) return;
 
     worldMatrix[x][y] = value;
   });
 
-  // create shortes path between spawn and town
+  // insert nomad
+  insertArea(worldMatrix, nomadArea, nomadX, nomadY);
+
+  // create shortes path from spawn to town and nomad
   const signPosition = { x: normalize(random(0, 1) * 2 - 1, size), y: 11 };
   pathMatrix[signPosition.x][signPosition.y] = 0;
   iterateMatrix(worldMatrix, (x, y) => {
@@ -389,12 +382,27 @@ export const generateWorld = async (world: World) => {
   const townExits = [
     { x: townX - townWidth / 2, y: townY },
     { x: townX + townWidth / 2, y: townY },
-  ].sort(
-    (left, right) =>
-      getDistance(spawnPath, left, size) - getDistance(spawnPath, right, size)
+  ];
+  const townPath = findPath(
+    pathMatrix,
+    spawnPath,
+    townExits[townAngle < 180 ? 0 : 1]
   );
-  const townPath = findPath(pathMatrix, spawnPath, townExits[0]);
   townPath.forEach(({ x, y }) => {
+    worldMatrix[x][y] = "path";
+  });
+  const nomadPath = findPath(
+    pathMatrix,
+    spawnPath,
+    add(
+      {
+        x: nomadX,
+        y: nomadY,
+      },
+      nomadOffset
+    )
+  );
+  nomadPath.forEach(({ x, y }) => {
     worldMatrix[x][y] = "path";
   });
 
@@ -409,34 +417,69 @@ export const generateWorld = async (world: World) => {
     mageHouse,
   ] = houses;
 
-  worldMatrix[chiefHouse.position.x][chiefHouse.position.y + 2] = "iron_door";
+  setMatrix(
+    worldMatrix,
+    chiefHouse.position.x,
+    chiefHouse.position.y + 2,
+    "iron_door"
+  );
   const chiefOffset = random(0, 1) * 4 - 2;
-  worldMatrix[chiefHouse.position.x + chiefOffset][chiefHouse.position.y + 2] =
-    "";
-  worldMatrix[elderHouse.position.x + random(0, 1) * 2 - 1][
-    elderHouse.position.y + 2
-  ] = "house_aid";
-  worldMatrix[scoutHouse.position.x + random(0, 1) * 2 - 1][
-    scoutHouse.position.y + 3
-  ] = "campfire";
-  worldMatrix[smithHouse.position.x + random(0, 1) * 2 - 1][
-    smithHouse.position.y + 2
-  ] = "house_armor";
+  setMatrix(
+    worldMatrix,
+    chiefHouse.position.x + chiefOffset,
+    chiefHouse.position.y + 2,
+    ""
+  );
+  setMatrix(
+    worldMatrix,
+    elderHouse.position.x + random(0, 1) * 2 - 1,
+    elderHouse.position.y + 2,
+    "house_aid"
+  );
+  setMatrix(
+    worldMatrix,
+    scoutHouse.position.x + random(0, 1) * 2 - 1,
+    scoutHouse.position.y + 3,
+    "campfire"
+  );
+  setMatrix(
+    worldMatrix,
+    smithHouse.position.x + random(0, 1) * 2 - 1,
+    smithHouse.position.y + 2,
+    "house_armor"
+  );
   const traderOffset = random(0, 1) * 2 - 1;
-  worldMatrix[traderHouse.position.x + traderOffset][
-    traderHouse.position.y + 3
-  ] = "fruit";
-  worldMatrix[traderHouse.position.x - traderOffset][
-    traderHouse.position.y + 3
-  ] = "rock";
+  setMatrix(
+    worldMatrix,
+    traderHouse.position.x + traderOffset,
+    traderHouse.position.y + 3,
+    "fruit"
+  );
+  setMatrix(
+    worldMatrix,
+    traderHouse.position.x - traderOffset,
+    traderHouse.position.y + 3,
+    "rock"
+  );
   const druidOffset = random(0, 1) * 2 - 1;
-  worldMatrix[druidHouse.position.x + druidOffset][druidHouse.position.y + 3] =
-    "flower";
-  worldMatrix[druidHouse.position.x - druidOffset][druidHouse.position.y + 3] =
-    "berry";
-  worldMatrix[mageHouse.position.x + random(0, 1) * 2 - 1][
-    mageHouse.position.y + 2
-  ] = "house_mage";
+  setMatrix(
+    worldMatrix,
+    druidHouse.position.x + druidOffset,
+    druidHouse.position.y + 3,
+    "flower"
+  );
+  setMatrix(
+    worldMatrix,
+    druidHouse.position.x - druidOffset,
+    druidHouse.position.y + 3,
+    "berry"
+  );
+  setMatrix(
+    worldMatrix,
+    mageHouse.position.x + random(0, 1) * 2 - 1,
+    mageHouse.position.y + 2,
+    "house_mage"
+  );
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
     const deltaX = size / 2 - Math.abs(x - size / 2);
@@ -910,6 +953,7 @@ export const generateWorld = async (world: World) => {
       populateInventory(world, cactusEntity, items);
     } else if (
       cell === "wood_door" ||
+      cell === "guide_door" ||
       cell === "nomad_door" ||
       cell === "iron_door"
     ) {
@@ -931,7 +975,9 @@ export const generateWorld = async (world: World) => {
           nextDialog: 0,
         },
       });
-      if (cell === "nomad_door") world.setIdentifier(doorEntity, "nomad_door");
+      if (["guide_door", "nomad_door"].includes(cell)) {
+        world.setIdentifier(doorEntity, cell);
+      }
     } else if (cell === "gate") {
       const doorEntity = entities.createGate(world, {
         [FOG]: { visibility, type: "float" },
@@ -1154,27 +1200,6 @@ export const generateWorld = async (world: World) => {
       );
 
       if (cell === "prism") world.setIdentifier(mobEntity, "prism");
-    } else if (cell === "key") {
-      const keyEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
-        [ITEM]: {
-          amount: 1,
-          consume: "key",
-          material: "gold",
-          bound: false,
-        },
-        [SPRITE]: goldKey,
-      });
-
-      world.setIdentifier(keyEntity, "key");
-
-      // add roof above key
-      entities.createFloat(world, {
-        [ENTERABLE]: { inside: false, sprite: none },
-        [FOG]: { visibility, type: "float" },
-        [POSITION]: { x, y },
-        [SPRITE]: roofDown,
-        [RENDERABLE]: { generation: 0 },
-      });
     } else if (
       ["house_left", "house_right", "basement_left", "basement_right"].includes(
         cell
@@ -1412,6 +1437,28 @@ export const generateWorld = async (world: World) => {
     }
   });
 
+  // postprocess spawn
+  const guideDoor = world.assertIdentifierAndComponents("guide_door", [
+    POSITION,
+  ]);
+  const guideHouse = { position: add(guideDoor[POSITION], { x: 1, y: -1 }) };
+  const spawnKeyEntity = createItemAsDrop(
+    world,
+    add(guideDoor[POSITION], { x: 2, y: -1 }),
+    entities.createItem,
+    {
+      [ITEM]: {
+        amount: 1,
+        consume: "key",
+        material: "gold",
+        bound: false,
+      },
+      [SPRITE]: goldKey,
+    }
+  );
+
+  world.setIdentifier(spawnKeyEntity, "key");
+
   // set initial focus on hero
   const highlighEntity = entities.createHighlight(world, {
     [FOCUSABLE]: {},
@@ -1484,9 +1531,139 @@ export const generateWorld = async (world: World) => {
   world.setIdentifier(signEntity, "sign");
   world.offerQuest(signEntity, "townQuest");
 
+  // postprocess nomad
+  const nomadHouse = { position: { x: nomadX - 1, y: nomadY - 1 } };
+  const nomadUnit = generateUnitData("nomad");
+  const nomadEntity = entities.createVillager(world, {
+    [ACTIONABLE]: { triggered: false },
+    [AFFECTABLE]: {},
+    [ATTACKABLE]: {},
+    [BEHAVIOUR]: { patterns: nomadUnit.patterns },
+    [BELONGABLE]: { faction: nomadUnit.faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [INVENTORY]: { items: [], size: 5 },
+    [MELEE]: {},
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+      flying: false,
+    },
+    [NPC]: {},
+    [ORIENTABLE]: {},
+    [POSITION]: copy(nomadHouse.position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { hits: 0 },
+    [SPRITE]: nomadUnit.sprite,
+    [STATS]: { ...emptyStats, ...nomadUnit.stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(world, nomadEntity, nomadUnit.items, nomadUnit.equipments);
+  world.setIdentifier(nomadEntity, "nomad");
+  const ironKeyEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      consume: "key",
+      material: "iron",
+      amount: 1,
+      bound: false,
+    },
+    [SPRITE]: ironKey,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(ironKeyEntity),
+    add(nomadHouse.position, { x: 2, y: 0 }),
+    getItemPrice(ironKeyEntity[ITEM])
+  );
+  const nomadChestData = generateUnitData("uncommonChest");
+  entities.createChest(world, {
+    [ATTACKABLE]: {},
+    [BELONGABLE]: { faction: nomadChestData.faction },
+    [COLLIDABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [INVENTORY]: { items: [], size: 20 },
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [POSITION]: add(nomadHouse.position, { x: -1, y: 1 }),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: nomadChestData.sprite,
+    [STATS]: { ...emptyStats, ...nomadChestData.stats },
+    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+  });
+
   // postprocess town
 
   // 1. chief's house in center
+  const chiefUnit = generateUnitData("chief");
+  const chiefEntity = entities.createVillager(world, {
+    [ACTIONABLE]: { triggered: false },
+    [AFFECTABLE]: {},
+    [ATTACKABLE]: {},
+    [BEHAVIOUR]: { patterns: chiefUnit.patterns },
+    [BELONGABLE]: { faction: chiefUnit.faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [INVENTORY]: { items: [], size: 5 },
+    [MELEE]: {},
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+      flying: false,
+    },
+    [NPC]: {},
+    [ORIENTABLE]: {},
+    [POSITION]: copy(chiefHouse.position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { hits: 0 },
+    [SPRITE]: chiefUnit.sprite,
+    [STATS]: { ...emptyStats, ...chiefUnit.stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(world, chiefEntity, chiefUnit.items, chiefUnit.equipments);
+  world.setIdentifier(chiefEntity, "chief");
+  const goldKeyEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      consume: "key",
+      material: "gold",
+      amount: 1,
+      bound: false,
+    },
+    [SPRITE]: goldKey,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(goldKeyEntity),
+    add(chiefHouse.position, { x: 2, y: 0 }),
+    getItemPrice(goldKeyEntity[ITEM])
+  );
   const welcomeEntity = entities.createPlate(world, {
     [COLLIDABLE]: {},
     [ENTERABLE]: { inside: false, sprite: wallInside },
@@ -1986,8 +2163,7 @@ export const generateWorld = async (world: World) => {
   });
 
   // assign buildings
-  const guideHouse = { position: { x: -5, y: 2 } };
-  const buildings = [...houses, guideHouse];
+  const buildings = [...houses, guideHouse, nomadHouse];
   buildings.forEach((building) => {
     assignBuilding(world, building.position);
   });

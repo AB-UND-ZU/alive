@@ -41,11 +41,19 @@ export const settler: Sprite = {
   ],
 };
 
+export const guide: Sprite = {
+  name: "Guide",
+  layers: [
+    { char: "\u010b", color: colors.silver },
+    { char: "'", color: colors.white },
+  ],
+};
+
 export const nomad: Sprite = {
   name: "Nomad",
   layers: [
     { char: "\u010b", color: colors.silver },
-    { char: "'", color: colors.white },
+    { char: "~", color: colors.white },
   ],
 };
 

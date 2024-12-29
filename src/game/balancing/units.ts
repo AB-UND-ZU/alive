@@ -10,6 +10,7 @@ import {
   goldEye,
   goldOrb,
   goldPrism,
+  guide,
   hedge1,
   hedge2,
   hunter,
@@ -37,6 +38,8 @@ import { SpringConfig } from "@react-spring/three";
 
 export type UnitKey =
   | "guide"
+  | "nomad"
+  | "chief"
   | "elder"
   | "scout"
   | "smith"
@@ -124,7 +127,45 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: [],
-    sprite: { ...nomad, name: "Guide" },
+    sprite: guide,
+  },
+  nomad: {
+    faction: "settler",
+    power: 0,
+    armor: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [
+      {
+        equipment: "sword",
+        material: "wood",
+        bound: false,
+        amount: getGearStat("sword", "wood"),
+      },
+      {
+        equipment: "shield",
+        material: "wood",
+        bound: false,
+        amount: getGearStat("shield", "wood"),
+      },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: nomad,
+  },
+  chief: {
+    faction: "settler",
+    power: 0,
+    armor: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [
+      { equipment: "sword", material: "iron", amount: getGearStat('sword', 'iron'), bound: true },
+      { equipment: "shield", material: "iron", amount: getGearStat('shield', 'iron'), bound: true },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: { ...knight, name: "Chief" },
   },
   elder: {
     faction: "settler",
@@ -135,7 +176,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: { ...settler, name: "Elder" },
+    sprite: { ...scout, name: "Elder" },
   },
   scout: {
     faction: "settler",
@@ -155,7 +196,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     hp: 20,
     mp: 0,
     equipments: [
-      { equipment: "shield", material: "iron", amount: 2, bound: true },
+      { equipment: "shield", material: "iron", amount: getGearStat('shield', 'iron'), bound: true },
     ],
     drops: [],
     patternNames: [],

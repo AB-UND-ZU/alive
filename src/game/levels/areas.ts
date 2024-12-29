@@ -9,8 +9,8 @@ export const menuArea = `\
 █ .    ¢   ♀      ,', █
 █ =                   █
 █   ╔╦╦╦╗     ·###τ###█
-█   ╞╪╪↔╡     #     ░░█
-█ o └Φ┴─┘     # ∙  ░≈≈█
+█   ╞╪╪╪╡     #     ░░█
+█ o └G┴─┘     # ∙  ░≈≈█
 █             #  ►░≈≈≈█
 ███████████◙███◘███████
 ██████████ ▒ ██████████
@@ -19,3 +19,13 @@ export const menuArea = `\
 `;
 
 export const initialPosition = { x: 0, y: 2 };
+
+export const nomadArea = `\
+╔╦╦╦╦╗ 
+╠╬╬╬╬╣ 
+╞╪╪╪╪╡ 
+└──┴N┘ 
+ *  ▒  \
+`;
+
+export const nomadOffset = { x: 1, y: 3 };

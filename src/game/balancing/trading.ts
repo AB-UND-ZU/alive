@@ -118,21 +118,36 @@ export const itemPrices: Partial<
 
   // equipments
   slash: {
-    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 10 }]
+    default: [
+      { stat: "xp", amount: 5 },
+      { stat: "coin", amount: 10 },
+    ],
   },
   bow: {
-    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 10 }]
+    default: [
+      { stat: "xp", amount: 5 },
+      { stat: "coin", amount: 10 },
+    ],
   },
   block: {
-    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 10 }]
+    default: [
+      { stat: "xp", amount: 5 },
+      { stat: "coin", amount: 10 },
+    ],
   },
 
   // spells
   wave1: {
-    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 3 }]
+    default: [
+      { stat: "xp", amount: 5 },
+      { stat: "coin", amount: 3 },
+    ],
   },
   beam1: {
-    default: [{ stat: 'xp', amount: 5 }, { stat: 'coin', amount: 3 }]
+    default: [
+      { stat: "xp", amount: 5 },
+      { stat: "coin", amount: 3 },
+    ],
   },
 
   // tools
@@ -144,6 +159,10 @@ export const itemPrices: Partial<
   },
 
   // consumable
+  key: {
+    iron: [{ stackable: "resource", material: "iron", amount: 1 }],
+    gold: [{ stat: "coin", amount: 25 }],
+  },
   potion1: {
     fire: [
       { stackable: "apple", amount: 3 },
@@ -172,14 +191,18 @@ export const itemPrices: Partial<
       { stat: "ore", amount: 3 },
     ],
   },
-  berry: { default: [
-    { stat: "berry", amount: 10 },
+  berry: {
+    default: [
+      { stat: "berry", amount: 10 },
       { stat: "coin", amount: 1 },
-  ] },
-  flower: { default: [
-    { stat: "flower", amount: 10 },
+    ],
+  },
+  flower: {
+    default: [
+      { stat: "flower", amount: 10 },
       { stat: "coin", amount: 1 },
-  ] },
+    ],
+  },
 
   // resources
   resource: {

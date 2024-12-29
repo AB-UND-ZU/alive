@@ -40,3 +40,16 @@ export const getOverlappingCell = <T>(
   const normalizedY = normalize(y, height);
   return matrix[normalizedX][normalizedY];
 };
+
+export const setMatrix = <T>(
+  matrix: Matrix<T>,
+  x: number,
+  y: number,
+  value: T
+) => {
+  const width = matrix.length;
+  const height = matrix[0].length;
+  const normalizedX = normalize(x + width, width);
+  const normalizedY = normalize(y + height, height);
+  matrix[normalizedX][normalizedY] = value;
+};
