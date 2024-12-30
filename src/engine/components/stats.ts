@@ -4,9 +4,11 @@ import { World } from "../ecs";
 export type Countable = {
   hp: number;
   maxHp: number;
+  maxHpCap: number;
 
   mp: number;
   maxMp: number;
+  maxMpCap: number;
 
   xp: number;
 
@@ -36,9 +38,11 @@ export type Stats = Countable & {
 export const emptyStats: Stats = {
   hp: 0,
   maxHp: 0,
+  maxHpCap: 0,
 
   mp: 0,
   maxMp: 0,
+  maxMpCap: 0,
 
   xp: 0,
 

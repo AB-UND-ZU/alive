@@ -53,3 +53,20 @@ export const setMatrix = <T>(
   const normalizedY = normalize(y + height, height);
   matrix[normalizedX][normalizedY] = value;
 };
+
+export const setPath = <T>(
+  matrix: Matrix<T>,
+  x: number,
+  y: number,
+  value: T
+) => {
+  const width = matrix.length / 2;
+  const height = matrix[0].length / 2;
+  const normalizedX = normalize(x + width, width);
+  const normalizedY = normalize(y + height, height);
+
+  setMatrix(matrix, normalizedX, normalizedY, value);
+  setMatrix(matrix, normalizedX, normalizedY + height, value);
+  setMatrix(matrix, normalizedX + width, normalizedY, value);
+  setMatrix(matrix, normalizedX + width, normalizedY + height, value);
+};

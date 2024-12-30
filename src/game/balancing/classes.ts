@@ -2,6 +2,7 @@ import { hunter, knight, mage, scout } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { Active, Stackable } from "../../engine/components/item";
 import { Equipment } from "../../engine/components/equippable";
+import { Stats } from "../../engine/components/stats";
 
 export type ClassKey = "scout" | "knight" | "mage" | "hunter";
 
@@ -9,21 +10,7 @@ export type ClassDefinition = {
   sprite: Sprite;
   items: ({ slot: Equipment; active?: Active } | { stackable: Stackable })[];
 
-  maxHpCap: number;
-  maxMpCap: number;
-
-  stats: {
-    hp: number;
-    maxHp: number;
-
-    mp: number;
-    maxMp: number;
-
-    power: number;
-    magic: number;
-    armor: number;
-    haste: number;
-  };
+  stats: Omit<Stats, "xp" | "coin" | "stick" | "ore" | "flower" | "berry">;
 };
 
 const classDefinitions: Record<ClassKey, ClassDefinition> = {
@@ -31,15 +18,14 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
     sprite: scout,
     items: [],
 
-    maxHpCap: 50,
-    maxMpCap: 30,
-
     stats: {
       hp: 20,
       maxHp: 20,
+      maxHpCap: 50,
 
       mp: 0,
       maxMp: 10,
+      maxMpCap: 30,
 
       power: 0,
       magic: 0,
@@ -51,15 +37,14 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
     sprite: knight,
     items: [],
 
-    maxHpCap: 60,
-    maxMpCap: 20,
-
     stats: {
       hp: 10,
       maxHp: 10,
+      maxHpCap: 60,
 
       mp: 0,
       maxMp: 5,
+      maxMpCap: 20,
 
       power: 0,
       magic: 0,
@@ -71,15 +56,14 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
     sprite: mage,
     items: [],
 
-    maxHpCap: 40,
-    maxMpCap: 30,
-
     stats: {
       hp: 10,
       maxHp: 10,
+      maxHpCap: 40,
 
       mp: 5,
       maxMp: 5,
+      maxMpCap: 30,
 
       power: 0,
       magic: 1,
@@ -91,15 +75,14 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
     sprite: hunter,
     items: [],
 
-    maxHpCap: 50,
-    maxMpCap: 20,
-
     stats: {
       hp: 10,
       maxHp: 10,
+      maxHpCap: 50,
 
       mp: 0,
       maxMp: 5,
+      maxMpCap: 20,
 
       power: 1,
       magic: 0,

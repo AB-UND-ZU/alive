@@ -578,7 +578,7 @@ const nonCountable = (sprite: Sprite) => ({
   layers: sprite.layers,
 });
 
-const statSprites: Record<
+const statConfig: Record<
   keyof Stats,
   {
     color: string;
@@ -589,9 +589,11 @@ const statSprites: Record<
   }
 > = {
   hp: { color: colors.red, sprite: heart, max: "maxHp" },
-  maxHp: { color: "#404040", sprite: heartUp },
+  maxHp: { color: "#404040", sprite: heartUp, max: "maxHpCap" },
+  maxHpCap: { color: "#404040", sprite: heartUp },
   mp: { color: colors.blue, sprite: mana, max: "maxMp" },
-  maxMp: { color: "#404040", sprite: manaUp },
+  maxMp: { color: "#404040", sprite: manaUp, max: "maxMpCap" },
+  maxMpCap: { color: "#404040", sprite: manaUp },
   xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp, resource: xp },
   coin: {
     color: colors.yellow,
@@ -632,39 +634,49 @@ const statSprites: Record<
 };
 
 export const createCountable = (
-  stats: Partial<Countable>,
+  stats: Partial<Stats>,
   stat: keyof Stats,
-  display: "text" | "countable" | "max" = "text"
+  display: "text" | "countable" | "max" | "cap" = "text"
 ) => {
   if (!(stat in stats)) return [];
 
   const counter = stat as keyof Countable;
   const value = Math.ceil(stats[counter] || 0);
   const stringified = value.toString();
-  const color = statSprites[counter].color;
+  const color = statConfig[counter].color;
 
-  if (display === "countable")
-    return [
-      ...createText(stringified.padStart(2, " "), color),
-      getStatSprite(counter),
-    ];
+  if (display === "cap") {
+    return createText(stringified.padEnd(2, " "), color);
+  } else if (display === "text") {
+    return [...createText(stringified, color), getStatSprite(counter)];
+  }
 
-  if (display === "max") return createText(stringified.padEnd(2, " "), color);
+  const maxCounter = getMaxCounter(counter);
+  const capCounter = getMaxCounter(maxCounter);
 
-  return [...createText(stringified, color), getStatSprite(counter)];
+  return [
+    ...createText(stringified.padStart(2, " "), color),
+    getStatSprite(
+      display === "max" &&
+        maxCounter !== capCounter &&
+        stats[maxCounter] === stats[capCounter]
+        ? maxCounter
+        : counter
+    ),
+  ];
 };
 
 export const getMaxCounter = (stat: keyof Stats) =>
-  (statSprites[stat] && statSprites[stat]?.max) || stat;
+  (statConfig[stat] && statConfig[stat]?.max) || stat;
 
 export const getStatSprite = (
   stat: keyof Stats,
   variant?: "max" | "drop" | "resource"
 ) =>
-  (variant === "max" && statSprites[getMaxCounter(stat)]?.sprite) ||
-  (variant === "drop" && statSprites[stat].drop) ||
-  (variant === "resource" && statSprites[stat].resource) ||
-  statSprites[stat].sprite;
+  (variant === "max" && statConfig[getMaxCounter(stat)]?.sprite) ||
+  (variant === "drop" && statConfig[stat].drop) ||
+  (variant === "resource" && statConfig[stat].resource) ||
+  statConfig[stat].sprite;
 
 export const quest = createText("!", colors.lime)[0];
 export const pending = createText("!", colors.grey)[0];

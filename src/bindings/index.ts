@@ -31,12 +31,14 @@ import {
   goldKey,
   grass,
   haste,
+  heartUp,
   hpFlask1,
   iron,
   ironKey,
   ironMine,
   ironSword,
   leaves,
+  manaUp,
   mpFlask1,
   none,
   oreDrop,
@@ -57,7 +59,12 @@ import {
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
-import { iterateMatrix, matrixFactory, setMatrix } from "../game/math/matrix";
+import {
+  iterateMatrix,
+  matrixFactory,
+  setMatrix,
+  setPath,
+} from "../game/math/matrix";
 import { FOG } from "../engine/components/fog";
 import { NPC } from "../engine/components/npc";
 import { IMMERSIBLE } from "../engine/components/immersible";
@@ -103,7 +110,6 @@ import {
   houseArmor,
   houseLeft,
   houseMage,
-  housePlate,
   houseRight,
   roof,
   roofDown,
@@ -229,7 +235,7 @@ export const generateWorld = async (world: World) => {
 
     // clear triangular exit and create path
     if (y > 5 && y < 14 && y > 4 + menuDeltaX) {
-      pathMatrix[x][y] = 30 - menuDeltaX - menuDeltaY * 2;
+      pathMatrix[x][y] = 35 - menuDeltaX - menuDeltaY * 2;
       return x === 0 && y < 12 ? "path" : "air";
     }
 
@@ -363,9 +369,7 @@ export const generateWorld = async (world: World) => {
   pathMatrix[signPosition.x][signPosition.y] = 0;
   iterateMatrix(worldMatrix, (x, y) => {
     const height = pathMatrix[x][y];
-    pathMatrix[x][y + size] = height;
-    pathMatrix[x + size][y] = height;
-    pathMatrix[x + size][y + size] = height;
+    setPath(pathMatrix, x, y, height);
   });
 
   const spawnPath = { x: 0, y: 11 };
@@ -380,6 +384,7 @@ export const generateWorld = async (world: World) => {
   );
   townPath.forEach(({ x, y }) => {
     worldMatrix[x][y] = "path";
+    setPath(pathMatrix, x, y, 1);
   });
   const nomadPath = findPath(
     pathMatrix,
@@ -394,6 +399,7 @@ export const generateWorld = async (world: World) => {
   );
   nomadPath.forEach(({ x, y }) => {
     worldMatrix[x][y] = "path";
+    setPath(pathMatrix, x, y, 1);
   });
 
   // preprocess town
@@ -412,13 +418,6 @@ export const generateWorld = async (world: World) => {
     chiefHouse.position.x,
     chiefHouse.position.y + 2,
     "iron_door"
-  );
-  const chiefOffset = random(0, 1) * 4 - 2;
-  setMatrix(
-    worldMatrix,
-    chiefHouse.position.x + chiefOffset,
-    chiefHouse.position.y + 2,
-    ""
   );
   setMatrix(
     worldMatrix,
@@ -672,7 +671,7 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: path,
-        [TEMPO]: { amount: 3 },
+        [TEMPO]: { amount: 2 },
       });
     } else if (cell === "water" || cell === "spring") {
       entities.createWater(world, {
@@ -1645,36 +1644,48 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, chiefEntity, chiefUnit.items, chiefUnit.equipments);
   world.setIdentifier(chiefEntity, "chief");
-  const goldKeyEntity = entities.createItem(world, {
+  const maxHpEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
-      consume: "key",
-      material: "gold",
+      stat: "maxHp",
       amount: 1,
       bound: false,
     },
-    [SPRITE]: goldKey,
+    [SPRITE]: heartUp,
     [RENDERABLE]: { generation: 0 },
   });
   sellItem(
     world,
-    world.getEntityId(goldKeyEntity),
-    add(chiefHouse.position, { x: 2, y: 0 }),
-    getItemPrice(goldKeyEntity[ITEM])
+    world.getEntityId(maxHpEntity),
+    add(chiefHouse.position, { x: -2, y: 0 }),
+    getItemPrice(maxHpEntity[ITEM]),
+    Infinity
   );
-  const welcomeEntity = entities.createPlate(world, {
-    [COLLIDABLE]: {},
-    [ENTERABLE]: { inside: false, sprite: wallInside },
-    [FOG]: { visibility: "hidden", type: "terrain" },
-    [LIGHT]: {
-      brightness: 0,
-      darkness: 1,
-      visibility: 0,
+  const maxMpEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      stat: "maxMp",
+      amount: 1,
+      bound: false,
     },
-    [POSITION]: add(chiefHouse.position, { x: chiefOffset, y: 2 }),
+    [SPRITE]: manaUp,
+    [RENDERABLE]: { generation: 0 },
+  });
+  sellItem(
+    world,
+    world.getEntityId(maxMpEntity),
+    add(chiefHouse.position, { x: 2, y: 0 }),
+    getItemPrice(maxMpEntity[ITEM]),
+    Infinity
+  );
+  const chiefOffset = random(0, 1) * 4 - 2;
+  const welcomeEntity = entities.createSign(world, {
+    [COLLIDABLE]: {},
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [POSITION]: add(chiefHouse.position, { x: chiefOffset, y: 3 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: housePlate,
+    [SPRITE]: sign,
     [TOOLTIP]: {
       dialogs: [
         createDialog("Chief's house"),

@@ -7,9 +7,22 @@ export const heart: Sprite = {
 };
 
 export const heartUp: Sprite = {
-  name: "Heart",
+  name: "Max \u0102",
   layers: [
     { char: "\u0102", color: colors.red },
+    { char: "^", color: colors.lime },
+  ],
+};
+
+export const mana: Sprite = {
+  name: "Mana",
+  layers: [{ char: "\u0103", color: colors.blue }],
+};
+
+export const manaUp: Sprite = {
+  name: "Max \u0103",
+  layers: [
+    { char: "\u0103", color: colors.blue },
     { char: "^", color: colors.lime },
   ],
 };
@@ -148,19 +161,6 @@ export const crystal: Sprite = {
     { char: "\u0106", color: colors.blue },
     { char: "÷", color: colors.black },
     { char: "∙", color: colors.blue },
-  ],
-};
-
-export const mana: Sprite = {
-  name: "Mana",
-  layers: [{ char: "\u0103", color: colors.blue }],
-};
-
-export const manaUp: Sprite = {
-  name: "Mana",
-  layers: [
-    { char: "\u0103", color: colors.blue },
-    { char: "^", color: colors.lime },
   ],
 };
 

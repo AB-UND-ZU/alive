@@ -94,12 +94,13 @@ export const collectItem = (
     let amount = 1;
 
     if (stat) {
-      // skip if counter exceeded
+      // skip if counter exceeded or cap itself
       const maxCounter = getMaxCounter(stat);
       if (
         entity[STATS][stat] >= 99 ||
         (maxCounter !== stat &&
-          entity[STATS][stat] >= entity[STATS][maxCounter])
+          entity[STATS][stat] >= entity[STATS][maxCounter]) ||
+        ["maxHpCap", "maxMpCap"].includes(stat)
       )
         continue;
 

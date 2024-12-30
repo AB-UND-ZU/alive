@@ -336,6 +336,7 @@ T5: legendary (fuchsia)
 - Pet: attack close enemies, heal by using hp, revive with mana
 - Elemental pet lvl 1: on hit effect + attack
 - Elemental pet lvl 2: armor effects + defense
+- Leveling up by killing mobs/completing quests
 
 ## Conditions
 
@@ -538,11 +539,6 @@ T5: legendary (fuchsia)
 - Elemental bomb
 - Spell reflect
 
-## Animations
-
-- Damage (hit marker)
-- Collect and drop (flow towards entity)
-
 ## Respawn sequence
 
 - Drop system: decay, drop and dispose on hero
@@ -560,16 +556,13 @@ T5: legendary (fuchsia)
 - Pressed button could be implemented in ECS system rather than React state
 - Sprite "none" should be obsolete
 - Opacity overlaps individual sprites, should be animated color to black
-- Houses should be part of a larger structure
 - Dialog does not need to flip if out of range
 - Units moving in front of AI in the right time will disupt pathfinding due to discarded path items
-- Trading doesn't support requiring multiple items of same type or with amount larger than 1
 - Trading action displays maximum of 2 items
 - Tiny shadow on lootable items extends a bit further than on terrains due to loot height
 - Mobs walking around the death animation might not receive fog hidden
 - Inventory only renders correctly with multiples of 2
 - Sprite stacks don't seem to work properly
 - Walking against a wall or pushing a box with faster speed than the box causes a delay for next action even no interaction happened
-- Entering a house only updates sprite correctly when the door is at the bottom
 - Fire doesn't need to be a sequence
 - For large trees, matrix iteration requires to go column by column
