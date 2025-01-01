@@ -1,7 +1,11 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import { Orientation } from "./orientable";
 
-export type Melee = {};
+export type Melee = {
+  facing?: Orientation,
+  bumpGeneration: number,
+};
 
 export const MELEE = "MELEE";
 

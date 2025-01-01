@@ -3,27 +3,29 @@ import { useSpring, animated } from "@react-spring/three";
 import { useDimensions } from "../Dimensions";
 import { useViewpoint, useWorld } from "../../bindings/hooks";
 import { cameraHeight } from "../Entity/utils";
-import { useState } from "react";
 
 const AnimatedOrthographicCamera = animated(OrthographicCamera);
+const initialCamera = {
+  x: 0,
+  y: 0.5,
+  z: cameraHeight,
+};
 
 export default function Camera() {
   const { paused } = useWorld();
   const dimensions = useDimensions();
   const { position, fraction, config } = useViewpoint();
-  const [initial, setInitial] = useState(true);
 
   const zoom = dimensions.cellHeight;
   const spring = useSpring({
-    x: (position.x + fraction.x) * dimensions.aspectRatio,
-    y: -(position.y + fraction.y),
-    z: cameraHeight,
+    from: initialCamera,
+    to: {
+      x: (position.x + fraction.x) * dimensions.aspectRatio,
+      y: -(position.y + fraction.y),
+      z: cameraHeight,
+    },
     pause: paused,
     config,
-    onRest: () => {
-      if (initial) setInitial(false);
-    },
-    immediate: initial,
   });
 
   return (

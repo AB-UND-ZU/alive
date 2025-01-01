@@ -124,9 +124,9 @@ export default function setupFate(world: World) {
         world.setNeedle();
         world.setHighlight();
 
-        const hasTorch = 
-              entity[LIGHT].visibility > defaultLight.visibility &&
-              entity[LIGHT].brightness > defaultLight.brightness;
+        const defaultVision =
+          entity[LIGHT].visibility === defaultLight.visibility &&
+          entity[LIGHT].brightness === defaultLight.brightness;
 
         // create tombstone and play RIP animation
         const tombstoneEntity = entities.createTombstone(world, {
@@ -144,7 +144,7 @@ export default function setupFate(world: World) {
           tombstoneEntity,
           "perish",
           "tragicDeath",
-          { fast: !hasTorch }
+          { fast: defaultVision }
         );
         registerEntity(world, tombstoneEntity);
 
@@ -180,6 +180,7 @@ export default function setupFate(world: World) {
           [PLAYER]: {
             ghost: true,
             structure: entity[PLAYER].structure,
+            damageReceived: 0,
           },
           [POSITION]: copy(entity[POSITION]),
           [RENDERABLE]: { generation: 0 },
@@ -214,7 +215,7 @@ export default function setupFate(world: World) {
           "changeRadius",
           {
             light: { visibility: 1.5, brightness: 1.5, darkness: 0 },
-            fast: hasTorch
+            fast: defaultVision,
           }
         );
         registerEntity(world, haloEntity);
@@ -260,7 +261,7 @@ export default function setupFate(world: World) {
         [FOG]: { visibility: "visible", type: "unit" },
         [INVENTORY]: { items: [], size: 16 },
         [LIGHT]: { visibility: 1, brightness: 1, darkness: 0 },
-        [MELEE]: {},
+        [MELEE]: { bumpGeneration: 0 },
         [MOVABLE]: {
           orientations: [],
           reference: frameId,
@@ -273,7 +274,7 @@ export default function setupFate(world: World) {
           flying: false,
         },
         [ORIENTABLE]: {},
-        [PLAYER]: { ghost: false },
+        [PLAYER]: { ghost: false, damageReceived: 0 },
         [POSITION]: copy(entity[POSITION]),
         [PUSHABLE]: {},
         [RENDERABLE]: { generation: 0 },

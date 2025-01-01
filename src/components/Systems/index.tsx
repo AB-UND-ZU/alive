@@ -1,4 +1,5 @@
 import { useFrame } from "@react-three/fiber";
+import { animated, useSpring } from "@react-spring/three";
 import { Position, POSITION } from "../../engine/components/position";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import Entity from "../Entity";
@@ -7,11 +8,15 @@ import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { getEntityGeneration } from "../../engine/systems/renderer";
 import { getCell } from "../../engine/systems/map";
-import { getDistance } from "../../game/math/std";
+import { getDistance, random } from "../../game/math/std";
 import { LEVEL } from "../../engine/components/level";
 import { PLAYER } from "../../engine/components/player";
 import { getEnterable, isOutside } from "../../engine/systems/enter";
 import { ENTERABLE } from "../../engine/components/enterable";
+import { useEffect, useRef } from "react";
+
+const shakeFactor = 0.1;
+const shakeSpring = { duration: 50 };
 
 export default function Systems() {
   const { ecs, paused } = useWorld();
@@ -19,6 +24,14 @@ export default function Systems() {
   const { position, radius } = useViewpoint();
   const game = useGame();
   const hero = useHero();
+  const damageRef = useRef(0);
+  const damageReceived = hero?.[PLAYER].damageReceived || 0;
+  const [values, api] = useSpring(() => ({
+    x: 0,
+    y: 0,
+    config: shakeSpring,
+    pause: paused,
+  }));
 
   useFrame((_, delta) => {
     if (!ecs || paused) return;
@@ -27,12 +40,47 @@ export default function Systems() {
     ecs.cleanup();
   });
 
+  useEffect(() => {
+    // shake screen on damage
+    const shakeIntensity = damageReceived - damageRef.current;
+    if (hero && shakeIntensity > 0) {
+      damageRef.current = hero[PLAYER].damageReceived;
+      const shakeDistance = Math.sqrt(shakeIntensity) * shakeFactor;
+      const shakeAngle = random(0, 359);
+      const shakeX = Math.sin((shakeAngle / 360) * Math.PI * 2) * shakeDistance;
+      const shakeY = Math.cos((shakeAngle / 360) * Math.PI * 2) * shakeDistance;
+
+      api.start({
+        to: async (next) => {
+          await next({
+            x: shakeX,
+            y: shakeY,
+          });
+          await next({
+            x: 0,
+            y: 0,
+          });
+        },
+      });
+    } else if (shakeIntensity < 0) {
+      // reset damage counter if hero dies
+      damageRef.current = 0;
+    }
+  }, [
+    hero,
+    damageReceived,
+    position.x,
+    position.y,
+    api,
+    dimensions.aspectRatio,
+  ]);
+
   if (!ecs || !game) return null;
 
   const size = ecs.metadata.gameEntity[LEVEL].size;
 
   return (
-    <>
+    <animated.group position-x={values.x} position-y={values.y}>
       {Array.from({ length: dimensions.renderedColumns })
         .map((_, x) =>
           Array.from({ length: dimensions.renderedRows })
@@ -70,7 +118,9 @@ export default function Systems() {
                   inRadius={
                     getDistance(position, entity[POSITION], size) < radius
                   }
-                  outside={!!hero?.[PLAYER]?.structure && isOutside(ecs, entity)}
+                  outside={
+                    !!hero?.[PLAYER]?.structure && isOutside(ecs, entity)
+                  }
                   inside={inside}
                   generation={getEntityGeneration(ecs, entity)}
                 />
@@ -79,6 +129,6 @@ export default function Systems() {
             .flat()
         )
         .flat()}
-    </>
+    </animated.group>
   );
 }

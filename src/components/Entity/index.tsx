@@ -33,6 +33,7 @@ import { getParticles } from "../../engine/systems/sequence";
 import Dots from "./Dots";
 import { STATS } from "../../engine/components/stats";
 import { getOpaqueOrientation } from "../../game/math/tracing";
+import { MELEE } from "../../engine/components/melee";
 
 function Entity({
   entity,
@@ -150,8 +151,14 @@ function Entity({
     (!!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].stackable ||
       !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].consume);
 
+  const bump = entity[MELEE];
+
   return (
-    <Container position={[x * dimensions.aspectRatio, -y, 0]} spring={config}>
+    <Container
+      position={[x * dimensions.aspectRatio, -y, 0]}
+      spring={config}
+      bump={bump}
+    >
       {isOpaque && isVisible && (
         <Box height={wallHeight} castShadow orientation={opaqueOrientation}>
           <meshBasicMaterial color={colors.black} />

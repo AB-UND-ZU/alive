@@ -521,7 +521,7 @@ export const generateWorld = async (world: World) => {
           flying: false,
         },
         [POSITION]: copy(initialPosition),
-        [PLAYER]: { ghost: true },
+        [PLAYER]: { ghost: true, damageReceived: 0 },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SOUL]: { ready: true },
@@ -1119,7 +1119,7 @@ export const generateWorld = async (world: World) => {
         [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
         [INVENTORY]: { items: [], size: 5 },
-        [MELEE]: {},
+        [MELEE]: { bumpGeneration: 0 },
         [MOVABLE]: {
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
@@ -1164,7 +1164,7 @@ export const generateWorld = async (world: World) => {
         [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
         [INVENTORY]: { items: [], size: 20 },
-        [MELEE]: {},
+        [MELEE]: { bumpGeneration: 0 },
         [MOVABLE]: {
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
@@ -1549,7 +1549,7 @@ export const generateWorld = async (world: World) => {
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [], size: 5 },
-    [MELEE]: {},
+    [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
@@ -1624,7 +1624,7 @@ export const generateWorld = async (world: World) => {
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [], size: 5 },
-    [MELEE]: {},
+    [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
@@ -1726,7 +1726,7 @@ export const generateWorld = async (world: World) => {
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [], size: 5 },
-    [MELEE]: {},
+    [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
@@ -1803,7 +1803,7 @@ export const generateWorld = async (world: World) => {
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [], size: 5 },
-    [MELEE]: {},
+    [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
@@ -1876,7 +1876,7 @@ export const generateWorld = async (world: World) => {
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [], size: 5 },
-    [MELEE]: {},
+    [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
@@ -1953,7 +1953,7 @@ export const generateWorld = async (world: World) => {
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [], size: 5 },
-    [MELEE]: {},
+    [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
@@ -2035,7 +2035,7 @@ export const generateWorld = async (world: World) => {
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [], size: 5 },
-    [MELEE]: {},
+    [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
@@ -2110,7 +2110,7 @@ export const generateWorld = async (world: World) => {
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [], size: 5 },
-    [MELEE]: {},
+    [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),

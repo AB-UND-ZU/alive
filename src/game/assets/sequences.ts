@@ -122,42 +122,30 @@ import { invertOrientation } from "../math/path";
 import { dropEntity } from "../../engine/systems/drop";
 import { EXERTABLE } from "../../engine/components/exertable";
 import { consumptionConfigs } from "../../engine/systems/consume";
+import { PLAYER } from "../../engine/components/player";
 
 export * from "./npcs";
 export * from "./quests";
 
 export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
   // align sword with facing direction
-  const finished = state.elapsed > 150;
+  const finished = state.elapsed > state.args.tick / 2;
   const swordEntity = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
     ORIENTABLE,
   ]);
+  const facing = state.args.facing;
   const currentFacing = swordEntity[ORIENTABLE].facing;
-  const facing = finished ? undefined : state.args.facing;
   const updated = currentFacing !== facing;
-
-  if (!state.particles.hit) {
-    const delta = orientationPoints[state.args.facing];
-    const hitParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: delta.x,
-        offsetY: delta.y,
-        offsetZ: particleHeight,
-        amount: state.args.damage,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: hit,
-    });
-    state.particles.hit = world.getEntityId(hitParticle);
-  }
 
   if (updated) {
     swordEntity[ORIENTABLE].facing = facing;
+    rerenderEntity(world, swordEntity);
   }
 
-  if (finished && state.particles.hit) {
-    disposeEntity(world, world.assertById(state.particles.hit));
-    delete state.particles.hit;
+  if (finished) {
+    entity[MELEE].facing = undefined;
+    swordEntity[ORIENTABLE].facing = undefined;
+    rerenderEntity(world, entity);
   }
 
   return { finished, updated };
@@ -382,6 +370,11 @@ export const damageHit: Sequence<HitSequence> = (world, entity, state) => {
       [SPRITE]: hit,
     });
     state.particles.hit = world.getEntityId(hitParticle);
+
+    // increase total damage counter
+    if (entity[PLAYER]) {
+      entity[PLAYER].damageReceived += state.args.damage;
+    }
   }
 
   if (finished && state.particles.hit) {
@@ -929,8 +922,6 @@ export const tragicDeath: Sequence<PerishSequence> = (world, entity, state) => {
   const ripTime = circleTime + 500;
   const spawnTime = ripTime + 500;
   const finished = state.elapsed > spawnTime;
-  console.log(state.args.fast);
-  
 
   if (state.elapsed > ripTime && !entity[TOOLTIP].dialogs.length) {
     entity[TOOLTIP].dialogs = [createDialog("RIP")];

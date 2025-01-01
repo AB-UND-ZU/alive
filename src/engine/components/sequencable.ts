@@ -50,7 +50,7 @@ export type CollectSequence = {
 };
 export type UnlockSequence = { origin: Position; itemId: number };
 export type FocusSequence = EmptyObject;
-export type MeleeSequence = { facing: Orientation; damage: number };
+export type MeleeSequence = { tick: number, facing: Orientation };
 export type SpellSequence = {
   amount: number;
   element?: Element;

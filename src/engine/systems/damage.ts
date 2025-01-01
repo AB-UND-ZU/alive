@@ -10,11 +10,15 @@ import { getCell } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
 import { ITEM } from "../components/item";
-import { Orientation, orientationPoints } from "../components/orientable";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientationPoints,
+} from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { isGhost } from "./fate";
 import { createSequence } from "./sequence";
-import { MeleeSequence } from "../components/sequencable";
+import { HitSequence, MeleeSequence } from "../components/sequencable";
 import { BELONGABLE, neutrals, tribes } from "../components/belongable";
 import { Stats, STATS } from "../components/stats";
 
@@ -102,18 +106,19 @@ export default function setupDamage(world: World) {
       const entityId = world.getEntityId(entity);
       const entityReference = world.assertByIdAndComponents(
         entity[MOVABLE].reference,
-        [RENDERABLE]
-      )[RENDERABLE].generation;
+        [RENDERABLE, REFERENCE]
+      );
+      const entityGeneration = entityReference[RENDERABLE].generation;
 
       // skip if reference frame is unchanged
-      if (entityReferences[entityId] === entityReference) continue;
+      if (entityReferences[entityId] === entityGeneration) continue;
 
-      entityReferences[entityId] = entityReference;
+      entityReferences[entityId] = entityGeneration;
 
       // skip if entity has no sword equipped or already interacted
       if (
         !entity[EQUIPPABLE].sword ||
-        entity[MOVABLE].lastInteraction === entityReference
+        entity[MOVABLE].lastInteraction === entityGeneration
       )
         continue;
 
@@ -134,13 +139,14 @@ export default function setupDamage(world: World) {
 
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;
-      entity[MOVABLE].lastInteraction = entityReference;
+      entity[MOVABLE].lastInteraction = entityGeneration;
 
       // do nothing if target is dead and pending decay
       if (isDead(world, targetEntity)) continue;
 
       const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
         ITEM,
+        ORIENTABLE,
       ]);
       const attack = sword[ITEM].amount;
 
@@ -159,13 +165,26 @@ export default function setupDamage(world: World) {
 
       targetEntity[STATS].hp = hp;
 
-      // handle attacking
+      // perform bump
+      entity[MELEE].facing = targetOrientation;
+      entity[MELEE].bumpGeneration = entity[RENDERABLE].generation;
+
+      // animate sword orientation
       createSequence<"melee", MeleeSequence>(
         world,
         entity,
         "melee",
         "swordAttack",
-        { facing: targetOrientation, damage }
+        { facing: targetOrientation, tick: entityReference[REFERENCE].tick }
+      );
+
+      // create hit marker
+      createSequence<"hit", HitSequence>(
+        world,
+        targetEntity,
+        "hit",
+        "damageHit",
+        { damage: damage }
       );
 
       rerenderEntity(world, targetEntity);
