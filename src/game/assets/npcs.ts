@@ -21,7 +21,7 @@ import { collectItem } from "../../engine/systems/collect";
 import { disposeEntity, getCell, moveEntity } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { lockDoor } from "../../engine/systems/trigger";
-import { add, getDistance, normalize } from "../math/std";
+import { add, getDistance, normalize, signedDistance } from "../math/std";
 import { initialPosition, menuArea } from "../levels/areas";
 import {
   addBackground,
@@ -31,7 +31,7 @@ import {
   createCountable,
   fog,
   goldKey,
-  pointer,
+  questPointer,
 } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 import { isDead } from "../../engine/systems/damage";
@@ -53,6 +53,8 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
     finished: false,
     updated: false,
   };
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const { townPosition, townWidth, townHeight } = state.args.memory;
 
   const heroEntity = world.getIdentifierAndComponents("hero", [
     POSITION,
@@ -68,7 +70,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
     return { finished: stage.finished, updated: stage.updated };
   }
 
-  // finish if player reached exit
+  // clear area if player reached exit
   step({
     stage,
     name: START_STEP,
@@ -156,6 +158,30 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
         disposeEntity(world, mountainEntity!);
       }
 
+      return "town";
+    },
+  });
+
+  step({
+    stage,
+    name: "town",
+    isCompleted: () =>
+      heroEntity &&
+      Math.abs(signedDistance(heroEntity[POSITION].x, townPosition.x, size)) <
+        townWidth / 2 &&
+      Math.abs(signedDistance(heroEntity[POSITION].y, townPosition.y, size)) <
+        townHeight / 2,
+    onLeave: () => {
+      heroEntity[SPAWNABLE].position = add(townPosition, {
+        x: 0,
+        y: 1,
+      });
+      const spawnEntity = world.getIdentifier("spawn");
+
+      if (spawnEntity) {
+        moveEntity(world, spawnEntity, heroEntity[SPAWNABLE].position);
+        world.setNeedle(spawnEntity);
+      }
       return END_STEP;
     },
   });
@@ -212,7 +238,8 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     stage,
     name: "quest",
     onEnter: () => {
-      world.offerQuest(entity, "introQuest");
+      world.offerQuest(entity, "introQuest", {});
+
       entity[TOOLTIP].override = undefined;
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].dialogs = [
@@ -579,7 +606,7 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
         [
           ...createDialog("Follow "),
           ...addBackground(
-            [{ layers: pointer.facing!.up!, name: "" }],
+            [{ layers: questPointer.facing!.up!, name: "" }],
             colors.black
           ),
           ...createDialog(" arrow"),

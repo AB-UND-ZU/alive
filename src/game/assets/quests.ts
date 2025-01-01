@@ -3,11 +3,9 @@ import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { POSITION } from "../../engine/components/position";
 import { QuestSequence, Sequence } from "../../engine/components/sequencable";
-import { SPAWNABLE } from "../../engine/components/spawnable";
 import { STATS } from "../../engine/components/stats";
 import { isUnlocked } from "../../engine/systems/action";
-import { moveEntity } from "../../engine/systems/map";
-import { add, getDistance } from "../math/std";
+import { getDistance } from "../math/std";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 
 export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
@@ -36,7 +34,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "sword",
     onEnter: () => {
-      world.setHighlight(world.getIdentifier("wood_two"));
+      world.setHighlight("quest", world.getIdentifier("wood_two"));
       return true;
     },
     isCompleted: () => !!entity[EQUIPPABLE].sword,
@@ -48,7 +46,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "pot",
     onEnter: () => {
-      world.setHighlight(potEntity);
+      world.setHighlight("enemy", potEntity);
       return true;
     },
     isCompleted: () => !potEntity,
@@ -60,7 +58,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "coin",
     onEnter: () => {
-      world.setHighlight(coinEntity);
+      world.setHighlight("quest", coinEntity);
       return true;
     },
     isCompleted: () => !coinEntity,
@@ -72,7 +70,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "prism",
     onEnter: () => {
-      world.setHighlight(prismEntity);
+      world.setHighlight("enemy", prismEntity);
       return true;
     },
     isCompleted: () => !prismEntity,
@@ -83,7 +81,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "collect",
     onEnter: () => {
-      world.setHighlight(guideEntity);
+      world.setHighlight("quest", guideEntity);
       return true;
     },
     isCompleted: () => entity[STATS].coin >= 5,
@@ -107,7 +105,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "door",
     onEnter: () => {
-      world.setHighlight(doorEntity);
+      world.setHighlight("quest", doorEntity);
       return true;
     },
   });
@@ -122,65 +120,13 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () => true,
+    onLeave: () => END_STEP,
   });
 
   return { updated: stage.updated, finished: stage.finished };
 };
 
-const welcomeDistance = 1.3;
-export const townQuest: Sequence<QuestSequence> = (world, entity, state) => {
-  const stage: QuestStage<QuestSequence> = {
-    world,
-    entity,
-    state,
-    finished: false,
-    updated: false,
-  };
-
-  const size = world.metadata.gameEntity[LEVEL].size;
-  const welcomeEntity = world.getIdentifierAndComponents("welcome", [POSITION]);
-
-  step({
-    stage,
-    name: START_STEP,
-    isCompleted: () => !!welcomeEntity,
-    onLeave: () => "search",
-  });
-
-  step({
-    stage,
-    name: "search",
-    onEnter: () => {
-      world.setHighlight(welcomeEntity);
-      return true;
-    },
-    isCompleted: () =>
-      !!welcomeEntity &&
-      getDistance(entity[POSITION], welcomeEntity[POSITION], size) <=
-        welcomeDistance,
-    onLeave: () => {
-      world.setHighlight();
-      if (welcomeEntity) {
-        entity[SPAWNABLE].position = add(welcomeEntity[POSITION], {
-          x: 0,
-          y: 1,
-        });
-        const spawnEntity = world.getIdentifier("spawn");
-
-        if (spawnEntity) {
-          moveEntity(world, spawnEntity, entity[SPAWNABLE].position);
-          world.setNeedle(spawnEntity);
-        }
-      }
-      return END_STEP;
-    },
-  });
-
-  return { updated: stage.updated, finished: stage.finished };
-};
-
-const tombstoneDistance = 3;
-export const tombstoneQuest: Sequence<QuestSequence> = (
+export const waypointQuest: Sequence<QuestSequence> = (
   world,
   entity,
   state
@@ -192,23 +138,32 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
     finished: false,
     updated: false,
   };
+  const { identifier, targetId, distance, highlight } = state.args.memory;
 
-  const tombstoneEntity = world.getEntityByIdAndComponents(state.args.giver, [
-    POSITION,
-  ]);
   const size = world.metadata.gameEntity[LEVEL].size;
+  const targetEntity = identifier
+    ? world.getIdentifierAndComponents(identifier, [POSITION])
+    : world.getEntityByIdAndComponents(targetId || state.args.giver, [
+        POSITION,
+      ]);
 
   step({
     stage,
     name: START_STEP,
+    isCompleted: () => !!targetEntity,
+    onLeave: () => "search",
+  });
+
+  step({
+    stage,
+    name: "search",
     onEnter: () => {
-      world.setHighlight(tombstoneEntity);
+      world.setHighlight(highlight || "quest", targetEntity);
       return true;
     },
     isCompleted: () =>
-      !!tombstoneEntity &&
-      getDistance(entity[POSITION], tombstoneEntity[POSITION], size) <=
-        tombstoneDistance,
+      !!targetEntity &&
+      getDistance(entity[POSITION], targetEntity[POSITION], size) <= distance,
     onLeave: () => {
       world.setHighlight();
       return END_STEP;

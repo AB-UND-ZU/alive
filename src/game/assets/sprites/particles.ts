@@ -690,14 +690,36 @@ export const sleep2 = createText("Z", colors.white)[0];
 
 export const confused = createText("?", colors.white)[0];
 
-export const pointer: Sprite = {
-  name: "arrow_pointer",
+export const questPointer: Sprite = {
+  name: "quest_pointer",
   layers: [],
   facing: {
     up: [{ char: "\u0117", color: colors.lime }],
     right: [{ char: "\u0119", color: colors.lime }],
     down: [{ char: "\u0118", color: colors.lime }],
     left: [{ char: "\u011a", color: colors.lime }],
+  },
+};
+
+export const tombstonePointer: Sprite = {
+  name: "tombstone_pointer",
+  layers: [],
+  facing: {
+    up: [{ char: "\u0117", color: colors.silver }],
+    right: [{ char: "\u0119", color: colors.silver }],
+    down: [{ char: "\u0118", color: colors.silver }],
+    left: [{ char: "\u011a", color: colors.silver }],
+  },
+};
+
+export const enemyPointer: Sprite = {
+  name: "enemy_pointer",
+  layers: [],
+  facing: {
+    up: [{ char: "\u0117", color: colors.red }],
+    right: [{ char: "\u0119", color: colors.red }],
+    down: [{ char: "\u0118", color: colors.red }],
+    left: [{ char: "\u011a", color: colors.red }],
   },
 };
 

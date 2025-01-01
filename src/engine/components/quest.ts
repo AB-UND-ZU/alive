@@ -4,6 +4,7 @@ import * as quests from '../../game/assets/quests'
 
 export type Quest = {
   name: keyof typeof quests;
+  memory: any;
   available: boolean;
   retry: boolean;
 };

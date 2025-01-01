@@ -237,6 +237,7 @@ export const acceptQuest = (world: World, entity: Entity, target: Entity) => {
     world,
     entity,
     target[QUEST].name,
+    target[QUEST].memory,
     world.assertById(entity[ACTIONABLE].quest)
   );
   world.acceptQuest(target);

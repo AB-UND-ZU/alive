@@ -17,7 +17,7 @@ export type VisionSequence = {
   previousLight?: Light;
   fast: boolean;
 };
-export type PerishSequence = EmptyObject;
+export type PerishSequence = { fast: boolean };
 export type PointerSequence = {
   target?: number;
   lastOrientation?: Orientation;

@@ -12,7 +12,7 @@ import {
 import { entities } from "../../engine";
 import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE, Gear, gears } from "../../engine/components/equippable";
-import { FOCUSABLE } from "../../engine/components/focusable";
+import { Focusable, FOCUSABLE } from "../../engine/components/focusable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM, STACK_SIZE } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
@@ -29,7 +29,7 @@ import { PARTICLE } from "../../engine/components/particle";
 import { POSITION } from "../../engine/components/position";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { REVIVABLE } from "../../engine/components/revivable";
-import { SPRITE } from "../../engine/components/sprite";
+import { Sprite, SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { TRACKABLE } from "../../engine/components/trackable";
 import { isUnlocked } from "../../engine/systems/action";
@@ -71,7 +71,6 @@ import {
   ghost,
   hit,
   none,
-  pointer,
   waveCorner,
   wave,
   woodStick,
@@ -81,6 +80,9 @@ import {
   flask2,
   flask1,
   getStatSprite,
+  questPointer,
+  enemyPointer,
+  tombstonePointer,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -920,13 +922,15 @@ export const changeRadius: Sequence<VisionSequence> = (
   return { finished, updated };
 };
 
-const ripTime = visionTime + 500;
-const spawnTime = ripTime + 500;
-
 // how unfortunate
 export const tragicDeath: Sequence<PerishSequence> = (world, entity, state) => {
   let updated = false;
+  const circleTime = state.args.fast ? visionTime / 2 : visionTime;
+  const ripTime = circleTime + 500;
+  const spawnTime = ripTime + 500;
   const finished = state.elapsed > spawnTime;
+  console.log(state.args.fast);
+  
 
   if (state.elapsed > ripTime && !entity[TOOLTIP].dialogs.length) {
     entity[TOOLTIP].dialogs = [createDialog("RIP")];
@@ -1357,7 +1361,11 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-const lineSprites = createText("─┐│┘─└│┌", colors.lime);
+const lineSprites: Record<NonNullable<Focusable["highlight"]>, Sprite[]> = {
+  quest: createText("─┐│┘─└│┌", colors.lime),
+  enemy: createText("─┐│┘─└│┌", colors.red),
+  tombstone: createText("─┐│┘─└│┌", colors.silver),
+};
 
 export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
   const finished = false;
@@ -1424,7 +1432,12 @@ export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
         [SPRITE]
       );
       const particleIndex = i % 4;
-      particle[SPRITE] = particleIndex === focusIndex ? lineSprites[i] : none;
+      particle[SPRITE] =
+        particleIndex === focusIndex
+          ? lineSprites[
+              (entity[FOCUSABLE].highlight as Focusable["highlight"])!
+            ][i]
+          : none;
     }
 
     updated = true;
@@ -1626,6 +1639,12 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
+const pointers: Record<NonNullable<Focusable["highlight"]>, Sprite> = {
+  quest: questPointer,
+  enemy: enemyPointer,
+  tombstone: tombstonePointer,
+};
+
 export const pointerArrow: Sequence<PointerSequence> = (
   world,
   entity,
@@ -1658,7 +1677,7 @@ export const pointerArrow: Sequence<PointerSequence> = (
         duration: 400,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: pointer,
+      [SPRITE]: pointers[highlighEntity[FOCUSABLE].highlight!],
     });
     state.particles.pointer = world.getEntityId(pointerParticle);
     updated = true;

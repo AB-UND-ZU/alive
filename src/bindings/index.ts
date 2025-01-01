@@ -1145,7 +1145,7 @@ export const generateWorld = async (world: World) => {
         },
       });
       populateInventory(world, guideEntity, items, equipments);
-      npcSequence(world, guideEntity, "guideNpc");
+      npcSequence(world, guideEntity, "guideNpc", {});
 
       world.setIdentifier(guideEntity, "guide");
     } else if (cell === "mob" || cell === "prism") {
@@ -1494,7 +1494,11 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: none,
     [VIEWABLE]: { active: true, fraction: { x: 0, y: -0.5 } },
   });
-  npcSequence(world, viewpointEntity, "worldNpc");
+  npcSequence(world, viewpointEntity, "worldNpc", {
+    townPosition: { x: townX, y: townY },
+    townWidth,
+    townHeight,
+  });
   world.setIdentifier(viewpointEntity, "viewpoint");
 
   // prevent revealing fog with large menu light range
@@ -1524,9 +1528,12 @@ export const generateWorld = async (world: World) => {
       nextDialog: -1,
     },
   });
-  npcSequence(world, signEntity, "signNpc");
+  npcSequence(world, signEntity, "signNpc", {});
   world.setIdentifier(signEntity, "sign");
-  world.offerQuest(signEntity, "townQuest");
+  world.offerQuest(signEntity, "waypointQuest", {
+    identifier: "welcome",
+    distance: 1.3,
+  });
 
   // postprocess nomad
   const nomadHouse = { position: { x: nomadX - 1, y: nomadY - 1 } };

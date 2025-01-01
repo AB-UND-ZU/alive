@@ -47,6 +47,7 @@ import { emptyStats, STATS } from "../components/stats";
 import { getHasteInterval } from "./movement";
 import { PUSHABLE } from "../components/pushable";
 import { AFFECTABLE } from "../components/affectable";
+import { defaultLight } from "./consume";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -123,6 +124,10 @@ export default function setupFate(world: World) {
         world.setNeedle();
         world.setHighlight();
 
+        const hasTorch = 
+              entity[LIGHT].visibility > defaultLight.visibility &&
+              entity[LIGHT].brightness > defaultLight.brightness;
+
         // create tombstone and play RIP animation
         const tombstoneEntity = entities.createTombstone(world, {
           [FOG]: { visibility: "visible", type: "terrain" },
@@ -139,7 +144,7 @@ export default function setupFate(world: World) {
           tombstoneEntity,
           "perish",
           "tragicDeath",
-          {}
+          { fast: !hasTorch }
         );
         registerEntity(world, tombstoneEntity);
 
@@ -209,7 +214,7 @@ export default function setupFate(world: World) {
           "changeRadius",
           {
             light: { visibility: 1.5, brightness: 1.5, darkness: 0 },
-            fast: false,
+            fast: hasTorch
           }
         );
         registerEntity(world, haloEntity);
@@ -320,7 +325,13 @@ export default function setupFate(world: World) {
         // set waypoint quest to tombstone
         const tombstoneEntity = world.getEntityById(entity[SOUL].tombstoneId);
         if (tombstoneEntity) {
-          questSequence(world, heroEntity, "tombstoneQuest", tombstoneEntity);
+          questSequence(
+            world,
+            heroEntity,
+            "waypointQuest",
+            { distance: 3, highlight: "tombstone" },
+            tombstoneEntity
+          );
         }
 
         // set needle to spawn

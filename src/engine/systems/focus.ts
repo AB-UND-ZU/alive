@@ -42,6 +42,7 @@ export default function setupFocus(world: World) {
         !isDead(world, heroEntity)
       ) {
         entity[FOCUSABLE].pendingTarget = compassEntity[ITEM].carrier;
+        entity[FOCUSABLE].highlight = "quest";
         pendingId = entity[FOCUSABLE].pendingTarget;
       }
 

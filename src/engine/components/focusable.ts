@@ -4,6 +4,7 @@ import { World } from "../ecs";
 export type Focusable = {
   target?: number;
   pendingTarget?: number;
+  highlight?: "quest" | "tombstone" | "enemy";
 };
 
 export const FOCUSABLE = "FOCUSABLE";

@@ -11,7 +11,7 @@ import { LEVEL } from "./components/level";
 import { IDENTIFIABLE } from "./components/identifiable";
 import { Quest, QUEST } from "./components/quest";
 import { TRACKABLE } from "./components/trackable";
-import { FOCUSABLE } from "./components/focusable";
+import { Focusable, FOCUSABLE } from "./components/focusable";
 import { TOOLTIP } from "./components/tooltip";
 import { pending, quest as questSprite } from "../game/assets/sprites";
 import { rerenderEntity } from "./systems/renderer";
@@ -160,13 +160,19 @@ export default function createWorld(size: number) {
   const offerQuest = (
     entity: ECSEntity,
     name: Quest["name"],
+    memory: any,
     retry: boolean = true
   ) => {
     if (entity[QUEST]) {
       entity[QUEST].name = name;
       entity[QUEST].available = true;
     } else {
-      addComponentToEntity(entity, QUEST, { name, available: true, retry });
+      addComponentToEntity(entity, QUEST, {
+        name,
+        available: true,
+        retry,
+        memory,
+      });
     }
     entity[TOOLTIP].idle = questSprite;
   };
@@ -190,7 +196,11 @@ export default function createWorld(size: number) {
     )
       return;
 
-    offerQuest(giverEntity, activeQuest.name as Quest["name"]);
+    offerQuest(
+      giverEntity,
+      activeQuest.name as Quest["name"],
+      giverEntity[QUEST].memory
+    );
   };
 
   const setIdentifier = (entity: TypedEntity, identifier: string) => {
@@ -231,8 +241,11 @@ export default function createWorld(size: number) {
     return getEntityComponents(entity, componentNames);
   };
 
-  const setHighlight = (entity?: TypedEntity) => {
-    const entityId = entity && getEntityId(entity);
+  const setHighlight = (
+    highlight?: Focusable["highlight"],
+    entity?: TypedEntity
+  ) => {
+    const entityId = highlight && entity && getEntityId(entity);
     const focusEntity = getIdentifierAndComponents("focus", [
       FOCUSABLE,
       TRACKABLE,
@@ -242,6 +255,7 @@ export default function createWorld(size: number) {
     if (!focusEntity) return;
 
     focusEntity[FOCUSABLE].pendingTarget = entityId;
+    focusEntity[FOCUSABLE].highlight = highlight;
     focusEntity[TRACKABLE].target = heroEntity && getEntityId(heroEntity);
     rerenderEntity(ecs, focusEntity);
   };

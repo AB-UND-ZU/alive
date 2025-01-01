@@ -16,22 +16,24 @@ export const END_STEP = "END_STEP";
 export const npcSequence = (
   world: World,
   entity: Entity,
-  name: keyof typeof npcTypes
+  name: keyof typeof npcTypes,
+  memory: any
 ) =>
   createSequence<"npc", NpcSequence>(world, entity, "npc", name, {
     step: START_STEP,
-    memory: {},
+    memory,
   });
 
 export const questSequence = (
   world: World,
   entity: Entity,
   name: keyof typeof questTypes,
-  giver: Entity,
+  memory: any,
+  giver: Entity
 ) =>
   createSequence<"quest", QuestSequence>(world, entity, "quest", name, {
     step: START_STEP,
-    memory: {},
+    memory,
     giver: world.getEntityId(giver),
   });
 
