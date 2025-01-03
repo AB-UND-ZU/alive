@@ -100,7 +100,13 @@ export default function setupAi(world: World) {
                 y: spawnPosition.y,
               };
               spawnPosition.x = newPosition.x;
-              if (!getBiomes(world, newPosition).includes("desert")) break;
+              if (
+                !(
+                  getBiomes(world, newPosition).includes("desert") ||
+                  getBiomes(world, newPosition).includes("path")
+                )
+              )
+                break;
             }
             moveEntity(world, entity, spawnPosition);
             pattern.memory.hidden = false;
@@ -124,7 +130,10 @@ export default function setupAi(world: World) {
             )
           ) {
             if (
-              !getBiomes(world, facingPosition).includes("desert") ||
+              !(
+                getBiomes(world, facingPosition).includes("desert") ||
+                getBiomes(world, facingPosition).includes("path")
+              ) ||
               getOpaque(world, facingPosition)
             ) {
               entity[FOG].fixed = true;

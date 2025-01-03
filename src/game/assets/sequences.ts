@@ -976,9 +976,12 @@ export const itemCollect: Sequence<CollectSequence> = (
   const distance = getDistance(entity[POSITION], state.args.origin, size);
   const lootDelay =
     MOVABLE in entity
-      ? world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
-          REFERENCE
-        ].tick - 50
+      ? Math.min(
+          200,
+          world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
+            REFERENCE
+          ].tick - 50
+        )
       : lootSpeed * distance;
 
   // add item to player's inventory

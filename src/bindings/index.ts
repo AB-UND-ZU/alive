@@ -73,7 +73,7 @@ import { BEHAVIOUR } from "../engine/components/behaviour";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { MELEE } from "../engine/components/melee";
 import { ITEM } from "../engine/components/item";
-import { ORIENTABLE } from "../engine/components/orientable";
+import { ORIENTABLE, orientationPoints } from "../engine/components/orientable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import {
   initialPosition,
@@ -104,6 +104,13 @@ import { ACTIONABLE } from "../engine/components/actionable";
 import {
   basementLeftInside,
   basementRightInside,
+  bedCenter,
+  bedEndLeft,
+  bedEndRight,
+  bedHeadLeft,
+  bedHeadRight,
+  chairLeft,
+  chairRight,
   fence,
   house,
   houseAid,
@@ -124,6 +131,7 @@ import {
   roofUpRight,
   roofUpRightInside,
   sign,
+  table,
   wallInside,
   window,
   windowInside,
@@ -151,7 +159,7 @@ import { AFFECTABLE } from "../engine/components/affectable";
 import { assignBuilding, insertArea, populateInventory } from "./creation";
 import { getItemPrice } from "../game/balancing/trading";
 import { getGearStat } from "../game/balancing/equipment";
-import { findPath } from "../game/math/path";
+import { findPath, invertOrientation } from "../game/math/path";
 import { FRAGMENT } from "../engine/components/fragment";
 import { STRUCTURABLE } from "../engine/components/structurable";
 import { registerEntity } from "../engine/systems/map";
@@ -411,6 +419,7 @@ export const generateWorld = async (world: World) => {
     traderHouse,
     druidHouse,
     mageHouse,
+    ...emptyHouses
   ] = houses;
 
   setMatrix(
@@ -667,6 +676,7 @@ export const generateWorld = async (world: World) => {
       });
     } else if (cell === "path") {
       entities.createPath(world, {
+        [ENVIRONMENT]: { biomes: ["path"] },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
@@ -2171,6 +2181,100 @@ export const generateWorld = async (world: World) => {
     add(mageHouse.position, { x: 2, y: 0 }),
     getItemPrice(beamEntity[ITEM])
   );
+
+  // empty houses
+  for (const emptyHouse of emptyHouses) {
+    // add furniture
+    const furnitureOrientation = (["left", "right"] as const)[random(0, 1)];
+    const invertFurniture = invertOrientation(
+      furnitureOrientation
+    ) as typeof furnitureOrientation;
+    const chairSprites = { left: chairLeft, right: chairRight };
+    const bedHeadSprites = { left: bedHeadLeft, right: bedHeadRight };
+    const bedEndSprites = { left: bedEndLeft, right: bedEndRight };
+    if (random(0, 1) === 0) {
+      // create bed
+      entities.createTerrain(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [POSITION]: add(
+          emptyHouse.position,
+          orientationPoints[invertFurniture]
+        ),
+        [SPRITE]: bedHeadSprites[invertFurniture],
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      });
+      entities.createTerrain(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [POSITION]: emptyHouse.position,
+        [SPRITE]: bedCenter,
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      });
+      entities.createTerrain(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [POSITION]: add(
+          emptyHouse.position,
+          orientationPoints[furnitureOrientation]
+        ),
+        [SPRITE]: bedEndSprites[furnitureOrientation],
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      });
+    } else {
+      // create table and chairs
+      entities.createTerrain(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [POSITION]: copy(emptyHouse.position),
+        [SPRITE]: table,
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      });
+      entities.createGround(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [POSITION]: add(
+          emptyHouse.position,
+          orientationPoints[furnitureOrientation]
+        ),
+        [SPRITE]: chairSprites[furnitureOrientation],
+        [RENDERABLE]: { generation: 0 },
+      });
+      if (random(0, 1) === 0) {
+        entities.createGround(world, {
+          [FOG]: { visibility: "hidden", type: "terrain" },
+          [POSITION]: add(
+            emptyHouse.position,
+            orientationPoints[invertFurniture]
+          ),
+          [SPRITE]: chairSprites[invertFurniture],
+          [RENDERABLE]: { generation: 0 },
+        });
+      }
+    }
+
+    // add chest
+    const chestData = generateUnitData("commonChest");
+    const chestEntity = entities.createChest(world, {
+      [ATTACKABLE]: {},
+      [BELONGABLE]: { faction: chestData.faction },
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false },
+      [INVENTORY]: { items: [], size: 20 },
+      [FOG]: { visibility: "hidden", type: "terrain" },
+      [POSITION]: add(emptyHouse.position, { x: random(0, 1) * 4 - 2, y: 0 }),
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: chestData.sprite,
+      [STATS]: { ...emptyStats, ...chestData.stats },
+      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+    });
+    populateInventory(
+      world,
+      chestEntity,
+      chestData.items,
+      chestData.equipments
+    );
+  }
 
   // register all entities to allow post-processing
   const registerableEntites = world.getEntities([POSITION]);

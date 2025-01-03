@@ -24,10 +24,10 @@ _Spawn area with intro quest_
 ## Classes
 
 - (base: 10/5)
-- Scout: max 50/30 + base 20/10 (can't join tribe, doesn't require account)
-- Knight (helmet): max 60/20 + 1 armor + HP drop on decay
-- Mage (curls): max 40/30 + 1 magic + MP drop on decay
-- Hunter (mohawk): max 50/20 + 1 power + 1 haste
+- Scout: medium max hp + 1 power (can't join tribe, doesn't require account)
+- Knight (helmet): high max hp + 1 armor
+- Mage (curls): high max mp + 1 magic
+- Hunter (mohawk): medium max hp and mp + 1 haste
 
 ## Creatures
 

@@ -396,6 +396,7 @@ export const createOre = entityFactory([
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
 export const createPath = entityFactory([
+  ENVIRONMENT, 
   FOG,
   POSITION,
   RENDERABLE,

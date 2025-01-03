@@ -264,8 +264,8 @@ export const windowInside: Sprite = {
   ],
 };
 
-export const bedLeft: Sprite = {
-  name: "bed_left",
+export const bedHeadLeft: Sprite = {
+  name: "bed_head_left",
   layers: [
     { char: "╞", color: colors.silver },
     { char: "┌", color: colors.maroon },
@@ -274,11 +274,41 @@ export const bedLeft: Sprite = {
   ],
 };
 
-export const bedRight: Sprite = {
-  name: "bed_right",
+export const bedHeadRight: Sprite = {
+  name: "bed_head_right",
+  layers: [
+    { char: "╡", color: colors.silver },
+    { char: "┐", color: colors.maroon },
+    { char: "│", color: colors.black },
+    { char: "|", color: colors.maroon },
+  ],
+};
+
+export const bedCenter: Sprite = {
+  name: "bed_center",
+  layers: [
+    { char: "═", color: colors.silver },
+    { char: "─", color: colors.maroon },
+  ],
+};
+
+export const bedEndRight: Sprite = {
+  name: "bed_end_right",
   layers: [
     { char: "╕", color: colors.silver },
     { char: "┐", color: colors.maroon },
+    { char: "│", color: colors.black },
+    { char: "|", color: colors.maroon },
+    { char: "°", color: colors.black },
+    { char: "'", color: colors.black },
+  ],
+};
+
+export const bedEndLeft: Sprite = {
+  name: "bed_end_right",
+  layers: [
+    { char: "╒", color: colors.silver },
+    { char: "┌", color: colors.maroon },
     { char: "│", color: colors.black },
     { char: "|", color: colors.maroon },
     { char: "°", color: colors.black },

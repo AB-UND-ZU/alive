@@ -1,10 +1,10 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Biome = "desert" | "beach"
+export type Biome = "desert" | "beach" | "path";
 
 export type Environment = {
-  biomes: Biome[]
+  biomes: Biome[];
 };
 
 export const ENVIRONMENT = "ENVIRONMENT";

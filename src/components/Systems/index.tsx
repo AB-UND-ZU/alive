@@ -45,7 +45,7 @@ export default function Systems() {
     const shakeIntensity = damageReceived - damageRef.current;
     if (hero && shakeIntensity > 0) {
       damageRef.current = hero[PLAYER].damageReceived;
-      const shakeDistance = Math.sqrt(shakeIntensity) * shakeFactor;
+      const shakeDistance = (Math.sqrt(shakeIntensity) + 1) * shakeFactor;
       const shakeAngle = random(0, 359);
       const shakeX = Math.sin((shakeAngle / 360) * Math.PI * 2) * shakeDistance;
       const shakeY = Math.cos((shakeAngle / 360) * Math.PI * 2) * shakeDistance;
@@ -53,6 +53,7 @@ export default function Systems() {
       api.start({
         to: async (next) => {
           await next({
+            delay: 50,
             x: shakeX,
             y: shakeY,
           });

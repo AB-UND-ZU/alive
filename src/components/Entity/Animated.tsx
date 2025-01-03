@@ -41,6 +41,7 @@ export default function Animated({
       api.start({
         to: async (next) => {
           await next({
+            immediate: true,
             x: position[0] + bumpX,
             y: position[1] + bumpY,
             z: position[2],
