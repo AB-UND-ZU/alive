@@ -44,6 +44,7 @@ import { STATS } from "../../engine/components/stats";
 import { CASTABLE } from "../../engine/components/castable";
 import * as colors from "./colors";
 import { defaultLight } from "../../engine/systems/consume";
+import { QUEST } from "../../engine/components/quest";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -579,7 +580,10 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
     updated: false,
   };
 
-  const heroEntity = world.getIdentifierAndComponents("hero", [POSITION]);
+  const heroEntity = world.getIdentifierAndComponents("hero", [
+    POSITION,
+    SPAWNABLE,
+  ]);
   const size = world.metadata.gameEntity[LEVEL].size;
   const welcomeEntity = world.getIdentifierAndComponents("welcome", [POSITION]);
 
@@ -614,15 +618,26 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
       ];
       return true;
     },
-    isCompleted: () =>
+  });
+
+  // complete if player is now spawning in town
+  step({
+    stage,
+    name: "finish",
+    forceEnter: () =>
       !!welcomeEntity &&
       !!heroEntity &&
-      getDistance(heroEntity[POSITION], welcomeEntity[POSITION], size) <=
-        welcomeDistance,
+      getDistance(
+        heroEntity[SPAWNABLE].position,
+        welcomeEntity[POSITION],
+        size
+      ) <= welcomeDistance,
+    isCompleted: () => true,
     onLeave: () => {
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].idle = undefined;
       entity[TOOLTIP].dialogs = [];
+      entity[QUEST].available = false;
       return END_STEP;
     },
   });

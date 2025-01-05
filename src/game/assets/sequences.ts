@@ -968,11 +968,22 @@ export const itemCollect: Sequence<CollectSequence> = (
   const lootId = state.particles.loot;
   const itemId = state.args.itemId;
   const size = world.metadata.gameEntity[LEVEL].size;
-  const itemEntity = world.assertByIdAndComponents(itemId, [
+  const itemEntity = world.getEntityByIdAndComponents(itemId, [
     RENDERABLE,
     ITEM,
     SPRITE,
   ]);
+
+  // abort if item has been disposed improperly
+  if (!itemEntity) {
+    if (lootId) {
+      const lootParticle = world.assertById(lootId);
+      disposeEntity(world, lootParticle);
+      delete state.particles.loot;
+    }
+    return { updated, finished: true };
+  }
+
   const distance = getDistance(entity[POSITION], state.args.origin, size);
   const lootDelay =
     MOVABLE in entity

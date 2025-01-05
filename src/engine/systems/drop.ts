@@ -196,7 +196,9 @@ export const createItemInInventory = <
       carrier[EQUIPPABLE][targetEquipment] = itemId;
     }
 
-    carrier[INVENTORY].items.push(itemId);
+    if (!gears.includes(targetEquipment as Gear)) {
+      carrier[INVENTORY].items.push(itemId);
+    }
   } else if (targetConsume || targetStackable) {
     carrier[INVENTORY].items.push(itemId);
   } else if (targetStat) {

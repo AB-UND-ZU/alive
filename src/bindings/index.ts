@@ -367,6 +367,7 @@ export const generateWorld = async (world: World) => {
     if (!value) return;
 
     worldMatrix[x][y] = value;
+    setPath(pathMatrix, x, y, 0);
   });
 
   // insert nomad

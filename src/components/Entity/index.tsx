@@ -126,7 +126,11 @@ function Entity({
   const lootSegments: Segment[] = [];
   if (hasLoot) {
     for (const itemId of entity[INVENTORY]!.items) {
-      const item = ecs.assertByIdAndComponents(itemId, [SPRITE, ITEM]);
+      const item = ecs.getEntityByIdAndComponents(itemId, [SPRITE, ITEM]);
+
+      // skip if item has just been collected
+      if (!item) continue;
+
       lootSegments.push({
         id: itemId,
         sprite: item[SPRITE],

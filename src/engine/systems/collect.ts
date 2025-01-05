@@ -193,8 +193,9 @@ export default function setupCollect(world: World) {
       // skip if entity already interacted
       if (entity[MOVABLE].lastInteraction === entityReference) continue;
 
-      // skip if dead
-      if (isDead(world, entity)) continue;
+      // skip if dead or still collecting
+      if (isDead(world, entity) || getSequence(world, entity, "collect"))
+        continue;
 
       const targetOrientation: Orientation | null =
         entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];

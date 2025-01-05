@@ -116,9 +116,11 @@ export default function setupAi(world: World) {
               entity[STATS].hp = entity[STATS].maxHp;
             }
           } else if (pattern.memory.hidden === false) {
-            entity[FOG].fixed = false;
-            entity[MOVABLE].orientations = ["right"];
-            delete pattern.memory.hidden;
+            if (random(0, 3) === 0) {
+              entity[FOG].fixed = false;
+              entity[MOVABLE].orientations = ["right"];
+              delete pattern.memory.hidden;
+            }
           } else if (entity[ORIENTABLE] && !entity[ORIENTABLE].facing) {
             entity[ORIENTABLE].facing = orientations[random(0, 3)];
           } else if (

@@ -15,12 +15,12 @@ export const heartUp: Sprite = {
 };
 
 export const mana: Sprite = {
-  name: "+1 Mana",
+  name: "Mana",
   layers: [{ char: "\u0103", color: colors.blue }],
 };
 
 export const manaUp: Sprite = {
-  name: "Max \u0103",
+  name: "+1 Mana",
   layers: [
     { char: "\u0103", color: colors.blue },
     { char: "^", color: colors.lime },
