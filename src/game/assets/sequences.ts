@@ -143,9 +143,16 @@ export * from "./quests";
 export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
   // align sword with facing direction
   const finished = state.elapsed > state.args.tick / 2;
-  const swordEntity = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
-    ORIENTABLE,
-  ]);
+  const swordEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].sword,
+    [ORIENTABLE]
+  );
+
+  // abort if wood sword is converted to stick on entity death during animation
+  if (!swordEntity) {
+    return { updated: false, finished: true };
+  }
+
   const facing = state.args.facing;
   const currentFacing = swordEntity[ORIENTABLE].facing;
   const updated = currentFacing !== facing;
