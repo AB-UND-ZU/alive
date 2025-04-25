@@ -19,6 +19,7 @@ import {
   shop,
   arrow,
   getStatSprite,
+  shadow,
 } from "../../game/assets/sprites";
 import { Item, ITEM, STACK_SIZE } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
@@ -38,7 +39,6 @@ import { createSequence, getSequence } from "./sequence";
 import { TypedEntity } from "../entities";
 import { EQUIPPABLE, Gear, gears } from "../components/equippable";
 import { getEntityGeneration } from "./renderer";
-import { PLAYER } from "../components/player";
 import { SHOOTABLE } from "../components/shootable";
 import { Orientation, orientationPoints } from "../components/orientable";
 import {
@@ -47,6 +47,8 @@ import {
   Stats,
   STATS,
 } from "../components/stats";
+import { decayTime, lootSpeed } from "../../game/assets/utils";
+import { SPAWNABLE } from "../components/spawnable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -132,7 +134,8 @@ export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
   factory: (world: World, data: T) => T,
   entity: Omit<T, "ITEM" | "RENDERABLE"> & {
     [ITEM]: Omit<Item, "carrier">;
-  }
+  },
+  drop = true
 ) => {
   const containerEntity = entities.createContainer(world, {
     [FOG]: { visibility: "fog", type: "terrain" },
@@ -141,7 +144,7 @@ export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: none,
+    [SPRITE]: drop ? shadow : none,
     [SWIMMABLE]: { swimming: false },
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
@@ -217,7 +220,8 @@ export const dropEntity = (
   position: Position,
   overrideCenterWalkable?: boolean,
   maxRadius: number = MAX_DROP_RADIUS,
-  orientation?: Orientation
+  orientation?: Orientation,
+  delay?: number
 ) => {
   const stats: Stats = { ...emptyStats, ...entity[STATS] };
   const inventory = [
@@ -241,18 +245,24 @@ export const dropEntity = (
   }
 
   // convert wood sword back to stick
-  const stickIndex = inventory.findIndex((itemId: number) => {
+  const stickId = inventory.find((itemId: number) => {
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
       itemEntity[ITEM].equipment === "sword" &&
       itemEntity[ITEM].material === "wood"
     );
   });
-  if (stickIndex !== -1) {
-    const stickEntity = world.assertById(inventory[stickIndex]);
+  if (stickId) {
+    const stickEntity = world.assertById(stickId);
+    removeFromInventory(world, entity, stickEntity);
+
     disposeEntity(world, stickEntity);
-    inventory.splice(stickIndex, 1);
     stats.stick += 1;
+  }
+
+  // remember if entity was holding a compass
+  if (entity[EQUIPPABLE]?.compass && entity[SPAWNABLE]) {
+    entity[SPAWNABLE].compassId = entity[EQUIPPABLE].compass;
   }
 
   const arrowHits = entity[SHOOTABLE]?.hits || 0;
@@ -346,6 +356,7 @@ export const dropEntity = (
           itemId,
           amount: itemEntity[ITEM].amount,
           drop: true,
+          delay,
         }
       );
     }
@@ -436,6 +447,7 @@ export default function setupDrop(world: World) {
       DROPPABLE,
       RENDERABLE,
       SEQUENCABLE,
+      POSITION,
     ])) {
       if (
         isDead(world, entity) &&
@@ -449,6 +461,15 @@ export default function setupDrop(world: World) {
           "creatureDecay",
           {}
         );
+        dropEntity(
+          world,
+          entity,
+          entity[POSITION],
+          false,
+          MAX_DROP_RADIUS,
+          undefined,
+          lootSpeed + decayTime / 2
+        );
       }
     }
 
@@ -456,12 +477,6 @@ export default function setupDrop(world: World) {
     for (const entity of world.getEntities([DROPPABLE, RENDERABLE, POSITION])) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
         disposeEntity(world, entity, true, false);
-        dropEntity(
-          world,
-          entity,
-          entity[POSITION],
-          entity[PLAYER] ? false : undefined
-        );
       }
     }
 

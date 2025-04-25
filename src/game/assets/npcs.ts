@@ -23,16 +23,7 @@ import { rerenderEntity } from "../../engine/systems/renderer";
 import { lockDoor } from "../../engine/systems/trigger";
 import { add, getDistance, normalize, signedDistance } from "../math/std";
 import { initialPosition, menuArea } from "../levels/areas";
-import {
-  addBackground,
-  button,
-  buttonColor,
-  createDialog,
-  createCountable,
-  fog,
-  goldKey,
-  questPointer,
-} from "./sprites";
+import { button, buttonColor, createDialog, fog } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 import { isDead } from "../../engine/systems/damage";
 import {
@@ -42,7 +33,6 @@ import {
 } from "../../engine/components/sequencable";
 import { STATS } from "../../engine/components/stats";
 import { CASTABLE } from "../../engine/components/castable";
-import * as colors from "./colors";
 import { defaultLight } from "../../engine/systems/consume";
 import { QUEST } from "../../engine/components/quest";
 
@@ -244,7 +234,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
       entity[TOOLTIP].override = undefined;
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].dialogs = [
-        createDialog("Hi stranger."),
+        createDialog("Hi stranger"),
         createDialog("How are you?"),
         isTouch
           ? [
@@ -254,8 +244,8 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
                 layers: [...button.layers, { char, color: buttonColor }],
               })),
             ]
-          : createDialog("Press SPACE."),
-        createDialog("Let's leave."),
+          : createDialog("Press SPACE"),
+        createDialog("Let's leave"),
       ];
       return true;
     },
@@ -332,21 +322,14 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     onEnter: () => {
       entity[TOOLTIP].changed = undefined;
       entity[TOOLTIP].changed = true;
-      entity[TOOLTIP].dialogs = [
-        [
-          ...createDialog("Collect "),
-          ...addBackground(createCountable({ coin: 5 }, "coin")),
-        ],
-      ];
+      entity[TOOLTIP].dialogs = [createDialog("Collect 5 coins")];
       return true;
     },
     isCompleted: () => !!heroEntity && heroEntity[STATS].coin >= 5,
     onLeave: () => {
       entity[TOOLTIP].override = "visible";
       entity[TOOLTIP].changed = true;
-      entity[TOOLTIP].dialogs = [
-        [...createDialog("Use this "), ...addBackground([goldKey])],
-      ];
+      entity[TOOLTIP].dialogs = [createDialog("Use this key")];
       const carrierEntity =
         keyEntity && world.getEntityById(keyEntity[ITEM].carrier);
 
@@ -606,16 +589,7 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
     name: "idle",
     onEnter: () => {
       entity[TOOLTIP].changed = true;
-      entity[TOOLTIP].dialogs = [
-        [
-          ...createDialog("Follow "),
-          ...addBackground(
-            [{ layers: questPointer.facing!.up!, name: "" }],
-            colors.black
-          ),
-          ...createDialog(" arrow"),
-        ],
-      ];
+      entity[TOOLTIP].dialogs = [createDialog("Follow the arrow")];
       return true;
     },
   });

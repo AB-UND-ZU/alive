@@ -10,11 +10,7 @@ import { ITEM, STACK_SIZE } from "../components/item";
 import { ORIENTABLE, orientationPoints } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { createSequence, getSequence } from "./sequence";
-import {
-  ArrowSequence,
-  HitSequence,
-  SEQUENCABLE,
-} from "../components/sequencable";
+import { ArrowSequence, SEQUENCABLE } from "../components/sequencable";
 import { entities } from "..";
 import { PROJECTILE } from "../components/projectile";
 import { SPRITE } from "../components/sprite";
@@ -23,10 +19,15 @@ import { INVENTORY } from "../components/inventory";
 import { removeFromInventory } from "./trigger";
 import { createItemAsDrop, dropEntity } from "./drop";
 import { BELONGABLE } from "../components/belongable";
-import { calculateDamage, isEnemy, isFriendlyFire } from "./damage";
+import {
+  calculateDamage,
+  createAmountMarker,
+  isEnemy,
+  isFriendlyFire,
+} from "./damage";
 import { SHOOTABLE } from "../components/shootable";
 import { isCollision } from "./movement";
-import { isSubmerged } from "./immersion";
+import { isImmersible, isSubmerged } from "./immersion";
 import { collectItem, getCollecting, getLootable } from "./collect";
 import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
@@ -155,9 +156,8 @@ export default function setupBallistics(world: World) {
       // hit crossing enemies
       const isFlying = getSequence(world, entity, "arrow");
       const hitBoxes = [];
-      const oppositeOrientation = invertOrientation(
-        entity[ORIENTABLE]?.facing || "up"
-      );
+      const orientation = entity[ORIENTABLE]?.facing || "up";
+      const oppositeOrientation = invertOrientation(orientation);
 
       if (!isFlying) {
         hitBoxes.push(entity[POSITION]);
@@ -191,15 +191,7 @@ export default function setupBallistics(world: World) {
           targetEntity[STATS].hp = hp;
 
           // add hit marker
-          createSequence<"hit", HitSequence>(
-            world,
-            targetEntity,
-            "hit",
-            "damageHit",
-            {
-              damage: damage,
-            }
-          );
+          createAmountMarker(world, targetEntity, -damage, orientation);
 
           // increment arrow hit counter on target
           if (!isEnemy(world, entity)) {
@@ -279,7 +271,8 @@ export default function setupBallistics(world: World) {
             bound: false,
           },
           [SPRITE]: arrow,
-        }
+        },
+        !isImmersible(world, entity[POSITION])
       );
       const containerEntity = world.assertById(arrowEntity[ITEM].carrier);
       registerEntity(world, containerEntity);

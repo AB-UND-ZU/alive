@@ -7,15 +7,14 @@ import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { getCell } from "./map";
 import { Orientation, orientationPoints } from "../components/orientable";
-import { calculateDamage, isDead } from "./damage";
+import { calculateDamage, createAmountMarker, isDead } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { rerenderEntity } from "./renderer";
-import { createSequence } from "./sequence";
-import { HitSequence } from "../components/sequencable";
 import { STATS } from "../components/stats";
 import { SPIKABLE } from "../components/spikable";
 import { ATTACKABLE } from "../components/attackable";
 import { MELEE } from "../components/melee";
+import { relativeOrientations } from "../../game/math/path";
 
 export const isSpikable = (world: World, entity: Entity) =>
   SPIKABLE in entity && !isDead(world, entity);
@@ -38,10 +37,13 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
 
   target[STATS].hp = hp;
 
+  const orientation = relativeOrientations(
+    world,
+    entity[POSITION],
+    target[POSITION]
+  )[0];
   // animate sting hit
-  createSequence<"hit", HitSequence>(world, target, "hit", "damageHit", {
-    damage,
-  });
+  createAmountMarker(world, target, -damage, orientation);
 
   rerenderEntity(world, target);
 };

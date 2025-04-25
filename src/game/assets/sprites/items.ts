@@ -27,6 +27,15 @@ export const manaUp: Sprite = {
   ],
 };
 
+export const shroom: Sprite = {
+  name: "Shroom",
+  layers: [
+    { char: "\u0106", color: colors.maroon },
+    { char: ":", color: colors.black },
+    { char: ".", color: colors.silver },
+  ],
+};
+
 export const appleDrop: Sprite = {
   name: "Apple",
   layers: [
@@ -35,34 +44,6 @@ export const appleDrop: Sprite = {
     { char: ".", color: colors.black },
     { char: "\u0106", color: colors.red },
   ],
-};
-
-export const plumDrop: Sprite = {
-  name: "Plum",
-  layers: [
-    { char: "\u0106", color: colors.fuchsia },
-    { char: "∙", color: colors.purple },
-    { char: "·", color: colors.fuchsia },
-  ],
-};
-
-export const plum: Sprite = {
-  name: "Plum",
-  layers: [
-    { char: "\u0106", color: colors.fuchsia },
-    { char: "∙", color: colors.purple },
-    { char: "·", color: colors.fuchsia },
-  ],
-  amounts: {
-    single: [
-      { char: "┐", color: colors.maroon },
-      { char: "#", color: colors.green },
-      { char: "\u0106", color: colors.fuchsia },
-      { char: "∙", color: colors.purple },
-      { char: "·", color: colors.fuchsia },
-      { char: ".", color: colors.green },
-    ],
-  },
 };
 
 export const apple: Sprite = {
@@ -158,7 +139,7 @@ export const gem: Sprite = {
 export const crystal: Sprite = {
   name: "Crystal",
   layers: [
-    { char: "\u0106", color: colors.blue },
+    { char: "\u0106", color: colors.teal },
     { char: "÷", color: colors.black },
     { char: "∙", color: colors.blue },
   ],
@@ -319,16 +300,19 @@ export const flowerDrop: Sprite = {
 
 export const flower: Sprite = {
   name: "Flower",
-  layers: [{ char: "\u0106", color: colors.teal }],
+  layers: [
+    { char: ",", color: colors.olive },
+    { char: "\u0106", color: colors.teal },
+  ],
   amounts: {
     single: [
-      { char: "\u0106", color: colors.teal },
       { char: ",", color: colors.olive },
+      { char: "\u0106", color: colors.teal },
     ],
     double: [
+      { char: ",", color: colors.olive },
       { char: "\u0106", color: colors.teal },
       { char: "+", color: colors.teal },
-      { char: ",", color: colors.olive },
     ],
     multiple: [
       { char: ",", color: colors.olive },
@@ -456,6 +440,15 @@ export const algae: Sprite = {
     { char: "v", color: colors.green },
     { char: "|", color: colors.green },
     { char: "~", color: colors.black },
+  ],
+};
+
+export const note: Sprite = {
+  name: "Note",
+  layers: [
+    { char: "\u0115", color: colors.grey },
+    { char: "\u0103", color: colors.silver },
+    { char: "▀", color: colors.black },
   ],
 };
 

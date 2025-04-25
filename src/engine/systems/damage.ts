@@ -18,9 +18,16 @@ import {
 import { EQUIPPABLE } from "../components/equippable";
 import { isGhost } from "./fate";
 import { createSequence } from "./sequence";
-import { HitSequence, MeleeSequence } from "../components/sequencable";
+import {
+  MarkerSequence,
+  MeleeSequence,
+  MessageSequence,
+} from "../components/sequencable";
 import { BELONGABLE, neutrals, tribes } from "../components/belongable";
 import { Stats, STATS } from "../components/stats";
+import * as colors from "../../game/assets/colors";
+import { createText } from "../../game/assets/sprites";
+import { PLAYER } from "../components/player";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -79,6 +86,42 @@ export const calculateDamage = (
   const visibleDamage =
     damage >= 1 ? damage : Math.ceil(defenderStats.hp) > Math.ceil(hp) ? 1 : 0;
   return { damage: visibleDamage, hp };
+};
+
+export const createAmountMarker = (
+  world: World,
+  entity: Entity,
+  amount: number,
+  orientation: Orientation
+) => {
+  createSequence<"marker", MarkerSequence>(
+    world,
+    entity,
+    "marker",
+    "amountMarker",
+    {
+      amount,
+    }
+  );
+  createSequence<"message", MessageSequence>(
+    world,
+    entity,
+    "message",
+    "transientMessage",
+    {
+      message: createText(
+        Math.abs(amount).toString(),
+        amount === 0 ? colors.white : amount > 0 ? colors.lime : colors.red
+      ),
+      orientation,
+      fast: amount <= 0,
+    }
+  );
+
+  // increase total damage counter
+  if (entity[PLAYER] && amount < 0) {
+    entity[PLAYER].damageReceived -= amount;
+  }
 };
 
 export default function setupDamage(world: World) {
@@ -179,13 +222,7 @@ export default function setupDamage(world: World) {
       );
 
       // create hit marker
-      createSequence<"hit", HitSequence>(
-        world,
-        targetEntity,
-        "hit",
-        "damageHit",
-        { damage: damage }
-      );
+      createAmountMarker(world, targetEntity, -damage, targetOrientation);
 
       rerenderEntity(world, targetEntity);
     }

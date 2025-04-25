@@ -4,6 +4,8 @@ import {
   cactus1,
   cactus2,
   commonChest,
+  desertRock1,
+  desertRock2,
   epicChest,
   eye,
   fairy,
@@ -22,8 +24,6 @@ import {
   pot,
   prism,
   rareChest,
-  rock1,
-  rock2,
   scout,
   settler,
   tumbleweed,
@@ -299,7 +299,15 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     hp: 25,
     mp: 0,
     equipments: [],
-    drops: [],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { equipment: "active", active: "bow", amount: 3 },
+          { stackable: "arrow", amount: 10 },
+        ],
+      },
+    ],
     patternNames: [],
     sprite: uncommonChest,
   },
@@ -365,7 +373,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [
       { chance: 40, items: [{ stat: "xp", amount: 1 }] },
       { chance: 10, items: [{ stackable: "apple", amount: 3 }] },
-      { chance: 10, items: [{ stackable: "plum", amount: 3 }] },
+      { chance: 10, items: [{ stackable: "shroom", amount: 3 }] },
       { chance: 10, items: [{ stackable: "gem", amount: 3 }] },
       { chance: 10, items: [{ stackable: "crystal", amount: 3 }] },
       { chance: 10, items: [{ stackable: "banana", amount: 3 }] },
@@ -408,7 +416,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 30, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: rock1,
+    sprite: desertRock1,
   },
   rock2: {
     faction: "unit",
@@ -422,7 +430,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 30, items: [{ stackable: "gem", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: rock2,
+    sprite: desertRock2,
   },
   tumbleweed: {
     faction: "unit",

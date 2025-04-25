@@ -92,7 +92,7 @@ Hills 1 world
 ## Quests
 
 - Kill quest: 5x prism/5x orb/5x eye, 1x gold prism/1x gold orb/1x gold eye
-- Gather quest: 5x apples/plums/coconut/banana/gem/crystal/fish/algae
+- Gather quest: 5x apples/shrooms/coconut/banana/gem/crystal/fish/algae
 
 ## Bosses
 
@@ -506,13 +506,13 @@ T5: legendary (fuchsia)
 
 - mp flask 1 stack
   - 1 flower stack + 3 stick
-  - 3 plum + 3 stick
+  - 3 shroom + 3 stick
   - 3 banana + 3 stick
   - 3 crystal + 3 stick
   - 3 algae + 3 stick
 - mp flask 2 stack
   - 3 flower stack + 1 wood
-  - 10 plum + 1 wood
+  - 10 shroom + 1 wood
   - 10 banana + 1 wood
   - 10 crystal + 1 wood
   - 10 algae + 1 wood
@@ -551,7 +551,6 @@ T5: legendary (fuchsia)
 ## Tech debt
 
 - <Terminal> only rerenders on reference frame changes, but does not listen to displayable entities
-- Attacking should have a bump movement
 - Colors should be available without star import
 - Pressed button could be implemented in ECS system rather than React state
 - Sprite "none" should be obsolete
@@ -566,3 +565,4 @@ T5: legendary (fuchsia)
 - Walking against a wall or pushing a box with faster speed than the box causes a delay for next action even no interaction happened
 - Fire doesn't need to be a sequence
 - For large trees, matrix iteration requires to go column by column
+- New sequences won't start in time if created within another sequence handler

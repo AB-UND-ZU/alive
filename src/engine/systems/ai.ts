@@ -13,7 +13,7 @@ import {
   random,
   signedDistance,
 } from "../../game/math/std";
-import { isDead, isFriendlyFire } from "./damage";
+import { getAttackable, isDead, isFriendlyFire } from "./damage";
 import {
   ORIENTABLE,
   Orientation,
@@ -167,7 +167,8 @@ export default function setupAi(world: World) {
 
           entity[MOVABLE].orientations = [facing];
 
-          const position = add(entity[POSITION], orientationPoints[facing]);
+          const delta = orientationPoints[facing];
+          const position = add(entity[POSITION], delta);
 
           // unable to move, attempt reorienting
           if (!isMovable(world, entity, position)) {
@@ -205,6 +206,35 @@ export default function setupAi(world: World) {
             entity[MOVABLE].orientations = [];
             rerenderEntity(world, entity);
           }
+
+          // show rage if player is in walkable line
+          const PRISM_RANGE = 8;
+          let inWalkableRange = false;
+          for (let range = 1; range <= PRISM_RANGE; range += 1) {
+            const ragePosition = add(entity[POSITION], {
+              x: delta.x * range,
+              y: delta.y * range,
+            });
+            if (!isMovable(world, entity, ragePosition)) break;
+
+            const attackable = getAttackable(world, ragePosition);
+            if (
+              attackable &&
+              !isFriendlyFire(world, entity, attackable) &&
+              entity[TOOLTIP]
+            ) {
+              inWalkableRange = true;
+              break;
+            }
+          }
+          if (inWalkableRange && entity[TOOLTIP] && !entity[TOOLTIP]?.idle) {
+            entity[TOOLTIP].idle = rage;
+            entity[TOOLTIP].changed = true;
+          } else if (!inWalkableRange && entity[TOOLTIP]?.idle) {
+            entity[TOOLTIP].idle = undefined;
+            entity[TOOLTIP].changed = true;
+          }
+
           break;
         } else if (pattern.name === "eye") {
           if (!entity[TOOLTIP]) continue;
@@ -249,8 +279,11 @@ export default function setupAi(world: World) {
             break;
           }
 
-          if (!isMoving) {
+          if (entity[TOOLTIP].idle === rage) {
             entity[TOOLTIP].idle = undefined;
+            entity[TOOLTIP].changed = true;
+          } else if (!isMoving) {
+            entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
           }
 
@@ -382,6 +415,20 @@ export default function setupAi(world: World) {
               1
             );
 
+            // sidestep if against a wall
+            if (fleeingOrientations.length === 1) {
+              const linearOrientation = fleeingOrientations[0];
+              const sidestepOrientation =
+                orientations[
+                  (orientations.indexOf(linearOrientation) +
+                    random(0, 1) * 2 +
+                    3) %
+                    4
+                ];
+              fleeingOrientations.push(sidestepOrientation);
+              fleeingOrientations.push(invertOrientation(sidestepOrientation));
+            }
+
             // only walk every second tick
             if (entity[ORIENTABLE]?.facing) {
               entity[MOVABLE].orientations = [];
@@ -502,6 +549,7 @@ export default function setupAi(world: World) {
           entity[BELONGABLE].faction = "hostile";
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = rage;
+          entity[TOOLTIP].enemy = true;
           entity[TOOLTIP].override = memory.shout ? "visible" : undefined;
           entity[TOOLTIP].dialogs = memory.shout
             ? [createShout(memory.shout)]
@@ -513,6 +561,7 @@ export default function setupAi(world: World) {
           entity[BELONGABLE].faction = "settler";
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = undefined;
+          entity[TOOLTIP].enemy = undefined;
           entity[TOOLTIP].override = undefined;
           entity[TOOLTIP].dialogs = [];
 

@@ -22,7 +22,12 @@ export type PointerSequence = {
   target?: number;
   lastOrientation?: Orientation;
 };
-export type HitSequence = { damage: number };
+export type MarkerSequence = { amount: number };
+export type MessageSequence = {
+  message: Sprite[];
+  orientation: Orientation;
+  fast: boolean;
+};
 export type DecaySequence = EmptyObject;
 export type BurnSequence = { generation: number };
 export type DisposeSequence = EmptyObject;
@@ -47,10 +52,11 @@ export type CollectSequence = {
   drop: boolean;
   amount: number;
   fullStack?: boolean;
+  delay?: number;
 };
 export type UnlockSequence = { origin: Position; itemId: number };
 export type FocusSequence = EmptyObject;
-export type MeleeSequence = { tick: number, facing: Orientation };
+export type MeleeSequence = { tick: number; facing: Orientation };
 export type SpellSequence = {
   amount: number;
   element?: Element;
@@ -76,6 +82,7 @@ export type DialogSequence = {
   lengthOffset: number;
   isDialog: boolean;
   isIdle: boolean;
+  isEnemy: boolean;
   overridden: boolean;
 };
 
@@ -100,7 +107,8 @@ export type Sequencable = {
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;
-    hit?: SequenceState<HitSequence>;
+    marker?: SequenceState<MarkerSequence>;
+    message?: SequenceState<MessageSequence>;
     decay?: SequenceState<DecaySequence>;
     burn?: SequenceState<BurnSequence>;
     dispose?: SequenceState<DisposeSequence>;

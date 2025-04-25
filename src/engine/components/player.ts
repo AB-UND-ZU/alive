@@ -5,6 +5,7 @@ export type Player = {
   ghost: boolean;
   structure?: number;
   damageReceived: number;
+  healingReceived: number;
 };
 
 export const PLAYER = "PLAYER";

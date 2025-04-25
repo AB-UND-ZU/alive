@@ -6,6 +6,14 @@ export const none: Sprite = {
   layers: [],
 };
 
+export const shadow: Sprite = {
+  name: "",
+  layers: [
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+  ],
+};
+
 export const fog: Sprite = {
   name: "fog_hidden",
   // colors.grey with shadow,
@@ -206,6 +214,10 @@ export const grass: Sprite = {
 export const cactus1: Sprite = {
   name: "cactus_one",
   layers: [
+    { char: "░", color: colors.olive },
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+
     { char: "-", color: colors.green },
     { char: "┐", color: colors.black },
     { char: "\u011b", color: colors.green },
@@ -215,7 +227,13 @@ export const cactus1: Sprite = {
 
 export const cactus2: Sprite = {
   name: "cactus_two",
-  layers: [{ char: "¥", color: colors.green }],
+  layers: [
+    { char: "░", color: colors.olive },
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+
+    { char: "¥", color: colors.green },
+  ],
 };
 
 export const tombstone1: Sprite = {
@@ -238,6 +256,33 @@ export const tombstone2: Sprite = {
     { char: "\u0115", color: colors.grey },
     { char: "\u011d", color: colors.grey },
     { char: "\u011f", color: colors.grey },
+  ],
+};
+
+export const desertRock1: Sprite = {
+  name: "",
+  layers: [
+    { char: "░", color: colors.olive },
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+
+    { char: "\u011f", color: colors.grey },
+    { char: "\u0103", color: colors.grey },
+  ],
+};
+
+export const desertRock2: Sprite = {
+  name: "",
+  layers: [
+    { char: "░", color: colors.olive },
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+
+    { char: "\u0105", color: colors.grey },
+    { char: "I", color: colors.black },
+    { char: "+", color: colors.grey },
+    { char: ":", color: colors.grey },
+    { char: ",", color: colors.black },
   ],
 };
 

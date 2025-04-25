@@ -169,7 +169,7 @@ export const itemPrices: Partial<
       { stat: "stick", amount: 3 },
     ],
     water: [
-      { stackable: "plum", amount: 3 },
+      { stackable: "shroom", amount: 3 },
       { stat: "stick", amount: 3 },
     ],
   },
@@ -179,7 +179,7 @@ export const itemPrices: Partial<
       { stackable: "resource", material: "wood", amount: 1 },
     ],
     water: [
-      { stackable: "plum", amount: 10 },
+      { stackable: "shroom", amount: 10 },
       { stackable: "resource", material: "wood", amount: 1 },
     ],
   },

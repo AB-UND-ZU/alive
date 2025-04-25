@@ -182,15 +182,17 @@ export default function setupText(world: World) {
       const isIdle = !isVisible && !isAdjacent;
       const dialogs = tooltipEntity[TOOLTIP].dialogs;
       const dialog = dialogs[tooltipEntity[TOOLTIP].nextDialog] || dialogs[0];
-      const spriteTooltip = createTooltip(
+      const spriteText =
         (lootable &&
           world.assertByIdAndComponents(
             lootable[INVENTORY].items.slice(-1)[0],
             [SPRITE]
           )[SPRITE].name) ||
-          tooltipEntity[SPRITE].name
-      );
+        tooltipEntity[SPRITE].name;
+      const spriteTooltip = spriteText ? createTooltip(spriteText) : [];
       const text = isIdle && idle ? [idle] : dialog || spriteTooltip;
+
+      if (text.length === 0) continue;
 
       if (getSequence(world, tooltipEntity, "dialog")) {
         // let idle dialog disappear
@@ -212,6 +214,7 @@ export default function setupText(world: World) {
             timestamp: 0,
             active: true,
             isDialog: !isIdle && !!dialog,
+            isEnemy: !!tooltipEntity[TOOLTIP].enemy,
             isIdle,
             lengthOffset: 0,
             overridden: tooltipEntity[TOOLTIP].override === "visible",

@@ -56,6 +56,8 @@ export const hit: Sprite = {
   },
 };
 
+export const heal = xp;
+
 export const stream: Sprite = {
   name: "water_stream",
   layers: [{ char: "≈", color: colors.blue }],
@@ -422,7 +424,7 @@ export const createCounter: (amount: number) => Sprite = (amount) => ({
 
 export const addBackground = (
   sprites: Sprite[],
-  background: string = colors.black
+  background: string = colors.white
 ) =>
   sprites.map((sprite) => ({
     name: sprite.name,
@@ -444,12 +446,162 @@ export const createText: (
   return sprites;
 };
 
-export const createDialog = (text: string) =>
-  createText(text, colors.white, colors.black);
-export const createShout = (text: string) =>
-  createText(text, colors.red, colors.black);
-export const createTooltip = (text: string) =>
-  createText(text, "#404040", colors.black); // 50% of grey
+export const dialogStart: Sprite = {
+  name: "dialog_start",
+  layers: [
+    { char: "▐", color: colors.white },
+    { char: "║", color: colors.silver },
+    { char: "▌", color: colors.black },
+    { char: "│", color: colors.grey },
+  ],
+};
+
+export const dialogEnd: Sprite = {
+  name: "dialog_end",
+  layers: [
+    { char: "▌", color: colors.silver },
+    { char: "║", color: colors.grey },
+    { char: "▐", color: colors.black },
+  ],
+};
+
+export const shoutStart: Sprite = {
+  name: "shout_start",
+  layers: [
+    { char: "▐", color: colors.red },
+    { char: "│", color: colors.maroon },
+  ],
+};
+
+export const shoutEnd: Sprite = {
+  name: "shout_end",
+  layers: [
+    { char: "▌", color: colors.red },
+    { char: "│", color: colors.maroon },
+  ],
+};
+
+export const separatorOut: Sprite = {
+  name: "separator_out",
+  layers: [
+    { char: "▌", color: colors.white },
+    { char: "■", color: colors.black },
+    // { char: "\u0101", color: colors.black },
+  ],
+};
+
+export const separatorIn: Sprite = {
+  name: "separator_in",
+  layers: [
+    { char: "▐", color: colors.white },
+    { char: "■", color: colors.black },
+    // { char: "\u010f", color: colors.black },
+    // { char: "\u0101", color: colors.black },
+  ],
+};
+
+export const bubbleUp: Sprite = {
+  name: "bubble_up",
+  layers: [
+    { char: "╙", color: colors.silver },
+    { char: "-", color: colors.black },
+    { char: "└", color: colors.white },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const bubbleRight: Sprite = {
+  name: "bubble_right",
+  layers: [
+    { char: "╜", color: colors.silver },
+    { char: "-", color: colors.black },
+    { char: "┘", color: colors.white },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const bubbleDown: Sprite = {
+  name: "bubble_down",
+  layers: [
+    { char: "╖", color: colors.silver },
+    { char: "-", color: colors.black },
+    { char: "┐", color: colors.white },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const bubbleLeft: Sprite = {
+  name: "bubble_left",
+  layers: [
+    { char: "╓", color: colors.silver },
+    { char: "-", color: colors.black },
+    { char: "┌", color: colors.white },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const shoutUp: Sprite = {
+  name: "shout_up",
+  layers: [
+    { char: "╙", color: colors.maroon },
+    { char: "-", color: colors.black },
+    { char: "└", color: colors.red },
+    { char: "·", color: colors.maroon },
+  ],
+};
+
+export const shoutRight: Sprite = {
+  name: "shout_right",
+  layers: [
+    { char: "╜", color: colors.maroon },
+    { char: "-", color: colors.black },
+    { char: "┘", color: colors.red },
+    { char: "·", color: colors.maroon },
+  ],
+};
+
+export const shoutDown: Sprite = {
+  name: "shout_down",
+  layers: [
+    { char: "╖", color: colors.maroon },
+    { char: "-", color: colors.black },
+    { char: "┐", color: colors.red },
+    { char: "·", color: colors.maroon },
+  ],
+};
+
+export const shoutLeft: Sprite = {
+  name: "shout_left",
+  layers: [
+    { char: "╓", color: colors.maroon },
+    { char: "-", color: colors.black },
+    { char: "┌", color: colors.red },
+    { char: "·", color: colors.maroon },
+  ],
+};
+
+export const createDialog = (...content: (string | Sprite[])[]) => [
+  dialogStart,
+  ...content
+    .map((textOrSprite) =>
+      typeof textOrSprite === "string"
+        ? createText(textOrSprite, colors.black, colors.white)
+        : textOrSprite
+    )
+    .flat(),
+  dialogEnd,
+];
+export const createAggro = (text: string) => createText(text, colors.red);
+export const createShout = (text: string) => [
+  shoutStart,
+  ...createText(text, colors.black, colors.red),
+  shoutEnd,
+];
+export const createTooltip = (text: string) => [
+  ...createText("▐", colors.black),
+  ...createText(text, colors.grey, colors.black),
+  ...createText("▌", colors.black),
+];
 
 export const buttonColor = colors.black;
 export const buttonBackground = colors.white;
@@ -683,7 +835,7 @@ export const pending = createText("!", colors.grey)[0];
 
 export const shop = createText("$", colors.lime)[0];
 
-export const rage = createShout("\u0112")[0];
+export const rage = createAggro("\u0112")[0];
 
 export const sleep1 = createText("z", colors.white)[0];
 export const sleep2 = createText("Z", colors.white)[0];

@@ -83,6 +83,16 @@ import {
   questPointer,
   enemyPointer,
   tombstonePointer,
+  bubbleUp,
+  bubbleRight,
+  bubbleDown,
+  bubbleLeft,
+  shoutUp,
+  shoutRight,
+  shoutDown,
+  shoutLeft,
+  shadow,
+  heal,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -94,8 +104,9 @@ import {
   DialogSequence,
   DisposeSequence,
   FocusSequence,
-  HitSequence,
+  MarkerSequence,
   MeleeSequence,
+  MessageSequence,
   PerishSequence,
   PointerSequence,
   ReviveSequence,
@@ -118,10 +129,12 @@ import {
 import { PROJECTILE } from "../../engine/components/projectile";
 import { getGearStat } from "../balancing/equipment";
 import { STATS } from "../../engine/components/stats";
-import { invertOrientation } from "../math/path";
+import { invertOrientation, relativeOrientations } from "../math/path";
 import { dropEntity } from "../../engine/systems/drop";
 import { EXERTABLE } from "../../engine/components/exertable";
 import { consumptionConfigs } from "../../engine/systems/consume";
+import { decayTime, lootSpeed } from "./utils";
+import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
 
 export * from "./npcs";
@@ -354,39 +367,81 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-export const damageHit: Sequence<HitSequence> = (world, entity, state) => {
-  const finished = state.elapsed > 150;
-  const updated = false;
+const markerDuration = 150;
+const healMultiplier = 2;
 
-  if (!state.particles.hit) {
-    const hitParticle = entities.createParticle(world, {
+export const amountMarker: Sequence<MarkerSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const markerTime =
+    state.args.amount > 0 ? healMultiplier * markerDuration : markerDuration;
+  const finished = state.elapsed > markerTime;
+  let updated = false;
+
+  if (!state.particles.marker) {
+    const markerParticle = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX: 0,
         offsetY: 0,
         offsetZ: particleHeight,
-        amount: state.args.damage,
+        amount: Math.abs(state.args.amount),
+        duration: markerTime,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: hit,
+      [SPRITE]: state.args.amount > 0 ? heal : hit,
     });
-    state.particles.hit = world.getEntityId(hitParticle);
-
-    // increase total damage counter
-    if (entity[PLAYER]) {
-      entity[PLAYER].damageReceived += state.args.damage;
-    }
+    state.particles.marker = world.getEntityId(markerParticle);
   }
 
-  if (finished && state.particles.hit) {
-    disposeEntity(world, world.assertById(state.particles.hit));
-    delete state.particles.hit;
+  if (state.elapsed > markerTime && state.particles.marker) {
+    disposeEntity(world, world.assertById(state.particles.marker));
+    delete state.particles.marker;
+  }
+
+  return { finished, updated };
+};
+
+const messageDuration = 400;
+
+export const transientMessage: Sequence<MessageSequence> = (
+  world,
+  entity,
+  state
+) => {
+  // currently only supports one character
+  const messageTime = state.args.fast
+    ? messageDuration
+    : healMultiplier * messageDuration;
+  const finished = state.elapsed > messageTime;
+  let updated = false;
+
+  if (!state.particles.counter) {
+    const counterParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: state.args.orientation === "down" ? 3 : -3,
+        offsetZ: tooltipHeight,
+        animatedOrigin: { x: 0, y: state.args.orientation === "down" ? 1 : -1 },
+        duration: messageTime,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: state.args.message[0],
+    });
+    state.particles.counter = world.getEntityId(counterParticle);
+  }
+
+  if (state.elapsed > messageTime && state.particles.counter) {
+    disposeEntity(world, world.assertById(state.particles.counter));
+    delete state.particles.counter;
+    updated = true;
   }
 
   return { finished, updated };
 };
 
 const haltTime = 200;
-const decayTime = 500;
 
 export const creatureDecay: Sequence<DecaySequence> = (
   world,
@@ -394,7 +449,7 @@ export const creatureDecay: Sequence<DecaySequence> = (
   state
 ) => {
   let updated = false;
-  const finished = state.elapsed > decayTime;
+  const finished = state.elapsed > haltTime + decayTime;
 
   // create death particle
   if (!state.particles.decay && state.elapsed > haltTime && !finished) {
@@ -955,8 +1010,6 @@ export const entityDispose: Sequence<DisposeSequence> = (
   return { finished, updated };
 };
 
-const lootSpeed = 200;
-
 export const itemCollect: Sequence<CollectSequence> = (
   world,
   entity,
@@ -985,6 +1038,7 @@ export const itemCollect: Sequence<CollectSequence> = (
   }
 
   const distance = getDistance(entity[POSITION], state.args.origin, size);
+  const delay = state.args.delay || 0;
   const lootDelay =
     MOVABLE in entity
       ? Math.min(
@@ -996,7 +1050,7 @@ export const itemCollect: Sequence<CollectSequence> = (
       : lootSpeed * distance;
 
   // add item to player's inventory
-  if (state.elapsed >= lootDelay) {
+  if (state.elapsed >= lootDelay + delay) {
     if (lootId) {
       const lootParticle = world.assertById(lootId);
       disposeEntity(world, lootParticle);
@@ -1008,6 +1062,11 @@ export const itemCollect: Sequence<CollectSequence> = (
       entity[LOOTABLE].disposable = true;
       itemEntity[ITEM].carrier = entityId;
       entity[INVENTORY].items.push(itemId);
+
+      // set background
+      if (!isImmersible(world, entity[POSITION])) {
+        entity[SPRITE] = shadow;
+      }
     } else {
       let targetEquipment = itemEntity[ITEM].equipment;
       let targetStat = itemEntity[ITEM].stat;
@@ -1080,6 +1139,10 @@ export const itemCollect: Sequence<CollectSequence> = (
           entity[STATS][targetStat] + state.args.amount,
           maximum
         );
+
+        if (entity[PLAYER] && targetStat === "hp") {
+          entity[PLAYER].healingReceived += state.args.amount;
+        }
       } else if (targetStackable) {
         // add to existing stack if available
         const existingStack = getStackable(world, entity, itemEntity[ITEM]);
@@ -1109,7 +1172,7 @@ export const itemCollect: Sequence<CollectSequence> = (
   }
 
   // create loot particle
-  if (!lootId && state.elapsed < lootDelay) {
+  if (!lootId && state.elapsed >= delay && state.elapsed < lootDelay + delay) {
     const delta = {
       x: signedDistance(entity[POSITION].x, state.args.origin.x, size),
       y: signedDistance(entity[POSITION].y, state.args.origin.y, size),
@@ -1136,7 +1199,7 @@ export const itemCollect: Sequence<CollectSequence> = (
   return { finished, updated };
 };
 
-const consumeSpeed = 350;
+const consumeSpeed = 500;
 
 export const flaskConsume: Sequence<ConsumeSequence> = (
   world,
@@ -1144,10 +1207,9 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
   state
 ) => {
   let updated = false;
-  const finished = state.elapsed >= consumeSpeed * 3;
+  const finished = state.elapsed >= consumeSpeed * 2;
   const consumableId = state.particles.consumable;
   const countableId = state.particles.countable;
-  const decayId = state.particles.decay;
   const itemId = state.args.itemId;
   const itemEntity = world.getEntityByIdAndComponents(itemId, [
     RENDERABLE,
@@ -1163,8 +1225,8 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     return { finished: true, updated: false };
   }
 
-  // process item consumption and decay flask
-  if (!decayId && state.elapsed >= consumeSpeed * 2) {
+  // process item consumption and show amount marker
+  if (countableId && state.elapsed >= consumeSpeed * 2) {
     const maxCountable = getMaxCounter(consumptionConfig.countable);
     entity[STATS][consumptionConfig.countable] = Math.min(
       entity[STATS][maxCountable],
@@ -1181,12 +1243,11 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
       delete state.particles.countable;
     }
 
-    const decayParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: 0, offsetY: -1, offsetZ: lootHeight },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: decay,
-    });
-    state.particles.decay = world.getEntityId(decayParticle);
+    // queue healing effect
+    if (entity[PLAYER] && consumptionConfig.countable === "hp") {
+      entity[PLAYER].healingReceived += consumptionConfig.amount;
+    }
+
     updated = true;
   }
 
@@ -1195,7 +1256,7 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     const consumableParticle = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX: 0,
-        offsetY: -1,
+        offsetY: -2,
         offsetZ: effectHeight,
         duration: consumeSpeed,
         animatedOrigin: { x: 0, y: 0 },
@@ -1207,7 +1268,7 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     updated = true;
   }
 
-  // create countable particle and empty flask
+  // create countable particle, empty flask and add decay
   if (
     !countableId &&
     state.elapsed >= consumeSpeed &&
@@ -1230,12 +1291,20 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
         offsetY: 0,
         offsetZ: lootHeight,
         duration: consumeSpeed,
-        animatedOrigin: { x: 0, y: -1 },
+        animatedOrigin: { x: 0, y: -2 },
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: getStatSprite(consumptionConfig.countable),
     });
     state.particles.countable = world.getEntityId(countableParticle);
+
+    const decayParticle = entities.createParticle(world, {
+      [PARTICLE]: { offsetX: 0, offsetY: -2, offsetZ: lootHeight },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: decay,
+    });
+    state.particles.decay = world.getEntityId(decayParticle);
+
     updated = true;
   }
 
@@ -1372,6 +1441,8 @@ const lineSprites: Record<NonNullable<Focusable["highlight"]>, Sprite[]> = {
   tombstone: createText("─┐│┘─└│┌", colors.silver),
 };
 
+const focusSpeed = 250;
+
 export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
   const finished = false;
   let updated = false;
@@ -1414,7 +1485,7 @@ export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
         ])[SPRITE].layers.length > 0
     ) || "-1"
   );
-  const focusIndex = world.metadata.gameEntity[RENDERABLE].generation % 4;
+  const focusIndex = Math.floor(state.elapsed / focusSpeed) % 4;
   const currentActive = currentIndex !== -1;
   const isActive = !!entity[FOCUSABLE].target;
 
@@ -1453,6 +1524,18 @@ export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
 
 const charDelay = 33;
 const tooltipDelay = 500;
+const bubbleSprites = {
+  up: bubbleUp,
+  right: bubbleRight,
+  down: bubbleDown,
+  left: bubbleLeft,
+};
+const shoutSprites = {
+  up: shoutUp,
+  right: shoutRight,
+  down: shoutDown,
+  left: shoutLeft,
+};
 
 export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   const heroEntity = world.getIdentifierAndComponents("hero", [POSITION]);
@@ -1494,6 +1577,16 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
       (delta.y > 0 ? "down" : delta.y < 0 && "up")) ||
     state.args.orientation ||
     (state.args.isDialog || state.args.isIdle ? "up" : "down");
+  const heroOrientation =
+    heroEntity &&
+    relativeOrientations(world, heroEntity[POSITION], entity[POSITION])[0];
+  const bubbleOrientation =
+    heroOrientation === orientation
+      ? heroOrientation
+      : heroOrientation ===
+        orientations[(orientations.indexOf(orientation) + 3) % 4]
+      ? orientation
+      : orientations[(orientations.indexOf(orientation) + 1) % 4];
 
   if (state.args.orientation !== orientation) {
     // prevent idle text from reorienting
@@ -1527,6 +1620,22 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
       });
       state.particles[particleName] = world.getEntityId(charParticle);
     }
+
+    // create bubble
+    const bubbleParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: state.args.isDialog
+          ? dialogHeight
+          : state.args.isIdle
+          ? idleHeight
+          : tooltipHeight,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.bubble = world.getEntityId(bubbleParticle);
   }
 
   const cursorIndex = Array.from({ length: totalLength }).findIndex((_, i) => {
@@ -1588,6 +1697,39 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     }
   }
 
+  // reorient bubble
+  const bubbleParticle = world.getEntityByIdAndComponents(
+    state.particles.bubble,
+    [PARTICLE, SPRITE]
+  );
+  const bubbleSprite =
+    bubbleOrientation &&
+    currentLength >
+      Math.floor((totalLength - 1) / 2) +
+        (orientation === bubbleOrientation ? -1 : 1) *
+          (orientation === "up" ? 1 : -1)
+      ? (state.args.isEnemy ? shoutSprites : bubbleSprites)[bubbleOrientation]
+      : none;
+  if (
+    state.args.isDialog &&
+    bubbleSprite &&
+    bubbleParticle &&
+    bubbleSprite !== bubbleParticle[SPRITE]
+  ) {
+    bubbleParticle[SPRITE] = bubbleSprite;
+    const bubbleOffset =
+      orientationPoints[
+        orientations[
+          (orientations.indexOf(orientation) +
+            (orientation === bubbleOrientation ? 3 : 1)) %
+            4
+        ]
+      ];
+    bubbleParticle[PARTICLE].offsetX = bubbleOffset.x;
+    bubbleParticle[PARTICLE].offsetY = bubbleOffset.y;
+    updated = true;
+  }
+
   // remove particles if player is not in adjacent position anymore and text is fully hidden,
   // or auto advance dialog
   if (
@@ -1600,6 +1742,11 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
       const particleName = `char-${i}`;
       disposeEntity(world, world.assertById(state.particles[particleName]));
       delete state.particles[particleName];
+    }
+
+    if (bubbleParticle) {
+      disposeEntity(world, bubbleParticle);
+      delete state.particles.bubble;
     }
 
     entity[TOOLTIP].changed = undefined;

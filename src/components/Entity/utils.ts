@@ -92,8 +92,6 @@ import {
   mpFlask2,
   none,
   pet,
-  plum,
-  plumDrop,
   rainbowCharm2,
   rainbowPet2,
   rainbowShield,
@@ -102,6 +100,7 @@ import {
   rubyPet2,
   rubyShield,
   rubySword,
+  shroom,
   slashActive,
   spike,
   torch,
@@ -450,7 +449,7 @@ const entitySprites: Record<
 
   // stackable
   apple: { default: { sprite: appleDrop, resource: apple } },
-  plum: { default: { sprite: plumDrop, resource: plum } },
+  shroom: { default: { sprite: shroom } },
   banana: { default: { sprite: bananaDrop, resource: banana } },
   coconut: { default: { sprite: coconutDrop, resource: coconut } },
   gem: { default: { sprite: gem } },

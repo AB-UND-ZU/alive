@@ -7,7 +7,6 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
-  addBackground,
   beamSpell,
   berry,
   berryStack,
@@ -23,7 +22,6 @@ import {
   doorClosedIron,
   doorClosedWood,
   doorOpen,
-  flask1,
   flower,
   flowerStack,
   fog,
@@ -45,7 +43,10 @@ import {
   palm1,
   palm2,
   path,
+  rock1,
+  rock2,
   sand,
+  shroom,
   stem,
   stick,
   torch,
@@ -143,7 +144,6 @@ import { SOUL } from "../engine/components/soul";
 import { FocusSequence, SEQUENCABLE } from "../engine/components/sequencable";
 import { createSequence } from "../engine/systems/sequence";
 import { npcSequence } from "../game/assets/utils";
-import * as colors from "../game/assets/colors";
 import { SPAWNABLE } from "../engine/components/spawnable";
 import { REFERENCE } from "../engine/components/reference";
 import { generateUnitData, generateUnitKey } from "../game/balancing/units";
@@ -327,7 +327,7 @@ export const generateWorld = async (world: World) => {
       temperature > 65 &&
       ((-11 < terrain && terrain < -10) || (20 < terrain && terrain < 21))
     )
-      cell = spawn > 60 ? "stone" : "rock";
+      cell = spawn > 60 ? "stone" : "desert_rock";
     else if (temperature > 65)
       cell =
         21 < green && green < 23
@@ -452,7 +452,7 @@ export const generateWorld = async (world: World) => {
     worldMatrix,
     traderHouse.position.x + traderOffset,
     traderHouse.position.y + 3,
-    "fruit"
+    "fruit_one"
   );
   setMatrix(
     worldMatrix,
@@ -531,7 +531,7 @@ export const generateWorld = async (world: World) => {
           flying: false,
         },
         [POSITION]: copy(initialPosition),
-        [PLAYER]: { ghost: true, damageReceived: 0 },
+        [PLAYER]: { ghost: true, damageReceived: 0, healingReceived: 0 },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SOUL]: { ready: true },
@@ -571,29 +571,37 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
-    } else if (cell === "rock") {
-      const { items, sprite, stats, faction } = generateUnitData(
-        (["rock1", "rock2"] as const)[random(0, 1)]
-      );
-      entities.createArea(world, {
-        [ENVIRONMENT]: { biomes: ["desert"] },
-        [POSITION]: { x, y },
-        [TEMPO]: { amount: -1 },
-      });
+    } else if (cell === "rock" || cell === "desert_rock") {
+      const rock = (["rock1", "rock2"] as const)[random(0, 1)];
+      const { items, sprite, stats, faction } = generateUnitData(rock);
+      const sprites = {
+        rock: { rock1, rock2 },
+        desert_rock: { [rock]: sprite },
+      };
       const rockEntity = entities.createResource(world, {
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
-        [DROPPABLE]: { decayed: false },
+        [DROPPABLE]: {
+          decayed: false,
+          remains: cell === "desert_rock" ? sand : undefined,
+        },
         [FOG]: { visibility, type: "terrain" },
         [INVENTORY]: { items: [], size: 20 },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SPRITE]: sprite,
+        [SPRITE]: sprites[cell][rock],
         [STATS]: { ...emptyStats, ...stats },
       });
       populateInventory(world, rockEntity, items);
+      if (cell === "desert_rock") {
+        entities.createArea(world, {
+          [ENVIRONMENT]: { biomes: ["desert"] },
+          [POSITION]: { x, y },
+          [TEMPO]: { amount: -1 },
+        });
+      }
     } else if (cell === "iron") {
       entities.createMine(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -629,9 +637,12 @@ export const generateWorld = async (world: World) => {
         ]
       );
     } else if (cell === "stone") {
-      entities.createArea(world, {
+      entities.createTile(world, {
         [ENVIRONMENT]: { biomes: ["desert"] },
+        [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: sand,
         [TEMPO]: { amount: -1 },
       });
       createItemAsDrop(world, { x, y }, entities.createItem, {
@@ -709,36 +720,47 @@ export const generateWorld = async (world: World) => {
       );
       if (cell === "wood_two")
         world.setIdentifier(world.assertById(woodEntity[ITEM].carrier), cell);
-    } else if (cell === "fruit") {
-      const [tree, stack] = (
-        [
-          [tree1, "plum"],
-          [tree2, "apple"],
-        ] as const
-      )[random(0, 1)];
-      const fruitEntity = entities.createFruit(world, {
-        [COLLIDABLE]: {},
-        [FOG]: { visibility, type: "terrain" },
-        [INVENTORY]: { items: [], size: 1 },
-        [LOOTABLE]: { disposable: false },
-        [POSITION]: { x, y },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: tree,
-        [RENDERABLE]: { generation: 0 },
-        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-      });
-      populateInventory(
-        world,
-        fruitEntity,
-        [],
-        [
+    } else if (cell === "fruit" || cell === "fruit_one") {
+      if (random(0, 1) === 0 || cell === "fruit_one") {
+        const fruitEntity = entities.createFruit(world, {
+          [COLLIDABLE]: {},
+          [FOG]: { visibility, type: "terrain" },
+          [INVENTORY]: { items: [], size: 1 },
+          [LOOTABLE]: { disposable: false },
+          [POSITION]: { x, y },
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: tree2,
+          [RENDERABLE]: { generation: 0 },
+          [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+        });
+        populateInventory(
+          world,
+          fruitEntity,
+          [],
+          [
+            {
+              amount: 1,
+              stackable: "apple",
+              bound: false,
+            },
+          ]
+        );
+      } else {
+        createItemAsDrop(
+          world,
+          { x, y },
+          entities.createItem,
           {
-            amount: 1,
-            stackable: stack,
-            bound: false,
+            [ITEM]: {
+              amount: 1,
+              stackable: "shroom",
+              bound: false,
+            },
+            [SPRITE]: shroom,
           },
-        ]
-      );
+          false
+        );
+      }
     } else if (cell === "tree" || cell === "leaves") {
       if (
         cell === "leaves" ||
@@ -899,14 +921,20 @@ export const generateWorld = async (world: World) => {
       });
 
       if (cell === "berry" || cell === "berry_one") {
-        createItemAsDrop(world, { x, y }, entities.createItem, {
-          [ITEM]: {
-            stat: "berry",
-            amount: cell === "berry" ? distribution(80, 15, 5) + 1 : 1,
-            bound: false,
+        createItemAsDrop(
+          world,
+          { x, y },
+          entities.createItem,
+          {
+            [ITEM]: {
+              stat: "berry",
+              amount: cell === "berry" ? distribution(80, 15, 5) + 1 : 1,
+              bound: false,
+            },
+            [SPRITE]: berry,
           },
-          [SPRITE]: berry,
-        });
+          false
+        );
       }
     } else if (cell === "grass" || cell === "flower" || cell === "flower_one") {
       entities.createGround(world, {
@@ -916,14 +944,20 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
       if (cell === "flower" || cell === "flower_one") {
-        createItemAsDrop(world, { x, y }, entities.createItem, {
-          [ITEM]: {
-            stat: "flower",
-            amount: cell === "flower" ? distribution(80, 15, 5) + 1 : 1,
-            bound: false,
+        createItemAsDrop(
+          world,
+          { x, y },
+          entities.createItem,
+          {
+            [ITEM]: {
+              stat: "flower",
+              amount: cell === "flower" ? distribution(80, 15, 5) + 1 : 1,
+              bound: false,
+            },
+            [SPRITE]: flower,
           },
-          [SPRITE]: flower,
-        });
+          false
+        );
       }
     } else if (cell === "coin_one") {
       const coinItem = createItemAsDrop(world, { x, y }, entities.createItem, {
@@ -948,7 +982,7 @@ export const generateWorld = async (world: World) => {
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
-        [DROPPABLE]: { decayed: false },
+        [DROPPABLE]: { decayed: false, remains: sand },
         [FOG]: { visibility, type: "terrain" },
         [INVENTORY]: { items: [], size: 20 },
         [POSITION]: { x, y },
@@ -1464,7 +1498,6 @@ export const generateWorld = async (world: World) => {
       [SPRITE]: goldKey,
     }
   );
-
   world.setIdentifier(spawnKeyEntity, "key");
 
   // set initial focus on hero
@@ -1605,7 +1638,7 @@ export const generateWorld = async (world: World) => {
     getItemPrice(ironKeyEntity[ITEM])
   );
   const nomadChestData = generateUnitData("uncommonChest");
-  entities.createChest(world, {
+  const nomadChest = entities.createChest(world, {
     [ATTACKABLE]: {},
     [BELONGABLE]: { faction: nomadChestData.faction },
     [COLLIDABLE]: {},
@@ -1619,6 +1652,12 @@ export const generateWorld = async (world: World) => {
     [STATS]: { ...emptyStats, ...nomadChestData.stats },
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
+  populateInventory(
+    world,
+    nomadChest,
+    nomadChestData.items,
+    nomadChestData.equipments
+  );
 
   // postprocess town
 
@@ -1707,16 +1746,9 @@ export const generateWorld = async (world: World) => {
     [TOOLTIP]: {
       dialogs: [
         createDialog("Chief's house"),
-        [
-          ...createDialog("Find "),
-          ...addBackground([ironKey], colors.black),
-          ...createDialog(" key"),
-        ],
-        [
-          ...createDialog("Talk to "),
-          ...addBackground([flask1], colors.black),
-          ...createDialog(" Elder"),
-        ],
+        createDialog("Find the key"),
+        createDialog("Follow the path"),
+        createDialog("To nomad's house"),
       ],
       persistent: false,
       nextDialog: 0,
@@ -2168,7 +2200,7 @@ export const generateWorld = async (world: World) => {
   const beamEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
-      amount: 4,
+      amount: 5,
       equipment: "active",
       active: "beam1",
       bound: false,

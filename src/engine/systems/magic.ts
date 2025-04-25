@@ -2,16 +2,17 @@ import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
-import { HitSequence, SEQUENCABLE } from "../components/sequencable";
+import { SEQUENCABLE } from "../components/sequencable";
 import { disposeEntity, getCell } from "./map";
-import { createSequence, getSequence } from "./sequence";
+import { getSequence } from "./sequence";
 import { CASTABLE } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
 import { AFFECTABLE } from "../components/affectable";
-import { calculateDamage, isFriendlyFire } from "./damage";
+import { calculateDamage, createAmountMarker, isFriendlyFire } from "./damage";
 import { STATS } from "../components/stats";
 import { rerenderEntity } from "./renderer";
+import { relativeOrientations } from "../../game/math/path";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -57,7 +58,7 @@ export default function setupMagic(world: World) {
       // affect entities only once within all exertable areas of a spell
       const castableEntity = world.assertByIdAndComponents(
         entity[EXERTABLE].castable,
-        [CASTABLE]
+        [CASTABLE, POSITION]
       );
 
       for (const affectableEntity of getAffectables(world, entity[POSITION])) {
@@ -83,16 +84,14 @@ export default function setupMagic(world: World) {
         );
         affectableEntity[STATS].hp = hp;
 
-        // add hit marker
-        createSequence<"hit", HitSequence>(
+        const orientation = relativeOrientations(
           world,
-          affectableEntity,
-          "hit",
-          "damageHit",
-          {
-            damage: damage,
-          }
-        );
+          castableEntity[POSITION],
+          affectableEntity[POSITION]
+        )[0];
+
+        // add hit marker
+        createAmountMarker(world, affectableEntity, -damage, orientation);
 
         rerenderEntity(world, affectableEntity);
       }
