@@ -3,6 +3,7 @@ import {
   dialogHeight,
   effectHeight,
   focusHeight,
+  fogHeight,
   getItemSprite,
   idleHeight,
   lootHeight,
@@ -57,6 +58,7 @@ import {
   getDistance,
   lerp,
   normalize,
+  random,
   shuffle,
   signedDistance,
 } from "../math/std";
@@ -93,6 +95,8 @@ import {
   shoutLeft,
   shadow,
   heal,
+  smokeSmall,
+  smokeBig,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -874,6 +878,43 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     fireParticle[PARTICLE].amount =
       amount === 2 ? [1, 3][distribution(40, 60)] : 2;
     updated = true;
+
+    // add smoke
+    if (random(0, Object.keys(state.particles).length - 1) === 0) {
+      const smokeParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: 0,
+          offsetY: 0,
+          offsetZ: fogHeight,
+          animatedOrigin: { x: 0, y: 0 },
+          amount: random(1, 2),
+          duration: 350 * (2 - (generation % 2)),
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: [smokeSmall, smokeBig][random(0, 1)],
+      });
+      state.particles[`smoke-${generation}`] = world.getEntityId(smokeParticle);
+    }
+
+    // move or fade smoke
+    for (const particleName in state.particles) {
+      if (particleName.startsWith("smoke-")) {
+        const smokeParticle = world.assertByIdAndComponents(
+          state.particles[particleName],
+          [PARTICLE]
+        );
+
+        const step = (smokeParticle[PARTICLE].duration || 350) / 350;
+        if (generation % step === 0) {
+          smokeParticle[PARTICLE].offsetY -= 1;
+
+          if (random(0, smokeParticle[PARTICLE].offsetY * -1) > 2) {
+            disposeEntity(world, smokeParticle);
+            delete state.particles[particleName];
+          }
+        }
+      }
+    }
   }
 
   // TODO: decay of fire

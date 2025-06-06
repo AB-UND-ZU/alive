@@ -140,6 +140,26 @@ export const fire: Sprite = {
   },
 };
 
+export const smokeBig: Sprite = {
+  name: "smoke_big",
+  layers: [{ char: "≈", color: colors.grey }],
+  amounts: {
+    single: [{ char: "≈", color: colors.grey }],
+    double: [{ char: "≈", color: colors.silver }],
+    multiple: [{ char: "≈", color: colors.white }],
+  },
+};
+
+export const smokeSmall: Sprite = {
+  name: "smoke_small",
+  layers: [{ char: "~", color: colors.grey }],
+  amounts: {
+    single: [{ char: "~", color: colors.grey }],
+    double: [{ char: "~", color: colors.silver }],
+    multiple: [{ char: "~", color: colors.white }],
+  },
+};
+
 export const decay: Sprite = {
   name: "unit_decay",
   layers: [{ char: "▒", color: colors.black }],
@@ -446,6 +466,22 @@ export const createText: (
   return sprites;
 };
 
+export const tooltipStart: Sprite = {
+  name: "tooltip_start",
+  layers: [
+    { char: "▐", color: colors.black },
+    { char: "│", color: colors.silver },
+  ],
+};
+
+export const tooltipEnd: Sprite = {
+  name: "tooltip_end",
+  layers: [
+    { char: "▌", color: colors.black },
+    { char: "│", color: colors.silver },
+  ],
+};
+
 export const dialogStart: Sprite = {
   name: "dialog_start",
   layers: [
@@ -598,9 +634,9 @@ export const createShout = (text: string) => [
   shoutEnd,
 ];
 export const createTooltip = (text: string) => [
-  ...createText("▐", colors.black),
-  ...createText(text, colors.grey, colors.black),
-  ...createText("▌", colors.black),
+  tooltipStart,
+  ...createText(text, colors.silver, colors.black),
+  tooltipEnd,
 ];
 
 export const buttonColor = colors.black;
