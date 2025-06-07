@@ -116,6 +116,7 @@ import {
   ReviveSequence,
   SEQUENCABLE,
   Sequence,
+  SmokeSequence,
   SpellSequence,
   UnlockSequence,
   VisionSequence,
@@ -878,9 +879,25 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     fireParticle[PARTICLE].amount =
       amount === 2 ? [1, 3][distribution(40, 60)] : 2;
     updated = true;
+  }
+
+  // TODO: decay of fire
+
+  return { finished, updated };
+};
+
+export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
+  let updated = false;
+  let finished = false;
+
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+
+  if (generation !== state.args.generation) {
+    state.args.generation = generation;
+    updated = true;
 
     // add smoke
-    if (random(0, Object.keys(state.particles).length - 1) === 0) {
+    if (random(0, Object.keys(state.particles).length) <= 1) {
       const smokeParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX: 0,
@@ -897,27 +914,25 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     }
 
     // move or fade smoke
+    const wind = random(0, 2) - 1;
     for (const particleName in state.particles) {
-      if (particleName.startsWith("smoke-")) {
-        const smokeParticle = world.assertByIdAndComponents(
-          state.particles[particleName],
-          [PARTICLE]
-        );
+      const smokeParticle = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
 
-        const step = (smokeParticle[PARTICLE].duration || 350) / 350;
-        if (generation % step === 0) {
-          smokeParticle[PARTICLE].offsetY -= 1;
+      const step = (smokeParticle[PARTICLE].duration || 350) / 350;
+      if (generation % step === 0) {
+        smokeParticle[PARTICLE].offsetY -= 1;
+        smokeParticle[PARTICLE].offsetX += wind;
 
-          if (random(0, smokeParticle[PARTICLE].offsetY * -1) > 2) {
-            disposeEntity(world, smokeParticle);
-            delete state.particles[particleName];
-          }
+        if (random(0, smokeParticle[PARTICLE].offsetY * -1) > 2) {
+          disposeEntity(world, smokeParticle);
+          delete state.particles[particleName];
         }
       }
     }
   }
-
-  // TODO: decay of fire
 
   return { finished, updated };
 };

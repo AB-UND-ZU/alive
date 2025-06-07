@@ -522,7 +522,6 @@ export const separatorOut: Sprite = {
   layers: [
     { char: "▌", color: colors.white },
     { char: "■", color: colors.black },
-    // { char: "\u0101", color: colors.black },
   ],
 };
 
@@ -531,8 +530,6 @@ export const separatorIn: Sprite = {
   layers: [
     { char: "▐", color: colors.white },
     { char: "■", color: colors.black },
-    // { char: "\u010f", color: colors.black },
-    // { char: "\u0101", color: colors.black },
   ],
 };
 

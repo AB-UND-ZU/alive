@@ -1042,13 +1042,11 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "campfire") {
       entities.createFire(world, {
         [BURNABLE]: { burning: true, eternal: true },
-        [COLLIDABLE]: {},
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: campfire,
-        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
     } else if (cell === "pot" || cell === "intro_pot") {
       const { sprite, stats, faction, items, equipments } =

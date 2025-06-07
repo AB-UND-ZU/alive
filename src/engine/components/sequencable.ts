@@ -30,6 +30,7 @@ export type MessageSequence = {
 };
 export type DecaySequence = EmptyObject;
 export type BurnSequence = { generation: number };
+export type SmokeSequence = { generation: number };
 export type DisposeSequence = EmptyObject;
 export type ReviveSequence = {
   target: Position;
@@ -111,6 +112,7 @@ export type Sequencable = {
     message?: SequenceState<MessageSequence>;
     decay?: SequenceState<DecaySequence>;
     burn?: SequenceState<BurnSequence>;
+    smoke?: SequenceState<SmokeSequence>;
     dispose?: SequenceState<DisposeSequence>;
     revive?: SequenceState<ReviveSequence>;
     collect?: SequenceState<CollectSequence>;

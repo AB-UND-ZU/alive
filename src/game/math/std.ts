@@ -94,3 +94,5 @@ export const sigmoid = (
   midpoint: number,
   steepness: number = 1
 ) => 1 / (1 + Math.exp(-steepness * (value - midpoint)));
+
+export const lcg = (seed: number) => Math.abs((seed * 9301 + 49297) % 233280);

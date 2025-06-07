@@ -3,7 +3,11 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { Entity } from "ecs";
-import { BurnSequence, SEQUENCABLE } from "../components/sequencable";
+import {
+  BurnSequence,
+  SEQUENCABLE,
+  SmokeSequence,
+} from "../components/sequencable";
 import { BURNABLE } from "../components/burnable";
 import { getCell } from "./map";
 import { createSequence } from "./sequence";
@@ -45,6 +49,13 @@ export default function setupBurn(world: World) {
           entity,
           "burn",
           "fireBurn",
+          { generation: 0 }
+        );
+        createSequence<"smoke", SmokeSequence>(
+          world,
+          entity,
+          "smoke",
+          "smokeWind",
           { generation: 0 }
         );
       }

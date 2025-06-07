@@ -235,13 +235,11 @@ export const createFibre = entityFactory([
 
 export const createFire = entityFactory([
   BURNABLE,
-  COLLIDABLE,
   FOG,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
-  TOOLTIP,
 ]);
 
 export const createFloat = entityFactory([
