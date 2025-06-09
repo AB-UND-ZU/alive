@@ -62,9 +62,11 @@ export const getAttackable = (world: World, position: Position) =>
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity | undefined;
 
+export type DamageType = "physical" | "magic" | "true";
+
 // calculate damage, with 1 / (x + 2) probability for 1 dmg if below 1
 export const calculateDamage = (
-  medium: "physical" | "magic",
+  medium: DamageType,
   attack: number,
   resistance: number,
   attackerStats: Partial<Stats>,
@@ -77,7 +79,9 @@ export const calculateDamage = (
   const defensive =
     medium === "physical"
       ? resistance + defenderStats.armor
-      : defenderStats.armor;
+      : medium === "magic"
+      ? defenderStats.armor
+      : 0;
   const damage =
     offensive > defensive
       ? offensive - defensive

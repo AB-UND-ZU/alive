@@ -9,10 +9,16 @@ import { CASTABLE } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
 import { AFFECTABLE } from "../components/affectable";
-import { calculateDamage, createAmountMarker, isFriendlyFire } from "./damage";
+import {
+  calculateDamage,
+  createAmountMarker,
+  DamageType,
+  isFriendlyFire,
+} from "./damage";
 import { STATS } from "../components/stats";
 import { rerenderEntity } from "./renderer";
 import { relativeOrientations } from "../../game/math/path";
+import { BURNABLE } from "../components/burnable";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -37,6 +43,7 @@ export default function setupMagic(world: World) {
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
+    const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
 
     if (referenceGenerations === generation) return;
 
@@ -48,6 +55,10 @@ export default function setupMagic(world: World) {
       RENDERABLE,
       SEQUENCABLE,
     ])) {
+      // keep eternal fires
+      const casterEntity = world.assertById(entity[CASTABLE].caster);
+      if (casterEntity[BURNABLE]?.eternal) continue;
+
       // delete finished spell entities
       if (!getSequence(world, entity, "spell")) {
         disposeEntity(world, entity);
@@ -56,42 +67,58 @@ export default function setupMagic(world: World) {
 
     for (const entity of world.getEntities([POSITION, EXERTABLE])) {
       // affect entities only once within all exertable areas of a spell
+      // unless it is eternal burning fire
       const castableEntity = world.assertByIdAndComponents(
         entity[EXERTABLE].castable,
         [CASTABLE, POSITION]
       );
 
+      const casterEntity = world.assertById(castableEntity[CASTABLE].caster);
+      const isEternalFire = casterEntity[BURNABLE]?.eternal;
+
       for (const affectableEntity of getAffectables(world, entity[POSITION])) {
         const affectableId = world.getEntityId(affectableEntity);
+        const affectedGeneration =
+          castableEntity[CASTABLE].affected[affectableId];
 
         if (
           isFriendlyFire(world, castableEntity, affectableEntity) ||
-          castableEntity[CASTABLE].affected[affectableId]
+          (affectedGeneration &&
+            (!isEternalFire || affectedGeneration === worldGeneration))
         )
           continue;
 
-        castableEntity[CASTABLE].affected[affectableId] =
-          (castableEntity[CASTABLE].affected[affectableId] || 0) + 1;
+        // set affected generation
+        castableEntity[CASTABLE].affected[affectableId] = worldGeneration;
 
-        // inflict damage
-        const attack = castableEntity[CASTABLE].damage;
-        const { damage, hp } = calculateDamage(
-          "magic",
-          attack,
-          0,
-          {},
-          affectableEntity[STATS]
-        );
-        affectableEntity[STATS].hp = hp;
+        let damageType: DamageType | undefined = undefined;
+        if (castableEntity[CASTABLE].damage) {
+          // inflict damage
+          damageType = "magic";
+        } else if (castableEntity[CASTABLE].burn) {
+          // burn while standing inside
+          damageType = "true";
+        }
 
-        const orientation = relativeOrientations(
-          world,
-          castableEntity[POSITION],
-          affectableEntity[POSITION]
-        )[0];
+        if (damageType) {
+          const { damage, hp } = calculateDamage(
+            damageType,
+            castableEntity[CASTABLE].damage,
+            0,
+            {},
+            affectableEntity[STATS]
+          );
+          affectableEntity[STATS].hp = hp;
 
-        // add hit marker
-        createAmountMarker(world, affectableEntity, -damage, orientation);
+          const orientation = relativeOrientations(
+            world,
+            castableEntity[POSITION],
+            affectableEntity[POSITION]
+          )[0];
+
+          // add hit marker
+          createAmountMarker(world, affectableEntity, -damage, orientation);
+        }
 
         rerenderEntity(world, affectableEntity);
       }

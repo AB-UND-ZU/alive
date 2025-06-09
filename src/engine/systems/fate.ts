@@ -253,7 +253,7 @@ export default function setupFate(world: World) {
 
       const heroEntity = entities.createHero(world, {
         [ACTIONABLE]: { triggered: false },
-        [AFFECTABLE]: {},
+        [AFFECTABLE]: { burn: 0, freeze: 0 },
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction: entity[BELONGABLE].faction },
         [COLLECTABLE]: {},

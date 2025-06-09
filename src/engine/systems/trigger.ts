@@ -253,6 +253,8 @@ export const castSpell = (
     [CASTABLE]: {
       affected: {},
       damage: item[ITEM].amount,
+      burn: 0,
+      freeze: 0,
       caster: world.getEntityId(entity),
     },
     [ORIENTABLE]: { facing: entity[ORIENTABLE]?.facing },

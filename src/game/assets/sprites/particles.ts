@@ -140,23 +140,29 @@ export const fire: Sprite = {
   },
 };
 
-export const smokeBig: Sprite = {
-  name: "smoke_big",
-  layers: [{ char: "≈", color: colors.grey }],
+export const smokeThick: Sprite = {
+  name: "smoke_thick",
+  layers: [{ char: "~", color: colors.silver }],
   amounts: {
-    single: [{ char: "≈", color: colors.grey }],
+    single: [{ char: "~", color: colors.silver }],
     double: [{ char: "≈", color: colors.silver }],
-    multiple: [{ char: "≈", color: colors.white }],
+    multiple: [
+      { char: "≈", color: colors.silver },
+      { char: "~", color: colors.silver },
+    ],
   },
 };
 
-export const smokeSmall: Sprite = {
-  name: "smoke_small",
+export const smokeLight: Sprite = {
+  name: "smoke_light",
   layers: [{ char: "~", color: colors.grey }],
   amounts: {
     single: [{ char: "~", color: colors.grey }],
-    double: [{ char: "~", color: colors.silver }],
-    multiple: [{ char: "~", color: colors.white }],
+    double: [{ char: "≈", color: colors.grey }],
+    multiple: [
+      { char: "≈", color: colors.grey },
+      { char: "~", color: colors.grey },
+    ],
   },
 };
 

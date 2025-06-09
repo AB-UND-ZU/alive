@@ -95,8 +95,8 @@ import {
   shoutLeft,
   shadow,
   heal,
-  smokeSmall,
-  smokeBig,
+  smokeLight,
+  smokeThick,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -141,6 +141,8 @@ import { consumptionConfigs } from "../../engine/systems/consume";
 import { decayTime, lootSpeed } from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
+import { BELONGABLE } from "../../engine/components/belongable";
+import { CASTABLE } from "../../engine/components/castable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -868,6 +870,32 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     updated = true;
   }
 
+  // create  castable and AoE
+  if (!state.args.castable) {
+    const spellEntity = entities.createSpell(world, {
+      [BELONGABLE]: { faction: "nature" },
+      [CASTABLE]: {
+        affected: {},
+        damage: 1,
+        burn: 3,
+        freeze: 0,
+        caster: world.getEntityId(entity),
+      },
+      [ORIENTABLE]: {},
+      [POSITION]: copy(entity[POSITION]),
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: none,
+    });
+    state.args.castable = world.getEntityId(spellEntity);
+
+    entities.createAoe(world, {
+      [EXERTABLE]: { castable: state.args.castable },
+      [POSITION]: copy(entity[POSITION]),
+    });
+    updated = true;
+  }
+
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
 
   if (generation !== state.args.generation) {
@@ -894,41 +922,54 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
 
   if (generation !== state.args.generation) {
     state.args.generation = generation;
-    updated = true;
 
     // add smoke
     if (random(0, Object.keys(state.particles).length) <= 1) {
+      const step = 2 - ((generation + 2) % 2);
       const smokeParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX: 0,
           offsetY: 0,
           offsetZ: fogHeight,
           animatedOrigin: { x: 0, y: 0 },
-          amount: random(1, 2),
-          duration: 350 * (2 - (generation % 2)),
+          amount: random(0, 1) + step,
+          duration: step * 350,
         },
-        [RENDERABLE]: { generation: 1 },
-        [SPRITE]: [smokeSmall, smokeBig][random(0, 1)],
+        [RENDERABLE]: { generation: (generation % 2) + 2 },
+        [SPRITE]: [smokeThick, smokeLight][step - 1],
       });
       state.particles[`smoke-${generation}`] = world.getEntityId(smokeParticle);
+      updated = true;
     }
 
     // move or fade smoke
-    const wind = random(0, 2) - 1;
+    const wind = random(0, 2) === 0 ? random(0, 2) - 1 : 0;
     for (const particleName in state.particles) {
       const smokeParticle = world.assertByIdAndComponents(
         state.particles[particleName],
-        [PARTICLE]
+        [PARTICLE, RENDERABLE]
       );
 
       const step = (smokeParticle[PARTICLE].duration || 350) / 350;
-      if (generation % step === 0) {
+      if ((generation + smokeParticle[RENDERABLE].generation) % step === 0) {
         smokeParticle[PARTICLE].offsetY -= 1;
         smokeParticle[PARTICLE].offsetX += wind;
 
-        if (random(0, smokeParticle[PARTICLE].offsetY * -1) > 2) {
+        const distance = smokeParticle[PARTICLE].offsetY * -1;
+        const amount = smokeParticle[PARTICLE].amount || 1;
+        if (random(0, 2) < distance - amount) {
+          smokeParticle[PARTICLE].amount = Math.max(
+            0,
+            amount === 2 ? 0 : amount - random(1, 2)
+          );
+          updated = true;
+        }
+
+        // remove depleted smoke
+        if (smokeParticle[PARTICLE].amount === 0) {
           disposeEntity(world, smokeParticle);
           delete state.particles[particleName];
+          updated = true;
         }
       }
     }

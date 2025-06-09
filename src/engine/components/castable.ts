@@ -5,6 +5,8 @@ export type Castable = {
   caster: number;
   affected: Record<string, number>;
   damage: number;
+  burn: number;
+  freeze: number;
 };
 
 export const CASTABLE = "CASTABLE";

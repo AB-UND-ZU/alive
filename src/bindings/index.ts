@@ -1095,7 +1095,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
       const boxEntity = entities.createBox(world, {
-        [AFFECTABLE]: {},
+        [AFFECTABLE]: { burn: 0, freeze: 0 },
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false },
@@ -1153,7 +1153,7 @@ export const generateWorld = async (world: World) => {
         generateUnitData("guide");
       const guideEntity = entities.createVillager(world, {
         [ACTIONABLE]: { triggered: false },
-        [AFFECTABLE]: {},
+        [AFFECTABLE]: { burn: 0, freeze: 0 },
         [ATTACKABLE]: {},
         [BEHAVIOUR]: { patterns },
         [BELONGABLE]: { faction },
@@ -1199,7 +1199,7 @@ export const generateWorld = async (world: World) => {
 
       const mobEntity = entities.createMob(world, {
         [ACTIONABLE]: { triggered: false },
-        [AFFECTABLE]: {},
+        [AFFECTABLE]: { burn: 0, freeze: 0 },
         [ATTACKABLE]: {},
         [BEHAVIOUR]: { patterns },
         [BELONGABLE]: { faction },
@@ -1582,7 +1582,7 @@ export const generateWorld = async (world: World) => {
   const nomadUnit = generateUnitData("nomad");
   const nomadEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
-    [AFFECTABLE]: {},
+    [AFFECTABLE]: { burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: nomadUnit.patterns },
     [BELONGABLE]: { faction: nomadUnit.faction },
@@ -1663,7 +1663,7 @@ export const generateWorld = async (world: World) => {
   const chiefUnit = generateUnitData("chief");
   const chiefEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
-    [AFFECTABLE]: {},
+    [AFFECTABLE]: { burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: chiefUnit.patterns },
     [BELONGABLE]: { faction: chiefUnit.faction },
@@ -1758,7 +1758,7 @@ export const generateWorld = async (world: World) => {
   const elderUnit = generateUnitData("elder");
   const elderEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
-    [AFFECTABLE]: {},
+    [AFFECTABLE]: { burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: elderUnit.patterns },
     [BELONGABLE]: { faction: elderUnit.faction },
@@ -1835,7 +1835,7 @@ export const generateWorld = async (world: World) => {
   const scoutUnit = generateUnitData("scout");
   const scoutEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
-    [AFFECTABLE]: {},
+    [AFFECTABLE]: { burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: scoutUnit.patterns },
     [BELONGABLE]: { faction: scoutUnit.faction },
@@ -1908,7 +1908,7 @@ export const generateWorld = async (world: World) => {
   const smithUnit = generateUnitData("smith");
   const smithEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
-    [AFFECTABLE]: {},
+    [AFFECTABLE]: { burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: smithUnit.patterns },
     [BELONGABLE]: { faction: smithUnit.faction },
@@ -1985,7 +1985,7 @@ export const generateWorld = async (world: World) => {
   const traderUnit = generateUnitData("trader");
   const traderEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
-    [AFFECTABLE]: {},
+    [AFFECTABLE]: { burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: traderUnit.patterns },
     [BELONGABLE]: { faction: traderUnit.faction },
@@ -2067,7 +2067,7 @@ export const generateWorld = async (world: World) => {
   const druidUnit = generateUnitData("druid");
   const druidEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
-    [AFFECTABLE]: {},
+    [AFFECTABLE]: { burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: druidUnit.patterns },
     [BELONGABLE]: { faction: druidUnit.faction },
@@ -2142,7 +2142,7 @@ export const generateWorld = async (world: World) => {
   const mageUnit = generateUnitData("mage");
   const mageEntity = entities.createVillager(world, {
     [ACTIONABLE]: { triggered: false },
-    [AFFECTABLE]: {},
+    [AFFECTABLE]: { burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: mageUnit.patterns },
     [BELONGABLE]: { faction: mageUnit.faction },
