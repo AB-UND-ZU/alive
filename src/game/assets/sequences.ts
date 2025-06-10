@@ -143,6 +143,7 @@ import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { CASTABLE } from "../../engine/components/castable";
+import { BURNABLE } from "../../engine/components/burnable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -853,9 +854,11 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   let updated = false;
   let finished = false;
+  const isBurning = entity[BURNABLE].burning;
+  const isEternalFire = entity[BURNABLE].eternal;
 
-  // create fire particle
-  if (!state.particles.fire) {
+  if (isBurning && !state.particles.fire) {
+    // create fire particle
     const fireParticle = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX: 0,
@@ -867,11 +870,22 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
       [SPRITE]: fire,
     });
     state.particles.fire = world.getEntityId(fireParticle);
+
+    updated = true;
+  } else if (!isBurning && state.particles.fire) {
+    // extinguish fire if not burning anymore
+    disposeEntity(world, world.assertById(state.particles.fire));
+    delete state.particles.fire;
     updated = true;
   }
 
-  // create  castable and AoE
-  if (!state.args.castable) {
+  // create castable and AoE for eternal fire
+  if (
+    isEternalFire &&
+    isBurning &&
+    !state.args.castable &&
+    !state.args.exertable
+  ) {
     const spellEntity = entities.createSpell(world, {
       [BELONGABLE]: { faction: "nature" },
       [CASTABLE]: {
@@ -889,16 +903,31 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     });
     state.args.castable = world.getEntityId(spellEntity);
 
-    entities.createAoe(world, {
+    const exertableEntity = entities.createAoe(world, {
       [EXERTABLE]: { castable: state.args.castable },
       [POSITION]: copy(entity[POSITION]),
     });
+    state.args.exertable = world.getEntityId(exertableEntity);
+
+    updated = true;
+  } else if (
+    isEternalFire &&
+    !isBurning &&
+    state.args.castable &&
+    state.args.exertable
+  ) {
+    // deactivate eternal fire AoE
+    disposeEntity(world, world.assertById(state.args.castable));
+    delete state.args.castable;
+    disposeEntity(world, world.assertById(state.args.exertable));
+    delete state.args.exertable;
+
     updated = true;
   }
 
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
 
-  if (generation !== state.args.generation) {
+  if (isBurning && generation !== state.args.generation) {
     state.args.generation = generation;
     const fireParticle = world.assertByIdAndComponents(state.particles.fire, [
       PARTICLE,
@@ -909,8 +938,6 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  // TODO: decay of fire
-
   return { finished, updated };
 };
 
@@ -918,13 +945,14 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
   let updated = false;
   let finished = false;
 
+  const isBurning = entity[BURNABLE].burning;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
 
   if (generation !== state.args.generation) {
     state.args.generation = generation;
 
     // add smoke
-    if (random(0, Object.keys(state.particles).length) <= 1) {
+    if (isBurning && random(0, Object.keys(state.particles).length) <= 1) {
       const step = 2 - ((generation + 2) % 2);
       const smokeParticle = entities.createParticle(world, {
         [PARTICLE]: {

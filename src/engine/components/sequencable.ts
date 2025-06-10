@@ -29,7 +29,11 @@ export type MessageSequence = {
   fast: boolean;
 };
 export type DecaySequence = EmptyObject;
-export type BurnSequence = { generation: number, castable?: number };
+export type BurnSequence = {
+  generation: number;
+  castable?: number;
+  exertable?: number;
+};
 export type SmokeSequence = { generation: number };
 export type DisposeSequence = EmptyObject;
 export type ReviveSequence = {

@@ -68,6 +68,7 @@ export const campfire: Sprite = {
   layers: [
     { char: "X", color: colors.maroon },
     { char: "|", color: colors.maroon },
+    { char: "·", color: colors.black },
   ],
 };
 

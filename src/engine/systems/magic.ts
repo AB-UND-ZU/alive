@@ -101,7 +101,9 @@ export default function setupMagic(world: World) {
         if (castableEntity[CASTABLE].damage) {
           // inflict damage
           damageType = "magic";
-        } else if (castableEntity[CASTABLE].burn) {
+        }
+        
+        if (castableEntity[CASTABLE].burn) {
           // burn while standing inside
           damageType = "true";
         }
