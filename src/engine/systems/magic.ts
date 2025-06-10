@@ -56,8 +56,8 @@ export default function setupMagic(world: World) {
       SEQUENCABLE,
     ])) {
       // keep eternal fires
-      const casterEntity = world.assertById(entity[CASTABLE].caster);
-      if (casterEntity[BURNABLE]?.eternal) continue;
+      const casterEntity = world.getEntityById(entity[CASTABLE].caster);
+      if (casterEntity?.[BURNABLE]?.eternal) continue;
 
       // delete finished spell entities
       if (!getSequence(world, entity, "spell")) {
@@ -68,13 +68,19 @@ export default function setupMagic(world: World) {
     for (const entity of world.getEntities([POSITION, EXERTABLE])) {
       // affect entities only once within all exertable areas of a spell
       // unless it is eternal burning fire
-      const castableEntity = world.assertByIdAndComponents(
+      const castableEntity = world.getEntityByIdAndComponents(
         entity[EXERTABLE].castable,
         [CASTABLE, POSITION]
       );
 
-      const casterEntity = world.assertById(castableEntity[CASTABLE].caster);
-      const isEternalFire = casterEntity[BURNABLE]?.eternal;
+      // clean up orphaned AoE
+      if (!castableEntity) {
+        disposeEntity(world, entity);
+        continue;
+      }
+
+      const casterEntity = world.getEntityById(castableEntity[CASTABLE].caster);
+      const isEternalFire = casterEntity?.[BURNABLE]?.eternal;
 
       for (const affectableEntity of getAffectables(world, entity[POSITION])) {
         const affectableId = world.getEntityId(affectableEntity);
