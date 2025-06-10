@@ -8,7 +8,7 @@ import { MOVABLE } from "../components/movable";
 import { getCell, updateWalkable } from "./map";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { LOOTABLE } from "../components/lootable";
-import { isDead } from "./damage";
+import { createAmountMarker, isDead } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { Item, ITEM, STACK_SIZE } from "../components/item";
@@ -18,8 +18,9 @@ import { removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
 import { getMaxCounter } from "../../game/assets/sprites";
 import { createSequence, getSequence } from "./sequence";
-import { CollectSequence } from "../components/sequencable";
+import { CollectSequence, SEQUENCABLE } from "../components/sequencable";
 import { STATS } from "../components/stats";
+import { PLAYER } from "../components/player";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -159,6 +160,7 @@ export const collectItem = (
 export default function setupCollect(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
+  const playerHealings: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world
@@ -169,7 +171,7 @@ export default function setupCollect(world: World) {
 
     referenceGenerations = generation;
 
-    // handle player collecting
+    // handle player collecting item
     for (const entity of world.getEntities([
       POSITION,
       COLLECTABLE,
@@ -213,6 +215,18 @@ export default function setupCollect(world: World) {
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;
       entity[MOVABLE].lastInteraction = entityReference;
+    }
+
+    // process healing animation after consumption
+    for (const entity of world.getEntities([SEQUENCABLE, PLAYER, STATS])) {
+      const entityId = world.getEntityId(entity);
+      const total = entity[PLAYER].healingReceived;
+      const healing = total - (playerHealings[entityId] || 0);
+
+      if (healing > 0) {
+        playerHealings[entityId] = total;
+        createAmountMarker(world, entity, healing, "up");
+      }
     }
   };
 

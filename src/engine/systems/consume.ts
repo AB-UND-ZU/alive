@@ -10,11 +10,7 @@ import { rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
 import { getMaxCounter } from "../../game/assets/sprites";
 import { createSequence, getSequence } from "./sequence";
-import {
-  ConsumeSequence,
-  SEQUENCABLE,
-  VisionSequence,
-} from "../components/sequencable";
+import { ConsumeSequence, VisionSequence } from "../components/sequencable";
 import { EQUIPPABLE } from "../components/equippable";
 import { LIGHT } from "../components/light";
 import { MOVABLE } from "../components/movable";
@@ -22,7 +18,6 @@ import { entities } from "..";
 import { REFERENCE } from "../components/reference";
 import { getEntityHaste, getHasteInterval } from "./movement";
 import { disposeEntity } from "./map";
-import { createAmountMarker } from "./damage";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -67,7 +62,6 @@ export default function setupConsume(world: World) {
   let worldGeneration = -1;
   const nextConsumptions: Record<number, Record<number, number>> = {};
   const entityHaste: Record<number, number> = {};
-  const playerHealings: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world.metadata.gameEntity[RENDERABLE].generation;
@@ -146,18 +140,6 @@ export default function setupConsume(world: World) {
         "flaskConsume",
         { itemId: world.getEntityId(consumption.consumable) }
       );
-    }
-
-    // process healing animation after consumption
-    for (const entity of world.getEntities([SEQUENCABLE, PLAYER, STATS])) {
-      const entityId = world.getEntityId(entity);
-      const total = entity[PLAYER].healingReceived;
-      const healing = total - (playerHealings[entityId] || 0);
-
-      if (healing > 0) {
-        playerHealings[entityId] = total;
-        createAmountMarker(world, entity, healing, "up");
-      }
     }
 
     // process consumable equipments
