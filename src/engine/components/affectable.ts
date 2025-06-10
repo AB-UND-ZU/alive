@@ -2,6 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Affectable = {
+  dot: number;
   burn: number;
   freeze: number;
 };

@@ -9,12 +9,7 @@ import { CASTABLE } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
 import { AFFECTABLE } from "../components/affectable";
-import {
-  calculateDamage,
-  createAmountMarker,
-  DamageType,
-  isFriendlyFire,
-} from "./damage";
+import { calculateDamage, createAmountMarker, isFriendlyFire } from "./damage";
 import { STATS } from "../components/stats";
 import { rerenderEntity } from "./renderer";
 import { relativeOrientations } from "../../game/math/path";
@@ -59,8 +54,11 @@ export default function setupMagic(world: World) {
       const casterEntity = world.getEntityById(entity[CASTABLE].caster);
       if (casterEntity?.[BURNABLE]?.eternal) continue;
 
-      // delete finished spell entities
-      if (!getSequence(world, entity, "spell")) {
+      // delete finished spell entities and smoke anchors
+      if (
+        !getSequence(world, entity, "spell") &&
+        !getSequence(world, entity, "smoke")
+      ) {
         disposeEntity(world, entity);
       }
     }
@@ -97,20 +95,10 @@ export default function setupMagic(world: World) {
         // set affected generation
         castableEntity[CASTABLE].affected[affectableId] = worldGeneration;
 
-        let damageType: DamageType | undefined = undefined;
+        // inflict direct damage
         if (castableEntity[CASTABLE].damage) {
-          // inflict damage
-          damageType = "magic";
-        }
-        
-        if (castableEntity[CASTABLE].burn) {
-          // burn while standing inside
-          damageType = "true";
-        }
-
-        if (damageType) {
           const { damage, hp } = calculateDamage(
-            damageType,
+            "magic",
             castableEntity[CASTABLE].damage,
             0,
             {},
@@ -126,6 +114,13 @@ export default function setupMagic(world: World) {
 
           // add hit marker
           createAmountMarker(world, affectableEntity, -damage, orientation);
+        }
+
+        // set affected unit on fire
+        const targetBurn = castableEntity[CASTABLE].burn;
+        const curentBurn = affectableEntity[AFFECTABLE].burn;
+        if (targetBurn > curentBurn) {
+          affectableEntity[AFFECTABLE].burn = targetBurn;
         }
 
         rerenderEntity(world, affectableEntity);

@@ -34,7 +34,7 @@ export type BurnSequence = {
   castable?: number;
   exertable?: number;
 };
-export type SmokeSequence = { generation: number };
+export type SmokeSequence = { generation: number; extinguish: number };
 export type DisposeSequence = EmptyObject;
 export type ReviveSequence = {
   target: Position;

@@ -144,6 +144,7 @@ import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { CASTABLE } from "../../engine/components/castable";
 import { BURNABLE } from "../../engine/components/burnable";
+import { AFFECTABLE } from "../../engine/components/affectable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -852,10 +853,11 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 };
 
 export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
+  const isBurning = entity[BURNABLE]?.burning || entity[AFFECTABLE]?.burn > 0;
+  const isEternalFire = entity[BURNABLE]?.eternal;
+
   let updated = false;
-  let finished = false;
-  const isBurning = entity[BURNABLE].burning;
-  const isEternalFire = entity[BURNABLE].eternal;
+  let finished = !isBurning;
 
   if (isBurning && !state.particles.fire) {
     // create fire particle
@@ -890,7 +892,7 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
       [BELONGABLE]: { faction: "nature" },
       [CASTABLE]: {
         affected: {},
-        damage: 1,
+        damage: 0,
         burn: 3,
         freeze: 0,
         caster: world.getEntityId(entity),
@@ -942,17 +944,22 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
 };
 
 export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
-  let updated = false;
-  let finished = false;
-
-  const isBurning = entity[BURNABLE].burning;
+  const isBurning = entity[BURNABLE]?.burning || entity[AFFECTABLE]?.burn > 0;
+  const isExtinguishing = state.args.extinguish > 0;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
+
+  let updated = false;
+  let finished =
+    !isBurning && !isExtinguishing && Object.keys(state.particles).length === 0;
 
   if (generation !== state.args.generation) {
     state.args.generation = generation;
 
     // add smoke
-    if (isBurning && random(0, Object.keys(state.particles).length) <= 1) {
+    if (
+      isExtinguishing ||
+      (isBurning && random(0, Object.keys(state.particles).length) <= 1)
+    ) {
       const step = 2 - ((generation + 2) % 2);
       const smokeParticle = entities.createParticle(world, {
         [PARTICLE]: {
@@ -967,6 +974,7 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
         [SPRITE]: [smokeThick, smokeLight][step - 1],
       });
       state.particles[`smoke-${generation}`] = world.getEntityId(smokeParticle);
+      if (isExtinguishing) state.args.extinguish -= 1;
       updated = true;
     }
 
@@ -990,15 +998,15 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
             0,
             amount === 2 ? 0 : amount - random(1, 2)
           );
-          updated = true;
         }
 
         // remove depleted smoke
         if (smokeParticle[PARTICLE].amount === 0) {
           disposeEntity(world, smokeParticle);
           delete state.particles[particleName];
-          updated = true;
         }
+
+        updated = true;
       }
     }
   }
