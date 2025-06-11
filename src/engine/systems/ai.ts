@@ -44,11 +44,13 @@ import { LEVEL } from "../components/level";
 import { BELONGABLE } from "../components/belongable";
 import { iterations } from "../../game/math/tracing";
 import { getProjectiles } from "./ballistics";
-import { canCast } from "./magic";
+import { canCast, getExertables } from "./magic";
 import { getCell, moveEntity } from "./map";
 import { getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
+import { EXERTABLE } from "../components/exertable";
+import { CASTABLE } from "../components/castable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -170,8 +172,18 @@ export default function setupAi(world: World) {
           const delta = orientationPoints[facing];
           const position = add(entity[POSITION], delta);
 
+          // avoid fires
+          const castableEntity = getExertables(world, position).map(
+            (exertable) =>
+              world.getEntityByIdAndComponents(exertable[EXERTABLE].castable, [
+                CASTABLE,
+              ])
+          )[0];
+          const isInFire =
+            castableEntity?.[CASTABLE] && castableEntity[CASTABLE].burn > 0;
+
           // unable to move, attempt reorienting
-          if (!isMovable(world, entity, position)) {
+          if (!isMovable(world, entity, position) || isInFire) {
             const preferredFacing =
               orientations[
                 (orientations.indexOf(facing) + 1 + random(0, 1) * 2) %
