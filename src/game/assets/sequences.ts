@@ -145,6 +145,7 @@ import { BELONGABLE } from "../../engine/components/belongable";
 import { CASTABLE } from "../../engine/components/castable";
 import { BURNABLE } from "../../engine/components/burnable";
 import { AFFECTABLE } from "../../engine/components/affectable";
+import { getExertables } from "../../engine/systems/magic";
 
 export * from "./npcs";
 export * from "./quests";
@@ -852,9 +853,14 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
+const burnTicks = 4;
+
 export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
-  const isBurning = entity[BURNABLE]?.burning || entity[AFFECTABLE]?.burn > 0;
+  const isTerrainBurning = entity[BURNABLE]?.burning;
+  const isUnitBurning = entity[AFFECTABLE]?.burn > 0;
+  const isBurning = isTerrainBurning || isUnitBurning;
   const isEternalFire = entity[BURNABLE]?.eternal;
+  const fireTick = world.metadata.gameEntity[REFERENCE].tick;
 
   let updated = false;
   let finished = !isBurning;
@@ -884,7 +890,7 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   // create castable and AoE for eternal fire
   if (
     isEternalFire &&
-    isBurning &&
+    isTerrainBurning &&
     !state.args.castable &&
     !state.args.exertable
   ) {
@@ -893,7 +899,7 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
       [CASTABLE]: {
         affected: {},
         damage: 0,
-        burn: 3,
+        burn: 2,
         freeze: 0,
         caster: world.getEntityId(entity),
       },
@@ -914,7 +920,7 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     updated = true;
   } else if (
     isEternalFire &&
-    !isBurning &&
+    !isTerrainBurning &&
     state.args.castable &&
     state.args.exertable
   ) {
@@ -927,9 +933,18 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  let generation;
 
-  if (isBurning && generation !== state.args.generation) {
+  // synchronize generation tick
+  if (isUnitBurning) {
+    state.args.lastTick = Math.ceil(state.elapsed / fireTick);
+    generation = state.args.lastTick;
+  } else if (isTerrainBurning) {
+    generation = world.metadata.gameEntity[RENDERABLE].generation;
+  }
+
+  // animate particle
+  if (generation && isBurning && generation !== state.args.generation) {
     state.args.generation = generation;
     const fireParticle = world.assertByIdAndComponents(state.particles.fire, [
       PARTICLE,
@@ -938,6 +953,32 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     fireParticle[PARTICLE].amount =
       amount === 2 ? [1, 3][distribution(40, 60)] : 2;
     updated = true;
+
+    // handle damage
+    if (isUnitBurning) {
+      const castableEntity = getExertables(world, entity[POSITION]).map(
+        (exertable) =>
+          world.getEntityByIdAndComponents(exertable[EXERTABLE].castable, [
+            CASTABLE,
+          ])
+      )[0];
+      const isInFire =
+        castableEntity?.[CASTABLE] && castableEntity[CASTABLE].burn > 0;
+
+      // fast tick while standing in fire, or initial, or every N ticks
+      if (
+        isInFire ||
+        !state.args.lastDot ||
+        generation - state.args.lastDot >= burnTicks
+      ) {
+        state.args.lastDot = generation;
+        entity[AFFECTABLE].dot += 1;
+
+        if (!isInFire) {
+          entity[AFFECTABLE].burn -= 1;
+        }
+      }
+    }
   }
 
   return { finished, updated };

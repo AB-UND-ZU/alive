@@ -31,6 +31,8 @@ export type MessageSequence = {
 export type DecaySequence = EmptyObject;
 export type BurnSequence = {
   generation: number;
+  lastTick?: number;
+  lastDot?: number;
   castable?: number;
   exertable?: number;
 };

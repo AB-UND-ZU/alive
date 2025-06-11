@@ -14,6 +14,7 @@ import { STATS } from "../components/stats";
 import { rerenderEntity } from "./renderer";
 import { relativeOrientations } from "../../game/math/path";
 import { BURNABLE } from "../components/burnable";
+import { PLAYER } from "../components/player";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -21,6 +22,14 @@ export const isAffectable = (world: World, entity: Entity) =>
 export const getAffectables = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter((target) =>
     isAffectable(world, target)
+  ) as Entity[];
+
+export const isExertable = (world: World, entity: Entity) =>
+  EXERTABLE in entity;
+
+export const getExertables = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).filter((target) =>
+    isExertable(world, target)
   ) as Entity[];
 
 // check if spell not currently active
@@ -33,6 +42,8 @@ export const canCast = (world: World, entity: Entity, item: Entity) => {
 
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
+  const playerHealings: Record<number, number> = {};
+  const playerDots: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world
@@ -125,6 +136,41 @@ export default function setupMagic(world: World) {
 
         rerenderEntity(world, affectableEntity);
       }
+    }
+
+    // process healing animation after consumption
+    for (const entity of world.getEntities([SEQUENCABLE, PLAYER, STATS])) {
+      const entityId = world.getEntityId(entity);
+      const total = entity[PLAYER].healingReceived;
+      const healing = total - (playerHealings[entityId] || 0);
+
+      if (healing === 0) continue;
+
+      playerHealings[entityId] = total;
+      createAmountMarker(world, entity, healing, "up");
+    }
+
+    // process DoT on affectable units
+    for (const entity of world.getEntities([SEQUENCABLE, AFFECTABLE, STATS])) {
+      const entityId = world.getEntityId(entity);
+      const dot = entity[AFFECTABLE].dot;
+      const delta = dot - (playerDots[entityId] || 0);
+
+      if (delta === 0) continue;
+
+      const { damage, hp } = calculateDamage(
+        "true",
+        delta,
+        0,
+        {},
+        entity[STATS]
+      );
+      entity[STATS].hp = hp;
+
+      // add hit marker
+      createAmountMarker(world, entity, -damage, "up");
+
+      playerDots[entityId] = dot;
     }
   };
 
