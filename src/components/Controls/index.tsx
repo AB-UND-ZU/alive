@@ -347,7 +347,7 @@ export default function Controls() {
 
       const orientations = pressedOrientations.current;
 
-      if (event.type === "keydown") {
+      if (event.type === "keydown" && !orientations.includes(orientation)) {
         orientations.unshift(orientation);
       } else if (event.type === "keyup") {
         orientations.splice(orientations.indexOf(orientation), 1);
