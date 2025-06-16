@@ -127,7 +127,10 @@ export const removeFromInventory = (
   }
 
   item[ITEM].carrier = undefined;
-  rerenderEntity(world, entity);
+
+  if (world.getEntityId(entity)) {
+    rerenderEntity(world, entity);
+  }
 };
 
 export const performTrade = (

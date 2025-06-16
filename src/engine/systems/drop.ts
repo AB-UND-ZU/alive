@@ -40,7 +40,11 @@ import { TypedEntity } from "../entities";
 import { EQUIPPABLE, Gear, gears } from "../components/equippable";
 import { getEntityGeneration } from "./renderer";
 import { SHOOTABLE } from "../components/shootable";
-import { Orientation, orientationPoints } from "../components/orientable";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientationPoints,
+} from "../components/orientable";
 import {
   droppableCountables,
   emptyStats,
@@ -346,6 +350,11 @@ export const dropEntity = (
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
     });
+
+    // reset orientable e.g. from using sword
+    if (itemEntity[ORIENTABLE]?.facing) {
+      itemEntity[ORIENTABLE].facing = undefined;
+    }
 
     // animate drop if not on center position
     if (!isCentered) {
