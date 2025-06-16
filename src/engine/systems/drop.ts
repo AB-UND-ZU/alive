@@ -49,6 +49,7 @@ import {
 } from "../components/stats";
 import { decayTime, lootSpeed } from "../../game/assets/utils";
 import { SPAWNABLE } from "../components/spawnable";
+import { LAYER } from "../components/layer";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -140,6 +141,7 @@ export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
   const containerEntity = entities.createContainer(world, {
     [FOG]: { visibility: "fog", type: "terrain" },
     [INVENTORY]: { items: [], size: 1 },
+    [LAYER]: {},
     [LOOTABLE]: { disposable: true },
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
@@ -335,6 +337,7 @@ export const dropEntity = (
     const containerEntity = entities.createContainer(world, {
       [FOG]: { visibility: "fog", type: "terrain" },
       [INVENTORY]: { items: isCentered ? [itemId] : [], size: 1 },
+      [LAYER]: {},
       [LOOTABLE]: { disposable: isCentered },
       [POSITION]: dropPosition,
       [RENDERABLE]: { generation: 0 },
@@ -392,6 +395,7 @@ export const sellItem = (
     [COLLIDABLE]: {},
     [FOG]: { visibility: "fog", type: "unit" },
     [INVENTORY]: { items: previousCarrier ? [] : [itemId], size: 1 },
+    [LAYER]: {},
     [LOOTABLE]: { disposable: true },
     [POSITION]: sellPosition,
     [RENDERABLE]: { generation: 0 },

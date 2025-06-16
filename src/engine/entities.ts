@@ -53,6 +53,7 @@ import { Fragment, FRAGMENT } from "./components/fragment";
 import { Structurable, STRUCTURABLE } from "./components/structurable";
 import { Environment, ENVIRONMENT } from "./components/environment";
 import { Tempo, TEMPO } from "./components/tempo";
+import { Layer, LAYER } from "./components/layer";
 
 export type Entity = {
   [ACTIONABLE]: Actionable;
@@ -77,6 +78,7 @@ export type Entity = {
   [IMMERSIBLE]: Immersible;
   [INVENTORY]: Inventory;
   [ITEM]: Item;
+  [LAYER]: Layer;
   [LEVEL]: Level;
   [LIQUID]: Liquid;
   [LIGHT]: Light;
@@ -143,6 +145,7 @@ export const createBox = entityFactory([
   DROPPABLE,
   FOG,
   INVENTORY,
+  LAYER,
   MOVABLE,
   POSITION,
   RENDERABLE,
@@ -185,6 +188,7 @@ export const createChest = entityFactory([
   DROPPABLE,
   FOG,
   INVENTORY,
+  LAYER,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
@@ -205,6 +209,7 @@ export const createCompass = entityFactory([
 export const createContainer = entityFactory([
   FOG,
   INVENTORY,
+  LAYER,
   LOOTABLE,
   POSITION,
   RENDERABLE,
@@ -217,6 +222,7 @@ export const createContainer = entityFactory([
 export const createDoor = entityFactory([
   ENTERABLE,
   FOG,
+  LAYER,
   LIGHT,
   LOCKABLE,
   POSITION,
@@ -245,6 +251,7 @@ export const createFire = entityFactory([
 export const createFloat = entityFactory([
   ENTERABLE,
   FOG,
+  LAYER,
   POSITION,
   RENDERABLE,
   SPRITE,
@@ -284,6 +291,7 @@ export const createHalo = entityFactory([
   BELONGABLE,
   EQUIPPABLE,
   INVENTORY,
+  LAYER,
   LIGHT,
   MOVABLE,
   PLAYER,
@@ -306,6 +314,7 @@ export const createHero = entityFactory([
   EQUIPPABLE,
   FOG,
   INVENTORY,
+  LAYER,
   LIGHT,
   MELEE,
   MOVABLE,
@@ -357,6 +366,7 @@ export const createMob = entityFactory([
   EQUIPPABLE,
   FOG,
   INVENTORY,
+  LAYER,
   MELEE,
   MOVABLE,
   NPC,
@@ -451,6 +461,7 @@ export const createShop = entityFactory([
   COLLIDABLE,
   FOG,
   INVENTORY,
+  LAYER,
   LOOTABLE,
   POSITION,
   RENDERABLE,
@@ -534,6 +545,7 @@ export const createTile = entityFactory([
 
 export const createTombstone = entityFactory([
   FOG,
+  LAYER,
   POSITION,
   RENDERABLE,
   REVIVABLE,
@@ -579,6 +591,7 @@ export const createVillager = entityFactory([
   EQUIPPABLE,
   FOG,
   INVENTORY,
+  LAYER,
   MELEE,
   MOVABLE,
   NPC,
@@ -597,6 +610,7 @@ export const createWall = entityFactory([
   COLLIDABLE,
   ENTERABLE,
   FOG,
+  LAYER,
   LIGHT,
   POSITION,
   RENDERABLE,

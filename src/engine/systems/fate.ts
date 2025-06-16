@@ -48,6 +48,7 @@ import { getHasteInterval } from "./movement";
 import { PUSHABLE } from "../components/pushable";
 import { AFFECTABLE } from "../components/affectable";
 import { defaultLight } from "./consume";
+import { LAYER } from "../components/layer";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -113,6 +114,7 @@ export default function setupFate(world: World) {
       DROPPABLE,
       RENDERABLE,
       POSITION,
+      LAYER,
       LIGHT,
       VIEWABLE,
       SPAWNABLE,
@@ -131,6 +133,7 @@ export default function setupFate(world: World) {
         // create tombstone and play RIP animation
         const tombstoneEntity = entities.createTombstone(world, {
           [FOG]: { visibility: "visible", type: "terrain" },
+          [LAYER]: { structure: entity[LAYER].structure },
           [POSITION]: copy(entity[POSITION]),
           [RENDERABLE]: { generation: 0 },
           [REVIVABLE]: { available: false },
@@ -165,6 +168,7 @@ export default function setupFate(world: World) {
           [BELONGABLE]: { faction: entity[BELONGABLE].faction },
           [EQUIPPABLE]: {},
           [INVENTORY]: { items: [], size: 10 },
+          [LAYER]: { structure: entity[LAYER].structure },
           [LIGHT]: { ...entity[SPAWNABLE].light },
           [MOVABLE]: {
             orientations: [],
@@ -179,7 +183,6 @@ export default function setupFate(world: World) {
           },
           [PLAYER]: {
             ghost: true,
-            structure: entity[PLAYER].structure,
             damageReceived: 0,
             healingReceived: 0,
           },
@@ -261,6 +264,7 @@ export default function setupFate(world: World) {
         [EQUIPPABLE]: {},
         [FOG]: { visibility: "visible", type: "unit" },
         [INVENTORY]: { items: [], size: 16 },
+        [LAYER]: {},
         [LIGHT]: { visibility: 1, brightness: 1, darkness: 0 },
         [MELEE]: { bumpGeneration: 0 },
         [MOVABLE]: {

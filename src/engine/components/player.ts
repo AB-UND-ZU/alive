@@ -3,7 +3,6 @@ import { World } from "../ecs";
 
 export type Player = {
   ghost: boolean;
-  structure?: number;
   damageReceived: number;
   healingReceived: number;
 };

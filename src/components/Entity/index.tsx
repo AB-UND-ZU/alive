@@ -70,7 +70,10 @@ function Entity({
   const hasStats = !!entity[STATS];
 
   const isTransparent =
-    (isHidden && !isAir) || (!isHidden && isAir) || (isUnit && !isVisible);
+    (isHidden && !isAir) ||
+    (!isHidden && isAir) ||
+    (isUnit && !isVisible) ||
+    outside;
 
   const hasLoot =
     ecs &&
@@ -101,7 +104,7 @@ function Entity({
   if (!ecs || (opacity === 0 && layerProps.isTransparent && !isUnit))
     return null;
 
-  const orderedSegments = getSegments(ecs, entity, layerProps);
+  const orderedSegments = getSegments(ecs, entity, layerProps, inside);
 
   // particles are rendered in their own stack
   const particleSegments: Segment[] = getParticles(ecs, entity).map(

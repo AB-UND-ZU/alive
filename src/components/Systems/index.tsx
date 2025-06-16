@@ -12,8 +12,8 @@ import { getDistance, random } from "../../game/math/std";
 import { LEVEL } from "../../engine/components/level";
 import { PLAYER } from "../../engine/components/player";
 import { getEnterable, isOutside } from "../../engine/systems/enter";
-import { ENTERABLE } from "../../engine/components/enterable";
 import { useEffect, useRef } from "react";
+import { LAYER } from "../../engine/components/layer";
 
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
@@ -24,6 +24,7 @@ export default function Systems() {
   const { position, radius } = useViewpoint();
   const game = useGame();
   const hero = useHero();
+  const structure = hero?.[LAYER]?.structure;
   const damageRef = useRef(0);
   const damageReceived = hero?.[PLAYER].damageReceived || 0;
   const [values, api] = useSpring(() => ({
@@ -96,8 +97,10 @@ export default function Systems() {
 
               const renderedPosition = { x: renderedX, y: renderedY };
               const cell = getCell(ecs, renderedPosition);
-              const inside = !!getEnterable(ecs, renderedPosition)?.[ENTERABLE]
-                .inside;
+              const inside =
+                !!structure &&
+                getEnterable(ecs, renderedPosition)?.[LAYER].structure ===
+                  structure;
               const entities = Object.entries(cell);
 
               const renderableEntities = entities.filter(
@@ -119,9 +122,7 @@ export default function Systems() {
                   inRadius={
                     getDistance(position, entity[POSITION], size) < radius
                   }
-                  outside={
-                    !!hero?.[PLAYER]?.structure && isOutside(ecs, entity)
-                  }
+                  outside={!inside && isOutside(ecs, entity, structure)}
                   inside={inside}
                   generation={getEntityGeneration(ecs, entity)}
                 />

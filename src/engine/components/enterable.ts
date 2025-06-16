@@ -5,7 +5,6 @@ import { Orientation } from "./orientable";
 
 export type Enterable = {
   sprite: Sprite;
-  inside: boolean;
   orientation?: Orientation | null;
 };
 

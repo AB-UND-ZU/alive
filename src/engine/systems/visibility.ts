@@ -13,6 +13,8 @@ import { disposeEntity, getCell } from "./map";
 import { rerenderEntity } from "./renderer";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
+import { TypedEntity } from "../entities";
+import { LAYER } from "../components/layer";
 
 type PendingChanges = Record<
   number,
@@ -21,6 +23,17 @@ type PendingChanges = Record<
     Record<string, { from: Fog["visibility"]; to: Fog["visibility"] }>
   >
 >;
+
+const getLayerCells = (world: World, hero: TypedEntity) => {
+  const structure = hero[LAYER]?.structure;
+
+  if (!structure) return [];
+
+  return world
+    .getEntities([POSITION, LAYER])
+    .filter((entity) => entity[LAYER].structure === structure)
+    .map((entity) => entity[POSITION]);
+};
 
 const markVisibility = (
   world: World,
@@ -178,6 +191,13 @@ export default function setupVisibility(world: World) {
     const visibleCells = traceCircularVisiblity(world, hero[POSITION], radius);
 
     for (const cell of visibleCells) {
+      markVisibility(world, pendingChanges, cell.x, cell.y, "visible");
+    }
+
+    // show all entities within hero layer
+    const layerCells = getLayerCells(world, hero);
+
+    for (const cell of layerCells) {
       markVisibility(world, pendingChanges, cell.x, cell.y, "visible");
     }
 

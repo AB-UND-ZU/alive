@@ -7,12 +7,12 @@ import { MOVABLE } from "../components/movable";
 import { getCell } from "./map";
 import { rerenderEntity } from "./renderer";
 import { ENTERABLE } from "../components/enterable";
-import { PLAYER } from "../components/player";
 import { LIGHT } from "../components/light";
-import { FOG } from "../components/fog";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
 import { VIEWABLE } from "../components/viewable";
+import { LAYER } from "../components/layer";
+import { PLAYER } from "../components/player";
 
 export const isFragment = (world: World, entity: Entity) => FRAGMENT in entity;
 
@@ -40,10 +40,10 @@ export const getOpaque = (world: World, position: Position) =>
     isOpaque(world, entity)
   ) as Entity | undefined;
 
-export const isOutside = (world: World, entity: Entity) =>
-  (!isEnterable(world, entity) && isOpaque(world, entity)) ||
-  (!entity[ENTERABLE]?.inside &&
-    (isOpaque(world, entity) || entity[FOG]?.type === "float"));
+export const isOutside = (world: World, entity: Entity, structure?: number) =>
+  !!structure && entity[LAYER]?.structure !== structure;
+// (!isEnterable(world, entity) && isOpaque(world, entity)) ||
+// (!entity[ENTERABLE]?.inside && (isOpaque(world, entity) || entity[FOG]?.type === "float"));
 
 export default function setupEnter(world: World) {
   let referenceGenerations = -1;
@@ -58,18 +58,14 @@ export default function setupEnter(world: World) {
 
     referenceGenerations = generation;
 
-    // handle player running into spikes
-    for (const entity of world.getEntities([
-      PLAYER,
-      POSITION,
-      MOVABLE,
-      RENDERABLE,
-    ])) {
+    // handle entities entering and leaving structures
+    for (const entity of world.getEntities([LAYER, POSITION, RENDERABLE])) {
       const entityId = world.getEntityId(entity);
-      const entityReference = world.assertByIdAndComponents(
-        entity[MOVABLE].reference,
-        [RENDERABLE]
-      )[RENDERABLE].generation;
+      const entityReference = entity[MOVABLE]
+        ? world.assertByIdAndComponents(entity[MOVABLE].reference, [
+            RENDERABLE,
+          ])[RENDERABLE].generation
+        : entity[RENDERABLE].generation;
 
       // skip if reference frame is unchanged
       if (entityReferences[entityId] === entityReference) continue;
@@ -77,43 +73,44 @@ export default function setupEnter(world: World) {
       entityReferences[entityId] = entityReference;
 
       const fragment = getFragment(world, entity[POSITION]);
-      const enterable = getEnterable(world, entity[POSITION]);
       const currentStructure =
-        enterable && !entity[MOVABLE].flying && fragment
+        !entity[MOVABLE]?.flying && fragment
           ? fragment[FRAGMENT].structure
           : undefined;
-      const previousStructure = entity[PLAYER].structure;
+      const previousStructure = entity[LAYER].structure;
 
       if (currentStructure !== previousStructure) {
-        entity[PLAYER].structure = currentStructure;
+        entity[LAYER].structure = currentStructure;
         rerenderEntity(world, entity);
 
-        const enterableEntities = world
-          .getEntities([ENTERABLE, RENDERABLE, FRAGMENT])
-          .filter(
-            (building) =>
-              building[FRAGMENT].structure ===
-              (currentStructure || previousStructure)
-          );
+        // trigger rerender for enterables
+        if (entity[PLAYER]) {
+          const enterableEntities = world
+            .getEntities([ENTERABLE, RENDERABLE, FRAGMENT, LAYER])
+            .filter(
+              (building) =>
+                building[FRAGMENT].structure === currentStructure ||
+                building[FRAGMENT].structure === previousStructure
+            );
 
-        for (const enterableEntity of enterableEntities) {
-          enterableEntity[ENTERABLE].inside = currentStructure;
-          rerenderEntity(world, enterableEntity);
-        }
+          for (const enterableEntity of enterableEntities) {
+            rerenderEntity(world, enterableEntity);
+          }
 
-        // center viewpoint in building
-        if (currentStructure) {
-          const currentEntity = world.assertByIdAndComponents(
-            currentStructure,
-            [STRUCTURABLE, VIEWABLE]
-          );
-          currentEntity[VIEWABLE].active = true;
-        } else if (previousStructure) {
-          const previousEntity = world.assertByIdAndComponents(
-            previousStructure,
-            [STRUCTURABLE, VIEWABLE]
-          );
-          previousEntity[VIEWABLE].active = false;
+          // center viewpoint in building
+          if (currentStructure) {
+            const currentEntity = world.assertByIdAndComponents(
+              currentStructure,
+              [STRUCTURABLE, VIEWABLE]
+            );
+            currentEntity[VIEWABLE].active = true;
+          } else if (previousStructure) {
+            const previousEntity = world.assertByIdAndComponents(
+              previousStructure,
+              [STRUCTURABLE, VIEWABLE]
+            );
+            previousEntity[VIEWABLE].active = false;
+          }
         }
       }
     }

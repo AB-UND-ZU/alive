@@ -176,7 +176,8 @@ export const getFacingLayers = (
 export const getSegments = (
   world: World,
   entity: Entity,
-  layerProps: LayerProps
+  layerProps: LayerProps,
+  inside?: boolean
 ) => {
   const isAir = entity[FOG]?.type === "air";
   const isFloat = entity[FOG]?.type === "float";
@@ -198,7 +199,8 @@ export const getSegments = (
 
   // 1. shield
   const shieldEntity =
-    entity[EQUIPPABLE]?.shield && world.getEntityById(entity[EQUIPPABLE].shield);
+    entity[EQUIPPABLE]?.shield &&
+    world.getEntityById(entity[EQUIPPABLE].shield);
   if (shieldEntity) {
     orderedSegments.push({
       id: entity[EQUIPPABLE].shield,
@@ -216,8 +218,7 @@ export const getSegments = (
   // 2. body
   orderedSegments.push({
     id: world.getEntityId(entity),
-    sprite:
-      (entity[ENTERABLE]?.inside && entity[ENTERABLE].sprite) || entity[SPRITE],
+    sprite: (inside && entity[ENTERABLE]?.sprite) || entity[SPRITE],
     facing: entity[ORIENTABLE]?.facing,
     offsetX: 0,
     offsetY: 0,

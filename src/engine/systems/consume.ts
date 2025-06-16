@@ -18,6 +18,7 @@ import { entities } from "..";
 import { REFERENCE } from "../components/reference";
 import { getEntityHaste, getHasteInterval } from "./movement";
 import { disposeEntity } from "./map";
+import { LAYER } from "../components/layer";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -143,14 +144,19 @@ export default function setupConsume(world: World) {
     }
 
     // process consumable equipments
-    for (const entity of world.getEntities([PLAYER, EQUIPPABLE, LIGHT])) {
+    for (const entity of world.getEntities([
+      PLAYER,
+      EQUIPPABLE,
+      LIGHT,
+      LAYER,
+    ])) {
       // increase vision radius when stepping outside
       if (
         entity[EQUIPPABLE].torch &&
         entity[LIGHT].brightness === defaultLight.brightness &&
         entity[LIGHT].visibility === defaultLight.visibility &&
         !getSequence(world, entity, "vision") &&
-        !entity[PLAYER].structure
+        !entity[LAYER].structure
       ) {
         createSequence<"vision", VisionSequence>(
           world,
