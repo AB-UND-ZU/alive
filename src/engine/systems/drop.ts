@@ -472,7 +472,7 @@ export default function setupDrop(world: World) {
           entity,
           "decay",
           "creatureDecay",
-          {}
+          { fast: false }
         );
         dropEntity(
           world,

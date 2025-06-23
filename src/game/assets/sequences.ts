@@ -146,6 +146,7 @@ import { CASTABLE } from "../../engine/components/castable";
 import { BURNABLE } from "../../engine/components/burnable";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import { getExertables } from "../../engine/systems/magic";
+import { FRAGMENT } from "../../engine/components/fragment";
 
 export * from "./npcs";
 export * from "./quests";
@@ -466,10 +467,11 @@ export const creatureDecay: Sequence<DecaySequence> = (
   state
 ) => {
   let updated = false;
-  const finished = state.elapsed > haltTime + decayTime;
+  const decayDelay = state.args.fast ? 0 : haltTime;
+  const finished = state.elapsed > decayDelay + decayTime;
 
   // create death particle
-  if (!state.particles.decay && state.elapsed > haltTime && !finished) {
+  if (!state.particles.decay && state.elapsed > decayDelay && !finished) {
     const deathParticle = entities.createParticle(world, {
       [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: decayHeight },
       [RENDERABLE]: { generation: 1 },
@@ -486,7 +488,8 @@ export const creatureDecay: Sequence<DecaySequence> = (
       delete state.particles.decay;
     }
 
-    entity[DROPPABLE].decayed = true;
+    if (entity[DROPPABLE]) entity[DROPPABLE].decayed = true;
+    if (entity[BURNABLE]) entity[BURNABLE].decayed = true;
   }
 
   return { finished, updated };
@@ -890,7 +893,11 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   }
 
   // create castable and AoE for eternal fire
-  const burnFactor = entity[BURNABLE]?.remains ? 2 : 1;
+  const burnFactor = entity[BURNABLE]?.remains
+    ? 3
+    : entity[FRAGMENT]?.structure
+    ? 5
+    : 1;
   if (
     isEternalFire &&
     isTerrainBurning &&

@@ -732,6 +732,7 @@ export const generateWorld = async (world: World) => {
             burning: false,
             eternal: false,
             combusted: false,
+            decayed: false,
             remains: treeBurnt,
           },
           [COLLIDABLE]: {},
@@ -784,6 +785,7 @@ export const generateWorld = async (world: World) => {
             burning: false,
             eternal: false,
             combusted: false,
+            decayed: false,
             remains: oakBurnt,
           },
           [COLLIDABLE]: {},
@@ -799,7 +801,12 @@ export const generateWorld = async (world: World) => {
         rootEntity[FRAGMENT].structure = rootId;
 
         entities.createPlant(world, {
-          [BURNABLE]: { burning: false, eternal: false, combusted: false },
+          [BURNABLE]: {
+            burning: false,
+            eternal: false,
+            combusted: false,
+            decayed: false,
+          },
           [FOG]: { visibility, type: "terrain" },
           [FRAGMENT]: { structure: rootId },
           [COLLIDABLE]: {},
@@ -817,6 +824,7 @@ export const generateWorld = async (world: World) => {
             burning: false,
             eternal: false,
             combusted: false,
+            decayed: false,
             remains: treeBurnt,
           },
           [COLLIDABLE]: {},
@@ -840,6 +848,7 @@ export const generateWorld = async (world: World) => {
             burning: false,
             eternal: false,
             combusted: false,
+            decayed: false,
             remains: palmBurnt,
           },
           [COLLIDABLE]: {},
@@ -877,6 +886,7 @@ export const generateWorld = async (world: World) => {
             burning: false,
             eternal: false,
             combusted: false,
+            decayed: false,
             remains: palmBurnt,
           },
           [FOG]: { visibility, type: "terrain" },
@@ -894,7 +904,12 @@ export const generateWorld = async (world: World) => {
       const hedgeEntity = entities.createResource(world, {
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction },
-        [BURNABLE]: { burning: false, eternal: false, combusted: false },
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          combusted: false,
+          decayed: false,
+        },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false },
         [FOG]: { visibility, type: "terrain" },
@@ -947,7 +962,12 @@ export const generateWorld = async (world: World) => {
       populateInventory(world, tumbleweedEntity, items);
     } else if (cell === "bush" || cell === "berry" || cell === "berry_one") {
       entities.createWeeds(world, {
-        [BURNABLE]: { burning: false, eternal: false, combusted: false },
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          combusted: false,
+          decayed: false,
+        },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: bush,
@@ -973,7 +993,12 @@ export const generateWorld = async (world: World) => {
       }
     } else if (cell === "grass" || cell === "flower" || cell === "flower_one") {
       entities.createWeeds(world, {
-        [BURNABLE]: { burning: false, eternal: false, combusted: false },
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          combusted: false,
+          decayed: false,
+        },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [SPRITE]: grass,
@@ -1079,7 +1104,12 @@ export const generateWorld = async (world: World) => {
       world.setIdentifier(doorEntity, "gate");
     } else if (cell === "campfire") {
       entities.createFire(world, {
-        [BURNABLE]: { burning: true, eternal: true, combusted: false },
+        [BURNABLE]: {
+          burning: true,
+          eternal: true,
+          combusted: false,
+          decayed: false,
+        },
         [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },

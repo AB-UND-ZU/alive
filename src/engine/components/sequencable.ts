@@ -28,7 +28,7 @@ export type MessageSequence = {
   orientation: Orientation;
   fast: boolean;
 };
-export type DecaySequence = EmptyObject;
+export type DecaySequence = { fast: boolean };
 export type BurnSequence = {
   generation: number;
   lastTick?: number;

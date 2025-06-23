@@ -6,6 +6,7 @@ import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import {
   BurnSequence,
+  DecaySequence,
   SEQUENCABLE,
   SmokeSequence,
 } from "../components/sequencable";
@@ -21,11 +22,12 @@ import { CASTABLE } from "../components/castable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
 import { none } from "../../game/assets/sprites";
-import { dropEntity } from "./drop";
+import { dropEntity, MAX_DROP_RADIUS } from "./drop";
 import { DROPPABLE } from "../components/droppable";
 import { FOG } from "../components/fog";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
+import { decayTime, lootSpeed } from "../../game/assets/utils";
 
 export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
 
@@ -171,7 +173,7 @@ export default function setupBurn(world: World) {
       }
     }
 
-    // combust units
+    // decay combusted units
     for (const entity of world.getEntities([
       POSITION,
       BURNABLE,
@@ -180,6 +182,38 @@ export default function setupBurn(world: World) {
       SPRITE,
     ])) {
       if (!entity[BURNABLE].combusted) continue;
+
+      if (!getSequence(world, entity, "decay")) {
+        createSequence<"decay", DecaySequence>(
+          world,
+          entity,
+          "decay",
+          "creatureDecay",
+          { fast: true }
+        );
+        if (entity[DROPPABLE]) {
+          dropEntity(
+            world,
+            entity,
+            entity[POSITION],
+            false,
+            MAX_DROP_RADIUS,
+            undefined,
+            lootSpeed + decayTime / 2
+          );
+        }
+      }
+    }
+
+    // dispose decayed units
+    for (const entity of world.getEntities([
+      POSITION,
+      BURNABLE,
+      RENDERABLE,
+      SEQUENCABLE,
+      SPRITE,
+    ])) {
+      if (!entity[BURNABLE].combusted || !entity[BURNABLE].decayed) continue;
 
       const remains = entity[BURNABLE].remains;
 
@@ -212,10 +246,6 @@ export default function setupBurn(world: World) {
         [SPRITE]: none,
       });
       registerEntity(world, castableEntity);
-
-      if (entity[DROPPABLE]) {
-        dropEntity(world, entity, entity[POSITION], false);
-      }
 
       disposeEntity(world, entity);
     }

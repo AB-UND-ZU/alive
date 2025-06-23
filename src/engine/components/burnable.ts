@@ -6,6 +6,7 @@ export type Burnable = {
   burning: boolean;
   eternal: boolean;
   combusted: boolean;
+  decayed: boolean;
   remains?: Sprite;
 };
 

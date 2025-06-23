@@ -140,6 +140,7 @@ export const palmBurnt: Sprite = {
     { char: "▀", color: colors.black },
     { char: "+", color: colors.black },
     { char: ".", color: colors.maroon },
+    { char: ":", color: colors.black },
   ],
 };
 
@@ -201,6 +202,7 @@ export const treeBurnt: Sprite = {
     { char: "▀", color: colors.black },
     { char: "+", color: colors.black },
     { char: ".", color: colors.grey },
+    { char: ":", color: colors.black },
   ],
 };
 
@@ -210,6 +212,7 @@ export const oakBurnt: Sprite = {
     { char: "l", color: colors.maroon },
     { char: "▀", color: colors.black },
     { char: "∙", color: colors.grey },
+    { char: "·", color: colors.black },
   ],
 };
 
