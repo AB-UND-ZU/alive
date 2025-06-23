@@ -58,7 +58,7 @@ import { LAYER } from "../components/layer";
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
 
-const MAX_DROP_RADIUS = 5;
+export const MAX_DROP_RADIUS = 5;
 export const findAdjacentWalkable = (
   world: World,
   position: Position,

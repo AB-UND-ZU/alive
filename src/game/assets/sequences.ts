@@ -861,6 +861,8 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   const isBurning = isTerrainBurning || isUnitBurning;
   const isEternalFire = entity[BURNABLE]?.eternal;
   const fireTick = world.metadata.gameEntity[REFERENCE].tick;
+  const burnGeneration = Math.ceil(state.elapsed / fireTick);
+  const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
 
   let updated = false;
   let finished = !isBurning;
@@ -888,6 +890,7 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   }
 
   // create castable and AoE for eternal fire
+  const burnFactor = entity[BURNABLE]?.remains ? 2 : 1;
   if (
     isEternalFire &&
     isTerrainBurning &&
@@ -924,23 +927,36 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     state.args.castable &&
     state.args.exertable
   ) {
+    finished = true;
+  } else if (
+    !isEternalFire &&
+    isTerrainBurning &&
+    burnGeneration > 3 * burnFactor &&
+    state.args.generation !== worldGeneration &&
+    (random(0, 2 * burnFactor) === 0 || burnGeneration > 6 * burnFactor)
+  ) {
+    // combust organic material
+    entity[BURNABLE].combusted = true;
+    entity[BURNABLE].burning = false;
+    finished = true;
+  }
+
+  if (finished && state.args.castable && state.args.exertable) {
     // deactivate eternal fire AoE
     disposeEntity(world, world.assertById(state.args.castable));
     delete state.args.castable;
     disposeEntity(world, world.assertById(state.args.exertable));
     delete state.args.exertable;
-
-    updated = true;
   }
 
   let generation;
 
   // synchronize generation tick
   if (isUnitBurning) {
-    state.args.lastTick = Math.ceil(state.elapsed / fireTick);
+    state.args.lastTick = burnGeneration;
     generation = state.args.lastTick;
   } else if (isTerrainBurning) {
-    generation = world.metadata.gameEntity[RENDERABLE].generation;
+    generation = worldGeneration;
   }
 
   // animate particle
@@ -962,19 +978,24 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
             CASTABLE,
           ])
       )[0];
-      const isInFire =
-        castableEntity?.[CASTABLE] && castableEntity[CASTABLE].burn > 0;
+      const fireEntity = world.getEntityByIdAndComponents(
+        castableEntity?.[CASTABLE].caster,
+        [BURNABLE]
+      );
+      const isInEternalFire =
+        fireEntity?.[BURNABLE].eternal &&
+        castableEntity?.[CASTABLE] &&
+        castableEntity[CASTABLE].burn > 0;
 
-      // fast tick while standing in fire, or initial, or every N ticks
+      // fast tick while standing in fire or every N ticks
       if (
-        isInFire ||
-        !state.args.lastDot ||
-        generation - state.args.lastDot >= burnTicks
+        isInEternalFire ||
+        generation - (state.args.lastDot || 0) >= burnTicks
       ) {
         state.args.lastDot = generation;
         entity[AFFECTABLE].dot += 1;
 
-        if (!isInFire) {
+        if (!isInEternalFire) {
           entity[AFFECTABLE].burn -= 1;
         }
       }
@@ -1029,6 +1050,8 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
 
       const step = (smokeParticle[PARTICLE].duration || 350) / 350;
       if ((generation + smokeParticle[RENDERABLE].generation) % step === 0) {
+        const { offsetX, offsetY } = smokeParticle[PARTICLE];
+        smokeParticle[PARTICLE].animatedOrigin = { x: offsetX, y: offsetY };
         smokeParticle[PARTICLE].offsetY -= 1;
         smokeParticle[PARTICLE].offsetX += wind;
 

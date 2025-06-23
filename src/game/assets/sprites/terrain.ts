@@ -133,6 +133,16 @@ export const palm2: Sprite = {
   ],
 };
 
+export const palmBurnt: Sprite = {
+  name: "palm_burnt",
+  layers: [
+    { char: "│", color: colors.olive },
+    { char: "▀", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: ".", color: colors.maroon },
+  ],
+};
+
 export const hedge1: Sprite = {
   name: "hedge_one",
   layers: [{ char: "\u0104", color: colors.green }],
@@ -182,6 +192,25 @@ export const tree2: Sprite = {
       { char: "Θ", color: colors.green },
     ],
   },
+};
+
+export const treeBurnt: Sprite = {
+  name: "tree_burnt",
+  layers: [
+    { char: "│", color: colors.maroon },
+    { char: "▀", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: ".", color: colors.grey },
+  ],
+};
+
+export const oakBurnt: Sprite = {
+  name: "oak_burnt",
+  layers: [
+    { char: "l", color: colors.maroon },
+    { char: "▀", color: colors.black },
+    { char: "∙", color: colors.grey },
+  ],
 };
 
 export const sapling1: Sprite = {

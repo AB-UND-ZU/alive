@@ -1,9 +1,12 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import { Sprite } from "./sprite";
 
 export type Burnable = {
   burning: boolean;
   eternal: boolean;
+  combusted: boolean;
+  remains?: Sprite;
 };
 
 export const BURNABLE = "BURNABLE";

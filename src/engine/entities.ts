@@ -219,6 +219,20 @@ export const createContainer = entityFactory([
   TOOLTIP,
 ]);
 
+export const createDeposit = entityFactory([
+  ATTACKABLE,
+  BELONGABLE,
+  COLLIDABLE,
+  DROPPABLE,
+  FOG,
+  INVENTORY,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  STATS,
+]);
+
 export const createDoor = entityFactory([
   ENTERABLE,
   FOG,
@@ -257,9 +271,20 @@ export const createFloat = entityFactory([
   SPRITE,
 ]);
 
+export const createFoilage = entityFactory([
+  BURNABLE,
+  COLLIDABLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+]);
+
 export const createFrame = entityFactory([RENDERABLE, REFERENCE]);
 
 export const createFruit = entityFactory([
+  BURNABLE,
   COLLIDABLE,
   FOG,
   INVENTORY,
@@ -413,11 +438,13 @@ export const createPath = entityFactory([
 ]);
 
 export const createPlant = entityFactory([
+  BURNABLE,
   COLLIDABLE,
   FOG,
   FRAGMENT,
   POSITION,
   RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
 ]);
 
@@ -436,6 +463,7 @@ export const createPlate = entityFactory([
 export const createResource = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  BURNABLE,
   COLLIDABLE,
   DROPPABLE,
   FOG,
@@ -448,11 +476,13 @@ export const createResource = entityFactory([
 ]);
 
 export const createRoot = entityFactory([
+  BURNABLE,
   COLLIDABLE,
   FOG,
   FRAGMENT,
   POSITION,
   RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
   STRUCTURABLE,
 ]);
@@ -624,4 +654,13 @@ export const createWater = entityFactory([
   RENDERABLE,
   SPRITE,
   TEMPO,
+]);
+
+export const createWeeds = entityFactory([
+  BURNABLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
 ]);

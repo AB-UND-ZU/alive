@@ -15,6 +15,7 @@ import { rerenderEntity } from "./renderer";
 import { relativeOrientations } from "../../game/math/path";
 import { BURNABLE } from "../components/burnable";
 import { PLAYER } from "../components/player";
+import { getBurnables } from "./burn";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -36,8 +37,12 @@ export const getExertables = (world: World, position: Position) =>
 export const canCast = (world: World, entity: Entity, item: Entity) => {
   const entityId = world.getEntityId(entity);
   return !world
-    .getEntities([CASTABLE])
-    .some((castable) => castable[CASTABLE].caster === entityId);
+    .getEntities([CASTABLE, SEQUENCABLE])
+    .some(
+      (castable) =>
+        castable[CASTABLE].caster === entityId &&
+        !castable[SEQUENCABLE].states.smoke
+    );
 };
 
 export default function setupMagic(world: World) {
@@ -135,6 +140,20 @@ export default function setupMagic(world: World) {
         }
 
         rerenderEntity(world, affectableEntity);
+      }
+
+      // set terrain on fire
+      for (const burnableEntity of getBurnables(world, entity[POSITION])) {
+        const targetBurn = castableEntity[CASTABLE].burn;
+
+        if (
+          burnableEntity[BURNABLE].combusted ||
+          targetBurn === 0 ||
+          castableEntity[CASTABLE].caster === world.getEntityId(burnableEntity)
+        )
+          continue;
+
+        burnableEntity[BURNABLE].burning = true;
       }
     }
 

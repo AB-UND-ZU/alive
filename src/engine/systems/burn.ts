@@ -10,7 +10,7 @@ import {
   SmokeSequence,
 } from "../components/sequencable";
 import { BURNABLE } from "../components/burnable";
-import { getCell } from "./map";
+import { disposeEntity, getCell, registerEntity } from "./map";
 import { createSequence } from "./sequence";
 import { getSequence } from "./sequence";
 import { AFFECTABLE } from "../components/affectable";
@@ -21,6 +21,18 @@ import { CASTABLE } from "../components/castable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
 import { none } from "../../game/assets/sprites";
+import { dropEntity } from "./drop";
+import { DROPPABLE } from "../components/droppable";
+import { FOG } from "../components/fog";
+import { FRAGMENT } from "../components/fragment";
+import { STRUCTURABLE } from "../components/structurable";
+
+export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
+
+export const getBurnables = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).filter((entity) =>
+    isBurnable(world, entity)
+  ) as Entity[];
 
 export const isBurning = (world: World, entity: Entity) =>
   entity[BURNABLE]?.burning;
@@ -52,23 +64,57 @@ export default function setupBurn(world: World) {
       // skip if not burning
       if (!isBurning(world, entity)) continue;
 
-      // create burning animation
-      if (!getSequence(world, entity, "burn")) {
-        createSequence<"burn", BurnSequence>(
-          world,
-          entity,
-          "burn",
-          "fireBurn",
-          { generation: 0 }
-        );
-        createSequence<"smoke", SmokeSequence>(
-          world,
-          entity,
-          "smoke",
-          "smokeWind",
-          { generation: 0, extinguish: 0 }
-        );
+      // burn whole structures
+      const burningEntities = [];
+      const structureId = entity[STRUCTURABLE]
+        ? world.getEntityId(entity)
+        : entity[FRAGMENT]?.structure;
+      const structureEntity = world.getEntityByIdAndComponents(structureId, [
+        STRUCTURABLE,
+      ]);
+
+      if (structureEntity) {
+        const fragmentEntities = world
+          .getEntities([POSITION, BURNABLE, FRAGMENT, RENDERABLE, SEQUENCABLE])
+          .filter(
+            (fragmentEntity) =>
+              fragmentEntity[FRAGMENT].structure === structureId
+          );
+
+        // light up all fragments
+        fragmentEntities.forEach((fragmentEntity) => {
+          fragmentEntity[BURNABLE].burning = true;
+        });
+
+        burningEntities.push(...fragmentEntities);
+      } else {
+        burningEntities.push(entity);
       }
+
+      // create burning animation
+      burningEntities.forEach((burningEntity) => {
+        if (!getSequence(world, burningEntity, "burn")) {
+          createSequence<"burn", BurnSequence>(
+            world,
+            burningEntity,
+            "burn",
+            "fireBurn",
+            { generation: 0 }
+          );
+
+          if (
+            burningEntity[BURNABLE].eternal ||
+            burningEntity[BURNABLE].remains
+          )
+            createSequence<"smoke", SmokeSequence>(
+              world,
+              burningEntity,
+              "smoke",
+              "smokeWind",
+              { generation: 0, extinguish: 0 }
+            );
+        }
+      });
     }
 
     // burn units
@@ -123,6 +169,55 @@ export default function setupBurn(world: World) {
           { generation: 0, extinguish: 3 }
         );
       }
+    }
+
+    // combust units
+    for (const entity of world.getEntities([
+      POSITION,
+      BURNABLE,
+      RENDERABLE,
+      SEQUENCABLE,
+      SPRITE,
+    ])) {
+      if (!entity[BURNABLE].combusted) continue;
+
+      const remains = entity[BURNABLE].remains;
+
+      if (remains) {
+        entities.createGround(world, {
+          [FOG]: { visibility: "hidden", type: "terrain" },
+          [POSITION]: copy(entity[POSITION]),
+          [SPRITE]: remains,
+          [RENDERABLE]: { generation: 0 },
+        });
+      }
+
+      // transfer smoke sequence
+      const smokeState = entity[SEQUENCABLE].states.smoke;
+      const castableEntity = entities.createSpell(world, {
+        [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
+        [CASTABLE]: {
+          affected: {},
+          damage: 0,
+          burn: 0,
+          freeze: 0,
+          caster: world.getEntityId(entity),
+        },
+        [ORIENTABLE]: {},
+        [POSITION]: copy(entity[POSITION]),
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: {
+          states: smokeState ? { smoke: smokeState } : {},
+        },
+        [SPRITE]: none,
+      });
+      registerEntity(world, castableEntity);
+
+      if (entity[DROPPABLE]) {
+        dropEntity(world, entity, entity[POSITION], false);
+      }
+
+      disposeEntity(world, entity);
     }
   };
 

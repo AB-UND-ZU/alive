@@ -51,6 +51,7 @@ import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
 import { CASTABLE } from "../components/castable";
+import { BURNABLE } from "../components/burnable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -172,18 +173,24 @@ export default function setupAi(world: World) {
           const delta = orientationPoints[facing];
           const position = add(entity[POSITION], delta);
 
-          // avoid fires
+          // avoid eternal fires
           const castableEntity = getExertables(world, position).map(
             (exertable) =>
               world.getEntityByIdAndComponents(exertable[EXERTABLE].castable, [
                 CASTABLE,
               ])
           )[0];
-          const isInFire =
-            castableEntity?.[CASTABLE] && castableEntity[CASTABLE].burn > 0;
+          const fireEntity = world.getEntityByIdAndComponents(
+            castableEntity?.[CASTABLE].caster,
+            [BURNABLE]
+          );
+          const isEternalFire =
+            fireEntity?.[BURNABLE].eternal &&
+            castableEntity?.[CASTABLE] &&
+            castableEntity[CASTABLE].burn > 0;
 
           // unable to move, attempt reorienting
-          if (!isMovable(world, entity, position) || isInFire) {
+          if (!isMovable(world, entity, position) || isEternalFire) {
             const preferredFacing =
               orientations[
                 (orientations.indexOf(facing) + 1 + random(0, 1) * 2) %

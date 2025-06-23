@@ -566,3 +566,4 @@ T5: legendary (fuchsia)
 - Fire doesn't need to be a sequence
 - For large trees, matrix iteration requires to go column by column
 - New sequences won't start in time if created within another sequence handler
+- Transferring sequencable states causes animated particles to glitch due to re-mounting
