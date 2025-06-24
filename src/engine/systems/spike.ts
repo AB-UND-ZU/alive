@@ -28,7 +28,7 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
   const attack = entity[SPIKABLE].damage;
 
   const { damage, hp } = calculateDamage(
-    "magic",
+    "true",
     attack,
     0,
     entity[STATS],

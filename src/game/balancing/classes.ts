@@ -3,6 +3,7 @@ import { Sprite } from "../../engine/components/sprite";
 import { Active, Stackable } from "../../engine/components/item";
 import { Equipment } from "../../engine/components/equippable";
 import { Stats } from "../../engine/components/stats";
+import { initialLevel } from "../../engine/systems/leveling";
 
 export type ClassKey = "scout" | "knight" | "mage" | "hunter";
 
@@ -10,7 +11,7 @@ export type ClassDefinition = {
   sprite: Sprite;
   items: ({ slot: Equipment; active?: Active } | { stackable: Stackable })[];
 
-  stats: Omit<Stats, "xp" | "coin" | "stick" | "ore" | "flower" | "berry">;
+  stats: Omit<Stats, "coin" | "stick" | "ore" | "flower" | "berry" | "leaf">;
 };
 
 const classDefinitions: Record<ClassKey, ClassDefinition> = {
@@ -26,6 +27,12 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       mp: 0,
       maxMp: 10,
       maxMpCap: 30,
+
+      xp: 0,
+      maxXp: initialLevel.xp,
+      maxXpCap: 99,
+
+      level: 1,
 
       power: 1,
       magic: 0,
@@ -46,6 +53,12 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       maxMp: 5,
       maxMpCap: 20,
 
+      xp: 0,
+      maxXp: initialLevel.xp,
+      maxXpCap: 99,
+
+      level: 1,
+
       power: 0,
       magic: 0,
       armor: 1,
@@ -65,6 +78,12 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       maxMp: 15,
       maxMpCap: 30,
 
+      xp: 0,
+      maxXp: initialLevel.xp,
+      maxXpCap: 99,
+
+      level: 1,
+
       power: 0,
       magic: 1,
       armor: 0,
@@ -83,6 +102,12 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       mp: 0,
       maxMp: 10,
       maxMpCap: 25,
+
+      xp: 0,
+      maxXp: initialLevel.xp,
+      maxXpCap: 99,
+
+      level: 1,
 
       power: 0,
       magic: 0,

@@ -52,11 +52,25 @@ function StatsInner({
               ...createCountable(stats, "hp", "max"),
               ...createCountable(stats, "maxHp", "cap"),
               none,
-              ...createCountable(stats, "xp", "countable"),
+              ...createCountable(stats, "coin", "countable"),
+              none,
+              ...createCountable(stats, "berry", "countable"),
+              ...createText("│", colors.grey),
+              ...repeat(none, 3),
+            ]}
+          />
+          <Row
+            cells={[
+              ...repeat(none, 3),
+              ...createText("│", colors.grey),
+              ...createCountable(stats, "mp", "max"),
+              ...createCountable(stats, "maxMp", "cap"),
               none,
               ...createCountable(stats, "ore", "countable"),
               none,
-              ...createCountable(stats, "berry", "countable"),
+              ...createCountable(stats, "flower", "countable"),
+              ...createText("│", colors.grey),
+              ...repeat(none, 3),
             ]}
           />
           <Row
@@ -65,14 +79,14 @@ function StatsInner({
               paused ? resume : stats.map ? map : pause,
               none,
               ...createText("│", colors.grey),
-              ...createCountable(stats, "mp", "max"),
-              ...createCountable(stats, "maxMp", "cap"),
-              none,
-              ...createCountable(stats, "coin", "countable"),
+              ...createCountable(stats, "xp", "max"),
+              ...createCountable(stats, "maxXp", "cap"),
               none,
               ...createCountable(stats, "stick", "countable"),
               none,
-              ...createCountable(stats, "flower", "countable"),
+              ...createCountable(stats, "leaf", "countable"),
+              ...createText("│", colors.grey),
+              ...repeat(none, 3),
             ]}
           />
         </>
@@ -81,7 +95,9 @@ function StatsInner({
         cells={[
           ...createText("═".repeat(padding + 3), colors.grey),
           ...createText(hidden ? "═" : "╧", colors.grey),
-          ...createText("═".repeat(padding + 17), colors.grey),
+          ...createText("═".repeat(13), colors.grey),
+          ...createText(hidden ? "═" : "╧", colors.grey),
+          ...createText("═".repeat(padding + 3), colors.grey),
         ]}
       />
       <div className="Menu" id="menu" onClick={handleMenu} />

@@ -216,23 +216,6 @@ export const oakBurnt: Sprite = {
   ],
 };
 
-export const sapling1: Sprite = {
-  name: "Sapling",
-  layers: [
-    { char: "+", color: colors.green },
-    { char: ",", color: colors.maroon },
-  ],
-};
-
-export const sapling2: Sprite = {
-  name: "Sapling",
-  layers: [
-    { char: ",", color: colors.maroon },
-    { char: "\u0106", color: colors.green },
-    { char: "∙", color: colors.black },
-  ],
-};
-
 export const bush: Sprite = {
   name: "bush_empty",
   layers: [{ char: "\u03c4", color: colors.olive }],

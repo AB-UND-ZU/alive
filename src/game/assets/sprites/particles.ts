@@ -11,6 +11,8 @@ import {
   haste,
   heart,
   heartUp,
+  leaf,
+  level,
   magic,
   mana,
   manaUp,
@@ -785,7 +787,19 @@ const statConfig: Record<
   mp: { color: colors.blue, sprite: mana, max: "maxMp" },
   maxMp: { color: "#404040", sprite: manaUp, max: "maxMpCap" },
   maxMpCap: { color: "#404040", sprite: manaUp },
-  xp: { color: colors.lime, sprite: nonCountable(xp), drop: xp, resource: xp },
+  xp: {
+    color: colors.lime,
+    sprite: nonCountable(xp),
+    drop: xp,
+    resource: xp,
+    max: "maxXp",
+  },
+  maxXp: { color: "#404040", sprite: nonCountable(xp), max: "maxXpCap" },
+  maxXpCap: { color: "#404040", sprite: nonCountable(xp) },
+  level: {
+    color: colors.white,
+    sprite: level,
+  },
   coin: {
     color: colors.yellow,
     sprite: nonCountable(coin),
@@ -805,6 +819,10 @@ const statConfig: Record<
     sprite: berry,
     drop: berryDrop,
     resource: berry,
+  },
+  leaf: {
+    color: colors.green,
+    sprite: leaf,
   },
   power: {
     color: colors.lime,
@@ -911,6 +929,17 @@ export const enemyPointer: Sprite = {
     right: [{ char: "\u0119", color: colors.red }],
     down: [{ char: "\u0118", color: colors.red }],
     left: [{ char: "\u011a", color: colors.red }],
+  },
+};
+
+export const levelProgress: Sprite = {
+  name: "level_progress",
+  layers: [],
+  facing: {
+    up: [{ char: "║", color: colors.lime }],
+    right: [{ char: "═", color: colors.lime }],
+    down: [{ char: "║", color: colors.lime }],
+    left: [{ char: "═", color: colors.lime }],
   },
 };
 

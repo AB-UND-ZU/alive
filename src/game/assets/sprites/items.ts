@@ -145,6 +145,11 @@ export const crystal: Sprite = {
   ],
 };
 
+export const level: Sprite = {
+  name: "Level",
+  layers: [{ char: "#", color: colors.white }],
+};
+
 export const xp: Sprite = {
   name: "XP",
   layers: [{ char: "+", color: colors.lime }],
@@ -240,6 +245,45 @@ export const wood: Sprite = {
   layers: [
     { char: "■", color: colors.maroon },
     { char: "▒", color: colors.black },
+  ],
+};
+
+export const leaf: Sprite = {
+  name: "Leaf",
+  layers: [
+    { char: "+", color: colors.lime },
+    { char: "\u011c", color: colors.lime },
+    { char: "\u0119", color: colors.black },
+    { char: "-", color: colors.green },
+  ],
+  amounts: {
+    single: [
+      { char: "+", color: colors.lime },
+      { char: "\u011c", color: colors.lime },
+      { char: "\u0119", color: colors.black },
+      { char: "-", color: colors.green },
+    ],
+    double: [
+      { char: "\u0103", color: colors.green },
+      { char: "\u011c", color: colors.lime },
+      { char: "─", color: colors.lime },
+      { char: "-", color: colors.green },
+    ],
+    multiple: [
+      { char: "\u0103", color: colors.lime },
+      { char: "\u011c", color: colors.green },
+      { char: "∞", color: colors.lime },
+      { char: "-", color: colors.green },
+    ],
+  },
+};
+
+export const seed: Sprite = {
+  name: "Seed",
+  layers: [
+    { char: ",", color: colors.maroon },
+    { char: "+", color: colors.green },
+    { char: "·", color: colors.lime },
   ],
 };
 

@@ -487,6 +487,11 @@ export default function Controls() {
       />
       <Row
         cells={[
+          ...repeat(none, dimensions.padding * 2 + dimensions.visibleColumns),
+        ]}
+      />
+      <Row
+        cells={[
           ...createText("═".repeat(dimensions.padding + 10), colors.grey),
           ...createText("╤", colors.grey),
           ...createText("═".repeat(dimensions.padding + 10), colors.grey),
@@ -497,7 +502,7 @@ export default function Controls() {
           none,
           ...button[0],
           ...activation[0],
-          ...createText("│", colors.grey),
+          createText("│", colors.grey)[0],
           ...itemRows[0],
         ]}
       />
@@ -506,8 +511,21 @@ export default function Controls() {
           none,
           ...button[1],
           ...activation[1],
-          ...createText("│", colors.grey),
+          createText("│", colors.grey)[0],
           ...itemRows[1],
+        ]}
+      />
+      <Row
+        cells={[
+          ...repeat(
+            none,
+            dimensions.padding + (dimensions.visibleColumns - 1) / 2
+          ),
+          createText("│", colors.grey)[0],
+          ...repeat(
+            none,
+            dimensions.padding + (dimensions.visibleColumns - 1) / 2
+          ),
         ]}
       />
       <div className="Action" id="action" onClick={handleAction} />

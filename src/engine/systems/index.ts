@@ -10,6 +10,7 @@ export { default as setupEnter } from "./enter";
 export { default as setupFate } from "./fate";
 export { default as setupFocus } from "./focus";
 export { default as setupImmersion } from "./immersion";
+export { default as setupLeveling } from "./leveling";
 export { default as setupMagic } from "./magic";
 export { default as setupMap } from "./map";
 export { default as setupMovement } from "./movement";

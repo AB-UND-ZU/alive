@@ -35,6 +35,7 @@ import {
   ironKey,
   ironMine,
   ironSword,
+  leaf,
   leaves,
   manaUp,
   mpFlask1,
@@ -343,9 +344,10 @@ export const generateWorld = async (world: World) => {
     else if (green > 37 && elevation > 17) cell = "tree";
     else if (green > 30 && elevation > 14)
       cell = spawn > 93 ? "fruit" : spawn > 80 ? "wood" : "hedge";
-    else if (green > 20 && elevation > 11) cell = spawn > 91 ? "berry" : "bush";
+    else if (green > 20 && elevation > 11)
+      cell = spawn > 96 ? "leaf" : spawn > 91 ? "berry" : "bush";
     else if (green > 10 && elevation > 8)
-      cell = spawn > 92 ? "flower" : "grass";
+      cell = spawn > 97 ? "leaf" : spawn > 92 ? "flower" : "grass";
     // spawn
     else if (spawn < -96) cell = "mob";
 
@@ -1021,6 +1023,15 @@ export const generateWorld = async (world: World) => {
           false
         );
       }
+    } else if (cell === "leaf") {
+      createItemAsDrop(world, { x, y }, entities.createItem, {
+        [ITEM]: {
+          stat: "leaf",
+          amount: 1,
+          bound: false,
+        },
+        [SPRITE]: leaf,
+      });
     } else if (cell === "coin_one") {
       const coinItem = createItemAsDrop(world, { x, y }, entities.createItem, {
         [ITEM]: {
@@ -2440,6 +2451,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupNeedle);
   world.addSystem(systems.setupFate);
   world.addSystem(systems.setupDrop);
+  world.addSystem(systems.setupLeveling);
   world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);

@@ -59,6 +59,7 @@ import {
   lerp,
   normalize,
   random,
+  repeat,
   shuffle,
   signedDistance,
 } from "../math/std";
@@ -97,6 +98,7 @@ import {
   heal,
   smokeLight,
   smokeThick,
+  levelProgress,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -113,6 +115,7 @@ import {
   MessageSequence,
   PerishSequence,
   PointerSequence,
+  ProgressSequence,
   ReviveSequence,
   SEQUENCABLE,
   Sequence,
@@ -135,7 +138,7 @@ import { PROJECTILE } from "../../engine/components/projectile";
 import { getGearStat } from "../balancing/equipment";
 import { STATS } from "../../engine/components/stats";
 import { invertOrientation, relativeOrientations } from "../math/path";
-import { dropEntity } from "../../engine/systems/drop";
+import { dropEntity, MAX_DROP_RADIUS } from "../../engine/systems/drop";
 import { EXERTABLE } from "../../engine/components/exertable";
 import { consumptionConfigs } from "../../engine/systems/consume";
 import { decayTime, lootSpeed } from "./utils";
@@ -532,6 +535,121 @@ export const bubbleSplash: Sequence<BubbleSequence> = (
       [PARTICLE]
     );
     bubbleParticle[PARTICLE].amount = targetWidth;
+    updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const progressParts = 11;
+const progressTime = 140;
+
+export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
+  let updated = false;
+  let finished = state.elapsed > progressParts * progressTime * 2;
+
+  // create progress particles
+  if (Object.keys(state.particles).length === 0) {
+    // orthogonal lines
+    for (let i = 0; i < progressParts; i += 1) {
+      for (const orientation of orientations) {
+        const delta = orientationPoints[orientation];
+        const progressParticle = entities.createFibre(world, {
+          [ORIENTABLE]: { facing: orientation },
+          [PARTICLE]: {
+            offsetX: delta.x * i,
+            offsetY: delta.y * i,
+            offsetZ: effectHeight,
+            duration: i * progressTime,
+            animatedOrigin: { x: 0, y: 0 },
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: levelProgress,
+        });
+        state.particles[`progress-${i}-${orientation}`] =
+          world.getEntityId(progressParticle);
+        const inverseParticle = entities.createFibre(world, {
+          [ORIENTABLE]: { facing: orientation },
+          [PARTICLE]: {
+            offsetX: delta.x * -i,
+            offsetY: delta.y * -i,
+            offsetZ: effectHeight,
+            duration: i * progressTime,
+            animatedOrigin: { x: 0, y: 0 },
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: levelProgress,
+        });
+        state.particles[`progress-${i}-${orientation}-inverse`] =
+          world.getEntityId(inverseParticle);
+      }
+    }
+
+    updated = true;
+  }
+
+  if (!state.args.dropped && state.elapsed > progressParts * progressTime) {
+    // move lines out of screen
+    for (let i = 0; i < progressParts; i += 1) {
+      for (const orientation of orientations) {
+        const delta =
+          orientationPoints[
+            orientations[(orientations.indexOf(orientation) + 1) % 4]
+          ];
+        const progressParticle = world.assertByIdAndComponents(
+          state.particles[`progress-${i}-${orientation}`],
+          [PARTICLE]
+        );
+        const inverseParticle = world.assertByIdAndComponents(
+          state.particles[`progress-${i}-${orientation}-inverse`],
+          [PARTICLE]
+        );
+
+        if (delta.x === 0) {
+          progressParticle[PARTICLE].offsetY = delta.y * progressParts;
+          inverseParticle[PARTICLE].offsetY = delta.y * progressParts;
+        } else {
+          progressParticle[PARTICLE].offsetX = delta.x * progressParts;
+          inverseParticle[PARTICLE].offsetX = delta.x * progressParts;
+        }
+        progressParticle[PARTICLE].duration = progressTime * progressParts;
+        inverseParticle[PARTICLE].duration = progressTime * progressParts;
+      }
+    }
+
+    // drop item stats
+    const stats = [
+      ...repeat("maxHp" as const, state.args.maxHp),
+      ...repeat("maxMp" as const, state.args.maxMp),
+    ];
+    dropEntity(
+      world,
+      {
+        [INVENTORY]: {
+          items: stats.map((stat) =>
+            world.getEntityId(
+              entities.createItem(world, {
+                [ITEM]: {
+                  amount: 1,
+                  stat,
+                  carrier: -1,
+                  bound: false,
+                },
+                [RENDERABLE]: { generation: 0 },
+                [SPRITE]: getStatSprite(stat, "drop"),
+              })
+            )
+          ),
+        },
+      },
+      entity[POSITION],
+      false,
+      MAX_DROP_RADIUS,
+      undefined,
+      progressTime * 2
+    );
+
+    state.args.dropped = true;
     updated = true;
   }
 

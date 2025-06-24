@@ -14,6 +14,7 @@ export type Dimensions = {
   cellHeight: number;
   pixelSize: number;
   columns: number;
+  visibleColumns: number;
   rows: number;
   padding: number;
   leftOffset: number;
@@ -33,7 +34,7 @@ const visibleRows = 19;
 export const pixels = 16;
 export const aspectRatio = 9 / 16; // of DOS font
 const extraOffset = 3; // to allow common mobile width of 375px to display 378px (18px * 21)
-const hudRows = 6;
+const hudRows = 8;
 const overscanColumns = 4;
 const overscanRows = 6;
 const mapSize = 160;
@@ -74,6 +75,7 @@ const calculateDimensions: () => Dimensions = () => {
     cellHeight,
     pixelSize,
     columns,
+    visibleColumns,
     rows,
     padding,
     leftOffset,

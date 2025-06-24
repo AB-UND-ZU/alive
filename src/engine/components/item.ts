@@ -30,7 +30,8 @@ export type Craftable =
   | "crystal"
   | "flower"
   | "berry"
-  | "spike"
+  | "leaf"
+  | "seed"
   | "worm"
   | "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";

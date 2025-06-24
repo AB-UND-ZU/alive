@@ -138,16 +138,10 @@ export const itemPrices: Partial<
 
   // spells
   wave1: {
-    default: [
-      { stat: "xp", amount: 5 },
-      { stat: "coin", amount: 3 },
-    ],
+    default: [{ stat: "coin", amount: 10 }],
   },
   beam1: {
-    default: [
-      { stat: "xp", amount: 5 },
-      { stat: "coin", amount: 3 },
-    ],
+    default: [{ stat: "coin", amount: 10 }],
   },
 
   // tools
@@ -166,11 +160,11 @@ export const itemPrices: Partial<
   potion1: {
     fire: [
       { stackable: "apple", amount: 3 },
-      { stat: "stick", amount: 3 },
+      { stat: "leaf", amount: 3 },
     ],
     water: [
       { stackable: "shroom", amount: 3 },
-      { stat: "stick", amount: 3 },
+      { stat: "leaf", amount: 3 },
     ],
   },
   potion2: {
@@ -208,7 +202,7 @@ export const itemPrices: Partial<
   resource: {
     wood: [
       { stat: "stick", amount: 10 },
-      { stat: "coin", amount: 3 },
+      { stat: "leaf", amount: 3 },
     ],
     iron: [
       { stat: "ore", amount: 10 },
@@ -229,12 +223,12 @@ export const itemPrices: Partial<
   },
 
   // stats
-  maxHp: { default: [{ stat: "xp", amount: 5 }] },
-  maxMp: { default: [{ stat: "xp", amount: 5 }] },
-  power: { default: [{ stat: "xp", amount: 5 }] },
-  magic: { default: [{ stat: "xp", amount: 5 }] },
-  armor: { default: [{ stat: "xp", amount: 5 }] },
-  haste: { default: [{ stat: "xp", amount: 5 }] },
+  maxHp: { default: [{ stat: "coin", amount: 10 }] },
+  maxMp: { default: [{ stat: "coin", amount: 10 }] },
+  power: { default: [{ stat: "coin", amount: 10 }] },
+  magic: { default: [{ stat: "coin", amount: 10 }] },
+  armor: { default: [{ stat: "coin", amount: 10 }] },
+  haste: { default: [{ stat: "coin", amount: 10 }] },
 };
 
 export const getItemPrice = (

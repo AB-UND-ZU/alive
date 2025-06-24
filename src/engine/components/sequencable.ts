@@ -92,6 +92,11 @@ export type DialogSequence = {
   isEnemy: boolean;
   overridden: boolean;
 };
+export type ProgressSequence = {
+  dropped: boolean;
+  maxMp: number;
+  maxHp: number;
+};
 
 export type SequenceState<A> = {
   name: keyof typeof sequences; // TODO: only allow valid keys
@@ -129,6 +134,7 @@ export type Sequencable = {
     npc?: SequenceState<NpcSequence>;
     quest?: SequenceState<QuestSequence>;
     dialog?: SequenceState<DialogSequence>;
+    progress?: SequenceState<ProgressSequence>;
   };
 };
 

@@ -11,21 +11,28 @@ export type Countable = {
   maxMpCap: number;
 
   xp: number;
+  maxXp: number;
+  maxXpCap: number;
+
+  level: number;
 
   coin: number;
   stick: number;
   ore: number;
+
   flower: number;
   berry: number;
+  leaf: number;
 };
 
 export const droppableCountables: (keyof Countable)[] = [
-  "xp",
   "coin",
   "ore",
   "stick",
+
   "flower",
   "berry",
+  "leaf",
 ];
 
 export type Stats = Countable & {
@@ -45,12 +52,17 @@ export const emptyStats: Stats = {
   maxMpCap: 0,
 
   xp: 0,
+  maxXp: 0,
+  maxXpCap: 0,
+
+  level: 0,
 
   coin: 0,
   stick: 0,
   ore: 0,
   flower: 0,
   berry: 0,
+  leaf: 0,
 
   power: 0,
   magic: 0,
