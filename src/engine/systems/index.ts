@@ -18,6 +18,7 @@ export { default as setupNeedle } from "./needle";
 export { default as setupPush } from "./push";
 export { default as setupRenderer } from "./renderer";
 export { default as setupSequence } from "./sequence";
+export { default as setupShop } from "./shop";
 export { default as setupSpike } from "./spike";
 export { default as setupText } from "./text";
 export { default as setupTick } from "./tick";

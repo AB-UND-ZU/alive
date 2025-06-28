@@ -766,9 +766,94 @@ export const createButton: (
   ];
 };
 
+export const popupBackground: Sprite = {
+  name: "popup_background",
+  layers: [{ char: "█", color: colors.black }],
+};
+
+export const popupSelection: Sprite = {
+  name: "popup_selection",
+  layers: [{ char: "\u0119", color: colors.lime }],
+};
+
+export const popupCorner: Sprite = {
+  name: "popup_corner",
+  layers: [{ char: "╬", color: colors.white }],
+  facing: {
+    up: [{ char: "╔", color: colors.white }],
+    right: [{ char: "╗", color: colors.white }],
+    down: [{ char: "╝", color: colors.white }],
+    left: [{ char: "╚", color: colors.white }],
+  },
+};
+
+export const popupSide: Sprite = {
+  name: "popup_side",
+  layers: [{ char: "╬", color: colors.white }],
+  facing: {
+    up: [
+      { char: "▄", color: colors.black },
+      { char: "═", color: colors.white },
+    ],
+    right: [
+      { char: "▌", color: colors.black },
+      { char: "║", color: colors.white },
+    ],
+    down: [
+      { char: "▀", color: colors.black },
+      { char: "═", color: colors.white },
+    ],
+    left: [
+      { char: "▐", color: colors.black },
+      { char: "║", color: colors.white },
+    ],
+  },
+};
+
+export const popupUpStart: Sprite = {
+  name: "popup_up_start",
+  layers: [
+    { char: "▄", color: colors.black },
+    { char: "▐", color: colors.black },
+    { char: "╡", color: colors.white },
+  ],
+};
+
+export const popupUpEnd: Sprite = {
+  name: "popup_up_end",
+  layers: [
+    { char: "▄", color: colors.black },
+    { char: "▌", color: colors.black },
+    { char: "╞", color: colors.white },
+  ],
+};
+
+export const popupDownStart: Sprite = {
+  name: "popup_down_start",
+  layers: [
+    { char: "▀", color: colors.black },
+    { char: "▐", color: colors.black },
+    { char: "╡", color: colors.white },
+  ],
+};
+
+export const popupDownEnd: Sprite = {
+  name: "popup_down_end",
+  layers: [
+    { char: "▀", color: colors.black },
+    { char: "▌", color: colors.black },
+    { char: "╞", color: colors.white },
+  ],
+};
+
 const nonCountable = (sprite: Sprite) => ({
   name: sprite.name,
   layers: sprite.layers,
+});
+
+const maxCountable = (sprite: Sprite) => ({
+  name: sprite.name,
+  layers: sprite.amounts?.multiple || sprite.layers,
 });
 
 const statConfig: Record<
@@ -779,6 +864,7 @@ const statConfig: Record<
     drop?: Sprite;
     max?: keyof Countable;
     resource?: Sprite;
+    display?: Sprite;
   }
 > = {
   hp: { color: colors.red, sprite: heart, max: "maxHp" },
@@ -806,23 +892,31 @@ const statConfig: Record<
     drop: coin,
     resource: coin,
   },
-  stick: { color: colors.maroon, sprite: stick },
-  ore: { color: colors.silver, sprite: oreDrop, resource: ore },
+  stick: { color: colors.maroon, sprite: stick, display: maxCountable(stick) },
+  ore: {
+    color: colors.silver,
+    sprite: oreDrop,
+    resource: ore,
+    display: maxCountable(oreDrop),
+  },
   flower: {
     color: colors.teal,
     sprite: flower,
     drop: flowerDrop,
     resource: flower,
+    display: maxCountable(flower),
   },
   berry: {
     color: colors.purple,
     sprite: berry,
     drop: berryDrop,
     resource: berry,
+    display: maxCountable(berry),
   },
   leaf: {
     color: colors.green,
     sprite: leaf,
+    display: maxCountable(leaf),
   },
   power: {
     color: colors.lime,
@@ -870,7 +964,8 @@ export const createCountable = (
         maxCounter !== capCounter &&
         stats[maxCounter] === stats[capCounter]
         ? maxCounter
-        : counter
+        : counter,
+      display === "countable" ? "display" : undefined
     ),
   ];
 };
@@ -880,11 +975,12 @@ export const getMaxCounter = (stat: keyof Stats) =>
 
 export const getStatSprite = (
   stat: keyof Stats,
-  variant?: "max" | "drop" | "resource"
+  variant?: "max" | "drop" | "resource" | "display"
 ) =>
   (variant === "max" && statConfig[getMaxCounter(stat)]?.sprite) ||
   (variant === "drop" && statConfig[stat].drop) ||
   (variant === "resource" && statConfig[stat].resource) ||
+  (variant === "display" && statConfig[stat].display) ||
   statConfig[stat].sprite;
 
 export const quest = createText("!", colors.lime)[0];

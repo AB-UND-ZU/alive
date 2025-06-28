@@ -44,7 +44,6 @@ import { Stats, STATS } from "./components/stats";
 import { Swimmable, SWIMMABLE } from "./components/swimmable";
 import { Tooltip, TOOLTIP } from "./components/tooltip";
 import { Trackable, TRACKABLE } from "./components/trackable";
-import { Tradable, TRADABLE } from "./components/tradable";
 import { Viewable, VIEWABLE } from "./components/viewable";
 import { Castable, CASTABLE } from "./components/castable";
 import { Affectable, AFFECTABLE } from "./components/affectable";
@@ -54,6 +53,7 @@ import { Structurable, STRUCTURABLE } from "./components/structurable";
 import { Environment, ENVIRONMENT } from "./components/environment";
 import { Tempo, TEMPO } from "./components/tempo";
 import { Layer, LAYER } from "./components/layer";
+import { Shoppable, SHOPPABLE } from "./components/shoppable";
 
 export type Entity = {
   [ACTIONABLE]: Actionable;
@@ -99,6 +99,7 @@ export type Entity = {
   [REVIVABLE]: Revivable;
   [SEQUENCABLE]: Sequencable;
   [SHOOTABLE]: Shootable;
+  [SHOPPABLE]: Shoppable;
   [SOUL]: Soul;
   [SPAWNABLE]: Spawnable;
   [SPIKABLE]: Spikable;
@@ -109,7 +110,6 @@ export type Entity = {
   [TEMPO]: Tempo;
   [TOOLTIP]: Tooltip;
   [TRACKABLE]: Trackable;
-  [TRADABLE]: Tradable;
   [VIEWABLE]: Viewable;
 };
 
@@ -487,20 +487,6 @@ export const createRoot = entityFactory([
   STRUCTURABLE,
 ]);
 
-export const createShop = entityFactory([
-  COLLIDABLE,
-  FOG,
-  INVENTORY,
-  LAYER,
-  LOOTABLE,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-  TOOLTIP,
-  TRADABLE,
-]);
-
 export const createShot = entityFactory([
   BELONGABLE,
   MOVABLE,
@@ -602,13 +588,7 @@ export const createTumbleweed = entityFactory([
   STATS,
 ]);
 
-export const createViewpoint = entityFactory([
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-  VIEWABLE,
-]);
+export const createViewpoint = entityFactory([POSITION, RENDERABLE, VIEWABLE]);
 
 export const createVillager = entityFactory([
   ACTIONABLE,
@@ -663,4 +643,11 @@ export const createWeeds = entityFactory([
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
+]);
+
+export const createWorld = entityFactory([
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  VIEWABLE,
 ]);

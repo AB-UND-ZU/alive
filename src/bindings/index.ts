@@ -44,7 +44,8 @@ import {
   oreDrop,
   palm1,
   palm2,
-  palmBurnt,
+  palmBurnt1,
+  palmBurnt2,
   path,
   rock1,
   rock2,
@@ -55,7 +56,8 @@ import {
   torch,
   tree1,
   tree2,
-  treeBurnt,
+  treeBurnt1,
+  treeBurnt2,
   wall,
   water,
   waveSpell,
@@ -142,7 +144,7 @@ import {
   windowInside,
 } from "../game/assets/sprites/structures";
 import { BURNABLE } from "../engine/components/burnable";
-import { createItemAsDrop, sellItem } from "../engine/systems/drop";
+import { createItemAsDrop } from "../engine/systems/drop";
 import { COLLECTABLE } from "../engine/components/collectable";
 import { SOUL } from "../engine/components/soul";
 import { FocusSequence, SEQUENCABLE } from "../engine/components/sequencable";
@@ -170,6 +172,7 @@ import { registerEntity } from "../engine/systems/map";
 import { ENVIRONMENT } from "../engine/components/environment";
 import { TEMPO } from "../engine/components/tempo";
 import { LAYER } from "../engine/components/layer";
+import { sellItems } from "../engine/systems/shop";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -545,20 +548,18 @@ export const generateWorld = async (world: World) => {
         [SPAWNABLE]: {
           classKey: "scout",
           position: copy(initialPosition),
-          viewable: { active: false },
+          viewable: { active: false, priority: 50 },
           light: { brightness: 18, visibility: 18, darkness: 0 },
         },
         [SPRITE]: ghost,
-        [VIEWABLE]: { active: false },
+        [VIEWABLE]: { active: false, priority: 50 },
       });
 
       // create spawn dummy to set needle target
       const spawnEntity = entities.createViewpoint(world, {
         [POSITION]: copy(initialPosition),
         [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: none,
-        [VIEWABLE]: { active: false },
+        [VIEWABLE]: { active: false, priority: 30 },
       });
       world.setIdentifier(spawnEntity, "spawn");
 
@@ -735,7 +736,7 @@ export const generateWorld = async (world: World) => {
             eternal: false,
             combusted: false,
             decayed: false,
-            remains: treeBurnt,
+            remains: [treeBurnt1, treeBurnt2][random(0, 1)],
           },
           [COLLIDABLE]: {},
           [FOG]: { visibility, type: "terrain" },
@@ -827,7 +828,7 @@ export const generateWorld = async (world: World) => {
             eternal: false,
             combusted: false,
             decayed: false,
-            remains: treeBurnt,
+            remains: [treeBurnt1, treeBurnt2][random(0, 1)],
           },
           [COLLIDABLE]: {},
           [POSITION]: { x, y },
@@ -851,7 +852,7 @@ export const generateWorld = async (world: World) => {
             eternal: false,
             combusted: false,
             decayed: false,
-            remains: palmBurnt,
+            remains: [palmBurnt1, palmBurnt2][random(0, 1)],
           },
           [COLLIDABLE]: {},
           [FOG]: { visibility, type: "terrain" },
@@ -889,7 +890,7 @@ export const generateWorld = async (world: World) => {
             eternal: false,
             combusted: false,
             decayed: false,
-            remains: palmBurnt,
+            remains: [palmBurnt1, palmBurnt2][random(0, 1)],
           },
           [FOG]: { visibility, type: "terrain" },
           [COLLIDABLE]: {},
@@ -1628,12 +1629,11 @@ export const generateWorld = async (world: World) => {
   world.setIdentifier(highlighEntity, "focus");
 
   // create viewpoint for menu area
-  const viewpointEntity = entities.createViewpoint(world, {
+  const viewpointEntity = entities.createWorld(world, {
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: none,
-    [VIEWABLE]: { active: true, fraction: { x: 0, y: -0.5 } },
+    [VIEWABLE]: { active: true, fraction: { x: 0, y: -0.5 }, priority: 60 },
   });
   npcSequence(world, viewpointEntity, "worldNpc", {
     townPosition: { x: townX, y: townY },
@@ -1729,12 +1729,13 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: ironKey,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(ironKeyEntity),
-    add(nomadHouse.position, { x: 2, y: 0 }),
-    getItemPrice(ironKeyEntity[ITEM])
-  );
+  sellItems(world, nomadEntity, [
+    {
+      item: ironKeyEntity[ITEM],
+      stock: 1,
+      price: getItemPrice(ironKeyEntity[ITEM]),
+    },
+  ]);
   const nomadChestData = generateUnitData("uncommonChest");
   const nomadChest = entities.createChest(world, {
     [ATTACKABLE]: {},
@@ -1811,13 +1812,6 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: heartUp,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(maxHpEntity),
-    add(chiefHouse.position, { x: -2, y: 0 }),
-    getItemPrice(maxHpEntity[ITEM]),
-    Infinity
-  );
   const maxMpEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -1828,13 +1822,18 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: manaUp,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(maxMpEntity),
-    add(chiefHouse.position, { x: 2, y: 0 }),
-    getItemPrice(maxMpEntity[ITEM]),
-    Infinity
-  );
+  sellItems(world, chiefEntity, [
+    {
+      item: maxHpEntity[ITEM],
+      stock: Infinity,
+      price: getItemPrice(maxHpEntity[ITEM]),
+    },
+    {
+      item: maxMpEntity[ITEM],
+      stock: Infinity,
+      price: getItemPrice(maxMpEntity[ITEM]),
+    },
+  ]);
   const chiefOffset = random(0, 1) * 4 - 2;
   const welcomeEntity = entities.createSign(world, {
     [COLLIDABLE]: {},
@@ -1908,13 +1907,6 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: hpFlask1,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(hpEntity),
-    add(elderHouse.position, { x: -2, y: 0 }),
-    getItemPrice(hpEntity[ITEM]),
-    Infinity
-  );
   const mpEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -1926,13 +1918,18 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: mpFlask1,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(mpEntity),
-    add(elderHouse.position, { x: 2, y: 0 }),
-    getItemPrice(mpEntity[ITEM]),
-    Infinity
-  );
+  sellItems(world, elderEntity, [
+    {
+      item: hpEntity[ITEM],
+      stock: Infinity,
+      price: getItemPrice(hpEntity[ITEM]),
+    },
+    {
+      item: mpEntity[ITEM],
+      stock: Infinity,
+      price: getItemPrice(mpEntity[ITEM]),
+    },
+  ]);
 
   // 3. scout's house
   const scoutUnit = generateUnitData("scout");
@@ -1985,12 +1982,6 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: haste,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(hasteEntity),
-    add(scoutHouse.position, { x: -2, y: 0 }),
-    getItemPrice(hasteEntity[ITEM])
-  );
   const torchEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -2001,12 +1992,18 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: torch,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(torchEntity),
-    add(scoutHouse.position, { x: 2, y: 0 }),
-    getItemPrice(torchEntity[ITEM])
-  );
+  sellItems(world, scoutEntity, [
+    {
+      item: hasteEntity[ITEM],
+      stock: 1,
+      price: getItemPrice(hasteEntity[ITEM]),
+    },
+    {
+      item: torchEntity[ITEM],
+      stock: 1,
+      price: getItemPrice(torchEntity[ITEM]),
+    },
+  ]);
 
   // 4. smith's house
   const smithUnit = generateUnitData("smith");
@@ -2060,12 +2057,6 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: woodShield,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(shieldEntity),
-    add(smithHouse.position, { x: -2, y: 0 }),
-    getItemPrice(shieldEntity[ITEM])
-  );
   const swordEntity = entities.createSword(world, {
     [ITEM]: {
       carrier: -1,
@@ -2079,12 +2070,18 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: ironSword,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(swordEntity),
-    add(smithHouse.position, { x: 2, y: 0 }),
-    getItemPrice(swordEntity[ITEM])
-  );
+  sellItems(world, smithEntity, [
+    {
+      item: swordEntity[ITEM],
+      stock: 1,
+      price: getItemPrice(swordEntity[ITEM]),
+    },
+    {
+      item: shieldEntity[ITEM],
+      stock: 1,
+      price: getItemPrice(shieldEntity[ITEM]),
+    },
+  ]);
 
   // 5. trader's house
   const traderUnit = generateUnitData("trader");
@@ -2143,13 +2140,6 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: wood,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(woodEntity),
-    add(traderHouse.position, { x: -2, y: 0 }),
-    getItemPrice(woodEntity[ITEM]),
-    Infinity
-  );
   const ironEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -2161,13 +2151,18 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: iron,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(ironEntity),
-    add(traderHouse.position, { x: 2, y: 0 }),
-    getItemPrice(ironEntity[ITEM]),
-    Infinity
-  );
+  sellItems(world, traderEntity, [
+    {
+      item: woodEntity[ITEM],
+      stock: Infinity,
+      price: getItemPrice(woodEntity[ITEM]),
+    },
+    {
+      item: ironEntity[ITEM],
+      stock: Infinity,
+      price: getItemPrice(ironEntity[ITEM]),
+    },
+  ]);
 
   // 6. druid's house
   const druidUnit = generateUnitData("druid");
@@ -2220,13 +2215,6 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: berryStack,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(berryEntity),
-    add(druidHouse.position, { x: -2, y: 0 }),
-    getItemPrice(berryEntity[ITEM]),
-    Infinity
-  );
   const flowerEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -2237,13 +2225,18 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: flowerStack,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(flowerEntity),
-    add(druidHouse.position, { x: 2, y: 0 }),
-    getItemPrice(flowerEntity[ITEM]),
-    Infinity
-  );
+  sellItems(world, druidEntity, [
+    {
+      item: berryEntity[ITEM],
+      stock: Infinity,
+      price: getItemPrice(berryEntity[ITEM]),
+    },
+    {
+      item: flowerEntity[ITEM],
+      stock: Infinity,
+      price: getItemPrice(flowerEntity[ITEM]),
+    },
+  ]);
 
   // 7. mage's house
   const mageUnit = generateUnitData("mage");
@@ -2297,12 +2290,6 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: waveSpell,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(waveEntity),
-    add(mageHouse.position, { x: -2, y: 0 }),
-    getItemPrice(waveEntity[ITEM])
-  );
   const beamEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -2314,12 +2301,18 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: beamSpell,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItem(
-    world,
-    world.getEntityId(beamEntity),
-    add(mageHouse.position, { x: 2, y: 0 }),
-    getItemPrice(beamEntity[ITEM])
-  );
+  sellItems(world, mageEntity, [
+    {
+      item: waveEntity[ITEM],
+      stock: 1,
+      price: getItemPrice(waveEntity[ITEM]),
+    },
+    {
+      item: beamEntity[ITEM],
+      stock: 1,
+      price: getItemPrice(beamEntity[ITEM]),
+    },
+  ]);
 
   // empty houses
   for (const emptyHouse of emptyHouses) {
@@ -2423,16 +2416,18 @@ export const generateWorld = async (world: World) => {
   });
 
   // assign buildings
-  const buildings = [...houses, guideHouse, nomadHouse];
+  const buildings = [...houses, nomadHouse];
   buildings.forEach((building) => {
     assignBuilding(world, building.position);
   });
+  assignBuilding(world, guideHouse.position);
 
   // start ordered systems
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupTick);
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupTrigger);
+  world.addSystem(systems.setupShop);
   world.addSystem(systems.setupCollect);
   world.addSystem(systems.setupConsume);
   world.addSystem(systems.setupSpike);

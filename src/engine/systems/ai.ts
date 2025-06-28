@@ -27,10 +27,10 @@ import {
 } from "../../game/math/path";
 import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
-import { isLocked } from "./action";
+import { getLockable, isLocked } from "./action";
 import { ITEM } from "../components/item";
 import { lockDoor } from "./trigger";
-import { dropEntity, sellItem } from "./drop";
+import { dropEntity } from "./drop";
 import {
   confused,
   createShout,
@@ -52,6 +52,7 @@ import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
 import { CASTABLE } from "../components/castable";
 import { BURNABLE } from "../components/burnable";
+import { sellItems } from "./shop";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -188,9 +189,14 @@ export default function setupAi(world: World) {
             fireEntity?.[BURNABLE].eternal &&
             castableEntity?.[CASTABLE] &&
             castableEntity[CASTABLE].burn > 0;
+          const isLockable = getLockable(world, position);
 
           // unable to move, attempt reorienting
-          if (!isMovable(world, entity, position) || isEternalFire) {
+          if (
+            !isMovable(world, entity, position) ||
+            isEternalFire ||
+            isLockable
+          ) {
             const preferredFacing =
               orientations[
                 (orientations.indexOf(facing) + 1 + random(0, 1) * 2) %
@@ -651,8 +657,7 @@ export default function setupAi(world: World) {
           pattern.name === "kill" ||
           pattern.name === "unlock" ||
           pattern.name === "collect" ||
-          pattern.name === "drop" ||
-          pattern.name === "sell"
+          pattern.name === "drop"
         ) {
           const movablePattern = ["kill", "collect"].includes(pattern.name);
           const placementPattern = ["drop", "sell"].includes(pattern.name);
@@ -763,19 +768,23 @@ export default function setupAi(world: World) {
                   { [INVENTORY]: { items: [memory.item] } },
                   memory.targetPosition
                 );
-              } else if (pattern.name === "sell") {
-                sellItem(
-                  world,
-                  memory.item,
-                  memory.targetPosition,
-                  memory.activation
-                );
               }
             }
 
             if (!hasArrived || !movablePattern || !memory.path)
               memory.path.shift();
           }
+          break;
+        } else if (pattern.name === "sell") {
+          sellItems(world, entity, [
+            {
+              item: pattern.memory.item,
+              stock: 1,
+              price: pattern.memory.activation,
+            },
+          ]);
+
+          patterns.splice(patterns.indexOf(pattern), 1);
           break;
         } else {
           console.error(Date.now(), "Unhandled pattern", pattern);

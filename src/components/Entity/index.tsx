@@ -26,7 +26,6 @@ import Bar from "./Bar";
 import { LayerProps } from "./Layer";
 import { INVENTORY } from "../../engine/components/inventory";
 import { isCollecting, isLootable } from "../../engine/systems/collect";
-import { isTradable } from "../../engine/systems/action";
 import { ITEM } from "../../engine/components/item";
 import { TypedEntity } from "../../engine/entities";
 import { getParticles } from "../../engine/systems/sequence";
@@ -75,11 +74,7 @@ function Entity({
     (isUnit && !isVisible) ||
     outside;
 
-  const hasLoot =
-    ecs &&
-    (isLootable(ecs, entity) ||
-      isCollecting(ecs, entity) ||
-      isTradable(ecs, entity));
+  const hasLoot = ecs && (isLootable(ecs, entity) || isCollecting(ecs, entity));
   const isLootTransparent = !hasLoot || (isOpaque ? !inRadius : !isVisible);
 
   const spring = useSpring({

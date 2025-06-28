@@ -104,7 +104,7 @@ export default function Systems() {
               const entities = Object.entries(cell);
 
               const renderableEntities = entities.filter(
-                ([_, entity]) => RENDERABLE in entity
+                ([_, entity]) => RENDERABLE in entity && SPRITE in entity
               );
 
               return renderableEntities.map(([entityId, entity]) => (

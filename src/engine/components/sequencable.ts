@@ -57,8 +57,6 @@ export type CollectSequence = {
   origin: Position;
   itemId: number;
   drop: boolean;
-  amount: number;
-  fullStack?: boolean;
   delay?: number;
 };
 export type UnlockSequence = { origin: Position; itemId: number };
@@ -96,6 +94,11 @@ export type ProgressSequence = {
   dropped: boolean;
   maxMp: number;
   maxHp: number;
+};
+export type PopupSequence = {
+  selectedIndex: number;
+  generation?: number;
+  contentIndex: number;
 };
 
 export type SequenceState<A> = {
@@ -135,6 +138,7 @@ export type Sequencable = {
     quest?: SequenceState<QuestSequence>;
     dialog?: SequenceState<DialogSequence>;
     progress?: SequenceState<ProgressSequence>;
+    popup?: SequenceState<PopupSequence>;
   };
 };
 

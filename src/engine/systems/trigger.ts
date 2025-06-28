@@ -15,16 +15,8 @@ import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
 import { disposeEntity, updateWalkable } from "./map";
-import {
-  canAcceptQuest,
-  canTrade,
-  canUnlock,
-  getUnlockKey,
-  isTradable,
-} from "./action";
-import { Tradable, TRADABLE } from "../components/tradable";
+import { canAcceptQuest, canUnlock, getUnlockKey } from "./action";
 import { getItemSprite } from "../../components/Entity/utils";
-import { collectItem } from "./collect";
 import { questSequence } from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
 import {
@@ -43,8 +35,10 @@ import { ORIENTABLE } from "../components/orientable";
 import { CASTABLE } from "../components/castable";
 import { isEnemy } from "./damage";
 import { canCast } from "./magic";
-import { createItemInInventory } from "./drop";
 import { EQUIPPABLE } from "../components/equippable";
+import { canShop, getDeal, isShoppable, openShop } from "./shop";
+import { SHOPPABLE } from "../components/shoppable";
+import { addToInventory } from "./collect";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -136,10 +130,11 @@ export const removeFromInventory = (
 export const performTrade = (
   world: World,
   entity: Entity,
-  trade: TypedEntity<"INVENTORY" | "TRADABLE" | "TOOLTIP">
+  shop: TypedEntity<"INVENTORY" | "SHOPPABLE" | "TOOLTIP">
 ) => {
+  const deal = getDeal(world, shop);
   // remove stats and items
-  for (const activationItem of (trade[TRADABLE] as Tradable).activation) {
+  for (const activationItem of deal.price) {
     if (activationItem.stat) {
       entity[STATS][activationItem.stat] -= activationItem.amount;
     } else {
@@ -183,7 +178,7 @@ export const performTrade = (
       } else {
         console.error("Unable to perform trade!", {
           entity,
-          trade,
+          shop,
           item: activationItem,
         });
 
@@ -192,43 +187,18 @@ export const performTrade = (
     }
   }
 
-  // collect item and restock if necessary
-  const newStock = trade[TRADABLE].stock - 1;
-  const previousItems = [...trade[INVENTORY].items];
+  // collect item and reduce stock
+  deal.stock -= 1;
 
-  if (newStock > 0) {
-    for (const itemId of previousItems) {
-      const itemEntity = world.assertByIdAndComponents(itemId, [ITEM, SPRITE]);
-      if (ORIENTABLE in itemEntity) {
-        createItemInInventory(
-          world,
-          trade,
-          entities.createSword,
-          itemEntity as TypedEntity<
-            "ORIENTABLE" | "SEQUENCABLE" | "ITEM" | "SPRITE"
-          >
-        );
-      } else {
-        createItemInInventory(
-          world,
-          trade,
-          entities.createItem,
-          itemEntity as TypedEntity<"ITEM" | "SPRITE">
-        );
-      }
-    }
-  } else {
-    // mark tradable as done
-    trade[TRADABLE].activation = [];
-    trade[TOOLTIP].dialogs = [];
-    trade[TOOLTIP].changed = true;
-    trade[TOOLTIP].idle = undefined;
-  }
+  const itemEntity = entities.createItem(world, {
+    [ITEM]: { ...deal.item, bound: false, carrier: -1 },
+    [RENDERABLE]: { generation: 1 },
+    [SPRITE]: getItemSprite(deal.item),
+  });
 
-  collectItem(world, entity, trade, true);
-  trade[TRADABLE].stock = newStock;
+  addToInventory(world, entity, itemEntity);
 
-  rerenderEntity(world, trade);
+  rerenderEntity(world, shop);
 };
 
 export const acceptQuest = (world: World, entity: Entity, target: Entity) => {
@@ -349,9 +319,10 @@ export default function setupTrigger(world: World) {
 
       const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
+      const shopEntity = world.getEntityById(entity[ACTIONABLE].shop);
       const tradeEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].trade,
-        [INVENTORY, TOOLTIP, TRADABLE]
+        [INVENTORY, TOOLTIP, SHOPPABLE]
       );
       const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
       const activeEntity = world.getEntityByIdAndComponents(
@@ -369,10 +340,11 @@ export default function setupTrigger(world: World) {
         acceptQuest(world, entity, questEntity);
       } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
         unlockDoor(world, entity, unlockEntity);
+      } else if (shopEntity && isShoppable(world, shopEntity)) {
+        openShop(world, entity, shopEntity);
       } else if (
         tradeEntity &&
-        isTradable(world, tradeEntity) &&
-        canTrade(world, entity, tradeEntity)
+        canShop(world, entity, getDeal(world, tradeEntity))
       ) {
         performTrade(world, entity, tradeEntity);
       } else if (activeEntity) {

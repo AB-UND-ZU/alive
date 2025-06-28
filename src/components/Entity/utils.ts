@@ -77,6 +77,7 @@ import {
   fireWave2Spell,
   flowerStack,
   gem,
+  getStatSprite,
   gold,
   goldKey,
   goldShield,
@@ -154,10 +155,11 @@ export const tooltipHeight = 8.5 * stackHeight;
 export const dialogHeight = 9 * stackHeight;
 export const focusHeight = 9.5 * stackHeight;
 export const particleHeight = 10 * stackHeight;
+export const popupHeight = 10.3 * stackHeight;
+export const selectionHeight = 10.5 * stackHeight;
 export const cameraHeight = 11 * stackHeight;
 
 export const getFacingLayers = (
-  world: World,
   sprite: Sprite,
   facing?: Orientation,
   amount?: number
@@ -259,7 +261,6 @@ export const createSprite = (world: World, entityId: number) => {
   segments.forEach((segment) => {
     layers.push(
       ...getFacingLayers(
-        world,
         segment.sprite,
         entity[TRACKABLE] ? segment.facing : undefined
       )
@@ -490,6 +491,8 @@ export const getItemSprite = (
       none
     );
   }
+
+  if (item.stat) return getStatSprite(item.stat);
 
   const lookup = item.equipment || item.consume || item.materialized;
 

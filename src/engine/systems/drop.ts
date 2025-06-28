@@ -9,22 +9,13 @@ import { disposeEntity, registerEntity } from "./map";
 import { DROPPABLE } from "../components/droppable";
 import { Entity } from "ecs";
 import { FOG } from "../components/fog";
-import { Inventory, INVENTORY } from "../components/inventory";
+import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
-import {
-  createDialog,
-  none,
-  shop,
-  arrow,
-  getStatSprite,
-  shadow,
-} from "../../game/assets/sprites";
+import { none, arrow, getStatSprite, shadow } from "../../game/assets/sprites";
 import { Item, ITEM, STACK_SIZE } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
-import { Tradable, TRADABLE } from "../components/tradable";
-import { COLLIDABLE } from "../components/collidable";
 import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
 import { iterations } from "../../game/math/tracing";
@@ -164,13 +155,14 @@ export const createItemInInventory = <
   carrier: TypedEntity<"INVENTORY">,
   factory: (world: World, data: T) => T,
   entity: Omit<T, "ITEM" | "RENDERABLE"> & {
-    [ITEM]: Omit<Item, "carrier">;
+    [ITEM]: Omit<Item, "carrier" | "bound">;
   },
   equip: boolean = true
 ) => {
   const itemEntity = factory(world, {
     ...entity,
     [ITEM]: {
+      bound: false,
       ...entity[ITEM],
       carrier: world.getEntityId(carrier),
     },
@@ -366,7 +358,6 @@ export const dropEntity = (
         {
           origin: copy(carrierEntity?.[POSITION] || position),
           itemId,
-          amount: itemEntity[ITEM].amount,
           drop: true,
           delay,
         }
@@ -384,63 +375,6 @@ export const dropEntity = (
 
     return containerEntity;
   });
-};
-
-export const sellItem = (
-  world: World,
-  itemId: Inventory["items"][number],
-  position: Position,
-  activation: Tradable["activation"],
-  stock = 1
-) => {
-  const sellPosition = findAdjacentWalkable(world, position);
-  const itemEntity = world.assertByIdAndComponents(itemId, [ITEM, SPRITE]);
-  const previousCarrier = world.getEntityByIdAndComponents(
-    itemEntity[ITEM].carrier,
-    [POSITION]
-  );
-  const itemName = itemEntity[SPRITE].name;
-  const shopEntity = entities.createShop(world, {
-    [COLLIDABLE]: {},
-    [FOG]: { visibility: "fog", type: "unit" },
-    [INVENTORY]: { items: previousCarrier ? [] : [itemId], size: 1 },
-    [LAYER]: {},
-    [LOOTABLE]: { disposable: true },
-    [POSITION]: sellPosition,
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: none,
-    [TRADABLE]: { activation, stock },
-    [TOOLTIP]: {
-      dialogs: [createDialog(itemName)],
-      persistent: false,
-      nextDialog: -1,
-      idle: shop,
-    },
-  });
-  registerEntity(world, shopEntity);
-  const shopId = world.getEntityId(shopEntity);
-
-  if (previousCarrier) {
-    removeFromInventory(world, previousCarrier, itemEntity);
-
-    createSequence<"collect", CollectSequence>(
-      world,
-      shopEntity,
-      "collect",
-      "itemCollect",
-      {
-        origin: copy(previousCarrier[POSITION]),
-        itemId,
-        amount: itemEntity[ITEM].amount,
-        drop: true,
-      }
-    );
-  }
-
-  itemEntity[ITEM].carrier = shopId;
-
-  return shopEntity;
 };
 
 export default function setupDrop(world: World) {

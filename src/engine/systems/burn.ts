@@ -22,12 +22,9 @@ import { CASTABLE } from "../components/castable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
 import { none } from "../../game/assets/sprites";
-import { dropEntity, MAX_DROP_RADIUS } from "./drop";
-import { DROPPABLE } from "../components/droppable";
 import { FOG } from "../components/fog";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
-import { decayTime, lootSpeed } from "../../game/assets/utils";
 
 export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
 
@@ -191,17 +188,6 @@ export default function setupBurn(world: World) {
           "creatureDecay",
           { fast: true }
         );
-        if (entity[DROPPABLE]) {
-          dropEntity(
-            world,
-            entity,
-            entity[POSITION],
-            false,
-            MAX_DROP_RADIUS,
-            undefined,
-            lootSpeed + decayTime / 2
-          );
-        }
       }
     }
 
@@ -247,7 +233,7 @@ export default function setupBurn(world: World) {
       });
       registerEntity(world, castableEntity);
 
-      disposeEntity(world, entity);
+      disposeEntity(world, entity, true);
     }
   };
 

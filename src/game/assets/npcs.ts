@@ -23,7 +23,7 @@ import { rerenderEntity } from "../../engine/systems/renderer";
 import { lockDoor } from "../../engine/systems/trigger";
 import { add, getDistance, normalize, signedDistance } from "../math/std";
 import { initialPosition, menuArea } from "../levels/areas";
-import { button, buttonColor, createDialog, fog } from "./sprites";
+import { createDialog, fog } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 import { isDead } from "../../engine/systems/damage";
 import {
@@ -236,15 +236,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
       entity[TOOLTIP].dialogs = [
         createDialog("Hi stranger"),
         createDialog("How are you?"),
-        isTouch
-          ? [
-              ...createDialog("Tap on "),
-              ..."Quest".split("").map((char) => ({
-                name: "text_generic",
-                layers: [...button.layers, { char, color: buttonColor }],
-              })),
-            ]
-          : createDialog("Press SPACE"),
+        createDialog(isTouch ? "Tap on [QUEST]" : "Press SPACE"),
         createDialog("Let's leave"),
       ];
       return true;
@@ -432,24 +424,22 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     },
   });
 
-  const sellPosition = { x: 156, y: 159 };
   step({
     stage,
     name: "sell",
     onEnter: () => {
       entity[BEHAVIOUR].patterns = [
         {
-          name: "sell",
-          memory: {
-            targetPosition: sellPosition,
-            item: world.getEntityId(world.assertIdentifier("key")),
-            activation: [{ stat: "coin", amount: 5 }],
-          },
-        },
-        {
           name: "move",
           memory: {
             targetPosition: guidePosition,
+          },
+        },
+        {
+          name: "sell",
+          memory: {
+            item: world.assertIdentifier("key")[ITEM],
+            activation: [{ stat: "coin", amount: 5 }],
           },
         },
         {

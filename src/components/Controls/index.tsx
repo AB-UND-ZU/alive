@@ -27,19 +27,15 @@ import { getAction } from "../../engine/systems/trigger";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { ITEM, Item } from "../../engine/components/item";
-import {
-  canAcceptQuest,
-  canTrade,
-  canUnlock,
-  isTradable,
-} from "../../engine/systems/action";
-import { TRADABLE } from "../../engine/components/tradable";
+import { canAcceptQuest, canUnlock } from "../../engine/systems/action";
 import { Entity } from "ecs";
 import { World } from "../../engine";
 import { canRevive } from "../../engine/systems/fate";
 import { isDead } from "../../engine/systems/damage";
 import Joystick from "../Joystick";
 import { canCast } from "../../engine/systems/magic";
+import { canShop, getDeal, isShoppable } from "../../engine/systems/shop";
+import { PLAYER } from "../../engine/components/player";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -69,7 +65,7 @@ const getActiveActivations = (item: Item) => {
   return [none, none, none];
 };
 
-const getActivationRow = (item?: Item) => {
+export const getActivationRow = (item?: Omit<Item, "carrier" | "bound">) => {
   if (!item) return repeat(none, 3);
 
   if (item.stat)
@@ -86,7 +82,7 @@ const getActivationRow = (item?: Item) => {
 };
 
 const buttonWidth = 6;
-const inventoryWidth = 10;
+const inventoryWidth = 9;
 
 type Action = {
   name: string;
@@ -98,7 +94,7 @@ const useAction = (
   action: (typeof actions)[number],
   isDisabled: (world: World, hero: Entity, actionEntity: Entity) => boolean,
   getName: (actionEntity: Entity) => string,
-  getActivation: (actionEntity: Entity) => [Sprite[], Sprite[]]
+  getActivation: (world: World, actionEntity: Entity) => [Sprite[], Sprite[]]
 ) => {
   const { ecs, paused } = useWorld();
   const heroEntity = useHero();
@@ -109,7 +105,7 @@ const useAction = (
     if (paused || !ecs || !heroEntity || !actionEntity) return;
 
     const disabled = isDisabled(ecs, heroEntity, actionEntity);
-    const activation = getActivation(actionEntity);
+    const activation = getActivation(ecs, actionEntity);
     const name = getName(actionEntity);
 
     return {
@@ -151,22 +147,28 @@ export default function Controls() {
   const spawnAction = useAction(
     "spawn",
     (world, hero, spawnEntity) => !canRevive(world, spawnEntity, hero),
-    () => "Spawn",
-    (spawnEntity) => [[none, spawnEntity ? ghost : none, none], repeat(none, 3)]
+    () => "SPAWN",
+    (_, spawnEntity) => [
+      [none, spawnEntity ? ghost : none, none],
+      repeat(none, 3),
+    ]
   );
 
   const questAction = useAction(
     "quest",
     (world, hero, questEntity) => !canAcceptQuest(world, hero, questEntity),
-    () => "Quest",
-    (questEntity) => [[none, questEntity ? quest : none, none], repeat(none, 3)]
+    () => "QUEST",
+    (_, questEntity) => [
+      [none, questEntity ? quest : none, none],
+      repeat(none, 3),
+    ]
   );
 
   const unlockAction = useAction(
     "unlock",
     (world, hero, unlockEntity) => !canUnlock(world, hero, unlockEntity),
-    () => "Open",
-    (unlockEntity) => [
+    () => "OPEN",
+    (_, unlockEntity) => [
       [
         none,
         unlockEntity
@@ -181,14 +183,22 @@ export default function Controls() {
     ]
   );
 
+  const shopAction = useAction(
+    "shop",
+    (world, hero, shopEntity) =>
+      hero[PLAYER].shopping || !isShoppable(world, shopEntity),
+    () => "SHOP",
+    () => [repeat(none, 3), repeat(none, 3)]
+  );
+
   const tradeAction = useAction(
     "trade",
     (world, hero, tradeEntity) =>
-      !isTradable(world, tradeEntity) || !canTrade(world, hero, tradeEntity),
-    () => "Trade",
-    (tradeEntity) => [
-      getActivationRow(tradeEntity && tradeEntity[TRADABLE].activation[0]),
-      getActivationRow(tradeEntity && tradeEntity[TRADABLE].activation[1]),
+      !canShop(world, hero, getDeal(world, tradeEntity)),
+    () => "TRADE",
+    (world, tradeEntity) => [
+      getActivationRow(getDeal(world, tradeEntity).price[0]),
+      getActivationRow(getDeal(world, tradeEntity).price[1]),
     ]
   );
 
@@ -197,8 +207,8 @@ export default function Controls() {
     (world, hero, activeEntity) =>
       activeEntity[ITEM].active !== "bow" &&
       !canCast(world, hero, activeEntity),
-    (activeEntity) => activeEntity[SPRITE].name,
-    (activeEntity) => [
+    (activeEntity) => activeEntity[SPRITE].name.toUpperCase(),
+    (_, activeEntity) => [
       [none, none, activeEntity[SPRITE]],
       getActiveActivations(activeEntity[ITEM]),
     ]
@@ -208,6 +218,7 @@ export default function Controls() {
     spawnAction,
     questAction,
     unlockAction,
+    shopAction,
     tradeAction,
     activeAction,
   ];
@@ -470,7 +481,7 @@ export default function Controls() {
           };
         })
       : [];
-  const itemRows = [0, 1].map((row) => {
+  const itemRows = [0, 1, 2].map((row) => {
     return Array.from({ length: inventoryWidth }).map(
       (_, columnIndex) =>
         (columnIndex < inventorySize / 2 &&
@@ -499,33 +510,27 @@ export default function Controls() {
       />
       <Row
         cells={[
-          none,
+          ...repeat(none, (dimensions.visibleColumns - 1) / 2 - 7),
           ...button[0],
-          ...activation[0],
-          createText("│", colors.grey)[0],
+          ...createText("│", colors.grey),
           ...itemRows[0],
         ]}
       />
       <Row
         cells={[
-          none,
+          ...repeat(none, (dimensions.visibleColumns - 1) / 2 - 7),
           ...button[1],
-          ...activation[1],
-          createText("│", colors.grey)[0],
+          ...createText("│", colors.grey),
           ...itemRows[1],
         ]}
       />
       <Row
         cells={[
-          ...repeat(
-            none,
-            dimensions.padding + (dimensions.visibleColumns - 1) / 2
-          ),
-          createText("│", colors.grey)[0],
-          ...repeat(
-            none,
-            dimensions.padding + (dimensions.visibleColumns - 1) / 2
-          ),
+          ...repeat(none, 3),
+          ...activation[1],
+          ...activation[0],
+          ...createText("│", colors.grey),
+          ...itemRows[2],
         ]}
       />
       <div className="Action" id="action" onClick={handleAction} />

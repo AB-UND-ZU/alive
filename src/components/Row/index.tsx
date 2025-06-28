@@ -1,5 +1,6 @@
 import { STACK_SIZE } from "../../engine/components/item";
 import { Layer, Sprite } from "../../engine/components/sprite";
+import { getFacingLayers } from "../Entity/utils";
 import "./index.css";
 
 export type CellSprite = Sprite & { stackableAmount?: number };
@@ -23,7 +24,7 @@ function Cell({
         <>
           {Array.from({ length: stackableAmount }).map((_, index) => (
             <span
-            key={index}
+              key={index}
               className="Dot"
               style={{
                 top: `calc(var(--pixel-size) * (13 + ${
@@ -47,7 +48,7 @@ export default function Row({ cells = [] }: { cells?: CellSprite[] }) {
       {cells.map((cell, index) => (
         <Cell
           key={index}
-          layers={cell.amounts?.multiple || cell.layers}
+          layers={getFacingLayers(cell, undefined, cell.stackableAmount)}
           stackableAmount={cell.stackableAmount}
         />
       ))}

@@ -42,8 +42,6 @@ export const getOpaque = (world: World, position: Position) =>
 
 export const isOutside = (world: World, entity: Entity, structure?: number) =>
   !!structure && entity[LAYER]?.structure !== structure;
-// (!isEnterable(world, entity) && isOpaque(world, entity)) ||
-// (!entity[ENTERABLE]?.inside && (isOpaque(world, entity) || entity[FOG]?.type === "float"));
 
 export default function setupEnter(world: World) {
   let referenceGenerations = -1;

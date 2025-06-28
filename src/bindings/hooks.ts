@@ -111,7 +111,11 @@ export const useGame = () => {
 export const useViewable = () => {
   const viewables = useRenderable([VIEWABLE, POSITION]);
 
-  return viewables.find((entity) => entity[VIEWABLE].active);
+  return viewables
+    .filter((entity) => entity[VIEWABLE].active)
+    .sort(
+      (left, right) => right[VIEWABLE].priority - left[VIEWABLE].priority
+    )[0];
 };
 
 const defaultSpring = {

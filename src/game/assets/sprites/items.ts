@@ -307,7 +307,10 @@ export const berryDrop: Sprite = {
 
 export const berry: Sprite = {
   name: "Berry",
-  layers: [{ char: "'", color: colors.purple }],
+  layers: [
+    { char: "'", color: colors.purple },
+    { char: "\u03c4", color: colors.olive },
+  ],
   amounts: {
     single: [
       { char: "'", color: colors.purple },

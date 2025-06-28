@@ -44,7 +44,7 @@ export function AnimatedSprite({
 
   if (!ecs) return null;
 
-  const layers = getFacingLayers(ecs, sprite, facing, amount);
+  const layers = getFacingLayers(sprite, facing, amount);
 
   return (
     <animated.group
@@ -77,7 +77,7 @@ export default function Sprite({
 
   if (!ecs) return null;
 
-  const layers = getFacingLayers(ecs, sprite, facing, amount);
+  const layers = getFacingLayers(sprite, facing, amount);
 
   return (
     <group position={[offsetX, offsetY, offsetZ]}>

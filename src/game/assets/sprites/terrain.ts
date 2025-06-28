@@ -133,14 +133,25 @@ export const palm2: Sprite = {
   ],
 };
 
-export const palmBurnt: Sprite = {
-  name: "palm_burnt",
+export const palmBurnt1: Sprite = {
+  name: "palm_burnt_one",
   layers: [
     { char: "│", color: colors.olive },
     { char: "▀", color: colors.black },
     { char: "+", color: colors.black },
     { char: ".", color: colors.maroon },
     { char: ":", color: colors.black },
+  ],
+};
+
+export const palmBurnt2: Sprite = {
+  name: "palm_burnt_two",
+  layers: [
+    { char: "│", color: colors.olive },
+    { char: "▀", color: colors.black },
+    { char: ":", color: colors.maroon },
+    { char: "+", color: colors.black },
+    { char: "┘", color: colors.black },
   ],
 };
 
@@ -195,14 +206,25 @@ export const tree2: Sprite = {
   },
 };
 
-export const treeBurnt: Sprite = {
-  name: "tree_burnt",
+export const treeBurnt1: Sprite = {
+  name: "tree_burnt_one",
   layers: [
     { char: "│", color: colors.maroon },
     { char: "▀", color: colors.black },
     { char: "+", color: colors.black },
     { char: ".", color: colors.grey },
     { char: ":", color: colors.black },
+  ],
+};
+
+export const treeBurnt2: Sprite = {
+  name: "tree_burnt_two",
+  layers: [
+    { char: "│", color: colors.maroon },
+    { char: "▀", color: colors.black },
+    { char: ":", color: colors.grey },
+    { char: "+", color: colors.black },
+    { char: "┘", color: colors.black },
   ],
 };
 

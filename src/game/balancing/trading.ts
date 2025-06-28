@@ -7,13 +7,13 @@ import {
   Passive,
   Stackable,
 } from "../../engine/components/item";
+import { Deal } from "../../engine/components/shoppable";
 import { Stats } from "../../engine/components/stats";
-import { Tradable } from "../../engine/components/tradable";
 
 export const itemPrices: Partial<
   Record<
     Gear | Tools | Active | Passive | Consumable | Stackable | keyof Stats,
-    Partial<Record<Material | "default", Tradable["activation"]>>
+    Partial<Record<Material | "default", Deal["price"]>>
   >
 > = {
   sword: {
@@ -233,7 +233,7 @@ export const itemPrices: Partial<
 
 export const getItemPrice = (
   item: Omit<Item, "amount" | "carrier" | "bound">
-): Tradable["activation"] => {
+): Deal["price"] => {
   const material = item.material || "default";
   if (item.stackable) {
     const activations = itemPrices[item.stackable]?.[material];

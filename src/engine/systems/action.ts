@@ -12,14 +12,13 @@ import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
-import { Tradable, TRADABLE } from "../components/tradable";
 import { isDead, isEnemy } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
-import { EQUIPPABLE } from "../components/equippable";
+import { getShoppable, isShoppable } from "./shop";
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
@@ -65,43 +64,6 @@ export const getUnlockKey = (
   });
   return keyId && world.getEntityById(keyId);
 };
-
-export const getTradable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => TRADABLE in entity
-  ) as Entity | undefined;
-
-export const isTradable = (world: World, entity: Entity) =>
-  entity[TRADABLE] && entity[TRADABLE].activation.length > 0;
-
-export const canTrade = (world: World, entity: Entity, trade: Entity) =>
-  isTradable(world, trade) &&
-  (trade[TRADABLE] as Tradable).activation.every((activationItem) => {
-    if (activationItem.stat) {
-      // check if entity has sufficient of stat
-      return entity[STATS][activationItem.stat] >= activationItem.amount;
-    } else {
-      // or if item is contained in inventory or equipments
-      const items = [...entity[INVENTORY].items, ...Object.values(entity[EQUIPPABLE]).filter(Boolean)];
-      return items.some((itemId) => {
-        const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
-        const matchesEquipment =
-          activationItem.equipment &&
-          itemEntity[ITEM].equipment === activationItem.equipment &&
-          itemEntity[ITEM].material === activationItem.material;
-        const matchesConsume =
-          activationItem.consume &&
-          itemEntity[ITEM].consume === activationItem.consume &&
-          itemEntity[ITEM].material === activationItem.material;
-        const matchesStackable =
-          activationItem.stackable &&
-          itemEntity[ITEM].stackable === activationItem.stackable &&
-          itemEntity[ITEM].material === activationItem.material &&
-          itemEntity[ITEM].amount >= activationItem.amount;
-        return matchesEquipment || matchesConsume || matchesStackable;
-      });
-    }
-  });
 
 export const getAvailableActive = (
   world: World,
@@ -164,6 +126,7 @@ export default function setupAction(world: World) {
     ])) {
       let quest: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
+      let shop: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
       let spawn: Entity | undefined = undefined;
 
@@ -174,7 +137,8 @@ export default function setupAction(world: World) {
           const targetPosition = add(entity[POSITION], delta);
           const questEntity = getQuest(world, targetPosition);
           const lockableEntity = getLockable(world, targetPosition);
-          const tradeEntity = getTradable(world, targetPosition);
+          const shopEntity = getShoppable(world, targetPosition);
+          const tradeEntity = shopEntity;
 
           // only player can accept quests
           if (
@@ -194,13 +158,17 @@ export default function setupAction(world: World) {
           )
             unlock = lockableEntity;
 
-          // only pending trades can be bought
+          // only filled stores can be opened when not already shopping
           if (
-            !trade &&
-            tradeEntity &&
-            isTradable(world, tradeEntity) &&
-            !isDead(world, entity)
+            !shop &&
+            !entity[PLAYER]?.shopping &&
+            shopEntity &&
+            isShoppable(world, shopEntity)
           )
+            shop = shopEntity;
+
+          // trading only while shopping
+          if (!trade && tradeEntity && entity[PLAYER]?.shopping)
             trade = tradeEntity;
         }
       }
@@ -219,6 +187,7 @@ export default function setupAction(world: World) {
 
       const questId = quest && world.getEntityId(quest);
       const unlockId = unlock && world.getEntityId(unlock);
+      const shopId = shop && world.getEntityId(shop);
       const tradeId = trade && world.getEntityId(trade);
       const spawnId = spawn && world.getEntityId(spawn);
       const activeId = active && world.getEntityId(active);
@@ -226,12 +195,14 @@ export default function setupAction(world: World) {
       if (
         entity[ACTIONABLE].quest !== questId ||
         entity[ACTIONABLE].unlock !== unlockId ||
+        entity[ACTIONABLE].shop !== shopId ||
         entity[ACTIONABLE].trade !== tradeId ||
         entity[ACTIONABLE].spawn !== spawnId ||
         entity[ACTIONABLE].active !== activeId
       ) {
         entity[ACTIONABLE].quest = questId;
         entity[ACTIONABLE].unlock = unlockId;
+        entity[ACTIONABLE].shop = shopId;
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].spawn = spawnId;
         entity[ACTIONABLE].active = activeId;

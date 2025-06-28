@@ -205,6 +205,7 @@ export default function setupFate(world: World) {
           [SPRITE]: none,
           [VIEWABLE]: {
             active: entity[VIEWABLE].active,
+            priority: 50,
             spring: {
               mass: 1,
               friction: 30,

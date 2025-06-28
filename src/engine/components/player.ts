@@ -5,6 +5,7 @@ export type Player = {
   ghost: boolean;
   damageReceived: number;
   healingReceived: number;
+  shopping?: number;
 };
 
 export const PLAYER = "PLAYER";

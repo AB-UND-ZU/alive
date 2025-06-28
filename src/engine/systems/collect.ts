@@ -5,27 +5,36 @@ import { RENDERABLE } from "../components/renderable";
 import { add } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { getCell, updateWalkable } from "./map";
-import { Orientation, orientationPoints } from "../components/orientable";
+import { disposeEntity, getCell, updateWalkable } from "./map";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientationPoints,
+} from "../components/orientable";
 import { LOOTABLE } from "../components/lootable";
 import { isDead } from "./damage";
-import { EQUIPPABLE } from "../components/equippable";
+import { EQUIPPABLE, Gear, gears } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { Item, ITEM, STACK_SIZE } from "../components/item";
-import { rerenderEntity } from "./renderer";
-import { isTradable } from "./action";
+import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
-import { getMaxCounter } from "../../game/assets/sprites";
+import { getMaxCounter, woodStick } from "../../game/assets/sprites";
 import { createSequence, getSequence } from "./sequence";
-import { CollectSequence } from "../components/sequencable";
+import { CollectSequence, SEQUENCABLE } from "../components/sequencable";
 import { STATS } from "../components/stats";
+import { MELEE } from "../components/melee";
+import { entities } from "..";
+import { SPRITE } from "../components/sprite";
+import { getGearStat } from "../../game/balancing/equipment";
+import { dropEntity } from "./drop";
+import { PLAYER } from "../components/player";
+import { getItemSprite } from "../../components/Entity/utils";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
   INVENTORY in entity &&
-  entity[INVENTORY].items.length > 0 &&
-  !isTradable(world, entity);
+  entity[INVENTORY].items.length > 0;
 
 export const getLootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
@@ -91,7 +100,6 @@ export const collectItem = (
     const equipment = itemEntity[ITEM].equipment;
     const consume = itemEntity[ITEM].consume;
     const stackable = itemEntity[ITEM].stackable;
-    let amount = 1;
 
     if (stat) {
       // skip if counter exceeded or cap itself
@@ -104,8 +112,7 @@ export const collectItem = (
       )
         continue;
 
-      amount = getCollectAmount(world, itemEntity);
-      itemEntity[ITEM].amount -= amount;
+      itemEntity[ITEM].amount -= getCollectAmount(world, itemEntity);
     } else if (
       (equipment || (stackable && fullStack)) &&
       isFull(world, entity)
@@ -145,7 +152,7 @@ export const collectItem = (
       entity,
       "collect",
       "itemCollect",
-      { origin: target[POSITION], itemId, fullStack, amount, drop: false }
+      { origin: target[POSITION], itemId, drop: false }
     );
 
     // update walkable
@@ -153,6 +160,107 @@ export const collectItem = (
 
     rerenderEntity(world, target);
     break;
+  }
+};
+
+export const addToInventory = (
+  world: World,
+  entity: Entity,
+  itemEntity: Entity
+) => {
+  const entityId = world.getEntityId(entity);
+  let targetEquipment = itemEntity[ITEM].equipment;
+  let targetStat = itemEntity[ITEM].stat;
+  let targetConsume = itemEntity[ITEM].consume;
+  let targetStackable = itemEntity[ITEM].stackable;
+  let targetItem = itemEntity;
+
+  // if no sword is equipped, use wood as stick
+  if (entity[MELEE] && !entity[EQUIPPABLE].sword && targetStat === "stick") {
+    targetEquipment = "sword";
+    targetStat = undefined;
+    targetItem = entities.createSword(world, {
+      [ITEM]: {
+        amount: getGearStat("sword", "wood"),
+        equipment: "sword",
+        material: "wood",
+        carrier: entityId,
+        bound: false,
+      },
+      [ORIENTABLE]: {},
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: woodStick,
+    });
+  }
+
+  const targetId = world.getEntityId(targetItem);
+
+  if (targetEquipment) {
+    const existingId = entity[EQUIPPABLE][targetEquipment];
+
+    // add existing render count if item is replaced
+    if (existingId) {
+      const existingItem = world.assertById(existingId);
+      targetItem[RENDERABLE].generation += getEntityGeneration(
+        world,
+        existingItem
+      );
+
+      if (!gears.includes(targetEquipment as Gear)) {
+        removeFromInventory(world, entity, existingItem);
+      }
+      dropEntity(
+        world,
+        { [INVENTORY]: { items: [existingId] } },
+        entity[POSITION]
+      );
+    }
+
+    entity[EQUIPPABLE][targetEquipment] = targetId;
+
+    if (!gears.includes(targetEquipment as Gear)) {
+      entity[INVENTORY].items.push(targetId);
+    }
+  } else if (
+    targetConsume ||
+    (targetStackable && itemEntity[ITEM].amount === STACK_SIZE)
+  ) {
+    entity[INVENTORY].items.push(targetId);
+  } else if (targetStat) {
+    const maxStat = getMaxCounter(targetStat);
+    const maximum = maxStat !== targetStat ? entity[STATS][maxStat] : 99;
+    const amount = getCollectAmount(world, itemEntity);
+    entity[STATS][targetStat] = Math.min(
+      entity[STATS][targetStat] + amount,
+      maximum
+    );
+
+    if (entity[PLAYER] && targetStat === "hp") {
+      entity[PLAYER].healingReceived += amount;
+    }
+  } else if (targetStackable) {
+    // add to existing stack if available
+    const existingStack = getStackable(world, entity, itemEntity[ITEM]);
+
+    if (existingStack) {
+      existingStack[ITEM].amount += 1;
+    } else {
+      // create new stack
+      const stackEntity = entities.createItem(world, {
+        [ITEM]: { ...itemEntity[ITEM], carrier: entityId },
+        [SPRITE]: getItemSprite(itemEntity[ITEM]),
+        [RENDERABLE]: { generation: 0 },
+      });
+      const stackId = world.getEntityId(stackEntity);
+      stackEntity[ITEM].amount = 1;
+      entity[INVENTORY].items.push(stackId);
+    }
+
+    // delete old stack
+    if (itemEntity[ITEM].amount === 0) {
+      disposeEntity(world, itemEntity);
+    }
   }
 };
 

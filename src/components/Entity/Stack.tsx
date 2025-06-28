@@ -28,7 +28,6 @@ export default function Stack({ segments }: { segments: Segment[] }) {
   for (let i = 0; i < segments.length; i += 1) {
     const segment = segments[i];
     const layers = getFacingLayers(
-      ecs,
       segment.sprite,
       segment.facing,
       segment.amount

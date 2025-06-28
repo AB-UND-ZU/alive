@@ -66,7 +66,11 @@ export const populateInventory = (
   populateItems(world, entity, equipments);
 };
 
-export const assignBuilding = (world: World, position: Point) => {
+export const assignBuilding = (
+  world: World,
+  position: Point,
+  priority: number = 10
+) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
   const buildingEntity = entities.createBuilding(world, {
@@ -75,7 +79,7 @@ export const assignBuilding = (world: World, position: Point) => {
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
     [STRUCTURABLE]: {},
-    [VIEWABLE]: { active: false },
+    [VIEWABLE]: { active: false, priority },
   });
   const buildingId = world.getEntityId(buildingEntity);
 
