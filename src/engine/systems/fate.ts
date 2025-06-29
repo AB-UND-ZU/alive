@@ -164,7 +164,7 @@ export default function setupFate(world: World) {
           })
         );
         const haloEntity = entities.createHalo(world, {
-          [ACTIONABLE]: { triggered: false },
+          [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
           [BELONGABLE]: { faction: entity[BELONGABLE].faction },
           [EQUIPPABLE]: {},
           [INVENTORY]: { items: [], size: 10 },
@@ -256,7 +256,7 @@ export default function setupFate(world: World) {
       );
 
       const heroEntity = entities.createHero(world, {
-        [ACTIONABLE]: { triggered: false },
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction: entity[BELONGABLE].faction },
@@ -264,7 +264,7 @@ export default function setupFate(world: World) {
         [DROPPABLE]: { decayed: false },
         [EQUIPPABLE]: {},
         [FOG]: { visibility: "visible", type: "unit" },
-        [INVENTORY]: { items: [], size: 16 },
+        [INVENTORY]: { items: [], size: 24 },
         [LAYER]: {},
         [LIGHT]: { visibility: 1, brightness: 1, darkness: 0 },
         [MELEE]: { bumpGeneration: 0 },

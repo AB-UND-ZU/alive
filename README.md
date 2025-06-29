@@ -181,16 +181,21 @@ Earth
 
 ## Actions
 
-- Door unlock (key)
-- Quest accept (!)
-- Shop buy ($)
-- Player spawn (ghost)
-- Boat swim (boat)
-- Wood chop (axe)
-- Rock mine (pickaxe)
-- Bow shoot (arrow)
-- Bomb throw (bomb)
-- Spell cast (mana)
+- Primary (left, Enter/Space)
+  - Mana item
+  - Door open (key)
+  - Quest accept (!)
+  - Trade item
+  - Shop open ($)
+  - Player spawn (ghost)
+- Secondary (right, any other key)
+  - Energy item
+  - Shop close
+  - Boat swim (boat)
+  - Wood chop (axe)
+  - Rock mine (pickaxe)
+  - Bow shoot (arrow)
+  - Bomb throw (bomb)
 
 ## Elements
 

@@ -350,7 +350,7 @@ export default function setupAi(world: World) {
               entity[INVENTORY]?.items.find(
                 (itemId) =>
                   world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
-                    .equipment === "active"
+                    .equipment === "primary"
               ),
               [ITEM]
             )
@@ -362,7 +362,7 @@ export default function setupAi(world: World) {
           if (isShooting && entity[ACTIONABLE]) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
-            entity[ACTIONABLE].triggered = true;
+            entity[ACTIONABLE].primaryTriggered = true;
             break;
           } else if (canShoot && attack && heroEntity) {
             const delta = {
@@ -760,7 +760,7 @@ export default function setupAi(world: World) {
             }
 
             if (hasArrived && pattern.name === "unlock" && entity[ACTIONABLE]) {
-              entity[ACTIONABLE].triggered = true;
+              entity[ACTIONABLE].primaryTriggered = true;
             } else if (hasArrived && placementPattern) {
               if (pattern.name === "drop") {
                 dropEntity(

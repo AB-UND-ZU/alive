@@ -40,26 +40,31 @@ import { PLAYER } from "../../engine/components/player";
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
   w: "up",
+  W: "up",
   ArrowRight: "right",
   d: "right",
+  D: "right",
   ArrowDown: "down",
   s: "down",
+  S: "down",
   ArrowLeft: "left",
   a: "left",
+  A: "left",
 };
 
-export const actionKeys = [" ", "Enter"];
+export const primaryKeys = [" ", "Enter"];
+export const secondaryKeys = ["Shift", "Tab"];
 
 const getActiveActivations = (item: Item) => {
-  if (!item.active) return [none, none, none];
+  if (!item.primary && !item.secondary) return [none, none, none];
 
-  if (item.active === "bow")
+  if (item.secondary === "bow")
     return [none, createText("1", colors.grey)[0], arrow];
-  else if (item.active === "slash" || item.active === "block")
+  else if (item.secondary === "slash" || item.secondary === "block")
     return [none, createText("1", colors.grey)[0], charge];
-  else if (item.active.endsWith("1"))
+  else if (item.primary && item.primary.endsWith("1"))
     return createCountable({ mp: 1 }, "mp", "countable");
-  else if (item.active.endsWith("2"))
+  else if (item.primary && item.primary.endsWith("2"))
     return createCountable({ mp: 2 }, "mp", "countable");
 
   return [none, none, none];
@@ -82,7 +87,7 @@ export const getActivationRow = (item?: Omit<Item, "carrier" | "bound">) => {
 };
 
 const buttonWidth = 6;
-const inventoryWidth = 9;
+const inventoryWidth = 8;
 
 type Action = {
   name: string;
@@ -135,11 +140,13 @@ export default function Controls() {
   const [joystickOrientations, setJoystickOrientations] = useState<
     Orientation[]
   >([]);
-  const [action, setAction] = useState<Action>();
+  const [primary, setPrimary] = useState<Action>();
+  const [secondary, setSecondary] = useState<Action>();
   const [highlight, setHighlight] = useState(8);
   const highlightRef = useRef<NodeJS.Timeout>();
   const actionRef = useRef<Action>();
-  const activeRef = useRef<Action>();
+  const primaryRef = useRef<Action>();
+  const secondaryRef = useRef<Action>();
 
   // update ref for listeners to consume
   heroRef.current = hero || undefined;
@@ -202,39 +209,54 @@ export default function Controls() {
     ]
   );
 
-  const activeAction = useAction(
-    "active",
-    (world, hero, activeEntity) =>
-      activeEntity[ITEM].active !== "bow" &&
-      !canCast(world, hero, activeEntity),
-    (activeEntity) => activeEntity[SPRITE].name.toUpperCase(),
-    (_, activeEntity) => [
-      [none, none, activeEntity[SPRITE]],
-      getActiveActivations(activeEntity[ITEM]),
+  const primaryAction = useAction(
+    "primary",
+    (world, hero, primaryEntity) => !canCast(world, hero, primaryEntity),
+    (primaryEntity) => primaryEntity[SPRITE].name.toUpperCase(),
+    (_, primaryEntity) => [
+      [none, none, primaryEntity[SPRITE]],
+      getActiveActivations(primaryEntity[ITEM]),
     ]
   );
 
-  const availableActions = [
+  const secondaryAction = useAction(
+    "secondary",
+    (world, hero, secondaryEntity) => secondaryEntity[ITEM].secondary !== "bow",
+    (secondaryEntity) => secondaryEntity[SPRITE].name.toUpperCase(),
+    (_, secondaryEntity) => [
+      [none, none, secondaryEntity[SPRITE]],
+      getActiveActivations(secondaryEntity[ITEM]),
+    ]
+  );
+
+  const availablePrimary = [
     spawnAction,
     questAction,
     unlockAction,
     shopAction,
     tradeAction,
-    activeAction,
+    primaryAction,
   ];
-  const selectedAction = availableActions.find((action) => action);
+  const selectedPrimary = availablePrimary.find((action) => action);
+  primaryRef.current = selectedPrimary;
 
-  activeRef.current = selectedAction;
+  const availableSecondary = [secondaryAction];
+  const selectedSecondary = availableSecondary.find((action) => action);
+  secondaryRef.current = selectedSecondary;
 
   // rotate button shadow
   useEffect(() => {
     // clear on fading action
-    if (highlightRef.current && !selectedAction) {
+    if (highlightRef.current && !selectedPrimary && !selectedSecondary) {
       clearInterval(highlightRef.current);
       highlightRef.current = undefined;
     }
 
-    if (!selectedAction || selectedAction.disabled) return;
+    if (
+      (!selectedPrimary || selectedPrimary.disabled) &&
+      (!selectedSecondary || selectedSecondary.disabled)
+    )
+      return;
 
     // reset on new action
     if (!highlightRef.current) {
@@ -244,20 +266,14 @@ export default function Controls() {
         setHighlight((prevHighlight) => normalize(prevHighlight - 1, 14));
       }, 100);
     }
-  }, [selectedAction]);
+  }, [selectedPrimary, selectedSecondary]);
 
   const handleAction = useCallback(
-    (
-      event:
-        | KeyboardEvent
-        | TouchEvent
-        | React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
-      event.preventDefault();
-
+    (action: "primary" | "secondary") => {
       const heroEntity = heroRef.current;
       const currentAction = actionRef.current;
-      const active = activeRef.current;
+      const active =
+        action === "primary" ? primaryRef.current : secondaryRef.current;
 
       if (currentAction || !heroEntity || !ecs) return;
 
@@ -268,29 +284,66 @@ export default function Controls() {
 
       if (!reference) return;
 
-      // skip if waiting for cooldown or not actionable
+      // skip if waiting for any cooldowns or not actionable
       if (
-        heroEntity[ACTIONABLE].triggered ||
+        heroEntity[ACTIONABLE].primaryTriggered ||
+        heroEntity[ACTIONABLE].secondaryTriggered ||
         !getAction(ecs, heroEntity) ||
         active?.disabled
       )
         return;
 
-      heroEntity[ACTIONABLE].triggered = true;
+      heroEntity[ACTIONABLE][
+        action === "primary" ? "primaryTriggered" : "secondaryTriggered"
+      ] = true;
 
       reference.suspensionCounter = reference.suspensionCounter === -1 ? -1 : 1;
       reference.suspended = false;
 
       if (active) {
-        setAction(active);
+        if (action === "primary") {
+          setPrimary(active);
+        } else {
+          setSecondary(active);
+        }
         actionRef.current = active;
         setTimeout(() => {
-          setAction(undefined);
+          if (action === "primary") {
+            setPrimary(undefined);
+          } else {
+            setSecondary(undefined);
+          }
           actionRef.current = undefined;
         }, reference.tick);
       }
     },
     [ecs]
+  );
+
+  const handlePrimary = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      handleAction("primary");
+    },
+    [handleAction]
+  );
+
+  const handleSecondary = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      handleAction("secondary");
+    },
+    [handleAction]
   );
 
   const handleMove = useCallback(
@@ -318,7 +371,8 @@ export default function Controls() {
 
         if (
           heroEntity[MOVABLE].pendingOrientation ||
-          heroEntity[ACTIONABLE].triggered
+          heroEntity[ACTIONABLE].primaryTriggered ||
+          heroEntity[ACTIONABLE].secondaryTriggered
         ) {
           reference.suspensionCounter += 1;
         }
@@ -343,12 +397,18 @@ export default function Controls() {
       // also prevent repeat events
       if (
         event.type === "keydown" &&
-        (event.altKey || event.shiftKey || event.metaKey || event.repeat)
+        (event.altKey || event.metaKey || event.repeat)
       )
         return;
 
-      if (actionKeys.includes(event.key) && event.type === "keydown") {
-        handleAction(event);
+      if (primaryKeys.includes(event.key) && event.type === "keydown") {
+        handlePrimary(event);
+        return;
+      } else if (
+        secondaryKeys.includes(event.key) &&
+        event.type === "keydown"
+      ) {
+        handleSecondary(event);
         return;
       }
 
@@ -366,7 +426,7 @@ export default function Controls() {
 
       handleMove(orientations);
     },
-    [handleMove, handleAction, setPaused]
+    [handleMove, setPaused, handlePrimary, handleSecondary]
   );
 
   const handleTouchMove = useCallback(
@@ -374,7 +434,7 @@ export default function Controls() {
       // prevent touches over action bar
       if (
         [...event.changedTouches].some((touch) =>
-          ["action", "menu", "resume"].includes(
+          ["primary", "secondary", "menu", "resume"].includes(
             (touch.target as HTMLElement).id
           )
         )
@@ -451,23 +511,39 @@ export default function Controls() {
     };
   }, [handleKey, handleTouchMove]);
 
-  const pressedButton =
-    action && createButton(repeat(none, buttonWidth), buttonWidth, false, true);
   const emptyButton = [repeat(none, buttonWidth), repeat(none, buttonWidth)];
-  const actionButton =
-    selectedAction &&
+  const pressedPrimary =
+    primary &&
+    createButton(repeat(none, buttonWidth), buttonWidth, false, true);
+  const primaryButton =
+    selectedPrimary &&
     createButton(
-      createText(selectedAction.name, buttonColor),
+      createText(selectedPrimary.name, buttonColor),
       buttonWidth,
-      selectedAction.disabled,
+      selectedPrimary.disabled,
       false,
       highlight
     );
-  const button = pressedButton || actionButton || emptyButton;
+  const leftButton = pressedPrimary || primaryButton || emptyButton;
+  const pressedSecondary =
+    secondary &&
+    createButton(repeat(none, buttonWidth), buttonWidth, false, true);
+  const secondaryButton =
+    selectedSecondary &&
+    createButton(
+      createText(selectedSecondary.name, buttonColor),
+      buttonWidth,
+      selectedSecondary.disabled,
+      false,
+      highlight
+    );
+  const rightButton = pressedSecondary || secondaryButton || emptyButton;
 
   const emptyActivation = [repeat(none, 3), repeat(none, 3)];
-  const activation =
-    action?.activation || selectedAction?.activation || emptyActivation;
+  const primaryActivation =
+    primary?.activation || selectedPrimary?.activation || emptyActivation;
+  const secondaryActivation =
+    secondary?.activation || selectedSecondary?.activation || emptyActivation;
 
   const itemSprites =
     ecs && hero?.[INVENTORY]
@@ -503,37 +579,51 @@ export default function Controls() {
       />
       <Row
         cells={[
-          ...createText("═".repeat(dimensions.padding + 10), colors.grey),
+          ...createText(
+            "═".repeat(dimensions.padding + buttonWidth * 2),
+            colors.grey
+          ),
           ...createText("╤", colors.grey),
-          ...createText("═".repeat(dimensions.padding + 10), colors.grey),
+          ...createText(
+            "═".repeat(dimensions.padding + inventoryWidth),
+            colors.grey
+          ),
         ]}
       />
       <Row
         cells={[
-          ...repeat(none, (dimensions.visibleColumns - 1) / 2 - 7),
-          ...button[0],
+          ...repeat(none, dimensions.padding),
+          ...leftButton[0],
+          ...rightButton[0],
           ...createText("│", colors.grey),
           ...itemRows[0],
+          ...repeat(none, dimensions.padding),
         ]}
       />
       <Row
         cells={[
-          ...repeat(none, (dimensions.visibleColumns - 1) / 2 - 7),
-          ...button[1],
+          ...repeat(none, dimensions.padding),
+          ...leftButton[1],
+          ...rightButton[1],
           ...createText("│", colors.grey),
           ...itemRows[1],
+          ...repeat(none, dimensions.padding),
         ]}
       />
       <Row
         cells={[
-          ...repeat(none, 3),
-          ...activation[1],
-          ...activation[0],
+          ...repeat(none, dimensions.padding),
+          ...primaryActivation[1],
+          ...primaryActivation[0],
+          ...secondaryActivation[1],
+          ...secondaryActivation[0],
           ...createText("│", colors.grey),
           ...itemRows[2],
+          ...repeat(none, dimensions.padding),
         ]}
       />
-      <div className="Action" id="action" onClick={handleAction} />
+      <div className="Primary" id="primary" onClick={handlePrimary} />
+      <div className="Secondary" id="secondary" onClick={handleSecondary} />
     </footer>
   );
 }

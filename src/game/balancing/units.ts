@@ -303,7 +303,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { equipment: "active", active: "bow", amount: 3 },
+          { equipment: "secondary", secondary: "bow", amount: 3 },
           { stackable: "arrow", amount: 10 },
         ],
       },
@@ -568,8 +568,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 1,
     equipments: [
       {
-        equipment: "active",
-        active: "beam1",
+        equipment: "primary",
+        primary: "beam1",
         bound: true,
         amount: 1,
       },
@@ -591,8 +591,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 2,
     equipments: [
       {
-        equipment: "active",
-        active: "beam1",
+        equipment: "primary",
+        primary: "beam1",
         bound: true,
         amount: 3,
       },

@@ -10,10 +10,8 @@ export type Element = (typeof elements)[number];
 export type Legendary = "ruby" | "aether" | "void" | "rainbow";
 export type Material = Resource | Element | Legendary;
 
-export type Spell = "wave1" | "wave2" | "beam1" | "beam2" | "trap1" | "trap2";
-export type Empowerment = "slash" | "block" | "bow";
-export type Activatable = "cloak1" | "cloak2";
-export type Active = Spell | Empowerment | Activatable;
+export type Primary = "wave1" | "wave2" | "beam1" | "beam2" | "trap1" | "trap2";
+export type Secondary = "slash" | "block" | "bow";
 
 export type Passive = "charm1" | "charm2" | "pet1" | "pet2";
 
@@ -43,7 +41,8 @@ export type Item = {
   amount: number;
   material?: Material;
   equipment?: Equipment;
-  active?: Active;
+  primary?: Primary;
+  secondary?: Secondary;
   passive?: Passive;
   stat?: keyof Stats;
   consume?: Consumable;

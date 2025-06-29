@@ -1,6 +1,6 @@
 import { hunter, knight, mage, scout } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
-import { Active, Stackable } from "../../engine/components/item";
+import { Stackable } from "../../engine/components/item";
 import { Equipment } from "../../engine/components/equippable";
 import { Stats } from "../../engine/components/stats";
 import { initialLevel } from "../../engine/systems/leveling";
@@ -9,7 +9,7 @@ export type ClassKey = "scout" | "knight" | "mage" | "hunter";
 
 export type ClassDefinition = {
   sprite: Sprite;
-  items: ({ slot: Equipment; active?: Active } | { stackable: Stackable })[];
+  items: ({ slot: Equipment } | { stackable: Stackable })[];
 
   stats: Omit<Stats, "coin" | "stick" | "ore" | "flower" | "berry" | "leaf">;
 };

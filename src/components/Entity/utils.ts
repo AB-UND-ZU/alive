@@ -6,12 +6,13 @@ import { Entity } from "ecs";
 import { EQUIPPABLE, Gear, Tools } from "../../engine/components/equippable";
 import { LayerProps } from "./Layer";
 import {
-  Active,
   Consumable,
   Item,
   Material,
   Materialized,
   Passive,
+  Primary,
+  Secondary,
   Stackable,
 } from "../../engine/components/item";
 import { LIGHT } from "../../engine/components/light";
@@ -34,8 +35,6 @@ import {
   bowActive,
   charge,
   charm,
-  cloak1,
-  cloak2,
   coconut,
   coconutDrop,
   compass,
@@ -285,7 +284,14 @@ export const offsetFactors: Record<number, number> = {
 export const shadowFactor = 0.125;
 
 const entitySprites: Record<
-  Gear | Tools | Active | Passive | Stackable | Consumable | Materialized,
+  | Gear
+  | Tools
+  | Primary
+  | Secondary
+  | Passive
+  | Stackable
+  | Consumable
+  | Materialized,
   Partial<Record<Material | "default", { sprite: Sprite; resource?: Sprite }>>
 > = {
   // gear
@@ -370,14 +376,6 @@ const entitySprites: Record<
     fire: { sprite: fireTrap },
     water: { sprite: waterTrap },
     earth: { sprite: earthTrap },
-  },
-
-  // activatable
-  cloak1: {
-    default: { sprite: cloak1 },
-  },
-  cloak2: {
-    default: { sprite: cloak2 },
   },
 
   // passive
@@ -498,9 +496,14 @@ export const getItemSprite = (
 
   if (!lookup) return none;
 
-  if (lookup === "active")
+  if (lookup === "primary")
     return (
-      (item.active && entitySprites[item.active][material]?.sprite) || none
+      (item.primary && entitySprites[item.primary][material]?.sprite) || none
+    );
+  if (lookup === "secondary")
+    return (
+      (item.secondary && entitySprites[item.secondary][material]?.sprite) ||
+      none
     );
   if (lookup === "passive")
     return (

@@ -28,7 +28,7 @@ import {
 } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
 import { TypedEntity } from "../entities";
-import { EQUIPPABLE, Gear, gears } from "../components/equippable";
+import { EQUIPPABLE } from "../components/equippable";
 import { getEntityGeneration } from "./renderer";
 import { SHOOTABLE } from "../components/shootable";
 import {
@@ -197,9 +197,7 @@ export const createItemInInventory = <
       carrier[EQUIPPABLE][targetEquipment] = itemId;
     }
 
-    if (!gears.includes(targetEquipment as Gear)) {
-      carrier[INVENTORY].items.push(itemId);
-    }
+    carrier[INVENTORY].items.push(itemId);
   } else if (targetConsume || targetStackable) {
     carrier[INVENTORY].items.push(itemId);
   } else if (targetStat) {
@@ -222,15 +220,7 @@ export const dropEntity = (
   delay?: number
 ) => {
   const stats: Stats = { ...emptyStats, ...entity[STATS] };
-  const inventory = [
-    ...(entity[INVENTORY]?.items || []),
-    ...Object.entries(entity[EQUIPPABLE] || {})
-      .filter(
-        ([equipment, id]) =>
-          gears.includes(equipment as Gear) && id !== undefined
-      )
-      .map(([_, id]) => id),
-  ];
+  const inventory = entity[INVENTORY]?.items || [];
   const remains = entity[DROPPABLE]?.remains;
 
   if (remains) {

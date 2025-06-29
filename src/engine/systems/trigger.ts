@@ -44,7 +44,8 @@ export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
   Object.keys(entity[ACTIONABLE]).some(
     (actionName) =>
-      actionName !== "triggered" &&
+      actionName !== "primaryTriggered" &&
+      actionName !== "secondaryTriggered" &&
       world.getEntityById(entity[ACTIONABLE][actionName])
   );
 
@@ -237,7 +238,7 @@ export const castSpell = (
     [SPRITE]: none,
   });
 
-  if (item[ITEM].active === "beam1") {
+  if (item[ITEM].primary === "beam1") {
     createSequence<"spell", SpellSequence>(
       world,
       spellEntity,
@@ -254,7 +255,7 @@ export const castSpell = (
           : undefined,
       }
     );
-  } else if (item[ITEM].active === "wave1") {
+  } else if (item[ITEM].primary === "wave1") {
     createSequence<"spell", SpellSequence>(
       world,
       spellEntity,
@@ -312,9 +313,15 @@ export default function setupTrigger(world: World) {
       entityReferences[entityId] = entityReference;
 
       // skip if not actionable or not triggered
-      if (!getAction(world, entity) || !entity[ACTIONABLE].triggered) continue;
+      if (
+        !getAction(world, entity) ||
+        !(
+          entity[ACTIONABLE].primaryTriggered ||
+          entity[ACTIONABLE].secondaryTriggered
+        )
+      )
+        continue;
 
-      entity[ACTIONABLE].triggered = false;
       entity[MOVABLE].lastInteraction = entityReference;
 
       const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
@@ -325,33 +332,43 @@ export default function setupTrigger(world: World) {
         [INVENTORY, TOOLTIP, SHOPPABLE]
       );
       const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
-      const activeEntity = world.getEntityByIdAndComponents(
-        entity[ACTIONABLE].active,
+      const primaryEntity = world.getEntityByIdAndComponents(
+        entity[ACTIONABLE].primary,
+        [ITEM]
+      );
+      const secondaryEntity = world.getEntityByIdAndComponents(
+        entity[ACTIONABLE].secondary,
         [ITEM]
       );
 
-      if (
-        spawnEntity &&
-        isRevivable(world, spawnEntity) &&
-        canRevive(world, spawnEntity, entity)
-      ) {
-        reviveEntity(world, spawnEntity, entity);
-      } else if (questEntity && canAcceptQuest(world, entity, questEntity)) {
-        acceptQuest(world, entity, questEntity);
-      } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
-        unlockDoor(world, entity, unlockEntity);
-      } else if (shopEntity && isShoppable(world, shopEntity)) {
-        openShop(world, entity, shopEntity);
-      } else if (
-        tradeEntity &&
-        canShop(world, entity, getDeal(world, tradeEntity))
-      ) {
-        performTrade(world, entity, tradeEntity);
-      } else if (activeEntity) {
-        if (activeEntity[ITEM].active === "bow") {
-          shootArrow(world, entity, activeEntity);
-        } else if (canCast(world, entity, activeEntity)) {
-          castSpell(world, entity, activeEntity);
+      if (entity[ACTIONABLE].primaryTriggered) {
+        entity[ACTIONABLE].primaryTriggered = false;
+
+        if (
+          spawnEntity &&
+          isRevivable(world, spawnEntity) &&
+          canRevive(world, spawnEntity, entity)
+        ) {
+          reviveEntity(world, spawnEntity, entity);
+        } else if (questEntity && canAcceptQuest(world, entity, questEntity)) {
+          acceptQuest(world, entity, questEntity);
+        } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
+          unlockDoor(world, entity, unlockEntity);
+        } else if (shopEntity && isShoppable(world, shopEntity)) {
+          openShop(world, entity, shopEntity);
+        } else if (
+          tradeEntity &&
+          canShop(world, entity, getDeal(world, tradeEntity))
+        ) {
+          performTrade(world, entity, tradeEntity);
+        } else if (primaryEntity && canCast(world, entity, primaryEntity)) {
+          castSpell(world, entity, primaryEntity);
+        }
+      } else if (entity[ACTIONABLE].secondaryTriggered) {
+        entity[ACTIONABLE].secondaryTriggered = false;
+
+        if (secondaryEntity && secondaryEntity[ITEM].secondary === "bow") {
+          shootArrow(world, entity, secondaryEntity);
         }
       }
     }

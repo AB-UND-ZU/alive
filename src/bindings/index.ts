@@ -523,7 +523,7 @@ export const generateWorld = async (world: World) => {
         })
       );
       entities.createHalo(world, {
-        [ACTIONABLE]: { triggered: false },
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [BELONGABLE]: { faction: "settler" },
         [EQUIPPABLE]: {},
         [INVENTORY]: { items: [], size: 10 },
@@ -1235,7 +1235,7 @@ export const generateWorld = async (world: World) => {
       const { sprite, items, stats, faction, patterns, equipments } =
         generateUnitData("guide");
       const guideEntity = entities.createVillager(world, {
-        [ACTIONABLE]: { triggered: false },
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
         [ATTACKABLE]: {},
         [BEHAVIOUR]: { patterns },
@@ -1282,7 +1282,7 @@ export const generateWorld = async (world: World) => {
         );
 
       const mobEntity = entities.createMob(world, {
-        [ACTIONABLE]: { triggered: false },
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
         [ATTACKABLE]: {},
         [BEHAVIOUR]: { patterns },
@@ -1680,7 +1680,7 @@ export const generateWorld = async (world: World) => {
   const nomadHouse = { position: { x: nomadX - 1, y: nomadY - 1 } };
   const nomadUnit = generateUnitData("nomad");
   const nomadEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { triggered: false },
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: nomadUnit.patterns },
@@ -1764,7 +1764,7 @@ export const generateWorld = async (world: World) => {
   // 1. chief's house in center
   const chiefUnit = generateUnitData("chief");
   const chiefEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { triggered: false },
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: chiefUnit.patterns },
@@ -1858,7 +1858,7 @@ export const generateWorld = async (world: World) => {
   // 2. elder's house
   const elderUnit = generateUnitData("elder");
   const elderEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { triggered: false },
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: elderUnit.patterns },
@@ -1934,7 +1934,7 @@ export const generateWorld = async (world: World) => {
   // 3. scout's house
   const scoutUnit = generateUnitData("scout");
   const scoutEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { triggered: false },
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: scoutUnit.patterns },
@@ -2008,7 +2008,7 @@ export const generateWorld = async (world: World) => {
   // 4. smith's house
   const smithUnit = generateUnitData("smith");
   const smithEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { triggered: false },
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: smithUnit.patterns },
@@ -2086,7 +2086,7 @@ export const generateWorld = async (world: World) => {
   // 5. trader's house
   const traderUnit = generateUnitData("trader");
   const traderEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { triggered: false },
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: traderUnit.patterns },
@@ -2167,7 +2167,7 @@ export const generateWorld = async (world: World) => {
   // 6. druid's house
   const druidUnit = generateUnitData("druid");
   const druidEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { triggered: false },
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: druidUnit.patterns },
@@ -2241,7 +2241,7 @@ export const generateWorld = async (world: World) => {
   // 7. mage's house
   const mageUnit = generateUnitData("mage");
   const mageEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { triggered: false },
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: mageUnit.patterns },
@@ -2283,8 +2283,8 @@ export const generateWorld = async (world: World) => {
     [ITEM]: {
       carrier: -1,
       amount: 2,
-      equipment: "active",
-      active: "wave1",
+      equipment: "primary",
+      primary: "wave1",
       bound: false,
     },
     [SPRITE]: waveSpell,
@@ -2294,8 +2294,8 @@ export const generateWorld = async (world: World) => {
     [ITEM]: {
       carrier: -1,
       amount: 5,
-      equipment: "active",
-      active: "beam1",
+      equipment: "primary",
+      primary: "beam1",
       bound: false,
     },
     [SPRITE]: beamSpell,

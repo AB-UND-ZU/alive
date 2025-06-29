@@ -7,11 +7,13 @@ export const actions = [
   "shop",
   "trade",
   "quest",
-  "active",
+  "primary",
+  "secondary",
 ] as const;
 
 export type Actionable = {
-  triggered: boolean;
+  primaryTriggered: boolean;
+  secondaryTriggered: boolean;
 } & Partial<Record<(typeof actions)[number], number | undefined>>;
 
 export const ACTIONABLE = "ACTIONABLE";

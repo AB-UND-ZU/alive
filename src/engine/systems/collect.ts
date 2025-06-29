@@ -13,7 +13,7 @@ import {
 } from "../components/orientable";
 import { LOOTABLE } from "../components/lootable";
 import { isDead } from "./damage";
-import { EQUIPPABLE, Gear, gears } from "../components/equippable";
+import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { Item, ITEM, STACK_SIZE } from "../components/item";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
@@ -207,9 +207,7 @@ export const addToInventory = (
         existingItem
       );
 
-      if (!gears.includes(targetEquipment as Gear)) {
-        removeFromInventory(world, entity, existingItem);
-      }
+      removeFromInventory(world, entity, existingItem);
       dropEntity(
         world,
         { [INVENTORY]: { items: [existingId] } },
@@ -218,10 +216,7 @@ export const addToInventory = (
     }
 
     entity[EQUIPPABLE][targetEquipment] = targetId;
-
-    if (!gears.includes(targetEquipment as Gear)) {
-      entity[INVENTORY].items.push(targetId);
-    }
+    entity[INVENTORY].items.push(targetId);
   } else if (
     targetConsume ||
     (targetStackable && itemEntity[ITEM].amount === STACK_SIZE)

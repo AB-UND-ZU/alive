@@ -65,7 +65,7 @@ export const getUnlockKey = (
   return keyId && world.getEntityById(keyId);
 };
 
-export const getAvailableActive = (
+export const getAvailablePrimary = (
   world: World,
   entity: TypedEntity<"INVENTORY">
 ) => {
@@ -73,16 +73,40 @@ export const getAvailableActive = (
     entity[INVENTORY].items.find(
       (itemId) =>
         world.assertByIdAndComponents(itemId, [ITEM])[ITEM].equipment ===
-        "active"
+        "primary"
     ),
     [ITEM]
   );
 
-  const active = itemEntity?.[ITEM].active;
+  const primary = itemEntity?.[ITEM].primary;
 
-  if (!active) return;
+  if (!primary) return;
 
-  if (active === "bow") {
+  if (entity[STATS]) {
+    // check mana for spells
+    if (primary.endsWith("1") && entity[STATS].mp >= 1) return itemEntity;
+    if (primary.endsWith("2") && entity[STATS].mp >= 2) return itemEntity;
+  }
+};
+
+export const getAvailableSecondary = (
+  world: World,
+  entity: TypedEntity<"INVENTORY">
+) => {
+  const itemEntity = world.getEntityByIdAndComponents(
+    entity[INVENTORY].items.find(
+      (itemId) =>
+        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].equipment ===
+        "secondary"
+    ),
+    [ITEM]
+  );
+
+  const secondary = itemEntity?.[ITEM].secondary;
+
+  if (!secondary) return;
+
+  if (secondary === "bow") {
     // check if there is arrows for a bow
     const hasArrow = entity[INVENTORY].items.some(
       (itemId) =>
@@ -90,7 +114,7 @@ export const getAvailableActive = (
         "arrow"
     );
     if (hasArrow) return itemEntity;
-  } else if (active === "slash" || active === "block") {
+  } else if (secondary === "slash" || secondary === "block") {
     // check if there is charges for active items
     const hasCharge = entity[INVENTORY].items.some(
       (itemId) =>
@@ -98,10 +122,6 @@ export const getAvailableActive = (
         "charge"
     );
     if (hasCharge) return itemEntity;
-  } else if (entity[STATS]) {
-    // check mana for spells
-    if (active.endsWith("1") && entity[STATS].mp >= 1) return itemEntity;
-    if (active.endsWith("2") && entity[STATS].mp >= 2) return itemEntity;
   }
 };
 
@@ -183,14 +203,19 @@ export default function setupAction(world: World) {
         spawn = spawnEntity;
 
       // check inventory actions
-      const active = getAvailableActive(world, entity);
+      const primary = getAvailablePrimary(world, entity);
+      const secondary = getAvailableSecondary(world, entity);
 
       const questId = quest && world.getEntityId(quest);
       const unlockId = unlock && world.getEntityId(unlock);
       const shopId = shop && world.getEntityId(shop);
       const tradeId = trade && world.getEntityId(trade);
       const spawnId = spawn && world.getEntityId(spawn);
-      const activeId = active && world.getEntityId(active);
+      const primaryId = primary && world.getEntityId(primary);
+      const secondaryId =
+        questId || unlockId || shopId || tradeId || spawnId
+          ? undefined
+          : secondary && world.getEntityId(secondary);
 
       if (
         entity[ACTIONABLE].quest !== questId ||
@@ -198,14 +223,16 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].shop !== shopId ||
         entity[ACTIONABLE].trade !== tradeId ||
         entity[ACTIONABLE].spawn !== spawnId ||
-        entity[ACTIONABLE].active !== activeId
+        entity[ACTIONABLE].primary !== primaryId ||
+        entity[ACTIONABLE].secondary !== secondaryId
       ) {
         entity[ACTIONABLE].quest = questId;
         entity[ACTIONABLE].unlock = unlockId;
         entity[ACTIONABLE].shop = shopId;
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].spawn = spawnId;
-        entity[ACTIONABLE].active = activeId;
+        entity[ACTIONABLE].primary = primaryId;
+        entity[ACTIONABLE].secondary = secondaryId;
         rerenderEntity(world, entity);
       }
     }

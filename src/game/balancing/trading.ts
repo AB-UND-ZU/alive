@@ -1,10 +1,11 @@
-import { Gear, Tools } from "../../engine/components/equippable";
+import { Equipment } from "../../engine/components/equippable";
 import {
-  Active,
   Consumable,
   Item,
   Material,
   Passive,
+  Primary,
+  Secondary,
   Stackable,
 } from "../../engine/components/item";
 import { Deal } from "../../engine/components/shoppable";
@@ -12,7 +13,13 @@ import { Stats } from "../../engine/components/stats";
 
 export const itemPrices: Partial<
   Record<
-    Gear | Tools | Active | Passive | Consumable | Stackable | keyof Stats,
+    | Equipment
+    | Primary
+    | Secondary
+    | Passive
+    | Consumable
+    | Stackable
+    | keyof Stats,
     Partial<Record<Material | "default", Deal["price"]>>
   >
 > = {
@@ -244,8 +251,10 @@ export const getItemPrice = (
 
   if (!lookup) return [];
 
-  if (lookup === "active")
-    return (item.active && itemPrices[item.active]?.[material]) || [];
+  if (lookup === "primary")
+    return (item.primary && itemPrices[item.primary]?.[material]) || [];
+  if (lookup === "secondary")
+    return (item.secondary && itemPrices[item.secondary]?.[material]) || [];
   if (lookup === "passive")
     return (item.passive && itemPrices[item.passive]?.[material]) || [];
 
