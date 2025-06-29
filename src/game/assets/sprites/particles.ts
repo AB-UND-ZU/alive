@@ -79,6 +79,48 @@ export const wave: Sprite = {
   },
 };
 
+export const fireWave: Sprite = {
+  name: "fire_wave",
+  layers: [
+    { char: "┼", color: colors.red },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [{ char: "─", color: colors.red }],
+    right: [{ char: "│", color: colors.red }],
+    down: [{ char: "─", color: colors.red }],
+    left: [{ char: "│", color: colors.red }],
+  },
+};
+
+export const waterWave: Sprite = {
+  name: "water_wave",
+  layers: [
+    { char: "┼", color: colors.blue },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [{ char: "─", color: colors.blue }],
+    right: [{ char: "│", color: colors.blue }],
+    down: [{ char: "─", color: colors.blue }],
+    left: [{ char: "│", color: colors.blue }],
+  },
+};
+
+export const earthWave: Sprite = {
+  name: "earth_wave",
+  layers: [
+    { char: "┼", color: colors.lime },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [{ char: "─", color: colors.lime }],
+    right: [{ char: "│", color: colors.lime }],
+    down: [{ char: "─", color: colors.lime }],
+    left: [{ char: "│", color: colors.lime }],
+  },
+};
+
 export const waveCorner: Sprite = {
   name: "spell_corner",
   layers: [],
@@ -97,6 +139,75 @@ export const waveCorner: Sprite = {
     ],
     left: [
       { char: "┌", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const fireWaveCorner: Sprite = {
+  name: "fire_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const waterWaveCorner: Sprite = {
+  name: "water_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const earthWaveCorner: Sprite = {
+  name: "earth_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.lime },
       { char: "·", color: colors.black },
     ],
   },
@@ -322,34 +433,79 @@ export const edge: Sprite = {
 
 export const fireEdge: Sprite = {
   name: "fire_edge",
-  layers: [{ char: "┼", color: colors.maroon }],
+  layers: [
+    { char: "┼", color: colors.red },
+    { char: "·", color: colors.black },
+  ],
   facing: {
-    up: [{ char: "─", color: colors.maroon }],
-    right: [{ char: "│", color: colors.maroon }],
-    down: [{ char: "─", color: colors.maroon }],
-    left: [{ char: "│", color: colors.maroon }],
+    up: [
+      { char: "┴", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "├", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "┬", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┤", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
   },
 };
 
 export const waterEdge: Sprite = {
   name: "water_edge",
-  layers: [{ char: "┼", color: colors.navy }],
+  layers: [
+    { char: "┼", color: colors.blue },
+    { char: "·", color: colors.black },
+  ],
   facing: {
-    up: [{ char: "─", color: colors.navy }],
-    right: [{ char: "│", color: colors.navy }],
-    down: [{ char: "─", color: colors.navy }],
-    left: [{ char: "│", color: colors.navy }],
+    up: [
+      { char: "┴", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "├", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "┬", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┤", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
   },
 };
 
 export const earthEdge: Sprite = {
   name: "earth_edge",
-  layers: [{ char: "┼", color: colors.green }],
+  layers: [
+    { char: "┼", color: colors.lime },
+    { char: "·", color: colors.black },
+  ],
   facing: {
-    up: [{ char: "─", color: colors.green }],
-    right: [{ char: "│", color: colors.green }],
-    down: [{ char: "─", color: colors.green }],
-    left: [{ char: "│", color: colors.green }],
+    up: [
+      { char: "┴", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "├", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "┬", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┤", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
   },
 };
 

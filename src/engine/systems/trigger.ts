@@ -39,6 +39,8 @@ import { EQUIPPABLE } from "../components/equippable";
 import { canShop, closeShop, getDeal, isShoppable, openShop } from "./shop";
 import { SHOPPABLE } from "../components/shoppable";
 import { addToInventory } from "./collect";
+import { getSpellStat } from "../../game/balancing/spells";
+import { PLAYER } from "../components/player";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -224,13 +226,16 @@ export const castSpell = (
   entity: TypedEntity<"BELONGABLE" | "POSITION">,
   item: TypedEntity<"ITEM">
 ) => {
+  // use overriden damage values for NPCs and mobs
+  const spellStats = {
+    ...getSpellStat(item[ITEM].primary!, item[ITEM].material as Element),
+    ...(entity[PLAYER] ? {} : { damage: item[ITEM].amount }),
+  };
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [CASTABLE]: {
       affected: {},
-      damage: item[ITEM].amount,
-      burn: 0,
-      freeze: 0,
+      ...spellStats,
       caster: world.getEntityId(entity),
     },
     [ORIENTABLE]: { facing: entity[ORIENTABLE]?.facing },
@@ -251,10 +256,10 @@ export const castSpell = (
         duration: 31,
         range: 12,
         areas: [],
-        amount: item[ITEM].amount,
+        amount: spellStats.damage,
         element: elements.includes(item[ITEM].material as Element)
           ? (item[ITEM].material as Element)
-          : undefined,
+          : "default",
       }
     );
   } else if (item[ITEM].primary === "wave1") {
@@ -269,10 +274,10 @@ export const castSpell = (
         range: 7,
         duration: 7,
         areas: [],
-        amount: item[ITEM].amount,
+        amount: spellStats.damage,
         element: elements.includes(item[ITEM].material as Element)
           ? (item[ITEM].material as Element)
-          : undefined,
+          : "default",
       }
     );
   }

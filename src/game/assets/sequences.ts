@@ -107,6 +107,18 @@ import {
   popupUpEnd,
   popupDownEnd,
   popupDownStart,
+  fireEdge,
+  waterEdge,
+  earthEdge,
+  fireBeam,
+  waterBeam,
+  earthBeam,
+  fireWave,
+  waterWave,
+  earthWave,
+  fireWaveCorner,
+  waterWaveCorner,
+  earthWaveCorner,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -239,6 +251,18 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
 };
 
 const beamSpeed = 100;
+const edgeSprites = {
+  default: edge,
+  fire: fireEdge,
+  water: waterEdge,
+  earth: earthEdge,
+};
+const beamSprites = {
+  default: beam,
+  fire: fireBeam,
+  water: waterBeam,
+  earth: earthBeam,
+};
 
 export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
@@ -260,7 +284,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         amount: state.args.amount,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: edge,
+      [SPRITE]: edgeSprites[state.args.element],
     });
     state.particles.start = world.getEntityId(startParticle);
 
@@ -275,7 +299,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         amount: state.args.amount,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: edge,
+      [SPRITE]: edgeSprites[state.args.element],
     });
     state.particles.end = world.getEntityId(endParticle);
   }
@@ -333,7 +357,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         animatedOrigin: copy(delta),
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: beam,
+      [SPRITE]: beamSprites[state.args.element],
     });
 
     state.particles[`beam-${progress}`] = world.getEntityId(beamParticle);
@@ -946,6 +970,18 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
 
 const waveSpeed = 350;
 const waveDissolve = 1;
+const waveSprites = {
+  default: wave,
+  fire: fireWave,
+  water: waterWave,
+  earth: earthWave,
+};
+const waveCornerSprites = {
+  default: waveCorner,
+  fire: fireWaveCorner,
+  water: waterWaveCorner,
+  earth: earthWaveCorner,
+};
 
 export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
@@ -969,7 +1005,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: wave,
+        [SPRITE]: waveSprites[state.args.element],
       });
       state.particles[`side-${orientation}`] = world.getEntityId(waveParticle);
     }
@@ -1151,9 +1187,10 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
         [SPRITE]
       );
 
-      if (waveParticle[SPRITE] === waveCorner) continue;
+      if (waveParticle[SPRITE] === waveCornerSprites[state.args.element])
+        continue;
 
-      waveParticle[SPRITE] = waveCorner;
+      waveParticle[SPRITE] = waveCornerSprites[state.args.element];
       rerenderEntity(world, waveParticle);
     }
 
@@ -1309,6 +1346,7 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
         damage: 0,
         burn: 2,
         freeze: 0,
+        heal: 0,
         caster: world.getEntityId(entity),
       },
       [ORIENTABLE]: {},

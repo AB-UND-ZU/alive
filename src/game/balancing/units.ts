@@ -620,12 +620,16 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [
       {
-        chance: 50,
-        items: [{ stackable: "resource", amount: 3, material: "iron" }],
+        chance: 33,
+        items: [{ stackable: "resource", amount: 1, material: "fire" }],
       },
       {
-        chance: 50,
-        items: [{ stackable: "resource", amount: 3, material: "wood" }],
+        chance: 33,
+        items: [{ stackable: "resource", amount: 1, material: "water" }],
+      },
+      {
+        chance: 33,
+        items: [{ stackable: "resource", amount: 1, material: "earth" }],
       },
     ],
     patternNames: ["fairy"],

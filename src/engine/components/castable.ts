@@ -7,6 +7,7 @@ export type Castable = {
   damage: number;
   burn: number;
   freeze: number;
+  heal: number;
 };
 
 export const CASTABLE = "CASTABLE";
