@@ -9,13 +9,13 @@ import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import Row from "../Row";
 import {
   arrow,
-  buttonColor,
   charge,
   createButton,
   createCountable,
   createText,
   ghost,
   none,
+  Palette,
   quest,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
@@ -93,13 +93,15 @@ type Action = {
   name: string;
   activation: [Sprite[], Sprite[]];
   disabled: boolean;
+  palette: Palette;
 };
 
 const useAction = (
   action: (typeof actions)[number],
   isDisabled: (world: World, hero: Entity, actionEntity: Entity) => boolean,
   getName: (actionEntity: Entity) => string,
-  getActivation: (world: World, actionEntity: Entity) => [Sprite[], Sprite[]]
+  getActivation: (world: World, actionEntity: Entity) => [Sprite[], Sprite[]],
+  palette: Palette = "white"
 ) => {
   const { ecs, paused } = useWorld();
   const heroEntity = useHero();
@@ -117,6 +119,7 @@ const useAction = (
       name,
       activation,
       disabled,
+      palette,
     };
   }, [
     paused,
@@ -126,6 +129,7 @@ const useAction = (
     heroEntity,
     getName,
     getActivation,
+    palette,
   ]);
 };
 
@@ -168,7 +172,8 @@ export default function Controls() {
     (_, questEntity) => [
       [none, questEntity ? quest : none, none],
       repeat(none, 3),
-    ]
+    ],
+    "lime"
   );
 
   const unlockAction = useAction(
@@ -187,7 +192,8 @@ export default function Controls() {
         none,
       ],
       repeat(none, 3),
-    ]
+    ],
+    "lime"
   );
 
   const shopAction = useAction(
@@ -195,7 +201,8 @@ export default function Controls() {
     (world, hero, shopEntity) =>
       hero[PLAYER].shopping || !isShoppable(world, shopEntity),
     () => "SHOP",
-    () => [repeat(none, 3), repeat(none, 3)]
+    () => [repeat(none, 3), repeat(none, 3)],
+    "lime"
   );
 
   const tradeAction = useAction(
@@ -203,10 +210,22 @@ export default function Controls() {
     (world, hero, tradeEntity) =>
       !canShop(world, hero, getDeal(world, tradeEntity)),
     () => "TRADE",
-    (world, tradeEntity) => [
-      getActivationRow(getDeal(world, tradeEntity).price[0]),
-      getActivationRow(getDeal(world, tradeEntity).price[1]),
-    ]
+    (world, tradeEntity) => {
+      const deal = getDeal(world, tradeEntity);
+      if (deal.price.length === 1) {
+        return [getActivationRow(deal.price[0]), repeat(none, 3)];
+      }
+      return [getActivationRow(deal.price[1]), getActivationRow(deal.price[0])];
+    },
+    "lime"
+  );
+
+  const closeAction = useAction(
+    "trade",
+    (world, hero, tradeEntity) => false,
+    () => "CLOSE",
+    () => [repeat(none, 3), repeat(none, 3)],
+    "red"
   );
 
   const primaryAction = useAction(
@@ -240,7 +259,7 @@ export default function Controls() {
   const selectedPrimary = availablePrimary.find((action) => action);
   primaryRef.current = selectedPrimary;
 
-  const availableSecondary = [secondaryAction];
+  const availableSecondary = [closeAction, secondaryAction];
   const selectedSecondary = availableSecondary.find((action) => action);
   secondaryRef.current = selectedSecondary;
 
@@ -263,7 +282,7 @@ export default function Controls() {
       setHighlight(8);
 
       highlightRef.current = setInterval(() => {
-        setHighlight((prevHighlight) => normalize(prevHighlight - 1, 14));
+        setHighlight((prevHighlight) => normalize(prevHighlight - 1, 12));
       }, 100);
     }
   }, [selectedPrimary, selectedSecondary]);
@@ -513,29 +532,30 @@ export default function Controls() {
 
   const emptyButton = [repeat(none, buttonWidth), repeat(none, buttonWidth)];
   const pressedPrimary =
-    primary &&
-    createButton(repeat(none, buttonWidth), buttonWidth, false, true);
+    primary && createButton("", buttonWidth, false, true, 0, primary.palette);
   const primaryButton =
     selectedPrimary &&
     createButton(
-      createText(selectedPrimary.name, buttonColor),
+      selectedPrimary.name,
       buttonWidth,
       selectedPrimary.disabled,
       false,
-      highlight
+      highlight,
+      selectedPrimary.palette
     );
   const leftButton = pressedPrimary || primaryButton || emptyButton;
   const pressedSecondary =
     secondary &&
-    createButton(repeat(none, buttonWidth), buttonWidth, false, true);
+    createButton("", buttonWidth, false, true, 0, secondary.palette);
   const secondaryButton =
     selectedSecondary &&
     createButton(
-      createText(selectedSecondary.name, buttonColor),
+      selectedSecondary.name,
       buttonWidth,
       selectedSecondary.disabled,
       false,
-      highlight
+      (highlight + 3) % 12,
+      selectedSecondary.palette
     );
   const rightButton = pressedSecondary || secondaryButton || emptyButton;
 
@@ -560,8 +580,8 @@ export default function Controls() {
   const itemRows = [0, 1, 2].map((row) => {
     return Array.from({ length: inventoryWidth }).map(
       (_, columnIndex) =>
-        (columnIndex < inventorySize / 2 &&
-          itemSprites[row * (inventorySize / 2) + columnIndex]) ||
+        (columnIndex < inventorySize / 3 &&
+          itemSprites[row * (inventorySize / 3) + columnIndex]) ||
         none
     );
   });

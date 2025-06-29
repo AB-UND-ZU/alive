@@ -7,9 +7,7 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
-  beamSpell,
   berry,
-  berryStack,
   block,
   blockDown,
   blockUp,
@@ -23,22 +21,16 @@ import {
   doorClosedWood,
   doorOpen,
   flower,
-  flowerStack,
   fog,
   ghost,
   goldKey,
   grass,
-  haste,
   heartUp,
-  hpFlask1,
-  iron,
   ironKey,
   ironMine,
-  ironSword,
   leaf,
   leaves,
   manaUp,
-  mpFlask1,
   none,
   oakBurnt,
   oreDrop,
@@ -53,16 +45,12 @@ import {
   shroom,
   stem,
   stick,
-  torch,
   tree1,
   tree2,
   treeBurnt1,
   treeBurnt2,
   wall,
   water,
-  waveSpell,
-  wood,
-  woodShield,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
@@ -173,6 +161,7 @@ import { ENVIRONMENT } from "../engine/components/environment";
 import { TEMPO } from "../engine/components/tempo";
 import { LAYER } from "../engine/components/layer";
 import { sellItems } from "../engine/systems/shop";
+import { Deal } from "../engine/components/shoppable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -438,11 +427,18 @@ export const generateWorld = async (world: World) => {
     chiefHouse.position.y + 2,
     "iron_door"
   );
+  const elderOffset = random(0, 1) * 2 - 1;
   setMatrix(
     worldMatrix,
-    elderHouse.position.x + random(0, 1) * 2 - 1,
-    elderHouse.position.y + 2,
-    "house_aid"
+    elderHouse.position.x + elderOffset,
+    elderHouse.position.y + 3,
+    "flower"
+  );
+  setMatrix(
+    worldMatrix,
+    elderHouse.position.x - elderOffset,
+    elderHouse.position.y + 3,
+    "berry"
   );
   setMatrix(
     worldMatrix,
@@ -469,18 +465,11 @@ export const generateWorld = async (world: World) => {
     traderHouse.position.y + 3,
     "rock"
   );
-  const druidOffset = random(0, 1) * 2 - 1;
   setMatrix(
     worldMatrix,
-    druidHouse.position.x + druidOffset,
-    druidHouse.position.y + 3,
-    "flower"
-  );
-  setMatrix(
-    worldMatrix,
-    druidHouse.position.x - druidOffset,
-    druidHouse.position.y + 3,
-    "berry"
+    druidHouse.position.x + random(0, 1) * 2 - 1,
+    druidHouse.position.y + 2,
+    "house_aid"
   );
   setMatrix(
     worldMatrix,
@@ -1896,40 +1885,6 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, elderEntity, elderUnit.items, elderUnit.equipments);
   world.setIdentifier(elderEntity, "elder");
-  const hpEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      consume: "potion1",
-      material: "fire",
-      amount: 10,
-      bound: false,
-    },
-    [SPRITE]: hpFlask1,
-    [RENDERABLE]: { generation: 0 },
-  });
-  const mpEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      consume: "potion1",
-      material: "water",
-      amount: 10,
-      bound: false,
-    },
-    [SPRITE]: mpFlask1,
-    [RENDERABLE]: { generation: 0 },
-  });
-  sellItems(world, elderEntity, [
-    {
-      item: hpEntity[ITEM],
-      stock: Infinity,
-      price: getItemPrice(hpEntity[ITEM]),
-    },
-    {
-      item: mpEntity[ITEM],
-      stock: Infinity,
-      price: getItemPrice(mpEntity[ITEM]),
-    },
-  ]);
 
   // 3. scout's house
   const scoutUnit = generateUnitData("scout");
@@ -1972,38 +1927,6 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, scoutEntity, scoutUnit.items, scoutUnit.equipments);
   world.setIdentifier(scoutEntity, "scout");
-  const hasteEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      stat: "haste",
-      amount: 1,
-      bound: false,
-    },
-    [SPRITE]: haste,
-    [RENDERABLE]: { generation: 0 },
-  });
-  const torchEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      equipment: "torch",
-      amount: 1,
-      bound: false,
-    },
-    [SPRITE]: torch,
-    [RENDERABLE]: { generation: 0 },
-  });
-  sellItems(world, scoutEntity, [
-    {
-      item: hasteEntity[ITEM],
-      stock: 1,
-      price: getItemPrice(hasteEntity[ITEM]),
-    },
-    {
-      item: torchEntity[ITEM],
-      stock: 1,
-      price: getItemPrice(torchEntity[ITEM]),
-    },
-  ]);
 
   // 4. smith's house
   const smithUnit = generateUnitData("smith");
@@ -2046,42 +1969,39 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, smithEntity, smithUnit.items, smithUnit.equipments);
   world.setIdentifier(smithEntity, "smith");
-  const shieldEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      equipment: "shield",
-      material: "wood",
-      amount: getGearStat("shield", "wood"),
-      bound: false,
-    },
-    [SPRITE]: woodShield,
-    [RENDERABLE]: { generation: 0 },
-  });
-  const swordEntity = entities.createSword(world, {
-    [ITEM]: {
-      carrier: -1,
-      equipment: "sword",
-      material: "iron",
-      amount: getGearStat("sword", "iron"),
-      bound: false,
-    },
-    [ORIENTABLE]: {},
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: ironSword,
-    [RENDERABLE]: { generation: 0 },
-  });
-  sellItems(world, smithEntity, [
-    {
-      item: swordEntity[ITEM],
-      stock: 1,
-      price: getItemPrice(swordEntity[ITEM]),
-    },
-    {
-      item: shieldEntity[ITEM],
-      stock: 1,
-      price: getItemPrice(shieldEntity[ITEM]),
-    },
-  ]);
+  const woodItem: Deal["item"] = {
+    stackable: "resource",
+    material: "wood",
+    amount: 1,
+  };
+  const ironItem: Deal["item"] = {
+    stackable: "resource",
+    material: "iron",
+    amount: 1,
+  };
+  const swordItem: Deal["item"] = {
+    equipment: "sword",
+    material: "iron",
+    amount: getGearStat("sword", "iron"),
+  };
+  const shieldItem: Deal["item"] = {
+    equipment: "shield",
+    material: "wood",
+    amount: getGearStat("shield", "wood"),
+  };
+  const torchItem: Deal["item"] = {
+    equipment: "torch",
+    amount: 1,
+  };
+  sellItems(
+    world,
+    smithEntity,
+    [woodItem, ironItem, swordItem, shieldItem, torchItem].map((item) => ({
+      item,
+      stock: item.stackable === "resource" ? Infinity : 1,
+      price: getItemPrice(item),
+    }))
+  );
 
   // 5. trader's house
   const traderUnit = generateUnitData("trader");
@@ -2129,40 +2049,35 @@ export const generateWorld = async (world: World) => {
     traderUnit.equipments
   );
   world.setIdentifier(traderEntity, "trader");
-  const woodEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      stackable: "resource",
-      material: "wood",
-      amount: 1,
-      bound: false,
-    },
-    [SPRITE]: wood,
-    [RENDERABLE]: { generation: 0 },
-  });
-  const ironEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      stackable: "resource",
-      material: "iron",
-      amount: 1,
-      bound: false,
-    },
-    [SPRITE]: iron,
-    [RENDERABLE]: { generation: 0 },
-  });
-  sellItems(world, traderEntity, [
-    {
-      item: woodEntity[ITEM],
-      stock: Infinity,
-      price: getItemPrice(woodEntity[ITEM]),
-    },
-    {
-      item: ironEntity[ITEM],
-      stock: Infinity,
-      price: getItemPrice(ironEntity[ITEM]),
-    },
-  ]);
+  const berryTrades: Deal["price"][] = [
+    [{ stackable: "apple", amount: 3 }],
+    [{ stackable: "gem", amount: 3 }],
+    [{ stackable: "coconut", amount: 3 }],
+  ];
+  const flowerTrades: Deal["price"][] = [
+    [{ stackable: "shroom", amount: 3 }],
+    [{ stackable: "crystal", amount: 3 }],
+    [{ stackable: "banana", amount: 3 }],
+  ];
+  sellItems(
+    world,
+    traderEntity,
+    [berryTrades, flowerTrades]
+      .map((trade) =>
+        trade.map(
+          (price) =>
+            ({
+              item: {
+                stackable: trade === berryTrades ? "berry" : "flower",
+                amount: 1,
+              },
+              stock: Infinity,
+              price,
+            } as Deal)
+        )
+      )
+      .flat()
+  );
 
   // 6. druid's house
   const druidUnit = generateUnitData("druid");
@@ -2205,38 +2120,61 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, druidEntity, druidUnit.items, druidUnit.equipments);
   world.setIdentifier(druidEntity, "druid");
-  const berryEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      stackable: "berry",
-      amount: 1,
-      bound: false,
-    },
-    [SPRITE]: berryStack,
-    [RENDERABLE]: { generation: 0 },
-  });
-  const flowerEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      stackable: "flower",
-      amount: 1,
-      bound: false,
-    },
-    [SPRITE]: flowerStack,
-    [RENDERABLE]: { generation: 0 },
-  });
-  sellItems(world, druidEntity, [
-    {
-      item: berryEntity[ITEM],
+  const healthItem: Deal["item"] = {
+    consume: "potion1",
+    material: "fire",
+    amount: 10,
+  };
+  const manaItem: Deal["item"] = {
+    consume: "potion1",
+    material: "water",
+    amount: 10,
+  };
+  const berryItem: Deal["item"] = {
+    stackable: "berry",
+    amount: 1,
+  };
+  const flowerItem: Deal["item"] = {
+    stackable: "flower",
+    amount: 1,
+  };
+  const seedItem: Deal["item"] = {
+    stackable: "seed",
+    amount: 1,
+  };
+  const fireEssenceItem: Deal["item"] = {
+    stackable: "resource",
+    material: "fire",
+    amount: 1,
+  };
+  const waterEssenceItem: Deal["item"] = {
+    stackable: "resource",
+    material: "water",
+    amount: 1,
+  };
+  const earthEssenceItem: Deal["item"] = {
+    stackable: "resource",
+    material: "earth",
+    amount: 1,
+  };
+  sellItems(
+    world,
+    druidEntity,
+    [
+      healthItem,
+      manaItem,
+      berryItem,
+      flowerItem,
+      seedItem,
+      fireEssenceItem,
+      waterEssenceItem,
+      earthEssenceItem,
+    ].map((item) => ({
+      item,
       stock: Infinity,
-      price: getItemPrice(berryEntity[ITEM]),
-    },
-    {
-      item: flowerEntity[ITEM],
-      stock: Infinity,
-      price: getItemPrice(flowerEntity[ITEM]),
-    },
-  ]);
+      price: getItemPrice(item),
+    }))
+  );
 
   // 7. mage's house
   const mageUnit = generateUnitData("mage");
@@ -2279,40 +2217,70 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, mageEntity, mageUnit.items, mageUnit.equipments);
   world.setIdentifier(mageEntity, "mage");
-  const waveEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      amount: 2,
-      equipment: "primary",
-      primary: "wave1",
-      bound: false,
-    },
-    [SPRITE]: waveSpell,
-    [RENDERABLE]: { generation: 0 },
-  });
-  const beamEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      amount: 5,
-      equipment: "primary",
-      primary: "beam1",
-      bound: false,
-    },
-    [SPRITE]: beamSpell,
-    [RENDERABLE]: { generation: 0 },
-  });
-  sellItems(world, mageEntity, [
-    {
-      item: waveEntity[ITEM],
+  const waveItem: Deal["item"] = {
+    amount: 2,
+    equipment: "primary",
+    primary: "wave1",
+  };
+  const fireWaveItem: Deal["item"] = {
+    amount: 2,
+    equipment: "primary",
+    primary: "wave1",
+    material: "fire",
+  };
+  const waterWaveItem: Deal["item"] = {
+    amount: 2,
+    equipment: "primary",
+    primary: "wave1",
+    material: "water",
+  };
+  const earthWaveItem: Deal["item"] = {
+    amount: 2,
+    equipment: "primary",
+    primary: "wave1",
+    material: "earth",
+  };
+  const beamItem: Deal["item"] = {
+    amount: 5,
+    equipment: "primary",
+    primary: "beam1",
+  };
+  const fireBeamItem: Deal["item"] = {
+    amount: 5,
+    equipment: "primary",
+    primary: "beam1",
+    material: "fire",
+  };
+  const waterBeamItem: Deal["item"] = {
+    amount: 5,
+    equipment: "primary",
+    primary: "beam1",
+    material: "water",
+  };
+  const earthBeamItem: Deal["item"] = {
+    amount: 5,
+    equipment: "primary",
+    primary: "beam1",
+    material: "earth",
+  };
+  sellItems(
+    world,
+    mageEntity,
+    [
+      waveItem,
+      fireWaveItem,
+      waterWaveItem,
+      earthWaveItem,
+      beamItem,
+      fireBeamItem,
+      waterBeamItem,
+      earthBeamItem,
+    ].map((item) => ({
+      item,
       stock: 1,
-      price: getItemPrice(waveEntity[ITEM]),
-    },
-    {
-      item: beamEntity[ITEM],
-      stock: 1,
-      price: getItemPrice(beamEntity[ITEM]),
-    },
-  ]);
+      price: getItemPrice(item),
+    }))
+  );
 
   // empty houses
   for (const emptyHouse of emptyHouses) {

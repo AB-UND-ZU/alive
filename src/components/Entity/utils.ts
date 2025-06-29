@@ -154,8 +154,8 @@ export const tooltipHeight = 8.5 * stackHeight;
 export const dialogHeight = 9 * stackHeight;
 export const focusHeight = 9.5 * stackHeight;
 export const particleHeight = 10 * stackHeight;
-export const popupHeight = 10.3 * stackHeight;
-export const selectionHeight = 10.5 * stackHeight;
+export const popupHeight = 10.1 * stackHeight;
+export const selectionHeight = 10.3 * stackHeight;
 export const cameraHeight = 11 * stackHeight;
 
 export const getFacingLayers = (

@@ -146,9 +146,33 @@ export const itemPrices: Partial<
   // spells
   wave1: {
     default: [{ stat: "coin", amount: 10 }],
+    fire: [
+      { equipment: "primary", primary: "wave1", amount: 1 },
+      { stackable: "resource", material: "fire", amount: 1 },
+    ],
+    water: [
+      { equipment: "primary", primary: "wave1", amount: 1 },
+      { stackable: "resource", material: "water", amount: 1 },
+    ],
+    earth: [
+      { equipment: "primary", primary: "wave1", amount: 1 },
+      { stackable: "resource", material: "earth", amount: 1 },
+    ],
   },
   beam1: {
     default: [{ stat: "coin", amount: 10 }],
+    fire: [
+      { equipment: "primary", primary: "beam1", amount: 1 },
+      { stackable: "resource", material: "fire", amount: 1 },
+    ],
+    water: [
+      { equipment: "primary", primary: "beam1", amount: 1 },
+      { stackable: "resource", material: "water", amount: 1 },
+    ],
+    earth: [
+      { equipment: "primary", primary: "beam1", amount: 1 },
+      { stackable: "resource", material: "earth", amount: 1 },
+    ],
   },
 
   // tools
@@ -166,22 +190,22 @@ export const itemPrices: Partial<
   },
   potion1: {
     fire: [
-      { stackable: "apple", amount: 3 },
+      { stackable: "berry", amount: 1 },
       { stat: "leaf", amount: 3 },
     ],
     water: [
-      { stackable: "shroom", amount: 3 },
+      { stackable: "flower", amount: 1 },
       { stat: "leaf", amount: 3 },
     ],
   },
   potion2: {
     fire: [
-      { stackable: "apple", amount: 10 },
-      { stackable: "resource", material: "wood", amount: 1 },
+      { stackable: "berry", amount: 3 },
+      { stackable: "seed", amount: 1 },
     ],
     water: [
-      { stackable: "shroom", amount: 10 },
-      { stackable: "resource", material: "wood", amount: 1 },
+      { stackable: "flower", amount: 3 },
+      { stackable: "seed", amount: 1 },
     ],
   },
 
@@ -201,6 +225,12 @@ export const itemPrices: Partial<
   flower: {
     default: [
       { stat: "flower", amount: 10 },
+      { stat: "coin", amount: 1 },
+    ],
+  },
+  seed: {
+    default: [
+      { stat: "leaf", amount: 10 },
       { stat: "coin", amount: 1 },
     ],
   },
@@ -226,6 +256,18 @@ export const itemPrices: Partial<
     ruby: [
       { stackable: "resource", material: "diamond", amount: 10 },
       { stat: "coin", amount: 20 },
+    ],
+    fire: [
+      { stackable: "berry", amount: 5 },
+      { stackable: "resource", material: "wood", amount: 1 },
+    ],
+    water: [
+      { stackable: "flower", amount: 5 },
+      { stackable: "resource", material: "wood", amount: 1 },
+    ],
+    earth: [
+      { stackable: "seed", amount: 5 },
+      { stackable: "resource", material: "wood", amount: 1 },
     ],
   },
 

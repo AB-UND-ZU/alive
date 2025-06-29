@@ -644,104 +644,124 @@ export const createTooltip = (text: string) => [
   tooltipEnd,
 ];
 
-export const buttonColor = colors.black;
-export const buttonBackground = colors.white;
-export const buttonShadow = colors.grey;
+export const buttonPalettes = {
+  white: { background: colors.white, text: colors.black, shadow: colors.grey },
+  lime: { background: colors.lime, text: colors.black, shadow: colors.green },
+  red: { background: colors.red, text: colors.black, shadow: colors.maroon },
+} as const;
+export type Palette = keyof typeof buttonPalettes;
 
-export const button: Sprite = {
+export const getButton = (palette: Palette): Sprite => ({
   name: "button_empty",
-  layers: [{ char: "█", color: buttonBackground }],
-};
+  layers: [{ char: "█", color: buttonPalettes[palette].background }],
+});
 
-export const buttonDisabled: Sprite = {
+export const getButtonDisabled = (palette: Palette): Sprite => ({
   name: "button_disabled",
   layers: [
-    { char: "█", color: buttonShadow },
-    { char: "░", color: colors.black },
+    { char: "█", color: buttonPalettes[palette].shadow },
+    { char: "░", color: buttonPalettes[palette].text },
   ],
-};
+});
 
-export const buttonLeftUp: Sprite = {
+export const getButtonLeftUp = (palette: Palette): Sprite => ({
   name: "button_left_up",
   layers: [
-    { char: "▄", color: buttonBackground },
-    { char: "░", color: colors.black },
-    { char: "▌", color: colors.black },
-    { char: "┌", color: buttonShadow },
+    { char: "▄", color: buttonPalettes[palette].background },
+    { char: "░", color: buttonPalettes[palette].text },
+    { char: "▌", color: buttonPalettes[palette].text },
+    { char: "┌", color: buttonPalettes[palette].shadow },
   ],
-};
+});
 
-export const buttonUp: Sprite = {
+export const getButtonUp = (palette: Palette): Sprite => ({
   name: "button_up",
   layers: [
-    { char: "▄", color: buttonBackground },
-    { char: "░", color: colors.black },
-    { char: "─", color: buttonShadow },
+    { char: "▄", color: buttonPalettes[palette].background },
+    { char: "░", color: buttonPalettes[palette].text },
+    { char: "─", color: buttonPalettes[palette].shadow },
   ],
-};
+});
 
-export const buttonUpRight: Sprite = {
+export const getButtonUpRight = (palette: Palette): Sprite => ({
   name: "button_up_right",
   layers: [
-    { char: "▄", color: buttonBackground },
-    { char: "░", color: colors.black },
-    { char: "▐", color: colors.black },
-    { char: "┐", color: buttonShadow },
+    { char: "▄", color: buttonPalettes[palette].background },
+    { char: "░", color: buttonPalettes[palette].text },
+    { char: "▐", color: buttonPalettes[palette].text },
+    { char: "┐", color: buttonPalettes[palette].shadow },
   ],
-};
+});
 
-export const buttonRightDown: Sprite = {
+export const getButtonRightDown = (palette: Palette): Sprite => ({
   name: "button_right_down",
   layers: [
-    { char: "▀", color: buttonBackground },
-    { char: "░", color: colors.black },
-    { char: "▐", color: colors.black },
-    { char: "┘", color: buttonShadow },
+    { char: "▀", color: buttonPalettes[palette].background },
+    { char: "░", color: buttonPalettes[palette].text },
+    { char: "▐", color: buttonPalettes[palette].text },
+    { char: "┘", color: buttonPalettes[palette].shadow },
   ],
-};
+});
 
-export const buttonDown: Sprite = {
+export const getButtonDown = (palette: Palette): Sprite => ({
   name: "button_down",
   layers: [
-    { char: "▀", color: buttonBackground },
-    { char: "░", color: colors.black },
-    { char: "─", color: buttonShadow },
+    { char: "▀", color: buttonPalettes[palette].background },
+    { char: "░", color: buttonPalettes[palette].text },
+    { char: "─", color: buttonPalettes[palette].shadow },
   ],
-};
+});
 
-export const buttonDownLeft: Sprite = {
+export const getButtonDownLeft = (palette: Palette): Sprite => ({
   name: "button_down_left",
   layers: [
-    { char: "▀", color: buttonBackground },
-    { char: "░", color: colors.black },
-    { char: "▌", color: colors.black },
-    { char: "└", color: buttonShadow },
+    { char: "▀", color: buttonPalettes[palette].background },
+    { char: "░", color: buttonPalettes[palette].text },
+    { char: "▌", color: buttonPalettes[palette].text },
+    { char: "└", color: buttonPalettes[palette].shadow },
   ],
-};
+});
 
 export const createButton: (
-  sprites: Sprite[],
+  text: string,
   width: number,
   disabled?: boolean,
   pressed?: boolean,
-  highlight?: number
+  highlight?: number,
+  palette?: Palette,
+  textColor?: string,
+  disabledColor?: string
 ) => [Sprite[], Sprite[]] = (
-  sprites,
+  text,
   width,
   disabled = false,
   pressed = false,
-  highlight
+  highlight,
+  palette = "white"
 ) => {
-  const paddingLeft = Math.max(0, Math.floor((width - sprites.length - 1) / 2));
-  const paddingRight = Math.max(0, Math.ceil((width - sprites.length - 1) / 2));
+  const paddingLeft = Math.max(0, Math.floor((width - text.length - 1) / 2));
+  const paddingRight = Math.max(0, Math.ceil((width - text.length - 1) / 2));
   const activeHighlight = !disabled && highlight;
+  const { text: textColor, shadow } = buttonPalettes[palette];
 
   if (pressed) {
     return [
-      [buttonLeftUp, ...repeat(buttonUp, width - 2), buttonUpRight],
-      [buttonDownLeft, ...repeat(buttonDown, width - 2), buttonRightDown],
+      [
+        getButtonLeftUp(palette),
+        ...repeat(getButtonUp(palette), width - 2),
+        getButtonUpRight(palette),
+      ],
+      [
+        getButtonDownLeft(palette),
+        ...repeat(getButtonDown(palette), width - 2),
+        getButtonRightDown(palette),
+      ],
     ];
   }
+
+  const sprites = createText(text, textColor);
+  const button = getButton(palette);
+  const buttonDisabled = getButtonDisabled(palette);
 
   return [
     [
@@ -754,14 +774,14 @@ export const createButton: (
         ],
       })),
       ...repeat(disabled ? buttonDisabled : button, paddingRight),
-      ...createText(activeHighlight === 6 ? " " : "┐", buttonShadow),
+      ...createText(activeHighlight === 6 ? " " : "┐", shadow),
     ],
     createText(
       `└${"─".repeat(width - 2)}┘`
         .split("")
         .map((char, index) => (index === activeHighlight ? " " : char))
         .join(""),
-      buttonShadow
+      shadow
     ),
   ];
 };

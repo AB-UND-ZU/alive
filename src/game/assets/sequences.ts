@@ -667,7 +667,7 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-const contentDelay = 15;
+const contentDelay = 10;
 const popupDelay = 75;
 const popupTime = frameHeight * popupDelay;
 

@@ -53,7 +53,9 @@ export const canShop = (world: World, heroEntity: Entity, deal: Deal) =>
         const matchesEquipment =
           activationItem.equipment &&
           itemEntity[ITEM].equipment === activationItem.equipment &&
-          itemEntity[ITEM].material === activationItem.material;
+          itemEntity[ITEM].material === activationItem.material &&
+          itemEntity[ITEM].primary === activationItem.primary &&
+          itemEntity[ITEM].secondary === activationItem.secondary;
         const matchesConsume =
           activationItem.consume &&
           itemEntity[ITEM].consume === activationItem.consume &&
@@ -175,11 +177,8 @@ export default function setupShop(world: World) {
     heroEntity[MOVABLE].pendingOrientation = undefined;
     heroEntity[MOVABLE].lastInteraction = generation;
 
-    // close shop when moving to sides
-    if (targetOrientation !== "up" && targetOrientation !== "down") {
-      closeShop(world, heroEntity, shoppingEntity);
-      return;
-    }
+    // ignore when moving to sides
+    if (targetOrientation !== "up" && targetOrientation !== "down") return;
 
     // move selected index
     const currentIndex = shoppingEntity[SHOPPABLE].selectedIndex;

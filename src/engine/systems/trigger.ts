@@ -36,7 +36,7 @@ import { CASTABLE } from "../components/castable";
 import { isEnemy } from "./damage";
 import { canCast } from "./magic";
 import { EQUIPPABLE } from "../components/equippable";
-import { canShop, getDeal, isShoppable, openShop } from "./shop";
+import { canShop, closeShop, getDeal, isShoppable, openShop } from "./shop";
 import { SHOPPABLE } from "../components/shoppable";
 import { addToInventory } from "./collect";
 
@@ -148,7 +148,9 @@ export const performTrade = (
         const matchesEquipment =
           activationItem.equipment &&
           itemEntity[ITEM].equipment === activationItem.equipment &&
-          itemEntity[ITEM].material === activationItem.material;
+          itemEntity[ITEM].material === activationItem.material &&
+          itemEntity[ITEM].primary === activationItem.primary &&
+          itemEntity[ITEM].secondary === activationItem.secondary;
         const matchesConsume =
           activationItem.consume &&
           itemEntity[ITEM].consume === activationItem.consume &&
@@ -169,10 +171,10 @@ export const performTrade = (
           tradedEntity[ITEM].amount > activationItem.amount
         ) {
           tradedEntity[ITEM].amount -= activationItem.amount;
-        } else if (tradedEntity[ITEM].equipment) {
-          entity[EQUIPPABLE][tradedEntity[ITEM].equipment] = undefined;
-          disposeEntity(world, tradedEntity);
         } else {
+          if (tradedEntity[ITEM].equipment) {
+            entity[EQUIPPABLE][tradedEntity[ITEM].equipment] = undefined;
+          }
           removeFromInventory(world, entity, tradedEntity);
           disposeEntity(world, tradedEntity);
         }
@@ -369,6 +371,8 @@ export default function setupTrigger(world: World) {
 
         if (secondaryEntity && secondaryEntity[ITEM].secondary === "bow") {
           shootArrow(world, entity, secondaryEntity);
+        } else if (tradeEntity) {
+          closeShop(world, entity, tradeEntity);
         }
       }
     }
