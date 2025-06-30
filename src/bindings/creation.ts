@@ -69,7 +69,7 @@ export const populateInventory = (
 export const assignBuilding = (
   world: World,
   position: Point,
-  priority: number = 10
+  priority: number = 50
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 

@@ -2384,11 +2384,10 @@ export const generateWorld = async (world: World) => {
   });
 
   // assign buildings
-  const buildings = [...houses, nomadHouse];
+  const buildings = [...houses, guideHouse, nomadHouse];
   buildings.forEach((building) => {
     assignBuilding(world, building.position);
   });
-  assignBuilding(world, guideHouse.position);
 
   // start ordered systems
   world.addSystem(systems.setupMap);
