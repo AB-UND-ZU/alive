@@ -9,7 +9,12 @@ import { CASTABLE } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
 import { AFFECTABLE } from "../components/affectable";
-import { calculateDamage, createAmountMarker, isFriendlyFire } from "./damage";
+import {
+  calculateDamage,
+  calculateHealing,
+  createAmountMarker,
+  isFriendlyFire,
+} from "./damage";
 import { STATS } from "../components/stats";
 import { rerenderEntity } from "./renderer";
 import { relativeOrientations } from "../../game/math/path";
@@ -102,42 +107,56 @@ export default function setupMagic(world: World) {
           castableEntity[CASTABLE].affected[affectableId];
 
         if (
-          isFriendlyFire(world, castableEntity, affectableEntity) ||
+          (isFriendlyFire(world, castableEntity, affectableEntity) &&
+            !castableEntity[CASTABLE].heal) ||
           (affectedGeneration &&
             (!isEternalFire || affectedGeneration === worldGeneration))
         )
           continue;
 
+        if (isFriendlyFire(world, castableEntity, affectableEntity)) {
+          // process healing
+          if (castableEntity[CASTABLE].heal && affectableEntity[STATS]) {
+            const { healing, hp } = calculateHealing(
+              affectableEntity[STATS],
+              castableEntity[CASTABLE].heal
+            );
+            affectableEntity[STATS].hp = hp;
+
+            createAmountMarker(world, affectableEntity, healing, "up");
+          }
+        } else {
+          // inflict direct damage
+          if (castableEntity[CASTABLE].damage) {
+            const { damage, hp } = calculateDamage(
+              "magic",
+              castableEntity[CASTABLE].damage,
+              0,
+              {},
+              affectableEntity[STATS]
+            );
+            affectableEntity[STATS].hp = hp;
+
+            const orientation = relativeOrientations(
+              world,
+              castableEntity[POSITION],
+              affectableEntity[POSITION]
+            )[0];
+
+            // add hit marker
+            createAmountMarker(world, affectableEntity, -damage, orientation);
+          }
+
+          // set affected unit on fire
+          const targetBurn = castableEntity[CASTABLE].burn;
+          const curentBurn = affectableEntity[AFFECTABLE].burn;
+          if (targetBurn > curentBurn) {
+            affectableEntity[AFFECTABLE].burn = targetBurn;
+          }
+        }
+
         // set affected generation
         castableEntity[CASTABLE].affected[affectableId] = worldGeneration;
-
-        // inflict direct damage
-        if (castableEntity[CASTABLE].damage) {
-          const { damage, hp } = calculateDamage(
-            "magic",
-            castableEntity[CASTABLE].damage,
-            0,
-            {},
-            affectableEntity[STATS]
-          );
-          affectableEntity[STATS].hp = hp;
-
-          const orientation = relativeOrientations(
-            world,
-            castableEntity[POSITION],
-            affectableEntity[POSITION]
-          )[0];
-
-          // add hit marker
-          createAmountMarker(world, affectableEntity, -damage, orientation);
-        }
-
-        // set affected unit on fire
-        const targetBurn = castableEntity[CASTABLE].burn;
-        const curentBurn = affectableEntity[AFFECTABLE].burn;
-        if (targetBurn > curentBurn) {
-          affectableEntity[AFFECTABLE].burn = targetBurn;
-        }
 
         rerenderEntity(world, affectableEntity);
       }

@@ -92,6 +92,12 @@ export const calculateDamage = (
   return { damage: visibleDamage, hp };
 };
 
+export const calculateHealing = (targetStats: Stats, amount: number) => {
+  const hp = Math.min(targetStats.maxHp, targetStats.hp + amount);
+  const visibleHealing = Math.ceil(hp - targetStats.hp);
+  return { hp, healing: visibleHealing };
+};
+
 export const createAmountMarker = (
   world: World,
   entity: Entity,

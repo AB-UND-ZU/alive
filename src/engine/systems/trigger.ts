@@ -244,6 +244,7 @@ export const castSpell = (
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
   });
+  const amount = spellStats.damage || spellStats.heal;
 
   if (item[ITEM].primary === "beam1") {
     createSequence<"spell", SpellSequence>(
@@ -256,7 +257,7 @@ export const castSpell = (
         duration: 31,
         range: 12,
         areas: [],
-        amount: spellStats.damage,
+        amount,
         element: elements.includes(item[ITEM].material as Element)
           ? (item[ITEM].material as Element)
           : "default",
@@ -274,7 +275,7 @@ export const castSpell = (
         range: 7,
         duration: 7,
         areas: [],
-        amount: spellStats.damage,
+        amount,
         element: elements.includes(item[ITEM].material as Element)
           ? (item[ITEM].material as Element)
           : "default",
