@@ -337,9 +337,9 @@ export const generateWorld = async (world: World) => {
     else if (green > 30 && elevation > 14)
       cell = spawn > 93 ? "fruit" : spawn > 80 ? "wood" : "hedge";
     else if (green > 20 && elevation > 11)
-      cell = spawn > 96 ? "leaf" : spawn > 91 ? "berry" : "bush";
+      cell = spawn > 96 ? "leaf" : spawn > 87 ? "berry" : "bush";
     else if (green > 10 && elevation > 8)
-      cell = spawn > 97 ? "leaf" : spawn > 92 ? "flower" : "grass";
+      cell = spawn > 97 ? "leaf" : spawn > 88 ? "flower" : "grass";
     // spawn
     else if (spawn < -96) cell = "mob";
 
@@ -1017,7 +1017,7 @@ export const generateWorld = async (world: World) => {
       createItemAsDrop(world, { x, y }, entities.createItem, {
         [ITEM]: {
           stat: "leaf",
-          amount: 1,
+          amount: distribution(80, 15, 5) + 1,
           bound: false,
         },
         [SPRITE]: leaf,
