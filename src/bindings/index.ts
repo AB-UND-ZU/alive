@@ -26,6 +26,7 @@ import {
   goldKey,
   grass,
   heartUp,
+  ice,
   ironKey,
   ironMine,
   leaf,
@@ -162,6 +163,7 @@ import { TEMPO } from "../engine/components/tempo";
 import { LAYER } from "../engine/components/layer";
 import { sellItems } from "../engine/systems/shop";
 import { Deal } from "../engine/components/shoppable";
+import { FREEZABLE } from "../engine/components/freezable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -695,6 +697,7 @@ export const generateWorld = async (world: World) => {
     } else if (cell === "water" || cell === "spring") {
       entities.createWater(world, {
         [FOG]: { visibility, type: "terrain" },
+        [FREEZABLE]: { frozen: false, sprite: ice },
         [IMMERSIBLE]: {},
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
@@ -2392,6 +2395,7 @@ export const generateWorld = async (world: World) => {
   // start ordered systems
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupTick);
+  world.addSystem(systems.setupFreeze);
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupTrigger);
   world.addSystem(systems.setupShop);

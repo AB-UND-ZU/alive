@@ -11,32 +11,33 @@ import {
   Orientation,
   orientationPoints,
 } from "../components/orientable";
-import { isDead } from "./damage";
 import { rerenderEntity } from "./renderer";
 import { PUSHABLE } from "../components/pushable";
 import { DISPLACABLE } from "../components/displacable";
 import { relativeOrientations } from "../../game/math/path";
+import { isControllable } from "./freeze";
 
 export const isDisplacable = (world: World, entity: Entity) =>
-  DISPLACABLE in entity;
+  DISPLACABLE in entity && isControllable(world, entity);
 
 export const getDisplacable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
     isDisplacable(world, entity)
   ) as Entity | undefined;
 
-export const pushEntity = (world: World, entity: Entity, target: Entity) => {
-  const orientation = relativeOrientations(
-    world,
-    entity[POSITION],
-    target[POSITION]
-  )[0];
-  const targetReference = world.assertByIdAndComponents(target[MOVABLE].reference, [REFERENCE]);
+export const pushEntity = (
+  world: World,
+  entity: Entity,
+  orientation: Orientation
+) => {
+  const targetReference = world.assertByIdAndComponents(
+    entity[MOVABLE].reference,
+    [REFERENCE]
+  );
 
   if (!orientation || !isProcessable(targetReference[REFERENCE])) return;
-  
 
-  target[MOVABLE].orientations = [orientation];
+  entity[MOVABLE].orientations = [orientation];
   targetReference[REFERENCE].delta = 0;
   targetReference[REFERENCE].suspended = false;
   targetReference[REFERENCE].suspensionCounter = 0;
@@ -56,7 +57,7 @@ export default function setupPush(world: World) {
 
     referenceGenerations = generation;
 
-    // handle player running into spikes
+    // handle player pushing displacable entities
     for (const entity of world.getEntities([
       POSITION,
       MOVABLE,
@@ -77,11 +78,13 @@ export default function setupPush(world: World) {
       // skip if entity already interacted
       if (entity[MOVABLE].lastInteraction === entityReference) continue;
 
-      // skip if dead
-      if (isDead(world, entity)) continue;
+      // skip if unable to interact
+      if (!isControllable(world, entity)) continue;
 
       const targetOrientation: Orientation | null =
-        entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];
+        entity[MOVABLE].momentum ||
+        entity[MOVABLE].pendingOrientation ||
+        entity[MOVABLE].orientations[0];
 
       if (!targetOrientation) continue;
 
@@ -91,7 +94,19 @@ export default function setupPush(world: World) {
 
       if (!targetEntity) continue;
 
-      pushEntity(world, entity, targetEntity);
+      const orientation = relativeOrientations(
+        world,
+        entity[POSITION],
+        targetEntity[POSITION]
+      )[0];
+      pushEntity(world, targetEntity, orientation);
+    }
+
+    // handle sliding boxes
+    for (const entity of world.getEntities([POSITION, MOVABLE, DISPLACABLE])) {
+      if (!entity[MOVABLE].momentum) continue;
+
+      pushEntity(world, entity, entity[MOVABLE].momentum);
     }
   };
 

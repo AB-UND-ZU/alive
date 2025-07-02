@@ -36,6 +36,9 @@ export type BurnSequence = {
   castable?: number;
   exertable?: number;
 };
+export type FreezeSequence = {
+  total: number;
+};
 export type SmokeSequence = { generation: number; extinguish: number };
 export type DisposeSequence = EmptyObject;
 export type ReviveSequence = {
@@ -126,6 +129,7 @@ export type Sequencable = {
     message?: SequenceState<MessageSequence>;
     decay?: SequenceState<DecaySequence>;
     burn?: SequenceState<BurnSequence>;
+    freeze?: SequenceState<FreezeSequence>;
     smoke?: SequenceState<SmokeSequence>;
     dispose?: SequenceState<DisposeSequence>;
     revive?: SequenceState<ReviveSequence>;

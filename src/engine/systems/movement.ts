@@ -24,6 +24,7 @@ import { ENVIRONMENT } from "../components/environment";
 import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { STATS } from "../components/stats";
+import { freezeMomentum, isFrozen } from "./freeze";
 
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
@@ -106,10 +107,11 @@ export default function setupMovement(world: World) {
 
     for (const entity of world.getEntities([POSITION, MOVABLE, RENDERABLE])) {
       const entityId = world.getEntityId(entity);
-      const entityReference = world.assertByIdAndComponents(
+      const movableReference = world.assertByIdAndComponents(
         entity[MOVABLE].reference,
-        [RENDERABLE]
-      )[RENDERABLE].generation;
+        [REFERENCE, RENDERABLE]
+      );
+      const entityReference = movableReference[RENDERABLE].generation;
 
       // skip if reference frame is unchanged
       if (entityReferences[entityId] === entityReference) continue;
@@ -119,8 +121,8 @@ export default function setupMovement(world: World) {
       const pendingOrientation = entity[MOVABLE].pendingOrientation;
       entity[MOVABLE].pendingOrientation = undefined;
 
-      // skip if dead
-      if (isDead(world, entity)) continue;
+      // skip if dead or frozen
+      if (isDead(world, entity) || isFrozen(world, entity)) continue;
 
       const attemptedOrientations: Orientation[] = [
         ...entity[MOVABLE].orientations,
@@ -128,6 +130,10 @@ export default function setupMovement(world: World) {
 
       if (pendingOrientation) {
         attemptedOrientations.unshift(pendingOrientation);
+      }
+
+      if (entity[MOVABLE].momentum) {
+        attemptedOrientations.unshift(entity[MOVABLE].momentum);
       }
 
       // skip if no attempted movement
@@ -164,6 +170,9 @@ export default function setupMovement(world: World) {
           // set facing to actual movement
           if (entity[ORIENTABLE] && !entity[MOVABLE].flying)
             entity[ORIENTABLE].facing = orientation;
+
+          // preserve momentum before suspending frame
+          freezeMomentum(world, entity, orientation);
 
           rerenderEntity(world, entity);
           break;

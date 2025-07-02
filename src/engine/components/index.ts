@@ -16,6 +16,7 @@ export { default as addExertable } from "./exertable";
 export { default as addFocusable } from "./focusable";
 export { default as addFog } from "./fog";
 export { default as addFragment } from "./fragment";
+export { default as addFreezable } from "./freezable";
 export { default as addIdentifiable } from "./identifiable";
 export { default as addImmersible } from "./immersible";
 export { default as addInventory } from "./inventory";

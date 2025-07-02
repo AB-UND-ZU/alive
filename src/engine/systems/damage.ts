@@ -28,6 +28,7 @@ import { Stats, STATS } from "../components/stats";
 import * as colors from "../../game/assets/colors";
 import { createText } from "../../game/assets/sprites";
 import { PLAYER } from "../components/player";
+import { isControllable } from "./freeze";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -175,8 +176,8 @@ export default function setupDamage(world: World) {
       )
         continue;
 
-      // skip if dead
-      if (isDead(world, entity)) continue;
+      // skip if not able to attack
+      if (!isControllable(world, entity)) continue;
 
       const targetOrientation: Orientation | null =
         entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];

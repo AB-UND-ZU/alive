@@ -54,6 +54,7 @@ import { Environment, ENVIRONMENT } from "./components/environment";
 import { Tempo, TEMPO } from "./components/tempo";
 import { Layer, LAYER } from "./components/layer";
 import { Shoppable, SHOPPABLE } from "./components/shoppable";
+import { Freezable, FREEZABLE } from "./components/freezable";
 
 export type Entity = {
   [ACTIONABLE]: Actionable;
@@ -74,6 +75,7 @@ export type Entity = {
   [FOCUSABLE]: Focusable;
   [FOG]: Fog;
   [FRAGMENT]: Fragment;
+  [FREEZABLE]: Freezable;
   [IDENTIFIABLE]: Identifiable;
   [IMMERSIBLE]: Immersible;
   [INVENTORY]: Inventory;
@@ -629,6 +631,7 @@ export const createWall = entityFactory([
 
 export const createWater = entityFactory([
   FOG,
+  FREEZABLE,
   IMMERSIBLE,
   POSITION,
   RENDERABLE,

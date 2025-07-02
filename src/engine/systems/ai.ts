@@ -53,6 +53,7 @@ import { EXERTABLE } from "../components/exertable";
 import { CASTABLE } from "../components/castable";
 import { BURNABLE } from "../components/burnable";
 import { sellItems } from "./shop";
+import { isControllable } from "./freeze";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -78,8 +79,13 @@ export default function setupAi(world: World) {
         entity[MOVABLE].orientations = [];
       }
 
-      // skip if dead or no patterns
-      if (isDead(world, entity) || patterns.length === 0) continue;
+      // skip if dead, no patterns or frozen
+      if (
+        isDead(world, entity) ||
+        patterns.length === 0 ||
+        !isControllable(world, entity)
+      )
+        continue;
 
       for (const pattern of [...patterns]) {
         if (pattern.name === "wait") {

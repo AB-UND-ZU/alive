@@ -15,6 +15,7 @@ import { SPIKABLE } from "../components/spikable";
 import { ATTACKABLE } from "../components/attackable";
 import { MELEE } from "../components/melee";
 import { relativeOrientations } from "../../game/math/path";
+import { isControllable } from "./freeze";
 
 export const isSpikable = (world: World, entity: Entity) =>
   SPIKABLE in entity && !isDead(world, entity);
@@ -82,8 +83,8 @@ export default function setupSpike(world: World) {
       // skip if entity already interacted
       if (entity[MOVABLE].lastInteraction === entityReference) continue;
 
-      // skip if dead or flying
-      if (isDead(world, entity) || entity[MOVABLE].flying) continue;
+      // skip if not controllable or flying
+      if (!isControllable(world, entity) || entity[MOVABLE].flying) continue;
 
       const targetOrientation: Orientation | null =
         entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];

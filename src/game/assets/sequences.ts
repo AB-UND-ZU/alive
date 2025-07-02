@@ -119,6 +119,7 @@ import {
   fireWaveCorner,
   waterWaveCorner,
   earthWaveCorner,
+  freeze,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -130,6 +131,7 @@ import {
   DialogSequence,
   DisposeSequence,
   FocusSequence,
+  FreezeSequence,
   MarkerSequence,
   MeleeSequence,
   MessageSequence,
@@ -1442,6 +1444,64 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
           entity[AFFECTABLE].burn -= 1;
         }
       }
+    }
+  }
+
+  return { finished, updated };
+};
+
+export const unitFreeze: Sequence<FreezeSequence> = (world, entity, state) => {
+  const freezeTick = world.metadata.gameEntity[REFERENCE].tick;
+  const freezeGeneration = Math.floor(state.elapsed / freezeTick);
+  const freezeFactor = Math.ceil(
+    lerp(state.args.total, 0, freezeGeneration / state.args.total)
+  );
+  const particleAmount = Math.round(
+    lerp(3, 1, freezeGeneration / (state.args.total - 1))
+  );
+
+  // reduce freeze counter
+  if (entity[AFFECTABLE].freeze > freezeFactor) {
+    entity[AFFECTABLE].freeze = freezeFactor;
+  }
+  const isFrozen = entity[AFFECTABLE].freeze > 0;
+
+  let updated = false;
+  let finished = !isFrozen;
+
+  if (isFrozen && !state.particles.freeze) {
+    // create freeze particle
+    const freezeParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: particleAmount,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: freeze,
+    });
+    state.particles.freeze = world.getEntityId(freezeParticle);
+
+    updated = true;
+  } else if (!isFrozen && state.particles.freeze) {
+    // remove frozen particle
+    disposeEntity(world, world.assertById(state.particles.freeze));
+    delete state.particles.freeze;
+    updated = true;
+  }
+
+  // update particle amount
+  if (isFrozen) {
+    const freezeParticle = world.assertByIdAndComponents(
+      state.particles.freeze,
+      [PARTICLE]
+    );
+    const amount = freezeParticle[PARTICLE].amount;
+
+    if (amount !== particleAmount) {
+      freezeParticle[PARTICLE].amount = particleAmount;
+      updated = true;
     }
   }
 

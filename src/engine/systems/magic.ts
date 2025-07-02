@@ -13,6 +13,7 @@ import {
   calculateDamage,
   calculateHealing,
   createAmountMarker,
+  isDead,
   isFriendlyFire,
 } from "./damage";
 import { STATS } from "../components/stats";
@@ -21,6 +22,7 @@ import { relativeOrientations } from "../../game/math/path";
 import { BURNABLE } from "../components/burnable";
 import { PLAYER } from "../components/player";
 import { getBurnables } from "./burn";
+import { freezeTerrain, getFreezables, isFrozen } from "./freeze";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -150,8 +152,15 @@ export default function setupMagic(world: World) {
           // set affected unit on fire
           const targetBurn = castableEntity[CASTABLE].burn;
           const curentBurn = affectableEntity[AFFECTABLE].burn;
-          if (targetBurn > curentBurn) {
+          if (targetBurn > curentBurn && !isDead(world, affectableEntity)) {
             affectableEntity[AFFECTABLE].burn = targetBurn;
+          }
+
+          // freeze affected units
+          const targetFreeze = castableEntity[CASTABLE].freeze;
+          const curentFreeze = affectableEntity[AFFECTABLE].freeze;
+          if (targetFreeze > curentFreeze && !isDead(world, affectableEntity)) {
+            affectableEntity[AFFECTABLE].freeze = targetFreeze;
           }
         }
 
@@ -173,6 +182,20 @@ export default function setupMagic(world: World) {
           continue;
 
         burnableEntity[BURNABLE].burning = true;
+      }
+
+      // freeze terrain
+      for (const freezableEntity of getFreezables(world, entity[POSITION])) {
+        const targetFreeze = castableEntity[CASTABLE].freeze;
+
+        if (
+          isFrozen(world, freezableEntity) ||
+          targetFreeze === 0 ||
+          castableEntity[CASTABLE].caster === world.getEntityId(freezableEntity)
+        )
+          continue;
+
+        freezeTerrain(world, freezableEntity);
       }
     }
 

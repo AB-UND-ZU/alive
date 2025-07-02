@@ -12,7 +12,6 @@ import {
   orientationPoints,
 } from "../components/orientable";
 import { LOOTABLE } from "../components/lootable";
-import { isDead } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { Item, ITEM, STACK_SIZE } from "../components/item";
@@ -30,6 +29,7 @@ import { getGearStat } from "../../game/balancing/equipment";
 import { dropEntity } from "./drop";
 import { PLAYER } from "../components/player";
 import { getItemSprite } from "../../components/Entity/utils";
+import { isControllable } from "./freeze";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -296,8 +296,11 @@ export default function setupCollect(world: World) {
       // skip if entity already interacted
       if (entity[MOVABLE].lastInteraction === entityReference) continue;
 
-      // skip if dead or still collecting
-      if (isDead(world, entity) || getSequence(world, entity, "collect"))
+      // skip if unable to collect or still collecting
+      if (
+        !isControllable(world, entity) ||
+        getSequence(world, entity, "collect")
+      )
         continue;
 
       const targetOrientation: Orientation | null =

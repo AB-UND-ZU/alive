@@ -41,6 +41,7 @@ import { SHOPPABLE } from "../components/shoppable";
 import { addToInventory } from "./collect";
 import { getSpellStat } from "../../game/balancing/spells";
 import { PLAYER } from "../components/player";
+import { isControllable } from "./freeze";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -320,9 +321,11 @@ export default function setupTrigger(world: World) {
 
       entityReferences[entityId] = entityReference;
 
-      // skip if not actionable or not triggered
+      // skip if not actionable, not triggered, already interacted or not controllable
       if (
         !getAction(world, entity) ||
+        entity[MOVABLE].lastInteraction === entityReference ||
+        !isControllable(world, entity) ||
         !(
           entity[ACTIONABLE].primaryTriggered ||
           entity[ACTIONABLE].secondaryTriggered

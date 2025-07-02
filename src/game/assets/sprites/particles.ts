@@ -253,6 +253,16 @@ export const fire: Sprite = {
   },
 };
 
+export const freeze: Sprite = {
+  name: "unit_freeze",
+  layers: [{ char: "░", color: colors.aqua }],
+  amounts: {
+    single: [{ char: "░", color: colors.aqua }],
+    double: [{ char: "▒", color: colors.aqua }],
+    multiple: [{ char: "▓", color: colors.aqua }],
+  },
+};
+
 export const smokeThick: Sprite = {
   name: "smoke_thick",
   layers: [{ char: "~", color: colors.silver }],

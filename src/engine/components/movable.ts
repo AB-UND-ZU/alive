@@ -6,6 +6,7 @@ import { Orientation } from "./orientable";
 export type Movable = {
   orientations: Orientation[];
   pendingOrientation?: Orientation;
+  momentum?: Orientation;
   reference: number;
   spring?: SpringConfig;
   lastInteraction: number;

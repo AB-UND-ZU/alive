@@ -41,6 +41,34 @@ export const getBurning = (world: World, position: Position) =>
     isBurning(world, entity)
   ) as Entity | undefined;
 
+// create static smoke animation from point where unit extinguishes
+export const extinguishUnit = (world: World, entity: Entity) => {
+  entity[AFFECTABLE].burn = 0;
+  const castableEntity = entities.createSpell(world, {
+    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+    [CASTABLE]: {
+      affected: {},
+      damage: 0,
+      burn: 0,
+      freeze: 0,
+      heal: 0,
+      caster: world.getEntityId(entity),
+    },
+    [ORIENTABLE]: {},
+    [POSITION]: copy(entity[POSITION]),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: none,
+  });
+  createSequence<"smoke", SmokeSequence>(
+    world,
+    castableEntity,
+    "smoke",
+    "smokeWind",
+    { generation: 0, extinguish: 3 }
+  );
+};
+
 export default function setupBurn(world: World) {
   let referenceGenerations = -1;
 
@@ -134,7 +162,7 @@ export default function setupBurn(world: World) {
       }
     }
 
-    // extinguish units
+    // extinguish swimming units
     for (const entity of world.getEntities([
       AFFECTABLE,
       BELONGABLE,
@@ -144,30 +172,7 @@ export default function setupBurn(world: World) {
       SWIMMABLE,
     ])) {
       if (entity[SWIMMABLE].swimming && entity[AFFECTABLE].burn > 0) {
-        entity[AFFECTABLE].burn = 0;
-        const castableEntity = entities.createSpell(world, {
-          [BELONGABLE]: { faction: entity[BELONGABLE].faction },
-          [CASTABLE]: {
-            affected: {},
-            damage: 0,
-            burn: 0,
-            freeze: 0,
-            heal: 0,
-            caster: world.getEntityId(entity),
-          },
-          [ORIENTABLE]: {},
-          [POSITION]: copy(entity[POSITION]),
-          [RENDERABLE]: { generation: 0 },
-          [SEQUENCABLE]: { states: {} },
-          [SPRITE]: none,
-        });
-        createSequence<"smoke", SmokeSequence>(
-          world,
-          castableEntity,
-          "smoke",
-          "smokeWind",
-          { generation: 0, extinguish: 3 }
-        );
+        extinguishUnit(world, entity);
       }
     }
 

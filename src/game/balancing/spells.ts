@@ -20,7 +20,7 @@ export const spellStats: Partial<
     },
     water: {
       damage: 2,
-      freeze: 5,
+      freeze: 6,
     },
     earth: {
       heal: 2,
@@ -36,7 +36,7 @@ export const spellStats: Partial<
     },
     water: {
       damage: 5,
-      freeze: 5,
+      freeze: 6,
     },
     earth: {
       heal: 3,

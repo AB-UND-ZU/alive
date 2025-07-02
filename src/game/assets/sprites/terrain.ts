@@ -59,7 +59,12 @@ export const water: Sprite = {
 
 export const ice: Sprite = {
   name: "water_ice",
-  layers: [{ char: "█", color: colors.teal }],
+  layers: [
+    { char: "█", color: colors.teal },
+    { char: "`", color: colors.aqua },
+    { char: "\\", color: colors.aqua },
+    { char: "▒", color: colors.teal },
+  ],
 };
 
 export const sand: Sprite = {

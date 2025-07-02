@@ -36,6 +36,7 @@ import Joystick from "../Joystick";
 import { canCast } from "../../engine/systems/magic";
 import { canShop, getDeal, isShoppable } from "../../engine/systems/shop";
 import { PLAYER } from "../../engine/components/player";
+import { isControllable } from "../../engine/systems/freeze";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -111,7 +112,9 @@ const useAction = (
   return useMemo<Action | undefined>(() => {
     if (paused || !ecs || !heroEntity || !actionEntity) return;
 
-    const disabled = isDisabled(ecs, heroEntity, actionEntity);
+    const disabled =
+      !isControllable(ecs, heroEntity) ||
+      isDisabled(ecs, heroEntity, actionEntity);
     const activation = getActivation(ecs, actionEntity);
     const name = getName(actionEntity);
 
@@ -385,7 +388,7 @@ export default function Controls() {
         heroEntity[ORIENTABLE].facing = pendingOrientation;
       }
 
-      if (orientations.length === 0) {
+      if (orientations.length === 0 && !heroEntity[MOVABLE].momentum) {
         reference.suspensionCounter = 0;
 
         if (
