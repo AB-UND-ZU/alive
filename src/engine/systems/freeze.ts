@@ -20,6 +20,8 @@ import { Orientation, orientationPoints } from "../components/orientable";
 import { add } from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { isDead } from "./damage";
+import { getSwimmables } from "./immersion";
+import { SWIMMABLE } from "../components/swimmable";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -57,6 +59,18 @@ export const freezeTerrain = (world: World, entity: Entity) => {
       IMMERSIBLE
     );
     updateWalkable(world, entity[POSITION]);
+
+    // cancel any bubble animations
+    if (getSequence(world, entity, "bubble")) {
+      delete entity[SEQUENCABLE].states.bubble;
+    }
+
+    // lift up immersed units
+    const swimmables = getSwimmables(world, entity[POSITION]);
+    for (const swimmableEntity of swimmables) {
+      swimmableEntity[SWIMMABLE].swimming = false;
+      rerenderEntity(world, swimmableEntity);
+    }
   }
 
   rerenderEntity(world, entity);

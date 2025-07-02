@@ -13,6 +13,14 @@ export const isImmersible = (world: World, position: Position) => {
   return Object.values(cell).some((entity) => IMMERSIBLE in (entity as Entity));
 };
 
+export const isSwimmable = (world: World, entity: Entity) =>
+  SWIMMABLE in entity;
+
+export const getSwimmables = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).filter((entity) =>
+    isSwimmable(world, entity)
+  );
+
 export const isSubmerged = (world: World, position: Position) =>
   [-1, 0, 1]
     .map((xOffset) =>

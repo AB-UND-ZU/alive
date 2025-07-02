@@ -21,7 +21,7 @@ import { rerenderEntity } from "./renderer";
 import { relativeOrientations } from "../../game/math/path";
 import { BURNABLE } from "../components/burnable";
 import { PLAYER } from "../components/player";
-import { getBurnables } from "./burn";
+import { extinguishEntity, getBurnables } from "./burn";
 import { freezeTerrain, getFreezables, isFrozen } from "./freeze";
 
 export const isAffectable = (world: World, entity: Entity) =>
@@ -164,24 +164,41 @@ export default function setupMagic(world: World) {
           }
         }
 
+        // extinguish unit if burning and frozen
+        if (
+          affectableEntity[AFFECTABLE].freeze > 0 &&
+          affectableEntity[AFFECTABLE].burn > 0
+        ) {
+          affectableEntity[AFFECTABLE].freeze = 0;
+          extinguishEntity(world, affectableEntity);
+        }
+
         // set affected generation
         castableEntity[CASTABLE].affected[affectableId] = worldGeneration;
 
         rerenderEntity(world, affectableEntity);
       }
 
-      // set terrain on fire
       for (const burnableEntity of getBurnables(world, entity[POSITION])) {
-        const targetBurn = castableEntity[CASTABLE].burn;
-
         if (
           burnableEntity[BURNABLE].combusted ||
-          targetBurn === 0 ||
           castableEntity[CASTABLE].caster === world.getEntityId(burnableEntity)
         )
           continue;
 
-        burnableEntity[BURNABLE].burning = true;
+        const targetBurn = castableEntity[CASTABLE].burn;
+        const targetFreeze = castableEntity[CASTABLE].freeze;
+        const isBurning = burnableEntity[BURNABLE].burning;
+
+        // set terrain on fire
+        if (targetBurn > 0 && !isBurning) {
+          burnableEntity[BURNABLE].burning = true;
+        }
+
+        // extinguish burning fires
+        if (targetFreeze > 0 && isBurning) {
+          extinguishEntity(world, burnableEntity);
+        }
       }
 
       // freeze terrain

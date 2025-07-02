@@ -41,11 +41,17 @@ export const getBurning = (world: World, position: Position) =>
     isBurning(world, entity)
   ) as Entity | undefined;
 
-// create static smoke animation from point where unit extinguishes
-export const extinguishUnit = (world: World, entity: Entity) => {
-  entity[AFFECTABLE].burn = 0;
+// create static smoke animation from point where unit or terrain extinguishes
+export const extinguishEntity = (world: World, entity: Entity) => {
+  if (entity[AFFECTABLE]) {
+    entity[AFFECTABLE].burn = 0;
+  }
+  if (entity[BURNABLE]) {
+    entity[BURNABLE].burning = false;
+  }
+
   const castableEntity = entities.createSpell(world, {
-    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+    [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
     [CASTABLE]: {
       affected: {},
       damage: 0,
@@ -172,7 +178,7 @@ export default function setupBurn(world: World) {
       SWIMMABLE,
     ])) {
       if (entity[SWIMMABLE].swimming && entity[AFFECTABLE].burn > 0) {
-        extinguishUnit(world, entity);
+        extinguishEntity(world, entity);
       }
     }
 
