@@ -66,8 +66,7 @@ export type UnlockSequence = { origin: Position; itemId: number };
 export type FocusSequence = EmptyObject;
 export type MeleeSequence = { tick: number; facing: Orientation };
 export type SpellSequence = {
-  amount: number;
-  element: Element | "default";
+  element: Element | "default" | "wild";
   progress: number;
   memory?: any;
   duration: number;

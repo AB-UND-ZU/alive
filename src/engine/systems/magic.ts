@@ -52,6 +52,15 @@ export const canCast = (world: World, entity: Entity, item: Entity) => {
     );
 };
 
+// normalize particle amounts to spell damage
+export const getSpellAmount = (world: World, entity: Entity) => {
+  const amount = entity[CASTABLE]?.damage || entity[CASTABLE].heal;
+
+  if (amount >= 5) return 3;
+  if (amount >= 3) return 2;
+  return 1;
+};
+
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
   const playerHealings: Record<number, number> = {};

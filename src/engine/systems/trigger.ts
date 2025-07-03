@@ -245,7 +245,12 @@ export const castSpell = (
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
   });
-  const amount = spellStats.damage || spellStats.heal;
+
+  const element = elements.includes(item[ITEM].material as Element)
+    ? (item[ITEM].material as Element)
+    : entity[PLAYER]
+    ? "default"
+    : "wild";
 
   if (item[ITEM].primary === "beam1") {
     createSequence<"spell", SpellSequence>(
@@ -258,10 +263,7 @@ export const castSpell = (
         duration: 31,
         range: 12,
         areas: [],
-        amount,
-        element: elements.includes(item[ITEM].material as Element)
-          ? (item[ITEM].material as Element)
-          : "default",
+        element,
       }
     );
   } else if (item[ITEM].primary === "wave1") {
@@ -276,10 +278,7 @@ export const castSpell = (
         range: 7,
         duration: 7,
         areas: [],
-        amount,
-        element: elements.includes(item[ITEM].material as Element)
-          ? (item[ITEM].material as Element)
-          : "default",
+        element,
       }
     );
   }

@@ -79,6 +79,20 @@ export const wave: Sprite = {
   },
 };
 
+export const defaultWave: Sprite = {
+  name: "default_wave",
+  layers: [
+    { char: "┼", color: colors.white },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [{ char: "─", color: colors.white }],
+    right: [{ char: "│", color: colors.white }],
+    down: [{ char: "─", color: colors.white }],
+    left: [{ char: "│", color: colors.white }],
+  },
+};
+
 export const fireWave: Sprite = {
   name: "fire_wave",
   layers: [
@@ -139,6 +153,29 @@ export const waveCorner: Sprite = {
     ],
     left: [
       { char: "┌", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const defaultWaveCorner: Sprite = {
+  name: "default_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.white },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.white },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.white },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.white },
       { char: "·", color: colors.black },
     ],
   },
@@ -367,6 +404,22 @@ export const beam: Sprite = {
   },
 };
 
+export const defaultBeam: Sprite = {
+  name: "default_beam",
+  layers: [{ char: "∙", color: colors.white }],
+  amounts: {
+    single: [{ char: "∙", color: colors.white }],
+    double: [
+      { char: "\u0106", color: colors.white },
+      { char: "∙", color: colors.silver },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.white },
+      { char: "\u0106", color: colors.silver },
+    ],
+  },
+};
+
 export const fireBeam: Sprite = {
   name: "fire_beam",
   layers: [{ char: "∙", color: colors.red }],
@@ -436,6 +489,32 @@ export const edge: Sprite = {
     ],
     left: [
       { char: "┤", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const defaultEdge: Sprite = {
+  name: "default_edge",
+  layers: [
+    { char: "┼", color: colors.white },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: "┴", color: colors.white },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "├", color: colors.white },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "┬", color: colors.white },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┤", color: colors.white },
       { char: "·", color: colors.black },
     ],
   },

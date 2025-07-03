@@ -120,6 +120,10 @@ import {
   waterWaveCorner,
   earthWaveCorner,
   freeze,
+  defaultWaveCorner,
+  defaultWave,
+  defaultEdge,
+  defaultBeam,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -170,7 +174,7 @@ import { BELONGABLE } from "../../engine/components/belongable";
 import { CASTABLE } from "../../engine/components/castable";
 import { BURNABLE } from "../../engine/components/burnable";
 import { AFFECTABLE } from "../../engine/components/affectable";
-import { getExertables } from "../../engine/systems/magic";
+import { getExertables, getSpellAmount } from "../../engine/systems/magic";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { Shoppable, SHOPPABLE } from "../../engine/components/shoppable";
 import { getActivationRow } from "../../components/Controls";
@@ -254,13 +258,15 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
 
 const beamSpeed = 100;
 const edgeSprites = {
-  default: edge,
+  wild: edge,
+  default: defaultEdge,
   fire: fireEdge,
   water: waterEdge,
   earth: earthEdge,
 };
 const beamSprites = {
-  default: beam,
+  wild: beam,
+  default: defaultBeam,
   fire: fireBeam,
   water: waterBeam,
   earth: earthBeam,
@@ -270,6 +276,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const progress = Math.ceil(state.elapsed / beamSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
+  const spellAmount = getSpellAmount(world, entity);
   let finished = progress > state.args.duration;
   let updated = false;
 
@@ -283,7 +290,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         offsetZ: particleHeight,
         duration: beamSpeed,
         animatedOrigin: { x: 0, y: 0 },
-        amount: state.args.amount,
+        amount: spellAmount,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: edgeSprites[state.args.element],
@@ -298,7 +305,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         offsetZ: particleHeight,
         duration: beamSpeed,
         animatedOrigin: { x: 0, y: 0 },
-        amount: state.args.amount,
+        amount: spellAmount,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: edgeSprites[state.args.element],
@@ -347,7 +354,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
     state.args.progress !== progress &&
     progress > 2 &&
     progress <= state.args.duration - state.args.range &&
-    (progress - 1) % Math.min(state.args.amount, 3) === 0
+    (progress - 1) % Math.min(spellAmount, 3) === 0
   ) {
     const beamParticle = entities.createParticle(world, {
       [PARTICLE]: {
@@ -355,7 +362,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         offsetY: delta.y,
         offsetZ: particleHeight,
         duration: beamSpeed,
-        amount: state.args.amount,
+        amount: spellAmount,
         animatedOrigin: copy(delta),
       },
       [RENDERABLE]: { generation: 1 },
@@ -973,13 +980,15 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
 const waveSpeed = 350;
 const waveDissolve = 1;
 const waveSprites = {
-  default: wave,
+  wild: wave,
+  default: defaultWave,
   fire: fireWave,
   water: waterWave,
   earth: earthWave,
 };
 const waveCornerSprites = {
-  default: waveCorner,
+  wild: waveCorner,
+  default: defaultWaveCorner,
   fire: fireWaveCorner,
   water: waterWaveCorner,
   earth: earthWaveCorner,
@@ -1002,7 +1011,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
           offsetX: 0,
           offsetY: 0,
           offsetZ: particleHeight,
-          amount: 0,
+          amount: 1,
           duration: waveSpeed,
           animatedOrigin: { x: 0, y: 0 },
         },
@@ -1055,7 +1064,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
             offsetX: leftDelta.x,
             offsetY: leftDelta.y,
             offsetZ: particleHeight,
-            amount: 0,
+            amount: 1,
             duration: waveSpeed,
             animatedOrigin: {
               x:
@@ -1086,7 +1095,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
             offsetX: rightDelta.x,
             offsetY: rightDelta.y,
             offsetZ: particleHeight,
-            amount: 0,
+            amount: 1,
             duration: waveSpeed,
             animatedOrigin: {
               x:
@@ -1125,7 +1134,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
             offsetX: leftDelta.x,
             offsetY: leftDelta.y,
             offsetZ: particleHeight,
-            amount: 0,
+            amount: 1,
             duration: waveSpeed,
             animatedOrigin: {
               x:
@@ -1156,7 +1165,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
             offsetX: rightDelta.x,
             offsetY: rightDelta.y,
             offsetZ: particleHeight,
-            amount: 0,
+            amount: 1,
             duration: waveSpeed,
             animatedOrigin: {
               x:
