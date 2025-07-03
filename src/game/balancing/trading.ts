@@ -25,7 +25,7 @@ export const itemPrices: Partial<
 > = {
   sword: {
     // T1-T3
-    wood: [],
+    wood: [{ stat: "stick", amount: 1 }],
     iron: [
       { equipment: "sword", material: "wood", amount: 1 },
       { stackable: "resource", material: "iron", amount: 5 },
@@ -73,10 +73,7 @@ export const itemPrices: Partial<
   },
   shield: {
     // T1-T3
-    wood: [
-      { stackable: "resource", material: "wood", amount: 5 },
-      { stat: "coin", amount: 5 },
-    ],
+    wood: [{ stackable: "resource", material: "wood", amount: 3 }],
     iron: [
       { equipment: "shield", material: "wood", amount: 1 },
       { stackable: "resource", material: "iron", amount: 5 },
@@ -179,7 +176,7 @@ export const itemPrices: Partial<
   torch: {
     default: [
       { stat: "stick", amount: 1 },
-      { stat: "coin", amount: 3 },
+      { stackable: "resource", material: "fire", amount: 1 },
     ],
   },
 
@@ -209,6 +206,11 @@ export const itemPrices: Partial<
     ],
   },
 
+  // countable
+  stick: {
+    default: [{ stat: "leaf", amount: 3 }],
+  },
+
   // stackable
   arrow: {
     default: [
@@ -217,58 +219,28 @@ export const itemPrices: Partial<
     ],
   },
   berry: {
-    default: [
-      { stat: "berry", amount: 10 },
-      { stat: "coin", amount: 1 },
-    ],
+    default: [{ stat: "berry", amount: 10 }],
   },
   flower: {
-    default: [
-      { stat: "flower", amount: 10 },
-      { stat: "coin", amount: 1 },
-    ],
+    default: [{ stat: "flower", amount: 10 }],
   },
   seed: {
-    default: [
-      { stat: "leaf", amount: 10 },
-      { stat: "coin", amount: 1 },
-    ],
+    default: [{ stat: "leaf", amount: 10 }],
+  },
+  ingot: {
+    default: [{ stackable: "resource", material: "gold", amount: 10 }],
   },
 
   // resources
   resource: {
-    wood: [
-      { stat: "stick", amount: 10 },
-      { stat: "leaf", amount: 3 },
-    ],
-    iron: [
-      { stat: "ore", amount: 10 },
-      { stat: "coin", amount: 3 },
-    ],
-    gold: [
-      { stackable: "resource", material: "iron", amount: 10 },
-      { stat: "coin", amount: 5 },
-    ],
-    diamond: [
-      { stackable: "resource", material: "iron", amount: 10 },
-      { stat: "coin", amount: 10 },
-    ],
-    ruby: [
-      { stackable: "resource", material: "diamond", amount: 10 },
-      { stat: "coin", amount: 20 },
-    ],
-    fire: [
-      { stackable: "berry", amount: 5 },
-      { stackable: "resource", material: "wood", amount: 1 },
-    ],
-    water: [
-      { stackable: "flower", amount: 5 },
-      { stackable: "resource", material: "wood", amount: 1 },
-    ],
-    earth: [
-      { stackable: "seed", amount: 5 },
-      { stackable: "resource", material: "wood", amount: 1 },
-    ],
+    wood: [{ stat: "stick", amount: 10 }],
+    iron: [{ stat: "ore", amount: 10 }],
+    gold: [{ stackable: "resource", material: "iron", amount: 5 }],
+    diamond: [{ stackable: "resource", material: "gold", amount: 5 }],
+    ruby: [{ stackable: "resource", material: "diamond", amount: 5 }],
+    fire: [{ stackable: "berry", amount: 5 }],
+    water: [{ stackable: "flower", amount: 5 }],
+    earth: [{ stackable: "seed", amount: 5 }],
   },
 
   // stats
@@ -302,3 +274,38 @@ export const getItemPrice = (
 
   return itemPrices[lookup]?.[material] || [];
 };
+
+/* balance: <count> * <coins> ~= 40
+- item <avg> * <freq> / <stack> = <count> → <coins>
+- berry 70 * 1.25 / 10 = 9 → 4
+- apple 22 * 1 = 22 → 2
+- gem 16 * 0.3 = 5 → 8
+- coconut 85 * 0.1 = 8 → 5
+- flower 88 * 1.25 * 0.3 = 11 → 4
+- shroom 22 * 1 = 22 → 2
+- crystal 16 * 0.3 = 5 → 8
+- banana 85 * 0.1 = 8 → 5
+*/
+export const itemSales: Partial<Record<Stackable, number>> = {
+  berry: 4,
+  apple: 2,
+  gem: 8,
+  coconut: 5,
+  flower: 4,
+  shroom: 2,
+  crystal: 8,
+  banana: 5,
+  seed: 4,
+};
+
+export const itemPurchases: [Deal["item"], number][] = [
+  [{ stat: "hp", amount: 1 }, 3],
+  [{ stat: "mp", amount: 1 }, 2],
+  [{ stackable: "leaf", amount: 1 }, 1],
+  [{ stackable: "berry", amount: 1 }, 10],
+  [{ stackable: "flower", amount: 1 }, 10],
+  [{ stackable: "seed", amount: 1 }, 10],
+  [{ stackable: "resource", material: "wood", amount: 1 }, 15],
+  [{ stackable: "resource", material: "iron", amount: 1 }, 20],
+  [{ stackable: "resource", material: "gold", amount: 1 }, 99],
+];

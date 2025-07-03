@@ -7,6 +7,7 @@ import { Position } from "./position";
 import { Viewable } from "./viewable";
 import { Light } from "./light";
 import { Element } from "./item";
+import { Shoppable } from "./shoppable";
 
 type EmptyObject = Record<string, never>;
 
@@ -101,6 +102,7 @@ export type PopupSequence = {
   selectedIndex: number;
   generation?: number;
   contentIndex: number;
+  transaction: Shoppable["transaction"];
 };
 
 export type SequenceState<A> = {

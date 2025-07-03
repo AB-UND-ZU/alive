@@ -189,7 +189,7 @@ export const map: Sprite = {
 // T1-T3
 
 export const woodStick: Sprite = {
-  name: "Stick",
+  name: "Sword",
   layers: [{ char: "/", color: colors.maroon }],
   facing: {
     up: [{ char: "|", color: colors.maroon }],

@@ -18,7 +18,11 @@ import { Item, ITEM, STACK_SIZE } from "../components/item";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
-import { getMaxCounter, woodStick } from "../../game/assets/sprites";
+import {
+  getMaxCounter,
+  getStatSprite,
+  woodStick,
+} from "../../game/assets/sprites";
 import { createSequence, getSequence } from "./sequence";
 import { CollectSequence, SEQUENCABLE } from "../components/sequencable";
 import { STATS } from "../components/stats";
@@ -166,7 +170,8 @@ export const collectItem = (
 export const addToInventory = (
   world: World,
   entity: Entity,
-  itemEntity: Entity
+  itemEntity: Entity,
+  fullStack = false
 ) => {
   const entityId = world.getEntityId(entity);
   let targetEquipment = itemEntity[ITEM].equipment;
@@ -225,11 +230,32 @@ export const addToInventory = (
   } else if (targetStat) {
     const maxStat = getMaxCounter(targetStat);
     const maximum = maxStat !== targetStat ? entity[STATS][maxStat] : 99;
-    const amount = getCollectAmount(world, itemEntity);
-    entity[STATS][targetStat] = Math.min(
-      entity[STATS][targetStat] + amount,
-      maximum
-    );
+    const amount = fullStack
+      ? itemEntity[ITEM].amount
+      : getCollectAmount(world, itemEntity);
+    const newAmount = entity[STATS][targetStat] + amount;
+    const overflow = Math.max(newAmount, maximum) - maximum;
+
+    entity[STATS][targetStat] = Math.min(newAmount, maximum);
+
+    // drop stats aside if overflowing
+    if (overflow > 0) {
+      const statEntity = entities.createItem(world, {
+        [ITEM]: {
+          stat: targetStat,
+          amount: overflow,
+          carrier: -1,
+          bound: false,
+        },
+        [SPRITE]: getStatSprite(targetStat, "drop"),
+        [RENDERABLE]: { generation: 0 },
+      });
+      dropEntity(
+        world,
+        { [INVENTORY]: { items: [world.getEntityId(statEntity)] } },
+        entity[POSITION]
+      );
+    }
 
     if (entity[PLAYER] && targetStat === "hp") {
       entity[PLAYER].healingReceived += amount;

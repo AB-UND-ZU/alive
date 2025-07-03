@@ -782,13 +782,18 @@ export default function setupAi(world: World) {
           }
           break;
         } else if (pattern.name === "sell") {
-          sellItems(world, entity, [
-            {
-              item: pattern.memory.item,
-              stock: 1,
-              price: pattern.memory.activation,
-            },
-          ]);
+          sellItems(
+            world,
+            entity,
+            [
+              {
+                item: pattern.memory.item,
+                stock: 1,
+                price: pattern.memory.activation,
+              },
+            ],
+            "buy"
+          );
 
           patterns.splice(patterns.indexOf(pattern), 1);
           break;

@@ -76,7 +76,8 @@ export const frameHeight = 11;
 export const sellItems = (
   world: World,
   entity: Entity,
-  deals: Shoppable["deals"]
+  deals: Shoppable["deals"],
+  transaction: Shoppable["transaction"]
 ) => {
   entity[TOOLTIP].idle = shop;
   entity[TOOLTIP].changed = true;
@@ -92,6 +93,7 @@ export const sellItems = (
     selectedIndex: 0,
     deals,
     viewpoint: world.getEntityId(viewpointEntity),
+    transaction,
   });
 };
 
@@ -120,6 +122,7 @@ export const openShop = (
     {
       selectedIndex: shopEntity[SHOPPABLE].selectedIndex,
       contentIndex: 0,
+      transaction: shopEntity[SHOPPABLE].transaction,
     }
   );
 };

@@ -58,6 +58,7 @@ import {
   getDistance,
   lerp,
   normalize,
+  padCenter,
   random,
   repeat,
   shuffle,
@@ -102,7 +103,6 @@ import {
   popupSide,
   addBackground,
   popupBackground,
-  popupSelection,
   popupUpStart,
   popupUpEnd,
   popupDownEnd,
@@ -124,6 +124,8 @@ import {
   defaultWave,
   defaultEdge,
   defaultBeam,
+  buySelection,
+  sellSelection,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -712,7 +714,9 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
   let renderContent = false;
   const popupCenter = { x: 0, y: (frameHeight + 1) / -2 };
   const selectedIndex = entity[SHOPPABLE].selectedIndex;
-  const selectionX = popupCenter.x - (frameWidth - 3) / 2;
+  const selectionX =
+    popupCenter.x +
+    ((frameWidth - 3) / 2) * (state.args.transaction === "buy" ? -1 : 1);
   const selectionY = popupCenter.y - (frameHeight - 3) / 2;
   const initial = !state.args.generation;
 
@@ -780,7 +784,11 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
       [PARTICLE]
     );
     upEndParticle[SPRITE] = popupUpEnd;
-    const title = createText("Shop ", colors.lime, colors.black);
+    const title = createText(
+      padCenter(state.args.transaction === "buy" ? "Buy" : "Sell", 5),
+      colors.lime,
+      colors.black
+    );
     title.forEach((char, index) => {
       const charParticle = world.assertByIdAndComponents(
         state.particles[`popup-up-${(frameWidth - 3) / 2 + index - 2}`],
@@ -853,19 +861,24 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
   ) {
     const lines: Sprite[][] = [
       ...(entity[SHOPPABLE] as Shoppable).deals.map((deal) => {
-        const itemSprite = getItemSprite(deal.item);
+        // swap direction when selling items
+        const leftItem =
+          state.args.transaction === "buy" ? deal.item : deal.price[0];
+        const rightItems =
+          state.args.transaction === "buy" ? deal.price : [deal.item];
+
+        const itemSprite = getItemSprite(leftItem);
         const itemText = createText(
           itemSprite.name,
           heroEntity && canShop(world, heroEntity, deal)
             ? colors.white
             : colors.grey
         );
-        const prices = deal.price
+        const prices = rightItems
           .map((price) => getActivationRow(price))
           .flat();
         const line = addBackground(
           [
-            none,
             itemSprite,
             ...itemText,
             ...repeat(none, frameWidth - 4 - itemText.length - prices.length),
@@ -874,8 +887,16 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
           colors.black
         );
 
+        // add placeholder on left for buy and right for sell
+        if (state.args.transaction === "buy") {
+          line.unshift(popupBackground);
+        } else {
+          line.push(popupBackground);
+        }
+
         if (deal.stock > 0) return line;
 
+        // strike through if sold out
         return line.map((sprite, index) => ({
           ...sprite,
           layers: [
@@ -888,6 +909,7 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
 
     const contentIndex = Math.floor((state.elapsed - popupTime) / contentDelay);
 
+    // gradually animate typed content
     for (
       let row = renderContent
         ? 0
@@ -932,7 +954,7 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
         animatedOrigin: { x: selectionX, y: -2 },
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: popupSelection,
+      [SPRITE]: state.args.transaction === "buy" ? buySelection : sellSelection,
     });
     state.particles.selection = world.getEntityId(selectionParticle);
   }

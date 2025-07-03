@@ -230,6 +230,16 @@ export const coin: Sprite = {
   },
 };
 
+export const ingot: Sprite = {
+  name: "Ingot",
+  layers: [
+    { char: "■", color: colors.olive },
+    { char: "+", color: colors.yellow },
+    { char: "\u011c", color: colors.yellow },
+    { char: "Ö", color: colors.black },
+  ],
+};
+
 export const stick: Sprite = {
   name: "Stick",
   layers: [{ char: "-", color: colors.maroon }],
@@ -511,7 +521,10 @@ export const aetherGem: Sprite = {
 
 export const voidShard: Sprite = {
   name: "Shard",
-  layers: [{ char: "\u011c", color: colors.grey }],
+  layers: [
+    { char: "+", color: colors.grey },
+    { char: "\u011c", color: colors.silver },
+  ],
 };
 
 export const voidGem: Sprite = {
@@ -521,7 +534,10 @@ export const voidGem: Sprite = {
 
 export const rainbowShard: Sprite = {
   name: "Shard",
-  layers: [{ char: "\u011c", color: colors.yellow }],
+  layers: [
+    { char: "+", color: colors.olive },
+    { char: "\u011c", color: colors.yellow },
+  ],
 };
 
 export const rainbowGem: Sprite = {

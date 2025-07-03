@@ -53,6 +53,14 @@ export const houseArmor: Sprite = {
   ],
 };
 
+export const houseTrader: Sprite = {
+  name: "house_trader",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u0108", color: colors.silver },
+  ],
+};
+
 export const houseHunter: Sprite = {
   name: "house_hunter",
   layers: [
@@ -259,9 +267,7 @@ export const window: Sprite = {
 
 export const windowInside: Sprite = {
   name: "window_inside",
-  layers: [
-    { char: "┬", color: colors.maroon },
-  ],
+  layers: [{ char: "┬", color: colors.maroon }],
 };
 
 export const bedHeadLeft: Sprite = {

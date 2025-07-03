@@ -1,5 +1,5 @@
 import { entities, World, systems } from "../engine";
-import { POSITION } from "../engine/components/position";
+import { Position, POSITION } from "../engine/components/position";
 import { SPRITE } from "../engine/components/sprite";
 import { LIGHT } from "../engine/components/light";
 import { PLAYER } from "../engine/components/player";
@@ -68,7 +68,7 @@ import { SWIMMABLE } from "../engine/components/swimmable";
 import { BEHAVIOUR } from "../engine/components/behaviour";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { MELEE } from "../engine/components/melee";
-import { ITEM } from "../engine/components/item";
+import { ITEM, Stackable } from "../engine/components/item";
 import { ORIENTABLE, orientationPoints } from "../engine/components/orientable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import {
@@ -114,6 +114,7 @@ import {
   houseLeft,
   houseMage,
   houseRight,
+  houseTrader,
   roof,
   roofDown,
   roofDownLeft,
@@ -152,7 +153,11 @@ import generateTown from "../engine/wfc/town";
 import { ENTERABLE } from "../engine/components/enterable";
 import { AFFECTABLE } from "../engine/components/affectable";
 import { assignBuilding, insertArea, populateInventory } from "./creation";
-import { getItemPrice } from "../game/balancing/trading";
+import {
+  getItemPrice,
+  itemPurchases,
+  itemSales,
+} from "../game/balancing/trading";
 import { getGearStat } from "../game/balancing/equipment";
 import { findPath, invertOrientation } from "../game/math/path";
 import { FRAGMENT } from "../engine/components/fragment";
@@ -166,6 +171,9 @@ import { Deal } from "../engine/components/shoppable";
 import { FREEZABLE } from "../engine/components/freezable";
 
 export const generateWorld = async (world: World) => {
+  // track distribution of cell types
+  const cellLocations: Record<string, Position[]> = {};
+
   const size = world.metadata.gameEntity[LEVEL].size;
 
   const elevationMatrix = simplexNoiseMatrix(size, size, 0, -50, 100, 1);
@@ -353,6 +361,8 @@ export const generateWorld = async (world: World) => {
         (townDeltaY - townHeight / 2 < 2 ? 20 : 0);
     }
 
+    cellLocations[cell] = (cellLocations[cell] || []).concat([{ x, y }]);
+
     return cell;
   });
 
@@ -434,13 +444,13 @@ export const generateWorld = async (world: World) => {
     worldMatrix,
     elderHouse.position.x + elderOffset,
     elderHouse.position.y + 3,
-    "flower"
+    "fruit_one"
   );
   setMatrix(
     worldMatrix,
     elderHouse.position.x - elderOffset,
     elderHouse.position.y + 3,
-    "berry"
+    "rock"
   );
   setMatrix(
     worldMatrix,
@@ -454,18 +464,11 @@ export const generateWorld = async (world: World) => {
     smithHouse.position.y + 2,
     "house_armor"
   );
-  const traderOffset = random(0, 1) * 2 - 1;
   setMatrix(
     worldMatrix,
-    traderHouse.position.x + traderOffset,
-    traderHouse.position.y + 3,
-    "fruit_one"
-  );
-  setMatrix(
-    worldMatrix,
-    traderHouse.position.x - traderOffset,
-    traderHouse.position.y + 3,
-    "rock"
+    traderHouse.position.x + random(0, 1) * 2 - 1,
+    traderHouse.position.y + 2,
+    "house_trader"
   );
   setMatrix(
     worldMatrix,
@@ -837,7 +840,7 @@ export const generateWorld = async (world: World) => {
         ] as const
       )[random(0, 1)];
 
-      if (random(0, 19) === 0) {
+      if (random(0, 9) === 0) {
         const fruitEntity = entities.createFruit(world, {
           [BURNABLE]: {
             burning: false,
@@ -1566,6 +1569,22 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: houseMage,
         [RENDERABLE]: { generation: 0 },
       });
+    } else if (cell === "house_trader") {
+      entities.createWall(world, {
+        [COLLIDABLE]: {},
+        [ENTERABLE]: { sprite: wallInside },
+        [FOG]: { visibility, type: "terrain" },
+        [LAYER]: {},
+        [LIGHT]: {
+          brightness: 0,
+          darkness: 1,
+          visibility: 0,
+          orientation: "down",
+        },
+        [POSITION]: { x, y },
+        [SPRITE]: houseTrader,
+        [RENDERABLE]: { generation: 0 },
+      });
     }
   });
 
@@ -1721,13 +1740,18 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: ironKey,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItems(world, nomadEntity, [
-    {
-      item: ironKeyEntity[ITEM],
-      stock: 1,
-      price: getItemPrice(ironKeyEntity[ITEM]),
-    },
-  ]);
+  sellItems(
+    world,
+    nomadEntity,
+    [
+      {
+        item: ironKeyEntity[ITEM],
+        stock: 1,
+        price: getItemPrice(ironKeyEntity[ITEM]),
+      },
+    ],
+    "buy"
+  );
   const nomadChestData = generateUnitData("uncommonChest");
   const nomadChest = entities.createChest(world, {
     [ATTACKABLE]: {},
@@ -1814,18 +1838,23 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: manaUp,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItems(world, chiefEntity, [
-    {
-      item: maxHpEntity[ITEM],
-      stock: Infinity,
-      price: getItemPrice(maxHpEntity[ITEM]),
-    },
-    {
-      item: maxMpEntity[ITEM],
-      stock: Infinity,
-      price: getItemPrice(maxMpEntity[ITEM]),
-    },
-  ]);
+  sellItems(
+    world,
+    chiefEntity,
+    [
+      {
+        item: maxHpEntity[ITEM],
+        stock: Infinity,
+        price: getItemPrice(maxHpEntity[ITEM]),
+      },
+      {
+        item: maxMpEntity[ITEM],
+        stock: Infinity,
+        price: getItemPrice(maxMpEntity[ITEM]),
+      },
+    ],
+    "buy"
+  );
   const chiefOffset = random(0, 1) * 4 - 2;
   const welcomeEntity = entities.createSign(world, {
     [COLLIDABLE]: {},
@@ -1930,6 +1959,24 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, scoutEntity, scoutUnit.items, scoutUnit.equipments);
   world.setIdentifier(scoutEntity, "scout");
+  sellItems(
+    world,
+    scoutEntity,
+    Object.entries(itemSales).map(([stackable, coins]) => ({
+      item: {
+        stat: "coin",
+        amount: coins,
+      },
+      stock: Infinity,
+      price: [
+        {
+          stackable: stackable as Stackable,
+          amount: 1,
+        },
+      ],
+    })),
+    "sell"
+  );
 
   // 4. smith's house
   const smithUnit = generateUnitData("smith");
@@ -1972,6 +2019,10 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, smithEntity, smithUnit.items, smithUnit.equipments);
   world.setIdentifier(smithEntity, "smith");
+  const stickItem: Deal["item"] = {
+    stat: "stick",
+    amount: 1,
+  };
   const woodItem: Deal["item"] = {
     stackable: "resource",
     material: "wood",
@@ -1982,10 +2033,15 @@ export const generateWorld = async (world: World) => {
     material: "iron",
     amount: 1,
   };
+  const goldItem: Deal["item"] = {
+    stackable: "resource",
+    material: "gold",
+    amount: 1,
+  };
   const swordItem: Deal["item"] = {
     equipment: "sword",
-    material: "iron",
-    amount: getGearStat("sword", "iron"),
+    material: "wood",
+    amount: getGearStat("sword", "wood"),
   };
   const shieldItem: Deal["item"] = {
     equipment: "shield",
@@ -1999,11 +2055,20 @@ export const generateWorld = async (world: World) => {
   sellItems(
     world,
     smithEntity,
-    [woodItem, ironItem, swordItem, shieldItem, torchItem].map((item) => ({
+    [
+      stickItem,
+      woodItem,
+      ironItem,
+      goldItem,
+      swordItem,
+      shieldItem,
+      torchItem,
+    ].map((item) => ({
       item,
       stock: item.stackable === "resource" ? Infinity : 1,
       price: getItemPrice(item),
-    }))
+    })),
+    "buy"
   );
 
   // 5. trader's house
@@ -2052,34 +2117,15 @@ export const generateWorld = async (world: World) => {
     traderUnit.equipments
   );
   world.setIdentifier(traderEntity, "trader");
-  const berryTrades: Deal["price"][] = [
-    [{ stackable: "apple", amount: 3 }],
-    [{ stackable: "gem", amount: 3 }],
-    [{ stackable: "coconut", amount: 3 }],
-  ];
-  const flowerTrades: Deal["price"][] = [
-    [{ stackable: "shroom", amount: 3 }],
-    [{ stackable: "crystal", amount: 3 }],
-    [{ stackable: "banana", amount: 3 }],
-  ];
   sellItems(
     world,
     traderEntity,
-    [berryTrades, flowerTrades]
-      .map((trade) =>
-        trade.map(
-          (price) =>
-            ({
-              item: {
-                stackable: trade === berryTrades ? "berry" : "flower",
-                amount: 1,
-              },
-              stock: Infinity,
-              price,
-            } as Deal)
-        )
-      )
-      .flat()
+    itemPurchases.map(([item, coins]) => ({
+      item,
+      stock: Infinity,
+      price: [{ stat: "coin", amount: coins }],
+    })),
+    "buy"
   );
 
   // 6. druid's house
@@ -2176,7 +2222,8 @@ export const generateWorld = async (world: World) => {
       item,
       stock: Infinity,
       price: getItemPrice(item),
-    }))
+    })),
+    "buy"
   );
 
   // 7. mage's house
@@ -2282,7 +2329,8 @@ export const generateWorld = async (world: World) => {
       item,
       stock: 1,
       price: getItemPrice(item),
-    }))
+    })),
+    "buy"
   );
 
   // empty houses

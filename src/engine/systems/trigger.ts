@@ -202,7 +202,7 @@ export const performTrade = (
     [SPRITE]: getItemSprite(deal.item),
   });
 
-  addToInventory(world, entity, itemEntity);
+  addToInventory(world, entity, itemEntity, true);
 
   rerenderEntity(world, shop);
 };

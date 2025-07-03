@@ -893,6 +893,11 @@ export const buttonPalettes = {
   white: { background: colors.white, text: colors.black, shadow: colors.grey },
   lime: { background: colors.lime, text: colors.black, shadow: colors.green },
   red: { background: colors.red, text: colors.black, shadow: colors.maroon },
+  yellow: {
+    background: colors.yellow,
+    text: colors.black,
+    shadow: colors.olive,
+  },
 } as const;
 export type Palette = keyof typeof buttonPalettes;
 
@@ -1036,9 +1041,14 @@ export const popupBackground: Sprite = {
   layers: [{ char: "█", color: colors.black }],
 };
 
-export const popupSelection: Sprite = {
-  name: "popup_selection",
+export const buySelection: Sprite = {
+  name: "buy_selection",
   layers: [{ char: "\u0119", color: colors.lime }],
+};
+
+export const sellSelection: Sprite = {
+  name: "sell_selection",
+  layers: [{ char: "\u011a", color: colors.lime }],
 };
 
 export const popupCorner: Sprite = {
