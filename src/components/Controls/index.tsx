@@ -112,9 +112,7 @@ const useAction = (
   return useMemo<Action | undefined>(() => {
     if (paused || !ecs || !heroEntity || !actionEntity) return;
 
-    const disabled =
-      !isControllable(ecs, heroEntity) ||
-      isDisabled(ecs, heroEntity, actionEntity);
+    const disabled = isDisabled(ecs, heroEntity, actionEntity);
     const activation = getActivation(ecs, actionEntity);
     const name = getName(actionEntity);
 
@@ -170,7 +168,8 @@ export default function Controls() {
 
   const questAction = useAction(
     "quest",
-    (world, hero, questEntity) => !canAcceptQuest(world, hero, questEntity),
+    (world, hero, questEntity) =>
+      !isControllable(world, hero) || !canAcceptQuest(world, hero, questEntity),
     () => "QUEST",
     (_, questEntity) => [
       [none, questEntity ? quest : none, none],
@@ -181,7 +180,8 @@ export default function Controls() {
 
   const unlockAction = useAction(
     "unlock",
-    (world, hero, unlockEntity) => !canUnlock(world, hero, unlockEntity),
+    (world, hero, unlockEntity) =>
+      !isControllable(world, hero) || !canUnlock(world, hero, unlockEntity),
     () => "OPEN",
     (_, unlockEntity) => [
       [
@@ -202,7 +202,9 @@ export default function Controls() {
   const shopAction = useAction(
     "shop",
     (world, hero, shopEntity) =>
-      hero[PLAYER].shopping || !isShoppable(world, shopEntity),
+      !isControllable(world, hero) ||
+      hero[PLAYER].shopping ||
+      !isShoppable(world, shopEntity),
     () => "SHOP",
     () => [repeat(none, 3), repeat(none, 3)],
     "lime"
@@ -211,6 +213,7 @@ export default function Controls() {
   const tradeAction = useAction(
     "trade",
     (world, hero, tradeEntity) =>
+      !isControllable(world, hero) ||
       !canShop(world, hero, getDeal(world, tradeEntity)),
     () => "TRADE",
     (world, tradeEntity) => {
@@ -225,7 +228,7 @@ export default function Controls() {
 
   const closeAction = useAction(
     "trade",
-    (world, hero, tradeEntity) => false,
+    (world, hero, tradeEntity) => !isControllable(world, hero),
     () => "CLOSE",
     () => [repeat(none, 3), repeat(none, 3)],
     "red"
@@ -233,7 +236,8 @@ export default function Controls() {
 
   const primaryAction = useAction(
     "primary",
-    (world, hero, primaryEntity) => !canCast(world, hero, primaryEntity),
+    (world, hero, primaryEntity) =>
+      !isControllable(world, hero) || !canCast(world, hero, primaryEntity),
     (primaryEntity) => primaryEntity[SPRITE].name.toUpperCase(),
     (_, primaryEntity) => [
       [none, none, primaryEntity[SPRITE]],
@@ -243,7 +247,8 @@ export default function Controls() {
 
   const secondaryAction = useAction(
     "secondary",
-    (world, hero, secondaryEntity) => secondaryEntity[ITEM].secondary !== "bow",
+    (world, hero, secondaryEntity) =>
+      !isControllable(world, hero) || secondaryEntity[ITEM].secondary !== "bow",
     (secondaryEntity) => secondaryEntity[SPRITE].name.toUpperCase(),
     (_, secondaryEntity) => [
       [none, none, secondaryEntity[SPRITE]],

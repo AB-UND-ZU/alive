@@ -33,7 +33,7 @@ import { BELONGABLE } from "../components/belongable";
 import { copy } from "../../game/math/std";
 import { ORIENTABLE } from "../components/orientable";
 import { CASTABLE } from "../components/castable";
-import { isEnemy } from "./damage";
+import { isDead, isEnemy } from "./damage";
 import { canCast } from "./magic";
 import { EQUIPPABLE } from "../components/equippable";
 import { canShop, closeShop, getDeal, isShoppable, openShop } from "./shop";
@@ -325,7 +325,7 @@ export default function setupTrigger(world: World) {
       if (
         !getAction(world, entity) ||
         entity[MOVABLE].lastInteraction === entityReference ||
-        !isControllable(world, entity) ||
+        (!isControllable(world, entity) && !isDead(world, entity)) ||
         !(
           entity[ACTIONABLE].primaryTriggered ||
           entity[ACTIONABLE].secondaryTriggered
