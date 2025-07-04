@@ -8,7 +8,7 @@ import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { TOOLTIP } from "../components/tooltip";
 import { INVENTORY } from "../components/inventory";
-import { Element, elements, ITEM } from "../components/item";
+import { Element, elements, ITEM, Stackable } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
 import { doorOpen, none } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
@@ -34,7 +34,7 @@ import { copy } from "../../game/math/std";
 import { ORIENTABLE } from "../components/orientable";
 import { CASTABLE } from "../components/castable";
 import { isDead, isEnemy } from "./damage";
-import { canCast } from "./magic";
+import { canCast, chargeSlash } from "./magic";
 import { EQUIPPABLE } from "../components/equippable";
 import { canShop, closeShop, getDeal, isShoppable, openShop } from "./shop";
 import { SHOPPABLE } from "../components/shoppable";
@@ -42,6 +42,7 @@ import { addToInventory } from "./collect";
 import { getSpellStat } from "../../game/balancing/spells";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
+import { abortQuest, acceptQuest as ecsAcceptQuest } from "../utils";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -207,9 +208,31 @@ export const performTrade = (
   rerenderEntity(world, shop);
 };
 
+export const consumeCharge = (
+  world: World,
+  entity: Entity,
+  stackable: Stackable
+) => {
+  // consume one stackable from inventory
+  const chargeId = entity[INVENTORY].items.findLast(
+    (itemId: number) =>
+      world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
+      stackable
+  );
+  const chargeEntity = world.assertByIdAndComponents(chargeId, [ITEM]);
+  if (!isEnemy(world, entity)) {
+    if (chargeEntity[ITEM].amount === 1) {
+      removeFromInventory(world, entity, chargeEntity);
+      disposeEntity(world, chargeEntity);
+    } else {
+      chargeEntity[ITEM].amount -= 1;
+    }
+  }
+};
+
 export const acceptQuest = (world: World, entity: Entity, target: Entity) => {
   // abort any existing quests
-  world.abortQuest(entity);
+  abortQuest(world, entity);
 
   // accept quest and remove from target
   questSequence(
@@ -219,7 +242,7 @@ export const acceptQuest = (world: World, entity: Entity, target: Entity) => {
     target[QUEST].memory,
     world.assertById(entity[ACTIONABLE].quest)
   );
-  world.acceptQuest(target);
+  ecsAcceptQuest(world, target);
 };
 
 export const castSpell = (
@@ -379,6 +402,12 @@ export default function setupTrigger(world: World) {
 
         if (secondaryEntity && secondaryEntity[ITEM].secondary === "bow") {
           shootArrow(world, entity, secondaryEntity);
+        } else if (
+          secondaryEntity &&
+          secondaryEntity[ITEM].secondary === "slash" &&
+          entity[EQUIPPABLE]?.sword
+        ) {
+          chargeSlash(world, entity, secondaryEntity);
         } else if (tradeEntity) {
           closeShop(world, entity, tradeEntity);
         }

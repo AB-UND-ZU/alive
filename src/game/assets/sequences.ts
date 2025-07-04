@@ -128,6 +128,10 @@ import {
   sellSelection,
   craft,
   shop,
+  woodSlashSide,
+  woodSlashCorner,
+  ironSlashSide,
+  ironSlashCorner,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -150,6 +154,7 @@ import {
   ReviveSequence,
   SEQUENCABLE,
   Sequence,
+  SlashSequence,
   SmokeSequence,
   SpellSequence,
   UnlockSequence,
@@ -183,6 +188,7 @@ import { FRAGMENT } from "../../engine/components/fragment";
 import { Shoppable, SHOPPABLE } from "../../engine/components/shoppable";
 import { getActivationRow } from "../../components/Controls";
 import { canShop, frameHeight, frameWidth } from "../../engine/systems/shop";
+import { getIdentifierAndComponents } from "../../engine/utils";
 
 export * from "./npcs";
 export * from "./quests";
@@ -255,6 +261,140 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
     entity[PROJECTILE].moved = true;
     currentDistance += 1;
     updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const slashTicks = 8;
+
+const slashSideSprites = {
+  wood: woodSlashSide,
+  iron: ironSlashSide,
+};
+const slashCornerSprites = {
+  wood: woodSlashCorner,
+  iron: ironSlashCorner,
+};
+
+export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
+  // TODO: resolve circular dependencies and move outside of handler
+  const reversedIterations = [...iterations].reverse();
+  const slashIterations = [
+    ...reversedIterations.slice(2),
+    ...reversedIterations.slice(0, 2),
+  ];
+  const castableEntity = world.assertByIdAndComponents(state.args.castable, [
+    POSITION,
+  ]);
+  const particleCount = Object.keys(state.particles).length;
+  const targetProgress = Math.min(
+    Math.ceil((state.elapsed * slashTicks) / state.args.tick),
+    slashTicks
+  );
+  const cleanupProgress = Math.min(
+    Math.max(
+      Math.ceil((state.elapsed * slashTicks) / state.args.tick) - slashTicks,
+      0
+    ),
+    slashTicks
+  );
+  const currentProgress = cleanupProgress === 0 ? particleCount : slashTicks;
+  const recentParticle = slashTicks - particleCount;
+
+  let finished = state.elapsed > state.args.tick * 2;
+  let updated = false;
+
+  // create spell AoE
+  if (state.args.exertables.length === 0 && !finished) {
+    // create ring around castable
+    for (const iteration of iterations) {
+      const sidePosition = add(castableEntity[POSITION], iteration.direction);
+      const sideExertable = entities.createAoe(world, {
+        [EXERTABLE]: { castable: state.args.castable },
+        [POSITION]: sidePosition,
+      });
+      const cornerExertable = entities.createAoe(world, {
+        [EXERTABLE]: { castable: state.args.castable },
+        [POSITION]: add(sidePosition, iteration.normal),
+      });
+      state.args.exertables.push(
+        world.getEntityId(sideExertable),
+        world.getEntityId(cornerExertable)
+      );
+    }
+
+    updated = true;
+  }
+
+  if (targetProgress > currentProgress && !finished) {
+    const slashSide = slashSideSprites[state.args.material];
+    const slashCorner = slashCornerSprites[state.args.material];
+
+    for (
+      let particleIndex = currentProgress;
+      particleIndex < targetProgress;
+      particleIndex += 1
+    ) {
+      const iterationIndex = Math.floor(particleIndex / 2);
+      const isCorner = particleIndex % 2 === 1;
+
+      const slashIteration = slashIterations[iterationIndex];
+
+      const delta = isCorner
+        ? add(slashIteration.direction, {
+            x: -slashIteration.normal.x,
+            y: -slashIteration.normal.y,
+          })
+        : slashIteration.direction;
+      const slashParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: slashIteration.orientation },
+        [PARTICLE]: {
+          offsetX: delta.x,
+          offsetY: delta.y,
+          offsetZ: effectHeight,
+          duration: state.args.tick / slashTicks,
+          animatedOrigin:
+            particleIndex === 0
+              ? { x: 0, y: 0 }
+              : isCorner
+              ? slashIteration.direction
+              : add(slashIteration.direction, slashIteration.normal),
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: isCorner ? slashCorner : slashSide,
+      });
+      state.particles[`slash-${particleIndex}`] =
+        world.getEntityId(slashParticle);
+    }
+
+    updated = true;
+  }
+
+  // delete
+  if (cleanupProgress > recentParticle) {
+    for (
+      let particleIndex = recentParticle;
+      particleIndex < cleanupProgress;
+      particleIndex += 1
+    ) {
+      const particleName = `slash-${particleIndex}`;
+      const particleEntity = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+    updated = true;
+  }
+
+  // delete castable and AoE
+  if (finished && state.args.exertables.length > 0) {
+    for (const exertableId of state.args.exertables) {
+      disposeEntity(world, world.assertById(exertableId));
+    }
+    state.args.exertables = [];
   }
 
   return { finished, updated };
@@ -711,7 +851,7 @@ const popupDelay = 75;
 const popupTime = frameHeight * popupDelay;
 
 export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
-  const heroEntity = world.getIdentifierAndComponents("hero", [POSITION]);
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   let updated = false;
   let finished = !entity[SHOPPABLE].active;
   const generation = entity[RENDERABLE].generation;
@@ -1993,7 +2133,7 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
   const origin =
     state.args.origin ||
     world.assertByIdAndComponents(state.args.tombstoneId, [POSITION])[POSITION];
-  const compassEntity = world.getIdentifierAndComponents("compass", [ITEM]);
+  const compassEntity = getIdentifierAndComponents(world, "compass", [ITEM]);
 
   if (!state.args.origin) state.args.origin = origin;
 
@@ -2194,7 +2334,7 @@ const shoutSprites = {
 };
 
 export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
-  const heroEntity = world.getIdentifierAndComponents("hero", [POSITION]);
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
 
   let updated = false;
 

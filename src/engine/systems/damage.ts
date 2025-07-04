@@ -29,6 +29,8 @@ import * as colors from "../../game/assets/colors";
 import { createText } from "../../game/assets/sprites";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
+import { RECHARGABLE } from "../components/rechargable";
+import { INVENTORY } from "../components/inventory";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -222,6 +224,31 @@ export default function setupDamage(world: World) {
       // perform bump
       entity[MELEE].facing = targetOrientation;
       entity[MELEE].bumpGeneration = entity[RENDERABLE].generation;
+
+      // set rechargable if applicable
+      const secondaryEntity = world.getEntityByIdAndComponents(
+        entity[EQUIPPABLE].secondary,
+        [ITEM]
+      );
+      const canRecharge =
+        secondaryEntity?.[ITEM].secondary === "slash" ||
+        secondaryEntity?.[ITEM].secondary === "block";
+      const totalCharges = (entity[INVENTORY]?.items || [])
+        .filter(
+          (itemId) =>
+            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
+            "charge"
+        )
+        .reduce(
+          (charges, itemId) =>
+            charges +
+            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].amount,
+          0
+        );
+
+      if (canRecharge && targetEntity[RECHARGABLE] && totalCharges < 10) {
+        targetEntity[RECHARGABLE].hit = true;
+      }
 
       // animate sword orientation
       createSequence<"melee", MeleeSequence>(

@@ -31,18 +31,18 @@ export const boat: Sprite = {
 
 export const bowActive: Sprite = {
   name: "Bow",
-  layers: [{ char: "}", color: colors.silver }],
+  layers: [{ char: "}", color: colors.white }],
 };
 
 export const slashActive: Sprite = {
   name: "Slash",
-  layers: [{ char: "@", color: colors.silver }],
+  layers: [{ char: "@", color: colors.white }],
 };
 
 export const blockActive: Sprite = {
   name: "Block",
   layers: [
-    { char: "0", color: colors.silver },
+    { char: "0", color: colors.white },
     { char: "\u0106", color: colors.black },
     { char: "\u0108", color: colors.black },
   ],

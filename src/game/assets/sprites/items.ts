@@ -469,15 +469,7 @@ export const doubleArrow: Sprite = {
 export const charge: Sprite = {
   name: "Charge",
   layers: [
-    { char: "\u011f", color: colors.silver },
-    { char: "\u0115", color: colors.black },
-  ],
-};
-
-export const doubleCharge: Sprite = {
-  name: "Charge",
-  layers: [
-    { char: "^", color: colors.silver },
+    { char: "^", color: colors.maroon },
     { char: "\u011f", color: colors.grey },
     { char: "\u0115", color: colors.black },
   ],

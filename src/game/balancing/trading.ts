@@ -123,26 +123,29 @@ export const itemPrices: Partial<
   // equipments
   slash: {
     default: [
-      { stat: "xp", amount: 5 },
-      { stat: "coin", amount: 10 },
+      { stat: "coin", amount: 5 },
+      { stackable: "seed", amount: 1 }
     ],
   },
   bow: {
     default: [
-      { stat: "xp", amount: 5 },
-      { stat: "coin", amount: 10 },
+      { stat: "coin", amount: 5 },
+      { stackable: "seed", amount: 1 }
     ],
   },
   block: {
     default: [
-      { stat: "xp", amount: 5 },
-      { stat: "coin", amount: 10 },
+      { stat: "coin", amount: 5 },
+      { stackable: "seed", amount: 1 }
     ],
   },
 
   // spells
   wave1: {
-    default: [{ stat: "coin", amount: 10 }],
+    default: [
+      { stat: "coin", amount: 10 },
+      { consume: "potion1", material: "water", amount: 1 },
+    ],
     fire: [
       { equipment: "primary", primary: "wave1", amount: 1 },
       { stackable: "resource", material: "fire", amount: 1 },
@@ -157,7 +160,10 @@ export const itemPrices: Partial<
     ],
   },
   beam1: {
-    default: [{ stat: "coin", amount: 10 }],
+    default: [
+      { stat: "coin", amount: 10 },
+      { consume: "potion1", material: "water", amount: 1 },
+    ],
     fire: [
       { equipment: "primary", primary: "beam1", amount: 1 },
       { stackable: "resource", material: "fire", amount: 1 },
@@ -215,7 +221,13 @@ export const itemPrices: Partial<
   arrow: {
     default: [
       { stat: "stick", amount: 10 },
-      { stat: "ore", amount: 3 },
+      { stat: "ore", amount: 10 },
+    ],
+  },
+  charge: {
+    default: [
+      { stackable: "resource", material: "wood", amount: 1 },
+      { stackable: "resource", material: "iron", amount: 1 },
     ],
   },
   berry: {

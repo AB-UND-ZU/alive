@@ -13,7 +13,13 @@ import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
-import { none, arrow, getStatSprite, shadow } from "../../game/assets/sprites";
+import {
+  none,
+  arrow,
+  getStatSprite,
+  shadow,
+  charge,
+} from "../../game/assets/sprites";
 import { Item, ITEM, STACK_SIZE } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
@@ -45,6 +51,7 @@ import {
 import { decayTime, lootSpeed } from "../../game/assets/utils";
 import { SPAWNABLE } from "../components/spawnable";
 import { LAYER } from "../components/layer";
+import { RECHARGABLE } from "../components/rechargable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -255,6 +262,7 @@ export const dropEntity = (
 
   const arrowHits = entity[SHOOTABLE]?.hits || 0;
   const arrowStacks = Math.ceil(arrowHits / STACK_SIZE);
+  const recharge = entity[RECHARGABLE]?.hit;
   const items = [
     ...(inventory.filter(
       (itemId: number) =>
@@ -294,6 +302,22 @@ export const dropEntity = (
             })
           )
         )
+      : []),
+    ...(recharge
+      ? [
+          world.getEntityId(
+            entities.createItem(world, {
+              [ITEM]: {
+                amount: 1,
+                stackable: "charge",
+                carrier: -1,
+                bound: false,
+              },
+              [RENDERABLE]: { generation: 0 },
+              [SPRITE]: charge,
+            })
+          ),
+        ]
       : []),
   ];
 

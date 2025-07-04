@@ -75,6 +75,12 @@ export type SpellSequence = {
   areas: number[];
 };
 export type ArrowSequence = { origin: Position; range: number; caster: number };
+export type SlashSequence = {
+  material: "wood" | "iron";
+  castable: number;
+  exertables: number[];
+  tick: number;
+};
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
   step: string;
@@ -139,6 +145,7 @@ export type Sequencable = {
     focus?: SequenceState<FocusSequence>;
     melee?: SequenceState<MeleeSequence>;
     arrow?: SequenceState<ArrowSequence>;
+    slash?: SequenceState<SlashSequence>;
     npc?: SequenceState<NpcSequence>;
     quest?: SequenceState<QuestSequence>;
     dialog?: SequenceState<DialogSequence>;

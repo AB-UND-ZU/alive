@@ -16,7 +16,7 @@ import { PROJECTILE } from "../components/projectile";
 import { SPRITE } from "../components/sprite";
 import { arrow, woodShot } from "../../game/assets/sprites";
 import { INVENTORY } from "../components/inventory";
-import { removeFromInventory } from "./trigger";
+import { consumeCharge } from "./trigger";
 import { createItemAsDrop, dropEntity } from "./drop";
 import { BELONGABLE } from "../components/belongable";
 import {
@@ -67,20 +67,7 @@ export const getStackableArrow = (world: World, position: Position) => {
 };
 
 export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
-  // consume one arrow from inventory
-  const arrowId = entity[INVENTORY].items.findLast(
-    (itemId: number) =>
-      world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable === "arrow"
-  );
-  const arrowEntity = world.assertByIdAndComponents(arrowId, [ITEM]);
-  if (!isEnemy(world, entity)) {
-    if (arrowEntity[ITEM].amount === 1) {
-      removeFromInventory(world, entity, arrowEntity);
-      disposeEntity(world, arrowEntity);
-    } else {
-      arrowEntity[ITEM].amount -= 1;
-    }
-  }
+  consumeCharge(world, entity, "arrow");
 
   const tick =
     world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[

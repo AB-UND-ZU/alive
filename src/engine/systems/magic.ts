@@ -1,10 +1,11 @@
 import { World } from "../ecs";
+import { entities } from "..";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
-import { SEQUENCABLE } from "../components/sequencable";
+import { SEQUENCABLE, SlashSequence } from "../components/sequencable";
 import { disposeEntity, getCell } from "./map";
-import { getSequence } from "./sequence";
+import { createSequence, getSequences } from "./sequence";
 import { CASTABLE } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
@@ -16,13 +17,22 @@ import {
   isDead,
   isFriendlyFire,
 } from "./damage";
-import { STATS } from "../components/stats";
+import { emptyStats, STATS } from "../components/stats";
 import { rerenderEntity } from "./renderer";
 import { relativeOrientations } from "../../game/math/path";
 import { BURNABLE } from "../components/burnable";
 import { PLAYER } from "../components/player";
 import { extinguishEntity, getBurnables } from "./burn";
 import { freezeTerrain, getFreezables, isFrozen } from "./freeze";
+import { BELONGABLE } from "../components/belongable";
+import { ORIENTABLE } from "../components/orientable";
+import { SPRITE } from "../components/sprite";
+import { EQUIPPABLE } from "../components/equippable";
+import { ITEM } from "../components/item";
+import { copy } from "../../game/math/std";
+import { none } from "../../game/assets/sprites";
+import { MOVABLE } from "../components/movable";
+import { consumeCharge } from "./trigger";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -59,6 +69,56 @@ export const getParticleAmount = (world: World, amount: number) => {
   return 1;
 };
 
+export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
+  consumeCharge(world, entity, "charge");
+
+  const entityId = world.getEntityId(entity);
+  const swordEntity = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
+    ITEM,
+  ]);
+  const slashMaterial = swordEntity[ITEM].material === "iron" ? "iron" : "wood";
+  const { damage } = calculateDamage(
+    "physical",
+    Math.ceil(swordEntity[ITEM].amount / 2),
+    0,
+    entity[STATS],
+    emptyStats
+  );
+  const spellEntity = entities.createSpell(world, {
+    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+    [CASTABLE]: {
+      affected: {},
+      damage,
+      burn: 0,
+      freeze: 0,
+      heal: 0,
+      caster: entityId,
+    },
+    [ORIENTABLE]: {},
+    [POSITION]: copy(entity[POSITION]),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: none,
+  });
+  const tick = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+    REFERENCE,
+  ])[REFERENCE].tick;
+
+  // spin sword around
+  createSequence<"slash", SlashSequence>(
+    world,
+    spellEntity,
+    "slash",
+    "chargeSlash",
+    {
+      tick,
+      material: slashMaterial,
+      castable: world.getEntityId(spellEntity),
+      exertables: [],
+    }
+  );
+};
+
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
   const playerHealings: Record<number, number> = {};
@@ -85,10 +145,7 @@ export default function setupMagic(world: World) {
       if (casterEntity?.[BURNABLE]?.eternal) continue;
 
       // delete finished spell entities and smoke anchors
-      if (
-        !getSequence(world, entity, "spell") &&
-        !getSequence(world, entity, "smoke")
-      ) {
+      if (getSequences(world, entity).length === 0) {
         disposeEntity(world, entity);
       }
     }

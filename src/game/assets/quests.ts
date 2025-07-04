@@ -5,6 +5,11 @@ import { POSITION } from "../../engine/components/position";
 import { QuestSequence, Sequence } from "../../engine/components/sequencable";
 import { STATS } from "../../engine/components/stats";
 import { isUnlocked } from "../../engine/systems/action";
+import {
+  getIdentifier,
+  getIdentifierAndComponents,
+  setHighlight,
+} from "../../engine/utils";
 import { getDistance } from "../math/std";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 
@@ -17,7 +22,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     updated: false,
   };
   const guideEntity = world.getEntityById(state.args.giver);
-  const doorEntity = world.getIdentifier("gate");
+  const doorEntity = getIdentifier(world, "gate");
 
   if (!doorEntity) {
     return { updated: stage.updated, finished: stage.finished };
@@ -34,43 +39,43 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "sword",
     onEnter: () => {
-      world.setHighlight("quest", world.getIdentifier("wood_two"));
+      setHighlight(world, "quest", getIdentifier(world, "wood_two"));
       return true;
     },
     isCompleted: () => !!entity[EQUIPPABLE].sword,
     onLeave: () => "pot",
   });
 
-  const potEntity = world.getIdentifier("pot");
+  const potEntity = getIdentifier(world, "pot");
   step({
     stage,
     name: "pot",
     onEnter: () => {
-      world.setHighlight("enemy", potEntity);
+      setHighlight(world, "enemy", potEntity);
       return true;
     },
     isCompleted: () => !potEntity,
     onLeave: () => "coin",
   });
 
-  const coinEntity = world.getIdentifier("coin");
+  const coinEntity = getIdentifier(world, "coin");
   step({
     stage,
     name: "coin",
     onEnter: () => {
-      world.setHighlight("quest", coinEntity);
+      setHighlight(world, "quest", coinEntity);
       return true;
     },
     isCompleted: () => !coinEntity,
     onLeave: () => "prism",
   });
 
-  const prismEntity = world.getIdentifier("prism");
+  const prismEntity = getIdentifier(world, "prism");
   step({
     stage,
     name: "prism",
     onEnter: () => {
-      world.setHighlight("enemy", prismEntity);
+      setHighlight(world, "enemy", prismEntity);
       return true;
     },
     isCompleted: () => !prismEntity,
@@ -81,19 +86,19 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "collect",
     onEnter: () => {
-      world.setHighlight("quest", guideEntity);
+      setHighlight(world, "quest", guideEntity);
       return true;
     },
     isCompleted: () => entity[STATS].coin >= 5,
     onLeave: () => "buy",
   });
 
-  const keyEntity = world.getIdentifierAndComponents("key", [ITEM]);
+  const keyEntity = getIdentifierAndComponents(world, "key", [ITEM]);
   step({
     stage,
     name: "buy",
     onEnter: () => {
-      world.setHighlight();
+      setHighlight(world);
       return true;
     },
     isCompleted: () =>
@@ -105,7 +110,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "door",
     onEnter: () => {
-      world.setHighlight("quest", doorEntity);
+      setHighlight(world, "quest", doorEntity);
       return true;
     },
   });
@@ -116,7 +121,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     name: "finish",
     forceEnter: () => !guideEntity || isUnlocked(world, doorEntity),
     onEnter: () => {
-      world.setHighlight();
+      setHighlight(world);
       return true;
     },
     isCompleted: () => true,
@@ -142,7 +147,7 @@ export const waypointQuest: Sequence<QuestSequence> = (
 
   const size = world.metadata.gameEntity[LEVEL].size;
   const targetEntity = identifier
-    ? world.getIdentifierAndComponents(identifier, [POSITION])
+    ? getIdentifierAndComponents(world, identifier, [POSITION])
     : world.getEntityByIdAndComponents(targetId || state.args.giver, [
         POSITION,
       ]);
@@ -158,14 +163,14 @@ export const waypointQuest: Sequence<QuestSequence> = (
     stage,
     name: "search",
     onEnter: () => {
-      world.setHighlight(highlight || "quest", targetEntity);
+      setHighlight(world, highlight || "quest", targetEntity);
       return true;
     },
     isCompleted: () =>
       !!targetEntity &&
       getDistance(entity[POSITION], targetEntity[POSITION], size) <= distance,
     onLeave: () => {
-      world.setHighlight();
+      setHighlight(world);
       return END_STEP;
     },
   });

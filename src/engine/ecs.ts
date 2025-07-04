@@ -8,22 +8,13 @@ import { entities } from ".";
 import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
 import { LEVEL } from "./components/level";
-import { IDENTIFIABLE } from "./components/identifiable";
-import { Quest, QUEST } from "./components/quest";
-import { TRACKABLE } from "./components/trackable";
-import { Focusable, FOCUSABLE } from "./components/focusable";
-import { TOOLTIP } from "./components/tooltip";
-import { pending, quest as questSprite } from "../game/assets/sprites";
-import { rerenderEntity } from "./systems/renderer";
-import { getSequence } from "./systems/sequence";
 import { Entity, TypedEntity } from "./entities";
 import { getHasteInterval } from "./systems/movement";
-import { PLAYER } from "./components/player";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
 
-const ECS_DEBUG = false;
+export const ECS_DEBUG = false;
 
 export default function createWorld(size: number) {
   const world = ECS.createWorld() as PatchedWorld;
@@ -156,126 +147,13 @@ export default function createWorld(size: number) {
   const update = ECS.update.bind(ECS, world);
   const cleanup = ECS.cleanup.bind(ECS, world);
 
-  // util methods to avoid calling ECS directly
-  const offerQuest = (
-    entity: ECSEntity,
-    name: Quest["name"],
-    memory: any,
-    retry: boolean = true
-  ) => {
-    if (entity[QUEST]) {
-      entity[QUEST].name = name;
-      entity[QUEST].available = true;
-    } else {
-      addComponentToEntity(entity, QUEST, {
-        name,
-        available: true,
-        retry,
-        memory,
-      });
-    }
-    entity[TOOLTIP].idle = questSprite;
-  };
-
-  const acceptQuest = (entity: ECSEntity) => {
-    entity[QUEST].available = false;
-    entity[TOOLTIP].idle = pending;
-    entity[TOOLTIP].changed = true;
-  };
-
-  const abortQuest = (entity: TypedEntity) => {
-    const activeQuest = getSequence(ecs, entity, "quest");
-
-    if (!activeQuest) return;
-
-    const giverEntity = getEntityById(activeQuest.args.giver);
-
-    if (
-      !giverEntity?.[QUEST]?.retry ||
-      giverEntity[QUEST].name !== activeQuest.name
-    )
-      return;
-
-    offerQuest(
-      giverEntity,
-      activeQuest.name as Quest["name"],
-      giverEntity[QUEST].memory
-    );
-  };
-
-  const setIdentifier = (entity: TypedEntity, identifier: string) => {
-    addComponentToEntity(entity, IDENTIFIABLE, { name: identifier });
-  };
-
-  const assertIdentifier = (identifier: string) => {
-    const entity = getIdentifier(identifier);
-
-    if (!entity) {
-      const message = `${JSON.stringify(identifier)}: Could not find entity!`;
-      if (ECS_DEBUG) console.info(Date.now(), "ASSERT", message, entity);
-      throw new Error(`Assertion failed for entity with identifier ${message}`);
-    }
-
-    return entity;
-  };
-
-  const assertIdentifierAndComponents = <C extends keyof Entity>(
-    identifier: string,
-    componentNames: C[]
-  ) => {
-    const entity = assertIdentifier(identifier);
-    return assertComponents(entity, componentNames);
-  };
-
-  const getIdentifier = (identifier: string) =>
-    getEntities([IDENTIFIABLE]).find(
-      (entity) => entity[IDENTIFIABLE].name === identifier
-    );
-
-  const getIdentifierAndComponents = <C extends keyof Entity>(
-    identifier: string,
-    componentNames: C[]
-  ) => {
-    const entity = getIdentifier(identifier);
-    if (!entity) return;
-    return getEntityComponents(entity, componentNames);
-  };
-
-  const setHighlight = (
-    highlight?: Focusable["highlight"],
-    entity?: TypedEntity
-  ) => {
-    const entityId = highlight && entity && getEntityId(entity);
-    const focusEntity = getIdentifierAndComponents("focus", [
-      FOCUSABLE,
-      TRACKABLE,
-    ]);
-    const heroEntity = getIdentifierAndComponents("hero", [PLAYER]);
-
-    if (!focusEntity) return;
-
-    focusEntity[FOCUSABLE].pendingTarget = entityId;
-    focusEntity[FOCUSABLE].highlight = highlight;
-    focusEntity[TRACKABLE].target = heroEntity && getEntityId(heroEntity);
-    rerenderEntity(ecs, focusEntity);
-  };
-
-  const setNeedle = (entity?: TypedEntity) => {
-    const entityId = entity && getEntityId(entity);
-    const compassEntity = getIdentifierAndComponents("compass", [TRACKABLE]);
-
-    if (!compassEntity) return;
-
-    compassEntity[TRACKABLE].target = entityId;
-    rerenderEntity(ecs, compassEntity);
-  };
-
   const ecs = {
     createEntity,
     removeEntity,
     getEntity,
     getEntityById,
     getEntityId,
+    getEntityComponents,
     getEntities,
     addComponentToEntity,
     removeComponentFromEntity,
@@ -287,18 +165,6 @@ export default function createWorld(size: number) {
     assertById,
     assertComponents,
     assertByIdAndComponents,
-
-    offerQuest,
-    acceptQuest,
-    abortQuest,
-    setHighlight,
-    setNeedle,
-
-    getIdentifier,
-    assertIdentifier,
-    assertIdentifierAndComponents,
-    getIdentifierAndComponents,
-    setIdentifier,
 
     metadata: {
       gameEntity: {} as TypedEntity<"LEVEL" | "RENDERABLE" | "REFERENCE">,

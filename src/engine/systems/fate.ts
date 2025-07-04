@@ -49,6 +49,14 @@ import { PUSHABLE } from "../components/pushable";
 import { AFFECTABLE } from "../components/affectable";
 import { defaultLight } from "./consume";
 import { LAYER } from "../components/layer";
+import {
+  abortQuest,
+  getIdentifier,
+  getIdentifierAndComponents,
+  setHighlight,
+  setIdentifier,
+  setNeedle,
+} from "../utils";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -122,9 +130,9 @@ export default function setupFate(world: World) {
     ])) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
         // abort any pending quest and focus
-        world.abortQuest(entity);
-        world.setNeedle();
-        world.setHighlight();
+        abortQuest(world, entity);
+        setNeedle(world);
+        setHighlight(world);
 
         const defaultVision =
           entity[LIGHT].visibility === defaultLight.visibility &&
@@ -311,10 +319,10 @@ export default function setupFate(world: World) {
         "pointerArrow",
         {}
       );
-      world.setIdentifier(heroEntity, "hero");
+      setIdentifier(world, heroEntity, "hero");
 
       const heroId = world.getEntityId(heroEntity);
-      const compassEntity = world.getIdentifierAndComponents("compass", [
+      const compassEntity = getIdentifierAndComponents(world, "compass", [
         ITEM,
         TRACKABLE,
       ]);
@@ -342,9 +350,9 @@ export default function setupFate(world: World) {
         }
 
         // set needle to spawn
-        const spawnEntity = world.getIdentifier("spawn");
+        const spawnEntity = getIdentifier(world, "spawn");
         if (spawnEntity) {
-          world.setNeedle(spawnEntity);
+          setNeedle(world, spawnEntity);
         }
       } else if (compassEntity) {
         // only update needle

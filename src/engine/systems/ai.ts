@@ -54,6 +54,7 @@ import { CASTABLE } from "../components/castable";
 import { BURNABLE } from "../components/burnable";
 import { sellItems } from "./shop";
 import { isControllable } from "./freeze";
+import { getIdentifierAndComponents } from "../utils";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -270,7 +271,7 @@ export default function setupAi(world: World) {
         } else if (pattern.name === "eye") {
           if (!entity[TOOLTIP]) continue;
 
-          const heroEntity = world.getIdentifierAndComponents("hero", [
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
           ]);
           const size = world.metadata.gameEntity[LEVEL].size;
@@ -323,7 +324,7 @@ export default function setupAi(world: World) {
           break;
         } else if (pattern.name === "orb") {
           if (!entity[TOOLTIP]) continue;
-          const heroEntity = world.getIdentifierAndComponents("hero", [
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
             MOVABLE,
           ]);
@@ -471,7 +472,7 @@ export default function setupAi(world: World) {
             break;
           }
         } else if (pattern.name === "fairy") {
-          const heroEntity = world.getIdentifierAndComponents("hero", [
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
           ]);
           const size = world.metadata.gameEntity[LEVEL].size;

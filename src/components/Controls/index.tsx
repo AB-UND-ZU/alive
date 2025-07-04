@@ -249,8 +249,7 @@ export default function Controls() {
 
   const secondaryAction = useAction(
     "secondary",
-    (world, hero, secondaryEntity) =>
-      !isControllable(world, hero) || secondaryEntity[ITEM].secondary !== "bow",
+    (world, hero, secondaryEntity) => !isControllable(world, hero),
     (secondaryEntity) => secondaryEntity[SPRITE].name.toUpperCase(),
     (_, secondaryEntity) => [
       [none, none, secondaryEntity[SPRITE]],

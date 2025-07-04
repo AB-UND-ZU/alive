@@ -55,6 +55,7 @@ import { Tempo, TEMPO } from "./components/tempo";
 import { Layer, LAYER } from "./components/layer";
 import { Shoppable, SHOPPABLE } from "./components/shoppable";
 import { Freezable, FREEZABLE } from "./components/freezable";
+import { Rechargable, RECHARGABLE } from "./components/rechargable";
 
 export type Entity = {
   [ACTIONABLE]: Actionable;
@@ -96,6 +97,7 @@ export type Entity = {
   [PROJECTILE]: Projectile;
   [PUSHABLE]: Pushable;
   [QUEST]: Quest;
+  [RECHARGABLE]: Rechargable;
   [RENDERABLE]: Renderable;
   [REFERENCE]: Reference;
   [REVIVABLE]: Revivable;
@@ -230,7 +232,6 @@ export const createCrafting = entityFactory([
   SPRITE,
   TOOLTIP,
 ]);
-
 
 export const createDeposit = entityFactory([
   ATTACKABLE,
@@ -410,6 +411,7 @@ export const createMob = entityFactory([
   NPC,
   ORIENTABLE,
   POSITION,
+  RECHARGABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,

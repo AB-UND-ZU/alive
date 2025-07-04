@@ -19,6 +19,7 @@ import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
 import { getShoppable, isShoppable } from "./shop";
+import { EQUIPPABLE } from "../components/equippable";
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
@@ -121,7 +122,9 @@ export const getAvailableSecondary = (
         world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
         "charge"
     );
-    if (hasCharge) return itemEntity;
+
+    // ensure melee is worn for slash
+    if (hasCharge && !(secondary === 'slash' && !entity[EQUIPPABLE]?.sword)) return itemEntity;
   }
 };
 

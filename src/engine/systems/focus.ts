@@ -9,6 +9,7 @@ import { ITEM } from "../components/item";
 import { isLootable } from "./collect";
 import { isDead } from "./damage";
 import { PLAYER } from "../components/player";
+import { getIdentifierAndComponents } from "../utils";
 
 export default function setupFocus(world: World) {
   let referenceGenerations = -1;
@@ -29,7 +30,9 @@ export default function setupFocus(world: World) {
       let pendingId = entity[FOCUSABLE].pendingTarget;
 
       // focus compass on inital drop
-      const compassEntity = world.getIdentifierAndComponents("compass", [ITEM]);
+      const compassEntity = getIdentifierAndComponents(world, "compass", [
+        ITEM,
+      ]);
       const carrierEntity =
         compassEntity && world.getEntityById(compassEntity[ITEM].carrier);
 

@@ -35,6 +35,13 @@ import { STATS } from "../../engine/components/stats";
 import { CASTABLE } from "../../engine/components/castable";
 import { defaultLight } from "../../engine/systems/consume";
 import { QUEST } from "../../engine/components/quest";
+import {
+  assertIdentifier,
+  getIdentifier,
+  getIdentifierAndComponents,
+  offerQuest,
+  setNeedle,
+} from "../../engine/utils";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -47,15 +54,15 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const { townPosition, townWidth, townHeight } = state.args.memory;
 
-  const heroEntity = world.getIdentifierAndComponents("hero", [
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
     POSITION,
     VIEWABLE,
     LIGHT,
     SPAWNABLE,
   ]);
-  const focusEntity = world.getIdentifier("focus");
-  const doorEntity = world.getIdentifier("gate");
-  const compassEntity = world.getIdentifierAndComponents("compass", [ITEM]);
+  const focusEntity = getIdentifier(world, "focus");
+  const doorEntity = getIdentifier(world, "gate");
+  const compassEntity = getIdentifierAndComponents(world, "compass", [ITEM]);
 
   if (!heroEntity || !focusEntity || !doorEntity || !compassEntity) {
     return { finished: stage.finished, updated: stage.updated };
@@ -80,10 +87,10 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       heroEntity[SPAWNABLE].position = { x: 0, y: 9 };
       heroEntity[SPAWNABLE].light = { ...defaultLight };
 
-      const spawnEntity = world.getIdentifier("spawn");
+      const spawnEntity = getIdentifier(world, "spawn");
       if (spawnEntity) {
         moveEntity(world, spawnEntity, heroEntity[SPAWNABLE].position);
-        world.setNeedle(spawnEntity);
+        setNeedle(world, spawnEntity);
       }
 
       // give player compass if not already done
@@ -145,7 +152,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
       // clear invisible walls
       for (let offset = 0; offset < 3; offset += 1) {
-        const mountainEntity = world.getIdentifier(`mountain-${offset}`);
+        const mountainEntity = getIdentifier(world, `mountain-${offset}`);
         disposeEntity(world, mountainEntity!);
       }
 
@@ -167,11 +174,11 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
         x: 0,
         y: 1,
       });
-      const spawnEntity = world.getIdentifier("spawn");
+      const spawnEntity = getIdentifier(world, "spawn");
 
       if (spawnEntity) {
         moveEntity(world, spawnEntity, heroEntity[SPAWNABLE].position);
-        world.setNeedle(spawnEntity);
+        setNeedle(world, spawnEntity);
       }
       return END_STEP;
     },
@@ -189,18 +196,18 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     updated: false,
   };
 
-  const focusEntity = world.getIdentifier("focus");
-  const doorEntity = world.getIdentifier("gate");
-  const houseDoor = world.getIdentifierAndComponents("guide_door", [POSITION]);
-  const compassEntity = world.getIdentifier("compass");
+  const focusEntity = getIdentifier(world, "focus");
+  const doorEntity = getIdentifier(world, "gate");
+  const houseDoor = getIdentifierAndComponents(world, "guide_door", [POSITION]);
+  const compassEntity = getIdentifier(world, "compass");
 
-  const heroEntity = world.getIdentifierAndComponents("hero", [
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
     POSITION,
     EQUIPPABLE,
     STATS,
   ]);
-  const keyEntity = world.getIdentifierAndComponents("key", [ITEM]);
-  const chestEntity = world.getIdentifier("compass_chest");
+  const keyEntity = getIdentifierAndComponents(world, "key", [ITEM]);
+  const chestEntity = getIdentifier(world, "compass_chest");
 
   if (!focusEntity || !doorEntity || !houseDoor || !compassEntity) {
     return { finished: stage.finished, updated: stage.updated };
@@ -229,7 +236,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     stage,
     name: "quest",
     onEnter: () => {
-      world.offerQuest(entity, "introQuest", {});
+      offerQuest(world, entity, "introQuest", {});
 
       entity[TOOLTIP].override = undefined;
       entity[TOOLTIP].changed = true;
@@ -369,7 +376,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
         {
           name: "collect",
           memory: {
-            item: world.getEntityId(world.assertIdentifier("key")),
+            item: world.getEntityId(assertIdentifier(world, "key")),
           },
         },
         {
@@ -438,7 +445,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
         {
           name: "sell",
           memory: {
-            item: world.assertIdentifier("key")[ITEM],
+            item: assertIdentifier(world, "key")[ITEM],
             activation: [{ stat: "coin", amount: 5 }],
           },
         },
@@ -473,7 +480,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
         {
           name: "kill",
           memory: {
-            target: world.getEntityId(world.assertIdentifier("hero")),
+            target: world.getEntityId(assertIdentifier(world, "hero")),
           },
         },
         {
@@ -491,7 +498,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
         {
           name: "collect",
           memory: {
-            item: world.getEntityId(world.assertIdentifier("key")),
+            item: world.getEntityId(assertIdentifier(world, "key")),
           },
         },
         {
@@ -553,12 +560,14 @@ export const signNpc: Sequence<NpcSequence> = (world, entity, state) => {
     updated: false,
   };
 
-  const heroEntity = world.getIdentifierAndComponents("hero", [
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
     POSITION,
     SPAWNABLE,
   ]);
   const size = world.metadata.gameEntity[LEVEL].size;
-  const welcomeEntity = world.getIdentifierAndComponents("welcome", [POSITION]);
+  const welcomeEntity = getIdentifierAndComponents(world, "welcome", [
+    POSITION,
+  ]);
 
   step({
     stage,

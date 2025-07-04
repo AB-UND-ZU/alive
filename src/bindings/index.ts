@@ -170,6 +170,14 @@ import { LAYER } from "../engine/components/layer";
 import { sellItems } from "../engine/systems/shop";
 import { Deal } from "../engine/components/shoppable";
 import { FREEZABLE } from "../engine/components/freezable";
+import { getSpellStat } from "../game/balancing/spells";
+import {
+  assertIdentifierAndComponents,
+  getIdentifier,
+  offerQuest,
+  setIdentifier,
+} from "../engine/utils";
+import { RECHARGABLE } from "../engine/components/rechargable";
 
 export const generateWorld = async (world: World) => {
   // track distribution of cell types
@@ -556,7 +564,7 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [VIEWABLE]: { active: false, priority: 30 },
       });
-      world.setIdentifier(spawnEntity, "spawn");
+      setIdentifier(world, spawnEntity, "spawn");
 
       entities.createTerrain(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -723,7 +731,7 @@ export const generateWorld = async (world: World) => {
         }
       );
       if (cell === "wood_two")
-        world.setIdentifier(world.assertById(woodEntity[ITEM].carrier), cell);
+        setIdentifier(world, world.assertById(woodEntity[ITEM].carrier), cell);
     } else if (cell === "fruit" || cell === "fruit_one") {
       if (random(0, 1) === 0 || cell === "fruit_one") {
         const fruitEntity = entities.createFruit(world, {
@@ -1038,7 +1046,7 @@ export const generateWorld = async (world: World) => {
         },
         [SPRITE]: coin,
       });
-      world.setIdentifier(world.assertById(coinItem[ITEM].carrier), "coin");
+      setIdentifier(world, world.assertById(coinItem[ITEM].carrier), "coin");
     } else if (cell === "cactus") {
       const { sprite, stats, faction, items } = generateUnitData(
         (["cactus1", "cactus2"] as const)[random(0, 1)]
@@ -1089,7 +1097,7 @@ export const generateWorld = async (world: World) => {
         },
       });
       if (["guide_door", "nomad_door"].includes(cell)) {
-        world.setIdentifier(doorEntity, cell);
+        setIdentifier(world, doorEntity, cell);
       }
     } else if (cell === "gate") {
       const doorEntity = entities.createGate(world, {
@@ -1109,7 +1117,7 @@ export const generateWorld = async (world: World) => {
           nextDialog: 0,
         },
       });
-      world.setIdentifier(doorEntity, "gate");
+      setIdentifier(world, doorEntity, "gate");
     } else if (cell === "campfire") {
       entities.createFire(world, {
         [BURNABLE]: {
@@ -1147,7 +1155,7 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       if (cell === "intro_pot") {
-        world.setIdentifier(potEntity, "pot");
+        setIdentifier(world, potEntity, "pot");
       } else {
         populateInventory(world, potEntity, items, equipments);
       }
@@ -1208,7 +1216,7 @@ export const generateWorld = async (world: World) => {
         [SPRITE]: compass,
         [TRACKABLE]: {},
       });
-      world.setIdentifier(compassEntity, "compass");
+      setIdentifier(world, compassEntity, "compass");
       const { sprite, stats, faction } = generateUnitData("commonChest");
       const chestEntity = entities.createChest(world, {
         [ATTACKABLE]: {},
@@ -1226,7 +1234,7 @@ export const generateWorld = async (world: World) => {
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       compassEntity[ITEM].carrier = world.getEntityId(chestEntity);
-      world.setIdentifier(chestEntity, "compass_chest");
+      setIdentifier(world, chestEntity, "compass_chest");
     } else if (cell === "guide") {
       const { sprite, items, stats, faction, patterns, equipments } =
         generateUnitData("guide");
@@ -1270,7 +1278,7 @@ export const generateWorld = async (world: World) => {
       populateInventory(world, guideEntity, items, equipments);
       npcSequence(world, guideEntity, "guideNpc", {});
 
-      world.setIdentifier(guideEntity, "guide");
+      setIdentifier(world, guideEntity, "guide");
     } else if (cell === "mob" || cell === "prism") {
       const { patterns, items, sprite, stats, faction, equipments, spring } =
         generateUnitData(
@@ -1301,6 +1309,7 @@ export const generateWorld = async (world: World) => {
         [NPC]: {},
         [ORIENTABLE]: {},
         [POSITION]: { x, y },
+        [RECHARGABLE]: { hit: false },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { hits: 0 },
@@ -1320,7 +1329,7 @@ export const generateWorld = async (world: World) => {
         equipments
       );
 
-      if (cell === "prism") world.setIdentifier(mobEntity, "prism");
+      if (cell === "prism") setIdentifier(world, mobEntity, "prism");
     } else if (
       ["house_left", "house_right", "basement_left", "basement_right"].includes(
         cell
@@ -1590,7 +1599,7 @@ export const generateWorld = async (world: World) => {
   });
 
   // postprocess spawn
-  const guideDoor = world.assertIdentifierAndComponents("guide_door", [
+  const guideDoor = assertIdentifierAndComponents(world, "guide_door", [
     POSITION,
   ]);
   const guideHouse = { position: add(guideDoor[POSITION], { x: 1, y: -1 }) };
@@ -1608,7 +1617,7 @@ export const generateWorld = async (world: World) => {
       [SPRITE]: goldKey,
     }
   );
-  world.setIdentifier(spawnKeyEntity, "key");
+  setIdentifier(world, spawnKeyEntity, "key");
 
   // set initial focus on hero
   const highlighEntity = entities.createHighlight(world, {
@@ -1624,7 +1633,7 @@ export const generateWorld = async (world: World) => {
     },
     [ORIENTABLE]: {},
     [POSITION]: copy(
-      world.getIdentifier("compass_chest")?.[POSITION] || { x: 0, y: 0 }
+      getIdentifier(world, "compass_chest")?.[POSITION] || { x: 0, y: 0 }
     ),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
@@ -1638,7 +1647,7 @@ export const generateWorld = async (world: World) => {
     "focusCircle",
     {}
   );
-  world.setIdentifier(highlighEntity, "focus");
+  setIdentifier(world, highlighEntity, "focus");
 
   // create viewpoint for menu area
   const viewpointEntity = entities.createWorld(world, {
@@ -1652,7 +1661,7 @@ export const generateWorld = async (world: World) => {
     townWidth,
     townHeight,
   });
-  world.setIdentifier(viewpointEntity, "viewpoint");
+  setIdentifier(world, viewpointEntity, "viewpoint");
 
   // prevent revealing fog with large menu light range
   for (let offset = 0; offset < 3; offset += 1) {
@@ -1664,7 +1673,7 @@ export const generateWorld = async (world: World) => {
       [RENDERABLE]: { generation: 0 },
       [COLLIDABLE]: {},
     });
-    world.setIdentifier(mountainEntity, `mountain-${offset}`);
+    setIdentifier(world, mountainEntity, `mountain-${offset}`);
   }
 
   // add quest sign after exiting
@@ -1682,8 +1691,8 @@ export const generateWorld = async (world: World) => {
     },
   });
   npcSequence(world, signEntity, "signNpc", {});
-  world.setIdentifier(signEntity, "sign");
-  world.offerQuest(signEntity, "waypointQuest", {
+  setIdentifier(world, signEntity, "sign");
+  offerQuest(world, signEntity, "waypointQuest", {
     identifier: "welcome",
     distance: 1.3,
   });
@@ -1729,7 +1738,7 @@ export const generateWorld = async (world: World) => {
     },
   });
   populateInventory(world, nomadEntity, nomadUnit.items, nomadUnit.equipments);
-  world.setIdentifier(nomadEntity, "nomad");
+  setIdentifier(world, nomadEntity, "nomad");
   const ironKeyEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -1818,7 +1827,7 @@ export const generateWorld = async (world: World) => {
     },
   });
   populateInventory(world, chiefEntity, chiefUnit.items, chiefUnit.equipments);
-  world.setIdentifier(chiefEntity, "chief");
+  setIdentifier(world, chiefEntity, "chief");
   const maxHpEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -1875,7 +1884,7 @@ export const generateWorld = async (world: World) => {
       nextDialog: 0,
     },
   });
-  world.setIdentifier(welcomeEntity, "welcome");
+  setIdentifier(world, welcomeEntity, "welcome");
 
   // 2. elder's house
   const elderUnit = generateUnitData("elder");
@@ -1917,7 +1926,7 @@ export const generateWorld = async (world: World) => {
     },
   });
   populateInventory(world, elderEntity, elderUnit.items, elderUnit.equipments);
-  world.setIdentifier(elderEntity, "elder");
+  setIdentifier(world, elderEntity, "elder");
 
   // 3. scout's house
   const scoutUnit = generateUnitData("scout");
@@ -1959,7 +1968,7 @@ export const generateWorld = async (world: World) => {
     },
   });
   populateInventory(world, scoutEntity, scoutUnit.items, scoutUnit.equipments);
-  world.setIdentifier(scoutEntity, "scout");
+  setIdentifier(world, scoutEntity, "scout");
   sellItems(
     world,
     scoutEntity,
@@ -2019,7 +2028,7 @@ export const generateWorld = async (world: World) => {
     },
   });
   populateInventory(world, smithEntity, smithUnit.items, smithUnit.equipments);
-  world.setIdentifier(smithEntity, "smith");
+  setIdentifier(world, smithEntity, "smith");
   const stickItem: Deal["item"] = {
     stat: "stick",
     amount: 1,
@@ -2151,7 +2160,7 @@ export const generateWorld = async (world: World) => {
     traderUnit.items,
     traderUnit.equipments
   );
-  world.setIdentifier(traderEntity, "trader");
+  setIdentifier(world, traderEntity, "trader");
   sellItems(
     world,
     traderEntity,
@@ -2203,7 +2212,7 @@ export const generateWorld = async (world: World) => {
     },
   });
   populateInventory(world, druidEntity, druidUnit.items, druidUnit.equipments);
-  world.setIdentifier(druidEntity, "druid");
+  setIdentifier(world, druidEntity, "druid");
   const healthItem: Deal["item"] = {
     consume: "potion1",
     material: "fire",
@@ -2301,25 +2310,45 @@ export const generateWorld = async (world: World) => {
     },
   });
   populateInventory(world, mageEntity, mageUnit.items, mageUnit.equipments);
-  world.setIdentifier(mageEntity, "mage");
+  setIdentifier(world, mageEntity, "mage");
   const waveItem: Deal["item"] = {
-    amount: 2,
+    amount: getSpellStat("wave1").damage,
     equipment: "primary",
     primary: "wave1",
   };
   const beamItem: Deal["item"] = {
-    amount: 5,
+    amount: getSpellStat("beam1").damage,
     equipment: "primary",
     primary: "beam1",
+  };
+  const bowItem: Deal["item"] = {
+    equipment: "secondary",
+    secondary: "bow",
+    amount: 1,
+  };
+  const arrowItem: Deal["item"] = {
+    stackable: "arrow",
+    amount: 10,
+  };
+  const slashItem: Deal["item"] = {
+    equipment: "secondary",
+    secondary: "slash",
+    amount: 1,
+  };
+  const chargeItem: Deal["item"] = {
+    stackable: "charge",
+    amount: 10,
   };
   sellItems(
     world,
     mageEntity,
-    [waveItem, beamItem].map((item) => ({
-      item,
-      stock: 1,
-      price: getItemPrice(item),
-    })),
+    [waveItem, beamItem, bowItem, arrowItem, slashItem, chargeItem].map(
+      (item) => ({
+        item,
+        stock: item.stackable ? Infinity : 1,
+        price: getItemPrice(item),
+      })
+    ),
     "buy"
   );
 

@@ -388,6 +388,50 @@ export const woodShot2: Sprite = {
   },
 };
 
+export const woodSlashSide: Sprite = {
+  name: "wood_slash_side",
+  layers: [{ char: "┼", color: colors.maroon }],
+  facing: {
+    up: [{ char: "─", color: colors.maroon }],
+    right: [{ char: "┘", color: colors.maroon }],
+    down: [{ char: "─", color: colors.maroon }],
+    left: [{ char: "│", color: colors.maroon }],
+  },
+};
+
+export const ironSlashSide: Sprite = {
+  name: "iron_slash_side",
+  layers: [{ char: "┼", color: colors.grey }],
+  facing: {
+    up: [{ char: "─", color: colors.grey }],
+    right: [{ char: "┘", color: colors.grey }],
+    down: [{ char: "─", color: colors.grey }],
+    left: [{ char: "│", color: colors.grey }],
+  },
+};
+
+export const woodSlashCorner: Sprite = {
+  name: "wood_slash_corner",
+  layers: [{ char: "┼", color: colors.maroon }],
+  facing: {
+    up: [{ char: "┌", color: colors.maroon }],
+    right: [{ char: "┐", color: colors.maroon }],
+    down: [{ char: "┘", color: colors.maroon }],
+    left: [{ char: "└", color: colors.maroon }],
+  },
+};
+
+export const ironSlashCorner: Sprite = {
+  name: "iron_slash_corner",
+  layers: [{ char: "┼", color: colors.grey }],
+  facing: {
+    up: [{ char: "┌", color: colors.grey }],
+    right: [{ char: "┐", color: colors.grey }],
+    down: [{ char: "┘", color: colors.grey }],
+    left: [{ char: "└", color: colors.grey }],
+  },
+};
+
 export const beam: Sprite = {
   name: "spell_beam",
   layers: [{ char: "∙", color: colors.silver }],
