@@ -275,27 +275,27 @@ export const getItemPrice = (
   return itemPrices[lookup]?.[material] || [];
 };
 
-/* balance: <count> * <coins> ~= 40
+/* balance: <count> * <coins> ~= 20
 - item <avg> * <freq> / <stack> = <count> → <coins>
-- berry 70 * 1.25 / 10 = 9 → 4
-- apple 22 * 1 = 22 → 2
-- gem 16 * 0.3 = 5 → 8
-- coconut 85 * 0.1 = 8 → 5
-- flower 88 * 1.25 * 0.3 = 11 → 4
-- shroom 22 * 1 = 22 → 2
-- crystal 16 * 0.3 = 5 → 8
-- banana 85 * 0.1 = 8 → 5
+- berry 70 * 1.25 / 10 = 9 → 2
+- apple 22 * 1 = 22 → 1
+- gem 16 * 0.3 = 5 → 4
+- coconut 85 * 0.1 = 8 → 3
+- flower 88 * 1.25 * 0.3 = 11 → 2
+- shroom 22 * 1 = 22 → 1
+- crystal 16 * 0.3 = 5 → 4
+- banana 85 * 0.1 = 8 → 3
 */
 export const itemSales: Partial<Record<Stackable, number>> = {
-  berry: 4,
-  apple: 2,
-  gem: 8,
-  coconut: 5,
-  flower: 4,
-  shroom: 2,
-  crystal: 8,
-  banana: 5,
-  seed: 4,
+  berry: 2,
+  apple: 1,
+  gem: 4,
+  coconut: 3,
+  flower: 2,
+  shroom: 1,
+  crystal: 4,
+  banana: 3,
+  seed: 2,
 };
 
 export const itemPurchases: [Deal["item"], number][] = [

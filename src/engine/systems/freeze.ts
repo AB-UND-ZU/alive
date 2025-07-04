@@ -63,6 +63,7 @@ export const freezeTerrain = (world: World, entity: Entity) => {
     // cancel any bubble animations
     if (getSequence(world, entity, "bubble")) {
       delete entity[SEQUENCABLE].states.bubble;
+      rerenderEntity(world, entity);
     }
 
     // lift up immersed units

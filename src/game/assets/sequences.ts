@@ -176,7 +176,7 @@ import { BELONGABLE } from "../../engine/components/belongable";
 import { CASTABLE } from "../../engine/components/castable";
 import { BURNABLE } from "../../engine/components/burnable";
 import { AFFECTABLE } from "../../engine/components/affectable";
-import { getExertables, getSpellAmount } from "../../engine/systems/magic";
+import { getExertables, getParticleAmount } from "../../engine/systems/magic";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { Shoppable, SHOPPABLE } from "../../engine/components/shoppable";
 import { getActivationRow } from "../../components/Controls";
@@ -278,7 +278,8 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const progress = Math.ceil(state.elapsed / beamSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
-  const spellAmount = getSpellAmount(world, entity);
+  const spellAmount = entity[CASTABLE]?.damage || entity[CASTABLE].heal;
+  const particleAmount = getParticleAmount(world, spellAmount);
   let finished = progress > state.args.duration;
   let updated = false;
 
@@ -292,7 +293,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         offsetZ: particleHeight,
         duration: beamSpeed,
         animatedOrigin: { x: 0, y: 0 },
-        amount: spellAmount,
+        amount: particleAmount,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: edgeSprites[state.args.element],
@@ -307,7 +308,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         offsetZ: particleHeight,
         duration: beamSpeed,
         animatedOrigin: { x: 0, y: 0 },
-        amount: spellAmount,
+        amount: particleAmount,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: edgeSprites[state.args.element],
@@ -356,7 +357,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
     state.args.progress !== progress &&
     progress > 2 &&
     progress <= state.args.duration - state.args.range &&
-    (progress - 1) % Math.min(spellAmount, 3) === 0
+    (progress - 1) % Math.min(particleAmount, 3) === 0
   ) {
     const beamParticle = entities.createParticle(world, {
       [PARTICLE]: {
@@ -364,7 +365,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         offsetY: delta.y,
         offsetZ: particleHeight,
         duration: beamSpeed,
-        amount: spellAmount,
+        amount: particleAmount,
         animatedOrigin: copy(delta),
       },
       [RENDERABLE]: { generation: 1 },
@@ -446,6 +447,7 @@ export const amountMarker: Sequence<MarkerSequence> = (
     state.args.amount > 0 ? healMultiplier * markerDuration : markerDuration;
   const finished = state.elapsed > markerTime;
   let updated = false;
+  const particleAmount = getParticleAmount(world, Math.abs(state.args.amount));
 
   if (!state.particles.marker) {
     const markerParticle = entities.createParticle(world, {
@@ -453,7 +455,7 @@ export const amountMarker: Sequence<MarkerSequence> = (
         offsetX: 0,
         offsetY: 0,
         offsetZ: particleHeight,
-        amount: Math.abs(state.args.amount),
+        amount: particleAmount,
         duration: markerTime,
       },
       [RENDERABLE]: { generation: 1 },

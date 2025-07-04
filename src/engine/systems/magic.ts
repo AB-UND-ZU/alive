@@ -53,9 +53,7 @@ export const canCast = (world: World, entity: Entity, item: Entity) => {
 };
 
 // normalize particle amounts to spell damage
-export const getSpellAmount = (world: World, entity: Entity) => {
-  const amount = entity[CASTABLE]?.damage || entity[CASTABLE].heal;
-
+export const getParticleAmount = (world: World, amount: number) => {
   if (amount >= 5) return 3;
   if (amount >= 3) return 2;
   return 1;
