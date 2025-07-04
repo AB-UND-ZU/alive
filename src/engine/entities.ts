@@ -221,6 +221,17 @@ export const createContainer = entityFactory([
   TOOLTIP,
 ]);
 
+export const createCrafting = entityFactory([
+  COLLIDABLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
+]);
+
+
 export const createDeposit = entityFactory([
   ATTACKABLE,
   BELONGABLE,

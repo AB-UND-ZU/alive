@@ -126,6 +126,8 @@ import {
   defaultBeam,
   buySelection,
   sellSelection,
+  craft,
+  shop,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -718,7 +720,7 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
   const selectedIndex = entity[SHOPPABLE].selectedIndex;
   const selectionX =
     popupCenter.x +
-    ((frameWidth - 3) / 2) * (state.args.transaction === "buy" ? -1 : 1);
+    ((frameWidth - 3) / 2) * (state.args.transaction === "sell" ? 1 : -1);
   const selectionY = popupCenter.y - (frameHeight - 3) / 2;
   const initial = !state.args.generation;
 
@@ -787,7 +789,12 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
     );
     upEndParticle[SPRITE] = popupUpEnd;
     const title = createText(
-      padCenter(state.args.transaction === "buy" ? "Buy" : "Sell", 5),
+      padCenter(
+        `${state.args.transaction[0].toUpperCase()}${state.args.transaction.substring(
+          1
+        )}`,
+        5
+      ),
       colors.lime,
       colors.black
     );
@@ -815,7 +822,10 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
       state.particles[downCenterName],
       [PARTICLE]
     );
-    downCenterParticle[SPRITE] = createText("$", colors.lime, colors.black)[0];
+    downCenterParticle[SPRITE] = addBackground(
+      [state.args.transaction === "craft" ? craft : shop],
+      colors.black
+    )[0];
 
     // add background
     for (let row = 0; row < frameHeight - 2; row += 1) {
@@ -865,9 +875,9 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
       ...(entity[SHOPPABLE] as Shoppable).deals.map((deal) => {
         // swap direction when selling items
         const leftItem =
-          state.args.transaction === "buy" ? deal.item : deal.price[0];
+          state.args.transaction === "sell" ? deal.price[0] : deal.item;
         const rightItems =
-          state.args.transaction === "buy" ? deal.price : [deal.item];
+          state.args.transaction === "sell" ? [deal.item] : deal.price;
 
         const itemSprite = getItemSprite(leftItem);
         const itemText = createText(
@@ -890,10 +900,10 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
         );
 
         // add placeholder on left for buy and right for sell
-        if (state.args.transaction === "buy") {
-          line.unshift(popupBackground);
-        } else {
+        if (state.args.transaction === "sell") {
           line.push(popupBackground);
+        } else {
+          line.unshift(popupBackground);
         }
 
         if (deal.stock > 0) return line;
@@ -956,7 +966,8 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
         animatedOrigin: { x: selectionX, y: -2 },
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: state.args.transaction === "buy" ? buySelection : sellSelection,
+      [SPRITE]:
+        state.args.transaction === "sell" ? sellSelection : buySelection,
     });
     state.particles.selection = world.getEntityId(selectionParticle);
   }

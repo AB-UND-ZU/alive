@@ -10,7 +10,7 @@ import addShoppable, {
 } from "../components/shoppable";
 import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
-import { shop } from "../../game/assets/sprites";
+import { craft, shop } from "../../game/assets/sprites";
 import { getCell } from "./map";
 import { POSITION, Position } from "../components/position";
 import { createSequence } from "./sequence";
@@ -79,7 +79,7 @@ export const sellItems = (
   deals: Shoppable["deals"],
   transaction: Shoppable["transaction"]
 ) => {
-  entity[TOOLTIP].idle = shop;
+  entity[TOOLTIP].idle = transaction === "craft" ? craft : shop;
   entity[TOOLTIP].changed = true;
 
   const viewpointEntity = entities.createViewpoint(world, {
@@ -132,6 +132,7 @@ export const closeShop = (
   heroEntity: Entity,
   shopEntity: Entity
 ) => {
+  
   heroEntity[PLAYER].shopping = undefined;
   shopEntity[SHOPPABLE].active = false;
   shopEntity[TOOLTIP].override = undefined;

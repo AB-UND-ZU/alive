@@ -98,6 +98,7 @@ import { TOOLTIP } from "../engine/components/tooltip";
 import { DROPPABLE } from "../engine/components/droppable";
 import { ACTIONABLE } from "../engine/components/actionable";
 import {
+  anvil,
   basementLeftInside,
   basementRightInside,
   bedCenter,
@@ -2071,6 +2072,40 @@ export const generateWorld = async (world: World) => {
     "buy"
   );
 
+  const smithAnvil = entities.createCrafting(world, {
+    [COLLIDABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [POSITION]: add(smithHouse.position, { x: random(0, 1) * 4 - 2, y: 0 }),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: anvil,
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  const ironSwordItem: Deal["item"] = {
+    equipment: "sword",
+    material: "iron",
+    amount: getGearStat("sword", "iron"),
+  };
+  const ironShieldItem: Deal["item"] = {
+    equipment: "shield",
+    material: "iron",
+    amount: getGearStat("shield", "iron"),
+  };
+  sellItems(
+    world,
+    smithAnvil,
+    [ironSwordItem, ironShieldItem].map((item) => ({
+      item,
+      stock: 1,
+      price: getItemPrice(item),
+    })),
+    "craft"
+  );
+
   // 5. trader's house
   const traderUnit = generateUnitData("trader");
   const traderEntity = entities.createVillager(world, {
@@ -2272,6 +2307,35 @@ export const generateWorld = async (world: World) => {
     equipment: "primary",
     primary: "wave1",
   };
+  const beamItem: Deal["item"] = {
+    amount: 5,
+    equipment: "primary",
+    primary: "beam1",
+  };
+  sellItems(
+    world,
+    mageEntity,
+    [waveItem, beamItem].map((item) => ({
+      item,
+      stock: 1,
+      price: getItemPrice(item),
+    })),
+    "buy"
+  );
+
+  const mageAnvil = entities.createCrafting(world, {
+    [COLLIDABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [POSITION]: add(mageHouse.position, { x: random(0, 1) * 4 - 2, y: 0 }),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: anvil,
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
   const fireWaveItem: Deal["item"] = {
     amount: 2,
     equipment: "primary",
@@ -2289,11 +2353,6 @@ export const generateWorld = async (world: World) => {
     equipment: "primary",
     primary: "wave1",
     material: "earth",
-  };
-  const beamItem: Deal["item"] = {
-    amount: 5,
-    equipment: "primary",
-    primary: "beam1",
   };
   const fireBeamItem: Deal["item"] = {
     amount: 5,
@@ -2315,13 +2374,11 @@ export const generateWorld = async (world: World) => {
   };
   sellItems(
     world,
-    mageEntity,
+    mageAnvil,
     [
-      waveItem,
       fireWaveItem,
       waterWaveItem,
       earthWaveItem,
-      beamItem,
       fireBeamItem,
       waterBeamItem,
       earthBeamItem,
@@ -2330,7 +2387,7 @@ export const generateWorld = async (world: World) => {
       stock: 1,
       price: getItemPrice(item),
     })),
-    "buy"
+    "craft"
   );
 
   // empty houses

@@ -28,17 +28,17 @@ export const itemPrices: Partial<
     wood: [{ stat: "stick", amount: 1 }],
     iron: [
       { equipment: "sword", material: "wood", amount: 1 },
-      { stackable: "resource", material: "iron", amount: 5 },
+      { stackable: "resource", material: "iron", amount: 3 },
     ],
     gold: [
       { equipment: "sword", material: "iron", amount: 1 },
-      { stackable: "resource", material: "gold", amount: 5 },
+      { stackable: "resource", material: "gold", amount: 3 },
     ],
 
     // T4
     diamond: [
       { equipment: "sword", material: "gold", amount: 1 },
-      { stackable: "resource", material: "diamond", amount: 5 },
+      { stackable: "resource", material: "diamond", amount: 3 },
     ],
     fire: [
       { equipment: "sword", material: "gold", amount: 1 },
@@ -56,19 +56,19 @@ export const itemPrices: Partial<
     // T5
     ruby: [
       { equipment: "sword", material: "diamond", amount: 1 },
-      { stackable: "resource", material: "ruby", amount: 5 },
+      { stackable: "resource", material: "ruby", amount: 3 },
     ],
     aether: [
       { equipment: "sword", material: "diamond", amount: 1 },
-      { stackable: "resource", material: "aether", amount: 5 },
+      { stackable: "resource", material: "aether", amount: 3 },
     ],
     void: [
       { equipment: "sword", material: "diamond", amount: 1 },
-      { stackable: "resource", material: "void", amount: 5 },
+      { stackable: "resource", material: "void", amount: 3 },
     ],
     rainbow: [
       { equipment: "sword", material: "diamond", amount: 1 },
-      { stackable: "resource", material: "rainbow", amount: 5 },
+      { stackable: "resource", material: "rainbow", amount: 3 },
     ],
   },
   shield: {

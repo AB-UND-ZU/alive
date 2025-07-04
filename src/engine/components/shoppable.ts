@@ -13,7 +13,7 @@ export type Shoppable = {
   selectedIndex: number;
   deals: Deal[];
   viewpoint: number;
-  transaction: "buy" | "sell";
+  transaction: "buy" | "sell" | "craft";
 };
 
 export const SHOPPABLE = "SHOPPABLE";

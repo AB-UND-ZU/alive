@@ -1262,6 +1262,7 @@ export const quest = createText("!", colors.lime)[0];
 export const pending = createText("!", colors.grey)[0];
 
 export const shop = createText("$", colors.lime)[0];
+export const craft = createText("Σ", colors.lime)[0];
 
 export const rage = createAggro("\u0112")[0];
 

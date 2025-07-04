@@ -206,7 +206,8 @@ export default function Controls() {
       !isControllable(world, hero) ||
       hero[PLAYER].shopping ||
       !isShoppable(world, shopEntity),
-    () => "SHOP",
+    (shopEntity) =>
+      shopEntity[SHOPPABLE].transaction === "craft" ? "CRAFT" : "SHOP",
     () => [repeat(none, 3), repeat(none, 3)],
     "lime"
   );
@@ -216,8 +217,7 @@ export default function Controls() {
     (world, hero, tradeEntity) =>
       !isControllable(world, hero) ||
       !canShop(world, hero, getDeal(world, tradeEntity)),
-    (tradeEntity) =>
-      tradeEntity[SHOPPABLE].transaction === "buy" ? "BUY" : "SELL",
+    (tradeEntity) => tradeEntity[SHOPPABLE].transaction.toUpperCase(),
     (world, tradeEntity) => {
       const deal = getDeal(world, tradeEntity);
       if (deal.price.length === 1) {

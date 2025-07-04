@@ -134,7 +134,7 @@ export const removeFromInventory = (
 export const performTrade = (
   world: World,
   entity: Entity,
-  shop: TypedEntity<"INVENTORY" | "SHOPPABLE" | "TOOLTIP">
+  shop: TypedEntity<"SHOPPABLE" | "TOOLTIP">
 ) => {
   const deal = getDeal(world, shop);
   // remove stats and items
@@ -339,7 +339,7 @@ export default function setupTrigger(world: World) {
       const shopEntity = world.getEntityById(entity[ACTIONABLE].shop);
       const tradeEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].trade,
-        [INVENTORY, TOOLTIP, SHOPPABLE]
+        [TOOLTIP, SHOPPABLE]
       );
       const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
       const primaryEntity = world.getEntityByIdAndComponents(
