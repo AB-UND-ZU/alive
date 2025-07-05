@@ -67,6 +67,11 @@ export const getAttackable = (world: World, position: Position) =>
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity | undefined;
 
+export const getAttackables = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).filter(
+    (target) => ATTACKABLE in target && STATS in target
+  ) as Entity[];
+
 // calculate damage, with 1 / (x + 2) probability for 1 dmg if below 1
 export const calculateDamage = (
   world: World,

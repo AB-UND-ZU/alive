@@ -14,6 +14,7 @@ import {
   calculateDamage,
   calculateHealing,
   createAmountMarker,
+  getAttackables,
   isDead,
   isFriendlyFire,
 } from "./damage";
@@ -168,29 +169,36 @@ export default function setupMagic(world: World) {
       const casterEntity = world.getEntityById(castableEntity[CASTABLE].caster);
       const isEternalFire = casterEntity?.[BURNABLE]?.eternal;
 
-      for (const affectableEntity of getAffectables(world, entity[POSITION])) {
-        const affectableId = world.getEntityId(affectableEntity);
+      const targetEntities =
+        castableEntity[CASTABLE].medium === "physical"
+          ? getAttackables(world, entity[POSITION])
+          : getAffectables(world, entity[POSITION]);
+      for (const targetEntity of targetEntities) {
+        const affectableId = world.getEntityId(targetEntity);
         const affectedGeneration =
           castableEntity[CASTABLE].affected[affectableId];
 
         if (
-          (isFriendlyFire(world, castableEntity, affectableEntity) &&
+          (isFriendlyFire(world, castableEntity, targetEntity) &&
             !castableEntity[CASTABLE].heal) ||
           (affectedGeneration &&
             (!isEternalFire || affectedGeneration === worldGeneration))
         )
           continue;
 
-        if (isFriendlyFire(world, castableEntity, affectableEntity)) {
+        // set affected generation
+        castableEntity[CASTABLE].affected[affectableId] = worldGeneration;
+
+        if (isFriendlyFire(world, castableEntity, targetEntity)) {
           // process healing
-          if (castableEntity[CASTABLE].heal && affectableEntity[STATS]) {
+          if (castableEntity[CASTABLE].heal && targetEntity[STATS]) {
             const { healing, hp } = calculateHealing(
-              affectableEntity[STATS],
+              targetEntity[STATS],
               castableEntity[CASTABLE].heal
             );
-            affectableEntity[STATS].hp = hp;
+            targetEntity[STATS].hp = hp;
 
-            createAmountMarker(world, affectableEntity, healing, "up");
+            createAmountMarker(world, targetEntity, healing, "up");
           }
         } else {
           // inflict direct damage
@@ -201,48 +209,47 @@ export default function setupMagic(world: World) {
               damageType,
               castableEntity[CASTABLE].damage,
               {},
-              affectableEntity
+              targetEntity
             );
-            affectableEntity[STATS].hp = hp;
+            targetEntity[STATS].hp = hp;
 
             const orientation = relativeOrientations(
               world,
               castableEntity[POSITION],
-              affectableEntity[POSITION]
+              targetEntity[POSITION]
             )[0];
 
             // add hit marker
-            createAmountMarker(world, affectableEntity, -damage, orientation);
+            createAmountMarker(world, targetEntity, -damage, orientation);
           }
+
+          if (!targetEntity[AFFECTABLE]) continue;
 
           // set affected unit on fire
           const targetBurn = castableEntity[CASTABLE].burn;
-          const curentBurn = affectableEntity[AFFECTABLE].burn;
-          if (targetBurn > curentBurn && !isDead(world, affectableEntity)) {
-            affectableEntity[AFFECTABLE].burn = targetBurn;
+          const curentBurn = targetEntity[AFFECTABLE].burn;
+          if (targetBurn > curentBurn && !isDead(world, targetEntity)) {
+            targetEntity[AFFECTABLE].burn = targetBurn;
           }
 
           // freeze affected units
           const targetFreeze = castableEntity[CASTABLE].freeze;
-          const curentFreeze = affectableEntity[AFFECTABLE].freeze;
-          if (targetFreeze > curentFreeze && !isDead(world, affectableEntity)) {
-            affectableEntity[AFFECTABLE].freeze = targetFreeze;
+          const curentFreeze = targetEntity[AFFECTABLE].freeze;
+          if (targetFreeze > curentFreeze && !isDead(world, targetEntity)) {
+            targetEntity[AFFECTABLE].freeze = targetFreeze;
           }
         }
 
         // extinguish unit if burning and frozen
         if (
-          affectableEntity[AFFECTABLE].freeze > 0 &&
-          affectableEntity[AFFECTABLE].burn > 0
+          targetEntity[AFFECTABLE].freeze > 0 &&
+          targetEntity[AFFECTABLE].burn > 0
         ) {
-          affectableEntity[AFFECTABLE].freeze = 0;
-          extinguishEntity(world, affectableEntity);
+          targetEntity[AFFECTABLE].freeze = 0;
+          extinguishEntity(world, targetEntity);
         }
 
-        // set affected generation
-        castableEntity[CASTABLE].affected[affectableId] = worldGeneration;
-
-        rerenderEntity(world, affectableEntity);
+        rerenderEntity(world, targetEntity);
       }
 
       for (const burnableEntity of getBurnables(world, entity[POSITION])) {
