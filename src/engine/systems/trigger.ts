@@ -158,7 +158,8 @@ export const performTrade = (
         const matchesConsume =
           activationItem.consume &&
           itemEntity[ITEM].consume === activationItem.consume &&
-          itemEntity[ITEM].material === activationItem.material;
+          itemEntity[ITEM].material === activationItem.material &&
+          itemEntity[ITEM].amount >= activationItem.amount;
         const matchesStackable =
           activationItem.stackable &&
           itemEntity[ITEM].stackable === activationItem.stackable &&
@@ -171,7 +172,7 @@ export const performTrade = (
         const tradedEntity = world.assertByIdAndComponents(tradedId, [ITEM]);
 
         if (
-          activationItem.stackable &&
+          (activationItem.stackable || activationItem.consume) &&
           tradedEntity[ITEM].amount > activationItem.amount
         ) {
           tradedEntity[ITEM].amount -= activationItem.amount;
@@ -197,11 +198,19 @@ export const performTrade = (
   // collect item and reduce stock
   deal.stock -= 1;
 
-  const itemEntity = entities.createItem(world, {
+  const itemData = {
     [ITEM]: { ...deal.item, bound: false, carrier: -1 },
     [RENDERABLE]: { generation: 1 },
     [SPRITE]: getItemSprite(deal.item),
-  });
+  };
+  const itemEntity =
+    deal.item.equipment === "sword"
+      ? entities.createSword(world, {
+          ...itemData,
+          [SEQUENCABLE]: { states: {} },
+          [ORIENTABLE]: {},
+        })
+      : entities.createItem(world, itemData);
 
   addToInventory(world, entity, itemEntity, true);
 
@@ -258,7 +267,7 @@ export const castSpell = (
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [CASTABLE]: {
-      medium: 'magic',
+      medium: "magic",
       affected: {},
       ...spellStats,
       caster: world.getEntityId(entity),
