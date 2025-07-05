@@ -1125,7 +1125,7 @@ export const generateWorld = async (world: World) => {
           combusted: false,
           decayed: false,
         },
-        [FOG]: { visibility, type: "terrain" },
+        [FOG]: { visibility, type: "unit" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
@@ -2066,7 +2066,7 @@ export const generateWorld = async (world: World) => {
       torchItem,
     ].map((item) => ({
       item,
-      stock: item.stackable === "resource" ? Infinity : 1,
+      stock: item.equipment ? 1 : Infinity,
       price: getItemPrice(item),
     })),
     "buy"

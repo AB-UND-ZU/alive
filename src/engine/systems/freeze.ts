@@ -12,7 +12,7 @@ import { SPRITE } from "../components/sprite";
 import { FREEZABLE } from "../components/freezable";
 import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
-import { IMMERSIBLE } from "../components/immersible";
+import addImmersible, { IMMERSIBLE } from "../components/immersible";
 import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { isWalkable } from "./movement";
@@ -22,6 +22,7 @@ import { PLAYER } from "../components/player";
 import { isDead } from "./damage";
 import { getSwimmables } from "./immersion";
 import { SWIMMABLE } from "../components/swimmable";
+import { extinguishEntity } from "./burn";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -73,6 +74,35 @@ export const freezeTerrain = (world: World, entity: Entity) => {
       rerenderEntity(world, swimmableEntity);
     }
   }
+
+  rerenderEntity(world, entity);
+};
+
+// swap sprites when thawing
+export const thawTerrain = (world: World, entity: Entity) => {
+  entity[FREEZABLE].frozen = false;
+
+  const originalSprite = entity[SPRITE];
+  entity[SPRITE] = entity[FREEZABLE].sprite;
+  entity[FREEZABLE].sprite = originalSprite;
+
+  // replace ice with water terrain
+  if (entity[TEMPO]) {
+    entity[TEMPO].amount = -2;
+
+    addImmersible(world, entity, {});
+    updateWalkable(world, entity[POSITION]);
+
+    // lift up immersed units
+    const swimmables = getSwimmables(world, entity[POSITION]);
+    for (const swimmableEntity of swimmables) {
+      swimmableEntity[SWIMMABLE].swimming = true;
+      rerenderEntity(world, swimmableEntity);
+    }
+  }
+
+  // create smoke
+  extinguishEntity(world, entity);
 
   rerenderEntity(world, entity);
 };

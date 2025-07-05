@@ -24,7 +24,7 @@ import { relativeOrientations } from "../../game/math/path";
 import { BURNABLE } from "../components/burnable";
 import { PLAYER } from "../components/player";
 import { extinguishEntity, getBurnables } from "./burn";
-import { freezeTerrain, getFreezables, isFrozen } from "./freeze";
+import { freezeTerrain, getFreezables, isFrozen, thawTerrain } from "./freeze";
 import { BELONGABLE } from "../components/belongable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
@@ -252,6 +252,9 @@ export default function setupMagic(world: World) {
         rerenderEntity(world, targetEntity);
       }
 
+      const targetBurn = castableEntity[CASTABLE].burn;
+      const targetFreeze = castableEntity[CASTABLE].freeze;
+
       for (const burnableEntity of getBurnables(world, entity[POSITION])) {
         if (
           burnableEntity[BURNABLE].combusted ||
@@ -259,8 +262,6 @@ export default function setupMagic(world: World) {
         )
           continue;
 
-        const targetBurn = castableEntity[CASTABLE].burn;
-        const targetFreeze = castableEntity[CASTABLE].freeze;
         const isBurning = burnableEntity[BURNABLE].burning;
 
         // set terrain on fire
@@ -274,18 +275,18 @@ export default function setupMagic(world: World) {
         }
       }
 
-      // freeze terrain
+      // freeze or thaw terrain
       for (const freezableEntity of getFreezables(world, entity[POSITION])) {
-        const targetFreeze = castableEntity[CASTABLE].freeze;
-
         if (
-          isFrozen(world, freezableEntity) ||
-          targetFreeze === 0 ||
           castableEntity[CASTABLE].caster === world.getEntityId(freezableEntity)
         )
           continue;
 
-        freezeTerrain(world, freezableEntity);
+        if (!isFrozen(world, freezableEntity) && targetFreeze > 0) {
+          freezeTerrain(world, freezableEntity);
+        } else if (isFrozen(world, freezableEntity) && targetBurn > 0) {
+          thawTerrain(world, freezableEntity);
+        }
       }
     }
 
