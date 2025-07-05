@@ -258,6 +258,7 @@ export const castSpell = (
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [CASTABLE]: {
+      medium: 'magic',
       affected: {},
       ...spellStats,
       caster: world.getEntityId(entity),

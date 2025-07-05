@@ -8,7 +8,6 @@ import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, registerEntity } from "./map";
 import { ITEM, STACK_SIZE } from "../components/item";
 import { ORIENTABLE, orientationPoints } from "../components/orientable";
-import { EQUIPPABLE } from "../components/equippable";
 import { createSequence, getSequence } from "./sequence";
 import { ArrowSequence, SEQUENCABLE } from "../components/sequencable";
 import { entities } from "..";
@@ -30,10 +29,11 @@ import { isCollision } from "./movement";
 import { isImmersible, isSubmerged } from "./immersion";
 import { collectItem, getCollecting, getLootable } from "./collect";
 import { rerenderEntity } from "./renderer";
-import { STATS } from "../components/stats";
+import { emptyStats, STATS } from "../components/stats";
 import { getLockable } from "./action";
 import { invertOrientation } from "../../game/math/path";
 import { ATTACKABLE } from "../components/attackable";
+import { EQUIPPABLE } from "../components/equippable";
 
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -90,6 +90,16 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
       [RENDERABLE]: { generation: 0 },
     })
   );
+  const swordEntity = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
+    ITEM,
+  ]);
+  const { damage } = calculateDamage(
+    world,
+    "physical",
+    swordEntity[ITEM].amount,
+    entity,
+    emptyStats
+  );
   const shotEntity = entities.createShot(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [MOVABLE]: {
@@ -102,8 +112,7 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
     [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
     [POSITION]: copy(entity[POSITION]),
     [PROJECTILE]: {
-      damage: bow[ITEM].amount,
-      material: bow[ITEM].material,
+      damage: Math.ceil(damage / 2),
       moved: false,
     },
     [RENDERABLE]: { generation: 0 },
@@ -168,17 +177,12 @@ export default function setupBallistics(world: World) {
         if (targetEntity && !isFriendlyFire(world, entity, targetEntity)) {
           // inflict damage
           const attack = entity[PROJECTILE].damage;
-          const shield = world.getEntityByIdAndComponents(
-            targetEntity[EQUIPPABLE]?.shield,
-            [ITEM]
-          );
-          const resistance = shield ? shield[ITEM].amount : 0;
           const { damage, hp } = calculateDamage(
+            world,
             "physical",
             attack,
-            resistance,
             {},
-            targetEntity[STATS]
+            targetEntity
           );
           targetEntity[STATS].hp = hp;
 

@@ -78,21 +78,22 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
   ]);
   const slashMaterial = swordEntity[ITEM].material === "iron" ? "iron" : "wood";
   const { damage } = calculateDamage(
+    world,
     "physical",
-    Math.ceil(swordEntity[ITEM].amount / 2),
-    0,
-    entity[STATS],
+    swordEntity[ITEM].amount,
+    entity,
     emptyStats
   );
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [CASTABLE]: {
       affected: {},
-      damage,
+      damage: Math.ceil(damage / 2),
       burn: 0,
       freeze: 0,
       heal: 0,
       caster: entityId,
+      medium: "physical",
     },
     [ORIENTABLE]: {},
     [POSITION]: copy(entity[POSITION]),
@@ -194,12 +195,13 @@ export default function setupMagic(world: World) {
         } else {
           // inflict direct damage
           if (castableEntity[CASTABLE].damage) {
+            const damageType = castableEntity[CASTABLE].medium;
             const { damage, hp } = calculateDamage(
-              "magic",
+              world,
+              damageType,
               castableEntity[CASTABLE].damage,
-              0,
               {},
-              affectableEntity[STATS]
+              affectableEntity
             );
             affectableEntity[STATS].hp = hp;
 
@@ -300,13 +302,7 @@ export default function setupMagic(world: World) {
 
       if (delta === 0) continue;
 
-      const { damage, hp } = calculateDamage(
-        "true",
-        delta,
-        0,
-        {},
-        entity[STATS]
-      );
+      const { damage, hp } = calculateDamage(world, "true", delta, {}, entity);
       entity[STATS].hp = hp;
 
       // add hit marker

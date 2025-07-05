@@ -31,6 +31,8 @@ import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { RECHARGABLE } from "../components/rechargable";
 import { INVENTORY } from "../components/inventory";
+import { DamageType } from "../components/castable";
+import { TypedEntity } from "../entities";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -65,33 +67,42 @@ export const getAttackable = (world: World, position: Position) =>
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity | undefined;
 
-export type DamageType = "physical" | "magic" | "true";
-
 // calculate damage, with 1 / (x + 2) probability for 1 dmg if below 1
 export const calculateDamage = (
+  world: World,
   medium: DamageType,
   attack: number,
-  resistance: number,
-  attackerStats: Partial<Stats>,
-  defenderStats: Stats
+  attackerEntity: TypedEntity,
+  defenderEntity: TypedEntity
 ) => {
   const offensive =
     medium === "physical"
-      ? attack + (attackerStats.power || 0)
-      : attack + (attackerStats.magic || 0);
+      ? attack + (attackerEntity[STATS]?.power || 0)
+      : medium === "magic"
+      ? attack + (attackerEntity[STATS]?.magic || 0)
+      : attack;
+
+  const shield = world.getEntityByIdAndComponents(
+    defenderEntity[EQUIPPABLE]?.shield,
+    [ITEM]
+  );
   const defensive =
     medium === "physical"
-      ? resistance + defenderStats.armor
+      ? (defenderEntity[STATS]?.armor || 0) + (shield?.[ITEM].amount || 0)
       : medium === "magic"
-      ? defenderStats.armor
+      ? defenderEntity[STATS]?.armor || 0
       : 0;
   const damage =
     offensive > defensive
       ? offensive - defensive
       : 1 / (defensive - offensive + 2);
-  const hp = Math.max(0, defenderStats.hp - damage);
+  const hp = Math.max(0, (defenderEntity[STATS]?.hp || 0) - damage);
   const visibleDamage =
-    damage >= 1 ? damage : Math.ceil(defenderStats.hp) > Math.ceil(hp) ? 1 : 0;
+    damage >= 1
+      ? damage
+      : Math.ceil(defenderEntity[STATS]?.hp || 0) > Math.ceil(hp)
+      ? 1
+      : 0;
   return { damage: visibleDamage, hp };
 };
 
@@ -205,18 +216,12 @@ export default function setupDamage(world: World) {
         ORIENTABLE,
       ]);
       const attack = sword[ITEM].amount;
-
-      const shield = world.getEntityByIdAndComponents(
-        targetEntity[EQUIPPABLE]?.shield,
-        [ITEM]
-      );
-      const resistance = shield ? shield[ITEM].amount : 0;
       const { damage, hp } = calculateDamage(
+        world,
         "physical",
         attack,
-        resistance,
-        entity[STATS],
-        targetEntity[STATS]
+        entity,
+        targetEntity
       );
 
       targetEntity[STATS].hp = hp;

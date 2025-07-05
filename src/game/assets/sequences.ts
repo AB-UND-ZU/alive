@@ -1534,6 +1534,7 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
         freeze: 0,
         heal: 0,
         caster: world.getEntityId(entity),
+        medium: "true",
       },
       [ORIENTABLE]: {},
       [POSITION]: copy(entity[POSITION]),

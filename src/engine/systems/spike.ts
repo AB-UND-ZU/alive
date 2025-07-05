@@ -28,13 +28,7 @@ export const getSpikable = (world: World, position: Position) =>
 export const stingEntity = (world: World, entity: Entity, target: Entity) => {
   const attack = entity[SPIKABLE].damage;
 
-  const { damage, hp } = calculateDamage(
-    "true",
-    attack,
-    0,
-    entity[STATS],
-    target[STATS]
-  );
+  const { damage, hp } = calculateDamage(world, "true", attack, entity, target);
 
   target[STATS].hp = hp;
 

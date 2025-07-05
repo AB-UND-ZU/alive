@@ -53,6 +53,7 @@ export const extinguishEntity = (world: World, entity: Entity) => {
   const castableEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
     [CASTABLE]: {
+      medium: "true",
       affected: {},
       damage: 0,
       burn: 0,
@@ -229,6 +230,7 @@ export default function setupBurn(world: World) {
       const castableEntity = entities.createSpell(world, {
         [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
         [CASTABLE]: {
+          medium: "true",
           affected: {},
           damage: 0,
           burn: 0,

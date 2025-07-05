@@ -1,6 +1,8 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
+export type DamageType = "physical" | "magic" | "true";
+
 export type Castable = {
   caster: number;
   affected: Record<string, number>;
@@ -8,6 +10,7 @@ export type Castable = {
   burn: number;
   freeze: number;
   heal: number;
+  medium: DamageType;
 };
 
 export const CASTABLE = "CASTABLE";

@@ -124,19 +124,19 @@ export const itemPrices: Partial<
   slash: {
     default: [
       { stat: "coin", amount: 5 },
-      { stackable: "seed", amount: 1 }
+      { stackable: "seed", amount: 1 },
     ],
   },
   bow: {
     default: [
       { stat: "coin", amount: 5 },
-      { stackable: "seed", amount: 1 }
+      { stackable: "seed", amount: 1 },
     ],
   },
   block: {
     default: [
       { stat: "coin", amount: 5 },
-      { stackable: "seed", amount: 1 }
+      { stackable: "seed", amount: 1 },
     ],
   },
 
@@ -221,13 +221,13 @@ export const itemPrices: Partial<
   arrow: {
     default: [
       { stat: "stick", amount: 10 },
-      { stat: "ore", amount: 10 },
+      { stackable: "resource", material: "iron", amount: 1 },
     ],
   },
   charge: {
     default: [
+      { stat: "ore", amount: 10 },
       { stackable: "resource", material: "wood", amount: 1 },
-      { stackable: "resource", material: "iron", amount: 1 },
     ],
   },
   berry: {
