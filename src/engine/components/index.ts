@@ -40,7 +40,6 @@ export { default as addReference } from "./reference";
 export { default as addRenderable } from "./renderable";
 export { default as addRevivable } from "./revivable";
 export { default as addSeqencable } from "./sequencable";
-export { default as addShootable } from "./shootable";
 export { default as addShoppable } from "./shoppable";
 export { default as addSoul } from "./soul";
 export { default as addSpawnable } from "./spawnable";

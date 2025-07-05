@@ -41,7 +41,6 @@ import { questSequence } from "../../game/assets/utils";
 import { TRACKABLE } from "../components/trackable";
 import { createSequence } from "./sequence";
 import { BELONGABLE } from "../components/belongable";
-import { SHOOTABLE } from "../components/shootable";
 import { getClassData } from "../../game/balancing/classes";
 import { emptyStats, STATS } from "../components/stats";
 import { getHasteInterval } from "./movement";
@@ -266,7 +265,7 @@ export default function setupFate(world: World) {
       const heroEntity = entities.createHero(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { shots: 0 },
         [BELONGABLE]: { faction: entity[BELONGABLE].faction },
         [COLLECTABLE]: {},
         [DROPPABLE]: { decayed: false },
@@ -293,7 +292,6 @@ export default function setupFate(world: World) {
         [PUSHABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SHOOTABLE]: { hits: 0 },
         [SPAWNABLE]: {
           classKey: entity[SPAWNABLE].classKey,
           position: copy(entity[SPAWNABLE].position),

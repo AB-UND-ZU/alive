@@ -17,15 +17,15 @@ import { SPRITE } from "../components/sprite";
 import { arrow, woodShot } from "../../game/assets/sprites";
 import { INVENTORY } from "../components/inventory";
 import { consumeCharge } from "./trigger";
-import { createItemAsDrop, dropEntity } from "./drop";
+import { createItemAsDrop, dropEntity, isDecayed, isDecaying } from "./drop";
 import { BELONGABLE } from "../components/belongable";
 import {
   calculateDamage,
   createAmountMarker,
+  isDead,
   isEnemy,
   isFriendlyFire,
 } from "./damage";
-import { SHOOTABLE } from "../components/shootable";
 import { isCollision } from "./movement";
 import { isImmersible, isSubmerged } from "./immersion";
 import { collectItem, getCollecting, getLootable } from "./collect";
@@ -33,6 +33,7 @@ import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
 import { getLockable } from "./action";
 import { invertOrientation } from "../../game/math/path";
+import { ATTACKABLE } from "../components/attackable";
 
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -41,7 +42,11 @@ export const getProjectiles = (world: World, position: Position) =>
 
 export const getShootable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
-    (target) => SHOOTABLE in target && STATS in target
+    (target) =>
+      ATTACKABLE in target &&
+      STATS in target &&
+      (!isDead(world, target) || isDecaying(world, target)) &&
+      !isDecayed(world, target)
   ) as Entity | undefined;
 
 export const isBouncable = (world: World, position: Position) =>
@@ -97,7 +102,7 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
     [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
     [POSITION]: copy(entity[POSITION]),
     [PROJECTILE]: {
-      damage: bow[ITEM].amount + entity[STATS].power,
+      damage: bow[ITEM].amount,
       material: bow[ITEM].material,
       moved: false,
     },
@@ -182,8 +187,8 @@ export default function setupBallistics(world: World) {
 
           // increment arrow hit counter on target
           if (!isEnemy(world, entity)) {
-            targetEntity[SHOOTABLE].hits = Math.min(
-              targetEntity[SHOOTABLE].hits + 1,
+            targetEntity[ATTACKABLE].shots = Math.min(
+              targetEntity[ATTACKABLE].shots + 1,
               10
             );
           }
@@ -230,7 +235,7 @@ export default function setupBallistics(world: World) {
 
         const drop = dropEntity(
           world,
-          { [SHOOTABLE]: { hits: 1 } },
+          { [ATTACKABLE]: { shots: 1 } },
           entity[POSITION],
           !!container,
           2,

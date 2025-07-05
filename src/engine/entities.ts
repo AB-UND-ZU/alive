@@ -35,7 +35,6 @@ import { Reference, REFERENCE } from "./components/reference";
 import { Renderable, RENDERABLE } from "./components/renderable";
 import { Revivable, REVIVABLE } from "./components/revivable";
 import { Sequencable, SEQUENCABLE } from "./components/sequencable";
-import { Shootable, SHOOTABLE } from "./components/shootable";
 import { Soul, SOUL } from "./components/soul";
 import { Spawnable, SPAWNABLE } from "./components/spawnable";
 import { Spikable, SPIKABLE } from "./components/spikable";
@@ -102,7 +101,6 @@ export type Entity = {
   [REFERENCE]: Reference;
   [REVIVABLE]: Revivable;
   [SEQUENCABLE]: Sequencable;
-  [SHOOTABLE]: Shootable;
   [SHOPPABLE]: Shoppable;
   [SOUL]: Soul;
   [SPAWNABLE]: Spawnable;
@@ -154,7 +152,6 @@ export const createBox = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
-  SHOOTABLE,
   SPRITE,
   SWIMMABLE,
   TOOLTIP,
@@ -363,7 +360,6 @@ export const createHero = entityFactory([
   PUSHABLE,
   RENDERABLE,
   SEQUENCABLE,
-  SHOOTABLE,
   SPAWNABLE,
   SPRITE,
   STATS,
@@ -414,7 +410,6 @@ export const createMob = entityFactory([
   RECHARGABLE,
   RENDERABLE,
   SEQUENCABLE,
-  SHOOTABLE,
   SPRITE,
   STATS,
   SWIMMABLE,
@@ -624,7 +619,6 @@ export const createVillager = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
-  SHOOTABLE,
   SPRITE,
   STATS,
   SWIMMABLE,

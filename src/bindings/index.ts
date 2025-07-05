@@ -146,7 +146,6 @@ import { REFERENCE } from "../engine/components/reference";
 import { generateUnitData, generateUnitKey } from "../game/balancing/units";
 import { hillsUnitDistribution } from "../game/levels/hills";
 import { BELONGABLE } from "../engine/components/belongable";
-import { SHOOTABLE } from "../engine/components/shootable";
 import { getHasteInterval } from "../engine/systems/movement";
 import { SPIKABLE } from "../engine/components/spikable";
 import { DISPLACABLE } from "../engine/components/displacable";
@@ -590,7 +589,7 @@ export const generateWorld = async (world: World) => {
         desert_rock: { [rock]: sprite },
       };
       const rockEntity = entities.createDeposit(world, {
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { shots: 0 },
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
         [DROPPABLE]: {
@@ -909,7 +908,7 @@ export const generateWorld = async (world: World) => {
         (["hedge1", "hedge2"] as const)[random(0, 1)]
       );
       const hedgeEntity = entities.createResource(world, {
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { shots: 0 },
         [BELONGABLE]: { faction },
         [BURNABLE]: {
           burning: false,
@@ -932,7 +931,7 @@ export const generateWorld = async (world: World) => {
       const { items, sprite, stats, faction, patterns } =
         generateUnitData("tumbleweed");
       const tumbleweedEntity = entities.createTumbleweed(world, {
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { shots: 0 },
         [BEHAVIOUR]: { patterns },
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
@@ -1057,7 +1056,7 @@ export const generateWorld = async (world: World) => {
         [TEMPO]: { amount: -1 },
       });
       const cactusEntity = entities.createCactus(world, {
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { shots: 0 },
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false, remains: sand },
@@ -1136,7 +1135,7 @@ export const generateWorld = async (world: World) => {
       const { sprite, stats, faction, items, equipments } =
         generateUnitData("pot");
       const potEntity = entities.createChest(world, {
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { shots: 0 },
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false },
@@ -1200,7 +1199,6 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: sprite,
         [SWIMMABLE]: { swimming: false },
         [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
@@ -1219,7 +1217,7 @@ export const generateWorld = async (world: World) => {
       setIdentifier(world, compassEntity, "compass");
       const { sprite, stats, faction } = generateUnitData("commonChest");
       const chestEntity = entities.createChest(world, {
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { shots: 0 },
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false },
@@ -1241,7 +1239,7 @@ export const generateWorld = async (world: World) => {
       const guideEntity = entities.createVillager(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { shots: 0 },
         [BEHAVIOUR]: { patterns },
         [BELONGABLE]: { faction },
         [COLLECTABLE]: {},
@@ -1265,7 +1263,6 @@ export const generateWorld = async (world: World) => {
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: sprite,
         [STATS]: { ...emptyStats, ...stats },
         [SWIMMABLE]: { swimming: false },
@@ -1288,7 +1285,7 @@ export const generateWorld = async (world: World) => {
       const mobEntity = entities.createMob(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { shots: 0 },
         [BEHAVIOUR]: { patterns },
         [BELONGABLE]: { faction },
         [DROPPABLE]: { decayed: false },
@@ -1312,7 +1309,6 @@ export const generateWorld = async (world: World) => {
         [RECHARGABLE]: { hit: false },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SHOOTABLE]: { hits: 0 },
         [SPRITE]: sprite,
         [STATS]: {
           ...emptyStats,
@@ -1703,7 +1699,7 @@ export const generateWorld = async (world: World) => {
   const nomadEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
     [BEHAVIOUR]: { patterns: nomadUnit.patterns },
     [BELONGABLE]: { faction: nomadUnit.faction },
     [COLLECTABLE]: {},
@@ -1727,7 +1723,6 @@ export const generateWorld = async (world: World) => {
     [POSITION]: copy(nomadHouse.position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SHOOTABLE]: { hits: 0 },
     [SPRITE]: nomadUnit.sprite,
     [STATS]: { ...emptyStats, ...nomadUnit.stats },
     [SWIMMABLE]: { swimming: false },
@@ -1764,7 +1759,7 @@ export const generateWorld = async (world: World) => {
   );
   const nomadChestData = generateUnitData("uncommonChest");
   const nomadChest = entities.createChest(world, {
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
     [BELONGABLE]: { faction: nomadChestData.faction },
     [COLLIDABLE]: {},
     [DROPPABLE]: { decayed: false },
@@ -1792,7 +1787,7 @@ export const generateWorld = async (world: World) => {
   const chiefEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
     [BEHAVIOUR]: { patterns: chiefUnit.patterns },
     [BELONGABLE]: { faction: chiefUnit.faction },
     [COLLECTABLE]: {},
@@ -1816,7 +1811,6 @@ export const generateWorld = async (world: World) => {
     [POSITION]: copy(chiefHouse.position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SHOOTABLE]: { hits: 0 },
     [SPRITE]: chiefUnit.sprite,
     [STATS]: { ...emptyStats, ...chiefUnit.stats },
     [SWIMMABLE]: { swimming: false },
@@ -1891,7 +1885,7 @@ export const generateWorld = async (world: World) => {
   const elderEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
     [BEHAVIOUR]: { patterns: elderUnit.patterns },
     [BELONGABLE]: { faction: elderUnit.faction },
     [COLLECTABLE]: {},
@@ -1915,7 +1909,6 @@ export const generateWorld = async (world: World) => {
     [POSITION]: copy(elderHouse.position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SHOOTABLE]: { hits: 0 },
     [SPRITE]: elderUnit.sprite,
     [STATS]: { ...emptyStats, ...elderUnit.stats },
     [SWIMMABLE]: { swimming: false },
@@ -1933,7 +1926,7 @@ export const generateWorld = async (world: World) => {
   const scoutEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
     [BEHAVIOUR]: { patterns: scoutUnit.patterns },
     [BELONGABLE]: { faction: scoutUnit.faction },
     [COLLECTABLE]: {},
@@ -1957,7 +1950,6 @@ export const generateWorld = async (world: World) => {
     [POSITION]: copy(scoutHouse.position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SHOOTABLE]: { hits: 0 },
     [SPRITE]: scoutUnit.sprite,
     [STATS]: { ...emptyStats, ...scoutUnit.stats },
     [SWIMMABLE]: { swimming: false },
@@ -1993,7 +1985,7 @@ export const generateWorld = async (world: World) => {
   const smithEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
     [BEHAVIOUR]: { patterns: smithUnit.patterns },
     [BELONGABLE]: { faction: smithUnit.faction },
     [COLLECTABLE]: {},
@@ -2017,7 +2009,6 @@ export const generateWorld = async (world: World) => {
     [POSITION]: copy(smithHouse.position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SHOOTABLE]: { hits: 0 },
     [SPRITE]: smithUnit.sprite,
     [STATS]: { ...emptyStats, ...smithUnit.stats },
     [SWIMMABLE]: { swimming: false },
@@ -2120,7 +2111,7 @@ export const generateWorld = async (world: World) => {
   const traderEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
     [BEHAVIOUR]: { patterns: traderUnit.patterns },
     [BELONGABLE]: { faction: traderUnit.faction },
     [COLLECTABLE]: {},
@@ -2144,7 +2135,6 @@ export const generateWorld = async (world: World) => {
     [POSITION]: copy(traderHouse.position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SHOOTABLE]: { hits: 0 },
     [SPRITE]: traderUnit.sprite,
     [STATS]: { ...emptyStats, ...traderUnit.stats },
     [SWIMMABLE]: { swimming: false },
@@ -2177,7 +2167,7 @@ export const generateWorld = async (world: World) => {
   const druidEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
     [BEHAVIOUR]: { patterns: druidUnit.patterns },
     [BELONGABLE]: { faction: druidUnit.faction },
     [COLLECTABLE]: {},
@@ -2201,7 +2191,6 @@ export const generateWorld = async (world: World) => {
     [POSITION]: copy(druidHouse.position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SHOOTABLE]: { hits: 0 },
     [SPRITE]: druidUnit.sprite,
     [STATS]: { ...emptyStats, ...druidUnit.stats },
     [SWIMMABLE]: { swimming: false },
@@ -2275,7 +2264,7 @@ export const generateWorld = async (world: World) => {
   const mageEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
     [BEHAVIOUR]: { patterns: mageUnit.patterns },
     [BELONGABLE]: { faction: mageUnit.faction },
     [COLLECTABLE]: {},
@@ -2299,7 +2288,6 @@ export const generateWorld = async (world: World) => {
     [POSITION]: copy(mageHouse.position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SHOOTABLE]: { hits: 0 },
     [SPRITE]: mageUnit.sprite,
     [STATS]: { ...emptyStats, ...mageUnit.stats },
     [SWIMMABLE]: { swimming: false },
@@ -2492,7 +2480,7 @@ export const generateWorld = async (world: World) => {
     // add chest
     const chestData = generateUnitData("commonChest");
     const chestEntity = entities.createChest(world, {
-      [ATTACKABLE]: {},
+      [ATTACKABLE]: { shots: 0 },
       [BELONGABLE]: { faction: chestData.faction },
       [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false },

@@ -103,8 +103,8 @@ function Entity({
 
   // particles are rendered in their own stack
   const particleSegments: Segment[] = getParticles(ecs, entity).map(
-    (particle) => ({
-      id: ecs.getEntityId(particle),
+    (particle, index) => ({
+      id: ecs.getEntityId(particle) || index,
       sprite: particle[SPRITE],
       facing: particle[ORIENTABLE]?.facing,
       offsetX: particle[PARTICLE].offsetX,

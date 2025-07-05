@@ -36,7 +36,6 @@ import { createSequence, getSequence } from "./sequence";
 import { TypedEntity } from "../entities";
 import { EQUIPPABLE } from "../components/equippable";
 import { getEntityGeneration } from "./renderer";
-import { SHOOTABLE } from "../components/shootable";
 import {
   ORIENTABLE,
   Orientation,
@@ -52,9 +51,15 @@ import { decayTime, lootSpeed } from "../../game/assets/utils";
 import { SPAWNABLE } from "../components/spawnable";
 import { LAYER } from "../components/layer";
 import { RECHARGABLE } from "../components/rechargable";
+import { ATTACKABLE } from "../components/attackable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
+
+export const isDecaying = (world: World, entity: Entity) =>
+  isDead(world, entity) &&
+  !entity[DROPPABLE].decayed &&
+  !getSequence(world, entity, "decay");
 
 export const MAX_DROP_RADIUS = 5;
 export const findAdjacentWalkable = (
@@ -260,7 +265,7 @@ export const dropEntity = (
     entity[SPAWNABLE].compassId = entity[EQUIPPABLE].compass;
   }
 
-  const arrowHits = entity[SHOOTABLE]?.hits || 0;
+  const arrowHits = entity[ATTACKABLE]?.shots || 0;
   const arrowStacks = Math.ceil(arrowHits / STACK_SIZE);
   const recharge = entity[RECHARGABLE]?.hit;
   const items = [
@@ -410,11 +415,7 @@ export default function setupDrop(world: World) {
       SEQUENCABLE,
       POSITION,
     ])) {
-      if (
-        isDead(world, entity) &&
-        !entity[DROPPABLE].decayed &&
-        !getSequence(world, entity, "decay")
-      ) {
+      if (isDecaying(world, entity)) {
         createSequence<"decay", DecaySequence>(
           world,
           entity,

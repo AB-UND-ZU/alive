@@ -331,6 +331,14 @@ export const decay: Sprite = {
   layers: [{ char: "▒", color: colors.black }],
 };
 
+export const shotHit: Sprite = {
+  name: "shot_hit",
+  layers: [
+    { char: "'", color: colors.maroon },
+    { char: "`", color: colors.grey },
+  ],
+};
+
 export const woodShot: Sprite = {
   name: "shot_wood",
   layers: [

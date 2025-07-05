@@ -371,7 +371,7 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  // delete
+  // fade out circle once done
   if (cleanupProgress > recentParticle) {
     for (
       let particleIndex = recentParticle;

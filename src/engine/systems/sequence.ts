@@ -11,6 +11,11 @@ import { rerenderEntity } from "./renderer";
 import { Entity } from "ecs";
 import { disposeEntity } from "./map";
 import { entities } from "..";
+import { ATTACKABLE } from "../components/attackable";
+import { PARTICLE } from "../components/particle";
+import { lootHeight } from "../../components/Entity/utils";
+import { SPRITE } from "../components/sprite";
+import { shotHit } from "../../game/assets/sprites";
 
 export const getSequences: (
   world: World,
@@ -18,16 +23,28 @@ export const getSequences: (
 ) => SequenceState<any>[] = (world, entity) =>
   SEQUENCABLE in entity ? Object.values(entity[SEQUENCABLE].states) : [];
 
+const shotParticle: ReturnType<typeof entities.createParticle> = {
+  [PARTICLE]: {
+    offsetX: 0,
+    offsetY: 0,
+    offsetZ: lootHeight,
+  },
+  [RENDERABLE]: { generation: 0 },
+  [SPRITE]: shotHit,
+};
+
 export const getParticles = (world: World, entity: Entity) =>
-  getSequences(world, entity).reduce<Entity[]>(
-    (all, sequence) =>
-      all.concat(
-        Object.values(sequence.particles).map((entityId) =>
-          world.getEntityById(entityId)
-        )
-      ),
-    []
-  );
+  getSequences(world, entity)
+    .reduce<Entity[]>(
+      (all, sequence) =>
+        all.concat(
+          Object.values(sequence.particles).map((entityId) =>
+            world.getEntityById(entityId)
+          )
+        ),
+      []
+    )
+    .concat((entity[ATTACKABLE]?.shots || 0) > 0 ? shotParticle : []);
 
 const SEQUENCE_DEBUG = false;
 
