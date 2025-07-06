@@ -1321,6 +1321,9 @@ export const rage = createAggro("\u0112")[0];
 export const sleep1 = createText("z", colors.white)[0];
 export const sleep2 = createText("Z", colors.white)[0];
 
+export const whistle1 = createText("\u010c", colors.white)[0];
+export const whistle2 = createText("\u010d", colors.white)[0];
+
 export const confused = createText("?", colors.white)[0];
 
 export const questPointer: Sprite = {

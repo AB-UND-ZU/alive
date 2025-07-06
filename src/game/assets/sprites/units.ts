@@ -224,7 +224,7 @@ export const tumbleweed: Sprite = {
     { char: "\u0100", color: colors.black },
     { char: "\u0101", color: colors.black },
     { char: "\u0108", color: colors.olive },
-    { char: "+", color: colors.black },
+    { char: "/", color: colors.olive },
   ],
   facing: {
     up: [

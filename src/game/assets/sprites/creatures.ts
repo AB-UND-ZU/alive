@@ -33,6 +33,14 @@ export const knight: Sprite = {
   ],
 };
 
+export const bandit: Sprite = {
+  name: "Bandit",
+  layers: [
+    { char: "\u010b", color: colors.silver },
+    { char: "'", color: colors.grey },
+  ],
+};
+
 export const settler: Sprite = {
   name: "Settler",
   layers: [
@@ -249,45 +257,44 @@ export const earthOrb: Sprite = {
 export const beamTower: Sprite = {
   name: "Tower",
   layers: [
-    { char: "│", color: colors.silver },
+    { char: "│", color: colors.grey },
     { char: "|", color: colors.black },
     { char: "0", color: colors.silver },
-  ],
-};
-
-export const goldBeamTower: Sprite = {
-  name: "Tower",
-  layers: [
-    { char: "│", color: colors.yellow },
-    { char: "|", color: colors.black },
-    { char: "0", color: colors.yellow },
+    { char: "\u0106", color: colors.black },
+    { char: "∙", color: colors.grey },
   ],
 };
 
 export const fireBeamTower: Sprite = {
   name: "Tower",
   layers: [
-    { char: "│", color: colors.red },
+    { char: "│", color: colors.maroon },
     { char: "|", color: colors.black },
     { char: "0", color: colors.red },
+    { char: "\u0106", color: colors.black },
+    { char: "∙", color: colors.maroon },
   ],
 };
 
 export const waterBeamTower: Sprite = {
   name: "Tower",
   layers: [
-    { char: "│", color: colors.blue },
+    { char: "│", color: colors.navy },
     { char: "|", color: colors.black },
     { char: "0", color: colors.blue },
+    { char: "\u0106", color: colors.black },
+    { char: "∙", color: colors.navy },
   ],
 };
 
 export const earthBeamTower: Sprite = {
   name: "Tower",
   layers: [
-    { char: "│", color: colors.lime },
+    { char: "│", color: colors.green },
     { char: "|", color: colors.black },
     { char: "0", color: colors.lime },
+    { char: "\u0106", color: colors.black },
+    { char: "∙", color: colors.green },
   ],
 };
 
@@ -509,6 +516,9 @@ export const fly: Sprite = {
   name: "Fly",
   layers: [
     { char: '"', color: colors.silver },
+    { char: "+", color: colors.grey },
+    { char: "÷", color: colors.black },
+    { char: "∙", color: colors.black },
     { char: ":", color: colors.grey },
     { char: ",", color: colors.black },
   ],

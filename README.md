@@ -36,13 +36,13 @@ _Spawn area with intro quest_
 - Prism: linear, high damage
 - Eye: sleeping, simple approaching, low hp
 - Orb: aligning with player, casting beam, fleeing
+- Fairy: fleeing, teleporting, only hittable with ranged attacks
 - Cube: slow walking, casting short wave after intervals
 - Blade: charging until hit when in line
 - Fly: pass through terrain, explode as attack
 - Beam tower: casting beam when aligning
 - Wave tower: casting wave in intervals or when getting close
 - Fake (chest, pot, tree, cactus, palm, ore): enrage when adjacent, drop stack
-- Blob: fleeing, teleporting, only hittable with ranged attacks
 - Number: Duplicating
 - Question mark: mimicking
 - Shark: swimming

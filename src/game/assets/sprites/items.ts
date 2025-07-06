@@ -447,6 +447,35 @@ export const diamond: Sprite = {
   ],
 };
 
+export const diamondGem: Sprite = {
+  name: "Diamond",
+  layers: [
+    { char: "\u0103", color: colors.aqua },
+    { char: "°", color: colors.black },
+    { char: "═", color: colors.black },
+    { char: "-", color: colors.aqua },
+  ],
+};
+
+export const ruby: Sprite = {
+  name: "Ruby",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "÷", color: colors.fuchsia },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const rubyGem: Sprite = {
+  name: "Ruby",
+  layers: [
+    { char: "\u0103", color: colors.fuchsia },
+    { char: "°", color: colors.black },
+    { char: "═", color: colors.black },
+    { char: "-", color: colors.fuchsia },
+  ],
+};
+
 export const arrow: Sprite = {
   name: "Arrow",
   layers: [
@@ -501,14 +530,14 @@ export const note: Sprite = {
   ],
 };
 
-export const rubyGem: Sprite = {
-  name: "Ruby",
-  layers: [{ char: "\u0103", color: colors.fuchsia }],
-};
-
 export const aetherGem: Sprite = {
   name: "Aether",
-  layers: [{ char: "\u0103", color: colors.white }],
+  layers: [
+    { char: "\u0103", color: colors.white },
+    { char: "°", color: colors.black },
+    { char: "═", color: colors.black },
+    { char: "-", color: colors.white },
+  ],
 };
 
 export const voidShard: Sprite = {
@@ -521,7 +550,12 @@ export const voidShard: Sprite = {
 
 export const voidGem: Sprite = {
   name: "Void",
-  layers: [{ char: "\u0103", color: colors.grey }],
+  layers: [
+    { char: "\u0103", color: colors.silver },
+    { char: "°", color: colors.black },
+    { char: "═", color: colors.black },
+    { char: "-", color: colors.silver },
+  ],
 };
 
 export const rainbowShard: Sprite = {
@@ -534,5 +568,10 @@ export const rainbowShard: Sprite = {
 
 export const rainbowGem: Sprite = {
   name: "Rainbow",
-  layers: [{ char: "\u0103", color: colors.yellow }],
+  layers: [
+    { char: "\u0103", color: colors.yellow },
+    { char: "°", color: colors.black },
+    { char: "═", color: colors.black },
+    { char: "-", color: colors.yellow },
+  ],
 };

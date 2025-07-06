@@ -52,6 +52,15 @@ export const diamondMine: Sprite = {
   ],
 };
 
+export const rubyMine: Sprite = {
+  name: "Diamond",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "÷", color: colors.fuchsia },
+    { char: "·", color: colors.grey },
+  ],
+};
+
 export const water: Sprite = {
   name: "water_shallow",
   layers: [{ char: "█", color: colors.navy }],
