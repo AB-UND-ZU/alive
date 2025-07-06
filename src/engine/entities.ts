@@ -282,16 +282,6 @@ export const createFloat = entityFactory([
   SPRITE,
 ]);
 
-export const createFoilage = entityFactory([
-  BURNABLE,
-  COLLIDABLE,
-  FOG,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-]);
-
 export const createFrame = entityFactory([RENDERABLE, REFERENCE]);
 
 export const createFruit = entityFactory([
@@ -310,8 +300,8 @@ export const createFruit = entityFactory([
 export const createGame = entityFactory([LEVEL, RENDERABLE, REFERENCE]);
 
 export const createGate = entityFactory([
+  BURNABLE,
   FOG,
-  LIGHT,
   LOCKABLE,
   POSITION,
   RENDERABLE,
@@ -436,7 +426,28 @@ export const createOre = entityFactory([
   SPRITE,
 ]);
 
+export const createOrganic = entityFactory([
+  BURNABLE,
+  COLLIDABLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+]);
+
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
+
+export const createPassage = entityFactory([
+  FOG,
+  LIGHT,
+  LOCKABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
+]);
 
 export const createPath = entityFactory([
   ENVIRONMENT,

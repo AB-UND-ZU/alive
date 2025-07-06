@@ -109,6 +109,10 @@ import {
   chairLeft,
   chairRight,
   fence,
+  fenceBurnt1,
+  fenceBurnt2,
+  fenceDoor,
+  fenceDoorBurnt,
   house,
   houseAid,
   houseArmor,
@@ -201,10 +205,11 @@ export const generateWorld = async (world: World) => {
 
   const townWidth = 38;
   const townHeight = 24;
-  const { matrix: townMatrix, houses: relativeHouses } = await generateTown(
-    townWidth,
-    townHeight
-  );
+  const {
+    matrix: townMatrix,
+    houses: relativeHouses,
+    exits: relativeExits,
+  } = await generateTown(townWidth, townHeight);
 
   // choose town position in 50% size distance from spawn at a random angle
   const townAngle = random(0, 359);
@@ -216,13 +221,15 @@ export const generateWorld = async (world: World) => {
     Math.round(((Math.cos((townAngle / 360) * Math.PI * 2) * -1) / 2) * size),
     size
   );
+  const townCorner = {
+    x: townX - townWidth / 2,
+    y: townY - townHeight / 2,
+  };
   const houses = relativeHouses.map((house) => ({
     ...house,
-    position: add(house.position, {
-      x: townX - townWidth / 2,
-      y: townY - townHeight / 2,
-    }),
+    position: add(house.position, townCorner),
   }));
+  const exits = relativeExits.map((exit) => add(exit, townCorner));
 
   // select nomad location in a 60 degrees offset from town angle
   const angleOffset = 60 * (random(0, 1) * 2 - 1);
@@ -401,14 +408,10 @@ export const generateWorld = async (world: World) => {
   });
 
   const spawnPath = { x: 0, y: 11 };
-  const townExits = [
-    { x: townX - townWidth / 2, y: townY },
-    { x: townX + townWidth / 2, y: townY },
-  ];
   const townPath = findPath(
     pathMatrix,
     spawnPath,
-    townExits[townAngle < 180 ? 0 : 1]
+    exits[townAngle >= 90 && townAngle < 270 ? 0 : 1]
   );
   townPath.forEach(({ x, y }) => {
     worldMatrix[x][y] = "path";
@@ -825,7 +828,7 @@ export const generateWorld = async (world: World) => {
 
         worldMatrix[x][y + 1] = "air";
       } else {
-        entities.createFoilage(world, {
+        entities.createOrganic(world, {
           [FOG]: { visibility, type: "terrain" },
           [BURNABLE]: {
             burning: false,
@@ -888,7 +891,7 @@ export const generateWorld = async (world: World) => {
           });
         }
       } else {
-        entities.createFoilage(world, {
+        entities.createOrganic(world, {
           [BURNABLE]: {
             burning: false,
             eternal: false,
@@ -1100,7 +1103,7 @@ export const generateWorld = async (world: World) => {
         setIdentifier(world, doorEntity, cell);
       }
     } else if (cell === "gate") {
-      const doorEntity = entities.createGate(world, {
+      const doorEntity = entities.createPassage(world, {
         [FOG]: { visibility, type: "float" },
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [LOCKABLE]: {
@@ -1160,12 +1163,49 @@ export const generateWorld = async (world: World) => {
         populateInventory(world, potEntity, items, equipments);
       }
     } else if (cell === "fence") {
-      entities.createTerrain(world, {
-        [FOG]: { visibility, type: "terrain" },
+      entities.createOrganic(world, {
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          decayed: false,
+          combusted: false,
+          remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
+        },
         [COLLIDABLE]: {},
+        [FOG]: { visibility, type: "terrain" },
         [POSITION]: { x, y },
-        [SPRITE]: fence,
         [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: fence,
+      });
+    } else if (cell === "fence_door") {
+      entities.createPath(world, {
+        [ENVIRONMENT]: { biomes: ["path"] },
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: none,
+        [TEMPO]: { amount: 2 },
+      });
+      entities.createGate(world, {
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          decayed: false,
+          combusted: false,
+          remains: fenceDoorBurnt,
+        },
+        [FOG]: { visibility, type: "terrain" },
+        [LOCKABLE]: { locked: true },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: fenceDoor,
+        [TOOLTIP]: {
+          dialogs: [],
+          persistent: false,
+          nextDialog: 0,
+        },
       });
     } else if (cell === "box") {
       const { items, equipments, sprite, stats, faction } =

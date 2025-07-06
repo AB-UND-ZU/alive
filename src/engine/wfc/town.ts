@@ -1,6 +1,6 @@
 import { matrixFactory } from "../../game/math/matrix";
 import { findPathSimple } from "../../game/math/path";
-import { add, Point, shuffle } from "../../game/math/std";
+import { add, Point, random, shuffle } from "../../game/math/std";
 import { Orientation } from "../components/orientable";
 import { Definition, Wave, WaveFunctionCollapse } from "./wfc";
 
@@ -607,8 +607,12 @@ export default async function generateTown(width: number, height: number) {
   const innX = Math.floor(innerWidth / 2);
   const innY = Math.floor(innerHeight / 2);
   const exits: Point[] = [
-    { x: 0, y: innY },
-    { x: innerWidth - 1, y: innY },
+    { x: random(2, width - 3), y: 0 },
+    { x: random(2, width - 3), y: height - 1 },
+  ];
+  const exitAir: Point[] = [
+    { x: exits[0].x - 1, y: 0 },
+    { x: exits[1].x - 1, y: innerHeight - 1 },
   ];
 
   for (let attempt = 0; attempt < TOWN_TRIES; attempt += 1) {
@@ -617,13 +621,13 @@ export default async function generateTown(width: number, height: number) {
       [innX, innY, "doorCenter"],
 
       // clear entries
-      ...exits.map(({ x, y }): [number, number, string] => [x, y, "air"]),
+      ...exitAir.map(({ x, y }): [number, number, string] => [x, y, "air"]),
     ]);
 
     if (!wave) continue;
 
     const tileMatrix = wave.chosen;
-    let paths = [...exits];
+    let paths = [...exitAir];
     let houses: {
       position: Point;
       orientation?: Orientation;
@@ -691,7 +695,7 @@ export default async function generateTown(width: number, height: number) {
     });
 
     // replace free entry air with paths
-    exits.forEach((point) => {
+    exitAir.forEach((point) => {
       tileMatrix[point.x][point.y] = pathIndex;
     });
 
@@ -701,14 +705,15 @@ export default async function generateTown(width: number, height: number) {
       const verticalEdge = y === 0 || y === height - 1;
 
       if (horizontalEdge && verticalEdge) return "air";
-      if (horizontalEdge && y === innY + 1) return "path";
+      if (exits.some((exit) => exit.x === x && exit.y === y))
+        return "fence_door";
 
       if (horizontalEdge || verticalEdge) return "fence";
 
       return mapTiles[wfc.tileNames[tileMatrix[x - 1][y - 1]]];
     });
 
-    return { matrix: townMatrix, houses };
+    return { matrix: townMatrix, houses, exits };
   }
 
   throw new Error("Could not generate town!");

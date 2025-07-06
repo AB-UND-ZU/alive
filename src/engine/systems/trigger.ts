@@ -43,6 +43,7 @@ import { getSpellStat } from "../../game/balancing/spells";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { abortQuest, acceptQuest as ecsAcceptQuest } from "../utils";
+import { fenceDoor, fenceDoorOpen } from "../../game/assets/sprites/structures";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -81,9 +82,15 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
 
 export const openDoor = (world: World, entity: Entity) => {
   entity[LOCKABLE].locked = false;
-  entity[SPRITE] = doorOpen;
-  entity[LIGHT].orientation = "left";
   entity[TOOLTIP].override = "hidden";
+
+  if (entity[SPRITE] === fenceDoor) {
+    entity[SPRITE] = fenceDoorOpen;
+  } else {
+    entity[SPRITE] = doorOpen;
+    entity[LIGHT].orientation = "left";
+  }
+
   rerenderEntity(world, entity);
   updateWalkable(world, entity[POSITION]);
 };
