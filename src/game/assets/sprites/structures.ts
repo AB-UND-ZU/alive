@@ -95,6 +95,29 @@ export const anvil: Sprite = {
   ],
 };
 
+export const kettle: Sprite = {
+  name: "Kettle",
+  layers: [
+    { char: "■", color: colors.blue },
+    { char: "≡", color: colors.black },
+    { char: "=", color: colors.black },
+    { char: "-", color: colors.blue },
+    { char: "w", color: colors.grey },
+    { char: ".", color: colors.grey },
+    { char: "\u0106", color: colors.blue },
+  ],
+};
+
+export const bucket: Sprite = {
+  name: "Bucket",
+  layers: [
+    { char: "\u011d", color: colors.blue },
+    { char: "-", color: colors.black },
+    { char: "U", color: colors.maroon },
+    { char: "▀", color: colors.black },
+  ],
+};
+
 export const roof: Sprite = {
   name: "roof_center",
   layers: [

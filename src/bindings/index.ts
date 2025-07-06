@@ -116,6 +116,7 @@ import {
   houseMage,
   houseRight,
   houseTrader,
+  kettle,
   roof,
   roofDown,
   roofDownLeft,
@@ -2259,6 +2260,73 @@ export const generateWorld = async (world: World) => {
     "buy"
   );
 
+  const druidKettle = entities.createCrafting(world, {
+    [COLLIDABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [POSITION]: add(druidHouse.position, { x: random(0, 1) * 4 - 2, y: 0 }),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: kettle,
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  const fireWaveItem: Deal["item"] = {
+    amount: 2,
+    equipment: "primary",
+    primary: "wave1",
+    material: "fire",
+  };
+  const waterWaveItem: Deal["item"] = {
+    amount: 2,
+    equipment: "primary",
+    primary: "wave1",
+    material: "water",
+  };
+  const earthWaveItem: Deal["item"] = {
+    amount: 2,
+    equipment: "primary",
+    primary: "wave1",
+    material: "earth",
+  };
+  const fireBeamItem: Deal["item"] = {
+    amount: 5,
+    equipment: "primary",
+    primary: "beam1",
+    material: "fire",
+  };
+  const waterBeamItem: Deal["item"] = {
+    amount: 5,
+    equipment: "primary",
+    primary: "beam1",
+    material: "water",
+  };
+  const earthBeamItem: Deal["item"] = {
+    amount: 5,
+    equipment: "primary",
+    primary: "beam1",
+    material: "earth",
+  };
+  sellItems(
+    world,
+    druidKettle,
+    [
+      fireWaveItem,
+      waterWaveItem,
+      earthWaveItem,
+      fireBeamItem,
+      waterBeamItem,
+      earthBeamItem,
+    ].map((item) => ({
+      item,
+      stock: 1,
+      price: getItemPrice(item),
+    })),
+    "craft"
+  );
+
   // 7. mage's house
   const mageUnit = generateUnitData("mage");
   const mageEntity = entities.createVillager(world, {
@@ -2338,73 +2406,6 @@ export const generateWorld = async (world: World) => {
       })
     ),
     "buy"
-  );
-
-  const mageAnvil = entities.createCrafting(world, {
-    [COLLIDABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [POSITION]: add(mageHouse.position, { x: random(0, 1) * 4 - 2, y: 0 }),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: anvil,
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  const fireWaveItem: Deal["item"] = {
-    amount: 2,
-    equipment: "primary",
-    primary: "wave1",
-    material: "fire",
-  };
-  const waterWaveItem: Deal["item"] = {
-    amount: 2,
-    equipment: "primary",
-    primary: "wave1",
-    material: "water",
-  };
-  const earthWaveItem: Deal["item"] = {
-    amount: 2,
-    equipment: "primary",
-    primary: "wave1",
-    material: "earth",
-  };
-  const fireBeamItem: Deal["item"] = {
-    amount: 5,
-    equipment: "primary",
-    primary: "beam1",
-    material: "fire",
-  };
-  const waterBeamItem: Deal["item"] = {
-    amount: 5,
-    equipment: "primary",
-    primary: "beam1",
-    material: "water",
-  };
-  const earthBeamItem: Deal["item"] = {
-    amount: 5,
-    equipment: "primary",
-    primary: "beam1",
-    material: "earth",
-  };
-  sellItems(
-    world,
-    mageAnvil,
-    [
-      fireWaveItem,
-      waterWaveItem,
-      earthWaveItem,
-      fireBeamItem,
-      waterBeamItem,
-      earthBeamItem,
-    ].map((item) => ({
-      item,
-      stock: 1,
-      price: getItemPrice(item),
-    })),
-    "craft"
   );
 
   // empty houses
