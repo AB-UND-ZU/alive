@@ -139,6 +139,16 @@ export const fenceDoorBurnt: Sprite = {
   ],
 };
 
+export const stairs: Sprite = {
+  name: "Stairs",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "≡", color: colors.grey },
+  ],
+};
+
 export const anvil: Sprite = {
   name: "Anvil",
   layers: [
