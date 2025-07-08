@@ -379,6 +379,7 @@ export const dropEntity = (
           itemId,
           drop: true,
           delay,
+          amount: itemEntity[ITEM].amount,
         }
       );
     }

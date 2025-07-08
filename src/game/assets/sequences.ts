@@ -1960,7 +1960,7 @@ export const itemCollect: Sequence<CollectSequence> = (
         entity[SPRITE] = shadow;
       }
     } else {
-      addToInventory(world, entity, itemEntity);
+      addToInventory(world, entity, itemEntity, false, state.args.amount);
     }
 
     finished = true;

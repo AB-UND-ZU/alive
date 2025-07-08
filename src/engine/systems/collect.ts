@@ -104,6 +104,7 @@ export const collectItem = (
     const equipment = itemEntity[ITEM].equipment;
     const consume = itemEntity[ITEM].consume;
     const stackable = itemEntity[ITEM].stackable;
+    let collectAmount = 1;
 
     if (stat) {
       // skip if counter exceeded or cap itself
@@ -116,7 +117,8 @@ export const collectItem = (
       )
         continue;
 
-      itemEntity[ITEM].amount -= getCollectAmount(world, itemEntity);
+      collectAmount = getCollectAmount(world, itemEntity);
+      itemEntity[ITEM].amount -= collectAmount;
     } else if (
       (equipment || (stackable && fullStack)) &&
       isFull(world, entity)
@@ -156,7 +158,7 @@ export const collectItem = (
       entity,
       "collect",
       "itemCollect",
-      { origin: target[POSITION], itemId, drop: false }
+      { origin: target[POSITION], itemId, drop: false, amount: collectAmount }
     );
 
     // update walkable
@@ -171,7 +173,8 @@ export const addToInventory = (
   world: World,
   entity: Entity,
   itemEntity: Entity,
-  fullStack = false
+  fullStack = false,
+  amount = 1
 ) => {
   const entityId = world.getEntityId(entity);
   let targetEquipment = itemEntity[ITEM].equipment;
@@ -182,9 +185,7 @@ export const addToInventory = (
 
   // if no sword is equipped, use wood as stick
   if (entity[MELEE] && !entity[EQUIPPABLE].sword && targetStat === "stick") {
-    targetEquipment = "sword";
-    targetStat = undefined;
-    targetItem = entities.createSword(world, {
+    const woodSword = entities.createSword(world, {
       [ITEM]: {
         amount: getGearStat("sword", "wood"),
         equipment: "sword",
@@ -197,6 +198,11 @@ export const addToInventory = (
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: woodStick,
     });
+
+    addToInventory(world, entity, woodSword);
+    amount -= 1;
+
+    if (amount === 0) return;
   }
 
   const targetId = world.getEntityId(targetItem);
@@ -230,10 +236,8 @@ export const addToInventory = (
   } else if (targetStat) {
     const maxStat = getMaxCounter(targetStat);
     const maximum = maxStat !== targetStat ? entity[STATS][maxStat] : 99;
-    const amount = fullStack
-      ? itemEntity[ITEM].amount
-      : getCollectAmount(world, itemEntity);
-    const newAmount = entity[STATS][targetStat] + amount;
+    const collectAmount = fullStack ? itemEntity[ITEM].amount : amount;
+    const newAmount = entity[STATS][targetStat] + collectAmount;
     const overflow = Math.max(newAmount, maximum) - maximum;
 
     entity[STATS][targetStat] = Math.min(newAmount, maximum);
@@ -258,7 +262,7 @@ export const addToInventory = (
     }
 
     if (entity[PLAYER] && targetStat === "hp") {
-      entity[PLAYER].healingReceived += amount;
+      entity[PLAYER].healingReceived += collectAmount;
     }
   } else if (targetStackable) {
     // add to existing stack if available

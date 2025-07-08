@@ -62,6 +62,7 @@ export type CollectSequence = {
   itemId: number;
   drop: boolean;
   delay?: number;
+  amount: number;
 };
 export type UnlockSequence = { origin: Position; itemId: number };
 export type FocusSequence = EmptyObject;
