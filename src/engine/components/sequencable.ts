@@ -66,7 +66,7 @@ export type CollectSequence = {
 };
 export type UnlockSequence = { origin: Position; itemId: number };
 export type FocusSequence = EmptyObject;
-export type MeleeSequence = { tick: number; facing: Orientation };
+export type MeleeSequence = { tick: number; facing: Orientation, rotate: boolean };
 export type SpellSequence = {
   element: Element | "default" | "wild";
   progress: number;

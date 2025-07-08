@@ -266,7 +266,11 @@ export default function setupDamage(world: World) {
         entity,
         "melee",
         "swordAttack",
-        { facing: targetOrientation, tick: entityReference[REFERENCE].tick }
+        {
+          facing: targetOrientation,
+          tick: entityReference[REFERENCE].tick,
+          rotate: false,
+        }
       );
 
       // create hit marker

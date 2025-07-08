@@ -195,7 +195,8 @@ export * from "./quests";
 
 export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
   // align sword with facing direction
-  const finished = state.elapsed > state.args.tick / 2;
+  const finished =
+    state.elapsed > state.args.tick / (state.args.rotate ? 0.5 : 2);
   const swordEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].sword,
     [ORIENTABLE]
@@ -206,7 +207,15 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
     return { updated: false, finished: true };
   }
 
-  const facing = state.args.facing;
+  const facing =
+    state.args.rotate && state.elapsed < state.args.tick
+      ? orientations[
+          (orientations.indexOf(state.args.facing) -
+            Math.floor((2 * state.elapsed) / state.args.tick) +
+            4) %
+            4
+        ]
+      : state.args.facing;
   const currentFacing = swordEntity[ORIENTABLE].facing;
   const updated = currentFacing !== facing;
 

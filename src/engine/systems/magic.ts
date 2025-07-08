@@ -3,7 +3,11 @@ import { entities } from "..";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
-import { SEQUENCABLE, SlashSequence } from "../components/sequencable";
+import {
+  MeleeSequence,
+  SEQUENCABLE,
+  SlashSequence,
+} from "../components/sequencable";
 import { disposeEntity, getCell } from "./map";
 import { createSequence, getSequences } from "./sequence";
 import { CASTABLE } from "../components/castable";
@@ -106,7 +110,7 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
     REFERENCE,
   ])[REFERENCE].tick;
 
-  // spin sword around
+  // create rotating slash
   createSequence<"slash", SlashSequence>(
     world,
     spellEntity,
@@ -118,6 +122,14 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
       castable: world.getEntityId(spellEntity),
       exertables: [],
     }
+  );
+
+  createSequence<"melee", MeleeSequence>(
+    world,
+    entity,
+    "melee",
+    "swordAttack",
+    { facing: "right", tick, rotate: true }
   );
 };
 
