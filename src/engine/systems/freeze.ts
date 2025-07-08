@@ -113,8 +113,8 @@ export const freezeMomentum = (
   orientation?: Orientation
 ) => {
   const freezable = getFreezables(world, entity[POSITION])[0];
-  const momentumOrientation = (orientation ||
-    entity[MOVABLE].momentum) as Orientation;
+  const momentumOrientation =
+    orientation || (entity[MOVABLE].momentum as Orientation | undefined);
   const targetMovable =
     momentumOrientation &&
     isWalkable(
@@ -133,7 +133,7 @@ export const freezeMomentum = (
     entity[MOVABLE].momentum = orientation;
   } else if (
     (!freezable || !isFrozen(world, freezable) || !targetMovable) &&
-    entity[MOVABLE].momentum
+    (entity[MOVABLE].momentum || !orientation)
   ) {
     // stop sliding
     entity[MOVABLE].momentum = undefined;

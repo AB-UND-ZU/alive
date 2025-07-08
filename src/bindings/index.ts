@@ -936,6 +936,7 @@ export const generateWorld = async (world: World) => {
         generateUnitData("tumbleweed");
       const tumbleweedEntity = entities.createTumbleweed(world, {
         [ATTACKABLE]: { shots: 0 },
+        [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
         [BEHAVIOUR]: { patterns },
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
@@ -1061,6 +1062,7 @@ export const generateWorld = async (world: World) => {
       });
       const cactusEntity = entities.createCactus(world, {
         [ATTACKABLE]: { shots: 0 },
+        [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false, remains: sand },
@@ -1221,6 +1223,7 @@ export const generateWorld = async (world: World) => {
       });
       const boxEntity = entities.createBox(world, {
         [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+        [ATTACKABLE]: { shots: 0 },
         [BELONGABLE]: { faction },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false },

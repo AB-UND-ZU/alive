@@ -141,6 +141,7 @@ export const createArea = entityFactory([ENVIRONMENT, POSITION, TEMPO]);
 
 export const createBox = entityFactory([
   AFFECTABLE,
+  ATTACKABLE,
   BELONGABLE,
   COLLIDABLE,
   DISPLACABLE,
@@ -169,6 +170,7 @@ export const createBuilding = entityFactory([
 
 export const createCactus = entityFactory([
   ATTACKABLE,
+  AFFECTABLE,
   BELONGABLE,
   COLLIDABLE,
   DROPPABLE,
@@ -594,6 +596,7 @@ export const createTombstone = entityFactory([
 
 export const createTumbleweed = entityFactory([
   ATTACKABLE,
+  AFFECTABLE,
   BEHAVIOUR,
   BELONGABLE,
   COLLIDABLE,

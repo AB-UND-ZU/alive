@@ -144,7 +144,13 @@ export default function setupMovement(world: World) {
         entity[ORIENTABLE].facing = attemptedOrientations[0];
 
       // skip if already interacted
-      if (entity[MOVABLE].lastInteraction === entityReference) continue;
+      if (
+        entity[MOVABLE].lastInteraction === entityReference &&
+        !entity[MOVABLE].momentum
+      )
+        continue;
+
+      let movedOrientation: Orientation | undefined = undefined;
 
       for (const orientation of attemptedOrientations) {
         const delta = orientationPoints[orientation];
@@ -171,13 +177,15 @@ export default function setupMovement(world: World) {
           if (entity[ORIENTABLE] && !entity[MOVABLE].flying)
             entity[ORIENTABLE].facing = orientation;
 
-          // preserve momentum before suspending frame
-          freezeMomentum(world, entity, orientation);
-
           rerenderEntity(world, entity);
+
+          movedOrientation = orientation;
           break;
         }
       }
+
+      // preserve momentum before suspending frame
+      freezeMomentum(world, entity, movedOrientation);
 
       // mark as interacted but keep pending movement
       entity[MOVABLE].lastInteraction = entityReference;

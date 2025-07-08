@@ -14,7 +14,6 @@ import {
 import { rerenderEntity } from "./renderer";
 import { PUSHABLE } from "../components/pushable";
 import { DISPLACABLE } from "../components/displacable";
-import { relativeOrientations } from "../../game/math/path";
 import { isControllable } from "./freeze";
 
 export const isDisplacable = (world: World, entity: Entity) =>
@@ -94,12 +93,11 @@ export default function setupPush(world: World) {
 
       if (!targetEntity) continue;
 
-      const orientation = relativeOrientations(
-        world,
-        entity[POSITION],
-        targetEntity[POSITION]
-      )[0];
-      pushEntity(world, targetEntity, orientation);
+      pushEntity(world, targetEntity, targetOrientation);
+
+      // prevent attacking boxes but allow movements
+      entity[MOVABLE].momentum = targetOrientation;
+      entity[MOVABLE].lastInteraction = entityReference;
     }
 
     // handle sliding boxes
