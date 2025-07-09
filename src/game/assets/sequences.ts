@@ -185,7 +185,7 @@ import { BURNABLE } from "../../engine/components/burnable";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import { getExertables, getParticleAmount } from "../../engine/systems/magic";
 import { FRAGMENT } from "../../engine/components/fragment";
-import { Shoppable, SHOPPABLE } from "../../engine/components/shoppable";
+import { Popup, POPUP } from "../../engine/components/popup";
 import { getActivationRow } from "../../components/Controls";
 import { canShop, frameHeight, frameWidth } from "../../engine/systems/shop";
 import { getIdentifierAndComponents } from "../../engine/utils";
@@ -207,6 +207,7 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
     return { updated: false, finished: true };
   }
 
+  // rotate sword if needed
   const facing =
     state.args.rotate && state.elapsed < state.args.tick
       ? orientations[
@@ -862,11 +863,11 @@ const popupTime = frameHeight * popupDelay;
 export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   let updated = false;
-  let finished = !entity[SHOPPABLE].active;
+  let finished = !entity[POPUP].active;
   const generation = entity[RENDERABLE].generation;
   let renderContent = false;
   const popupCenter = { x: 0, y: (frameHeight + 1) / -2 };
-  const selectedIndex = entity[SHOPPABLE].selectedIndex;
+  const verticalIndex = entity[POPUP].verticalIndex;
   const selectionX =
     popupCenter.x +
     ((frameWidth - 3) / 2) * (state.args.transaction === "sell" ? 1 : -1);
@@ -1021,7 +1022,7 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
       state.args.contentIndex < (frameHeight - 2) * (frameWidth - 2))
   ) {
     const lines: Sprite[][] = [
-      ...(entity[SHOPPABLE] as Shoppable).deals.map((deal) => {
+      ...(entity[POPUP] as Popup).deals.map((deal) => {
         // swap direction when selling items
         const leftItem =
           state.args.transaction === "sell" ? deal.price[0] : deal.item;
@@ -1104,13 +1105,13 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
 
   if (
     !state.particles.selection &&
-    state.elapsed > popupTime + selectedIndex * (frameWidth - 2) * contentDelay
+    state.elapsed > popupTime + verticalIndex * (frameWidth - 2) * contentDelay
   ) {
     // add selection arrow
     const selectionParticle = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX: selectionX,
-        offsetY: selectionY + selectedIndex,
+        offsetY: selectionY + verticalIndex,
         offsetZ: selectionHeight,
         animatedOrigin: { x: selectionX, y: -2 },
       },
@@ -1121,13 +1122,13 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
     state.particles.selection = world.getEntityId(selectionParticle);
   }
 
-  if (selectedIndex !== state.args.selectedIndex && state.particles.selection) {
+  if (verticalIndex !== state.args.verticalIndex && state.particles.selection) {
     const selectionParticle = world.assertByIdAndComponents(
       state.particles.selection,
       [PARTICLE]
     );
-    selectionParticle[PARTICLE].offsetY = selectionY + selectedIndex;
-    state.args.selectedIndex = selectedIndex;
+    selectionParticle[PARTICLE].offsetY = selectionY + verticalIndex;
+    state.args.verticalIndex = verticalIndex;
     updated = true;
   }
 

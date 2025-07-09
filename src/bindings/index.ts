@@ -172,7 +172,7 @@ import { ENVIRONMENT } from "../engine/components/environment";
 import { TEMPO } from "../engine/components/tempo";
 import { LAYER } from "../engine/components/layer";
 import { sellItems } from "../engine/systems/shop";
-import { Deal } from "../engine/components/shoppable";
+import { Deal } from "../engine/components/popup";
 import { FREEZABLE } from "../engine/components/freezable";
 import { getSpellStat } from "../game/balancing/spells";
 import {

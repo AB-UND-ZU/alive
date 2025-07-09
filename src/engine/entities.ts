@@ -52,7 +52,7 @@ import { Structurable, STRUCTURABLE } from "./components/structurable";
 import { Environment, ENVIRONMENT } from "./components/environment";
 import { Tempo, TEMPO } from "./components/tempo";
 import { Layer, LAYER } from "./components/layer";
-import { Shoppable, SHOPPABLE } from "./components/shoppable";
+import { Popup, POPUP } from "./components/popup";
 import { Freezable, FREEZABLE } from "./components/freezable";
 import { Rechargable, RECHARGABLE } from "./components/rechargable";
 
@@ -101,7 +101,7 @@ export type Entity = {
   [REFERENCE]: Reference;
   [REVIVABLE]: Revivable;
   [SEQUENCABLE]: Sequencable;
-  [SHOPPABLE]: Shoppable;
+  [POPUP]: Popup;
   [SOUL]: Soul;
   [SPAWNABLE]: Spawnable;
   [SPIKABLE]: Spikable;

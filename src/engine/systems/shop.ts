@@ -5,9 +5,9 @@ import { Orientation } from "../components/orientable";
 import { PLAYER } from "../components/player";
 import addShoppable, {
   Deal,
-  Shoppable,
-  SHOPPABLE,
-} from "../components/shoppable";
+  Popup,
+  POPUP,
+} from "../components/popup";
 import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
 import { craft, shop } from "../../game/assets/sprites";
@@ -26,7 +26,7 @@ import { entities } from "..";
 import { add } from "../../game/math/std";
 
 export const isShoppable = (world: World, entity: Entity) =>
-  SHOPPABLE in entity && entity[SHOPPABLE].deals.length > 0;
+  POPUP in entity && entity[POPUP].deals.length > 0;
 
 export const getShoppable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
@@ -34,7 +34,7 @@ export const getShoppable = (world: World, position: Position) =>
   ) as Entity | undefined;
 
 export const getDeal = (world: World, shopEntity: Entity): Deal =>
-  shopEntity[SHOPPABLE].deals[shopEntity[SHOPPABLE].selectedIndex];
+  shopEntity[POPUP].deals[shopEntity[POPUP].verticalIndex];
 
 export const canShop = (world: World, heroEntity: Entity, deal: Deal) =>
   deal.stock > 0 &&
@@ -76,8 +76,8 @@ export const frameHeight = 11;
 export const sellItems = (
   world: World,
   entity: Entity,
-  deals: Shoppable["deals"],
-  transaction: Shoppable["transaction"]
+  deals: Popup["deals"],
+  transaction: Popup["transaction"]
 ) => {
   entity[TOOLTIP].idle = transaction === "craft" ? craft : shop;
   entity[TOOLTIP].changed = true;
@@ -90,7 +90,7 @@ export const sellItems = (
 
   addShoppable(world, entity, {
     active: false,
-    selectedIndex: 0,
+    verticalIndex: 0,
     deals,
     viewpoint: world.getEntityId(viewpointEntity),
     transaction,
@@ -104,11 +104,11 @@ export const openShop = (
 ) => {
   const shopId = world.getEntityId(shopEntity);
   heroEntity[PLAYER].shopping = shopId;
-  shopEntity[SHOPPABLE].active = true;
+  shopEntity[POPUP].active = true;
   shopEntity[TOOLTIP].override = "hidden";
   shopEntity[TOOLTIP].changed = true;
   const viewpointEntity = world.assertByIdAndComponents(
-    shopEntity[SHOPPABLE].viewpoint,
+    shopEntity[POPUP].viewpoint,
     [VIEWABLE]
   );
   viewpointEntity[VIEWABLE].active = true;
@@ -120,9 +120,9 @@ export const openShop = (
     "popup",
     "displayShop",
     {
-      selectedIndex: shopEntity[SHOPPABLE].selectedIndex,
+      verticalIndex: shopEntity[POPUP].verticalIndex,
       contentIndex: 0,
-      transaction: shopEntity[SHOPPABLE].transaction,
+      transaction: shopEntity[POPUP].transaction,
     }
   );
 };
@@ -134,11 +134,11 @@ export const closeShop = (
 ) => {
   
   heroEntity[PLAYER].shopping = undefined;
-  shopEntity[SHOPPABLE].active = false;
+  shopEntity[POPUP].active = false;
   shopEntity[TOOLTIP].override = undefined;
   shopEntity[TOOLTIP].changed = true;
   const viewpointEntity = world.assertByIdAndComponents(
-    shopEntity[SHOPPABLE].viewpoint,
+    shopEntity[POPUP].viewpoint,
     [VIEWABLE]
   );
   viewpointEntity[VIEWABLE].active = false;
@@ -165,7 +165,7 @@ export default function setupShop(world: World) {
 
     const shoppingEntity = world.getEntityByIdAndComponents(
       heroEntity?.[PLAYER].shopping,
-      [SHOPPABLE]
+      [POPUP]
     );
 
     // skip if player is not shopping or already interacted
@@ -185,9 +185,9 @@ export default function setupShop(world: World) {
     if (targetOrientation !== "up" && targetOrientation !== "down") return;
 
     // move selected index
-    const currentIndex = shoppingEntity[SHOPPABLE].selectedIndex;
-    const lastIndex = shoppingEntity[SHOPPABLE].deals.length - 1;
-    shoppingEntity[SHOPPABLE].selectedIndex = Math.min(
+    const currentIndex = shoppingEntity[POPUP].verticalIndex;
+    const lastIndex = shoppingEntity[POPUP].deals.length - 1;
+    shoppingEntity[POPUP].verticalIndex = Math.min(
       lastIndex,
       Math.max(0, currentIndex + (targetOrientation === "up" ? -1 : 1))
     );

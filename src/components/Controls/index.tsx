@@ -37,7 +37,7 @@ import { canCast } from "../../engine/systems/magic";
 import { canShop, getDeal, isShoppable } from "../../engine/systems/shop";
 import { PLAYER } from "../../engine/components/player";
 import { isControllable } from "../../engine/systems/freeze";
-import { SHOPPABLE } from "../../engine/components/shoppable";
+import { POPUP } from "../../engine/components/popup";
 
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
@@ -207,7 +207,7 @@ export default function Controls() {
       hero[PLAYER].shopping ||
       !isShoppable(world, shopEntity),
     (shopEntity) =>
-      shopEntity[SHOPPABLE].transaction === "craft" ? "CRAFT" : "SHOP",
+      shopEntity[POPUP].transaction === "craft" ? "CRAFT" : "SHOP",
     () => [repeat(none, 3), repeat(none, 3)],
     "lime"
   );
@@ -217,7 +217,7 @@ export default function Controls() {
     (world, hero, tradeEntity) =>
       !isControllable(world, hero) ||
       !canShop(world, hero, getDeal(world, tradeEntity)),
-    (tradeEntity) => tradeEntity[SHOPPABLE].transaction.toUpperCase(),
+    (tradeEntity) => tradeEntity[POPUP].transaction.toUpperCase(),
     (world, tradeEntity) => {
       const deal = getDeal(world, tradeEntity);
       if (deal.price.length === 1) {

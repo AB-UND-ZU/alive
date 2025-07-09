@@ -8,7 +8,7 @@ import {
   Secondary,
   Stackable,
 } from "../../engine/components/item";
-import { Deal } from "../../engine/components/shoppable";
+import { Deal } from "../../engine/components/popup";
 import { Stats } from "../../engine/components/stats";
 
 export const itemPrices: Partial<

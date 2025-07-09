@@ -7,7 +7,7 @@ import { Position } from "./position";
 import { Viewable } from "./viewable";
 import { Light } from "./light";
 import { Element } from "./item";
-import { Shoppable } from "./shoppable";
+import { Popup } from "./popup";
 
 type EmptyObject = Record<string, never>;
 
@@ -106,10 +106,10 @@ export type ProgressSequence = {
   maxHp: number;
 };
 export type PopupSequence = {
-  selectedIndex: number;
+  verticalIndex: number;
   generation?: number;
   contentIndex: number;
-  transaction: Shoppable["transaction"];
+  transaction: Popup["transaction"];
 };
 
 export type SequenceState<A> = {

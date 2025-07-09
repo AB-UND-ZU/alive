@@ -8,20 +8,20 @@ export type Deal = {
   price: Omit<Item, "carrier" | "bound">[];
 };
 
-export type Shoppable = {
+export type Popup = {
   active: boolean;
-  selectedIndex: number;
+  verticalIndex: number;
   deals: Deal[];
   viewpoint: number;
   transaction: "buy" | "sell" | "craft";
 };
 
-export const SHOPPABLE = "SHOPPABLE";
+export const POPUP = "POPUP";
 
-export default function addShoppable(
+export default function addPopup(
   world: World,
   entity: Entity,
-  shoppable: Shoppable
+  popup: Popup
 ) {
-  world.addComponentToEntity(entity, SHOPPABLE, shoppable);
+  world.addComponentToEntity(entity, POPUP, popup);
 }
