@@ -8,7 +8,6 @@ import {
   idleHeight,
   lootHeight,
   particleHeight,
-  popupHeight,
   selectionHeight,
   tooltipHeight,
 } from "../../components/Entity/utils";
@@ -58,7 +57,6 @@ import {
   getDistance,
   lerp,
   normalize,
-  padCenter,
   random,
   repeat,
   shuffle,
@@ -99,14 +97,8 @@ import {
   smokeLight,
   smokeThick,
   levelProgress,
-  popupCorner,
-  popupSide,
   addBackground,
   popupBackground,
-  popupUpStart,
-  popupUpEnd,
-  popupDownEnd,
-  popupDownStart,
   fireEdge,
   waterEdge,
   earthEdge,
@@ -176,7 +168,13 @@ import { invertOrientation, relativeOrientations } from "../math/path";
 import { dropEntity, MAX_DROP_RADIUS } from "../../engine/systems/drop";
 import { EXERTABLE } from "../../engine/components/exertable";
 import { consumptionConfigs } from "../../engine/systems/consume";
-import { decayTime, lootSpeed } from "./utils";
+import {
+  contentDelay,
+  decayTime,
+  displayPopup,
+  lootSpeed,
+  popupTime,
+} from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
@@ -856,252 +854,63 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-const contentDelay = 10;
-const popupDelay = 75;
-const popupTime = frameHeight * popupDelay;
-
 export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
-  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   let updated = false;
-  let finished = !entity[POPUP].active;
-  const generation = entity[RENDERABLE].generation;
-  let renderContent = false;
+
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const icon = state.args.transaction === "craft" ? craft : shop;
+  const content: Sprite[][] = [
+    ...(entity[POPUP] as Popup).deals.map((deal) => {
+      // swap direction when selling items
+      const leftItem =
+        state.args.transaction === "sell" ? deal.price[0] : deal.item;
+      const rightItems =
+        state.args.transaction === "sell" ? [deal.item] : deal.price;
+
+      const itemSprite = getItemSprite(leftItem);
+      const itemText = createText(
+        itemSprite.name,
+        heroEntity && canShop(world, heroEntity, deal)
+          ? colors.white
+          : colors.grey
+      );
+      const prices = rightItems.map((price) => getActivationRow(price)).flat();
+      const line = addBackground(
+        [
+          itemSprite,
+          ...itemText,
+          ...repeat(none, frameWidth - 4 - itemText.length - prices.length),
+          ...prices,
+        ],
+        colors.black
+      );
+
+      // add placeholder on left for buy and right for sell
+      if (state.args.transaction === "sell") {
+        line.push(popupBackground);
+      } else {
+        line.unshift(popupBackground);
+      }
+
+      if (deal.stock > 0) return line;
+
+      // strike through if sold out
+      return line.map((sprite, index) => ({
+        ...sprite,
+        layers: [
+          ...sprite.layers,
+          ...(index === 0 ? [] : [{ char: "─", color: colors.silver }]),
+        ],
+      }));
+    }),
+  ];
+
   const popupCenter = { x: 0, y: (frameHeight + 1) / -2 };
   const verticalIndex = entity[POPUP].verticalIndex;
   const selectionX =
     popupCenter.x +
     ((frameWidth - 3) / 2) * (state.args.transaction === "sell" ? 1 : -1);
   const selectionY = popupCenter.y - (frameHeight - 3) / 2;
-  const initial = !state.args.generation;
-
-  // create popup
-  if (!state.args.generation) {
-    state.args.generation = generation;
-
-    for (const iteration of iterations) {
-      // corners
-      const cornerDelta = add(iteration.direction, {
-        x: -iteration.normal.x,
-        y: -iteration.normal.y,
-      });
-      const cornerParticle = entities.createFibre(world, {
-        [ORIENTABLE]: { facing: iteration.orientation },
-        [PARTICLE]: {
-          offsetX: popupCenter.x + cornerDelta.x * ((frameWidth - 1) / 2),
-          offsetY: popupCenter.y + cornerDelta.y * ((frameHeight - 1) / 2),
-          offsetZ: popupHeight,
-        },
-        [RENDERABLE]: { generation: 1 },
-        [SPRITE]: popupCorner,
-      });
-      state.particles[`popup-${iteration.orientation}-corner`] =
-        world.getEntityId(cornerParticle);
-
-      // sides
-      const directionLength = Math.abs(
-        frameWidth * iteration.direction.x + frameHeight * iteration.direction.y
-      );
-      const normalLength =
-        Math.abs(
-          frameWidth * iteration.normal.x + frameHeight * iteration.normal.y
-        ) - 2;
-      for (let i = 0; i < normalLength; i += 1) {
-        const sideParticle = entities.createFibre(world, {
-          [ORIENTABLE]: { facing: iteration.orientation },
-          [PARTICLE]: {
-            offsetX:
-              popupCenter.x +
-              iteration.normal.x * (i - (normalLength - 1) / 2) +
-              (iteration.direction.x * (directionLength - 1)) / 2,
-            offsetY:
-              popupCenter.y +
-              iteration.normal.y * (i - (normalLength - 1) / 2) +
-              (iteration.direction.y * (directionLength - 1)) / 2,
-            offsetZ: popupHeight,
-          },
-          [RENDERABLE]: { generation: 1 },
-          [SPRITE]: popupSide,
-        });
-        state.particles[`popup-${iteration.orientation}-${i}`] =
-          world.getEntityId(sideParticle);
-      }
-    }
-
-    // add top decoration
-    const upStartParticle = world.assertByIdAndComponents(
-      state.particles[`popup-up-${(frameWidth - 3) / 2 - 3}`],
-      [PARTICLE]
-    );
-    upStartParticle[SPRITE] = popupUpStart;
-    const upEndParticle = world.assertByIdAndComponents(
-      state.particles[`popup-up-${(frameWidth - 3) / 2 + 3}`],
-      [PARTICLE]
-    );
-    upEndParticle[SPRITE] = popupUpEnd;
-    const title = createText(
-      padCenter(
-        `${state.args.transaction[0].toUpperCase()}${state.args.transaction.substring(
-          1
-        )}`,
-        5
-      ),
-      colors.lime,
-      colors.black
-    );
-    title.forEach((char, index) => {
-      const charParticle = world.assertByIdAndComponents(
-        state.particles[`popup-up-${(frameWidth - 3) / 2 + index - 2}`],
-        [PARTICLE]
-      );
-      charParticle[SPRITE] = char;
-    });
-
-    // add bottom decoration
-    const downStartParticle = world.assertByIdAndComponents(
-      state.particles[`popup-down-${(frameWidth - 3) / 2 + 1}`],
-      [PARTICLE]
-    );
-    downStartParticle[SPRITE] = popupDownStart;
-    const downEndParticle = world.assertByIdAndComponents(
-      state.particles[`popup-down-${(frameWidth - 3) / 2 - 1}`],
-      [PARTICLE]
-    );
-    downEndParticle[SPRITE] = popupDownEnd;
-    const downCenterName = `popup-down-${(frameWidth - 3) / 2}`;
-    const downCenterParticle = world.assertByIdAndComponents(
-      state.particles[downCenterName],
-      [PARTICLE]
-    );
-    downCenterParticle[SPRITE] = addBackground(
-      [state.args.transaction === "craft" ? craft : shop],
-      colors.black
-    )[0];
-
-    // add background
-    for (let row = 0; row < frameHeight - 2; row += 1) {
-      for (let column = 0; column < frameWidth - 2; column += 1) {
-        const charParticle = entities.createParticle(world, {
-          [PARTICLE]: {
-            offsetX: popupCenter.x - (frameWidth - 3) / 2 + column,
-            offsetY: popupCenter.y - (frameHeight - 3) / 2 + row,
-            offsetZ: popupHeight,
-          },
-          [RENDERABLE]: { generation: 1 },
-          [SPRITE]: popupBackground,
-        });
-        state.particles[`popup-content-${row}-${column}`] =
-          world.getEntityId(charParticle);
-      }
-    }
-
-    renderContent = true;
-  }
-
-  // clear content on changing deals
-  if (generation !== state.args.generation && state.elapsed > popupTime) {
-    state.args.generation = generation;
-
-    for (const particleName in state.particles) {
-      if (!particleName.startsWith("popup-content-")) continue;
-
-      const particleEntity = world.assertByIdAndComponents(
-        state.particles[particleName],
-        [PARTICLE, SPRITE]
-      );
-
-      particleEntity[SPRITE] = popupBackground;
-    }
-
-    renderContent = true;
-  }
-
-  // popup content
-  if (
-    renderContent ||
-    (state.elapsed > popupTime &&
-      state.args.contentIndex < (frameHeight - 2) * (frameWidth - 2))
-  ) {
-    const lines: Sprite[][] = [
-      ...(entity[POPUP] as Popup).deals.map((deal) => {
-        // swap direction when selling items
-        const leftItem =
-          state.args.transaction === "sell" ? deal.price[0] : deal.item;
-        const rightItems =
-          state.args.transaction === "sell" ? [deal.item] : deal.price;
-
-        const itemSprite = getItemSprite(leftItem);
-        const itemText = createText(
-          itemSprite.name,
-          heroEntity && canShop(world, heroEntity, deal)
-            ? colors.white
-            : colors.grey
-        );
-        const prices = rightItems
-          .map((price) => getActivationRow(price))
-          .flat();
-        const line = addBackground(
-          [
-            itemSprite,
-            ...itemText,
-            ...repeat(none, frameWidth - 4 - itemText.length - prices.length),
-            ...prices,
-          ],
-          colors.black
-        );
-
-        // add placeholder on left for buy and right for sell
-        if (state.args.transaction === "sell") {
-          line.push(popupBackground);
-        } else {
-          line.unshift(popupBackground);
-        }
-
-        if (deal.stock > 0) return line;
-
-        // strike through if sold out
-        return line.map((sprite, index) => ({
-          ...sprite,
-          layers: [
-            ...sprite.layers,
-            ...(index === 0 ? [] : [{ char: "─", color: colors.silver }]),
-          ],
-        }));
-      }),
-    ];
-
-    const contentIndex = Math.floor((state.elapsed - popupTime) / contentDelay);
-
-    // gradually animate typed content
-    for (
-      let row = renderContent
-        ? 0
-        : Math.floor(state.args.contentIndex / (frameWidth - 2));
-      row < lines.length;
-      row += 1
-    ) {
-      for (let column = 0; column < lines[row].length; column += 1) {
-        const charIndex = row * (frameWidth - 2) + column;
-
-        if (charIndex > contentIndex) {
-          row = lines.length - 1;
-          break;
-        } else if (!renderContent && charIndex < state.args.contentIndex)
-          continue;
-
-        const char = lines[row][column];
-        const charParticle = world.assertByIdAndComponents(
-          state.particles[`popup-content-${row}-${column}`],
-          [PARTICLE, SPRITE]
-        );
-        charParticle[SPRITE] = char;
-        rerenderEntity(world, charParticle);
-      }
-    }
-
-    if (!renderContent) state.args.contentIndex = contentIndex;
-
-    updated = true;
-  }
 
   if (
     !state.particles.selection &&
@@ -1132,26 +941,11 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  // interpolate frame on initial render
-  if (initial) {
-    for (const particleName in state.particles) {
-      const particleEntity = world.assertByIdAndComponents(
-        state.particles[particleName],
-        [PARTICLE]
-      );
-
-      const { offsetX, offsetY } = particleEntity[PARTICLE];
-      if (offsetY <= -frameHeight) {
-        particleEntity[PARTICLE].animatedOrigin = { x: offsetX, y: -3 };
-        particleEntity[PARTICLE].duration = (frameHeight - 1) * popupDelay;
-      } else if (offsetY < -1) {
-        particleEntity[PARTICLE].animatedOrigin = { x: offsetX, y: -2 };
-        particleEntity[PARTICLE].duration = -offsetY * popupDelay;
-      }
-    }
-  }
-
-  return { finished, updated };
+  const popupResult = displayPopup(world, entity, state, icon, content);
+  return {
+    updated: popupResult.updated || updated,
+    finished: popupResult.finished,
+  };
 };
 
 /*           ┌─┐
