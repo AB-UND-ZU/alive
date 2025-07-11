@@ -2,7 +2,6 @@ import { entities, World, systems } from "../engine";
 import { Position, POSITION } from "../engine/components/position";
 import { SPRITE } from "../engine/components/sprite";
 import { LIGHT } from "../engine/components/light";
-import { PLAYER } from "../engine/components/player";
 import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { COLLIDABLE } from "../engine/components/collidable";
@@ -14,16 +13,12 @@ import {
   bush,
   campfire,
   coin,
-  compass,
   createDialog,
-  doorClosedGold,
   doorClosedIron,
   doorClosedWood,
   doorOpen,
   flower,
   fog,
-  ghost,
-  goldKey,
   grass,
   heartUp,
   ice,
@@ -72,7 +67,8 @@ import { ITEM, Stackable } from "../engine/components/item";
 import { ORIENTABLE, orientationPoints } from "../engine/components/orientable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import {
-  initialPosition,
+  guidePosition,
+  keyPosition,
   menuArea,
   nomadArea,
   nomadOffset,
@@ -142,10 +138,9 @@ import {
 import { BURNABLE } from "../engine/components/burnable";
 import { createItemAsDrop } from "../engine/systems/drop";
 import { COLLECTABLE } from "../engine/components/collectable";
-import { SOUL } from "../engine/components/soul";
 import { FocusSequence, SEQUENCABLE } from "../engine/components/sequencable";
 import { createSequence } from "../engine/systems/sequence";
-import { npcSequence } from "../game/assets/utils";
+import { npcSequence, questSequence } from "../game/assets/utils";
 import { SPAWNABLE } from "../engine/components/spawnable";
 import { REFERENCE } from "../engine/components/reference";
 import { generateUnitData, generateUnitKey } from "../game/balancing/units";
@@ -177,11 +172,11 @@ import { FREEZABLE } from "../engine/components/freezable";
 import { getSpellStat } from "../game/balancing/spells";
 import {
   assertIdentifierAndComponents,
-  getIdentifier,
   offerQuest,
   setIdentifier,
 } from "../engine/utils";
 import { RECHARGABLE } from "../engine/components/rechargable";
+import { createHero } from "../engine/systems/fate";
 
 export const generateWorld = async (world: World) => {
   // track distribution of cell types
@@ -265,9 +260,9 @@ export const generateWorld = async (world: World) => {
       return "air";
 
     // clear triangular exit and create path
-    if (y > 5 && y < 14 && y > 4 + menuDeltaX) {
+    if (y > 4 && y < 13 && y > 3 + menuDeltaX) {
       pathMatrix[x][y] = 35 - menuDeltaX - menuDeltaY * 2;
-      return x === 0 && y < 12 ? "path" : "air";
+      return x === 0 && y < 11 ? "path" : "air";
     }
 
     const menuDistance = Math.sqrt(
@@ -400,14 +395,14 @@ export const generateWorld = async (world: World) => {
   insertArea(worldMatrix, nomadArea, nomadX, nomadY);
 
   // create shortes path from spawn to town and nomad
-  const signPosition = { x: normalize(random(0, 1) * 2 - 1, size), y: 11 };
+  const signPosition = { x: normalize(random(0, 1) * 2 - 1, size), y: 10 };
   pathMatrix[signPosition.x][signPosition.y] = 0;
   iterateMatrix(worldMatrix, (x, y) => {
     const height = pathMatrix[x][y];
     setPath(pathMatrix, x, y, height);
   });
 
-  const spawnPath = { x: 0, y: 11 };
+  const spawnPath = { x: 0, y: 10 };
   const townPath = findPath(
     pathMatrix,
     spawnPath,
@@ -516,66 +511,27 @@ export const generateWorld = async (world: World) => {
 
     if (!cell) {
       return;
-    } else if (cell === "alive") {
-      const frameId = world.getEntityId(
-        entities.createFrame(world, {
-          [REFERENCE]: {
-            tick: getHasteInterval(world, -1),
-            delta: 0,
-            suspended: true,
-            suspensionCounter: -1,
-          },
-          [RENDERABLE]: { generation: 0 },
-        })
-      );
-      entities.createHalo(world, {
-        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+    } else if (cell === "player") {
+      const heroEntity = createHero(world, {
+        [POSITION]: { x, y },
         [BELONGABLE]: { faction: "settler" },
-        [EQUIPPABLE]: {},
-        [INVENTORY]: { items: [], size: 10 },
-        [LAYER]: {},
-        [LIGHT]: { brightness: 18, visibility: 18, darkness: 0 },
-        [MOVABLE]: {
-          orientations: [],
-          reference: frameId,
-          spring: {
-            mass: 5,
-            friction: 100,
-            tension: 200,
-          },
-          lastInteraction: 0,
-          flying: false,
-        },
-        [POSITION]: copy(initialPosition),
-        [PLAYER]: { ghost: true, damageReceived: 0, healingReceived: 0 },
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SOUL]: { ready: true },
         [SPAWNABLE]: {
           classKey: "scout",
-          position: copy(initialPosition),
+          position: { x, y },
           viewable: { active: false, priority: 50 },
           light: { brightness: 18, visibility: 18, darkness: 0 },
         },
-        [SPRITE]: ghost,
-        [VIEWABLE]: { active: false, priority: 50 },
       });
 
       // create spawn dummy to set needle target
       const spawnEntity = entities.createViewpoint(world, {
-        [POSITION]: copy(initialPosition),
+        [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [VIEWABLE]: { active: false, priority: 30 },
       });
       setIdentifier(world, spawnEntity, "spawn");
 
-      entities.createTerrain(world, {
-        [FOG]: { visibility, type: "terrain" },
-        [POSITION]: { x, y },
-        [SPRITE]: block,
-        [RENDERABLE]: { generation: 0 },
-        [COLLIDABLE]: {},
-      });
+      questSequence(world, heroEntity, "spawnQuest", {});
     } else if (cell === "mountain") {
       entities.createMountain(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -1110,12 +1066,12 @@ export const generateWorld = async (world: World) => {
         [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
         [LOCKABLE]: {
           locked: true,
-          material: "gold",
+          material: "iron",
         },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
-        [SPRITE]: doorClosedGold,
+        [SPRITE]: doorClosedIron,
         [TOOLTIP]: {
           dialogs: [createDialog("Locked")],
           persistent: false,
@@ -1249,77 +1205,6 @@ export const generateWorld = async (world: World) => {
         [STATS]: { ...emptyStats, ...stats },
       });
       populateInventory(world, boxEntity, items, equipments);
-    } else if (cell === "compass") {
-      const compassEntity = entities.createCompass(world, {
-        [ITEM]: { amount: 1, equipment: "compass", carrier: -1, bound: false },
-        [ORIENTABLE]: {},
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: compass,
-        [TRACKABLE]: {},
-      });
-      setIdentifier(world, compassEntity, "compass");
-      const { sprite, stats, faction } = generateUnitData("commonChest");
-      const chestEntity = entities.createChest(world, {
-        [ATTACKABLE]: { shots: 0 },
-        [BELONGABLE]: { faction },
-        [COLLIDABLE]: {},
-        [DROPPABLE]: { decayed: false },
-        [INVENTORY]: { items: [world.getEntityId(compassEntity)], size: 20 },
-        [FOG]: { visibility, type: "terrain" },
-        [LAYER]: {},
-        [POSITION]: { x, y },
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: sprite,
-        [STATS]: { ...emptyStats, ...stats },
-        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-      });
-      compassEntity[ITEM].carrier = world.getEntityId(chestEntity);
-      setIdentifier(world, chestEntity, "compass_chest");
-    } else if (cell === "guide") {
-      const { sprite, items, stats, faction, patterns, equipments } =
-        generateUnitData("guide");
-      const guideEntity = entities.createVillager(world, {
-        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-        [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-        [ATTACKABLE]: { shots: 0 },
-        [BEHAVIOUR]: { patterns },
-        [BELONGABLE]: { faction },
-        [COLLECTABLE]: {},
-        [DROPPABLE]: { decayed: false },
-        [EQUIPPABLE]: {},
-        [FOG]: { visibility, type: "unit" },
-        [INVENTORY]: { items: [], size: 5 },
-        [LAYER]: {},
-        [MELEE]: { bumpGeneration: 0 },
-        [MOVABLE]: {
-          orientations: [],
-          reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
-            duration: 200,
-          },
-          lastInteraction: 0,
-          flying: false,
-        },
-        [NPC]: {},
-        [ORIENTABLE]: {},
-        [POSITION]: { x, y },
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: sprite,
-        [STATS]: { ...emptyStats, ...stats },
-        [SWIMMABLE]: { swimming: false },
-        [TOOLTIP]: {
-          dialogs: [],
-          persistent: true,
-          nextDialog: -1,
-        },
-      });
-      populateInventory(world, guideEntity, items, equipments);
-      npcSequence(world, guideEntity, "guideNpc", {});
-
-      setIdentifier(world, guideEntity, "guide");
     } else if (cell === "mob" || cell === "prism") {
       const { patterns, items, sprite, stats, faction, equipments, spring } =
         generateUnitData(
@@ -1369,7 +1254,7 @@ export const generateWorld = async (world: World) => {
         equipments
       );
 
-      if (cell === "prism") setIdentifier(world, mobEntity, "prism");
+      if (cell === "prism") setIdentifier(world, mobEntity, "spawn_prism");
     } else if (
       ["house_left", "house_right", "basement_left", "basement_right"].includes(
         cell
@@ -1643,21 +1528,95 @@ export const generateWorld = async (world: World) => {
     POSITION,
   ]);
   const guideHouse = { position: add(guideDoor[POSITION], { x: 1, y: -1 }) };
-  const spawnKeyEntity = createItemAsDrop(
-    world,
-    add(guideDoor[POSITION], { x: 2, y: -1 }),
-    entities.createItem,
-    {
-      [ITEM]: {
-        amount: 1,
-        consume: "key",
-        material: "gold",
-        bound: false,
+
+  const guideEntityData = generateUnitData("guide");
+  const guideEntity = entities.createVillager(world, {
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+    [ATTACKABLE]: { shots: 0 },
+    [BEHAVIOUR]: { patterns: guideEntityData.patterns },
+    [BELONGABLE]: { faction: guideEntityData.faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [INVENTORY]: { items: [], size: 5 },
+    [LAYER]: {},
+    [MELEE]: { bumpGeneration: 0 },
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
       },
-      [SPRITE]: goldKey,
-    }
+      lastInteraction: 0,
+      flying: false,
+    },
+    [NPC]: {},
+    [ORIENTABLE]: {},
+    [POSITION]: copy(guidePosition),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: guideEntityData.sprite,
+    [STATS]: { ...emptyStats, ...guideEntityData.stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: true,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(
+    world,
+    guideEntity,
+    guideEntityData.items,
+    guideEntityData.equipments
   );
-  setIdentifier(world, spawnKeyEntity, "key");
+  setIdentifier(world, guideEntity, "guide");
+
+  npcSequence(world, guideEntity, "guideNpc", {});
+  offerQuest(world, guideEntity, "introQuest", {});
+
+  // identify compass for later use in quests
+  const compassEntity = world.assertById(
+    guideEntity[INVENTORY].items.find(
+      (item) =>
+        world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment ===
+        "compass"
+    )!
+  );
+  setIdentifier(world, compassEntity, "compass");
+
+  // create chest with key
+  const spawnKeyEntity = entities.createItem(world, {
+    [ITEM]: {
+      carrier: -1,
+      consume: "key",
+      material: "iron",
+      amount: 1,
+      bound: false,
+    },
+    [RENDERABLE]: { generation: 0 },
+    [SPRITE]: ironKey,
+  });
+  setIdentifier(world, spawnKeyEntity, "spawn_key");
+  const guideChestData = generateUnitData("commonChest");
+  const guideChestEntity = entities.createChest(world, {
+    [ATTACKABLE]: { shots: 0 },
+    [BELONGABLE]: { faction: guideChestData.faction },
+    [COLLIDABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [INVENTORY]: { items: [world.getEntityId(spawnKeyEntity)], size: 20 },
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [LAYER]: {},
+    [POSITION]: keyPosition,
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: guideChestData.sprite,
+    [STATS]: { ...emptyStats, ...guideChestData.stats },
+    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+  });
+  spawnKeyEntity[ITEM].carrier = world.getEntityId(guideChestEntity);
 
   // set initial focus on hero
   const highlighEntity = entities.createHighlight(world, {
@@ -1672,9 +1631,7 @@ export const generateWorld = async (world: World) => {
       flying: false,
     },
     [ORIENTABLE]: {},
-    [POSITION]: copy(
-      getIdentifier(world, "compass_chest")?.[POSITION] || { x: 0, y: 0 }
-    ),
+    [POSITION]: copy(guidePosition),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
@@ -1764,7 +1721,7 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: {},
     [ORIENTABLE]: {},
-    [POSITION]: copy(nomadHouse.position),
+    [POSITION]: add(nomadHouse.position, { x: -1, y: 0 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: nomadUnit.sprite,
@@ -1810,19 +1767,16 @@ export const generateWorld = async (world: World) => {
     [INVENTORY]: { items: [], size: 20 },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [LAYER]: {},
-    [POSITION]: add(nomadHouse.position, { x: -1, y: 1 }),
+    [POSITION]: add(nomadHouse.position, { x: 2, y: 0 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: nomadChestData.sprite,
     [STATS]: { ...emptyStats, ...nomadChestData.stats },
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
-  populateInventory(
-    world,
-    nomadChest,
-    nomadChestData.items,
-    nomadChestData.equipments
-  );
+  populateInventory(world, nomadChest, [
+    { consume: "key", material: "iron", amount: 1, bound: false },
+  ]);
 
   // postprocess town
 

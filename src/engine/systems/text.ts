@@ -21,6 +21,7 @@ import { createSequence, getSequence } from "./sequence";
 import { TypedEntity } from "../entities";
 import { LIGHT } from "../components/light";
 import { SPAWNABLE } from "../components/spawnable";
+import { isShopping } from "./shop";
 
 export const getTooltip = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -50,7 +51,7 @@ export default function setupText(world: World) {
     >[] = [];
 
     // check any adjacent tooltips
-    if (hero && !isDead(world, hero)) {
+    if (hero && !isDead(world, hero) && !isShopping(world, hero)) {
       for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
         for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
           const delta = { x: offsetX, y: offsetY };
@@ -65,8 +66,9 @@ export default function setupText(world: World) {
               SEQUENCABLE,
             ]);
 
-          // handle overrides in next step
+          // handle overrides in next step and ignore self
           if (
+            (tooltipEntity === hero && hero[TOOLTIP]?.override !== "visible") ||
             !tooltipEntity?.[SEQUENCABLE] ||
             tooltipEntity?.[TOOLTIP].override
           )
@@ -93,7 +95,12 @@ export default function setupText(world: World) {
         getDistance(hero[POSITION], tooltipEntity[POSITION], size) <
           hero[SPAWNABLE].light.visibility + 2;
 
-      if (!inRange) continue;
+      // ignore self and out of range
+      if (
+        (tooltipEntity === hero && hero[TOOLTIP]?.override !== "visible") ||
+        !inRange
+      )
+        continue;
 
       const delta = hero && {
         x: signedDistance(hero[POSITION].x, tooltipEntity[POSITION].x, size),

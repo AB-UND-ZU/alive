@@ -1,17 +1,110 @@
+import { isTouch } from "../../components/Dimensions";
 import { EQUIPPABLE } from "../../engine/components/equippable";
+import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { POSITION } from "../../engine/components/position";
 import { QuestSequence, Sequence } from "../../engine/components/sequencable";
-import { STATS } from "../../engine/components/stats";
+import { TOOLTIP } from "../../engine/components/tooltip";
 import { isUnlocked } from "../../engine/systems/action";
 import {
   getIdentifier,
   getIdentifierAndComponents,
   setHighlight,
 } from "../../engine/utils";
-import { getDistance } from "../math/std";
+import { copy, getDistance } from "../math/std";
+import { createDialog } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
+
+const monologueTime = 3000;
+const houseDelay = 15000;
+
+export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
+  const stage: QuestStage<QuestSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const houseDoor = getIdentifierAndComponents(world, "guide_door", [POSITION]);
+
+  if (!houseDoor) {
+    return { finished: stage.finished, updated: stage.updated };
+  }
+
+  // remember initial hero position
+  if (!state.args.memory.initialPosition) {
+    state.args.memory.initialPosition = copy(entity[POSITION]);
+  }
+
+  const hasMoved =
+    entity[POSITION].x !== state.args.memory.initialPosition.x ||
+    entity[POSITION].y !== state.args.memory.initialPosition.y;
+
+  step({
+    stage,
+    name: START_STEP,
+    onEnter: () => true,
+    isCompleted: () => state.elapsed > monologueTime || hasMoved,
+    onLeave: () => "move",
+  });
+
+  step({
+    stage,
+    name: "move",
+    onEnter: () => {
+      entity[TOOLTIP].override = "visible";
+      entity[TOOLTIP].dialogs = [
+        createDialog(
+          isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move"
+        ),
+      ];
+      entity[TOOLTIP].changed = true;
+      return true;
+    },
+    isCompleted: () => hasMoved,
+    onLeave: () => {
+      state.args.memory.moved = state.elapsed;
+
+      entity[TOOLTIP].override = undefined;
+      entity[TOOLTIP].dialogs = [];
+      entity[TOOLTIP].changed = true;
+      return "wait";
+    },
+  });
+
+  step({
+    stage,
+    name: "wait",
+    onEnter: () => true,
+    isCompleted: () => state.elapsed > state.args.memory.moved + houseDelay,
+    onLeave: () => "house",
+  });
+
+  step({
+    stage,
+    name: "house",
+    onEnter: () => {
+      entity[TOOLTIP].override = "visible";
+      entity[TOOLTIP].dialogs = [createDialog("Where to go?")];
+      entity[TOOLTIP].changed = true;
+      return true;
+    },
+    isCompleted: () =>
+      state.elapsed > state.args.memory.moved + houseDelay + monologueTime ||
+      isUnlocked(world, houseDoor),
+    onLeave: () => {
+      entity[TOOLTIP].override = undefined;
+      entity[TOOLTIP].dialogs = [];
+      entity[TOOLTIP].changed = true;
+      return END_STEP;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
 
 export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
   const stage: QuestStage<QuestSequence> = {
@@ -43,34 +136,13 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () => !!entity[EQUIPPABLE].sword,
-    onLeave: () => "pot",
-  });
-
-  const potEntity = getIdentifier(world, "pot");
-  step({
-    stage,
-    name: "pot",
-    onEnter: () => {
-      setHighlight(world, "enemy", potEntity);
-      return true;
-    },
-    isCompleted: () => !potEntity,
-    onLeave: () => "coin",
-  });
-
-  const coinEntity = getIdentifier(world, "coin");
-  step({
-    stage,
-    name: "coin",
-    onEnter: () => {
-      setHighlight(world, "quest", coinEntity);
-      return true;
-    },
-    isCompleted: () => !coinEntity,
     onLeave: () => "prism",
   });
 
-  const prismEntity = getIdentifier(world, "prism");
+  const prismEntity = getIdentifier(world, "spawn_prism");
+  const coinEntity = getIdentifierAndComponents(world, "spawn_prism:drop", [
+    ITEM,
+  ]);
   step({
     stage,
     name: "prism",
@@ -78,22 +150,22 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       setHighlight(world, "enemy", prismEntity);
       return true;
     },
-    isCompleted: () => !prismEntity,
-    onLeave: () => "collect",
+    isCompleted: () => !prismEntity && !!coinEntity,
+    onLeave: () => "coin",
   });
 
   step({
     stage,
-    name: "collect",
+    name: "coin",
     onEnter: () => {
-      setHighlight(world, "quest", guideEntity);
+      const carrierEntity = world.getEntityById(coinEntity?.[ITEM].carrier);
+      setHighlight(world, "quest", carrierEntity);
       return true;
     },
-    isCompleted: () => entity[STATS].coin >= 5,
+    isCompleted: () => !coinEntity,
     onLeave: () => "buy",
   });
 
-  const keyEntity = getIdentifierAndComponents(world, "key", [ITEM]);
   step({
     stage,
     name: "buy",
@@ -102,7 +174,10 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () =>
-      !!keyEntity && keyEntity[ITEM].carrier === world.getEntityId(entity),
+      (entity[INVENTORY] as Inventory).items.some(
+        (item) =>
+          world.assertByIdAndComponents(item, [ITEM])[ITEM].consume === "key"
+      ),
     onLeave: () => "door",
   });
 

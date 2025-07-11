@@ -35,6 +35,7 @@ import { Item } from "../../engine/components/item";
 import { getGearStat } from "./equipment";
 import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
+import { getSpellStat } from "./spells";
 
 export type UnitKey =
   | "guide"
@@ -124,6 +125,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         bound: false,
         amount: getGearStat("shield", "wood"),
       },
+      { amount: 1, equipment: "compass", bound: false },
     ],
     drops: [],
     patternNames: [],
@@ -298,9 +300,49 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [
       {
-        chance: 100,
+        chance: 20,
         items: [
-          { equipment: "secondary", secondary: "bow", amount: 3 },
+          {
+            equipment: "shield",
+            material: "wood",
+            amount: getGearStat("shield", "wood"),
+          },
+          { consume: "potion1", material: "fire", amount: 10 },
+        ],
+      },
+      {
+        chance: 20,
+        items: [
+          {
+            equipment: "primary",
+            primary: "beam1",
+            amount: getSpellStat("beam1").damage,
+          },
+          { consume: "potion1", material: "water", amount: 10 },
+        ],
+      },
+      {
+        chance: 20,
+        items: [
+          {
+            equipment: "primary",
+            primary: "wave1",
+            amount: getSpellStat("wave1").damage,
+          },
+          { consume: "potion1", material: "water", amount: 10 },
+        ],
+      },
+      {
+        chance: 20,
+        items: [
+          { equipment: "secondary", secondary: "slash", amount: 1 },
+          { stackable: "charge", amount: 10 },
+        ],
+      },
+      {
+        chance: 20,
+        items: [
+          { equipment: "secondary", secondary: "bow", amount: 1 },
           { stackable: "arrow", amount: 10 },
         ],
       },

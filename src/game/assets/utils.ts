@@ -20,7 +20,17 @@ import { ORIENTABLE } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import { popupHeight } from "../../components/Entity/utils";
-import { addBackground, createText, popupBackground, popupCorner, popupDownEnd, popupDownStart, popupSide, popupUpEnd, popupUpStart } from "./sprites";
+import {
+  addBackground,
+  createText,
+  popupBackground,
+  popupCorner,
+  popupDownEnd,
+  popupDownStart,
+  popupSide,
+  popupUpEnd,
+  popupUpStart,
+} from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 
 export const lootSpeed = 200;
@@ -45,12 +55,12 @@ export const questSequence = (
   entity: Entity,
   name: keyof typeof questTypes,
   memory: any,
-  giver: Entity
+  giver?: Entity
 ) =>
   createSequence<"quest", QuestSequence>(world, entity, "quest", name, {
     step: START_STEP,
     memory,
-    giver: world.getEntityId(giver),
+    giver: giver && world.getEntityId(giver),
   });
 
 type StepAnimations = QuestSequence | NpcSequence;

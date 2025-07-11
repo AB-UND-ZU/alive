@@ -18,6 +18,7 @@ import { add, copy, normalize, Point, signedDistance } from "../game/math/std";
 import { LEVEL } from "../engine/components/level";
 import { FRAGMENT } from "../engine/components/fragment";
 import { Matrix } from "../game/math/matrix";
+import { TRACKABLE } from "../engine/components/trackable";
 
 const populateItems = (
   world: World,
@@ -34,6 +35,20 @@ const populateItems = (
         {
           [ITEM]: item,
           [ORIENTABLE]: {},
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: getItemSprite(item),
+        },
+        equip
+      );
+    } else if (item.equipment === 'compass') {
+      createItemInInventory(
+        world,
+        entity,
+        entities.createCompass,
+        {
+          [ITEM]: item,
+          [ORIENTABLE]: {},
+          [TRACKABLE]: {},
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: getItemSprite(item),
         },
@@ -174,13 +189,11 @@ export const insertArea = (
       else if (cell === "▓") entity = "block";
       else if (cell === "▄") entity = "block_down";
       else if (cell === "▀") entity = "block_up";
-      else if (cell === "i") entity = "alive";
       else if (cell === "◙") entity = "gate";
       else if (cell === "◘") entity = "ore_one";
       else if (cell === "∙") entity = "coin_one";
       else if (cell === "o") entity = "intro_pot";
       else if (cell === "■") entity = "box";
-      else if (cell === "¢") entity = "compass";
       else if (cell === "#") entity = "tree";
       else if (cell === "=") entity = "wood_two";
       else if (cell === ".") entity = "fruit_one";
@@ -189,7 +202,7 @@ export const insertArea = (
       else if (cell === "'") entity = "berry_one";
       else if (cell === ",") entity = "grass";
       else if (cell === "·") entity = "flower_one";
-      else if (cell === "♀") entity = "guide";
+      else if (cell === "♀") entity = "player";
       else if (cell === "►") entity = "prism";
       else if (cell === "*") entity = "campfire";
       else if (cell === "├") entity = "house_left";

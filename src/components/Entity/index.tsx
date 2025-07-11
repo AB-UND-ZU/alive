@@ -33,6 +33,7 @@ import Dots from "./Dots";
 import { STATS } from "../../engine/components/stats";
 import { getOpaqueOrientation } from "../../game/math/tracing";
 import { MELEE } from "../../engine/components/melee";
+import { FOCUSABLE } from "../../engine/components/focusable";
 
 function Entity({
   entity,
@@ -59,6 +60,8 @@ function Entity({
   const isAir = entity[FOG]?.type === "air";
   const isFloat = entity[FOG]?.type === "float";
   const isUnit = entity[FOG]?.type === "unit";
+  const isFocusable = !!entity[FOCUSABLE];
+  const isFixed = !!entity[FOG]?.fixed && visibility === 'visible';
   const isVisible = visibility === "visible";
   const isHidden = visibility === "hidden";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
@@ -72,7 +75,7 @@ function Entity({
     (isHidden && !isAir) ||
     (!isHidden && isAir) ||
     (isUnit && !isVisible) ||
-    outside;
+    (outside && !isFixed);
 
   const hasLoot = ecs && (isLootable(ecs, entity) || isCollecting(ecs, entity));
   const isLootTransparent = !hasLoot || (isOpaque ? !inRadius : !isVisible);
@@ -96,7 +99,7 @@ function Entity({
 
   const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
 
-  if (!ecs || (opacity === 0 && layerProps.isTransparent && !isUnit))
+  if (!ecs || (opacity === 0 && layerProps.isTransparent && !isUnit && !isFocusable))
     return null;
 
   const orderedSegments = getSegments(ecs, entity, layerProps, inside);

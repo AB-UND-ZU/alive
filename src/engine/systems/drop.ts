@@ -52,6 +52,8 @@ import { SPAWNABLE } from "../components/spawnable";
 import { LAYER } from "../components/layer";
 import { RECHARGABLE } from "../components/rechargable";
 import { ATTACKABLE } from "../components/attackable";
+import { IDENTIFIABLE } from "../components/identifiable";
+import { setIdentifier } from "../utils";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -348,6 +350,13 @@ export const dropEntity = (
     const carrierEntity = world.getEntityByIdAndComponents(previousCarrier, [
       POSITION,
     ]);
+
+    // assign identifiers to all unnamed drops
+    const identifier =
+      carrierEntity?.[IDENTIFIABLE]?.name || entity[IDENTIFIABLE]?.name;
+    if (identifier && !itemEntity[IDENTIFIABLE]?.name) {
+      setIdentifier(world, itemEntity, `${identifier}:drop`);
+    }
 
     const containerEntity = entities.createContainer(world, {
       [FOG]: { visibility: "fog", type: "terrain" },

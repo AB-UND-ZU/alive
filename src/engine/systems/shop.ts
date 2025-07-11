@@ -3,11 +3,7 @@ import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
 import { Orientation } from "../components/orientable";
 import { PLAYER } from "../components/player";
-import addShoppable, {
-  Deal,
-  Popup,
-  POPUP,
-} from "../components/popup";
+import addPopup, { Deal, Popup, POPUP } from "../components/popup";
 import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
 import { craft, shop } from "../../game/assets/sprites";
@@ -24,6 +20,9 @@ import { ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
 import { add } from "../../game/math/std";
+
+export const isShopping = (world: World, entity: Entity) =>
+  entity[PLAYER]?.shopping;
 
 export const isShoppable = (world: World, entity: Entity) =>
   POPUP in entity && entity[POPUP].deals.length > 0;
@@ -88,7 +87,7 @@ export const sellItems = (
     [VIEWABLE]: { active: false, priority: 90 },
   });
 
-  addShoppable(world, entity, {
+  addPopup(world, entity, {
     active: false,
     verticalIndex: 0,
     deals,
@@ -132,7 +131,6 @@ export const closeShop = (
   heroEntity: Entity,
   shopEntity: Entity
 ) => {
-  
   heroEntity[PLAYER].shopping = undefined;
   shopEntity[POPUP].active = false;
   shopEntity[TOOLTIP].override = undefined;

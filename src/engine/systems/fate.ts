@@ -102,6 +102,81 @@ export const reviveEntity = (world: World, entity: Entity, target: Entity) => {
   );
 };
 
+export const createHero = (world: World, halo: Entity) => {
+  const { stats, sprite } = getClassData(halo[SPAWNABLE].classKey);
+  const frameId = world.getEntityId(
+    entities.createFrame(world, {
+      [REFERENCE]: {
+        tick: getHasteInterval(world, stats.haste),
+        delta: 0,
+        suspended: true,
+        suspensionCounter: -1,
+      },
+      [RENDERABLE]: { generation: 0 },
+    })
+  );
+  const heroEntity = entities.createHero(world, {
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+    [ATTACKABLE]: { shots: 0 },
+    [BELONGABLE]: { faction: halo[BELONGABLE].faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "visible", type: "unit" },
+    [INVENTORY]: { items: [], size: 24 },
+    [LAYER]: {},
+    [LIGHT]: { visibility: 1, brightness: 1, darkness: 0 },
+    [MELEE]: { bumpGeneration: 0 },
+    [MOVABLE]: {
+      orientations: [],
+      reference: frameId,
+      spring: {
+        mass: 0.1,
+        friction: 50,
+        tension: 1000,
+      },
+      lastInteraction: 0,
+      flying: false,
+    },
+    [ORIENTABLE]: {},
+    [PLAYER]: { ghost: false, damageReceived: 0, healingReceived: 0 },
+    [POSITION]: copy(halo[POSITION]),
+    [PUSHABLE]: {},
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPAWNABLE]: {
+      classKey: halo[SPAWNABLE].classKey,
+      position: copy(halo[SPAWNABLE].position),
+      light: halo[SPAWNABLE].light,
+      viewable: halo[SPAWNABLE].viewable,
+    },
+    [SPRITE]: sprite,
+    [STATS]: { ...emptyStats, ...stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+    [VIEWABLE]: halo[SPAWNABLE].viewable,
+  });
+  setIdentifier(world, heroEntity, "hero");
+
+  createSequence<"vision", VisionSequence>(
+    world,
+    heroEntity,
+    "vision",
+    "changeRadius",
+    { light: halo[SPAWNABLE].light, fast: true }
+  );
+  createSequence<"pointer", PointerSequence>(
+    world,
+    heroEntity,
+    "pointer",
+    "pointerArrow",
+    {}
+  );
+
+  return heroEntity;
+};
+
 export default function setupFate(world: World) {
   let referencesGeneration = -1;
 
@@ -249,75 +324,7 @@ export default function setupFate(world: World) {
       if (!isSoulReady(world, entity)) continue;
 
       // spawn new hero
-      const { stats, sprite } = getClassData(entity[SPAWNABLE].classKey);
-      const frameId = world.getEntityId(
-        entities.createFrame(world, {
-          [REFERENCE]: {
-            tick: getHasteInterval(world, stats.haste),
-            delta: 0,
-            suspended: true,
-            suspensionCounter: -1,
-          },
-          [RENDERABLE]: { generation: 0 },
-        })
-      );
-
-      const heroEntity = entities.createHero(world, {
-        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-        [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-        [ATTACKABLE]: { shots: 0 },
-        [BELONGABLE]: { faction: entity[BELONGABLE].faction },
-        [COLLECTABLE]: {},
-        [DROPPABLE]: { decayed: false },
-        [EQUIPPABLE]: {},
-        [FOG]: { visibility: "visible", type: "unit" },
-        [INVENTORY]: { items: [], size: 24 },
-        [LAYER]: {},
-        [LIGHT]: { visibility: 1, brightness: 1, darkness: 0 },
-        [MELEE]: { bumpGeneration: 0 },
-        [MOVABLE]: {
-          orientations: [],
-          reference: frameId,
-          spring: {
-            mass: 0.1,
-            friction: 50,
-            tension: 1000,
-          },
-          lastInteraction: 0,
-          flying: false,
-        },
-        [ORIENTABLE]: {},
-        [PLAYER]: { ghost: false, damageReceived: 0, healingReceived: 0 },
-        [POSITION]: copy(entity[POSITION]),
-        [PUSHABLE]: {},
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPAWNABLE]: {
-          classKey: entity[SPAWNABLE].classKey,
-          position: copy(entity[SPAWNABLE].position),
-          light: entity[SPAWNABLE].light,
-          viewable: entity[SPAWNABLE].viewable,
-        },
-        [SPRITE]: sprite,
-        [STATS]: { ...emptyStats, ...stats },
-        [SWIMMABLE]: { swimming: false },
-        [VIEWABLE]: entity[SPAWNABLE].viewable,
-      });
-      createSequence<"vision", VisionSequence>(
-        world,
-        heroEntity,
-        "vision",
-        "changeRadius",
-        { light: entity[SPAWNABLE].light, fast: true }
-      );
-      createSequence<"pointer", PointerSequence>(
-        world,
-        heroEntity,
-        "pointer",
-        "pointerArrow",
-        {}
-      );
-      setIdentifier(world, heroEntity, "hero");
+      const heroEntity = createHero(world, entity);
 
       const heroId = world.getEntityId(heroEntity);
       const compassEntity = getIdentifierAndComponents(world, "compass", [

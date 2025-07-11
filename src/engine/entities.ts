@@ -356,6 +356,7 @@ export const createHero = entityFactory([
   SPRITE,
   STATS,
   SWIMMABLE,
+  TOOLTIP,
   VIEWABLE,
 ]);
 

@@ -201,8 +201,6 @@ export const addToInventory = (
 
     addToInventory(world, entity, woodSword);
     amount -= 1;
-
-    if (amount === 0) return;
   }
 
   const targetId = world.getEntityId(targetItem);
@@ -233,7 +231,7 @@ export const addToInventory = (
     (targetStackable && itemEntity[ITEM].amount === STACK_SIZE)
   ) {
     entity[INVENTORY].items.push(targetId);
-  } else if (targetStat) {
+  } else if (targetStat && amount > 0) {
     const maxStat = getMaxCounter(targetStat);
     const maximum = maxStat !== targetStat ? entity[STATS][maxStat] : 99;
     const collectAmount = fullStack ? itemEntity[ITEM].amount : amount;
@@ -281,11 +279,11 @@ export const addToInventory = (
       stackEntity[ITEM].amount = 1;
       entity[INVENTORY].items.push(stackId);
     }
+  }
 
-    // delete old stack
-    if (itemEntity[ITEM].amount === 0) {
-      disposeEntity(world, itemEntity);
-    }
+  // delete old stack
+  if ((targetStat || targetStackable) && itemEntity[ITEM].amount === 0) {
+    disposeEntity(world, itemEntity);
   }
 };
 

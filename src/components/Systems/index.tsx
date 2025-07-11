@@ -71,8 +71,6 @@ export default function Systems() {
   }, [
     hero,
     damageReceived,
-    position.x,
-    position.y,
     api,
     dimensions.aspectRatio,
   ]);
