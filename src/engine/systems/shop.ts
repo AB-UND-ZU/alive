@@ -20,12 +20,14 @@ import { ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
 import { add } from "../../game/math/std";
+import { TypedEntity } from "../entities";
+import { isEnemy } from "./damage";
 
 export const isShopping = (world: World, entity: Entity) =>
   entity[PLAYER]?.shopping;
 
 export const isShoppable = (world: World, entity: Entity) =>
-  POPUP in entity && entity[POPUP].deals.length > 0;
+  POPUP in entity && entity[POPUP].deals.length > 0 && !isEnemy(world, entity);
 
 export const getShoppable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
@@ -94,6 +96,10 @@ export const sellItems = (
     viewpoint: world.getEntityId(viewpointEntity),
     transaction,
   });
+};
+
+export const removeShop = (world: World, entity: Entity) => {
+  world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP);
 };
 
 export const openShop = (

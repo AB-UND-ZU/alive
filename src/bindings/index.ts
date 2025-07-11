@@ -1735,6 +1735,8 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, nomadEntity, nomadUnit.items, nomadUnit.equipments);
   setIdentifier(world, nomadEntity, "nomad");
+  npcSequence(world, nomadEntity, "nomadNpc", {})
+
   const ironKeyEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -1777,6 +1779,8 @@ export const generateWorld = async (world: World) => {
   populateInventory(world, nomadChest, [
     { consume: "key", material: "iron", amount: 1, bound: false },
   ]);
+  const nomadKeyEntity = world.assertById(nomadChest[INVENTORY].items[0]);
+  setIdentifier(world, nomadKeyEntity, "nomad_key");
 
   // postprocess town
 

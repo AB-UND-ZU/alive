@@ -5,7 +5,7 @@ import { Position } from "../../engine/components/position";
 import { LEVEL } from "../../engine/components/level";
 import { Matrix, matrixFactory } from "./matrix";
 import { isWalkable } from "../../engine/systems/movement";
-import { normalize, signedDistance } from "./std";
+import { add, getDistance, normalize, signedDistance } from "./std";
 import { degreesToOrientations, pointToDegree } from "./tracing";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { Orientation, orientations } from "../../engine/components/orientable";
@@ -55,10 +55,21 @@ export const findPath = (
     centeredOrigin.y
   ] as GridNode & { weight: number };
   originNode.weight = 1;
-  const centeredTarget = {
-    x: width + signedDistance(width, target.x, width),
-    y: height + signedDistance(height, target.y, height),
-  };
+
+  // find shortest distance to target
+  const matrixTargets = [0, 1]
+    .map((wrapX) =>
+      [0, 1].map((wrapY) =>
+        add(target, { x: wrapX * width, y: wrapY * height })
+      )
+    )
+    .flat();
+  const centeredTarget = [...matrixTargets].sort(
+    (left, right) =>
+      getDistance(centeredOrigin, left, width * 2, 1, false) -
+      getDistance(centeredOrigin, right, width * 2, 1, false)
+  )[0];
+  
   const targetNode = graph.grid[centeredTarget.x][
     centeredTarget.y
   ] as GridNode & { weight: number };

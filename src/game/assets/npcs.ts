@@ -41,6 +41,8 @@ import { INVENTORY } from "../../engine/components/inventory";
 import { LAYER } from "../../engine/components/layer";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
+import { removeShop } from "../../engine/systems/shop";
+import { isEnemy } from "../../engine/systems/damage";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -652,12 +654,202 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
   step({
     stage,
     name: "goodbye",
-    forceEnter: () => isUnlocked(world, doorEntity),
+    forceEnter: () => isUnlocked(world, doorEntity) && !isEnemy(world, entity),
     onEnter: () => {
       entity[TOOLTIP].override = "visible";
       entity[TOOLTIP].changed = true;
       entity[TOOLTIP].dialogs = [createDialog("Good luck!")];
       entity[TOOLTIP].idle = undefined;
+      return true;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const nomadNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const doorEntity = getIdentifier(world, "nomad_door");
+
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    POSITION,
+    EQUIPPABLE,
+    STATS,
+    SPAWNABLE,
+    INVENTORY,
+  ]);
+  const keyEntity = getIdentifierAndComponents(world, "nomad_key", [ITEM]);
+  const chestEntity =
+    keyEntity &&
+    world.getEntityByIdAndComponents(keyEntity[ITEM].carrier, [STATS]);
+
+  if (!doorEntity) {
+    return { finished: stage.finished, updated: stage.updated };
+  }
+
+  // remember initial nomad position
+  if (!state.args.memory.initialPosition) {
+    state.args.memory.initialPosition = copy(entity[POSITION]);
+  }
+
+  step({
+    stage,
+    name: START_STEP,
+    onEnter: () => true,
+    isCompleted: () => isUnlocked(world, doorEntity),
+    onLeave: () => "greet",
+  });
+
+  step({
+    stage,
+    name: "greet",
+    onEnter: () => {
+      state.args.memory.greeted = state.elapsed;
+      entity[BEHAVIOUR].patterns.push({
+        name: "dialog",
+        memory: {
+          override: "visible",
+          dialogs: [createDialog("Who's there?")],
+        },
+      });
+      return true;
+    },
+    isCompleted: () => state.elapsed > state.args.memory.greeted + greetTime,
+    onLeave: () => {
+      entity[BEHAVIOUR].patterns.push({
+        name: "dialog",
+        memory: {
+          override: undefined,
+          dialogs: [],
+        },
+      });
+
+      return "shop";
+    },
+  });
+
+  // warn player if chest is attacked by player
+  step({
+    stage,
+    name: "warn",
+    forceEnter: () =>
+      !state.args.memory.warned &&
+      !!chestEntity &&
+      chestEntity[STATS].hp < chestEntity[STATS].maxHp,
+    onEnter: () => {
+      state.args.memory.warned = true;
+      const previousDialog = { ...entity[TOOLTIP], changed: true };
+
+      entity[TOOLTIP].override = "visible";
+      entity[TOOLTIP].changed = true;
+      entity[TOOLTIP].dialogs = [createDialog("Stop it!")];
+      entity[BEHAVIOUR].patterns.unshift(
+        {
+          name: "wait",
+          memory: { ticks: 4 },
+        },
+        {
+          name: "dialog",
+          memory: previousDialog,
+        }
+      );
+      return false;
+    },
+  });
+
+  step({
+    stage,
+    name: "shop",
+    isCompleted: () =>
+      !!heroEntity &&
+      heroEntity[INVENTORY].items.some(
+        (item) =>
+          world.assertByIdAndComponents(item, [ITEM])[ITEM].consume === "key"
+      ),
+    onLeave: () => {
+      if (keyEntity) {
+        if (chestEntity) {
+          removeFromInventory(world, chestEntity, keyEntity);
+          disposeEntity(world, keyEntity);
+        } else {
+          const carrierEntity = world.assertById(keyEntity[ITEM].carrier);
+          disposeEntity(world, carrierEntity, false);
+        }
+      }
+      return END_STEP;
+    },
+  });
+
+  // attack player if key is stolen
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const inAttackRange =
+    !!heroEntity &&
+    getDistance(state.args.memory.initialPosition, heroEntity[POSITION], size) <
+      4;
+  const outOfRange =
+    !!heroEntity &&
+    getDistance(state.args.memory.initialPosition, heroEntity[POSITION], size) >
+      20;
+  step({
+    stage,
+    name: "enrage",
+    forceEnter: () =>
+      !!heroEntity &&
+      ((!!keyEntity &&
+        keyEntity[ITEM].carrier === world.getEntityId(heroEntity)) ||
+        isEnemy(world, entity)) &&
+      inAttackRange,
+    onEnter: () => {
+      removeShop(world, entity);
+
+      entity[BEHAVIOUR].patterns = [
+        {
+          name: "enrage",
+          memory: { shout: "Thief\u0112" },
+        },
+        {
+          name: "kill",
+          memory: {
+            target: heroEntity && world.getEntityId(heroEntity),
+          },
+        },
+      ];
+      return true;
+    },
+  });
+
+  step({
+    stage,
+    name: "aggro",
+    forceEnter: () =>
+      !!heroEntity &&
+      ((!!keyEntity &&
+        keyEntity[ITEM].carrier === world.getEntityId(heroEntity)) ||
+        isEnemy(world, entity)) &&
+      outOfRange,
+    onEnter: () => {
+      entity[BEHAVIOUR].patterns = [
+        {
+          name: "dialog",
+          memory: {
+            override: undefined,
+            dialogs: [],
+          },
+        },
+        {
+          name: "move",
+          memory: {
+            targetPosition: state.args.memory.initialPosition,
+          },
+        },
+      ];
       return true;
     },
   });
