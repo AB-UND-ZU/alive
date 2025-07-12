@@ -512,17 +512,6 @@ export const generateWorld = async (world: World) => {
     if (!cell) {
       return;
     } else if (cell === "player") {
-      const heroEntity = createHero(world, {
-        [POSITION]: { x, y },
-        [BELONGABLE]: { faction: "settler" },
-        [SPAWNABLE]: {
-          classKey: "scout",
-          position: { x, y },
-          viewable: { active: false, priority: 50 },
-          light: { brightness: 18, visibility: 18, darkness: 0 },
-        },
-      });
-
       // create spawn dummy to set needle target
       const spawnEntity = entities.createViewpoint(world, {
         [POSITION]: { x, y },
@@ -530,8 +519,6 @@ export const generateWorld = async (world: World) => {
         [VIEWABLE]: { active: false, priority: 30 },
       });
       setIdentifier(world, spawnEntity, "spawn");
-
-      questSequence(world, heroEntity, "spawnQuest", {});
     } else if (cell === "mountain") {
       entities.createMountain(world, {
         [FOG]: { visibility, type: "terrain" },
@@ -1523,6 +1510,20 @@ export const generateWorld = async (world: World) => {
     }
   });
 
+  // spawn hero last to allow movement of boxes and mobs take precendence
+  const spawnEntity = assertIdentifierAndComponents(world, "spawn", [POSITION]);
+  const heroEntity = createHero(world, {
+    [POSITION]: copy(spawnEntity[POSITION]),
+    [BELONGABLE]: { faction: "settler" },
+    [SPAWNABLE]: {
+      classKey: "scout",
+      position: copy(spawnEntity[POSITION]),
+      viewable: { active: false, priority: 50 },
+      light: { brightness: 18, visibility: 18, darkness: 0 },
+    },
+  });
+  questSequence(world, heroEntity, "spawnQuest", {});
+
   // postprocess spawn
   const guideDoor = assertIdentifierAndComponents(world, "guide_door", [
     POSITION,
@@ -1735,7 +1736,7 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, nomadEntity, nomadUnit.items, nomadUnit.equipments);
   setIdentifier(world, nomadEntity, "nomad");
-  npcSequence(world, nomadEntity, "nomadNpc", {})
+  npcSequence(world, nomadEntity, "nomadNpc", {});
 
   const ironKeyEntity = entities.createItem(world, {
     [ITEM]: {
