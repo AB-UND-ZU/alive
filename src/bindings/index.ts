@@ -1665,7 +1665,7 @@ export const generateWorld = async (world: World) => {
   for (let offset = 0; offset < 3; offset += 1) {
     const mountainEntity = entities.createMountain(world, {
       [FOG]: { visibility: "hidden", type: "terrain" },
-      [POSITION]: { x: -1 + offset, y: 7 },
+      [POSITION]: { x: -1 + offset, y: 6 },
       [SPRITE]: none,
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [RENDERABLE]: { generation: 0 },

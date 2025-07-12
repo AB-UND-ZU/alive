@@ -43,6 +43,7 @@ import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { removeShop } from "../../engine/systems/shop";
 import { isEnemy } from "../../engine/systems/damage";
+import { Deal } from "../../engine/components/popup";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -499,8 +500,21 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
         {
           name: "sell",
           memory: {
-            item: assertIdentifier(world, "spawn_key")[ITEM],
-            activation: [{ stat: "coin", amount: 1 }],
+            deals: [
+              {
+                item: assertIdentifier(world, "spawn_key")[ITEM],
+                stock: 1,
+                price: [{ stat: "coin", amount: 1 }],
+              },
+              {
+                item: { consume: "potion1", material: "fire", amount: 10 },
+                stock: 1,
+                price: [
+                  { stat: "coin", amount: 3 },
+                  { stackable: "apple", amount: 1 },
+                ],
+              },
+            ] as Deal[],
           },
         },
       ];
@@ -514,7 +528,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     stage,
     name: "close",
     onEnter: () => {
-      entity[BEHAVIOUR].patterns = [
+      entity[BEHAVIOUR].patterns.unshift(
         {
           name: "dialog",
           memory: {
@@ -536,8 +550,8 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
             override: undefined,
             dialogs: [createDialog(isTouch ? "Press [SHOP]" : "SPACE to shop")],
           },
-        },
-      ];
+        }
+      );
       return true;
     },
     isCompleted: () => !!heroEntity?.[PLAYER]?.shopping,
