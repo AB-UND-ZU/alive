@@ -11,6 +11,8 @@ export type Pattern = {
     | "chest_boss"
     | "wait"
     | "action"
+    | "invincible"
+    | "vulnerable"
     | "move"
     | "kill"
     | "dialog"

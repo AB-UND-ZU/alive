@@ -71,7 +71,7 @@ import { FocusSequence, SEQUENCABLE } from "../engine/components/sequencable";
 import { createSequence } from "../engine/systems/sequence";
 import { npcSequence, questSequence } from "../game/assets/utils";
 import { SPAWNABLE } from "../engine/components/spawnable";
-import { generateUnitData } from "../game/balancing/units";
+import { generateNpcData, generateUnitData } from "../game/balancing/units";
 import { BELONGABLE } from "../engine/components/belongable";
 import generateTown from "../engine/wfc/town";
 import { AFFECTABLE } from "../engine/components/affectable";
@@ -92,7 +92,6 @@ import { registerEntity } from "../engine/systems/map";
 import { LAYER } from "../engine/components/layer";
 import { sellItems } from "../engine/systems/shop";
 import { Deal } from "../engine/components/popup";
-import { getSpellStat } from "../game/balancing/spells";
 import {
   assertIdentifierAndComponents,
   offerQuest,
@@ -446,13 +445,13 @@ export const generateWorld = async (world: World) => {
   ]);
   const guideHouse = { position: add(guideDoor[POSITION], { x: 1, y: -1 }) };
 
-  const guideEntityData = generateUnitData("guide");
+  const guideUnit = generateNpcData("guide");
   const guideEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: guideEntityData.patterns },
-    [BELONGABLE]: { faction: guideEntityData.faction },
+    [BEHAVIOUR]: { patterns: guideUnit.patterns },
+    [BELONGABLE]: { faction: guideUnit.faction },
     [COLLECTABLE]: {},
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
@@ -469,13 +468,13 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
-    [NPC]: {},
+    [NPC]: { type: guideUnit.type },
     [ORIENTABLE]: {},
     [POSITION]: copy(guidePosition),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: guideEntityData.sprite,
-    [STATS]: { ...emptyStats, ...guideEntityData.stats },
+    [SPRITE]: guideUnit.sprite,
+    [STATS]: { ...emptyStats, ...guideUnit.stats },
     [SWIMMABLE]: { swimming: false },
     [TOOLTIP]: {
       dialogs: [],
@@ -483,12 +482,7 @@ export const generateWorld = async (world: World) => {
       nextDialog: -1,
     },
   });
-  populateInventory(
-    world,
-    guideEntity,
-    guideEntityData.items,
-    guideEntityData.equipments
-  );
+  populateInventory(world, guideEntity, guideUnit.items, guideUnit.equipments);
   setIdentifier(world, guideEntity, "guide");
 
   npcSequence(world, guideEntity, "guideNpc", {});
@@ -613,7 +607,7 @@ export const generateWorld = async (world: World) => {
 
   // postprocess nomad
   const nomadHouse = { position: { x: nomadX - 1, y: nomadY - 1 } };
-  const nomadUnit = generateUnitData("nomad");
+  const nomadUnit = generateNpcData("nomad");
   const nomadEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
@@ -636,7 +630,7 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
-    [NPC]: {},
+    [NPC]: { type: nomadUnit.type },
     [ORIENTABLE]: {},
     [POSITION]: add(nomadHouse.position, { x: -1, y: 0 }),
     [RENDERABLE]: { generation: 0 },
@@ -702,7 +696,7 @@ export const generateWorld = async (world: World) => {
   // postprocess town
 
   // 1. chief's house in center
-  const chiefUnit = generateUnitData("chief");
+  const chiefUnit = generateNpcData("chief");
   const chiefEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
@@ -725,7 +719,7 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
-    [NPC]: {},
+    [NPC]: { type: chiefUnit.type },
     [ORIENTABLE]: {},
     [POSITION]: copy(chiefHouse.position),
     [RENDERABLE]: { generation: 0 },
@@ -800,7 +794,7 @@ export const generateWorld = async (world: World) => {
   setIdentifier(world, welcomeEntity, "welcome");
 
   // 2. elder's house
-  const elderUnit = generateUnitData("elder");
+  const elderUnit = generateNpcData("elder");
   const elderEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
@@ -823,7 +817,7 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
-    [NPC]: {},
+    [NPC]: { type: elderUnit.type },
     [ORIENTABLE]: {},
     [POSITION]: copy(elderHouse.position),
     [RENDERABLE]: { generation: 0 },
@@ -841,7 +835,7 @@ export const generateWorld = async (world: World) => {
   setIdentifier(world, elderEntity, "elder");
 
   // 3. scout's house
-  const scoutUnit = generateUnitData("scout");
+  const scoutUnit = generateNpcData("scout");
   const scoutEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
@@ -864,7 +858,7 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
-    [NPC]: {},
+    [NPC]: { type: scoutUnit.type },
     [ORIENTABLE]: {},
     [POSITION]: copy(scoutHouse.position),
     [RENDERABLE]: { generation: 0 },
@@ -900,7 +894,7 @@ export const generateWorld = async (world: World) => {
   );
 
   // 4. smith's house
-  const smithUnit = generateUnitData("smith");
+  const smithUnit = generateNpcData("smith");
   const smithEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
@@ -923,7 +917,7 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
-    [NPC]: {},
+    [NPC]: { type: smithUnit.type },
     [ORIENTABLE]: {},
     [POSITION]: copy(smithHouse.position),
     [RENDERABLE]: { generation: 0 },
@@ -1026,7 +1020,7 @@ export const generateWorld = async (world: World) => {
   );
 
   // 5. trader's house
-  const traderUnit = generateUnitData("trader");
+  const traderUnit = generateNpcData("trader");
   const traderEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
@@ -1049,7 +1043,7 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
-    [NPC]: {},
+    [NPC]: { type: traderUnit.type },
     [ORIENTABLE]: {},
     [POSITION]: copy(traderHouse.position),
     [RENDERABLE]: { generation: 0 },
@@ -1082,7 +1076,7 @@ export const generateWorld = async (world: World) => {
   );
 
   // 6. druid's house
-  const druidUnit = generateUnitData("druid");
+  const druidUnit = generateNpcData("druid");
   const druidEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
@@ -1105,7 +1099,7 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
-    [NPC]: {},
+    [NPC]: { type: druidUnit.type },
     [ORIENTABLE]: {},
     [POSITION]: copy(druidHouse.position),
     [RENDERABLE]: { generation: 0 },
@@ -1246,7 +1240,7 @@ export const generateWorld = async (world: World) => {
   );
 
   // 7. mage's house
-  const mageUnit = generateUnitData("mage");
+  const mageUnit = generateNpcData("mage");
   const mageEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
@@ -1269,7 +1263,7 @@ export const generateWorld = async (world: World) => {
       lastInteraction: 0,
       flying: false,
     },
-    [NPC]: {},
+    [NPC]: { type: mageUnit.type },
     [ORIENTABLE]: {},
     [POSITION]: copy(mageHouse.position),
     [RENDERABLE]: { generation: 0 },
@@ -1286,12 +1280,12 @@ export const generateWorld = async (world: World) => {
   populateInventory(world, mageEntity, mageUnit.items, mageUnit.equipments);
   setIdentifier(world, mageEntity, "mage");
   const waveItem: Deal["item"] = {
-    amount: getSpellStat("wave1").damage,
+    amount: 1,
     equipment: "primary",
     primary: "wave1",
   };
   const beamItem: Deal["item"] = {
-    amount: getSpellStat("beam1").damage,
+    amount: 1,
     equipment: "primary",
     primary: "beam1",
   };

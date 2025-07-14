@@ -1,6 +1,6 @@
-import { UnitDistribution } from "../balancing/units";
+import { NpcDistribution } from "../balancing/units";
 
-export const hillsUnitDistribution: UnitDistribution = {
+export const hillsNpcDistribution: NpcDistribution = {
   prism: 35,
   goldPrism: 6,
   eye: 25,

@@ -36,19 +36,10 @@ import { Item } from "../../engine/components/item";
 import { getGearStat } from "./equipment";
 import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
-import { getSpellStat } from "./spells";
+import { NpcType } from "../../engine/components/npc";
 
 export type UnitKey =
-  | "guide"
-  | "nomad"
-  | "chief"
-  | "elder"
-  | "scout"
-  | "smith"
-  | "trader"
-  | "druid"
-  | "hunter"
-  | "mage"
+  | NpcType
   | "commonChest"
   | "uncommonChest"
   | "rareChest"
@@ -62,18 +53,9 @@ export type UnitKey =
   | "rock2"
   | "tumbleweed"
   | "hedge1"
-  | "hedge2"
-  | "prism"
-  | "goldPrism"
-  | "eye"
-  | "goldEye"
-  | "orb"
-  | "goldOrb"
-  | "fairy"
-  | "waveTower"
-  | "chestBoss";
+  | "hedge2";
 
-export type UnitDistribution = Partial<Record<UnitKey, number>>;
+export type NpcDistribution = Partial<Record<NpcType, number>>;
 
 export type UnitDefinition = {
   faction: Faction;
@@ -108,6 +90,10 @@ export type UnitData = {
   spring?: SpringConfig;
 };
 
+export type NpcData = UnitData & {
+  type: NpcType;
+};
+
 const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
     faction: "nomad",
@@ -130,7 +116,12 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
       { amount: 1, equipment: "compass", bound: false },
     ],
-    drops: [],
+    drops: [
+      {
+        chance: 100,
+        items: [{ amount: 10, consume: "potion1", material: "fire" }],
+      },
+    ],
     patternNames: [],
     sprite: guide,
   },
@@ -319,7 +310,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
           {
             equipment: "primary",
             primary: "beam1",
-            amount: getSpellStat("beam1").damage,
+            amount: 1,
           },
           { consume: "potion1", material: "water", amount: 10 },
         ],
@@ -330,7 +321,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
           {
             equipment: "primary",
             primary: "wave1",
-            amount: getSpellStat("wave1").damage,
+            amount: 1,
           },
           { consume: "potion1", material: "water", amount: 10 },
         ],
@@ -639,7 +630,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         equipment: "primary",
         primary: "beam1",
         bound: true,
-        amount: 3,
+        amount: 1,
       },
     ],
     drops: [
@@ -683,15 +674,15 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   waveTower: {
     faction: "wild",
     power: 0,
-    armor: 2,
-    hp: 10,
+    armor: 3,
+    hp: 20,
     mp: 2,
     equipments: [
       {
         equipment: "primary",
         primary: "wave1",
         bound: true,
-        amount: 5,
+        amount: 1,
       },
     ],
     drops: [
@@ -706,20 +697,31 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   chestBoss: {
     faction: "unit",
     power: 0,
-    armor: 2,
-    hp: 50,
+    armor: 1,
+    hp: 200,
     mp: 2,
     equipments: [
-      {
-        equipment: "primary",
-        primary: "wave1",
-        bound: true,
-        amount: 5,
-      },
       {
         equipment: "sword",
         bound: true,
         amount: 5,
+      },
+      {
+        equipment: "primary",
+        primary: "wave1",
+        bound: true,
+        amount: 1,
+      },
+      {
+        equipment: "secondary",
+        secondary: "slash",
+        bound: true,
+        amount: 1,
+      },
+      {
+        stackable: "charge",
+        bound: true,
+        amount: 1,
       },
     ],
     drops: [
@@ -727,9 +729,15 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 100,
         items: [
           { consume: "key", amount: 1, material: "iron" },
+          { stackable: "resource", amount: 3, material: "gold" },
           {
             equipment: "sword",
             amount: getGearStat("sword", "gold"),
+            material: "gold",
+          },
+          {
+            equipment: "shield",
+            amount: getGearStat("shield", "gold"),
             material: "gold",
           },
         ],
@@ -740,9 +748,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
 };
 
-export const generateUnitKey = (unitDistribution: UnitDistribution) => {
-  const unitKeys = Object.keys(unitDistribution) as UnitKey[];
-  return unitKeys[distribution(...Object.values(unitDistribution))];
+export const generateNpcKey = (npcDistribution: NpcDistribution) => {
+  const unitKeys = Object.keys(npcDistribution) as NpcType[];
+  return unitKeys[distribution(...Object.values(npcDistribution))];
 };
 
 export const generateUnitData = (unitKey: UnitKey): UnitData => {
@@ -765,3 +773,8 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
     ...unitDefinition,
   };
 };
+
+export const generateNpcData = (npcKey: NpcType): NpcData => ({
+  type: npcKey,
+  ...generateUnitData(npcKey),
+});

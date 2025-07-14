@@ -480,6 +480,14 @@ export const waveTower: Sprite = {
   ],
 };
 
+export const waveTowerCharged: Sprite = {
+  name: "Tower",
+  layers: [
+    { char: "Y", color: colors.silver },
+    { char: '"', color: colors.white },
+  ],
+};
+
 export const goldWaveTower: Sprite = {
   name: "Tower",
   layers: [

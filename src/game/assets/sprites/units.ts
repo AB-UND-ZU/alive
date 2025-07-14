@@ -254,3 +254,8 @@ export const tumbleweed: Sprite = {
     ],
   },
 };
+
+export const portal: Sprite = {
+  name: "Portal",
+  layers: [{ char: "∩", color: colors.fuchsia }],
+};

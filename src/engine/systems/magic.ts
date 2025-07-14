@@ -20,6 +20,7 @@ import {
   createAmountMarker,
   getAttackables,
   isDead,
+  isEnemy,
   isFriendlyFire,
 } from "./damage";
 import { emptyStats, STATS } from "../components/stats";
@@ -71,11 +72,14 @@ export const canCast = (world: World, entity: Entity, item: Entity) => {
 export const getParticleAmount = (world: World, amount: number) => {
   if (amount >= 5) return 3;
   if (amount >= 3) return 2;
-  return 1;
+  if (amount >= 1) return 1;
+  return 0;
 };
 
 export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
-  consumeCharge(world, entity, "charge");
+  if (!isEnemy(world, entity)) {
+    consumeCharge(world, entity, "charge");
+  }
 
   const entityId = world.getEntityId(entity);
   const swordEntity = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [

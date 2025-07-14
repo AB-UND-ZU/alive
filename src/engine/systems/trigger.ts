@@ -44,6 +44,7 @@ import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { abortQuest, acceptQuest as ecsAcceptQuest } from "../utils";
 import { fenceDoor, fenceDoorOpen } from "../../game/assets/sprites/structures";
+import { NPC } from "../components/npc";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -267,10 +268,11 @@ export const castSpell = (
   item: TypedEntity<"ITEM">
 ) => {
   // use overriden damage values for NPCs and mobs
-  const spellStats = {
-    ...getSpellStat(item[ITEM].primary!, item[ITEM].material as Element),
-    ...(entity[PLAYER] ? {} : { damage: item[ITEM].amount }),
-  };
+  const spellStats = getSpellStat(
+    entity[NPC]?.type || "hero",
+    item[ITEM].primary!,
+    item[ITEM].material as Element
+  );
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [CASTABLE]: {

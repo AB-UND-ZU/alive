@@ -2090,7 +2090,7 @@ export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
   );
   const focusIndex = Math.floor(state.elapsed / focusSpeed) % 4;
   const currentActive = currentIndex !== -1;
-  const isActive = !!entity[FOCUSABLE].target;
+  const isActive = !!entity[FOCUSABLE].target && !!entity[FOCUSABLE].highlight;
 
   // disable all on inactive
   if (currentActive && !isActive) {

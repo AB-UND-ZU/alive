@@ -1,7 +1,30 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Npc = {};
+export const npcTypes = [
+  "guide",
+  "nomad",
+  "chief",
+  "elder",
+  "scout",
+  "smith",
+  "trader",
+  "druid",
+  "hunter",
+  "mage",
+  "prism",
+  "goldPrism",
+  "eye",
+  "goldEye",
+  "orb",
+  "goldOrb",
+  "fairy",
+  "waveTower",
+  "chestBoss",
+] as const;
+export type NpcType = (typeof npcTypes)[number];
+
+export type Npc = { type: NpcType };
 
 export const NPC = "NPC";
 

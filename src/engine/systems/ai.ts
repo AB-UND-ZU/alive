@@ -7,10 +7,13 @@ import { Behaviour, BEHAVIOUR } from "../components/behaviour";
 import { getBiomes, isMovable, isWalkable } from "./movement";
 import {
   add,
+  choice,
   copy,
   getDistance,
   normalize,
   random,
+  range,
+  shuffle,
   signedDistance,
 } from "../../game/math/std";
 import { getAttackable, isDead, isFriendlyFire } from "./damage";
@@ -35,18 +38,22 @@ import {
   chestBoss,
   confused,
   createShout,
+  fireWaveTower,
   rage,
   sleep1,
   sleep2,
+  waterWaveTower,
+  waveTower,
+  waveTowerCharged,
 } from "../../game/assets/sprites";
 import { INVENTORY } from "../components/inventory";
 import { FOG } from "../components/fog";
 import { LEVEL } from "../components/level";
 import { BELONGABLE } from "../components/belongable";
 import { iterations } from "../../game/math/tracing";
-import { getProjectiles } from "./ballistics";
+import { getProjectiles, shootArrow } from "./ballistics";
 import { canCast, getExertables } from "./magic";
-import { getCell, moveEntity, registerEntity } from "./map";
+import { disposeEntity, getCell, moveEntity } from "./map";
 import { getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
@@ -55,10 +62,14 @@ import { CASTABLE } from "../components/castable";
 import { BURNABLE } from "../components/burnable";
 import { sellItems } from "./shop";
 import { isControllable } from "./freeze";
-import { getIdentifierAndComponents } from "../utils";
+import { getIdentifier, getIdentifierAndComponents } from "../utils";
 import { SPRITE } from "../components/sprite";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { createCell } from "../../bindings/creation";
+import addAttackable, { ATTACKABLE } from "../components/attackable";
+import { RECHARGABLE } from "../components/rechargable";
+import { addCollidable } from "../components";
+import { COLLIDABLE } from "../components/collidable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -798,15 +809,120 @@ export default function setupAi(world: World) {
           }
           patterns.splice(patterns.indexOf(pattern), 1);
           break;
+        } else if (pattern.name === "invincible") {
+          // drop any pending arrows or charges
+          if (entity[ATTACKABLE]) {
+            dropEntity(
+              world,
+              {
+                [ATTACKABLE]: entity[ATTACKABLE],
+                [RECHARGABLE]: entity[RECHARGABLE],
+              },
+              entity[POSITION]
+            );
+            world.removeComponentFromEntity(
+              entity as TypedEntity<"ATTACKABLE">,
+              "ATTACKABLE"
+            );
+            addCollidable(world, entity, {});
+          }
+          patterns.splice(patterns.indexOf(pattern), 1);
+        } else if (pattern.name === "vulnerable") {
+          if (!entity[ATTACKABLE]) {
+            addAttackable(world, entity, { shots: 0 });
+            world.removeComponentFromEntity(
+              entity as TypedEntity<"COLLIDABLE">,
+              "COLLIDABLE"
+            );
+          }
+          patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "chest_boss") {
-          if (!entity[ACTIONABLE] || !entity[TOOLTIP]) {
+          const chaseTicks = 30;
+          const healTicks = 45;
+          const confusedTicks = 12;
+          const slashTicks = 20;
+          const castTicks = 25;
+          const wavesTicks = 15;
+          const wavesShots = 5;
+
+          const heroEntity = getIdentifier(world, "hero");
+          const heroId = heroEntity && world.getEntityId(heroEntity);
+          const spellItem = world.getEntityByIdAndComponents(
+            entity[INVENTORY]?.items.find(
+              (item) =>
+                world.assertByIdAndComponents(item, [ITEM])[ITEM].primary ===
+                "wave1"
+            ),
+            [ITEM]
+          );
+          let removeDrops = false;
+
+          if (
+            !entity[ACTIONABLE] ||
+            !entity[TOOLTIP] ||
+            !entity[STATS] ||
+            !spellItem
+          ) {
             patterns.splice(patterns.indexOf(pattern), 1);
-          } else if (pattern.memory.phase === 1) {
+            break;
+          } else if (
+            pattern.memory.phase < 5 &&
+            entity[STATS].hp / entity[STATS].maxHp <= 2 / 3
+          ) {
+            removeDrops = true;
+            pattern.memory.phase = 5;
+            entity[BEHAVIOUR].patterns = [pattern];
+          } else if (
+            pattern.memory.phase < 7 &&
+            entity[STATS].hp / entity[STATS].maxHp <= 1 / 3
+          ) {
+            removeDrops = true;
+            pattern.memory.phase = 7;
+            entity[BEHAVIOUR].patterns = [pattern];
+          }
+
+          const waveTowers = world
+            .getEntities([IDENTIFIABLE, SPRITE, POSITION, BEHAVIOUR])
+            .filter((tower) => tower[IDENTIFIABLE].name === "chest_tower");
+          const pendingPatterns = patterns.slice(-1)[0] !== pattern;
+
+          if (pattern.memory.phase === 1) {
             entity[SPRITE] = chestBoss;
             entity[BELONGABLE].faction = "wild";
             patterns.splice(patterns.indexOf(pattern), 1);
-          } else if (pattern.memory.phase === 2) {
-            patterns.unshift(
+
+            // replace statues with towers
+            world
+              .getEntities([IDENTIFIABLE, SPRITE, POSITION])
+              .filter(
+                (statue) => statue[IDENTIFIABLE].name === "chest_tower_statue"
+              )
+              .forEach((statue) => {
+                createCell(
+                  world,
+                  [[]],
+                  copy(statue[POSITION]),
+                  "chest_tower",
+                  "visible"
+                );
+
+                disposeEntity(world, statue);
+              });
+          } else if (pattern.memory.phase === 2 && !pendingPatterns) {
+            removeDrops = true;
+
+            // ensure spell is set to damage
+            spellItem[ITEM].material = undefined;
+
+            // let boss cast wave
+            entity[BEHAVIOUR].patterns = [
+              {
+                name: "chest_boss",
+                memory: {
+                  phase: 3,
+                  position: pattern.memory.position,
+                },
+              },
               {
                 name: "dialog",
                 memory: {
@@ -830,13 +946,16 @@ export default function setupAi(world: World) {
               {
                 name: "wait",
                 memory: { ticks: 6 },
-              }
-            );
-            patterns.splice(patterns.indexOf(pattern), 1);
-            break;
+              },
+            ];
           } else if (pattern.memory.phase === 3) {
-            if (!pattern.memory.chase) {
+            const pendingTowers = waveTowers.filter(
+              (tower) => tower[SPRITE] === waveTower
+            );
+
+            if (!pattern.memory.chase && !pendingPatterns) {
               pattern.memory.chase = generation;
+
               patterns.push(
                 {
                   name: "dialog",
@@ -845,15 +964,71 @@ export default function setupAi(world: World) {
                   },
                 },
                 {
+                  name: "wait",
+                  memory: {
+                    ticks: 3,
+                  },
+                },
+                {
                   name: "kill",
                   memory: {
-                    target: pattern.memory.target,
+                    target: heroId,
                   },
                 }
               );
-            } else if (generation > pattern.memory.chase + 30) {
+            } else if (
+              pendingTowers.length > 0 &&
+              pattern.memory.chase &&
+              generation >
+                pattern.memory.chase +
+                  (chaseTicks / 3) * (3 - pendingTowers.length) -
+                  3
+            ) {
+              const towerEntity =
+                pendingTowers[random(0, pendingTowers.length - 1)];
+              towerEntity[SPRITE] = waveTowerCharged;
+              towerEntity[BEHAVIOUR].patterns = [
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 3 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "action",
+                  memory: { primary: true },
+                },
+              ];
+            } else if (
+              pattern.memory.chase &&
+              generation > pattern.memory.chase + chaseTicks
+            ) {
               pattern.memory.chase = undefined;
+              waveTowers.forEach((tower) => {
+                tower[SPRITE] = waveTower;
+              });
               entity[BEHAVIOUR].patterns = [
+                {
+                  name: "chest_boss",
+                  memory: {
+                    phase: 4,
+                    position: pattern.memory.position,
+                  },
+                },
+                {
+                  name: "invincible",
+                  memory: {},
+                },
                 {
                   name: "dialog",
                   memory: {
@@ -866,6 +1041,12 @@ export default function setupAi(world: World) {
                     targetPosition: pattern.memory.position,
                   },
                 },
+              ];
+            }
+          } else if (pattern.memory.phase === 4) {
+            if (!pattern.memory.warned && !pendingPatterns) {
+              pattern.memory.warned = generation;
+              patterns.push(
                 {
                   name: "wait",
                   memory: { ticks: 3 },
@@ -885,23 +1066,15 @@ export default function setupAi(world: World) {
                   memory: {
                     idle: undefined,
                   },
-                },
-                {
-                  name: "chest_boss",
-                  memory: {
-                    phase: 4,
-                    target: pattern.memory.target,
-                    position: pattern.memory.position,
-                  },
-                },
-              ];
-              break;
-            }
-          } else if (pattern.memory.phase === 4) {
-            if (!pattern.memory.spawned) {
-              // spawn 6 mobs around
+                }
+              );
+            } else if (
+              generation > pattern.memory.warned + 6 &&
+              !pattern.memory.spawned
+            ) {
               pattern.memory.spawned = generation;
-
+              pattern.memory.healed = 0;
+              // spawn 6 mobs around
               for (let i = 0; i < 6; i += 1) {
                 createCell(
                   world,
@@ -914,39 +1087,415 @@ export default function setupAi(world: World) {
                   "visible"
                 );
               }
-              world
-                .getEntities([IDENTIFIABLE])
-                .filter((entity) => entity[IDENTIFIABLE].name === "chest_mob")
-                .forEach((entity) => registerEntity(world, entity));
+            } else if (
+              pattern.memory.spawned &&
+              generation >
+                pattern.memory.spawned + (pattern.memory.healed + 1) * healTicks
+            ) {
+              pattern.memory.healed += 1;
+
+              // ensure spell is set to healing
+              spellItem[ITEM].material = "earth";
+
+              patterns.push({
+                name: "action",
+                memory: { primary: true },
+              });
             }
 
             const chestMobs = world
               .getEntities([IDENTIFIABLE])
               .filter((entity) => entity[IDENTIFIABLE].name === "chest_mob");
 
-            if (chestMobs.length === 0) {
+            if (pattern.memory.spawned && chestMobs.length === 0) {
+              pattern.memory.warned = undefined;
               pattern.memory.spawned = undefined;
 
-              patterns.splice(patterns.indexOf(pattern), 1);
-              patterns.push(
+              entity[BEHAVIOUR].patterns = [
                 {
                   name: "chest_boss",
                   memory: {
                     phase: 2,
-                    target: pattern.memory.target,
                     position: pattern.memory.position,
                   },
                 },
                 {
-                  name: "chest_boss",
+                  name: "vulnerable",
+                  memory: {},
+                },
+                {
+                  name: "dialog",
                   memory: {
-                    phase: 3,
-                    target: pattern.memory.target,
-                    position: pattern.memory.position,
+                    idle: confused,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: confusedTicks },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+              ];
+            }
+          } else if (pattern.memory.phase === 5 && !pendingPatterns) {
+            entity[BEHAVIOUR].patterns = [
+              {
+                name: "chest_boss",
+                memory: {
+                  phase: 6,
+                  position: pattern.memory.position,
+                },
+              },
+              {
+                name: "invincible",
+                memory: {},
+              },
+              {
+                name: "dialog",
+                memory: {
+                  idle: undefined,
+                  override: "visible",
+                  dialogs: [createShout(choice("Burn!", "Fire!"))],
+                  enemy: true,
+                },
+              },
+              {
+                name: "move",
+                memory: {
+                  targetPosition: pattern.memory.position,
+                },
+              },
+              {
+                name: "wait",
+                memory: {
+                  ticks: 9,
+                },
+              },
+              {
+                name: "dialog",
+                memory: {
+                  override: undefined,
+                  dialogs: [],
+                },
+              },
+            ];
+
+            waveTowers.forEach((tower) => {
+              // set material to fire
+              const towerItem = world.assertByIdAndComponents(
+                tower[INVENTORY]?.items.find(
+                  (item) =>
+                    world.assertByIdAndComponents(item, [ITEM])[ITEM]
+                      .primary === "wave1"
+                ),
+                [ITEM]
+              );
+              towerItem[ITEM].material = "fire";
+              tower[SPRITE] = fireWaveTower;
+
+              // cast fire waves
+              tower[BEHAVIOUR].patterns = [
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 3 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "action",
+                  memory: { primary: true },
+                },
+              ];
+            });
+          } else if (pattern.memory.phase === 6) {
+            if (!pattern.memory.slashed && !pendingPatterns) {
+              pattern.memory.slashed = generation;
+              pattern.memory.casted = generation;
+              patterns.push(
+                {
+                  name: "vulnerable",
+                  memory: {},
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 3 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "kill",
+                  memory: {
+                    target: heroId,
                   },
                 }
               );
+            } else if (
+              pattern.memory.slashed &&
+              generation > pattern.memory.slashed + slashTicks
+            ) {
+              pattern.memory.slashed = generation;
+
+              patterns.splice(
+                1,
+                0,
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 2 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "action",
+                  memory: { secondary: true },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 6 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 2 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                }
+              );
+            } else if (
+              pattern.memory.casted &&
+              generation > pattern.memory.casted + castTicks
+            ) {
+              pattern.memory.casted = generation;
+
+              const towerEntity = choice(...waveTowers);
+              towerEntity[BEHAVIOUR].patterns = [
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 3 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "action",
+                  memory: { primary: true },
+                },
+              ];
             }
+          } else if (pattern.memory.phase === 7 && !pendingPatterns) {
+            entity[BEHAVIOUR].patterns = [
+              {
+                name: "chest_boss",
+                memory: {
+                  phase: 8,
+                  position: pattern.memory.position,
+                },
+              },
+              {
+                name: "invincible",
+                memory: {},
+              },
+              {
+                name: "dialog",
+                memory: {
+                  idle: undefined,
+                  override: "visible",
+                  dialogs: [createShout(choice("Freeze!", "Ice!"))],
+                  enemy: true,
+                },
+              },
+              {
+                name: "move",
+                memory: {
+                  targetPosition: add(pattern.memory.position, { x: 0, y: 2 }),
+                },
+              },
+              {
+                name: "wait",
+                memory: {
+                  ticks: 9,
+                },
+              },
+              {
+                name: "dialog",
+                memory: {
+                  override: undefined,
+                  dialogs: [],
+                },
+              },
+              {
+                name: "vulnerable",
+                memory: {},
+              },
+            ];
+
+            [...waveTowers, entity].forEach((caster) => {
+              // set material to water
+              const casterItem = world.assertByIdAndComponents(
+                caster[INVENTORY]?.items.find(
+                  (item) =>
+                    world.assertByIdAndComponents(item, [ITEM])[ITEM]
+                      .primary === "wave1"
+                ),
+                [ITEM]
+              );
+              casterItem[ITEM].material = "water";
+              if (caster !== entity) {
+                caster[SPRITE] = waterWaveTower;
+              }
+
+              // cast water waves
+              caster[BEHAVIOUR].patterns.push(
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 3 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "action",
+                  memory: { primary: true },
+                }
+              );
+            });
+          } else if (
+            pattern.memory.phase === 8 &&
+            (!pendingPatterns || pattern.memory.waves)
+          ) {
+            if (!pattern.memory.waves) {
+              world.removeComponentFromEntity(
+                entity as TypedEntity<"COLLIDABLE">,
+                COLLIDABLE
+              );
+              pattern.memory.waves = generation;
+              pattern.memory.cells = [];
+            } else if (
+              pattern.memory.waves &&
+              generation > pattern.memory.waves + wavesTicks
+            ) {
+              pattern.memory.waves = generation;
+
+              const towerEntity = choice(
+                ...waveTowers,
+                entity as TypedEntity<"BEHAVIOUR">
+              );
+              towerEntity[BEHAVIOUR].patterns.push(
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 3 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "action",
+                  memory: { primary: true },
+                }
+              );
+            }
+
+            if (generation % 2 === 0) {
+              for (let i = 0; i < wavesShots; i += 1) {
+                if (pattern.memory.cells.length === 0) {
+                  pattern.memory.cells = shuffle(range(-10, 10));
+                }
+                const cellOffset = pattern.memory.cells.pop();
+                const position = add(entity[POSITION], {
+                  x: cellOffset,
+                  y: -4,
+                });
+                shootArrow(
+                  world,
+                  entity,
+                  {},
+                  {
+                    [ORIENTABLE]: { facing: "down" },
+                    [POSITION]: position,
+                  }
+                );
+              }
+            }
+          }
+
+          if (removeDrops) {
+            // remove any pending mob drops
+            world
+              .getEntities([IDENTIFIABLE, ITEM])
+              .filter((drop) => drop[IDENTIFIABLE].name === "chest_mob:drop")
+              .forEach((item) => {
+                const carrierEntity = world.assertById(item[ITEM].carrier);
+                disposeEntity(world, carrierEntity);
+              });
           }
         } else {
           console.error(Date.now(), "Unhandled pattern", pattern);

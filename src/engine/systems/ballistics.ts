@@ -34,6 +34,7 @@ import { getLockable } from "./action";
 import { invertOrientation } from "../../game/math/path";
 import { ATTACKABLE } from "../components/attackable";
 import { EQUIPPABLE } from "../components/equippable";
+import { TypedEntity } from "../entities";
 
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -71,8 +72,19 @@ export const getStackableArrow = (world: World, position: Position) => {
   return arrowId && world.assertById(arrowId);
 };
 
-export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
-  consumeCharge(world, entity, "arrow");
+export const shootArrow = (
+  world: World,
+  origin: Entity,
+  bow: Entity,
+  overrides: TypedEntity = {}
+) => {
+  const entity = { ...origin, ...overrides } as TypedEntity<
+    "MOVABLE" | "EQUIPPABLE" | "BELONGABLE" | "ORIENTABLE" | "POSITION"
+  >;
+
+  if (!isEnemy(world, entity)) {
+    consumeCharge(world, entity, "arrow");
+  }
 
   const tick =
     world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
@@ -130,7 +142,7 @@ export const shootArrow = (world: World, entity: Entity, bow: Entity) => {
     {
       range: 9,
       origin: copy(entity[POSITION]),
-      caster: world.getEntityId(entity),
+      caster: world.getEntityId(origin),
     }
   );
 };
@@ -222,11 +234,14 @@ export default function setupBallistics(world: World) {
         continue;
       }
 
-      // bounce off walls or allies
+      // bounce off walls or allies but not oneself
       const shootable = getShootable(world, entity[POSITION]);
       if (
         isBouncable(world, entity[POSITION]) ||
-        (shootable && isFriendlyFire(world, entity, shootable))
+        (shootable &&
+          isFriendlyFire(world, entity, shootable) &&
+          getSequence(world, entity, "arrow")?.args.caster !==
+            world.getEntityId(shootable))
       ) {
         const targetPosition = add(
           entity[POSITION],
@@ -237,18 +252,20 @@ export default function setupBallistics(world: World) {
         const collecting = getCollecting(world, targetPosition);
         const container = collecting ? undefined : lootable;
 
-        const drop = dropEntity(
-          world,
-          { [ATTACKABLE]: { shots: 1 } },
-          entity[POSITION],
-          !!container,
-          2,
-          container ? undefined : oppositeOrientation
-        )[0];
+        if (!isEnemy(world, entity)) {
+          const drop = dropEntity(
+            world,
+            { [ATTACKABLE]: { shots: 1 } },
+            entity[POSITION],
+            !!container,
+            2,
+            container ? undefined : oppositeOrientation
+          )[0];
 
-        // add to container that finished bouncing
-        if (container) {
-          collectItem(world, container, drop);
+          // add to container that finished bouncing
+          if (container) {
+            collectItem(world, container, drop);
+          }
         }
 
         disposeEntity(world, entity, false);

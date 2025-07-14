@@ -34,6 +34,7 @@ import { STATS } from "../../engine/components/stats";
 import { getOpaqueOrientation } from "../../game/math/tracing";
 import { MELEE } from "../../engine/components/melee";
 import { FOCUSABLE } from "../../engine/components/focusable";
+import { ATTACKABLE } from "../../engine/components/attackable";
 
 function Entity({
   entity,
@@ -61,7 +62,7 @@ function Entity({
   const isFloat = entity[FOG]?.type === "float";
   const isUnit = entity[FOG]?.type === "unit";
   const isFocusable = !!entity[FOCUSABLE];
-  const isFixed = !!entity[FOG]?.fixed && visibility === 'visible';
+  const isFixed = !!entity[FOG]?.fixed && visibility === "visible";
   const isVisible = visibility === "visible";
   const isHidden = visibility === "hidden";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
@@ -69,7 +70,7 @@ function Entity({
     isOpaque && ecs ? getOpaqueOrientation(ecs, entity) : undefined;
   const isBright = !!entity[LIGHT] && entity[LIGHT].brightness > 0 && !inside;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
-  const hasStats = !!entity[STATS];
+  const hasStats = !!entity[STATS] && entity[ATTACKABLE];
 
   const isTransparent =
     (isHidden && !isAir) ||
@@ -99,7 +100,10 @@ function Entity({
 
   const [opacity, setOpacity] = useState(layerProps.isTransparent ? 0 : 1);
 
-  if (!ecs || (opacity === 0 && layerProps.isTransparent && !isUnit && !isFocusable))
+  if (
+    !ecs ||
+    (opacity === 0 && layerProps.isTransparent && !isUnit && !isFocusable)
+  )
     return null;
 
   const orderedSegments = getSegments(ecs, entity, layerProps, inside);

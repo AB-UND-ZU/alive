@@ -72,11 +72,19 @@ export const distribution = (...counts: number[]) => {
   return index;
 };
 
+export const choice = <T>(...choices: T[]) =>
+  choices[random(0, choices.length - 1)];
+
 export const shuffle = <T>(unshuffled: T[]) =>
   unshuffled
     .map((value) => ({ value, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value);
+
+export const range = (start: number, endInclusive: number) =>
+  Array.from({ length: endInclusive - start + 1 }).map(
+    (_, index) => index + start
+  );
 
 export const repeat = <T>(obj: T, count: number) =>
   Array.from({ length: count }).map(() => obj);

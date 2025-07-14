@@ -44,6 +44,7 @@ import {
   palmBurnt1,
   palmBurnt2,
   path,
+  portal,
   rock1,
   rock2,
   sand,
@@ -73,7 +74,11 @@ import { TRACKABLE } from "../engine/components/trackable";
 import { setIdentifier } from "../engine/utils";
 import { LIGHT } from "../engine/components/light";
 import { COLLIDABLE } from "../engine/components/collidable";
-import { generateUnitData, generateUnitKey } from "../game/balancing/units";
+import {
+  generateNpcData,
+  generateUnitData,
+  generateNpcKey,
+} from "../game/balancing/units";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { BELONGABLE } from "../engine/components/belongable";
 import { DROPPABLE } from "../engine/components/droppable";
@@ -128,7 +133,7 @@ import { REFERENCE } from "../engine/components/reference";
 import { getHasteInterval } from "../engine/systems/movement";
 import { DISPLACABLE } from "../engine/components/displacable";
 import { SWIMMABLE } from "../engine/components/swimmable";
-import { hillsUnitDistribution } from "../game/levels/hills";
+import { hillsNpcDistribution } from "../game/levels/hills";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { MELEE } from "../engine/components/melee";
 import { NPC } from "../engine/components/npc";
@@ -342,8 +347,10 @@ export const insertArea = (
       else if (cell === "╡") entity = "roof_right_down";
       else if (cell === "G") entity = "guide_door";
       else if (cell === "N") entity = "nomad_door";
-      else if (cell === "Y") entity = "wave_tower";
+      else if (cell === "Y") entity = "chest_tower";
+      else if (cell === "y") entity = "chest_tower_statue";
       else if (cell === "C") entity = "chest_boss";
+      else if (cell === "P") entity = "portal";
       else {
         console.error(`Unrecognized cell: ${cell}!`);
       }
@@ -1064,17 +1071,16 @@ export const createCell = (
     });
     populateInventory(world, boxEntity, items, equipments);
   } else if (cell === "mob" || cell === "prism") {
-    const { patterns, items, sprite, stats, faction, equipments, spring } =
-      generateUnitData(
-        cell === "prism" ? "prism" : generateUnitKey(hillsUnitDistribution)
-      );
+    const mobUnit = generateNpcData(
+      cell === "prism" ? "prism" : generateNpcKey(hillsNpcDistribution)
+    );
 
     const mobEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
       [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
       [ATTACKABLE]: { shots: 0 },
-      [BEHAVIOUR]: { patterns },
-      [BELONGABLE]: { faction },
+      [BEHAVIOUR]: { patterns: mobUnit.patterns },
+      [BELONGABLE]: { faction: mobUnit.faction },
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility, type: "unit" },
@@ -1084,22 +1090,22 @@ export const createCell = (
       [MOVABLE]: {
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
-        spring: spring || {
+        spring: mobUnit.spring || {
           duration: 200,
         },
         lastInteraction: 0,
         flying: false,
       },
-      [NPC]: {},
+      [NPC]: { type: mobUnit.type },
       [ORIENTABLE]: {},
       [POSITION]: { x, y },
       [RECHARGABLE]: { hit: false },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: sprite,
+      [SPRITE]: mobUnit.sprite,
       [STATS]: {
         ...emptyStats,
-        ...stats,
+        ...mobUnit.stats,
         ...(cell === "prism" ? { coin: 1 } : {}),
       },
       [SWIMMABLE]: { swimming: false },
@@ -1108,8 +1114,8 @@ export const createCell = (
     populateInventory(
       world,
       mobEntity,
-      cell === "prism" ? [] : items,
-      equipments
+      cell === "prism" ? [] : mobUnit.items,
+      mobUnit.equipments
     );
 
     if (cell === "prism") setIdentifier(world, mobEntity, "spawn_prism");
@@ -1374,8 +1380,17 @@ export const createCell = (
       [SPRITE]: houseTrader,
       [RENDERABLE]: { generation: 0 },
     });
-  } else if (cell === "wave_tower") {
-    const towerUnit = generateUnitData("waveTower");
+  } else if (cell === "chest_tower_statue") {
+    const towerEntity = entities.createTerrain(world, {
+      [COLLIDABLE]: {},
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [SPRITE]: [rock1, rock2][random(0, 1)],
+      [RENDERABLE]: { generation: 0 },
+    });
+    setIdentifier(world, towerEntity, "chest_tower_statue");
+  } else if (cell === "chest_tower") {
+    const towerUnit = generateNpcData("waveTower");
     const towerEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
       [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
@@ -1384,7 +1399,7 @@ export const createCell = (
       [BELONGABLE]: { faction: towerUnit.faction },
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
-      [FOG]: { visibility: "hidden", type: "unit" },
+      [FOG]: { visibility, type: "unit" },
       [INVENTORY]: { items: [], size: 5 },
       [LAYER]: {},
       [MELEE]: { bumpGeneration: 0 },
@@ -1397,7 +1412,7 @@ export const createCell = (
         lastInteraction: 0,
         flying: false,
       },
-      [NPC]: {},
+      [NPC]: { type: towerUnit.type },
       [ORIENTABLE]: {},
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1418,9 +1433,9 @@ export const createCell = (
       towerUnit.items,
       towerUnit.equipments
     );
-    setIdentifier(world, towerEntity, "boss_tower");
+    setIdentifier(world, towerEntity, "chest_tower");
   } else if (cell === "chest_boss") {
-    const bossUnit = generateUnitData("chestBoss");
+    const bossUnit = generateNpcData("chestBoss");
 
     const bossEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
@@ -1443,7 +1458,7 @@ export const createCell = (
         lastInteraction: 0,
         flying: false,
       },
-      [NPC]: {},
+      [NPC]: { type: bossUnit.type },
       [ORIENTABLE]: {},
       [POSITION]: { x, y },
       [RECHARGABLE]: { hit: false },
@@ -1462,7 +1477,7 @@ export const createCell = (
     npcSequence(world, bossEntity, "chestNpc", {});
     setIdentifier(world, bossEntity, "chest_boss");
   } else if (cell === "chest_mob") {
-    const mobUnit = generateUnitData(
+    const mobUnit = generateNpcData(
       (["goldPrism", "goldOrb", "goldEye"] as const)[distribution(33, 33, 33)]
     );
     const mobEntity = entities.createMob(world, {
@@ -1488,7 +1503,7 @@ export const createCell = (
         lastInteraction: 0,
         flying: false,
       },
-      [NPC]: {},
+      [NPC]: { type: mobUnit.type },
       [ORIENTABLE]: {},
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1499,11 +1514,41 @@ export const createCell = (
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: {
         dialogs: [],
+        persistent: true,
+        nextDialog: -1,
+      },
+    });
+    populateInventory(
+      world,
+      mobEntity,
+      [
+        {
+          stat: (["hp", "mp"] as const)[distribution(70, 30)],
+          amount: 1,
+          bound: false,
+        },
+      ],
+      mobUnit.equipments
+    );
+    setIdentifier(world, mobEntity, "chest_mob");
+  } else if (cell === "portal") {
+    entities.createSign(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [COLLIDABLE]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: portal,
+      [TOOLTIP]: {
+        dialogs: [
+          createDialog("You made it!"),
+          createDialog("Boss is defeated"),
+          createDialog("Step into portal"),
+          createDialog("Enter next world"),
+        ],
         persistent: false,
         nextDialog: -1,
       },
     });
-    populateInventory(world, mobEntity, [], mobUnit.equipments);
-    setIdentifier(world, mobEntity, "chest_mob");
   }
 };
