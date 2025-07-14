@@ -10,7 +10,6 @@ import {
   SEQUENCABLE,
   SequenceState,
 } from "../../engine/components/sequencable";
-import { frameHeight, frameWidth } from "../../engine/systems/shop";
 import * as colors from "./colors";
 import { POPUP } from "../../engine/components/popup";
 import { RENDERABLE } from "../../engine/components/renderable";
@@ -72,7 +71,7 @@ export type QuestStage<T extends StepAnimations> = {
   finished: boolean;
 };
 
-const STEP_DEBUG = false;
+const STEP_DEBUG = true;
 
 export const step = <T extends StepAnimations>({
   stage,
@@ -137,6 +136,8 @@ export const step = <T extends StepAnimations>({
   }
 };
 
+export const frameWidth = 19;
+export const frameHeight = 11;
 export const contentDelay = 10;
 export const popupDelay = 75;
 export const popupTime = frameHeight * popupDelay;

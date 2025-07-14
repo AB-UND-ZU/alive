@@ -32,6 +32,7 @@ import { ITEM } from "../components/item";
 import { lockDoor } from "./trigger";
 import { dropEntity } from "./drop";
 import {
+  chestBoss,
   confused,
   createShout,
   rage,
@@ -45,7 +46,7 @@ import { BELONGABLE } from "../components/belongable";
 import { iterations } from "../../game/math/tracing";
 import { getProjectiles } from "./ballistics";
 import { canCast, getExertables } from "./magic";
-import { getCell, moveEntity } from "./map";
+import { getCell, moveEntity, registerEntity } from "./map";
 import { getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
@@ -55,6 +56,9 @@ import { BURNABLE } from "../components/burnable";
 import { sellItems } from "./shop";
 import { isControllable } from "./freeze";
 import { getIdentifierAndComponents } from "../utils";
+import { SPRITE } from "../components/sprite";
+import { IDENTIFIABLE } from "../components/identifiable";
+import { createCell } from "../../bindings/creation";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -786,6 +790,164 @@ export default function setupAi(world: World) {
           sellItems(world, entity, pattern.memory.deals, "buy");
           patterns.splice(patterns.indexOf(pattern), 1);
           break;
+        } else if (pattern.name === "action") {
+          if (entity[ACTIONABLE] && pattern.memory.primary) {
+            entity[ACTIONABLE].primaryTriggered = true;
+          } else if (entity[ACTIONABLE] && pattern.memory.secondary) {
+            entity[ACTIONABLE].secondaryTriggered = true;
+          }
+          patterns.splice(patterns.indexOf(pattern), 1);
+          break;
+        } else if (pattern.name === "chest_boss") {
+          if (!entity[ACTIONABLE] || !entity[TOOLTIP]) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+          } else if (pattern.memory.phase === 1) {
+            entity[SPRITE] = chestBoss;
+            entity[BELONGABLE].faction = "wild";
+            patterns.splice(patterns.indexOf(pattern), 1);
+          } else if (pattern.memory.phase === 2) {
+            patterns.unshift(
+              {
+                name: "dialog",
+                memory: {
+                  idle: rage,
+                },
+              },
+              {
+                name: "wait",
+                memory: { ticks: 3 },
+              },
+              {
+                name: "dialog",
+                memory: {
+                  idle: undefined,
+                },
+              },
+              {
+                name: "action",
+                memory: { primary: true },
+              },
+              {
+                name: "wait",
+                memory: { ticks: 6 },
+              }
+            );
+            patterns.splice(patterns.indexOf(pattern), 1);
+            break;
+          } else if (pattern.memory.phase === 3) {
+            if (!pattern.memory.chase) {
+              pattern.memory.chase = generation;
+              patterns.push(
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "kill",
+                  memory: {
+                    target: pattern.memory.target,
+                  },
+                }
+              );
+            } else if (generation > pattern.memory.chase + 30) {
+              pattern.memory.chase = undefined;
+              entity[BEHAVIOUR].patterns = [
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "move",
+                  memory: {
+                    targetPosition: pattern.memory.position,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 3 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 3 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "chest_boss",
+                  memory: {
+                    phase: 4,
+                    target: pattern.memory.target,
+                    position: pattern.memory.position,
+                  },
+                },
+              ];
+              break;
+            }
+          } else if (pattern.memory.phase === 4) {
+            if (!pattern.memory.spawned) {
+              // spawn 6 mobs around
+              pattern.memory.spawned = generation;
+
+              for (let i = 0; i < 6; i += 1) {
+                createCell(
+                  world,
+                  [[]],
+                  add(entity[POSITION], {
+                    x: (i % 3 === 1 ? 2 : 1) * (i < 3 ? 1 : -1),
+                    y: ((i % 3) - 1) * (i < 3 ? 1 : -1),
+                  }),
+                  "chest_mob",
+                  "visible"
+                );
+              }
+              world
+                .getEntities([IDENTIFIABLE])
+                .filter((entity) => entity[IDENTIFIABLE].name === "chest_mob")
+                .forEach((entity) => registerEntity(world, entity));
+            }
+
+            const chestMobs = world
+              .getEntities([IDENTIFIABLE])
+              .filter((entity) => entity[IDENTIFIABLE].name === "chest_mob");
+
+            if (chestMobs.length === 0) {
+              pattern.memory.spawned = undefined;
+
+              patterns.splice(patterns.indexOf(pattern), 1);
+              patterns.push(
+                {
+                  name: "chest_boss",
+                  memory: {
+                    phase: 2,
+                    target: pattern.memory.target,
+                    position: pattern.memory.position,
+                  },
+                },
+                {
+                  name: "chest_boss",
+                  memory: {
+                    phase: 3,
+                    target: pattern.memory.target,
+                    position: pattern.memory.position,
+                  },
+                }
+              );
+            }
+          }
         } else {
           console.error(Date.now(), "Unhandled pattern", pattern);
         }

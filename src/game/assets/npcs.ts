@@ -18,8 +18,8 @@ import { disposeEntity, getCell, moveEntity } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { lockDoor, removeFromInventory } from "../../engine/systems/trigger";
 import { add, copy, getDistance, normalize, signedDistance } from "../math/std";
-import { guidePosition, menuArea } from "../levels/areas";
-import { createDialog, fog } from "./sprites";
+import { bossArea, guidePosition, menuArea } from "../levels/areas";
+import { createDialog, createShout, fog } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 import {
   NpcSequence,
@@ -28,7 +28,7 @@ import {
 } from "../../engine/components/sequencable";
 import { STATS } from "../../engine/components/stats";
 import { CASTABLE } from "../../engine/components/castable";
-import { defaultLight } from "../../engine/systems/consume";
+import { defaultLight, spawnLight } from "../../engine/systems/consume";
 import { QUEST } from "../../engine/components/quest";
 import {
   assertIdentifier,
@@ -44,6 +44,7 @@ import { BELONGABLE } from "../../engine/components/belongable";
 import { removeShop } from "../../engine/systems/shop";
 import { isEnemy } from "../../engine/systems/damage";
 import { Deal } from "../../engine/components/popup";
+import { createArea } from "../../bindings/creation";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -115,7 +116,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
           const x = normalize(columnIndex - (menuColumns.length - 1) / 2, size);
           const y = normalize(rowIndex - (menuRows.length - 1) / 2, size);
           const cell = getCell(world, { x, y });
-          const shouldDiscard = (y < 4 || y > 154) && (x < 11 || x > 149);
+          const shouldDiscard = (y < 4 || y > 152) && (x < 11 || x > 149);
           let hasAir = false;
           Object.values(cell).forEach((cellEntity) => {
             // don't remove player and focus, and any unrelated entities
@@ -125,7 +126,8 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
               cellEntity === entity ||
               cellEntity === spawnEntity ||
               !(RENDERABLE in cellEntity) ||
-              CASTABLE in cellEntity
+              (CASTABLE in cellEntity &&
+                cellEntity[BELONGABLE]?.faction !== "nature")
             )
               return;
 
@@ -158,6 +160,9 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
         disposeEntity(world, mountainEntity!);
       }
 
+      // insert boss area
+      createArea(world, bossArea, 0, -2);
+
       return "town";
     },
   });
@@ -182,7 +187,30 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
         moveEntity(world, spawnEntity, heroEntity[SPAWNABLE].position);
         setNeedle(world, spawnEntity);
       }
-      return END_STEP;
+      return "boss:wait";
+    },
+  });
+
+  // initiate boss fight
+  step({
+    stage,
+    name: "boss",
+    forceEnter: () =>
+      heroEntity[POSITION].x === 0 &&
+      heroEntity[POSITION].y === 3 &&
+      state.args.step !== START_STEP,
+    onEnter: () => {
+      // set camera to room
+      moveEntity(world, entity, { x: 0, y: -2 });
+      entity[VIEWABLE].active = true;
+      entity[VIEWABLE].fraction = undefined;
+
+      // set player light
+      heroEntity[VIEWABLE].active = false;
+      heroEntity[LIGHT] = { ...spawnLight };
+      rerenderEntity(world, heroEntity);
+
+      return true;
     },
   });
 
@@ -986,4 +1014,91 @@ export const tombstoneNpc: Sequence<NpcSequence> = (world, entity, state) => {
   });
 
   return { updated: stage.updated, finished: stage.finished };
+};
+
+export const chestNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    POSITION,
+    EQUIPPABLE,
+    STATS,
+    SPAWNABLE,
+    INVENTORY,
+  ]);
+
+  if (!heroEntity) {
+    return { finished: stage.finished, updated: stage.updated };
+  }
+
+  // remember initial chest position
+  if (!state.args.memory.initialPosition) {
+    state.args.memory.initialPosition = copy(entity[POSITION]);
+  }
+
+  step({
+    stage,
+    name: START_STEP,
+    onEnter: () => true,
+    isCompleted: () => entity[STATS].hp < entity[STATS].maxHp,
+    onLeave: () => "awaken",
+  });
+
+  step({
+    stage,
+    name: "awaken",
+    onEnter: () => {
+      state.args.memory.awakened = state.elapsed;
+      entity[BEHAVIOUR].patterns.push(
+        {
+          name: "dialog",
+          memory: {
+            enemy: true,
+            override: "visible",
+            dialogs: [createShout("Ouch\u0112")],
+          },
+        },
+        {
+          name: "chest_boss",
+          memory: { phase: 1 },
+        },
+        {
+          name: "wait",
+          memory: { ticks: 3 },
+        },
+        {
+          name: "dialog",
+          memory: {
+            override: undefined,
+            dialogs: [],
+          },
+        },
+        {
+          name: "wait",
+          memory: { ticks: 3 },
+        },
+        {
+          name: "chest_boss",
+          memory: { phase: 2 },
+        },
+        {
+          name: "chest_boss",
+          memory: {
+            phase: 3,
+            target: heroEntity && world.getEntityId(heroEntity),
+            position: state.args.memory.initialPosition,
+          },
+        }
+      );
+      return true;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
 };

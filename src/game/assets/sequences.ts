@@ -172,6 +172,8 @@ import {
   contentDelay,
   decayTime,
   displayPopup,
+  frameHeight,
+  frameWidth,
   lootSpeed,
   popupTime,
 } from "./utils";
@@ -185,12 +187,7 @@ import { getExertables, getParticleAmount } from "../../engine/systems/magic";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { Popup, POPUP } from "../../engine/components/popup";
 import { getActivationRow } from "../../components/Controls";
-import {
-  canShop,
-  frameHeight,
-  frameWidth,
-  isShopping,
-} from "../../engine/systems/shop";
+import { canShop, isShopping } from "../../engine/systems/shop";
 import { getIdentifierAndComponents } from "../../engine/utils";
 
 export * from "./npcs";

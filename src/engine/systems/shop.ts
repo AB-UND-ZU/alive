@@ -22,6 +22,7 @@ import { entities } from "..";
 import { add } from "../../game/math/std";
 import { TypedEntity } from "../entities";
 import { isEnemy } from "./damage";
+import { frameHeight } from "../../game/assets/utils";
 
 export const isShopping = (world: World, entity: Entity) =>
   entity[PLAYER]?.shopping;
@@ -70,9 +71,6 @@ export const canShop = (world: World, heroEntity: Entity, deal: Deal) =>
       });
     }
   });
-
-export const frameWidth = 19;
-export const frameHeight = 11;
 
 export const sellItems = (
   world: World,

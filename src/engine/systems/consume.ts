@@ -32,6 +32,7 @@ export const getConsumables = (world: World, entity: Entity) =>
 
 export const defaultLight = { visibility: 3.66, brightness: 3.66, darkness: 0 };
 export const torchLight = { visibility: 5.55, brightness: 5.55, darkness: 0 };
+export const spawnLight = { visibility: 18, brightness: 18, darkness: 0 };
 
 export const consumptionConfigs: Partial<
   Record<

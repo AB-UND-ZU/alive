@@ -128,10 +128,15 @@ export default function setupText(world: World) {
 
       const isPending = !!getSequence(world, tooltipEntity, "dialog");
 
-      if (!pendingTooltip && isPending && !isStat && !isVisible && !isIdle)
+      if (!pendingTooltip && isPending && !isStat && !isVisible && !isIdle) {
         pendingTooltip = tooltipEntity;
+      }
 
-      if (isAdded || !(isVisible || hasIdle) || (isAdjacent && hasIdle))
+      if (
+        isAdded ||
+        !(isVisible || hasIdle) ||
+        (isAdjacent && hasIdle && isPending)
+      )
         continue;
 
       activeTooltips.push(
@@ -186,9 +191,7 @@ export default function setupText(world: World) {
 
       const lootable = getLootable(world, tooltipEntity[POSITION]);
       const idle = tooltipEntity[TOOLTIP].idle;
-      const isIdle = !isVisible && !isAdjacent;
       const dialogs = tooltipEntity[TOOLTIP].dialogs;
-      const dialog = dialogs[tooltipEntity[TOOLTIP].nextDialog] || dialogs[0];
       const spriteText =
         (lootable &&
           world.assertByIdAndComponents(
@@ -197,13 +200,21 @@ export default function setupText(world: World) {
           )[SPRITE].name) ||
         tooltipEntity[SPRITE].name;
       const spriteTooltip = spriteText ? createTooltip(spriteText) : [];
+      const isIdle =
+        !isVisible &&
+        (!isAdjacent ||
+          (isAdjacent && dialogs.length === 0 && spriteTooltip.length === 0));
+      const dialog = dialogs[tooltipEntity[TOOLTIP].nextDialog] || dialogs[0];
       const text = isIdle && idle ? [idle] : dialog || spriteTooltip;
 
       if (text.length === 0) continue;
 
-      if (getSequence(world, tooltipEntity, "dialog")) {
+      const textSequence = getSequence(world, tooltipEntity, "dialog");
+      if (textSequence) {
         // let idle dialog disappear
-        tooltipEntity[TOOLTIP].changed = true;
+        if (!textSequence.args.isIdle || !isIdle) {
+          tooltipEntity[TOOLTIP].changed = true;
+        }
       } else {
         if (isIdle || isVisible) {
           tooltipEntity[TOOLTIP].nextDialog = 0;

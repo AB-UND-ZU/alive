@@ -7,7 +7,10 @@ export type Pattern = {
     | "eye"
     | "orb"
     | "fairy"
+    | "wave_tower"
+    | "chest_boss"
     | "wait"
+    | "action"
     | "move"
     | "kill"
     | "dialog"
@@ -18,7 +21,8 @@ export type Pattern = {
     | "sell"
     | "enrage"
     | "soothe"
-    | "tumbleweed";
+    | "tumbleweed"
+    | "chest_boss";
   memory: any;
 };
 

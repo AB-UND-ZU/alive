@@ -1,24 +1,140 @@
 import { Entity } from "ecs";
 import { getItemSprite } from "../components/Entity/utils";
 import { entities, World } from "../engine";
-import { FOG } from "../engine/components/fog";
+import { Fog, FOG } from "../engine/components/fog";
 import { ITEM, Item } from "../engine/components/item";
 import { ORIENTABLE } from "../engine/components/orientable";
-import { POSITION } from "../engine/components/position";
+import { Position, POSITION } from "../engine/components/position";
 import { RENDERABLE } from "../engine/components/renderable";
 import { SEQUENCABLE } from "../engine/components/sequencable";
 import { SPRITE } from "../engine/components/sprite";
 import { STRUCTURABLE } from "../engine/components/structurable";
 import { VIEWABLE } from "../engine/components/viewable";
 import { TypedEntity } from "../engine/entities";
-import { createItemInInventory } from "../engine/systems/drop";
+import {
+  createItemAsDrop,
+  createItemInInventory,
+} from "../engine/systems/drop";
 import { getEnterable } from "../engine/systems/enter";
-import { getStatSprite, none } from "../game/assets/sprites";
-import { add, copy, normalize, Point, signedDistance } from "../game/math/std";
+import {
+  berry,
+  block,
+  blockDown,
+  blockUp,
+  bush,
+  campfire,
+  coin,
+  createDialog,
+  doorClosedIron,
+  doorClosedWood,
+  doorOpen,
+  flower,
+  fog,
+  getStatSprite,
+  grass,
+  ice,
+  ironMine,
+  leaf,
+  leaves,
+  none,
+  oakBurnt,
+  oreDrop,
+  palm1,
+  palm2,
+  palmBurnt1,
+  palmBurnt2,
+  path,
+  rock1,
+  rock2,
+  sand,
+  shroom,
+  stem,
+  stick,
+  tree1,
+  tree2,
+  treeBurnt1,
+  treeBurnt2,
+  wall,
+  water,
+} from "../game/assets/sprites";
+import {
+  add,
+  copy,
+  distribution,
+  normalize,
+  Point,
+  random,
+  signedDistance,
+} from "../game/math/std";
 import { LEVEL } from "../engine/components/level";
 import { FRAGMENT } from "../engine/components/fragment";
-import { Matrix } from "../game/math/matrix";
+import { iterateMatrix, Matrix, matrixFactory } from "../game/math/matrix";
 import { TRACKABLE } from "../engine/components/trackable";
+import { setIdentifier } from "../engine/utils";
+import { LIGHT } from "../engine/components/light";
+import { COLLIDABLE } from "../engine/components/collidable";
+import { generateUnitData, generateUnitKey } from "../game/balancing/units";
+import { ATTACKABLE } from "../engine/components/attackable";
+import { BELONGABLE } from "../engine/components/belongable";
+import { DROPPABLE } from "../engine/components/droppable";
+import { INVENTORY } from "../engine/components/inventory";
+import { emptyStats, STATS } from "../engine/components/stats";
+import { ENVIRONMENT } from "../engine/components/environment";
+import { TEMPO } from "../engine/components/tempo";
+import { TOOLTIP } from "../engine/components/tooltip";
+import { LOOTABLE } from "../engine/components/lootable";
+import { FREEZABLE } from "../engine/components/freezable";
+import { IMMERSIBLE } from "../engine/components/immersible";
+import { BURNABLE } from "../engine/components/burnable";
+import { AFFECTABLE } from "../engine/components/affectable";
+import { BEHAVIOUR } from "../engine/components/behaviour";
+import { MOVABLE } from "../engine/components/movable";
+import { SPIKABLE } from "../engine/components/spikable";
+import { ENTERABLE } from "../engine/components/enterable";
+import { LOCKABLE } from "../engine/components/lockable";
+import { LAYER } from "../engine/components/layer";
+import {
+  basementLeftInside,
+  basementRightInside,
+  fence,
+  fenceBurnt1,
+  fenceBurnt2,
+  fenceDoor,
+  fenceDoorBurnt,
+  house,
+  houseAid,
+  houseArmor,
+  houseLeft,
+  houseMage,
+  houseRight,
+  houseTrader,
+  roof,
+  roofDown,
+  roofDownLeft,
+  roofLeft,
+  roofLeftUp,
+  roofLeftUpInside,
+  roofRight,
+  roofRightDown,
+  roofUp,
+  roofUpInside,
+  roofUpRight,
+  roofUpRightInside,
+  wallInside,
+  window,
+  windowInside,
+} from "../game/assets/sprites/structures";
+import { REFERENCE } from "../engine/components/reference";
+import { getHasteInterval } from "../engine/systems/movement";
+import { DISPLACABLE } from "../engine/components/displacable";
+import { SWIMMABLE } from "../engine/components/swimmable";
+import { hillsUnitDistribution } from "../game/levels/hills";
+import { EQUIPPABLE } from "../engine/components/equippable";
+import { MELEE } from "../engine/components/melee";
+import { NPC } from "../engine/components/npc";
+import { RECHARGABLE } from "../engine/components/rechargable";
+import { ACTIONABLE } from "../engine/components/actionable";
+import { npcSequence } from "../game/assets/utils";
 
 const populateItems = (
   world: World,
@@ -40,7 +156,7 @@ const populateItems = (
         },
         equip
       );
-    } else if (item.equipment === 'compass') {
+    } else if (item.equipment === "compass") {
       createItemInInventory(
         world,
         entity,
@@ -195,6 +311,7 @@ export const insertArea = (
       else if (cell === "o") entity = "intro_pot";
       else if (cell === "■") entity = "box";
       else if (cell === "#") entity = "tree";
+      else if (cell === "⌠") entity = "palm";
       else if (cell === "=") entity = "wood_two";
       else if (cell === ".") entity = "fruit_one";
       else if (cell === "ß") entity = "hedge";
@@ -205,14 +322,13 @@ export const insertArea = (
       else if (cell === "♀") entity = "player";
       else if (cell === "►") entity = "prism";
       else if (cell === "*") entity = "campfire";
+      else if (cell === "x") entity = "fireplace";
       else if (cell === "├") entity = "house_left";
       else if (cell === "└") entity = "basement_left";
       else if (cell === "┤") entity = "house_right";
       else if (cell === "┘") entity = "basement_right";
       else if (cell === "┴") entity = "wall";
       else if (cell === "─") entity = "wall_window";
-      else if (cell === "G") entity = "guide_door";
-      else if (cell === "N") entity = "nomad_door";
       else if (cell === "┼") entity = "house";
       else if (cell === "┬") entity = "house_window";
       else if (cell === "╬") entity = "roof";
@@ -224,6 +340,10 @@ export const insertArea = (
       else if (cell === "╞") entity = "roof_down_left";
       else if (cell === "╪") entity = "roof_down";
       else if (cell === "╡") entity = "roof_right_down";
+      else if (cell === "G") entity = "guide_door";
+      else if (cell === "N") entity = "nomad_door";
+      else if (cell === "Y") entity = "wave_tower";
+      else if (cell === "C") entity = "chest_boss";
       else {
         console.error(`Unrecognized cell: ${cell}!`);
       }
@@ -231,4 +351,1159 @@ export const insertArea = (
       matrix[x][y] = entity;
     });
   });
+};
+
+export const createArea = (
+  world: World,
+  area: string,
+  xOffset: number,
+  yOffset: number
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const matrix = matrixFactory(size, size, () => "");
+
+  insertArea(matrix, area, xOffset, yOffset);
+
+  iterateMatrix(matrix, (x, y, cell) => {
+    createCell(world, matrix, { x, y }, cell, "hidden");
+  });
+};
+
+export const createCell = (
+  world: World,
+  matrix: Matrix<string>,
+  { x, y }: Position,
+  cell: string,
+  visibility: Fog["visibility"]
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+
+  if (cell !== "") {
+    entities.createGround(world, {
+      [FOG]: { visibility, type: "air" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: fog,
+    });
+  }
+
+  if (!cell) {
+    return;
+  } else if (cell === "player") {
+    // create spawn dummy to set needle target
+    const spawnEntity = entities.createViewpoint(world, {
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [VIEWABLE]: { active: false, priority: 30 },
+    });
+    setIdentifier(world, spawnEntity, "spawn");
+  } else if (cell === "mountain") {
+    entities.createMountain(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [SPRITE]: wall,
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [RENDERABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+    });
+  } else if (cell === "rock" || cell === "desert_rock") {
+    const rock = (["rock1", "rock2"] as const)[random(0, 1)];
+    const { items, sprite, stats, faction } = generateUnitData(rock);
+    const sprites = {
+      rock: { rock1, rock2 },
+      desert_rock: { [rock]: sprite },
+    };
+    const rockEntity = entities.createDeposit(world, {
+      [ATTACKABLE]: { shots: 0 },
+      [BELONGABLE]: { faction },
+      [COLLIDABLE]: {},
+      [DROPPABLE]: {
+        decayed: false,
+        remains: cell === "desert_rock" ? sand : undefined,
+      },
+      [FOG]: { visibility, type: "terrain" },
+      [INVENTORY]: { items: [], size: 20 },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: sprites[cell][rock],
+      [STATS]: { ...emptyStats, ...stats },
+    });
+    populateInventory(world, rockEntity, items);
+    if (cell === "desert_rock") {
+      entities.createArea(world, {
+        [ENVIRONMENT]: { biomes: ["desert"] },
+        [POSITION]: { x, y },
+        [TEMPO]: { amount: -1 },
+      });
+    }
+  } else if (cell === "iron") {
+    entities.createMine(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: ironMine,
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [COLLIDABLE]: {},
+      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+    });
+  } else if (cell === "ore" || cell === "ore_one") {
+    const oreEntity = entities.createOre(world, {
+      [INVENTORY]: { items: [], size: 1 },
+      [LOOTABLE]: { disposable: false },
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: wall,
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [COLLIDABLE]: {},
+    });
+    populateInventory(
+      world,
+      oreEntity,
+      [],
+      [
+        {
+          amount: cell === "ore" ? distribution(80, 15, 5) + 1 : 1,
+          stat: "ore",
+          bound: false,
+        },
+      ]
+    );
+  } else if (cell === "stone") {
+    entities.createTile(world, {
+      [ENVIRONMENT]: { biomes: ["desert"] },
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: sand,
+      [TEMPO]: { amount: -1 },
+    });
+    createItemAsDrop(world, { x, y }, entities.createItem, {
+      [ITEM]: {
+        stat: "ore",
+        amount: 1,
+        bound: false,
+      },
+      [SPRITE]: oreDrop,
+    });
+  } else if (cell === "block") {
+    entities.createTerrain(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [SPRITE]: block,
+      [RENDERABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+    });
+  } else if (cell === "block_down") {
+    entities.createTerrain(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [SPRITE]: blockDown,
+      [RENDERABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+    });
+  } else if (cell === "block_up") {
+    entities.createTerrain(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [SPRITE]: blockUp,
+      [RENDERABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+    });
+  } else if (cell === "beach" || cell === "desert") {
+    entities.createTile(world, {
+      [ENVIRONMENT]: { biomes: [cell] },
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: sand,
+      [TEMPO]: { amount: -1 },
+    });
+  } else if (cell === "path") {
+    entities.createPath(world, {
+      [ENVIRONMENT]: { biomes: ["path"] },
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: path,
+      [TEMPO]: { amount: 2 },
+    });
+  } else if (cell === "water" || cell === "spring") {
+    entities.createWater(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [FREEZABLE]: { frozen: false, sprite: ice },
+      [IMMERSIBLE]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: water,
+      [TEMPO]: { amount: -2 },
+    });
+  } else if (cell === "wood" || cell === "wood_two") {
+    const woodEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
+      [ITEM]: {
+        stat: "stick",
+        amount: cell === "wood" ? distribution(80, 15, 5) + 1 : 2,
+        bound: false,
+      },
+      [SPRITE]: stick,
+    });
+    if (cell === "wood_two")
+      setIdentifier(world, world.assertById(woodEntity[ITEM].carrier), cell);
+  } else if (cell === "fruit" || cell === "fruit_one") {
+    if (random(0, 1) === 0 || cell === "fruit_one") {
+      const fruitEntity = entities.createFruit(world, {
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          combusted: false,
+          decayed: false,
+          remains: [treeBurnt1, treeBurnt2][random(0, 1)],
+        },
+        [COLLIDABLE]: {},
+        [FOG]: { visibility, type: "terrain" },
+        [INVENTORY]: { items: [], size: 1 },
+        [LOOTABLE]: { disposable: false },
+        [POSITION]: { x, y },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: tree2,
+        [RENDERABLE]: { generation: 0 },
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+      });
+      populateInventory(
+        world,
+        fruitEntity,
+        [],
+        [
+          {
+            amount: 1,
+            stackable: "apple",
+            bound: false,
+          },
+        ]
+      );
+    } else {
+      createItemAsDrop(
+        world,
+        { x, y },
+        entities.createItem,
+        {
+          [ITEM]: {
+            amount: 1,
+            stackable: "shroom",
+            bound: false,
+          },
+          [SPRITE]: shroom,
+        },
+        false
+      );
+    }
+  } else if (cell === "tree" || cell === "leaves") {
+    if (
+      cell === "leaves" ||
+      (random(0, 29) === 0 && y < size - 1 && matrix[x][y + 1] === "tree")
+    ) {
+      const rootEntity = entities.createRoot(world, {
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          combusted: false,
+          decayed: false,
+          remains: oakBurnt,
+        },
+        [COLLIDABLE]: {},
+        [FOG]: { visibility, type: "terrain" },
+        [FRAGMENT]: { structure: -1 },
+        [POSITION]: { x, y: y + 1 },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: stem,
+        [STRUCTURABLE]: {},
+      });
+      const rootId = world.getEntityId(rootEntity);
+      rootEntity[FRAGMENT].structure = rootId;
+
+      entities.createPlant(world, {
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          combusted: false,
+          decayed: false,
+        },
+        [FOG]: { visibility, type: "terrain" },
+        [FRAGMENT]: { structure: rootId },
+        [COLLIDABLE]: {},
+        [POSITION]: { x, y },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: leaves,
+        [RENDERABLE]: { generation: 0 },
+      });
+
+      matrix[x][y + 1] = "air";
+    } else {
+      entities.createOrganic(world, {
+        [FOG]: { visibility, type: "terrain" },
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          combusted: false,
+          decayed: false,
+          remains: [treeBurnt1, treeBurnt2][random(0, 1)],
+        },
+        [COLLIDABLE]: {},
+        [POSITION]: { x, y },
+        [SPRITE]: [tree1, tree2][distribution(50, 50)],
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+      });
+    }
+  } else if (cell === "palm" || cell === "oasis") {
+    const [stack, palm] = (
+      [
+        ["coconut", palm1],
+        ["banana", palm2],
+      ] as const
+    )[random(0, 1)];
+
+    if (random(0, 9) === 0) {
+      const fruitEntity = entities.createFruit(world, {
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          combusted: false,
+          decayed: false,
+          remains: [palmBurnt1, palmBurnt2][random(0, 1)],
+        },
+        [COLLIDABLE]: {},
+        [FOG]: { visibility, type: "terrain" },
+        [INVENTORY]: { items: [], size: 1 },
+        [LOOTABLE]: { disposable: false },
+        [POSITION]: { x, y },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: palm,
+        [RENDERABLE]: { generation: 0 },
+        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+      });
+      populateInventory(
+        world,
+        fruitEntity,
+        [],
+        [
+          {
+            amount: 1,
+            stackable: stack,
+            bound: false,
+          },
+        ]
+      );
+      if (cell === "oasis") {
+        entities.createArea(world, {
+          [ENVIRONMENT]: { biomes: ["desert"] },
+          [POSITION]: { x, y },
+          [TEMPO]: { amount: -1 },
+        });
+      }
+    } else {
+      entities.createOrganic(world, {
+        [BURNABLE]: {
+          burning: false,
+          eternal: false,
+          combusted: false,
+          decayed: false,
+          remains: [palmBurnt1, palmBurnt2][random(0, 1)],
+        },
+        [FOG]: { visibility, type: "terrain" },
+        [COLLIDABLE]: {},
+        [POSITION]: { x, y },
+        [SPRITE]: palm,
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+      });
+    }
+  } else if (cell === "hedge") {
+    const { items, sprite, stats, faction } = generateUnitData(
+      (["hedge1", "hedge2"] as const)[random(0, 1)]
+    );
+    const hedgeEntity = entities.createResource(world, {
+      [ATTACKABLE]: { shots: 0 },
+      [BELONGABLE]: { faction },
+      [BURNABLE]: {
+        burning: false,
+        eternal: false,
+        combusted: false,
+        decayed: false,
+      },
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false },
+      [FOG]: { visibility, type: "terrain" },
+      [INVENTORY]: { items: [], size: 20 },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: sprite,
+      [STATS]: { ...emptyStats, ...stats },
+    });
+    populateInventory(world, hedgeEntity, items);
+  } else if (cell === "tumbleweed") {
+    const { items, sprite, stats, faction, patterns } =
+      generateUnitData("tumbleweed");
+    const tumbleweedEntity = entities.createTumbleweed(world, {
+      [ATTACKABLE]: { shots: 0 },
+      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [BEHAVIOUR]: { patterns },
+      [BELONGABLE]: { faction },
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false },
+      [FOG]: { visibility, type: "unit" },
+      [INVENTORY]: { items: [], size: 20 },
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: true,
+      },
+      [ORIENTABLE]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: sprite,
+      [STATS]: {
+        ...emptyStats,
+        ...stats,
+      },
+    });
+    entities.createTile(world, {
+      [ENVIRONMENT]: { biomes: ["desert"] },
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: sand,
+      [TEMPO]: { amount: -1 },
+    });
+    populateInventory(world, tumbleweedEntity, items);
+  } else if (cell === "bush" || cell === "berry" || cell === "berry_one") {
+    entities.createWeeds(world, {
+      [BURNABLE]: {
+        burning: false,
+        eternal: false,
+        combusted: false,
+        decayed: false,
+      },
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [SPRITE]: bush,
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+    });
+
+    if (cell === "berry" || cell === "berry_one") {
+      createItemAsDrop(
+        world,
+        { x, y },
+        entities.createItem,
+        {
+          [ITEM]: {
+            stat: "berry",
+            amount: cell === "berry" ? distribution(80, 15, 5) + 1 : 1,
+            bound: false,
+          },
+          [SPRITE]: berry,
+        },
+        false
+      );
+    }
+  } else if (cell === "grass" || cell === "flower" || cell === "flower_one") {
+    entities.createWeeds(world, {
+      [BURNABLE]: {
+        burning: false,
+        eternal: false,
+        combusted: false,
+        decayed: false,
+      },
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [SPRITE]: grass,
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+    });
+    if (cell === "flower" || cell === "flower_one") {
+      createItemAsDrop(
+        world,
+        { x, y },
+        entities.createItem,
+        {
+          [ITEM]: {
+            stat: "flower",
+            amount: cell === "flower" ? distribution(80, 15, 5) + 1 : 1,
+            bound: false,
+          },
+          [SPRITE]: flower,
+        },
+        false
+      );
+    }
+  } else if (cell === "leaf") {
+    createItemAsDrop(world, { x, y }, entities.createItem, {
+      [ITEM]: {
+        stat: "leaf",
+        amount: distribution(80, 15, 5) + 1,
+        bound: false,
+      },
+      [SPRITE]: leaf,
+    });
+  } else if (cell === "coin_one") {
+    const coinItem = createItemAsDrop(world, { x, y }, entities.createItem, {
+      [ITEM]: {
+        stat: "coin",
+        amount: 1,
+        bound: false,
+      },
+      [SPRITE]: coin,
+    });
+    setIdentifier(world, world.assertById(coinItem[ITEM].carrier), "coin");
+  } else if (cell === "cactus") {
+    const { sprite, stats, faction, items } = generateUnitData(
+      (["cactus1", "cactus2"] as const)[random(0, 1)]
+    );
+    entities.createArea(world, {
+      [ENVIRONMENT]: { biomes: ["desert"] },
+      [POSITION]: { x, y },
+      [TEMPO]: { amount: -1 },
+    });
+    const cactusEntity = entities.createCactus(world, {
+      [ATTACKABLE]: { shots: 0 },
+      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [BELONGABLE]: { faction },
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false, remains: sand },
+      [FOG]: { visibility, type: "terrain" },
+      [INVENTORY]: { items: [], size: 20 },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPIKABLE]: { damage: stats.power },
+      [SPRITE]: sprite,
+      [STATS]: { ...emptyStats, ...stats },
+    });
+    populateInventory(world, cactusEntity, items);
+  } else if (
+    cell === "wood_door" ||
+    cell === "guide_door" ||
+    cell === "nomad_door" ||
+    cell === "iron_door"
+  ) {
+    const doorEntity = entities.createDoor(world, {
+      [ENTERABLE]: { sprite: doorOpen, orientation: "down" },
+      [FOG]: { visibility, type: "float" },
+      [LAYER]: {},
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [LOCKABLE]: {
+        locked: true,
+        material: cell === "iron_door" ? "iron" : undefined,
+      },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: cell === "iron_door" ? doorClosedIron : doorClosedWood,
+      [TOOLTIP]: {
+        dialogs: cell === "iron_door" ? [createDialog("Locked")] : [],
+        persistent: false,
+        nextDialog: 0,
+      },
+    });
+    if (["guide_door", "nomad_door"].includes(cell)) {
+      setIdentifier(world, doorEntity, cell);
+    }
+  } else if (cell === "gate") {
+    const doorEntity = entities.createPassage(world, {
+      [FOG]: { visibility, type: "float" },
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [LOCKABLE]: {
+        locked: true,
+        material: "iron",
+      },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: doorClosedIron,
+      [TOOLTIP]: {
+        dialogs: [createDialog("Locked")],
+        persistent: false,
+        nextDialog: 0,
+      },
+    });
+    setIdentifier(world, doorEntity, "gate");
+  } else if (cell === "campfire" || cell === "fireplace") {
+    entities.createFire(world, {
+      [BURNABLE]: {
+        burning: cell === "campfire",
+        eternal: true,
+        combusted: false,
+        decayed: false,
+      },
+      [FOG]: { visibility, type: "unit" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: campfire,
+    });
+  } else if (cell === "pot" || cell === "intro_pot") {
+    const { sprite, stats, faction, items, equipments } =
+      generateUnitData("pot");
+    const potEntity = entities.createChest(world, {
+      [ATTACKABLE]: { shots: 0 },
+      [BELONGABLE]: { faction },
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false },
+      [FOG]: { visibility, type: "terrain" },
+      [INVENTORY]: { items: [], size: 20 },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: sprite,
+      [STATS]: {
+        ...emptyStats,
+        ...stats,
+        ...(cell === "intro_pot" ? { coin: 3 } : {}),
+      },
+      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+    });
+    if (cell === "intro_pot") {
+      setIdentifier(world, potEntity, "pot");
+    } else {
+      populateInventory(world, potEntity, items, equipments);
+    }
+  } else if (cell === "fence") {
+    entities.createOrganic(world, {
+      [BURNABLE]: {
+        burning: false,
+        eternal: false,
+        decayed: false,
+        combusted: false,
+        remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
+      },
+      [COLLIDABLE]: {},
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: fence,
+    });
+  } else if (cell === "fence_door") {
+    entities.createPath(world, {
+      [ENVIRONMENT]: { biomes: ["path"] },
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: none,
+      [TEMPO]: { amount: 2 },
+    });
+    entities.createGate(world, {
+      [BURNABLE]: {
+        burning: false,
+        eternal: false,
+        decayed: false,
+        combusted: false,
+        remains: fenceDoorBurnt,
+      },
+      [FOG]: { visibility, type: "terrain" },
+      [LOCKABLE]: { locked: true },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: fenceDoor,
+      [TOOLTIP]: {
+        dialogs: [],
+        persistent: false,
+        nextDialog: 0,
+      },
+    });
+  } else if (cell === "box") {
+    const { items, equipments, sprite, stats, faction } =
+      generateUnitData("box");
+    const frameEntity = entities.createFrame(world, {
+      [REFERENCE]: {
+        tick: getHasteInterval(world, 7),
+        delta: 0,
+        suspended: true,
+        suspensionCounter: -1,
+      },
+      [RENDERABLE]: { generation: 0 },
+    });
+    const boxEntity = entities.createBox(world, {
+      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [ATTACKABLE]: { shots: 0 },
+      [BELONGABLE]: { faction },
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false },
+      [DISPLACABLE]: {},
+      [FOG]: { visibility, type: "terrain" },
+      [INVENTORY]: { items: [], size: 20 },
+      [LAYER]: {},
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(frameEntity),
+        spring: {
+          duration: frameEntity[REFERENCE].tick,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: sprite,
+      [SWIMMABLE]: { swimming: false },
+      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+      [STATS]: { ...emptyStats, ...stats },
+    });
+    populateInventory(world, boxEntity, items, equipments);
+  } else if (cell === "mob" || cell === "prism") {
+    const { patterns, items, sprite, stats, faction, equipments, spring } =
+      generateUnitData(
+        cell === "prism" ? "prism" : generateUnitKey(hillsUnitDistribution)
+      );
+
+    const mobEntity = entities.createMob(world, {
+      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [ATTACKABLE]: { shots: 0 },
+      [BEHAVIOUR]: { patterns },
+      [BELONGABLE]: { faction },
+      [DROPPABLE]: { decayed: false },
+      [EQUIPPABLE]: {},
+      [FOG]: { visibility, type: "unit" },
+      [INVENTORY]: { items: [], size: 20 },
+      [LAYER]: {},
+      [MELEE]: { bumpGeneration: 0 },
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: spring || {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [NPC]: {},
+      [ORIENTABLE]: {},
+      [POSITION]: { x, y },
+      [RECHARGABLE]: { hit: false },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: sprite,
+      [STATS]: {
+        ...emptyStats,
+        ...stats,
+        ...(cell === "prism" ? { coin: 1 } : {}),
+      },
+      [SWIMMABLE]: { swimming: false },
+      [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
+    });
+    populateInventory(
+      world,
+      mobEntity,
+      cell === "prism" ? [] : items,
+      equipments
+    );
+
+    if (cell === "prism") setIdentifier(world, mobEntity, "spawn_prism");
+  } else if (
+    ["house_left", "house_right", "basement_left", "basement_right"].includes(
+      cell
+    )
+  ) {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: {
+        sprite:
+          {
+            house_left: houseRight,
+            house_right: houseLeft,
+            basement_left: basementLeftInside,
+            basement_right: basementRightInside,
+          }[cell] || none,
+        orientation:
+          cell === "house_left" || cell === "basement_left" ? "right" : "left",
+      },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation:
+          cell === "house_left" || cell === "basement_left" ? "right" : "left",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]:
+        cell === "house_left" || cell === "basement_left"
+          ? houseLeft
+          : houseRight,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "wall") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: wallInside, orientation: "down" },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [POSITION]: { x, y },
+      [SPRITE]: house,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "wall_window") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: {
+        sprite: windowInside,
+        orientation: "down",
+      },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [POSITION]: { x, y },
+      [SPRITE]: window,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "house") {
+    entities.createFloat(world, {
+      [ENTERABLE]: { sprite: none },
+      [FOG]: { visibility, type: "float" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [SPRITE]: house,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "roof") {
+    entities.createFloat(world, {
+      [ENTERABLE]: { sprite: none },
+      [FOG]: { visibility, type: "float" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [SPRITE]: roof,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "roof_left") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: houseRight },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "right",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: roofLeft,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "roof_right") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: houseLeft },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "left",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: roofRight,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "roof_left_up") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: roofLeftUpInside },
+      [FOG]: { visibility, type: "float" },
+      [LAYER]: {},
+      [LIGHT]: { brightness: 0, darkness: 0, visibility: 0 },
+      [POSITION]: { x, y },
+      [SPRITE]: roofLeftUp,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "roof_up") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: roofUpInside },
+      [FOG]: { visibility, type: "float" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "down",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: roofUp,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "roof_up_right") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: roofUpRightInside },
+      [LAYER]: {},
+      [LIGHT]: { brightness: 0, darkness: 0, visibility: 0 },
+      [FOG]: { visibility, type: "float" },
+      [POSITION]: { x, y },
+      [SPRITE]: roofUpRight,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "roof_down_left") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: houseRight },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "right",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: roofDownLeft,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "roof_down") {
+    entities.createFloat(world, {
+      [ENTERABLE]: { sprite: none },
+      [FOG]: { visibility, type: "float" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [SPRITE]: roofDown,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "roof_right_down") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: houseLeft },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "left",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: roofRightDown,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "house_window") {
+    entities.createFloat(world, {
+      [ENTERABLE]: { sprite: none },
+      [FOG]: { visibility, type: "float" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [SPRITE]: window,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "house_aid") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: wallInside },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "down",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: houseAid,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "house_armor") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: wallInside },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "down",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: houseArmor,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "house_mage") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: wallInside },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "down",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: houseMage,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "house_trader") {
+    entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: { sprite: wallInside },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: {
+        brightness: 0,
+        darkness: 1,
+        visibility: 0,
+        orientation: "down",
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: houseTrader,
+      [RENDERABLE]: { generation: 0 },
+    });
+  } else if (cell === "wave_tower") {
+    const towerUnit = generateUnitData("waveTower");
+    const towerEntity = entities.createMob(world, {
+      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [ATTACKABLE]: { shots: 0 },
+      [BEHAVIOUR]: { patterns: towerUnit.patterns },
+      [BELONGABLE]: { faction: towerUnit.faction },
+      [DROPPABLE]: { decayed: false },
+      [EQUIPPABLE]: {},
+      [FOG]: { visibility: "hidden", type: "unit" },
+      [INVENTORY]: { items: [], size: 5 },
+      [LAYER]: {},
+      [MELEE]: { bumpGeneration: 0 },
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: towerUnit.spring || {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [NPC]: {},
+      [ORIENTABLE]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [RECHARGABLE]: { hit: false },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: towerUnit.sprite,
+      [STATS]: { ...emptyStats, ...towerUnit.stats },
+      [SWIMMABLE]: { swimming: false },
+      [TOOLTIP]: {
+        dialogs: [],
+        persistent: false,
+        nextDialog: -1,
+      },
+    });
+    populateInventory(
+      world,
+      towerEntity,
+      towerUnit.items,
+      towerUnit.equipments
+    );
+    setIdentifier(world, towerEntity, "boss_tower");
+  } else if (cell === "chest_boss") {
+    const bossUnit = generateUnitData("chestBoss");
+
+    const bossEntity = entities.createMob(world, {
+      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [ATTACKABLE]: { shots: 0 },
+      [BEHAVIOUR]: { patterns: bossUnit.patterns },
+      [BELONGABLE]: { faction: bossUnit.faction },
+      [DROPPABLE]: { decayed: false },
+      [EQUIPPABLE]: {},
+      [FOG]: { visibility, type: "unit" },
+      [INVENTORY]: { items: [], size: 20 },
+      [LAYER]: {},
+      [MELEE]: { bumpGeneration: 0 },
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: bossUnit.spring || {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [NPC]: {},
+      [ORIENTABLE]: {},
+      [POSITION]: { x, y },
+      [RECHARGABLE]: { hit: false },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: bossUnit.sprite,
+      [STATS]: {
+        ...emptyStats,
+        ...bossUnit.stats,
+      },
+      [SWIMMABLE]: { swimming: false },
+      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+    });
+    populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);
+
+    npcSequence(world, bossEntity, "chestNpc", {});
+    setIdentifier(world, bossEntity, "chest_boss");
+  } else if (cell === "chest_mob") {
+    const mobUnit = generateUnitData(
+      (["goldPrism", "goldOrb", "goldEye"] as const)[distribution(33, 33, 33)]
+    );
+    const mobEntity = entities.createMob(world, {
+      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [ATTACKABLE]: { shots: 0 },
+      [BEHAVIOUR]: {
+        patterns: [{ name: "wait", memory: { ticks: 1 } }, ...mobUnit.patterns],
+      },
+      [BELONGABLE]: { faction: mobUnit.faction },
+      [DROPPABLE]: { decayed: false },
+      [EQUIPPABLE]: {},
+      [FOG]: { visibility: "hidden", type: "unit" },
+      [INVENTORY]: { items: [], size: 5 },
+      [LAYER]: {},
+      [MELEE]: { bumpGeneration: 0 },
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: mobUnit.spring || {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [NPC]: {},
+      [ORIENTABLE]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [RECHARGABLE]: { hit: false },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: mobUnit.sprite,
+      [STATS]: { ...emptyStats, ...mobUnit.stats },
+      [SWIMMABLE]: { swimming: false },
+      [TOOLTIP]: {
+        dialogs: [],
+        persistent: false,
+        nextDialog: -1,
+      },
+    });
+    populateInventory(world, mobEntity, [], mobUnit.equipments);
+    setIdentifier(world, mobEntity, "chest_mob");
+  }
 };

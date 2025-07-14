@@ -131,6 +131,7 @@ import {
   worm,
 } from "../../game/assets/sprites";
 import { ENTERABLE } from "../../engine/components/enterable";
+import { PLAYER } from "../../engine/components/player";
 
 export const textSize = 18 / 25 + 0.001;
 
@@ -141,7 +142,8 @@ export const stackHeight = 1;
 export const terrainHeight = 0 * stackHeight;
 export const effectHeight = 0.5 * stackHeight;
 export const unitHeight = 1 * stackHeight;
-export const lootHeight = 1.1 * stackHeight;
+export const playerHeight = 1.3 * stackHeight;
+export const lootHeight = 1.5 * stackHeight;
 export const decayHeight = 1.8 * stackHeight;
 export const immersibleHeight = 2 * stackHeight;
 export const dotsHeight = 2.5 * stackHeight;
@@ -183,6 +185,7 @@ export const getSegments = (
   layerProps: LayerProps,
   inside?: boolean
 ) => {
+  const isPlayer = !!entity[PLAYER];
   const isAir = entity[FOG]?.type === "air";
   const isFloat = entity[FOG]?.type === "float";
   const isUnit = entity[FOG]?.type === "unit";
@@ -190,6 +193,8 @@ export const getSegments = (
 
   const offsetZ = isOpaque
     ? wallHeight
+    : isPlayer
+    ? playerHeight
     : isUnit
     ? unitHeight
     : isAir
@@ -279,6 +284,7 @@ export const createSprite = (world: World, entityId: number) => {
 export const offsetFactors: Record<number, number> = {
   1: 1.41,
   1.1: 1.46,
+  1.3: 1.60,
   1.5: 1.77,
 };
 

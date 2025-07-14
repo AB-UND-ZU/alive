@@ -28,6 +28,7 @@ import {
   settler,
   tumbleweed,
   uncommonChest,
+  waveTower,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
@@ -68,7 +69,9 @@ export type UnitKey =
   | "goldEye"
   | "orb"
   | "goldOrb"
-  | "fairy";
+  | "fairy"
+  | "waveTower"
+  | "chestBoss";
 
 export type UnitDistribution = Partial<Record<UnitKey, number>>;
 
@@ -676,6 +679,64 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["fairy"],
     sprite: fairy,
+  },
+  waveTower: {
+    faction: "wild",
+    power: 0,
+    armor: 2,
+    hp: 10,
+    mp: 2,
+    equipments: [
+      {
+        equipment: "primary",
+        primary: "wave1",
+        bound: true,
+        amount: 5,
+      },
+    ],
+    drops: [
+      {
+        chance: 100,
+        items: [{ stackable: "resource", amount: 1, material: "iron" }],
+      },
+    ],
+    patternNames: [],
+    sprite: waveTower,
+  },
+  chestBoss: {
+    faction: "unit",
+    power: 0,
+    armor: 2,
+    hp: 50,
+    mp: 2,
+    equipments: [
+      {
+        equipment: "primary",
+        primary: "wave1",
+        bound: true,
+        amount: 5,
+      },
+      {
+        equipment: "sword",
+        bound: true,
+        amount: 5,
+      },
+    ],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { consume: "key", amount: 1, material: "iron" },
+          {
+            equipment: "sword",
+            amount: getGearStat("sword", "gold"),
+            material: "gold",
+          },
+        ],
+      },
+    ],
+    patternNames: [],
+    sprite: commonChest,
   },
 };
 

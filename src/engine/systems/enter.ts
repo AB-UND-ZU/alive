@@ -72,7 +72,11 @@ export default function setupEnter(world: World) {
 
       const fragment = getFragment(world, entity[POSITION]);
       const currentStructure =
-        !entity[MOVABLE]?.flying && fragment
+        !entity[MOVABLE]?.flying &&
+        fragment &&
+        world.getEntityByIdAndComponents(fragment[FRAGMENT].structure, [
+          STRUCTURABLE,
+        ])?.[VIEWABLE]
           ? fragment[FRAGMENT].structure
           : undefined;
       const previousStructure = entity[LAYER].structure;

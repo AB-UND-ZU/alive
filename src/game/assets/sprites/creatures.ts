@@ -473,7 +473,7 @@ export const halo: Sprite = {
 };
 
 export const waveTower: Sprite = {
-  name: "tower_wave",
+  name: "Tower",
   layers: [
     { char: "Y", color: colors.silver },
     { char: '"', color: colors.grey },
@@ -481,7 +481,7 @@ export const waveTower: Sprite = {
 };
 
 export const goldWaveTower: Sprite = {
-  name: "tower_wave",
+  name: "Tower",
   layers: [
     { char: "Y", color: colors.silver },
     { char: '"', color: colors.yellow },
@@ -489,7 +489,7 @@ export const goldWaveTower: Sprite = {
 };
 
 export const fireWaveTower: Sprite = {
-  name: "tower_wave",
+  name: "Tower",
   layers: [
     { char: "Y", color: colors.silver },
     { char: '"', color: colors.red },
@@ -497,7 +497,7 @@ export const fireWaveTower: Sprite = {
 };
 
 export const waterWaveTower: Sprite = {
-  name: "tower_wave",
+  name: "Tower",
   layers: [
     { char: "Y", color: colors.silver },
     { char: '"', color: colors.blue },
@@ -505,7 +505,7 @@ export const waterWaveTower: Sprite = {
 };
 
 export const earthWaveTower: Sprite = {
-  name: "tower_wave",
+  name: "Tower",
   layers: [
     { char: "Y", color: colors.silver },
     { char: '"', color: colors.lime },
@@ -527,4 +527,16 @@ export const fly: Sprite = {
 export const fairy: Sprite = {
   name: "Fairy",
   layers: [{ char: "\u0100", color: colors.silver }],
+};
+
+export const chestBoss: Sprite = {
+  name: "",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "+", color: colors.red },
+    { char: ":", color: colors.grey },
+    { char: "±", color: colors.maroon },
+    { char: "∙", color: colors.silver },
+    { char: "·", color: colors.maroon },
+  ],
 };
