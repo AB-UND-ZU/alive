@@ -2477,8 +2477,8 @@ export const pointerArrow: Sequence<PointerSequence> = (
       ) {
         pointerParticle[PARTICLE].animatedOrigin = undefined;
       }
-      pointerParticle[PARTICLE].offsetX = delta.x * 8;
-      pointerParticle[PARTICLE].offsetY = delta.y * 5;
+      pointerParticle[PARTICLE].offsetX = delta.x * 7;
+      pointerParticle[PARTICLE].offsetY = delta.y * 4;
       pointerParticle[ORIENTABLE].facing = invertedOrientation;
       state.args.lastOrientation = invertedOrientation;
       state.args.target = targetId;
