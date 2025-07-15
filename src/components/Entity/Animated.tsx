@@ -29,6 +29,14 @@ export default function Animated({
     pause: paused,
   }));
 
+  // keep spring and paused in sync
+  useEffect(() => {
+    api.start({
+      config: spring,
+      pause: paused,
+    });
+  }, [spring, paused, api]);
+
   // perform bump if generation has changed
   useEffect(() => {
     if (bump && bump.bumpGeneration !== bumpRef.current && bump.facing) {
