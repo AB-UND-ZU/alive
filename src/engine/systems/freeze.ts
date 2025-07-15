@@ -150,6 +150,12 @@ export const freezeMomentum = (
     entity[PLAYER]
   ) {
     movableReference[REFERENCE].suspensionCounter = -1;
+  } else if (
+    entity[PLAYER] &&
+    !entity[MOVABLE].momentum &&
+    entity[MOVABLE].orientations.length === 0
+  ) {
+    movableReference[REFERENCE].suspensionCounter = 0;
   }
 };
 
