@@ -1,5 +1,5 @@
 import { entities, World, systems } from "../engine";
-import { Position, POSITION } from "../engine/components/position";
+import { POSITION } from "../engine/components/position";
 import { SPRITE } from "../engine/components/sprite";
 import { LIGHT } from "../engine/components/light";
 import { RENDERABLE } from "../engine/components/renderable";
@@ -101,9 +101,6 @@ import { createHero } from "../engine/systems/fate";
 import { spawnLight } from "../engine/systems/consume";
 
 export const generateWorld = async (world: World) => {
-  // track distribution of cell types
-  const cellLocations: Record<string, Position[]> = {};
-
   const size = world.metadata.gameEntity[LEVEL].size;
 
   const elevationMatrix = simplexNoiseMatrix(size, size, 0, -50, 100, 1);
@@ -294,7 +291,10 @@ export const generateWorld = async (world: World) => {
         (townDeltaY - townHeight / 2 < 2 ? 20 : 0);
     }
 
-    cellLocations[cell] = (cellLocations[cell] || []).concat([{ x, y }]);
+    // track distribution of cell types
+    world.metadata.gameEntity[LEVEL].cells[cell] = (
+      world.metadata.gameEntity[LEVEL].cells[cell] || []
+    ).concat([{ x, y }]);
 
     return cell;
   });
@@ -439,11 +439,45 @@ export const generateWorld = async (world: World) => {
   });
   questSequence(world, heroEntity, "spawnQuest", {});
 
-  // postprocess spawn
+  // register all entities to allow post-processing
+  const registerableEntites = world.getEntities([POSITION]);
+  registerableEntites.forEach((registerableEntity) => {
+    registerEntity(world, registerableEntity);
+  });
+
+  // assign buildings
   const guideDoor = assertIdentifierAndComponents(world, "guide_door", [
     POSITION,
   ]);
   const guideHouse = { position: add(guideDoor[POSITION], { x: 1, y: -1 }) };
+  const nomadHouse = { position: { x: nomadX - 1, y: nomadY - 1 } };
+
+  const [
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    guideBuilding,
+    nomadBuilding,
+    chiefBuilding,
+    elderBuilding,
+    scoutBuilding,
+    smithBuilding,
+    traderBuilding,
+    druidBuilding,
+    mageBuilding,
+    ...emptyBuildings
+  ] = [
+    guideHouse,
+    nomadHouse,
+    chiefHouse,
+    elderHouse,
+    scoutHouse,
+    smithHouse,
+    traderHouse,
+    druidHouse,
+    mageHouse,
+    ...emptyHouses,
+  ].map((building) => assignBuilding(world, building.position));
+
+  // postprocess spawn
 
   const guideUnit = generateNpcData("guide");
   const guideEntity = entities.createVillager(world, {
@@ -585,7 +619,7 @@ export const generateWorld = async (world: World) => {
   }
 
   // add quest sign after exiting
-  const signEntity = entities.createSign(world, {
+  const spawnSign = entities.createSign(world, {
     [FOG]: { visibility: "hidden", type: "terrain" },
     [COLLIDABLE]: {},
     [POSITION]: copy(signPosition),
@@ -598,15 +632,14 @@ export const generateWorld = async (world: World) => {
       nextDialog: -1,
     },
   });
-  npcSequence(world, signEntity, "signNpc", {});
-  setIdentifier(world, signEntity, "sign");
-  offerQuest(world, signEntity, "waypointQuest", {
-    identifier: "welcome",
-    distance: 1.3,
+  npcSequence(world, spawnSign, "signNpc", {});
+  setIdentifier(world, spawnSign, "spawn_sign");
+  offerQuest(world, spawnSign, "waypointQuest", {
+    identifier: "town_sign",
+    distance: 0,
   });
 
   // postprocess nomad
-  const nomadHouse = { position: { x: nomadX - 1, y: nomadY - 1 } };
   const nomadUnit = generateNpcData("nomad");
   const nomadEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
@@ -632,7 +665,7 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: nomadUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: add(nomadHouse.position, { x: -1, y: 0 }),
+    [POSITION]: add(nomadBuilding.building[POSITION], { x: -1, y: 0 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: nomadUnit.sprite,
@@ -680,7 +713,7 @@ export const generateWorld = async (world: World) => {
     [INVENTORY]: { items: [], size: 20 },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [LAYER]: {},
-    [POSITION]: add(nomadHouse.position, { x: 2, y: 0 }),
+    [POSITION]: add(nomadBuilding.building[POSITION], { x: 2, y: 0 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: nomadChestData.sprite,
@@ -692,6 +725,27 @@ export const generateWorld = async (world: World) => {
   ]);
   const nomadKeyEntity = world.assertById(nomadChest[INVENTORY].items[0]);
   setIdentifier(world, nomadKeyEntity, "nomad_key");
+
+  const nomadSign = entities.createSign(world, {
+    [COLLIDABLE]: {},
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [POSITION]: add(nomadBuilding.building[POSITION], { x: -1, y: 3 }),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: sign,
+    [TOOLTIP]: {
+      dialogs: [
+        createDialog("Nomad's house"),
+        createDialog("Collect 10 ore"),
+        createDialog("Trade for iron"),
+        createDialog("Exchange to key"),
+      ],
+      persistent: false,
+      nextDialog: 0,
+    },
+  });
+  setIdentifier(world, nomadSign, "nomad_sign");
+  offerQuest(world, nomadSign, "nomadQuest", {});
 
   // postprocess town
 
@@ -721,7 +775,7 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: chiefUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: copy(chiefHouse.position),
+    [POSITION]: copy(chiefBuilding.building[POSITION]),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: chiefUnit.sprite,
@@ -773,10 +827,10 @@ export const generateWorld = async (world: World) => {
     "buy"
   );
   const chiefOffset = random(0, 1) * 4 - 2;
-  const welcomeEntity = entities.createSign(world, {
+  const chiefSign = entities.createSign(world, {
     [COLLIDABLE]: {},
     [FOG]: { visibility: "hidden", type: "terrain" },
-    [POSITION]: add(chiefHouse.position, { x: chiefOffset, y: 3 }),
+    [POSITION]: add(chiefBuilding.building[POSITION], { x: chiefOffset, y: 3 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: sign,
@@ -785,13 +839,18 @@ export const generateWorld = async (world: World) => {
         createDialog("Chief's house"),
         createDialog("Find the key"),
         createDialog("Follow the path"),
-        createDialog("To nomad's house"),
+        createDialog("To Nomad's house"),
       ],
       persistent: false,
       nextDialog: 0,
     },
   });
-  setIdentifier(world, welcomeEntity, "welcome");
+  setIdentifier(world, chiefSign, "town_sign");
+  offerQuest(world, chiefSign, "waypointQuest", {
+    identifier: "nomad_sign",
+    distance: 0,
+  });
+  setIdentifier(world, chiefBuilding.door!, "chief_door");
 
   // 2. elder's house
   const elderUnit = generateNpcData("elder");
@@ -819,7 +878,7 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: elderUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: copy(elderHouse.position),
+    [POSITION]: copy(elderBuilding.building[POSITION]),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: elderUnit.sprite,
@@ -860,7 +919,7 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: scoutUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: copy(scoutHouse.position),
+    [POSITION]: copy(scoutBuilding.building[POSITION]),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: scoutUnit.sprite,
@@ -919,7 +978,7 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: smithUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: copy(smithHouse.position),
+    [POSITION]: copy(smithBuilding.building[POSITION]),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: smithUnit.sprite,
@@ -988,7 +1047,10 @@ export const generateWorld = async (world: World) => {
   const smithAnvil = entities.createCrafting(world, {
     [COLLIDABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [POSITION]: add(smithHouse.position, { x: random(0, 1) * 4 - 2, y: 0 }),
+    [POSITION]: add(smithBuilding.building[POSITION], {
+      x: random(0, 1) * 4 - 2,
+      y: 0,
+    }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: anvil,
@@ -1045,7 +1107,7 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: traderUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: copy(traderHouse.position),
+    [POSITION]: copy(traderBuilding.building[POSITION]),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: traderUnit.sprite,
@@ -1101,7 +1163,7 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: druidUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: copy(druidHouse.position),
+    [POSITION]: copy(druidBuilding.building[POSITION]),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: druidUnit.sprite,
@@ -1175,7 +1237,10 @@ export const generateWorld = async (world: World) => {
   const druidKettle = entities.createCrafting(world, {
     [COLLIDABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [POSITION]: add(druidHouse.position, { x: random(0, 1) * 4 - 2, y: 0 }),
+    [POSITION]: add(druidBuilding.building[POSITION], {
+      x: random(0, 1) * 4 - 2,
+      y: 0,
+    }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: kettle,
@@ -1265,7 +1330,7 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: mageUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: copy(mageHouse.position),
+    [POSITION]: copy(mageBuilding.building[POSITION]),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: mageUnit.sprite,
@@ -1321,7 +1386,7 @@ export const generateWorld = async (world: World) => {
   );
 
   // empty houses
-  for (const emptyHouse of emptyHouses) {
+  for (const emptyBuilding of emptyBuildings) {
     // add furniture
     const furnitureOrientation = (["left", "right"] as const)[random(0, 1)];
     const invertFurniture = invertOrientation(
@@ -1335,7 +1400,7 @@ export const generateWorld = async (world: World) => {
       entities.createTerrain(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [POSITION]: add(
-          emptyHouse.position,
+          emptyBuilding.building[POSITION],
           orientationPoints[invertFurniture]
         ),
         [SPRITE]: bedHeadSprites[invertFurniture],
@@ -1344,7 +1409,7 @@ export const generateWorld = async (world: World) => {
       });
       entities.createTerrain(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
-        [POSITION]: emptyHouse.position,
+        [POSITION]: emptyBuilding.building[POSITION],
         [SPRITE]: bedCenter,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
@@ -1352,7 +1417,7 @@ export const generateWorld = async (world: World) => {
       entities.createTerrain(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [POSITION]: add(
-          emptyHouse.position,
+          emptyBuilding.building[POSITION],
           orientationPoints[furnitureOrientation]
         ),
         [SPRITE]: bedEndSprites[furnitureOrientation],
@@ -1363,7 +1428,7 @@ export const generateWorld = async (world: World) => {
       // create table and chairs
       entities.createTerrain(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
-        [POSITION]: copy(emptyHouse.position),
+        [POSITION]: copy(emptyBuilding.building[POSITION]),
         [SPRITE]: table,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
@@ -1371,7 +1436,7 @@ export const generateWorld = async (world: World) => {
       entities.createGround(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [POSITION]: add(
-          emptyHouse.position,
+          emptyBuilding.building[POSITION],
           orientationPoints[furnitureOrientation]
         ),
         [SPRITE]: chairSprites[furnitureOrientation],
@@ -1381,7 +1446,7 @@ export const generateWorld = async (world: World) => {
         entities.createGround(world, {
           [FOG]: { visibility: "hidden", type: "terrain" },
           [POSITION]: add(
-            emptyHouse.position,
+            emptyBuilding.building[POSITION],
             orientationPoints[invertFurniture]
           ),
           [SPRITE]: chairSprites[invertFurniture],
@@ -1400,7 +1465,10 @@ export const generateWorld = async (world: World) => {
       [INVENTORY]: { items: [], size: 20 },
       [FOG]: { visibility: "hidden", type: "terrain" },
       [LAYER]: {},
-      [POSITION]: add(emptyHouse.position, { x: random(0, 1) * 4 - 2, y: 0 }),
+      [POSITION]: add(emptyBuilding.building[POSITION], {
+        x: random(0, 1) * 4 - 2,
+        y: 0,
+      }),
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: chestData.sprite,
@@ -1414,18 +1482,6 @@ export const generateWorld = async (world: World) => {
       chestData.equipments
     );
   }
-
-  // register all entities to allow post-processing
-  const registerableEntites = world.getEntities([POSITION]);
-  registerableEntites.forEach((registerableEntity) => {
-    registerEntity(world, registerableEntity);
-  });
-
-  // assign buildings
-  const buildings = [...houses, guideHouse, nomadHouse];
-  buildings.forEach((building) => {
-    assignBuilding(world, building.position);
-  });
 
   // start ordered systems
   world.addSystem(systems.setupMap);

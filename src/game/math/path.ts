@@ -42,7 +42,8 @@ export const findPath = (
   matrix: Matrix<number>,
   origin: Position,
   target: Position,
-  targetWalkable: boolean = false
+  targetWalkable: boolean = false,
+  mustReach = false
 ) => {
   const width = matrix.length / 2;
   const height = matrix[0].length / 2;
@@ -69,7 +70,7 @@ export const findPath = (
       getDistance(centeredOrigin, left, width * 2, 1, false) -
       getDistance(centeredOrigin, right, width * 2, 1, false)
   )[0];
-  
+
   const targetNode = graph.grid[centeredTarget.x][
     centeredTarget.y
   ] as GridNode & { weight: number };
@@ -81,7 +82,7 @@ export const findPath = (
     graph,
     originNode,
     targetNode,
-    { closest: true }
+    { closest: !mustReach }
   );
 
   // normalize path values

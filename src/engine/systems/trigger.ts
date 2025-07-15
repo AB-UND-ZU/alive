@@ -48,7 +48,7 @@ import { addToInventory } from "./collect";
 import { getSpellStat } from "../../game/balancing/spells";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
-import { abortQuest, acceptQuest as ecsAcceptQuest } from "../utils";
+import { acceptQuest as ecsAcceptQuest } from "../utils";
 import { fenceDoor, fenceDoorOpen } from "../../game/assets/sprites/structures";
 import { NPC } from "../components/npc";
 
@@ -254,9 +254,6 @@ export const consumeCharge = (
 };
 
 export const acceptQuest = (world: World, entity: Entity, target: Entity) => {
-  // abort any existing quests
-  abortQuest(world, entity);
-
   // accept quest and remove from target
   questSequence(
     world,

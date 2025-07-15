@@ -2415,6 +2415,7 @@ export const pointerArrow: Sequence<PointerSequence> = (
     ORIENTABLE,
   ])[0];
   const targetId = highlighEntity?.[FOCUSABLE].target;
+  const highlight = highlighEntity?.[FOCUSABLE].highlight;
   const targetEntity = world.getEntityByIdAndComponents(targetId, [POSITION]);
 
   if (!state.args.lastOrientation && (!highlighEntity || !targetEntity)) {
@@ -2422,7 +2423,7 @@ export const pointerArrow: Sequence<PointerSequence> = (
   }
 
   // create pointer particle
-  if (!state.particles.pointer) {
+  if (!state.particles.pointer && highlight) {
     const pointerParticle = entities.createFibre(world, {
       [ORIENTABLE]: {},
       [PARTICLE]: {
@@ -2433,7 +2434,7 @@ export const pointerArrow: Sequence<PointerSequence> = (
         duration: 400,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: pointers[highlighEntity[FOCUSABLE].highlight!],
+      [SPRITE]: pointers[highlight],
     });
     state.particles.pointer = world.getEntityId(pointerParticle);
     updated = true;
@@ -2443,6 +2444,12 @@ export const pointerArrow: Sequence<PointerSequence> = (
     state.particles.pointer,
     [ORIENTABLE, PARTICLE]
   );
+
+  // update pointer highlight
+  if (highlight && pointerParticle[SPRITE] !== pointers[highlight]) {
+    pointerParticle[SPRITE] = pointers[highlight];
+    updated = true;
+  }
 
   const size = world.metadata.gameEntity[LEVEL].size;
   const shouldDisplay =

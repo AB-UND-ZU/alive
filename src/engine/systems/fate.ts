@@ -49,7 +49,6 @@ import { AFFECTABLE } from "../components/affectable";
 import { defaultLight } from "./consume";
 import { LAYER } from "../components/layer";
 import {
-  abortQuest,
   getIdentifier,
   getIdentifierAndComponents,
   setHighlight,
@@ -150,6 +149,7 @@ export const createHero = (world: World, halo: Entity) => {
       position: copy(halo[SPAWNABLE].position),
       light: halo[SPAWNABLE].light,
       viewable: halo[SPAWNABLE].viewable,
+      quest: halo[SPAWNABLE].quest,
     },
     [SPRITE]: sprite,
     [STATS]: { ...emptyStats, ...stats },
@@ -201,10 +201,10 @@ export default function setupFate(world: World) {
       VIEWABLE,
       SPAWNABLE,
       EQUIPPABLE,
+      SEQUENCABLE,
     ])) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
-        // abort any pending quest and focus
-        abortQuest(world, entity);
+        // disable any focus
         setNeedle(world);
         setHighlight(world);
 
@@ -283,6 +283,7 @@ export default function setupFate(world: World) {
             light: { ...entity[SPAWNABLE].light },
             viewable: { ...entity[VIEWABLE] },
             compassId: entity[SPAWNABLE].compassId,
+            quest: entity[SEQUENCABLE].states.quest,
           },
           [SPRITE]: none,
           [VIEWABLE]: {
@@ -348,8 +349,8 @@ export default function setupFate(world: World) {
           questSequence(
             world,
             heroEntity,
-            "waypointQuest",
-            { distance: 3, highlight: "tombstone" },
+            "tombstoneQuest",
+            {},
             tombstoneEntity
           );
         }

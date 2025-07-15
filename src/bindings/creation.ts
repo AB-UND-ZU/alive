@@ -140,6 +140,7 @@ import { NPC } from "../engine/components/npc";
 import { RECHARGABLE } from "../engine/components/rechargable";
 import { ACTIONABLE } from "../engine/components/actionable";
 import { npcSequence } from "../game/assets/utils";
+import { getLockable } from "../engine/systems/action";
 
 const populateItems = (
   world: World,
@@ -218,6 +219,7 @@ export const assignBuilding = (
     [VIEWABLE]: { active: false, priority },
   });
   const buildingId = world.getEntityId(buildingEntity);
+  let doorEntity: Entity | undefined;
 
   const fragmentEntities: Entity[] = [];
 
@@ -264,6 +266,10 @@ export const assignBuilding = (
 
     upCursor = target[POSITION];
     fragmentEntities.push(target);
+
+    // save door for convenience
+    const door = getLockable(world, fillPosition);
+    if (door) doorEntity = door;
   }
 
   for (const fragmentEntity of fragmentEntities) {
@@ -280,7 +286,11 @@ export const assignBuilding = (
     y: height % 2 === 0 ? 0.5 : 0,
   };
 
-  return buildingEntity;
+  return {
+    building: buildingEntity,
+    fragments: fragmentEntities,
+    door: doorEntity,
+  };
 };
 
 export const insertArea = (

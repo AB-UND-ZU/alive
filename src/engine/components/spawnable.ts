@@ -4,6 +4,7 @@ import { Position } from "./position";
 import { Light } from "./light";
 import { Viewable } from "./viewable";
 import { ClassKey } from "../../game/balancing/classes";
+import { QuestSequence, SequenceState } from "./sequencable";
 
 export type Spawnable = {
   classKey: ClassKey;
@@ -11,6 +12,7 @@ export type Spawnable = {
   light: Light;
   viewable: Viewable;
   compassId?: number;
+  quest?: SequenceState<QuestSequence>
 };
 
 export const SPAWNABLE = "SPAWNABLE";

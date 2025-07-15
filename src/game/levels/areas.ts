@@ -24,7 +24,7 @@ export const nomadArea = `\
 ╠╬╬╬╬╣ 
 ╞╪╪╪╪╡ 
 └──┴N┘ 
- *  ▒  \
+   *▒  \
 `;
 
 export const nomadOffset = { x: 1, y: 3 };

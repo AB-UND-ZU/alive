@@ -5,7 +5,7 @@ import { Quest, QUEST } from "./components/quest";
 import { TRACKABLE } from "./components/trackable";
 import { Focusable, FOCUSABLE } from "./components/focusable";
 import { TOOLTIP } from "./components/tooltip";
-import { pending, quest as questSprite } from "../game/assets/sprites";
+import { quest as questSprite } from "../game/assets/sprites";
 import { rerenderEntity } from "./systems/renderer";
 import { getSequence } from "./systems/sequence";
 import { Entity, TypedEntity } from "./entities";
@@ -17,8 +17,7 @@ export const offerQuest = (
   world: World,
   entity: ECSEntity,
   name: Quest["name"],
-  memory: any,
-  retry: boolean = true
+  memory: any
 ) => {
   if (entity[QUEST]) {
     entity[QUEST].name = name;
@@ -27,7 +26,6 @@ export const offerQuest = (
     world.addComponentToEntity(entity, QUEST, {
       name,
       available: true,
-      retry,
       memory,
     });
   }
@@ -36,7 +34,7 @@ export const offerQuest = (
 
 export const acceptQuest = (world: World, entity: ECSEntity) => {
   entity[QUEST].available = false;
-  entity[TOOLTIP].idle = pending;
+  entity[TOOLTIP].idle = undefined;
   entity[TOOLTIP].changed = true;
 };
 
@@ -47,10 +45,7 @@ export const abortQuest = (world: World, entity: TypedEntity) => {
 
   const giverEntity = world.getEntityById(activeQuest.args.giver);
 
-  if (
-    !giverEntity?.[QUEST]?.retry ||
-    giverEntity[QUEST].name !== activeQuest.name
-  )
+  if (!giverEntity?.[QUEST] || giverEntity[QUEST].name !== activeQuest.name)
     return;
 
   offerQuest(

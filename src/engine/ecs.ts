@@ -175,7 +175,7 @@ export default function createWorld(size: number) {
 
   // create global render counter and reference frame
   ecs.metadata.gameEntity = entities.createGame(ecs, {
-    [LEVEL]: { map: {}, size, walkable: [], initialized: false },
+    [LEVEL]: { map: {}, size, walkable: [], cells: {}, initialized: false },
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
       tick: getHasteInterval(ecs, -1),
