@@ -39,6 +39,9 @@ import { PLAYER } from "../../engine/components/player";
 import { isControllable } from "../../engine/systems/freeze";
 import { POPUP } from "../../engine/components/popup";
 
+// allow queueing of next actions 50ms before start of next tick
+const queueThreshold = 50;
+
 export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   ArrowUp: "up",
   w: "up",
@@ -397,10 +400,14 @@ export default function Controls() {
       if (orientations.length === 0 && !heroEntity[MOVABLE].momentum) {
         reference.suspensionCounter = 0;
 
+        // only allow queueing actions in short moment at end of frame
+        const remaining = reference.tick - reference.delta;
+
         if (
-          heroEntity[MOVABLE].pendingOrientation ||
-          heroEntity[ACTIONABLE].primaryTriggered ||
-          heroEntity[ACTIONABLE].secondaryTriggered
+          remaining < queueThreshold &&
+          (heroEntity[MOVABLE].pendingOrientation ||
+            heroEntity[ACTIONABLE].primaryTriggered ||
+            heroEntity[ACTIONABLE].secondaryTriggered)
         ) {
           reference.suspensionCounter += 1;
         }

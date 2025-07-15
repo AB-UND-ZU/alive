@@ -71,7 +71,7 @@ export type QuestStage<T extends StepAnimations> = {
   finished: boolean;
 };
 
-const STEP_DEBUG = true;
+const STEP_DEBUG = false;
 
 export const step = <T extends StepAnimations>({
   stage,
