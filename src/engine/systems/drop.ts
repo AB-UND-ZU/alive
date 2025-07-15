@@ -54,6 +54,7 @@ import { RECHARGABLE } from "../components/rechargable";
 import { ATTACKABLE } from "../components/attackable";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { setIdentifier } from "../utils";
+import { getBurning } from "./burn";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -63,8 +64,12 @@ export const isDecaying = (world: World, entity: Entity) =>
   !entity[DROPPABLE].decayed &&
   !getSequence(world, entity, "decay");
 
+export const isDroppable = (world: World, position: Position) =>
+  !!world.metadata.gameEntity[LEVEL].walkable[position.x][position.y] &&
+  !getBurning(world, position);
+
 export const MAX_DROP_RADIUS = 5;
-export const findAdjacentWalkable = (
+export const findAdjacentDroppable = (
   world: World,
   position: Position,
   maxRadius: number = MAX_DROP_RADIUS,
@@ -77,7 +82,7 @@ export const findAdjacentWalkable = (
 
   if (
     overrideCenterWalkable !== false &&
-    (overrideCenterWalkable === true || level.walkable[position.x][position.y])
+    (overrideCenterWalkable === true || isDroppable(world, position))
   ) {
     return position;
   }
@@ -101,7 +106,7 @@ export const findAdjacentWalkable = (
           level.size
         ),
       };
-      if (level.walkable[centerPosition.x][centerPosition.y]) {
+      if (isDroppable(world, centerPosition)) {
         return centerPosition;
       }
     }
@@ -123,7 +128,7 @@ export const findAdjacentWalkable = (
             level.size
           ),
         };
-        if (level.walkable[sidePosition.x][sidePosition.y]) {
+        if (isDroppable(world, sidePosition)) {
           return sidePosition;
         }
       }
@@ -331,7 +336,7 @@ export const dropEntity = (
   return shuffle(items).map((itemId, index) => {
     const dropPosition = orientation
       ? add(position, orientationPoints[orientation])
-      : findAdjacentWalkable(
+      : findAdjacentDroppable(
           world,
           position,
           maxRadius,
