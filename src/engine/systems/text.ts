@@ -21,7 +21,7 @@ import { createSequence, getSequence } from "./sequence";
 import { TypedEntity } from "../entities";
 import { LIGHT } from "../components/light";
 import { SPAWNABLE } from "../components/spawnable";
-import { isShopping } from "./shop";
+import { isInPopup } from "./popup";
 
 export const getTooltip = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -51,7 +51,7 @@ export default function setupText(world: World) {
     >[] = [];
 
     // check any adjacent tooltips
-    if (hero && !isDead(world, hero) && !isShopping(world, hero)) {
+    if (hero && !isDead(world, hero) && !isInPopup(world, hero)) {
       for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
         for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
           const delta = { x: offsetX, y: offsetY };

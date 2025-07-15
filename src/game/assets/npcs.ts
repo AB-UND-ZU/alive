@@ -48,7 +48,7 @@ import { INVENTORY } from "../../engine/components/inventory";
 import { LAYER } from "../../engine/components/layer";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
-import { removeShop } from "../../engine/systems/shop";
+import { removeShop } from "../../engine/systems/popup";
 import { isDead, isEnemy } from "../../engine/systems/damage";
 import { Deal } from "../../engine/components/popup";
 import { createArea, createCell } from "../../bindings/creation";
@@ -689,7 +689,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
       );
       return true;
     },
-    isCompleted: () => !!heroEntity?.[PLAYER]?.shopping,
+    isCompleted: () => !!heroEntity?.[PLAYER]?.popup,
     onLeave: () => "shop",
   });
 

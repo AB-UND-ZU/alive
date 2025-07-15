@@ -36,7 +36,13 @@ import { CASTABLE } from "../components/castable";
 import { isDead, isEnemy } from "./damage";
 import { canCast, chargeSlash } from "./magic";
 import { EQUIPPABLE } from "../components/equippable";
-import { canShop, closeShop, getDeal, isShoppable, openShop } from "./shop";
+import {
+  canShop,
+  closeShop,
+  getDeal,
+  isPopupAvailable,
+  openShop,
+} from "./popup";
 import { POPUP } from "../components/popup";
 import { addToInventory } from "./collect";
 import { getSpellStat } from "../../game/balancing/spells";
@@ -378,7 +384,7 @@ export default function setupTrigger(world: World) {
 
       const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
-      const shopEntity = world.getEntityById(entity[ACTIONABLE].shop);
+      const popupEntity = world.getEntityById(entity[ACTIONABLE].popup);
       const tradeEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].trade,
         [TOOLTIP, POPUP]
@@ -406,8 +412,8 @@ export default function setupTrigger(world: World) {
           acceptQuest(world, entity, questEntity);
         } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
           unlockDoor(world, entity, unlockEntity);
-        } else if (shopEntity && isShoppable(world, shopEntity)) {
-          openShop(world, entity, shopEntity);
+        } else if (popupEntity && isPopupAvailable(world, popupEntity)) {
+          openShop(world, entity, popupEntity);
         } else if (
           tradeEntity &&
           canShop(world, entity, getDeal(world, tradeEntity))

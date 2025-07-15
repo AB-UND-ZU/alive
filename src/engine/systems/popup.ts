@@ -24,15 +24,18 @@ import { TypedEntity } from "../entities";
 import { isEnemy } from "./damage";
 import { frameHeight } from "../../game/assets/utils";
 
-export const isShopping = (world: World, entity: Entity) =>
-  entity[PLAYER]?.shopping;
+export const isInPopup = (world: World, entity: Entity) =>
+  entity[PLAYER]?.popup;
 
-export const isShoppable = (world: World, entity: Entity) =>
-  POPUP in entity && entity[POPUP].deals.length > 0 && !isEnemy(world, entity);
+export const isPopupAvailable = (world: World, entity: Entity) =>
+  POPUP in entity &&
+  ["buy", "sell", "craft"].includes(entity[POPUP].transaction) &&
+  entity[POPUP].deals.length > 0 &&
+  !isEnemy(world, entity);
 
-export const getShoppable = (world: World, position: Position) =>
+export const getPopup = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
-    isShoppable(world, entity)
+    isPopupAvailable(world, entity)
   ) as Entity | undefined;
 
 export const getDeal = (world: World, shopEntity: Entity): Deal =>
@@ -106,7 +109,7 @@ export const openShop = (
   shopEntity: Entity
 ) => {
   const shopId = world.getEntityId(shopEntity);
-  heroEntity[PLAYER].shopping = shopId;
+  heroEntity[PLAYER].popup = shopId;
   shopEntity[POPUP].active = true;
   shopEntity[TOOLTIP].override = "hidden";
   shopEntity[TOOLTIP].changed = true;
@@ -135,7 +138,7 @@ export const closeShop = (
   heroEntity: Entity,
   shopEntity: Entity
 ) => {
-  heroEntity[PLAYER].shopping = undefined;
+  heroEntity[PLAYER].popup = undefined;
   shopEntity[POPUP].active = false;
   shopEntity[TOOLTIP].override = undefined;
   shopEntity[TOOLTIP].changed = true;
@@ -147,7 +150,7 @@ export const closeShop = (
   rerenderEntity(world, shopEntity);
 };
 
-export default function setupShop(world: World) {
+export default function setupPopup(world: World) {
   let heroGeneration = -1;
 
   const onUpdate = (delta: number) => {
@@ -166,7 +169,7 @@ export default function setupShop(world: World) {
     heroGeneration = generation;
 
     const shoppingEntity = world.getEntityByIdAndComponents(
-      heroEntity?.[PLAYER].shopping,
+      heroEntity?.[PLAYER].popup,
       [POPUP]
     );
 

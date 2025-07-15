@@ -90,7 +90,7 @@ import { getGearStat } from "../game/balancing/equipment";
 import { findPath, invertOrientation } from "../game/math/path";
 import { registerEntity } from "../engine/systems/map";
 import { LAYER } from "../engine/components/layer";
-import { sellItems } from "../engine/systems/shop";
+import { sellItems } from "../engine/systems/popup";
 import { Deal } from "../engine/components/popup";
 import {
   assertIdentifierAndComponents,
@@ -1433,7 +1433,7 @@ export const generateWorld = async (world: World) => {
   world.addSystem(systems.setupFreeze);
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupTrigger);
-  world.addSystem(systems.setupShop);
+  world.addSystem(systems.setupPopup);
   world.addSystem(systems.setupCollect);
   world.addSystem(systems.setupConsume);
   world.addSystem(systems.setupSpike);

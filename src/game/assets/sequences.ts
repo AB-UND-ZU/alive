@@ -187,7 +187,7 @@ import { getExertables, getParticleAmount } from "../../engine/systems/magic";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { Popup, POPUP } from "../../engine/components/popup";
 import { getActivationRow } from "../../components/Controls";
-import { canShop, isShopping } from "../../engine/systems/shop";
+import { canShop, isInPopup } from "../../engine/systems/popup";
 import { getIdentifierAndComponents } from "../../engine/utils";
 
 export * from "./npcs";
@@ -2164,7 +2164,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     isAdjacent &&
     !!heroEntity &&
     !isDead(world, heroEntity) &&
-    !isShopping(world, heroEntity) &&
+    !isInPopup(world, heroEntity) &&
     !entity[TOOLTIP].override &&
     !isDead(world, entity) &&
     !isEmpty(world, entity) &&

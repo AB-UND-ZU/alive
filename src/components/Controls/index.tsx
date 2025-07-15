@@ -34,8 +34,12 @@ import { canRevive } from "../../engine/systems/fate";
 import { isDead } from "../../engine/systems/damage";
 import Joystick from "../Joystick";
 import { canCast } from "../../engine/systems/magic";
-import { canShop, getDeal, isShoppable } from "../../engine/systems/shop";
-import { PLAYER } from "../../engine/components/player";
+import {
+  canShop,
+  getDeal,
+  isInPopup,
+  isPopupAvailable,
+} from "../../engine/systems/popup";
 import { isControllable } from "../../engine/systems/freeze";
 import { POPUP } from "../../engine/components/popup";
 
@@ -203,14 +207,14 @@ export default function Controls() {
     "lime"
   );
 
-  const shopAction = useAction(
-    "shop",
-    (world, hero, shopEntity) =>
+  const popupAction = useAction(
+    "popup",
+    (world, hero, popupEntity) =>
       !isControllable(world, hero) ||
-      hero[PLAYER].shopping ||
-      !isShoppable(world, shopEntity),
-    (shopEntity) =>
-      shopEntity[POPUP].transaction === "craft" ? "CRAFT" : "SHOP",
+      isInPopup(world, hero) ||
+      !isPopupAvailable(world, popupEntity),
+    (popupEntity) =>
+      popupEntity[POPUP].transaction === "craft" ? "CRAFT" : "SHOP",
     () => [repeat(none, 3), repeat(none, 3)],
     "lime"
   );
@@ -264,7 +268,7 @@ export default function Controls() {
     spawnAction,
     questAction,
     unlockAction,
-    shopAction,
+    popupAction,
     tradeAction,
     primaryAction,
   ];

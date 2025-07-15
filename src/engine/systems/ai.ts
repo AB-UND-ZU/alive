@@ -60,7 +60,7 @@ import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
 import { CASTABLE } from "../components/castable";
 import { BURNABLE } from "../components/burnable";
-import { sellItems } from "./shop";
+import { sellItems } from "./popup";
 import { isControllable } from "./freeze";
 import { getIdentifier, getIdentifierAndComponents } from "../utils";
 import { SPRITE } from "../components/sprite";

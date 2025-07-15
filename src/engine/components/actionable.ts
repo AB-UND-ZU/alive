@@ -4,7 +4,7 @@ import { World } from "../ecs";
 export const actions = [
   "spawn",
   "unlock",
-  "shop",
+  "popup",
   "trade",
   "quest",
   "primary",

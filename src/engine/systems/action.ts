@@ -18,7 +18,7 @@ import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
-import { getShoppable, isShoppable } from "./shop";
+import { getPopup, isInPopup, isPopupAvailable } from "./popup";
 import { EQUIPPABLE } from "../components/equippable";
 
 export const getQuest = (world: World, position: Position) =>
@@ -124,7 +124,8 @@ export const getAvailableSecondary = (
     );
 
     // ensure melee is worn for slash
-    if (hasCharge && !(secondary === 'slash' && !entity[EQUIPPABLE]?.sword)) return itemEntity;
+    if (hasCharge && !(secondary === "slash" && !entity[EQUIPPABLE]?.sword))
+      return itemEntity;
   }
 };
 
@@ -149,7 +150,7 @@ export default function setupAction(world: World) {
     ])) {
       let quest: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
-      let shop: Entity | undefined = undefined;
+      let popup: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
       let spawn: Entity | undefined = undefined;
 
@@ -160,8 +161,8 @@ export default function setupAction(world: World) {
           const targetPosition = add(entity[POSITION], delta);
           const questEntity = getQuest(world, targetPosition);
           const lockableEntity = getLockable(world, targetPosition);
-          const shopEntity = getShoppable(world, targetPosition);
-          const tradeEntity = shopEntity;
+          const popupEntity = getPopup(world, targetPosition);
+          const tradeEntity = popupEntity;
 
           // only player can accept quests
           if (
@@ -181,17 +182,17 @@ export default function setupAction(world: World) {
           )
             unlock = lockableEntity;
 
-          // only filled stores can be opened when not already shopping
+          // only available popups can be opened when not already viewing one
           if (
-            !shop &&
-            !entity[PLAYER]?.shopping &&
-            shopEntity &&
-            isShoppable(world, shopEntity)
+            !popup &&
+            !isInPopup(world, entity) &&
+            popupEntity &&
+            isPopupAvailable(world, popupEntity)
           )
-            shop = shopEntity;
+            popup = popupEntity;
 
-          // trading only while shopping
-          if (!trade && tradeEntity && entity[PLAYER]?.shopping)
+          // trading only while in popup
+          if (!trade && tradeEntity && isInPopup(world, entity))
             trade = tradeEntity;
         }
       }
@@ -211,19 +212,19 @@ export default function setupAction(world: World) {
 
       const questId = quest && world.getEntityId(quest);
       const unlockId = unlock && world.getEntityId(unlock);
-      const shopId = shop && world.getEntityId(shop);
+      const popupId = popup && world.getEntityId(popup);
       const tradeId = trade && world.getEntityId(trade);
       const spawnId = spawn && world.getEntityId(spawn);
       const primaryId = primary && world.getEntityId(primary);
       const secondaryId =
-        questId || unlockId || shopId || tradeId || spawnId
+        questId || unlockId || popupId || tradeId || spawnId
           ? undefined
           : secondary && world.getEntityId(secondary);
 
       if (
         entity[ACTIONABLE].quest !== questId ||
         entity[ACTIONABLE].unlock !== unlockId ||
-        entity[ACTIONABLE].shop !== shopId ||
+        entity[ACTIONABLE].popup !== popupId ||
         entity[ACTIONABLE].trade !== tradeId ||
         entity[ACTIONABLE].spawn !== spawnId ||
         entity[ACTIONABLE].primary !== primaryId ||
@@ -231,7 +232,7 @@ export default function setupAction(world: World) {
       ) {
         entity[ACTIONABLE].quest = questId;
         entity[ACTIONABLE].unlock = unlockId;
-        entity[ACTIONABLE].shop = shopId;
+        entity[ACTIONABLE].popup = popupId;
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].spawn = spawnId;
         entity[ACTIONABLE].primary = primaryId;
