@@ -404,10 +404,10 @@ export default function Controls() {
         const remaining = reference.tick - reference.delta;
 
         if (
-          remaining < queueThreshold &&
-          (heroEntity[MOVABLE].pendingOrientation ||
-            heroEntity[ACTIONABLE].primaryTriggered ||
-            heroEntity[ACTIONABLE].secondaryTriggered)
+          (remaining < queueThreshold &&
+            heroEntity[MOVABLE].pendingOrientation) ||
+          heroEntity[ACTIONABLE].primaryTriggered ||
+          heroEntity[ACTIONABLE].secondaryTriggered
         ) {
           reference.suspensionCounter += 1;
         }
