@@ -128,14 +128,23 @@ export const generateWorld = async (world: World) => {
     exits: relativeExits,
   } = await generateTown(townWidth, townHeight);
 
-  // choose town position in 50% size distance from spawn at a random angle
+  // distribute three main world areas in similar distances to each other and from spawn
+  // town and nomad at 45% size radius and 90° angle between them
+  // small boss at 30% size radius at 225° offset (opposite between town and nomad)
+  // try docs/grid.html for other values
+  const outerRadius = 0.45;
+  const angleDirection = choice(-1, 1);
+  const townNomadAngle = 90;
+
   const townAngle = random(0, 359);
   const townX = normalize(
-    Math.round((Math.sin((townAngle / 360) * Math.PI * 2) / 2) * size),
+    Math.round(Math.sin((townAngle / 360) * Math.PI * 2) * outerRadius * size),
     size
   );
   const townY = normalize(
-    Math.round(((Math.cos((townAngle / 360) * Math.PI * 2) * -1) / 2) * size),
+    Math.round(
+      Math.cos((townAngle / 360) * Math.PI * 2) * -1 * outerRadius * size
+    ),
     size
   );
   const townCorner = {
@@ -148,15 +157,17 @@ export const generateWorld = async (world: World) => {
   }));
   const exits = relativeExits.map((exit) => add(exit, townCorner));
 
-  // select nomad location in a 60 degrees offset from town angle
-  const angleOffset = 60 * choice(-1, 1);
+  // select nomad location in specified degrees offset from town angle
+  const angleOffset = townNomadAngle * angleDirection;
   const nomadAngle = townAngle + angleOffset;
   const nomadX = normalize(
-    Math.round((Math.sin((nomadAngle / 360) * Math.PI * 2) * size) / 2),
+    Math.round(Math.sin((nomadAngle / 360) * Math.PI * 2) * outerRadius * size),
     size
   );
   const nomadY = normalize(
-    Math.round((Math.cos((nomadAngle / 360) * Math.PI * 2) * -1 * size) / 2),
+    Math.round(
+      Math.cos((nomadAngle / 360) * Math.PI * 2) * -1 * outerRadius * size
+    ),
     size
   );
   const nomadRadius = 3;

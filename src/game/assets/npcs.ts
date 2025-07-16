@@ -940,12 +940,20 @@ export const nomadNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const inAttackRange =
     !!heroEntity &&
-    getDistance(state.args.memory.initialPosition, heroEntity[POSITION], size) <
-      4;
+    getDistance(
+      state.args.memory.initialPosition,
+      heroEntity[POSITION],
+      size,
+      1
+    ) < 4;
   const outOfRange =
     !!heroEntity &&
-    getDistance(state.args.memory.initialPosition, heroEntity[POSITION], size) >
-      20;
+    getDistance(
+      state.args.memory.initialPosition,
+      heroEntity[POSITION],
+      size,
+      1
+    ) > 16;
   step({
     stage,
     name: "enrage",

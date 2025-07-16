@@ -34,6 +34,27 @@ export const relativeOrientations = (
   return degreesToOrientations(pointToDegree(delta));
 };
 
+export const getClosestGridCell = (
+  origin: Position,
+  target: Position,
+  size: number,
+  ratio = aspectRatio,
+  euclidean = true
+) => {
+  const gridTargets = [0, 1]
+    .map((wrapX) =>
+      [0, 1].map((wrapY) => add(target, { x: wrapX * size, y: wrapY * size }))
+    )
+    .flat();
+  const closestCells = gridTargets.sort(
+    (left, right) =>
+      getDistance(origin, left, size * 2, ratio, euclidean) -
+      getDistance(origin, right, size * 2, ratio, euclidean)
+  );
+
+  return closestCells[0];
+};
+
 export const invertOrientation = (orientation: Orientation) =>
   orientations[(orientations.indexOf(orientation) + 2) % orientations.length];
 
@@ -57,22 +78,17 @@ export const findPath = (
   ] as GridNode & { weight: number };
   originNode.weight = 1;
 
-  // find shortest distance to target
-  const matrixTargets = [0, 1]
-    .map((wrapX) =>
-      [0, 1].map((wrapY) =>
-        add(target, { x: wrapX * width, y: wrapY * height })
-      )
-    )
-    .flat();
-  const centeredTarget = [...matrixTargets].sort(
-    (left, right) =>
-      getDistance(centeredOrigin, left, width * 2, 1, false) -
-      getDistance(centeredOrigin, right, width * 2, 1, false)
-  )[0];
+  // find shortest distance to target (assuming width === height)
+  const closestTarget = getClosestGridCell(
+    centeredOrigin,
+    target,
+    width,
+    1,
+    false
+  );
 
-  const targetNode = graph.grid[centeredTarget.x][
-    centeredTarget.y
+  const targetNode = graph.grid[closestTarget.x][
+    closestTarget.y
   ] as GridNode & { weight: number };
   if (targetWalkable) {
     targetNode.weight = 1;
