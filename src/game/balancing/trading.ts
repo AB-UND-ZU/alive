@@ -255,6 +255,9 @@ export const itemPrices: Partial<
     earth: [{ stackable: "seed", amount: 5 }],
   },
 
+  // countables
+  ore: { default: [{ stat: "coin", amount: 2 }] },
+
   // stats
   maxHp: { default: [{ stat: "coin", amount: 10 }] },
   maxMp: { default: [{ stat: "coin", amount: 10 }] },

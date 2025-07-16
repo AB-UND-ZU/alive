@@ -38,6 +38,7 @@ import {
 } from "../game/levels/areas";
 import {
   add,
+  choice,
   copy,
   normalize,
   random,
@@ -148,7 +149,7 @@ export const generateWorld = async (world: World) => {
   const exits = relativeExits.map((exit) => add(exit, townCorner));
 
   // select nomad location in a 60 degrees offset from town angle
-  const angleOffset = 60 * (random(0, 1) * 2 - 1);
+  const angleOffset = 60 * choice(-1, 1);
   const nomadAngle = townAngle + angleOffset;
   const nomadX = normalize(
     Math.round((Math.sin((nomadAngle / 360) * Math.PI * 2) * size) / 2),
@@ -318,8 +319,8 @@ export const generateWorld = async (world: World) => {
   // insert nomad
   insertArea(worldMatrix, nomadArea, nomadX, nomadY);
 
-  // create shortes path from spawn to town and nomad
-  const signPosition = { x: normalize(random(0, 1) * 2 - 1, size), y: 10 };
+  // create shortest path from spawn to town and nomad
+  const signPosition = { x: normalize(choice(-1, 1), size), y: 10 };
   pathMatrix[signPosition.x][signPosition.y] = 0;
   iterateMatrix(worldMatrix, (x, y) => {
     const height = pathMatrix[x][y];
@@ -370,7 +371,7 @@ export const generateWorld = async (world: World) => {
     chiefHouse.position.y + 2,
     "iron_door"
   );
-  const elderOffset = random(0, 1) * 2 - 1;
+  const elderOffset = choice(-1, 1);
   setMatrix(
     worldMatrix,
     elderHouse.position.x + elderOffset,
@@ -385,31 +386,31 @@ export const generateWorld = async (world: World) => {
   );
   setMatrix(
     worldMatrix,
-    scoutHouse.position.x + random(0, 1) * 2 - 1,
+    scoutHouse.position.x + choice(-1, 1),
     scoutHouse.position.y + 3,
     "campfire"
   );
   setMatrix(
     worldMatrix,
-    smithHouse.position.x + random(0, 1) * 2 - 1,
+    smithHouse.position.x + choice(-1, 1),
     smithHouse.position.y + 2,
     "house_armor"
   );
   setMatrix(
     worldMatrix,
-    traderHouse.position.x + random(0, 1) * 2 - 1,
+    traderHouse.position.x + choice(-1, 1),
     traderHouse.position.y + 2,
     "house_trader"
   );
   setMatrix(
     worldMatrix,
-    druidHouse.position.x + random(0, 1) * 2 - 1,
+    druidHouse.position.x + choice(-1, 1),
     druidHouse.position.y + 2,
     "house_aid"
   );
   setMatrix(
     worldMatrix,
-    mageHouse.position.x + random(0, 1) * 2 - 1,
+    mageHouse.position.x + choice(-1, 1),
     mageHouse.position.y + 2,
     "house_mage"
   );
@@ -828,7 +829,7 @@ export const generateWorld = async (world: World) => {
     ],
     "buy"
   );
-  const chiefOffset = random(0, 1) * 4 - 2;
+  const chiefOffset = choice(-2, 2);
   const chiefSign = entities.createSign(world, {
     [COLLIDABLE]: {},
     [FOG]: { visibility: "hidden", type: "terrain" },
@@ -928,7 +929,13 @@ export const generateWorld = async (world: World) => {
     [STATS]: { ...emptyStats, ...scoutUnit.stats },
     [SWIMMABLE]: { swimming: false },
     [TOOLTIP]: {
-      dialogs: [],
+      dialogs: [
+        createDialog("Hi there!"),
+        createDialog("I'm the Scout"),
+        createDialog("Sell your drops here"),
+        createDialog("So you can buy items"),
+        createDialog("Or not, up to you"),
+      ],
       persistent: false,
       nextDialog: -1,
     },
@@ -955,6 +962,7 @@ export const generateWorld = async (world: World) => {
   );
 
   // 4. smith's house
+  const smithOffset = choice(-1, 1);
   const smithUnit = generateNpcData("smith");
   const smithEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
@@ -980,14 +988,22 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: smithUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: copy(smithBuilding.building[POSITION]),
+    [POSITION]: add(smithBuilding.building[POSITION], { x: smithOffset, y: 0 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: smithUnit.sprite,
     [STATS]: { ...emptyStats, ...smithUnit.stats },
     [SWIMMABLE]: { swimming: false },
     [TOOLTIP]: {
-      dialogs: [],
+      dialogs: [
+        createDialog("Hey mate"),
+        createDialog("My name is Smith"),
+        createDialog("I sell resources"),
+        createDialog("There's an anvil"),
+        createDialog("For crafting items"),
+        createDialog("To become stronger"),
+        createDialog("Because why not"),
+      ],
       persistent: false,
       nextDialog: -1,
     },
@@ -1003,6 +1019,10 @@ export const generateWorld = async (world: World) => {
     material: "wood",
     amount: 1,
   };
+  const oreItem: Deal["item"] = {
+    stat: "ore",
+    amount: 1,
+  };
   const ironItem: Deal["item"] = {
     stackable: "resource",
     material: "iron",
@@ -1013,16 +1033,6 @@ export const generateWorld = async (world: World) => {
     material: "gold",
     amount: 1,
   };
-  const swordItem: Deal["item"] = {
-    equipment: "sword",
-    material: "wood",
-    amount: getGearStat("sword", "wood"),
-  };
-  const shieldItem: Deal["item"] = {
-    equipment: "shield",
-    material: "wood",
-    amount: getGearStat("shield", "wood"),
-  };
   const torchItem: Deal["item"] = {
     equipment: "torch",
     amount: 1,
@@ -1030,19 +1040,13 @@ export const generateWorld = async (world: World) => {
   sellItems(
     world,
     smithEntity,
-    [
-      stickItem,
-      woodItem,
-      ironItem,
-      goldItem,
-      swordItem,
-      shieldItem,
-      torchItem,
-    ].map((item) => ({
-      item,
-      stock: item.equipment ? 1 : Infinity,
-      price: getItemPrice(item),
-    })),
+    [stickItem, woodItem, oreItem, ironItem, goldItem, torchItem].map(
+      (item) => ({
+        item,
+        stock: Infinity,
+        price: getItemPrice(item),
+      })
+    ),
     "buy"
   );
 
@@ -1050,7 +1054,7 @@ export const generateWorld = async (world: World) => {
     [COLLIDABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [POSITION]: add(smithBuilding.building[POSITION], {
-      x: random(0, 1) * 4 - 2,
+      x: -smithOffset,
       y: 0,
     }),
     [RENDERABLE]: { generation: 0 },
@@ -1062,6 +1066,16 @@ export const generateWorld = async (world: World) => {
       nextDialog: -1,
     },
   });
+  const woodSwordItem: Deal["item"] = {
+    equipment: "sword",
+    material: "wood",
+    amount: getGearStat("sword", "wood"),
+  };
+  const woodShieldItem: Deal["item"] = {
+    equipment: "shield",
+    material: "wood",
+    amount: getGearStat("shield", "wood"),
+  };
   const ironSwordItem: Deal["item"] = {
     equipment: "sword",
     material: "iron",
@@ -1072,12 +1086,29 @@ export const generateWorld = async (world: World) => {
     material: "iron",
     amount: getGearStat("shield", "iron"),
   };
+  const goldSwordItem: Deal["item"] = {
+    equipment: "sword",
+    material: "gold",
+    amount: getGearStat("sword", "gold"),
+  };
+  const goldShieldItem: Deal["item"] = {
+    equipment: "shield",
+    material: "gold",
+    amount: getGearStat("shield", "gold"),
+  };
   sellItems(
     world,
     smithAnvil,
-    [ironSwordItem, ironShieldItem].map((item) => ({
+    [
+      woodSwordItem,
+      woodShieldItem,
+      ironSwordItem,
+      ironShieldItem,
+      goldSwordItem,
+      goldShieldItem,
+    ].map((item) => ({
       item,
-      stock: 1,
+      stock: Infinity,
       price: getItemPrice(item),
     })),
     "craft"
@@ -1116,7 +1147,13 @@ export const generateWorld = async (world: World) => {
     [STATS]: { ...emptyStats, ...traderUnit.stats },
     [SWIMMABLE]: { swimming: false },
     [TOOLTIP]: {
-      dialogs: [],
+      dialogs: [
+        createDialog("Hi, I'm the Trader"),
+        createDialog("Nice to meet you"),
+        createDialog("Well, I trade items"),
+        createDialog("For coins only"),
+        createDialog("Wanna have a look?"),
+      ],
       persistent: false,
       nextDialog: -1,
     },
@@ -1140,6 +1177,7 @@ export const generateWorld = async (world: World) => {
   );
 
   // 6. druid's house
+  const druidOffset = choice(-1, 1);
   const druidUnit = generateNpcData("druid");
   const druidEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
@@ -1165,14 +1203,22 @@ export const generateWorld = async (world: World) => {
     },
     [NPC]: { type: druidUnit.type },
     [ORIENTABLE]: {},
-    [POSITION]: copy(druidBuilding.building[POSITION]),
+    [POSITION]: add(druidBuilding.building[POSITION], { x: druidOffset, y: 0 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: druidUnit.sprite,
     [STATS]: { ...emptyStats, ...druidUnit.stats },
     [SWIMMABLE]: { swimming: false },
     [TOOLTIP]: {
-      dialogs: [],
+      dialogs: [
+        createDialog("Hello there"),
+        createDialog("I am the Druid"),
+        createDialog("Want some potions?"),
+        createDialog("Or maybe elements?"),
+        createDialog("To enchant items"),
+        createDialog("In the kettle here"),
+        createDialog("Incredibly powerful"),
+      ],
       persistent: false,
       nextDialog: -1,
     },
@@ -1240,7 +1286,7 @@ export const generateWorld = async (world: World) => {
     [COLLIDABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [POSITION]: add(druidBuilding.building[POSITION], {
-      x: random(0, 1) * 4 - 2,
+      x: -druidOffset,
       y: 0,
     }),
     [RENDERABLE]: { generation: 0 },
@@ -1300,7 +1346,7 @@ export const generateWorld = async (world: World) => {
       earthBeamItem,
     ].map((item) => ({
       item,
-      stock: 1,
+      stock: Infinity,
       price: getItemPrice(item),
     })),
     "craft"
@@ -1339,7 +1385,13 @@ export const generateWorld = async (world: World) => {
     [STATS]: { ...emptyStats, ...mageUnit.stats },
     [SWIMMABLE]: { swimming: false },
     [TOOLTIP]: {
-      dialogs: [],
+      dialogs: [
+        createDialog("Greetings traveler"),
+        createDialog("I am the Mage"),
+        createDialog("Get your spells here"),
+        createDialog("And abilities too"),
+        createDialog("They're fun actually"),
+      ],
       persistent: false,
       nextDialog: -1,
     },
@@ -1380,7 +1432,7 @@ export const generateWorld = async (world: World) => {
     [waveItem, beamItem, bowItem, arrowItem, slashItem, chargeItem].map(
       (item) => ({
         item,
-        stock: item.stackable ? Infinity : 1,
+        stock: Infinity,
         price: getItemPrice(item),
       })
     ),
