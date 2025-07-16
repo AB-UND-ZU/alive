@@ -198,7 +198,6 @@ export default function setupFreeze(world: World) {
         )[RENDERABLE].generation;
 
         entity[MOVABLE].lastInteraction = entityReference;
-        entity[MOVABLE].orientations = [];
         entity[MOVABLE].pendingOrientation = undefined;
       }
     }
