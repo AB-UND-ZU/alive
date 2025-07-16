@@ -22,20 +22,22 @@ function Cell({
       ))}
       {stackableAmount !== undefined && stackableAmount > 1 && (
         <>
-          {Array.from({ length: stackableAmount }).map((_, index) => (
-            <span
-              key={index}
-              className="Dot"
-              style={{
-                top: `calc(var(--pixel-size) * (13 + ${
-                  index >= STACK_SIZE / 2 ? 2 : 0
-                }))`,
-                left: `calc(0.95 * var(--pixel-size) * ${
-                  (index % (STACK_SIZE / 2)) * 2
-                })`,
-              }}
-            ></span>
-          ))}
+          {Array.from({ length: Math.min(stackableAmount, 10) }).map(
+            (_, index) => (
+              <span
+                key={index}
+                className="Dot"
+                style={{
+                  top: `calc(var(--pixel-size) * (13 + ${
+                    index >= STACK_SIZE / 2 ? 2 : 0
+                  }))`,
+                  left: `calc(0.95 * var(--pixel-size) * ${
+                    (index % (STACK_SIZE / 2)) * 2
+                  })`,
+                }}
+              ></span>
+            )
+          )}
         </>
       )}
     </div>

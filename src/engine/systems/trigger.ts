@@ -8,7 +8,7 @@ import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { TOOLTIP } from "../components/tooltip";
 import { INVENTORY } from "../components/inventory";
-import { Element, elements, ITEM, Stackable } from "../components/item";
+import { Element, elements, Item, ITEM } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
 import { doorOpen, none } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
@@ -68,11 +68,12 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
     return;
   }
 
+  // consume one key
   const keyEntity = getUnlockKey(world, entity, lockable);
   if (!keyEntity) return;
+  consumeCharge(world, entity, keyEntity[ITEM]);
 
   // start animation
-  removeFromInventory(world, entity, keyEntity);
   createSequence<"unlock", UnlockSequence>(
     world,
     lockable,
@@ -80,7 +81,7 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
     "doorUnlock",
     {
       origin: entity[POSITION],
-      itemId: world.getEntityId(keyEntity),
+      item: keyEntity[ITEM]
     }
   );
 
@@ -234,13 +235,17 @@ export const performTrade = (
 export const consumeCharge = (
   world: World,
   entity: Entity,
-  stackable: Stackable
+  item: Pick<Item, "stackable" | "consume">
 ) => {
   // consume one stackable from inventory
   const chargeId = entity[INVENTORY].items.findLast(
     (itemId: number) =>
-      world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
-      stackable
+      (item.stackable &&
+        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
+          item.stackable) ||
+      (item.consume &&
+        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].consume ===
+          item.consume)
   );
   const chargeEntity = world.assertByIdAndComponents(chargeId, [ITEM]);
   if (!isEnemy(world, entity)) {

@@ -23,7 +23,7 @@ export default function Dots({
 
   return (
     <>
-      {Array.from({ length: amount }).map((_, index) => (
+      {Array.from({ length: Math.min(amount, 10) }).map((_, index) => (
         <mesh
           key={index}
           position-x={((index % (STACK_SIZE / 2)) * 2 - 4) / pixels}

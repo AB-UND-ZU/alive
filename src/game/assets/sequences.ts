@@ -1579,7 +1579,6 @@ const unlockTime = 500;
 export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
   let updated = false;
   const finished = state.elapsed > unlockTime;
-  const keyEntity = world.assertByIdAndComponents(state.args.itemId, [SPRITE]);
 
   // create key particle
   if (!state.particles.key && !finished) {
@@ -1597,7 +1596,7 @@ export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
         animatedOrigin: delta,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: keyEntity[SPRITE],
+      [SPRITE]: getItemSprite(state.args.item),
     });
     state.particles.key = world.getEntityId(keyParticle);
     updated = true;
@@ -1612,8 +1611,6 @@ export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
   }
 
   if (finished) {
-    // discard key
-    disposeEntity(world, keyEntity);
     openDoor(world, entity);
   }
 

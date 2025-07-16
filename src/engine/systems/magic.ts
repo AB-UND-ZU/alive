@@ -78,7 +78,7 @@ export const getParticleAmount = (world: World, amount: number) => {
 
 export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
   if (!isEnemy(world, entity)) {
-    consumeCharge(world, entity, "charge");
+    consumeCharge(world, entity, { stackable: "charge" });
   }
 
   const entityId = world.getEntityId(entity);

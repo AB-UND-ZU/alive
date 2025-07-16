@@ -215,7 +215,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       return "boss:wait";
     },
   });
-
+  
   // initiate boss fight
   step({
     stage,

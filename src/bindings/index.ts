@@ -26,7 +26,7 @@ import { SWIMMABLE } from "../engine/components/swimmable";
 import { BEHAVIOUR } from "../engine/components/behaviour";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { MELEE } from "../engine/components/melee";
-import { ITEM, Stackable } from "../engine/components/item";
+import { Item, ITEM, Stackable } from "../engine/components/item";
 import { ORIENTABLE, orientationPoints } from "../engine/components/orientable";
 import { aspectRatio } from "../components/Dimensions/sizing";
 import {
@@ -88,7 +88,7 @@ import {
 } from "../game/balancing/trading";
 import { getGearStat } from "../game/balancing/equipment";
 import { findPath, invertOrientation } from "../game/math/path";
-import { registerEntity } from "../engine/systems/map";
+import { disposeEntity, getCell, registerEntity } from "../engine/systems/map";
 import { LAYER } from "../engine/components/layer";
 import { sellItems } from "../engine/systems/popup";
 import { Deal } from "../engine/components/popup";
@@ -99,6 +99,8 @@ import {
 } from "../engine/utils";
 import { createHero } from "../engine/systems/fate";
 import { spawnLight } from "../engine/systems/consume";
+import { createItemAsDrop } from "../engine/systems/drop";
+import { getItemSprite } from "../components/Entity/utils";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -1481,6 +1483,225 @@ export const generateWorld = async (world: World) => {
       chestData.items,
       chestData.equipments
     );
+  }
+
+  // temporary test mode
+  if (window.location.search.substring(1) === "test") {
+    // clear title
+    const titleWidth = 17;
+    const titleHeight = 3;
+    const titleCenter = { x: 0, y: -4 };
+    matrixFactory(titleWidth, titleHeight, (x, y) => {
+      Object.values(
+        getCell(
+          world,
+          add(titleCenter, {
+            x: x - (titleWidth - 1) / 2,
+            y: y - (titleHeight - 1) / 2,
+          })
+        )
+      ).forEach((entity) => {
+        if (entity[COLLIDABLE]) disposeEntity(world, entity);
+      });
+    });
+
+    const itemColumns: Omit<Item, "bound" | "carrier">[][] = [
+      [
+        {
+          stat: "hp",
+          amount: Infinity,
+        },
+        {
+          stat: "maxHp",
+          amount: Infinity,
+        },
+        {
+          stat: "mp",
+          amount: Infinity,
+        },
+        {
+          stat: "maxMp",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
+          stat: "xp",
+          amount: Infinity,
+        },
+        {
+          stat: "coin",
+          amount: Infinity,
+        },
+        {
+          stat: "ore",
+          amount: Infinity,
+        },
+        {
+          stat: "stick",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
+          consume: "potion1",
+          material: "fire",
+          amount: Infinity,
+        },
+        {
+          consume: "potion1",
+          material: "water",
+          amount: Infinity,
+        },
+        {
+          equipment: "torch",
+          amount: Infinity,
+        },
+        {
+          consume: "key",
+          material: "iron",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
+          equipment: "sword",
+          material: "wood",
+          amount: getGearStat("sword", "wood"),
+        },
+        {
+          equipment: "sword",
+          material: "iron",
+          amount: getGearStat("sword", "iron"),
+        },
+        {
+          equipment: "sword",
+          material: "gold",
+          amount: getGearStat("sword", "gold"),
+        },
+        {
+          equipment: "sword",
+          material: "aether",
+          amount: 99,
+        },
+      ],
+      [
+        {
+          equipment: "shield",
+          material: "wood",
+          amount: getGearStat("shield", "wood"),
+        },
+        {
+          equipment: "shield",
+          material: "iron",
+          amount: getGearStat("shield", "iron"),
+        },
+        {
+          equipment: "shield",
+          material: "gold",
+          amount: getGearStat("shield", "gold"),
+        },
+        {
+          equipment: "shield",
+          material: "aether",
+          amount: 99,
+        },
+      ],
+      [
+        {
+          equipment: "primary",
+          primary: "wave1",
+          amount: 1,
+        },
+        {
+          equipment: "primary",
+          primary: "wave1",
+          material: "fire",
+          amount: 1,
+        },
+        {
+          equipment: "primary",
+          primary: "wave1",
+          material: "water",
+          amount: 1,
+        },
+        {
+          equipment: "primary",
+          primary: "wave1",
+          material: "earth",
+          amount: 1,
+        },
+      ],
+      [
+        {
+          equipment: "primary",
+          primary: "beam1",
+          amount: 1,
+        },
+        {
+          equipment: "primary",
+          primary: "beam1",
+          material: "fire",
+          amount: 1,
+        },
+        {
+          equipment: "primary",
+          primary: "beam1",
+          material: "water",
+          amount: 1,
+        },
+        {
+          equipment: "primary",
+          primary: "beam1",
+          material: "earth",
+          amount: 1,
+        },
+      ],
+      [
+        {
+          equipment: "secondary",
+          secondary: "bow",
+          amount: 1,
+        },
+        {
+          stackable: "arrow",
+          amount: Infinity,
+        },
+        {
+          equipment: "secondary",
+          secondary: "slash",
+          amount: 1,
+        },
+        {
+          stackable: "charge",
+          amount: Infinity,
+        },
+      ],
+    ];
+
+    const itemCorner = { x: -9, y: -6 };
+    itemColumns.forEach((items, columnIndex) => {
+      items.forEach((item, rowIndex) => {
+        createItemAsDrop(
+          world,
+          add(itemCorner, { x: columnIndex * 2, y: rowIndex }),
+          // @ts-ignore
+          item.equipment === "sword"
+            ? entities.createSword
+            : entities.createItem,
+          {
+            [ITEM]: { ...item, bound: false },
+            [SPRITE]: getItemSprite(item),
+            ...(item.equipment === "sword"
+              ? {
+                  [SEQUENCABLE]: { states: [] },
+                  [ORIENTABLE]: {},
+                }
+              : {}),
+          }
+        );
+      });
+    });
   }
 
   // start ordered systems

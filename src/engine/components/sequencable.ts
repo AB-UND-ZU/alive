@@ -6,7 +6,7 @@ import { Sprite } from "./sprite";
 import { Position } from "./position";
 import { Viewable } from "./viewable";
 import { Light } from "./light";
-import { Element } from "./item";
+import { Element, Item } from "./item";
 import { Popup } from "./popup";
 
 type EmptyObject = Record<string, never>;
@@ -64,7 +64,7 @@ export type CollectSequence = {
   delay?: number;
   amount: number;
 };
-export type UnlockSequence = { origin: Position; itemId: number };
+export type UnlockSequence = { origin: Position; item: Item };
 export type FocusSequence = EmptyObject;
 export type MeleeSequence = { tick: number; facing: Orientation, rotate: boolean };
 export type SpellSequence = {

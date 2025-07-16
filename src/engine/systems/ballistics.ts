@@ -83,7 +83,7 @@ export const shootArrow = (
   >;
 
   if (!isEnemy(world, entity)) {
-    consumeCharge(world, entity, "arrow");
+    consumeCharge(world, entity, { stackable: "arrow" });
   }
 
   const tick =
