@@ -436,7 +436,7 @@ export const generateWorld = async (world: World) => {
     [SPAWNABLE]: {
       classKey: "scout",
       position: copy(spawnEntity[POSITION]),
-      viewable: { active: false, priority: 50 },
+      viewable: { active: false, priority: 10 },
       light: { ...spawnLight },
     },
   });

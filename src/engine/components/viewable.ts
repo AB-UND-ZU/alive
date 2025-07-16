@@ -5,7 +5,7 @@ import { Position } from "./position";
 
 export type Viewable = {
   active: boolean;
-  priority: number; // 10 - hero, 30 - spawn, 50 - buildings, 60 - menu, 90 - dialogs
+  priority: number; // 10 - hero, 30 - spawn, 50 - buildings, 90 - popups
   spring?: SpringConfig;
   fraction?: Position;
 };
