@@ -215,7 +215,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       return "boss:wait";
     },
   });
-  
+
   // initiate boss fight
   step({
     stage,
@@ -1139,9 +1139,6 @@ export const chestNpc: Sequence<NpcSequence> = (world, entity, state) => {
     SPAWNABLE,
     INVENTORY,
   ]);
-  const waveTowers = world
-    .getEntities([IDENTIFIABLE, SPRITE, POSITION, BEHAVIOUR, STATS])
-    .filter((tower) => tower[IDENTIFIABLE].name === "chest_tower");
 
   if (!heroEntity) {
     return { finished: stage.finished, updated: stage.updated };
@@ -1151,10 +1148,11 @@ export const chestNpc: Sequence<NpcSequence> = (world, entity, state) => {
   if (!state.args.memory.initialPosition) {
     state.args.memory.initialPosition = copy(entity[POSITION]);
   }
-  if (!state.args.memory.towerPositions && waveTowers.length > 0) {
-    state.args.memory.towerPositions = waveTowers.map((waveTower) =>
-      copy(waveTower[POSITION])
-    );
+  if (!state.args.memory.towerPositions) {
+    state.args.memory.towerPositions = world
+      .getEntities([IDENTIFIABLE, SPRITE, POSITION, BEHAVIOUR, STATS])
+      .filter((tower) => tower[IDENTIFIABLE].name === "chest_tower_statue")
+      .map((tower) => copy(tower[POSITION]));
   }
 
   step({

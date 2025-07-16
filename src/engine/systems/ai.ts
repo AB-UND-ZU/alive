@@ -885,6 +885,7 @@ export default function setupAi(world: World) {
             .getEntities([IDENTIFIABLE, SPRITE, POSITION, BEHAVIOUR])
             .filter((tower) => tower[IDENTIFIABLE].name === "chest_tower");
           const pendingPatterns = patterns.slice(-1)[0] !== pattern;
+          const adjustedWavesTicks = (wavesTicks / 2) * (4 - waveTowers.length);
 
           if (pattern.memory.phase === 1) {
             entity[SPRITE] = chestBoss;
@@ -1310,28 +1311,30 @@ export default function setupAi(world: World) {
               pattern.memory.casted = generation;
 
               const towerEntity = choice(...waveTowers);
-              towerEntity[BEHAVIOUR].patterns = [
-                {
-                  name: "dialog",
-                  memory: {
-                    idle: rage,
+              if (towerEntity) {
+                towerEntity[BEHAVIOUR].patterns = [
+                  {
+                    name: "dialog",
+                    memory: {
+                      idle: rage,
+                    },
                   },
-                },
-                {
-                  name: "wait",
-                  memory: { ticks: 3 },
-                },
-                {
-                  name: "dialog",
-                  memory: {
-                    idle: undefined,
+                  {
+                    name: "wait",
+                    memory: { ticks: 3 },
                   },
-                },
-                {
-                  name: "action",
-                  memory: { primary: true },
-                },
-              ];
+                  {
+                    name: "dialog",
+                    memory: {
+                      idle: undefined,
+                    },
+                  },
+                  {
+                    name: "action",
+                    memory: { primary: true },
+                  },
+                ];
+              }
             }
           } else if (pattern.memory.phase === 7 && !pendingPatterns) {
             entity[BEHAVIOUR].patterns = [
@@ -1432,7 +1435,7 @@ export default function setupAi(world: World) {
               pattern.memory.cells = [];
             } else if (
               pattern.memory.waves &&
-              generation > pattern.memory.waves + wavesTicks
+              generation > pattern.memory.waves + adjustedWavesTicks
             ) {
               pattern.memory.waves = generation;
 
