@@ -35,6 +35,7 @@ import { getOpaqueOrientation } from "../../game/math/tracing";
 import { MELEE } from "../../engine/components/melee";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { ATTACKABLE } from "../../engine/components/attackable";
+import { PROJECTILE } from "../../engine/components/projectile";
 
 function Entity({
   entity,
@@ -60,10 +61,10 @@ function Entity({
   const visibility = entity[FOG]?.visibility;
   const isAir = entity[FOG]?.type === "air";
   const isFloat = entity[FOG]?.type === "float";
-  const isUnit = entity[FOG]?.type === "unit";
+  const isUnit = entity[FOG]?.type === "unit" || !!entity[PROJECTILE];
   const isFocusable = !!entity[FOCUSABLE];
   const isFixed = !!entity[FOG]?.fixed && visibility === "visible";
-  const isVisible = visibility === "visible";
+  const isVisible = visibility === "visible" || !!entity[PROJECTILE];
   const isHidden = visibility === "hidden";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
   const opaqueOrientation =

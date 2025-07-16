@@ -132,6 +132,7 @@ import {
 } from "../../game/assets/sprites";
 import { ENTERABLE } from "../../engine/components/enterable";
 import { PLAYER } from "../../engine/components/player";
+import { PROJECTILE } from "../../engine/components/projectile";
 
 export const textSize = 18 / 25 + 0.001;
 
@@ -188,7 +189,7 @@ export const getSegments = (
   const isPlayer = !!entity[PLAYER];
   const isAir = entity[FOG]?.type === "air";
   const isFloat = entity[FOG]?.type === "float";
-  const isUnit = entity[FOG]?.type === "unit";
+  const isUnit = entity[FOG]?.type === "unit" || entity[PROJECTILE];
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
 
   const offsetZ = isOpaque
@@ -284,7 +285,7 @@ export const createSprite = (world: World, entityId: number) => {
 export const offsetFactors: Record<number, number> = {
   1: 1.41,
   1.1: 1.46,
-  1.3: 1.60,
+  1.3: 1.6,
   1.5: 1.77,
 };
 
