@@ -4,8 +4,8 @@ import type * as npcTypes from "./npcs";
 import type * as questTypes from "./quests";
 import { createSequence } from "../../engine/systems/sequence";
 import {
+  InfoSequence,
   NpcSequence,
-  PopupSequence,
   QuestSequence,
   SEQUENCABLE,
   SequenceState,
@@ -71,7 +71,7 @@ export type QuestStage<T extends StepAnimations> = {
   finished: boolean;
 };
 
-const STEP_DEBUG = false;
+const STEP_DEBUG = true;
 
 export const step = <T extends StepAnimations>({
   stage,
@@ -145,7 +145,7 @@ export const popupTime = frameHeight * popupDelay;
 export const displayPopup = (
   world: World,
   entity: Entity,
-  state: SequenceState<PopupSequence>,
+  state: SequenceState<InfoSequence>,
   icon: Sprite,
   content: Sprite[][]
 ) => {
@@ -222,9 +222,7 @@ export const displayPopup = (
     upEndParticle[SPRITE] = popupUpEnd;
     const title = createText(
       padCenter(
-        `${state.args.transaction[0].toUpperCase()}${state.args.transaction.substring(
-          1
-        )}`,
+        `${state.args.title[0].toUpperCase()}${state.args.title.substring(1)}`,
         5
       ),
       colors.lime,

@@ -55,6 +55,7 @@ import {
   copy,
   distribution,
   getDistance,
+  id,
   lerp,
   normalize,
   random,
@@ -124,6 +125,9 @@ import {
   woodSlashCorner,
   ironSlashSide,
   ironSlashCorner,
+  strikethrough,
+  mergeSprites,
+  hostileBar,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -136,6 +140,7 @@ import {
   DisposeSequence,
   FocusSequence,
   FreezeSequence,
+  InfoSequence,
   MarkerSequence,
   MeleeSequence,
   MessageSequence,
@@ -187,8 +192,15 @@ import { getExertables, getParticleAmount } from "../../engine/systems/magic";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { Popup, POPUP } from "../../engine/components/popup";
 import { getActivationRow } from "../../components/Controls";
-import { canShop, isInPopup } from "../../engine/systems/popup";
+import {
+  canRedeem,
+  canShop,
+  hasDefeated,
+  isInPopup,
+  popupIdles,
+} from "../../engine/systems/popup";
 import { getIdentifierAndComponents } from "../../engine/utils";
+import { generateUnitData } from "../balancing/units";
 
 export * from "./npcs";
 export * from "./quests";
@@ -887,23 +899,17 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
         colors.black
       );
 
+      // strike through if sold out
+      const displayedLine = deal.stock > 0 ? line : strikethrough(line);
+
       // add placeholder on left for buy and right for sell
       if (state.args.transaction === "sell") {
-        line.push(popupBackground);
+        displayedLine.push(popupBackground);
       } else {
-        line.unshift(popupBackground);
+        displayedLine.unshift(popupBackground);
       }
 
-      if (deal.stock > 0) return line;
-
-      // strike through if sold out
-      return line.map((sprite, index) => ({
-        ...sprite,
-        layers: [
-          ...sprite.layers,
-          ...(index === 0 ? [] : [{ char: "─", color: colors.silver }]),
-        ],
-      }));
+      return displayedLine;
     }),
   ];
 
@@ -944,6 +950,122 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
   }
 
   const popupResult = displayPopup(world, entity, state, icon, content);
+  return {
+    updated: popupResult.updated || updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displayInfo: Sequence<InfoSequence> = (world, entity, state) => {
+  let updated = false;
+
+  const content: Sprite[][] = [
+    ...(entity[POPUP] as Popup).lines.map((line) =>
+      addBackground(
+        [...line, ...repeat(none, frameWidth - 4 - line.length - line.length)],
+        colors.black
+      )
+    ),
+  ];
+
+  const popupResult = displayPopup(
+    world,
+    entity,
+    state,
+    popupIdles[(entity[POPUP] as Popup).transaction],
+    content
+  );
+  return {
+    updated: popupResult.updated || updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displayQuest: Sequence<InfoSequence> = (world, entity, state) => {
+  let updated = false;
+  const popup = entity[POPUP] as Popup;
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+
+  const targets = popup.targets.map((target, index) => {
+    const defeated = heroEntity && hasDefeated(world, heroEntity, target);
+    const sprite = generateUnitData(target.unit).sprite;
+    return [
+      ...(index === 0 ? createText("DEFEAT:", colors.red) : repeat(none, 7)),
+      ...(defeated ? strikethrough : id)([
+        ...createText(target.amount.toString().padStart(2, " "), colors.silver),
+        mergeSprites(sprite, hostileBar),
+        ...createText(sprite.name, defeated ? colors.grey : colors.white),
+        ...repeat(none, frameWidth - 2 - 7 - 3 - sprite.name.length),
+      ]),
+    ];
+  });
+  const gathers = popup.deals
+    .map((deal) => {
+      const gathered = heroEntity && canRedeem(world, heroEntity, deal);
+
+      return deal.price.map((price, index) => {
+        const name = getItemSprite(price).name;
+        return addBackground(
+          [
+            ...(index === 0
+              ? createText("GATHER:", colors.grey)
+              : repeat(none, 7)),
+            ...(gathered ? strikethrough : id)([
+              ...getActivationRow(price),
+              ...createText(name, gathered ? colors.grey : colors.white),
+              ...repeat(none, frameWidth - 2 - 7 - 3 - name.length),
+            ]),
+          ],
+          colors.black
+        );
+      });
+    })
+    .flat();
+  const rewards = popup.deals.map((deal, index) => {
+    const received = deal.stock === 0;
+    return addBackground(
+      [
+        ...(index === 0 ? createText("REWARD:", colors.lime) : repeat(none, 7)),
+        ...(received ? strikethrough : id)([
+          ...getActivationRow(deal.item),
+          ...createText(
+            getItemSprite(deal.item).name,
+            received ? colors.grey : colors.white
+          ),
+        ]),
+      ],
+      colors.black
+    );
+  });
+
+  const content: Sprite[][] = [
+    ...(entity[POPUP] as Popup).lines.map((line) =>
+      addBackground(
+        [...line, ...repeat(none, frameWidth - 4 - line.length - line.length)],
+        colors.black
+      )
+    ),
+    ...repeat(
+      [],
+      frameHeight -
+        2 -
+        entity[POPUP].lines.length -
+        targets.length -
+        gathers.length -
+        rewards.length
+    ),
+    ...targets,
+    ...gathers,
+    ...rewards,
+  ];
+
+  const popupResult = displayPopup(
+    world,
+    entity,
+    state,
+    popupIdles[(entity[POPUP] as Popup).transaction],
+    content
+  );
   return {
     updated: popupResult.updated || updated,
     finished: popupResult.finished,

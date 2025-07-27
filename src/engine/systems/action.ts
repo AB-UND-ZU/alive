@@ -12,13 +12,19 @@ import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
-import { isDead, isEnemy } from "./damage";
+import { isDead, isEnemy, isNeutral } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
-import { getPopup, isInPopup, isPopupAvailable } from "./popup";
+import {
+  getPopup,
+  isInPopup,
+  isInQuest,
+  isInShop,
+  isPopupAvailable,
+} from "./popup";
 import { EQUIPPABLE } from "../components/equippable";
 
 export const getQuest = (world: World, position: Position) =>
@@ -29,7 +35,7 @@ export const getQuest = (world: World, position: Position) =>
 export const canAcceptQuest = (world: World, entity: Entity, quest: Entity) =>
   PLAYER in entity &&
   !isDead(world, entity) &&
-  !isEnemy(world, quest) &&
+  (!isEnemy(world, quest) || isNeutral(world, quest)) &&
   !!getAvailableQuest(world, quest);
 
 export const getAvailableQuest = (world: World, entity: Entity) =>
@@ -151,7 +157,9 @@ export default function setupAction(world: World) {
       let quest: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
       let popup: Entity | undefined = undefined;
+      let claim: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
+      let close: Entity | undefined = undefined;
       let spawn: Entity | undefined = undefined;
 
       // check any adjacent actions
@@ -162,12 +170,25 @@ export default function setupAction(world: World) {
           const questEntity = getQuest(world, targetPosition);
           const lockableEntity = getLockable(world, targetPosition);
           const popupEntity = getPopup(world, targetPosition);
+          const claimEntity = popupEntity;
           const tradeEntity = popupEntity;
+          const closeEntity = popupEntity;
 
-          // only player can accept quests
+          // claiming only while in finished quest
           if (
+            !claim &&
+            claimEntity &&
+            isInQuest(world, entity) &&
+            !getAvailableQuest(world, claimEntity)
+          )
+            claim = claimEntity;
+
+          // only player can accept unfinished quests after reading info
+          if (
+            !claim &&
             !quest &&
             questEntity &&
+            isInQuest(world, entity) &&
             canAcceptQuest(world, entity, questEntity) &&
             !isDead(world, entity)
           )
@@ -187,13 +208,18 @@ export default function setupAction(world: World) {
             !popup &&
             !isInPopup(world, entity) &&
             popupEntity &&
-            isPopupAvailable(world, popupEntity)
+            isPopupAvailable(world, popupEntity) &&
+            entity !== popupEntity
           )
             popup = popupEntity;
 
-          // trading only while in popup
-          if (!trade && tradeEntity && isInPopup(world, entity))
+          // trading only while in shop
+          if (!trade && tradeEntity && isInShop(world, entity))
             trade = tradeEntity;
+
+          // close while in popup
+          if (!close && closeEntity && isInPopup(world, entity))
+            close = closeEntity;
         }
       }
 
@@ -213,7 +239,9 @@ export default function setupAction(world: World) {
       const questId = quest && world.getEntityId(quest);
       const unlockId = unlock && world.getEntityId(unlock);
       const popupId = popup && world.getEntityId(popup);
+      const claimId = claim && world.getEntityId(claim);
       const tradeId = trade && world.getEntityId(trade);
+      const closeId = close && world.getEntityId(close);
       const spawnId = spawn && world.getEntityId(spawn);
       const primaryId = primary && world.getEntityId(primary);
       const secondaryId =
@@ -225,7 +253,9 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].quest !== questId ||
         entity[ACTIONABLE].unlock !== unlockId ||
         entity[ACTIONABLE].popup !== popupId ||
+        entity[ACTIONABLE].claim !== claimId ||
         entity[ACTIONABLE].trade !== tradeId ||
+        entity[ACTIONABLE].close !== closeId ||
         entity[ACTIONABLE].spawn !== spawnId ||
         entity[ACTIONABLE].primary !== primaryId ||
         entity[ACTIONABLE].secondary !== secondaryId
@@ -233,7 +263,9 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].quest = questId;
         entity[ACTIONABLE].unlock = unlockId;
         entity[ACTIONABLE].popup = popupId;
+        entity[ACTIONABLE].claim = claimId;
         entity[ACTIONABLE].trade = tradeId;
+        entity[ACTIONABLE].close = closeId;
         entity[ACTIONABLE].spawn = spawnId;
         entity[ACTIONABLE].primary = primaryId;
         entity[ACTIONABLE].secondary = secondaryId;

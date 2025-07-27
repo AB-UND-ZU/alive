@@ -2,6 +2,8 @@ import { aspectRatio } from "../../components/Dimensions/sizing";
 
 export type Point = { x: number; y: number };
 
+export const id = <T>(value: T): T => value;
+
 export const copy = (position: Point) => ({ x: position.x, y: position.y });
 
 export const add = (first: Point, second: Point) => ({

@@ -37,6 +37,7 @@ import { getGearStat } from "./equipment";
 import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
 import { NpcType } from "../../engine/components/npc";
+import { sign } from "../assets/sprites/structures";
 
 export type UnitKey =
   | NpcType
@@ -47,6 +48,7 @@ export type UnitKey =
   | "legendaryChest"
   | "pot"
   | "box"
+  | "sign"
   | "cactus1"
   | "cactus2"
   | "rock1"
@@ -97,9 +99,9 @@ export type NpcData = UnitData & {
 const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
     faction: "nomad",
-    power: 0,
-    armor: 0,
-    hp: 20,
+    power: 1,
+    armor: 1,
+    hp: 30,
     mp: 0,
     equipments: [
       {
@@ -115,6 +117,12 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         amount: getGearStat("shield", "wood"),
       },
       { amount: 1, equipment: "compass", bound: false },
+      {
+        amount: Infinity,
+        consume: "potion1",
+        material: "fire",
+        bound: true,
+      },
     ],
     drops: [
       {
@@ -127,9 +135,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   nomad: {
     faction: "settler",
-    power: 0,
-    armor: 0,
-    hp: 20,
+    power: 1,
+    armor: 1,
+    hp: 30,
     mp: 0,
     equipments: [
       {
@@ -260,8 +268,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   commonChest: {
     faction: "unit",
     power: 0,
-    armor: 0,
-    hp: 20,
+    armor: 1,
+    hp: 15,
     mp: 0,
     equipments: [],
     drops: [
@@ -288,8 +296,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   uncommonChest: {
     faction: "unit",
     power: 0,
-    armor: 1,
-    hp: 25,
+    armor: 2,
+    hp: 20,
     mp: 0,
     equipments: [],
     drops: [
@@ -347,8 +355,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   rareChest: {
     faction: "unit",
     power: 0,
-    armor: 2,
-    hp: 30,
+    armor: 3,
+    hp: 25,
     mp: 0,
     equipments: [],
     drops: [],
@@ -358,8 +366,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   epicChest: {
     faction: "unit",
     power: 0,
-    armor: 3,
-    hp: 35,
+    armor: 4,
+    hp: 30,
     mp: 0,
     equipments: [],
     drops: [],
@@ -369,8 +377,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   legendaryChest: {
     faction: "unit",
     power: 0,
-    armor: 4,
-    hp: 40,
+    armor: 5,
+    hp: 35,
     mp: 0,
     equipments: [],
     drops: [],
@@ -418,6 +426,22 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: box,
+  },
+  sign: {
+    faction: "unit",
+    power: 0,
+    armor: 1,
+    hp: 10,
+    mp: 0,
+    equipments: [],
+    drops: [
+      { chance: 100, items: [
+        { stat: "stick", amount: 1 },
+        { stat: "ore", amount: 2 },
+      ] },
+    ],
+    patternNames: [],
+    sprite: sign,
   },
   cactus1: {
     faction: "unit",

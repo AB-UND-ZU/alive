@@ -66,7 +66,11 @@ export type CollectSequence = {
 };
 export type UnlockSequence = { origin: Position; item: Item };
 export type FocusSequence = EmptyObject;
-export type MeleeSequence = { tick: number; facing: Orientation, rotate: boolean };
+export type MeleeSequence = {
+  tick: number;
+  facing: Orientation;
+  rotate: boolean;
+};
 export type SpellSequence = {
   element: Element | "default" | "wild";
   progress: number;
@@ -105,10 +109,13 @@ export type ProgressSequence = {
   maxMp: number;
   maxHp: number;
 };
-export type PopupSequence = {
-  verticalIndex: number;
-  generation?: number;
+export type InfoSequence = {
   contentIndex: number;
+  generation?: number;
+  title: string;
+};
+export type PopupSequence = InfoSequence & {
+  verticalIndex: number;
   transaction: Popup["transaction"];
 };
 

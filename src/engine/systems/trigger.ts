@@ -38,17 +38,18 @@ import { canCast, chargeSlash } from "./magic";
 import { EQUIPPABLE } from "../components/equippable";
 import {
   canShop,
-  closeShop,
+  closePopup,
   getDeal,
   isPopupAvailable,
-  openShop,
+  isQuestCompleted,
+  openPopup,
 } from "./popup";
-import { POPUP } from "../components/popup";
+import { Deal, POPUP } from "../components/popup";
 import { addToInventory } from "./collect";
 import { getSpellStat } from "../../game/balancing/spells";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
-import { acceptQuest as ecsAcceptQuest } from "../utils";
+import { acceptQuest as ecsAcceptQuest, removeQuest } from "../utils";
 import { fenceDoor, fenceDoorOpen } from "../../game/assets/sprites/structures";
 import { NPC } from "../components/npc";
 
@@ -81,7 +82,7 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
     "doorUnlock",
     {
       origin: entity[POSITION],
-      item: keyEntity[ITEM]
+      item: keyEntity[ITEM],
     }
   );
 
@@ -150,7 +151,7 @@ export const removeFromInventory = (
 export const performTrade = (
   world: World,
   entity: Entity,
-  shop: TypedEntity<"POPUP" | "TOOLTIP">
+  shop: TypedEntity<"POPUP" | "TOOLTIP" | "POSITION">
 ) => {
   const deal = getDeal(world, shop);
   // remove stats and items
@@ -268,6 +269,20 @@ export const acceptQuest = (world: World, entity: Entity, target: Entity) => {
     world.assertById(entity[ACTIONABLE].quest)
   );
   ecsAcceptQuest(world, target);
+  closePopup(world, entity, target);
+};
+
+export const completeQuest = (world: World, entity: Entity, target: Entity) => {
+  target[POPUP].deals.forEach((deal: Deal, index: number) => {
+    target[POPUP].verticalIndex = index;
+    performTrade(
+      world,
+      entity,
+      target as TypedEntity<"POPUP" | "TOOLTIP" | "POSITION">
+    );
+  });
+  closePopup(world, entity, target);
+  removeQuest(world, target);
 };
 
 export const castSpell = (
@@ -387,9 +402,17 @@ export default function setupTrigger(world: World) {
       const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
       const popupEntity = world.getEntityById(entity[ACTIONABLE].popup);
+      const claimEntity = world.getEntityByIdAndComponents(
+        entity[ACTIONABLE].claim,
+        [TOOLTIP, POPUP]
+      );
       const tradeEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].trade,
-        [TOOLTIP, POPUP]
+        [TOOLTIP, POPUP, POSITION]
+      );
+      const closeEntity = world.getEntityByIdAndComponents(
+        entity[ACTIONABLE].close,
+        [POPUP]
       );
       const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
       const primaryEntity = world.getEntityByIdAndComponents(
@@ -415,7 +438,12 @@ export default function setupTrigger(world: World) {
         } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
           unlockDoor(world, entity, unlockEntity);
         } else if (popupEntity && isPopupAvailable(world, popupEntity)) {
-          openShop(world, entity, popupEntity);
+          openPopup(world, entity, popupEntity);
+        } else if (
+          claimEntity &&
+          isQuestCompleted(world, entity, claimEntity)
+        ) {
+          completeQuest(world, entity, claimEntity);
         } else if (
           tradeEntity &&
           canShop(world, entity, getDeal(world, tradeEntity))
@@ -435,8 +463,8 @@ export default function setupTrigger(world: World) {
           entity[EQUIPPABLE]?.sword
         ) {
           chargeSlash(world, entity, secondaryEntity);
-        } else if (tradeEntity) {
-          closeShop(world, entity, tradeEntity);
+        } else if (closeEntity) {
+          closePopup(world, entity, closeEntity);
         }
       }
     }

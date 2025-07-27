@@ -195,6 +195,7 @@ export default function setupMagic(world: World) {
           castableEntity[CASTABLE].affected[affectableId];
 
         if (
+          isDead(world, targetEntity) ||
           (isFriendlyFire(world, castableEntity, targetEntity) &&
             !castableEntity[CASTABLE].heal) ||
           (affectedGeneration &&

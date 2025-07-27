@@ -11,6 +11,7 @@ import { SPRITE } from "../engine/components/sprite";
 import { STRUCTURABLE } from "../engine/components/structurable";
 import { VIEWABLE } from "../engine/components/viewable";
 import { TypedEntity } from "../engine/entities";
+import * as colors from "../game/assets/colors";
 import {
   createItemAsDrop,
   createItemInInventory,
@@ -25,6 +26,7 @@ import {
   campfire,
   coin,
   createDialog,
+  createText,
   doorClosedIron,
   doorClosedWood,
   doorOpen,
@@ -60,6 +62,7 @@ import {
 } from "../game/assets/sprites";
 import {
   add,
+  choice,
   copy,
   distribution,
   normalize,
@@ -141,6 +144,7 @@ import { RECHARGABLE } from "../engine/components/rechargable";
 import { ACTIONABLE } from "../engine/components/actionable";
 import { npcSequence } from "../game/assets/utils";
 import { getLockable } from "../engine/systems/action";
+import { createPopup } from "../engine/systems/popup";
 
 const populateItems = (
   world: World,
@@ -355,7 +359,8 @@ export const insertArea = (
       else if (cell === "╞") entity = "roof_down_left";
       else if (cell === "╪") entity = "roof_down";
       else if (cell === "╡") entity = "roof_right_down";
-      else if (cell === "G") entity = "guide_door";
+      else if (cell === "s") entity = "spawn_sign";
+      else if (cell === "g") entity = "guide_door";
       else if (cell === "N") entity = "nomad_door";
       else if (cell === "Y") entity = "chest_tower";
       else if (cell === "y") entity = "chest_tower_statue";
@@ -433,7 +438,6 @@ export const createCell = (
     const rockEntity = entities.createDeposit(world, {
       [ATTACKABLE]: { shots: 0 },
       [BELONGABLE]: { faction },
-      [COLLIDABLE]: {},
       [DROPPABLE]: {
         decayed: false,
         remains: cell === "desert_rock" ? sand : undefined,
@@ -751,7 +755,6 @@ export const createCell = (
         combusted: false,
         decayed: false,
       },
-      [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "terrain" },
       [INVENTORY]: { items: [], size: 20 },
@@ -770,7 +773,6 @@ export const createCell = (
       [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
       [BEHAVIOUR]: { patterns },
       [BELONGABLE]: { faction },
-      [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "unit" },
       [INVENTORY]: { items: [], size: 20 },
@@ -895,7 +897,6 @@ export const createCell = (
       [ATTACKABLE]: { shots: 0 },
       [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
       [BELONGABLE]: { faction },
-      [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false, remains: sand },
       [FOG]: { visibility, type: "terrain" },
       [INVENTORY]: { items: [], size: 20 },
@@ -935,6 +936,36 @@ export const createCell = (
     if (["guide_door", "nomad_door"].includes(cell)) {
       setIdentifier(world, doorEntity, cell);
     }
+  } else if (cell === "spawn_sign") {
+    const spawnSignData = generateUnitData("sign");
+    const spawnSign = entities.createSign(world, {
+      [ATTACKABLE]: { shots: 0 },
+      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [BELONGABLE]: { faction: spawnSignData.faction },
+      [DROPPABLE]: {
+        decayed: false,
+        remains: choice(fenceBurnt1, fenceBurnt2),
+      },
+      [FOG]: { visibility: "hidden", type: "terrain" },
+      [INVENTORY]: { items: [], size: 20 },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: spawnSignData.sprite,
+      [STATS]: {
+        ...emptyStats,
+        ...spawnSignData.stats,
+      },
+      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+    });
+    populateInventory(world, spawnSign, spawnSignData.items);
+    createPopup(world, spawnSign, {
+      deals: [],
+      lines: [createText("Welcome to Alive!", colors.silver)],
+      transaction: "info",
+      targets: [],
+    });
   } else if (cell === "gate") {
     const doorEntity = entities.createPassage(world, {
       [FOG]: { visibility, type: "float" },
@@ -974,7 +1005,6 @@ export const createCell = (
     const potEntity = entities.createChest(world, {
       [ATTACKABLE]: { shots: 0 },
       [BELONGABLE]: { faction },
-      [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "terrain" },
       [INVENTORY]: { items: [], size: 20 },
@@ -1056,7 +1086,6 @@ export const createCell = (
       [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
       [ATTACKABLE]: { shots: 0 },
       [BELONGABLE]: { faction },
-      [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false },
       [DISPLACABLE]: {},
       [FOG]: { visibility, type: "terrain" },
@@ -1542,9 +1571,8 @@ export const createCell = (
     );
     setIdentifier(world, mobEntity, "chest_mob");
   } else if (cell === "portal") {
-    entities.createSign(world, {
+    entities.createPortal(world, {
       [FOG]: { visibility, type: "terrain" },
-      [COLLIDABLE]: {},
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },

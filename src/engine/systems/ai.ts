@@ -60,7 +60,7 @@ import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
 import { CASTABLE } from "../components/castable";
 import { BURNABLE } from "../components/burnable";
-import { sellItems } from "./popup";
+import { createPopup } from "./popup";
 import { isControllable } from "./freeze";
 import { getIdentifier, getIdentifierAndComponents } from "../utils";
 import { SPRITE } from "../components/sprite";
@@ -798,7 +798,10 @@ export default function setupAi(world: World) {
           }
           break;
         } else if (pattern.name === "sell") {
-          sellItems(world, entity, pattern.memory.deals, "buy");
+          createPopup(world, entity, {
+            deals: pattern.memory.deals,
+            transaction: "buy",
+          });
           patterns.splice(patterns.indexOf(pattern), 1);
           break;
         } else if (pattern.name === "action") {

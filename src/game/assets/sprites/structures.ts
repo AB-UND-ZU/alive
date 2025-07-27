@@ -107,7 +107,7 @@ export const fenceDoor: Sprite = {
     { char: "M", color: colors.maroon },
     { char: "[", color: colors.black },
     { char: "]", color: colors.black },
-    { char: "=", color: colors.maroon },
+    { char: "=", color: colors.grey },
   ],
 };
 
@@ -119,6 +119,7 @@ export const fenceDoorOpen: Sprite = {
     { char: "≡", color: colors.black },
 
     { char: "M", color: colors.maroon },
+    { char: "=", color: colors.grey },
     { char: "[", color: colors.black },
     { char: "]", color: colors.black },
   ],

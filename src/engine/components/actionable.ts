@@ -6,6 +6,8 @@ export const actions = [
   "unlock",
   "popup",
   "trade",
+  "close",
+  "claim",
   "quest",
   "primary",
   "secondary",

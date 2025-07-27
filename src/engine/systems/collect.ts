@@ -99,6 +99,9 @@ export const collectItem = (
     const itemId = target[INVENTORY].items[itemIndex];
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
 
+    // skip bound items
+    if (itemEntity[ITEM].bound) continue;
+
     // reduce counter items
     const stat = itemEntity[ITEM].stat;
     const equipment = itemEntity[ITEM].equipment;

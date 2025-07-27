@@ -73,7 +73,7 @@ export default function setupConsume(world: World) {
     worldGeneration = generation;
 
     // process consumable items in inventory
-    for (const entity of world.getEntities([INVENTORY, PLAYER, STATS])) {
+    for (const entity of world.getEntities([INVENTORY, STATS])) {
       // skip if currently consuming
       if (getSequence(world, entity, "consume")) continue;
 

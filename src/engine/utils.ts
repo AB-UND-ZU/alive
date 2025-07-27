@@ -5,18 +5,20 @@ import { Quest, QUEST } from "./components/quest";
 import { TRACKABLE } from "./components/trackable";
 import { Focusable, FOCUSABLE } from "./components/focusable";
 import { TOOLTIP } from "./components/tooltip";
-import { quest as questSprite } from "../game/assets/sprites";
+import { ongoing } from "../game/assets/sprites";
 import { rerenderEntity } from "./systems/renderer";
-import { getSequence } from "./systems/sequence";
 import { Entity, TypedEntity } from "./entities";
 import { PLAYER } from "./components/player";
 import { ECS_DEBUG } from "./ecs";
+import { createPopup } from "./systems/popup";
+import { POPUP, Popup } from "./components/popup";
 
 // util methods
 export const offerQuest = (
   world: World,
   entity: ECSEntity,
   name: Quest["name"],
+  popup: Partial<Popup> = {},
   memory: any
 ) => {
   if (entity[QUEST]) {
@@ -29,31 +31,26 @@ export const offerQuest = (
       memory,
     });
   }
-  entity[TOOLTIP].idle = questSprite;
+
+  createPopup(world, entity, {
+    transaction: "quest",
+    targets: [],
+    lines: [],
+    deals: [],
+    ...popup,
+  });
 };
 
 export const acceptQuest = (world: World, entity: ECSEntity) => {
   entity[QUEST].available = false;
-  entity[TOOLTIP].idle = undefined;
+  entity[TOOLTIP].idle = ongoing;
   entity[TOOLTIP].changed = true;
 };
 
-export const abortQuest = (world: World, entity: TypedEntity) => {
-  const activeQuest = getSequence(world, entity, "quest");
-
-  if (!activeQuest) return;
-
-  const giverEntity = world.getEntityById(activeQuest.args.giver);
-
-  if (!giverEntity?.[QUEST] || giverEntity[QUEST].name !== activeQuest.name)
-    return;
-
-  offerQuest(
-    world,
-    giverEntity,
-    activeQuest.name as Quest["name"],
-    giverEntity[QUEST].memory
-  );
+export const removeQuest = (world: World, entity: ECSEntity) => {
+  entity[TOOLTIP].idle = undefined;
+  entity[TOOLTIP].changed = true;
+  world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP);
 };
 
 export const setIdentifier = (

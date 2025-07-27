@@ -1,5 +1,5 @@
 import * as colors from "../colors";
-import { Sprite } from "../../../engine/components/sprite";
+import { Layer, Sprite } from "../../../engine/components/sprite";
 import { Countable, Stats } from "../../../engine/components/stats";
 import {
   armor,
@@ -23,6 +23,8 @@ import {
   xp,
 } from "./items";
 import { repeat } from "../../math/std";
+import { Orientation } from "../../../engine/components/orientable";
+import { getFacingLayers } from "../../../components/Entity/utils";
 
 export const block: Sprite = {
   name: "block_solid",
@@ -756,11 +758,26 @@ export const addBackground = (
     layers: [{ char: "█", color: background }, ...sprite.layers],
   }));
 
+export const strikethrough = (
+  sprites: Sprite[],
+  color: string = colors.silver
+) =>
+  sprites.map((sprite) => ({
+    name: sprite.name,
+    layers: [...sprite.layers, { char: "─", color }],
+  }));
+
+export const underline = (sprites: Sprite[], color: string = colors.silver) =>
+  sprites.map((sprite) => ({
+    name: sprite.name,
+    layers: [...sprite.layers, { char: "_", color }],
+  }));
+
 export const createText: (
   text: string,
-  color: string,
+  color?: string,
   background?: string
-) => Sprite[] = (text, color, background) => {
+) => Sprite[] = (text, color = colors.white, background) => {
   const sprites = text.split("").map((char) => ({
     name: "text_generic",
     layers: [{ char, color }],
@@ -770,6 +787,14 @@ export const createText: (
 
   return sprites;
 };
+
+export const getOrientedSprite = (
+  sprite: Sprite,
+  orientation: Orientation
+) => ({
+  ...sprite,
+  layers: getFacingLayers(sprite, orientation),
+});
 
 export const tooltipStart: Sprite = {
   name: "tooltip_start",
@@ -1105,34 +1130,36 @@ export const sellSelection: Sprite = {
 
 export const popupCorner: Sprite = {
   name: "popup_corner",
-  layers: [{ char: "╬", color: colors.white }],
+  layers: [{ char: "╬", color: colors.silver }],
   facing: {
-    up: [{ char: "╔", color: colors.white }],
-    right: [{ char: "╗", color: colors.white }],
-    down: [{ char: "╝", color: colors.white }],
-    left: [{ char: "╚", color: colors.white }],
+    up: [{ char: "╔", color: colors.silver }],
+    right: [{ char: "╗", color: colors.silver }],
+    down: [{ char: "╝", color: colors.silver }],
+    left: [{ char: "╚", color: colors.silver }],
   },
 };
 
 export const popupSide: Sprite = {
   name: "popup_side",
-  layers: [{ char: "╬", color: colors.white }],
+  layers: [{ char: "╬", color: colors.silver }],
   facing: {
     up: [
       { char: "▄", color: colors.black },
-      { char: "═", color: colors.white },
+      { char: "═", color: colors.silver },
     ],
     right: [
       { char: "▌", color: colors.black },
-      { char: "║", color: colors.white },
+      { char: "│", color: colors.black },
+      { char: "║", color: colors.silver },
     ],
     down: [
       { char: "▀", color: colors.black },
-      { char: "═", color: colors.white },
+      { char: "═", color: colors.silver },
     ],
     left: [
       { char: "▐", color: colors.black },
-      { char: "║", color: colors.white },
+      { char: "│", color: colors.black },
+      { char: "║", color: colors.silver },
     ],
   },
 };
@@ -1142,7 +1169,7 @@ export const popupUpStart: Sprite = {
   layers: [
     { char: "▄", color: colors.black },
     { char: "▐", color: colors.black },
-    { char: "╡", color: colors.white },
+    { char: "╡", color: colors.silver },
   ],
 };
 
@@ -1151,7 +1178,7 @@ export const popupUpEnd: Sprite = {
   layers: [
     { char: "▄", color: colors.black },
     { char: "▌", color: colors.black },
-    { char: "╞", color: colors.white },
+    { char: "╞", color: colors.silver },
   ],
 };
 
@@ -1160,7 +1187,7 @@ export const popupDownStart: Sprite = {
   layers: [
     { char: "▀", color: colors.black },
     { char: "▐", color: colors.black },
-    { char: "╡", color: colors.white },
+    { char: "╡", color: colors.silver },
   ],
 };
 
@@ -1169,9 +1196,17 @@ export const popupDownEnd: Sprite = {
   layers: [
     { char: "▀", color: colors.black },
     { char: "▌", color: colors.black },
-    { char: "╞", color: colors.white },
+    { char: "╞", color: colors.silver },
   ],
 };
+
+export const mergeSprites = (...sprite: Sprite[]) => ({
+  name: "",
+  layers: sprite.reduce(
+    (merged, { layers }) => merged.concat(layers),
+    [] as Layer[]
+  ),
+});
 
 const nonCountable = (sprite: Sprite) => ({
   name: sprite.name,
@@ -1310,8 +1345,9 @@ export const getStatSprite = (
   (variant === "display" && statConfig[stat].display) ||
   statConfig[stat].sprite;
 
-export const quest = createText("!", colors.lime)[0];
-
+export const quest = createText("?", colors.lime)[0];
+export const ongoing = createText("?", colors.silver)[0];
+export const info = createText("i", colors.lime)[0];
 export const shop = createText("$", colors.lime)[0];
 export const craft = createText("Σ", colors.lime)[0];
 
@@ -1323,7 +1359,7 @@ export const sleep2 = createText("Z", colors.white)[0];
 export const whistle1 = createText("\u010c", colors.white)[0];
 export const whistle2 = createText("\u010d", colors.white)[0];
 
-export const confused = createText("?", colors.white)[0];
+export const confused = createText("!", colors.white)[0];
 
 export const questPointer: Sprite = {
   name: "quest_pointer",
@@ -1385,4 +1421,14 @@ export const resume: Sprite = {
 export const overlay: Sprite = {
   name: "Overlay",
   layers: [{ char: "▓", color: colors.black }],
+};
+
+export const friendlyBar: Sprite = {
+  name: "Friendly",
+  layers: [{ char: "_", color: colors.lime }],
+};
+
+export const hostileBar: Sprite = {
+  name: "Hostile",
+  layers: [{ char: "_", color: colors.red }],
 };

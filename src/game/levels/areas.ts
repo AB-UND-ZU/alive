@@ -5,10 +5,10 @@ export const menuArea = `\
 █  ▓▄▓ ▓   ▓ ▓ ▓ ▓▄▄  █
 █  ▓ ▓ ▀▄▄ ▓ ▓▄▀ ▓▄▄  █
 █                     █
-█ ╔╦╦╦╦╦╗     ,###τ###█
-█ ╠╬╬╬╬╬╣  ♀  #       █
-█ ╞╪╪╪╪╪╡     # *   ░░█
-█ └G┴─┴─┘o    . =► ░≈≈█
+█  ╔╦╦╦╦╗     ,###τ###█
+█  ╠╬╬╬╬╣  ♀  #       █
+█  ╞╪╪╪╪╡     # *   ░░█
+█  └g┴──┘o    . =► ░≈≈█
 █             #   ░≈≈≈█
 ███████████◙███████████
 ██████████ ▒ ██████████
@@ -17,7 +17,7 @@ export const menuArea = `\
 `;
 
 export const guidePosition = { x: 156, y: 0 };
-export const keyPosition = { x: 152, y: 0 };
+export const keyPosition = { x: 153, y: 0 };
 
 export const nomadArea = `\
 ╔╦╦╦╦╗ 

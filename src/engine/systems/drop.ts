@@ -55,6 +55,8 @@ import { ATTACKABLE } from "../components/attackable";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { setIdentifier } from "../utils";
 import { getBurning } from "./burn";
+import { PLAYER } from "../components/player";
+import { NPC } from "../components/npc";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -418,6 +420,7 @@ export default function setupDrop(world: World) {
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
+    const heroEntity = world.getEntity([PLAYER]);
 
     if (referencesGeneration === generation) return;
 
@@ -450,10 +453,16 @@ export default function setupDrop(world: World) {
       }
     }
 
-    // replace decayed entities
+    // replace decayed entities and increase slay counter
     for (const entity of world.getEntities([DROPPABLE, RENDERABLE, POSITION])) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
         disposeEntity(world, entity, true, false);
+
+        const unitKey = entity[NPC]?.type;
+        if (heroEntity && unitKey) {
+          heroEntity[PLAYER].defeatedUnits[unitKey] =
+            (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
+        }
       }
     }
 

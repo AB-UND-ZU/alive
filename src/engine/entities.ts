@@ -143,7 +143,6 @@ export const createBox = entityFactory([
   AFFECTABLE,
   ATTACKABLE,
   BELONGABLE,
-  COLLIDABLE,
   DISPLACABLE,
   DROPPABLE,
   FOG,
@@ -172,7 +171,6 @@ export const createCactus = entityFactory([
   ATTACKABLE,
   AFFECTABLE,
   BELONGABLE,
-  COLLIDABLE,
   DROPPABLE,
   FOG,
   INVENTORY,
@@ -187,7 +185,6 @@ export const createCactus = entityFactory([
 export const createChest = entityFactory([
   ATTACKABLE,
   BELONGABLE,
-  COLLIDABLE,
   DROPPABLE,
   FOG,
   INVENTORY,
@@ -235,7 +232,6 @@ export const createCrafting = entityFactory([
 export const createDeposit = entityFactory([
   ATTACKABLE,
   BELONGABLE,
-  COLLIDABLE,
   DROPPABLE,
   FOG,
   INVENTORY,
@@ -484,11 +480,19 @@ export const createPlate = entityFactory([
   TOOLTIP,
 ]);
 
+export const createPortal = entityFactory([
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
+]);
+
 export const createResource = entityFactory([
   ATTACKABLE,
   BELONGABLE,
   BURNABLE,
-  COLLIDABLE,
   DROPPABLE,
   FOG,
   INVENTORY,
@@ -523,12 +527,18 @@ export const createShot = entityFactory([
 ]);
 
 export const createSign = entityFactory([
-  COLLIDABLE,
+  ATTACKABLE,
+  AFFECTABLE,
+  BELONGABLE,
+  DROPPABLE,
   FOG,
+  INVENTORY,
+  LAYER,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
+  STATS,
   TOOLTIP,
 ]);
 
@@ -600,7 +610,6 @@ export const createTumbleweed = entityFactory([
   AFFECTABLE,
   BEHAVIOUR,
   BELONGABLE,
-  COLLIDABLE,
   DROPPABLE,
   FOG,
   INVENTORY,

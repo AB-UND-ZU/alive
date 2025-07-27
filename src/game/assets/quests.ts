@@ -21,6 +21,7 @@ import { TRACKABLE } from "../../engine/components/trackable";
 import { isUnlocked } from "../../engine/systems/action";
 import { getLootable } from "../../engine/systems/collect";
 import { isWalkable } from "../../engine/systems/movement";
+import { isInPopup } from "../../engine/systems/popup";
 import {
   getIdentifier,
   getIdentifierAndComponents,
@@ -131,7 +132,8 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
   };
   const guideEntity = world.getEntityById(state.args.giver);
   const doorEntity = getIdentifier(world, "gate");
-  const signEntity = getIdentifier(world, "spawn_sign");
+  const spawnSign = getIdentifier(world, "spawn_sign");
+  const townSign = getIdentifier(world, "town_sign");
 
   if (!doorEntity) {
     return { updated: stage.updated, finished: stage.finished };
@@ -166,7 +168,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       setHighlight(world, "enemy", prismEntity);
       return true;
     },
-    isCompleted: () => !prismEntity && !!coinEntity,
+    isCompleted: () => !prismEntity,
     onLeave: () => "coin",
   });
 
@@ -186,7 +188,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "buy",
     onEnter: () => {
-      setHighlight(world);
+      setHighlight(world, "quest", guideEntity);
       return true;
     },
     isCompleted: () =>
@@ -214,17 +216,22 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       state.args.step !== "sign" &&
       (!guideEntity || isUnlocked(world, doorEntity)),
     onEnter: () => {
-      setHighlight(world, "quest", signEntity);
+      setHighlight(world, "quest", spawnSign);
       return true;
     },
     isCompleted: () => true,
     onLeave: () => "sign",
   });
 
-  // never end as it will be replaced with sign quest
+  // wait till reading or killing sign
   step({
     stage,
     name: "sign",
+    isCompleted: () => isInPopup(world, entity) || !spawnSign,
+    onLeave: () => {
+      setHighlight(world, "quest", townSign);
+      return END_STEP;
+    },
   });
 
   return { updated: stage.updated, finished: stage.finished };

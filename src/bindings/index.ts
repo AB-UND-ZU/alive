@@ -6,11 +6,20 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
+  compass,
+  createCountable,
   createDialog,
+  createText,
+  getOrientedSprite,
   heartUp,
+  iron,
   ironKey,
   manaUp,
   none,
+  path,
+  questPointer,
+  stick,
+  woodStick,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
@@ -63,8 +72,9 @@ import {
   bedHeadRight,
   chairLeft,
   chairRight,
+  fenceBurnt1,
+  fenceBurnt2,
   kettle,
-  sign,
   table,
 } from "../game/assets/sprites/structures";
 import { COLLECTABLE } from "../engine/components/collectable";
@@ -91,7 +101,7 @@ import { getGearStat } from "../game/balancing/equipment";
 import { findPath, invertOrientation } from "../game/math/path";
 import { disposeEntity, getCell, registerEntity } from "../engine/systems/map";
 import { LAYER } from "../engine/components/layer";
-import { sellItems } from "../engine/systems/popup";
+import { createPopup } from "../engine/systems/popup";
 import { Deal } from "../engine/components/popup";
 import {
   assertIdentifierAndComponents,
@@ -534,7 +544,25 @@ export const generateWorld = async (world: World) => {
   setIdentifier(world, guideEntity, "guide");
 
   npcSequence(world, guideEntity, "guideNpc", {});
-  offerQuest(world, guideEntity, "introQuest", {});
+  offerQuest(
+    world,
+    guideEntity,
+    "introQuest",
+    {
+      lines: [
+        [...createText("Grab the "), compass, ...createText("Compass")],
+        [...createText("and use a "), stick, ...createText("Stick")],
+        [...createText("as "), woodStick, ...createText("Sword to kill")],
+        [...createText("the monster")],
+      ],
+      deals: [
+        { stock: 1, item: { stat: "xp", amount: 1 }, price: [] },
+        { stock: 1, item: { stat: "coin", amount: 1 }, price: [] },
+      ],
+      targets: [{ unit: "prism", amount: 1 }],
+    },
+    {}
+  );
 
   // identify compass for later use in quests
   const compassEntity = world.assertById(
@@ -563,7 +591,6 @@ export const generateWorld = async (world: World) => {
   const guideChestEntity = entities.createChest(world, {
     [ATTACKABLE]: { shots: 0 },
     [BELONGABLE]: { faction: guideChestData.faction },
-    [COLLIDABLE]: {},
     [DROPPABLE]: { decayed: false },
     [INVENTORY]: { items: [world.getEntityId(spawnKeyEntity)], size: 20 },
     [FOG]: { visibility: "hidden", type: "terrain" },
@@ -633,24 +660,39 @@ export const generateWorld = async (world: World) => {
   }
 
   // add quest sign after exiting
+  const spawnSignData = generateUnitData("sign");
   const spawnSign = entities.createSign(world, {
+    [ATTACKABLE]: { shots: 0 },
+    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+    [BELONGABLE]: { faction: spawnSignData.faction },
+    [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
     [FOG]: { visibility: "hidden", type: "terrain" },
-    [COLLIDABLE]: {},
+    [INVENTORY]: { items: [], size: 20 },
+    [LAYER]: {},
     [POSITION]: copy(signPosition),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: sign,
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: false,
-      nextDialog: -1,
+    [SPRITE]: spawnSignData.sprite,
+    [STATS]: {
+      ...emptyStats,
+      ...spawnSignData.stats,
     },
+    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
-  npcSequence(world, spawnSign, "signNpc", {});
+  populateInventory(world, spawnSign, spawnSignData.items);
   setIdentifier(world, spawnSign, "spawn_sign");
-  offerQuest(world, spawnSign, "waypointQuest", {
-    identifier: "town_sign",
-    distance: 0,
+  createPopup(world, spawnSign, {
+    lines: [
+      createText("Find the town by"),
+      createText("following either"),
+      [
+        getOrientedSprite(questPointer, "right"),
+        ...createText("Arrow or "),
+        path,
+        ...createText("Path"),
+      ],
+    ],
+    transaction: "info",
   });
 
   // postprocess nomad
@@ -706,23 +748,20 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: ironKey,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItems(
-    world,
-    nomadEntity,
-    [
+  createPopup(world, nomadEntity, {
+    deals: [
       {
         item: ironKeyEntity[ITEM],
         stock: 1,
         price: getItemPrice(ironKeyEntity[ITEM]),
       },
     ],
-    "buy"
-  );
+    transaction: "buy",
+  });
   const nomadChestData = generateUnitData("uncommonChest");
   const nomadChest = entities.createChest(world, {
     [ATTACKABLE]: { shots: 0 },
     [BELONGABLE]: { faction: nomadChestData.faction },
-    [COLLIDABLE]: {},
     [DROPPABLE]: { decayed: false },
     [INVENTORY]: { items: [], size: 20 },
     [FOG]: { visibility: "hidden", type: "terrain" },
@@ -740,26 +779,46 @@ export const generateWorld = async (world: World) => {
   const nomadKeyEntity = world.assertById(nomadChest[INVENTORY].items[0]);
   setIdentifier(world, nomadKeyEntity, "nomad_key");
 
+  const nomadSignData = generateUnitData("sign");
   const nomadSign = entities.createSign(world, {
-    [COLLIDABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
+    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+    [BELONGABLE]: { faction: nomadSignData.faction },
+    [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
     [FOG]: { visibility: "hidden", type: "terrain" },
+    [INVENTORY]: { items: [], size: 20 },
+    [LAYER]: {},
     [POSITION]: add(nomadBuilding.building[POSITION], { x: -1, y: 3 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: sign,
+    [SPRITE]: nomadSignData.sprite,
+    [STATS]: { ...emptyStats, ...nomadSignData.stats },
     [TOOLTIP]: {
-      dialogs: [
-        createDialog("Nomad's house"),
-        createDialog("Collect 10 ore"),
-        createDialog("Trade for iron"),
-        createDialog("Exchange to key"),
-      ],
+      dialogs: [],
       persistent: false,
       nextDialog: 0,
     },
   });
+  populateInventory(world, nomadSign, nomadSignData.items);
   setIdentifier(world, nomadSign, "nomad_sign");
-  offerQuest(world, nomadSign, "nomadQuest", {});
+  offerQuest(
+    world,
+    nomadSign,
+    "nomadQuest",
+    {
+      lines: [
+        [
+          ...createText("Collect "),
+          ...createCountable({ ore: 10 }, "ore", "countable"),
+          ...createText("Ore to"),
+        ],
+        [...createText("trade for "), iron, ...createText("Iron,")],
+        createText("then exchange to"),
+        [...createText("a "), ironKey, ...createText("Key")],
+      ],
+    },
+    {}
+  );
 
   // postprocess town
 
@@ -823,10 +882,8 @@ export const generateWorld = async (world: World) => {
     [SPRITE]: manaUp,
     [RENDERABLE]: { generation: 0 },
   });
-  sellItems(
-    world,
-    chiefEntity,
-    [
+  createPopup(world, chiefEntity, {
+    deals: [
       {
         item: maxHpEntity[ITEM],
         stock: Infinity,
@@ -838,32 +895,50 @@ export const generateWorld = async (world: World) => {
         price: getItemPrice(maxMpEntity[ITEM]),
       },
     ],
-    "buy"
-  );
+    transaction: "buy",
+  });
   const chiefOffset = choice(-2, 2);
+  const chiefSignData = generateUnitData("sign");
   const chiefSign = entities.createSign(world, {
-    [COLLIDABLE]: {},
+    [ATTACKABLE]: { shots: 0 },
+    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+    [BELONGABLE]: { faction: chiefSignData.faction },
+    [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
     [FOG]: { visibility: "hidden", type: "terrain" },
+    [INVENTORY]: { items: [], size: 20 },
+    [LAYER]: {},
     [POSITION]: add(chiefBuilding.building[POSITION], { x: chiefOffset, y: 3 }),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: sign,
+    [SPRITE]: chiefSignData.sprite,
+    [STATS]: { ...emptyStats, ...chiefSignData.stats },
     [TOOLTIP]: {
-      dialogs: [
-        createDialog("Chief's house"),
-        createDialog("Find the key"),
-        createDialog("Follow the path"),
-        createDialog("To Nomad's house"),
-      ],
+      dialogs: [],
       persistent: false,
       nextDialog: 0,
     },
   });
+  populateInventory(world, chiefSign, chiefSignData.items);
   setIdentifier(world, chiefSign, "town_sign");
-  offerQuest(world, chiefSign, "waypointQuest", {
-    identifier: "nomad_sign",
-    distance: 0,
-  });
+  offerQuest(
+    world,
+    chiefSign,
+    "waypointQuest",
+    {
+      lines: [
+        createText("Enter the Chief's"),
+        createText("house by using"),
+        [...createText("a "), ironKey, ...createText("Key. Find the")],
+        createText("Nomad's house by"),
+        createText("following the"),
+        [path, ...createText("Path")],
+      ],
+    },
+    {
+      identifier: "nomad_sign",
+      distance: 0,
+    }
+  );
   setIdentifier(world, chiefBuilding.door!, "chief_door");
 
   // 2. elder's house
@@ -953,10 +1028,8 @@ export const generateWorld = async (world: World) => {
   });
   populateInventory(world, scoutEntity, scoutUnit.items, scoutUnit.equipments);
   setIdentifier(world, scoutEntity, "scout");
-  sellItems(
-    world,
-    scoutEntity,
-    Object.entries(itemSales).map(([stackable, coins]) => ({
+  createPopup(world, scoutEntity, {
+    deals: Object.entries(itemSales).map(([stackable, coins]) => ({
       item: {
         stat: "coin",
         amount: coins,
@@ -969,8 +1042,8 @@ export const generateWorld = async (world: World) => {
         },
       ],
     })),
-    "sell"
-  );
+    transaction: "sell",
+  });
 
   // 4. smith's house
   const smithOffset = choice(-1, 1);
@@ -1048,18 +1121,16 @@ export const generateWorld = async (world: World) => {
     equipment: "torch",
     amount: 1,
   };
-  sellItems(
-    world,
-    smithEntity,
-    [stickItem, woodItem, oreItem, ironItem, goldItem, torchItem].map(
+  createPopup(world, smithEntity, {
+    deals: [stickItem, woodItem, oreItem, ironItem, goldItem, torchItem].map(
       (item) => ({
         item,
         stock: Infinity,
         price: getItemPrice(item),
       })
     ),
-    "buy"
-  );
+    transaction: "buy",
+  });
 
   const smithAnvil = entities.createCrafting(world, {
     [COLLIDABLE]: {},
@@ -1107,10 +1178,8 @@ export const generateWorld = async (world: World) => {
     material: "gold",
     amount: getGearStat("shield", "gold"),
   };
-  sellItems(
-    world,
-    smithAnvil,
-    [
+  createPopup(world, smithAnvil, {
+    deals: [
       woodSwordItem,
       woodShieldItem,
       ironSwordItem,
@@ -1122,8 +1191,8 @@ export const generateWorld = async (world: World) => {
       stock: Infinity,
       price: getItemPrice(item),
     })),
-    "craft"
-  );
+    transaction: "craft",
+  });
 
   // 5. trader's house
   const traderUnit = generateNpcData("trader");
@@ -1176,16 +1245,14 @@ export const generateWorld = async (world: World) => {
     traderUnit.equipments
   );
   setIdentifier(world, traderEntity, "trader");
-  sellItems(
-    world,
-    traderEntity,
-    itemPurchases.map(([item, coins]) => ({
+  createPopup(world, traderEntity, {
+    deals: itemPurchases.map(([item, coins]) => ({
       item,
       stock: Infinity,
       price: [{ stat: "coin", amount: coins }],
     })),
-    "buy"
-  );
+    transaction: "buy",
+  });
 
   // 6. druid's house
   const druidOffset = choice(-1, 1);
@@ -1273,10 +1340,8 @@ export const generateWorld = async (world: World) => {
     material: "earth",
     amount: 1,
   };
-  sellItems(
-    world,
-    druidEntity,
-    [
+  createPopup(world, druidEntity, {
+    deals: [
       healthItem,
       manaItem,
       berryItem,
@@ -1290,8 +1355,8 @@ export const generateWorld = async (world: World) => {
       stock: Infinity,
       price: getItemPrice(item),
     })),
-    "buy"
-  );
+    transaction: "buy",
+  });
 
   const druidKettle = entities.createCrafting(world, {
     [COLLIDABLE]: {},
@@ -1345,10 +1410,8 @@ export const generateWorld = async (world: World) => {
     primary: "beam1",
     material: "earth",
   };
-  sellItems(
-    world,
-    druidKettle,
-    [
+  createPopup(world, druidKettle, {
+    deals: [
       fireWaveItem,
       waterWaveItem,
       earthWaveItem,
@@ -1360,8 +1423,8 @@ export const generateWorld = async (world: World) => {
       stock: Infinity,
       price: getItemPrice(item),
     })),
-    "craft"
-  );
+    transaction: "craft",
+  });
 
   // 7. mage's house
   const mageUnit = generateNpcData("mage");
@@ -1437,18 +1500,16 @@ export const generateWorld = async (world: World) => {
     stackable: "charge",
     amount: 10,
   };
-  sellItems(
-    world,
-    mageEntity,
-    [waveItem, beamItem, bowItem, arrowItem, slashItem, chargeItem].map(
+  createPopup(world, mageEntity, {
+    deals: [waveItem, beamItem, bowItem, arrowItem, slashItem, chargeItem].map(
       (item) => ({
         item,
         stock: Infinity,
         price: getItemPrice(item),
       })
     ),
-    "buy"
-  );
+    transaction: "buy",
+  });
 
   // empty houses
   for (const emptyBuilding of emptyBuildings) {
@@ -1525,7 +1586,6 @@ export const generateWorld = async (world: World) => {
     const chestEntity = entities.createChest(world, {
       [ATTACKABLE]: { shots: 0 },
       [BELONGABLE]: { faction: chestData.faction },
-      [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false },
       [INVENTORY]: { items: [], size: 20 },
       [FOG]: { visibility: "hidden", type: "terrain" },

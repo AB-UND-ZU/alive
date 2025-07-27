@@ -39,9 +39,10 @@ import {
   getDeal,
   isInPopup,
   isPopupAvailable,
+  isQuestCompleted,
 } from "../../engine/systems/popup";
 import { isControllable } from "../../engine/systems/freeze";
-import { POPUP } from "../../engine/components/popup";
+import { Popup, POPUP } from "../../engine/components/popup";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -97,6 +98,13 @@ export const getActivationRow = (item?: Omit<Item, "carrier" | "bound">) => {
 
 const buttonWidth = 6;
 const inventoryWidth = 8;
+const popupActions = {
+  craft: "CRAFT",
+  info: "READ",
+  quest: "QUEST",
+  buy: "SHOP",
+  sell: "SHOP",
+};
 
 type Action = {
   name: string;
@@ -178,7 +186,7 @@ export default function Controls() {
     "quest",
     (world, hero, questEntity) =>
       !isControllable(world, hero) || !canAcceptQuest(world, hero, questEntity),
-    () => "QUEST",
+    () => "START",
     (_, questEntity) => [
       [none, questEntity ? quest : none, none],
       repeat(none, 3),
@@ -214,7 +222,19 @@ export default function Controls() {
       isInPopup(world, hero) ||
       !isPopupAvailable(world, popupEntity),
     (popupEntity) =>
-      popupEntity[POPUP].transaction === "craft" ? "CRAFT" : "SHOP",
+      popupEntity[POPUP]
+        ? popupActions[(popupEntity[POPUP] as Popup).transaction]
+        : "",
+    () => [repeat(none, 3), repeat(none, 3)],
+    "lime"
+  );
+
+  const claimAction = useAction(
+    "claim",
+    (world, hero, claimEntity) =>
+      !isControllable(world, hero) ||
+      !isQuestCompleted(world, hero, claimEntity),
+    () => "CLAIM",
     () => [repeat(none, 3), repeat(none, 3)],
     "lime"
   );
@@ -236,7 +256,7 @@ export default function Controls() {
   );
 
   const closeAction = useAction(
-    "trade",
+    "close",
     (world, hero, tradeEntity) => !isControllable(world, hero),
     () => "CLOSE",
     () => [repeat(none, 3), repeat(none, 3)],
@@ -269,6 +289,7 @@ export default function Controls() {
     questAction,
     unlockAction,
     popupAction,
+    claimAction,
     tradeAction,
     primaryAction,
   ];
