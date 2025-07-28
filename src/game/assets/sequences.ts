@@ -401,10 +401,13 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
       particleIndex += 1
     ) {
       const particleName = `slash-${particleIndex}`;
-      const particleEntity = world.assertByIdAndComponents(
+      const particleEntity = world.getEntityByIdAndComponents(
         state.particles[particleName],
         [PARTICLE]
       );
+
+      if (!particleEntity) continue;
+
       disposeEntity(world, particleEntity);
       delete state.particles[particleName];
     }
@@ -2163,7 +2166,7 @@ const lineSprites: Record<NonNullable<Focusable["highlight"]>, Sprite[]> = {
   tombstone: createText("─┐│┘─└│┌", colors.silver),
 };
 
-const focusSpeed = 250;
+const focusSpeed = 200;
 
 export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
   const finished = false;

@@ -89,11 +89,25 @@ export const getAvailablePrimary = (
 
   if (!primary) return;
 
-  if (entity[STATS]) {
-    // check mana for spells
-    if (primary.endsWith("1") && entity[STATS].mp >= 1) return itemEntity;
-    if (primary.endsWith("2") && entity[STATS].mp >= 2) return itemEntity;
-  }
+  return itemEntity;
+};
+export const castablePrimary = (
+  world: World,
+  entity: TypedEntity<"INVENTORY">,
+  item: TypedEntity<"ITEM">
+) => {
+  const primary = item[ITEM].primary;
+
+  // check mana for spells
+  if (
+    entity[STATS] &&
+    primary &&
+    ((primary.endsWith("1") && entity[STATS].mp >= 1) ||
+      (primary.endsWith("2") && entity[STATS].mp >= 2))
+  )
+    return true;
+
+  return false;
 };
 
 export const getAvailableSecondary = (
@@ -113,6 +127,16 @@ export const getAvailableSecondary = (
 
   if (!secondary) return;
 
+  return itemEntity;
+};
+
+export const castableSecondary = (
+  world: World,
+  entity: TypedEntity<"INVENTORY">,
+  item: TypedEntity<"ITEM">
+) => {
+  const secondary = item[ITEM].secondary;
+
   if (secondary === "bow") {
     // check if there is arrows for a bow
     const hasArrow = entity[INVENTORY].items.some(
@@ -120,7 +144,7 @@ export const getAvailableSecondary = (
         world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
         "arrow"
     );
-    if (hasArrow) return itemEntity;
+    if (hasArrow) return true;
   } else if (secondary === "slash" || secondary === "block") {
     // check if there is charges for active items
     const hasCharge = entity[INVENTORY].items.some(
@@ -131,8 +155,10 @@ export const getAvailableSecondary = (
 
     // ensure melee is worn for slash
     if (hasCharge && !(secondary === "slash" && !entity[EQUIPPABLE]?.sword))
-      return itemEntity;
+      return true;
   }
+
+  return false;
 };
 
 export default function setupAction(world: World) {

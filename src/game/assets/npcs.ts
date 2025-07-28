@@ -54,6 +54,7 @@ import { SOUL } from "../../engine/components/soul";
 import { matrixFactory } from "../math/matrix";
 import { getSequence } from "../../engine/systems/sequence";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
+import { getItemPrice } from "../balancing/trading";
 
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -347,12 +348,15 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     SPAWNABLE,
     INVENTORY,
   ]);
-  const keyEntity = getIdentifierAndComponents(world, "spawn_key", [ITEM]);
-  const chestEntity =
-    keyEntity &&
-    world.getEntityByIdAndComponents(keyEntity[ITEM].carrier, [STATS]);
+  const potionEntity = getIdentifierAndComponents(world, "spawn_potion", [
+    ITEM,
+  ]);
+  const chestEntity = getIdentifierAndComponents(world, "guide_chest", [STATS]);
+  const hedgeEntities = world
+    .getEntities([IDENTIFIABLE])
+    .filter((entity) => entity[IDENTIFIABLE].name === "spawn_hedge");
   const prismEntity = getIdentifier(world, "spawn_prism");
-  const coinEntity = getIdentifier(world, "spawn_prism:drop");
+  const keyEntity = getIdentifierAndComponents(world, "spawn_key", [ITEM]);
 
   if (!focusEntity || !doorEntity || !houseDoor || !compassEntity) {
     return { finished: stage.finished, updated: stage.updated };
@@ -530,12 +534,35 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
   step({
     stage,
+    name: "hedge",
+    forceEnter: () =>
+      !!heroEntity &&
+      !!heroEntity[EQUIPPABLE].compass &&
+      !!heroEntity[EQUIPPABLE].sword &&
+      !!prismEntity &&
+      hedgeEntities.length >= 3 &&
+      entity[BELONGABLE].faction !== "hostile",
+    onEnter: () => {
+      entity[BEHAVIOUR].patterns.push({
+        name: "dialog",
+        memory: {
+          override: "visible",
+          dialogs: [createDialog("Hit the hedge")],
+        },
+      });
+      return true;
+    },
+  });
+
+  step({
+    stage,
     name: "prism",
     forceEnter: () =>
       !!heroEntity &&
       !!heroEntity[EQUIPPABLE].compass &&
       !!heroEntity[EQUIPPABLE].sword &&
       !!prismEntity &&
+      hedgeEntities.length < 3 &&
       entity[BELONGABLE].faction !== "hostile",
     onEnter: () => {
       entity[BEHAVIOUR].patterns.push({
@@ -551,7 +578,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
   step({
     stage,
-    name: "coin",
+    name: "key",
     forceEnter: () =>
       !!heroEntity &&
       !!heroEntity[EQUIPPABLE].compass &&
@@ -563,7 +590,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
         name: "dialog",
         memory: {
           override: "visible",
-          dialogs: [createDialog("Grab the coin")],
+          dialogs: [createDialog("Grab the key")],
         },
       });
       return true;
@@ -607,8 +634,8 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
       !!heroEntity[EQUIPPABLE].compass &&
       !!heroEntity[EQUIPPABLE].sword &&
       !prismEntity &&
-      heroEntity[STATS].coin > 0 &&
-      !coinEntity &&
+      !!keyEntity &&
+      keyEntity[ITEM]?.carrier === world.getEntityId(heroEntity) &&
       (heroEntity[PLAYER].defeatedUnits.prism || 0) > 0 &&
       !state.args.memory.claimOffered,
     onEnter: () => {
@@ -647,23 +674,21 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     stage,
     name: "shop",
     onEnter: () => {
+      const potionItem = {
+        consume: "potion1",
+        material: "fire",
+        amount: 10,
+      } as const;
+
       entity[BEHAVIOUR].patterns = [
         {
           name: "sell",
           memory: {
             deals: [
               {
-                item: { consume: "key", material: "iron", amount: 1 },
+                item: potionItem,
                 stock: 1,
-                price: [{ stat: "coin", amount: 2 }],
-              },
-              {
-                item: { consume: "potion1", material: "fire", amount: 10 },
-                stock: 1,
-                price: [
-                  { stat: "coin", amount: 3 },
-                  { stackable: "apple", amount: 1 },
-                ],
+                price: getItemPrice(potionItem),
               },
             ] as Deal[],
           },
@@ -684,15 +709,17 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
       !!heroEntity &&
       heroEntity[INVENTORY].items.some(
         (item) =>
-          world.assertByIdAndComponents(item, [ITEM])[ITEM].consume === "key"
+          world.assertByIdAndComponents(item, [ITEM])[ITEM].consume ===
+          "potion1"
       ),
     onLeave: () => {
-      if (keyEntity) {
-        if (chestEntity) {
-          removeFromInventory(world, chestEntity, keyEntity);
-          disposeEntity(world, keyEntity);
-        } else {
-          const carrierEntity = world.assertById(keyEntity[ITEM].carrier);
+      if (potionEntity) {
+        const carrierEntity = world.assertById(potionEntity[ITEM].carrier);
+        if (carrierEntity === chestEntity) {
+          removeFromInventory(world, chestEntity, potionEntity);
+          disposeEntity(world, potionEntity);
+        } else if (carrierEntity !== heroEntity) {
+          const carrierEntity = world.assertById(potionEntity[ITEM].carrier);
           disposeEntity(world, carrierEntity, false);
         }
       }
@@ -709,7 +736,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
           name: "dialog",
           memory: {
             override: undefined,
-            dialogs: [createDialog("Unlock the door")],
+            dialogs: [createDialog("Open the door")],
           },
         },
       ];
@@ -717,14 +744,15 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     },
   });
 
-  // attack player if key is stolen
+  // attack player if potion is stolen
   step({
     stage,
     name: "enrage",
     forceEnter: () =>
-      !!keyEntity &&
+      !chestEntity &&
+      !!potionEntity &&
       !!heroEntity &&
-      keyEntity[ITEM].carrier === world.getEntityId(heroEntity),
+      potionEntity[ITEM].carrier === world.getEntityId(heroEntity),
     onEnter: () => {
       entity[BEHAVIOUR].patterns = [
         {
@@ -752,7 +780,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
         {
           name: "collect",
           memory: {
-            item: keyEntity && world.getEntityId(keyEntity),
+            item: potionEntity && world.getEntityId(potionEntity),
           },
         },
         {
@@ -767,8 +795,8 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
     isCompleted: () =>
       entity[POSITION].x === guidePosition.x &&
       entity[POSITION].y === guidePosition.y &&
-      !!keyEntity &&
-      keyEntity[ITEM].carrier === world.getEntityId(entity),
+      !!potionEntity &&
+      potionEntity[ITEM].carrier === world.getEntityId(entity),
     onLeave: () => "quest",
   });
 

@@ -15,7 +15,13 @@ import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
 import { disposeEntity, updateWalkable } from "./map";
-import { canAcceptQuest, canUnlock, getUnlockKey } from "./action";
+import {
+  canAcceptQuest,
+  canUnlock,
+  castablePrimary,
+  castableSecondary,
+  getUnlockKey,
+} from "./action";
 import { getItemSprite } from "../../components/Entity/utils";
 import { questSequence } from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
@@ -449,20 +455,38 @@ export default function setupTrigger(world: World) {
           canShop(world, entity, getDeal(world, tradeEntity))
         ) {
           performTrade(world, entity, tradeEntity);
-        } else if (primaryEntity && canCast(world, entity, primaryEntity)) {
+        } else if (
+          primaryEntity &&
+          canCast(world, entity, primaryEntity) &&
+          entity[INVENTORY] &&
+          castablePrimary(
+            world,
+            entity as TypedEntity<"INVENTORY">,
+            primaryEntity
+          )
+        ) {
           castSpell(world, entity, primaryEntity);
         }
       } else if (entity[ACTIONABLE].secondaryTriggered) {
         entity[ACTIONABLE].secondaryTriggered = false;
 
-        if (secondaryEntity && secondaryEntity[ITEM].secondary === "bow") {
-          shootArrow(world, entity, secondaryEntity);
-        } else if (
+        if (
           secondaryEntity &&
-          secondaryEntity[ITEM].secondary === "slash" &&
-          entity[EQUIPPABLE]?.sword
+          entity[INVENTORY] &&
+          castableSecondary(
+            world,
+            entity as TypedEntity<"INVENTORY">,
+            secondaryEntity
+          )
         ) {
-          chargeSlash(world, entity, secondaryEntity);
+          if (secondaryEntity[ITEM].secondary === "bow") {
+            shootArrow(world, entity, secondaryEntity);
+          } else if (
+            secondaryEntity[ITEM].secondary === "slash" &&
+            entity[EQUIPPABLE]?.sword
+          ) {
+            chargeSlash(world, entity, secondaryEntity);
+          }
         } else if (closeEntity) {
           closePopup(world, entity, closeEntity);
         }

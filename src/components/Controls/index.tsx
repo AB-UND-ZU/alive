@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useDimensions } from "../Dimensions";
+import { isTouch, useDimensions } from "../Dimensions";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
 import { useHero, useWorld } from "../../bindings/hooks";
@@ -14,6 +14,7 @@ import {
   createCountable,
   createText,
   ghost,
+  mergeSprites,
   none,
   Palette,
   quest,
@@ -22,12 +23,17 @@ import * as colors from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
 import { normalize, repeat } from "../../game/math/std";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
-import { createSprite, getItemSprite } from "../Entity/utils";
+import { createSprite, getItemSprite, getSegments } from "../Entity/utils";
 import { getAction } from "../../engine/systems/trigger";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { ITEM, Item } from "../../engine/components/item";
-import { canAcceptQuest, canUnlock } from "../../engine/systems/action";
+import {
+  canAcceptQuest,
+  canUnlock,
+  castablePrimary,
+  castableSecondary,
+} from "../../engine/systems/action";
 import { Entity } from "ecs";
 import { World } from "../../engine";
 import { canRevive } from "../../engine/systems/fate";
@@ -40,9 +46,11 @@ import {
   isInPopup,
   isPopupAvailable,
   isQuestCompleted,
+  popupIdles,
 } from "../../engine/systems/popup";
 import { isControllable } from "../../engine/systems/freeze";
-import { Popup, POPUP } from "../../engine/components/popup";
+import { Deal, Popup, POPUP } from "../../engine/components/popup";
+import { TypedEntity } from "../../engine/entities";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -200,6 +208,7 @@ export default function Controls() {
       !isControllable(world, hero) || !canUnlock(world, hero, unlockEntity),
     () => "OPEN",
     (_, unlockEntity) => [
+      [none, unlockEntity[SPRITE] || none, none],
       [
         none,
         unlockEntity
@@ -210,7 +219,6 @@ export default function Controls() {
           : none,
         none,
       ],
-      repeat(none, 3),
     ],
     "lime"
   );
@@ -225,7 +233,27 @@ export default function Controls() {
       popupEntity[POPUP]
         ? popupActions[(popupEntity[POPUP] as Popup).transaction]
         : "",
-    () => [repeat(none, 3), repeat(none, 3)],
+    (world, popupEntity) => [
+      [
+        none,
+        popupEntity[POPUP]
+          ? mergeSprites(
+              ...getSegments(world, popupEntity, {
+                isTransparent: false,
+                receiveShadow: false,
+              }).map((segment) => segment.sprite)
+            )
+          : none,
+        none,
+      ],
+      [
+        none,
+        popupEntity[POPUP]
+          ? popupIdles[(popupEntity[POPUP] as Popup).transaction]
+          : none,
+        none,
+      ],
+    ],
     "lime"
   );
 
@@ -235,7 +263,14 @@ export default function Controls() {
       !isControllable(world, hero) ||
       !isQuestCompleted(world, hero, claimEntity),
     () => "CLAIM",
-    () => [repeat(none, 3), repeat(none, 3)],
+    (_, claimEntity) =>
+      [
+        ...claimEntity[POPUP].deals.map((deal: Deal) =>
+          getActivationRow(deal.item)
+        ),
+        repeat(none, 3),
+        repeat(none, 3),
+      ].slice(0, 2) as [Sprite[], Sprite[]],
     "lime"
   );
 
@@ -266,7 +301,13 @@ export default function Controls() {
   const primaryAction = useAction(
     "primary",
     (world, hero, primaryEntity) =>
-      !isControllable(world, hero) || !canCast(world, hero, primaryEntity),
+      !isControllable(world, hero) ||
+      !canCast(world, hero, primaryEntity) ||
+      !castablePrimary(
+        world,
+        hero as TypedEntity<"INVENTORY">,
+        primaryEntity as TypedEntity<"ITEM">
+      ),
     (primaryEntity) => primaryEntity[SPRITE].name.toUpperCase(),
     (_, primaryEntity) => [
       [none, none, primaryEntity[SPRITE]],
@@ -276,12 +317,20 @@ export default function Controls() {
 
   const secondaryAction = useAction(
     "secondary",
-    (world, hero, secondaryEntity) => !isControllable(world, hero),
+    (world, hero, secondaryEntity) =>
+      !isControllable(world, hero) ||
+      !castableSecondary(
+        world,
+        hero as TypedEntity<"INVENTORY">,
+        secondaryEntity as TypedEntity<"ITEM">
+      ),
+
     (secondaryEntity) => secondaryEntity[SPRITE].name.toUpperCase(),
     (_, secondaryEntity) => [
       [none, none, secondaryEntity[SPRITE]],
       getActiveActivations(secondaryEntity[ITEM]),
-    ]
+    ],
+    "silver"
   );
 
   const availablePrimary = [
@@ -571,7 +620,7 @@ export default function Controls() {
     };
   }, [handleKey, handleTouchMove]);
 
-  const emptyButton = [repeat(none, buttonWidth), repeat(none, buttonWidth)];
+  const emptyPrimary = createButton(isTouch ? "" : "SPACE", buttonWidth, true);
   const pressedPrimary =
     primary && createButton("", buttonWidth, false, true, 0, primary.palette);
   const primaryButton =
@@ -584,7 +633,12 @@ export default function Controls() {
       highlight,
       selectedPrimary.palette
     );
-  const leftButton = pressedPrimary || primaryButton || emptyButton;
+  const leftButton = pressedPrimary || primaryButton || emptyPrimary;
+  const emptySecondary = createButton(
+    isTouch ? "" : "SHIFT",
+    buttonWidth,
+    true
+  );
   const pressedSecondary =
     secondary &&
     createButton("", buttonWidth, false, true, 0, secondary.palette);
@@ -598,7 +652,7 @@ export default function Controls() {
       (highlight + 3) % 12,
       selectedSecondary.palette
     );
-  const rightButton = pressedSecondary || secondaryButton || emptyButton;
+  const rightButton = pressedSecondary || secondaryButton || emptySecondary;
 
   const emptyActivation = [repeat(none, 3), repeat(none, 3)];
   const primaryActivation =

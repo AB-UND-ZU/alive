@@ -6,20 +6,18 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
-  compass,
   createCountable,
   createDialog,
   createText,
   getOrientedSprite,
   heartUp,
+  hpFlask1,
   iron,
   ironKey,
   manaUp,
   none,
   path,
   questPointer,
-  stick,
-  woodStick,
 } from "../game/assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
 import { LEVEL } from "../engine/components/level";
@@ -110,7 +108,10 @@ import {
 } from "../engine/utils";
 import { createHero } from "../engine/systems/fate";
 import { spawnLight } from "../engine/systems/consume";
-import { createItemAsDrop } from "../engine/systems/drop";
+import {
+  createItemAsDrop,
+  createItemInInventory,
+} from "../engine/systems/drop";
 import { getItemSprite } from "../components/Entity/utils";
 
 export const generateWorld = async (world: World) => {
@@ -550,14 +551,15 @@ export const generateWorld = async (world: World) => {
     "introQuest",
     {
       lines: [
-        [...createText("Grab the "), compass, ...createText("Compass")],
-        [...createText("and use a "), stick, ...createText("Stick")],
-        [...createText("as "), woodStick, ...createText("Sword to kill")],
-        [...createText("the monster")],
+        createText("The monster took"),
+        [...createText("the "), ironKey, ...createText("Key!")],
+        [],
+        createText("Kill it and take"),
+        createText("it back."),
       ],
       deals: [
         { stock: 1, item: { stat: "xp", amount: 1 }, price: [] },
-        { stock: 1, item: { stat: "coin", amount: 1 }, price: [] },
+        { stock: 1, item: { stackable: "berry", amount: 1 }, price: [] },
       ],
       targets: [{ unit: "prism", amount: 1 }],
     },
@@ -574,25 +576,13 @@ export const generateWorld = async (world: World) => {
   );
   setIdentifier(world, compassEntity, "compass");
 
-  // create chest with key
-  const spawnKeyEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      consume: "key",
-      material: "iron",
-      amount: 1,
-      bound: false,
-    },
-    [RENDERABLE]: { generation: 0 },
-    [SPRITE]: ironKey,
-  });
-  setIdentifier(world, spawnKeyEntity, "spawn_key");
+  // create chest with potion
   const guideChestData = generateUnitData("commonChest");
   const guideChestEntity = entities.createChest(world, {
     [ATTACKABLE]: { shots: 0 },
     [BELONGABLE]: { faction: guideChestData.faction },
     [DROPPABLE]: { decayed: false },
-    [INVENTORY]: { items: [world.getEntityId(spawnKeyEntity)], size: 20 },
+    [INVENTORY]: { items: [], size: 20 },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [LAYER]: {},
     [POSITION]: keyPosition,
@@ -602,7 +592,21 @@ export const generateWorld = async (world: World) => {
     [STATS]: { ...emptyStats, ...guideChestData.stats },
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
-  spawnKeyEntity[ITEM].carrier = world.getEntityId(guideChestEntity);
+  setIdentifier(world, guideChestEntity, "guide_chest");
+  const potionEntity = createItemInInventory(
+    world,
+    guideChestEntity,
+    entities.createItem,
+    {
+      [ITEM]: {
+        consume: "potion1",
+        material: "fire",
+        amount: 10,
+      },
+      [SPRITE]: hpFlask1,
+    }
+  );
+  setIdentifier(world, potionEntity, "spawn_potion");
 
   // set initial focus on hero
   const highlighEntity = entities.createHighlight(world, {

@@ -19,6 +19,7 @@ import { REFERENCE } from "../components/reference";
 import { getEntityHaste, getHasteInterval } from "./movement";
 import { disposeEntity } from "./map";
 import { LAYER } from "../components/layer";
+import { NPC } from "../components/npc";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -74,8 +75,12 @@ export default function setupConsume(world: World) {
 
     // process consumable items in inventory
     for (const entity of world.getEntities([INVENTORY, STATS])) {
-      // skip if currently consuming
-      if (getSequence(world, entity, "consume")) continue;
+      // skip if currently consuming or unit
+      if (
+        getSequence(world, entity, "consume") ||
+        (!entity[PLAYER] && !entity[NPC])
+      )
+        continue;
 
       const entityId = world.getEntityId(entity);
       const consumptions = [];

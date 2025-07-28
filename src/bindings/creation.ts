@@ -35,6 +35,7 @@ import {
   getStatSprite,
   grass,
   ice,
+  ironKey,
   ironMine,
   leaf,
   leaves,
@@ -334,13 +335,15 @@ export const insertArea = (
       else if (cell === "=") entity = "wood_two";
       else if (cell === ".") entity = "fruit_one";
       else if (cell === "ß") entity = "hedge";
+      else if (cell === "&") entity = "spawn_hedge";
       else if (cell === "τ") entity = "bush";
       else if (cell === "'") entity = "berry_one";
       else if (cell === ",") entity = "grass";
       else if (cell === "·") entity = "flower_one";
       else if (cell === "♀") entity = "player";
-      else if (cell === "►") entity = "prism";
+      else if (cell === "►") entity = "spawn_prism";
       else if (cell === "*") entity = "campfire";
+      else if (cell === "!") entity = "spawn_key";
       else if (cell === "x") entity = "fireplace";
       else if (cell === "├") entity = "house_left";
       else if (cell === "└") entity = "basement_left";
@@ -742,7 +745,7 @@ export const createCell = (
         [SEQUENCABLE]: { states: {} },
       });
     }
-  } else if (cell === "hedge") {
+  } else if (cell === "hedge" || cell === "spawn_hedge") {
     const { items, sprite, stats, faction } = generateUnitData(
       (["hedge1", "hedge2"] as const)[random(0, 1)]
     );
@@ -765,6 +768,9 @@ export const createCell = (
       [STATS]: { ...emptyStats, ...stats },
     });
     populateInventory(world, hedgeEntity, items);
+    if (cell === "spawn_hedge") {
+      setIdentifier(world, hedgeEntity, "spawn_hedge");
+    }
   } else if (cell === "tumbleweed") {
     const { items, sprite, stats, faction, patterns } =
       generateUnitData("tumbleweed");
@@ -936,6 +942,22 @@ export const createCell = (
     if (["guide_door", "nomad_door"].includes(cell)) {
       setIdentifier(world, doorEntity, cell);
     }
+  } else if (cell === "spawn_key") {
+    const spawnKeyEntity = createItemAsDrop(
+      world,
+      { x, y },
+      entities.createItem,
+      {
+        [ITEM]: {
+          consume: "key",
+          material: "iron",
+          amount: 1,
+          bound: false,
+        },
+        [SPRITE]: ironKey,
+      }
+    );
+    setIdentifier(world, world.assertById(spawnKeyEntity[ITEM].carrier), cell);
   } else if (cell === "spawn_sign") {
     const spawnSignData = generateUnitData("sign");
     const spawnSign = entities.createSign(world, {
@@ -1109,9 +1131,9 @@ export const createCell = (
       [STATS]: { ...emptyStats, ...stats },
     });
     populateInventory(world, boxEntity, items, equipments);
-  } else if (cell === "mob" || cell === "prism") {
+  } else if (cell === "mob" || cell === "spawn_prism") {
     const mobUnit = generateNpcData(
-      cell === "prism" ? "prism" : generateNpcKey(hillsNpcDistribution)
+      cell === "spawn_prism" ? "prism" : generateNpcKey(hillsNpcDistribution)
     );
 
     const mobEntity = entities.createMob(world, {
@@ -1145,7 +1167,6 @@ export const createCell = (
       [STATS]: {
         ...emptyStats,
         ...mobUnit.stats,
-        ...(cell === "prism" ? { coin: 1 } : {}),
       },
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
@@ -1153,11 +1174,28 @@ export const createCell = (
     populateInventory(
       world,
       mobEntity,
-      cell === "prism" ? [] : mobUnit.items,
+      cell === "spawn_prism" ? [] : mobUnit.items,
       mobUnit.equipments
     );
 
-    if (cell === "prism") setIdentifier(world, mobEntity, "spawn_prism");
+    if (cell === "spawn_prism") {
+      setIdentifier(world, mobEntity, "spawn_prism");
+
+      const spawnKeyEntity = createItemInInventory(
+        world,
+        mobEntity,
+        entities.createItem,
+        {
+          [ITEM]: {
+            consume: "key",
+            material: "iron",
+            amount: 1,
+          },
+          [SPRITE]: ironKey,
+        }
+      );
+      setIdentifier(world, spawnKeyEntity, "spawn_key");
+    }
   } else if (
     ["house_left", "house_right", "basement_left", "basement_right"].includes(
       cell

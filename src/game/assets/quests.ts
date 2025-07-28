@@ -1,7 +1,8 @@
 import { isTouch } from "../../components/Dimensions";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
-import { Inventory, INVENTORY } from "../../engine/components/inventory";
+import { IDENTIFIABLE } from "../../engine/components/identifiable";
+import { INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import {
@@ -28,7 +29,7 @@ import {
   setHighlight,
 } from "../../engine/utils";
 import { findPath } from "../math/path";
-import { add, copy, getDistance } from "../math/std";
+import { add, choice, copy, getDistance } from "../math/std";
 import { createDialog } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 
@@ -154,13 +155,28 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () => !!entity[EQUIPPABLE].sword,
+    onLeave: () => "hedge",
+  });
+
+  const hedgeEntities = world
+    .getEntities([IDENTIFIABLE])
+    .filter((entity) => entity[IDENTIFIABLE].name === "spawn_hedge");
+  const prismEntity = getIdentifier(world, "spawn_prism");
+  const keyEntity = getIdentifierAndComponents(world, "spawn_key", [
+    ITEM,
+  ]);
+
+  step({
+    stage,
+    name: "hedge",
+    onEnter: () => {
+      setHighlight(world, "enemy", choice(...hedgeEntities));
+      return true;
+    },
+    isCompleted: () => hedgeEntities.length < 3,
     onLeave: () => "prism",
   });
 
-  const prismEntity = getIdentifier(world, "spawn_prism");
-  const coinEntity = getIdentifierAndComponents(world, "spawn_prism:drop", [
-    ITEM,
-  ]);
   step({
     stage,
     name: "prism",
@@ -169,33 +185,30 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () => !prismEntity,
-    onLeave: () => "coin",
+    onLeave: () => "key",
   });
 
   step({
     stage,
-    name: "coin",
+    name: "key",
     onEnter: () => {
-      const carrierEntity = world.getEntityById(coinEntity?.[ITEM].carrier);
+      const carrierEntity = world.getEntityById(keyEntity?.[ITEM].carrier);
       setHighlight(world, "quest", carrierEntity);
       return true;
     },
-    isCompleted: () => !coinEntity,
-    onLeave: () => "buy",
+    isCompleted: () =>
+      !!keyEntity && keyEntity[ITEM].carrier === world.getEntityId(entity),
+    onLeave: () => "claim",
   });
 
   step({
     stage,
-    name: "buy",
+    name: "claim",
     onEnter: () => {
       setHighlight(world, "quest", guideEntity);
       return true;
     },
-    isCompleted: () =>
-      (entity[INVENTORY] as Inventory).items.some(
-        (item) =>
-          world.assertByIdAndComponents(item, [ITEM])[ITEM].consume === "key"
-      ),
+    isCompleted: () => entity[STATS].xp > 0,
     onLeave: () => "door",
   });
 

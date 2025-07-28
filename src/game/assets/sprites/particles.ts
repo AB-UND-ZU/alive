@@ -968,6 +968,7 @@ export const createTooltip = (text: string) => [
 
 export const buttonPalettes = {
   white: { background: colors.white, text: colors.black, shadow: colors.grey },
+  silver: { background: colors.silver, text: colors.black, shadow: colors.grey },
   lime: { background: colors.lime, text: colors.black, shadow: colors.green },
   red: { background: colors.red, text: colors.black, shadow: colors.maroon },
   yellow: {
@@ -1359,7 +1360,7 @@ export const sleep2 = createText("Z", colors.white)[0];
 export const whistle1 = createText("\u010c", colors.white)[0];
 export const whistle2 = createText("\u010d", colors.white)[0];
 
-export const confused = createText("!", colors.white)[0];
+export const confused = createText("?", colors.white)[0];
 
 export const questPointer: Sprite = {
   name: "quest_pointer",
