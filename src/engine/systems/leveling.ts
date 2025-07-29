@@ -8,6 +8,9 @@ import { REFERENCE } from "../components/reference";
 import { STATS } from "../components/stats";
 import { createSequence } from "./sequence";
 import { ProgressSequence } from "../components/sequencable";
+import { queueMessage } from "../../game/assets/utils";
+import { createText } from "../../game/assets/sprites";
+import * as colors from "../../game/assets/colors";
 
 export type Level = {
   level: number;
@@ -68,6 +71,13 @@ export default function setupLeveling(world: World) {
           "levelUp",
           { dropped: false, maxHp: targetLevel.maxHp, maxMp: targetLevel.maxMp }
         );
+
+        queueMessage(world, entity, {
+          line: createText("Level up", colors.silver),
+          orientation: "up",
+          fast: false,
+          delay: 0,
+        });
 
         rerenderEntity(world, entity);
       }

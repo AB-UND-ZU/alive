@@ -718,7 +718,7 @@ export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
         if (carrierEntity === chestEntity) {
           removeFromInventory(world, chestEntity, potionEntity);
           disposeEntity(world, potionEntity);
-        } else if (carrierEntity !== heroEntity) {
+        } else if (carrierEntity !== heroEntity && carrierEntity !== entity) {
           const carrierEntity = world.assertById(potionEntity[ITEM].carrier);
           disposeEntity(world, carrierEntity, false);
         }

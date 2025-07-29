@@ -135,6 +135,9 @@ export const castableSecondary = (
   entity: TypedEntity<"INVENTORY">,
   item: TypedEntity<"ITEM">
 ) => {
+  // ensure melee is worn
+  if (!entity[EQUIPPABLE]?.sword) return false;
+
   const secondary = item[ITEM].secondary;
 
   if (secondary === "bow") {
@@ -152,10 +155,7 @@ export const castableSecondary = (
         world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
         "charge"
     );
-
-    // ensure melee is worn for slash
-    if (hasCharge && !(secondary === "slash" && !entity[EQUIPPABLE]?.sword))
-      return true;
+    if (hasCharge) return true;
   }
 
   return false;

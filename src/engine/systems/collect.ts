@@ -19,10 +19,12 @@ import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
 import {
+  createText,
   getMaxCounter,
   getStatSprite,
   woodStick,
 } from "../../game/assets/sprites";
+import * as colors from "../../game/assets/colors";
 import { createSequence, getSequence } from "./sequence";
 import { CollectSequence, SEQUENCABLE } from "../components/sequencable";
 import { STATS } from "../components/stats";
@@ -34,6 +36,8 @@ import { dropEntity } from "./drop";
 import { PLAYER } from "../components/player";
 import { getItemSprite } from "../../components/Entity/utils";
 import { isControllable } from "./freeze";
+import { getLootDelay, queueMessage } from "../../game/assets/utils";
+import { invertOrientation } from "../../game/math/path";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -88,6 +92,7 @@ export const collectItem = (
   world: World,
   entity: Entity,
   target: Entity,
+  orientation?: Orientation,
   fullStack = false
 ) => {
   // handle pick up
@@ -163,6 +168,17 @@ export const collectItem = (
       "itemCollect",
       { origin: target[POSITION], itemId, drop: false, amount: collectAmount }
     );
+
+    // initiate collecting animation on player
+    if (orientation) {
+      const sprite = getItemSprite(itemEntity[ITEM]);
+      queueMessage(world, entity, {
+        line: createText(`+${collectAmount} ${sprite.name}`, colors.silver),
+        orientation: invertOrientation(orientation),
+        fast: false,
+        delay: getLootDelay(world, entity, 1),
+      });
+    }
 
     // update walkable
     updateWalkable(world, target[POSITION]);
@@ -345,7 +361,7 @@ export default function setupCollect(world: World) {
 
       if (!targetEntity) continue;
 
-      collectItem(world, entity, targetEntity);
+      collectItem(world, entity, targetEntity, targetOrientation);
 
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;

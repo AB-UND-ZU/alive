@@ -21,10 +21,12 @@ import { BELONGABLE } from "../components/belongable";
 import { CASTABLE } from "../components/castable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
-import { none } from "../../game/assets/sprites";
+import { createText, none } from "../../game/assets/sprites";
 import { FOG } from "../components/fog";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
+import { queueMessage } from "../../game/assets/utils";
+import * as colors from "../../game/assets/colors";
 
 export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
 
@@ -166,6 +168,12 @@ export default function setupBurn(world: World) {
           "fireBurn",
           { generation: 0 }
         );
+        queueMessage(world, entity, {
+          line: createText("BURNING", colors.red),
+          orientation: "up",
+          fast: false,
+          delay: 0,
+        });
       }
     }
 

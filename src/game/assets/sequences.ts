@@ -143,6 +143,7 @@ import {
   InfoSequence,
   MarkerSequence,
   MeleeSequence,
+  Message,
   MessageSequence,
   PerishSequence,
   PointerSequence,
@@ -179,7 +180,7 @@ import {
   displayPopup,
   frameHeight,
   frameWidth,
-  lootSpeed,
+  getLootDelay,
   popupTime,
 } from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
@@ -646,31 +647,73 @@ export const transientMessage: Sequence<MessageSequence> = (
   entity,
   state
 ) => {
-  // currently only supports one character
-  const messageTime = state.args.fast
-    ? messageDuration
-    : healMultiplier * messageDuration;
-  const finished = state.elapsed > messageTime;
+  const finished = state.args.messages.length === 0;
   let updated = false;
 
-  if (!state.particles.counter) {
-    const counterParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: state.args.orientation === "down" ? 3 : -3,
-        offsetZ: tooltipHeight,
-        animatedOrigin: { x: 0, y: state.args.orientation === "down" ? 1 : -1 },
-        duration: messageTime,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: state.args.message[0],
-    });
-    state.particles.counter = world.getEntityId(counterParticle);
-  }
+  const remainingMessages: Message[] = [];
+  state.args.messages.forEach((message) => {
+    const isStarted = state.elapsed > message.delay;
+    const messageTime = message.fast
+      ? messageDuration
+      : healMultiplier * messageDuration;
+    const isExpired = state.elapsed >= message.delay + messageTime;
 
-  if (state.elapsed > messageTime && state.particles.counter) {
-    disposeEntity(world, world.assertById(state.particles.counter));
-    delete state.particles.counter;
+    if (isStarted && !isExpired && !("stack" in message)) {
+      // mark message as executing
+      message.stack = state.args.index;
+      state.args.index += 1;
+
+      message.line.forEach((char, index) => {
+        const charParticle = entities.createParticle(world, {
+          [PARTICLE]: {
+            offsetX: index - Math.floor(message.line.length / 2),
+            offsetY: message.orientation === "down" ? 3 : -3,
+            offsetZ: tooltipHeight,
+            animatedOrigin: {
+              x: index - Math.floor(message.line.length / 2),
+              y: message.orientation === "down" ? 1 : -1,
+            },
+            duration: messageTime,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: char,
+        });
+        state.particles[`char-${message.stack}-${index}`] =
+          world.getEntityId(charParticle);
+      });
+      updated = true;
+    } else if (isExpired && "stack" in message) {
+      // dispose message
+      for (const particleName in state.particles) {
+        if (!particleName.startsWith(`char-${message.stack}`)) continue;
+
+        const particleEntity = world.assertByIdAndComponents(
+          state.particles[particleName],
+          [PARTICLE]
+        );
+
+        disposeEntity(world, particleEntity);
+        delete state.particles[particleName];
+      }
+      updated = true;
+      return;
+    }
+    remainingMessages.push(message);
+  });
+
+  state.args.messages = remainingMessages;
+
+  // wipe all particles
+  if (finished && Object.keys(state.particles).length > 0) {
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
     updated = true;
   }
 
@@ -1859,15 +1902,7 @@ export const itemCollect: Sequence<CollectSequence> = (
 
   const distance = getDistance(entity[POSITION], state.args.origin, size);
   const delay = state.args.delay || 0;
-  const lootDelay =
-    MOVABLE in entity
-      ? Math.min(
-          200,
-          world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
-            REFERENCE
-          ].tick - 50
-        )
-      : lootSpeed * distance;
+  const lootDelay = getLootDelay(world, entity, distance);
 
   // add item to player's inventory
   if (state.elapsed >= lootDelay + delay) {

@@ -2,9 +2,11 @@ import { Entity } from "ecs";
 import { entities, World } from "../../engine";
 import type * as npcTypes from "./npcs";
 import type * as questTypes from "./quests";
-import { createSequence } from "../../engine/systems/sequence";
+import { createSequence, getSequence } from "../../engine/systems/sequence";
 import {
   InfoSequence,
+  Message,
+  MessageSequence,
   NpcSequence,
   QuestSequence,
   SEQUENCABLE,
@@ -31,6 +33,8 @@ import {
   popupUpStart,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
+import { MOVABLE } from "../../engine/components/movable";
+import { REFERENCE } from "../../engine/components/reference";
 
 export const lootSpeed = 200;
 export const decayTime = 300;
@@ -71,7 +75,7 @@ export type QuestStage<T extends StepAnimations> = {
   finished: boolean;
 };
 
-const STEP_DEBUG = true;
+const STEP_DEBUG = false;
 
 export const step = <T extends StepAnimations>({
   stage,
@@ -352,4 +356,42 @@ export const displayPopup = (
   }
 
   return { finished, updated };
+};
+
+export const getLootDelay = (world: World, entity: Entity, distance: number) =>
+  MOVABLE in entity
+    ? Math.min(
+        200,
+        world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
+          REFERENCE
+        ].tick - 50
+      )
+    : lootSpeed * distance;
+
+export const queueMessage = (
+  world: World,
+  entity: Entity,
+  message: Message
+) => {
+  const messageState = getSequence(world, entity, "message") as
+    | SequenceState<MessageSequence>
+    | undefined;
+
+  if (messageState) {
+    messageState.args.messages.push({
+      ...message,
+      delay: messageState.elapsed + message.delay,
+    });
+  } else {
+    createSequence<"message", MessageSequence>(
+      world,
+      entity,
+      "message",
+      "transientMessage",
+      {
+        messages: [message],
+        index: 0,
+      }
+    );
+  }
 };

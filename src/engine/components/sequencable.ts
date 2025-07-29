@@ -24,10 +24,16 @@ export type PointerSequence = {
   lastOrientation?: Orientation;
 };
 export type MarkerSequence = { amount: number };
-export type MessageSequence = {
-  message: Sprite[];
+export type Message = {
+  line: Sprite[];
   orientation: Orientation;
   fast: boolean;
+  delay: number;
+  stack?: number;
+};
+export type MessageSequence = {
+  messages: Message[];
+  index: number;
 };
 export type DecaySequence = { fast: boolean };
 export type BurnSequence = {

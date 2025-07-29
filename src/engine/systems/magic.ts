@@ -39,6 +39,7 @@ import { copy } from "../../game/math/std";
 import { none } from "../../game/assets/sprites";
 import { MOVABLE } from "../components/movable";
 import { consumeCharge } from "./trigger";
+import { isInPopup } from "./popup";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -56,8 +57,10 @@ export const getExertables = (world: World, position: Position) =>
     isExertable(world, target)
   ) as Entity[];
 
-// check if spell not currently active
+// check if spell not currently active or in popup
 export const canCast = (world: World, entity: Entity, item: Entity) => {
+  if (isInPopup(world, entity)) return false;
+
   const entityId = world.getEntityId(entity);
   return !world
     .getEntities([CASTABLE, SEQUENCABLE])

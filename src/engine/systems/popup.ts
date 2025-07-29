@@ -111,6 +111,14 @@ export const popupIdles = {
   sell: shop,
 };
 
+export const popupActions = {
+  craft: "CRAFT",
+  info: "READ",
+  quest: "QUEST",
+  buy: "SHOP",
+  sell: "SHOP",
+};
+
 export const createPopup = (
   world: World,
   entity: Entity,

@@ -17,7 +17,7 @@ import { getAttackable, isDead, isFriendlyFire } from "./damage";
 import { getCollecting, getLootable } from "./collect";
 import { isImmersible, isSubmerged } from "./immersion";
 import { LEVEL } from "../components/level";
-import { getLockable, isLocked } from "./action";
+import { canUnlock, getLockable, isLocked } from "./action";
 import { createBubble } from "./water";
 import { getOpaque } from "./enter";
 import { ENVIRONMENT } from "../components/environment";
@@ -25,6 +25,13 @@ import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { STATS } from "../components/stats";
 import { freezeMomentum, isFrozen } from "./freeze";
+import { queueMessage } from "../../game/assets/utils";
+import { createText } from "../../game/assets/sprites";
+import * as colors from "../../game/assets/colors";
+import { isTouch } from "../../components/Dimensions";
+import { invertOrientation } from "../../game/math/path";
+import { getPopup, isPopupAvailable, popupActions } from "./popup";
+import { Popup, POPUP } from "../components/popup";
 
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
@@ -159,7 +166,48 @@ export default function setupMovement(world: World) {
           y: normalize(entity[POSITION].y + delta.y, size),
         };
 
+        const lockable = getLockable(world, position);
+        const popup = getPopup(world, position);
         if (
+          !isWalkable(world, position) &&
+          lockable &&
+          isLocked(world, lockable)
+        ) {
+          // show message if unlockable
+          queueMessage(world, entity, {
+            line: createText(
+              canUnlock(world, entity, lockable)
+                ? isTouch
+                  ? "Tap on [OPEN]"
+                  : "SPACE to open"
+                : "Need key!",
+              colors.silver
+            ),
+            orientation: invertOrientation(orientation),
+            fast: false,
+            delay: 0,
+          });
+          continue;
+        } else if (
+          !isWalkable(world, position) &&
+          popup &&
+          isPopupAvailable(world, popup)
+        ) {
+          // show message if popup available
+          const action = popupActions[(popup[POPUP] as Popup).transaction];
+          queueMessage(world, entity, {
+            line: createText(
+              isTouch
+                ? `Tap on [${action}]`
+                : `SPACE to ${action.toLowerCase()}`,
+              colors.silver
+            ),
+            orientation: invertOrientation(orientation),
+            fast: false,
+            delay: 0,
+          });
+          continue;
+        } else if (
           isWalkable(world, position) ||
           (entity[MOVABLE].flying && isFlyable(world, position))
         ) {

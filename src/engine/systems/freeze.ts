@@ -23,6 +23,9 @@ import { isDead } from "./damage";
 import { getSwimmables } from "./immersion";
 import { SWIMMABLE } from "../components/swimmable";
 import { extinguishEntity } from "./burn";
+import { queueMessage } from "../../game/assets/utils";
+import { createText } from "../../game/assets/sprites";
+import * as colors from "../../game/assets/colors";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -188,6 +191,12 @@ export default function setupFreeze(world: World) {
           "unitFreeze",
           { total: entity[AFFECTABLE].freeze }
         );
+        queueMessage(world, entity, {
+          line: createText("FROZEN", colors.blue),
+          orientation: "up",
+          fast: false,
+          delay: 0,
+        });
       }
 
       // prevent movements

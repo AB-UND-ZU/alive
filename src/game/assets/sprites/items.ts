@@ -2,12 +2,12 @@ import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const heart: Sprite = {
-  name: "Heart",
+  name: "Health",
   layers: [{ char: "\u0102", color: colors.red }],
 };
 
 export const heartUp: Sprite = {
-  name: "+1 Health",
+  name: "Max Health",
   layers: [
     { char: "\u0102", color: colors.red },
     { char: "^", color: colors.lime },
@@ -20,7 +20,7 @@ export const mana: Sprite = {
 };
 
 export const manaUp: Sprite = {
-  name: "+1 Mana",
+  name: "Max Mana",
   layers: [
     { char: "\u0103", color: colors.blue },
     { char: "^", color: colors.lime },

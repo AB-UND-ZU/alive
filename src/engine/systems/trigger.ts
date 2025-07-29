@@ -10,7 +10,7 @@ import { TOOLTIP } from "../components/tooltip";
 import { INVENTORY } from "../components/inventory";
 import { Element, elements, Item, ITEM } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
-import { doorOpen, none } from "../../game/assets/sprites";
+import { createText, doorOpen, none } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
@@ -23,7 +23,7 @@ import {
   getUnlockKey,
 } from "./action";
 import { getItemSprite } from "../../components/Entity/utils";
-import { questSequence } from "../../game/assets/utils";
+import { questSequence, queueMessage } from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
 import {
   SEQUENCABLE,
@@ -57,6 +57,7 @@ import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { acceptQuest as ecsAcceptQuest, removeQuest } from "../utils";
 import { fenceDoor, fenceDoorOpen } from "../../game/assets/sprites/structures";
+import * as colors from "../../game/assets/colors";
 import { NPC } from "../components/npc";
 
 export const getAction = (world: World, entity: Entity) =>
@@ -393,7 +394,6 @@ export default function setupTrigger(world: World) {
 
       // skip if not actionable, not triggered, already interacted or not controllable
       if (
-        !getAction(world, entity) ||
         entity[MOVABLE].lastInteraction === entityReference ||
         (!isControllable(world, entity) && !isDead(world, entity)) ||
         !(
@@ -402,8 +402,6 @@ export default function setupTrigger(world: World) {
         )
       )
         continue;
-
-      entity[MOVABLE].lastInteraction = entityReference;
 
       const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
@@ -441,45 +439,93 @@ export default function setupTrigger(world: World) {
           reviveEntity(world, spawnEntity, entity);
         } else if (questEntity && canAcceptQuest(world, entity, questEntity)) {
           acceptQuest(world, entity, questEntity);
-        } else if (unlockEntity && canUnlock(world, entity, unlockEntity)) {
-          unlockDoor(world, entity, unlockEntity);
+        } else if (unlockEntity) {
+          if (canUnlock(world, entity, unlockEntity)) {
+            unlockDoor(world, entity, unlockEntity);
+          } else {
+            queueMessage(world, entity, {
+              line: createText("Need key!", colors.silver),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+            return;
+          }
         } else if (popupEntity && isPopupAvailable(world, popupEntity)) {
           openPopup(world, entity, popupEntity);
-        } else if (
-          claimEntity &&
-          isQuestCompleted(world, entity, claimEntity)
-        ) {
-          completeQuest(world, entity, claimEntity);
+        } else if (claimEntity) {
+          if (isQuestCompleted(world, entity, claimEntity)) {
+            completeQuest(world, entity, claimEntity);
+          } else {
+            queueMessage(world, entity, {
+              line: createText("Not completed!", colors.silver),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+            return;
+          }
         } else if (
           tradeEntity &&
           canShop(world, entity, getDeal(world, tradeEntity))
         ) {
           performTrade(world, entity, tradeEntity);
-        } else if (
-          primaryEntity &&
-          canCast(world, entity, primaryEntity) &&
-          entity[INVENTORY] &&
-          castablePrimary(
-            world,
-            entity as TypedEntity<"INVENTORY">,
-            primaryEntity
-          )
-        ) {
-          castSpell(world, entity, primaryEntity);
+        } else if (primaryEntity) {
+          if (
+            canCast(world, entity, primaryEntity) &&
+            entity[INVENTORY] &&
+            castablePrimary(
+              world,
+              entity as TypedEntity<"INVENTORY">,
+              primaryEntity
+            )
+          ) {
+            castSpell(world, entity, primaryEntity);
+          } else {
+            queueMessage(world, entity, {
+              line: createText("Need mana!", colors.silver),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+            return;
+          }
+        } else if (!primaryEntity) {
+          queueMessage(world, entity, {
+            line: createText("Need spell!", colors.silver),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+          return;
         }
       } else if (entity[ACTIONABLE].secondaryTriggered) {
         entity[ACTIONABLE].secondaryTriggered = false;
 
-        if (
-          secondaryEntity &&
-          entity[INVENTORY] &&
-          castableSecondary(
-            world,
-            entity as TypedEntity<"INVENTORY">,
-            secondaryEntity
-          )
-        ) {
-          if (secondaryEntity[ITEM].secondary === "bow") {
+        if (closeEntity) {
+          closePopup(world, entity, closeEntity);
+        } else if (secondaryEntity) {
+          if (
+            !castableSecondary(
+              world,
+              entity as TypedEntity<"INVENTORY">,
+              secondaryEntity
+            ) &&
+            entity[INVENTORY]
+          ) {
+            queueMessage(world, entity, {
+              line: createText(
+                secondaryEntity[ITEM].secondary === "bow"
+                  ? "Need arrow!"
+                  : "Need charge!",
+                colors.silver
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+            return;
+          } else if (secondaryEntity[ITEM].secondary === "bow") {
             shootArrow(world, entity, secondaryEntity);
           } else if (
             secondaryEntity[ITEM].secondary === "slash" &&
@@ -487,10 +533,18 @@ export default function setupTrigger(world: World) {
           ) {
             chargeSlash(world, entity, secondaryEntity);
           }
-        } else if (closeEntity) {
-          closePopup(world, entity, closeEntity);
+        } else if (!secondaryEntity) {
+          queueMessage(world, entity, {
+            line: createText("Need ability!", colors.silver),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+          return;
         }
       }
+
+      entity[MOVABLE].lastInteraction = entityReference;
     }
   };
 

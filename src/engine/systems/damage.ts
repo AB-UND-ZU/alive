@@ -18,11 +18,7 @@ import {
 import { EQUIPPABLE } from "../components/equippable";
 import { isGhost } from "./fate";
 import { createSequence } from "./sequence";
-import {
-  MarkerSequence,
-  MeleeSequence,
-  MessageSequence,
-} from "../components/sequencable";
+import { MarkerSequence, MeleeSequence } from "../components/sequencable";
 import { BELONGABLE, neutrals, tribes } from "../components/belongable";
 import { Stats, STATS } from "../components/stats";
 import * as colors from "../../game/assets/colors";
@@ -33,6 +29,8 @@ import { RECHARGABLE } from "../components/rechargable";
 import { INVENTORY } from "../components/inventory";
 import { DamageType } from "../components/castable";
 import { TypedEntity } from "../entities";
+import { queueMessage } from "../../game/assets/utils";
+import { invertOrientation } from "../../game/math/path";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -132,20 +130,15 @@ export const createAmountMarker = (
       amount,
     }
   );
-  createSequence<"message", MessageSequence>(
-    world,
-    entity,
-    "message",
-    "transientMessage",
-    {
-      message: createText(
-        Math.abs(amount).toString(),
-        amount === 0 ? colors.white : amount > 0 ? colors.lime : colors.red
-      ),
-      orientation,
-      fast: amount <= 0,
-    }
-  );
+  queueMessage(world, entity, {
+    line: createText(
+      Math.abs(amount).toString(),
+      amount === 0 ? colors.white : amount > 0 ? colors.lime : colors.red
+    ),
+    orientation,
+    fast: amount <= 0,
+    delay: 0,
+  });
 
   // increase total damage counter
   if (entity[PLAYER] && amount < 0) {
@@ -187,12 +180,8 @@ export default function setupDamage(world: World) {
 
       entityReferences[entityId] = entityGeneration;
 
-      // skip if entity has no sword equipped or already interacted
-      if (
-        !entity[EQUIPPABLE].sword ||
-        entity[MOVABLE].lastInteraction === entityGeneration
-      )
-        continue;
+      // skip if entity has already interacted
+      if (entity[MOVABLE].lastInteraction === entityGeneration) continue;
 
       // skip if not able to attack
       if (!isControllable(world, entity)) continue;
@@ -208,6 +197,17 @@ export default function setupDamage(world: World) {
 
       if (!targetEntity || isFriendlyFire(world, entity, targetEntity))
         continue;
+
+      // show message if entity has no sword
+      if (!entity[EQUIPPABLE].sword) {
+        queueMessage(world, entity, {
+          line: createText("Need sword!", colors.silver),
+          orientation: invertOrientation(targetOrientation),
+          fast: false,
+          delay: 0,
+        });
+        continue;
+      }
 
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;

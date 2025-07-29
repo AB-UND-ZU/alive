@@ -24,7 +24,6 @@ import { ACTIONABLE, actions } from "../../engine/components/actionable";
 import { normalize, repeat } from "../../game/math/std";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { createSprite, getItemSprite, getSegments } from "../Entity/utils";
-import { getAction } from "../../engine/systems/trigger";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { ITEM, Item } from "../../engine/components/item";
@@ -46,6 +45,7 @@ import {
   isInPopup,
   isPopupAvailable,
   isQuestCompleted,
+  popupActions,
   popupIdles,
 } from "../../engine/systems/popup";
 import { isControllable } from "../../engine/systems/freeze";
@@ -106,13 +106,6 @@ export const getActivationRow = (item?: Omit<Item, "carrier" | "bound">) => {
 
 const buttonWidth = 6;
 const inventoryWidth = 8;
-const popupActions = {
-  craft: "CRAFT",
-  info: "READ",
-  quest: "QUEST",
-  buy: "SHOP",
-  sell: "SHOP",
-};
 
 type Action = {
   name: string;
@@ -389,12 +382,10 @@ export default function Controls() {
 
       if (!reference) return;
 
-      // skip if waiting for any cooldowns or not actionable
+      // skip if already triggered
       if (
         heroEntity[ACTIONABLE].primaryTriggered ||
-        heroEntity[ACTIONABLE].secondaryTriggered ||
-        !getAction(ecs, heroEntity) ||
-        active?.disabled
+        heroEntity[ACTIONABLE].secondaryTriggered
       )
         return;
 
@@ -405,7 +396,7 @@ export default function Controls() {
       reference.suspensionCounter = reference.suspensionCounter === -1 ? -1 : 1;
       reference.suspended = false;
 
-      if (active) {
+      if (active && !active.disabled) {
         if (action === "primary") {
           setPrimary(active);
         } else {
