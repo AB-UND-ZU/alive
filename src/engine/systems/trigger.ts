@@ -535,7 +535,7 @@ export default function setupTrigger(world: World) {
           }
         } else if (!secondaryEntity) {
           queueMessage(world, entity, {
-            line: createText("Need ability!", colors.silver),
+            line: createText("Need item!", colors.silver),
             orientation: "up",
             fast: false,
             delay: 0,

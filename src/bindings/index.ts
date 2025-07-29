@@ -1467,7 +1467,7 @@ export const generateWorld = async (world: World) => {
         createDialog("Greetings traveler"),
         createDialog("I am the Mage"),
         createDialog("Get your spells here"),
-        createDialog("And abilities too"),
+        createDialog("And items too"),
         createDialog("They're fun actually"),
       ],
       persistent: false,

@@ -611,7 +611,11 @@ export default function Controls() {
     };
   }, [handleKey, handleTouchMove]);
 
-  const emptyPrimary = createButton(isTouch ? "" : "SPACE", buttonWidth, true);
+  const emptyPrimary = createButton(
+    isTouch ? "SPELL" : "SPACE",
+    buttonWidth,
+    true
+  );
   const pressedPrimary =
     primary && createButton("", buttonWidth, false, true, 0, primary.palette);
   const primaryButton =
@@ -626,7 +630,7 @@ export default function Controls() {
     );
   const leftButton = pressedPrimary || primaryButton || emptyPrimary;
   const emptySecondary = createButton(
-    isTouch ? "" : "SHIFT",
+    isTouch ? "ITEM" : "SHIFT",
     buttonWidth,
     true
   );
