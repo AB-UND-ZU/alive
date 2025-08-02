@@ -414,11 +414,11 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [
       { chance: 10, items: [{ stat: "xp", amount: 1 }] },
-      { chance: 10, items: [{ stackable: "berry", amount: 1 }] },
+      { chance: 10, items: [{ stackable: "fruit", amount: 1 }] },
       { chance: 10, items: [{ stackable: "apple", amount: 3 }] },
       { chance: 10, items: [{ stackable: "shroom", amount: 3 }] },
       { chance: 10, items: [{ stackable: "gem", amount: 3 }] },
-      { chance: 10, items: [{ stackable: "flower", amount: 1 }] },
+      { chance: 10, items: [{ stackable: "herb", amount: 1 }] },
       { chance: 10, items: [{ stackable: "crystal", amount: 3 }] },
       { chance: 10, items: [{ stackable: "banana", amount: 3 }] },
       { chance: 10, items: [{ stackable: "coconut", amount: 3 }] },
@@ -435,10 +435,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 100, items: [
-        { stat: "stick", amount: 1 },
-        { stat: "ore", amount: 2 },
-      ] },
+      {
+        chance: 100,
+        items: [
+          { stat: "stick", amount: 1 },
+          { stat: "ore", amount: 2 },
+        ],
+      },
     ],
     patternNames: [],
     sprite: sign,

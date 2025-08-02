@@ -77,7 +77,7 @@ export const flask2: Sprite = {
 };
 
 export const hpFlask1: Sprite = {
-  name: "Health",
+  name: "Potion",
   layers: [
     { char: "\u011d", color: colors.red },
     { char: "\u011f", color: colors.silver },
@@ -86,7 +86,7 @@ export const hpFlask1: Sprite = {
 };
 
 export const hpFlask2: Sprite = {
-  name: "Health",
+  name: "Flask",
   layers: [
     { char: '"', color: colors.grey },
     { char: "T", color: colors.silver },
@@ -96,7 +96,7 @@ export const hpFlask2: Sprite = {
 };
 
 export const mpFlask1: Sprite = {
-  name: "Mana",
+  name: "Potion",
   layers: [
     { char: "\u011d", color: colors.blue },
     { char: "\u011f", color: colors.silver },
@@ -105,7 +105,7 @@ export const mpFlask1: Sprite = {
 };
 
 export const mpFlask2: Sprite = {
-  name: "Mana",
+  name: "Flask",
   layers: [
     { char: '"', color: colors.grey },
     { char: "T", color: colors.silver },

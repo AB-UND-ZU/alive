@@ -12,7 +12,6 @@ import { FOG } from "../components/fog";
 import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
-import { TOOLTIP } from "../components/tooltip";
 import {
   none,
   arrow,
@@ -164,7 +163,6 @@ export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: drop ? shadow : none,
     [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
   return createItemInInventory(world, containerEntity, factory, entity);
 };
@@ -375,7 +373,6 @@ export const dropEntity = (
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: none,
       [SWIMMABLE]: { swimming: false },
-      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
     });
 
     // reset orientable e.g. from using sword

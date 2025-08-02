@@ -559,7 +559,7 @@ export const generateWorld = async (world: World) => {
       ],
       deals: [
         { stock: 1, item: { stat: "xp", amount: 1 }, price: [] },
-        { stock: 1, item: { stackable: "berry", amount: 1 }, price: [] },
+        { stock: 1, item: { stackable: "fruit", amount: 1 }, price: [] },
       ],
       targets: [{ unit: "prism", amount: 1 }],
     },
@@ -1317,12 +1317,12 @@ export const generateWorld = async (world: World) => {
     material: "water",
     amount: 10,
   };
-  const berryItem: Deal["item"] = {
-    stackable: "berry",
+  const fruitItem: Deal["item"] = {
+    stackable: "fruit",
     amount: 1,
   };
-  const flowerItem: Deal["item"] = {
-    stackable: "flower",
+  const herbItem: Deal["item"] = {
+    stackable: "herb",
     amount: 1,
   };
   const seedItem: Deal["item"] = {
@@ -1348,8 +1348,8 @@ export const generateWorld = async (world: World) => {
     deals: [
       healthItem,
       manaItem,
-      berryItem,
-      flowerItem,
+      fruitItem,
+      herbItem,
       seedItem,
       fireEssenceItem,
       waterEssenceItem,

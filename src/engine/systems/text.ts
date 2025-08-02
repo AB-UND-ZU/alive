@@ -11,9 +11,6 @@ import { TOOLTIP } from "../components/tooltip";
 import { Entity } from "ecs";
 import { createTooltip } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
-import { getLootable, isEmpty } from "./collect";
-import { INVENTORY } from "../components/inventory";
-import { ITEM } from "../components/item";
 import { isDead } from "./damage";
 import { isUnlocked } from "./action";
 import { DialogSequence, SEQUENCABLE } from "../components/sequencable";
@@ -118,17 +115,9 @@ export default function setupText(world: World) {
       );
 
       // check pending tooltip
-      const lootable = getLootable(world, tooltipEntity[POSITION]);
-      const item =
-        lootable &&
-        world.assertByIdAndComponents(lootable[INVENTORY].items.slice(-1)[0], [
-          ITEM,
-        ]);
-      const isStat = !!item?.[ITEM].stat;
-
       const isPending = !!getSequence(world, tooltipEntity, "dialog");
 
-      if (!pendingTooltip && isPending && !isStat && !isVisible && !isIdle) {
+      if (!pendingTooltip && isPending && !isVisible && !isIdle) {
         pendingTooltip = tooltipEntity;
       }
 
@@ -158,25 +147,15 @@ export default function setupText(world: World) {
         };
       const isAdjacent =
         delta && Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
-      const lootable = getLootable(world, tooltipEntity[POSITION]);
-      const item =
-        lootable &&
-        world.assertByIdAndComponents(lootable[INVENTORY].items.slice(-1)[0], [
-          ITEM,
-        ]);
-      const isStat = !!item?.[ITEM].stat;
-
       const isIdle = getSequence(world, tooltipEntity, "dialog")?.args.isIdle;
       const isPending = !!getSequence(world, tooltipEntity, "dialog");
       const isChanged = isIdle && isAdjacent;
       const needsUpdate =
         !isPending || (!tooltipEntity[TOOLTIP].changed && isChanged);
       const isDone =
-        isDead(world, tooltipEntity) ||
-        isEmpty(world, tooltipEntity) ||
-        isUnlocked(world, tooltipEntity);
+        isDead(world, tooltipEntity) || isUnlocked(world, tooltipEntity);
 
-      return needsUpdate && !isStat && !isDone;
+      return needsUpdate && !isDone;
     });
 
     for (const tooltipEntity of updatedTooltips) {
@@ -189,16 +168,9 @@ export default function setupText(world: World) {
         delta && Math.abs(delta.x) <= 1 && Math.abs(delta.y) <= 1;
       const isVisible = tooltipEntity[TOOLTIP].override === "visible";
 
-      const lootable = getLootable(world, tooltipEntity[POSITION]);
       const idle = tooltipEntity[TOOLTIP].idle;
       const dialogs = tooltipEntity[TOOLTIP].dialogs;
-      const spriteText =
-        (lootable &&
-          world.assertByIdAndComponents(
-            lootable[INVENTORY].items.slice(-1)[0],
-            [SPRITE]
-          )[SPRITE].name) ||
-        tooltipEntity[SPRITE].name;
+      const spriteText = tooltipEntity[SPRITE].name;
       const spriteTooltip = spriteText ? createTooltip(spriteText) : [];
       const isIdle =
         !isVisible &&

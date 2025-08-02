@@ -170,7 +170,7 @@ export const collectItem = (
     );
 
     // initiate collecting animation on player
-    if (orientation) {
+    if (orientation && itemEntity[ITEM].stat !== "hp") {
       const sprite = getItemSprite(itemEntity[ITEM]);
       queueMessage(world, entity, {
         line: createText(`+${collectAmount} ${sprite.name}`, colors.silver),

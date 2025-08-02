@@ -193,21 +193,21 @@ export const itemPrices: Partial<
   },
   potion1: {
     fire: [
-      { stackable: "berry", amount: 1 },
+      { stackable: "fruit", amount: 1 },
       { stat: "leaf", amount: 3 },
     ],
     water: [
-      { stackable: "flower", amount: 1 },
+      { stackable: "herb", amount: 1 },
       { stat: "leaf", amount: 3 },
     ],
   },
   potion2: {
     fire: [
-      { stackable: "berry", amount: 3 },
+      { stackable: "fruit", amount: 3 },
       { stackable: "seed", amount: 1 },
     ],
     water: [
-      { stackable: "flower", amount: 3 },
+      { stackable: "herb", amount: 3 },
       { stackable: "seed", amount: 1 },
     ],
   },
@@ -230,10 +230,10 @@ export const itemPrices: Partial<
       { stackable: "resource", material: "wood", amount: 1 },
     ],
   },
-  berry: {
+  fruit: {
     default: [{ stat: "berry", amount: 10 }],
   },
-  flower: {
+  herb: {
     default: [{ stat: "flower", amount: 10 }],
   },
   seed: {
@@ -250,8 +250,8 @@ export const itemPrices: Partial<
     gold: [{ stackable: "resource", material: "iron", amount: 5 }],
     diamond: [{ stackable: "resource", material: "gold", amount: 5 }],
     ruby: [{ stackable: "resource", material: "diamond", amount: 5 }],
-    fire: [{ stackable: "berry", amount: 5 }],
-    water: [{ stackable: "flower", amount: 5 }],
+    fire: [{ stackable: "fruit", amount: 5 }],
+    water: [{ stackable: "herb", amount: 5 }],
     earth: [{ stackable: "seed", amount: 5 }],
   },
 
@@ -302,11 +302,11 @@ export const getItemPrice = (
 - banana 85 * 0.1 = 8 → 3
 */
 export const itemSales: Partial<Record<Stackable, number>> = {
-  berry: 2,
+  fruit: 2,
   apple: 1,
   gem: 4,
   coconut: 3,
-  flower: 2,
+  herb: 2,
   shroom: 1,
   crystal: 4,
   banana: 3,
@@ -317,8 +317,8 @@ export const itemPurchases: [Deal["item"], number][] = [
   [{ stat: "hp", amount: 1 }, 3],
   [{ stat: "mp", amount: 1 }, 2],
   [{ stackable: "leaf", amount: 1 }, 1],
-  [{ stackable: "berry", amount: 1 }, 10],
-  [{ stackable: "flower", amount: 1 }, 10],
+  [{ stackable: "fruit", amount: 1 }, 10],
+  [{ stackable: "herb", amount: 1 }, 10],
   [{ stackable: "seed", amount: 1 }, 10],
   [{ stackable: "resource", material: "wood", amount: 1 }, 15],
   [{ stackable: "resource", material: "iron", amount: 1 }, 20],

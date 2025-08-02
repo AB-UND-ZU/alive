@@ -470,7 +470,6 @@ export const createCell = (
       [SPRITE]: ironMine,
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [COLLIDABLE]: {},
-      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
     });
   } else if (cell === "ore" || cell === "ore_one") {
     const oreEntity = entities.createOre(world, {
@@ -593,7 +592,6 @@ export const createCell = (
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: tree2,
         [RENDERABLE]: { generation: 0 },
-        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       populateInventory(
         world,
@@ -707,7 +705,6 @@ export const createCell = (
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: palm,
         [RENDERABLE]: { generation: 0 },
-        [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       });
       populateInventory(
         world,

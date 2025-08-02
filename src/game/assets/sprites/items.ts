@@ -7,7 +7,7 @@ export const heart: Sprite = {
 };
 
 export const heartUp: Sprite = {
-  name: "Max Health",
+  name: "Max HP",
   layers: [
     { char: "\u0102", color: colors.red },
     { char: "^", color: colors.lime },
@@ -20,7 +20,7 @@ export const mana: Sprite = {
 };
 
 export const manaUp: Sprite = {
-  name: "Max Mana",
+  name: "Max MP",
   layers: [
     { char: "\u0103", color: colors.blue },
     { char: "^", color: colors.lime },
@@ -337,8 +337,8 @@ export const berry: Sprite = {
   },
 };
 
-export const berryStack: Sprite = {
-  name: "Berry",
+export const fruit: Sprite = {
+  name: "Fruit",
   layers: [{ char: "\u0105", color: colors.purple }],
 };
 
@@ -378,8 +378,8 @@ export const flower: Sprite = {
   },
 };
 
-export const flowerStack: Sprite = {
-  name: "Flower",
+export const herb: Sprite = {
+  name: "Herb",
   layers: [{ char: "\u010e", color: colors.teal }],
 };
 

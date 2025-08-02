@@ -216,7 +216,6 @@ export const createContainer = entityFactory([
   SEQUENCABLE,
   SPRITE,
   SWIMMABLE,
-  TOOLTIP,
 ]);
 
 export const createCrafting = entityFactory([
@@ -292,7 +291,6 @@ export const createFruit = entityFactory([
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
-  TOOLTIP,
 ]);
 
 export const createGame = entityFactory([LEVEL, RENDERABLE, REFERENCE]);
@@ -377,7 +375,6 @@ export const createMine = entityFactory([
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
-  TOOLTIP,
 ]);
 
 export const createMob = entityFactory([
