@@ -13,7 +13,7 @@ import {
   power,
   xp,
 } from "./items";
-import { lerp, normalize, repeat } from "../../math/std";
+import { lerp, normalize, padCenter, repeat } from "../../math/std";
 import { Orientation } from "../../../engine/components/orientable";
 import {
   getFacingLayers,
@@ -1357,11 +1357,19 @@ export const createProgress = (
   const partial = normalize(value, 1);
   const segment = Math.floor(partial * progressResolution);
 
-  const text = `${stats[stat] || 0}/${stats[config.max!] || 99}`;
+  const text = padCenter(
+    ` ${(stats[stat] || 0).toString().padStart(2, " ")}/${(
+      stats[config.max!] || 99
+    )
+      .toString()
+      .padEnd(2, " ")}`,
+    width - 3
+  );
   const sprites = [
-    config.sprite,
-    ...repeat(none, width - text.length - 1),
     ...createText(text, config.color),
+    ...repeat(none, width - text.length - stat.length - 1),
+    config.sprite,
+    ...createText(stat.toUpperCase(), config.color),
   ];
 
   return [
