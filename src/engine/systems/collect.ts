@@ -78,10 +78,6 @@ export const isEmpty = (world: World, entity: Entity) =>
   entity[INVENTORY].items.length === 0 &&
   !isCollecting(world, entity);
 
-export const isFull = (world: World, entity: Entity) =>
-  INVENTORY in entity &&
-  entity[INVENTORY].items.length >= entity[INVENTORY].size;
-
 export const getCollectAmount = (world: World, item: Entity) => {
   if (item[ITEM].amount >= 5) return 3;
   if (item[ITEM].amount >= 4) return 2;
@@ -127,22 +123,10 @@ export const collectItem = (
 
       collectAmount = getCollectAmount(world, itemEntity);
       itemEntity[ITEM].amount -= collectAmount;
-    } else if (
-      (equipment || (stackable && fullStack)) &&
-      isFull(world, entity)
-    ) {
-      // skip if inventory full
-      continue;
     } else if (stackable && !fullStack) {
-      // skip if no more space to stack
-      if (
-        isFull(world, entity) &&
-        !getStackable(world, entity, itemEntity[ITEM])
-      ) {
-        continue;
-      } else {
-        itemEntity[ITEM].amount -= 1;
-      }
+      itemEntity[ITEM].amount -= 1;
+    } else if (fullStack || consume) {
+      collectAmount = itemEntity[ITEM].amount;
     }
 
     // remove from target inventory
@@ -193,7 +177,7 @@ export const addToInventory = (
   entity: Entity,
   itemEntity: Entity,
   fullStack = false,
-  amount = 1
+  amount = fullStack ? itemEntity[ITEM].amount : 1
 ) => {
   const entityId = world.getEntityId(entity);
   let targetEquipment = itemEntity[ITEM].equipment;
@@ -203,7 +187,11 @@ export const addToInventory = (
   let targetItem = itemEntity;
 
   // if no sword is equipped, use wood as stick
-  if (entity[MELEE] && !entity[EQUIPPABLE].sword && targetStat === "stick") {
+  if (
+    entity[MELEE] &&
+    !entity[EQUIPPABLE].sword &&
+    targetStackable === "stick"
+  ) {
     const woodSword = entities.createSword(world, {
       [ITEM]: {
         amount: getGearStat("sword", "wood"),
@@ -224,7 +212,9 @@ export const addToInventory = (
 
   const targetId = world.getEntityId(targetItem);
 
-  if (targetEquipment) {
+  if (amount === 0) {
+    // empty block
+  } else if (targetEquipment) {
     const existingId = entity[EQUIPPABLE][targetEquipment];
 
     // add existing render count if item is replaced
@@ -250,7 +240,7 @@ export const addToInventory = (
     (targetStackable && itemEntity[ITEM].amount === STACK_SIZE)
   ) {
     entity[INVENTORY].items.push(targetId);
-  } else if (targetStat && amount > 0) {
+  } else if (targetStat) {
     const maxStat = getMaxCounter(targetStat);
     const maximum = maxStat !== targetStat ? entity[STATS][maxStat] : 99;
     const collectAmount = fullStack ? itemEntity[ITEM].amount : amount;
@@ -295,7 +285,7 @@ export const addToInventory = (
         [RENDERABLE]: { generation: 0 },
       });
       const stackId = world.getEntityId(stackEntity);
-      stackEntity[ITEM].amount = 1;
+      stackEntity[ITEM].amount = amount;
       entity[INVENTORY].items.push(stackId);
     }
   }

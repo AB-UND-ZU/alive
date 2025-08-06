@@ -38,7 +38,6 @@ import { isUnlocked } from "../../engine/systems/action";
 import {
   addToInventory,
   collectItem,
-  getCollectAmount,
   isEmpty,
 } from "../../engine/systems/collect";
 import { isDead } from "../../engine/systems/damage";
@@ -927,7 +926,7 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
       const rightItems =
         state.args.transaction === "sell" ? [deal.item] : deal.price;
 
-      const itemSprite = getItemSprite(leftItem);
+      const itemSprite = getItemSprite(leftItem, "display");
       const itemText = createText(
         itemSprite.name,
         heroEntity && canShop(world, heroEntity, deal)
@@ -1943,9 +1942,7 @@ export const itemCollect: Sequence<CollectSequence> = (
         offsetZ: tooltipHeight,
         duration: lootDelay,
         animatedOrigin: delta,
-        amount: state.args.drop
-          ? itemEntity[ITEM].amount
-          : getCollectAmount(world, itemEntity),
+        amount: state.args.amount,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: itemEntity[ITEM].stat

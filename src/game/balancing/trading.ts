@@ -25,7 +25,7 @@ export const itemPrices: Partial<
 > = {
   sword: {
     // T1-T3
-    wood: [{ stat: "stick", amount: 1 }],
+    wood: [{ stackable: "stick", amount: 1 }],
     iron: [
       { equipment: "sword", material: "wood", amount: 1 },
       { stackable: "resource", material: "iron", amount: 3 },
@@ -123,19 +123,19 @@ export const itemPrices: Partial<
   // equipments
   slash: {
     default: [
-      { stat: "coin", amount: 5 },
+      { stackable: "coin", amount: 5 },
       { stackable: "seed", amount: 1 },
     ],
   },
   bow: {
     default: [
-      { stat: "coin", amount: 5 },
+      { stackable: "coin", amount: 5 },
       { stackable: "seed", amount: 1 },
     ],
   },
   block: {
     default: [
-      { stat: "coin", amount: 5 },
+      { stackable: "coin", amount: 5 },
       { stackable: "seed", amount: 1 },
     ],
   },
@@ -143,7 +143,7 @@ export const itemPrices: Partial<
   // spells
   wave1: {
     default: [
-      { stat: "coin", amount: 10 },
+      { stackable: "coin", amount: 10 },
       { consume: "potion1", material: "water", amount: 1 },
     ],
     fire: [
@@ -161,7 +161,7 @@ export const itemPrices: Partial<
   },
   beam1: {
     default: [
-      { stat: "coin", amount: 10 },
+      { stackable: "coin", amount: 10 },
       { consume: "potion1", material: "water", amount: 1 },
     ],
     fire: [
@@ -181,7 +181,7 @@ export const itemPrices: Partial<
   // tools
   torch: {
     default: [
-      { stat: "stick", amount: 1 },
+      { stackable: "stick", amount: 1 },
       { stackable: "resource", material: "fire", amount: 1 },
     ],
   },
@@ -189,16 +189,16 @@ export const itemPrices: Partial<
   // consumable
   key: {
     iron: [{ stackable: "resource", material: "iron", amount: 1 }],
-    gold: [{ stat: "coin", amount: 25 }],
+    gold: [{ stackable: "coin", amount: 25 }],
   },
   potion1: {
     fire: [
       { stackable: "fruit", amount: 1 },
-      { stat: "leaf", amount: 3 },
+      { stackable: "leaf", amount: 3 },
     ],
     water: [
       { stackable: "herb", amount: 1 },
-      { stat: "leaf", amount: 3 },
+      { stackable: "leaf", amount: 3 },
     ],
   },
   potion2: {
@@ -214,30 +214,30 @@ export const itemPrices: Partial<
 
   // countable
   stick: {
-    default: [{ stat: "leaf", amount: 3 }],
+    default: [{ stackable: "leaf", amount: 3 }],
   },
 
   // stackable
   arrow: {
     default: [
-      { stat: "stick", amount: 10 },
+      { stackable: "stick", amount: 10 },
       { stackable: "resource", material: "iron", amount: 1 },
     ],
   },
   charge: {
     default: [
-      { stat: "ore", amount: 10 },
+      { stackable: "ore", amount: 10 },
       { stackable: "resource", material: "wood", amount: 1 },
     ],
   },
   fruit: {
-    default: [{ stat: "berry", amount: 10 }],
+    default: [{ stackable: "berry", amount: 10 }],
   },
   herb: {
-    default: [{ stat: "flower", amount: 10 }],
+    default: [{ stackable: "flower", amount: 10 }],
   },
   seed: {
-    default: [{ stat: "leaf", amount: 10 }],
+    default: [{ stackable: "leaf", amount: 10 }],
   },
   ingot: {
     default: [{ stackable: "resource", material: "gold", amount: 10 }],
@@ -245,8 +245,8 @@ export const itemPrices: Partial<
 
   // resources
   resource: {
-    wood: [{ stat: "stick", amount: 10 }],
-    iron: [{ stat: "ore", amount: 10 }],
+    wood: [{ stackable: "stick", amount: 10 }],
+    iron: [{ stackable: "ore", amount: 10 }],
     gold: [{ stackable: "resource", material: "iron", amount: 5 }],
     diamond: [{ stackable: "resource", material: "gold", amount: 5 }],
     ruby: [{ stackable: "resource", material: "diamond", amount: 5 }],
@@ -256,15 +256,15 @@ export const itemPrices: Partial<
   },
 
   // countables
-  ore: { default: [{ stat: "coin", amount: 2 }] },
+  ore: { default: [{ stackable: "coin", amount: 2 }] },
 
   // stats
-  maxHp: { default: [{ stat: "coin", amount: 10 }] },
-  maxMp: { default: [{ stat: "coin", amount: 10 }] },
-  power: { default: [{ stat: "coin", amount: 10 }] },
-  magic: { default: [{ stat: "coin", amount: 10 }] },
-  armor: { default: [{ stat: "coin", amount: 10 }] },
-  haste: { default: [{ stat: "coin", amount: 10 }] },
+  maxHp: { default: [{ stackable: "coin", amount: 10 }] },
+  maxMp: { default: [{ stackable: "coin", amount: 10 }] },
+  power: { default: [{ stackable: "coin", amount: 10 }] },
+  magic: { default: [{ stackable: "coin", amount: 10 }] },
+  armor: { default: [{ stackable: "coin", amount: 10 }] },
+  haste: { default: [{ stackable: "coin", amount: 10 }] },
 };
 
 export const getItemPrice = (

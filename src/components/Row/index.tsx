@@ -1,5 +1,5 @@
-import { STACK_SIZE } from "../../engine/components/item";
 import { Layer, Sprite } from "../../engine/components/sprite";
+import { dotCount } from "../Entity/Dots";
 import { getFacingLayers } from "../Entity/utils";
 import "./index.css";
 
@@ -29,10 +29,10 @@ function Cell({
                 className="Dot"
                 style={{
                   top: `calc(var(--pixel-size) * (13 + ${
-                    index >= STACK_SIZE / 2 ? 2 : 0
+                    index >= dotCount ? 2 : 0
                   }))`,
                   left: `calc(0.95 * var(--pixel-size) * ${
-                    (index % (STACK_SIZE / 2)) * 2
+                    (index % dotCount) * 2
                   })`,
                 }}
               ></span>

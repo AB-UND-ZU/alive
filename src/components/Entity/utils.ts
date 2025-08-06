@@ -29,6 +29,8 @@ import {
   banana,
   bananaDrop,
   beamSpell,
+  berry,
+  berryDrop,
   blockActive,
   bombActive,
   bowActive,
@@ -36,6 +38,7 @@ import {
   charm,
   coconut,
   coconutDrop,
+  coin,
   compass,
   crystal,
   diamond,
@@ -73,6 +76,8 @@ import {
   fireTrap,
   fireWave1Spell,
   fireWave2Spell,
+  flower,
+  flowerDrop,
   fruit,
   gem,
   getStatSprite,
@@ -90,9 +95,12 @@ import {
   ironSword,
   leaf,
   map,
+  minCountable,
   mpFlask1,
   mpFlask2,
   none,
+  ore,
+  oreDrop,
   pet,
   rainbowCharm2,
   rainbowPet2,
@@ -106,6 +114,7 @@ import {
   seed,
   shroom,
   slashActive,
+  stick,
   torch,
   trap,
   voidCharm2,
@@ -301,7 +310,12 @@ const entitySprites: Record<
   | Stackable
   | Consumable
   | Materialized,
-  Partial<Record<Material | "default", { sprite: Sprite; resource?: Sprite }>>
+  Partial<
+    Record<
+      Material | "default",
+      { sprite: Sprite; resource?: Sprite; display?: Sprite }
+    >
+  >
 > = {
   // gear
   sword: {
@@ -458,6 +472,31 @@ const entitySprites: Record<
   },
 
   // stackable
+  coin: { default: { sprite: coin, display: minCountable(coin) } },
+  stick: { default: { sprite: stick, display: minCountable(stick) } },
+  ore: {
+    default: { sprite: oreDrop, resource: ore, display: minCountable(oreDrop) },
+  },
+  berry: {
+    default: {
+      sprite: berryDrop,
+      resource: berry,
+      display: minCountable(berryDrop),
+    },
+  },
+  flower: {
+    default: {
+      sprite: flowerDrop,
+      resource: flower,
+      display: minCountable(flowerDrop),
+    },
+  },
+  leaf: {
+    default: {
+      sprite: leaf,
+      display: minCountable(leaf),
+    },
+  },
   apple: { default: { sprite: appleDrop, resource: apple } },
   shroom: { default: { sprite: shroom } },
   banana: { default: { sprite: bananaDrop, resource: banana } },
@@ -476,7 +515,6 @@ const entitySprites: Record<
     diamond: { sprite: diamond },
     ruby: { sprite: ruby },
   },
-  leaf: { default: { sprite: leaf } },
   seed: { default: { sprite: seed } },
   ingot: { default: { sprite: ingot } },
   worm: { default: { sprite: worm } },
@@ -489,19 +527,16 @@ export const getItemSprite = (
   item: Omit<Item, "amount" | "carrier" | "bound"> & {
     materialized?: Materialized;
   },
-  variant?: "resource"
+  variant?: "resource" | "display",
+  orientation?: Orientation
 ) => {
   const material = item.material || "default";
   if (item.stackable) {
     const spriteConfig = entitySprites[item.stackable][material];
-    return (
-      (variant === "resource" && spriteConfig?.resource) ||
-      spriteConfig?.sprite ||
-      none
-    );
+    return (variant && spriteConfig?.[variant]) || spriteConfig?.sprite || none;
   }
 
-  if (item.stat) return getStatSprite(item.stat);
+  if (item.stat) return getStatSprite(item.stat, variant);
 
   const lookup = item.equipment || item.consume || item.materialized;
 
@@ -522,7 +557,12 @@ export const getItemSprite = (
     );
 
   // don't render claws
-  if (lookup === "sword" && !item.material) return none;
+  const sprite = entitySprites[lookup][material]?.sprite;
 
-  return entitySprites[lookup][material]?.sprite || none;
+  if (!sprite || (lookup === "sword" && !item.material)) return none;
+
+  return {
+    ...sprite,
+    layers: getFacingLayers(sprite, orientation),
+  };
 };

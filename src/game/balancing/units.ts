@@ -393,12 +393,12 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 30, items: [{ stat: "coin", amount: 3 }] },
-      { chance: 10, items: [{ stat: "berry", amount: 3 }] },
-      { chance: 10, items: [{ stat: "flower", amount: 3 }] },
-      { chance: 10, items: [{ stat: "leaf", amount: 3 }] },
-      { chance: 10, items: [{ stat: "ore", amount: 3 }] },
-      { chance: 10, items: [{ stat: "stick", amount: 3 }] },
+      { chance: 30, items: [{ stackable: "coin", amount: 3 }] },
+      { chance: 10, items: [{ stackable: "berry", amount: 3 }] },
+      { chance: 10, items: [{ stackable: "flower", amount: 3 }] },
+      { chance: 10, items: [{ stackable: "leaf", amount: 3 }] },
+      { chance: 10, items: [{ stackable: "ore", amount: 3 }] },
+      { chance: 10, items: [{ stackable: "stick", amount: 3 }] },
       { chance: 10, items: [{ stat: "hp", amount: 1 }] },
       { chance: 10, items: [{ stat: "mp", amount: 1 }] },
     ],
@@ -438,8 +438,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { stat: "stick", amount: 1 },
-          { stat: "ore", amount: 2 },
+          { stackable: "stick", amount: 1 },
+          { stackable: "ore", amount: 2 },
         ],
       },
     ],
@@ -476,7 +476,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 70, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
       { chance: 30, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
@@ -490,7 +490,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     mp: 0,
     equipments: [],
     drops: [
-      { chance: 70, items: [{ stat: "ore", amount: 1 }] },
+      { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
       { chance: 30, items: [{ stackable: "gem", amount: 1 }] },
     ],
     patternNames: [],
@@ -503,7 +503,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     hp: 5,
     mp: 0,
     equipments: [],
-    drops: [{ chance: 100, items: [{ stat: "stick", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "stick", amount: 1 }] }],
     patternNames: ["tumbleweed"],
     sprite: tumbleweed,
   },
@@ -514,7 +514,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     hp: 10,
     mp: 0,
     equipments: [],
-    drops: [{ chance: 100, items: [{ stat: "leaf", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "leaf", amount: 1 }] }],
     patternNames: [],
     sprite: hedge1,
   },
@@ -525,7 +525,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     hp: 7,
     mp: 0,
     equipments: [],
-    drops: [{ chance: 100, items: [{ stat: "leaf", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "leaf", amount: 1 }] }],
     patternNames: [],
     sprite: hedge2,
   },
@@ -543,7 +543,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [
-      { chance: 70, items: [{ stat: "coin", amount: 1 }] },
+      { chance: 70, items: [{ stackable: "coin", amount: 1 }] },
       { chance: 15, items: [{ stat: "xp", amount: 1 }] },
       { chance: 15, items: [{ stat: "mp", amount: 1 }] },
     ],
@@ -567,7 +567,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { stat: "coin", amount: 3 },
+          { stackable: "coin", amount: 3 },
           { stat: "xp", amount: 1 },
           { stat: "mp", amount: 1 },
         ],
@@ -590,7 +590,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [
-      { chance: 70, items: [{ stat: "coin", amount: 1 }] },
+      { chance: 70, items: [{ stackable: "coin", amount: 1 }] },
       { chance: 15, items: [{ stat: "xp", amount: 1 }] },
       { chance: 15, items: [{ stat: "hp", amount: 1 }] },
     ],
@@ -614,7 +614,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { stat: "coin", amount: 3 },
+          { stackable: "coin", amount: 3 },
           { stat: "xp", amount: 1 },
           { stat: "hp", amount: 1 },
         ],
@@ -638,7 +638,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [
-      { chance: 70, items: [{ stat: "coin", amount: 1 }] },
+      { chance: 70, items: [{ stackable: "coin", amount: 1 }] },
       { chance: 15, items: [{ stat: "xp", amount: 1 }] },
       { chance: 15, items: [{ stat: "mp", amount: 1 }] },
     ],
@@ -664,7 +664,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { stat: "coin", amount: 3 },
+          { stackable: "coin", amount: 3 },
           { stat: "hp", amount: 1 },
           { stat: "mp", amount: 1 },
         ],

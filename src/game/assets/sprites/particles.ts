@@ -3,28 +3,24 @@ import { Layer, Sprite } from "../../../engine/components/sprite";
 import { Countable, Stats } from "../../../engine/components/stats";
 import {
   armor,
-  berry,
-  berryDrop,
-  coin,
-  flower,
-  flowerDrop,
   haste,
   heart,
   heartUp,
-  leaf,
   level,
   magic,
   mana,
   manaUp,
-  ore,
-  oreDrop,
   power,
-  stick,
   xp,
 } from "./items";
-import { repeat } from "../../math/std";
+import { lerp, normalize, repeat } from "../../math/std";
 import { Orientation } from "../../../engine/components/orientable";
-import { getFacingLayers } from "../../../components/Entity/utils";
+import {
+  getFacingLayers,
+  getItemSprite,
+} from "../../../components/Entity/utils";
+import { Item } from "../../../engine/components/item";
+import { none } from "./terrain";
 
 export const block: Sprite = {
   name: "block_solid",
@@ -968,7 +964,11 @@ export const createTooltip = (text: string) => [
 
 export const buttonPalettes = {
   white: { background: colors.white, text: colors.black, shadow: colors.grey },
-  silver: { background: colors.silver, text: colors.black, shadow: colors.grey },
+  silver: {
+    background: colors.silver,
+    text: colors.black,
+    shadow: colors.grey,
+  },
   lime: { background: colors.lime, text: colors.black, shadow: colors.green },
   red: { background: colors.red, text: colors.black, shadow: colors.maroon },
   yellow: {
@@ -1214,7 +1214,12 @@ const nonCountable = (sprite: Sprite) => ({
   layers: sprite.layers,
 });
 
-const maxCountable = (sprite: Sprite) => ({
+export const minCountable = (sprite: Sprite) => ({
+  name: sprite.name,
+  layers: sprite.amounts?.single || sprite.layers,
+});
+
+export const maxCountable = (sprite: Sprite) => ({
   name: sprite.name,
   layers: sprite.amounts?.multiple || sprite.layers,
 });
@@ -1223,6 +1228,7 @@ const statConfig: Record<
   keyof Stats,
   {
     color: string;
+    background?: string;
     sprite: Sprite;
     drop?: Sprite;
     max?: keyof Countable;
@@ -1230,14 +1236,25 @@ const statConfig: Record<
     display?: Sprite;
   }
 > = {
-  hp: { color: colors.red, sprite: heart, max: "maxHp" },
+  hp: {
+    color: colors.red,
+    background: colors.maroon,
+    sprite: heart,
+    max: "maxHp",
+  },
   maxHp: { color: "#404040", sprite: heartUp, max: "maxHpCap" },
   maxHpCap: { color: "#404040", sprite: heartUp },
-  mp: { color: colors.blue, sprite: mana, max: "maxMp" },
+  mp: {
+    color: colors.blue,
+    background: colors.navy,
+    sprite: mana,
+    max: "maxMp",
+  },
   maxMp: { color: "#404040", sprite: manaUp, max: "maxMpCap" },
   maxMpCap: { color: "#404040", sprite: manaUp },
   xp: {
     color: colors.lime,
+    background: colors.green,
     sprite: nonCountable(xp),
     drop: xp,
     resource: xp,
@@ -1248,38 +1265,6 @@ const statConfig: Record<
   level: {
     color: colors.white,
     sprite: level,
-  },
-  coin: {
-    color: colors.yellow,
-    sprite: nonCountable(coin),
-    drop: coin,
-    resource: coin,
-  },
-  stick: { color: colors.maroon, sprite: stick, display: maxCountable(stick) },
-  ore: {
-    color: colors.silver,
-    sprite: oreDrop,
-    resource: ore,
-    display: maxCountable(oreDrop),
-  },
-  flower: {
-    color: colors.teal,
-    sprite: flower,
-    drop: flowerDrop,
-    resource: flower,
-    display: maxCountable(flower),
-  },
-  berry: {
-    color: colors.purple,
-    sprite: berry,
-    drop: berryDrop,
-    resource: berry,
-    display: maxCountable(berry),
-  },
-  leaf: {
-    color: colors.green,
-    sprite: leaf,
-    display: maxCountable(leaf),
   },
   power: {
     color: colors.lime,
@@ -1345,6 +1330,63 @@ export const getStatSprite = (
   (variant === "resource" && statConfig[stat].resource) ||
   (variant === "display" && statConfig[stat].display) ||
   statConfig[stat].sprite;
+
+export const createItemText = (item: Omit<Item, "carrier" | "bound">) => {
+  const stringified = item.amount.toString();
+  const sprite = getItemSprite(item);
+
+  return [
+    ...createText(stringified, colors.grey),
+    sprite,
+    ...createText(sprite.name, colors.grey),
+  ];
+};
+
+const progressResolution = 2;
+export const createProgress = (
+  stats: Partial<Stats>,
+  stat: keyof Stats,
+  width: number,
+  depletable = true
+) => {
+  const config = statConfig[stat];
+  const background = config.background || colors.grey;
+  const maximum = (config.max && stats[config.max]) || 99;
+  const value = lerp(0, width, (stats[stat] || 0) / maximum);
+  const full = Math.floor(value);
+  const partial = normalize(value, 1);
+  const segment = Math.floor(partial * progressResolution);
+
+  const text = `${stats[stat] || 0}/${stats[config.max!] || 99}`;
+  const sprites = [
+    config.sprite,
+    ...repeat(none, width - text.length - 1),
+    ...createText(text, config.color),
+  ];
+
+  return [
+    ...createText("█".repeat(full), background),
+    ...(full < width
+      ? [
+          {
+            name: "progress",
+            layers: [[], [{ char: "▌", color: background }]][
+              full === 0 && partial > 0 && !depletable ? 1 : segment
+            ],
+          },
+        ]
+      : []),
+    ...repeat(none, width - full - 1),
+  ].map((sprite, index) => ({
+    ...sprite,
+    layers: [
+      { char: "░", color: background },
+      ...sprite.layers,
+      { char: "▀", color: colors.black },
+      ...sprites[index].layers,
+    ],
+  }));
+};
 
 export const quest = createText("?", colors.lime)[0];
 export const ongoing = createText("?", colors.silver)[0];

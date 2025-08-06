@@ -23,7 +23,7 @@ import * as colors from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
 import { normalize, repeat } from "../../game/math/std";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
-import { createSprite, getItemSprite, getSegments } from "../Entity/utils";
+import { getItemSprite, getSegments } from "../Entity/utils";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { ITEM, Item } from "../../engine/components/item";
@@ -155,7 +155,6 @@ export default function Controls() {
   const dimensions = useDimensions();
   const { ecs, setPaused } = useWorld();
   const hero = useHero();
-  const inventorySize = hero?.[INVENTORY]?.size || 0;
   const heroRef = useRef<Entity>();
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
@@ -660,7 +659,13 @@ export default function Controls() {
       ? (hero[INVENTORY] as Inventory).items.map((itemId) => {
           const inventoryItem = ecs.assertByIdAndComponents(itemId, [ITEM]);
           return {
-            ...createSprite(ecs, itemId),
+            ...getItemSprite(
+              inventoryItem[ITEM],
+              "display",
+              inventoryItem[ITEM].equipment === "compass"
+                ? inventoryItem[ORIENTABLE]?.facing
+                : undefined
+            ),
             stackableAmount:
               (inventoryItem[ITEM].stackable || inventoryItem[ITEM].consume) &&
               inventoryItem[ITEM].amount,
@@ -670,9 +675,7 @@ export default function Controls() {
   const itemRows = [0, 1, 2].map((row) => {
     return Array.from({ length: inventoryWidth }).map(
       (_, columnIndex) =>
-        (columnIndex < inventorySize / 3 &&
-          itemSprites[row * (inventorySize / 3) + columnIndex]) ||
-        none
+        itemSprites[row * inventoryWidth + columnIndex] || none
     );
   });
 

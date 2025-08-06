@@ -18,30 +18,25 @@ import {
 } from "../engine/systems/drop";
 import { getEnterable } from "../engine/systems/enter";
 import {
-  berry,
   block,
   blockDown,
   blockUp,
   bush,
   campfire,
-  coin,
   createDialog,
   createText,
   doorClosedIron,
   doorClosedWood,
   doorOpen,
-  flower,
   fog,
   getStatSprite,
   grass,
   ice,
   ironKey,
   ironMine,
-  leaf,
   leaves,
   none,
   oakBurnt,
-  oreDrop,
   palm1,
   palm2,
   palmBurnt1,
@@ -51,9 +46,7 @@ import {
   rock1,
   rock2,
   sand,
-  shroom,
   stem,
-  stick,
   tree1,
   tree2,
   treeBurnt1,
@@ -446,7 +439,7 @@ export const createCell = (
         remains: cell === "desert_rock" ? sand : undefined,
       },
       [FOG]: { visibility, type: "terrain" },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -473,7 +466,7 @@ export const createCell = (
     });
   } else if (cell === "ore" || cell === "ore_one") {
     const oreEntity = entities.createOre(world, {
-      [INVENTORY]: { items: [], size: 1 },
+      [INVENTORY]: { items: [] },
       [LOOTABLE]: { disposable: false },
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
@@ -489,7 +482,7 @@ export const createCell = (
       [
         {
           amount: cell === "ore" ? distribution(80, 15, 5) + 1 : 1,
-          stat: "ore",
+          stackable: "ore",
           bound: false,
         },
       ]
@@ -505,11 +498,11 @@ export const createCell = (
     });
     createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
-        stat: "ore",
+        stackable: "ore",
         amount: 1,
         bound: false,
       },
-      [SPRITE]: oreDrop,
+      [SPRITE]: getItemSprite({ stackable: "ore" }),
     });
   } else if (cell === "block") {
     entities.createTerrain(world, {
@@ -566,11 +559,11 @@ export const createCell = (
   } else if (cell === "wood" || cell === "wood_two") {
     const woodEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
-        stat: "stick",
+        stackable: "stick",
         amount: cell === "wood" ? distribution(80, 15, 5) + 1 : 2,
         bound: false,
       },
-      [SPRITE]: stick,
+      [SPRITE]: getItemSprite({ stackable: "stick" }, "resource"),
     });
     if (cell === "wood_two")
       setIdentifier(world, world.assertById(woodEntity[ITEM].carrier), cell);
@@ -586,7 +579,7 @@ export const createCell = (
         },
         [COLLIDABLE]: {},
         [FOG]: { visibility, type: "terrain" },
-        [INVENTORY]: { items: [], size: 1 },
+        [INVENTORY]: { items: [] },
         [LOOTABLE]: { disposable: false },
         [POSITION]: { x, y },
         [SEQUENCABLE]: { states: {} },
@@ -616,7 +609,7 @@ export const createCell = (
             stackable: "shroom",
             bound: false,
           },
-          [SPRITE]: shroom,
+          [SPRITE]: getItemSprite({ stackable: "shroom" }),
         },
         false
       );
@@ -699,7 +692,7 @@ export const createCell = (
         },
         [COLLIDABLE]: {},
         [FOG]: { visibility, type: "terrain" },
-        [INVENTORY]: { items: [], size: 1 },
+        [INVENTORY]: { items: [] },
         [LOOTABLE]: { disposable: false },
         [POSITION]: { x, y },
         [SEQUENCABLE]: { states: {} },
@@ -757,7 +750,7 @@ export const createCell = (
       },
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "terrain" },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -778,7 +771,7 @@ export const createCell = (
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "unit" },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [MOVABLE]: {
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
@@ -829,11 +822,11 @@ export const createCell = (
         entities.createItem,
         {
           [ITEM]: {
-            stat: "berry",
+            stackable: "berry",
             amount: cell === "berry" ? distribution(80, 15, 5) + 1 : 1,
             bound: false,
           },
-          [SPRITE]: berry,
+          [SPRITE]: getItemSprite({ stackable: "berry" }, "resource"),
         },
         false
       );
@@ -859,11 +852,11 @@ export const createCell = (
         entities.createItem,
         {
           [ITEM]: {
-            stat: "flower",
+            stackable: "flower",
             amount: cell === "flower" ? distribution(80, 15, 5) + 1 : 1,
             bound: false,
           },
-          [SPRITE]: flower,
+          [SPRITE]: getItemSprite({ stackable: "flower" }, "resource"),
         },
         false
       );
@@ -871,20 +864,20 @@ export const createCell = (
   } else if (cell === "leaf") {
     createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
-        stat: "leaf",
+        stackable: "leaf",
         amount: distribution(80, 15, 5) + 1,
         bound: false,
       },
-      [SPRITE]: leaf,
+      [SPRITE]: getItemSprite({ stackable: "leaf" }, "resource"),
     });
   } else if (cell === "coin_one") {
     const coinItem = createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
-        stat: "coin",
+        stackable: "coin",
         amount: 1,
         bound: false,
       },
-      [SPRITE]: coin,
+      [SPRITE]: getItemSprite({ stackable: "coin" }, "resource"),
     });
     setIdentifier(world, world.assertById(coinItem[ITEM].carrier), "coin");
   } else if (cell === "cactus") {
@@ -902,7 +895,7 @@ export const createCell = (
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false, remains: sand },
       [FOG]: { visibility, type: "terrain" },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -966,7 +959,7 @@ export const createCell = (
         remains: choice(fenceBurnt1, fenceBurnt2),
       },
       [FOG]: { visibility: "hidden", type: "terrain" },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [LAYER]: {},
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1026,7 +1019,7 @@ export const createCell = (
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "terrain" },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [LAYER]: {},
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1035,11 +1028,17 @@ export const createCell = (
       [STATS]: {
         ...emptyStats,
         ...stats,
-        ...(cell === "intro_pot" ? { coin: 3 } : {}),
       },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
     });
     if (cell === "intro_pot") {
+      createItemInInventory(world, potEntity, entities.createItem, {
+        [ITEM]: {
+          stackable: "coin",
+          amount: 3,
+        },
+        [SPRITE]: getItemSprite({ stackable: "coin" }),
+      });
       setIdentifier(world, potEntity, "pot");
     } else {
       populateInventory(world, potEntity, items, equipments);
@@ -1108,7 +1107,7 @@ export const createCell = (
       [DROPPABLE]: { decayed: false },
       [DISPLACABLE]: {},
       [FOG]: { visibility, type: "terrain" },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MOVABLE]: {
         orientations: [],
@@ -1142,7 +1141,7 @@ export const createCell = (
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility, type: "unit" },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MELEE]: { bumpGeneration: 0 },
       [MOVABLE]: {
@@ -1474,7 +1473,7 @@ export const createCell = (
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility, type: "unit" },
-      [INVENTORY]: { items: [], size: 5 },
+      [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MELEE]: { bumpGeneration: 0 },
       [MOVABLE]: {
@@ -1520,7 +1519,7 @@ export const createCell = (
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility, type: "unit" },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MELEE]: { bumpGeneration: 0 },
       [MOVABLE]: {
@@ -1565,7 +1564,7 @@ export const createCell = (
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility: "hidden", type: "unit" },
-      [INVENTORY]: { items: [], size: 5 },
+      [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MELEE]: { bumpGeneration: 0 },
       [MOVABLE]: {

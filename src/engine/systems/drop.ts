@@ -12,13 +12,7 @@ import { FOG } from "../components/fog";
 import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
-import {
-  none,
-  arrow,
-  getStatSprite,
-  shadow,
-  charge,
-} from "../../game/assets/sprites";
+import { none, arrow, shadow, charge } from "../../game/assets/sprites";
 import { Item, ITEM, STACK_SIZE } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
@@ -40,12 +34,7 @@ import {
   Orientation,
   orientationPoints,
 } from "../components/orientable";
-import {
-  droppableCountables,
-  emptyStats,
-  Stats,
-  STATS,
-} from "../components/stats";
+import { STATS } from "../components/stats";
 import { decayTime, lootSpeed } from "../../game/assets/utils";
 import { SPAWNABLE } from "../components/spawnable";
 import { LAYER } from "../components/layer";
@@ -56,6 +45,7 @@ import { setIdentifier } from "../utils";
 import { getBurning } from "./burn";
 import { PLAYER } from "../components/player";
 import { NPC } from "../components/npc";
+import { getItemSprite } from "../../components/Entity/utils";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -155,7 +145,7 @@ export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
 ) => {
   const containerEntity = entities.createContainer(world, {
     [FOG]: { visibility: "fog", type: "terrain" },
-    [INVENTORY]: { items: [], size: 1 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [LOOTABLE]: { disposable: true },
     [POSITION]: position,
@@ -238,7 +228,6 @@ export const dropEntity = (
   orientation?: Orientation,
   delay?: number
 ) => {
-  const stats: Stats = { ...emptyStats, ...entity[STATS] };
   const inventory = entity[INVENTORY]?.items || [];
   const remains = entity[DROPPABLE]?.remains;
 
@@ -260,11 +249,22 @@ export const dropEntity = (
     );
   });
   if (stickId) {
-    const stickEntity = world.assertById(stickId);
-    removeFromInventory(world, entity, stickEntity);
+    const swordEntity = world.assertById(stickId);
+    removeFromInventory(world, entity, swordEntity);
 
-    disposeEntity(world, stickEntity);
-    stats.stick += 1;
+    disposeEntity(world, swordEntity);
+
+    const stickEntity = entities.createItem(world, {
+      [ITEM]: {
+        amount: 1,
+        stackable: "stick",
+        carrier: -1,
+        bound: false,
+      },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: getItemSprite({ stackable: "stick" }),
+    });
+    entity[INVENTORY].items.push(world.getEntityId(stickEntity));
   }
 
   // remember if entity was holding a compass
@@ -280,22 +280,6 @@ export const dropEntity = (
       (itemId: number) =>
         !world.assertByIdAndComponents(itemId, [ITEM])[ITEM].bound
     ) || []),
-    ...droppableCountables
-      .filter((counter) => stats[counter])
-      .map((counter) =>
-        world.getEntityId(
-          entities.createItem(world, {
-            [ITEM]: {
-              amount: stats[counter],
-              stat: counter,
-              carrier: -1,
-              bound: false,
-            },
-            [RENDERABLE]: { generation: 0 },
-            [SPRITE]: getStatSprite(counter, "drop"),
-          })
-        )
-      ),
     ...(arrowHits > 0
       ? Array.from({ length: arrowStacks }).map((_, index) =>
           world.getEntityId(
@@ -365,7 +349,7 @@ export const dropEntity = (
 
     const containerEntity = entities.createContainer(world, {
       [FOG]: { visibility: "fog", type: "terrain" },
-      [INVENTORY]: { items: isCentered ? [itemId] : [], size: 1 },
+      [INVENTORY]: { items: isCentered ? [itemId] : [] },
       [LAYER]: {},
       [LOOTABLE]: { disposable: isCentered },
       [POSITION]: dropPosition,

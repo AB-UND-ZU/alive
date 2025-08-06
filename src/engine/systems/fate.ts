@@ -123,7 +123,7 @@ export const createHero = (world: World, halo: Entity) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "visible", type: "unit" },
-    [INVENTORY]: { items: [], size: 24 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [LIGHT]: { visibility: 1, brightness: 1, darkness: 0 },
     [MELEE]: { bumpGeneration: 0 },
@@ -254,7 +254,7 @@ export default function setupFate(world: World) {
           [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
           [BELONGABLE]: { faction: entity[BELONGABLE].faction },
           [EQUIPPABLE]: {},
-          [INVENTORY]: { items: [], size: 10 },
+          [INVENTORY]: { items: [] },
           [LAYER]: { structure: entity[LAYER].structure },
           [LIGHT]: { ...entity[SPAWNABLE].light },
           [MOVABLE]: {

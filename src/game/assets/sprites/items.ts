@@ -200,17 +200,17 @@ export const haste: Sprite = {
 };
 
 export const fireEssence: Sprite = {
-  name: "Fire",
+  name: "Spirit",
   layers: [{ char: "æ", color: colors.red }],
 };
 
 export const waterEssence: Sprite = {
-  name: "Water",
+  name: "Spirit",
   layers: [{ char: "æ", color: colors.blue }],
 };
 
 export const earthEssence: Sprite = {
-  name: "Earth",
+  name: "Spirit",
   layers: [{ char: "æ", color: colors.lime }],
 };
 

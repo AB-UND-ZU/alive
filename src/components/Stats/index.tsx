@@ -6,7 +6,7 @@ import {
   map,
   pause,
   resume,
-  createCountable,
+  createProgress,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
@@ -50,12 +50,7 @@ function StatsInner({
             cells={[
               ...repeat(none, 3),
               ...createText("│", colors.grey),
-              ...createCountable(stats, "hp", "max"),
-              ...createCountable(stats, "maxHp", "cap"),
-              none,
-              ...createCountable(stats, "coin", "countable"),
-              none,
-              ...createCountable(stats, "berry", "countable"),
+              ...createProgress(stats, "hp", 13, false),
               ...createText("│", colors.grey),
               ...repeat(none, 3),
             ]}
@@ -64,12 +59,7 @@ function StatsInner({
             cells={[
               ...repeat(none, 3),
               ...createText("│", colors.grey),
-              ...createCountable(stats, "mp", "max"),
-              ...createCountable(stats, "maxMp", "cap"),
-              none,
-              ...createCountable(stats, "ore", "countable"),
-              none,
-              ...createCountable(stats, "flower", "countable"),
+              ...createProgress(stats, "mp", 13),
               ...createText("│", colors.grey),
               ...repeat(none, 3),
             ]}
@@ -80,12 +70,7 @@ function StatsInner({
               paused ? resume : stats.map ? map : pause,
               none,
               ...createText("│", colors.grey),
-              ...createCountable(stats, "xp", "max"),
-              ...createCountable(stats, "maxXp", "cap"),
-              none,
-              ...createCountable(stats, "stick", "countable"),
-              none,
-              ...createCountable(stats, "leaf", "countable"),
+              ...createProgress(stats, "xp", 13),
               ...createText("│", colors.grey),
               ...repeat(none, 3),
             ]}

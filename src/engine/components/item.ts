@@ -20,6 +20,12 @@ export type Consumable = "key" | "potion1" | "potion2";
 export type Materialized = "door";
 
 export type Craftable =
+  | "coin"
+  | "stick"
+  | "ore"
+  | "berry"
+  | "flower"
+  | "leaf"
   | "apple"
   | "shroom"
   | "banana"
@@ -35,7 +41,7 @@ export type Craftable =
   | "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";
 export type Stackable = Craftable | Reloadable;
-export const STACK_SIZE = 10;
+export const STACK_SIZE = 999;
 
 export type Item = {
   carrier: number;

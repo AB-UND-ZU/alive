@@ -6,8 +6,8 @@ import { RENDERABLE } from "../engine/components/renderable";
 import { MOVABLE } from "../engine/components/movable";
 import { COLLIDABLE } from "../engine/components/collidable";
 import {
-  createCountable,
   createDialog,
+  createItemText,
   createText,
   getOrientedSprite,
   heartUp,
@@ -515,7 +515,7 @@ export const generateWorld = async (world: World) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [], size: 5 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
@@ -582,7 +582,7 @@ export const generateWorld = async (world: World) => {
     [ATTACKABLE]: { shots: 0 },
     [BELONGABLE]: { faction: guideChestData.faction },
     [DROPPABLE]: { decayed: false },
-    [INVENTORY]: { items: [], size: 20 },
+    [INVENTORY]: { items: [] },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [LAYER]: {},
     [POSITION]: keyPosition,
@@ -671,7 +671,7 @@ export const generateWorld = async (world: World) => {
     [BELONGABLE]: { faction: spawnSignData.faction },
     [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
     [FOG]: { visibility: "hidden", type: "terrain" },
-    [INVENTORY]: { items: [], size: 20 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [POSITION]: copy(signPosition),
     [RENDERABLE]: { generation: 0 },
@@ -711,7 +711,7 @@ export const generateWorld = async (world: World) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [], size: 5 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
@@ -767,7 +767,7 @@ export const generateWorld = async (world: World) => {
     [ATTACKABLE]: { shots: 0 },
     [BELONGABLE]: { faction: nomadChestData.faction },
     [DROPPABLE]: { decayed: false },
-    [INVENTORY]: { items: [], size: 20 },
+    [INVENTORY]: { items: [] },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [LAYER]: {},
     [POSITION]: add(nomadBuilding.building[POSITION], { x: 2, y: 0 }),
@@ -790,7 +790,7 @@ export const generateWorld = async (world: World) => {
     [BELONGABLE]: { faction: nomadSignData.faction },
     [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
     [FOG]: { visibility: "hidden", type: "terrain" },
-    [INVENTORY]: { items: [], size: 20 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [POSITION]: add(nomadBuilding.building[POSITION], { x: -1, y: 3 }),
     [RENDERABLE]: { generation: 0 },
@@ -813,7 +813,7 @@ export const generateWorld = async (world: World) => {
       lines: [
         [
           ...createText("Collect "),
-          ...createCountable({ ore: 10 }, "ore", "countable"),
+          ...createItemText({ stackable: "ore", amount: 10 }),
           ...createText("Ore to"),
         ],
         [...createText("trade for "), iron, ...createText("Iron,")],
@@ -838,7 +838,7 @@ export const generateWorld = async (world: World) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [], size: 5 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
@@ -909,7 +909,7 @@ export const generateWorld = async (world: World) => {
     [BELONGABLE]: { faction: chiefSignData.faction },
     [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
     [FOG]: { visibility: "hidden", type: "terrain" },
-    [INVENTORY]: { items: [], size: 20 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [POSITION]: add(chiefBuilding.building[POSITION], { x: chiefOffset, y: 3 }),
     [RENDERABLE]: { generation: 0 },
@@ -957,7 +957,7 @@ export const generateWorld = async (world: World) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [], size: 5 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
@@ -998,7 +998,7 @@ export const generateWorld = async (world: World) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [], size: 5 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
@@ -1035,7 +1035,7 @@ export const generateWorld = async (world: World) => {
   createPopup(world, scoutEntity, {
     deals: Object.entries(itemSales).map(([stackable, coins]) => ({
       item: {
-        stat: "coin",
+        stackable: "coin",
         amount: coins,
       },
       stock: Infinity,
@@ -1062,7 +1062,7 @@ export const generateWorld = async (world: World) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [], size: 5 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
@@ -1099,7 +1099,7 @@ export const generateWorld = async (world: World) => {
   populateInventory(world, smithEntity, smithUnit.items, smithUnit.equipments);
   setIdentifier(world, smithEntity, "smith");
   const stickItem: Deal["item"] = {
-    stat: "stick",
+    stackable: "stick",
     amount: 1,
   };
   const woodItem: Deal["item"] = {
@@ -1108,7 +1108,7 @@ export const generateWorld = async (world: World) => {
     amount: 1,
   };
   const oreItem: Deal["item"] = {
-    stat: "ore",
+    stackable: "ore",
     amount: 1,
   };
   const ironItem: Deal["item"] = {
@@ -1210,7 +1210,7 @@ export const generateWorld = async (world: World) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [], size: 5 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
@@ -1253,7 +1253,7 @@ export const generateWorld = async (world: World) => {
     deals: itemPurchases.map(([item, coins]) => ({
       item,
       stock: Infinity,
-      price: [{ stat: "coin", amount: coins }],
+      price: [{ stackable: "coin", amount: coins }],
     })),
     transaction: "buy",
   });
@@ -1271,7 +1271,7 @@ export const generateWorld = async (world: World) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [], size: 5 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
@@ -1442,7 +1442,7 @@ export const generateWorld = async (world: World) => {
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [], size: 5 },
+    [INVENTORY]: { items: [] },
     [LAYER]: {},
     [MELEE]: { bumpGeneration: 0 },
     [MOVABLE]: {
@@ -1591,7 +1591,7 @@ export const generateWorld = async (world: World) => {
       [ATTACKABLE]: { shots: 0 },
       [BELONGABLE]: { faction: chestData.faction },
       [DROPPABLE]: { decayed: false },
-      [INVENTORY]: { items: [], size: 20 },
+      [INVENTORY]: { items: [] },
       [FOG]: { visibility: "hidden", type: "terrain" },
       [LAYER]: {},
       [POSITION]: add(emptyBuilding.building[POSITION], {
@@ -1657,15 +1657,15 @@ export const generateWorld = async (world: World) => {
           amount: Infinity,
         },
         {
-          stat: "coin",
+          stackable: "coin",
           amount: Infinity,
         },
         {
-          stat: "ore",
+          stackable: "ore",
           amount: Infinity,
         },
         {
-          stat: "stick",
+          stackable: "stick",
           amount: Infinity,
         },
       ],
