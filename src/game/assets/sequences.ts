@@ -127,6 +127,7 @@ import {
   strikethrough,
   mergeSprites,
   hostileBar,
+  xpDot,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -156,6 +157,7 @@ import {
   SpellSequence,
   UnlockSequence,
   VisionSequence,
+  XpSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
@@ -908,6 +910,88 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
 
     state.args.dropped = true;
     updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const xpTime = 200;
+
+export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    PLAYER,
+    POSITION,
+    STATS,
+  ]);
+  const generation = Math.floor(state.elapsed / xpTime);
+  const particleLength = Object.keys(state.particles).length;
+
+  let updated = false;
+  let finished =
+    !heroEntity || (state.args.generation > 0 && particleLength === 0);
+
+  // create XP particles
+  if (generation === 0 && particleLength === 0) {
+    for (const orientation of orientations) {
+      const delta = orientationPoints[orientation];
+      const xpParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: orientation },
+        [PARTICLE]: {
+          offsetX: delta.x * 2,
+          offsetY: delta.y * 2,
+          offsetZ: effectHeight,
+          duration: xpTime * 2,
+          animatedOrigin: { x: 0, y: 0 },
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: xpDot,
+      });
+      state.particles[`xp-${orientation}`] = world.getEntityId(xpParticle);
+    }
+
+    updated = true;
+  }
+
+  if (generation > 1 && generation > state.args.generation && heroEntity) {
+    for (const particleName in state.particles) {
+      const xpParticle = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+      const particlePosition = add(entity[POSITION], {
+        x: xpParticle[PARTICLE].offsetX,
+        y: xpParticle[PARTICLE].offsetY,
+      });
+
+      if (getDistance(heroEntity[POSITION], particlePosition, size) === 0) {
+        // handle adding of XP
+        heroEntity[STATS].xp += 1 / 4;
+        rerenderEntity(world, heroEntity);
+
+        disposeEntity(world, xpParticle);
+        delete state.particles[particleName];
+      } else {
+        // handle movement of particles
+        const orientation = relativeOrientations(
+          world,
+          particlePosition,
+          heroEntity[POSITION]
+        )[0];
+        const delta = orientationPoints[orientation];
+
+        xpParticle[PARTICLE].duration = xpTime;
+        xpParticle[PARTICLE].offsetX += delta.x;
+        xpParticle[PARTICLE].offsetY += delta.y;
+      }
+    }
+
+    state.args.generation = generation;
+    updated = true;
+  }
+
+  if (finished && heroEntity) {
+    heroEntity[PLAYER].xpReceived += 1;
   }
 
   return { finished, updated };

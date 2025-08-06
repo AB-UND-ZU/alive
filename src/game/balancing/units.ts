@@ -124,12 +124,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         bound: true,
       },
     ],
-    drops: [
-      {
-        chance: 100,
-        items: [{ amount: 10, consume: "potion1", material: "fire" }],
-      },
-    ],
+    drops: [{ chance: 100, items: [{ stat: "xp", amount: 5 }] }],
     patternNames: [],
     sprite: guide,
   },
@@ -153,7 +148,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         amount: getGearStat("shield", "wood"),
       },
     ],
-    drops: [],
+    drops: [{ chance: 100, items: [{ stat: "xp", amount: 3 }] }],
     patternNames: [],
     sprite: nomad,
   },

@@ -1352,15 +1352,14 @@ export const createProgress = (
   const config = statConfig[stat];
   const background = config.background || colors.grey;
   const maximum = (config.max && stats[config.max]) || 99;
-  const value = lerp(0, width, (stats[stat] || 0) / maximum);
-  const full = Math.floor(value);
-  const partial = normalize(value, 1);
+  const value = Math.min(Math.floor(stats[stat] || 0), maximum);
+  const progress = lerp(0, width, value / maximum);
+  const full = Math.floor(progress);
+  const partial = normalize(progress, 1);
   const segment = Math.floor(partial * progressResolution);
 
   const text = padCenter(
-    ` ${(stats[stat] || 0).toString().padStart(2, " ")}/${(
-      stats[config.max!] || 99
-    )
+    ` ${value.toString().padStart(2, " ")}/${(stats[config.max!] || 99)
       .toString()
       .padEnd(2, " ")}`,
     width - 3
@@ -1443,6 +1442,11 @@ export const enemyPointer: Sprite = {
     down: [{ char: "\u0118", color: colors.red }],
     left: [{ char: "\u011a", color: colors.red }],
   },
+};
+
+export const xpDot: Sprite = {
+  name: "xp_dot",
+  layers: [{ char: "·", color: colors.lime }],
 };
 
 export const levelProgress: Sprite = {

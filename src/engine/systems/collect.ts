@@ -100,8 +100,8 @@ export const collectItem = (
     const itemId = target[INVENTORY].items[itemIndex];
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
 
-    // skip bound items
-    if (itemEntity[ITEM].bound) continue;
+    // skip bound items and XP
+    if (itemEntity[ITEM].bound || itemEntity[ITEM].stat === "xp") continue;
 
     // reduce counter items
     const stat = itemEntity[ITEM].stat;

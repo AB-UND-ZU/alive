@@ -110,6 +110,7 @@ export type DialogSequence = {
   isEnemy: boolean;
   overridden: boolean;
 };
+export type XpSequence = { generation: number };
 export type ProgressSequence = {
   dropped: boolean;
   maxMp: number;
@@ -164,6 +165,7 @@ export type Sequencable = {
     quest?: SequenceState<QuestSequence>;
     dialog?: SequenceState<DialogSequence>;
     progress?: SequenceState<ProgressSequence>;
+    xp?: SequenceState<XpSequence>;
     popup?: SequenceState<PopupSequence>;
   };
 };

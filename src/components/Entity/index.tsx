@@ -156,11 +156,9 @@ function Entity({
   }
 
   const lootSegment = lootSegments[0];
-  const isStackable =
+  const isEquipment =
     !!lootSegment &&
-    (!!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].stackable ||
-      !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].consume);
-
+    !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].equipment;
   const bump = entity[MELEE];
 
   return (
@@ -197,7 +195,7 @@ function Entity({
         <Bar world={ecs} counter="hp" entity={entity} isVisible={isVisible} />
       )}
 
-      {isStackable && (
+      {lootSegment && !isEquipment && (
         <Dots segment={lootSegment} entity={entity} isVisible={isVisible} />
       )}
     </Container>

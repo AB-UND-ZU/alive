@@ -36,10 +36,12 @@ import { SPRITE } from "../components/sprite";
 import { EQUIPPABLE } from "../components/equippable";
 import { ITEM } from "../components/item";
 import { copy } from "../../game/math/std";
-import { none } from "../../game/assets/sprites";
+import { createText, none, xp } from "../../game/assets/sprites";
+import * as colors from "../../game/assets/colors";
 import { MOVABLE } from "../components/movable";
 import { consumeCharge } from "./trigger";
 import { isInPopup } from "./popup";
+import { queueMessage } from "../../game/assets/utils";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -143,6 +145,7 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
   const playerHealings: Record<number, number> = {};
+  const playerXp: Record<number, number> = {};
   const playerDots: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
@@ -310,16 +313,29 @@ export default function setupMagic(world: World) {
       }
     }
 
-    // process healing animation after consumption
+    // process healing and XP animation after consumption
     for (const entity of world.getEntities([SEQUENCABLE, PLAYER, STATS])) {
       const entityId = world.getEntityId(entity);
-      const total = entity[PLAYER].healingReceived;
-      const healing = total - (playerHealings[entityId] || 0);
+      const healingReceived = entity[PLAYER].healingReceived;
+      const pendingHealing = healingReceived - (playerHealings[entityId] || 0);
 
-      if (healing === 0) continue;
+      if (pendingHealing > 0) {
+        playerHealings[entityId] = healingReceived;
+        createAmountMarker(world, entity, pendingHealing, "up");
+      }
 
-      playerHealings[entityId] = total;
-      createAmountMarker(world, entity, healing, "up");
+      const xpReceived = entity[PLAYER].xpReceived;
+      const pendingXp = xpReceived - (playerXp[entityId] || 0);
+
+      if (pendingXp > 0) {
+        playerXp[entityId] = xpReceived;
+        queueMessage(world, entity, {
+          line: createText(`+${pendingXp} ${xp.name}`, colors.silver),
+          orientation: "up",
+          fast: false,
+          delay: 0,
+        });
+      }
     }
 
     // process DoT on affectable units

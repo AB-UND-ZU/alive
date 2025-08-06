@@ -6,6 +6,7 @@ export type Player = {
   ghost: boolean;
   damageReceived: number;
   healingReceived: number;
+  xpReceived: number;
   popup?: number;
   defeatedUnits: Partial<Record<UnitKey, number>>;
 };
