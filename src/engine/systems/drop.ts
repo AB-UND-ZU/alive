@@ -34,7 +34,6 @@ import {
   Orientation,
   orientationPoints,
 } from "../components/orientable";
-import { STATS } from "../components/stats";
 import { decayTime, lootSpeed } from "../../game/assets/utils";
 import { SPAWNABLE } from "../components/spawnable";
 import { LAYER } from "../components/layer";
@@ -181,7 +180,6 @@ export const createItemInInventory = <
   // add to inventory
   const itemId = world.getEntityId(itemEntity);
   const targetEquipment = itemEntity[ITEM].equipment;
-  const targetStat = itemEntity[ITEM].stat;
   const targetConsume = itemEntity[ITEM].consume;
   const targetStackable = itemEntity[ITEM].stackable;
 
@@ -209,12 +207,8 @@ export const createItemInInventory = <
     carrier[INVENTORY].items.push(itemId);
   } else if (targetConsume || targetStackable) {
     carrier[INVENTORY].items.push(itemId);
-  } else if (targetStat) {
-    if (carrier[STATS]) {
-      carrier[STATS][targetStat] += 1;
-    } else {
-      carrier[INVENTORY].items.push(itemId);
-    }
+  } else {
+    carrier[INVENTORY].items.push(itemId);
   }
   return itemEntity;
 };

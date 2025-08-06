@@ -53,6 +53,7 @@ import {
   treeBurnt2,
   wall,
   water,
+  xp,
 } from "../game/assets/sprites";
 import {
   add,
@@ -1177,6 +1178,14 @@ export const createCell = (
     if (cell === "spawn_prism") {
       setIdentifier(world, mobEntity, "spawn_prism");
 
+      // create key and XP
+      createItemInInventory(world, mobEntity, entities.createItem, {
+        [ITEM]: {
+          stat: "xp",
+          amount: 1,
+        },
+        [SPRITE]: xp,
+      });
       const spawnKeyEntity = createItemInInventory(
         world,
         mobEntity,

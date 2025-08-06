@@ -543,9 +543,20 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [
-      { chance: 70, items: [{ stackable: "coin", amount: 1 }] },
-      { chance: 15, items: [{ stat: "xp", amount: 1 }] },
-      { chance: 15, items: [{ stat: "mp", amount: 1 }] },
+      {
+        chance: 50,
+        items: [
+          { stackable: "coin", amount: 1 },
+          { stat: "xp", amount: 1 },
+        ],
+      },
+      {
+        chance: 50,
+        items: [
+          { stat: "mp", amount: 1 },
+          { stat: "xp", amount: 1 },
+        ],
+      },
     ],
     patternNames: ["prism"],
     sprite: prism,
@@ -568,7 +579,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 100,
         items: [
           { stackable: "coin", amount: 3 },
-          { stat: "xp", amount: 1 },
+          { stat: "xp", amount: 2 },
           { stat: "mp", amount: 1 },
         ],
       },
@@ -590,9 +601,20 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [
-      { chance: 70, items: [{ stackable: "coin", amount: 1 }] },
-      { chance: 15, items: [{ stat: "xp", amount: 1 }] },
-      { chance: 15, items: [{ stat: "hp", amount: 1 }] },
+      {
+        chance: 50,
+        items: [
+          { stackable: "coin", amount: 1 },
+          { stat: "xp", amount: 1 },
+        ],
+      },
+      {
+        chance: 50,
+        items: [
+          { stat: "hp", amount: 1 },
+          { stat: "xp", amount: 1 },
+        ],
+      },
     ],
     patternNames: ["eye"],
     sprite: eye,
@@ -615,7 +637,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 100,
         items: [
           { stackable: "coin", amount: 3 },
-          { stat: "xp", amount: 1 },
+          { stat: "xp", amount: 2 },
           { stat: "hp", amount: 1 },
         ],
       },
@@ -638,9 +660,27 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     drops: [
-      { chance: 70, items: [{ stackable: "coin", amount: 1 }] },
-      { chance: 15, items: [{ stat: "xp", amount: 1 }] },
-      { chance: 15, items: [{ stat: "mp", amount: 1 }] },
+      {
+        chance: 50,
+        items: [
+          { stackable: "coin", amount: 1 },
+          { stat: "xp", amount: 1 },
+        ],
+      },
+      {
+        chance: 25,
+        items: [
+          { stat: "hp", amount: 1 },
+          { stat: "xp", amount: 1 },
+        ],
+      },
+      {
+        chance: 25,
+        items: [
+          { stat: "mp", amount: 1 },
+          { stat: "xp", amount: 1 },
+        ],
+      },
     ],
     patternNames: ["orb"],
     sprite: orb,
@@ -662,11 +702,19 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [
       {
-        chance: 100,
+        chance: 50,
         items: [
           { stackable: "coin", amount: 3 },
           { stat: "hp", amount: 1 },
+          { stat: "xp", amount: 2 },
+        ],
+      },
+      {
+        chance: 50,
+        items: [
+          { stackable: "coin", amount: 3 },
           { stat: "mp", amount: 1 },
+          { stat: "xp", amount: 2 },
         ],
       },
     ],

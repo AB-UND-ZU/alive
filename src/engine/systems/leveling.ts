@@ -20,14 +20,16 @@ export type Level = {
 };
 
 const levels: Level[] = [
-  { level: 1, xp: 3, maxHp: 2, maxMp: 1 },
-  { level: 2, xp: 5, maxHp: 2, maxMp: 1 },
-  { level: 3, xp: 10, maxHp: 3, maxMp: 1 },
-  { level: 4, xp: 20, maxHp: 3, maxMp: 1 },
-  { level: 5, xp: 35, maxHp: 4, maxMp: 2 },
-  { level: 6, xp: 50, maxHp: 4, maxMp: 2 },
-  { level: 7, xp: 70, maxHp: 5, maxMp: 2 },
-  { level: 8, xp: 99, maxHp: 5, maxMp: 2 },
+  { level: 1, xp: 3, maxHp: 1, maxMp: 0 },
+  { level: 2, xp: 5, maxHp: 0, maxMp: 1 },
+  { level: 3, xp: 10, maxHp: 1, maxMp: 1 },
+  { level: 4, xp: 15, maxHp: 1, maxMp: 1 },
+  { level: 5, xp: 25, maxHp: 2, maxMp: 1 },
+  { level: 6, xp: 40, maxHp: 2, maxMp: 1 },
+  { level: 7, xp: 60, maxHp: 2, maxMp: 2 },
+  { level: 8, xp: 75, maxHp: 2, maxMp: 2 },
+  { level: 9, xp: 99, maxHp: 3, maxMp: 3 },
+  { level: 10, xp: 99, maxHp: 3, maxMp: 3 },
 ];
 export const initialLevel = levels[0];
 const maxLevel = levels.slice(-1)[0];
@@ -48,7 +50,7 @@ export default function setupLeveling(world: World) {
 
     referencesGeneration = generation;
 
-    for (const entity of world.getEntities([POSITION, SWIMMABLE])) {
+    for (const entity of world.getEntities([POSITION, SWIMMABLE, STATS])) {
       const entityId = world.getEntityId(entity);
       const entityGeneration = getEntityGeneration(world, entity);
 
@@ -56,11 +58,14 @@ export default function setupLeveling(world: World) {
 
       entityGenerations[entityId] = entityGeneration;
 
-      if (entity[STATS] && hasLevelUp(world, entity)) {
+      if (hasLevelUp(world, entity)) {
+        const currentLevel = levels.find(
+          (level) => level.level === entity[STATS].level
+        )!;
         entity[STATS].xp = 0;
         entity[STATS].level = Math.min(maxLevel.level, entity[STATS].level + 1);
         const targetLevel = levels.find(
-          (level) => level.level === entity[STATS]!.level
+          (level) => level.level === entity[STATS].level
         )!;
         entity[STATS].maxXp = targetLevel.xp;
 
@@ -69,7 +74,11 @@ export default function setupLeveling(world: World) {
           entity,
           "progress",
           "levelUp",
-          { dropped: false, maxHp: targetLevel.maxHp, maxMp: targetLevel.maxMp }
+          {
+            dropped: false,
+            maxHp: currentLevel.maxHp,
+            maxMp: currentLevel.maxMp,
+          }
         );
 
         queueMessage(world, entity, {
