@@ -8,11 +8,13 @@ import { Viewable } from "./viewable";
 import { Light } from "./light";
 import { Element, Item } from "./item";
 import { Popup } from "./popup";
+import { Liquid } from "./liquid";
 
 type EmptyObject = Record<string, never>;
 
 export type ConsumeSequence = { itemId: number };
-export type BubbleSequence = { width: number };
+export type BubbleSequence = { width: number; type: Liquid["type"] };
+export type RainSequence = { height: number };
 export type VisionSequence = {
   light?: Light;
   previousLight?: Light;
@@ -144,6 +146,7 @@ export type Sequencable = {
     consume?: SequenceState<ConsumeSequence>;
     spell?: SequenceState<SpellSequence>;
     bubble?: SequenceState<BubbleSequence>;
+    rain?: SequenceState<RainSequence>;
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;

@@ -32,6 +32,7 @@ import { isTouch } from "../../components/Dimensions";
 import { invertOrientation } from "../../game/math/path";
 import { getPopup, isPopupAvailable, popupActions } from "./popup";
 import { Popup, POPUP } from "../components/popup";
+import { getSequence } from "./sequence";
 
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
@@ -171,7 +172,8 @@ export default function setupMovement(world: World) {
         if (
           !isWalkable(world, position) &&
           lockable &&
-          isLocked(world, lockable)
+          isLocked(world, lockable) &&
+          !getSequence(world, lockable, "unlock")
         ) {
           // show message if unlockable
           queueMessage(world, entity, {

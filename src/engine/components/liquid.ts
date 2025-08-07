@@ -1,7 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Liquid = {};
+export type Liquid = { type: "bubble" | "rain" };
 
 export const LIQUID = "LIQUID";
 

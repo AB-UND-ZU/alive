@@ -265,6 +265,11 @@ export const bubble: Sprite = {
   },
 };
 
+export const rain: Sprite = {
+  name: "rain_drop",
+  layers: [{ char: "│", color: colors.blue }],
+};
+
 export const fire: Sprite = {
   name: "fire_burn",
   layers: [
@@ -1352,14 +1357,15 @@ export const createProgress = (
   const config = statConfig[stat];
   const background = config.background || colors.grey;
   const maximum = (config.max && stats[config.max]) || 99;
-  const value = Math.min(Math.floor(stats[stat] || 0), maximum);
+  const value = Math.min(stats[stat] || 0, maximum);
+  const display = Math.floor(value);
   const progress = lerp(0, width, value / maximum);
   const full = Math.floor(progress);
   const partial = normalize(progress, 1);
   const segment = Math.floor(partial * progressResolution);
 
   const text = padCenter(
-    ` ${value.toString().padStart(2, " ")}/${(stats[config.max!] || 99)
+    ` ${display.toString().padStart(2, " ")}/${(stats[config.max!] || 99)
       .toString()
       .padEnd(2, " ")}`,
     width - 3

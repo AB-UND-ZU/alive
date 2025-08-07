@@ -51,6 +51,7 @@ import { openDoor } from "../../engine/systems/trigger";
 import * as colors from "./colors";
 import {
   add,
+  choice,
   copy,
   distribution,
   getDistance,
@@ -128,6 +129,7 @@ import {
   mergeSprites,
   hostileBar,
   xpDot,
+  rain,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -149,6 +151,7 @@ import {
   PointerSequence,
   PopupSequence,
   ProgressSequence,
+  RainSequence,
   ReviveSequence,
   SEQUENCABLE,
   Sequence,
@@ -785,7 +788,7 @@ export const bubbleSplash: Sequence<BubbleSequence> = (
 
   const targetWidth = Math.floor(state.elapsed / bubbleTick);
 
-  if (targetWidth > 3) {
+  if (targetWidth > 3 || (state.args.type === "rain" && targetWidth > 2)) {
     finished = true;
   } else if (targetWidth !== state.args.width) {
     state.args.width = targetWidth;
@@ -794,6 +797,33 @@ export const bubbleSplash: Sequence<BubbleSequence> = (
       [PARTICLE]
     );
     bubbleParticle[PARTICLE].amount = targetWidth;
+    updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const rainSpeed = 75;
+
+export const rainDrop: Sequence<RainSequence> = (world, entity, state) => {
+  let updated = false;
+  let finished = state.elapsed > state.args.height * rainSpeed;
+
+  // create rain particle
+  if (!state.particles.drop) {
+    const dropParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: effectHeight,
+        amount: 0,
+        animatedOrigin: { x: 0, y: -state.args.height },
+        duration: state.args.height * rainSpeed,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: rain,
+    });
+    state.particles.drop = world.getEntityId(dropParticle);
     updated = true;
   }
 
@@ -973,11 +1003,9 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
         delete state.particles[particleName];
       } else {
         // handle movement of particles
-        const orientation = relativeOrientations(
-          world,
-          particlePosition,
-          heroEntity[POSITION]
-        )[0];
+        const orientation = choice(
+          ...relativeOrientations(world, particlePosition, heroEntity[POSITION])
+        );
         const delta = orientationPoints[orientation];
 
         xpParticle[PARTICLE].duration = xpTime;

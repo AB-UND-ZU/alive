@@ -1834,6 +1834,7 @@ export const generateWorld = async (world: World) => {
   // start ordered systems
   world.addSystem(systems.setupMap);
   world.addSystem(systems.setupTick);
+  world.addSystem(systems.setupWeather);
   world.addSystem(systems.setupFreeze);
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupTrigger);

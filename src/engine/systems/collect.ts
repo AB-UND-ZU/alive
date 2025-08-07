@@ -276,7 +276,7 @@ export const addToInventory = (
     const existingStack = getStackable(world, entity, itemEntity[ITEM]);
 
     if (existingStack) {
-      existingStack[ITEM].amount += 1;
+      existingStack[ITEM].amount += amount;
     } else {
       // create new stack
       const stackEntity = entities.createItem(world, {
