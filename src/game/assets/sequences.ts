@@ -831,11 +831,11 @@ export const rainDrop: Sequence<RainSequence> = (world, entity, state) => {
 };
 
 const progressParts = 11;
-const progressTime = 140;
+const progressTime = 75;
 
 export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
   let updated = false;
-  let finished = state.elapsed > progressParts * progressTime * 2;
+  let finished = state.elapsed > progressParts * progressTime * 3;
 
   // create progress particles
   if (Object.keys(state.particles).length === 0) {
@@ -901,8 +901,8 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
           progressParticle[PARTICLE].offsetX = delta.x * progressParts;
           inverseParticle[PARTICLE].offsetX = delta.x * progressParts;
         }
-        progressParticle[PARTICLE].duration = progressTime * progressParts;
-        inverseParticle[PARTICLE].duration = progressTime * progressParts;
+        progressParticle[PARTICLE].duration = progressTime * progressParts * 2;
+        inverseParticle[PARTICLE].duration = progressTime * progressParts * 2;
       }
     }
 

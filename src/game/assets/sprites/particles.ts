@@ -56,11 +56,9 @@ export const hit: Sprite = {
   },
 };
 
-export const heal = xp;
-
-export const stream: Sprite = {
-  name: "water_stream",
-  layers: [{ char: "≈", color: colors.blue }],
+export const heal: Sprite = {
+  name: "heal",
+  layers: [{ char: "+", color: colors.lime }],
 };
 
 export const wave: Sprite = {
