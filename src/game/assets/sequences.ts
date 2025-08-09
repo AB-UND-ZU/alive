@@ -15,7 +15,7 @@ import { entities } from "../../engine";
 import { DROPPABLE } from "../../engine/components/droppable";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { Focusable, FOCUSABLE } from "../../engine/components/focusable";
-import { INVENTORY } from "../../engine/components/inventory";
+import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
@@ -130,6 +130,7 @@ import {
   hostileBar,
   xpDot,
   rain,
+  info,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -1107,6 +1108,77 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
   }
 
   const popupResult = displayPopup(world, entity, state, icon, content);
+  return {
+    updated: popupResult.updated || updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displayInspect: Sequence<PopupSequence> = (
+  world,
+  entity,
+  state
+) => {
+  let updated = false;
+
+  const content: Sprite[][] = [
+    ...(entity[INVENTORY] as Inventory).items.map((item) => {
+      const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
+      const itemSprite = getItemSprite(itemEntity[ITEM], "display");
+      const amountText = createText(
+        `${itemEntity[ITEM].amount}`.padStart(3),
+        colors.silver
+      );
+      const itemText = createText(itemSprite.name, colors.white);
+      return addBackground(
+        [
+          none,
+          ...amountText,
+          itemSprite,
+          ...itemText,
+          ...repeat(none, frameWidth - 4 - amountText.length - itemText.length),
+        ],
+        colors.black
+      );
+    }).slice(0, 9),
+  ];
+
+  const popupCenter = { x: 0, y: (frameHeight + 1) / -2 };
+  const verticalIndex = entity[POPUP].verticalIndex;
+  const selectionX =
+    popupCenter.x +
+    ((frameWidth - 3) / 2) * (state.args.transaction === "sell" ? 1 : -1);
+  const selectionY = popupCenter.y - (frameHeight - 3) / 2;
+
+  if (
+    !state.particles.selection &&
+    state.elapsed > popupTime + verticalIndex * (frameWidth - 2) * contentDelay
+  ) {
+    // add selection arrow
+    const selectionParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: selectionX,
+        offsetY: selectionY + verticalIndex,
+        offsetZ: selectionHeight,
+        animatedOrigin: { x: selectionX, y: -2 },
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: buySelection,
+    });
+    state.particles.selection = world.getEntityId(selectionParticle);
+  }
+
+  if (verticalIndex !== state.args.verticalIndex && state.particles.selection) {
+    const selectionParticle = world.assertByIdAndComponents(
+      state.particles.selection,
+      [PARTICLE]
+    );
+    selectionParticle[PARTICLE].offsetY = selectionY + verticalIndex;
+    state.args.verticalIndex = verticalIndex;
+    updated = true;
+  }
+
+  const popupResult = displayPopup(world, entity, state, info, content);
   return {
     updated: popupResult.updated || updated,
     finished: popupResult.finished,

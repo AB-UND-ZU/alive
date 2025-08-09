@@ -19,7 +19,7 @@ import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
-import { createText, none, tombstone1 } from "../../game/assets/sprites";
+import { none, tombstone1 } from "../../game/assets/sprites";
 import { ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
@@ -57,6 +57,7 @@ import {
   setNeedle,
 } from "../utils";
 import { addPopup } from "../components";
+import { closePopup } from "./popup";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -185,12 +186,12 @@ export const createHero = (world: World, halo: Entity) => {
 
   const inspectEntity = assertIdentifier(world, "inspect");
   addPopup(world, heroEntity, {
-    lines: [createText("Inventory")],
+    lines: [],
     active: false,
     verticalIndex: 0,
     deals: [],
     targets: [],
-    transaction: "info",
+    transaction: "inspect",
     viewpoint: world.getEntityId(inspectEntity),
   });
 
@@ -227,6 +228,11 @@ export default function setupFate(world: World) {
         // disable any focus
         setNeedle(world);
         setHighlight(world);
+
+        // close popups
+        if (entity[PLAYER].popup) {
+          closePopup(world, entity, world.assertById(entity[PLAYER].popup));
+        }
 
         const defaultVision =
           entity[LIGHT].visibility === defaultLight.visibility &&

@@ -17,7 +17,7 @@ export type Target = {
 
 export const shops = ["buy", "sell", "craft"] as const;
 
-const popups = [...shops, "quest", "info"] as const;
+const popups = [...shops, "quest", "info", "inspect"] as const;
 
 export type Popup = {
   active: boolean;

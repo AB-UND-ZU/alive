@@ -109,6 +109,7 @@ export const popupIdles = {
   quest,
   buy: shop,
   sell: shop,
+  inspect: info,
 };
 
 export const popupActions = {
@@ -117,6 +118,7 @@ export const popupActions = {
   quest: "QUEST",
   buy: "SHOP",
   sell: "SHOP",
+  inspect: "BAG",
 };
 
 export const createPopup = (
@@ -196,6 +198,17 @@ export const openPopup = (
         title: popupEntity[POPUP].transaction,
       }
     );
+  } else if (popupEntity[POPUP].transaction === "inspect") {
+    createSequence<"popup", InfoSequence>(
+      world,
+      popupEntity,
+      "popup",
+      "displayInspect",
+      {
+        contentIndex: 0,
+        title: "Bag",
+      }
+    );
   } else {
     createSequence<"popup", InfoSequence>(
       world,
@@ -245,13 +258,13 @@ export default function setupPopup(world: World) {
 
     heroGeneration = generation;
 
-    const shoppingEntity = world.getEntityByIdAndComponents(
+    const popupEntity = world.getEntityByIdAndComponents(
       heroEntity?.[PLAYER].popup,
       [POPUP]
     );
 
     // skip if player is not shopping or already interacted
-    if (heroEntity[MOVABLE].lastInteraction === generation || !shoppingEntity)
+    if (heroEntity[MOVABLE].lastInteraction === generation || !popupEntity)
       return;
 
     // capture movements while shop is open
@@ -267,9 +280,13 @@ export default function setupPopup(world: World) {
     if (targetOrientation !== "up" && targetOrientation !== "down") return;
 
     // move selected index
-    const currentIndex = shoppingEntity[POPUP].verticalIndex;
-    const lastIndex = shoppingEntity[POPUP].deals.length - 1;
-    shoppingEntity[POPUP].verticalIndex = Math.min(
+    const currentIndex = popupEntity[POPUP].verticalIndex;
+    const lines =
+      popupEntity[POPUP].transaction === "inspect"
+        ? popupEntity[INVENTORY]?.items.length || 0
+        : popupEntity[POPUP].deals.length;
+    const lastIndex = lines - 1;
+    popupEntity[POPUP].verticalIndex = Math.min(
       lastIndex,
       Math.max(0, currentIndex + (targetOrientation === "up" ? -1 : 1))
     );
