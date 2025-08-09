@@ -37,7 +37,7 @@ import { getGearStat } from "./equipment";
 import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
 import { NpcType } from "../../engine/components/npc";
-import { sign } from "../assets/sprites/structures";
+import { fence, sign } from "../assets/sprites/structures";
 
 export type UnitKey =
   | NpcType
@@ -49,6 +49,7 @@ export type UnitKey =
   | "pot"
   | "box"
   | "sign"
+  | "fence"
   | "cactus1"
   | "cactus2"
   | "rock1"
@@ -425,8 +426,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   sign: {
     faction: "unit",
     power: 0,
-    armor: 1,
-    hp: 10,
+    armor: 2,
+    hp: 20,
     mp: 0,
     equipments: [],
     drops: [
@@ -440,6 +441,22 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: sign,
+  },
+  fence: {
+    faction: "unit",
+    power: 0,
+    armor: 2,
+    hp: 50,
+    mp: 0,
+    equipments: [],
+    drops: [
+      {
+        chance: 100,
+        items: [{ stackable: "stick", amount: 1 }],
+      },
+    ],
+    patternNames: [],
+    sprite: fence,
   },
   cactus1: {
     faction: "unit",

@@ -99,7 +99,6 @@ import { LAYER } from "../engine/components/layer";
 import {
   basementLeftInside,
   basementRightInside,
-  fence,
   fenceBurnt1,
   fenceBurnt2,
   fenceDoor,
@@ -1045,21 +1044,33 @@ export const createCell = (
       populateInventory(world, potEntity, items, equipments);
     }
   } else if (cell === "fence") {
-    entities.createOrganic(world, {
+    const { sprite, stats, faction, items, equipments } =
+      generateUnitData("fence");
+    const remains = [fenceBurnt1, fenceBurnt2][random(0, 1)];
+    const fenceEntity = entities.createObject(world, {
+      [ATTACKABLE]: { shots: 0 },
+      [BELONGABLE]: { faction },
       [BURNABLE]: {
         burning: false,
         eternal: false,
         decayed: false,
         combusted: false,
-        remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
+        remains,
       },
-      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false, remains },
       [FOG]: { visibility, type: "terrain" },
+      [INVENTORY]: { items: [] },
+      [LAYER]: {},
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: fence,
+      [SPRITE]: sprite,
+      [STATS]: {
+        ...emptyStats,
+        ...stats,
+      },
     });
+    populateInventory(world, fenceEntity, items, equipments);
   } else if (cell === "fence_door") {
     entities.createPath(world, {
       [ENVIRONMENT]: { biomes: ["path"] },

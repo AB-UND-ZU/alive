@@ -411,6 +411,21 @@ export const createMountain = entityFactory([
   SPRITE,
 ]);
 
+export const createObject = entityFactory([
+  ATTACKABLE,
+  BELONGABLE,
+  BURNABLE,
+  DROPPABLE,
+  FOG,
+  INVENTORY,
+  LAYER,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  STATS,
+]);
+
 export const createOre = entityFactory([
   COLLIDABLE,
   FOG,
