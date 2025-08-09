@@ -171,7 +171,9 @@ export default function setupText(world: World) {
       const idle = tooltipEntity[TOOLTIP].idle;
       const dialogs = tooltipEntity[TOOLTIP].dialogs;
       const spriteText = tooltipEntity[SPRITE].name;
-      const spriteTooltip = spriteText ? createTooltip(spriteText) : [];
+      const spriteTooltip = spriteText
+        ? createTooltip(world, tooltipEntity)
+        : [];
       const isIdle =
         !isVisible &&
         (!isAdjacent ||

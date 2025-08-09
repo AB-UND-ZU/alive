@@ -1,5 +1,5 @@
 import * as colors from "../colors";
-import { Layer, Sprite } from "../../../engine/components/sprite";
+import { Layer, SPRITE, Sprite } from "../../../engine/components/sprite";
 import { Countable, Stats } from "../../../engine/components/stats";
 import {
   armor,
@@ -21,6 +21,9 @@ import {
 } from "../../../components/Entity/utils";
 import { Item } from "../../../engine/components/item";
 import { none } from "./terrain";
+import { World } from "../../../engine";
+import { isEnemy, isNeutral } from "../../../engine/systems/damage";
+import { Entity } from "ecs";
 
 export const block: Sprite = {
   name: "block_solid",
@@ -795,19 +798,35 @@ export const getOrientedSprite = (
   layers: getFacingLayers(sprite, orientation),
 });
 
-export const tooltipStart: Sprite = {
-  name: "tooltip_start",
+export const tooltipNeutralStart: Sprite = {
+  name: "neutral_start",
   layers: [
     { char: "▐", color: colors.black },
     { char: "│", color: colors.silver },
   ],
 };
 
-export const tooltipEnd: Sprite = {
-  name: "tooltip_end",
+export const tooltipNeutralEnd: Sprite = {
+  name: "neutral_end",
   layers: [
     { char: "▌", color: colors.black },
     { char: "│", color: colors.silver },
+  ],
+};
+
+export const tooltipHostileStart: Sprite = {
+  name: "hostile_start",
+  layers: [
+    { char: "▐", color: colors.black },
+    { char: "│", color: colors.maroon },
+  ],
+};
+
+export const tooltipHostileEnd: Sprite = {
+  name: "hostile_end",
+  layers: [
+    { char: "▌", color: colors.black },
+    { char: "│", color: colors.maroon },
   ],
 };
 
@@ -959,11 +978,15 @@ export const createShout = (text: string) => [
   ...createText(text, colors.black, colors.red),
   shoutEnd,
 ];
-export const createTooltip = (text: string) => [
-  tooltipStart,
-  ...createText(text, colors.silver, colors.black),
-  tooltipEnd,
-];
+export const createTooltip = (world: World, entity: Entity) => {
+  const text = entity[SPRITE].name;
+  const enemy = isEnemy(world, entity) && !isNeutral(world, entity);
+  return [
+    enemy ? tooltipHostileStart : tooltipNeutralStart,
+    ...createText(text, enemy ? colors.maroon : colors.silver, colors.black),
+    enemy ? tooltipHostileEnd : tooltipNeutralEnd,
+  ];
+};
 
 export const buttonPalettes = {
   white: { background: colors.white, text: colors.black, shadow: colors.grey },
