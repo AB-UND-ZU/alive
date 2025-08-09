@@ -8,12 +8,11 @@ import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import Row from "../Row";
 import {
-  arrow,
-  charge,
   createButton,
   createCountable,
   createText,
   ghost,
+  mana,
   mergeSprites,
   none,
   Palette,
@@ -22,7 +21,6 @@ import {
 import * as colors from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
 import { normalize, repeat } from "../../game/math/std";
-import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { getItemSprite, getSegments } from "../Entity/utils";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
@@ -51,6 +49,9 @@ import {
 import { isControllable } from "../../engine/systems/freeze";
 import { Deal, Popup, POPUP } from "../../engine/components/popup";
 import { TypedEntity } from "../../engine/entities";
+import { EQUIPPABLE } from "../../engine/components/equippable";
+import { INVENTORY } from "../../engine/components/inventory";
+import { STATS } from "../../engine/components/stats";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -73,19 +74,36 @@ export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
 export const primaryKeys = [" ", "Enter"];
 export const secondaryKeys = ["Shift", "Tab"];
 
-const getActiveActivations = (item: Item) => {
-  if (!item.primary && !item.secondary) return [none, none, none];
+const getActiveActivations = (world: World, hero: TypedEntity, item: Item) => {
+  const itemSprite = getItemSprite(item, "display");
 
-  if (item.secondary === "bow")
-    return [none, createText("1", colors.grey)[0], arrow];
-  else if (item.secondary === "slash" || item.secondary === "block")
-    return [none, createText("1", colors.grey)[0], charge];
-  else if (item.primary && item.primary.endsWith("1"))
-    return createCountable({ mp: 1 }, "mp", "countable");
-  else if (item.primary && item.primary.endsWith("2"))
-    return createCountable({ mp: 2 }, "mp", "countable");
+  if (item.secondary) {
+    const stackable = item.secondary === "bow" ? "arrow" : "charge";
+    const stackableItem = hero[INVENTORY]?.items
+      .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
+      .find((item) => item[ITEM].stackable === stackable);
+    const stackableSprite = getItemSprite({ stackable });
 
-  return [none, none, none];
+    return [
+      ...repeat(none, 2),
+      itemSprite,
+      ...createText(
+        `1/${stackableItem ? stackableItem[ITEM].amount : 0}`,
+        colors.grey
+      ),
+      stackableSprite,
+    ].slice(-6);
+  } else if (item.primary) {
+    const amount = item.primary.endsWith("2") ? 2 : 1;
+    return [
+      ...repeat(none, 2),
+      itemSprite,
+      ...createText(`${amount}/${hero[STATS]?.mp || 0}`, colors.blue),
+      mana,
+    ].slice(-6);
+  }
+
+  return repeat(none, 6);
 };
 
 export const getActivationRow = (item?: Omit<Item, "carrier" | "bound">) => {
@@ -109,7 +127,7 @@ const inventoryWidth = 8;
 
 type Action = {
   name: string;
-  activation: [Sprite[], Sprite[]];
+  activation: Sprite[];
   disabled: boolean;
   palette: Palette;
 };
@@ -118,7 +136,7 @@ const useAction = (
   action: (typeof actions)[number],
   isDisabled: (world: World, hero: Entity, actionEntity: Entity) => boolean,
   getName: (actionEntity: Entity) => string,
-  getActivation: (world: World, actionEntity: Entity) => [Sprite[], Sprite[]],
+  getActivation: (world: World, actionEntity: Entity) => Sprite[],
   palette: Palette = "white"
 ) => {
   const { ecs, paused } = useWorld();
@@ -177,8 +195,9 @@ export default function Controls() {
     (world, hero, spawnEntity) => !canRevive(world, spawnEntity, hero),
     () => "SPAWN",
     (_, spawnEntity) => [
-      [none, spawnEntity ? ghost : none, none],
-      repeat(none, 3),
+      ...repeat(none, 2),
+      spawnEntity ? ghost : none,
+      ...repeat(none, 3),
     ]
   );
 
@@ -188,8 +207,9 @@ export default function Controls() {
       !isControllable(world, hero) || !canAcceptQuest(world, hero, questEntity),
     () => "START",
     (_, questEntity) => [
-      [none, questEntity ? quest : none, none],
-      repeat(none, 3),
+      ...repeat(none, 2),
+      questEntity ? quest : none,
+      ...repeat(none, 3),
     ],
     "lime"
   );
@@ -199,19 +219,21 @@ export default function Controls() {
     (world, hero, unlockEntity) =>
       !isControllable(world, hero) || !canUnlock(world, hero, unlockEntity),
     () => "OPEN",
-    (_, unlockEntity) => [
-      [none, unlockEntity[SPRITE] || none, none],
-      [
-        none,
-        unlockEntity
-          ? getItemSprite({
+    (_, unlockEntity) =>
+      unlockEntity
+        ? [
+            ...repeat(none, 2),
+            getItemSprite({
+              materialized: "door",
+              material: unlockEntity[LOCKABLE].material,
+            }),
+            getItemSprite({
               consume: "key",
               material: unlockEntity[LOCKABLE].material,
-            })
-          : none,
-        none,
-      ],
-    ],
+            }),
+            ...repeat(none, 2),
+          ]
+        : repeat(none, 6),
     "lime"
   );
 
@@ -225,27 +247,20 @@ export default function Controls() {
       popupEntity[POPUP]
         ? popupActions[(popupEntity[POPUP] as Popup).transaction]
         : "",
-    (world, popupEntity) => [
-      [
-        none,
-        popupEntity[POPUP]
-          ? mergeSprites(
+    (world, popupEntity) =>
+      popupEntity[POPUP]
+        ? [
+            ...repeat(none, 2),
+            mergeSprites(
               ...getSegments(world, popupEntity, {
                 isTransparent: false,
                 receiveShadow: false,
               }).map((segment) => segment.sprite)
-            )
-          : none,
-        none,
-      ],
-      [
-        none,
-        popupEntity[POPUP]
-          ? popupIdles[(popupEntity[POPUP] as Popup).transaction]
-          : none,
-        none,
-      ],
-    ],
+            ),
+            popupIdles[(popupEntity[POPUP] as Popup).transaction],
+            ...repeat(none, 2),
+          ]
+        : repeat(none, 6),
     "lime"
   );
 
@@ -257,12 +272,14 @@ export default function Controls() {
     () => "CLAIM",
     (_, claimEntity) =>
       [
-        ...claimEntity[POPUP].deals.map((deal: Deal) =>
-          getActivationRow(deal.item)
-        ),
-        repeat(none, 3),
-        repeat(none, 3),
-      ].slice(0, 2) as [Sprite[], Sprite[]],
+        ...repeat(none, 2),
+        ...claimEntity[POPUP].deals
+          .map((deal: Deal) => getActivationRow(deal.item))
+          .flat(),
+        ...repeat(none, 4),
+      ]
+        .slice(claimEntity[POPUP].deals.length)
+        .slice(0, 6),
     "lime"
   );
 
@@ -274,10 +291,13 @@ export default function Controls() {
     (tradeEntity) => tradeEntity[POPUP].transaction.toUpperCase(),
     (world, tradeEntity) => {
       const deal = getDeal(world, tradeEntity);
-      if (deal.price.length === 1) {
-        return [getActivationRow(deal.price[0]), repeat(none, 3)];
-      }
-      return [getActivationRow(deal.price[1]), getActivationRow(deal.price[0])];
+      return [
+        ...repeat(none, 2),
+        ...deal.price.map((price) => getActivationRow(price)).flat(),
+        ...repeat(none, 4),
+      ]
+        .slice(deal.price.length)
+        .slice(0, 6);
     },
     "lime"
   );
@@ -286,7 +306,7 @@ export default function Controls() {
     "close",
     (world, hero, tradeEntity) => !isControllable(world, hero),
     () => "CLOSE",
-    () => [repeat(none, 3), repeat(none, 3)],
+    () => repeat(none, 6),
     "red"
   );
 
@@ -301,10 +321,10 @@ export default function Controls() {
         primaryEntity as TypedEntity<"ITEM">
       ),
     (primaryEntity) => primaryEntity[SPRITE].name.toUpperCase(),
-    (_, primaryEntity) => [
-      [none, none, primaryEntity[SPRITE]],
-      getActiveActivations(primaryEntity[ITEM]),
-    ]
+    (world, primaryEntity) =>
+      hero
+        ? getActiveActivations(world, hero, primaryEntity[ITEM])
+        : repeat(none, 6)
   );
 
   const secondaryAction = useAction(
@@ -318,10 +338,10 @@ export default function Controls() {
       ),
 
     (secondaryEntity) => secondaryEntity[SPRITE].name.toUpperCase(),
-    (_, secondaryEntity) => [
-      [none, none, secondaryEntity[SPRITE]],
-      getActiveActivations(secondaryEntity[ITEM]),
-    ],
+    (world, secondaryEntity) =>
+      hero
+        ? getActiveActivations(world, hero, secondaryEntity[ITEM])
+        : repeat(none, 6),
     "silver"
   );
 
@@ -648,36 +668,39 @@ export default function Controls() {
     );
   const rightButton = pressedSecondary || secondaryButton || emptySecondary;
 
-  const emptyActivation = [repeat(none, 3), repeat(none, 3)];
+  const emptyActivation = repeat(none, 6);
   const primaryActivation =
     primary?.activation || selectedPrimary?.activation || emptyActivation;
   const secondaryActivation =
     secondary?.activation || selectedSecondary?.activation || emptyActivation;
 
-  const itemSprites =
-    ecs && hero?.[INVENTORY]
-      ? (hero[INVENTORY] as Inventory).items.map((itemId) => {
-          const inventoryItem = ecs.assertByIdAndComponents(itemId, [ITEM]);
-          return {
-            ...getItemSprite(
-              inventoryItem[ITEM],
-              "display",
-              inventoryItem[ITEM].equipment === "compass"
-                ? inventoryItem[ORIENTABLE]?.facing
-                : undefined
-            ),
-            stackableAmount:
-              (inventoryItem[ITEM].stackable || inventoryItem[ITEM].consume) &&
-              inventoryItem[ITEM].amount,
-          };
+  const equipments = ecs
+    ? (["compass", "sword", "shield"] as const)
+        .filter((equipment) => hero?.[EQUIPPABLE]?.[equipment])
+        .map((equipment) => {
+          const equipmentEntity = ecs.assertByIdAndComponents(
+            hero?.[EQUIPPABLE]?.[equipment],
+            [ITEM]
+          );
+          const equipmentSprite = getItemSprite(
+            equipmentEntity[ITEM],
+            "display",
+            equipment === "compass"
+              ? equipmentEntity[ORIENTABLE]?.facing
+              : undefined
+          );
+          return [
+            equipmentSprite,
+            ...createText(equipmentSprite.name, colors.silver),
+            ...repeat(none, inventoryWidth - equipmentSprite.name.length - 1),
+          ];
         })
-      : [];
-  const itemRows = [0, 1, 2].map((row) => {
-    return Array.from({ length: inventoryWidth }).map(
-      (_, columnIndex) =>
-        itemSprites[row * inventoryWidth + columnIndex] || none
-    );
-  });
+    : [];
+
+  const equipmentRows = [
+    ...equipments,
+    ...repeat(repeat(none, inventoryWidth), 3 - equipments.length),
+  ];
 
   return (
     <footer className="Controls">
@@ -709,7 +732,7 @@ export default function Controls() {
           ...leftButton[0],
           ...rightButton[0],
           ...createText("│", colors.grey),
-          ...itemRows[0],
+          ...equipmentRows[0],
           ...repeat(none, dimensions.padding),
         ]}
       />
@@ -719,19 +742,17 @@ export default function Controls() {
           ...leftButton[1],
           ...rightButton[1],
           ...createText("│", colors.grey),
-          ...itemRows[1],
+          ...equipmentRows[1],
           ...repeat(none, dimensions.padding),
         ]}
       />
       <Row
         cells={[
           ...repeat(none, dimensions.padding),
-          ...primaryActivation[1],
-          ...primaryActivation[0],
-          ...secondaryActivation[1],
-          ...secondaryActivation[0],
+          ...primaryActivation,
+          ...secondaryActivation,
           ...createText("│", colors.grey),
-          ...itemRows[2],
+          ...equipmentRows[2],
           ...repeat(none, dimensions.padding),
         ]}
       />
