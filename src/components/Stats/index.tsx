@@ -7,6 +7,8 @@ import {
   pause,
   resume,
   createProgress,
+  inspect,
+  close,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
@@ -16,14 +18,23 @@ import { Countable, STATS } from "../../engine/components/stats";
 import { EQUIPPABLE, Equippable } from "../../engine/components/equippable";
 import { repeat } from "../../game/math/std";
 import { isGhost } from "../../engine/systems/fate";
+import { PLAYER } from "../../engine/components/player";
+import { MOVABLE } from "../../engine/components/movable";
+import { REFERENCE } from "../../engine/components/reference";
 
 function StatsInner({
   padding,
   hidden,
+  handleInspect,
+  inspecting,
   ...stats
 }: {
   padding: number;
   hidden: boolean;
+  inspecting: boolean;
+  handleInspect: (
+    event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => void;
 } & Partial<Countable> &
   Equippable) {
   const { paused, setPaused } = useWorld();
@@ -72,7 +83,9 @@ function StatsInner({
               ...createText("│", colors.grey),
               ...createProgress(stats, "xp", 13),
               ...createText("│", colors.grey),
-              ...repeat(none, 3),
+              none,
+              inspecting ? close : inspect,
+              none,
             ]}
           />
         </>
@@ -87,6 +100,7 @@ function StatsInner({
         ]}
       />
       <div className="Menu" id="menu" onClick={handleMenu} />
+      <div className="Inspect" id="inspect" onClick={handleInspect} />
     </header>
   );
 }
@@ -94,9 +108,28 @@ function StatsInner({
 const PureState = React.memo(StatsInner);
 
 export default function Stats() {
-  const { ecs } = useWorld();
+  const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
   const hero = useHero();
+
+  const handleInspect = useCallback(
+    (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      event.preventDefault();
+
+      if (!hero || !ecs || paused) return;
+
+      const reference = ecs.assertByIdAndComponents(hero[MOVABLE]?.reference, [
+        REFERENCE,
+      ])[REFERENCE];
+
+      if (!reference) return;
+
+      hero[PLAYER].inspectTriggered = true;
+      reference.suspensionCounter = reference.suspensionCounter === -1 ? -1 : 1;
+      reference.suspended = false;
+    },
+    [hero, ecs, paused]
+  );
 
   return (
     <PureState
@@ -104,6 +137,10 @@ export default function Stats() {
       {...hero?.[STATS]}
       {...hero?.[EQUIPPABLE]}
       hidden={!ecs || !hero || isGhost(ecs, hero)}
+      handleInspect={handleInspect}
+      inspecting={
+        !!hero && !!ecs && hero[PLAYER].popup === ecs.getEntityId(hero)
+      }
     />
   );
 }

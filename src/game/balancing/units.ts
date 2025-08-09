@@ -446,7 +446,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     faction: "unit",
     power: 0,
     armor: 2,
-    hp: 50,
+    hp: 35,
     mp: 0,
     equipments: [],
     drops: [

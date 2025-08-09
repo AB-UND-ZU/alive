@@ -171,7 +171,7 @@ const useAction = (
 
 export default function Controls() {
   const dimensions = useDimensions();
-  const { ecs, setPaused } = useWorld();
+  const { ecs, setPaused, paused } = useWorld();
   const hero = useHero();
   const heroRef = useRef<Entity>();
   const pressedOrientations = useRef<Orientation[]>([]);
@@ -392,7 +392,14 @@ export default function Controls() {
       const active =
         action === "primary" ? primaryRef.current : secondaryRef.current;
 
-      if (currentAction || !heroEntity || !ecs) return;
+      if (
+        currentAction ||
+        !heroEntity ||
+        !ecs ||
+        paused ||
+        (!isControllable(ecs, heroEntity) && !isDead(ecs, heroEntity))
+      )
+        return;
 
       const reference = ecs.assertByIdAndComponents(
         heroEntity[MOVABLE].reference,
@@ -432,7 +439,7 @@ export default function Controls() {
         }, reference.tick);
       }
     },
-    [ecs]
+    [ecs, paused]
   );
 
   const handlePrimary = useCallback(

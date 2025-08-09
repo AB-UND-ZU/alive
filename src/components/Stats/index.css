@@ -13,3 +13,11 @@
   bottom: calc(var(--top-offset) * -1);
   width: calc(50% - var(--cell-width) * 7);
 }
+
+.Inspect {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: calc(var(--top-offset) * -1);
+  width: calc(50% - var(--cell-width) * 7);
+}

@@ -8,6 +8,7 @@ export type Player = {
   healingReceived: number;
   xpReceived: number;
   popup?: number;
+  inspectTriggered: boolean;
   defeatedUnits: Partial<Record<UnitKey, number>>;
 };
 

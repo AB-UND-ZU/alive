@@ -53,7 +53,7 @@ export const diamondMine: Sprite = {
 };
 
 export const rubyMine: Sprite = {
-  name: "Diamond",
+  name: "Ruby",
   layers: [
     { char: "█", color: colors.grey },
     { char: "÷", color: colors.fuchsia },

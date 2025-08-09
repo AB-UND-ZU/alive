@@ -324,6 +324,14 @@ export const generateWorld = async (world: World) => {
     return cell;
   });
 
+  // create viewpoint for inspecting
+  const inspectEntity = entities.createViewpoint(world, {
+    [POSITION]: { x: 0, y: 0 },
+    [RENDERABLE]: { generation: 0 },
+    [VIEWABLE]: { active: false, priority: 90 },
+  });
+  setIdentifier(world, inspectEntity, "inspect");
+
   // insert menu
   insertArea(worldMatrix, menuArea, 0, 0);
 

@@ -185,7 +185,9 @@ export default function setupAction(world: World) {
       let popup: Entity | undefined = undefined;
       let claim: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
-      let close: Entity | undefined = undefined;
+      let close: Entity | undefined = world.getEntityById(
+        entity[PLAYER]?.popup
+      );
       let spawn: Entity | undefined = undefined;
 
       // check any adjacent actions
@@ -195,10 +197,11 @@ export default function setupAction(world: World) {
           const targetPosition = add(entity[POSITION], delta);
           const questEntity = getQuest(world, targetPosition);
           const lockableEntity = getLockable(world, targetPosition);
-          const popupEntity = getPopup(world, targetPosition);
+          const adjacentPopup = getPopup(world, targetPosition);
+          const popupEntity =
+            adjacentPopup === entity ? undefined : adjacentPopup;
           const claimEntity = popupEntity;
           const tradeEntity = popupEntity;
-          const closeEntity = popupEntity;
 
           // claiming only while in finished quest
           if (
@@ -242,10 +245,6 @@ export default function setupAction(world: World) {
           // trading only while in shop
           if (!trade && tradeEntity && isInShop(world, entity))
             trade = tradeEntity;
-
-          // close while in popup
-          if (!close && closeEntity && isInPopup(world, entity))
-            close = closeEntity;
         }
       }
 

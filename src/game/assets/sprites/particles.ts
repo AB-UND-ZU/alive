@@ -1477,6 +1477,16 @@ export const resume: Sprite = {
   layers: [{ char: "»", color: colors.white }],
 };
 
+export const inspect: Sprite = {
+  name: "Inspect",
+  layers: [{ char: "?", color: colors.white }],
+};
+
+export const close: Sprite = {
+  name: "Close",
+  layers: [{ char: "x", color: colors.white }],
+};
+
 export const overlay: Sprite = {
   name: "Overlay",
   layers: [{ char: "▓", color: colors.black }],

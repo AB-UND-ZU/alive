@@ -19,7 +19,7 @@ import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { TOOLTIP } from "../components/tooltip";
-import { none, tombstone1 } from "../../game/assets/sprites";
+import { createText, none, tombstone1 } from "../../game/assets/sprites";
 import { ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
@@ -49,12 +49,14 @@ import { AFFECTABLE } from "../components/affectable";
 import { defaultLight } from "./consume";
 import { LAYER } from "../components/layer";
 import {
+  assertIdentifier,
   getIdentifier,
   getIdentifierAndComponents,
   setHighlight,
   setIdentifier,
   setNeedle,
 } from "../utils";
+import { addPopup } from "../components";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -145,6 +147,7 @@ export const createHero = (world: World, halo: Entity) => {
       healingReceived: 0,
       xpReceived: 0,
       defeatedUnits: {},
+      inspectTriggered: false,
     },
     [POSITION]: copy(halo[POSITION]),
     [PUSHABLE]: {},
@@ -179,6 +182,17 @@ export const createHero = (world: World, halo: Entity) => {
     "pointerArrow",
     {}
   );
+
+  const inspectEntity = assertIdentifier(world, "inspect");
+  addPopup(world, heroEntity, {
+    lines: [createText("Inventory")],
+    active: false,
+    verticalIndex: 0,
+    deals: [],
+    targets: [],
+    transaction: "info",
+    viewpoint: world.getEntityId(inspectEntity),
+  });
 
   return heroEntity;
 };
@@ -275,6 +289,7 @@ export default function setupFate(world: World) {
             healingReceived: 0,
             xpReceived: 0,
             defeatedUnits: {},
+            inspectTriggered: false,
           },
           [POSITION]: copy(entity[POSITION]),
           [RENDERABLE]: { generation: 0 },

@@ -14,7 +14,7 @@ import { createText, doorOpen, none } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
-import { disposeEntity, updateWalkable } from "./map";
+import { disposeEntity, moveEntity, updateWalkable } from "./map";
 import {
   canAcceptQuest,
   canUnlock,
@@ -23,7 +23,11 @@ import {
   getUnlockKey,
 } from "./action";
 import { getItemSprite } from "../../components/Entity/utils";
-import { questSequence, queueMessage } from "../../game/assets/utils";
+import {
+  frameHeight,
+  questSequence,
+  queueMessage,
+} from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
 import {
   SEQUENCABLE,
@@ -36,7 +40,7 @@ import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
 import { entities } from "..";
 import { BELONGABLE } from "../components/belongable";
-import { copy } from "../../game/math/std";
+import { add, copy } from "../../game/math/std";
 import { ORIENTABLE } from "../components/orientable";
 import { CASTABLE } from "../components/castable";
 import { isDead, isEnemy } from "./damage";
@@ -55,7 +59,11 @@ import { addToInventory } from "./collect";
 import { getSpellStat } from "../../game/balancing/spells";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
-import { acceptQuest as ecsAcceptQuest, removeQuest } from "../utils";
+import {
+  assertIdentifier,
+  acceptQuest as ecsAcceptQuest,
+  removeQuest,
+} from "../utils";
 import { fenceDoor, fenceDoorOpen } from "../../game/assets/sprites/structures";
 import * as colors from "../../game/assets/colors";
 import { NPC } from "../components/npc";
@@ -398,7 +406,8 @@ export default function setupTrigger(world: World) {
         (!isControllable(world, entity) && !isDead(world, entity)) ||
         !(
           entity[ACTIONABLE].primaryTriggered ||
-          entity[ACTIONABLE].secondaryTriggered
+          entity[ACTIONABLE].secondaryTriggered ||
+          entity[PLAYER]?.inspectTriggered
         )
       )
         continue;
@@ -428,7 +437,26 @@ export default function setupTrigger(world: World) {
         [ITEM]
       );
 
-      if (entity[ACTIONABLE].primaryTriggered) {
+      if (entity[PLAYER]?.inspectTriggered) {
+        entity[PLAYER].inspectTriggered = false;
+
+        // close any popup
+        const popupEntity = world.getEntityById(entity[PLAYER].popup);
+        if (popupEntity) {
+          closePopup(world, entity, popupEntity);
+        }
+
+        // open if it wasn't just closed and move viewpoint
+        if (popupEntity !== entity) {
+          const inspectEntity = assertIdentifier(world, "inspect");
+          moveEntity(
+            world,
+            inspectEntity,
+            add(entity[POSITION], { x: 0, y: (frameHeight + 1) / -2 })
+          );
+          openPopup(world, entity, entity);
+        }
+      } else if (entity[ACTIONABLE].primaryTriggered) {
         entity[ACTIONABLE].primaryTriggered = false;
 
         if (

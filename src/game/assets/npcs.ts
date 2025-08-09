@@ -83,9 +83,6 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const bossEntity = getIdentifier(world, "chest_boss");
   const focusEntity = getIdentifier(world, "focus");
   const doorEntity = getIdentifier(world, "gate");
-  const signViewpoint = world.getEntityById(
-    getIdentifierAndComponents(world, "spawn_sign", [POPUP])?.[POPUP].viewpoint
-  );
   const compassEntity = getIdentifierAndComponents(world, "compass", [ITEM]);
 
   if (!focusEntity || !doorEntity || !compassEntity) {
@@ -150,7 +147,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
               cellEntity === focusEntity ||
               cellEntity === entity ||
               cellEntity === spawnEntity ||
-              cellEntity === signViewpoint ||
+              VIEWABLE in cellEntity ||
               !(RENDERABLE in cellEntity) ||
               (CASTABLE in cellEntity &&
                 cellEntity[BELONGABLE]?.faction !== "nature")
