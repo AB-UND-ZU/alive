@@ -67,6 +67,7 @@ import {
 import { fenceDoor, fenceDoorOpen } from "../../game/assets/sprites/structures";
 import * as colors from "../../game/assets/colors";
 import { NPC } from "../components/npc";
+import { consumeItem, getConsumption } from "./consume";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -386,7 +387,6 @@ export default function setupTrigger(world: World) {
       ACTIONABLE,
       BELONGABLE,
       MOVABLE,
-      ORIENTABLE,
       POSITION,
       RENDERABLE,
     ])) {
@@ -416,10 +416,12 @@ export default function setupTrigger(world: World) {
       // mark as interacted and update orientation
       entity[MOVABLE].lastInteraction = entityReference;
 
-      entity[ORIENTABLE].facing =
-        entity[MOVABLE].orientations[0] ||
-        entity[MOVABLE].pendingOrientation ||
-        entity[ORIENTABLE].facing;
+      if (entity[ORIENTABLE]) {
+        entity[ORIENTABLE].facing =
+          entity[MOVABLE].orientations[0] ||
+          entity[MOVABLE].pendingOrientation ||
+          entity[ORIENTABLE].facing;
+      }
 
       const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
@@ -430,6 +432,10 @@ export default function setupTrigger(world: World) {
       );
       const tradeEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].trade,
+        [TOOLTIP, POPUP, POSITION]
+      );
+      const useEntity = world.getEntityByIdAndComponents(
+        entity[ACTIONABLE].use,
         [TOOLTIP, POPUP, POSITION]
       );
       const closeEntity = world.getEntityByIdAndComponents(
@@ -507,6 +513,8 @@ export default function setupTrigger(world: World) {
           canShop(world, entity, getDeal(world, tradeEntity))
         ) {
           performTrade(world, entity, tradeEntity);
+        } else if (useEntity && getConsumption(world, entity, useEntity)) {
+          consumeItem(world, entity, useEntity);
         } else if (primaryEntity) {
           if (
             canCast(world, entity, primaryEntity) &&

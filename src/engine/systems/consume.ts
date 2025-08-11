@@ -1,14 +1,14 @@
 import { World } from "../ecs";
 import { RENDERABLE } from "../components/renderable";
 import { Entity } from "ecs";
-import { Consumable, ITEM, Material } from "../components/item";
+import { Consumable, ITEM, Material, Stackable } from "../components/item";
 import { INVENTORY } from "../components/inventory";
 import { PLAYER } from "../components/player";
 import { Countable, STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
 import { rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
-import { getMaxCounter } from "../../game/assets/sprites";
+import { getMaxCounter, none } from "../../game/assets/sprites";
 import { createSequence, getSequence } from "./sequence";
 import { ConsumeSequence, VisionSequence } from "../components/sequencable";
 import { EQUIPPABLE } from "../components/equippable";
@@ -20,6 +20,9 @@ import { getEntityHaste, getHasteInterval } from "./movement";
 import { disposeEntity } from "./map";
 import { LAYER } from "../components/layer";
 import { NPC } from "../components/npc";
+import { POPUP } from "../components/popup";
+import { addToInventory } from "./collect";
+import { SPRITE } from "../components/sprite";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -59,6 +62,69 @@ export const consumptionConfigs: Partial<
     fire: { cooldown: 7, amount: 5, countable: "hp", buffer: 3 },
     water: { cooldown: 7, amount: 2, countable: "mp", buffer: 3 },
   },
+};
+
+export const stackableConsumptions: Partial<
+  Record<Stackable, { amount: number; countable: keyof Countable }>
+> = {
+  apple: { countable: "hp", amount: 2 },
+  shroom: { countable: "mp", amount: 1 },
+  banana: { countable: "hp", amount: 5 },
+  coconut: { countable: "mp", amount: 2 },
+  fruit: { countable: "hp", amount: 5 },
+  herb: { countable: "mp", amount: 2 },
+};
+
+export const getConsumption = (
+  world: World,
+  entity: Entity,
+  target: Entity
+) => {
+  if (
+    !target[INVENTORY] ||
+    target[INVENTORY].items.length === 0 ||
+    !target[POPUP]
+  )
+    return;
+
+  const item = world.getEntityByIdAndComponents(
+    target[INVENTORY].items[target[POPUP].verticalIndex],
+    [ITEM]
+  );
+
+  if (!item) return;
+
+  const consumption =
+    item[ITEM].stackable && stackableConsumptions[item[ITEM].stackable];
+
+  return consumption ? { ...consumption, item } : undefined;
+};
+
+export const consumeItem = (world: World, entity: Entity, target: Entity) => {
+  const consumption = getConsumption(world, entity, target);
+
+  if (!consumption) return;
+
+  // remove from inventory
+  consumption.item[ITEM].amount -= 1;
+
+  if (consumption.item[ITEM].amount === 0) {
+    removeFromInventory(world, entity, consumption.item);
+  }
+
+  // add stats
+  const countableItem = entities.createItem(world, {
+    [ITEM]: {
+      stat: consumption?.countable,
+      carrier: -1,
+      bound: false,
+      amount: 0,
+    },
+    [RENDERABLE]: { generation: 0 },
+    [SPRITE]: none,
+  });
+
+  addToInventory(world, entity, countableItem, false, consumption.amount);
 };
 
 export default function setupConsume(world: World) {

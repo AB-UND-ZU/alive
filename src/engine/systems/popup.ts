@@ -27,21 +27,28 @@ import { rerenderEntity } from "./renderer";
 import { entities } from "..";
 import { add } from "../../game/math/std";
 import { TypedEntity } from "../entities";
-import { isEnemy, isNeutral } from "./damage";
+import { isDead, isEnemy, isNeutral } from "./damage";
 import { frameHeight } from "../../game/assets/utils";
 
 export const isInPopup = (world: World, entity: Entity) =>
-  entity[PLAYER]?.popup;
+  entity[PLAYER]?.popup && !isDead(world, entity);
 
 export const isInShop = (world: World, entity: Entity) =>
+  isInPopup(world, entity) &&
   ["buy", "sell", "craft"].includes(
     world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [POPUP])?.[POPUP]
       .transaction || ""
   );
 
 export const isInQuest = (world: World, entity: Entity) =>
+  isInPopup(world, entity) &&
   world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [POPUP])?.[POPUP]
     .transaction === "quest";
+
+export const isInInspect = (world: World, entity: Entity) =>
+  isInPopup(world, entity) &&
+  world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [POPUP])?.[POPUP]
+    .transaction === "inspect";
 
 export const isPopupAvailable = (world: World, entity: Entity) =>
   POPUP in entity &&

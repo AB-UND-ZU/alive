@@ -131,6 +131,7 @@ import {
   xpDot,
   rain,
   info,
+  createCountable,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -178,7 +179,10 @@ import { STATS } from "../../engine/components/stats";
 import { invertOrientation, relativeOrientations } from "../math/path";
 import { dropEntity, MAX_DROP_RADIUS } from "../../engine/systems/drop";
 import { EXERTABLE } from "../../engine/components/exertable";
-import { consumptionConfigs } from "../../engine/systems/consume";
+import {
+  consumptionConfigs,
+  stackableConsumptions,
+} from "../../engine/systems/consume";
 import {
   contentDelay,
   decayTime,
@@ -1128,18 +1132,39 @@ export const displayInspect: Sequence<PopupSequence> = (
           .map((item) => {
             const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
             const itemSprite = getItemSprite(itemEntity[ITEM], "display");
+            const consumption =
+              itemEntity[ITEM].stackable &&
+              stackableConsumptions[itemEntity[ITEM].stackable];
             const amountText = itemEntity[ITEM].equipment
               ? createText("(worn)")
               : createText(`${itemEntity[ITEM].amount}x`, colors.silver);
-            const itemText = createText(itemSprite.name, colors.grey);
+            const useText = consumption
+              ? [
+                  ...createText(" ("),
+                  ...createCountable(
+                    { [consumption.countable]: consumption.amount },
+                    consumption.countable
+                  ),
+                  ...createText(")"),
+                ]
+              : [];
+            const itemText = createText(
+              itemSprite.name,
+              consumption ? colors.white : colors.grey
+            );
             return addBackground(
               [
                 none,
                 itemSprite,
                 ...itemText,
+                ...useText,
                 ...repeat(
                   none,
-                  frameWidth - 4 - amountText.length - itemText.length
+                  frameWidth -
+                    4 -
+                    amountText.length -
+                    itemText.length -
+                    useText.length
                 ),
                 ...amountText,
               ],
@@ -1151,7 +1176,10 @@ export const displayInspect: Sequence<PopupSequence> = (
     : [createText("No items yet", colors.grey, colors.black)];
 
   const popupCenter = { x: 0, y: (frameHeight + 1) / -2 };
-  const verticalIndex = entity[POPUP].verticalIndex;
+  const verticalIndex = Math.min(
+    entity[POPUP].verticalIndex,
+    entity[INVENTORY].items.length - 1
+  );
   const selectionX =
     popupCenter.x +
     ((frameWidth - 3) / 2) * (state.args.transaction === "sell" ? 1 : -1);
@@ -1177,6 +1205,7 @@ export const displayInspect: Sequence<PopupSequence> = (
     state.particles.selection = world.getEntityId(selectionParticle);
   }
 
+  // move selection
   if (
     verticalIndex !== state.args.verticalIndex &&
     state.particles.selection &&
@@ -1188,6 +1217,18 @@ export const displayInspect: Sequence<PopupSequence> = (
     );
     selectionParticle[PARTICLE].offsetY = selectionY + verticalIndex;
     state.args.verticalIndex = verticalIndex;
+    entity[POPUP].verticalIndex = verticalIndex;
+    updated = true;
+  }
+
+  // delete selection
+  if (state.particles.selection && !hasItems) {
+    const selectionParticle = world.assertByIdAndComponents(
+      state.particles.selection,
+      [PARTICLE]
+    );
+    disposeEntity(world, selectionParticle);
+    delete state.particles.selection;
     updated = true;
   }
 

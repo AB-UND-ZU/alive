@@ -52,6 +52,7 @@ import { TypedEntity } from "../../engine/entities";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { STATS } from "../../engine/components/stats";
+import { getConsumption } from "../../engine/systems/consume";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -302,9 +303,34 @@ export default function Controls() {
     "lime"
   );
 
+  const useItemAction = useAction(
+    "use",
+    (world, hero, useEntity) =>
+      !isControllable(world, hero) || !getConsumption(world, hero, useEntity),
+    () => "USE",
+    (world, useEntity) => {
+      const consumption = hero && getConsumption(world, hero, useEntity);
+      if (!consumption) return repeat(none, 6);
+
+      const countable = createCountable(
+        { [consumption.countable]: consumption.amount },
+        consumption.countable
+      );
+
+      return [
+        ...repeat(none, countable.length > 2 ? 0 : 1),
+        getItemSprite(consumption.item[ITEM]),
+        none,
+        ...countable,
+        ...repeat(none, 2),
+      ].slice(0, 6);
+    },
+    "lime"
+  );
+
   const closeAction = useAction(
     "close",
-    (world, hero, tradeEntity) => !isControllable(world, hero),
+    (world, hero) => !isControllable(world, hero),
     () => "CLOSE",
     () => repeat(none, 6),
     "red"
@@ -352,6 +378,7 @@ export default function Controls() {
     popupAction,
     claimAction,
     tradeAction,
+    useItemAction,
     primaryAction,
   ];
   const selectedPrimary = availablePrimary.find((action) => action);

@@ -20,6 +20,7 @@ import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
 import {
   getPopup,
+  isInInspect,
   isInPopup,
   isInQuest,
   isInShop,
@@ -185,6 +186,7 @@ export default function setupAction(world: World) {
       let popup: Entity | undefined = undefined;
       let claim: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
+      let use: Entity | undefined = undefined;
       let close: Entity | undefined = world.getEntityById(
         entity[PLAYER]?.popup
       );
@@ -202,6 +204,7 @@ export default function setupAction(world: World) {
             adjacentPopup === entity ? undefined : adjacentPopup;
           const claimEntity = popupEntity;
           const tradeEntity = popupEntity;
+          const useEntity = entity;
 
           // claiming only while in finished quest
           if (
@@ -245,6 +248,9 @@ export default function setupAction(world: World) {
           // trading only while in shop
           if (!trade && tradeEntity && isInShop(world, entity))
             trade = tradeEntity;
+
+          // using only while in inspect
+          if (!use && useEntity && isInInspect(world, entity)) use = useEntity;
         }
       }
 
@@ -266,11 +272,12 @@ export default function setupAction(world: World) {
       const popupId = popup && world.getEntityId(popup);
       const claimId = claim && world.getEntityId(claim);
       const tradeId = trade && world.getEntityId(trade);
+      const useId = use && world.getEntityId(use);
       const closeId = close && world.getEntityId(close);
       const spawnId = spawn && world.getEntityId(spawn);
       const primaryId = primary && world.getEntityId(primary);
       const secondaryId =
-        questId || unlockId || popupId || tradeId || spawnId
+        questId || unlockId || popupId || tradeId || useId || spawnId
           ? undefined
           : secondary && world.getEntityId(secondary);
 
@@ -280,6 +287,7 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].popup !== popupId ||
         entity[ACTIONABLE].claim !== claimId ||
         entity[ACTIONABLE].trade !== tradeId ||
+        entity[ACTIONABLE].use !== useId ||
         entity[ACTIONABLE].close !== closeId ||
         entity[ACTIONABLE].spawn !== spawnId ||
         entity[ACTIONABLE].primary !== primaryId ||
@@ -290,6 +298,7 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].popup = popupId;
         entity[ACTIONABLE].claim = claimId;
         entity[ACTIONABLE].trade = tradeId;
+        entity[ACTIONABLE].use = useId;
         entity[ACTIONABLE].close = closeId;
         entity[ACTIONABLE].spawn = spawnId;
         entity[ACTIONABLE].primary = primaryId;
