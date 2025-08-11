@@ -386,6 +386,7 @@ export default function setupTrigger(world: World) {
       ACTIONABLE,
       BELONGABLE,
       MOVABLE,
+      ORIENTABLE,
       POSITION,
       RENDERABLE,
     ])) {
@@ -411,6 +412,14 @@ export default function setupTrigger(world: World) {
         )
       )
         continue;
+
+      // mark as interacted and update orientation
+      entity[MOVABLE].lastInteraction = entityReference;
+
+      entity[ORIENTABLE].facing =
+        entity[MOVABLE].orientations[0] ||
+        entity[MOVABLE].pendingOrientation ||
+        entity[ORIENTABLE].facing;
 
       const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
       const unlockEntity = world.getEntityById(entity[ACTIONABLE].unlock);
@@ -571,8 +580,6 @@ export default function setupTrigger(world: World) {
           return;
         }
       }
-
-      entity[MOVABLE].lastInteraction = entityReference;
     }
   };
 

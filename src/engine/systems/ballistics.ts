@@ -119,6 +119,7 @@ export const shootArrow = (
       reference: frameId,
       lastInteraction: 0,
       spring: { duration: tick },
+      bumpGeneration: 0,
       flying: false,
     },
     [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },

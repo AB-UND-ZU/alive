@@ -773,6 +773,7 @@ export const createCell = (
       [FOG]: { visibility, type: "unit" },
       [INVENTORY]: { items: [] },
       [MOVABLE]: {
+        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: {
@@ -1122,6 +1123,7 @@ export const createCell = (
       [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MOVABLE]: {
+        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(frameEntity),
         spring: {
@@ -1155,8 +1157,9 @@ export const createCell = (
       [FOG]: { visibility, type: "unit" },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: { bumpGeneration: 0 },
+      [MELEE]: {},
       [MOVABLE]: {
+        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: mobUnit.spring || {
@@ -1495,8 +1498,9 @@ export const createCell = (
       [FOG]: { visibility, type: "unit" },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: { bumpGeneration: 0 },
+      [MELEE]: {},
       [MOVABLE]: {
+        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: towerUnit.spring || {
@@ -1541,8 +1545,9 @@ export const createCell = (
       [FOG]: { visibility, type: "unit" },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: { bumpGeneration: 0 },
+      [MELEE]: {},
       [MOVABLE]: {
+        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: bossUnit.spring || {
@@ -1586,8 +1591,9 @@ export const createCell = (
       [FOG]: { visibility: "hidden", type: "unit" },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: { bumpGeneration: 0 },
+      [MELEE]: {},
       [MOVABLE]: {
+        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: mobUnit.spring || {

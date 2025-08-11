@@ -482,10 +482,8 @@ export default function Controls() {
 
       heroEntity[MOVABLE].orientations = orientations;
       const pendingOrientation = orientations[0];
-
       if (pendingOrientation) {
         heroEntity[MOVABLE].pendingOrientation = pendingOrientation;
-        heroEntity[ORIENTABLE].facing = pendingOrientation;
       }
 
       if (orientations.length === 0 && !heroEntity[MOVABLE].momentum) {

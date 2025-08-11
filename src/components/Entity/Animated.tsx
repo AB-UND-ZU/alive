@@ -1,9 +1,11 @@
 import { Vector3Tuple } from "three";
 import { useSpring, animated, SpringConfig } from "@react-spring/three";
 import { useWorld } from "../../bindings/hooks";
-import { Melee } from "../../engine/components/melee";
 import { useEffect, useRef } from "react";
-import { orientationPoints } from "../../engine/components/orientable";
+import {
+  Orientation,
+  orientationPoints,
+} from "../../engine/components/orientable";
 import { aspectRatio } from "../Dimensions/sizing";
 
 const bumpIntensity = 0.225;
@@ -12,12 +14,14 @@ const bumpSpring = { duration: 50 };
 export default function Animated({
   position,
   spring,
-  bump,
+  bumpOrientation,
+  bumpGeneration,
   ...props
 }: {
   position: Vector3Tuple;
   spring?: SpringConfig;
-  bump?: Melee;
+  bumpOrientation?: Orientation;
+  bumpGeneration?: number;
 }) {
   const { paused } = useWorld();
   const bumpRef = useRef(0);
@@ -39,10 +43,14 @@ export default function Animated({
 
   // perform bump if generation has changed
   useEffect(() => {
-    if (bump && bump.bumpGeneration !== bumpRef.current && bump.facing) {
-      bumpRef.current = bump.bumpGeneration;
+    if (
+      bumpGeneration !== undefined &&
+      bumpGeneration !== bumpRef.current &&
+      bumpOrientation
+    ) {
+      bumpRef.current = bumpGeneration;
 
-      const offset = orientationPoints[bump.facing];
+      const offset = orientationPoints[bumpOrientation];
       const bumpX = offset.x * bumpIntensity * aspectRatio;
       const bumpY = offset.y * bumpIntensity * -1;
 
@@ -66,7 +74,7 @@ export default function Animated({
     } else {
       api.start({ x: position[0], y: position[1], z: position[2] });
     }
-  }, [bump, position, api, spring]);
+  }, [bumpOrientation, bumpGeneration, position, api, spring]);
 
   return (
     <animated.group

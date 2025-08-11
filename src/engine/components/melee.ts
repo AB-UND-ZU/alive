@@ -3,8 +3,7 @@ import { World } from "../ecs";
 import { Orientation } from "./orientable";
 
 export type Melee = {
-  facing?: Orientation,
-  bumpGeneration: number,
+  facing?: Orientation;
 };
 
 export const MELEE = "MELEE";

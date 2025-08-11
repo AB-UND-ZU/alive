@@ -144,7 +144,8 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
 
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
-  const playerHealings: Record<number, number> = {};
+  const playerHp: Record<number, number> = {};
+  const playerMp: Record<number, number> = {};
   const playerXp: Record<number, number> = {};
   const playerDots: Record<number, number> = {};
 
@@ -313,15 +314,28 @@ export default function setupMagic(world: World) {
       }
     }
 
-    // process healing and XP animation after consumption
+    // process healing, mana and XP animation after consumption
     for (const entity of world.getEntities([SEQUENCABLE, PLAYER, STATS])) {
       const entityId = world.getEntityId(entity);
-      const healingReceived = entity[PLAYER].healingReceived;
-      const pendingHealing = healingReceived - (playerHealings[entityId] || 0);
+      const hpReceived = entity[PLAYER].healingReceived;
+      const pendingHp = hpReceived - (playerHp[entityId] || 0);
 
-      if (pendingHealing > 0) {
-        playerHealings[entityId] = healingReceived;
-        createAmountMarker(world, entity, pendingHealing, "up");
+      if (pendingHp > 0) {
+        playerHp[entityId] = hpReceived;
+        createAmountMarker(world, entity, pendingHp, "up");
+      }
+
+      const mpReceived = entity[PLAYER].manaReceived;
+      const pendingMp = mpReceived - (playerMp[entityId] || 0);
+
+      if (pendingMp > 0) {
+        playerMp[entityId] = mpReceived;
+        queueMessage(world, entity, {
+          line: createText(`+${pendingMp}`, colors.blue),
+          orientation: "up",
+          fast: false,
+          delay: 0,
+        });
       }
 
       const xpReceived = entity[PLAYER].xpReceived;
@@ -330,7 +344,7 @@ export default function setupMagic(world: World) {
       if (pendingXp > 0) {
         playerXp[entityId] = xpReceived;
         queueMessage(world, entity, {
-          line: createText(`+${pendingXp} ${xp.name}`, colors.silver),
+          line: createText(`${pendingXp}x ${xp.name}`, colors.silver),
           orientation: "up",
           fast: false,
           delay: 0,

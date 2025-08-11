@@ -33,6 +33,7 @@ import { invertOrientation } from "../../game/math/path";
 import { getPopup, isPopupAvailable, popupActions } from "./popup";
 import { Popup, POPUP } from "../components/popup";
 import { getSequence } from "./sequence";
+import { PLAYER } from "../components/player";
 
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
@@ -113,7 +114,18 @@ export default function setupMovement(world: World) {
 
     referenceGenerations = generation;
 
-    for (const entity of world.getEntities([POSITION, MOVABLE, RENDERABLE])) {
+    // let displacable units and mobs take precendence over player movements
+    const orderedEntities = [
+      ...(world.getEntities([
+        POSITION,
+        MOVABLE,
+        RENDERABLE,
+        `!${PLAYER}` as unknown as typeof PLAYER,
+      ]) as TypedEntity<"POSITION" | "MOVABLE" | "RENDERABLE">[]),
+      ...world.getEntities([POSITION, MOVABLE, RENDERABLE, PLAYER]),
+    ];
+
+    for (const entity of orderedEntities) {
       const entityId = world.getEntityId(entity);
       const movableReference = world.assertByIdAndComponents(
         entity[MOVABLE].reference,
@@ -137,7 +149,7 @@ export default function setupMovement(world: World) {
       ];
 
       if (pendingOrientation) {
-        attemptedOrientations.unshift(pendingOrientation);
+        attemptedOrientations.push(pendingOrientation);
       }
 
       if (entity[MOVABLE].momentum) {

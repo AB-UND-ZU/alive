@@ -6,11 +6,7 @@ import { add } from "../../game/math/std";
 import { isProcessable, REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { getCell } from "./map";
-import {
-  ORIENTABLE,
-  Orientation,
-  orientationPoints,
-} from "../components/orientable";
+import { Orientation, orientationPoints } from "../components/orientable";
 import { rerenderEntity } from "./renderer";
 import { PUSHABLE } from "../components/pushable";
 import { DISPLACABLE } from "../components/displacable";
@@ -57,12 +53,7 @@ export default function setupPush(world: World) {
     referenceGenerations = generation;
 
     // handle player pushing displacable entities
-    for (const entity of world.getEntities([
-      POSITION,
-      MOVABLE,
-      ORIENTABLE,
-      PUSHABLE,
-    ])) {
+    for (const entity of world.getEntities([POSITION, MOVABLE, PUSHABLE])) {
       const entityId = world.getEntityId(entity);
       const entityReference = world.assertByIdAndComponents(
         entity[MOVABLE].reference,
@@ -82,8 +73,8 @@ export default function setupPush(world: World) {
 
       const targetOrientation: Orientation | null =
         entity[MOVABLE].momentum ||
-        entity[MOVABLE].pendingOrientation ||
-        entity[MOVABLE].orientations[0];
+        entity[MOVABLE].orientations[0] ||
+        entity[MOVABLE].pendingOrientation;
 
       if (!targetOrientation) continue;
 

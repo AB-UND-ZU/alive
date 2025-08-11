@@ -7,6 +7,7 @@ export type Movable = {
   orientations: Orientation[];
   pendingOrientation?: Orientation;
   momentum?: Orientation;
+  bumpGeneration: number;
   reference: number;
   spring?: SpringConfig;
   lastInteraction: number;

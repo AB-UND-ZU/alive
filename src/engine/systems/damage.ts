@@ -187,7 +187,7 @@ export default function setupDamage(world: World) {
       if (!isControllable(world, entity)) continue;
 
       const targetOrientation: Orientation | null =
-        entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];
+        entity[MOVABLE].orientations[0] || entity[MOVABLE].pendingOrientation;
 
       if (!targetOrientation) continue;
 
@@ -233,7 +233,7 @@ export default function setupDamage(world: World) {
 
       // perform bump
       entity[MELEE].facing = targetOrientation;
-      entity[MELEE].bumpGeneration = entity[RENDERABLE].generation;
+      entity[MOVABLE].bumpGeneration = entity[RENDERABLE].generation;
 
       // set rechargable if applicable
       const secondaryEntity = world.getEntityByIdAndComponents(

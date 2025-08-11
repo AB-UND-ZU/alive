@@ -458,7 +458,7 @@ export const generateWorld = async (world: World) => {
     createCell(world, worldMatrix, { x, y }, cell, visibility);
   });
 
-  // spawn hero last to allow movement of boxes and mobs take precendence
+  // spawn hero
   const spawnEntity = assertIdentifierAndComponents(world, "spawn", [POSITION]);
   const heroEntity = createHero(world, {
     [POSITION]: copy(spawnEntity[POSITION]),
@@ -525,8 +525,9 @@ export const generateWorld = async (world: World) => {
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: { bumpGeneration: 0 },
+    [MELEE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -620,6 +621,7 @@ export const generateWorld = async (world: World) => {
   const highlighEntity = entities.createHighlight(world, {
     [FOCUSABLE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -721,8 +723,9 @@ export const generateWorld = async (world: World) => {
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: { bumpGeneration: 0 },
+    [MELEE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -848,8 +851,9 @@ export const generateWorld = async (world: World) => {
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: { bumpGeneration: 0 },
+    [MELEE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -967,8 +971,9 @@ export const generateWorld = async (world: World) => {
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: { bumpGeneration: 0 },
+    [MELEE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -1008,8 +1013,9 @@ export const generateWorld = async (world: World) => {
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: { bumpGeneration: 0 },
+    [MELEE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -1072,8 +1078,9 @@ export const generateWorld = async (world: World) => {
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: { bumpGeneration: 0 },
+    [MELEE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -1220,8 +1227,9 @@ export const generateWorld = async (world: World) => {
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: { bumpGeneration: 0 },
+    [MELEE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -1281,8 +1289,9 @@ export const generateWorld = async (world: World) => {
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: { bumpGeneration: 0 },
+    [MELEE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -1452,8 +1461,9 @@ export const generateWorld = async (world: World) => {
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: { bumpGeneration: 0 },
+    [MELEE]: {},
     [MOVABLE]: {
+      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {

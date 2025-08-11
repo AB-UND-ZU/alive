@@ -32,7 +32,6 @@ import { getParticles } from "../../engine/systems/sequence";
 import Dots from "./Dots";
 import { STATS } from "../../engine/components/stats";
 import { getOpaqueOrientation } from "../../game/math/tracing";
-import { MELEE } from "../../engine/components/melee";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { PROJECTILE } from "../../engine/components/projectile";
@@ -159,13 +158,13 @@ function Entity({
   const isEquipment =
     !!lootSegment &&
     !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].equipment;
-  const bump = entity[MELEE];
 
   return (
     <Container
       position={[x * dimensions.aspectRatio, -y, 0]}
       spring={config}
-      bump={bump}
+      bumpOrientation={entity[ORIENTABLE]?.facing}
+      bumpGeneration={entity[MOVABLE]?.bumpGeneration}
     >
       {isOpaque && isVisible && (
         <Box height={wallHeight} castShadow orientation={opaqueOrientation}>

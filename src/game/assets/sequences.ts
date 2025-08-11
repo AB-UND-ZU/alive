@@ -2200,6 +2200,8 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     // queue healing effect
     if (entity[PLAYER] && consumptionConfig.countable === "hp") {
       entity[PLAYER].healingReceived += consumptionConfig.amount;
+    } else if (entity[PLAYER] && consumptionConfig.countable === "mp") {
+      entity[PLAYER].manaReceived += consumptionConfig.amount;
     }
 
     updated = true;

@@ -6,6 +6,7 @@ export type Player = {
   ghost: boolean;
   damageReceived: number;
   healingReceived: number;
+  manaReceived: number;
   xpReceived: number;
   popup?: number;
   inspectTriggered: boolean;

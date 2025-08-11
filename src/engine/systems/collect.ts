@@ -21,7 +21,6 @@ import { COLLECTABLE } from "../components/collectable";
 import {
   createText,
   getMaxCounter,
-  getStatSprite,
   woodStick,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
@@ -111,16 +110,6 @@ export const collectItem = (
     let collectAmount = 1;
 
     if (stat) {
-      // skip if counter exceeded or cap itself
-      const maxCounter = getMaxCounter(stat);
-      if (
-        entity[STATS][stat] >= 99 ||
-        (maxCounter !== stat &&
-          entity[STATS][stat] >= entity[STATS][maxCounter]) ||
-        ["maxHpCap", "maxMpCap"].includes(stat)
-      )
-        continue;
-
       collectAmount = getCollectAmount(world, itemEntity);
       itemEntity[ITEM].amount -= collectAmount;
     } else if (stackable && !fullStack) {
@@ -154,7 +143,7 @@ export const collectItem = (
     );
 
     // initiate collecting animation on player
-    if (orientation && itemEntity[ITEM].stat !== "hp") {
+    if (orientation && !["hp", "mp"].includes(itemEntity[ITEM].stat!)) {
       const sprite = getItemSprite(itemEntity[ITEM]);
       queueMessage(world, entity, {
         line: createText(`${collectAmount}x ${sprite.name}`, colors.silver),
@@ -246,30 +235,21 @@ export const addToInventory = (
     const collectAmount = fullStack ? itemEntity[ITEM].amount : amount;
     const newAmount = entity[STATS][targetStat] + collectAmount;
     const overflow = Math.max(newAmount, maximum) - maximum;
+    const displayAmount = collectAmount - overflow;
 
     entity[STATS][targetStat] = Math.min(newAmount, maximum);
 
-    // drop stats aside if overflowing
-    if (overflow > 0) {
-      const statEntity = entities.createItem(world, {
-        [ITEM]: {
-          stat: targetStat,
-          amount: overflow,
-          carrier: -1,
-          bound: false,
-        },
-        [SPRITE]: getStatSprite(targetStat, "drop"),
-        [RENDERABLE]: { generation: 0 },
+    if (entity[PLAYER] && displayAmount === 0) {
+      queueMessage(world, entity, {
+        line: createText("0"),
+        orientation: "up",
+        fast: false,
+        delay: 0,
       });
-      dropEntity(
-        world,
-        { [INVENTORY]: { items: [world.getEntityId(statEntity)] } },
-        entity[POSITION]
-      );
-    }
-
-    if (entity[PLAYER] && targetStat === "hp") {
-      entity[PLAYER].healingReceived += collectAmount;
+    } else if (entity[PLAYER] && targetStat === "hp") {
+      entity[PLAYER].healingReceived += displayAmount;
+    } else if (entity[PLAYER] && targetStat === "mp") {
+      entity[PLAYER].manaReceived += displayAmount;
     }
   } else if (targetStackable) {
     // add to existing stack if available
@@ -341,7 +321,7 @@ export default function setupCollect(world: World) {
         continue;
 
       const targetOrientation: Orientation | null =
-        entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];
+        entity[MOVABLE].orientations[0] || entity[MOVABLE].pendingOrientation;
 
       if (!targetOrientation) continue;
 
@@ -352,6 +332,12 @@ export default function setupCollect(world: World) {
       if (!targetEntity) continue;
 
       collectItem(world, entity, targetEntity, targetOrientation);
+
+      // perform bump animation
+      if (entity[ORIENTABLE]) {
+        entity[ORIENTABLE].facing = targetOrientation;
+        entity[MOVABLE].bumpGeneration = entity[RENDERABLE].generation;
+      }
 
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;
