@@ -1120,28 +1120,35 @@ export const displayInspect: Sequence<PopupSequence> = (
   state
 ) => {
   let updated = false;
+  const hasItems = entity[INVENTORY].items.length > 0;
 
-  const content: Sprite[][] = [
-    ...(entity[INVENTORY] as Inventory).items.map((item) => {
-      const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
-      const itemSprite = getItemSprite(itemEntity[ITEM], "display");
-      const amountText = createText(
-        `${itemEntity[ITEM].amount}`.padStart(3),
-        colors.silver
-      );
-      const itemText = createText(itemSprite.name, colors.white);
-      return addBackground(
-        [
-          none,
-          ...amountText,
-          itemSprite,
-          ...itemText,
-          ...repeat(none, frameWidth - 4 - amountText.length - itemText.length),
-        ],
-        colors.black
-      );
-    }).slice(0, 9),
-  ];
+  const content: Sprite[][] = hasItems
+    ? [
+        ...(entity[INVENTORY] as Inventory).items
+          .map((item) => {
+            const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
+            const itemSprite = getItemSprite(itemEntity[ITEM], "display");
+            const amountText = itemEntity[ITEM].equipment
+              ? createText("(worn)")
+              : createText(`${itemEntity[ITEM].amount}x`, colors.silver);
+            const itemText = createText(itemSprite.name, colors.grey);
+            return addBackground(
+              [
+                none,
+                itemSprite,
+                ...itemText,
+                ...repeat(
+                  none,
+                  frameWidth - 4 - amountText.length - itemText.length
+                ),
+                ...amountText,
+              ],
+              colors.black
+            );
+          })
+          .slice(0, 9),
+      ]
+    : [createText("No items yet", colors.grey, colors.black)];
 
   const popupCenter = { x: 0, y: (frameHeight + 1) / -2 };
   const verticalIndex = entity[POPUP].verticalIndex;
@@ -1152,7 +1159,9 @@ export const displayInspect: Sequence<PopupSequence> = (
 
   if (
     !state.particles.selection &&
-    state.elapsed > popupTime + verticalIndex * (frameWidth - 2) * contentDelay
+    state.elapsed >
+      popupTime + verticalIndex * (frameWidth - 2) * contentDelay &&
+    hasItems
   ) {
     // add selection arrow
     const selectionParticle = entities.createParticle(world, {
@@ -1168,7 +1177,11 @@ export const displayInspect: Sequence<PopupSequence> = (
     state.particles.selection = world.getEntityId(selectionParticle);
   }
 
-  if (verticalIndex !== state.args.verticalIndex && state.particles.selection) {
+  if (
+    verticalIndex !== state.args.verticalIndex &&
+    state.particles.selection &&
+    hasItems
+  ) {
     const selectionParticle = world.assertByIdAndComponents(
       state.particles.selection,
       [PARTICLE]
@@ -1191,7 +1204,7 @@ export const displayInfo: Sequence<InfoSequence> = (world, entity, state) => {
   const content: Sprite[][] = [
     ...(entity[POPUP] as Popup).lines.map((line) =>
       addBackground(
-        [...line, ...repeat(none, frameWidth - 4 - line.length - line.length)],
+        [...line, ...repeat(none, frameWidth - 4 - line.length)],
         colors.black
       )
     ),
@@ -1270,7 +1283,7 @@ export const displayQuest: Sequence<InfoSequence> = (world, entity, state) => {
   const content: Sprite[][] = [
     ...(entity[POPUP] as Popup).lines.map((line) =>
       addBackground(
-        [...line, ...repeat(none, frameWidth - 4 - line.length - line.length)],
+        [...line, ...repeat(none, frameWidth - 4 - line.length)],
         colors.black
       )
     ),

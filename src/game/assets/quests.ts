@@ -2,7 +2,7 @@ import { isTouch } from "../../components/Dimensions";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
-import { INVENTORY } from "../../engine/components/inventory";
+import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import {
@@ -162,9 +162,7 @@ export const introQuest: Sequence<QuestSequence> = (world, entity, state) => {
     .getEntities([IDENTIFIABLE])
     .filter((entity) => entity[IDENTIFIABLE].name === "spawn_hedge");
   const prismEntity = getIdentifier(world, "spawn_prism");
-  const keyEntity = getIdentifierAndComponents(world, "spawn_key", [
-    ITEM,
-  ]);
+  const keyEntity = getIdentifierAndComponents(world, "spawn_key", [ITEM]);
 
   step({
     stage,
@@ -370,9 +368,13 @@ export const nomadQuest: Sequence<QuestSequence> = (world, entity, state) => {
     TRACKABLE,
   ]);
   const size = world.metadata.gameEntity[LEVEL].size;
+  const currentOre =
+    (entity[INVENTORY] as Inventory).items
+      .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
+      .find((item) => item[ITEM].stackable === "ore")?.[ITEM].amount || 0;
 
-  if (state.args.memory.oreStat === undefined) {
-    state.args.memory.oreStat = entity[STATS].ore;
+  if (state.args.memory.currentOre === undefined) {
+    state.args.memory.currentOre = currentOre;
   }
 
   if (!focusEntity || !signEntity || !doorEntity) {
@@ -417,7 +419,7 @@ export const nomadQuest: Sequence<QuestSequence> = (world, entity, state) => {
             )
         );
 
-      if (ores.length === 0 || entity[STATS].ore >= 10 || hasIron || hasKey) {
+      if (ores.length === 0 || currentOre >= 10 || hasIron || hasKey) {
         setHighlight(world);
         return true;
       }
@@ -452,18 +454,18 @@ export const nomadQuest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () => true,
-    onLeave: () => (entity[STATS].ore >= 10 ? "iron" : "ore:collect"),
+    onLeave: () => (currentOre >= 10 ? "iron" : "ore:collect"),
   });
 
   step({
     stage,
     name: "ore:collect",
     isCompleted: () =>
-      hasKey || hasIron || entity[STATS].ore > state.args.memory.oreStat,
+      hasKey || hasIron || currentOre > state.args.memory.currentOre,
     onLeave: () => {
-      state.args.memory.oreStat = entity[STATS].ore;
+      state.args.memory.currentOre = currentOre;
 
-      if (entity[STATS].ore >= 10 || hasIron || hasKey) {
+      if (currentOre >= 10 || hasIron || hasKey) {
         setHighlight(world);
         return "iron";
       }

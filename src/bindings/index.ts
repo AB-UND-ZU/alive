@@ -822,7 +822,7 @@ export const generateWorld = async (world: World) => {
         [
           ...createText("Collect "),
           ...createItemText({ stackable: "ore", amount: 10 }),
-          ...createText("Ore to"),
+          ...createText(" to"),
         ],
         [...createText("trade for "), iron, ...createText("Iron,")],
         createText("then exchange to"),

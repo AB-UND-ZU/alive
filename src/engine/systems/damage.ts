@@ -132,7 +132,7 @@ export const createAmountMarker = (
   );
   queueMessage(world, entity, {
     line: createText(
-      Math.abs(amount).toString(),
+      `${amount > 0 ? "+" : amount < 0 ? "-" : ""}${Math.abs(amount)}`,
       amount === 0 ? colors.white : amount > 0 ? colors.lime : colors.red
     ),
     orientation,

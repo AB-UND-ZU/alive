@@ -157,7 +157,7 @@ export const collectItem = (
     if (orientation && itemEntity[ITEM].stat !== "hp") {
       const sprite = getItemSprite(itemEntity[ITEM]);
       queueMessage(world, entity, {
-        line: createText(`+${collectAmount} ${sprite.name}`, colors.silver),
+        line: createText(`${collectAmount}x ${sprite.name}`, colors.silver),
         orientation: invertOrientation(orientation),
         fast: false,
         delay: getLootDelay(world, entity, 1),

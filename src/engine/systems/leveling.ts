@@ -84,7 +84,7 @@ export default function setupLeveling(world: World) {
         const currentLevel = levels.find(
           (level) => level.level === entity[STATS].level
         )!;
-        entity[STATS].xp = 0;
+        entity[STATS].xp -= currentLevel.xp;
         entity[STATS].level = Math.min(maxLevel.level, entity[STATS].level + 1);
         const targetLevel = levels.find(
           (level) => level.level === entity[STATS].level
