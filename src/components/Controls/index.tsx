@@ -53,6 +53,7 @@ import { EQUIPPABLE } from "../../engine/components/equippable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { STATS } from "../../engine/components/stats";
 import { getConsumption } from "../../engine/systems/consume";
+import { PLAYER } from "../../engine/components/player";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -72,8 +73,9 @@ export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   A: "left",
 };
 
-export const primaryKeys = [" ", "Enter"];
-export const secondaryKeys = ["Shift", "Tab"];
+export const primaryKeys = [" "];
+export const secondaryKeys = ["Shift"];
+export const inspectKeys = ["Tab"];
 
 const getActiveActivations = (world: World, hero: TypedEntity, item: Item) => {
   const itemSprite = getItemSprite(item, "display");
@@ -413,11 +415,15 @@ export default function Controls() {
   }, [selectedPrimary, selectedSecondary]);
 
   const handleAction = useCallback(
-    (action: "primary" | "secondary") => {
+    (action: "primary" | "secondary" | "inspect") => {
       const heroEntity = heroRef.current;
       const currentAction = actionRef.current;
       const active =
-        action === "primary" ? primaryRef.current : secondaryRef.current;
+        action === "primary"
+          ? primaryRef.current
+          : action === "secondary"
+          ? secondaryRef.current
+          : undefined;
 
       if (
         currentAction ||
@@ -438,13 +444,18 @@ export default function Controls() {
       // skip if already triggered
       if (
         heroEntity[ACTIONABLE].primaryTriggered ||
-        heroEntity[ACTIONABLE].secondaryTriggered
+        heroEntity[ACTIONABLE].secondaryTriggered ||
+        heroEntity[PLAYER].inspectTriggered
       )
         return;
 
-      heroEntity[ACTIONABLE][
-        action === "primary" ? "primaryTriggered" : "secondaryTriggered"
-      ] = true;
+      if (action === "inspect") {
+        heroEntity[PLAYER].inspectTriggered = true;
+      } else {
+        heroEntity[ACTIONABLE][
+          action === "primary" ? "primaryTriggered" : "secondaryTriggered"
+        ] = true;
+      }
 
       reference.suspensionCounter = reference.suspensionCounter === -1 ? -1 : 1;
       reference.suspended = false;
@@ -491,6 +502,19 @@ export default function Controls() {
     ) => {
       event.preventDefault();
       handleAction("secondary");
+    },
+    [handleAction]
+  );
+
+  const handleInspect = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      handleAction("inspect");
     },
     [handleAction]
   );
@@ -561,6 +585,9 @@ export default function Controls() {
       ) {
         handleSecondary(event);
         return;
+      } else if (inspectKeys.includes(event.key) && event.type === "keydown") {
+        handleInspect(event);
+        return;
       }
 
       const orientation = keyToOrientation[event.key];
@@ -577,7 +604,7 @@ export default function Controls() {
 
       handleMove(orientations);
     },
-    [handleMove, setPaused, handlePrimary, handleSecondary]
+    [handleMove, setPaused, handlePrimary, handleSecondary, handleInspect]
   );
 
   const handleTouchMove = useCallback(
