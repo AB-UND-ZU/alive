@@ -16,7 +16,7 @@ import * as colors from "./colors";
 import { POPUP } from "../../engine/components/popup";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { iterations } from "../math/tracing";
-import { add, padCenter } from "../math/std";
+import { add, lerp, padCenter } from "../math/std";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
@@ -31,6 +31,10 @@ import {
   popupSide,
   popupUpEnd,
   popupUpStart,
+  scrollBar,
+  scrollBarBottom,
+  scrollBarTop,
+  scrollHandle,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -142,9 +146,33 @@ export const step = <T extends StepAnimations>({
 
 export const frameWidth = 19;
 export const frameHeight = 11;
-export const contentDelay = 10;
+export const contentDelay = 8;
 export const popupDelay = 75;
 export const popupTime = frameHeight * popupDelay;
+
+export const scrolledVerticalIndex = (
+  world: World,
+  entity: Entity,
+  state: SequenceState<InfoSequence>,
+  content: Sprite[][]
+) => {
+  const verticalIndex = entity[POPUP].verticalIndex;
+  const innerHeight = frameHeight - 2;
+  const padding = (innerHeight - 1) / 2;
+
+  const remainingItems = Math.max(0, content.length - verticalIndex - 1);
+
+  if (content.length > innerHeight && remainingItems <= padding)
+    return innerHeight - remainingItems - 1;
+  if (
+    content.length > innerHeight &&
+    verticalIndex >= padding &&
+    remainingItems >= padding
+  )
+    return padding;
+
+  return Math.min(verticalIndex, innerHeight - 1);
+};
 
 export const displayPopup = (
   world: World,
@@ -278,9 +306,67 @@ export const displayPopup = (
     renderContent = true;
   }
 
-  // clear content on changing deals
-  if (generation !== state.args.generation && state.elapsed > popupTime) {
+  // rerender scroll handle
+  const verticalIndex = entity[POPUP].verticalIndex;
+  const scrollIndex =
+    verticalIndex - scrolledVerticalIndex(world, entity, state, content);
+
+  if (
+    content.length > frameHeight - 2 &&
+    (generation !== state.args.generation || renderContent)
+  ) {
+    // top and bottom handles
+    world.assertByIdAndComponents(state.particles["popup-right-0"], [PARTICLE])[
+      SPRITE
+    ] = scrollBarTop;
+    world.assertByIdAndComponents(
+      state.particles[`popup-right-${frameHeight - 3}`],
+      [PARTICLE]
+    )[SPRITE] = scrollBarBottom;
+
+    // render bar
+    for (let row = 1; row < frameHeight - 3; row += 1) {
+      world.assertByIdAndComponents(state.particles[`popup-right-${row}`], [
+        PARTICLE,
+      ])[SPRITE] = scrollBar;
+    }
+
+    const progress = Math.floor(
+      lerp(2, (frameHeight - 5) * 2, verticalIndex / (content.length - 1))
+    );
+
+    // add handle
+    const handleStart = world.assertByIdAndComponents(
+      state.particles[`popup-right-${Math.floor(progress / 2)}`],
+      [PARTICLE, ORIENTABLE]
+    );
+    handleStart[SPRITE] = scrollHandle;
+    handleStart[ORIENTABLE].facing = progress % 2 === 1 ? "down" : undefined;
+    const handleCenter = world.assertByIdAndComponents(
+      state.particles[`popup-right-${Math.floor(progress / 2) + 1}`],
+      [PARTICLE, ORIENTABLE]
+    );
+    handleCenter[SPRITE] = scrollHandle;
+    handleCenter[ORIENTABLE].facing = undefined;
+    const handleEnd = world.assertByIdAndComponents(
+      state.particles[`popup-right-${Math.ceil(progress / 2) + 1}`],
+      [PARTICLE, ORIENTABLE]
+    );
+    handleEnd[SPRITE] = scrollHandle;
+    handleEnd[ORIENTABLE].facing = progress % 2 === 1 ? "up" : undefined;
+
+    state.args.scrollIndex = scrollIndex;
+    renderContent = true;
+  }
+
+  // clear content on changes
+  if (
+    (generation !== state.args.generation ||
+      scrollIndex !== state.args.scrollIndex) &&
+    state.elapsed > popupTime
+  ) {
     state.args.generation = generation;
+    state.args.scrollIndex = scrollIndex;
 
     for (const particleName in state.particles) {
       if (!particleName.startsWith("popup-content-")) continue;
@@ -303,25 +389,26 @@ export const displayPopup = (
       state.args.contentIndex < (frameHeight - 2) * (frameWidth - 2))
   ) {
     const contentIndex = Math.floor((state.elapsed - popupTime) / contentDelay);
+    const scrollContent = content.slice(scrollIndex).slice(0, frameHeight - 2);
 
     // gradually animate typed content
     for (
       let row = renderContent
         ? 0
         : Math.floor(state.args.contentIndex / (frameWidth - 2));
-      row < content.length;
+      row < scrollContent.length;
       row += 1
     ) {
-      for (let column = 0; column < content[row].length; column += 1) {
+      for (let column = 0; column < scrollContent[row].length; column += 1) {
         const charIndex = row * (frameWidth - 2) + column;
 
         if (charIndex > contentIndex) {
-          row = content.length - 1;
+          row = scrollContent.length - 1;
           break;
         } else if (!renderContent && charIndex < state.args.contentIndex)
           continue;
 
-        const char = content[row][column];
+        const char = scrollContent[row][column];
         const charParticle = world.assertByIdAndComponents(
           state.particles[`popup-content-${row}-${column}`],
           [PARTICLE, SPRITE]

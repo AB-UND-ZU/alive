@@ -1227,6 +1227,42 @@ export const popupDownEnd: Sprite = {
   ],
 };
 
+export const scrollBarTop: Sprite = {
+  name: "scroll_top",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u011d", color: colors.white },
+  ],
+};
+
+export const scrollBar: Sprite = {
+  name: "scroll_bar",
+  layers: [{ char: "█", color: colors.grey }],
+};
+
+export const scrollHandle: Sprite = {
+  name: "scroll_handle",
+  layers: [{ char: "█", color: colors.white }],
+  facing: {
+    up: [
+      { char: "█", color: colors.grey },
+      { char: "▀", color: colors.white },
+    ],
+    down: [
+      { char: "█", color: colors.grey },
+      { char: "▄", color: colors.white },
+    ],
+  },
+};
+
+export const scrollBarBottom: Sprite = {
+  name: "scroll_bottom",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u011e", color: colors.white },
+  ],
+};
+
 export const mergeSprites = (...sprite: Sprite[]) => ({
   name: "",
   layers: sprite.reduce(

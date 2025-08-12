@@ -230,6 +230,7 @@ export default function setupAction(world: World) {
           if (
             !unlock &&
             lockableEntity &&
+            !isInPopup(world, entity) &&
             isLocked(world, lockableEntity) &&
             !isDead(world, entity)
           )

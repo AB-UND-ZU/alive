@@ -121,6 +121,7 @@ export type ProgressSequence = {
 export type InfoSequence = {
   contentIndex: number;
   generation?: number;
+  scrollIndex?: number;
   title: string;
 };
 export type PopupSequence = InfoSequence & {

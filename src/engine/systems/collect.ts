@@ -157,8 +157,10 @@ export const collectItem = (
     updateWalkable(world, target[POSITION]);
 
     rerenderEntity(world, target);
-    break;
+    return true;
   }
+
+  return false;
 };
 
 export const addToInventory = (
@@ -235,7 +237,7 @@ export const addToInventory = (
     const collectAmount = fullStack ? itemEntity[ITEM].amount : amount;
     const newAmount = entity[STATS][targetStat] + collectAmount;
     const overflow = Math.max(newAmount, maximum) - maximum;
-    const displayAmount = collectAmount - overflow;
+    const displayAmount = Math.ceil(collectAmount - overflow);
 
     entity[STATS][targetStat] = Math.min(newAmount, maximum);
 
@@ -331,10 +333,10 @@ export default function setupCollect(world: World) {
 
       if (!targetEntity) continue;
 
-      collectItem(world, entity, targetEntity, targetOrientation);
+      const collected = collectItem(world, entity, targetEntity, targetOrientation);
 
       // perform bump animation
-      if (entity[ORIENTABLE]) {
+      if (collected && entity[ORIENTABLE]) {
         entity[ORIENTABLE].facing = targetOrientation;
         entity[MOVABLE].bumpGeneration = entity[RENDERABLE].generation;
       }

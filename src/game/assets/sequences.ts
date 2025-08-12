@@ -191,6 +191,7 @@ import {
   frameWidth,
   getLootDelay,
   popupTime,
+  scrolledVerticalIndex,
 } from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
@@ -1128,50 +1129,48 @@ export const displayInspect: Sequence<PopupSequence> = (
 
   const content: Sprite[][] = hasItems
     ? [
-        ...(entity[INVENTORY] as Inventory).items
-          .map((item) => {
-            const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
-            const itemSprite = getItemSprite(itemEntity[ITEM], "display");
-            const consumption =
-              itemEntity[ITEM].stackable &&
-              stackableConsumptions[itemEntity[ITEM].stackable];
-            const amountText = itemEntity[ITEM].equipment
-              ? createText("(worn)")
-              : createText(`${itemEntity[ITEM].amount}x`, colors.silver);
-            const useText = consumption
-              ? [
-                  ...createText(" ("),
-                  ...createCountable(
-                    { [consumption.countable]: consumption.amount },
-                    consumption.countable
-                  ),
-                  ...createText(")"),
-                ]
-              : [];
-            const itemText = createText(
-              itemSprite.name,
-              consumption ? colors.white : colors.grey
-            );
-            return addBackground(
-              [
-                none,
-                itemSprite,
-                ...itemText,
-                ...useText,
-                ...repeat(
-                  none,
-                  frameWidth -
-                    4 -
-                    amountText.length -
-                    itemText.length -
-                    useText.length
+        ...(entity[INVENTORY] as Inventory).items.map((item) => {
+          const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
+          const itemSprite = getItemSprite(itemEntity[ITEM], "display");
+          const consumption =
+            itemEntity[ITEM].stackable &&
+            stackableConsumptions[itemEntity[ITEM].stackable];
+          const amountText = itemEntity[ITEM].equipment
+            ? createText("(worn)")
+            : createText(`${itemEntity[ITEM].amount}x`, colors.silver);
+          const useText = consumption
+            ? [
+                ...createText(" ("),
+                ...createCountable(
+                  { [consumption.countable]: consumption.amount },
+                  consumption.countable
                 ),
-                ...amountText,
-              ],
-              colors.black
-            );
-          })
-          .slice(0, 9),
+                ...createText(")"),
+              ]
+            : [];
+          const itemText = createText(
+            itemSprite.name,
+            consumption ? colors.white : colors.grey
+          );
+          return addBackground(
+            [
+              none,
+              itemSprite,
+              ...itemText,
+              ...useText,
+              ...repeat(
+                none,
+                frameWidth -
+                  4 -
+                  amountText.length -
+                  itemText.length -
+                  useText.length
+              ),
+              ...amountText,
+            ],
+            colors.black
+          );
+        }),
       ]
     : [createText("No items yet", colors.grey, colors.black)];
 
@@ -1184,18 +1183,18 @@ export const displayInspect: Sequence<PopupSequence> = (
     popupCenter.x +
     ((frameWidth - 3) / 2) * (state.args.transaction === "sell" ? 1 : -1);
   const selectionY = popupCenter.y - (frameHeight - 3) / 2;
+  const scrollIndex = scrolledVerticalIndex(world, entity, state, content);
 
   if (
     !state.particles.selection &&
-    state.elapsed >
-      popupTime + verticalIndex * (frameWidth - 2) * contentDelay &&
+    state.elapsed > popupTime + scrollIndex * (frameWidth - 2) * contentDelay &&
     hasItems
   ) {
     // add selection arrow
     const selectionParticle = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX: selectionX,
-        offsetY: selectionY + verticalIndex,
+        offsetY: selectionY + scrollIndex,
         offsetZ: selectionHeight,
         animatedOrigin: { x: selectionX, y: -2 },
       },
@@ -1215,7 +1214,7 @@ export const displayInspect: Sequence<PopupSequence> = (
       state.particles.selection,
       [PARTICLE]
     );
-    selectionParticle[PARTICLE].offsetY = selectionY + verticalIndex;
+    selectionParticle[PARTICLE].offsetY = selectionY + scrollIndex;
     state.args.verticalIndex = verticalIndex;
     entity[POPUP].verticalIndex = verticalIndex;
     updated = true;

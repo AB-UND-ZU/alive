@@ -297,6 +297,7 @@ export default function setupPopup(world: World) {
       lastIndex,
       Math.max(0, currentIndex + (targetOrientation === "up" ? -1 : 1))
     );
+    rerenderEntity(world, popupEntity);
   };
 
   return { onUpdate };
