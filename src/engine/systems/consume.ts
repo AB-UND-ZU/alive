@@ -112,6 +112,8 @@ export const consumeItem = (world: World, entity: Entity, target: Entity) => {
     removeFromInventory(world, entity, consumption.item);
   }
 
+  rerenderEntity(world, entity);
+
   // add stats
   const countableItem = entities.createItem(world, {
     [ITEM]: {
