@@ -35,7 +35,7 @@ import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
 import { EQUIPPABLE } from "../components/equippable";
 import { ITEM } from "../components/item";
-import { copy } from "../../game/math/std";
+import { copy, getDistance } from "../../game/math/std";
 import { createText, none, xp } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { MOVABLE } from "../components/movable";
@@ -43,6 +43,7 @@ import { consumeCharge } from "./trigger";
 import { isInPopup } from "./popup";
 import { queueMessage } from "../../game/assets/utils";
 import { play } from "../../game/sound";
+import { LEVEL } from "../components/level";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -157,6 +158,8 @@ export default function setupMagic(world: World) {
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
     const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
+    const heroEntity = world.getEntity([PLAYER, POSITION]);
+    const size = world.metadata.gameEntity[LEVEL].size;
 
     if (referenceGenerations === generation) return;
 
@@ -241,7 +244,11 @@ export default function setupMagic(world: World) {
             targetEntity[STATS].hp = hp;
 
             // play sound
-            play("magic", { intensity: damage });
+            const proximity = heroEntity
+              ? 1 /
+                (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
+              : 0.5;
+            play("magic", { intensity: damage, proximity });
 
             const orientation = relativeOrientations(
               world,
@@ -359,7 +366,12 @@ export default function setupMagic(world: World) {
     }
 
     // process DoT on affectable units
-    for (const entity of world.getEntities([SEQUENCABLE, AFFECTABLE, STATS])) {
+    for (const entity of world.getEntities([
+      SEQUENCABLE,
+      AFFECTABLE,
+      STATS,
+      POSITION,
+    ])) {
       const entityId = world.getEntityId(entity);
       const dot = entity[AFFECTABLE].dot;
       const delta = dot - (playerDots[entityId] || 0);
@@ -369,7 +381,10 @@ export default function setupMagic(world: World) {
       const { damage, hp } = calculateDamage(world, "true", delta, {}, entity);
       entity[STATS].hp = hp;
 
-      play("magic", { intensity: damage });
+      const proximity = heroEntity
+        ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
+        : 0.5;
+      play("magic", { intensity: damage, proximity });
 
       // add hit marker
       createAmountMarker(world, entity, -damage, "up");

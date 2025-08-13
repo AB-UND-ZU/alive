@@ -213,7 +213,6 @@ import {
 import { getIdentifierAndComponents } from "../../engine/utils";
 import { generateUnitData } from "../balancing/units";
 import { play } from "../sound";
-import { FOG } from "../../engine/components/fog";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1731,11 +1730,12 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   }
 
   // create castable and AoE for eternal fire
-  const burnFactor = entity[BURNABLE]?.remains
-    ? 3
-    : entity[FRAGMENT]?.structure
-    ? 5
-    : 1;
+  const burnFactor =
+    entity[FRAGMENT]?.structure && entity[BURNABLE]?.remains
+      ? 5
+      : entity[FRAGMENT]?.structure || entity[BURNABLE]?.remains
+      ? 3
+      : 1;
   if (
     isEternalFire &&
     isTerrainBurning &&
@@ -1849,10 +1849,11 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     }
 
     // play sounds
-    if (entity[FOG].visibility === "visible") {
-      const proximity = heroEntity
-        ? 1 / (getDistance(heroEntity[POSITION], entity[POSITION], size) + 1)
-        : 0.3;
+    const distance = heroEntity
+      ? getDistance(heroEntity[POSITION], entity[POSITION], size) + 1
+      : 3;
+    if (distance < 10) {
+      const proximity = 1 / distance;
 
       if (isEternalFire || isUnitBurning || random(0, 3) === 0) {
         play("fire", { proximity, delay: random(0, 175) });
@@ -1948,7 +1949,7 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
       (isBurning &&
         random(
           0,
-          Object.keys(state.particles).length + (isEternalFire ? 0 : 3)
+          Object.keys(state.particles).length + (isEternalFire ? 0 : 4)
         ) <= 1)
     ) {
       const step = 2 - ((generation + 2) % 2);
