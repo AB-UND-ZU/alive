@@ -60,16 +60,16 @@ class Presets extends Params {
     const intensity = (options.intensity || 350) / 1000;
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
-    this.sound_vol = (1 / 128) * proximity ** 1.2;
+    this.sound_vol = (1 / 128) * proximity ** 1.2 * variant ** 0.5;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = intensity - 0.08;
-    this.p_env_sustain = 0.05 * variant;
+    this.p_env_sustain = 0.1 * variant - 0.05;
     this.p_env_punch = 0.7 - 0.2 * variant;
-    this.p_env_decay = intensity / 1.5;
-    this.p_base_freq = 0.3 + frnd(0.1);
+    this.p_env_decay = intensity / 5 + 0.2;
+    this.p_base_freq = 0.3 / variant + frnd(0.1);
     this.p_freq_limit = 0;
-    this.p_freq_ramp = Math.pow(frnd(1) + 1, 3);
-    this.p_freq_dramp = Math.pow(frnd(1) - 1, 9);
+    this.p_freq_ramp = Math.pow(frnd(1) + 1, 3) * variant;
+    this.p_freq_dramp = Math.pow(frnd(1) - 1, 9) * variant;
     return this;
   }
 
@@ -97,7 +97,9 @@ class Presets extends Params {
 
   hit(options: SfxOptions) {
     const intensity = Math.min(((options.intensity || 1) + 4) ** 0.7 - 2, 5);
-    this.sound_vol = Math.sqrt(intensity) / 64;
+    const proximity = options.proximity || 1;
+    const variant = options.variant || 1;
+    this.sound_vol = (Math.sqrt(intensity) / 48) * proximity;
     this.wave_type = waveforms.NOISE;
     this.p_base_freq = 1.5 - frnd(0.2) * intensity ** 2;
     this.p_freq_ramp = -0.5 - frnd(0.2) * (intensity / 2);
@@ -105,6 +107,8 @@ class Presets extends Params {
     this.p_env_punch = 0.975;
     this.p_env_sustain = 0.1 * intensity + frnd(0.1);
     this.p_env_decay = 0.1 + frnd(0.1);
+    this.p_lpf_freq = (variant + 1) / 3;
+    this.p_lpf_resonance = 0.5;
     return this;
   }
 
@@ -176,7 +180,7 @@ class Presets extends Params {
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
     this.wave_type = waveforms.SINE;
-    this.sound_vol = ((1 / 32) * proximity ** 1.2);
+    this.sound_vol = (1 / 32) * proximity ** 1.2;
     this.p_env_attack = (frnd(0.2) + 0.2) / variant;
     this.p_env_sustain = 0.1 / variant;
     this.p_env_decay = 0.2 / variant;
@@ -211,6 +215,7 @@ class Presets extends Params {
     this.p_hpf_freq = 0.8 + frnd(0.1);
     this.p_hpf_ramp = frnd(0.1) - 0.6;
     this.p_lpf_freq = intensity ** 2;
+    this.p_lpf_resonance = 0.6;
 
     return this;
   }
@@ -311,6 +316,65 @@ class Presets extends Params {
     this.p_lpf_resonance = 0.85;
     this.p_hpf_freq = 0.75;
     this.p_hpf_ramp = -0.1;
+
+    return this;
+  }
+
+  fire(options: SfxOptions) {
+    this.wave_type = waveforms.NOISE;
+    const proximity = options.proximity || 1;
+    this.sound_vol = proximity * 3;
+
+    this.p_env_attack = 0.5;
+    this.p_env_sustain = 0.2;
+    this.p_env_punch = 0;
+    this.p_env_decay = 0.8;
+    this.p_base_freq = 0.1 + frnd(0.2);
+    this.p_freq_limit = 0;
+    this.p_freq_ramp = -frnd(0.75);
+    this.p_freq_dramp = -0.35;
+    this.p_vib_strength = 0.3;
+    this.p_vib_speed = 0.54;
+    this.p_arp_mod = -0.45;
+    this.p_arp_speed = 1;
+    this.p_duty = 0.04;
+    this.p_duty_ramp = 0.09;
+    this.p_repeat_speed = 0;
+    this.p_pha_offset = -0.13;
+    this.p_pha_ramp = 0.013;
+    this.p_lpf_freq = 0.075;
+    this.p_lpf_ramp = -0.4;
+    this.p_lpf_resonance = 0.15;
+    this.p_hpf_freq = 0.5;
+    this.p_hpf_ramp = -0.35;
+
+    return this;
+  }
+
+  crackle(options: SfxOptions) {
+    this.wave_type = waveforms.NOISE;
+    const proximity = options.proximity || 1;
+    const intensity = options.intensity || 1;
+    this.sound_vol = proximity / 16 / intensity;
+
+    this.p_env_sustain = 0.05 + frnd(0.05);
+    this.p_env_punch = 0.5 + frnd(0.5);
+    this.p_env_decay = 0.05 + frnd(0.05);
+    this.p_base_freq = 0.4 + frnd(0.4);
+    this.p_freq_limit = 0.05;
+    this.p_freq_ramp = 0.1 + frnd(0.1);
+    this.p_freq_dramp = -0.349;
+    this.p_vib_strength = 0.85;
+    this.p_vib_speed = 0.35;
+    this.p_arp_mod = -0.8;
+    this.p_arp_speed = 0.85;
+    this.p_pha_offset = frnd(0.5) - 0.25;
+    this.p_pha_ramp = 0.3 + frnd(0.3);
+    this.p_lpf_freq = 0.7;
+    this.p_lpf_ramp = 0.45;
+    this.p_lpf_resonance = 0.4;
+    this.p_hpf_freq = 0.75;
+    this.p_hpf_ramp = -0.5;
 
     return this;
   }

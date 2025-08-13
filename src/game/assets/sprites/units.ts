@@ -110,7 +110,7 @@ export const doorClosedWood: Sprite = {
 };
 
 export const doorClosedIron: Sprite = {
-  name: "Door",
+  name: "Locked",
   layers: [
     { char: "\u0107", color: colors.maroon },
     { char: "\u0106", color: colors.silver },
@@ -120,7 +120,7 @@ export const doorClosedIron: Sprite = {
 };
 
 export const doorClosedFire: Sprite = {
-  name: "Door",
+  name: "Locked",
   layers: [
     { char: "\u0107", color: colors.maroon },
     { char: "\u0106", color: colors.red },
@@ -130,7 +130,7 @@ export const doorClosedFire: Sprite = {
 };
 
 export const doorClosedGold: Sprite = {
-  name: "Door",
+  name: "Locked",
   layers: [
     { char: "\u0107", color: colors.maroon },
     { char: "\u0106", color: colors.yellow },

@@ -38,6 +38,7 @@ import { npcVariants, play } from "../../game/sound";
 import { NPC } from "../components/npc";
 import { LAYER } from "../components/layer";
 import { FOG } from "../components/fog";
+import { SPRITE } from "../components/sprite";
 
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
@@ -238,6 +239,12 @@ export default function setupMovement(world: World) {
             createBubble(world, entity[POSITION]);
           }
 
+          const proximity =
+            Object.values(getCell(world, position)).filter(
+              (cell) => cell[RENDERABLE] && cell[SPRITE]?.layers.length
+            ).length > 0
+              ? 1
+              : 0.5;
           moveEntity(world, entity, position);
 
           if (entity[PLAYER]) {
@@ -249,6 +256,7 @@ export default function setupMovement(world: World) {
             play("move", {
               intensity: movableReference[REFERENCE].tick,
               variant,
+              proximity,
             });
           } else if (entity[NPC] && entity[FOG]?.visibility === "visible") {
             play("slide", {

@@ -233,7 +233,11 @@ export default function setupDamage(world: World) {
       targetEntity[STATS].hp = hp;
 
       // play sound
-      play("hit", { intensity: damage });
+      play("hit", {
+        intensity: damage,
+        proximity: targetEntity[PLAYER] ? 1 : 0.5,
+        variant: targetEntity[PLAYER] ? 1 : 2,
+      });
 
       // perform bump
       entity[MELEE].facing = targetOrientation;

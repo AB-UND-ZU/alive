@@ -369,6 +369,8 @@ export default function setupMagic(world: World) {
       const { damage, hp } = calculateDamage(world, "true", delta, {}, entity);
       entity[STATS].hp = hp;
 
+      play("magic", { intensity: damage });
+
       // add hit marker
       createAmountMarker(world, entity, -damage, "up");
 

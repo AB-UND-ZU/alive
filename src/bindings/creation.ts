@@ -925,7 +925,7 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: cell === "iron_door" ? doorClosedIron : doorClosedWood,
       [TOOLTIP]: {
-        dialogs: cell === "iron_door" ? [createDialog("Locked")] : [],
+        dialogs: [],
         persistent: false,
         nextDialog: 0,
       },
@@ -998,7 +998,7 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: doorClosedIron,
       [TOOLTIP]: {
-        dialogs: [createDialog("Locked")],
+        dialogs: [],
         persistent: false,
         nextDialog: 0,
       },

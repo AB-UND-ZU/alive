@@ -213,6 +213,7 @@ import {
 import { getIdentifierAndComponents } from "../../engine/utils";
 import { generateUnitData } from "../balancing/units";
 import { play } from "../sound";
+import { FOG } from "../../engine/components/fog";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1701,6 +1702,8 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   const fireTick = world.metadata.gameEntity[REFERENCE].tick;
   const burnGeneration = Math.ceil(state.elapsed / fireTick);
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const size = world.metadata.gameEntity[LEVEL].size;
 
   let updated = false;
   let finished = !isBurning;
@@ -1844,6 +1847,25 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
         }
       }
     }
+
+    // play sounds
+    if (entity[FOG].visibility === "visible") {
+      const proximity = heroEntity
+        ? 1 / (getDistance(heroEntity[POSITION], entity[POSITION], size) + 1)
+        : 0.3;
+
+      if (isEternalFire || isUnitBurning || random(0, 3) === 0) {
+        play("fire", { proximity, delay: random(0, 175) });
+      }
+
+      if (random(0, 2) === 0) {
+        play("crackle", {
+          proximity,
+          delay: random(0, 350),
+          intensity: random(1, 10),
+        });
+      }
+    }
   }
 
   return { finished, updated };
@@ -1909,6 +1931,7 @@ export const unitFreeze: Sequence<FreezeSequence> = (world, entity, state) => {
 
 export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
   const isBurning = entity[BURNABLE]?.burning || entity[AFFECTABLE]?.burn > 0;
+  const isEternalFire = entity[BURNABLE]?.eternal;
   const isExtinguishing = state.args.extinguish > 0;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
 
@@ -1922,7 +1945,11 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
     // add smoke
     if (
       isExtinguishing ||
-      (isBurning && random(0, Object.keys(state.particles).length) <= 1)
+      (isBurning &&
+        random(
+          0,
+          Object.keys(state.particles).length + (isEternalFire ? 0 : 3)
+        ) <= 1)
     ) {
       const step = 2 - ((generation + 2) % 2);
       const smokeParticle = entities.createParticle(world, {
