@@ -145,7 +145,7 @@ export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
   drop = true
 ) => {
   const containerEntity = entities.createContainer(world, {
-    [FOG]: { visibility: "fog", type: "terrain" },
+    [FOG]: { visibility: "fog", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
     [LOOTABLE]: { disposable: true },
@@ -344,7 +344,7 @@ export const dropEntity = (
     }
 
     const containerEntity = entities.createContainer(world, {
-      [FOG]: { visibility: "fog", type: "terrain" },
+      [FOG]: { visibility: "fog", type: "unit" },
       [INVENTORY]: { items: isCentered ? [itemId] : [] },
       [LAYER]: {},
       [LOOTABLE]: { disposable: isCentered },
@@ -411,7 +411,10 @@ export default function setupDrop(world: World) {
       POSITION,
     ])) {
       if (isDecaying(world, entity)) {
-        play("die", { variant: entity[NPC] ? 1 : 2, intensity: entity[STATS]?.maxHp });
+        play("die", {
+          variant: entity[NPC] ? 1 : 2,
+          intensity: entity[STATS]?.maxHp,
+        });
         createSequence<"decay", DecaySequence>(
           world,
           entity,

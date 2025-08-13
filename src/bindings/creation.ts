@@ -212,7 +212,6 @@ export const assignBuilding = (
     [FOG]: { visibility: "hidden", type: "terrain" },
     [POSITION]: copy(position),
     [RENDERABLE]: { generation: 0 },
-    [SPRITE]: none,
     [STRUCTURABLE]: {},
     [VIEWABLE]: { active: false, priority },
   });
@@ -1012,7 +1011,7 @@ export const createCell = (
         combusted: false,
         decayed: false,
       },
-      [FOG]: { visibility, type: "unit" },
+      [FOG]: { visibility, type: "object" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -1125,7 +1124,7 @@ export const createCell = (
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false },
       [DISPLACABLE]: {},
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MOVABLE]: {

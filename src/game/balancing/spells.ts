@@ -37,14 +37,14 @@ export const spellStats: Partial<
     },
     beam1: {
       default: {
-        damage: 5,
+        damage: 4,
       },
       fire: {
-        damage: 5,
+        damage: 4,
         burn: 2,
       },
       water: {
-        damage: 5,
+        damage: 4,
         freeze: 6,
       },
       earth: {

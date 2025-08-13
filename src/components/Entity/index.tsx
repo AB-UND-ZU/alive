@@ -11,6 +11,7 @@ import Animated from "./Animated";
 import CoveredLight from "./CoveredLight";
 import { useWorld } from "../../bindings/hooks";
 import {
+  getLayerCount,
   getSegments,
   lootHeight,
   oreHeight,
@@ -35,6 +36,8 @@ import { getOpaqueOrientation } from "../../game/math/tracing";
 import { FOCUSABLE } from "../../engine/components/focusable";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { PROJECTILE } from "../../engine/components/projectile";
+import { LAYER } from "../../engine/components/layer";
+import FogOfWar from "./FogOfWar";
 
 function Entity({
   entity,
@@ -61,10 +64,12 @@ function Entity({
   const isAir = entity[FOG]?.type === "air";
   const isFloat = entity[FOG]?.type === "float";
   const isUnit = entity[FOG]?.type === "unit" || !!entity[PROJECTILE];
+  const isInside = !!entity[LAYER]?.structure;
   const isFocusable = !!entity[FOCUSABLE];
   const isFixed = !!entity[FOG]?.fixed && visibility === "visible";
   const isVisible = visibility === "visible" || !!entity[PROJECTILE];
   const isHidden = visibility === "hidden";
+  const isFog = visibility === "fog";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
   const opaqueOrientation =
     isOpaque && ecs ? getOpaqueOrientation(ecs, entity) : undefined;
@@ -93,7 +98,8 @@ function Entity({
 
   const layerProps: LayerProps = {
     isTransparent,
-    opacity: spring.opacity,
+    darkness: spring.opacity,
+    opacity: isUnit ? spring.opacity : undefined,
     receiveShadow: !isAir && !isOpaque && !isFloat && !inside,
     colorFactor: outside ? shadowFactor : undefined,
   };
@@ -107,25 +113,7 @@ function Entity({
     return null;
 
   const orderedSegments = getSegments(ecs, entity, layerProps, inside);
-
-  // particles are rendered in their own stack
-  const particleSegments: Segment[] = getParticles(ecs, entity).map(
-    (particle, index) => ({
-      id: ecs.getEntityId(particle) || index,
-      sprite: particle[SPRITE],
-      facing: particle[ORIENTABLE]?.facing,
-      offsetX: particle[PARTICLE].offsetX,
-      offsetY: particle[PARTICLE].offsetY,
-      offsetZ: particle[PARTICLE].offsetZ,
-      amount: particle[PARTICLE].amount,
-      layerProps: {
-        isTransparent: false,
-        animatedOrigin: particle[PARTICLE].animatedOrigin,
-        receiveShadow: false,
-        duration: particle[PARTICLE].duration,
-      },
-    })
-  );
+  const orderedLayers = getLayerCount(orderedSegments) + 1;
 
   // add loot between entity and particles
   const lootSegments: Segment[] = [];
@@ -153,6 +141,26 @@ function Entity({
       });
     }
   }
+  const lootLayers = orderedLayers + getLayerCount(lootSegments) + 1;
+
+  // particles are rendered in their own stack
+  const particleSegments: Segment[] = getParticles(ecs, entity).map(
+    (particle, index) => ({
+      id: ecs.getEntityId(particle) || index,
+      sprite: particle[SPRITE],
+      facing: particle[ORIENTABLE]?.facing,
+      offsetX: particle[PARTICLE].offsetX,
+      offsetY: particle[PARTICLE].offsetY,
+      offsetZ: particle[PARTICLE].offsetZ,
+      amount: particle[PARTICLE].amount,
+      layerProps: {
+        isTransparent: false,
+        animatedOrigin: particle[PARTICLE].animatedOrigin,
+        receiveShadow: false,
+        duration: particle[PARTICLE].duration,
+      },
+    })
+  );
 
   const lootSegment = lootSegments[0];
   const isEquipment =
@@ -171,9 +179,15 @@ function Entity({
           <meshBasicMaterial color={colors.black} />
         </Box>
       )}
-      {orderedSegments.length > 0 && <Stack segments={orderedSegments} />}
-      {lootSegments.length > 0 && <Stack segments={lootSegments} />}
-      {particleSegments.length > 0 && <Stack segments={particleSegments} />}
+      {orderedSegments.length > 0 && (
+        <Stack segments={orderedSegments} layerCount={0} />
+      )}
+      {lootSegments.length > 0 && (
+        <Stack segments={lootSegments} layerCount={orderedLayers} />
+      )}
+      {particleSegments.length > 0 && (
+        <Stack segments={particleSegments} layerCount={lootLayers} />
+      )}
 
       {isBright && (
         <CoveredLight
@@ -197,6 +211,11 @@ function Entity({
       {lootSegment && !isEquipment && (
         <Dots segment={lootSegment} entity={entity} isVisible={isVisible} />
       )}
+
+      {isFog &&
+        !(isInside && !isFloat && inRadius) &&
+        !((isOpaque || isFloat) && inRadius) &&
+        !(isTransparent || (hasLoot && !isLootTransparent)) && <FogOfWar />}
     </Container>
   );
 }

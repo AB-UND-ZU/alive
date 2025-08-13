@@ -3,7 +3,7 @@ import { World } from "../ecs";
 
 export type Fog = {
   visibility: "hidden" | "fog" | "visible";
-  type: "air" | "terrain" | "unit" | "float";
+  type: "air" | "terrain" | "object" | "unit" | "float";
   fixed?: boolean;
 };
 

@@ -14,6 +14,7 @@ import { PLAYER } from "../../engine/components/player";
 import { getEnterable, isOutside } from "../../engine/systems/enter";
 import { useEffect, useRef } from "react";
 import { LAYER } from "../../engine/components/layer";
+import { LIGHT } from "../../engine/components/light";
 
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
@@ -21,7 +22,7 @@ const shakeSpring = { duration: 50 };
 export default function Systems() {
   const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
-  const { position, radius } = useViewpoint();
+  const { position } = useViewpoint();
   const game = useGame();
   const hero = useHero();
   const structure = hero?.[LAYER]?.structure;
@@ -68,12 +69,7 @@ export default function Systems() {
       // reset damage counter if hero dies
       damageRef.current = 0;
     }
-  }, [
-    hero,
-    damageReceived,
-    api,
-    dimensions.aspectRatio,
-  ]);
+  }, [hero, damageReceived, api, dimensions.aspectRatio]);
 
   if (!ecs || !game) return null;
 
@@ -118,7 +114,8 @@ export default function Systems() {
                   x={renderedX}
                   y={renderedY}
                   inRadius={
-                    getDistance(position, entity[POSITION], size) < radius
+                    getDistance(position, entity[POSITION], size) <
+                    (hero?.[LIGHT]?.brightness || Infinity)
                   }
                   outside={!inside && isOutside(ecs, entity, structure)}
                   inside={inside}

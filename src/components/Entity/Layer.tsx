@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { Text3D } from "@react-three/drei";
 import { useDimensions } from "../Dimensions";
 import { Layer as LayerType } from "../../engine/components/sprite";
+import * as colors from "../../game/assets/colors";
 import { animated, SpringValue } from "@react-spring/three";
 import { stack, stackHeight, textSize } from "./utils";
 import Box from "./Box";
@@ -10,11 +11,19 @@ import { Point } from "../../game/math/std";
 export type LayerProps = {
   isTransparent: boolean;
   opacity?: SpringValue<number>;
+  darkness?: SpringValue<number>;
   animatedOrigin?: Point;
   receiveShadow: boolean;
   colorFactor?: number;
   duration?: number;
 };
+
+const colorObjects = Object.fromEntries(
+  [...Object.values(colors), "#2e2e2e", "#606060"].map((color) => [
+    color,
+    new THREE.Color(color),
+  ])
+);
 
 export default function Layer({
   layer,
@@ -27,16 +36,30 @@ export default function Layer({
 }) {
   const dimensions = useDimensions();
 
-  const color = props.colorFactor ? new THREE.Color(layer.color).multiplyScalar(props.colorFactor) : layer.color;
+  const color = props.colorFactor
+    ? colorObjects[layer.color].clone().multiplyScalar(props.colorFactor)
+    : colorObjects[layer.color];
+  if (!color) debugger;
   const Material = props.receiveShadow
     ? "meshLambertMaterial"
     : "meshBasicMaterial";
-  const AnimatedMaterial = animated[Material];
-  const materialElement = props.opacity ? (
-    <AnimatedMaterial color={color} transparent opacity={props.opacity} />
-  ) : (
-    <Material color={color} />
-  );
+
+  let materialElement;
+  if (props.opacity) {
+    const AnimatedMaterial = animated[Material];
+    materialElement = (
+      <AnimatedMaterial color={color} transparent opacity={props.opacity} />
+    );
+  } else if (props.darkness) {
+    // interpolate color to black
+    const interpolatedColor = props.darkness.to((darkness) =>
+      color.clone().multiplyScalar(darkness).getHex()
+    );
+    const AnimatedMaterial = animated[Material];
+    materialElement = <AnimatedMaterial color={interpolatedColor} />;
+  } else {
+    materialElement = <Material color={color} />;
+  }
 
   if (layer.char === "█") {
     return (

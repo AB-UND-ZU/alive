@@ -20,6 +20,11 @@ export const fog: Sprite = {
   layers: [{ char: "≈", color: "#2e2e2e" }],
 };
 
+export const fogOfWar: Sprite = {
+  name: "fog_war",
+  layers: [{ color: colors.black, char: "░" }],
+};
+
 export const wall: Sprite = {
   name: "wall_solid",
   layers: [{ char: "█", color: colors.grey }],
@@ -78,13 +83,19 @@ export const ice: Sprite = {
 
 export const sand: Sprite = {
   name: "sand_dry",
-  layers: [{ char: "░", color: colors.olive }],
+  layers: [
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
+  ],
 };
 
 export const path: Sprite = {
   name: "path_normal",
   layers: [
-    { char: "░", color: colors.grey },
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0109", color: colors.grey },
+    { char: "▓", color: colors.black },
     { char: "▒", color: colors.black },
     { char: "≡", color: colors.black },
   ],
@@ -277,7 +288,9 @@ export const rose: Sprite = {
 export const cactus1: Sprite = {
   name: "cactus_one",
   layers: [
-    { char: "░", color: colors.olive },
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
     { char: "\u0100", color: colors.black },
     { char: "\u0101", color: colors.black },
 
@@ -291,7 +304,9 @@ export const cactus1: Sprite = {
 export const cactus2: Sprite = {
   name: "cactus_two",
   layers: [
-    { char: "░", color: colors.olive },
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
     { char: "\u0100", color: colors.black },
     { char: "\u0101", color: colors.black },
 
@@ -325,7 +340,9 @@ export const tombstone2: Sprite = {
 export const desertRock1: Sprite = {
   name: "",
   layers: [
-    { char: "░", color: colors.olive },
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
     { char: "\u0100", color: colors.black },
     { char: "\u0101", color: colors.black },
 
@@ -337,7 +354,9 @@ export const desertRock1: Sprite = {
 export const desertRock2: Sprite = {
   name: "",
   layers: [
-    { char: "░", color: colors.olive },
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
     { char: "\u0100", color: colors.black },
     { char: "\u0101", color: colors.black },
 

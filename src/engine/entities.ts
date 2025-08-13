@@ -162,7 +162,6 @@ export const createBuilding = entityFactory([
   FOG,
   POSITION,
   RENDERABLE,
-  SPRITE,
   STRUCTURABLE,
   VIEWABLE,
 ]);
@@ -279,6 +278,14 @@ export const createFloat = entityFactory([
   SPRITE,
 ]);
 
+export const createFloor = entityFactory([
+  FOG,
+  LAYER,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createFrame = entityFactory([RENDERABLE, REFERENCE]);
 
 export const createFruit = entityFactory([
@@ -290,6 +297,15 @@ export const createFruit = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SPRITE,
+]);
+
+export const createFurniture = entityFactory([
+  COLLIDABLE,
+  FOG,
+  LAYER,
+  POSITION,
+  RENDERABLE,
   SPRITE,
 ]);
 

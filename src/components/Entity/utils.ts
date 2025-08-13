@@ -150,6 +150,7 @@ export const stackHeight = 1;
 
 // odd values because i don't want to recalculate brightness values
 export const terrainHeight = 0 * stackHeight;
+export const objectHeight = 0.1 * stackHeight;
 export const effectHeight = 0.5 * stackHeight;
 export const unitHeight = 1 * stackHeight;
 export const playerHeight = 1.3 * stackHeight;
@@ -189,6 +190,14 @@ export const getFacingLayers = (
   return layers || sprite.layers;
 };
 
+export const getLayerCount = (segments: Segment[]) =>
+  segments.reduce(
+    (total, segment) =>
+      total +
+      getFacingLayers(segment.sprite, segment.facing, segment.amount).length,
+    0
+  );
+
 export const getSegments = (
   world: World,
   entity: Entity,
@@ -199,6 +208,7 @@ export const getSegments = (
   const isAir = entity[FOG]?.type === "air";
   const isFloat = entity[FOG]?.type === "float";
   const isUnit = entity[FOG]?.type === "unit" || entity[PROJECTILE];
+  const isObject = entity[FOG]?.type === "object";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
 
   const offsetZ = isOpaque
@@ -211,6 +221,8 @@ export const getSegments = (
     ? fogHeight
     : isFloat
     ? floatHeight
+    : isObject
+    ? objectHeight
     : terrainHeight;
 
   // from back to front: shield, body, spell, sword

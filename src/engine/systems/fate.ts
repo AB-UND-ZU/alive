@@ -242,7 +242,7 @@ export default function setupFate(world: World) {
 
         // create tombstone and play RIP animation
         const tombstoneEntity = entities.createTombstone(world, {
-          [FOG]: { visibility: "visible", type: "terrain" },
+          [FOG]: { visibility: "visible", type: "object" },
           [LAYER]: { structure: entity[LAYER].structure },
           [POSITION]: copy(entity[POSITION]),
           [RENDERABLE]: { generation: 0 },

@@ -17,11 +17,16 @@ export type Segment = {
   layerProps: LayerProps;
 };
 
-export default function Stack({ segments }: { segments: Segment[] }) {
+export default function Stack({
+  segments,
+  layerCount,
+}: {
+  segments: Segment[];
+  layerCount: number;
+}) {
   const { ecs } = useWorld();
   const dimensions = useDimensions();
   const sprites: JSX.Element[] = [];
-  let layerCount = 0;
 
   if (!ecs) return null;
 
@@ -32,7 +37,6 @@ export default function Stack({ segments }: { segments: Segment[] }) {
       segment.facing,
       segment.amount
     );
-    layerCount += layers.length;
 
     let layerProps = segment.layerProps;
     const colorFactor = offsetFactors[segment.offsetZ];
@@ -55,6 +59,8 @@ export default function Stack({ segments }: { segments: Segment[] }) {
         offsetZ={segment.offsetZ + (layerCount * stackHeight) / stack}
       />
     );
+
+    layerCount += layers.length;
   }
 
   return <>{sprites}</>;

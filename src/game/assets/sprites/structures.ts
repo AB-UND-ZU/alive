@@ -100,7 +100,9 @@ export const fenceBurnt2: Sprite = {
 export const fenceDoor: Sprite = {
   name: "Gate",
   layers: [
-    { char: "░", color: colors.grey },
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0109", color: colors.grey },
+    { char: "▓", color: colors.black },
     { char: "▒", color: colors.black },
     { char: "≡", color: colors.black },
 
@@ -114,7 +116,9 @@ export const fenceDoor: Sprite = {
 export const fenceDoorOpen: Sprite = {
   name: "fence_door",
   layers: [
-    { char: "░", color: colors.grey },
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0109", color: colors.grey },
+    { char: "▓", color: colors.black },
     { char: "▒", color: colors.black },
     { char: "≡", color: colors.black },
 
@@ -128,7 +132,9 @@ export const fenceDoorOpen: Sprite = {
 export const fenceDoorBurnt: Sprite = {
   name: "fence_door_burnt",
   layers: [
-    { char: "░", color: colors.grey },
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0109", color: colors.grey },
+    { char: "▓", color: colors.black },
     { char: "▒", color: colors.black },
     { char: "≡", color: colors.black },
 

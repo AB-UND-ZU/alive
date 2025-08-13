@@ -1564,8 +1564,9 @@ export const generateWorld = async (world: World) => {
     const bedEndSprites = { left: bedEndLeft, right: bedEndRight };
     if (random(0, 1) === 0) {
       // create bed
-      entities.createTerrain(world, {
+      entities.createFurniture(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
+        [LAYER]: {},
         [POSITION]: add(
           emptyBuilding.building[POSITION],
           orientationPoints[invertFurniture]
@@ -1574,15 +1575,17 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
-      entities.createTerrain(world, {
+      entities.createFurniture(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
+        [LAYER]: {},
         [POSITION]: emptyBuilding.building[POSITION],
         [SPRITE]: bedCenter,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
-      entities.createTerrain(world, {
+      entities.createFurniture(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
+        [LAYER]: {},
         [POSITION]: add(
           emptyBuilding.building[POSITION],
           orientationPoints[furnitureOrientation]
@@ -1593,15 +1596,17 @@ export const generateWorld = async (world: World) => {
       });
     } else {
       // create table and chairs
-      entities.createTerrain(world, {
+      entities.createFurniture(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
+        [LAYER]: {},
         [POSITION]: copy(emptyBuilding.building[POSITION]),
         [SPRITE]: table,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
       });
-      entities.createGround(world, {
+      entities.createFloor(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
+        [LAYER]: {},
         [POSITION]: add(
           emptyBuilding.building[POSITION],
           orientationPoints[furnitureOrientation]
@@ -1610,8 +1615,9 @@ export const generateWorld = async (world: World) => {
         [RENDERABLE]: { generation: 0 },
       });
       if (random(0, 1) === 0) {
-        entities.createGround(world, {
+        entities.createFloor(world, {
           [FOG]: { visibility: "hidden", type: "terrain" },
+          [LAYER]: {},
           [POSITION]: add(
             emptyBuilding.building[POSITION],
             orientationPoints[invertFurniture]
