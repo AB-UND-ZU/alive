@@ -540,7 +540,7 @@ export const createShot = entityFactory([
 
 export const createSign = entityFactory([
   ATTACKABLE,
-  AFFECTABLE,
+  BURNABLE,
   BELONGABLE,
   DROPPABLE,
   FOG,

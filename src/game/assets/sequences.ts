@@ -212,6 +212,7 @@ import {
 } from "../../engine/systems/popup";
 import { getIdentifierAndComponents } from "../../engine/utils";
 import { generateUnitData } from "../balancing/units";
+import { play } from "../sound";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1004,6 +1005,9 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
         // handle adding of XP
         heroEntity[STATS].xp += 1 / 4;
         rerenderEntity(world, heroEntity);
+
+        // play sound
+        play("xp", { delay: random(0, (heroEntity[STATS].xp % 1) * 75 + 75) });
 
         disposeEntity(world, xpParticle);
         delete state.particles[particleName];

@@ -42,6 +42,7 @@ import { MOVABLE } from "../components/movable";
 import { consumeCharge } from "./trigger";
 import { isInPopup } from "./popup";
 import { queueMessage } from "../../game/assets/utils";
+import { play } from "../../game/sound";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -140,6 +141,8 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
     "swordAttack",
     { facing: "right", tick, rotate: true }
   );
+
+  play("slash");
 };
 
 export default function setupMagic(world: World) {
@@ -236,6 +239,9 @@ export default function setupMagic(world: World) {
               targetEntity
             );
             targetEntity[STATS].hp = hp;
+
+            // play sound
+            play("magic", { intensity: damage });
 
             const orientation = relativeOrientations(
               world,

@@ -12,4 +12,6 @@ declare global {
       thisArg?: any
     ): T | undefined;
   }
+
+  var RIFFWAVE: typeof riffwave;
 }

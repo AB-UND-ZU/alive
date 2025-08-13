@@ -37,6 +37,7 @@ import { getItemSprite } from "../../components/Entity/utils";
 import { isControllable } from "./freeze";
 import { getLootDelay, queueMessage } from "../../game/assets/utils";
 import { invertOrientation } from "../../game/math/path";
+import { pickupOptions, play } from "../../game/sound";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -152,6 +153,10 @@ export const collectItem = (
         delay: getLootDelay(world, entity, 1),
       });
     }
+
+    // play sound
+    const options = pickupOptions[(stackable || stat)!];
+    play("pickup", options);
 
     // update walkable
     updateWalkable(world, target[POSITION]);
@@ -333,7 +338,12 @@ export default function setupCollect(world: World) {
 
       if (!targetEntity) continue;
 
-      const collected = collectItem(world, entity, targetEntity, targetOrientation);
+      const collected = collectItem(
+        world,
+        entity,
+        targetEntity,
+        targetOrientation
+      );
 
       // perform bump animation
       if (collected && entity[ORIENTABLE]) {

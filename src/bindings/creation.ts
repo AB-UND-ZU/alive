@@ -953,8 +953,14 @@ export const createCell = (
     const spawnSignData = generateUnitData("sign");
     const spawnSign = entities.createSign(world, {
       [ATTACKABLE]: { shots: 0 },
-      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
       [BELONGABLE]: { faction: spawnSignData.faction },
+      [BURNABLE]: {
+        burning: false,
+        eternal: false,
+        decayed: false,
+        combusted: false,
+        remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
+      },
       [DROPPABLE]: {
         decayed: false,
         remains: choice(fenceBurnt1, fenceBurnt2),

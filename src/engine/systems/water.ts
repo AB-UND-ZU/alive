@@ -8,9 +8,14 @@ import { entities } from "..";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
 import { none } from "../../game/assets/sprites";
-import { copy } from "../../game/math/std";
+import { copy, getDistance, random } from "../../game/math/std";
 import { BubbleSequence, SEQUENCABLE } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
+import { play } from "../../game/sound";
+import { PLAYER } from "../components/player";
+import { LAYER } from "../components/layer";
+import { LEVEL } from "../components/level";
+import { isImmersible } from "./immersion";
 
 export const isStill = (world: World, entity: Entity) =>
   entity[LIQUID]?.type === "bubble" && !getSequence(world, entity, "bubble");
@@ -23,6 +28,10 @@ export const createBubble = (
   position: Position,
   type: Liquid["type"] = "bubble"
 ) => {
+  const droppedType =
+    type === "bubble" || (type === "rain" && isImmersible(world, position))
+      ? "bubble"
+      : "rain";
   const bubbleEntity = entities.createSplash(world, {
     [FOG]: { visibility: "hidden", type: "unit" },
     [LIQUID]: { type: "bubble" },
@@ -36,9 +45,28 @@ export const createBubble = (
     bubbleEntity,
     "bubble",
     "bubbleSplash",
-    { width: 0, type }
+    { width: 0, type: droppedType }
   );
   registerEntity(world, bubbleEntity);
+
+  // play sound in proximity
+  const hero = world.getEntity([PLAYER, POSITION, LAYER]);
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const distance = hero
+    ? getDistance(hero[POSITION], position, size)
+    : Infinity;
+
+  if (
+    hero &&
+    distance < 9 &&
+    (droppedType === "bubble" || random(0, 13) === 0)
+  ) {
+    play(droppedType === "bubble" ? "bubble" : "rain", {
+      proximity: 1 / (distance + 1),
+      variant: type === "bubble" ? 1 : 2,
+      delay: random(0, 100),
+    });
+  }
 };
 
 export default function setupWater(world: World) {

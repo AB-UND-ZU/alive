@@ -7,7 +7,7 @@ import { getCell, moveEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
-import { normalize, sum } from "../../game/math/std";
+import { getDistance, normalize, random, sum } from "../../game/math/std";
 import {
   ORIENTABLE,
   Orientation,
@@ -34,6 +34,10 @@ import { getPopup, isPopupAvailable, popupActions } from "./popup";
 import { Popup, POPUP } from "../components/popup";
 import { getSequence } from "./sequence";
 import { PLAYER } from "../components/player";
+import { npcVariants, play } from "../../game/sound";
+import { NPC } from "../components/npc";
+import { LAYER } from "../components/layer";
+import { FOG } from "../components/fog";
 
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
@@ -104,6 +108,7 @@ export default function setupMovement(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
   const size = world.metadata.gameEntity[LEVEL].size;
+  const hero = world.getEntity([PLAYER, POSITION, LAYER]);
 
   const onUpdate = (delta: number) => {
     const generation = world
@@ -234,6 +239,27 @@ export default function setupMovement(world: World) {
           }
 
           moveEntity(world, entity, position);
+
+          if (entity[PLAYER]) {
+            const variant = isImmersible(world, position)
+              ? 3
+              : getTempo(world, position) < 0
+              ? 2
+              : 1;
+            play("move", {
+              intensity: movableReference[REFERENCE].tick,
+              variant,
+            });
+          } else if (entity[NPC] && entity[FOG]?.visibility === "visible") {
+            play("slide", {
+              intensity: movableReference[REFERENCE].tick,
+              proximity: hero
+                ? 1 / (getDistance(hero[POSITION], entity[POSITION], size) + 1)
+                : 0.5,
+              variant: npcVariants[entity[NPC].type],
+              delay: random(0, 50),
+            });
+          }
 
           // set facing to actual movement
           if (entity[ORIENTABLE] && !entity[MOVABLE].flying)

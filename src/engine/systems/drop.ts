@@ -45,6 +45,8 @@ import { getBurning } from "./burn";
 import { PLAYER } from "../components/player";
 import { NPC } from "../components/npc";
 import { getItemSprite } from "../../components/Entity/utils";
+import { play } from "../../game/sound";
+import { STATS } from "../components/stats";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -409,6 +411,7 @@ export default function setupDrop(world: World) {
       POSITION,
     ])) {
       if (isDecaying(world, entity)) {
+        play("die", { variant: entity[NPC] ? 1 : 2, intensity: entity[STATS]?.maxHp });
         createSequence<"decay", DecaySequence>(
           world,
           entity,

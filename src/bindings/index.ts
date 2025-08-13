@@ -113,6 +113,7 @@ import {
   createItemInInventory,
 } from "../engine/systems/drop";
 import { getItemSprite } from "../components/Entity/utils";
+import { BURNABLE } from "../engine/components/burnable";
 
 export const generateWorld = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -677,8 +678,14 @@ export const generateWorld = async (world: World) => {
   const spawnSignData = generateUnitData("sign");
   const spawnSign = entities.createSign(world, {
     [ATTACKABLE]: { shots: 0 },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [BELONGABLE]: { faction: spawnSignData.faction },
+    [BURNABLE]: {
+      burning: false,
+      eternal: false,
+      decayed: false,
+      combusted: false,
+      remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
+    },
     [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [INVENTORY]: { items: [] },
@@ -797,8 +804,14 @@ export const generateWorld = async (world: World) => {
   const nomadSignData = generateUnitData("sign");
   const nomadSign = entities.createSign(world, {
     [ATTACKABLE]: { shots: 0 },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
     [BELONGABLE]: { faction: nomadSignData.faction },
+    [BURNABLE]: {
+      burning: false,
+      eternal: false,
+      decayed: false,
+      combusted: false,
+      remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
+    },
     [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
     [FOG]: { visibility: "hidden", type: "terrain" },
     [INVENTORY]: { items: [] },
@@ -917,7 +930,13 @@ export const generateWorld = async (world: World) => {
   const chiefSignData = generateUnitData("sign");
   const chiefSign = entities.createSign(world, {
     [ATTACKABLE]: { shots: 0 },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+    [BURNABLE]: {
+      burning: false,
+      eternal: false,
+      decayed: false,
+      combusted: false,
+      remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
+    },
     [BELONGABLE]: { faction: chiefSignData.faction },
     [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
     [FOG]: { visibility: "hidden", type: "terrain" },

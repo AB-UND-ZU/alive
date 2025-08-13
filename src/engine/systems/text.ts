@@ -19,6 +19,8 @@ import { TypedEntity } from "../entities";
 import { LIGHT } from "../components/light";
 import { SPAWNABLE } from "../components/spawnable";
 import { isInPopup } from "./popup";
+import { play } from "../../game/sound";
+import { POPUP } from "../components/popup";
 
 export const getTooltip = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -152,8 +154,11 @@ export default function setupText(world: World) {
       const isChanged = isIdle && isAdjacent;
       const needsUpdate =
         !isPending || (!tooltipEntity[TOOLTIP].changed && isChanged);
+      const showingPopup = tooltipEntity[POPUP]?.active;
       const isDone =
-        isDead(world, tooltipEntity) || isUnlocked(world, tooltipEntity);
+        isDead(world, tooltipEntity) ||
+        isUnlocked(world, tooltipEntity) ||
+        showingPopup;
 
       return needsUpdate && !isDone;
     });
@@ -212,6 +217,11 @@ export default function setupText(world: World) {
             overridden: tooltipEntity[TOOLTIP].override === "visible",
           }
         );
+
+        // play sound
+        if (!isIdle && !!dialog) {
+          play("talk", { variant: tooltipEntity[TOOLTIP].enemy ? 2 : 1 });
+        }
 
         pendingTooltip = tooltipEntity;
       }

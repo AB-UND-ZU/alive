@@ -44,7 +44,7 @@ import { add, copy } from "../../game/math/std";
 import { ORIENTABLE } from "../components/orientable";
 import { CASTABLE } from "../components/castable";
 import { isDead, isEnemy } from "./damage";
-import { canCast, chargeSlash } from "./magic";
+import { canCast, chargeSlash, getParticleAmount } from "./magic";
 import { EQUIPPABLE } from "../components/equippable";
 import {
   canShop,
@@ -68,6 +68,7 @@ import { fenceDoor, fenceDoorOpen } from "../../game/assets/sprites/structures";
 import * as colors from "../../game/assets/colors";
 import { NPC } from "../components/npc";
 import { consumeItem, getConsumption } from "./consume";
+import { play } from "../../game/sound";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -347,6 +348,9 @@ export const castSpell = (
         element,
       }
     );
+    play("beam", {
+      variant: getParticleAmount(world, spellStats.damage || spellStats.heal),
+    });
   } else if (item[ITEM].primary === "wave1") {
     createSequence<"spell", SpellSequence>(
       world,
@@ -362,6 +366,7 @@ export const castSpell = (
         element,
       }
     );
+    play("wave");
   }
 
   if (entity[STATS] && !isEnemy(world, entity)) {

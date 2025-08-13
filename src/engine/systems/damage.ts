@@ -31,6 +31,7 @@ import { DamageType } from "../components/castable";
 import { TypedEntity } from "../entities";
 import { queueMessage } from "../../game/assets/utils";
 import { invertOrientation } from "../../game/math/path";
+import { play } from "../../game/sound";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -230,6 +231,9 @@ export default function setupDamage(world: World) {
       );
 
       targetEntity[STATS].hp = hp;
+
+      // play sound
+      play("hit", { intensity: damage });
 
       // perform bump
       entity[MELEE].facing = targetOrientation;
