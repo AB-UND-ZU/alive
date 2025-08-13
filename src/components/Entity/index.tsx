@@ -63,6 +63,7 @@ function Entity({
   const visibility = entity[FOG]?.visibility;
   const isAir = entity[FOG]?.type === "air";
   const isFloat = entity[FOG]?.type === "float";
+  const isObject = entity[FOG]?.type === "object";
   const isUnit = entity[FOG]?.type === "unit" || !!entity[PROJECTILE];
   const isInside = !!entity[LAYER]?.structure;
   const isFocusable = !!entity[FOCUSABLE];
@@ -108,7 +109,11 @@ function Entity({
 
   if (
     !ecs ||
-    (opacity === 0 && layerProps.isTransparent && !isUnit && !isFocusable)
+    (opacity === 0 &&
+      layerProps.isTransparent &&
+      !isUnit &&
+      !isObject &&
+      !isFocusable)
   )
     return null;
 

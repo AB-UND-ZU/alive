@@ -115,7 +115,7 @@ class Presets extends Params {
   magic(options: SfxOptions) {
     const intensity = Math.min(((options.intensity || 1) + 4) ** 0.7 - 2, 5);
     const proximity = options.proximity || 1;
-    this.sound_vol = (Math.sqrt(intensity) / 32) * proximity ** 0.5;
+    this.sound_vol = (Math.sqrt(intensity) / 32) * proximity ** 0.8;
     this.wave_type = waveforms.NOISE;
     this.p_base_freq = 0.6 + frnd(0.1);
     this.p_freq_limit = frnd(0.1);
