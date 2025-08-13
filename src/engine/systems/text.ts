@@ -157,6 +157,7 @@ export default function setupText(world: World) {
       const showingPopup = tooltipEntity[POPUP]?.active;
       const isDone =
         isDead(world, tooltipEntity) ||
+        (hero && isInPopup(world, hero)) ||
         isUnlocked(world, tooltipEntity) ||
         showingPopup;
 

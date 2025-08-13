@@ -65,6 +65,7 @@ export const createBubble = (
       proximity: 1 / (distance + 1),
       variant: type === "bubble" ? 1 : 2,
       delay: random(0, 100),
+      intensity: hero[LAYER].structure ? 0.5 : 1,
     });
   }
 };

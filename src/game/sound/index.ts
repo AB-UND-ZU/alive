@@ -14,6 +14,7 @@ export const npcVariants: Partial<Record<NpcType, number>> = {
   goldPrism: 2,
   eye: 3,
   goldEye: 3,
+  fairy: 18,
 };
 
 export const pickupOptions: Partial<
@@ -76,7 +77,7 @@ class Presets extends Params {
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
     this.wave_type = waveforms.SQUARE;
-    this.sound_vol = ((1 / 8) * proximity * (10 - variant)) / 7;
+    this.sound_vol = ((1 / 8) * proximity * (10 - Math.sqrt(variant))) / 7;
     this.p_env_attack = 0.02;
     this.p_env_sustain = 0.2;
     this.p_env_decay = 0.1 + frnd(0.1) * variant;
@@ -175,7 +176,7 @@ class Presets extends Params {
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
     this.wave_type = waveforms.SINE;
-    this.sound_vol = ((1 / 32) * proximity ** 1.2) / variant ** 0.4;
+    this.sound_vol = ((1 / 32) * proximity ** 1.2);
     this.p_env_attack = (frnd(0.2) + 0.2) / variant;
     this.p_env_sustain = 0.1 / variant;
     this.p_env_decay = 0.2 / variant;
@@ -198,6 +199,7 @@ class Presets extends Params {
 
   rain(options: SfxOptions) {
     const proximity = options.proximity || 1;
+    const intensity = options.intensity || 1;
     this.sound_vol = (1 / 64) * proximity;
     this.wave_type = waveforms.NOISE;
     this.p_base_freq = 0.6 + frnd(0.1);
@@ -208,6 +210,7 @@ class Presets extends Params {
     this.p_env_decay = 0.5 + frnd(0.4);
     this.p_hpf_freq = 0.8 + frnd(0.1);
     this.p_hpf_ramp = frnd(0.1) - 0.6;
+    this.p_lpf_freq = intensity ** 2;
 
     return this;
   }
