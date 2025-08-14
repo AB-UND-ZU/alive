@@ -1,21 +1,23 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { createWorld } from "../../engine";
 import { WorldProvider } from "../../bindings/hooks";
-import { useDimensions } from "../Dimensions";
 import { PLAYER } from "../../engine/components/player";
 import { isGhost } from "../../engine/systems/fate";
 import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
-import { generateForest } from "../../game/levels/forest";
+import {
+  forestName,
+  forestSize,
+  generateForest,
+} from "../../game/levels/forest";
 
 export default function World(props: React.PropsWithChildren) {
   const [paused, setPaused] = useState(false);
   const pauseRef = useRef(paused);
-  const dimensions = useDimensions();
 
   // generate initial world
   // TODO: find better way to prevent double generation
   const [ecs] = useState(() => {
-    const world = createWorld(dimensions.mapSize);
+    const world = createWorld(forestName, forestSize);
     setTimeout(generateForest, 0, world);
     return world;
   });

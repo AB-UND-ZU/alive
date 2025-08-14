@@ -16,7 +16,7 @@ import { Identifiable, IDENTIFIABLE } from "./components/identifiable";
 import { Immersible, IMMERSIBLE } from "./components/immersible";
 import { Inventory, INVENTORY } from "./components/inventory";
 import { Item, ITEM } from "./components/item";
-import { Level, LEVEL } from "./components/level";
+import { Level, LEVEL, LevelName } from "./components/level";
 import { Liquid, LIQUID } from "./components/liquid";
 import { Light, LIGHT } from "./components/light";
 import { Lockable, LOCKABLE } from "./components/lockable";
@@ -56,7 +56,7 @@ import { Popup, POPUP } from "./components/popup";
 import { Freezable, FREEZABLE } from "./components/freezable";
 import { Rechargable, RECHARGABLE } from "./components/rechargable";
 
-export type Entity = {
+export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
   [AFFECTABLE]: Affectable;
   [ATTACKABLE]: Attackable;
@@ -120,7 +120,10 @@ export type TypedEntity<C extends keyof Entity = never> = Pick<Entity, C> &
   Partial<Omit<Entity, C>>;
 
 // allow creating entity factories for a given subset of components
-const entityFactory = <T extends keyof Entity>(components: T[]) => {
+const entityFactory = <T extends keyof Entity>(
+  components: T[],
+  { attachLevel } = { attachLevel: true }
+) => {
   type EntityData = { [K in T]: Entity[K] };
 
   return (world: World, data: EntityData): EntityData => {
@@ -130,6 +133,14 @@ const entityFactory = <T extends keyof Entity>(components: T[]) => {
       const componentData = data[component];
       world.addComponentToEntity(entity, component, componentData);
     });
+
+    if (attachLevel && world.metadata.gameEntity[LEVEL].name) {
+      world.addComponentToEntity(
+        entity,
+        world.metadata.gameEntity[LEVEL].name,
+        {}
+      );
+    }
 
     return entity as EntityData;
   };
@@ -309,7 +320,9 @@ export const createFurniture = entityFactory([
   SPRITE,
 ]);
 
-export const createGame = entityFactory([LEVEL, RENDERABLE, REFERENCE]);
+export const createGame = entityFactory([LEVEL, RENDERABLE, REFERENCE], {
+  attachLevel: false,
+});
 
 export const createGate = entityFactory([
   BURNABLE,

@@ -26,7 +26,6 @@ export type Dimensions = {
   renderedColumns: number;
   renderedRows: number;
   renderedDiagonal: number;
-  mapSize: number;
 };
 
 const visibleColumns = 21;
@@ -37,7 +36,6 @@ const extraOffset = 3; // to allow common mobile width of 375px to display 378px
 const hudRows = 8;
 const overscanColumns = 4;
 const overscanRows = 6;
-const mapSize = 160;
 
 const calculateDimensions: () => Dimensions = () => {
   const screenWidth = window.innerWidth + extraOffset;
@@ -87,7 +85,6 @@ const calculateDimensions: () => Dimensions = () => {
     renderedColumns,
     renderedRows,
     renderedDiagonal,
-    mapSize,
   };
 };
 

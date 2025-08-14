@@ -3,7 +3,10 @@ import { World } from "../ecs";
 import { Matrix } from "../../game/math/matrix";
 import { Position } from "./position";
 
+export type LevelName = "LEVEL_FOREST" | "LEVEL_OVERWORLD";
+
 export type Level = {
+  name: LevelName;
   // map[x][y][entityId] = entity
   map: Record<number, Record<number, Record<string, Entity>>>;
   walkable: Matrix<0 | 1>;

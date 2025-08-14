@@ -7,8 +7,8 @@ import ECS, {
 import { entities } from ".";
 import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
-import { LEVEL } from "./components/level";
 import { Entity, TypedEntity } from "./entities";
+import { LEVEL, LevelName } from "./components/level";
 import { getHasteInterval } from "./systems/movement";
 
 export type World = ReturnType<typeof createWorld>;
@@ -16,7 +16,7 @@ export type PatchedWorld = ECSWorld & { ecs: World };
 
 export const ECS_DEBUG = false;
 
-export default function createWorld(size: number) {
+export default function createWorld(name: LevelName, size: number) {
   const world = ECS.createWorld() as PatchedWorld;
 
   const createEntity = ECS.createEntity.bind(ECS, world);
@@ -175,7 +175,14 @@ export default function createWorld(size: number) {
 
   // create global render counter and reference frame
   ecs.metadata.gameEntity = entities.createGame(ecs, {
-    [LEVEL]: { map: {}, size, walkable: [], cells: {}, initialized: false },
+    [LEVEL]: {
+      name,
+      map: {},
+      size,
+      walkable: [],
+      cells: {},
+      initialized: false,
+    },
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
       tick: getHasteInterval(ecs, -1),

@@ -20,7 +20,7 @@ import {
   questPointer,
 } from "../../assets/sprites";
 import { simplexNoiseMatrix, valueNoiseMatrix } from "../../math/noise";
-import { LEVEL } from "../../../engine/components/level";
+import { LEVEL, LevelName } from "../../../engine/components/level";
 import {
   iterateMatrix,
   matrixFactory,
@@ -118,6 +118,9 @@ import {
 import { getItemSprite } from "../../../components/Entity/utils";
 import { BURNABLE } from "../../../engine/components/burnable";
 import { forestNpcDistribution } from "./units";
+
+export const forestSize = 160;
+export const forestName: LevelName = "LEVEL_FOREST";
 
 export const generateForest = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
