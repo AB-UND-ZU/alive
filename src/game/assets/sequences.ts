@@ -132,6 +132,7 @@ import {
   rain,
   info,
   createCountable,
+  underline,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -1049,12 +1050,10 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
         state.args.transaction === "sell" ? [deal.item] : deal.price;
 
       const itemSprite = getItemSprite(leftItem, "display");
-      const itemText = createText(
-        itemSprite.name,
+      const itemText =
         heroEntity && canShop(world, heroEntity, deal)
-          ? colors.white
-          : colors.grey
-      );
+          ? underline(createText(itemSprite.name))
+          : createText(itemSprite.name, colors.grey);
       const prices = rightItems.map((price) => getActivationRow(price)).flat();
       const line = addBackground(
         [
@@ -1152,10 +1151,9 @@ export const displayInspect: Sequence<PopupSequence> = (
                 ...createText(")"),
               ]
             : [];
-          const itemText = createText(
-            itemSprite.name,
-            consumption ? colors.white : colors.grey
-          );
+          const itemText = consumption
+            ? underline(createText(itemSprite.name))
+            : createText(itemSprite.name, colors.grey);
           return addBackground(
             [
               none,

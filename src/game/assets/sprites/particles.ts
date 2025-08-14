@@ -772,7 +772,7 @@ export const strikethrough = (
 export const underline = (sprites: Sprite[], color: string = colors.silver) =>
   sprites.map((sprite) => ({
     name: sprite.name,
-    layers: [...sprite.layers, { char: "_", color }],
+    layers: [{ char: "_", color }, ...sprite.layers],
   }));
 
 export const createText: (
