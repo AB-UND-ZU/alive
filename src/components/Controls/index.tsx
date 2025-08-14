@@ -54,6 +54,7 @@ import { INVENTORY } from "../../engine/components/inventory";
 import { STATS } from "../../engine/components/stats";
 import { getConsumption } from "../../engine/systems/consume";
 import { PLAYER } from "../../engine/components/player";
+import { ensureAudio } from "../../game/sound/resumable";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -567,6 +568,8 @@ export default function Controls() {
         return;
       }
 
+      ensureAudio();
+
       // since macOS doesn't fire keyup when meta key is pressed, prevent it from moving.
       // still not working: arrow keydown -> meta keydown -> arrow keyup -> meta keyup
       // also prevent repeat events
@@ -609,6 +612,8 @@ export default function Controls() {
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
+      ensureAudio();
+
       // prevent touches over action bar
       if (
         [...event.changedTouches].some((touch) =>
@@ -669,6 +674,12 @@ export default function Controls() {
     [handleMove, setJoystickOrientations]
   );
 
+  const handleVisibility = useCallback(() => {
+    if (document.hidden) {
+      setPaused(true);
+    }
+  }, [setPaused]);
+
   useEffect(() => {
     window.addEventListener("keydown", handleKey);
     window.addEventListener("keyup", handleKey);
@@ -678,6 +689,8 @@ export default function Controls() {
     window.addEventListener("touchend", handleTouchMove);
     window.addEventListener("touchcancel", handleTouchMove);
 
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       window.removeEventListener("keydown", handleKey);
       window.removeEventListener("keyup", handleKey);
@@ -686,8 +699,10 @@ export default function Controls() {
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchMove);
       window.removeEventListener("touchcancel", handleTouchMove);
+
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [handleKey, handleTouchMove]);
+  }, [handleKey, handleTouchMove, handleVisibility]);
 
   const emptyPrimary = createButton(
     isTouch ? "SPELL" : "SPACE",

@@ -2,10 +2,8 @@ import { Stackable } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 import { Stats } from "../../engine/components/stats";
 import { random } from "../math/std";
-import riffwave from "./riffwave";
+import { isPlaying, ResumableSoundEffect } from "./resumable";
 import { Params, sfxr, waveforms } from "jsfxr";
-
-global.RIFFWAVE = riffwave;
 
 export const npcVariants: Partial<Record<NpcType, number>> = {
   orb: 1,
@@ -385,6 +383,8 @@ export const play = (
   preset: keyof Presets,
   { delay, ...options }: SfxOptions = {}
 ) => {
+  if (!isPlaying()) return;
+
   if (delay) {
     setTimeout(play, delay, preset, options);
     return;
@@ -401,5 +401,6 @@ export const play = (
       params = presets;
     }
   }
-  sfxr.play(params);
+
+  new ResumableSoundEffect(params).generate().getAudio().play();
 };

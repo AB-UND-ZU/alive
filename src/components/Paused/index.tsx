@@ -26,8 +26,7 @@ export default function Paused() {
           (_, index) => (
             <Row
               key={index}
-              cells={repeat(overlay, 21 + dimensions.padding * 2)
-              }
+              cells={repeat(overlay, 21 + dimensions.padding * 2)}
             />
           ),
           dimensions.renderedRows - 5

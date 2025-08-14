@@ -80,6 +80,9 @@ declare module "jsfxr" {
     click(): Params;
     random(): Params;
     mutate(): Params;
+
+    buffer: Float32Array;
+    header: { sampleRate: number };
   }
 
   // sfxr namespace with utility methods
@@ -111,6 +114,7 @@ declare module "jsfxr" {
     getRawBuffer(): {
       buffer: Float32Array;
       normalized: Float32Array;
+      clipped: number;
     };
     generate(): this;
     getAudio(): any;

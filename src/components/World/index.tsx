@@ -5,12 +5,13 @@ import { WorldProvider } from "../../bindings/hooks";
 import { useDimensions } from "../Dimensions";
 import { PLAYER } from "../../engine/components/player";
 import { isGhost } from "../../engine/systems/fate";
+import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
 
 export default function World(props: React.PropsWithChildren) {
   const [paused, setPaused] = useState(false);
   const pauseRef = useRef(paused);
   const dimensions = useDimensions();
-  
+
   // generate initial world
   // TODO: find better way to prevent double generation
   const [ecs] = useState(() => {
@@ -23,9 +24,17 @@ export default function World(props: React.PropsWithChildren) {
     (action: React.SetStateAction<boolean>) => {
       // only prevent pausing when hero is dead
       const heroEntity = ecs.getEntity([PLAYER]);
-      const newPause = typeof action === 'function' ? action(pauseRef.current) : action;
-        
+      const newPause =
+        typeof action === "function" ? action(pauseRef.current) : action;
+
       if (newPause && (!heroEntity || isGhost(ecs, heroEntity))) return;
+
+      // toggle sound
+      if (newPause) {
+        suspendAudio();
+      } else {
+        ensureAudio();
+      }
 
       setPaused(newPause);
       pauseRef.current = newPause;

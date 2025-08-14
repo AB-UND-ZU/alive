@@ -13,5 +13,7 @@ declare global {
     ): T | undefined;
   }
 
-  var RIFFWAVE: typeof riffwave;
+  interface Window {
+    webkitAudioContext?: typeof AudioContext;
+  }
 }
