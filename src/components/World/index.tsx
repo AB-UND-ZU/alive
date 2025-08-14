@@ -9,6 +9,7 @@ import {
   forestSize,
   generateForest,
 } from "../../game/levels/forest";
+import { createLevel } from "../../engine/ecs";
 
 export default function World(props: React.PropsWithChildren) {
   const [paused, setPaused] = useState(false);
@@ -17,7 +18,8 @@ export default function World(props: React.PropsWithChildren) {
   // generate initial world
   // TODO: find better way to prevent double generation
   const [ecs] = useState(() => {
-    const world = createWorld(forestName, forestSize);
+    const world = createWorld();
+    createLevel(world, forestName, forestSize);
     setTimeout(generateForest, 0, world);
     return world;
   });

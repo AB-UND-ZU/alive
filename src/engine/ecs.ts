@@ -16,13 +16,16 @@ export type PatchedWorld = ECSWorld & { ecs: World };
 
 export const ECS_DEBUG = false;
 
-export default function createWorld(name: LevelName, size: number) {
+export default function createWorld() {
   const world = ECS.createWorld() as PatchedWorld;
 
   const createEntity = ECS.createEntity.bind(ECS, world);
   const removeEntity = ECS.removeEntity.bind(ECS, world);
   const getEntity = <C extends keyof Entity>(componentNames: C[]) =>
-    ECS.getEntity(world, componentNames) as TypedEntity<C> | undefined;
+    ECS.getEntity(world, [
+      ...componentNames,
+      world.ecs.metadata.gameEntity[LEVEL].name,
+    ]) as TypedEntity<C> | undefined;
   const getEntityById = (entityId?: number) => {
     if (!entityId) return;
 
@@ -49,7 +52,7 @@ export default function createWorld(name: LevelName, size: number) {
   ) =>
     ECS.getEntities(
       world,
-      componentNames,
+      [...componentNames, world.ecs.metadata.gameEntity[LEVEL].name],
       listenerType,
       listenerEntities as unknown as []
     ) as TypedEntity<C>[];
@@ -173,8 +176,14 @@ export default function createWorld(name: LevelName, size: number) {
     },
   };
 
+  world.ecs = ecs;
+
+  return ecs;
+}
+
+export const createLevel = (world: World, name: LevelName, size: number) => {
   // create global render counter and reference frame
-  ecs.metadata.gameEntity = entities.createGame(ecs, {
+  world.metadata.gameEntity = entities.createGame(world, {
     [LEVEL]: {
       name,
       map: {},
@@ -185,15 +194,18 @@ export default function createWorld(name: LevelName, size: number) {
     },
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
-      tick: getHasteInterval(ecs, -1),
+      tick: getHasteInterval(world, -1),
       delta: 0,
       suspended: false,
       suspensionCounter: -1,
     },
   });
 
+  // tag to itself
+  world.addComponentToEntity(world.metadata.gameEntity, name, {});
+
   // to keep track of last generations of removed reference frame
-  ecs.metadata.sequenceEntity = entities.createFrame(ecs, {
+  world.metadata.sequenceEntity = entities.createFrame(world, {
     [RENDERABLE]: { generation: 0 },
     [REFERENCE]: {
       tick: -1,
@@ -202,8 +214,4 @@ export default function createWorld(name: LevelName, size: number) {
       suspensionCounter: -1,
     },
   });
-
-  world.ecs = ecs;
-
-  return ecs;
-}
+};
