@@ -28,11 +28,7 @@ import {
   setPath,
 } from "../game/math/matrix";
 import { FOG } from "../engine/components/fog";
-import { NPC } from "../engine/components/npc";
-import { SWIMMABLE } from "../engine/components/swimmable";
-import { BEHAVIOUR } from "../engine/components/behaviour";
 import { ATTACKABLE } from "../engine/components/attackable";
-import { MELEE } from "../engine/components/melee";
 import { Item, ITEM, Stackable } from "../engine/components/item";
 import { ORIENTABLE, orientationPoints } from "../engine/components/orientable";
 import { aspectRatio } from "../components/Dimensions/sizing";
@@ -52,7 +48,6 @@ import {
   sigmoid,
   signedDistance,
 } from "../game/math/std";
-import { EQUIPPABLE } from "../engine/components/equippable";
 import { INVENTORY } from "../engine/components/inventory";
 import { emptyStats, STATS } from "../engine/components/stats";
 import { TRACKABLE } from "../engine/components/trackable";
@@ -60,7 +55,6 @@ import { FOCUSABLE } from "../engine/components/focusable";
 import { VIEWABLE } from "../engine/components/viewable";
 import { TOOLTIP } from "../engine/components/tooltip";
 import { DROPPABLE } from "../engine/components/droppable";
-import { ACTIONABLE } from "../engine/components/actionable";
 import {
   anvil,
   bedCenter,
@@ -75,20 +69,19 @@ import {
   kettle,
   table,
 } from "../game/assets/sprites/structures";
-import { COLLECTABLE } from "../engine/components/collectable";
 import { FocusSequence, SEQUENCABLE } from "../engine/components/sequencable";
 import { createSequence } from "../engine/systems/sequence";
 import { npcSequence, questSequence } from "../game/assets/utils";
 import { SPAWNABLE } from "../engine/components/spawnable";
-import { generateNpcData, generateUnitData } from "../game/balancing/units";
+import { generateUnitData } from "../game/balancing/units";
 import { BELONGABLE } from "../engine/components/belongable";
 import generateTown from "../engine/wfc/town";
-import { AFFECTABLE } from "../engine/components/affectable";
 import {
   assignBuilding,
   insertArea,
   createCell,
   populateInventory,
+  createNpc,
 } from "./creation";
 import {
   getItemPrice,
@@ -513,47 +506,7 @@ export const generateWorld = async (world: World) => {
 
   // postprocess spawn
 
-  const guideUnit = generateNpcData("guide");
-  const guideEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: guideUnit.patterns },
-    [BELONGABLE]: { faction: guideUnit.faction },
-    [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [MELEE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [NPC]: { type: guideUnit.type },
-    [ORIENTABLE]: {},
-    [POSITION]: copy(guidePosition),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: guideUnit.sprite,
-    [STATS]: { ...emptyStats, ...guideUnit.stats },
-    [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: true,
-      nextDialog: -1,
-    },
-  });
-  populateInventory(world, guideEntity, guideUnit.items, guideUnit.equipments);
-  setIdentifier(world, guideEntity, "guide");
-
+  const guideEntity = createNpc(world, "guide", guidePosition);
   npcSequence(world, guideEntity, "guideNpc", {});
   offerQuest(
     world,
@@ -717,46 +670,11 @@ export const generateWorld = async (world: World) => {
   });
 
   // postprocess nomad
-  const nomadUnit = generateNpcData("nomad");
-  const nomadEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: nomadUnit.patterns },
-    [BELONGABLE]: { faction: nomadUnit.faction },
-    [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [MELEE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [NPC]: { type: nomadUnit.type },
-    [ORIENTABLE]: {},
-    [POSITION]: add(nomadBuilding.building[POSITION], { x: -1, y: 0 }),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: nomadUnit.sprite,
-    [STATS]: { ...emptyStats, ...nomadUnit.stats },
-    [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  populateInventory(world, nomadEntity, nomadUnit.items, nomadUnit.equipments);
-  setIdentifier(world, nomadEntity, "nomad");
+  const nomadEntity = createNpc(
+    world,
+    "nomad",
+    add(nomadBuilding.building[POSITION], { x: -1, y: 0 })
+  );
   npcSequence(world, nomadEntity, "nomadNpc", {});
 
   const ironKeyEntity = entities.createItem(world, {
@@ -851,46 +769,11 @@ export const generateWorld = async (world: World) => {
   // postprocess town
 
   // 1. chief's house in center
-  const chiefUnit = generateNpcData("chief");
-  const chiefEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: chiefUnit.patterns },
-    [BELONGABLE]: { faction: chiefUnit.faction },
-    [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [MELEE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [NPC]: { type: chiefUnit.type },
-    [ORIENTABLE]: {},
-    [POSITION]: copy(chiefBuilding.building[POSITION]),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: chiefUnit.sprite,
-    [STATS]: { ...emptyStats, ...chiefUnit.stats },
-    [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  populateInventory(world, chiefEntity, chiefUnit.items, chiefUnit.equipments);
-  setIdentifier(world, chiefEntity, "chief");
+  const chiefEntity = createNpc(
+    world,
+    "chief",
+    chiefBuilding.building[POSITION]
+  );
   const maxHpEntity = entities.createItem(world, {
     [ITEM]: {
       carrier: -1,
@@ -977,94 +860,21 @@ export const generateWorld = async (world: World) => {
   setIdentifier(world, chiefBuilding.door!, "chief_door");
 
   // 2. elder's house
-  const elderUnit = generateNpcData("elder");
-  const elderEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: elderUnit.patterns },
-    [BELONGABLE]: { faction: elderUnit.faction },
-    [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [MELEE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [NPC]: { type: elderUnit.type },
-    [ORIENTABLE]: {},
-    [POSITION]: copy(elderBuilding.building[POSITION]),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: elderUnit.sprite,
-    [STATS]: { ...emptyStats, ...elderUnit.stats },
-    [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  populateInventory(world, elderEntity, elderUnit.items, elderUnit.equipments);
-  setIdentifier(world, elderEntity, "elder");
+  createNpc(world, "elder", elderBuilding.building[POSITION]);
 
   // 3. scout's house
-  const scoutUnit = generateNpcData("scout");
-  const scoutEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: scoutUnit.patterns },
-    [BELONGABLE]: { faction: scoutUnit.faction },
-    [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [MELEE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [NPC]: { type: scoutUnit.type },
-    [ORIENTABLE]: {},
-    [POSITION]: copy(scoutBuilding.building[POSITION]),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: scoutUnit.sprite,
-    [STATS]: { ...emptyStats, ...scoutUnit.stats },
-    [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: {
-      dialogs: [
-        createDialog("Hi there!"),
-        createDialog("I'm the Scout"),
-        createDialog("Sell your drops here"),
-        createDialog("So you can buy items"),
-        createDialog("Or not, up to you"),
-      ],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  populateInventory(world, scoutEntity, scoutUnit.items, scoutUnit.equipments);
-  setIdentifier(world, scoutEntity, "scout");
+  const scoutEntity = createNpc(
+    world,
+    "scout",
+    scoutBuilding.building[POSITION]
+  );
+  scoutEntity[TOOLTIP].dialogs = [
+    createDialog("Hi there!"),
+    createDialog("I'm the Scout"),
+    createDialog("Sell your drops here"),
+    createDialog("So you can buy items"),
+    createDialog("Or not, up to you"),
+  ];
   createPopup(world, scoutEntity, {
     deals: Object.entries(itemSales).map(([stackable, coins]) => ({
       item: {
@@ -1084,54 +894,20 @@ export const generateWorld = async (world: World) => {
 
   // 4. smith's house
   const smithOffset = choice(-1, 1);
-  const smithUnit = generateNpcData("smith");
-  const smithEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: smithUnit.patterns },
-    [BELONGABLE]: { faction: smithUnit.faction },
-    [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [MELEE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [NPC]: { type: smithUnit.type },
-    [ORIENTABLE]: {},
-    [POSITION]: add(smithBuilding.building[POSITION], { x: smithOffset, y: 0 }),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: smithUnit.sprite,
-    [STATS]: { ...emptyStats, ...smithUnit.stats },
-    [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: {
-      dialogs: [
-        createDialog("Hey mate"),
-        createDialog("My name is Smith"),
-        createDialog("I sell resources"),
-        createDialog("There's an anvil"),
-        createDialog("For crafting items"),
-        createDialog("To become stronger"),
-        createDialog("Because why not"),
-      ],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  populateInventory(world, smithEntity, smithUnit.items, smithUnit.equipments);
-  setIdentifier(world, smithEntity, "smith");
+  const smithEntity = createNpc(
+    world,
+    "smith",
+    add(smithBuilding.building[POSITION], { x: smithOffset, y: 0 })
+  );
+  smithEntity[TOOLTIP].dialogs = [
+    createDialog("Hey mate"),
+    createDialog("My name is Smith"),
+    createDialog("I sell resources"),
+    createDialog("There's an anvil"),
+    createDialog("For crafting items"),
+    createDialog("To become stronger"),
+    createDialog("Because why not"),
+  ];
   const stickItem: Deal["item"] = {
     stackable: "stick",
     amount: 1,
@@ -1233,57 +1009,18 @@ export const generateWorld = async (world: World) => {
   });
 
   // 5. trader's house
-  const traderUnit = generateNpcData("trader");
-  const traderEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: traderUnit.patterns },
-    [BELONGABLE]: { faction: traderUnit.faction },
-    [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [MELEE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [NPC]: { type: traderUnit.type },
-    [ORIENTABLE]: {},
-    [POSITION]: copy(traderBuilding.building[POSITION]),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: traderUnit.sprite,
-    [STATS]: { ...emptyStats, ...traderUnit.stats },
-    [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: {
-      dialogs: [
-        createDialog("Hi, I'm the Trader"),
-        createDialog("Nice to meet you"),
-        createDialog("Well, I trade items"),
-        createDialog("For coins only"),
-        createDialog("Wanna have a look?"),
-      ],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  populateInventory(
+  const traderEntity = createNpc(
     world,
-    traderEntity,
-    traderUnit.items,
-    traderUnit.equipments
+    "trader",
+    traderBuilding.building[POSITION]
   );
-  setIdentifier(world, traderEntity, "trader");
+  traderEntity[TOOLTIP].dialogs = [
+    createDialog("Hi, I'm the Trader"),
+    createDialog("Nice to meet you"),
+    createDialog("Well, I trade items"),
+    createDialog("For coins only"),
+    createDialog("Wanna have a look?"),
+  ];
   createPopup(world, traderEntity, {
     deals: itemPurchases.map(([item, coins]) => ({
       item,
@@ -1295,54 +1032,20 @@ export const generateWorld = async (world: World) => {
 
   // 6. druid's house
   const druidOffset = choice(-1, 1);
-  const druidUnit = generateNpcData("druid");
-  const druidEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: druidUnit.patterns },
-    [BELONGABLE]: { faction: druidUnit.faction },
-    [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [MELEE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [NPC]: { type: druidUnit.type },
-    [ORIENTABLE]: {},
-    [POSITION]: add(druidBuilding.building[POSITION], { x: druidOffset, y: 0 }),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: druidUnit.sprite,
-    [STATS]: { ...emptyStats, ...druidUnit.stats },
-    [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: {
-      dialogs: [
-        createDialog("Hello there"),
-        createDialog("I am the Druid"),
-        createDialog("Want some potions?"),
-        createDialog("Or maybe elements?"),
-        createDialog("To enchant items"),
-        createDialog("In the kettle here"),
-        createDialog("Incredibly powerful"),
-      ],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  populateInventory(world, druidEntity, druidUnit.items, druidUnit.equipments);
-  setIdentifier(world, druidEntity, "druid");
+  const druidEntity = createNpc(
+    world,
+    "druid",
+    add(druidBuilding.building[POSITION], { x: druidOffset, y: 0 })
+  );
+  druidEntity[TOOLTIP].dialogs = [
+    createDialog("Hello there"),
+    createDialog("I am the Druid"),
+    createDialog("Want some potions?"),
+    createDialog("Or maybe elements?"),
+    createDialog("To enchant items"),
+    createDialog("In the kettle here"),
+    createDialog("Incredibly powerful"),
+  ];
   const healthItem: Deal["item"] = {
     consume: "potion1",
     material: "fire",
@@ -1467,52 +1170,14 @@ export const generateWorld = async (world: World) => {
   });
 
   // 7. mage's house
-  const mageUnit = generateNpcData("mage");
-  const mageEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
-    [ATTACKABLE]: { shots: 0 },
-    [BEHAVIOUR]: { patterns: mageUnit.patterns },
-    [BELONGABLE]: { faction: mageUnit.faction },
-    [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
-    [EQUIPPABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [MELEE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [NPC]: { type: mageUnit.type },
-    [ORIENTABLE]: {},
-    [POSITION]: copy(mageBuilding.building[POSITION]),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: mageUnit.sprite,
-    [STATS]: { ...emptyStats, ...mageUnit.stats },
-    [SWIMMABLE]: { swimming: false },
-    [TOOLTIP]: {
-      dialogs: [
-        createDialog("Greetings traveler"),
-        createDialog("I am the Mage"),
-        createDialog("Get your spells here"),
-        createDialog("And items too"),
-        createDialog("They're fun actually"),
-      ],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  populateInventory(world, mageEntity, mageUnit.items, mageUnit.equipments);
-  setIdentifier(world, mageEntity, "mage");
+  const mageEntity = createNpc(world, "mage", mageBuilding.building[POSITION]);
+  mageEntity[TOOLTIP].dialogs = [
+    createDialog("Greetings traveler"),
+    createDialog("I am the Mage"),
+    createDialog("Get your spells here"),
+    createDialog("And items too"),
+    createDialog("They're fun actually"),
+  ];
   const waveItem: Deal["item"] = {
     amount: 1,
     equipment: "primary",

@@ -133,12 +133,13 @@ import { SWIMMABLE } from "../engine/components/swimmable";
 import { hillsNpcDistribution } from "../game/levels/hills";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { MELEE } from "../engine/components/melee";
-import { NPC } from "../engine/components/npc";
+import { NPC, NpcType } from "../engine/components/npc";
 import { RECHARGABLE } from "../engine/components/rechargable";
 import { ACTIONABLE } from "../engine/components/actionable";
 import { npcSequence } from "../game/assets/utils";
 import { getLockable } from "../engine/systems/action";
 import { createPopup } from "../engine/systems/popup";
+import { COLLECTABLE } from "../engine/components/collectable";
 
 const populateItems = (
   world: World,
@@ -288,6 +289,54 @@ export const assignBuilding = (
     fragments: fragmentEntities,
     door: doorEntity,
   };
+};
+
+export const createNpc = (
+  world: World,
+  npcKey: NpcType,
+  position: Position
+) => {
+  const npcUnit = generateNpcData(npcKey);
+  const npcEntity = entities.createVillager(world, {
+    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+    [ATTACKABLE]: { shots: 0 },
+    [BEHAVIOUR]: { patterns: npcUnit.patterns },
+    [BELONGABLE]: { faction: npcUnit.faction },
+    [COLLECTABLE]: {},
+    [DROPPABLE]: { decayed: false },
+    [EQUIPPABLE]: {},
+    [FOG]: { visibility: "hidden", type: "unit" },
+    [INVENTORY]: { items: [] },
+    [LAYER]: {},
+    [MELEE]: {},
+    [MOVABLE]: {
+      bumpGeneration: 0,
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+      flying: false,
+    },
+    [NPC]: { type: npcUnit.type },
+    [ORIENTABLE]: {},
+    [POSITION]: copy(position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: npcUnit.sprite,
+    [STATS]: { ...emptyStats, ...npcUnit.stats },
+    [SWIMMABLE]: { swimming: false },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: true,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(world, npcEntity, npcUnit.items, npcUnit.equipments);
+  setIdentifier(world, npcEntity, npcKey);
+  return npcEntity;
 };
 
 export const insertArea = (
