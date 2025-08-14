@@ -25,7 +25,7 @@ import {
   normalize,
   signedDistance,
 } from "../math/std";
-import { bossArea, guidePosition, menuArea } from "../levels/areas";
+import { bossArea, guidePosition, menuArea } from "../levels/forest/areas";
 import { commonChest, createDialog, createShout, fog } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
 import {

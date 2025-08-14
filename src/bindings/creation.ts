@@ -72,11 +72,7 @@ import { TRACKABLE } from "../engine/components/trackable";
 import { setIdentifier } from "../engine/utils";
 import { LIGHT } from "../engine/components/light";
 import { COLLIDABLE } from "../engine/components/collidable";
-import {
-  generateNpcData,
-  generateUnitData,
-  generateNpcKey,
-} from "../game/balancing/units";
+import { generateNpcData, generateUnitData } from "../game/balancing/units";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { BELONGABLE } from "../engine/components/belongable";
 import { DROPPABLE } from "../engine/components/droppable";
@@ -130,10 +126,9 @@ import { REFERENCE } from "../engine/components/reference";
 import { getHasteInterval } from "../engine/systems/movement";
 import { DISPLACABLE } from "../engine/components/displacable";
 import { SWIMMABLE } from "../engine/components/swimmable";
-import { hillsNpcDistribution } from "../game/levels/hills";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { MELEE } from "../engine/components/melee";
-import { NPC, NpcType } from "../engine/components/npc";
+import { NPC, NpcType, npcTypes } from "../engine/components/npc";
 import { RECHARGABLE } from "../engine/components/rechargable";
 import { ACTIONABLE } from "../engine/components/actionable";
 import { npcSequence } from "../game/assets/utils";
@@ -1195,9 +1190,9 @@ export const createCell = (
       [STATS]: { ...emptyStats, ...stats },
     });
     populateInventory(world, boxEntity, items, equipments);
-  } else if (cell === "mob" || cell === "spawn_prism") {
+  } else if (npcTypes.includes(cell as NpcType) || cell === "spawn_prism") {
     const mobUnit = generateNpcData(
-      cell === "spawn_prism" ? "prism" : generateNpcKey(hillsNpcDistribution)
+      cell === "spawn_prism" ? "prism" : (cell as NpcType)
     );
 
     const mobEntity = entities.createMob(world, {

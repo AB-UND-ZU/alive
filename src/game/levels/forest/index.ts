@@ -1,10 +1,10 @@
-import { entities, World, systems } from "../engine";
-import { POSITION } from "../engine/components/position";
-import { SPRITE } from "../engine/components/sprite";
-import { LIGHT } from "../engine/components/light";
-import { RENDERABLE } from "../engine/components/renderable";
-import { MOVABLE } from "../engine/components/movable";
-import { COLLIDABLE } from "../engine/components/collidable";
+import { entities, World, systems } from "../../../engine";
+import { POSITION } from "../../../engine/components/position";
+import { SPRITE } from "../../../engine/components/sprite";
+import { LIGHT } from "../../../engine/components/light";
+import { RENDERABLE } from "../../../engine/components/renderable";
+import { MOVABLE } from "../../../engine/components/movable";
+import { COLLIDABLE } from "../../../engine/components/collidable";
 import {
   createDialog,
   createItemText,
@@ -18,27 +18,30 @@ import {
   none,
   path,
   questPointer,
-} from "../game/assets/sprites";
-import { simplexNoiseMatrix, valueNoiseMatrix } from "../game/math/noise";
-import { LEVEL } from "../engine/components/level";
+} from "../../assets/sprites";
+import { simplexNoiseMatrix, valueNoiseMatrix } from "../../math/noise";
+import { LEVEL } from "../../../engine/components/level";
 import {
   iterateMatrix,
   matrixFactory,
   setMatrix,
   setPath,
-} from "../game/math/matrix";
-import { FOG } from "../engine/components/fog";
-import { ATTACKABLE } from "../engine/components/attackable";
-import { Item, ITEM, Stackable } from "../engine/components/item";
-import { ORIENTABLE, orientationPoints } from "../engine/components/orientable";
-import { aspectRatio } from "../components/Dimensions/sizing";
+} from "../../math/matrix";
+import { FOG } from "../../../engine/components/fog";
+import { ATTACKABLE } from "../../../engine/components/attackable";
+import { Item, ITEM, Stackable } from "../../../engine/components/item";
+import {
+  ORIENTABLE,
+  orientationPoints,
+} from "../../../engine/components/orientable";
+import { aspectRatio } from "../../../components/Dimensions/sizing";
 import {
   guidePosition,
   keyPosition,
   menuArea,
   nomadArea,
   nomadOffset,
-} from "../game/levels/areas";
+} from "./areas";
 import {
   add,
   choice,
@@ -47,14 +50,14 @@ import {
   random,
   sigmoid,
   signedDistance,
-} from "../game/math/std";
-import { INVENTORY } from "../engine/components/inventory";
-import { emptyStats, STATS } from "../engine/components/stats";
-import { TRACKABLE } from "../engine/components/trackable";
-import { FOCUSABLE } from "../engine/components/focusable";
-import { VIEWABLE } from "../engine/components/viewable";
-import { TOOLTIP } from "../engine/components/tooltip";
-import { DROPPABLE } from "../engine/components/droppable";
+} from "../../math/std";
+import { INVENTORY } from "../../../engine/components/inventory";
+import { emptyStats, STATS } from "../../../engine/components/stats";
+import { TRACKABLE } from "../../../engine/components/trackable";
+import { FOCUSABLE } from "../../../engine/components/focusable";
+import { VIEWABLE } from "../../../engine/components/viewable";
+import { TOOLTIP } from "../../../engine/components/tooltip";
+import { DROPPABLE } from "../../../engine/components/droppable";
 import {
   anvil,
   bedCenter,
@@ -68,47 +71,55 @@ import {
   fenceBurnt2,
   kettle,
   table,
-} from "../game/assets/sprites/structures";
-import { FocusSequence, SEQUENCABLE } from "../engine/components/sequencable";
-import { createSequence } from "../engine/systems/sequence";
-import { npcSequence, questSequence } from "../game/assets/utils";
-import { SPAWNABLE } from "../engine/components/spawnable";
-import { generateUnitData } from "../game/balancing/units";
-import { BELONGABLE } from "../engine/components/belongable";
-import generateTown from "../engine/wfc/town";
+} from "../../assets/sprites/structures";
+import {
+  FocusSequence,
+  SEQUENCABLE,
+} from "../../../engine/components/sequencable";
+import { createSequence } from "../../../engine/systems/sequence";
+import { npcSequence, questSequence } from "../../assets/utils";
+import { SPAWNABLE } from "../../../engine/components/spawnable";
+import { generateNpcKey, generateUnitData } from "../../balancing/units";
+import { BELONGABLE } from "../../../engine/components/belongable";
+import generateTown from "../../../engine/wfc/town";
 import {
   assignBuilding,
   insertArea,
   createCell,
   populateInventory,
   createNpc,
-} from "./creation";
+} from "./../../../bindings/creation";
 import {
   getItemPrice,
   itemPurchases,
   itemSales,
-} from "../game/balancing/trading";
-import { getGearStat } from "../game/balancing/equipment";
-import { findPath, invertOrientation } from "../game/math/path";
-import { disposeEntity, getCell, registerEntity } from "../engine/systems/map";
-import { LAYER } from "../engine/components/layer";
-import { createPopup } from "../engine/systems/popup";
-import { Deal } from "../engine/components/popup";
+} from "../../balancing/trading";
+import { getGearStat } from "../../balancing/equipment";
+import { findPath, invertOrientation } from "../../math/path";
+import {
+  disposeEntity,
+  getCell,
+  registerEntity,
+} from "../../../engine/systems/map";
+import { LAYER } from "../../../engine/components/layer";
+import { createPopup } from "../../../engine/systems/popup";
+import { Deal } from "../../../engine/components/popup";
 import {
   assertIdentifierAndComponents,
   offerQuest,
   setIdentifier,
-} from "../engine/utils";
-import { createHero } from "../engine/systems/fate";
-import { spawnLight } from "../engine/systems/consume";
+} from "../../../engine/utils";
+import { createHero } from "../../../engine/systems/fate";
+import { spawnLight } from "../../../engine/systems/consume";
 import {
   createItemAsDrop,
   createItemInInventory,
-} from "../engine/systems/drop";
-import { getItemSprite } from "../components/Entity/utils";
-import { BURNABLE } from "../engine/components/burnable";
+} from "../../../engine/systems/drop";
+import { getItemSprite } from "../../../components/Entity/utils";
+import { BURNABLE } from "../../../engine/components/burnable";
+import { forestNpcDistribution } from "./units";
 
-export const generateWorld = async (world: World) => {
+export const generateForest = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
   const elevationMatrix = simplexNoiseMatrix(size, size, 0, -50, 100, 1);
@@ -300,7 +311,7 @@ export const generateWorld = async (world: World) => {
     else if (green > 10 && elevation > 8)
       cell = spawn > 97 ? "leaf" : spawn > 88 ? "flower" : "grass";
     // spawn
-    else if (spawn < -96) cell = "mob";
+    else if (spawn < -96) cell = generateNpcKey(forestNpcDistribution);
 
     // set weighted elevation for curved pathfinding
     if (["air", "bush", "grass", "path", "desert", "hedge"].includes(cell)) {
