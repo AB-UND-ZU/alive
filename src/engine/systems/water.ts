@@ -16,6 +16,7 @@ import { PLAYER } from "../components/player";
 import { LAYER } from "../components/layer";
 import { LEVEL } from "../components/level";
 import { isImmersible } from "./immersion";
+import { getFragment } from "./enter";
 
 export const isStill = (world: World, entity: Entity) =>
   entity[LIQUID]?.type === "bubble" && !getSequence(world, entity, "bubble");
@@ -59,7 +60,7 @@ export const createBubble = (
   if (
     hero &&
     distance < 9 &&
-    (droppedType === "bubble" || random(0, 13) === 0)
+    (droppedType === "bubble" || random(0, 8) === 0)
   ) {
     play(droppedType === "bubble" ? "bubble" : "rain", {
       proximity: 1 / (distance + 1),
@@ -88,7 +89,11 @@ export default function setupWater(world: World) {
     ])) {
       if (isFallen(world, entity)) {
         disposeEntity(world, entity);
-        createBubble(world, entity[POSITION], "rain");
+
+        // don't rain inside buildings
+        if (!getFragment(world, entity[POSITION])) {
+          createBubble(world, entity[POSITION], "rain");
+        }
         continue;
       } else if (isStill(world, entity)) {
         disposeEntity(world, entity);

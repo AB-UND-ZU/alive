@@ -36,6 +36,7 @@ export type Message = {
 export type MessageSequence = {
   messages: Message[];
   index: number;
+  lastMessage: number;
 };
 export type DecaySequence = { fast: boolean };
 export type BurnSequence = {

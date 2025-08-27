@@ -1,4 +1,4 @@
-import { createText, none } from "../../game/assets/sprites";
+import { createText, joystick, none } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
@@ -38,7 +38,7 @@ export default function Joystick({
                 orientations[0] === "left" ? colors.white : colors.grey
               )[0]
             : none,
-          createText("■", colors.silver)[0],
+            joystick,
           orientations.includes("right")
             ? createText(
                 "\u0119",

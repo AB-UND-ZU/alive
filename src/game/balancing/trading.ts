@@ -212,12 +212,10 @@ export const itemPrices: Partial<
     ],
   },
 
-  // countable
+  // stackable
   stick: {
     default: [{ stackable: "leaf", amount: 3 }],
   },
-
-  // stackable
   arrow: {
     default: [
       { stackable: "stick", amount: 10 },
@@ -229,6 +227,12 @@ export const itemPrices: Partial<
       { stackable: "ore", amount: 10 },
       { stackable: "resource", material: "wood", amount: 1 },
     ],
+  },
+  apple: {
+    default: [{ stackable: "coin", amount: 3 }],
+  },
+  shroom: {
+    default: [{ stackable: "coin", amount: 3 }],
   },
   fruit: {
     default: [{ stackable: "berry", amount: 10 }],

@@ -2,6 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export const actions = [
+  "warp",
   "spawn",
   "unlock",
   "popup",

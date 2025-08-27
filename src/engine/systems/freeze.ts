@@ -26,6 +26,8 @@ import { extinguishEntity } from "./burn";
 import { queueMessage } from "../../game/assets/utils";
 import { createText } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
+import { getLockable } from "./action";
+import { LOCKABLE } from "../components/lockable";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -116,6 +118,11 @@ export const freezeMomentum = (
   orientation?: Orientation
 ) => {
   const freezable = getFreezables(world, entity[POSITION])[0];
+  const frozen = freezable && isFrozen(world, freezable);
+  const lockable = getLockable(world, entity[POSITION]);
+  const walkthrough = lockable && lockable[LOCKABLE].type !== "gate";
+  const sliding = frozen || walkthrough;
+
   const momentumOrientation =
     orientation || (entity[MOVABLE].momentum as Orientation | undefined);
   const targetMovable =
@@ -125,21 +132,24 @@ export const freezeMomentum = (
       add(entity[POSITION], orientationPoints[momentumOrientation])
     );
 
-  if (
-    freezable &&
-    isFrozen(world, freezable) &&
-    !entity[MOVABLE].momentum &&
-    targetMovable &&
-    orientation
-  ) {
-    // let units slide on ice
+  if (sliding && !entity[MOVABLE].momentum && targetMovable && orientation) {
+    // let units slide
     entity[MOVABLE].momentum = orientation;
   } else if (
-    (!freezable || !isFrozen(world, freezable) || !targetMovable) &&
+    (!sliding || !targetMovable) &&
     (entity[MOVABLE].momentum || !orientation)
   ) {
     // stop sliding
     entity[MOVABLE].momentum = undefined;
+  }
+
+  // freeze on ice
+  if (frozen && entity[AFFECTABLE] && targetMovable) {
+    if (entity[AFFECTABLE].freeze === 1 && entity[SEQUENCABLE]?.states.freeze) {
+      // extend sequence rather than retriggering
+      entity[SEQUENCABLE].states.freeze.elapsed = 0;
+    }
+    entity[AFFECTABLE].freeze = Math.max(entity[AFFECTABLE].freeze, 1);
   }
 
   // ensure suspendable references keep on sliding

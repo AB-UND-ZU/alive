@@ -6,6 +6,7 @@ import {
   commonChest,
   desertRock1,
   desertRock2,
+  dummy,
   epicChest,
   eye,
   fairy,
@@ -26,18 +27,25 @@ import {
   rareChest,
   scout,
   settler,
+  treeBurnt1,
+  treeBurnt2,
   tumbleweed,
   uncommonChest,
   waveTower,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
-import { distribution } from "../math/std";
+import { choice, distribution } from "../math/std";
 import { Item } from "../../engine/components/item";
 import { getGearStat } from "./equipment";
 import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
 import { NpcType } from "../../engine/components/npc";
-import { fence, sign } from "../assets/sprites/structures";
+import {
+  fence,
+  fenceBurnt1,
+  fenceBurnt2,
+  sign,
+} from "../assets/sprites/structures";
 
 export type UnitKey =
   | NpcType
@@ -48,6 +56,7 @@ export type UnitKey =
   | "legendaryChest"
   | "pot"
   | "box"
+  | "dummy"
   | "sign"
   | "fence"
   | "cactus1"
@@ -73,6 +82,7 @@ export type UnitDefinition = {
   }[];
   patternNames: Pattern["name"][];
   sprite: Sprite;
+  remainsChoices?: Sprite[];
   spring?: SpringConfig;
 };
 
@@ -90,6 +100,7 @@ export type UnitData = {
   items: Omit<Item, "carrier">[];
   patterns: Pattern[];
   sprite: Sprite;
+  remains?: Sprite;
   spring?: SpringConfig;
 };
 
@@ -117,7 +128,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         bound: false,
         amount: getGearStat("shield", "wood"),
       },
-      { amount: 1, equipment: "compass", bound: false },
       {
         amount: Infinity,
         consume: "potion1",
@@ -423,6 +433,26 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: [],
     sprite: box,
   },
+  dummy: {
+    faction: "unit",
+    power: 0,
+    armor: 0,
+    hp: 25,
+    mp: 0,
+    equipments: [],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "stick", amount: 1 },
+          { stackable: "resource", material: "iron", amount: 1 },
+        ],
+      },
+    ],
+    patternNames: [],
+    sprite: dummy,
+    remainsChoices: [treeBurnt1, treeBurnt2],
+  },
   sign: {
     faction: "unit",
     power: 0,
@@ -441,6 +471,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: sign,
+    remainsChoices: [treeBurnt1, treeBurnt2],
   },
   fence: {
     faction: "unit",
@@ -457,6 +488,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: fence,
+    remainsChoices: [fenceBurnt1, fenceBurnt2],
   },
   cactus1: {
     faction: "unit",
@@ -841,8 +873,16 @@ export const generateNpcKey = (npcDistribution: NpcDistribution) => {
 };
 
 export const generateUnitData = (unitKey: UnitKey): UnitData => {
-  const { drops, hp, mp, power, armor, patternNames, ...unitDefinition } =
-    unitDefinitions[unitKey];
+  const {
+    drops,
+    hp,
+    mp,
+    power,
+    armor,
+    patternNames,
+    remainsChoices,
+    ...unitDefinition
+  } = unitDefinitions[unitKey];
   const items =
     drops.length > 0
       ? drops
@@ -857,6 +897,7 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
     items,
     stats: { hp, maxHp: hp, mp, maxMp: mp, power, armor },
     patterns: patternNames.map((name) => ({ name, memory: {} })),
+    remains: remainsChoices ? choice(...remainsChoices) : undefined,
     ...unitDefinition,
   };
 };

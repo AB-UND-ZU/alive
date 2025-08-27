@@ -42,7 +42,7 @@ import { MOVABLE } from "../components/movable";
 import { consumeCharge } from "./trigger";
 import { isInPopup } from "./popup";
 import { queueMessage } from "../../game/assets/utils";
-import { play } from "../../game/sound";
+import { pickupOptions, play } from "../../game/sound";
 import { LEVEL } from "../components/level";
 
 export const isAffectable = (world: World, entity: Entity) =>
@@ -336,6 +336,7 @@ export default function setupMagic(world: World) {
       if (pendingHp > 0) {
         playerHp[entityId] = hpReceived;
         createAmountMarker(world, entity, pendingHp, "up");
+        play("pickup", pickupOptions.hp);
       }
 
       const mpReceived = entity[PLAYER].manaReceived;
@@ -349,6 +350,7 @@ export default function setupMagic(world: World) {
           fast: false,
           delay: 0,
         });
+        play("pickup", pickupOptions.mp);
       }
 
       const xpReceived = entity[PLAYER].xpReceived;

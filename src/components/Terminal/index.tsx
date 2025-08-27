@@ -10,7 +10,7 @@ const stats = false;
 const controls = false;
 
 export default function Terminal() {
-  const { paused } = useWorld();
+  const { paused, initial } = useWorld();
   return (
     <main className="Terminal">
       <Canvas shadows="basic" flat>
@@ -20,7 +20,7 @@ export default function Terminal() {
         <Camera />
         <Systems />
       </Canvas>
-      {paused && <Paused />}
+      {(paused || initial) && <Paused initial={initial} />}
     </main>
   );
 }

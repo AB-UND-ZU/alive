@@ -20,13 +20,17 @@ import { Entity, TypedEntity } from "../engine/entities";
 
 export type WorldContext = {
   ecs: WorldType | null;
+  initial: boolean;
+  setInitial: React.Dispatch<React.SetStateAction<boolean>>;
   paused: boolean;
   setPaused: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const initialContext: WorldContext = {
   ecs: null,
-  paused: true,
+  initial: true,
+  setInitial: () => {},
+  paused: false,
   setPaused: () => {},
 };
 const Context = createContext(initialContext);
@@ -60,24 +64,32 @@ export const useRenderable = <C extends keyof Entity>(componentNames: C[]) => {
   const setGeneration = useState(-1)[1];
 
   const [entities, setEntities] = useState<TypedEntity<"RENDERABLE" | C>[]>([]);
-  const listener = useCallback(() => {
-    if (!ecs) return null;
+  const listener = useCallback(
+    (reset = false) => {
+      if (reset) {
+        setGeneration(-1);
+        return;
+      }
 
-    const entities = ecs.getEntities([RENDERABLE, ...componentNames]);
-    const nextGeneration =
-      entities.length === 0
-        ? -1
-        : entities.reduce(
-            (total, entity) => total + getEntityGeneration(ecs, entity),
-            0
-          );
+      if (!ecs) return null;
 
-    if (nextGeneration !== pendingGeneration.current) {
-      pendingGeneration.current = nextGeneration;
-      setGeneration(nextGeneration);
-      setEntities(entities);
-    }
-  }, [componentNames, ecs, setGeneration]);
+      const entities = ecs.getEntities([RENDERABLE, ...componentNames]);
+      const nextGeneration =
+        entities.length === 0
+          ? -1
+          : entities.reduce(
+              (total, entity) => total + getEntityGeneration(ecs, entity),
+              0
+            );
+
+      if (nextGeneration !== pendingGeneration.current) {
+        pendingGeneration.current = nextGeneration;
+        setGeneration(nextGeneration);
+        setEntities(entities);
+      }
+    },
+    [componentNames, ecs, setGeneration]
+  );
 
   // provide listener to ECS systems
   useEffect(() => {
@@ -120,8 +132,8 @@ export const useViewable = () => {
 
 const defaultSpring = {
   mass: 1,
-  friction: 25,
-  tension: 65,
+  friction: 30,
+  tension: 100,
 };
 
 const zeroFraction = { x: 0, y: 0 };

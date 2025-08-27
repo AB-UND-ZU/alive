@@ -12,7 +12,7 @@ export const add = (first: Point, second: Point) => ({
 });
 
 export const sum = (numbers: number[]) =>
-  numbers.reduce((total, number) => total + number);
+  numbers.reduce((total, number) => total + number, 0);
 
 export const normalize = (number: number, modulo: number) =>
   ((number % modulo) + modulo) % modulo;
@@ -42,6 +42,25 @@ export const getDistance = (
   }
 
   return Math.sqrt(delta.x ** 2 + delta.y ** 2);
+};
+
+export const within = (
+  topLeft: Point,
+  bottomRight: Point,
+  target: Point,
+  size: number
+) => {
+  const width = signedDistance(topLeft.x, bottomRight.x, size);
+  const height = signedDistance(topLeft.y, bottomRight.y, size);
+  const horizontal = signedDistance(topLeft.x, target.x, size);
+  const vertical = signedDistance(target.y, bottomRight.y, size);
+
+  return (
+    0 <= horizontal &&
+    horizontal <= width &&
+    0 <= vertical &&
+    vertical <= height
+  );
 };
 
 export function* reversed<T>(array: T[]) {

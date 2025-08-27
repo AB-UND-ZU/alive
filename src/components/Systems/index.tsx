@@ -15,6 +15,7 @@ import { getEnterable, isOutside } from "../../engine/systems/enter";
 import { useEffect, useRef } from "react";
 import { LAYER } from "../../engine/components/layer";
 import { LIGHT } from "../../engine/components/light";
+import { FRAGMENT } from "../../engine/components/fragment";
 
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
@@ -93,7 +94,7 @@ export default function Systems() {
               const cell = getCell(ecs, renderedPosition);
               const inside =
                 !!structure &&
-                getEnterable(ecs, renderedPosition)?.[LAYER].structure ===
+                getEnterable(ecs, renderedPosition)?.[FRAGMENT]?.structure ===
                   structure;
               const entities = Object.entries(cell);
 

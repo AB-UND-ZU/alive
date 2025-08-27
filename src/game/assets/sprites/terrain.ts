@@ -30,6 +30,11 @@ export const wall: Sprite = {
   layers: [{ char: "█", color: colors.grey }],
 };
 
+export const granite: Sprite = {
+  name: "wall_granite",
+  layers: [{ char: "█", color: colors.white }],
+};
+
 export const ironMine: Sprite = {
   name: "Iron",
   layers: [
@@ -384,5 +389,27 @@ export const rock2: Sprite = {
     { char: "+", color: colors.grey },
     { char: ":", color: colors.grey },
     { char: ",", color: colors.black },
+  ],
+};
+
+export const enemySpawner: Sprite = {
+  name: "Spawn",
+  layers: [
+    { char: "-", color: colors.red },
+    { char: ":", color: colors.red },
+    { char: "º", color: colors.black },
+    { char: "\u0106", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+
+export const friendlySpawner: Sprite = {
+  name: "Spawn",
+  layers: [
+    { char: "-", color: colors.lime },
+    { char: ":", color: colors.lime },
+    { char: "º", color: colors.black },
+    { char: "\u0106", color: colors.black },
+    { char: "]", color: colors.black },
   ],
 };

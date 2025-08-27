@@ -64,6 +64,9 @@ import {
   earthTrap,
   earthWave1Spell,
   earthWave2Spell,
+  entryClosedIron,
+  entryClosedWood,
+  fenceDoor,
   fireBeam1Spell,
   fireBeam2Spell,
   fireCharm1,
@@ -164,13 +167,15 @@ export const oreHeight = 4.5 * stackHeight;
 export const floatHeight = 5 * stackHeight;
 export const shadowHeight = 6 * stackHeight;
 export const fogHeight = 7 * stackHeight;
+export const fixedHeight = 7.5 * stackHeight;
 export const idleHeight = 8 * stackHeight;
 export const tooltipHeight = 8.5 * stackHeight;
 export const focusHeight = 9 * stackHeight;
-export const dialogHeight = 9.5 * stackHeight;
-export const particleHeight = 10 * stackHeight;
-export const popupHeight = 10.1 * stackHeight;
-export const selectionHeight = 10.3 * stackHeight;
+export const dialogHeight = 9.2 * stackHeight;
+export const particleHeight = 9.5 * stackHeight;
+export const popupHeight = 10 * stackHeight;
+export const selectionHeight = 10.1 * stackHeight;
+export const transientHeight = 10.5 * stackHeight;
 export const cameraHeight = 11 * stackHeight;
 
 export const getFacingLayers = (
@@ -181,7 +186,7 @@ export const getFacingLayers = (
   let layers;
   if (facing && sprite.facing?.[facing]) layers = sprite.facing[facing];
 
-  if (amount && sprite.amounts) {
+  if (amount && sprite.amounts && amount > 0) {
     if (amount === 1) layers = sprite.amounts.single;
     else if (amount === 2) layers = sprite.amounts.double;
     else layers = sprite.amounts.multiple;
@@ -210,8 +215,11 @@ export const getSegments = (
   const isUnit = entity[FOG]?.type === "unit" || entity[PROJECTILE];
   const isObject = entity[FOG]?.type === "object";
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
+  const isFixed = isFloat && entity[FOG].fixed;
 
-  const offsetZ = isOpaque
+  const offsetZ = isFixed
+    ? fixedHeight
+    : isOpaque
     ? wallHeight
     : isPlayer
     ? playerHeight
@@ -224,6 +232,10 @@ export const getSegments = (
     : isObject
     ? objectHeight
     : terrainHeight;
+
+  const visibleProps = isFixed
+    ? { ...layerProps, receiveShadow: false, isTransparent: false }
+    : layerProps;
 
   // from back to front: shield, body, spell, sword
   const orderedSegments: Segment[] = [];
@@ -240,7 +252,7 @@ export const getSegments = (
       offsetY: 0,
       offsetZ,
       layerProps: {
-        ...layerProps,
+        ...visibleProps,
         isTransparent: false,
       },
     });
@@ -254,7 +266,7 @@ export const getSegments = (
     offsetX: 0,
     offsetY: 0,
     offsetZ,
-    layerProps,
+    layerProps: visibleProps,
   });
 
   // 4. sword
@@ -269,7 +281,7 @@ export const getSegments = (
       offsetY: 0,
       offsetZ,
       layerProps: {
-        ...layerProps,
+        ...visibleProps,
         isTransparent: false,
       },
     });
@@ -453,14 +465,14 @@ const entitySprites: Record<
   compass: {
     default: { sprite: compass },
   },
-  map: {
-    default: { sprite: map },
-  },
   torch: {
     default: { sprite: torch },
   },
 
   // consumable
+  map: {
+    default: { sprite: map },
+  },
   key: {
     wood: { sprite: none },
     iron: { sprite: ironKey },
@@ -477,10 +489,19 @@ const entitySprites: Record<
 
   // materialized
   door: {
+    default: { sprite: doorClosedWood },
     wood: { sprite: doorClosedWood },
     iron: { sprite: doorClosedIron },
     gold: { sprite: doorClosedGold },
     fire: { sprite: doorClosedFire },
+  },
+  entry: {
+    default: { sprite: entryClosedWood },
+    wood: { sprite: entryClosedWood },
+    iron: { sprite: entryClosedIron },
+  },
+  gate: {
+    default: { sprite: fenceDoor },
   },
 
   // stackable

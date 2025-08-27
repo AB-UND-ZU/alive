@@ -97,7 +97,7 @@ export const fenceBurnt2: Sprite = {
   ],
 };
 
-export const fenceDoor: Sprite = {
+export const fenceDoorPath: Sprite = {
   name: "Gate",
   layers: [
     { char: "\u0107", color: colors.grey },
@@ -113,7 +113,27 @@ export const fenceDoor: Sprite = {
   ],
 };
 
+export const fenceDoor: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "=", color: colors.grey },
+  ],
+};
+
 export const fenceDoorOpen: Sprite = {
+  name: "fence_door",
+  layers: [
+    { char: "M", color: colors.maroon },
+    { char: "=", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+
+export const fenceDoorOpenPath: Sprite = {
   name: "fence_door",
   layers: [
     { char: "\u0107", color: colors.grey },
@@ -130,6 +150,17 @@ export const fenceDoorOpen: Sprite = {
 };
 
 export const fenceDoorBurnt: Sprite = {
+  name: "fence_door_burnt",
+  layers: [
+    { char: "\u011f", color: colors.maroon },
+    { char: "\u011e", color: colors.black },
+    { char: "-", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "|", color: colors.black },
+  ],
+};
+
+export const fenceDoorBurntPath: Sprite = {
   name: "fence_door_burnt",
   layers: [
     { char: "\u0107", color: colors.grey },

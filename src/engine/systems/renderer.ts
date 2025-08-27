@@ -5,6 +5,7 @@ import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { EQUIPPABLE } from "../components/equippable";
 import { Sequencable, SEQUENCABLE } from "../components/sequencable";
+import { LEVEL } from "../components/level";
 
 export const rerenderEntity = (world: World, entity: Entity) => {
   entity[RENDERABLE].generation += 1;
@@ -49,8 +50,20 @@ export const getEntityGeneration = (world: World, entity: Entity) => {
 
 export default function setupRenderer(world: World) {
   let referencesGeneration = -1;
+  let worldName = "";
 
   const onUpdate = (delta: number) => {
+    // reset all generations on changing worlds
+    if (worldName !== world.metadata.gameEntity[LEVEL].name) {
+      for (const listener of Object.values(world.metadata.listeners)) {
+        listener(true);
+      }
+
+      worldName = world.metadata.gameEntity[LEVEL].name;
+      referencesGeneration = -1;
+      return;
+    }
+
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);

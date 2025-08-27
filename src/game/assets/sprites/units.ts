@@ -139,6 +139,25 @@ export const doorClosedGold: Sprite = {
   ],
 };
 
+export const entryClosedWood: Sprite = {
+  name: "Entry",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u0106", color: colors.black },
+    { char: ".", color: colors.black },
+  ],
+};
+
+export const entryClosedIron: Sprite = {
+  name: "Entry",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u0106", color: colors.silver },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.silver },
+  ],
+};
+
 export const leverOff: Sprite = {
   name: "Off",
   layers: [
@@ -257,5 +276,5 @@ export const tumbleweed: Sprite = {
 
 export const portal: Sprite = {
   name: "Portal",
-  layers: [{ char: "∩", color: colors.fuchsia }],
+  layers: [{ char: "∩", color: colors.yellow }],
 };

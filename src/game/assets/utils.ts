@@ -20,10 +20,15 @@ import { add, lerp, padCenter } from "../math/std";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
-import { popupHeight } from "../../components/Entity/utils";
+import { getItemSprite, popupHeight } from "../../components/Entity/utils";
 import {
   addBackground,
   createText,
+  friendlyBar,
+  hostileBar,
+  info,
+  mergeSprites,
+  neutralBar,
   popupBackground,
   popupCorner,
   popupDownEnd,
@@ -39,6 +44,8 @@ import {
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
+import { Item, Materialized } from "../../engine/components/item";
+import { generateUnitData, UnitKey } from "../balancing/units";
 
 export const lootSpeed = 200;
 export const decayTime = 300;
@@ -147,7 +154,7 @@ export const step = <T extends StepAnimations>({
 export const frameWidth = 19;
 export const frameHeight = 11;
 export const contentDelay = 8;
-export const popupDelay = 75;
+export const popupDelay = 60;
 export const popupTime = frameHeight * popupDelay;
 
 export const scrolledVerticalIndex = (
@@ -178,7 +185,7 @@ export const displayPopup = (
   world: World,
   entity: Entity,
   state: SequenceState<InfoSequence>,
-  icon: Sprite,
+  icon: Sprite = info,
   content: Sprite[][]
 ) => {
   let updated = false;
@@ -187,6 +194,7 @@ export const displayPopup = (
   let renderContent = false;
   const popupCenter = { x: 0, y: (frameHeight + 1) / -2 };
   const initial = !state.args.generation;
+  const settled = !state.args.scrollIndex && state.elapsed > popupTime;
 
   // create popup
   if (!state.args.generation) {
@@ -423,8 +431,8 @@ export const displayPopup = (
     updated = true;
   }
 
-  // interpolate frame on initial render
   if (initial) {
+    // interpolate frame on initial render
     for (const particleName in state.particles) {
       const particleEntity = world.assertByIdAndComponents(
         state.particles[particleName],
@@ -439,6 +447,17 @@ export const displayPopup = (
         particleEntity[PARTICLE].animatedOrigin = { x: offsetX, y: -2 };
         particleEntity[PARTICLE].duration = -offsetY * popupDelay;
       }
+    }
+  } else if (settled) {
+    // stop animating settled popup
+    for (const particleName in state.particles) {
+      if (particleName === "selection") continue;
+
+      const particleEntity = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+      delete particleEntity[PARTICLE].animatedOrigin;
     }
   }
 
@@ -455,6 +474,8 @@ export const getLootDelay = (world: World, entity: Entity, distance: number) =>
       )
     : lootSpeed * distance;
 
+const minimumDelay = 250;
+
 export const queueMessage = (
   world: World,
   entity: Entity,
@@ -465,10 +486,17 @@ export const queueMessage = (
     | undefined;
 
   if (messageState) {
+    // prevent overlapping messages
+    const lastMessage = Math.max(
+      messageState.elapsed + message.delay,
+      messageState.args.lastMessage + minimumDelay
+    );
+
     messageState.args.messages.push({
       ...message,
-      delay: messageState.elapsed + message.delay,
+      delay: lastMessage,
     });
+    messageState.args.lastMessage = lastMessage;
   } else {
     createSequence<"message", MessageSequence>(
       world,
@@ -478,7 +506,53 @@ export const queueMessage = (
       {
         messages: [message],
         index: 0,
+        lastMessage: 0,
       }
     );
   }
+};
+
+export const createItemText = (
+  item: Omit<Item, "carrier" | "bound"> & { materialized?: Materialized }
+) => {
+  const stringified = item.amount.toString();
+
+  return [...createText(stringified, colors.grey), ...createItemName(item)];
+};
+
+export const createItemName = (
+  item: Omit<Item, "carrier" | "bound" | "amount"> & {
+    materialized?: Materialized;
+  }
+) => {
+  const sprite = getItemSprite(item);
+
+  return [
+    sprite,
+    ...createText(
+      item.materialized
+        ? `${item.materialized[0].toUpperCase()}${item.materialized.slice(1)}`
+        : sprite.name,
+      colors.grey
+    ),
+  ];
+};
+
+export const createUnitName = (unit: UnitKey) => {
+  const unitData = generateUnitData(unit);
+
+  return [
+    mergeSprites(
+      unitData.sprite,
+      unitData.faction === "unit"
+        ? neutralBar
+        : unitData.faction === "wild"
+        ? hostileBar
+        : friendlyBar
+    ),
+    ...createText(
+      unitData.sprite.name,
+      unitData.faction === "wild" ? colors.maroon : colors.grey
+    ),
+  ];
 };

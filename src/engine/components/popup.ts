@@ -8,6 +8,7 @@ export type Deal = {
   item: Omit<Item, "carrier" | "bound">;
   stock: number;
   price: Omit<Item, "carrier" | "bound">[];
+  carrier?: number;
 };
 
 export type Target = {
@@ -17,7 +18,7 @@ export type Target = {
 
 export const shops = ["buy", "sell", "craft"] as const;
 
-const popups = [...shops, "quest", "info", "inspect"] as const;
+const popups = [...shops, "quest", "info", "inspect", "warp"] as const;
 
 export type Popup = {
   active: boolean;

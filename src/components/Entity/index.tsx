@@ -85,7 +85,8 @@ function Entity({
     (outside && !isFixed);
 
   const hasLoot = ecs && (isLootable(ecs, entity) || isCollecting(ecs, entity));
-  const isLootTransparent = !hasLoot || (isOpaque ? !inRadius : !isVisible);
+  const isLootTransparent =
+    !hasLoot || (isOpaque ? !inRadius : !isVisible) || outside;
 
   const spring = useSpring({
     opacity: isTransparent ? 0 : 1,

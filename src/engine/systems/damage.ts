@@ -29,9 +29,10 @@ import { RECHARGABLE } from "../components/rechargable";
 import { INVENTORY } from "../components/inventory";
 import { DamageType } from "../components/castable";
 import { TypedEntity } from "../entities";
-import { queueMessage } from "../../game/assets/utils";
+import { createItemName, queueMessage } from "../../game/assets/utils";
 import { invertOrientation } from "../../game/math/path";
 import { play } from "../../game/sound";
+import { POPUP } from "../components/popup";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -201,12 +202,18 @@ export default function setupDamage(world: World) {
 
       // show message if entity has no sword
       if (!entity[EQUIPPABLE].sword) {
-        queueMessage(world, entity, {
-          line: createText("Need sword!", colors.silver),
-          orientation: invertOrientation(targetOrientation),
-          fast: false,
-          delay: 0,
-        });
+        if (!targetEntity[POPUP]) {
+          queueMessage(world, entity, {
+            line: [
+              ...createText("Need ", colors.silver),
+              ...createItemName({ equipment: "sword", material: "wood" }),
+              ...createText("!", colors.silver),
+            ],
+            orientation: invertOrientation(targetOrientation),
+            fast: false,
+            delay: 0,
+          });
+        }
         continue;
       }
 

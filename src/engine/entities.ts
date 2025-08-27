@@ -55,6 +55,7 @@ import { Layer, LAYER } from "./components/layer";
 import { Popup, POPUP } from "./components/popup";
 import { Freezable, FREEZABLE } from "./components/freezable";
 import { Rechargable, RECHARGABLE } from "./components/rechargable";
+import { Warpable, WARPABLE } from "./components/warpable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -113,6 +114,7 @@ export type Entity = Record<LevelName, {}> & {
   [TOOLTIP]: Tooltip;
   [TRACKABLE]: Trackable;
   [VIEWABLE]: Viewable;
+  [WARPABLE]: Warpable;
 };
 
 // create a typed entity from component names
@@ -150,6 +152,15 @@ export const createAoe = entityFactory([EXERTABLE, POSITION]);
 
 export const createArea = entityFactory([ENVIRONMENT, POSITION, TEMPO]);
 
+export const createBarrier = entityFactory([
+  COLLIDABLE,
+  FOG,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createBox = entityFactory([
   AFFECTABLE,
   ATTACKABLE,
@@ -168,6 +179,8 @@ export const createBox = entityFactory([
   TOOLTIP,
   STATS,
 ]);
+
+export const createBlock = entityFactory([FOG, POSITION, RENDERABLE, SPRITE]);
 
 export const createBuilding = entityFactory([
   FOG,
@@ -254,7 +267,6 @@ export const createDeposit = entityFactory([
 export const createDoor = entityFactory([
   ENTERABLE,
   FOG,
-  LAYER,
   LIGHT,
   LOCKABLE,
   POSITION,
@@ -262,6 +274,16 @@ export const createDoor = entityFactory([
   SEQUENCABLE,
   SPRITE,
   TOOLTIP,
+]);
+
+export const createEntry = entityFactory([
+  FOG,
+  LIGHT,
+  LOCKABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
 ]);
 
 export const createFibre = entityFactory([
@@ -478,17 +500,6 @@ export const createOrganic = entityFactory([
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
-export const createPassage = entityFactory([
-  FOG,
-  LIGHT,
-  LOCKABLE,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-  TOOLTIP,
-]);
-
 export const createPath = entityFactory([
   ENVIRONMENT,
   FOG,
@@ -522,12 +533,14 @@ export const createPlate = entityFactory([
 ]);
 
 export const createPortal = entityFactory([
+  COLLIDABLE,
   FOG,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
   TOOLTIP,
+  WARPABLE,
 ]);
 
 export const createResource = entityFactory([
@@ -581,6 +594,18 @@ export const createSign = entityFactory([
   SPRITE,
   STATS,
   TOOLTIP,
+]);
+
+export const createSpawner = entityFactory([
+  BEHAVIOUR,
+  BELONGABLE,
+  FOG,
+  LAYER,
+  MOVABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
 ]);
 
 export const createSpell = entityFactory([

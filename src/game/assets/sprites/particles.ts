@@ -15,11 +15,7 @@ import {
 } from "./items";
 import { lerp, normalize, padCenter, repeat } from "../../math/std";
 import { Orientation } from "../../../engine/components/orientable";
-import {
-  getFacingLayers,
-  getItemSprite,
-} from "../../../components/Entity/utils";
-import { Item } from "../../../engine/components/item";
+import { getFacingLayers } from "../../../components/Entity/utils";
 import { none } from "./terrain";
 import { World } from "../../../engine";
 import { isEnemy, isNeutral } from "../../../engine/systems/damage";
@@ -38,6 +34,36 @@ export const blockDown: Sprite = {
 export const blockUp: Sprite = {
   name: "block_up",
   layers: [{ char: "▀", color: colors.maroon }],
+};
+
+export const keyHole: Sprite = {
+  name: "key_hole",
+  layers: [
+    { char: "\u0106", color: colors.black },
+    { char: ".", color: colors.black },
+  ],
+};
+
+export const barrierSide: Sprite = {
+  name: "barrier_side",
+  layers: [{ char: "╬", color: colors.silver }],
+  facing: {
+    up: [{ char: "═", color: colors.silver }],
+    right: [{ char: "║", color: colors.silver }],
+    down: [{ char: "═", color: colors.silver }],
+    left: [{ char: "║", color: colors.silver }],
+  },
+};
+
+export const barrierCorner: Sprite = {
+  name: "barrier_corner",
+  layers: [{ char: "╬", color: colors.silver }],
+  facing: {
+    up: [{ char: "╗", color: colors.silver }],
+    right: [{ char: "╝", color: colors.silver }],
+    down: [{ char: "╚", color: colors.silver }],
+    left: [{ char: "╔", color: colors.silver }],
+  },
 };
 
 export const frozen: Sprite = {
@@ -268,7 +294,15 @@ export const bubble: Sprite = {
 
 export const rain: Sprite = {
   name: "rain_drop",
-  layers: [{ char: "│", color: colors.blue }],
+  layers: [],
+  amounts: {
+    single: [{ char: "│", color: colors.blue }],
+    double: [{ char: "║", color: colors.blue }],
+    multiple: [
+      { char: "│", color: colors.blue },
+      { char: "║", color: colors.blue },
+    ],
+  },
 };
 
 export const fire: Sprite = {
@@ -290,6 +324,19 @@ export const fire: Sprite = {
       { char: "\u010e", color: colors.red },
       { char: "*", color: colors.yellow },
       { char: "·", color: colors.red },
+    ],
+  },
+};
+
+export const crackle: Sprite = {
+  name: "fire_crackle",
+  layers: [{ char: "·", color: colors.red }],
+  amounts: {
+    single: [{ char: "·", color: colors.red }],
+    double: [{ char: "·", color: colors.yellow }],
+    multiple: [
+      { char: "∙", color: colors.red },
+      { char: "·", color: colors.yellow },
     ],
   },
 };
@@ -1393,17 +1440,6 @@ export const getStatSprite = (
   (variant === "display" && statConfig[stat].display) ||
   statConfig[stat].sprite;
 
-export const createItemText = (item: Omit<Item, "carrier" | "bound">) => {
-  const stringified = item.amount.toString();
-  const sprite = getItemSprite(item);
-
-  return [
-    ...createText(stringified, colors.grey),
-    sprite,
-    ...createText(sprite.name, colors.grey),
-  ];
-};
-
 const progressResolution = 2;
 export const createProgress = (
   stats: Partial<Stats>,
@@ -1523,6 +1559,16 @@ export const levelProgress: Sprite = {
   },
 };
 
+export const joystick: Sprite = {
+  name: "joystick",
+  layers: [
+    { char: "■", color: colors.white },
+    { char: "+", color: colors.grey },
+    { char: "÷", color: colors.white },
+    { char: "·", color: colors.grey },
+  ],
+};
+
 export const pause: Sprite = {
   name: "Pause",
   layers: [
@@ -1554,6 +1600,11 @@ export const overlay: Sprite = {
 export const friendlyBar: Sprite = {
   name: "Friendly",
   layers: [{ char: "_", color: colors.lime }],
+};
+
+export const neutralBar: Sprite = {
+  name: "Friendly",
+  layers: [{ char: "_", color: colors.silver }],
 };
 
 export const hostileBar: Sprite = {

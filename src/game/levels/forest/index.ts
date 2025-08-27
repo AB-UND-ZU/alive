@@ -1,21 +1,16 @@
-import { entities, World, systems } from "../../../engine";
+import { entities, World } from "../../../engine";
 import { POSITION } from "../../../engine/components/position";
 import { SPRITE } from "../../../engine/components/sprite";
-import { LIGHT } from "../../../engine/components/light";
 import { RENDERABLE } from "../../../engine/components/renderable";
-import { MOVABLE } from "../../../engine/components/movable";
 import { COLLIDABLE } from "../../../engine/components/collidable";
 import {
   createDialog,
-  createItemText,
   createText,
   getOrientedSprite,
   heartUp,
-  hpFlask1,
   iron,
   ironKey,
   manaUp,
-  none,
   path,
   questPointer,
 } from "../../assets/sprites";
@@ -29,19 +24,10 @@ import {
 } from "../../math/matrix";
 import { FOG } from "../../../engine/components/fog";
 import { ATTACKABLE } from "../../../engine/components/attackable";
-import { Item, ITEM, Stackable } from "../../../engine/components/item";
-import {
-  ORIENTABLE,
-  orientationPoints,
-} from "../../../engine/components/orientable";
+import { ITEM, Stackable } from "../../../engine/components/item";
+import { orientationPoints } from "../../../engine/components/orientable";
 import { aspectRatio } from "../../../components/Dimensions/sizing";
-import {
-  guidePosition,
-  keyPosition,
-  menuArea,
-  nomadArea,
-  nomadOffset,
-} from "./areas";
+import { spawnArea, nomadArea, nomadOffset } from "./areas";
 import {
   add,
   choice,
@@ -53,8 +39,6 @@ import {
 } from "../../math/std";
 import { INVENTORY } from "../../../engine/components/inventory";
 import { emptyStats, STATS } from "../../../engine/components/stats";
-import { TRACKABLE } from "../../../engine/components/trackable";
-import { FOCUSABLE } from "../../../engine/components/focusable";
 import { VIEWABLE } from "../../../engine/components/viewable";
 import { TOOLTIP } from "../../../engine/components/tooltip";
 import { DROPPABLE } from "../../../engine/components/droppable";
@@ -72,13 +56,8 @@ import {
   kettle,
   table,
 } from "../../assets/sprites/structures";
-import {
-  FocusSequence,
-  SEQUENCABLE,
-} from "../../../engine/components/sequencable";
-import { createSequence } from "../../../engine/systems/sequence";
-import { npcSequence, questSequence } from "../../assets/utils";
-import { SPAWNABLE } from "../../../engine/components/spawnable";
+import { SEQUENCABLE } from "../../../engine/components/sequencable";
+import { createItemText, npcSequence, questSequence } from "../../assets/utils";
 import { generateNpcKey, generateUnitData } from "../../balancing/units";
 import { BELONGABLE } from "../../../engine/components/belongable";
 import generateTown from "../../../engine/wfc/town";
@@ -96,11 +75,7 @@ import {
 } from "../../balancing/trading";
 import { getGearStat } from "../../balancing/equipment";
 import { findPath, invertOrientation } from "../../math/path";
-import {
-  disposeEntity,
-  getCell,
-  registerEntity,
-} from "../../../engine/systems/map";
+import { registerEntity } from "../../../engine/systems/map";
 import { LAYER } from "../../../engine/components/layer";
 import { createPopup } from "../../../engine/systems/popup";
 import { Deal } from "../../../engine/components/popup";
@@ -109,20 +84,13 @@ import {
   offerQuest,
   setIdentifier,
 } from "../../../engine/utils";
-import { createHero } from "../../../engine/systems/fate";
-import { spawnLight } from "../../../engine/systems/consume";
-import {
-  createItemAsDrop,
-  createItemInInventory,
-} from "../../../engine/systems/drop";
-import { getItemSprite } from "../../../components/Entity/utils";
 import { BURNABLE } from "../../../engine/components/burnable";
 import { forestNpcDistribution } from "./units";
 
 export const forestSize = 160;
 export const forestName: LevelName = "LEVEL_FOREST";
 
-export const generateForest = async (world: World) => {
+export const generateForest = (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
   const elevationMatrix = simplexNoiseMatrix(size, size, 0, -50, 100, 1);
@@ -133,11 +101,11 @@ export const generateForest = async (world: World) => {
   const pathMatrix = matrixFactory(size * 2, size * 2, () => 0);
   const pathHeight = 16;
 
-  const menuRows = menuArea.split("\n");
-  const menuWidth = menuRows[0].length;
-  const menuHeight = menuRows.length;
-  const menuX = 0;
-  const menuY = 0;
+  const spawnRows = spawnArea.split("\n");
+  const spawnWidth = spawnRows[0].length;
+  const spawnHeight = spawnRows.length;
+  const spawnX = 0;
+  const spawnY = 0;
 
   const townWidth = 38;
   const townHeight = 24;
@@ -145,7 +113,7 @@ export const generateForest = async (world: World) => {
     matrix: townMatrix,
     houses: relativeHouses,
     exits: relativeExits,
-  } = await generateTown(townWidth, townHeight);
+  } = generateTown(townWidth, townHeight);
 
   // distribute three main world areas in similar distances to each other and from spawn
   // town and nomad at 45% size radius and 90° angle between them
@@ -193,8 +161,8 @@ export const generateForest = async (world: World) => {
 
   const worldMatrix = matrixFactory<string>(size, size, (x, y) => {
     // distance from zero
-    const menuDeltaX = Math.abs(signedDistance(menuX, x, size));
-    const menuDeltaY = Math.abs(signedDistance(menuY, y, size));
+    const spawnDeltaX = Math.abs(signedDistance(spawnX, x, size));
+    const spawnDeltaY = Math.abs(signedDistance(spawnY, y, size));
     const townDeltaX = Math.abs(signedDistance(townX, x, size));
     const townDeltaY = Math.abs(signedDistance(townY, y, size));
     const nomadDeltaX = Math.abs(signedDistance(nomadX, x, size));
@@ -203,28 +171,22 @@ export const generateForest = async (world: World) => {
       (nomadDeltaX * aspectRatio) ** 2 + nomadDeltaY ** 2
     );
 
-    // clear square menu and town areas, and circular nomad area
+    // clear square spawn and town areas, and circular nomad area
     if (
-      (menuDeltaX < menuWidth / 2 && menuDeltaY < menuHeight / 2) ||
+      (spawnDeltaX < spawnWidth / 2 && spawnDeltaY < spawnHeight / 2) ||
       (townDeltaX < townWidth / 2 && townDeltaY < townHeight / 2) ||
       nomadDistance < nomadRadius
     )
       return "air";
 
-    // clear triangular exit and create path
-    if (y > 4 && y < 13 && y > 3 + menuDeltaX) {
-      pathMatrix[x][y] = 35 - menuDeltaX - menuDeltaY * 2;
-      return x === 0 && y < 11 ? "path" : "air";
-    }
-
-    const menuDistance = Math.sqrt(
-      (menuDeltaX * aspectRatio) ** 2 + menuDeltaY ** 2
+    const spawnDistance = Math.sqrt(
+      (spawnDeltaX * aspectRatio) ** 2 + spawnDeltaY ** 2
     );
 
-    // create clean elevation around menu
-    const menu = 100000 / menuDistance ** 4;
-    const menuElevation = Math.min(35, menu * 3);
-    const menuDip = 1 / (1 + menu / 2);
+    // create clean elevation around spawn
+    const spawnProximity = 20000 / spawnDistance ** 4;
+    const spawnElevation = Math.min(15, spawnProximity * 3);
+    const spawnDip = 1 / (1 + spawnProximity / 2);
 
     // clear edges of town
     const clampedX = Math.max(0, Math.min(townDeltaX, townWidth / 4));
@@ -239,21 +201,21 @@ export const generateForest = async (world: World) => {
     const nomadDip = sigmoid(nomadDistance, nomadRadius * 2, 1 / 2);
     const nomadElevation = 17 * (1 - nomadDip);
 
-    // set menu and town areas
+    // set spawn and town areas
     const elevation =
-      elevationMatrix[x][y] * menuDip * townDip * nomadDip +
-      menuElevation +
+      elevationMatrix[x][y] * spawnDip * townDip * nomadDip +
+      spawnElevation +
       townElevation +
       nomadElevation;
     const terrain =
-      terrainMatrix[x][y] * menuDip * townDip * nomadDip +
-      menuElevation +
+      terrainMatrix[x][y] * spawnDip * townDip * nomadDip +
+      spawnElevation +
       townElevation +
       nomadElevation;
-    const temperature = temperatureMatrix[x][y] * menuDip * townDip * nomadDip;
-    const green = greenMatrix[x][y] * menuDip * townDip * nomadDip;
+    const temperature = temperatureMatrix[x][y] * spawnDip * townDip * nomadDip;
+    const green = greenMatrix[x][y] * spawnDip * townDip * nomadDip;
     const spawn =
-      spawnMatrix[x][y] * menuDip ** 0.25 * townDip ** 0.25 * nomadDip ** 0.25;
+      spawnMatrix[x][y] * spawnDip ** 0.25 * townDip ** 0.25 * nomadDip ** 0.25;
 
     let cell = "air";
     // beach palms
@@ -277,7 +239,7 @@ export const generateForest = async (world: World) => {
     // forest
     else if (elevation > 25 && terrain > 30)
       cell =
-        temperature < 0 && terrain < 75 && menu < 5
+        temperature < 0 && terrain < 75 && spawnProximity < 5
           ? terrain > 37
             ? "tree"
             : spawn > 93
@@ -332,16 +294,8 @@ export const generateForest = async (world: World) => {
     return cell;
   });
 
-  // create viewpoint for inspecting
-  const inspectEntity = entities.createViewpoint(world, {
-    [POSITION]: { x: 0, y: 0 },
-    [RENDERABLE]: { generation: 0 },
-    [VIEWABLE]: { active: false, priority: 90 },
-  });
-  setIdentifier(world, inspectEntity, "inspect");
-
-  // insert menu
-  insertArea(worldMatrix, menuArea, 0, 0);
+  // insert spawn
+  insertArea(worldMatrix, spawnArea, 0, 0);
 
   // insert town
   iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
@@ -358,14 +312,14 @@ export const generateForest = async (world: World) => {
   insertArea(worldMatrix, nomadArea, nomadX, nomadY);
 
   // create shortest path from spawn to town and nomad
-  const signPosition = { x: normalize(choice(-1, 1), size), y: 10 };
+  const signPosition = { x: normalize(choice(-1, 1), size), y: 7 };
   pathMatrix[signPosition.x][signPosition.y] = 0;
   iterateMatrix(worldMatrix, (x, y) => {
     const height = pathMatrix[x][y];
     setPath(pathMatrix, x, y, height);
   });
 
-  const spawnPath = { x: 0, y: 10 };
+  const spawnPath = { x: 0, y: 7 };
   const townPath = findPath(
     pathMatrix,
     spawnPath,
@@ -377,7 +331,7 @@ export const generateForest = async (world: World) => {
   });
   const nomadPath = findPath(
     pathMatrix,
-    spawnPath,
+    exits[townAngle >= 90 && townAngle < 270 ? 1 : 0],
     add(
       {
         x: nomadX,
@@ -454,30 +408,14 @@ export const generateForest = async (world: World) => {
   );
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
-    const deltaX = size / 2 - Math.abs(x - size / 2);
-    const deltaY = size / 2 - Math.abs(y - size / 2);
-    const visibility =
-      deltaX < menuRows[0].length / 2 &&
-      deltaY < menuRows.length / 2 &&
-      (y < menuRows.length / 2 - 3 || y > menuRows.length)
-        ? "visible"
-        : "hidden";
-
-    createCell(world, worldMatrix, { x, y }, cell, visibility);
+    createCell(world, worldMatrix, { x, y }, cell, "hidden");
   });
 
-  // spawn hero
-  const spawnEntity = assertIdentifierAndComponents(world, "spawn", [POSITION]);
-  const heroEntity = createHero(world, {
-    [POSITION]: copy(spawnEntity[POSITION]),
-    [BELONGABLE]: { faction: "settler" },
-    [SPAWNABLE]: {
-      classKey: "scout",
-      position: copy(spawnEntity[POSITION]),
-      viewable: { active: false, priority: 10 },
-      light: { ...spawnLight },
-    },
-  });
+  // adjust hero
+  const heroEntity = assertIdentifierAndComponents(world, "hero", [
+    POSITION,
+    VIEWABLE,
+  ]);
   questSequence(world, heroEntity, "spawnQuest", {});
 
   // register all entities to allow post-processing
@@ -487,15 +425,10 @@ export const generateForest = async (world: World) => {
   });
 
   // assign buildings
-  const guideDoor = assertIdentifierAndComponents(world, "guide_door", [
-    POSITION,
-  ]);
-  const guideHouse = { position: add(guideDoor[POSITION], { x: 1, y: -1 }) };
   const nomadHouse = { position: { x: nomadX - 1, y: nomadY - 1 } };
 
   const [
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    guideBuilding,
     nomadBuilding,
     chiefBuilding,
     elderBuilding,
@@ -506,7 +439,6 @@ export const generateForest = async (world: World) => {
     mageBuilding,
     ...emptyBuildings
   ] = [
-    guideHouse,
     nomadHouse,
     chiefHouse,
     elderHouse,
@@ -517,129 +449,6 @@ export const generateForest = async (world: World) => {
     mageHouse,
     ...emptyHouses,
   ].map((building) => assignBuilding(world, building.position));
-
-  // postprocess spawn
-
-  const guideEntity = createNpc(world, "guide", guidePosition);
-  npcSequence(world, guideEntity, "guideNpc", {});
-  offerQuest(
-    world,
-    guideEntity,
-    "introQuest",
-    {
-      lines: [
-        createText("The monster took"),
-        [...createText("the "), ironKey, ...createText("Key!")],
-        [],
-        createText("Kill it and take"),
-        createText("it back."),
-      ],
-      deals: [
-        { stock: 1, item: { stat: "xp", amount: 1 }, price: [] },
-        { stock: 1, item: { stackable: "fruit", amount: 1 }, price: [] },
-      ],
-      targets: [{ unit: "prism", amount: 1 }],
-    },
-    {}
-  );
-
-  // identify compass for later use in quests
-  const compassEntity = world.assertById(
-    guideEntity[INVENTORY].items.find(
-      (item) =>
-        world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment ===
-        "compass"
-    )!
-  );
-  setIdentifier(world, compassEntity, "compass");
-
-  // create chest with potion
-  const guideChestData = generateUnitData("commonChest");
-  const guideChestEntity = entities.createChest(world, {
-    [ATTACKABLE]: { shots: 0 },
-    [BELONGABLE]: { faction: guideChestData.faction },
-    [DROPPABLE]: { decayed: false },
-    [INVENTORY]: { items: [] },
-    [FOG]: { visibility: "hidden", type: "terrain" },
-    [LAYER]: {},
-    [POSITION]: keyPosition,
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: guideChestData.sprite,
-    [STATS]: { ...emptyStats, ...guideChestData.stats },
-    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-  });
-  setIdentifier(world, guideChestEntity, "guide_chest");
-  const potionEntity = createItemInInventory(
-    world,
-    guideChestEntity,
-    entities.createItem,
-    {
-      [ITEM]: {
-        consume: "potion1",
-        material: "fire",
-        amount: 10,
-      },
-      [SPRITE]: hpFlask1,
-    }
-  );
-  setIdentifier(world, potionEntity, "spawn_potion");
-
-  // set initial focus on hero
-  const highlighEntity = entities.createHighlight(world, {
-    [FOCUSABLE]: {},
-    [MOVABLE]: {
-      bumpGeneration: 0,
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-    },
-    [ORIENTABLE]: {},
-    [POSITION]: copy(guidePosition),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: none,
-    [TRACKABLE]: {},
-  });
-  createSequence<"focus", FocusSequence>(
-    world,
-    highlighEntity,
-    "focus",
-    "focusCircle",
-    {}
-  );
-  setIdentifier(world, highlighEntity, "focus");
-
-  // create viewpoint for menu area
-  const viewpointEntity = entities.createWorld(world, {
-    [POSITION]: { x: 0, y: 0 },
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [VIEWABLE]: { active: true, fraction: { x: 0, y: -0.5 }, priority: 60 },
-  });
-  npcSequence(world, viewpointEntity, "worldNpc", {
-    townPosition: { x: townX, y: townY },
-    townWidth,
-    townHeight,
-  });
-  setIdentifier(world, viewpointEntity, "viewpoint");
-
-  // prevent revealing fog with large menu light range
-  for (let offset = 0; offset < 3; offset += 1) {
-    const mountainEntity = entities.createMountain(world, {
-      [FOG]: { visibility: "hidden", type: "terrain" },
-      [POSITION]: { x: -1 + offset, y: 6 },
-      [SPRITE]: none,
-      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
-      [RENDERABLE]: { generation: 0 },
-      [COLLIDABLE]: {},
-    });
-    setIdentifier(world, mountainEntity, `mountain-${offset}`);
-  }
 
   // add quest sign after exiting
   const spawnSignData = generateUnitData("sign");
@@ -728,7 +537,7 @@ export const generateForest = async (world: World) => {
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
   populateInventory(world, nomadChest, [
-    { consume: "key", material: "iron", amount: 1, bound: false },
+    { consume: "key", material: "iron", amount: 1 },
   ]);
   const nomadKeyEntity = world.assertById(nomadChest[INVENTORY].items[0]);
   setIdentifier(world, nomadKeyEntity, "nomad_key");
@@ -1333,256 +1142,6 @@ export const generateForest = async (world: World) => {
       chestData.equipments
     );
   }
-
-  // temporary test mode
-  if (window.location.search.substring(1) === "test") {
-    // clear title
-    const titleWidth = 17;
-    const titleHeight = 3;
-    const titleCenter = { x: 0, y: -4 };
-    matrixFactory(titleWidth, titleHeight, (x, y) => {
-      Object.values(
-        getCell(
-          world,
-          add(titleCenter, {
-            x: x - (titleWidth - 1) / 2,
-            y: y - (titleHeight - 1) / 2,
-          })
-        )
-      ).forEach((entity) => {
-        if (entity[COLLIDABLE]) disposeEntity(world, entity);
-      });
-    });
-
-    const itemColumns: Omit<Item, "bound" | "carrier">[][] = [
-      [
-        {
-          stat: "hp",
-          amount: Infinity,
-        },
-        {
-          stat: "maxHp",
-          amount: Infinity,
-        },
-        {
-          stat: "mp",
-          amount: Infinity,
-        },
-        {
-          stat: "maxMp",
-          amount: Infinity,
-        },
-      ],
-      [
-        {
-          stat: "xp",
-          amount: Infinity,
-        },
-        {
-          stackable: "coin",
-          amount: Infinity,
-        },
-        {
-          stackable: "ore",
-          amount: Infinity,
-        },
-        {
-          stackable: "stick",
-          amount: Infinity,
-        },
-      ],
-      [
-        {
-          consume: "potion1",
-          material: "fire",
-          amount: Infinity,
-        },
-        {
-          consume: "potion1",
-          material: "water",
-          amount: Infinity,
-        },
-        {
-          equipment: "torch",
-          amount: Infinity,
-        },
-        {
-          consume: "key",
-          material: "iron",
-          amount: Infinity,
-        },
-      ],
-      [
-        {
-          equipment: "sword",
-          material: "wood",
-          amount: getGearStat("sword", "wood"),
-        },
-        {
-          equipment: "sword",
-          material: "iron",
-          amount: getGearStat("sword", "iron"),
-        },
-        {
-          equipment: "sword",
-          material: "gold",
-          amount: getGearStat("sword", "gold"),
-        },
-        {
-          equipment: "sword",
-          material: "aether",
-          amount: 99,
-        },
-      ],
-      [
-        {
-          equipment: "shield",
-          material: "wood",
-          amount: getGearStat("shield", "wood"),
-        },
-        {
-          equipment: "shield",
-          material: "iron",
-          amount: getGearStat("shield", "iron"),
-        },
-        {
-          equipment: "shield",
-          material: "gold",
-          amount: getGearStat("shield", "gold"),
-        },
-        {
-          equipment: "shield",
-          material: "aether",
-          amount: 99,
-        },
-      ],
-      [
-        {
-          equipment: "primary",
-          primary: "wave1",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "wave1",
-          material: "fire",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "wave1",
-          material: "water",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "wave1",
-          material: "earth",
-          amount: 1,
-        },
-      ],
-      [
-        {
-          equipment: "primary",
-          primary: "beam1",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "beam1",
-          material: "fire",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "beam1",
-          material: "water",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "beam1",
-          material: "earth",
-          amount: 1,
-        },
-      ],
-      [
-        {
-          equipment: "secondary",
-          secondary: "bow",
-          amount: 1,
-        },
-        {
-          stackable: "arrow",
-          amount: Infinity,
-        },
-        {
-          equipment: "secondary",
-          secondary: "slash",
-          amount: 1,
-        },
-        {
-          stackable: "charge",
-          amount: Infinity,
-        },
-      ],
-    ];
-
-    const itemCorner = { x: -9, y: -6 };
-    itemColumns.forEach((items, columnIndex) => {
-      items.forEach((item, rowIndex) => {
-        createItemAsDrop(
-          world,
-          add(itemCorner, { x: columnIndex * 2, y: rowIndex }),
-          // @ts-ignore
-          item.equipment === "sword"
-            ? entities.createSword
-            : entities.createItem,
-          {
-            [ITEM]: { ...item, bound: false },
-            [SPRITE]: getItemSprite(item),
-            ...(item.equipment === "sword"
-              ? {
-                  [SEQUENCABLE]: { states: [] },
-                  [ORIENTABLE]: {},
-                }
-              : {}),
-          }
-        );
-      });
-    });
-  }
-
-  // start ordered systems
-  world.addSystem(systems.setupMap);
-  world.addSystem(systems.setupTick);
-  world.addSystem(systems.setupWeather);
-  world.addSystem(systems.setupFreeze);
-  world.addSystem(systems.setupAi);
-  world.addSystem(systems.setupTrigger);
-  world.addSystem(systems.setupPopup);
-  world.addSystem(systems.setupCollect);
-  world.addSystem(systems.setupConsume);
-  world.addSystem(systems.setupSpike);
-  world.addSystem(systems.setupPush);
-  world.addSystem(systems.setupDamage);
-  world.addSystem(systems.setupBallistics);
-  world.addSystem(systems.setupMovement);
-  world.addSystem(systems.setupEnter);
-  world.addSystem(systems.setupBurn);
-  world.addSystem(systems.setupWater);
-  world.addSystem(systems.setupAction);
-  world.addSystem(systems.setupText);
-  world.addSystem(systems.setupMagic);
-  world.addSystem(systems.setupSequence);
-  world.addSystem(systems.setupFocus);
-  world.addSystem(systems.setupNeedle);
-  world.addSystem(systems.setupFate);
-  world.addSystem(systems.setupDrop);
-  world.addSystem(systems.setupLeveling);
-  world.addSystem(systems.setupImmersion);
-  world.addSystem(systems.setupVisibility);
-  world.addSystem(systems.setupRenderer);
 
   // queue all added entities to added listener
   world.cleanup();

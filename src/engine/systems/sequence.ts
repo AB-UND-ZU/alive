@@ -15,8 +15,7 @@ import { ATTACKABLE } from "../components/attackable";
 import { PARTICLE } from "../components/particle";
 import { lootHeight } from "../../components/Entity/utils";
 import { SPRITE } from "../components/sprite";
-import { freeze, shotHit } from "../../game/assets/sprites";
-import { MOVABLE } from "../components/movable";
+import { shotHit } from "../../game/assets/sprites";
 
 export const getSequences: (
   world: World,
@@ -34,16 +33,6 @@ const shotParticle: ReturnType<typeof entities.createParticle> = {
   [SPRITE]: shotHit,
 };
 
-const freezeParticle: ReturnType<typeof entities.createParticle> = {
-  [PARTICLE]: {
-    offsetX: 0,
-    offsetY: 0,
-    offsetZ: lootHeight,
-  },
-  [RENDERABLE]: { generation: 0 },
-  [SPRITE]: freeze,
-};
-
 export const getParticles = (world: World, entity: Entity) =>
   getSequences(world, entity)
     .reduce<Entity[]>(
@@ -55,8 +44,7 @@ export const getParticles = (world: World, entity: Entity) =>
         ),
       []
     )
-    .concat((entity[ATTACKABLE]?.shots || 0) > 0 ? shotParticle : [])
-    .concat(entity[MOVABLE]?.momentum ? freezeParticle : []);
+    .concat((entity[ATTACKABLE]?.shots || 0) > 0 ? shotParticle : []);
 
 const SEQUENCE_DEBUG = false;
 
@@ -135,7 +123,15 @@ export default function setupSequence(world: World) {
         }
 
         if (result.finished) {
-          // TODO: handle cleaning up of particles
+          // clean up orphaned particles
+          for (const particleName in sequenceState.particles) {
+            const particleEntity = world.assertById(
+              sequenceState.particles[particleName]
+            );
+            disposeEntity(world, particleEntity);
+            delete sequenceState.particles[particleName];
+          }
+
           delete sequencable.states[sequenceType];
           entity[RENDERABLE].generation +=
             sequenceEntity[RENDERABLE].generation;

@@ -22,7 +22,7 @@ import { VIEWABLE } from "../components/viewable";
 import { STATS } from "../components/stats";
 import { INVENTORY } from "../components/inventory";
 import { EQUIPPABLE } from "../components/equippable";
-import { ITEM } from "../components/item";
+import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
 import { add } from "../../game/math/std";
@@ -50,6 +50,11 @@ export const isInInspect = (world: World, entity: Entity) =>
   world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [POPUP])?.[POPUP]
     .transaction === "inspect";
 
+export const isInInfo = (world: World, entity: Entity) =>
+  isInPopup(world, entity) &&
+  world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [POPUP])?.[POPUP]
+    .transaction === "info";
+
 export const isPopupAvailable = (world: World, entity: Entity) =>
   POPUP in entity &&
   ((shops.includes(entity[POPUP].transaction) &&
@@ -71,38 +76,40 @@ export const hasDefeated = (world: World, heroEntity: Entity, target: Target) =>
 export const canShop = (world: World, heroEntity: Entity, deal: Deal) =>
   deal.stock > 0 && canRedeem(world, heroEntity, deal);
 
-export const canRedeem = (world: World, heroEntity: Entity, deal: Deal) =>
-  deal.price.every((activationItem) => {
+export const matchesItem = (
+  world: World,
+  first: Omit<Item, "carrier" | "bound">,
+  second: Omit<Item, "carrier" | "bound">
+) =>
+  first.consume === second.consume &&
+  first.equipment === second.equipment &&
+  first.material === second.material &&
+  first.passive === second.passive &&
+  first.primary === second.primary &&
+  first.secondary === second.secondary &&
+  first.stackable === second.stackable &&
+  first.stat === second.stat;
+
+export const missingFunds = (world: World, heroEntity: Entity, deal: Deal) =>
+  deal.price.filter((activationItem) => {
     if (activationItem.stat) {
       // check if entity has sufficient of stat
-      return heroEntity[STATS][activationItem.stat] >= activationItem.amount;
+      return heroEntity[STATS][activationItem.stat] < activationItem.amount;
     } else {
       // or if item is contained in inventory or equipments
       const items = [
         ...heroEntity[INVENTORY].items,
         ...Object.values(heroEntity[EQUIPPABLE]).filter(Boolean),
       ];
-      return items.some((itemId) => {
+      return !items.some((itemId) => {
         const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
-        const matchesEquipment =
-          activationItem.equipment &&
-          itemEntity[ITEM].equipment === activationItem.equipment &&
-          itemEntity[ITEM].material === activationItem.material &&
-          itemEntity[ITEM].primary === activationItem.primary &&
-          itemEntity[ITEM].secondary === activationItem.secondary;
-        const matchesConsume =
-          activationItem.consume &&
-          itemEntity[ITEM].consume === activationItem.consume &&
-          itemEntity[ITEM].material === activationItem.material;
-        const matchesStackable =
-          activationItem.stackable &&
-          itemEntity[ITEM].stackable === activationItem.stackable &&
-          itemEntity[ITEM].material === activationItem.material &&
-          itemEntity[ITEM].amount >= activationItem.amount;
-        return matchesEquipment || matchesConsume || matchesStackable;
+        return matchesItem(world, itemEntity[ITEM], activationItem);
       });
     }
   });
+
+export const canRedeem = (world: World, heroEntity: Entity, deal: Deal) =>
+  missingFunds(world, heroEntity, deal).length === 0;
 
 export const isQuestCompleted = (world: World, hero: Entity, entity: Entity) =>
   entity[POPUP].deals.every((deal: Deal) => canShop(world, hero, deal)) &&
@@ -117,11 +124,13 @@ export const popupIdles = {
   buy: shop,
   sell: shop,
   inspect: info,
+  warp: undefined,
 };
 
 export const popupActions = {
   craft: "CRAFT",
   info: "READ",
+  warp: "WARP",
   quest: "QUEST",
   buy: "SHOP",
   sell: "SHOP",

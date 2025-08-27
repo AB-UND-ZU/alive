@@ -10,9 +10,8 @@ import { none } from "../../game/assets/sprites";
 import { add, copy, random } from "../../game/math/std";
 import { RainSequence, SEQUENCABLE } from "../components/sequencable";
 import { createSequence } from "./sequence";
-import { PLAYER } from "../components/player";
-import { LAYER } from "../components/layer";
 import { LEVEL } from "../components/level";
+import { VIEWABLE } from "../components/viewable";
 
 export const createDrop = (world: World, position: Position) => {
   const dropEntity = entities.createSplash(world, {
@@ -37,9 +36,14 @@ export default function setupWeather(world: World) {
     const currentWorldGeneration =
       world.metadata.gameEntity[RENDERABLE].generation;
     const worldId = world.getEntityId(world.metadata.gameEntity);
-    const hero = world.getEntity([PLAYER, POSITION, LAYER]);
+    const viewables = world.getEntities([VIEWABLE, POSITION]);
+    const viewable = viewables
+      .filter((entity) => entity[VIEWABLE].active)
+      .sort(
+        (left, right) => right[VIEWABLE].priority - left[VIEWABLE].priority
+      )[0];
 
-    if (worldGeneration === currentWorldGeneration || !hero) return;
+    if (worldGeneration === currentWorldGeneration || !viewable) return;
 
     worldGeneration = currentWorldGeneration;
 
@@ -51,7 +55,8 @@ export default function setupWeather(world: World) {
     // start rain
     if (
       !world.metadata.gameEntity[LEVEL].weather &&
-      entityReferences[worldId] < currentWorldGeneration
+      (world.metadata.gameEntity[LEVEL].name === "LEVEL_OVERWORLD" ||
+        entityReferences[worldId] < currentWorldGeneration)
     ) {
       world.metadata.gameEntity[LEVEL].weather = "rain";
       entityReferences[worldId] = currentWorldGeneration + random(150, 350);
@@ -66,9 +71,9 @@ export default function setupWeather(world: World) {
       }
 
       // generate several drops per world tick
-      for (let i = 0; i < 15; i += 1) {
+      for (let i = 0; i < 10; i += 1) {
         const offset = { x: random(-15, 15), y: random(-15, 15) };
-        createDrop(world, add(hero[POSITION], offset));
+        createDrop(world, add(viewable[POSITION], offset));
       }
     }
   };

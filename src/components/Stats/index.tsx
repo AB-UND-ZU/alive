@@ -3,7 +3,6 @@ import { useHero, useWorld } from "../../bindings/hooks";
 import {
   createText,
   none,
-  map,
   pause,
   resume,
   createProgress,
@@ -78,7 +77,7 @@ function StatsInner({
           <Row
             cells={[
               none,
-              paused ? resume : stats.map ? map : pause,
+              paused ? resume : pause,
               none,
               ...createText("│", colors.grey),
               ...createProgress(stats, "xp", 13),

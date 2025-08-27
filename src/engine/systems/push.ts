@@ -10,10 +10,11 @@ import { Orientation, orientationPoints } from "../components/orientable";
 import { rerenderEntity } from "./renderer";
 import { PUSHABLE } from "../components/pushable";
 import { DISPLACABLE } from "../components/displacable";
-import { isControllable } from "./freeze";
+import { isControllable, isFrozen } from "./freeze";
+import { isDead } from "./damage";
 
 export const isDisplacable = (world: World, entity: Entity) =>
-  DISPLACABLE in entity && isControllable(world, entity);
+  DISPLACABLE in entity && !isFrozen(world, entity) && !isDead(world, entity);
 
 export const getDisplacable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>

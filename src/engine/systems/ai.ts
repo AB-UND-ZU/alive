@@ -38,6 +38,7 @@ import {
   chestBoss,
   confused,
   createShout,
+  createText,
   fireWaveTower,
   rage,
   sleep1,
@@ -46,6 +47,7 @@ import {
   waveTower,
   waveTowerCharged,
 } from "../../game/assets/sprites";
+import * as colors from "../../game/assets/colors";
 import { INVENTORY } from "../components/inventory";
 import { FOG } from "../components/fog";
 import { LEVEL } from "../components/level";
@@ -53,7 +55,7 @@ import { BELONGABLE } from "../components/belongable";
 import { iterations } from "../../game/math/tracing";
 import { getProjectiles, shootArrow } from "./ballistics";
 import { canCast, getExertables } from "./magic";
-import { disposeEntity, getCell, moveEntity } from "./map";
+import { disposeEntity, getCell, moveEntity, registerEntity } from "./map";
 import { getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
@@ -62,7 +64,11 @@ import { CASTABLE } from "../components/castable";
 import { BURNABLE } from "../components/burnable";
 import { createPopup } from "./popup";
 import { isControllable } from "./freeze";
-import { getIdentifier, getIdentifierAndComponents } from "../utils";
+import {
+  getIdentifier,
+  getIdentifierAndComponents,
+  setIdentifier,
+} from "../utils";
 import { SPRITE } from "../components/sprite";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { createCell } from "../../bindings/creation";
@@ -70,6 +76,8 @@ import addAttackable, { ATTACKABLE } from "../components/attackable";
 import { RECHARGABLE } from "../components/rechargable";
 import { addCollidable } from "../components";
 import { COLLIDABLE } from "../components/collidable";
+import { NPC } from "../components/npc";
+import { queueMessage } from "../../game/assets/utils";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -305,7 +313,7 @@ export default function setupAi(world: World) {
               )
             : [];
 
-          if (!heroEntity || (!aggro && !isMoving) || !isVisible) {
+          if (!heroEntity || (!aggro && !isMoving) || !isVisible || !close) {
             const sprite = close
               ? confused
               : [sleep1, sleep2][
@@ -684,7 +692,16 @@ export default function setupAi(world: World) {
           const movablePattern = ["kill", "collect"].includes(pattern.name);
           const placementPattern = ["drop", "sell"].includes(pattern.name);
           const memory = pattern.memory;
-          const itemEntity = memory.item && world.getEntityById(memory.item);
+          const itemEntity =
+            (memory.item && world.getEntityById(memory.item)) ||
+            (memory.identifier &&
+              world
+                .getEntities([IDENTIFIABLE, ITEM])
+                .filter(
+                  (item) =>
+                    item[IDENTIFIABLE].name === memory.identifier &&
+                    item[ITEM].carrier !== entityId
+                )[0]);
 
           const targetEntity =
             pattern.name === "collect"
@@ -793,7 +810,7 @@ export default function setupAi(world: World) {
               }
             }
 
-            if (!hasArrived || !movablePattern || !memory.path)
+            if ((!hasArrived || !movablePattern) && memory.path)
               memory.path.shift();
           }
           break;
@@ -839,6 +856,79 @@ export default function setupAi(world: World) {
             );
           }
           patterns.splice(patterns.indexOf(pattern), 1);
+        } else if (pattern.name === "spawner") {
+          const spawners = world
+            .getEntities([IDENTIFIABLE, BEHAVIOUR])
+            .filter(
+              (spawner) =>
+                spawner[IDENTIFIABLE].name === entity[IDENTIFIABLE]?.name
+            );
+          const spawnedEntities = world
+            .getEntities([IDENTIFIABLE, NPC])
+            .filter(
+              (mob) => mob[IDENTIFIABLE].name === `${pattern.memory.name}:mob`
+            );
+
+          if (
+            spawnedEntities.length > 0 &&
+            pattern.memory.countdown === undefined
+          )
+            break;
+
+          const countdown =
+            pattern.memory.countdown === undefined
+              ? undefined
+              : pattern.memory.countdown - generation;
+
+          let nextSpawn = pattern.memory.types[0];
+
+          if (countdown === undefined) {
+            // remove spawner
+            if (pattern.memory.types.length === 0) {
+              patterns.splice(patterns.indexOf(pattern), 1);
+              disposeEntity(world, entity);
+              break;
+            }
+
+            // trigger all spawners
+            spawners.forEach((spawner) => {
+              const spawnerPattern = spawner[BEHAVIOUR].patterns[0];
+              if (!spawnerPattern) return;
+
+              spawnerPattern.memory.countdown = generation + 3 * 4 + 1;
+            });
+          } else if (countdown === 0) {
+            // spawn next mob
+            pattern.memory.types.shift();
+            pattern.memory.countdown = undefined;
+
+            if (nextSpawn) {
+              const mobEntity = createCell(
+                world,
+                [[]],
+                entity[POSITION],
+                nextSpawn,
+                "fog"
+              ) as TypedEntity<"BEHAVIOUR">;
+              setIdentifier(world, mobEntity, `${pattern.memory.name}:mob`);
+              registerEntity(world, mobEntity);
+            }
+          }
+
+          // show countdown
+          if (countdown !== undefined && countdown <= 3 * 4 && nextSpawn) {
+            queueMessage(world, entity, {
+              line:
+                countdown === 0
+                  ? [rage]
+                  : countdown % 4 === 0
+                  ? createText(`${countdown / 4}`, colors.red)
+                  : createText("∙", colors.maroon),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          }
         } else if (pattern.name === "chest_boss") {
           const chaseTicks = 30;
           const healTicks = 45;

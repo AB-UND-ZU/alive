@@ -25,12 +25,12 @@ import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { STATS } from "../components/stats";
 import { freezeMomentum, isFrozen } from "./freeze";
-import { queueMessage } from "../../game/assets/utils";
+import { createItemName, queueMessage } from "../../game/assets/utils";
 import { createText } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { isTouch } from "../../components/Dimensions";
 import { invertOrientation } from "../../game/math/path";
-import { getPopup, isPopupAvailable, popupActions } from "./popup";
+import { getPopup, isInPopup, isPopupAvailable, popupActions } from "./popup";
 import { Popup, POPUP } from "../components/popup";
 import { getSequence } from "./sequence";
 import { PLAYER } from "../components/player";
@@ -39,6 +39,7 @@ import { NPC } from "../components/npc";
 import { LAYER } from "../components/layer";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
+import { LOCKABLE } from "../components/lockable";
 
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
@@ -59,8 +60,12 @@ export const getTempo = (world: World, position: Position) =>
     )
   );
 
+const popupHaste = 8;
+
 export const getEntityHaste = (world: World, entity: Entity) =>
-  entity[STATS].haste + getTempo(world, entity[POSITION]);
+  isInPopup(world, entity)
+    ? popupHaste
+    : entity[STATS].haste + getTempo(world, entity[POSITION]);
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
@@ -148,13 +153,20 @@ export default function setupMovement(world: World) {
       entity[MOVABLE].pendingOrientation = undefined;
 
       // skip if dead or frozen
-      if (isDead(world, entity) || isFrozen(world, entity)) continue;
+      if (
+        isDead(world, entity) ||
+        (isFrozen(world, entity) && !entity[MOVABLE].momentum)
+      )
+        continue;
 
       const attemptedOrientations: Orientation[] = [
         ...entity[MOVABLE].orientations,
       ];
 
-      if (pendingOrientation) {
+      if (
+        pendingOrientation &&
+        !attemptedOrientations.includes(pendingOrientation)
+      ) {
         attemptedOrientations.push(pendingOrientation);
       }
 
@@ -187,7 +199,9 @@ export default function setupMovement(world: World) {
 
         const lockable = getLockable(world, position);
         const popup = getPopup(world, position);
+
         if (
+          entity[PLAYER] &&
           !isWalkable(world, position) &&
           lockable &&
           isLocked(world, lockable) &&
@@ -195,20 +209,29 @@ export default function setupMovement(world: World) {
         ) {
           // show message if unlockable
           queueMessage(world, entity, {
-            line: createText(
-              canUnlock(world, entity, lockable)
-                ? isTouch
-                  ? "Tap on [OPEN]"
-                  : "SPACE to open"
-                : "Need key!",
-              colors.silver
-            ),
+            line: canUnlock(world, entity, lockable)
+              ? [
+                  ...createText(
+                    isTouch ? "Tap on " : "SPACE to ",
+                    colors.silver
+                  ),
+                  ...createText("OPEN", colors.black, colors.lime),
+                ]
+              : [
+                  ...createText("Need ", colors.silver),
+                  ...createItemName({
+                    consume: "key",
+                    material: lockable[LOCKABLE].material,
+                  }),
+                  ...createText("!", colors.silver),
+                ],
             orientation: invertOrientation(orientation),
             fast: false,
             delay: 0,
           });
           continue;
         } else if (
+          entity[PLAYER] &&
           !isWalkable(world, position) &&
           popup &&
           isPopupAvailable(world, popup)
@@ -216,12 +239,10 @@ export default function setupMovement(world: World) {
           // show message if popup available
           const action = popupActions[(popup[POPUP] as Popup).transaction];
           queueMessage(world, entity, {
-            line: createText(
-              isTouch
-                ? `Tap on [${action}]`
-                : `SPACE to ${action.toLowerCase()}`,
-              colors.silver
-            ),
+            line: [
+              ...createText(isTouch ? "Tap on " : "SPACE to ", colors.silver),
+              ...createText(action, colors.black, colors.lime),
+            ],
             orientation: invertOrientation(orientation),
             fast: false,
             delay: 0,

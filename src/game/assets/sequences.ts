@@ -10,6 +10,7 @@ import {
   particleHeight,
   selectionHeight,
   tooltipHeight,
+  transientHeight,
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { DROPPABLE } from "../../engine/components/droppable";
@@ -69,7 +70,6 @@ import {
   createDialog,
   createText,
   decay,
-  doorClosedWood,
   fire,
   ghost,
   hit,
@@ -133,6 +133,8 @@ import {
   info,
   createCountable,
   underline,
+  crackle,
+  keyHole,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -680,7 +682,7 @@ export const transientMessage: Sequence<MessageSequence> = (
           [PARTICLE]: {
             offsetX: index - Math.floor(message.line.length / 2),
             offsetY: message.orientation === "down" ? 3 : -3,
-            offsetZ: tooltipHeight,
+            offsetZ: transientHeight,
             animatedOrigin: {
               x: index - Math.floor(message.line.length / 2),
               y: message.orientation === "down" ? 1 : -1,
@@ -818,20 +820,54 @@ export const rainDrop: Sequence<RainSequence> = (world, entity, state) => {
   let finished = state.elapsed > state.args.height * rainSpeed;
 
   // create rain particle
-  if (!state.particles.drop) {
-    const dropParticle = entities.createParticle(world, {
+  if (!state.particles.first) {
+    const firstDrop = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX: 0,
-        offsetY: 0,
-        offsetZ: effectHeight,
-        amount: 0,
-        animatedOrigin: { x: 0, y: -state.args.height },
-        duration: state.args.height * rainSpeed,
+        offsetY: -state.args.height,
+        offsetZ: fogHeight,
+        amount: 1,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: rain,
     });
-    state.particles.drop = world.getEntityId(dropParticle);
+    state.particles.first = world.getEntityId(firstDrop);
+
+    const secondDrop = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 1 - state.args.height,
+        offsetZ: fogHeight,
+        amount: 0,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: rain,
+    });
+    state.particles.second = world.getEntityId(secondDrop);
+
+    updated = true;
+  }
+
+  // move rain particle
+  const firstParticle = world.assertByIdAndComponents(state.particles.first, [
+    PARTICLE,
+  ]);
+  const secondParticle = world.assertByIdAndComponents(state.particles.second, [
+    PARTICLE,
+  ]);
+  const doubleHeight =
+    Math.floor((state.elapsed * 2) / rainSpeed) - state.args.height * 2 - 1;
+  const offsetY = Math.floor(doubleHeight / 2);
+
+  if (firstParticle[PARTICLE].offsetY !== offsetY) {
+    firstParticle[PARTICLE].offsetY = offsetY;
+    secondParticle[PARTICLE].offsetY = offsetY + 1;
+    updated = true;
+  }
+
+  const secondAmount = normalize(doubleHeight, 2);
+  if (secondParticle[PARTICLE].amount !== secondAmount) {
+    secondParticle[PARTICLE].amount = secondAmount;
     updated = true;
   }
 
@@ -1097,6 +1133,7 @@ export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
         offsetY: selectionY + verticalIndex,
         offsetZ: selectionHeight,
         animatedOrigin: { x: selectionX, y: -2 },
+        duration: 100,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]:
@@ -1199,6 +1236,7 @@ export const displayInspect: Sequence<PopupSequence> = (
         offsetY: selectionY + scrollIndex,
         offsetZ: selectionHeight,
         animatedOrigin: { x: selectionX, y: -2 },
+        duration: 100,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: buySelection,
@@ -1259,6 +1297,7 @@ export const displayInfo: Sequence<InfoSequence> = (world, entity, state) => {
     popupIdles[(entity[POPUP] as Popup).transaction],
     content
   );
+
   return {
     updated: popupResult.updated || updated,
     finished: popupResult.finished,
@@ -1807,6 +1846,17 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   // animate particle
   if (generation && isBurning && generation !== state.args.generation) {
     state.args.generation = generation;
+
+    // remove previous crackles
+    if (state.particles.crackle) {
+      const crackleParticle = world.assertByIdAndComponents(
+        state.particles.crackle,
+        [PARTICLE]
+      );
+      disposeEntity(world, crackleParticle);
+      delete state.particles.crackle;
+    }
+
     const fireParticle = world.assertByIdAndComponents(state.particles.fire, [
       PARTICLE,
     ]);
@@ -1846,6 +1896,26 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
       }
     }
 
+    // show crackle
+    const isCrackle = !isUnitBurning && random(0, 4) === 0;
+    if (isCrackle) {
+      const crackleParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: 0,
+          offsetY: -1,
+          offsetZ: particleHeight,
+          animatedOrigin: { x: 0, y: 0 },
+          amount: random(1, 3),
+          duration: fireTick,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: crackle,
+      });
+      state.particles.crackle = world.getEntityId(crackleParticle);
+
+      updated = true;
+    }
+
     // play sounds
     const distance = heroEntity
       ? getDistance(heroEntity[POSITION], entity[POSITION], size) + 1
@@ -1857,11 +1927,11 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
         play("fire", { proximity, delay: random(0, 175) });
       }
 
-      if (random(0, 2) === 0) {
+      if (isCrackle) {
         play("crackle", {
           proximity,
-          delay: random(0, 350),
-          intensity: random(1, 10),
+          delay: random(0, fireTick),
+          intensity: random(5, 10),
         });
       }
     }
@@ -2040,8 +2110,17 @@ export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
     disposeEntity(world, world.assertById(state.particles.key));
     delete state.particles.key;
 
-    // disarm door
-    entity[SPRITE] = doorClosedWood;
+    const holeParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: tooltipHeight,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: keyHole,
+    });
+    state.particles.hole = world.getEntityId(holeParticle);
+    updated = true;
   }
 
   if (finished) {

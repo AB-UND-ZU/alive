@@ -27,6 +27,12 @@ import {
   isPopupAvailable,
 } from "./popup";
 import { EQUIPPABLE } from "../components/equippable";
+import { WARPABLE } from "../components/warpable";
+
+export const getWarpable = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).find(
+    (entity) => WARPABLE in entity
+  ) as Entity | undefined;
 
 export const getQuest = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
@@ -181,6 +187,7 @@ export default function setupAction(world: World) {
       RENDERABLE,
       INVENTORY,
     ])) {
+      let warp: Entity | undefined = undefined;
       let quest: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
       let popup: Entity | undefined = undefined;
@@ -192,11 +199,23 @@ export default function setupAction(world: World) {
       );
       let spawn: Entity | undefined = undefined;
 
+      // check direct actions
+
+      // tombstones can revive player
+      const spawnEntity = getRevivable(world, entity[POSITION]);
+      if (
+        isDead(world, entity) &&
+        spawnEntity &&
+        canRevive(world, spawnEntity, entity)
+      )
+        spawn = spawnEntity;
+
       // check any adjacent actions
       for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
         for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
           const delta = { x: offsetX, y: offsetY };
           const targetPosition = add(entity[POSITION], delta);
+          const warpableEntity = getWarpable(world, targetPosition);
           const questEntity = getQuest(world, targetPosition);
           const lockableEntity = getLockable(world, targetPosition);
           const adjacentPopup = getPopup(world, targetPosition);
@@ -205,6 +224,11 @@ export default function setupAction(world: World) {
           const claimEntity = popupEntity;
           const tradeEntity = popupEntity;
           const useEntity = entity;
+
+          // portals can warp players
+          if (!warp && entity[PLAYER] && warpableEntity) {
+            warp = warpableEntity;
+          }
 
           // claiming only while in finished quest
           if (
@@ -255,19 +279,11 @@ export default function setupAction(world: World) {
         }
       }
 
-      // tombstones can revive player
-      const spawnEntity = getRevivable(world, entity[POSITION]);
-      if (
-        isDead(world, entity) &&
-        spawnEntity &&
-        canRevive(world, spawnEntity, entity)
-      )
-        spawn = spawnEntity;
-
       // check inventory actions
       const primary = getAvailablePrimary(world, entity);
       const secondary = getAvailableSecondary(world, entity);
 
+      const warpId = warp && world.getEntityId(warp);
       const questId = quest && world.getEntityId(quest);
       const unlockId = unlock && world.getEntityId(unlock);
       const popupId = popup && world.getEntityId(popup);
@@ -278,11 +294,12 @@ export default function setupAction(world: World) {
       const spawnId = spawn && world.getEntityId(spawn);
       const primaryId = primary && world.getEntityId(primary);
       const secondaryId =
-        questId || unlockId || popupId || tradeId || useId || spawnId
+        warpId || questId || unlockId || popupId || tradeId || useId || spawnId
           ? undefined
           : secondary && world.getEntityId(secondary);
 
       if (
+        entity[ACTIONABLE].warp !== warpId ||
         entity[ACTIONABLE].quest !== questId ||
         entity[ACTIONABLE].unlock !== unlockId ||
         entity[ACTIONABLE].popup !== popupId ||
@@ -294,6 +311,7 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].primary !== primaryId ||
         entity[ACTIONABLE].secondary !== secondaryId
       ) {
+        entity[ACTIONABLE].warp = warpId;
         entity[ACTIONABLE].quest = questId;
         entity[ACTIONABLE].unlock = unlockId;
         entity[ACTIONABLE].popup = popupId;

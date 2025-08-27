@@ -20,9 +20,9 @@ export default function Box({
       {...props}
       position={[
         orientation === "right"
-          ? dimensions.aspectRatio / 4
+          ? (dimensions.aspectRatio * 4) / 18
           : orientation === "left"
-          ? dimensions.aspectRatio / -4
+          ? (dimensions.aspectRatio * -5) / 18
           : 0,
         orientation === "down" ? -0.25 : orientation === "up" ? 0.25 : 0,
         height / 2 + offset,
@@ -30,8 +30,10 @@ export default function Box({
     >
       <boxGeometry
         args={[
-          orientation === "left" || orientation === "right"
-            ? dimensions.aspectRatio / 2
+          orientation === "right"
+            ? (dimensions.aspectRatio * 5) / 9
+            : orientation === "left"
+            ? (dimensions.aspectRatio * 4) / 9
             : dimensions.aspectRatio,
           orientation === "up" || orientation === "down" ? 0.5 : 1,
           height,

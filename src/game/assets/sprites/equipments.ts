@@ -179,10 +179,11 @@ export const goldCompass: Sprite = {
 export const map: Sprite = {
   name: "Map",
   layers: [
-    { char: "■", color: colors.silver },
-    { char: "≡", color: colors.olive },
+    { char: "■", color: colors.olive },
+    { char: "≡", color: colors.yellow },
     { char: "-", color: colors.black },
-    { char: "+", color: colors.silver },
+    { char: "+", color: colors.olive },
+    { char: "·", color: colors.yellow },
   ],
 };
 

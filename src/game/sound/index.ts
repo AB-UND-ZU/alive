@@ -58,7 +58,7 @@ class Presets extends Params {
     const intensity = (options.intensity || 350) / 1000;
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
-    this.sound_vol = (1 / 128) * proximity ** 1.2 * variant ** 0.5;
+    this.sound_vol = (1 / 128) * proximity ** 1.2 * variant ** 0.2;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = intensity - 0.08;
     this.p_env_sustain = 0.1 * variant - 0.05;
@@ -179,7 +179,7 @@ class Presets extends Params {
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
     this.wave_type = waveforms.SINE;
-    this.sound_vol = (1 / 32) * proximity ** 1.2;
+    this.sound_vol = (1 / 32) * proximity ** 1.2 * (variant ** 2);
     this.p_env_attack = (frnd(0.2) + 0.2) / variant;
     this.p_env_sustain = 0.1 / variant;
     this.p_env_decay = 0.2 / variant;
@@ -203,13 +203,13 @@ class Presets extends Params {
   rain(options: SfxOptions) {
     const proximity = options.proximity || 1;
     const intensity = options.intensity || 1;
-    this.sound_vol = (1 / 64) * proximity;
+    this.sound_vol = (1 / 128) * (proximity / 2) ** 0.5;
     this.wave_type = waveforms.NOISE;
     this.p_base_freq = 0.6 + frnd(0.1);
     this.p_freq_limit = frnd(0.3);
     this.p_freq_ramp = -0.05 - frnd(0.05);
-    this.p_env_attack = 0.5 + frnd(0.2);
-    this.p_env_sustain = 0.5 + frnd(0.3);
+    this.p_env_attack = 0.7 + frnd(0.2);
+    this.p_env_sustain = 0.6 + frnd(0.3);
     this.p_env_decay = 0.5 + frnd(0.4);
     this.p_hpf_freq = 0.8 + frnd(0.1);
     this.p_hpf_ramp = frnd(0.1) - 0.6;
@@ -221,7 +221,7 @@ class Presets extends Params {
 
   beam(options: SfxOptions) {
     const variant = options.variant || 1;
-    this.sound_vol = variant / 128;
+    this.sound_vol = (variant / 128) ** 0.5 / 6;
     this.wave_type = waveforms.SINE;
     this.p_env_attack = 0.6;
     this.p_env_sustain = 0.7;

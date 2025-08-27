@@ -4,7 +4,7 @@ import ECS, {
   Entity as ECSEntity,
   ListenerType,
 } from "ecs";
-import { entities } from ".";
+import { entities, systems } from ".";
 import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
 import { Entity, TypedEntity } from "./entities";
@@ -171,8 +171,9 @@ export default function createWorld() {
 
     metadata: {
       gameEntity: {} as TypedEntity<"LEVEL" | "RENDERABLE" | "REFERENCE">,
-      listeners: {} as Record<number, () => void>,
+      listeners: {} as Record<number, (reset?: boolean) => void>,
       sequenceEntity: {} as TypedEntity<"RENDERABLE" | "REFERENCE">,
+      ecs: world,
     },
   };
 
@@ -214,4 +215,39 @@ export const createLevel = (world: World, name: LevelName, size: number) => {
       suspensionCounter: -1,
     },
   });
+
+  return world.metadata.gameEntity;
+};
+
+export const createSystems = (world: World) => {
+  // start ordered systems
+  world.addSystem(systems.setupMap);
+  world.addSystem(systems.setupTick);
+  world.addSystem(systems.setupWeather);
+  world.addSystem(systems.setupFreeze);
+  world.addSystem(systems.setupAi);
+  world.addSystem(systems.setupTrigger);
+  world.addSystem(systems.setupPopup);
+  world.addSystem(systems.setupCollect);
+  world.addSystem(systems.setupConsume);
+  world.addSystem(systems.setupSpike);
+  world.addSystem(systems.setupPush);
+  world.addSystem(systems.setupDamage);
+  world.addSystem(systems.setupBallistics);
+  world.addSystem(systems.setupMovement);
+  world.addSystem(systems.setupEnter);
+  world.addSystem(systems.setupBurn);
+  world.addSystem(systems.setupWater);
+  world.addSystem(systems.setupAction);
+  world.addSystem(systems.setupText);
+  world.addSystem(systems.setupMagic);
+  world.addSystem(systems.setupSequence);
+  world.addSystem(systems.setupFocus);
+  world.addSystem(systems.setupNeedle);
+  world.addSystem(systems.setupFate);
+  world.addSystem(systems.setupDrop);
+  world.addSystem(systems.setupLeveling);
+  world.addSystem(systems.setupImmersion);
+  world.addSystem(systems.setupVisibility);
+  world.addSystem(systems.setupRenderer);
 };

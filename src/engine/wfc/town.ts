@@ -598,7 +598,7 @@ const doorOffsets = {
   doorRight: { x: -2, y: -2 },
 };
 
-export default async function generateTown(width: number, height: number) {
+export default function generateTown(width: number, height: number) {
   let wave: Wave | undefined;
   const wfc = new WaveFunctionCollapse(definition);
   const innerWidth = width - 2;
@@ -706,7 +706,7 @@ export default async function generateTown(width: number, height: number) {
 
       if (horizontalEdge && verticalEdge) return "air";
       if (exits.some((exit) => exit.x === x && exit.y === y))
-        return "fence_door";
+        return "fence_door_path";
 
       if (horizontalEdge || verticalEdge) return "fence";
 

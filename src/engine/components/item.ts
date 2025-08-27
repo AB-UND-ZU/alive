@@ -15,9 +15,9 @@ export type Secondary = "slash" | "block" | "bow";
 
 export type Passive = "charm1" | "charm2" | "pet1" | "pet2";
 
-export type Consumable = "key" | "potion1" | "potion2";
+export type Consumable = "key" | "potion1" | "potion2" | "map";
 
-export type Materialized = "door";
+export type Materialized = "door" | "entry" | "gate";
 
 export type Craftable =
   | "coin"

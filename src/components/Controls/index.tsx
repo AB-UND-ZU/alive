@@ -16,6 +16,7 @@ import {
   mergeSprites,
   none,
   Palette,
+  portal,
   quest,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
@@ -55,6 +56,7 @@ import { STATS } from "../../engine/components/stats";
 import { getConsumption } from "../../engine/systems/consume";
 import { PLAYER } from "../../engine/components/player";
 import { ensureAudio } from "../../game/sound/resumable";
+import Cursor from "../Cursor";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -175,7 +177,7 @@ const useAction = (
 
 export default function Controls() {
   const dimensions = useDimensions();
-  const { ecs, setPaused, paused } = useWorld();
+  const { ecs, setPaused, paused, initial } = useWorld();
   const hero = useHero();
   const heroRef = useRef<Entity>();
   const pressedOrientations = useRef<Orientation[]>([]);
@@ -194,6 +196,18 @@ export default function Controls() {
   // update ref for listeners to consume
   heroRef.current = hero || undefined;
 
+  const warpAction = useAction(
+    "warp",
+    (world, hero) => !isControllable(world, hero),
+    () => "WARP",
+    (_, warpEntity) => [
+      ...repeat(none, 2),
+      warpEntity ? portal : none,
+      ...repeat(none, 3),
+    ],
+    "lime"
+  );
+
   const spawnAction = useAction(
     "spawn",
     (world, hero, spawnEntity) => !canRevive(world, spawnEntity, hero),
@@ -202,7 +216,8 @@ export default function Controls() {
       ...repeat(none, 2),
       spawnEntity ? ghost : none,
       ...repeat(none, 3),
-    ]
+    ],
+    "lime"
   );
 
   const questAction = useAction(
@@ -228,7 +243,7 @@ export default function Controls() {
         ? [
             ...repeat(none, 2),
             getItemSprite({
-              materialized: "door",
+              materialized: unlockEntity[LOCKABLE].type,
               material: unlockEntity[LOCKABLE].material,
             }),
             getItemSprite({
@@ -261,7 +276,7 @@ export default function Controls() {
                 receiveShadow: false,
               }).map((segment) => segment.sprite)
             ),
-            popupIdles[(popupEntity[POPUP] as Popup).transaction],
+            popupIdles[(popupEntity[POPUP] as Popup).transaction] || none,
             ...repeat(none, 2),
           ]
         : repeat(none, 6),
@@ -375,6 +390,7 @@ export default function Controls() {
   );
 
   const availablePrimary = [
+    warpAction,
     spawnAction,
     questAction,
     unlockAction,
@@ -523,6 +539,7 @@ export default function Controls() {
   const handleMove = useCallback(
     (orientations: Orientation[]) => {
       const heroEntity = heroRef.current;
+
       if (!heroEntity || !ecs || isDead(ecs, heroEntity)) return;
 
       const reference = ecs.assertByIdAndComponents(
@@ -562,13 +579,18 @@ export default function Controls() {
 
   const handleKey = useCallback(
     (event: KeyboardEvent) => {
-      // handle pause and resume
-      if (event.type === "keydown" && event.key === "Escape") {
+      if (event.type === "keydown" && event.key === "Escape" && !initial) {
+        // handle pause and resume
         setPaused((prevPaused) => !prevPaused);
         return;
+      } else if (event.type === "keydown" && !document.body.style.cursor) {
+        // hide cursor
+        document.body.classList.add("no-cursor");
       }
 
-      ensureAudio();
+      if (!paused) {
+        ensureAudio();
+      }
 
       // since macOS doesn't fire keyup when meta key is pressed, prevent it from moving.
       // still not working: arrow keydown -> meta keydown -> arrow keyup -> meta keyup
@@ -607,12 +629,28 @@ export default function Controls() {
 
       handleMove(orientations);
     },
-    [handleMove, setPaused, handlePrimary, handleSecondary, handleInspect]
+    [
+      handleMove,
+      setPaused,
+      handlePrimary,
+      handleSecondary,
+      handleInspect,
+      paused,
+      initial,
+    ]
   );
+
+  const handleMouseMove = useCallback((event: MouseEvent) => {
+    if (document.body.classList.contains("no-cursor")) {
+      document.body.classList.remove("no-cursor");
+    }
+  }, []);
 
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
-      ensureAudio();
+      if (!paused) {
+        ensureAudio();
+      }
 
       // prevent touches over action bar
       if (
@@ -671,7 +709,7 @@ export default function Controls() {
 
       return false;
     },
-    [handleMove, setJoystickOrientations]
+    [handleMove, setJoystickOrientations, paused]
   );
 
   const handleVisibility = useCallback(() => {
@@ -689,6 +727,8 @@ export default function Controls() {
     window.addEventListener("touchend", handleTouchMove);
     window.addEventListener("touchcancel", handleTouchMove);
 
+    window.addEventListener("mousemove", handleMouseMove);
+
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
@@ -700,9 +740,11 @@ export default function Controls() {
       window.removeEventListener("touchend", handleTouchMove);
       window.removeEventListener("touchcancel", handleTouchMove);
 
+      window.removeEventListener("mousemove", handleMouseMove);
+
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [handleKey, handleTouchMove, handleVisibility]);
+  }, [handleKey, handleMouseMove, handleTouchMove, handleVisibility]);
 
   const emptyPrimary = createButton(
     isTouch ? "SPELL" : "SPACE",
@@ -782,54 +824,71 @@ export default function Controls() {
         orientations={joystickOrientations}
         origin={touchOrigin.current}
       />
+      <Cursor />
       <Row
         cells={[
           ...repeat(none, dimensions.padding * 2 + dimensions.visibleColumns),
         ]}
       />
-      <Row
-        cells={[
-          ...createText(
-            "═".repeat(dimensions.padding + buttonWidth * 2),
-            colors.grey
-          ),
-          ...createText("╤", colors.grey),
-          ...createText(
-            "═".repeat(dimensions.padding + inventoryWidth),
-            colors.grey
-          ),
-        ]}
-      />
-      <Row
-        cells={[
-          ...repeat(none, dimensions.padding),
-          ...leftButton[0],
-          ...rightButton[0],
-          ...createText("│", colors.grey),
-          ...equipmentRows[0],
-          ...repeat(none, dimensions.padding),
-        ]}
-      />
-      <Row
-        cells={[
-          ...repeat(none, dimensions.padding),
-          ...leftButton[1],
-          ...rightButton[1],
-          ...createText("│", colors.grey),
-          ...equipmentRows[1],
-          ...repeat(none, dimensions.padding),
-        ]}
-      />
-      <Row
-        cells={[
-          ...repeat(none, dimensions.padding),
-          ...primaryActivation,
-          ...secondaryActivation,
-          ...createText("│", colors.grey),
-          ...equipmentRows[2],
-          ...repeat(none, dimensions.padding),
-        ]}
-      />
+      {paused ? (
+        <>
+          <Row
+            cells={createText(
+              "═".repeat(dimensions.padding * 2 + dimensions.visibleColumns),
+              colors.grey
+            )}
+          />
+          <Row />
+          <Row />
+          <Row />
+        </>
+      ) : (
+        <>
+          <Row
+            cells={[
+              ...createText(
+                "═".repeat(dimensions.padding + buttonWidth * 2),
+                colors.grey
+              ),
+              ...createText("╤", colors.grey),
+              ...createText(
+                "═".repeat(dimensions.padding + inventoryWidth),
+                colors.grey
+              ),
+            ]}
+          />
+          <Row
+            cells={[
+              ...repeat(none, dimensions.padding),
+              ...leftButton[0],
+              ...rightButton[0],
+              ...createText("│", colors.grey),
+              ...equipmentRows[0],
+              ...repeat(none, dimensions.padding),
+            ]}
+          />
+          <Row
+            cells={[
+              ...repeat(none, dimensions.padding),
+              ...leftButton[1],
+              ...rightButton[1],
+              ...createText("│", colors.grey),
+              ...equipmentRows[1],
+              ...repeat(none, dimensions.padding),
+            ]}
+          />
+          <Row
+            cells={[
+              ...repeat(none, dimensions.padding),
+              ...primaryActivation,
+              ...secondaryActivation,
+              ...createText("│", colors.grey),
+              ...equipmentRows[2],
+              ...repeat(none, dimensions.padding),
+            ]}
+          />
+        </>
+      )}
       <div className="Primary" id="primary" onClick={handlePrimary} />
       <div className="Secondary" id="secondary" onClick={handleSecondary} />
     </footer>

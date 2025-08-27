@@ -1,5 +1,4 @@
 import { createText, overlay, resume } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
 import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
@@ -7,16 +6,20 @@ import { useCallback } from "react";
 import { useWorld } from "../../bindings/hooks";
 import { repeat } from "../../game/math/std";
 
-export default function Paused() {
-  const { setPaused } = useWorld();
+export default function Paused({ initial }: { initial: boolean }) {
+  const { setPaused, setInitial } = useWorld();
   const dimensions = useDimensions();
   const handleResume = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
 
       setPaused(false);
+
+      if (initial) {
+        setInitial(false);
+      }
     },
-    [setPaused]
+    [initial, setPaused, setInitial]
   );
 
   return (
@@ -34,17 +37,39 @@ export default function Paused() {
       </div>
 
       <div className="Overlay">
-        <Row cells={createText("█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀", colors.white)} />
-        <Row cells={createText("█▄█ █▄█ █ █ █▄▄ █▄▄", colors.white)} />
-        <Row cells={createText("█   █ █ █▄▀ ▄▄▀ █▄▄", colors.white)} />
-        <Row />
-        <Row
-          cells={[
-            ...createText(isTouch ? "Tap " : "Press ", colors.white),
-            ...(isTouch ? [resume] : createText("ESC", colors.white)),
-            ...createText(" to resume", colors.white),
-          ]}
-        />
+        {initial ? (
+          <>
+            {isTouch ? (
+              <>
+                <Row cells={createText("▀█▀ █▀▄ █▀▄")} />
+                <Row cells={createText(" █  █▄█ █▄█")} />
+                <Row cells={createText(" █  █ █ █  ")} />
+              </>
+            ) : (
+              <>
+                <Row cells={createText("▄▀▀ █   █ ▄▀▀ █ █")} />
+                <Row cells={createText("█   █   █ █   █▄▀")} />
+                <Row cells={createText("▀▄▄ ▀▄▄ █ ▀▄▄ █ █")} />
+              </>
+            )}
+            <Row />
+            <Row cells={createText("to start the game")} />
+          </>
+        ) : (
+          <>
+            <Row cells={createText("█▀▄ █▀▄ █ █ ▄▀▀ ▄▀▀")} />
+            <Row cells={createText("█▄█ █▄█ █ █ █▄▄ █▄▄")} />
+            <Row cells={createText("█   █ █ █▄▀ ▄▄▀ █▄▄")} />
+            <Row />
+            <Row
+              cells={[
+                ...createText(isTouch ? "Tap " : "Press "),
+                ...(isTouch ? [resume] : createText("ESC")),
+                ...createText(" to resume"),
+              ]}
+            />
+          </>
+        )}
       </div>
       <div className="Resume" id="resume" onClick={handleResume} />
     </div>

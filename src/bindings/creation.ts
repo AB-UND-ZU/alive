@@ -1,36 +1,85 @@
 import { Entity } from "ecs";
 import { getItemSprite } from "../components/Entity/utils";
 import { entities, World } from "../engine";
+import { ACTIONABLE } from "../engine/components/actionable";
+import { AFFECTABLE } from "../engine/components/affectable";
+import { ATTACKABLE } from "../engine/components/attackable";
+import { BEHAVIOUR } from "../engine/components/behaviour";
+import { BELONGABLE } from "../engine/components/belongable";
+import { BURNABLE } from "../engine/components/burnable";
+import { COLLECTABLE } from "../engine/components/collectable";
+import { COLLIDABLE } from "../engine/components/collidable";
+import { DISPLACABLE } from "../engine/components/displacable";
+import { DROPPABLE } from "../engine/components/droppable";
+import { ENTERABLE } from "../engine/components/enterable";
+import { ENVIRONMENT } from "../engine/components/environment";
+import { EQUIPPABLE } from "../engine/components/equippable";
 import { Fog, FOG } from "../engine/components/fog";
+import { FRAGMENT } from "../engine/components/fragment";
+import { FREEZABLE } from "../engine/components/freezable";
+import { IMMERSIBLE } from "../engine/components/immersible";
+import { INVENTORY } from "../engine/components/inventory";
 import { ITEM, Item } from "../engine/components/item";
-import { ORIENTABLE } from "../engine/components/orientable";
+import { LAYER } from "../engine/components/layer";
+import { LEVEL } from "../engine/components/level";
+import { LIGHT } from "../engine/components/light";
+import { LOCKABLE } from "../engine/components/lockable";
+import { LOOTABLE } from "../engine/components/lootable";
+import { MELEE } from "../engine/components/melee";
+import { MOVABLE } from "../engine/components/movable";
+import { NPC, NpcType, npcTypes } from "../engine/components/npc";
+import { ORIENTABLE, Orientation } from "../engine/components/orientable";
 import { Position, POSITION } from "../engine/components/position";
+import { RECHARGABLE } from "../engine/components/rechargable";
+import { REFERENCE } from "../engine/components/reference";
 import { RENDERABLE } from "../engine/components/renderable";
-import { SEQUENCABLE } from "../engine/components/sequencable";
-import { SPRITE } from "../engine/components/sprite";
+import { FocusSequence, SEQUENCABLE } from "../engine/components/sequencable";
+import { SPIKABLE } from "../engine/components/spikable";
+import { Sprite, SPRITE } from "../engine/components/sprite";
+import { emptyStats, STATS } from "../engine/components/stats";
 import { STRUCTURABLE } from "../engine/components/structurable";
+import { SWIMMABLE } from "../engine/components/swimmable";
+import { TEMPO } from "../engine/components/tempo";
+import { TOOLTIP } from "../engine/components/tooltip";
+import { TRACKABLE } from "../engine/components/trackable";
 import { VIEWABLE } from "../engine/components/viewable";
 import { TypedEntity } from "../engine/entities";
-import * as colors from "../game/assets/colors";
+import { getLockable } from "../engine/systems/action";
 import {
   createItemAsDrop,
   createItemInInventory,
 } from "../engine/systems/drop";
 import { getEnterable } from "../engine/systems/enter";
+import { getHasteInterval } from "../engine/systems/movement";
+import { createPopup } from "../engine/systems/popup";
+import { setIdentifier } from "../engine/utils";
+import * as colors from "../game/assets/colors";
 import {
+  apple,
+  banana,
+  barrierCorner,
+  barrierSide,
   block,
   blockDown,
   blockUp,
   bush,
   campfire,
-  createDialog,
+  coconut,
+  compass,
   createText,
   doorClosedIron,
   doorClosedWood,
   doorOpen,
+  enemySpawner,
+  entryClosedIron,
+  entryClosedWood,
   fog,
+  fruit,
   getStatSprite,
+  granite,
   grass,
+  heart,
+  herb,
   ice,
   ironKey,
   ironMine,
@@ -46,6 +95,7 @@ import {
   rock1,
   rock2,
   sand,
+  shroom,
   stem,
   tree1,
   tree2,
@@ -56,49 +106,16 @@ import {
   xp,
 } from "../game/assets/sprites";
 import {
-  add,
-  choice,
-  copy,
-  distribution,
-  normalize,
-  Point,
-  random,
-  signedDistance,
-} from "../game/math/std";
-import { LEVEL } from "../engine/components/level";
-import { FRAGMENT } from "../engine/components/fragment";
-import { iterateMatrix, Matrix, matrixFactory } from "../game/math/matrix";
-import { TRACKABLE } from "../engine/components/trackable";
-import { setIdentifier } from "../engine/utils";
-import { LIGHT } from "../engine/components/light";
-import { COLLIDABLE } from "../engine/components/collidable";
-import { generateNpcData, generateUnitData } from "../game/balancing/units";
-import { ATTACKABLE } from "../engine/components/attackable";
-import { BELONGABLE } from "../engine/components/belongable";
-import { DROPPABLE } from "../engine/components/droppable";
-import { INVENTORY } from "../engine/components/inventory";
-import { emptyStats, STATS } from "../engine/components/stats";
-import { ENVIRONMENT } from "../engine/components/environment";
-import { TEMPO } from "../engine/components/tempo";
-import { TOOLTIP } from "../engine/components/tooltip";
-import { LOOTABLE } from "../engine/components/lootable";
-import { FREEZABLE } from "../engine/components/freezable";
-import { IMMERSIBLE } from "../engine/components/immersible";
-import { BURNABLE } from "../engine/components/burnable";
-import { AFFECTABLE } from "../engine/components/affectable";
-import { BEHAVIOUR } from "../engine/components/behaviour";
-import { MOVABLE } from "../engine/components/movable";
-import { SPIKABLE } from "../engine/components/spikable";
-import { ENTERABLE } from "../engine/components/enterable";
-import { LOCKABLE } from "../engine/components/lockable";
-import { LAYER } from "../engine/components/layer";
-import {
   basementLeftInside,
   basementRightInside,
   fenceBurnt1,
   fenceBurnt2,
   fenceDoor,
   fenceDoorBurnt,
+  fenceDoorBurntPath,
+  fenceDoorOpen,
+  fenceDoorOpenPath,
+  fenceDoorPath,
   house,
   houseAid,
   houseArmor,
@@ -122,19 +139,35 @@ import {
   window,
   windowInside,
 } from "../game/assets/sprites/structures";
-import { REFERENCE } from "../engine/components/reference";
-import { getHasteInterval } from "../engine/systems/movement";
-import { DISPLACABLE } from "../engine/components/displacable";
-import { SWIMMABLE } from "../engine/components/swimmable";
-import { EQUIPPABLE } from "../engine/components/equippable";
-import { MELEE } from "../engine/components/melee";
-import { NPC, NpcType, npcTypes } from "../engine/components/npc";
-import { RECHARGABLE } from "../engine/components/rechargable";
-import { ACTIONABLE } from "../engine/components/actionable";
-import { npcSequence } from "../game/assets/utils";
-import { getLockable } from "../engine/systems/action";
-import { createPopup } from "../engine/systems/popup";
-import { COLLECTABLE } from "../engine/components/collectable";
+import {
+  createItemName,
+  createUnitName,
+  npcSequence,
+} from "../game/assets/utils";
+import {
+  generateNpcData,
+  generateUnitData,
+  UnitKey,
+} from "../game/balancing/units";
+import { iterateMatrix, Matrix, matrixFactory } from "../game/math/matrix";
+import {
+  add,
+  choice,
+  copy,
+  distribution,
+  normalize,
+  Point,
+  random,
+  signedDistance,
+} from "../game/math/std";
+import { SPAWNABLE } from "../engine/components/spawnable";
+import { spawnLight } from "../engine/systems/consume";
+import { createHero } from "../engine/systems/fate";
+import { isTouch } from "../components/Dimensions";
+import { FOCUSABLE } from "../engine/components/focusable";
+import { createSequence } from "../engine/systems/sequence";
+import { freezeTerrain } from "../engine/systems/freeze";
+import { WARPABLE } from "../engine/components/warpable";
 
 const populateItems = (
   world: World,
@@ -190,10 +223,15 @@ const populateItems = (
 export const populateInventory = (
   world: World,
   entity: TypedEntity<"INVENTORY">,
-  items: Omit<Item, "carrier">[],
+  items: Omit<Item, "carrier" | "bound">[],
   equipments: Omit<Item, "carrier">[] = []
 ) => {
-  populateItems(world, entity, items, false);
+  populateItems(
+    world,
+    entity,
+    items.map((item) => ({ ...item, bound: false })),
+    false
+  );
   populateItems(world, entity, equipments);
 };
 
@@ -334,6 +372,76 @@ export const createNpc = (
   return npcEntity;
 };
 
+export const createChest = (
+  world: World,
+  unitKey: UnitKey,
+  position: Position,
+  items?: Omit<Item, "carrier" | "bound">[]
+) => {
+  const chestData = generateUnitData(unitKey);
+  const chestEntity = entities.createChest(world, {
+    [ATTACKABLE]: { shots: 0 },
+    [BELONGABLE]: { faction: chestData.faction },
+    [DROPPABLE]: { decayed: false, remains: chestData.remains },
+    [INVENTORY]: { items: [] },
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [LAYER]: {},
+    [POSITION]: copy(position),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: chestData.sprite,
+    [STATS]: { ...emptyStats, ...chestData.stats },
+    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+  });
+  populateInventory(world, chestEntity, items || chestData.items);
+  return chestEntity;
+};
+
+export const createSign = (
+  world: World,
+  position: Position,
+  lines: Sprite[][]
+) => {
+  const signData = generateUnitData("sign");
+  const signEntity = entities.createSign(world, {
+    [ATTACKABLE]: { shots: 0 },
+    [BELONGABLE]: { faction: signData.faction },
+    [BURNABLE]: {
+      burning: false,
+      eternal: false,
+      decayed: false,
+      combusted: false,
+      remains: choice(treeBurnt1, treeBurnt2),
+    },
+    [DROPPABLE]: {
+      decayed: false,
+      remains: choice(treeBurnt1, treeBurnt2),
+    },
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [INVENTORY]: { items: [] },
+    [LAYER]: {},
+    [POSITION]: position,
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: signData.sprite,
+    [STATS]: {
+      ...emptyStats,
+      ...signData.stats,
+    },
+    [TOOLTIP]: {
+      dialogs: [],
+      persistent: false,
+      nextDialog: -1,
+    },
+  });
+  populateInventory(world, signEntity, signData.items);
+  createPopup(world, signEntity, {
+    lines,
+    transaction: "info",
+  });
+  return signEntity;
+};
+
 export const insertArea = (
   matrix: Matrix<string>,
   area: string,
@@ -357,18 +465,28 @@ export const insertArea = (
       if (cell === "█") entity = "mountain";
       else if (cell === "≈") entity = "water";
       else if (cell === "░") entity = "beach";
+      else if (cell === "%") entity = "ice";
       else if (cell === "▒") entity = "path";
       else if (cell === "▓") entity = "block";
+      else if (cell === "X") entity = "granite";
       else if (cell === "▄") entity = "block_down";
       else if (cell === "▀") entity = "block_up";
-      else if (cell === "◙") entity = "gate";
+      else if (cell === "═") entity = "barrier_horizontal";
+      else if (cell === "║") entity = "barrier_vertical";
+      else if (cell === "╗") entity = "barrier_up_right";
+      else if (cell === "╝") entity = "barrier_right_down";
+      else if (cell === "╚") entity = "barrier_down_left";
+      else if (cell === "╔") entity = "barrier_left_up";
+      else if (cell === "◙") entity = "iron_entry";
       else if (cell === "◘") entity = "ore_one";
       else if (cell === "∙") entity = "coin_one";
       else if (cell === "o") entity = "intro_pot";
-      else if (cell === "■") entity = "box";
+      else if (cell === "φ") entity = "compass";
+      else if (cell === "■") entity = "key_box";
       else if (cell === "#") entity = "tree";
       else if (cell === "⌠") entity = "palm";
-      else if (cell === "=") entity = "wood_two";
+      else if (cell === ">") entity = "rock";
+      else if (cell === "≡") entity = "wood_three";
       else if (cell === ".") entity = "fruit_one";
       else if (cell === "ß") entity = "hedge";
       else if (cell === "&") entity = "spawn_hedge";
@@ -377,10 +495,16 @@ export const insertArea = (
       else if (cell === ",") entity = "grass";
       else if (cell === "·") entity = "flower_one";
       else if (cell === "♀") entity = "player";
+      else if (cell === "÷") entity = "spawner";
+      else if (cell === "◀") entity = "prism";
       else if (cell === "►") entity = "spawn_prism";
+      else if (cell === "0") entity = "eye";
       else if (cell === "*") entity = "campfire";
-      else if (cell === "!") entity = "spawn_key";
+      else if (cell === "¡") entity = "spawn_key";
       else if (cell === "x") entity = "fireplace";
+      else if (cell === "!") entity = "dummy";
+      else if (cell === "±") entity = "fence";
+      else if (cell === "=") entity = "fence_door";
       else if (cell === "├") entity = "house_left";
       else if (cell === "└") entity = "basement_left";
       else if (cell === "┤") entity = "house_right";
@@ -392,19 +516,24 @@ export const insertArea = (
       else if (cell === "╬") entity = "roof";
       else if (cell === "╠") entity = "roof_left";
       else if (cell === "╣") entity = "roof_right";
-      else if (cell === "╔") entity = "roof_left_up";
+      else if (cell === "╒") entity = "roof_left_up";
       else if (cell === "╦") entity = "roof_up";
-      else if (cell === "╗") entity = "roof_up_right";
+      else if (cell === "╕") entity = "roof_up_right";
       else if (cell === "╞") entity = "roof_down_left";
       else if (cell === "╪") entity = "roof_down";
       else if (cell === "╡") entity = "roof_right_down";
       else if (cell === "s") entity = "spawn_sign";
-      else if (cell === "g") entity = "guide_door";
+      else if (cell === "p") entity = "potion_sign";
+      else if (cell === "P") entity = "potion_chest";
+      else if (cell === "g") entity = "guide_sign";
+      else if (cell === "G") entity = "guide_door";
       else if (cell === "N") entity = "nomad_door";
       else if (cell === "Y") entity = "chest_tower";
       else if (cell === "y") entity = "chest_tower_statue";
       else if (cell === "C") entity = "chest_boss";
-      else if (cell === "P") entity = "portal";
+      else if (cell === "∩") entity = "portal";
+      else if (cell === "w") entity = "warp_sign";
+      else if (cell === "W") entity = "warp_chest";
       else {
         console.error(`Unrecognized cell: ${cell}!`);
       }
@@ -430,16 +559,31 @@ export const createArea = (
   });
 };
 
+const blockSprites: Record<string, Sprite> = {
+  block,
+  block_up: blockUp,
+  block_down: blockDown,
+};
+const barrierOrientations: Record<string, Orientation> = {
+  barrier_horizontal: "up",
+  barrier_vertical: "right",
+  barrier_up_right: "up",
+  barrier_right_down: "right",
+  barrier_down_left: "down",
+  barrier_left_up: "left",
+};
+
 export const createCell = (
   world: World,
   matrix: Matrix<string>,
   { x, y }: Position,
   cell: string,
-  visibility: Fog["visibility"]
+  visibility: Fog["visibility"],
+  air = true
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
-  if (cell !== "") {
+  if (cell !== "" && air) {
     entities.createGround(world, {
       [FOG]: { visibility, type: "air" },
       [POSITION]: { x, y },
@@ -451,6 +595,43 @@ export const createCell = (
   if (!cell) {
     return;
   } else if (cell === "player") {
+    // create viewpoint for inspecting
+    const inspectEntity = entities.createViewpoint(world, {
+      [POSITION]: { x: 0, y: 0 },
+      [RENDERABLE]: { generation: 0 },
+      [VIEWABLE]: { active: false, priority: 90 },
+    });
+    setIdentifier(world, inspectEntity, "inspect");
+
+    // set initial focus on hero
+    const highlighEntity = entities.createHighlight(world, {
+      [FOCUSABLE]: {},
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 500,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [ORIENTABLE]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: none,
+      [TRACKABLE]: {},
+    });
+    createSequence<"focus", FocusSequence>(
+      world,
+      highlighEntity,
+      "focus",
+      "focusCircle",
+      {}
+    );
+    setIdentifier(world, highlighEntity, "focus");
+
     // create spawn dummy to set needle target
     const spawnEntity = entities.createViewpoint(world, {
       [POSITION]: { x, y },
@@ -458,11 +639,30 @@ export const createCell = (
       [VIEWABLE]: { active: false, priority: 30 },
     });
     setIdentifier(world, spawnEntity, "spawn");
+    return createHero(world, {
+      [POSITION]: copy(spawnEntity[POSITION]),
+      [BELONGABLE]: { faction: "settler" },
+      [SPAWNABLE]: {
+        classKey: "scout",
+        position: copy(spawnEntity[POSITION]),
+        viewable: { active: true, priority: 10 },
+        light: { ...spawnLight },
+      },
+    });
   } else if (cell === "mountain") {
-    entities.createMountain(world, {
+    return entities.createMountain(world, {
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [SPRITE]: wall,
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [RENDERABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+    });
+  } else if (cell === "granite") {
+    return entities.createMountain(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [POSITION]: { x, y },
+      [SPRITE]: granite,
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [RENDERABLE]: { generation: 0 },
       [COLLIDABLE]: {},
@@ -497,8 +697,9 @@ export const createCell = (
         [TEMPO]: { amount: -1 },
       });
     }
+    return rockEntity;
   } else if (cell === "iron") {
-    entities.createMine(world, {
+    return entities.createMine(world, {
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -530,6 +731,7 @@ export const createCell = (
         },
       ]
     );
+    return oreEntity;
   } else if (cell === "stone") {
     entities.createTile(world, {
       [ENVIRONMENT]: { biomes: ["desert"] },
@@ -539,7 +741,7 @@ export const createCell = (
       [SPRITE]: sand,
       [TEMPO]: { amount: -1 },
     });
-    createItemAsDrop(world, { x, y }, entities.createItem, {
+    return createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
         stackable: "ore",
         amount: 1,
@@ -547,32 +749,35 @@ export const createCell = (
       },
       [SPRITE]: getItemSprite({ stackable: "ore" }),
     });
-  } else if (cell === "block") {
-    entities.createTerrain(world, {
-      [FOG]: { visibility, type: "terrain" },
+  } else if (["block", "block_down", "block_up"].includes(cell)) {
+    return entities.createBlock(world, {
+      [FOG]: { visibility, type: "float" },
       [POSITION]: { x, y },
-      [SPRITE]: block,
+      [SPRITE]: blockSprites[cell],
       [RENDERABLE]: { generation: 0 },
-      [COLLIDABLE]: {},
     });
-  } else if (cell === "block_down") {
-    entities.createTerrain(world, {
-      [FOG]: { visibility, type: "terrain" },
-      [POSITION]: { x, y },
-      [SPRITE]: blockDown,
-      [RENDERABLE]: { generation: 0 },
+  } else if (
+    [
+      "barrier_vertical",
+      "barrier_horizontal",
+      "barrier_up_right",
+      "barrier_right_down",
+      "barrier_down_left",
+      "barrier_left_up",
+    ].includes(cell)
+  ) {
+    return entities.createBarrier(world, {
       [COLLIDABLE]: {},
-    });
-  } else if (cell === "block_up") {
-    entities.createTerrain(world, {
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "float" },
+      [ORIENTABLE]: { facing: barrierOrientations[cell] },
       [POSITION]: { x, y },
-      [SPRITE]: blockUp,
+      [SPRITE]: ["barrier_vertical", "barrier_horizontal"].includes(cell)
+        ? barrierSide
+        : barrierCorner,
       [RENDERABLE]: { generation: 0 },
-      [COLLIDABLE]: {},
     });
   } else if (cell === "beach" || cell === "desert") {
-    entities.createTile(world, {
+    return entities.createTile(world, {
       [ENVIRONMENT]: { biomes: [cell] },
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
@@ -581,7 +786,7 @@ export const createCell = (
       [TEMPO]: { amount: -1 },
     });
   } else if (cell === "path") {
-    entities.createPath(world, {
+    return entities.createPath(world, {
       [ENVIRONMENT]: { biomes: ["path"] },
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
@@ -590,7 +795,7 @@ export const createCell = (
       [TEMPO]: { amount: 2 },
     });
   } else if (cell === "water" || cell === "spring") {
-    entities.createWater(world, {
+    return entities.createWater(world, {
       [FOG]: { visibility, type: "terrain" },
       [FREEZABLE]: { frozen: false, sprite: ice },
       [IMMERSIBLE]: {},
@@ -599,17 +804,30 @@ export const createCell = (
       [SPRITE]: water,
       [TEMPO]: { amount: -2 },
     });
-  } else if (cell === "wood" || cell === "wood_two") {
+  } else if (cell === "ice") {
+    const waterEntity = entities.createWater(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [FREEZABLE]: { frozen: false, sprite: ice },
+      [IMMERSIBLE]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: water,
+      [TEMPO]: { amount: -2 },
+    });
+    freezeTerrain(world, waterEntity);
+    return waterEntity;
+  } else if (cell === "wood" || cell === "wood_three") {
     const woodEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
         stackable: "stick",
-        amount: cell === "wood" ? distribution(80, 15, 5) + 1 : 2,
+        amount: cell === "wood" ? distribution(80, 15, 5) + 1 : 3,
         bound: false,
       },
       [SPRITE]: getItemSprite({ stackable: "stick" }, "resource"),
     });
-    if (cell === "wood_two")
+    if (cell === "wood_three")
       setIdentifier(world, world.assertById(woodEntity[ITEM].carrier), cell);
+    return woodEntity;
   } else if (cell === "fruit" || cell === "fruit_one") {
     if (random(0, 1) === 0 || cell === "fruit_one") {
       const fruitEntity = entities.createFruit(world, {
@@ -641,8 +859,9 @@ export const createCell = (
           },
         ]
       );
+      return fruitEntity;
     } else {
-      createItemAsDrop(
+      return createItemAsDrop(
         world,
         { x, y },
         entities.createItem,
@@ -682,7 +901,7 @@ export const createCell = (
       const rootId = world.getEntityId(rootEntity);
       rootEntity[FRAGMENT].structure = rootId;
 
-      entities.createPlant(world, {
+      const leavesEntity = entities.createPlant(world, {
         [BURNABLE]: {
           burning: false,
           eternal: false,
@@ -699,8 +918,9 @@ export const createCell = (
       });
 
       matrix[x][y + 1] = "air";
+      return leavesEntity;
     } else {
-      entities.createOrganic(world, {
+      return entities.createOrganic(world, {
         [FOG]: { visibility, type: "terrain" },
         [BURNABLE]: {
           burning: false,
@@ -761,8 +981,9 @@ export const createCell = (
           [TEMPO]: { amount: -1 },
         });
       }
+      return fruitEntity;
     } else {
-      entities.createOrganic(world, {
+      return entities.createOrganic(world, {
         [BURNABLE]: {
           burning: false,
           eternal: false,
@@ -804,6 +1025,7 @@ export const createCell = (
     if (cell === "spawn_hedge") {
       setIdentifier(world, hedgeEntity, "spawn_hedge");
     }
+    return hedgeEntity;
   } else if (cell === "tumbleweed") {
     const { items, sprite, stats, faction, patterns } =
       generateUnitData("tumbleweed");
@@ -844,8 +1066,9 @@ export const createCell = (
       [TEMPO]: { amount: -1 },
     });
     populateInventory(world, tumbleweedEntity, items);
+    return tumbleweedEntity;
   } else if (cell === "bush" || cell === "berry" || cell === "berry_one") {
-    entities.createWeeds(world, {
+    const bushEntity = entities.createWeeds(world, {
       [BURNABLE]: {
         burning: false,
         eternal: false,
@@ -860,7 +1083,7 @@ export const createCell = (
     });
 
     if (cell === "berry" || cell === "berry_one") {
-      createItemAsDrop(
+      return createItemAsDrop(
         world,
         { x, y },
         entities.createItem,
@@ -875,8 +1098,9 @@ export const createCell = (
         false
       );
     }
+    return bushEntity;
   } else if (cell === "grass" || cell === "flower" || cell === "flower_one") {
-    entities.createWeeds(world, {
+    const grassEntity = entities.createWeeds(world, {
       [BURNABLE]: {
         burning: false,
         eternal: false,
@@ -890,7 +1114,7 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
     });
     if (cell === "flower" || cell === "flower_one") {
-      createItemAsDrop(
+      return createItemAsDrop(
         world,
         { x, y },
         entities.createItem,
@@ -905,8 +1129,9 @@ export const createCell = (
         false
       );
     }
+    return grassEntity;
   } else if (cell === "leaf") {
-    createItemAsDrop(world, { x, y }, entities.createItem, {
+    return createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
         stackable: "leaf",
         amount: distribution(80, 15, 5) + 1,
@@ -924,6 +1149,7 @@ export const createCell = (
       [SPRITE]: getItemSprite({ stackable: "coin" }, "resource"),
     });
     setIdentifier(world, world.assertById(coinItem[ITEM].carrier), "coin");
+    return coinItem;
   } else if (cell === "cactus") {
     const { sprite, stats, faction, items } = generateUnitData(
       (["cactus1", "cactus2"] as const)[random(0, 1)]
@@ -948,6 +1174,7 @@ export const createCell = (
       [STATS]: { ...emptyStats, ...stats },
     });
     populateInventory(world, cactusEntity, items);
+    return cactusEntity;
   } else if (
     cell === "wood_door" ||
     cell === "guide_door" ||
@@ -957,11 +1184,12 @@ export const createCell = (
     const doorEntity = entities.createDoor(world, {
       [ENTERABLE]: { sprite: doorOpen, orientation: "down" },
       [FOG]: { visibility, type: "float" },
-      [LAYER]: {},
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [LOCKABLE]: {
         locked: true,
         material: cell === "iron_door" ? "iron" : undefined,
+        sprite: doorOpen,
+        type: "door",
       },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -976,6 +1204,40 @@ export const createCell = (
     if (["guide_door", "nomad_door"].includes(cell)) {
       setIdentifier(world, doorEntity, cell);
     }
+    return doorEntity;
+  } else if (cell === "wood_entry" || cell === "iron_entry") {
+    return entities.createEntry(world, {
+      [FOG]: { visibility, type: "float" },
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [LOCKABLE]: {
+        locked: true,
+        material: cell === "iron_entry" ? "iron" : undefined,
+        type: "entry",
+      },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: cell === "iron_entry" ? entryClosedIron : entryClosedWood,
+    });
+  } else if (cell === "compass") {
+    const compassEntity = createItemAsDrop(
+      world,
+      { x, y },
+      entities.createCompass,
+      {
+        [ITEM]: {
+          equipment: "compass",
+          amount: 1,
+          bound: false,
+        },
+        [SPRITE]: compass,
+        [ORIENTABLE]: {},
+        [SEQUENCABLE]: { states: {} },
+        [TRACKABLE]: {},
+      }
+    );
+    setIdentifier(world, compassEntity, "compass");
+    return compassEntity;
   } else if (cell === "spawn_key") {
     const spawnKeyEntity = createItemAsDrop(
       world,
@@ -991,64 +1253,122 @@ export const createCell = (
         [SPRITE]: ironKey,
       }
     );
-    setIdentifier(world, world.assertById(spawnKeyEntity[ITEM].carrier), cell);
+    setIdentifier(
+      world,
+      world.assertById(spawnKeyEntity[ITEM].carrier),
+      "spawn_key"
+    );
+    return spawnKeyEntity;
   } else if (cell === "spawn_sign") {
-    const spawnSignData = generateUnitData("sign");
-    const spawnSign = entities.createSign(world, {
-      [ATTACKABLE]: { shots: 0 },
-      [BELONGABLE]: { faction: spawnSignData.faction },
-      [BURNABLE]: {
-        burning: false,
-        eternal: false,
-        decayed: false,
-        combusted: false,
-        remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
-      },
-      [DROPPABLE]: {
-        decayed: false,
-        remains: choice(fenceBurnt1, fenceBurnt2),
-      },
-      [FOG]: { visibility: "hidden", type: "terrain" },
-      [INVENTORY]: { items: [] },
-      [LAYER]: {},
-      [POSITION]: { x, y },
-      [RENDERABLE]: { generation: 0 },
-      [SEQUENCABLE]: { states: {} },
-      [SPRITE]: spawnSignData.sprite,
-      [STATS]: {
-        ...emptyStats,
-        ...spawnSignData.stats,
-      },
-      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-    });
-    populateInventory(world, spawnSign, spawnSignData.items);
-    createPopup(world, spawnSign, {
-      deals: [],
-      lines: [createText("Welcome to Alive!", colors.silver)],
-      transaction: "info",
-      targets: [],
-    });
-  } else if (cell === "gate") {
-    const doorEntity = entities.createPassage(world, {
-      [FOG]: { visibility, type: "float" },
-      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
-      [LOCKABLE]: {
-        locked: true,
-        material: "iron",
-      },
-      [POSITION]: { x, y },
-      [RENDERABLE]: { generation: 0 },
-      [SEQUENCABLE]: { states: {} },
-      [SPRITE]: doorClosedIron,
-      [TOOLTIP]: {
-        dialogs: [],
-        persistent: false,
-        nextDialog: 0,
-      },
-    });
-    setIdentifier(world, doorEntity, "gate");
+    const spawnSign = createSign(world, { x, y }, [
+      [
+        ...createText("Welcome to "),
+        ...createText("ALIVE", colors.maroon),
+        ...createText("!"),
+      ],
+      [],
+      [
+        ...createText("Collect the "),
+        ...createItemName({ consume: "key", material: "iron" }),
+      ],
+      createText("to the right and"),
+      [
+        ...createText("open the "),
+        ...createItemName({ materialized: "entry", material: "iron" }),
+      ],
+      createText("above."),
+      [],
+      [
+        ...createText(isTouch ? "Tap to " : "SHIFT to "),
+        ...createText("CLOSE", colors.black, colors.red),
+      ],
+      createText("any dialog."),
+    ]);
+    setIdentifier(world, spawnSign, "spawn_sign");
+    return spawnSign;
+  } else if (cell === "potion_sign") {
+    return createSign(world, { x, y }, [
+      [
+        ...createText("Use fruit "),
+        apple,
+        shroom,
+        banana,
+        coconut,
+        fruit,
+        herb,
+      ],
+      [
+        ...createText("to heal "),
+        ...createItemName({ stat: "hp" }),
+        ...createText("/"),
+        ...createItemName({ stat: "mp" }),
+        ...createText("."),
+      ],
+      [],
+      [
+        ...createText("Get a "),
+        ...createItemName({ consume: "potion1", material: "fire" }),
+        ...createText(" to"),
+      ],
+      [
+        ...createText("restore "),
+        ...createItemName({ stat: "hp" }),
+        ...createText("/"),
+        ...createItemName({ stat: "mp" }),
+      ],
+      createText("automatically."),
+      [],
+      createText("Open inventory by"),
+      createText(isTouch ? "tapping on [?]." : "pressing TAB."),
+    ]);
+  } else if (cell === "warp_sign") {
+    return createSign(world, { x, y }, [
+      createText("Find and use a"),
+      [...createItemName({ consume: "map" }), ...createText(" to warp into")],
+      createText("a new world."),
+      [],
+      createText("Step through the"),
+      [
+        portal,
+        ...createText("Portal", colors.grey),
+        ...createText(" to enter."),
+      ],
+      [],
+      [...createText("Good luck! "), heart],
+    ]);
+  } else if (cell === "guide_sign") {
+    const guideSign = createSign(world, { x, y }, [
+      [
+        ...createText("Use a "),
+        ...createItemName({ stackable: "stick" }),
+        ...createText(" as a"),
+      ],
+      [
+        ...createItemName({ equipment: "sword", material: "wood" }),
+        ...createText(" to attack."),
+      ],
+      [],
+      [...createText("Kill the "), ...createUnitName("dummy")],
+      [
+        ...createText("and grab "),
+        ...createItemName({ stackable: "resource", material: "iron" }),
+        ...createText("."),
+      ],
+      [],
+      [
+        ...createText("Trade for a "),
+        ...createItemName({ consume: "key", material: "iron" }),
+      ],
+      [
+        ...createText("with the "),
+        ...createUnitName("guide"),
+        ...createText("."),
+      ],
+    ]);
+    setIdentifier(world, guideSign, "guide_sign");
+    return guideSign;
   } else if (cell === "campfire" || cell === "fireplace") {
-    entities.createFire(world, {
+    return entities.createFire(world, {
       [BURNABLE]: {
         burning: cell === "campfire",
         eternal: true,
@@ -1062,37 +1382,21 @@ export const createCell = (
       [SPRITE]: campfire,
     });
   } else if (cell === "pot" || cell === "intro_pot") {
-    const { sprite, stats, faction, items, equipments } =
-      generateUnitData("pot");
-    const potEntity = entities.createChest(world, {
-      [ATTACKABLE]: { shots: 0 },
-      [BELONGABLE]: { faction },
-      [DROPPABLE]: { decayed: false },
-      [FOG]: { visibility, type: "terrain" },
-      [INVENTORY]: { items: [] },
-      [LAYER]: {},
-      [POSITION]: { x, y },
-      [RENDERABLE]: { generation: 0 },
-      [SEQUENCABLE]: { states: {} },
-      [SPRITE]: sprite,
-      [STATS]: {
-        ...emptyStats,
-        ...stats,
-      },
-      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-    });
-    if (cell === "intro_pot") {
-      createItemInInventory(world, potEntity, entities.createItem, {
-        [ITEM]: {
-          stackable: "coin",
-          amount: 3,
-        },
-        [SPRITE]: getItemSprite({ stackable: "coin" }),
-      });
-      setIdentifier(world, potEntity, "pot");
-    } else {
-      populateInventory(world, potEntity, items, equipments);
-    }
+    return createChest(
+      world,
+      "pot",
+      { x, y },
+      cell === "intro_pot"
+        ? [
+            {
+              stackable: "coin",
+              amount: 3,
+            },
+          ]
+        : undefined
+    );
+  } else if (cell === "dummy") {
+    return createChest(world, "dummy", { x, y });
   } else if (cell === "fence") {
     const { sprite, stats, faction, items, equipments } =
       generateUnitData("fence");
@@ -1121,36 +1425,44 @@ export const createCell = (
       },
     });
     populateInventory(world, fenceEntity, items, equipments);
-  } else if (cell === "fence_door") {
-    entities.createPath(world, {
-      [ENVIRONMENT]: { biomes: ["path"] },
-      [FOG]: { visibility, type: "terrain" },
-      [POSITION]: { x, y },
-      [RENDERABLE]: { generation: 0 },
-      [SPRITE]: none,
-      [TEMPO]: { amount: 2 },
-    });
-    entities.createGate(world, {
+    return fenceEntity;
+  } else if (cell === "fence_door" || cell === "fence_door_path") {
+    if (cell === "fence_door_path") {
+      entities.createPath(world, {
+        [ENVIRONMENT]: { biomes: ["path"] },
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: none,
+        [TEMPO]: { amount: 2 },
+      });
+    }
+    return entities.createGate(world, {
       [BURNABLE]: {
         burning: false,
         eternal: false,
         decayed: false,
         combusted: false,
-        remains: fenceDoorBurnt,
+        remains:
+          cell === "fence_door_path" ? fenceDoorBurntPath : fenceDoorBurnt,
       },
       [FOG]: { visibility, type: "terrain" },
-      [LOCKABLE]: { locked: true },
+      [LOCKABLE]: {
+        locked: true,
+        sprite: cell === "fence_door_path" ? fenceDoorOpenPath : fenceDoorOpen,
+        type: "gate",
+      },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: fenceDoor,
+      [SPRITE]: cell === "fence_door_path" ? fenceDoorPath : fenceDoor,
       [TOOLTIP]: {
         dialogs: [],
         persistent: false,
         nextDialog: 0,
       },
     });
-  } else if (cell === "box") {
+  } else if (cell === "box" || cell === "key_box") {
     const { items, equipments, sprite, stats, faction } =
       generateUnitData("box");
     const frameEntity = entities.createFrame(world, {
@@ -1189,7 +1501,54 @@ export const createCell = (
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       [STATS]: { ...emptyStats, ...stats },
     });
-    populateInventory(world, boxEntity, items, equipments);
+    populateInventory(
+      world,
+      boxEntity,
+      cell === "key_box"
+        ? [{ consume: "key", material: "iron", amount: 1, bound: false }]
+        : items,
+      equipments
+    );
+    return boxEntity;
+  } else if (cell === "potion_chest") {
+    return createChest(world, "commonChest", { x, y }, [
+      {
+        consume: "potion1",
+        material: "fire",
+        amount: 10,
+      },
+      {
+        consume: "key",
+        material: "iron",
+        amount: 1,
+      },
+    ]);
+  } else if (cell === "warp_chest") {
+    return createChest(world, "uncommonChest", { x, y }, [
+      {
+        consume: "map",
+        amount: 1,
+      },
+    ]);
+  } else if (cell === "spawner") {
+    return entities.createSpawner(world, {
+      [BEHAVIOUR]: { patterns: [] },
+      [BELONGABLE]: { faction: "wild" },
+      [LAYER]: {},
+      [FOG]: { visibility, type: "terrain" },
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: { duration: 200 },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: enemySpawner,
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+    });
   } else if (npcTypes.includes(cell as NpcType) || cell === "spawn_prism") {
     const mobUnit = generateNpcData(
       cell === "spawn_prism" ? "prism" : (cell as NpcType)
@@ -1199,7 +1558,9 @@ export const createCell = (
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
       [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
       [ATTACKABLE]: { shots: 0 },
-      [BEHAVIOUR]: { patterns: mobUnit.patterns },
+      [BEHAVIOUR]: {
+        patterns: [{ name: "wait", memory: { ticks: 1 } }, ...mobUnit.patterns],
+      },
       [BELONGABLE]: { faction: mobUnit.faction },
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
@@ -1264,12 +1625,13 @@ export const createCell = (
       );
       setIdentifier(world, spawnKeyEntity, "spawn_key");
     }
+    return mobEntity;
   } else if (
     ["house_left", "house_right", "basement_left", "basement_right"].includes(
       cell
     )
   ) {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: {
         sprite:
@@ -1299,7 +1661,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "wall") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: wallInside, orientation: "down" },
       [FOG]: { visibility, type: "terrain" },
@@ -1310,7 +1672,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "wall_window") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: {
         sprite: windowInside,
@@ -1324,7 +1686,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "house") {
-    entities.createFloat(world, {
+    return entities.createFloat(world, {
       [ENTERABLE]: { sprite: none },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
@@ -1333,7 +1695,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "roof") {
-    entities.createFloat(world, {
+    return entities.createFloat(world, {
       [ENTERABLE]: { sprite: none },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
@@ -1342,7 +1704,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "roof_left") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: houseRight },
       [FOG]: { visibility, type: "terrain" },
@@ -1358,7 +1720,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "roof_right") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: houseLeft },
       [FOG]: { visibility, type: "terrain" },
@@ -1374,7 +1736,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "roof_left_up") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: roofLeftUpInside },
       [FOG]: { visibility, type: "float" },
@@ -1385,7 +1747,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "roof_up") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: roofUpInside },
       [FOG]: { visibility, type: "float" },
@@ -1401,7 +1763,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "roof_up_right") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: roofUpRightInside },
       [LAYER]: {},
@@ -1412,7 +1774,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "roof_down_left") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: houseRight },
       [FOG]: { visibility, type: "terrain" },
@@ -1428,7 +1790,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "roof_down") {
-    entities.createFloat(world, {
+    return entities.createFloat(world, {
       [ENTERABLE]: { sprite: none },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
@@ -1437,7 +1799,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "roof_right_down") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: houseLeft },
       [FOG]: { visibility, type: "terrain" },
@@ -1453,7 +1815,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "house_window") {
-    entities.createFloat(world, {
+    return entities.createFloat(world, {
       [ENTERABLE]: { sprite: none },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
@@ -1462,7 +1824,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "house_aid") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: wallInside },
       [FOG]: { visibility, type: "terrain" },
@@ -1478,7 +1840,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "house_armor") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: wallInside },
       [FOG]: { visibility, type: "terrain" },
@@ -1494,7 +1856,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "house_mage") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: wallInside },
       [FOG]: { visibility, type: "terrain" },
@@ -1510,7 +1872,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "house_trader") {
-    entities.createWall(world, {
+    return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: wallInside },
       [FOG]: { visibility, type: "terrain" },
@@ -1534,6 +1896,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
     setIdentifier(world, towerEntity, "chest_tower_statue");
+    return towerEntity;
   } else if (cell === "chest_tower") {
     const towerUnit = generateNpcData("waveTower");
     const towerEntity = entities.createMob(world, {
@@ -1580,6 +1943,7 @@ export const createCell = (
       towerUnit.equipments
     );
     setIdentifier(world, towerEntity, "chest_tower");
+    return towerEntity;
   } else if (cell === "chest_boss") {
     const bossUnit = generateNpcData("chestBoss");
 
@@ -1623,6 +1987,7 @@ export const createCell = (
 
     npcSequence(world, bossEntity, "chestNpc", {});
     setIdentifier(world, bossEntity, "chest_boss");
+    return bossEntity;
   } else if (cell === "chest_mob") {
     const mobUnit = generateNpcData(
       (["goldPrism", "goldOrb", "goldEye"] as const)[distribution(33, 33, 33)]
@@ -1673,29 +2038,28 @@ export const createCell = (
         {
           stat: (["hp", "mp"] as const)[distribution(70, 30)],
           amount: 1,
-          bound: false,
         },
       ],
       mobUnit.equipments
     );
     setIdentifier(world, mobEntity, "chest_mob");
+    return mobEntity;
   } else if (cell === "portal") {
-    entities.createPortal(world, {
-      [FOG]: { visibility, type: "terrain" },
+    const portalEntity = entities.createPortal(world, {
+      [COLLIDABLE]: {},
+      [FOG]: { visibility, type: "float" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: portal,
       [TOOLTIP]: {
-        dialogs: [
-          createDialog("You made it!"),
-          createDialog("Boss is defeated"),
-          createDialog("Step into portal"),
-          createDialog("Enter next world"),
-        ],
+        dialogs: [],
         persistent: false,
         nextDialog: -1,
       },
+      [WARPABLE]: { name: "LEVEL_FOREST" },
     });
+
+    return portalEntity;
   }
 };

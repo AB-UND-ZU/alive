@@ -52,3 +52,4 @@ export { default as addTempo } from "./tempo";
 export { default as addTooltip } from "./tooltip";
 export { default as addTrackable } from "./trackable";
 export { default as addViewable } from "./viewable";
+export { default as addWarpable } from "./warpable";

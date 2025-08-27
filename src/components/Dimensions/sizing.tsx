@@ -29,16 +29,15 @@ export type Dimensions = {
 };
 
 const visibleColumns = 21;
-const visibleRows = 19;
+const visibleRows = 20;
 export const pixels = 16;
 export const aspectRatio = 9 / 16; // of DOS font
-const extraOffset = 3; // to allow common mobile width of 375px to display 378px (18px * 21)
 const hudRows = 8;
 const overscanColumns = 4;
 const overscanRows = 6;
 
 const calculateDimensions: () => Dimensions = () => {
-  const screenWidth = window.innerWidth + extraOffset;
+  const screenWidth = window.innerWidth;
   const screenHeight = window.innerHeight;
   const horizontalMinimum = Math.floor(
     screenWidth / visibleColumns / aspectRatio

@@ -38,6 +38,8 @@ import { isControllable } from "./freeze";
 import { getLootDelay, queueMessage } from "../../game/assets/utils";
 import { invertOrientation } from "../../game/math/path";
 import { pickupOptions, play } from "../../game/sound";
+import { IDENTIFIABLE } from "../components/identifiable";
+import { setIdentifier } from "../utils";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -144,7 +146,8 @@ export const collectItem = (
     );
 
     // initiate collecting animation on player
-    if (orientation && !["hp", "mp"].includes(itemEntity[ITEM].stat!)) {
+    const isHpOrMp = ["hp", "mp"].includes(itemEntity[ITEM].stat!);
+    if (orientation && !isHpOrMp) {
       const sprite = getItemSprite(itemEntity[ITEM]);
       queueMessage(world, entity, {
         line: createText(`${collectAmount}x ${sprite.name}`, colors.silver),
@@ -155,8 +158,10 @@ export const collectItem = (
     }
 
     // play sound
-    const options = pickupOptions[(stackable || stat)!];
-    play("pickup", options);
+    if (!isHpOrMp) {
+      const options = pickupOptions[(stackable || stat)!];
+      play("pickup", options);
+    }
 
     // update walkable
     updateWalkable(world, target[POSITION]);
@@ -260,20 +265,24 @@ export const addToInventory = (
     }
   } else if (targetStackable) {
     // add to existing stack if available
-    const existingStack = getStackable(world, entity, itemEntity[ITEM]);
+    let targetStack = getStackable(world, entity, itemEntity[ITEM]);
 
-    if (existingStack) {
-      existingStack[ITEM].amount += amount;
+    if (targetStack) {
+      targetStack[ITEM].amount += amount;
     } else {
       // create new stack
-      const stackEntity = entities.createItem(world, {
+      targetStack = entities.createItem(world, {
         [ITEM]: { ...itemEntity[ITEM], carrier: entityId },
         [SPRITE]: getItemSprite(itemEntity[ITEM]),
         [RENDERABLE]: { generation: 0 },
       });
-      const stackId = world.getEntityId(stackEntity);
-      stackEntity[ITEM].amount = amount;
+      const stackId = world.getEntityId(targetStack);
+      targetStack[ITEM].amount = amount;
       entity[INVENTORY].items.push(stackId);
+    }
+
+    if (itemEntity[IDENTIFIABLE]) {
+      setIdentifier(world, targetStack, itemEntity[IDENTIFIABLE].name);
     }
   }
 

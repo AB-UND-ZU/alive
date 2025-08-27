@@ -4,23 +4,25 @@ import { WorldProvider } from "../../bindings/hooks";
 import { PLAYER } from "../../engine/components/player";
 import { isGhost } from "../../engine/systems/fate";
 import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
+import { createLevel, createSystems } from "../../engine/ecs";
 import {
-  forestName,
-  forestSize,
-  generateForest,
-} from "../../game/levels/forest";
-import { createLevel } from "../../engine/ecs";
+  generateOverworld,
+  overworldSize,
+  overworldName,
+} from "../../game/levels/overworld";
 
 export default function World(props: React.PropsWithChildren) {
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState(true);
+  const [initial, setInitial] = useState(true);
   const pauseRef = useRef(paused);
 
   // generate initial world
   // TODO: find better way to prevent double generation
   const [ecs] = useState(() => {
     const world = createWorld();
-    createLevel(world, forestName, forestSize);
-    setTimeout(generateForest, 0, world);
+    createLevel(world, overworldName, overworldSize);
+    setTimeout(generateOverworld, 0, world);
+    createSystems(world);
     return world;
   });
 
@@ -47,8 +49,8 @@ export default function World(props: React.PropsWithChildren) {
   );
 
   const context = useMemo(
-    () => ({ ecs, paused, setPaused: handlePause }),
-    [ecs, paused, handlePause]
+    () => ({ ecs, paused, setPaused: handlePause, initial, setInitial }),
+    [ecs, paused, handlePause, initial]
   );
 
   return <WorldProvider value={context} {...props} />;

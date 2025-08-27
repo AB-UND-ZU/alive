@@ -13,6 +13,7 @@ import { STRUCTURABLE } from "../components/structurable";
 import { VIEWABLE } from "../components/viewable";
 import { LAYER } from "../components/layer";
 import { PLAYER } from "../components/player";
+import { getLockable } from "./action";
 
 export const isFragment = (world: World, entity: Entity) => FRAGMENT in entity;
 
@@ -71,15 +72,17 @@ export default function setupEnter(world: World) {
       entityReferences[entityId] = entityReference;
 
       const fragment = getFragment(world, entity[POSITION]);
+      const lockable = getLockable(world, entity[POSITION]);
+      const previousStructure = entity[LAYER].structure;
       const currentStructure =
         !entity[MOVABLE]?.flying &&
         fragment &&
         world.getEntityByIdAndComponents(fragment[FRAGMENT].structure, [
           STRUCTURABLE,
-        ])?.[VIEWABLE]
+        ])?.[VIEWABLE] &&
+        !(previousStructure && lockable)
           ? fragment[FRAGMENT].structure
           : undefined;
-      const previousStructure = entity[LAYER].structure;
 
       if (currentStructure !== previousStructure) {
         entity[LAYER].structure = currentStructure;
