@@ -33,9 +33,12 @@ import { SPRITE } from "../components/sprite";
 import { getGearStat } from "../../game/balancing/equipment";
 import { dropEntity } from "./drop";
 import { PLAYER } from "../components/player";
-import { getItemSprite } from "../../components/Entity/utils";
 import { isControllable } from "./freeze";
-import { getLootDelay, queueMessage } from "../../game/assets/utils";
+import {
+  getItemSprite,
+  getLootDelay,
+  queueMessage,
+} from "../../game/assets/utils";
 import { invertOrientation } from "../../game/math/path";
 import { pickupOptions, play } from "../../game/sound";
 import { IDENTIFIABLE } from "../components/identifiable";

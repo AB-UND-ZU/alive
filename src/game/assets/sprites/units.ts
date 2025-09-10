@@ -148,10 +148,28 @@ export const entryClosedWood: Sprite = {
   ],
 };
 
+export const entryClosedWoodDisplay: Sprite = {
+  name: "Entry",
+  layers: [
+    { char: "\u0107", color: colors.grey },
+    { char: ".", color: colors.black },
+  ],
+};
+
 export const entryClosedIron: Sprite = {
   name: "Entry",
   layers: [
     { char: "█", color: colors.grey },
+    { char: "\u0106", color: colors.silver },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.silver },
+  ],
+};
+
+export const entryClosedIronDisplay: Sprite = {
+  name: "Entry",
+  layers: [
+    { char: "\u0107", color: colors.grey },
     { char: "\u0106", color: colors.silver },
     { char: "∙", color: colors.black },
     { char: ".", color: colors.silver },

@@ -22,7 +22,7 @@ import {
 import * as colors from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
 import { normalize, repeat } from "../../game/math/std";
-import { getItemSprite, getSegments } from "../Entity/utils";
+import { getSegments } from "../Entity/utils";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { ITEM, Item } from "../../engine/components/item";
@@ -57,6 +57,7 @@ import { getConsumption } from "../../engine/systems/consume";
 import { PLAYER } from "../../engine/components/player";
 import { ensureAudio } from "../../game/sound/resumable";
 import Cursor from "../Cursor";
+import { getItemSprite } from "../../game/assets/utils";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -242,10 +243,13 @@ export default function Controls() {
       unlockEntity
         ? [
             ...repeat(none, 2),
-            getItemSprite({
-              materialized: unlockEntity[LOCKABLE].type,
-              material: unlockEntity[LOCKABLE].material,
-            }),
+            getItemSprite(
+              {
+                materialized: unlockEntity[LOCKABLE].type,
+                material: unlockEntity[LOCKABLE].material,
+              },
+              "display"
+            ),
             getItemSprite({
               consume: "key",
               material: unlockEntity[LOCKABLE].material,
@@ -763,7 +767,7 @@ export default function Controls() {
       highlight,
       selectedPrimary.palette
     );
-  const leftButton = pressedPrimary || primaryButton || emptyPrimary;
+  const rightButton = pressedPrimary || primaryButton || emptyPrimary;
   const emptySecondary = createButton(
     isTouch ? "ITEM" : "SHIFT",
     buttonWidth,
@@ -782,7 +786,7 @@ export default function Controls() {
       (highlight + 3) % 12,
       selectedSecondary.palette
     );
-  const rightButton = pressedSecondary || secondaryButton || emptySecondary;
+  const leftButton = pressedSecondary || secondaryButton || emptySecondary;
 
   const emptyActivation = repeat(none, 6);
   const primaryActivation =
@@ -807,7 +811,7 @@ export default function Controls() {
           );
           return [
             equipmentSprite,
-            ...createText(equipmentSprite.name, colors.silver),
+            ...createText(equipmentSprite.name, colors.grey),
             ...repeat(none, inventoryWidth - equipmentSprite.name.length - 1),
           ];
         })
@@ -880,8 +884,8 @@ export default function Controls() {
           <Row
             cells={[
               ...repeat(none, dimensions.padding),
-              ...primaryActivation,
               ...secondaryActivation,
+              ...primaryActivation,
               ...createText("│", colors.grey),
               ...equipmentRows[2],
               ...repeat(none, dimensions.padding),
@@ -889,8 +893,8 @@ export default function Controls() {
           />
         </>
       )}
-      <div className="Primary" id="primary" onClick={handlePrimary} />
       <div className="Secondary" id="secondary" onClick={handleSecondary} />
+      <div className="Primary" id="primary" onClick={handlePrimary} />
     </footer>
   );
 }

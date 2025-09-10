@@ -34,7 +34,7 @@ import {
   Orientation,
   orientationPoints,
 } from "../components/orientable";
-import { decayTime, lootSpeed } from "../../game/assets/utils";
+import { decayTime, getItemSprite, lootSpeed } from "../../game/assets/utils";
 import { SPAWNABLE } from "../components/spawnable";
 import { LAYER } from "../components/layer";
 import { RECHARGABLE } from "../components/rechargable";
@@ -44,7 +44,6 @@ import { setIdentifier } from "../utils";
 import { getBurning } from "./burn";
 import { PLAYER } from "../components/player";
 import { NPC } from "../components/npc";
-import { getItemSprite } from "../../components/Entity/utils";
 import { play } from "../../game/sound";
 import { STATS } from "../components/stats";
 

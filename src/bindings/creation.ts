@@ -1,5 +1,4 @@
 import { Entity } from "ecs";
-import { getItemSprite } from "../components/Entity/utils";
 import { entities, World } from "../engine";
 import { ACTIONABLE } from "../engine/components/actionable";
 import { AFFECTABLE } from "../engine/components/affectable";
@@ -142,6 +141,7 @@ import {
 import {
   createItemName,
   createUnitName,
+  getItemSprite,
   npcSequence,
 } from "../game/assets/utils";
 import {

@@ -15,7 +15,7 @@ import {
   assertIdentifierAndComponents,
   setIdentifier,
 } from "../../../engine/utils";
-import { npcSequence, questSequence } from "../../assets/utils";
+import { getItemSprite, npcSequence, questSequence } from "../../assets/utils";
 import {
   disposeEntity,
   getCell,
@@ -31,7 +31,6 @@ import { SPRITE } from "../../../engine/components/sprite";
 import { createItemAsDrop } from "../../../engine/systems/drop";
 import { Item, ITEM } from "../../../engine/components/item";
 import { getGearStat } from "../../balancing/equipment";
-import { getItemSprite } from "../../../components/Entity/utils";
 import { ORIENTABLE } from "../../../engine/components/orientable";
 import { TOOLTIP } from "../../../engine/components/tooltip";
 import { createDialog } from "../../assets/sprites";

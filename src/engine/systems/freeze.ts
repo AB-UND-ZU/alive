@@ -202,7 +202,7 @@ export default function setupFreeze(world: World) {
           { total: entity[AFFECTABLE].freeze }
         );
         queueMessage(world, entity, {
-          line: createText("FROZEN", colors.blue),
+          line: createText("FROZEN", colors.aqua),
           orientation: "up",
           fast: false,
           delay: 0,

@@ -169,7 +169,7 @@ export default function setupBurn(world: World) {
           { generation: 0 }
         );
         queueMessage(world, entity, {
-          line: createText("BURNING", colors.red),
+          line: createText("BURNING", colors.yellow),
           orientation: "up",
           fast: false,
           delay: 0,

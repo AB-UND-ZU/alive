@@ -44,10 +44,30 @@ export const ironMine: Sprite = {
   ],
 };
 
+export const ironMineDisplay: Sprite = {
+  name: "Mine",
+  layers: [
+    { char: "\u0106", color: colors.grey },
+    { char: "\u0107", color: colors.grey },
+    { char: "÷", color: colors.silver },
+    { char: "·", color: colors.grey },
+  ],
+};
+
 export const goldMine: Sprite = {
   name: "Gold",
   layers: [
     { char: "█", color: colors.grey },
+    { char: "÷", color: colors.yellow },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const goldMineDisplay: Sprite = {
+  name: "Mine",
+  layers: [
+    { char: "\u0106", color: colors.grey },
+    { char: "\u0107", color: colors.grey },
     { char: "÷", color: colors.yellow },
     { char: "·", color: colors.grey },
   ],

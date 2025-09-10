@@ -68,29 +68,29 @@ export const nomad: Sprite = {
 export const blade: Sprite = {
   name: "Blade",
   layers: [
-    { char: "+", color: colors.silver },
+    { char: "+", color: colors.grey },
     { char: "-", color: colors.black },
-    { char: ">", color: colors.silver },
+    { char: ">", color: colors.grey },
   ],
   facing: {
     up: [
-      { char: "\u0105", color: colors.silver },
+      { char: "\u0105", color: colors.grey },
       { char: "\u0115", color: colors.black },
       { char: "+", color: colors.black },
     ],
     right: [
-      { char: "+", color: colors.silver },
+      { char: "+", color: colors.grey },
       { char: "-", color: colors.black },
-      { char: ">", color: colors.silver },
+      { char: ">", color: colors.grey },
     ],
     down: [
-      { char: "v", color: colors.silver },
+      { char: "v", color: colors.grey },
       { char: "+", color: colors.black },
     ],
     left: [
-      { char: "+", color: colors.silver },
+      { char: "+", color: colors.grey },
       { char: "-", color: colors.black },
-      { char: "<", color: colors.silver },
+      { char: "<", color: colors.grey },
     ],
   },
 };
@@ -107,30 +107,30 @@ export const fish: Sprite = {
 export const shark: Sprite = {
   name: "Shark",
   layers: [
-    { char: "≥", color: colors.silver },
-    { char: ">", color: colors.silver },
-    { char: "+", color: colors.silver },
+    { char: "≥", color: colors.grey },
+    { char: ">", color: colors.grey },
+    { char: "+", color: colors.grey },
   ],
   facing: {
     up: [
-      { char: '"', color: colors.silver },
-      { char: "│", color: colors.silver },
+      { char: '"', color: colors.grey },
+      { char: "│", color: colors.grey },
       { char: "!", color: colors.navy },
     ],
     right: [
-      { char: "≥", color: colors.silver },
-      { char: ">", color: colors.silver },
-      { char: "+", color: colors.silver },
+      { char: "≥", color: colors.grey },
+      { char: ">", color: colors.grey },
+      { char: "+", color: colors.grey },
     ],
     down: [
-      { char: '"', color: colors.silver },
-      { char: "|", color: colors.silver },
+      { char: '"', color: colors.grey },
+      { char: "|", color: colors.grey },
       { char: "+", color: colors.navy },
     ],
     left: [
-      { char: "≤", color: colors.silver },
-      { char: "<", color: colors.silver },
-      { char: "+", color: colors.silver },
+      { char: "≤", color: colors.grey },
+      { char: "<", color: colors.grey },
+      { char: "+", color: colors.grey },
     ],
   },
 };
@@ -138,10 +138,10 @@ export const shark: Sprite = {
 export const cube: Sprite = {
   name: "Cube",
   layers: [
-    { char: "■", color: colors.silver },
+    { char: "■", color: colors.grey },
     { char: "\u0106", color: colors.black },
-    { char: "=", color: colors.silver },
-    { char: "±", color: colors.silver },
+    { char: "=", color: colors.grey },
+    { char: "±", color: colors.grey },
   ],
 };
 
@@ -187,12 +187,12 @@ export const earthCube: Sprite = {
 
 export const prism: Sprite = {
   name: "Prism",
-  layers: [{ char: "\u010f", color: colors.silver }],
+  layers: [{ char: "\u010f", color: colors.grey }],
   facing: {
-    up: [{ char: "\u011d", color: colors.silver }],
-    right: [{ char: "\u010f", color: colors.silver }],
-    down: [{ char: "\u011e", color: colors.silver }],
-    left: [{ char: "\u0110", color: colors.silver }],
+    up: [{ char: "\u011d", color: colors.grey }],
+    right: [{ char: "\u010f", color: colors.grey }],
+    down: [{ char: "\u011e", color: colors.grey }],
+    left: [{ char: "\u0110", color: colors.grey }],
   },
 };
 
@@ -231,12 +231,17 @@ export const firePrism: Sprite = {
 
 export const orb: Sprite = {
   name: "Orb",
-  layers: [{ char: "Φ", color: colors.silver }],
+  layers: [{ char: "Φ", color: colors.grey }],
 };
 
 export const goldOrb: Sprite = {
   name: "Orb",
   layers: [{ char: "Φ", color: colors.yellow }],
+};
+
+export const diamondOrb: Sprite = {
+  name: "Orb",
+  layers: [{ char: "Φ", color: colors.aqua }],
 };
 
 export const fireOrb: Sprite = {
@@ -301,30 +306,30 @@ export const earthBeamTower: Sprite = {
 export const eye: Sprite = {
   name: "Eye",
   layers: [
-    { char: "\u0108", color: colors.silver },
-    { char: "\u0106", color: colors.silver },
+    { char: "\u0108", color: colors.grey },
+    { char: "\u0106", color: colors.grey },
     { char: "∙", color: colors.black },
-    { char: "·", color: colors.silver },
+    { char: "·", color: colors.grey },
   ],
   facing: {
     up: [
-      { char: "\u0108", color: colors.silver },
-      { char: "\u0106", color: colors.silver },
+      { char: "\u0108", color: colors.grey },
+      { char: "\u0106", color: colors.grey },
       { char: "∙", color: colors.black },
     ],
     right: [
-      { char: "\u0108", color: colors.silver },
-      { char: "\u0106", color: colors.silver },
+      { char: "\u0108", color: colors.grey },
+      { char: "\u0106", color: colors.grey },
       { char: "∙", color: colors.black },
     ],
     down: [
-      { char: "\u0108", color: colors.silver },
-      { char: "\u0106", color: colors.silver },
+      { char: "\u0108", color: colors.grey },
+      { char: "\u0106", color: colors.grey },
       { char: "∙", color: colors.black },
     ],
     left: [
-      { char: "\u0108", color: colors.silver },
-      { char: "\u0106", color: colors.silver },
+      { char: "\u0108", color: colors.grey },
+      { char: "\u0106", color: colors.grey },
       { char: "∙", color: colors.black },
     ],
   },
@@ -534,7 +539,7 @@ export const fly: Sprite = {
 
 export const fairy: Sprite = {
   name: "Fairy",
-  layers: [{ char: "\u0100", color: colors.silver }],
+  layers: [{ char: "\u0100", color: colors.grey }],
 };
 
 export const chestBoss: Sprite = {

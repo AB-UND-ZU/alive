@@ -11,6 +11,7 @@ import {
   mana,
   manaUp,
   power,
+  sight,
   xp,
 } from "./items";
 import { lerp, normalize, padCenter, repeat } from "../../math/std";
@@ -1256,6 +1257,30 @@ export const popupUpEnd: Sprite = {
   ],
 };
 
+export const popupCenterStart: Sprite = {
+  name: "popup_center_start",
+  layers: [
+    { char: "▐", color: colors.black },
+    { char: "╟", color: colors.silver },
+  ],
+};
+
+export const popupCenter: Sprite = {
+  name: "popup_center",
+  layers: [
+    { char: "█", color: colors.black },
+    { char: "─", color: colors.silver },
+  ],
+};
+
+export const popupCenterEnd: Sprite = {
+  name: "popup_center_end",
+  layers: [
+    { char: "▌", color: colors.black },
+    { char: "╢", color: colors.silver },
+  ],
+};
+
 export const popupDownStart: Sprite = {
   name: "popup_down_start",
   layers: [
@@ -1376,20 +1401,24 @@ const statConfig: Record<
     sprite: level,
   },
   power: {
-    color: colors.lime,
+    color: colors.green,
     sprite: power,
   },
   magic: {
-    color: colors.lime,
+    color: colors.green,
     sprite: magic,
   },
   armor: {
-    color: colors.lime,
+    color: colors.green,
     sprite: armor,
   },
   haste: {
-    color: colors.lime,
+    color: colors.green,
     sprite: haste,
+  },
+  sight: {
+    color: colors.green,
+    sprite: sight,
   },
 };
 

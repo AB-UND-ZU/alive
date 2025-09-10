@@ -8,16 +8,16 @@
 
 .Primary {
   position: absolute;
-  left: 0;
-  top: calc(var(--bottom-offset) * -1 + var(--cell-height));
-  bottom: 0;
-  right: calc(50% + 4.5 * var(--cell-width));
-}
-
-.Secondary {
-  position: absolute;
   left: calc(50% - 4.5 * var(--cell-width));
   top: calc(var(--bottom-offset) * -1 + var(--cell-height));
   bottom: 0;
   right: calc(50% - 2 * var(--cell-width));
+}
+
+.Secondary {
+  position: absolute;
+  left: 0;
+  top: calc(var(--bottom-offset) * -1 + var(--cell-height));
+  bottom: 0;
+  right: calc(50% + 4.5 * var(--cell-width));
 }

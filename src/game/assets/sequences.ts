@@ -4,7 +4,6 @@ import {
   effectHeight,
   focusHeight,
   fogHeight,
-  getItemSprite,
   idleHeight,
   lootHeight,
   particleHeight,
@@ -192,6 +191,8 @@ import {
   displayPopup,
   frameHeight,
   frameWidth,
+  getItemDescription,
+  getItemSprite,
   getLootDelay,
   popupTime,
   scrolledVerticalIndex,
@@ -673,11 +674,17 @@ export const transientMessage: Sequence<MessageSequence> = (
     const isExpired = state.elapsed >= message.delay + messageTime;
 
     if (isStarted && !isExpired && !("stack" in message)) {
+      const inPopup = isInPopup(world, entity);
+
       // mark message as executing
       message.stack = state.args.index;
       state.args.index += 1;
 
-      message.line.forEach((char, index) => {
+      const line = inPopup
+        ? addBackground(message.line, colors.black)
+        : message.line;
+
+      line.forEach((char, index) => {
         const charParticle = entities.createParticle(world, {
           [PARTICLE]: {
             offsetX: index - Math.floor(message.line.length / 2),
@@ -1218,11 +1225,21 @@ export const displayInspect: Sequence<PopupSequence> = (
     entity[POPUP].verticalIndex,
     entity[INVENTORY].items.length - 1
   );
-  const selectionX =
-    popupCenter.x +
-    ((frameWidth - 3) / 2) * (state.args.transaction === "sell" ? 1 : -1);
+  const selectedItem = world.getEntityByIdAndComponents(
+    entity[INVENTORY].items[verticalIndex],
+    [ITEM]
+  );
+  const details = selectedItem && getItemDescription(selectedItem[ITEM]);
+
+  const selectionX = popupCenter.x - (frameWidth - 3) / 2;
   const selectionY = popupCenter.y - (frameHeight - 3) / 2;
-  const scrollIndex = scrolledVerticalIndex(world, entity, state, content);
+  const scrollIndex = scrolledVerticalIndex(
+    world,
+    entity,
+    state,
+    content,
+    details
+  );
 
   if (
     !state.particles.selection &&
@@ -1271,7 +1288,14 @@ export const displayInspect: Sequence<PopupSequence> = (
     updated = true;
   }
 
-  const popupResult = displayPopup(world, entity, state, info, content);
+  const popupResult = displayPopup(
+    world,
+    entity,
+    state,
+    info,
+    content,
+    details
+  );
   return {
     updated: popupResult.updated || updated,
     finished: popupResult.finished,

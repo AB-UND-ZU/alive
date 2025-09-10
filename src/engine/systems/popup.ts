@@ -57,6 +57,7 @@ export const isInInfo = (world: World, entity: Entity) =>
 
 export const isPopupAvailable = (world: World, entity: Entity) =>
   POPUP in entity &&
+  !isDead(world, entity) &&
   ((shops.includes(entity[POPUP].transaction) &&
     entity[POPUP].deals.length > 0) ||
     entity[POPUP].lines.length > 0) &&

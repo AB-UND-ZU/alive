@@ -166,6 +166,11 @@ export const xp: Sprite = {
 export const power: Sprite = {
   name: "Power",
   layers: [
+    { char: "=", color: colors.green },
+    { char: "|", color: colors.green },
+    { char: "▀", color: colors.black },
+    { char: "+", color: colors.green },
+    { char: "-", color: colors.black },
     { char: "x", color: colors.lime },
     { char: "∙", color: colors.green },
     { char: "·", color: colors.lime },
@@ -188,6 +193,15 @@ export const armor: Sprite = {
     { char: "\u0108", color: colors.lime },
     { char: "v", color: colors.lime },
     { char: "+", color: colors.green },
+  ],
+};
+
+export const sight: Sprite = {
+  name: "Sight",
+  layers: [
+    { char: "\u0108", color: colors.lime },
+    { char: "\u0106", color: colors.green },
+    { char: "·", color: colors.lime },
   ],
 };
 

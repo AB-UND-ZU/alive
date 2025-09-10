@@ -38,6 +38,7 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       magic: 0,
       armor: 0,
       haste: 0,
+      sight: 0,
     },
   },
   knight: {
@@ -63,6 +64,7 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       magic: 0,
       armor: 1,
       haste: 0,
+      sight: 0,
     },
   },
   mage: {
@@ -88,6 +90,7 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       magic: 1,
       armor: 0,
       haste: 0,
+      sight: 0,
     },
   },
   hunter: {
@@ -113,6 +116,7 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       magic: 0,
       armor: 0,
       haste: 1,
+      sight: 0,
     },
   },
 };

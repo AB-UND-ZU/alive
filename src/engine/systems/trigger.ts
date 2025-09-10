@@ -22,10 +22,10 @@ import {
   castableSecondary,
   getUnlockKey,
 } from "./action";
-import { getItemSprite } from "../../components/Entity/utils";
 import {
   createItemName,
   frameHeight,
+  getItemSprite,
   questSequence,
   queueMessage,
 } from "../../game/assets/utils";

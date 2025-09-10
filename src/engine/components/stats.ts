@@ -22,6 +22,7 @@ export type Stats = Countable & {
   magic: number;
   armor: number;
   haste: number;
+  sight: number;
 };
 
 export const emptyStats: Stats = {
@@ -43,6 +44,7 @@ export const emptyStats: Stats = {
   magic: 0,
   armor: 0,
   haste: 0,
+  sight: 0,
 };
 
 export const STATS = "STATS";

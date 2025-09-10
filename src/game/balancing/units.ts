@@ -6,6 +6,7 @@ import {
   commonChest,
   desertRock1,
   desertRock2,
+  diamondOrb,
   dummy,
   epicChest,
   eye,
@@ -270,6 +271,30 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: { ...mage, name: "Mage" },
+  },
+  bandit: {
+    faction: "wild",
+    power: 0,
+    armor: 0,
+    hp: 20,
+    mp: 0,
+    equipments: [
+      {
+        equipment: "sword",
+        material: "wood",
+        amount: getGearStat("sword", "wood"),
+        bound: true,
+      },
+      {
+        equipment: "shield",
+        material: "wood",
+        amount: getGearStat("shield", "wood"),
+        bound: true,
+      },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: { ...hunter, name: "Bandit" },
   },
   commonChest: {
     faction: "unit",
@@ -764,6 +789,42 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["orb"],
     sprite: goldOrb,
+    spring: { duration: 300 },
+  },
+  diamondOrb: {
+    faction: "wild",
+    power: 0,
+    armor: 2,
+    hp: 15,
+    mp: 2,
+    equipments: [
+      {
+        equipment: "primary",
+        primary: "beam1",
+        bound: true,
+        amount: 1,
+      },
+    ],
+    drops: [
+      {
+        chance: 50,
+        items: [
+          { stackable: "coin", amount: 3 },
+          { stat: "hp", amount: 1 },
+          { stat: "xp", amount: 2 },
+        ],
+      },
+      {
+        chance: 50,
+        items: [
+          { stackable: "coin", amount: 3 },
+          { stat: "mp", amount: 1 },
+          { stat: "xp", amount: 2 },
+        ],
+      },
+    ],
+    patternNames: ["orb"],
+    sprite: diamondOrb,
     spring: { duration: 300 },
   },
   fairy: {
