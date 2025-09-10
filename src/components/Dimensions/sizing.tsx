@@ -56,7 +56,7 @@ const calculateDimensions: () => Dimensions = () => {
   const leftOffset = gap / 2;
   const rightOffset = gap - leftOffset;
   const topOffset = cellHeight / -2;
-  const bottomOffset = cellHeight / -3;
+  const bottomOffset = cellHeight * -5 / 12;
   const terminalHeight =
     screenHeight - cellHeight * hudRows - topOffset - bottomOffset;
   const renderedColumns = columns + overscanColumns;

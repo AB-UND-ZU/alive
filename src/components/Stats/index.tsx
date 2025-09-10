@@ -24,12 +24,14 @@ function StatsInner({
   padding,
   hidden,
   handleInspect,
+  width,
   inspecting,
   ...stats
 }: {
   padding: number;
   hidden: boolean;
   inspecting: boolean;
+  width: number;
   handleInspect: (
     event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => void;
@@ -82,9 +84,9 @@ function StatsInner({
           <Row
             cells={[
               ...repeat(none, 2),
-              ...createText("│", colors.grey),
+              none,
               ...createProgress(stats, "hp", 13, false),
-              ...createText("│", colors.grey),
+              none,
               ...repeat(none, 4),
             ]}
           />
@@ -92,32 +94,24 @@ function StatsInner({
             cells={[
               paused ? resumeInvert : pauseInvert,
               pauseButton[0][1],
-              ...createText("│", colors.grey),
+              none,
               ...createProgress(stats, "mp", 13),
-              ...createText("│", colors.grey),
+              none,
               ...bagButton[0],
             ]}
           />
           <Row
             cells={[
               ...pauseButton[1],
-              ...createText("│", colors.grey),
+              none,
               ...createProgress(stats, "xp", 13),
-              ...createText("│", colors.grey),
+              none,
               ...bagButton[1],
             ]}
           />
         </>
       )}
-      <Row
-        cells={[
-          ...createText("═".repeat(padding + 2), colors.grey),
-          ...createText(hidden ? "═" : "╧", colors.grey),
-          ...createText("═".repeat(13), colors.grey),
-          ...createText(hidden ? "═" : "╧", colors.grey),
-          ...createText("═".repeat(padding + 4), colors.grey),
-        ]}
-      />
+      <Row cells={createText("─".repeat(padding * 2 + width), colors.grey)} />
       <div className="Menu" id="menu" onClick={handleMenu} />
       <div className="Inspect" id="inspect" onClick={handleInspect} />
     </header>
@@ -153,6 +147,7 @@ export default function Stats() {
   return (
     <PureState
       padding={dimensions.padding}
+      width={dimensions.visibleColumns}
       {...hero?.[STATS]}
       {...hero?.[EQUIPPABLE]}
       hidden={!ecs || !hero || isGhost(ecs, hero)}

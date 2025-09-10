@@ -688,8 +688,7 @@ export const getLootDelay = (world: World, entity: Entity, distance: number) =>
       )
     : lootSpeed * distance;
 
-const slowDelay = 250;
-const fastDelay = 125;
+const messageDelay = 250;
 
 export const queueMessage = (
   world: World,
@@ -701,17 +700,23 @@ export const queueMessage = (
     | undefined;
 
   if (messageState) {
-    // prevent overlapping messages
-    const lastMessage = Math.max(
-      messageState.elapsed + message.delay,
-      messageState.args.lastMessage + (message.fast ? fastDelay : slowDelay)
-    );
+    let delay = messageState.elapsed + message.delay;
+
+    if (!message.fast) {
+      // prevent overlapping messages
+      const lastMessage = Math.max(
+        messageState.elapsed + message.delay,
+        messageState.args.lastMessage + messageDelay
+      );
+      delay = lastMessage;
+
+      messageState.args.lastMessage = lastMessage;
+    }
 
     messageState.args.messages.push({
       ...message,
-      delay: lastMessage,
+      delay,
     });
-    messageState.args.lastMessage = lastMessage;
   } else {
     createSequence<"message", MessageSequence>(
       world,

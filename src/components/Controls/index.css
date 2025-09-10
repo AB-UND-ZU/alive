@@ -1,5 +1,6 @@
 .Controls {
   position: relative;
+  z-index: 1;
   height: calc(var(--cell-height) * 5);
   margin-top: calc(var(--bottom-offset) - var(--cell-height));
   margin-left: calc(var(--left-offset) - var(--cell-width));
@@ -11,7 +12,7 @@
   left: calc(50% - 4.5 * var(--cell-width));
   top: calc(var(--bottom-offset) * -1 + var(--cell-height));
   bottom: 0;
-  right: calc(50% - 2 * var(--cell-width));
+  right: calc(50% - 1.5 * var(--cell-width));
 }
 
 .Secondary {

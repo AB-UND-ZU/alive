@@ -1,5 +1,6 @@
 .Stats {
   position: relative;
+  z-index: 1;
   height: calc(var(--cell-height) * 4);
   margin-bottom: var(--top-offset);
   margin-left: calc(var(--left-offset) - var(--cell-width));
@@ -11,7 +12,7 @@
   left: 0;
   top: 0;
   bottom: calc(var(--top-offset) * -1);
-  width: calc(50% - var(--cell-width) * 7);
+  width: calc(50% - var(--cell-width) * 7.5);
 }
 
 .Inspect {
@@ -19,5 +20,5 @@
   right: 0;
   top: 0;
   bottom: calc(var(--top-offset) * -1);
-  width: calc(50% - var(--cell-width) * 7);
+  width: calc(50% - var(--cell-width) * 5.5);
 }

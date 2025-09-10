@@ -849,24 +849,17 @@ export default function Controls() {
       ) : (
         <>
           <Row
-            cells={[
-              ...createText(
-                "═".repeat(dimensions.padding + buttonWidth * 2),
-                colors.grey
-              ),
-              ...createText("╤", colors.grey),
-              ...createText(
-                "═".repeat(dimensions.padding + inventoryWidth),
-                colors.grey
-              ),
-            ]}
+            cells={createText(
+              "─".repeat(dimensions.padding * 2 + dimensions.visibleColumns),
+              colors.grey
+            )}
           />
           <Row
             cells={[
               ...repeat(none, dimensions.padding),
               ...leftButton[0],
               ...rightButton[0],
-              ...createText("│", colors.grey),
+              none,
               ...equipmentRows[0],
               ...repeat(none, dimensions.padding),
             ]}
@@ -876,7 +869,7 @@ export default function Controls() {
               ...repeat(none, dimensions.padding),
               ...leftButton[1],
               ...rightButton[1],
-              ...createText("│", colors.grey),
+              none,
               ...equipmentRows[1],
               ...repeat(none, dimensions.padding),
             ]}
@@ -886,7 +879,7 @@ export default function Controls() {
               ...repeat(none, dimensions.padding),
               ...secondaryActivation,
               ...primaryActivation,
-              ...createText("│", colors.grey),
+              none,
               ...equipmentRows[2],
               ...repeat(none, dimensions.padding),
             ]}
