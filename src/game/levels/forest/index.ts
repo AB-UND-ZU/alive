@@ -58,6 +58,7 @@ import {
 } from "../../assets/sprites/structures";
 import { SEQUENCABLE } from "../../../engine/components/sequencable";
 import { createItemText, npcSequence, questSequence } from "../../assets/utils";
+import * as colors from "../../assets/colors";
 import { generateNpcKey, generateUnitData } from "../../balancing/units";
 import { BELONGABLE } from "../../../engine/components/belongable";
 import generateTown from "../../../engine/wfc/town";
@@ -484,9 +485,11 @@ export const generateForest = (world: World) => {
       createText("following either"),
       [
         getOrientedSprite(questPointer, "right"),
-        ...createText("Arrow or "),
+        ...createText("Arrow", colors.grey),
+        ...createText(" or "),
         path,
-        ...createText("Path"),
+        ...createText("Path", colors.grey),
+        ...createText("."),
       ],
     ],
     transaction: "info",

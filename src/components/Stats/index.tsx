@@ -1,13 +1,12 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useHero, useWorld } from "../../bindings/hooks";
 import {
   createText,
   none,
-  pause,
-  resume,
   createProgress,
-  inspect,
-  close,
+  createButton,
+  resumeInvert,
+  pauseInvert,
 } from "../../game/assets/sprites";
 import * as colors from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
@@ -15,7 +14,7 @@ import Row from "../Row";
 import "./index.css";
 import { Countable, STATS } from "../../engine/components/stats";
 import { EQUIPPABLE, Equippable } from "../../engine/components/equippable";
-import { repeat } from "../../game/math/std";
+import { normalize, repeat } from "../../game/math/std";
 import { isGhost } from "../../engine/systems/fate";
 import { PLAYER } from "../../engine/components/player";
 import { MOVABLE } from "../../engine/components/movable";
@@ -46,6 +45,30 @@ function StatsInner({
     [setPaused]
   );
 
+  const highlightRef = useRef<NodeJS.Timeout>();
+  const [highlight, setHighlight] = useState(8);
+
+  // rotate button shadow
+  useEffect(() => {
+    if (highlightRef.current) return;
+
+    setHighlight(8);
+
+    highlightRef.current = setInterval(() => {
+      setHighlight((prevHighlight) => normalize(prevHighlight - 1, 8));
+    }, 100);
+  }, []);
+
+  const pauseButton = createButton(" ", 2, false, false, highlight, "silver");
+  const bagButton = createButton(
+    "Bag",
+    4,
+    paused,
+    inspecting,
+    (highlight + 3) % 8,
+    "silver"
+  );
+
   return (
     <header className="Stats">
       {hidden ? (
@@ -58,44 +81,41 @@ function StatsInner({
         <>
           <Row
             cells={[
-              ...repeat(none, 3),
+              ...repeat(none, 2),
               ...createText("│", colors.grey),
               ...createProgress(stats, "hp", 13, false),
               ...createText("│", colors.grey),
-              ...repeat(none, 3),
+              ...repeat(none, 4),
             ]}
           />
           <Row
             cells={[
-              ...repeat(none, 3),
+              paused ? resumeInvert : pauseInvert,
+              pauseButton[0][1],
               ...createText("│", colors.grey),
               ...createProgress(stats, "mp", 13),
               ...createText("│", colors.grey),
-              ...repeat(none, 3),
+              ...bagButton[0],
             ]}
           />
           <Row
             cells={[
-              none,
-              paused ? resume : pause,
-              none,
+              ...pauseButton[1],
               ...createText("│", colors.grey),
               ...createProgress(stats, "xp", 13),
               ...createText("│", colors.grey),
-              none,
-              inspecting ? close : inspect,
-              none,
+              ...bagButton[1],
             ]}
           />
         </>
       )}
       <Row
         cells={[
-          ...createText("═".repeat(padding + 3), colors.grey),
+          ...createText("═".repeat(padding + 2), colors.grey),
           ...createText(hidden ? "═" : "╧", colors.grey),
           ...createText("═".repeat(13), colors.grey),
           ...createText(hidden ? "═" : "╧", colors.grey),
-          ...createText("═".repeat(padding + 3), colors.grey),
+          ...createText("═".repeat(padding + 4), colors.grey),
         ]}
       />
       <div className="Menu" id="menu" onClick={handleMenu} />

@@ -9,8 +9,8 @@ export const heart: Sprite = {
 export const heartUp: Sprite = {
   name: "Max HP",
   layers: [
-    { char: "\u0102", color: colors.red },
-    { char: "^", color: colors.lime },
+    { char: "\u0102", color: colors.lime },
+    { char: "^", color: colors.green },
   ],
 };
 
@@ -22,8 +22,8 @@ export const mana: Sprite = {
 export const manaUp: Sprite = {
   name: "Max MP",
   layers: [
-    { char: "\u0103", color: colors.blue },
-    { char: "^", color: colors.lime },
+    { char: "\u0103", color: colors.lime },
+    { char: "^", color: colors.green },
   ],
 };
 

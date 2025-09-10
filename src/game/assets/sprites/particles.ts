@@ -1176,7 +1176,7 @@ export const createButton: (
         ],
       })),
       ...repeat(disabled ? buttonDisabled : button, paddingRight),
-      ...createText(activeHighlight === 6 ? " " : "┐", shadow),
+      ...createText(activeHighlight === width ? " " : "┐", shadow),
     ],
     createText(
       `└${"─".repeat(width - 2)}┘`
@@ -1277,6 +1277,7 @@ export const popupCenterEnd: Sprite = {
   name: "popup_center_end",
   layers: [
     { char: "▌", color: colors.black },
+    { char: "│", color: colors.black },
     { char: "╢", color: colors.silver },
   ],
 };
@@ -1606,9 +1607,26 @@ export const pause: Sprite = {
   ],
 };
 
+export const pauseInvert: Sprite = {
+  name: "Pause",
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "■", color: colors.black },
+    { char: "|", color: colors.silver },
+  ],
+};
+
 export const resume: Sprite = {
   name: "Resume",
   layers: [{ char: "»", color: colors.white }],
+};
+
+export const resumeInvert: Sprite = {
+  name: "Resume",
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "»", color: colors.black },
+  ],
 };
 
 export const inspect: Sprite = {
