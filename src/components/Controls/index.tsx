@@ -838,7 +838,7 @@ export default function Controls() {
         <>
           <Row
             cells={createText(
-              "═".repeat(dimensions.padding * 2 + dimensions.visibleColumns),
+              "─".repeat(dimensions.padding * 2 + dimensions.visibleColumns),
               colors.grey
             )}
           />
