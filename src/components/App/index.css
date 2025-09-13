@@ -35,5 +35,7 @@
   font-family: "Perfect DOS VGA 437 Win";
   line-height: var(--cell-height);
   font-size: var(--cell-height);
-  overflow: hidden;
+  width: 100%;
+  max-width: calc(var(--terminal-width) + var(--pixel-size) * 4);
+  margin: 0 auto;
 }

@@ -2,9 +2,12 @@
   position: relative;
   z-index: 1;
   height: calc(var(--cell-height) * 5);
+  width: calc(100% + var(--pixel-size) * 2);
+  left: calc(var(--pixel-size) * -1);
+  right: calc(var(--pixel-size) * -1);
+  overflow: hidden;
+  margin: 0 auto;
   margin-top: calc(var(--bottom-offset) - var(--cell-height));
-  margin-left: calc(var(--left-offset) - var(--cell-width));
-  margin-right: calc(var(--right-offset) - var(--cell-width));
 }
 
 .Primary {

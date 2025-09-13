@@ -831,17 +831,17 @@ export default function Controls() {
       <Cursor />
       <Row
         cells={[
-          ...repeat(none, dimensions.padding * 2 + dimensions.visibleColumns),
+          ...repeat(none, dimensions.padding + dimensions.visibleColumns),
         ]}
+      />
+      <Row
+        cells={createText(
+          "─".repeat(dimensions.padding + dimensions.visibleColumns + 3),
+          colors.grey
+        )}
       />
       {paused ? (
         <>
-          <Row
-            cells={createText(
-              "─".repeat(dimensions.padding * 2 + dimensions.visibleColumns),
-              colors.grey
-            )}
-          />
           <Row />
           <Row />
           <Row />
@@ -849,39 +849,27 @@ export default function Controls() {
       ) : (
         <>
           <Row
-            cells={createText(
-              "─".repeat(dimensions.padding * 2 + dimensions.visibleColumns),
-              colors.grey
-            )}
-          />
-          <Row
             cells={[
-              ...repeat(none, dimensions.padding),
               ...leftButton[0],
               ...rightButton[0],
               none,
               ...equipmentRows[0],
-              ...repeat(none, dimensions.padding),
             ]}
           />
           <Row
             cells={[
-              ...repeat(none, dimensions.padding),
               ...leftButton[1],
               ...rightButton[1],
               none,
               ...equipmentRows[1],
-              ...repeat(none, dimensions.padding),
             ]}
           />
           <Row
             cells={[
-              ...repeat(none, dimensions.padding),
               ...secondaryActivation,
               ...primaryActivation,
               none,
               ...equipmentRows[2],
-              ...repeat(none, dimensions.padding),
             ]}
           />
         </>

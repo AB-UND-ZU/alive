@@ -1,8 +1,29 @@
 .Terminal {
   position: relative;
-  min-height: calc(var(--cell-height) * 7);
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  inset: calc(var(--pixel-size) * -1);
+  height: calc(100% + var(--pixel-size) * 2);
+  width: calc(100% + var(--pixel-size) * 2);
+}
+
+.LeftEdge,
+.RightEdge {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: var(--cell-width);
+  overflow: hidden;
+}
+
+.LeftEdge {
+  right: unset;
+  left: calc(var(--cell-width) * -4 / 9 - 0.5px);
+}
+
+.RightEdge {
+  left: unset;
+  right: calc(var(--cell-width) * -5 / 9 - 0.5px);
 }

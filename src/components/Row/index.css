@@ -7,6 +7,9 @@
 .Cell {
   position: relative;
   height: var(--cell-height);
+  width: var(--cell-width);
+  overflow: hidden;
+  margin-left: -0.5px;
 }
 
 .Layer {

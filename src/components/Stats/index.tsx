@@ -111,7 +111,7 @@ function StatsInner({
           />
         </>
       )}
-      <Row cells={createText("─".repeat(padding * 2 + width), colors.grey)} />
+      <Row cells={createText("─".repeat(padding + width + 3), colors.grey)} />
       <div className="Menu" id="menu" onClick={handleMenu} />
       <div className="Inspect" id="inspect" onClick={handleInspect} />
     </header>
