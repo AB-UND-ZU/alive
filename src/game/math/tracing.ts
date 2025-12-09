@@ -393,6 +393,8 @@ export const traceCircularVisiblity = (
   point: Point,
   radius: number
 ) => {
+  if (radius === 0) return [];
+
   const visibleCells: Point[] = [point];
   // if standing within full obstructed terrain
   const obstructingCenter = getObstructing(world, point);

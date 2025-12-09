@@ -12,7 +12,7 @@ export type Spawnable = {
   light: Light;
   viewable: Viewable;
   compassId?: number;
-  quest?: SequenceState<QuestSequence>
+  quest?: SequenceState<QuestSequence>;
 };
 
 export const SPAWNABLE = "SPAWNABLE";

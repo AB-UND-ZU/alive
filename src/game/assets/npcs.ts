@@ -79,7 +79,7 @@ import { matrixFactory } from "../math/matrix";
 import { getSequence } from "../../engine/systems/sequence";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { roomSize, tutorialRooms } from "../levels/tutorial/areas";
-import { isGhost } from "../../engine/systems/fate";
+import { isGhost, isRespawning } from "../../engine/systems/fate";
 import { MOVABLE } from "../../engine/components/movable";
 import { TypedEntity } from "../../engine/entities";
 import { COLLIDABLE } from "../../engine/components/collidable";
@@ -473,12 +473,13 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
       x: offsetX + roomSize.x * 0.5,
       y: offsetY + roomSize.y * 0.5,
     };
-    const spawners = (waves || [])
-      .map((wave) => Object.values(getCell(world, wave.position))[0])
+    const availableSpawners = (waves || [])
+      .map((wave) => Object.values(getCell(world, wave.position)))
+      .flat()
       .filter(
         (spawner) => spawner && spawner[BEHAVIOUR]?.patterns.length === 0
       );
-    const shouldSpawn = waves && spawners.length > 0;
+    const shouldSpawn = waves && availableSpawners.length > 0;
 
     step({
       stage,
@@ -578,13 +579,13 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
           // activate spawners
           waves.forEach(({ position, types }) => {
-            const spawnerEntity = Object.values(
-              getCell(world, position)
-            )[0] as TypedEntity<"BEHAVIOUR">;
+            const spawnerEntity = Object.values(getCell(world, position)).find(
+              (entity) => entity[BEHAVIOUR]
+            ) as TypedEntity<"BEHAVIOUR">;
             spawnerEntity[BEHAVIOUR].patterns = [
               {
                 name: "spawner",
-                memory: { types, name },
+                memory: { types: [...types], name },
               },
             ];
             setIdentifier(world, spawnerEntity, `${name}:spawner`);
@@ -604,7 +605,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
       onLeave: () => {
         state.args.memory.changed = false;
         state.args.memory.room = { name, offsetX, offsetY };
-        if (shouldSpawn) return "fight";
+        if (getIdentifier(world, `${name}:spawner`)) return "fight";
         return "wait";
       },
     });
@@ -616,7 +617,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
     isCompleted: () =>
       !getIdentifier(world, `${state.args.memory.room?.name}:spawner`) ||
       !heroEntity ||
-      isDead(world, heroEntity),
+      isRespawning(world, heroEntity),
     onLeave: () => {
       // despawn previous mobs
       world
@@ -628,6 +629,13 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
         .forEach((entity) => {
           disposeEntity(world, entity);
         });
+
+      // deactivate spawners
+      world.getEntities([BEHAVIOUR]).forEach((entity) => {
+        if (entity[BEHAVIOUR].patterns[0]?.name === "spawner") {
+          entity[BEHAVIOUR].patterns = [];
+        }
+      });
 
       // unblock entrances and remove barrier
       world
@@ -642,7 +650,6 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
         .forEach((entity) => {
           disposeEntity(world, entity);
         });
-      // }
 
       state.args.memory.room = undefined;
       return "wait";

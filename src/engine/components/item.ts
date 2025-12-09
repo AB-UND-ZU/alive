@@ -35,6 +35,7 @@ export type Craftable =
   | "seed"
   | "ingot"
   | "nugget"
+  | "note"
   | "worm";
 export type Resource = "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";

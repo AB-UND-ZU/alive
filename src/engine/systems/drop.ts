@@ -47,6 +47,9 @@ import { NPC } from "../components/npc";
 import { play } from "../../game/sound";
 import { STATS } from "../components/stats";
 import { isImmersible } from "./immersion";
+import { POPUP } from "../components/popup";
+import { TOOLTIP } from "../components/tooltip";
+import { createPopup } from "./popup";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -343,7 +346,7 @@ export const dropEntity = (
       setIdentifier(world, itemEntity, `${identifier}:drop`);
     }
 
-    const containerEntity = entities.createContainer(world, {
+    const containerData = {
       [FOG]: { visibility: "fog", type: "unit" },
       [INVENTORY]: { items: isCentered ? [itemId] : [] },
       [LAYER]: {},
@@ -353,7 +356,19 @@ export const dropEntity = (
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: !isImmersible(world, dropPosition) ? shadow : none,
       [SWIMMABLE]: { swimming: false },
-    });
+    } as const;
+
+    const containerEntity = itemEntity[POPUP]
+      ? entities.createWrapper(world, {
+          ...containerData,
+          [TOOLTIP]: { dialogs: [], nextDialog: -1, persistent: false },
+        })
+      : entities.createContainer(world, containerData);
+
+    if (itemEntity[POPUP]) {
+      const { viewpoint, ...popup } = itemEntity[POPUP];
+      createPopup(world, containerEntity, popup);
+    }
 
     // reset orientable e.g. from using sword
     if (itemEntity[ORIENTABLE]?.facing) {

@@ -2,8 +2,8 @@ import type * as questTypes from "../../assets/quests";
 import { Position } from "../../../engine/components/position";
 import { UnitKey } from "../../balancing/units";
 
-export const overworldSpawn = { x: 0, y: 0 };
 export const roomSize = { x: 20, y: 12 };
+export const tutorialSpawn = { x: 0, y: 0 };
 
 export const centerArea = `\
 ██████████ ██████████
@@ -12,7 +12,7 @@ export const centerArea = `\
 █τ,       s       ,τ█
 █,       ,,,       ,█
 █       ,   ,       █
-█  ⌠   ,     ,   *  █
+█  ⌠   ,  ♀  ,   *  █
 █       ,   ,       █
 █,       ,,,       ,█
 █τ,               ,τ█
@@ -29,7 +29,7 @@ export const up1Area = `\
 █  ╞╪╪╪╪╡   ±  Ω  ± █
 █ ■└G┴──┘o  ±     ± █
 █   ▒        ±±=±±  █
-█   ▒  #       ▒    █
+█   ▒  .       ▒    █
 █  ,▒▒▒≡     ▒▒▒    █
 █ ,ττ·▒▒▒▒▒▒▒▒      █
 █ ,',          g    █
@@ -118,7 +118,7 @@ export const up5Area = `\
 █,  τ  &  ∩  &  τ  ,█
 █,  τ   &   &   τ  ,█
 █,   τ   &&&   τ   ,█
-█ ,   ττ     ττ   , █
+█ ,   ττ     ττ  w, █
 █  ,    τττττ    ,  █
 █   ,,         ,,   █
 ██████████ ██████████\

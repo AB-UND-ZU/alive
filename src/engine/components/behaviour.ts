@@ -26,6 +26,7 @@ export type Pattern = {
     | "soothe"
     | "tumbleweed"
     | "spawner"
+    | "dummy"
     | "chest_boss";
   memory: any;
 };

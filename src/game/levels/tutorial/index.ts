@@ -139,7 +139,7 @@ export const generateTutorial = async (world: World) => {
       amount: 1,
     },
     {
-      stackable: "shroom",
+      stackable: "banana",
       amount: 1,
     },
   ];
@@ -156,12 +156,12 @@ export const generateTutorial = async (world: World) => {
   createPopup(world, guideEntity, {
     deals: guideItems.map((item) => ({
       item,
-      stock: 1,
+      stock: item.consume ? 1 : Infinity,
       prices: item.consume
         ? [{ stackable: "coin", amount: 1 }]
         : getItemPrice(item),
     })),
-    tabs: ["buy"],
+    tabs: ["buy", "sell"],
   });
 
   // queue all added entities to added listener

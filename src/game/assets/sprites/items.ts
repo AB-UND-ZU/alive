@@ -594,6 +594,15 @@ export const note: Sprite = {
   ],
 };
 
+export const noteRead: Sprite = {
+  name: "Note",
+  layers: [
+    { char: "\u0115", color: colors.grey },
+    { char: "\u0103", color: colors.silver },
+    { char: "-", color: colors.grey },
+  ],
+};
+
 export const aetherGem: Sprite = {
   name: "Aether",
   layers: [

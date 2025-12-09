@@ -167,6 +167,7 @@ export const useViewpoint = () => {
     config: viewable?.[VIEWABLE].spring || defaultSpring,
     radius: viewable?.[LIGHT]?.brightness || Infinity,
     fraction: viewable?.[VIEWABLE].fraction || zeroFraction,
+    viewable,
   };
 };
 

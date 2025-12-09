@@ -17,7 +17,13 @@ import {
   shuffle,
   signedDistance,
 } from "../../game/math/std";
-import { getAttackable, isDead, isFriendlyFire } from "./damage";
+import {
+  calculateHealing,
+  createAmountMarker,
+  getAttackable,
+  isDead,
+  isFriendlyFire,
+} from "./damage";
 import {
   ORIENTABLE,
   Orientation,
@@ -83,6 +89,7 @@ import { addCollidable } from "../components";
 import { COLLIDABLE } from "../components/collidable";
 import { NPC } from "../components/npc";
 import { queueMessage } from "../../game/assets/utils";
+import { pickupOptions, play } from "../../game/sound";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -522,7 +529,7 @@ export default function setupAi(world: World) {
               entity[MOVABLE].orientations = [];
               entity[ORIENTABLE].facing = undefined;
             } else {
-              const sidestep = random(0, 3) === 0;
+              const sidestep = random(0, 5) === 0;
 
               entity[MOVABLE].orientations = sidestep
                 ? [...reversed(fleeingOrientations)]
@@ -990,6 +997,30 @@ export default function setupAi(world: World) {
               fast: false,
               delay: 0,
             });
+          }
+        } else if (pattern.name === "dummy") {
+          if (!entity[STATS]) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          if (entity[STATS].hp < entity[STATS].maxHp) {
+            if (!pattern.memory.heal) {
+              pattern.memory.heal = generation;
+              continue;
+            }
+            if (pattern.memory.heal + 5 > generation) continue;
+
+            pattern.memory.heal = generation;
+
+            const { hp, healing } = calculateHealing(entity[STATS], 5);
+            entity[STATS].hp = hp;
+            if (healing > 0) {
+              createAmountMarker(world, entity, healing, "up", "true");
+              play("pickup", pickupOptions.hp);
+            }
+          } else if (pattern.memory.heal) {
+            delete pattern.memory.heal;
           }
         } else if (pattern.name === "chest_boss") {
           const chaseTicks = 30;

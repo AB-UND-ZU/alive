@@ -401,7 +401,8 @@ export default function Controls() {
     "use",
     (world, hero, useEntity) =>
       !isControllable(world, hero) || !getConsumption(world, hero, useEntity),
-    () => "USE",
+    (world, hero, useEntity) =>
+      getConsumption(world, hero, useEntity) ? "EAT" : "USE",
     (world, _, useEntity) => {
       const consumption = hero && getConsumption(world, hero, useEntity);
       if (!consumption) return repeat(none, 6);
@@ -881,7 +882,7 @@ export default function Controls() {
     secondary?.activation || selectedSecondary?.activation || emptyActivation;
 
   const equipments = ecs
-    ? (["compass", "sword", "shield"] as const)
+    ? (["compass"] as const)
         .filter((equipment) => hero?.[EQUIPPABLE]?.[equipment])
         .map((equipment) => {
           const equipmentEntity = ecs.assertByIdAndComponents(

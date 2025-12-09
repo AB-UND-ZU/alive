@@ -13,7 +13,7 @@ import { forestSpawn } from "./forest/areas";
 import { generateMenu, menuName, menuSize } from "./menu";
 import { menuSpawn } from "./menu/areas";
 import { generateTutorial, tutorialName, tutorialSize } from "./tutorial";
-import { overworldSpawn } from "./tutorial/areas";
+import { tutorialSpawn } from "./tutorial/areas";
 import { getVerticalIndex } from "../../engine/systems/popup";
 
 export const getSelectedLevel = (world: World, warpEntity: Entity) => {
@@ -54,7 +54,7 @@ export const levelConfig: Record<
     mapOffsetY: 9,
     size: tutorialSize,
     generator: generateTutorial,
-    spawn: overworldSpawn,
+    spawn: tutorialSpawn,
     light: roomLight,
   },
   LEVEL_FOREST: {

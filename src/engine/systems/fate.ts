@@ -62,6 +62,9 @@ import { getBurning } from "./burn";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
+export const isRespawning = (world: World, entity: Entity) =>
+  isGhost(world, entity) && entity[MOVABLE]?.flying;
+
 export const isSoulReady = (world: World, entity: Entity) =>
   isGhost(world, entity) && entity[SOUL]?.ready;
 
@@ -163,7 +166,10 @@ export const createHero = (world: World, halo: Entity) => {
       quest: halo[SPAWNABLE].quest,
     },
     [SPRITE]: sprite,
-    [STATS]: stats,
+    [STATS]: {
+      ...stats,
+      ...halo[SOUL]?.stats,
+    },
     [SWIMMABLE]: { swimming: false, sprite: swimming },
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
     [VIEWABLE]: halo[SPAWNABLE].viewable,
@@ -227,6 +233,7 @@ export default function setupFate(world: World) {
       SPAWNABLE,
       EQUIPPABLE,
       SEQUENCABLE,
+      STATS,
     ])) {
       if (isDead(world, entity) && isDecayed(world, entity)) {
         // disable any focus
@@ -309,6 +316,12 @@ export default function setupFate(world: World) {
             states: {},
           },
           [SOUL]: {
+            stats: {
+              level: entity[STATS].level,
+              maxHp: entity[STATS].maxHp,
+              maxMp: entity[STATS].maxMp,
+              maxXp: entity[STATS].maxXp,
+            },
             ready: false,
             tombstoneId: world.getEntityId(tombstoneEntity),
           },

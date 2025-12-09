@@ -59,7 +59,7 @@ import {
   coconut,
   coconutDrop,
   coin,
-  compass,
+  ironCompass,
   crystal,
   diamond,
   diamondShield,
@@ -196,6 +196,7 @@ import {
   entryClosedGold,
   entryClosedGoldDisplay,
   oreDisplay,
+  note,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1285,6 +1286,14 @@ export const entitySprites: Record<
       createText("range attack."),
     ],
   },
+  note: {
+    sprite: note,
+    getDescription: () => [
+      createText("A beautifully"),
+      createText("written letter"),
+      createText("to someone."),
+    ],
+  },
 
   // stats
   level: {
@@ -1558,8 +1567,13 @@ export const materialSprites: Record<
 
   // tools
   compass: {
-    wood: {
-      sprite: compass,
+    iron: {
+      sprite: ironCompass,
+      getDescription: () => [
+        createText("Shows the way"),
+        createText("back to your"),
+        createText("spawn point."),
+      ],
     },
   },
   torch: {

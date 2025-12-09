@@ -9,18 +9,18 @@ import {
 import { Deal } from "../../engine/components/popup";
 
 export const itemPrices: Partial<Record<Stackable, number>> = {
-  arrow: 1,
-  charge: 1,
+  arrow: 3,
+  charge: 3,
 
-  apple: 2,
-  shroom: 2,
+  apple: 3,
+  shroom: 3,
 
-  coconut: 5,
-  banana: 5,
+  coconut: 8,
+  banana: 8,
 
-  fruit: 5,
-  herb: 5,
-  seed: 5,
+  fruit: 8,
+  herb: 8,
+  seed: 8,
 
   gem: 10,
   crystal: 10,
@@ -31,7 +31,7 @@ export const itemMaterialPrices: Partial<
   Record<Resource | Consumable, Partial<Record<Material, number>>>
 > = {
   resource: {
-    wood: 7,
+    wood: 10,
     iron: 20,
     gold: 100,
     diamond: 500,
@@ -47,16 +47,16 @@ export const itemElementPrices: Partial<
 > = {
   potion: {
     wood: {
-      fire: 1,
-      water: 1,
+      fire: 2,
+      water: 2,
     },
     iron: {
-      fire: 3,
-      water: 3,
+      fire: 5,
+      water: 5,
     },
     gold: {
-      fire: 15,
-      water: 15,
+      fire: 12,
+      water: 12,
     },
   },
 };

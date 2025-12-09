@@ -308,6 +308,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         amount: 1,
         bound: true,
       },
+      {
+        amount: 10,
+        consume: "potion",
+        material: "wood",
+        element: "fire",
+        bound: true,
+      },
     ],
     drops: [
       {
@@ -315,7 +322,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         items: [
           { consume: "key", material: "iron", amount: 1 },
           { stat: "xp", amount: 2 },
-          { stackable: "apple", amount: 1 },
+          { equipment: "compass", material: "iron", amount: 1 },
         ],
       },
     ],
@@ -499,7 +506,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: box,
   },
   dummy: {
-    faction: "unit",
+    faction: "wild",
     stats: {
       hp: 25,
     },
@@ -507,10 +514,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [
       {
         chance: 100,
-        items: [{ stackable: "coin", amount: 3 }],
+        items: [
+          { stackable: "coin", amount: 1 },
+          { stat: "xp", amount: 1 },
+        ],
       },
     ],
-    patternNames: [],
+    patternNames: ["dummy"],
     sprite: dummy,
     remainsChoices: [treeBurnt1, treeBurnt2],
   },

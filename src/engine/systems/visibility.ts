@@ -167,11 +167,10 @@ export default function setupVisibility(world: World) {
     referencesGeneration = generation;
 
     const radius = hero[LIGHT].visibility;
+    const flooredRadius = radius < aspectRatio ? 0 : radius;
 
-    if (radius < aspectRatio) return;
-
-    const visionHorizontal = Math.ceil(radius / aspectRatio);
-    const visionVertical = Math.ceil(radius);
+    const visionHorizontal = Math.ceil(flooredRadius / aspectRatio);
+    const visionVertical = Math.ceil(flooredRadius);
     const pendingChanges: PendingChanges = {};
 
     // apply fog with one extra cell around player
@@ -188,14 +187,18 @@ export default function setupVisibility(world: World) {
     }
 
     // reveal visible area
-    const visibleCells = traceCircularVisiblity(world, hero[POSITION], radius);
+    const visibleCells = traceCircularVisiblity(
+      world,
+      hero[POSITION],
+      flooredRadius
+    );
 
     for (const cell of visibleCells) {
       markVisibility(world, pendingChanges, cell.x, cell.y, "visible");
     }
 
     // show all entities within hero layer
-    const layerCells = getLayerCells(world, hero);
+    const layerCells = flooredRadius === 0 ? [] : getLayerCells(world, hero);
 
     for (const cell of layerCells) {
       markVisibility(world, pendingChanges, cell.x, cell.y, "visible");

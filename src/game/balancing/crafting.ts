@@ -73,7 +73,7 @@ export const craftingRecipes: Recipe[] = [
     item: { stackable: "resource", material: "iron", amount: 1 },
     options: [
       [{ stackable: "ore", amount: 10 }],
-      [{ stackable: "resource", material: "wood", amount: 3 }],
+      [{ stackable: "resource", material: "wood", amount: 2 }],
     ],
   },
 

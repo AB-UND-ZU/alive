@@ -22,6 +22,7 @@ import { useEffect, useRef } from "react";
 import { LAYER } from "../../engine/components/layer";
 import { LIGHT } from "../../engine/components/light";
 import { FRAGMENT } from "../../engine/components/fragment";
+import { MOVABLE } from "../../engine/components/movable";
 
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
@@ -29,7 +30,7 @@ const shakeSpring = { duration: 50 };
 export default function Systems() {
   const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
-  const { position } = useViewpoint();
+  const { position, fraction, viewable } = useViewpoint();
   const overscan = useOverscan(position.x, position.y);
   const game = useGame();
   const hero = useHero();
@@ -96,26 +97,45 @@ export default function Systems() {
   if (!ecs || !game) return null;
 
   const size = ecs.metadata.gameEntity[LEVEL].size;
+  const flyingPadding = viewable?.[MOVABLE]?.flying ? 4 : 0;
+  const fractionX = Math.sign(fraction.x);
+  const fractionY = Math.sign(fraction.y);
 
   return (
     <animated.group position-x={values.x} position-y={values.y}>
-      {Array.from({ length: dimensions.renderedColumns + Math.abs(overscan.x) })
+      {Array.from({
+        length:
+          dimensions.renderedColumns +
+          Math.abs(overscan.x) +
+          Math.abs(fractionX) +
+          flyingPadding,
+      })
         .map((_, x) =>
-          Array.from({ length: dimensions.renderedRows + Math.abs(overscan.y) })
+          Array.from({
+            length:
+              dimensions.renderedRows +
+              Math.abs(overscan.y) +
+              Math.abs(fractionX) +
+              flyingPadding,
+          })
             .map((_, y) => {
               const offsetX = dimensions.renderedColumns % 2;
               const renderedX =
                 x -
                 (dimensions.renderedColumns - offsetX) / 2 +
                 position.x -
-                Math.max(0, overscan.x);
+                Math.max(0, overscan.x) -
+                Math.max(0, fractionX) -
+                flyingPadding / 2;
 
               const offsetY = dimensions.renderedRows % 2;
               const renderedY =
                 y -
                 (dimensions.renderedRows - offsetY) / 2 +
                 position.y -
-                Math.max(0, overscan.y);
+                Math.max(0, overscan.y) -
+                Math.max(0, fractionY) -
+                flyingPadding / 2;
 
               const renderedPosition = { x: renderedX, y: renderedY };
               const cell = getCell(ecs, renderedPosition);
@@ -141,8 +161,11 @@ export default function Systems() {
                   x={renderedX}
                   y={renderedY}
                   inRadius={
-                    getDistance(position, entity[POSITION], size) <
-                    (hero?.[LIGHT]?.brightness || Infinity)
+                    getDistance(
+                      hero?.[POSITION] || position,
+                      entity[POSITION],
+                      size
+                    ) < (hero?.[LIGHT]?.brightness || Infinity)
                   }
                   outside={!inside && isOutside(ecs, entity, structure)}
                   inside={inside}

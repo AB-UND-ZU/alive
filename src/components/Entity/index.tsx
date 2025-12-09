@@ -79,6 +79,7 @@ function Entity({
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const isLiquid = !!entity[LIQUID];
   const hasStats = !!entity[STATS] && entity[ATTACKABLE];
+  const isFlying = !!entity[MOVABLE]?.flying;
 
   const isTransparent =
     (isHidden && !isAir) ||
@@ -200,8 +201,8 @@ function Entity({
       {isBright && (
         <CoveredLight
           brightness={entity[LIGHT]!.brightness}
-          width={dimensions.renderedColumns * dimensions.aspectRatio}
-          height={dimensions.renderedRows}
+          width={dimensions.renderedColumns * dimensions.aspectRatio + (isFlying ? 10 : 0)}
+          height={dimensions.renderedRows + (isFlying ? 10 : 0)}
           x={x}
           y={y}
         />

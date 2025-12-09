@@ -8,6 +8,8 @@ import { ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { TRACKABLE } from "../components/trackable";
 import { relativeOrientations } from "../../game/math/path";
+import { PLAYER } from "../components/player";
+import { getIdentifier } from "../utils";
 
 export default function setupNeedle(world: World) {
   let referenceGenerations = -1;
@@ -28,18 +30,30 @@ export default function setupNeedle(world: World) {
       TRACKABLE,
       RENDERABLE,
     ])) {
-      const originId = entity[ITEM]
-        ? entity[ITEM].carrier
-        : world.getEntityId(entity);
+      const entityId = world.getEntityId(entity);
+      const originId = entity[ITEM] ? entity[ITEM].carrier : entityId;
       const targetId = entity[TRACKABLE].target;
 
+      const heroEntity = world.getEntity([PLAYER]);
+      const heroId = heroEntity && world.getEntityId(heroEntity);
+
+      if (heroId && !entity[TRACKABLE].target) {
+        // point dropped compass to hero
+        entity[TRACKABLE].target = heroId;
+        continue;
+      } else if (originId === targetId && targetId === heroId) {
+        // point picked up compass to player spawn
+        const spawn = getIdentifier(world, "spawn");
+        entity[TRACKABLE].target = spawn && world.getEntityId(spawn);
+        continue;
+      }
+
       // reset needle
-      if (!originId || !targetId || originId === targetId) {
+      if (!originId || !targetId) {
         entity[ORIENTABLE].facing = undefined;
         continue;
       }
 
-      const entityId = world.getEntityId(entity);
       const originEntity = world.getEntityByIdAndComponents(originId, [
         POSITION,
       ]);

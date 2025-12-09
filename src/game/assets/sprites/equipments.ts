@@ -206,7 +206,7 @@ export const mpElixir: Sprite = {
   ],
 };
 
-export const compass: Sprite = {
+export const ironCompass: Sprite = {
   name: "Compass",
   layers: [
     { char: "\u0108", color: colors.maroon },

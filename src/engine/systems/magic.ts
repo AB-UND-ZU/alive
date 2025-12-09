@@ -343,9 +343,9 @@ export default function setupMagic(world: World) {
         const statName = key as keyof Player["receivedStats"];
         const statValue = entity[PLAYER].receivedStats[statName];
         const pendingStat = statValue - playerStats[statName];
-        if (pendingStat === 0) continue;
-
         playerStats[statName] = statValue;
+
+        if (pendingStat <= 0) continue;
 
         if (statName === "hp") {
           createAmountMarker(world, entity, pendingStat, "up", "true");

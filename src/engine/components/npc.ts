@@ -2,6 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export const npcTypes = [
+  "dummy",
   "guide",
   "nomad",
   "chief",

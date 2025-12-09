@@ -153,6 +153,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
     const { size, generator, spawn, light } = levelConfig[levelName];
 
     const inspectEntity = assertIdentifier(world, "inspect");
+    const spawnEntity = assertIdentifier(world, "spawn");
     const focusEntity = assertIdentifierAndComponents(world, "focus", [
       MOVABLE,
       SEQUENCABLE,
@@ -170,6 +171,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
       entity,
       ...inventory,
       inspectEntity,
+      spawnEntity,
       focusEntity,
       reference,
       ...getParticles(world, entity),
@@ -384,6 +386,23 @@ export const performTrade = (
           ...itemData,
           [SEQUENCABLE]: { states: {} },
           [ORIENTABLE]: {},
+        })
+      : deal.item.stackable === "note"
+      ? entities.createNote(world, {
+          ...itemData,
+          [SEQUENCABLE]: { states: {} },
+          [POPUP]: {
+            active: false,
+            verticalIndezes: [0],
+            horizontalIndex: 0,
+            selections: [],
+            deals: [],
+            recipes: [],
+            lines: [],
+            targets: [],
+            viewpoint: world.getEntityId(entity),
+            tabs: ["info"],
+          },
         })
       : entities.createItem(world, itemData);
   addToInventory(world, entity, itemEntity, true);

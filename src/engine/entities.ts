@@ -341,7 +341,13 @@ export const createFire = entityFactory([
   SPRITE,
 ]);
 
-export const createFloat = entityFactory([FOG, POSITION, RENDERABLE, SPRITE, ORIENTABLE]);
+export const createFloat = entityFactory([
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+  ORIENTABLE,
+]);
 
 export const createFloor = entityFactory([
   FOG,
@@ -510,6 +516,14 @@ export const createMountain = entityFactory([
   LIGHT,
   POSITION,
   RENDERABLE,
+  SPRITE,
+]);
+
+export const createNote = entityFactory([
+  ITEM,
+  POPUP,
+  RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
 ]);
 
@@ -809,4 +823,17 @@ export const createWorld = entityFactory([
   RENDERABLE,
   SEQUENCABLE,
   VIEWABLE,
+]);
+
+export const createWrapper = entityFactory([
+  FOG,
+  INVENTORY,
+  LAYER,
+  LOOTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  SWIMMABLE,
+  TOOLTIP,
 ]);

@@ -65,7 +65,7 @@ import { freezeTerrain } from "../engine/systems/freeze";
 import { getHasteInterval } from "../engine/systems/movement";
 import { createPopup } from "../engine/systems/popup";
 import { createSequence } from "../engine/systems/sequence";
-import { setIdentifier } from "../engine/utils";
+import { getIdentifier, setIdentifier } from "../engine/utils";
 import { colors } from "../game/assets/colors";
 import {
   apple,
@@ -75,7 +75,7 @@ import {
   bush,
   campfire,
   coconut,
-  compass,
+  ironCompass,
   createButton,
   createDialog,
   createText,
@@ -201,6 +201,7 @@ import {
 import { CLICKABLE } from "../engine/components/clickable";
 import { centerSprites, overlay, recolorSprite } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
+import { POPUP } from "../engine/components/popup";
 
 const populateItems = (
   world: World,
@@ -219,6 +220,30 @@ const populateItems = (
           [ORIENTABLE]: {},
           [SEQUENCABLE]: { states: {} },
           [SPRITE]: getItemSprite(item),
+        },
+        equip
+      );
+    } else if (item.stackable === "note") {
+      createItemInInventory(
+        world,
+        entity,
+        entities.createNote,
+        {
+          [ITEM]: item,
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: getItemSprite(item),
+          [POPUP]: {
+            active: false,
+            verticalIndezes: [0],
+            horizontalIndex: 0,
+            selections: [],
+            deals: [],
+            recipes: [],
+            lines: [[]],
+            targets: [],
+            viewpoint: world.getEntityId(entity),
+            tabs: ["info"],
+          },
         },
         equip
       );
@@ -560,6 +585,7 @@ export const insertArea = (
       else if (cell === "p") entity = "potion_sign";
       else if (cell === "P") entity = "potion_chest";
       else if (cell === "g") entity = "guide_sign";
+      else if (cell === "w") entity = "warp_sign";
       else if (cell === "G") entity = "guide_door";
       else if (cell === "N") entity = "nomad_door";
       else if (cell === "Y") entity = "chest_tower";
@@ -617,6 +643,8 @@ export const createCell = (
   if (!cell) {
     return;
   } else if (cell === "player") {
+    if (getIdentifier(world, "hero")) return;
+
     // create viewpoint for inspecting
     const inspectEntity = entities.createViewpoint(world, {
       [POSITION]: { x: 0, y: 0 },
@@ -1285,10 +1313,11 @@ export const createCell = (
       {
         [ITEM]: {
           equipment: "compass",
+          material: "iron",
           amount: 1,
           bound: false,
         },
-        [SPRITE]: compass,
+        [SPRITE]: ironCompass,
         [ORIENTABLE]: {},
         [SEQUENCABLE]: { states: {} },
         [TRACKABLE]: {},
@@ -1582,6 +1611,24 @@ export const createCell = (
     ]);
     setIdentifier(world, guideSign, "guide_sign");
     return guideSign;
+  } else if (cell === "warp_sign") {
+    return createSign(world, { x, y }, [
+      [
+        [
+          ...createText("A "),
+          ...createItemName({ equipment: "compass", material: "iron" }),
+          ...createText(" points"),
+        ],
+        createText("to your spawn."),
+        [],
+        createText("Follow it in case"),
+        createText("you get lost."),
+        [],
+        createText("You can see it at"),
+        createText("the bottom right"),
+        createText("of the screen."),
+      ],
+    ]);
   } else if (cell === "campfire" || cell === "fireplace") {
     return entities.createFire(world, {
       [BURNABLE]: {
@@ -1605,16 +1652,12 @@ export const createCell = (
       cell === "intro_pot"
         ? [
             {
-              stackable: "coin",
-              amount: 3,
+              stackable: "apple",
+              amount: 1,
             },
           ]
         : undefined
     );
-  } else if (cell === "dummy") {
-    const dummyEntity = createChest(world, "dummy", { x, y });
-    setIdentifier(world, dummyEntity, "dummy");
-    return dummyEntity;
   } else if (cell === "fence") {
     const { sprite, stats, faction, items, equipments } =
       generateUnitData("fence");
@@ -1739,8 +1782,8 @@ export const createCell = (
   } else if (cell === "fruit_chest") {
     const chestEntity = createChest(world, "commonChest", { x, y }, [
       {
-        stackable: "apple",
-        amount: 3,
+        stackable: "banana",
+        amount: 1,
       },
       {
         consume: "key",
@@ -1866,7 +1909,10 @@ export const createCell = (
         }
       );
       setIdentifier(world, spawnKeyEntity, "spawn_key");
+    } else if (cell === "dummy") {
+      setIdentifier(world, mobEntity, "dummy");
     }
+
     return mobEntity;
   } else if (
     ["house_left", "house_right", "basement_left", "basement_right"].includes(

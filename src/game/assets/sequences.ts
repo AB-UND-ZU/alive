@@ -1281,7 +1281,11 @@ export const displayBuy: Sequence<PopupSequence> = (world, entity, state) => {
             )?.[ITEM].amount || 0;
           const amountText =
             selected && inStock
-              ? createText(`${inventoryAmount}/${priceItem.amount}`)
+              ? [
+                  ...createText(`${inventoryAmount}`),
+                  ...createText("/", colors.silver),
+                  ...createText(`${priceItem.amount}`),
+                ]
               : createText(`${priceItem.amount}`, colors.grey);
           const priceSprite = getItemSprite(priceItem, "display");
           const line = [
@@ -3415,7 +3419,7 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
   const maxCountable =
     consumptionConfig && getMaxCounter(consumptionConfig.countable);
 
-  if (!consumptionConfig || !maxCountable) {
+  if (!consumptionConfig || !maxCountable || isDead(world, entity)) {
     return { finished: true, updated: false };
   }
 
@@ -3491,13 +3495,6 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     });
     state.particles.countable = world.getEntityId(countableParticle);
 
-    const decayParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: 0, offsetY: -2, offsetZ: lootHeight },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: decay,
-    });
-    state.particles.decay = world.getEntityId(decayParticle);
-
     updated = true;
   }
 
@@ -3506,12 +3503,6 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
       const consumableParticle = world.assertById(state.particles.consumable);
       disposeEntity(world, consumableParticle);
       delete state.particles.consumable;
-    }
-
-    if (state.particles.decay) {
-      const decayParticle = world.assertById(state.particles.decay);
-      disposeEntity(world, decayParticle);
-      delete state.particles.decay;
     }
   }
 
@@ -3600,13 +3591,13 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
     y: normalize(Math.round(flightLocation.y), size),
   };
 
-  if (
-    state.elapsed > collectTime &&
-    state.elapsed < moveTime &&
-    (roundedLocation.x !== entity[POSITION].x ||
-      roundedLocation.y !== entity[POSITION].y)
-  ) {
-    moveEntity(world, entity, roundedLocation);
+  if (state.elapsed > collectTime && state.elapsed < moveTime) {
+    if (
+      roundedLocation.x !== entity[POSITION].x ||
+      roundedLocation.y !== entity[POSITION].y
+    ) {
+      moveEntity(world, entity, roundedLocation);
+    }
     entity[VIEWABLE].fraction = {
       x: signedDistance(roundedLocation.x, flightLocation.x, size),
       y: signedDistance(roundedLocation.y, flightLocation.y, size),

@@ -196,117 +196,116 @@ export default function setupAction(world: World) {
 
       // tombstones can revive player
       const spawnEntity = getRevivable(world, entity[POSITION]);
-      if (
-        isDead(world, entity) &&
-        spawnEntity &&
-        canRevive(world, spawnEntity, entity)
-      )
-        spawn = spawnEntity;
+      if (isDead(world, entity)) {
+        if (spawnEntity && canRevive(world, spawnEntity, entity)) {
+          spawn = spawnEntity;
+        }
+      } else {
+        for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+          for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+            // check any adjacent actions
+            const delta = { x: offsetX, y: offsetY };
+            const targetPosition = add(entity[POSITION], delta);
+            const warpableEntity = getWarpable(world, targetPosition);
+            const questEntity = getQuest(world, targetPosition);
+            const lockableEntity = getLockable(world, targetPosition);
+            const adjacentPopup = getPopup(world, targetPosition);
+            const popupEntity =
+              adjacentPopup === entity ? undefined : adjacentPopup;
+            const selections = popupEntity
+              ? getTabSelections(world, popupEntity)
+              : [];
+            const claimEntity = popupEntity;
+            const tradeEntity = popupEntity;
+            const useEntity = entity;
+            const addEntity = popupEntity;
 
-      // check any adjacent actions
-      for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-        for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-          const delta = { x: offsetX, y: offsetY };
-          const targetPosition = add(entity[POSITION], delta);
-          const warpableEntity = getWarpable(world, targetPosition);
-          const questEntity = getQuest(world, targetPosition);
-          const lockableEntity = getLockable(world, targetPosition);
-          const adjacentPopup = getPopup(world, targetPosition);
-          const popupEntity =
-            adjacentPopup === entity ? undefined : adjacentPopup;
-          const selections = popupEntity
-            ? getTabSelections(world, popupEntity)
-            : [];
-          const claimEntity = popupEntity;
-          const tradeEntity = popupEntity;
-          const useEntity = entity;
-          const addEntity = popupEntity;
+            // portals can warp players
+            if (
+              !warp &&
+              entity[PLAYER] &&
+              warpableEntity &&
+              isInTab(world, entity, "warp")
+            ) {
+              warp = warpableEntity;
+            }
 
-          // portals can warp players
-          if (
-            !warp &&
-            entity[PLAYER] &&
-            warpableEntity &&
-            isInTab(world, entity, "warp")
-          ) {
-            warp = warpableEntity;
+            // claiming only while in finished quest
+            if (
+              !claim &&
+              entity[PLAYER] &&
+              claimEntity &&
+              isInTab(world, entity, "quest") &&
+              !getAvailableQuest(world, claimEntity)
+            )
+              claim = claimEntity;
+
+            // only player can accept unfinished quests after reading info
+            if (
+              !claim &&
+              !quest &&
+              entity[PLAYER] &&
+              questEntity &&
+              isInTab(world, entity, "quest") &&
+              canAcceptQuest(world, entity, questEntity) &&
+              !isDead(world, entity)
+            )
+              quest = questEntity;
+
+            // only locked doors can be unlocked
+            if (
+              !unlock &&
+              lockableEntity &&
+              !isInPopup(world, entity) &&
+              isLocked(world, lockableEntity) &&
+              !isEnemy(world, entity) &&
+              !isDead(world, entity)
+            )
+              unlock = lockableEntity;
+
+            // only available popups can be opened when not already viewing one
+            if (
+              !popup &&
+              entity[PLAYER] &&
+              !isInPopup(world, entity) &&
+              popupEntity &&
+              isPopupAvailable(world, popupEntity) &&
+              entity !== popupEntity
+            )
+              popup = popupEntity;
+
+            // trading only while in shops or finished forging
+            if (
+              !trade &&
+              entity[PLAYER] &&
+              tradeEntity &&
+              (isInTab(world, entity, "buy") ||
+                isInTab(world, entity, "sell") ||
+                (isInTab(world, entity, "forge") && selections.length === 2) ||
+                (isInTab(world, entity, "craft") && selections.length === 1))
+            )
+              trade = tradeEntity;
+
+            // using only while in inspect
+            if (
+              !use &&
+              entity[PLAYER] &&
+              useEntity &&
+              isInTab(world, entity, "inspect")
+            )
+              use = useEntity;
+
+            // adding only while preparing forge
+            if (
+              !use &&
+              entity[PLAYER] &&
+              addEntity &&
+              ((isInTab(world, entity, "forge") && selections.length < 2) ||
+                (isInTab(world, entity, "craft") && selections.length < 1) ||
+                (isInTab(world, entity, "class") && selections.length < 1))
+            )
+              add_ = addEntity;
           }
-
-          // claiming only while in finished quest
-          if (
-            !claim &&
-            entity[PLAYER] &&
-            claimEntity &&
-            isInTab(world, entity, "quest") &&
-            !getAvailableQuest(world, claimEntity)
-          )
-            claim = claimEntity;
-
-          // only player can accept unfinished quests after reading info
-          if (
-            !claim &&
-            !quest &&
-            entity[PLAYER] &&
-            questEntity &&
-            isInTab(world, entity, "quest") &&
-            canAcceptQuest(world, entity, questEntity) &&
-            !isDead(world, entity)
-          )
-            quest = questEntity;
-
-          // only locked doors can be unlocked
-          if (
-            !unlock &&
-            lockableEntity &&
-            !isInPopup(world, entity) &&
-            isLocked(world, lockableEntity) &&
-            !isEnemy(world, entity) &&
-            !isDead(world, entity)
-          )
-            unlock = lockableEntity;
-
-          // only available popups can be opened when not already viewing one
-          if (
-            !popup &&
-            entity[PLAYER] &&
-            !isInPopup(world, entity) &&
-            popupEntity &&
-            isPopupAvailable(world, popupEntity) &&
-            entity !== popupEntity
-          )
-            popup = popupEntity;
-
-          // trading only while in shops or finished forging
-          if (
-            !trade &&
-            entity[PLAYER] &&
-            tradeEntity &&
-            (isInTab(world, entity, "buy") ||
-              isInTab(world, entity, "sell") ||
-              (isInTab(world, entity, "forge") && selections.length === 2) ||
-              (isInTab(world, entity, "craft") && selections.length === 1))
-          )
-            trade = tradeEntity;
-
-          // using only while in inspect
-          if (
-            !use &&
-            entity[PLAYER] &&
-            useEntity &&
-            isInTab(world, entity, "inspect")
-          )
-            use = useEntity;
-
-          // adding only while preparing forge
-          if (
-            !use &&
-            entity[PLAYER] &&
-            addEntity &&
-            ((isInTab(world, entity, "forge") && selections.length < 2) ||
-              (isInTab(world, entity, "craft") && selections.length < 1) ||
-              (isInTab(world, entity, "class") && selections.length < 1))
-          )
-            add_ = addEntity;
         }
       }
 

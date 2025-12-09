@@ -290,17 +290,16 @@ export const visibleStats: (keyof UnitStats)[] = [
   "spike",
 ];
 
-export const forgeSlots: Equipment[] = [
+export const gearSlots: Equipment[] = [
   "sword",
   "shield",
+  "compass",
+  "torch",
   "primary",
   "secondary",
   "ring",
   "amulet",
-  "torch",
 ];
-
-export const gearSlots: Equipment[] = [...forgeSlots, "compass"];
 
 export const createPopup = (
   world: World,
@@ -454,7 +453,7 @@ export default function setupPopup(world: World) {
     const inventoryItems = heroEntity[INVENTORY].items.length || 0;
     const lines =
       transaction === "inspect"
-        ? popupEntity[INVENTORY]?.items.filter(
+        ? popupEntity?.[INVENTORY]?.items.filter(
             (item) =>
               !world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment
           ).length || 0
