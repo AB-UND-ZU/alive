@@ -1,5 +1,5 @@
 import { createText, joystick, none } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";

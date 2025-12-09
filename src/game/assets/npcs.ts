@@ -31,12 +31,27 @@ import {
   copy,
   getDistance,
   normalize,
-  repeat,
   signedDistance,
   within,
 } from "../math/std";
 import { bossArea, spawnArea } from "../levels/forest/areas";
-import { commonChest, createDialog, createShout, fog, rage } from "./sprites";
+import {
+  commonChest,
+  createDialog,
+  createShout,
+  menuDot,
+  fog,
+  shade,
+  menuArrow,
+  dots,
+  popupSelection,
+  popupBlocked,
+  none,
+  leverOn,
+  leverOff,
+  barrierCorner,
+  barrierSide,
+} from "./sprites";
 import { END_STEP, questSequence, QuestStage, START_STEP, step } from "./utils";
 import {
   NpcSequence,
@@ -47,6 +62,7 @@ import { STATS } from "../../engine/components/stats";
 import { CASTABLE } from "../../engine/components/castable";
 import { defaultLight, spawnLight } from "../../engine/systems/consume";
 import {
+  assertIdentifierAndComponents,
   getIdentifier,
   getIdentifierAndComponents,
   setIdentifier,
@@ -62,42 +78,364 @@ import { SOUL } from "../../engine/components/soul";
 import { matrixFactory } from "../math/matrix";
 import { getSequence } from "../../engine/systems/sequence";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
-import {
-  roomSize,
-  up2Center,
-  up2Left,
-  up2Right,
-} from "../levels/overworld/areas";
-import type * as questTypes from "./quests";
-import { UnitKey } from "../balancing/units";
+import { roomSize, tutorialRooms } from "../levels/tutorial/areas";
 import { isGhost } from "../../engine/systems/fate";
 import { MOVABLE } from "../../engine/components/movable";
-import { POPUP } from "../../engine/components/popup";
 import { TypedEntity } from "../../engine/entities";
+import { COLLIDABLE } from "../../engine/components/collidable";
+import { recolorSprite } from "./pixels";
+import { colors } from "./colors";
+import {
+  ORIENTABLE,
+  orientationPoints,
+} from "../../engine/components/orientable";
+import { CLICKABLE } from "../../engine/components/clickable";
+import { iterations, pixelCircle } from "../math/tracing";
+import { getClickables } from "../../engine/systems/click";
+import { muteAudio, unmuteAudio } from "../sound/resumable";
+import { worldContextRef } from "../../bindings/hooks";
 
-const rooms: {
-  name: string;
-  offsetX: number;
-  offsetY: number;
-  quest?: keyof typeof questTypes;
-  waves?: { types: (UnitKey | undefined)[]; position: Position }[];
-}[] = [
-  { name: "center", offsetX: 0, offsetY: 0, quest: "centerQuest" },
-  { name: "north1", offsetX: 0, offsetY: -1, quest: "north1Quest" },
-  {
-    name: "north2",
-    offsetX: 0,
-    offsetY: -2,
-    waves: [
-      { types: ["eye", "prism", "orb", undefined], position: up2Left },
-      { types: [...repeat(undefined, 3), "goldPrism"], position: up2Center },
-      { types: ["eye", "prism", "orb", undefined], position: up2Right },
-    ],
-  },
-  { name: "north3", offsetX: 0, offsetY: -3 },
+const menuOffset = { x: -8, y: 1 };
+const menuSize = { x: 17, y: 3 };
+const menuPadding = 4;
+const menuArrows = [10, 13];
+const menuItems: { name: string; disabled?: boolean }[] = [
+  { name: "tutorial" },
+  { name: "new-game" },
+  { name: "continue", disabled: true },
+  { name: "sound-fx" },
+  { name: "controls" },
 ];
 
-export const overworldNpc: Sequence<NpcSequence> = (world, entity, state) => {
+const circleTime = 100;
+const circleRange = 19;
+const circleColors = [
+  colors.maroon,
+  colors.grey,
+  colors.navy,
+  colors.olive,
+  colors.purple,
+  colors.green,
+  colors.black,
+];
+
+const deselectItem = (stage: QuestStage<NpcSequence>) => {
+  if (!stage.state.args.memory.grounds?.length) {
+    stage.state.args.memory.grounds = [];
+    return;
+  }
+
+  for (
+    let groundIndex = 0;
+    groundIndex < stage.state.args.memory.grounds.length;
+    groundIndex += 1
+  ) {
+    const groundEntity = stage.state.args.memory.grounds[groundIndex];
+    disposeEntity(stage.world, groundEntity);
+
+    const dotEntity = Object.values(
+      getCell(stage.world, groundEntity[POSITION])
+    ).find((entity) => entity[COLLIDABLE]);
+
+    if (dotEntity) {
+      dotEntity[SPRITE] = menuArrows.includes(groundIndex)
+        ? menuDot
+        : recolorSprite(dotEntity[SPRITE], colors.grey);
+      rerenderEntity(stage.world, dotEntity);
+    }
+  }
+
+  const discoveryState = Object.values(
+    getCell(
+      stage.world,
+      add(stage.state.args.memory.grounds.slice(-1)[0][POSITION], {
+        x: 1,
+        y: 0,
+      })
+    )
+  )
+    .map((entity) => getSequence(stage.world, entity, "discovery"))
+    .find(Boolean);
+
+  if (discoveryState) {
+    discoveryState.args.force = false;
+  }
+  stage.state.args.memory.grounds = [];
+};
+
+type ContactCircle = {
+  generation: number;
+  rendered: number;
+  position: Position;
+  color: string;
+};
+
+export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    MOVABLE,
+    POSITION,
+  ]);
+  const heroPosition =
+    heroEntity && !isDead(world, heroEntity)
+      ? heroEntity[POSITION]
+      : { x: 0, y: 0 };
+
+  if (!state.args.memory.circles) {
+    // initialize circles
+    state.args.memory.circles = [];
+
+    // create moving arrow
+    const arrowEntity = entities.createTransient(world, {
+      [FOG]: {
+        visibility: "visible",
+        type: "terrain",
+      },
+      [MOVABLE]: {
+        orientations: [],
+        reference:
+          heroEntity?.[MOVABLE]?.reference ||
+          world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        bumpGeneration: 0,
+        flying: false,
+      },
+      [POSITION]: add(menuOffset, { x: -1, y: 1 }),
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: none,
+    });
+    state.args.memory.arrow = world.getEntityId(arrowEntity);
+
+    // set controlled discovery
+    world.getEntities([SEQUENCABLE]).forEach((entity) => {
+      const discovery = getSequence(world, entity, "discovery");
+      if (!discovery) return;
+      discovery.args.force = false;
+    });
+  }
+
+  const arrowEntity = world.assertByIdAndComponents(state.args.memory.arrow, [
+    SPRITE,
+    POSITION,
+  ]);
+
+  const circles = state.args.memory.circles as ContactCircle[];
+  const circleGeneration = Math.floor(state.elapsed / circleTime);
+
+  // handle settings
+  const soundLever = assertIdentifierAndComponents(world, "settings_sound", [
+    CLICKABLE,
+    SPRITE,
+    TOOLTIP,
+  ]);
+  const controlsLever = assertIdentifierAndComponents(
+    world,
+    "settings_controls",
+    [CLICKABLE, SPRITE, TOOLTIP]
+  );
+
+  if (soundLever[CLICKABLE].clicked) {
+    if (soundLever[SPRITE] === leverOn) {
+      muteAudio();
+      soundLever[SPRITE] = leverOff;
+      soundLever[TOOLTIP].dialogs = [createDialog("Sound off")];
+      soundLever[TOOLTIP].changed = true;
+    } else {
+      unmuteAudio();
+      soundLever[SPRITE] = leverOn;
+      soundLever[TOOLTIP].dialogs = [createDialog("Sound on")];
+      soundLever[TOOLTIP].changed = true;
+    }
+
+    rerenderEntity(world, soundLever);
+    soundLever[CLICKABLE].clicked = false;
+  }
+
+  if (controlsLever[CLICKABLE].clicked) {
+    if (controlsLever[SPRITE] === leverOn) {
+      worldContextRef.current.setFlipped(true);
+      controlsLever[SPRITE] = leverOff;
+      controlsLever[TOOLTIP].dialogs = [createDialog("Right side")];
+      controlsLever[TOOLTIP].changed = true;
+    } else {
+      worldContextRef.current.setFlipped(false);
+      controlsLever[SPRITE] = leverOn;
+      controlsLever[TOOLTIP].dialogs = [createDialog("Left side")];
+      controlsLever[TOOLTIP].changed = true;
+    }
+
+    rerenderEntity(world, controlsLever);
+    controlsLever[CLICKABLE].clicked = false;
+  }
+
+  // handle clicks on blocks
+  world
+    .getEntities([CLICKABLE, POSITION, SPRITE])
+    .filter((entity) => entity[CLICKABLE].clicked && !entity[SEQUENCABLE])
+    .forEach((clickEntity) => {
+      circles.push({
+        generation: circleGeneration,
+        position: clickEntity[POSITION],
+        rendered: circleGeneration - 1,
+        color:
+          circleColors[
+            (circleColors.indexOf(clickEntity[SPRITE].layers[0].color) + 1) %
+              circleColors.length
+          ],
+      });
+      clickEntity[CLICKABLE].clicked = false;
+    });
+
+  // render circles in reverse order to allow in-place splicing
+  for (
+    let circleIndex = circles.length - 1;
+    circleIndex >= 0;
+    circleIndex -= 1
+  ) {
+    const circle = circles[circleIndex];
+
+    if (circle.rendered === circleGeneration) continue;
+
+    const radius = circleGeneration - circle.generation;
+    stage.updated = true;
+
+    if (radius > circleRange) {
+      circles.splice(circleIndex, 1);
+      continue;
+    }
+
+    // color next ring
+    const pixels = pixelCircle({ x: 0, y: 0 }, radius, 1);
+    const fractions = pixels.map((pixel) =>
+      add(circle.position, { x: pixel.x, y: pixel.y / 4 })
+    );
+
+    fractions.forEach((fraction) => {
+      const pixel = {
+        x: fraction.x,
+        y:
+          fraction.y % 1 === 0
+            ? fraction.y
+            : fraction.y + 0.5 * Math.sign(fraction.y),
+      };
+      getClickables(world, pixel).forEach((clickable) => {
+        // eslint-disable-next-line no-mixed-operators
+        const half = pixel.y > 0 !== (fraction.y % 1 === 0) ? "▀" : "▄";
+        if (
+          clickable &&
+          (pixel.y === 0 || clickable[SPRITE].layers[0].char === half)
+        ) {
+          clickable[SPRITE] = recolorSprite(
+            clickable[SPRITE],
+            clickable[SPRITE].layers[0].color === colors.black
+              ? { [colors.black]: circle.color }
+              : circle.color
+          );
+          rerenderEntity(world, clickable);
+        }
+      });
+    });
+
+    circle.rendered = circleGeneration;
+  }
+
+  // select and deselect menu items
+  menuItems.forEach(({ name, disabled }, menuIndex) => {
+    const topLeft = add(menuOffset, {
+      x: -menuPadding,
+      y: menuSize.y * menuIndex,
+    });
+    const bottomRight = add(add(topLeft, menuSize), {
+      x: menuPadding * 2 - 1,
+      y: -1,
+    });
+
+    step({
+      stage,
+      name,
+      forceEnter: () => within(topLeft, bottomRight, heroPosition, size),
+      onEnter: () => {
+        deselectItem(stage);
+        arrowEntity[SPRITE] = disabled ? popupBlocked : popupSelection;
+        moveEntity(
+          world,
+          arrowEntity,
+          add(topLeft, { x: menuPadding - 1, y: 1 })
+        );
+
+        for (let cellIndex = 0; cellIndex < menuSize.x - 1; cellIndex += 1) {
+          const cellPosition = add(topLeft, {
+            x: menuPadding + cellIndex,
+            y: 1,
+          });
+
+          const groundEntity = entities.createGround(world, {
+            [FOG]: {
+              visibility: "visible",
+              type: "terrain",
+            },
+            [POSITION]: cellPosition,
+            [RENDERABLE]: { generation: 0 },
+            [SPRITE]: disabled ? dots : shade,
+          });
+          state.args.memory.grounds.push(groundEntity);
+          registerEntity(world, groundEntity);
+
+          const dotEntity = Object.values(getCell(world, cellPosition)).find(
+            (entity) => entity[COLLIDABLE]
+          );
+
+          if (dotEntity) {
+            dotEntity[SPRITE] =
+              menuArrows.includes(cellIndex) && !disabled
+                ? menuArrow
+                : recolorSprite(dotEntity[SPRITE], colors.white);
+            rerenderEntity(world, dotEntity);
+          }
+        }
+        const discoveryState = Object.values(
+          getCell(world, add(bottomRight, { x: -menuPadding, y: -1 }))
+        )
+          .map((entity) => getSequence(world, entity, "discovery"))
+          .find(Boolean);
+
+        if (discoveryState) {
+          discoveryState.args.force = true;
+        }
+
+        return true;
+      },
+      isCompleted: () => !within(topLeft, bottomRight, heroPosition, size),
+      onLeave: () => {
+        deselectItem(stage);
+        arrowEntity[SPRITE] = none;
+        rerenderEntity(world, arrowEntity);
+
+        return "wait";
+      },
+    });
+  });
+
+  step({
+    stage,
+    name: "wait",
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
     entity,
@@ -119,27 +457,28 @@ export const overworldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   step({
     stage,
     name: START_STEP,
-    isCompleted: () => true,
-    onLeave: () => "center",
+    isCompleted: () => !!heroEntity,
+    onLeave: () => {
+      delete entity[VIEWABLE].spring;
+      return "center";
+    },
   });
 
-  rooms.forEach(({ name, offsetX, offsetY, quest, waves }) => {
-    const hasBarrier = !!Object.values(
-      getCell(world, {
-        x: offsetX * roomSize.x,
-        y: offsetY * roomSize.y - 1,
-      })
-    ).find((entity) => entity[FOG]?.type === "float");
-    const shouldSpawn = waves && hasBarrier;
-
+  tutorialRooms.forEach(({ name, offsetX, offsetY, quest, waves }) => {
     const topLeft = {
-      x: roomSize.x * (offsetX - 0.5),
-      y: roomSize.y * (offsetY - 0.5),
+      x: offsetX - roomSize.x * 0.5,
+      y: offsetY - roomSize.y * 0.5,
     };
     const bottomRight = {
-      x: roomSize.x * (offsetX + 0.5),
-      y: roomSize.y * (offsetY + 0.5),
+      x: offsetX + roomSize.x * 0.5,
+      y: offsetY + roomSize.y * 0.5,
     };
+    const spawners = (waves || [])
+      .map((wave) => Object.values(getCell(world, wave.position))[0])
+      .filter(
+        (spawner) => spawner && spawner[BEHAVIOUR]?.patterns.length === 0
+      );
+    const shouldSpawn = waves && spawners.length > 0;
 
     step({
       stage,
@@ -160,13 +499,24 @@ export const overworldNpc: Sequence<NpcSequence> = (world, entity, state) => {
           for (let y = topLeft.y; y <= bottomRight.y; y += 1) {
             const cell = getCell(world, { x, y });
             Object.values(cell).forEach((cellEntity) => {
-              if (cellEntity[FOG] && cellEntity[RENDERABLE]) {
+              if (
+                cellEntity[FOG]?.visibility === "hidden" &&
+                cellEntity[RENDERABLE]
+              ) {
                 cellEntity[FOG].visibility = "fog";
                 rerenderEntity(world, cellEntity);
               }
             });
           }
         }
+
+        // clear float
+        world
+          .getEntities([IDENTIFIABLE])
+          .filter((entity) => entity[IDENTIFIABLE].name === `${name}:float`)
+          .forEach((entity) => {
+            disposeEntity(world, entity);
+          });
 
         if (heroEntity && quest) {
           questSequence(world, heroEntity, quest, {});
@@ -178,30 +528,59 @@ export const overworldNpc: Sequence<NpcSequence> = (world, entity, state) => {
             const mountainEntity = createCell(
               world,
               [[]],
-              { x: roomSize.x * offsetX, y: roomSize.y * (offsetY + y) },
+              { x: offsetX, y: roomSize.y * y + offsetY },
               "mountain",
               "visible"
             )!;
-            setIdentifier(world, mountainEntity, "blocker");
+            setIdentifier(world, mountainEntity, `${name}:blocker`);
           });
 
-          // despawn previous mobs
-          world
-            .getEntities([IDENTIFIABLE])
-            .filter((entity) => entity[IDENTIFIABLE].name === `${name}:mob`)
-            .forEach((entity) => {
-              disposeEntity(world, entity);
+          // create barrier
+          const horizontalOffset = roomSize.x / 2;
+          const verticalOffset = roomSize.y / 2;
+          for (const iteration of iterations) {
+            const delta = orientationPoints[iteration.orientation];
+            const corner = {
+              x: (delta.x - iteration.normal.x) * horizontalOffset + offsetX,
+              y: (delta.y - iteration.normal.y) * verticalOffset + offsetY,
+            };
+            const cornerEntity = entities.createFloat(world, {
+              [FOG]: { visibility: "visible", type: "float" },
+              [ORIENTABLE]: { facing: iteration.orientation },
+              [POSITION]: corner,
+              [SPRITE]: barrierCorner,
+              [RENDERABLE]: { generation: 0 },
             });
+            setIdentifier(world, cornerEntity, `${name}:barrier`);
 
-          // createSpawners
+            const length = Math.abs(
+              (roomSize.x - 1) * iteration.normal.x +
+                (roomSize.y - 1) * iteration.normal.y
+            );
+
+            for (let sideOffset = 1; sideOffset <= length; sideOffset += 1) {
+              const sideEntity = entities.createFloat(world, {
+                [FOG]: { visibility: "visible", type: "float" },
+                [ORIENTABLE]: { facing: iteration.orientation },
+                [POSITION]: add(
+                  {
+                    x: sideOffset * iteration.normal.x,
+                    y: sideOffset * iteration.normal.y,
+                  },
+                  corner
+                ),
+                [SPRITE]: barrierSide,
+                [RENDERABLE]: { generation: 0 },
+              });
+              setIdentifier(world, sideEntity, `${name}:barrier`);
+            }
+          }
+
+          // activate spawners
           waves.forEach(({ position, types }) => {
-            const spawnerEntity = createCell(
-              world,
-              [[]],
-              position,
-              "spawner",
-              "fog"
-            ) as TypedEntity<"BEHAVIOUR">;
+            const spawnerEntity = Object.values(
+              getCell(world, position)
+            )[0] as TypedEntity<"BEHAVIOUR">;
             spawnerEntity[BEHAVIOUR].patterns = [
               {
                 name: "spawner",
@@ -209,13 +588,12 @@ export const overworldNpc: Sequence<NpcSequence> = (world, entity, state) => {
               },
             ];
             setIdentifier(world, spawnerEntity, `${name}:spawner`);
-            registerEntity(world, spawnerEntity);
           });
         }
 
         moveEntity(world, entity, {
-          x: roomSize.x * offsetX,
-          y: roomSize.y * offsetY,
+          x: offsetX,
+          y: offsetY,
         });
         return true;
       },
@@ -240,31 +618,31 @@ export const overworldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       !heroEntity ||
       isDead(world, heroEntity),
     onLeave: () => {
-      if (!getIdentifier(world, `${state.args.memory.room?.name}:spawner`)) {
-        // remove barrier
-        for (let x = -2; x <= 2; x += 1) {
-          for (let y = -1; y <= 1; y += 1) {
-            Object.values(
-              getCell(world, {
-                x: state.args.memory.room.offsetX * roomSize.x + x,
-                y: state.args.memory.room.offsetY * roomSize.y + y,
-              })
-            ).forEach((entity) => {
-              if (entity[FOG]?.type === "float") {
-                disposeEntity(world, entity);
-              }
-            });
-          }
-        }
-      }
-
-      // unblock entrances
+      // despawn previous mobs
       world
         .getEntities([IDENTIFIABLE])
-        .filter((entity) => entity[IDENTIFIABLE].name === "blocker")
+        .filter(
+          (entity) =>
+            entity[IDENTIFIABLE].name === `${state.args.memory.room?.name}:mob`
+        )
         .forEach((entity) => {
           disposeEntity(world, entity);
         });
+
+      // unblock entrances and remove barrier
+      world
+        .getEntities([IDENTIFIABLE])
+        .filter(
+          (entity) =>
+            entity[IDENTIFIABLE].name ===
+              `${state.args.memory.room?.name}:blocker` ||
+            entity[IDENTIFIABLE].name ===
+              `${state.args.memory.room?.name}:barrier`
+        )
+        .forEach((entity) => {
+          disposeEntity(world, entity);
+        });
+      // }
 
       state.args.memory.room = undefined;
       return "wait";
@@ -547,183 +925,6 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       // create portal
       createCell(world, [[]], { x: 0, y: 155 }, "portal", "visible");
 
-      return true;
-    },
-  });
-
-  return { finished: stage.finished, updated: stage.updated };
-};
-
-export const guideNpc: Sequence<NpcSequence> = (world, entity, state) => {
-  const stage: QuestStage<NpcSequence> = {
-    world,
-    entity,
-    state,
-    finished: false,
-    updated: false,
-  };
-
-  const size = world.metadata.gameEntity[LEVEL].size;
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    PLAYER,
-    POSITION,
-    EQUIPPABLE,
-    STATS,
-    SPAWNABLE,
-    INVENTORY,
-  ]);
-  const chestEntity = getIdentifierAndComponents(world, "guide_chest", [STATS]);
-
-  if (!state.args.memory.initialPosition) {
-    state.args.memory.initialPosition = copy(entity[POSITION]);
-  }
-
-  step({
-    stage,
-    name: START_STEP,
-    onEnter: () => true,
-    isCompleted: () => true,
-    onLeave: () => "wait",
-  });
-
-  // warn player if chest is attacked by player
-  step({
-    stage,
-    name: "warn",
-    forceEnter: () =>
-      !state.args.memory.warned &&
-      !!chestEntity &&
-      chestEntity[STATS].hp < chestEntity[STATS].maxHp,
-    onEnter: () => {
-      state.args.memory.warned = true;
-      const previousDialog = { ...entity[TOOLTIP], changed: true };
-
-      entity[TOOLTIP].override = "visible";
-      entity[TOOLTIP].changed = true;
-      entity[TOOLTIP].dialogs = [createDialog("Stop it!")];
-      entity[BEHAVIOUR].patterns.unshift(
-        {
-          name: "wait",
-          memory: { ticks: 4 },
-        },
-        {
-          name: "dialog",
-          memory: previousDialog,
-        }
-      );
-      return false;
-    },
-  });
-
-  // attack player if chest is broken
-  const stolenItems = world
-    .getEntities([IDENTIFIABLE, ITEM])
-    .filter(
-      (item) =>
-        item[IDENTIFIABLE].name === "guide_chest:drop" &&
-        item[ITEM].carrier !== world.getEntityId(entity)
-    ).length;
-  const topLeft = {
-    x: roomSize.x * (rooms[1].offsetX - 0.5),
-    y: roomSize.y * (rooms[1].offsetY - 0.5),
-  };
-  const bottomRight = {
-    x: roomSize.x * (rooms[1].offsetX + 0.5),
-    y: roomSize.y * (rooms[1].offsetY + 0.5),
-  };
-  const inSameRoom =
-    !!heroEntity && within(topLeft, bottomRight, heroEntity[POSITION], size);
-
-  step({
-    stage,
-    name: "enrage",
-    forceEnter: () =>
-      !state.args.memory.attacked &&
-      !chestEntity &&
-      !!heroEntity &&
-      !isDead(world, heroEntity) &&
-      getDistance(entity[POSITION], heroEntity[POSITION], size) < 5 &&
-      inSameRoom,
-    onEnter: () => {
-      state.args.memory.attacked = true;
-      console.log(stolenItems);
-
-      world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP);
-
-      entity[BEHAVIOUR].patterns = [
-        {
-          name: "enrage",
-          memory: { shout: "Thief\u0112" },
-        },
-        {
-          name: "kill",
-          memory: {
-            target: heroEntity && world.getEntityId(heroEntity),
-          },
-        },
-        {
-          name: "dialog",
-          memory: {
-            idle: rage,
-            override: undefined,
-            changed: true,
-            dialogs: [],
-          },
-        },
-        {
-          name: "wait",
-          memory: { ticks: 2 },
-        },
-        ...Array.from({ length: stolenItems }).map(() => ({
-          name: "collect",
-          memory: {
-            identifier: "guide_chest:drop",
-          },
-        })),
-        {
-          name: "move",
-          memory: {
-            targetPosition: state.args.memory.initialPosition,
-          },
-        },
-      ];
-      return true;
-    },
-    isCompleted: () => !heroEntity || isDead(world, heroEntity),
-    onLeave: () => {
-      state.args.memory.attacked = false;
-      return START_STEP;
-    },
-  });
-
-  // reset when player leaves room
-  step({
-    stage,
-    name: "reset",
-    forceEnter: () =>
-      isEnemy(world, entity) &&
-      !inSameRoom &&
-      !!heroEntity &&
-      !isDead(world, heroEntity),
-    onEnter: () => {
-      state.args.memory.attacked = false;
-      entity[BEHAVIOUR].patterns = [
-        {
-          name: "move",
-          memory: {
-            targetPosition: state.args.memory.initialPosition,
-          },
-        },
-        {
-          name: "dialog",
-          memory: {
-            idle: rage,
-            changed: true,
-            override: undefined,
-            dialogs: [],
-          },
-        },
-      ];
       return true;
     },
   });

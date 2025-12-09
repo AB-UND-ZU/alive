@@ -1,17 +1,21 @@
-import * as colors from "../colors";
+import { colors, orderedColors } from "../colors";
 import { Layer, SPRITE, Sprite } from "../../../engine/components/sprite";
-import { Countable, Stats } from "../../../engine/components/stats";
+import { Countable, UnitStats } from "../../../engine/components/stats";
 import {
   armor,
+  damp,
   haste,
   heart,
   heartUp,
   level,
-  magic,
   mana,
   manaUp,
   power,
-  sight,
+  resist,
+  spike,
+  thaw,
+  vision,
+  wisdom,
   xp,
 } from "./items";
 import { lerp, normalize, padCenter, repeat } from "../../math/std";
@@ -21,20 +25,26 @@ import { none } from "./terrain";
 import { World } from "../../../engine";
 import { isEnemy, isNeutral } from "../../../engine/systems/damage";
 import { Entity } from "ecs";
-
-export const block: Sprite = {
-  name: "block_solid",
-  layers: [{ char: "█", color: colors.maroon }],
-};
+import { ItemStats } from "../../../engine/components/item";
 
 export const blockDown: Sprite = {
   name: "block_down",
   layers: [{ char: "▄", color: colors.maroon }],
 };
 
+export const blockDownActive: Sprite = {
+  name: "block_down",
+  layers: [{ char: "▄", color: colors.red }],
+};
+
 export const blockUp: Sprite = {
   name: "block_up",
   layers: [{ char: "▀", color: colors.maroon }],
+};
+
+export const blockUpActive: Sprite = {
+  name: "block_up",
+  layers: [{ char: "▀", color: colors.red }],
 };
 
 export const keyHole: Sprite = {
@@ -47,23 +57,23 @@ export const keyHole: Sprite = {
 
 export const barrierSide: Sprite = {
   name: "barrier_side",
-  layers: [{ char: "╬", color: colors.silver }],
+  layers: [{ char: "╬", color: colors.red }],
   facing: {
-    up: [{ char: "═", color: colors.silver }],
-    right: [{ char: "║", color: colors.silver }],
-    down: [{ char: "═", color: colors.silver }],
-    left: [{ char: "║", color: colors.silver }],
+    up: [{ char: "═", color: colors.red }],
+    right: [{ char: "║", color: colors.red }],
+    down: [{ char: "═", color: colors.red }],
+    left: [{ char: "║", color: colors.red }],
   },
 };
 
 export const barrierCorner: Sprite = {
   name: "barrier_corner",
-  layers: [{ char: "╬", color: colors.silver }],
+  layers: [{ char: "╬", color: colors.red }],
   facing: {
-    up: [{ char: "╗", color: colors.silver }],
-    right: [{ char: "╝", color: colors.silver }],
-    down: [{ char: "╚", color: colors.silver }],
-    left: [{ char: "╔", color: colors.silver }],
+    up: [{ char: "╔", color: colors.red }],
+    right: [{ char: "╗", color: colors.red }],
+    down: [{ char: "╝", color: colors.red }],
+    left: [{ char: "╚", color: colors.red }],
   },
 };
 
@@ -72,8 +82,8 @@ export const frozen: Sprite = {
   layers: [{ char: "▓", color: colors.aqua }],
 };
 
-export const hit: Sprite = {
-  name: "hit_melee",
+export const meleeHit: Sprite = {
+  name: "Melee",
   layers: [{ char: "O", color: colors.white }],
   amounts: {
     single: [
@@ -86,191 +96,287 @@ export const hit: Sprite = {
   },
 };
 
+export const magicHit: Sprite = {
+  name: "Magic",
+  layers: [{ char: "O", color: colors.white }],
+  amounts: {
+    single: [
+      { char: "*", color: colors.fuchsia },
+      { char: "─", color: colors.black },
+      { char: "·", color: colors.fuchsia },
+    ],
+    double: [{ char: "x", color: colors.fuchsia }],
+    multiple: [{ char: "X", color: colors.fuchsia }],
+  },
+};
+
+export const range: Sprite = {
+  name: "Range",
+  layers: [
+    { char: "\u0117", color: colors.yellow },
+    { char: "\u0118", color: colors.yellow },
+    { char: "|", color: colors.olive },
+  ],
+};
+
+export const delay: Sprite = {
+  name: "Delay",
+  layers: [
+    { char: "\u0100", color: colors.olive },
+    { char: "■", color: colors.black },
+    { char: "└", color: colors.yellow },
+  ],
+};
+
 export const heal: Sprite = {
-  name: "heal",
+  name: "Heal",
   layers: [{ char: "+", color: colors.lime }],
 };
 
-export const wave: Sprite = {
-  name: "spell_wave",
+export const woodWave: Sprite = {
+  name: "wood_wave",
   layers: [
-    { char: "┼", color: colors.silver },
+    { char: "┼", color: colors.maroon },
     { char: "·", color: colors.black },
   ],
   facing: {
-    up: [{ char: "─", color: colors.silver }],
-    right: [{ char: "│", color: colors.silver }],
-    down: [{ char: "─", color: colors.silver }],
-    left: [{ char: "│", color: colors.silver }],
+    up: [{ char: "─", color: colors.maroon }],
+    right: [{ char: "│", color: colors.maroon }],
+    down: [{ char: "─", color: colors.maroon }],
+    left: [{ char: "│", color: colors.maroon }],
   },
 };
 
-export const defaultWave: Sprite = {
-  name: "default_wave",
+export const woodAirWave: Sprite = {
+  name: "wood_air_wave",
   layers: [
-    { char: "┼", color: colors.white },
-    { char: "·", color: colors.black },
+    { char: "┼", color: colors.maroon },
+    { char: "·", color: colors.white },
   ],
   facing: {
-    up: [{ char: "─", color: colors.white }],
-    right: [{ char: "│", color: colors.white }],
-    down: [{ char: "─", color: colors.white }],
-    left: [{ char: "│", color: colors.white }],
+    up: [
+      { char: "┬", color: colors.white },
+      { char: "─", color: colors.maroon },
+    ],
+    right: [
+      { char: "┤", color: colors.white },
+      { char: "│", color: colors.maroon },
+    ],
+    down: [
+      { char: "┴", color: colors.white },
+      { char: "─", color: colors.maroon },
+    ],
+    left: [
+      { char: "├", color: colors.white },
+      { char: "│", color: colors.maroon },
+    ],
   },
 };
 
-export const fireWave: Sprite = {
-  name: "fire_wave",
+export const woodFireWave: Sprite = {
+  name: "wood_fire_wave",
   layers: [
-    { char: "┼", color: colors.red },
-    { char: "·", color: colors.black },
+    { char: "┼", color: colors.maroon },
+    { char: "·", color: colors.red },
   ],
   facing: {
-    up: [{ char: "─", color: colors.red }],
-    right: [{ char: "│", color: colors.red }],
-    down: [{ char: "─", color: colors.red }],
-    left: [{ char: "│", color: colors.red }],
+    up: [
+      { char: "┬", color: colors.red },
+      { char: "─", color: colors.maroon },
+    ],
+    right: [
+      { char: "┤", color: colors.red },
+      { char: "│", color: colors.maroon },
+    ],
+    down: [
+      { char: "┴", color: colors.red },
+      { char: "─", color: colors.maroon },
+    ],
+    left: [
+      { char: "├", color: colors.red },
+      { char: "│", color: colors.maroon },
+    ],
   },
 };
 
-export const waterWave: Sprite = {
-  name: "water_wave",
+export const woodWaterWave: Sprite = {
+  name: "wood_water_wave",
   layers: [
-    { char: "┼", color: colors.blue },
-    { char: "·", color: colors.black },
+    { char: "┼", color: colors.maroon },
+    { char: "·", color: colors.blue },
   ],
   facing: {
-    up: [{ char: "─", color: colors.blue }],
-    right: [{ char: "│", color: colors.blue }],
-    down: [{ char: "─", color: colors.blue }],
-    left: [{ char: "│", color: colors.blue }],
+    up: [
+      { char: "┬", color: colors.blue },
+      { char: "─", color: colors.maroon },
+    ],
+    right: [
+      { char: "┤", color: colors.blue },
+      { char: "│", color: colors.maroon },
+    ],
+    down: [
+      { char: "┴", color: colors.blue },
+      { char: "─", color: colors.maroon },
+    ],
+    left: [
+      { char: "├", color: colors.blue },
+      { char: "│", color: colors.maroon },
+    ],
   },
 };
 
-export const earthWave: Sprite = {
-  name: "earth_wave",
+export const woodEarthWave: Sprite = {
+  name: "wood_earth_wave",
   layers: [
-    { char: "┼", color: colors.lime },
-    { char: "·", color: colors.black },
+    { char: "┼", color: colors.maroon },
+    { char: "·", color: colors.lime },
   ],
   facing: {
-    up: [{ char: "─", color: colors.lime }],
-    right: [{ char: "│", color: colors.lime }],
-    down: [{ char: "─", color: colors.lime }],
-    left: [{ char: "│", color: colors.lime }],
-  },
-};
-
-export const waveCorner: Sprite = {
-  name: "spell_corner",
-  layers: [],
-  facing: {
     up: [
-      { char: "┐", color: colors.silver },
-      { char: "·", color: colors.black },
+      { char: "┬", color: colors.lime },
+      { char: "─", color: colors.maroon },
     ],
     right: [
-      { char: "┘", color: colors.silver },
-      { char: "·", color: colors.black },
+      { char: "┤", color: colors.lime },
+      { char: "│", color: colors.maroon },
     ],
     down: [
-      { char: "└", color: colors.silver },
-      { char: "·", color: colors.black },
+      { char: "┴", color: colors.lime },
+      { char: "─", color: colors.maroon },
     ],
     left: [
-      { char: "┌", color: colors.silver },
-      { char: "·", color: colors.black },
+      { char: "├", color: colors.lime },
+      { char: "│", color: colors.maroon },
     ],
   },
 };
 
-export const defaultWaveCorner: Sprite = {
-  name: "default_corner",
+export const woodWaveCorner: Sprite = {
+  name: "wood_corner",
   layers: [],
   facing: {
     up: [
-      { char: "┐", color: colors.white },
+      { char: "┐", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     right: [
-      { char: "┘", color: colors.white },
+      { char: "┘", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     down: [
-      { char: "└", color: colors.white },
+      { char: "└", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┌", color: colors.white },
+      { char: "┌", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
   },
 };
 
-export const fireWaveCorner: Sprite = {
-  name: "fire_corner",
+export const woodAirWaveCorner: Sprite = {
+  name: "wood_air_corner",
   layers: [],
   facing: {
     up: [
-      { char: "┐", color: colors.red },
+      { char: "┬", color: colors.white },
+      { char: "┐", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     right: [
-      { char: "┘", color: colors.red },
+      { char: "┴", color: colors.white },
+      { char: "┘", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     down: [
-      { char: "└", color: colors.red },
+      { char: "┴", color: colors.white },
+      { char: "└", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┌", color: colors.red },
+      { char: "┬", color: colors.white },
+      { char: "┌", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
   },
 };
 
-export const waterWaveCorner: Sprite = {
-  name: "water_corner",
+export const woodFireWaveCorner: Sprite = {
+  name: "wood_fire_corner",
   layers: [],
   facing: {
     up: [
-      { char: "┐", color: colors.blue },
+      { char: "┬", color: colors.red },
+      { char: "┐", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     right: [
-      { char: "┘", color: colors.blue },
+      { char: "┴", color: colors.red },
+      { char: "┘", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     down: [
-      { char: "└", color: colors.blue },
+      { char: "┴", color: colors.red },
+      { char: "└", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┌", color: colors.blue },
+      { char: "┬", color: colors.red },
+      { char: "┌", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
   },
 };
 
-export const earthWaveCorner: Sprite = {
-  name: "earth_corner",
+export const woodWaterWaveCorner: Sprite = {
+  name: "wood_water_corner",
   layers: [],
   facing: {
     up: [
-      { char: "┐", color: colors.lime },
+      { char: "┬", color: colors.blue },
+      { char: "┐", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     right: [
-      { char: "┘", color: colors.lime },
+      { char: "┴", color: colors.blue },
+      { char: "┘", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     down: [
-      { char: "└", color: colors.lime },
+      { char: "┴", color: colors.blue },
+      { char: "└", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┌", color: colors.lime },
+      { char: "┬", color: colors.blue },
+      { char: "┌", color: colors.maroon },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const woodEarthWaveCorner: Sprite = {
+  name: "wood_earth_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┬", color: colors.lime },
+      { char: "┐", color: colors.maroon },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┴", color: colors.lime },
+      { char: "┘", color: colors.maroon },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "┴", color: colors.lime },
+      { char: "└", color: colors.maroon },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┬", color: colors.lime },
+      { char: "┌", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
   },
@@ -295,7 +401,7 @@ export const bubble: Sprite = {
 
 export const rain: Sprite = {
   name: "rain_drop",
-  layers: [],
+  layers: [{ char: "│", color: colors.blue }],
   amounts: {
     single: [{ char: "│", color: colors.blue }],
     double: [{ char: "║", color: colors.blue }],
@@ -307,7 +413,7 @@ export const rain: Sprite = {
 };
 
 export const fire: Sprite = {
-  name: "fire_burn",
+  name: "Burn",
   layers: [
     { char: "\u010e", color: colors.red },
     { char: "*", color: colors.yellow },
@@ -343,7 +449,7 @@ export const crackle: Sprite = {
 };
 
 export const freeze: Sprite = {
-  name: "unit_freeze",
+  name: "Freeze",
   layers: [{ char: "░", color: colors.aqua }],
   amounts: {
     single: [{ char: "░", color: colors.aqua }],
@@ -386,8 +492,8 @@ export const decay: Sprite = {
 export const shotHit: Sprite = {
   name: "shot_hit",
   layers: [
-    { char: "'", color: colors.maroon },
-    { char: "`", color: colors.grey },
+    { char: "'", color: colors.grey },
+    { char: "`", color: colors.white },
   ],
 };
 
@@ -450,7 +556,7 @@ export const woodShot2: Sprite = {
 
 export const woodSlashSide: Sprite = {
   name: "wood_slash_side",
-  layers: [{ char: "┼", color: colors.maroon }],
+  layers: [{ char: "┐", color: colors.maroon }],
   facing: {
     up: [{ char: "─", color: colors.maroon }],
     right: [{ char: "┘", color: colors.maroon }],
@@ -461,12 +567,45 @@ export const woodSlashSide: Sprite = {
 
 export const ironSlashSide: Sprite = {
   name: "iron_slash_side",
-  layers: [{ char: "┼", color: colors.grey }],
+  layers: [{ char: "┐", color: colors.grey }],
   facing: {
     up: [{ char: "─", color: colors.grey }],
     right: [{ char: "┘", color: colors.grey }],
     down: [{ char: "─", color: colors.grey }],
     left: [{ char: "│", color: colors.grey }],
+  },
+};
+
+export const goldSlashSide: Sprite = {
+  name: "gold_slash_side",
+  layers: [{ char: "┐", color: colors.yellow }],
+  facing: {
+    up: [{ char: "─", color: colors.yellow }],
+    right: [{ char: "┘", color: colors.yellow }],
+    down: [{ char: "─", color: colors.yellow }],
+    left: [{ char: "│", color: colors.yellow }],
+  },
+};
+
+export const diamondSlashSide: Sprite = {
+  name: "diamond_slash_side",
+  layers: [{ char: "┐", color: colors.aqua }],
+  facing: {
+    up: [{ char: "─", color: colors.aqua }],
+    right: [{ char: "┘", color: colors.aqua }],
+    down: [{ char: "─", color: colors.aqua }],
+    left: [{ char: "│", color: colors.aqua }],
+  },
+};
+
+export const rubySlashSide: Sprite = {
+  name: "ruby_slash_side",
+  layers: [{ char: "┐", color: colors.fuchsia }],
+  facing: {
+    up: [{ char: "─", color: colors.fuchsia }],
+    right: [{ char: "┘", color: colors.fuchsia }],
+    down: [{ char: "─", color: colors.fuchsia }],
+    left: [{ char: "│", color: colors.fuchsia }],
   },
 };
 
@@ -492,8 +631,57 @@ export const ironSlashCorner: Sprite = {
   },
 };
 
-export const beam: Sprite = {
-  name: "spell_beam",
+export const goldSlashCorner: Sprite = {
+  name: "gold_slash_corner",
+  layers: [{ char: "┼", color: colors.yellow }],
+  facing: {
+    up: [{ char: "┌", color: colors.yellow }],
+    right: [{ char: "┐", color: colors.yellow }],
+    down: [{ char: "┘", color: colors.yellow }],
+    left: [{ char: "└", color: colors.yellow }],
+  },
+};
+
+export const diamondSlashCorner: Sprite = {
+  name: "diamond_slash_corner",
+  layers: [{ char: "┼", color: colors.aqua }],
+  facing: {
+    up: [{ char: "┌", color: colors.aqua }],
+    right: [{ char: "┐", color: colors.aqua }],
+    down: [{ char: "┘", color: colors.aqua }],
+    left: [{ char: "└", color: colors.aqua }],
+  },
+};
+
+export const rubySlashCorner: Sprite = {
+  name: "ruby_slash_corner",
+  layers: [{ char: "┼", color: colors.fuchsia }],
+  facing: {
+    up: [{ char: "┌", color: colors.fuchsia }],
+    right: [{ char: "┐", color: colors.fuchsia }],
+    down: [{ char: "┘", color: colors.fuchsia }],
+    left: [{ char: "└", color: colors.fuchsia }],
+  },
+};
+
+export const woodBeam: Sprite = {
+  name: "wood_beam",
+  layers: [{ char: "∙", color: colors.maroon }],
+  amounts: {
+    single: [{ char: "∙", color: colors.maroon }],
+    double: [
+      { char: "\u0106", color: colors.maroon },
+      { char: "∙", color: colors.maroon },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.maroon },
+    ],
+  },
+};
+
+export const ironBeam: Sprite = {
+  name: "iron_beam",
   layers: [{ char: "∙", color: colors.silver }],
   amounts: {
     single: [{ char: "∙", color: colors.silver }],
@@ -508,8 +696,56 @@ export const beam: Sprite = {
   },
 };
 
-export const defaultBeam: Sprite = {
-  name: "default_beam",
+export const goldBeam: Sprite = {
+  name: "gold_beam",
+  layers: [{ char: "∙", color: colors.yellow }],
+  amounts: {
+    single: [{ char: "∙", color: colors.yellow }],
+    double: [
+      { char: "\u0106", color: colors.yellow },
+      { char: "∙", color: colors.olive },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.yellow },
+      { char: "\u0106", color: colors.olive },
+    ],
+  },
+};
+
+export const diamondBeam: Sprite = {
+  name: "diamond_beam",
+  layers: [{ char: "∙", color: colors.aqua }],
+  amounts: {
+    single: [{ char: "∙", color: colors.aqua }],
+    double: [
+      { char: "\u0106", color: colors.aqua },
+      { char: "∙", color: colors.teal },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.aqua },
+      { char: "\u0106", color: colors.teal },
+    ],
+  },
+};
+
+export const rubyBeam: Sprite = {
+  name: "ruby_beam",
+  layers: [{ char: "∙", color: colors.fuchsia }],
+  amounts: {
+    single: [{ char: "∙", color: colors.fuchsia }],
+    double: [
+      { char: "\u0106", color: colors.fuchsia },
+      { char: "∙", color: colors.purple },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.fuchsia },
+      { char: "\u0106", color: colors.purple },
+    ],
+  },
+};
+
+export const airBeam: Sprite = {
+  name: "air_beam",
   layers: [{ char: "∙", color: colors.white }],
   amounts: {
     single: [{ char: "∙", color: colors.white }],
@@ -572,131 +808,131 @@ export const earthBeam: Sprite = {
   },
 };
 
-export const edge: Sprite = {
-  name: "beam_edge",
+export const woodEdge: Sprite = {
+  name: "wood_edge",
   layers: [
-    { char: "┼", color: colors.silver },
+    { char: "┼", color: colors.maroon },
     { char: "·", color: colors.black },
   ],
   facing: {
     up: [
-      { char: "┴", color: colors.silver },
+      { char: "┴", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     right: [
-      { char: "├", color: colors.silver },
+      { char: "├", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     down: [
-      { char: "┬", color: colors.silver },
+      { char: "┬", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┤", color: colors.silver },
+      { char: "┤", color: colors.maroon },
       { char: "·", color: colors.black },
     ],
   },
 };
 
-export const defaultEdge: Sprite = {
-  name: "default_edge",
+export const ironEdge: Sprite = {
+  name: "iron_edge",
   layers: [
-    { char: "┼", color: colors.white },
+    { char: "┼", color: colors.grey },
     { char: "·", color: colors.black },
   ],
   facing: {
     up: [
-      { char: "┴", color: colors.white },
+      { char: "┴", color: colors.grey },
       { char: "·", color: colors.black },
     ],
     right: [
-      { char: "├", color: colors.white },
+      { char: "├", color: colors.grey },
       { char: "·", color: colors.black },
     ],
     down: [
-      { char: "┬", color: colors.white },
+      { char: "┬", color: colors.grey },
       { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┤", color: colors.white },
+      { char: "┤", color: colors.grey },
       { char: "·", color: colors.black },
     ],
   },
 };
 
-export const fireEdge: Sprite = {
-  name: "fire_edge",
+export const goldEdge: Sprite = {
+  name: "gold_edge",
   layers: [
-    { char: "┼", color: colors.red },
+    { char: "┼", color: colors.yellow },
     { char: "·", color: colors.black },
   ],
   facing: {
     up: [
-      { char: "┴", color: colors.red },
+      { char: "┴", color: colors.yellow },
       { char: "·", color: colors.black },
     ],
     right: [
-      { char: "├", color: colors.red },
+      { char: "├", color: colors.yellow },
       { char: "·", color: colors.black },
     ],
     down: [
-      { char: "┬", color: colors.red },
+      { char: "┬", color: colors.yellow },
       { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┤", color: colors.red },
+      { char: "┤", color: colors.yellow },
       { char: "·", color: colors.black },
     ],
   },
 };
 
-export const waterEdge: Sprite = {
-  name: "water_edge",
+export const diamondEdge: Sprite = {
+  name: "diamond_edge",
   layers: [
-    { char: "┼", color: colors.blue },
+    { char: "┼", color: colors.aqua },
     { char: "·", color: colors.black },
   ],
   facing: {
     up: [
-      { char: "┴", color: colors.blue },
+      { char: "┴", color: colors.aqua },
       { char: "·", color: colors.black },
     ],
     right: [
-      { char: "├", color: colors.blue },
+      { char: "├", color: colors.aqua },
       { char: "·", color: colors.black },
     ],
     down: [
-      { char: "┬", color: colors.blue },
+      { char: "┬", color: colors.aqua },
       { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┤", color: colors.blue },
+      { char: "┤", color: colors.aqua },
       { char: "·", color: colors.black },
     ],
   },
 };
 
-export const earthEdge: Sprite = {
-  name: "earth_edge",
+export const rubyEdge: Sprite = {
+  name: "ruby_edge",
   layers: [
-    { char: "┼", color: colors.lime },
+    { char: "┼", color: colors.fuchsia },
     { char: "·", color: colors.black },
   ],
   facing: {
     up: [
-      { char: "┴", color: colors.lime },
+      { char: "┴", color: colors.fuchsia },
       { char: "·", color: colors.black },
     ],
     right: [
-      { char: "├", color: colors.lime },
+      { char: "├", color: colors.fuchsia },
       { char: "·", color: colors.black },
     ],
     down: [
-      { char: "┬", color: colors.lime },
+      { char: "┬", color: colors.fuchsia },
       { char: "·", color: colors.black },
     ],
     left: [
-      { char: "┤", color: colors.lime },
+      { char: "┤", color: colors.fuchsia },
       { char: "·", color: colors.black },
     ],
   },
@@ -801,11 +1037,22 @@ export const createCounter: (amount: number) => Sprite = (amount) => ({
 
 export const addBackground = (
   sprites: Sprite[],
-  background: string = colors.white
+  background: string = colors.white,
+  char = "█"
 ) =>
   sprites.map((sprite) => ({
     name: sprite.name,
-    layers: [{ char: "█", color: background }, ...sprite.layers],
+    layers: [{ char, color: background }, ...sprite.layers],
+  }));
+
+export const addForeground = (
+  sprites: Sprite[],
+  foreground: string,
+  char: string
+) =>
+  sprites.map((sprite) => ({
+    name: sprite.name,
+    layers: [...sprite.layers, { char, color: foreground }],
   }));
 
 export const strikethrough = (
@@ -821,6 +1068,23 @@ export const underline = (sprites: Sprite[], color: string = colors.silver) =>
   sprites.map((sprite) => ({
     name: sprite.name,
     layers: [{ char: "_", color }, ...sprite.layers],
+  }));
+
+export const dotted = (sprites: Sprite[], color: string = colors.silver) =>
+  underline(addBackground(sprites, colors.black, "▓"), color);
+
+export const shaded = (
+  sprites: Sprite[],
+  color: string = colors.silver,
+  char = "░"
+) =>
+  sprites.map((sprite) => ({
+    name: sprite.name,
+    layers: [
+      { char, color },
+      { char: "▀", color: colors.black },
+      ...sprite.layers,
+    ],
   }));
 
 export const createText: (
@@ -845,6 +1109,23 @@ export const getOrientedSprite = (
   ...sprite,
   layers: getFacingLayers(sprite, orientation),
 });
+
+export const select = shaded([none], colors.lime, "▄")[0];
+export const shade = shaded([none], colors.grey)[0];
+export const dots = dotted([none], colors.red)[0];
+
+export const menuDot: Sprite = {
+  name: "menu_dot",
+  layers: [
+    { char: ".", color: colors.grey },
+    { char: ":", color: colors.black },
+  ],
+};
+
+export const menuArrow: Sprite = {
+  name: "menu_arrow",
+  layers: [{ char: "\u0119", color: colors.white }],
+};
 
 export const tooltipNeutralStart: Sprite = {
   name: "neutral_start",
@@ -1130,9 +1411,7 @@ export const createButton: (
   disabled?: boolean,
   pressed?: boolean,
   highlight?: number,
-  palette?: Palette,
-  textColor?: string,
-  disabledColor?: string
+  palette?: Palette
 ) => [Sprite[], Sprite[]] = (
   text,
   width,
@@ -1141,10 +1420,37 @@ export const createButton: (
   highlight,
   palette = "white"
 ) => {
-  const paddingLeft = Math.max(0, Math.floor((width - text.length - 1) / 2));
-  const paddingRight = Math.max(0, Math.ceil((width - text.length - 1) / 2));
+  const { text: textColor } = buttonPalettes[palette];
+  const sprites = createText(text, textColor);
+  return createSpriteButton(
+    sprites,
+    width,
+    disabled,
+    pressed,
+    highlight,
+    palette
+  );
+};
+
+export const createSpriteButton: (
+  sprites: Sprite[],
+  width: number,
+  disabled?: boolean,
+  pressed?: boolean,
+  highlight?: number,
+  palette?: Palette
+) => [Sprite[], Sprite[]] = (
+  sprites,
+  width,
+  disabled = false,
+  pressed = false,
+  highlight,
+  palette = "white"
+) => {
+  const paddingLeft = Math.max(0, Math.floor((width - sprites.length - 1) / 2));
+  const paddingRight = Math.max(0, Math.ceil((width - sprites.length - 1) / 2));
   const activeHighlight = !disabled && highlight;
-  const { text: textColor, shadow } = buttonPalettes[palette];
+  const { shadow } = buttonPalettes[palette];
 
   if (pressed) {
     return [
@@ -1161,7 +1467,6 @@ export const createButton: (
     ];
   }
 
-  const sprites = createText(text, textColor);
   const button = getButton(palette);
   const buttonDisabled = getButtonDisabled(palette);
 
@@ -1193,24 +1498,91 @@ export const popupBackground: Sprite = {
   layers: [{ char: "█", color: colors.black }],
 };
 
-export const buySelection: Sprite = {
-  name: "buy_selection",
-  layers: [{ char: "\u0119", color: colors.lime }],
+export const popupSegment: Sprite = {
+  name: "popup_segment",
+  layers: [
+    { char: "│", color: colors.silver },
+    { char: "║", color: colors.black },
+  ],
 };
 
-export const sellSelection: Sprite = {
-  name: "sell_selection",
-  layers: [{ char: "\u011a", color: colors.lime }],
+export const popupActive: Sprite = {
+  name: "popup_active",
+  layers: [
+    { char: "\u0107", color: colors.lime },
+    { char: "\u0109", color: colors.lime },
+    { char: "▀", color: colors.black },
+    { char: "M", color: colors.lime },
+    { char: "[", color: colors.lime },
+    { char: "]", color: colors.lime },
+    { char: ">", color: colors.black },
+  ],
+};
+
+export const popupSelection: Sprite = {
+  name: "popup_selection",
+  layers: [{ char: ">", color: colors.white }],
+};
+
+export const popupBlocked: Sprite = {
+  name: "popup_blocked",
+  layers: [
+    { char: ">", color: colors.red },
+    { char: "▒", color: colors.black },
+  ],
+};
+
+export const missing: Sprite = {
+  name: "???????",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+    { char: "?", color: colors.black },
+  ],
+};
+
+export const convert: Sprite = {
+  name: "Convert",
+  layers: [
+    { char: "\u0119", color: colors.white },
+    { char: ">", color: colors.white },
+  ],
+};
+
+export const blocked: Sprite = {
+  name: "Blocked",
+  layers: [
+    { char: "\u0100", color: colors.red },
+    { char: "■", color: colors.black },
+    { char: "/", color: colors.red },
+  ],
 };
 
 export const popupCorner: Sprite = {
   name: "popup_corner",
   layers: [{ char: "╬", color: colors.silver }],
   facing: {
-    up: [{ char: "╔", color: colors.silver }],
-    right: [{ char: "╗", color: colors.silver }],
-    down: [{ char: "╝", color: colors.silver }],
-    left: [{ char: "╚", color: colors.silver }],
+    up: [
+      { char: "┌", color: colors.black },
+      { char: "╔", color: colors.silver },
+    ],
+    right: [
+      { char: "┐", color: colors.black },
+      { char: "╗", color: colors.silver },
+    ],
+    down: [
+      { char: "┘", color: colors.black },
+      { char: "╝", color: colors.silver },
+    ],
+    left: [
+      { char: "└", color: colors.black },
+      { char: "╚", color: colors.silver },
+    ],
   },
 };
 
@@ -1239,21 +1611,79 @@ export const popupSide: Sprite = {
   },
 };
 
-export const popupUpStart: Sprite = {
-  name: "popup_up_start",
+export const popupSeparator: Sprite = {
+  name: "popup_separator",
   layers: [
-    { char: "▄", color: colors.black },
-    { char: "▐", color: colors.black },
-    { char: "╡", color: colors.silver },
+    { char: "█", color: colors.silver },
+    { char: "░", color: colors.black },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.silver },
   ],
+  facing: {
+    up: [
+      { char: "▐", color: colors.silver },
+      { char: "░", color: colors.black },
+      { char: "│", color: colors.silver },
+    ],
+    right: [
+      { char: "▄", color: colors.black },
+      { char: "▐", color: colors.silver },
+      { char: "░", color: colors.black },
+      { char: "╡", color: colors.silver },
+    ],
+    down: [
+      { char: "▌", color: colors.silver },
+      { char: "░", color: colors.black },
+      { char: "│", color: colors.silver },
+    ],
+    left: [
+      { char: "▄", color: colors.black },
+      { char: "▌", color: colors.silver },
+      { char: "░", color: colors.black },
+      { char: "╞", color: colors.silver },
+    ],
+  },
 };
 
-export const popupUpEnd: Sprite = {
-  name: "popup_up_end",
+export const popupSeparatorSelected: Sprite = {
+  name: "popup_separator_selected",
   layers: [
-    { char: "▄", color: colors.black },
+    { char: "▌", color: colors.silver },
+    { char: "░", color: colors.black },
+    { char: "▐", color: colors.black },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.silver },
+  ],
+  facing: {
+    up: [
+      { char: "▐", color: colors.black },
+      { char: "│", color: colors.silver },
+    ],
+    right: [
+      { char: "▄", color: colors.black },
+      { char: "▐", color: colors.black },
+      { char: "╡", color: colors.silver },
+    ],
+    down: [
+      { char: "▌", color: colors.black },
+      { char: "│", color: colors.silver },
+    ],
+    left: [
+      { char: "▄", color: colors.black },
+      { char: "▌", color: colors.black },
+      { char: "╞", color: colors.silver },
+    ],
+  },
+};
+
+export const popupSeparatorInverted: Sprite = {
+  name: "popup_separator_inverted",
+  layers: [
+    { char: "▐", color: colors.silver },
+    { char: "░", color: colors.black },
     { char: "▌", color: colors.black },
-    { char: "╞", color: colors.silver },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.silver },
   ],
 };
 
@@ -1269,6 +1699,14 @@ export const popupCenter: Sprite = {
   name: "popup_center",
   layers: [
     { char: "█", color: colors.black },
+    { char: "─", color: colors.silver },
+  ],
+};
+
+export const popupCenterCrop: Sprite = {
+  name: "popup_center_crop",
+  layers: [
+    { char: "▄", color: colors.black },
     { char: "─", color: colors.silver },
   ],
 };
@@ -1303,14 +1741,25 @@ export const popupDownEnd: Sprite = {
 export const scrollBarTop: Sprite = {
   name: "scroll_top",
   layers: [
-    { char: "█", color: colors.grey },
-    { char: "\u011d", color: colors.white },
+    { char: "█", color: colors.silver },
+    { char: "\u011d", color: colors.black },
   ],
 };
 
 export const scrollBar: Sprite = {
   name: "scroll_bar",
-  layers: [{ char: "█", color: colors.grey }],
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "░", color: colors.black },
+  ],
+};
+
+export const scrollBarBottom: Sprite = {
+  name: "scroll_bottom",
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "\u011e", color: colors.black },
+  ],
 };
 
 export const scrollHandle: Sprite = {
@@ -1318,22 +1767,16 @@ export const scrollHandle: Sprite = {
   layers: [{ char: "█", color: colors.white }],
   facing: {
     up: [
-      { char: "█", color: colors.grey },
+      { char: "█", color: colors.silver },
+      { char: "░", color: colors.black },
       { char: "▀", color: colors.white },
     ],
     down: [
-      { char: "█", color: colors.grey },
+      { char: "█", color: colors.silver },
+      { char: "░", color: colors.black },
       { char: "▄", color: colors.white },
     ],
   },
-};
-
-export const scrollBarBottom: Sprite = {
-  name: "scroll_bottom",
-  layers: [
-    { char: "█", color: colors.grey },
-    { char: "\u011e", color: colors.white },
-  ],
 };
 
 export const mergeSprites = (...sprite: Sprite[]) => ({
@@ -1359,6 +1802,8 @@ export const maxCountable = (sprite: Sprite) => ({
   layers: sprite.amounts?.multiple || sprite.layers,
 });
 
+type Stats = UnitStats & ItemStats;
+
 const statConfig: Record<
   keyof Stats,
   {
@@ -1377,16 +1822,16 @@ const statConfig: Record<
     sprite: heart,
     max: "maxHp",
   },
-  maxHp: { color: "#404040", sprite: heartUp, max: "maxHpCap" },
-  maxHpCap: { color: "#404040", sprite: heartUp },
+  maxHp: { color: colors.maroon, sprite: heartUp, max: "maxHpCap" },
+  maxHpCap: { color: colors.maroon, sprite: heartUp },
   mp: {
     color: colors.blue,
     background: colors.navy,
     sprite: mana,
     max: "maxMp",
   },
-  maxMp: { color: "#404040", sprite: manaUp, max: "maxMpCap" },
-  maxMpCap: { color: "#404040", sprite: manaUp },
+  maxMp: { color: colors.navy, sprite: manaUp, max: "maxMpCap" },
+  maxMpCap: { color: colors.navy, sprite: manaUp },
   xp: {
     color: colors.lime,
     background: colors.green,
@@ -1395,54 +1840,112 @@ const statConfig: Record<
     resource: xp,
     max: "maxXp",
   },
-  maxXp: { color: "#404040", sprite: nonCountable(xp), max: "maxXpCap" },
-  maxXpCap: { color: "#404040", sprite: nonCountable(xp) },
+  maxXp: { color: colors.green, sprite: nonCountable(xp), max: "maxXpCap" },
+  maxXpCap: { color: colors.green, sprite: nonCountable(xp) },
   level: {
-    color: colors.white,
+    color: colors.silver,
     sprite: level,
   },
   power: {
     color: colors.green,
     sprite: power,
   },
-  magic: {
+  wisdom: {
     color: colors.green,
-    sprite: magic,
+    sprite: wisdom,
   },
   armor: {
     color: colors.green,
     sprite: armor,
   },
+  resist: {
+    color: colors.green,
+    sprite: resist,
+  },
   haste: {
     color: colors.green,
     sprite: haste,
   },
-  sight: {
+  vision: {
     color: colors.green,
-    sprite: sight,
+    sprite: vision,
+  },
+  damp: {
+    color: colors.olive,
+    sprite: damp,
+  },
+  thaw: {
+    color: colors.teal,
+    sprite: thaw,
+  },
+  spike: {
+    color: colors.purple,
+    sprite: spike,
+  },
+  melee: {
+    color: colors.red,
+    sprite: minCountable(meleeHit),
+  },
+  magic: {
+    color: colors.fuchsia,
+    sprite: minCountable(magicHit),
+  },
+  true: {
+    color: colors.fuchsia,
+    sprite: minCountable(magicHit),
+  },
+  burn: {
+    color: colors.yellow,
+    sprite: minCountable(fire),
+  },
+  freeze: {
+    color: colors.aqua,
+    sprite: minCountable(freeze),
+  },
+  heal: {
+    color: colors.lime,
+    sprite: heal,
   },
 };
 
 export const createCountable = (
   stats: Partial<Stats>,
   stat: keyof Stats,
-  display: "text" | "countable" | "max" | "cap" = "text"
+  display:
+    | "text"
+    | "countable"
+    | "max"
+    | "cap"
+    | "display"
+    | "progression" = "text"
 ) => {
   if (!(stat in stats)) return [];
 
-  const counter = stat as keyof Countable;
-  const value = Math.ceil(stats[counter] || 0);
+  // const counter = stat as keyof Countable;
+  const value = Math.ceil(stats[stat] || 0);
   const stringified = value.toString();
-  const color = statConfig[counter].color;
+  const color = statConfig[stat].color;
+
+  const maxCounter = getMaxCounter(stat) || stat;
+  const capCounter = getMaxCounter(maxCounter) || maxCounter;
 
   if (display === "cap") {
     return createText(stringified.padEnd(2, " "), color);
   } else if (display === "text") {
-    return [...createText(stringified, color), getStatSprite(counter)];
+    return [...createText(stringified, color), getStatSprite(stat)];
+  } else if (display === "display") {
+    return [
+      ...createText(stringified, color),
+      getStatSprite(stat),
+      ...createText(statConfig[stat].sprite.name, color),
+    ];
+  } else if (display === "progression") {
+    return [
+      ...createText((stats[maxCounter] || 0).toString(), color),
+      getStatSprite(stat),
+      ...createText(statConfig[stat].sprite.name, color),
+    ];
   }
-
-  const maxCounter = getMaxCounter(counter);
-  const capCounter = getMaxCounter(maxCounter);
 
   return [
     ...createText(stringified.padStart(2, " "), color),
@@ -1451,20 +1954,22 @@ export const createCountable = (
         maxCounter !== capCounter &&
         stats[maxCounter] === stats[capCounter]
         ? maxCounter
-        : counter,
+        : stat,
       display === "countable" ? "display" : undefined
     ),
   ];
 };
 
 export const getMaxCounter = (stat: keyof Stats) =>
-  (statConfig[stat] && statConfig[stat]?.max) || stat;
+  statConfig[stat] && statConfig[stat]?.max;
+
+export const getStatColor = (stat: keyof Stats) => statConfig[stat].color;
 
 export const getStatSprite = (
   stat: keyof Stats,
   variant?: "max" | "drop" | "resource" | "display"
 ) =>
-  (variant === "max" && statConfig[getMaxCounter(stat)]?.sprite) ||
+  (variant === "max" && statConfig[getMaxCounter(stat) || stat]?.sprite) ||
   (variant === "drop" && statConfig[stat].drop) ||
   (variant === "resource" && statConfig[stat].resource) ||
   (variant === "display" && statConfig[stat].display) ||
@@ -1479,16 +1984,17 @@ export const createProgress = (
 ) => {
   const config = statConfig[stat];
   const background = config.background || colors.grey;
-  const maximum = (config.max && stats[config.max]) || 99;
-  const value = Math.min(stats[stat] || 0, maximum);
-  const display = Math.floor(value);
-  const progress = lerp(0, width, value / maximum);
+  const maximum = (config.max && stats[config.max]) ?? 99;
+  const value = Math.min(stats[stat] ?? 0, maximum);
+  const display =
+    depletable || value === 0 || value >= 1 ? Math.floor(value) : 1;
+  const progress = lerp(0, width, value / (maximum || 1));
   const full = Math.floor(progress);
   const partial = normalize(progress, 1);
   const segment = Math.floor(partial * progressResolution);
 
   const text = padCenter(
-    ` ${display.toString().padStart(2, " ")}/${(stats[config.max!] || 99)
+    ` ${display.toString().padStart(2, " ")}/${(stats[config.max!] ?? 99)
       .toString()
       .padEnd(2, " ")}`,
     width - 3
@@ -1524,11 +2030,46 @@ export const createProgress = (
   }));
 };
 
+export const colorToCode = (color: string) =>
+  String.fromCharCode(orderedColors.indexOf(color));
+
+export const parseSprite = (definition: string) => {
+  let colorCode = orderedColors.indexOf(colors.white);
+  return {
+    name: "",
+    layers: definition
+      .split("")
+      .map((layer) => {
+        const charCode = layer.charCodeAt(0);
+        if (charCode < 16) {
+          colorCode = charCode;
+          return null;
+        }
+        return {
+          char: layer,
+          color: orderedColors[colorCode],
+        };
+      })
+      .filter((layer) => !!layer) as Sprite["layers"],
+  };
+};
+
+export const stretch = (left: Sprite[], right: Sprite[], width: number) =>
+  [
+    ...left,
+    ...repeat(none, width - left.length - right.length),
+    ...right,
+  ].slice(0, width);
+
+export const discovery = createText("°", colors.lime)[0];
+export const warp = createText("@", colors.lime)[0];
 export const quest = createText("?", colors.lime)[0];
 export const ongoing = createText("?", colors.silver)[0];
 export const info = createText("i", colors.lime)[0];
 export const shop = createText("$", colors.lime)[0];
-export const craft = createText("Σ", colors.lime)[0];
+export const craft = createText("¢", colors.lime)[0];
+export const forge = createText("ƒ", colors.lime)[0];
+export const class_ = createText("\u010b", colors.lime)[0];
 
 export const rage = createAggro("\u0112")[0];
 
@@ -1578,6 +2119,48 @@ export const xpDot: Sprite = {
   layers: [{ char: "·", color: colors.lime }],
 };
 
+export const vortexDot: Sprite = {
+  name: "vortex_dot",
+  layers: [
+    { char: "∙", color: colors.white },
+    { char: "\u011c", color: colors.black },
+  ],
+  amounts: {
+    single: [
+      { char: "∙", color: colors.yellow },
+      { char: "\u011c", color: colors.black },
+    ],
+    double: [
+      { char: "∙", color: colors.lime },
+      { char: "\u011c", color: colors.black },
+    ],
+    multiple: [
+      { char: "∙", color: colors.red },
+      { char: "\u011c", color: colors.black },
+    ],
+  },
+};
+
+export const fountainDrop: Sprite = {
+  name: "fountain_drop",
+  layers: [{ char: "|", color: colors.blue }],
+  amounts: {
+    single: [{ char: "∙", color: colors.blue }],
+    double: [{ char: ".", color: colors.blue }],
+    multiple: [{ char: ":", color: colors.blue }],
+  },
+};
+
+export const fountainHeal: Sprite = {
+  name: "fountain_heal",
+  layers: [{ char: "|", color: colors.lime }],
+  amounts: {
+    single: [{ char: "∙", color: colors.lime }],
+    double: [{ char: ".", color: colors.lime }],
+    multiple: [{ char: ":", color: colors.lime }],
+  },
+};
+
 export const levelProgress: Sprite = {
   name: "level_progress",
   layers: [],
@@ -1624,7 +2207,7 @@ export const resume: Sprite = {
 export const resumeInvert: Sprite = {
   name: "Resume",
   layers: [
-    { char: "█", color: colors.silver },
+    { char: "█", color: colors.lime },
     { char: "»", color: colors.black },
   ],
 };
@@ -1639,9 +2222,264 @@ export const close: Sprite = {
   layers: [{ char: "x", color: colors.white }],
 };
 
-export const overlay: Sprite = {
-  name: "Overlay",
+export const backdrop: Sprite = {
+  name: "Backdrop",
   layers: [{ char: "▓", color: colors.black }],
+};
+
+export const swirl: Sprite = {
+  name: "Swirl",
+  layers: [
+    { char: "≈", color: colors.grey },
+    { char: "▀", color: colors.black },
+  ],
+};
+
+export const times: Sprite = {
+  name: "Times",
+  layers: [
+    { char: "*", color: colors.white },
+    { char: "─", color: colors.black },
+    { char: "·", color: colors.white },
+  ],
+};
+
+export const star: Sprite = {
+  name: "Star",
+  layers: [{ char: "*", color: colors.white }],
+};
+
+export const plusBox: Sprite = {
+  name: "Plus",
+  layers: [
+    { char: "M", color: colors.white },
+    { char: "[", color: colors.white },
+    { char: "]", color: colors.white },
+    { char: "+", color: colors.black },
+  ],
+};
+
+export const slotLeft: Sprite = {
+  name: "slot_left",
+  layers: [
+    { char: "▐", color: colors.grey },
+    { char: "│", color: colors.black },
+  ],
+};
+
+export const slotRight: Sprite = {
+  name: "slot_right",
+  layers: [
+    { char: "▌", color: colors.grey },
+    { char: "│", color: colors.black },
+  ],
+};
+
+export const swordSlot: Sprite = {
+  name: "Sword",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "/", color: colors.black },
+  ],
+};
+
+export const shieldSlot: Sprite = {
+  name: "Shield",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "¬", color: colors.black },
+  ],
+};
+
+export const primarySlot: Sprite = {
+  name: "Spell",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "\u0103", color: colors.black },
+  ],
+};
+
+export const waveSlot: Sprite = {
+  name: "Spell",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "*", color: colors.black },
+    { char: "■", color: colors.grey },
+    { char: "-", color: colors.black },
+    { char: "|", color: colors.black },
+    { char: "·", color: colors.grey },
+    { char: "~", color: colors.grey },
+  ],
+};
+
+export const beamSlot: Sprite = {
+  name: "Spell",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "±", color: colors.black },
+    { char: "■", color: colors.black },
+    { char: "\u0108", color: colors.grey },
+    { char: "\u0106", color: colors.black },
+    { char: "∙", color: colors.black },
+  ],
+};
+
+export const secondarySlot: Sprite = {
+  name: "Item",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "»", color: colors.black },
+  ],
+};
+
+export const bowSlot: Sprite = {
+  name: "Item",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "}", color: colors.black },
+  ],
+};
+
+export const slashSlot: Sprite = {
+  name: "Item",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "@", color: colors.black },
+  ],
+};
+
+export const ringSlot: Sprite = {
+  name: "Ring",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "|", color: colors.black },
+    { char: ".", color: colors.grey },
+    { char: "~", color: colors.grey },
+    { char: "\u0108", color: colors.black },
+    { char: "\u0106", color: colors.grey },
+  ],
+};
+
+export const amuletSlot: Sprite = {
+  name: "Amulet",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "┘", color: colors.black },
+    { char: ",", color: colors.grey },
+    { char: "*", color: colors.black },
+    { char: "÷", color: colors.grey },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.grey },
+  ],
+};
+
+export const compassSlot: Sprite = {
+  name: "Compass",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "\u0108", color: colors.black },
+    { char: "ª", color: colors.grey },
+    { char: "≡", color: colors.grey },
+    { char: "\u0117", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "\u0106", color: colors.grey },
+    { char: "|", color: colors.black },
+  ],
+};
+
+export const torchSlot: Sprite = {
+  name: "Torch",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "┐", color: colors.black },
+    { char: "-", color: colors.grey },
+    { char: "*", color: colors.black },
+    { char: "·", color: colors.grey },
+  ],
 };
 
 export const friendlyBar: Sprite = {

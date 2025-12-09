@@ -1,10 +1,16 @@
-import { createText, overlay, resume } from "../../game/assets/sprites";
+import {
+  createText,
+  backdrop,
+  resume,
+  addBackground,
+} from "../../game/assets/sprites";
 import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
 import { useCallback } from "react";
 import { useWorld } from "../../bindings/hooks";
 import { repeat } from "../../game/math/std";
+import { colors } from "../../game/assets/colors";
 
 export default function Paused({ initial }: { initial: boolean }) {
   const { setPaused, setInitial } = useWorld();
@@ -25,14 +31,17 @@ export default function Paused({ initial }: { initial: boolean }) {
   return (
     <div className="Paused">
       <div className="Cover">
-        {Array.from({ length: dimensions.renderedRows - 5 }).map(
+        {Array.from({ length: dimensions.renderedRows }).map(
           (_, index) => (
             <Row
               key={index}
-              cells={repeat(overlay, 21 + dimensions.padding * 2)}
+              cells={repeat(
+                backdrop,
+                dimensions.visibleColumns + dimensions.padding * 2
+              )}
             />
           ),
-          dimensions.renderedRows - 5
+          dimensions.renderedRows
         )}
       </div>
 
@@ -53,7 +62,13 @@ export default function Paused({ initial }: { initial: boolean }) {
               </>
             )}
             <Row />
-            <Row cells={createText("to start the game")} />
+            <Row
+              cells={createText(
+                "to start the game",
+                colors.white,
+                colors.black
+              )}
+            />
           </>
         ) : (
           <>
@@ -62,11 +77,14 @@ export default function Paused({ initial }: { initial: boolean }) {
             <Row cells={createText("█   █ █ █▄▀ ▄▄▀ █▄▄")} />
             <Row />
             <Row
-              cells={[
-                ...createText(isTouch ? "Tap " : "Press "),
-                ...(isTouch ? [resume] : createText("ESC")),
-                ...createText(" to resume"),
-              ]}
+              cells={addBackground(
+                [
+                  ...createText(isTouch ? "Tap " : "Press "),
+                  ...(isTouch ? [resume] : createText("ESC")),
+                  ...createText(" to resume"),
+                ],
+                colors.black
+              )}
             />
           </>
         )}

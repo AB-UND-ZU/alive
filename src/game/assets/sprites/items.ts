@@ -1,4 +1,4 @@
-import * as colors from "../colors";
+import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const heart: Sprite = {
@@ -9,8 +9,8 @@ export const heart: Sprite = {
 export const heartUp: Sprite = {
   name: "Max HP",
   layers: [
-    { char: "\u0102", color: colors.lime },
-    { char: "^", color: colors.green },
+    { char: "\u0102", color: colors.red },
+    { char: "^", color: colors.lime },
   ],
 };
 
@@ -22,8 +22,8 @@ export const mana: Sprite = {
 export const manaUp: Sprite = {
   name: "Max MP",
   layers: [
-    { char: "\u0103", color: colors.lime },
-    { char: "^", color: colors.green },
+    { char: "\u0103", color: colors.blue },
+    { char: "^", color: colors.lime },
   ],
 };
 
@@ -147,7 +147,7 @@ export const crystal: Sprite = {
 
 export const level: Sprite = {
   name: "Level",
-  layers: [{ char: "#", color: colors.white }],
+  layers: [{ char: "#", color: colors.silver }],
 };
 
 export const xp: Sprite = {
@@ -156,8 +156,11 @@ export const xp: Sprite = {
   amounts: {
     single: [{ char: "+", color: colors.lime }],
     double: [
+      { char: "*", color: colors.lime },
+      { char: "■", color: colors.black },
       { char: "-", color: colors.lime },
       { char: "|", color: colors.lime },
+      { char: "~", color: colors.black },
     ],
     multiple: [{ char: "┼", color: colors.lime }],
   },
@@ -177,8 +180,8 @@ export const power: Sprite = {
   ],
 };
 
-export const magic: Sprite = {
-  name: "Magic",
+export const wisdom: Sprite = {
+  name: "Wisdom",
   layers: [
     { char: "\u0103", color: colors.lime },
     { char: "\u011c", color: colors.green },
@@ -189,6 +192,16 @@ export const magic: Sprite = {
 export const armor: Sprite = {
   name: "Armor",
   layers: [
+    { char: "\u0108", color: colors.lime },
+    { char: "v", color: colors.lime },
+    { char: "\u0106", color: colors.green },
+    { char: "∙", color: colors.lime },
+  ],
+};
+
+export const resist: Sprite = {
+  name: "Resist",
+  layers: [
     { char: "\u0106", color: colors.lime },
     { char: "\u0108", color: colors.lime },
     { char: "v", color: colors.lime },
@@ -196,8 +209,8 @@ export const armor: Sprite = {
   ],
 };
 
-export const sight: Sprite = {
-  name: "Sight",
+export const vision: Sprite = {
+  name: "Vision",
   layers: [
     { char: "\u0108", color: colors.lime },
     { char: "\u0106", color: colors.green },
@@ -211,6 +224,37 @@ export const haste: Sprite = {
     { char: "\u0119", color: colors.green },
     { char: "»", color: colors.lime },
   ],
+};
+
+export const damp: Sprite = {
+  name: "Damp",
+  layers: [
+    { char: "*", color: colors.olive },
+    { char: "+", color: colors.yellow },
+  ],
+};
+
+export const thaw: Sprite = {
+  name: "Thaw",
+  layers: [
+    { char: "\u0101", color: colors.teal },
+    { char: "\u0100", color: colors.aqua },
+    { char: "■", color: colors.teal },
+    { char: "▒", color: colors.black },
+  ],
+};
+
+export const spike: Sprite = {
+  name: "Spike",
+  layers: [
+    { char: "<", color: colors.fuchsia },
+    { char: ">", color: colors.purple },
+  ],
+};
+
+export const airEssence: Sprite = {
+  name: "Spirit",
+  layers: [{ char: "æ", color: colors.silver }],
 };
 
 export const fireEssence: Sprite = {
@@ -242,6 +286,11 @@ export const coin: Sprite = {
     double: [{ char: "\u0108", color: colors.yellow }],
     multiple: [{ char: "o", color: colors.yellow }],
   },
+};
+
+export const nugget: Sprite = {
+  name: "Nugget",
+  layers: [{ char: "\u011c", color: colors.yellow }],
 };
 
 export const ingot: Sprite = {
@@ -308,14 +357,6 @@ export const seed: Sprite = {
     { char: ",", color: colors.maroon },
     { char: "+", color: colors.green },
     { char: "·", color: colors.lime },
-  ],
-};
-
-export const spike: Sprite = {
-  name: "Spike",
-  layers: [
-    { char: "<", color: colors.lime },
-    { char: ">", color: colors.lime },
   ],
 };
 
@@ -434,6 +475,15 @@ export const ore: Sprite = {
   },
 };
 
+export const oreDisplay: Sprite = {
+  name: "Ore",
+  layers: [
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0106", color: colors.grey },
+    { char: "∙", color: colors.silver },
+  ],
+};
+
 export const iron: Sprite = {
   name: "Iron",
   layers: [
@@ -493,10 +543,10 @@ export const rubyGem: Sprite = {
 export const arrow: Sprite = {
   name: "Arrow",
   layers: [
-    { char: "»", color: colors.grey },
+    { char: "»", color: colors.white },
     { char: "\u0119", color: colors.black },
-    { char: "─", color: colors.grey },
-    { char: "-", color: colors.maroon },
+    { char: "─", color: colors.white },
+    { char: "-", color: colors.grey },
   ],
 };
 
@@ -512,8 +562,8 @@ export const doubleArrow: Sprite = {
 export const charge: Sprite = {
   name: "Charge",
   layers: [
-    { char: "^", color: colors.maroon },
-    { char: "\u011f", color: colors.grey },
+    { char: "^", color: colors.grey },
+    { char: "\u011f", color: colors.white },
     { char: "\u0115", color: colors.black },
   ],
 };

@@ -2,19 +2,9 @@ import { entities, World } from "../../../engine";
 import { POSITION } from "../../../engine/components/position";
 import { LEVEL, LevelName } from "../../../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../../math/matrix";
-import { centerArea, roomSize, up1Area, up2Area, up3Area } from "./areas";
+import { centerArea } from "./areas";
 import { VIEWABLE } from "../../../engine/components/viewable";
-import {
-  assignBuilding,
-  createCell,
-  createChest,
-  createNpc,
-  insertArea,
-} from "./../../../bindings/creation";
-import {
-  assertIdentifierAndComponents,
-  setIdentifier,
-} from "../../../engine/utils";
+import { createCell, insertArea } from "./../../../bindings/creation";
 import { getItemSprite, npcSequence, questSequence } from "../../assets/utils";
 import {
   disposeEntity,
@@ -22,42 +12,25 @@ import {
   registerEntity,
 } from "../../../engine/systems/map";
 import { add } from "../../math/std";
-import { getItemPrice } from "../../balancing/trading";
-import { createPopup } from "../../../engine/systems/popup";
 import { RENDERABLE } from "../../../engine/components/renderable";
 import { SEQUENCABLE } from "../../../engine/components/sequencable";
-import { FOG } from "../../../engine/components/fog";
 import { SPRITE } from "../../../engine/components/sprite";
 import { createItemAsDrop } from "../../../engine/systems/drop";
 import { Item, ITEM } from "../../../engine/components/item";
-import { getGearStat } from "../../balancing/equipment";
 import { ORIENTABLE } from "../../../engine/components/orientable";
-import { TOOLTIP } from "../../../engine/components/tooltip";
-import { createDialog } from "../../assets/sprites";
-import { isTouch } from "../../../components/Dimensions";
+import { assertIdentifierAndComponents } from "../../../engine/utils";
 
-export const overworldSize = 160;
-export const overworldName: LevelName = "LEVEL_OVERWORLD";
+export const menuSize = 40;
+export const menuName: LevelName = "LEVEL_MENU";
 
-export const generateOverworld = async (world: World) => {
+export const generateMenu = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
-  const worldMatrix = matrixFactory<string>(size, size, (x, y) => "");
+  const worldMatrix = matrixFactory<string>(size, size, (x, y) => "air");
 
-  // insert rooms
   insertArea(worldMatrix, centerArea, 0, 0);
-  insertArea(worldMatrix, up1Area, 0, -roomSize.y);
-  insertArea(worldMatrix, up2Area, 0, -roomSize.y * 2);
-  insertArea(worldMatrix, up3Area, 0, -roomSize.y * 3);
 
   iterateMatrix(worldMatrix, (x, y, cell) => {
-    createCell(
-      world,
-      worldMatrix,
-      { x, y },
-      cell,
-      cell === "granite" ? "fog" : "hidden",
-      false
-    );
+    createCell(world, worldMatrix, { x, y }, cell, "hidden");
 
     // track distribution of cell types
     world.metadata.gameEntity[LEVEL].cells[cell] = (
@@ -69,9 +42,9 @@ export const generateOverworld = async (world: World) => {
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [VIEWABLE]: { active: true, priority: 30 },
+    [VIEWABLE]: { active: false, priority: 30 },
   });
-  npcSequence(world, viewpointEntity, "overworldNpc", {});
+  npcSequence(world, viewpointEntity, "menuNpc", {});
 
   // register all entities to allow post-processing
   const registerableEntites = world.getEntities([POSITION]);
@@ -79,101 +52,19 @@ export const generateOverworld = async (world: World) => {
     registerEntity(world, registerableEntity);
   });
 
-  // post process doors
-  const centerUpDoorPosition = { x: 0, y: roomSize.y / -2 };
-  const centerUpDoor = createCell(
-    world,
-    worldMatrix,
-    centerUpDoorPosition,
-    "iron_entry",
-    "hidden"
-  );
-  setIdentifier(world, centerUpDoor!, "center_up_door");
-  const north1UpDoor = createCell(
-    world,
-    worldMatrix,
-    add(centerUpDoorPosition, { x: 0, y: -roomSize.y }),
-    "iron_entry",
-    "hidden"
-  );
-  setIdentifier(world, north1UpDoor!, "north1_up_door");
-  createCell(
-    world,
-    worldMatrix,
-    add(centerUpDoorPosition, { x: 0, y: -roomSize.y * 2 }),
-    "iron_entry",
-    "hidden"
-  );
-  createCell(
-    world,
-    worldMatrix,
-    add(centerUpDoorPosition, { x: 0, y: -roomSize.y * 3 }),
-    "iron_entry",
-    "hidden"
-  );
-
-  // post process buildings
-  const guideDoor = assertIdentifierAndComponents(world, "guide_door", [
-    POSITION,
-  ]);
-  const guideHouse = add(guideDoor[POSITION], { x: 1, y: -2 });
-  assignBuilding(world, guideHouse);
-
-  // create guide with chest
-  const keyPosition = add(guideHouse, { x: -1, y: 0 });
-  const guideItems: Omit<Item, "carrier" | "bound">[] = [
-    {
-      consume: "key",
-      material: "iron",
-      amount: 1,
-    },
-    {
-      stackable: "apple",
-      amount: 1,
-    },
-  ];
-  const guideChestEntity = createChest(
-    world,
-    "commonChest",
-    keyPosition,
-    guideItems
-  );
-  const guideChestId = world.getEntityId(guideChestEntity);
-  setIdentifier(world, guideChestEntity, "guide_chest");
-
-  const guidePosition = add(guideHouse, { x: 2, y: 0 });
-  const guideEntity = createNpc(world, "guide", guidePosition);
-  guideEntity[TOOLTIP].dialogs = [
-    createDialog("Hi stranger"),
-    createDialog("How are you?"),
-    createDialog("I'm the Guide"),
-    createDialog("And I have a key"),
-    createDialog(isTouch ? "Tap on [SHOP]" : "SPACE to shop"),
-  ];
-  createPopup(world, guideEntity, {
-    deals: guideItems.map((item) => ({
-      item,
-      stock: 1,
-      price: getItemPrice(item),
-      carrier: guideChestId,
-    })),
-    transaction: "buy",
-  });
-  npcSequence(world, guideEntity, "guideNpc", {});
-
   // give hero initial quest
   const heroEntity = assertIdentifierAndComponents(world, "hero", [
     POSITION,
     VIEWABLE,
   ]);
-  questSequence(world, heroEntity, "centerQuest", {});
+  questSequence(world, heroEntity, "menuQuest", {});
 
   // temporary test mode
   if (window.location.search.substring(1) === "test") {
     // clear title
     const titleWidth = 17;
     const titleHeight = 3;
-    const titleCenter = { x: 0, y: -3 };
+    const titleCenter = { x: 0, y: -4 };
     matrixFactory(titleWidth, titleHeight, (x, y) => {
       Object.values(
         getCell(
@@ -184,7 +75,7 @@ export const generateOverworld = async (world: World) => {
           })
         )
       ).forEach((entity) => {
-        if (entity[FOG]?.type === "float") disposeEntity(world, entity);
+        if (!entity[VIEWABLE]) disposeEntity(world, entity);
       });
     });
 
@@ -224,47 +115,60 @@ export const generateOverworld = async (world: World) => {
           stackable: "stick",
           amount: Infinity,
         },
+        {
+          stackable: "leaf",
+          amount: Infinity,
+        },
       ],
       [
         {
-          consume: "potion1",
-          material: "fire",
-          amount: Infinity,
+          consume: "potion",
+          material: "wood",
+          element: "fire",
+          amount: 999,
         },
         {
-          consume: "potion1",
-          material: "water",
-          amount: Infinity,
+          consume: "potion",
+          material: "wood",
+          element: "water",
+          amount: 999,
         },
         {
           equipment: "torch",
-          amount: Infinity,
+          material: "wood",
+          amount: 1,
         },
         {
           consume: "key",
           material: "iron",
-          amount: Infinity,
+          amount: 999,
         },
       ],
       [
         {
           equipment: "sword",
           material: "wood",
-          amount: getGearStat("sword", "wood"),
+          amount: 1,
+        },
+        {
+          equipment: "sword",
+          material: "wood",
+          element: "air",
+          amount: 1,
         },
         {
           equipment: "sword",
           material: "iron",
-          amount: getGearStat("sword", "iron"),
+          amount: 1,
         },
         {
           equipment: "sword",
           material: "gold",
-          amount: getGearStat("sword", "gold"),
+          amount: 1,
         },
         {
           equipment: "sword",
-          material: "aether",
+          material: "diamond",
           amount: 99,
         },
       ],
@@ -272,71 +176,99 @@ export const generateOverworld = async (world: World) => {
         {
           equipment: "shield",
           material: "wood",
-          amount: getGearStat("shield", "wood"),
+          amount: 1,
+        },
+        {
+          equipment: "shield",
+          material: "wood",
+          element: "air",
+          amount: 1,
         },
         {
           equipment: "shield",
           material: "iron",
-          amount: getGearStat("shield", "iron"),
+          amount: 1,
         },
         {
           equipment: "shield",
           material: "gold",
-          amount: getGearStat("shield", "gold"),
+          amount: 1,
         },
         {
           equipment: "shield",
-          material: "aether",
+          material: "diamond",
           amount: 99,
         },
       ],
       [
         {
           equipment: "primary",
-          primary: "wave1",
+          primary: "wave",
+          material: "wood",
           amount: 1,
         },
         {
           equipment: "primary",
-          primary: "wave1",
-          material: "fire",
+          primary: "wave",
+          material: "wood",
+          element: "air",
           amount: 1,
         },
         {
           equipment: "primary",
-          primary: "wave1",
-          material: "water",
+          primary: "wave",
+          material: "wood",
+          element: "fire",
           amount: 1,
         },
         {
           equipment: "primary",
-          primary: "wave1",
-          material: "earth",
+          primary: "wave",
+          material: "wood",
+          element: "water",
+          amount: 1,
+        },
+        {
+          equipment: "primary",
+          primary: "wave",
+          material: "wood",
+          element: "earth",
           amount: 1,
         },
       ],
       [
         {
           equipment: "primary",
-          primary: "beam1",
+          primary: "beam",
+          material: "wood",
           amount: 1,
         },
         {
           equipment: "primary",
-          primary: "beam1",
-          material: "fire",
+          primary: "beam",
+          material: "wood",
+          element: "air",
           amount: 1,
         },
         {
           equipment: "primary",
-          primary: "beam1",
-          material: "water",
+          primary: "beam",
+          material: "wood",
+          element: "fire",
           amount: 1,
         },
         {
           equipment: "primary",
-          primary: "beam1",
-          material: "earth",
+          primary: "beam",
+          material: "wood",
+          element: "water",
+          amount: 1,
+        },
+        {
+          equipment: "primary",
+          primary: "beam",
+          material: "wood",
+          element: "earth",
           amount: 1,
         },
       ],
@@ -344,6 +276,7 @@ export const generateOverworld = async (world: World) => {
         {
           equipment: "secondary",
           secondary: "bow",
+          material: "wood",
           amount: 1,
         },
         {
@@ -353,6 +286,7 @@ export const generateOverworld = async (world: World) => {
         {
           equipment: "secondary",
           secondary: "slash",
+          material: "wood",
           amount: 1,
         },
         {

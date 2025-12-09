@@ -13,6 +13,7 @@ import {
   normalize,
   random,
   range,
+  reversed,
   shuffle,
   signedDistance,
 } from "../../game/math/std";
@@ -47,12 +48,16 @@ import {
   waveTower,
   waveTowerCharged,
 } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { INVENTORY } from "../components/inventory";
 import { FOG } from "../components/fog";
 import { LEVEL } from "../components/level";
 import { BELONGABLE } from "../components/belongable";
-import { iterations } from "../../game/math/tracing";
+import {
+  degreesToOrientations,
+  iterations,
+  pointToDegree,
+} from "../../game/math/tracing";
 import { getProjectiles, shootArrow } from "./ballistics";
 import { canCast, getExertables } from "./magic";
 import { disposeEntity, getCell, moveEntity, registerEntity } from "./map";
@@ -305,7 +310,7 @@ export default function setupAi(world: World) {
           const close = distance < 4.25;
           const isVisible = entity[FOG].visibility === "visible";
           const isMoving = !entity[TOOLTIP].idle;
-          const orientations = heroEntity
+          const attackingOrientations = heroEntity
             ? relativeOrientations(
                 world,
                 entity[POSITION],
@@ -327,7 +332,7 @@ export default function setupAi(world: World) {
             // open eyes by setting orientation
             if (entity[ORIENTABLE]) {
               if (close && !entity[ORIENTABLE].facing)
-                entity[ORIENTABLE].facing = orientations[0];
+                entity[ORIENTABLE].facing = attackingOrientations[0];
               else if (!close) entity[ORIENTABLE].facing = undefined;
             }
 
@@ -342,11 +347,28 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].changed = true;
           }
 
-          entity[MOVABLE].orientations = orientations;
+          // sidestep if against a wall
+          if (attackingOrientations.length === 1) {
+            const linearOrientation = attackingOrientations[0];
+            const sidestepOrientation =
+              orientations[
+                (orientations.indexOf(linearOrientation) +
+                  random(0, 1) * 2 +
+                  3) %
+                  4
+              ];
+            attackingOrientations.push(sidestepOrientation);
+            attackingOrientations.push(invertOrientation(sidestepOrientation));
+          }
+
+          entity[MOVABLE].orientations = attackingOrientations;
           rerenderEntity(world, entity);
           break;
-        } else if (pattern.name === "orb") {
+        } else if (pattern.name === "orb" || pattern.name === "archer") {
           if (!entity[TOOLTIP]) continue;
+
+          const primary = pattern.name === "orb";
+
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
             MOVABLE,
@@ -373,41 +395,52 @@ export default function setupAi(world: World) {
                 false
               )
             : Infinity;
-          const canShoot = canCast(
-            world,
-            entity,
-            world.assertByIdAndComponents(
-              entity[INVENTORY]?.items.find(
-                (itemId) =>
-                  world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
-                    .equipment === "primary"
-              ),
-              [ITEM]
-            )
-          );
+          const canShoot = primary
+            ? canCast(
+                world,
+                entity,
+                world.assertByIdAndComponents(
+                  entity[INVENTORY]?.items.find(
+                    (itemId) =>
+                      world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
+                        .equipment === "primary"
+                  ),
+                  [ITEM]
+                )
+              )
+            : true;
           const isShooting = !!entity[TOOLTIP].idle;
-          const flee = circularDistance < 4;
-          const attack = blockDistance > 2 && visualDistance < 7;
+          const flee = primary ? circularDistance < 4 : blockDistance <= 3;
+          const attack =
+            blockDistance > 2 &&
+            (primary ? visualDistance < 7 : blockDistance <= 9);
+          const repositioning = !primary && blockDistance <= 9;
+          const delta = heroEntity
+            ? {
+                x: signedDistance(
+                  entity[POSITION].x,
+                  heroEntity[POSITION].x,
+                  size
+                ),
+                y: signedDistance(
+                  entity[POSITION].y,
+                  heroEntity[POSITION].y,
+                  size
+                ),
+              }
+            : { x: 0, y: 0 };
 
           if (isShooting && entity[ACTIONABLE]) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
-            entity[ACTIONABLE].primaryTriggered = true;
+
+            if (primary) {
+              entity[ACTIONABLE].primaryTriggered = true;
+            } else {
+              entity[ACTIONABLE].secondaryTriggered = true;
+            }
             break;
           } else if (canShoot && attack && heroEntity) {
-            const delta = {
-              x: signedDistance(
-                entity[POSITION].x,
-                heroEntity[POSITION].x,
-                size
-              ),
-              y: signedDistance(
-                entity[POSITION].y,
-                heroEntity[POSITION].y,
-                size
-              ),
-            };
-
             let shootingOrientation: Orientation | undefined;
 
             // shoot straight
@@ -484,15 +517,44 @@ export default function setupAi(world: World) {
               fleeingOrientations.push(invertOrientation(sidestepOrientation));
             }
 
-            // only walk every second tick
-            if (entity[ORIENTABLE]?.facing) {
+            // casters only walk every second tick
+            if (entity[ORIENTABLE]?.facing && primary) {
               entity[MOVABLE].orientations = [];
               entity[ORIENTABLE].facing = undefined;
             } else {
-              entity[MOVABLE].orientations = fleeingOrientations;
+              const sidestep = random(0, 3) === 0;
+
+              entity[MOVABLE].orientations = sidestep
+                ? [...reversed(fleeingOrientations)]
+                : fleeingOrientations;
             }
             rerenderEntity(world, entity);
             break;
+          } else if (heroEntity && repositioning) {
+            if (delta.x === 0 || delta.y === 0) break;
+
+            const repositionOrientations: Orientation[] = [];
+            if (Math.abs(delta.x) < Math.abs(delta.y)) {
+              repositionOrientations.push(
+                degreesToOrientations(pointToDegree({ x: delta.x, y: 0 }))[0]
+              );
+              repositionOrientations.push(
+                invertOrientation(
+                  degreesToOrientations(pointToDegree({ x: 0, y: delta.y }))[0]
+                )
+              );
+            } else {
+              repositionOrientations.push(
+                degreesToOrientations(pointToDegree({ x: 0, y: delta.y }))[0]
+              );
+              repositionOrientations.push(
+                invertOrientation(
+                  degreesToOrientations(pointToDegree({ x: delta.x, y: 0 }))[0]
+                )
+              );
+            }
+
+            entity[MOVABLE].orientations = repositionOrientations;
           }
         } else if (pattern.name === "fairy") {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
@@ -817,7 +879,7 @@ export default function setupAi(world: World) {
         } else if (pattern.name === "sell") {
           createPopup(world, entity, {
             deals: pattern.memory.deals,
-            transaction: "buy",
+            tabs: ["buy"],
           });
           patterns.splice(patterns.indexOf(pattern), 1);
           break;
@@ -944,7 +1006,7 @@ export default function setupAi(world: World) {
             entity[INVENTORY]?.items.find(
               (item) =>
                 world.assertByIdAndComponents(item, [ITEM])[ITEM].primary ===
-                "wave1"
+                "wave"
             ),
             [ITEM]
           );
@@ -1006,7 +1068,7 @@ export default function setupAi(world: World) {
             removeDrops = true;
 
             // ensure spell is set to damage
-            spellItem[ITEM].material = undefined;
+            spellItem[ITEM].element = undefined;
 
             // let boss cast wave
             entity[BEHAVIOUR].patterns = [
@@ -1189,7 +1251,7 @@ export default function setupAi(world: World) {
               pattern.memory.healed += 1;
 
               // ensure spell is set to healing
-              spellItem[ITEM].material = "earth";
+              spellItem[ITEM].element = "earth";
 
               patterns.push({
                 name: "action",
@@ -1279,16 +1341,16 @@ export default function setupAi(world: World) {
             ];
 
             waveTowers.forEach((tower) => {
-              // set material to fire
+              // set element to fire
               const towerItem = world.assertByIdAndComponents(
                 tower[INVENTORY]?.items.find(
                   (item) =>
                     world.assertByIdAndComponents(item, [ITEM])[ITEM]
-                      .primary === "wave1"
+                      .primary === "wave"
                 ),
                 [ITEM]
               );
-              towerItem[ITEM].material = "fire";
+              towerItem[ITEM].element = "fire";
               tower[SPRITE] = fireWaveTower;
 
               // cast fire waves
@@ -1477,16 +1539,16 @@ export default function setupAi(world: World) {
             ];
 
             [...waveTowers, entity].forEach((caster) => {
-              // set material to water
+              // set element to water
               const casterItem = world.assertByIdAndComponents(
                 caster[INVENTORY]?.items.find(
                   (item) =>
                     world.assertByIdAndComponents(item, [ITEM])[ITEM]
-                      .primary === "wave1"
+                      .primary === "wave"
                 ),
                 [ITEM]
               );
-              casterItem[ITEM].material = "water";
+              casterItem[ITEM].element = "water";
               if (caster !== entity) {
                 caster[SPRITE] = waterWaveTower;
               }

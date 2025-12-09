@@ -11,6 +11,11 @@ import { TRACKABLE } from "../../engine/components/trackable";
 import { ENTERABLE } from "../../engine/components/enterable";
 import { PLAYER } from "../../engine/components/player";
 import { PROJECTILE } from "../../engine/components/projectile";
+import { ITEM } from "../../engine/components/item";
+import { isSwimming } from "../../engine/systems/immersion";
+import { shadow } from "../../game/assets/sprites";
+import { LIQUID } from "../../engine/components/liquid";
+import { LOOTABLE } from "../../engine/components/lootable";
 
 export const textSize = 18 / 25 + 0.001;
 
@@ -19,8 +24,8 @@ export const stackHeight = 1;
 
 // odd values because i don't want to recalculate brightness values
 export const terrainHeight = 0 * stackHeight;
-export const objectHeight = 0.1 * stackHeight;
-export const effectHeight = 0.5 * stackHeight;
+export const effectHeight = 0.3 * stackHeight;
+export const objectHeight = 0.5 * stackHeight;
 export const unitHeight = 1 * stackHeight;
 export const playerHeight = 1.3 * stackHeight;
 export const lootHeight = 1.5 * stackHeight;
@@ -80,6 +85,8 @@ export const getSegments = (
   const isFloat = entity[FOG]?.type === "float";
   const isUnit = entity[FOG]?.type === "unit" || entity[PROJECTILE];
   const isObject = entity[FOG]?.type === "object";
+  const isLiquid = !!entity[LIQUID];
+  const isLootable = !!entity[LOOTABLE];
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
   const isFixed = isFloat && entity[FOG].fixed;
 
@@ -103,14 +110,30 @@ export const getSegments = (
     ? { ...layerProps, receiveShadow: false, isTransparent: false }
     : layerProps;
 
-  // from back to front: shield, body, spell, sword
+  // from back to front: shadow, shield, body, sword
   const orderedSegments: Segment[] = [];
 
-  // 1. shield
-  const shieldEntity =
-    entity[EQUIPPABLE]?.shield &&
-    world.getEntityById(entity[EQUIPPABLE].shield);
-  if (shieldEntity) {
+  // 1. shadow
+  if (isUnit && !isSwimming(world, entity) && !isLiquid && !isLootable) {
+    orderedSegments.push({
+      id: -1,
+      sprite: shadow,
+      offsetX: 0,
+      offsetY: 0,
+      offsetZ,
+      layerProps: {
+        ...visibleProps,
+        isTransparent: false,
+      },
+    });
+  }
+
+  // 2. shield
+  const shieldEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE]?.shield,
+    [ITEM, SPRITE]
+  );
+  if (shieldEntity && shieldEntity[ITEM].amount > 0) {
     orderedSegments.push({
       id: entity[EQUIPPABLE].shield,
       sprite: shieldEntity[SPRITE],
@@ -124,7 +147,7 @@ export const getSegments = (
     });
   }
 
-  // 2. body
+  // 3. body
   orderedSegments.push({
     id: world.getEntityId(entity),
     sprite: (inside && entity[ENTERABLE]?.sprite) || entity[SPRITE],
@@ -136,9 +159,11 @@ export const getSegments = (
   });
 
   // 4. sword
-  const swordEntity =
-    entity[EQUIPPABLE]?.sword && world.getEntityById(entity[EQUIPPABLE].sword);
-  if (swordEntity) {
+  const swordEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE]?.sword,
+    [ITEM, SPRITE, ORIENTABLE]
+  );
+  if (swordEntity && swordEntity[ITEM].amount > 0) {
     orderedSegments.push({
       id: entity[EQUIPPABLE].sword,
       sprite: swordEntity[SPRITE],

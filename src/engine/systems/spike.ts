@@ -7,18 +7,28 @@ import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { getCell } from "./map";
 import { Orientation, orientationPoints } from "../components/orientable";
-import { calculateDamage, createAmountMarker, isDead } from "./damage";
+import {
+  calculateDamage,
+  createAmountMarker,
+  getEntityStats,
+  isDead,
+} from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { rerenderEntity } from "./renderer";
 import { STATS } from "../components/stats";
-import { SPIKABLE } from "../components/spikable";
 import { ATTACKABLE } from "../components/attackable";
 import { MELEE } from "../components/melee";
 import { relativeOrientations } from "../../game/math/path";
 import { isControllable } from "./freeze";
+import { play } from "../../game/sound";
 
-export const isSpikable = (world: World, entity: Entity) =>
-  SPIKABLE in entity && !isDead(world, entity);
+export const isSpikable = (world: World, entity: Entity) => {
+  if (isDead(world, entity)) return false;
+
+  const entityStats = getEntityStats(world, entity);
+
+  return entityStats.spike > 0;
+};
 
 export const getSpikable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
@@ -26,11 +36,19 @@ export const getSpikable = (world: World, position: Position) =>
   ) as Entity | undefined;
 
 export const stingEntity = (world: World, entity: Entity, target: Entity) => {
-  const attack = entity[SPIKABLE].damage;
+  const entityStats = getEntityStats(world, entity);
+  const attack = entityStats.spike;
 
-  const { damage, hp } = calculateDamage(world, "true", attack, entity, target);
+  const { damage, hp } = calculateDamage(
+    world,
+    { true: attack },
+    entity,
+    target
+  );
 
   target[STATS].hp = hp;
+
+  play("magic", { intensity: damage, proximity: 0.5 });
 
   const orientation = relativeOrientations(
     world,
@@ -38,7 +56,7 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
     target[POSITION]
   )[0];
   // animate sting hit
-  createAmountMarker(world, target, -damage, orientation);
+  createAmountMarker(world, target, -damage, orientation, "magic");
 
   rerenderEntity(world, target);
 };

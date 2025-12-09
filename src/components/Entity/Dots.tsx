@@ -1,6 +1,6 @@
 import { Entity } from "ecs";
 import { animated } from "@react-spring/three";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { dotsHeight, stack, stackHeight } from "./utils";
 import { Segment } from "./Stack";
 import { pixels } from "../Dimensions/sizing";

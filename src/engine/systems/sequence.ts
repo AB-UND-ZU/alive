@@ -52,7 +52,7 @@ export const getSequence = <T extends keyof Sequencable["states"]>(
   world: World,
   entity: Entity,
   type: T
-) => entity[SEQUENCABLE]?.states[type];
+): Sequencable["states"][T] => entity[SEQUENCABLE]?.states[type];
 
 export const createSequence = <T extends keyof Sequencable["states"], A>(
   world: World,

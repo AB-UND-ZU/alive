@@ -1,23 +1,20 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Equipment } from "./equippable";
-import { Stats } from "./stats";
+import { Attributes, emptyAttributes, UnitStats } from "./stats";
+import { Castable, DamageType, EffectType, emptyCastable } from "./castable";
 
-export const elements = ["fire", "water", "earth"] as const;
+export const elements = ["fire", "water", "earth", "air"] as const;
 
-export type Resource = "wood" | "iron" | "gold" | "diamond";
+export type Material = "wood" | "iron" | "gold" | "diamond" | "ruby";
 export type Element = (typeof elements)[number];
-export type Legendary = "ruby" | "aether" | "void" | "rainbow";
-export type Material = Resource | Element | Legendary;
 
-export type Primary = "wave1" | "wave2" | "beam1" | "beam2" | "trap1" | "trap2";
-export type Secondary = "slash" | "block" | "bow";
+export type Primary = "wave" | "beam";
+export type Secondary = "slash" | "bow";
 
-export type Passive = "charm1" | "charm2" | "pet1" | "pet2";
+export type Consumable = "key" | "potion" | "map";
 
-export type Consumable = "key" | "potion1" | "potion2" | "map";
-
-export type Materialized = "door" | "entry" | "gate" | "mine";
+export type Materialized = "door" | "entry" | "gate" | "mine" | "lock";
 
 export type Craftable =
   | "coin"
@@ -37,25 +34,33 @@ export type Craftable =
   | "leaf"
   | "seed"
   | "ingot"
-  | "worm"
-  | "resource";
+  | "nugget"
+  | "worm";
+export type Resource = "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";
-export type Stackable = Craftable | Reloadable;
-export const STACK_SIZE = 999;
+export type Stackable = Resource | Craftable | Reloadable;
+
+export type ItemStats = Attributes & Pick<Castable, DamageType | EffectType>;
 
 export type Item = {
   carrier: number;
   amount: number;
   material?: Material;
+  element?: Element;
   equipment?: Equipment;
   primary?: Primary;
   secondary?: Secondary;
-  passive?: Passive;
-  stat?: keyof Stats;
+  stat?: keyof UnitStats;
   consume?: Consumable;
   stackable?: Stackable;
   bound: boolean;
 };
+
+export const emptyItemStats = {
+  ...emptyAttributes,
+  ...emptyCastable,
+};
+export const STACK_SIZE = 999;
 
 export const ITEM = "ITEM";
 

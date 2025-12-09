@@ -2,7 +2,7 @@ import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { Entity } from "ecs";
-import { disposeEntity, registerEntity } from "./map";
+import { disposeEntity, getCell, registerEntity } from "./map";
 import { Liquid, LIQUID } from "../components/liquid";
 import { entities } from "..";
 import { FOG } from "../components/fog";
@@ -34,7 +34,7 @@ export const createBubble = (
       ? "bubble"
       : "rain";
   const bubbleEntity = entities.createSplash(world, {
-    [FOG]: { visibility: "hidden", type: "unit" },
+    [FOG]: { visibility: "hidden", type: "object" },
     [LIQUID]: { type: "bubble" },
     [POSITION]: copy(position),
     [RENDERABLE]: { generation: 0 },
@@ -91,7 +91,12 @@ export default function setupWater(world: World) {
         disposeEntity(world, entity);
 
         // don't rain inside buildings
-        if (!getFragment(world, entity[POSITION])) {
+        if (
+          !getFragment(world, entity[POSITION]) &&
+          !Object.values(getCell(world, entity[POSITION])).some(
+            (cell) => cell[FOG]?.visibility === "hidden"
+          )
+        ) {
           createBubble(world, entity[POSITION], "rain");
         }
         continue;

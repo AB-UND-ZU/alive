@@ -1,4 +1,4 @@
-import * as colors from "../colors";
+import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const sign: Sprite = {
@@ -392,6 +392,19 @@ export const window: Sprite = {
 export const windowInside: Sprite = {
   name: "window_inside",
   layers: [{ char: "┬", color: colors.maroon }],
+};
+
+export const bedItem: Sprite = {
+  name: "bed_item",
+  layers: [
+    { char: "Γ", color: colors.maroon },
+    { char: "7", color: colors.black },
+    { char: "=", color: colors.silver },
+    { char: "¬", color: colors.maroon },
+    { char: "⌐", color: colors.maroon },
+    { char: "\u0115", color: colors.black },
+
+  ],
 };
 
 export const bedHeadLeft: Sprite = {

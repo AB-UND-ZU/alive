@@ -9,7 +9,7 @@ import {
   orientationPoints,
 } from "../../engine/components/orientable";
 import { getCell } from "../../engine/systems/map";
-import { normalize, Point, reversed } from "./std";
+import { add, normalize, Point, reversed } from "./std";
 
 type Interval = { start: number; end: number };
 type Corner = { start: [Point, Point, Point]; end: [Point, Point, Point] };
@@ -149,6 +149,8 @@ export const iterations: Iteration[] = [
     },
   },
 ];
+
+export const reversedIterations = [...iterations].reverse();
 
 const getOrientedBoundaries = (
   iteration: Iteration,
@@ -450,4 +452,49 @@ export const traceCircularVisiblity = (
   }
 
   return visibleCells;
+};
+
+export const cellIntersectsCircle = (
+  cell: Point,
+  circle: Point,
+  radius: number,
+  ratio = aspectRatio
+) => {
+  const closestX = Math.max(cell.x, Math.min(circle.x, cell.x + ratio));
+  const closestY = Math.max(cell.y, Math.min(circle.y, cell.y + 1));
+
+  const delta = { x: closestX - circle.x, y: closestY - circle.y };
+  const distance = delta.x * delta.x + delta.y * delta.y;
+
+  return distance <= radius * radius;
+};
+
+export const pixelCircle = (
+  center: Point,
+  radius: number,
+  ratio = aspectRatio
+) => {
+  const width = Math.ceil(ratio * radius);
+  const height = Math.ceil(radius);
+  const points: Point[] = [];
+
+  for (let x = -width; x <= width; x += 1) {
+    for (let y = -height; y <= height; y += 1) {
+      const point = { x, y };
+      const offset = {
+        x: Math.sign(x) * 0.5,
+        y: Math.sign(y) * 0.5,
+      };
+      const outer = add(point, offset);
+      const outerRadius = Math.sqrt(outer.x ** 2 + outer.y ** 2);
+      const inner = add(point, { x: -offset.x, y: -offset.y });
+      const innerRadius = Math.sqrt(inner.x ** 2 + inner.y ** 2);
+
+      if (innerRadius <= radius && radius <= outerRadius) {
+        points.push(add(center, point));
+      }
+    }
+  }
+
+  return points;
 };

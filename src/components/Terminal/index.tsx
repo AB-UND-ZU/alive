@@ -8,7 +8,7 @@ import Paused from "../Paused";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
 import { createText } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { overscanRows } from "../Dimensions/sizing";
 
 const stats = false;
@@ -23,7 +23,7 @@ export default function Terminal() {
       <div className="LeftEdge">
         {Array.from({ length: dimensions.renderedRows - overscanRows + 1 }).map(
           (_, index) => (
-            <Row cells={createText("│", colors.grey)} />
+            <Row key={index} cells={createText("│", colors.grey)} />
           )
         )}
       </div>
@@ -37,7 +37,7 @@ export default function Terminal() {
       <div className="RightEdge">
         {Array.from({ length: dimensions.renderedRows - overscanRows + 1 }).map(
           (_, index) => (
-            <Row cells={createText("│", colors.grey)} />
+            <Row key={index} cells={createText("│", colors.grey)} />
           )
         )}
       </div>

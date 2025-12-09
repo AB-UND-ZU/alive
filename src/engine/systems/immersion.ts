@@ -7,6 +7,7 @@ import { World } from "../ecs";
 import { getCell } from "./map";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { REFERENCE } from "../components/reference";
+import { SPRITE } from "../components/sprite";
 
 export const isImmersible = (world: World, position: Position) => {
   const cell = getCell(world, position);
@@ -15,6 +16,9 @@ export const isImmersible = (world: World, position: Position) => {
 
 export const isSwimmable = (world: World, entity: Entity) =>
   SWIMMABLE in entity;
+
+export const isSwimming = (world: World, entity: Entity) =>
+  entity[SWIMMABLE]?.swimming;
 
 export const getSwimmables = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter((entity) =>
@@ -47,7 +51,7 @@ export default function setupImmersion(world: World) {
 
     referencesGeneration = generation;
 
-    for (const entity of world.getEntities([POSITION, SWIMMABLE])) {
+    for (const entity of world.getEntities([POSITION, SWIMMABLE, SPRITE])) {
       const entityId = world.getEntityId(entity);
       const entityGeneration = getEntityGeneration(world, entity);
 
@@ -60,6 +64,12 @@ export default function setupImmersion(world: World) {
 
       if (isSwimming !== shouldSwim) {
         entity[SWIMMABLE].swimming = shouldSwim;
+
+        const swapSprite = entity[SWIMMABLE].sprite;
+        if (swapSprite) {
+          entity[SWIMMABLE].sprite = entity[SPRITE];
+          entity[SPRITE] = swapSprite;
+        }
         rerenderEntity(world, entity);
       }
     }

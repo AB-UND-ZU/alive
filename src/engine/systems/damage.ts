@@ -20,22 +20,31 @@ import { isGhost } from "./fate";
 import { createSequence } from "./sequence";
 import { MarkerSequence, MeleeSequence } from "../components/sequencable";
 import { BELONGABLE, neutrals, tribes } from "../components/belongable";
-import { Stats, STATS } from "../components/stats";
-import * as colors from "../../game/assets/colors";
-import { createText } from "../../game/assets/sprites";
+import {
+  attributes,
+  emptyUnitStats,
+  UnitStats,
+  STATS,
+} from "../components/stats";
+import { colors } from "../../game/assets/colors";
+import { addBackground, createText } from "../../game/assets/sprites";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { RECHARGABLE } from "../components/rechargable";
 import { INVENTORY } from "../components/inventory";
-import { DamageType } from "../components/castable";
+import { Castable, DamageType } from "../components/castable";
 import { TypedEntity } from "../entities";
 import { createItemName, queueMessage } from "../../game/assets/utils";
-import { invertOrientation } from "../../game/math/path";
 import { play } from "../../game/sound";
 import { POPUP } from "../components/popup";
+import { getEquipmentStats } from "../../game/balancing/equipment";
+import { NPC } from "../components/npc";
+import { getAbilityStats } from "../../game/balancing/abilities";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
+
+export const isNpc = (world: World, entity: Entity) => NPC in entity;
 
 export const isTribe = (world: World, entity: Entity) =>
   BELONGABLE in entity && tribes.includes(entity[BELONGABLE].faction);
@@ -72,46 +81,76 @@ export const getAttackables = (world: World, position: Position) =>
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity[];
 
-// calculate damage, with 1 / (x + 2) probability for 1 dmg if below 1
+export const getEntityStats = (world: World, entity: TypedEntity) => {
+  const entityStats = { ...(entity[STATS] || emptyUnitStats) };
+  Object.values(entity[EQUIPPABLE] || {}).forEach((itemId) => {
+    const item = world.getEntityByIdAndComponents(itemId, [ITEM]);
+
+    if (!item) return;
+
+    const isAbility = item[ITEM].primary || item[ITEM].secondary;
+    const itemStats = isAbility
+      ? getAbilityStats(item[ITEM], entity[NPC]?.type)
+      : getEquipmentStats(item[ITEM], entity[NPC]?.type);
+
+    attributes.forEach((attribute) => {
+      entityStats[attribute] += itemStats[attribute];
+    });
+  });
+
+  return entityStats;
+};
+
+// damage is calculated as follows:
+//   attack  = attacker item + offensive stat
+//   defense = defender item + defensive stat
+//   delta   = attack - defense
+// if attack <= 0
+//   damage  = 0
+// if delta > 0
+//   damage  = delta
+// else
+//   damage  = 1 / (2 - delta)
+// example values:
+//   atk | def | dmg
+//    3  |  0  |  3
+//    3  |  1  |  2
+//    3  |  3  | 0.5
+//    3  |  5  | 0.25
 export const calculateDamage = (
   world: World,
-  medium: DamageType,
-  attack: number,
+  itemStats: Partial<Pick<Castable, DamageType>>,
   attackerEntity: TypedEntity,
   defenderEntity: TypedEntity
 ) => {
-  const offensive =
-    medium === "physical"
-      ? attack + (attackerEntity[STATS]?.power || 0)
-      : medium === "magic"
-      ? attack + (attackerEntity[STATS]?.magic || 0)
-      : attack;
+  const attackerStats = getEntityStats(world, attackerEntity);
+  const defenderStats = getEntityStats(world, defenderEntity);
 
-  const shield = world.getEntityByIdAndComponents(
-    defenderEntity[EQUIPPABLE]?.shield,
-    [ITEM]
-  );
-  const defensive =
-    medium === "physical"
-      ? (defenderEntity[STATS]?.armor || 0) + (shield?.[ITEM].amount || 0)
-      : medium === "magic"
-      ? defenderEntity[STATS]?.armor || 0
-      : 0;
-  const damage =
-    offensive > defensive
-      ? offensive - defensive
-      : 1 / (defensive - offensive + 2);
-  const hp = Math.max(0, (defenderEntity[STATS]?.hp || 0) - damage);
-  const visibleDamage =
-    damage >= 1
-      ? damage
-      : Math.ceil(defenderEntity[STATS]?.hp || 0) > Math.ceil(hp)
-      ? 1
-      : 0;
-  return { damage: visibleDamage, hp };
+  const offensive = itemStats.melee
+    ? itemStats.melee + attackerStats.power
+    : itemStats.magic
+    ? itemStats.magic + attackerStats.wisdom
+    : itemStats.true || 0;
+  const defensive = itemStats.melee
+    ? defenderStats.armor
+    : itemStats.magic
+    ? defenderStats.resist
+    : 0;
+
+  const attack = itemStats.melee || itemStats.magic || itemStats.true || 0;
+  const delta = offensive - defensive;
+  const damage = attack <= 0 ? 0 : delta > 0 ? delta : 1 / (2 - delta);
+  const newHp = Math.max(0, defenderStats.hp - damage);
+
+  const visibleHp = defenderStats.hp >= 1 ? Math.floor(defenderStats.hp) : 1;
+  const visibleNewHp = newHp >= 1 ? Math.floor(newHp) : newHp === 0 ? 0 : 1;
+  const passedThreshold = visibleNewHp < visibleHp;
+  const visibleDamage = damage >= 1 ? damage : passedThreshold ? 1 : 0;
+
+  return { damage: visibleDamage, hp: newHp };
 };
 
-export const calculateHealing = (targetStats: Stats, amount: number) => {
+export const calculateHealing = (targetStats: UnitStats, amount: number) => {
   const hp = Math.min(targetStats.maxHp, targetStats.hp + amount);
   const visibleHealing = Math.ceil(hp - targetStats.hp);
   return { hp, healing: visibleHealing };
@@ -121,7 +160,8 @@ export const createAmountMarker = (
   world: World,
   entity: Entity,
   amount: number,
-  orientation: Orientation
+  orientation: Orientation,
+  type: DamageType
 ) => {
   createSequence<"marker", MarkerSequence>(
     world,
@@ -130,12 +170,19 @@ export const createAmountMarker = (
     "amountMarker",
     {
       amount,
+      type,
     }
   );
   queueMessage(world, entity, {
     line: createText(
       `${amount > 0 ? "+" : amount < 0 ? "-" : ""}${Math.abs(amount)}`,
-      amount === 0 ? colors.white : amount > 0 ? colors.lime : colors.red
+      amount === 0
+        ? colors.white
+        : amount > 0
+        ? colors.lime
+        : type === "magic"
+        ? colors.fuchsia
+        : colors.red
     ),
     orientation,
     fast: amount <= 0,
@@ -144,7 +191,7 @@ export const createAmountMarker = (
 
   // increase total damage counter
   if (entity[PLAYER] && amount < 0) {
-    entity[PLAYER].damageReceived -= amount;
+    entity[PLAYER].receivedStats[type] -= amount;
   }
 };
 
@@ -204,12 +251,15 @@ export default function setupDamage(world: World) {
       if (!entity[EQUIPPABLE].sword) {
         if (!targetEntity[POPUP]) {
           queueMessage(world, entity, {
-            line: [
-              ...createText("Need ", colors.silver),
-              ...createItemName({ equipment: "sword", material: "wood" }),
-              ...createText("!", colors.silver),
-            ],
-            orientation: invertOrientation(targetOrientation),
+            line: addBackground(
+              [
+                ...createText("Need ", colors.silver),
+                ...createItemName({ equipment: "sword", material: "wood" }),
+                ...createText("!", colors.silver),
+              ],
+              colors.black
+            ),
+            orientation: "up",
             fast: false,
             delay: 0,
           });
@@ -228,11 +278,10 @@ export default function setupDamage(world: World) {
         ITEM,
         ORIENTABLE,
       ]);
-      const attack = sword[ITEM].amount;
+      const swordStats = getEquipmentStats(sword[ITEM], entity[NPC]?.type);
       const { damage, hp } = calculateDamage(
         world,
-        "physical",
-        attack,
+        swordStats,
         entity,
         targetEntity
       );
@@ -250,14 +299,16 @@ export default function setupDamage(world: World) {
       entity[MELEE].facing = targetOrientation;
       entity[MOVABLE].bumpGeneration = entity[RENDERABLE].generation;
 
+      if (entity[ORIENTABLE]) {
+        entity[ORIENTABLE].facing = targetOrientation;
+      }
+
       // set rechargable if applicable
       const secondaryEntity = world.getEntityByIdAndComponents(
         entity[EQUIPPABLE].secondary,
         [ITEM]
       );
-      const canRecharge =
-        secondaryEntity?.[ITEM].secondary === "slash" ||
-        secondaryEntity?.[ITEM].secondary === "block";
+      const canRecharge = secondaryEntity?.[ITEM].secondary === "slash";
       const totalCharges = (entity[INVENTORY]?.items || [])
         .filter(
           (itemId) =>
@@ -289,7 +340,13 @@ export default function setupDamage(world: World) {
       );
 
       // create hit marker
-      createAmountMarker(world, targetEntity, -damage, targetOrientation);
+      createAmountMarker(
+        world,
+        targetEntity,
+        -damage,
+        targetOrientation,
+        "melee"
+      );
 
       rerenderEntity(world, targetEntity);
     }

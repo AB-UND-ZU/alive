@@ -3,7 +3,13 @@ import { animated, useSpring } from "@react-spring/three";
 import { Position, POSITION } from "../../engine/components/position";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import Entity from "../Entity";
-import { useGame, useHero, useViewpoint, useWorld } from "../../bindings/hooks";
+import {
+  useGame,
+  useHero,
+  useOverscan,
+  useViewpoint,
+  useWorld,
+} from "../../bindings/hooks";
 import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { getEntityGeneration } from "../../engine/systems/renderer";
@@ -24,11 +30,14 @@ export default function Systems() {
   const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
   const { position } = useViewpoint();
+  const overscan = useOverscan(position.x, position.y);
   const game = useGame();
   const hero = useHero();
   const structure = hero?.[LAYER]?.structure;
   const damageRef = useRef(0);
-  const damageReceived = hero?.[PLAYER].damageReceived || 0;
+  const damageReceived =
+    (hero?.[PLAYER].receivedStats.melee || 0) +
+    (hero?.[PLAYER].receivedStats.magic || 0);
   const [values, api] = useSpring(() => ({
     x: 0,
     y: 0,
@@ -39,15 +48,27 @@ export default function Systems() {
   useFrame((_, delta) => {
     if (!ecs || paused) return;
 
+    // consider limiting systems refresh range for e.g. 120fps renderers
     ecs.update(delta * 1000);
     ecs.cleanup();
   });
 
+  // sync paused status
+  useEffect(() => {
+    if (paused) {
+      api.pause();
+    } else {
+      api.resume();
+    }
+  }, [api, paused]);
+
   useEffect(() => {
     // shake screen on damage
     const shakeIntensity = damageReceived - damageRef.current;
+
     if (hero && shakeIntensity > 0) {
-      damageRef.current = hero[PLAYER].damageReceived;
+      damageRef.current =
+        hero[PLAYER].receivedStats.melee + hero[PLAYER].receivedStats.magic;
       const shakeDistance = (Math.sqrt(shakeIntensity) + 1) * shakeFactor;
       const shakeAngle = random(0, 359);
       const shakeX = Math.sin((shakeAngle / 360) * Math.PI * 2) * shakeDistance;
@@ -78,17 +99,23 @@ export default function Systems() {
 
   return (
     <animated.group position-x={values.x} position-y={values.y}>
-      {Array.from({ length: dimensions.renderedColumns })
+      {Array.from({ length: dimensions.renderedColumns + Math.abs(overscan.x) })
         .map((_, x) =>
-          Array.from({ length: dimensions.renderedRows })
+          Array.from({ length: dimensions.renderedRows + Math.abs(overscan.y) })
             .map((_, y) => {
               const offsetX = dimensions.renderedColumns % 2;
               const renderedX =
-                x - (dimensions.renderedColumns - offsetX) / 2 + position.x;
+                x -
+                (dimensions.renderedColumns - offsetX) / 2 +
+                position.x -
+                Math.max(0, overscan.x);
 
               const offsetY = dimensions.renderedRows % 2;
               const renderedY =
-                y - (dimensions.renderedRows - offsetY) / 2 + position.y;
+                y -
+                (dimensions.renderedRows - offsetY) / 2 +
+                position.y -
+                Math.max(0, overscan.y);
 
               const renderedPosition = { x: renderedX, y: renderedY };
               const cell = getCell(ecs, renderedPosition);
@@ -101,7 +128,6 @@ export default function Systems() {
               const renderableEntities = entities.filter(
                 ([_, entity]) => RENDERABLE in entity && SPRITE in entity
               );
-
               return renderableEntities.map(([entityId, entity]) => (
                 <Entity
                   key={entityId}

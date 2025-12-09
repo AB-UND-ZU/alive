@@ -8,6 +8,7 @@ export const actions = [
   "popup",
   "trade",
   "use",
+  "add",
   "close",
   "claim",
   "quest",

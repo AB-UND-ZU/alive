@@ -5,6 +5,7 @@ import { Sprite } from "./sprite";
 export type Burnable = {
   burning: boolean;
   eternal: boolean;
+  simmer: boolean;
   combusted: boolean;
   decayed: boolean;
   remains?: Sprite;

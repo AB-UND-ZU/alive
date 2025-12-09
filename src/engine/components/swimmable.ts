@@ -1,8 +1,10 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import { Sprite } from "./sprite";
 
 export type Swimmable = {
   swimming: boolean,
+  sprite?: Sprite
 };
 
 export const SWIMMABLE = "SWIMMABLE";

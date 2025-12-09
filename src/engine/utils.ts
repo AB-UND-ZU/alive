@@ -11,14 +11,15 @@ import { Entity, TypedEntity } from "./entities";
 import { PLAYER } from "./components/player";
 import { ECS_DEBUG } from "./ecs";
 import { createPopup } from "./systems/popup";
-import { POPUP, Popup } from "./components/popup";
+import { POPUP } from "./components/popup";
+import { Sprite } from "./components/sprite";
 
 // util methods
 export const offerQuest = (
   world: World,
   entity: ECSEntity,
   name: Quest["name"],
-  popup: Partial<Popup> = {},
+  lines: Sprite[][],
   memory: any
 ) => {
   if (entity[QUEST]) {
@@ -33,11 +34,10 @@ export const offerQuest = (
   }
 
   createPopup(world, entity, {
-    transaction: "quest",
+    tabs: ["quest"],
     targets: [],
-    lines: [],
+    lines: [lines],
     deals: [],
-    ...popup,
   });
 };
 

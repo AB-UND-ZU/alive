@@ -1,17 +1,28 @@
-import * as colors from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
+import { colors } from "../colors";
 
 export const scout: Sprite = {
   name: "Scout",
   layers: [{ char: "\u010b", color: colors.silver }],
 };
 
-export const hunter: Sprite = {
-  name: "Hunter",
+export const rogue: Sprite = {
+  name: "Rogue",
   layers: [
     { char: "│", color: colors.olive },
     { char: "|", color: colors.black },
     { char: "┐", color: colors.black },
+    { char: "`", color: colors.olive },
+    { char: "\u010b", color: colors.silver },
+  ],
+};
+
+export const swimmingRogue: Sprite = {
+  name: "Mage",
+  layers: [
+    { char: "│", color: colors.olive },
+    { char: "|", color: colors.navy },
+    { char: "┐", color: colors.navy },
     { char: "`", color: colors.olive },
     { char: "\u010b", color: colors.silver },
   ],
@@ -38,6 +49,56 @@ export const bandit: Sprite = {
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "'", color: colors.grey },
+  ],
+};
+
+export const alien: Sprite = {
+  name: "???",
+  layers: [
+    { char: "Ä", color: colors.olive },
+    { char: "A", color: colors.black },
+
+    { char: "å", color: colors.olive },
+    { char: "á", color: colors.black },
+    { char: "'", color: colors.black },
+
+    { char: "\u010b", color: colors.silver },
+  ],
+};
+
+export const chief: Sprite = {
+  name: "Chief",
+  layers: [
+    { char: "\u010b", color: colors.silver },
+    { char: "'", color: colors.white },
+    { char: "/", color: colors.white },
+  ],
+};
+
+export const fireChief: Sprite = {
+  name: "Chief",
+  layers: [
+    { char: "\u010b", color: colors.silver },
+    { char: "'", color: colors.red },
+    { char: "/", color: colors.red },
+  ],
+};
+
+export const earthChief: Sprite = {
+  name: "Chief",
+  layers: [
+    { char: "\u010b", color: colors.silver },
+    { char: "'", color: colors.lime },
+    { char: "/", color: colors.lime },
+  ],
+};
+
+export const waterChief: Sprite = {
+  name: "Chief",
+  layers: [
+    { char: "\u010b", color: colors.silver },
+    { char: "'", color: colors.blue },
+    { char: "/", color: colors.blue },
   ],
 };
 

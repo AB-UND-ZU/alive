@@ -9,7 +9,7 @@ import {
 import type { World as WorldType } from "../engine";
 import { RENDERABLE } from "../engine/components/renderable";
 import { PLAYER } from "../engine/components/player";
-import { POSITION } from "../engine/components/position";
+import { Position, POSITION } from "../engine/components/position";
 import { getEntityGeneration } from "../engine/systems/renderer";
 import { REFERENCE } from "../engine/components/reference";
 import { VIEWABLE } from "../engine/components/viewable";
@@ -24,6 +24,8 @@ export type WorldContext = {
   setInitial: React.Dispatch<React.SetStateAction<boolean>>;
   paused: boolean;
   setPaused: React.Dispatch<React.SetStateAction<boolean>>;
+  flipped: boolean;
+  setFlipped: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const initialContext: WorldContext = {
@@ -32,10 +34,14 @@ const initialContext: WorldContext = {
   setInitial: () => {},
   paused: false,
   setPaused: () => {},
+  flipped: false,
+  setFlipped: () => {},
 };
 const Context = createContext(initialContext);
 
 export const WorldProvider = Context.Provider;
+
+export const worldContextRef = { current: initialContext };
 
 export const useWorld = () => useContext(Context);
 
@@ -163,3 +169,22 @@ export const useViewpoint = () => {
     fraction: viewable?.[VIEWABLE].fraction || zeroFraction,
   };
 };
+
+export function useOverscan(x: number, y: number) {
+  const previous = useRef<Position | null>(null);
+  const next = useRef<Position>({ x, y });
+
+  if (!previous.current) {
+    previous.current = next.current;
+  }
+
+  if (next.current.x !== x || next.current.y !== y) {
+    previous.current = next.current;
+    next.current = { x, y };
+  }
+
+  return {
+    x: next.current.x - previous.current.x,
+    y: next.current.y - previous.current.y,
+  };
+}

@@ -2,6 +2,7 @@ export { default as setupAction } from "./action";
 export { default as setupAi } from "./ai";
 export { default as setupBallistics } from "./ballistics";
 export { default as setupBurn } from "./burn";
+export { default as setupClick } from "./click";
 export { default as setupCollect } from "./collect";
 export { default as setupConsume } from "./consume";
 export { default as setupDamage } from "./damage";

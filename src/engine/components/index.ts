@@ -5,6 +5,7 @@ export { default as addBehaviour } from "./behaviour";
 export { default as addBelongable } from "./belongable";
 export { default as addBurnable } from "./burnable";
 export { default as addCastable } from "./castable";
+export { default as addClickable } from "./clickable";
 export { default as addCollectable } from "./collectable";
 export { default as addCollidable } from "./collidable";
 export { default as addDisplacable } from "./displacable";

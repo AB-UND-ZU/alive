@@ -17,15 +17,39 @@ export type Countable = {
   level: number;
 };
 
-export type Stats = Countable & {
+export type Attributes = Pick<Countable, "maxHp" | "maxMp"> & {
   power: number;
-  magic: number;
+  wisdom: number;
   armor: number;
+  resist: number;
   haste: number;
-  sight: number;
+  vision: number;
+  damp: number;
+  thaw: number;
+  spike: number;
 };
 
-export const emptyStats: Stats = {
+export type UnitStats = Countable & Attributes;
+
+export const emptyAttributes: Attributes = {
+  maxHp: 0,
+  maxMp: 0,
+
+  power: 0,
+  wisdom: 0,
+  armor: 0,
+  resist: 0,
+  haste: 0,
+  vision: 0,
+  damp: 0,
+  thaw: 0,
+  spike: 0,
+};
+export const attributes = Object.keys(emptyAttributes) as (keyof Attributes)[];
+
+export const emptyUnitStats: UnitStats = {
+  ...emptyAttributes,
+
   hp: 0,
   maxHp: 0,
   maxHpCap: 0,
@@ -39,16 +63,16 @@ export const emptyStats: Stats = {
   maxXpCap: 0,
 
   level: 0,
-
-  power: 0,
-  magic: 0,
-  armor: 0,
-  haste: 0,
-  sight: 0,
 };
+
+export const MAX_STAT_VALUE = 99;
 
 export const STATS = "STATS";
 
-export default function addStats(world: World, entity: Entity, stats: Stats) {
+export default function addStats(
+  world: World,
+  entity: Entity,
+  stats: UnitStats
+) {
   world.addComponentToEntity(entity, STATS, stats);
 }

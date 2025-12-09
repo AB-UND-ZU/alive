@@ -3,7 +3,7 @@ import { World } from "../ecs";
 import { Matrix } from "../../game/math/matrix";
 import { Position } from "./position";
 
-export type LevelName = "LEVEL_FOREST" | "LEVEL_OVERWORLD";
+export type LevelName = "LEVEL_MENU" | "LEVEL_FOREST" | "LEVEL_TUTORIAL";
 
 export type Level = {
   name: LevelName;

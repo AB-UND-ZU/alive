@@ -39,7 +39,7 @@ import { Soul, SOUL } from "./components/soul";
 import { Spawnable, SPAWNABLE } from "./components/spawnable";
 import { Spikable, SPIKABLE } from "./components/spikable";
 import { Sprite, SPRITE } from "./components/sprite";
-import { Stats, STATS } from "./components/stats";
+import { UnitStats, STATS } from "./components/stats";
 import { Swimmable, SWIMMABLE } from "./components/swimmable";
 import { Tooltip, TOOLTIP } from "./components/tooltip";
 import { Trackable, TRACKABLE } from "./components/trackable";
@@ -56,6 +56,7 @@ import { Popup, POPUP } from "./components/popup";
 import { Freezable, FREEZABLE } from "./components/freezable";
 import { Rechargable, RECHARGABLE } from "./components/rechargable";
 import { Warpable, WARPABLE } from "./components/warpable";
+import { Clickable, CLICKABLE } from "./components/clickable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -65,6 +66,7 @@ export type Entity = Record<LevelName, {}> & {
   [BELONGABLE]: Belongable;
   [BURNABLE]: Burnable;
   [CASTABLE]: Castable;
+  [CLICKABLE]: Clickable;
   [COLLECTABLE]: Collectable;
   [COLLIDABLE]: Collidable;
   [DISPLACABLE]: Displacable;
@@ -107,7 +109,7 @@ export type Entity = Record<LevelName, {}> & {
   [SPAWNABLE]: Spawnable;
   [SPIKABLE]: Spikable;
   [SPRITE]: Sprite;
-  [STATS]: Stats;
+  [STATS]: UnitStats;
   [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;
   [TEMPO]: Tempo;
@@ -180,7 +182,14 @@ export const createBox = entityFactory([
   STATS,
 ]);
 
-export const createBlock = entityFactory([FOG, POSITION, RENDERABLE, SPRITE]);
+export const createBlock = entityFactory([
+  CLICKABLE,
+  COLLIDABLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
 
 export const createBuilding = entityFactory([
   FOG,
@@ -241,14 +250,35 @@ export const createContainer = entityFactory([
   SWIMMABLE,
 ]);
 
-export const createCrafting = entityFactory([
+export const createForging = entityFactory([
   COLLIDABLE,
+  LAYER,
   FOG,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
   TOOLTIP,
+]);
+
+export const createCrafting = entityFactory([
+  BURNABLE,
+  COLLIDABLE,
+  LAYER,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
+]);
+
+export const createDecoration = entityFactory([
+  FOG,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
 ]);
 
 export const createDeposit = entityFactory([
@@ -286,6 +316,15 @@ export const createEntry = entityFactory([
   SPRITE,
 ]);
 
+export const createFacade = entityFactory([
+  ENTERABLE,
+  FOG,
+  LAYER,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createFibre = entityFactory([
   ORIENTABLE,
   PARTICLE,
@@ -302,8 +341,9 @@ export const createFire = entityFactory([
   SPRITE,
 ]);
 
-export const createFloat = entityFactory([
-  ENTERABLE,
+export const createFloat = entityFactory([FOG, POSITION, RENDERABLE, SPRITE, ORIENTABLE]);
+
+export const createFloor = entityFactory([
   FOG,
   LAYER,
   POSITION,
@@ -311,11 +351,12 @@ export const createFloat = entityFactory([
   SPRITE,
 ]);
 
-export const createFloor = entityFactory([
+export const createFountain = entityFactory([
+  COLLIDABLE,
   FOG,
-  LAYER,
   POSITION,
   RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
 ]);
 
@@ -417,6 +458,16 @@ export const createHighlight = entityFactory([
 ]);
 
 export const createItem = entityFactory([ITEM, RENDERABLE, SPRITE]);
+
+export const createLever = entityFactory([
+  CLICKABLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
+]);
 
 export const createMine = entityFactory([
   COLLIDABLE,
@@ -669,6 +720,14 @@ export const createTombstone = entityFactory([
   SPRITE,
   SWIMMABLE,
   TOOLTIP,
+]);
+
+export const createTransient = entityFactory([
+  FOG,
+  MOVABLE,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
 ]);
 
 export const createTumbleweed = entityFactory([

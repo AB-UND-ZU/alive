@@ -7,8 +7,13 @@ import { UnitKey } from "../../game/balancing/units";
 export type Deal = {
   item: Omit<Item, "carrier" | "bound">;
   stock: number;
-  price: Omit<Item, "carrier" | "bound">[];
+  prices: Omit<Item, "carrier" | "bound">[];
   carrier?: number;
+};
+
+export type Recipe = {
+  item: Omit<Item, "carrier" | "bound">;
+  options: Omit<Item, "carrier" | "bound">[][];
 };
 
 export type Target = {
@@ -16,18 +21,32 @@ export type Target = {
   amount: number;
 };
 
-export const shops = ["buy", "sell", "craft"] as const;
+export const shops = ["buy", "sell"] as const;
 
-const popups = [...shops, "quest", "info", "inspect", "warp"] as const;
+const popups = [
+  ...shops,
+  "craft",
+  "forge",
+  "quest",
+  "info",
+  "inspect",
+  "stats",
+  "gear",
+  "class",
+  "warp",
+] as const;
 
 export type Popup = {
   active: boolean;
-  verticalIndex: number;
+  verticalIndezes: number[];
+  horizontalIndex: number;
+  selections: number[][];
   deals: Deal[];
-  lines: Sprite[][];
+  recipes: Recipe[];
+  lines: Sprite[][][];
   targets: Target[];
   viewpoint: number;
-  transaction: (typeof popups)[number];
+  tabs: (typeof popups)[number][];
 };
 
 export const POPUP = "POPUP";

@@ -3,64 +3,61 @@ import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
 import { Orientation } from "../components/orientable";
 import { PLAYER } from "../components/player";
-import addPopup, {
-  Deal,
-  Popup,
-  POPUP,
-  shops,
-  Target,
-} from "../components/popup";
+import addPopup, { Deal, Popup, POPUP, Target } from "../components/popup";
 import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
-import { craft, info, quest, shop } from "../../game/assets/sprites";
+import {
+  craft,
+  forge,
+  info,
+  none,
+  quest,
+  shop,
+  warp,
+} from "../../game/assets/sprites";
 import { getCell } from "./map";
 import { POSITION, Position } from "../components/position";
-import { createSequence } from "./sequence";
-import { InfoSequence, PopupSequence } from "../components/sequencable";
+import { createSequence, getSequence } from "./sequence";
+import { DiscoverySequence, PopupSequence } from "../components/sequencable";
 import { REFERENCE } from "../components/reference";
 import { VIEWABLE } from "../components/viewable";
-import { STATS } from "../components/stats";
-import { INVENTORY } from "../components/inventory";
-import { EQUIPPABLE } from "../components/equippable";
+import { UnitStats, STATS } from "../components/stats";
+import { Inventory, INVENTORY } from "../components/inventory";
+import { Equipment } from "../components/equippable";
 import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
 import { add } from "../../game/math/std";
 import { TypedEntity } from "../entities";
 import { isDead, isEnemy, isNeutral } from "./damage";
-import { frameHeight } from "../../game/assets/utils";
+import { frameHeight, popupTime } from "../../game/assets/utils";
+import { getItemPrice } from "../../game/balancing/trading";
+import { getForgeStatus } from "../../game/balancing/forging";
+import { getCraftingDeal } from "../../game/balancing/crafting";
+import { classes } from "../../game/balancing/classes";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
 
-export const isInShop = (world: World, entity: Entity) =>
-  isInPopup(world, entity) &&
-  ["buy", "sell", "craft"].includes(
-    world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [POPUP])?.[POPUP]
-      .transaction || ""
-  );
+export const isInTab = (
+  world: World,
+  entity: Entity,
+  tab: Popup["tabs"][number]
+) => {
+  if (!isInPopup(world, entity)) return false;
 
-export const isInQuest = (world: World, entity: Entity) =>
-  isInPopup(world, entity) &&
-  world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [POPUP])?.[POPUP]
-    .transaction === "quest";
+  const popupEntity = world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [
+    POPUP,
+  ]);
 
-export const isInInspect = (world: World, entity: Entity) =>
-  isInPopup(world, entity) &&
-  world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [POPUP])?.[POPUP]
-    .transaction === "inspect";
+  if (!popupEntity) return false;
 
-export const isInInfo = (world: World, entity: Entity) =>
-  isInPopup(world, entity) &&
-  world.getEntityByIdAndComponents(entity[PLAYER]?.popup, [POPUP])?.[POPUP]
-    .transaction === "info";
+  return getTab(world, popupEntity) === tab;
+};
 
 export const isPopupAvailable = (world: World, entity: Entity) =>
   POPUP in entity &&
   !isDead(world, entity) &&
-  ((shops.includes(entity[POPUP].transaction) &&
-    entity[POPUP].deals.length > 0) ||
-    entity[POPUP].lines.length > 0) &&
   (!isEnemy(world, entity) || isNeutral(world, entity));
 
 export const getPopup = (world: World, position: Position) =>
@@ -68,49 +65,172 @@ export const getPopup = (world: World, position: Position) =>
     isPopupAvailable(world, entity)
   ) as Entity | undefined;
 
-export const getDeal = (world: World, shopEntity: Entity): Deal =>
-  shopEntity[POPUP].deals[shopEntity[POPUP].verticalIndex];
+export const getTab = (
+  world: World,
+  popupEntity: Entity
+): Popup["tabs"][number] =>
+  popupEntity[POPUP].tabs[popupEntity[POPUP].horizontalIndex];
+
+export const getVerticalIndex = (world: World, popupEntity: Entity): number =>
+  popupEntity[POPUP].verticalIndezes[popupEntity[POPUP].horizontalIndex];
+
+export const setVerticalIndex = (
+  world: World,
+  popupEntity: Entity,
+  value: number
+) => {
+  popupEntity[POPUP].verticalIndezes[popupEntity[POPUP].horizontalIndex] =
+    value;
+  rerenderEntity(world, popupEntity);
+};
+
+export const getTabSelections = (world: World, popupEntity: Entity): number[] =>
+  popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] || [];
+
+export const pushTabSelection = (
+  world: World,
+  popupEntity: Entity,
+  value?: number
+) => {
+  const verticalIndex = getVerticalIndex(world, popupEntity);
+  popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex].push(
+    value ?? verticalIndex
+  );
+  rerenderEntity(world, popupEntity);
+};
+
+export const popTabSelection = (world: World, popupEntity: Entity) => {
+  const value =
+    popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex].pop();
+  rerenderEntity(world, popupEntity);
+  return value;
+};
+
+export const getDeal = (
+  world: World,
+  entity: Entity,
+  popupEntity: Entity
+): Deal | undefined => {
+  const tab = getTab(world, popupEntity);
+  const verticalIndex = getVerticalIndex(world, popupEntity);
+  const selections = getTabSelections(world, popupEntity);
+
+  if (tab === "buy") {
+    return popupEntity[POPUP].deals[getVerticalIndex(world, popupEntity)];
+  } else if (tab === "sell") {
+    const soldItem = world.getEntityByIdAndComponents(
+      entity[INVENTORY].items[verticalIndex],
+      [ITEM]
+    );
+
+    if (soldItem) {
+      return {
+        stock: 1,
+        prices: [{ ...soldItem[ITEM], amount: 1 }],
+        item: getItemPrice(soldItem[ITEM])[0],
+      };
+    }
+  } else if (tab === "forge" && selections.length === 2) {
+    const { baseItem, addItem, resultItem } = getForgeStatus(
+      world,
+      entity,
+      selections[0],
+      selections[1]
+    );
+
+    if (baseItem && addItem && resultItem) {
+      return {
+        stock: 1,
+        prices: [baseItem, addItem],
+        item: resultItem,
+      };
+    }
+  } else if (tab === "craft" && selections.length === 1) {
+    const recipe = popupEntity[POPUP].recipes[selections[0]];
+    return getCraftingDeal(recipe, verticalIndex);
+  }
+};
 
 export const hasDefeated = (world: World, heroEntity: Entity, target: Target) =>
   (heroEntity[PLAYER].defeatedUnits[target.unit] || 0) >= target.amount;
 
+export const canTrade = (
+  world: World,
+  heroEntity: Entity,
+  shopEntity: Entity
+) => {
+  const deal = getDeal(world, heroEntity, shopEntity);
+
+  if (!deal) return false;
+
+  const tab = getTab(world, shopEntity);
+  const selections = getTabSelections(world, shopEntity);
+
+  if (tab === "buy") return canShop(world, heroEntity, deal);
+  if (tab === "sell") return canSell(world, deal.prices[0]);
+  if (tab === "forge")
+    return selections.length === 2 && canShop(world, heroEntity, deal);
+  if (tab === "craft")
+    return selections.length === 1 && canShop(world, heroEntity, deal);
+
+  return false;
+};
+
 export const canShop = (world: World, heroEntity: Entity, deal: Deal) =>
-  deal.stock > 0 && canRedeem(world, heroEntity, deal);
+  deal && deal.stock > 0 && canRedeem(world, heroEntity, deal);
+
+export const canSell = (world: World, item: Omit<Item, "carrier" | "bound">) =>
+  getItemPrice(item)[0].amount > 0;
 
 export const matchesItem = (
   world: World,
-  first: Omit<Item, "carrier" | "bound">,
-  second: Omit<Item, "carrier" | "bound">
+  first: Omit<Item, "carrier" | "bound" | "amount">,
+  second: Omit<Item, "carrier" | "bound" | "amount">
 ) =>
   first.consume === second.consume &&
   first.equipment === second.equipment &&
   first.material === second.material &&
-  first.passive === second.passive &&
+  first.element === second.element &&
   first.primary === second.primary &&
   first.secondary === second.secondary &&
   first.stackable === second.stackable &&
   first.stat === second.stat;
 
 export const missingFunds = (world: World, heroEntity: Entity, deal: Deal) =>
-  deal.price.filter((activationItem) => {
-    if (activationItem.stat) {
+  deal.prices.filter((priceItem) => {
+    if (priceItem.stat) {
       // check if entity has sufficient of stat
-      return heroEntity[STATS][activationItem.stat] < activationItem.amount;
-    } else {
-      // or if item is contained in inventory or equipments
-      const items = [
-        ...heroEntity[INVENTORY].items,
-        ...Object.values(heroEntity[EQUIPPABLE]).filter(Boolean),
-      ];
-      return !items.some((itemId) => {
-        const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
-        return matchesItem(world, itemEntity[ITEM], activationItem);
-      });
+      return heroEntity[STATS][priceItem.stat] < priceItem.amount;
     }
+
+    // or if item is contained in inventory
+    return !(heroEntity[INVENTORY] as Inventory).items.some((itemId) => {
+      const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
+      const found = matchesItem(world, itemEntity[ITEM], priceItem);
+      return found && itemEntity[ITEM].amount >= priceItem.amount;
+    });
   });
 
 export const canRedeem = (world: World, heroEntity: Entity, deal: Deal) =>
   missingFunds(world, heroEntity, deal).length === 0;
+
+export const canForge = (
+  world: World,
+  heroEntity: Entity,
+  popupEntity: Entity
+) => {
+  const [firstIndex, secondIndex] = getTabSelections(world, popupEntity);
+  const verticalIndex = getVerticalIndex(world, popupEntity);
+
+  const { forgeable } = getForgeStatus(
+    world,
+    heroEntity,
+    firstIndex,
+    secondIndex,
+    verticalIndex
+  );
+  return forgeable;
+};
 
 export const isQuestCompleted = (world: World, hero: Entity, entity: Entity) =>
   entity[POPUP].deals.every((deal: Deal) => canShop(world, hero, deal)) &&
@@ -120,31 +240,84 @@ export const isQuestCompleted = (world: World, hero: Entity, entity: Entity) =>
 
 export const popupIdles = {
   craft,
+  forge,
   info,
   quest,
   buy: shop,
   sell: shop,
   inspect: info,
-  warp: undefined,
+  stats: info,
+  warp,
+  gear: info,
+  class: warp,
 };
 
 export const popupActions = {
   craft: "CRAFT",
+  forge: "FORGE",
   info: "READ",
   warp: "WARP",
   quest: "QUEST",
   buy: "SHOP",
   sell: "SHOP",
   inspect: "BAG",
+  stats: "STATS",
+  gear: "GEAR",
+  class: "WARP",
 };
+
+export const popupTitles = {
+  ...popupActions,
+  buy: "BUY",
+  sell: "SELL",
+  info: "TIP",
+  class: "CLASS",
+  warp: "LEVEL",
+};
+
+export const visibleStats: (keyof UnitStats)[] = [
+  "level",
+  "maxHp",
+  "maxMp",
+  "power",
+  "armor",
+  "wisdom",
+  "resist",
+  "haste",
+  "vision",
+  "damp",
+  "thaw",
+  "spike",
+];
+
+export const forgeSlots: Equipment[] = [
+  "sword",
+  "shield",
+  "primary",
+  "secondary",
+  "ring",
+  "amulet",
+  "torch",
+];
+
+export const gearSlots: Equipment[] = [...forgeSlots, "compass"];
 
 export const createPopup = (
   world: World,
   entity: Entity,
-  popup: Pick<Popup, "transaction"> & Partial<Popup>
+  popup: Pick<Popup, "tabs"> & Partial<Popup>
 ) => {
-  entity[TOOLTIP].idle = popupIdles[popup.transaction];
-  entity[TOOLTIP].changed = true;
+  createSequence<"discovery", DiscoverySequence>(
+    world,
+    entity,
+    "discovery",
+    "discoveryIdle",
+    {
+      idle: popupIdles[popup.tabs[0]],
+      hidden: false,
+      timestamp: 0,
+    }
+  );
 
   const viewpointEntity = entities.createViewpoint(world, {
     [POSITION]: add(entity[POSITION], { x: 0, y: (frameHeight + 1) / -2 }),
@@ -153,7 +326,9 @@ export const createPopup = (
   });
   const component = {
     active: false,
-    verticalIndex: 0,
+    verticalIndezes: Array.from({ length: popup.tabs.length }, () => 0),
+    horizontalIndex: 0,
+    selections: Array.from({ length: popup.tabs.length }, () => []),
     viewpoint: world.getEntityId(viewpointEntity),
     ...popup,
   };
@@ -164,6 +339,7 @@ export const createPopup = (
     addPopup(world, entity, {
       lines: [],
       deals: [],
+      recipes: [],
       targets: [],
       ...component,
     });
@@ -180,6 +356,7 @@ export const openPopup = (
   popupEntity: Entity
 ) => {
   const popupId = world.getEntityId(popupEntity);
+  const transaction = getTab(world, popupEntity);
   heroEntity[PLAYER].popup = popupId;
   popupEntity[POPUP].active = true;
   popupEntity[TOOLTIP].override = "hidden";
@@ -191,53 +368,25 @@ export const openPopup = (
   viewpointEntity[VIEWABLE].active = true;
   rerenderEntity(world, popupEntity);
 
-  if (shops.includes(popupEntity[POPUP].transaction)) {
-    createSequence<"popup", PopupSequence>(
-      world,
-      popupEntity,
-      "popup",
-      "displayShop",
-      {
-        verticalIndex: popupEntity[POPUP].verticalIndex,
-        contentIndex: 0,
-        transaction: popupEntity[POPUP].transaction,
-        title: popupEntity[POPUP].transaction,
-      }
-    );
-  } else if (popupEntity[POPUP].transaction === "quest") {
-    createSequence<"popup", InfoSequence>(
-      world,
-      popupEntity,
-      "popup",
-      "displayQuest",
-      {
-        contentIndex: 0,
-        title: popupEntity[POPUP].transaction,
-      }
-    );
-  } else if (popupEntity[POPUP].transaction === "inspect") {
-    createSequence<"popup", InfoSequence>(
-      world,
-      popupEntity,
-      "popup",
-      "displayInspect",
-      {
-        contentIndex: 0,
-        title: "Bag",
-      }
-    );
-  } else {
-    createSequence<"popup", InfoSequence>(
-      world,
-      popupEntity,
-      "popup",
-      "displayInfo",
-      {
-        contentIndex: 0,
-        title: popupEntity[POPUP].transaction,
-      }
-    );
+  // mark sign as read
+  const discovery = getSequence(world, popupEntity, "discovery");
+  if (transaction === "info" && discovery) {
+    discovery.args.idle = none;
   }
+
+  createSequence<"popup", PopupSequence>(
+    world,
+    popupEntity,
+    "popup",
+    "displayPopup",
+    {
+      contentIndex: 0,
+      contentHeight: 0,
+      verticalIndex: 0,
+      horizontalIndex: 0,
+      transaction: getTab(world, popupEntity),
+    }
+  );
 };
 
 export const closePopup = (
@@ -247,6 +396,10 @@ export const closePopup = (
 ) => {
   heroEntity[PLAYER].popup = undefined;
   shopEntity[POPUP].active = false;
+  shopEntity[POPUP].selections = Array.from(
+    { length: shopEntity[POPUP].tabs.length },
+    () => []
+  );
   shopEntity[TOOLTIP].override = undefined;
   shopEntity[TOOLTIP].changed = true;
   const viewpointEntity = world.assertByIdAndComponents(
@@ -261,7 +414,12 @@ export default function setupPopup(world: World) {
   let heroGeneration = -1;
 
   const onUpdate = (delta: number) => {
-    const heroEntity = world.getEntity([MOVABLE, PLAYER, RENDERABLE]);
+    const heroEntity = world.getEntity([
+      MOVABLE,
+      PLAYER,
+      RENDERABLE,
+      INVENTORY,
+    ]);
 
     if (!heroEntity) return;
 
@@ -280,33 +438,101 @@ export default function setupPopup(world: World) {
       [POPUP]
     );
 
-    // skip if player is not shopping or already interacted
-    if (heroEntity[MOVABLE].lastInteraction === generation || !popupEntity)
-      return;
+    // skip if player is not in popup
+    if (!popupEntity) return;
 
-    // capture movements while shop is open
-    const targetOrientation: Orientation | null =
+    // capture movements while popup is open
+    const targetOrientation: Orientation | undefined =
       heroEntity[MOVABLE].pendingOrientation ||
       heroEntity[MOVABLE].orientations[0];
+
+    const transaction = getTab(world, popupEntity);
+
+    // handle vertical movements
+    const currentIndex = getVerticalIndex(world, popupEntity);
+    const selections = getTabSelections(world, popupEntity);
+    const inventoryItems = heroEntity[INVENTORY].items.length || 0;
+    const lines =
+      transaction === "inspect"
+        ? popupEntity[INVENTORY]?.items.filter(
+            (item) =>
+              !world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment
+          ).length || 0
+        : transaction === "stats"
+        ? visibleStats.length
+        : transaction === "gear"
+        ? gearSlots.length
+        : transaction === "class"
+        ? classes.length
+        : transaction === "info" || transaction === "warp"
+        ? Math.max(
+            0,
+            popupEntity[POPUP].lines[popupEntity[POPUP].horizontalIndex]
+              .length -
+              (frameHeight - 2) +
+              1
+          )
+        : transaction === "sell"
+        ? inventoryItems
+        : transaction === "forge"
+        ? selections.length === 2
+          ? 1
+          : inventoryItems
+        : transaction === "buy"
+        ? popupEntity[POPUP].deals.length
+        : transaction === "craft"
+        ? selections.length === 1
+          ? popupEntity[POPUP].recipes[selections[0]].options.length
+          : popupEntity[POPUP].recipes.length
+        : 0;
+    const lastIndex = lines - 1;
+    popupEntity[POPUP].verticalIndezes[popupEntity[POPUP].horizontalIndex] =
+      Math.max(
+        0,
+        Math.min(
+          lastIndex,
+          currentIndex +
+            (targetOrientation === "up"
+              ? -1
+              : targetOrientation === "down"
+              ? 1
+              : 0)
+        )
+      );
+
+    // handle horizontal movements
+    const previousIndex = popupEntity[POPUP].horizontalIndex;
+    popupEntity[POPUP].horizontalIndex = Math.max(
+      0,
+      Math.min(
+        popupEntity[POPUP].tabs.length - 1,
+        previousIndex +
+          (targetOrientation === "left"
+            ? -1
+            : targetOrientation === "right"
+            ? 1
+            : 0)
+      )
+    );
+
+    const popupSequence = getSequence(world, popupEntity, "popup");
+    if (popupEntity[POPUP].horizontalIndex !== previousIndex && popupSequence) {
+      popupSequence.elapsed = popupTime;
+      popupSequence.args.contentIndex = 0;
+      rerenderEntity(world, popupEntity);
+    }
+
+    // skip if player has already interacted or not going to
+    if (
+      heroEntity[MOVABLE].lastInteraction === generation ||
+      !targetOrientation
+    )
+      return;
 
     // mark as interacted
     heroEntity[MOVABLE].pendingOrientation = undefined;
     heroEntity[MOVABLE].lastInteraction = generation;
 
-    // ignore when moving to sides
-    if (targetOrientation !== "up" && targetOrientation !== "down") return;
-
-    // move selected index
-    const currentIndex = popupEntity[POPUP].verticalIndex;
-    const lines =
-      popupEntity[POPUP].transaction === "inspect"
-        ? popupEntity[INVENTORY]?.items.length || 0
-        : popupEntity[POPUP].deals.length;
-    const lastIndex = lines - 1;
-    popupEntity[POPUP].verticalIndex = Math.min(
-      lastIndex,
-      Math.max(0, currentIndex + (targetOrientation === "up" ? -1 : 1))
-    );
     rerenderEntity(world, popupEntity);
   };
 

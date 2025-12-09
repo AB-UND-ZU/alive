@@ -24,7 +24,7 @@ export default function Animated({
   bumpGeneration?: number;
 }) {
   const { paused } = useWorld();
-  const bumpRef = useRef(0);
+  const bumpRef = useRef(bumpGeneration);
   const [values, api] = useSpring(() => ({
     x: position[0],
     y: position[1],

@@ -17,6 +17,11 @@ export const sum = (numbers: number[]) =>
 export const normalize = (number: number, modulo: number) =>
   ((number % modulo) + modulo) % modulo;
 
+export const directedDistance = (start: number, end: number, size: number) => {
+  const delta = normalize(end, size) - normalize(start, size);
+  return delta >= 0 ? delta : delta + size;
+};
+
 export const signedDistance = (start: number, end: number, size: number) => {
   const distance = (((end - start) % size) + size) % size;
   const overlap =
@@ -50,10 +55,10 @@ export const within = (
   target: Point,
   size: number
 ) => {
-  const width = signedDistance(topLeft.x, bottomRight.x, size);
-  const height = signedDistance(topLeft.y, bottomRight.y, size);
-  const horizontal = signedDistance(topLeft.x, target.x, size);
-  const vertical = signedDistance(target.y, bottomRight.y, size);
+  const width = directedDistance(topLeft.x, bottomRight.x, size);
+  const height = directedDistance(topLeft.y, bottomRight.y, size);
+  const horizontal = directedDistance(topLeft.x, target.x, size);
+  const vertical = directedDistance(target.y, bottomRight.y, size);
 
   return (
     0 <= horizontal &&
@@ -108,12 +113,12 @@ export const range = (start: number, endInclusive: number) =>
   );
 
 export const repeat = <T>(obj: T, count: number) =>
-  Array.from({ length: count }).map(() => obj);
+  Array.from({ length: count }, () => obj);
 
-export const padCenter = (text: string, length: number) =>
+export const padCenter = (text: string, length: number, char = " ") =>
   text
-    .padStart(Math.floor((text.length + length) / 2), " ")
-    .padEnd(length, " ");
+    .padStart(Math.floor((text.length + length) / 2), char)
+    .padEnd(length, char);
 
 export const lerp = (start: number, end: number, ratio: number) =>
   start + (end - start) * ratio;
@@ -125,3 +130,6 @@ export const sigmoid = (
 ) => 1 / (1 + Math.exp(-steepness * (value - midpoint)));
 
 export const lcg = (seed: number) => Math.abs((seed * 9301 + 49297) % 233280);
+
+export const clamp = (input: number, low: number, high: number) =>
+  Math.min(Math.max(input, low), high);

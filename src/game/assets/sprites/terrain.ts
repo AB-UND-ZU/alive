@@ -1,4 +1,4 @@
-import * as colors from "../colors";
+import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const none: Sprite = {
@@ -126,25 +126,25 @@ export const path: Sprite = {
   ],
 };
 
-export const oak: Sprite = {
-  name: "tree_oak",
+export const birch: Sprite = {
+  name: "tree_birch",
   layers: [
     { char: "Y", color: colors.green },
     { char: "▄", color: colors.black },
-    { char: "┐", color: colors.maroon },
+    { char: "┐", color: colors.silver },
     { char: "w", color: colors.green },
     { char: "─", color: colors.black },
     { char: "±", color: colors.green },
-    { char: "∙", color: colors.maroon },
+    { char: "∙", color: colors.silver },
   ],
 };
 
 export const stem: Sprite = {
   name: "tree_stem",
   layers: [
-    { char: "│", color: colors.maroon },
+    { char: "│", color: colors.silver },
     { char: "┬", color: colors.black },
-    { char: "l", color: colors.maroon },
+    { char: "l", color: colors.silver },
   ],
 };
 

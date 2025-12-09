@@ -2,21 +2,22 @@ import {
   decayHeight,
   dialogHeight,
   effectHeight,
+  floatHeight,
   focusHeight,
   fogHeight,
   idleHeight,
+  immersibleHeight,
   lootHeight,
   particleHeight,
-  selectionHeight,
   tooltipHeight,
   transientHeight,
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { DROPPABLE } from "../../engine/components/droppable";
-import { EQUIPPABLE } from "../../engine/components/equippable";
+import { Equipment, EQUIPPABLE } from "../../engine/components/equippable";
 import { Focusable, FOCUSABLE } from "../../engine/components/focusable";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
-import { ITEM } from "../../engine/components/item";
+import { ITEM, ItemStats } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { LOOTABLE } from "../../engine/components/lootable";
@@ -40,15 +41,19 @@ import {
   collectItem,
   isEmpty,
 } from "../../engine/systems/collect";
-import { isDead } from "../../engine/systems/damage";
+import {
+  calculateHealing,
+  getEntityStats,
+  isDead,
+} from "../../engine/systems/damage";
 import {
   disposeEntity,
   moveEntity,
   registerEntity,
 } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
-import { openDoor } from "../../engine/systems/trigger";
-import * as colors from "./colors";
+import { canWarp, openDoor } from "../../engine/systems/trigger";
+import { brighten, colors, darken, recolor } from "../../game/assets/colors";
 import {
   add,
   choice,
@@ -60,10 +65,11 @@ import {
   normalize,
   random,
   repeat,
+  reversed,
   shuffle,
   signedDistance,
 } from "../math/std";
-import { iterations } from "../math/tracing";
+import { iterations, reversedIterations } from "../math/tracing";
 import {
   bubble,
   createDialog,
@@ -71,15 +77,9 @@ import {
   decay,
   fire,
   ghost,
-  hit,
   none,
-  waveCorner,
-  wave,
-  edge,
-  beam,
   getMaxCounter,
-  flask2,
-  flask1,
+  potion,
   getStatSprite,
   questPointer,
   enemyPointer,
@@ -98,26 +98,11 @@ import {
   smokeThick,
   levelProgress,
   addBackground,
-  popupBackground,
-  fireEdge,
-  waterEdge,
-  earthEdge,
   fireBeam,
   waterBeam,
   earthBeam,
-  fireWave,
-  waterWave,
-  earthWave,
-  fireWaveCorner,
-  waterWaveCorner,
-  earthWaveCorner,
   freeze,
-  defaultWaveCorner,
-  defaultWave,
-  defaultEdge,
-  defaultBeam,
-  buySelection,
-  sellSelection,
+  airBeam,
   craft,
   shop,
   woodSlashSide,
@@ -131,9 +116,68 @@ import {
   rain,
   info,
   createCountable,
-  underline,
   crackle,
   keyHole,
+  portalBackdrop,
+  portalEntered,
+  fountain,
+  fountainDrop,
+  fountainHeal,
+  fountainHealing,
+  meleeHit,
+  magicHit,
+  getStatColor,
+  woodEdge,
+  ironEdge,
+  goldEdge,
+  diamondEdge,
+  rubyEdge,
+  woodBeam,
+  ironBeam,
+  goldBeam,
+  diamondBeam,
+  rubyBeam,
+  woodWave,
+  woodAirWave,
+  woodFireWave,
+  woodWaterWave,
+  woodEarthWave,
+  woodWaveCorner,
+  woodAirWaveCorner,
+  woodFireWaveCorner,
+  woodWaterWaveCorner,
+  woodEarthWaveCorner,
+  missing,
+  swordSlot,
+  shieldSlot,
+  ringSlot,
+  amuletSlot,
+  compassSlot,
+  torchSlot,
+  goldSlashSide,
+  diamondSlashSide,
+  rubySlashSide,
+  goldSlashCorner,
+  diamondSlashCorner,
+  rubySlashCorner,
+  primarySlot,
+  secondarySlot,
+  dotted,
+  times,
+  shaded,
+  delay,
+  addForeground,
+  popupActive,
+  bottle,
+  elixir,
+  popupBlocked,
+  star,
+  discovery,
+  parseSprite,
+  colorToCode,
+  blocked,
+  chief,
+  diamondGem,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -143,10 +187,11 @@ import {
   ConsumeSequence,
   DecaySequence,
   DialogSequence,
+  DiscoverySequence,
   DisposeSequence,
   FocusSequence,
+  FountainSequence,
   FreezeSequence,
-  InfoSequence,
   MarkerSequence,
   MeleeSequence,
   Message,
@@ -164,6 +209,7 @@ import {
   SpellSequence,
   UnlockSequence,
   VisionSequence,
+  VortexSequence,
   XpSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
@@ -178,29 +224,36 @@ import {
 } from "../../engine/systems/ballistics";
 import { PROJECTILE } from "../../engine/components/projectile";
 import { STATS } from "../../engine/components/stats";
-import { invertOrientation, relativeOrientations } from "../math/path";
-import { dropEntity, MAX_DROP_RADIUS } from "../../engine/systems/drop";
+import {
+  invertOrientation,
+  relativeOrientations,
+  rotateOrientation,
+} from "../math/path";
 import { EXERTABLE } from "../../engine/components/exertable";
 import {
   consumptionConfigs,
-  stackableConsumptions,
+  getItemConsumption,
 } from "../../engine/systems/consume";
 import {
-  contentDelay,
   decayTime,
-  displayPopup,
+  renderPopup,
   frameHeight,
   frameWidth,
   getItemDescription,
   getItemSprite,
   getLootDelay,
-  popupTime,
   scrolledVerticalIndex,
+  getEntityDescription,
+  entitySprites,
 } from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
-import { CASTABLE } from "../../engine/components/castable";
+import {
+  CASTABLE,
+  DamageType,
+  getEmptyCastable,
+} from "../../engine/components/castable";
 import { BURNABLE } from "../../engine/components/burnable";
 import { AFFECTABLE } from "../../engine/components/affectable";
 import { getExertables, getParticleAmount } from "../../engine/systems/magic";
@@ -209,14 +262,48 @@ import { Popup, POPUP } from "../../engine/components/popup";
 import { getActivationRow } from "../../components/Controls";
 import {
   canRedeem,
+  canSell,
   canShop,
+  gearSlots,
+  getTab,
+  getTabSelections,
+  getVerticalIndex,
   hasDefeated,
   isInPopup,
+  matchesItem,
+  missingFunds,
   popupIdles,
+  visibleStats,
 } from "../../engine/systems/popup";
 import { getIdentifierAndComponents } from "../../engine/utils";
 import { generateUnitData } from "../balancing/units";
 import { play } from "../sound";
+import { extinguishEntity } from "../../engine/systems/burn";
+import {
+  alienPixels,
+  bodyPixels,
+  centerSprites,
+  knightPixels,
+  magePixels,
+  materialElementColors,
+  overlay,
+  pixelFrame,
+  recolorPixels,
+  recolorSprite,
+  roguePixels,
+  shieldElementPixels,
+  shieldPixels,
+  swordElementPixels,
+  swordPixels,
+} from "./pixels";
+import { getItemPrice } from "../balancing/trading";
+import { getForgeOptions, getForgeStatus } from "../balancing/forging";
+import { getEquipmentDiff } from "../balancing/equipment";
+import { getCraftingDeal } from "../balancing/crafting";
+import { isInside, onSameLayer } from "../../engine/systems/enter";
+import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
+import { classes, ClassKey } from "../balancing/classes";
+import { getSelectedLevel, levelConfig } from "../levels";
 
 export * from "./npcs";
 export * from "./quests";
@@ -309,19 +396,24 @@ const slashTicks = 8;
 const slashSideSprites = {
   wood: woodSlashSide,
   iron: ironSlashSide,
+  gold: goldSlashSide,
+  diamond: diamondSlashSide,
+  ruby: rubySlashSide,
 };
 const slashCornerSprites = {
   wood: woodSlashCorner,
   iron: ironSlashCorner,
+  gold: goldSlashCorner,
+  diamond: diamondSlashCorner,
+  ruby: rubySlashCorner,
 };
+const slashInverse = true;
 
 export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
   // TODO: resolve circular dependencies and move outside of handler
-  const reversedIterations = [...iterations].reverse();
-  const slashIterations = [
-    ...reversedIterations.slice(2),
-    ...reversedIterations.slice(0, 2),
-  ];
+  const slashIterations = slashInverse
+    ? [...iterations.slice(1), ...iterations.slice(0, 3)]
+    : [...reversedIterations.slice(2), ...reversedIterations.slice(0, 2)];
   const castableEntity = world.assertByIdAndComponents(state.args.castable, [
     POSITION,
   ]);
@@ -380,13 +472,25 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
       const slashIteration = slashIterations[iterationIndex];
 
       const delta = isCorner
-        ? add(slashIteration.direction, {
-            x: -slashIteration.normal.x,
-            y: -slashIteration.normal.y,
-          })
+        ? add(
+            slashIteration.direction,
+            slashInverse
+              ? slashIteration.normal
+              : {
+                  x: -slashIteration.normal.x,
+                  y: -slashIteration.normal.y,
+                }
+          )
         : slashIteration.direction;
       const slashParticle = entities.createFibre(world, {
-        [ORIENTABLE]: { facing: slashIteration.orientation },
+        [ORIENTABLE]: {
+          facing:
+            particleIndex === 0 && slashInverse
+              ? undefined
+              : !slashInverse || !isCorner
+              ? slashIteration.orientation
+              : rotateOrientation(slashIteration.orientation, 1),
+        },
         [PARTICLE]: {
           offsetX: delta.x,
           offsetY: delta.y,
@@ -397,7 +501,15 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
               ? { x: 0, y: 0 }
               : isCorner
               ? slashIteration.direction
-              : add(slashIteration.direction, slashIteration.normal),
+              : add(
+                  slashIteration.direction,
+                  slashInverse
+                    ? {
+                        x: -slashIteration.normal.x,
+                        y: -slashIteration.normal.y,
+                      }
+                    : slashIteration.normal
+                ),
         },
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: isCorner ? slashCorner : slashSide,
@@ -443,15 +555,19 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
 
 const beamSpeed = 100;
 const edgeSprites = {
-  wild: edge,
-  default: defaultEdge,
-  fire: fireEdge,
-  water: waterEdge,
-  earth: earthEdge,
+  wood: woodEdge,
+  iron: ironEdge,
+  gold: goldEdge,
+  diamond: diamondEdge,
+  ruby: rubyEdge,
 };
 const beamSprites = {
-  wild: beam,
-  default: defaultBeam,
+  wood: woodBeam,
+  iron: ironBeam,
+  gold: goldBeam,
+  diamond: diamondBeam,
+  ruby: rubyBeam,
+  air: airBeam,
   fire: fireBeam,
   water: waterBeam,
   earth: earthBeam,
@@ -461,8 +577,11 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const progress = Math.ceil(state.elapsed / beamSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
-  const spellAmount = entity[CASTABLE]?.damage || entity[CASTABLE].heal;
+  const spellAmount = entity[CASTABLE]?.magic || entity[CASTABLE].heal;
   const particleAmount = getParticleAmount(world, spellAmount);
+  const material = state.args.material;
+  const element = state.args.element || material;
+
   let finished = progress > state.args.duration;
   let updated = false;
 
@@ -479,7 +598,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         amount: particleAmount,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: edgeSprites[state.args.element],
+      [SPRITE]: edgeSprites[material],
     });
     state.particles.start = world.getEntityId(startParticle);
 
@@ -494,7 +613,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         amount: particleAmount,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: edgeSprites[state.args.element],
+      [SPRITE]: edgeSprites[material],
     });
     state.particles.end = world.getEntityId(endParticle);
   }
@@ -552,7 +671,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         animatedOrigin: copy(delta),
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: beamSprites[state.args.element],
+      [SPRITE]: beamSprites[element],
     });
 
     state.particles[`beam-${progress}`] = world.getEntityId(beamParticle);
@@ -620,6 +739,11 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
 
 const markerDuration = 150;
 const healMultiplier = 2;
+const markerType: Record<DamageType, Sprite> = {
+  melee: meleeHit,
+  magic: magicHit,
+  true: heal,
+};
 
 export const amountMarker: Sequence<MarkerSequence> = (
   world,
@@ -642,7 +766,7 @@ export const amountMarker: Sequence<MarkerSequence> = (
         duration: markerTime,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: state.args.amount > 0 ? heal : hit,
+      [SPRITE]: markerType[state.args.type],
     });
     state.particles.marker = world.getEntityId(markerParticle);
   }
@@ -655,7 +779,7 @@ export const amountMarker: Sequence<MarkerSequence> = (
   return { finished, updated };
 };
 
-const messageDuration = 400;
+const messageDuration = 600;
 
 export const transientMessage: Sequence<MessageSequence> = (
   world,
@@ -688,7 +812,7 @@ export const transientMessage: Sequence<MessageSequence> = (
         const charParticle = entities.createParticle(world, {
           [PARTICLE]: {
             offsetX: index - Math.floor(message.line.length / 2),
-            offsetY: message.orientation === "down" ? 3 : -3,
+            offsetY: message.orientation === "down" ? 4 : -4,
             offsetZ: transientHeight,
             animatedOrigin: {
               x: index - Math.floor(message.line.length / 2),
@@ -820,11 +944,19 @@ export const bubbleSplash: Sequence<BubbleSequence> = (
   return { finished, updated };
 };
 
-const rainSpeed = 75;
+const rainSpeed = 50;
+// const rainDepth = 15;
 
-export const rainDrop: Sequence<RainSequence> = (world, entity, state) => {
+export const rainDropPixelated: Sequence<RainSequence> = (
+  world,
+  entity,
+  state
+) => {
+  // const parallaxFactor = clamp(state.args.parallax, -rainDepth, rainDepth) / rainDepth;
+  const perceivedSpeed = rainSpeed; //* (1 - parallaxFactor / 3)
+
   let updated = false;
-  let finished = state.elapsed > state.args.height * rainSpeed;
+  let finished = state.elapsed > state.args.height * perceivedSpeed;
 
   // create rain particle
   if (!state.particles.first) {
@@ -863,7 +995,9 @@ export const rainDrop: Sequence<RainSequence> = (world, entity, state) => {
     PARTICLE,
   ]);
   const doubleHeight =
-    Math.floor((state.elapsed * 2) / rainSpeed) - state.args.height * 2 - 1;
+    Math.floor((state.elapsed * 2) / perceivedSpeed) -
+    state.args.height * 2 -
+    1;
   const offsetY = Math.floor(doubleHeight / 2);
 
   if (firstParticle[PARTICLE].offsetY !== offsetY) {
@@ -881,8 +1015,34 @@ export const rainDrop: Sequence<RainSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-const progressParts = 11;
-const progressTime = 75;
+export const rainDrop: Sequence<RainSequence> = (world, entity, state) => {
+  let updated = false;
+  const adjustedRainSpeed = state.args.fast ? rainSpeed : rainSpeed * 2;
+  let finished = state.elapsed > state.args.height * adjustedRainSpeed;
+
+  // create rain particle
+  if (!state.particles.drop) {
+    const dropParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: fogHeight,
+        amount: 0,
+        animatedOrigin: { x: 0, y: -state.args.height },
+        duration: state.args.height * adjustedRainSpeed,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: rain,
+    });
+    state.particles.drop = world.getEntityId(dropParticle);
+    updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const progressParts = 17;
+const progressTime = 60;
 
 export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
   let updated = false;
@@ -899,7 +1059,7 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
           [PARTICLE]: {
             offsetX: delta.x * i,
             offsetY: delta.y * i,
-            offsetZ: effectHeight,
+            offsetZ: particleHeight,
             duration: i * progressTime,
             animatedOrigin: { x: 0, y: 0 },
           },
@@ -913,7 +1073,7 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
           [PARTICLE]: {
             offsetX: delta.x * -i,
             offsetY: delta.y * -i,
-            offsetZ: effectHeight,
+            offsetZ: particleHeight,
             duration: i * progressTime,
             animatedOrigin: { x: 0, y: 0 },
           },
@@ -957,37 +1117,21 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
       }
     }
 
-    // drop item stats
-    const stats = [
-      ...repeat("maxHp" as const, state.args.maxHp),
-      ...repeat("maxMp" as const, state.args.maxMp),
-    ];
-    dropEntity(
-      world,
-      {
-        [INVENTORY]: {
-          items: stats.map((stat) =>
-            world.getEntityId(
-              entities.createItem(world, {
-                [ITEM]: {
-                  amount: 1,
-                  stat,
-                  carrier: -1,
-                  bound: false,
-                },
-                [RENDERABLE]: { generation: 0 },
-                [SPRITE]: getStatSprite(stat, "drop"),
-              })
-            )
-          ),
-        },
-      },
-      entity[POSITION],
-      false,
-      MAX_DROP_RADIUS,
-      undefined,
-      progressTime * 2
-    );
+    // add item stats
+    if (state.args.maxHp) {
+      entity[STATS].maxHp = Math.min(
+        entity[STATS].maxHpCap,
+        entity[STATS].maxHp + state.args.maxHp
+      );
+      entity[PLAYER].receivedStats.maxHp += state.args.maxHp;
+    }
+    if (state.args.maxMp) {
+      entity[STATS].maxMp = Math.min(
+        entity[STATS].maxMpCap,
+        entity[STATS].maxMp + state.args.maxMp
+      );
+      entity[PLAYER].receivedStats.maxMp += state.args.maxMp;
+    }
 
     state.args.dropped = true;
     updated = true;
@@ -1073,95 +1217,215 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
   }
 
   if (finished && heroEntity) {
-    heroEntity[PLAYER].xpReceived += 1;
+    heroEntity[PLAYER].receivedStats.xp += 1;
   }
 
   return { finished, updated };
 };
 
-export const displayShop: Sequence<PopupSequence> = (world, entity, state) => {
-  let updated = false;
+export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
+  const transaction = getTab(world, entity);
+  let handler: Sequence<PopupSequence> = displayInfo;
 
+  if (transaction === "buy") {
+    handler = displayBuy;
+  } else if (transaction === "sell") {
+    handler = displaySell;
+  } else if (transaction === "forge") {
+    handler = displayForge;
+  } else if (transaction === "craft") {
+    handler = displayCraft;
+  } else if (transaction === "quest") {
+    handler = displayQuest;
+  } else if (transaction === "inspect") {
+    handler = displayInspect;
+  } else if (transaction === "stats") {
+    handler = displayStats;
+  } else if (transaction === "gear") {
+    handler = displayGear;
+  } else if (transaction === "class") {
+    handler = displayClass;
+  } else if (transaction === "warp") {
+    handler = displayWarp;
+  }
+
+  return handler(world, entity, state);
+};
+
+export const displayBuy: Sequence<PopupSequence> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
-  const icon = state.args.transaction === "craft" ? craft : shop;
-  const content: Sprite[][] = [
-    ...(entity[POPUP] as Popup).deals.map((deal) => {
-      // swap direction when selling items
-      const leftItem =
-        state.args.transaction === "sell" ? deal.price[0] : deal.item;
-      const rightItems =
-        state.args.transaction === "sell" ? [deal.item] : deal.price;
+  const icon = shop;
+  const verticalIndex = getVerticalIndex(world, entity);
+  const inventoryItems = heroEntity
+    ? (heroEntity[INVENTORY] as Inventory).items.map((itemId) =>
+        world.assertByIdAndComponents(itemId, [ITEM])
+      )
+    : [];
+  const deals = (entity[POPUP] as Popup).deals;
 
-      const itemSprite = getItemSprite(leftItem, "display");
-      const itemText =
-        heroEntity && canShop(world, heroEntity, deal)
-          ? underline(createText(itemSprite.name))
-          : createText(itemSprite.name, colors.grey);
-      const prices = rightItems.map((price) => getActivationRow(price)).flat();
-      const line = addBackground(
-        [
-          itemSprite,
-          ...itemText,
-          ...repeat(none, frameWidth - 4 - itemText.length - prices.length),
-          ...prices,
-        ],
-        colors.black
-      );
+  const content: Sprite[][] =
+    heroEntity && deals.length > 0
+      ? deals.map((deal, rowIndex) => {
+          const buyItem = deal.item;
+          const priceItem = deal.prices[0];
+          const selected = verticalIndex === rowIndex;
+          const inStock = deal.stock > 0;
+          const shoppable = canShop(world, heroEntity, deal);
 
-      // strike through if sold out
-      const displayedLine = deal.stock > 0 ? line : strikethrough(line);
+          const itemSprite = getItemSprite(buyItem, "display");
+          const textColor = selected && inStock ? colors.white : colors.grey;
+          const itemText = createText(itemSprite.name, textColor);
+          const inventoryAmount =
+            inventoryItems.find((item) =>
+              matchesItem(world, priceItem, item[ITEM])
+            )?.[ITEM].amount || 0;
+          const amountText =
+            selected && inStock
+              ? createText(`${inventoryAmount}/${priceItem.amount}`)
+              : createText(`${priceItem.amount}`, colors.grey);
+          const priceSprite = getItemSprite(priceItem, "display");
+          const line = [
+            ...itemText,
+            ...repeat(
+              none,
+              frameWidth - 5 - itemText.length - amountText.length
+            ),
+            ...amountText,
+          ];
+          const displayedLine = [
+            itemSprite,
+            ...(selected
+              ? shoppable
+                ? shaded(line, colors.green, "▄")
+                : inStock
+                ? shaded(line, colors.grey)
+                : dotted(line, colors.red)
+              : line),
+            priceSprite,
+          ];
 
-      // add placeholder on left for buy and right for sell
-      if (state.args.transaction === "sell") {
-        displayedLine.push(popupBackground);
-      } else {
-        displayedLine.unshift(popupBackground);
-      }
+          return [
+            none,
+            ...(inStock ? displayedLine : strikethrough(displayedLine)),
+          ];
+        })
+      : [createText("Nothing to buy", colors.grey)];
+  const selectedDeal = deals[verticalIndex];
+  const shoppable =
+    selectedDeal && heroEntity && canShop(world, heroEntity, selectedDeal);
+  const selectedOutOfStock = selectedDeal?.stock === 0;
+  const details = selectedOutOfStock
+    ? [createText("Out of stock", colors.grey)]
+    : selectedDeal
+    ? getItemDescription(selectedDeal.item)
+    : undefined;
 
-      return displayedLine;
-    }),
-  ];
-
-  const popupCenter = { x: 0, y: (frameHeight + 1) / -2 };
-  const verticalIndex = entity[POPUP].verticalIndex;
-  const selectionX =
-    popupCenter.x +
-    ((frameWidth - 3) / 2) * (state.args.transaction === "sell" ? 1 : -1);
-  const selectionY = popupCenter.y - (frameHeight - 3) / 2;
-
-  if (
-    !state.particles.selection &&
-    state.elapsed > popupTime + verticalIndex * (frameWidth - 2) * contentDelay
-  ) {
-    // add selection arrow
-    const selectionParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: selectionX,
-        offsetY: selectionY + verticalIndex,
-        offsetZ: selectionHeight,
-        animatedOrigin: { x: selectionX, y: -2 },
-        duration: 100,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]:
-        state.args.transaction === "sell" ? sellSelection : buySelection,
-    });
-    state.particles.selection = world.getEntityId(selectionParticle);
-  }
-
-  if (verticalIndex !== state.args.verticalIndex && state.particles.selection) {
-    const selectionParticle = world.assertByIdAndComponents(
-      state.particles.selection,
-      [PARTICLE]
-    );
-    selectionParticle[PARTICLE].offsetY = selectionY + verticalIndex;
-    state.args.verticalIndex = verticalIndex;
-    updated = true;
-  }
-
-  const popupResult = displayPopup(world, entity, state, icon, content);
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    icon,
+    content,
+    deals.length === 0
+      ? undefined
+      : selectedDeal?.stock === 0
+      ? "blocked"
+      : shoppable
+      ? "active"
+      : "selected",
+    details
+  );
   return {
-    updated: popupResult.updated || updated,
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displaySell: Sequence<PopupSequence> = (world, entity, state) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const inventoryItems = heroEntity
+    ? (heroEntity[INVENTORY] as Inventory).items.map((itemId) =>
+        world.assertByIdAndComponents(itemId, [ITEM])
+      )
+    : [];
+  const hasItems = inventoryItems.length > 0;
+  const verticalIndex = getVerticalIndex(world, entity);
+
+  const content: Sprite[][] = hasItems
+    ? inventoryItems.map((itemEntity, rowIndex) => {
+        const selected = verticalIndex === rowIndex;
+        const itemSprite = getItemSprite(itemEntity[ITEM], "display");
+        const sellPrice = getItemPrice(itemEntity[ITEM])[0];
+        const sellable = canSell(world, itemEntity[ITEM]);
+        const textColor = selected ? colors.white : colors.grey;
+
+        const amountText = [
+          ...createText(`${itemEntity[ITEM].amount}`, textColor),
+          recolorSprite(times, {
+            [colors.white]: textColor,
+            [colors.black]: selected && sellable ? colors.green : colors.black,
+          }),
+        ];
+        const rewardText = sellable
+          ? [
+              ...createText("\u0119", colors.lime),
+              ...createText(`${sellPrice.amount}`, textColor),
+              getItemSprite(sellPrice),
+            ]
+          : [];
+        const itemText = createText(itemSprite.name, textColor);
+        const line = [
+          ...itemText,
+          ...rewardText,
+          ...repeat(
+            none,
+            frameWidth -
+              4 -
+              amountText.length -
+              itemText.length -
+              rewardText.length
+          ),
+          ...amountText,
+        ];
+
+        return [
+          none,
+          itemSprite,
+          ...(selected
+            ? sellable
+              ? shaded(line, colors.green, "▄")
+              : dotted(line, colors.red)
+            : line),
+        ];
+      })
+    : [createText("Nothing to sell", colors.grey)];
+
+  const selectedItem = inventoryItems[verticalIndex];
+  const sellable = selectedItem && canSell(world, selectedItem[ITEM]);
+  const details = sellable
+    ? getItemDescription(selectedItem[ITEM])
+    : selectedItem
+    ? [
+        createText("Not able to sell", colors.grey),
+        createText(
+          getItemSprite(selectedItem[ITEM]).name.toLowerCase(),
+          colors.grey
+        ),
+      ]
+    : undefined;
+
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    info,
+    content,
+    !hasItems ? undefined : selectedItem && sellable ? "active" : "blocked",
+    details
+  );
+
+  return {
+    updated: popupResult.updated,
     finished: popupResult.finished,
   };
 };
@@ -1171,165 +1435,956 @@ export const displayInspect: Sequence<PopupSequence> = (
   entity,
   state
 ) => {
-  let updated = false;
-  const hasItems = entity[INVENTORY].items.length > 0;
+  const bagItems = (entity[INVENTORY] as Inventory).items.filter(
+    (item) => !world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment
+  );
+  const hasItems = bagItems.length > 0;
+  const verticalIndex = getVerticalIndex(world, entity);
 
   const content: Sprite[][] = hasItems
-    ? [
-        ...(entity[INVENTORY] as Inventory).items.map((item) => {
-          const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
-          const itemSprite = getItemSprite(itemEntity[ITEM], "display");
-          const consumption =
-            itemEntity[ITEM].stackable &&
-            stackableConsumptions[itemEntity[ITEM].stackable];
-          const amountText = itemEntity[ITEM].equipment
-            ? createText("(worn)")
-            : createText(`${itemEntity[ITEM].amount}x`, colors.silver);
-          const useText = consumption
-            ? [
-                ...createText(" ("),
-                ...createCountable(
-                  { [consumption.countable]: consumption.amount },
-                  consumption.countable
-                ),
-                ...createText(")"),
-              ]
-            : [];
-          const itemText = consumption
-            ? underline(createText(itemSprite.name))
-            : createText(itemSprite.name, colors.grey);
-          return addBackground(
-            [
-              none,
-              itemSprite,
-              ...itemText,
-              ...useText,
-              ...repeat(
-                none,
-                frameWidth -
-                  4 -
-                  amountText.length -
-                  itemText.length -
-                  useText.length
-              ),
-              ...amountText,
-            ],
-            colors.black
-          );
-        }),
-      ]
-    : [createText("No items yet", colors.grey, colors.black)];
+    ? bagItems.map((item, rowIndex) => {
+        const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
 
-  const popupCenter = { x: 0, y: (frameHeight + 1) / -2 };
-  const verticalIndex = Math.min(
-    entity[POPUP].verticalIndex,
-    entity[INVENTORY].items.length - 1
-  );
+        if (itemEntity[ITEM].equipment) {
+          return [];
+        }
+
+        const selected = verticalIndex === rowIndex;
+        const itemConsumption = getItemConsumption(world, itemEntity);
+        const consumptionConfig =
+          itemEntity &&
+          consumptionConfigs[itemEntity[ITEM].consume!]?.[
+            itemEntity[ITEM].material!
+          ]?.[itemEntity[ITEM].element!];
+
+        const itemSprite = getItemSprite(itemEntity[ITEM], "display");
+        const consumptionColor =
+          (itemConsumption && getStatColor(itemConsumption.countable)) ||
+          (consumptionConfig && getStatColor(consumptionConfig.countable));
+        const textColor = selected ? colors.white : colors.grey;
+
+        const amountText = [
+          ...createText(`${itemEntity[ITEM].amount}`, textColor),
+          recolorSprite(times, {
+            [colors.white]: textColor,
+            [colors.black]: selected ? darken(consumptionColor) : colors.black,
+          }),
+        ];
+        const consumptionText = itemConsumption
+          ? createCountable(
+              { [itemConsumption.countable]: itemConsumption.amount },
+              itemConsumption.countable
+            )
+          : consumptionConfig
+          ? createCountable(
+              { [consumptionConfig.countable]: consumptionConfig.amount },
+              consumptionConfig.countable
+            )
+          : [];
+        const useText = itemConsumption
+          ? [...createText("\u0119", colors.lime), ...consumptionText]
+          : consumptionConfig
+          ? [delay, ...consumptionText]
+          : [];
+        const itemText = createText(itemSprite.name, textColor);
+        const line = [
+          ...itemText,
+          ...useText,
+          ...repeat(
+            none,
+            frameWidth -
+              4 -
+              amountText.length -
+              itemText.length -
+              useText.length
+          ),
+          ...amountText,
+        ];
+
+        return [
+          none,
+          itemSprite,
+          ...(selected
+            ? itemConsumption
+              ? shaded(line, darken(consumptionColor), "▄")
+              : consumptionConfig
+              ? shaded(line, darken(consumptionColor))
+              : shaded(line, colors.grey)
+            : line),
+        ];
+      })
+    : [createText("No items yet", colors.grey)];
+
   const selectedItem = world.getEntityByIdAndComponents(
-    entity[INVENTORY].items[verticalIndex],
+    bagItems[verticalIndex],
     [ITEM]
   );
   const details = selectedItem && getItemDescription(selectedItem[ITEM]);
 
-  const selectionX = popupCenter.x - (frameWidth - 3) / 2;
-  const selectionY = popupCenter.y - (frameHeight - 3) / 2;
-  const scrollIndex = scrolledVerticalIndex(
-    world,
-    entity,
-    state,
-    content,
-    details
-  );
-
-  if (
-    !state.particles.selection &&
-    state.elapsed > popupTime + scrollIndex * (frameWidth - 2) * contentDelay &&
-    hasItems
-  ) {
-    // add selection arrow
-    const selectionParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: selectionX,
-        offsetY: selectionY + scrollIndex,
-        offsetZ: selectionHeight,
-        animatedOrigin: { x: selectionX, y: -2 },
-        duration: 100,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: buySelection,
-    });
-    state.particles.selection = world.getEntityId(selectionParticle);
-  }
-
-  // move selection
-  if (
-    verticalIndex !== state.args.verticalIndex &&
-    state.particles.selection &&
-    hasItems
-  ) {
-    const selectionParticle = world.assertByIdAndComponents(
-      state.particles.selection,
-      [PARTICLE]
-    );
-    selectionParticle[PARTICLE].offsetY = selectionY + scrollIndex;
-    state.args.verticalIndex = verticalIndex;
-    entity[POPUP].verticalIndex = verticalIndex;
-    updated = true;
-  }
-
-  // delete selection
-  if (state.particles.selection && !hasItems) {
-    const selectionParticle = world.assertByIdAndComponents(
-      state.particles.selection,
-      [PARTICLE]
-    );
-    disposeEntity(world, selectionParticle);
-    delete state.particles.selection;
-    updated = true;
-  }
-
-  const popupResult = displayPopup(
+  const popupResult = renderPopup(
     world,
     entity,
     state,
     info,
     content,
+    selectedItem && getItemConsumption(world, selectedItem)
+      ? "active"
+      : hasItems
+      ? "selected"
+      : undefined,
     details
   );
   return {
-    updated: popupResult.updated || updated,
+    updated: popupResult.updated,
     finished: popupResult.finished,
   };
 };
 
-export const displayInfo: Sequence<InfoSequence> = (world, entity, state) => {
-  let updated = false;
+export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
+  const heroStats = getEntityStats(world, entity);
+  const verticalIndex = getVerticalIndex(world, entity);
+  const content: Sprite[][] = visibleStats.map((stat, rowIndex) => {
+    const selected = verticalIndex === rowIndex;
+    const statSprite = getStatSprite(stat);
+    const statColor = getStatColor(stat);
+    const statText = createText(
+      statSprite.name,
+      selected ? brighten(statColor) : statColor
+    );
+    const amountText = createText(
+      heroStats[stat].toString(),
+      selected ? colors.white : colors.grey
+    );
 
-  const content: Sprite[][] = [
-    ...(entity[POPUP] as Popup).lines.map((line) =>
-      addBackground(
-        [...line, ...repeat(none, frameWidth - 4 - line.length)],
-        colors.black
-      )
-    ),
-  ];
-
-  const popupResult = displayPopup(
+    const line = [
+      ...statText,
+      ...repeat(none, frameWidth - 4 - statText.length - amountText.length),
+      ...amountText,
+    ];
+    return [
+      none,
+      statSprite,
+      ...(selected
+        ? shaded(line, recolor(statColor, { [colors.silver]: colors.grey }))
+        : line),
+    ];
+  });
+  const details = getItemDescription({ stat: visibleStats[verticalIndex] });
+  const popupResult = renderPopup(
     world,
     entity,
     state,
-    popupIdles[(entity[POPUP] as Popup).transaction],
+    info,
+    content,
+    "selected",
+    details
+  );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+const gearTitles: Record<Equipment, string> = {
+  sword: "Sword",
+  shield: "Shield",
+  primary: "Spell",
+  secondary: "Item",
+  ring: "Ring",
+  amulet: "Amulet",
+  compass: "Compass",
+  torch: "Torch",
+};
+const gearShadows: Record<Equipment, Sprite> = {
+  sword: swordSlot,
+  shield: shieldSlot,
+  primary: primarySlot,
+  secondary: secondarySlot,
+  ring: ringSlot,
+  amulet: amuletSlot,
+  compass: compassSlot,
+  torch: torchSlot,
+};
+const gearOverscan = 1;
+const classPixels = {
+  rogue: roguePixels,
+  mage: magePixels,
+  knight: knightPixels,
+  "???": alienPixels,
+};
+
+export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
+  const verticalIndex = getVerticalIndex(world, entity);
+  const scrollIndex =
+    verticalIndex -
+    scrolledVerticalIndex(
+      world,
+      entity,
+      state,
+      Array.from({ length: gearSlots.length + gearOverscan }),
+      "selected",
+      [],
+      gearOverscan
+    );
+
+  const swordItem = world.getEntityByIdAndComponents(entity[EQUIPPABLE].sword, [
+    ITEM,
+  ])?.[ITEM];
+  const shieldItem = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].shield,
+    [ITEM]
+  )?.[ITEM];
+
+  const heroPixels = overlay(
+    shieldItem
+      ? shieldItem.material
+        ? recolorPixels(shieldPixels, {
+            [colors.white]: materialElementColors[shieldItem.material],
+          })
+        : shieldPixels
+      : [],
+    shieldItem?.element
+      ? recolorPixels(shieldElementPixels, {
+          [colors.white]: materialElementColors[shieldItem.element],
+        })
+      : [],
+    bodyPixels,
+    classPixels[(entity[SPAWNABLE] as Spawnable).classKey],
+    swordItem
+      ? swordItem.material
+        ? recolorPixels(swordPixels, {
+            [colors.white]: materialElementColors[swordItem.material],
+          })
+        : swordPixels
+      : [],
+    swordItem?.element
+      ? recolorPixels(swordElementPixels, {
+          [colors.white]: materialElementColors[swordItem.element],
+        })
+      : []
+  );
+
+  const descriptions: Sprite[][][] = [];
+  const content: Sprite[][] = gearSlots.map((gear, rowIndex) => {
+    const equippedId = entity[EQUIPPABLE][gear];
+    const item = world.getEntityByIdAndComponents(equippedId, [ITEM]);
+    const name = gearTitles[gear];
+    const selected = verticalIndex === rowIndex;
+    const title = selected ? name : "─".repeat(name.length);
+
+    if (!item) {
+      descriptions.push([
+        createText(`No ${title.toLowerCase()} yet`, colors.grey),
+      ]);
+
+      const line = [
+        ...createText(title, colors.grey),
+        ...repeat(none, 7 - title.length),
+      ];
+      return [
+        none,
+        selected ? gearShadows[gear] : none,
+        ...(selected ? dotted(line, colors.red) : line),
+        none,
+        ...(heroPixels[rowIndex - scrollIndex] || []),
+      ];
+    }
+
+    const gearSprite = getItemSprite(item[ITEM]);
+    const gearTitle = createText(
+      gearSprite.name,
+      selected ? colors.white : colors.grey
+    );
+    const line = [
+      ...gearTitle,
+      ...repeat(none, frameWidth - 4 - gearTitle.length - 8),
+    ];
+
+    descriptions.push(getItemDescription(item[ITEM]));
+
+    return [
+      none,
+      gearSprite,
+      ...(selected ? shaded(line, colors.grey) : line),
+      none,
+      ...(heroPixels[rowIndex - scrollIndex] || []),
+    ];
+  });
+  content.push([
+    ...repeat(none, frameWidth - 2 - 7),
+    ...(heroPixels[content.length - scrollIndex] || []),
+  ]);
+  const gearSelected = entity[EQUIPPABLE][gearSlots[verticalIndex]];
+  const details = descriptions[verticalIndex];
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    info,
+    content,
+    gearSelected ? "selected" : "blocked",
+    details,
+    gearOverscan
+  );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+const classOverscan = 6 - classes.length;
+const classUnlock: Record<ClassKey, Sprite[][]> = {
+  rogue: [],
+  knight: [
+    [
+      ...createText("Defeat a ", colors.grey),
+      mergeSprites(chief, hostileBar),
+      ...createText("Chief", colors.maroon),
+    ],
+    createText("to unlock", colors.grey),
+  ],
+  mage: [
+    [
+      ...createText("Get a ", colors.grey),
+      diamondGem,
+      ...createText("Diamond", colors.aqua),
+    ],
+    createText("to unlock", colors.grey),
+  ],
+  "???": [
+    [
+      ...createText("?¿¿?¿ ? ", colors.grey),
+      missing,
+      ...createText("¿??¿¿?", colors.grey),
+    ],
+    createText("¿? ¿¿?¿??", colors.grey),
+  ],
+};
+
+export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
+  const verticalIndex = getVerticalIndex(world, entity);
+  const scrollIndex =
+    verticalIndex -
+    scrolledVerticalIndex(
+      world,
+      entity,
+      state,
+      Array.from({ length: classes.length + classOverscan }),
+      "selected",
+      [],
+      classOverscan
+    );
+
+  const selectedClass = classes[verticalIndex];
+  const selectedAvailable = selectedClass === "rogue";
+  const lines = overlay(
+    bodyPixels,
+    classPixels[classes[verticalIndex]],
+    ...(selectedAvailable ? [] : [repeat(repeat(parseSprite("\x00░"), 7), 6)])
+  );
+  const heroPixels = selectedAvailable
+    ? lines
+    : lines.map((row) => row.map((cell) => recolorSprite(cell, colors.grey)));
+
+  const content: Sprite[][] = Array.from({
+    length: Math.max(classes.length, 6),
+  }).map((_, rowIndex) => {
+    const className = classes[rowIndex];
+
+    if (!className)
+      return [
+        ...repeat(none, 10),
+        ...(heroPixels[rowIndex - scrollIndex] || []),
+      ];
+
+    const selected = verticalIndex === rowIndex;
+    const available = className === "rogue";
+    const classSprite = entitySprites[className].sprite;
+    const classTitle = createText(
+      available || selected
+        ? classSprite.name
+        : "─".repeat(classSprite.name.length),
+      available && selected ? colors.white : colors.grey
+    );
+    const line = [
+      ...classTitle,
+      ...repeat(none, frameWidth - 4 - classTitle.length - 8),
+    ];
+
+    return [
+      none,
+      ...(available
+        ? createText("*", selected ? colors.lime : colors.green)
+        : selected
+        ? [blocked]
+        : [none]),
+      ...(selected
+        ? available
+          ? shaded(line, colors.grey)
+          : dotted(line, colors.red)
+        : line),
+      none,
+      ...(heroPixels[rowIndex - scrollIndex] || []),
+    ];
+  });
+  content.push([
+    ...repeat(none, frameWidth - 2 - 7),
+    ...(heroPixels[content.length - scrollIndex] || []),
+  ]);
+  const details = selectedAvailable
+    ? getEntityDescription(entitySprites[selectedClass])
+    : classUnlock[selectedClass];
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    popupIdles[getTab(world, entity)],
+    content,
+    selectedAvailable ? "selected" : "blocked",
+    details,
+    classOverscan
+  );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+const forgeWidth = 7;
+const forgeHeight = 3;
+
+export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [INVENTORY]);
+  const inventoryItems = heroEntity
+    ? (heroEntity[INVENTORY] as Inventory).items.map((item) =>
+        world.assertByIdAndComponents(item, [ITEM])
+      )
+    : [];
+  const hasItems = inventoryItems.length > 0;
+  const verticalIndex = getVerticalIndex(world, entity);
+  const scrollIndex =
+    verticalIndex -
+    scrolledVerticalIndex(
+      world,
+      entity,
+      state,
+      Array.from({ length: inventoryItems.length }),
+      "selected",
+      []
+    );
+  const [firstIndex, secondIndex] = getTabSelections(world, entity);
+
+  const firstItem = inventoryItems[firstIndex];
+  const secondItem = inventoryItems[secondIndex];
+  const selectedItem = inventoryItems[verticalIndex];
+
+  const {
+    forgeable: selectedForgeable,
+    duplicate: selectedDuplicate,
+    insufficient: selectedInsufficient,
+    baseItem,
+    addItem,
+    resultItem,
+  } = getForgeStatus(world, heroEntity, firstIndex, secondIndex, verticalIndex);
+  const addColor = selectedForgeable
+    ? colors.lime
+    : selectedInsufficient
+    ? colors.yellow
+    : colors.red;
+  const isAdding = firstItem && !resultItem;
+
+  const baseSprite = baseItem ? getItemSprite(baseItem) : missing;
+  const addSprite = addItem ? getItemSprite(addItem) : missing;
+  const resultSprite = resultItem ? getItemSprite(resultItem) : missing;
+  const selectedSprite = selectedItem
+    ? getItemSprite(selectedItem[ITEM])
+    : none;
+  const addingAmount = addItem?.amount.toString() || "";
+
+  const layers = [
+    [
+      ...repeat([], forgeHeight - 1),
+      ...pixelFrame(
+        forgeWidth,
+        forgeHeight,
+        resultItem ? colors.grey : isAdding ? addColor : colors.grey,
+        (isAdding || resultItem) && selectedForgeable ? "solid" : "dotted",
+        [
+          centerSprites(
+            isAdding || resultItem
+              ? [...createText(addingAmount), addSprite]
+              : [missing],
+            forgeWidth - 2
+          ),
+        ],
+        isAdding
+          ? [
+              ...addForeground(
+                createText("-", addColor),
+                colors.black,
+                selectedForgeable ? " " : "▒"
+              ),
+              ...createText("Add", addColor),
+            ]
+          : [],
+        true
+      ),
+    ],
+    pixelFrame(
+      forgeWidth,
+      forgeHeight,
+      resultItem ? colors.white : firstItem ? colors.grey : addColor,
+      baseItem && !addItem && !selectedForgeable ? "dotted" : "solid",
+      [
+        centerSprites(
+          [baseSprite, ...createText(" \u0119 "), resultSprite],
+          forgeWidth - 2
+        ),
+      ],
+      resultItem
+        ? createText("Yield")
+        : firstItem
+        ? []
+        : createText("Base", addColor)
+    ),
+  ];
+  const forgePreview = overlay(
+    ...(isAdding
+      ? selectedForgeable
+        ? reversed(layers)
+        : [
+            ...reversed(layers),
+            [
+              ...repeat([], forgeHeight - 1),
+              [
+                parseSprite(`\x08┘${colorToCode(addColor)}·\x00▌`),
+                ...repeat(none, forgeWidth - 2),
+                parseSprite(`\x08└${colorToCode(addColor)}·\x00▐`),
+              ],
+            ],
+          ]
+      : layers)
+  );
+
+  const resultDiff =
+    baseItem && resultItem && getEquipmentDiff(world, baseItem, resultItem);
+  const resultContent = resultItem && [
+    createText("Preview:  ", colors.grey),
+    [
+      popupActive,
+      resultSprite,
+      ...shaded(
+        createText(
+          `${resultSprite.name}${" ".repeat(7 - resultSprite.name.length)}`
+        ),
+        colors.green,
+        "▄"
+      ),
+      none,
+    ],
+    createText("Upgrades: ", colors.grey),
+    ...Object.entries(resultDiff || {})
+      .filter(([key, value]) => value !== 0)
+      .map(([key, value]) => {
+        const stat = key as keyof ItemStats;
+        const statSprite = getStatSprite(stat);
+        const statColor = getStatColor(stat);
+        const valueText = `${value > 0 ? "+" : ""}${value}`;
+        return [
+          ...createText(valueText, statColor),
+          statSprite,
+          ...createText(statSprite.name, statColor),
+          ...repeat(none, 9 - valueText.length - statSprite.name.length),
+        ];
+      }),
+  ];
+
+  const content: Sprite[][] = hasItems
+    ? Array.from({
+        length: Math.max(5, inventoryItems.length, resultContent?.length || 0),
+      }).map((_, rowIndex) => {
+        const forgeItem = inventoryItems[rowIndex];
+
+        if (!forgeItem || resultContent) {
+          return [
+            ...(resultContent?.[rowIndex] || repeat(none, 10)),
+            ...(forgePreview[rowIndex - scrollIndex] || []),
+          ];
+        }
+
+        const selected = verticalIndex === rowIndex;
+        const added = rowIndex === firstIndex || rowIndex === secondIndex;
+        const itemSprite = getItemSprite(forgeItem[ITEM], "display");
+        const textColor = selected && !added ? colors.white : colors.grey;
+        const itemText = createText(itemSprite.name, textColor);
+        const forgeOptions = getForgeOptions(
+          firstItem?.[ITEM] || forgeItem[ITEM]
+        );
+        const materialOption = forgeOptions.find((option) =>
+          matchesItem(world, forgeItem[ITEM], option.add)
+        );
+        const insufficientMaterials =
+          materialOption && forgeItem[ITEM].amount < materialOption.add.amount;
+        const forgeable =
+          !added &&
+          ((!firstItem && forgeOptions.length > 0) ||
+            (firstItem &&
+              !secondItem &&
+              materialOption &&
+              !insufficientMaterials));
+
+        if (added) {
+          const placeholder = [
+            itemSprite,
+            ...itemText,
+            ...repeat(none, 7 - itemText.length),
+          ];
+          return [
+            none,
+            ...strikethrough(
+              selected ? dotted(placeholder, colors.red) : placeholder
+            ),
+            none,
+            ...(forgePreview[rowIndex - scrollIndex] || []),
+          ];
+        }
+
+        const line = [...itemText, ...repeat(none, 7 - itemText.length)];
+
+        if (!forgeable) {
+          return [
+            none,
+            itemSprite,
+            ...(selected ? dotted(line, colors.red) : line),
+            none,
+            ...(forgePreview[rowIndex - scrollIndex] || []),
+          ];
+        }
+
+        return [
+          none,
+          itemSprite,
+          ...(selected ? shaded(line, colors.grey) : line),
+          none,
+          ...(forgePreview[rowIndex - scrollIndex] || []),
+        ];
+      })
+    : [createText("No items to forge", colors.grey)];
+
+  const details = !hasItems
+    ? undefined
+    : resultItem
+    ? getItemDescription(resultItem)
+    : selectedForgeable
+    ? getItemDescription(selectedItem[ITEM])
+    : [
+        selectedInsufficient && addItem
+          ? createText(
+              `Only have ${selectedInsufficient.amount} of ${addItem.amount}`,
+              colors.grey
+            )
+          : selectedDuplicate
+          ? createText("Already added", colors.grey)
+          : createText("Not able to forge", colors.grey),
+        createText(selectedSprite.name.toLowerCase(), colors.grey),
+      ];
+
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    info,
+    resultContent
+      ? content.slice(0, Math.max(5, resultContent.length))
+      : content,
+    !hasItems || resultItem
+      ? undefined
+      : selectedForgeable
+      ? "selected"
+      : "blocked",
+    details
+  );
+
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const icon = craft;
+  const verticalIndex = getVerticalIndex(world, entity);
+  const inventoryItems = heroEntity
+    ? (heroEntity[INVENTORY] as Inventory).items.map((itemId) =>
+        world.assertByIdAndComponents(itemId, [ITEM])
+      )
+    : [];
+  const recipes = (entity[POPUP] as Popup).recipes;
+  const selectedRecipe = recipes[verticalIndex];
+
+  const [recipeIndex] = getTabSelections(world, entity);
+  const viewedRecipe = recipes[recipeIndex];
+  const viewedSprite = viewedRecipe && getItemSprite(viewedRecipe.item);
+  const viewedDeal =
+    viewedRecipe && getCraftingDeal(viewedRecipe, verticalIndex);
+  const viewedShoppable =
+    viewedDeal && heroEntity && canShop(world, heroEntity, viewedDeal);
+
+  let content = [createText("Nothing to craft", colors.grey)];
+
+  if (heroEntity && viewedRecipe) {
+    const optionItem = viewedRecipe.item;
+    const optionDeal = getCraftingDeal(viewedRecipe, verticalIndex);
+    const optionShoppable = canShop(world, heroEntity, optionDeal);
+    const amountText = [
+      recolorSprite(times, {
+        [colors.black]: optionShoppable ? colors.green : colors.black,
+      }),
+      ...createText(`${optionItem.amount}`),
+    ];
+    const line = [
+      ...createText(viewedSprite.name),
+      ...amountText,
+      ...repeat(
+        none,
+        frameWidth - 4 - viewedSprite.name.length - amountText.length
+      ),
+    ];
+    content = [
+      ...repeat([], verticalIndex),
+      [
+        optionShoppable ? popupActive : popupBlocked,
+        viewedSprite,
+        ...(optionShoppable
+          ? shaded(line, colors.green, "▄")
+          : dotted(line, colors.red)),
+      ],
+      createText(
+        viewedRecipe.options.length > 1
+          ? `Recipe ${verticalIndex + 1} of ${viewedRecipe.options.length}:`
+          : `Recipe:`,
+        colors.grey
+      ),
+      ...optionDeal.prices.map((price) => {
+        const priceSprite = getItemSprite(price);
+        const hasIngredient =
+          missingFunds(world, heroEntity, {
+            prices: [price],
+            stock: 1,
+            item: { amount: 0 },
+          }).length === 0;
+
+        const ingredientColor = hasIngredient ? colors.lime : colors.red;
+        const inventoryAmount =
+          inventoryItems.find((item) =>
+            matchesItem(world, price, item[ITEM])
+          )?.[ITEM].amount || 0;
+        const ingredientAmount = [
+          ...createText(`${inventoryAmount}`),
+          ...createText("/", colors.grey),
+          ...createText(`${price.amount}`, ingredientColor),
+        ];
+
+        return [
+          none,
+          priceSprite,
+          ...createText(priceSprite.name),
+          ...repeat(
+            none,
+            frameWidth - 4 - priceSprite.name.length - ingredientAmount.length
+          ),
+          ...ingredientAmount,
+        ];
+      }),
+      ...repeat(
+        [],
+        3 -
+          optionDeal.prices.length +
+          viewedRecipe.options.length -
+          1 -
+          verticalIndex
+      ),
+    ];
+  } else if (heroEntity && selectedRecipe) {
+    content = recipes.map((recipe, rowIndex) => {
+      const selected = verticalIndex === rowIndex;
+      const craftItem = recipe.item;
+      const textColor = selected ? colors.white : colors.grey;
+      const itemSprite = getItemSprite(craftItem, "display");
+
+      const recipeShoppable = recipe.options.some((_, optionIndex) =>
+        canShop(world, heroEntity, getCraftingDeal(recipe, optionIndex))
+      );
+      const amountText = [
+        recolorSprite(times, textColor),
+        ...createText(`${craftItem.amount}`, textColor),
+      ];
+      const line = [
+        ...createText(itemSprite.name, textColor),
+        ...amountText,
+        ...repeat(
+          none,
+          frameWidth - 5 - amountText.length - itemSprite.name.length
+        ),
+        recipeShoppable ? recolorSprite(star, colors.lime) : none,
+      ];
+
+      return [
+        none,
+        itemSprite,
+        ...(selected ? shaded(line, colors.grey) : line),
+      ];
+    });
+  }
+
+  const details =
+    !(viewedRecipe && selectedRecipe) || viewedShoppable
+      ? getItemDescription(viewedRecipe?.item || selectedRecipe.item)
+      : [
+          createText("Unable to craft", colors.grey),
+          createText(viewedSprite.name.toLowerCase(), colors.grey),
+        ];
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    icon,
+    content,
+    viewedDeal ? undefined : "selected",
+    details
+  );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+const warpHeight = 5;
+const warpWidth = 11;
+const warpBlink = 2;
+
+export const displayWarp: Sequence<PopupSequence> = (world, entity, state) => {
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const blinkGeneration = Math.floor(generation / warpBlink) * warpBlink;
+  const showPlayer = generation % (warpBlink * 2) < warpBlink;
+
+  // value container to rerender content
+  if (!state.particles.blink) {
+    const blinkParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: blinkGeneration,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.blink = world.getEntityId(blinkParticle);
+  }
+
+  const blinkParticle = world.assertByIdAndComponents(state.particles.blink, [
+    PARTICLE,
+  ]);
+  const lastBlinkGeneration = blinkParticle[PARTICLE].amount;
+
+  // rerender content on blinking
+  if (lastBlinkGeneration !== blinkGeneration) {
+    rerenderEntity(world, entity);
+    blinkParticle[PARTICLE].amount = blinkGeneration;
+  }
+
+  const map: Sprite[][] = [
+    ...(
+      (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex] || []
+    ).map((line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]),
+  ];
+  const selectedLevel = getSelectedLevel(world, entity);
+  const level = levelConfig[selectedLevel];
+  const currentLevel = selectedLevel === world.metadata.gameEntity[LEVEL].name;
+  const lockedLevel = !currentLevel && !canWarp(world, {}, entity);
+
+  const warpColor = lockedLevel
+    ? colors.red
+    : currentLevel
+    ? colors.white
+    : colors.lime;
+
+  const content = overlay(
+    map,
+    ...[
+      [
+        ...repeat([], level.mapOffsetY),
+        ...pixelFrame(
+          warpWidth,
+          warpHeight,
+          warpColor,
+          lockedLevel || currentLevel ? "dashed" : "thick",
+          [],
+          createText(level?.name || "", colors.black, warpColor)
+        ),
+      ],
+      [
+        ...repeat([], level.mapOffsetY + (warpHeight - 1) / 2),
+        [
+          lockedLevel
+            ? blocked
+            : showPlayer
+            ? mergeSprites(shadow, createText("\u010b", warpColor)[0])
+            : none,
+        ],
+      ],
+    ].map((layer) =>
+      layer.map((line) =>
+        centerSprites(
+          [
+            ...repeat(none, level.mapOffsetX * 2),
+            ...line,
+            ...repeat(none, level.mapOffsetX * -2),
+          ],
+          frameWidth - 2
+        )
+      )
+    )
+  );
+
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    popupIdles[getTab(world, entity)],
     content
   );
 
   return {
-    updated: popupResult.updated || updated,
+    updated: popupResult.updated,
     finished: popupResult.finished,
   };
 };
 
-export const displayQuest: Sequence<InfoSequence> = (world, entity, state) => {
-  let updated = false;
+export const displayInfo: Sequence<PopupSequence> = (world, entity, state) => {
+  const content: Sprite[][] = [
+    ...(
+      (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex] || []
+    ).map((line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]),
+  ];
+
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    popupIdles[getTab(world, entity)],
+    content
+  );
+
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
   const popup = entity[POPUP] as Popup;
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
 
@@ -1346,51 +2401,36 @@ export const displayQuest: Sequence<InfoSequence> = (world, entity, state) => {
       ]),
     ];
   });
-  const gathers = popup.deals
-    .map((deal) => {
-      const gathered = heroEntity && canRedeem(world, heroEntity, deal);
+  const gathers = popup.deals.map((deal) => {
+    const gathered = heroEntity && canRedeem(world, heroEntity, deal);
 
-      return deal.price.map((price, index) => {
-        const name = getItemSprite(price).name;
-        return addBackground(
-          [
-            ...(index === 0
-              ? createText("GATHER:", colors.grey)
-              : repeat(none, 7)),
-            ...(gathered ? strikethrough : id)([
-              ...getActivationRow(price),
-              ...createText(name, gathered ? colors.grey : colors.white),
-              ...repeat(none, frameWidth - 2 - 7 - 3 - name.length),
-            ]),
-          ],
-          colors.black
-        );
-      });
-    })
-    .flat();
+    const name = getItemSprite(deal.prices[0]).name;
+    return [
+      ...createText("GATHER:", colors.grey),
+      ...(gathered ? strikethrough : id)([
+        ...getActivationRow(deal.prices[0]),
+        ...createText(name, gathered ? colors.grey : colors.white),
+        ...repeat(none, frameWidth - 2 - 7 - 3 - name.length),
+      ]),
+    ];
+  });
   const rewards = popup.deals.map((deal, index) => {
     const received = deal.stock === 0;
-    return addBackground(
-      [
-        ...(index === 0 ? createText("REWARD:", colors.lime) : repeat(none, 7)),
-        ...(received ? strikethrough : id)([
-          ...getActivationRow(deal.item),
-          ...createText(
-            getItemSprite(deal.item).name,
-            received ? colors.grey : colors.white
-          ),
-        ]),
-      ],
-      colors.black
-    );
+    return [
+      ...(index === 0 ? createText("REWARD:", colors.lime) : repeat(none, 7)),
+      ...(received ? strikethrough : id)([
+        ...getActivationRow(deal.item),
+        ...createText(
+          getItemSprite(deal.item).name,
+          received ? colors.grey : colors.white
+        ),
+      ]),
+    ];
   });
 
   const content: Sprite[][] = [
-    ...(entity[POPUP] as Popup).lines.map((line) =>
-      addBackground(
-        [...line, ...repeat(none, frameWidth - 4 - line.length)],
-        colors.black
-      )
+    ...(entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex].map(
+      (line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]
     ),
     ...repeat(
       [],
@@ -1406,15 +2446,15 @@ export const displayQuest: Sequence<InfoSequence> = (world, entity, state) => {
     ...rewards,
   ];
 
-  const popupResult = displayPopup(
+  const popupResult = renderPopup(
     world,
     entity,
     state,
-    popupIdles[(entity[POPUP] as Popup).transaction],
+    popupIdles[getTab(world, entity)],
     content
   );
   return {
-    updated: popupResult.updated || updated,
+    updated: popupResult.updated,
     finished: popupResult.finished,
   };
 };
@@ -1430,18 +2470,22 @@ export const displayQuest: Sequence<InfoSequence> = (world, entity, state) => {
 const waveSpeed = 350;
 const waveDissolve = 1;
 const waveSprites = {
-  wild: wave,
-  default: defaultWave,
-  fire: fireWave,
-  water: waterWave,
-  earth: earthWave,
+  wood: {
+    default: woodWave,
+    air: woodAirWave,
+    fire: woodFireWave,
+    water: woodWaterWave,
+    earth: woodEarthWave,
+  },
 };
 const waveCornerSprites = {
-  wild: waveCorner,
-  default: defaultWaveCorner,
-  fire: fireWaveCorner,
-  water: waterWaveCorner,
-  earth: earthWaveCorner,
+  wood: {
+    default: woodWaveCorner,
+    air: woodAirWaveCorner,
+    fire: woodFireWaveCorner,
+    water: woodWaterWaveCorner,
+    earth: woodEarthWaveCorner,
+  },
 };
 
 export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
@@ -1451,6 +2495,8 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 
   const outerRadius = Math.ceil(state.elapsed / waveSpeed);
   const innerRadius = Math.round(state.elapsed / waveSpeed);
+  const material = "wood"; //state.args.material;
+  const element = state.args.element || "default";
 
   // create wave sides, initial corners and AoE
   if (state.args.progress === 0) {
@@ -1466,7 +2512,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: waveSprites[state.args.element],
+        [SPRITE]: waveSprites[material][element],
       });
       state.particles[`side-${orientation}`] = world.getEntityId(waveParticle);
     }
@@ -1648,10 +2694,14 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
         [SPRITE]
       );
 
-      if (waveParticle[SPRITE] === waveCornerSprites[state.args.element])
-        continue;
+      // only show elements on inner corners
+      const cornerSprite =
+        waveCornerSprites[material][
+          particleName.startsWith("inner") ? element : "default"
+        ];
+      if (waveParticle[SPRITE] === cornerSprite) continue;
 
-      waveParticle[SPRITE] = waveCornerSprites[state.args.element];
+      waveParticle[SPRITE] = cornerSprite;
       rerenderEntity(world, waveParticle);
     }
 
@@ -1806,13 +2856,8 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     const spellEntity = entities.createSpell(world, {
       [BELONGABLE]: { faction: "nature" },
       [CASTABLE]: {
-        affected: {},
-        damage: 0,
+        ...getEmptyCastable(world, entity),
         burn: 2,
-        freeze: 0,
-        heal: 0,
-        caster: world.getEntityId(entity),
-        medium: "true",
       },
       [ORIENTABLE]: {},
       [POSITION]: copy(entity[POSITION]),
@@ -2036,15 +3081,16 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
     state.args.generation = generation;
 
     // add smoke
+    const step = 2 - ((generation + 2) % 2);
     if (
       isExtinguishing ||
       (isBurning &&
         random(
           0,
           Object.keys(state.particles).length + (isEternalFire ? 0 : 4)
-        ) <= 1)
+        ) <= 1 &&
+        !(state.args.simmer && step === 1))
     ) {
-      const step = 2 - ((generation + 2) % 2);
       const smokeParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX: 0,
@@ -2063,15 +3109,19 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
     }
 
     // move or fade smoke
-    const wind = random(0, 2) === 0 ? random(0, 2) - 1 : 0;
+    const wind =
+      random(0, 2) === 0 && !state.args.simmer ? random(0, 2) - 1 : 0;
     for (const particleName in state.particles) {
       const smokeParticle = world.assertByIdAndComponents(
         state.particles[particleName],
         [PARTICLE, RENDERABLE]
       );
 
-      const step = (smokeParticle[PARTICLE].duration || 350) / 350;
-      if ((generation + smokeParticle[RENDERABLE].generation) % step === 0) {
+      const particleStep = (smokeParticle[PARTICLE].duration || 350) / 350;
+      if (
+        (generation + smokeParticle[RENDERABLE].generation) % particleStep ===
+        0
+      ) {
         const { offsetX, offsetY } = smokeParticle[PARTICLE];
         smokeParticle[PARTICLE].animatedOrigin = { x: offsetX, y: offsetY };
         smokeParticle[PARTICLE].offsetY -= 1;
@@ -2079,7 +3129,11 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
 
         const distance = smokeParticle[PARTICLE].offsetY * -1;
         const amount = smokeParticle[PARTICLE].amount || 1;
-        if (random(0, 2) < distance - amount) {
+        const smokeFade =
+          !state.args.simmer && random(0, 2) < distance - amount;
+        const simmerFade = state.args.simmer && distance > random(1, 2);
+
+        if (smokeFade || simmerFade) {
           smokeParticle[PARTICLE].amount = Math.max(
             0,
             amount === 2 ? 0 : amount - random(1, 2)
@@ -2328,6 +3382,14 @@ export const itemCollect: Sequence<CollectSequence> = (
 
 const consumeSpeed = 500;
 
+const materialFlasks = {
+  wood: bottle,
+  iron: potion,
+  gold: elixir,
+  diamond: missing,
+  ruby: missing,
+};
+
 export const flaskConsume: Sequence<ConsumeSequence> = (
   world,
   entity,
@@ -2346,15 +3408,19 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
 
   const consumptionConfig =
     itemEntity &&
-    consumptionConfigs[itemEntity[ITEM].consume!]?.[itemEntity[ITEM].material!];
+    consumptionConfigs[itemEntity[ITEM].consume!]?.[
+      itemEntity[ITEM].material!
+    ]?.[itemEntity[ITEM].element!];
 
-  if (!consumptionConfig) {
+  const maxCountable =
+    consumptionConfig && getMaxCounter(consumptionConfig.countable);
+
+  if (!consumptionConfig || !maxCountable) {
     return { finished: true, updated: false };
   }
 
   // process item consumption and show amount marker
   if (countableId && state.elapsed >= consumeSpeed * 2) {
-    const maxCountable = getMaxCounter(consumptionConfig.countable);
     entity[STATS][consumptionConfig.countable] = Math.min(
       entity[STATS][maxCountable],
       entity[STATS][consumptionConfig.countable] + consumptionConfig.amount
@@ -2371,10 +3437,9 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     }
 
     // queue healing effect
-    if (entity[PLAYER] && consumptionConfig.countable === "hp") {
-      entity[PLAYER].healingReceived += consumptionConfig.amount;
-    } else if (entity[PLAYER] && consumptionConfig.countable === "mp") {
-      entity[PLAYER].manaReceived += consumptionConfig.amount;
+    if (entity[PLAYER]) {
+      entity[PLAYER].receivedStats[consumptionConfig.countable] +=
+        consumptionConfig.amount;
     }
 
     updated = true;
@@ -2409,8 +3474,7 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     );
 
     if (consumableParticle) {
-      consumableParticle[SPRITE] =
-        itemEntity[ITEM].consume === "potion2" ? flask2 : flask1;
+      consumableParticle[SPRITE] = materialFlasks[itemEntity[ITEM].material!];
       rerenderEntity(world, consumableParticle);
     }
 
@@ -2651,6 +3715,101 @@ export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
+const discoveryTime = 200;
+const discoveryReveal = 50;
+const discoveryEnter = 4;
+const discoveryLeave = 6;
+
+export const discoveryIdle: Sequence<DiscoverySequence> = (
+  world,
+  entity,
+  state
+) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const controlled = state.args.force !== undefined;
+  const shouldHide = state.args.force === false;
+
+  const finished = state.args.idle === none;
+  let updated = false;
+
+  if (!state.particles.discovery) {
+    const discoveryParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: idleHeight,
+        amount: 1,
+        animatedOrigin: { x: 0, y: 0 },
+        duration: discoveryTime,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: discovery,
+    });
+    state.particles.discovery = world.getEntityId(discoveryParticle);
+  }
+
+  // delay revealing from hidden to allow rotating text
+  if (state.args.hidden && !shouldHide) {
+    state.args.timestamp = state.elapsed + discoveryReveal;
+  }
+  state.args.hidden = shouldHide;
+
+  // pause while timestamp is active
+  if (state.args.timestamp && state.elapsed < state.args.timestamp) {
+    return { finished, updated };
+  }
+
+  const discoveryParticle = world.assertByIdAndComponents(
+    state.particles.discovery,
+    [PARTICLE, SPRITE]
+  );
+
+  const isUp = discoveryParticle[PARTICLE].offsetY === -1;
+  const distance =
+    heroEntity && !isDead(world, heroEntity)
+      ? getDistance(entity[POSITION], heroEntity[POSITION], size)
+      : Infinity;
+  const isAdjacent = controlled
+    ? !shouldHide
+    : heroEntity &&
+      !isDead(world, heroEntity) &&
+      distance < (isUp ? discoveryLeave : discoveryEnter) &&
+      !(isInside(world, heroEntity) && !onSameLayer(world, heroEntity, entity));
+
+  // move up when close
+  const active = (controlled ? !shouldHide : isAdjacent) && !isUp;
+  if (active) {
+    state.args.timestamp = state.elapsed + discoveryTime;
+    discoveryParticle[PARTICLE].offsetY = -1;
+    rerenderEntity(world, discoveryParticle);
+    updated = true;
+  }
+
+  // move down when distant
+  const inactive = (controlled ? shouldHide : !isAdjacent) && isUp;
+  if (inactive) {
+    discoveryParticle[PARTICLE].offsetY = 0;
+    rerenderEntity(world, discoveryParticle);
+    updated = true;
+  }
+
+  const visibleSprite =
+    isAdjacent && state.elapsed > state.args.timestamp
+      ? state.args.idle
+      : discovery;
+
+  // hide or reveal
+  if (visibleSprite !== discoveryParticle[SPRITE]) {
+    discoveryParticle[SPRITE] = visibleSprite;
+    rerenderEntity(world, discoveryParticle);
+    updated = true;
+  }
+
+  return { finished, updated };
+};
+
 const charDelay = 33;
 const tooltipDelay = 500;
 const bubbleSprites = {
@@ -2685,7 +3844,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   const expired =
     !state.args.overridden &&
     !state.args.isIdle &&
-    state.elapsed / charDelay > totalLength * 1.5 + 25;
+    state.elapsed / charDelay > totalLength * 1.4 + 20;
   const isCloseBy =
     isAdjacent &&
     !!heroEntity &&
@@ -2881,7 +4040,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
 
     entity[TOOLTIP].changed = undefined;
 
-    const nextDialog = entity[TOOLTIP].nextDialog + 1;
+    const nextDialog = Math.max(0, entity[TOOLTIP].nextDialog) + 1;
     if (expired && entity[TOOLTIP].dialogs.length > nextDialog) {
       entity[TOOLTIP].nextDialog = nextDialog;
       finished = true;
@@ -2926,6 +4085,9 @@ const pointers: Record<NonNullable<Focusable["highlight"]>, Sprite> = {
   enemy: enemyPointer,
   tombstone: tombstonePointer,
 };
+
+const pointerX = 5;
+const pointerY = 3;
 
 export const pointerArrow: Sequence<PointerSequence> = (
   world,
@@ -3010,13 +4172,248 @@ export const pointerArrow: Sequence<PointerSequence> = (
       ) {
         pointerParticle[PARTICLE].animatedOrigin = undefined;
       }
-      pointerParticle[PARTICLE].offsetX = delta.x * 7;
-      pointerParticle[PARTICLE].offsetY = delta.y * 4;
+      pointerParticle[PARTICLE].offsetX = delta.x * pointerX;
+      pointerParticle[PARTICLE].offsetY = delta.y * pointerY;
       pointerParticle[ORIENTABLE].facing = invertedOrientation;
       state.args.lastOrientation = invertedOrientation;
       state.args.target = targetId;
       updated = true;
     }
+  }
+
+  return { finished, updated };
+};
+
+const vortexTime = 150;
+const vortexResolution = 6;
+const vortexChars = "/-:·\u0106\u0108÷>±\u011f";
+const vortexColors = ["red", "lime", "yellow"] as const;
+
+export const vortexDots: Sequence<VortexSequence> = (world, entity, state) => {
+  const generation = Math.floor(state.elapsed / vortexTime);
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const particleCount = Object.keys(state.particles).length;
+
+  let updated = false;
+  let finished = false;
+
+  // hide when hero dead
+  const distance = heroEntity
+    ? getDistance(heroEntity[POSITION], entity[POSITION], size)
+    : Infinity;
+  const isVisible = !!heroEntity && !isDead(world, heroEntity);
+
+  // create particles
+  if (particleCount === 0 && isVisible) {
+    for (let i = 0; i < vortexResolution; i += 1) {
+      const vortexParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: 0,
+          offsetY: 0,
+          offsetZ: effectHeight,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: none,
+      });
+      state.particles[`vortex-${i}`] = world.getEntityId(vortexParticle);
+    }
+
+    const backdropParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: immersibleHeight,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: portalBackdrop,
+    });
+    state.particles.backdrop = world.getEntityId(backdropParticle);
+
+    updated = true;
+  }
+
+  // update faster when moving closer
+  if (
+    isVisible &&
+    generation > state.args.generation &&
+    generation % Math.max(1, Math.round(distance)) === 0
+  ) {
+    if (distance === 0) {
+      const backdropParticle = world.assertByIdAndComponents(
+        state.particles.backdrop,
+        [PARTICLE]
+      );
+      backdropParticle[SPRITE] = portalEntered;
+    }
+
+    const shuffledColors = shuffle([...vortexColors]);
+    for (const particleName in state.particles) {
+      if (!particleName.startsWith("vortex-")) continue;
+
+      const vortexParticle = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+      vortexParticle[SPRITE] = {
+        name: "",
+        layers: [
+          {
+            color:
+              colors[
+                shuffledColors[
+                  parseInt(particleName.split("-")[1]) % shuffledColors.length
+                ]
+              ],
+            char: choice(...vortexChars),
+          },
+        ],
+      };
+    }
+
+    state.args.generation = generation;
+    updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const fountainTicks = 3;
+const fountainSteps = 10;
+
+export const fountainSplash: Sequence<FountainSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+
+  const distance = heroEntity
+    ? getDistance(heroEntity[POSITION], entity[POSITION], size, 1, false)
+    : Infinity;
+  let updated = false;
+  const finished = false;
+
+  if (!state.particles.fountain) {
+    const fountainParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: floatHeight,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: fountain,
+    });
+    state.particles.fountain = world.getEntityId(fountainParticle);
+    updated = true;
+  }
+
+  if (generation > state.args.generation) {
+    // reset timer when entering
+    const previousEntered = state.args.entered;
+    if (distance <= 1 && !previousEntered) {
+      state.args.entered = generation;
+    } else if (distance > 1 && previousEntered) {
+      state.args.entered = undefined;
+    }
+
+    const healingAmount = heroEntity?.[STATS]
+      ? Math.floor(heroEntity[STATS].maxHp / fountainSteps)
+      : 0;
+
+    // create and move drop particles
+    for (const particleName in state.particles) {
+      if (particleName === "fountain") continue;
+
+      const waterParticle = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+
+      if (waterParticle[PARTICLE].offsetX === 0) {
+        if (waterParticle[PARTICLE].offsetY > -2) {
+          waterParticle[PARTICLE].offsetY -= 1;
+        } else {
+          waterParticle[PARTICLE].offsetX = particleName.endsWith("-left")
+            ? -1
+            : 1;
+          waterParticle[PARTICLE].amount = (generation % 3) + 1;
+        }
+      } else if (waterParticle[PARTICLE].offsetY >= -1) {
+        // disperse drop and heal player every X ticks
+        if (waterParticle[SPRITE] === fountainHeal) {
+          if (
+            particleName.endsWith("-left") &&
+            generation >= (state.args.healed || 0) + fountainTicks &&
+            state.args.entered &&
+            heroEntity &&
+            heroEntity[PLAYER] &&
+            heroEntity[STATS] &&
+            heroEntity[STATS].hp < heroEntity[STATS].maxHp
+          ) {
+            const { hp, healing } = calculateHealing(
+              heroEntity[STATS],
+              healingAmount
+            );
+            heroEntity[STATS].hp = hp;
+            heroEntity[PLAYER].receivedStats.hp += healing;
+            state.args.healed = generation;
+          }
+        }
+
+        disposeEntity(world, waterParticle);
+        delete state.particles[particleName];
+      } else {
+        waterParticle[PARTICLE].offsetY += 1;
+      }
+    }
+
+    // extinguish player
+    if (heroEntity?.[AFFECTABLE]?.burn && distance <= 1) {
+      extinguishEntity(world, heroEntity);
+    }
+
+    const emitHealing =
+      heroEntity &&
+      distance <= 1 &&
+      heroEntity[STATS] &&
+      heroEntity[STATS].hp < heroEntity[STATS].maxHp &&
+      !(
+        previousEntered &&
+        heroEntity[STATS].hp >= heroEntity[STATS].maxHp - healingAmount
+      );
+
+    for (const orientation of ["left", "right"]) {
+      const dropParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: 0,
+          offsetY: -1,
+          offsetZ: immersibleHeight,
+          duration: 350,
+          animatedOrigin: { x: 0, y: 0 },
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: emitHealing ? fountainHeal : fountainDrop,
+      });
+      state.particles[`drop-${generation}-${orientation}`] =
+        world.getEntityId(dropParticle);
+    }
+
+    // show active fountain while emitting
+    const fountainParticle = world.assertByIdAndComponents(
+      state.particles.fountain,
+      [SPRITE]
+    );
+    if (emitHealing && fountainParticle[SPRITE] !== fountainHealing) {
+      fountainParticle[SPRITE] = fountainHealing;
+    } else if (!emitHealing && fountainParticle[SPRITE] !== fountain) {
+      fountainParticle[SPRITE] = fountain;
+    }
+
+    state.args.generation = generation;
+    updated = true;
   }
 
   return { finished, updated };

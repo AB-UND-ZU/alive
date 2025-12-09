@@ -232,6 +232,7 @@ export const createSystems = (world: World) => {
   world.addSystem(systems.setupConsume);
   world.addSystem(systems.setupSpike);
   world.addSystem(systems.setupPush);
+  world.addSystem(systems.setupClick);
   world.addSystem(systems.setupDamage);
   world.addSystem(systems.setupBallistics);
   world.addSystem(systems.setupMovement);

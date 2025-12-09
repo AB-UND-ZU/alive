@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Text3D } from "@react-three/drei";
 import { useDimensions } from "../Dimensions";
 import { Layer as LayerType } from "../../engine/components/sprite";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { animated, SpringValue } from "@react-spring/three";
 import { stack, stackHeight, textSize } from "./utils";
 import Box from "./Box";

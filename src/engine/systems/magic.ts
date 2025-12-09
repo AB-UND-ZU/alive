@@ -10,7 +10,7 @@ import {
 } from "../components/sequencable";
 import { disposeEntity, getCell } from "./map";
 import { createSequence, getSequences } from "./sequence";
-import { CASTABLE } from "../components/castable";
+import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
 import { AFFECTABLE } from "../components/affectable";
@@ -19,31 +19,37 @@ import {
   calculateHealing,
   createAmountMarker,
   getAttackables,
+  getEntityStats,
   isDead,
   isEnemy,
   isFriendlyFire,
 } from "./damage";
-import { emptyStats, STATS } from "../components/stats";
+import { STATS } from "../components/stats";
 import { rerenderEntity } from "./renderer";
 import { relativeOrientations } from "../../game/math/path";
 import { BURNABLE } from "../components/burnable";
-import { PLAYER } from "../components/player";
+import { emptyReceivedStats, Player, PLAYER } from "../components/player";
 import { extinguishEntity, getBurnables } from "./burn";
 import { freezeTerrain, getFreezables, isFrozen, thawTerrain } from "./freeze";
 import { BELONGABLE } from "../components/belongable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
-import { EQUIPPABLE } from "../components/equippable";
 import { ITEM } from "../components/item";
 import { copy, getDistance } from "../../game/math/std";
-import { createText, none, xp } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import {
+  createText,
+  getStatColor,
+  getStatSprite,
+  none,
+} from "../../game/assets/sprites";
+import { brighten, colors } from "../../game/assets/colors";
 import { MOVABLE } from "../components/movable";
 import { consumeCharge } from "./trigger";
 import { isInPopup } from "./popup";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
 import { LEVEL } from "../components/level";
+import { getAbilityStats } from "../../game/balancing/abilities";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -88,28 +94,12 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
     consumeCharge(world, entity, { stackable: "charge" });
   }
 
-  const entityId = world.getEntityId(entity);
-  const swordEntity = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
-    ITEM,
-  ]);
-  const slashMaterial = swordEntity[ITEM].material === "iron" ? "iron" : "wood";
-  const { damage } = calculateDamage(
-    world,
-    "physical",
-    swordEntity[ITEM].amount,
-    entity,
-    emptyStats
-  );
+  const slashStats = getAbilityStats(slash[ITEM]);
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [CASTABLE]: {
-      affected: {},
-      damage: Math.ceil(damage / 2),
-      burn: 0,
-      freeze: 0,
-      heal: 0,
-      caster: entityId,
-      medium: "physical",
+      ...getEmptyCastable(world, entity),
+      ...slashStats,
     },
     [ORIENTABLE]: {},
     [POSITION]: copy(entity[POSITION]),
@@ -129,7 +119,7 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
     "chargeSlash",
     {
       tick,
-      material: slashMaterial,
+      material: slash[ITEM].material,
       castable: world.getEntityId(spellEntity),
       exertables: [],
     }
@@ -148,10 +138,8 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
 
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
-  const playerHp: Record<number, number> = {};
-  const playerMp: Record<number, number> = {};
-  const playerXp: Record<number, number> = {};
-  const playerDots: Record<number, number> = {};
+  const playerStats: Player["receivedStats"] = { ...emptyReceivedStats };
+  const entityDots: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world
@@ -198,10 +186,9 @@ export default function setupMagic(world: World) {
       const casterEntity = world.getEntityById(castableEntity[CASTABLE].caster);
       const isEternalFire = casterEntity?.[BURNABLE]?.eternal;
 
-      const targetEntities =
-        castableEntity[CASTABLE].medium === "physical"
-          ? getAttackables(world, entity[POSITION])
-          : getAffectables(world, entity[POSITION]);
+      const targetEntities = castableEntity[CASTABLE].melee
+        ? getAttackables(world, entity[POSITION])
+        : getAffectables(world, entity[POSITION]);
       for (const targetEntity of targetEntities) {
         const affectableId = world.getEntityId(targetEntity);
         const affectedGeneration =
@@ -228,17 +215,19 @@ export default function setupMagic(world: World) {
             );
             targetEntity[STATS].hp = hp;
 
-            createAmountMarker(world, targetEntity, healing, "up");
+            createAmountMarker(world, targetEntity, healing, "up", "true");
           }
         } else {
           // inflict direct damage
-          if (castableEntity[CASTABLE].damage) {
-            const damageType = castableEntity[CASTABLE].medium;
+          if (
+            castableEntity[CASTABLE].melee ||
+            castableEntity[CASTABLE].magic ||
+            castableEntity[CASTABLE].true
+          ) {
             const { damage, hp } = calculateDamage(
               world,
-              damageType,
-              castableEntity[CASTABLE].damage,
-              {},
+              castableEntity[CASTABLE],
+              casterEntity || {},
               targetEntity
             );
             targetEntity[STATS].hp = hp;
@@ -257,22 +246,41 @@ export default function setupMagic(world: World) {
             )[0];
 
             // add hit marker
-            createAmountMarker(world, targetEntity, -damage, orientation);
+            createAmountMarker(
+              world,
+              targetEntity,
+              -damage,
+              orientation,
+              castableEntity[CASTABLE].melee ? "melee" : "magic"
+            );
           }
 
           if (!targetEntity[AFFECTABLE]) continue;
 
+          const targetStats = getEntityStats(world, targetEntity);
+
           // set affected unit on fire
-          const targetBurn = castableEntity[CASTABLE].burn;
+          const targetBurn = castableEntity[CASTABLE].burn - targetStats.damp;
           const curentBurn = targetEntity[AFFECTABLE].burn;
-          if (targetBurn > curentBurn && !isDead(world, targetEntity)) {
+          if (
+            castableEntity[CASTABLE].burn > 0 &&
+            targetBurn > 0 &&
+            targetBurn > curentBurn &&
+            !isDead(world, targetEntity)
+          ) {
             targetEntity[AFFECTABLE].burn = targetBurn;
           }
 
           // freeze affected units
-          const targetFreeze = castableEntity[CASTABLE].freeze;
+          const targetFreeze =
+            castableEntity[CASTABLE].freeze - targetStats.thaw;
           const curentFreeze = targetEntity[AFFECTABLE].freeze;
-          if (targetFreeze > curentFreeze && !isDead(world, targetEntity)) {
+          if (
+            castableEntity[CASTABLE].freeze > 0 &&
+            targetFreeze > 0 &&
+            targetFreeze > curentFreeze &&
+            !isDead(world, targetEntity)
+          ) {
             targetEntity[AFFECTABLE].freeze = targetFreeze;
           }
         }
@@ -329,41 +337,46 @@ export default function setupMagic(world: World) {
 
     // process healing, mana and XP animation after consumption
     for (const entity of world.getEntities([SEQUENCABLE, PLAYER, STATS])) {
-      const entityId = world.getEntityId(entity);
-      const hpReceived = entity[PLAYER].healingReceived;
-      const pendingHp = hpReceived - (playerHp[entityId] || 0);
+      let previousStats = 0;
 
-      if (pendingHp > 0) {
-        playerHp[entityId] = hpReceived;
-        createAmountMarker(world, entity, pendingHp, "up");
-        play("pickup", pickupOptions.hp);
-      }
+      for (const key in entity[PLAYER].receivedStats) {
+        const statName = key as keyof Player["receivedStats"];
+        const statValue = entity[PLAYER].receivedStats[statName];
+        const pendingStat = statValue - playerStats[statName];
+        if (pendingStat === 0) continue;
 
-      const mpReceived = entity[PLAYER].manaReceived;
-      const pendingMp = mpReceived - (playerMp[entityId] || 0);
+        playerStats[statName] = statValue;
 
-      if (pendingMp > 0) {
-        playerMp[entityId] = mpReceived;
-        queueMessage(world, entity, {
-          line: createText(`+${pendingMp}`, colors.blue),
-          orientation: "up",
-          fast: false,
-          delay: 0,
-        });
-        play("pickup", pickupOptions.mp);
-      }
+        if (statName === "hp") {
+          createAmountMarker(world, entity, pendingStat, "up", "true");
+        } else if (statName === "mp") {
+          const statColor = getStatColor(statName);
+          queueMessage(world, entity, {
+            line: createText(`+${pendingStat}`, statColor),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+        } else if (["maxHp", "maxMp"].includes(statName)) {
+          const statSprite = getStatSprite(statName);
+          const statColor = getStatColor(statName);
+          queueMessage(world, entity, {
+            line: createText(
+              `+${pendingStat} ${statSprite.name}`,
+              colors.black,
+              brighten(statColor)
+            ),
+            orientation: "up",
+            fast: false,
+            delay: previousStats * 500,
+          });
+          previousStats += 1;
+        } else continue;
 
-      const xpReceived = entity[PLAYER].xpReceived;
-      const pendingXp = xpReceived - (playerXp[entityId] || 0);
-
-      if (pendingXp > 0) {
-        playerXp[entityId] = xpReceived;
-        queueMessage(world, entity, {
-          line: createText(`${pendingXp}x ${xp.name}`, colors.silver),
-          orientation: "up",
-          fast: false,
-          delay: 0,
-        });
+        play(
+          "pickup",
+          pickupOptions[statName as "hp" | "maxHp" | "mp" | "maxMp"]
+        );
       }
     }
 
@@ -376,11 +389,16 @@ export default function setupMagic(world: World) {
     ])) {
       const entityId = world.getEntityId(entity);
       const dot = entity[AFFECTABLE].dot;
-      const delta = dot - (playerDots[entityId] || 0);
+      const delta = dot - (entityDots[entityId] || 0);
 
       if (delta === 0) continue;
 
-      const { damage, hp } = calculateDamage(world, "true", delta, {}, entity);
+      const { damage, hp } = calculateDamage(
+        world,
+        { true: delta },
+        {},
+        entity
+      );
       entity[STATS].hp = hp;
 
       const proximity = heroEntity
@@ -389,9 +407,9 @@ export default function setupMagic(world: World) {
       play("magic", { intensity: damage, proximity });
 
       // add hit marker
-      createAmountMarker(world, entity, -damage, "up");
+      createAmountMarker(world, entity, -damage, "up", "magic");
 
-      playerDots[entityId] = dot;
+      entityDots[entityId] = dot;
     }
   };
 

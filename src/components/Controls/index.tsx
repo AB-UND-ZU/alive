@@ -19,7 +19,7 @@ import {
   portal,
   quest,
 } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
 import { normalize, repeat } from "../../game/math/std";
 import { getSegments } from "../Entity/utils";
@@ -39,8 +39,12 @@ import { isDead } from "../../engine/systems/damage";
 import Joystick from "../Joystick";
 import { canCast } from "../../engine/systems/magic";
 import {
-  canShop,
+  canForge,
+  canTrade,
   getDeal,
+  getTab,
+  getTabSelections,
+  getVerticalIndex,
   isInPopup,
   isPopupAvailable,
   isQuestCompleted,
@@ -48,7 +52,7 @@ import {
   popupIdles,
 } from "../../engine/systems/popup";
 import { isControllable } from "../../engine/systems/freeze";
-import { Deal, Popup, POPUP } from "../../engine/components/popup";
+import { Deal, POPUP } from "../../engine/components/popup";
 import { TypedEntity } from "../../engine/entities";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { INVENTORY } from "../../engine/components/inventory";
@@ -58,6 +62,11 @@ import { PLAYER } from "../../engine/components/player";
 import { ensureAudio } from "../../game/sound/resumable";
 import Cursor from "../Cursor";
 import { getItemSprite } from "../../game/assets/utils";
+import { canWarp } from "../../engine/systems/trigger";
+import { getForgeStatus } from "../../game/balancing/forging";
+import { centerSprites } from "../../game/assets/pixels";
+import { LEVEL } from "../../engine/components/level";
+import { menuName } from "../../game/levels/menu";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -142,8 +151,8 @@ type Action = {
 const useAction = (
   action: (typeof actions)[number],
   isDisabled: (world: World, hero: Entity, actionEntity: Entity) => boolean,
-  getName: (actionEntity: Entity) => string,
-  getActivation: (world: World, actionEntity: Entity) => Sprite[],
+  getName: (world: World, hero: Entity, actionEntity: Entity) => string,
+  getActivation: (world: World, hero: Entity, actionEntity: Entity) => Sprite[],
   palette: Palette = "white"
 ) => {
   const { ecs, paused } = useWorld();
@@ -155,8 +164,8 @@ const useAction = (
     if (paused || !ecs || !heroEntity || !actionEntity) return;
 
     const disabled = isDisabled(ecs, heroEntity, actionEntity);
-    const activation = getActivation(ecs, actionEntity);
-    const name = getName(actionEntity);
+    const activation = getActivation(ecs, heroEntity, actionEntity);
+    const name = getName(ecs, heroEntity, actionEntity);
 
     return {
       name,
@@ -178,7 +187,9 @@ const useAction = (
 
 export default function Controls() {
   const dimensions = useDimensions();
-  const { ecs, setPaused, paused, initial } = useWorld();
+  const { ecs, setPaused, paused, initial, flipped } = useWorld();
+  const level = ecs?.metadata.gameEntity[LEVEL].name;
+  const inMenu = level === menuName;
   const hero = useHero();
   const heroRef = useRef<Entity>();
   const pressedOrientations = useRef<Orientation[]>([]);
@@ -199,9 +210,10 @@ export default function Controls() {
 
   const warpAction = useAction(
     "warp",
-    (world, hero) => !isControllable(world, hero),
+    (world, hero, warpEntity) =>
+      !isControllable(world, hero) || !canWarp(world, hero, warpEntity),
     () => "WARP",
-    (_, warpEntity) => [
+    (_, __, warpEntity) => [
       ...repeat(none, 2),
       warpEntity ? portal : none,
       ...repeat(none, 3),
@@ -213,7 +225,7 @@ export default function Controls() {
     "spawn",
     (world, hero, spawnEntity) => !canRevive(world, spawnEntity, hero),
     () => "SPAWN",
-    (_, spawnEntity) => [
+    (_, __, spawnEntity) => [
       ...repeat(none, 2),
       spawnEntity ? ghost : none,
       ...repeat(none, 3),
@@ -226,7 +238,7 @@ export default function Controls() {
     (world, hero, questEntity) =>
       !isControllable(world, hero) || !canAcceptQuest(world, hero, questEntity),
     () => "START",
-    (_, questEntity) => [
+    (_, __, questEntity) => [
       ...repeat(none, 2),
       questEntity ? quest : none,
       ...repeat(none, 3),
@@ -239,7 +251,7 @@ export default function Controls() {
     (world, hero, unlockEntity) =>
       !isControllable(world, hero) || !canUnlock(world, hero, unlockEntity),
     () => "OPEN",
-    (_, unlockEntity) =>
+    (_, __, unlockEntity) =>
       unlockEntity
         ? [
             ...repeat(none, 2),
@@ -250,10 +262,12 @@ export default function Controls() {
               },
               "display"
             ),
-            getItemSprite({
-              consume: "key",
-              material: unlockEntity[LOCKABLE].material,
-            }),
+            unlockEntity[LOCKABLE].material === "wood"
+              ? none
+              : getItemSprite({
+                  consume: "key",
+                  material: unlockEntity[LOCKABLE].material,
+                }),
             ...repeat(none, 2),
           ]
         : repeat(none, 6),
@@ -266,11 +280,9 @@ export default function Controls() {
       !isControllable(world, hero) ||
       isInPopup(world, hero) ||
       !isPopupAvailable(world, popupEntity),
-    (popupEntity) =>
-      popupEntity[POPUP]
-        ? popupActions[(popupEntity[POPUP] as Popup).transaction]
-        : "",
-    (world, popupEntity) =>
+    (world, _, popupEntity) =>
+      popupEntity[POPUP] ? popupActions[getTab(world, popupEntity)] : "",
+    (world, _, popupEntity) =>
       popupEntity[POPUP]
         ? [
             ...repeat(none, 2),
@@ -280,7 +292,7 @@ export default function Controls() {
                 receiveShadow: false,
               }).map((segment) => segment.sprite)
             ),
-            popupIdles[(popupEntity[POPUP] as Popup).transaction] || none,
+            popupIdles[getTab(world, popupEntity)] || none,
             ...repeat(none, 2),
           ]
         : repeat(none, 6),
@@ -293,7 +305,7 @@ export default function Controls() {
       !isControllable(world, hero) ||
       !isQuestCompleted(world, hero, claimEntity),
     () => "CLAIM",
-    (_, claimEntity) =>
+    (_, __, claimEntity) =>
       [
         ...repeat(none, 2),
         ...claimEntity[POPUP].deals
@@ -309,18 +321,78 @@ export default function Controls() {
   const tradeAction = useAction(
     "trade",
     (world, hero, tradeEntity) =>
-      !isControllable(world, hero) ||
-      !canShop(world, hero, getDeal(world, tradeEntity)),
-    (tradeEntity) => tradeEntity[POPUP].transaction.toUpperCase(),
-    (world, tradeEntity) => {
-      const deal = getDeal(world, tradeEntity);
-      return [
-        ...repeat(none, 2),
-        ...deal.price.map((price) => getActivationRow(price)).flat(),
-        ...repeat(none, 4),
-      ]
-        .slice(deal.price.length)
-        .slice(0, 6);
+      !isControllable(world, hero) || !canTrade(world, hero, tradeEntity),
+    (world, _, tradeEntity) => getTab(world, tradeEntity).toUpperCase(),
+    (world, hero, tradeEntity) => {
+      const deal = hero && getDeal(world, hero, tradeEntity);
+      return deal && canTrade(world, hero, tradeEntity)
+        ? [
+            ...repeat(none, 2),
+            ...getActivationRow(deal.item),
+            ...repeat(none, 4),
+          ].slice(1, 6)
+        : repeat(none, 6);
+    },
+    "lime"
+  );
+
+  const addAction = useAction(
+    "add",
+    (world, hero, addEntity) => {
+      const tab = getTab(world, addEntity);
+      const verticalIndex = getVerticalIndex(world, addEntity);
+      return (
+        !isControllable(world, hero) ||
+        (tab === "forge" && !canForge(world, hero, addEntity)) ||
+        (tab === "class" && verticalIndex !== 0)
+      );
+    },
+    (world, _, addEntity) => {
+      const tab = getTab(world, addEntity);
+      return tab === "class"
+        ? "PICK"
+        : tab === "forge"
+        ? getTabSelections(world, addEntity).length === 0
+          ? "BASE"
+          : "ADD"
+        : "VIEW";
+    },
+    (world, hero, addEntity) => {
+      const tab = getTab(world, addEntity);
+      const [firstIndex, secondIndex] = getTabSelections(world, addEntity);
+      const verticalIndex = getVerticalIndex(world, addEntity);
+
+      if (tab === "forge") {
+        const { baseItem, addItem, forgeable } = getForgeStatus(
+          world,
+          hero,
+          firstIndex,
+          secondIndex,
+          verticalIndex
+        );
+        const nextItem = addItem || baseItem;
+
+        if (forgeable && nextItem) {
+          return centerSprites(
+            [
+              ...createText(nextItem.amount.toString()),
+              getItemSprite(nextItem),
+            ],
+            6
+          );
+        }
+      } else if (tab === "craft") {
+        const recipe = addEntity[POPUP].recipes[verticalIndex];
+        return centerSprites(
+          [
+            ...createText(recipe.item.amount.toString()),
+            getItemSprite(recipe.item),
+          ],
+          6
+        );
+      }
+
+      return repeat(none, 6);
     },
     "lime"
   );
@@ -330,7 +402,7 @@ export default function Controls() {
     (world, hero, useEntity) =>
       !isControllable(world, hero) || !getConsumption(world, hero, useEntity),
     () => "USE",
-    (world, useEntity) => {
+    (world, _, useEntity) => {
       const consumption = hero && getConsumption(world, hero, useEntity);
       if (!consumption) return repeat(none, 6);
 
@@ -353,7 +425,8 @@ export default function Controls() {
   const closeAction = useAction(
     "close",
     (world, hero) => !isControllable(world, hero),
-    () => "CLOSE",
+    (world, _, closeEntity) =>
+      getTabSelections(world, closeEntity).length > 0 ? "BACK" : "CLOSE",
     () => repeat(none, 6),
     "red"
   );
@@ -368,8 +441,8 @@ export default function Controls() {
         hero as TypedEntity<"INVENTORY">,
         primaryEntity as TypedEntity<"ITEM">
       ),
-    (primaryEntity) => primaryEntity[SPRITE].name.toUpperCase(),
-    (world, primaryEntity) =>
+    (_, __, primaryEntity) => primaryEntity[SPRITE].name.toUpperCase(),
+    (world, _, primaryEntity) =>
       hero
         ? getActiveActivations(world, hero, primaryEntity[ITEM])
         : repeat(none, 6)
@@ -385,8 +458,8 @@ export default function Controls() {
         secondaryEntity as TypedEntity<"ITEM">
       ),
 
-    (secondaryEntity) => secondaryEntity[SPRITE].name.toUpperCase(),
-    (world, secondaryEntity) =>
+    (_, __, secondaryEntity) => secondaryEntity[SPRITE].name.toUpperCase(),
+    (world, _, secondaryEntity) =>
       hero
         ? getActiveActivations(world, hero, secondaryEntity[ITEM])
         : repeat(none, 6),
@@ -402,6 +475,7 @@ export default function Controls() {
     claimAction,
     tradeAction,
     useItemAction,
+    addAction,
     primaryAction,
   ];
   const selectedPrimary = availablePrimary.find((action) => action);
@@ -535,16 +609,24 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
-      handleAction("inspect");
+      if (!inMenu) {
+        handleAction("inspect");
+      }
     },
-    [handleAction]
+    [handleAction, inMenu]
   );
 
   const handleMove = useCallback(
     (orientations: Orientation[]) => {
       const heroEntity = heroRef.current;
 
-      if (!heroEntity || !ecs || isDead(ecs, heroEntity)) return;
+      if (
+        !heroEntity ||
+        !heroEntity[MOVABLE] ||
+        !ecs ||
+        isDead(ecs, heroEntity)
+      )
+        return;
 
       const reference = ecs.assertByIdAndComponents(
         heroEntity[MOVABLE].reference,
@@ -553,13 +635,16 @@ export default function Controls() {
 
       if (!reference) return;
 
-      heroEntity[MOVABLE].orientations = orientations;
-      const pendingOrientation = orientations[0];
+      const attemptedOrientations = isControllable(ecs, heroEntity)
+        ? orientations
+        : [];
+      heroEntity[MOVABLE].orientations = attemptedOrientations;
+      const pendingOrientation = attemptedOrientations[0];
       if (pendingOrientation) {
         heroEntity[MOVABLE].pendingOrientation = pendingOrientation;
       }
 
-      if (orientations.length === 0 && !heroEntity[MOVABLE].momentum) {
+      if (attemptedOrientations.length === 0 && !heroEntity[MOVABLE].momentum) {
         reference.suspensionCounter = 0;
 
         // only allow queueing actions in short moment at end of frame
@@ -623,7 +708,7 @@ export default function Controls() {
 
       if (!orientation) return;
 
-      const orientations = pressedOrientations.current;
+      const orientations = [...pressedOrientations.current];
 
       if (event.type === "keydown" && !orientations.includes(orientation)) {
         orientations.unshift(orientation);
@@ -631,6 +716,7 @@ export default function Controls() {
         orientations.splice(orientations.indexOf(orientation), 1);
       }
 
+      pressedOrientations.current = orientations;
       handleMove(orientations);
     },
     [
@@ -823,7 +909,7 @@ export default function Controls() {
   ];
 
   return (
-    <footer className="Controls">
+    <footer className={flipped ? "ControlsFlipped" : "Controls"}>
       <Joystick
         orientations={joystickOrientations}
         origin={touchOrigin.current}
@@ -836,11 +922,11 @@ export default function Controls() {
       />
       <Row
         cells={createText(
-          "─".repeat(dimensions.padding + dimensions.visibleColumns + 3),
+          "─".repeat(dimensions.visibleColumns + dimensions.padding * 2 + 1),
           colors.grey
         )}
       />
-      {paused ? (
+      {initial ? (
         <>
           <Row />
           <Row />
@@ -849,28 +935,55 @@ export default function Controls() {
       ) : (
         <>
           <Row
-            cells={[
-              ...leftButton[0],
-              ...rightButton[0],
-              none,
-              ...equipmentRows[0],
-            ]}
+            cells={
+              flipped
+                ? [
+                    ...equipmentRows[0],
+                    none,
+                    ...rightButton[0],
+                    ...leftButton[0],
+                  ]
+                : [
+                    ...leftButton[0],
+                    ...rightButton[0],
+                    none,
+                    ...equipmentRows[0],
+                  ]
+            }
           />
           <Row
-            cells={[
-              ...leftButton[1],
-              ...rightButton[1],
-              none,
-              ...equipmentRows[1],
-            ]}
+            cells={
+              flipped
+                ? [
+                    ...equipmentRows[1],
+                    none,
+                    ...rightButton[1],
+                    ...leftButton[1],
+                  ]
+                : [
+                    ...leftButton[1],
+                    ...rightButton[1],
+                    none,
+                    ...equipmentRows[1],
+                  ]
+            }
           />
           <Row
-            cells={[
-              ...secondaryActivation,
-              ...primaryActivation,
-              none,
-              ...equipmentRows[2],
-            ]}
+            cells={
+              flipped
+                ? [
+                    ...equipmentRows[2],
+                    none,
+                    ...primaryActivation,
+                    ...secondaryActivation,
+                  ]
+                : [
+                    ...secondaryActivation,
+                    ...primaryActivation,
+                    none,
+                    ...equipmentRows[2],
+                  ]
+            }
           />
         </>
       )}

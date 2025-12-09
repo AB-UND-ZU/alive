@@ -1,6 +1,6 @@
 import { Stackable } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
-import { Stats } from "../../engine/components/stats";
+import { UnitStats } from "../../engine/components/stats";
 import { random } from "../math/std";
 import { isPlaying, ResumableSoundEffect } from "./resumable";
 import { Params, sfxr, waveforms } from "jsfxr";
@@ -16,7 +16,7 @@ export const npcVariants: Partial<Record<NpcType, number>> = {
 };
 
 export const pickupOptions: Partial<
-  Record<Stackable | keyof Stats, { intensity: number; variant: number }>
+  Record<Stackable | keyof UnitStats, { intensity: number; variant: number }>
 > = {
   // stats
   hp: { variant: 4, intensity: 6 },

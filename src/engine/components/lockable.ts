@@ -5,7 +5,7 @@ import { Sprite } from "./sprite";
 
 export type Lockable = {
   locked: boolean;
-  material?: Material;
+  material: Material;
   sprite?: Sprite;
   type: Materialized;
 };

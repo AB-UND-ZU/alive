@@ -25,7 +25,7 @@ import { SWIMMABLE } from "../components/swimmable";
 import { extinguishEntity } from "./burn";
 import { queueMessage } from "../../game/assets/utils";
 import { createText } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { getLockable } from "./action";
 import { LOCKABLE } from "../components/lockable";
 
@@ -44,6 +44,7 @@ export const isSliding = (world: World, entity: Entity) =>
   !!entity[MOVABLE]?.momentum;
 
 export const isControllable = (world: World, entity: Entity) =>
+  MOVABLE in entity &&
   !isDead(world, entity) &&
   !isFrozen(world, entity) &&
   !isSliding(world, entity);

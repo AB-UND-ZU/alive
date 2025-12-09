@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { Entity } from "ecs";
 import { useDimensions } from "../Dimensions";
 import { useEffect, useRef, useState } from "react";

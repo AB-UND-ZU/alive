@@ -24,7 +24,7 @@ import {
 } from "../../math/matrix";
 import { FOG } from "../../../engine/components/fog";
 import { ATTACKABLE } from "../../../engine/components/attackable";
-import { ITEM, Stackable } from "../../../engine/components/item";
+import { ITEM } from "../../../engine/components/item";
 import { orientationPoints } from "../../../engine/components/orientable";
 import { aspectRatio } from "../../../components/Dimensions/sizing";
 import { spawnArea, nomadArea, nomadOffset } from "./areas";
@@ -38,7 +38,7 @@ import {
   signedDistance,
 } from "../../math/std";
 import { INVENTORY } from "../../../engine/components/inventory";
-import { emptyStats, STATS } from "../../../engine/components/stats";
+import { emptyUnitStats, STATS } from "../../../engine/components/stats";
 import { VIEWABLE } from "../../../engine/components/viewable";
 import { TOOLTIP } from "../../../engine/components/tooltip";
 import { DROPPABLE } from "../../../engine/components/droppable";
@@ -58,7 +58,7 @@ import {
 } from "../../assets/sprites/structures";
 import { SEQUENCABLE } from "../../../engine/components/sequencable";
 import { createItemText, npcSequence, questSequence } from "../../assets/utils";
-import * as colors from "../../assets/colors";
+import { colors } from "../../assets/colors";
 import { generateNpcKey, generateUnitData } from "../../balancing/units";
 import { BELONGABLE } from "../../../engine/components/belongable";
 import generateTown from "../../../engine/wfc/town";
@@ -69,12 +69,7 @@ import {
   populateInventory,
   createNpc,
 } from "./../../../bindings/creation";
-import {
-  getItemPrice,
-  itemPurchases,
-  itemSales,
-} from "../../balancing/trading";
-import { getGearStat } from "../../balancing/equipment";
+import { getItemPrice } from "../../balancing/trading";
 import { findPath, invertOrientation } from "../../math/path";
 import { registerEntity } from "../../../engine/systems/map";
 import { LAYER } from "../../../engine/components/layer";
@@ -87,6 +82,7 @@ import {
 } from "../../../engine/utils";
 import { BURNABLE } from "../../../engine/components/burnable";
 import { forestNpcDistribution } from "./units";
+import { craftingRecipes } from "../../balancing/crafting";
 
 export const forestSize = 160;
 export const forestName: LevelName = "LEVEL_FOREST";
@@ -185,7 +181,7 @@ export const generateForest = (world: World) => {
     );
 
     // create clean elevation around spawn
-    const spawnProximity = 20000 / spawnDistance ** 4;
+    const spawnProximity = 25000 / spawnDistance ** 4;
     const spawnElevation = Math.min(15, spawnProximity * 3);
     const spawnDip = 1 / (1 + spawnProximity / 2);
 
@@ -459,6 +455,7 @@ export const generateForest = (world: World) => {
     [BURNABLE]: {
       burning: false,
       eternal: false,
+      simmer: false,
       decayed: false,
       combusted: false,
       remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
@@ -472,7 +469,7 @@ export const generateForest = (world: World) => {
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: spawnSignData.sprite,
     [STATS]: {
-      ...emptyStats,
+      ...emptyUnitStats,
       ...spawnSignData.stats,
     },
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
@@ -481,18 +478,20 @@ export const generateForest = (world: World) => {
   setIdentifier(world, spawnSign, "spawn_sign");
   createPopup(world, spawnSign, {
     lines: [
-      createText("Find the town by"),
-      createText("following either"),
       [
-        getOrientedSprite(questPointer, "right"),
-        ...createText("Arrow", colors.grey),
-        ...createText(" or "),
-        path,
-        ...createText("Path", colors.grey),
-        ...createText("."),
+        createText("Find the town by"),
+        createText("following either"),
+        [
+          getOrientedSprite(questPointer, "right"),
+          ...createText("Arrow", colors.grey),
+          ...createText(" or "),
+          path,
+          ...createText("Path", colors.grey),
+          ...createText("."),
+        ],
       ],
     ],
-    transaction: "info",
+    tabs: ["info"],
   });
 
   // postprocess nomad
@@ -519,10 +518,10 @@ export const generateForest = (world: World) => {
       {
         item: ironKeyEntity[ITEM],
         stock: 1,
-        price: getItemPrice(ironKeyEntity[ITEM]),
+        prices: getItemPrice(ironKeyEntity[ITEM]),
       },
     ],
-    transaction: "buy",
+    tabs: ["buy"],
   });
   const nomadChestData = generateUnitData("uncommonChest");
   const nomadChest = entities.createChest(world, {
@@ -536,7 +535,7 @@ export const generateForest = (world: World) => {
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: nomadChestData.sprite,
-    [STATS]: { ...emptyStats, ...nomadChestData.stats },
+    [STATS]: { ...emptyUnitStats, ...nomadChestData.stats },
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
   populateInventory(world, nomadChest, [
@@ -552,6 +551,7 @@ export const generateForest = (world: World) => {
     [BURNABLE]: {
       burning: false,
       eternal: false,
+      simmer: false,
       decayed: false,
       combusted: false,
       remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
@@ -564,7 +564,7 @@ export const generateForest = (world: World) => {
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: nomadSignData.sprite,
-    [STATS]: { ...emptyStats, ...nomadSignData.stats },
+    [STATS]: { ...emptyUnitStats, ...nomadSignData.stats },
     [TOOLTIP]: {
       dialogs: [],
       persistent: false,
@@ -577,18 +577,16 @@ export const generateForest = (world: World) => {
     world,
     nomadSign,
     "nomadQuest",
-    {
-      lines: [
-        [
-          ...createText("Collect "),
-          ...createItemText({ stackable: "ore", amount: 10 }),
-          ...createText(" to"),
-        ],
-        [...createText("trade for "), iron, ...createText("Iron,")],
-        createText("then exchange to"),
-        [...createText("a "), ironKey, ...createText("Key")],
+    [
+      [
+        ...createText("Collect "),
+        ...createItemText({ stackable: "ore", amount: 10 }),
+        ...createText(" to"),
       ],
-    },
+      [...createText("trade for "), iron, ...createText("Iron,")],
+      createText("then exchange to"),
+      [...createText("a "), ironKey, ...createText("Key")],
+    ],
     {}
   );
 
@@ -625,15 +623,15 @@ export const generateForest = (world: World) => {
       {
         item: maxHpEntity[ITEM],
         stock: Infinity,
-        price: getItemPrice(maxHpEntity[ITEM]),
+        prices: getItemPrice(maxHpEntity[ITEM]),
       },
       {
         item: maxMpEntity[ITEM],
         stock: Infinity,
-        price: getItemPrice(maxMpEntity[ITEM]),
+        prices: getItemPrice(maxMpEntity[ITEM]),
       },
     ],
-    transaction: "buy",
+    tabs: ["buy"],
   });
   const chiefOffset = choice(-2, 2);
   const chiefSignData = generateUnitData("sign");
@@ -642,6 +640,7 @@ export const generateForest = (world: World) => {
     [BURNABLE]: {
       burning: false,
       eternal: false,
+      simmer: false,
       decayed: false,
       combusted: false,
       remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
@@ -655,7 +654,7 @@ export const generateForest = (world: World) => {
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: chiefSignData.sprite,
-    [STATS]: { ...emptyStats, ...chiefSignData.stats },
+    [STATS]: { ...emptyUnitStats, ...chiefSignData.stats },
     [TOOLTIP]: {
       dialogs: [],
       persistent: false,
@@ -668,16 +667,14 @@ export const generateForest = (world: World) => {
     world,
     chiefSign,
     "waypointQuest",
-    {
-      lines: [
-        createText("Enter the Chief's"),
-        createText("house by using"),
-        [...createText("a "), ironKey, ...createText("Key. Find the")],
-        createText("Nomad's house by"),
-        createText("following the"),
-        [path, ...createText("Path")],
-      ],
-    },
+    [
+      createText("Enter the Chief's"),
+      createText("house by using"),
+      [...createText("a "), ironKey, ...createText("Key. Find the")],
+      createText("Nomad's house by"),
+      createText("following the"),
+      [path, ...createText("Path")],
+    ],
     {
       identifier: "nomad_sign",
       distance: 0,
@@ -701,22 +698,7 @@ export const generateForest = (world: World) => {
     createDialog("So you can buy items"),
     createDialog("Or not, up to you"),
   ];
-  createPopup(world, scoutEntity, {
-    deals: Object.entries(itemSales).map(([stackable, coins]) => ({
-      item: {
-        stackable: "coin",
-        amount: coins,
-      },
-      stock: Infinity,
-      price: [
-        {
-          stackable: stackable as Stackable,
-          amount: 1,
-        },
-      ],
-    })),
-    transaction: "sell",
-  });
+  createPopup(world, scoutEntity, { tabs: ["sell"] });
 
   // 4. smith's house
   const smithOffset = choice(-1, 1);
@@ -734,49 +716,56 @@ export const generateForest = (world: World) => {
     createDialog("To become stronger"),
     createDialog("Because why not"),
   ];
-  const stickItem: Deal["item"] = {
-    stackable: "stick",
-    amount: 1,
-  };
-  const woodItem: Deal["item"] = {
-    stackable: "resource",
-    material: "wood",
-    amount: 1,
-  };
-  const oreItem: Deal["item"] = {
-    stackable: "ore",
-    amount: 1,
-  };
-  const ironItem: Deal["item"] = {
-    stackable: "resource",
-    material: "iron",
-    amount: 1,
-  };
-  const goldItem: Deal["item"] = {
-    stackable: "resource",
-    material: "gold",
-    amount: 1,
-  };
-  const torchItem: Deal["item"] = {
-    equipment: "torch",
-    amount: 1,
-  };
   createPopup(world, smithEntity, {
-    deals: [stickItem, woodItem, oreItem, ironItem, goldItem, torchItem].map(
-      (item) => ({
-        item,
+    deals: [
+      // TODO: remove
+      {
+        item: {
+          stackable: "resource",
+          material: "iron",
+          amount: 1,
+        },
         stock: Infinity,
-        price: getItemPrice(item),
-      })
-    ),
-    transaction: "buy",
+        prices: [{ stackable: "apple", amount: 0 }],
+      },
+      {
+        item: {
+          equipment: "sword",
+          material: "wood",
+          amount: 1,
+        },
+        stock: 1,
+        prices: [{ stackable: "apple", amount: 0 }],
+      },
+
+      {
+        item: {
+          equipment: "torch",
+          material: "wood",
+          amount: 1,
+        },
+        stock: 1,
+        prices: [{ stackable: "resource", material: "wood", amount: 1 }],
+      },
+      {
+        item: {
+          equipment: "shield",
+          material: "wood",
+          amount: 1,
+        },
+        stock: 1,
+        prices: [{ stackable: "resource", material: "wood", amount: 3 }],
+      },
+    ],
+    tabs: ["buy", "sell"],
   });
 
-  const smithAnvil = entities.createCrafting(world, {
+  const smithAnvil = entities.createForging(world, {
     [COLLIDABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
+    [LAYER]: {},
     [POSITION]: add(smithBuilding.building[POSITION], {
-      x: -smithOffset,
+      x: smithOffset * -2,
       y: 0,
     }),
     [RENDERABLE]: { generation: 0 },
@@ -788,51 +777,7 @@ export const generateForest = (world: World) => {
       nextDialog: -1,
     },
   });
-  const woodSwordItem: Deal["item"] = {
-    equipment: "sword",
-    material: "wood",
-    amount: getGearStat("sword", "wood"),
-  };
-  const woodShieldItem: Deal["item"] = {
-    equipment: "shield",
-    material: "wood",
-    amount: getGearStat("shield", "wood"),
-  };
-  const ironSwordItem: Deal["item"] = {
-    equipment: "sword",
-    material: "iron",
-    amount: getGearStat("sword", "iron"),
-  };
-  const ironShieldItem: Deal["item"] = {
-    equipment: "shield",
-    material: "iron",
-    amount: getGearStat("shield", "iron"),
-  };
-  const goldSwordItem: Deal["item"] = {
-    equipment: "sword",
-    material: "gold",
-    amount: getGearStat("sword", "gold"),
-  };
-  const goldShieldItem: Deal["item"] = {
-    equipment: "shield",
-    material: "gold",
-    amount: getGearStat("shield", "gold"),
-  };
-  createPopup(world, smithAnvil, {
-    deals: [
-      woodSwordItem,
-      woodShieldItem,
-      ironSwordItem,
-      ironShieldItem,
-      goldSwordItem,
-      goldShieldItem,
-    ].map((item) => ({
-      item,
-      stock: Infinity,
-      price: getItemPrice(item),
-    })),
-    transaction: "craft",
-  });
+  createPopup(world, smithAnvil, { tabs: ["forge"] });
 
   // 5. trader's house
   const traderEntity = createNpc(
@@ -847,14 +792,6 @@ export const generateForest = (world: World) => {
     createDialog("For coins only"),
     createDialog("Wanna have a look?"),
   ];
-  createPopup(world, traderEntity, {
-    deals: itemPurchases.map(([item, coins]) => ({
-      item,
-      stock: Infinity,
-      price: [{ stackable: "coin", amount: coins }],
-    })),
-    transaction: "buy",
-  });
 
   // 6. druid's house
   const druidOffset = choice(-1, 1);
@@ -873,14 +810,16 @@ export const generateForest = (world: World) => {
     createDialog("Incredibly powerful"),
   ];
   const healthItem: Deal["item"] = {
-    consume: "potion1",
-    material: "fire",
-    amount: 10,
+    consume: "potion",
+    material: "wood",
+    element: "fire",
+    amount: 1,
   };
   const manaItem: Deal["item"] = {
-    consume: "potion1",
-    material: "water",
-    amount: 10,
+    consume: "potion",
+    material: "wood",
+    element: "water",
+    amount: 1,
   };
   const fruitItem: Deal["item"] = {
     stackable: "fruit",
@@ -894,44 +833,30 @@ export const generateForest = (world: World) => {
     stackable: "seed",
     amount: 1,
   };
-  const fireEssenceItem: Deal["item"] = {
-    stackable: "resource",
-    material: "fire",
-    amount: 1,
-  };
-  const waterEssenceItem: Deal["item"] = {
-    stackable: "resource",
-    material: "water",
-    amount: 1,
-  };
-  const earthEssenceItem: Deal["item"] = {
-    stackable: "resource",
-    material: "earth",
-    amount: 1,
-  };
   createPopup(world, druidEntity, {
-    deals: [
-      healthItem,
-      manaItem,
-      fruitItem,
-      herbItem,
-      seedItem,
-      fireEssenceItem,
-      waterEssenceItem,
-      earthEssenceItem,
-    ].map((item) => ({
-      item,
-      stock: Infinity,
-      price: getItemPrice(item),
-    })),
-    transaction: "buy",
+    deals: [healthItem, manaItem, fruitItem, herbItem, seedItem].map(
+      (item) => ({
+        item,
+        stock: Infinity,
+        prices: getItemPrice(item),
+      })
+    ),
+    tabs: ["buy"],
   });
 
   const druidKettle = entities.createCrafting(world, {
+    [BURNABLE]: {
+      burning: true,
+      eternal: true,
+      simmer: true,
+      decayed: false,
+      combusted: false,
+    },
     [COLLIDABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
+    [LAYER]: {},
     [POSITION]: add(druidBuilding.building[POSITION], {
-      x: -druidOffset,
+      x: druidOffset * -2,
       y: 0,
     }),
     [RENDERABLE]: { generation: 0 },
@@ -943,56 +868,9 @@ export const generateForest = (world: World) => {
       nextDialog: -1,
     },
   });
-  const fireWaveItem: Deal["item"] = {
-    amount: 2,
-    equipment: "primary",
-    primary: "wave1",
-    material: "fire",
-  };
-  const waterWaveItem: Deal["item"] = {
-    amount: 2,
-    equipment: "primary",
-    primary: "wave1",
-    material: "water",
-  };
-  const earthWaveItem: Deal["item"] = {
-    amount: 2,
-    equipment: "primary",
-    primary: "wave1",
-    material: "earth",
-  };
-  const fireBeamItem: Deal["item"] = {
-    amount: 5,
-    equipment: "primary",
-    primary: "beam1",
-    material: "fire",
-  };
-  const waterBeamItem: Deal["item"] = {
-    amount: 5,
-    equipment: "primary",
-    primary: "beam1",
-    material: "water",
-  };
-  const earthBeamItem: Deal["item"] = {
-    amount: 5,
-    equipment: "primary",
-    primary: "beam1",
-    material: "earth",
-  };
   createPopup(world, druidKettle, {
-    deals: [
-      fireWaveItem,
-      waterWaveItem,
-      earthWaveItem,
-      fireBeamItem,
-      waterBeamItem,
-      earthBeamItem,
-    ].map((item) => ({
-      item,
-      stock: Infinity,
-      price: getItemPrice(item),
-    })),
-    transaction: "craft",
+    recipes: craftingRecipes,
+    tabs: ["craft"],
   });
 
   // 7. mage's house
@@ -1007,16 +885,19 @@ export const generateForest = (world: World) => {
   const waveItem: Deal["item"] = {
     amount: 1,
     equipment: "primary",
-    primary: "wave1",
+    material: "wood",
+    primary: "wave",
   };
   const beamItem: Deal["item"] = {
     amount: 1,
     equipment: "primary",
-    primary: "beam1",
+    material: "wood",
+    primary: "beam",
   };
   const bowItem: Deal["item"] = {
     equipment: "secondary",
     secondary: "bow",
+    material: "wood",
     amount: 1,
   };
   const arrowItem: Deal["item"] = {
@@ -1026,6 +907,7 @@ export const generateForest = (world: World) => {
   const slashItem: Deal["item"] = {
     equipment: "secondary",
     secondary: "slash",
+    material: "wood",
     amount: 1,
   };
   const chargeItem: Deal["item"] = {
@@ -1037,10 +919,10 @@ export const generateForest = (world: World) => {
       (item) => ({
         item,
         stock: Infinity,
-        price: getItemPrice(item),
+        prices: getItemPrice(item),
       })
     ),
-    transaction: "buy",
+    tabs: ["buy"],
   });
 
   // empty houses
@@ -1135,7 +1017,7 @@ export const generateForest = (world: World) => {
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: chestData.sprite,
-      [STATS]: { ...emptyStats, ...chestData.stats },
+      [STATS]: { ...emptyUnitStats, ...chestData.stats },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
     });
     populateInventory(

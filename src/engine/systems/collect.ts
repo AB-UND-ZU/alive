@@ -19,18 +19,19 @@ import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
 import {
+  addBackground,
   createText,
   getMaxCounter,
+  times,
   woodStick,
 } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { createSequence, getSequence } from "./sequence";
 import { CollectSequence, SEQUENCABLE } from "../components/sequencable";
-import { STATS } from "../components/stats";
+import { MAX_STAT_VALUE, STATS } from "../components/stats";
 import { MELEE } from "../components/melee";
 import { entities } from "..";
 import { SPRITE } from "../components/sprite";
-import { getGearStat } from "../../game/balancing/equipment";
 import { dropEntity } from "./drop";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
@@ -39,10 +40,10 @@ import {
   getLootDelay,
   queueMessage,
 } from "../../game/assets/utils";
-import { invertOrientation } from "../../game/math/path";
 import { pickupOptions, play } from "../../game/sound";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { setIdentifier } from "../utils";
+import { recolorSprite } from "../../game/assets/pixels";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -70,6 +71,7 @@ export const getStackable = (world: World, entity: Entity, item: Item) => {
     return (
       inventoryItem[ITEM].stackable === item.stackable &&
       inventoryItem[ITEM].material === item.material &&
+      inventoryItem[ITEM].element === item.element &&
       inventoryItem[ITEM].amount < STACK_SIZE
     );
   });
@@ -149,19 +151,33 @@ export const collectItem = (
     );
 
     // initiate collecting animation on player
-    const isHpOrMp = ["hp", "mp"].includes(itemEntity[ITEM].stat!);
-    if (orientation && !isHpOrMp) {
+    if (orientation && !itemEntity[ITEM].stat) {
       const sprite = getItemSprite(itemEntity[ITEM]);
+      const textColor = equipment ? colors.black : colors.silver;
+      const backgroundColor = equipment ? colors.silver : colors.black;
+
       queueMessage(world, entity, {
-        line: createText(`${collectAmount}x ${sprite.name}`, colors.silver),
-        orientation: invertOrientation(orientation),
+        line: [
+          ...createText(`${collectAmount}`, textColor, backgroundColor),
+          ...addBackground(
+            [
+              recolorSprite(times, {
+                [colors.white]: textColor,
+                [colors.black]: backgroundColor,
+              }),
+            ],
+            backgroundColor
+          ),
+          ...createText(`${sprite.name}`, textColor, backgroundColor),
+        ],
+        orientation: "up",
         fast: false,
         delay: getLootDelay(world, entity, 1),
       });
     }
 
     // play sound
-    if (!isHpOrMp) {
+    if (!["hp", "mp"].includes(itemEntity[ITEM].stat!)) {
       const options = pickupOptions[(stackable || stat)!];
       play("pickup", options);
     }
@@ -198,7 +214,7 @@ export const addToInventory = (
   ) {
     const woodSword = entities.createSword(world, {
       [ITEM]: {
-        amount: getGearStat("sword", "wood"),
+        amount: 1,
         equipment: "sword",
         material: "wood",
         carrier: entityId,
@@ -246,7 +262,10 @@ export const addToInventory = (
     entity[INVENTORY].items.push(targetId);
   } else if (targetStat) {
     const maxStat = getMaxCounter(targetStat);
-    const maximum = maxStat !== targetStat ? entity[STATS][maxStat] : 99;
+    const maximum =
+      maxStat !== targetStat && maxStat
+        ? entity[STATS][maxStat]
+        : MAX_STAT_VALUE;
     const collectAmount = fullStack ? itemEntity[ITEM].amount : amount;
     const newAmount = entity[STATS][targetStat] + collectAmount;
     const overflow = Math.max(newAmount, maximum) - maximum;
@@ -254,17 +273,22 @@ export const addToInventory = (
 
     entity[STATS][targetStat] = Math.min(newAmount, maximum);
 
-    if (entity[PLAYER] && displayAmount === 0) {
+    if (
+      entity[PLAYER] &&
+      displayAmount === 0 &&
+      (targetStat === "hp" || targetStat === "mp")
+    ) {
       queueMessage(world, entity, {
         line: createText("0"),
         orientation: "up",
         fast: false,
         delay: 0,
       });
-    } else if (entity[PLAYER] && targetStat === "hp") {
-      entity[PLAYER].healingReceived += displayAmount;
-    } else if (entity[PLAYER] && targetStat === "mp") {
-      entity[PLAYER].manaReceived += displayAmount;
+    } else if (
+      entity[PLAYER] &&
+      ["hp", "mp", "maxHp", "maxMp"].includes(targetStat)
+    ) {
+      entity[PLAYER].receivedStats[targetStat] += displayAmount;
     }
   } else if (targetStackable) {
     // add to existing stack if available

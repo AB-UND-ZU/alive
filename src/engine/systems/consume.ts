@@ -1,8 +1,14 @@
 import { World } from "../ecs";
 import { RENDERABLE } from "../components/renderable";
 import { Entity } from "ecs";
-import { Consumable, ITEM, Material, Stackable } from "../components/item";
-import { INVENTORY } from "../components/inventory";
+import {
+  Consumable,
+  Element,
+  ITEM,
+  Material,
+  Stackable,
+} from "../components/item";
+import { Inventory, INVENTORY } from "../components/inventory";
 import { PLAYER } from "../components/player";
 import { Countable, STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
@@ -17,12 +23,13 @@ import { MOVABLE } from "../components/movable";
 import { entities } from "..";
 import { REFERENCE } from "../components/reference";
 import { getEntityHaste, getHasteInterval } from "./movement";
-import { disposeEntity } from "./map";
 import { LAYER } from "../components/layer";
 import { NPC } from "../components/npc";
 import { POPUP } from "../components/popup";
 import { addToInventory } from "./collect";
 import { SPRITE } from "../components/sprite";
+import { getVerticalIndex } from "./popup";
+import { LEVEL } from "../components/level";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -36,7 +43,8 @@ export const getConsumables = (world: World, entity: Entity) =>
 
 export const defaultLight = { visibility: 3.66, brightness: 3.66, darkness: 0 };
 export const torchLight = { visibility: 5.55, brightness: 5.55, darkness: 0 };
-export const spawnLight = { visibility: 18, brightness: 18, darkness: 0 };
+export const spawnLight = { visibility: 7.6, brightness: 7.6, darkness: 0 };
+export const roomLight = { visibility: 19, brightness: 19, darkness: 0 };
 
 export const consumptionConfigs: Partial<
   Record<
@@ -44,23 +52,34 @@ export const consumptionConfigs: Partial<
     Partial<
       Record<
         Material,
-        {
-          cooldown: number;
-          amount: number;
-          countable: keyof Countable;
-          buffer: number; // leave a few countables open so the player can still manually restore stats without wasting consumable
-        }
+        Partial<
+          Record<
+            Element,
+            {
+              cooldown: number;
+              amount: number;
+              countable: keyof Countable;
+              buffer: number; // leave a few countables open so the player can still manually restore stats without wasting consumable
+            }
+          >
+        >
       >
     >
   >
 > = {
-  potion1: {
-    fire: { cooldown: 10, amount: 2, countable: "hp", buffer: 2 },
-    water: { cooldown: 10, amount: 1, countable: "mp", buffer: 2 },
-  },
-  potion2: {
-    fire: { cooldown: 7, amount: 5, countable: "hp", buffer: 3 },
-    water: { cooldown: 7, amount: 2, countable: "mp", buffer: 3 },
+  potion: {
+    wood: {
+      fire: { cooldown: 5, amount: 2, countable: "hp", buffer: 2 },
+      water: { cooldown: 5, amount: 1, countable: "mp", buffer: 2 },
+    },
+    iron: {
+      fire: { cooldown: 8, amount: 5, countable: "hp", buffer: 2 },
+      water: { cooldown: 8, amount: 2, countable: "mp", buffer: 2 },
+    },
+    gold: {
+      fire: { cooldown: 10, amount: 10, countable: "hp", buffer: 2 },
+      water: { cooldown: 10, amount: 4, countable: "mp", buffer: 2 },
+    },
   },
 };
 
@@ -80,22 +99,28 @@ export const getConsumption = (
   entity: Entity,
   target: Entity
 ) => {
-  if (
-    !target[INVENTORY] ||
-    target[INVENTORY].items.length === 0 ||
-    !target[POPUP]
-  )
-    return;
+  const bagItems = target[INVENTORY]
+    ? (target[INVENTORY] as Inventory).items.filter(
+        (item) => !world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment
+      )
+    : [];
+
+  if (bagItems.length === 0 || !target[POPUP]) return;
 
   const item = world.getEntityByIdAndComponents(
-    target[INVENTORY].items[target[POPUP].verticalIndex],
+    bagItems[getVerticalIndex(world, target)],
     [ITEM]
   );
 
   if (!item) return;
 
+  return getItemConsumption(world, item);
+};
+
+export const getItemConsumption = (world: World, item: Entity) => {
   const consumption =
-    item[ITEM].stackable && stackableConsumptions[item[ITEM].stackable];
+    item[ITEM].stackable &&
+    stackableConsumptions[item[ITEM].stackable as Stackable];
 
   return consumption ? { ...consumption, item } : undefined;
 };
@@ -131,8 +156,9 @@ export const consumeItem = (world: World, entity: Entity, target: Entity) => {
 
 export default function setupConsume(world: World) {
   let worldGeneration = -1;
-  const nextConsumptions: Record<number, Record<number, number>> = {};
-  const entityHaste: Record<number, number> = {};
+  let worldName = "";
+  let nextConsumptions: Record<number, Record<number, number>> = {};
+  let entityHaste: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world.metadata.gameEntity[RENDERABLE].generation;
@@ -140,6 +166,12 @@ export default function setupConsume(world: World) {
     if (worldGeneration === generation) return;
 
     worldGeneration = generation;
+
+    if (worldName !== world.metadata.gameEntity[LEVEL].name) {
+      worldName = world.metadata.gameEntity[LEVEL].name;
+      nextConsumptions = {};
+      entityHaste = {};
+    }
 
     // process consumable items in inventory
     for (const entity of world.getEntities([INVENTORY, STATS])) {
@@ -157,12 +189,13 @@ export default function setupConsume(world: World) {
         const consumptionConfig =
           consumptionConfigs[consumable[ITEM].consume!]?.[
             consumable[ITEM].material!
-          ];
+          ]?.[consumable[ITEM].element!];
+        const maxCounter =
+          consumptionConfig && getMaxCounter(consumptionConfig.countable);
 
-        if (!consumptionConfig) continue;
+        if (!consumptionConfig || !maxCounter) continue;
 
         // ensure consumable is needed
-        const maxCounter = getMaxCounter(consumptionConfig.countable);
         const currentCountable = entity[STATS][consumptionConfig.countable];
         const maxCountable = entity[STATS][maxCounter];
         const nextConsumption = nextConsumptions[entityId]?.[consumableId];
@@ -191,7 +224,7 @@ export default function setupConsume(world: World) {
           const entityConsumptions = nextConsumptions[entityId] || {};
           nextConsumptions[entityId] = entityConsumptions;
           entityConsumptions[consumableId] =
-            worldGeneration + consumptionConfig.cooldown;
+            worldGeneration + consumptionConfig.cooldown * 3;
         }
       }
 
@@ -249,25 +282,14 @@ export default function setupConsume(world: World) {
     for (const entity of world.getEntities([PLAYER, STATS, MOVABLE])) {
       const entityId = world.getEntityId(entity);
       const haste = getEntityHaste(world, entity);
+      const frame = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+        REFERENCE,
+        RENDERABLE,
+      ]);
 
-      if (!(entityId in entityHaste)) {
+      if (haste !== entityHaste[entityId]) {
+        frame[REFERENCE].tick = getHasteInterval(world, haste);
         entityHaste[entityId] = haste;
-      } else if (haste !== entityHaste[entityId]) {
-        const oldFrame = world.assertByIdAndComponents(
-          entity[MOVABLE].reference,
-          [REFERENCE, RENDERABLE]
-        );
-        const newFrame = entities.createFrame(world, {
-          [REFERENCE]: {
-            ...oldFrame[REFERENCE],
-            tick: getHasteInterval(world, haste),
-          },
-          [RENDERABLE]: { generation: oldFrame[RENDERABLE].generation },
-        });
-        entity[MOVABLE].reference = world.getEntityId(newFrame);
-
-        entityHaste[entityId] = haste;
-        disposeEntity(world, oldFrame);
       }
     }
   };

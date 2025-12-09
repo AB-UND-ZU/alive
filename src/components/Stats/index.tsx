@@ -7,8 +7,9 @@ import {
   createButton,
   resumeInvert,
   pauseInvert,
+  createSpriteButton,
 } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
@@ -19,6 +20,12 @@ import { isGhost } from "../../engine/systems/fate";
 import { PLAYER } from "../../engine/components/player";
 import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
+import { LEVEL } from "../../engine/components/level";
+import { menuName } from "../../game/levels/menu";
+
+const pressDuration = 200;
+const progressWidth = 13;
+const bagWidth = 4;
 
 function StatsInner({
   padding,
@@ -37,14 +44,33 @@ function StatsInner({
   ) => void;
 } & Partial<Countable> &
   Equippable) {
-  const { paused, setPaused } = useWorld();
+  const { ecs, paused, setPaused, flipped } = useWorld();
+  const [pressed, setPressed] = useState("");
+  const level = ecs?.metadata.gameEntity[LEVEL].name;
+  const inMenu = level === menuName;
+
   const handleMenu = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
 
       setPaused((prevPaused) => !prevPaused);
+      setPressed("pause");
+      setTimeout(setPressed, pressDuration, "");
     },
     [setPaused]
+  );
+  const handleBag = useCallback(
+    (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      if (paused) return;
+
+      event.preventDefault();
+
+      handleInspect(event);
+
+      setPressed("inspect");
+      setTimeout(setPressed, pressDuration, "");
+    },
+    [handleInspect, paused]
   );
 
   const highlightRef = useRef<NodeJS.Timeout>();
@@ -61,19 +87,26 @@ function StatsInner({
     }, 100);
   }, []);
 
-  const pauseButton = createButton(" ", 2, false, false, highlight, "silver");
+  const pauseButton = createSpriteButton(
+    [paused ? resumeInvert : pauseInvert],
+    2,
+    false,
+    pressed === "pause",
+    highlight,
+    paused ? "lime" : "silver"
+  );
   const bagButton = createButton(
-    "Bag",
-    4,
+    inspecting ? " X " : "BAG",
+    bagWidth,
     paused,
-    inspecting,
+    pressed === "inspect",
     (highlight + 3) % 8,
-    "silver"
+    inspecting ? "red" : "silver"
   );
 
   return (
-    <header className="Stats">
-      {hidden ? (
+    <header className={flipped ? "StatsFlipped" : "Stats"}>
+      {hidden || inMenu ? (
         <>
           <Row />
           <Row />
@@ -82,38 +115,69 @@ function StatsInner({
       ) : (
         <>
           <Row
-            cells={[
-              ...repeat(none, 2),
-              none,
-              ...createProgress(stats, "hp", 13, false),
-              none,
-              ...repeat(none, 4),
-            ]}
+            cells={
+              flipped
+                ? [
+                    ...repeat(none, 4),
+                    none,
+                    ...createProgress(stats, "hp", progressWidth, false),
+                    none,
+                    ...repeat(none, 2),
+                  ]
+                : [
+                    ...repeat(none, 2),
+                    none,
+                    ...createProgress(stats, "hp", progressWidth, false),
+                    none,
+                    ...repeat(none, 4),
+                  ]
+            }
           />
           <Row
-            cells={[
-              paused ? resumeInvert : pauseInvert,
-              pauseButton[0][1],
-              none,
-              ...createProgress(stats, "mp", 13),
-              none,
-              ...bagButton[0],
-            ]}
+            cells={
+              flipped
+                ? [
+                    ...bagButton[0],
+                    none,
+                    ...createProgress(stats, "mp", progressWidth),
+                    none,
+                    ...pauseButton[0],
+                  ]
+                : [
+                    ...pauseButton[0],
+                    none,
+                    ...createProgress(stats, "mp", progressWidth),
+                    none,
+                    ...bagButton[0],
+                  ]
+            }
           />
           <Row
-            cells={[
-              ...pauseButton[1],
-              none,
-              ...createProgress(stats, "xp", 13),
-              none,
-              ...bagButton[1],
-            ]}
+            cells={
+              flipped
+                ? [
+                    ...bagButton[1],
+                    none,
+                    ...createProgress(stats, "xp", progressWidth),
+                    none,
+                    ...pauseButton[1],
+                  ]
+                : [
+                    ...pauseButton[1],
+                    none,
+                    ...createProgress(stats, "xp", progressWidth),
+                    none,
+                    ...bagButton[1],
+                  ]
+            }
           />
         </>
       )}
-      <Row cells={createText("─".repeat(padding + width + 3), colors.grey)} />
+      <Row
+        cells={createText("─".repeat(width + padding * 2 + 1), colors.grey)}
+      />
       <div className="Menu" id="menu" onClick={handleMenu} />
-      <div className="Inspect" id="inspect" onClick={handleInspect} />
+      <div className="Inspect" id="inspect" onClick={handleBag} />
     </header>
   );
 }

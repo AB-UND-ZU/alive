@@ -1,14 +1,18 @@
 .Paused {
   position: absolute;
-  inset: 0;
+  inset: var(--pixel-size);
   overflow: hidden;
+  z-index: 2;
 }
 
 .Cover,
 .Overlay,
 .Resume {
   position: absolute;
-  height: calc(var(--100vh) - var(--cell-height) * 6 - var(--top-offset) - var(--bottom-offset));
+  height: calc(
+    var(--100vh) - var(--cell-height) * 6 - var(--top-offset) -
+      var(--bottom-offset)
+  );
   top: calc(var(--cell-height) * -1);
   bottom: calc(var(--cell-height) * -1);
   left: 0;

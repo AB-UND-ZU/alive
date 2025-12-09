@@ -1,4 +1,5 @@
-.Stats {
+.Stats,
+.StatsFlipped {
   position: relative;
   z-index: 1;
   height: calc(var(--cell-height) * 4);
@@ -12,16 +13,30 @@
 
 .Menu {
   position: absolute;
-  left: 0;
   top: 0;
   bottom: calc(var(--top-offset) * -1);
   width: calc(50% - var(--cell-width) * 7.5);
 }
 
+.Stats .Menu {
+  left: 0;
+}
+
+.StatsFlipped .Menu {
+  right: 0;
+}
+
 .Inspect {
   position: absolute;
-  right: 0;
   top: 0;
   bottom: calc(var(--top-offset) * -1);
   width: calc(50% - var(--cell-width) * 5.5);
+}
+
+.Stats .Inspect {
+  right: 0;
+}
+
+.StatsFlipped .Inspect {
+  left: 0;
 }

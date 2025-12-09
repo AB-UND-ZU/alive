@@ -46,6 +46,7 @@ import { PLAYER } from "../components/player";
 import { NPC } from "../components/npc";
 import { play } from "../../game/sound";
 import { STATS } from "../components/stats";
+import { isImmersible } from "./immersion";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE].decayed;
@@ -350,7 +351,7 @@ export const dropEntity = (
       [POSITION]: dropPosition,
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: none,
+      [SPRITE]: !isImmersible(world, dropPosition) ? shadow : none,
       [SWIMMABLE]: { swimming: false },
     });
 

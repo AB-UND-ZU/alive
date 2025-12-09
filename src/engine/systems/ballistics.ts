@@ -24,17 +24,18 @@ import {
   isDead,
   isEnemy,
   isFriendlyFire,
+  isNpc,
 } from "./damage";
 import { isCollision } from "./movement";
 import { isImmersible, isSubmerged } from "./immersion";
 import { collectItem, getCollecting, getLootable } from "./collect";
 import { rerenderEntity } from "./renderer";
-import { emptyStats, STATS } from "../components/stats";
+import { emptyUnitStats, STATS } from "../components/stats";
 import { getLockable } from "./action";
 import { invertOrientation } from "../../game/math/path";
 import { ATTACKABLE } from "../components/attackable";
-import { EQUIPPABLE } from "../components/equippable";
 import { TypedEntity } from "../entities";
+import { getAbilityStats } from "../../game/balancing/abilities";
 
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -82,7 +83,7 @@ export const shootArrow = (
     "MOVABLE" | "EQUIPPABLE" | "BELONGABLE" | "ORIENTABLE" | "POSITION"
   >;
 
-  if (!isEnemy(world, entity)) {
+  if (!isNpc(world, entity)) {
     consumeCharge(world, entity, { stackable: "arrow" });
   }
 
@@ -102,16 +103,8 @@ export const shootArrow = (
       [RENDERABLE]: { generation: 0 },
     })
   );
-  const swordEntity = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
-    ITEM,
-  ]);
-  const { damage } = calculateDamage(
-    world,
-    "physical",
-    swordEntity[ITEM].amount,
-    entity,
-    emptyStats
-  );
+  const bowStats = getAbilityStats(bow[ITEM]);
+  const { damage } = calculateDamage(world, bowStats, entity, emptyUnitStats);
   const shotEntity = entities.createShot(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [MOVABLE]: {
@@ -125,7 +118,7 @@ export const shootArrow = (
     [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
     [POSITION]: copy(entity[POSITION]),
     [PROJECTILE]: {
-      damage: Math.ceil(damage / 2),
+      damage,
       moved: false,
     },
     [RENDERABLE]: { generation: 0 },
@@ -192,15 +185,20 @@ export default function setupBallistics(world: World) {
           const attack = entity[PROJECTILE].damage;
           const { damage, hp } = calculateDamage(
             world,
-            "physical",
-            attack,
+            { melee: attack },
             {},
             targetEntity
           );
           targetEntity[STATS].hp = hp;
 
           // add hit marker
-          createAmountMarker(world, targetEntity, -damage, orientation);
+          createAmountMarker(
+            world,
+            targetEntity,
+            -damage,
+            orientation,
+            "melee"
+          );
 
           // increment arrow hit counter on target
           if (!isEnemy(world, entity)) {

@@ -1,9 +1,9 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Gear = "sword" | "shield";
+export type Gear = "sword" | "shield" | "ring" | "amulet";
 export type Tools = "torch" | "compass";
-export type Equipment = Gear | Tools | "primary" | "secondary" | "passive";
+export type Equipment = Gear | Tools | "primary" | "secondary";
 
 export type Equippable = {
   [key in Equipment]?: number;

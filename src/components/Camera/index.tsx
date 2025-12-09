@@ -7,7 +7,7 @@ import { cameraHeight } from "../Entity/utils";
 const AnimatedOrthographicCamera = animated(OrthographicCamera);
 const initialCamera = {
   x: 0,
-  y: 0.5,
+  y: 0,
   z: cameraHeight,
 };
 

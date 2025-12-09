@@ -6,7 +6,7 @@ import { LIGHT } from "../../engine/components/light";
 import { MOVABLE } from "../../engine/components/movable";
 import { FOG } from "../../engine/components/fog";
 import { SWIMMABLE } from "../../engine/components/swimmable";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import Animated from "./Animated";
 import CoveredLight from "./CoveredLight";
 import { useWorld } from "../../bindings/hooks";
@@ -38,6 +38,7 @@ import { ATTACKABLE } from "../../engine/components/attackable";
 import { PROJECTILE } from "../../engine/components/projectile";
 import { LAYER } from "../../engine/components/layer";
 import FogOfWar from "./FogOfWar";
+import { LIQUID } from "../../engine/components/liquid";
 
 function Entity({
   entity,
@@ -76,6 +77,7 @@ function Entity({
     isOpaque && ecs ? getOpaqueOrientation(ecs, entity) : undefined;
   const isBright = !!entity[LIGHT] && entity[LIGHT].brightness > 0 && !inside;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
+  const isLiquid = !!entity[LIQUID];
   const hasStats = !!entity[STATS] && entity[ATTACKABLE];
 
   const isTransparent =
@@ -198,7 +200,10 @@ function Entity({
       {isBright && (
         <CoveredLight
           brightness={entity[LIGHT]!.brightness}
-          shadow={dimensions.renderedDiagonal}
+          width={dimensions.renderedColumns * dimensions.aspectRatio}
+          height={dimensions.renderedRows}
+          x={x}
+          y={y}
         />
       )}
 
@@ -219,6 +224,7 @@ function Entity({
       )}
 
       {isFog &&
+        !isLiquid &&
         !(isInside && !isFloat && inRadius) &&
         !((isOpaque || isFloat) && inRadius) &&
         !(isTransparent || (hasLoot && !isLootTransparent)) && <FogOfWar />}

@@ -18,7 +18,7 @@ import { AFFECTABLE } from "../components/affectable";
 import { SWIMMABLE } from "../components/swimmable";
 import { copy } from "../../game/math/std";
 import { BELONGABLE } from "../components/belongable";
-import { CASTABLE } from "../components/castable";
+import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
 import { createText, none } from "../../game/assets/sprites";
@@ -26,7 +26,7 @@ import { FOG } from "../components/fog";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
 import { queueMessage } from "../../game/assets/utils";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 
 export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
 
@@ -54,15 +54,7 @@ export const extinguishEntity = (world: World, entity: Entity) => {
 
   const castableEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
-    [CASTABLE]: {
-      medium: "true",
-      affected: {},
-      damage: 0,
-      burn: 0,
-      freeze: 0,
-      heal: 0,
-      caster: world.getEntityId(entity),
-    },
+    [CASTABLE]: getEmptyCastable(world, entity),
     [ORIENTABLE]: {},
     [POSITION]: copy(entity[POSITION]),
     [RENDERABLE]: { generation: 0 },
@@ -74,7 +66,7 @@ export const extinguishEntity = (world: World, entity: Entity) => {
     castableEntity,
     "smoke",
     "smokeWind",
-    { generation: 0, extinguish: 3 }
+    { generation: 0, extinguish: 3, simmer: false }
   );
 };
 
@@ -129,25 +121,32 @@ export default function setupBurn(world: World) {
 
       // create burning animation
       burningEntities.forEach((burningEntity) => {
-        if (!getSequence(world, burningEntity, "burn")) {
-          createSequence<"burn", BurnSequence>(
-            world,
-            burningEntity,
-            "burn",
-            "fireBurn",
-            { generation: 0 }
-          );
+        const simmer = burningEntity[BURNABLE].simmer;
+        if (
+          !getSequence(world, burningEntity, "burn") &&
+          !getSequence(world, burningEntity, "smoke")
+        ) {
+          if (!simmer) {
+            createSequence<"burn", BurnSequence>(
+              world,
+              burningEntity,
+              "burn",
+              "fireBurn",
+              { generation: 0 }
+            );
+          }
 
           if (
             burningEntity[BURNABLE].eternal ||
-            burningEntity[BURNABLE].remains
+            burningEntity[BURNABLE].remains ||
+            simmer
           )
             createSequence<"smoke", SmokeSequence>(
               world,
               burningEntity,
               "smoke",
               "smokeWind",
-              { generation: 0, extinguish: 0 }
+              { generation: 0, extinguish: 0, simmer }
             );
         }
       });
@@ -237,15 +236,7 @@ export default function setupBurn(world: World) {
       const smokeState = entity[SEQUENCABLE].states.smoke;
       const castableEntity = entities.createSpell(world, {
         [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
-        [CASTABLE]: {
-          medium: "true",
-          affected: {},
-          damage: 0,
-          burn: 0,
-          freeze: 0,
-          heal: 0,
-          caster: world.getEntityId(entity),
-        },
+        [CASTABLE]: getEmptyCastable(world, entity),
         [ORIENTABLE]: {},
         [POSITION]: copy(entity[POSITION]),
         [RENDERABLE]: { generation: 0 },

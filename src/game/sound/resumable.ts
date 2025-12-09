@@ -2,6 +2,17 @@ import { Params, SoundEffect } from "jsfxr";
 import RIFFWAVE from "./riffwave";
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const masterGain = audioContext.createGain();
+masterGain.gain.value = 1;
+masterGain.connect(audioContext.destination);
+
+export const muteAudio = () => {
+  masterGain.gain.value = 0;
+};
+
+export const unmuteAudio = () => {
+  masterGain.gain.value = 1;
+};
 
 export const suspendAudio = () => audioContext.suspend();
 
@@ -62,7 +73,7 @@ ResumableSoundEffect.prototype._resumable_sfxr_getAudioFn = function (
           proc.buffer = buff;
           var gainNode = audioContext.createGain();
           gainNode.gain.value = volume;
-          gainNode.connect(audioContext.destination);
+          gainNode.connect(masterGain);
           proc.connect(gainNode);
           proc.start();
           this.channels.push(proc);

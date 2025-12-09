@@ -1,5 +1,6 @@
 import { Pattern } from "../../engine/components/behaviour";
 import {
+  bandit,
   box,
   cactus1,
   cactus2,
@@ -17,7 +18,6 @@ import {
   guide,
   hedge1,
   hedge2,
-  hunter,
   knight,
   legendaryChest,
   mage,
@@ -26,6 +26,7 @@ import {
   pot,
   prism,
   rareChest,
+  rogue,
   scout,
   settler,
   treeBurnt1,
@@ -37,7 +38,6 @@ import {
 import { Sprite } from "../../engine/components/sprite";
 import { choice, distribution } from "../math/std";
 import { Item } from "../../engine/components/item";
-import { getGearStat } from "./equipment";
 import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
 import { NpcType } from "../../engine/components/npc";
@@ -47,6 +47,7 @@ import {
   fenceBurnt2,
   sign,
 } from "../assets/sprites/structures";
+import { emptyUnitStats, UnitStats } from "../../engine/components/stats";
 
 export type UnitKey =
   | NpcType
@@ -72,10 +73,7 @@ export type NpcDistribution = Partial<Record<NpcType, number>>;
 
 export type UnitDefinition = {
   faction: Faction;
-  power: number;
-  armor: number;
-  hp: number;
-  mp: number;
+  stats: Partial<UnitStats>;
   equipments: Omit<Item, "carrier">[];
   drops: {
     chance: number;
@@ -89,14 +87,7 @@ export type UnitDefinition = {
 
 export type UnitData = {
   faction: Faction;
-  stats: {
-    power: number;
-    armor: number;
-    hp: number;
-    maxHp: number;
-    mp: number;
-    maxMp: number;
-  };
+  stats: UnitStats;
   equipments: Omit<Item, "carrier">[];
   items: Omit<Item, "carrier">[];
   patterns: Pattern[];
@@ -112,27 +103,27 @@ export type NpcData = UnitData & {
 const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
     faction: "nomad",
-    power: 1,
-    armor: 1,
-    hp: 30,
-    mp: 0,
+    stats: {
+      hp: 30,
+    },
     equipments: [
       {
         equipment: "sword",
         material: "iron",
         bound: false,
-        amount: getGearStat("sword", "iron"),
+        amount: 1,
       },
       {
         equipment: "shield",
         material: "wood",
         bound: false,
-        amount: getGearStat("shield", "wood"),
+        amount: 1,
       },
       {
         amount: Infinity,
-        consume: "potion1",
-        material: "fire",
+        consume: "potion",
+        material: "wood",
+        element: "fire",
         bound: true,
       },
     ],
@@ -142,22 +133,21 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   nomad: {
     faction: "settler",
-    power: 1,
-    armor: 1,
-    hp: 30,
-    mp: 0,
+    stats: {
+      hp: 30,
+    },
     equipments: [
       {
         equipment: "sword",
         material: "wood",
         bound: false,
-        amount: getGearStat("sword", "wood"),
+        amount: 1,
       },
       {
         equipment: "shield",
         material: "wood",
         bound: false,
-        amount: getGearStat("shield", "wood"),
+        amount: 1,
       },
     ],
     drops: [{ chance: 100, items: [{ stat: "xp", amount: 3 }] }],
@@ -166,21 +156,20 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   chief: {
     faction: "settler",
-    power: 0,
-    armor: 0,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 40,
+    },
     equipments: [
       {
         equipment: "sword",
         material: "iron",
-        amount: getGearStat("sword", "iron"),
+        amount: 1,
         bound: true,
       },
       {
         equipment: "shield",
         material: "iron",
-        amount: getGearStat("shield", "iron"),
+        amount: 1,
         bound: true,
       },
     ],
@@ -190,10 +179,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   elder: {
     faction: "settler",
-    power: 0,
-    armor: 0,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 20,
+    },
     equipments: [],
     drops: [],
     patternNames: [],
@@ -201,10 +189,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   scout: {
     faction: "settler",
-    power: 0,
-    armor: 0,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 20,
+    },
     equipments: [],
     drops: [],
     patternNames: [],
@@ -212,15 +199,14 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   smith: {
     faction: "settler",
-    power: 0,
-    armor: 0,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 30,
+    },
     equipments: [
       {
         equipment: "shield",
         material: "iron",
-        amount: getGearStat("shield", "iron"),
+        amount: 1,
         bound: true,
       },
     ],
@@ -230,10 +216,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   trader: {
     faction: "settler",
-    power: 0,
-    armor: 0,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 20,
+    },
     equipments: [],
     drops: [],
     patternNames: [],
@@ -241,10 +226,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   druid: {
     faction: "settler",
-    power: 0,
-    armor: 0,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 20,
+    },
     equipments: [],
     drops: [],
     patternNames: [],
@@ -252,72 +236,118 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hunter: {
     faction: "settler",
-    power: 0,
-    armor: 0,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 30,
+    },
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: { ...hunter, name: "Hunter" },
+    sprite: { ...rogue, name: "Hunter" },
   },
   mage: {
     faction: "settler",
-    power: 0,
-    armor: 0,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 20,
+    },
     equipments: [],
     drops: [],
     patternNames: [],
     sprite: { ...mage, name: "Mage" },
   },
-  bandit: {
+  banditKnight: {
     faction: "wild",
-    power: 0,
-    armor: 0,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 20,
+    },
     equipments: [
       {
         equipment: "sword",
         material: "wood",
-        amount: getGearStat("sword", "wood"),
+        amount: 1,
         bound: true,
       },
       {
         equipment: "shield",
         material: "wood",
-        amount: getGearStat("shield", "wood"),
+        amount: 1,
         bound: true,
       },
     ],
     drops: [],
     patternNames: [],
-    sprite: { ...hunter, name: "Bandit" },
+    sprite: { ...bandit, name: "Bandit" },
+  },
+  banditArcher: {
+    faction: "wild",
+    stats: {
+      hp: 20,
+    },
+    equipments: [
+      {
+        equipment: "secondary",
+        secondary: "bow",
+        material: "wood",
+        amount: 1,
+        bound: true,
+      },
+    ],
+    drops: [],
+    patternNames: ["archer"],
+    sprite: { ...bandit, name: "Bandit" },
+  },
+  tutorialBoss: {
+    faction: "wild",
+    stats: {
+      hp: 20,
+    },
+    equipments: [
+      {
+        equipment: "secondary",
+        secondary: "bow",
+        material: "wood",
+        amount: 1,
+        bound: true,
+      },
+    ],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { consume: "key", material: "iron", amount: 1 },
+          { stat: "xp", amount: 2 },
+          { stackable: "apple", amount: 1 },
+        ],
+      },
+    ],
+    patternNames: ["archer"],
+    sprite: { ...bandit, name: "Bandit" },
   },
   commonChest: {
     faction: "unit",
-    power: 0,
-    armor: 1,
-    hp: 15,
-    mp: 0,
+    stats: {
+      hp: 15,
+      armor: 1,
+    },
     equipments: [],
     drops: [
       {
         chance: 30,
-        items: [{ consume: "potion1", material: "fire", amount: 10 }],
+        items: [
+          { consume: "potion", material: "wood", element: "fire", amount: 10 },
+        ],
       },
       {
         chance: 30,
-        items: [{ consume: "potion1", material: "water", amount: 10 }],
+        items: [
+          { consume: "potion", material: "wood", element: "water", amount: 10 },
+        ],
       },
       {
-        chance: 20,
+        chance: 30,
         items: [{ stackable: "resource", material: "wood", amount: 1 }],
       },
       {
-        chance: 20,
+        chance: 10,
         items: [{ stackable: "resource", material: "iron", amount: 1 }],
       },
     ],
@@ -326,10 +356,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   uncommonChest: {
     faction: "unit",
-    power: 0,
-    armor: 2,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 20,
+      armor: 2,
+    },
     equipments: [],
     drops: [
       {
@@ -338,9 +368,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
           {
             equipment: "shield",
             material: "wood",
-            amount: getGearStat("shield", "wood"),
+            amount: 1,
           },
-          { consume: "potion1", material: "fire", amount: 10 },
+          { consume: "potion", material: "wood", element: "fire", amount: 10 },
         ],
       },
       {
@@ -348,10 +378,11 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         items: [
           {
             equipment: "primary",
-            primary: "beam1",
+            primary: "beam",
+            material: "wood",
             amount: 1,
           },
-          { consume: "potion1", material: "water", amount: 10 },
+          { consume: "potion", material: "wood", element: "water", amount: 10 },
         ],
       },
       {
@@ -359,23 +390,34 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         items: [
           {
             equipment: "primary",
-            primary: "wave1",
+            primary: "wave",
+            material: "wood",
             amount: 1,
           },
-          { consume: "potion1", material: "water", amount: 10 },
+          { consume: "potion", material: "wood", element: "water", amount: 10 },
         ],
       },
       {
         chance: 20,
         items: [
-          { equipment: "secondary", secondary: "slash", amount: 1 },
+          {
+            equipment: "secondary",
+            secondary: "slash",
+            material: "wood",
+            amount: 1,
+          },
           { stackable: "charge", amount: 10 },
         ],
       },
       {
         chance: 20,
         items: [
-          { equipment: "secondary", secondary: "bow", amount: 1 },
+          {
+            equipment: "secondary",
+            secondary: "bow",
+            material: "wood",
+            amount: 1,
+          },
           { stackable: "arrow", amount: 10 },
         ],
       },
@@ -385,10 +427,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rareChest: {
     faction: "unit",
-    power: 0,
-    armor: 3,
-    hp: 25,
-    mp: 0,
+    stats: {
+      hp: 25,
+      armor: 3,
+    },
     equipments: [],
     drops: [],
     patternNames: [],
@@ -396,10 +438,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   epicChest: {
     faction: "unit",
-    power: 0,
-    armor: 4,
-    hp: 30,
-    mp: 0,
+    stats: {
+      hp: 30,
+      armor: 4,
+    },
     equipments: [],
     drops: [],
     patternNames: [],
@@ -407,10 +449,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   legendaryChest: {
     faction: "unit",
-    power: 0,
-    armor: 5,
-    hp: 35,
-    mp: 0,
+    stats: {
+      hp: 35,
+      armor: 5,
+    },
     equipments: [],
     drops: [],
     patternNames: [],
@@ -418,10 +460,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   pot: {
     faction: "unit",
-    power: 0,
-    armor: 0,
-    hp: 10,
-    mp: 0,
+    stats: {
+      hp: 10,
+    },
     equipments: [],
     drops: [
       { chance: 30, items: [{ stackable: "coin", amount: 3 }] },
@@ -438,10 +479,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   box: {
     faction: "unit",
-    power: 0,
-    armor: 0,
-    hp: 5,
-    mp: 0,
+    stats: {
+      hp: 5,
+    },
     equipments: [],
     drops: [
       { chance: 10, items: [{ stat: "xp", amount: 1 }] },
@@ -460,18 +500,14 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   dummy: {
     faction: "unit",
-    power: 0,
-    armor: 0,
-    hp: 25,
-    mp: 0,
+    stats: {
+      hp: 25,
+    },
     equipments: [],
     drops: [
       {
         chance: 100,
-        items: [
-          { stackable: "stick", amount: 1 },
-          { stackable: "resource", material: "iron", amount: 1 },
-        ],
+        items: [{ stackable: "coin", amount: 3 }],
       },
     ],
     patternNames: [],
@@ -480,10 +516,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   sign: {
     faction: "unit",
-    power: 0,
-    armor: 2,
-    hp: 20,
-    mp: 0,
+    stats: {
+      hp: 20,
+      armor: 2,
+    },
     equipments: [],
     drops: [
       {
@@ -500,10 +536,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   fence: {
     faction: "unit",
-    power: 0,
-    armor: 2,
-    hp: 35,
-    mp: 0,
+    stats: {
+      hp: 35,
+      armor: 2,
+    },
     equipments: [],
     drops: [
       {
@@ -517,10 +553,11 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   cactus1: {
     faction: "unit",
-    power: 2,
-    armor: 1,
-    hp: 15,
-    mp: 0,
+    stats: {
+      hp: 10,
+      armor: 1,
+      spike: 2,
+    },
     equipments: [],
     drops: [{ chance: 100, items: [{ stackable: "seed", amount: 1 }] }],
     patternNames: [],
@@ -528,10 +565,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   cactus2: {
     faction: "unit",
-    power: 3,
-    armor: 0,
-    hp: 15,
-    mp: 0,
+    stats: {
+      hp: 10,
+      spike: 3,
+    },
     equipments: [],
     drops: [{ chance: 100, items: [{ stackable: "seed", amount: 1 }] }],
     patternNames: [],
@@ -539,38 +576,37 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rock1: {
     faction: "unit",
-    power: 0,
-    armor: 3,
-    hp: 3,
-    mp: 0,
+    stats: {
+      hp: 3,
+      armor: 3,
+    },
     equipments: [],
     drops: [
-      { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
-      { chance: 30, items: [{ stackable: "crystal", amount: 1 }] },
+      { chance: 90, items: [{ stackable: "ore", amount: 1 }] },
+      { chance: 10, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
     sprite: desertRock1,
   },
   rock2: {
     faction: "unit",
-    power: 0,
-    armor: 2,
-    hp: 5,
-    mp: 0,
+    stats: {
+      hp: 5,
+      armor: 2,
+    },
     equipments: [],
     drops: [
-      { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
-      { chance: 30, items: [{ stackable: "gem", amount: 1 }] },
+      { chance: 90, items: [{ stackable: "ore", amount: 1 }] },
+      { chance: 10, items: [{ stackable: "gem", amount: 1 }] },
     ],
     patternNames: [],
     sprite: desertRock2,
   },
   tumbleweed: {
     faction: "unit",
-    power: 0,
-    armor: 0,
-    hp: 5,
-    mp: 0,
+    stats: {
+      hp: 5,
+    },
     equipments: [],
     drops: [{ chance: 100, items: [{ stackable: "stick", amount: 1 }] }],
     patternNames: ["tumbleweed"],
@@ -578,10 +614,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hedge1: {
     faction: "unit",
-    power: 0,
-    armor: 0,
-    hp: 10,
-    mp: 0,
+    stats: {
+      hp: 10,
+    },
     equipments: [],
     drops: [{ chance: 100, items: [{ stackable: "leaf", amount: 1 }] }],
     patternNames: [],
@@ -589,10 +624,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hedge2: {
     faction: "unit",
-    power: 0,
-    armor: 1,
-    hp: 7,
-    mp: 0,
+    stats: {
+      hp: 7,
+      armor: 1,
+    },
     equipments: [],
     drops: [{ chance: 100, items: [{ stackable: "leaf", amount: 1 }] }],
     patternNames: [],
@@ -600,15 +635,15 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   prism: {
     faction: "wild",
-    power: 0,
-    armor: 0,
-    hp: 4,
-    mp: 0,
+    stats: {
+      hp: 4,
+    },
     equipments: [
       {
         equipment: "sword",
+        material: "iron",
         bound: true,
-        amount: 1,
+        amount: 0,
       },
     ],
     drops: [
@@ -632,15 +667,16 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldPrism: {
     faction: "wild",
-    power: 0,
-    armor: 1,
-    hp: 10,
-    mp: 0,
+    stats: {
+      hp: 10,
+      armor: 1,
+    },
     equipments: [
       {
         equipment: "sword",
+        material: "gold",
         bound: true,
-        amount: 2,
+        amount: 0,
       },
     ],
     drops: [
@@ -658,15 +694,15 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   eye: {
     faction: "wild",
-    power: 0,
-    armor: 0,
-    hp: 1,
-    mp: 0,
+    stats: {
+      hp: 1,
+    },
     equipments: [
       {
         equipment: "sword",
+        material: "iron",
         bound: true,
-        amount: 1,
+        amount: 0,
       },
     ],
     drops: [
@@ -690,15 +726,16 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldEye: {
     faction: "wild",
-    power: 0,
-    armor: 1,
-    hp: 1,
-    mp: 0,
+    stats: {
+      hp: 1,
+      armor: 1,
+    },
     equipments: [
       {
         equipment: "sword",
+        material: "gold",
         bound: true,
-        amount: 5,
+        amount: 0,
       },
     ],
     drops: [
@@ -716,14 +753,15 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   orb: {
     faction: "wild",
-    power: 0,
-    armor: 0,
-    hp: 3,
-    mp: 1,
+    stats: {
+      hp: 3,
+      mp: 1,
+    },
     equipments: [
       {
         equipment: "primary",
-        primary: "beam1",
+        primary: "beam",
+        material: "iron",
         bound: true,
         amount: 1,
       },
@@ -757,14 +795,16 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldOrb: {
     faction: "wild",
-    power: 0,
-    armor: 1,
-    hp: 7,
-    mp: 2,
+    stats: {
+      hp: 7,
+      mp: 1,
+      armor: 1,
+    },
     equipments: [
       {
         equipment: "primary",
-        primary: "beam1",
+        primary: "beam",
+        material: "gold",
         bound: true,
         amount: 1,
       },
@@ -793,14 +833,16 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   diamondOrb: {
     faction: "wild",
-    power: 0,
-    armor: 2,
-    hp: 15,
-    mp: 2,
+    stats: {
+      hp: 15,
+      mp: 1,
+      armor: 2,
+    },
     equipments: [
       {
         equipment: "primary",
-        primary: "beam1",
+        primary: "beam",
+        material: "diamond",
         bound: true,
         amount: 1,
       },
@@ -829,38 +871,72 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   fairy: {
     faction: "wild",
-    power: 0,
-    armor: 2,
-    hp: 10,
-    mp: 0,
+    stats: {
+      hp: 10,
+      armor: 2,
+    },
     equipments: [],
     drops: [
       {
         chance: 33,
-        items: [{ stackable: "resource", amount: 1, material: "fire" }],
+        items: [
+          {
+            stackable: "resource",
+            amount: 1,
+            material: "wood",
+            element: "air",
+          },
+        ],
       },
-      {
-        chance: 33,
-        items: [{ stackable: "resource", amount: 1, material: "water" }],
-      },
-      {
-        chance: 33,
-        items: [{ stackable: "resource", amount: 1, material: "earth" }],
-      },
+      // {
+      //   chance: 33,
+      //   items: [
+      //     {
+      //       stackable: "resource",
+      //       amount: 1,
+      //       material: "wood",
+      //       element: "fire",
+      //     },
+      //   ],
+      // },
+      // {
+      //   chance: 33,
+      //   items: [
+      //     {
+      //       stackable: "resource",
+      //       amount: 1,
+      //       material: "wood",
+      //       element: "water",
+      //     },
+      //   ],
+      // },
+      // {
+      //   chance: 33,
+      //   items: [
+      //     {
+      //       stackable: "resource",
+      //       amount: 1,
+      //       material: "wood",
+      //       element: "earth",
+      //     },
+      //   ],
+      // },
     ],
     patternNames: ["fairy"],
     sprite: fairy,
   },
   waveTower: {
     faction: "wild",
-    power: 0,
-    armor: 3,
-    hp: 20,
-    mp: 2,
+    stats: {
+      hp: 20,
+      mp: 1,
+      armor: 3,
+    },
     equipments: [
       {
         equipment: "primary",
-        primary: "wave1",
+        primary: "wave",
+        material: "wood",
         bound: true,
         amount: 1,
       },
@@ -876,19 +952,22 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   chestBoss: {
     faction: "unit",
-    power: 0,
-    armor: 1,
-    hp: 200,
-    mp: 2,
+    stats: {
+      hp: 200,
+      mp: 1,
+      armor: 1,
+    },
     equipments: [
       {
         equipment: "sword",
+        material: "ruby",
         bound: true,
-        amount: 5,
+        amount: 0,
       },
       {
         equipment: "primary",
-        primary: "wave1",
+        primary: "wave",
+        material: "wood",
         bound: true,
         amount: 1,
       },
@@ -912,12 +991,12 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
           { stackable: "resource", amount: 3, material: "gold" },
           {
             equipment: "sword",
-            amount: getGearStat("sword", "gold"),
+            amount: 1,
             material: "gold",
           },
           {
             equipment: "shield",
-            amount: getGearStat("shield", "gold"),
+            amount: 1,
             material: "gold",
           },
         ],
@@ -934,16 +1013,8 @@ export const generateNpcKey = (npcDistribution: NpcDistribution) => {
 };
 
 export const generateUnitData = (unitKey: UnitKey): UnitData => {
-  const {
-    drops,
-    hp,
-    mp,
-    power,
-    armor,
-    patternNames,
-    remainsChoices,
-    ...unitDefinition
-  } = unitDefinitions[unitKey];
+  const { drops, stats, patternNames, remainsChoices, ...unitDefinition } =
+    unitDefinitions[unitKey];
   const items =
     drops.length > 0
       ? drops
@@ -956,7 +1027,12 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
 
   return {
     items,
-    stats: { hp, maxHp: hp, mp, maxMp: mp, power, armor },
+    stats: {
+      ...emptyUnitStats,
+      maxHp: stats.hp || emptyUnitStats.hp,
+      maxMp: stats.mp || emptyUnitStats.mp,
+      ...stats,
+    },
     patterns: patternNames.map((name) => ({ name, memory: {} })),
     remains: remainsChoices ? choice(...remainsChoices) : undefined,
     ...unitDefinition,

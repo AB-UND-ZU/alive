@@ -1,27 +1,24 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createWorld } from "../../engine";
-import { WorldProvider } from "../../bindings/hooks";
+import { worldContextRef, WorldProvider } from "../../bindings/hooks";
 import { PLAYER } from "../../engine/components/player";
 import { isGhost } from "../../engine/systems/fate";
 import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
 import { createLevel, createSystems } from "../../engine/ecs";
-import {
-  generateOverworld,
-  overworldSize,
-  overworldName,
-} from "../../game/levels/overworld";
+import { generateMenu, menuName, menuSize } from "../../game/levels/menu";
 
 export default function World(props: React.PropsWithChildren) {
   const [paused, setPaused] = useState(true);
   const [initial, setInitial] = useState(true);
+  const [flipped, setFlipped] = useState(false);
   const pauseRef = useRef(paused);
 
   // generate initial world
   // TODO: find better way to prevent double generation
   const [ecs] = useState(() => {
     const world = createWorld();
-    createLevel(world, overworldName, overworldSize);
-    setTimeout(generateOverworld, 0, world);
+    createLevel(world, menuName, menuSize);
+    setTimeout(generateMenu, 0, world);
     createSystems(world);
     return world;
   });
@@ -49,9 +46,20 @@ export default function World(props: React.PropsWithChildren) {
   );
 
   const context = useMemo(
-    () => ({ ecs, paused, setPaused: handlePause, initial, setInitial }),
-    [ecs, paused, handlePause, initial]
+    () => ({
+      ecs,
+      paused,
+      setPaused: handlePause,
+      initial,
+      setInitial,
+      flipped,
+      setFlipped,
+    }),
+    [ecs, paused, handlePause, initial, flipped]
   );
+  useEffect(() => {
+    worldContextRef.current = context;
+  }, [context]);
 
   return <WorldProvider value={context} {...props} />;
 }

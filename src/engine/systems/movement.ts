@@ -7,31 +7,46 @@ import { getCell, moveEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
-import { getDistance, normalize, random, sum } from "../../game/math/std";
+import {
+  getDistance,
+  normalize,
+  random,
+  signedDistance,
+  sum,
+} from "../../game/math/std";
 import {
   ORIENTABLE,
   Orientation,
   orientationPoints,
 } from "../components/orientable";
-import { getAttackable, isDead, isFriendlyFire } from "./damage";
+import {
+  getAttackable,
+  getEntityStats,
+  isDead,
+  isFriendlyFire,
+} from "./damage";
 import { getCollecting, getLootable } from "./collect";
 import { isImmersible, isSubmerged } from "./immersion";
 import { LEVEL } from "../components/level";
-import { canUnlock, getLockable, isLocked } from "./action";
+import { canUnlock, getLockable, getWarpable, isLocked } from "./action";
 import { createBubble } from "./water";
 import { getOpaque } from "./enter";
 import { ENVIRONMENT } from "../components/environment";
 import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
-import { STATS } from "../components/stats";
 import { freezeMomentum, isFrozen } from "./freeze";
 import { createItemName, queueMessage } from "../../game/assets/utils";
-import { createText } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import { addBackground, createText } from "../../game/assets/sprites";
+import { colors } from "../../game/assets/colors";
 import { isTouch } from "../../components/Dimensions";
 import { invertOrientation } from "../../game/math/path";
-import { getPopup, isInPopup, isPopupAvailable, popupActions } from "./popup";
-import { Popup, POPUP } from "../components/popup";
+import {
+  getPopup,
+  getTab,
+  isInPopup,
+  isPopupAvailable,
+  popupActions,
+} from "./popup";
 import { getSequence } from "./sequence";
 import { PLAYER } from "../components/player";
 import { npcVariants, play } from "../../game/sound";
@@ -65,7 +80,7 @@ const popupHaste = 8;
 export const getEntityHaste = (world: World, entity: Entity) =>
   isInPopup(world, entity)
     ? popupHaste
-    : entity[STATS].haste + getTempo(world, entity[POSITION]);
+    : getEntityStats(world, entity).haste + getTempo(world, entity[POSITION]);
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
@@ -113,10 +128,11 @@ export const getBiomes = (world: World, position: Position) =>
 export default function setupMovement(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
-  const size = world.metadata.gameEntity[LEVEL].size;
-  const hero = world.getEntity([PLAYER, POSITION, LAYER]);
 
   const onUpdate = (delta: number) => {
+    const size = world.metadata.gameEntity[LEVEL].size;
+    const hero = world.getEntity([PLAYER, POSITION, LAYER]);
+
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
@@ -199,6 +215,7 @@ export default function setupMovement(world: World) {
 
         const lockable = getLockable(world, position);
         const popup = getPopup(world, position);
+        const warp = getWarpable(world, position);
 
         if (
           entity[PLAYER] &&
@@ -212,19 +229,23 @@ export default function setupMovement(world: World) {
             line: canUnlock(world, entity, lockable)
               ? [
                   ...createText(
-                    isTouch ? "Tap on " : "SPACE to ",
-                    colors.silver
+                    isTouch ? "Tap on " : "[SPACE] to ",
+                    colors.silver,
+                    colors.black
                   ),
                   ...createText("OPEN", colors.black, colors.lime),
                 ]
-              : [
-                  ...createText("Need ", colors.silver),
-                  ...createItemName({
-                    consume: "key",
-                    material: lockable[LOCKABLE].material,
-                  }),
-                  ...createText("!", colors.silver),
-                ],
+              : addBackground(
+                  [
+                    ...createText("Need ", colors.silver),
+                    ...createItemName({
+                      consume: "key",
+                      material: lockable[LOCKABLE].material,
+                    }),
+                    ...createText("!", colors.silver),
+                  ],
+                  colors.black
+                ),
             orientation: invertOrientation(orientation),
             fast: false,
             delay: 0,
@@ -237,10 +258,14 @@ export default function setupMovement(world: World) {
           isPopupAvailable(world, popup)
         ) {
           // show message if popup available
-          const action = popupActions[(popup[POPUP] as Popup).transaction];
+          const action = popupActions[getTab(world, popup)];
           queueMessage(world, entity, {
             line: [
-              ...createText(isTouch ? "Tap on " : "SPACE to ", colors.silver),
+              ...createText(
+                isTouch ? "Tap on " : "[SPACE] to ",
+                colors.silver,
+                colors.black
+              ),
               ...createText(action, colors.black, colors.lime),
             ],
             orientation: invertOrientation(orientation),
@@ -248,6 +273,35 @@ export default function setupMovement(world: World) {
             delay: 0,
           });
           continue;
+        } else if (entity[PLAYER] && warp) {
+          queueMessage(world, entity, {
+            line: [
+              ...createText(
+                isTouch ? "Tap on " : "[SPACE] to ",
+                colors.silver,
+                colors.black
+              ),
+              ...createText("WARP", colors.black, colors.lime),
+            ],
+            orientation:
+              signedDistance(entity[POSITION].y, warp[POSITION].y, size) >= 0
+                ? "up"
+                : "down",
+            fast: false,
+            delay: 0,
+          });
+        } else if (
+          entity[PLAYER] &&
+          !isWalkable(world, position) &&
+          isSubmerged(world, position)
+        ) {
+          queueMessage(world, entity, {
+            line: createText("Can't swim!", colors.silver, colors.black),
+
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
         } else if (
           isWalkable(world, position) ||
           (entity[MOVABLE].flying && isFlyable(world, position))

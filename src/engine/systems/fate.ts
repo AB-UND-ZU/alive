@@ -24,13 +24,13 @@ import { ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
 import { copy } from "../../game/math/std";
-import { PLAYER } from "../components/player";
+import { emptyReceivedStats, PLAYER } from "../components/player";
 import { LIGHT } from "../components/light";
 import { VIEWABLE } from "../components/viewable";
 import { SPAWNABLE } from "../components/spawnable";
 import { EQUIPPABLE } from "../components/equippable";
 import { MOVABLE } from "../components/movable";
-import { isDecayed } from "./drop";
+import { findAdjacentDroppable, isDecayed } from "./drop";
 import { REVIVABLE } from "../components/revivable";
 import { ACTIONABLE } from "../components/actionable";
 import { COLLECTABLE } from "../components/collectable";
@@ -42,7 +42,7 @@ import { TRACKABLE } from "../components/trackable";
 import { createSequence } from "./sequence";
 import { BELONGABLE } from "../components/belongable";
 import { getClassData } from "../../game/balancing/classes";
-import { emptyStats, STATS } from "../components/stats";
+import { STATS } from "../components/stats";
 import { getHasteInterval } from "./movement";
 import { PUSHABLE } from "../components/pushable";
 import { AFFECTABLE } from "../components/affectable";
@@ -58,6 +58,7 @@ import {
 } from "../utils";
 import { addPopup } from "../components";
 import { closePopup } from "./popup";
+import { getBurning } from "./burn";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -105,7 +106,8 @@ export const reviveEntity = (world: World, entity: Entity, target: Entity) => {
 };
 
 export const createHero = (world: World, halo: Entity) => {
-  const { stats, sprite } = getClassData(halo[SPAWNABLE].classKey);
+  const { stats, sprite, swimming } = getClassData(halo[SPAWNABLE].classKey);
+
   const frameId = world.getEntityId(
     entities.createFrame(world, {
       [REFERENCE]: {
@@ -145,10 +147,7 @@ export const createHero = (world: World, halo: Entity) => {
     [ORIENTABLE]: {},
     [PLAYER]: {
       ghost: false,
-      damageReceived: 0,
-      healingReceived: 0,
-      manaReceived: 0,
-      xpReceived: 0,
+      receivedStats: { ...emptyReceivedStats },
       defeatedUnits: {},
       inspectTriggered: false,
     },
@@ -164,8 +163,8 @@ export const createHero = (world: World, halo: Entity) => {
       quest: halo[SPAWNABLE].quest,
     },
     [SPRITE]: sprite,
-    [STATS]: { ...emptyStats, ...stats },
-    [SWIMMABLE]: { swimming: false },
+    [STATS]: stats,
+    [SWIMMABLE]: { swimming: false, sprite: swimming },
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
     [VIEWABLE]: halo[SPAWNABLE].viewable,
   });
@@ -176,7 +175,7 @@ export const createHero = (world: World, halo: Entity) => {
     heroEntity,
     "vision",
     "changeRadius",
-    { light: halo[SPAWNABLE].light, fast: true }
+    { light: halo[SPAWNABLE].light, fast: false }
   );
   createSequence<"pointer", PointerSequence>(
     world,
@@ -188,12 +187,15 @@ export const createHero = (world: World, halo: Entity) => {
 
   const inspectEntity = assertIdentifier(world, "inspect");
   addPopup(world, heroEntity, {
-    lines: [],
     active: false,
-    verticalIndex: 0,
+    verticalIndezes: [0, 0, 0],
+    horizontalIndex: 0,
+    selections: [[], [], []],
+    lines: [],
     deals: [],
+    recipes: [],
     targets: [],
-    transaction: "inspect",
+    tabs: ["inspect", "gear", "stats"],
     viewpoint: world.getEntityId(inspectEntity),
   });
 
@@ -241,10 +243,13 @@ export default function setupFate(world: World) {
           entity[LIGHT].brightness === defaultLight.brightness;
 
         // create tombstone and play RIP animation
+        const tombstonePosition = getBurning(world, entity[POSITION])
+          ? findAdjacentDroppable(world, entity[POSITION])
+          : copy(entity[POSITION]);
         const tombstoneEntity = entities.createTombstone(world, {
           [FOG]: { visibility: "visible", type: "object" },
           [LAYER]: { structure: entity[LAYER].structure },
-          [POSITION]: copy(entity[POSITION]),
+          [POSITION]: copy(tombstonePosition),
           [RENDERABLE]: { generation: 0 },
           [REVIVABLE]: { available: false },
           [SEQUENCABLE]: { states: {} },
@@ -294,14 +299,11 @@ export default function setupFate(world: World) {
           },
           [PLAYER]: {
             ghost: true,
-            damageReceived: 0,
-            healingReceived: 0,
-            manaReceived: 0,
-            xpReceived: 0,
+            receivedStats: { ...emptyReceivedStats },
             defeatedUnits: {},
             inspectTriggered: false,
           },
-          [POSITION]: copy(entity[POSITION]),
+          [POSITION]: copy(tombstonePosition),
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: {
             states: {},

@@ -12,7 +12,7 @@ import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
-import { isDead, isEnemy, isNeutral } from "./damage";
+import { isDead, isEnemy, isNeutral, isNpc } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
@@ -20,13 +20,11 @@ import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
 import {
   getPopup,
-  isInInspect,
+  getTabSelections,
   isInPopup,
-  isInQuest,
-  isInShop,
+  isInTab,
   isPopupAvailable,
 } from "./popup";
-import { EQUIPPABLE } from "../components/equippable";
 import { WARPABLE } from "../components/warpable";
 
 export const getWarpable = (world: World, position: Position) =>
@@ -61,7 +59,8 @@ export const isUnlocked = (world: World, entity: Entity) =>
 
 export const canUnlock = (world: World, entity: Entity, lockable: Entity) =>
   !getSequence(world, lockable, "unlock") &&
-  (!lockable[LOCKABLE].material || !!getUnlockKey(world, entity, lockable));
+  (lockable[LOCKABLE].material === "wood" ||
+    !!getUnlockKey(world, entity, lockable));
 
 export const getUnlockKey = (
   world: World,
@@ -106,13 +105,7 @@ export const castablePrimary = (
   const primary = item[ITEM].primary;
 
   // check mana for spells
-  if (
-    entity[STATS] &&
-    primary &&
-    ((primary.endsWith("1") && entity[STATS].mp >= 1) ||
-      (primary.endsWith("2") && entity[STATS].mp >= 2))
-  )
-    return true;
+  if (entity[STATS] && primary && entity[STATS].mp >= 1) return true;
 
   return false;
 };
@@ -142,8 +135,7 @@ export const castableSecondary = (
   entity: TypedEntity<"INVENTORY">,
   item: TypedEntity<"ITEM">
 ) => {
-  // ensure melee is worn
-  if (!entity[EQUIPPABLE]?.sword) return false;
+  if (isNpc(world, entity)) return true;
 
   const secondary = item[ITEM].secondary;
 
@@ -194,6 +186,7 @@ export default function setupAction(world: World) {
       let claim: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
       let use: Entity | undefined = undefined;
+      let add_: Entity | undefined = undefined;
       let close: Entity | undefined = world.getEntityById(
         entity[PLAYER]?.popup
       );
@@ -221,20 +214,30 @@ export default function setupAction(world: World) {
           const adjacentPopup = getPopup(world, targetPosition);
           const popupEntity =
             adjacentPopup === entity ? undefined : adjacentPopup;
+          const selections = popupEntity
+            ? getTabSelections(world, popupEntity)
+            : [];
           const claimEntity = popupEntity;
           const tradeEntity = popupEntity;
           const useEntity = entity;
+          const addEntity = popupEntity;
 
           // portals can warp players
-          if (!warp && entity[PLAYER] && warpableEntity) {
+          if (
+            !warp &&
+            entity[PLAYER] &&
+            warpableEntity &&
+            isInTab(world, entity, "warp")
+          ) {
             warp = warpableEntity;
           }
 
           // claiming only while in finished quest
           if (
             !claim &&
+            entity[PLAYER] &&
             claimEntity &&
-            isInQuest(world, entity) &&
+            isInTab(world, entity, "quest") &&
             !getAvailableQuest(world, claimEntity)
           )
             claim = claimEntity;
@@ -243,8 +246,9 @@ export default function setupAction(world: World) {
           if (
             !claim &&
             !quest &&
+            entity[PLAYER] &&
             questEntity &&
-            isInQuest(world, entity) &&
+            isInTab(world, entity, "quest") &&
             canAcceptQuest(world, entity, questEntity) &&
             !isDead(world, entity)
           )
@@ -256,6 +260,7 @@ export default function setupAction(world: World) {
             lockableEntity &&
             !isInPopup(world, entity) &&
             isLocked(world, lockableEntity) &&
+            !isEnemy(world, entity) &&
             !isDead(world, entity)
           )
             unlock = lockableEntity;
@@ -263,6 +268,7 @@ export default function setupAction(world: World) {
           // only available popups can be opened when not already viewing one
           if (
             !popup &&
+            entity[PLAYER] &&
             !isInPopup(world, entity) &&
             popupEntity &&
             isPopupAvailable(world, popupEntity) &&
@@ -270,12 +276,37 @@ export default function setupAction(world: World) {
           )
             popup = popupEntity;
 
-          // trading only while in shop
-          if (!trade && tradeEntity && isInShop(world, entity))
+          // trading only while in shops or finished forging
+          if (
+            !trade &&
+            entity[PLAYER] &&
+            tradeEntity &&
+            (isInTab(world, entity, "buy") ||
+              isInTab(world, entity, "sell") ||
+              (isInTab(world, entity, "forge") && selections.length === 2) ||
+              (isInTab(world, entity, "craft") && selections.length === 1))
+          )
             trade = tradeEntity;
 
           // using only while in inspect
-          if (!use && useEntity && isInInspect(world, entity)) use = useEntity;
+          if (
+            !use &&
+            entity[PLAYER] &&
+            useEntity &&
+            isInTab(world, entity, "inspect")
+          )
+            use = useEntity;
+
+          // adding only while preparing forge
+          if (
+            !use &&
+            entity[PLAYER] &&
+            addEntity &&
+            ((isInTab(world, entity, "forge") && selections.length < 2) ||
+              (isInTab(world, entity, "craft") && selections.length < 1) ||
+              (isInTab(world, entity, "class") && selections.length < 1))
+          )
+            add_ = addEntity;
         }
       }
 
@@ -290,11 +321,20 @@ export default function setupAction(world: World) {
       const claimId = claim && world.getEntityId(claim);
       const tradeId = trade && world.getEntityId(trade);
       const useId = use && world.getEntityId(use);
+      const addId = add_ && world.getEntityId(add_);
       const closeId = close && world.getEntityId(close);
       const spawnId = spawn && world.getEntityId(spawn);
       const primaryId = primary && world.getEntityId(primary);
       const secondaryId =
-        warpId || questId || unlockId || popupId || tradeId || useId || spawnId
+        !isEnemy(world, entity) &&
+        (warpId ||
+          questId ||
+          unlockId ||
+          popupId ||
+          tradeId ||
+          useId ||
+          addId ||
+          spawnId)
           ? undefined
           : secondary && world.getEntityId(secondary);
 
@@ -306,6 +346,7 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].claim !== claimId ||
         entity[ACTIONABLE].trade !== tradeId ||
         entity[ACTIONABLE].use !== useId ||
+        entity[ACTIONABLE].add !== addId ||
         entity[ACTIONABLE].close !== closeId ||
         entity[ACTIONABLE].spawn !== spawnId ||
         entity[ACTIONABLE].primary !== primaryId ||
@@ -318,6 +359,7 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].claim = claimId;
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].use = useId;
+        entity[ACTIONABLE].add = addId;
         entity[ACTIONABLE].close = closeId;
         entity[ACTIONABLE].spawn = spawnId;
         entity[ACTIONABLE].primary = primaryId;

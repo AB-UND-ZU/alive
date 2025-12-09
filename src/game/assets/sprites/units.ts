@@ -1,4 +1,4 @@
-import * as colors from "../colors";
+import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
 export const commonChest: Sprite = {
@@ -72,6 +72,86 @@ export const campfire: Sprite = {
   ],
 };
 
+export const fountainCorner: Sprite = {
+  name: "fountain_corner",
+  layers: [{ char: "█", color: colors.navy }],
+  facing: {
+    up: [
+      { char: "█", color: colors.navy },
+      { char: "▐", color: colors.black },
+      { char: "▀", color: colors.black },
+      { char: "┐", color: colors.grey },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "█", color: colors.navy },
+      { char: "▐", color: colors.black },
+      { char: "▄", color: colors.black },
+      { char: "┘", color: colors.grey },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "█", color: colors.navy },
+      { char: "▌", color: colors.black },
+      { char: "▄", color: colors.black },
+      { char: "└", color: colors.grey },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "█", color: colors.navy },
+      { char: "▌", color: colors.black },
+      { char: "▀", color: colors.black },
+      { char: "┌", color: colors.grey },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const fountainSide: Sprite = {
+  name: "fountain_side",
+  layers: [{ char: "█", color: colors.navy }],
+  facing: {
+    up: [
+      { char: "█", color: colors.navy },
+      { char: "▀", color: colors.black },
+      { char: "─", color: colors.grey },
+    ],
+    right: [
+      { char: "█", color: colors.navy },
+      { char: "▐", color: colors.black },
+      { char: "│", color: colors.grey },
+    ],
+    down: [
+      { char: "█", color: colors.navy },
+      { char: "▄", color: colors.black },
+      { char: "─", color: colors.grey },
+    ],
+    left: [
+      { char: "█", color: colors.navy },
+      { char: "▌", color: colors.black },
+      { char: "│", color: colors.grey },
+    ],
+  },
+};
+
+export const fountain: Sprite = {
+  name: "Fountain",
+  layers: [
+    { char: "v", color: colors.silver },
+    { char: "\u0106", color: colors.lime },
+    { char: "∙", color: colors.green },
+  ],
+};
+
+export const fountainHealing: Sprite = {
+  name: "Fountain",
+  layers: [
+    { char: "v", color: colors.silver },
+    { char: "\u0106", color: colors.lime },
+    { char: "∙", color: colors.lime },
+  ],
+};
+
 export const torch: Sprite = {
   name: "Torch",
   layers: [
@@ -92,6 +172,40 @@ export const pot: Sprite = {
     { char: "|", color: colors.maroon },
     { char: "∙", color: colors.grey },
     { char: "·", color: colors.maroon },
+  ],
+};
+
+export const ironLock: Sprite = {
+  name: "Lock",
+  layers: [
+    { char: "\u0106", color: colors.grey },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.grey },
+  ],
+};
+
+export const goldLock: Sprite = {
+  name: "Lock",
+  layers: [
+    { char: "\u0106", color: colors.yellow },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.yellow },
+  ],
+};
+
+export const goldUnlock: Sprite = {
+  name: "Unlock",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+    { char: "\u0106", color: colors.yellow },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.yellow },
   ],
 };
 
@@ -173,6 +287,26 @@ export const entryClosedIronDisplay: Sprite = {
     { char: "\u0106", color: colors.silver },
     { char: "∙", color: colors.black },
     { char: ".", color: colors.silver },
+  ],
+};
+
+export const entryClosedGold: Sprite = {
+  name: "Entry",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u0106", color: colors.yellow },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.yellow },
+  ],
+};
+
+export const entryClosedGoldDisplay: Sprite = {
+  name: "Entry",
+  layers: [
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0106", color: colors.yellow },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.yellow },
   ],
 };
 
@@ -294,5 +428,33 @@ export const tumbleweed: Sprite = {
 
 export const portal: Sprite = {
   name: "Portal",
-  layers: [{ char: "∩", color: colors.yellow }],
+  layers: [{ char: "∩", color: colors.silver }],
+};
+
+export const portalBackdrop: Sprite = {
+  name: "",
+  layers: [
+    { char: "▒", color: colors.black },
+    { char: "V", color: colors.black },
+    { char: "°", color: colors.black },
+  ],
+};
+
+export const portalVortex: Sprite = {
+  name: "",
+  layers: [
+    { char: "±", color: colors.lime },
+    { char: ":", color: colors.lime },
+    { char: "\u011f", color: colors.red },
+    { char: "/", color: colors.yellow },
+    { char: "▒", color: colors.black },
+    { char: "▒", color: colors.black },
+    { char: "V", color: colors.black },
+    { char: "°", color: colors.black },
+  ],
+};
+
+export const portalEntered: Sprite = {
+  name: "",
+  layers: [{ char: "▒", color: colors.black }],
 };

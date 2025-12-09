@@ -41,8 +41,14 @@ export const getOpaque = (world: World, position: Position) =>
     isOpaque(world, entity)
   ) as Entity | undefined;
 
+export const isInside = (world: World, entity: Entity) =>
+  !!entity[LAYER]?.structure;
+
 export const isOutside = (world: World, entity: Entity, structure?: number) =>
   !!structure && entity[LAYER]?.structure !== structure;
+
+export const onSameLayer = (world: World, first: Entity, second: Entity) =>
+  first[LAYER]?.structure === second[LAYER]?.structure;
 
 export default function setupEnter(world: World) {
   let referenceGenerations = -1;

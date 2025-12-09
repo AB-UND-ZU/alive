@@ -55,8 +55,13 @@ export const getClosestGridCell = (
   return closestCells[0];
 };
 
+export const rotateOrientation = (orientation: Orientation, turns: number) =>
+  orientations[
+    (orientations.indexOf(orientation) + turns) % orientations.length
+  ];
+
 export const invertOrientation = (orientation: Orientation) =>
-  orientations[(orientations.indexOf(orientation) + 2) % orientations.length];
+  rotateOrientation(orientation, 2);
 
 // finds shortes path in overlapping weighted matrix
 export const findPath = (

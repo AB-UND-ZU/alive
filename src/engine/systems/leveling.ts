@@ -14,13 +14,13 @@ import {
 } from "../components/sequencable";
 import { queueMessage } from "../../game/assets/utils";
 import { createText, none } from "../../game/assets/sprites";
-import * as colors from "../../game/assets/colors";
+import { colors } from "../../game/assets/colors";
 import { INVENTORY } from "../components/inventory";
 import { LOOTABLE } from "../components/lootable";
 import { ITEM } from "../components/item";
 import { entities } from "..";
 import { BELONGABLE } from "../components/belongable";
-import { CASTABLE } from "../components/castable";
+import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
 import { copy, getDistance } from "../../game/math/std";
@@ -39,15 +39,15 @@ export type Level = {
 };
 
 const levels: Level[] = [
-  { level: 1, xp: 3, maxHp: 1, maxMp: 0 },
-  { level: 2, xp: 5, maxHp: 0, maxMp: 1 },
-  { level: 3, xp: 10, maxHp: 1, maxMp: 1 },
-  { level: 4, xp: 15, maxHp: 1, maxMp: 1 },
-  { level: 5, xp: 25, maxHp: 2, maxMp: 1 },
+  { level: 1, xp: 5, maxHp: 1, maxMp: 0 },
+  { level: 2, xp: 10, maxHp: 0, maxMp: 1 },
+  { level: 3, xp: 15, maxHp: 1, maxMp: 1 },
+  { level: 4, xp: 20, maxHp: 1, maxMp: 1 },
+  { level: 5, xp: 30, maxHp: 2, maxMp: 1 },
   { level: 6, xp: 40, maxHp: 2, maxMp: 1 },
-  { level: 7, xp: 60, maxHp: 2, maxMp: 2 },
-  { level: 8, xp: 75, maxHp: 2, maxMp: 2 },
-  { level: 9, xp: 99, maxHp: 3, maxMp: 3 },
+  { level: 7, xp: 50, maxHp: 2, maxMp: 2 },
+  { level: 8, xp: 65, maxHp: 2, maxMp: 2 },
+  { level: 9, xp: 80, maxHp: 3, maxMp: 3 },
   { level: 10, xp: 99, maxHp: 3, maxMp: 3 },
 ];
 export const initialLevel = levels[0];
@@ -59,10 +59,11 @@ export const hasLevelUp = (world: World, entity: Entity) =>
 export default function setupLeveling(world: World) {
   let referencesGeneration = -1;
   let worldGeneration = -1;
-  const size = world.metadata.gameEntity[LEVEL].size;
   const entityGenerations: Record<string, number> = {};
 
   const onUpdate = (delta: number) => {
+    const size = world.metadata.gameEntity[LEVEL].size;
+
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
@@ -104,7 +105,7 @@ export default function setupLeveling(world: World) {
         );
 
         queueMessage(world, entity, {
-          line: createText("Level up", colors.silver),
+          line: createText("Level up!", colors.black, colors.lime),
           orientation: "up",
           fast: false,
           delay: 0,
@@ -154,15 +155,7 @@ export default function setupLeveling(world: World) {
 
       const castableEntity = entities.createSpell(world, {
         [BELONGABLE]: { faction: "nature" },
-        [CASTABLE]: {
-          medium: "true",
-          affected: {},
-          damage: 0,
-          burn: 0,
-          freeze: 0,
-          heal: 0,
-          caster: world.getEntityId(entity),
-        },
+        [CASTABLE]: getEmptyCastable(world, entity),
         [ORIENTABLE]: {},
         [POSITION]: copy(entity[POSITION]),
         [RENDERABLE]: { generation: 0 },

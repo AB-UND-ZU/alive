@@ -8,7 +8,6 @@ import {
   orientationPoints,
   orientations,
 } from "../../engine/components/orientable";
-import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import {
   QuestSequence,
@@ -16,7 +15,6 @@ import {
   Sequence,
 } from "../../engine/components/sequencable";
 import { SPAWNABLE } from "../../engine/components/spawnable";
-import { STATS } from "../../engine/components/stats";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { TRACKABLE } from "../../engine/components/trackable";
 import { isUnlocked } from "../../engine/systems/action";
@@ -24,16 +22,78 @@ import { getLootable } from "../../engine/systems/collect";
 import { getCell } from "../../engine/systems/map";
 import { isWalkable } from "../../engine/systems/movement";
 import { isInPopup } from "../../engine/systems/popup";
+import { getSequence } from "../../engine/systems/sequence";
+import { isSpikable } from "../../engine/systems/spike";
 import {
   assertIdentifierAndComponents,
   getIdentifier,
   getIdentifierAndComponents,
   setHighlight,
 } from "../../engine/utils";
+import { up2Cactus } from "../levels/tutorial/areas";
 import { findPath } from "../math/path";
 import { add, copy, getDistance } from "../math/std";
 import { createDialog } from "./sprites";
 import { END_STEP, QuestStage, START_STEP, step } from "./utils";
+
+const menuDelay = 5000;
+
+export const menuQuest: Sequence<QuestSequence> = (world, entity, state) => {
+  const stage: QuestStage<QuestSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  // remember initial hero position
+  if (!state.args.memory.initialPosition) {
+    state.args.memory.initialPosition = copy(entity[POSITION]);
+  }
+
+  const hasMoved =
+    entity[POSITION].x !== state.args.memory.initialPosition.x ||
+    entity[POSITION].y !== state.args.memory.initialPosition.y;
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => true,
+    onLeave: () => "wait",
+  });
+
+  step({
+    stage,
+    name: "wait",
+    isCompleted: () => hasMoved || stage.state.elapsed > menuDelay,
+    onLeave: () => (hasMoved ? END_STEP : "move"),
+  });
+
+  step({
+    stage,
+    name: "move",
+    onEnter: () => {
+      entity[TOOLTIP].override = "visible";
+      entity[TOOLTIP].dialogs = [
+        createDialog(
+          isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move"
+        ),
+      ];
+      entity[TOOLTIP].changed = true;
+      return true;
+    },
+    isCompleted: () => hasMoved,
+    onLeave: () => {
+      entity[TOOLTIP].override = undefined;
+      entity[TOOLTIP].dialogs = [];
+      entity[TOOLTIP].changed = true;
+      return END_STEP;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
 
 export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
   const stage: QuestStage<QuestSequence> = {
@@ -44,20 +104,20 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
     updated: false,
   };
 
-  const centerUpDoor = assertIdentifierAndComponents(world, "center_up_door", [
+  const centerUpDoor = assertIdentifierAndComponents(world, "center:door", [
     POSITION,
   ]);
   const spawnSign = getIdentifierAndComponents(world, "spawn_sign", [POSITION]);
   const spawnKey = getIdentifierAndComponents(world, "spawn_key", [POSITION]);
 
-  // remember initial hero position
-  if (!state.args.memory.initialPosition) {
-    state.args.memory.initialPosition = copy(entity[POSITION]);
+  // save hero position to update highlight
+  if (!state.args.memory.savedPosition) {
+    state.args.memory.savedPosition = copy(entity[POSITION]);
   }
 
   const hasMoved =
-    entity[POSITION].x !== state.args.memory.initialPosition.x ||
-    entity[POSITION].y !== state.args.memory.initialPosition.y;
+    entity[POSITION].x !== state.args.memory.savedPosition.x ||
+    entity[POSITION].y !== state.args.memory.savedPosition.y;
 
   step({
     stage,
@@ -83,23 +143,8 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
   step({
     stage,
     name: "move",
-    onEnter: () => {
-      entity[TOOLTIP].override = "visible";
-      entity[TOOLTIP].dialogs = [
-        createDialog(
-          isTouch ? "Swipe to move" : "\u011a \u0117 \u0118 \u0119 to move"
-        ),
-      ];
-      entity[TOOLTIP].changed = true;
-      return true;
-    },
     isCompleted: () => hasMoved,
-    onLeave: () => {
-      entity[TOOLTIP].override = undefined;
-      entity[TOOLTIP].dialogs = [];
-      entity[TOOLTIP].changed = true;
-      return "sign";
-    },
+    onLeave: () => "sign",
   });
 
   step({
@@ -110,7 +155,9 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () =>
-      !!spawnSign && world.getEntityById(entity[PLAYER].popup) === spawnSign,
+      !!spawnSign &&
+      !isInPopup(world, entity) &&
+      !getSequence(world, spawnSign, "discovery"),
     onLeave: () => "key",
   });
 
@@ -146,15 +193,16 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
     updated: false,
   };
 
-  const north1UpDoor = assertIdentifierAndComponents(world, "north1_up_door", [
+  const entityId = world.getEntityId(entity);
+
+  const north1UpDoor = assertIdentifierAndComponents(world, "north1:door", [
     POSITION,
   ]);
   const guideEntity = getIdentifierAndComponents(world, "guide", [POSITION]);
   const guideSign = getIdentifierAndComponents(world, "guide_sign", [POSITION]);
   const woodThree = getIdentifierAndComponents(world, "wood_three", [POSITION]);
-  const dummy = Object.values(
-    getCell(world, world.metadata.gameEntity[LEVEL].cells["dummy"][0])
-  ).filter((entity) => !(FOCUSABLE in entity))[0];
+  const dummy = getIdentifierAndComponents(world, "dummy", [POSITION]);
+  const coinDrop = getIdentifierAndComponents(world, "dummy:drop", [ITEM]);
 
   step({
     stage,
@@ -185,7 +233,9 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () =>
-      !!guideSign && world.getEntityById(entity[PLAYER].popup) === guideSign,
+      !!guideSign &&
+      !isInPopup(world, entity) &&
+      !getSequence(world, guideSign, "discovery"),
     onLeave: () => "stick",
   });
 
@@ -207,7 +257,22 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
       setHighlight(world, "enemy", dummy);
       return true;
     },
-    isCompleted: () => !dummy || !(STATS in dummy),
+    isCompleted: () => !dummy && !!coinDrop,
+    onLeave: () => "coin",
+  });
+
+  step({
+    stage,
+    name: "coin",
+    onEnter: () => {
+      const carrierEntity = world.getEntityByIdAndComponents(
+        coinDrop?.[ITEM].carrier,
+        [POSITION]
+      );
+      setHighlight(world, "quest", carrierEntity);
+      return true;
+    },
+    isCompleted: () => coinDrop?.[ITEM].carrier === entityId,
     onLeave: () => "shop",
   });
 
@@ -225,7 +290,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
           itemEntity[ITEM].consume === "key" &&
           itemEntity[ITEM].material === "iron"
         );
-      }),
+      }) && !isInPopup(world, entity),
     onLeave: () => "door",
   });
 
@@ -234,6 +299,101 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
     name: "door",
     onEnter: () => {
       setHighlight(world, "quest", north1UpDoor);
+      return true;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
+  const stage: QuestStage<QuestSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const north2RightDoor = assertIdentifierAndComponents(
+    world,
+    "north2east1:door",
+    [POSITION]
+  );
+  const fruitSign = getIdentifierAndComponents(world, "fruit_sign", [POSITION]);
+  const fruitChest = getIdentifierAndComponents(world, "fruit_chest", [
+    POSITION,
+  ]);
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => true,
+    onLeave: () => "cactus",
+  });
+
+  step({
+    stage,
+    name: "end",
+    forceEnter: () =>
+      isUnlocked(world, north2RightDoor) ||
+      (!fruitSign && state.args.step === "sign"),
+    onEnter: () => {
+      setHighlight(world);
+      return true;
+    },
+    isCompleted: () => true,
+    onLeave: () => END_STEP,
+  });
+
+  const cactusEntities = [-1, 0, 1]
+    .map((cactusOffset) =>
+      Object.values(
+        getCell(world, add(up2Cactus, { x: cactusOffset, y: 0 }))
+      ).find((entity) => isSpikable(world, entity))
+    )
+    .filter(Boolean);
+  step({
+    stage,
+    name: "cactus",
+    onEnter: () => {
+      setHighlight(world, "enemy", cactusEntities[1]);
+      return true;
+    },
+    isCompleted: () => cactusEntities.length < 3,
+    onLeave: () => "sign",
+  });
+
+  step({
+    stage,
+    name: "sign",
+    onEnter: () => {
+      setHighlight(world, "quest", fruitSign);
+      return true;
+    },
+    isCompleted: () =>
+      !!fruitSign &&
+      !isInPopup(world, entity) &&
+      !getSequence(world, fruitSign, "discovery"),
+    onLeave: () => "chest",
+  });
+
+  step({
+    stage,
+    name: "chest",
+    onEnter: () => {
+      setHighlight(world, "enemy", fruitChest);
+      return true;
+    },
+    isCompleted: () => !fruitChest,
+    onLeave: () => "door",
+  });
+
+  step({
+    stage,
+    name: "door",
+    onEnter: () => {
+      setHighlight(world, "quest", north2RightDoor);
       return true;
     },
   });

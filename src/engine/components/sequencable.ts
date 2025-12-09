@@ -6,15 +6,16 @@ import { Sprite } from "./sprite";
 import { Position } from "./position";
 import { Viewable } from "./viewable";
 import { Light } from "./light";
-import { Element, Item } from "./item";
+import { Element, Item, Material } from "./item";
 import { Popup } from "./popup";
 import { Liquid } from "./liquid";
+import { DamageType } from "./castable";
 
 type EmptyObject = Record<string, never>;
 
 export type ConsumeSequence = { itemId: number };
 export type BubbleSequence = { width: number; type: Liquid["type"] };
-export type RainSequence = { height: number };
+export type RainSequence = { height: number; fast: boolean };
 export type VisionSequence = {
   light?: Light;
   previousLight?: Light;
@@ -25,7 +26,7 @@ export type PointerSequence = {
   target?: number;
   lastOrientation?: Orientation;
 };
-export type MarkerSequence = { amount: number };
+export type MarkerSequence = { amount: number; type: DamageType };
 export type Message = {
   line: Sprite[];
   orientation: Orientation;
@@ -49,7 +50,11 @@ export type BurnSequence = {
 export type FreezeSequence = {
   total: number;
 };
-export type SmokeSequence = { generation: number; extinguish: number };
+export type SmokeSequence = {
+  generation: number;
+  extinguish: number;
+  simmer: boolean;
+};
 export type DisposeSequence = EmptyObject;
 export type ReviveSequence = {
   target: Position;
@@ -81,7 +86,8 @@ export type MeleeSequence = {
   rotate: boolean;
 };
 export type SpellSequence = {
-  element: Element | "default" | "wild";
+  element?: Element;
+  material: Material;
   progress: number;
   memory?: any;
   duration: number;
@@ -90,7 +96,7 @@ export type SpellSequence = {
 };
 export type ArrowSequence = { origin: Position; range: number; caster: number };
 export type SlashSequence = {
-  material: "wood" | "iron";
+  material: Material;
   castable: number;
   exertables: number[];
   tick: number;
@@ -101,6 +107,12 @@ export type QuestSequence = {
   lastStep?: string;
   memory: any;
   giver?: number;
+};
+export type DiscoverySequence = {
+  idle: Sprite;
+  timestamp: number;
+  hidden: boolean;
+  force?: boolean;
 };
 export type DialogSequence = {
   orientation?: Orientation;
@@ -114,20 +126,21 @@ export type DialogSequence = {
   overridden: boolean;
 };
 export type XpSequence = { generation: number };
+export type VortexSequence = { generation: number };
+export type FountainSequence = { generation: number; entered?: number, healed?:number };
 export type ProgressSequence = {
   dropped: boolean;
   maxMp: number;
   maxHp: number;
 };
-export type InfoSequence = {
+export type PopupSequence = {
   contentIndex: number;
+  contentHeight: number;
   generation?: number;
   scrollIndex?: number;
-  title: string;
-};
-export type PopupSequence = InfoSequence & {
   verticalIndex: number;
-  transaction: Popup["transaction"];
+  horizontalIndex: number;
+  transaction: Popup["tabs"][number];
 };
 
 export type SequenceState<A> = {
@@ -168,9 +181,12 @@ export type Sequencable = {
     slash?: SequenceState<SlashSequence>;
     npc?: SequenceState<NpcSequence>;
     quest?: SequenceState<QuestSequence>;
+    discovery?: SequenceState<DiscoverySequence>;
     dialog?: SequenceState<DialogSequence>;
     progress?: SequenceState<ProgressSequence>;
     xp?: SequenceState<XpSequence>;
+    vortex?: SequenceState<VortexSequence>;
+    fountain?: SequenceState<FountainSequence>;
     popup?: SequenceState<PopupSequence>;
   };
 };

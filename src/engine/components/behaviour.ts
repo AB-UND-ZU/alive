@@ -7,6 +7,7 @@ export type Pattern = {
     | "eye"
     | "orb"
     | "fairy"
+    | "archer"
     | "wave_tower"
     | "chest_boss"
     | "wait"
