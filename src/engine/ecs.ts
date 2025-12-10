@@ -230,10 +230,10 @@ export const createSystems = (world: World) => {
   world.addSystem(systems.setupPopup);
   world.addSystem(systems.setupCollect);
   world.addSystem(systems.setupConsume);
-  world.addSystem(systems.setupSpike);
   world.addSystem(systems.setupPush);
   world.addSystem(systems.setupClick);
   world.addSystem(systems.setupDamage);
+  world.addSystem(systems.setupSpike);
   world.addSystem(systems.setupBallistics);
   world.addSystem(systems.setupMovement);
   world.addSystem(systems.setupEnter);

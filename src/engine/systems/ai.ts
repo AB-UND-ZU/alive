@@ -529,7 +529,7 @@ export default function setupAi(world: World) {
               entity[MOVABLE].orientations = [];
               entity[ORIENTABLE].facing = undefined;
             } else {
-              const sidestep = random(0, 5) === 0;
+              const sidestep = generation % 5 === 0;
 
               entity[MOVABLE].orientations = sidestep
                 ? [...reversed(fleeingOrientations)]

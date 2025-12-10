@@ -21,9 +21,10 @@ import { MELEE } from "../components/melee";
 import { relativeOrientations } from "../../game/math/path";
 import { isControllable } from "./freeze";
 import { play } from "../../game/sound";
+import { isDecaying } from "./drop";
 
 export const isSpikable = (world: World, entity: Entity) => {
-  if (isDead(world, entity)) return false;
+  if (isDead(world, entity) && !isDecaying(world, entity)) return false;
 
   const entityStats = getEntityStats(world, entity);
 
@@ -74,7 +75,7 @@ export default function setupSpike(world: World) {
 
     referenceGenerations = generation;
 
-    // handle player running into spikes
+    // handle entities running into spikes
     for (const entity of world.getEntities([
       POSITION,
       MOVABLE,
@@ -91,9 +92,6 @@ export default function setupSpike(world: World) {
       if (entityReferences[entityId] === entityReference) continue;
 
       entityReferences[entityId] = entityReference;
-
-      // skip if entity already interacted
-      if (entity[MOVABLE].lastInteraction === entityReference) continue;
 
       // skip if not controllable or flying
       if (!isControllable(world, entity) || entity[MOVABLE].flying) continue;
