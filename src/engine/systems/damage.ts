@@ -31,7 +31,6 @@ import { addBackground, createText } from "../../game/assets/sprites";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { RECHARGABLE } from "../components/rechargable";
-import { INVENTORY } from "../components/inventory";
 import { Castable, DamageType } from "../components/castable";
 import { TypedEntity } from "../entities";
 import { createItemName, queueMessage } from "../../game/assets/utils";
@@ -40,6 +39,7 @@ import { POPUP } from "../components/popup";
 import { getEquipmentStats } from "../../game/balancing/equipment";
 import { NPC } from "../components/npc";
 import { getAbilityStats } from "../../game/balancing/abilities";
+import { closePopup, getActivePopup } from "./popup";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -308,22 +308,18 @@ export default function setupDamage(world: World) {
         entity[EQUIPPABLE].secondary,
         [ITEM]
       );
-      const canRecharge = secondaryEntity?.[ITEM].secondary === "slash";
-      const totalCharges = (entity[INVENTORY]?.items || [])
-        .filter(
-          (itemId) =>
-            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
-            "charge"
-        )
-        .reduce(
-          (charges, itemId) =>
-            charges +
-            world.assertByIdAndComponents(itemId, [ITEM])[ITEM].amount,
-          0
-        );
+      const canRecharge =
+        secondaryEntity?.[ITEM].secondary &&
+        secondaryEntity[ITEM].secondary !== "bow";
 
-      if (canRecharge && targetEntity[RECHARGABLE] && totalCharges < 10) {
+      if (canRecharge && targetEntity[RECHARGABLE]) {
         targetEntity[RECHARGABLE].hit = true;
+      }
+
+      // close popup on target hits
+      const activePopup = getActivePopup(world, targetEntity);
+      if (activePopup) {
+        closePopup(world, targetEntity, activePopup);
       }
 
       // animate sword orientation

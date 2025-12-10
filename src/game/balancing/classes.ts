@@ -14,7 +14,7 @@ export type ClassDefinition = {
   swimming?: Sprite;
   items: ({ slot: Equipment } | { stackable: Stackable })[];
 
-  stats: UnitStats;
+  stats: Omit<UnitStats, "hp" | "mp" | "xp">;
 };
 
 const classDefinitions: Record<ClassKey, ClassDefinition> = {
@@ -24,15 +24,12 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
     items: [],
 
     stats: {
-      hp: 25,
       maxHp: 25,
       maxHpCap: 50,
 
-      mp: 0,
       maxMp: 10,
       maxMpCap: 25,
 
-      xp: 0,
       maxXp: initialLevel.xp,
       maxXpCap: 99,
 
@@ -54,15 +51,12 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
     items: [],
 
     stats: {
-      hp: 30,
       maxHp: 30,
       maxHpCap: 60,
 
-      mp: 0,
       maxMp: 5,
       maxMpCap: 15,
 
-      xp: 0,
       maxXp: initialLevel.xp,
       maxXpCap: 99,
 
@@ -84,15 +78,12 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
     items: [],
 
     stats: {
-      hp: 20,
       maxHp: 20,
       maxHpCap: 40,
 
-      mp: 0,
       maxMp: 15,
       maxMpCap: 35,
 
-      xp: 0,
       maxXp: initialLevel.xp,
       maxXpCap: 99,
 
@@ -114,15 +105,12 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
     items: [],
 
     stats: {
-      hp: 15,
       maxHp: 15,
       maxHpCap: 75,
 
-      mp: 0,
       maxMp: 0,
       maxMpCap: 0,
 
-      xp: 0,
       maxXp: initialLevel.xp,
       maxXpCap: 99,
 

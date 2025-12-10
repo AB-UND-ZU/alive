@@ -167,6 +167,9 @@ export const createHero = (world: World, halo: Entity) => {
     },
     [SPRITE]: sprite,
     [STATS]: {
+      hp: halo[SOUL]?.maxHp || stats.maxHp,
+      mp: 0,
+      xp: 0,
       ...stats,
       ...halo[SOUL]?.stats,
     },

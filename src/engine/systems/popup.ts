@@ -388,6 +388,11 @@ export const openPopup = (
   );
 };
 
+export const getActivePopup = (world: World, entity: Entity) =>
+  isInPopup(world, entity)
+    ? world.getEntityById(entity[PLAYER]?.popup)
+    : undefined;
+
 export const closePopup = (
   world: World,
   heroEntity: Entity,

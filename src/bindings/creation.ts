@@ -1531,7 +1531,7 @@ export const createCell = (
     const signEntity = createSign(world, { x, y }, [
       [
         [
-          ...createText("Use "),
+          ...createText("Eat "),
           apple,
           shroom,
           banana,

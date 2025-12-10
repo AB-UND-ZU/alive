@@ -1006,14 +1006,17 @@ export default function setupAi(world: World) {
 
           if (entity[STATS].hp < entity[STATS].maxHp) {
             if (!pattern.memory.heal) {
-              pattern.memory.heal = generation;
+              pattern.memory.heal = generation + 10;
               continue;
             }
-            if (pattern.memory.heal + 5 > generation) continue;
+            if (pattern.memory.heal + 2 > generation) continue;
 
             pattern.memory.heal = generation;
 
-            const { hp, healing } = calculateHealing(entity[STATS], 5);
+            const { hp, healing } = calculateHealing(
+              entity[STATS],
+              Math.floor(entity[STATS].maxHp / 10)
+            );
             entity[STATS].hp = hp;
             if (healing > 0) {
               createAmountMarker(world, entity, healing, "up", "true");
