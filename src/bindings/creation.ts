@@ -1880,7 +1880,7 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: mobUnit.sprite,
       [STATS]: mobUnit.stats,
-      [SWIMMABLE]: { swimming: false },
+      [SWIMMABLE]: { swimming: false, sprite: mobUnit.swimming },
       [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
     });
     populateInventory(

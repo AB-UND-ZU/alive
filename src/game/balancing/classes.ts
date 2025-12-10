@@ -1,26 +1,39 @@
-import { rogue, knight, mage, swimmingRogue, alien } from "../assets/sprites";
+import {
+  rogue,
+  knight,
+  mage,
+  swimmingRogue,
+  alien,
+  rogueBackdrop,
+  swimmingRogueBackdrop,
+  alienBackdrop,
+} from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { Stackable } from "../../engine/components/item";
 import { Equipment } from "../../engine/components/equippable";
 import { UnitStats } from "../../engine/components/stats";
 import { initialLevel } from "../../engine/systems/leveling";
 
-export const classes = ["rogue", "knight", "mage", '???'] as const;
+export const classes = ["rogue", "knight", "mage", "???"] as const;
 
 export type ClassKey = (typeof classes)[number];
 
 export type ClassDefinition = {
   sprite: Sprite;
+  backdrop?: Sprite;
   swimming?: Sprite;
+  swimmingBackdrop?: Sprite;
   items: ({ slot: Equipment } | { stackable: Stackable })[];
 
   stats: Omit<UnitStats, "hp" | "mp" | "xp">;
 };
 
-const classDefinitions: Record<ClassKey, ClassDefinition> = {
+export const classDefinitions: Record<ClassKey, ClassDefinition> = {
   rogue: {
     sprite: rogue,
+    backdrop: rogueBackdrop,
     swimming: swimmingRogue,
+    swimmingBackdrop: swimmingRogueBackdrop,
     items: [],
 
     stats: {
@@ -100,8 +113,10 @@ const classDefinitions: Record<ClassKey, ClassDefinition> = {
       spike: 0,
     },
   },
-  '???': {
+  "???": {
     sprite: alien,
+    backdrop: alienBackdrop,
+    swimmingBackdrop: alienBackdrop,
     items: [],
 
     stats: {

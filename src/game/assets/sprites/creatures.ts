@@ -9,22 +9,34 @@ export const scout: Sprite = {
 export const rogue: Sprite = {
   name: "Rogue",
   layers: [
+    { char: "`", color: colors.olive },
+    { char: "\u010b", color: colors.silver },
+  ],
+};
+
+export const rogueBackdrop: Sprite = {
+  name: "Rogue",
+  layers: [
     { char: "│", color: colors.olive },
     { char: "|", color: colors.black },
     { char: "┐", color: colors.black },
-    { char: "`", color: colors.olive },
-    { char: "\u010b", color: colors.silver },
   ],
 };
 
 export const swimmingRogue: Sprite = {
   name: "Mage",
   layers: [
+    { char: "`", color: colors.olive },
+    { char: "\u010b", color: colors.silver },
+  ],
+};
+
+export const swimmingRogueBackdrop: Sprite = {
+  name: "Mage",
+  layers: [
     { char: "│", color: colors.olive },
     { char: "|", color: colors.navy },
     { char: "┐", color: colors.navy },
-    { char: "`", color: colors.olive },
-    { char: "\u010b", color: colors.silver },
   ],
 };
 
@@ -54,6 +66,23 @@ export const bandit: Sprite = {
 
 export const alien: Sprite = {
   name: "???",
+  layers: [{ char: "\u010b", color: colors.silver }],
+};
+
+export const alienBackdrop: Sprite = {
+  name: "???",
+  layers: [
+    { char: "Ä", color: colors.olive },
+    { char: "A", color: colors.navy },
+
+    { char: "å", color: colors.olive },
+    { char: "á", color: colors.navy },
+    { char: "'", color: colors.navy },
+  ],
+};
+
+export const swimmingAlienBackdrop: Sprite = {
+  name: "???",
   layers: [
     { char: "Ä", color: colors.olive },
     { char: "A", color: colors.black },
@@ -61,8 +90,6 @@ export const alien: Sprite = {
     { char: "å", color: colors.olive },
     { char: "á", color: colors.black },
     { char: "'", color: colors.black },
-
-    { char: "\u010b", color: colors.silver },
   ],
 };
 

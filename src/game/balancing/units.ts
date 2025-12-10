@@ -27,8 +27,11 @@ import {
   prism,
   rareChest,
   rogue,
+  rogueBackdrop,
   scout,
   settler,
+  swimmingRogue,
+  swimmingRogueBackdrop,
   treeBurnt1,
   treeBurnt2,
   tumbleweed,
@@ -48,6 +51,7 @@ import {
   sign,
 } from "../assets/sprites/structures";
 import { emptyUnitStats, UnitStats } from "../../engine/components/stats";
+import { classDefinitions, ClassKey } from "./classes";
 
 export type UnitKey =
   | NpcType
@@ -81,6 +85,9 @@ export type UnitDefinition = {
   }[];
   patternNames: Pattern["name"][];
   sprite: Sprite;
+  backdrop?: Sprite;
+  swimming?: Sprite;
+  swimmingBackdrop?: Sprite;
   remainsChoices?: Sprite[];
   spring?: SpringConfig;
 };
@@ -92,6 +99,7 @@ export type UnitData = {
   items: Omit<Item, "carrier">[];
   patterns: Pattern[];
   sprite: Sprite;
+  swimming?: Sprite;
   remains?: Sprite;
   spring?: SpringConfig;
 };
@@ -243,6 +251,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: { ...rogue, name: "Hunter" },
+    backdrop: rogueBackdrop,
+    swimming: swimmingRogue,
+    swimmingBackdrop: swimmingRogueBackdrop,
   },
   mage: {
     faction: "settler",
@@ -1052,4 +1063,22 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
 export const generateNpcData = (npcKey: NpcType): NpcData => ({
   type: npcKey,
   ...generateUnitData(npcKey),
+});
+
+export const unitBackdrops: Partial<Record<UnitKey | ClassKey, Sprite>> = {};
+export const unitSwimmingBackdrops: Partial<
+  Record<UnitKey | ClassKey, Sprite>
+> = {};
+
+[
+  ...Object.entries(unitDefinitions),
+  ...Object.entries(classDefinitions),
+].forEach(([key, definition]) => {
+  const unitKey = key as UnitKey | ClassKey;
+  if (definition.backdrop) {
+    unitBackdrops[unitKey] = definition.backdrop;
+  }
+  if (definition.swimmingBackdrop) {
+    unitSwimmingBackdrops[unitKey] = definition.swimmingBackdrop;
+  }
 });

@@ -16,6 +16,13 @@ import { isSwimming } from "../../engine/systems/immersion";
 import { shadow } from "../../game/assets/sprites";
 import { LIQUID } from "../../engine/components/liquid";
 import { LOOTABLE } from "../../engine/components/lootable";
+import {
+  unitBackdrops,
+  unitSwimmingBackdrops,
+} from "../../game/balancing/units";
+import { NPC, NpcType } from "../../engine/components/npc";
+import { SPAWNABLE } from "../../engine/components/spawnable";
+import { ClassKey } from "../../game/balancing/classes";
 
 export const textSize = 18 / 25 + 0.001;
 
@@ -89,6 +96,7 @@ export const getSegments = (
   const isLootable = !!entity[LOOTABLE];
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
   const isFixed = isFloat && entity[FOG].fixed;
+  const swimming = isSwimming(world, entity);
 
   const offsetZ = isFixed
     ? fixedHeight
@@ -110,13 +118,13 @@ export const getSegments = (
     ? { ...layerProps, receiveShadow: false, isTransparent: false }
     : layerProps;
 
-  // from back to front: shadow, shield, body, sword
+  // from back to front: shadow, backdrop, shield, body, sword
   const orderedSegments: Segment[] = [];
 
   // 1. shadow
-  if (isUnit && !isSwimming(world, entity) && !isLiquid && !isLootable) {
+  if (isUnit && !swimming && !isLiquid && !isLootable) {
     orderedSegments.push({
-      id: -1,
+      id: -2,
       sprite: shadow,
       offsetX: 0,
       offsetY: 0,
@@ -128,7 +136,25 @@ export const getSegments = (
     });
   }
 
-  // 2. shield
+  // 2. backdrop
+  const unitKey = (entity[NPC]?.type || entity[SPAWNABLE]?.classKey) as
+    | NpcType
+    | ClassKey;
+  const backdrop = swimming
+    ? unitSwimmingBackdrops[unitKey]
+    : unitBackdrops[unitKey];
+  if (backdrop) {
+    orderedSegments.push({
+      id: -1,
+      sprite: backdrop,
+      offsetX: 0,
+      offsetY: 0,
+      offsetZ,
+      layerProps: visibleProps,
+    });
+  }
+
+  // 3. shield
   const shieldEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE]?.shield,
     [ITEM, SPRITE]
@@ -147,7 +173,7 @@ export const getSegments = (
     });
   }
 
-  // 3. body
+  // 4. body
   orderedSegments.push({
     id: world.getEntityId(entity),
     sprite: (inside && entity[ENTERABLE]?.sprite) || entity[SPRITE],
@@ -158,7 +184,7 @@ export const getSegments = (
     layerProps: visibleProps,
   });
 
-  // 4. sword
+  // 5. sword
   const swordEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE]?.sword,
     [ITEM, SPRITE, ORIENTABLE]
