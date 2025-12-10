@@ -45,7 +45,7 @@ import { getClassData } from "../../game/balancing/classes";
 import { STATS } from "../components/stats";
 import { getHasteInterval } from "./movement";
 import { PUSHABLE } from "../components/pushable";
-import { AFFECTABLE } from "../components/affectable";
+import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import { defaultLight } from "./consume";
 import { LAYER } from "../components/layer";
 import {
@@ -124,7 +124,7 @@ export const createHero = (world: World, halo: Entity) => {
   );
   const heroEntity = entities.createHero(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+    [AFFECTABLE]: getEmptyAffectable(),
     [ATTACKABLE]: { shots: 0 },
     [BELONGABLE]: { faction: halo[BELONGABLE].faction },
     [COLLECTABLE]: {},

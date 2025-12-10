@@ -40,7 +40,7 @@ export const abilityStats: Partial<
         },
         water: {
           magic: 2,
-          freeze: 6,
+          freeze: 5,
         },
         earth: {
           heal: 2,
@@ -150,7 +150,7 @@ export const lookupAbilityStats = (
 };
 
 export const getAbilityStats = (
-  item: Item,
+  item: Omit<Item, "carrier" | "bound" | "amount">,
   caster: NpcType | "default" = "default"
 ): ItemStats => {
   const { primary, secondary, material, element } = item;

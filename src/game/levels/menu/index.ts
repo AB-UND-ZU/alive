@@ -79,6 +79,29 @@ export const generateMenu = async (world: World) => {
       });
     });
 
+    // add dummy and anvil
+    createCell(
+      world,
+      worldMatrix,
+      add(titleCenter, { x: 0, y: -1 }),
+      "dummy",
+      "hidden"
+    );
+    createCell(
+      world,
+      worldMatrix,
+      add(titleCenter, { x: 0, y: 1 }),
+      "kettle",
+      "hidden"
+    );
+    createCell(
+      world,
+      worldMatrix,
+      add(titleCenter, { x: 0, y: 2 }),
+      "anvil",
+      "hidden"
+    );
+
     const itemColumns: Omit<Item, "bound" | "carrier">[][] = [
       [
         {
@@ -97,12 +120,12 @@ export const generateMenu = async (world: World) => {
           stat: "maxMp",
           amount: Infinity,
         },
-      ],
-      [
         {
           stat: "xp",
           amount: Infinity,
         },
+      ],
+      [
         {
           stackable: "coin",
           amount: Infinity,
@@ -113,10 +136,6 @@ export const generateMenu = async (world: World) => {
         },
         {
           stackable: "stick",
-          amount: Infinity,
-        },
-        {
-          stackable: "leaf",
           amount: Infinity,
         },
       ],
@@ -152,12 +171,6 @@ export const generateMenu = async (world: World) => {
         },
         {
           equipment: "sword",
-          material: "wood",
-          element: "air",
-          amount: 1,
-        },
-        {
-          equipment: "sword",
           material: "iron",
           amount: 1,
         },
@@ -176,12 +189,6 @@ export const generateMenu = async (world: World) => {
         {
           equipment: "shield",
           material: "wood",
-          amount: 1,
-        },
-        {
-          equipment: "shield",
-          material: "wood",
-          element: "air",
           amount: 1,
         },
         {
@@ -209,70 +216,10 @@ export const generateMenu = async (world: World) => {
         },
         {
           equipment: "primary",
-          primary: "wave",
-          material: "wood",
-          element: "air",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "wave",
-          material: "wood",
-          element: "fire",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "wave",
-          material: "wood",
-          element: "water",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "wave",
-          material: "wood",
-          element: "earth",
-          amount: 1,
-        },
-      ],
-      [
-        {
-          equipment: "primary",
           primary: "beam",
           material: "wood",
           amount: 1,
         },
-        {
-          equipment: "primary",
-          primary: "beam",
-          material: "wood",
-          element: "air",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "beam",
-          material: "wood",
-          element: "fire",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "beam",
-          material: "wood",
-          element: "water",
-          amount: 1,
-        },
-        {
-          equipment: "primary",
-          primary: "beam",
-          material: "wood",
-          element: "earth",
-          amount: 1,
-        },
-      ],
-      [
         {
           equipment: "secondary",
           secondary: "bow",
@@ -280,17 +227,45 @@ export const generateMenu = async (world: World) => {
           amount: 1,
         },
         {
-          stackable: "arrow",
-          amount: Infinity,
-        },
-        {
           equipment: "secondary",
           secondary: "slash",
           material: "wood",
           amount: 1,
         },
+      ],
+      [
+        {
+          stackable: "arrow",
+          amount: Infinity,
+        },
         {
           stackable: "charge",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
+          stackable: "resource",
+          material: "wood",
+          element: "air",
+          amount: Infinity,
+        },
+        {
+          stackable: "resource",
+          material: "wood",
+          element: "fire",
+          amount: Infinity,
+        },
+        {
+          stackable: "resource",
+          material: "wood",
+          element: "water",
+          amount: Infinity,
+        },
+        {
+          stackable: "resource",
+          material: "wood",
+          element: "earth",
           amount: Infinity,
         },
       ],

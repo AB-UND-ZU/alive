@@ -34,12 +34,17 @@ import { RECHARGABLE } from "../components/rechargable";
 import { Castable, DamageType } from "../components/castable";
 import { TypedEntity } from "../entities";
 import { createItemName, queueMessage } from "../../game/assets/utils";
-import { play } from "../../game/sound";
+import { pickupOptions, play } from "../../game/sound";
 import { POPUP } from "../components/popup";
-import { getEquipmentStats } from "../../game/balancing/equipment";
+import {
+  getEquipmentStats,
+  getItemStats,
+} from "../../game/balancing/equipment";
 import { NPC } from "../components/npc";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { closePopup, getActivePopup } from "./popup";
+import { Affectable, AFFECTABLE } from "../components/affectable";
+import { extinguishEntity } from "./burn";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -154,6 +159,97 @@ export const calculateHealing = (targetStats: UnitStats, amount: number) => {
   const hp = Math.min(targetStats.maxHp, targetStats.hp + amount);
   const visibleHealing = Math.ceil(hp - targetStats.hp);
   return { hp, healing: visibleHealing };
+};
+
+export const applyEffects = (
+  world: World,
+  targetEntity: Entity,
+  burn: number,
+  freeze: number
+) => {
+  if (!targetEntity[AFFECTABLE]) return;
+
+  const targetStats = getEntityStats(world, targetEntity);
+
+  // set affected unit on fire
+  const targetBurn = burn - targetStats.damp;
+  const curentBurn = targetEntity[AFFECTABLE].burn;
+  if (
+    burn > 0 &&
+    targetBurn > 0 &&
+    targetBurn > curentBurn &&
+    !isDead(world, targetEntity)
+  ) {
+    targetEntity[AFFECTABLE].burn = targetBurn;
+  }
+
+  // freeze affected units
+  const targetFreeze = freeze - targetStats.thaw;
+  const curentFreeze = targetEntity[AFFECTABLE].freeze;
+  if (
+    freeze > 0 &&
+    targetFreeze > 0 &&
+    targetFreeze > curentFreeze &&
+    !isDead(world, targetEntity)
+  ) {
+    targetEntity[AFFECTABLE].freeze = targetFreeze;
+  }
+
+  // extinguish unit if burning and frozen
+  if (
+    targetEntity[AFFECTABLE].freeze > 0 &&
+    targetEntity[AFFECTABLE].burn > 0
+  ) {
+    targetEntity[AFFECTABLE].freeze = 0;
+    extinguishEntity(world, targetEntity);
+  }
+};
+
+const procDelay = 100;
+
+export const applyProcs = (
+  world: World,
+  attackerEntity: Entity,
+  itemEntity: TypedEntity<"ITEM">,
+  targetEntity: Entity
+) => {
+  if (!targetEntity[AFFECTABLE]) return;
+
+  const itemStats = getItemStats(itemEntity[ITEM], attackerEntity[NPC]?.type);
+  const itemId = world.getEntityId(itemEntity);
+  const { [itemId]: lastProc, ...otherProcs } = (
+    targetEntity[AFFECTABLE] as Affectable
+  ).procs;
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+
+  if (lastProc && lastProc + procDelay > generation) return;
+
+  // process burn and freeze
+  applyEffects(world, targetEntity, itemStats.burn, itemStats.freeze);
+
+  // handle drain
+  const drain = itemStats.drain;
+  if (drain > 0) {
+    const { healing, hp } = calculateHealing(attackerEntity[STATS], drain);
+    attackerEntity[STATS].hp = hp;
+    if (healing > 0) {
+      createAmountMarker(world, attackerEntity, drain, "up", "true");
+      play("pickup", pickupOptions.hp);
+    }
+  }
+
+  // mark proc as handled
+  targetEntity[AFFECTABLE].procs[itemId] = generation;
+
+  // clean up stale procs
+  Object.entries(otherProcs).forEach(([procId, procGeneration]) => {
+    if (
+      procGeneration + procDelay <= generation ||
+      !world.getEntityById(parseInt(procId))
+    ) {
+      delete targetEntity[AFFECTABLE].procs[procId];
+    }
+  });
 };
 
 export const createAmountMarker = (
@@ -287,6 +383,9 @@ export default function setupDamage(world: World) {
       );
 
       targetEntity[STATS].hp = hp;
+
+      // trigger on hit effects
+      applyProcs(world, entity, sword, targetEntity);
 
       // play sound
       play("hit", {

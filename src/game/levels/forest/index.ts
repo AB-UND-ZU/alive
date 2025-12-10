@@ -43,7 +43,6 @@ import { VIEWABLE } from "../../../engine/components/viewable";
 import { TOOLTIP } from "../../../engine/components/tooltip";
 import { DROPPABLE } from "../../../engine/components/droppable";
 import {
-  anvil,
   bedCenter,
   bedEndLeft,
   bedEndRight,
@@ -53,7 +52,6 @@ import {
   chairRight,
   fenceBurnt1,
   fenceBurnt2,
-  kettle,
   table,
 } from "../../assets/sprites/structures";
 import { SEQUENCABLE } from "../../../engine/components/sequencable";
@@ -82,7 +80,6 @@ import {
 } from "../../../engine/utils";
 import { BURNABLE } from "../../../engine/components/burnable";
 import { forestNpcDistribution } from "./units";
-import { craftingRecipes } from "../../balancing/crafting";
 
 export const forestSize = 160;
 export const forestName: LevelName = "LEVEL_FOREST";
@@ -760,24 +757,16 @@ export const generateForest = (world: World) => {
     tabs: ["buy", "sell"],
   });
 
-  const smithAnvil = entities.createForging(world, {
-    [COLLIDABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [LAYER]: {},
-    [POSITION]: add(smithBuilding.building[POSITION], {
+  createCell(
+    world,
+    worldMatrix,
+    add(smithBuilding.building[POSITION], {
       x: smithOffset * -2,
       y: 0,
     }),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: anvil,
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  createPopup(world, smithAnvil, { tabs: ["forge"] });
+    "anvil",
+    "hidden"
+  );
 
   // 5. trader's house
   const traderEntity = createNpc(
@@ -844,34 +833,16 @@ export const generateForest = (world: World) => {
     tabs: ["buy"],
   });
 
-  const druidKettle = entities.createCrafting(world, {
-    [BURNABLE]: {
-      burning: true,
-      eternal: true,
-      simmer: true,
-      decayed: false,
-      combusted: false,
-    },
-    [COLLIDABLE]: {},
-    [FOG]: { visibility: "hidden", type: "unit" },
-    [LAYER]: {},
-    [POSITION]: add(druidBuilding.building[POSITION], {
+  createCell(
+    world,
+    worldMatrix,
+    add(druidBuilding.building[POSITION], {
       x: druidOffset * -2,
       y: 0,
     }),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: kettle,
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: false,
-      nextDialog: -1,
-    },
-  });
-  createPopup(world, druidKettle, {
-    recipes: craftingRecipes,
-    tabs: ["craft"],
-  });
+    "kettle",
+    "hidden"
+  );
 
   // 7. mage's house
   const mageEntity = createNpc(world, "mage", mageBuilding.building[POSITION]);

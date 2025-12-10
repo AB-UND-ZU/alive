@@ -197,6 +197,9 @@ import {
   entryClosedGoldDisplay,
   oreDisplay,
   note,
+  woodStickWater,
+  woodStickEarth,
+  drain,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1850,13 +1853,78 @@ export const elementSprites: Record<
           ],
           stretch(
             [
-              ...createCountable({ power: 2 }, "power"),
-              ...createText("Power", colors.green),
+              ...createText("2", colors.red),
+              minCountable(meleeHit),
+              ...createText("Melee", colors.red),
             ],
             [
               ...createText("2", colors.yellow),
               maxCountable(fire),
               ...createText("Burn", colors.yellow),
+            ],
+            frameWidth - 2
+          ),
+        ],
+      },
+      water: {
+        sprite: woodStickWater,
+        getDescription: () => [
+          [
+            ...createText("A "),
+            ...createItemName({ stackable: "stick" }),
+            ...createText(" sword"),
+          ],
+          [
+            ...createText("with a "),
+            ...createItemName({
+              stackable: "resource",
+              material: "wood",
+              element: "water",
+            }),
+            ...createText("."),
+          ],
+          stretch(
+            [
+              ...createText("2", colors.red),
+              minCountable(meleeHit),
+              ...createText("Melee", colors.red),
+            ],
+            [
+              ...createText("3", colors.aqua),
+              maxCountable(freeze),
+              ...createText("Freeze", colors.aqua),
+            ],
+            frameWidth - 2
+          ),
+        ],
+      },
+      earth: {
+        sprite: woodStickEarth,
+        getDescription: () => [
+          [
+            ...createText("A "),
+            ...createItemName({ stackable: "stick" }),
+            ...createText(" sword"),
+          ],
+          [
+            ...createText("with a "),
+            ...createItemName({
+              stackable: "resource",
+              material: "wood",
+              element: "earth",
+            }),
+            ...createText("."),
+          ],
+          stretch(
+            [
+              ...createText("2", colors.red),
+              minCountable(meleeHit),
+              ...createText("Melee", colors.red),
+            ],
+            [
+              ...createText("1", colors.purple),
+              drain,
+              ...createText("Drain", colors.purple),
             ],
             frameWidth - 2
           ),

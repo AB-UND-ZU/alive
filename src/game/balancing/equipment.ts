@@ -9,6 +9,7 @@ import {
 } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 import { Attributes } from "../../engine/components/stats";
+import { getAbilityStats } from "./abilities";
 
 export const gearStats: Partial<
   Record<
@@ -45,7 +46,7 @@ export const gearStats: Partial<
         },
         earth: {
           melee: 2,
-          heal: 1,
+          drain: 1,
         },
       },
       iron: { melee: 4 },
@@ -209,13 +210,27 @@ export const getEquipmentStats = (
   };
 };
 
-export const getEquipmentDiff = (
+export const getItemStats = (
+  item: Omit<Item, "carrier" | "bound" | "amount">,
+  caster: NpcType | "default" = "default"
+): ItemStats =>
+  item.primary || item.secondary
+    ? getAbilityStats(item, caster)
+    : getEquipmentStats(item, caster);
+
+export const getItemDiff = (
   world: World,
   baseItem: Omit<Item, "carrier" | "bound" | "amount">,
   resultItem: Omit<Item, "carrier" | "bound" | "amount">
 ): Omit<ItemStats, "medium"> => {
-  const baseStats = getEquipmentStats(baseItem);
-  const resultStats = getEquipmentStats(resultItem);
+  const baseStats =
+    baseItem.primary || baseItem.secondary
+      ? getAbilityStats(baseItem)
+      : getEquipmentStats(baseItem);
+  const resultStats =
+    resultItem.primary || resultItem.secondary
+      ? getAbilityStats(resultItem)
+      : getEquipmentStats(resultItem);
 
   Object.entries(baseStats).forEach(([key, value]) => {
     resultStats[key as keyof Attributes] -= value;

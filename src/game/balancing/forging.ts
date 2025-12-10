@@ -467,6 +467,348 @@ export const forgeStats: Partial<
       ],
     },
   },
+  wave: {
+    wood: {
+      default: [
+        {
+          add: { stackable: "resource", material: "iron", amount: 4 },
+          result: { equipment: "primary", primary: "wave", material: "iron" },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "air",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "air",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "fire",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "fire",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "water",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "water",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "earth",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "earth",
+          },
+        },
+      ],
+      air: [
+        {
+          add: { stackable: "resource", material: "iron", amount: 4 },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "iron",
+            element: "air",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "fire",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "fire",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "water",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "water",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "earth",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "earth",
+          },
+        },
+      ],
+      fire: [
+        {
+          add: { stackable: "resource", material: "iron", amount: 4 },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "iron",
+            element: "fire",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "air",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "air",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "water",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "water",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "earth",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "earth",
+          },
+        },
+      ],
+      water: [
+        {
+          add: { stackable: "resource", material: "iron", amount: 4 },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "iron",
+            element: "water",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "air",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "air",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "fire",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "fire",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "earth",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "earth",
+          },
+        },
+      ],
+      earth: [
+        {
+          add: { stackable: "resource", material: "iron", amount: 4 },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "iron",
+            element: "earth",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "air",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "air",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "fire",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "fire",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "water",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "wood",
+            element: "water",
+          },
+        },
+      ],
+    },
+    iron: {
+      default: [
+        {
+          add: { stackable: "resource", material: "gold", amount: 4 },
+          result: { equipment: "primary", primary: "wave", material: "gold" },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "air",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "iron",
+            element: "air",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "fire",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "iron",
+            element: "fire",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "water",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "iron",
+            element: "water",
+          },
+        },
+        {
+          add: {
+            stackable: "resource",
+            material: "wood",
+            element: "earth",
+            amount: 1,
+          },
+          result: {
+            equipment: "primary",
+            primary: "wave",
+            material: "iron",
+            element: "earth",
+          },
+        },
+      ],
+    },
+  },
 };
 
 export type ForgeOption = {

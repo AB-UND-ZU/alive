@@ -15,11 +15,11 @@ import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
 import { AFFECTABLE } from "../components/affectable";
 import {
+  applyEffects,
   calculateDamage,
   calculateHealing,
   createAmountMarker,
   getAttackables,
-  getEntityStats,
   isDead,
   isEnemy,
   isFriendlyFire,
@@ -255,43 +255,13 @@ export default function setupMagic(world: World) {
             );
           }
 
-          if (!targetEntity[AFFECTABLE]) continue;
-
-          const targetStats = getEntityStats(world, targetEntity);
-
-          // set affected unit on fire
-          const targetBurn = castableEntity[CASTABLE].burn - targetStats.damp;
-          const curentBurn = targetEntity[AFFECTABLE].burn;
-          if (
-            castableEntity[CASTABLE].burn > 0 &&
-            targetBurn > 0 &&
-            targetBurn > curentBurn &&
-            !isDead(world, targetEntity)
-          ) {
-            targetEntity[AFFECTABLE].burn = targetBurn;
-          }
-
-          // freeze affected units
-          const targetFreeze =
-            castableEntity[CASTABLE].freeze - targetStats.thaw;
-          const curentFreeze = targetEntity[AFFECTABLE].freeze;
-          if (
-            castableEntity[CASTABLE].freeze > 0 &&
-            targetFreeze > 0 &&
-            targetFreeze > curentFreeze &&
-            !isDead(world, targetEntity)
-          ) {
-            targetEntity[AFFECTABLE].freeze = targetFreeze;
-          }
-        }
-
-        // extinguish unit if burning and frozen
-        if (
-          targetEntity[AFFECTABLE].freeze > 0 &&
-          targetEntity[AFFECTABLE].burn > 0
-        ) {
-          targetEntity[AFFECTABLE].freeze = 0;
-          extinguishEntity(world, targetEntity);
+          // process burning and freezing on hit
+          applyEffects(
+            world,
+            targetEntity,
+            castableEntity[CASTABLE].burn,
+            castableEntity[CASTABLE].freeze
+          );
         }
 
         rerenderEntity(world, targetEntity);

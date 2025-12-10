@@ -133,6 +133,16 @@ export const heal: Sprite = {
   layers: [{ char: "+", color: colors.lime }],
 };
 
+export const drain: Sprite = {
+  name: "Drain",
+  layers: [
+    { char: "\u0116", color: colors.purple },
+    { char: "\u0111", color: colors.black },
+    { char: "+", color: colors.purple },
+    { char: "÷", color: colors.fuchsia },
+  ],
+};
+
 export const woodWave: Sprite = {
   name: "wood_wave",
   layers: [
@@ -1879,7 +1889,7 @@ const statConfig: Record<
     sprite: thaw,
   },
   spike: {
-    color: colors.purple,
+    color: colors.maroon,
     sprite: spike,
   },
   melee: {
@@ -1896,15 +1906,19 @@ const statConfig: Record<
   },
   burn: {
     color: colors.yellow,
-    sprite: minCountable(fire),
+    sprite: maxCountable(fire),
   },
   freeze: {
     color: colors.aqua,
-    sprite: minCountable(freeze),
+    sprite: maxCountable(freeze),
   },
   heal: {
     color: colors.lime,
     sprite: heal,
+  },
+  drain: {
+    color: colors.purple,
+    sprite: drain,
   },
 };
 

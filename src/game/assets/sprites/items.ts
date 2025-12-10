@@ -152,17 +152,28 @@ export const level: Sprite = {
 
 export const xp: Sprite = {
   name: "XP",
-  layers: [{ char: "+", color: colors.lime }],
+  layers: [
+    { char: "+", color: colors.lime },
+    { char: "·", color: colors.black },
+  ],
   amounts: {
-    single: [{ char: "+", color: colors.lime }],
+    single: [
+      { char: "+", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+
     double: [
       { char: "*", color: colors.lime },
       { char: "■", color: colors.black },
       { char: "-", color: colors.lime },
       { char: "|", color: colors.lime },
       { char: "~", color: colors.black },
+      { char: "·", color: colors.black },
     ],
-    multiple: [{ char: "┼", color: colors.lime }],
+    multiple: [
+      { char: "┼", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
   },
 };
 
@@ -247,14 +258,14 @@ export const thaw: Sprite = {
 export const spike: Sprite = {
   name: "Spike",
   layers: [
-    { char: "<", color: colors.fuchsia },
-    { char: ">", color: colors.purple },
+    { char: "<", color: colors.red },
+    { char: ">", color: colors.maroon },
   ],
 };
 
 export const airEssence: Sprite = {
   name: "Spirit",
-  layers: [{ char: "æ", color: colors.silver }],
+  layers: [{ char: "æ", color: colors.white }],
 };
 
 export const fireEssence: Sprite = {

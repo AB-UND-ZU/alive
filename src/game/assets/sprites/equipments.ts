@@ -364,6 +364,58 @@ export const woodStickFire: Sprite = {
   },
 };
 
+export const woodStickWater: Sprite = {
+  name: "Sword",
+  layers: [
+    { char: "/", color: colors.maroon },
+    { char: "·", color: colors.blue },
+  ],
+  facing: {
+    up: [
+      { char: "|", color: colors.maroon },
+      { char: "·", color: colors.blue },
+    ],
+    right: [
+      { char: "-", color: colors.maroon },
+      { char: "·", color: colors.blue },
+    ],
+    down: [
+      { char: "|", color: colors.maroon },
+      { char: "·", color: colors.blue },
+    ],
+    left: [
+      { char: "-", color: colors.maroon },
+      { char: "·", color: colors.blue },
+    ],
+  },
+};
+
+export const woodStickEarth: Sprite = {
+  name: "Sword",
+  layers: [
+    { char: "/", color: colors.maroon },
+    { char: "·", color: colors.lime },
+  ],
+  facing: {
+    up: [
+      { char: "|", color: colors.maroon },
+      { char: "·", color: colors.lime },
+    ],
+    right: [
+      { char: "-", color: colors.maroon },
+      { char: "·", color: colors.lime },
+    ],
+    down: [
+      { char: "|", color: colors.maroon },
+      { char: "·", color: colors.lime },
+    ],
+    left: [
+      { char: "-", color: colors.maroon },
+      { char: "·", color: colors.lime },
+    ],
+  },
+};
+
 export const ironSword: Sprite = {
   name: "Sword",
   layers: [{ char: "/", color: colors.grey }],

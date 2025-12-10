@@ -298,7 +298,7 @@ import {
 } from "./pixels";
 import { getItemPrice } from "../balancing/trading";
 import { getForgeOptions, getForgeStatus } from "../balancing/forging";
-import { getEquipmentDiff } from "../balancing/equipment";
+import { getItemDiff } from "../balancing/equipment";
 import { getCraftingDeal } from "../balancing/crafting";
 import { isInside, onSameLayer } from "../../engine/systems/enter";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
@@ -1971,7 +1971,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
   );
 
   const resultDiff =
-    baseItem && resultItem && getEquipmentDiff(world, baseItem, resultItem);
+    baseItem && resultItem && getItemDiff(world, baseItem, resultItem);
   const resultContent = resultItem && [
     createText("Preview:  ", colors.grey),
     [
@@ -1991,7 +1991,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
       .filter(([key, value]) => value !== 0)
       .map(([key, value]) => {
         const stat = key as keyof ItemStats;
-        const statSprite = getStatSprite(stat);
+        const statSprite = getStatSprite(stat, "display");
         const statColor = getStatColor(stat);
         const valueText = `${value > 0 ? "+" : ""}${value}`;
         return [

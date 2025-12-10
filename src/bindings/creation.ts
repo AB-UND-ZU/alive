@@ -2,7 +2,10 @@ import { Entity } from "ecs";
 import { isTouch } from "../components/Dimensions";
 import { entities, World } from "../engine";
 import { ACTIONABLE } from "../engine/components/actionable";
-import { AFFECTABLE } from "../engine/components/affectable";
+import {
+  AFFECTABLE,
+  getEmptyAffectable,
+} from "../engine/components/affectable";
 import { ATTACKABLE } from "../engine/components/attackable";
 import { BEHAVIOUR } from "../engine/components/behaviour";
 import { BELONGABLE } from "../engine/components/belongable";
@@ -140,6 +143,7 @@ import {
   xp,
 } from "../game/assets/sprites";
 import {
+  anvil,
   basementLeftInside,
   basementRightInside,
   fenceBurnt1,
@@ -157,6 +161,7 @@ import {
   houseMage,
   houseRight,
   houseTrader,
+  kettle,
   roof,
   roofDown,
   roofDownLeft,
@@ -202,6 +207,7 @@ import { CLICKABLE } from "../engine/components/clickable";
 import { centerSprites, overlay, recolorSprite } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
 import { POPUP } from "../engine/components/popup";
+import { craftingRecipes } from "../game/balancing/crafting";
 
 const populateItems = (
   world: World,
@@ -390,7 +396,7 @@ export const createNpc = (
   const npcUnit = generateNpcData(npcKey);
   const npcEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-    [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+    [AFFECTABLE]: getEmptyAffectable(),
     [ATTACKABLE]: { shots: 0 },
     [BEHAVIOUR]: { patterns: npcUnit.patterns },
     [BELONGABLE]: { faction: npcUnit.faction },
@@ -1104,7 +1110,7 @@ export const createCell = (
       generateUnitData("tumbleweed");
     const tumbleweedEntity = entities.createTumbleweed(world, {
       [ATTACKABLE]: { shots: 0 },
-      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [AFFECTABLE]: getEmptyAffectable(),
       [BEHAVIOUR]: { patterns },
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false },
@@ -1233,7 +1239,7 @@ export const createCell = (
     });
     const cactusEntity = entities.createCactus(world, {
       [ATTACKABLE]: { shots: 0 },
-      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [AFFECTABLE]: getEmptyAffectable(),
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false, remains: sand },
       [FOG]: { visibility, type: "terrain" },
@@ -1736,7 +1742,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
     });
     const boxEntity = entities.createBox(world, {
-      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { shots: 0 },
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false },
@@ -1842,7 +1848,7 @@ export const createCell = (
 
     const mobEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { shots: 0 },
       [BEHAVIOUR]: {
         patterns: [{ name: "wait", memory: { ticks: 1 } }, ...mobUnit.patterns],
@@ -2197,7 +2203,7 @@ export const createCell = (
     const towerUnit = generateNpcData("waveTower");
     const towerEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { shots: 0 },
       [BEHAVIOUR]: { patterns: towerUnit.patterns },
       [BELONGABLE]: { faction: towerUnit.faction },
@@ -2245,7 +2251,7 @@ export const createCell = (
 
     const bossEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { shots: 0 },
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
       [BELONGABLE]: { faction: bossUnit.faction },
@@ -2287,7 +2293,7 @@ export const createCell = (
     );
     const mobEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-      [AFFECTABLE]: { dot: 0, burn: 0, freeze: 0 },
+      [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { shots: 0 },
       [BEHAVIOUR]: {
         patterns: [{ name: "wait", memory: { ticks: 1 } }, ...mobUnit.patterns],
@@ -2564,6 +2570,50 @@ export const createCell = (
       });
     });
     return fountainEntity;
+  } else if (cell === "kettle") {
+    const kettleEntity = entities.createCrafting(world, {
+      [BURNABLE]: {
+        burning: true,
+        eternal: true,
+        simmer: true,
+        decayed: false,
+        combusted: false,
+      },
+      [COLLIDABLE]: {},
+      [FOG]: { visibility: "hidden", type: "unit" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: kettle,
+      [TOOLTIP]: {
+        dialogs: [],
+        persistent: false,
+        nextDialog: -1,
+      },
+    });
+    createPopup(world, kettleEntity, {
+      recipes: craftingRecipes,
+      tabs: ["craft"],
+    });
+    return kettleEntity;
+  } else if (cell === "anvil") {
+    const anvilEntity = entities.createForging(world, {
+      [COLLIDABLE]: {},
+      [FOG]: { visibility: "hidden", type: "unit" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: anvil,
+      [TOOLTIP]: {
+        dialogs: [],
+        persistent: false,
+        nextDialog: -1,
+      },
+    });
+    createPopup(world, anvilEntity, { tabs: ["forge"] });
+    return anvilEntity;
   } else if (cell === "1") {
     const patterns = [
       [..."Tutorial  ", ".\x00:", ..."  ", ".\x00:"],
