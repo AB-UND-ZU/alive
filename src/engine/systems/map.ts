@@ -9,6 +9,13 @@ import { getOverlappingCell } from "../../game/math/matrix";
 import { INVENTORY } from "../components/inventory";
 import { rerenderEntity } from "./renderer";
 import { EQUIPPABLE } from "../components/equippable";
+import {
+  Sequencable,
+  SEQUENCABLE,
+  SequenceState,
+} from "../components/sequencable";
+import { RENDERABLE } from "../components/renderable";
+import { MOVABLE } from "../components/movable";
 
 export const updateWalkable = (world: World, position: Position) => {
   // update walkable map after initialization
@@ -79,6 +86,43 @@ const unregisterEntity = (world: World, entity: Entity) => {
   updateWalkable(world, position);
 };
 
+export const disposeParticles = (
+  world: World,
+  sequenceState: SequenceState<{}>
+) => {
+  // clean up orphaned particles
+  for (const particleName in sequenceState.particles) {
+    const particleEntity = world.assertById(
+      sequenceState.particles[particleName]
+    );
+    disposeEntity(world, particleEntity);
+    delete sequenceState.particles[particleName];
+  }
+};
+
+export const disposeFrame = (
+  world: World,
+  frame: Entity,
+  deferredRemoval?: boolean
+) => {
+  // persist last generation in frame and entities to allow safely removing frame immediately and ensuring proper rendering
+  const lastGeneration = frame[RENDERABLE].generation;
+  world.metadata.sequenceEntity[RENDERABLE].generation += lastGeneration;
+  disposeEntity(world, frame, deferredRemoval);
+};
+
+export const disposeSequence = (
+  world: World,
+  entity: Entity,
+  sequenceName: string
+) => {
+  const sequenceState = entity[SEQUENCABLE].states[sequenceName];
+  const frameEntity = world.assertById(sequenceState.reference);
+  disposeFrame(world, frameEntity, true);
+  disposeParticles(world, sequenceState);
+  delete entity[SEQUENCABLE].states[sequenceName];
+};
+
 export const disposeEntity = (
   world: World,
   entity: Entity,
@@ -102,6 +146,23 @@ export const disposeEntity = (
       if (!itemEntity) continue;
       world.removeEntity(itemEntity, deferredRemoval);
     }
+  }
+
+  // clean up any remaining sequences
+  Object.keys((entity[SEQUENCABLE] as Sequencable)?.states || {}).forEach(
+    (sequenceName) => {
+      disposeSequence(world, entity, sequenceName);
+    }
+  );
+
+  // clean up movable frames
+  const movableReference = entity[MOVABLE]?.reference;
+  if (
+    movableReference &&
+    movableReference !== world.getEntityId(world.metadata.gameEntity)
+  ) {
+    const referenceEntity = world.assertById(movableReference);
+    disposeFrame(world, referenceEntity, true);
   }
 
   world.removeEntity(entity, deferredRemoval);

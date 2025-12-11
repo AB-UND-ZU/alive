@@ -38,7 +38,6 @@ import { RECHARGABLE } from "../engine/components/rechargable";
 import { REFERENCE } from "../engine/components/reference";
 import { RENDERABLE } from "../engine/components/renderable";
 import {
-  DiscoverySequence,
   FocusSequence,
   FountainSequence,
   SEQUENCABLE,
@@ -2491,14 +2490,6 @@ export const createCell = (
       lines: inMenu ? [[], mapText] : [mapText],
       verticalIndezes: inMenu ? [0, 0] : [level.mapOffsetY - 2],
     });
-
-    createSequence<"discovery", DiscoverySequence>(
-      world,
-      portalEntity,
-      "discovery",
-      "discoveryIdle",
-      { idle: warp, hidden: false, timestamp: 0 }
-    );
     return portalEntity;
   } else if (cell === "settings_sound" || cell === "settings_controls") {
     const leverEntity = entities.createLever(world, {

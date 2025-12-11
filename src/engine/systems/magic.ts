@@ -8,8 +8,8 @@ import {
   SEQUENCABLE,
   SlashSequence,
 } from "../components/sequencable";
-import { disposeEntity, getCell } from "./map";
-import { createSequence, disposeFrame, getSequences } from "./sequence";
+import { disposeEntity, disposeFrame, getCell } from "./map";
+import { createSequence, getSequences } from "./sequence";
 import { Castable, CASTABLE, getEmptyCastable } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
@@ -416,6 +416,8 @@ export default function setupMagic(world: World) {
 
         if (pendingStat <= 0) continue;
 
+        const delay = previousStats * 500;
+
         if (statName === "hp") {
           createAmountMarker(world, entity, pendingStat, "up", "true");
         } else if (statName === "mp") {
@@ -437,15 +439,15 @@ export default function setupMagic(world: World) {
             ),
             orientation: "up",
             fast: false,
-            delay: previousStats * 500,
+            delay,
           });
           previousStats += 1;
         } else continue;
 
-        play(
-          "pickup",
-          pickupOptions[statName as "hp" | "maxHp" | "mp" | "maxMp"]
-        );
+        play("pickup", {
+          delay,
+          ...pickupOptions[statName as "hp" | "maxHp" | "mp" | "maxMp"],
+        });
       }
     }
 

@@ -94,6 +94,7 @@ import { iterations, pixelCircle } from "../math/tracing";
 import { getClickables } from "../../engine/systems/click";
 import { muteAudio, unmuteAudio } from "../sound/resumable";
 import { worldContextRef } from "../../bindings/hooks";
+import { REFERENCE } from "../../engine/components/reference";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
@@ -194,6 +195,15 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
     state.args.memory.circles = [];
 
     // create moving arrow
+    const frameEntity = entities.createFrame(world, {
+      [REFERENCE]: {
+        tick: -1,
+        delta: 0,
+        suspended: true,
+        suspensionCounter: -1,
+      },
+      [RENDERABLE]: { generation: 0 },
+    });
     const arrowEntity = entities.createTransient(world, {
       [FOG]: {
         visibility: "visible",
@@ -201,9 +211,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
       },
       [MOVABLE]: {
         orientations: [],
-        reference:
-          heroEntity?.[MOVABLE]?.reference ||
-          world.getEntityId(world.metadata.gameEntity),
+        reference: world.getEntityId(frameEntity),
         spring: {
           duration: 200,
         },
@@ -373,6 +381,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
           arrowEntity,
           add(topLeft, { x: menuPadding - 1, y: 1 })
         );
+        rerenderEntity(world, arrowEntity);
 
         for (let cellIndex = 0; cellIndex < menuSize.x - 1; cellIndex += 1) {
           const cellPosition = add(topLeft, {

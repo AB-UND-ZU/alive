@@ -9,7 +9,7 @@ import { REFERENCE } from "../components/reference";
 import * as sequences from "../../game/assets/sequences";
 import { rerenderEntity } from "./renderer";
 import { Entity } from "ecs";
-import { disposeEntity } from "./map";
+import { disposeFrame, disposeParticles, disposeSequence } from "./map";
 import { entities } from "..";
 import { ATTACKABLE } from "../components/attackable";
 import { PARTICLE } from "../components/particle";
@@ -72,6 +72,16 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
     },
     [RENDERABLE]: { generation: 1 },
   });
+
+  // unsafely abort previous instance of sequence
+  if (entity[SEQUENCABLE].states[type]) {
+    console.warn(
+      `Aborting previous sequence "${type}" of following entity:`,
+      entity
+    );
+    disposeSequence(world, entity, type);
+  }
+
   (entity[SEQUENCABLE].states[type] as SequenceState<A>) = {
     name,
     reference: world.getEntityId(sequenceEntity),
@@ -79,13 +89,6 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
     args,
     particles: {},
   };
-};
-
-// persist last generation in frame and entities to allow safely removing frame immediately and ensuring proper rendering
-export const disposeFrame = (world: World, frame: Entity) => {
-  const lastGeneration = frame[RENDERABLE].generation;
-  world.metadata.sequenceEntity[RENDERABLE].generation += lastGeneration;
-  disposeEntity(world, frame, false);
 };
 
 export default function setupSequence(world: World) {
@@ -130,14 +133,7 @@ export default function setupSequence(world: World) {
         }
 
         if (result.finished) {
-          // clean up orphaned particles
-          for (const particleName in sequenceState.particles) {
-            const particleEntity = world.assertById(
-              sequenceState.particles[particleName]
-            );
-            disposeEntity(world, particleEntity);
-            delete sequenceState.particles[particleName];
-          }
+          disposeParticles(world, sequenceState);
 
           delete sequencable.states[sequenceType];
           entity[RENDERABLE].generation +=
