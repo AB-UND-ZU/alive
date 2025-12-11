@@ -529,7 +529,7 @@ export default function setupAi(world: World) {
               entity[MOVABLE].orientations = [];
               entity[ORIENTABLE].facing = undefined;
             } else {
-              const sidestep = generation % 5 === 0;
+              const sidestep = generation % 7 === 0;
 
               entity[MOVABLE].orientations = sidestep
                 ? [...reversed(fleeingOrientations)]
@@ -1006,7 +1006,7 @@ export default function setupAi(world: World) {
 
           if (entity[STATS].hp < entity[STATS].maxHp) {
             if (!pattern.memory.heal) {
-              pattern.memory.heal = generation + 10;
+              pattern.memory.heal = generation + 15;
               continue;
             }
             if (pattern.memory.heal + 2 > generation) continue;
@@ -1015,7 +1015,7 @@ export default function setupAi(world: World) {
 
             const { hp, healing } = calculateHealing(
               entity[STATS],
-              Math.floor(entity[STATS].maxHp / 10)
+              Math.floor(entity[STATS].maxHp / 5)
             );
             entity[STATS].hp = hp;
             if (healing > 0) {

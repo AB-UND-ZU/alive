@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type DamageType = "melee" | "magic" | "true";
-export type EffectType = "burn" | "freeze" | "heal";
+export type EffectType = "burn" | "freeze" | "heal" | "drain";
 
 export type Castable = {
   [K in DamageType]: number;
@@ -10,16 +10,19 @@ export type Castable = {
   [K in EffectType]: number;
 } & {
   caster: number;
-  affected: Record<string, number>;
+  retrigger: number;
+  affected: Record<string, { generation: number; delta: number, frame?: number }>;
 };
 
 export const emptyCastable: Omit<Castable, "caster" | "affected"> = {
+  retrigger: 0,
   melee: 0,
   magic: 0,
   true: 0,
   burn: 0,
   freeze: 0,
   heal: 0,
+  drain: 0,
 };
 
 export const getEmptyCastable = (world: World, entity: Entity): Castable => ({

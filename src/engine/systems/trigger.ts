@@ -57,7 +57,7 @@ import { add, copy, signedDistance } from "../../game/math/std";
 import { ORIENTABLE } from "../components/orientable";
 import { CASTABLE } from "../components/castable";
 import { isDead, isEnemy, isNpc } from "./damage";
-import { canCast, chargeSlash, getParticleAmount } from "./magic";
+import { canCast, chargeSlash } from "./magic";
 import { EQUIPPABLE } from "../components/equippable";
 import {
   canSell,
@@ -514,6 +514,7 @@ export const castSpell = (
     [CASTABLE]: {
       affected: {},
       ...spellStats,
+      retrigger: item[ITEM].primary === "beam" ? 2 : 0,
       caster: world.getEntityId(entity),
     },
     [ORIENTABLE]: { facing: entity[ORIENTABLE]?.facing },
@@ -538,9 +539,7 @@ export const castSpell = (
         element: item[ITEM].element,
       }
     );
-    play("beam", {
-      variant: getParticleAmount(world, spellStats.magic || spellStats.heal),
-    });
+    play("beam", { variant: 3 });
   } else if (item[ITEM].primary === "wave") {
     createSequence<"spell", SpellSequence>(
       world,

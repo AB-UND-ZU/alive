@@ -9,7 +9,7 @@ import { MELEE } from "../components/melee";
 import { getCell } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
-import { ITEM } from "../components/item";
+import { ITEM, ItemStats } from "../components/item";
 import {
   ORIENTABLE,
   Orientation,
@@ -36,10 +36,7 @@ import { TypedEntity } from "../entities";
 import { createItemName, queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
 import { POPUP } from "../components/popup";
-import {
-  getEquipmentStats,
-  getItemStats,
-} from "../../game/balancing/equipment";
+import { getEquipmentStats } from "../../game/balancing/equipment";
 import { NPC } from "../components/npc";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { closePopup, getActivePopup } from "./popup";
@@ -210,14 +207,13 @@ const procDelay = 100;
 export const applyProcs = (
   world: World,
   attackerEntity: Entity,
-  itemEntity: TypedEntity<"ITEM">,
+  itemStats: Pick<ItemStats, "burn" | "freeze" | "drain">,
+  procId: number,
   targetEntity: Entity
 ) => {
   if (!targetEntity[AFFECTABLE]) return;
 
-  const itemStats = getItemStats(itemEntity[ITEM], attackerEntity[NPC]?.type);
-  const itemId = world.getEntityId(itemEntity);
-  const { [itemId]: lastProc, ...otherProcs } = (
+  const { [procId]: lastProc, ...otherProcs } = (
     targetEntity[AFFECTABLE] as Affectable
   ).procs;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
@@ -239,7 +235,7 @@ export const applyProcs = (
   }
 
   // mark proc as handled
-  targetEntity[AFFECTABLE].procs[itemId] = generation;
+  targetEntity[AFFECTABLE].procs[procId] = generation;
 
   // clean up stale procs
   Object.entries(otherProcs).forEach(([procId, procGeneration]) => {
@@ -385,7 +381,13 @@ export default function setupDamage(world: World) {
       targetEntity[STATS].hp = hp;
 
       // trigger on hit effects
-      applyProcs(world, entity, sword, targetEntity);
+      applyProcs(
+        world,
+        entity,
+        swordStats,
+        entity[EQUIPPABLE].sword,
+        targetEntity
+      );
 
       // play sound
       play("hit", {

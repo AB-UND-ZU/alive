@@ -23,6 +23,7 @@ import {
 import { NPC, NpcType } from "../../engine/components/npc";
 import { SPAWNABLE } from "../../engine/components/spawnable";
 import { ClassKey } from "../../game/balancing/classes";
+import { isDead } from "../../engine/systems/damage";
 
 export const textSize = 18 / 25 + 0.001;
 
@@ -49,8 +50,8 @@ export const fixedHeight = 7.5 * stackHeight;
 export const idleHeight = 8 * stackHeight;
 export const tooltipHeight = 8.5 * stackHeight;
 export const focusHeight = 9 * stackHeight;
-export const dialogHeight = 9.2 * stackHeight;
-export const particleHeight = 9.5 * stackHeight;
+export const particleHeight = 9.2 * stackHeight;
+export const dialogHeight = 9.5 * stackHeight;
 export const popupHeight = 10 * stackHeight;
 export const selectionHeight = 10.1 * stackHeight;
 export const transientHeight = 10.5 * stackHeight;
@@ -143,7 +144,7 @@ export const getSegments = (
   const backdrop = swimming
     ? unitSwimmingBackdrops[unitKey]
     : unitBackdrops[unitKey];
-  if (backdrop) {
+  if (backdrop && !isDead(world, entity)) {
     orderedSegments.push({
       id: -1,
       sprite: backdrop,

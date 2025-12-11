@@ -9,13 +9,13 @@ import {
   SlashSequence,
 } from "../components/sequencable";
 import { disposeEntity, getCell } from "./map";
-import { createSequence, getSequences } from "./sequence";
-import { CASTABLE, getEmptyCastable } from "../components/castable";
+import { createSequence, disposeFrame, getSequences } from "./sequence";
+import { Castable, CASTABLE, getEmptyCastable } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
 import { AFFECTABLE } from "../components/affectable";
 import {
-  applyEffects,
+  applyProcs,
   calculateDamage,
   calculateHealing,
   createAmountMarker,
@@ -136,6 +136,23 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
   play("slash");
 };
 
+export const hasTriggered = (
+  world: World,
+  affected: Castable["affected"][number],
+  retrigger: number
+) => {
+  const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
+  const worldDelta = world.metadata.gameEntity[REFERENCE].delta;
+
+  return (
+    !affected ||
+    (retrigger > 0 &&
+      (worldGeneration > affected.generation + retrigger ||
+        (worldGeneration >= affected.generation + retrigger &&
+          worldDelta >= affected.delta)))
+  );
+};
+
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
   const playerStats: Player["receivedStats"] = { ...emptyReceivedStats };
@@ -146,6 +163,7 @@ export default function setupMagic(world: World) {
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
     const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
+    const worldDelta = world.metadata.gameEntity[REFERENCE].delta;
     const heroEntity = world.getEntity([PLAYER, POSITION]);
     const size = world.metadata.gameEntity[LEVEL].size;
 
@@ -159,12 +177,52 @@ export default function setupMagic(world: World) {
       RENDERABLE,
       SEQUENCABLE,
     ])) {
+      // unmark when entity leaves retriggering AoE
+      if (entity[CASTABLE].retrigger > 0) {
+        Object.entries(entity[CASTABLE].affected).forEach(
+          ([entityId, affected]) => {
+            if (!hasTriggered(world, affected, entity[CASTABLE].retrigger))
+              return;
+
+            const affectedEntity = world.getEntityByIdAndComponents(
+              parseInt(entityId),
+              [AFFECTABLE, POSITION]
+            );
+            const castableId = world.getEntityId(entity);
+
+            if (
+              !affectedEntity ||
+              !getExertables(world, affectedEntity[POSITION]).some(
+                (exertable) => exertable[EXERTABLE].castable === castableId
+              )
+            ) {
+              // stop ticking frames
+              const frameId = entity[CASTABLE].affected[entityId].frame;
+              if (frameId) {
+                disposeFrame(world, world.assertById(frameId));
+                delete entity[CASTABLE].affected[entityId].frame;
+              }
+
+              delete entity[CASTABLE].affected[entityId];
+            }
+          }
+        );
+      }
+
       // keep eternal fires
       const casterEntity = world.getEntityById(entity[CASTABLE].caster);
       if (casterEntity?.[BURNABLE]?.eternal) continue;
 
       // delete finished spell entities and smoke anchors
       if (getSequences(world, entity).length === 0) {
+        // ensure any remaining retrigger frames are disposed properly
+        Object.values(entity[CASTABLE].affected).forEach((affected) => {
+          if (affected.frame) {
+            const frameEntity = world.assertById(affected.frame);
+            disposeFrame(world, frameEntity);
+            delete affected.frame;
+          }
+        });
         disposeEntity(world, entity);
       }
     }
@@ -184,27 +242,60 @@ export default function setupMagic(world: World) {
       }
 
       const casterEntity = world.getEntityById(castableEntity[CASTABLE].caster);
-      const isEternalFire = casterEntity?.[BURNABLE]?.eternal;
 
       const targetEntities = castableEntity[CASTABLE].melee
         ? getAttackables(world, entity[POSITION])
         : getAffectables(world, entity[POSITION]);
       for (const targetEntity of targetEntities) {
         const affectableId = world.getEntityId(targetEntity);
-        const affectedGeneration =
+        const previousAffected =
           castableEntity[CASTABLE].affected[affectableId];
 
         if (
           isDead(world, targetEntity) ||
           (isFriendlyFire(world, castableEntity, targetEntity) &&
             !castableEntity[CASTABLE].heal) ||
-          (affectedGeneration &&
-            (!isEternalFire || affectedGeneration === worldGeneration))
+          !hasTriggered(
+            world,
+            previousAffected,
+            castableEntity[CASTABLE].retrigger
+          )
         )
           continue;
 
         // set affected generation
-        castableEntity[CASTABLE].affected[affectableId] = worldGeneration;
+        castableEntity[CASTABLE].affected[affectableId] = previousAffected
+          ? {
+              ...previousAffected,
+              generation:
+                previousAffected.generation +
+                castableEntity[CASTABLE].retrigger,
+            }
+          : {
+              generation: worldGeneration,
+              delta: worldDelta,
+            };
+
+        // start ticking empty frame to ensure next tick is called in time
+        if (
+          castableEntity[CASTABLE].retrigger > 0 &&
+          !castableEntity[CASTABLE].affected[affectableId].frame
+        ) {
+          const retriggerEntity = entities.createFrame(world, {
+            [REFERENCE]: {
+              tick:
+                world.metadata.gameEntity[REFERENCE].tick *
+                castableEntity[CASTABLE].retrigger,
+              delta: 0,
+              suspended: false,
+              suspensionCounter: -1,
+            },
+            [RENDERABLE]: { generation: 1 },
+          });
+
+          castableEntity[CASTABLE].affected[affectableId].frame =
+            world.getEntityId(retriggerEntity);
+        }
 
         if (isFriendlyFire(world, castableEntity, targetEntity)) {
           // process healing
@@ -216,6 +307,9 @@ export default function setupMagic(world: World) {
             targetEntity[STATS].hp = hp;
 
             createAmountMarker(world, targetEntity, healing, "up", "true");
+            if (healing > 0) {
+              play("pickup", pickupOptions.hp);
+            }
           }
         } else {
           // inflict direct damage
@@ -256,11 +350,16 @@ export default function setupMagic(world: World) {
           }
 
           // process burning and freezing on hit
-          applyEffects(
+          applyProcs(
             world,
-            targetEntity,
-            castableEntity[CASTABLE].burn,
-            castableEntity[CASTABLE].freeze
+            castableEntity,
+            {
+              burn: castableEntity[CASTABLE].burn,
+              freeze: castableEntity[CASTABLE].freeze,
+              drain: castableEntity[CASTABLE].drain,
+            },
+            entity[EXERTABLE].castable,
+            targetEntity
           );
         }
 

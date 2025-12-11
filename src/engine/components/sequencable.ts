@@ -9,7 +9,7 @@ import { Light } from "./light";
 import { Element, Item, Material } from "./item";
 import { Popup } from "./popup";
 import { Liquid } from "./liquid";
-import { DamageType } from "./castable";
+import { Castable, DamageType } from "./castable";
 
 type EmptyObject = Record<string, never>;
 
@@ -42,10 +42,10 @@ export type MessageSequence = {
 export type DecaySequence = { fast: boolean };
 export type BurnSequence = {
   generation: number;
-  lastTick?: number;
-  lastDot?: number;
   castable?: number;
   exertable?: number;
+  igniter?: number;
+  lastAffected?: Castable["affected"][number];
 };
 export type FreezeSequence = {
   total: number;
@@ -127,7 +127,11 @@ export type DialogSequence = {
 };
 export type XpSequence = { generation: number };
 export type VortexSequence = { generation: number };
-export type FountainSequence = { generation: number; entered?: number, healed?:number };
+export type FountainSequence = {
+  generation: number;
+  entered?: number;
+  healed?: number;
+};
 export type ProgressSequence = {
   dropped: boolean;
   maxMp: number;

@@ -42,7 +42,7 @@ export const gearStats: Partial<
         },
         water: {
           melee: 2,
-          freeze: 3,
+          freeze: 2,
         },
         earth: {
           melee: 2,

@@ -256,7 +256,11 @@ import {
 } from "../../engine/components/castable";
 import { BURNABLE } from "../../engine/components/burnable";
 import { AFFECTABLE } from "../../engine/components/affectable";
-import { getExertables, getParticleAmount } from "../../engine/systems/magic";
+import {
+  getExertables,
+  getParticleAmount,
+  hasTriggered,
+} from "../../engine/systems/magic";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { Popup, POPUP } from "../../engine/components/popup";
 import { getActivationRow } from "../../components/Controls";
@@ -554,6 +558,7 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
 };
 
 const beamSpeed = 100;
+const beamTicks = 3;
 const edgeSprites = {
   wood: woodEdge,
   iron: ironEdge,
@@ -577,8 +582,6 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const progress = Math.ceil(state.elapsed / beamSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
-  const spellAmount = entity[CASTABLE]?.magic || entity[CASTABLE].heal;
-  const particleAmount = getParticleAmount(world, spellAmount);
   const material = state.args.material;
   const element = state.args.element || material;
 
@@ -595,7 +598,6 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         offsetZ: particleHeight,
         duration: beamSpeed,
         animatedOrigin: { x: 0, y: 0 },
-        amount: particleAmount,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: edgeSprites[material],
@@ -610,7 +612,6 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         offsetZ: particleHeight,
         duration: beamSpeed,
         animatedOrigin: { x: 0, y: 0 },
-        amount: particleAmount,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: edgeSprites[material],
@@ -654,27 +655,32 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  // create beams
-  if (
-    state.args.progress !== progress &&
-    progress > 2 &&
-    progress <= state.args.duration - state.args.range &&
-    (progress - 1) % Math.min(particleAmount, 3) === 0
-  ) {
-    const beamParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: delta.x,
-        offsetY: delta.y,
-        offsetZ: particleHeight,
-        duration: beamSpeed,
-        amount: particleAmount,
-        animatedOrigin: copy(delta),
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: beamSprites[element],
-    });
+  if (state.args.progress !== progress && progress > 2) {
+    // create bolts
+    if (
+      progress <= state.args.duration - state.args.range &&
+      (progress - 1) % beamTicks === 0
+    ) {
+      const beamParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: delta.x,
+          offsetY: delta.y,
+          offsetZ: particleHeight,
+          duration: beamSpeed,
+          amount: 2,
+          animatedOrigin: copy(delta),
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: beamSprites[element],
+      });
 
-    state.particles[`beam-${progress}`] = world.getEntityId(beamParticle);
+      state.particles[`beam-${progress}`] = world.getEntityId(beamParticle);
+    }
+
+    // retrigger damage while standing in beam
+    // if (progress % beamRetrigger === 0) {
+    //   entity[CASTABLE].affected = {};
+    // }
 
     updated = true;
   }
@@ -2816,8 +2822,10 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
   const fireTick = world.metadata.gameEntity[REFERENCE].tick;
   const burnGeneration = Math.ceil(state.elapsed / fireTick);
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
+  const worldDelta = world.metadata.gameEntity[REFERENCE].delta;
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   const size = world.metadata.gameEntity[LEVEL].size;
+  const entityId = world.getEntityId(entity);
 
   let updated = false;
   let finished = !isBurning;
@@ -2861,6 +2869,8 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
       [BELONGABLE]: { faction: "nature" },
       [CASTABLE]: {
         ...getEmptyCastable(world, entity),
+        true: 1,
+        retrigger: 1,
         burn: 2,
       },
       [ORIENTABLE]: {},
@@ -2906,15 +2916,8 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
     delete state.args.exertable;
   }
 
-  let generation;
-
   // synchronize generation tick
-  if (isUnitBurning) {
-    state.args.lastTick = burnGeneration;
-    generation = state.args.lastTick;
-  } else if (isTerrainBurning) {
-    generation = worldGeneration;
-  }
+  const generation = isUnitBurning ? burnGeneration : worldGeneration;
 
   // animate particle
   if (generation && isBurning && generation !== state.args.generation) {
@@ -2940,32 +2943,71 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
 
     // handle damage
     if (isUnitBurning) {
-      const castableEntity = getExertables(world, entity[POSITION]).map(
-        (exertable) =>
+      const castableEntity = getExertables(world, entity[POSITION])
+        .map((exertable) =>
           world.getEntityByIdAndComponents(exertable[EXERTABLE].castable, [
             CASTABLE,
           ])
-      )[0];
-      const fireEntity = world.getEntityByIdAndComponents(
-        castableEntity?.[CASTABLE].caster,
-        [BURNABLE]
-      );
-      const isInEternalFire =
-        fireEntity?.[BURNABLE].eternal &&
-        castableEntity?.[CASTABLE] &&
-        castableEntity[CASTABLE].burn > 0;
+        )
+        .filter(
+          (castable) =>
+            castable &&
+            castable !== world.getEntityById(state.args.castable) &&
+            castable[CASTABLE].burn > 0
+        )[0];
+      const castableId = castableEntity && world.getEntityId(castableEntity);
 
-      // fast tick while standing in fire or every N ticks
-      if (
-        isInEternalFire ||
-        generation - (state.args.lastDot || 0) >= burnTicks
-      ) {
-        state.args.lastDot = generation;
-        entity[AFFECTABLE].dot += 1;
+      if (!state.args.igniter) {
+        if (castableEntity) {
+          // persist igniting castable to stop dotting
+          state.args.igniter = castableId;
 
-        if (!isInEternalFire) {
-          entity[AFFECTABLE].burn -= 1;
+          // remember reference to last affected
+          state.args.lastAffected = castableEntity[CASTABLE].affected[entityId];
+        } else if (!state.args.lastAffected) {
+          // start burning on proc hits
+          state.args.lastAffected = {
+            generation: worldGeneration,
+            delta: worldDelta,
+          };
         }
+      } else if (state.args.igniter) {
+        const previousCastable = world.getEntityByIdAndComponents(
+          state.args.igniter,
+          [CASTABLE]
+        );
+        // remember copy of latest affected values
+        const affected = previousCastable?.[CASTABLE].affected[entityId];
+
+        state.args.lastAffected = (state.args.lastAffected || affected) && {
+          ...state.args.lastAffected!,
+          ...affected,
+        };
+
+        // reset on leaving to allow retriggering on re-enter
+        if (!castableEntity) {
+          // allow eternal fires to proc again
+          const fireEntity = world.getEntityByIdAndComponents(
+            previousCastable?.[CASTABLE].caster,
+            [BURNABLE]
+          );
+          if (fireEntity?.[BURNABLE]?.eternal) {
+            delete entity[AFFECTABLE]?.procs[state.args.igniter];
+          }
+
+          delete state.args.igniter;
+        }
+      }
+
+      // process dot
+      if (
+        state.args.lastAffected &&
+        !state.args.igniter &&
+        hasTriggered(world, state.args.lastAffected, burnTicks)
+      ) {
+        entity[AFFECTABLE].dot += 1;
+        entity[AFFECTABLE].burn -= 1;
+        state.args.lastAffected.generation += burnTicks;
       }
     }
 
@@ -4270,7 +4312,7 @@ export const vortexDots: Sequence<VortexSequence> = (world, entity, state) => {
 };
 
 const fountainTicks = 3;
-const fountainSteps = 10;
+const fountainSteps = 5;
 
 export const fountainSplash: Sequence<FountainSequence> = (
   world,

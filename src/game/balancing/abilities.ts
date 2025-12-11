@@ -28,27 +28,6 @@ export const abilityStats: Partial<
   default: {
     wave: {
       wood: {
-        magic: 2,
-
-        air: {
-          magic: 2,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 2,
-          burn: 2,
-        },
-        water: {
-          magic: 2,
-          freeze: 5,
-        },
-        earth: {
-          heal: 2,
-        },
-      },
-    },
-    beam: {
-      wood: {
         magic: 3,
 
         air: {
@@ -64,7 +43,28 @@ export const abilityStats: Partial<
           freeze: 5,
         },
         earth: {
-          heal: 3,
+          heal: 2,
+        },
+      },
+    },
+    beam: {
+      wood: {
+        magic: 2,
+
+        air: {
+          magic: 2,
+          wisdom: 1,
+        },
+        fire: {
+          magic: 2,
+          burn: 2,
+        },
+        water: {
+          magic: 2,
+          freeze: 3,
+        },
+        earth: {
+          heal: 1,
         },
       },
     },

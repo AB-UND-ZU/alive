@@ -81,6 +81,13 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
   };
 };
 
+// persist last generation in frame and entities to allow safely removing frame immediately and ensuring proper rendering
+export const disposeFrame = (world: World, frame: Entity) => {
+  const lastGeneration = frame[RENDERABLE].generation;
+  world.metadata.sequenceEntity[RENDERABLE].generation += lastGeneration;
+  disposeEntity(world, frame, false);
+};
+
 export default function setupSequence(world: World) {
   const onUpdate = (delta: number) => {
     // to keep track of expired sequences
@@ -150,10 +157,7 @@ export default function setupSequence(world: World) {
         entitySequences.length > 0 &&
         entitySequences.every(([_, finished]) => finished)
       ) {
-        // persist last generation in frame and entities to allow safely removing frame immediately and ensuring proper rendering
-        const lastGeneration = frame[RENDERABLE].generation;
-        world.metadata.sequenceEntity[RENDERABLE].generation += lastGeneration;
-        disposeEntity(world, frame, false);
+        disposeFrame(world, frame);
       }
     }
   };

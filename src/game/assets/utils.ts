@@ -1599,7 +1599,7 @@ export const materialSprites: Record<
         createText("wave of magic."),
         stretch(
           [
-            ...createText("2", colors.fuchsia),
+            ...createText("3", colors.fuchsia),
             minCountable(magicHit),
             ...createText("Magic", colors.fuchsia),
           ],
@@ -1617,7 +1617,7 @@ export const materialSprites: Record<
         createText("bolts in a beam."),
         stretch(
           [
-            ...createText("5", colors.fuchsia),
+            ...createText("2", colors.fuchsia),
             minCountable(magicHit),
             ...createText("Magic", colors.fuchsia),
           ],
@@ -1890,7 +1890,7 @@ export const elementSprites: Record<
               ...createText("Melee", colors.red),
             ],
             [
-              ...createText("3", colors.aqua),
+              ...createText("2", colors.aqua),
               maxCountable(freeze),
               ...createText("Freeze", colors.aqua),
             ],
@@ -2111,7 +2111,7 @@ export const elementSprites: Record<
           createText("A wave of magic."),
           stretch(
             [
-              ...createText("2", colors.fuchsia),
+              ...createText("3", colors.fuchsia),
               minCountable(magicHit),
               ...createText("Magic", colors.fuchsia),
             ],
@@ -2127,7 +2127,7 @@ export const elementSprites: Record<
           createText("A wave of magic."),
           stretch(
             [
-              ...createText("2", colors.fuchsia),
+              ...createText("3", colors.fuchsia),
               minCountable(magicHit),
               ...createText("Magic", colors.fuchsia),
             ],
@@ -2147,7 +2147,7 @@ export const elementSprites: Record<
           createText("A wave of magic."),
           stretch(
             [
-              ...createText("2", colors.fuchsia),
+              ...createText("3", colors.fuchsia),
               minCountable(magicHit),
               ...createText("Magic", colors.fuchsia),
             ],
@@ -2186,7 +2186,7 @@ export const elementSprites: Record<
           createText("A beam of bolts."),
           stretch(
             [
-              ...createText("5", colors.fuchsia),
+              ...createText("2", colors.fuchsia),
               minCountable(magicHit),
               ...createText("Magic", colors.fuchsia),
             ],
@@ -2202,7 +2202,7 @@ export const elementSprites: Record<
           createText("A beam of bolts."),
           stretch(
             [
-              ...createText("5", colors.fuchsia),
+              ...createText("2", colors.fuchsia),
               minCountable(magicHit),
               ...createText("Magic", colors.fuchsia),
             ],
@@ -2222,7 +2222,7 @@ export const elementSprites: Record<
           createText("A beam of bolts."),
           stretch(
             [
-              ...createText("5", colors.fuchsia),
+              ...createText("2", colors.fuchsia),
               minCountable(magicHit),
               ...createText("Magic", colors.fuchsia),
             ],
@@ -2230,7 +2230,7 @@ export const elementSprites: Record<
             frameWidth - 2
           ),
           [
-            ...createText("5", colors.aqua),
+            ...createText("3", colors.aqua),
             maxCountable(freeze),
             ...createText("Freeze", colors.aqua),
           ],
@@ -2242,7 +2242,7 @@ export const elementSprites: Record<
           createText("A beam of bolts."),
           stretch(
             [
-              ...createText("3", colors.lime),
+              ...createText("1", colors.lime),
               minCountable(heal),
               ...createText("Heal", colors.lime),
             ],
