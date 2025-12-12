@@ -899,7 +899,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [
       {
-        chance: 33,
+        chance: 100,
         items: [
           {
             stackable: "resource",
@@ -909,39 +909,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
           },
         ],
       },
-      // {
-      //   chance: 33,
-      //   items: [
-      //     {
-      //       stackable: "resource",
-      //       amount: 1,
-      //       material: "wood",
-      //       element: "fire",
-      //     },
-      //   ],
-      // },
-      // {
-      //   chance: 33,
-      //   items: [
-      //     {
-      //       stackable: "resource",
-      //       amount: 1,
-      //       material: "wood",
-      //       element: "water",
-      //     },
-      //   ],
-      // },
-      // {
-      //   chance: 33,
-      //   items: [
-      //     {
-      //       stackable: "resource",
-      //       amount: 1,
-      //       material: "wood",
-      //       element: "earth",
-      //     },
-      //   ],
-      // },
     ],
     patternNames: ["fairy"],
     sprite: fairy,

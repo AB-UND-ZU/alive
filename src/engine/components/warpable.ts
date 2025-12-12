@@ -1,10 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
-import { LevelName } from "./level";
 
-export type Warpable = {
-  name: LevelName;
-};
+export type Warpable = {};
 
 export const WARPABLE = "WARPABLE";
 

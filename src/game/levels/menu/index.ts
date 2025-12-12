@@ -83,21 +83,21 @@ export const generateMenu = async (world: World) => {
     createCell(
       world,
       worldMatrix,
-      add(titleCenter, { x: 0, y: -1 }),
+      add(titleCenter, { x: 0, y: -4 }),
       "dummy",
       "hidden"
     );
     createCell(
       world,
       worldMatrix,
-      add(titleCenter, { x: 0, y: 1 }),
+      add(titleCenter, { x: -4, y: -4 }),
       "kettle",
       "hidden"
     );
     createCell(
       world,
       worldMatrix,
-      add(titleCenter, { x: 0, y: 2 }),
+      add(titleCenter, { x: 4, y: -4 }),
       "anvil",
       "hidden"
     );
@@ -118,10 +118,6 @@ export const generateMenu = async (world: World) => {
         },
         {
           stat: "maxMp",
-          amount: Infinity,
-        },
-        {
-          stat: "xp",
           amount: Infinity,
         },
       ],
@@ -183,6 +179,50 @@ export const generateMenu = async (world: World) => {
           equipment: "sword",
           material: "diamond",
           amount: 99,
+        },
+      ],
+      [
+        {
+          stat: "level",
+          amount: Infinity,
+        },
+        {
+          stat: "power",
+          amount: Infinity,
+        },
+        {
+          stat: "armor",
+          amount: Infinity,
+        },
+        {
+          stat: "wisdom",
+          amount: Infinity,
+        },
+        {
+          stat: "resist",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
+          stat: "haste",
+          amount: Infinity,
+        },
+        {
+          stat: "vision",
+          amount: Infinity,
+        },
+        {
+          stat: "damp",
+          amount: Infinity,
+        },
+        {
+          stat: "thaw",
+          amount: Infinity,
+        },
+        {
+          stat: "spike",
+          amount: Infinity,
         },
       ],
       [
@@ -277,7 +317,7 @@ export const generateMenu = async (world: World) => {
         createItemAsDrop(
           world,
           add(itemCorner, {
-            x: columnIndex * 2 + (columnIndex >= 4 ? 4 : 0),
+            x: columnIndex * 2,
             y: rowIndex,
           }),
           // @ts-ignore

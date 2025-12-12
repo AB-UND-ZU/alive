@@ -17,19 +17,19 @@ import { removeFromInventory } from "./trigger";
 import { getMaxCounter, none } from "../../game/assets/sprites";
 import { createSequence, getSequence } from "./sequence";
 import { ConsumeSequence, VisionSequence } from "../components/sequencable";
-import { EQUIPPABLE } from "../components/equippable";
-import { LIGHT } from "../components/light";
 import { MOVABLE } from "../components/movable";
 import { entities } from "..";
 import { REFERENCE } from "../components/reference";
 import { getEntityHaste, getHasteInterval } from "./movement";
-import { LAYER } from "../components/layer";
 import { NPC } from "../components/npc";
 import { POPUP } from "../components/popup";
 import { addToInventory } from "./collect";
 import { SPRITE } from "../components/sprite";
 import { getVerticalIndex } from "./popup";
 import { LEVEL } from "../components/level";
+import { isInside } from "./enter";
+import { calculateVision, getEntityVision } from "./visibility";
+import { LIGHT } from "../components/light";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -41,10 +41,10 @@ export const getConsumables = (world: World, entity: Entity) =>
       isConsumable(world, consumable)
     ) as TypedEntity<"ITEM">[];
 
-export const defaultLight = { visibility: 3.66, brightness: 3.66, darkness: 0 };
-export const torchLight = { visibility: 5.55, brightness: 5.55, darkness: 0 };
-export const spawnLight = { visibility: 7.6, brightness: 7.6, darkness: 0 };
-export const roomLight = { visibility: 19, brightness: 19, darkness: 0 };
+export const defaultLight = calculateVision(0);
+export const torchLight = calculateVision(3);
+export const spawnLight = calculateVision(6);
+export const roomLight = calculateVision(23);
 
 export const consumptionConfigs: Partial<
   Record<
@@ -159,6 +159,7 @@ export default function setupConsume(world: World) {
   let worldName = "";
   let nextConsumptions: Record<number, Record<number, number>> = {};
   let entityHaste: Record<number, number> = {};
+  let entityVision: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world.metadata.gameEntity[RENDERABLE].generation;
@@ -171,6 +172,7 @@ export default function setupConsume(world: World) {
       worldName = world.metadata.gameEntity[LEVEL].name;
       nextConsumptions = {};
       entityHaste = {};
+      entityVision = {};
     }
 
     // process consumable items in inventory
@@ -250,38 +252,11 @@ export default function setupConsume(world: World) {
       );
     }
 
-    // process consumable equipments
-    for (const entity of world.getEntities([
-      PLAYER,
-      EQUIPPABLE,
-      LIGHT,
-      LAYER,
-    ])) {
-      // increase vision radius when stepping outside
-      if (
-        entity[EQUIPPABLE].torch &&
-        entity[LIGHT].brightness === defaultLight.brightness &&
-        entity[LIGHT].visibility === defaultLight.visibility &&
-        !getSequence(world, entity, "vision") &&
-        !entity[LAYER].structure
-      ) {
-        createSequence<"vision", VisionSequence>(
-          world,
-          entity,
-          "vision",
-          "changeRadius",
-          {
-            fast: false,
-            light: { ...torchLight },
-          }
-        );
-      }
-    }
-
-    // process changes in haste
+    // process changes in stats
     for (const entity of world.getEntities([PLAYER, STATS, MOVABLE])) {
       const entityId = world.getEntityId(entity);
       const haste = getEntityHaste(world, entity);
+      const vision = getEntityVision(world, entity);
       const frame = world.assertByIdAndComponents(entity[MOVABLE].reference, [
         REFERENCE,
         RENDERABLE,
@@ -290,6 +265,26 @@ export default function setupConsume(world: World) {
       if (haste !== entityHaste[entityId]) {
         frame[REFERENCE].tick = getHasteInterval(world, haste);
         entityHaste[entityId] = haste;
+      }
+
+      if (vision.visibility !== entityVision[entityId] && entity[LIGHT]) {
+        if (
+          entity[LIGHT].visibility !== vision.visibility &&
+          !isInside(world, entity) &&
+          !getSequence(world, entity, "vision")
+        ) {
+          createSequence<"vision", VisionSequence>(
+            world,
+            entity,
+            "vision",
+            "changeRadius",
+            {
+              fast: false,
+              light: vision,
+            }
+          );
+        }
+        entityHaste[entityId] = vision.visibility;
       }
     }
   };

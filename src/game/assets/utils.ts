@@ -1585,7 +1585,7 @@ export const materialSprites: Record<
       getDescription: () => [
         createText("Glows bright and"),
         createText("keeps you warm."),
-        [...createCountable({ vision: 2 }, "vision", "display")],
+        [...createCountable({ vision: 3 }, "vision", "display")],
       ],
     },
   },

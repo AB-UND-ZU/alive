@@ -85,12 +85,6 @@ export const isEmpty = (world: World, entity: Entity) =>
   entity[INVENTORY].items.length === 0 &&
   !isCollecting(world, entity);
 
-export const getCollectAmount = (world: World, item: Entity) => {
-  if (item[ITEM].amount >= 5) return 3;
-  if (item[ITEM].amount >= 4) return 2;
-  return 1;
-};
-
 export const collectItem = (
   world: World,
   entity: Entity,
@@ -118,7 +112,6 @@ export const collectItem = (
     let collectAmount = 1;
 
     if (stat) {
-      collectAmount = getCollectAmount(world, itemEntity);
       itemEntity[ITEM].amount -= collectAmount;
     } else if (stackable && !fullStack) {
       itemEntity[ITEM].amount -= 1;

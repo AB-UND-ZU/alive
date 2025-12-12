@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { normalize } from "../../game/math/std";
 import { FOG, Fog } from "../components/fog";
 import { PLAYER } from "../components/player";
-import { LIGHT } from "../components/light";
+import { Light, LIGHT } from "../components/light";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { traceCircularVisiblity } from "../../game/math/tracing";
 import { REFERENCE } from "../components/reference";
@@ -15,6 +15,9 @@ import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
 import { TypedEntity } from "../entities";
 import { LAYER } from "../components/layer";
+import { Entity } from "ecs";
+import { getEntityStats } from "./damage";
+import { levelConfig } from "../../game/levels";
 
 type PendingChanges = Record<
   number,
@@ -148,6 +151,26 @@ const commitVisibility = (world: World, pendingChanges: PendingChanges) => {
       }
     }
   }
+};
+
+export const getEntityVision = (world: World, entity: Entity): Light => {
+  const level = world.metadata.gameEntity[LEVEL].name;
+  const vision =
+    levelConfig[level].vision + getEntityStats(world, entity).vision;
+
+  return calculateVision(vision);
+};
+
+const baseLight = 3.55;
+
+export const calculateVision = (vision: number) => {
+  const extra = (vision * 43) / 64;
+
+  return {
+    darkness: 0,
+    brightness: baseLight + extra,
+    visibility: baseLight + extra,
+  };
 };
 
 export default function setupVisibility(world: World) {

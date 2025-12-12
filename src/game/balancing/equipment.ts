@@ -28,6 +28,12 @@ export const gearStats: Partial<
   >
 > = {
   default: {
+    torch: {
+      wood: {
+        vision: 3,
+      },
+    },
+
     sword: {
       wood: {
         melee: 2,

@@ -1,13 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../../engine";
 import { LevelName } from "../../engine/components/level";
-import { Light } from "../../engine/components/light";
 import { Position } from "../../engine/components/position";
-import {
-  defaultLight,
-  roomLight,
-  spawnLight,
-} from "../../engine/systems/consume";
 import { forestName, forestSize, generateForest } from "./forest";
 import { forestSpawn } from "./forest/areas";
 import { generateMenu, menuName, menuSize } from "./menu";
@@ -34,7 +28,7 @@ export const levelConfig: Record<
     size: number;
     generator: (world: World) => void;
     spawn: Position;
-    light: Light;
+    vision: number;
   }
 > = {
   LEVEL_MENU: {
@@ -45,7 +39,7 @@ export const levelConfig: Record<
     size: menuSize,
     generator: generateMenu,
     spawn: menuSpawn,
-    light: spawnLight,
+    vision: 6,
   },
   LEVEL_TUTORIAL: {
     name: "Dungeon",
@@ -55,7 +49,7 @@ export const levelConfig: Record<
     size: tutorialSize,
     generator: generateTutorial,
     spawn: tutorialSpawn,
-    light: roomLight,
+    vision: 23,
   },
   LEVEL_FOREST: {
     name: "Island",
@@ -65,6 +59,6 @@ export const levelConfig: Record<
     size: forestSize,
     generator: generateForest,
     spawn: forestSpawn,
-    light: defaultLight,
+    vision: 0,
   },
 };

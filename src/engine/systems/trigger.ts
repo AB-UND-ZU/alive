@@ -96,8 +96,8 @@ import { LEVEL, LevelName } from "../components/level";
 import { VIEWABLE } from "../components/viewable";
 import { SPAWNABLE } from "../components/spawnable";
 import { getForgeStatus } from "../../game/balancing/forging";
-import { Warpable, WARPABLE } from "../components/warpable";
 import { getSelectedLevel, levelConfig } from "../../game/levels";
+import { calculateVision } from "./visibility";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -110,6 +110,9 @@ export const getAction = (world: World, entity: Entity) =>
 
 export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   if (isNpc(world, entity)) return false;
+
+  // allow warping everywhere in test mode
+  if (window.location.search.substring(1) === "test") return true;
 
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
   const selectedLevel = getSelectedLevel(world, warp);
@@ -149,8 +152,9 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
 
   setTimeout(() => {
     // tag hero and related entities to new world
-    const levelName = (warp[WARPABLE] as Warpable).name;
-    const { size, generator, spawn, light } = levelConfig[levelName];
+    const levelName = getSelectedLevel(world, warp);
+    const { size, generator, spawn, vision = 0 } = levelConfig[levelName];
+    const light = calculateVision(vision);
 
     const inspectEntity = assertIdentifier(world, "inspect");
     const spawnEntity = assertIdentifier(world, "spawn");
@@ -213,7 +217,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
     entity[VIEWABLE].spring = { duration: 0 };
     entity[VIEWABLE].active = true;
     entity[SPAWNABLE].position = { ...spawn };
-    entity[SPAWNABLE].light = { ...light };
+    entity[SPAWNABLE].light = light;
     entity[ORIENTABLE].facing = undefined;
 
     setTimeout(() => {
