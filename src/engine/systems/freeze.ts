@@ -33,6 +33,9 @@ import { LIQUID } from "../components/liquid";
 import { getFragment, getOpaque } from "./enter";
 import { entities } from "..";
 import { FOG } from "../components/fog";
+import { updateWaterCell } from "./water";
+import { matrixFactory } from "../../game/math/matrix";
+import { LEVEL } from "../components/level";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -80,9 +83,11 @@ export const freezeTerrain = (world: World, entity: Entity) => {
 
     world.removeComponentFromEntity(
       entity as TypedEntity<"IMMERSIBLE">,
-      IMMERSIBLE
+      IMMERSIBLE,
+      false
     );
     updateWalkable(world, entity[POSITION]);
+    updateWaterCell(world, entity[POSITION]);
 
     // cancel any bubble animations
     if (getSequence(world, entity, "bubble")) {
@@ -115,6 +120,7 @@ export const thawTerrain = (world: World, entity: Entity) => {
 
     addImmersible(world, entity, {});
     updateWalkable(world, entity[POSITION]);
+    updateWaterCell(world, entity[POSITION]);
 
     // lift up immersed units
     const swimmables = getSwimmables(world, entity[POSITION]);
@@ -254,6 +260,13 @@ export const applySnow = (world: World, position: Position) => {
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: hasFrozen ? snowCover : snow,
+  });
+};
+
+export const applySnowMap = (world: World) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  matrixFactory(size, size, (x, y) => {
+    coverSnow(world, { x, y });
   });
 };
 

@@ -9,10 +9,13 @@ import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { REFERENCE } from "../components/reference";
 import { SPRITE } from "../components/sprite";
 
-export const isImmersible = (world: World, position: Position) => {
-  const cell = getCell(world, position);
-  return Object.values(cell).some((entity) => IMMERSIBLE in (entity as Entity));
-};
+export const getImmersible = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).find(
+    (entity) => IMMERSIBLE in entity
+  );
+
+export const isImmersible = (world: World, position: Position) =>
+  !!getImmersible(world, position);
 
 export const isSwimmable = (world: World, entity: Entity) =>
   SWIMMABLE in entity;

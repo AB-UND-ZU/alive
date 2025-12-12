@@ -5,7 +5,10 @@ import { PLAYER } from "../../engine/components/player";
 import { isGhost } from "../../engine/systems/fate";
 import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
 import { createLevel, createSystems } from "../../engine/ecs";
-import { generateMenu, menuName, menuSize } from "../../game/levels/menu";
+import { LevelName } from "../../engine/components/level";
+import { levelConfig } from "../../game/levels";
+
+const initialLevel: LevelName = "LEVEL_MENU";
 
 export default function World(props: React.PropsWithChildren) {
   const [paused, setPaused] = useState(true);
@@ -17,8 +20,8 @@ export default function World(props: React.PropsWithChildren) {
   // TODO: find better way to prevent double generation
   const [ecs] = useState(() => {
     const world = createWorld();
-    createLevel(world, menuName, menuSize);
-    setTimeout(generateMenu, 0, world);
+    createLevel(world, initialLevel, levelConfig[initialLevel].size);
+    setTimeout(levelConfig[initialLevel].generator, 0, world);
     createSystems(world);
     return world;
   });

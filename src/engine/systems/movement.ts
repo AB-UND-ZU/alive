@@ -305,18 +305,6 @@ export default function setupMovement(world: World) {
             delay: 0,
           });
         } else if (
-          entity[PLAYER] &&
-          !isWalkable(world, position) &&
-          isSubmerged(world, position)
-        ) {
-          queueMessage(world, entity, {
-            line: createText("Can't swim!", colors.silver, colors.black),
-
-            orientation: "up",
-            fast: false,
-            delay: 0,
-          });
-        } else if (
           isWalkable(world, position) ||
           (entity[MOVABLE].flying && isFlyable(world, position))
         ) {

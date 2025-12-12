@@ -7,17 +7,18 @@ import { Liquid, LIQUID } from "../components/liquid";
 import { entities } from "..";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
-import { none } from "../../game/assets/sprites";
-import { copy, getDistance, random } from "../../game/math/std";
+import { none, water, waterDeep } from "../../game/assets/sprites";
+import { add, copy, getDistance, random } from "../../game/math/std";
 import { BubbleSequence, SEQUENCABLE } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
 import { play } from "../../game/sound";
 import { PLAYER } from "../components/player";
 import { LAYER } from "../components/layer";
 import { LEVEL } from "../components/level";
-import { isImmersible } from "./immersion";
+import { getImmersible, isImmersible, isSubmerged } from "./immersion";
 import { getFragment } from "./enter";
 import { coverSnow } from "./freeze";
+import { rerenderEntity } from "./renderer";
 
 export const isStill = (world: World, entity: Entity) =>
   entity[LIQUID]?.type === "bubble" && !getSequence(world, entity, "bubble");
@@ -72,6 +73,33 @@ export const createBubble = (
       intensity: hero[LAYER].structure ? 0.5 : 1,
     });
   }
+};
+
+export const applyWaterCell = (world: World, position: Position) => {
+  const waterEntity = getImmersible(world, position);
+  if (!waterEntity) return;
+
+  if (isSubmerged(world, position) && waterEntity[SPRITE] !== waterDeep) {
+    waterEntity[SPRITE] = waterDeep;
+    rerenderEntity(world, waterEntity);
+  } else if (!isSubmerged(world, position) && waterEntity[SPRITE] !== water) {
+    waterEntity[SPRITE] = water;
+    rerenderEntity(world, waterEntity);
+  }
+};
+
+export const updateWaterCell = (world: World, position: Position) => {
+  for (let x = -1; x <= 1; x += 1) {
+    for (let y = -1; y <= 1; y += 1) {
+      applyWaterCell(world, add(position, { x, y }));
+    }
+  }
+};
+
+export const applyWaterMap = (world: World) => {
+  world.metadata.gameEntity[LEVEL].cells["water"].forEach((cell) => {
+    applyWaterCell(world, cell);
+  });
 };
 
 export default function setupWater(world: World) {

@@ -141,6 +141,7 @@ import {
   water,
   xp,
   leverOff,
+  waterDeep,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -637,6 +638,11 @@ export const createCell = (
   air = true
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
+
+  // track distribution of cell types
+  world.metadata.gameEntity[LEVEL].cells[cell] = (
+    world.metadata.gameEntity[LEVEL].cells[cell] || []
+  ).concat([{ x, y }]);
 
   if (cell !== "" && air) {
     entities.createGround(world, {
@@ -2426,24 +2432,24 @@ export const createCell = (
         getOrientedSprite(fountainCorner, "right"),
         ...repeat(none, 6),
         ...repeat(sand, 4),
-        ...repeat(water, 3),
+        ...repeat(waterDeep, 3),
       ],
-      [...repeat(none, 5), ...repeat(sand, 6), ...repeat(water, 6)],
-      [...repeat(sand, 6), ...repeat(water, 11)],
-      repeat(water, 17),
-      [...repeat(water, 10), ...repeat(sand, 6), water],
+      [...repeat(none, 5), ...repeat(sand, 6), ...repeat(waterDeep, 6)],
+      [...repeat(sand, 6), ...repeat(waterDeep, 11)],
+      repeat(waterDeep, 17),
+      [...repeat(waterDeep, 10), ...repeat(sand, 6), waterDeep],
       [
-        ...repeat(water, 7),
+        ...repeat(waterDeep, 7),
         ...repeat(sand, 4),
         none,
         mergeSprites(portalVortex, portal),
         grass,
         tree1,
         sand,
-        water,
+        waterDeep,
       ],
       [
-        ...repeat(water, 7),
+        ...repeat(waterDeep, 7),
         sand,
         palm1,
         palm2,
@@ -2451,25 +2457,25 @@ export const createCell = (
         bush,
         tree2,
         sand,
-        water,
+        waterDeep,
       ],
       [
         ice,
-        ...repeat(water, 6),
+        ...repeat(waterDeep, 6),
         ...repeat(sand, 5),
         none,
         ...repeat(sand, 3),
-        water,
+        waterDeep,
       ],
       [
         ...repeat(ice, 2),
-        ...repeat(water, 9),
+        ...repeat(waterDeep, 9),
         ...repeat(sand, 3),
-        ...repeat(water, 3),
+        ...repeat(waterDeep, 3),
       ],
-      [...repeat(ice, 6), ...repeat(water, 11)],
-      [...repeat(ice, 9), ...repeat(water, 8)],
-      [...repeat(ice, 13), ...repeat(water, 4)],
+      [...repeat(ice, 6), ...repeat(waterDeep, 11)],
+      [...repeat(ice, 9), ...repeat(waterDeep, 8)],
+      [...repeat(ice, 13), ...repeat(waterDeep, 4)],
       repeat(ice, 17),
       repeat(ice, 17),
       repeat(ice, 17),

@@ -140,8 +140,15 @@ export default function createWorld() {
   ) => ECS.addComponentToEntity(world, entity, componentName, componentData);
   const removeComponentFromEntity = <C extends keyof Entity>(
     entity: TypedEntity<C>,
-    componentName: C
-  ) => ECS.removeComponentFromEntity(world, entity, componentName);
+    componentName: C,
+    deferredRemoval?: boolean
+  ) =>
+    ECS.removeComponentFromEntity(
+      world,
+      entity,
+      componentName,
+      deferredRemoval
+    );
 
   // pass patched world to systems
   const addSystem: (system: (world: World) => System) => void = (system) =>

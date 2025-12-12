@@ -30,6 +30,7 @@ import { isTouch } from "../../../components/Dimensions";
 import { LAYER } from "../../../engine/components/layer";
 import { COLLIDABLE } from "../../../engine/components/collidable";
 import { TypedEntity } from "../../../engine/entities";
+import { applyWaterMap } from "../../../engine/systems/water";
 
 export const tutorialSize = 72;
 export const tutorialName: LevelName = "LEVEL_TUTORIAL";
@@ -173,6 +174,9 @@ export const generateTutorial = async (world: World) => {
     "hidden"
   ) as TypedEntity<"TOOLTIP">;
   setIdentifier(world, unlockLever, "unlock_lever");
+
+  // render deep water
+  applyWaterMap(world);
 
   // queue all added entities to added listener
   world.cleanup();

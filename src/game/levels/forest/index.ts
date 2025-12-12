@@ -77,6 +77,7 @@ import {
   setIdentifier,
 } from "../../../engine/utils";
 import { forestNpcDistribution } from "./units";
+import { applyWaterMap } from "../../../engine/systems/water";
 
 export const forestSize = 160;
 export const forestName: LevelName = "LEVEL_FOREST";
@@ -276,11 +277,6 @@ export const generateForest = (world: World) => {
         (townDeltaX - townWidth / 2 < 2 ? 20 : 0) +
         (townDeltaY - townHeight / 2 < 2 ? 20 : 0);
     }
-
-    // track distribution of cell types
-    world.metadata.gameEntity[LEVEL].cells[cell] = (
-      world.metadata.gameEntity[LEVEL].cells[cell] || []
-    ).concat([{ x, y }]);
 
     return cell;
   });
@@ -906,6 +902,9 @@ export const generateForest = (world: World) => {
       chestData.equipments
     );
   }
+
+  // render deep water
+  applyWaterMap(world);
 
   // queue all added entities to added listener
   world.cleanup();
