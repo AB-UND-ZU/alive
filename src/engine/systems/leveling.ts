@@ -30,6 +30,8 @@ import { PLAYER } from "../components/player";
 import { isDead } from "./damage";
 import { isGhost } from "./fate";
 import { LEVEL } from "../components/level";
+import { ClassKey } from "../../game/balancing/classes";
+import { SPAWNABLE } from "../components/spawnable";
 
 export type Level = {
   level: number;
@@ -38,20 +40,48 @@ export type Level = {
   maxMp: number;
 };
 
-const levels: Level[] = [
-  { level: 1, xp: 5, maxHp: 1, maxMp: 0 },
-  { level: 2, xp: 10, maxHp: 0, maxMp: 1 },
-  { level: 3, xp: 15, maxHp: 1, maxMp: 1 },
-  { level: 4, xp: 20, maxHp: 1, maxMp: 1 },
-  { level: 5, xp: 30, maxHp: 2, maxMp: 1 },
-  { level: 6, xp: 40, maxHp: 2, maxMp: 1 },
-  { level: 7, xp: 50, maxHp: 2, maxMp: 2 },
-  { level: 8, xp: 65, maxHp: 2, maxMp: 2 },
-  { level: 9, xp: 80, maxHp: 3, maxMp: 3 },
-  { level: 10, xp: 99, maxHp: 3, maxMp: 3 },
-];
-export const initialLevel = levels[0];
-const maxLevel = levels.slice(-1)[0];
+const levelingStats: Record<ClassKey, Level[]> = {
+  rogue: [
+    { level: 1, xp: 10, maxHp: 1, maxMp: 0 },
+    { level: 2, xp: 15, maxHp: 1, maxMp: 1 },
+    { level: 3, xp: 20, maxHp: 2, maxMp: 1 },
+    { level: 4, xp: 25, maxHp: 2, maxMp: 1 },
+    { level: 5, xp: 30, maxHp: 2, maxMp: 2 },
+    { level: 6, xp: 40, maxHp: 3, maxMp: 2 },
+    { level: 7, xp: 50, maxHp: 3, maxMp: 2 },
+    { level: 8, xp: 65, maxHp: 3, maxMp: 2 },
+    { level: 9, xp: 80, maxHp: 4, maxMp: 2 },
+    { level: 10, xp: 99, maxHp: 4, maxMp: 2 },
+  ],
+  knight: [
+    { level: 1, xp: 10, maxHp: 1, maxMp: 0 },
+    { level: 2, xp: 15, maxHp: 2, maxMp: 0 },
+    { level: 3, xp: 20, maxHp: 2, maxMp: 0 },
+    { level: 4, xp: 25, maxHp: 2, maxMp: 1 },
+    { level: 5, xp: 30, maxHp: 3, maxMp: 1 },
+    { level: 6, xp: 40, maxHp: 3, maxMp: 1 },
+    { level: 7, xp: 50, maxHp: 4, maxMp: 1 },
+    { level: 8, xp: 65, maxHp: 4, maxMp: 2 },
+    { level: 9, xp: 80, maxHp: 4, maxMp: 2 },
+    { level: 10, xp: 99, maxHp: 5, maxMp: 2 },
+  ],
+  mage: [
+    { level: 1, xp: 10, maxHp: 0, maxMp: 1 },
+    { level: 2, xp: 15, maxHp: 1, maxMp: 1 },
+    { level: 3, xp: 20, maxHp: 1, maxMp: 2 },
+    { level: 4, xp: 25, maxHp: 2, maxMp: 2 },
+    { level: 5, xp: 30, maxHp: 2, maxMp: 2 },
+    { level: 6, xp: 40, maxHp: 2, maxMp: 2 },
+    { level: 7, xp: 50, maxHp: 2, maxMp: 2 },
+    { level: 8, xp: 65, maxHp: 3, maxMp: 2 },
+    { level: 9, xp: 80, maxHp: 3, maxMp: 3 },
+    { level: 10, xp: 99, maxHp: 3, maxMp: 3 },
+  ],
+  "???": [{ level: 1, xp: 99, maxHp: 0, maxMp: 0 }],
+};
+
+export const getInitialXp = (classKey: ClassKey) =>
+  levelingStats[classKey][0].xp;
 
 export const hasLevelUp = (world: World, entity: Entity) =>
   entity[STATS].level > 0 && entity[STATS].xp >= entity[STATS].maxXp;
@@ -73,7 +103,12 @@ export default function setupLeveling(world: World) {
     referencesGeneration = generation;
 
     // level up entities
-    for (const entity of world.getEntities([POSITION, SWIMMABLE, STATS])) {
+    for (const entity of world.getEntities([
+      POSITION,
+      SWIMMABLE,
+      STATS,
+      SPAWNABLE,
+    ])) {
       const entityId = world.getEntityId(entity);
       const entityGeneration = getEntityGeneration(world, entity);
 
@@ -82,12 +117,14 @@ export default function setupLeveling(world: World) {
       entityGenerations[entityId] = entityGeneration;
 
       if (hasLevelUp(world, entity)) {
-        const currentLevel = levels.find(
+        const levelingStat = levelingStats[entity[SPAWNABLE].classKey];
+        const currentLevel = levelingStat.find(
           (level) => level.level === entity[STATS].level
         )!;
+        const maxLevel = levelingStat.slice(-1)[0].level;
         entity[STATS].xp -= currentLevel.xp;
-        entity[STATS].level = Math.min(maxLevel.level, entity[STATS].level + 1);
-        const targetLevel = levels.find(
+        entity[STATS].level = Math.min(maxLevel, entity[STATS].level + 1);
+        const targetLevel = levelingStat.find(
           (level) => level.level === entity[STATS].level
         )!;
         entity[STATS].maxXp = targetLevel.xp;

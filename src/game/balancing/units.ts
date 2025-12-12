@@ -332,7 +332,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 100,
         items: [
           { consume: "key", material: "iron", amount: 1 },
-          { stat: "xp", amount: 2 },
+          { stat: "xp", amount: 3 },
           { equipment: "compass", material: "iron", amount: 1 },
         ],
       },

@@ -12,7 +12,7 @@ import { Sprite } from "../../engine/components/sprite";
 import { Stackable } from "../../engine/components/item";
 import { Equipment } from "../../engine/components/equippable";
 import { UnitStats } from "../../engine/components/stats";
-import { initialLevel } from "../../engine/systems/leveling";
+import { getInitialXp } from "../../engine/systems/leveling";
 
 export const classes = ["rogue", "knight", "mage", "???"] as const;
 
@@ -43,7 +43,7 @@ export const classDefinitions: Record<ClassKey, ClassDefinition> = {
       maxMp: 10,
       maxMpCap: 25,
 
-      maxXp: initialLevel.xp,
+      maxXp: getInitialXp("rogue"),
       maxXpCap: 99,
 
       level: 1,
@@ -70,7 +70,7 @@ export const classDefinitions: Record<ClassKey, ClassDefinition> = {
       maxMp: 5,
       maxMpCap: 15,
 
-      maxXp: initialLevel.xp,
+      maxXp: getInitialXp("knight"),
       maxXpCap: 99,
 
       level: 1,
@@ -97,7 +97,7 @@ export const classDefinitions: Record<ClassKey, ClassDefinition> = {
       maxMp: 15,
       maxMpCap: 35,
 
-      maxXp: initialLevel.xp,
+      maxXp: getInitialXp("mage"),
       maxXpCap: 99,
 
       level: 1,
@@ -126,7 +126,7 @@ export const classDefinitions: Record<ClassKey, ClassDefinition> = {
       maxMp: 0,
       maxMpCap: 0,
 
-      maxXp: initialLevel.xp,
+      maxXp: getInitialXp("???"),
       maxXpCap: 99,
 
       level: 1,
