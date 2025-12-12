@@ -111,7 +111,7 @@ export const up4Area = `\
 export const up5Area = `\
 █████████████████████
 █   ,,         ,,   █
-█  ,    τττττ    ,  █
+█  ,    τ   τ    ,  █
 █ ,   ττ     ττ   , █
 █,   τ   &&&   τ   ,█
 █,  τ   &   &   τ  ,█
@@ -123,6 +123,8 @@ export const up5Area = `\
 █   ,,         ,,   █
 ██████████ ██████████\
 `;
+
+export const leverPosition = { x: 0, y: roomSize.y * -5 - 4 };
 
 export const tutorialRooms: {
   name: string;

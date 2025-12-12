@@ -1976,10 +1976,11 @@ export const createCountable = (
     | "display"
     | "progression" = "text"
 ) => {
-  if (!(stat in stats)) return [];
+  const displayedStat = display === "progression" ? getMaxCounter(stat) : stat;
+  if (!displayedStat || !(displayedStat in stats)) return [];
 
   // const counter = stat as keyof Countable;
-  const value = Math.ceil(stats[stat] || 0);
+  const value = Math.ceil(stats[displayedStat] || 0);
   const stringified = value.toString();
   const color = statConfig[stat].color;
 

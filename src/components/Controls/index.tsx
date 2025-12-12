@@ -212,7 +212,7 @@ export default function Controls() {
     "warp",
     (world, hero, warpEntity) =>
       !isControllable(world, hero) || !canWarp(world, hero, warpEntity),
-    () => "WARP",
+    (world, hero) => (isInPopup(world, hero) ? "GO!" : "WARP"),
     (_, __, warpEntity) => [
       ...repeat(none, 2),
       warpEntity ? portal : none,

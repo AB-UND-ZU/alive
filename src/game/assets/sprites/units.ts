@@ -311,7 +311,7 @@ export const entryClosedGoldDisplay: Sprite = {
 };
 
 export const leverOff: Sprite = {
-  name: "Off",
+  name: "Lever",
   layers: [
     { char: "\\", color: colors.maroon },
     { char: "\u0115", color: colors.grey },
@@ -329,7 +329,7 @@ export const lever: Sprite = {
 };
 
 export const leverOn: Sprite = {
-  name: "On",
+  name: "Lever",
   layers: [
     { char: "/", color: colors.maroon },
     { char: "\u0115", color: colors.grey },

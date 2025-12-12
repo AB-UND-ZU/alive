@@ -467,6 +467,7 @@ export const createItem = entityFactory([ITEM, RENDERABLE, SPRITE]);
 
 export const createLever = entityFactory([
   CLICKABLE,
+  COLLIDABLE,
   FOG,
   POSITION,
   RENDERABLE,

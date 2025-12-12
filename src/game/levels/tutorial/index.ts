@@ -2,7 +2,7 @@ import { entities, World } from "../../../engine";
 import { POSITION } from "../../../engine/components/position";
 import { LEVEL, LevelName } from "../../../engine/components/level";
 import { iterateMatrix, matrixFactory } from "../../math/matrix";
-import { roomSize, tutorialRooms } from "./areas";
+import { leverPosition, roomSize, tutorialRooms } from "./areas";
 import { VIEWABLE } from "../../../engine/components/viewable";
 import {
   assignBuilding,
@@ -29,8 +29,9 @@ import { chairLeft, createDialog, table } from "../../assets/sprites";
 import { isTouch } from "../../../components/Dimensions";
 import { LAYER } from "../../../engine/components/layer";
 import { COLLIDABLE } from "../../../engine/components/collidable";
+import { TypedEntity } from "../../../engine/entities";
 
-export const tutorialSize = 80;
+export const tutorialSize = 72;
 export const tutorialName: LevelName = "LEVEL_TUTORIAL";
 
 export const generateTutorial = async (world: World) => {
@@ -42,21 +43,20 @@ export const generateTutorial = async (world: World) => {
     insertArea(worldMatrix, room.area, room.offsetX, room.offsetY, true);
 
     // create door to previous room
-    if (roomIndex !== tutorialRooms.length - 1) {
-      const vertical = room.offsetX === 0;
-      const doorPosition = vertical
-        ? { x: room.offsetX, y: room.offsetY - roomSize.y / 2 }
-        : { x: room.offsetX - roomSize.x / 2, y: room.offsetY };
+    const isLast = roomIndex === tutorialRooms.length - 1;
+    const vertical = room.offsetX === 0;
+    const doorPosition = vertical
+      ? { x: room.offsetX, y: room.offsetY - roomSize.y / 2 }
+      : { x: room.offsetX - roomSize.x / 2, y: room.offsetY };
 
-      const doorEntity = createCell(
-        world,
-        worldMatrix,
-        doorPosition,
-        vertical ? "iron_entry" : "gold_entry",
-        "fog"
-      );
-      setIdentifier(world, doorEntity!, `${room.name}:door`);
-    }
+    const doorEntity = createCell(
+      world,
+      worldMatrix,
+      doorPosition,
+      isLast ? "entry" : vertical ? "iron_entry" : "gold_entry",
+      "fog"
+    );
+    setIdentifier(world, doorEntity!, `${room.name}:door`);
 
     if (roomIndex === 0) return;
 
@@ -163,6 +163,16 @@ export const generateTutorial = async (world: World) => {
     })),
     tabs: ["buy", "sell"],
   });
+
+  // add lever to cycle back to fountain room
+  const unlockLever = createCell(
+    world,
+    worldMatrix,
+    leverPosition,
+    "lever",
+    "hidden"
+  ) as TypedEntity<"TOOLTIP">;
+  setIdentifier(world, unlockLever, "unlock_lever");
 
   // queue all added entities to added listener
   world.cleanup();

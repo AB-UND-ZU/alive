@@ -291,7 +291,10 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
   // handle clicks on blocks
   world
     .getEntities([CLICKABLE, POSITION, SPRITE])
-    .filter((entity) => entity[CLICKABLE].clicked && !entity[SEQUENCABLE] && !entity[LIQUID])
+    .filter(
+      (entity) =>
+        entity[CLICKABLE].clicked && !entity[SEQUENCABLE] && !entity[LIQUID]
+    )
     .forEach((clickEntity) => {
       circles.push({
         generation: circleGeneration,
@@ -463,6 +466,25 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
     LIGHT,
     SPAWNABLE,
   ]);
+
+  // unlock final room when lever is activated
+  const unlockLever = assertIdentifierAndComponents(world, "unlock_lever", [
+    CLICKABLE,
+    SPRITE,
+    TOOLTIP,
+  ]);
+
+  if (unlockLever[CLICKABLE].clicked && unlockLever[SPRITE] === leverOff) {
+    Object.values(getCell(world, { x: 0, y: roomSize.y / 2 })).forEach(
+      (entity) => {
+        if (!entity[COLLIDABLE]) return;
+        disposeEntity(world, entity);
+      }
+    );
+
+    unlockLever[SPRITE] = leverOn;
+    rerenderEntity(world, unlockLever);
+  }
 
   step({
     stage,

@@ -4,6 +4,7 @@ import { FOCUSABLE } from "../../engine/components/focusable";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
+import { LOCKABLE } from "../../engine/components/lockable";
 import {
   orientationPoints,
   orientations,
@@ -17,7 +18,7 @@ import {
 import { SPAWNABLE } from "../../engine/components/spawnable";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { TRACKABLE } from "../../engine/components/trackable";
-import { isUnlocked } from "../../engine/systems/action";
+import { getLockable, isUnlocked } from "../../engine/systems/action";
 import { getLootable } from "../../engine/systems/collect";
 import { getCell } from "../../engine/systems/map";
 import { isWalkable } from "../../engine/systems/movement";
@@ -118,11 +119,13 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
   const hasMoved =
     entity[POSITION].x !== state.args.memory.savedPosition.x ||
     entity[POSITION].y !== state.args.memory.savedPosition.y;
+  const inEntrance =
+    getLockable(world, entity[POSITION])?.[LOCKABLE].type === "entry";
 
   step({
     stage,
     name: START_STEP,
-    isCompleted: () => true,
+    isCompleted: () => !inEntrance,
     onLeave: () => "move",
   });
 
@@ -131,6 +134,7 @@ export const centerQuest: Sequence<QuestSequence> = (world, entity, state) => {
     name: "end",
     forceEnter: () =>
       isUnlocked(world, centerUpDoor) ||
+      (state.args.step !== START_STEP && inEntrance) ||
       (!spawnSign && state.args.step === "sign"),
     onEnter: () => {
       setHighlight(world);
@@ -203,11 +207,13 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
   const woodThree = getIdentifierAndComponents(world, "wood_three", [POSITION]);
   const dummy = getIdentifierAndComponents(world, "dummy", [POSITION]);
   const coinDrop = getIdentifierAndComponents(world, "dummy:drop", [ITEM]);
+  const inEntrance =
+    getLockable(world, entity[POSITION])?.[LOCKABLE].type === "entry";
 
   step({
     stage,
     name: START_STEP,
-    isCompleted: () => true,
+    isCompleted: () => !inEntrance,
     onLeave: () => "sign",
   });
 
@@ -216,6 +222,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
     name: "end",
     forceEnter: () =>
       isUnlocked(world, north1UpDoor) ||
+      (state.args.step !== START_STEP && inEntrance) ||
       (!guideSign && state.args.step === "sign"),
     onEnter: () => {
       setHighlight(world);
@@ -324,11 +331,13 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
   const fruitChest = getIdentifierAndComponents(world, "fruit_chest", [
     POSITION,
   ]);
+  const inEntrance =
+    getLockable(world, entity[POSITION])?.[LOCKABLE].type === "entry";
 
   step({
     stage,
     name: START_STEP,
-    isCompleted: () => true,
+    isCompleted: () => !inEntrance,
     onLeave: () => "cactus",
   });
 
@@ -337,6 +346,7 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
     name: "end",
     forceEnter: () =>
       isUnlocked(world, north2RightDoor) ||
+      (state.args.step !== START_STEP && inEntrance) ||
       (!fruitSign && state.args.step === "sign"),
     onEnter: () => {
       setHighlight(world);

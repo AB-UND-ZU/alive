@@ -140,6 +140,7 @@ import {
   warp,
   water,
   xp,
+  leverOff,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -207,6 +208,7 @@ import { centerSprites, overlay, recolorSprite } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
 import { POPUP } from "../engine/components/popup";
 import { craftingRecipes } from "../game/balancing/crafting";
+import { openDoor } from "../engine/systems/trigger";
 
 const populateItems = (
   world: World,
@@ -1283,11 +1285,12 @@ export const createCell = (
     }
     return doorEntity;
   } else if (
+    cell === "entry" ||
     cell === "wood_entry" ||
     cell === "iron_entry" ||
     cell === "gold_entry"
   ) {
-    return entities.createEntry(world, {
+    const entryEntity = entities.createEntry(world, {
       [FOG]: { visibility, type: "float" },
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [LOCKABLE]: {
@@ -1310,6 +1313,10 @@ export const createCell = (
           ? entryClosedGold
           : entryClosedWood,
     });
+    if (cell === "entry") {
+      openDoor(world, entryEntity);
+    }
+    return entryEntity;
   } else if (cell === "compass") {
     const compassEntity = createItemAsDrop(
       world,
@@ -2491,25 +2498,34 @@ export const createCell = (
       verticalIndezes: inMenu ? [0, 0] : [level.mapOffsetY - 2],
     });
     return portalEntity;
-  } else if (cell === "settings_sound" || cell === "settings_controls") {
+  } else if (
+    cell === "settings_sound" ||
+    cell === "settings_controls" ||
+    cell === "lever"
+  ) {
     const leverEntity = entities.createLever(world, {
       [CLICKABLE]: { clicked: false, player: true },
-      [FOG]: { visibility, type: "float" },
+      [COLLIDABLE]: {},
+      [FOG]: { visibility, type: "object" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: leverOn,
+      [SPRITE]: cell === "lever" ? leverOff : leverOn,
       [TOOLTIP]: {
-        dialogs: [
+        dialogs:
           cell === "settings_sound"
-            ? createDialog("Sound on")
-            : createDialog("Left side"),
-        ],
+            ? [createDialog("Sound on")]
+            : cell === "settings_controls"
+            ? [createDialog("Left side")]
+            : [],
+
         persistent: false,
         nextDialog: -1,
       },
     });
-    setIdentifier(world, leverEntity, cell);
+    if (cell !== "lever") {
+      setIdentifier(world, leverEntity, cell);
+    }
     return leverEntity;
   } else if (cell === "fountain") {
     const fountainEntity = entities.createFountain(world, {
