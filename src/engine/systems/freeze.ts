@@ -4,7 +4,7 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { FreezeSequence, SEQUENCABLE } from "../components/sequencable";
-import { getCell, updateWalkable } from "./map";
+import { disposeEntity, getCell, updateWalkable } from "./map";
 import { createSequence } from "./sequence";
 import { getSequence } from "./sequence";
 import { AFFECTABLE } from "../components/affectable";
@@ -15,7 +15,7 @@ import { MOVABLE } from "../components/movable";
 import addImmersible, { IMMERSIBLE } from "../components/immersible";
 import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
-import { isWalkable } from "./movement";
+import { getTempo, isWalkable } from "./movement";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { add } from "../../game/math/std";
 import { PLAYER } from "../components/player";
@@ -24,10 +24,15 @@ import { getSwimmables } from "./immersion";
 import { SWIMMABLE } from "../components/swimmable";
 import { extinguishEntity } from "./burn";
 import { queueMessage } from "../../game/assets/utils";
-import { createText } from "../../game/assets/sprites";
+import { createText, snow, snowCover } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { getLockable } from "./action";
 import { LOCKABLE } from "../components/lockable";
+import { CLICKABLE } from "../components/clickable";
+import { LIQUID } from "../components/liquid";
+import { getFragment, getOpaque } from "./enter";
+import { entities } from "..";
+import { FOG } from "../components/fog";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -40,6 +45,16 @@ export const getFreezables = (world: World, position: Position) =>
 export const isFrozen = (world: World, entity: Entity) =>
   entity[FREEZABLE]?.frozen || entity[AFFECTABLE]?.freeze > 0;
 
+export const getFrozen = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).filter(
+    (entity) => isFreezable(world, entity) && isFrozen(world, entity)
+  ) as Entity[];
+
+export const getUnfrozen = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).filter(
+    (entity) => isFreezable(world, entity) && !isFrozen(world, entity)
+  ) as Entity[];
+
 export const isSliding = (world: World, entity: Entity) =>
   !!entity[MOVABLE]?.momentum;
 
@@ -51,6 +66,8 @@ export const isControllable = (world: World, entity: Entity) =>
 
 // swap sprites when freezing
 export const freezeTerrain = (world: World, entity: Entity) => {
+  if (isFrozen(world, entity)) return;
+
   entity[FREEZABLE].frozen = true;
 
   const originalSprite = entity[SPRITE];
@@ -173,6 +190,73 @@ export const freezeMomentum = (
   }
 };
 
+export const isSnowy = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).some(
+    (entity) => entity[LIQUID]?.type === "snow"
+  );
+
+const snowFill = 0.4;
+export const coverSnow = (
+  world: World,
+  position: Position,
+  creation = false
+) => {
+  // check odds and don't repeat snow
+  const willFreeze = getUnfrozen(world, position).length > 0;
+  if (
+    isSnowy(world, position) ||
+    (getTempo(world, position) !== 0 && !willFreeze) ||
+    getOpaque(world, position) ||
+    getLockable(world, position) ||
+    getFragment(world, position)
+  )
+    return;
+
+  if (!willFreeze && !creation) {
+    // ensure distributed snow fill
+    let fill = 0;
+    for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+      for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+        const delta = { x: offsetX, y: offsetY };
+        const targetPosition = add(position, delta);
+        if (isSnowy(world, targetPosition)) {
+          fill += 1;
+        }
+        if (fill / 9 > snowFill) return;
+      }
+    }
+  }
+
+  if (!creation || willFreeze || Math.random() <= snowFill) {
+    applySnow(world, position);
+  }
+
+  if (creation && willFreeze && Math.random() <= snowFill) {
+    applySnow(world, position);
+  }
+};
+
+export const applySnow = (world: World, position: Position) => {
+  const unfrozen = getUnfrozen(world, position);
+  if (unfrozen.length > 0) {
+    unfrozen.forEach((entity) => freezeTerrain(world, entity));
+    return;
+  }
+  const hasFrozen = getFrozen(world, position).length > 0;
+
+  entities.createSnow(world, {
+    [CLICKABLE]: { clicked: false, player: false },
+    [FOG]: {
+      visibility: "hidden",
+      type: hasFrozen ? "object" : "terrain",
+    },
+    [LIQUID]: { type: "snow" },
+    [POSITION]: position,
+    [RENDERABLE]: { generation: 0 },
+    [SPRITE]: hasFrozen ? snowCover : snow,
+  });
+};
+
 export default function setupFreeze(world: World) {
   let referenceGenerations = -1;
 
@@ -202,12 +286,15 @@ export default function setupFreeze(world: World) {
           "unitFreeze",
           { total: entity[AFFECTABLE].freeze }
         );
-        queueMessage(world, entity, {
-          line: createText("FROZEN", colors.aqua),
-          orientation: "up",
-          fast: false,
-          delay: 0,
-        });
+
+        if (!entity[MOVABLE]?.momentum) {
+          queueMessage(world, entity, {
+            line: createText("FROZEN", colors.aqua),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+        }
       }
 
       // prevent movements
@@ -219,6 +306,13 @@ export default function setupFreeze(world: World) {
 
         entity[MOVABLE].lastInteraction = entityReference;
         entity[MOVABLE].pendingOrientation = undefined;
+      }
+    }
+
+    // remove snow
+    for (const entity of world.getEntities([CLICKABLE, LIQUID])) {
+      if (entity[LIQUID].type === "snow" && entity[CLICKABLE].clicked) {
+        disposeEntity(world, entity);
       }
     }
   };

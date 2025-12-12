@@ -95,6 +95,7 @@ import { getClickables } from "../../engine/systems/click";
 import { muteAudio, unmuteAudio } from "../sound/resumable";
 import { worldContextRef } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
+import { LIQUID } from "../../engine/components/liquid";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
@@ -290,7 +291,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
   // handle clicks on blocks
   world
     .getEntities([CLICKABLE, POSITION, SPRITE])
-    .filter((entity) => entity[CLICKABLE].clicked && !entity[SEQUENCABLE])
+    .filter((entity) => entity[CLICKABLE].clicked && !entity[SEQUENCABLE] && !entity[LIQUID])
     .forEach((clickEntity) => {
       circles.push({
         generation: circleGeneration,

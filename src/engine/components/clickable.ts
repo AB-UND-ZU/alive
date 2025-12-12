@@ -3,6 +3,7 @@ import { World } from "../ecs";
 
 export type Clickable = {
   clicked: boolean;
+  player: boolean;
 };
 
 export const CLICKABLE = "CLICKABLE";

@@ -13,7 +13,7 @@ export type Level = {
   cells: Record<string, Position[]>;
   size: number;
   initialized: boolean;
-  weather?: "rain";
+  weather?: "rain" | "snow";
 };
 
 export const LEVEL = "LEVEL";

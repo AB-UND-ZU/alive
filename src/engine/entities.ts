@@ -661,6 +661,15 @@ export const createSign = entityFactory([
   TOOLTIP,
 ]);
 
+export const createSnow = entityFactory([
+  CLICKABLE,
+  FOG,
+  LIQUID,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createSpawner = entityFactory([
   BEHAVIOUR,
   BELONGABLE,

@@ -458,6 +458,49 @@ export const crackle: Sprite = {
   },
 };
 
+export const snowflake: Sprite = {
+  name: "Snowflake",
+  layers: [
+    { char: "+", color: colors.silver },
+    { char: "÷", color: colors.white },
+    { char: "·", color: colors.black },
+  ],
+  amounts: {
+    single: [
+      { char: "+", color: colors.silver },
+      { char: "÷", color: colors.white },
+      { char: "·", color: colors.black },
+    ],
+    double: [
+      { char: "*", color: colors.white },
+      { char: ":", color: colors.white },
+      { char: "+", color: colors.silver },
+      { char: "÷", color: colors.black },
+      { char: "·", color: colors.black },
+    ],
+    multiple: [
+      { char: "\u010e", color: colors.white },
+      { char: "+", color: colors.black },
+      { char: ":", color: colors.silver },
+      { char: "·", color: colors.white },
+    ],
+  },
+};
+
+export const snow: Sprite = {
+  name: "Snow",
+  layers: [
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0109", color: colors.grey },
+    { char: "▓", color: colors.black },
+  ],
+};
+
+export const snowCover: Sprite = {
+  name: "Snow",
+  layers: [{ char: "░", color: colors.white }],
+};
+
 export const freeze: Sprite = {
   name: "Freeze",
   layers: [{ char: "░", color: colors.aqua }],

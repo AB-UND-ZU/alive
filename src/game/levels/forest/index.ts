@@ -50,8 +50,6 @@ import {
   bedHeadRight,
   chairLeft,
   chairRight,
-  fenceBurnt1,
-  fenceBurnt2,
   table,
 } from "../../assets/sprites/structures";
 import { SEQUENCABLE } from "../../../engine/components/sequencable";
@@ -66,6 +64,7 @@ import {
   createCell,
   populateInventory,
   createNpc,
+  createSign,
 } from "./../../../bindings/creation";
 import { getItemPrice } from "../../balancing/trading";
 import { findPath, invertOrientation } from "../../math/path";
@@ -75,10 +74,8 @@ import { createPopup } from "../../../engine/systems/popup";
 import { Deal } from "../../../engine/components/popup";
 import {
   assertIdentifierAndComponents,
-  offerQuest,
   setIdentifier,
 } from "../../../engine/utils";
-import { BURNABLE } from "../../../engine/components/burnable";
 import { forestNpcDistribution } from "./units";
 
 export const forestSize = 160;
@@ -445,51 +442,21 @@ export const generateForest = (world: World) => {
   ].map((building) => assignBuilding(world, building.position));
 
   // add quest sign after exiting
-  const spawnSignData = generateUnitData("sign");
-  const spawnSign = entities.createSign(world, {
-    [ATTACKABLE]: { shots: 0 },
-    [BELONGABLE]: { faction: spawnSignData.faction },
-    [BURNABLE]: {
-      burning: false,
-      eternal: false,
-      simmer: false,
-      decayed: false,
-      combusted: false,
-      remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
-    },
-    [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
-    [FOG]: { visibility: "hidden", type: "terrain" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [POSITION]: copy(signPosition),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: spawnSignData.sprite,
-    [STATS]: {
-      ...emptyUnitStats,
-      ...spawnSignData.stats,
-    },
-    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-  });
-  populateInventory(world, spawnSign, spawnSignData.items);
-  setIdentifier(world, spawnSign, "spawn_sign");
-  createPopup(world, spawnSign, {
-    lines: [
+  const spawnSign = createSign(world, copy(signPosition), [
+    [
+      createText("Find the town by"),
+      createText("following either"),
       [
-        createText("Find the town by"),
-        createText("following either"),
-        [
-          getOrientedSprite(questPointer, "right"),
-          ...createText("Arrow", colors.grey),
-          ...createText(" or "),
-          path,
-          ...createText("Path", colors.grey),
-          ...createText("."),
-        ],
+        getOrientedSprite(questPointer, "right"),
+        ...createText("Arrow", colors.grey),
+        ...createText(" or "),
+        path,
+        ...createText("Path", colors.grey),
+        ...createText("."),
       ],
     ],
-    tabs: ["info"],
-  });
+  ]);
+  setIdentifier(world, spawnSign, "spawn_sign");
 
   // postprocess nomad
   const nomadEntity = createNpc(
@@ -541,51 +508,23 @@ export const generateForest = (world: World) => {
   const nomadKeyEntity = world.assertById(nomadChest[INVENTORY].items[0]);
   setIdentifier(world, nomadKeyEntity, "nomad_key");
 
-  const nomadSignData = generateUnitData("sign");
-  const nomadSign = entities.createSign(world, {
-    [ATTACKABLE]: { shots: 0 },
-    [BELONGABLE]: { faction: nomadSignData.faction },
-    [BURNABLE]: {
-      burning: false,
-      eternal: false,
-      simmer: false,
-      decayed: false,
-      combusted: false,
-      remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
-    },
-    [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
-    [FOG]: { visibility: "hidden", type: "terrain" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [POSITION]: add(nomadBuilding.building[POSITION], { x: -1, y: 3 }),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: nomadSignData.sprite,
-    [STATS]: { ...emptyUnitStats, ...nomadSignData.stats },
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: false,
-      nextDialog: 0,
-    },
-  });
-  populateInventory(world, nomadSign, nomadSignData.items);
-  setIdentifier(world, nomadSign, "nomad_sign");
-  offerQuest(
+  const nomadSign = createSign(
     world,
-    nomadSign,
-    "nomadQuest",
+    add(nomadBuilding.building[POSITION], { x: -1, y: 3 }),
     [
       [
-        ...createText("Collect "),
-        ...createItemText({ stackable: "ore", amount: 10 }),
-        ...createText(" to"),
+        [
+          ...createText("Collect "),
+          ...createItemText({ stackable: "ore", amount: 10 }),
+          ...createText(" to"),
+        ],
+        [...createText("trade for "), iron, ...createText("Iron,")],
+        createText("then exchange to"),
+        [...createText("a "), ironKey, ...createText("Key")],
       ],
-      [...createText("trade for "), iron, ...createText("Iron,")],
-      createText("then exchange to"),
-      [...createText("a "), ironKey, ...createText("Key")],
-    ],
-    {}
+    ]
   );
+  setIdentifier(world, nomadSign, "nomad_sign");
 
   // postprocess town
 
@@ -631,52 +570,21 @@ export const generateForest = (world: World) => {
     tabs: ["buy"],
   });
   const chiefOffset = choice(-2, 2);
-  const chiefSignData = generateUnitData("sign");
-  const chiefSign = entities.createSign(world, {
-    [ATTACKABLE]: { shots: 0 },
-    [BURNABLE]: {
-      burning: false,
-      eternal: false,
-      simmer: false,
-      decayed: false,
-      combusted: false,
-      remains: [fenceBurnt1, fenceBurnt2][random(0, 1)],
-    },
-    [BELONGABLE]: { faction: chiefSignData.faction },
-    [DROPPABLE]: { decayed: false, remains: choice(fenceBurnt1, fenceBurnt2) },
-    [FOG]: { visibility: "hidden", type: "terrain" },
-    [INVENTORY]: { items: [] },
-    [LAYER]: {},
-    [POSITION]: add(chiefBuilding.building[POSITION], { x: chiefOffset, y: 3 }),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: chiefSignData.sprite,
-    [STATS]: { ...emptyUnitStats, ...chiefSignData.stats },
-    [TOOLTIP]: {
-      dialogs: [],
-      persistent: false,
-      nextDialog: 0,
-    },
-  });
-  populateInventory(world, chiefSign, chiefSignData.items);
-  setIdentifier(world, chiefSign, "town_sign");
-  offerQuest(
+  const chiefSign = createSign(
     world,
-    chiefSign,
-    "waypointQuest",
+    add(chiefBuilding.building[POSITION], { x: chiefOffset, y: 3 }),
     [
-      createText("Enter the Chief's"),
-      createText("house by using"),
-      [...createText("a "), ironKey, ...createText("Key. Find the")],
-      createText("Nomad's house by"),
-      createText("following the"),
-      [path, ...createText("Path")],
-    ],
-    {
-      identifier: "nomad_sign",
-      distance: 0,
-    }
+      [
+        createText("Enter the Chief's"),
+        createText("house by using"),
+        [...createText("a "), ironKey, ...createText("Key. Find the")],
+        createText("Nomad's house by"),
+        createText("following the"),
+        [path, ...createText("Path")],
+      ],
+    ]
   );
+  setIdentifier(world, chiefSign, "town_sign");
   setIdentifier(world, chiefBuilding.door!, "chief_door");
 
   // 2. elder's house

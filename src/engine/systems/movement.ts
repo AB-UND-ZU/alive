@@ -55,16 +55,22 @@ import { LAYER } from "../components/layer";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
 import { LOCKABLE } from "../components/lockable";
+import { getClickable } from "./click";
+import { CLICKABLE } from "../components/clickable";
+import { getSpikable } from "./spike";
 
+// haste:-4 interval:1100
+// haste:-3 interval:600
+// haste:-2 interval:433
 // haste:-1 interval:350 (world)
 // haste:0 interval:300 (scout, mage, knight)
 // haste:1 interval:266 (hunter or others with haste)
 // haste:2 interval:242
-// haste:3 interval:225 (cap for scout, mage, knight)
-// haste:4 interval:211 (cap for hunter)
+// haste:3 interval:225
+// haste:4 interval:211
 // haste:5 interval:200
 // haste:6 interval:190
-// haste:7 interval:183 (cap with spell)
+// haste:7 interval:183
 export const getHasteInterval = (world: World, haste: number) =>
   Math.floor(1000 / (Math.max(haste, -4) + 5) + 100);
 
@@ -95,7 +101,8 @@ export const isWalkable = (world: World, position: Position) => {
     !(lockable && isLocked(world, lockable)) &&
     !getAttackable(world, position) &&
     !getLootable(world, position) &&
-    !getCollecting(world, position)
+    !getCollecting(world, position) &&
+    !getClickable(world, position)
   );
 };
 
@@ -109,9 +116,16 @@ export const isFlyable = (world: World, position: Position) => {
 export const isMovable = (world: World, entity: Entity, position: Position) => {
   if (isWalkable(world, position)) return true;
 
+  if (getSpikable(world, position)) return false;
+
   // allow attacking opposing entities
   const attackable = getAttackable(world, position);
   if (attackable && !isFriendlyFire(world, entity, attackable)) return true;
+
+  // allow clicking
+  const clickable = getClickable(world, position);
+  if (clickable && (!clickable[CLICKABLE].player || entity[PLAYER]))
+    return true;
 
   return false;
 };

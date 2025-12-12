@@ -17,12 +17,15 @@ import { LAYER } from "../components/layer";
 import { LEVEL } from "../components/level";
 import { isImmersible } from "./immersion";
 import { getFragment } from "./enter";
+import { coverSnow } from "./freeze";
 
 export const isStill = (world: World, entity: Entity) =>
   entity[LIQUID]?.type === "bubble" && !getSequence(world, entity, "bubble");
 
 export const isFallen = (world: World, entity: Entity) =>
-  entity[LIQUID]?.type === "rain" && !getSequence(world, entity, "rain");
+  LIQUID in entity &&
+  entity[LIQUID].type !== "bubble" &&
+  !getSequence(world, entity, "drop");
 
 export const createBubble = (
   world: World,
@@ -90,14 +93,21 @@ export default function setupWater(world: World) {
       if (isFallen(world, entity)) {
         disposeEntity(world, entity);
 
-        // don't rain inside buildings
+        // don't drop weather inside buildings
         if (
           !getFragment(world, entity[POSITION]) &&
           !Object.values(getCell(world, entity[POSITION])).some(
             (cell) => cell[FOG]?.visibility === "hidden"
           )
         ) {
-          createBubble(world, entity[POSITION], "rain");
+          if (entity[LIQUID].type === "rain") {
+            createBubble(world, entity[POSITION], "rain");
+          } else if (
+            entity[LIQUID].type === "snow" &&
+            world.metadata.gameEntity[LEVEL].name !== "LEVEL_MENU"
+          ) {
+            coverSnow(world, entity[POSITION]);
+          }
         }
         continue;
       } else if (isStill(world, entity)) {

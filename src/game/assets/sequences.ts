@@ -178,6 +178,7 @@ import {
   blocked,
   chief,
   diamondGem,
+  snowflake,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -200,7 +201,7 @@ import {
   PointerSequence,
   PopupSequence,
   ProgressSequence,
-  RainSequence,
+  DropSequence,
   ReviveSequence,
   SEQUENCABLE,
   Sequence,
@@ -953,7 +954,7 @@ export const bubbleSplash: Sequence<BubbleSequence> = (
 const rainSpeed = 50;
 // const rainDepth = 15;
 
-export const rainDropPixelated: Sequence<RainSequence> = (
+export const rainDropPixelated: Sequence<DropSequence> = (
   world,
   entity,
   state
@@ -1021,9 +1022,25 @@ export const rainDropPixelated: Sequence<RainSequence> = (
   return { finished, updated };
 };
 
-export const rainDrop: Sequence<RainSequence> = (world, entity, state) => {
+const weatherConfigs: Record<
+  DropSequence["type"],
+  { sprite: Sprite; speed: number }
+> = {
+  rain: {
+    sprite: rain,
+    speed: 50,
+  },
+  snow: {
+    sprite: snowflake,
+    speed: 300,
+  },
+};
+export const weatherDrop: Sequence<DropSequence> = (world, entity, state) => {
   let updated = false;
-  const adjustedRainSpeed = state.args.fast ? rainSpeed : rainSpeed * 2;
+  const weatherConfig = weatherConfigs[state.args.type];
+  const adjustedRainSpeed = state.args.fast
+    ? weatherConfig.speed
+    : weatherConfig.speed * 2;
   let finished = state.elapsed > state.args.height * adjustedRainSpeed;
 
   // create rain particle
@@ -1033,12 +1050,12 @@ export const rainDrop: Sequence<RainSequence> = (world, entity, state) => {
         offsetX: 0,
         offsetY: 0,
         offsetZ: fogHeight,
-        amount: 0,
+        amount: random(0, 3),
         animatedOrigin: { x: 0, y: -state.args.height },
         duration: state.args.height * adjustedRainSpeed,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: rain,
+      [SPRITE]: weatherConfig.sprite,
     });
     state.particles.drop = world.getEntityId(dropParticle);
     updated = true;

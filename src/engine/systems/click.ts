@@ -25,7 +25,9 @@ export const getClickables = (world: World, position: Position) =>
   ) as Entity[];
 
 export const getClickable = (world: World, position: Position) =>
-  getClickables(world, position)[0];
+  getClickables(world, position).find(
+    (clickable) => !clickable[CLICKABLE].clicked
+  );
 
 export const clickEntity = (
   world: World,
@@ -33,10 +35,10 @@ export const clickEntity = (
   target: Entity,
   orientation: Orientation
 ) => {
-  rerenderEntity(world, hero);
   hero[ORIENTABLE].facing = orientation;
   hero[MOVABLE].bumpGeneration = hero[RENDERABLE].generation;
   target[CLICKABLE].clicked = true;
+  rerenderEntity(world, hero);
 };
 
 export default function setupClick(world: World) {
@@ -53,7 +55,7 @@ export default function setupClick(world: World) {
     referenceGenerations = generation;
 
     // handle player clicking entities
-    for (const entity of world.getEntities([POSITION, MOVABLE, PLAYER])) {
+    for (const entity of world.getEntities([POSITION, MOVABLE])) {
       const entityId = world.getEntityId(entity);
       const entityReference = world.assertByIdAndComponents(
         entity[MOVABLE].reference,
@@ -82,7 +84,12 @@ export default function setupClick(world: World) {
       const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getClickable(world, targetPosition);
 
-      if (!targetEntity || targetEntity[CLICKABLE].clicked) continue;
+      if (
+        !targetEntity ||
+        targetEntity[CLICKABLE].clicked ||
+        (targetEntity[CLICKABLE].player && !(PLAYER in entity))
+      )
+        continue;
 
       clickEntity(world, entity, targetEntity, targetOrientation);
 

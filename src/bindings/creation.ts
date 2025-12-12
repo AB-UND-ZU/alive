@@ -742,7 +742,7 @@ export const createCell = (
         decayed: false,
         remains: cell === "desert_rock" ? sand : undefined,
       },
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -796,7 +796,7 @@ export const createCell = (
   } else if (cell === "stone") {
     entities.createTile(world, {
       [ENVIRONMENT]: { biomes: ["desert"] },
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: sand,
@@ -813,7 +813,7 @@ export const createCell = (
   } else if (["block", "block_down", "block_up"].includes(cell)) {
     if (cell === "block" || cell === "block_down") {
       entities.createBlock(world, {
-        [CLICKABLE]: { clicked: false },
+        [CLICKABLE]: { clicked: false, player: true },
         [COLLIDABLE]: {},
         [FOG]: { visibility, type: "object" },
         [POSITION]: { x, y },
@@ -823,7 +823,7 @@ export const createCell = (
     }
     if (cell === "block" || cell === "block_up") {
       entities.createBlock(world, {
-        [CLICKABLE]: { clicked: false },
+        [CLICKABLE]: { clicked: false, player: true },
         [COLLIDABLE]: {},
         [FOG]: { visibility, type: "object" },
         [POSITION]: { x, y },
@@ -895,7 +895,7 @@ export const createCell = (
           remains: [treeBurnt1, treeBurnt2][random(0, 1)],
         },
         [COLLIDABLE]: {},
-        [FOG]: { visibility, type: "terrain" },
+        [FOG]: { visibility, type: "object" },
         [INVENTORY]: { items: [] },
         [LOOTABLE]: { disposable: false },
         [POSITION]: { x, y },
@@ -956,7 +956,7 @@ export const createCell = (
           remains: oakBurnt,
         },
         [COLLIDABLE]: {},
-        [FOG]: { visibility, type: "terrain" },
+        [FOG]: { visibility, type: "object" },
         [FRAGMENT]: { structure: -1 },
         [POSITION]: { x, y: y + 1 },
         [RENDERABLE]: { generation: 0 },
@@ -975,7 +975,7 @@ export const createCell = (
           combusted: false,
           decayed: false,
         },
-        [FOG]: { visibility, type: "terrain" },
+        [FOG]: { visibility, type: "object" },
         [FRAGMENT]: { structure: rootId },
         [COLLIDABLE]: {},
         [POSITION]: { x, y },
@@ -988,7 +988,7 @@ export const createCell = (
       return leavesEntity;
     } else {
       return entities.createOrganic(world, {
-        [FOG]: { visibility, type: "terrain" },
+        [FOG]: { visibility, type: "object" },
         [BURNABLE]: {
           burning: false,
           eternal: false,
@@ -1037,7 +1037,7 @@ export const createCell = (
           remains: [palmBurnt1, palmBurnt2][random(0, 1)],
         },
         [COLLIDABLE]: {},
-        [FOG]: { visibility, type: "terrain" },
+        [FOG]: { visibility, type: "object" },
         [INVENTORY]: { items: [] },
         [LOOTABLE]: { disposable: false },
         [POSITION]: { x, y },
@@ -1068,7 +1068,7 @@ export const createCell = (
           decayed: false,
           remains: [palmBurnt1, palmBurnt2][random(0, 1)],
         },
-        [FOG]: { visibility, type: "terrain" },
+        [FOG]: { visibility, type: "object" },
         [COLLIDABLE]: {},
         [POSITION]: { x, y },
         [SPRITE]: palm,
@@ -1091,7 +1091,7 @@ export const createCell = (
         decayed: false,
       },
       [DROPPABLE]: { decayed: false },
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1151,7 +1151,7 @@ export const createCell = (
         combusted: false,
         decayed: false,
       },
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [POSITION]: { x, y },
       [SPRITE]: bush,
       [RENDERABLE]: { generation: 0 },
@@ -1184,7 +1184,7 @@ export const createCell = (
         combusted: false,
         decayed: false,
       },
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [POSITION]: { x, y },
       [SPRITE]: grass,
       [RENDERABLE]: { generation: 0 },
@@ -1241,7 +1241,7 @@ export const createCell = (
       [AFFECTABLE]: getEmptyAffectable(),
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false, remains: sand },
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1679,7 +1679,7 @@ export const createCell = (
         remains,
       },
       [DROPPABLE]: { decayed: false, remains },
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
       [POSITION]: { x, y },
@@ -1694,7 +1694,7 @@ export const createCell = (
     if (cell === "fence_door_path") {
       entities.createPath(world, {
         [ENVIRONMENT]: { biomes: ["path"] },
-        [FOG]: { visibility, type: "terrain" },
+        [FOG]: { visibility, type: "object" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
         [SPRITE]: none,
@@ -1711,7 +1711,7 @@ export const createCell = (
         remains:
           cell === "fence_door_path" ? fenceDoorBurntPath : fenceDoorBurnt,
       },
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [LOCKABLE]: {
         material: "wood",
         locked: true,
@@ -2191,7 +2191,7 @@ export const createCell = (
   } else if (cell === "chest_tower_statue") {
     const towerEntity = entities.createTerrain(world, {
       [COLLIDABLE]: {},
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [POSITION]: { x, y },
       [SPRITE]: [rock1, rock2][random(0, 1)],
       [RENDERABLE]: { generation: 0 },
@@ -2493,7 +2493,7 @@ export const createCell = (
     return portalEntity;
   } else if (cell === "settings_sound" || cell === "settings_controls") {
     const leverEntity = entities.createLever(world, {
-      [CLICKABLE]: { clicked: false },
+      [CLICKABLE]: { clicked: false, player: true },
       [FOG]: { visibility, type: "float" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -2514,7 +2514,7 @@ export const createCell = (
   } else if (cell === "fountain") {
     const fountainEntity = entities.createFountain(world, {
       [COLLIDABLE]: {},
-      [FOG]: { visibility, type: "terrain" },
+      [FOG]: { visibility, type: "object" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -2534,7 +2534,7 @@ export const createCell = (
         entities.createDecoration(world, {
           [FOG]: {
             visibility,
-            type: "terrain",
+            type: "object",
           },
           [ORIENTABLE]: {
             facing: (

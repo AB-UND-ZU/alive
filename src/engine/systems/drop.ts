@@ -52,11 +52,11 @@ import { TOOLTIP } from "../components/tooltip";
 import { createPopup } from "./popup";
 
 export const isDecayed = (world: World, entity: Entity) =>
-  entity[DROPPABLE].decayed;
+  entity[DROPPABLE]?.decayed;
 
 export const isDecaying = (world: World, entity: Entity) =>
   isDead(world, entity) &&
-  !entity[DROPPABLE].decayed &&
+  !isDecayed(world, entity) &&
   !getSequence(world, entity, "decay");
 
 export const isDroppable = (world: World, position: Position) =>

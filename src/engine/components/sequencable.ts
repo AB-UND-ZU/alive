@@ -15,7 +15,11 @@ type EmptyObject = Record<string, never>;
 
 export type ConsumeSequence = { itemId: number };
 export type BubbleSequence = { width: number; type: Liquid["type"] };
-export type RainSequence = { height: number; fast: boolean };
+export type DropSequence = {
+  height: number;
+  fast: boolean;
+  type: Exclude<Liquid["type"], "bubble">;
+};
 export type VisionSequence = {
   light?: Light;
   previousLight?: Light;
@@ -165,7 +169,7 @@ export type Sequencable = {
     consume?: SequenceState<ConsumeSequence>;
     spell?: SequenceState<SpellSequence>;
     bubble?: SequenceState<BubbleSequence>;
-    rain?: SequenceState<RainSequence>;
+    drop?: SequenceState<DropSequence>;
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;
