@@ -3580,7 +3580,9 @@ export const soulRespawn: Sequence<ReviveSequence> = (world, entity, state) => {
   const origin =
     state.args.origin ||
     world.assertByIdAndComponents(state.args.tombstoneId, [POSITION])[POSITION];
-  const compassEntity = getIdentifierAndComponents(world, "compass", [ITEM]);
+  const compassEntity = world.getEntityByIdAndComponents(state.args.compassId, [
+    ITEM,
+  ]);
 
   if (!state.args.origin) state.args.origin = origin;
 

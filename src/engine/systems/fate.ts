@@ -51,7 +51,6 @@ import { LAYER } from "../components/layer";
 import {
   assertIdentifier,
   getIdentifier,
-  getIdentifierAndComponents,
   setHighlight,
   setIdentifier,
   setNeedle,
@@ -379,10 +378,10 @@ export default function setupFate(world: World) {
       const heroEntity = createHero(world, entity);
 
       const heroId = world.getEntityId(heroEntity);
-      const compassEntity = getIdentifierAndComponents(world, "compass", [
-        ITEM,
-        TRACKABLE,
-      ]);
+      const compassEntity = world.getEntityByIdAndComponents(
+        entity[SPAWNABLE].compassId,
+        [ITEM, TRACKABLE]
+      );
       const entityId = world.getEntityId(entity);
 
       if (compassEntity && compassEntity[ITEM].carrier === entityId) {

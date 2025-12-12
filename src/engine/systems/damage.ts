@@ -17,7 +17,7 @@ import {
 } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { isGhost } from "./fate";
-import { createSequence } from "./sequence";
+import { createSequence, getSequence } from "./sequence";
 import { MarkerSequence, MeleeSequence } from "../components/sequencable";
 import { BELONGABLE, neutrals, tribes } from "../components/belongable";
 import {
@@ -255,16 +255,19 @@ export const createAmountMarker = (
   orientation: Orientation,
   type: DamageType
 ) => {
-  createSequence<"marker", MarkerSequence>(
-    world,
-    entity,
-    "marker",
-    "amountMarker",
-    {
-      amount,
-      type,
-    }
-  );
+  if (!getSequence(world, entity, "marker")) {
+    createSequence<"marker", MarkerSequence>(
+      world,
+      entity,
+      "marker",
+      "amountMarker",
+      {
+        amount,
+        type,
+      }
+    );
+  }
+
   queueMessage(world, entity, {
     line: createText(
       `${amount > 0 ? "+" : amount < 0 ? "-" : ""}${Math.abs(amount)}`,
