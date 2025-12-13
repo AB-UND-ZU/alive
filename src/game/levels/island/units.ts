@@ -1,6 +1,6 @@
 import { NpcDistribution } from "../../balancing/units";
 
-export const forestNpcDistribution: NpcDistribution = {
+export const islandNpcDistribution: NpcDistribution = {
   prism: 35,
   goldPrism: 6,
   eye: 25,

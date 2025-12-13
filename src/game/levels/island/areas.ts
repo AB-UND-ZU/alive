@@ -16,7 +16,7 @@ export const spawnArea = `\
           ▒          \
 `;
 
-export const forestSpawn = { x: 0, y: 0 };
+export const islandSpawn = { x: 0, y: 0 };
 
 export const guidePosition = { x: 156, y: 0 };
 export const keyPosition = { x: 153, y: 0 };

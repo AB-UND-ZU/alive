@@ -65,7 +65,7 @@ import {
   populateInventory,
   createNpc,
   createSign,
-} from "./../../../bindings/creation";
+} from "../../../bindings/creation";
 import { getItemPrice } from "../../balancing/trading";
 import { findPath, invertOrientation } from "../../math/path";
 import { registerEntity } from "../../../engine/systems/map";
@@ -76,13 +76,13 @@ import {
   assertIdentifierAndComponents,
   setIdentifier,
 } from "../../../engine/utils";
-import { forestNpcDistribution } from "./units";
+import { islandNpcDistribution } from "./units";
 import { applyWaterMap } from "../../../engine/systems/water";
 
-export const forestSize = 160;
-export const forestName: LevelName = "LEVEL_FOREST";
+export const islandSize = 160;
+export const islandName: LevelName = "LEVEL_ISLAND";
 
-export const generateForest = (world: World) => {
+export const generateIsland = (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
 
   const elevationMatrix = simplexNoiseMatrix(size, size, 0, -50, 100, 1);
@@ -268,7 +268,7 @@ export const generateForest = (world: World) => {
     else if (green > 10 && elevation > 8)
       cell = spawn > 97 ? "leaf" : spawn > 88 ? "flower" : "grass";
     // spawn
-    else if (spawn < -96) cell = generateNpcKey(forestNpcDistribution);
+    else if (spawn < -96) cell = generateNpcKey(islandNpcDistribution);
 
     // set weighted elevation for curved pathfinding
     if (["air", "bush", "grass", "path", "desert", "hedge"].includes(cell)) {

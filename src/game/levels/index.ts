@@ -2,8 +2,8 @@ import { Entity } from "ecs";
 import { World } from "../../engine";
 import { LevelName } from "../../engine/components/level";
 import { Position } from "../../engine/components/position";
-import { forestName, forestSize, generateForest } from "./forest";
-import { forestSpawn } from "./forest/areas";
+import { islandName, islandSize, generateIsland } from "./island";
+import { islandSpawn } from "./island/areas";
 import { generateMenu, menuName, menuSize } from "./menu";
 import { menuSpawn } from "./menu/areas";
 import { generateTutorial, tutorialName, tutorialSize } from "./tutorial";
@@ -15,7 +15,7 @@ export const getSelectedLevel = (world: World, warpEntity: Entity) => {
 
   if (verticalIndex < 4) return menuName;
   else if (verticalIndex < 10) return tutorialName;
-  else return forestName;
+  else return islandName;
 };
 
 export const levelConfig: Record<
@@ -43,7 +43,7 @@ export const levelConfig: Record<
   },
   LEVEL_TUTORIAL: {
     name: "Dungeon",
-    warps: ["LEVEL_FOREST"],
+    warps: ["LEVEL_ISLAND"],
     mapOffsetX: -3,
     mapOffsetY: 9,
     size: tutorialSize,
@@ -51,14 +51,14 @@ export const levelConfig: Record<
     spawn: tutorialSpawn,
     vision: 23,
   },
-  LEVEL_FOREST: {
+  LEVEL_ISLAND: {
     name: "Island",
     warps: [],
     mapOffsetX: 3,
     mapOffsetY: 15,
-    size: forestSize,
-    generator: generateForest,
-    spawn: forestSpawn,
+    size: islandSize,
+    generator: generateIsland,
+    spawn: islandSpawn,
     vision: 0,
   },
 };

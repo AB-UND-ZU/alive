@@ -1737,7 +1737,7 @@ export const materialSprites: Record<
     wood: {
       sprite: map,
       getDescription: () => [
-        [...createText("FOREST", colors.yellow), ...createText(" world.")],
+        [...createText("ISLAND", colors.yellow), ...createText(" world.")],
         [
           ...createText("Use at a "),
           portal,

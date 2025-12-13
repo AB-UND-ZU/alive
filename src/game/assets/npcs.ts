@@ -34,7 +34,7 @@ import {
   signedDistance,
   within,
 } from "../math/std";
-import { bossArea, spawnArea } from "../levels/forest/areas";
+import { bossArea, spawnArea } from "../levels/island/areas";
 import {
   commonChest,
   createDialog,
