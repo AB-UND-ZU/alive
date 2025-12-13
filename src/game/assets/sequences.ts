@@ -1050,7 +1050,7 @@ export const weatherDrop: Sequence<DropSequence> = (world, entity, state) => {
         offsetX: 0,
         offsetY: 0,
         offsetZ: fogHeight,
-        amount: random(0, 3),
+        amount: distribution(50, 30, 20) + 1,
         animatedOrigin: { x: 0, y: -state.args.height },
         duration: state.args.height * adjustedRainSpeed,
       },

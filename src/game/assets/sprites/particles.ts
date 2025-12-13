@@ -414,11 +414,8 @@ export const rain: Sprite = {
   layers: [{ char: "│", color: colors.blue }],
   amounts: {
     single: [{ char: "│", color: colors.blue }],
-    double: [{ char: "║", color: colors.blue }],
-    multiple: [
-      { char: "│", color: colors.blue },
-      { char: "║", color: colors.blue },
-    ],
+    double: [{ char: "│", color: colors.blue }],
+    multiple: [{ char: "|", color: colors.blue }],
   },
 };
 
