@@ -2,7 +2,7 @@ import { Canvas } from "@react-three/fiber";
 import "./index.css";
 import Systems from "../Systems";
 import Camera from "../Camera";
-import { OrbitControls, Stats } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { useWorld } from "../../bindings/hooks";
 import Paused from "../Paused";
 import { useDimensions } from "../Dimensions";
@@ -10,6 +10,7 @@ import Row from "../Row";
 import { createText } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { overscanRows } from "../Dimensions/sizing";
+import { ExtendedStats } from "../Debug";
 
 const stats = false;
 const controls = false;
@@ -28,7 +29,7 @@ export default function Terminal() {
         )}
       </div>
       <Canvas shadows="basic" flat>
-        {stats && <Stats />}
+        {stats && <ExtendedStats />}
         {controls && <OrbitControls />}
         <ambientLight intensity={Math.PI / 8} />
         <Camera />
