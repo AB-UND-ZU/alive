@@ -31,7 +31,6 @@ import { LEVEL } from "../components/level";
 import { canUnlock, getLockable, getWarpable, isLocked } from "./action";
 import { createBubble } from "./water";
 import { getOpaque } from "./enter";
-import { ENVIRONMENT } from "../components/environment";
 import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { freezeMomentum, isFrozen } from "./freeze";
@@ -58,6 +57,7 @@ import { LOCKABLE } from "../components/lockable";
 import { getClickable } from "./click";
 import { CLICKABLE } from "../components/clickable";
 import { getSpikable } from "./spike";
+import { getOverlappingCell } from "../../game/math/matrix";
 
 // haste:-4 interval:1100
 // haste:-3 interval:600
@@ -130,13 +130,11 @@ export const isMovable = (world: World, entity: Entity, position: Position) => {
   return false;
 };
 
-export const getBiomes = (world: World, position: Position) =>
-  Array.from(
-    new Set(
-      Object.values(getCell(world, position)).flatMap(
-        (cell: TypedEntity) => cell[ENVIRONMENT]?.biomes || []
-      )
-    )
+export const getBiome = (world: World, position: Position) =>
+  getOverlappingCell(
+    world.metadata.gameEntity[LEVEL].biomes,
+    position.x,
+    position.y
   );
 
 export default function setupMovement(world: World) {

@@ -197,6 +197,7 @@ export const createLevel = (world: World, name: LevelName, size: number) => {
       map: {},
       size,
       walkable: [],
+      biomes: [],
       cells: {},
       initialized: false,
     },

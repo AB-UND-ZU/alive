@@ -29,6 +29,7 @@ const popups = [
   "forge",
   "quest",
   "info",
+  "talk",
   "inspect",
   "stats",
   "gear",

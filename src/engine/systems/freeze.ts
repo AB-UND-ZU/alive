@@ -201,7 +201,7 @@ export const isSnowy = (world: World, position: Position) =>
     (entity) => entity[LIQUID]?.type === "snow"
   );
 
-const snowFill = 0.4;
+export const snowFill = 0.4;
 export const coverSnow = (
   world: World,
   position: Position,

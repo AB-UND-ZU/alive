@@ -1,39 +1,56 @@
 import { entities, World } from "../../../engine";
-import { POSITION } from "../../../engine/components/position";
+import { Position, POSITION } from "../../../engine/components/position";
 import { SPRITE } from "../../../engine/components/sprite";
 import { RENDERABLE } from "../../../engine/components/renderable";
 import { COLLIDABLE } from "../../../engine/components/collidable";
 import {
+  craft,
   createDialog,
   createText,
+  forge,
   getOrientedSprite,
-  heartUp,
-  iron,
-  ironKey,
-  manaUp,
   path,
   questPointer,
+  swirl,
+  times,
+  underline,
 } from "../../assets/sprites";
-import { simplexNoiseMatrix, valueNoiseMatrix } from "../../math/noise";
-import { LEVEL, LevelName } from "../../../engine/components/level";
 import {
+  scalarMatrix,
+  simplexNoiseMatrix,
+  valueNoiseMatrix,
+} from "../../math/noise";
+import { BiomeName, LEVEL, LevelName } from "../../../engine/components/level";
+import {
+  addMatrices,
+  circularMatrix,
+  getOverlappingCell,
+  gradientMatrix,
   iterateMatrix,
+  mapMatrix,
+  Matrix,
   matrixFactory,
+  maxMatrices,
+  multiplyMatrices,
+  rectangleMatrix,
   setMatrix,
   setPath,
 } from "../../math/matrix";
 import { FOG } from "../../../engine/components/fog";
 import { ATTACKABLE } from "../../../engine/components/attackable";
-import { ITEM } from "../../../engine/components/item";
 import { orientationPoints } from "../../../engine/components/orientable";
-import { aspectRatio } from "../../../components/Dimensions/sizing";
-import { spawnArea, nomadArea, nomadOffset } from "./areas";
+import { spawnArea } from "./areas";
 import {
   add,
+  angledOffset,
   choice,
+  clamp,
   copy,
+  getDistance,
+  lerp,
   normalize,
   random,
+  repeat,
   sigmoid,
   signedDistance,
 } from "../../math/std";
@@ -43,6 +60,7 @@ import { VIEWABLE } from "../../../engine/components/viewable";
 import { TOOLTIP } from "../../../engine/components/tooltip";
 import { DROPPABLE } from "../../../engine/components/droppable";
 import {
+  anvil,
   bedCenter,
   bedEndLeft,
   bedEndRight,
@@ -50,10 +68,16 @@ import {
   bedHeadRight,
   chairLeft,
   chairRight,
+  kettle,
   table,
 } from "../../assets/sprites/structures";
 import { SEQUENCABLE } from "../../../engine/components/sequencable";
-import { createItemText, npcSequence, questSequence } from "../../assets/utils";
+import {
+  createItemName,
+  createUnitName,
+  frameWidth,
+  questSequence,
+} from "../../assets/utils";
 import { colors } from "../../assets/colors";
 import { generateNpcKey, generateUnitData } from "../../balancing/units";
 import { BELONGABLE } from "../../../engine/components/belongable";
@@ -65,337 +89,511 @@ import {
   populateInventory,
   createNpc,
   createSign,
+  smoothenBeaches,
+  CellType,
+  flipArea,
 } from "../../../bindings/creation";
-import { getItemPrice } from "../../balancing/trading";
 import { findPath, invertOrientation } from "../../math/path";
 import { registerEntity } from "../../../engine/systems/map";
 import { LAYER } from "../../../engine/components/layer";
 import { createPopup } from "../../../engine/systems/popup";
-import { Deal } from "../../../engine/components/popup";
 import {
   assertIdentifierAndComponents,
   setIdentifier,
 } from "../../../engine/utils";
 import { islandNpcDistribution } from "./units";
-import { applyWaterMap } from "../../../engine/systems/water";
+import { snowFill } from "../../../engine/systems/freeze";
+import { isTouch } from "../../../components/Dimensions";
+import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
 
-export const islandSize = 160;
+export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
 
 export const generateIsland = (world: World) => {
+  /* MAP GENERATION: Island
+
+  Parameters:
+  - A random angle is chosen
+  - An offset between 30 and 60 is chosen
+  - A spread between 60 and 90 is chosen
+  - A boolean for clockwise is chosen
+  - A boolean for twisted is chosen
+
+  Elevation:
+  - The main land is placed around 0,0 with a large radius
+  - The glacier is placed at 50%,50% with small radius
+  - Beaches and bays are added to diffuse the circular edges
+  - The remaining ocean area is filled with small islands
+  - A mountain range is erected along the chosen angle intersecting 0,0
+  - The mountain range is diffused with a few hills and valleys
+  - An passage is created orthogonally at 0,0
+
+  Temperature:
+  - The main land is split in two halves by the mountain range
+  - Jungle side is moderate and desert side is hot
+  - The glacier and margin around it are set to negative temperature
+  */
+
+  // fixed configuration values
   const size = world.metadata.gameEntity[LEVEL].size;
+  const mainlandRadius = size * 0.35;
+  const mainlandRatio = 0.8;
+  const glacierRadius = size * 0.0875;
+  const oceanDepth = -50;
+  const archipelagoDepth = -20;
+  const sandDepth = 0;
+  const airDepth = 6;
+  const terrainDepth = 10;
+  const grassDepth = 50;
+  const bushDepth = 65;
+  const cactusDepth = 70;
+  const rockDepth = 20;
+  const palmDepth = 8;
+  const palmChance = 0.3;
+  const desertDepth = 60;
+  const hedgeDepth = 55;
+  const treeDepth = 60;
+  const mountainDepth = 125;
+  const freezeTemperature = 0;
+  const heatTemperature = 40;
+  const townWidth = 26;
+  const townHeight = 16;
+  const pathHeight = 50;
+  const spawnWalkLength = 12;
 
-  const elevationMatrix = simplexNoiseMatrix(size, size, 0, -50, 100, 1);
-  const terrainMatrix = simplexNoiseMatrix(size, size, 0, -40, 100, 1 / 2);
-  const temperatureMatrix = simplexNoiseMatrix(size, size, 0, -80, 100, 4);
-  const greenMatrix = valueNoiseMatrix(size, size, 1, -80, 100);
+  // randomize parameters
+  const islandAngle = random(0, 360);
+  const townFlipped = choice(true, false);
+  const townOffset = townFlipped ? 90 : -90;
+  const spawnAngle = islandAngle - random(30, 60) - (townFlipped ? 90 : 0);
+  const townAngle = spawnAngle + townOffset;
+
+  // precalculated values
+  const spawnPoint = angledOffset(
+    size,
+    { x: 0, y: 0 },
+    spawnAngle,
+    mainlandRadius * 0.9,
+    mainlandRatio
+  );
+  const townPoint = angledOffset(
+    size,
+    { x: 0, y: 0 },
+    townAngle,
+    mainlandRadius * 0.7,
+    mainlandRatio
+  );
+  const spawnWalkAngle = spawnAngle + 180;
+  const spawnInverted = signedDistance(spawnPoint.y, townPoint.y, size) < 0;
+  const signPosition = add(spawnPoint, {
+    x: choice(-1, 1),
+    y: spawnInverted ? -4 : 4,
+  });
+  const spawnExit = angledOffset(
+    size,
+    spawnPoint,
+    spawnInverted ? 0 : 180,
+    4,
+    mainlandRatio
+  );
+  const spawnPath = angledOffset(
+    size,
+    spawnExit,
+    spawnWalkAngle,
+    spawnWalkLength / 2,
+    mainlandRatio
+  );
+  const townCorner = add(townPoint, {
+    x: townWidth / -2,
+    y: townHeight / -2,
+  });
+
+  // create world matrizes
+  const oceanMatrix = matrixFactory(size, size, () => oceanDepth);
+  const mainlandMatrix = circularMatrix(
+    size,
+    size,
+    { x: 0, y: 0 },
+    mainlandRadius,
+    0,
+    125,
+    0.1,
+    mainlandRatio
+  );
+  const glacierMatrix = circularMatrix(
+    size,
+    size,
+    { x: size / 2, y: size / 2 },
+    glacierRadius,
+    0,
+    200,
+    0.1,
+    0.5
+  );
+
+  const hillsMatrix = simplexNoiseMatrix(size, size, 0, 0.2, 1.5, 0.25);
+  const mountainMatrix = multiplyMatrices(
+    hillsMatrix,
+    rectangleMatrix(
+      size,
+      size,
+      { x: 0, y: 0 },
+      8,
+      size * 0.7,
+      islandAngle,
+      0,
+      200,
+      0.8,
+      mainlandRatio
+    )
+  );
+  const passageMatrix = rectangleMatrix(
+    size,
+    size,
+    { x: 0, y: 0 },
+    3,
+    30,
+    islandAngle + 90,
+    1,
+    0,
+    10,
+    mainlandRatio
+  );
+  const spawnCircle = circularMatrix(size, size, spawnPoint, 8, 1, 0, 15, 1);
+  const spawnWalk = rectangleMatrix(
+    size,
+    size,
+    spawnPath,
+    4,
+    spawnWalkLength,
+    spawnWalkAngle,
+    1,
+    0,
+    5
+  );
+  const townSquare = rectangleMatrix(
+    size,
+    size,
+    townPoint,
+    townWidth + 7,
+    townHeight + 7,
+    0,
+    1,
+    0,
+    1.5,
+    1
+  );
+  const flattenedMatrix = multiplyMatrices(
+    spawnCircle,
+    spawnWalk,
+    townSquare,
+    passageMatrix
+  );
+
+  const beachesMatrix = simplexNoiseMatrix(size, size, 0, 0, 1, 0.7);
+  const islandsMatrix = addMatrices(
+    multiplyMatrices(
+      addMatrices(
+        oceanMatrix,
+        mountainMatrix,
+        multiplyMatrices(
+          maxMatrices(mainlandMatrix, glacierMatrix),
+          addMatrices(
+            matrixFactory(size, size, () => 0.3),
+            beachesMatrix
+          )
+        ),
+        scalarMatrix(
+          addMatrices(
+            matrixFactory(size, size, () => -0.5),
+            beachesMatrix
+          ),
+          60
+        )
+      ),
+      flattenedMatrix
+    ),
+    scalarMatrix(flattenedMatrix, -(airDepth + 1)),
+    matrixFactory(size, size, () => airDepth + 1)
+  );
+  const archipelagoMatrix = simplexNoiseMatrix(size, size, 0, -0.5, 0.8, 0.4);
+
+  const elevationMatrix = matrixFactory(size, size, (x, y) => {
+    const elevation = islandsMatrix[x][y];
+    if (elevation > archipelagoDepth) return elevation;
+
+    return (
+      elevation +
+      lerp(
+        0,
+        archipelagoMatrix[x][y] * 80 - elevation,
+        (archipelagoDepth - elevation) / (archipelagoDepth - oceanDepth)
+      )
+    );
+  });
+
+  const freezingMatrix = scalarMatrix(
+    maxMatrices(
+      multiplyMatrices(
+        circularMatrix(
+          size,
+          size,
+          { x: size / 2, y: size / 2 },
+          size * 0.15,
+          0,
+          1,
+          0.3,
+          0.5
+        ),
+        addMatrices(
+          islandsMatrix,
+          matrixFactory(size, size, () => 30)
+        )
+      ),
+      matrixFactory(size, size, () => 0)
+    ),
+    -10
+  );
+
+  const temperatureMatrix = addMatrices(
+    freezingMatrix,
+    maxMatrices(
+      addMatrices(
+        multiplyMatrices(
+          addMatrices(
+            islandsMatrix,
+            matrixFactory(size, size, () => 30)
+          ),
+          gradientMatrix(
+            size,
+            size,
+            { x: 0, y: 0 },
+            size * 0.4,
+            islandAngle - 90,
+            0,
+            1,
+            10,
+            mainlandRatio
+          )
+        ),
+        matrixFactory(size, size, () => heatTemperature - 2)
+      ),
+      matrixFactory(size, size, () => heatTemperature / 2)
+    )
+  );
+
+  const terrainMatrix = simplexNoiseMatrix(size, size, 0, 0, 100, 0.175);
+  const greensMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
   const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
+
   const pathMatrix = matrixFactory(size * 2, size * 2, () => 0);
-  const pathHeight = 16;
 
-  const spawnRows = spawnArea.split("\n");
-  const spawnWidth = spawnRows[0].length;
-  const spawnHeight = spawnRows.length;
-  const spawnX = 0;
-  const spawnY = 0;
+  // first pass: set biomes, cell types and objects
+  const objectsMap: Matrix<CellType[]> = matrixFactory(size, size, () => []);
+  const biomeMap: Matrix<BiomeName> = matrixFactory(size, size, () => "jungle");
+  world.metadata.gameEntity[LEVEL].biomes = biomeMap;
 
-  const townWidth = 38;
-  const townHeight = 24;
-  const {
-    matrix: townMatrix,
-    houses: relativeHouses,
-    exits: relativeExits,
-  } = generateTown(townWidth, townHeight);
+  const rawMap = matrixFactory<CellType>(size, size, (x, y) => {
+    let biome: BiomeName = "jungle";
+    let cell: CellType = "air";
+    const objects: CellType[] = [];
+    const temperature = temperatureMatrix[x][y];
 
-  // distribute three main world areas in similar distances to each other and from spawn
-  // town and nomad at 45% size radius and 90° angle between them
-  // small boss at 30% size radius at 225° offset (opposite between town and nomad)
-  // try docs/grid.html for other values
-  const outerRadius = 0.45;
-  const angleDirection = choice(-1, 1);
-  const townNomadAngle = 90;
+    if (temperature > heatTemperature) biome = "desert";
+    else if (temperature < freezeTemperature) biome = "glacier";
 
-  const townAngle = random(0, 359);
-  const townX = normalize(
-    Math.round(Math.sin((townAngle / 360) * Math.PI * 2) * outerRadius * size),
-    size
-  );
-  const townY = normalize(
-    Math.round(
-      Math.cos((townAngle / 360) * Math.PI * 2) * -1 * outerRadius * size
-    ),
-    size
-  );
-  const townCorner = {
-    x: townX - townWidth / 2,
-    y: townY - townHeight / 2,
-  };
-  const houses = relativeHouses.map((house) => ({
-    ...house,
-    position: add(house.position, townCorner),
-  }));
-  const exits = relativeExits.map((exit) => add(exit, townCorner));
+    const elevation = elevationMatrix[x][y];
 
-  // select nomad location in specified degrees offset from town angle
-  const angleOffset = townNomadAngle * angleDirection;
-  const nomadAngle = townAngle + angleOffset;
-  const nomadX = normalize(
-    Math.round(Math.sin((nomadAngle / 360) * Math.PI * 2) * outerRadius * size),
-    size
-  );
-  const nomadY = normalize(
-    Math.round(
-      Math.cos((nomadAngle / 360) * Math.PI * 2) * -1 * outerRadius * size
-    ),
-    size
-  );
-  const nomadRadius = 3;
+    if (elevation < sandDepth) cell = "water_deep";
+    else if (elevation < airDepth) cell = "sand";
+    else if (elevation > mountainDepth) cell = "mountain";
 
-  const worldMatrix = matrixFactory<string>(size, size, (x, y) => {
-    // distance from zero
-    const spawnDeltaX = Math.abs(signedDistance(spawnX, x, size));
-    const spawnDeltaY = Math.abs(signedDistance(spawnY, y, size));
-    const townDeltaX = Math.abs(signedDistance(townX, x, size));
-    const townDeltaY = Math.abs(signedDistance(townY, y, size));
-    const nomadDeltaX = Math.abs(signedDistance(nomadX, x, size));
-    const nomadDeltaY = Math.abs(signedDistance(nomadY, y, size));
-    const nomadDistance = Math.sqrt(
-      (nomadDeltaX * aspectRatio) ** 2 + nomadDeltaY ** 2
-    );
+    // process biomes
+    if (biome === "desert") {
+      if (cell === "air") cell = "sand";
 
-    // clear square spawn and town areas, and circular nomad area
-    if (
-      (spawnDeltaX < spawnWidth / 2 && spawnDeltaY < spawnHeight / 2) ||
-      (townDeltaX < townWidth / 2 && townDeltaY < townHeight / 2) ||
-      nomadDistance < nomadRadius
-    )
-      return "air";
+      if (
+        elevation < palmDepth &&
+        elevation > palmDepth - 4 &&
+        Math.random() < palmChance &&
+        getDistance({ x: 0, y: 0 }, { x, y }, size) > 20
+      )
+        cell = "palm";
+    } else if (biome === "glacier") {
+      if (cell === "water_deep") {
+        if (
+          elevation > -5 ||
+          Math.random() * clamp(30 + elevation, 0, 30) <= 2
+        ) {
+          cell = "ice";
+        }
+      } else {
+        if (cell === "sand") {
+          cell = "ice";
+        }
 
-    const spawnDistance = Math.sqrt(
-      (spawnDeltaX * aspectRatio) ** 2 + spawnDeltaY ** 2
-    );
+        if (Math.random() <= snowFill) {
+          objects.push("snow");
+        }
+      }
+    }
 
-    // create clean elevation around spawn
-    const spawnProximity = 25000 / spawnDistance ** 4;
-    const spawnElevation = Math.min(15, spawnProximity * 3);
-    const spawnDip = 1 / (1 + spawnProximity / 2);
+    biomeMap[x][y] = biome;
+    objectsMap[x][y] = objects;
+    return cell;
+  });
 
-    // clear edges of town
-    const clampedX = Math.max(0, Math.min(townDeltaX, townWidth / 4));
-    const clampedY = Math.max(0, Math.min(townDeltaY, townHeight / 4));
-    const townDx = townDeltaX - clampedX;
-    const townDy = townDeltaY - clampedY;
-    const townDistance = Math.sqrt((townDx * aspectRatio) ** 2 + townDy ** 2);
-    const townDip = sigmoid(townDistance, 10, 0.5);
-    const townElevation = 17 * (1 - townDip);
+  // second pass: place shallow water and ensure is surrounded by sand
+  const elevationMap = smoothenBeaches(rawMap, biomeMap);
 
-    // clear area for nomad
-    const nomadDip = sigmoid(nomadDistance, nomadRadius * 2, 1 / 2);
-    const nomadElevation = 17 * (1 - nomadDip);
+  // third pass: process terrain based on biomes and spawn mobs or items
+  const terrainMap = mapMatrix(elevationMap, (x, y, cell) => {
+    const biome = biomeMap[x][y];
+    const elevation = elevationMatrix[x][y];
+    const objects = objectsMap[x][y];
+    const elevationFactor =
+      sigmoid(elevation, terrainDepth) *
+      (1 - sigmoid(elevation, mountainDepth - 3));
+    const greens = greensMatrix[x][y] * elevationFactor;
+    const terrain = terrainMatrix[x][y] * elevationFactor;
+    const spawn = spawnMatrix[x][y] * elevationFactor;
+    const distribution = islandNpcDistribution[biome];
 
-    // set spawn and town areas
-    const elevation =
-      elevationMatrix[x][y] * spawnDip * townDip * nomadDip +
-      spawnElevation +
-      townElevation +
-      nomadElevation;
-    const terrain =
-      terrainMatrix[x][y] * spawnDip * townDip * nomadDip +
-      spawnElevation +
-      townElevation +
-      nomadElevation;
-    const temperature = temperatureMatrix[x][y] * spawnDip * townDip * nomadDip;
-    const green = greenMatrix[x][y] * spawnDip * townDip * nomadDip;
-    const spawn =
-      spawnMatrix[x][y] * spawnDip ** 0.25 * townDip ** 0.25 * nomadDip ** 0.25;
+    // process biome's terrain
+    if (biome === "jungle") {
+      if (terrain > treeDepth) cell = "tree";
+      else if (terrain > hedgeDepth)
+        cell = spawn > 93 ? "fruit" : spawn > 80 ? "wood" : "hedge";
+      else if (greens > bushDepth)
+        cell = spawn > 96 ? "leaf" : spawn > 87 ? "berry" : "bush";
+      else if (greens > grassDepth)
+        cell = spawn > 97 ? "leaf" : spawn > 88 ? "flower" : "grass";
+      else if (spawn < -96) objects.push(generateNpcKey(distribution));
+    } else if (biome === "desert") {
+      if (terrain > desertDepth) cell = "mountain";
+      else if (terrain > rockDepth && terrain < rockDepth + 5)
+        cell = "desert_rock";
+      else if (greens > cactusDepth && greens < cactusDepth + 2)
+        cell = "cactus";
+      else if (cell === "sand" && spawn < -96)
+        objects.push(generateNpcKey(distribution));
+      else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
+      else if (cell === "palm" && random(0, 9) === 0) cell = "palm_fruit";
+    } else if (biome === "glacier") {
+    }
 
-    let cell = "air";
-    // beach palms
-    if (temperature < 65 && elevation < 7 && elevation > 3 && spawn > 65)
-      cell = "palm";
-    // beach and islands (if not desert)
-    else if (
-      temperature < 65 &&
-      elevation < 0 &&
-      (elevation > -32 || temperature > 0)
-    )
-      cell = "water";
-    else if (
-      temperature < 65 &&
-      elevation < 6 &&
-      (elevation > -35 || temperature > 0)
-    )
-      cell = "beach";
-    // island palms
-    else if (elevation <= -35 && temperature < 0 && green > 30) cell = "palm";
-    // forest
-    else if (elevation > 25 && terrain > 30)
-      cell =
-        temperature < 0 && terrain < 75 && spawnProximity < 5
-          ? terrain > 37
-            ? "tree"
-            : spawn > 93
-            ? "fruit"
-            : spawn > 80
-            ? "wood"
-            : "hedge"
-          : spawn > 99
-          ? "iron"
-          : spawn > 86
-          ? "ore"
-          : "mountain";
-    // desert, oasis and cactus
-    else if (temperature > 65 && terrain > 75) cell = "spring";
-    else if (temperature > 65 && terrain > 70) cell = "oasis";
-    else if (
-      temperature > 65 &&
-      ((-11 < terrain && terrain < -10) || (20 < terrain && terrain < 21))
-    )
-      cell = spawn > 60 ? "stone" : "desert_rock";
-    else if (temperature > 65)
-      cell =
-        21 < green && green < 23
-          ? "cactus"
-          : spawn > 97
-          ? "tumbleweed"
-          : "desert";
-    // greens
-    else if (green > 37 && elevation > 17) cell = "tree";
-    else if (green > 30 && elevation > 14)
-      cell = spawn > 93 ? "fruit" : spawn > 80 ? "wood" : "hedge";
-    else if (green > 20 && elevation > 11)
-      cell = spawn > 96 ? "leaf" : spawn > 87 ? "berry" : "bush";
-    else if (green > 10 && elevation > 8)
-      cell = spawn > 97 ? "leaf" : spawn > 88 ? "flower" : "grass";
-    // spawn
-    else if (spawn < -96) cell = generateNpcKey(islandNpcDistribution);
-
-    // set weighted elevation for curved pathfinding
+    // set path weight
     if (["air", "bush", "grass", "path", "desert", "hedge"].includes(cell)) {
       pathMatrix[x][y] =
         (Math.abs(elevation - pathHeight) + 4) ** 2 / 16 +
-        (townDeltaX - townWidth / 2 < 2 ? 20 : 0) +
-        (townDeltaY - townHeight / 2 < 2 ? 20 : 0);
+        (cell === "hedge" ? 100 : 0);
     }
 
     return cell;
   });
 
+  const worldMap = terrainMap;
+
   // insert spawn
-  insertArea(worldMatrix, spawnArea, 0, 0);
+  insertArea(
+    worldMap,
+    flipArea(spawnArea, spawnInverted, choice(true, false)),
+    spawnPoint.x,
+    spawnPoint.y,
+    true
+  );
+  const spawnLines = spawnArea.split("\n");
+  const spawnWidth = spawnLines[0].length;
+  const spawnHeight = spawnLines.length;
+  matrixFactory(spawnWidth, spawnHeight, (x, y) => {
+    setPath(
+      pathMatrix,
+      x + spawnPoint.x - (spawnWidth - 1) / 2,
+      y + spawnPoint.y - (spawnHeight - 1) / 2,
+      0
+    );
+  });
 
   // insert town
+  const {
+    matrix: townMatrix,
+    houses: relativeHouses,
+    exits: relativeExits,
+    inn: relativeInn,
+  } = generateTown(townWidth, townHeight);
   iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
-    const x = normalize(townX + offsetX - townWidth / 2, size);
-    const y = normalize(townY + offsetY - townHeight / 2, size);
+    const x = normalize(townPoint.x + offsetX - townWidth / 2, size);
+    const y = normalize(townPoint.y + offsetY - townHeight / 2, size);
 
-    if (!value) return;
-
-    worldMatrix[x][y] = value;
+    worldMap[x][y] = value ? (value as CellType) : "air";
     setPath(pathMatrix, x, y, 0);
   });
 
-  // insert nomad
-  insertArea(worldMatrix, nomadArea, nomadX, nomadY);
+  const houses = relativeHouses.map((house) => ({
+    ...house,
+    position: add(house.position, townCorner),
+  }));
+  const exits = relativeExits.map((exit) => add(exit, townCorner));
+  const inn = add(relativeInn, townCorner);
 
   // create shortest path from spawn to town and nomad
-  const signPosition = { x: normalize(choice(-1, 1), size), y: 7 };
-  pathMatrix[signPosition.x][signPosition.y] = 0;
-  iterateMatrix(worldMatrix, (x, y) => {
+  setPath(pathMatrix, spawnExit.x, spawnExit.y, 0, false);
+  iterateMatrix(worldMap, (x, y) => {
     const height = pathMatrix[x][y];
     setPath(pathMatrix, x, y, height);
   });
 
-  const spawnPath = { x: 0, y: 7 };
+  // select quadrant pairs as closest distance might be contained by island
   const townPath = findPath(
     pathMatrix,
-    spawnPath,
-    exits[townAngle >= 90 && townAngle < 270 ? 0 : 1]
+    spawnExit,
+    exits[signedDistance(spawnExit.y, townPoint.y, size) > 0 ? 0 : 1],
+    false,
+    false,
+    {
+      x: Number(spawnPoint.x > size / 2) - Number(townPoint.x > size / 2),
+      y: Number(spawnPoint.y > size / 2) - Number(townPoint.y > size / 2),
+    }
   );
   townPath.forEach(({ x, y }) => {
-    worldMatrix[x][y] = "path";
-    setPath(pathMatrix, x, y, 1);
-  });
-  const nomadPath = findPath(
-    pathMatrix,
-    exits[townAngle >= 90 && townAngle < 270 ? 1 : 0],
-    add(
-      {
-        x: nomadX,
-        y: nomadY,
-      },
-      nomadOffset
-    )
-  );
-  nomadPath.forEach(({ x, y }) => {
-    worldMatrix[x][y] = "path";
+    worldMap[x][y] = "path";
     setPath(pathMatrix, x, y, 1);
   });
 
   // preprocess town
-  const [
-    chiefHouse,
-    elderHouse,
-    scoutHouse,
-    smithHouse,
-    traderHouse,
-    druidHouse,
-    mageHouse,
-    ...emptyHouses
-  ] = houses;
+  const [traderHouse, smithHouse, druidHouse, ...emptyHouses] = houses;
 
   setMatrix(
-    worldMatrix,
-    chiefHouse.position.x,
-    chiefHouse.position.y + 2,
-    "iron_door"
-  );
-  const elderOffset = choice(-1, 1);
-  setMatrix(
-    worldMatrix,
-    elderHouse.position.x + elderOffset,
-    elderHouse.position.y + 3,
-    "fruit_one"
-  );
-  setMatrix(
-    worldMatrix,
-    elderHouse.position.x - elderOffset,
-    elderHouse.position.y + 3,
-    "rock"
-  );
-  setMatrix(
-    worldMatrix,
-    scoutHouse.position.x + choice(-1, 1),
-    scoutHouse.position.y + 3,
+    worldMap,
+    smithHouse.position.x + choice(-1, 1),
+    smithHouse.position.y + 3,
     "campfire"
   );
   setMatrix(
-    worldMatrix,
+    worldMap,
     smithHouse.position.x + choice(-1, 1),
     smithHouse.position.y + 2,
-    "house_armor"
+    "house_smith"
   );
   setMatrix(
-    worldMatrix,
+    worldMap,
     traderHouse.position.x + choice(-1, 1),
     traderHouse.position.y + 2,
     "house_trader"
   );
   setMatrix(
-    worldMatrix,
+    worldMap,
     druidHouse.position.x + choice(-1, 1),
     druidHouse.position.y + 2,
-    "house_aid"
-  );
-  setMatrix(
-    worldMatrix,
-    mageHouse.position.x + choice(-1, 1),
-    mageHouse.position.y + 2,
-    "house_mage"
+    "house_druid"
   );
 
-  iterateMatrix(worldMatrix, (x, y, cell) => {
-    createCell(world, worldMatrix, { x, y }, cell, "hidden");
+  iterateMatrix(worldMap, (x, y, cell) => {
+    createCell(world, worldMap, { x, y }, cell, "hidden");
+    const objects = objectsMap[x][y];
+    objects.forEach((objectCell) => {
+      createCell(world, worldMap, { x, y }, objectCell, "hidden");
+    });
   });
 
   // adjust hero
@@ -412,36 +610,21 @@ export const generateIsland = (world: World) => {
   });
 
   // assign buildings
-  const nomadHouse = { position: { x: nomadX - 1, y: nomadY - 1 } };
-
-  const [
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    nomadBuilding,
-    chiefBuilding,
-    elderBuilding,
-    scoutBuilding,
-    smithBuilding,
-    traderBuilding,
-    druidBuilding,
-    mageBuilding,
-    ...emptyBuildings
-  ] = [
-    nomadHouse,
-    chiefHouse,
-    elderHouse,
-    scoutHouse,
-    smithHouse,
+  const [traderBuilding, smithBuilding, druidBuilding, ...emptyBuildings] = [
     traderHouse,
+    smithHouse,
     druidHouse,
-    mageHouse,
     ...emptyHouses,
   ].map((building) => assignBuilding(world, building.position));
 
   // add quest sign after exiting
   const spawnSign = createSign(world, copy(signPosition), [
     [
-      createText("Find the town by"),
-      createText("following either"),
+      createText("Find the town and"),
+      createText("speak with the"),
+      [...createUnitName("chief"), ...createText(".")],
+      [],
+      createText("Follow either the"),
       [
         getOrientedSprite(questPointer, "right"),
         ...createText("Arrow", colors.grey),
@@ -454,154 +637,34 @@ export const generateIsland = (world: World) => {
   ]);
   setIdentifier(world, spawnSign, "spawn_sign");
 
-  // postprocess nomad
-  const nomadEntity = createNpc(
-    world,
-    "nomad",
-    add(nomadBuilding.building[POSITION], { x: -1, y: 0 })
-  );
-  npcSequence(world, nomadEntity, "nomadNpc", {});
-
-  const ironKeyEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      consume: "key",
-      material: "iron",
-      amount: 1,
-      bound: false,
-    },
-    [SPRITE]: ironKey,
-    [RENDERABLE]: { generation: 0 },
-  });
-  createPopup(world, nomadEntity, {
-    deals: [
-      {
-        item: ironKeyEntity[ITEM],
-        stock: 1,
-        prices: getItemPrice(ironKeyEntity[ITEM]),
-      },
-    ],
-    tabs: ["buy"],
-  });
-  const nomadChestData = generateUnitData("uncommonChest");
-  const nomadChest = entities.createChest(world, {
-    [ATTACKABLE]: { shots: 0 },
-    [BELONGABLE]: { faction: nomadChestData.faction },
-    [DROPPABLE]: { decayed: false },
-    [INVENTORY]: { items: [] },
-    [FOG]: { visibility: "hidden", type: "terrain" },
-    [LAYER]: {},
-    [POSITION]: add(nomadBuilding.building[POSITION], { x: 2, y: 0 }),
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [SPRITE]: nomadChestData.sprite,
-    [STATS]: { ...emptyUnitStats, ...nomadChestData.stats },
-    [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-  });
-  populateInventory(world, nomadChest, [
-    { consume: "key", material: "iron", amount: 1 },
-  ]);
-  const nomadKeyEntity = world.assertById(nomadChest[INVENTORY].items[0]);
-  setIdentifier(world, nomadKeyEntity, "nomad_key");
-
-  const nomadSign = createSign(
-    world,
-    add(nomadBuilding.building[POSITION], { x: -1, y: 3 }),
-    [
-      [
-        [
-          ...createText("Collect "),
-          ...createItemText({ stackable: "ore", amount: 10 }),
-          ...createText(" to"),
-        ],
-        [...createText("trade for "), iron, ...createText("Iron,")],
-        createText("then exchange to"),
-        [...createText("a "), ironKey, ...createText("Key")],
-      ],
-    ]
-  );
-  setIdentifier(world, nomadSign, "nomad_sign");
-
   // postprocess town
 
-  // 1. chief's house in center
+  // chief next to fountain
   const chiefEntity = createNpc(
     world,
     "chief",
-    chiefBuilding.building[POSITION]
+    add(inn, { x: choice(-1, 1), y: 2 })
   );
-  const maxHpEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      stat: "maxHp",
-      amount: 1,
-      bound: false,
-    },
-    [SPRITE]: heartUp,
-    [RENDERABLE]: { generation: 0 },
-  });
-  const maxMpEntity = entities.createItem(world, {
-    [ITEM]: {
-      carrier: -1,
-      stat: "maxMp",
-      amount: 1,
-      bound: false,
-    },
-    [SPRITE]: manaUp,
-    [RENDERABLE]: { generation: 0 },
-  });
   createPopup(world, chiefEntity, {
-    deals: [
-      {
-        item: maxHpEntity[ITEM],
-        stock: Infinity,
-        prices: getItemPrice(maxHpEntity[ITEM]),
-      },
-      {
-        item: maxMpEntity[ITEM],
-        stock: Infinity,
-        prices: getItemPrice(maxMpEntity[ITEM]),
-      },
-    ],
-    tabs: ["buy"],
-  });
-  const chiefOffset = choice(-2, 2);
-  const chiefSign = createSign(
-    world,
-    add(chiefBuilding.building[POSITION], { x: chiefOffset, y: 3 }),
-    [
+    lines: [
       [
-        createText("Enter the Chief's"),
-        createText("house by using"),
-        [...createText("a "), ironKey, ...createText("Key. Find the")],
-        createText("Nomad's house by"),
-        createText("following the"),
-        [path, ...createText("Path")],
+        createText("Welcome to the"),
+        createText("town, have a look"),
+        createText("around."),
+        [],
+        createText("If you are ready,"),
+        [
+          ...createText("kill 3"),
+          times,
+          ...createUnitName("prism"),
+          ...createText("."),
+        ],
       ],
-    ]
-  );
-  setIdentifier(world, chiefSign, "town_sign");
-  setIdentifier(world, chiefBuilding.door!, "chief_door");
+    ],
+    tabs: ["talk"],
+  });
 
-  // 2. elder's house
-  createNpc(world, "elder", elderBuilding.building[POSITION]);
-
-  // 3. scout's house
-  const scoutEntity = createNpc(
-    world,
-    "scout",
-    scoutBuilding.building[POSITION]
-  );
-  scoutEntity[TOOLTIP].dialogs = [
-    createDialog("Hi there!"),
-    createDialog("I'm the Scout"),
-    createDialog("Sell your drops here"),
-    createDialog("So you can buy items"),
-    createDialog("Or not, up to you"),
-  ];
-  createPopup(world, scoutEntity, { tabs: ["sell"] });
-
-  // 4. smith's house
+  // smith's house
   const smithOffset = choice(-1, 1);
   const smithEntity = createNpc(
     world,
@@ -610,60 +673,60 @@ export const generateIsland = (world: World) => {
   );
   smithEntity[TOOLTIP].dialogs = [
     createDialog("Hey mate"),
-    createDialog("My name is Smith"),
-    createDialog("I sell resources"),
-    createDialog("There's an anvil"),
-    createDialog("For crafting items"),
-    createDialog("To become stronger"),
-    createDialog("Because why not"),
+    createDialog("I am the Smith"),
+    createDialog("Ask me how to forge"),
   ];
   createPopup(world, smithEntity, {
-    deals: [
-      // TODO: remove
-      {
-        item: {
-          stackable: "resource",
-          material: "iron",
-          amount: 1,
-        },
-        stock: Infinity,
-        prices: [{ stackable: "apple", amount: 0 }],
-      },
-      {
-        item: {
-          equipment: "sword",
-          material: "wood",
-          amount: 1,
-        },
-        stock: 1,
-        prices: [{ stackable: "apple", amount: 0 }],
-      },
-
-      {
-        item: {
-          equipment: "torch",
-          material: "wood",
-          amount: 1,
-        },
-        stock: 1,
-        prices: [{ stackable: "resource", material: "wood", amount: 1 }],
-      },
-      {
-        item: {
-          equipment: "shield",
-          material: "wood",
-          amount: 1,
-        },
-        stock: 1,
-        prices: [{ stackable: "resource", material: "wood", amount: 3 }],
-      },
+    lines: [
+      [
+        [forge, ...createText("Forging", colors.silver)],
+        repeat(swirl, frameWidth - 2),
+        [],
+        createText("You can forge the"),
+        createText("gear you hold."),
+        [],
+        [
+          ...createText("View "),
+          ...createText("╡", colors.silver),
+          ...createText("GEAR", colors.lime),
+          ...createText("╞", colors.silver),
+          ...createText(" by"),
+        ],
+        isTouch
+          ? [
+              ...createText("tapping on "),
+              ...createText("BAG", colors.black, colors.silver),
+              ...createText("."),
+            ]
+          : [
+              ...createText("pressing "),
+              ...createText("[TAB]", colors.grey),
+              ...createText("."),
+            ],
+        [],
+        [...createText("Use the "), anvil, ...createText("Anvil", colors.grey)],
+        createText("and choose gear."),
+        [],
+        createText("Try to add any"),
+        createText("items until you"),
+        createText("find a match."),
+        [],
+        [
+          ...underline(createText("TIP", colors.silver)),
+          ...createText(": "),
+          ...createItemName({ stackable: "resource", material: "iron" }),
+          ...createText(" can be"),
+        ],
+        createText("added to wooden"),
+        createText("gear."),
+      ],
     ],
-    tabs: ["buy", "sell"],
+    tabs: ["talk"],
   });
 
   createCell(
     world,
-    worldMatrix,
+    worldMap,
     add(smithBuilding.building[POSITION], {
       x: smithOffset * -2,
       y: 0,
@@ -672,21 +735,7 @@ export const generateIsland = (world: World) => {
     "hidden"
   );
 
-  // 5. trader's house
-  const traderEntity = createNpc(
-    world,
-    "trader",
-    traderBuilding.building[POSITION]
-  );
-  traderEntity[TOOLTIP].dialogs = [
-    createDialog("Hi, I'm the Trader"),
-    createDialog("Nice to meet you"),
-    createDialog("Well, I trade items"),
-    createDialog("For coins only"),
-    createDialog("Wanna have a look?"),
-  ];
-
-  // 6. druid's house
+  // druid's house
   const druidOffset = choice(-1, 1);
   const druidEntity = createNpc(
     world,
@@ -695,51 +744,43 @@ export const generateIsland = (world: World) => {
   );
   druidEntity[TOOLTIP].dialogs = [
     createDialog("Hello there"),
-    createDialog("I am the Druid"),
-    createDialog("Want some potions?"),
-    createDialog("Or maybe elements?"),
-    createDialog("To enchant items"),
-    createDialog("In the kettle here"),
-    createDialog("Incredibly powerful"),
+    createDialog("My name is Druid"),
+    createDialog("I explain crafting"),
   ];
-  const healthItem: Deal["item"] = {
-    consume: "potion",
-    material: "wood",
-    element: "fire",
-    amount: 1,
-  };
-  const manaItem: Deal["item"] = {
-    consume: "potion",
-    material: "wood",
-    element: "water",
-    amount: 1,
-  };
-  const fruitItem: Deal["item"] = {
-    stackable: "fruit",
-    amount: 1,
-  };
-  const herbItem: Deal["item"] = {
-    stackable: "herb",
-    amount: 1,
-  };
-  const seedItem: Deal["item"] = {
-    stackable: "seed",
-    amount: 1,
-  };
   createPopup(world, druidEntity, {
-    deals: [healthItem, manaItem, fruitItem, herbItem, seedItem].map(
-      (item) => ({
-        item,
-        stock: Infinity,
-        prices: getItemPrice(item),
-      })
-    ),
-    tabs: ["buy"],
+    lines: [
+      [
+        [craft, ...createText("Crafting", colors.silver)],
+        repeat(swirl, frameWidth - 2),
+        [],
+        createText("Gather some items"),
+        [
+          ...createText("like "),
+          ...createItemName({ stackable: "leaf" }),
+          ...createText(" and"),
+        ],
+        [...createItemName({ stackable: "apple" }), ...createText(".")],
+        [],
+        [
+          ...createText("Use the "),
+          kettle,
+          ...createText("Kettle", colors.grey),
+        ],
+        createText("and pick the item"),
+        createText("you want to make."),
+        [],
+        [
+          ...underline(createText("TIP", colors.silver)),
+          ...createText(": Some items"),
+        ],
+        createText("have few recipes."),
+      ],
+    ],
+    tabs: ["talk"],
   });
-
   createCell(
     world,
-    worldMatrix,
+    worldMap,
     add(druidBuilding.building[POSITION], {
       x: druidOffset * -2,
       y: 0,
@@ -748,60 +789,9 @@ export const generateIsland = (world: World) => {
     "hidden"
   );
 
-  // 7. mage's house
-  const mageEntity = createNpc(world, "mage", mageBuilding.building[POSITION]);
-  mageEntity[TOOLTIP].dialogs = [
-    createDialog("Greetings traveler"),
-    createDialog("I am the Mage"),
-    createDialog("Get your spells here"),
-    createDialog("And items too"),
-    createDialog("They're fun actually"),
-  ];
-  const waveItem: Deal["item"] = {
-    amount: 1,
-    equipment: "primary",
-    material: "wood",
-    primary: "wave",
-  };
-  const beamItem: Deal["item"] = {
-    amount: 1,
-    equipment: "primary",
-    material: "wood",
-    primary: "beam",
-  };
-  const bowItem: Deal["item"] = {
-    equipment: "secondary",
-    secondary: "bow",
-    material: "wood",
-    amount: 1,
-  };
-  const arrowItem: Deal["item"] = {
-    stackable: "arrow",
-    amount: 10,
-  };
-  const slashItem: Deal["item"] = {
-    equipment: "secondary",
-    secondary: "slash",
-    material: "wood",
-    amount: 1,
-  };
-  const chargeItem: Deal["item"] = {
-    stackable: "charge",
-    amount: 10,
-  };
-  createPopup(world, mageEntity, {
-    deals: [waveItem, beamItem, bowItem, arrowItem, slashItem, chargeItem].map(
-      (item) => ({
-        item,
-        stock: Infinity,
-        prices: getItemPrice(item),
-      })
-    ),
-    tabs: ["buy"],
-  });
-
-  // empty houses
-  for (const emptyBuilding of emptyBuildings) {
+  // furnish houses
+  const furnishingBuildings = [traderBuilding, ...emptyBuildings];
+  for (const furnishingBuilding of furnishingBuildings) {
     // add furniture
     const furnitureOrientation = (["left", "right"] as const)[random(0, 1)];
     const invertFurniture = invertOrientation(
@@ -816,7 +806,7 @@ export const generateIsland = (world: World) => {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [LAYER]: {},
         [POSITION]: add(
-          emptyBuilding.building[POSITION],
+          furnishingBuilding.building[POSITION],
           orientationPoints[invertFurniture]
         ),
         [SPRITE]: bedHeadSprites[invertFurniture],
@@ -826,7 +816,7 @@ export const generateIsland = (world: World) => {
       entities.createFurniture(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [LAYER]: {},
-        [POSITION]: emptyBuilding.building[POSITION],
+        [POSITION]: furnishingBuilding.building[POSITION],
         [SPRITE]: bedCenter,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
@@ -835,7 +825,7 @@ export const generateIsland = (world: World) => {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [LAYER]: {},
         [POSITION]: add(
-          emptyBuilding.building[POSITION],
+          furnishingBuilding.building[POSITION],
           orientationPoints[furnitureOrientation]
         ),
         [SPRITE]: bedEndSprites[furnitureOrientation],
@@ -847,7 +837,7 @@ export const generateIsland = (world: World) => {
       entities.createFurniture(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [LAYER]: {},
-        [POSITION]: copy(emptyBuilding.building[POSITION]),
+        [POSITION]: copy(furnishingBuilding.building[POSITION]),
         [SPRITE]: table,
         [RENDERABLE]: { generation: 0 },
         [COLLIDABLE]: {},
@@ -856,7 +846,7 @@ export const generateIsland = (world: World) => {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [LAYER]: {},
         [POSITION]: add(
-          emptyBuilding.building[POSITION],
+          furnishingBuilding.building[POSITION],
           orientationPoints[furnitureOrientation]
         ),
         [SPRITE]: chairSprites[furnitureOrientation],
@@ -867,13 +857,41 @@ export const generateIsland = (world: World) => {
           [FOG]: { visibility: "hidden", type: "terrain" },
           [LAYER]: {},
           [POSITION]: add(
-            emptyBuilding.building[POSITION],
+            furnishingBuilding.building[POSITION],
             orientationPoints[invertFurniture]
           ),
           [SPRITE]: chairSprites[invertFurniture],
           [RENDERABLE]: { generation: 0 },
         });
       }
+    }
+
+    const objectPosition = add(furnishingBuilding.building[POSITION], {
+      x: random(0, 1) * 4 - 2,
+      y: 0,
+    });
+
+    if (furnishingBuilding === traderBuilding) {
+      // trader's house
+      const traderEntity = createNpc(world, "trader", objectPosition);
+      traderEntity[TOOLTIP].dialogs = [
+        createDialog("Hi, I'm the Trader"),
+        createDialog("Nice to meet you"),
+        createDialog("Well, I trade items"),
+        createDialog("Wanna have a look?"),
+      ];
+      createPopup(world, traderEntity, {
+        deals: purchasableItems.map((item) => ({
+          item: {
+            ...item,
+            amount: 1,
+          },
+          stock: Infinity,
+          prices: getItemBuyPrice(item),
+        })),
+
+        tabs: ["buy", "sell"],
+      });
     }
 
     // add chest
@@ -885,10 +903,7 @@ export const generateIsland = (world: World) => {
       [INVENTORY]: { items: [] },
       [FOG]: { visibility: "hidden", type: "terrain" },
       [LAYER]: {},
-      [POSITION]: add(emptyBuilding.building[POSITION], {
-        x: random(0, 1) * 4 - 2,
-        y: 0,
-      }),
+      [POSITION]: objectPosition,
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: chestData.sprite,
@@ -903,9 +918,50 @@ export const generateIsland = (world: World) => {
     );
   }
 
-  // render deep water
-  applyWaterMap(world);
-
   // queue all added entities to added listener
   world.cleanup();
+};
+
+export const stringifyMap = (
+  cellMap: CellType[][],
+  objectsMap: CellType[][][],
+  center: Position
+) => {
+  const height = cellMap[0].length;
+  const width = cellMap.length;
+
+  let mapString = "";
+
+  for (let y = 0; y < height; y++) {
+    let row = "";
+    for (let x = 0; x < width; x++) {
+      const cell = getOverlappingCell(cellMap, x + center.x, y + center.y);
+      const objects = getOverlappingCell(
+        objectsMap,
+        x + center.x,
+        y + center.y
+      );
+
+      if (cell === "water_shallow") row += "~";
+      else if (cell === "water_deep") row += "≈";
+      else if (cell === "snow" || objects.includes("snow")) row += ".";
+      else if (cell === "ice") row += "/";
+      else if (cell === "grass") row += ",";
+      else if (cell === "bush") row += "τ";
+      else if (cell === "hedge") row += "ß";
+      else if (cell === "tree") row += "#";
+      else if (cell === "cactus" || objects.includes("cactus")) row += "¥";
+      else if (cell === "mountain") row += "█";
+      else if (cell === "rock" || objects.includes("rock")) row += "^";
+      else if (cell === "palm") row += "¶";
+      else if (cell === "sand") row += "▒";
+      else if (cell === "fence") row += "±";
+      else if (cell === "path") row += "░";
+      else if (cell.includes("door")) row += "D";
+      else row += " ";
+    }
+    mapString += row + "\n";
+  }
+
+  return mapString;
 };

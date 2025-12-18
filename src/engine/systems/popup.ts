@@ -31,7 +31,7 @@ import { add } from "../../game/math/std";
 import { TypedEntity } from "../entities";
 import { isDead, isEnemy, isNeutral } from "./damage";
 import { frameHeight, popupTime } from "../../game/assets/utils";
-import { getItemPrice } from "../../game/balancing/trading";
+import { getItemSellPrice } from "../../game/balancing/trading";
 import { getForgeStatus } from "../../game/balancing/forging";
 import { getCraftingDeal } from "../../game/balancing/crafting";
 import { classes } from "../../game/balancing/classes";
@@ -127,7 +127,7 @@ export const getDeal = (
       return {
         stock: 1,
         prices: [{ ...soldItem[ITEM], amount: 1 }],
-        item: getItemPrice(soldItem[ITEM])[0],
+        item: getItemSellPrice(soldItem[ITEM])[0],
       };
     }
   } else if (tab === "forge" && selections.length === 2) {
@@ -180,7 +180,7 @@ export const canShop = (world: World, heroEntity: Entity, deal: Deal) =>
   deal && deal.stock > 0 && canRedeem(world, heroEntity, deal);
 
 export const canSell = (world: World, item: Omit<Item, "carrier" | "bound">) =>
-  getItemPrice(item)[0].amount > 0;
+  getItemSellPrice(item)[0].amount > 0;
 
 export const matchesItem = (
   world: World,
@@ -242,6 +242,7 @@ export const popupIdles = {
   craft,
   forge,
   info,
+  talk: info,
   quest,
   buy: shop,
   sell: shop,
@@ -256,6 +257,7 @@ export const popupActions = {
   craft: "CRAFT",
   forge: "FORGE",
   info: "READ",
+  talk: "TALK",
   warp: "WARP",
   quest: "QUEST",
   buy: "SHOP",
@@ -271,6 +273,7 @@ export const popupTitles = {
   buy: "BUY",
   sell: "SELL",
   info: "TIP",
+  talk: "INFO",
   class: "CLASS",
   warp: "LEVEL",
 };
@@ -369,7 +372,7 @@ export const openPopup = (
 
   // mark sign as read
   const discovery = getSequence(world, popupEntity, "discovery");
-  if (transaction === "info" && discovery) {
+  if ((transaction === "info" || transaction === "talk") && discovery) {
     discovery.args.idle = none;
   }
 
@@ -468,7 +471,9 @@ export default function setupPopup(world: World) {
         ? gearSlots.length
         : transaction === "class"
         ? classes.length
-        : transaction === "info" || transaction === "warp"
+        : transaction === "info" ||
+          transaction === "warp" ||
+          transaction === "talk"
         ? Math.max(
             0,
             popupEntity[POPUP].lines[popupEntity[POPUP].horizontalIndex]

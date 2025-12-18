@@ -17,7 +17,7 @@ import {
 import { npcSequence } from "../../assets/utils";
 import { registerEntity } from "../../../engine/systems/map";
 import { add, copy } from "../../math/std";
-import { getItemPrice } from "../../balancing/trading";
+import { getItemBuyPrice } from "../../balancing/trading";
 import { createPopup } from "../../../engine/systems/popup";
 import { RENDERABLE } from "../../../engine/components/renderable";
 import { SEQUENCABLE } from "../../../engine/components/sequencable";
@@ -160,7 +160,7 @@ export const generateTutorial = async (world: World) => {
       stock: item.consume ? 1 : Infinity,
       prices: item.consume
         ? [{ stackable: "coin", amount: 1 }]
-        : getItemPrice(item),
+        : getItemBuyPrice(item),
     })),
     tabs: ["buy", "sell"],
   });

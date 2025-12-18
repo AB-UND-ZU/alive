@@ -61,7 +61,7 @@ export const itemElementPrices: Partial<
   },
 };
 
-export const getItemPrice = (
+const getItemPrice = (
   item: Omit<Item, "amount" | "carrier" | "bound">
 ): Deal["prices"] => {
   let price: number | undefined;
@@ -81,6 +81,36 @@ export const getItemPrice = (
 
   return [{ stackable: "coin", amount: price || 0 }];
 };
+
+export const getItemBuyPrice = (
+  item: Omit<Item, "amount" | "carrier" | "bound">
+): Deal["prices"] => getItemPrice(item);
+
+export const getItemSellPrice = (
+  item: Omit<Item, "amount" | "carrier" | "bound">
+): Deal["prices"] => {
+  const prices = getItemPrice(item);
+  return prices.map((price) => ({
+    ...price,
+    amount: Math.ceil(price.amount / 2),
+  }));
+};
+
+export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
+  { consume: "potion", material: "wood", element: "fire" },
+  { consume: "potion", material: "wood", element: "water" },
+  { stackable: "apple" },
+  { stackable: "shroom" },
+  { stackable: "arrow" },
+  { stackable: "charge" },
+  { consume: "potion", material: "iron", element: "fire" },
+  { consume: "potion", material: "iron", element: "water" },
+  { stackable: "seed" },
+  { stackable: "banana" },
+  { stackable: "coconut" },
+  { stackable: "resource", material: "wood" },
+  { stackable: "resource", material: "iron" },
+];
 
 /* balance: <count> * <coins> ~= 20
 - item <avg> * <freq> / <stack> = <count> → <coins>

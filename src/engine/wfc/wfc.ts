@@ -182,6 +182,8 @@ export class Wave {
     let logWeightSum = 0;
 
     for (let weight of weights) {
+      if (weight <= 0) continue;
+
       weightSum += weight;
       logWeightSum += weight * Math.log(weight);
     }
@@ -233,7 +235,7 @@ export class WaveFunctionCollapse {
     let index = 0;
     for (const name in definition.tiles) {
       const tile = definition.tiles[name];
-      this.weights.push(tile.weight || this.DEFAULT_WEIGHT);
+      this.weights.push(tile.weight ?? this.DEFAULT_WEIGHT);
       this.tileNames.push(name);
       this.tileIndizes[name] = index;
 

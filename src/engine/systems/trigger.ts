@@ -47,7 +47,7 @@ import {
   UnlockSequence,
   VisionSequence,
 } from "../components/sequencable";
-import { createSequence, getParticles } from "./sequence";
+import { createSequence, getParticles, getSequence } from "./sequence";
 import { shootArrow } from "./ballistics";
 import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
@@ -122,6 +122,10 @@ export const canWarp = (world: World, entity: Entity, warp: Entity) => {
 
 export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
   closePopup(world, entity, warp);
+  const discovery = getSequence(world, warp, "discovery");
+  if (discovery) {
+    discovery.args.idle = none;
+  }
 
   moveEntity(world, entity, warp[POSITION]);
   rerenderEntity(world, entity);
@@ -130,12 +134,9 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
   const reference = world.assertByIdAndComponents(previousMovable.reference, [
     REFERENCE,
   ]);
+  world.removeComponentFromEntity(entity as TypedEntity<"MOVABLE">, MOVABLE);
 
-  setTimeout(() => {
-    world.removeComponentFromEntity(entity as TypedEntity<"MOVABLE">, MOVABLE);
-  }, reference[REFERENCE].tick);
-
-  warp[TOOLTIP].dialogs = [createDialog("Please wait...")];
+  warp[TOOLTIP].dialogs = [createDialog("Generating map...")];
   warp[TOOLTIP].changed = true;
   warp[TOOLTIP].override = "visible";
 
@@ -153,7 +154,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
   setTimeout(() => {
     // tag hero and related entities to new world
     const levelName = getSelectedLevel(world, warp);
-    const { size, generator, spawn, vision = 0 } = levelConfig[levelName];
+    const { size, generator, vision = 0 } = levelConfig[levelName];
     const light = calculateVision(vision);
 
     const inspectEntity = assertIdentifier(world, "inspect");
@@ -210,6 +211,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
     });
 
     // reset hero
+    const spawn = entity[POSITION];
     moveEntity(world, entity, { ...spawn });
     rerenderEntity(world, entity);
     focusEntity[MOVABLE].reference = world.getEntityId(level);

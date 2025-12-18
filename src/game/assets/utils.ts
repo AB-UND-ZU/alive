@@ -200,6 +200,7 @@ import {
   woodStickWater,
   woodStickEarth,
   drain,
+  none,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -2368,14 +2369,14 @@ export const elementSprites: Record<
         sprite: airEssence,
         getDescription: () => [
           createText("Elemental spirit"),
-          createText("to craft items."),
+          createText("used for forging."),
         ],
       },
       fire: {
         sprite: fireEssence,
         getDescription: () => [
           createText("Elemental spirit"),
-          createText("to craft items"),
+          createText("used for forging"),
           [
             ...createText("with "),
             ...createText("fire", colors.red),
@@ -2387,7 +2388,7 @@ export const elementSprites: Record<
         sprite: waterEssence,
         getDescription: () => [
           createText("Elemental spirit"),
-          createText("to craft items"),
+          createText("used for forging"),
           [
             ...createText("with "),
             ...createText("water", colors.blue),
@@ -2399,7 +2400,7 @@ export const elementSprites: Record<
         sprite: earthEssence,
         getDescription: () => [
           createText("Elemental spirit"),
-          createText("to craft items"),
+          createText("used for forging"),
           [
             ...createText("with "),
             ...createText("earth", colors.lime),
@@ -2465,10 +2466,14 @@ export const getItemConfig = (
 export const getItemSprite = (
   item: Omit<Item, "amount" | "carrier" | "bound"> & {
     materialized?: Materialized;
+    amount?: number;
   },
   variant?: "resource" | "display",
   orientation?: Orientation
 ) => {
+  // allow hiding claws of mobs
+  if (item.equipment && item.amount === 0) return none;
+
   if (item.stat) return getStatSprite(item.stat, variant);
 
   const itemConfig = getItemConfig(item);
@@ -2477,7 +2482,7 @@ export const getItemSprite = (
 
   const sprite = (variant && itemConfig[variant]) || itemConfig.sprite;
 
-  if (!sprite || (item.equipment === "sword" && !item.material)) return missing;
+  if (!sprite) return missing;
 
   return {
     ...sprite,
@@ -2516,7 +2521,13 @@ export const createUnitName = (unit: UnitKey) => {
 
   return [
     mergeSprites(
+      ...unitData.equipments
+        .filter((equipment) => equipment.equipment === "shield")
+        .map((equipment) => getItemSprite(equipment)),
       unitData.sprite,
+      ...unitData.equipments
+        .filter((equipment) => equipment.equipment !== "shield")
+        .map((equipment) => getItemSprite(equipment)),
       unitData.faction === "unit"
         ? neutralBar
         : unitData.faction === "wild"
@@ -2525,7 +2536,11 @@ export const createUnitName = (unit: UnitKey) => {
     ),
     ...createText(
       unitData.sprite.name,
-      unitData.faction === "wild" ? colors.maroon : colors.grey
+      unitData.faction === "wild"
+        ? colors.maroon
+        : unitData.faction === "unit"
+        ? colors.grey
+        : colors.green
     ),
   ];
 };

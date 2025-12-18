@@ -1,13 +1,9 @@
 import { Entity } from "ecs";
 import { World } from "../../engine";
 import { LevelName } from "../../engine/components/level";
-import { Position } from "../../engine/components/position";
 import { islandName, islandSize, generateIsland } from "./island";
-import { islandSpawn } from "./island/areas";
 import { generateMenu, menuName, menuSize } from "./menu";
-import { menuSpawn } from "./menu/areas";
 import { generateTutorial, tutorialName, tutorialSize } from "./tutorial";
-import { tutorialSpawn } from "./tutorial/areas";
 import { getVerticalIndex } from "../../engine/systems/popup";
 
 export const getSelectedLevel = (world: World, warpEntity: Entity) => {
@@ -27,7 +23,6 @@ export const levelConfig: Record<
     mapOffsetY: number;
     size: number;
     generator: (world: World) => void;
-    spawn: Position;
     vision: number;
   }
 > = {
@@ -38,7 +33,6 @@ export const levelConfig: Record<
     mapOffsetY: 3,
     size: menuSize,
     generator: generateMenu,
-    spawn: menuSpawn,
     vision: 6,
   },
   LEVEL_TUTORIAL: {
@@ -48,7 +42,6 @@ export const levelConfig: Record<
     mapOffsetY: 9,
     size: tutorialSize,
     generator: generateTutorial,
-    spawn: tutorialSpawn,
     vision: 23,
   },
   LEVEL_ISLAND: {
@@ -58,7 +51,6 @@ export const levelConfig: Record<
     mapOffsetY: 15,
     size: islandSize,
     generator: generateIsland,
-    spawn: islandSpawn,
     vision: 0,
   },
 };

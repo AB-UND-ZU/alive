@@ -23,7 +23,7 @@ import { Orientation } from "../../../engine/components/orientable";
 import { getFacingLayers } from "../../../components/Entity/utils";
 import { none } from "./terrain";
 import { World } from "../../../engine";
-import { isEnemy, isNeutral } from "../../../engine/systems/damage";
+import { isEnemy, isNeutral, isTribe } from "../../../engine/systems/damage";
 import { Entity } from "ecs";
 import { ItemStats } from "../../../engine/components/item";
 
@@ -1177,6 +1177,22 @@ export const menuArrow: Sprite = {
   layers: [{ char: "\u0119", color: colors.white }],
 };
 
+export const tooltipFriendlyStart: Sprite = {
+  name: "friendly_start",
+  layers: [
+    { char: "▐", color: colors.black },
+    { char: "│", color: colors.green },
+  ],
+};
+
+export const tooltipFriendlyEnd: Sprite = {
+  name: "friendly_end",
+  layers: [
+    { char: "▌", color: colors.black },
+    { char: "│", color: colors.green },
+  ],
+};
+
 export const tooltipNeutralStart: Sprite = {
   name: "neutral_start",
   layers: [
@@ -1360,10 +1376,23 @@ export const createShout = (text: string) => [
 export const createTooltip = (world: World, entity: Entity) => {
   const text = entity[SPRITE].name;
   const enemy = isEnemy(world, entity) && !isNeutral(world, entity);
+  const friendly = isTribe(world, entity);
   return [
-    enemy ? tooltipHostileStart : tooltipNeutralStart,
-    ...createText(text, enemy ? colors.maroon : colors.silver, colors.black),
-    enemy ? tooltipHostileEnd : tooltipNeutralEnd,
+    enemy
+      ? tooltipHostileStart
+      : friendly
+      ? tooltipFriendlyStart
+      : tooltipNeutralStart,
+    ...createText(
+      text,
+      enemy ? colors.maroon : friendly ? colors.green : colors.silver,
+      colors.black
+    ),
+    enemy
+      ? tooltipHostileEnd
+      : friendly
+      ? tooltipFriendlyEnd
+      : tooltipNeutralEnd,
   ];
 };
 

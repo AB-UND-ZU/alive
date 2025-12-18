@@ -196,8 +196,14 @@ export const palm2: Sprite = {
 export const palmBurnt1: Sprite = {
   name: "palm_burnt_one",
   layers: [
-    { char: "│", color: colors.olive },
-    { char: "▀", color: colors.black },
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
+    { char: "▄", color: colors.black },
+    { char: "■", color: colors.black },
+
+    { char: "┐", color: colors.olive },
+    { char: "─", color: colors.black },
     { char: "+", color: colors.black },
     { char: ".", color: colors.maroon },
     { char: ":", color: colors.black },
@@ -207,11 +213,18 @@ export const palmBurnt1: Sprite = {
 export const palmBurnt2: Sprite = {
   name: "palm_burnt_two",
   layers: [
-    { char: "│", color: colors.olive },
-    { char: "▀", color: colors.black },
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
+    { char: "▄", color: colors.black },
+    { char: "■", color: colors.black },
+
+    { char: "┐", color: colors.olive },
+    { char: "─", color: colors.black },
     { char: ":", color: colors.maroon },
-    { char: "+", color: colors.black },
-    { char: "┘", color: colors.black },
+    { char: "=", color: colors.black },
+    { char: "≡", color: colors.black },
+    { char: ".", color: colors.olive },
   ],
 };
 
@@ -330,7 +343,8 @@ export const cactus1: Sprite = {
     { char: "\u0101", color: colors.black },
 
     { char: "-", color: colors.green },
-    { char: "┐", color: colors.black },
+    { char: "«", color: colors.black },
+    { char: "[", color: colors.black },
     { char: "\u011b", color: colors.green },
     { char: "|", color: colors.green },
   ],

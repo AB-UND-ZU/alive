@@ -51,25 +51,6 @@ export const craftingRecipes: Recipe[] = [
   },
 
   {
-    item: { stackable: "arrow", amount: 1 },
-    options: [
-      [
-        { stackable: "stick", amount: 1 },
-        { stackable: "ore", amount: 1 },
-      ],
-    ],
-  },
-  {
-    item: { stackable: "charge", amount: 1 },
-    options: [
-      [
-        { stackable: "stick", amount: 1 },
-        { stackable: "ore", amount: 1 },
-      ],
-    ],
-  },
-
-  {
     item: { stackable: "resource", material: "iron", amount: 1 },
     options: [
       [{ stackable: "ore", amount: 10 }],
@@ -100,6 +81,25 @@ export const craftingRecipes: Recipe[] = [
       [
         { stackable: "coconut", amount: 1 },
         { stackable: "resource", material: "iron", amount: 1 },
+      ],
+    ],
+  },
+
+  {
+    item: { stackable: "arrow", amount: 1 },
+    options: [
+      [
+        { stackable: "stick", amount: 1 },
+        { stackable: "ore", amount: 1 },
+      ],
+    ],
+  },
+  {
+    item: { stackable: "charge", amount: 1 },
+    options: [
+      [
+        { stackable: "stick", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
     ],
   },

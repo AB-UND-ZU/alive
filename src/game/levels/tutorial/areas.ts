@@ -3,7 +3,6 @@ import { Position } from "../../../engine/components/position";
 import { UnitKey } from "../../balancing/units";
 
 export const roomSize = { x: 20, y: 12 };
-export const tutorialSpawn = { x: 0, y: 0 };
 
 export const centerArea = `\
 ██████████ ██████████

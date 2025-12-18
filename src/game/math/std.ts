@@ -14,6 +14,9 @@ export const add = (first: Point, second: Point) => ({
 export const sum = (numbers: number[]) =>
   numbers.reduce((total, number) => total + number, 0);
 
+export const product = (numbers: number[]) =>
+  numbers.reduce((total, number) => total * number, 1);
+
 export const normalize = (number: number, modulo: number) =>
   ((number % modulo) + modulo) % modulo;
 
@@ -66,6 +69,27 @@ export const within = (
     0 <= vertical &&
     vertical <= height
   );
+};
+
+export const angledOffset = (
+  size: number,
+  origin: Point,
+  degrees: number,
+  distance: number,
+  ratio: number = aspectRatio
+): Point => {
+  const radians = ((degrees - 90) * Math.PI) / 180;
+
+  const offset: Point = {
+    x: (Math.cos(radians) * distance) / ratio,
+    y: Math.sin(radians) * distance,
+  };
+  const result = add(origin, offset);
+
+  return {
+    x: normalize(Math.round(result.x), size),
+    y: normalize(Math.round(result.y), size),
+  };
 };
 
 export function* reversed<T>(array: T[]) {

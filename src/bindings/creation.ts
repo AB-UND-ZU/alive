@@ -15,7 +15,6 @@ import { COLLIDABLE } from "../engine/components/collidable";
 import { DISPLACABLE } from "../engine/components/displacable";
 import { DROPPABLE } from "../engine/components/droppable";
 import { ENTERABLE } from "../engine/components/enterable";
-import { ENVIRONMENT } from "../engine/components/environment";
 import { EQUIPPABLE } from "../engine/components/equippable";
 import { FOCUSABLE } from "../engine/components/focusable";
 import { Fog, FOG } from "../engine/components/fog";
@@ -25,7 +24,7 @@ import { IMMERSIBLE } from "../engine/components/immersible";
 import { INVENTORY } from "../engine/components/inventory";
 import { ITEM, Item } from "../engine/components/item";
 import { LAYER } from "../engine/components/layer";
-import { LEVEL } from "../engine/components/level";
+import { BiomeName, LEVEL } from "../engine/components/level";
 import { LIGHT } from "../engine/components/light";
 import { LOCKABLE } from "../engine/components/lockable";
 import { LOOTABLE } from "../engine/components/lootable";
@@ -142,6 +141,8 @@ import {
   xp,
   leverOff,
   waterDeep,
+  snowCover,
+  snow,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -156,10 +157,9 @@ import {
   fenceDoorOpenPath,
   fenceDoorPath,
   house,
-  houseAid,
-  houseArmor,
+  houseDruid,
+  houseSmith,
   houseLeft,
-  houseMage,
   houseRight,
   houseTrader,
   kettle,
@@ -192,7 +192,14 @@ import {
   generateUnitData,
   UnitKey,
 } from "../game/balancing/units";
-import { iterateMatrix, Matrix, matrixFactory } from "../game/math/matrix";
+import {
+  getOverlappingCell,
+  iterateMatrix,
+  mapMatrix,
+  Matrix,
+  matrixFactory,
+  setMatrix,
+} from "../game/math/matrix";
 import {
   add,
   choice,
@@ -202,6 +209,7 @@ import {
   Point,
   random,
   repeat,
+  reversed,
   signedDistance,
 } from "../game/math/std";
 import { CLICKABLE } from "../engine/components/clickable";
@@ -210,6 +218,36 @@ import { levelConfig } from "../game/levels";
 import { POPUP } from "../engine/components/popup";
 import { craftingRecipes } from "../game/balancing/crafting";
 import { openDoor } from "../engine/systems/trigger";
+import { LIQUID } from "../engine/components/liquid";
+
+export const cellNames = [
+  "air",
+  "water_shallow",
+  "water_deep",
+  "sand",
+  "path",
+  "mountain",
+  "rock",
+  "desert_rock",
+  "tree",
+  "hedge",
+  "bush",
+  "grass",
+  "cactus",
+  "ice",
+  "snow",
+  "palm",
+  "palm_fruit",
+  "fence",
+  "fruit",
+  "wood",
+  "berry",
+  "flower",
+  "leaf",
+  "tumbleweed",
+  ...npcTypes,
+] as const;
+export type CellType = (typeof cellNames)[number];
 
 const populateItems = (
   world: World,
@@ -300,6 +338,54 @@ export const populateInventory = (
   );
   populateItems(world, entity, equipments);
 };
+
+export const smoothenWater = (cellMatrix: Matrix<CellType>): Matrix<CellType> =>
+  mapMatrix(cellMatrix, (x, y, cell) => {
+    if (cell !== "water_deep") return cell;
+
+    for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+      for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+        const neighbour = getOverlappingCell(
+          cellMatrix,
+          x + offsetX,
+          y + offsetY
+        );
+
+        if (neighbour !== "water_deep") {
+          return "water_shallow";
+        }
+      }
+    }
+    return cell;
+  });
+
+export const smoothenSand = (
+  cellMatrix: Matrix<CellType>,
+  biomeMatrix: Matrix<BiomeName>
+) => {
+  iterateMatrix(cellMatrix, (x, y, cell) => {
+    if (cell !== "water_shallow" && cell !== "water_deep") return;
+
+    const targetCell = biomeMatrix[x][y] === "glacier" ? "ice" : "sand";
+
+    for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+      for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+        const target = { x: x + offsetX, y: y + offsetY };
+        const neighbour = getOverlappingCell(cellMatrix, target.x, target.y);
+
+        if (neighbour === "air") {
+          setMatrix(cellMatrix, x, y, targetCell);
+        }
+      }
+    }
+  });
+  return cellMatrix;
+};
+
+export const smoothenBeaches = (
+  cellMatrix: Matrix<CellType>,
+  biomeMatrix: Matrix<BiomeName>
+) => smoothenWater(smoothenSand(cellMatrix, biomeMatrix));
 
 export const assignBuilding = (
   world: World,
@@ -506,6 +592,20 @@ export const createSign = (
   return signEntity;
 };
 
+export const flipArea = (
+  area: string,
+  vertical: boolean,
+  horizontal: boolean
+) => {
+  const lines = area.split("\n");
+  return [...(vertical ? reversed(lines) : lines)]
+    .map((lineString) => {
+      const line = lineString.split("");
+      return [...(horizontal ? reversed(line) : line)].join("");
+    })
+    .join("\n");
+};
+
 export const insertArea = (
   matrix: Matrix<string>,
   area: string,
@@ -519,7 +619,7 @@ export const insertArea = (
 
   areaRows.forEach((row, rowIndex) => {
     row.split("").forEach((cell, columnIndex) => {
-      if (cell === " " && !override) return;
+      if ((!override && cell === " ") || (override && cell === "?")) return;
 
       const x = normalize(columnIndex - (row.length - 1) / 2 + xOffset, width);
       const y = normalize(
@@ -528,9 +628,11 @@ export const insertArea = (
       );
       let entity = "air";
       if (cell === "█") entity = "mountain";
-      else if (cell === "≈") entity = "water";
+      else if (cell === "≈") entity = "water_deep";
+      else if (cell === "~") entity = "water_shallow";
       else if (cell === "░") entity = "beach";
       else if (cell === "%") entity = "ice";
+      else if (cell === "+") entity = "snow";
       else if (cell === "▒") entity = "path";
       else if (cell === "▓") entity = "block";
       else if (cell === "X") entity = "granite";
@@ -656,7 +758,11 @@ export const createCell = (
   if (!cell) {
     return;
   } else if (cell === "player") {
-    if (getIdentifier(world, "hero")) return;
+    const hero = getIdentifier(world, "hero");
+    if (hero) {
+      hero[POSITION] = { x, y };
+      return hero;
+    }
 
     // create viewpoint for inspecting
     const inspectEntity = entities.createViewpoint(world, {
@@ -761,7 +867,6 @@ export const createCell = (
     populateInventory(world, rockEntity, items);
     if (cell === "desert_rock") {
       entities.createArea(world, {
-        [ENVIRONMENT]: { biomes: ["desert"] },
         [POSITION]: { x, y },
         [TEMPO]: { amount: -1 },
       });
@@ -803,7 +908,6 @@ export const createCell = (
     return oreEntity;
   } else if (cell === "stone") {
     entities.createTile(world, {
-      [ENVIRONMENT]: { biomes: ["desert"] },
       [FOG]: { visibility, type: "object" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -839,9 +943,8 @@ export const createCell = (
         [RENDERABLE]: { generation: 0 },
       });
     }
-  } else if (cell === "beach" || cell === "desert") {
+  } else if (cell === "beach" || cell === "desert" || cell === "sand") {
     return entities.createTile(world, {
-      [ENVIRONMENT]: { biomes: [cell] },
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -849,15 +952,14 @@ export const createCell = (
       [TEMPO]: { amount: -1 },
     });
   } else if (cell === "path") {
-    return entities.createPath(world, {
-      [ENVIRONMENT]: { biomes: ["path"] },
+    return entities.createTile(world, {
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: path,
       [TEMPO]: { amount: 2 },
     });
-  } else if (cell === "water" || cell === "spring") {
+  } else if (cell === "water_shallow" || cell === "spring") {
     return entities.createWater(world, {
       [FOG]: { visibility, type: "terrain" },
       [FREEZABLE]: { frozen: false, sprite: ice },
@@ -865,6 +967,16 @@ export const createCell = (
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: water,
+      [TEMPO]: { amount: -2 },
+    });
+  } else if (cell === "water_deep") {
+    return entities.createWater(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [FREEZABLE]: { frozen: false, sprite: ice },
+      [IMMERSIBLE]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: waterDeep,
       [TEMPO]: { amount: -2 },
     });
   } else if (cell === "ice") {
@@ -878,6 +990,43 @@ export const createCell = (
       [TEMPO]: { amount: -2 },
     });
     freezeTerrain(world, waterEntity);
+    return waterEntity;
+  } else if (cell === "snow") {
+    const snowEntity = entities.createSnow(world, {
+      [CLICKABLE]: { clicked: false, player: false },
+      [FOG]: {
+        visibility: "hidden",
+        type: "terrain",
+      },
+      [LIQUID]: { type: "snow" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: snow,
+    });
+    return snowEntity;
+  } else if (cell === "ice_snow") {
+    const waterEntity = entities.createWater(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [FREEZABLE]: { frozen: false, sprite: ice },
+      [IMMERSIBLE]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: water,
+      [TEMPO]: { amount: -2 },
+    });
+    freezeTerrain(world, waterEntity);
+
+    entities.createSnow(world, {
+      [CLICKABLE]: { clicked: false, player: false },
+      [FOG]: {
+        visibility: "hidden",
+        type: "object",
+      },
+      [LIQUID]: { type: "snow" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: snowCover,
+    });
     return waterEntity;
   } else if (cell === "wood" || cell === "wood_three") {
     const woodEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
@@ -1012,13 +1161,7 @@ export const createCell = (
         [SEQUENCABLE]: { states: {} },
       });
     }
-  } else if (
-    cell === "palm" ||
-    cell === "palm_fruit" ||
-    cell === "oasis" ||
-    cell === "oasis_fruit" ||
-    cell === "banana"
-  ) {
+  } else if (cell === "palm" || cell === "palm_fruit" || cell === "banana") {
     const [stack, palm] = (
       [
         ["coconut", palm1],
@@ -1026,15 +1169,12 @@ export const createCell = (
       ] as const
     )[cell === "banana" ? 1 : random(0, 1)];
 
-    if (cell === "oasis" || cell === "oasis_fruit") {
-      entities.createArea(world, {
-        [ENVIRONMENT]: { biomes: ["desert"] },
-        [POSITION]: { x, y },
-        [TEMPO]: { amount: -1 },
-      });
-    }
+    entities.createArea(world, {
+      [POSITION]: { x, y },
+      [TEMPO]: { amount: -1 },
+    });
 
-    if (cell === "palm_fruit" || cell === "oasis_fruit" || cell === "banana") {
+    if (cell === "palm_fruit" || cell === "banana") {
       const fruitEntity = entities.createFruit(world, {
         [BURNABLE]: {
           burning: false,
@@ -1141,7 +1281,6 @@ export const createCell = (
       [STATS]: stats,
     });
     entities.createTile(world, {
-      [ENVIRONMENT]: { biomes: ["desert"] },
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1240,7 +1379,6 @@ export const createCell = (
       (["cactus1", "cactus2"] as const)[random(0, 1)]
     );
     entities.createArea(world, {
-      [ENVIRONMENT]: { biomes: ["desert"] },
       [POSITION]: { x, y },
       [TEMPO]: { amount: -1 },
     });
@@ -1705,8 +1843,7 @@ export const createCell = (
     return fenceEntity;
   } else if (cell === "fence_door" || cell === "fence_door_path") {
     if (cell === "fence_door_path") {
-      entities.createPath(world, {
-        [ENVIRONMENT]: { biomes: ["path"] },
+      entities.createTile(world, {
         [FOG]: { visibility, type: "object" },
         [POSITION]: { x, y },
         [RENDERABLE]: { generation: 0 },
@@ -1811,7 +1948,6 @@ export const createCell = (
     ]);
     setIdentifier(world, chestEntity, "fruit_chest");
     entities.createTile(world, {
-      [ENVIRONMENT]: { biomes: ["desert"] },
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -2137,7 +2273,7 @@ export const createCell = (
       [SPRITE]: window,
       [RENDERABLE]: { generation: 0 },
     });
-  } else if (cell === "house_aid") {
+  } else if (cell === "house_druid") {
     return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: wallInside },
@@ -2150,10 +2286,10 @@ export const createCell = (
         orientation: "down",
       },
       [POSITION]: { x, y },
-      [SPRITE]: houseAid,
+      [SPRITE]: houseDruid,
       [RENDERABLE]: { generation: 0 },
     });
-  } else if (cell === "house_armor") {
+  } else if (cell === "house_smith") {
     return entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: { sprite: wallInside },
@@ -2166,23 +2302,7 @@ export const createCell = (
         orientation: "down",
       },
       [POSITION]: { x, y },
-      [SPRITE]: houseArmor,
-      [RENDERABLE]: { generation: 0 },
-    });
-  } else if (cell === "house_mage") {
-    return entities.createWall(world, {
-      [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: wallInside },
-      [FOG]: { visibility, type: "terrain" },
-      [LAYER]: {},
-      [LIGHT]: {
-        brightness: 0,
-        darkness: 1,
-        visibility: 0,
-        orientation: "down",
-      },
-      [POSITION]: { x, y },
-      [SPRITE]: houseMage,
+      [SPRITE]: houseSmith,
       [RENDERABLE]: { generation: 0 },
     });
   } else if (cell === "house_trader") {

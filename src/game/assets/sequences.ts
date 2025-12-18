@@ -301,7 +301,7 @@ import {
   swordElementPixels,
   swordPixels,
 } from "./pixels";
-import { getItemPrice } from "../balancing/trading";
+import { getItemSellPrice } from "../balancing/trading";
 import { getForgeOptions, getForgeStatus } from "../balancing/forging";
 import { getItemDiff } from "../balancing/equipment";
 import { getCraftingDeal } from "../balancing/crafting";
@@ -585,19 +585,23 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
   const material = state.args.material;
   const element = state.args.element || material;
+  const limit = {
+    x: delta.x * state.args.range,
+    y: delta.y * state.args.range,
+  };
 
   let finished = progress > state.args.duration;
   let updated = false;
 
-  // create wall particles
+  // create edge particles
   if (!state.particles.start) {
     const startParticle = entities.createFibre(world, {
       [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
       [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
+        offsetX: limit.x,
+        offsetY: limit.y,
         offsetZ: particleHeight,
-        duration: beamSpeed,
+        duration: beamSpeed * state.args.range,
         animatedOrigin: { x: 0, y: 0 },
       },
       [RENDERABLE]: { generation: 1 },
@@ -608,8 +612,8 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
     const endParticle = entities.createFibre(world, {
       [ORIENTABLE]: { facing: invertOrientation(entity[ORIENTABLE].facing) },
       [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
+        offsetX: delta.x,
+        offsetY: delta.y,
         offsetZ: particleHeight,
         duration: beamSpeed,
         animatedOrigin: { x: 0, y: 0 },
@@ -664,10 +668,10 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
     ) {
       const beamParticle = entities.createParticle(world, {
         [PARTICLE]: {
-          offsetX: delta.x,
-          offsetY: delta.y,
+          offsetX: limit.x,
+          offsetY: limit.y,
           offsetZ: particleHeight,
-          duration: beamSpeed,
+          duration: beamSpeed * (state.args.range - 1),
           amount: 2,
           animatedOrigin: copy(delta),
         },
@@ -675,22 +679,13 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         [SPRITE]: beamSprites[element],
       });
 
-      state.particles[`beam-${progress}`] = world.getEntityId(beamParticle);
+      state.particles[`bolt-${progress}`] = world.getEntityId(beamParticle);
     }
-
-    // retrigger damage while standing in beam
-    // if (progress % beamRetrigger === 0) {
-    //   entity[CASTABLE].affected = {};
-    // }
 
     updated = true;
   }
 
   // move particles
-  const limit = {
-    x: delta.x * state.args.range,
-    y: delta.y * state.args.range,
-  };
   if (state.args.progress !== progress) {
     for (const particleName in state.particles) {
       const particleEntity = world.assertByIdAndComponents(
@@ -699,29 +694,31 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
       );
 
       // delete particle if reaching range limit
-      if (
-        particleEntity[PARTICLE].offsetX === limit.x &&
-        particleEntity[PARTICLE].offsetY === limit.y
-      ) {
-        if (particleName.startsWith("beam")) {
+      const particleProgress = particleName.startsWith("bolt")
+        ? progress - parseInt(particleName.split("-")[1])
+        : 0;
+      if (particleProgress >= state.args.range) {
+        if (particleName.startsWith("bolt")) {
           disposeEntity(world, particleEntity);
           delete state.particles[particleName];
+          updated = true;
         }
         continue;
       }
 
-      // move edges separately
+      // move end separately
       if (
-        !particleName.startsWith("end") ||
-        (particleName === "end" &&
-          (progress > state.args.duration - state.args.range || progress === 1))
+        particleName === "end" &&
+        progress > state.args.duration - state.args.range &&
+        particleEntity[PARTICLE].duration === beamSpeed
       ) {
-        particleEntity[PARTICLE].offsetX += delta.x;
-        particleEntity[PARTICLE].offsetY += delta.y;
+        particleEntity[PARTICLE].offsetX = limit.x;
+        particleEntity[PARTICLE].offsetY = limit.y;
+        particleEntity[PARTICLE].duration = beamSpeed * (state.args.range - 1);
+        updated = true;
       }
     }
 
-    updated = true;
     state.args.progress = progress;
   }
 
@@ -1382,7 +1379,7 @@ export const displaySell: Sequence<PopupSequence> = (world, entity, state) => {
     ? inventoryItems.map((itemEntity, rowIndex) => {
         const selected = verticalIndex === rowIndex;
         const itemSprite = getItemSprite(itemEntity[ITEM], "display");
-        const sellPrice = getItemPrice(itemEntity[ITEM])[0];
+        const sellPrice = getItemSellPrice(itemEntity[ITEM])[0];
         const sellable = canSell(world, itemEntity[ITEM]);
         const textColor = selected ? colors.white : colors.grey;
 
@@ -2112,7 +2109,10 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
             )
           : selectedDuplicate
           ? createText("Already added", colors.grey)
-          : createText("Not able to forge", colors.grey),
+          : createText(
+              `Not able to ${isAdding ? "add" : "forge"}`,
+              colors.grey
+            ),
         createText(selectedSprite.name.toLowerCase(), colors.grey),
       ];
 

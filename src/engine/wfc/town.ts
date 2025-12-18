@@ -1,6 +1,13 @@
 import { matrixFactory } from "../../game/math/matrix";
 import { findPathSimple } from "../../game/math/path";
-import { add, Point, random, shuffle } from "../../game/math/std";
+import {
+  add,
+  choice,
+  Point,
+  random,
+  range,
+  shuffle,
+} from "../../game/math/std";
 import { Orientation } from "../components/orientable";
 import { Definition, Wave, WaveFunctionCollapse } from "./wfc";
 
@@ -121,7 +128,7 @@ const definition: Definition = {
     },
 
     hedge: {
-      weight: 15,
+      weight: 0,
       tags: ["hedge"],
     },
 
@@ -592,6 +599,8 @@ const definition: Definition = {
 const airWeight = 20;
 const pathWeight = 1;
 const TOWN_TRIES = 5;
+const minHouses = 3;
+const grassChance = 0.3;
 const doorOffsets = {
   doorLeft: { x: 2, y: -2 },
   doorCenter: { x: 0, y: -2 },
@@ -604,21 +613,34 @@ export default function generateTown(width: number, height: number) {
   const innerWidth = width - 2;
   const innerHeight = height - 2;
 
-  const innX = Math.floor(innerWidth / 2);
-  const innY = Math.floor(innerHeight / 2);
-  const exits: Point[] = [
-    { x: random(2, width - 3), y: 0 },
-    { x: random(2, width - 3), y: height - 1 },
-  ];
-  const exitAir: Point[] = [
-    { x: exits[0].x - 1, y: 0 },
-    { x: exits[1].x - 1, y: innerHeight - 1 },
-  ];
-
   for (let attempt = 0; attempt < TOWN_TRIES; attempt += 1) {
+    const innX = Math.floor(innerWidth * choice(1 / 4, 3 / 4));
+    const innY = Math.floor(innerHeight * choice(1 / 4, 3 / 4));
+    const innRadius = 2;
+    const exits: Point[] = [
+      { x: random(2, width - 3), y: 0 },
+      { x: random(2, width - 3), y: height - 1 },
+    ];
+    const exitAir: Point[] = [
+      { x: exits[0].x - 1, y: 0 },
+      { x: exits[1].x - 1, y: innerHeight - 1 },
+    ];
+
     wave = wfc.generate(innerWidth, innerHeight, [
-      // place inn in center
-      [innX, innY, "doorCenter"],
+      // free space in center
+      ...range(-innRadius, innRadius)
+        .map((offsetX) =>
+          range(-innRadius, innRadius).map(
+            (offsetY) =>
+              [innX + offsetX, innY + offsetY, "air"] as [
+                number,
+                number,
+                string
+              ]
+          )
+        )
+        .flat(),
+      [innX, innY + innRadius + 1, "air"],
 
       // clear entries
       ...exitAir.map(({ x, y }): [number, number, string] => [x, y, "air"]),
@@ -639,6 +661,12 @@ export default function generateTown(width: number, height: number) {
       innerWidth,
       innerHeight,
       (x, y) => {
+        if (
+          (Math.abs(x - innX) < innRadius && Math.abs(y - innY) < innRadius) ||
+          (Math.abs(x - innX) === 1 && y - innY === innRadius)
+        )
+          return 0;
+
         const value = tileMatrix[x][y];
         const tile = wfc.tileNames[value];
 
@@ -667,23 +695,17 @@ export default function generateTown(width: number, height: number) {
       }
     );
 
-    if (houses.length < 7) continue;
+    if (houses.length < minHouses) continue;
 
     // randomize order of paths and adjusted houses but keep inn centered
     paths = shuffle(paths);
-    houses = [
-      {
-        position: { x: innX, y: innY - 2 },
-        inn: true,
-      },
-      ...shuffle(houses),
-    ].map((house) => ({
+    houses = shuffle(houses).map((house) => ({
       ...house,
       position: add(house.position, { x: 1, y: 1 }),
     }));
 
     // draw paths from exits and houses to center inn
-    const innPath = { x: innX, y: innY + 2 };
+    const innPath = { x: innX, y: innY + innRadius };
     const pathIndex = wfc.tileNames.indexOf("path");
     paths.forEach((path) => {
       const route = findPathSimple(walkableMatrix, path, innPath);
@@ -710,10 +732,29 @@ export default function generateTown(width: number, height: number) {
 
       if (horizontalEdge || verticalEdge) return "fence";
 
-      return mapTiles[wfc.tileNames[tileMatrix[x - 1][y - 1]]];
+      const offsetX = innX - x + 1;
+      const offsetY = innY - y + 1;
+      if (offsetX === 0 && offsetY === 0) return "fountain";
+
+      const cell = mapTiles[wfc.tileNames[tileMatrix[x - 1][y - 1]]];
+
+      if (
+        !cell &&
+        Math.abs(offsetX) >= innRadius &&
+        Math.abs(offsetY) >= innRadius &&
+        Math.random() < grassChance
+      )
+        return "grass";
+
+      return cell;
     });
 
-    return { matrix: townMatrix, houses, exits };
+    return {
+      matrix: townMatrix,
+      houses,
+      exits,
+      inn: { x: innX + 1, y: innY + 1 },
+    };
   }
 
   throw new Error("Could not generate town!");

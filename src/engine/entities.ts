@@ -49,7 +49,6 @@ import { Affectable, AFFECTABLE } from "./components/affectable";
 import { Exertable, EXERTABLE } from "./components/exertable";
 import { Fragment, FRAGMENT } from "./components/fragment";
 import { Structurable, STRUCTURABLE } from "./components/structurable";
-import { Environment, ENVIRONMENT } from "./components/environment";
 import { Tempo, TEMPO } from "./components/tempo";
 import { Layer, LAYER } from "./components/layer";
 import { Popup, POPUP } from "./components/popup";
@@ -72,7 +71,6 @@ export type Entity = Record<LevelName, {}> & {
   [DISPLACABLE]: Displacable;
   [DROPPABLE]: Droppable;
   [ENTERABLE]: Enterable;
-  [ENVIRONMENT]: Environment;
   [EQUIPPABLE]: Equippable;
   [EXERTABLE]: Exertable;
   [FOCUSABLE]: Focusable;
@@ -152,7 +150,7 @@ const entityFactory = <T extends keyof Entity>(
 
 export const createAoe = entityFactory([EXERTABLE, POSITION]);
 
-export const createArea = entityFactory([ENVIRONMENT, POSITION, TEMPO]);
+export const createArea = entityFactory([POSITION, TEMPO]);
 
 export const createBarrier = entityFactory([
   COLLIDABLE,
@@ -566,15 +564,6 @@ export const createOrganic = entityFactory([
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
-export const createPath = entityFactory([
-  ENVIRONMENT,
-  FOG,
-  POSITION,
-  RENDERABLE,
-  SPRITE,
-  TEMPO,
-]);
-
 export const createPlant = entityFactory([
   BURNABLE,
   COLLIDABLE,
@@ -726,7 +715,6 @@ export const createTerrain = entityFactory([
 ]);
 
 export const createTile = entityFactory([
-  ENVIRONMENT,
   FOG,
   POSITION,
   RENDERABLE,

@@ -4,7 +4,7 @@ import { World } from "../ecs";
 import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
-import { getBiomes, isMovable, isWalkable } from "./movement";
+import { getBiome, isMovable, isWalkable } from "./movement";
 import {
   add,
   choice,
@@ -90,6 +90,8 @@ import { COLLIDABLE } from "../components/collidable";
 import { NPC } from "../components/npc";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
+import { getOverlappingCell } from "../../game/math/matrix";
+import { isImmersible } from "./immersion";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -147,10 +149,9 @@ export default function setupAi(world: World) {
               };
               spawnPosition.x = newPosition.x;
               if (
-                !(
-                  getBiomes(world, newPosition).includes("desert") ||
-                  getBiomes(world, newPosition).includes("path")
-                )
+                getBiome(world, newPosition) !== "desert" ||
+                getOpaque(world, newPosition) ||
+                isImmersible(world, newPosition)
               )
                 break;
             }
@@ -178,11 +179,9 @@ export default function setupAi(world: World) {
             )
           ) {
             if (
-              !(
-                getBiomes(world, facingPosition).includes("desert") ||
-                getBiomes(world, facingPosition).includes("path")
-              ) ||
-              getOpaque(world, facingPosition)
+              getBiome(world, facingPosition) !== "desert" ||
+              getOpaque(world, facingPosition) ||
+              isImmersible(world, facingPosition)
             ) {
               entity[FOG].fixed = true;
               entity[FOG].visibility = "hidden";
@@ -214,14 +213,13 @@ export default function setupAi(world: World) {
           entity[MOVABLE].orientations = [facing];
 
           const delta = orientationPoints[facing];
-          const position = add(entity[POSITION], delta);
+          const target = add(entity[POSITION], delta);
 
           // avoid eternal fires
-          const castableEntity = getExertables(world, position).map(
-            (exertable) =>
-              world.getEntityByIdAndComponents(exertable[EXERTABLE].castable, [
-                CASTABLE,
-              ])
+          const castableEntity = getExertables(world, target).map((exertable) =>
+            world.getEntityByIdAndComponents(exertable[EXERTABLE].castable, [
+              CASTABLE,
+            ])
           )[0];
           const fireEntity = world.getEntityByIdAndComponents(
             castableEntity?.[CASTABLE].caster,
@@ -231,13 +229,18 @@ export default function setupAi(world: World) {
             fireEntity?.[BURNABLE].eternal &&
             castableEntity?.[CASTABLE] &&
             castableEntity[CASTABLE].burn > 0;
-          const isLockable = getLockable(world, position);
+          const isLockable = getLockable(world, target);
+          const biomeMap = world.metadata.gameEntity[LEVEL].biomes;
+          const isSameBiome =
+            biomeMap[entity[POSITION].x][entity[POSITION].y] ===
+            getOverlappingCell(biomeMap, target.x, target.y);
 
           // unable to move, attempt reorienting
           if (
-            !isMovable(world, entity, position) ||
+            !isMovable(world, entity, target) ||
             isEternalFire ||
-            isLockable
+            isLockable ||
+            !isSameBiome
           ) {
             const preferredFacing =
               orientations[
@@ -529,7 +532,7 @@ export default function setupAi(world: World) {
               entity[MOVABLE].orientations = [];
               entity[ORIENTABLE].facing = undefined;
             } else {
-              const sidestep = generation % 7 === 0;
+              const sidestep = random(0, 10) === 0;
 
               entity[MOVABLE].orientations = sidestep
                 ? [...reversed(fleeingOrientations)]

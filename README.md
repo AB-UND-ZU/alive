@@ -572,3 +572,13 @@ T5: legendary (fuchsia)
 - For large trees, matrix iteration requires to go column by column
 - New sequences won't start in time if created within another sequence handler
 - Transferring sequencable states causes animated particles to glitch due to re-mounting
+
+## Performance considerations
+
+- Use [TypedArrays](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray) whenever possible
+- Avoid `Array.from({})`, `[].forEach` and `[].map`
+- Try inlining std functions with webpack
+- Do all in `for` loops based on a cell
+- Calling functions very expensive
+- Check of referencing cells and sprites by ID and look up is faster than using string matrizes
+- Use (x * size + y) offset in array

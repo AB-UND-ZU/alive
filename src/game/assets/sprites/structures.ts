@@ -23,12 +23,11 @@ export const housePlate: Sprite = {
   ],
 };
 
-export const houseAid: Sprite = {
-  name: "house_aid",
+export const houseDruid: Sprite = {
+  name: "house_druid",
   layers: [
     { char: "█", color: colors.grey },
-    { char: "\u011f", color: colors.white },
-    { char: "°", color: colors.silver },
+    { char: "+", color: colors.silver },
   ],
 };
 
@@ -42,14 +41,13 @@ export const houseMage: Sprite = {
   ],
 };
 
-export const houseArmor: Sprite = {
-  name: "house_armor",
+export const houseSmith: Sprite = {
+  name: "house_smith",
   layers: [
     { char: "█", color: colors.grey },
-    { char: "\u0106", color: colors.white },
-    { char: "\u0108", color: colors.white },
-    { char: "v", color: colors.white },
-    { char: "+", color: colors.silver },
+    { char: "*", color: colors.silver },
+    { char: "─", color: colors.grey },
+    { char: "·", color: colors.silver },
   ],
 };
 

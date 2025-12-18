@@ -208,7 +208,7 @@ function Entity({
         />
       )}
 
-      {!!entity[SWIMMABLE] && (
+      {!!entity[SWIMMABLE] && !isFlying && (
         <Swimming
           entity={entity}
           active={isSwimming}

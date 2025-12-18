@@ -34,25 +34,28 @@ export const relativeOrientations = (
   return degreesToOrientations(pointToDegree(delta));
 };
 
-export const getClosestGridCell = (
+export const getClosestQuadrant = (
   origin: Position,
   target: Position,
   size: number,
   ratio = aspectRatio,
   euclidean = true
 ) => {
-  const gridTargets = [0, 1]
+  const gridTargets = [-1, 0, 1]
     .map((wrapX) =>
-      [0, 1].map((wrapY) => add(target, { x: wrapX * size, y: wrapY * size }))
+      [-1, 0, 1].map((wrapY) => ({
+        point: add(target, { x: wrapX * size, y: wrapY * size }),
+        quadrant: { x: wrapX, y: wrapY },
+      }))
     )
     .flat();
-  const closestCells = gridTargets.sort(
+  const closestQuadrants = gridTargets.sort(
     (left, right) =>
-      getDistance(origin, left, size * 2, ratio, euclidean) -
-      getDistance(origin, right, size * 2, ratio, euclidean)
+      getDistance(origin, left.point, size * 2, ratio, euclidean) -
+      getDistance(origin, right.point, size * 2, ratio, euclidean)
   );
 
-  return closestCells[0];
+  return closestQuadrants[0];
 };
 
 export const rotateOrientation = (orientation: Orientation, turns: number) =>
@@ -69,36 +72,38 @@ export const findPath = (
   origin: Position,
   target: Position,
   targetWalkable: boolean = false,
-  mustReach = false
+  mustReach = false,
+  quadrant?: Position
 ) => {
   const width = matrix.length / 2;
   const height = matrix[0].length / 2;
   const graph = new GraphImpl(matrix) as Graph;
-  const centeredOrigin = {
-    x: width + signedDistance(width, origin.x, width),
-    y: height + signedDistance(height, origin.y, height),
-  };
-  const originNode = graph.grid[centeredOrigin.x][
-    centeredOrigin.y
-  ] as GridNode & { weight: number };
-  originNode.weight = 1;
 
   // find shortest distance to target (assuming width === height)
-  const closestTarget = getClosestGridCell(
-    centeredOrigin,
-    target,
-    width,
-    1,
-    false
-  );
+  const closestQuadrant = quadrant
+    ? { quadrant, point: target }
+    : getClosestQuadrant(origin, target, width, 1, false);
 
-  const targetNode = graph.grid[closestTarget.x][
-    closestTarget.y
+  const shiftedOrigin = add(origin, {
+    x: closestQuadrant.quadrant.x === -1 ? width : 0,
+    y: closestQuadrant.quadrant.y === -1 ? height : 0,
+  });
+  const shiftedTarget = add(target, {
+    x: Math.max(0, closestQuadrant.quadrant.x) * width,
+    y: Math.max(0, closestQuadrant.quadrant.y) * height,
+  });
+
+  const targetNode = graph.grid[shiftedTarget.x][
+    shiftedTarget.y
   ] as GridNode & { weight: number };
   if (targetWalkable) {
     targetNode.weight = 1;
   }
 
+  const originNode = graph.grid[shiftedOrigin.x][
+    shiftedOrigin.y
+  ] as GridNode & { weight: number };
+  originNode.weight = 1;
   const path = (astarImpl as typeof astar).search(
     graph,
     originNode,

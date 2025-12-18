@@ -19,6 +19,7 @@ import { createItemAsDrop } from "../../../engine/systems/drop";
 import { Item, ITEM } from "../../../engine/components/item";
 import { ORIENTABLE } from "../../../engine/components/orientable";
 import { assertIdentifierAndComponents } from "../../../engine/utils";
+import { FOG } from "../../../engine/components/fog";
 
 export const menuSize = 40;
 export const menuName: LevelName = "LEVEL_MENU";
@@ -75,7 +76,7 @@ export const generateMenu = async (world: World) => {
           })
         )
       ).forEach((entity) => {
-        if (!entity[VIEWABLE]) disposeEntity(world, entity);
+        if (!entity[VIEWABLE] && entity[FOG]?.type !== "air") disposeEntity(world, entity);
       });
     });
 

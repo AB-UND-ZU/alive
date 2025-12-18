@@ -26,6 +26,8 @@ import { MOVABLE } from "../../engine/components/movable";
 
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
+const systemsFrame = 1000 / 30;
+const catchupFrames = 15;
 
 export default function Systems() {
   const { ecs, paused } = useWorld();
@@ -45,18 +47,24 @@ export default function Systems() {
     config: shakeSpring,
     pause: paused,
   }));
+  const elapsedRef = useRef(systemsFrame);
 
   useFrame((_, delta) => {
     if (!ecs || paused) return;
 
-    // consider limiting systems refresh range for e.g. 120fps renderers
-    ecs.update(delta * 1000);
-    ecs.cleanup();
+    elapsedRef.current += Math.min(delta * 1000, systemsFrame * catchupFrames);
+
+    while (elapsedRef.current >= systemsFrame) {
+      ecs.update(systemsFrame);
+      ecs.cleanup();
+      elapsedRef.current -= systemsFrame;
+    }
   });
 
   // sync paused status
   useEffect(() => {
     if (paused) {
+      elapsedRef.current = 0;
       api.pause();
     } else {
       api.resume();

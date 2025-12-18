@@ -4,6 +4,7 @@ import {
   box,
   cactus1,
   cactus2,
+  chief,
   commonChest,
   desertRock1,
   desertRock2,
@@ -176,14 +177,14 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
       {
         equipment: "shield",
-        material: "iron",
+        material: "wood",
         amount: 1,
         bound: true,
       },
     ],
     drops: [],
     patternNames: [],
-    sprite: { ...knight, name: "Chief" },
+    sprite: chief,
   },
   elder: {
     faction: "settler",
@@ -689,7 +690,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   goldPrism: {
     faction: "wild",
     stats: {
-      hp: 10,
+      hp: 15,
       armor: 1,
     },
     equipments: [
