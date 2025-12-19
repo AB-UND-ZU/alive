@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createWorld } from "../../engine";
 import { worldContextRef, WorldProvider } from "../../bindings/hooks";
-import { PLAYER } from "../../engine/components/player";
-import { isGhost } from "../../engine/systems/fate";
 import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
 import { createLevel, createSystems } from "../../engine/ecs";
 import { LevelName } from "../../engine/components/level";
@@ -28,12 +26,8 @@ export default function World(props: React.PropsWithChildren) {
 
   const handlePause = useCallback(
     (action: React.SetStateAction<boolean>) => {
-      // only prevent pausing when hero is dead
-      const heroEntity = ecs.getEntity([PLAYER]);
       const newPause =
         typeof action === "function" ? action(pauseRef.current) : action;
-
-      if (newPause && (!heroEntity || isGhost(ecs, heroEntity))) return;
 
       // toggle sound
       if (newPause) {
@@ -45,7 +39,7 @@ export default function World(props: React.PropsWithChildren) {
       setPaused(newPause);
       pauseRef.current = newPause;
     },
-    [setPaused, ecs, pauseRef]
+    [setPaused, pauseRef]
   );
 
   const context = useMemo(

@@ -27,7 +27,7 @@ import {
 } from "./damage";
 import { getCollecting, getLootable } from "./collect";
 import { isImmersible, isSubmerged } from "./immersion";
-import { LEVEL } from "../components/level";
+import { BiomeName, LEVEL } from "../components/level";
 import { canUnlock, getLockable, getWarpable, isLocked } from "./action";
 import { createBubble } from "./water";
 import { getOpaque } from "./enter";
@@ -130,12 +130,16 @@ export const isMovable = (world: World, entity: Entity, position: Position) => {
   return false;
 };
 
-export const getBiome = (world: World, position: Position) =>
-  getOverlappingCell(
+export const getBiome = (world: World, position: Position): BiomeName => {
+  const biomes = world.metadata.gameEntity[LEVEL].biomes;
+  if (biomes.length === 0) return "jungle";
+
+  return getOverlappingCell(
     world.metadata.gameEntity[LEVEL].biomes,
     position.x,
     position.y
   );
+};
 
 export default function setupMovement(world: World) {
   let referenceGenerations = -1;

@@ -90,7 +90,6 @@ import { COLLIDABLE } from "../components/collidable";
 import { NPC } from "../components/npc";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
-import { getOverlappingCell } from "../../game/math/matrix";
 import { isImmersible } from "./immersion";
 
 export default function setupAi(world: World) {
@@ -230,10 +229,8 @@ export default function setupAi(world: World) {
             castableEntity?.[CASTABLE] &&
             castableEntity[CASTABLE].burn > 0;
           const isLockable = getLockable(world, target);
-          const biomeMap = world.metadata.gameEntity[LEVEL].biomes;
           const isSameBiome =
-            biomeMap[entity[POSITION].x][entity[POSITION].y] ===
-            getOverlappingCell(biomeMap, target.x, target.y);
+            getBiome(world, entity[POSITION]) === getBiome(world, target);
 
           // unable to move, attempt reorienting
           if (
@@ -358,6 +355,7 @@ export default function setupAi(world: World) {
           }
 
           // sidestep if against a wall
+          const movingOrientations = shuffle(attackingOrientations);
           if (attackingOrientations.length === 1) {
             const linearOrientation = attackingOrientations[0];
             const sidestepOrientation =
@@ -367,11 +365,11 @@ export default function setupAi(world: World) {
                   3) %
                   4
               ];
-            attackingOrientations.push(sidestepOrientation);
-            attackingOrientations.push(invertOrientation(sidestepOrientation));
+            movingOrientations.push(sidestepOrientation);
+            movingOrientations.push(invertOrientation(sidestepOrientation));
           }
 
-          entity[MOVABLE].orientations = attackingOrientations;
+          entity[MOVABLE].orientations = movingOrientations;
           rerenderEntity(world, entity);
           break;
         } else if (pattern.name === "orb" || pattern.name === "archer") {

@@ -67,7 +67,6 @@ import {
   getTab,
   getTabSelections,
   getVerticalIndex,
-  isInPopup,
   isPopupAvailable,
   isQuestCompleted,
   matchesItem,
@@ -935,14 +934,6 @@ export default function setupTrigger(world: World) {
             });
             return;
           }
-        } else if (!primaryEntity && !isInPopup(world, entity)) {
-          queueMessage(world, entity, {
-            line: createText("Need spell!", colors.silver, colors.black),
-            orientation: "up",
-            fast: false,
-            delay: 0,
-          });
-          return;
         }
       } else if (entity[ACTIONABLE].secondaryTriggered) {
         entity[ACTIONABLE].secondaryTriggered = false;
@@ -987,14 +978,6 @@ export default function setupTrigger(world: World) {
           } else if (secondaryEntity[ITEM].secondary === "slash") {
             chargeSlash(world, entity, secondaryEntity);
           }
-        } else if (!secondaryEntity && !popupEntity) {
-          queueMessage(world, entity, {
-            line: createText("Need item!", colors.silver, colors.black),
-            orientation: "up",
-            fast: false,
-            delay: 0,
-          });
-          return;
         }
       }
     }

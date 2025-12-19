@@ -6,9 +6,11 @@ import { leverPosition, roomSize, tutorialRooms } from "./areas";
 import { VIEWABLE } from "../../../engine/components/viewable";
 import {
   assignBuilding,
+  CellType,
   createCell,
   createNpc,
   insertArea,
+  smoothenWater,
 } from "../../../bindings/creation";
 import {
   assertIdentifierAndComponents,
@@ -37,7 +39,7 @@ export const tutorialName: LevelName = "LEVEL_TUTORIAL";
 
 export const generateTutorial = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
-  const worldMatrix = matrixFactory<string>(size, size, () => "mountain");
+  const worldMatrix = matrixFactory<CellType>(size, size, () => "mountain");
 
   // insert rooms
   tutorialRooms.forEach((room, roomIndex) => {
@@ -76,10 +78,12 @@ export const generateTutorial = async (world: World) => {
     }
   });
 
-  iterateMatrix(worldMatrix, (x, y, cell) => {
+  const smoothenedMatrix = smoothenWater(worldMatrix);
+
+  iterateMatrix(smoothenedMatrix, (x, y, cell) => {
     createCell(
       world,
-      worldMatrix,
+      smoothenedMatrix,
       { x, y },
       cell,
       cell === "mountain" ? "fog" : "hidden",
@@ -162,7 +166,7 @@ export const generateTutorial = async (world: World) => {
         ? [{ stackable: "coin", amount: 1 }]
         : getItemBuyPrice(item),
     })),
-    tabs: ["buy", "sell"],
+    tabs: ["buy"],
   });
 
   // add lever to cycle back to fountain room

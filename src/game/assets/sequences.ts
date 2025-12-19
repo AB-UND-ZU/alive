@@ -43,7 +43,7 @@ import {
 } from "../../engine/systems/collect";
 import {
   calculateHealing,
-  getEntityStats,
+  getEntityDisplayStats,
   isDead,
 } from "../../engine/systems/damage";
 import {
@@ -695,7 +695,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
 
       // delete particle if reaching range limit
       const particleProgress = particleName.startsWith("bolt")
-        ? progress - parseInt(particleName.split("-")[1])
+        ? progress - parseInt(particleName.split("-")[1]) + 1
         : 0;
       if (particleProgress >= state.args.range) {
         if (particleName.startsWith("bolt")) {
@@ -1565,7 +1565,7 @@ export const displayInspect: Sequence<PopupSequence> = (
 };
 
 export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
-  const heroStats = getEntityStats(world, entity);
+  const displayStats = getEntityDisplayStats(world, entity);
   const verticalIndex = getVerticalIndex(world, entity);
   const content: Sprite[][] = visibleStats.map((stat, rowIndex) => {
     const selected = verticalIndex === rowIndex;
@@ -1576,7 +1576,7 @@ export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
       selected ? brighten(statColor) : statColor
     );
     const amountText = createText(
-      heroStats[stat].toString(),
+      displayStats[stat].toString(),
       selected ? colors.white : colors.grey
     );
 
@@ -4193,15 +4193,25 @@ export const pointerArrow: Sequence<PointerSequence> = (
 
   const size = world.metadata.gameEntity[LEVEL].size;
   const shouldDisplay =
-    !targetEntity ||
-    getDistance(entity[POSITION], targetEntity[POSITION], size) <
-      entity[LIGHT].visibility;
+    targetEntity &&
+    !(
+      Math.abs(
+        signedDistance(entity[POSITION].x, targetEntity[POSITION].x, size)
+      ) <=
+        pointerX + 1 &&
+      Math.abs(
+        signedDistance(entity[POSITION].y, targetEntity[POSITION].y, size)
+      ) <=
+        pointerY + 1
+    );
   const targetChanged = state.args.target !== targetId;
   if (
     state.args.lastOrientation &&
-    (!highlighEntity || !targetEntity || targetChanged || shouldDisplay)
+    (!highlighEntity || !targetEntity || targetChanged || !shouldDisplay)
   ) {
     pointerParticle[ORIENTABLE].facing = undefined;
+    pointerParticle[PARTICLE].offsetX = 0;
+    pointerParticle[PARTICLE].offsetY = 0;
     if (targetChanged) {
       disposeEntity(world, pointerParticle);
       delete state.particles.pointer;
@@ -4209,7 +4219,7 @@ export const pointerArrow: Sequence<PointerSequence> = (
     }
     state.args.lastOrientation = undefined;
     updated = true;
-  } else if (highlighEntity && targetEntity && !shouldDisplay) {
+  } else if (highlighEntity && targetEntity && shouldDisplay) {
     // invert orientation as needle from highlight is pointing to hero
     const orientation = highlighEntity[ORIENTABLE].facing;
     const invertedOrientation = orientation && invertOrientation(orientation);
@@ -4218,12 +4228,6 @@ export const pointerArrow: Sequence<PointerSequence> = (
       state.args.lastOrientation !== invertedOrientation
     ) {
       const delta = orientationPoints[invertedOrientation];
-      if (
-        state.args.lastOrientation &&
-        pointerParticle[PARTICLE].animatedOrigin
-      ) {
-        pointerParticle[PARTICLE].animatedOrigin = undefined;
-      }
       pointerParticle[PARTICLE].offsetX = delta.x * pointerX;
       pointerParticle[PARTICLE].offsetY = delta.y * pointerY;
       pointerParticle[ORIENTABLE].facing = invertedOrientation;

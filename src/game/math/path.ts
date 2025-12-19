@@ -78,17 +78,21 @@ export const findPath = (
   const width = matrix.length / 2;
   const height = matrix[0].length / 2;
   const graph = new GraphImpl(matrix) as Graph;
+  const normalizedTarget = {
+    x: normalize(target.x, width),
+    y: normalize(target.y, height),
+  };
 
   // find shortest distance to target (assuming width === height)
   const closestQuadrant = quadrant
-    ? { quadrant, point: target }
-    : getClosestQuadrant(origin, target, width, 1, false);
+    ? { quadrant, point: normalizedTarget }
+    : getClosestQuadrant(origin, normalizedTarget, width, 1, false);
 
   const shiftedOrigin = add(origin, {
     x: closestQuadrant.quadrant.x === -1 ? width : 0,
     y: closestQuadrant.quadrant.y === -1 ? height : 0,
   });
-  const shiftedTarget = add(target, {
+  const shiftedTarget = add(normalizedTarget, {
     x: Math.max(0, closestQuadrant.quadrant.x) * width,
     y: Math.max(0, closestQuadrant.quadrant.y) * height,
   });

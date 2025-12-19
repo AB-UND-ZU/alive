@@ -896,11 +896,23 @@ export default function Controls() {
               ? equipmentEntity[ORIENTABLE]?.facing
               : undefined
           );
-          return [
-            equipmentSprite,
-            ...createText(equipmentSprite.name, colors.grey),
-            ...repeat(none, inventoryWidth - equipmentSprite.name.length - 1),
-          ];
+          return flipped
+            ? [
+                ...repeat(
+                  none,
+                  inventoryWidth - equipmentSprite.name.length - 1
+                ),
+                ...createText(equipmentSprite.name, colors.grey),
+                equipmentSprite,
+              ]
+            : [
+                equipmentSprite,
+                ...createText(equipmentSprite.name, colors.grey),
+                ...repeat(
+                  none,
+                  inventoryWidth - equipmentSprite.name.length - 1
+                ),
+              ];
         })
     : [];
 

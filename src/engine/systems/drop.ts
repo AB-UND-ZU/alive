@@ -244,7 +244,8 @@ export const dropEntity = (
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
       itemEntity[ITEM].equipment === "sword" &&
-      itemEntity[ITEM].material === "wood"
+      itemEntity[ITEM].material === "wood" &&
+      !itemEntity[ITEM].element
     );
   });
   if (stickId) {

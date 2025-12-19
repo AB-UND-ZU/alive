@@ -143,6 +143,8 @@ import {
   waterDeep,
   snowCover,
   snow,
+  desertPalmBurnt1,
+  desertPalmBurnt2,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -227,6 +229,8 @@ export const cellNames = [
   "sand",
   "path",
   "mountain",
+  "ore",
+  "stone",
   "rock",
   "desert_rock",
   "tree",
@@ -238,6 +242,8 @@ export const cellNames = [
   "snow",
   "palm",
   "palm_fruit",
+  "desert_palm",
+  "desert_palm_fruit",
   "fence",
   "fruit",
   "wood",
@@ -245,6 +251,7 @@ export const cellNames = [
   "flower",
   "leaf",
   "tumbleweed",
+  "pot",
   ...npcTypes,
 ] as const;
 export type CellType = (typeof cellNames)[number];
@@ -654,7 +661,7 @@ export const insertArea = (
       else if (cell === ".") entity = "fruit_one";
       else if (cell === ";") entity = "mushroom";
       else if (cell === "ß") entity = "hedge";
-      else if (cell === "&") entity = "spawn_hedge";
+      else if (cell === "&") entity = "path_hedge";
       else if (cell === "τ") entity = "bush";
       else if (cell === "'") entity = "berry_one";
       else if (cell === ",") entity = "grass";
@@ -1161,7 +1168,13 @@ export const createCell = (
         [SEQUENCABLE]: { states: {} },
       });
     }
-  } else if (cell === "palm" || cell === "palm_fruit" || cell === "banana") {
+  } else if (
+    cell === "palm" ||
+    cell === "palm_fruit" ||
+    cell === "desert_palm" ||
+    cell === "desert_palm_fruit" ||
+    cell === "banana"
+  ) {
     const [stack, palm] = (
       [
         ["coconut", palm1],
@@ -1174,7 +1187,11 @@ export const createCell = (
       [TEMPO]: { amount: -1 },
     });
 
-    if (cell === "palm_fruit" || cell === "banana") {
+    if (
+      cell === "palm_fruit" ||
+      cell === "desert_palm_fruit" ||
+      cell === "banana"
+    ) {
       const fruitEntity = entities.createFruit(world, {
         [BURNABLE]: {
           burning: false,
@@ -1182,7 +1199,10 @@ export const createCell = (
           simmer: false,
           combusted: false,
           decayed: false,
-          remains: [palmBurnt1, palmBurnt2][random(0, 1)],
+          remains:
+            cell === "palm_fruit"
+              ? [palmBurnt1, palmBurnt2][random(0, 1)]
+              : [desertPalmBurnt1, desertPalmBurnt2][random(0, 1)],
         },
         [COLLIDABLE]: {},
         [FOG]: { visibility, type: "object" },
@@ -1214,7 +1234,10 @@ export const createCell = (
           simmer: false,
           combusted: false,
           decayed: false,
-          remains: [palmBurnt1, palmBurnt2][random(0, 1)],
+          remains:
+            cell === "palm"
+              ? [palmBurnt1, palmBurnt2][random(0, 1)]
+              : [desertPalmBurnt1, desertPalmBurnt2][random(0, 1)],
         },
         [FOG]: { visibility, type: "object" },
         [COLLIDABLE]: {},
@@ -1224,7 +1247,7 @@ export const createCell = (
         [SEQUENCABLE]: { states: {} },
       });
     }
-  } else if (cell === "hedge" || cell === "spawn_hedge") {
+  } else if (cell === "hedge" || cell === "path_hedge") {
     const { items, sprite, stats, faction } = generateUnitData(
       (["hedge1", "hedge2"] as const)[random(0, 1)]
     );
@@ -1248,8 +1271,15 @@ export const createCell = (
       [STATS]: stats,
     });
     populateInventory(world, hedgeEntity, items);
-    if (cell === "spawn_hedge") {
-      setIdentifier(world, hedgeEntity, "spawn_hedge");
+
+    if (cell === "path_hedge") {
+      entities.createTile(world, {
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: path,
+        [TEMPO]: { amount: 2 },
+      });
     }
     return hedgeEntity;
   } else if (cell === "tumbleweed") {
@@ -1781,7 +1811,7 @@ export const createCell = (
         createText("you get lost."),
         [],
         createText("You can see it at"),
-        createText("the bottom right"),
+        createText("the bottom part"),
         createText("of the screen."),
       ],
     ]);

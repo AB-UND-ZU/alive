@@ -43,9 +43,9 @@ export type Level = {
 const levelingStats: Record<ClassKey, Level[]> = {
   rogue: [
     { level: 1, xp: 10, maxHp: 1, maxMp: 0 },
-    { level: 2, xp: 15, maxHp: 1, maxMp: 1 },
-    { level: 3, xp: 20, maxHp: 2, maxMp: 1 },
-    { level: 4, xp: 25, maxHp: 2, maxMp: 1 },
+    { level: 2, xp: 10, maxHp: 1, maxMp: 1 },
+    { level: 3, xp: 15, maxHp: 2, maxMp: 1 },
+    { level: 4, xp: 20, maxHp: 2, maxMp: 1 },
     { level: 5, xp: 30, maxHp: 2, maxMp: 2 },
     { level: 6, xp: 40, maxHp: 3, maxMp: 2 },
     { level: 7, xp: 50, maxHp: 3, maxMp: 2 },

@@ -44,7 +44,6 @@ import {
   add,
   angledOffset,
   choice,
-  clamp,
   copy,
   getDistance,
   lerp,
@@ -136,13 +135,17 @@ export const generateIsland = (world: World) => {
 
   // fixed configuration values
   const size = world.metadata.gameEntity[LEVEL].size;
-  const mainlandRadius = size * 0.35;
+  const mainlandRadius = size * 0.34;
   const mainlandRatio = 0.8;
-  const glacierRadius = size * 0.0875;
-  const oceanDepth = -50;
-  const archipelagoDepth = -20;
+  const glacierRadius = size * 0.07;
+  const glacierRatio = 0.3;
+  const oceanDepth = -70;
+  const archipelagoDepth = -30;
   const sandDepth = 0;
   const airDepth = 6;
+  const stoneDepth = 8;
+  const stoneChance = 0.15;
+  const oreChance = 0.05;
   const terrainDepth = 10;
   const grassDepth = 50;
   const bushDepth = 65;
@@ -217,7 +220,7 @@ export const generateIsland = (world: World) => {
     mainlandRadius,
     0,
     125,
-    0.1,
+    0.09,
     mainlandRatio
   );
   const glacierMatrix = circularMatrix(
@@ -226,12 +229,12 @@ export const generateIsland = (world: World) => {
     { x: size / 2, y: size / 2 },
     glacierRadius,
     0,
-    200,
+    225,
     0.1,
-    0.5
+    glacierRatio
   );
 
-  const hillsMatrix = simplexNoiseMatrix(size, size, 0, 0.2, 1.5, 0.25);
+  const hillsMatrix = simplexNoiseMatrix(size, size, 0, 0.3, 1.5, 0.25);
   const mountainMatrix = multiplyMatrices(
     hillsMatrix,
     rectangleMatrix(
@@ -239,7 +242,7 @@ export const generateIsland = (world: World) => {
       size,
       { x: 0, y: 0 },
       8,
-      size * 0.7,
+      mainlandRadius * 2,
       islandAngle,
       0,
       200,
@@ -299,7 +302,7 @@ export const generateIsland = (world: World) => {
         multiplyMatrices(
           maxMatrices(mainlandMatrix, glacierMatrix),
           addMatrices(
-            matrixFactory(size, size, () => 0.3),
+            matrixFactory(size, size, () => 0.5),
             beachesMatrix
           )
         ),
@@ -308,7 +311,7 @@ export const generateIsland = (world: World) => {
             matrixFactory(size, size, () => -0.5),
             beachesMatrix
           ),
-          60
+          30
         )
       ),
       flattenedMatrix
@@ -316,7 +319,7 @@ export const generateIsland = (world: World) => {
     scalarMatrix(flattenedMatrix, -(airDepth + 1)),
     matrixFactory(size, size, () => airDepth + 1)
   );
-  const archipelagoMatrix = simplexNoiseMatrix(size, size, 0, -0.5, 0.8, 0.4);
+  const archipelagoMatrix = simplexNoiseMatrix(size, size, 0, -0.5, 0.9, 0.5);
 
   const elevationMatrix = matrixFactory(size, size, (x, y) => {
     const elevation = islandsMatrix[x][y];
@@ -326,7 +329,7 @@ export const generateIsland = (world: World) => {
       elevation +
       lerp(
         0,
-        archipelagoMatrix[x][y] * 80 - elevation,
+        archipelagoMatrix[x][y] * 90 - elevation,
         (archipelagoDepth - elevation) / (archipelagoDepth - oceanDepth)
       )
     );
@@ -339,11 +342,11 @@ export const generateIsland = (world: World) => {
           size,
           size,
           { x: size / 2, y: size / 2 },
-          size * 0.15,
+          glacierRadius * 1.4,
           0,
           1,
           0.3,
-          0.5
+          glacierRatio
         ),
         addMatrices(
           islandsMatrix,
@@ -362,21 +365,21 @@ export const generateIsland = (world: World) => {
         multiplyMatrices(
           addMatrices(
             islandsMatrix,
-            matrixFactory(size, size, () => 30)
+            matrixFactory(size, size, () => heatTemperature)
           ),
           gradientMatrix(
             size,
             size,
             { x: 0, y: 0 },
-            size * 0.4,
+            mainlandRadius * 1.14,
             islandAngle - 90,
             0,
             1,
-            10,
+            0.5,
             mainlandRatio
           )
         ),
-        matrixFactory(size, size, () => heatTemperature - 2)
+        matrixFactory(size, size, () => heatTemperature / 2 - 10)
       ),
       matrixFactory(size, size, () => heatTemperature / 2)
     )
@@ -394,36 +397,44 @@ export const generateIsland = (world: World) => {
   world.metadata.gameEntity[LEVEL].biomes = biomeMap;
 
   const rawMap = matrixFactory<CellType>(size, size, (x, y) => {
-    let biome: BiomeName = "jungle";
+    let biome: BiomeName = "ocean";
     let cell: CellType = "air";
     const objects: CellType[] = [];
     const temperature = temperatureMatrix[x][y];
+    const islands = islandsMatrix[x][y];
 
+    if (islands > archipelagoDepth) biome = "jungle";
     if (temperature > heatTemperature) biome = "desert";
     else if (temperature < freezeTemperature) biome = "glacier";
 
     const elevation = elevationMatrix[x][y];
+    const flattened = flattenedMatrix[x][y];
 
     if (elevation < sandDepth) cell = "water_deep";
     else if (elevation < airDepth) cell = "sand";
     else if (elevation > mountainDepth) cell = "mountain";
 
     // process biomes
-    if (biome === "desert") {
+    if (biome === "ocean") {
+      const underwater =
+        terrainMatrix[x][y] * (1 - sigmoid(elevation, archipelagoDepth, 0.6));
+      if (underwater > 50) cell = "mountain";
+    } else if (biome === "desert") {
       if (cell === "air") cell = "sand";
 
+      // spawn palms around water level but avoid in flattened areas
       if (
         elevation < palmDepth &&
         elevation > palmDepth - 4 &&
         Math.random() < palmChance &&
-        getDistance({ x: 0, y: 0 }, { x, y }, size) > 20
+        flattened > 0.95
       )
-        cell = "palm";
+        cell = "desert_palm";
     } else if (biome === "glacier") {
       if (cell === "water_deep") {
         if (
           elevation > -5 ||
-          Math.random() * clamp(30 + elevation, 0, 30) <= 2
+          Math.random() * (1 - sigmoid(elevation, -5, 0.4)) < 0.1
         ) {
           cell = "ice";
         }
@@ -449,7 +460,9 @@ export const generateIsland = (world: World) => {
   // third pass: process terrain based on biomes and spawn mobs or items
   const terrainMap = mapMatrix(elevationMap, (x, y, cell) => {
     const biome = biomeMap[x][y];
+    const flattened = flattenedMatrix[x][y];
     const elevation = elevationMatrix[x][y];
+    const temperature = temperatureMatrix[x][y];
     const objects = objectsMap[x][y];
     const elevationFactor =
       sigmoid(elevation, terrainDepth) *
@@ -460,25 +473,49 @@ export const generateIsland = (world: World) => {
     const distribution = islandNpcDistribution[biome];
 
     // process biome's terrain
-    if (biome === "jungle") {
-      if (terrain > treeDepth) cell = "tree";
+    if (biome === "ocean") {
+      if (elevation > 6 && elevation < 10 && Math.random() < 0.4)
+        cell = Math.random() < 0.25 ? "palm_fruit" : "palm";
+      else if (elevation > 20 && elevation < 25) cell = "bush";
+      else if (elevation < 40 && spawn > 93) cell = "pot";
+    } else if (biome === "jungle") {
+      // spawn ore in inner part of jungle
+      if (
+        cell === "mountain" &&
+        temperature < heatTemperature - 10 &&
+        Math.random() < oreChance * 2
+      )
+        cell = "ore";
+      // spawn stones around lakes but away from flattened areas
+      else if (
+        elevation > airDepth &&
+        elevation < stoneDepth &&
+        Math.random() < stoneChance &&
+        flattened > 0.95 &&
+        getDistance({ x: 0, y: 0 }, { x, y }, size, mainlandRatio) <
+          mainlandRadius * 0.8
+      )
+        cell = "stone";
+      else if (terrain > treeDepth) cell = "tree";
       else if (terrain > hedgeDepth)
-        cell = spawn > 93 ? "fruit" : spawn > 80 ? "wood" : "hedge";
+        cell = spawn > 94 ? "fruit" : spawn > 80 ? "wood" : "hedge";
       else if (greens > bushDepth)
-        cell = spawn > 96 ? "leaf" : spawn > 87 ? "berry" : "bush";
+        cell = spawn > 97 ? "leaf" : spawn > 88 ? "berry" : "bush";
       else if (greens > grassDepth)
-        cell = spawn > 97 ? "leaf" : spawn > 88 ? "flower" : "grass";
-      else if (spawn < -96) objects.push(generateNpcKey(distribution));
+        cell = spawn > 98 ? "leaf" : spawn > 93 ? "flower" : "grass";
+      else if (spawn < -97) objects.push(generateNpcKey(distribution));
     } else if (biome === "desert") {
-      if (terrain > desertDepth) cell = "mountain";
+      if (terrain > desertDepth)
+        cell = Math.random() < oreChance ? "ore" : "mountain";
       else if (terrain > rockDepth && terrain < rockDepth + 5)
         cell = "desert_rock";
       else if (greens > cactusDepth && greens < cactusDepth + 2)
         cell = "cactus";
-      else if (cell === "sand" && spawn < -96)
+      else if (cell === "sand" && spawn < -97)
         objects.push(generateNpcKey(distribution));
       else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
-      else if (cell === "palm" && random(0, 9) === 0) cell = "palm_fruit";
+      else if (cell === "desert_palm" && random(0, 9) === 0)
+        cell = "desert_palm_fruit";
     } else if (biome === "glacier") {
     }
 
@@ -918,6 +955,9 @@ export const generateIsland = (world: World) => {
     );
   }
 
+  // console.log(stringifyMap(worldMap, objectsMap, { x: size / 2, y: size / 2 }));
+  // console.log(stringifyMap(worldMap, objectsMap, { x: 0, y: 0 }));
+
   // queue all added entities to added listener
   world.cleanup();
 };
@@ -952,11 +992,16 @@ export const stringifyMap = (
       else if (cell === "tree") row += "#";
       else if (cell === "cactus" || objects.includes("cactus")) row += "¥";
       else if (cell === "mountain") row += "█";
-      else if (cell === "rock" || objects.includes("rock")) row += "^";
-      else if (cell === "palm") row += "¶";
+      else if (cell === "ore") row += "◘";
+      else if (cell === "stone") row += "∙";
+      else if (cell === "desert_rock" || objects.includes("rock")) row += "^";
+      else if (cell === "palm" || cell === "desert_palm") row += "¶";
+      else if (cell === "palm_fruit" || cell === "desert_palm_fruit")
+        row += "«";
       else if (cell === "sand") row += "▒";
       else if (cell === "fence") row += "±";
       else if (cell === "path") row += "░";
+      else if (cell === "pot") row += "o";
       else if (cell.includes("door")) row += "D";
       else row += " ";
     }

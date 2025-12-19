@@ -950,12 +950,18 @@ export const entitySprites: Record<
         createText("Fast and strong."),
         stretch(
           createCountable(stats, "hp", "progression"),
-          createCountable(stats, "power", "display"),
+          [
+            ...createText("+", colors.green),
+            ...createCountable(stats, "power", "display"),
+          ],
           frameWidth - 2
         ),
         stretch(
           createCountable(stats, "mp", "progression"),
-          createCountable(stats, "haste", "display"),
+          [
+            ...createText("+", colors.green),
+            ...createCountable(stats, "haste", "display"),
+          ],
           frameWidth - 2
         ),
       ];
@@ -970,12 +976,18 @@ export const entitySprites: Record<
         createText("Powerful spells."),
         stretch(
           createCountable(stats, "hp", "progression"),
-          createCountable(stats, "wisdom", "display"),
+          [
+            ...createText("+", colors.green),
+            ...createCountable(stats, "wisdom", "display"),
+          ],
           frameWidth - 2
         ),
         stretch(
           createCountable(stats, "mp", "progression"),
-          createCountable(stats, "vision", "display"),
+          [
+            ...createText("+", colors.green),
+            ...createCountable(stats, "vision", "display"),
+          ],
           frameWidth - 2
         ),
       ];
@@ -990,12 +1002,18 @@ export const entitySprites: Record<
         createText("Survives a lot."),
         stretch(
           createCountable(stats, "hp", "progression"),
-          createCountable(stats, "armor", "display"),
+          [
+            ...createText("+", colors.green),
+            ...createCountable(stats, "armor", "display"),
+          ],
           frameWidth - 2
         ),
         stretch(
           createCountable(stats, "mp", "progression"),
-          createCountable(stats, "resist", "display"),
+          [
+            ...createText("+", colors.green),
+            ...createCountable(stats, "resist", "display"),
+          ],
           frameWidth - 2
         ),
       ];
@@ -1010,12 +1028,18 @@ export const entitySprites: Record<
         createText("??¿ ?¿¿?¿ ¿? ??"),
         stretch(
           createCountable(stats, "hp", "progression"),
-          createCountable(stats, "damp", "display"),
+          [
+            ...createText("+", colors.green),
+            ...createCountable(stats, "damp", "display"),
+          ],
           frameWidth - 2
         ),
         stretch(
           createCountable(stats, "spike", "display"),
-          createCountable(stats, "thaw", "display"),
+          [
+            ...createText("+", colors.green),
+            ...createCountable(stats, "thaw", "display"),
+          ],
           frameWidth - 2
         ),
       ];
@@ -2526,7 +2550,9 @@ export const createUnitName = (unit: UnitKey) => {
         .map((equipment) => getItemSprite(equipment)),
       unitData.sprite,
       ...unitData.equipments
-        .filter((equipment) => equipment.equipment !== "shield")
+        .filter(
+          (equipment) => equipment.equipment && equipment.equipment !== "shield"
+        )
         .map((equipment) => getItemSprite(equipment)),
       unitData.faction === "unit"
         ? neutralBar

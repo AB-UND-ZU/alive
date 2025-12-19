@@ -83,7 +83,10 @@ export const getAttackables = (world: World, position: Position) =>
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity[];
 
-export const getEntityStats = (world: World, entity: TypedEntity) => {
+export const getEntityStats = (
+  world: World,
+  entity: TypedEntity
+): UnitStats => {
   const entityStats = { ...(entity[STATS] || emptyUnitStats) };
   Object.values(entity[EQUIPPABLE] || {}).forEach((itemId) => {
     const item = world.getEntityByIdAndComponents(itemId, [ITEM]);
@@ -101,6 +104,18 @@ export const getEntityStats = (world: World, entity: TypedEntity) => {
   });
 
   return entityStats;
+};
+
+export const getEntityDisplayStats = (
+  world: World,
+  entity: TypedEntity
+): UnitStats => {
+  const entityStats = getEntityStats(world, entity);
+  return {
+    ...entityStats,
+    vision: entityStats.vision + 3,
+    haste: entityStats.haste + 3,
+  };
 };
 
 // damage is calculated as follows:

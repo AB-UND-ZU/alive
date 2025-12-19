@@ -908,6 +908,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
             material: "wood",
             element: "air",
           },
+          { stat: "xp", amount: 3 },
         ],
       },
     ],
