@@ -4203,7 +4203,9 @@ export const pointerArrow: Sequence<PointerSequence> = (
         signedDistance(entity[POSITION].y, targetEntity[POSITION].y, size)
       ) <=
         pointerY + 1
-    );
+    ) &&
+    getDistance(entity[POSITION], targetEntity[POSITION], size) >=
+      entity[LIGHT].visibility;
   const targetChanged = state.args.target !== targetId;
   if (
     state.args.lastOrientation &&
