@@ -26,6 +26,8 @@ export const npcTypes = [
   "fairy",
   "waveTower",
   "chestBoss",
+  "earthChief",
+  "earthGuard"
 ] as const;
 export type NpcType = (typeof npcTypes)[number];
 

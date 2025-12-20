@@ -27,7 +27,9 @@ export type Pattern = {
     | "tumbleweed"
     | "spawner"
     | "dummy"
-    | "chest_boss";
+    | "chest_boss"
+    | "guard"
+    | "watch";
   memory: any;
 };
 

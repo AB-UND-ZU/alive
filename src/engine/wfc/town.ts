@@ -726,7 +726,6 @@ export default function generateTown(width: number, height: number) {
       const horizontalEdge = x === 0 || x === width - 1;
       const verticalEdge = y === 0 || y === height - 1;
 
-      if (horizontalEdge && verticalEdge) return "air";
       if (exits.some((exit) => exit.x === x && exit.y === y))
         return "fence_door_path";
 
@@ -753,6 +752,7 @@ export default function generateTown(width: number, height: number) {
       matrix: townMatrix,
       houses,
       exits,
+      guards: exitAir.map((exit) => add(exit, { x: 1, y: 1 })),
       inn: { x: innX + 1, y: innY + 1 },
     };
   }

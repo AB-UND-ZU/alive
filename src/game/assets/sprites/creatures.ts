@@ -106,7 +106,6 @@ export const fireChief: Sprite = {
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "'", color: colors.red },
-    { char: "/", color: colors.red },
   ],
 };
 
@@ -115,7 +114,6 @@ export const earthChief: Sprite = {
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "'", color: colors.lime },
-    { char: "/", color: colors.lime },
   ],
 };
 
@@ -124,7 +122,6 @@ export const waterChief: Sprite = {
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "'", color: colors.blue },
-    { char: "/", color: colors.blue },
   ],
 };
 
@@ -149,6 +146,14 @@ export const nomad: Sprite = {
   layers: [
     { char: "\u010b", color: colors.silver },
     { char: "~", color: colors.white },
+  ],
+};
+
+export const earthKnight: Sprite = {
+  name: "Knight",
+  layers: [
+    { char: "\u010b", color: colors.silver },
+    { char: "^", color: colors.lime },
   ],
 };
 

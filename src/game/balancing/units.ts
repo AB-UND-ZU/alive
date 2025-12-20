@@ -10,6 +10,8 @@ import {
   desertRock2,
   diamondOrb,
   dummy,
+  earthChief,
+  earthKnight,
   epicChest,
   eye,
   fairy,
@@ -994,6 +996,60 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: commonChest,
+  },
+  earthChief: {
+    faction: "settler",
+    stats: {
+      hp: 40,
+    },
+    equipments: [
+      {
+        equipment: "sword",
+        material: "iron",
+        amount: 1,
+        bound: true,
+      },
+      {
+        amount: Infinity,
+        consume: "potion",
+        material: "iron",
+        element: "fire",
+        bound: true,
+      },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: earthChief,
+  },
+  earthGuard: {
+    faction: "earth",
+    stats: {
+      hp: 30,
+    },
+    equipments: [
+      {
+        equipment: "sword",
+        material: "iron",
+        amount: 1,
+        bound: true,
+      },
+      {
+        equipment: "shield",
+        material: "wood",
+        amount: 1,
+        bound: true,
+      },
+      {
+        amount: Infinity,
+        consume: "potion",
+        material: "iron",
+        element: "fire",
+        bound: true,
+      },
+    ],
+    drops: [],
+    patternNames: ["guard"],
+    sprite: { ...earthKnight, name: "Guard" },
   },
 };
 

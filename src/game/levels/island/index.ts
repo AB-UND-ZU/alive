@@ -104,6 +104,7 @@ import { islandNpcDistribution } from "./units";
 import { snowFill } from "../../../engine/systems/freeze";
 import { isTouch } from "../../../components/Dimensions";
 import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
+import { BEHAVIOUR } from "../../../engine/components/behaviour";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -557,6 +558,7 @@ export const generateIsland = (world: World) => {
     houses: relativeHouses,
     exits: relativeExits,
     inn: relativeInn,
+    guards: relativeGuards,
   } = generateTown(townWidth, townHeight);
   iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
     const x = normalize(townPoint.x + offsetX - townWidth / 2, size);
@@ -571,6 +573,7 @@ export const generateIsland = (world: World) => {
     position: add(house.position, townCorner),
   }));
   const exits = relativeExits.map((exit) => add(exit, townCorner));
+  const guards = relativeGuards.map((guest) => add(guest, townCorner));
   const inn = add(relativeInn, townCorner);
 
   // create shortest path from spawn to town and nomad
@@ -625,6 +628,7 @@ export const generateIsland = (world: World) => {
     "house_druid"
   );
 
+  // initialize cells and objects
   iterateMatrix(worldMap, (x, y, cell) => {
     createCell(world, worldMap, { x, y }, cell, "hidden");
     const objects = objectsMap[x][y];
@@ -633,18 +637,18 @@ export const generateIsland = (world: World) => {
     });
   });
 
+  // register all entities to allow post-processing
+  const registerableEntites = world.getEntities([POSITION]);
+  registerableEntites.forEach((registerableEntity) => {
+    registerEntity(world, registerableEntity);
+  });
+
   // adjust hero
   const heroEntity = assertIdentifierAndComponents(world, "hero", [
     POSITION,
     VIEWABLE,
   ]);
   questSequence(world, heroEntity, "spawnQuest", {});
-
-  // register all entities to allow post-processing
-  const registerableEntites = world.getEntities([POSITION]);
-  registerableEntites.forEach((registerableEntity) => {
-    registerEntity(world, registerableEntity);
-  });
 
   // assign buildings
   const [traderBuilding, smithBuilding, druidBuilding, ...emptyBuildings] = [
@@ -659,7 +663,7 @@ export const generateIsland = (world: World) => {
     [
       createText("Find the town and"),
       createText("speak with the"),
-      [...createUnitName("chief"), ...createText(".")],
+      [...createUnitName("earthChief"), ...createText(".")],
       [],
       createText("Follow either the"),
       [
@@ -676,10 +680,23 @@ export const generateIsland = (world: World) => {
 
   // postprocess town
 
+  // place guards at exits
+  guards.forEach((guard) => {
+    const guardEntity = createNpc(world, "earthGuard", { ...guard });
+    guardEntity[BEHAVIOUR].patterns.unshift({
+      name: "watch",
+      memory: {
+        origin: guard,
+        topLeft: townCorner,
+        bottomRight: add(townCorner, { x: townWidth, y: townHeight }),
+      },
+    });
+  });
+
   // chief next to fountain
   const chiefEntity = createNpc(
     world,
-    "chief",
+    "earthChief",
     add(inn, { x: choice(-1, 1), y: 2 })
   );
   createPopup(world, chiefEntity, {

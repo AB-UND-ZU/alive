@@ -4,11 +4,12 @@ import { World } from "../ecs";
 import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
-import { getBiome, isMovable, isWalkable } from "./movement";
+import { getBiome, getTempo, isMovable, isWalkable } from "./movement";
 import {
   add,
   choice,
   copy,
+  directedDistance,
   getDistance,
   normalize,
   random,
@@ -16,13 +17,16 @@ import {
   reversed,
   shuffle,
   signedDistance,
+  within,
 } from "../../game/math/std";
 import {
   calculateHealing,
   createAmountMarker,
   getAttackable,
   isDead,
+  isEnemy,
   isFriendlyFire,
+  isNeutral,
 } from "./damage";
 import {
   ORIENTABLE,
@@ -37,7 +41,7 @@ import {
 } from "../../game/math/path";
 import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
-import { getLockable, isLocked } from "./action";
+import { getLockable, isLocked, isUnlocked } from "./action";
 import { ITEM } from "../components/item";
 import { lockDoor } from "./trigger";
 import { dropEntity } from "./drop";
@@ -110,6 +114,7 @@ export default function setupAi(world: World) {
     ])) {
       const patterns = (entity[BEHAVIOUR] as Behaviour).patterns;
       const entityId = world.getEntityId(entity);
+      const size = world.metadata.gameEntity[LEVEL].size;
 
       // always reset movement first to cover cases of changed patterns
       if (entity[MOVABLE]) {
@@ -309,7 +314,6 @@ export default function setupAi(world: World) {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
           ]);
-          const size = world.metadata.gameEntity[LEVEL].size;
           const distance = heroEntity
             ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.69)
             : Infinity;
@@ -381,7 +385,6 @@ export default function setupAi(world: World) {
             POSITION,
             MOVABLE,
           ]);
-          const size = world.metadata.gameEntity[LEVEL].size;
           const circularDistance = heroEntity
             ? getDistance(entity[POSITION], heroEntity[POSITION], size)
             : Infinity;
@@ -568,7 +571,6 @@ export default function setupAi(world: World) {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
           ]);
-          const size = world.metadata.gameEntity[LEVEL].size;
           const distance = heroEntity
             ? getDistance(entity[POSITION], heroEntity[POSITION], size)
             : Infinity;
@@ -691,6 +693,144 @@ export default function setupAi(world: World) {
           entity[TOOLTIP].dialogs = [];
 
           patterns.splice(patterns.indexOf(pattern), 1);
+        } else if (pattern.name === "watch") {
+          const memory = pattern.memory;
+          const nextIndex = patterns.indexOf(pattern) + 1;
+
+          if (memory.target) {
+            const targetEntity = world.getEntityByIdAndComponents(
+              memory.target,
+              [POSITION]
+            );
+
+            // handle target leaving watched area
+            if (
+              !targetEntity ||
+              !within(
+                memory.topLeft,
+                memory.bottomRight,
+                targetEntity[POSITION],
+                size
+              )
+            ) {
+              memory.target = undefined;
+
+              if (patterns[nextIndex]?.name === "kill") {
+                patterns.splice(nextIndex, 1);
+              }
+
+              if (entity[TOOLTIP]) {
+                entity[TOOLTIP].idle = undefined;
+                entity[TOOLTIP].changed = true;
+              }
+
+              // walk back to beginning
+              patterns.splice(nextIndex, 0, {
+                name: "move",
+                memory: { targetPosition: memory.origin },
+              });
+            }
+
+            continue;
+          }
+
+          // scan area
+          const delta = {
+            x: directedDistance(memory.topLeft.x, memory.bottomRight.x, size),
+            y: directedDistance(memory.topLeft.y, memory.bottomRight.y, size),
+          };
+
+          for (let offsetX = 0; offsetX < delta.x; offsetX += 1) {
+            for (let offsetY = 0; offsetY < delta.y; offsetY += 1) {
+              const target = add(memory.topLeft, { x: offsetX, y: offsetY });
+              const attackable = getAttackable(world, target);
+
+              // attack intruders
+              if (
+                attackable &&
+                !isNeutral(world, attackable) &&
+                isEnemy(world, entity) !== isEnemy(world, attackable)
+              ) {
+                memory.target = world.getEntityId(attackable);
+                patterns.splice(nextIndex, 0, {
+                  name: "kill",
+                  memory: { target: memory.target },
+                });
+
+                if (entity[TOOLTIP]) {
+                  entity[TOOLTIP].idle = rage;
+                  entity[TOOLTIP].changed = true;
+                }
+              }
+            }
+          }
+        } else if (pattern.name === "guard") {
+          const memory = pattern.memory;
+          entity[MOVABLE].orientations = [];
+
+          // assign entrance
+          if (!memory.entrance) {
+            for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+              for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+                const target = add(entity[POSITION], {
+                  x: offsetX,
+                  y: offsetY,
+                });
+                const lockable = getLockable(world, target);
+                if (lockable) {
+                  memory.entrance = lockable;
+                }
+              }
+            }
+          }
+
+          // invalid placement of guard
+          if (!memory.entrance) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+          const distance = heroEntity
+            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 1)
+            : Infinity;
+          const unlocked = isUnlocked(world, memory.entrance);
+          const fromInside =
+            heroEntity && entity[POSITION].y === heroEntity[POSITION].y;
+          const shouldOpen =
+            heroEntity && (unlocked || fromInside) && distance <= 2;
+          const shouldClose = !(unlocked || fromInside) || distance > 3;
+          const sidesteppedOrientation = relativeOrientations(
+            world,
+            { x: entity[POSITION].x, y: memory.entrance[POSITION].y },
+            memory.entrance[POSITION]
+          )[0];
+
+          if (shouldOpen && !sidesteppedOrientation) {
+            const awayFromHero = relativeOrientations(
+              world,
+              heroEntity[POSITION],
+              { x: entity[POSITION].x, y: heroEntity[POSITION].y }
+            )[0];
+            const leftPath =
+              getTempo(world, add(entity[POSITION], orientationPoints.left)) !==
+              0;
+            const rightPath =
+              getTempo(
+                world,
+                add(entity[POSITION], orientationPoints.right)
+              ) !== 0;
+            entity[MOVABLE].orientations = [
+              awayFromHero ||
+                (leftPath && !rightPath && "right") ||
+                (rightPath && !leftPath && "left") ||
+                choice("left", "right"),
+            ];
+          } else if (shouldClose && sidesteppedOrientation) {
+            entity[MOVABLE].orientations = [sidesteppedOrientation];
+          }
         } else if (pattern.name === "move") {
           const memory = pattern.memory;
           entity[MOVABLE].orientations = [];
@@ -1692,6 +1832,7 @@ export default function setupAi(world: World) {
           }
         } else {
           console.error(Date.now(), "Unhandled pattern", pattern);
+          patterns.splice(patterns.indexOf(pattern), 1);
         }
       }
     }
