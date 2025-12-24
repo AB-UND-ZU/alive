@@ -1,4 +1,4 @@
-import { createNoise4D } from "simplex-noise";
+import { createNoise4D, NoiseFunction4D } from "simplex-noise";
 import { getOverlappingCell, matrixFactory } from "./matrix";
 import { sum } from "./std";
 import { aspectRatio } from "../../components/Dimensions/sizing";
@@ -114,10 +114,7 @@ export const valueNoiseMatrix = (
     (x, y) => {
       const distance = valueMatrix[x][y] * 2 - 1;
       return (
-        (distance * Math.sqrt(iterations + 1) +
-          1) /
-          2 *
-          (maximum - minimum) +
+        ((distance * Math.sqrt(iterations + 1) + 1) / 2) * (maximum - minimum) +
         minimum
       );
     }
@@ -129,26 +126,51 @@ export const valueNoiseMatrix = (
 
 // create a 3d sphere in 4d space, mapping x to horizontal and y to vertical coordinates on the sphere
 // then use 4th axis inversely the closer x is towards the poles
+export const simplexNoiseKernel = (
+  factory: NoiseFunction4D,
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  octaves: number,
+  minimum: number = 0,
+  maximum: number = 1,
+  scale: number = 1
+) => {
+  const degreesX = (x / width) * 2 * Math.PI;
+  const degreesY = (y / height) * 2 * Math.PI;
+
+  const dx = Math.cos(degreesX) / scale;
+  const dy = (Math.sin(degreesX) / scale) * aspectRatio;
+  const dz = Math.cos(degreesY) / scale;
+  const dw = Math.sin(degreesY) / scale;
+
+  return ((factory(dx, dy, dz, dw) + 1) / 2) * (maximum - minimum) + minimum;
+};
+
+export const simplexNoiseFactory = createNoise4D;
+
 export const simplexNoiseMatrix = (
   width: number,
   height: number,
   octaves: number,
   minimum: number = 0,
   maximum: number = 1,
-  scale: number = 1,
+  scale: number = 1
 ) => {
-  const noise = createNoise4D();
+  const factory = simplexNoiseFactory();
 
-  return matrixFactory(width, height, (x, y) => {
-    const degreesX = (x / width) * 2 * Math.PI;
-    const degreesY = (y / height) * 2 * Math.PI;
-
-    const dx = Math.cos(degreesX) / scale;
-    const dy = Math.sin(degreesX) / scale * aspectRatio;
-    const dz = Math.cos(degreesY) / scale;
-    const dw = Math.sin(degreesY) / scale;
-
-    return ((noise(dx, dy, dz, dw) + 1) / 2) * (maximum - minimum) + minimum;
-  });
-
+  return matrixFactory(width, height, (x, y) =>
+    simplexNoiseKernel(
+      factory,
+      width,
+      height,
+      x,
+      y,
+      octaves,
+      minimum,
+      maximum,
+      scale
+    )
+  );
 };

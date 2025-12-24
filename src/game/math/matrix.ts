@@ -32,10 +32,31 @@ export const matrixFactory = <T>(
   width: number,
   height: number,
   generator: (x: number, y: number) => T
-): Matrix<T> =>
-  Array.from({ length: width }).map((_, xIndex) =>
-    Array.from({ length: height }).map((_, yIndex) => generator(xIndex, yIndex))
-  );
+): Matrix<T> => {
+  const matrix = new Array(width);
+  for (let x = 0; x < width; x++) {
+    matrix[x] = new Array(height);
+    for (let y = 0; y < height; y++) {
+      matrix[x][y] = generator(x, y);
+    }
+  }
+  return matrix;
+};
+
+export const createMatrix = <T>(
+  width: number,
+  height: number,
+  value: T
+): Matrix<T> => {
+  const matrix = new Array(width);
+  for (let x = 0; x < width; x++) {
+    matrix[x] = new Array(height);
+    for (let y = 0; y < height; y++) {
+      matrix[x][y] = value;
+    }
+  }
+  return matrix;
+};
 
 export const mapMatrix = <T>(
   matrix: Matrix<T>,
@@ -44,6 +65,23 @@ export const mapMatrix = <T>(
   matrixFactory(matrix[0].length, matrix.length, (x, y) =>
     callback(x, y, matrix[x][y])
   );
+
+export const circularKernel = (
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  center: Point,
+  radius: number,
+  minimum: number,
+  maximum: number,
+  steepness: number,
+  ratio: number = aspectRatio
+) => {
+  const distance = getDistance({ x, y }, center, width, ratio);
+  const value = 1 - sigmoid(distance, radius, steepness);
+  return lerp(minimum, maximum, value);
+};
 
 export const circularMatrix = (
   width: number,
@@ -55,11 +93,56 @@ export const circularMatrix = (
   steepness: number,
   ratio: number = aspectRatio
 ) =>
-  matrixFactory(width, height, (x, y) => {
-    const distance = getDistance({ x, y }, center, width, ratio);
-    const value = 1 - sigmoid(distance, radius, steepness);
-    return lerp(minimum, maximum, value);
-  });
+  matrixFactory(width, height, (x, y) =>
+    circularKernel(
+      width,
+      height,
+      x,
+      y,
+      center,
+      radius,
+      minimum,
+      maximum,
+      steepness,
+      ratio
+    )
+  );
+
+export const rectangleKernel = (
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  center: Point,
+  shapeWidth: number,
+  shapeHeight: number,
+  degrees: number,
+  minimum: number,
+  maximum: number,
+  steepness: number = 1,
+  ratio = aspectRatio
+) => {
+  const delta = {
+    x: signedDistance(center.x, x, width) * ratio,
+    y: signedDistance(center.y, y, height),
+  };
+
+  const radians = (degrees * Math.PI) / 180;
+  const cosValue = Math.cos(radians);
+  const sinValue = Math.sin(radians);
+
+  // rotate delta in a toroidal-safe way
+  const rotated = {
+    x: cosValue * delta.x + sinValue * delta.y,
+    y: -sinValue * delta.x + cosValue * delta.y,
+  };
+
+  const value =
+    (1 - sigmoid(Math.abs(rotated.x), shapeWidth / 2, steepness)) *
+    (1 - sigmoid(Math.abs(rotated.y), shapeHeight / 2, steepness));
+
+  return lerp(minimum, maximum, value);
+};
 
 export const rectangleMatrix = (
   width: number,
@@ -73,28 +156,52 @@ export const rectangleMatrix = (
   steepness: number = 1,
   ratio = aspectRatio
 ) =>
-  matrixFactory(width, height, (x, y) => {
-    const delta = {
-      x: signedDistance(center.x, x, width) * ratio,
-      y: signedDistance(center.y, y, height),
-    };
+  matrixFactory(width, height, (x, y) =>
+    rectangleKernel(
+      width,
+      height,
+      x,
+      y,
+      center,
+      shapeWidth,
+      shapeHeight,
+      degrees,
+      minimum,
+      maximum,
+      steepness,
+      ratio
+    )
+  );
 
-    const radians = (degrees * Math.PI) / 180;
-    const cosValue = Math.cos(radians);
-    const sinValue = Math.sin(radians);
+export const gradientKernel = (
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  center: Point,
+  radius: number,
+  degrees: number,
+  minimum: number,
+  maximum: number,
+  steepness: number = 1,
+  ratio: number = aspectRatio
+) => {
+  const delta = {
+    x: signedDistance(center.x, x, width) * ratio,
+    y: signedDistance(center.y, y, height),
+  };
+  const hypothenuse = getDistance({ x: 0, y: 0 }, delta, width, ratio);
 
-    // rotate delta in a toroidal-safe way
-    const rotated = {
-      x: cosValue * delta.x + sinValue * delta.y,
-      y: -sinValue * delta.x + cosValue * delta.y,
-    };
+  if (hypothenuse > radius) return minimum;
 
-    const value =
-      (1 - sigmoid(Math.abs(rotated.x), shapeWidth / 2, steepness)) *
-      (1 - sigmoid(Math.abs(rotated.y), shapeHeight / 2, steepness));
+  const clockwise = pointToDegree(delta);
+  const relativeToRidge = ((clockwise - degrees) * Math.PI) / 180;
 
-    return lerp(minimum, maximum, value);
-  });
+  const adjacent = Math.cos(relativeToRidge) * hypothenuse;
+  const value = 1 - sigmoid(adjacent, 0, steepness);
+
+  return lerp(minimum, maximum, value);
+};
 
 export const gradientMatrix = (
   width: number,
@@ -107,23 +214,21 @@ export const gradientMatrix = (
   steepness: number = 1,
   ratio: number = aspectRatio
 ) =>
-  matrixFactory(width, height, (x, y) => {
-    const delta = {
-      x: signedDistance(center.x, x, width) * ratio,
-      y: signedDistance(center.y, y, height),
-    };
-    const hypothenuse = getDistance({ x: 0, y: 0 }, delta, width, ratio);
-
-    if (hypothenuse > radius) return minimum;
-
-    const clockwise = pointToDegree(delta);
-    const relativeToRidge = ((clockwise - degrees) * Math.PI) / 180;
-
-    const adjacent = Math.cos(relativeToRidge) * hypothenuse;
-    const value = 1 - sigmoid(adjacent, 0, steepness);
-
-    return lerp(minimum, maximum, value);
-  });
+  matrixFactory(width, height, (x, y) =>
+    gradientKernel(
+      width,
+      height,
+      x,
+      y,
+      center,
+      radius,
+      degrees,
+      minimum,
+      maximum,
+      steepness,
+      ratio
+    )
+  );
 
 export const transpose = <T>(matrix: Matrix<T>) =>
   matrixFactory(matrix[0].length, matrix.length, (x, y) => matrix[y][x]);

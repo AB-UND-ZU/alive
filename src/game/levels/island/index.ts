@@ -12,23 +12,21 @@ import {
   questPointer,
 } from "../../assets/sprites";
 import {
-  scalarMatrix,
-  simplexNoiseMatrix,
+  simplexNoiseFactory,
+  simplexNoiseKernel,
   valueNoiseMatrix,
 } from "../../math/noise";
 import { BiomeName, LEVEL, LevelName } from "../../../engine/components/level";
 import {
-  addMatrices,
-  circularMatrix,
+  circularKernel,
+  createMatrix,
   getOverlappingCell,
-  gradientMatrix,
+  gradientKernel,
   iterateMatrix,
   mapMatrix,
   Matrix,
   matrixFactory,
-  maxMatrices,
-  multiplyMatrices,
-  rectangleMatrix,
+  rectangleKernel,
   setMatrix,
   setPath,
 } from "../../math/matrix";
@@ -201,191 +199,244 @@ export const generateIsland = (world: World) => {
     y: townSize.y / -2,
   });
 
-  // create world matrizes
-  const oceanMatrix = matrixFactory(size, size, () => oceanDepth);
-  const mainlandMatrix = circularMatrix(
-    size,
-    size,
-    { x: 0, y: 0 },
-    mainlandRadius,
-    0,
-    125,
-    0.09,
-    mainlandRatio
-  );
-  const glacierMatrix = circularMatrix(
-    size,
-    size,
-    { x: size / 2, y: size / 2 },
-    glacierRadius,
-    0,
-    225,
-    0.1,
-    glacierRatio
-  );
+  // preload world matrizes
+  const hillsFactory = simplexNoiseFactory();
+  const beachesFactory = simplexNoiseFactory();
+  const terrainFactory = simplexNoiseFactory();
+  const archipelagoFactory = simplexNoiseFactory();
+  const greensMatrix = valueNoiseMatrix(size, size, 1, 0, 100); // expensive
+  const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100); // expensive
+  const pathMatrix = createMatrix(size * 2, size * 2, 0);
 
-  const hillsMatrix = simplexNoiseMatrix(size, size, 0, 0.3, 1.5, 0.25);
-  const mountainMatrix = multiplyMatrices(
-    hillsMatrix,
-    rectangleMatrix(
-      size,
-      size,
-      { x: 0, y: 0 },
-      8,
-      mainlandRadius * 2,
-      islandAngle,
-      0,
-      200,
-      0.8,
-      mainlandRatio
-    )
-  );
-  const passageMatrix = rectangleMatrix(
-    size,
-    size,
-    { x: 0, y: 0 },
-    3,
-    30,
-    islandAngle + 90,
-    1,
-    0,
-    10,
-    mainlandRatio
-  );
-  const spawnCircle = circularMatrix(size, size, spawnPoint, 8, 1, 0, 15, 1);
-  const spawnWalk = rectangleMatrix(
-    size,
-    size,
-    spawnPath,
-    4,
-    spawnWalkLength,
-    spawnWalkAngle,
-    1,
-    0,
-    5
-  );
-  const townSquare = rectangleMatrix(
-    size,
-    size,
-    townPoint,
-    townSize.x + 7,
-    townSize.y + 7,
-    0,
-    1,
-    0,
-    1.5,
-    1
-  );
-  const flattenedMatrix = multiplyMatrices(
-    spawnCircle,
-    spawnWalk,
-    townSquare,
-    passageMatrix
-  );
-
-  const beachesMatrix = simplexNoiseMatrix(size, size, 0, 0, 1, 0.7);
-  const islandsMatrix = addMatrices(
-    multiplyMatrices(
-      addMatrices(
-        oceanMatrix,
-        mountainMatrix,
-        multiplyMatrices(
-          maxMatrices(mainlandMatrix, glacierMatrix),
-          addMatrices(
-            matrixFactory(size, size, () => 0.5),
-            beachesMatrix
-          )
-        ),
-        scalarMatrix(
-          addMatrices(
-            matrixFactory(size, size, () => -0.5),
-            beachesMatrix
-          ),
-          30
-        )
-      ),
-      flattenedMatrix
-    ),
-    scalarMatrix(flattenedMatrix, -(airDepth + 1)),
-    matrixFactory(size, size, () => airDepth + 1)
-  );
-  const archipelagoMatrix = simplexNoiseMatrix(size, size, 0, -0.5, 0.9, 0.5);
-
-  const elevationMatrix = matrixFactory(size, size, (x, y) => {
-    const elevation = islandsMatrix[x][y];
-    if (elevation > archipelagoDepth) return elevation;
-
-    return (
-      elevation +
-      lerp(
-        0,
-        archipelagoMatrix[x][y] * 90 - elevation,
-        (archipelagoDepth - elevation) / (archipelagoDepth - oceanDepth)
-      )
-    );
-  });
-
-  const freezingMatrix = scalarMatrix(
-    maxMatrices(
-      multiplyMatrices(
-        circularMatrix(
-          size,
-          size,
-          { x: size / 2, y: size / 2 },
-          glacierRadius * 1.4,
-          0,
-          1,
-          0.3,
-          glacierRatio
-        ),
-        addMatrices(
-          islandsMatrix,
-          matrixFactory(size, size, () => 30)
-        )
-      ),
-      matrixFactory(size, size, () => 0)
-    ),
-    -10
-  );
-
-  const temperatureMatrix = addMatrices(
-    freezingMatrix,
-    maxMatrices(
-      addMatrices(
-        multiplyMatrices(
-          addMatrices(
-            islandsMatrix,
-            matrixFactory(size, size, () => heatTemperature)
-          ),
-          gradientMatrix(
-            size,
-            size,
-            { x: 0, y: 0 },
-            mainlandRadius * 1.14,
-            islandAngle - 90,
-            0,
-            1,
-            0.5,
-            mainlandRatio
-          )
-        ),
-        matrixFactory(size, size, () => heatTemperature / 2 - 10)
-      ),
-      matrixFactory(size, size, () => heatTemperature / 2)
-    )
-  );
-
-  const terrainMatrix = simplexNoiseMatrix(size, size, 0, 0, 100, 0.175);
-  const greensMatrix = valueNoiseMatrix(size, size, 1, 0, 100);
-  const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100);
-
-  const pathMatrix = matrixFactory(size * 2, size * 2, () => 0);
-
-  // first pass: set biomes, cell types and objects
-  const objectsMap: Matrix<CellType[]> = matrixFactory(size, size, () => []);
-  const biomeMap: Matrix<BiomeName> = matrixFactory(size, size, () => "jungle");
+  // first pass: generate matrices from kernel values
+  const elevationMatrix: Matrix<number> = new Array(size);
+  const terrainMatrix: Matrix<number> = new Array(size);
+  const temperatureMatrix: Matrix<number> = new Array(size);
+  const islandsMatrix: Matrix<number> = new Array(size);
+  const flattenedMatrix: Matrix<number> = new Array(size);
+  const objectsMap: Matrix<CellType[]> = new Array(size);
+  const biomeMap: Matrix<BiomeName> = new Array(size);
   world.metadata.gameEntity[LEVEL].biomes = biomeMap;
 
+  for (let x = 0; x < size; x++) {
+    elevationMatrix[x] = new Array(size);
+    terrainMatrix[x] = new Array(size);
+    temperatureMatrix[x] = new Array(size);
+    islandsMatrix[x] = new Array(size);
+    flattenedMatrix[x] = new Array(size);
+    objectsMap[x] = new Array(size);
+    biomeMap[x] = new Array(size);
+
+    for (let y = 0; y < size; y++) {
+      objectsMap[x][y] = [];
+      biomeMap[x][y] = "jungle";
+
+      const mainlandKernel = circularKernel(
+        size,
+        size,
+        x,
+        y,
+        { x: 0, y: 0 },
+        mainlandRadius,
+        0,
+        125,
+        0.09,
+        mainlandRatio
+      );
+      const glacierKernel = circularKernel(
+        size,
+        size,
+        x,
+        y,
+        { x: size / 2, y: size / 2 },
+        glacierRadius,
+        0,
+        225,
+        0.1,
+        glacierRatio
+      );
+
+      const hillsKernel = simplexNoiseKernel(
+        hillsFactory,
+        size,
+        size,
+        x,
+        y,
+        0,
+        0.3,
+        1.5,
+        0.25
+      );
+      const mountainKernel =
+        hillsKernel *
+        rectangleKernel(
+          size,
+          size,
+          x,
+          y,
+          { x: 0, y: 0 },
+          8,
+          mainlandRadius * 2,
+          islandAngle,
+          0,
+          200,
+          0.8,
+          mainlandRatio
+        );
+      const passageMatrix = rectangleKernel(
+        size,
+        size,
+        x,
+        y,
+        { x: 0, y: 0 },
+        3,
+        30,
+        islandAngle + 90,
+        1,
+        0,
+        10,
+        mainlandRatio
+      );
+      const spawnCircle = circularKernel(
+        size,
+        size,
+        x,
+        y,
+        spawnPoint,
+        8,
+        1,
+        0,
+        15,
+        1
+      );
+      const spawnWalk = rectangleKernel(
+        size,
+        size,
+        x,
+        y,
+        spawnPath,
+        4,
+        spawnWalkLength,
+        spawnWalkAngle,
+        1,
+        0,
+        5
+      );
+      const townSquare = rectangleKernel(
+        size,
+        size,
+        x,
+        y,
+        townPoint,
+        townSize.x + 7,
+        townSize.y + 7,
+        0,
+        1,
+        0,
+        1.5,
+        1
+      );
+      const flattenedKernel =
+        spawnCircle * spawnWalk * townSquare * passageMatrix;
+
+      const beachesKernel = simplexNoiseKernel(
+        beachesFactory,
+        size,
+        size,
+        x,
+        y,
+        0,
+        0,
+        1,
+        0.7
+      );
+      const islandsKernel =
+        (oceanDepth +
+          mountainKernel +
+          Math.max(mainlandKernel, glacierKernel) * (beachesKernel + 0.5) +
+          (beachesKernel - 0.5) * 30) *
+          flattenedKernel +
+        (flattenedKernel * -(airDepth + 1) + airDepth + 1);
+
+      const archipelagoKernel = simplexNoiseKernel(
+        archipelagoFactory,
+        size,
+        size,
+        x,
+        y,
+        0,
+        -0.5,
+        0.9,
+        0.5
+      );
+
+      const freezingKernel =
+        Math.max(
+          circularKernel(
+            size,
+            size,
+            x,
+            y,
+            { x: size / 2, y: size / 2 },
+            glacierRadius * 1.4,
+            0,
+            1,
+            0.3,
+            glacierRatio
+          ) *
+            (islandsKernel + 30),
+          0
+        ) * -10;
+
+      flattenedMatrix[x][y] = flattenedKernel;
+      islandsMatrix[x][y] = islandsKernel;
+      elevationMatrix[x][y] =
+        islandsKernel > archipelagoDepth
+          ? islandsKernel
+          : islandsKernel +
+            lerp(
+              0,
+              archipelagoKernel * 90 - islandsKernel,
+              (archipelagoDepth - islandsKernel) /
+                (archipelagoDepth - oceanDepth)
+            );
+      temperatureMatrix[x][y] =
+        freezingKernel +
+        Math.max(
+          (islandsKernel + heatTemperature) *
+            gradientKernel(
+              size,
+              size,
+              x,
+              y,
+              { x: 0, y: 0 },
+              mainlandRadius * 1.14,
+              islandAngle - 90,
+              0,
+              1,
+              0.5,
+              mainlandRatio
+            ) +
+            heatTemperature / 2 -
+            10,
+          heatTemperature / 2
+        );
+
+      terrainMatrix[x][y] = simplexNoiseKernel(
+        terrainFactory,
+        size,
+        size,
+        x,
+        y,
+        0,
+        0,
+        100,
+        0.175
+      );
+    }
+  }
+
+  // second pass: set biomes, cell types and objects
   const rawMap = matrixFactory<CellType>(size, size, (x, y) => {
     let biome: BiomeName = "ocean";
     let cell: CellType = "air";
@@ -444,10 +495,10 @@ export const generateIsland = (world: World) => {
     return cell;
   });
 
-  // second pass: place shallow water and ensure is surrounded by sand
+  // third pass: place shallow water and ensure is surrounded by sand
   const elevationMap = smoothenBeaches(rawMap, biomeMap);
 
-  // third pass: process terrain based on biomes and spawn mobs or items
+  // fourth pass: process terrain based on biomes and spawn mobs or items
   const terrainMap = mapMatrix(elevationMap, (x, y, cell) => {
     const biome = biomeMap[x][y];
     const flattened = flattenedMatrix[x][y];
