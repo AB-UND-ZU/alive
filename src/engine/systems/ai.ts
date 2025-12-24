@@ -89,12 +89,14 @@ import { IDENTIFIABLE } from "../components/identifiable";
 import { createCell } from "../../bindings/creation";
 import addAttackable, { ATTACKABLE } from "../components/attackable";
 import { RECHARGABLE } from "../components/rechargable";
-import { addCollidable } from "../components";
+import { addAffectable, addCollidable } from "../components";
 import { COLLIDABLE } from "../components/collidable";
 import { NPC } from "../components/npc";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
 import { isImmersible } from "./immersion";
+import { CLICKABLE } from "../components/clickable";
+import { getEmptyAffectable } from "../components/affectable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -137,6 +139,40 @@ export default function setupAi(world: World) {
           }
 
           pattern.memory.ticks -= 1;
+          break;
+        } else if (pattern.name === "passive") {
+          if (!entity[STATS] || !entity[SPRITE]) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          if (entity[CLICKABLE]?.clicked) {
+            entity[BELONGABLE].faction = "wild";
+            entity[SPRITE] = { ...entity[SPRITE], name: "" };
+
+            // apply invincibe and dialog manually to avoid extra tick
+            world.removeComponentFromEntity(
+              entity as TypedEntity<"CLICKABLE">,
+              "CLICKABLE"
+            );
+
+            if (entity[TOOLTIP]) {
+              entity[TOOLTIP].idle = rage;
+              entity[TOOLTIP].changed = true;
+            }
+
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "wait", memory: { ticks: 4 } },
+              {
+                name: "dialog",
+                memory: { idle: undefined },
+              },
+              { name: "wait", memory: { ticks: 1 } },
+              { name: "vulnerable", memory: {} }
+            );
+          }
           break;
         } else if (pattern.name === "tumbleweed") {
           const facingPosition = add(entity[POSITION], orientationPoints.right);
@@ -357,6 +393,28 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
           }
+        } else if (pattern.name === "chase" || pattern.name === "chase_slow") {
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+
+          if (!heroEntity) break;
+
+          const distance = getDistance(
+            entity[POSITION],
+            heroEntity[POSITION],
+            size,
+            0.69
+          );
+
+          if (distance > 7) break;
+
+          const halfStep = pattern.name === "chase_slow";
+          const attackingOrientations = relativeOrientations(
+            world,
+            entity[POSITION],
+            heroEntity[POSITION]
+          );
 
           // sidestep if against a wall
           const movingOrientations = shuffle(attackingOrientations);
@@ -373,13 +431,27 @@ export default function setupAi(world: World) {
             movingOrientations.push(invertOrientation(sidestepOrientation));
           }
 
-          entity[MOVABLE].orientations = movingOrientations;
+          if (entity[ORIENTABLE]?.facing && halfStep) {
+            entity[MOVABLE].orientations = [];
+            entity[ORIENTABLE].facing = undefined;
+          } else {
+            entity[MOVABLE].orientations = movingOrientations;
+          }
           rerenderEntity(world, entity);
           break;
-        } else if (pattern.name === "orb" || pattern.name === "archer") {
+        } else if (
+          pattern.name === "orb" ||
+          pattern.name === "archer" ||
+          pattern.name === "violet"
+        ) {
           if (!entity[TOOLTIP]) continue;
 
-          const primary = pattern.name === "orb";
+          const isPrimary = pattern.name === "orb" || pattern.name === "violet";
+          const halfStep = isPrimary;
+          const canReposition =
+            pattern.name === "archer" || pattern.name === "violet";
+          const range = pattern.name === "violet" ? 6 : 9;
+          const gap = pattern.name === "violet" ? 1 : 2;
 
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
@@ -406,7 +478,7 @@ export default function setupAi(world: World) {
                 false
               )
             : Infinity;
-          const canShoot = primary
+          const canShoot = isPrimary
             ? canCast(
                 world,
                 entity,
@@ -421,11 +493,15 @@ export default function setupAi(world: World) {
               )
             : true;
           const isShooting = !!entity[TOOLTIP].idle;
-          const flee = primary ? circularDistance < 4 : blockDistance <= 3;
+          const flee = canReposition
+            ? blockDistance < gap + 1
+            : circularDistance < 4;
           const attack =
-            blockDistance > 2 &&
-            (primary ? visualDistance < 7 : blockDistance <= 9);
-          const repositioning = !primary && blockDistance <= 9;
+            blockDistance > gap &&
+            (isPrimary
+              ? visualDistance < (range / 9) * 7
+              : blockDistance <= range);
+          const repositioning = canReposition && blockDistance <= range;
           const delta = heroEntity
             ? {
                 x: signedDistance(
@@ -445,7 +521,7 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
 
-            if (primary) {
+            if (isPrimary) {
               entity[ACTIONABLE].primaryTriggered = true;
             } else {
               entity[ACTIONABLE].secondaryTriggered = true;
@@ -505,6 +581,7 @@ export default function setupAi(world: World) {
             }
           }
 
+          let movements: Orientation[] = [];
           if (flee && heroEntity) {
             // invert direction by argument order
             const fleeingOrientations = relativeOrientations(
@@ -527,20 +604,10 @@ export default function setupAi(world: World) {
               fleeingOrientations.push(sidestepOrientation);
               fleeingOrientations.push(invertOrientation(sidestepOrientation));
             }
-
-            // casters only walk every second tick
-            if (entity[ORIENTABLE]?.facing && primary) {
-              entity[MOVABLE].orientations = [];
-              entity[ORIENTABLE].facing = undefined;
-            } else {
-              const sidestep = random(0, 10) === 0;
-
-              entity[MOVABLE].orientations = sidestep
-                ? [...reversed(fleeingOrientations)]
-                : fleeingOrientations;
-            }
-            rerenderEntity(world, entity);
-            break;
+            const sidestep = !halfStep && random(0, 10) === 0;
+            movements = sidestep
+              ? [...reversed(fleeingOrientations)]
+              : fleeingOrientations;
           } else if (heroEntity && repositioning) {
             if (delta.x === 0 || delta.y === 0) break;
 
@@ -565,8 +632,18 @@ export default function setupAi(world: World) {
               );
             }
 
-            entity[MOVABLE].orientations = repositionOrientations;
+            movements = repositionOrientations;
           }
+
+          // casters only walk every second tick
+          if (entity[ORIENTABLE]?.facing && halfStep) {
+            entity[MOVABLE].orientations = [];
+            entity[ORIENTABLE].facing = undefined;
+          } else {
+            entity[MOVABLE].orientations = movements;
+          }
+          rerenderEntity(world, entity);
+          break;
         } else if (pattern.name === "fairy") {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
@@ -740,8 +817,8 @@ export default function setupAi(world: World) {
             y: directedDistance(memory.topLeft.y, memory.bottomRight.y, size),
           };
 
-          for (let offsetX = 0; offsetX < delta.x; offsetX += 1) {
-            for (let offsetY = 0; offsetY < delta.y; offsetY += 1) {
+          for (let offsetX = 0; offsetX <= delta.x; offsetX += 1) {
+            for (let offsetY = 0; offsetY <= delta.y; offsetY += 1) {
               const target = add(memory.topLeft, { x: offsetX, y: offsetY });
               const attackable = getAttackable(world, target);
 
@@ -794,21 +871,32 @@ export default function setupAi(world: World) {
             POSITION,
           ]);
           const distance = heroEntity
-            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 1)
+            ? getDistance(
+                memory.entrance[POSITION],
+                heroEntity[POSITION],
+                size,
+                1
+              )
             : Infinity;
           const unlocked = isUnlocked(world, memory.entrance);
           const fromInside =
             heroEntity && entity[POSITION].y === heroEntity[POSITION].y;
           const shouldOpen =
-            heroEntity && (unlocked || fromInside) && distance <= 2;
-          const shouldClose = !(unlocked || fromInside) || distance > 3;
-          const sidesteppedOrientation = relativeOrientations(
-            world,
-            { x: entity[POSITION].x, y: memory.entrance[POSITION].y },
-            memory.entrance[POSITION]
-          )[0];
+            heroEntity && (unlocked || fromInside) && distance <= 2.5;
+          const shouldClose = !(unlocked || fromInside) || distance >= 3;
+          const delta = {
+            x: memory.entrance[POSITION].x - entity[POSITION].x,
+            y: 0,
+          };
+          const sidesteppedOrientation = relativeOrientations(world, delta, {
+            x: 0,
+            y: 0,
+          })[0];
 
-          if (shouldOpen && !sidesteppedOrientation) {
+          if (
+            shouldOpen &&
+            (!sidesteppedOrientation || Math.abs(delta.x) < 2)
+          ) {
             const awayFromHero = relativeOrientations(
               world,
               heroEntity[POSITION],
@@ -823,13 +911,18 @@ export default function setupAi(world: World) {
                 add(entity[POSITION], orientationPoints.right)
               ) !== 0;
             entity[MOVABLE].orientations = [
-              awayFromHero ||
+              sidesteppedOrientation ||
+                awayFromHero ||
                 (leftPath && !rightPath && "right") ||
                 (rightPath && !leftPath && "left") ||
                 choice("left", "right"),
             ];
+            break;
           } else if (shouldClose && sidesteppedOrientation) {
-            entity[MOVABLE].orientations = [sidesteppedOrientation];
+            entity[MOVABLE].orientations = [
+              invertOrientation(sidesteppedOrientation),
+            ];
+            break;
           }
         } else if (pattern.name === "move") {
           const memory = pattern.memory;
@@ -893,6 +986,105 @@ export default function setupAi(world: World) {
               : [];
           }
           break;
+        } else if (pattern.name === "rose") {
+          if (!entity[STATS] || !entity[ORIENTABLE]) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+          const flee =
+            heroEntity &&
+            getDistance(entity[POSITION], heroEntity[POSITION], size) < 4;
+
+          if (flee) {
+            const fleeingOrientations = relativeOrientations(
+              world,
+              heroEntity[POSITION],
+              entity[POSITION]
+            );
+
+            // sidestep if against a wall
+            if (fleeingOrientations.length === 1) {
+              const linearOrientation = fleeingOrientations[0];
+              const sidestepOrientation =
+                orientations[
+                  (orientations.indexOf(linearOrientation) +
+                    random(0, 1) * 2 +
+                    3) %
+                    4
+                ];
+              fleeingOrientations.push(sidestepOrientation);
+              fleeingOrientations.push(invertOrientation(sidestepOrientation));
+            }
+
+            if (entity[ORIENTABLE].facing) {
+              entity[MOVABLE].orientations = [];
+              entity[ORIENTABLE].facing = undefined;
+            } else {
+              entity[MOVABLE].orientations = fleeingOrientations;
+            }
+          }
+        } else if (pattern.name === "clover") {
+          if (!entity[STATS] || !entity[ORIENTABLE] || !entity[TOOLTIP]) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+
+          if (!heroEntity) break;
+
+          const distance = getDistance(
+            entity[POSITION],
+            heroEntity[POSITION],
+            size,
+            0.69
+          );
+          if (distance > 5) break;
+
+          const generation = (pattern.memory.generation || 0) + 1;
+          pattern.memory.generation = generation;
+
+          const healingDelay = 16;
+          const healingPause = 3;
+          const healingDuration = 10;
+          const healingAmount = 6;
+          const healingInterval = 2;
+          const wait = generation > healingDelay;
+          const healing = generation > healingDelay + healingPause;
+          const done =
+            generation > healingDelay + healingPause * 2 + healingDuration;
+          const restart =
+            generation > healingDelay + healingPause * 3 + healingDuration;
+
+          if (wait) {
+            if (healing && !done && generation % healingInterval === 0) {
+              const { hp, healing } = calculateHealing(
+                entity[STATS],
+                healingAmount
+              );
+              entity[STATS].hp = hp;
+              createAmountMarker(world, entity, healing, "up", "true");
+              if (healing > 0) {
+                play("pickup", pickupOptions.hp);
+              }
+            }
+
+            if ((healing && !done && entity[TOOLTIP].idle) || restart) {
+              entity[TOOLTIP].idle = undefined;
+              entity[TOOLTIP].changed = true;
+              if (restart) pattern.memory.generation = 0;
+            } else if (((wait && !healing) || done) && !entity[TOOLTIP].idle) {
+              entity[TOOLTIP].idle = rage;
+              entity[TOOLTIP].changed = true;
+            }
+            break;
+          }
         } else if (
           pattern.name === "kill" ||
           pattern.name === "unlock" ||
@@ -1058,13 +1250,12 @@ export default function setupAi(world: World) {
           }
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "vulnerable") {
-          if (!entity[ATTACKABLE]) {
-            addAttackable(world, entity, { shots: 0 });
-            world.removeComponentFromEntity(
-              entity as TypedEntity<"COLLIDABLE">,
-              "COLLIDABLE"
-            );
-          }
+          addAttackable(world, entity, { shots: 0 });
+          addAffectable(world, entity, getEmptyAffectable());
+          world.removeComponentFromEntity(
+            entity as TypedEntity<"COLLIDABLE">,
+            "COLLIDABLE"
+          );
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "spawner") {
           const spawners = world

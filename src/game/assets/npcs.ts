@@ -11,11 +11,7 @@ import { SPAWNABLE } from "../../engine/components/spawnable";
 import { SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { VIEWABLE } from "../../engine/components/viewable";
-import {
-  getAvailableQuest,
-  getLockable,
-  isUnlocked,
-} from "../../engine/systems/action";
+import { getLockable, isUnlocked } from "../../engine/systems/action";
 import { collectItem } from "../../engine/systems/collect";
 import {
   disposeEntity,
@@ -31,6 +27,7 @@ import {
   copy,
   getDistance,
   normalize,
+  repeat,
   signedDistance,
   within,
 } from "../math/std";
@@ -51,8 +48,28 @@ import {
   leverOff,
   barrierCorner,
   barrierSide,
+  createText,
+  craft,
+  swirl,
+  underline,
+  forge,
+  kettle,
+  getOrientedSprite,
+  questPointer,
 } from "./sprites";
-import { END_STEP, questSequence, QuestStage, START_STEP, step } from "./utils";
+import {
+  createItemName,
+  createItemText,
+  END_STEP,
+  frameWidth,
+  getUnitSprite,
+  npcSequence,
+  questSequence,
+  QuestStage,
+  queueMessage,
+  START_STEP,
+  step,
+} from "./utils";
 import {
   NpcSequence,
   SEQUENCABLE,
@@ -71,7 +88,7 @@ import {
 import { INVENTORY } from "../../engine/components/inventory";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
-import { removePopup } from "../../engine/systems/popup";
+import { createPopup, removePopup } from "../../engine/systems/popup";
 import { isDead, isEnemy } from "../../engine/systems/damage";
 import { createArea, createCell } from "../../bindings/creation";
 import { SOUL } from "../../engine/components/soul";
@@ -96,6 +113,10 @@ import { muteAudio, unmuteAudio } from "../sound/resumable";
 import { worldContextRef } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 import { LIQUID } from "../../engine/components/liquid";
+import { POPUP } from "../../engine/components/popup";
+import { craftingRecipes } from "../balancing/crafting";
+import { isTouch } from "../../components/Dimensions";
+import { getItemBuyPrice, purchasableItems } from "../balancing/trading";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
@@ -707,6 +728,512 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
+export const earthTownNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const { topLeft, bottomRight, spawn } = state.args.memory;
+
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    POSITION,
+    VIEWABLE,
+    LIGHT,
+    SPAWNABLE,
+  ]);
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () =>
+      !!heroEntity && within(topLeft, bottomRight, heroEntity[POSITION], size),
+    onLeave: () => {
+      if (heroEntity) {
+        heroEntity[SPAWNABLE].position = { ...spawn };
+
+        queueMessage(world, heroEntity, {
+          line: createText("Spawn updated!", colors.black, colors.lime),
+          orientation: "up",
+          fast: false,
+          delay: 0,
+        });
+      }
+
+      return END_STEP;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+  const druidEntity = getIdentifier(world, "earthDruid");
+  const traderEntity = getIdentifier(world, "earthTrader");
+  const smithEntity = getIdentifier(world, "earthSmith");
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () =>
+      !!druidEntity && !!traderEntity && !!smithEntity && entity[POPUP].active,
+    onLeave: () => {
+      if (druidEntity) {
+        createPopup(world, druidEntity, {
+          deals: [
+            {
+              item: {
+                stat: "xp",
+                amount: 3,
+              },
+              stock: 1,
+              prices: [
+                {
+                  consume: "potion",
+                  material: "wood",
+                  element: "fire",
+                  amount: 1,
+                },
+              ],
+            },
+          ],
+          objectives: [
+            {
+              item: { consume: "potion", material: "wood", element: "fire" },
+              available: true,
+            },
+            { item: { stackable: "stick" }, available: true },
+            {
+              item: { stackable: "resource", material: "wood" },
+              available: true,
+            },
+            { item: { stackable: "apple" }, available: true },
+            {
+              identifier: "earth_kettle",
+              title: [kettle, ...createText("Kettle", colors.grey)],
+              description: [
+                [
+                  ...createText("Set "),
+                  getOrientedSprite(questPointer, "right"),
+                  ...createText("Focus", colors.grey),
+                  ...createText(" to the"),
+                ],
+                [
+                  kettle,
+                  ...createText("Kettle", colors.grey),
+                  ...createText(" to craft"),
+                ],
+                createText("items."),
+              ],
+              available: true,
+            },
+          ],
+          lines: [
+            [
+              createText("Hello stranger!"),
+              [
+                ...createText("My name is "),
+                ...createText("Druid", colors.green),
+                ...createText("."),
+              ],
+              [],
+              createText("I can help you"),
+              [
+                ...createText("with "),
+                craft,
+                ...createText("Crafting", colors.silver),
+                ...createText("."),
+              ],
+              [],
+              createText("Could you make a"),
+              [
+                ...createItemName({
+                  consume: "potion",
+                  material: "wood",
+                  element: "fire",
+                }),
+                ...createText(" for me?"),
+              ],
+              [],
+              [
+                ...createText("Collect "),
+                ...createItemText({ stackable: "stick", amount: 10 }),
+              ],
+              [
+                ...createText("and craft "),
+                ...createItemText({
+                  stackable: "resource",
+                  material: "wood",
+                  amount: 1,
+                }),
+                ...createText("."),
+              ],
+              [],
+              [
+                ...createText("Find "),
+                ...createItemText({
+                  stackable: "apple",
+                  amount: 1,
+                }),
+                ...createText(" and"),
+              ],
+              createText("combine them."),
+              [],
+              [
+                ...createText("Use the "),
+                kettle,
+                ...createText("Kettle", colors.grey),
+              ],
+              createText("next to me."),
+              [],
+              createText("Then, come back!"),
+            ],
+          ],
+          tabs: ["quest"],
+        });
+        npcSequence(world, druidEntity, "earthDruidNpc", {});
+      }
+
+      if (traderEntity) {
+        createPopup(world, traderEntity, {
+          deals: [
+            {
+              item: {
+                consume: "key",
+                material: "iron",
+                amount: 1,
+              },
+              stock: 1,
+              prices: [{ stackable: "coin", amount: 10 }],
+            },
+          ],
+          lines: [
+            [
+              createText("Hi there, nice to"),
+              createText("meet you. I am"),
+              [
+                ...createText("the "),
+                ...createText("Trader", colors.green),
+                ...createText("."),
+              ],
+              [],
+              [
+                ...createText("Find some "),
+                ...createItemName({ stackable: "coin" }),
+                ...createText(","),
+              ],
+              createText("they drop from"),
+              [
+                getUnitSprite("orb"),
+                getUnitSprite("prism"),
+                getUnitSprite("eye"),
+                ...createText("Enemies", colors.maroon),
+                ...createText("."),
+              ],
+              [],
+              createText("Then I will give"),
+              [
+                ...createText("you a "),
+                ...createItemName({ consume: "key", material: "iron" }),
+                ...createText(" and"),
+              ],
+              createText("you can buy and"),
+              createText("sell items here."),
+            ],
+          ],
+          tabs: ["quest"],
+        });
+        npcSequence(world, traderEntity, "earthTraderNpc", {});
+      }
+
+      if (smithEntity) {
+        createPopup(world, smithEntity, {
+          deals: [
+            {
+              item: {
+                stat: "xp",
+                amount: 5,
+              },
+              stock: 1,
+              prices: [{ stackable: "seed", amount: 5 }],
+            },
+          ],
+          choices: [
+            {
+              equipment: "secondary",
+              secondary: "bow",
+              material: "wood",
+              amount: 1,
+            },
+            {
+              equipment: "secondary",
+              secondary: "slash",
+              material: "wood",
+              amount: 1,
+            },
+            { equipment: "torch", material: "wood", amount: 1 },
+          ],
+          lines: [
+            [
+              createText("Hey mate! My name"),
+              [
+                ...createText("is "),
+                ...createText("Smith", colors.green),
+                ...createText(", and I"),
+              ],
+              createText("can teach about"),
+              [
+                forge,
+                ...createText("Forging", colors.silver),
+                ...createText("."),
+              ],
+              [],
+              createText("But first, get me"),
+              [
+                ...createItemText({
+                  stackable: "seed",
+                  amount: 5,
+                }),
+                ...createText(" from "),
+                ...createItemName({ stackable: "leaf" }),
+              ],
+              [
+                ...createText("or "),
+                getUnitSprite("rose"),
+                getUnitSprite("clover"),
+                getUnitSprite("violet"),
+                ...createText("Plants", colors.maroon),
+                ...createText("."),
+              ],
+              [],
+              createText("Then you can"),
+              createText("choose an item."),
+            ],
+          ],
+          tabs: ["quest"],
+        });
+        npcSequence(world, smithEntity, "earthSmithNpc", {});
+      }
+
+      return END_STEP;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+  const kettleEntity = getIdentifier(world, "earth_kettle");
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => !!kettleEntity && entity[POPUP].active,
+    onLeave: () => {
+      if (kettleEntity) {
+        createPopup(world, kettleEntity, {
+          recipes: craftingRecipes,
+          lines: [
+            [
+              [craft, ...createText("Crafting", colors.silver)],
+              repeat(swirl, frameWidth - 2),
+              [],
+              createText("Gather some items"),
+              [
+                ...createText("like "),
+                ...createItemName({ stackable: "leaf" }),
+                ...createText(" or"),
+              ],
+              [...createItemName({ stackable: "berry" }), ...createText(".")],
+              [],
+              [
+                ...createText("Scroll and "),
+                ...createText("VIEW", colors.black, colors.lime),
+              ],
+              createText("an item to craft."),
+              [],
+              [
+                ...underline(createText("TIP", colors.silver)),
+                ...createText(": Some items"),
+              ],
+              createText("have few recipes."),
+              [],
+              repeat(swirl, frameWidth - 2),
+              [],
+              isTouch
+                ? [
+                    ...createText("Swipe "),
+                    ...createText("RIGHT", colors.grey),
+                    ...createText(" to"),
+                  ]
+                : [
+                    ...createText("Press "),
+                    ...createText("\u0119", colors.grey),
+                    ...createText(" key to"),
+                  ],
+              [
+                ...createText("view "),
+                ...createText("╡", colors.silver),
+                ...createText("CRAFT", colors.lime),
+                ...createText("╞", colors.silver),
+                ...createText(" tab."),
+              ],
+            ],
+          ],
+          tabs: ["info", "craft"],
+        });
+      }
+
+      return END_STEP;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const earthTraderNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => {
+      createPopup(world, entity, {
+        deals: purchasableItems.map((item) => ({
+          item: {
+            ...item,
+            amount: 1,
+          },
+          stock: Infinity,
+          prices: getItemBuyPrice(item),
+        })),
+
+        tabs: ["buy", "sell"],
+      });
+
+      return END_STEP;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const earthSmithNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+  const anvilEntity = getIdentifier(world, "earth_anvil");
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => !!anvilEntity && entity[POPUP].active,
+    onLeave: () => {
+      if (anvilEntity) {
+        createPopup(world, anvilEntity, {
+          recipes: craftingRecipes,
+          lines: [
+            [
+              [forge, ...createText("Forging", colors.silver)],
+              repeat(swirl, frameWidth - 2),
+              [],
+              createText("You can forge the"),
+              createText("gear you hold."),
+              [],
+              [
+                ...createText("View "),
+                ...createText("╡", colors.silver),
+                ...createText("GEAR", colors.lime),
+                ...createText("╞", colors.silver),
+                ...createText(" by"),
+              ],
+              isTouch
+                ? [
+                    ...createText("tapping on "),
+                    ...createText("BAG", colors.black, colors.silver),
+                    ...createText("."),
+                  ]
+                : [
+                    ...createText("pressing "),
+                    ...createText("[TAB]", colors.grey),
+                    ...createText("."),
+                  ],
+              [],
+              createText("Scroll to choose"),
+              createText("gear and try to"),
+              createText("add items until"),
+              createText("you find a match."),
+              [],
+              [
+                ...underline(createText("TIP", colors.silver)),
+                ...createText(": "),
+                ...createItemName({ stackable: "resource", material: "iron" }),
+                ...createText(" can be"),
+              ],
+              createText("added to wooden"),
+              createText("gear."),
+              [],
+              repeat(swirl, frameWidth - 2),
+              [],
+              isTouch
+                ? [
+                    ...createText("Swipe "),
+                    ...createText("RIGHT", colors.grey),
+                    ...createText(" to"),
+                  ]
+                : [
+                    ...createText("Press "),
+                    ...createText("\u0119", colors.grey),
+                    ...createText(" key to"),
+                  ],
+              [
+                ...createText("view "),
+                ...createText("╡", colors.silver),
+                ...createText("FORGE", colors.lime),
+                ...createText("╞", colors.silver),
+                ...createText(" tab."),
+              ],
+            ],
+          ],
+          tabs: ["info", "forge"],
+        });
+      }
+
+      return END_STEP;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
 export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
@@ -1196,23 +1723,7 @@ export const tombstoneNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
       return true;
     },
-    isCompleted: () => !getAvailableQuest(world, entity),
-    onLeave: () => {
-      return "focus";
-    },
-  });
-
-  step({
-    stage,
-    name: "focus",
-    onEnter: () => {
-      entity[TOOLTIP].dialogs = [createDialog("RIP")];
-      entity[TOOLTIP].override = "visible";
-      entity[TOOLTIP].changed = true;
-
-      return true;
-    },
-    isCompleted: () => !getAvailableQuest(world, entity),
+    isCompleted: () => true,
     onLeave: () => END_STEP,
   });
 

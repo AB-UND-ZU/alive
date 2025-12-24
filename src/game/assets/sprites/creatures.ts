@@ -97,63 +97,7 @@ export const chief: Sprite = {
   name: "Chief",
   layers: [
     { char: "\u010b", color: colors.silver },
-    { char: "'", color: colors.white },
-  ],
-};
-
-export const fireChief: Sprite = {
-  name: "Chief",
-  layers: [
-    { char: "\u010b", color: colors.silver },
-    { char: "'", color: colors.red },
-  ],
-};
-
-export const earthChief: Sprite = {
-  name: "Chief",
-  layers: [
-    { char: "\u010b", color: colors.silver },
-    { char: "'", color: colors.lime },
-  ],
-};
-
-export const waterChief: Sprite = {
-  name: "Chief",
-  layers: [
-    { char: "\u010b", color: colors.silver },
-    { char: "'", color: colors.blue },
-  ],
-};
-
-export const settler: Sprite = {
-  name: "Settler",
-  layers: [
-    { char: "\u010b", color: colors.silver },
     { char: "'", color: colors.olive },
-  ],
-};
-
-export const guide: Sprite = {
-  name: "Guide",
-  layers: [
-    { char: "\u010b", color: colors.silver },
-    { char: "'", color: colors.white },
-  ],
-};
-
-export const nomad: Sprite = {
-  name: "Nomad",
-  layers: [
-    { char: "\u010b", color: colors.silver },
-    { char: "~", color: colors.white },
-  ],
-};
-
-export const earthKnight: Sprite = {
-  name: "Knight",
-  layers: [
-    { char: "\u010b", color: colors.silver },
-    { char: "^", color: colors.lime },
   ],
 };
 
@@ -632,6 +576,18 @@ export const fly: Sprite = {
 export const fairy: Sprite = {
   name: "Fairy",
   layers: [{ char: "\u0100", color: colors.grey }],
+};
+
+export const oakBoss: Sprite = {
+  name: "Oak",
+  layers: [
+    { char: "\u0106", color: colors.green },
+    { char: "\u0107", color: colors.green },
+    { char: "▄", color: colors.black },
+    { char: "░", color: colors.black },
+    { char: "┐", color: colors.maroon },
+    { char: "-", color: colors.green },
+  ],
 };
 
 export const chestBoss: Sprite = {

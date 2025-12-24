@@ -44,7 +44,7 @@ export const recolor = (
     ? colors.black
     : colorOrMap;
 
-const brightColors: Record<string, string> = {
+export const brightColors: Record<string, string> = {
   [maroon]: red,
   [green]: lime,
   [olive]: yellow,
@@ -54,7 +54,7 @@ const brightColors: Record<string, string> = {
   [silver]: white,
   [grey]: silver,
 };
-const darkColors = Object.fromEntries(
+export const darkColors = Object.fromEntries(
   Object.entries(brightColors).map(([input, output]) => [output, input])
 );
 

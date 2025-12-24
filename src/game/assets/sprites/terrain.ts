@@ -343,18 +343,6 @@ export const grass: Sprite = {
   layers: [{ char: ",", color: colors.olive }],
 };
 
-export const rose: Sprite = {
-  name: "Rose",
-  layers: [
-    { char: "│", color: colors.green },
-    { char: "║", color: colors.black },
-    { char: "┴", color: colors.black },
-    { char: "\u011c", color: colors.red },
-    { char: "-", color: colors.black },
-    { char: "·", color: colors.green },
-  ],
-};
-
 export const cactus1: Sprite = {
   name: "cactus_one",
   layers: [

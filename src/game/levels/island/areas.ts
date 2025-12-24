@@ -1,3 +1,4 @@
+export const townSize = { x: 26, y: 16 };
 export const spawnArea = `\
 ???ßßß???
 ?ßß   ßß?
@@ -9,19 +10,6 @@ export const spawnArea = `\
 ????▒????
 ????▒????\
 `;
-
-export const guidePosition = { x: 156, y: 0 };
-export const keyPosition = { x: 153, y: 0 };
-
-export const nomadArea = `\
-╒╦╦╦╦╕ 
-╠╬╬╬╬╣ 
-╞╪╪╪╪╡ 
-└──┴N┘ 
-   *▒  \
-`;
-
-export const nomadOffset = { x: 1, y: 3 };
 
 export const bossArea = `\
 ███████████████████████

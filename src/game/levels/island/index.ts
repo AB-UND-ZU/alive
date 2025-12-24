@@ -4,16 +4,12 @@ import { SPRITE } from "../../../engine/components/sprite";
 import { RENDERABLE } from "../../../engine/components/renderable";
 import { COLLIDABLE } from "../../../engine/components/collidable";
 import {
-  craft,
-  createDialog,
   createText,
-  forge,
   getOrientedSprite,
+  none,
+  parseSprite,
   path,
   questPointer,
-  swirl,
-  times,
-  underline,
 } from "../../assets/sprites";
 import {
   scalarMatrix,
@@ -39,7 +35,7 @@ import {
 import { FOG } from "../../../engine/components/fog";
 import { ATTACKABLE } from "../../../engine/components/attackable";
 import { orientationPoints } from "../../../engine/components/orientable";
-import { spawnArea } from "./areas";
+import { spawnArea, townSize } from "./areas";
 import {
   add,
   angledOffset,
@@ -59,7 +55,6 @@ import { VIEWABLE } from "../../../engine/components/viewable";
 import { TOOLTIP } from "../../../engine/components/tooltip";
 import { DROPPABLE } from "../../../engine/components/droppable";
 import {
-  anvil,
   bedCenter,
   bedEndLeft,
   bedEndRight,
@@ -67,14 +62,13 @@ import {
   bedHeadRight,
   chairLeft,
   chairRight,
-  kettle,
   table,
 } from "../../assets/sprites/structures";
 import { SEQUENCABLE } from "../../../engine/components/sequencable";
 import {
-  createItemName,
   createUnitName,
-  frameWidth,
+  getUnitSprite,
+  npcSequence,
   questSequence,
 } from "../../assets/utils";
 import { colors } from "../../assets/colors";
@@ -102,8 +96,6 @@ import {
 } from "../../../engine/utils";
 import { islandNpcDistribution } from "./units";
 import { snowFill } from "../../../engine/systems/freeze";
-import { isTouch } from "../../../components/Dimensions";
-import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
 import { BEHAVIOUR } from "../../../engine/components/behaviour";
 
 export const islandSize = 240;
@@ -144,8 +136,7 @@ export const generateIsland = (world: World) => {
   const archipelagoDepth = -30;
   const sandDepth = 0;
   const airDepth = 6;
-  const stoneDepth = 8;
-  const stoneChance = 0.15;
+  const stoneChance = 0.08;
   const oreChance = 0.05;
   const terrainDepth = 10;
   const grassDepth = 50;
@@ -160,8 +151,6 @@ export const generateIsland = (world: World) => {
   const mountainDepth = 125;
   const freezeTemperature = 0;
   const heatTemperature = 40;
-  const townWidth = 26;
-  const townHeight = 16;
   const pathHeight = 50;
   const spawnWalkLength = 12;
 
@@ -208,8 +197,8 @@ export const generateIsland = (world: World) => {
     mainlandRatio
   );
   const townCorner = add(townPoint, {
-    x: townWidth / -2,
-    y: townHeight / -2,
+    x: townSize.x / -2,
+    y: townSize.y / -2,
   });
 
   // create world matrizes
@@ -279,8 +268,8 @@ export const generateIsland = (world: World) => {
     size,
     size,
     townPoint,
-    townWidth + 7,
-    townHeight + 7,
+    townSize.x + 7,
+    townSize.y + 7,
     0,
     1,
     0,
@@ -489,22 +478,22 @@ export const generateIsland = (world: World) => {
         cell = "ore";
       // spawn stones around lakes but away from flattened areas
       else if (
-        elevation > airDepth &&
-        elevation < stoneDepth &&
+        elevation > sandDepth &&
+        elevation < airDepth &&
         Math.random() < stoneChance &&
         flattened > 0.95 &&
         getDistance({ x: 0, y: 0 }, { x, y }, size, mainlandRatio) <
           mainlandRadius * 0.8
       )
-        cell = "stone";
+        cell = cell === "sand" ? "desert_stone" : "stone";
       else if (terrain > treeDepth) cell = "tree";
       else if (terrain > hedgeDepth)
-        cell = spawn > 94 ? "fruit" : spawn > 80 ? "wood" : "hedge";
+        cell = spawn > 95 ? "fruit" : spawn > 80 ? "wood" : "hedge";
       else if (greens > bushDepth)
-        cell = spawn > 97 ? "leaf" : spawn > 88 ? "berry" : "bush";
+        cell = spawn > 98 ? "leaf" : spawn > 89 ? "berry" : "bush";
       else if (greens > grassDepth)
-        cell = spawn > 98 ? "leaf" : spawn > 93 ? "flower" : "grass";
-      else if (spawn < -97) objects.push(generateNpcKey(distribution));
+        cell = spawn > 98 ? "leaf" : spawn > 95 ? "flower" : "grass";
+      else if (spawn < -95) objects.push(generateNpcKey(distribution));
     } else if (biome === "desert") {
       if (terrain > desertDepth)
         cell = Math.random() < oreChance ? "ore" : "mountain";
@@ -559,10 +548,10 @@ export const generateIsland = (world: World) => {
     exits: relativeExits,
     inn: relativeInn,
     guards: relativeGuards,
-  } = generateTown(townWidth, townHeight);
+  } = generateTown(townSize.x, townSize.y);
   iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
-    const x = normalize(townPoint.x + offsetX - townWidth / 2, size);
-    const y = normalize(townPoint.y + offsetY - townHeight / 2, size);
+    const x = normalize(townPoint.x + offsetX - townSize.x / 2, size);
+    const y = normalize(townPoint.y + offsetY - townSize.y / 2, size);
 
     worldMap[x][y] = value ? (value as CellType) : "air";
     setPath(pathMatrix, x, y, 0);
@@ -571,12 +560,13 @@ export const generateIsland = (world: World) => {
   const houses = relativeHouses.map((house) => ({
     ...house,
     position: add(house.position, townCorner),
+    door: add(house.door, townCorner),
   }));
   const exits = relativeExits.map((exit) => add(exit, townCorner));
-  const guards = relativeGuards.map((guest) => add(guest, townCorner));
+  const guards = relativeGuards.map((guard) => add(guard, townCorner));
   const inn = add(relativeInn, townCorner);
 
-  // create shortest path from spawn to town and nomad
+  // create shortest path from spawn to town
   setPath(pathMatrix, spawnExit.x, spawnExit.y, 0, false);
   iterateMatrix(worldMap, (x, y) => {
     const height = pathMatrix[x][y];
@@ -597,6 +587,7 @@ export const generateIsland = (world: World) => {
   );
   townPath.forEach(({ x, y }) => {
     worldMap[x][y] = "path";
+    objectsMap[x][y] = [];
     setPath(pathMatrix, x, y, 1);
   });
 
@@ -609,6 +600,7 @@ export const generateIsland = (world: World) => {
     smithHouse.position.y + 3,
     "campfire"
   );
+  setMatrix(worldMap, smithHouse.door.x, smithHouse.door.y, "iron_door");
   setMatrix(
     worldMap,
     smithHouse.position.x + choice(-1, 1),
@@ -668,10 +660,20 @@ export const generateIsland = (world: World) => {
       createText("Follow either the"),
       [
         getOrientedSprite(questPointer, "right"),
-        ...createText("Arrow", colors.grey),
+        ...createText("Focus", colors.grey),
         ...createText(" or "),
         path,
         ...createText("Path", colors.grey),
+        ...createText("."),
+      ],
+      [],
+      createText("Be careful with"),
+      [
+        ...createText("the "),
+        getUnitSprite("rose"),
+        getUnitSprite("clover"),
+        getUnitSprite("violet"),
+        ...createText("Plants", colors.maroon),
         ...createText("."),
       ],
     ],
@@ -679,6 +681,19 @@ export const generateIsland = (world: World) => {
   setIdentifier(world, spawnSign, "spawn_sign");
 
   // postprocess town
+
+  const townEnd = add(townCorner, { x: townSize.x - 1, y: townSize.y - 1 });
+  const earthTown = entities.createProcessor(world, {
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [POSITION]: { ...townPoint },
+  });
+  setIdentifier(world, earthTown, "earth_town");
+  npcSequence(world, earthTown, "earthTownNpc", {
+    topLeft: townCorner,
+    bottomRight: townEnd,
+    spawn: add(inn, { x: 0, y: 2 }),
+  });
 
   // place guards at exits
   guards.forEach((guard) => {
@@ -688,7 +703,7 @@ export const generateIsland = (world: World) => {
       memory: {
         origin: guard,
         topLeft: townCorner,
-        bottomRight: add(townCorner, { x: townWidth, y: townHeight }),
+        bottomRight: townEnd,
       },
     });
   });
@@ -700,85 +715,144 @@ export const generateIsland = (world: World) => {
     add(inn, { x: choice(-1, 1), y: 2 })
   );
   createPopup(world, chiefEntity, {
+    targets: [{ amount: 1, unit: "oakBoss" }],
+    objectives: [
+      {
+        identifier: "earthDruid",
+        title: [...createUnitName("earthDruid")],
+        description: [
+          [
+            ...createText("Set "),
+            getOrientedSprite(questPointer, "right"),
+            ...createText("Focus", colors.grey),
+            ...createText(" to the"),
+          ],
+          [...createUnitName("earthDruid"), ...createText(" to start")],
+          createText("crafting."),
+        ],
+        available: true,
+      },
+      {
+        identifier: "earthTrader",
+        title: [...createUnitName("earthTrader")],
+        description: [
+          [
+            ...createText("Set "),
+            getOrientedSprite(questPointer, "right"),
+            ...createText("Focus", colors.grey),
+            ...createText(" to the"),
+          ],
+          [...createUnitName("earthTrader"), ...createText(" to buy")],
+          createText("and sell items."),
+        ],
+        available: true,
+      },
+      {
+        identifier: "earthSmith",
+        title: [...createUnitName("earthSmith")],
+        description: [
+          [
+            ...createText("Set "),
+            getOrientedSprite(questPointer, "right"),
+            ...createText("Focus", colors.grey),
+            ...createText(" to the"),
+          ],
+          [...createUnitName("earthSmith"), ...createText(" to forge")],
+          createText("stronger gear."),
+        ],
+        available: true,
+      },
+      {
+        identifier: "oakBoss",
+        title: [...createUnitName("oakBoss")],
+        description: [
+          [
+            ...createText("Set "),
+            getOrientedSprite(questPointer, "right"),
+            ...createText("Focus", colors.grey),
+            ...createText(" to the"),
+          ],
+          [...createUnitName("oakBoss"), ...createText(" to challenge")],
+          createText("the boss."),
+        ],
+        available: true,
+      },
+    ],
+    deals: [],
+    choices: [
+      { equipment: "shield", material: "wood", amount: 1 },
+      { equipment: "primary", primary: "wave", material: "wood", amount: 1 },
+    ],
     lines: [
       [
         createText("Welcome to the"),
-        createText("town, have a look"),
-        createText("around."),
-        [],
-        createText("If you are ready,"),
+        [...createText("earth", colors.lime), ...createText(" town! I am")],
         [
-          ...createText("kill 3"),
-          times,
-          ...createUnitName("prism"),
+          ...createText("the "),
+          ...createText("Chief", colors.green),
           ...createText("."),
         ],
+        [],
+        createText("Can you help us"),
+        [
+          ...createText("defeat the "),
+          ...createText("Oak", colors.maroon),
+          ...createText("?"),
+        ],
+        [],
+        [
+          ...repeat(none, 3),
+          parseSprite("\x02▄▐\x00░"),
+          parseSprite("\x02█\x00░"),
+          parseSprite("\x02▄▌\x00░"),
+        ],
+        [
+          ...repeat(none, 2),
+          parseSprite("\x02▄▐\x00░"),
+          parseSprite("\x02█\x00░\x00\u0108\u0106\x09∙"),
+          parseSprite("\x02█\x00░"),
+          parseSprite("\x02█\x00░\x00\u0108\u0106\x09∙"),
+          parseSprite("\x02▄▌\x00░"),
+        ],
+        [
+          ...repeat(none, 2),
+          parseSprite("\x02▀\x00░"),
+          parseSprite("\x02█\x00░"),
+          parseSprite("\x02█\x00░"),
+          parseSprite("\x02█\x00░"),
+          parseSprite("\x02▀\x00░"),
+          ...createText(" <- evil", colors.red),
+        ],
+        [...repeat(none, 4), parseSprite("\x01╣")],
+        [...repeat(none, 4), parseSprite("\x01╩\x00─")],
+        [],
+        [
+          ...createText("Talk to "),
+          ...createUnitName("earthTrader"),
+          ...createText(","),
+        ],
+        [
+          ...createUnitName("earthDruid"),
+          ...createText(" and "),
+          ...createUnitName("earthSmith"),
+        ],
+        createText("to get stronger"),
+        createText("before fighting."),
       ],
     ],
-    tabs: ["talk"],
+    tabs: ["quest"],
   });
+  npcSequence(world, chiefEntity, "earthChiefNpc", {});
 
   // smith's house
   const smithOffset = choice(-1, 1);
-  const smithEntity = createNpc(
+  createNpc(
     world,
-    "smith",
+    "earthSmith",
     add(smithBuilding.building[POSITION], { x: smithOffset, y: 0 })
   );
-  smithEntity[TOOLTIP].dialogs = [
-    createDialog("Hey mate"),
-    createDialog("I am the Smith"),
-    createDialog("Ask me how to forge"),
-  ];
-  createPopup(world, smithEntity, {
-    lines: [
-      [
-        [forge, ...createText("Forging", colors.silver)],
-        repeat(swirl, frameWidth - 2),
-        [],
-        createText("You can forge the"),
-        createText("gear you hold."),
-        [],
-        [
-          ...createText("View "),
-          ...createText("╡", colors.silver),
-          ...createText("GEAR", colors.lime),
-          ...createText("╞", colors.silver),
-          ...createText(" by"),
-        ],
-        isTouch
-          ? [
-              ...createText("tapping on "),
-              ...createText("BAG", colors.black, colors.silver),
-              ...createText("."),
-            ]
-          : [
-              ...createText("pressing "),
-              ...createText("[TAB]", colors.grey),
-              ...createText("."),
-            ],
-        [],
-        [...createText("Use the "), anvil, ...createText("Anvil", colors.grey)],
-        createText("and choose gear."),
-        [],
-        createText("Try to add any"),
-        createText("items until you"),
-        createText("find a match."),
-        [],
-        [
-          ...underline(createText("TIP", colors.silver)),
-          ...createText(": "),
-          ...createItemName({ stackable: "resource", material: "iron" }),
-          ...createText(" can be"),
-        ],
-        createText("added to wooden"),
-        createText("gear."),
-      ],
-    ],
-    tabs: ["talk"],
-  });
 
-  createCell(
+  const anvilEntity = createCell(
     world,
     worldMap,
     add(smithBuilding.building[POSITION], {
@@ -788,51 +862,17 @@ export const generateIsland = (world: World) => {
     "anvil",
     "hidden"
   );
+  setIdentifier(world, anvilEntity!, "earth_anvil");
 
   // druid's house
   const druidOffset = choice(-1, 1);
-  const druidEntity = createNpc(
+  createNpc(
     world,
-    "druid",
+    "earthDruid",
     add(druidBuilding.building[POSITION], { x: druidOffset, y: 0 })
   );
-  druidEntity[TOOLTIP].dialogs = [
-    createDialog("Hello there"),
-    createDialog("My name is Druid"),
-    createDialog("I explain crafting"),
-  ];
-  createPopup(world, druidEntity, {
-    lines: [
-      [
-        [craft, ...createText("Crafting", colors.silver)],
-        repeat(swirl, frameWidth - 2),
-        [],
-        createText("Gather some items"),
-        [
-          ...createText("like "),
-          ...createItemName({ stackable: "leaf" }),
-          ...createText(" and"),
-        ],
-        [...createItemName({ stackable: "apple" }), ...createText(".")],
-        [],
-        [
-          ...createText("Use the "),
-          kettle,
-          ...createText("Kettle", colors.grey),
-        ],
-        createText("and pick the item"),
-        createText("you want to make."),
-        [],
-        [
-          ...underline(createText("TIP", colors.silver)),
-          ...createText(": Some items"),
-        ],
-        createText("have few recipes."),
-      ],
-    ],
-    tabs: ["talk"],
-  });
-  createCell(
+
+  const kettleEntity = createCell(
     world,
     worldMap,
     add(druidBuilding.building[POSITION], {
@@ -842,6 +882,7 @@ export const generateIsland = (world: World) => {
     "kettle",
     "hidden"
   );
+  setIdentifier(world, kettleEntity!, "earth_kettle");
 
   // furnish houses
   const furnishingBuildings = [traderBuilding, ...emptyBuildings];
@@ -927,25 +968,7 @@ export const generateIsland = (world: World) => {
 
     if (furnishingBuilding === traderBuilding) {
       // trader's house
-      const traderEntity = createNpc(world, "trader", objectPosition);
-      traderEntity[TOOLTIP].dialogs = [
-        createDialog("Hi, I'm the Trader"),
-        createDialog("Nice to meet you"),
-        createDialog("Well, I trade items"),
-        createDialog("Wanna have a look?"),
-      ];
-      createPopup(world, traderEntity, {
-        deals: purchasableItems.map((item) => ({
-          item: {
-            ...item,
-            amount: 1,
-          },
-          stock: Infinity,
-          prices: getItemBuyPrice(item),
-        })),
-
-        tabs: ["buy", "sell"],
-      });
+      createNpc(world, "earthTrader", objectPosition);
     }
 
     // add chest
@@ -1010,7 +1033,7 @@ export const stringifyMap = (
       else if (cell === "cactus" || objects.includes("cactus")) row += "¥";
       else if (cell === "mountain") row += "█";
       else if (cell === "ore") row += "◘";
-      else if (cell === "stone") row += "∙";
+      else if (cell === "stone" || cell === "desert_stone") row += "∙";
       else if (cell === "desert_rock" || objects.includes("rock")) row += "^";
       else if (cell === "palm" || cell === "desert_palm") row += "¶";
       else if (cell === "palm_fruit" || cell === "desert_palm_fruit")

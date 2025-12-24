@@ -62,6 +62,8 @@ export const isFriendlyFire = (
   entity: Entity,
   target: Entity
 ) => {
+  if (!target[BELONGABLE]) return true;
+
   const entityFaction = entity[BELONGABLE].faction;
   const targetFaction = target[BELONGABLE].faction;
 
@@ -72,6 +74,9 @@ export const isFriendlyFire = (
     (entityFaction === "wild" && targetFaction === "unit")
   );
 };
+
+export const isFightable = (world: World, entity: Entity) =>
+  ATTACKABLE in entity && !isDead(world, entity);
 
 export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(

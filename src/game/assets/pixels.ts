@@ -1,7 +1,7 @@
 import { Element, Material } from "../../engine/components/item";
 import { Sprite } from "../../engine/components/sprite";
 import { padCenter, repeat } from "../math/std";
-import { colors, recolor } from "./colors";
+import { brightColors, colors, recolor } from "./colors";
 import {
   addForeground,
   createText,
@@ -21,10 +21,18 @@ export const recolorSprite = (
   })),
 });
 
+export const brightenSprites = (sprites: Sprite[]) =>
+  sprites.map((sprite) => recolorSprite(sprite, brightColors));
+
+export const recolorLine = (
+  line: Sprite[],
+  colorOrMap: string | Record<string, string>
+) => line.map((pixel) => recolorSprite(pixel, colorOrMap));
+
 export const recolorPixels = (
   pixels: Sprite[][],
   colorOrMap: string | Record<string, string>
-) => pixels.map((row) => row.map((pixel) => recolorSprite(pixel, colorOrMap)));
+) => pixels.map((line) => recolorLine(line, colorOrMap));
 
 export const materialElementColors: Record<Material | Element, string> = {
   wood: colors.maroon,
@@ -46,6 +54,9 @@ export const centerSprites = (line: Sprite[], width: number) => [
   ...line,
   ...repeat(none, Math.ceil((width - line.length) / 2)),
 ];
+
+export const centerLayer = (layer: Sprite[][], width: number) =>
+  layer.map((line) => centerSprites(line, width));
 
 export const overlay = (...layers: Sprite[][][]) => {
   const merged: Sprite[][] = [];

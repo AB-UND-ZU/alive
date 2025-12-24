@@ -3,11 +3,17 @@ import { World } from "../ecs";
 
 export type Pattern = {
   name:
+    | "passive"
+    | "chase"
+    | "chase_slow"
     | "prism"
     | "eye"
     | "orb"
     | "fairy"
     | "archer"
+    | "rose"
+    | "violet"
+    | "clover"
     | "wave_tower"
     | "chest_boss"
     | "wait"
@@ -27,7 +33,6 @@ export type Pattern = {
     | "tumbleweed"
     | "spawner"
     | "dummy"
-    | "chest_boss"
     | "guard"
     | "watch";
   memory: any;

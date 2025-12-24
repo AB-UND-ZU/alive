@@ -32,7 +32,6 @@ import {
   hostileBar,
   info,
   mergeSprites,
-  neutralBar,
   popupBackground,
   popupCenter,
   popupCenterEnd,
@@ -263,7 +262,7 @@ export type QuestStage<T extends StepAnimations> = {
   finished: boolean;
 };
 
-const STEP_DEBUG = false;
+const STEP_DEBUG = true;
 
 export const step = <T extends StepAnimations>({
   stage,
@@ -334,6 +333,7 @@ export const detailsHeight = 3;
 export const contentDelay = 8;
 export const popupDelay = 60;
 export const popupTime = frameHeight * popupDelay;
+export const questWidth = 13;
 
 export const scrolledVerticalIndex = (
   world: World,
@@ -1055,10 +1055,10 @@ export const entitySprites: Record<
       createText("buy items. Drops"),
       [
         ...createText("from "),
-        createUnitName("prism")[0],
-        createUnitName("goldEye")[0],
-        createUnitName("diamondOrb")[0],
-        createUnitName("banditKnight")[0],
+        getUnitSprite("prism"),
+        getUnitSprite("goldEye"),
+        getUnitSprite("diamondOrb"),
+        getUnitSprite("banditKnight"),
         ...createText("Enemies", colors.maroon),
         ...createText("."),
       ],
@@ -1278,6 +1278,7 @@ export const entitySprites: Record<
         ...createItemName({ stackable: "leaf" }),
         ...createText("."),
       ],
+      createCountable({ xp: 1 }, "xp", "display"),
     ],
   },
   ingot: { sprite: ingot },
@@ -1652,6 +1653,7 @@ export const materialSprites: Record<
       ],
     },
   },
+  bolt: {},
 
   // secondary items
   slash: {
@@ -2278,6 +2280,7 @@ export const elementSprites: Record<
       },
     },
   },
+  bolt: {},
 
   // consumable
   key: {},
@@ -2515,17 +2518,20 @@ export const getItemSprite = (
 };
 
 export const createItemText = (
-  item: Omit<Item, "carrier" | "bound"> & { materialized?: Materialized }
+  item: Omit<Item, "carrier" | "bound"> & { materialized?: Materialized },
+
+  color = colors.grey
 ) => {
   const stringified = item.amount.toString();
 
-  return [...createText(stringified, colors.grey), ...createItemName(item)];
+  return [...createText(stringified, color), ...createItemName(item, color)];
 };
 
 export const createItemName = (
   item: Omit<Item, "carrier" | "bound" | "amount"> & {
     materialized?: Materialized;
-  }
+  },
+  color = colors.grey
 ) => {
   const sprite = getItemSprite(item, "display");
 
@@ -2535,31 +2541,42 @@ export const createItemName = (
       item.materialized
         ? `${item.materialized[0].toUpperCase()}${item.materialized.slice(1)}`
         : sprite.name,
-      colors.grey
+      color
     ),
   ];
 };
 
-export const createUnitName = (unit: UnitKey) => {
+export const getUnitSprite = (unit: UnitKey) => {
   const unitData = generateUnitData(unit);
 
+  return mergeSprites(
+    unitData.backdrop || none,
+    ...unitData.equipments
+      .filter((equipment) => equipment.equipment === "shield")
+      .map((equipment) => getItemSprite(equipment)),
+    unitData.sprite,
+    ...unitData.equipments
+      .filter(
+        (equipment) =>
+          equipment.amount !== 0 &&
+          equipment.equipment &&
+          equipment.equipment === "sword"
+      )
+      .map((equipment) => getItemSprite(equipment)),
+    unitData.faction === "unit"
+      ? none
+      : unitData.faction === "wild"
+      ? hostileBar
+      : friendlyBar
+  );
+};
+
+export const createUnitName = (unit: UnitKey) => {
+  const unitData = generateUnitData(unit);
+  const sprite = getUnitSprite(unit);
+
   return [
-    mergeSprites(
-      ...unitData.equipments
-        .filter((equipment) => equipment.equipment === "shield")
-        .map((equipment) => getItemSprite(equipment)),
-      unitData.sprite,
-      ...unitData.equipments
-        .filter(
-          (equipment) => equipment.equipment && equipment.equipment !== "shield"
-        )
-        .map((equipment) => getItemSprite(equipment)),
-      unitData.faction === "unit"
-        ? neutralBar
-        : unitData.faction === "wild"
-        ? hostileBar
-        : friendlyBar
-    ),
+    sprite,
     ...createText(
       unitData.sprite.name,
       unitData.faction === "wild"

@@ -6,13 +6,12 @@ import { PLAYER } from "../components/player";
 import { REFERENCE } from "../components/reference";
 import { getCell } from "./map";
 import { Entity } from "ecs";
-import { QUEST } from "../components/quest";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
-import { isDead, isEnemy, isNeutral, isNpc } from "./damage";
+import { isDead, isEnemy, isNpc } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
@@ -21,30 +20,19 @@ import { TypedEntity } from "../entities";
 import {
   getPopup,
   getTabSelections,
+  getVerticalIndex,
   isInPopup,
   isInTab,
   isPopupAvailable,
+  isQuestCompleted,
 } from "./popup";
 import { WARPABLE } from "../components/warpable";
+import { POPUP } from "../components/popup";
 
 export const getWarpable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
     (entity) => WARPABLE in entity
   ) as Entity | undefined;
-
-export const getQuest = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) => QUEST in entity) as
-    | Entity
-    | undefined;
-
-export const canAcceptQuest = (world: World, entity: Entity, quest: Entity) =>
-  PLAYER in entity &&
-  !isDead(world, entity) &&
-  (!isEnemy(world, quest) || isNeutral(world, quest)) &&
-  !!getAvailableQuest(world, quest);
-
-export const getAvailableQuest = (world: World, entity: Entity) =>
-  entity[QUEST]?.available && entity[QUEST].name;
 
 export const getLockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -180,10 +168,8 @@ export default function setupAction(world: World) {
       INVENTORY,
     ])) {
       let warp: Entity | undefined = undefined;
-      let quest: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
       let popup: Entity | undefined = undefined;
-      let claim: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
       let use: Entity | undefined = undefined;
       let add_: Entity | undefined = undefined;
@@ -207,7 +193,6 @@ export default function setupAction(world: World) {
             const delta = { x: offsetX, y: offsetY };
             const targetPosition = add(entity[POSITION], delta);
             const warpableEntity = getWarpable(world, targetPosition);
-            const questEntity = getQuest(world, targetPosition);
             const lockableEntity = getLockable(world, targetPosition);
             const adjacentPopup = getPopup(world, targetPosition);
             const popupEntity =
@@ -215,7 +200,6 @@ export default function setupAction(world: World) {
             const selections = popupEntity
               ? getTabSelections(world, popupEntity)
               : [];
-            const claimEntity = popupEntity;
             const tradeEntity = popupEntity;
             const useEntity = entity;
             const addEntity = popupEntity;
@@ -229,28 +213,6 @@ export default function setupAction(world: World) {
             ) {
               warp = warpableEntity;
             }
-
-            // claiming only while in finished quest
-            if (
-              !claim &&
-              entity[PLAYER] &&
-              claimEntity &&
-              isInTab(world, entity, "quest") &&
-              !getAvailableQuest(world, claimEntity)
-            )
-              claim = claimEntity;
-
-            // only player can accept unfinished quests after reading info
-            if (
-              !claim &&
-              !quest &&
-              entity[PLAYER] &&
-              questEntity &&
-              isInTab(world, entity, "quest") &&
-              canAcceptQuest(world, entity, questEntity) &&
-              !isDead(world, entity)
-            )
-              quest = questEntity;
 
             // only locked doors can be unlocked
             if (
@@ -282,7 +244,12 @@ export default function setupAction(world: World) {
               (isInTab(world, entity, "buy") ||
                 isInTab(world, entity, "sell") ||
                 (isInTab(world, entity, "forge") && selections.length === 2) ||
-                (isInTab(world, entity, "craft") && selections.length === 1))
+                (isInTab(world, entity, "craft") && selections.length === 1) ||
+                (isInTab(world, entity, "quest") &&
+                  isQuestCompleted(world, entity, tradeEntity) &&
+                  ((selections.length === 0 &&
+                    tradeEntity[POPUP].choices.length === 0) ||
+                    selections.length === 1)))
             )
               trade = tradeEntity;
 
@@ -295,14 +262,25 @@ export default function setupAction(world: World) {
             )
               use = useEntity;
 
-            // adding only while preparing forge
+            // adding only while in certain popup states
             if (
               !use &&
               entity[PLAYER] &&
               addEntity &&
               ((isInTab(world, entity, "forge") && selections.length < 2) ||
                 (isInTab(world, entity, "craft") && selections.length < 1) ||
-                (isInTab(world, entity, "class") && selections.length < 1))
+                (isInTab(world, entity, "class") && selections.length < 1) ||
+                (isInTab(world, entity, "quest") &&
+                  ((!isQuestCompleted(world, entity, addEntity) &&
+                    ((selections.length === 0 &&
+                      addEntity[POPUP].objectives.length > 0) ||
+                      (selections.length === 1 &&
+                        addEntity[POPUP].objectives[
+                          getVerticalIndex(world, addEntity)
+                        ].identifier))) ||
+                    (isQuestCompleted(world, entity, addEntity) &&
+                      selections.length === 0 &&
+                      addEntity[POPUP].choices.length > 0))))
             )
               add_ = addEntity;
           }
@@ -314,10 +292,8 @@ export default function setupAction(world: World) {
       const secondary = getAvailableSecondary(world, entity);
 
       const warpId = warp && world.getEntityId(warp);
-      const questId = quest && world.getEntityId(quest);
       const unlockId = unlock && world.getEntityId(unlock);
       const popupId = popup && world.getEntityId(popup);
-      const claimId = claim && world.getEntityId(claim);
       const tradeId = trade && world.getEntityId(trade);
       const useId = use && world.getEntityId(use);
       const addId = add_ && world.getEntityId(add_);
@@ -326,23 +302,14 @@ export default function setupAction(world: World) {
       const primaryId = primary && world.getEntityId(primary);
       const secondaryId =
         !isEnemy(world, entity) &&
-        (warpId ||
-          questId ||
-          unlockId ||
-          popupId ||
-          tradeId ||
-          useId ||
-          addId ||
-          spawnId)
+        (warpId || unlockId || popupId || tradeId || useId || addId || spawnId)
           ? undefined
           : secondary && world.getEntityId(secondary);
 
       if (
         entity[ACTIONABLE].warp !== warpId ||
-        entity[ACTIONABLE].quest !== questId ||
         entity[ACTIONABLE].unlock !== unlockId ||
         entity[ACTIONABLE].popup !== popupId ||
-        entity[ACTIONABLE].claim !== claimId ||
         entity[ACTIONABLE].trade !== tradeId ||
         entity[ACTIONABLE].use !== useId ||
         entity[ACTIONABLE].add !== addId ||
@@ -352,10 +319,8 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].secondary !== secondaryId
       ) {
         entity[ACTIONABLE].warp = warpId;
-        entity[ACTIONABLE].quest = questId;
         entity[ACTIONABLE].unlock = unlockId;
         entity[ACTIONABLE].popup = popupId;
-        entity[ACTIONABLE].claim = claimId;
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].use = useId;
         entity[ACTIONABLE].add = addId;

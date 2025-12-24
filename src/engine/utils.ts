@@ -1,57 +1,11 @@
-import { Entity as ECSEntity } from "ecs";
 import { World } from ".";
 import { IDENTIFIABLE } from "./components/identifiable";
-import { Quest, QUEST } from "./components/quest";
 import { TRACKABLE } from "./components/trackable";
 import { Focusable, FOCUSABLE } from "./components/focusable";
-import { TOOLTIP } from "./components/tooltip";
-import { ongoing } from "../game/assets/sprites";
 import { rerenderEntity } from "./systems/renderer";
 import { Entity, TypedEntity } from "./entities";
 import { PLAYER } from "./components/player";
 import { ECS_DEBUG } from "./ecs";
-import { createPopup } from "./systems/popup";
-import { POPUP } from "./components/popup";
-import { Sprite } from "./components/sprite";
-
-// util methods
-export const offerQuest = (
-  world: World,
-  entity: ECSEntity,
-  name: Quest["name"],
-  lines: Sprite[][],
-  memory: any
-) => {
-  if (entity[QUEST]) {
-    entity[QUEST].name = name;
-    entity[QUEST].available = true;
-  } else {
-    world.addComponentToEntity(entity, QUEST, {
-      name,
-      available: true,
-      memory,
-    });
-  }
-
-  createPopup(world, entity, {
-    tabs: ["quest"],
-    targets: [],
-    lines: [lines],
-    deals: [],
-  });
-};
-
-export const acceptQuest = (world: World, entity: ECSEntity) => {
-  entity[QUEST].available = false;
-  entity[TOOLTIP].idle = ongoing;
-  entity[TOOLTIP].changed = true;
-};
-
-export const removeQuest = (world: World, entity: ECSEntity) => {
-  entity[TOOLTIP].idle = undefined;
-  entity[TOOLTIP].changed = true;
-  world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP);
-};
 
 export const setIdentifier = (
   world: World,
@@ -82,10 +36,12 @@ export const assertIdentifierAndComponents = <C extends keyof Entity>(
   return world.assertComponents(entity, componentNames);
 };
 
-export const getIdentifier = (world: World, identifier: string) =>
-  world
-    .getEntities([IDENTIFIABLE])
-    .find((entity) => entity[IDENTIFIABLE].name === identifier);
+export const getIdentifier = (world: World, identifier?: string) =>
+  identifier
+    ? world
+        .getEntities([IDENTIFIABLE])
+        .find((entity) => entity[IDENTIFIABLE].name === identifier)
+    : undefined;
 
 export const getIdentifierAndComponents = <C extends keyof Entity>(
   world: World,

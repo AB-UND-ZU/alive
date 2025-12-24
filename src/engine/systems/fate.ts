@@ -203,6 +203,8 @@ export const createHero = (world: World, halo: Entity) => {
     deals: [],
     recipes: [],
     targets: [],
+    objectives: [],
+    choices: [],
     tabs: ["inspect", "gear", "stats"],
     viewpoint: world.getEntityId(inspectEntity),
   });

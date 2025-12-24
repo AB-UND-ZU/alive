@@ -9,7 +9,7 @@ export const elements = ["fire", "water", "earth", "air"] as const;
 export type Material = "wood" | "iron" | "gold" | "diamond" | "ruby";
 export type Element = (typeof elements)[number];
 
-export type Primary = "wave" | "beam";
+export type Primary = "wave" | "beam" | "bolt";
 export type Secondary = "slash" | "bow";
 
 export type Consumable = "key" | "potion" | "map";

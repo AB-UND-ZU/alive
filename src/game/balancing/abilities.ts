@@ -68,6 +68,9 @@ export const abilityStats: Partial<
         },
       },
     },
+    bolt: {
+      wood: { magic: 3 },
+    },
     bow: {
       wood: { melee: 2 },
       iron: { melee: 4 },

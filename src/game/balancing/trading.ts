@@ -18,9 +18,9 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
   coconut: 8,
   banana: 8,
 
+  seed: 3,
   fruit: 8,
   herb: 8,
-  seed: 8,
 
   gem: 10,
   crystal: 10,
@@ -105,7 +105,6 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "charge" },
   { consume: "potion", material: "iron", element: "fire" },
   { consume: "potion", material: "iron", element: "water" },
-  { stackable: "seed" },
   { stackable: "banana" },
   { stackable: "coconut" },
   { stackable: "resource", material: "wood" },

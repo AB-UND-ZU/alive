@@ -30,7 +30,6 @@ import { Player, PLAYER } from "./components/player";
 import { Position, POSITION } from "./components/position";
 import { Projectile, PROJECTILE } from "./components/projectile";
 import { Pushable, PUSHABLE } from "./components/pushable";
-import { Quest, QUEST } from "./components/quest";
 import { Reference, REFERENCE } from "./components/reference";
 import { Renderable, RENDERABLE } from "./components/renderable";
 import { Revivable, REVIVABLE } from "./components/revivable";
@@ -96,7 +95,6 @@ export type Entity = Record<LevelName, {}> & {
   [POSITION]: Position;
   [PROJECTILE]: Projectile;
   [PUSHABLE]: Pushable;
-  [QUEST]: Quest;
   [RECHARGABLE]: Rechargable;
   [RENDERABLE]: Renderable;
   [REFERENCE]: Reference;
@@ -301,6 +299,31 @@ export const createDoor = entityFactory([
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
+  TOOLTIP,
+]);
+
+export const createDormant = entityFactory([
+  ACTIONABLE,
+  BEHAVIOUR,
+  BELONGABLE,
+  CLICKABLE,
+  COLLIDABLE,
+  DROPPABLE,
+  EQUIPPABLE,
+  FOG,
+  INVENTORY,
+  LAYER,
+  MELEE,
+  MOVABLE,
+  NPC,
+  ORIENTABLE,
+  POSITION,
+  RECHARGABLE,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  STATS,
+  SWIMMABLE,
   TOOLTIP,
 ]);
 
@@ -596,6 +619,12 @@ export const createPortal = entityFactory([
   SPRITE,
   TOOLTIP,
   WARPABLE,
+]);
+
+export const createProcessor = entityFactory([
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
 ]);
 
 export const createResource = entityFactory([

@@ -3,7 +3,6 @@ import { POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { Entity } from "ecs";
-import { QUEST } from "../components/quest";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { TOOLTIP } from "../components/tooltip";
@@ -15,6 +14,7 @@ import {
   createDialog,
   createText,
   none,
+  strikethrough,
 } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
@@ -26,7 +26,6 @@ import {
   updateWalkable,
 } from "./map";
 import {
-  canAcceptQuest,
   canUnlock,
   castablePrimary,
   castableSecondary,
@@ -34,9 +33,11 @@ import {
 } from "./action";
 import {
   createItemName,
+  createItemText,
   frameHeight,
+  frameWidth,
   getItemSprite,
-  questSequence,
+  questWidth,
   queueMessage,
 } from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
@@ -53,10 +54,10 @@ import { STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
 import { entities } from "..";
 import { BELONGABLE } from "../components/belongable";
-import { add, copy, signedDistance } from "../../game/math/std";
+import { add, copy, repeat, signedDistance } from "../../game/math/std";
 import { ORIENTABLE } from "../components/orientable";
 import { CASTABLE } from "../components/castable";
-import { isDead, isEnemy, isNpc } from "./damage";
+import { isDead, isEnemy, isFriendlyFire, isNpc } from "./damage";
 import { canCast, chargeSlash } from "./magic";
 import { EQUIPPABLE } from "../components/equippable";
 import {
@@ -74,9 +75,10 @@ import {
   openPopup,
   popTabSelection,
   pushTabSelection,
+  removePopup,
   setVerticalIndex,
 } from "./popup";
-import { Deal, POPUP } from "../components/popup";
+import { Popup, POPUP } from "../components/popup";
 import { addToInventory } from "./collect";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { PLAYER } from "../components/player";
@@ -84,8 +86,8 @@ import { isControllable } from "./freeze";
 import {
   assertIdentifier,
   assertIdentifierAndComponents,
-  acceptQuest as ecsAcceptQuest,
-  removeQuest,
+  getIdentifier,
+  setHighlight,
 } from "../utils";
 import { colors } from "../../game/assets/colors";
 import { NPC } from "../components/npc";
@@ -97,6 +99,7 @@ import { SPAWNABLE } from "../components/spawnable";
 import { getForgeStatus } from "../../game/balancing/forging";
 import { getSelectedLevel, levelConfig } from "../../game/levels";
 import { calculateVision } from "./visibility";
+import { centerLayer, pixelFrame } from "../../game/assets/pixels";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -405,6 +408,8 @@ export const performTrade = (
             recipes: [],
             lines: [],
             targets: [],
+            objectives: [],
+            choices: [],
             viewpoint: world.getEntityId(entity),
             tabs: ["info"],
           },
@@ -478,30 +483,75 @@ export const consumeCharge = (
   }
 };
 
-export const acceptQuest = (world: World, entity: Entity, target: Entity) => {
-  // accept quest and remove from target
-  questSequence(
-    world,
-    entity,
-    target[QUEST].name,
-    target[QUEST].memory,
-    world.assertById(entity[ACTIONABLE].quest)
-  );
-  ecsAcceptQuest(world, target);
-  closePopup(world, entity, target);
-};
-
 export const completeQuest = (world: World, entity: Entity, target: Entity) => {
-  target[POPUP].deals.forEach((deal: Deal, index: number) => {
-    target[POPUP].verticalIndezes[target[POPUP].horizontalIndex] = index;
+  const popup = target[POPUP] as Popup;
+  popup.deals.forEach((_, index) => {
+    popup.verticalIndezes[target[POPUP].horizontalIndex] = index;
     performTrade(
       world,
       entity,
       target as TypedEntity<"POPUP" | "TOOLTIP" | "POSITION">
     );
   });
-  closePopup(world, entity, target);
-  removeQuest(world, target);
+
+  // apply selected choice
+  const choice = popup.choices[getVerticalIndex(world, target)];
+  if (choice) {
+    const itemEntity = entities.createItem(world, {
+      [ITEM]: { ...choice, carrier: -1, bound: false },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: getItemSprite(choice),
+    });
+    addToInventory(world, entity, itemEntity, true);
+    queueMessage(world, entity, {
+      line: createText(
+        `${choice.amount}x ${getItemSprite(choice).name}`,
+        itemEntity[ITEM].equipment ? colors.black : colors.silver,
+        itemEntity[ITEM].equipment ? colors.silver : colors.black
+      ),
+      orientation: "up",
+      fast: false,
+      delay: 0,
+    });
+    play("pickup", pickupOptions[choice.stat || choice.stackable!]);
+  }
+
+  popup.lines = [
+    centerLayer(
+      [
+        ...repeat(
+          [],
+          Math.floor(
+            (frameHeight - 2 - popup.deals.length - 4 - (choice ? 1 : 0)) / 2
+          )
+        ),
+        createText("Quest complete!"),
+        [],
+        ...pixelFrame(
+          questWidth,
+          popup.deals.length + 2 + (choice ? 1 : 0),
+          colors.lime,
+          "solid",
+          [
+            ...(choice ? [choice] : []),
+            ...popup.deals.map((deal) => deal.item),
+          ].map((item) => {
+            const text = createItemText(item);
+            return strikethrough([
+              ...text,
+              ...repeat(none, questWidth - text.length - 2),
+            ]);
+          }),
+          createText("Reward", colors.lime)
+        ),
+      ],
+      frameWidth - 2
+    ),
+  ];
+  popup.deals = [];
+  popup.choices = [];
+  popup.targets = [];
+  popup.objectives = [];
 };
 
 export const castSpell = (
@@ -545,6 +595,22 @@ export const castSpell = (
       }
     );
     play("beam", { variant: 3 });
+  } else if (item[ITEM].primary === "bolt") {
+    createSequence<"spell", SpellSequence>(
+      world,
+      spellEntity,
+      "spell",
+      "castBolt1",
+      {
+        progress: 0,
+        duration: 6,
+        range: 6,
+        areas: [],
+        material: item[ITEM].material,
+        element: item[ITEM].element,
+      }
+    );
+    // TODO: add sound
   } else if (item[ITEM].primary === "wave") {
     createSequence<"spell", SpellSequence>(
       world,
@@ -628,16 +694,11 @@ export default function setupTrigger(world: World) {
         entity[ACTIONABLE].warp,
         [POSITION, TOOLTIP]
       );
-      const questEntity = world.getEntityById(entity[ACTIONABLE].quest);
       const unlockEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].unlock,
         [LOCKABLE, POSITION]
       );
       const popupEntity = world.getEntityById(entity[ACTIONABLE].popup);
-      const claimEntity = world.getEntityByIdAndComponents(
-        entity[ACTIONABLE].claim,
-        [TOOLTIP, POPUP]
-      );
       const tradeEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].trade,
         [TOOLTIP, POPUP, POSITION]
@@ -667,10 +728,15 @@ export default function setupTrigger(world: World) {
       if (entity[PLAYER]?.inspectTriggered) {
         entity[PLAYER].inspectTriggered = false;
 
-        // close any popup
-        const popupEntity = world.getEntityById(entity[PLAYER].popup);
+        // close any popup but preserve selections
+        const popupEntity = world.getEntityByIdAndComponents(
+          entity[PLAYER].popup,
+          [POPUP]
+        );
         if (popupEntity) {
+          const selections = popupEntity[POPUP].selections;
           closePopup(world, entity, popupEntity);
+          popupEntity[POPUP].selections = selections;
         }
 
         // open if it wasn't just closed and move viewpoint
@@ -698,8 +764,6 @@ export default function setupTrigger(world: World) {
           reviveEntity(world, spawnEntity, entity);
         } else if (warpEntity && canWarp(world, entity, warpEntity)) {
           initiateWarp(world, warpEntity, entity);
-        } else if (questEntity && canAcceptQuest(world, entity, questEntity)) {
-          acceptQuest(world, entity, questEntity);
         } else if (unlockEntity) {
           if (canUnlock(world, entity, unlockEntity)) {
             unlockDoor(world, entity, unlockEntity);
@@ -731,18 +795,6 @@ export default function setupTrigger(world: World) {
           }
         } else if (popupEntity && isPopupAvailable(world, popupEntity)) {
           openPopup(world, entity, popupEntity);
-        } else if (claimEntity) {
-          if (isQuestCompleted(world, entity, claimEntity)) {
-            completeQuest(world, entity, claimEntity);
-          } else {
-            queueMessage(world, entity, {
-              line: createText("Not completed!", colors.silver, colors.black),
-              orientation: "up",
-              fast: false,
-              delay: 0,
-            });
-            return;
-          }
         } else if (tradeEntity) {
           const tab = getTab(world, tradeEntity);
           const deal = getDeal(world, entity, tradeEntity);
@@ -830,6 +882,22 @@ export default function setupTrigger(world: World) {
                 delay: 0,
               });
             }
+          } else if (tab === "quest") {
+            if (isQuestCompleted(world, entity, tradeEntity)) {
+              completeQuest(world, entity, tradeEntity);
+
+              // advance to completed screen
+              const selections = getTabSelections(world, tradeEntity);
+              if (selections.length === 0) pushTabSelection(world, tradeEntity);
+              pushTabSelection(world, tradeEntity);
+            } else {
+              queueMessage(world, entity, {
+                line: createText("Not completed!", colors.silver, colors.black),
+                orientation: "up",
+                fast: false,
+                delay: 0,
+              });
+            }
           }
         } else if (useEntity) {
           if (useEntity && getConsumption(world, entity, useEntity)) {
@@ -861,9 +929,9 @@ export default function setupTrigger(world: World) {
         } else if (addEntity) {
           const tab = getTab(world, addEntity);
           const verticalIndex = getVerticalIndex(world, addEntity);
+          const selections = getTabSelections(world, addEntity);
 
           if (tab === "forge") {
-            const selections = getTabSelections(world, addEntity);
             const [firstIndex, secondIndex] = selections;
             const { forgeable, addItem, baseItem } = getForgeStatus(
               world,
@@ -908,6 +976,25 @@ export default function setupTrigger(world: World) {
                 delay: 0,
               });
             }
+          } else if (tab === "quest") {
+            const objectives = addEntity[POPUP].objectives;
+            if (objectives.length > 0 && selections.length === 1) {
+              const target = getIdentifier(
+                world,
+                objectives[verticalIndex]?.identifier
+              );
+              if (target) {
+                setHighlight(
+                  world,
+                  isFriendlyFire(world, entity, target) ? "quest" : "enemy",
+                  target
+                );
+              }
+              closePopup(world, entity, addEntity);
+            } else {
+              pushTabSelection(world, addEntity);
+              setVerticalIndex(world, addEntity, 0);
+            }
           }
         } else if (primaryEntity) {
           const castReady = canCast(world, entity, primaryEntity);
@@ -939,7 +1026,18 @@ export default function setupTrigger(world: World) {
         entity[ACTIONABLE].secondaryTriggered = false;
 
         if (closeEntity) {
-          if (getTabSelections(world, closeEntity).length > 0) {
+          const tab = getTab(world, closeEntity);
+          const selections = getTabSelections(world, closeEntity);
+
+          if (
+            tab === "quest" &&
+            isQuestCompleted(world, entity, closeEntity) &&
+            selections.length === 2
+          ) {
+            // clear quest after showing completed screen
+            closePopup(world, entity, closeEntity);
+            removePopup(world, closeEntity);
+          } else if (selections.length > 0) {
             const verticalIndex = popTabSelection(world, closeEntity);
             setVerticalIndex(world, closeEntity, verticalIndex || 0);
           } else {

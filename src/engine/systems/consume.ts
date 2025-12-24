@@ -30,6 +30,8 @@ import { LEVEL } from "../components/level";
 import { isInside } from "./enter";
 import { calculateVision, getEntityVision } from "./visibility";
 import { LIGHT } from "../components/light";
+import { createItemAsDrop } from "./drop";
+import { POSITION } from "../components/position";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -37,8 +39,10 @@ export const isConsumable = (world: World, entity: Entity) =>
 export const getConsumables = (world: World, entity: Entity) =>
   (entity[INVENTORY].items || [])
     .map((itemId: number) => world.assertByIdAndComponents(itemId, [ITEM]))
-    .filter((consumable: Entity) =>
-      isConsumable(world, consumable)
+    .filter(
+      (consumable: Entity) =>
+        isConsumable(world, consumable)&&
+        (!entity[NPC] || consumable[ITEM].bound)
     ) as TypedEntity<"ITEM">[];
 
 export const defaultLight = calculateVision(0);
@@ -83,8 +87,16 @@ export const consumptionConfigs: Partial<
   },
 };
 
+export type StackableConsumption = {
+  amount: number;
+  countable: keyof Countable;
+};
+export type ItemConsumption = StackableConsumption & {
+  item: TypedEntity<"ITEM">;
+};
+
 export const stackableConsumptions: Partial<
-  Record<Stackable, { amount: number; countable: keyof Countable }>
+  Record<Stackable, StackableConsumption>
 > = {
   apple: { countable: "hp", amount: 2 },
   shroom: { countable: "mp", amount: 1 },
@@ -92,6 +104,7 @@ export const stackableConsumptions: Partial<
   coconut: { countable: "mp", amount: 2 },
   fruit: { countable: "hp", amount: 5 },
   herb: { countable: "mp", amount: 2 },
+  seed: { countable: "xp", amount: 1 },
 };
 
 export const getConsumption = (
@@ -117,7 +130,10 @@ export const getConsumption = (
   return getItemConsumption(world, item);
 };
 
-export const getItemConsumption = (world: World, item: Entity) => {
+export const getItemConsumption = (
+  world: World,
+  item: Entity
+): ItemConsumption | undefined => {
   const consumption =
     item[ITEM].stackable &&
     stackableConsumptions[item[ITEM].stackable as Stackable];
@@ -140,18 +156,29 @@ export const consumeItem = (world: World, entity: Entity, target: Entity) => {
   rerenderEntity(world, entity);
 
   // add stats
-  const countableItem = entities.createItem(world, {
+  const itemData = {
     [ITEM]: {
-      stat: consumption?.countable,
+      stat: consumption.countable,
       carrier: -1,
       bound: false,
-      amount: 0,
+      amount: consumption.amount,
     },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
-  });
+  };
 
-  addToInventory(world, entity, countableItem, false, consumption.amount);
+  if (consumption.countable === "xp") {
+    createItemAsDrop(
+      world,
+      { ...entity[POSITION] },
+      entities.createItem,
+      itemData,
+      false
+    );
+  } else {
+    const countableItem = entities.createItem(world, itemData);
+    addToInventory(world, entity, countableItem, true);
+  }
 };
 
 export default function setupConsume(world: World) {

@@ -60,7 +60,6 @@ import {
   copy,
   distribution,
   getDistance,
-  id,
   lerp,
   normalize,
   random,
@@ -98,11 +97,11 @@ import {
   smokeThick,
   levelProgress,
   addBackground,
-  fireBeam,
-  waterBeam,
-  earthBeam,
+  fireBolt,
+  waterBolt,
+  earthBolt,
   freeze,
-  airBeam,
+  airBolt,
   craft,
   shop,
   woodSlashSide,
@@ -132,11 +131,11 @@ import {
   goldEdge,
   diamondEdge,
   rubyEdge,
-  woodBeam,
-  ironBeam,
-  goldBeam,
-  diamondBeam,
-  rubyBeam,
+  woodBolt,
+  ironBolt,
+  goldBolt,
+  diamondBolt,
+  rubyBolt,
   woodWave,
   woodAirWave,
   woodFireWave,
@@ -246,6 +245,9 @@ import {
   scrolledVerticalIndex,
   getEntityDescription,
   entitySprites,
+  createUnitName,
+  createItemName,
+  questWidth,
 } from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
@@ -264,7 +266,6 @@ import {
 } from "../../engine/systems/magic";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { Popup, POPUP } from "../../engine/components/popup";
-import { getActivationRow } from "../../components/Controls";
 import {
   canRedeem,
   canSell,
@@ -281,18 +282,19 @@ import {
   visibleStats,
 } from "../../engine/systems/popup";
 import { getIdentifierAndComponents } from "../../engine/utils";
-import { generateUnitData } from "../balancing/units";
 import { play } from "../sound";
 import { extinguishEntity } from "../../engine/systems/burn";
 import {
   alienPixels,
   bodyPixels,
+  brightenSprites,
   centerSprites,
   knightPixels,
   magePixels,
   materialElementColors,
   overlay,
   pixelFrame,
+  recolorLine,
   recolorPixels,
   recolorSprite,
   roguePixels,
@@ -567,16 +569,16 @@ const edgeSprites = {
   diamond: diamondEdge,
   ruby: rubyEdge,
 };
-const beamSprites = {
-  wood: woodBeam,
-  iron: ironBeam,
-  gold: goldBeam,
-  diamond: diamondBeam,
-  ruby: rubyBeam,
-  air: airBeam,
-  fire: fireBeam,
-  water: waterBeam,
-  earth: earthBeam,
+const boltSprites = {
+  wood: woodBolt,
+  iron: ironBolt,
+  gold: goldBolt,
+  diamond: diamondBolt,
+  ruby: rubyBolt,
+  air: airBolt,
+  fire: fireBolt,
+  water: waterBolt,
+  earth: earthBolt,
 };
 
 export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
@@ -666,7 +668,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
       progress <= state.args.duration - state.args.range &&
       (progress - 1) % beamTicks === 0
     ) {
-      const beamParticle = entities.createParticle(world, {
+      const boltParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX: limit.x,
           offsetY: limit.y,
@@ -676,10 +678,10 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
           animatedOrigin: copy(delta),
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: beamSprites[element],
+        [SPRITE]: boltSprites[element],
       });
 
-      state.particles[`bolt-${progress}`] = world.getEntityId(beamParticle);
+      state.particles[`bolt-${progress}`] = world.getEntityId(boltParticle);
     }
 
     updated = true;
@@ -737,6 +739,94 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
 
     updated = true;
   }
+
+  return { finished, updated };
+};
+
+const boltSpeed = 200;
+
+export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
+  const entityId = world.getEntityId(entity);
+  const progress = Math.ceil(state.elapsed / boltSpeed);
+  const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
+  const material = state.args.material;
+  const element = state.args.element || material;
+  const limit = {
+    x: delta.x * state.args.range,
+    y: delta.y * state.args.range,
+  };
+
+  let finished = progress > state.args.duration;
+  let updated = false;
+
+  // create bolt particle
+  if (!state.particles.bolt) {
+    const boltParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: limit.x,
+        offsetY: limit.y,
+        offsetZ: particleHeight,
+        duration: boltSpeed * state.args.range,
+        animatedOrigin: { x: 0, y: 0 },
+        amount: 3,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: boltSprites[element],
+    });
+    state.particles.bolt = world.getEntityId(boltParticle);
+  }
+
+  // create effect areas
+  for (
+    let aoeProgress = state.args.progress;
+    aoeProgress < progress && aoeProgress < state.args.range;
+    aoeProgress += 1
+  ) {
+    const offset = {
+      x: delta.x * (aoeProgress + 1),
+      y: delta.y * (aoeProgress + 1),
+    };
+    const aoeEntity = entities.createAoe(world, {
+      [EXERTABLE]: { castable: entityId },
+      [POSITION]: add(entity[POSITION], offset),
+    });
+    registerEntity(world, aoeEntity);
+    state.args.areas.push(world.getEntityId(aoeEntity));
+    updated = true;
+  }
+
+  // remove effect areas
+  for (
+    let clearProgress = state.args.progress - 1;
+    clearProgress > 0 && clearProgress < progress - 1;
+    clearProgress += 1
+  ) {
+    const aoeId = state.args.areas.shift();
+
+    if (!aoeId) break;
+
+    const aoeEntity = world.assertById(aoeId);
+    disposeEntity(world, aoeEntity);
+    updated = true;
+  }
+
+  // dispose particles and areas
+  if (finished) {
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertById(state.particles[particleName]);
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    for (const aoeId of state.args.areas) {
+      const aoeEntity = world.assertById(aoeId);
+      disposeEntity(world, aoeEntity);
+    }
+
+    updated = true;
+  }
+
+  state.args.progress = progress;
 
   return { finished, updated };
 };
@@ -1491,7 +1581,10 @@ export const displayInspect: Sequence<PopupSequence> = (
           ...createText(`${itemEntity[ITEM].amount}`, textColor),
           recolorSprite(times, {
             [colors.white]: textColor,
-            [colors.black]: selected ? darken(consumptionColor) : colors.black,
+            [colors.black]:
+              selected && consumptionColor
+                ? darken(consumptionColor)
+                : colors.black,
           }),
         ];
         const consumptionText = itemConsumption
@@ -1529,9 +1622,9 @@ export const displayInspect: Sequence<PopupSequence> = (
           none,
           itemSprite,
           ...(selected
-            ? itemConsumption
+            ? itemConsumption && consumptionColor
               ? shaded(line, darken(consumptionColor), "▄")
-              : consumptionConfig
+              : consumptionConfig && consumptionColor
               ? shaded(line, darken(consumptionColor))
               : shaded(line, colors.grey)
             : line),
@@ -2414,71 +2507,214 @@ export const displayInfo: Sequence<PopupSequence> = (world, entity, state) => {
 export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
   const popup = entity[POPUP] as Popup;
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const verticalIndex = getVerticalIndex(world, entity);
 
-  const targets = popup.targets.map((target, index) => {
-    const defeated = heroEntity && hasDefeated(world, heroEntity, target);
-    const sprite = generateUnitData(target.unit).sprite;
-    return [
-      ...(index === 0 ? createText("DEFEAT:", colors.red) : repeat(none, 7)),
-      ...(defeated ? strikethrough : id)([
-        ...createText(target.amount.toString().padStart(2, " "), colors.silver),
-        mergeSprites(sprite, hostileBar),
-        ...createText(sprite.name, defeated ? colors.grey : colors.white),
-        ...repeat(none, frameWidth - 2 - 7 - 3 - sprite.name.length),
-      ]),
-    ];
-  });
-  const gathers = popup.deals.map((deal) => {
-    const gathered = heroEntity && canRedeem(world, heroEntity, deal);
+  const allGathered =
+    heroEntity && popup.deals.every((deal) => canShop(world, heroEntity, deal));
+  const allDefeated =
+    heroEntity &&
+    popup.targets.every((target) => hasDefeated(world, heroEntity, target));
+  const completed = allDefeated && allGathered;
+  const objectives = popup.objectives;
+  const selections = getTabSelections(world, entity);
+  const selectedObjective =
+    selections.length === 1 && !completed
+      ? objectives[verticalIndex]
+      : undefined;
+  const selectedChoice =
+    selections.length === 1 && completed
+      ? popup.choices[verticalIndex]
+      : undefined;
 
-    const name = getItemSprite(deal.prices[0]).name;
-    return [
-      ...createText("GATHER:", colors.grey),
-      ...(gathered ? strikethrough : id)([
-        ...getActivationRow(deal.prices[0]),
-        ...createText(name, gathered ? colors.grey : colors.white),
-        ...repeat(none, frameWidth - 2 - 7 - 3 - name.length),
-      ]),
-    ];
-  });
-  const rewards = popup.deals.map((deal, index) => {
-    const received = deal.stock === 0;
-    return [
-      ...(index === 0 ? createText("REWARD:", colors.lime) : repeat(none, 7)),
-      ...(received ? strikethrough : id)([
-        ...getActivationRow(deal.item),
-        ...createText(
-          getItemSprite(deal.item).name,
-          received ? colors.grey : colors.white
-        ),
-      ]),
-    ];
-  });
+  let content: Sprite[][] = [];
 
-  const content: Sprite[][] = [
-    ...(entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex].map(
-      (line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]
-    ),
-    ...repeat(
-      [],
-      frameHeight -
-        2 -
-        entity[POPUP].lines.length -
-        targets.length -
-        gathers.length -
-        rewards.length
-    ),
-    ...targets,
-    ...gathers,
-    ...rewards,
-  ];
+  if (selections.length === 0) {
+    // show quest details
+    const targets =
+      popup.targets.length === 0
+        ? []
+        : pixelFrame(
+            questWidth,
+            popup.targets.length + 2,
+            allDefeated ? colors.grey : colors.red,
+            completed ? "dotted" : "solid",
+            popup.targets.map((target) => {
+              const defeated =
+                heroEntity && hasDefeated(world, heroEntity, target);
+              const [sprite, ...name] = createUnitName(target.unit);
+              const text = [
+                ...createText(
+                  target.amount > 1
+                    ? target.amount.toString().padStart(2)
+                    : "  ",
+                  defeated ? colors.grey : colors.silver
+                ),
+                sprite,
+                ...(defeated ? name : brightenSprites(name)),
+              ];
+              const line = [
+                ...text,
+                ...repeat(none, questWidth - text.length - 2),
+              ];
+              return defeated ? strikethrough(line) : line;
+            }),
+            createText("Defeat", allDefeated ? colors.grey : colors.red)
+          );
+    const prices = popup.deals[0]?.prices || [];
+    const gathers =
+      prices.length === 0
+        ? []
+        : pixelFrame(
+            questWidth,
+            prices.length + 2,
+            allGathered ? colors.grey : colors.yellow,
+            completed ? "dotted" : "solid",
+            prices.map((price) => {
+              const deal = { item: price, stock: 1, prices: [price] };
+              const gathered = heroEntity && canRedeem(world, heroEntity, deal);
+              const color = gathered ? colors.grey : colors.silver;
+
+              const text = [
+                ...createText(price.amount.toString().padStart(2), color),
+                ...createItemName(price, color),
+              ];
+              const line = [
+                ...text,
+                ...repeat(none, questWidth - text.length - 2),
+              ];
+              return gathered ? strikethrough(line) : line;
+            }),
+            createText("Gather", allGathered ? colors.grey : colors.yellow)
+          );
+    const rewardColor = completed ? colors.silver : colors.grey;
+    const rewards =
+      popup.deals.length === 0
+        ? []
+        : pixelFrame(
+            questWidth,
+            popup.deals.length + 2,
+            completed ? colors.lime : colors.grey,
+            completed ? "solid" : "dotted",
+
+            popup.deals.map((deal, index) => {
+              const text = [
+                ...createText(
+                  deal.item.amount.toString().padStart(2),
+                  rewardColor
+                ),
+                ...createItemName(deal.item, rewardColor),
+              ];
+              return [...text, ...repeat(none, questWidth - text.length - 2)];
+            }),
+            createText("Reward", completed ? colors.lime : colors.grey)
+          );
+    const choices =
+      popup.choices.length === 0
+        ? []
+        : pixelFrame(
+            questWidth,
+            popup.choices.length + 2,
+            completed ? colors.green : colors.grey,
+            completed ? "solid" : "dotted",
+            popup.choices.map((choice) => {
+              const text = [
+                ...createText(
+                  choice.amount.toString().padStart(2),
+                  rewardColor
+                ),
+                ...createItemName(choice, rewardColor),
+              ];
+              return [...text, ...repeat(none, questWidth - text.length - 2)];
+            }),
+            createText("Choose", completed ? colors.green : colors.grey)
+          );
+
+    const lines = (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex];
+    content = [
+      ...lines,
+      ...repeat(
+        [],
+        Math.max(
+          1,
+          frameHeight -
+            2 -
+            lines.length -
+            targets.length -
+            gathers.length -
+            rewards.length -
+            choices.length -
+            1
+        )
+      ),
+      ...targets,
+      ...gathers,
+      ...rewards.map((line) => [...repeat(none, 4), ...line]),
+      ...choices.map((line) => [...repeat(none, 4), ...line]),
+    ];
+  } else if (selections.length === 2) {
+    // show completed screen
+    content = popup.lines[verticalIndex];
+  } else if (completed) {
+    // show reward choices
+    content = popup.choices.map((choice, index) => {
+      const selected = index === verticalIndex;
+      const [sprite, ...name] = createItemName(choice);
+      const title = [...name, ...repeat(none, frameWidth - 4 - name.length)];
+      const line = selected
+        ? shaded(recolorLine(title, colors.white), colors.green, "▄")
+        : title;
+      return [none, sprite, ...line];
+    });
+  } else {
+    // show objectives
+    content = objectives.map((objective, index) => {
+      const selected = index === verticalIndex;
+      let sprite: Sprite = none;
+      let name: Sprite[] = [];
+
+      if (objective.item) {
+        [sprite, ...name] = createItemName(objective.item);
+      } else {
+        [sprite, ...name] = objective.title;
+      }
+
+      const title = [...name, ...repeat(none, frameWidth - 4 - name.length)];
+      const line = !selected
+        ? objective.available
+          ? title
+          : strikethrough(title)
+        : objective.available
+        ? shaded(brightenSprites(title), colors.grey)
+        : dotted(strikethrough(title), colors.red);
+      return [none, sprite, ...line];
+    });
+  }
 
   const popupResult = renderPopup(
     world,
     entity,
     state,
     popupIdles[getTab(world, entity)],
-    content
+    content,
+    selections.length !== 1
+      ? undefined
+      : completed
+      ? "active"
+      : selectedObjective?.available
+      ? "selected"
+      : "blocked",
+    selectedObjective
+      ? selectedObjective.available
+        ? selectedObjective.item
+          ? getItemDescription(selectedObjective.item)
+          : selectedObjective.description
+        : [
+            createText("Objective not", colors.grey),
+            createText("available.", colors.grey),
+          ]
+      : selectedChoice
+      ? getItemDescription(selectedChoice)
+      : undefined
   );
   return {
     updated: popupResult.updated,

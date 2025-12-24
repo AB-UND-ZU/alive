@@ -11,7 +11,7 @@ import {
   calculateDamage,
   createAmountMarker,
   getEntityStats,
-  isDead,
+  isFightable,
 } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
 import { rerenderEntity } from "./renderer";
@@ -21,10 +21,9 @@ import { MELEE } from "../components/melee";
 import { relativeOrientations } from "../../game/math/path";
 import { isControllable } from "./freeze";
 import { play } from "../../game/sound";
-import { isDecaying } from "./drop";
 
 export const isSpikable = (world: World, entity: Entity) => {
-  if (isDead(world, entity) && !isDecaying(world, entity)) return false;
+  if (!isFightable(world, entity)) return false;
 
   const entityStats = getEntityStats(world, entity);
 

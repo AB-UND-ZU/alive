@@ -51,6 +51,61 @@ export const legendaryChest: Sprite = {
   ],
 };
 
+export const rose: Sprite = {
+  name: "Rose",
+  layers: [
+    { char: "┐", color: colors.green },
+    { char: "╖", color: colors.black },
+    { char: "\u011c", color: colors.red },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.green },
+  ],
+};
+
+export const violet: Sprite = {
+  name: "Violet",
+  layers: [
+    { char: "┐", color: colors.green },
+    { char: "╖", color: colors.black },
+    { char: "\u011c", color: colors.blue },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.green },
+  ],
+};
+
+export const clover: Sprite = {
+  name: "Clover",
+  layers: [
+    { char: "┐", color: colors.green },
+    { char: "╖", color: colors.black },
+    { char: "\u011c", color: colors.lime },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.green },
+  ],
+};
+
+export const lily: Sprite = {
+  name: "Lily",
+  layers: [
+    { char: "┐", color: colors.green },
+    { char: "╖", color: colors.black },
+    { char: "\u011c", color: colors.white },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.green },
+  ],
+};
+
+export const tulip: Sprite = {
+  name: "Tulip",
+  layers: [
+    { char: "┐", color: colors.green },
+    { char: "╖", color: colors.black },
+    { char: "\u011c", color: colors.yellow },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.green },
+  ],
+};
+
 export const dummy: Sprite = {
   name: "Dummy",
   layers: [

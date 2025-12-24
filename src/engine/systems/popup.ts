@@ -7,6 +7,7 @@ import addPopup, { Deal, Popup, POPUP, Target } from "../components/popup";
 import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
 import {
+  class_,
   craft,
   forge,
   info,
@@ -35,6 +36,9 @@ import { getItemSellPrice } from "../../game/balancing/trading";
 import { getForgeStatus } from "../../game/balancing/forging";
 import { getCraftingDeal } from "../../game/balancing/crafting";
 import { classes } from "../../game/balancing/classes";
+import { getIdentifierAndComponents, setHighlight } from "../utils";
+import { FOCUSABLE } from "../components/focusable";
+import { TRACKABLE } from "../components/trackable";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -70,6 +74,11 @@ export const getTab = (
   popupEntity: Entity
 ): Popup["tabs"][number] =>
   popupEntity[POPUP].tabs[popupEntity[POPUP].horizontalIndex];
+
+export const getDiscoveryTab = (
+  world: World,
+  popupEntity: Entity
+): Popup["tabs"][number] => popupEntity[POPUP].tabs.slice(-1)[0];
 
 export const getVerticalIndex = (world: World, popupEntity: Entity): number =>
   popupEntity[POPUP].verticalIndezes[popupEntity[POPUP].horizontalIndex];
@@ -148,6 +157,8 @@ export const getDeal = (
   } else if (tab === "craft" && selections.length === 1) {
     const recipe = popupEntity[POPUP].recipes[selections[0]];
     return getCraftingDeal(recipe, verticalIndex);
+  } else if (tab === "quest") {
+    return popupEntity[POPUP].deals[0];
   }
 };
 
@@ -172,6 +183,7 @@ export const canTrade = (
     return selections.length === 2 && canShop(world, heroEntity, deal);
   if (tab === "craft")
     return selections.length === 1 && canShop(world, heroEntity, deal);
+  if (tab === "quest") return isQuestCompleted(world, heroEntity, shopEntity);
 
   return false;
 };
@@ -233,10 +245,13 @@ export const canForge = (
 };
 
 export const isQuestCompleted = (world: World, hero: Entity, entity: Entity) =>
-  entity[POPUP].deals.every((deal: Deal) => canShop(world, hero, deal)) &&
-  entity[POPUP].targets.every((target: Target) =>
-    hasDefeated(world, hero, target)
-  );
+  (entity[POPUP].tabs.includes("quest") &&
+    entity[POPUP].deals.length === 0 &&
+    entity[POPUP].choices.length === 0) ||
+  (entity[POPUP].deals.every((deal: Deal) => canShop(world, hero, deal)) &&
+    entity[POPUP].targets.every((target: Target) =>
+      hasDefeated(world, hero, target)
+    ));
 
 export const popupIdles = {
   craft,
@@ -250,7 +265,7 @@ export const popupIdles = {
   stats: info,
   warp,
   gear: info,
-  class: warp,
+  class: class_,
 };
 
 export const popupActions = {
@@ -265,7 +280,7 @@ export const popupActions = {
   inspect: "BAG",
   stats: "STATS",
   gear: "GEAR",
-  class: "WARP",
+  class: "CLASS",
 };
 
 export const popupTitles = {
@@ -315,7 +330,7 @@ export const createPopup = (
     "discovery",
     "discoveryIdle",
     {
-      idle: popupIdles[popup.tabs[0]],
+      idle: popupIdles[getDiscoveryTab(world, { [POPUP]: popup })],
       hidden: false,
       timestamp: 0,
     }
@@ -343,6 +358,8 @@ export const createPopup = (
       deals: [],
       recipes: [],
       targets: [],
+      objectives: [],
+      choices: [],
       ...component,
     });
   }
@@ -350,6 +367,10 @@ export const createPopup = (
 
 export const removePopup = (world: World, entity: Entity) => {
   world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP);
+  const discovery = getSequence(world, entity, "discovery");
+  if (discovery) {
+    discovery.args.idle = none;
+  }
 };
 
 export const openPopup = (
@@ -358,7 +379,7 @@ export const openPopup = (
   popupEntity: Entity
 ) => {
   const popupId = world.getEntityId(popupEntity);
-  const transaction = getTab(world, popupEntity);
+  const transaction = getDiscoveryTab(world, popupEntity);
   heroEntity[PLAYER].popup = popupId;
   popupEntity[POPUP].active = true;
   popupEntity[TOOLTIP].override = "hidden";
@@ -389,6 +410,15 @@ export const openPopup = (
       transaction: getTab(world, popupEntity),
     }
   );
+
+  // unmark highlight
+  const focusEntity = getIdentifierAndComponents(world, "focus", [
+    FOCUSABLE,
+    TRACKABLE,
+  ]);
+  if (focusEntity?.[FOCUSABLE].target === popupId) {
+    setHighlight(world);
+  }
 };
 
 export const getActivePopup = (world: World, entity: Entity) =>
@@ -493,6 +523,29 @@ export default function setupPopup(world: World) {
         ? selections.length === 1
           ? popupEntity[POPUP].recipes[selections[0]].options.length
           : popupEntity[POPUP].recipes.length
+        : transaction === "quest"
+        ? selections.length === 0
+          ? Math.max(
+              0,
+              popupEntity[POPUP].lines[popupEntity[POPUP].horizontalIndex]
+                .length +
+                1 +
+                (!popupEntity[POPUP].targets.length
+                  ? 0
+                  : popupEntity[POPUP].targets.length + 2) +
+                (!popupEntity[POPUP].deals[0]?.prices.length
+                  ? 0
+                  : popupEntity[POPUP].deals[0].prices.length + 2) +
+                (!popupEntity[POPUP].deals.length
+                  ? 0
+                  : popupEntity[POPUP].deals.length + 2) +
+                (!popupEntity[POPUP].choices.length
+                  ? 0
+                  : popupEntity[POPUP].choices.length + 2) -
+                (frameHeight - 2) +
+                1
+            )
+          : popupEntity[POPUP].objectives.length
         : 0;
     const lastIndex = lines - 1;
     popupEntity[POPUP].verticalIndezes[popupEntity[POPUP].horizontalIndex] =

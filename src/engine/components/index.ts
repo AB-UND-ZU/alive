@@ -36,7 +36,6 @@ export { default as addPopup } from "./popup";
 export { default as addPosition } from "./position";
 export { default as addProjectile } from "./projectile";
 export { default as addPushable } from "./pushable";
-export { default as addQuest } from "./quest";
 export { default as addReference } from "./reference";
 export { default as addRenderable } from "./renderable";
 export { default as addRevivable } from "./revivable";

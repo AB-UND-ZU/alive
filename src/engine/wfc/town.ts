@@ -618,8 +618,8 @@ export default function generateTown(width: number, height: number) {
     const innY = Math.floor(innerHeight * choice(1 / 4, 3 / 4));
     const innRadius = 2;
     const exits: Point[] = [
-      { x: random(2, width - 3), y: 0 },
-      { x: random(2, width - 3), y: height - 1 },
+      { x: random(3, width - 4), y: 0 },
+      { x: random(3, width - 4), y: height - 1 },
     ];
     const exitAir: Point[] = [
       { x: exits[0].x - 1, y: 0 },
@@ -651,6 +651,7 @@ export default function generateTown(width: number, height: number) {
     const tileMatrix = wave.chosen;
     let paths = [...exitAir];
     let houses: {
+      door: Point;
       position: Point;
       orientation?: Orientation;
       inn: boolean;
@@ -678,6 +679,7 @@ export default function generateTown(width: number, height: number) {
           if (x !== innX || y !== innY) {
             paths.push({ x, y });
             houses.push({
+              door: { x, y },
               position: add({ x, y }, doorOffsets[tile]),
               orientation:
                 tile === "doorLeft"
@@ -701,6 +703,7 @@ export default function generateTown(width: number, height: number) {
     paths = shuffle(paths);
     houses = shuffle(houses).map((house) => ({
       ...house,
+      door: add(house.door, { x: 1, y: 1 }),
       position: add(house.position, { x: 1, y: 1 }),
     }));
 

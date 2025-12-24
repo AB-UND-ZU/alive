@@ -138,7 +138,6 @@ import {
   wall,
   warp,
   water,
-  xp,
   leverOff,
   waterDeep,
   snowCover,
@@ -218,7 +217,6 @@ import { CLICKABLE } from "../engine/components/clickable";
 import { centerSprites, overlay, recolorSprite } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
 import { POPUP } from "../engine/components/popup";
-import { craftingRecipes } from "../game/balancing/crafting";
 import { openDoor } from "../engine/systems/trigger";
 import { LIQUID } from "../engine/components/liquid";
 
@@ -231,6 +229,7 @@ export const cellNames = [
   "mountain",
   "ore",
   "stone",
+  "desert_stone",
   "rock",
   "desert_rock",
   "tree",
@@ -293,6 +292,8 @@ const populateItems = (
             deals: [],
             recipes: [],
             lines: [[]],
+            objectives: [],
+            choices: [],
             targets: [],
             viewpoint: world.getEntityId(entity),
             tabs: ["info"],
@@ -669,7 +670,6 @@ export const insertArea = (
       else if (cell === "♀") entity = "player";
       else if (cell === "÷") entity = "spawner";
       else if (cell === "◀") entity = "prism";
-      else if (cell === "►") entity = "spawn_prism";
       else if (cell === "0") entity = "eye";
       else if (cell === "*") entity = "campfire";
       else if (cell === "!") entity = "iron_key";
@@ -913,22 +913,30 @@ export const createCell = (
       ]
     );
     return oreEntity;
-  } else if (cell === "stone") {
-    entities.createTile(world, {
-      [FOG]: { visibility, type: "object" },
-      [POSITION]: { x, y },
-      [RENDERABLE]: { generation: 0 },
-      [SPRITE]: sand,
-      [TEMPO]: { amount: -1 },
-    });
-    return createItemAsDrop(world, { x, y }, entities.createItem, {
-      [ITEM]: {
-        stackable: "ore",
-        amount: 1,
-        bound: false,
+  } else if (cell === "stone" || cell === "desert_stone") {
+    if (cell === "desert_stone") {
+      entities.createTile(world, {
+        [FOG]: { visibility, type: "object" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: sand,
+        [TEMPO]: { amount: -1 },
+      });
+    }
+    return createItemAsDrop(
+      world,
+      { x, y },
+      entities.createItem,
+      {
+        [ITEM]: {
+          stackable: "ore",
+          amount: 1,
+          bound: false,
+        },
+        [SPRITE]: getItemSprite({ stackable: "ore" }),
       },
-      [SPRITE]: getItemSprite({ stackable: "ore" }),
-    });
+      cell === "desert_stone"
+    );
   } else if (["block", "block_down", "block_up"].includes(cell)) {
     if (cell === "block" || cell === "block_down") {
       entities.createBlock(world, {
@@ -2019,81 +2027,97 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
     });
-  } else if (npcTypes.includes(cell as NpcType) || cell === "spawn_prism") {
-    const mobUnit = generateNpcData(
-      cell === "spawn_prism" ? "prism" : (cell as NpcType)
-    );
+  } else if (npcTypes.includes(cell as NpcType)) {
+    const mobUnit = generateNpcData(cell as NpcType);
 
-    const mobEntity = entities.createMob(world, {
-      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
-      [AFFECTABLE]: getEmptyAffectable(),
-      [ATTACKABLE]: { shots: 0 },
-      [BEHAVIOUR]: {
-        patterns: [{ name: "wait", memory: { ticks: 1 } }, ...mobUnit.patterns],
-      },
-      [BELONGABLE]: { faction: mobUnit.faction },
-      [DROPPABLE]: { decayed: false },
-      [EQUIPPABLE]: {},
-      [FOG]: { visibility, type: "unit" },
-      [INVENTORY]: { items: [] },
-      [LAYER]: {},
-      [MELEE]: {},
-      [MOVABLE]: {
-        bumpGeneration: 0,
-        orientations: [],
-        reference: world.getEntityId(world.metadata.gameEntity),
-        spring: mobUnit.spring || {
-          duration: 200,
+    let mobEntity: TypedEntity<"FOG" | "INVENTORY">;
+
+    if (mobUnit.dormant) {
+      mobEntity = entities.createDormant(world, {
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [BEHAVIOUR]: {
+          patterns: [{ name: "passive", memory: {} }, ...mobUnit.patterns],
         },
-        lastInteraction: 0,
-        flying: false,
-      },
-      [NPC]: { type: mobUnit.type },
-      [ORIENTABLE]: {
-        facing: mobUnit.sprite.facing ? choice(...orientations) : undefined,
-      },
-      [POSITION]: { x, y },
-      [RECHARGABLE]: { hit: false },
-      [RENDERABLE]: { generation: 0 },
-      [SEQUENCABLE]: { states: {} },
-      [SPRITE]: mobUnit.sprite,
-      [STATS]: mobUnit.stats,
-      [SWIMMABLE]: { swimming: false, sprite: mobUnit.swimming },
-      [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
-    });
-    populateInventory(
-      world,
-      mobEntity,
-      cell === "spawn_prism" ? [] : mobUnit.items,
-      mobUnit.equipments
-    );
-
-    if (cell === "spawn_prism") {
-      setIdentifier(world, mobEntity, "spawn_prism");
-
-      // create key and XP
-      createItemInInventory(world, mobEntity, entities.createItem, {
-        [ITEM]: {
-          stat: "xp",
-          amount: 1,
-        },
-        [SPRITE]: xp,
-      });
-      const spawnKeyEntity = createItemInInventory(
-        world,
-        mobEntity,
-        entities.createItem,
-        {
-          [ITEM]: {
-            consume: "key",
-            material: "iron",
-            amount: 1,
+        [BELONGABLE]: { faction: mobUnit.faction },
+        [CLICKABLE]: { clicked: false, player: true },
+        [COLLIDABLE]: {},
+        [DROPPABLE]: { decayed: false },
+        [EQUIPPABLE]: {},
+        [FOG]: { visibility, type: "unit" },
+        [INVENTORY]: { items: [] },
+        [LAYER]: {},
+        [MELEE]: {},
+        [MOVABLE]: {
+          bumpGeneration: 0,
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: mobUnit.spring || {
+            duration: 200,
           },
-          [SPRITE]: ironKey,
-        }
-      );
-      setIdentifier(world, spawnKeyEntity, "spawn_key");
-    } else if (cell === "dummy") {
+          lastInteraction: 0,
+          flying: false,
+        },
+        [NPC]: { type: mobUnit.type },
+        [ORIENTABLE]: {
+          facing: mobUnit.sprite.facing ? choice(...orientations) : undefined,
+        },
+        [POSITION]: { x, y },
+        [RECHARGABLE]: { hit: false },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: mobUnit.sprite,
+        [STATS]: mobUnit.stats,
+        [SWIMMABLE]: { swimming: false, sprite: mobUnit.swimming },
+        [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
+      });
+    } else {
+      mobEntity = entities.createMob(world, {
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [AFFECTABLE]: getEmptyAffectable(),
+        [ATTACKABLE]: { shots: 0 },
+        [BEHAVIOUR]: {
+          patterns: [
+            { name: "wait", memory: { ticks: 1 } },
+            ...mobUnit.patterns,
+          ],
+        },
+        [BELONGABLE]: { faction: mobUnit.faction },
+        [DROPPABLE]: { decayed: false },
+        [EQUIPPABLE]: {},
+        [FOG]: { visibility, type: "unit" },
+        [INVENTORY]: { items: [] },
+        [LAYER]: {},
+        [MELEE]: {},
+        [MOVABLE]: {
+          bumpGeneration: 0,
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: mobUnit.spring || {
+            duration: 200,
+          },
+          lastInteraction: 0,
+          flying: false,
+        },
+        [NPC]: { type: mobUnit.type },
+        [ORIENTABLE]: {
+          facing: mobUnit.sprite.facing ? choice(...orientations) : undefined,
+        },
+        [POSITION]: { x, y },
+        [RECHARGABLE]: { hit: false },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: mobUnit.sprite,
+        [STATS]: mobUnit.stats,
+        [SWIMMABLE]: { swimming: false, sprite: mobUnit.swimming },
+        [TOOLTIP]: { dialogs: [], persistent: true, nextDialog: -1 },
+      });
+    }
+    populateInventory(world, mobEntity, mobUnit.items, mobUnit.equipments);
+
+    if (mobUnit.faction === "unit") {
+      mobEntity[FOG].type = "object";
+    }
+    if (cell === "dummy") {
       setIdentifier(world, mobEntity, "dummy");
     }
 
@@ -2735,7 +2759,7 @@ export const createCell = (
     });
     return fountainEntity;
   } else if (cell === "kettle") {
-    const kettleEntity = entities.createCrafting(world, {
+    return entities.createCrafting(world, {
       [BURNABLE]: {
         burning: true,
         eternal: true,
@@ -2756,13 +2780,8 @@ export const createCell = (
         nextDialog: -1,
       },
     });
-    createPopup(world, kettleEntity, {
-      recipes: craftingRecipes,
-      tabs: ["craft"],
-    });
-    return kettleEntity;
   } else if (cell === "anvil") {
-    const anvilEntity = entities.createForging(world, {
+    return entities.createForging(world, {
       [COLLIDABLE]: {},
       [FOG]: { visibility: "hidden", type: "unit" },
       [LAYER]: {},
@@ -2776,8 +2795,6 @@ export const createCell = (
         nextDialog: -1,
       },
     });
-    createPopup(world, anvilEntity, { tabs: ["forge"] });
-    return anvilEntity;
   } else if (cell === "1") {
     const patterns = [
       [..."Tutorial  ", ".\x00:", ..."  ", ".\x00:"],

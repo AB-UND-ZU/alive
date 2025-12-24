@@ -17,7 +17,6 @@ import {
   none,
   Palette,
   portal,
-  quest,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
@@ -27,7 +26,6 @@ import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
 import { ITEM, Item } from "../../engine/components/item";
 import {
-  canAcceptQuest,
   canUnlock,
   castablePrimary,
   castableSecondary,
@@ -42,6 +40,7 @@ import {
   canForge,
   canTrade,
   getDeal,
+  getDiscoveryTab,
   getTab,
   getTabSelections,
   getVerticalIndex,
@@ -52,7 +51,7 @@ import {
   popupIdles,
 } from "../../engine/systems/popup";
 import { isControllable } from "../../engine/systems/freeze";
-import { Deal, POPUP } from "../../engine/components/popup";
+import { POPUP } from "../../engine/components/popup";
 import { TypedEntity } from "../../engine/entities";
 import { EQUIPPABLE } from "../../engine/components/equippable";
 import { INVENTORY } from "../../engine/components/inventory";
@@ -233,19 +232,6 @@ export default function Controls() {
     "lime"
   );
 
-  const questAction = useAction(
-    "quest",
-    (world, hero, questEntity) =>
-      !isControllable(world, hero) || !canAcceptQuest(world, hero, questEntity),
-    () => "START",
-    (_, __, questEntity) => [
-      ...repeat(none, 2),
-      questEntity ? quest : none,
-      ...repeat(none, 3),
-    ],
-    "lime"
-  );
-
   const unlockAction = useAction(
     "unlock",
     (world, hero, unlockEntity) =>
@@ -281,7 +267,9 @@ export default function Controls() {
       isInPopup(world, hero) ||
       !isPopupAvailable(world, popupEntity),
     (world, _, popupEntity) =>
-      popupEntity[POPUP] ? popupActions[getTab(world, popupEntity)] : "",
+      popupEntity[POPUP]
+        ? popupActions[getDiscoveryTab(world, popupEntity)]
+        : "",
     (world, _, popupEntity) =>
       popupEntity[POPUP]
         ? [
@@ -292,29 +280,10 @@ export default function Controls() {
                 receiveShadow: false,
               }).map((segment) => segment.sprite)
             ),
-            popupIdles[getTab(world, popupEntity)] || none,
+            popupIdles[getDiscoveryTab(world, popupEntity)] || none,
             ...repeat(none, 2),
           ]
         : repeat(none, 6),
-    "lime"
-  );
-
-  const claimAction = useAction(
-    "claim",
-    (world, hero, claimEntity) =>
-      !isControllable(world, hero) ||
-      !isQuestCompleted(world, hero, claimEntity),
-    () => "CLAIM",
-    (_, __, claimEntity) =>
-      [
-        ...repeat(none, 2),
-        ...claimEntity[POPUP].deals
-          .map((deal: Deal) => getActivationRow(deal.item))
-          .flat(),
-        ...repeat(none, 4),
-      ]
-        .slice(claimEntity[POPUP].deals.length)
-        .slice(0, 6),
     "lime"
   );
 
@@ -322,7 +291,12 @@ export default function Controls() {
     "trade",
     (world, hero, tradeEntity) =>
       !isControllable(world, hero) || !canTrade(world, hero, tradeEntity),
-    (world, _, tradeEntity) => getTab(world, tradeEntity).toUpperCase(),
+    (world, _, tradeEntity) => {
+      const tab = getTab(world, tradeEntity);
+      const selections = getTabSelections(world, tradeEntity);
+      if (tab === "quest") return selections.length === 1 ? "PICK" : "CLAIM";
+      return tab.toUpperCase();
+    },
     (world, hero, tradeEntity) => {
       const deal = hero && getDeal(world, hero, tradeEntity);
       return deal && canTrade(world, hero, tradeEntity)
@@ -347,12 +321,22 @@ export default function Controls() {
         (tab === "class" && verticalIndex !== 0)
       );
     },
-    (world, _, addEntity) => {
+    (world, hero, addEntity) => {
       const tab = getTab(world, addEntity);
+      const selections = getTabSelections(world, addEntity);
+
       return tab === "class"
         ? "PICK"
+        : tab === "quest"
+        ? isQuestCompleted(world, hero, addEntity)
+          ? selections.length === 0
+            ? "CLAIM"
+            : "PICK"
+          : selections.length === 0
+          ? "VIEW"
+          : "FOCUS"
         : tab === "forge"
-        ? getTabSelections(world, addEntity).length === 0
+        ? selections.length === 0
           ? "BASE"
           : "ADD"
         : "VIEW";
@@ -426,8 +410,17 @@ export default function Controls() {
   const closeAction = useAction(
     "close",
     (world, hero) => !isControllable(world, hero),
-    (world, _, closeEntity) =>
-      getTabSelections(world, closeEntity).length > 0 ? "BACK" : "CLOSE",
+    (world, hero, closeEntity) => {
+      const selections = getTabSelections(world, closeEntity);
+      return selections.length > 0 &&
+        !(
+          getTab(world, closeEntity) === "quest" &&
+          selections.length === 2 &&
+          isQuestCompleted(world, hero, closeEntity)
+        )
+        ? "BACK"
+        : "CLOSE";
+    },
     () => repeat(none, 6),
     "red"
   );
@@ -470,10 +463,8 @@ export default function Controls() {
   const availablePrimary = [
     warpAction,
     spawnAction,
-    questAction,
     unlockAction,
     popupAction,
-    claimAction,
     tradeAction,
     useItemAction,
     addAction,

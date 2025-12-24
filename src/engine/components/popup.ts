@@ -21,6 +21,22 @@ export type Target = {
   amount: number;
 };
 
+export type Objective =
+  | {
+      item: Omit<Item, "carrier" | "bound" | "amount">;
+      identifier?: never;
+      title?: Sprite[];
+      description?: Sprite[][];
+      available: boolean;
+    }
+  | {
+      item?: never;
+      identifier?: string;
+      title: Sprite[];
+      description: Sprite[][];
+      available: boolean;
+    };
+
 export const shops = ["buy", "sell"] as const;
 
 const popups = [
@@ -46,6 +62,8 @@ export type Popup = {
   recipes: Recipe[];
   lines: Sprite[][][];
   targets: Target[];
+  objectives: Objective[];
+  choices: Omit<Item, "carrier" | "bound">[];
   viewpoint: number;
   tabs: (typeof popups)[number][];
 };

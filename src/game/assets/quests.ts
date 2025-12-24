@@ -9,6 +9,7 @@ import {
   orientationPoints,
   orientations,
 } from "../../engine/components/orientable";
+import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import {
   QuestSequence,
@@ -419,8 +420,15 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
     finished: false,
     updated: false,
   };
-  const spawnSign = getIdentifier(world, "spawn_sign");
-  const townSign = getIdentifier(world, "town_sign");
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const spawnSign = getIdentifierAndComponents(world, "spawn_sign", [POSITION]);
+  const earthChief = getIdentifierAndComponents(world, "earthChief", [
+    POSITION,
+  ]);
+
+  const townDistance = earthChief
+    ? getDistance(entity[POSITION], earthChief[POSITION], size)
+    : Infinity;
 
   step({
     stage,
@@ -429,9 +437,26 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
       setHighlight(world, "quest", spawnSign);
       return true;
     },
-    isCompleted: () => isInPopup(world, entity) || !spawnSign,
+    isCompleted: () =>
+      townDistance < 10 ||
+      (isInPopup(world, entity) &&
+        world.getEntityById(entity[PLAYER].popup) === spawnSign),
+    onLeave: () => "town",
+  });
+
+  step({
+    stage,
+    name: "town",
+    onEnter: () => {
+      setHighlight(world, "quest", earthChief);
+      return true;
+    },
+    isCompleted: () =>
+      !earthChief ||
+      (isInPopup(world, entity) &&
+        entity[PLAYER].popup === world.getEntityId(earthChief)),
     onLeave: () => {
-      setHighlight(world, "quest", townSign);
+      setHighlight(world);
       return END_STEP;
     },
   });

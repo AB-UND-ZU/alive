@@ -714,8 +714,8 @@ export const rubySlashCorner: Sprite = {
   },
 };
 
-export const woodBeam: Sprite = {
-  name: "wood_beam",
+export const woodBolt: Sprite = {
+  name: "wood_bolt",
   layers: [{ char: "∙", color: colors.maroon }],
   amounts: {
     single: [{ char: "∙", color: colors.maroon }],
@@ -730,8 +730,8 @@ export const woodBeam: Sprite = {
   },
 };
 
-export const ironBeam: Sprite = {
-  name: "iron_beam",
+export const ironBolt: Sprite = {
+  name: "iron_bolt",
   layers: [{ char: "∙", color: colors.silver }],
   amounts: {
     single: [{ char: "∙", color: colors.silver }],
@@ -746,8 +746,8 @@ export const ironBeam: Sprite = {
   },
 };
 
-export const goldBeam: Sprite = {
-  name: "gold_beam",
+export const goldBolt: Sprite = {
+  name: "gold_bolt",
   layers: [{ char: "∙", color: colors.yellow }],
   amounts: {
     single: [{ char: "∙", color: colors.yellow }],
@@ -762,8 +762,8 @@ export const goldBeam: Sprite = {
   },
 };
 
-export const diamondBeam: Sprite = {
-  name: "diamond_beam",
+export const diamondBolt: Sprite = {
+  name: "diamond_bolt",
   layers: [{ char: "∙", color: colors.aqua }],
   amounts: {
     single: [{ char: "∙", color: colors.aqua }],
@@ -778,8 +778,8 @@ export const diamondBeam: Sprite = {
   },
 };
 
-export const rubyBeam: Sprite = {
-  name: "ruby_beam",
+export const rubyBolt: Sprite = {
+  name: "ruby_bolt",
   layers: [{ char: "∙", color: colors.fuchsia }],
   amounts: {
     single: [{ char: "∙", color: colors.fuchsia }],
@@ -794,8 +794,8 @@ export const rubyBeam: Sprite = {
   },
 };
 
-export const airBeam: Sprite = {
-  name: "air_beam",
+export const airBolt: Sprite = {
+  name: "air_bolt",
   layers: [{ char: "∙", color: colors.white }],
   amounts: {
     single: [{ char: "∙", color: colors.white }],
@@ -810,8 +810,8 @@ export const airBeam: Sprite = {
   },
 };
 
-export const fireBeam: Sprite = {
-  name: "fire_beam",
+export const fireBolt: Sprite = {
+  name: "fire_bolt",
   layers: [{ char: "∙", color: colors.red }],
   amounts: {
     single: [{ char: "∙", color: colors.red }],
@@ -826,8 +826,8 @@ export const fireBeam: Sprite = {
   },
 };
 
-export const waterBeam: Sprite = {
-  name: "water_beam",
+export const waterBolt: Sprite = {
+  name: "water_bolt",
   layers: [{ char: "∙", color: colors.blue }],
   amounts: {
     single: [{ char: "∙", color: colors.blue }],
@@ -842,8 +842,8 @@ export const waterBeam: Sprite = {
   },
 };
 
-export const earthBeam: Sprite = {
-  name: "earth_beam",
+export const earthBolt: Sprite = {
+  name: "earth_bolt",
   layers: [{ char: "∙", color: colors.lime }],
   amounts: {
     single: [{ char: "∙", color: colors.lime }],
