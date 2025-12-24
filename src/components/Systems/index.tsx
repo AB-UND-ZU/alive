@@ -30,7 +30,7 @@ const systemsFrame = 1000 / 30;
 const catchupFrames = 15;
 
 export default function Systems() {
-  const { ecs, paused } = useWorld();
+  const { ecs, paused, suspended } = useWorld();
   const dimensions = useDimensions();
   const { position, fraction, viewable } = useViewpoint();
   const overscan = useOverscan(position.x, position.y);
@@ -50,7 +50,7 @@ export default function Systems() {
   const elapsedRef = useRef(systemsFrame);
 
   useFrame((_, delta) => {
-    if (!ecs || paused) return;
+    if (!ecs || paused || suspended) return;
 
     elapsedRef.current += Math.min(delta * 1000, systemsFrame * catchupFrames);
 
@@ -63,13 +63,13 @@ export default function Systems() {
 
   // sync paused status
   useEffect(() => {
-    if (paused) {
+    if (paused || suspended) {
       elapsedRef.current = 0;
       api.pause();
     } else {
       api.resume();
     }
-  }, [api, paused]);
+  }, [api, paused, suspended]);
 
   useEffect(() => {
     // shake screen on damage

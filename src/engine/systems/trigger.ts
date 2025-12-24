@@ -154,6 +154,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
   );
 
   setTimeout(() => {
+    world.metadata.suspend();
     // tag hero and related entities to new world
     const levelName = getSelectedLevel(world, warp);
     const { size, generator, vision = 0 } = levelConfig[levelName];
@@ -225,6 +226,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
     entity[ORIENTABLE].facing = undefined;
 
     setTimeout(() => {
+      world.metadata.resume();
       entity[VIEWABLE].spring = previousSpring;
 
       createSequence<"vision", VisionSequence>(

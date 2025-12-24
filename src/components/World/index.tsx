@@ -10,6 +10,7 @@ const initialLevel: LevelName = "LEVEL_MENU";
 
 export default function World(props: React.PropsWithChildren) {
   const [paused, setPaused] = useState(true);
+  const [suspended, setSuspended] = useState(false);
   const [initial, setInitial] = useState(true);
   const [flipped, setFlipped] = useState(false);
   const pauseRef = useRef(paused);
@@ -18,6 +19,8 @@ export default function World(props: React.PropsWithChildren) {
   // TODO: find better way to prevent double generation
   const [ecs] = useState(() => {
     const world = createWorld();
+    world.metadata.suspend = () => setSuspended(true);
+    world.metadata.resume = () => setSuspended(false);
     createLevel(world, initialLevel, levelConfig[initialLevel].size);
     setTimeout(levelConfig[initialLevel].generator, 0, world);
     createSystems(world);
@@ -45,6 +48,8 @@ export default function World(props: React.PropsWithChildren) {
   const context = useMemo(
     () => ({
       ecs,
+      suspended,
+      setSuspended,
       paused,
       setPaused: handlePause,
       initial,
@@ -52,7 +57,7 @@ export default function World(props: React.PropsWithChildren) {
       flipped,
       setFlipped,
     }),
-    [ecs, paused, handlePause, initial, flipped]
+    [ecs, suspended, setSuspended, paused, handlePause, initial, flipped]
   );
   useEffect(() => {
     worldContextRef.current = context;

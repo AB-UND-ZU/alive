@@ -22,6 +22,8 @@ export type WorldContext = {
   ecs: WorldType | null;
   initial: boolean;
   setInitial: React.Dispatch<React.SetStateAction<boolean>>;
+  suspended: boolean;
+  setSuspended: React.Dispatch<React.SetStateAction<boolean>>;
   paused: boolean;
   setPaused: React.Dispatch<React.SetStateAction<boolean>>;
   flipped: boolean;
@@ -32,6 +34,8 @@ const initialContext: WorldContext = {
   ecs: null,
   initial: true,
   setInitial: () => {},
+  suspended: false,
+  setSuspended: () => {},
   paused: false,
   setPaused: () => {},
   flipped: false,

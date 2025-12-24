@@ -180,6 +180,8 @@ export default function createWorld() {
       gameEntity: {} as TypedEntity<"LEVEL" | "RENDERABLE" | "REFERENCE">,
       listeners: {} as Record<number, (reset?: boolean) => void>,
       sequenceEntity: {} as TypedEntity<"RENDERABLE" | "REFERENCE">,
+      suspend: () => {},
+      resume: () => {},
       ecs: world,
     },
   };
