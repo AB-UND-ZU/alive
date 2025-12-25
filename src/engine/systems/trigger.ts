@@ -155,9 +155,10 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
 
   setTimeout(() => {
     world.metadata.suspend();
+
     // tag hero and related entities to new world
     const levelName = getSelectedLevel(world, warp);
-    const { size, generator, vision = 0 } = levelConfig[levelName];
+    const { size, generator, vision } = levelConfig[levelName];
     const light = calculateVision(vision);
 
     const inspectEntity = assertIdentifier(world, "inspect");
@@ -211,11 +212,11 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
       if (!target[POSITION]) return;
 
       registerEntity(world, target);
+      rerenderEntity(world, target);
     });
 
     // reset hero
     const spawn = entity[POSITION];
-    moveEntity(world, entity, { ...spawn });
     rerenderEntity(world, entity);
     focusEntity[MOVABLE].reference = world.getEntityId(level);
     const previousSpring = entity[VIEWABLE].spring;
@@ -225,25 +226,28 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
     entity[SPAWNABLE].light = light;
     entity[ORIENTABLE].facing = undefined;
 
+    // run one game tick
+    world.metadata.ecs.ecs.update(0);
+    world.metadata.ecs.ecs.cleanup();
+
     setTimeout(() => {
       world.metadata.resume();
-      entity[VIEWABLE].spring = previousSpring;
-
-      createSequence<"vision", VisionSequence>(
-        world,
-        entity,
-        "vision",
-        "changeRadius",
-        {
-          light,
-          fast: false,
-        }
-      );
 
       setTimeout(() => {
+        entity[VIEWABLE].spring = previousSpring;
+        createSequence<"vision", VisionSequence>(
+          world,
+          entity,
+          "vision",
+          "changeRadius",
+          {
+            light,
+            fast: false,
+          }
+        );
         world.addComponentToEntity(entity, MOVABLE, previousMovable);
       }, 1000);
-    }, 1500);
+    }, 2000);
   }, 3000);
 };
 

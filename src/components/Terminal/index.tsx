@@ -42,7 +42,7 @@ export default function Terminal() {
           )
         )}
       </div>
-      {(paused || initial) && <Paused initial={initial} />}
+      <Paused />
     </main>
   );
 }

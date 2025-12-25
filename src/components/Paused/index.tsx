@@ -3,6 +3,7 @@ import {
   backdrop,
   resume,
   addBackground,
+  createDialog,
 } from "../../game/assets/sprites";
 import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
@@ -12,8 +13,8 @@ import { useWorld } from "../../bindings/hooks";
 import { repeat } from "../../game/math/std";
 import { colors } from "../../game/assets/colors";
 
-export default function Paused({ initial }: { initial: boolean }) {
-  const { setPaused, setInitial } = useWorld();
+export default function Paused() {
+  const { paused, setPaused, initial, setInitial, suspended } = useWorld();
   const dimensions = useDimensions();
   const handleResume = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -27,6 +28,8 @@ export default function Paused({ initial }: { initial: boolean }) {
     },
     [initial, setPaused, setInitial]
   );
+
+  if (!paused && !initial && !suspended) return null;
 
   return (
     <div className="Paused">
@@ -46,7 +49,13 @@ export default function Paused({ initial }: { initial: boolean }) {
       </div>
 
       <div className="Overlay">
-        {initial ? (
+        {suspended ? (
+          <>
+            <Row cells={createDialog("Loading map...")} />
+            <Row />
+            <Row />
+          </>
+        ) : initial ? (
           <>
             {isTouch ? (
               <>

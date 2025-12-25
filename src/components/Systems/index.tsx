@@ -33,7 +33,7 @@ export default function Systems() {
   const { ecs, paused, suspended } = useWorld();
   const dimensions = useDimensions();
   const { position, fraction, viewable } = useViewpoint();
-  const overscan = useOverscan(position.x, position.y);
+  const overscan = useOverscan(position.x, position.y, suspended);
   const game = useGame();
   const hero = useHero();
   const structure = hero?.[LAYER]?.structure;
@@ -102,7 +102,7 @@ export default function Systems() {
     }
   }, [hero, damageReceived, api, dimensions.aspectRatio]);
 
-  if (!ecs || !game) return null;
+  if (!ecs || !game || suspended) return null;
 
   const size = ecs.metadata.gameEntity[LEVEL].size;
   const flyingPadding = viewable?.[MOVABLE]?.flying ? 4 : 0;

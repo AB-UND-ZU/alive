@@ -175,7 +175,7 @@ export const useViewpoint = () => {
   };
 };
 
-export function useOverscan(x: number, y: number) {
+export function useOverscan(x: number, y: number, reset?: boolean) {
   const previous = useRef<Position | null>(null);
   const next = useRef<Position>({ x, y });
 
@@ -185,6 +185,11 @@ export function useOverscan(x: number, y: number) {
 
   if (next.current.x !== x || next.current.y !== y) {
     previous.current = next.current;
+    next.current = { x, y };
+  }
+
+  if (reset) {
+    previous.current = { x, y };
     next.current = { x, y };
   }
 
