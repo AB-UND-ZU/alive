@@ -10,6 +10,7 @@ import { REFERENCE } from "./components/reference";
 import { Entity, TypedEntity } from "./entities";
 import { LEVEL, LevelName } from "./components/level";
 import { getHasteInterval } from "./systems/movement";
+import { initialDimensions } from "../components/Dimensions/sizing";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
@@ -182,7 +183,9 @@ export default function createWorld() {
       sequenceEntity: {} as TypedEntity<"RENDERABLE" | "REFERENCE">,
       suspend: () => {},
       resume: () => {},
+      setFlipped: (flipped: boolean) => {},
       ecs: world,
+      dimensions: initialDimensions,
     },
   };
 
@@ -200,8 +203,10 @@ export const createLevel = (world: World, name: LevelName, size: number) => {
       size,
       walkable: [],
       biomes: [],
-      cells: {},
-      initialized: false,
+      cells: [],
+      objects: [],
+      cellPositions: {},
+      initialized: [],
     },
     [RENDERABLE]: { generation: -1 },
     [REFERENCE]: {
@@ -231,7 +236,7 @@ export const createLevel = (world: World, name: LevelName, size: number) => {
 
 export const createSystems = (world: World) => {
   // start ordered systems
-  world.addSystem(systems.setupMap);
+  world.addSystem(systems.setupInitialize);
   world.addSystem(systems.setupTick);
   world.addSystem(systems.setupWeather);
   world.addSystem(systems.setupFreeze);
@@ -261,4 +266,5 @@ export const createSystems = (world: World) => {
   world.addSystem(systems.setupImmersion);
   world.addSystem(systems.setupVisibility);
   world.addSystem(systems.setupRenderer);
+  world.addSystem(systems.setupMap);
 };

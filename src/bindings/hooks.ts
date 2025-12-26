@@ -45,8 +45,6 @@ const Context = createContext(initialContext);
 
 export const WorldProvider = Context.Provider;
 
-export const worldContextRef = { current: initialContext };
-
 export const useWorld = () => useContext(Context);
 
 // R3F mounts a second React tree, hence React.useId leads to duplicate IDs
@@ -130,14 +128,18 @@ export const useGame = () => {
   return ecs?.metadata.gameEntity;
 };
 
-export const useViewable = () => {
-  const viewables = useRenderable([VIEWABLE, POSITION]);
-
-  return viewables
+export const getActiveViewable = (
+  viewables: TypedEntity<"VIEWABLE" | "POSITION">[]
+) =>
+  viewables
     .filter((entity) => entity[VIEWABLE].active)
     .sort(
       (left, right) => right[VIEWABLE].priority - left[VIEWABLE].priority
     )[0];
+
+export const useViewable = () => {
+  const viewables = useRenderable([VIEWABLE, POSITION]);
+  return getActiveViewable(viewables);
 };
 
 const defaultSpring = {

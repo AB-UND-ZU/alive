@@ -3,7 +3,6 @@ import "./index.css";
 import Systems from "../Systems";
 import Camera from "../Camera";
 import { OrbitControls } from "@react-three/drei";
-import { useWorld } from "../../bindings/hooks";
 import Paused from "../Paused";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
@@ -17,7 +16,6 @@ const controls = false;
 
 export default function Terminal() {
   const dimensions = useDimensions();
-  const { paused, initial } = useWorld();
 
   return (
     <main className="Terminal">

@@ -12,6 +12,7 @@ export { default as setupFate } from "./fate";
 export { default as setupFocus } from "./focus";
 export { default as setupFreeze } from "./freeze";
 export { default as setupImmersion } from "./immersion";
+export { default as setupInitialize } from "./initialize";
 export { default as setupLeveling } from "./leveling";
 export { default as setupMagic } from "./magic";
 export { default as setupMap } from "./map";

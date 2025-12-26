@@ -111,13 +111,13 @@ export const getAction = (world: World, entity: Entity) =>
   );
 
 export const canWarp = (world: World, entity: Entity, warp: Entity) => {
-  if (isNpc(world, entity)) return false;
-
-  // allow warping everywhere in test mode
-  if (window.location.search.substring(1) === "test") return true;
-
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
   const selectedLevel = getSelectedLevel(world, warp);
+
+  if (isNpc(world, entity) || currentLevel === selectedLevel) return false;
+
+  // allow warping everywhere else in test mode
+  if (window.location.search.substring(1) === "test") return true;
 
   return levelConfig[currentLevel].warps.includes(selectedLevel);
 };
@@ -166,6 +166,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
     const focusEntity = assertIdentifierAndComponents(world, "focus", [
       MOVABLE,
       SEQUENCABLE,
+      POSITION,
     ]);
     const inventory = (entity[INVENTORY]?.items || []).map((id: number) =>
       world.assertById(id)
@@ -228,7 +229,6 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
 
     // run one game tick
     world.metadata.ecs.ecs.update(0);
-    world.metadata.ecs.ecs.cleanup();
 
     setTimeout(() => {
       world.metadata.resume();
@@ -491,6 +491,7 @@ export const consumeCharge = (
 
 export const completeQuest = (world: World, entity: Entity, target: Entity) => {
   const popup = target[POPUP] as Popup;
+  const choiceIndex = getVerticalIndex(world, target);
   popup.deals.forEach((_, index) => {
     popup.verticalIndezes[target[POPUP].horizontalIndex] = index;
     performTrade(
@@ -501,7 +502,7 @@ export const completeQuest = (world: World, entity: Entity, target: Entity) => {
   });
 
   // apply selected choice
-  const choice = popup.choices[getVerticalIndex(world, target)];
+  const choice = popup.choices[choiceIndex];
   if (choice) {
     const itemEntity = entities.createItem(world, {
       [ITEM]: { ...choice, carrier: -1, bound: false },

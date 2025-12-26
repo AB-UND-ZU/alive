@@ -68,9 +68,6 @@ export const abilityStats: Partial<
         },
       },
     },
-    bolt: {
-      wood: { magic: 3 },
-    },
     bow: {
       wood: { melee: 2 },
       iron: { melee: 4 },
@@ -96,6 +93,12 @@ export const abilityStats: Partial<
   goldOrb: {
     beam: {
       gold: { magic: 3 },
+    },
+  },
+
+  violet: {
+    bolt: {
+      iron: { magic: 3 },
     },
   },
 

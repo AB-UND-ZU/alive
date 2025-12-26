@@ -179,7 +179,7 @@ export default function setupVisibility(world: World) {
   const onUpdate = (delta: number) => {
     const hero = world.getEntity([PLAYER, LIGHT, POSITION]);
 
-    if (!hero || !world.metadata.gameEntity[LEVEL].initialized) return;
+    if (!hero || world.metadata.gameEntity[LEVEL].initialized.length === 0) return;
 
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])

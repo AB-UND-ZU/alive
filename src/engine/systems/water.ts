@@ -97,7 +97,7 @@ export const updateWaterCell = (world: World, position: Position) => {
 };
 
 export const applyWaterMap = (world: World) => {
-  (world.metadata.gameEntity[LEVEL].cells["water"] || []).forEach((cell) => {
+  (world.metadata.gameEntity[LEVEL].cellPositions["water"] || []).forEach((cell) => {
     applyWaterCell(world, cell);
   });
 };

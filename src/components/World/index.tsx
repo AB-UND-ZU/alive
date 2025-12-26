@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createWorld } from "../../engine";
-import { worldContextRef, WorldProvider } from "../../bindings/hooks";
+import { WorldProvider } from "../../bindings/hooks";
 import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
 import { createLevel, createSystems } from "../../engine/ecs";
 import { LevelName } from "../../engine/components/level";
 import { levelConfig } from "../../game/levels";
+import { useDimensions } from "../Dimensions";
 
 const initialLevel: LevelName = "LEVEL_MENU";
 
 export default function World(props: React.PropsWithChildren) {
+  const dimensions = useDimensions();
   const [paused, setPaused] = useState(true);
-  const [suspended, setSuspended] = useState(false);
+  const [suspended, setSuspended] = useState(true);
   const [initial, setInitial] = useState(true);
   const [flipped, setFlipped] = useState(false);
   const pauseRef = useRef(paused);
@@ -21,9 +23,16 @@ export default function World(props: React.PropsWithChildren) {
     const world = createWorld();
     world.metadata.suspend = () => setSuspended(true);
     world.metadata.resume = () => setSuspended(false);
+    world.metadata.setFlipped = setFlipped;
     createLevel(world, initialLevel, levelConfig[initialLevel].size);
-    setTimeout(levelConfig[initialLevel].generator, 0, world);
     createSystems(world);
+    setTimeout(() => {
+      levelConfig[initialLevel].generator(world);
+      // run one game tick to initialize map
+      ecs.update(0);
+      world.metadata.resume();
+    }, 0);
+
     return world;
   });
 
@@ -59,9 +68,11 @@ export default function World(props: React.PropsWithChildren) {
     }),
     [ecs, suspended, setSuspended, paused, handlePause, initial, flipped]
   );
+
+  // expose utilities to world metadata
   useEffect(() => {
-    worldContextRef.current = context;
-  }, [context]);
+    ecs.metadata.dimensions = dimensions;
+  }, [ecs.metadata, dimensions]);
 
   return <WorldProvider value={context} {...props} />;
 }

@@ -91,7 +91,7 @@ const calculateDimensions: () => Dimensions = () => {
   };
 };
 
-const initialDimensions: Dimensions = calculateDimensions();
+export const initialDimensions: Dimensions = calculateDimensions();
 
 export const DimensionsContext = createContext<Dimensions>(initialDimensions);
 

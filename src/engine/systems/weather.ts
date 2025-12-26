@@ -12,6 +12,7 @@ import { DropSequence, SEQUENCABLE } from "../components/sequencable";
 import { createSequence } from "./sequence";
 import { Level, LEVEL } from "../components/level";
 import { VIEWABLE } from "../components/viewable";
+import { getActiveViewable } from "../../bindings/hooks";
 
 export const createDrop = (
   world: World,
@@ -90,11 +91,7 @@ export default function setupWeather(world: World) {
       world.metadata.gameEntity[RENDERABLE].generation;
     const worldId = world.getEntityId(world.metadata.gameEntity);
     const viewables = world.getEntities([VIEWABLE, POSITION]);
-    const viewable = viewables
-      .filter((entity) => entity[VIEWABLE].active)
-      .sort(
-        (left, right) => right[VIEWABLE].priority - left[VIEWABLE].priority
-      )[0];
+    const viewable = getActiveViewable(viewables);
 
     if (worldGeneration === currentWorldGeneration || !viewable) return;
 

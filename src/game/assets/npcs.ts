@@ -90,7 +90,7 @@ import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
 import { createPopup, removePopup } from "../../engine/systems/popup";
 import { isDead, isEnemy } from "../../engine/systems/damage";
-import { createArea, createCell } from "../../bindings/creation";
+import { createCell, insertArea } from "../../bindings/creation";
 import { SOUL } from "../../engine/components/soul";
 import { matrixFactory } from "../math/matrix";
 import { getSequence } from "../../engine/systems/sequence";
@@ -110,7 +110,6 @@ import { CLICKABLE } from "../../engine/components/clickable";
 import { iterations, pixelCircle } from "../math/tracing";
 import { getClickables } from "../../engine/systems/click";
 import { muteAudio, unmuteAudio } from "../sound/resumable";
-import { worldContextRef } from "../../bindings/hooks";
 import { REFERENCE } from "../../engine/components/reference";
 import { LIQUID } from "../../engine/components/liquid";
 import { POPUP } from "../../engine/components/popup";
@@ -294,12 +293,12 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
   if (controlsLever[CLICKABLE].clicked) {
     if (controlsLever[SPRITE] === leverOn) {
-      worldContextRef.current.setFlipped(true);
+      world.metadata.setFlipped(true);
       controlsLever[SPRITE] = leverOff;
       controlsLever[TOOLTIP].dialogs = [createDialog("Right side")];
       controlsLever[TOOLTIP].changed = true;
     } else {
-      worldContextRef.current.setFlipped(false);
+      world.metadata.setFlipped(false);
       controlsLever[SPRITE] = leverOn;
       controlsLever[TOOLTIP].dialogs = [createDialog("Left side")];
       controlsLever[TOOLTIP].changed = true;
@@ -581,11 +580,10 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
           [-0.5, 0.5].forEach((y) => {
             const mountainEntity = createCell(
               world,
-              [[]],
               { x: offsetX, y: roomSize.y * y + offsetY },
               "mountain",
               "visible"
-            )!;
+            ).cell;
             setIdentifier(world, mountainEntity, `${name}:blocker`);
           });
 
@@ -1159,7 +1157,6 @@ export const earthSmithNpc: Sequence<NpcSequence> = (world, entity, state) => {
     onLeave: () => {
       if (anvilEntity) {
         createPopup(world, anvilEntity, {
-          recipes: craftingRecipes,
           lines: [
             [
               [forge, ...createText("Forging", colors.silver)],
@@ -1362,7 +1359,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       }
 
       // insert boss area
-      createArea(world, bossArea, 0, -2);
+      insertArea(world, bossArea, 0, -2, true);
 
       return "town";
     },
@@ -1489,7 +1486,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
       if (!heroEntity) return false;
 
       // create portal
-      createCell(world, [[]], { x: 0, y: 155 }, "portal", "visible");
+      createCell(world, { x: 0, y: 155 }, "portal", "visible");
 
       return true;
     },
@@ -1890,7 +1887,7 @@ export const chestNpc: Sequence<NpcSequence> = (world, entity, state) => {
           disposeEntity(world, entity)
         );
 
-        createCell(world, [[]], position, "chest_tower_statue", "hidden");
+        createCell(world, position, "chest_tower_statue", "hidden");
       });
 
       // remove any pending mobs or drops

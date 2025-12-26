@@ -928,7 +928,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         equipment: "primary",
         primary: "bolt",
-        material: "wood",
+        material: "iron",
         bound: true,
         amount: 1,
       },

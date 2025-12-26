@@ -1,9 +1,8 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
-import { Level, LEVEL } from "../components/level";
+import { LEVEL } from "../components/level";
 import { add, normalize } from "../../game/math/std";
-import { getWalkableMatrix } from "../../game/math/path";
 import { isWalkable } from "./movement";
 import { getOverlappingCell } from "../../game/math/matrix";
 import { INVENTORY } from "../components/inventory";
@@ -195,9 +194,8 @@ export default function setupMap(world: World) {
   const removedEntities: ListenerEntities = { count: 0, entries: [] };
 
   const onUpdate = (delta: number) => {
-    const level = world.metadata.gameEntity[LEVEL] as Level;
-
     // ensure components added to ECS are reflected in map
+    world.metadata.ecs.ecs.cleanup();
     world.getEntities([POSITION], "added", addedEntities);
     world.getEntities([POSITION], "removed", removedEntities);
 
@@ -230,12 +228,6 @@ export default function setupMap(world: World) {
           removedEntity
         );
       }
-    }
-
-    // initally create walkable matrix
-    if (level.walkable.length === 0 && addedEntities.count > 0) {
-      level.walkable = getWalkableMatrix(world);
-      level.initialized = true;
     }
   };
 

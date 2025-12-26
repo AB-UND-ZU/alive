@@ -85,7 +85,6 @@ import {
   flipArea,
 } from "../../../bindings/creation";
 import { findPath, invertOrientation } from "../../math/path";
-import { registerEntity } from "../../../engine/systems/map";
 import { LAYER } from "../../../engine/components/layer";
 import { createPopup } from "../../../engine/systems/popup";
 import {
@@ -95,6 +94,7 @@ import {
 import { islandNpcDistribution } from "./units";
 import { snowFill } from "../../../engine/systems/freeze";
 import { BEHAVIOUR } from "../../../engine/components/behaviour";
+import { initializeArea } from "../../../engine/systems/initialize";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -216,7 +216,6 @@ export const generateIsland = (world: World) => {
   const flattenedMatrix: Matrix<number> = new Array(size);
   const objectsMap: Matrix<CellType[]> = new Array(size);
   const biomeMap: Matrix<BiomeName> = new Array(size);
-  world.metadata.gameEntity[LEVEL].biomes = biomeMap;
 
   for (let x = 0; x < size; x++) {
     elevationMatrix[x] = new Array(size);
@@ -570,11 +569,21 @@ export const generateIsland = (world: World) => {
     return cell;
   });
 
+  // persist pre-processed matrizes for lazy initialization
   const worldMap = terrainMap;
+
+  world.metadata.gameEntity[LEVEL].initialized = createMatrix(
+    size,
+    size,
+    false
+  );
+  world.metadata.gameEntity[LEVEL].biomes = biomeMap;
+  world.metadata.gameEntity[LEVEL].cells = worldMap;
+  world.metadata.gameEntity[LEVEL].objects = objectsMap;
 
   // insert spawn
   insertArea(
-    worldMap,
+    world,
     flipArea(spawnArea, spawnInverted, choice(true, false)),
     spawnPoint.x,
     spawnPoint.y,
@@ -583,13 +592,12 @@ export const generateIsland = (world: World) => {
   const spawnLines = spawnArea.split("\n");
   const spawnWidth = spawnLines[0].length;
   const spawnHeight = spawnLines.length;
+  const spawnCorner = {
+    x: spawnPoint.x - (spawnWidth - 1) / 2,
+    y: spawnPoint.y - (spawnHeight - 1) / 2,
+  };
   matrixFactory(spawnWidth, spawnHeight, (x, y) => {
-    setPath(
-      pathMatrix,
-      x + spawnPoint.x - (spawnWidth - 1) / 2,
-      y + spawnPoint.y - (spawnHeight - 1) / 2,
-      0
-    );
+    setPath(pathMatrix, x + spawnCorner.x, y + spawnCorner.y, 0);
   });
 
   // insert town
@@ -671,20 +679,13 @@ export const generateIsland = (world: World) => {
     "house_druid"
   );
 
-  // initialize cells and objects
-  iterateMatrix(worldMap, (x, y, cell) => {
-    createCell(world, worldMap, { x, y }, cell, "hidden");
-    const objects = objectsMap[x][y];
-    objects.forEach((objectCell) => {
-      createCell(world, worldMap, { x, y }, objectCell, "hidden");
-    });
-  });
-
-  // register all entities to allow post-processing
-  const registerableEntites = world.getEntities([POSITION]);
-  registerableEntites.forEach((registerableEntity) => {
-    registerEntity(world, registerableEntity);
-  });
+  // initialize spawn and town
+  initializeArea(
+    world,
+    spawnCorner,
+    add(spawnCorner, { x: spawnWidth, y: spawnHeight })
+  );
+  initializeArea(world, townCorner, add(townCorner, townSize));
 
   // adjust hero
   const heroEntity = assertIdentifierAndComponents(world, "hero", [
@@ -905,15 +906,14 @@ export const generateIsland = (world: World) => {
 
   const anvilEntity = createCell(
     world,
-    worldMap,
     add(smithBuilding.building[POSITION], {
       x: smithOffset * -2,
       y: 0,
     }),
-    "anvil",
+    "anvil_passive",
     "hidden"
-  );
-  setIdentifier(world, anvilEntity!, "earth_anvil");
+  ).cell;
+  setIdentifier(world, anvilEntity, "earth_anvil");
 
   // druid's house
   const druidOffset = choice(-1, 1);
@@ -925,15 +925,14 @@ export const generateIsland = (world: World) => {
 
   const kettleEntity = createCell(
     world,
-    worldMap,
     add(druidBuilding.building[POSITION], {
       x: druidOffset * -2,
       y: 0,
     }),
-    "kettle",
+    "kettle_passive",
     "hidden"
-  );
-  setIdentifier(world, kettleEntity!, "earth_kettle");
+  ).cell;
+  setIdentifier(world, kettleEntity, "earth_kettle");
 
   // furnish houses
   const furnishingBuildings = [traderBuilding, ...emptyBuildings];
@@ -1048,9 +1047,6 @@ export const generateIsland = (world: World) => {
 
   // console.log(stringifyMap(worldMap, objectsMap, { x: size / 2, y: size / 2 }));
   // console.log(stringifyMap(worldMap, objectsMap, { x: 0, y: 0 }));
-
-  // queue all added entities to added listener
-  world.cleanup();
 };
 
 export const stringifyMap = (

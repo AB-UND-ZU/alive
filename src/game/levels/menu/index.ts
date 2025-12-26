@@ -1,17 +1,11 @@
 import { entities, World } from "../../../engine";
 import { POSITION } from "../../../engine/components/position";
 import { LEVEL, LevelName } from "../../../engine/components/level";
-import { iterateMatrix, matrixFactory } from "../../math/matrix";
-import { centerArea } from "./areas";
+import { createMatrix, matrixFactory, setMatrix } from "../../math/matrix";
+import { centerArea, menuSpawn } from "./areas";
 import { VIEWABLE } from "../../../engine/components/viewable";
-import { createCell, insertArea } from "./../../../bindings/creation";
+import { CellType, insertArea } from "./../../../bindings/creation";
 import { getItemSprite, npcSequence, questSequence } from "../../assets/utils";
-import {
-  disposeEntity,
-  getCell,
-  registerEntity,
-} from "../../../engine/systems/map";
-import { add } from "../../math/std";
 import { RENDERABLE } from "../../../engine/components/renderable";
 import { SEQUENCABLE } from "../../../engine/components/sequencable";
 import { SPRITE } from "../../../engine/components/sprite";
@@ -19,26 +13,37 @@ import { createItemAsDrop } from "../../../engine/systems/drop";
 import { Item, ITEM } from "../../../engine/components/item";
 import { ORIENTABLE } from "../../../engine/components/orientable";
 import { assertIdentifierAndComponents } from "../../../engine/utils";
-import { FOG } from "../../../engine/components/fog";
+import {
+  initializeArea,
+  initializeCell,
+} from "../../../engine/systems/initialize";
+import { add } from "../../math/std";
 
 export const menuSize = 40;
 export const menuName: LevelName = "LEVEL_MENU";
 
 export const generateMenu = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
-  const worldMatrix = matrixFactory<string>(size, size, (x, y) => "air");
+  const worldMatrix = createMatrix<CellType>(size, size, "air");
 
-  insertArea(worldMatrix, centerArea, 0, 0);
+  world.metadata.gameEntity[LEVEL].cells = worldMatrix;
+  world.metadata.gameEntity[LEVEL].objects = createMatrix(
+    size,
+    size,
+    undefined
+  );
+  world.metadata.gameEntity[LEVEL].initialized = createMatrix(
+    size,
+    size,
+    false
+  );
 
-  iterateMatrix(worldMatrix, (x, y, cell) => {
-    createCell(world, worldMatrix, { x, y }, cell, "hidden");
+  // create menu layout and insert player
+  insertArea(world, centerArea, 0, 0);
+  setMatrix(worldMatrix, menuSpawn.x, menuSpawn.y, "player");
+  initializeCell(world, menuSpawn.x, menuSpawn.y);
 
-    // track distribution of cell types
-    world.metadata.gameEntity[LEVEL].cells[cell] = (
-      world.metadata.gameEntity[LEVEL].cells[cell] || []
-    ).concat([{ x, y }]);
-  });
-
+  // start world NPC
   const viewpointEntity = entities.createWorld(world, {
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
@@ -46,12 +51,6 @@ export const generateMenu = async (world: World) => {
     [VIEWABLE]: { active: false, priority: 30 },
   });
   npcSequence(world, viewpointEntity, "menuNpc", {});
-
-  // register all entities to allow post-processing
-  const registerableEntites = world.getEntities([POSITION]);
-  registerableEntites.forEach((registerableEntity) => {
-    registerEntity(world, registerableEntity);
-  });
 
   // give hero initial quest
   const heroEntity = assertIdentifierAndComponents(world, "hero", [
@@ -67,41 +66,18 @@ export const generateMenu = async (world: World) => {
     const titleHeight = 3;
     const titleCenter = { x: 0, y: -4 };
     matrixFactory(titleWidth, titleHeight, (x, y) => {
-      Object.values(
-        getCell(
-          world,
-          add(titleCenter, {
-            x: x - (titleWidth - 1) / 2,
-            y: y - (titleHeight - 1) / 2,
-          })
-        )
-      ).forEach((entity) => {
-        if (!entity[VIEWABLE] && entity[FOG]?.type !== "air") disposeEntity(world, entity);
-      });
+      setMatrix(
+        worldMatrix,
+        titleCenter.x + x - (titleWidth - 1) / 2,
+        titleCenter.y + y - (titleHeight - 1) / 2,
+        "air"
+      );
     });
 
     // add dummy and anvil
-    createCell(
-      world,
-      worldMatrix,
-      add(titleCenter, { x: 0, y: -4 }),
-      "dummy",
-      "hidden"
-    );
-    createCell(
-      world,
-      worldMatrix,
-      add(titleCenter, { x: -4, y: -4 }),
-      "kettle",
-      "hidden"
-    );
-    createCell(
-      world,
-      worldMatrix,
-      add(titleCenter, { x: 4, y: -4 }),
-      "anvil",
-      "hidden"
-    );
+    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 4, "dummy");
+    setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 4, "kettle");
+    setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 4, "anvil");
 
     const itemColumns: Omit<Item, "bound" | "carrier">[][] = [
       [
@@ -179,7 +155,7 @@ export const generateMenu = async (world: World) => {
         {
           equipment: "sword",
           material: "diamond",
-          amount: 99,
+          amount: 1,
         },
       ],
       [
@@ -340,6 +316,14 @@ export const generateMenu = async (world: World) => {
     });
   }
 
-  // queue all added entities to added listener
-  world.cleanup();
+  // initialize menu for NPC to attach to
+  const centerRows = centerArea.split("\n");
+  const menuWidth = centerRows[0].length;
+  const menuHeight = centerRows.length;
+  const menuCorner = { x: (menuWidth - 1) / -2, y: (menuHeight - 1) / -2 };
+  initializeArea(
+    world,
+    menuCorner,
+    add(menuCorner, { x: menuWidth, y: menuHeight })
+  );
 };

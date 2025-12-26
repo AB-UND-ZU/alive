@@ -620,8 +620,8 @@ export const nomadQuest: Sequence<QuestSequence> = (world, entity, state) => {
     onEnter: () => {
       // find closest ore to collect which are walkable
       const ores = [
-        ...world.metadata.gameEntity[LEVEL].cells.ore,
-        ...world.metadata.gameEntity[LEVEL].cells.stone,
+        ...world.metadata.gameEntity[LEVEL].cellPositions.ore,
+        ...world.metadata.gameEntity[LEVEL].cellPositions.stone,
       ]
         .map((ore) => getLootable(world, ore))
         .filter(

@@ -56,7 +56,6 @@ export default function Systems() {
 
     while (elapsedRef.current >= systemsFrame) {
       ecs.update(systemsFrame);
-      ecs.cleanup();
       elapsedRef.current -= systemsFrame;
     }
   });

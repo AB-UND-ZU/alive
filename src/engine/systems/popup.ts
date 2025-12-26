@@ -545,7 +545,11 @@ export default function setupPopup(world: World) {
                 (frameHeight - 2) +
                 1
             )
-          : popupEntity[POPUP].objectives.length
+          : selections.length === 1
+          ? isQuestCompleted(world, heroEntity, popupEntity)
+            ? popupEntity[POPUP].choices.length
+            : popupEntity[POPUP].objectives.length
+          : 0
         : 0;
     const lastIndex = lines - 1;
     popupEntity[POPUP].verticalIndezes[popupEntity[POPUP].horizontalIndex] =

@@ -94,6 +94,15 @@ export const isCollision = (world: World, position: Position) =>
   );
 
 export const isWalkable = (world: World, position: Position) => {
+  if (
+    !getOverlappingCell(
+      world.metadata.gameEntity[LEVEL].initialized,
+      position.x,
+      position.y
+    )
+  )
+    return false;
+
   const lockable = getLockable(world, position);
   return (
     !isCollision(world, position) &&

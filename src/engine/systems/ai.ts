@@ -1306,11 +1306,10 @@ export default function setupAi(world: World) {
             if (nextSpawn) {
               const mobEntity = createCell(
                 world,
-                [[]],
                 entity[POSITION],
                 nextSpawn,
                 "fog"
-              ) as TypedEntity<"BEHAVIOUR">;
+              ).cell;
               setIdentifier(world, mobEntity, `${pattern.memory.name}:mob`);
               registerEntity(world, mobEntity);
             }
@@ -1422,7 +1421,6 @@ export default function setupAi(world: World) {
               .forEach((statue) => {
                 createCell(
                   world,
-                  [[]],
                   copy(statue[POSITION]),
                   "chest_tower",
                   "visible"
@@ -1600,7 +1598,6 @@ export default function setupAi(world: World) {
               for (let i = 0; i < 6; i += 1) {
                 createCell(
                   world,
-                  [[]],
                   add(entity[POSITION], {
                     x: (i % 3 === 1 ? 2 : 1) * (i < 3 ? 1 : -1),
                     y: ((i % 3) - 1) * (i < 3 ? 1 : -1),

@@ -1,7 +1,7 @@
 import { entities, World } from "../../../engine";
 import { POSITION } from "../../../engine/components/position";
 import { LEVEL, LevelName } from "../../../engine/components/level";
-import { iterateMatrix, matrixFactory } from "../../math/matrix";
+import { createMatrix, iterateMatrix } from "../../math/matrix";
 import { leverPosition, roomSize, tutorialRooms } from "./areas";
 import { VIEWABLE } from "../../../engine/components/viewable";
 import {
@@ -31,19 +31,24 @@ import { chairLeft, createDialog, table } from "../../assets/sprites";
 import { isTouch } from "../../../components/Dimensions";
 import { LAYER } from "../../../engine/components/layer";
 import { COLLIDABLE } from "../../../engine/components/collidable";
-import { TypedEntity } from "../../../engine/entities";
-import { applyWaterMap } from "../../../engine/systems/water";
 
 export const tutorialSize = 72;
 export const tutorialName: LevelName = "LEVEL_TUTORIAL";
 
 export const generateTutorial = async (world: World) => {
   const size = world.metadata.gameEntity[LEVEL].size;
-  const worldMatrix = matrixFactory<CellType>(size, size, () => "mountain");
+  const worldMap = createMatrix<CellType>(size, size, "mountain");
+  world.metadata.gameEntity[LEVEL].cells = worldMap;
+  world.metadata.gameEntity[LEVEL].objects = createMatrix(
+    size,
+    size,
+    undefined
+  );
+  world.metadata.gameEntity[LEVEL].initialized = createMatrix(size, size, true);
 
   // insert rooms
   tutorialRooms.forEach((room, roomIndex) => {
-    insertArea(worldMatrix, room.area, room.offsetX, room.offsetY, true);
+    insertArea(world, room.area, room.offsetX, room.offsetY, true);
 
     // create door to previous room
     const isLast = roomIndex === tutorialRooms.length - 1;
@@ -54,12 +59,11 @@ export const generateTutorial = async (world: World) => {
 
     const doorEntity = createCell(
       world,
-      worldMatrix,
       doorPosition,
       isLast ? "entry" : vertical ? "iron_entry" : "gold_entry",
       "fog"
-    );
-    setIdentifier(world, doorEntity!, `${room.name}:door`);
+    ).cell;
+    setIdentifier(world, doorEntity, `${room.name}:door`);
 
     if (roomIndex === 0) return;
 
@@ -68,32 +72,25 @@ export const generateTutorial = async (world: World) => {
       for (let y = 1 - roomSize.y / 2; y < roomSize.y / 2; y += 1) {
         const floatEntity = createCell(
           world,
-          worldMatrix,
           { x: x + room.offsetX, y: y + room.offsetY },
           "float",
           "fog"
-        );
+        ).cell;
         setIdentifier(world, floatEntity!, `${room.name}:float`);
       }
     }
   });
 
-  const smoothenedMatrix = smoothenWater(worldMatrix);
+  const smoothenedMatrix = smoothenWater(worldMap);
 
   iterateMatrix(smoothenedMatrix, (x, y, cell) => {
     createCell(
       world,
-      smoothenedMatrix,
       { x, y },
       cell,
       cell === "mountain" ? "fog" : "hidden",
       false
     );
-
-    // track distribution of cell types
-    world.metadata.gameEntity[LEVEL].cells[cell] = (
-      world.metadata.gameEntity[LEVEL].cells[cell] || []
-    ).concat([{ x, y }]);
   });
 
   const viewpointEntity = entities.createWorld(world, {
@@ -170,18 +167,6 @@ export const generateTutorial = async (world: World) => {
   });
 
   // add lever to cycle back to fountain room
-  const unlockLever = createCell(
-    world,
-    worldMatrix,
-    leverPosition,
-    "lever",
-    "hidden"
-  ) as TypedEntity<"TOOLTIP">;
+  const unlockLever = createCell(world, leverPosition, "lever", "hidden").cell;
   setIdentifier(world, unlockLever, "unlock_lever");
-
-  // render deep water
-  applyWaterMap(world);
-
-  // queue all added entities to added listener
-  world.cleanup();
 };
