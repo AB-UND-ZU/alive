@@ -439,6 +439,7 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
     },
     isCompleted: () =>
       townDistance < 10 ||
+      !spawnSign ||
       (isInPopup(world, entity) &&
         world.getEntityById(entity[PLAYER].popup) === spawnSign),
     onLeave: () => "town",

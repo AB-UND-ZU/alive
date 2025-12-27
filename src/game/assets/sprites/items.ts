@@ -153,27 +153,18 @@ export const level: Sprite = {
 export const xp: Sprite = {
   name: "XP",
   layers: [
-    { char: "+", color: colors.lime },
-    { char: "·", color: colors.black },
+    { char: "*", color: colors.lime },
+    { char: "─", color: colors.black },
+    { char: "·", color: colors.lime },
   ],
   amounts: {
     single: [
-      { char: "+", color: colors.lime },
-      { char: "·", color: colors.black },
-    ],
-
-    double: [
       { char: "*", color: colors.lime },
-      { char: "■", color: colors.black },
-      { char: "-", color: colors.lime },
-      { char: "|", color: colors.lime },
-      { char: "~", color: colors.black },
-      { char: "·", color: colors.black },
+      { char: "─", color: colors.black },
+      { char: "·", color: colors.lime },
     ],
-    multiple: [
-      { char: "┼", color: colors.lime },
-      { char: "·", color: colors.black },
-    ],
+    double: [{ char: "x", color: colors.lime }],
+    multiple: [{ char: "X", color: colors.lime }],
   },
 };
 

@@ -731,7 +731,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         ],
       },
     ],
-    patternNames: ["eye"],
+    patternNames: ["eye", "chase"],
     sprite: goldEye,
   },
   orb: {

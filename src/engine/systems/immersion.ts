@@ -8,6 +8,8 @@ import { getCell } from "./map";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { REFERENCE } from "../components/reference";
 import { SPRITE } from "../components/sprite";
+import { getOverlappingCell } from "../../game/math/matrix";
+import { LEVEL } from "../components/level";
 
 export const getImmersible = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -29,14 +31,24 @@ export const getSwimmables = (world: World, position: Position) =>
   );
 
 export const isSubmerged = (world: World, position: Position) =>
+  isImmersible(world, position) &&
   [-1, 0, 1]
     .map((xOffset) =>
-      [-1, 0, 1].map((yOffset) =>
-        isImmersible(world, {
-          x: position.x + xOffset,
-          y: position.y + yOffset,
-        })
-      )
+      [-1, 0, 1].map((yOffset) => {
+        const x = position.x + xOffset;
+        const y = position.y + yOffset;
+        return (
+          !getOverlappingCell(
+            world.metadata.gameEntity[LEVEL].initialized,
+            x,
+            y
+          ) ||
+          isImmersible(world, {
+            x,
+            y,
+          })
+        );
+      })
     )
     .flat()
     .every(Boolean);

@@ -1250,7 +1250,7 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-const xpTime = 200;
+const xpTime = 180;
 
 export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -1268,13 +1268,12 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
 
   // create XP particles
   if (generation === 0 && particleLength === 0) {
-    for (const orientation of orientations) {
-      const delta = orientationPoints[orientation];
+    for (const iteration of iterations) {
       const xpParticle = entities.createFibre(world, {
-        [ORIENTABLE]: { facing: orientation },
+        [ORIENTABLE]: { facing: iteration.orientation },
         [PARTICLE]: {
-          offsetX: delta.x * 2,
-          offsetY: delta.y * 2,
+          offsetX: (iteration.direction.x + iteration.normal.x) * 2,
+          offsetY: (iteration.direction.y + iteration.normal.y) * 2,
           offsetZ: effectHeight,
           duration: xpTime * 2,
           animatedOrigin: { x: 0, y: 0 },
@@ -1282,7 +1281,8 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
         [RENDERABLE]: { generation: 1 },
         [SPRITE]: xpDot,
       });
-      state.particles[`xp-${orientation}`] = world.getEntityId(xpParticle);
+      state.particles[`xp-${iteration.orientation}`] =
+        world.getEntityId(xpParticle);
     }
 
     updated = true;
