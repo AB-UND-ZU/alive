@@ -14,7 +14,11 @@ import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { getEntityGeneration } from "../../engine/systems/renderer";
 import { getCell } from "../../engine/systems/map";
-import { getDistance, random } from "../../game/math/std";
+import {
+  getDistance,
+  normalize,
+  random,
+} from "../../game/math/std";
 import { LEVEL } from "../../engine/components/level";
 import { PLAYER } from "../../engine/components/player";
 import { getEnterable, isOutside } from "../../engine/systems/enter";
@@ -23,6 +27,9 @@ import { LAYER } from "../../engine/components/layer";
 import { LIGHT } from "../../engine/components/light";
 import { FRAGMENT } from "../../engine/components/fragment";
 import { MOVABLE } from "../../engine/components/movable";
+import { TypedEntity } from "../../engine/entities";
+import { CASTABLE } from "../../engine/components/castable";
+import { getClosestQuadrant } from "../../game/math/path";
 
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
@@ -108,81 +115,130 @@ export default function Systems() {
   const fractionX = Math.sign(fraction.x);
   const fractionY = Math.sign(fraction.y);
 
+  const renderableEntities: [
+    number,
+    number,
+    boolean,
+    string | number,
+    TypedEntity<"POSITION">
+  ][] = [];
+  for (
+    let offsetX = 0;
+    offsetX <
+    dimensions.renderedColumns +
+      Math.abs(overscan.x) +
+      Math.abs(fractionX) +
+      flyingPadding;
+    offsetX += 1
+  ) {
+    for (
+      let offsetY = 0;
+      offsetY <
+      dimensions.renderedRows +
+        Math.abs(overscan.y) +
+        Math.abs(fractionX) +
+        flyingPadding;
+      offsetY += 1
+    ) {
+      const oddX = dimensions.renderedColumns % 2;
+      const renderedX =
+        offsetX -
+        (dimensions.renderedColumns - oddX) / 2 +
+        position.x -
+        Math.max(0, overscan.x) -
+        Math.max(0, fractionX) -
+        flyingPadding / 2;
+
+      const oddY = dimensions.renderedRows % 2;
+      const renderedY =
+        offsetY -
+        (dimensions.renderedRows - oddY) / 2 +
+        position.y -
+        Math.max(0, overscan.y) -
+        Math.max(0, fractionY) -
+        flyingPadding / 2;
+
+      const renderedPosition = { x: renderedX, y: renderedY };
+      const cell = getCell(ecs, renderedPosition);
+      const inside =
+        !!structure &&
+        getEnterable(ecs, renderedPosition)?.[FRAGMENT]?.structure ===
+          structure;
+
+      for (const entityId in cell) {
+        const entity = cell[entityId] as TypedEntity<"POSITION">;
+
+        // render castables separately
+        if (
+          !(RENDERABLE in entity) ||
+          !(SPRITE in entity) ||
+          CASTABLE in entity
+        )
+          continue;
+
+        renderableEntities.push([
+          renderedX,
+          renderedY,
+          inside,
+          entityId,
+          entity,
+        ]);
+      }
+    }
+  }
+
+  // given that hero is positioned absolutely,
+  // find closest quadrant to virtually place all castables
+  const castableEntities = ecs.getEntities([CASTABLE, POSITION]);
+  for (const entity of castableEntities) {
+    const normalizedX = normalize(position.x, size);
+    const normalizedY = normalize(position.y, size);
+    const { quadrant } = getClosestQuadrant(
+      { x: normalizedX, y: normalizedY },
+      entity[POSITION],
+      size,
+      1
+    );
+    const wrapX = Math.floor((position.x - normalizedX) / size);
+    const wrapY = Math.floor((position.y - normalizedY) / size);
+    
+    renderableEntities.push([
+      entity[POSITION].x + (wrapX + quadrant.x) * size,
+      entity[POSITION].y + (wrapY + quadrant.y) * size,
+      false,
+      ecs.getEntityId(entity),
+      entity,
+    ]);
+  }
+
   return (
     <animated.group position-x={values.x} position-y={values.y}>
-      {Array.from({
-        length:
-          dimensions.renderedColumns +
-          Math.abs(overscan.x) +
-          Math.abs(fractionX) +
-          flyingPadding,
-      })
-        .map((_, x) =>
-          Array.from({
-            length:
-              dimensions.renderedRows +
-              Math.abs(overscan.y) +
-              Math.abs(fractionX) +
-              flyingPadding,
-          })
-            .map((_, y) => {
-              const offsetX = dimensions.renderedColumns % 2;
-              const renderedX =
-                x -
-                (dimensions.renderedColumns - offsetX) / 2 +
-                position.x -
-                Math.max(0, overscan.x) -
-                Math.max(0, fractionX) -
-                flyingPadding / 2;
-
-              const offsetY = dimensions.renderedRows % 2;
-              const renderedY =
-                y -
-                (dimensions.renderedRows - offsetY) / 2 +
-                position.y -
-                Math.max(0, overscan.y) -
-                Math.max(0, fractionY) -
-                flyingPadding / 2;
-
-              const renderedPosition = { x: renderedX, y: renderedY };
-              const cell = getCell(ecs, renderedPosition);
-              const inside =
-                !!structure &&
-                getEnterable(ecs, renderedPosition)?.[FRAGMENT]?.structure ===
-                  structure;
-              const entities = Object.entries(cell);
-
-              const renderableEntities = entities.filter(
-                ([_, entity]) => RENDERABLE in entity && SPRITE in entity
-              );
-              return renderableEntities.map(([entityId, entity]) => (
-                <Entity
-                  key={entityId}
-                  entity={
-                    entity as {
-                      [POSITION]: Position;
-                      [SPRITE]: Sprite;
-                      [RENDERABLE]: Renderable;
-                    }
-                  }
-                  x={renderedX}
-                  y={renderedY}
-                  inRadius={
-                    getDistance(
-                      hero?.[POSITION] || position,
-                      entity[POSITION],
-                      size
-                    ) < (hero?.[LIGHT]?.brightness || Infinity)
-                  }
-                  outside={!inside && isOutside(ecs, entity, structure)}
-                  inside={inside}
-                  generation={getEntityGeneration(ecs, entity)}
-                />
-              ));
-            })
-            .flat()
+      {renderableEntities.map(
+        ([renderedX, renderedY, inside, entityId, entity]) => (
+          <Entity
+            key={entityId}
+            entity={
+              entity as {
+                [POSITION]: Position;
+                [SPRITE]: Sprite;
+                [RENDERABLE]: Renderable;
+              }
+            }
+            x={renderedX}
+            y={renderedY}
+            inRadius={
+              getDistance(
+                hero?.[POSITION] || position,
+                entity[POSITION],
+                size
+              ) < (hero?.[LIGHT]?.brightness || Infinity)
+            }
+            outside={!inside && isOutside(ecs, entity, structure)}
+            inside={inside}
+            generation={getEntityGeneration(ecs, entity)}
+          />
         )
-        .flat()}
+      )}
     </animated.group>
   );
 }

@@ -41,6 +41,7 @@ export const getClosestQuadrant = (
   ratio = aspectRatio,
   euclidean = true
 ) => {
+  const gridOffset = { x: size, y: size };
   const gridTargets = [-1, 0, 1]
     .map((wrapX) =>
       [-1, 0, 1].map((wrapY) => ({
@@ -51,8 +52,20 @@ export const getClosestQuadrant = (
     .flat();
   const closestQuadrants = gridTargets.sort(
     (left, right) =>
-      getDistance(origin, left.point, size * 2, ratio, euclidean) -
-      getDistance(origin, right.point, size * 2, ratio, euclidean)
+      getDistance(
+        add(origin, gridOffset),
+        add(left.point, gridOffset),
+        size * 3,
+        ratio,
+        euclidean
+      ) -
+      getDistance(
+        add(origin, gridOffset),
+        add(right.point, gridOffset),
+        size * 3,
+        ratio,
+        euclidean
+      )
   );
 
   return closestQuadrants[0];
@@ -78,6 +91,10 @@ export const findPath = (
   const width = matrix.length / 2;
   const height = matrix[0].length / 2;
   const graph = new GraphImpl(matrix) as Graph;
+  const normalizedOrigin = {
+    x: normalize(origin.x, width),
+    y: normalize(origin.y, height),
+  };
   const normalizedTarget = {
     x: normalize(target.x, width),
     y: normalize(target.y, height),
@@ -86,9 +103,9 @@ export const findPath = (
   // find shortest distance to target (assuming width === height)
   const closestQuadrant = quadrant
     ? { quadrant, point: normalizedTarget }
-    : getClosestQuadrant(origin, normalizedTarget, width, 1, false);
+    : getClosestQuadrant(normalizedOrigin, normalizedTarget, width, 1, false);
 
-  const shiftedOrigin = add(origin, {
+  const shiftedOrigin = add(normalizedOrigin, {
     x: closestQuadrant.quadrant.x === -1 ? width : 0,
     y: closestQuadrant.quadrant.y === -1 ? height : 0,
   });
