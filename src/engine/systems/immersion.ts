@@ -38,11 +38,14 @@ export const isSubmerged = (world: World, position: Position) =>
         const x = position.x + xOffset;
         const y = position.y + yOffset;
         return (
-          !getOverlappingCell(
+          (!getOverlappingCell(
             world.metadata.gameEntity[LEVEL].initialized,
             x,
             y
-          ) ||
+          ) &&
+            ["water_shallow", "water_deep"].includes(
+              getOverlappingCell(world.metadata.gameEntity[LEVEL].cells, x, y)
+            )) ||
           isImmersible(world, {
             x,
             y,

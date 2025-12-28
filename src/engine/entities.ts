@@ -498,6 +498,15 @@ export const createHighlight = entityFactory([
   TRACKABLE,
 ]);
 
+export const createIce = entityFactory([
+  FOG,
+  FREEZABLE,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+  TEMPO,
+]);
+
 export const createItem = entityFactory([ITEM, RENDERABLE, SPRITE]);
 
 export const createLever = entityFactory([

@@ -91,7 +91,7 @@ export const rubyMine: Sprite = {
   ],
 };
 
-export const water: Sprite = {
+export const waterShallow: Sprite = {
   name: "water_shallow",
   layers: [
     { char: "█", color: colors.navy },
@@ -102,7 +102,7 @@ export const water: Sprite = {
 };
 
 export const waterDeep: Sprite = {
-  name: "water",
+  name: "water_deep",
   layers: [{ char: "█", color: colors.navy }],
 };
 

@@ -8,11 +8,14 @@ import { disposeEntity, getCell, updateWalkable } from "./map";
 import { createSequence } from "./sequence";
 import { getSequence } from "./sequence";
 import { AFFECTABLE } from "../components/affectable";
-import { SPRITE } from "../components/sprite";
+import { Sprite, SPRITE } from "../components/sprite";
 import { FREEZABLE } from "../components/freezable";
 import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
-import addImmersible, { IMMERSIBLE } from "../components/immersible";
+import addImmersible, {
+  Immersible,
+  IMMERSIBLE,
+} from "../components/immersible";
 import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { getTempo, isWalkable } from "./movement";
@@ -24,7 +27,13 @@ import { getSwimmables } from "./immersion";
 import { SWIMMABLE } from "../components/swimmable";
 import { extinguishEntity } from "./burn";
 import { queueMessage } from "../../game/assets/utils";
-import { createText, snow, snowCover } from "../../game/assets/sprites";
+import {
+  createText,
+  ice,
+  snow,
+  snowCover,
+  waterDeep,
+} from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { getLockable } from "./action";
 import { LOCKABLE } from "../components/lockable";
@@ -67,15 +76,16 @@ export const isControllable = (world: World, entity: Entity) =>
   !isFrozen(world, entity) &&
   !isSliding(world, entity);
 
+const frozenSprites: Record<Immersible["type"], Sprite> = {
+  water: ice,
+};
+
 // swap sprites when freezing
 export const freezeTerrain = (world: World, entity: Entity) => {
   if (isFrozen(world, entity)) return entity;
 
   entity[FREEZABLE].frozen = true;
-
-  const originalSprite = entity[SPRITE];
-  entity[SPRITE] = entity[FREEZABLE].sprite;
-  entity[FREEZABLE].sprite = originalSprite;
+  entity[SPRITE] = frozenSprites[(entity[IMMERSIBLE] as Immersible).type];
 
   // replace water with ice terrain
   if (entity[IMMERSIBLE] && entity[TEMPO]) {
@@ -109,17 +119,16 @@ export const freezeTerrain = (world: World, entity: Entity) => {
 
 // swap sprites when thawing
 export const thawTerrain = (world: World, entity: Entity) => {
-  entity[FREEZABLE].frozen = false;
+  if (!isFrozen(world, entity)) return entity;
 
-  const originalSprite = entity[SPRITE];
-  entity[SPRITE] = entity[FREEZABLE].sprite;
-  entity[FREEZABLE].sprite = originalSprite;
+  entity[FREEZABLE].frozen = false;
+  entity[SPRITE] = waterDeep;
 
   // replace ice with water terrain
   if (entity[TEMPO]) {
     entity[TEMPO].amount = -2;
 
-    addImmersible(world, entity, {});
+    addImmersible(world, entity, { type: "water", deep: true });
     updateWalkable(world, entity[POSITION]);
     updateWaterCell(world, entity[POSITION]);
 

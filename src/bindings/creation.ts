@@ -62,7 +62,7 @@ import {
 } from "../engine/systems/drop";
 import { getEnterable } from "../engine/systems/enter";
 import { createHero } from "../engine/systems/fate";
-import { applySnow, freezeTerrain } from "../engine/systems/freeze";
+import { applySnow } from "../engine/systems/freeze";
 import { getHasteInterval } from "../engine/systems/movement";
 import { createPopup } from "../engine/systems/popup";
 import { createSequence } from "../engine/systems/sequence";
@@ -137,7 +137,7 @@ import {
   treeBurnt2,
   wall,
   warp,
-  water,
+  waterShallow,
   leverOff,
   waterDeep,
   desertPalmBurnt1,
@@ -990,11 +990,11 @@ export const createCell = (
   } else if (cell === "water_shallow" || cell === "spring") {
     const waterEntity = entities.createWater(world, {
       [FOG]: { visibility, type: "terrain" },
-      [FREEZABLE]: { frozen: false, sprite: ice },
-      [IMMERSIBLE]: {},
+      [FREEZABLE]: { frozen: false },
+      [IMMERSIBLE]: { type: "water", deep: false },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
-      [SPRITE]: water,
+      [SPRITE]: waterShallow,
       [TEMPO]: { amount: -2 },
     });
     all.push(waterEntity);
@@ -1002,8 +1002,8 @@ export const createCell = (
   } else if (cell === "water_deep") {
     const waterEntity = entities.createWater(world, {
       [FOG]: { visibility, type: "terrain" },
-      [FREEZABLE]: { frozen: false, sprite: ice },
-      [IMMERSIBLE]: {},
+      [FREEZABLE]: { frozen: false },
+      [IMMERSIBLE]: { type: "water", deep: true },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: waterDeep,
@@ -1012,18 +1012,16 @@ export const createCell = (
     all.push(waterEntity);
     return { cell: waterEntity, all };
   } else if (cell === "ice") {
-    const waterEntity = entities.createWater(world, {
+    const iceEntity = entities.createIce(world, {
       [FOG]: { visibility, type: "terrain" },
-      [FREEZABLE]: { frozen: false, sprite: ice },
-      [IMMERSIBLE]: {},
+      [FREEZABLE]: { frozen: true },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
-      [SPRITE]: water,
-      [TEMPO]: { amount: -2 },
+      [SPRITE]: ice,
+      [TEMPO]: { amount: 0 },
     });
-    freezeTerrain(world, waterEntity);
-    all.push(waterEntity);
-    return { cell: waterEntity, all };
+    all.push(iceEntity);
+    return { cell: iceEntity, all };
   } else if (cell === "snow") {
     const snowEntity = applySnow(world, { x, y });
     all.push(snowEntity);

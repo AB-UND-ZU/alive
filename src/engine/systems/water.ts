@@ -6,7 +6,7 @@ import { Liquid, LIQUID } from "../components/liquid";
 import { entities } from "..";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
-import { bubble, water, waterDeep } from "../../game/assets/sprites";
+import { bubble, waterShallow, waterDeep } from "../../game/assets/sprites";
 import { add, copy, getDistance, random } from "../../game/math/std";
 import { play } from "../../game/sound";
 import { PLAYER } from "../components/player";
@@ -17,6 +17,7 @@ import { getFragment } from "./enter";
 import { rerenderEntity } from "./renderer";
 import { lerp } from "three/src/math/MathUtils";
 import { SEQUENCABLE } from "../components/sequencable";
+import { IMMERSIBLE } from "../components/immersible";
 
 export type Weather = "rain" | "snow";
 
@@ -109,11 +110,13 @@ export const applyWaterCell = (world: World, position: Position) => {
   const waterEntity = getImmersible(world, position);
   if (!waterEntity) return;
 
-  if (isSubmerged(world, position) && waterEntity[SPRITE] !== waterDeep) {
+  if (isSubmerged(world, position) && !waterEntity[IMMERSIBLE].deep) {
+    waterEntity[IMMERSIBLE].deep = true;
     waterEntity[SPRITE] = waterDeep;
     rerenderEntity(world, waterEntity);
-  } else if (!isSubmerged(world, position) && waterEntity[SPRITE] !== water) {
-    waterEntity[SPRITE] = water;
+  } else if (!isSubmerged(world, position) && waterEntity[IMMERSIBLE].deep) {
+    waterEntity[IMMERSIBLE].deep = false;
+    waterEntity[SPRITE] = waterShallow;
     rerenderEntity(world, waterEntity);
   }
 };

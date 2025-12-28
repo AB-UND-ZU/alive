@@ -1,7 +1,10 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Immersible = {};
+export type Immersible = {
+  type: "water";
+  deep: boolean;
+};
 
 export const IMMERSIBLE = "IMMERSIBLE";
 

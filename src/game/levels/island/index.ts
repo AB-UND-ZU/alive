@@ -737,7 +737,7 @@ export const generateIsland = (world: World) => {
     {
       position: { x: size / 2, y: size / 2 },
       generation: 0,
-      intensity: glacierRadius,
+      intensity: glacierRadius * 0.9,
       drops: [],
       start: 0,
       end: Infinity,

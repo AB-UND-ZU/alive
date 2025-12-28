@@ -1,10 +1,8 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
-import { Sprite } from "./sprite";
 
 export type Freezable = {
   frozen: boolean;
-  sprite: Sprite;
 };
 
 export const FREEZABLE = "FREEZABLE";
