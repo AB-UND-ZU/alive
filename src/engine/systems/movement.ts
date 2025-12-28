@@ -324,7 +324,7 @@ export default function setupMovement(world: World) {
             isImmersible(world, entity[POSITION]) &&
             !entity[MOVABLE].flying
           ) {
-            createBubble(world, entity[POSITION]);
+            createBubble(world, entity[POSITION], "water");
           }
 
           const proximity =

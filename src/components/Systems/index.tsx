@@ -14,11 +14,7 @@ import { Renderable, RENDERABLE } from "../../engine/components/renderable";
 import { useDimensions } from "../Dimensions";
 import { getEntityGeneration } from "../../engine/systems/renderer";
 import { getCell } from "../../engine/systems/map";
-import {
-  getDistance,
-  normalize,
-  random,
-} from "../../game/math/std";
+import { getDistance, normalize, random } from "../../game/math/std";
 import { LEVEL } from "../../engine/components/level";
 import { PLAYER } from "../../engine/components/player";
 import { getEnterable, isOutside } from "../../engine/systems/enter";
@@ -30,6 +26,7 @@ import { MOVABLE } from "../../engine/components/movable";
 import { TypedEntity } from "../../engine/entities";
 import { CASTABLE } from "../../engine/components/castable";
 import { getClosestQuadrant } from "../../game/math/path";
+import { STICKY } from "../../engine/components/sticky";
 
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
@@ -55,6 +52,7 @@ export default function Systems() {
     pause: paused,
   }));
   const elapsedRef = useRef(systemsFrame);
+  const stickyCastables = useRef<Record<number, Position>>({});
 
   useFrame((_, delta) => {
     if (!ecs || paused || suspended) return;
@@ -168,11 +166,12 @@ export default function Systems() {
       for (const entityId in cell) {
         const entity = cell[entityId] as TypedEntity<"POSITION">;
 
-        // render castables separately
+        // render castables and sticky separately
         if (
           !(RENDERABLE in entity) ||
           !(SPRITE in entity) ||
-          CASTABLE in entity
+          CASTABLE in entity ||
+          STICKY in entity
         )
           continue;
 
@@ -191,24 +190,42 @@ export default function Systems() {
   // find closest quadrant to virtually place all castables
   const castableEntities = ecs.getEntities([CASTABLE, POSITION]);
   for (const entity of castableEntities) {
-    const normalizedX = normalize(position.x, size);
-    const normalizedY = normalize(position.y, size);
-    const { quadrant } = getClosestQuadrant(
-      { x: normalizedX, y: normalizedY },
-      entity[POSITION],
-      size,
-      1
-    );
-    const wrapX = Math.floor((position.x - normalizedX) / size);
-    const wrapY = Math.floor((position.y - normalizedY) / size);
-    
+    const entityId = ecs.getEntityId(entity);
+    let castableQuadrant = stickyCastables.current[entityId];
+
+    // check if quadrant has been calculated before
+    if (!castableQuadrant) {
+      const normalizedX = normalize(position.x, size);
+      const normalizedY = normalize(position.y, size);
+      const { quadrant } = getClosestQuadrant(
+        { x: normalizedX, y: normalizedY },
+        entity[POSITION],
+        size,
+        1
+      );
+      const wrapX = Math.floor((position.x - normalizedX) / size);
+      const wrapY = Math.floor((position.y - normalizedY) / size);
+      castableQuadrant = {
+        x: wrapX + quadrant.x,
+        y: wrapY + quadrant.y,
+      };
+      stickyCastables.current[entityId] = castableQuadrant;
+    }
+
     renderableEntities.push([
-      entity[POSITION].x + (wrapX + quadrant.x) * size,
-      entity[POSITION].y + (wrapY + quadrant.y) * size,
-      false,
-      ecs.getEntityId(entity),
+      entity[POSITION].x + castableQuadrant.x * size,
+      entity[POSITION].y + castableQuadrant.y * size,
+      !!structure,
+      entityId,
       entity,
     ]);
+  }
+
+  const stickyEntities = ecs.getEntities([STICKY, POSITION]);
+  for (const entity of stickyEntities) {
+    const entityId = ecs.getEntityId(entity);
+
+    renderableEntities.push([0, 0, !!structure, entityId, entity]);
   }
 
   return (

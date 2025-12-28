@@ -29,13 +29,13 @@ import { colors } from "../../game/assets/colors";
 import { getLockable } from "./action";
 import { LOCKABLE } from "../components/lockable";
 import { CLICKABLE } from "../components/clickable";
-import { LIQUID } from "../components/liquid";
 import { getFragment, getOpaque } from "./enter";
 import { entities } from "..";
 import { FOG } from "../components/fog";
-import { updateWaterCell } from "./water";
+import { getLiquids, updateWaterCell } from "./water";
 import { matrixFactory } from "../../game/math/matrix";
 import { LEVEL } from "../components/level";
+import { COVERABLE } from "../components/coverable";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -69,7 +69,7 @@ export const isControllable = (world: World, entity: Entity) =>
 
 // swap sprites when freezing
 export const freezeTerrain = (world: World, entity: Entity) => {
-  if (isFrozen(world, entity)) return;
+  if (isFrozen(world, entity)) return entity;
 
   entity[FREEZABLE].frozen = true;
 
@@ -89,10 +89,10 @@ export const freezeTerrain = (world: World, entity: Entity) => {
     updateWalkable(world, entity[POSITION]);
     updateWaterCell(world, entity[POSITION]);
 
-    // cancel any bubble animations
-    if (getSequence(world, entity, "bubble")) {
-      delete entity[SEQUENCABLE].states.bubble;
-      rerenderEntity(world, entity);
+    // delete any liquids
+    const liquids = getLiquids(world, entity[POSITION]);
+    for (const liquidEntity of liquids) {
+      disposeEntity(world, liquidEntity);
     }
 
     // lift up immersed units
@@ -104,6 +104,7 @@ export const freezeTerrain = (world: World, entity: Entity) => {
   }
 
   rerenderEntity(world, entity);
+  return entity;
 };
 
 // swap sprites when thawing
@@ -198,7 +199,7 @@ export const freezeMomentum = (
 
 export const isSnowy = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
-    (entity) => entity[LIQUID]?.type === "snow"
+    (entity) => entity[COVERABLE]?.type === "snow"
   );
 
 export const snowFill = 0.4;
@@ -245,18 +246,17 @@ export const coverSnow = (
 export const applySnow = (world: World, position: Position) => {
   const unfrozen = getUnfrozen(world, position);
   if (unfrozen.length > 0) {
-    unfrozen.forEach((entity) => freezeTerrain(world, entity));
-    return;
+    return unfrozen.map((entity) => freezeTerrain(world, entity))[0];
   }
   const hasFrozen = getFrozen(world, position).length > 0;
 
-  entities.createSnow(world, {
+  return entities.createSnow(world, {
     [CLICKABLE]: { clicked: false, player: false },
     [FOG]: {
       visibility: "hidden",
       type: hasFrozen ? "object" : "terrain",
     },
-    [LIQUID]: { type: "snow" },
+    [COVERABLE]: { type: "snow" },
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: hasFrozen ? snowCover : snow,
@@ -323,8 +323,8 @@ export default function setupFreeze(world: World) {
     }
 
     // remove snow
-    for (const entity of world.getEntities([CLICKABLE, LIQUID])) {
-      if (entity[LIQUID].type === "snow" && entity[CLICKABLE].clicked) {
+    for (const entity of world.getEntities([CLICKABLE, COVERABLE])) {
+      if (entity[COVERABLE].type === "snow" && entity[CLICKABLE].clicked) {
         disposeEntity(world, entity);
       }
     }

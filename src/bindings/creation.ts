@@ -62,7 +62,7 @@ import {
 } from "../engine/systems/drop";
 import { getEnterable } from "../engine/systems/enter";
 import { createHero } from "../engine/systems/fate";
-import { freezeTerrain } from "../engine/systems/freeze";
+import { applySnow, freezeTerrain } from "../engine/systems/freeze";
 import { getHasteInterval } from "../engine/systems/movement";
 import { createPopup } from "../engine/systems/popup";
 import { createSequence } from "../engine/systems/sequence";
@@ -140,7 +140,6 @@ import {
   water,
   leverOff,
   waterDeep,
-  snow,
   desertPalmBurnt1,
   desertPalmBurnt2,
 } from "../game/assets/sprites";
@@ -216,7 +215,6 @@ import { centerSprites, overlay, recolorSprite } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
 import { POPUP } from "../engine/components/popup";
 import { openDoor } from "../engine/systems/trigger";
-import { LIQUID } from "../engine/components/liquid";
 import { craftingRecipes } from "../game/balancing/crafting";
 
 export const cellNames = [
@@ -1027,17 +1025,7 @@ export const createCell = (
     all.push(waterEntity);
     return { cell: waterEntity, all };
   } else if (cell === "snow") {
-    const snowEntity = entities.createSnow(world, {
-      [CLICKABLE]: { clicked: false, player: false },
-      [FOG]: {
-        visibility: "hidden",
-        type: "terrain",
-      },
-      [LIQUID]: { type: "snow" },
-      [POSITION]: { x, y },
-      [RENDERABLE]: { generation: 0 },
-      [SPRITE]: snow,
-    });
+    const snowEntity = applySnow(world, { x, y });
     all.push(snowEntity);
     return { cell: snowEntity, all };
   } else if (cell === "wood" || cell === "wood_three") {

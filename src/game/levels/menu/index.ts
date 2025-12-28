@@ -7,7 +7,10 @@ import { VIEWABLE } from "../../../engine/components/viewable";
 import { CellType, insertArea } from "./../../../bindings/creation";
 import { getItemSprite, npcSequence, questSequence } from "../../assets/utils";
 import { RENDERABLE } from "../../../engine/components/renderable";
-import { SEQUENCABLE } from "../../../engine/components/sequencable";
+import {
+  SEQUENCABLE,
+  WeatherSequence,
+} from "../../../engine/components/sequencable";
 import { SPRITE } from "../../../engine/components/sprite";
 import { createItemAsDrop } from "../../../engine/systems/drop";
 import { Item, ITEM } from "../../../engine/components/item";
@@ -18,6 +21,9 @@ import {
   initializeCell,
 } from "../../../engine/systems/initialize";
 import { add } from "../../math/std";
+import { createSequence } from "../../../engine/systems/sequence";
+import { none } from "../../assets/sprites";
+import { STICKY } from "../../../engine/components/sticky";
 
 export const menuSize = 40;
 export const menuName: LevelName = "LEVEL_MENU";
@@ -58,6 +64,31 @@ export const generateMenu = async (world: World) => {
     VIEWABLE,
   ]);
   questSequence(world, heroEntity, "menuQuest", {});
+
+  // set weather
+  const weatherEntity = entities.createAnchor(world, {
+    [POSITION]: { x: 0, y: 0 },
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [STICKY]: {},
+    [SPRITE]: none,
+  });
+  createSequence<"weather", WeatherSequence>(
+    world,
+    weatherEntity,
+    "weather",
+    "weatherStorm",
+    {
+      position: { x: 0, y: 0 },
+      generation: 0,
+      intensity: 0,
+      drops: [],
+      start: 0,
+      end: Infinity,
+      type: "snow",
+      viewable: { x: 0, y: 0 },
+    }
+  );
 
   // temporary test mode
   if (window.location.search.substring(1) === "test") {

@@ -10,15 +10,26 @@ import { Element, Item, Material } from "./item";
 import { Popup } from "./popup";
 import { Liquid } from "./liquid";
 import { Castable, DamageType } from "./castable";
+import { Weather } from "../systems/water";
 
 type EmptyObject = Record<string, never>;
 
 export type ConsumeSequence = { itemId: number };
-export type BubbleSequence = { width: number; type: Liquid["type"] };
 export type DropSequence = {
   height: number;
   fast: boolean;
   type: Exclude<Liquid["type"], "bubble">;
+};
+export type WeatherSequence = {
+  position: Position,
+  viewable: Position,
+  start: number,
+  end: number,
+  intensity: number,
+  ratio?: number,
+  generation: number,
+  drops: { position: Position; fast: boolean; timestamp: number, particle:string }[];
+  type: Weather;
 };
 export type VisionSequence = {
   light?: Light;
@@ -168,8 +179,8 @@ export type Sequencable = {
   states: {
     consume?: SequenceState<ConsumeSequence>;
     spell?: SequenceState<SpellSequence>;
-    bubble?: SequenceState<BubbleSequence>;
     drop?: SequenceState<DropSequence>;
+    weather?: SequenceState<WeatherSequence>;
     vision?: SequenceState<VisionSequence>;
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;

@@ -1,5 +1,5 @@
 import { World } from "../ecs";
-import { POSITION } from "../components/position";
+import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
 import { RENDERABLE } from "../components/renderable";
 import { normalize } from "../../game/math/std";
@@ -26,6 +26,11 @@ type PendingChanges = Record<
     Record<string, { from: Fog["visibility"]; to: Fog["visibility"] }>
   >
 >;
+
+export const isHidden = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).some(
+    (entity) => entity[FOG]?.visibility === "hidden"
+  );
 
 const getLayerCells = (world: World, hero: TypedEntity) => {
   const structure = hero[LAYER]?.structure;
@@ -179,7 +184,8 @@ export default function setupVisibility(world: World) {
   const onUpdate = (delta: number) => {
     const hero = world.getEntity([PLAYER, LIGHT, POSITION]);
 
-    if (!hero || world.metadata.gameEntity[LEVEL].initialized.length === 0) return;
+    if (!hero || world.metadata.gameEntity[LEVEL].initialized.length === 0)
+      return;
 
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])

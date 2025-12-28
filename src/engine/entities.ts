@@ -55,6 +55,8 @@ import { Freezable, FREEZABLE } from "./components/freezable";
 import { Rechargable, RECHARGABLE } from "./components/rechargable";
 import { Warpable, WARPABLE } from "./components/warpable";
 import { Clickable, CLICKABLE } from "./components/clickable";
+import { Sticky, STICKY } from "./components/sticky";
+import { Coverable, COVERABLE } from "./components/coverable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -67,6 +69,7 @@ export type Entity = Record<LevelName, {}> & {
   [CLICKABLE]: Clickable;
   [COLLECTABLE]: Collectable;
   [COLLIDABLE]: Collidable;
+  [COVERABLE]: Coverable;
   [DISPLACABLE]: Displacable;
   [DROPPABLE]: Droppable;
   [ENTERABLE]: Enterable;
@@ -107,6 +110,7 @@ export type Entity = Record<LevelName, {}> & {
   [SPRITE]: Sprite;
   [STATS]: UnitStats;
   [STRUCTURABLE]: Structurable;
+  [STICKY]: Sticky;
   [SWIMMABLE]: Swimmable;
   [TEMPO]: Tempo;
   [TOOLTIP]: Tooltip;
@@ -145,6 +149,14 @@ const entityFactory = <T extends keyof Entity>(
     return entity as EntityData;
   };
 };
+
+export const createAnchor = entityFactory([
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  STICKY,
+  SPRITE,
+]);
 
 export const createAoe = entityFactory([EXERTABLE, POSITION]);
 
@@ -682,8 +694,8 @@ export const createSign = entityFactory([
 
 export const createSnow = entityFactory([
   CLICKABLE,
+  COVERABLE,
   FOG,
-  LIQUID,
   POSITION,
   RENDERABLE,
   SPRITE,

@@ -210,7 +210,7 @@ class Presets extends Params {
     this.p_freq_ramp = -0.05 - frnd(0.05);
     this.p_env_attack = 0.7 + frnd(0.2);
     this.p_env_sustain = 0.6 + frnd(0.3);
-    this.p_env_decay = 0.5 + frnd(0.4);
+    this.p_env_decay = 0.3 + frnd(0.4);
     this.p_hpf_freq = 0.8 + frnd(0.1);
     this.p_hpf_ramp = frnd(0.1) - 0.6;
     this.p_lpf_freq = intensity ** 2;

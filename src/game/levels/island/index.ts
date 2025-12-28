@@ -62,7 +62,10 @@ import {
   chairRight,
   table,
 } from "../../assets/sprites/structures";
-import { SEQUENCABLE } from "../../../engine/components/sequencable";
+import {
+  SEQUENCABLE,
+  WeatherSequence,
+} from "../../../engine/components/sequencable";
 import {
   createUnitName,
   getUnitSprite,
@@ -95,6 +98,8 @@ import { islandNpcDistribution } from "./units";
 import { snowFill } from "../../../engine/systems/freeze";
 import { BEHAVIOUR } from "../../../engine/components/behaviour";
 import { initializeArea } from "../../../engine/systems/initialize";
+import { STICKY } from "../../../engine/components/sticky";
+import { createSequence } from "../../../engine/systems/sequence";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -677,6 +682,69 @@ export const generateIsland = (world: World) => {
     druidHouse.position.x + choice(-1, 1),
     druidHouse.position.y + 2,
     "house_druid"
+  );
+
+  // set weather
+  const mainlandStorm = entities.createAnchor(world, {
+    [POSITION]: { x: 0, y: 0 },
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [STICKY]: {},
+    [SPRITE]: none,
+  });
+  createSequence<"weather", WeatherSequence>(
+    world,
+    mainlandStorm,
+    "weather",
+    "weatherStorm",
+    {
+      position: { x: 0, y: 0 },
+      generation: 0,
+      intensity: 20,
+      drops: [],
+      start: 0,
+      end: 0,
+      type: "rain",
+      viewable: { x: 0, y: 0 },
+      ratio: mainlandRatio,
+    }
+  );
+  npcSequence(world, mainlandStorm, "oscillatingStormNpc", {
+    center: angledOffset(
+      size,
+      { x: 0, y: 0 },
+      islandAngle - 90,
+      mainlandRadius / 2,
+      mainlandRatio
+    ),
+    degrees: islandAngle - 90,
+    amplitude: mainlandRadius * 0.8,
+    frequency: 1 / 100,
+    ratio: mainlandRatio,
+  });
+  const glacierStorm = entities.createAnchor(world, {
+    [POSITION]: { x: 0, y: 0 },
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [STICKY]: {},
+    [SPRITE]: none,
+  });
+  createSequence<"weather", WeatherSequence>(
+    world,
+    glacierStorm,
+    "weather",
+    "weatherStorm",
+    {
+      position: { x: size / 2, y: size / 2 },
+      generation: 0,
+      intensity: glacierRadius,
+      drops: [],
+      start: 0,
+      end: Infinity,
+      type: "snow",
+      viewable: { x: 0, y: 0 },
+      ratio: glacierRatio,
+    }
   );
 
   // initialize spawn and town

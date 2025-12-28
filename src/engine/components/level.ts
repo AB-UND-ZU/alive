@@ -19,7 +19,6 @@ export type Level = {
   cellPositions: Record<string, Position[]>;
   size: number;
   initialized: Matrix<boolean>;
-  weather?: "rain" | "snow";
 };
 
 export const LEVEL = "LEVEL";

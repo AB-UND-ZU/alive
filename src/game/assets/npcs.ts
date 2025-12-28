@@ -111,11 +111,11 @@ import { iterations, pixelCircle } from "../math/tracing";
 import { getClickables } from "../../engine/systems/click";
 import { muteAudio, unmuteAudio } from "../sound/resumable";
 import { REFERENCE } from "../../engine/components/reference";
-import { LIQUID } from "../../engine/components/liquid";
 import { POPUP } from "../../engine/components/popup";
 import { craftingRecipes } from "../balancing/crafting";
 import { isTouch } from "../../components/Dimensions";
 import { getItemBuyPrice, purchasableItems } from "../balancing/trading";
+import { COVERABLE } from "../../engine/components/coverable";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
@@ -313,7 +313,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
     .getEntities([CLICKABLE, POSITION, SPRITE])
     .filter(
       (entity) =>
-        entity[CLICKABLE].clicked && !entity[SEQUENCABLE] && !entity[LIQUID]
+        entity[CLICKABLE].clicked && !entity[SEQUENCABLE] && !entity[COVERABLE]
     )
     .forEach((clickEntity) => {
       circles.push({
@@ -1909,6 +1909,54 @@ export const chestNpc: Sequence<NpcSequence> = (world, entity, state) => {
     },
     onLeave: () => START_STEP,
   });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const oscillatingStormNpc: Sequence<NpcSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const { center, degrees, amplitude, frequency, ratio } = state.args.memory;
+  const weatherSequence = getSequence(world, entity, "weather");
+
+  if (!weatherSequence) {
+    return { finished: stage.finished, updated: stage.updated };
+  }
+
+  if (!weatherSequence.args.end) {
+    weatherSequence.args.end = Infinity;
+  }
+
+  const tick = world.metadata.gameEntity[REFERENCE].tick;
+  const time = (state.elapsed / tick) * frequency;
+  const oscillation = Math.sin(time) * amplitude;
+  const radians = (degrees * Math.PI) / 180;
+  const direction = {
+    x: Math.cos(radians),
+    y: Math.sin(radians),
+  };
+  const offset = {
+    x: Math.round(direction.x * oscillation * ratio),
+    y: Math.round(direction.y * oscillation),
+  };
+  const position = add(center, offset);
+
+  if (
+    weatherSequence.args.position.x !== position.x ||
+    weatherSequence.args.position.y !== position.y
+  ) {
+    weatherSequence.args.position = position;
+  }
 
   return { finished: stage.finished, updated: stage.updated };
 };

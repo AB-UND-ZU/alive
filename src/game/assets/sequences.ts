@@ -66,11 +66,11 @@ import {
   repeat,
   reversed,
   shuffle,
+  sigmoid,
   signedDistance,
 } from "../math/std";
 import { iterations, reversedIterations } from "../math/tracing";
 import {
-  bubble,
   createDialog,
   createText,
   decay,
@@ -181,7 +181,6 @@ import {
 } from "./sprites";
 import {
   ArrowSequence,
-  BubbleSequence,
   BurnSequence,
   CollectSequence,
   ConsumeSequence,
@@ -200,7 +199,6 @@ import {
   PointerSequence,
   PopupSequence,
   ProgressSequence,
-  DropSequence,
   ReviveSequence,
   SEQUENCABLE,
   Sequence,
@@ -211,6 +209,7 @@ import {
   VisionSequence,
   VortexSequence,
   XpSequence,
+  WeatherSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
@@ -311,6 +310,15 @@ import { isInside, onSameLayer } from "../../engine/systems/enter";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
 import { classes, ClassKey } from "../balancing/classes";
 import { getSelectedLevel, levelConfig } from "../levels";
+import { getActiveViewable } from "../../bindings/hooks";
+import {
+  calculateWeatherIntensity,
+  createBubble,
+  Weather,
+  weatherIntensity,
+} from "../../engine/systems/water";
+import { coverSnow } from "../../engine/systems/freeze";
+import { aspectRatio } from "../../components/Dimensions/sizing";
 
 export * from "./npcs";
 export * from "./quests";
@@ -995,124 +1003,7 @@ export const creatureDecay: Sequence<DecaySequence> = (
   return { finished, updated };
 };
 
-const bubbleTick = 250;
-
-export const bubbleSplash: Sequence<BubbleSequence> = (
-  world,
-  entity,
-  state
-) => {
-  let updated = false;
-  let finished = false;
-
-  // create bubble particle
-  if (!state.particles.bubble) {
-    const bubbleParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: effectHeight,
-        amount: 0,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: bubble,
-    });
-    state.particles.bubble = world.getEntityId(bubbleParticle);
-    updated = true;
-  }
-
-  const targetWidth = Math.floor(state.elapsed / bubbleTick);
-
-  if (targetWidth > 3 || (state.args.type === "rain" && targetWidth > 2)) {
-    finished = true;
-  } else if (targetWidth !== state.args.width) {
-    state.args.width = targetWidth;
-    const bubbleParticle = world.assertByIdAndComponents(
-      state.particles.bubble,
-      [PARTICLE]
-    );
-    bubbleParticle[PARTICLE].amount = targetWidth;
-    updated = true;
-  }
-
-  return { finished, updated };
-};
-
-const rainSpeed = 50;
-// const rainDepth = 15;
-
-export const rainDropPixelated: Sequence<DropSequence> = (
-  world,
-  entity,
-  state
-) => {
-  // const parallaxFactor = clamp(state.args.parallax, -rainDepth, rainDepth) / rainDepth;
-  const perceivedSpeed = rainSpeed; //* (1 - parallaxFactor / 3)
-
-  let updated = false;
-  let finished = state.elapsed > state.args.height * perceivedSpeed;
-
-  // create rain particle
-  if (!state.particles.first) {
-    const firstDrop = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: -state.args.height,
-        offsetZ: fogHeight,
-        amount: 1,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: rain,
-    });
-    state.particles.first = world.getEntityId(firstDrop);
-
-    const secondDrop = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 1 - state.args.height,
-        offsetZ: fogHeight,
-        amount: 0,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: rain,
-    });
-    state.particles.second = world.getEntityId(secondDrop);
-
-    updated = true;
-  }
-
-  // move rain particle
-  const firstParticle = world.assertByIdAndComponents(state.particles.first, [
-    PARTICLE,
-  ]);
-  const secondParticle = world.assertByIdAndComponents(state.particles.second, [
-    PARTICLE,
-  ]);
-  const doubleHeight =
-    Math.floor((state.elapsed * 2) / perceivedSpeed) -
-    state.args.height * 2 -
-    1;
-  const offsetY = Math.floor(doubleHeight / 2);
-
-  if (firstParticle[PARTICLE].offsetY !== offsetY) {
-    firstParticle[PARTICLE].offsetY = offsetY;
-    secondParticle[PARTICLE].offsetY = offsetY + 1;
-    updated = true;
-  }
-
-  const secondAmount = normalize(doubleHeight, 2);
-  if (secondParticle[PARTICLE].amount !== secondAmount) {
-    secondParticle[PARTICLE].amount = secondAmount;
-    updated = true;
-  }
-
-  return { finished, updated };
-};
-
-const weatherConfigs: Record<
-  DropSequence["type"],
-  { sprite: Sprite; speed: number }
-> = {
+const weatherConfigs: Record<Weather, { sprite: Sprite; speed: number }> = {
   rain: {
     sprite: rain,
     speed: 50,
@@ -1122,30 +1013,124 @@ const weatherConfigs: Record<
     speed: 300,
   },
 };
-export const weatherDrop: Sequence<DropSequence> = (world, entity, state) => {
-  let updated = false;
-  const weatherConfig = weatherConfigs[state.args.type];
-  const adjustedRainSpeed = state.args.fast
-    ? weatherConfig.speed
-    : weatherConfig.speed * 2;
-  let finished = state.elapsed > state.args.height * adjustedRainSpeed;
+const weatherArea = { x: 36, y: 16 };
+const dropHeight = 12;
 
-  // create rain particle
-  if (!state.particles.drop) {
-    const dropParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: fogHeight,
-        amount: distribution(50, 30, 20) + 1,
-        animatedOrigin: { x: 0, y: -state.args.height },
-        duration: state.args.height * adjustedRainSpeed,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: weatherConfig.sprite,
-    });
-    state.particles.drop = world.getEntityId(dropParticle);
-    updated = true;
+export const weatherStorm: Sequence<WeatherSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const finished = false;
+  let updated = false;
+
+  // keep track of absolutely positioned viewpoint
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const viewables = world.getEntities([VIEWABLE, POSITION]);
+  const viewable = getActiveViewable(viewables);
+
+  const normalizedX = normalize(state.args.viewable.x, size);
+  const normalizedY = normalize(state.args.viewable.y, size);
+  if (normalizedX !== viewable[POSITION].x) {
+    state.args.viewable.x += signedDistance(
+      state.args.viewable.x,
+      viewable[POSITION].x,
+      size
+    );
+  }
+  if (normalizedY !== viewable[POSITION].y) {
+    state.args.viewable.y += signedDistance(
+      state.args.viewable.y,
+      viewable[POSITION].y,
+      size
+    );
+  }
+
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const duration = state.args.end - state.args.start;
+
+  // create drops
+  if (generation !== state.args.generation && generation < state.args.end) {
+    const { sprite, speed } = weatherConfigs[state.args.type];
+    const position = state.args.position;
+    const proximity =
+      state.args.intensity === 0
+        ? 1
+        : 1 -
+          sigmoid(
+            getDistance(viewable[POSITION], position, size, state.args.ratio || aspectRatio),
+            state.args.intensity,
+            0.25
+          );
+    const intensity = calculateWeatherIntensity(
+      duration,
+      generation - state.args.start,
+      weatherIntensity[state.args.type]
+    );
+    const precipitation = Math.round(intensity * proximity);
+
+    for (let index = 0; index < precipitation; index += 1) {
+      const offset = {
+        x: random(-weatherArea.x / 2, weatherArea.x / 2),
+        y: random(-weatherArea.y / 2, weatherArea.y / 2),
+      };
+      const fast = offset.y > 0;
+      const target = add(state.args.viewable, offset);
+      const dropName = `drop-${generation}-${index}`;
+      state.args.drops.push({
+        position: target,
+        fast,
+        timestamp: state.elapsed,
+        particle: dropName,
+      });
+
+      const dropEntity = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: target.x,
+          offsetY: target.y,
+          offsetZ: particleHeight,
+          duration: speed * dropHeight * (fast ? 1 : 2),
+          animatedOrigin: { x: target.x, y: target.y - dropHeight },
+          amount: distribution(50, 30, 20) + 1,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: sprite,
+      });
+      state.particles[dropName] = world.getEntityId(dropEntity);
+      updated = true;
+    }
+
+    state.args.generation = generation;
+  }
+
+  // convert drops to bubbles
+  const remainingDrops = [];
+  for (const drop of state.args.drops) {
+    const age = state.elapsed - drop.timestamp;
+    if (
+      age >=
+      (dropHeight * (drop.fast ? 1 : 2) - 1) *
+        weatherConfigs[state.args.type].speed
+    ) {
+      updated = true;
+
+      disposeEntity(world, world.assertById(state.particles[drop.particle]));
+      delete state.particles[drop.particle];
+
+      if (state.args.intensity !== 0) {
+        if (state.args.type === "rain") {
+          createBubble(world, drop.position, "rain");
+        } else {
+          coverSnow(world, drop.position);
+        }
+      }
+      continue;
+    }
+    remainingDrops.push(drop);
+  }
+
+  if (updated) {
+    state.args.drops = remainingDrops;
   }
 
   return { finished, updated };

@@ -179,6 +179,7 @@ export const getSegments = (
     id: world.getEntityId(entity),
     sprite: (inside && entity[ENTERABLE]?.sprite) || entity[SPRITE],
     facing: entity[ORIENTABLE]?.facing,
+    amount: isLiquid ? entity[LIQUID].amount : undefined,
     offsetX: 0,
     offsetY: 0,
     offsetZ,
