@@ -269,6 +269,8 @@ export const createForging = entityFactory([
   TOOLTIP,
 ]);
 
+export const createCounter = entityFactory([RENDERABLE]);
+
 export const createCrafting = entityFactory([
   BURNABLE,
   COLLIDABLE,

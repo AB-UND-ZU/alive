@@ -1058,7 +1058,12 @@ export const weatherStorm: Sequence<WeatherSequence> = (
         ? 1
         : 1 -
           sigmoid(
-            getDistance(viewable[POSITION], position, size, state.args.ratio || aspectRatio),
+            getDistance(
+              viewable[POSITION],
+              position,
+              size,
+              state.args.ratio || aspectRatio
+            ),
             state.args.intensity,
             0.25
           );

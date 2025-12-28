@@ -5,7 +5,8 @@ import { Focusable, FOCUSABLE } from "./components/focusable";
 import { rerenderEntity } from "./systems/renderer";
 import { Entity, TypedEntity } from "./entities";
 import { PLAYER } from "./components/player";
-import { ECS_DEBUG } from "./ecs";
+
+export const ECS_DEBUG = false;
 
 export const setIdentifier = (
   world: World,

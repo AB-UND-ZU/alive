@@ -11,11 +11,10 @@ import { Entity, TypedEntity } from "./entities";
 import { LEVEL, LevelName } from "./components/level";
 import { getHasteInterval } from "./systems/movement";
 import { initialDimensions } from "../components/Dimensions/sizing";
+import { ECS_DEBUG, setIdentifier } from "./utils";
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
-
-export const ECS_DEBUG = false;
 
 export default function createWorld() {
   const world = ECS.createWorld() as PatchedWorld;
@@ -181,6 +180,7 @@ export default function createWorld() {
       gameEntity: {} as TypedEntity<"LEVEL" | "RENDERABLE" | "REFERENCE">,
       listeners: {} as Record<number, (reset?: boolean) => void>,
       sequenceEntity: {} as TypedEntity<"RENDERABLE" | "REFERENCE">,
+      renderEntity: {} as TypedEntity<"RENDERABLE">,
       suspend: () => {},
       resume: () => {},
       setFlipped: (flipped: boolean) => {},
@@ -230,6 +230,12 @@ export const createLevel = (world: World, name: LevelName, size: number) => {
       suspensionCounter: -1,
     },
   });
+
+  // keep track of changed terrain to rerender world but not retrigger systems
+  world.metadata.renderEntity = entities.createCounter(world, {
+    [RENDERABLE]: { generation: 0 },
+  });
+  setIdentifier(world, world.metadata.renderEntity, "renderer");
 
   return world.metadata.gameEntity;
 };

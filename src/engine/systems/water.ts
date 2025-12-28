@@ -159,12 +159,12 @@ export default function setupWater(world: World) {
 
       if (amount > endAmount) {
         disposeEntity(world, entity);
-        continue;
-      }
-      if (amount !== entity[LIQUID].amount) {
+      } else if (amount !== entity[LIQUID].amount) {
         entity[LIQUID].amount = amount;
         rerenderEntity(world, entity);
-      }
+      } else continue;
+
+      rerenderEntity(world, world.metadata.renderEntity);
     }
   };
 

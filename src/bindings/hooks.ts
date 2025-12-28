@@ -17,6 +17,7 @@ import { signedDistance } from "../game/math/std";
 import { LEVEL } from "../engine/components/level";
 import { LIGHT } from "../engine/components/light";
 import { Entity, TypedEntity } from "../engine/entities";
+import { IDENTIFIABLE } from "../engine/components/identifiable";
 
 export type WorldContext = {
   ecs: WorldType | null;
@@ -65,7 +66,10 @@ const useId = () => {
   return id.current;
 };
 
-export const useRenderable = <C extends keyof Entity>(componentNames: C[]) => {
+export const useRenderable = <C extends keyof Entity>(
+  componentNames: C[],
+  identifier?: string
+) => {
   const { ecs } = useWorld();
   const id = useId();
   const pendingGeneration = useRef(-1);
@@ -81,7 +85,13 @@ export const useRenderable = <C extends keyof Entity>(componentNames: C[]) => {
 
       if (!ecs) return null;
 
-      const entities = ecs.getEntities([RENDERABLE, ...componentNames]);
+      const entities = identifier
+        ? (ecs
+            .getEntities([RENDERABLE, IDENTIFIABLE, ...componentNames])
+            .filter(
+              (entity) => entity[IDENTIFIABLE].name === identifier
+            ) as TypedEntity<"RENDERABLE" | C>[])
+        : ecs.getEntities([RENDERABLE, ...componentNames]);
       const nextGeneration =
         entities.length === 0
           ? -1
@@ -96,7 +106,7 @@ export const useRenderable = <C extends keyof Entity>(componentNames: C[]) => {
         setEntities(entities);
       }
     },
-    [componentNames, ecs, setGeneration]
+    [componentNames, ecs, setGeneration, identifier]
   );
 
   // provide listener to ECS systems

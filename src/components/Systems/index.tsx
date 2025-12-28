@@ -7,6 +7,7 @@ import {
   useGame,
   useHero,
   useOverscan,
+  useRenderable,
   useViewpoint,
   useWorld,
 } from "../../bindings/hooks";
@@ -53,6 +54,9 @@ export default function Systems() {
   }));
   const elapsedRef = useRef(systemsFrame);
   const stickyCastables = useRef<Record<number, Position>>({});
+  
+  // rerender on explicit systems updates
+  useRenderable([RENDERABLE], "renderer");
 
   useFrame((_, delta) => {
     if (!ecs || paused || suspended) return;
