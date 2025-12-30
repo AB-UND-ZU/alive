@@ -737,8 +737,16 @@ export default function Controls() {
       // prevent touches over action bar
       if (
         [...event.changedTouches].some((touch) =>
-          ["primary", "secondary", "menu", "resume", "inspect"].includes(
-            (touch.target as HTMLElement).id
+          [
+            "primary",
+            "secondary",
+            "menu",
+            "resume",
+            "inspect",
+            "stats",
+          ].includes(
+            (touch.target as HTMLElement).id ||
+              (touch.target as HTMLElement).parentElement?.id!
           )
         )
       )

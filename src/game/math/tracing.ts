@@ -476,7 +476,7 @@ export const pixelCircle = (
   radius: number,
   ratio = aspectRatio
 ) => {
-  const width = Math.ceil(ratio * radius);
+  const width = Math.ceil(radius / ratio);
   const height = Math.ceil(radius);
   const points: Point[] = [];
 
@@ -488,9 +488,9 @@ export const pixelCircle = (
         y: Math.sign(y) * 0.5,
       };
       const outer = add(point, offset);
-      const outerRadius = Math.sqrt(outer.x ** 2 + outer.y ** 2);
+      const outerRadius = Math.sqrt((outer.x * ratio) ** 2 + outer.y ** 2);
       const inner = add(point, { x: -offset.x, y: -offset.y });
-      const innerRadius = Math.sqrt(inner.x ** 2 + inner.y ** 2);
+      const innerRadius = Math.sqrt((inner.x * ratio) ** 2 + inner.y ** 2);
 
       if (innerRadius <= radius && radius <= outerRadius) {
         points.push(add(center, point));

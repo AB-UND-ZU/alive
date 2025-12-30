@@ -16,6 +16,7 @@ export const ExtendedStats = ({ maxFps = 120, rolling = 10 }) => {
     statsRef.current = stats;
 
     stats.showPanel(0);
+    stats.dom.id = "stats";
 
     return () => {
       document.body.removeChild(stats.dom);
