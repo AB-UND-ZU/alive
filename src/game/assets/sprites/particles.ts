@@ -125,6 +125,7 @@ export const delay: Sprite = {
     { char: "\u0100", color: colors.olive },
     { char: "■", color: colors.black },
     { char: "└", color: colors.yellow },
+    { char: "·", color: colors.olive },
   ],
 };
 
@@ -2389,6 +2390,24 @@ export const shieldSlot: Sprite = {
   ],
 };
 
+export const bootsSlot: Sprite = {
+  name: "Boots",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "\u0116", color: colors.black },
+    { char: "\u0111", color: colors.grey },
+    { char: "¡", color: colors.black },
+    { char: "|", color: colors.grey },
+  ],
+};
+
 export const primarySlot: Sprite = {
   name: "Spell",
   layers: [
@@ -2562,7 +2581,7 @@ export const torchSlot: Sprite = {
     { char: "┐", color: colors.black },
     { char: "-", color: colors.grey },
     { char: "*", color: colors.black },
-    { char: "·", color: colors.grey },
+    { char: "∙", color: colors.grey },
   ],
 };
 

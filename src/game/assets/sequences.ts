@@ -178,6 +178,7 @@ import {
   chief,
   diamondGem,
   snowflake,
+  bootsSlot,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -1695,6 +1696,7 @@ export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
 const gearTitles: Record<Equipment, string> = {
   sword: "Sword",
   shield: "Shield",
+  boots: "Boots",
   primary: "Spell",
   secondary: "Item",
   ring: "Ring",
@@ -1711,6 +1713,7 @@ const gearShadows: Record<Equipment, Sprite> = {
   amulet: amuletSlot,
   compass: compassSlot,
   torch: torchSlot,
+  boots: bootsSlot,
 };
 const gearOverscan = 1;
 const classPixels = {

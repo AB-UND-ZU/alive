@@ -311,10 +311,11 @@ export const visibleStats: (keyof UnitStats)[] = [
 export const gearSlots: Equipment[] = [
   "sword",
   "shield",
-  "compass",
-  "torch",
+  "boots",
   "primary",
   "secondary",
+  "compass",
+  "torch",
   "ring",
   "amulet",
 ];

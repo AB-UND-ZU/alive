@@ -956,6 +956,16 @@ export const rainbowPet2: Sprite = {
   ],
 };
 
+export const woodBoots: Sprite = {
+  name: "Boots",
+  layers: [
+    { char: "\u0116", color: colors.maroon },
+    { char: "\u0111", color: colors.black },
+    { char: "¡", color: colors.maroon },
+    { char: "|", color: colors.black },
+  ],
+};
+
 export const woodAmulet: Sprite = {
   name: "Amulet",
   layers: [

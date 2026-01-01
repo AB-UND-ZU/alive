@@ -979,6 +979,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               material: "wood",
               amount: 1,
             },
+            { equipment: "boots", material: "wood", amount: 1 },
             { equipment: "torch", material: "wood", amount: 1 },
           ],
           lines: [

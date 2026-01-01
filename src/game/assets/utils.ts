@@ -200,6 +200,7 @@ import {
   woodStickEarth,
   drain,
   none,
+  woodBoots,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1611,7 +1612,17 @@ export const materialSprites: Record<
       getDescription: () => [
         createText("Glows bright and"),
         createText("keeps you warm."),
-        [...createCountable({ vision: 3 }, "vision", "display")],
+        [...createCountable({ vision: 2 }, "vision", "display")],
+      ],
+    },
+  },
+  boots: {
+    wood: {
+      sprite: woodBoots,
+      getDescription: () => [
+        createText("Simple but soft"),
+        createText("boots."),
+        [...createCountable({ haste: 1 }, "haste", "display")],
       ],
     },
   },
@@ -2480,6 +2491,7 @@ export const getItemConfig = (
       (item.equipment !== "primary" &&
       item.equipment !== "secondary" &&
       item.equipment !== "torch" &&
+      item.equipment !== "boots" &&
       item.equipment !== "compass"
         ? item.equipment
         : undefined);

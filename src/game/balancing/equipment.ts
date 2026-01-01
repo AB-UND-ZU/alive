@@ -28,12 +28,6 @@ export const gearStats: Partial<
   >
 > = {
   default: {
-    torch: {
-      wood: {
-        vision: 3,
-      },
-    },
-
     sword: {
       wood: {
         melee: 2,
@@ -101,6 +95,16 @@ export const gearStats: Partial<
       ruby: {
         armor: 5,
         haste: -1,
+      },
+    },
+    torch: {
+      wood: {
+        vision: 2,
+      },
+    },
+    boots: {
+      wood: {
+        haste: 1,
       },
     },
     ring: {
