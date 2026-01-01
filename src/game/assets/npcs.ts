@@ -799,7 +799,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
                 {
                   consume: "potion",
                   material: "wood",
-                  element: "fire",
+                  element: "water",
                   amount: 1,
                 },
               ],
@@ -815,7 +815,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               item: { stackable: "resource", material: "wood" },
               available: true,
             },
-            { item: { stackable: "apple" }, available: true },
+            { item: { stackable: "shroom" }, available: true },
             {
               identifier: "earth_kettle",
               title: [kettle, ...createText("Kettle", colors.grey)],
@@ -858,7 +858,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
                 ...createItemName({
                   consume: "potion",
                   material: "wood",
-                  element: "fire",
+                  element: "water",
                 }),
                 ...createText(" for me?"),
               ],
@@ -880,7 +880,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               [
                 ...createText("Find "),
                 ...createItemText({
-                  stackable: "apple",
+                  stackable: "shroom",
                   amount: 1,
                 }),
                 ...createText(" and"),
@@ -912,7 +912,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
                 amount: 1,
               },
               stock: 1,
-              prices: [{ stackable: "coin", amount: 10 }],
+              prices: [{ stackable: "coin", amount: 20 }],
             },
           ],
           lines: [
@@ -1048,56 +1048,69 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
       if (kettleEntity) {
         createPopup(world, kettleEntity, {
           recipes: craftingRecipes,
-          lines: [
-            [
-              [craft, ...createText("Crafting", colors.silver)],
-              repeat(swirl, frameWidth - 2),
-              [],
-              createText("Gather some items"),
-              [
-                ...createText("like "),
-                ...createItemName({ stackable: "leaf" }),
-                ...createText(" or"),
-              ],
-              [...createItemName({ stackable: "berry" }), ...createText(".")],
-              [],
-              [
-                ...createText("Scroll and "),
-                ...createText("VIEW", colors.black, colors.lime),
-              ],
-              createText("an item to craft."),
-              [],
-              [
-                ...underline(createText("TIP", colors.silver)),
-                ...createText(": Some items"),
-              ],
-              createText("have few recipes."),
-              [],
-              repeat(swirl, frameWidth - 2),
-              [],
-              isTouch
-                ? [
-                    ...createText("Swipe "),
-                    ...createText("RIGHT", colors.grey),
-                    ...createText(" to"),
-                  ]
-                : [
-                    ...createText("Press "),
-                    ...createText("\u0119", colors.grey),
-                    ...createText(" key to"),
-                  ],
-              [
-                ...createText("view "),
-                ...createText("╡", colors.silver),
-                ...createText("CRAFT", colors.lime),
-                ...createText("╞", colors.silver),
-                ...createText(" tab."),
-              ],
-            ],
-          ],
-          tabs: ["info", "craft"],
+          tabs: ["craft"],
         });
       }
+
+      return "quest";
+    },
+  });
+
+  step({
+    stage,
+    name: "quest",
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => {
+      createPopup(world, entity, {
+        lines: [
+          [
+            [craft, ...createText("Crafting", colors.silver)],
+            repeat(swirl, frameWidth - 2),
+            [],
+            createText("Gather some items"),
+            [
+              ...createText("like "),
+              ...createItemName({ stackable: "leaf" }),
+              ...createText(" or"),
+            ],
+            [...createItemName({ stackable: "berry" }), ...createText(".")],
+            [],
+            [
+              ...createText("Scroll and "),
+              ...createText("VIEW", colors.black, colors.lime),
+            ],
+            createText("an item to craft."),
+            [],
+            [
+              ...underline(createText("TIP", colors.silver)),
+              ...createText(": Some items"),
+            ],
+            createText("have few recipes."),
+            [],
+            repeat(swirl, frameWidth - 2),
+            [],
+            isTouch
+              ? [
+                  ...createText("Swipe "),
+                  ...createText("RIGHT", colors.grey),
+                  ...createText(" to"),
+                ]
+              : [
+                  ...createText("Press "),
+                  ...createText("\u0119", colors.grey),
+                  ...createText(" key to"),
+                ],
+            [
+              ...createText("view "),
+              ...createText("╡", colors.silver),
+              ...createText("CRAFT", colors.lime),
+              ...createText("╞", colors.silver),
+              ...createText(" tab."),
+            ],
+          ],
+        ],
+        tabs: ["info"],
+      });
 
       return END_STEP;
     },
@@ -1157,72 +1170,85 @@ export const earthSmithNpc: Sequence<NpcSequence> = (world, entity, state) => {
     onLeave: () => {
       if (anvilEntity) {
         createPopup(world, anvilEntity, {
-          lines: [
-            [
-              [forge, ...createText("Forging", colors.silver)],
-              repeat(swirl, frameWidth - 2),
-              [],
-              createText("You can forge the"),
-              createText("gear you hold."),
-              [],
-              [
-                ...createText("View "),
-                ...createText("╡", colors.silver),
-                ...createText("GEAR", colors.lime),
-                ...createText("╞", colors.silver),
-                ...createText(" by"),
-              ],
-              isTouch
-                ? [
-                    ...createText("tapping on "),
-                    ...createText("BAG", colors.black, colors.silver),
-                    ...createText("."),
-                  ]
-                : [
-                    ...createText("pressing "),
-                    ...createText("[TAB]", colors.grey),
-                    ...createText("."),
-                  ],
-              [],
-              createText("Scroll to choose"),
-              createText("gear and try to"),
-              createText("add items until"),
-              createText("you find a match."),
-              [],
-              [
-                ...underline(createText("TIP", colors.silver)),
-                ...createText(": "),
-                ...createItemName({ stackable: "resource", material: "iron" }),
-                ...createText(" can be"),
-              ],
-              createText("added to wooden"),
-              createText("gear."),
-              [],
-              repeat(swirl, frameWidth - 2),
-              [],
-              isTouch
-                ? [
-                    ...createText("Swipe "),
-                    ...createText("RIGHT", colors.grey),
-                    ...createText(" to"),
-                  ]
-                : [
-                    ...createText("Press "),
-                    ...createText("\u0119", colors.grey),
-                    ...createText(" key to"),
-                  ],
-              [
-                ...createText("view "),
-                ...createText("╡", colors.silver),
-                ...createText("FORGE", colors.lime),
-                ...createText("╞", colors.silver),
-                ...createText(" tab."),
-              ],
-            ],
-          ],
-          tabs: ["info", "forge"],
+          tabs: ["forge"],
         });
       }
+
+      return "quest";
+    },
+  });
+
+  step({
+    stage,
+    name: "quest",
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => {
+      createPopup(world, entity, {
+        lines: [
+          [
+            [forge, ...createText("Forging", colors.silver)],
+            repeat(swirl, frameWidth - 2),
+            [],
+            createText("You can forge the"),
+            createText("gear you hold."),
+            [],
+            [
+              ...createText("View "),
+              ...createText("╡", colors.silver),
+              ...createText("GEAR", colors.lime),
+              ...createText("╞", colors.silver),
+              ...createText(" by"),
+            ],
+            isTouch
+              ? [
+                  ...createText("tapping on "),
+                  ...createText("BAG", colors.black, colors.silver),
+                  ...createText("."),
+                ]
+              : [
+                  ...createText("pressing "),
+                  ...createText("[TAB]", colors.grey),
+                  ...createText("."),
+                ],
+            [],
+            createText("Scroll to choose"),
+            createText("gear and try to"),
+            createText("add items until"),
+            createText("you find a match."),
+            [],
+            [
+              ...underline(createText("TIP", colors.silver)),
+              ...createText(": "),
+              ...createItemName({ stackable: "resource", material: "iron" }),
+              ...createText(" can be"),
+            ],
+            createText("added to wooden"),
+            createText("gear."),
+            [],
+            repeat(swirl, frameWidth - 2),
+            [],
+            isTouch
+              ? [
+                  ...createText("Swipe "),
+                  ...createText("RIGHT", colors.grey),
+                  ...createText(" to"),
+                ]
+              : [
+                  ...createText("Press "),
+                  ...createText("\u0119", colors.grey),
+                  ...createText(" key to"),
+                ],
+            [
+              ...createText("view "),
+              ...createText("╡", colors.silver),
+              ...createText("FORGE", colors.lime),
+              ...createText("╞", colors.silver),
+              ...createText(" tab."),
+            ],
+          ],
+        ],
+        tabs: ["info"],
+      });
 
       return END_STEP;
     },
