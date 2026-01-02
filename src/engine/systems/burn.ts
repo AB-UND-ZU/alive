@@ -130,13 +130,23 @@ export default function setupBurn(world: World) {
           !getSequence(world, burningEntity, "burn") &&
           !getSequence(world, burningEntity, "smoke")
         ) {
+          const sequenceEntity = entities.createFrame(world, {
+            [REFERENCE]: {
+              tick: -1,
+              delta: 0,
+              suspended: false,
+              suspensionCounter: -1,
+            },
+            [RENDERABLE]: { generation: 1 },
+          });
           if (!simmer) {
             createSequence<"burn", BurnSequence>(
               world,
               burningEntity,
               "burn",
               "fireBurn",
-              { generation: 0 }
+              { generation: 0 },
+              sequenceEntity
             );
           }
 
@@ -150,7 +160,8 @@ export default function setupBurn(world: World) {
               burningEntity,
               "smoke",
               "smokeWind",
-              { generation: 0, extinguish: 0, simmer }
+              { generation: 0, extinguish: 0, simmer },
+              sequenceEntity
             );
         }
       });

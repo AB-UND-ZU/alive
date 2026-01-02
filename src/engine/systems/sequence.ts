@@ -59,19 +59,22 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
   entity: Entity,
   type: T,
   name: SequenceState<A>["name"],
-  args: A
+  args: A,
+  sequenceEntity?: ReturnType<typeof entities.createFrame>
 ) => {
   if (SEQUENCE_DEBUG) console.info(Date.now(), `${name}: created`);
 
-  const sequenceEntity = entities.createFrame(world, {
-    [REFERENCE]: {
-      tick: -1,
-      delta: 0,
-      suspended: false,
-      suspensionCounter: -1,
-    },
-    [RENDERABLE]: { generation: 1 },
-  });
+  if (!sequenceEntity) {
+    sequenceEntity = entities.createFrame(world, {
+      [REFERENCE]: {
+        tick: -1,
+        delta: 0,
+        suspended: false,
+        suspensionCounter: -1,
+      },
+      [RENDERABLE]: { generation: 1 },
+    });
+  }
 
   // unsafely abort previous instance of sequence
   if (entity[SEQUENCABLE].states[type]) {

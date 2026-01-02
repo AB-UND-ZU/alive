@@ -72,6 +72,7 @@ const unregisterEntity = (world: World, entity: Entity) => {
   const position = entity[POSITION];
 
   if (!position) {
+    console.warn(entity);
     throw new Error(`Unable to unregister position for entity ${entity}!`);
   }
 

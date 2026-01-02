@@ -247,6 +247,8 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
             fast: false,
           }
         );
+        previousMovable.orientations = [];
+        previousMovable.pendingOrientation = undefined;
         world.addComponentToEntity(entity, MOVABLE, previousMovable);
       }, 1000);
     }, 2000);
