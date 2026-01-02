@@ -29,6 +29,7 @@ import {
   canUnlock,
   castablePrimary,
   castableSecondary,
+  getHarvestTarget,
   getUnlockKey,
 } from "./action";
 import {
@@ -42,6 +43,7 @@ import {
 } from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
 import {
+  HarvestSequence,
   Sequencable,
   SEQUENCABLE,
   SpellSequence,
@@ -487,6 +489,25 @@ export const consumeCharge = (
       chargeEntity[ITEM].amount -= 1;
     }
   }
+};
+
+export const harvestTree = (world: World, entity: Entity, axe: Entity) => {
+  const harvestable = getHarvestTarget(world, entity, axe);
+
+  if (!harvestable) return;
+
+  createSequence<"harvest", HarvestSequence>(
+    world,
+    entity,
+    "harvest",
+    "harvestResource",
+    {
+      amount: 1,
+      item: world.getEntityId(axe),
+      target: world.getEntityId(harvestable),
+      orientation: entity[ORIENTABLE].facing,
+    }
+  );
 };
 
 export const completeQuest = (world: World, entity: Entity, target: Entity) => {
@@ -1057,7 +1078,7 @@ export default function setupTrigger(world: World) {
               entity as TypedEntity<"INVENTORY">,
               secondaryEntity
             ) &&
-            entity[INVENTORY]
+            secondaryEntity[ITEM].secondary !== "axe"
           ) {
             queueMessage(world, entity, {
               line: addBackground(
@@ -1082,6 +1103,8 @@ export default function setupTrigger(world: World) {
             shootArrow(world, entity, secondaryEntity);
           } else if (secondaryEntity[ITEM].secondary === "slash") {
             chargeSlash(world, entity, secondaryEntity);
+          } else if (secondaryEntity[ITEM].secondary === "axe") {
+            harvestTree(world, entity, secondaryEntity);
           }
         }
       }

@@ -57,6 +57,7 @@ import { Warpable, WARPABLE } from "./components/warpable";
 import { Clickable, CLICKABLE } from "./components/clickable";
 import { Sticky, STICKY } from "./components/sticky";
 import { Coverable, COVERABLE } from "./components/coverable";
+import { Harvestable, HARVESTABLE } from "./components/harvestable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -79,6 +80,7 @@ export type Entity = Record<LevelName, {}> & {
   [FOG]: Fog;
   [FRAGMENT]: Fragment;
   [FREEZABLE]: Freezable;
+  [HARVESTABLE]: Harvestable;
   [IDENTIFIABLE]: Identifiable;
   [IMMERSIBLE]: Immersible;
   [INVENTORY]: Inventory;
@@ -403,18 +405,6 @@ export const createFountain = entityFactory([
 
 export const createFrame = entityFactory([RENDERABLE, REFERENCE]);
 
-export const createFruit = entityFactory([
-  BURNABLE,
-  COLLIDABLE,
-  FOG,
-  INVENTORY,
-  LOOTABLE,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-]);
-
 export const createFurniture = entityFactory([
   COLLIDABLE,
   FOG,
@@ -601,7 +591,12 @@ export const createOre = entityFactory([
 export const createOrganic = entityFactory([
   BURNABLE,
   COLLIDABLE,
+  DROPPABLE,
   FOG,
+  HARVESTABLE,
+  INVENTORY,
+  MOVABLE,
+  ORIENTABLE,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,

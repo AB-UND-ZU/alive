@@ -432,9 +432,7 @@ export default function setupDamage(world: World) {
         entity[EQUIPPABLE].secondary,
         [ITEM]
       );
-      const canRecharge =
-        secondaryEntity?.[ITEM].secondary &&
-        secondaryEntity[ITEM].secondary !== "bow";
+      const canRecharge = secondaryEntity?.[ITEM].secondary === "slash";
 
       if (canRecharge && targetEntity[RECHARGABLE]) {
         targetEntity[RECHARGABLE].hit = true;

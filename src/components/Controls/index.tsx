@@ -29,6 +29,7 @@ import {
   canUnlock,
   castablePrimary,
   castableSecondary,
+  getHarvestTarget,
 } from "../../engine/systems/action";
 import { Entity } from "ecs";
 import { World } from "../../engine";
@@ -92,12 +93,12 @@ export const inspectKeys = ["Tab"];
 const getActiveActivations = (world: World, hero: TypedEntity, item: Item) => {
   const itemSprite = getItemSprite(item, "display");
 
-  if (item.secondary) {
-    const stackable = item.secondary === "bow" ? "arrow" : "charge";
+  if (item.secondary === "bow" || item.secondary === "slash") {
+    const ammo = item.secondary === "bow" ? "arrow" : "charge";
     const stackableItem = hero[INVENTORY]?.items
       .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
-      .find((item) => item[ITEM].stackable === stackable);
-    const stackableSprite = getItemSprite({ stackable });
+      .find((item) => item[ITEM].stackable === ammo);
+    const stackableSprite = getItemSprite({ stackable: ammo });
 
     return [
       ...repeat(none, 2),
@@ -108,6 +109,11 @@ const getActiveActivations = (world: World, hero: TypedEntity, item: Item) => {
       ),
       stackableSprite,
     ].slice(-6);
+  } else if (item.secondary === "axe") {
+    const harvestable = getHarvestTarget(world, hero, { [ITEM]: item });
+    if (harvestable) {
+      return centerSprites([itemSprite, harvestable[SPRITE]], 6);
+    }
   } else if (item.primary) {
     const amount = item.primary.endsWith("2") ? 2 : 1;
     return [

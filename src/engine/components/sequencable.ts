@@ -21,14 +21,19 @@ export type DropSequence = {
   type: Exclude<Liquid["type"], "bubble">;
 };
 export type WeatherSequence = {
-  position: Position,
-  viewable: Position,
-  start: number,
-  end: number,
-  intensity: number,
-  ratio?: number,
-  generation: number,
-  drops: { position: Position; fast: boolean; timestamp: number, particle:string }[];
+  position: Position;
+  viewable: Position;
+  start: number;
+  end: number;
+  intensity: number;
+  ratio?: number;
+  generation: number;
+  drops: {
+    position: Position;
+    fast: boolean;
+    timestamp: number;
+    particle: string;
+  }[];
   type: Weather;
 };
 export type VisionSequence = {
@@ -42,6 +47,12 @@ export type PointerSequence = {
   lastOrientation?: Orientation;
 };
 export type MarkerSequence = { amount: number; type: DamageType };
+export type HarvestSequence = {
+  amount: number;
+  target: number;
+  item: number;
+  orientation: Orientation;
+};
 export type Message = {
   line: Sprite[];
   orientation: Orientation;
@@ -185,6 +196,7 @@ export type Sequencable = {
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;
     marker?: SequenceState<MarkerSequence>;
+    harvest?: SequenceState<HarvestSequence>;
     message?: SequenceState<MessageSequence>;
     decay?: SequenceState<DecaySequence>;
     burn?: SequenceState<BurnSequence>;

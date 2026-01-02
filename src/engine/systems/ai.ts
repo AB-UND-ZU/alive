@@ -97,6 +97,7 @@ import { pickupOptions, play } from "../../game/sound";
 import { isImmersible } from "./immersion";
 import { CLICKABLE } from "../components/clickable";
 import { getEmptyAffectable } from "../components/affectable";
+import { HARVESTABLE } from "../components/harvestable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -150,11 +151,18 @@ export default function setupAi(world: World) {
             entity[BELONGABLE].faction = "wild";
             entity[SPRITE] = { ...entity[SPRITE], name: "" };
 
-            // apply invincibe and dialog manually to avoid extra tick
+            // apply invincible and dialog manually to avoid extra tick
             world.removeComponentFromEntity(
               entity as TypedEntity<"CLICKABLE">,
               "CLICKABLE"
             );
+
+            if (entity[HARVESTABLE]) {
+              world.removeComponentFromEntity(
+                entity as TypedEntity<"HARVESTABLE">,
+                "HARVESTABLE"
+              );
+            }
 
             if (entity[TOOLTIP]) {
               entity[TOOLTIP].idle = rage;

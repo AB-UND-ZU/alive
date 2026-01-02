@@ -39,6 +39,8 @@ import { PROJECTILE } from "../../engine/components/projectile";
 import { LAYER } from "../../engine/components/layer";
 import FogOfWar from "./FogOfWar";
 import { LIQUID } from "../../engine/components/liquid";
+import { HARVESTABLE } from "../../engine/components/harvestable";
+import { enemySpawner } from "../../game/assets/sprites";
 
 function Entity({
   entity,
@@ -88,12 +90,13 @@ function Entity({
     (outside && !isFixed);
 
   const hasLoot = ecs && (isLootable(ecs, entity) || isCollecting(ecs, entity));
-  const isLootTransparent =
-    !hasLoot || (isOpaque ? !inRadius : !isVisible) || outside;
+  const harvestable = entity[HARVESTABLE];
+  const isDotsTransparent =
+    !(hasLoot || harvestable) || (isOpaque ? !inRadius : !isVisible) || outside;
 
   const spring = useSpring({
     opacity: isTransparent ? 0 : 1,
-    lootOpacity: isLootTransparent ? 0 : 1,
+    dotsOpacity: isDotsTransparent ? 0 : 1,
     config: { duration: 200 },
     onRest: (result) => {
       setOpacity(result.value.opacity);
@@ -143,7 +146,7 @@ function Entity({
         offsetZ: isOpaque ? oreHeight : lootHeight,
         layerProps: {
           isTransparent,
-          opacity: spring.lootOpacity,
+          opacity: spring.dotsOpacity,
           receiveShadow: !isOpaque && inRadius && !inside,
           colorFactor: outside ? shadowFactor : undefined,
         },
@@ -171,10 +174,24 @@ function Entity({
     })
   );
 
-  const lootSegment = lootSegments[0];
-  const isEquipment =
-    !!lootSegment &&
-    !!ecs.assertByIdAndComponents(lootSegment.id, [ITEM])[ITEM].equipment;
+  const harvestSegment = harvestable
+    ? {
+        id: -5,
+        sprite: enemySpawner,
+        amount:
+          harvestable.amount < harvestable.maximum ? harvestable.amount : 0,
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: oreHeight,
+        layerProps: {
+          isTransparent,
+          opacity: spring.dotsOpacity,
+          receiveShadow: !isOpaque && inRadius && !inside,
+          colorFactor: outside ? shadowFactor : undefined,
+        },
+      }
+    : undefined;
+  const dotsSegment = harvestSegment || lootSegments[0];
 
   return (
     <Container
@@ -201,7 +218,10 @@ function Entity({
       {isBright && (
         <CoveredLight
           brightness={entity[LIGHT]!.brightness}
-          width={dimensions.renderedColumns * dimensions.aspectRatio + (isFlying ? 10 : 0)}
+          width={
+            dimensions.renderedColumns * dimensions.aspectRatio +
+            (isFlying ? 10 : 0)
+          }
           height={dimensions.renderedRows + (isFlying ? 10 : 0)}
           x={x}
           y={y}
@@ -220,15 +240,15 @@ function Entity({
         <Bar world={ecs} counter="hp" entity={entity} isVisible={isVisible} />
       )}
 
-      {lootSegment && !isEquipment && (
-        <Dots segment={lootSegment} entity={entity} isVisible={isVisible} />
+      {dotsSegment && (
+        <Dots segment={dotsSegment} entity={entity} isVisible={isVisible} />
       )}
 
       {isFog &&
         !isLiquid &&
         !(isInside && !isFloat && inRadius) &&
         !((isOpaque || isFloat) && inRadius) &&
-        !(isTransparent || (hasLoot && !isLootTransparent)) && <FogOfWar />}
+        !(isTransparent || (hasLoot && !isDotsTransparent)) && <FogOfWar />}
     </Container>
   );
 }

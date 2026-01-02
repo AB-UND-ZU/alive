@@ -25,8 +25,12 @@ import { createText, none } from "../../game/assets/sprites";
 import { FOG } from "../components/fog";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
-import { queueMessage } from "../../game/assets/utils";
+import { getItemSprite, queueMessage } from "../../game/assets/utils";
 import { colors } from "../../game/assets/colors";
+import { getLootable } from "./collect";
+import { INVENTORY } from "../components/inventory";
+import { ITEM } from "../components/item";
+import { createItemAsDrop } from "./drop";
 
 export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
 
@@ -248,6 +252,28 @@ export default function setupBurn(world: World) {
       registerEntity(world, castableEntity);
 
       disposeEntity(world, entity, true);
+
+      // check if there are any drops in same cell and re-drop to fix sprites
+      const lootable = getLootable(world, entity[POSITION]);
+      const itemEntity =
+        lootable &&
+        world.getEntityByIdAndComponents(lootable[INVENTORY].items[0], [ITEM]);
+
+      if (itemEntity) {
+        disposeEntity(world, lootable, false);
+
+        const dropEntity = createItemAsDrop(
+          world,
+          copy(entity[POSITION]),
+          entities.createItem,
+          {
+            [ITEM]: itemEntity[ITEM],
+            [SPRITE]: getItemSprite(itemEntity[ITEM]),
+          }
+        );
+        const carrierEntity = world.assertById(dropEntity[ITEM].carrier);
+        registerEntity(world, carrierEntity);
+      }
     }
   };
 

@@ -216,6 +216,8 @@ import { levelConfig } from "../game/levels";
 import { POPUP } from "../engine/components/popup";
 import { openDoor } from "../engine/systems/trigger";
 import { craftingRecipes } from "../game/balancing/crafting";
+import addHarvestable, { HARVESTABLE } from "../engine/components/harvestable";
+import { getHarvestConfig } from "../game/balancing/harvesting";
 
 export const cellNames = [
   "air",
@@ -1041,22 +1043,50 @@ export const createCell = (
     return { cell: woodEntity, all };
   } else if (cell === "fruit" || cell === "fruit_one") {
     if (random(0, 1) === 0 || cell === "fruit_one") {
-      const fruitEntity = entities.createFruit(world, {
+      const { harvestable, yields } = getHarvestConfig(world, "tree", "wood");
+      const remains = [treeBurnt1, treeBurnt2][random(0, 1)];
+      const treeEntity = entities.createOrganic(world, {
         [BURNABLE]: {
           burning: false,
           eternal: false,
           simmer: false,
           combusted: false,
           decayed: false,
-          remains: [treeBurnt1, treeBurnt2][random(0, 1)],
+          remains,
         },
         [COLLIDABLE]: {},
+        [DROPPABLE]: { decayed: false, remains },
+        [FOG]: { visibility, type: "object" },
+        [HARVESTABLE]: harvestable,
+        [INVENTORY]: { items: [] },
+        [ORIENTABLE]: {},
+        [MOVABLE]: {
+          bumpGeneration: 0,
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 100,
+          },
+          lastInteraction: 0,
+          flying: false,
+        },
+        [POSITION]: { x, y },
+        [SPRITE]: tree2,
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+      });
+      all.push(treeEntity);
+      populateInventory(world, treeEntity, yields);
+
+      const fruitEntity = entities.createContainer(world, {
         [FOG]: { visibility, type: "object" },
         [INVENTORY]: { items: [] },
-        [LOOTABLE]: { disposable: false },
+        [LAYER]: {},
+        [LOOTABLE]: { disposable: true },
         [POSITION]: { x, y },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: tree2,
+        [SWIMMABLE]: { swimming: false },
         [RENDERABLE]: { generation: 0 },
       });
       all.push(fruitEntity);
@@ -1152,23 +1182,40 @@ export const createCell = (
       return { cell: leavesEntity, all };
     }
 
+    const { harvestable, yields } = getHarvestConfig(world, "tree", "wood");
+    const remains = [treeBurnt1, treeBurnt2][random(0, 1)];
     const treeEntity = entities.createOrganic(world, {
-      [FOG]: { visibility, type: "object" },
       [BURNABLE]: {
         burning: false,
         eternal: false,
         simmer: false,
         combusted: false,
         decayed: false,
-        remains: [treeBurnt1, treeBurnt2][random(0, 1)],
+        remains,
       },
       [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false, remains },
+      [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
+      [ORIENTABLE]: {},
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 100,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
       [POSITION]: { x, y },
       [SPRITE]: [tree1, tree2][distribution(50, 50)],
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
     });
     all.push(treeEntity);
+    populateInventory(world, treeEntity, yields);
     return { cell: treeEntity, all };
   } else if (
     cell === "palm" ||
@@ -1191,30 +1238,58 @@ export const createCell = (
       })
     );
 
+    const { harvestable, yields } = getHarvestConfig(world, "tree", "iron");
+    const remains =
+      cell === "palm"
+        ? [palmBurnt1, palmBurnt2][random(0, 1)]
+        : [desertPalmBurnt1, desertPalmBurnt2][random(0, 1)];
+    const palmEntity = entities.createOrganic(world, {
+      [BURNABLE]: {
+        burning: false,
+        eternal: false,
+        simmer: false,
+        combusted: false,
+        decayed: false,
+        remains,
+      },
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false, remains },
+      [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
+      [ORIENTABLE]: {},
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 100,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [POSITION]: { x, y },
+      [SPRITE]: palm,
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+    });
+    all.push(palmEntity);
+    populateInventory(world, palmEntity, yields);
+
     if (
       cell === "palm_fruit" ||
       cell === "desert_palm_fruit" ||
       cell === "banana"
     ) {
-      const fruitEntity = entities.createFruit(world, {
-        [BURNABLE]: {
-          burning: false,
-          eternal: false,
-          simmer: false,
-          combusted: false,
-          decayed: false,
-          remains:
-            cell === "palm_fruit"
-              ? [palmBurnt1, palmBurnt2][random(0, 1)]
-              : [desertPalmBurnt1, desertPalmBurnt2][random(0, 1)],
-        },
-        [COLLIDABLE]: {},
+      const fruitEntity = entities.createContainer(world, {
         [FOG]: { visibility, type: "object" },
         [INVENTORY]: { items: [] },
-        [LOOTABLE]: { disposable: false },
+        [LAYER]: {},
+        [LOOTABLE]: { disposable: true },
         [POSITION]: { x, y },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: palm,
+        [SWIMMABLE]: { swimming: false },
         [RENDERABLE]: { generation: 0 },
       });
       all.push(fruitEntity);
@@ -1230,29 +1305,8 @@ export const createCell = (
           },
         ]
       );
-      return { cell: fruitEntity, all };
     }
 
-    const palmEntity = entities.createOrganic(world, {
-      [BURNABLE]: {
-        burning: false,
-        eternal: false,
-        simmer: false,
-        combusted: false,
-        decayed: false,
-        remains:
-          cell === "palm"
-            ? [palmBurnt1, palmBurnt2][random(0, 1)]
-            : [desertPalmBurnt1, desertPalmBurnt2][random(0, 1)],
-      },
-      [FOG]: { visibility, type: "object" },
-      [COLLIDABLE]: {},
-      [POSITION]: { x, y },
-      [SPRITE]: palm,
-      [RENDERABLE]: { generation: 0 },
-      [SEQUENCABLE]: { states: {} },
-    });
-    all.push(palmEntity);
     return { cell: palmEntity, all };
   } else if (cell === "hedge" || cell === "path_hedge") {
     const { items, sprite, stats, faction } = generateUnitData(
@@ -2159,6 +2213,10 @@ export const createCell = (
     }
     all.push(mobEntity);
     populateInventory(world, mobEntity, mobUnit.items, mobUnit.equipments);
+
+    if (mobUnit.harvestable) {
+      addHarvestable(world, mobEntity, mobUnit.harvestable);
+    }
 
     if (mobUnit.faction === "unit") {
       mobEntity[FOG].type = "object";

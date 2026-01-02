@@ -211,6 +211,7 @@ import {
   VortexSequence,
   XpSequence,
   WeatherSequence,
+  HarvestSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
@@ -320,6 +321,7 @@ import {
 } from "../../engine/systems/water";
 import { coverSnow } from "../../engine/systems/freeze";
 import { aspectRatio } from "../../components/Dimensions/sizing";
+import { HARVESTABLE } from "../../engine/components/harvestable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -882,6 +884,77 @@ export const amountMarker: Sequence<MarkerSequence> = (
   return { finished, updated };
 };
 
+const harvestDuration = 100;
+
+export const harvestResource: Sequence<HarvestSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const targetEntity = world.getEntityByIdAndComponents(state.args.target, [
+    HARVESTABLE,
+    RENDERABLE,
+  ]);
+  const finished = !targetEntity || state.elapsed > harvestDuration * 2;
+  let updated = false;
+
+  if (finished) return { finished, updated };
+
+  if (!state.particles.harvest) {
+    const delta = orientationPoints[state.args.orientation];
+    const harvestParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: delta.x,
+        offsetY: delta.y,
+        offsetZ: particleHeight,
+        animatedOrigin: { x: 0, y: 0 },
+        duration: harvestDuration,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: getItemSprite(
+        world.assertByIdAndComponents(state.args.item, [ITEM])[ITEM]
+      ),
+    });
+    state.particles.harvest = world.getEntityId(harvestParticle);
+    updated = true;
+  }
+
+  const harvestParticle = world.getEntityByIdAndComponents(
+    state.particles.harvest,
+    [PARTICLE]
+  );
+
+  if (
+    state.elapsed > harvestDuration &&
+    harvestParticle &&
+    (harvestParticle[PARTICLE].offsetX !== 0 ||
+      harvestParticle[PARTICLE].offsetY !== 0)
+  ) {
+    harvestParticle[PARTICLE].offsetX = 0;
+    harvestParticle[PARTICLE].offsetY = 0;
+
+    // perform harvest
+    targetEntity[HARVESTABLE].amount -= state.args.amount;
+    rerenderEntity(world, targetEntity);
+
+    // bump target resource
+    if (targetEntity[ORIENTABLE] && targetEntity[MOVABLE]) {
+      targetEntity[ORIENTABLE].facing = state.args.orientation;
+      targetEntity[MOVABLE].bumpGeneration =
+        targetEntity[RENDERABLE].generation;
+    }
+
+    updated = true;
+  }
+
+  if (state.elapsed > harvestDuration * 2 && harvestParticle) {
+    disposeEntity(world, harvestParticle);
+    delete state.particles.harvest;
+  }
+
+  return { finished, updated };
+};
+
 const messageDuration = 600;
 
 export const transientMessage: Sequence<MessageSequence> = (
@@ -1266,7 +1339,7 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
           offsetX: (iteration.direction.x + iteration.normal.x) * 2,
           offsetY: (iteration.direction.y + iteration.normal.y) * 2,
           offsetZ: effectHeight,
-          duration: xpTime * 2,
+          duration: xpTime * 2 * Math.sqrt(2),
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
@@ -1279,7 +1352,7 @@ export const acquireXp: Sequence<XpSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  if (generation > 1 && generation > state.args.generation && heroEntity) {
+  if (generation > 2 && generation > state.args.generation && heroEntity) {
     for (const particleName in state.particles) {
       const xpParticle = world.assertByIdAndComponents(
         state.particles[particleName],

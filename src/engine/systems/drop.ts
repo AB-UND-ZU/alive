@@ -50,12 +50,19 @@ import { isImmersible } from "./immersion";
 import { POPUP } from "../components/popup";
 import { TOOLTIP } from "../components/tooltip";
 import { createPopup } from "./popup";
+import { HARVESTABLE } from "../components/harvestable";
+import { BURNABLE } from "../components/burnable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE]?.decayed;
 
 export const isDecaying = (world: World, entity: Entity) =>
   isDead(world, entity) &&
+  !isDecayed(world, entity) &&
+  !getSequence(world, entity, "decay");
+
+export const isHarvested = (world: World, entity: Entity) =>
+  entity[HARVESTABLE].amount <= 0 &&
   !isDecayed(world, entity) &&
   !getSequence(world, entity, "decay");
 
@@ -447,6 +454,36 @@ export default function setupDrop(world: World) {
           undefined,
           lootSpeed + decayTime / 2
         );
+      }
+    }
+
+    // drop harvested resources
+    for (const entity of world.getEntities([
+      DROPPABLE,
+      HARVESTABLE,
+      RENDERABLE,
+      SEQUENCABLE,
+      POSITION,
+    ])) {
+      if (isHarvested(world, entity)) {
+        createSequence<"decay", DecaySequence>(
+          world,
+          entity,
+          "decay",
+          "creatureDecay",
+          { fast: false }
+        );
+        dropEntity(
+          world,
+          entity,
+          entity[POSITION],
+          false,
+          MAX_DROP_RADIUS,
+          undefined,
+          lootSpeed + decayTime / 2
+        );
+      } else if (isDecayed(world, entity) && !entity[BURNABLE]?.combusted) {
+        disposeEntity(world, entity, true);
       }
     }
 

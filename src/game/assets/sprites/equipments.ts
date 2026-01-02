@@ -617,7 +617,7 @@ export const rainbowShield: Sprite = {
   layers: [{ char: "¬", color: colors.white }],
 };
 
-export const axe: Sprite = {
+export const woodAxe: Sprite = {
   name: "Axe",
   layers: [
     { char: "'", color: colors.grey },

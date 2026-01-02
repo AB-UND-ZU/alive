@@ -10,7 +10,7 @@ import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
 import { INVENTORY } from "../components/inventory";
-import { ITEM } from "../components/item";
+import { ITEM, materials } from "../components/item";
 import { isDead, isEnemy, isNpc } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
@@ -28,6 +28,14 @@ import {
 } from "./popup";
 import { WARPABLE } from "../components/warpable";
 import { POPUP } from "../components/popup";
+import { EQUIPPABLE } from "../components/equippable";
+import { HARVESTABLE } from "../components/harvestable";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientationPoints,
+} from "../components/orientable";
+import { getLootable } from "./collect";
 
 export const getWarpable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -66,25 +74,38 @@ export const getUnlockKey = (
   return keyId && world.getEntityById(keyId);
 };
 
-export const getAvailablePrimary = (
+export const getHarvestable = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).find(
+    (entity) => HARVESTABLE in entity
+  ) as Entity | undefined;
+
+export const getHarvestTarget = (
   world: World,
-  entity: TypedEntity<"INVENTORY">
+  entity: Entity,
+  tool: Entity
 ) => {
-  const itemEntity = world.getEntityByIdAndComponents(
-    entity[INVENTORY].items.find(
-      (itemId) =>
-        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].equipment ===
-        "primary"
-    ),
-    [ITEM]
-  );
+  // check if pointing to something harvestable
+  const orientation = entity[ORIENTABLE]?.facing as Orientation;
 
-  const primary = itemEntity?.[ITEM].primary;
+  if (!orientation || !entity[POSITION]) return;
 
-  if (!primary) return;
+  const target = add(entity[POSITION], orientationPoints[orientation]);
+  const harvestable = getHarvestable(world, target);
+  const lootable = getLootable(world, target);
 
-  return itemEntity;
+  if (
+    lootable ||
+    !harvestable ||
+    harvestable[HARVESTABLE].resource !== "tree" ||
+    harvestable[HARVESTABLE].amount <= 0 ||
+    materials.indexOf(harvestable[HARVESTABLE].material) >
+      materials.indexOf(tool[ITEM].material)
+  )
+    return;
+
+  return harvestable;
 };
+
 export const castablePrimary = (
   world: World,
   entity: TypedEntity<"INVENTORY">,
@@ -96,26 +117,6 @@ export const castablePrimary = (
   if (entity[STATS] && primary && entity[STATS].mp >= 1) return true;
 
   return false;
-};
-
-export const getAvailableSecondary = (
-  world: World,
-  entity: TypedEntity<"INVENTORY">
-) => {
-  const itemEntity = world.getEntityByIdAndComponents(
-    entity[INVENTORY].items.find(
-      (itemId) =>
-        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].equipment ===
-        "secondary"
-    ),
-    [ITEM]
-  );
-
-  const secondary = itemEntity?.[ITEM].secondary;
-
-  if (!secondary) return;
-
-  return itemEntity;
 };
 
 export const castableSecondary = (
@@ -135,7 +136,7 @@ export const castableSecondary = (
         "arrow"
     );
     if (hasArrow) return true;
-  } else if (secondary === "slash" || secondary === "block") {
+  } else if (secondary === "slash") {
     // check if there is charges for active items
     const hasCharge = entity[INVENTORY].items.some(
       (itemId) =>
@@ -143,6 +144,9 @@ export const castableSecondary = (
         "charge"
     );
     if (hasCharge) return true;
+  } else if (secondary === "axe" && item[ITEM].material) {
+    // check if pointing to something harvestable
+    return !!getHarvestTarget(world, entity, item);
   }
 
   return false;
@@ -288,8 +292,8 @@ export default function setupAction(world: World) {
       }
 
       // check inventory actions
-      const primary = getAvailablePrimary(world, entity);
-      const secondary = getAvailableSecondary(world, entity);
+      const primary = world.getEntityById(entity[EQUIPPABLE]?.primary);
+      const secondary = world.getEntityById(entity[EQUIPPABLE]?.secondary);
 
       const warpId = warp && world.getEntityId(warp);
       const unlockId = unlock && world.getEntityId(unlock);

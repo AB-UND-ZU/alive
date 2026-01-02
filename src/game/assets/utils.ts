@@ -201,6 +201,8 @@ import {
   drain,
   none,
   woodBoots,
+  woodAxe,
+  logging,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -214,7 +216,7 @@ import {
   Materialized,
   Primary,
   Reloadable,
-  Resource,
+  ResourceItem,
   Secondary,
 } from "../../engine/components/item";
 import { generateUnitData, UnitKey } from "../balancing/units";
@@ -1470,7 +1472,7 @@ export const entitySprites: Record<
 };
 
 export const materialSprites: Record<
-  Tools | Gear | Primary | Secondary | Consumable | Resource | Materialized,
+  Tools | Gear | Primary | Secondary | Consumable | ResourceItem | Materialized,
   Partial<Record<Material, SpriteDefinition>>
 > = {
   sword: {
@@ -1596,6 +1598,26 @@ export const materialSprites: Record<
   },
 
   // tools
+  axe: {
+    wood: {
+      sprite: woodAxe,
+      getDescription: () => [
+        createText("Stand in front of"),
+        [
+          ...createText("a "),
+          tree1,
+          tree2,
+          ...createText("Tree", colors.grey),
+          ...createText(" to chop."),
+        ],
+        [
+          ...createText("1", colors.green),
+          logging,
+          ...createText("Logging", colors.green),
+        ],
+      ],
+    },
+  },
   compass: {
     iron: {
       sprite: ironCompass,
@@ -1838,7 +1860,7 @@ export const materialSprites: Record<
 };
 
 export const elementSprites: Record<
-  Gear | Primary | Secondary | Consumable | Resource,
+  Gear | Primary | Secondary | Consumable | ResourceItem,
   Partial<Record<Material, Partial<Record<Element, SpriteDefinition>>>>
 > = {
   // gear
@@ -2139,6 +2161,7 @@ export const elementSprites: Record<
       },
     },
   },
+  axe: {},
 
   // spells
   wave: {

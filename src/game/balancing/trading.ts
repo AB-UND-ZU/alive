@@ -3,7 +3,7 @@ import {
   Element,
   Item,
   Material,
-  Resource,
+  ResourceItem,
   Stackable,
 } from "../../engine/components/item";
 import { Deal } from "../../engine/components/popup";
@@ -28,7 +28,7 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
 };
 
 export const itemMaterialPrices: Partial<
-  Record<Resource | Consumable, Partial<Record<Material, number>>>
+  Record<ResourceItem | Consumable, Partial<Record<Material, number>>>
 > = {
   resource: {
     wood: 10,
@@ -41,7 +41,7 @@ export const itemMaterialPrices: Partial<
 
 export const itemElementPrices: Partial<
   Record<
-    Resource | Consumable,
+    ResourceItem | Consumable,
     Partial<Record<Material, Partial<Record<Element, number>>>>
   >
 > = {

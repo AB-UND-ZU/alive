@@ -5,12 +5,13 @@ import { Attributes, emptyAttributes, UnitStats } from "./stats";
 import { Castable, DamageType, EffectType, emptyCastable } from "./castable";
 
 export const elements = ["fire", "water", "earth", "air"] as const;
+export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
 
-export type Material = "wood" | "iron" | "gold" | "diamond" | "ruby";
 export type Element = (typeof elements)[number];
+export type Material = (typeof materials)[number];
 
 export type Primary = "wave" | "beam" | "bolt";
-export type Secondary = "slash" | "bow";
+export type Secondary = "slash" | "bow" | "axe";
 
 export type Consumable = "key" | "potion" | "map";
 
@@ -37,9 +38,9 @@ export type Craftable =
   | "nugget"
   | "note"
   | "worm";
-export type Resource = "resource";
+export type ResourceItem = "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";
-export type Stackable = Resource | Craftable | Reloadable;
+export type Stackable = ResourceItem | Craftable | Reloadable;
 
 export type ProcStats = { drain: number };
 export type ItemStats = Attributes &

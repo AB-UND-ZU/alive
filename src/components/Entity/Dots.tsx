@@ -4,6 +4,7 @@ import { colors } from "../../game/assets/colors";
 import { dotsHeight, stack, stackHeight } from "./utils";
 import { Segment } from "./Stack";
 import { pixels } from "../Dimensions/sizing";
+import { HARVESTABLE } from "../../engine/components/harvestable";
 
 const dotColor = colors.silver;
 export const dotCount = 5;
@@ -18,11 +19,13 @@ export default function Dots({
   segment: Segment;
 }) {
   const amount = segment.amount || 0;
+  const isHarvestable = !!entity[HARVESTABLE];
 
   if (
-    amount <= 1 ||
-    !isVisible ||
-    (amount <= 3 && segment.sprite.amounts?.multiple)
+    !isHarvestable &&
+    (amount <= 1 ||
+      !isVisible ||
+      (amount <= 3 && segment.sprite.amounts?.multiple))
   )
     return null;
 

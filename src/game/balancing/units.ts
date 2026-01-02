@@ -55,6 +55,7 @@ import { emptyUnitStats, UnitStats } from "../../engine/components/stats";
 import { classDefinitions, ClassKey } from "./classes";
 import { recolorSprite } from "../assets/pixels";
 import { colors } from "../assets/colors";
+import { Harvestable } from "../../engine/components/harvestable";
 
 export type UnitKey =
   | NpcType
@@ -80,7 +81,8 @@ export type NpcDistribution = Partial<Record<NpcType, number>>;
 
 export type UnitDefinition = {
   faction: Faction;
-  dormant: boolean;
+  dormant?: boolean;
+  harvestable?: Omit<Harvestable, "maximum">;
   stats: Partial<UnitStats>;
   equipments: Omit<Item, "carrier">[];
   drops: {
@@ -98,7 +100,8 @@ export type UnitDefinition = {
 
 export type UnitData = {
   faction: Faction;
-  dormant: boolean;
+  dormant?: boolean;
+  harvestable?: Harvestable;
   stats: UnitStats;
   equipments: Omit<Item, "carrier">[];
   items: Omit<Item, "carrier">[];
@@ -118,7 +121,6 @@ export type NpcData = UnitData & {
 const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
     faction: "nomad",
-    dormant: false,
     stats: {
       hp: 30,
     },
@@ -149,7 +151,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthSmith: {
     faction: "earth",
-    dormant: false,
     stats: {
       hp: 30,
     },
@@ -170,7 +171,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthTrader: {
     faction: "earth",
-    dormant: false,
     stats: {
       hp: 20,
     },
@@ -195,7 +195,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthDruid: {
     faction: "earth",
-    dormant: false,
     stats: {
       hp: 20,
     },
@@ -209,7 +208,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthChief: {
     faction: "earth",
-    dormant: false,
     stats: {
       hp: 40,
     },
@@ -237,7 +235,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthGuard: {
     faction: "earth",
-    dormant: false,
     stats: {
       hp: 30,
     },
@@ -271,7 +268,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   banditKnight: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 20,
     },
@@ -295,7 +291,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   banditArcher: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 20,
     },
@@ -314,7 +309,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   tutorialBoss: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 20,
     },
@@ -349,7 +343,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   commonChest: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 15,
       armor: 1,
@@ -378,7 +371,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   uncommonChest: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 20,
       armor: 2,
@@ -390,7 +382,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rareChest: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 25,
       armor: 3,
@@ -402,7 +393,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   epicChest: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 30,
       armor: 4,
@@ -414,7 +404,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   legendaryChest: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 35,
       armor: 5,
@@ -426,7 +415,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   pot: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 10,
     },
@@ -446,7 +434,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   box: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 5,
     },
@@ -464,7 +451,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   dummy: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 25,
     },
@@ -484,7 +470,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   sign: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 20,
       armor: 2,
@@ -505,7 +490,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   fence: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 35,
       armor: 2,
@@ -523,7 +507,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   cactus1: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 10,
       armor: 1,
@@ -536,7 +519,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   cactus2: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 10,
       spike: 3,
@@ -548,7 +530,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rock1: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 3,
       armor: 3,
@@ -563,7 +544,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rock2: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 5,
       armor: 2,
@@ -578,7 +558,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   tumbleweed: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 5,
     },
@@ -589,7 +568,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hedge1: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 10,
     },
@@ -600,7 +578,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hedge2: {
     faction: "unit",
-    dormant: false,
     stats: {
       hp: 7,
       armor: 1,
@@ -612,7 +589,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   prism: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 8,
     },
@@ -646,7 +622,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldPrism: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 16,
       armor: 1,
@@ -674,7 +649,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   eye: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 1,
     },
@@ -708,7 +682,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldEye: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 2,
       armor: 1,
@@ -736,7 +709,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   orb: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 5,
       mp: 1,
@@ -781,7 +753,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldOrb: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 10,
       mp: 1,
@@ -820,7 +791,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   diamondOrb: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 15,
       mp: 1,
@@ -859,7 +829,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   fairy: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 10,
       armor: 2,
@@ -885,6 +854,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   rose: {
     faction: "unit",
     dormant: true,
+    harvestable: { amount: 4, material: "wood", resource: "tree" },
     stats: {
       hp: 30,
       spike: 1,
@@ -919,6 +889,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   violet: {
     faction: "unit",
     dormant: true,
+    harvestable: { amount: 4, material: "wood", resource: "tree" },
     stats: {
       hp: 30,
       mp: 1,
@@ -961,6 +932,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   clover: {
     faction: "unit",
     dormant: true,
+    harvestable: { amount: 4, material: "wood", resource: "tree" },
     stats: {
       hp: 30,
       armor: 0,
@@ -1020,7 +992,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   waveTower: {
     faction: "wild",
-    dormant: false,
     stats: {
       hp: 20,
       mp: 1,
@@ -1121,8 +1092,14 @@ export const generateNpcKey = (npcDistribution: NpcDistribution) => {
 };
 
 export const generateUnitData = (unitKey: UnitKey): UnitData => {
-  const { drops, stats, patternNames, remainsChoices, ...unitDefinition } =
-    unitDefinitions[unitKey];
+  const {
+    drops,
+    stats,
+    patternNames,
+    remainsChoices,
+    harvestable,
+    ...unitDefinition
+  } = unitDefinitions[unitKey];
   const items =
     drops.length > 0
       ? drops
@@ -1143,6 +1120,7 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
     },
     patterns: patternNames.map((name) => ({ name, memory: {} })),
     remains: remainsChoices ? choice(...remainsChoices) : undefined,
+    harvestable: harvestable && { maximum: harvestable.amount, ...harvestable },
     ...unitDefinition,
   };
 };

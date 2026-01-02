@@ -254,6 +254,24 @@ export const spike: Sprite = {
   ],
 };
 
+export const logging: Sprite = {
+  name: "Logging",
+  layers: [
+    { char: "'", color: colors.lime },
+    { char: "º", color: colors.lime },
+    { char: "-", color: colors.black },
+    { char: "\\", color: colors.green },
+  ],
+};
+
+export const mining: Sprite = {
+  name: "Mining",
+  layers: [
+    { char: "\u0119", color: colors.lime },
+    { char: "-", color: colors.green },
+  ],
+};
+
 export const airEssence: Sprite = {
   name: "Spirit",
   layers: [{ char: "æ", color: colors.white }],
