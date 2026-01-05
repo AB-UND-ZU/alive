@@ -273,8 +273,8 @@ export const setMatrix = <T>(
 ) => {
   const width = matrix.length;
   const height = matrix[0].length;
-  const normalizedX = normalize(x + width, width);
-  const normalizedY = normalize(y + height, height);
+  const normalizedX = normalize(x, width);
+  const normalizedY = normalize(y, height);
   matrix[normalizedX][normalizedY] = value;
 };
 
@@ -287,8 +287,8 @@ export const setPath = <T>(
 ) => {
   const width = matrix.length / 2;
   const height = matrix[0].length / 2;
-  const normalizedX = normalize(x + width, width);
-  const normalizedY = normalize(y + height, height);
+  const normalizedX = normalize(x, width);
+  const normalizedY = normalize(y, height);
 
   setMatrix(matrix, normalizedX, normalizedY, value);
   if (!tiling) return;

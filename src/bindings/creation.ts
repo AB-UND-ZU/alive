@@ -727,12 +727,16 @@ export const insertArea = (
 
 export const createCell = (
   world: World,
-  { x, y }: Position,
+  position: Position,
   cell: string,
   visibility: Fog["visibility"],
   air = true
 ): { cell: TypedEntity; all: TypedEntity[] } => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const x = normalize(position.x, size);
+  const y = normalize(position.y, size);
   const all: TypedEntity[] = [];
+
   // track distribution of cell types
   world.metadata.gameEntity[LEVEL].cellPositions[cell] = (
     world.metadata.gameEntity[LEVEL].cellPositions[cell] || []

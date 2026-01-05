@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createWorld } from "../../engine";
 import { WorldProvider } from "../../bindings/hooks";
 import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
-import { createLevel, createSystems } from "../../engine/ecs";
+import { createLevel, createSystems, preloadLevel } from "../../engine/ecs";
 import { LevelName } from "../../engine/components/level";
 import { levelConfig } from "../../game/levels";
 import { useDimensions } from "../Dimensions";
@@ -28,8 +28,7 @@ export default function World(props: React.PropsWithChildren) {
     createSystems(world);
     setTimeout(() => {
       levelConfig[initialLevel].generator(world);
-      // run one game tick to initialize map
-      ecs.update(0);
+      preloadLevel(world);
       world.metadata.resume();
     }, 0);
 

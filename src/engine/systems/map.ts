@@ -65,6 +65,10 @@ export const registerEntity = (world: World, entity: Entity) => {
 
   cell[world.getEntityId(entity)] = entity;
 
+  // ensure position is normalized
+  entity[POSITION].x = normalizedX;
+  entity[POSITION].y = normalizedY;
+
   updateWalkable(world, position);
 };
 

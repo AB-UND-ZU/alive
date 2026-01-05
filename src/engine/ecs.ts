@@ -273,3 +273,12 @@ export const createSystems = (world: World) => {
   world.addSystem(systems.setupRenderer);
   world.addSystem(systems.setupMap);
 };
+
+export const preloadLevel = (world: World) => {
+  // ensure all entities are registered by running map system once
+  const mapSystem = systems.setupMap(world);
+  mapSystem.onUpdate(0);
+
+  // run one full game tick
+  world.metadata.ecs.ecs.update(0);
+};

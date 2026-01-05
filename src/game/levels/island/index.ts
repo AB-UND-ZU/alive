@@ -38,6 +38,7 @@ import {
   add,
   angledOffset,
   choice,
+  combine,
   copy,
   getDistance,
   lerp,
@@ -181,7 +182,7 @@ export const generateIsland = (world: World) => {
   );
   const spawnWalkAngle = spawnAngle + 180;
   const spawnInverted = signedDistance(spawnPoint.y, townPoint.y, size) < 0;
-  const signPosition = add(spawnPoint, {
+  const signPosition = combine(size, spawnPoint, {
     x: choice(-1, 1),
     y: spawnInverted ? -4 : 4,
   });
@@ -199,7 +200,7 @@ export const generateIsland = (world: World) => {
     spawnWalkLength / 2,
     mainlandRatio
   );
-  const townCorner = add(townPoint, {
+  const townCorner = combine(size, townPoint, {
     x: townSize.x / -2,
     y: townSize.y / -2,
   });
@@ -623,12 +624,14 @@ export const generateIsland = (world: World) => {
 
   const houses = relativeHouses.map((house) => ({
     ...house,
-    position: add(house.position, townCorner),
-    door: add(house.door, townCorner),
+    position: combine(size, house.position, townCorner),
+    door: combine(size, house.door, townCorner),
   }));
-  const exits = relativeExits.map((exit) => add(exit, townCorner));
-  const guards = relativeGuards.map((guard) => add(guard, townCorner));
-  const inn = add(relativeInn, townCorner);
+  const exits = relativeExits.map((exit) => combine(size, exit, townCorner));
+  const guards = relativeGuards.map((guard) =>
+    combine(size, guard, townCorner)
+  );
+  const inn = combine(size, relativeInn, townCorner);
 
   // create shortest path from spawn to town
   setPath(pathMatrix, spawnExit.x, spawnExit.y, 0, false);
@@ -751,9 +754,9 @@ export const generateIsland = (world: World) => {
   initializeArea(
     world,
     spawnCorner,
-    add(spawnCorner, { x: spawnWidth, y: spawnHeight })
+    combine(size, spawnCorner, { x: spawnWidth, y: spawnHeight })
   );
-  initializeArea(world, townCorner, add(townCorner, townSize));
+  initializeArea(world, townCorner, combine(size, townCorner, townSize));
 
   // adjust hero
   const heroEntity = assertIdentifierAndComponents(world, "hero", [
@@ -802,7 +805,10 @@ export const generateIsland = (world: World) => {
 
   // postprocess town
 
-  const townEnd = add(townCorner, { x: townSize.x - 1, y: townSize.y - 1 });
+  const townEnd = combine(size, townCorner, {
+    x: townSize.x - 1,
+    y: townSize.y - 1,
+  });
   const earthTown = entities.createProcessor(world, {
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
@@ -812,7 +818,7 @@ export const generateIsland = (world: World) => {
   npcSequence(world, earthTown, "earthTownNpc", {
     topLeft: townCorner,
     bottomRight: townEnd,
-    spawn: add(inn, { x: 0, y: 2 }),
+    spawn: combine(size, inn, { x: 0, y: 2 }),
   });
 
   // place guards at exits
@@ -832,7 +838,7 @@ export const generateIsland = (world: World) => {
   const chiefEntity = createNpc(
     world,
     "earthChief",
-    add(inn, { x: choice(-1, 1), y: 2 })
+    combine(size, inn, { x: choice(-1, 1), y: 2 })
   );
   createPopup(world, chiefEntity, {
     targets: [{ amount: 1, unit: "oakBoss" }],
@@ -969,7 +975,7 @@ export const generateIsland = (world: World) => {
   createNpc(
     world,
     "earthSmith",
-    add(smithBuilding.building[POSITION], { x: smithOffset, y: 0 })
+    combine(size, smithBuilding.building[POSITION], { x: smithOffset, y: 0 })
   );
 
   const anvilEntity = createCell(
@@ -988,7 +994,7 @@ export const generateIsland = (world: World) => {
   createNpc(
     world,
     "earthDruid",
-    add(druidBuilding.building[POSITION], { x: druidOffset, y: 0 })
+    combine(size, druidBuilding.building[POSITION], { x: druidOffset, y: 0 })
   );
 
   const kettleEntity = createCell(
@@ -1018,7 +1024,8 @@ export const generateIsland = (world: World) => {
       entities.createFurniture(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [LAYER]: {},
-        [POSITION]: add(
+        [POSITION]: combine(
+          size,
           furnishingBuilding.building[POSITION],
           orientationPoints[invertFurniture]
         ),
@@ -1037,7 +1044,8 @@ export const generateIsland = (world: World) => {
       entities.createFurniture(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [LAYER]: {},
-        [POSITION]: add(
+        [POSITION]: combine(
+          size,
           furnishingBuilding.building[POSITION],
           orientationPoints[furnitureOrientation]
         ),
@@ -1058,7 +1066,8 @@ export const generateIsland = (world: World) => {
       entities.createFloor(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [LAYER]: {},
-        [POSITION]: add(
+        [POSITION]: combine(
+          size,
           furnishingBuilding.building[POSITION],
           orientationPoints[furnitureOrientation]
         ),
@@ -1069,7 +1078,8 @@ export const generateIsland = (world: World) => {
         entities.createFloor(world, {
           [FOG]: { visibility: "hidden", type: "terrain" },
           [LAYER]: {},
-          [POSITION]: add(
+          [POSITION]: combine(
+            size,
             furnishingBuilding.building[POSITION],
             orientationPoints[invertFurniture]
           ),
@@ -1079,14 +1089,19 @@ export const generateIsland = (world: World) => {
       }
     }
 
-    const objectPosition = add(furnishingBuilding.building[POSITION], {
-      x: random(0, 1) * 4 - 2,
-      y: 0,
-    });
+    const objectPosition = combine(
+      size,
+      furnishingBuilding.building[POSITION],
+      {
+        x: random(0, 1) * 4 - 2,
+        y: 0,
+      }
+    );
 
     if (furnishingBuilding === traderBuilding) {
       // trader's house
       createNpc(world, "earthTrader", objectPosition);
+      continue;
     }
 
     // add chest

@@ -79,8 +79,8 @@ export const useRenderable = <C extends keyof Entity>(
   const listener = useCallback(
     (reset = false) => {
       if (reset) {
+        pendingGeneration.current = -1;
         setGeneration(-1);
-        return;
       }
 
       if (!ecs) return null;

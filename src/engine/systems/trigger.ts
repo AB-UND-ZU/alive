@@ -1,4 +1,4 @@
-import { createLevel, World } from "../ecs";
+import { createLevel, preloadLevel, World } from "../ecs";
 import { POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
@@ -158,100 +158,101 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
   setTimeout(() => {
     world.metadata.suspend();
 
-    // tag hero and related entities to new world
-    const levelName = getSelectedLevel(world, warp);
-    const { size, generator, vision } = levelConfig[levelName];
-    const light = calculateVision(vision);
-
-    const inspectEntity = assertIdentifier(world, "inspect");
-    const spawnEntity = assertIdentifier(world, "spawn");
-    const focusEntity = assertIdentifierAndComponents(world, "focus", [
-      MOVABLE,
-      SEQUENCABLE,
-      POSITION,
-    ]);
-    const inventory = (entity[INVENTORY]?.items || []).map((id: number) =>
-      world.assertById(id)
-    );
-    const entityFrames = Object.values(
-      (entity[SEQUENCABLE].states || {}) as Sequencable["states"]
-    ).map((state) => world.assertById(state.reference));
-    const focusFrames = Object.values(
-      (focusEntity[SEQUENCABLE].states || {}) as Sequencable["states"]
-    ).map((state) => world.assertById(state.reference));
-    const transferredEntities = [
-      entity,
-      ...inventory,
-      inspectEntity,
-      spawnEntity,
-      focusEntity,
-      reference,
-      ...getParticles(world, entity),
-      ...entityFrames,
-      ...getParticles(world, focusEntity),
-      ...focusFrames,
-    ];
-    transferredEntities.forEach((target) => {
-      world.addComponentToEntity(target, levelName, {});
-      world.removeComponentFromEntity(
-        target as TypedEntity<LevelName>,
-        world.metadata.gameEntity[LEVEL].name
-      );
-    });
-
-    // remove old world for now
-    world.getEntities([]).forEach((target) => {
-      if (transferredEntities.includes(target)) return;
-
-      disposeEntity(world, target);
-    });
-
-    // generate new world
-    const level = createLevel(world, levelName, size);
-    generator(world);
-
-    // reregister positioned entities
-    transferredEntities.forEach((target) => {
-      if (!target[POSITION]) return;
-
-      registerEntity(world, target);
-      rerenderEntity(world, target);
-    });
-
-    // reset hero
-    const spawn = entity[POSITION];
-    rerenderEntity(world, entity);
-    focusEntity[MOVABLE].reference = world.getEntityId(level);
-    const previousSpring = entity[VIEWABLE].spring;
-    entity[VIEWABLE].spring = { duration: 0 };
-    entity[VIEWABLE].active = true;
-    entity[SPAWNABLE].position = { ...spawn };
-    entity[SPAWNABLE].light = light;
-    entity[ORIENTABLE].facing = undefined;
-
-    // run one game tick
-    world.metadata.ecs.ecs.update(0);
-
     setTimeout(() => {
-      world.metadata.resume();
+      // tag hero and related entities to new world
+      const levelName = getSelectedLevel(world, warp);
+      const { size, generator, vision } = levelConfig[levelName];
+      const light = calculateVision(vision);
+
+      const inspectEntity = assertIdentifier(world, "inspect");
+      const spawnEntity = assertIdentifier(world, "spawn");
+      const focusEntity = assertIdentifierAndComponents(world, "focus", [
+        MOVABLE,
+        SEQUENCABLE,
+        POSITION,
+      ]);
+      const inventory = (entity[INVENTORY]?.items || []).map((id: number) =>
+        world.assertById(id)
+      );
+      const entityFrames = Object.values(
+        (entity[SEQUENCABLE].states || {}) as Sequencable["states"]
+      ).map((state) => world.assertById(state.reference));
+      const focusFrames = Object.values(
+        (focusEntity[SEQUENCABLE].states || {}) as Sequencable["states"]
+      ).map((state) => world.assertById(state.reference));
+      const transferredEntities = [
+        entity,
+        ...inventory,
+        inspectEntity,
+        spawnEntity,
+        focusEntity,
+        reference,
+        ...getParticles(world, entity),
+        ...entityFrames,
+        ...getParticles(world, focusEntity),
+        ...focusFrames,
+      ];
+      transferredEntities.forEach((target) => {
+        world.addComponentToEntity(target, levelName, {});
+        world.removeComponentFromEntity(
+          target as TypedEntity<LevelName>,
+          world.metadata.gameEntity[LEVEL].name
+        );
+      });
+
+      // remove old world for now
+      world.getEntities([]).forEach((target) => {
+        if (transferredEntities.includes(target)) return;
+
+        disposeEntity(world, target);
+      });
+
+      // generate new world
+      const level = createLevel(world, levelName, size);
+      generator(world);
+
+      // reregister positioned entities
+      transferredEntities.forEach((target) => {
+        if (!target[POSITION]) return;
+
+        registerEntity(world, target);
+        rerenderEntity(world, target);
+      });
+
+      // reset hero
+      const spawn = entity[POSITION];
+      rerenderEntity(world, entity);
+      focusEntity[MOVABLE].reference = world.getEntityId(level);
+      const previousSpring = entity[VIEWABLE].spring;
+      entity[VIEWABLE].spring = { duration: 0 };
+      entity[VIEWABLE].active = true;
+      entity[SPAWNABLE].position = { ...spawn };
+      entity[SPAWNABLE].light = light;
+      entity[ORIENTABLE].facing = undefined;
+
+      preloadLevel(world);
 
       setTimeout(() => {
-        entity[VIEWABLE].spring = previousSpring;
-        createSequence<"vision", VisionSequence>(
-          world,
-          entity,
-          "vision",
-          "changeRadius",
-          {
-            light,
-            fast: false,
-          }
-        );
-        previousMovable.orientations = [];
-        previousMovable.pendingOrientation = undefined;
-        world.addComponentToEntity(entity, MOVABLE, previousMovable);
+        world.metadata.resume();
+
+        setTimeout(() => {
+          entity[VIEWABLE].spring = previousSpring;
+          createSequence<"vision", VisionSequence>(
+            world,
+            entity,
+            "vision",
+            "changeRadius",
+            {
+              light,
+              fast: false,
+            }
+          );
+          previousMovable.orientations = [];
+          previousMovable.pendingOrientation = undefined;
+          world.addComponentToEntity(entity, MOVABLE, previousMovable);
+        }, 1000);
       }, 1000);
-    }, 2000);
+    }, 500);
   }, 3000);
 };
 

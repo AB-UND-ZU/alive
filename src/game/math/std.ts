@@ -11,6 +11,11 @@ export const add = (first: Point, second: Point) => ({
   y: first.y + second.y,
 });
 
+export const combine = (size: number, ...points: Point[]) => ({
+  x: normalize(sum(points.map((point) => point.x)), size),
+  y: normalize(sum(points.map((point) => point.y)), size),
+});
+
 export const sum = (numbers: number[]) =>
   numbers.reduce((total, number) => total + number, 0);
 
