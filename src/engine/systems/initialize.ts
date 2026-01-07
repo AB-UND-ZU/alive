@@ -31,6 +31,31 @@ export const initializeCell = (world: World, x: number, y: number) => {
   world.metadata.gameEntity[LEVEL].initialized[x][y] = true;
 };
 
+export const getUninitializedCells = (
+  world: World,
+  topLeft: Position,
+  bottomRight: Position
+) => {
+  const cells = [];
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const delta = {
+    x: directedDistance(topLeft.x, bottomRight.x, size),
+    y: directedDistance(topLeft.y, bottomRight.y, size),
+  };
+
+  for (let offsetX = 0; offsetX <= delta.x; offsetX += 1) {
+    for (let offsetY = 0; offsetY <= delta.y; offsetY += 1) {
+      const x = normalize(topLeft.x + offsetX, size);
+      const y = normalize(topLeft.y + offsetY, size);
+
+      if (!world.metadata.gameEntity[LEVEL].initialized[x][y]) {
+        cells.push({ x, y });
+      }
+    }
+  }
+  return cells;
+};
+
 export const initializeArea = (
   world: World,
   topLeft: Position,
@@ -56,6 +81,7 @@ export const initializeArea = (
 export default function setupInitialize(world: World) {
   let viewablePosition: Position | undefined;
   let worldName = "";
+  let pendingCells: Position[] = [];
 
   const onUpdate = (delta: number) => {
     const level = world.metadata.gameEntity[LEVEL];
@@ -98,13 +124,22 @@ export default function setupInitialize(world: World) {
         ),
       };
 
-      initializeArea(
-        world,
-        initializeCorner,
-        add(initializeCorner, initializeSize)
+      pendingCells.push(
+        ...getUninitializedCells(
+          world,
+          initializeCorner,
+          add(initializeCorner, initializeSize)
+        )
       );
 
       viewablePosition = { ...currentPosition };
+    }
+
+    // gradually initialize more cells
+    const pendingCount = pendingCells.length;
+    for (let index = 0; index < pendingCount * 0.1; index += 1) {
+      const cell = pendingCells.shift();
+      initializeCell(world, cell!.x, cell!.y);
     }
 
     // initally create walkable matrix
