@@ -9,7 +9,7 @@ import { MELEE } from "../components/melee";
 import { getCell } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
-import { ITEM, ItemStats } from "../components/item";
+import { ITEM, ItemStats, rechargables } from "../components/item";
 import {
   ORIENTABLE,
   Orientation,
@@ -43,6 +43,7 @@ import { closePopup, getActivePopup } from "./popup";
 import { Affectable, AFFECTABLE } from "../components/affectable";
 import { extinguishEntity } from "./burn";
 import { CONDITIONABLE } from "../components/conditionable";
+import { isDecaying } from "./drop";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -77,7 +78,8 @@ export const isFriendlyFire = (
 };
 
 export const isFightable = (world: World, entity: Entity) =>
-  ATTACKABLE in entity && !isDead(world, entity);
+  ATTACKABLE in entity &&
+  !(isDead(world, entity) && !isDecaying(world, entity));
 
 export const getAttackable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -390,41 +392,62 @@ export default function setupDamage(world: World) {
       // do nothing if target is dead and pending decay
       if (isDead(world, targetEntity)) continue;
 
-      const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
-        ITEM,
-        ORIENTABLE,
-      ]);
-      const swordStats = getEquipmentStats(sword[ITEM], entity[NPC]?.type);
+      // prevent attack if shield is active
+      let displayedDamage = 0;
+      if (targetEntity[CONDITIONABLE]?.block) {
+        delete targetEntity[CONDITIONABLE].block;
+      } else {
+        const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
+          ITEM,
+          ORIENTABLE,
+        ]);
+        const swordStats = getEquipmentStats(sword[ITEM], entity[NPC]?.type);
 
-      if (entity[CONDITIONABLE]?.raise) {
-        swordStats.melee *= 2;
-        delete entity[CONDITIONABLE].raise;
+        if (entity[CONDITIONABLE]?.raise) {
+          swordStats.melee *= 2;
+          delete entity[CONDITIONABLE].raise;
+        }
+
+        const { damage, hp } = calculateDamage(
+          world,
+          swordStats,
+          entity,
+          targetEntity
+        );
+
+        targetEntity[STATS].hp = hp;
+
+        // trigger on hit effects
+        applyProcs(
+          world,
+          entity,
+          swordStats,
+          entity[EQUIPPABLE].sword,
+          targetEntity
+        );
+
+        // play sound
+        play("hit", {
+          intensity: damage,
+          proximity: targetEntity[PLAYER] ? 1 : 0.5,
+          variant: targetEntity[PLAYER] ? 1 : 2,
+        });
+
+        // set rechargable if applicable
+        const secondaryEntity = world.getEntityByIdAndComponents(
+          entity[EQUIPPABLE].secondary,
+          [ITEM]
+        );
+        const canRecharge = rechargables.includes(
+          secondaryEntity?.[ITEM].secondary as (typeof rechargables)[number]
+        );
+
+        if (canRecharge && targetEntity[RECHARGABLE]) {
+          targetEntity[RECHARGABLE].hit = true;
+        }
+
+        displayedDamage = damage;
       }
-
-      const { damage, hp } = calculateDamage(
-        world,
-        swordStats,
-        entity,
-        targetEntity
-      );
-
-      targetEntity[STATS].hp = hp;
-
-      // trigger on hit effects
-      applyProcs(
-        world,
-        entity,
-        swordStats,
-        entity[EQUIPPABLE].sword,
-        targetEntity
-      );
-
-      // play sound
-      play("hit", {
-        intensity: damage,
-        proximity: targetEntity[PLAYER] ? 1 : 0.5,
-        variant: targetEntity[PLAYER] ? 1 : 2,
-      });
 
       // perform bump
       entity[MELEE].facing = targetOrientation;
@@ -432,19 +455,6 @@ export default function setupDamage(world: World) {
 
       if (entity[ORIENTABLE]) {
         entity[ORIENTABLE].facing = targetOrientation;
-      }
-
-      // set rechargable if applicable
-      const secondaryEntity = world.getEntityByIdAndComponents(
-        entity[EQUIPPABLE].secondary,
-        [ITEM]
-      );
-      const canRecharge = ["slash", "raise"].includes(
-        secondaryEntity?.[ITEM].secondary!
-      );
-
-      if (canRecharge && targetEntity[RECHARGABLE]) {
-        targetEntity[RECHARGABLE].hit = true;
       }
 
       // close popup on target hits
@@ -470,7 +480,7 @@ export default function setupDamage(world: World) {
       createAmountMarker(
         world,
         targetEntity,
-        -damage,
+        -displayedDamage,
         targetOrientation,
         "melee"
       );

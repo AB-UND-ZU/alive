@@ -118,6 +118,50 @@ export const raiseParticle: Sprite = {
   },
 };
 
+export const blockSide: Sprite = {
+  name: "Block",
+  layers: [],
+  facing: {
+    up: [{ char: "·", color: colors.silver }],
+    right: [
+      { char: ":", color: colors.silver },
+      { char: ".", color: colors.silver },
+    ],
+    down: [{ char: "·", color: colors.silver }],
+    left: [
+      { char: ":", color: colors.silver },
+      { char: ".", color: colors.silver },
+    ],
+  },
+};
+
+export const blockCorner: Sprite = {
+  name: "Block",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.silver },
+      { char: "·", color: colors.black },
+      { char: ".", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.silver },
+      { char: "·", color: colors.black },
+      { char: ":", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.silver },
+      { char: "·", color: colors.black },
+      { char: ":", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.silver },
+      { char: "·", color: colors.black },
+      { char: ".", color: colors.black },
+    ],
+  },
+};
+
 export const range: Sprite = {
   name: "Range",
   layers: [
@@ -2402,6 +2446,19 @@ export const slotRight: Sprite = {
   layers: [
     { char: "▌", color: colors.grey },
     { char: "│", color: colors.black },
+  ],
+};
+
+export const emptySlot: Sprite = {
+  name: "Slot",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
   ],
 };
 

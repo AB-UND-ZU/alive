@@ -1,7 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type ConditionType = "raise";
+export type ConditionType = "raise" | "block";
 
 export type Conditionable = Partial<
   Record<

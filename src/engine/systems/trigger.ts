@@ -47,6 +47,7 @@ import {
   HarvestSequence,
   Sequencable,
   SEQUENCABLE,
+  SequenceState,
   SpellSequence,
   UnlockSequence,
   VisionSequence,
@@ -519,6 +520,11 @@ export const harvestTree = (world: World, entity: Entity, axe: Entity) => {
   );
 };
 
+const conditionSequences: Record<ConditionType, SequenceState<{}>["name"]> = {
+  raise: "raiseCondition",
+  block: "blockCondition",
+};
+
 export const applyCondition = (
   world: World,
   entity: Entity,
@@ -535,7 +541,7 @@ export const applyCondition = (
     world,
     entity,
     "condition",
-    "raiseCondition",
+    conditionSequences[type],
     {
       duration: 10,
     }
@@ -1109,27 +1115,38 @@ export default function setupTrigger(world: World) {
               world,
               entity as TypedEntity<"INVENTORY">,
               secondaryEntity
-            ) &&
-            secondaryEntity[ITEM].secondary !== "axe"
+            )
           ) {
-            queueMessage(world, entity, {
-              line: addBackground(
-                [
-                  ...createText("Need ", colors.silver),
-                  ...createItemName({
-                    stackable:
-                      secondaryEntity[ITEM].secondary === "bow"
-                        ? "arrow"
-                        : "charge",
-                  }),
-                  ...createText("!", colors.silver),
-                ],
-                colors.black
-              ),
-              orientation: "up",
-              fast: false,
-              delay: 0,
-            });
+            if (
+              secondaryEntity[ITEM].secondary !== "axe" &&
+              !(
+                secondaryEntity[ITEM].secondary === "raise" &&
+                entity[CONDITIONABLE]?.raise
+              ) &&
+              !(
+                secondaryEntity[ITEM].secondary === "block" &&
+                entity[CONDITIONABLE]?.block
+              )
+            ) {
+              queueMessage(world, entity, {
+                line: addBackground(
+                  [
+                    ...createText("Need ", colors.silver),
+                    ...createItemName({
+                      stackable:
+                        secondaryEntity[ITEM].secondary === "bow"
+                          ? "arrow"
+                          : "charge",
+                    }),
+                    ...createText("!", colors.silver),
+                  ],
+                  colors.black
+                ),
+                orientation: "up",
+                fast: false,
+                delay: 0,
+              });
+            }
             return;
           } else if (secondaryEntity[ITEM].secondary === "bow") {
             shootArrow(world, entity, secondaryEntity);
@@ -1140,6 +1157,9 @@ export default function setupTrigger(world: World) {
           } else if (secondaryEntity[ITEM].secondary === "raise") {
             consumeCharge(world, entity, { stackable: "charge" });
             applyCondition(world, entity, "raise");
+          } else if (secondaryEntity[ITEM].secondary === "block") {
+            consumeCharge(world, entity, { stackable: "charge" });
+            applyCondition(world, entity, "block");
           }
         }
       }

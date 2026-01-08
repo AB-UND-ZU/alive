@@ -21,6 +21,7 @@ import { MELEE } from "../components/melee";
 import { relativeOrientations } from "../../game/math/path";
 import { isControllable } from "./freeze";
 import { play } from "../../game/sound";
+import { CONDITIONABLE } from "../components/conditionable";
 
 export const isSpikable = (world: World, entity: Entity) => {
   if (!isFightable(world, entity)) return false;
@@ -36,19 +37,27 @@ export const getSpikable = (world: World, position: Position) =>
   ) as Entity | undefined;
 
 export const stingEntity = (world: World, entity: Entity, target: Entity) => {
-  const entityStats = getEntityStats(world, entity);
-  const attack = entityStats.spike;
+  let displayedDamage = 0;
 
-  const { damage, hp } = calculateDamage(
-    world,
-    { true: attack },
-    entity,
-    target
-  );
+  // burst active bubble
+  if (target[CONDITIONABLE]?.block) {
+    delete target[CONDITIONABLE].block;
+  } else {
+    const entityStats = getEntityStats(world, entity);
+    const attack = entityStats.spike;
 
-  target[STATS].hp = hp;
+    const { damage, hp } = calculateDamage(
+      world,
+      { true: attack },
+      entity,
+      target
+    );
 
-  play("magic", { intensity: damage, proximity: 0.5 });
+    target[STATS].hp = hp;
+
+    play("magic", { intensity: damage, proximity: 0.5 });
+    displayedDamage = damage;
+  }
 
   const orientation = relativeOrientations(
     world,
@@ -56,7 +65,7 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
     target[POSITION]
   )[0];
   // animate sting hit
-  createAmountMarker(world, target, -damage, orientation, "magic");
+  createAmountMarker(world, target, -displayedDamage, orientation, "magic");
 
   rerenderEntity(world, target);
 };

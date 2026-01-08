@@ -65,7 +65,7 @@ export const raiseActive: Sprite = {
     { char: "±", color: colors.black },
     { char: "-", color: colors.black },
     { char: ".", color: colors.black },
-    { char: "²", color: colors.grey },
+    { char: "²", color: colors.silver },
   ],
 };
 
@@ -104,20 +104,10 @@ export const slashWoodAir: Sprite = {
   ],
 };
 
-export const blockWood: Sprite = {
+export const blockActive: Sprite = {
   name: "Block",
   layers: [
-    { char: "0", color: colors.maroon },
-    { char: "\u0106", color: colors.black },
-    { char: "\u0108", color: colors.black },
-  ],
-};
-
-export const blockWoodAir: Sprite = {
-  name: "Block",
-  layers: [
-    { char: "0", color: colors.white },
-    { char: "C", color: colors.maroon },
+    { char: "0", color: colors.silver },
     { char: "\u0106", color: colors.black },
     { char: "\u0108", color: colors.black },
   ],

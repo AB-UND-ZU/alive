@@ -187,6 +187,8 @@ import {
   ironWave,
   ironWaveCorner,
   raiseParticle,
+  blockSide,
+  blockCorner,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -450,6 +452,68 @@ export const raiseCondition: Sequence<ConditionSequence> = (
 
     // clear condition from entity
     delete entity[CONDITIONABLE].raise;
+  }
+
+  return { finished, updated };
+};
+
+export const blockCondition: Sequence<ConditionSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const generation = Math.ceil(
+    state.elapsed / world.metadata.gameEntity[REFERENCE].tick
+  );
+  let updated = false;
+  const finished =
+    !entity[CONDITIONABLE].block || generation > state.args.duration;
+
+  if (!state.particles["side-up"]) {
+    for (const iteration of iterations) {
+      const sidePosition = iteration.direction;
+      const sideParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: iteration.orientation },
+        [PARTICLE]: {
+          offsetX: sidePosition.x,
+          offsetY: sidePosition.y,
+          offsetZ: particleHeight,
+          animatedOrigin: { x: 0, y: 0 },
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: blockSide,
+      });
+      state.particles[`side-${iteration.orientation}`] =
+        world.getEntityId(sideParticle);
+
+      const cornerPosition = add(sidePosition, iteration.normal);
+      const cornerParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: iteration.orientation },
+        [PARTICLE]: {
+          offsetX: cornerPosition.x,
+          offsetY: cornerPosition.y,
+          offsetZ: particleHeight,
+          animatedOrigin: { x: 0, y: 0 },
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: blockCorner,
+      });
+      state.particles[`corner-${iteration.orientation}`] =
+        world.getEntityId(cornerParticle);
+
+      updated = true;
+    }
+  }
+
+  if (finished) {
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertById(state.particles[particleName]);
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    // clear condition from entity
+    delete entity[CONDITIONABLE].block;
   }
 
   return { finished, updated };

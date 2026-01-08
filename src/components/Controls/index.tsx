@@ -24,7 +24,7 @@ import { normalize, repeat } from "../../game/math/std";
 import { getSegments } from "../Entity/utils";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { LOCKABLE } from "../../engine/components/lockable";
-import { ITEM, Item } from "../../engine/components/item";
+import { ITEM, Item, rechargables } from "../../engine/components/item";
 import {
   canUnlock,
   castablePrimary,
@@ -95,8 +95,7 @@ const getActiveActivations = (world: World, hero: TypedEntity, item: Item) => {
 
   if (
     item.secondary === "bow" ||
-    item.secondary === "slash" ||
-    item.secondary === "raise"
+    rechargables.includes(item.secondary as (typeof rechargables)[number])
   ) {
     const ammo = item.secondary === "bow" ? "arrow" : "charge";
     const stackableItem = hero[INVENTORY]?.items

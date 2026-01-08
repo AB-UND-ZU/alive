@@ -204,6 +204,7 @@ import {
   woodAxe,
   logging,
   raiseActive,
+  blockActive,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1738,12 +1739,37 @@ export const materialSprites: Record<
     wood: {
       sprite: raiseActive,
       getDescription: () => [
-        createText("The next attack"),
-        createText("deals double"),
+        createText("Next hit doubles"),
         [
           minCountable(meleeHit),
           ...createText("Melee", colors.red),
           ...createText(" damage."),
+        ],
+        [
+          ...createText("-1", colors.grey),
+          ...createItemName({ stackable: "charge" }),
+        ],
+      ],
+    },
+  },
+  block: {
+    wood: {
+      sprite: blockActive,
+      getDescription: () => [
+        [
+          ...createText("Blocks one "),
+          minCountable(meleeHit),
+          ...createText("Melee", colors.red),
+        ],
+        [
+          ...createText("or "),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
+          ...createText(" attack."),
+        ],
+        [
+          ...createText("-1", colors.grey),
+          ...createItemName({ stackable: "charge" }),
         ],
       ],
     },
@@ -2178,6 +2204,7 @@ export const elementSprites: Record<
   },
   axe: {},
   raise: {},
+  block: {},
 
   // spells
   wave: {

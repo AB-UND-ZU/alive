@@ -267,6 +267,7 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
+        { equipment: "boots", material: "wood", amount: 1 },
         {
           equipment: "sword",
           material: "wood",
@@ -292,7 +293,6 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
-        { equipment: "boots", material: "wood", amount: 1 },
         {
           equipment: "secondary",
           secondary: "bow",
@@ -308,6 +308,12 @@ export const generateMenu = async (world: World) => {
         {
           equipment: "secondary",
           secondary: "raise",
+          material: "wood",
+          amount: 1,
+        },
+        {
+          equipment: "secondary",
+          secondary: "block",
           material: "wood",
           amount: 1,
         },

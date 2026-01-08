@@ -19,7 +19,7 @@ import {
   calculateDamage,
   calculateHealing,
   createAmountMarker,
-  getAttackables,
+  getAttackable,
   isDead,
   isEnemy,
   isFriendlyFire,
@@ -50,9 +50,15 @@ import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
 import { LEVEL } from "../components/level";
 import { getAbilityStats } from "../../game/balancing/abilities";
+import { CONDITIONABLE } from "../components/conditionable";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
+
+export const getAffectable = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).find((target) =>
+    isAffectable(world, target)
+  ) as Entity | undefined;
 
 export const getAffectables = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter((target) =>
@@ -243,10 +249,12 @@ export default function setupMagic(world: World) {
 
       const casterEntity = world.getEntityById(castableEntity[CASTABLE].caster);
 
-      const targetEntities = castableEntity[CASTABLE].melee
-        ? getAttackables(world, entity[POSITION])
-        : getAffectables(world, entity[POSITION]);
-      for (const targetEntity of targetEntities) {
+      const targetEntity = castableEntity[CASTABLE].melee
+        ? getAttackable(world, entity[POSITION])
+        : getAffectable(world, entity[POSITION]);
+
+      // prevent spell if bubble is active
+      if (targetEntity) {
         const affectableId = world.getEntityId(targetEntity);
         const previousAffected =
           castableEntity[CASTABLE].affected[affectableId];
@@ -295,6 +303,12 @@ export default function setupMagic(world: World) {
 
           castableEntity[CASTABLE].affected[affectableId].frame =
             world.getEntityId(retriggerEntity);
+        }
+
+        if (targetEntity[CONDITIONABLE]?.block) {
+          delete targetEntity[CONDITIONABLE].block;
+          createAmountMarker(world, targetEntity, 0, "up", "magic");
+          continue;
         }
 
         if (isFriendlyFire(world, castableEntity, targetEntity)) {
@@ -464,21 +478,28 @@ export default function setupMagic(world: World) {
 
       if (delta === 0) continue;
 
-      const { damage, hp } = calculateDamage(
-        world,
-        { true: delta },
-        {},
-        entity
-      );
-      entity[STATS].hp = hp;
+      // burst bubble on dot
+      let displayedDamage = 0;
+      if (entity[CONDITIONABLE]?.block) {
+        delete entity[CONDITIONABLE].block;
+      } else {
+        const { damage, hp } = calculateDamage(
+          world,
+          { true: delta },
+          {},
+          entity
+        );
+        entity[STATS].hp = hp;
 
-      const proximity = heroEntity
-        ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
-        : 0.5;
-      play("magic", { intensity: damage, proximity });
+        const proximity = heroEntity
+          ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
+          : 0.5;
+        play("magic", { intensity: damage, proximity });
+        displayedDamage = damage;
+      }
 
       // add hit marker
-      createAmountMarker(world, entity, -damage, "up", "magic");
+      createAmountMarker(world, entity, -displayedDamage, "up", "magic");
 
       entityDots[entityId] = dot;
     }

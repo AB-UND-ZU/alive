@@ -10,7 +10,7 @@ import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
 import { INVENTORY } from "../components/inventory";
-import { ITEM, materials } from "../components/item";
+import { ITEM, materials, rechargables } from "../components/item";
 import { isDead, isEnemy, isNpc } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
@@ -137,7 +137,9 @@ export const castableSecondary = (
         "arrow"
     );
     if (hasArrow) return true;
-  } else if (secondary === "slash" || secondary === "raise") {
+  } else if (
+    rechargables.includes(secondary as (typeof rechargables)[number])
+  ) {
     // check if there is charges for active items
     const hasCharge = entity[INVENTORY].items.some(
       (itemId) =>
@@ -145,7 +147,8 @@ export const castableSecondary = (
         "charge"
     );
     const activeCondition =
-      secondary === "raise" && entity[CONDITIONABLE]?.raise;
+      (secondary === "raise" && entity[CONDITIONABLE]?.raise) ||
+      (secondary === "block" && entity[CONDITIONABLE]?.block);
     if (hasCharge && !activeCondition) return true;
   } else if (secondary === "axe" && item[ITEM].material) {
     // check if pointing to something harvestable
