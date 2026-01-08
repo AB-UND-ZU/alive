@@ -8,6 +8,7 @@ export { default as addCastable } from "./castable";
 export { default as addClickable } from "./clickable";
 export { default as addCollectable } from "./collectable";
 export { default as addCollidable } from "./collidable";
+export { default as addConditionable } from "./conditionable";
 export { default as addCoverable } from "./coverable";
 export { default as addDisplacable } from "./displacable";
 export { default as addDroppable } from "./droppable";

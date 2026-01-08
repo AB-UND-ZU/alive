@@ -203,6 +203,7 @@ import {
   woodBoots,
   woodAxe,
   logging,
+  raiseActive,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1733,6 +1734,20 @@ export const materialSprites: Record<
       ],
     },
   },
+  raise: {
+    wood: {
+      sprite: raiseActive,
+      getDescription: () => [
+        createText("The next attack"),
+        createText("deals double"),
+        [
+          minCountable(meleeHit),
+          ...createText("Melee", colors.red),
+          ...createText(" damage."),
+        ],
+      ],
+    },
+  },
 
   // resource
   resource: {
@@ -2162,6 +2177,7 @@ export const elementSprites: Record<
     },
   },
   axe: {},
+  raise: {},
 
   // spells
   wave: {

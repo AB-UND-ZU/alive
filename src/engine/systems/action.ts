@@ -36,6 +36,7 @@ import {
   orientationPoints,
 } from "../components/orientable";
 import { getLootable } from "./collect";
+import { CONDITIONABLE } from "../components/conditionable";
 
 export const getWarpable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -136,14 +137,16 @@ export const castableSecondary = (
         "arrow"
     );
     if (hasArrow) return true;
-  } else if (secondary === "slash") {
+  } else if (secondary === "slash" || secondary === "raise") {
     // check if there is charges for active items
     const hasCharge = entity[INVENTORY].items.some(
       (itemId) =>
         world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
         "charge"
     );
-    if (hasCharge) return true;
+    const activeCondition =
+      secondary === "raise" && entity[CONDITIONABLE]?.raise;
+    if (hasCharge && !activeCondition) return true;
   } else if (secondary === "axe" && item[ITEM].material) {
     // check if pointing to something harvestable
     return !!getHarvestTarget(world, entity, item);

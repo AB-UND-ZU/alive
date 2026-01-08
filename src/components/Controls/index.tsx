@@ -93,7 +93,11 @@ export const inspectKeys = ["Tab"];
 const getActiveActivations = (world: World, hero: TypedEntity, item: Item) => {
   const itemSprite = getItemSprite(item, "display");
 
-  if (item.secondary === "bow" || item.secondary === "slash") {
+  if (
+    item.secondary === "bow" ||
+    item.secondary === "slash" ||
+    item.secondary === "raise"
+  ) {
     const ammo = item.secondary === "bow" ? "arrow" : "charge";
     const stackableItem = hero[INVENTORY]?.items
       .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))

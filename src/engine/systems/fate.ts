@@ -58,6 +58,7 @@ import {
 import { addPopup } from "../components";
 import { closePopup } from "./popup";
 import { getBurning } from "./burn";
+import { CONDITIONABLE } from "../components/conditionable";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -127,6 +128,7 @@ export const createHero = (world: World, halo: Entity) => {
     [ATTACKABLE]: { shots: 0 },
     [BELONGABLE]: { faction: halo[BELONGABLE].faction },
     [COLLECTABLE]: {},
+    [CONDITIONABLE]: {},
     [DROPPABLE]: { decayed: false },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "visible", type: "unit" },

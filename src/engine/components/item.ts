@@ -11,7 +11,7 @@ export type Element = (typeof elements)[number];
 export type Material = (typeof materials)[number];
 
 export type Primary = "wave" | "beam" | "bolt";
-export type Secondary = "slash" | "bow" | "axe";
+export type Secondary = "slash" | "bow" | "axe" | "raise";
 
 export type Consumable = "key" | "potion" | "map";
 

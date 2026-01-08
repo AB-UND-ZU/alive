@@ -111,6 +111,7 @@ export type MeleeSequence = {
   facing: Orientation;
   rotate: boolean;
 };
+export type ConditionSequence = { duration: number };
 export type SpellSequence = {
   element?: Element;
   material: Material;
@@ -208,6 +209,7 @@ export type Sequencable = {
     unlock?: SequenceState<UnlockSequence>;
     focus?: SequenceState<FocusSequence>;
     melee?: SequenceState<MeleeSequence>;
+    condition?: SequenceState<ConditionSequence>;
     arrow?: SequenceState<ArrowSequence>;
     slash?: SequenceState<SlashSequence>;
     npc?: SequenceState<NpcSequence>;

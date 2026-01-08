@@ -56,6 +56,19 @@ export const boat: Sprite = {
 
 // active spells (no mana)
 
+export const raiseActive: Sprite = {
+  name: "Raise",
+  layers: [
+    { char: "<", color: colors.red },
+    { char: ">", color: colors.red },
+    { char: "▀", color: colors.black },
+    { char: "±", color: colors.black },
+    { char: "-", color: colors.black },
+    { char: ".", color: colors.black },
+    { char: "²", color: colors.grey },
+  ],
+};
+
 export const bowWood: Sprite = {
   name: "Bow",
   layers: [{ char: "}", color: colors.maroon }],

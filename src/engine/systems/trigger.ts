@@ -43,6 +43,7 @@ import {
 } from "../../game/assets/utils";
 import { canRevive, isRevivable, reviveEntity } from "./fate";
 import {
+  ConditionSequence,
   HarvestSequence,
   Sequencable,
   SEQUENCABLE,
@@ -102,6 +103,11 @@ import { getForgeStatus } from "../../game/balancing/forging";
 import { getSelectedLevel, levelConfig } from "../../game/levels";
 import { calculateVision } from "./visibility";
 import { centerLayer, pixelFrame } from "../../game/assets/pixels";
+import {
+  Conditionable,
+  CONDITIONABLE,
+  ConditionType,
+} from "../components/conditionable";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -509,6 +515,29 @@ export const harvestTree = (world: World, entity: Entity, axe: Entity) => {
       item: world.getEntityId(axe),
       target: world.getEntityId(harvestable),
       orientation: entity[ORIENTABLE].facing,
+    }
+  );
+};
+
+export const applyCondition = (
+  world: World,
+  entity: Entity,
+  type: ConditionType
+) => {
+  const duration = 10;
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  (entity[CONDITIONABLE] as Conditionable)[type] = {
+    duration,
+    generation,
+  };
+
+  createSequence<"condition", ConditionSequence>(
+    world,
+    entity,
+    "condition",
+    "raiseCondition",
+    {
+      duration: 10,
     }
   );
 };
@@ -1108,6 +1137,9 @@ export default function setupTrigger(world: World) {
             chargeSlash(world, entity, secondaryEntity);
           } else if (secondaryEntity[ITEM].secondary === "axe") {
             harvestTree(world, entity, secondaryEntity);
+          } else if (secondaryEntity[ITEM].secondary === "raise") {
+            consumeCharge(world, entity, { stackable: "charge" });
+            applyCondition(world, entity, "raise");
           }
         }
       }

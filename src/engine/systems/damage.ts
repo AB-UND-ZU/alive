@@ -42,6 +42,7 @@ import { getAbilityStats } from "../../game/balancing/abilities";
 import { closePopup, getActivePopup } from "./popup";
 import { Affectable, AFFECTABLE } from "../components/affectable";
 import { extinguishEntity } from "./burn";
+import { CONDITIONABLE } from "../components/conditionable";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -394,6 +395,12 @@ export default function setupDamage(world: World) {
         ORIENTABLE,
       ]);
       const swordStats = getEquipmentStats(sword[ITEM], entity[NPC]?.type);
+
+      if (entity[CONDITIONABLE]?.raise) {
+        swordStats.melee *= 2;
+        delete entity[CONDITIONABLE].raise;
+      }
+
       const { damage, hp } = calculateDamage(
         world,
         swordStats,
@@ -432,7 +439,9 @@ export default function setupDamage(world: World) {
         entity[EQUIPPABLE].secondary,
         [ITEM]
       );
-      const canRecharge = secondaryEntity?.[ITEM].secondary === "slash";
+      const canRecharge = ["slash", "raise"].includes(
+        secondaryEntity?.[ITEM].secondary!
+      );
 
       if (canRecharge && targetEntity[RECHARGABLE]) {
         targetEntity[RECHARGABLE].hit = true;

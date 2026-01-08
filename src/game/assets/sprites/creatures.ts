@@ -17,9 +17,9 @@ export const rogue: Sprite = {
 export const rogueBackdrop: Sprite = {
   name: "Rogue",
   layers: [
-    { char: "│", color: colors.olive },
+    { char: "┘", color: colors.olive },
     { char: "|", color: colors.black },
-    { char: "┐", color: colors.black },
+    { char: "-", color: colors.black },
   ],
 };
 
@@ -34,9 +34,9 @@ export const swimmingRogue: Sprite = {
 export const swimmingRogueBackdrop: Sprite = {
   name: "Mage",
   layers: [
-    { char: "│", color: colors.olive },
+    { char: "┘", color: colors.olive },
     { char: "|", color: colors.navy },
-    { char: "┐", color: colors.navy },
+    { char: "-", color: colors.navy },
   ],
 };
 

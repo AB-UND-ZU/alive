@@ -58,6 +58,7 @@ import { Clickable, CLICKABLE } from "./components/clickable";
 import { Sticky, STICKY } from "./components/sticky";
 import { Coverable, COVERABLE } from "./components/coverable";
 import { Harvestable, HARVESTABLE } from "./components/harvestable";
+import { Conditionable, CONDITIONABLE } from "./components/conditionable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -70,6 +71,7 @@ export type Entity = Record<LevelName, {}> & {
   [CLICKABLE]: Clickable;
   [COLLECTABLE]: Collectable;
   [COLLIDABLE]: Collidable;
+  [CONDITIONABLE]: Conditionable;
   [COVERABLE]: Coverable;
   [DISPLACABLE]: Displacable;
   [DROPPABLE]: Droppable;
@@ -455,6 +457,7 @@ export const createHero = entityFactory([
   ATTACKABLE,
   BELONGABLE,
   COLLECTABLE,
+  CONDITIONABLE,
   DROPPABLE,
   EQUIPPABLE,
   FOG,

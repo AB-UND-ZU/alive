@@ -17,7 +17,12 @@ import { DROPPABLE } from "../../engine/components/droppable";
 import { Equipment, EQUIPPABLE } from "../../engine/components/equippable";
 import { Focusable, FOCUSABLE } from "../../engine/components/focusable";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
-import { ITEM, ItemStats } from "../../engine/components/item";
+import {
+  Element,
+  ITEM,
+  ItemStats,
+  Material,
+} from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { LOOTABLE } from "../../engine/components/lootable";
@@ -179,6 +184,9 @@ import {
   diamondGem,
   snowflake,
   bootsSlot,
+  ironWave,
+  ironWaveCorner,
+  raiseParticle,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -212,6 +220,7 @@ import {
   XpSequence,
   WeatherSequence,
   HarvestSequence,
+  ConditionSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
@@ -322,6 +331,7 @@ import {
 import { coverSnow } from "../../engine/systems/freeze";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { HARVESTABLE } from "../../engine/components/harvestable";
+import { CONDITIONABLE } from "../../engine/components/conditionable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -362,6 +372,84 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
     entity[MELEE].facing = undefined;
     swordEntity[ORIENTABLE].facing = undefined;
     rerenderEntity(world, entity);
+  }
+
+  return { finished, updated };
+};
+
+export const raiseCondition: Sequence<ConditionSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const generation = Math.ceil(
+    state.elapsed / world.metadata.gameEntity[REFERENCE].tick
+  );
+  let updated = false;
+  const finished =
+    !entity[CONDITIONABLE].raise || generation > state.args.duration;
+
+  const swordEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].sword,
+    [SPRITE]
+  );
+
+  // requires sword to be worn
+  if (!swordEntity) {
+    return { updated: false, finished: false };
+  }
+
+  if (!state.particles.condition) {
+    const conditionParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: lootHeight,
+        amount: 0,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: raiseParticle,
+    });
+    state.particles.condition = world.getEntityId(conditionParticle);
+
+    const swordParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: decayHeight,
+        amount: 0,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: swordEntity[SPRITE],
+    });
+    state.particles.sword = world.getEntityId(swordParticle);
+
+    updated = true;
+  }
+
+  // blink particle
+  const targetAmount = generation % 2;
+
+  const conditionParticle = world.assertByIdAndComponents(
+    state.particles.condition,
+    [PARTICLE]
+  );
+
+  if (conditionParticle[PARTICLE].amount !== targetAmount) {
+    conditionParticle[PARTICLE].amount = targetAmount;
+    rerenderEntity(world, conditionParticle);
+    updated = true;
+  }
+
+  if (finished) {
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertById(state.particles[particleName]);
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    // clear condition from entity
+    delete entity[CONDITIONABLE].raise;
   }
 
   return { finished, updated };
@@ -2798,7 +2886,9 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
 
 const waveSpeed = 350;
 const waveDissolve = 1;
-const waveSprites = {
+const waveSprites: Partial<
+  Record<Material, Partial<Record<Element | "default", Sprite>>>
+> = {
   wood: {
     default: woodWave,
     air: woodAirWave,
@@ -2806,14 +2896,22 @@ const waveSprites = {
     water: woodWaterWave,
     earth: woodEarthWave,
   },
+  iron: {
+    default: ironWave,
+  },
 };
-const waveCornerSprites = {
+const waveCornerSprites: Partial<
+  Record<Material, Partial<Record<Element | "default", Sprite>>>
+> = {
   wood: {
     default: woodWaveCorner,
     air: woodAirWaveCorner,
     fire: woodFireWaveCorner,
     water: woodWaterWaveCorner,
     earth: woodEarthWaveCorner,
+  },
+  iron: {
+    default: ironWaveCorner,
   },
 };
 
@@ -2824,7 +2922,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 
   const outerRadius = Math.ceil(state.elapsed / waveSpeed);
   const innerRadius = Math.round(state.elapsed / waveSpeed);
-  const material = "wood"; //state.args.material;
+  const material = state.args.material;
   const element = state.args.element || "default";
 
   // create wave sides, initial corners and AoE
@@ -2841,7 +2939,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: waveSprites[material][element],
+        [SPRITE]: waveSprites[material]?.[element] || woodWave,
       });
       state.particles[`side-${orientation}`] = world.getEntityId(waveParticle);
     }
@@ -3025,9 +3123,9 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 
       // only show elements on inner corners
       const cornerSprite =
-        waveCornerSprites[material][
+        waveCornerSprites[material]?.[
           particleName.startsWith("inner") ? element : "default"
-        ];
+        ] || woodWaveCorner;
       if (waveParticle[SPRITE] === cornerSprite) continue;
 
       waveParticle[SPRITE] = cornerSprite;

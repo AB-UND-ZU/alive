@@ -110,6 +110,14 @@ export const magicHit: Sprite = {
   },
 };
 
+export const raiseParticle: Sprite = {
+  name: "Raise",
+  layers: [],
+  amounts: {
+    single: [{ char: "%", color: colors.red }],
+  },
+};
+
 export const range: Sprite = {
   name: "Range",
   layers: [
@@ -262,6 +270,20 @@ export const woodEarthWave: Sprite = {
   },
 };
 
+export const ironWave: Sprite = {
+  name: "iron_wave",
+  layers: [
+    { char: "┼", color: colors.silver },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [{ char: "─", color: colors.silver }],
+    right: [{ char: "│", color: colors.silver }],
+    down: [{ char: "─", color: colors.silver }],
+    left: [{ char: "│", color: colors.silver }],
+  },
+};
+
 export const woodWaveCorner: Sprite = {
   name: "wood_corner",
   layers: [],
@@ -388,6 +410,29 @@ export const woodEarthWaveCorner: Sprite = {
     left: [
       { char: "┬", color: colors.lime },
       { char: "┌", color: colors.maroon },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const ironWaveCorner: Sprite = {
+  name: "iron_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.silver },
       { char: "·", color: colors.black },
     ],
   },
