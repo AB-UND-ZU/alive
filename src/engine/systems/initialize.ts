@@ -87,7 +87,8 @@ export default function setupInitialize(world: World) {
     const level = world.metadata.gameEntity[LEVEL];
 
     // reset tracked position on changing worlds
-    if (worldName !== level.name) {
+    const reset = worldName !== level.name;
+    if (reset) {
       worldName = level.name;
       viewablePosition = undefined;
     }
@@ -137,7 +138,8 @@ export default function setupInitialize(world: World) {
 
     // gradually initialize more cells
     const pendingCount = pendingCells.length;
-    for (let index = 0; index < pendingCount * 0.1; index += 1) {
+    const factor = reset ? 1 : 0.1;
+    for (let index = 0; index < pendingCount * factor; index += 1) {
       const cell = pendingCells.shift();
       initializeCell(world, cell!.x, cell!.y);
     }
