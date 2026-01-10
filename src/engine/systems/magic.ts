@@ -306,7 +306,12 @@ export default function setupMagic(world: World) {
         }
 
         if (targetEntity[CONDITIONABLE]?.block) {
-          delete targetEntity[CONDITIONABLE].block;
+          targetEntity[CONDITIONABLE].block.amount -= 1;
+
+          if (targetEntity[CONDITIONABLE].block.amount <= 0) {
+            delete targetEntity[CONDITIONABLE].block;
+          }
+
           createAmountMarker(world, targetEntity, 0, "up", "magic");
           continue;
         }

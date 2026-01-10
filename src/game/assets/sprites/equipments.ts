@@ -56,16 +56,14 @@ export const boat: Sprite = {
 
 // active spells (no mana)
 
-export const raiseActive: Sprite = {
+export const woodRaise: Sprite = {
   name: "Raise",
   layers: [
-    { char: "<", color: colors.red },
-    { char: ">", color: colors.red },
-    { char: "▀", color: colors.black },
-    { char: "±", color: colors.black },
-    { char: "-", color: colors.black },
-    { char: ".", color: colors.black },
-    { char: "²", color: colors.silver },
+    { char: "%", color: colors.maroon },
+    { char: "/", color: colors.black },
+    { char: "\u0103", color: colors.maroon },
+    { char: "\u011c", color: colors.black },
+    { char: "-", color: colors.maroon },
   ],
 };
 
@@ -104,10 +102,10 @@ export const slashWoodAir: Sprite = {
   ],
 };
 
-export const blockActive: Sprite = {
+export const woodBlock: Sprite = {
   name: "Block",
   layers: [
-    { char: "0", color: colors.silver },
+    { char: "0", color: colors.maroon },
     { char: "\u0106", color: colors.black },
     { char: "\u0108", color: colors.black },
   ],

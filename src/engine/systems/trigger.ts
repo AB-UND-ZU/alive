@@ -7,7 +7,7 @@ import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { TOOLTIP } from "../components/tooltip";
 import { Inventory, INVENTORY } from "../components/inventory";
-import { Item, ITEM } from "../components/item";
+import { Item, ITEM, Material } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
 import {
   addBackground,
@@ -528,13 +528,16 @@ const conditionSequences: Record<ConditionType, SequenceState<{}>["name"]> = {
 export const applyCondition = (
   world: World,
   entity: Entity,
-  type: ConditionType
+  type: ConditionType,
+  material: Material,
+  amount: number
 ) => {
   const duration = 10;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   (entity[CONDITIONABLE] as Conditionable)[type] = {
     duration,
     generation,
+    amount,
   };
 
   createSequence<"condition", ConditionSequence>(
@@ -544,6 +547,7 @@ export const applyCondition = (
     conditionSequences[type],
     {
       duration: 10,
+      material,
     }
   );
 };
@@ -1156,10 +1160,10 @@ export default function setupTrigger(world: World) {
             harvestTree(world, entity, secondaryEntity);
           } else if (secondaryEntity[ITEM].secondary === "raise") {
             consumeCharge(world, entity, { stackable: "charge" });
-            applyCondition(world, entity, "raise");
+            applyCondition(world, entity, "raise", "wood", 2);
           } else if (secondaryEntity[ITEM].secondary === "block") {
             consumeCharge(world, entity, { stackable: "charge" });
-            applyCondition(world, entity, "block");
+            applyCondition(world, entity, "block", "wood", 1);
           }
         }
       }

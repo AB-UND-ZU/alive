@@ -41,7 +41,11 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
 
   // burst active bubble
   if (target[CONDITIONABLE]?.block) {
-    delete target[CONDITIONABLE].block;
+    target[CONDITIONABLE].block.amount -= 1;
+
+    if (target[CONDITIONABLE].block.amount <= 0) {
+      delete target[CONDITIONABLE].block;
+    }
   } else {
     const entityStats = getEntityStats(world, entity);
     const attack = entityStats.spike;

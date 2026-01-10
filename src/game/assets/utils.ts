@@ -203,8 +203,9 @@ import {
   woodBoots,
   woodAxe,
   logging,
-  raiseActive,
-  blockActive,
+  woodRaise,
+  woodBlock,
+  absorb,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1737,40 +1738,54 @@ export const materialSprites: Record<
   },
   raise: {
     wood: {
-      sprite: raiseActive,
+      sprite: woodRaise,
       getDescription: () => [
-        createText("Next hit doubles"),
-        [
-          minCountable(meleeHit),
-          ...createText("Melee", colors.red),
-          ...createText(" damage."),
-        ],
-        [
-          ...createText("-1", colors.grey),
-          ...createItemName({ stackable: "charge" }),
-        ],
+        createText("Extra damage on"),
+        createText("next attack."),
+        stretch(
+          [
+            ...createText("2", colors.red),
+
+            minCountable(meleeHit),
+            ...createText("Melee", colors.red),
+          ],
+          [
+            ...createText("-1", colors.grey),
+            ...createItemName({ stackable: "charge" }),
+          ],
+          frameWidth - 2
+        ),
       ],
     },
   },
   block: {
     wood: {
-      sprite: blockActive,
+      sprite: woodBlock,
       getDescription: () => [
         [
-          ...createText("Blocks one "),
+          ...createText("Absorbs "),
           minCountable(meleeHit),
           ...createText("Melee", colors.red),
+          ...createText(" or"),
         ],
         [
-          ...createText("or "),
           minCountable(magicHit),
           ...createText("Magic", colors.fuchsia),
-          ...createText(" attack."),
+          ...createText(" attacks."),
         ],
-        [
-          ...createText("-1", colors.grey),
-          ...createItemName({ stackable: "charge" }),
-        ],
+        stretch(
+          [
+            ...createText("1", colors.olive),
+
+            minCountable(absorb),
+            ...createText("Bubble", colors.olive),
+          ],
+          [
+            ...createText("-1", colors.grey),
+            ...createItemName({ stackable: "charge" }),
+          ],
+          frameWidth - 2
+        ),
       ],
     },
   },

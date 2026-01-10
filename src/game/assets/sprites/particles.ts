@@ -82,6 +82,15 @@ export const frozen: Sprite = {
   layers: [{ char: "▓", color: colors.aqua }],
 };
 
+export const absorb: Sprite = {
+  name: "Bubble",
+  layers: [
+    { char: "\u0100", color: colors.yellow },
+    { char: "■", color: colors.black },
+    { char: "┼", color: colors.black },
+  ],
+};
+
 export const meleeHit: Sprite = {
   name: "Melee",
   layers: [{ char: "O", color: colors.white }],
@@ -118,46 +127,102 @@ export const raiseParticle: Sprite = {
   },
 };
 
-export const blockSide: Sprite = {
+export const woodBlockSide1: Sprite = {
   name: "Block",
   layers: [],
   facing: {
-    up: [{ char: "·", color: colors.silver }],
+    up: [{ char: "·", color: colors.maroon }],
     right: [
-      { char: ":", color: colors.silver },
-      { char: ".", color: colors.silver },
+      { char: ":", color: colors.maroon },
+      { char: ".", color: colors.maroon },
     ],
-    down: [{ char: "·", color: colors.silver }],
+    down: [{ char: "·", color: colors.maroon }],
     left: [
-      { char: ":", color: colors.silver },
-      { char: ".", color: colors.silver },
+      { char: ":", color: colors.maroon },
+      { char: ".", color: colors.maroon },
     ],
   },
 };
 
-export const blockCorner: Sprite = {
+export const woodBlockSide2: Sprite = {
   name: "Block",
   layers: [],
   facing: {
     up: [
-      { char: "┐", color: colors.silver },
+      { char: "─", color: colors.maroon },
+      { char: "+", color: colors.black },
+    ],
+    right: [
+      { char: "│", color: colors.maroon },
+      { char: "|", color: colors.black },
+      { char: "∙", color: colors.maroon },
+    ],
+    down: [
+      { char: "─", color: colors.maroon },
+      { char: "+", color: colors.black },
+    ],
+    left: [
+      { char: "│", color: colors.maroon },
+      { char: "|", color: colors.black },
+      { char: "∙", color: colors.maroon },
+    ],
+  },
+};
+
+export const woodBlockCorner1: Sprite = {
+  name: "Block",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.maroon },
       { char: "·", color: colors.black },
       { char: ".", color: colors.black },
     ],
     right: [
-      { char: "┘", color: colors.silver },
+      { char: "┘", color: colors.maroon },
       { char: "·", color: colors.black },
       { char: ":", color: colors.black },
     ],
     down: [
-      { char: "└", color: colors.silver },
+      { char: "└", color: colors.maroon },
       { char: "·", color: colors.black },
       { char: ":", color: colors.black },
     ],
     left: [
-      { char: "┌", color: colors.silver },
+      { char: "┌", color: colors.maroon },
       { char: "·", color: colors.black },
       { char: ".", color: colors.black },
+    ],
+  },
+};
+
+export const woodBlockCorner2: Sprite = {
+  name: "Block",
+  layers: [],
+  facing: {
+    up: [
+      { char: "∙", color: colors.maroon },
+      { char: "·", color: colors.black },
+      { char: ".", color: colors.maroon },
+    ],
+    right: [
+      { char: "|", color: colors.maroon },
+      { char: ":", color: colors.black },
+      { char: ".", color: colors.black },
+      { char: "+", color: colors.black },
+      { char: "·", color: colors.maroon },
+    ],
+    down: [
+      { char: "|", color: colors.maroon },
+      { char: ":", color: colors.black },
+      { char: ".", color: colors.black },
+      { char: "+", color: colors.black },
+      { char: "·", color: colors.maroon },
+    ],
+    left: [
+      { char: "∙", color: colors.maroon },
+      { char: "·", color: colors.black },
+      { char: ".", color: colors.maroon },
     ],
   },
 };
@@ -2430,6 +2495,19 @@ export const plusBox: Sprite = {
     { char: "[", color: colors.white },
     { char: "]", color: colors.white },
     { char: "+", color: colors.black },
+  ],
+};
+
+export const double: Sprite = {
+  name: "Double",
+  layers: [
+    { char: "<", color: colors.red },
+    { char: ">", color: colors.red },
+    { char: "▀", color: colors.black },
+    { char: "±", color: colors.black },
+    { char: "-", color: colors.black },
+    { char: ".", color: colors.black },
+    { char: "²", color: colors.silver },
   ],
 };
 

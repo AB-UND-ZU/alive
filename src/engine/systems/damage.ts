@@ -395,7 +395,11 @@ export default function setupDamage(world: World) {
       // prevent attack if shield is active
       let displayedDamage = 0;
       if (targetEntity[CONDITIONABLE]?.block) {
-        delete targetEntity[CONDITIONABLE].block;
+        targetEntity[CONDITIONABLE].block.amount -= 1;
+
+        if (targetEntity[CONDITIONABLE].block.amount <= 0) {
+          delete targetEntity[CONDITIONABLE].block;
+        }
       } else {
         const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
           ITEM,
@@ -404,7 +408,7 @@ export default function setupDamage(world: World) {
         const swordStats = getEquipmentStats(sword[ITEM], entity[NPC]?.type);
 
         if (entity[CONDITIONABLE]?.raise) {
-          swordStats.melee *= 2;
+          swordStats.melee += 2;
           delete entity[CONDITIONABLE].raise;
         }
 

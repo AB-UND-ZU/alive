@@ -36,6 +36,7 @@ import { invertOrientation } from "../../game/math/path";
 import { ATTACKABLE } from "../components/attackable";
 import { TypedEntity } from "../entities";
 import { getAbilityStats } from "../../game/balancing/abilities";
+import { CONDITIONABLE } from "../components/conditionable";
 
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -162,6 +163,8 @@ export default function setupBallistics(world: World) {
     ])) {
       // hit crossing enemies
       const isFlying = getSequence(world, entity, "arrow");
+      const shootable = getShootable(world, entity[POSITION]);
+      let bouncable = isBouncable(world, entity[POSITION]);
       const hitBoxes = [];
       const orientation = entity[ORIENTABLE]?.facing || "up";
       const oppositeOrientation = invertOrientation(orientation);
@@ -181,34 +184,46 @@ export default function setupBallistics(world: World) {
         const targetEntity = getShootable(world, hitBox);
 
         if (targetEntity && !isFriendlyFire(world, entity, targetEntity)) {
-          // inflict damage
-          const attack = entity[PROJECTILE].damage;
-          const { damage, hp } = calculateDamage(
-            world,
-            { melee: attack },
-            {},
-            targetEntity
-          );
-          targetEntity[STATS].hp = hp;
+          let displayedDamage = 0;
+          if (targetEntity[CONDITIONABLE]?.block) {
+            targetEntity[CONDITIONABLE].block.amount -= 1;
+
+            if (targetEntity[CONDITIONABLE].block.amount <= 0) {
+              delete targetEntity[CONDITIONABLE].block;
+            }
+            bouncable = true;
+          } else {
+            // inflict damage
+            const attack = entity[PROJECTILE].damage;
+            const { damage, hp } = calculateDamage(
+              world,
+              { melee: attack },
+              {},
+              targetEntity
+            );
+            targetEntity[STATS].hp = hp;
+
+            // increment arrow hit counter on target
+            if (!isEnemy(world, entity)) {
+              targetEntity[ATTACKABLE].shots = Math.min(
+                targetEntity[ATTACKABLE].shots + 1,
+                10
+              );
+            }
+            hit = true;
+            disposeEntity(world, entity, false);
+            displayedDamage = damage;
+          }
 
           // add hit marker
           createAmountMarker(
             world,
             targetEntity,
-            -damage,
+            -displayedDamage,
             orientation,
             "melee"
           );
 
-          // increment arrow hit counter on target
-          if (!isEnemy(world, entity)) {
-            targetEntity[ATTACKABLE].shots = Math.min(
-              targetEntity[ATTACKABLE].shots + 1,
-              10
-            );
-          }
-          disposeEntity(world, entity, false);
-          hit = true;
           break;
         }
       }
@@ -234,9 +249,8 @@ export default function setupBallistics(world: World) {
       }
 
       // bounce off walls or allies but not oneself
-      const shootable = getShootable(world, entity[POSITION]);
       if (
-        isBouncable(world, entity[POSITION]) ||
+        bouncable ||
         (shootable &&
           isFriendlyFire(world, entity, shootable) &&
           getSequence(world, entity, "arrow")?.args.caster !==
