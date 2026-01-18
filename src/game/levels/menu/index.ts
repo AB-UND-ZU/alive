@@ -135,6 +135,16 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
+          stackable: "nugget",
+          amount: Infinity,
+        },
+        {
+          stackable: "ingot",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
           stackable: "ore",
           amount: Infinity,
         },
@@ -223,6 +233,16 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
+          stat: "vision",
+          amount: Infinity,
+        },
+        {
+          stat: "haste",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
           stat: "power",
           amount: Infinity,
         },
@@ -241,14 +261,6 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          stat: "haste",
-          amount: Infinity,
-        },
-        {
-          stat: "vision",
-          amount: Infinity,
-        },
-        {
           stat: "damp",
           amount: Infinity,
         },
@@ -263,16 +275,17 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          equipment: "shield",
-          material: "wood",
-          amount: 1,
-        },
-        { equipment: "boots", material: "wood", amount: 1 },
-        {
           equipment: "sword",
           material: "wood",
           amount: 1,
         },
+        {
+          equipment: "shield",
+          material: "wood",
+          amount: 1,
+        },
+      ],
+      [
         {
           equipment: "primary",
           primary: "wave",
@@ -287,12 +300,6 @@ export const generateMenu = async (world: World) => {
         },
       ],
       [
-        {
-          equipment: "secondary",
-          secondary: "axe",
-          material: "wood",
-          amount: 1,
-        },
         {
           equipment: "secondary",
           secondary: "bow",
@@ -319,6 +326,13 @@ export const generateMenu = async (world: World) => {
         },
       ],
       [
+        { equipment: "boots", material: "wood", amount: 1 },
+        {
+          equipment: "secondary",
+          secondary: "axe",
+          material: "wood",
+          amount: 1,
+        },
         {
           equipment: "map",
           material: "iron",
@@ -329,6 +343,20 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
+      ],
+      [
+        {
+          equipment: "ring",
+          material: "wood",
+          amount: 1,
+        },
+        {
+          equipment: "amulet",
+          material: "wood",
+          amount: 1,
+        },
+      ],
+      [
         {
           consume: "key",
           material: "iron",
@@ -345,7 +373,7 @@ export const generateMenu = async (world: World) => {
       ],
     ];
 
-    const itemCorner = { x: -9, y: -5 };
+    const itemCorner = { x: -14, y: -5 };
     itemColumns.forEach((items, columnIndex) => {
       items.forEach((item, rowIndex) => {
         createItemAsDrop(

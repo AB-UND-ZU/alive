@@ -109,56 +109,55 @@ export const gearStats: Partial<
     },
     ring: {
       wood: {
-        maxHp: 2,
+        maxMp: 2,
 
         air: {
-          maxHp: 2,
+          maxMp: 2,
           haste: 1,
         },
         fire: {
-          maxHp: 2,
+          maxMp: 2,
           power: 1,
         },
         water: {
-          maxHp: 2,
+          maxMp: 2,
           wisdom: 1,
         },
         earth: {
-          maxHp: 2,
+          maxMp: 2,
           spike: 1,
         },
       },
-      iron: { maxHp: 4 },
-      gold: { maxHp: 6 },
-      diamond: { maxHp: 8 },
-      ruby: { maxHp: 10 },
+      iron: { maxMp: 4 },
+      gold: { maxMp: 6 },
+      diamond: { maxMp: 8 },
+      ruby: { maxMp: 10 },
     },
     amulet: {
       wood: {
-        maxMp: 1,
+        maxHp: 5,
 
         air: {
-          maxMp: 1,
-          vision: 1,
-        },
-        fire: {
-          maxMp: 1,
+          maxHp: 5,
           armor: 1,
         },
-        water: {
-          maxMp: 1,
-          resist: 1,
-        },
-        earth: {
-          maxMp: 1,
+        fire: {
+          maxHp: 5,
           damp: 1,
+        },
+        water: {
+          maxHp: 5,
           thaw: 2,
         },
+        earth: {
+          maxHp: 5,
+          resist: 1,
+        },
       },
-      iron: { maxMp: 2 },
-      gold: { maxMp: 3 },
-      diamond: { maxMp: 4 },
-      ruby: { maxMp: 5 },
+      iron: { maxHp: 10 },
+      gold: { maxHp: 15 },
+      diamond: { maxHp: 20 },
+      ruby: { maxHp: 25 },
     },
   },
   prism: {

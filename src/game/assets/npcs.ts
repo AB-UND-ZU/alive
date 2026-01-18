@@ -967,39 +967,48 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             },
           ],
           choices: [
-            {
-              equipment: "secondary",
-              secondary: "bow",
-              material: "wood",
-              amount: 1,
-            },
-            {
-              equipment: "secondary",
-              secondary: "slash",
-              material: "wood",
-              amount: 1,
-            },
-            {
-              equipment: "secondary",
-              secondary: "raise",
-              material: "wood",
-              amount: 1,
-            },
-            {
-              equipment: "secondary",
-              secondary: "block",
-              material: "wood",
-              amount: 1,
-            },
-            {
-              equipment: "secondary",
-              secondary: "axe",
-              material: "wood",
-              amount: 1,
-            },
-            { equipment: "boots", material: "wood", amount: 1 },
-            { equipment: "torch", material: "wood", amount: 1 },
-            { equipment: "map", material: "iron", amount: 1 },
+            // resources
+            choice(
+              {
+                equipment: "secondary",
+                secondary: "axe",
+                material: "wood",
+                amount: 1,
+              },
+              { equipment: "boots", material: "wood", amount: 1 }
+            ),
+            // offensive
+            choice(
+              {
+                equipment: "secondary",
+                secondary: "bow",
+                material: "wood",
+                amount: 1,
+              },
+              {
+                equipment: "secondary",
+                secondary: "slash",
+                material: "wood",
+                amount: 1,
+              },
+              {
+                equipment: "secondary",
+                secondary: "raise",
+                material: "wood",
+                amount: 1,
+              },
+              {
+                equipment: "secondary",
+                secondary: "block",
+                material: "wood",
+                amount: 1,
+              }
+            ),
+            // visibility
+            choice(
+              { equipment: "torch", material: "wood", amount: 1 },
+              { equipment: "map", material: "iron", amount: 1 }
+            ),
           ],
           lines: [
             [

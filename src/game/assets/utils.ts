@@ -227,6 +227,7 @@ import { getVerticalIndex, popupTitles } from "../../engine/systems/popup";
 import { disposeEntity } from "../../engine/systems/map";
 import { UnitStats } from "../../engine/components/stats";
 import { ClassKey, getClassData } from "../balancing/classes";
+import { brightenSprites } from "./pixels";
 
 export const lootSpeed = 200;
 export const decayTime = 300;
@@ -1585,6 +1586,11 @@ export const materialSprites: Record<
   ring: {
     wood: {
       sprite: woodRing,
+      getDescription: () => [
+        createText("A fragile ring"),
+        createText("with arcane aura."),
+        brightenSprites(createCountable({ maxMp: 2 }, "maxMp", "display")),
+      ],
     },
     iron: {
       sprite: ironRing,
@@ -1593,6 +1599,11 @@ export const materialSprites: Record<
   amulet: {
     wood: {
       sprite: woodAmulet,
+      getDescription: () => [
+        createText("A protective and"),
+        createText("delicate amulet."),
+        brightenSprites(createCountable({ maxHp: 5 }, "maxHp", "display")),
+      ],
     },
     iron: {
       sprite: ironAmulet,

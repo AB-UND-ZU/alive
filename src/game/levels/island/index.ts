@@ -906,8 +906,18 @@ export const generateIsland = (world: World) => {
     ],
     deals: [],
     choices: [
+      // main
       { equipment: "shield", material: "wood", amount: 1 },
-      { equipment: "primary", primary: "wave", material: "wood", amount: 1 },
+      // spell
+      choice(
+        { equipment: "primary", primary: "wave", material: "wood", amount: 1 },
+        { equipment: "primary", primary: "beam", material: "wood", amount: 1 }
+      ),
+      // accessory
+      choice(
+        { equipment: "ring", material: "wood", amount: 1 },
+        { equipment: "amulet", material: "wood", amount: 1 }
+      ),
     ],
     lines: [
       [

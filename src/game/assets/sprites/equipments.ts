@@ -282,12 +282,54 @@ export const ironMap: Sprite = {
 
 export const woodSpear: Sprite = {
   name: "Spear",
-  layers: [{ char: "─", color: colors.maroon }],
+  layers: [
+    { char: "─", color: colors.maroon },
+    { char: "∙", color: colors.maroon },
+  ],
   facing: {
-    up: [{ char: "│", color: colors.maroon }],
-    right: [{ char: "─", color: colors.maroon }],
-    down: [{ char: "│", color: colors.maroon }],
-    left: [{ char: "─", color: colors.maroon }],
+    up: [
+      { char: "│", color: colors.maroon },
+      { char: "\u0106", color: colors.maroon },
+    ],
+    right: [
+      { char: "─", color: colors.maroon },
+      { char: "∙", color: colors.maroon },
+    ],
+    down: [
+      { char: "│", color: colors.maroon },
+      { char: "\u0106", color: colors.maroon },
+    ],
+    left: [
+      { char: "─", color: colors.maroon },
+      { char: "∙", color: colors.maroon },
+    ],
+  },
+};
+
+export const woodSpearAir: Sprite = {
+  name: "Spear",
+  layers: [
+    { char: "─", color: colors.white },
+    { char: "-", color: colors.maroon },
+    { char: "∙", color: colors.maroon },
+  ],
+  facing: {
+    up: [
+      { char: "│", color: colors.maroon },
+      { char: "\u0106", color: colors.maroon },
+    ],
+    right: [
+      { char: "─", color: colors.maroon },
+      { char: "∙", color: colors.maroon },
+    ],
+    down: [
+      { char: "│", color: colors.maroon },
+      { char: "\u0106", color: colors.maroon },
+    ],
+    left: [
+      { char: "─", color: colors.maroon },
+      { char: "∙", color: colors.maroon },
+    ],
   },
 };
 
