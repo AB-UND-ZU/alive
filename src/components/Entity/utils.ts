@@ -53,9 +53,9 @@ export const focusHeight = 9 * stackHeight;
 export const particleHeight = 9.2 * stackHeight;
 export const dialogHeight = 9.5 * stackHeight;
 export const popupHeight = 10 * stackHeight;
-export const selectionHeight = 10.1 * stackHeight;
-export const transientHeight = 10.5 * stackHeight;
-export const cameraHeight = 11 * stackHeight;
+export const selectionHeight = 10.5 * stackHeight;
+export const transientHeight = 11 * stackHeight;
+export const cameraHeight = 12 * stackHeight;
 
 export const getFacingLayers = (
   sprite: Sprite,

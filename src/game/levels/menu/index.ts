@@ -320,6 +320,11 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
+          equipment: "map",
+          material: "iron",
+          amount: 1,
+        },
+        {
           equipment: "torch",
           material: "wood",
           amount: 1,

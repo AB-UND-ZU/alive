@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type Gear = "sword" | "shield" | "ring" | "amulet";
-export type Tools = "torch" | "compass" | "boots";
+export type Tools = "torch" | "compass" | "boots" | "map";
 export type Equipment = Gear | Tools | "primary" | "secondary";
 
 export type Equippable = {

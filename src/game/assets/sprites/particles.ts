@@ -2456,6 +2456,60 @@ export const inspect: Sprite = {
   layers: [{ char: "?", color: colors.white }],
 };
 
+export const mapDiscovery: Sprite = {
+  name: "Map",
+  layers: [
+    { char: "■", color: colors.green },
+    { char: "≡", color: colors.lime },
+    { char: "-", color: colors.black },
+    { char: "+", color: colors.green },
+    { char: "·", color: colors.lime },
+  ],
+};
+
+export const mapPlayer: Sprite = {
+  name: "Map",
+  layers: [{ char: "\u010b", color: colors.lime }],
+};
+
+export const mapZoom1: Sprite = {
+  name: "Map",
+  layers: [{ char: "∙", color: colors.grey }],
+};
+
+export const mapZoom2: Sprite = {
+  name: "Map",
+  layers: [
+    { char: "≡", color: colors.grey },
+    { char: "-", color: colors.black },
+    { char: "║", color: colors.black },
+    { char: "b", color: colors.black },
+  ],
+};
+
+export const mapZoom3: Sprite = {
+  name: "Map",
+  layers: [
+    { char: "*", color: colors.grey },
+    { char: "▀", color: colors.black },
+    { char: "\u0115", color: colors.black },
+    { char: "≡", color: colors.grey },
+    { char: "_", color: colors.grey },
+    { char: "▒", color: colors.black },
+  ],
+};
+
+export const mapZoom4: Sprite = {
+  name: "Map",
+  layers: [
+    { char: "\u0107", color: colors.grey },
+    { char: "▀", color: colors.black },
+    { char: "\u0100", color: colors.grey },
+    { char: "\u0101", color: colors.grey },
+    { char: "▓", color: colors.black },
+  ],
+};
+
 export const close: Sprite = {
   name: "Close",
   layers: [{ char: "x", color: colors.white }],
@@ -2762,6 +2816,25 @@ export const torchSlot: Sprite = {
     { char: "-", color: colors.grey },
     { char: "*", color: colors.black },
     { char: "∙", color: colors.grey },
+  ],
+};
+
+export const mapSlot: Sprite = {
+  name: "Map",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+
+    { char: "■", color: colors.black },
+    { char: "≡", color: colors.black },
+    { char: "-", color: colors.grey },
+    { char: "+", color: colors.black },
+    { char: "·", color: colors.grey },
   ],
 };
 

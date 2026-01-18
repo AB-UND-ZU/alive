@@ -49,6 +49,7 @@ const popups = [
   "inspect",
   "stats",
   "gear",
+  "map",
   "class",
   "warp",
 ] as const;

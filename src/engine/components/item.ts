@@ -15,7 +15,7 @@ export type Primary = "wave" | "beam" | "bolt";
 export const rechargables = ["slash", "raise", "block"] as const;
 export type Secondary = "bow" | "axe" | (typeof rechargables)[number];
 
-export type Consumable = "key" | "potion" | "map";
+export type Consumable = "key" | "potion";
 
 export type Materialized = "door" | "entry" | "gate" | "mine" | "lock";
 

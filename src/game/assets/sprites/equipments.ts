@@ -269,25 +269,14 @@ export const goldCompass: Sprite = {
   },
 };
 
-export const map: Sprite = {
+export const ironMap: Sprite = {
   name: "Map",
   layers: [
-    { char: "■", color: colors.green },
-    { char: "≡", color: colors.lime },
+    { char: "■", color: colors.grey },
+    { char: "≡", color: colors.silver },
     { char: "-", color: colors.black },
-    { char: "+", color: colors.green },
-    { char: "·", color: colors.lime },
-  ],
-};
-
-export const mapInactive: Sprite = {
-  name: "Map",
-  layers: [
-    { char: "■", color: colors.maroon },
-    { char: "≡", color: colors.red },
-    { char: "-", color: colors.black },
-    { char: "+", color: colors.maroon },
-    { char: "·", color: colors.red },
+    { char: "+", color: colors.grey },
+    { char: "·", color: colors.silver },
   ],
 };
 

@@ -89,7 +89,7 @@ import {
   ironShield,
   ironSword,
   leaf,
-  map,
+  ironMap,
   minCountable,
   mpPotion,
   mpElixir,
@@ -123,7 +123,6 @@ import {
   goldMineDisplay,
   entryClosedWoodDisplay,
   entryClosedIronDisplay,
-  portal,
   popupSeparator,
   popupSelection,
   level,
@@ -1631,6 +1630,20 @@ export const materialSprites: Record<
       ],
     },
   },
+  map: {
+    iron: {
+      sprite: ironMap,
+      getDescription: () => [
+        [
+          ...createText("Open your "),
+          ...createText("BAG", colors.black, colors.silver),
+          ...createText(" to"),
+        ],
+        createText("view the area you"),
+        createText("revealed so far."),
+      ],
+    },
+  },
   torch: {
     wood: {
       sprite: torch,
@@ -1849,20 +1862,6 @@ export const materialSprites: Record<
 
   // consumable
   potion: {},
-  map: {
-    wood: {
-      sprite: map,
-      getDescription: () => [
-        [...createText("ISLAND", colors.yellow), ...createText(" world.")],
-        [
-          ...createText("Use at a "),
-          portal,
-          ...createText("Portal", colors.grey),
-        ],
-        createText("to enter."),
-      ],
-    },
-  },
   key: {
     iron: {
       sprite: ironKey,
@@ -2376,7 +2375,6 @@ export const elementSprites: Record<
 
   // consumable
   key: {},
-  map: {},
   potion: {
     wood: {
       fire: {
@@ -2573,6 +2571,7 @@ export const getItemConfig = (
       item.equipment !== "secondary" &&
       item.equipment !== "torch" &&
       item.equipment !== "boots" &&
+      item.equipment !== "map" &&
       item.equipment !== "compass"
         ? item.equipment
         : undefined);

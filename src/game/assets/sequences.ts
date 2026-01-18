@@ -53,6 +53,7 @@ import {
 } from "../../engine/systems/damage";
 import {
   disposeEntity,
+  getCell,
   moveEntity,
   registerEntity,
 } from "../../engine/systems/map";
@@ -62,6 +63,7 @@ import { brighten, colors, darken, recolor } from "../../game/assets/colors";
 import {
   add,
   choice,
+  combine,
   copy,
   distribution,
   getDistance,
@@ -191,6 +193,13 @@ import {
   woodBlockSide2,
   woodBlockCorner1,
   woodBlockCorner2,
+  mapDiscovery,
+  mapSlot,
+  mapZoom1,
+  mapZoom2,
+  mapZoom3,
+  mapPlayer,
+  mapZoom4,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -290,6 +299,7 @@ import {
   getVerticalIndex,
   hasDefeated,
   isInPopup,
+  mapScroll,
   matchesItem,
   missingFunds,
   popupIdles,
@@ -336,6 +346,8 @@ import { coverSnow } from "../../engine/systems/freeze";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { HARVESTABLE } from "../../engine/components/harvestable";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
+import { FOG } from "../../engine/components/fog";
+import { CellType } from "../../bindings/creation";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1640,6 +1652,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayStats;
   } else if (transaction === "gear") {
     handler = displayGear;
+  } else if (transaction === "map") {
+    handler = displayMap;
   } else if (transaction === "class") {
     handler = displayClass;
   } else if (transaction === "warp") {
@@ -1999,6 +2013,7 @@ const gearTitles: Record<Equipment, string> = {
   amulet: "Amulet",
   compass: "Compass",
   torch: "Torch",
+  map: "Map",
 };
 const gearShadows: Record<Equipment, Sprite> = {
   sword: swordSlot,
@@ -2009,6 +2024,7 @@ const gearShadows: Record<Equipment, Sprite> = {
   amulet: amuletSlot,
   compass: compassSlot,
   torch: torchSlot,
+  map: mapSlot,
   boots: bootsSlot,
 };
 const gearOverscan = 1;
@@ -2132,6 +2148,212 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
     details,
     gearOverscan
   );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+const cellColorWeights: Partial<Record<CellType, [string, number]>> = {
+  water_shallow: [colors.navy, 2],
+  water_deep: [colors.navy, 4],
+  sand: [colors.olive, 2],
+  // TODO: draw path using line chars
+  // path: [colors.white, 5],
+  mountain: [colors.silver, 4],
+  ore: [colors.silver, 4],
+  desert_stone: [colors.olive, 1],
+  rock: [colors.silver, 3],
+  desert_rock: [colors.silver, 3],
+  tree: [colors.green, 1],
+  hedge: [colors.green, 1],
+  cactus: [colors.green, 3],
+  ice: [colors.aqua, 1],
+  palm: [colors.olive, 1],
+  palm_fruit: [colors.olive, 1],
+  desert_palm: [colors.olive, 1],
+  desert_palm_fruit: [colors.olive, 1],
+  fence: [colors.maroon, 3],
+  fruit: [colors.green, 1],
+};
+
+const gridPixels = 2;
+const halfBlockChars = "▀▐▄▌▀▐▄▌";
+
+export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const blinkGeneration = Math.floor(generation / warpBlink) * warpBlink;
+  const showPlayer = generation % (warpBlink * 2) < warpBlink;
+
+  // show blinking player at center
+  if (!state.particles.blink) {
+    const blinkParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: blinkGeneration,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.blink = world.getEntityId(blinkParticle);
+  }
+
+  const blinkParticle = world.assertByIdAndComponents(state.particles.blink, [
+    PARTICLE,
+  ]);
+  const lastBlinkGeneration = blinkParticle[PARTICLE].amount;
+
+  // rerender content on blinking
+  if (lastBlinkGeneration !== blinkGeneration) {
+    rerenderEntity(world, entity);
+    blinkParticle[PARTICLE].amount = blinkGeneration;
+  }
+
+  const verticalIndex = getVerticalIndex(world, entity);
+  const resolution = (verticalIndex + 1) * 2;
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const fogSprite = [mapZoom1, mapZoom2, mapZoom3, mapZoom4][verticalIndex];
+
+  const content: Sprite[][] = heroEntity
+    ? Array.from({ length: frameHeight - 2 }).map((_, gridY) =>
+        Array.from({ length: frameWidth - 2 }).map((_, gridX) => {
+          const topLeft = combine(size, heroEntity[POSITION], {
+            x: (gridX - (frameWidth - 3) / 2) * resolution * gridPixels,
+            y: (gridY - (frameHeight - 3) / 2) * resolution * gridPixels,
+          });
+
+          const gridColorPixels: Record<string, number>[] = [];
+          for (let pixelX = 0; pixelX < gridPixels; pixelX += 1) {
+            for (let pixelY = 0; pixelY < gridPixels; pixelY += 1) {
+              const gridColors: Record<string, number> = {};
+              for (let offsetX = 0; offsetX < resolution; offsetX += 1) {
+                for (let offsetY = 0; offsetY < resolution; offsetY += 1) {
+                  const target = combine(size, topLeft, {
+                    x: offsetX + pixelX * gridPixels,
+                    y: offsetY + pixelY * gridPixels,
+                  });
+                  const initialized =
+                    world.metadata.gameEntity[LEVEL].initialized[target.x][
+                      target.y
+                    ];
+                  const cell =
+                    world.metadata.gameEntity[LEVEL].cells[target.x][target.y];
+                  const entities = initialized
+                    ? Object.values(getCell(world, target))
+                    : [];
+                  const discovered =
+                    initialized &&
+                    !entities.find(
+                      (entity) =>
+                        entity[FOG]?.type === "air" &&
+                        entity[FOG]?.visibility === "hidden"
+                    );
+
+                  if (!discovered) continue;
+                  const cellColor = cellColorWeights[cell]?.[0] || colors.black;
+                  const cellWeight = cellColorWeights[cell]?.[1] || 0.5;
+                  gridColors[cellColor] =
+                    (gridColors[cellColor] || 0) + cellWeight;
+                }
+              }
+
+              gridColorPixels.push(gridColors);
+            }
+          }
+
+          let cellSprite;
+
+          // show fog if all pixels are undiscovered
+          if (
+            gridColorPixels.every(
+              (gridColors) => Object.keys(gridColors).length === 0
+            )
+          ) {
+            cellSprite = fogSprite;
+          } else {
+            // construct padded array for easier pixel comparison
+            const clockwisePixels = [
+              gridColorPixels[0],
+              gridColorPixels[2],
+              gridColorPixels[3],
+              gridColorPixels[1],
+              gridColorPixels[0],
+              gridColorPixels[2],
+              gridColorPixels[3],
+            ];
+            const halfBlockIndex = (gridX + gridY) % orientations.length;
+            const halfBlockColors = Object.entries(
+              clockwisePixels[halfBlockIndex]
+            )
+              .concat(Object.entries(clockwisePixels[halfBlockIndex + 1]))
+              .reduce((combined, [color, count]) => {
+                combined[color] = (combined[color] || 0) + count;
+                return combined;
+              }, {} as Record<string, number>);
+
+            const pixelColors = [
+              halfBlockColors,
+              clockwisePixels[halfBlockIndex + 2],
+              clockwisePixels[halfBlockIndex + 3],
+            ];
+            const dominantColors = pixelColors.map(
+              (gridColors) =>
+                Object.entries(gridColors).reduce<[string, number]>(
+                  (max, entry) => (entry[1] > max[1] ? entry : max),
+                  ["", -Infinity]
+                )[0]
+            );
+
+            const layers = [
+              {
+                char: halfBlockChars[halfBlockIndex + 2],
+                color: dominantColors[1],
+              },
+              {
+                char: halfBlockChars[halfBlockIndex + 3],
+                color: dominantColors[2],
+              },
+              {
+                char: halfBlockChars[halfBlockIndex],
+                color: dominantColors[0],
+              },
+            ].filter((layer) => layer.color);
+
+            cellSprite = {
+              name: "",
+              layers,
+            };
+
+            if (layers.length < 3) {
+              cellSprite = mergeSprites(fogSprite, cellSprite);
+            }
+          }
+
+          if (
+            showPlayer &&
+            gridX === (frameWidth - 3) / 2 &&
+            gridY === (frameHeight - 3) / 2
+          )
+            return mergeSprites(cellSprite, mapPlayer);
+
+          return cellSprite;
+        })
+      )
+    : [];
+
+  // add padding to show scroll bar
+  for (let i = 0; i < verticalIndex; i += 1) {
+    content.unshift([]);
+  }
+
+  for (let i = 0; i < mapScroll - verticalIndex - 1; i += 1) {
+    content.push([]);
+  }
+
+  const popupResult = renderPopup(world, entity, state, mapDiscovery, content);
   return {
     updated: popupResult.updated,
     finished: popupResult.finished,

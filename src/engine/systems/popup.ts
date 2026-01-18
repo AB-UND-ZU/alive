@@ -11,6 +11,7 @@ import {
   craft,
   forge,
   info,
+  mapDiscovery,
   none,
   quest,
   shop,
@@ -266,6 +267,7 @@ export const popupIdles = {
   warp,
   gear: info,
   class: class_,
+  map: mapDiscovery,
 };
 
 export const popupActions = {
@@ -278,6 +280,7 @@ export const popupActions = {
   buy: "SHOP",
   sell: "SHOP",
   inspect: "BAG",
+  map: "MAP",
   stats: "STATS",
   gear: "GEAR",
   class: "CLASS",
@@ -291,6 +294,7 @@ export const popupTitles = {
   talk: "INFO",
   class: "CLASS",
   warp: "LEVEL",
+  map: "MAP",
 };
 
 export const visibleStats: (keyof UnitStats)[] = [
@@ -314,11 +318,14 @@ export const gearSlots: Equipment[] = [
   "boots",
   "primary",
   "secondary",
+  "map",
   "compass",
   "torch",
   "ring",
   "amulet",
 ];
+
+export const mapScroll = 4;
 
 export const createPopup = (
   world: World,
@@ -500,6 +507,8 @@ export default function setupPopup(world: World) {
         ? visibleStats.length
         : transaction === "gear"
         ? gearSlots.length
+        : transaction === "map"
+        ? mapScroll
         : transaction === "class"
         ? classes.length
         : transaction === "info" ||
