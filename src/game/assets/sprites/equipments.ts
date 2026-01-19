@@ -283,26 +283,14 @@ export const ironMap: Sprite = {
 export const woodSpear: Sprite = {
   name: "Spear",
   layers: [
-    { char: "─", color: colors.maroon },
-    { char: "∙", color: colors.maroon },
+    { char: "─", color: colors.grey },
+    { char: "-", color: colors.maroon },
   ],
   facing: {
-    up: [
-      { char: "│", color: colors.maroon },
-      { char: "\u0106", color: colors.maroon },
-    ],
-    right: [
-      { char: "─", color: colors.maroon },
-      { char: "∙", color: colors.maroon },
-    ],
-    down: [
-      { char: "│", color: colors.maroon },
-      { char: "\u0106", color: colors.maroon },
-    ],
-    left: [
-      { char: "─", color: colors.maroon },
-      { char: "∙", color: colors.maroon },
-    ],
+    up: [{ char: "│", color: colors.maroon }],
+    right: [{ char: "─", color: colors.maroon }],
+    down: [{ char: "│", color: colors.maroon }],
+    left: [{ char: "─", color: colors.maroon }],
   },
 };
 
@@ -311,25 +299,12 @@ export const woodSpearAir: Sprite = {
   layers: [
     { char: "─", color: colors.white },
     { char: "-", color: colors.maroon },
-    { char: "∙", color: colors.maroon },
   ],
   facing: {
-    up: [
-      { char: "│", color: colors.maroon },
-      { char: "\u0106", color: colors.maroon },
-    ],
-    right: [
-      { char: "─", color: colors.maroon },
-      { char: "∙", color: colors.maroon },
-    ],
-    down: [
-      { char: "│", color: colors.maroon },
-      { char: "\u0106", color: colors.maroon },
-    ],
-    left: [
-      { char: "─", color: colors.maroon },
-      { char: "∙", color: colors.maroon },
-    ],
+    up: [{ char: "│", color: colors.maroon }],
+    right: [{ char: "─", color: colors.maroon }],
+    down: [{ char: "│", color: colors.maroon }],
+    left: [{ char: "─", color: colors.maroon }],
   },
 };
 
@@ -366,6 +341,32 @@ export const woodStickAir: Sprite = {
     left: [
       { char: "-", color: colors.maroon },
       { char: "·", color: colors.white },
+    ],
+  },
+};
+
+export const woodStickAir2: Sprite = {
+  name: "Sword",
+  layers: [
+    { char: "/", color: colors.maroon },
+    { char: "∙", color: colors.white },
+  ],
+  facing: {
+    up: [
+      { char: "|", color: colors.maroon },
+      { char: "∙", color: colors.white },
+    ],
+    right: [
+      { char: "-", color: colors.maroon },
+      { char: "∙", color: colors.white },
+    ],
+    down: [
+      { char: "|", color: colors.maroon },
+      { char: "∙", color: colors.white },
+    ],
+    left: [
+      { char: "-", color: colors.maroon },
+      { char: "∙", color: colors.white },
     ],
   },
 };
@@ -566,36 +567,47 @@ export const woodShield: Sprite = {
 export const woodShieldAir: Sprite = {
   name: "Shield",
   layers: [
+    { char: "-", color: colors.white },
+    { char: "\u0106", color: colors.black },
     { char: "¬", color: colors.maroon },
-    { char: "∙", color: colors.white },
-    { char: "·", color: colors.black },
+  ],
+};
+
+export const woodShieldAir2: Sprite = {
+  name: "Shield",
+  layers: [
+    { char: "c", color: colors.white },
+    { char: "S", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "|", color: colors.black },
+    { char: "¬", color: colors.maroon },
   ],
 };
 
 export const woodShieldFire: Sprite = {
   name: "Shield",
   layers: [
+    { char: "-", color: colors.red },
+    { char: "\u0106", color: colors.black },
     { char: "¬", color: colors.maroon },
-    { char: "∙", color: colors.red },
-    { char: "·", color: colors.black },
   ],
 };
 
 export const woodShieldWater: Sprite = {
   name: "Shield",
   layers: [
+    { char: "-", color: colors.blue },
+    { char: "\u0106", color: colors.black },
     { char: "¬", color: colors.maroon },
-    { char: "∙", color: colors.blue },
-    { char: "·", color: colors.black },
   ],
 };
 
 export const woodShieldEarth: Sprite = {
   name: "Shield",
   layers: [
+    { char: "-", color: colors.lime },
+    { char: "\u0106", color: colors.black },
     { char: "¬", color: colors.maroon },
-    { char: "∙", color: colors.lime },
-    { char: "·", color: colors.black },
   ],
 };
 
@@ -1001,21 +1013,24 @@ export const woodBoots: Sprite = {
 export const woodAmulet: Sprite = {
   name: "Amulet",
   layers: [
-    { char: "│", color: colors.maroon },
-    { char: "┐", color: colors.black },
-    { char: "*", color: colors.maroon },
-    { char: "÷", color: colors.black },
-    { char: "-", color: colors.maroon },
-    { char: "·", color: colors.black },
+    { char: '"', color: colors.maroon },
+    { char: "\u010e", color: colors.maroon },
+    { char: "|", color: colors.black },
+    { char: "+", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.black },
   ],
 };
 
 export const woodAmuletAir: Sprite = {
   name: "Amulet",
   layers: [
-    { char: "│", color: colors.white },
-    { char: "┐", color: colors.black },
-    { char: "*", color: colors.maroon },
+    { char: '"', color: colors.maroon },
+    { char: "\u010e", color: colors.maroon },
+    { char: "|", color: colors.black },
+    { char: "+", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.black },
     { char: "·", color: colors.white },
   ],
 };
@@ -1023,9 +1038,12 @@ export const woodAmuletAir: Sprite = {
 export const woodAmuletFire: Sprite = {
   name: "Amulet",
   layers: [
-    { char: "│", color: colors.red },
-    { char: "┐", color: colors.black },
-    { char: "*", color: colors.maroon },
+    { char: '"', color: colors.maroon },
+    { char: "\u010e", color: colors.maroon },
+    { char: "|", color: colors.black },
+    { char: "+", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.black },
     { char: "·", color: colors.red },
   ],
 };
@@ -1033,9 +1051,12 @@ export const woodAmuletFire: Sprite = {
 export const woodAmuletWater: Sprite = {
   name: "Amulet",
   layers: [
-    { char: "│", color: colors.blue },
-    { char: "┐", color: colors.black },
-    { char: "*", color: colors.maroon },
+    { char: '"', color: colors.maroon },
+    { char: "\u010e", color: colors.maroon },
+    { char: "|", color: colors.black },
+    { char: "+", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.black },
     { char: "·", color: colors.blue },
   ],
 };
@@ -1043,9 +1064,12 @@ export const woodAmuletWater: Sprite = {
 export const woodAmuletEarth: Sprite = {
   name: "Amulet",
   layers: [
-    { char: "│", color: colors.lime },
-    { char: "┐", color: colors.black },
-    { char: "*", color: colors.maroon },
+    { char: '"', color: colors.maroon },
+    { char: "\u010e", color: colors.maroon },
+    { char: "|", color: colors.black },
+    { char: "+", color: colors.maroon },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.black },
     { char: "·", color: colors.lime },
   ],
 };
@@ -1053,31 +1077,25 @@ export const woodAmuletEarth: Sprite = {
 export const ironAmulet: Sprite = {
   name: "Amulet",
   layers: [
-    { char: "│", color: colors.grey },
-    { char: "┐", color: colors.black },
-    { char: "*", color: colors.grey },
-    { char: "÷", color: colors.black },
-    { char: "-", color: colors.grey },
-    { char: "·", color: colors.black },
+    { char: '"', color: colors.grey },
+    { char: "\u010e", color: colors.grey },
+    { char: "|", color: colors.black },
+    { char: "+", color: colors.grey },
+    { char: ":", color: colors.grey },
+    { char: ".", color: colors.black },
   ],
 };
 
 export const ironAmuletAir: Sprite = {
   name: "Amulet",
   layers: [
-    { char: "│", color: colors.white },
-    { char: "┐", color: colors.black },
-    { char: "*", color: colors.grey },
-    { char: "·", color: colors.white },
-  ],
-};
-
-export const amulet2: Sprite = {
-  name: "Amulet",
-  layers: [
     { char: '"', color: colors.grey },
-    { char: "\u010e", color: colors.silver },
-    { char: "·", color: colors.grey },
+    { char: "\u010e", color: colors.grey },
+    { char: "|", color: colors.black },
+    { char: "+", color: colors.grey },
+    { char: ":", color: colors.grey },
+    { char: ".", color: colors.black },
+    { char: "·", color: colors.white },
   ],
 };
 
@@ -1096,6 +1114,18 @@ export const woodRingAir: Sprite = {
   name: "Ring",
   layers: [
     { char: "|", color: colors.white },
+    { char: ".", color: colors.black },
+    { char: "~", color: colors.black },
+    { char: "\u0108", color: colors.maroon },
+    { char: "\u0106", color: colors.black },
+  ],
+};
+
+export const woodRingAir2: Sprite = {
+  name: "Ring",
+  layers: [
+    { char: "\u0117", color: colors.white },
+    { char: "|", color: colors.maroon },
     { char: ".", color: colors.black },
     { char: "~", color: colors.black },
     { char: "\u0108", color: colors.maroon },
@@ -1158,17 +1188,6 @@ export const ironRingAir: Sprite = {
   ],
 };
 
-export const ring2: Sprite = {
-  name: "Ring",
-  layers: [
-    { char: "\u0117", color: colors.silver },
-    { char: ".", color: colors.black },
-    { char: ":", color: colors.grey },
-    { char: "\u0108", color: colors.grey },
-    { char: "\u0106", color: colors.black },
-  ],
-};
-
 // spells
 
 export const beamSpellWood: Sprite = {
@@ -1188,8 +1207,8 @@ export const beamSpellWoodAir: Sprite = {
     { char: "±", color: colors.maroon },
     { char: "■", color: colors.maroon },
     { char: "\u0108", color: colors.black },
-    { char: "\u0106", color: colors.white },
-    { char: "∙", color: colors.silver },
+    { char: "\u0106", color: colors.maroon },
+    { char: "∙", color: colors.white },
   ],
 };
 
@@ -1199,8 +1218,8 @@ export const beamSpellWoodFire: Sprite = {
     { char: "±", color: colors.maroon },
     { char: "■", color: colors.maroon },
     { char: "\u0108", color: colors.black },
-    { char: "\u0106", color: colors.red },
-    { char: "∙", color: colors.maroon },
+    { char: "\u0106", color: colors.maroon },
+    { char: "∙", color: colors.red },
   ],
 };
 
@@ -1210,8 +1229,8 @@ export const beamSpellWoodWater: Sprite = {
     { char: "±", color: colors.maroon },
     { char: "■", color: colors.maroon },
     { char: "\u0108", color: colors.black },
-    { char: "\u0106", color: colors.blue },
-    { char: "∙", color: colors.navy },
+    { char: "\u0106", color: colors.maroon },
+    { char: "∙", color: colors.blue },
   ],
 };
 
@@ -1221,38 +1240,8 @@ export const beamSpellWoodEarth: Sprite = {
     { char: "±", color: colors.maroon },
     { char: "■", color: colors.maroon },
     { char: "\u0108", color: colors.black },
-    { char: "\u0106", color: colors.lime },
-    { char: "∙", color: colors.green },
-  ],
-};
-
-export const fireBeam2Spell: Sprite = {
-  name: "Beam",
-  layers: [
-    { char: "¬", color: colors.red },
-    { char: "Γ", color: colors.black },
-    { char: "|", color: colors.red },
-    { char: "╬", color: colors.maroon },
-  ],
-};
-
-export const waterBeam2Spell: Sprite = {
-  name: "Beam",
-  layers: [
-    { char: "¬", color: colors.blue },
-    { char: "Γ", color: colors.black },
-    { char: "|", color: colors.blue },
-    { char: "╬", color: colors.navy },
-  ],
-};
-
-export const earthBeam2Spell: Sprite = {
-  name: "Beam",
-  layers: [
-    { char: "¬", color: colors.lime },
-    { char: "Γ", color: colors.black },
-    { char: "|", color: colors.lime },
-    { char: "╬", color: colors.green },
+    { char: "\u0106", color: colors.maroon },
+    { char: "∙", color: colors.lime },
   ],
 };
 
@@ -1273,9 +1262,22 @@ export const waveSpellWoodAir: Sprite = {
   layers: [
     { char: "*", color: colors.maroon },
     { char: "|", color: colors.maroon },
-    { char: "+", color: colors.white },
-    { char: ":", color: colors.maroon },
-    { char: "·", color: colors.silver },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.white },
+    { char: "-", color: colors.maroon },
+    { char: "·", color: colors.black },
+    { char: "~", color: colors.black },
+  ],
+};
+
+export const waveSpellWoodAir2: Sprite = {
+  name: "Wave",
+  layers: [
+    { char: "*", color: colors.maroon },
+    { char: "|", color: colors.maroon },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.white },
+    { char: "·", color: colors.black },
     { char: "~", color: colors.black },
   ],
 };
@@ -1285,9 +1287,10 @@ export const waveSpellWoodFire: Sprite = {
   layers: [
     { char: "*", color: colors.maroon },
     { char: "|", color: colors.maroon },
-    { char: "+", color: colors.red },
-    { char: ":", color: colors.maroon },
-    { char: "·", color: colors.maroon },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.red },
+    { char: "-", color: colors.maroon },
+    { char: "·", color: colors.black },
     { char: "~", color: colors.black },
   ],
 };
@@ -1297,9 +1300,10 @@ export const waveSpellWoodWater: Sprite = {
   layers: [
     { char: "*", color: colors.maroon },
     { char: "|", color: colors.maroon },
-    { char: "+", color: colors.blue },
-    { char: ":", color: colors.maroon },
-    { char: "·", color: colors.navy },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.blue },
+    { char: "-", color: colors.maroon },
+    { char: "·", color: colors.black },
     { char: "~", color: colors.black },
   ],
 };
@@ -1309,43 +1313,11 @@ export const waveSpellWoodEarth: Sprite = {
   layers: [
     { char: "*", color: colors.maroon },
     { char: "|", color: colors.maroon },
-    { char: "+", color: colors.lime },
-    { char: ":", color: colors.maroon },
-    { char: "·", color: colors.green },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.lime },
+    { char: "-", color: colors.maroon },
+    { char: "·", color: colors.black },
     { char: "~", color: colors.black },
-  ],
-};
-
-export const fireWave2Spell: Sprite = {
-  name: "Wave",
-  layers: [
-    { char: "\u0100", color: colors.maroon },
-    { char: "■", color: colors.black },
-    { char: "I", color: colors.black },
-    { char: "\u0108", color: colors.red },
-    { char: "\u0106", color: colors.maroon },
-  ],
-};
-
-export const waterWave2Spell: Sprite = {
-  name: "Wave",
-  layers: [
-    { char: "\u0100", color: colors.navy },
-    { char: "■", color: colors.black },
-    { char: "I", color: colors.black },
-    { char: "\u0108", color: colors.blue },
-    { char: "\u0106", color: colors.navy },
-  ],
-};
-
-export const earthWave2Spell: Sprite = {
-  name: "Wave",
-  layers: [
-    { char: "\u0100", color: colors.green },
-    { char: "■", color: colors.black },
-    { char: "I", color: colors.black },
-    { char: "\u0108", color: colors.lime },
-    { char: "\u0106", color: colors.green },
   ],
 };
 

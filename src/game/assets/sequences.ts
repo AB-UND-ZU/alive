@@ -104,11 +104,11 @@ import {
   smokeThick,
   levelProgress,
   addBackground,
-  fireBolt,
-  waterBolt,
-  earthBolt,
+  woodFireBolt,
+  woodWaterBolt,
+  woodEarthBolt,
   freeze,
-  airBolt,
+  woodAirBolt,
   craft,
   shop,
   woodSlashSide,
@@ -815,16 +815,30 @@ const edgeSprites = {
   diamond: diamondEdge,
   ruby: rubyEdge,
 };
-const boltSprites = {
-  wood: woodBolt,
-  iron: ironBolt,
-  gold: goldBolt,
-  diamond: diamondBolt,
-  ruby: rubyBolt,
-  air: airBolt,
-  fire: fireBolt,
-  water: waterBolt,
-  earth: earthBolt,
+const boltSprites: Record<
+  Material,
+  { default: Sprite } & Partial<Record<Element, Sprite>>
+> = {
+  wood: {
+    default: woodBolt,
+
+    air: woodAirBolt,
+    fire: woodFireBolt,
+    water: woodWaterBolt,
+    earth: woodEarthBolt,
+  },
+  iron: {
+    default: ironBolt,
+  },
+  gold: {
+    default: goldBolt,
+  },
+  diamond: {
+    default: diamondBolt,
+  },
+  ruby: {
+    default: rubyBolt,
+  },
 };
 
 export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
@@ -832,7 +846,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const progress = Math.ceil(state.elapsed / beamSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
   const material = state.args.material;
-  const element = state.args.element || material;
+  const element = state.args.element || "default";
   const limit = {
     x: delta.x * state.args.range,
     y: delta.y * state.args.range,
@@ -924,7 +938,8 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
           animatedOrigin: copy(delta),
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: boltSprites[element],
+        [SPRITE]:
+          boltSprites[material][element] || boltSprites[material].default,
       });
 
       state.particles[`bolt-${progress}`] = world.getEntityId(boltParticle);
@@ -996,7 +1011,7 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
   const progress = Math.ceil(state.elapsed / boltSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
   const material = state.args.material;
-  const element = state.args.element || material;
+  const element = state.args.element || "default";
   const limit = {
     x: delta.x * state.args.range,
     y: delta.y * state.args.range,
@@ -1017,7 +1032,7 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
         amount: 3,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: boltSprites[element],
+      [SPRITE]: boltSprites[material][element] || boltSprites[material].default,
     });
     state.particles.bolt = world.getEntityId(boltParticle);
   }

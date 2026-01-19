@@ -2070,7 +2070,7 @@ export const elementSprites: Record<
               material: "wood",
               element: "air",
             }),
-            ...createText(" shield"),
+            ...createText(" shield."),
           ],
           stretch(
             createCountable({ armor: 1 }, "armor", "display"),
@@ -2090,7 +2090,7 @@ export const elementSprites: Record<
               material: "wood",
               element: "fire",
             }),
-            ...createText(" shield"),
+            ...createText(" shield."),
           ],
           stretch(
             createCountable({ armor: 1 }, "armor", "display"),
@@ -2110,7 +2110,7 @@ export const elementSprites: Record<
               material: "wood",
               element: "water",
             }),
-            ...createText(" shield"),
+            ...createText(" shield."),
           ],
           stretch(
             createCountable({ armor: 1 }, "armor", "display"),
@@ -2130,7 +2130,7 @@ export const elementSprites: Record<
               material: "wood",
               element: "earth",
             }),
-            ...createText(" shield"),
+            ...createText(" shield."),
           ],
           stretch(
             createCountable({ armor: 1 }, "armor", "display"),
