@@ -36,10 +36,10 @@ import { frameHeight, popupTime } from "../../game/assets/utils";
 import { getItemSellPrice } from "../../game/balancing/trading";
 import { getForgeStatus } from "../../game/balancing/forging";
 import { getCraftingDeal } from "../../game/balancing/crafting";
-import { classes } from "../../game/balancing/classes";
 import { getIdentifierAndComponents, setHighlight } from "../utils";
 import { FOCUSABLE } from "../components/focusable";
 import { TRACKABLE } from "../components/trackable";
+import { displayedClasses, hairColors } from "../../game/assets/pixels";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -267,6 +267,7 @@ export const popupIdles = {
   warp,
   gear: info,
   class: class_,
+  style: class_,
   map: mapDiscovery,
 };
 
@@ -284,6 +285,7 @@ export const popupActions = {
   stats: "STATS",
   gear: "GEAR",
   class: "CLASS",
+  style: "STYLE",
 };
 
 export const popupTitles = {
@@ -293,6 +295,7 @@ export const popupTitles = {
   info: "TIP",
   talk: "INFO",
   class: "CLASS",
+  style: "STYLE",
   warp: "LEVEL",
   map: "MAP",
 };
@@ -510,7 +513,9 @@ export default function setupPopup(world: World) {
         : transaction === "map"
         ? mapScroll
         : transaction === "class"
-        ? classes.length
+        ? displayedClasses.length
+        : transaction === "style"
+        ? hairColors.length
         : transaction === "info" ||
           transaction === "warp" ||
           transaction === "talk"

@@ -41,6 +41,7 @@ export type Level = {
 };
 
 const levelingStats: Record<ClassKey, Level[]> = {
+  scout: [{ level: 1, xp: 99, maxHp: 0, maxMp: 0 }],
   rogue: [
     { level: 1, xp: 10, maxHp: 1, maxMp: 0 },
     { level: 2, xp: 15, maxHp: 1, maxMp: 1 },

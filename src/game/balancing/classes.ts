@@ -7,14 +7,17 @@ import {
   rogueBackdrop,
   swimmingRogueBackdrop,
   alienBackdrop,
+  scout,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { Stackable } from "../../engine/components/item";
 import { Equipment } from "../../engine/components/equippable";
 import { UnitStats } from "../../engine/components/stats";
 import { getInitialXp } from "../../engine/systems/leveling";
+import { recolorSprite } from "../assets/pixels";
+import { colors } from "../assets/colors";
 
-export const classes = ["rogue", "knight", "mage", "???"] as const;
+export const classes = ["scout", "rogue", "knight", "mage", "???"] as const;
 
 export type ClassKey = (typeof classes)[number];
 
@@ -29,6 +32,33 @@ export type ClassDefinition = {
 };
 
 export const classDefinitions: Record<ClassKey, ClassDefinition> = {
+  scout: {
+    sprite: scout,
+    items: [],
+
+    stats: {
+      maxHp: 25,
+      maxHpCap: 50,
+
+      maxMp: 10,
+      maxMpCap: 25,
+
+      maxXp: getInitialXp("rogue"),
+      maxXpCap: 99,
+
+      level: 1,
+
+      power: 0,
+      wisdom: 0,
+      armor: 0,
+      resist: 0,
+      haste: 0,
+      vision: 0,
+      damp: 0,
+      thaw: 0,
+      spike: 0,
+    },
+  },
   rogue: {
     sprite: rogue,
     backdrop: rogueBackdrop,
@@ -144,11 +174,24 @@ export const classDefinitions: Record<ClassKey, ClassDefinition> = {
   },
 };
 
-export const getClassData = (classKey: ClassKey) => {
-  const { stats, ...definition } = classDefinitions[classKey];
+export const getClassData = (
+  classKey: ClassKey,
+  hairColor: string = colors.white
+) => {
+  const { stats, sprite, swimming, ...definition } = classDefinitions[classKey];
 
-  return {
+  const classData = {
     ...definition,
+    sprite: recolorSprite(sprite, {
+      [colors.white]: hairColor,
+    }),
+    swimming:
+      swimming &&
+      recolorSprite(swimming, {
+        [colors.white]: hairColor,
+      }),
     stats: { ...stats },
   };
+
+  return classData;
 };

@@ -8,6 +8,7 @@ import { QuestSequence, SequenceState } from "./sequencable";
 
 export type Spawnable = {
   classKey: ClassKey;
+  hairColor: string;
   position: Position;
   light: Light;
   viewable: Viewable;

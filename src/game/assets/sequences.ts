@@ -313,6 +313,8 @@ import {
   bodyPixels,
   brightenSprites,
   centerSprites,
+  displayedClasses,
+  hairColors,
   knightPixels,
   magePixels,
   materialElementColors,
@@ -333,7 +335,7 @@ import { getItemDiff } from "../balancing/equipment";
 import { getCraftingDeal } from "../balancing/crafting";
 import { isInside, onSameLayer } from "../../engine/systems/enter";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
-import { classes, ClassKey } from "../balancing/classes";
+import { ClassKey } from "../balancing/classes";
 import { getSelectedLevel, levelConfig } from "../levels";
 import { getActiveViewable } from "../../bindings/hooks";
 import {
@@ -1671,6 +1673,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayMap;
   } else if (transaction === "class") {
     handler = displayClass;
+  } else if (transaction === "style") {
+    handler = displayStyle;
   } else if (transaction === "warp") {
     handler = displayWarp;
   }
@@ -2043,7 +2047,7 @@ const gearShadows: Record<Equipment, Sprite> = {
   boots: bootsSlot,
 };
 const gearOverscan = 1;
-const classPixels = {
+const classPixels: Partial<Record<ClassKey, Sprite[][]>> = {
   rogue: roguePixels,
   mage: magePixels,
   knight: knightPixels,
@@ -2086,7 +2090,12 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
         })
       : [],
     bodyPixels,
-    classPixels[(entity[SPAWNABLE] as Spawnable).classKey],
+    recolorPixels(
+      classPixels[(entity[SPAWNABLE] as Spawnable).classKey] || [],
+      {
+        [colors.white]: entity[SPAWNABLE].hairColor,
+      }
+    ),
     swordItem
       ? swordItem.material
         ? recolorPixels(swordPixels, {
@@ -2375,13 +2384,13 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
   };
 };
 
-const classOverscan = 6 - classes.length;
-const classUnlock: Record<ClassKey, Sprite[][]> = {
+const classOverscan = Math.max(6 - displayedClasses.length, 1);
+const classUnlock: Partial<Record<ClassKey, Sprite[][]>> = {
   rogue: [],
   knight: [
     [
       ...createText("Defeat a ", colors.grey),
-      mergeSprites(chief, hostileBar),
+      mergeSprites(chief, hostileBar, createText("/", colors.grey)[0]),
       ...createText("Chief", colors.maroon),
     ],
     createText("to unlock", colors.grey),
@@ -2412,17 +2421,17 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
       world,
       entity,
       state,
-      Array.from({ length: classes.length + classOverscan }),
+      Array.from({ length: displayedClasses.length + classOverscan }),
       "selected",
       [],
       classOverscan
     );
 
-  const selectedClass = classes[verticalIndex];
+  const selectedClass = displayedClasses[verticalIndex];
   const selectedAvailable = selectedClass === "rogue";
   const lines = overlay(
     bodyPixels,
-    classPixels[classes[verticalIndex]],
+    classPixels[displayedClasses[verticalIndex]] || [],
     ...(selectedAvailable ? [] : [repeat(repeat(parseSprite("\x00░"), 7), 6)])
   );
   const heroPixels = selectedAvailable
@@ -2430,9 +2439,9 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
     : lines.map((row) => row.map((cell) => recolorSprite(cell, colors.grey)));
 
   const content: Sprite[][] = Array.from({
-    length: Math.max(classes.length, 6),
+    length: Math.max(displayedClasses.length, 6),
   }).map((_, rowIndex) => {
-    const className = classes[rowIndex];
+    const className = displayedClasses[rowIndex];
 
     if (!className)
       return [
@@ -2486,6 +2495,75 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
     selectedAvailable ? "selected" : "blocked",
     details,
     classOverscan
+  );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+const styleOverscan = Math.max(6 - hairColors.length, 1);
+
+export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
+  const verticalIndex = getVerticalIndex(world, entity);
+  const scrollIndex =
+    verticalIndex -
+    scrolledVerticalIndex(
+      world,
+      entity,
+      state,
+      Array.from({ length: hairColors.length + styleOverscan }),
+      "selected",
+      [],
+      styleOverscan
+    );
+
+  const selectedStyle = hairColors[verticalIndex];
+  const lines = overlay(
+    bodyPixels,
+    recolorPixels(classPixels.rogue || [], {
+      [colors.white]: selectedStyle.color,
+    })
+  );
+
+  const content: Sprite[][] = Array.from({
+    length: hairColors.length,
+  }).map((_, rowIndex) => {
+    const style = hairColors[rowIndex];
+
+    const selected = verticalIndex === rowIndex;
+    const styleTitle = createText(
+      style.name,
+      selected ? colors.white : colors.grey
+    );
+    const line = [
+      ...styleTitle,
+      ...repeat(none, frameWidth - 4 - styleTitle.length - 8),
+    ];
+
+    return [
+      none,
+      ...createText(selected ? "*" : "·", selected ? style.color : colors.grey),
+      ...(selected ? shaded(line, colors.grey) : line),
+      none,
+      ...(lines[rowIndex - scrollIndex] || []),
+    ];
+  });
+  for (let i = 0; i < Math.max(1, 7 - hairColors.length); i += 1) {
+    content.push([
+      ...repeat(none, frameWidth - 2 - 7),
+      ...(lines[content.length - scrollIndex] || []),
+    ]);
+  }
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    popupIdles[getTab(world, entity)],
+    content,
+    "selected",
+    [createText("Choose a hair"), createText("color.")],
+    styleOverscan
   );
   return {
     updated: popupResult.updated,

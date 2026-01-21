@@ -334,7 +334,7 @@ export default function Controls() {
       const tab = getTab(world, addEntity);
       const selections = getTabSelections(world, addEntity);
 
-      return tab === "class"
+      return tab === "class" || tab === "style"
         ? "PICK"
         : tab === "quest"
         ? isQuestCompleted(world, hero, addEntity)

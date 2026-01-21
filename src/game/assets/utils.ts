@@ -205,6 +205,7 @@ import {
   woodRaise,
   woodBlock,
   absorb,
+  scout,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -947,6 +948,9 @@ export const entitySprites: Record<
   SpriteDefinition
 > = {
   // classes
+  scout: {
+    sprite: scout,
+  },
   rogue: {
     sprite: rogue,
     getDescription: () => {

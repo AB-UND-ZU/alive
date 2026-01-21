@@ -24,6 +24,7 @@ import { NPC, NpcType } from "../../engine/components/npc";
 import { SPAWNABLE } from "../../engine/components/spawnable";
 import { ClassKey } from "../../game/balancing/classes";
 import { isDead } from "../../engine/systems/damage";
+import { colors } from "../../game/assets/colors";
 
 export const textSize = 18 / 25 + 0.001;
 
@@ -141,9 +142,10 @@ export const getSegments = (
   const unitKey = (entity[NPC]?.type || entity[SPAWNABLE]?.classKey) as
     | NpcType
     | ClassKey;
+  const hairColor = (entity[SPAWNABLE]?.hairColor || colors.white) as string;
   const backdrop = swimming
-    ? unitSwimmingBackdrops[unitKey]
-    : unitBackdrops[unitKey];
+    ? unitSwimmingBackdrops[unitKey]?.[hairColor]
+    : unitBackdrops[unitKey]?.[hairColor];
   if (backdrop && !isDead(world, entity)) {
     orderedSegments.push({
       id: -1,

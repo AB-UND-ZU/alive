@@ -9,7 +9,7 @@ export const scout: Sprite = {
 export const rogue: Sprite = {
   name: "Rogue",
   layers: [
-    { char: "`", color: colors.olive },
+    { char: "`", color: colors.white },
     { char: "\u010b", color: colors.silver },
   ],
 };
@@ -17,24 +17,24 @@ export const rogue: Sprite = {
 export const rogueBackdrop: Sprite = {
   name: "Rogue",
   layers: [
-    { char: "┘", color: colors.olive },
+    { char: "┘", color: colors.white },
     { char: "|", color: colors.black },
     { char: "-", color: colors.black },
   ],
 };
 
 export const swimmingRogue: Sprite = {
-  name: "Mage",
+  name: "Rogue",
   layers: [
-    { char: "`", color: colors.olive },
+    { char: "`", color: colors.white },
     { char: "\u010b", color: colors.silver },
   ],
 };
 
 export const swimmingRogueBackdrop: Sprite = {
-  name: "Mage",
+  name: "Rogue",
   layers: [
-    { char: "┘", color: colors.olive },
+    { char: "┘", color: colors.white },
     { char: "|", color: colors.navy },
     { char: "-", color: colors.navy },
   ],
@@ -44,7 +44,7 @@ export const mage: Sprite = {
   name: "Mage",
   layers: [
     { char: "\u010b", color: colors.silver },
-    { char: "~", color: colors.olive },
+    { char: "~", color: colors.white },
   ],
 };
 
@@ -52,7 +52,7 @@ export const knight: Sprite = {
   name: "Knight",
   layers: [
     { char: "\u010b", color: colors.silver },
-    { char: "^", color: colors.olive },
+    { char: "^", color: colors.white },
   ],
 };
 
@@ -60,7 +60,7 @@ export const bandit: Sprite = {
   name: "Bandit",
   layers: [
     { char: "\u010b", color: colors.silver },
-    { char: "'", color: colors.grey },
+    { char: "'", color: colors.white },
   ],
 };
 
@@ -72,10 +72,10 @@ export const alien: Sprite = {
 export const alienBackdrop: Sprite = {
   name: "???",
   layers: [
-    { char: "Ä", color: colors.olive },
+    { char: "Ä", color: colors.white },
     { char: "A", color: colors.navy },
 
-    { char: "å", color: colors.olive },
+    { char: "å", color: colors.white },
     { char: "á", color: colors.navy },
     { char: "'", color: colors.navy },
   ],
@@ -84,21 +84,18 @@ export const alienBackdrop: Sprite = {
 export const swimmingAlienBackdrop: Sprite = {
   name: "???",
   layers: [
-    { char: "Ä", color: colors.olive },
+    { char: "Ä", color: colors.white },
     { char: "A", color: colors.black },
 
-    { char: "å", color: colors.olive },
+    { char: "å", color: colors.white },
     { char: "á", color: colors.black },
     { char: "'", color: colors.black },
   ],
 };
 
 export const chief: Sprite = {
+  ...bandit,
   name: "Chief",
-  layers: [
-    { char: "\u010b", color: colors.silver },
-    { char: "'", color: colors.olive },
-  ],
 };
 
 export const blade: Sprite = {

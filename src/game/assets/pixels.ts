@@ -1,5 +1,6 @@
 import { Element, Material } from "../../engine/components/item";
 import { Sprite } from "../../engine/components/sprite";
+import { ClassKey } from "../balancing/classes";
 import { padCenter, repeat } from "../math/std";
 import { brightColors, colors, recolor } from "./colors";
 import {
@@ -139,20 +140,20 @@ export const bodyPixels = pixelate(
 );
 
 export const magePixels = pixelate(
-  " \x03▄ \x03▄ \x03▄  \x03▄ \x03\u0107\u0106\x00▀",
-  "\x03▀ \x03▀  \x03▀ \x03▀ \x03▀"
+  " \x0f▄ \x0f▄ \x0f▄  \x0f▄ \x0f\u0107\u0106\x00▀",
+  "\x0f▀ \x0f▀  \x0f▀ \x0f▀ \x0f▀"
 );
 
-export const roguePixels = pixelate("  \x03▄ \x03█ \x03█");
+export const roguePixels = pixelate("  \x0f▄ \x0f█ \x0f█");
 
 export const knightPixels = pixelate(
-  "  \x03▄ \x03█ \x03▄",
-  "\x03▄ \x03█ \x03▀  \x03▀ \x03█ \x03\u0107\u0106\x00▀"
+  "  \x0f▄ \x0f█ \x0f▄",
+  "\x0f▄ \x0f█ \x0f▀  \x0f▀ \x0f█ \x0f\u0107\u0106\x00▀"
 );
 
 export const alienPixels = pixelate(
-  "\x03▄ \x03▄    \x03▄ \x03\u0107\u0106\x00▀",
-  "     \x03▀"
+  "\x0f▄ \x0f▄    \x0f▄ \x0f\u0107\u0106\x00▀",
+  "     \x0f▀"
 );
 
 export const swordPixels = pixelate(
@@ -175,7 +176,7 @@ export const shieldPixels = pixelate(
   "     \x0f▀ \x0f\u0107\u0106\x00▄"
 );
 
-export const shieldElementPixels = pixelate("", "", "", "", "   \x0f▀ \x0f▀");
+export const shieldElementPixels = pixelate("", "", "", "\x0f▄");
 
 export const elementColors: Record<Element, string> = {
   air: colors.white,
@@ -183,3 +184,41 @@ export const elementColors: Record<Element, string> = {
   water: colors.blue,
   earth: colors.lime,
 };
+
+export const displayedClasses = [
+  "rogue",
+  "knight",
+  "mage",
+  "???",
+] as ClassKey[];
+
+export const hairColors = [
+  {
+    name: "Brown",
+    color: colors.maroon,
+  },
+  {
+    name: "Blonde",
+    color: colors.olive,
+  },
+  {
+    name: "Golden",
+    color: colors.yellow,
+  },
+  {
+    name: "White",
+    color: colors.white,
+  },
+  {
+    name: "Grey",
+    color: colors.grey,
+  },
+  {
+    name: "Purple",
+    color: colors.purple,
+  },
+  {
+    name: "Pink",
+    color: colors.fuchsia,
+  },
+];

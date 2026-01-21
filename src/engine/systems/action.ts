@@ -279,7 +279,9 @@ export default function setupAction(world: World) {
               addEntity &&
               ((isInTab(world, entity, "forge") && selections.length < 2) ||
                 (isInTab(world, entity, "craft") && selections.length < 1) ||
-                (isInTab(world, entity, "class") && selections.length < 1) ||
+                ((isInTab(world, entity, "class") ||
+                  isInTab(world, entity, "style")) &&
+                  selections.length < 1) ||
                 (isInTab(world, entity, "quest") &&
                   ((!isQuestCompleted(world, entity, addEntity) &&
                     ((selections.length === 0 &&

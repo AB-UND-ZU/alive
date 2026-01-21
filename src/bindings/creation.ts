@@ -814,7 +814,8 @@ export const createCell = (
       [POSITION]: copy(spawnEntity[POSITION]),
       [BELONGABLE]: { faction: "settler" },
       [SPAWNABLE]: {
-        classKey: "rogue",
+        classKey: "scout",
+        hairColor: "blonde",
         position: copy(spawnEntity[POSITION]),
         viewable: { active: true, priority: 10 },
         light: {
@@ -2823,9 +2824,9 @@ export const createCell = (
       repeat(ice, 17),
     ];
     createPopup(world, portalEntity, {
-      tabs: inMenu ? ["class", "warp"] : ["warp"],
-      lines: inMenu ? [[], mapText] : [mapText],
-      verticalIndezes: inMenu ? [0, 0] : [level.mapOffsetY - 2],
+      tabs: inMenu ? ["class", "style", "warp"] : ["warp"],
+      lines: inMenu ? [[], [], mapText] : [mapText],
+      verticalIndezes: inMenu ? [0, 0, 0] : [level.mapOffsetY - 2],
     });
     return { cell: portalEntity, all };
   } else if (

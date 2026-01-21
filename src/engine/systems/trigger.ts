@@ -103,12 +103,14 @@ import { SPAWNABLE } from "../components/spawnable";
 import { getForgeStatus } from "../../game/balancing/forging";
 import { getSelectedLevel, levelConfig } from "../../game/levels";
 import { calculateVision } from "./visibility";
-import { centerLayer, pixelFrame } from "../../game/assets/pixels";
+import { centerLayer, hairColors, pixelFrame } from "../../game/assets/pixels";
 import {
   Conditionable,
   CONDITIONABLE,
   ConditionType,
 } from "../components/conditionable";
+import { SWIMMABLE } from "../components/swimmable";
+import { getClassData } from "../../game/balancing/classes";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -235,7 +237,27 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
       entity[VIEWABLE].active = true;
       entity[SPAWNABLE].position = { ...spawn };
       entity[SPAWNABLE].light = light;
+      entity[SPAWNABLE].classKey = "rogue";
+      entity[SPAWNABLE].hairColor =
+        hairColors[warp[POPUP].verticalIndezes[1]].color;
+
+      const { stats, sprite, swimming } = getClassData(
+        entity[SPAWNABLE].classKey,
+        entity[SPAWNABLE].hairColor
+      );
+      entity[SPRITE] = sprite;
+      entity[SWIMMABLE].swimming = swimming;
       entity[ORIENTABLE].facing = undefined;
+
+      // don't set class stats in test mode
+      if (window.location.search.substring(1) !== "test") {
+        entity[STATS] = {
+          hp: stats.maxHp,
+          mp: 0,
+          xp: 0,
+          ...stats,
+        };
+      }
 
       preloadLevel(world);
 
@@ -1034,8 +1056,8 @@ export default function setupTrigger(world: World) {
           } else if (tab === "craft") {
             pushTabSelection(world, addEntity);
             setVerticalIndex(world, addEntity, 0);
-          } else if (tab === "class") {
-            if (verticalIndex === 0) {
+          } else if (tab === "class" || tab === "style") {
+            if (verticalIndex === 0 || tab === "style") {
               addEntity[POPUP].horizontalIndex += 1;
               rerenderEntity(world, addEntity);
             } else {

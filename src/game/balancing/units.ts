@@ -53,7 +53,7 @@ import {
 } from "../assets/sprites/structures";
 import { emptyUnitStats, UnitStats } from "../../engine/components/stats";
 import { classDefinitions, ClassKey } from "./classes";
-import { recolorSprite } from "../assets/pixels";
+import { hairColors, recolorSprite } from "../assets/pixels";
 import { colors } from "../assets/colors";
 import { Harvestable } from "../../engine/components/harvestable";
 
@@ -165,7 +165,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: {
-      ...recolorSprite(knight, { [colors.olive]: colors.lime }),
+      ...recolorSprite(knight, { [colors.white]: colors.lime }),
       name: "Smith",
     },
   },
@@ -179,18 +179,18 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: [],
     sprite: {
       ...recolorSprite(rogue, {
-        [colors.olive]: colors.lime,
+        [colors.white]: colors.lime,
       }),
       name: "Trader",
     },
     swimming: recolorSprite(swimmingRogue, {
-      [colors.olive]: colors.lime,
+      [colors.white]: colors.lime,
     }),
     backdrop: recolorSprite(rogueBackdrop, {
-      [colors.olive]: colors.lime,
+      [colors.white]: colors.lime,
     }),
     swimmingBackdrop: recolorSprite(swimmingRogueBackdrop, {
-      [colors.olive]: colors.lime,
+      [colors.white]: colors.lime,
     }),
   },
   earthDruid: {
@@ -202,7 +202,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: {
-      ...recolorSprite(mage, { [colors.olive]: colors.lime }),
+      ...recolorSprite(mage, { [colors.white]: colors.lime }),
       name: "Druid",
     },
   },
@@ -229,7 +229,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: {
-      ...recolorSprite(chief, { [colors.olive]: colors.lime }),
+      ...recolorSprite(bandit, { [colors.white]: colors.lime }),
       name: "Chief",
     },
   },
@@ -262,7 +262,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: ["guard"],
     sprite: {
-      ...recolorSprite(knight, { [colors.olive]: colors.lime }),
+      ...recolorSprite(knight, { [colors.white]: colors.lime }),
       name: "Guard",
     },
   },
@@ -1130,9 +1130,11 @@ export const generateNpcData = (npcKey: NpcType): NpcData => ({
   ...generateUnitData(npcKey),
 });
 
-export const unitBackdrops: Partial<Record<UnitKey | ClassKey, Sprite>> = {};
+export const unitBackdrops: Partial<
+  Record<UnitKey | ClassKey, Record<string, Sprite>>
+> = {};
 export const unitSwimmingBackdrops: Partial<
-  Record<UnitKey | ClassKey, Sprite>
+  Record<UnitKey | ClassKey, Record<string, Sprite>>
 > = {};
 
 [
@@ -1140,10 +1142,22 @@ export const unitSwimmingBackdrops: Partial<
   ...Object.entries(classDefinitions),
 ].forEach(([key, definition]) => {
   const unitKey = key as UnitKey | ClassKey;
-  if (definition.backdrop) {
-    unitBackdrops[unitKey] = definition.backdrop;
-  }
-  if (definition.swimmingBackdrop) {
-    unitSwimmingBackdrops[unitKey] = definition.swimmingBackdrop;
-  }
+  const unitBackdrop = unitBackdrops[unitKey] || {};
+  const swimmingBackdrop = unitSwimmingBackdrops[unitKey] || {};
+
+  hairColors.forEach(({ color }) => {
+    if (definition.backdrop) {
+      unitBackdrop[color] = recolorSprite(definition.backdrop, {
+        [colors.white]: color,
+      });
+    }
+    if (definition.swimmingBackdrop) {
+      swimmingBackdrop[color] = recolorSprite(definition.swimmingBackdrop, {
+        [colors.white]: color,
+      });
+    }
+
+    unitBackdrops[unitKey] = unitBackdrop;
+    unitSwimmingBackdrops[unitKey] = swimmingBackdrop;
+  });
 });

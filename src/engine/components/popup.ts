@@ -51,6 +51,7 @@ const popups = [
   "gear",
   "map",
   "class",
+  "style",
   "warp",
 ] as const;
 

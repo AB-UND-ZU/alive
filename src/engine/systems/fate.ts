@@ -109,7 +109,10 @@ export const reviveEntity = (world: World, entity: Entity, target: Entity) => {
 };
 
 export const createHero = (world: World, halo: Entity) => {
-  const { stats, sprite, swimming } = getClassData(halo[SPAWNABLE].classKey);
+  const { stats, sprite, swimming } = getClassData(
+    halo[SPAWNABLE].classKey,
+    halo[SPAWNABLE].hairColor
+  );
 
   const frameId = world.getEntityId(
     entities.createFrame(world, {
@@ -161,6 +164,7 @@ export const createHero = (world: World, halo: Entity) => {
     [SEQUENCABLE]: { states: {} },
     [SPAWNABLE]: {
       classKey: halo[SPAWNABLE].classKey,
+      hairColor: halo[SPAWNABLE].hairColor,
       position: copy(halo[SPAWNABLE].position),
       light: halo[SPAWNABLE].light,
       viewable: halo[SPAWNABLE].viewable,
@@ -168,7 +172,7 @@ export const createHero = (world: World, halo: Entity) => {
     },
     [SPRITE]: sprite,
     [STATS]: {
-      hp: halo[SOUL]?.maxHp || stats.maxHp,
+      hp: halo[SOUL]?.stats.maxHp || stats.maxHp,
       mp: 0,
       xp: 0,
       ...stats,
@@ -333,6 +337,7 @@ export default function setupFate(world: World) {
           },
           [SPAWNABLE]: {
             classKey: entity[SPAWNABLE].classKey,
+            hairColor: entity[SPAWNABLE].hairColor,
             position: copy(entity[SPAWNABLE].position),
             light: { ...entity[SPAWNABLE].light },
             viewable: { ...entity[VIEWABLE] },
