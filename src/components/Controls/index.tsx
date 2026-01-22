@@ -67,6 +67,7 @@ import { getForgeStatus } from "../../game/balancing/forging";
 import { centerSprites } from "../../game/assets/pixels";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
+import { TEST_MODE } from "../../engine/utils";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -327,7 +328,7 @@ export default function Controls() {
       return (
         !isControllable(world, hero) ||
         (tab === "forge" && !canForge(world, hero, addEntity)) ||
-        (tab === "class" && verticalIndex !== 0)
+        (tab === "class" && verticalIndex !== 0 && !TEST_MODE)
       );
     },
     (world, hero, addEntity) => {

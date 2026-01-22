@@ -6,6 +6,8 @@ import { rerenderEntity } from "./systems/renderer";
 import { Entity, TypedEntity } from "./entities";
 import { PLAYER } from "./components/player";
 
+export const TEST_MODE = window.location.search.substring(1) === "test";
+
 export const ECS_DEBUG = false;
 
 export const setIdentifier = (

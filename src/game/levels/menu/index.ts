@@ -15,7 +15,10 @@ import { SPRITE } from "../../../engine/components/sprite";
 import { createItemAsDrop } from "../../../engine/systems/drop";
 import { Item, ITEM } from "../../../engine/components/item";
 import { ORIENTABLE } from "../../../engine/components/orientable";
-import { assertIdentifierAndComponents } from "../../../engine/utils";
+import {
+  assertIdentifierAndComponents,
+  TEST_MODE,
+} from "../../../engine/utils";
 import {
   initializeArea,
   initializeCell,
@@ -91,7 +94,7 @@ export const generateMenu = async (world: World) => {
   );
 
   // temporary test mode
-  if (window.location.search.substring(1) === "test") {
+  if (TEST_MODE) {
     // clear title
     const titleWidth = 17;
     const titleHeight = 3;

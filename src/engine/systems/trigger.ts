@@ -92,6 +92,7 @@ import {
   assertIdentifierAndComponents,
   getIdentifier,
   setHighlight,
+  TEST_MODE,
 } from "../utils";
 import { colors } from "../../game/assets/colors";
 import { NPC } from "../components/npc";
@@ -103,7 +104,12 @@ import { SPAWNABLE } from "../components/spawnable";
 import { getForgeStatus } from "../../game/balancing/forging";
 import { getSelectedLevel, levelConfig } from "../../game/levels";
 import { calculateVision } from "./visibility";
-import { centerLayer, hairColors, pixelFrame } from "../../game/assets/pixels";
+import {
+  centerLayer,
+  displayedClasses,
+  hairColors,
+  pixelFrame,
+} from "../../game/assets/pixels";
 import {
   Conditionable,
   CONDITIONABLE,
@@ -128,7 +134,7 @@ export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   if (isNpc(world, entity) || currentLevel === selectedLevel) return false;
 
   // allow warping everywhere else in test mode
-  if (window.location.search.substring(1) === "test") return true;
+  if (TEST_MODE) return true;
 
   return levelConfig[currentLevel].warps.includes(selectedLevel);
 };
@@ -237,26 +243,65 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
       entity[VIEWABLE].active = true;
       entity[SPAWNABLE].position = { ...spawn };
       entity[SPAWNABLE].light = light;
-      entity[SPAWNABLE].classKey = "rogue";
-      entity[SPAWNABLE].hairColor =
-        hairColors[warp[POPUP].verticalIndezes[1]].color;
-
-      const { stats, sprite, swimming } = getClassData(
-        entity[SPAWNABLE].classKey,
-        entity[SPAWNABLE].hairColor
-      );
-      entity[SPRITE] = sprite;
-      entity[SWIMMABLE].swimming = swimming;
       entity[ORIENTABLE].facing = undefined;
 
       // don't set class stats in test mode
-      if (window.location.search.substring(1) !== "test") {
+      const classIndex = warp[POPUP].tabs.indexOf("class");
+      const classUpdated = classIndex !== -1;
+      const styleIndex = warp[POPUP].tabs.indexOf("style");
+      const styleUpdated = styleIndex !== -1;
+      const selectedClass = classUpdated
+        ? TEST_MODE
+          ? displayedClasses[warp[POPUP].verticalIndezes[classIndex]]
+          : "rogue"
+        : entity[SPAWNABLE].classKey;
+      const selectedStyle = styleUpdated
+        ? hairColors[warp[POPUP].verticalIndezes[styleIndex]].color
+        : entity[SPAWNABLE].hairColor;
+
+      const { stats, sprite, swimming } = getClassData(
+        selectedClass,
+        selectedStyle
+      );
+
+      if (styleUpdated) {
+        entity[SPAWNABLE].hairColor = selectedStyle;
+      }
+
+      if (classUpdated) {
+        entity[SPAWNABLE].classKey = selectedClass;
+
+        // add collected stats in test mode
+        if (TEST_MODE) {
+          const testStats = [
+            "armor",
+            "power",
+            "power",
+            "resist",
+            "haste",
+            "damp",
+            "thaw",
+            "spike",
+            "vision",
+          ] as const;
+          testStats.forEach((stat) => {
+            stats[stat] += entity[STATS][stat];
+          });
+          stats.maxHp = Math.max(stats.maxHp, entity[STATS].maxHp);
+          stats.maxMp = Math.max(stats.maxMp, entity[STATS].maxMp);
+        }
+
         entity[STATS] = {
           hp: stats.maxHp,
           mp: 0,
           xp: 0,
           ...stats,
         };
+      }
+
+      if (styleUpdated || classUpdated) {
+        entity[SPRITE] = sprite;
+        entity[SWIMMABLE].swimming = swimming;
       }
 
       preloadLevel(world);
@@ -1057,7 +1102,7 @@ export default function setupTrigger(world: World) {
             pushTabSelection(world, addEntity);
             setVerticalIndex(world, addEntity, 0);
           } else if (tab === "class" || tab === "style") {
-            if (verticalIndex === 0 || tab === "style") {
+            if (verticalIndex === 0 || TEST_MODE || tab === "style") {
               addEntity[POPUP].horizontalIndex += 1;
               rerenderEntity(world, addEntity);
             } else {

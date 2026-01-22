@@ -37,10 +37,10 @@ export const classDefinitions: Record<ClassKey, ClassDefinition> = {
     items: [],
 
     stats: {
-      maxHp: 25,
+      maxHp: 10,
       maxHpCap: 50,
 
-      maxMp: 10,
+      maxMp: 5,
       maxMpCap: 25,
 
       maxXp: getInitialXp("rogue"),

@@ -305,7 +305,7 @@ import {
   popupIdles,
   visibleStats,
 } from "../../engine/systems/popup";
-import { getIdentifierAndComponents } from "../../engine/utils";
+import { getIdentifierAndComponents, TEST_MODE } from "../../engine/utils";
 import { play } from "../sound";
 import { extinguishEntity } from "../../engine/systems/burn";
 import {
@@ -2428,7 +2428,7 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
     );
 
   const selectedClass = displayedClasses[verticalIndex];
-  const selectedAvailable = selectedClass === "rogue";
+  const selectedAvailable = TEST_MODE || selectedClass === "rogue";
   const lines = overlay(
     bodyPixels,
     classPixels[displayedClasses[verticalIndex]] || [],
@@ -2450,7 +2450,7 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
       ];
 
     const selected = verticalIndex === rowIndex;
-    const available = className === "rogue";
+    const available = TEST_MODE || className === "rogue";
     const classSprite = entitySprites[className].sprite;
     const classTitle = createText(
       available || selected
@@ -2503,6 +2503,13 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
 };
 
 const styleOverscan = Math.max(6 - hairColors.length, 1);
+const styleSelections = {
+  scout: "a hair",
+  rogue: "a hair",
+  knight: "a helmet",
+  mage: "a hair",
+  "???": "an ear",
+};
 
 export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
   const verticalIndex = getVerticalIndex(world, entity);
@@ -2519,9 +2526,17 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
     );
 
   const selectedStyle = hairColors[verticalIndex];
+  const heroEntity = getIdentifierAndComponents(world, "hero", [SPAWNABLE]);
+  const classIndex = entity[POPUP].tabs.indexOf("class");
+  const selectedClass =
+    classIndex === -1 && heroEntity
+      ? heroEntity[SPAWNABLE].classKey
+      : TEST_MODE
+      ? displayedClasses[entity[POPUP].verticalIndezes[classIndex]]
+      : "rogue";
   const lines = overlay(
     bodyPixels,
-    recolorPixels(classPixels.rogue || [], {
+    recolorPixels(classPixels[selectedClass] || [], {
       [colors.white]: selectedStyle.color,
     })
   );
@@ -2562,7 +2577,10 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
     popupIdles[getTab(world, entity)],
     content,
     "selected",
-    [createText("Choose a hair"), createText("color.")],
+    [
+      createText(`Choose ${styleSelections[selectedClass]}`),
+      createText("color."),
+    ],
     styleOverscan
   );
   return {
