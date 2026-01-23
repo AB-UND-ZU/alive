@@ -425,7 +425,7 @@ export default function setupAi(world: World) {
           );
 
           // sidestep if against a wall
-          const movingOrientations = shuffle(attackingOrientations);
+          const movements = shuffle(attackingOrientations);
           if (attackingOrientations.length === 1) {
             const linearOrientation = attackingOrientations[0];
             const sidestepOrientation =
@@ -435,15 +435,23 @@ export default function setupAi(world: World) {
                   3) %
                   4
               ];
-            movingOrientations.push(sidestepOrientation);
-            movingOrientations.push(invertOrientation(sidestepOrientation));
+            movements.push(sidestepOrientation);
+            movements.push(invertOrientation(sidestepOrientation));
           }
 
           if (entity[ORIENTABLE]?.facing && halfStep) {
             entity[MOVABLE].orientations = [];
             entity[ORIENTABLE].facing = undefined;
           } else {
-            entity[MOVABLE].orientations = movingOrientations;
+            // don't run into spikes
+            const movableOrientations = movements.filter((movingOrientation) =>
+              isMovable(
+                world,
+                entity,
+                add(entity[POSITION], orientationPoints[movingOrientation])
+              )
+            );
+            entity[MOVABLE].orientations = movableOrientations;
           }
           rerenderEntity(world, entity);
           break;
@@ -648,7 +656,15 @@ export default function setupAi(world: World) {
             entity[MOVABLE].orientations = [];
             entity[ORIENTABLE].facing = undefined;
           } else {
-            entity[MOVABLE].orientations = movements;
+            // don't run into spikes
+            const movableOrientations = movements.filter((movingOrientation) =>
+              isMovable(
+                world,
+                entity,
+                add(entity[POSITION], orientationPoints[movingOrientation])
+              )
+            );
+            entity[MOVABLE].orientations = movableOrientations;
           }
           rerenderEntity(world, entity);
           break;

@@ -873,7 +873,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
             stackable: "coin",
             amount: 2,
           },
-          { stat: "xp", amount: 3 },
+          { stat: "xp", amount: 2 },
           {
             amount: 1,
             consume: "potion",
@@ -916,7 +916,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
             stackable: "coin",
             amount: 2,
           },
-          { stat: "xp", amount: 3 },
+          { stat: "xp", amount: 2 },
           {
             amount: 1,
             consume: "potion",
@@ -957,7 +957,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
             stackable: "coin",
             amount: 2,
           },
-          { stat: "xp", amount: 3 },
+          { stat: "xp", amount: 2 },
           {
             amount: 1,
             consume: "potion",
@@ -977,7 +977,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
             stackable: "coin",
             amount: 2,
           },
-          { stat: "xp", amount: 3 },
+          { stat: "xp", amount: 2 },
           {
             amount: 1,
             consume: "potion",

@@ -24,6 +24,7 @@ import {
   getEntityStats,
   isDead,
   isFriendlyFire,
+  isNeutral,
 } from "./damage";
 import { getCollecting, getLootable } from "./collect";
 import { isImmersible, isSubmerged } from "./immersion";
@@ -125,7 +126,8 @@ export const isFlyable = (world: World, position: Position) => {
 export const isMovable = (world: World, entity: Entity, position: Position) => {
   if (isWalkable(world, position)) return true;
 
-  if (getSpikable(world, position)) return false;
+  const spikable = getSpikable(world, position);
+  if (spikable && isNeutral(world, spikable)) return false;
 
   // allow attacking opposing entities
   const attackable = getAttackable(world, position);

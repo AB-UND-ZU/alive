@@ -52,7 +52,7 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
 
     const { damage, hp } = calculateDamage(
       world,
-      { true: attack },
+      { magic: attack },
       entity,
       target
     );
