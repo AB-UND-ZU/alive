@@ -455,7 +455,10 @@ export const flower: Sprite = {
 
 export const herb: Sprite = {
   name: "Herb",
-  layers: [{ char: "\u010e", color: colors.teal }],
+  layers: [
+    { char: "\u010e", color: colors.teal },
+    { char: "·", color: colors.teal },
+  ],
 };
 
 export const oreDrop: Sprite = {

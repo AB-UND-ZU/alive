@@ -15,7 +15,6 @@ import {
   none,
   quest,
   shop,
-  warp,
 } from "../../game/assets/sprites";
 import { getCell } from "./map";
 import { POSITION, Position } from "../components/position";
@@ -264,7 +263,7 @@ export const popupIdles = {
   sell: shop,
   inspect: info,
   stats: info,
-  warp,
+  warp: mapDiscovery,
   gear: info,
   class: class_,
   style: class_,

@@ -2301,7 +2301,6 @@ export const stretch = (left: Sprite[], right: Sprite[], width: number) =>
   ].slice(0, width);
 
 export const discovery = createText("°", colors.lime)[0];
-export const warp = createText("@", colors.lime)[0];
 export const quest = createText("?", colors.lime)[0];
 export const ongoing = createText("?", colors.silver)[0];
 export const info = createText("i", colors.lime)[0];
@@ -2771,12 +2770,12 @@ export const amuletSlot: Sprite = {
     { char: "¼", color: colors.grey },
     { char: "_", color: colors.black },
 
-    { char: '"', color: colors.black },
-    { char: "\u010e", color: colors.black },
-    { char: "|", color: colors.grey },
-    { char: "+", color: colors.black },
-    { char: ":", color: colors.black },
-    { char: ".", color: colors.grey },
+    { char: "t", color: colors.black },
+    { char: "\u0112", color: colors.grey },
+    { char: "U", color: colors.grey },
+    { char: "\u0115", color: colors.grey },
+    { char: "\u0119", color: colors.black },
+    { char: "\u011a", color: colors.black },
   ],
 };
 

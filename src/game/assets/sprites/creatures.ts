@@ -73,11 +73,11 @@ export const alienBackdrop: Sprite = {
   name: "???",
   layers: [
     { char: "Ä", color: colors.white },
-    { char: "A", color: colors.navy },
+    { char: "A", color: colors.black },
 
     { char: "å", color: colors.white },
-    { char: "á", color: colors.navy },
-    { char: "'", color: colors.navy },
+    { char: "á", color: colors.black },
+    { char: "'", color: colors.black },
   ],
 };
 
@@ -85,11 +85,11 @@ export const swimmingAlienBackdrop: Sprite = {
   name: "???",
   layers: [
     { char: "Ä", color: colors.white },
-    { char: "A", color: colors.black },
+    { char: "A", color: colors.navy },
 
     { char: "å", color: colors.white },
-    { char: "á", color: colors.black },
-    { char: "'", color: colors.black },
+    { char: "á", color: colors.navy },
+    { char: "'", color: colors.navy },
   ],
 };
 
@@ -556,6 +556,42 @@ export const earthWaveTower: Sprite = {
     { char: "Y", color: colors.silver },
     { char: '"', color: colors.lime },
   ],
+};
+
+export const spider: Sprite = {
+  name: "Spider",
+  layers: [
+    { char: '"', color: colors.silver },
+    { char: "\u010e", color: colors.silver },
+    { char: "I", color: colors.black },
+    { char: "+", color: colors.silver },
+    { char: ":", color: colors.silver },
+    { char: ".", color: colors.black },
+    { char: "·", color: colors.black },
+  ],
+};
+
+export const snake: Sprite = {
+  name: "Snake",
+  layers: [{ char: "@", color: colors.silver }],
+  facing: {
+    up: [
+      { char: "@", color: colors.silver },
+      { char: "∙", color: colors.black },
+    ],
+    right: [
+      { char: "@", color: colors.silver },
+      { char: "∙", color: colors.black },
+    ],
+    down: [
+      { char: "@", color: colors.silver },
+      { char: "∙", color: colors.black },
+    ],
+    left: [
+      { char: "@", color: colors.silver },
+      { char: "∙", color: colors.black },
+    ],
+  },
 };
 
 export const fly: Sprite = {

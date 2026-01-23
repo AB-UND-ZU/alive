@@ -8,6 +8,7 @@ import {
   swimmingRogueBackdrop,
   alienBackdrop,
   scout,
+  swimmingAlienBackdrop,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { Stackable } from "../../engine/components/item";
@@ -37,13 +38,13 @@ export const classDefinitions: Record<ClassKey, ClassDefinition> = {
     items: [],
 
     stats: {
-      maxHp: 10,
-      maxHpCap: 50,
+      maxHp: 1,
+      maxHpCap: 99,
 
-      maxMp: 5,
-      maxMpCap: 25,
+      maxMp: 0,
+      maxMpCap: 99,
 
-      maxXp: getInitialXp("rogue"),
+      maxXp: 99,
       maxXpCap: 99,
 
       level: 1,
@@ -146,7 +147,7 @@ export const classDefinitions: Record<ClassKey, ClassDefinition> = {
   "???": {
     sprite: alien,
     backdrop: alienBackdrop,
-    swimmingBackdrop: alienBackdrop,
+    swimmingBackdrop: swimmingAlienBackdrop,
     items: [],
 
     stats: {

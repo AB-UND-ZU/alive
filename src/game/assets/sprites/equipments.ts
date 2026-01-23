@@ -685,6 +685,9 @@ export const hammer: Sprite = {
     { char: "┐", color: colors.maroon },
     { char: "─", color: colors.black },
     { char: "\u0115", color: colors.grey },
+    { char: ".", color: colors.maroon },
+    { char: ",", color: colors.maroon },
+    { char: "∙", color: colors.maroon },
   ],
 };
 
@@ -1013,89 +1016,101 @@ export const woodBoots: Sprite = {
 export const woodAmulet: Sprite = {
   name: "Amulet",
   layers: [
-    { char: '"', color: colors.maroon },
-    { char: "\u010e", color: colors.maroon },
-    { char: "|", color: colors.black },
-    { char: "+", color: colors.maroon },
-    { char: ":", color: colors.maroon },
-    { char: ".", color: colors.black },
+    { char: "│", color: colors.maroon },
+    { char: "▐", color: colors.black },
+    { char: "┐", color: colors.black },
+    { char: "\u0119", color: colors.maroon },
+    { char: "\u011a", color: colors.maroon },
   ],
 };
 
 export const woodAmuletAir: Sprite = {
   name: "Amulet",
   layers: [
-    { char: '"', color: colors.maroon },
-    { char: "\u010e", color: colors.maroon },
-    { char: "|", color: colors.black },
-    { char: "+", color: colors.maroon },
-    { char: ":", color: colors.maroon },
-    { char: ".", color: colors.black },
-    { char: "·", color: colors.white },
+    { char: "│", color: colors.maroon },
+    { char: "▐", color: colors.black },
+    { char: "┐", color: colors.black },
+    { char: "\u011d", color: colors.white },
+    { char: "≡", color: colors.black },
+    { char: "\u0119", color: colors.maroon },
+    { char: "\u011a", color: colors.maroon },
+  ],
+};
+
+export const woodAmuletAir2: Sprite = {
+  name: "Amulet",
+  layers: [
+    { char: "│", color: colors.maroon },
+    { char: "▐", color: colors.black },
+    { char: "┐", color: colors.black },
+    { char: "\u011d", color: colors.white },
+    { char: "\u011e", color: colors.white },
+    { char: "≡", color: colors.black },
+    { char: "\u0119", color: colors.maroon },
+    { char: "\u011a", color: colors.maroon },
   ],
 };
 
 export const woodAmuletFire: Sprite = {
   name: "Amulet",
   layers: [
-    { char: '"', color: colors.maroon },
-    { char: "\u010e", color: colors.maroon },
-    { char: "|", color: colors.black },
-    { char: "+", color: colors.maroon },
-    { char: ":", color: colors.maroon },
-    { char: ".", color: colors.black },
-    { char: "·", color: colors.red },
+    { char: "│", color: colors.maroon },
+    { char: "▐", color: colors.black },
+    { char: "┐", color: colors.black },
+    { char: "\u011d", color: colors.red },
+    { char: "≡", color: colors.black },
+    { char: "\u0119", color: colors.maroon },
+    { char: "\u011a", color: colors.maroon },
   ],
 };
 
 export const woodAmuletWater: Sprite = {
   name: "Amulet",
   layers: [
-    { char: '"', color: colors.maroon },
-    { char: "\u010e", color: colors.maroon },
-    { char: "|", color: colors.black },
-    { char: "+", color: colors.maroon },
-    { char: ":", color: colors.maroon },
-    { char: ".", color: colors.black },
-    { char: "·", color: colors.blue },
+    { char: "│", color: colors.maroon },
+    { char: "▐", color: colors.black },
+    { char: "┐", color: colors.black },
+    { char: "\u011d", color: colors.blue },
+    { char: "≡", color: colors.black },
+    { char: "\u0119", color: colors.maroon },
+    { char: "\u011a", color: colors.maroon },
   ],
 };
 
 export const woodAmuletEarth: Sprite = {
   name: "Amulet",
   layers: [
-    { char: '"', color: colors.maroon },
-    { char: "\u010e", color: colors.maroon },
-    { char: "|", color: colors.black },
-    { char: "+", color: colors.maroon },
-    { char: ":", color: colors.maroon },
-    { char: ".", color: colors.black },
-    { char: "·", color: colors.lime },
+    { char: "│", color: colors.maroon },
+    { char: "▐", color: colors.black },
+    { char: "┐", color: colors.black },
+    { char: "\u011d", color: colors.lime },
+    { char: "≡", color: colors.black },
+    { char: "\u0119", color: colors.maroon },
+    { char: "\u011a", color: colors.maroon },
   ],
 };
 
 export const ironAmulet: Sprite = {
   name: "Amulet",
   layers: [
-    { char: '"', color: colors.grey },
-    { char: "\u010e", color: colors.grey },
-    { char: "|", color: colors.black },
-    { char: "+", color: colors.grey },
-    { char: ":", color: colors.grey },
-    { char: ".", color: colors.black },
+    { char: "│", color: colors.silver },
+    { char: "▐", color: colors.black },
+    { char: "┐", color: colors.black },
+    { char: "\u0119", color: colors.maroon },
+    { char: "\u011a", color: colors.maroon },
   ],
 };
 
 export const ironAmuletAir: Sprite = {
   name: "Amulet",
   layers: [
-    { char: '"', color: colors.grey },
-    { char: "\u010e", color: colors.grey },
-    { char: "|", color: colors.black },
-    { char: "+", color: colors.grey },
-    { char: ":", color: colors.grey },
-    { char: ".", color: colors.black },
-    { char: "·", color: colors.white },
+    { char: "│", color: colors.silver },
+    { char: "▐", color: colors.black },
+    { char: "┐", color: colors.black },
+    { char: "\u011d", color: colors.white },
+    { char: "≡", color: colors.black },
+    { char: "\u0119", color: colors.maroon },
+    { char: "\u011a", color: colors.maroon },
   ],
 };
 
