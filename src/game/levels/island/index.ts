@@ -7,7 +7,8 @@ import {
   createText,
   getOrientedSprite,
   none,
-  parseSprite,
+  oakLeaves,
+  oakStem,
   path,
   questPointer,
 } from "../../assets/sprites";
@@ -33,7 +34,7 @@ import {
 import { FOG } from "../../../engine/components/fog";
 import { ATTACKABLE } from "../../../engine/components/attackable";
 import { orientationPoints } from "../../../engine/components/orientable";
-import { spawnArea, townSize } from "./areas";
+import { oakArea, spawnArea, townSize } from "./areas";
 import {
   add,
   angledOffset,
@@ -136,6 +137,7 @@ export const generateIsland = (world: World) => {
   const mainlandRatio = 0.8;
   const glacierRadius = size * 0.07;
   const glacierRatio = 0.3;
+  const oakRatio = 0.6;
   const oceanDepth = -70;
   const archipelagoDepth = -30;
   const sandDepth = 0;
@@ -166,6 +168,7 @@ export const generateIsland = (world: World) => {
   const townAngle = spawnAngle + townOffset;
 
   // precalculated values
+  const oakPoint = { x: 0, y: 0 };
   const spawnPoint = angledOffset(
     size,
     { x: 0, y: 0 },
@@ -288,7 +291,7 @@ export const generateIsland = (world: World) => {
           0.8,
           mainlandRatio
         );
-      const passageMatrix = rectangleKernel(
+      const passageKernel = rectangleKernel(
         size,
         size,
         x,
@@ -300,7 +303,7 @@ export const generateIsland = (world: World) => {
         1,
         0,
         10,
-        mainlandRatio
+        oakRatio
       );
       const spawnCircle = circularKernel(
         size,
@@ -313,6 +316,18 @@ export const generateIsland = (world: World) => {
         0,
         15,
         1
+      );
+      const oakCircle = circularKernel(
+        size,
+        size,
+        x,
+        y,
+        oakPoint,
+        6,
+        1,
+        0,
+        15,
+        oakRatio
       );
       const spawnWalk = rectangleKernel(
         size,
@@ -342,7 +357,7 @@ export const generateIsland = (world: World) => {
         1
       );
       const flattenedKernel =
-        spawnCircle * spawnWalk * townSquare * passageMatrix;
+        spawnCircle * spawnWalk * townSquare * oakCircle * passageKernel;
 
       const beachesKernel = simplexNoiseKernel(
         beachesFactory,
@@ -598,12 +613,59 @@ export const generateIsland = (world: World) => {
   const spawnLines = spawnArea.split("\n");
   const spawnWidth = spawnLines[0].length;
   const spawnHeight = spawnLines.length;
-  const spawnCorner = {
-    x: spawnPoint.x - (spawnWidth - 1) / 2,
-    y: spawnPoint.y - (spawnHeight - 1) / 2,
-  };
+  const spawnCorner = combine(size, spawnPoint, {
+    x: -(spawnWidth - 1) / 2,
+    y: -(spawnHeight - 1) / 2,
+  });
   matrixFactory(spawnWidth, spawnHeight, (x, y) => {
     setPath(pathMatrix, x + spawnCorner.x, y + spawnCorner.y, 0);
+  });
+
+  // insert oak
+  insertArea(world, oakArea, oakPoint.x, oakPoint.y, true);
+  const oakLines = oakArea.split("\n");
+  const oakWidth = oakLines[0].length;
+  const oakHeight = oakLines.length;
+  const oakCorner = {
+    x: oakPoint.x - (oakWidth - 1) / 2,
+    y: oakPoint.y - (oakHeight - 1) / 2,
+  };
+  const oakEntrance = angledOffset(
+    size,
+    oakPoint,
+    islandAngle - 90,
+    6,
+    oakRatio
+  );
+  const oakExit = angledOffset(size, oakPoint, islandAngle + 90, 6, oakRatio);
+  for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+    for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+      const entrancePoint = combine(size, oakEntrance, {
+        x: offsetX,
+        y: offsetY,
+      });
+      const exitPoint = combine(size, oakExit, { x: offsetX, y: offsetY });
+      worldMap[entrancePoint.x][entrancePoint.y] = "air";
+      worldMap[exitPoint.x][exitPoint.y] = "sand";
+    }
+  }
+  matrixFactory(oakWidth, oakHeight, (offsetX, offsetY) => {
+    const x = normalize(oakCorner.x + offsetX, size);
+    const y = normalize(oakCorner.y + offsetY, size);
+    if (oakLines[offsetY][offsetX] !== "?") {
+      setPath(pathMatrix, x, y, 0);
+      biomeMap[x][y] = "jungle";
+      objectsMap[x][y] = [];
+    }
+
+    if (oakLines[offsetY][offsetX] === " ") {
+      worldMap[x][y] = "air";
+    } else if (
+      oakLines[offsetY][offsetX] === "█" &&
+      worldMap[x][y] !== "mountain"
+    ) {
+      worldMap[x][y] = worldMap[x][y] === "air" ? "hedge" : "cactus";
+    }
   });
 
   // insert town
@@ -938,29 +1000,29 @@ export const generateIsland = (world: World) => {
         [],
         [
           ...repeat(none, 3),
-          parseSprite("\x02▄▐\x00░"),
-          parseSprite("\x02█\x00░"),
-          parseSprite("\x02▄▌\x00░"),
+          getOrientedSprite(oakLeaves, "left"),
+          oakLeaves,
+          getOrientedSprite(oakLeaves, "right"),
         ],
         [
           ...repeat(none, 2),
-          parseSprite("\x02▄▐\x00░"),
-          parseSprite("\x02█\x00░\x00\u0108\u0106\x09∙"),
-          parseSprite("\x02█\x00░"),
-          parseSprite("\x02█\x00░\x00\u0108\u0106\x09∙"),
-          parseSprite("\x02▄▌\x00░"),
+          getOrientedSprite(oakLeaves, "left"),
+          oakLeaves,
+          oakLeaves,
+          oakLeaves,
+          getOrientedSprite(oakLeaves, "right"),
         ],
         [
           ...repeat(none, 2),
-          parseSprite("\x02▀\x00░"),
-          parseSprite("\x02█\x00░"),
-          parseSprite("\x02█\x00░"),
-          parseSprite("\x02█\x00░"),
-          parseSprite("\x02▀\x00░"),
+          getOrientedSprite(oakLeaves, "down"),
+          oakLeaves,
+          oakLeaves,
+          oakLeaves,
+          getOrientedSprite(oakLeaves, "down"),
           ...createText(" <- evil", colors.red),
         ],
-        [...repeat(none, 4), parseSprite("\x01╣")],
-        [...repeat(none, 4), parseSprite("\x01╩\x00─")],
+        [...repeat(none, 4), getOrientedSprite(oakStem, "left")],
+        [...repeat(none, 4), getOrientedSprite(oakStem, "down")],
         [],
         [
           ...createText("Talk to "),

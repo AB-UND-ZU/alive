@@ -15,14 +15,24 @@ import { isControllable } from "./freeze";
 import { CLICKABLE } from "../components/clickable";
 import { PLAYER } from "../components/player";
 import { rerenderEntity } from "./renderer";
+import { isFragment } from "./enter";
+import { FRAGMENT } from "../components/fragment";
 
 export const isClickable = (world: World, entity: Entity) =>
   CLICKABLE in entity;
 
 export const getClickables = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter((entity) =>
-    isClickable(world, entity)
-  ) as Entity[];
+  Object.values(getCell(world, position))
+    .map((entity) => {
+      if (isClickable(world, entity)) return entity;
+      if (isFragment(world, entity)) {
+        const structurableEntity = world.assertById(entity[FRAGMENT].structure);
+        if (isClickable(world, structurableEntity)) return structurableEntity;
+      }
+
+      return undefined;
+    })
+    .filter(Boolean) as Entity[];
 
 export const getClickable = (world: World, position: Position) =>
   getClickables(world, position).find(

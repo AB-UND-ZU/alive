@@ -1,7 +1,9 @@
 import { Element, Material } from "../../engine/components/item";
+import { Orientation } from "../../engine/components/orientable";
 import { Sprite } from "../../engine/components/sprite";
 import { ClassKey } from "../balancing/classes";
-import { padCenter, repeat } from "../math/std";
+import { rotateOrientation } from "../math/path";
+import { padCenter, repeat, reversed } from "../math/std";
 import { brightColors, colors, recolor } from "./colors";
 import {
   addForeground,
@@ -128,6 +130,62 @@ export const pixelFrame = (
   });
 
   return overlay(frame, titleLayer, contentLayer, crop);
+};
+
+export const getCircleOrientations = () => {
+  const quarterCircle: {
+    x: number;
+    y: number;
+    orientation: Orientation;
+    corner?: boolean;
+  }[] = [
+    { x: 10, y: 0, orientation: "right" },
+    { x: 10, y: 1, orientation: "right" },
+    { x: 10, y: 2, orientation: "down", corner: true },
+    { x: 9, y: 2, orientation: "up", corner: true },
+    { x: 9, y: 3, orientation: "right" },
+    { x: 9, y: 4, orientation: "down", corner: true },
+    { x: 8, y: 4, orientation: "down" },
+    { x: 7, y: 4, orientation: "up", corner: true },
+    { x: 7, y: 5, orientation: "down", corner: true },
+    { x: 6, y: 5, orientation: "down" },
+    { x: 5, y: 5, orientation: "down" },
+    { x: 4, y: 5, orientation: "up", corner: true },
+    { x: 4, y: 6, orientation: "down", corner: true },
+    { x: 3, y: 6, orientation: "down" },
+    { x: 2, y: 6, orientation: "down" },
+    { x: 1, y: 6, orientation: "down" },
+    { x: 0, y: 6, orientation: "down" },
+  ];
+
+  const fullCircle = [];
+  for (let orientationIndex = 0; orientationIndex < 4; orientationIndex += 1) {
+    const flipVertical = orientationIndex === 0 || orientationIndex === 3;
+    const flipHorizontal = orientationIndex >= 2;
+    const flippedQuarter =
+      flipHorizontal !== flipVertical
+        ? [...reversed(quarterCircle)]
+        : quarterCircle;
+
+    // skip last element to be placed by next quarter
+    for (
+      let quarterIndex = 0;
+      quarterIndex < flippedQuarter.length - 1;
+      quarterIndex += 1
+    ) {
+      const segment = flippedQuarter[quarterIndex];
+      fullCircle.push({
+        x: flipHorizontal ? -segment.x : segment.x,
+        y: flipVertical ? -segment.y : segment.y,
+        orientation: segment.corner
+          ? rotateOrientation(segment.orientation, orientationIndex - 1)
+          : segment.orientation,
+        corner: segment.corner,
+      });
+    }
+  }
+
+  return fullCircle;
 };
 
 export const bodyPixels = pixelate(

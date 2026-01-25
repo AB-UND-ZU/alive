@@ -253,7 +253,6 @@ export default function setupMagic(world: World) {
         ? getAttackable(world, entity[POSITION])
         : getAffectable(world, entity[POSITION]);
 
-      // prevent spell if bubble is active
       if (targetEntity) {
         const affectableId = world.getEntityId(targetEntity);
         const previousAffected =
@@ -305,6 +304,7 @@ export default function setupMagic(world: World) {
             world.getEntityId(retriggerEntity);
         }
 
+        // prevent spell if bubble is active
         if (targetEntity[CONDITIONABLE]?.block) {
           targetEntity[CONDITIONABLE].block.amount -= 1;
 

@@ -111,10 +111,10 @@ export type MeleeSequence = {
   facing: Orientation;
   rotate: boolean;
 };
-export type ConditionSequence = { duration: number, material: Material };
+export type ConditionSequence = { duration: number; material: Material };
 export type SpellSequence = {
   element?: Element;
-  material: Material;
+  material?: Material;
   progress: number;
   memory?: any;
   duration: number;

@@ -15,6 +15,7 @@ import {
   random,
   range,
   reversed,
+  rotate,
   shuffle,
   signedDistance,
   within,
@@ -43,7 +44,7 @@ import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
 import { getLockable, isLocked, isUnlocked } from "./action";
 import { ITEM } from "../components/item";
-import { lockDoor } from "./trigger";
+import { castSpell, lockDoor } from "./trigger";
 import { dropEntity } from "./drop";
 import {
   chestBoss,
@@ -71,7 +72,7 @@ import {
 import { getProjectiles, shootArrow } from "./ballistics";
 import { canCast, getExertables } from "./magic";
 import { disposeEntity, getCell, moveEntity, registerEntity } from "./map";
-import { getOpaque } from "./enter";
+import { getFragment, getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
@@ -82,6 +83,7 @@ import { isControllable } from "./freeze";
 import {
   getIdentifier,
   getIdentifierAndComponents,
+  getIdentifiersAndComponents,
   setIdentifier,
 } from "../utils";
 import { SPRITE } from "../components/sprite";
@@ -98,6 +100,7 @@ import { isImmersible } from "./immersion";
 import { CLICKABLE } from "../components/clickable";
 import { getEmptyAffectable } from "../components/affectable";
 import { HARVESTABLE } from "../components/harvestable";
+import { shootHoming } from "./homing";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -142,7 +145,7 @@ export default function setupAi(world: World) {
           pattern.memory.ticks -= 1;
           break;
         } else if (pattern.name === "passive") {
-          if (!entity[STATS] || !entity[SPRITE]) {
+          if (!entity[STATS] || !entity[SPRITE] || !entity[TOOLTIP]) {
             patterns.splice(patterns.indexOf(pattern), 1);
             continue;
           }
@@ -751,6 +754,19 @@ export default function setupAi(world: World) {
             rerenderEntity(world, entity);
             break;
           }
+        } else if (pattern.name === "shout") {
+          if (!entity[TOOLTIP]) continue;
+          const memory = pattern.memory;
+
+          entity[TOOLTIP].enemy = true;
+          entity[TOOLTIP].override = "visible";
+          for (const [key, value] of Object.entries(memory)) {
+            // TODO: find a better way to infer types
+            (entity[TOOLTIP] as any)[key] = value;
+          }
+          entity[TOOLTIP].changed = true;
+
+          patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "dialog") {
           if (!entity[TOOLTIP]) continue;
           const memory = pattern.memory;
@@ -1380,6 +1396,417 @@ export default function setupAi(world: World) {
           } else if (pattern.memory.heal) {
             delete pattern.memory.heal;
           }
+        } else if (pattern.name === "oak_boss") {
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+          const castableEntity = getFragment(
+            world,
+            add(entity[POSITION], { x: 0, y: 1 })
+          ) as TypedEntity<"POSITION"> | undefined;
+          if (
+            !heroEntity ||
+            !entity[STATS] ||
+            !entity[SPRITE] ||
+            !entity[TOOLTIP] ||
+            !castableEntity
+          ) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          if (!pattern.memory.phase) {
+            pattern.memory.phase = 0;
+          }
+          if (!pattern.memory.generation) {
+            pattern.memory.generation = generation;
+          }
+          const distance = heroEntity
+            ? getDistance({ x: 0, y: 0 }, heroEntity[POSITION], size)
+            : Infinity;
+
+          if (distance > 10) break;
+
+          if (pattern.memory.phase === 0) {
+            // sleep until player clicks and wakes up
+            entity[TOOLTIP].idle = [sleep1, sleep2][generation % 2];
+            entity[TOOLTIP].changed = true;
+
+            if (entity[CLICKABLE]?.clicked) {
+              entity[BELONGABLE].faction = "wild";
+              entity[TOOLTIP].override = "hidden";
+              entity[TOOLTIP].changed = true;
+
+              entity[TOOLTIP].idle = undefined;
+
+              world.removeComponentFromEntity(
+                entity as TypedEntity<"CLICKABLE">,
+                "CLICKABLE"
+              );
+
+              entity[BEHAVIOUR].patterns = [
+                { name: "dialog", memory: { override: "hidden" } },
+                { name: "wait", memory: { ticks: 3 } },
+                { name: "oak_boss", memory: { phase: 1 } },
+              ];
+            }
+          } else if (pattern.memory.phase === 1) {
+            // open eyes
+            [-1, 1].forEach((offsetX) => {
+              const eyeEntity = getFragment(
+                world,
+                add(entity[POSITION], { x: offsetX, y: 0 })
+              );
+              if (!eyeEntity) return;
+              eyeEntity[ORIENTABLE].facing = "up";
+              rerenderEntity(world, eyeEntity);
+            });
+
+            entity[BEHAVIOUR].patterns = [
+              { name: "wait", memory: { ticks: 3 } },
+              { name: "oak_boss", memory: { phase: 2 } },
+            ];
+          } else if (pattern.memory.phase === 2) {
+            // shout at player
+            entity[BEHAVIOUR].patterns = [
+              {
+                name: "shout",
+                memory: {
+                  dialogs: [
+                    createShout(
+                      choice(
+                        "Who awakens me?",
+                        "Why disturb me?",
+                        "I was sleeping..."
+                      )
+                    ),
+                  ],
+                },
+              },
+              { name: "wait", memory: { ticks: 5 } },
+              {
+                name: "shout",
+                memory: {
+                  dialogs: [
+                    createShout(
+                      choice(
+                        "You will pay\u0112",
+                        "That's your end\u0112",
+                        "Prepare to die\u0112"
+                      )
+                    ),
+                  ],
+                },
+              },
+              { name: "wait", memory: { ticks: 7 } },
+              { name: "oak_boss", memory: { phase: 3 } },
+            ];
+          } else if (pattern.memory.phase === 3) {
+            // hide dialogs
+            entity[TOOLTIP].override = "hidden";
+            entity[TOOLTIP].changed = true;
+
+            entity[BEHAVIOUR].patterns = [
+              { name: "wait", memory: { ticks: 3 } },
+              { name: "oak_boss", memory: { phase: 4 } },
+            ];
+          } else if (pattern.memory.phase === 4) {
+            // create terrain
+            shootHoming(world, castableEntity, {
+              type: "oakTower",
+              positions: [
+                add(castableEntity[POSITION], {
+                  x: -8,
+                  y: 0,
+                }),
+              ],
+            });
+            shootHoming(world, castableEntity, {
+              type: "oakTower",
+              positions: [
+                add(castableEntity[POSITION], {
+                  x: 8,
+                  y: 0,
+                }),
+              ],
+            });
+
+            entity[BEHAVIOUR].patterns = [
+              { name: "wait", memory: { ticks: 3 } },
+              { name: "oak_boss", memory: { phase: 5 } },
+            ];
+          } else if (pattern.memory.phase === 5) {
+            // become vulnerable and rage before first wave
+            entity[BEHAVIOUR].patterns = [
+              { name: "vulnerable", memory: {} },
+              { name: "wait", memory: { ticks: 5 } },
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "oak_boss", memory: { phase: 6 } },
+            ];
+          } else if (pattern.memory.phase === 6) {
+            // cast first wave
+            castSpell(world, castableEntity, {
+              [ITEM]: {
+                carrier: -1,
+                bound: false,
+                amount: 1,
+                equipment: "primary",
+                primary: "wave",
+                material: "iron",
+              },
+            });
+
+            entity[BEHAVIOUR].patterns = [
+              { name: "wait", memory: { ticks: 10 } },
+              { name: "oak_boss", memory: { phase: 7 } },
+            ];
+          } else if (pattern.memory.phase === 7) {
+            // schedule phases and prevent repeating last one
+            let phases = shuffle([10, 20, 30]);
+
+            if (pattern.memory.shuffled) {
+              phases = shuffle(pattern.memory.shuffled.slice(0, 2));
+              phases.splice(random(1, 2), 0, pattern.memory.shuffled[2]);
+            }
+
+            entity[BEHAVIOUR].patterns = [
+              ...phases.map(
+                (phase) => ({ name: "oak_boss", memory: { phase } } as const)
+              ),
+              { name: "oak_boss", memory: { phase: 7, shuffled: phases } },
+            ];
+          } else if (pattern.memory.phase === 10) {
+            // queue phase several times
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              ...Array.from({ length: 3 }).map(
+                () => ({ name: "oak_boss", memory: { phase: 11 } } as const)
+              )
+            );
+          } else if (pattern.memory.phase === 11) {
+            // rage oak and towers before shooting homing shot
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "invincible", memory: {} },
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "oak_boss", memory: { phase: 12 } }
+            );
+
+            const towerPhase = choice(10, 20);
+            const towerFlipped = choice(true, false);
+            const availableTowers = getIdentifiersAndComponents(
+              world,
+              "oak:tower",
+              [BEHAVIOUR]
+            );
+            const selectedTowers =
+              towerPhase === 20
+                ? availableTowers
+                : shuffle(availableTowers).slice(-1);
+            selectedTowers.forEach((towerEntity) => {
+              towerEntity[BEHAVIOUR].patterns = [
+                {
+                  name: "oak_tower",
+                  memory: { phase: towerPhase, flipped: towerFlipped },
+                },
+              ];
+            });
+          } else if (pattern.memory.phase === 12) {
+            // shoot homing shot
+            const homingEntity = shootHoming(world, castableEntity, {
+              type: "oakHedge",
+              target: world.getEntityId(heroEntity),
+              positions: [],
+              ttl: 25,
+            });
+            setIdentifier(world, homingEntity, "oak:homing");
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "wait", memory: { ticks: 4 } },
+              {
+                name: "oak_boss",
+                memory: { phase: 13, generation },
+              }
+            );
+          } else if (pattern.memory.phase === 13) {
+            // shoot double circular discs
+            const discSurround = [
+              { x: 3, y: 0 },
+              { x: 3, y: 1 },
+              { x: 1, y: 1 },
+              { x: 1, y: 3 },
+              { x: 0, y: 3 },
+              { x: -1, y: 3 },
+              { x: -1, y: 1 },
+              { x: -3, y: 1 },
+              { x: -3, y: 0 },
+              { x: -3, y: -2 },
+              { x: -2, y: -2 },
+              { x: -2, y: -3 },
+              { x: 0, y: -3 },
+              { x: 2, y: -3 },
+              { x: 2, y: -2 },
+              { x: 3, y: -2 },
+            ];
+            const discCount = 4;
+            const discOffset = 4;
+
+            Array.from({ length: discCount }).forEach((_, index) => {
+              const rotatedDiscs = rotate(discSurround, index * discOffset);
+              const circularDiscs = [...rotatedDiscs, rotatedDiscs[0]];
+              shootHoming(world, castableEntity, {
+                type: "ironDisc",
+                positions: circularDiscs,
+                ttl: 15,
+              });
+              shootHoming(world, castableEntity, {
+                type: "ironDisc",
+                positions: [...reversed(circularDiscs)],
+                ttl: 15,
+              });
+            });
+
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "oak_boss",
+              memory: { phase: 14, generation },
+            });
+          } else if (pattern.memory.phase === 14) {
+            // wait for homing shot to hit
+            const homingEntity = getIdentifier(world, "oak:homing");
+
+            if (!homingEntity) {
+              // suspend towers
+              getIdentifiersAndComponents(world, "oak:tower", [
+                BEHAVIOUR,
+              ]).forEach((entity) => {
+                entity[BEHAVIOUR].patterns = [];
+              });
+
+              patterns.splice(
+                patterns.indexOf(pattern),
+                1,
+
+                { name: "vulnerable", memory: {} },
+                { name: "wait", memory: { ticks: 25 } }
+              );
+            }
+          } else {
+            console.log(pattern.memory.phase);
+            patterns.splice(patterns.indexOf(pattern), 1);
+          }
+          break;
+        } else if (pattern.name === "oak_tower") {
+          if (pattern.memory.phase === 10) {
+            // show rage before shooting discs
+            const discSwirl = [
+              { x: 6, y: 0 },
+              { x: 6, y: -4 },
+              { x: 5, y: -4 },
+              { x: 5, y: 4 },
+              { x: 4, y: 4 },
+              { x: 4, y: -4 },
+              { x: 3, y: -4 },
+              { x: 3, y: 5 },
+            ];
+            const rightTower = signedDistance(0, entity[POSITION].x, size) > 0;
+            const flippedSwirl = discSwirl.map((discPosition) => ({
+              x: rightTower ? discPosition.x : -discPosition.x,
+              y:
+                pattern.memory.flipped !== rightTower
+                  ? -discPosition.y
+                  : discPosition.y,
+            }));
+            const discCount = 7;
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              ...Array.from({ length: discCount })
+                .map(
+                  () =>
+                    [
+                      {
+                        name: "oak_tower",
+                        memory: { phase: 30, discs: flippedSwirl },
+                      },
+                      {
+                        name: "wait",
+                        memory: { ticks: 3 },
+                      },
+                    ] as const
+                )
+                .flat()
+            );
+          } else if (pattern.memory.phase === 20) {
+            // show rage before shooting discs
+            const discQuarter = [
+              { x: 9, y: 0 },
+              { x: 9, y: 1 },
+              { x: 8, y: 1 },
+              { x: 8, y: 3 },
+              { x: 6, y: 3 },
+              { x: 6, y: 4 },
+              { x: 3, y: 4 },
+              { x: 3, y: 5 },
+            ];
+
+            const discHalfRing = discQuarter.concat(
+              ...reversed(
+                discQuarter.map((discPosition) => ({
+                  x: -discPosition.x,
+                  y: discPosition.y,
+                }))
+              )
+            );
+            const rightTower = signedDistance(0, entity[POSITION].x, size) > 0;
+            const flippedHalfRing = discHalfRing.map((discPosition) => ({
+              x: rightTower ? discPosition.x : -discPosition.x,
+              y:
+                pattern.memory.flipped !== rightTower
+                  ? -discPosition.y
+                  : discPosition.y,
+            }));
+            const discCount = 6;
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              ...Array.from({ length: discCount })
+                .map(
+                  () =>
+                    [
+                      {
+                        name: "oak_tower",
+                        memory: { phase: 30, discs: flippedHalfRing },
+                      },
+                      {
+                        name: "wait",
+                        memory: { ticks: 4 },
+                      },
+                    ] as const
+                )
+                .flat()
+            );
+          } else if (pattern.memory.phase === 30) {
+            shootHoming(world, entity, {
+              type: "ironDisc",
+              positions: [...pattern.memory.discs],
+              ttl: 35,
+            });
+            patterns.splice(patterns.indexOf(pattern), 1);
+          }
+          break;
         } else if (pattern.name === "chest_boss") {
           const chaseTicks = 30;
           const healTicks = 45;

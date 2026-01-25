@@ -37,6 +37,7 @@ import {
 } from "../components/orientable";
 import { getLootable } from "./collect";
 import { CONDITIONABLE } from "../components/conditionable";
+import { FRAGMENT } from "../components/fragment";
 
 export const getWarpable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -113,9 +114,13 @@ export const castablePrimary = (
   item: TypedEntity<"ITEM">
 ) => {
   const primary = item[ITEM].primary;
+  const castableEntity = entity[FRAGMENT]
+    ? world.assertByIdAndComponents(entity[FRAGMENT].structure, [STATS])
+    : entity;
 
   // check mana for spells
-  if (entity[STATS] && primary && entity[STATS].mp >= 1) return true;
+  if (castableEntity[STATS] && primary && castableEntity[STATS].mp >= 1)
+    return true;
 
   return false;
 };
@@ -175,7 +180,6 @@ export default function setupAction(world: World) {
       ACTIONABLE,
       MOVABLE,
       RENDERABLE,
-      INVENTORY,
     ])) {
       let warp: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
@@ -300,9 +304,17 @@ export default function setupAction(world: World) {
       }
 
       // check inventory actions
-      const primary = world.getEntityById(entity[EQUIPPABLE]?.primary);
-      const secondary = world.getEntityById(entity[EQUIPPABLE]?.secondary);
-
+      const castableEntity = entity[FRAGMENT]
+        ? world.getEntityByIdAndComponents(entity[FRAGMENT].structure, [
+            EQUIPPABLE,
+          ])
+        : entity;
+      const primary = world.getEntityById(
+        castableEntity?.[EQUIPPABLE]?.primary
+      );
+      const secondary = world.getEntityById(
+        castableEntity?.[EQUIPPABLE]?.secondary
+      );
       const warpId = warp && world.getEntityId(warp);
       const unlockId = unlock && world.getEntityId(unlock);
       const popupId = popup && world.getEntityId(popup);
@@ -313,7 +325,8 @@ export default function setupAction(world: World) {
       const spawnId = spawn && world.getEntityId(spawn);
       const primaryId = primary && world.getEntityId(primary);
       const secondaryId =
-        !isEnemy(world, entity) &&
+        castableEntity &&
+        !isEnemy(world, castableEntity) &&
         (warpId || unlockId || popupId || tradeId || useId || addId || spawnId)
           ? undefined
           : secondary && world.getEntityId(secondary);

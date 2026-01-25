@@ -31,7 +31,11 @@ import { LOOTABLE } from "../engine/components/lootable";
 import { MELEE } from "../engine/components/melee";
 import { MOVABLE } from "../engine/components/movable";
 import { NPC, NpcType, npcTypes } from "../engine/components/npc";
-import { ORIENTABLE, orientations } from "../engine/components/orientable";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientations,
+} from "../engine/components/orientable";
 import { Position, POSITION } from "../engine/components/position";
 import { RECHARGABLE } from "../engine/components/rechargable";
 import { REFERENCE } from "../engine/components/reference";
@@ -142,6 +146,8 @@ import {
   desertPalmBurnt2,
   mapDiscovery,
   scout,
+  oakStem,
+  oakLeaves,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -201,6 +207,7 @@ import {
 import {
   add,
   choice,
+  combine,
   copy,
   distribution,
   normalize,
@@ -709,6 +716,7 @@ export const insertArea = (
       else if (cell === "N") entity = "nomad_door";
       else if (cell === "Y") entity = "chest_tower";
       else if (cell === "y") entity = "chest_tower_statue";
+      else if (cell === "O") entity = "oak_boss";
       else if (cell === "C") entity = "chest_boss";
       else if (cell === "∩") entity = "portal";
       else if (cell === "⌠") entity = "fountain";
@@ -2579,6 +2587,117 @@ export const createCell = (
     );
     setIdentifier(world, towerEntity, "chest_tower");
     return { cell: towerEntity, all };
+  } else if (cell === "oak_boss") {
+    const bossUnit = generateNpcData("oakBoss");
+
+    // create unit and base
+    const bossEntity = entities.createBoss(world, {
+      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [BEHAVIOUR]: { patterns: bossUnit.patterns },
+      [BELONGABLE]: { faction: bossUnit.faction },
+      [COLLIDABLE]: {},
+      [CLICKABLE]: { clicked: false, player: true },
+      [EQUIPPABLE]: {},
+      [FOG]: { visibility, type: "object" },
+      [FRAGMENT]: { structure: -1 },
+      [INVENTORY]: { items: [] },
+      [LAYER]: {},
+      [MELEE]: {},
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: bossUnit.spring || {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [NPC]: { type: bossUnit.type },
+      [ORIENTABLE]: {},
+      [POSITION]: { x, y },
+      [RECHARGABLE]: { hit: false },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: oakLeaves,
+      [STATS]: bossUnit.stats,
+      [STRUCTURABLE]: { scale: 3, offsetY: 3 },
+      [SWIMMABLE]: { swimming: false },
+      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+    });
+    all.push(bossEntity);
+    populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);
+
+    npcSequence(world, bossEntity, "oakNpc", {});
+    setIdentifier(world, bossEntity, "oak_boss");
+    const bossId = world.getEntityId(bossEntity);
+    bossEntity[FRAGMENT].structure = bossId;
+
+    // create stem and leaves
+    const oakLimbs: {
+      offset: Position;
+      sprite: Sprite;
+      orientation?: Orientation;
+    }[] = [
+      { offset: { x: 0, y: 3 }, sprite: oakStem, orientation: "down" },
+      {
+        offset: { x: 0, y: 2 },
+        sprite: oakStem,
+        orientation: choice("left", "right"),
+      },
+      { offset: { x: -2, y: 1 }, sprite: oakLeaves, orientation: "down" },
+      { offset: { x: -1, y: 1 }, sprite: oakLeaves },
+      { offset: { x: 0, y: 1 }, sprite: oakLeaves },
+      { offset: { x: 1, y: 1 }, sprite: oakLeaves },
+      { offset: { x: 2, y: 1 }, sprite: oakLeaves, orientation: "down" },
+      { offset: { x: -2, y: 0 }, sprite: oakLeaves, orientation: "left" },
+      { offset: { x: -1, y: 0 }, sprite: oakLeaves },
+      { offset: { x: 0, y: 0 }, sprite: oakLeaves },
+      { offset: { x: 1, y: 0 }, sprite: oakLeaves },
+      { offset: { x: 2, y: 0 }, sprite: oakLeaves, orientation: "right" },
+      { offset: { x: -1, y: -1 }, sprite: oakLeaves, orientation: "left" },
+      { offset: { x: 0, y: -1 }, sprite: oakLeaves },
+      { offset: { x: 1, y: -1 }, sprite: oakLeaves, orientation: "right" },
+    ];
+
+    for (const { offset, sprite, orientation } of oakLimbs) {
+      const limbEntity = entities.createLimb(world, {
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [COLLIDABLE]: {},
+        [FOG]: { visibility, type: "object" },
+        [FRAGMENT]: { structure: bossId },
+        [LAYER]: {},
+        [MOVABLE]: {
+          bumpGeneration: 0,
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: bossUnit.spring || {
+            duration: 200,
+          },
+          lastInteraction: 0,
+          flying: false,
+        },
+        [ORIENTABLE]: { facing: orientation },
+        [POSITION]: combine(size, { x, y }, offset),
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: sprite,
+      });
+      all.push(limbEntity);
+    }
+
+    // create room
+    const room = entities.createRoom(world, {
+      [LIGHT]: { brightness: 0, darkness: 0, visibility: 0 },
+      [POSITION]: { x: 0, y: 0 },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: none,
+      [VIEWABLE]: { active: false, priority: 50 },
+    });
+    all.push(room);
+    setIdentifier(world, room, "oakRoom");
+
+    return { cell: bossEntity, all };
   } else if (cell === "chest_boss") {
     const bossUnit = generateNpcData("chestBoss");
 
@@ -3015,6 +3134,8 @@ export const createCell = (
       });
     });
     return { cell: all[0], all };
+  } else if (cell !== "air") {
+    console.error(`Invalid cell: "${cell}"!`);
   }
   return { cell: all[0], all };
 };

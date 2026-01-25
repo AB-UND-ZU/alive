@@ -1,7 +1,11 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Structurable = {};
+export type Structurable = {
+  scale?: number;
+  offsetX?: number;
+  offsetY?: number;
+};
 
 export const STRUCTURABLE = "STRUCTURABLE";
 

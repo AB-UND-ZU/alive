@@ -73,7 +73,7 @@ export const getClosestQuadrant = (
 
 export const rotateOrientation = (orientation: Orientation, turns: number) =>
   orientations[
-    (orientations.indexOf(orientation) + turns) % orientations.length
+    normalize(orientations.indexOf(orientation) + turns, orientations.length)
   ];
 
 export const invertOrientation = (orientation: Orientation) =>

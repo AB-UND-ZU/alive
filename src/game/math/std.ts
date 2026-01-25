@@ -136,6 +136,11 @@ export const shuffle = <T>(unshuffled: T[]) =>
     .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value);
 
+export const rotate = <T>(original: T[], clockwise: number) => {
+  const offset = clockwise % original.length;
+  return original.slice(offset).concat(original.slice(0, offset));
+};
+
 export const range = (start: number, endInclusive: number) =>
   Array.from({ length: endInclusive - start + 1 }).map(
     (_, index) => index + start

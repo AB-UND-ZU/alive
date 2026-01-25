@@ -24,6 +24,7 @@ import { lockDoor, removeFromInventory } from "../../engine/systems/trigger";
 import {
   add,
   choice,
+  combine,
   copy,
   getDistance,
   normalize,
@@ -100,7 +101,7 @@ import { isGhost, isRespawning } from "../../engine/systems/fate";
 import { MOVABLE } from "../../engine/components/movable";
 import { TypedEntity } from "../../engine/entities";
 import { COLLIDABLE } from "../../engine/components/collidable";
-import { recolorSprite } from "./pixels";
+import { getCircleOrientations, recolorSprite } from "./pixels";
 import { colors } from "./colors";
 import {
   ORIENTABLE,
@@ -596,8 +597,9 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
               x: (delta.x - iteration.normal.x) * horizontalOffset + offsetX,
               y: (delta.y - iteration.normal.y) * verticalOffset + offsetY,
             };
-            const cornerEntity = entities.createFloat(world, {
-              [FOG]: { visibility: "visible", type: "float" },
+            const cornerEntity = entities.createBarrier(world, {
+              [COLLIDABLE]: {},
+              [FOG]: { visibility: "visible", type: "float", fixed: true },
               [ORIENTABLE]: { facing: iteration.orientation },
               [POSITION]: corner,
               [SPRITE]: barrierCorner,
@@ -611,8 +613,9 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
             );
 
             for (let sideOffset = 1; sideOffset <= length; sideOffset += 1) {
-              const sideEntity = entities.createFloat(world, {
-                [FOG]: { visibility: "visible", type: "float" },
+              const sideEntity = entities.createBarrier(world, {
+                [COLLIDABLE]: {},
+                [FOG]: { visibility: "visible", type: "float", fixed: true },
                 [ORIENTABLE]: { facing: iteration.orientation },
                 [POSITION]: add(
                   {
@@ -1777,6 +1780,105 @@ export const tombstoneNpc: Sequence<NpcSequence> = (world, entity, state) => {
     },
     isCompleted: () => true,
     onLeave: () => END_STEP,
+  });
+
+  return { updated: stage.updated, finished: stage.finished };
+};
+
+const oakBarriers = getCircleOrientations();
+
+export const oakNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const roomEntity = assertIdentifierAndComponents(world, "oakRoom", [
+    LIGHT,
+    VIEWABLE,
+  ]);
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    LIGHT,
+    POSITION,
+    EQUIPPABLE,
+    STATS,
+    SPAWNABLE,
+    INVENTORY,
+  ]);
+
+  if (!heroEntity) {
+    return { finished: stage.finished, updated: stage.updated };
+  }
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => true,
+    onLeave: () => "wait",
+  });
+
+  step({
+    stage,
+    name: "wait",
+    isCompleted: () =>
+      getDistance({ x: 0, y: 0 }, heroEntity[POSITION], size) < 5.43,
+    onLeave: () => "enter",
+  });
+
+  step({
+    stage,
+    name: "leave",
+    forceEnter: () =>
+      state.args.step !== "wait" &&
+      getDistance({ x: 0, y: 0 }, heroEntity[POSITION], size) >= 5.43,
+    isCompleted: () => true,
+    onLeave: () => {
+      heroEntity[LIGHT].brightness = heroEntity[LIGHT].visibility;
+      roomEntity[LIGHT].brightness = 0;
+      roomEntity[LIGHT].visibility = 0;
+      roomEntity[VIEWABLE].active = false;
+
+      return "wait";
+    },
+  });
+
+  step({
+    stage,
+    name: "enter",
+    onEnter: () => {
+      heroEntity[LIGHT].brightness = 0;
+      roomEntity[LIGHT].brightness = 7.2;
+      roomEntity[LIGHT].visibility = 7;
+      roomEntity[VIEWABLE].active = true;
+
+      return true;
+    },
+    isCompleted: () => entity[BELONGABLE].faction !== "unit",
+    onLeave: () => "awaken",
+  });
+
+  step({
+    stage,
+    name: "awaken",
+    onEnter: () => {
+      for (const oakBarrier of oakBarriers) {
+        const target = combine(size, oakBarrier);
+        const barrierEntity = entities.createBarrier(world, {
+          [COLLIDABLE]: {},
+          [FOG]: { visibility: "visible", type: "float", fixed: true },
+          [ORIENTABLE]: { facing: oakBarrier.orientation },
+          [POSITION]: target,
+          [SPRITE]: oakBarrier.corner ? barrierCorner : barrierSide,
+          [RENDERABLE]: { generation: 0 },
+        });
+        setIdentifier(world, barrierEntity, "oak:barrier");
+      }
+      return true;
+    },
   });
 
   return { updated: stage.updated, finished: stage.finished };

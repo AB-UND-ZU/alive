@@ -117,6 +117,7 @@ import {
 } from "../components/conditionable";
 import { SWIMMABLE } from "../components/swimmable";
 import { getClassData } from "../../game/balancing/classes";
+import { FRAGMENT } from "../components/fragment";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -693,21 +694,26 @@ export const completeQuest = (world: World, entity: Entity, target: Entity) => {
 
 export const castSpell = (
   world: World,
-  entity: TypedEntity<"BELONGABLE" | "POSITION">,
+  entity: TypedEntity<"POSITION">,
   item: TypedEntity<"ITEM">
 ) => {
-  if (!item[ITEM].material) return;
-
   // use overriden damage values for NPCs and mobs
-  const spellStats = getAbilityStats(item[ITEM], entity[NPC]?.type);
+  const castableEntity = entity[FRAGMENT]
+    ? world.assertByIdAndComponents(entity[FRAGMENT].structure, [
+        BELONGABLE,
+        STATS,
+        INVENTORY,
+      ])
+    : (entity as TypedEntity<"BELONGABLE">);
+  const spellStats = getAbilityStats(item[ITEM], castableEntity[NPC]?.type);
 
   const spellEntity = entities.createSpell(world, {
-    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+    [BELONGABLE]: { faction: castableEntity[BELONGABLE].faction },
     [CASTABLE]: {
       affected: {},
       ...spellStats,
       retrigger: item[ITEM].primary === "beam" ? 2 : 0,
-      caster: world.getEntityId(entity),
+      caster: world.getEntityId(castableEntity),
     },
     [ORIENTABLE]: { facing: entity[ORIENTABLE]?.facing },
     [POSITION]: copy(entity[POSITION]),
@@ -767,9 +773,9 @@ export const castSpell = (
     play("wave");
   }
 
-  if (entity[STATS] && !isEnemy(world, entity)) {
-    entity[STATS].mp -= 1;
-    rerenderEntity(world, entity);
+  if (castableEntity[STATS] && !isEnemy(world, castableEntity)) {
+    castableEntity[STATS].mp -= 1;
+    rerenderEntity(world, castableEntity);
   }
 };
 
@@ -789,7 +795,6 @@ export default function setupTrigger(world: World) {
 
     for (const entity of world.getEntities([
       ACTIONABLE,
-      BELONGABLE,
       MOVABLE,
       POSITION,
       RENDERABLE,
@@ -1135,9 +1140,9 @@ export default function setupTrigger(world: World) {
           }
         } else if (primaryEntity) {
           const castReady = canCast(world, entity, primaryEntity);
+
           if (
             castReady &&
-            entity[INVENTORY] &&
             castablePrimary(
               world,
               entity as TypedEntity<"INVENTORY">,

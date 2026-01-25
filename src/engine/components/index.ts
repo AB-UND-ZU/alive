@@ -20,6 +20,7 @@ export { default as addFog } from "./fog";
 export { default as addFragment } from "./fragment";
 export { default as addFreezable } from "./freezable";
 export { default as addHarvestable } from "./harvestable";
+export { default as addHoming } from "./homing";
 export { default as addIdentifiable } from "./identifiable";
 export { default as addImmersible } from "./immersible";
 export { default as addInventory } from "./inventory";

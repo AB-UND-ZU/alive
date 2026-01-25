@@ -155,12 +155,10 @@ export default function setupBallistics(world: World) {
     referenceGenerations = generation;
 
     // handle projectile collision
-    for (const entity of world.getEntities([
-      POSITION,
-      PROJECTILE,
-      RENDERABLE,
-      SEQUENCABLE,
-    ])) {
+    const selectedProjectiles = [
+      ...world.getEntities([POSITION, PROJECTILE, RENDERABLE, SEQUENCABLE]),
+    ];
+    for (const entity of selectedProjectiles) {
       // hit crossing enemies
       const isFlying = getSequence(world, entity, "arrow");
       const shootable = getShootable(world, entity[POSITION]);

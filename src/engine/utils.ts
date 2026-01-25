@@ -46,6 +46,13 @@ export const getIdentifier = (world: World, identifier?: string) =>
         .find((entity) => entity[IDENTIFIABLE].name === identifier)
     : undefined;
 
+export const getIdentifiers = (world: World, identifier?: string) =>
+  identifier
+    ? world
+        .getEntities([IDENTIFIABLE])
+        .filter((entity) => entity[IDENTIFIABLE].name === identifier)
+    : [];
+
 export const getIdentifierAndComponents = <C extends keyof Entity>(
   world: World,
   identifier: string,
@@ -54,6 +61,17 @@ export const getIdentifierAndComponents = <C extends keyof Entity>(
   const entity = getIdentifier(world, identifier);
   if (!entity) return;
   return world.getEntityComponents(entity, componentNames);
+};
+
+export const getIdentifiersAndComponents = <C extends keyof Entity>(
+  world: World,
+  identifier: string,
+  componentNames: C[]
+) => {
+  const entities = getIdentifiers(world, identifier);
+  return entities
+    .map((entity) => world.getEntityComponents(entity, componentNames))
+    .filter(Boolean) as TypedEntity<C>[];
 };
 
 export const setHighlight = (

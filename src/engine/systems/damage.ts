@@ -42,6 +42,8 @@ import { getAbilityStats } from "../../game/balancing/abilities";
 import { closePopup, getActivePopup } from "./popup";
 import { Affectable, AFFECTABLE } from "../components/affectable";
 import { extinguishEntity } from "./burn";
+import { FRAGMENT } from "../components/fragment";
+import { getFragment } from "./enter";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isDecaying } from "./drop";
 
@@ -81,10 +83,30 @@ export const isFightable = (world: World, entity: Entity) =>
   ATTACKABLE in entity &&
   !(isDead(world, entity) && !isDecaying(world, entity));
 
-export const getAttackable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
+export const getAttackable = (
+  world: World,
+  position: Position,
+  fragment = false
+) => {
+  const targetEntity = Object.values(getCell(world, position)).find(
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity | undefined;
+
+  if (targetEntity) return targetEntity;
+
+  const fragmentEntity = getFragment(world, position);
+
+  if (!fragmentEntity) return;
+
+  if (fragment) return fragmentEntity;
+
+  const structurableEntity = world.assertById(
+    fragmentEntity[FRAGMENT].structure
+  );
+
+  if (ATTACKABLE in structurableEntity && STATS in structurableEntity)
+    return structurableEntity;
+};
 
 export const getAttackables = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -481,15 +503,18 @@ export default function setupDamage(world: World) {
       );
 
       // create hit marker
+      const fragmentEntity =
+        getAttackable(world, targetPosition, true) || targetEntity;
       createAmountMarker(
         world,
-        targetEntity,
+        fragmentEntity,
         -displayedDamage,
         targetOrientation,
         "melee"
       );
 
       rerenderEntity(world, targetEntity);
+      rerenderEntity(world, fragmentEntity);
     }
   };
 

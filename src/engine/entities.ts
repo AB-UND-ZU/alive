@@ -59,6 +59,7 @@ import { Sticky, STICKY } from "./components/sticky";
 import { Coverable, COVERABLE } from "./components/coverable";
 import { Harvestable, HARVESTABLE } from "./components/harvestable";
 import { Conditionable, CONDITIONABLE } from "./components/conditionable";
+import { Homing, HOMING } from "./components/homing";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -83,6 +84,7 @@ export type Entity = Record<LevelName, {}> & {
   [FRAGMENT]: Fragment;
   [FREEZABLE]: Freezable;
   [HARVESTABLE]: Harvestable;
+  [HOMING]: Homing;
   [IDENTIFIABLE]: Identifiable;
   [IMMERSIBLE]: Immersible;
   [INVENTORY]: Inventory;
@@ -175,6 +177,32 @@ export const createBarrier = entityFactory([
   SPRITE,
 ]);
 
+export const createBoss = entityFactory([
+  ACTIONABLE,
+  BEHAVIOUR,
+  BELONGABLE,
+  CLICKABLE,
+  COLLIDABLE,
+  EQUIPPABLE,
+  FOG,
+  FRAGMENT,
+  INVENTORY,
+  LAYER,
+  MELEE,
+  MOVABLE,
+  NPC,
+  ORIENTABLE,
+  POSITION,
+  RECHARGABLE,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  STATS,
+  STRUCTURABLE,
+  SWIMMABLE,
+  TOOLTIP,
+]);
+
 export const createBox = entityFactory([
   AFFECTABLE,
   ATTACKABLE,
@@ -260,6 +288,33 @@ export const createContainer = entityFactory([
   SEQUENCABLE,
   SPRITE,
   SWIMMABLE,
+]);
+
+export const createElite = entityFactory([
+  ACTIONABLE,
+  AFFECTABLE,
+  ATTACKABLE,
+  BEHAVIOUR,
+  BELONGABLE,
+  DROPPABLE,
+  EQUIPPABLE,
+  FOG,
+  FRAGMENT,
+  INVENTORY,
+  LAYER,
+  MELEE,
+  MOVABLE,
+  NPC,
+  ORIENTABLE,
+  POSITION,
+  RECHARGABLE,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  STATS,
+  STRUCTURABLE,
+  SWIMMABLE,
+  TOOLTIP,
 ]);
 
 export const createForging = entityFactory([
@@ -491,6 +546,19 @@ export const createHighlight = entityFactory([
   TRACKABLE,
 ]);
 
+export const createHoming = entityFactory([
+  BELONGABLE,
+  CASTABLE,
+  EXERTABLE,
+  FOG,
+  HOMING,
+  MOVABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createIce = entityFactory([
   FOG,
   FREEZABLE,
@@ -511,6 +579,20 @@ export const createLever = entityFactory([
   SEQUENCABLE,
   SPRITE,
   TOOLTIP,
+]);
+
+export const createLimb = entityFactory([
+  ACTIONABLE,
+  COLLIDABLE,
+  FOG,
+  FRAGMENT,
+  LAYER,
+  MOVABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
 ]);
 
 export const createMine = entityFactory([
@@ -660,6 +742,14 @@ export const createResource = entityFactory([
   SEQUENCABLE,
   SPRITE,
   STATS,
+]);
+
+export const createRoom = entityFactory([
+  LIGHT,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+  VIEWABLE,
 ]);
 
 export const createRoot = entityFactory([

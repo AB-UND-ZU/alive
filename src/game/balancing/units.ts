@@ -1019,14 +1019,25 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     faction: "unit",
     dormant: true,
     stats: {
-      hp: 200,
+      hp: 300,
       mp: 1,
       armor: 1,
     },
     equipments: [],
     drops: [],
-    patternNames: [],
+    patternNames: ["oak_boss"],
     sprite: oakBoss,
+  },
+  oakTower: {
+    faction: "wild",
+    stats: {
+      hp: 100,
+      armor: 2,
+    },
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: waveTower,
   },
   chestBoss: {
     faction: "unit",

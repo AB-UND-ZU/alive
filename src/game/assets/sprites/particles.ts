@@ -57,23 +57,23 @@ export const keyHole: Sprite = {
 
 export const barrierSide: Sprite = {
   name: "barrier_side",
-  layers: [{ char: "╬", color: colors.red }],
+  layers: [{ char: "╬", color: colors.white }],
   facing: {
-    up: [{ char: "═", color: colors.red }],
-    right: [{ char: "║", color: colors.red }],
-    down: [{ char: "═", color: colors.red }],
-    left: [{ char: "║", color: colors.red }],
+    up: [{ char: "═", color: colors.white }],
+    right: [{ char: "║", color: colors.white }],
+    down: [{ char: "═", color: colors.white }],
+    left: [{ char: "║", color: colors.white }],
   },
 };
 
 export const barrierCorner: Sprite = {
   name: "barrier_corner",
-  layers: [{ char: "╬", color: colors.red }],
+  layers: [{ char: "╬", color: colors.white }],
   facing: {
-    up: [{ char: "╔", color: colors.red }],
-    right: [{ char: "╗", color: colors.red }],
-    down: [{ char: "╝", color: colors.red }],
-    left: [{ char: "╚", color: colors.red }],
+    up: [{ char: "╔", color: colors.white }],
+    right: [{ char: "╗", color: colors.white }],
+    down: [{ char: "╝", color: colors.white }],
+    left: [{ char: "╚", color: colors.white }],
   },
 };
 
@@ -393,6 +393,48 @@ export const ironWave: Sprite = {
   },
 };
 
+export const fireWave: Sprite = {
+  name: "fire_wave",
+  layers: [
+    { char: "┼", color: colors.red },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [{ char: "─", color: colors.red }],
+    right: [{ char: "│", color: colors.red }],
+    down: [{ char: "─", color: colors.red }],
+    left: [{ char: "│", color: colors.red }],
+  },
+};
+
+export const waterWave: Sprite = {
+  name: "water_wave",
+  layers: [
+    { char: "┼", color: colors.blue },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [{ char: "─", color: colors.blue }],
+    right: [{ char: "│", color: colors.blue }],
+    down: [{ char: "─", color: colors.blue }],
+    left: [{ char: "│", color: colors.blue }],
+  },
+};
+
+export const earthWave: Sprite = {
+  name: "earth_wave",
+  layers: [
+    { char: "┼", color: colors.lime },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [{ char: "─", color: colors.lime }],
+    right: [{ char: "│", color: colors.lime }],
+    down: [{ char: "─", color: colors.lime }],
+    left: [{ char: "│", color: colors.lime }],
+  },
+};
+
 export const woodWaveCorner: Sprite = {
   name: "wood_corner",
   layers: [],
@@ -542,6 +584,75 @@ export const ironWaveCorner: Sprite = {
     ],
     left: [
       { char: "┌", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const fireWaveCorner: Sprite = {
+  name: "fire_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.red },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const waterWaveCorner: Sprite = {
+  name: "water_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.blue },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const earthWaveCorner: Sprite = {
+  name: "earth_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.lime },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.lime },
       { char: "·", color: colors.black },
     ],
   },
@@ -866,6 +977,681 @@ export const rubySlashCorner: Sprite = {
     right: [{ char: "┐", color: colors.fuchsia }],
     down: [{ char: "┘", color: colors.fuchsia }],
     left: [{ char: "└", color: colors.fuchsia }],
+  },
+};
+
+export const woodSummon: Sprite = {
+  name: "wood_summon",
+  layers: [
+    { char: "■", color: colors.maroon },
+    { char: "≡", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.maroon },
+    { char: "·", color: colors.black },
+  ],
+};
+
+export const ironSummon: Sprite = {
+  name: "iron_summon",
+  layers: [
+    { char: "■", color: colors.silver },
+    { char: "≡", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.silver },
+    { char: "·", color: colors.black },
+  ],
+};
+
+export const goldSummon: Sprite = {
+  name: "gold_summon",
+  layers: [
+    { char: "■", color: colors.yellow },
+    { char: "≡", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.yellow },
+    { char: "·", color: colors.black },
+  ],
+};
+
+export const diamondSummon: Sprite = {
+  name: "diamond_summon",
+  layers: [
+    { char: "■", color: colors.aqua },
+    { char: "≡", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.aqua },
+    { char: "·", color: colors.black },
+  ],
+};
+
+export const rubySummon: Sprite = {
+  name: "ruby_summon",
+  layers: [
+    { char: "■", color: colors.fuchsia },
+    { char: "≡", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.fuchsia },
+    { char: "·", color: colors.black },
+  ],
+};
+
+export const woodBall: Sprite = {
+  name: "wood_ball",
+  layers: [
+    { char: "\u0108", color: colors.maroon },
+    { char: "\u0106", color: colors.black },
+  ],
+};
+
+export const ironBall: Sprite = {
+  name: "iron_ball",
+  layers: [
+    { char: "\u0108", color: colors.silver },
+    { char: "\u0106", color: colors.grey },
+    { char: "∙", color: colors.black },
+  ],
+};
+
+export const goldBall: Sprite = {
+  name: "gold_ball",
+  layers: [
+    { char: "\u0108", color: colors.yellow },
+    { char: "\u0106", color: colors.olive },
+    { char: "∙", color: colors.black },
+  ],
+};
+
+export const diamondBall: Sprite = {
+  name: "diamond_ball",
+  layers: [
+    { char: "\u0108", color: colors.aqua },
+    { char: "\u0106", color: colors.teal },
+    { char: "∙", color: colors.black },
+  ],
+};
+
+export const rubyBall: Sprite = {
+  name: "ruby_ball",
+  layers: [
+    { char: "\u0108", color: colors.fuchsia },
+    { char: "\u0106", color: colors.purple },
+    { char: "∙", color: colors.black },
+  ],
+};
+
+export const woodHoming: Sprite = {
+  name: "wood_homing",
+  layers: [
+    { char: "*", color: colors.maroon },
+    { char: "■", color: colors.black },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.maroon },
+    { char: "\u0108", color: colors.maroon },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.maroon },
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.maroon },
+    ],
+    right: [
+      { char: "*", color: colors.maroon },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.maroon },
+    ],
+    down: [
+      { char: ".", color: colors.maroon },
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.maroon },
+    ],
+    left: [
+      { char: "\u011a", color: colors.maroon },
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.maroon },
+    ],
+  },
+};
+
+export const ironHoming: Sprite = {
+  name: "iron_homing",
+  layers: [
+    { char: "*", color: colors.silver },
+    { char: "■", color: colors.black },
+    { char: ":", color: colors.silver },
+    { char: ".", color: colors.silver },
+    { char: "\u0108", color: colors.silver },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.silver },
+      { char: "\u0108", color: colors.silver },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.silver },
+    ],
+    right: [
+      { char: "*", color: colors.silver },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.silver },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.silver },
+    ],
+    down: [
+      { char: ".", color: colors.silver },
+      { char: "\u0108", color: colors.silver },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.silver },
+    ],
+    left: [
+      { char: "\u011a", color: colors.silver },
+      { char: "\u0108", color: colors.silver },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.silver },
+    ],
+  },
+};
+
+export const goldHoming: Sprite = {
+  name: "gold_homing",
+  layers: [
+    { char: "*", color: colors.yellow },
+    { char: "■", color: colors.black },
+    { char: ":", color: colors.yellow },
+    { char: ".", color: colors.yellow },
+    { char: "\u0108", color: colors.yellow },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.yellow },
+      { char: "\u0108", color: colors.yellow },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.yellow },
+    ],
+    right: [
+      { char: "*", color: colors.yellow },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.yellow },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.yellow },
+    ],
+    down: [
+      { char: ".", color: colors.yellow },
+      { char: "\u0108", color: colors.yellow },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.yellow },
+    ],
+    left: [
+      { char: "\u011a", color: colors.yellow },
+      { char: "\u0108", color: colors.yellow },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.yellow },
+    ],
+  },
+};
+
+export const diamondHoming: Sprite = {
+  name: "diamond_homing",
+  layers: [
+    { char: "*", color: colors.aqua },
+    { char: "■", color: colors.black },
+    { char: ":", color: colors.aqua },
+    { char: ".", color: colors.aqua },
+    { char: "\u0108", color: colors.aqua },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.aqua },
+      { char: "\u0108", color: colors.aqua },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.aqua },
+    ],
+    right: [
+      { char: "*", color: colors.aqua },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.aqua },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.aqua },
+    ],
+    down: [
+      { char: ".", color: colors.aqua },
+      { char: "\u0108", color: colors.aqua },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.aqua },
+    ],
+    left: [
+      { char: "\u011a", color: colors.aqua },
+      { char: "\u0108", color: colors.aqua },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.aqua },
+    ],
+  },
+};
+
+export const rubyHoming: Sprite = {
+  name: "ruby_homing",
+  layers: [
+    { char: "*", color: colors.fuchsia },
+    { char: "■", color: colors.black },
+    { char: ":", color: colors.fuchsia },
+    { char: ".", color: colors.fuchsia },
+    { char: "\u0108", color: colors.fuchsia },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.fuchsia },
+      { char: "\u0108", color: colors.fuchsia },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.fuchsia },
+    ],
+    right: [
+      { char: "*", color: colors.fuchsia },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.fuchsia },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.fuchsia },
+    ],
+    down: [
+      { char: ".", color: colors.fuchsia },
+      { char: "\u0108", color: colors.fuchsia },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.fuchsia },
+    ],
+    left: [
+      { char: "\u011a", color: colors.fuchsia },
+      { char: "\u0108", color: colors.fuchsia },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.fuchsia },
+    ],
+  },
+};
+
+export const fireHoming: Sprite = {
+  name: "fire_homing",
+  layers: [
+    { char: "*", color: colors.red },
+    { char: "■", color: colors.black },
+    { char: ":", color: colors.red },
+    { char: ".", color: colors.red },
+    { char: "\u0108", color: colors.red },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.red },
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.red },
+    ],
+    right: [
+      { char: "*", color: colors.red },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.red },
+    ],
+    down: [
+      { char: ".", color: colors.red },
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.red },
+    ],
+    left: [
+      { char: "\u011a", color: colors.red },
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.red },
+    ],
+  },
+};
+
+export const waterHoming: Sprite = {
+  name: "water_homing",
+  layers: [
+    { char: "*", color: colors.blue },
+    { char: "■", color: colors.black },
+    { char: ":", color: colors.blue },
+    { char: ".", color: colors.blue },
+    { char: "\u0108", color: colors.blue },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.blue },
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.blue },
+    ],
+    right: [
+      { char: "*", color: colors.blue },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.blue },
+    ],
+    down: [
+      { char: ".", color: colors.blue },
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.blue },
+    ],
+    left: [
+      { char: "\u011a", color: colors.blue },
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.blue },
+    ],
+  },
+};
+
+export const earthHoming: Sprite = {
+  name: "earth_homing",
+  layers: [
+    { char: "*", color: colors.lime },
+    { char: "■", color: colors.black },
+    { char: ":", color: colors.lime },
+    { char: ".", color: colors.lime },
+    { char: "\u0108", color: colors.lime },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.lime },
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.lime },
+    ],
+    right: [
+      { char: "*", color: colors.lime },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.lime },
+    ],
+    down: [
+      { char: ".", color: colors.lime },
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.lime },
+    ],
+    left: [
+      { char: "\u011a", color: colors.lime },
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.black },
+      { char: "∙", color: colors.lime },
+    ],
+  },
+};
+
+export const woodDisc: Sprite = {
+  name: "wood_disc",
+  layers: [
+    { char: "\u0108", color: colors.maroon },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.maroon },
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.black },
+    ],
+    right: [
+      { char: "*", color: colors.maroon },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.black },
+    ],
+    down: [
+      { char: ".", color: colors.maroon },
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.black },
+    ],
+    left: [
+      { char: "\u011a", color: colors.maroon },
+      { char: "\u0108", color: colors.maroon },
+      { char: "\u0106", color: colors.black },
+    ],
+  },
+};
+
+export const ironDisc: Sprite = {
+  name: "iron_disc",
+  layers: [
+    { char: "\u0108", color: colors.silver },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.silver },
+      { char: "\u0108", color: colors.silver },
+      { char: "\u0106", color: colors.black },
+    ],
+    right: [
+      { char: "*", color: colors.silver },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.silver },
+      { char: "\u0106", color: colors.black },
+    ],
+    down: [
+      { char: ".", color: colors.silver },
+      { char: "\u0108", color: colors.silver },
+      { char: "\u0106", color: colors.black },
+    ],
+    left: [
+      { char: "\u011a", color: colors.silver },
+      { char: "\u0108", color: colors.silver },
+      { char: "\u0106", color: colors.black },
+    ],
+  },
+};
+
+export const goldDisc: Sprite = {
+  name: "gold_disc",
+  layers: [
+    { char: "\u0108", color: colors.yellow },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.yellow },
+      { char: "\u0108", color: colors.yellow },
+      { char: "\u0106", color: colors.black },
+    ],
+    right: [
+      { char: "*", color: colors.yellow },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.yellow },
+      { char: "\u0106", color: colors.black },
+    ],
+    down: [
+      { char: ".", color: colors.yellow },
+      { char: "\u0108", color: colors.yellow },
+      { char: "\u0106", color: colors.black },
+    ],
+    left: [
+      { char: "\u011a", color: colors.yellow },
+      { char: "\u0108", color: colors.yellow },
+      { char: "\u0106", color: colors.black },
+    ],
+  },
+};
+
+export const diamondDisc: Sprite = {
+  name: "diamond_disc",
+  layers: [
+    { char: "\u0108", color: colors.aqua },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.aqua },
+      { char: "\u0108", color: colors.aqua },
+      { char: "\u0106", color: colors.black },
+    ],
+    right: [
+      { char: "*", color: colors.aqua },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.aqua },
+      { char: "\u0106", color: colors.black },
+    ],
+    down: [
+      { char: ".", color: colors.aqua },
+      { char: "\u0108", color: colors.aqua },
+      { char: "\u0106", color: colors.black },
+    ],
+    left: [
+      { char: "\u011a", color: colors.aqua },
+      { char: "\u0108", color: colors.aqua },
+      { char: "\u0106", color: colors.black },
+    ],
+  },
+};
+
+export const rubyDisc: Sprite = {
+  name: "ruby_disc",
+  layers: [
+    { char: "\u0108", color: colors.fuchsia },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.fuchsia },
+      { char: "\u0108", color: colors.fuchsia },
+      { char: "\u0106", color: colors.black },
+    ],
+    right: [
+      { char: "*", color: colors.fuchsia },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.fuchsia },
+      { char: "\u0106", color: colors.black },
+    ],
+    down: [
+      { char: ".", color: colors.fuchsia },
+      { char: "\u0108", color: colors.fuchsia },
+      { char: "\u0106", color: colors.black },
+    ],
+    left: [
+      { char: "\u011a", color: colors.fuchsia },
+      { char: "\u0108", color: colors.fuchsia },
+      { char: "\u0106", color: colors.black },
+    ],
+  },
+};
+
+export const fireDisc: Sprite = {
+  name: "fire_disc",
+  layers: [
+    { char: "\u0108", color: colors.red },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.red },
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.black },
+    ],
+    right: [
+      { char: "*", color: colors.red },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.black },
+    ],
+    down: [
+      { char: ".", color: colors.red },
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.black },
+    ],
+    left: [
+      { char: "\u011a", color: colors.red },
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.black },
+    ],
+  },
+};
+
+export const waterDisc: Sprite = {
+  name: "water_disc",
+  layers: [
+    { char: "\u0108", color: colors.blue },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.blue },
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.black },
+    ],
+    right: [
+      { char: "*", color: colors.blue },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.black },
+    ],
+    down: [
+      { char: ".", color: colors.blue },
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.black },
+    ],
+    left: [
+      { char: "\u011a", color: colors.blue },
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.black },
+    ],
+  },
+};
+
+export const earthDisc: Sprite = {
+  name: "earth_disc",
+  layers: [
+    { char: "\u0108", color: colors.lime },
+    { char: "\u0106", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: ":", color: colors.lime },
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.black },
+    ],
+    right: [
+      { char: "*", color: colors.lime },
+      { char: "\u011a", color: colors.black },
+      { char: "■", color: colors.black },
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.black },
+    ],
+    down: [
+      { char: ".", color: colors.lime },
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.black },
+    ],
+    left: [
+      { char: "\u011a", color: colors.lime },
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.black },
+    ],
   },
 };
 
@@ -2292,6 +3078,9 @@ export const parseSprite = (definition: string) => {
       .filter((layer) => !!layer) as Sprite["layers"],
   };
 };
+
+export const parseSprites = (line: string) =>
+  line.split(" ").map((definition) => parseSprite(definition));
 
 export const stretch = (left: Sprite[], right: Sprite[], width: number) =>
   [

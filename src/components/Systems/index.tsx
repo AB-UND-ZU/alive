@@ -28,6 +28,7 @@ import { TypedEntity } from "../../engine/entities";
 import { CASTABLE } from "../../engine/components/castable";
 import { getClosestQuadrant } from "../../game/math/path";
 import { STICKY } from "../../engine/components/sticky";
+import { HOMING } from "../../engine/components/homing";
 
 const shakeFactor = 0.1;
 const shakeSpring = { duration: 50 };
@@ -54,7 +55,7 @@ export default function Systems() {
   }));
   const elapsedRef = useRef(systemsFrame);
   const stickyCastables = useRef<Record<number, Position>>({});
-  
+
   // rerender on explicit systems updates
   useRenderable([RENDERABLE], "renderer");
 
@@ -174,7 +175,7 @@ export default function Systems() {
         if (
           !(RENDERABLE in entity) ||
           !(SPRITE in entity) ||
-          CASTABLE in entity ||
+          (CASTABLE in entity && !(HOMING in entity)) ||
           STICKY in entity
         )
           continue;
@@ -194,6 +195,8 @@ export default function Systems() {
   // find closest quadrant to virtually place all castables
   const castableEntities = ecs.getEntities([CASTABLE, POSITION]);
   for (const entity of castableEntities) {
+    if (HOMING in entity) continue;
+
     const entityId = ecs.getEntityId(entity);
     let castableQuadrant = stickyCastables.current[entityId];
 

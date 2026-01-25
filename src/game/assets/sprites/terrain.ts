@@ -263,6 +263,25 @@ export const hedge2: Sprite = {
   ],
 };
 
+export const hedgeDry1: Sprite = {
+  name: "hedge_one_dry",
+  layers: [
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+    { char: "\u0104", color: colors.green },
+  ],
+};
+
+export const hedgeDry2: Sprite = {
+  name: "hedge_two_dry",
+  layers: [
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+    { char: "ß", color: colors.green },
+    { char: "!", color: colors.green },
+  ],
+};
+
 export const tree1: Sprite = {
   name: "tree_one",
   layers: [

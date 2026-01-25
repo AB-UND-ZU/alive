@@ -4,7 +4,6 @@ import { LEVEL } from "../components/level";
 import { RENDERABLE } from "../components/renderable";
 import { normalize } from "../../game/math/std";
 import { FOG, Fog } from "../components/fog";
-import { PLAYER } from "../components/player";
 import { Light, LIGHT } from "../components/light";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { traceCircularVisiblity } from "../../game/math/tracing";
@@ -18,6 +17,7 @@ import { LAYER } from "../components/layer";
 import { Entity } from "ecs";
 import { getEntityStats } from "./damage";
 import { levelConfig } from "../../game/levels";
+import { VIEWABLE } from "../components/viewable";
 
 type PendingChanges = Record<
   number,
@@ -182,9 +182,14 @@ export default function setupVisibility(world: World) {
   let referencesGeneration = -1;
 
   const onUpdate = (delta: number) => {
-    const hero = world.getEntity([PLAYER, LIGHT, POSITION]);
+    const revealables = world
+      .getEntities([LIGHT, POSITION, VIEWABLE])
+      .filter((entity) => entity[LIGHT].visibility > 0);
 
-    if (!hero || world.metadata.gameEntity[LEVEL].initialized.length === 0)
+    if (
+      revealables.length === 0 ||
+      world.metadata.gameEntity[LEVEL].initialized.length === 0
+    )
       return;
 
     const generation = world
@@ -194,43 +199,50 @@ export default function setupVisibility(world: World) {
     if (referencesGeneration === generation) return;
 
     referencesGeneration = generation;
-
-    const radius = hero[LIGHT].visibility;
-    const flooredRadius = radius < aspectRatio ? 0 : radius;
-
-    const visionHorizontal = Math.ceil(flooredRadius / aspectRatio);
-    const visionVertical = Math.ceil(flooredRadius);
     const pendingChanges: PendingChanges = {};
 
-    // apply fog with one extra cell around player
-    for (let x = 0; x < visionHorizontal * 2 + 3; x += 1) {
-      for (let y = 0; y < visionVertical * 2 + 3; y += 1) {
-        markVisibility(
-          world,
-          pendingChanges,
-          x - (visionHorizontal + 1) + hero[POSITION].x,
-          y - (visionVertical + 1) + hero[POSITION].y,
-          "fog"
-        );
+    // apply fog with one extra cell around revealables
+    for (const revealable of revealables) {
+      const radius = revealable[LIGHT].visibility;
+      const flooredRadius = radius < aspectRatio ? 0 : radius;
+
+      const visionHorizontal = Math.ceil(flooredRadius / aspectRatio);
+      const visionVertical = Math.ceil(flooredRadius);
+
+      for (let x = 0; x < visionHorizontal * 2 + 3; x += 1) {
+        for (let y = 0; y < visionVertical * 2 + 3; y += 1) {
+          markVisibility(
+            world,
+            pendingChanges,
+            x - (visionHorizontal + 1) + revealable[POSITION].x,
+            y - (visionVertical + 1) + revealable[POSITION].y,
+            "fog"
+          );
+        }
       }
     }
 
     // reveal visible area
-    const visibleCells = traceCircularVisiblity(
-      world,
-      hero[POSITION],
-      flooredRadius
-    );
+    for (const revealable of revealables) {
+      const radius = revealable[LIGHT].visibility;
+      const flooredRadius = radius < aspectRatio ? 0 : radius;
+      const visibleCells = traceCircularVisiblity(
+        world,
+        revealable[POSITION],
+        flooredRadius
+      );
 
-    for (const cell of visibleCells) {
-      markVisibility(world, pendingChanges, cell.x, cell.y, "visible");
-    }
+      for (const cell of visibleCells) {
+        markVisibility(world, pendingChanges, cell.x, cell.y, "visible");
+      }
 
-    // show all entities within hero layer
-    const layerCells = flooredRadius === 0 ? [] : getLayerCells(world, hero);
+      // show all entities within hero layer
+      const layerCells =
+        flooredRadius === 0 ? [] : getLayerCells(world, revealable);
 
-    for (const cell of layerCells) {
-      markVisibility(world, pendingChanges, cell.x, cell.y, "visible");
+      for (const cell of layerCells) {
+        markVisibility(world, pendingChanges, cell.x, cell.y, "visible");
+      }
     }
 
     // apply changes

@@ -46,6 +46,9 @@ export const abilityStats: Partial<
           heal: 2,
         },
       },
+      iron: {
+        magic: 6,
+      },
     },
     beam: {
       wood: {
@@ -106,6 +109,22 @@ export const abilityStats: Partial<
     bow: {
       wood: {
         melee: 1,
+      },
+    },
+  },
+
+  oakBoss: {
+    wave: {
+      iron: {
+        magic: 3,
+      },
+    },
+  },
+
+  oakTower: {
+    wave: {
+      iron: {
+        magic: 3,
       },
     },
   },

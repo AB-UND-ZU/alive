@@ -200,6 +200,12 @@ import {
   mapZoom3,
   mapPlayer,
   mapZoom4,
+  fireWave,
+  waterWave,
+  earthWave,
+  fireWaveCorner,
+  waterWaveCorner,
+  earthWaveCorner,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -811,6 +817,7 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
 const beamSpeed = 100;
 const beamTicks = 3;
 const edgeSprites = {
+  default: woodEdge,
   wood: woodEdge,
   iron: ironEdge,
   gold: goldEdge,
@@ -847,7 +854,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const progress = Math.ceil(state.elapsed / beamSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
-  const material = state.args.material;
+  const material = state.args.material || "wood";
   const element = state.args.element || "default";
   const limit = {
     x: delta.x * state.args.range,
@@ -1012,7 +1019,7 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const progress = Math.ceil(state.elapsed / boltSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
-  const material = state.args.material;
+  const material = state.args.material || "wood";
   const element = state.args.element || "default";
   const limit = {
     x: delta.x * state.args.range,
@@ -3355,8 +3362,13 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
 const waveSpeed = 350;
 const waveDissolve = 1;
 const waveSprites: Partial<
-  Record<Material, Partial<Record<Element | "default", Sprite>>>
+  Record<Material | "default", Partial<Record<Element | "default", Sprite>>>
 > = {
+  default: {
+    fire: fireWave,
+    water: waterWave,
+    earth: earthWave,
+  },
   wood: {
     default: woodWave,
     air: woodAirWave,
@@ -3369,8 +3381,13 @@ const waveSprites: Partial<
   },
 };
 const waveCornerSprites: Partial<
-  Record<Material, Partial<Record<Element | "default", Sprite>>>
+  Record<Material | "default", Partial<Record<Element | "default", Sprite>>>
 > = {
+  default: {
+    fire: fireWaveCorner,
+    water: waterWaveCorner,
+    earth: earthWaveCorner,
+  },
   wood: {
     default: woodWaveCorner,
     air: woodAirWaveCorner,
@@ -3390,7 +3407,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 
   const outerRadius = Math.ceil(state.elapsed / waveSpeed);
   const innerRadius = Math.round(state.elapsed / waveSpeed);
-  const material = state.args.material;
+  const material = state.args.material || "default";
   const element = state.args.element || "default";
 
   // create wave sides, initial corners and AoE
@@ -3592,7 +3609,9 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
       // only show elements on inner corners
       const cornerSprite =
         waveCornerSprites[material]?.[
-          particleName.startsWith("inner") ? element : "default"
+          particleName.startsWith("inner") || material === "default"
+            ? element
+            : "default"
         ] || woodWaveCorner;
       if (waveParticle[SPRITE] === cornerSprite) continue;
 

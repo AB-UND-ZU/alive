@@ -92,7 +92,7 @@ export default function setupText(world: World) {
       const inRange =
         !hero ||
         getDistance(hero[POSITION], tooltipEntity[POSITION], size) <
-          hero[SPAWNABLE].light.visibility + 2;
+          hero[SPAWNABLE].light.visibility + 4;
 
       // ignore self and out of range
       if (

@@ -661,6 +661,17 @@ export const rainbowShield: Sprite = {
   layers: [{ char: "¬", color: colors.white }],
 };
 
+export const woodShovel: Sprite = {
+  name: "Shovel",
+  layers: [
+    { char: "I", color: colors.maroon },
+    { char: "i", color: colors.black },
+    { char: "\u0118", color: colors.grey },
+    { char: "|", color: colors.maroon },
+    { char: ".", color: colors.grey },
+  ],
+};
+
 export const woodAxe: Sprite = {
   name: "Axe",
   layers: [
@@ -671,7 +682,7 @@ export const woodAxe: Sprite = {
   ],
 };
 
-export const pickaxe: Sprite = {
+export const woodPickaxe: Sprite = {
   name: "Pickaxe",
   layers: [
     { char: "\u0119", color: colors.grey },
