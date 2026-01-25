@@ -1023,7 +1023,15 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       mp: 1,
       armor: 1,
     },
-    equipments: [],
+    equipments: [
+      {
+        equipment: "primary",
+        primary: "wave",
+        material: "iron",
+        bound: true,
+        amount: 1,
+      },
+    ],
     drops: [],
     patternNames: ["oak_boss"],
     sprite: oakBoss,
@@ -1031,13 +1039,22 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   oakTower: {
     faction: "wild",
     stats: {
-      hp: 100,
+      hp: 50,
+      mp: 1,
       armor: 2,
     },
-    equipments: [],
+    equipments: [
+      {
+        equipment: "primary",
+        primary: "wave",
+        material: "iron",
+        bound: true,
+        amount: 1,
+      },
+    ],
     drops: [],
     patternNames: [],
-    sprite: waveTower,
+    sprite: { ...waveTower, name: "" },
   },
   chestBoss: {
     faction: "unit",

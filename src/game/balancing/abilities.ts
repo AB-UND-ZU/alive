@@ -116,7 +116,7 @@ export const abilityStats: Partial<
   oakBoss: {
     wave: {
       iron: {
-        magic: 3,
+        magic: 2,
       },
     },
   },
@@ -124,7 +124,7 @@ export const abilityStats: Partial<
   oakTower: {
     wave: {
       iron: {
-        magic: 3,
+        magic: 2,
       },
     },
   },

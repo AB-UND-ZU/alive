@@ -1418,9 +1418,7 @@ export default function setupAi(world: World) {
           if (!pattern.memory.phase) {
             pattern.memory.phase = 0;
           }
-          if (!pattern.memory.generation) {
-            pattern.memory.generation = generation;
-          }
+
           const distance = heroEntity
             ? getDistance({ x: 0, y: 0 }, heroEntity[POSITION], size)
             : Infinity;
@@ -1632,7 +1630,7 @@ export default function setupAi(world: World) {
               { name: "wait", memory: { ticks: 4 } },
               {
                 name: "oak_boss",
-                memory: { phase: 13, generation },
+                memory: { phase: 13 },
               }
             );
           } else if (pattern.memory.phase === 13) {
@@ -1697,6 +1695,57 @@ export default function setupAi(world: World) {
                 { name: "wait", memory: { ticks: 25 } }
               );
             }
+          } else if (pattern.memory.phase === 20) {
+            // queue phase several times
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              ...Array.from({ length: 5 }).map(
+                () => ({ name: "oak_boss", memory: { phase: 21 } } as const)
+              )
+            );
+          } else if (pattern.memory.phase === 21) {
+            // become vulnerable and rage before wave, and queue towers
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "oak_boss", memory: { phase: 22 } }
+            );
+
+            const availableTowers = getIdentifiersAndComponents(
+              world,
+              "oak:tower",
+              [BEHAVIOUR]
+            );
+            availableTowers.forEach((towerEntity) => {
+              towerEntity[BEHAVIOUR].patterns = [
+                { name: "wait", memory: { ticks: random(5, 13) } },
+                { name: "dialog", memory: { idle: rage } },
+                { name: "wait", memory: { ticks: 2 } },
+                { name: "dialog", memory: { idle: undefined } },
+                { name: "action", memory: { primary: true } },
+              ];
+            });
+          } else if (pattern.memory.phase === 22) {
+            // cast wave
+            castSpell(world, castableEntity, {
+              [ITEM]: {
+                carrier: -1,
+                bound: false,
+                amount: 1,
+                equipment: "primary",
+                primary: "wave",
+                material: "iron",
+              },
+            });
+
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "wait",
+              memory: { ticks: 15 },
+            });
           } else {
             console.log(pattern.memory.phase);
             patterns.splice(patterns.indexOf(pattern), 1);
@@ -1712,8 +1761,6 @@ export default function setupAi(world: World) {
               { x: 5, y: 4 },
               { x: 4, y: 4 },
               { x: 4, y: -4 },
-              { x: 3, y: -4 },
-              { x: 3, y: 5 },
             ];
             const rightTower = signedDistance(0, entity[POSITION].x, size) > 0;
             const flippedSwirl = discSwirl.map((discPosition) => ({
