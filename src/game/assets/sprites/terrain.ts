@@ -352,6 +352,62 @@ export const oakBurnt: Sprite = {
   ],
 };
 
+export const avodadoStem: Sprite = {
+  name: "avocado_stem",
+  layers: [{ char: "│", color: colors.maroon }],
+};
+
+export const avodadoLeaves: Sprite = {
+  name: "avocado_leaves",
+  layers: [
+    { char: "█", color: colors.green },
+    { char: "▓", color: colors.black },
+    { char: "┼", color: colors.green },
+    { char: "_", color: colors.green },
+  ],
+  facing: {
+    down: [
+      { char: "█", color: colors.green },
+      { char: "▓", color: colors.black },
+      { char: "┼", color: colors.green },
+      { char: "_", color: colors.green },
+      { char: "▀", color: colors.black },
+    ],
+  },
+};
+
+export const mahagonyStemLeft: Sprite = {
+  name: "mahagony_stem_left",
+  layers: [
+    { char: "\u0106", color: colors.maroon },
+    { char: "\u0107", color: colors.maroon },
+    { char: "▌", color: colors.black },
+    { char: "│", color: colors.black },
+  ],
+};
+
+export const mahagonyStemRight: Sprite = {
+  name: "mahagony_stem_right",
+  layers: [
+    { char: "▌", color: colors.maroon },
+    { char: "│", color: colors.black },
+  ],
+};
+
+export const mahagonyLeaves: Sprite = {
+  name: "mahagony_leaves",
+  layers: [
+    { char: "█", color: colors.green },
+    { char: "▒", color: colors.black },
+  ],
+  facing: {
+    down: [
+      { char: "▄", color: colors.green },
+      { char: "▒", color: colors.black },
+    ],
+  },
+};
+
 export const bush: Sprite = {
   name: "bush_empty",
   layers: [{ char: "\u03c4", color: colors.olive }],

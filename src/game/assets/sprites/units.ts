@@ -526,6 +526,76 @@ export const tumbleweed: Sprite = {
   },
 };
 
+export const vineGrown: Sprite = {
+  name: "vine_grown",
+  layers: [
+    { char: "┼", color: colors.olive },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: "┌", color: colors.olive },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┐", color: colors.olive },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "┘", color: colors.olive },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "└", color: colors.olive },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const vineHanging: Sprite = {
+  name: "vine_hanging",
+  layers: [
+    { char: "│", color: colors.olive },
+    { char: "|", color: colors.black },
+    { char: "{", color: colors.olive },
+    { char: "}", color: colors.olive },
+  ],
+  facing: {
+    up: [
+      { char: "│", color: colors.olive },
+      { char: "|", color: colors.black },
+      { char: "}", color: colors.olive },
+      { char: "▄", color: colors.black },
+      { char: "∙", color: colors.olive },
+    ],
+    right: [
+      { char: "│", color: colors.olive },
+      { char: "|", color: colors.black },
+      { char: "}", color: colors.olive },
+    ],
+    down: [
+      { char: "│", color: colors.olive },
+      { char: "|", color: colors.black },
+      { char: "{", color: colors.olive },
+      { char: "▄", color: colors.black },
+      { char: "∙", color: colors.olive },
+    ],
+    left: [
+      { char: "│", color: colors.olive },
+      { char: "|", color: colors.black },
+      { char: "{", color: colors.olive },
+    ],
+  },
+};
+
+export const bamboo: Sprite = {
+  name: "Bamboo",
+  layers: [
+    { char: "║", color: colors.green },
+    { char: "░", color: colors.black },
+  ],
+};
+
 export const portal: Sprite = {
   name: "Portal",
   layers: [{ char: "∩", color: colors.silver }],
@@ -557,4 +627,14 @@ export const portalVortex: Sprite = {
 export const portalEntered: Sprite = {
   name: "",
   layers: [{ char: "▒", color: colors.black }],
+};
+
+export const egg: Sprite = {
+  name: "Egg",
+  layers: [
+    { char: "!", color: colors.white },
+    { char: "0", color: colors.black },
+    { char: "\u0106", color: colors.white },
+    { char: "\u0108", color: colors.white },
+  ],
 };

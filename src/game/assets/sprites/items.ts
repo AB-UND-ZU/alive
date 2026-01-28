@@ -671,3 +671,79 @@ export const rainbowGem: Sprite = {
     { char: "-", color: colors.yellow },
   ],
 };
+
+export const vine: Sprite = {
+  name: "Vine",
+  layers: [
+    { char: "\u0119", color: colors.olive },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.olive },
+    { char: ":", color: colors.olive },
+  ],
+};
+
+export const avocadoOpen: Sprite = {
+  name: "Avocado",
+  layers: [
+    { char: "!", color: colors.green },
+    { char: "|", color: colors.grey },
+    { char: ":", color: colors.green },
+    { char: "+", color: colors.green },
+    { char: ".", color: colors.black },
+    { char: "=", color: colors.green },
+    { char: "\u0106", color: colors.lime },
+    { char: "\u0108", color: colors.green },
+  ],
+};
+
+export const avocadoSeed: Sprite = {
+  name: "Avocado",
+  layers: [
+    { char: "!", color: colors.green },
+    { char: ".", color: colors.black },
+    { char: "=", color: colors.green },
+    { char: "\u0106", color: colors.lime },
+    { char: "\u0108", color: colors.green },
+    { char: "∙", color: colors.maroon },
+  ],
+};
+
+export const avocadoClosed: Sprite = {
+  name: "Avocado",
+  layers: [
+    { char: "!", color: colors.maroon },
+    { char: "|", color: colors.grey },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.black },
+    { char: "=", color: colors.maroon },
+    { char: "\u0106", color: colors.maroon },
+    { char: "\u0108", color: colors.maroon },
+  ],
+};
+
+export const avocadoHanging: Sprite = {
+  name: "Avocado",
+  layers: [
+    { char: "┘", color: colors.grey },
+    { char: "┐", color: colors.black },
+    { char: "!", color: colors.maroon },
+    { char: "|", color: colors.grey },
+    { char: ":", color: colors.maroon },
+    { char: ".", color: colors.black },
+    { char: "=", color: colors.maroon },
+    { char: "\u0106", color: colors.maroon },
+    { char: "\u0108", color: colors.maroon },
+  ],
+};
+
+export const lemon: Sprite = {
+  name: "Lemon",
+  layers: [
+    { char: "`", color: colors.maroon },
+    { char: "'", color: colors.green },
+    { char: ":", color: colors.yellow },
+    { char: "\u0106", color: colors.yellow },
+    { char: "\u0108", color: colors.yellow },
+    { char: ".", color: colors.yellow },
+  ],
+};
