@@ -16,6 +16,7 @@ import { entities } from "..";
 import { Sprite, SPRITE } from "../components/sprite";
 import {
   earthHoming,
+  goldDisc,
   hedgeDry1,
   hedgeDry2,
   ironDisc,
@@ -38,6 +39,7 @@ import { DROPPABLE } from "../components/droppable";
 import { setIdentifier } from "../utils";
 import { createCell } from "../../bindings/creation";
 import { relativeOrientations } from "../../game/math/path";
+import { CONDITIONABLE } from "../components/conditionable";
 
 export const decayHoming = (world: World, entity: Entity) => {
   entity[HOMING].decayedGeneration =
@@ -57,9 +59,10 @@ const discConfig: Record<
   Homing["type"],
   { sprite: Sprite } & Partial<Castable>
 > = {
-  oakTower: { sprite: ironSummon, magic: 3, retrigger: 10 },
+  oakTower: { sprite: ironSummon, magic: 4, retrigger: 10 },
   oakHedge: { sprite: earthHoming },
   ironDisc: { sprite: ironDisc, magic: 1 },
+  goldDisc: { sprite: goldDisc, magic: 2 },
 };
 
 const HOMING_TTL = 30;
@@ -155,7 +158,21 @@ export default function setupHoming(world: World) {
       if (!isHomingDisposable(world, entity)) continue;
 
       const affectedId = Object.keys(entity[CASTABLE].affected)[0];
-      const hasAffected = !!world.getEntityById(parseInt(affectedId));
+      const affectedEntity = world.getEntityById(parseInt(affectedId));
+
+      // prevent if bubble is active
+      let hasAffected = !!affectedEntity;
+
+      if (affectedEntity && affectedEntity[CONDITIONABLE]?.block) {
+        affectedEntity[CONDITIONABLE].block.amount -= 1;
+
+        if (affectedEntity[CONDITIONABLE].block.amount <= 0) {
+          delete affectedEntity[CONDITIONABLE].block;
+        }
+
+        hasAffected = false;
+      }
+
       const nextPosition = entity[HOMING].positions[0];
       const reached =
         nextPosition &&

@@ -206,6 +206,12 @@ import {
   fireWaveCorner,
   waterWaveCorner,
   earthWaveCorner,
+  airBolt,
+  fireBolt,
+  waterBolt,
+  earthBolt,
+  goldWave,
+  goldWaveCorner,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -825,9 +831,16 @@ const edgeSprites = {
   ruby: rubyEdge,
 };
 const boltSprites: Record<
-  Material,
+  Material | "default",
   { default: Sprite } & Partial<Record<Element, Sprite>>
 > = {
+  default: {
+    default: woodBolt,
+    air: airBolt,
+    fire: fireBolt,
+    water: waterBolt,
+    earth: earthBolt,
+  },
   wood: {
     default: woodBolt,
 
@@ -854,7 +867,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const progress = Math.ceil(state.elapsed / beamSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
-  const material = state.args.material || "wood";
+  const material = state.args.material || "default";
   const element = state.args.element || "default";
   const limit = {
     x: delta.x * state.args.range,
@@ -1019,7 +1032,7 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const progress = Math.ceil(state.elapsed / boltSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
-  const material = state.args.material || "wood";
+  const material = state.args.material || "default";
   const element = state.args.element || "default";
   const limit = {
     x: delta.x * state.args.range,
@@ -3379,6 +3392,9 @@ const waveSprites: Partial<
   iron: {
     default: ironWave,
   },
+  gold: {
+    default: goldWave,
+  },
 };
 const waveCornerSprites: Partial<
   Record<Material | "default", Partial<Record<Element | "default", Sprite>>>
@@ -3397,6 +3413,9 @@ const waveCornerSprites: Partial<
   },
   iron: {
     default: ironWaveCorner,
+  },
+  gold: {
+    default: goldWaveCorner,
   },
 };
 

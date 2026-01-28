@@ -19,7 +19,7 @@ export const gearStats: Partial<
         Equipment,
         Partial<
           Record<
-            Material,
+            Material | "default",
             Partial<ItemStats> & Partial<Record<Element, Partial<ItemStats>>>
           >
         >
@@ -53,6 +53,12 @@ export const gearStats: Partial<
       gold: { melee: 6 },
       diamond: { melee: 8 },
       ruby: { melee: 10 },
+
+      default: {
+        earth: {
+          heal: 2,
+        },
+      },
     },
     shield: {
       wood: {
@@ -180,6 +186,13 @@ export const gearStats: Partial<
       gold: { melee: 5 },
     },
   },
+  oakClover: {
+    sword: {
+      default: {
+        earth: { heal: 1 },
+      },
+    },
+  },
 };
 
 export const lookupEquipmentStats = (
@@ -200,18 +213,16 @@ export const getEquipmentStats = (
   caster: NpcType | "default" = "default"
 ): ItemStats => {
   const { equipment, material, element } = item;
-  const itemStats =
-    equipment && material
-      ? element
-        ? lookupEquipmentStats(
-            (stats) => stats?.[equipment]?.[material]?.[element],
-            caster
-          )
-        : lookupEquipmentStats(
-            (stats) => stats?.[equipment]?.[material],
-            caster
-          )
-      : {};
+  const itemStats = equipment
+    ? element
+      ? lookupEquipmentStats(
+          (stats) => stats?.[equipment]?.[material || "default"]?.[element],
+          caster
+        )
+      : material
+      ? lookupEquipmentStats((stats) => stats?.[equipment]?.[material], caster)
+      : {}
+    : {};
 
   return {
     ...emptyItemStats,

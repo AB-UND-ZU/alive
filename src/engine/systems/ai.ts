@@ -101,6 +101,7 @@ import { CLICKABLE } from "../components/clickable";
 import { getEmptyAffectable } from "../components/affectable";
 import { HARVESTABLE } from "../components/harvestable";
 import { shootHoming } from "./homing";
+import { EQUIPPABLE } from "../components/equippable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -1127,11 +1128,14 @@ export default function setupAi(world: World) {
           }
         } else if (
           pattern.name === "kill" ||
+          pattern.name === "heal" ||
           pattern.name === "unlock" ||
           pattern.name === "collect" ||
           pattern.name === "drop"
         ) {
-          const movablePattern = ["kill", "collect"].includes(pattern.name);
+          const movablePattern = ["kill", "heal", "collect"].includes(
+            pattern.name
+          );
           const placementPattern = ["drop", "sell"].includes(pattern.name);
           const memory = pattern.memory;
           const itemEntity =
@@ -1159,6 +1163,12 @@ export default function setupAi(world: World) {
             (!targetEntity ||
               isDead(world, targetEntity) ||
               isFriendlyFire(world, entity, targetEntity));
+          const healed =
+            pattern.name === "heal" &&
+            (!targetEntity ||
+              !targetEntity[STATS] ||
+              targetEntity[STATS].hp >= targetEntity[STATS].maxHp ||
+              !isFriendlyFire(world, entity, targetEntity));
           const collected =
             pattern.name === "collect" &&
             (!itemEntity ||
@@ -1173,7 +1183,7 @@ export default function setupAi(world: World) {
             targetEntity &&
             !isLocked(world, targetEntity);
 
-          if (killed || unlocked || collected || dropped) {
+          if (killed || healed || unlocked || collected || dropped) {
             patterns.splice(patterns.indexOf(pattern), 1);
             continue;
           }
@@ -1282,6 +1292,11 @@ export default function setupAi(world: World) {
               },
               entity[POSITION]
             );
+
+            if (entity[RECHARGABLE]) {
+              entity[RECHARGABLE].hit = false;
+            }
+
             world.removeComponentFromEntity(
               entity as TypedEntity<"ATTACKABLE">,
               "ATTACKABLE"
@@ -1537,7 +1552,7 @@ export default function setupAi(world: World) {
             // become vulnerable and rage before first wave
             entity[BEHAVIOUR].patterns = [
               { name: "vulnerable", memory: {} },
-              { name: "wait", memory: { ticks: 5 } },
+              { name: "wait", memory: { ticks: 4 } },
               { name: "dialog", memory: { idle: rage } },
               { name: "wait", memory: { ticks: 2 } },
               { name: "dialog", memory: { idle: undefined } },
@@ -1552,7 +1567,7 @@ export default function setupAi(world: World) {
                 amount: 1,
                 equipment: "primary",
                 primary: "wave",
-                material: "iron",
+                material: "gold",
               },
             });
 
@@ -1576,11 +1591,11 @@ export default function setupAi(world: World) {
               { name: "oak_boss", memory: { phase: 7, shuffled: phases } },
             ];
           } else if (pattern.memory.phase === 10) {
-            // queue phase several times
+            // queue homing phase several times
             patterns.splice(
               patterns.indexOf(pattern),
               1,
-              ...Array.from({ length: 3 }).map(
+              ...Array.from({ length: 2 }).map(
                 () => ({ name: "oak_boss", memory: { phase: 11 } } as const)
               )
             );
@@ -1660,12 +1675,12 @@ export default function setupAi(world: World) {
               const rotatedDiscs = rotate(discSurround, index * discOffset);
               const circularDiscs = [...rotatedDiscs, rotatedDiscs[0]];
               shootHoming(world, castableEntity, {
-                type: "ironDisc",
+                type: "goldDisc",
                 positions: circularDiscs,
                 ttl: 15,
               });
               shootHoming(world, castableEntity, {
-                type: "ironDisc",
+                type: "goldDisc",
                 positions: [...reversed(circularDiscs)],
                 ttl: 15,
               });
@@ -1696,16 +1711,16 @@ export default function setupAi(world: World) {
               );
             }
           } else if (pattern.memory.phase === 20) {
-            // queue phase several times
+            // queue wave phase several times
             patterns.splice(
               patterns.indexOf(pattern),
               1,
-              ...Array.from({ length: 5 }).map(
+              ...Array.from({ length: 3 }).map(
                 () => ({ name: "oak_boss", memory: { phase: 21 } } as const)
               )
             );
           } else if (pattern.memory.phase === 21) {
-            // become vulnerable and rage before wave, and queue towers
+            // rage before wave and queue towers
             patterns.splice(
               patterns.indexOf(pattern),
               1,
@@ -1718,9 +1733,17 @@ export default function setupAi(world: World) {
             const availableTowers = getIdentifiersAndComponents(
               world,
               "oak:tower",
-              [BEHAVIOUR]
+              [BEHAVIOUR, EQUIPPABLE]
             );
             availableTowers.forEach((towerEntity) => {
+              const spellItem = world.getEntityByIdAndComponents(
+                towerEntity[EQUIPPABLE].primary,
+                [ITEM]
+              );
+              if (!spellItem) return;
+              spellItem[ITEM].primary = "wave";
+              spellItem[ITEM].material = "iron";
+              spellItem[ITEM].element = undefined;
               towerEntity[BEHAVIOUR].patterns = [
                 { name: "wait", memory: { ticks: random(5, 13) } },
                 { name: "dialog", memory: { idle: rage } },
@@ -1738,7 +1761,7 @@ export default function setupAi(world: World) {
                 amount: 1,
                 equipment: "primary",
                 primary: "wave",
-                material: "iron",
+                material: "gold",
               },
             });
 
@@ -1746,6 +1769,165 @@ export default function setupAi(world: World) {
               name: "wait",
               memory: { ticks: 15 },
             });
+          } else if (pattern.memory.phase === 30) {
+            // check available spawn points
+            const plantSpawns = [
+              { x: 6, y: 0 },
+              { x: 5, y: 2 },
+              { x: 3, y: 3 },
+              { x: 0, y: 4 },
+              { x: -3, y: 3 },
+              { x: -5, y: 2 },
+              { x: -6, y: 0 },
+              { x: -5, y: -2 },
+              { x: -3, y: -3 },
+              { x: 0, y: -4 },
+              { x: 3, y: -3 },
+              { x: 5, y: -2 },
+            ];
+            const plantCount = 3;
+            const plantOffset = 4;
+
+            const selectedSpawns = [];
+            for (let offset = 0; offset < plantOffset; offset += 1) {
+              for (let index = 0; index < plantCount; index += 1) {
+                const position = plantSpawns[offset + index * plantOffset];
+                const cell = getCell(world, position);
+                const bushEntity = Object.values(cell).find(
+                  (bush) => bush[IDENTIFIABLE]?.name === "oak:bush"
+                );
+
+                if (!bushEntity) continue;
+
+                selectedSpawns.push(position);
+              }
+              if (selectedSpawns.length > 0) break;
+            }
+
+            // no plants left, let towers heal only
+            if (selectedSpawns.length === 0) {
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "oak_boss",
+                memory: { phase: 33 },
+              });
+              break;
+            }
+
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "invincible", memory: {} },
+              {
+                name: "shout",
+                memory: {
+                  dialogs: [
+                    createShout(
+                      choice(
+                        "Sprout\u0112",
+                        "Rise\u0112",
+                        "Heal\u0112",
+                        "Restore\u0112"
+                      )
+                    ),
+                  ],
+                },
+              },
+              { name: "wait", memory: { ticks: 5 } },
+              { name: "dialog", memory: { override: "hidden" } },
+              { name: "oak_boss", memory: { phase: 31 } },
+              { name: "wait", memory: { ticks: 4 } },
+              { name: "vulnerable", memory: {} },
+              {
+                name: "oak_boss",
+                memory: {
+                  phase: 32,
+                  spawns: selectedSpawns,
+                },
+              },
+              { name: "oak_boss", memory: { phase: 33 } }
+            );
+          } else if (pattern.memory.phase === 31) {
+            // cast wave
+            castSpell(world, castableEntity, {
+              [ITEM]: {
+                carrier: -1,
+                bound: false,
+                amount: 1,
+                equipment: "primary",
+                primary: "wave",
+                element: "earth",
+              },
+            });
+            patterns.splice(patterns.indexOf(pattern), 1);
+          } else if (pattern.memory.phase === 32) {
+            // spawn mobs
+            pattern.memory.spawns.forEach((spawn: Position) => {
+              const cell = getCell(world, spawn);
+              const bushEntity = Object.values(cell).find(
+                (bush) => bush[IDENTIFIABLE]?.name === "oak:bush"
+              );
+              if (!bushEntity) return;
+
+              disposeEntity(world, bushEntity);
+              createCell(world, copy(spawn), "oakClover", "hidden");
+            });
+            patterns.splice(patterns.indexOf(pattern), 1);
+          } else if (pattern.memory.phase === 33) {
+            // let towers heal and wait
+            const availableTowers = getIdentifiersAndComponents(
+              world,
+              "oak:tower",
+              [BEHAVIOUR, EQUIPPABLE, ORIENTABLE, POSITION]
+            );
+            availableTowers.forEach((towerEntity, index) => {
+              const spellItem = world.getEntityByIdAndComponents(
+                towerEntity[EQUIPPABLE].primary,
+                [ITEM]
+              );
+              if (!spellItem) return;
+              spellItem[ITEM].primary = "bolt";
+              spellItem[ITEM].material = undefined;
+              spellItem[ITEM].element = "earth";
+              towerEntity[ORIENTABLE].facing =
+                signedDistance(towerEntity[POSITION].x, 0, size) > 0
+                  ? "right"
+                  : "left";
+              towerEntity[BEHAVIOUR].patterns = [
+                { name: "wait", memory: { ticks: index * 2 + 1 } },
+                ...Array.from({ length: 5 })
+                  .map(
+                    () =>
+                      [
+                        { name: "dialog", memory: { idle: rage } },
+                        { name: "wait", memory: { ticks: 2 } },
+                        { name: "dialog", memory: { idle: undefined } },
+                        { name: "action", memory: { primary: true } },
+                        { name: "wait", memory: { ticks: 4 } },
+                      ] as const
+                  )
+                  .flat(),
+              ];
+            });
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "wait",
+                memory: { ticks: 35 },
+              },
+              { name: "oak_boss", memory: { phase: 34 } }
+            );
+          } else if (pattern.memory.phase === 34) {
+            // stop towers
+            const availableTowers = getIdentifiersAndComponents(
+              world,
+              "oak:tower",
+              [BEHAVIOUR]
+            );
+            availableTowers.forEach((towerEntity) => {
+              towerEntity[BEHAVIOUR].patterns = [];
+            });
+            patterns.splice(patterns.indexOf(pattern), 1);
           } else {
             console.log(pattern.memory.phase);
             patterns.splice(patterns.indexOf(pattern), 1);
@@ -1854,6 +2036,35 @@ export default function setupAi(world: World) {
             patterns.splice(patterns.indexOf(pattern), 1);
           }
           break;
+        } else if (pattern.name === "oak_clover") {
+          const oakBoss = getIdentifierAndComponents(world, "oak_boss", [
+            POSITION,
+          ]);
+
+          if (!oakBoss) {
+            disposeEntity(world, entity);
+            break;
+          }
+
+          const healingOrientations = relativeOrientations(
+            world,
+            entity[POSITION],
+            { x: 0, y: 0 }
+          );
+          const remainingOrientations = orientations.filter(
+            (orientation) => !healingOrientations.includes(orientation)
+          );
+          const movingOrientations = [
+            ...shuffle(healingOrientations),
+            ...shuffle(remainingOrientations),
+          ];
+
+          // walk every second step
+          if (entity[ORIENTABLE]?.facing) {
+            entity[ORIENTABLE].facing = undefined;
+          } else if (entity[ORIENTABLE]) {
+            entity[MOVABLE].orientations = movingOrientations;
+          }
         } else if (pattern.name === "chest_boss") {
           const chaseTicks = 30;
           const healTicks = 45;

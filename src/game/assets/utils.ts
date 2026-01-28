@@ -206,6 +206,7 @@ import {
   woodBlock,
   absorb,
   scout,
+  earthSword,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1931,7 +1932,9 @@ export const materialSprites: Record<
 
 export const elementSprites: Record<
   Gear | Primary | Secondary | Consumable | ResourceItem,
-  Partial<Record<Material, Partial<Record<Element, SpriteDefinition>>>>
+  Partial<
+    Record<Material | "default", Partial<Record<Element, SpriteDefinition>>>
+  >
 > = {
   // gear
   sword: {
@@ -2059,6 +2062,12 @@ export const elementSprites: Record<
             frameWidth - 2
           ),
         ],
+      },
+    },
+
+    default: {
+      earth: {
+        sprite: earthSword,
       },
     },
   },
@@ -2576,7 +2585,7 @@ export const getItemConfig = (
     return materialSprites[lookup]?.[material];
   }
 
-  if (material && element) {
+  if (element) {
     let lookup =
       item.primary ||
       item.secondary ||
@@ -2593,7 +2602,7 @@ export const getItemConfig = (
 
     if (!lookup) return;
 
-    return elementSprites[lookup]?.[material]?.[element];
+    return elementSprites[lookup]?.[material || "default"]?.[element];
   }
 };
 

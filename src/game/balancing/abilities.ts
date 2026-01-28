@@ -17,7 +17,7 @@ export const abilityStats: Partial<
         Primary | Secondary,
         Partial<
           Record<
-            Material,
+            Material | "default",
             Partial<ItemStats> & Partial<Record<Element, Partial<ItemStats>>>
           >
         >
@@ -115,8 +115,8 @@ export const abilityStats: Partial<
 
   oakBoss: {
     wave: {
-      iron: {
-        magic: 2,
+      gold: {
+        magic: 4,
       },
     },
   },
@@ -125,6 +125,13 @@ export const abilityStats: Partial<
     wave: {
       iron: {
         magic: 2,
+      },
+    },
+    bolt: {
+      default: {
+        earth: {
+          heal: 2,
+        },
       },
     },
   },
@@ -180,15 +187,17 @@ export const getAbilityStats = (
 ): ItemStats => {
   const { primary, secondary, material, element } = item;
   const key = primary || secondary;
-  const itemStats =
-    key && material
-      ? element
-        ? lookupAbilityStats(
-            (stats) => stats?.[key]?.[material]?.[element],
-            caster
-          )
-        : lookupAbilityStats((stats) => stats?.[key]?.[material], caster)
-      : {};
+  const itemStats = key
+    ? element
+      ? lookupAbilityStats(
+          (stats) => stats?.[key]?.[material || "default"]?.[element],
+          caster
+        )
+      : lookupAbilityStats(
+          (stats) => stats?.[key]?.[material || "default"],
+          caster
+        )
+    : {};
 
   return {
     ...emptyItemStats,

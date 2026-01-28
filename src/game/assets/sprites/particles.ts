@@ -393,6 +393,20 @@ export const ironWave: Sprite = {
   },
 };
 
+export const goldWave: Sprite = {
+  name: "gold_wave",
+  layers: [
+    { char: "┼", color: colors.yellow },
+    { char: "·", color: colors.black },
+  ],
+  facing: {
+    up: [{ char: "─", color: colors.yellow }],
+    right: [{ char: "│", color: colors.yellow }],
+    down: [{ char: "─", color: colors.yellow }],
+    left: [{ char: "│", color: colors.yellow }],
+  },
+};
+
 export const fireWave: Sprite = {
   name: "fire_wave",
   layers: [
@@ -584,6 +598,29 @@ export const ironWaveCorner: Sprite = {
     ],
     left: [
       { char: "┌", color: colors.silver },
+      { char: "·", color: colors.black },
+    ],
+  },
+};
+
+export const goldWaveCorner: Sprite = {
+  name: "gold_corner",
+  layers: [],
+  facing: {
+    up: [
+      { char: "┐", color: colors.yellow },
+      { char: "·", color: colors.black },
+    ],
+    right: [
+      { char: "┘", color: colors.yellow },
+      { char: "·", color: colors.black },
+    ],
+    down: [
+      { char: "└", color: colors.yellow },
+      { char: "·", color: colors.black },
+    ],
+    left: [
+      { char: "┌", color: colors.yellow },
       { char: "·", color: colors.black },
     ],
   },
@@ -1795,6 +1832,70 @@ export const woodEarthBolt: Sprite = {
     multiple: [
       { char: "\u0108", color: colors.maroon },
       { char: "\u0106", color: colors.lime },
+    ],
+  },
+};
+
+export const airBolt: Sprite = {
+  name: "air_bolt",
+  layers: [{ char: "∙", color: colors.white }],
+  amounts: {
+    single: [{ char: "∙", color: colors.white }],
+    double: [
+      { char: "\u0106", color: colors.white },
+      { char: "∙", color: colors.silver },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.white },
+      { char: "\u0106", color: colors.silver },
+    ],
+  },
+};
+
+export const fireBolt: Sprite = {
+  name: "fire_bolt",
+  layers: [{ char: "∙", color: colors.red }],
+  amounts: {
+    single: [{ char: "∙", color: colors.red }],
+    double: [
+      { char: "\u0106", color: colors.red },
+      { char: "∙", color: colors.maroon },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.red },
+      { char: "\u0106", color: colors.maroon },
+    ],
+  },
+};
+
+export const waterBolt: Sprite = {
+  name: "water_bolt",
+  layers: [{ char: "∙", color: colors.blue }],
+  amounts: {
+    single: [{ char: "∙", color: colors.blue }],
+    double: [
+      { char: "\u0106", color: colors.blue },
+      { char: "∙", color: colors.navy },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.blue },
+      { char: "\u0106", color: colors.navy },
+    ],
+  },
+};
+
+export const earthBolt: Sprite = {
+  name: "earth_bolt",
+  layers: [{ char: "∙", color: colors.lime }],
+  amounts: {
+    single: [{ char: "∙", color: colors.lime }],
+    double: [
+      { char: "\u0106", color: colors.lime },
+      { char: "∙", color: colors.green },
+    ],
+    multiple: [
+      { char: "\u0108", color: colors.lime },
+      { char: "\u0106", color: colors.green },
     ],
   },
 };
@@ -3441,7 +3542,7 @@ export const primarySlot: Sprite = {
     { char: "¼", color: colors.grey },
     { char: "_", color: colors.black },
 
-    { char: "\u0103", color: colors.black },
+    { char: "+", color: colors.black },
   ],
 };
 
@@ -3563,8 +3664,7 @@ export const amuletSlot: Sprite = {
     { char: "\u0112", color: colors.grey },
     { char: "U", color: colors.grey },
     { char: "\u0115", color: colors.grey },
-    { char: "\u0119", color: colors.black },
-    { char: "\u011a", color: colors.black },
+    { char: "\u0103", color: colors.black },
   ],
 };
 

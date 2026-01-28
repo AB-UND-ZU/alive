@@ -27,15 +27,14 @@ import {
   STATS,
 } from "../components/stats";
 import { colors } from "../../game/assets/colors";
-import { addBackground, createText } from "../../game/assets/sprites";
+import { createText } from "../../game/assets/sprites";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { RECHARGABLE } from "../components/rechargable";
 import { Castable, DamageType } from "../components/castable";
 import { TypedEntity } from "../entities";
-import { createItemName, queueMessage } from "../../game/assets/utils";
+import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
-import { POPUP } from "../components/popup";
 import { getEquipmentStats } from "../../game/balancing/equipment";
 import { NPC } from "../components/npc";
 import { getAbilityStats } from "../../game/balancing/abilities";
@@ -384,28 +383,18 @@ export default function setupDamage(world: World) {
       const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getAttackable(world, targetPosition);
 
-      if (!targetEntity || isFriendlyFire(world, entity, targetEntity))
-        continue;
+      // skip if entity has no sword or no target
+      const swordId = entity[EQUIPPABLE].sword;
+      const swordEntity = world.getEntityByIdAndComponents(swordId, [ITEM]);
 
-      // show message if entity has no sword
-      if (!entity[EQUIPPABLE].sword) {
-        if (!targetEntity[POPUP]) {
-          queueMessage(world, entity, {
-            line: addBackground(
-              [
-                ...createText("Need ", colors.silver),
-                ...createItemName({ equipment: "sword", material: "wood" }),
-                ...createText("!", colors.silver),
-              ],
-              colors.black
-            ),
-            orientation: "up",
-            fast: false,
-            delay: 0,
-          });
-        }
-        continue;
-      }
+      if (!swordId || !swordEntity || !targetEntity) continue;
+
+      // skip if not damaging enemy or healing ally
+      const healing =
+        swordEntity[ITEM].element === "earth" && !swordEntity[ITEM].material;
+      const friendly = isFriendlyFire(world, entity, targetEntity);
+
+      if (healing !== friendly) continue;
 
       // mark as interacted
       entity[MOVABLE].pendingOrientation = undefined;
@@ -416,7 +405,7 @@ export default function setupDamage(world: World) {
 
       // prevent attack if shield is active
       let displayedDamage = 0;
-      if (targetEntity[CONDITIONABLE]?.block) {
+      if (targetEntity[CONDITIONABLE]?.block && !healing) {
         targetEntity[CONDITIONABLE].block.amount -= 1;
 
         if (targetEntity[CONDITIONABLE].block.amount <= 0) {
@@ -430,49 +419,57 @@ export default function setupDamage(world: World) {
         const swordStats = getEquipmentStats(sword[ITEM], entity[NPC]?.type);
 
         if (entity[CONDITIONABLE]?.raise) {
-          swordStats.melee += 2;
+          if (healing) {
+            swordStats.heal += 2;
+          } else {
+            swordStats.melee += 2;
+          }
           delete entity[CONDITIONABLE].raise;
         }
 
-        const { damage, hp } = calculateDamage(
-          world,
-          swordStats,
-          entity,
-          targetEntity
-        );
+        if (healing) {
+          const { healing, hp } = calculateHealing(
+            targetEntity[STATS],
+            swordStats.heal
+          );
+          targetEntity[STATS].hp = hp;
 
-        targetEntity[STATS].hp = hp;
+          displayedDamage = -healing;
+        } else {
+          const { damage, hp } = calculateDamage(
+            world,
+            swordStats,
+            entity,
+            targetEntity
+          );
 
-        // trigger on hit effects
-        applyProcs(
-          world,
-          entity,
-          swordStats,
-          entity[EQUIPPABLE].sword,
-          targetEntity
-        );
+          targetEntity[STATS].hp = hp;
 
-        // play sound
-        play("hit", {
-          intensity: damage,
-          proximity: targetEntity[PLAYER] ? 1 : 0.5,
-          variant: targetEntity[PLAYER] ? 1 : 2,
-        });
+          // trigger on hit effects
+          applyProcs(world, entity, swordStats, swordId, targetEntity);
 
-        // set rechargable if applicable
-        const secondaryEntity = world.getEntityByIdAndComponents(
-          entity[EQUIPPABLE].secondary,
-          [ITEM]
-        );
-        const canRecharge = rechargables.includes(
-          secondaryEntity?.[ITEM].secondary as (typeof rechargables)[number]
-        );
+          // play sound
+          play("hit", {
+            intensity: damage,
+            proximity: targetEntity[PLAYER] ? 1 : 0.5,
+            variant: targetEntity[PLAYER] ? 1 : 2,
+          });
 
-        if (canRecharge && targetEntity[RECHARGABLE]) {
-          targetEntity[RECHARGABLE].hit = true;
+          // set rechargable if applicable
+          const secondaryEntity = world.getEntityByIdAndComponents(
+            entity[EQUIPPABLE].secondary,
+            [ITEM]
+          );
+          const canRecharge = rechargables.includes(
+            secondaryEntity?.[ITEM].secondary as (typeof rechargables)[number]
+          );
+
+          if (canRecharge && targetEntity[RECHARGABLE]) {
+            targetEntity[RECHARGABLE].hit = true;
+          }
+
+          displayedDamage = damage;
         }
-
-        displayedDamage = damage;
       }
 
       // perform bump
@@ -505,13 +502,16 @@ export default function setupDamage(world: World) {
       // create hit marker
       const fragmentEntity =
         getAttackable(world, targetPosition, true) || targetEntity;
-      createAmountMarker(
-        world,
-        fragmentEntity,
-        -displayedDamage,
-        targetOrientation,
-        "melee"
-      );
+
+      if (!healing || displayedDamage !== 0) {
+        createAmountMarker(
+          world,
+          fragmentEntity,
+          -displayedDamage,
+          targetOrientation,
+          healing ? "true" : "melee"
+        );
+      }
 
       rerenderEntity(world, targetEntity);
       rerenderEntity(world, fragmentEntity);

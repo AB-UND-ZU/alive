@@ -673,6 +673,7 @@ export const insertArea = (
       else if (cell === "ß") entity = "hedge";
       else if (cell === "&") entity = "path_hedge";
       else if (cell === "τ") entity = "bush";
+      else if (cell === "ô") entity = "oak_bush";
       else if (cell === "'") entity = "berry_one";
       else if (cell === ",") entity = "grass";
       else if (cell === "·") entity = "flower_one";
@@ -1399,7 +1400,12 @@ export const createCell = (
     );
     populateInventory(world, tumbleweedEntity, items);
     return { cell: tumbleweedEntity, all };
-  } else if (cell === "bush" || cell === "berry" || cell === "berry_one") {
+  } else if (
+    cell === "bush" ||
+    cell === "oak_bush" ||
+    cell === "berry" ||
+    cell === "berry_one"
+  ) {
     const bushEntity = entities.createWeeds(world, {
       [BURNABLE]: {
         burning: false,
@@ -1415,6 +1421,10 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
     });
     all.push(bushEntity);
+
+    if (cell === "oak_bush") {
+      setIdentifier(world, bushEntity, "oak:bush");
+    }
 
     if (cell === "berry" || cell === "berry_one") {
       const berryEntity = createItemAsDrop(

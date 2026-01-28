@@ -51,14 +51,35 @@ import { pickupOptions, play } from "../../game/sound";
 import { LEVEL } from "../components/level";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { CONDITIONABLE } from "../components/conditionable";
+import { getFragment } from "./enter";
+import { FRAGMENT } from "../components/fragment";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
 
-export const getAffectable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((target) =>
+export const getAffectable = (
+  world: World,
+  position: Position,
+  fragment = false
+) => {
+  const targetEntity = Object.values(getCell(world, position)).find((target) =>
     isAffectable(world, target)
   ) as Entity | undefined;
+
+  if (targetEntity) return targetEntity;
+
+  const fragmentEntity = getFragment(world, position);
+
+  if (!fragmentEntity) return;
+
+  if (fragment) return fragmentEntity;
+
+  const structurableEntity = world.assertById(
+    fragmentEntity[FRAGMENT].structure
+  );
+
+  if (isAffectable(world, structurableEntity)) return structurableEntity;
+};
 
 export const getAffectables = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter((target) =>
@@ -304,8 +325,17 @@ export default function setupMagic(world: World) {
             world.getEntityId(retriggerEntity);
         }
 
+        const hasDamage =
+          castableEntity[CASTABLE].melee ||
+          castableEntity[CASTABLE].magic ||
+          castableEntity[CASTABLE].true;
+        const hasProcs =
+          castableEntity[CASTABLE].burn ||
+          castableEntity[CASTABLE].freeze ||
+          castableEntity[CASTABLE].drain;
+
         // prevent spell if bubble is active
-        if (targetEntity[CONDITIONABLE]?.block) {
+        if ((hasDamage || hasProcs) && targetEntity[CONDITIONABLE]?.block) {
           targetEntity[CONDITIONABLE].block.amount -= 1;
 
           if (targetEntity[CONDITIONABLE].block.amount <= 0) {
@@ -316,6 +346,12 @@ export default function setupMagic(world: World) {
           continue;
         }
 
+        // create hit marker
+        const fragmentEntity =
+          (castableEntity[CASTABLE].melee
+            ? getAttackable(world, entity[POSITION], true)
+            : getAffectable(world, entity[POSITION], true)) || targetEntity;
+
         if (isFriendlyFire(world, castableEntity, targetEntity)) {
           // process healing
           if (castableEntity[CASTABLE].heal && targetEntity[STATS]) {
@@ -325,18 +361,14 @@ export default function setupMagic(world: World) {
             );
             targetEntity[STATS].hp = hp;
 
-            createAmountMarker(world, targetEntity, healing, "up", "true");
+            createAmountMarker(world, fragmentEntity, healing, "up", "true");
             if (healing > 0) {
               play("pickup", pickupOptions.hp);
             }
           }
         } else {
           // inflict direct damage
-          if (
-            castableEntity[CASTABLE].melee ||
-            castableEntity[CASTABLE].magic ||
-            castableEntity[CASTABLE].true
-          ) {
+          if (hasDamage) {
             const { damage, hp } = calculateDamage(
               world,
               castableEntity[CASTABLE],
@@ -361,7 +393,7 @@ export default function setupMagic(world: World) {
             // add hit marker
             createAmountMarker(
               world,
-              targetEntity,
+              fragmentEntity,
               -damage,
               orientation,
               castableEntity[CASTABLE].melee ? "melee" : "magic"
