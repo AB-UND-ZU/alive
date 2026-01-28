@@ -38,7 +38,6 @@ import { decayTime, getItemSprite, lootSpeed } from "../../game/assets/utils";
 import { SPAWNABLE } from "../components/spawnable";
 import { LAYER } from "../components/layer";
 import { RECHARGABLE } from "../components/rechargable";
-import { ATTACKABLE } from "../components/attackable";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { setIdentifier } from "../utils";
 import { getBurning } from "./burn";
@@ -52,6 +51,7 @@ import { TOOLTIP } from "../components/tooltip";
 import { createPopup } from "./popup";
 import { HARVESTABLE } from "../components/harvestable";
 import { BURNABLE } from "../components/burnable";
+import { SHOOTABLE } from "../components/shootable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE]?.decayed;
@@ -279,7 +279,7 @@ export const dropEntity = (
     entity[SPAWNABLE].compassId = entity[EQUIPPABLE].compass;
   }
 
-  const arrowHits = entity[ATTACKABLE]?.shots || 0;
+  const arrowHits = entity[SHOOTABLE]?.shots || 0;
   const arrowStacks = Math.ceil(arrowHits / STACK_SIZE);
   const recharge = entity[RECHARGABLE]?.hit;
   const items = [

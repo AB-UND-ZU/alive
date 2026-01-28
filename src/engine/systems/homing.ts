@@ -40,6 +40,7 @@ import { setIdentifier } from "../utils";
 import { createCell } from "../../bindings/creation";
 import { relativeOrientations } from "../../game/math/path";
 import { CONDITIONABLE } from "../components/conditionable";
+import { SHOOTABLE } from "../components/shootable";
 
 export const decayHoming = (world: World, entity: Entity) => {
   entity[HOMING].decayedGeneration =
@@ -205,7 +206,7 @@ export default function setupHoming(world: World) {
             if (!isWalkable(world, side)) continue;
 
             const hedgeEntity = entities.createResource(world, {
-              [ATTACKABLE]: { shots: 0 },
+              [ATTACKABLE]: {},
               [BELONGABLE]: { faction: "unit" },
               [BURNABLE]: {
                 burning: false,
@@ -220,6 +221,7 @@ export default function setupHoming(world: World) {
               [POSITION]: side,
               [RENDERABLE]: { generation: 0 },
               [SEQUENCABLE]: { states: {} },
+              [SHOOTABLE]: { shots: 0 },
               [SPRITE]: choice(hedgeDry1, hedgeDry2),
               [STATS]: { ...emptyUnitStats, hp: 25, maxHp: 25 },
             });

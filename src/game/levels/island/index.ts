@@ -102,6 +102,7 @@ import { BEHAVIOUR } from "../../../engine/components/behaviour";
 import { initializeArea } from "../../../engine/systems/initialize";
 import { STICKY } from "../../../engine/components/sticky";
 import { createSequence } from "../../../engine/systems/sequence";
+import { SHOOTABLE } from "../../../engine/components/shootable";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -1179,7 +1180,7 @@ export const generateIsland = (world: World) => {
     // add chest
     const chestData = generateUnitData("commonChest");
     const chestEntity = entities.createChest(world, {
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [BELONGABLE]: { faction: chestData.faction },
       [DROPPABLE]: { decayed: false },
       [INVENTORY]: { items: [] },
@@ -1188,6 +1189,7 @@ export const generateIsland = (world: World) => {
       [POSITION]: objectPosition,
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
       [SPRITE]: chestData.sprite,
       [STATS]: { ...emptyUnitStats, ...chestData.stats },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },

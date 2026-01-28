@@ -225,6 +225,7 @@ import { openDoor } from "../engine/systems/trigger";
 import { craftingRecipes } from "../game/balancing/crafting";
 import addHarvestable, { HARVESTABLE } from "../engine/components/harvestable";
 import { getHarvestConfig } from "../game/balancing/harvesting";
+import { SHOOTABLE } from "../engine/components/shootable";
 
 export const cellNames = [
   "air",
@@ -500,7 +501,7 @@ export const createNpc = (
   const npcEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: getEmptyAffectable(),
-    [ATTACKABLE]: { shots: 0 },
+    [ATTACKABLE]: {},
     [BEHAVIOUR]: { patterns: npcUnit.patterns },
     [BELONGABLE]: { faction: npcUnit.faction },
     [COLLECTABLE]: {},
@@ -525,6 +526,7 @@ export const createNpc = (
     [POSITION]: copy(position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { shots: 0 },
     [SPRITE]: npcUnit.sprite,
     [STATS]: npcUnit.stats,
     [SWIMMABLE]: { swimming: false },
@@ -547,7 +549,7 @@ export const createChest = (
 ) => {
   const chestData = generateUnitData(unitKey);
   const chestEntity = entities.createChest(world, {
-    [ATTACKABLE]: { shots: 0 },
+    [ATTACKABLE]: {},
     [BELONGABLE]: { faction: chestData.faction },
     [DROPPABLE]: { decayed: false, remains: chestData.remains },
     [INVENTORY]: { items: [] },
@@ -556,6 +558,7 @@ export const createChest = (
     [POSITION]: copy(position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { shots: 0 },
     [SPRITE]: chestData.sprite,
     [STATS]: chestData.stats,
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
@@ -571,7 +574,7 @@ export const createSign = (
 ) => {
   const signData = generateUnitData("sign");
   const signEntity = entities.createSign(world, {
-    [ATTACKABLE]: { shots: 0 },
+    [ATTACKABLE]: {},
     [BELONGABLE]: { faction: signData.faction },
     [BURNABLE]: {
       burning: false,
@@ -591,6 +594,7 @@ export const createSign = (
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { shots: 0 },
     [SPRITE]: signData.sprite,
     [STATS]: signData.stats,
     [TOOLTIP]: {
@@ -868,7 +872,7 @@ export const createCell = (
       desert_rock: { [rock]: sprite },
     };
     const rockEntity = entities.createDeposit(world, {
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [BELONGABLE]: { faction },
       [DROPPABLE]: {
         decayed: false,
@@ -1327,7 +1331,7 @@ export const createCell = (
       (["hedge1", "hedge2"] as const)[random(0, 1)]
     );
     const hedgeEntity = entities.createResource(world, {
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [BELONGABLE]: { faction },
       [BURNABLE]: {
         burning: false,
@@ -1342,6 +1346,7 @@ export const createCell = (
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
       [SPRITE]: sprite,
       [STATS]: stats,
     });
@@ -1364,7 +1369,7 @@ export const createCell = (
     const { items, sprite, stats, faction, patterns } =
       generateUnitData("tumbleweed");
     const tumbleweedEntity = entities.createTumbleweed(world, {
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [AFFECTABLE]: getEmptyAffectable(),
       [BEHAVIOUR]: { patterns },
       [BELONGABLE]: { faction },
@@ -1385,6 +1390,7 @@ export const createCell = (
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
       [SPRITE]: sprite,
       [STATS]: stats,
     });
@@ -1514,7 +1520,7 @@ export const createCell = (
       })
     );
     const cactusEntity = entities.createCactus(world, {
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [AFFECTABLE]: getEmptyAffectable(),
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false, remains: sand },
@@ -1523,6 +1529,7 @@ export const createCell = (
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
       [SPIKABLE]: { damage: stats.power },
       [SPRITE]: sprite,
       [STATS]: stats,
@@ -1966,7 +1973,7 @@ export const createCell = (
       generateUnitData("fence");
     const remains = [fenceBurnt1, fenceBurnt2][random(0, 1)];
     const fenceEntity = entities.createObject(world, {
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [BELONGABLE]: { faction },
       [BURNABLE]: {
         burning: false,
@@ -1983,6 +1990,7 @@ export const createCell = (
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
       [SPRITE]: sprite,
       [STATS]: stats,
     });
@@ -2045,7 +2053,7 @@ export const createCell = (
     all.push(frameEntity);
     const boxEntity = entities.createBox(world, {
       [AFFECTABLE]: getEmptyAffectable(),
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false },
       [DISPLACABLE]: {},
@@ -2065,6 +2073,7 @@ export const createCell = (
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
       [SPRITE]: sprite,
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
@@ -2196,7 +2205,7 @@ export const createCell = (
       mobEntity = entities.createMob(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [AFFECTABLE]: getEmptyAffectable(),
-        [ATTACKABLE]: { shots: 0 },
+        [ATTACKABLE]: {},
         [BEHAVIOUR]: {
           patterns: [
             { name: "wait", memory: { ticks: 1 } },
@@ -2228,6 +2237,7 @@ export const createCell = (
         [RECHARGABLE]: { hit: false },
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { shots: 0 },
         [SPRITE]: mobUnit.sprite,
         [STATS]: mobUnit.stats,
         [SWIMMABLE]: { swimming: false, sprite: mobUnit.swimming },
@@ -2554,7 +2564,7 @@ export const createCell = (
     const towerEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
       [AFFECTABLE]: getEmptyAffectable(),
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [BEHAVIOUR]: { patterns: towerUnit.patterns },
       [BELONGABLE]: { faction: towerUnit.faction },
       [DROPPABLE]: { decayed: false },
@@ -2579,6 +2589,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [RECHARGABLE]: { hit: false },
       [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
       [SPRITE]: towerUnit.sprite,
       [STATS]: towerUnit.stats,
       [SWIMMABLE]: { swimming: false },
@@ -2691,6 +2702,7 @@ export const createCell = (
         [POSITION]: combine(size, { x, y }, offset),
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { shots: 0 },
         [SPRITE]: sprite,
       });
       all.push(limbEntity);
@@ -2714,7 +2726,7 @@ export const createCell = (
     const bossEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
       [AFFECTABLE]: getEmptyAffectable(),
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
       [BELONGABLE]: { faction: bossUnit.faction },
       [DROPPABLE]: { decayed: false },
@@ -2739,6 +2751,7 @@ export const createCell = (
       [RECHARGABLE]: { hit: false },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
       [SPRITE]: bossUnit.sprite,
       [STATS]: bossUnit.stats,
       [SWIMMABLE]: { swimming: false },
@@ -2757,7 +2770,7 @@ export const createCell = (
     const mobEntity = entities.createMob(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
       [AFFECTABLE]: getEmptyAffectable(),
-      [ATTACKABLE]: { shots: 0 },
+      [ATTACKABLE]: {},
       [BEHAVIOUR]: {
         patterns: [{ name: "wait", memory: { ticks: 1 } }, ...mobUnit.patterns],
       },
@@ -2784,6 +2797,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [RECHARGABLE]: { hit: false },
       [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
       [SPRITE]: mobUnit.sprite,
       [STATS]: mobUnit.stats,
       [SWIMMABLE]: { swimming: false },

@@ -1,9 +1,7 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Attackable = {
-  shots: number;
-};
+export type Attackable = {};
 
 export const ATTACKABLE = "ATTACKABLE";
 

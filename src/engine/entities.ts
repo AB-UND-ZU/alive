@@ -60,6 +60,7 @@ import { Coverable, COVERABLE } from "./components/coverable";
 import { Harvestable, HARVESTABLE } from "./components/harvestable";
 import { Conditionable, CONDITIONABLE } from "./components/conditionable";
 import { Homing, HOMING } from "./components/homing";
+import { Shootable, SHOOTABLE } from "./components/shootable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -101,22 +102,23 @@ export type Entity = Record<LevelName, {}> & {
   [ORIENTABLE]: Orientable;
   [PARTICLE]: Particle;
   [PLAYER]: Player;
+  [POPUP]: Popup;
   [POSITION]: Position;
   [PROJECTILE]: Projectile;
   [PUSHABLE]: Pushable;
   [RECHARGABLE]: Rechargable;
-  [RENDERABLE]: Renderable;
   [REFERENCE]: Reference;
+  [RENDERABLE]: Renderable;
   [REVIVABLE]: Revivable;
   [SEQUENCABLE]: Sequencable;
-  [POPUP]: Popup;
+  [SHOOTABLE]: Shootable;
   [SOUL]: Soul;
   [SPAWNABLE]: Spawnable;
   [SPIKABLE]: Spikable;
   [SPRITE]: Sprite;
   [STATS]: UnitStats;
-  [STRUCTURABLE]: Structurable;
   [STICKY]: Sticky;
+  [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;
   [TEMPO]: Tempo;
   [TOOLTIP]: Tooltip;
@@ -216,6 +218,7 @@ export const createBox = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   SWIMMABLE,
   TOOLTIP,
@@ -249,6 +252,7 @@ export const createCactus = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   SPIKABLE,
   STATS,
@@ -264,6 +268,7 @@ export const createChest = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   STATS,
   TOOLTIP,
@@ -310,6 +315,7 @@ export const createElite = entityFactory([
   RECHARGABLE,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   STATS,
   STRUCTURABLE,
@@ -527,6 +533,7 @@ export const createHero = entityFactory([
   PUSHABLE,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPAWNABLE,
   SPRITE,
   STATS,
@@ -592,6 +599,7 @@ export const createLimb = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
 ]);
 
@@ -624,6 +632,7 @@ export const createMob = entityFactory([
   RECHARGABLE,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   STATS,
   SWIMMABLE,
@@ -658,6 +667,7 @@ export const createObject = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   STATS,
 ]);
@@ -740,6 +750,7 @@ export const createResource = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   STATS,
 ]);
@@ -786,6 +797,7 @@ export const createSign = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   STATS,
   TOOLTIP,
@@ -895,6 +907,7 @@ export const createTumbleweed = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   STATS,
 ]);
@@ -920,6 +933,7 @@ export const createVillager = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
   STATS,
   SWIMMABLE,

@@ -24,6 +24,7 @@ import {
   calculateHealing,
   createAmountMarker,
   getAttackable,
+  getLimbs,
   isDead,
   isEnemy,
   isFriendlyFire,
@@ -91,7 +92,7 @@ import { IDENTIFIABLE } from "../components/identifiable";
 import { createCell } from "../../bindings/creation";
 import addAttackable, { ATTACKABLE } from "../components/attackable";
 import { RECHARGABLE } from "../components/rechargable";
-import { addAffectable, addCollidable } from "../components";
+import { addAffectable, addCollidable, addShootable } from "../components";
 import { COLLIDABLE } from "../components/collidable";
 import { NPC } from "../components/npc";
 import { queueMessage } from "../../game/assets/utils";
@@ -102,6 +103,7 @@ import { getEmptyAffectable } from "../components/affectable";
 import { HARVESTABLE } from "../components/harvestable";
 import { shootHoming } from "./homing";
 import { EQUIPPABLE } from "../components/equippable";
+import { SHOOTABLE } from "../components/shootable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -1282,30 +1284,56 @@ export default function setupAi(world: World) {
           patterns.splice(patterns.indexOf(pattern), 1);
           break;
         } else if (pattern.name === "invincible") {
-          // drop any pending arrows or charges
-          if (entity[ATTACKABLE]) {
+          // drop loaded charges
+          if (entity[RECHARGABLE]) {
+            entity[RECHARGABLE].hit = false;
+
             dropEntity(
               world,
               {
-                [ATTACKABLE]: entity[ATTACKABLE],
                 [RECHARGABLE]: entity[RECHARGABLE],
               },
               entity[POSITION]
             );
+          }
 
-            if (entity[RECHARGABLE]) {
-              entity[RECHARGABLE].hit = false;
+          // drop any stuck arrows of all limbs
+          const limbs = getLimbs(world, entity);
+
+          for (const limbEntity of limbs) {
+            if (limbEntity[SHOOTABLE]) {
+              dropEntity(
+                world,
+                {
+                  [SHOOTABLE]: limbEntity[SHOOTABLE],
+                },
+                limbEntity[POSITION]
+              );
+              limbEntity[SHOOTABLE].shots = 0;
+              world.removeComponentFromEntity(
+                limbEntity as TypedEntity<"SHOOTABLE">,
+                "SHOOTABLE"
+              );
             }
+          }
 
+          // prevent attacks and walking into entity
+          if (entity[ATTACKABLE]) {
             world.removeComponentFromEntity(
               entity as TypedEntity<"ATTACKABLE">,
               "ATTACKABLE"
             );
             addCollidable(world, entity, {});
           }
+
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "vulnerable") {
-          addAttackable(world, entity, { shots: 0 });
+          const limbs = getLimbs(world, entity);
+          for (const limbEntity of limbs) {
+            addShootable(world, limbEntity, { shots: 0 });
+          }
+
+          addAttackable(world, entity, {});
           addAffectable(world, entity, getEmptyAffectable());
           world.removeComponentFromEntity(
             entity as TypedEntity<"COLLIDABLE">,

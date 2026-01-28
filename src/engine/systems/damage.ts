@@ -45,6 +45,7 @@ import { FRAGMENT } from "../components/fragment";
 import { getFragment } from "./enter";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isDecaying } from "./drop";
+import { STRUCTURABLE } from "../components/structurable";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -111,6 +112,20 @@ export const getAttackables = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity[];
+
+export const getLimbs = (world: World, entity: Entity) => {
+  const limbs = [entity];
+
+  if (entity[STRUCTURABLE]) {
+    const entityId = world.getEntityId(entity);
+    for (const limbEntity of world.getEntities([FRAGMENT])) {
+      if (limbEntity[FRAGMENT].structure === entityId) {
+        limbs.push(limbEntity);
+      }
+    }
+  }
+  return limbs;
+};
 
 export const getEntityStats = (
   world: World,

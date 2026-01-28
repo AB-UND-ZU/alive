@@ -33,24 +33,47 @@ import { rerenderEntity } from "./renderer";
 import { emptyUnitStats, STATS } from "../components/stats";
 import { getLockable } from "./action";
 import { invertOrientation } from "../../game/math/path";
-import { ATTACKABLE } from "../components/attackable";
 import { TypedEntity } from "../entities";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { CONDITIONABLE } from "../components/conditionable";
+import { getFragment } from "./enter";
+import { FRAGMENT } from "../components/fragment";
+import { SHOOTABLE } from "../components/shootable";
 
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
     (target) => PROJECTILE in target
   ) as Entity[];
 
-export const getShootable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (target) =>
-      ATTACKABLE in target &&
-      STATS in target &&
-      (!isDead(world, target) || isDecaying(world, target)) &&
-      !isDecayed(world, target)
+export const isShootable = (world: World, entity: Entity) =>
+  SHOOTABLE in entity &&
+  STATS in entity &&
+  (!isDead(world, entity) || isDecaying(world, entity)) &&
+  !isDecayed(world, entity);
+
+export const getShootable = (
+  world: World,
+  position: Position,
+  fragment = false
+) => {
+  const targetEntity = Object.values(getCell(world, position)).find((target) =>
+    isShootable(world, target)
   ) as Entity | undefined;
+
+  if (targetEntity) return targetEntity;
+
+  const fragmentEntity = getFragment(world, position);
+
+  if (!fragmentEntity) return;
+
+  if (fragment) return fragmentEntity;
+
+  const structurableEntity = world.assertById(
+    fragmentEntity[FRAGMENT].structure
+  );
+
+  if (isShootable(world, structurableEntity)) return structurableEntity;
+};
 
 export const isBouncable = (world: World, position: Position) =>
   isCollision(world, position) ||
@@ -180,8 +203,14 @@ export default function setupBallistics(world: World) {
       let hit = false;
       for (const hitBox of hitBoxes) {
         const targetEntity = getShootable(world, hitBox);
+        const fragmentEntity =
+          getShootable(world, hitBox, true) || targetEntity;
 
-        if (targetEntity && !isFriendlyFire(world, entity, targetEntity)) {
+        if (
+          fragmentEntity &&
+          targetEntity &&
+          !isFriendlyFire(world, entity, targetEntity)
+        ) {
           let displayedDamage = 0;
           if (targetEntity[CONDITIONABLE]?.block) {
             targetEntity[CONDITIONABLE].block.amount -= 1;
@@ -203,10 +232,7 @@ export default function setupBallistics(world: World) {
 
             // increment arrow hit counter on target
             if (!isEnemy(world, entity)) {
-              targetEntity[ATTACKABLE].shots = Math.min(
-                targetEntity[ATTACKABLE].shots + 1,
-                10
-              );
+              fragmentEntity[SHOOTABLE].shots += 1;
             }
             hit = true;
             disposeEntity(world, entity, false);
@@ -216,7 +242,7 @@ export default function setupBallistics(world: World) {
           // add hit marker
           createAmountMarker(
             world,
-            targetEntity,
+            fragmentEntity,
             -displayedDamage,
             orientation,
             "melee"
@@ -266,7 +292,7 @@ export default function setupBallistics(world: World) {
         if (!isEnemy(world, entity)) {
           const drop = dropEntity(
             world,
-            { [ATTACKABLE]: { shots: 1 } },
+            { [SHOOTABLE]: { shots: 1 } },
             entity[POSITION],
             !!container,
             2,

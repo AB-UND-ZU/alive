@@ -11,11 +11,11 @@ import { rerenderEntity } from "./renderer";
 import { Entity } from "ecs";
 import { disposeFrame, disposeParticles, disposeSequence } from "./map";
 import { entities } from "..";
-import { ATTACKABLE } from "../components/attackable";
 import { PARTICLE } from "../components/particle";
 import { lootHeight } from "../../components/Entity/utils";
 import { SPRITE } from "../components/sprite";
 import { shotHit } from "../../game/assets/sprites";
+import { SHOOTABLE } from "../components/shootable";
 
 export const getSequences: (
   world: World,
@@ -44,7 +44,7 @@ export const getParticles = (world: World, entity: Entity) =>
         ),
       []
     )
-    .concat((entity[ATTACKABLE]?.shots || 0) > 0 ? shotParticle : []);
+    .concat((entity[SHOOTABLE]?.shots || 0) > 0 ? shotParticle : []);
 
 const SEQUENCE_DEBUG = false;
 
