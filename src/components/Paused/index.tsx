@@ -43,8 +43,7 @@ export default function Paused() {
                 dimensions.visibleColumns + dimensions.padding * 2
               )}
             />
-          ),
-          dimensions.renderedRows
+          )
         )}
       </div>
 

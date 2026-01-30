@@ -2,7 +2,7 @@
 .StatsFlipped {
   position: relative;
   z-index: 1;
-  height: calc(var(--cell-height) * 4);
+  height: calc(var(--cell-height) * var(--hud-rows, 4));
   width: calc(100% + var(--pixel-size) * 2);
   left: calc(var(--pixel-size) * -1);
   right: calc(var(--pixel-size) * -1);

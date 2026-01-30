@@ -10,7 +10,7 @@
 .Resume {
   position: absolute;
   height: calc(
-    var(--100vh) - var(--cell-height) * 6 - var(--top-offset) -
+    var(--100vh) - var(--cell-height) * (var(--hud-rows, 4) * 2 - 2) - var(--top-offset) -
       var(--bottom-offset)
   );
   top: calc(var(--cell-height) * -1);

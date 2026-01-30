@@ -45,6 +45,7 @@ function StatsInner({
 } & Partial<Countable> &
   Equippable) {
   const { ecs, paused, setPaused, flipped } = useWorld();
+  const dimensions = useDimensions();
   const [pressed, setPressed] = useState("");
   const level = ecs?.metadata.gameEntity[LEVEL].name;
   const inMenu = level === menuName;
@@ -173,6 +174,9 @@ function StatsInner({
           />
         </>
       )}
+      {Array.from({ length: dimensions.hudRows - 4 }).map((_, index) => (
+        <Row key={index} />
+      ))}
       <Row
         cells={createText("─".repeat(width + padding * 2 + 1), colors.grey)}
       />

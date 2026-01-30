@@ -139,8 +139,8 @@ export default function Systems() {
       offsetY <
       dimensions.renderedRows +
         Math.abs(overscan.y) +
-        Math.abs(fractionX) +
-        flyingPadding;
+        Math.abs(fractionY) +
+        flyingPadding + 1;
       offsetY += 1
     ) {
       const oddX = dimensions.renderedColumns % 2;

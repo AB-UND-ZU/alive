@@ -948,6 +948,9 @@ export default function Controls() {
           colors.grey
         )}
       />
+      {Array.from({ length: dimensions.hudRows - 4 }).map((_, index) => (
+        <Row key={index} />
+      ))}
       {initial ? (
         <>
           <Row />

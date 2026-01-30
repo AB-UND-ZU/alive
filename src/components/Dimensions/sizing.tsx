@@ -27,6 +27,7 @@ export type Dimensions = {
   renderedColumns: number;
   renderedRows: number;
   renderedDiagonal: number;
+  hudRows: number;
 };
 
 const visibleColumns = 21;
@@ -34,7 +35,8 @@ const maxColumns = 32;
 const visibleRows = 20;
 export const pixels = 16;
 export const aspectRatio = 9 / 16; // of DOS font
-const hudRows = 8;
+const hudHeight = 8;
+// const cutsceneHud = 14;
 const overscanColumns = 1;
 export const overscanRows = 1;
 
@@ -60,13 +62,14 @@ const calculateDimensions: () => Dimensions = () => {
   const topOffset = cellHeight / -2;
   const bottomOffset = (cellHeight * -6.5) / 12;
   const terminalHeight =
-    screenHeight - cellHeight * hudRows - topOffset - bottomOffset;
+    screenHeight - cellHeight * hudHeight - topOffset - bottomOffset;
   const terminalWidth = Math.min(screenWidth, maxColumns * cellWidth);
   const renderedColumns = Math.min(columns, maxColumns) + overscanColumns;
-  const renderedRows = rows - hudRows + overscanRows;
+  const renderedRows = rows - hudHeight + overscanRows;
   const renderedDiagonal = Math.sqrt(
     renderedColumns ** 2 * aspectRatio + renderedRows ** 2
   );
+  const hudRows = hudHeight / 2;
 
   return {
     screenWidth,
@@ -88,6 +91,7 @@ const calculateDimensions: () => Dimensions = () => {
     renderedColumns,
     renderedRows,
     renderedDiagonal,
+    hudRows,
   };
 };
 
