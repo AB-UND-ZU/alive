@@ -54,6 +54,7 @@ import {
   createText,
   fireWaveTower,
   rage,
+  rage2,
   sleep1,
   sleep2,
   waterWaveTower,
@@ -104,6 +105,8 @@ import { HARVESTABLE } from "../components/harvestable";
 import { shootHoming } from "./homing";
 import { EQUIPPABLE } from "../components/equippable";
 import { SHOOTABLE } from "../components/shootable";
+import { createSequence, getSequence } from "./sequence";
+import { BranchSequence } from "../components/sequencable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -1446,20 +1449,34 @@ export default function setupAi(world: World) {
           const castableEntity = getFragment(
             world,
             add(entity[POSITION], { x: 0, y: 1 })
+          ) as TypedEntity<"POSITION" | "ORIENTABLE"> | undefined;
+          const stemEntity = getFragment(
+            world,
+            add(entity[POSITION], { x: 0, y: 2 })
           ) as TypedEntity<"POSITION"> | undefined;
           if (
             !heroEntity ||
             !entity[STATS] ||
             !entity[SPRITE] ||
             !entity[TOOLTIP] ||
-            !castableEntity
+            !castableEntity ||
+            !stemEntity
           ) {
             patterns.splice(patterns.indexOf(pattern), 1);
             continue;
           }
 
-          if (!pattern.memory.phase) {
-            pattern.memory.phase = 0;
+          const percentage = (100 * entity[STATS].hp) / entity[STATS].maxHp;
+
+          if (pattern.memory.phase === undefined) {
+            // set initial phase and low hp trigger
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "oak_boss", memory: { phase: 40 } },
+              { name: "oak_boss", memory: { phase: 0 } }
+            );
+            break;
           }
 
           const distance = heroEntity
@@ -1485,11 +1502,13 @@ export default function setupAi(world: World) {
                 "CLICKABLE"
               );
 
-              entity[BEHAVIOUR].patterns = [
+              patterns.splice(
+                patterns.indexOf(pattern),
+                1,
                 { name: "dialog", memory: { override: "hidden" } },
                 { name: "wait", memory: { ticks: 3 } },
-                { name: "oak_boss", memory: { phase: 1 } },
-              ];
+                { name: "oak_boss", memory: { phase: 1 } }
+              );
             }
           } else if (pattern.memory.phase === 1) {
             // open eyes
@@ -1503,13 +1522,17 @@ export default function setupAi(world: World) {
               rerenderEntity(world, eyeEntity);
             });
 
-            entity[BEHAVIOUR].patterns = [
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
               { name: "wait", memory: { ticks: 3 } },
-              { name: "oak_boss", memory: { phase: 2 } },
-            ];
+              { name: "oak_boss", memory: { phase: 2 } }
+            );
           } else if (pattern.memory.phase === 2) {
             // shout at player
-            entity[BEHAVIOUR].patterns = [
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
               {
                 name: "shout",
                 memory: {
@@ -1540,17 +1563,20 @@ export default function setupAi(world: World) {
                 },
               },
               { name: "wait", memory: { ticks: 7 } },
-              { name: "oak_boss", memory: { phase: 3 } },
-            ];
+              { name: "oak_boss", memory: { phase: 3 } }
+            );
           } else if (pattern.memory.phase === 3) {
             // hide dialogs
-            entity[TOOLTIP].override = "hidden";
-            entity[TOOLTIP].changed = true;
-
-            entity[BEHAVIOUR].patterns = [
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "dialog", memory: { override: "hidden", dialogs: [] } },
               { name: "wait", memory: { ticks: 3 } },
-              { name: "oak_boss", memory: { phase: 4 } },
-            ];
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "oak_boss", memory: { phase: 4 } }
+            );
           } else if (pattern.memory.phase === 4) {
             // create terrain
             shootHoming(world, castableEntity, {
@@ -1572,20 +1598,24 @@ export default function setupAi(world: World) {
               ],
             });
 
-            entity[BEHAVIOUR].patterns = [
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
               { name: "wait", memory: { ticks: 3 } },
-              { name: "oak_boss", memory: { phase: 5 } },
-            ];
+              { name: "oak_boss", memory: { phase: 5 } }
+            );
           } else if (pattern.memory.phase === 5) {
             // become vulnerable and rage before first wave
-            entity[BEHAVIOUR].patterns = [
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
               { name: "vulnerable", memory: {} },
               { name: "wait", memory: { ticks: 4 } },
               { name: "dialog", memory: { idle: rage } },
               { name: "wait", memory: { ticks: 2 } },
               { name: "dialog", memory: { idle: undefined } },
-              { name: "oak_boss", memory: { phase: 6 } },
-            ];
+              { name: "oak_boss", memory: { phase: 6 } }
+            );
           } else if (pattern.memory.phase === 6) {
             // cast first wave
             castSpell(world, castableEntity, {
@@ -1599,10 +1629,12 @@ export default function setupAi(world: World) {
               },
             });
 
-            entity[BEHAVIOUR].patterns = [
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
               { name: "wait", memory: { ticks: 10 } },
-              { name: "oak_boss", memory: { phase: 7 } },
-            ];
+              { name: "oak_boss", memory: { phase: 7 } }
+            );
           } else if (pattern.memory.phase === 7) {
             // schedule phases and prevent repeating last one
             let phases = shuffle([10, 20, 30]);
@@ -1612,12 +1644,14 @@ export default function setupAi(world: World) {
               phases.splice(random(1, 2), 0, pattern.memory.shuffled[2]);
             }
 
-            entity[BEHAVIOUR].patterns = [
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
               ...phases.map(
                 (phase) => ({ name: "oak_boss", memory: { phase } } as const)
               ),
-              { name: "oak_boss", memory: { phase: 7, shuffled: phases } },
-            ];
+              { name: "oak_boss", memory: { phase: 7, shuffled: phases } }
+            );
           } else if (pattern.memory.phase === 10) {
             // queue homing phase several times
             patterns.splice(
@@ -1726,8 +1760,8 @@ export default function setupAi(world: World) {
               // suspend towers
               getIdentifiersAndComponents(world, "oak:tower", [
                 BEHAVIOUR,
-              ]).forEach((entity) => {
-                entity[BEHAVIOUR].patterns = [];
+              ]).forEach((towerEntity) => {
+                towerEntity[BEHAVIOUR].patterns = [];
               });
 
               patterns.splice(
@@ -1861,7 +1895,7 @@ export default function setupAi(world: World) {
                 },
               },
               { name: "wait", memory: { ticks: 5 } },
-              { name: "dialog", memory: { override: "hidden" } },
+              { name: "dialog", memory: { override: "hidden", dialogs: [] } },
               { name: "oak_boss", memory: { phase: 31 } },
               { name: "wait", memory: { ticks: 4 } },
               { name: "vulnerable", memory: {} },
@@ -1956,6 +1990,155 @@ export default function setupAi(world: World) {
               towerEntity[BEHAVIOUR].patterns = [];
             });
             patterns.splice(patterns.indexOf(pattern), 1);
+          } else if (pattern.memory.phase === 40) {
+            if (percentage < 15) {
+              // advance to final phase and drop remaining phases
+              entity[BEHAVIOUR].patterns = [
+                { name: "oak_boss", memory: { phase: 41 } },
+              ];
+
+              // stop towers
+              const availableTowers = getIdentifiersAndComponents(
+                world,
+                "oak:tower",
+                [BEHAVIOUR]
+              );
+              availableTowers.forEach((towerEntity) => {
+                towerEntity[BEHAVIOUR].patterns = [
+                  { name: "dialog", memory: { idle: undefined } },
+                ];
+              });
+              break;
+            }
+            continue;
+          } else if (pattern.memory.phase === 41) {
+            // scream in despair
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "invincible", memory: {} },
+              {
+                name: "shout",
+                memory: {
+                  dialogs: [
+                    createShout(
+                      choice(
+                        "DIE\u0112",
+                        "ENOUGH\u0112",
+                        "STOP\u0112",
+                        "GRRAAH\u0112"
+                      )
+                    ),
+                  ],
+                },
+              },
+              { name: "wait", memory: { ticks: 5 } },
+              { name: "dialog", memory: { override: "hidden", dialogs: [] } },
+              { name: "wait", memory: { ticks: 5 } },
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "oak_boss", memory: { phase: 42 } }
+            );
+          } else if (pattern.memory.phase === 42) {
+            // cast wave
+            castSpell(world, castableEntity, {
+              [ITEM]: {
+                carrier: -1,
+                bound: false,
+                amount: 1,
+                equipment: "primary",
+                primary: "wave",
+                material: "gold",
+              },
+            });
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "wait", memory: { ticks: 7 } },
+              { name: "vulnerable", memory: {} },
+              { name: "oak_boss", memory: { phase: 43 } }
+            );
+          } else if (pattern.memory.phase === 43) {
+            // show rage before casting branch
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "oak_boss", memory: { phase: 44 } }
+            );
+          } else if (pattern.memory.phase === 44) {
+            // extend branch
+            createSequence<"branch", BranchSequence>(
+              world,
+              stemEntity,
+              "branch",
+              "oakBranch",
+              {
+                grow: true,
+                limbs: [],
+                threshold: entity[STATS].hp - 15,
+              }
+            );
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "wait", memory: { ticks: 3 } },
+              { name: "dialog", memory: { idle: rage2 } },
+              { name: "wait", memory: { ticks: 3 } },
+              { name: "oak_boss", memory: { phase: 45 } }
+            );
+          } else if (pattern.memory.phase === 45) {
+            // set orientation
+            castableEntity[ORIENTABLE].facing = relativeOrientations(
+              world,
+              castableEntity[POSITION],
+              heroEntity[POSITION]
+            )[0];
+
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "wait", memory: { ticks: 1 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "oak_boss", memory: { phase: 46 } }
+            );
+          } else if (pattern.memory.phase === 46) {
+            // cast blast
+            castSpell(world, castableEntity, {
+              [ITEM]: {
+                carrier: -1,
+                bound: false,
+                amount: 1,
+                equipment: "primary",
+                primary: "blast",
+                material: "gold",
+              },
+            });
+
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "wait", memory: { ticks: 3 } },
+              { name: "oak_boss", memory: { phase: 47 } }
+            );
+          } else if (pattern.memory.phase === 47) {
+            // reset orientation
+            castableEntity[ORIENTABLE].facing = undefined;
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "oak_boss",
+              memory: { phase: 48 },
+            });
+          } else if (pattern.memory.phase === 48) {
+            // wait till branch is broken
+            if (!getSequence(world, stemEntity, "branch")) {
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "oak_boss",
+                memory: { phase: 43 },
+              });
+            }
           } else {
             console.log(pattern.memory.phase);
             patterns.splice(patterns.indexOf(pattern), 1);

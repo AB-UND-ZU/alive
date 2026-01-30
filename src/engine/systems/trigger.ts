@@ -754,6 +754,22 @@ export const castSpell = (
       }
     );
     // TODO: add sound
+  } else if (item[ITEM].primary === "blast") {
+    createSequence<"spell", SpellSequence>(
+      world,
+      spellEntity,
+      "spell",
+      "castBlast",
+      {
+        progress: 0,
+        duration: 10,
+        range: 10,
+        areas: [],
+        material: item[ITEM].material,
+        element: item[ITEM].element,
+      }
+    );
+    // TODO: add sound
   } else if (item[ITEM].primary === "wave") {
     createSequence<"spell", SpellSequence>(
       world,

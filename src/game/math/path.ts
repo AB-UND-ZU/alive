@@ -79,6 +79,12 @@ export const rotateOrientation = (orientation: Orientation, turns: number) =>
 export const invertOrientation = (orientation: Orientation) =>
   rotateOrientation(orientation, 2);
 
+export const orientationDelta = (first: Orientation, second: Orientation) =>
+  normalize(
+    orientations.indexOf(second) - orientations.indexOf(first) + 2,
+    orientations.length
+  ) - 2;
+
 // finds shortes path in overlapping weighted matrix
 export const findPath = (
   matrix: Matrix<number>,

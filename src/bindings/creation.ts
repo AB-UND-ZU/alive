@@ -148,6 +148,7 @@ import {
   scout,
   oakStem,
   oakLeaves,
+  oakMouth,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -828,7 +829,7 @@ export const createCell = (
       [BELONGABLE]: { faction: "settler" },
       [SPAWNABLE]: {
         classKey: "scout",
-        hairColor: "blonde",
+        hairColor: colors.white,
         position: copy(spawnEntity[POSITION]),
         viewable: { active: true, priority: 10 },
         light: {
@@ -2668,7 +2669,7 @@ export const createCell = (
       },
       { offset: { x: -2, y: 1 }, sprite: oakLeaves, orientation: "down" },
       { offset: { x: -1, y: 1 }, sprite: oakLeaves },
-      { offset: { x: 0, y: 1 }, sprite: oakLeaves },
+      { offset: { x: 0, y: 1 }, sprite: oakMouth },
       { offset: { x: 1, y: 1 }, sprite: oakLeaves },
       { offset: { x: 2, y: 1 }, sprite: oakLeaves, orientation: "down" },
       { offset: { x: -2, y: 0 }, sprite: oakLeaves, orientation: "left" },

@@ -747,3 +747,8 @@ export const lemon: Sprite = {
     { char: ".", color: colors.yellow },
   ],
 };
+
+export const grain: Sprite = {
+  name: "Grain",
+  layers: [{ char: "·", color: colors.olive }],
+}

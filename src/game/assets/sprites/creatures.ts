@@ -634,3 +634,25 @@ export const chestBoss: Sprite = {
     { char: "·", color: colors.maroon },
   ],
 };
+
+export const chick: Sprite = {
+  name: "Chick",
+  layers: [
+    { char: "v", color: colors.red },
+    { char: "═", color: colors.black },
+    { char: "u", color: colors.black },
+    { char: "▄", color: colors.black },
+    { char: "─", color: colors.red },
+    { char: "-", color: colors.black },
+    { char: "\u0116", color: colors.red },
+    { char: "\u0111", color: colors.black },
+    { char: "\u0108", color: colors.yellow },
+    { char: "¡", color: colors.red },
+    { char: "|", color: colors.black },
+    { char: "\u0106", color: colors.yellow },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.yellow },
+    { char: "∙", color: colors.yellow },
+    { char: ".", color: colors.black },
+  ],
+};

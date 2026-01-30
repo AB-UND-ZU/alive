@@ -113,6 +113,9 @@ export const getAttackables = (world: World, position: Position) =>
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity[];
 
+export const getStructure = (world: World, entity: Entity) =>
+  world.getEntityById(entity[FRAGMENT].structure);
+
 export const getLimbs = (world: World, entity: Entity) => {
   const limbs = [entity];
 

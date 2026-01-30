@@ -1719,6 +1719,7 @@ export const materialSprites: Record<
     },
   },
   bolt: {},
+  blast: {},
 
   // secondary items
   slash: {
@@ -2396,6 +2397,7 @@ export const elementSprites: Record<
     },
   },
   bolt: {},
+  blast: {},
 
   // consumable
   key: {},

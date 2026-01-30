@@ -128,6 +128,12 @@ export type SlashSequence = {
   exertables: number[];
   tick: number;
 };
+export type BranchSequence = {
+  threshold: number;
+  limbs: number[];
+  grow: boolean;
+  shrink?: number;
+};
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
   step: string;
@@ -212,6 +218,7 @@ export type Sequencable = {
     condition?: SequenceState<ConditionSequence>;
     arrow?: SequenceState<ArrowSequence>;
     slash?: SequenceState<SlashSequence>;
+    branch?: SequenceState<BranchSequence>;
     npc?: SequenceState<NpcSequence>;
     quest?: SequenceState<QuestSequence>;
     discovery?: SequenceState<DiscoverySequence>;

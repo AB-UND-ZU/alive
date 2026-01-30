@@ -33,6 +33,11 @@ export const getFragment = (world: World, position: Position) =>
     isFragment(world, entity)
   ) as Entity | undefined;
 
+export const getFragments = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).filter((entity) =>
+    isFragment(world, entity)
+  ) as Entity[];
+
 export const isOpaque = (world: World, entity: Entity) =>
   LIGHT in entity && entity[LIGHT].darkness > 0;
 

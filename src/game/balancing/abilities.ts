@@ -116,7 +116,12 @@ export const abilityStats: Partial<
   oakBoss: {
     wave: {
       gold: {
-        magic: 4,
+        magic: 3,
+      },
+    },
+    blast: {
+      gold: {
+        magic: 5,
       },
     },
   },
@@ -124,13 +129,13 @@ export const abilityStats: Partial<
   oakTower: {
     wave: {
       iron: {
-        magic: 2,
+        magic: 1,
       },
     },
     bolt: {
       default: {
         earth: {
-          heal: 2,
+          heal: 1,
         },
       },
     },

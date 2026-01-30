@@ -10,7 +10,7 @@ export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
 export type Element = (typeof elements)[number];
 export type Material = (typeof materials)[number];
 
-export type Primary = "wave" | "beam" | "bolt";
+export type Primary = "wave" | "beam" | "bolt" | "blast";
 
 export const rechargables = ["slash", "raise", "block"] as const;
 export type Secondary = "bow" | "axe" | (typeof rechargables)[number];

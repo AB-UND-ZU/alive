@@ -1692,6 +1692,126 @@ export const earthDisc: Sprite = {
   },
 };
 
+export const woodBlast: Sprite = {
+  name: "wood_blast",
+  layers: [{ char: "█", color: colors.maroon }],
+  facing: {
+    up: [
+      { char: "▄", color: colors.maroon },
+    ],
+    right: [
+      { char: "▌", color: colors.maroon },
+      { char: "║", color: colors.maroon },
+      { char: "│", color: colors.maroon },
+    ],
+    down: [
+      { char: "▀", color: colors.maroon },
+      { char: "─", color: colors.maroon },
+    ],
+    left: [
+      { char: "▐", color: colors.maroon },
+      { char: "║", color: colors.maroon },
+      { char: "│", color: colors.maroon },
+    ],
+  },
+};
+
+export const ironBlast: Sprite = {
+  name: "iron_blast",
+  layers: [{ char: "█", color: colors.silver }],
+  facing: {
+    up: [
+      { char: "▄", color: colors.grey },
+    ],
+    right: [
+      { char: "▌", color: colors.silver },
+      { char: "║", color: colors.grey },
+      { char: "│", color: colors.grey },
+    ],
+    down: [
+      { char: "▀", color: colors.grey },
+      { char: "─", color: colors.grey },
+    ],
+    left: [
+      { char: "▐", color: colors.silver },
+      { char: "║", color: colors.grey },
+      { char: "│", color: colors.grey },
+    ],
+  },
+};
+
+export const goldBlast: Sprite = {
+  name: "gold_blast",
+  layers: [{ char: "█", color: colors.yellow }],
+  facing: {
+    up: [
+      { char: "▄", color: colors.olive },
+    ],
+    right: [
+      { char: "▌", color: colors.yellow },
+      { char: "║", color: colors.olive },
+      { char: "│", color: colors.olive },
+    ],
+    down: [
+      { char: "▀", color: colors.olive },
+      { char: "─", color: colors.olive },
+    ],
+    left: [
+      { char: "▐", color: colors.yellow },
+      { char: "║", color: colors.olive },
+      { char: "│", color: colors.olive },
+    ],
+  },
+};
+
+export const diamondBlast: Sprite = {
+  name: "diamond_blast",
+  layers: [{ char: "█", color: colors.aqua }],
+  facing: {
+    up: [
+      { char: "▄", color: colors.teal },
+    ],
+    right: [
+      { char: "▌", color: colors.aqua },
+      { char: "║", color: colors.teal },
+      { char: "│", color: colors.teal },
+    ],
+    down: [
+      { char: "▀", color: colors.teal },
+      { char: "─", color: colors.teal },
+    ],
+    left: [
+      { char: "▐", color: colors.aqua },
+      { char: "║", color: colors.teal },
+      { char: "│", color: colors.teal },
+    ],
+  },
+};
+
+export const rubyBlast: Sprite = {
+  name: "ruby_blast",
+  layers: [{ char: "█", color: colors.fuchsia }],
+  facing: {
+    up: [
+      { char: "▄", color: colors.purple },
+    ],
+    right: [
+      { char: "▌", color: colors.fuchsia },
+      { char: "║", color: colors.purple },
+      { char: "│", color: colors.purple },
+    ],
+    down: [
+      { char: "▀", color: colors.purple },
+      { char: "─", color: colors.purple },
+    ],
+    left: [
+      { char: "▐", color: colors.fuchsia },
+      { char: "║", color: colors.purple },
+      { char: "│", color: colors.purple },
+    ],
+  },
+};
+
 export const woodBolt: Sprite = {
   name: "wood_bolt",
   layers: [{ char: "∙", color: colors.maroon }],
@@ -3200,6 +3320,7 @@ export const forge = createText("ƒ", colors.lime)[0];
 export const class_ = createText("\u010b", colors.lime)[0];
 
 export const rage = createAggro("\u0112")[0];
+export const rage2 = parseSprite("\x09█\x00\u0112");
 
 export const sleep1 = createText("z", colors.white)[0];
 export const sleep2 = createText("Z", colors.white)[0];

@@ -49,6 +49,7 @@ import {
 import {
   calculateHealing,
   getEntityDisplayStats,
+  getStructure,
   isDead,
 } from "../../engine/systems/damage";
 import {
@@ -212,6 +213,17 @@ import {
   earthBolt,
   goldWave,
   goldWaveCorner,
+  oakBranchSide,
+  oakBranchCorner,
+  oakBranchEnd,
+  oakBranchSplit,
+  oakLoopSide,
+  oakLoopCorner,
+  woodBlast,
+  ironBlast,
+  goldBlast,
+  diamondBlast,
+  rubyBlast,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -246,6 +258,7 @@ import {
   WeatherSequence,
   HarvestSequence,
   ConditionSequence,
+  BranchSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
@@ -260,7 +273,9 @@ import {
 import { PROJECTILE } from "../../engine/components/projectile";
 import { STATS } from "../../engine/components/stats";
 import {
+  findPath,
   invertOrientation,
+  orientationDelta,
   relativeOrientations,
   rotateOrientation,
 } from "../math/path";
@@ -345,7 +360,11 @@ import { getItemSellPrice } from "../balancing/trading";
 import { getForgeOptions, getForgeStatus } from "../balancing/forging";
 import { getItemDiff } from "../balancing/equipment";
 import { getCraftingDeal } from "../balancing/crafting";
-import { isInside, onSameLayer } from "../../engine/systems/enter";
+import {
+  getFragments,
+  isInside,
+  onSameLayer,
+} from "../../engine/systems/enter";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
 import { ClassKey } from "../balancing/classes";
 import { getSelectedLevel, levelConfig } from "../levels";
@@ -362,6 +381,10 @@ import { HARVESTABLE } from "../../engine/components/harvestable";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
 import { FOG } from "../../engine/components/fog";
 import { CellType } from "../../bindings/creation";
+import { ACTIONABLE } from "../../engine/components/actionable";
+import { COLLIDABLE } from "../../engine/components/collidable";
+import { LAYER } from "../../engine/components/layer";
+import { SHOOTABLE } from "../../engine/components/shootable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1090,6 +1113,204 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
 
     const aoeEntity = world.assertById(aoeId);
     disposeEntity(world, aoeEntity);
+    updated = true;
+  }
+
+  // dispose particles and areas
+  if (finished) {
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertById(state.particles[particleName]);
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    for (const aoeId of state.args.areas) {
+      const aoeEntity = world.assertById(aoeId);
+      disposeEntity(world, aoeEntity);
+    }
+
+    updated = true;
+  }
+
+  state.args.progress = progress;
+
+  return { finished, updated };
+};
+
+const blastSpeed = 700;
+const blastSprites: Record<
+  Material | "default",
+  { default: Sprite } & Partial<Record<Element, Sprite>>
+> = {
+  default: {
+    default: woodBlast,
+  },
+  wood: {
+    default: woodBlast,
+  },
+  iron: {
+    default: ironBlast,
+  },
+  gold: {
+    default: goldBlast,
+  },
+  diamond: {
+    default: diamondBlast,
+  },
+  ruby: {
+    default: rubyBlast,
+  },
+};
+
+export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
+  const entityId = world.getEntityId(entity);
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const progress = Math.round(state.elapsed / blastSpeed);
+  const orientation = entity[ORIENTABLE].facing as Orientation;
+  const delta = orientationPoints[orientation];
+  const material = state.args.material || "default";
+  const element = state.args.element || "default";
+  const limit = {
+    x: delta.x * state.args.range,
+    y: delta.y * state.args.range,
+  };
+
+  let finished = progress > state.args.duration;
+  let updated = false;
+
+  // create blast particles
+  if (!state.particles.blast) {
+    const blastParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        duration: blastSpeed * state.args.range,
+        animatedOrigin: { x: 0, y: 0 },
+        amount: 3,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]:
+        blastSprites[material][element] || blastSprites[material].default,
+    });
+    state.particles.blast = world.getEntityId(blastParticle);
+
+    for (const iteration of iterations) {
+      const sideParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: iteration.orientation },
+        [PARTICLE]: {
+          offsetX: iteration.direction.x,
+          offsetY: iteration.direction.y,
+          offsetZ: particleHeight,
+          duration: blastSpeed * state.args.range,
+          animatedOrigin: copy(iteration.direction),
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]:
+          blastSprites[material][element] || blastSprites[material].default,
+      });
+      state.particles[`side-${iteration.orientation}`] =
+        world.getEntityId(sideParticle);
+    }
+  }
+
+  // initiate movement
+  const blastEntity = world.assertByIdAndComponents(state.particles.blast, [
+    PARTICLE,
+  ]);
+
+  if (
+    progress > 0 &&
+    blastEntity[PARTICLE].offsetX === 0 &&
+    blastEntity[PARTICLE].offsetY === 0
+  ) {
+    blastEntity[PARTICLE].offsetX = limit.x;
+    blastEntity[PARTICLE].offsetY = limit.y;
+    rerenderEntity(world, blastEntity);
+
+    // move side particles
+    for (const iteration of iterations) {
+      const sideEntity = world.assertByIdAndComponents(
+        state.particles[`side-${iteration.orientation}`],
+        [PARTICLE]
+      );
+      sideEntity[PARTICLE].offsetX = limit.x + iteration.direction.x;
+      sideEntity[PARTICLE].offsetY = limit.y + iteration.direction.y;
+      rerenderEntity(world, sideEntity);
+    }
+
+    updated = true;
+  }
+
+  // create effect areas
+  for (
+    let aoeProgress = state.args.progress;
+    aoeProgress < progress && aoeProgress < state.args.range;
+    aoeProgress += 1
+  ) {
+    const offset = {
+      x: delta.x * (aoeProgress + 1),
+      y: delta.y * (aoeProgress + 1),
+    };
+    const positions =
+      aoeProgress === 0
+        ? [
+            offset,
+            ...iterations.map((iteration) => add(offset, iteration.direction)),
+          ]
+        : iterations
+            .filter(
+              (iteration) =>
+                orientation !== invertOrientation(iteration.orientation)
+            )
+            .map((iteration) => add(offset, iteration.direction));
+
+    for (const position of positions) {
+      const aoeEntity = entities.createAoe(world, {
+        [EXERTABLE]: { castable: entityId },
+        [POSITION]: combine(size, entity[POSITION], position),
+      });
+      registerEntity(world, aoeEntity);
+      state.args.areas.push(world.getEntityId(aoeEntity));
+    }
+    updated = true;
+  }
+
+  // remove effect areas
+  for (
+    let clearProgress = state.args.progress - 1;
+    clearProgress > 0 && clearProgress < progress - 1;
+    clearProgress += 1
+  ) {
+    const offset = {
+      x: delta.x * clearProgress,
+      y: delta.y * clearProgress,
+    };
+
+    const positions = iterations
+      .filter((iteration) => orientation !== iteration.orientation)
+      .map((iteration) => add(offset, iteration.direction));
+
+    for (const position of positions) {
+      const aoeEntities = getExertables(
+        world,
+        combine(size, entity[POSITION], position)
+      );
+
+      for (const aoeEntity of aoeEntities) {
+        const aoeId = world.getEntityId(aoeEntity);
+
+        const aoeIndex = state.args.areas.indexOf(aoeId);
+
+        if (aoeIndex === -1) {
+          console.log("error", position);
+        } else {
+          state.args.areas.splice(aoeIndex, 1);
+        }
+        disposeEntity(world, aoeEntity);
+      }
+    }
+
     updated = true;
   }
 
@@ -5378,6 +5599,224 @@ export const fountainSplash: Sequence<FountainSequence> = (
 
     state.args.generation = generation;
     updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const branchTime = 100;
+
+export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const oakEntity = getStructure(world, entity);
+
+  if (!oakEntity) return { finished: true, updated: false };
+
+  const generation = Math.floor(state.elapsed / branchTime);
+  const limbCount = state.args.limbs.length;
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const finished = !!state.args.shrink && limbCount === 0;
+  let updated = false;
+
+  if (
+    (state.args.grow || !state.args.shrink) &&
+    (!heroEntity ||
+      (oakEntity[STATS]?.hp || 0) < Math.max(state.args.threshold, 1))
+  ) {
+    state.args.grow = false;
+    state.args.shrink = generation;
+  }
+
+  if (state.args.grow && heroEntity && generation > limbCount) {
+    updated = true;
+    const lastLimb =
+      world.getEntityByIdAndComponents(state.args.limbs[limbCount - 1], [
+        POSITION,
+        ORIENTABLE,
+      ]) || entity;
+
+    const path = findPath(
+      world.metadata.gameEntity[LEVEL].walkable,
+      lastLimb[POSITION],
+      heroEntity[POSITION]
+    );
+    const growth = Math.min(generation - limbCount, path.length);
+
+    if (growth === 0) {
+      state.args.grow = false;
+
+      if (
+        getDistance(
+          lastLimb[POSITION],
+          heroEntity[POSITION],
+          size,
+          1,
+          false
+        ) === 1
+      ) {
+        // update split
+        const splitOrientation = relativeOrientations(
+          world,
+          lastLimb[POSITION],
+          heroEntity[POSITION],
+          1
+        )[0];
+        if (state.args.limbs.length > 0) {
+          lastLimb[SPRITE] =
+            splitOrientation === lastLimb[ORIENTABLE].facing
+              ? oakBranchSplit
+              : oakBranchSide;
+          rerenderEntity(world, lastLimb);
+        }
+
+        // create loop around hero
+        for (const iteration of iterations) {
+          const sidePosition = combine(
+            size,
+            heroEntity[POSITION],
+            iteration.direction
+          );
+          const sideEntity = entities.createLimb(world, {
+            [ACTIONABLE]: {
+              primaryTriggered: false,
+              secondaryTriggered: false,
+            },
+            [COLLIDABLE]: {},
+            [FOG]: { visibility: "hidden", type: "object" },
+            [FRAGMENT]: { structure: world.getEntityId(oakEntity) },
+            [LAYER]: {},
+            [MOVABLE]: {
+              bumpGeneration: 0,
+              orientations: [],
+              reference: world.getEntityId(world.metadata.gameEntity),
+              lastInteraction: 0,
+              flying: false,
+            },
+            [ORIENTABLE]: {
+              facing: iteration.orientation,
+            },
+            [POSITION]: sidePosition,
+            [RENDERABLE]: { generation: 0 },
+            [SEQUENCABLE]: { states: {} },
+            [SHOOTABLE]: { shots: 0 },
+            [SPRITE]: oakLoopSide,
+          });
+          state.args.limbs.push(world.getEntityId(sideEntity));
+
+          const cornerPosition = combine(size, sidePosition, iteration.normal);
+          const cornerEntity = entities.createLimb(world, {
+            [ACTIONABLE]: {
+              primaryTriggered: false,
+              secondaryTriggered: false,
+            },
+            [COLLIDABLE]: {},
+            [FOG]: { visibility: "hidden", type: "object" },
+            [FRAGMENT]: { structure: world.getEntityId(oakEntity) },
+            [LAYER]: {},
+            [MOVABLE]: {
+              bumpGeneration: 0,
+              orientations: [],
+              reference: world.getEntityId(world.metadata.gameEntity),
+              lastInteraction: 0,
+              flying: false,
+            },
+            [ORIENTABLE]: {
+              facing: rotateOrientation(iteration.orientation, 1),
+            },
+            [POSITION]: cornerPosition,
+            [RENDERABLE]: { generation: 0 },
+            [SEQUENCABLE]: { states: {} },
+            [SHOOTABLE]: { shots: 0 },
+            [SPRITE]: oakLoopCorner,
+          });
+          state.args.limbs.push(world.getEntityId(cornerEntity));
+        }
+      }
+    }
+
+    for (let limbIndex = 0; limbIndex < growth; limbIndex += 1) {
+      const limbPosition = path[limbIndex];
+      const previousLimb =
+        world.getEntityByIdAndComponents(state.args.limbs.slice(-1)[0], [
+          POSITION,
+          ORIENTABLE,
+        ]) || lastLimb;
+      const limbOrientation = relativeOrientations(
+        world,
+        previousLimb[POSITION],
+        limbPosition,
+        1
+      )[0];
+
+      if (state.args.limbs.length === 0) {
+        // update stem
+        entity[ORIENTABLE].facing = limbOrientation;
+      } else if (previousLimb[ORIENTABLE].facing) {
+        // update last limb
+        if (previousLimb[ORIENTABLE].facing === limbOrientation) {
+          previousLimb[SPRITE] = oakBranchSide;
+        } else {
+          // rotate corners
+          const cornerOrientation = rotateOrientation(
+            previousLimb[ORIENTABLE].facing,
+            orientationDelta(previousLimb[ORIENTABLE].facing, limbOrientation) >
+              0
+              ? 0
+              : 1
+          );
+          previousLimb[SPRITE] = oakBranchCorner;
+          previousLimb[ORIENTABLE].facing = cornerOrientation;
+        }
+      }
+      rerenderEntity(world, previousLimb);
+
+      const limbEntity = entities.createLimb(world, {
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [COLLIDABLE]: {},
+        [FOG]: { visibility: "hidden", type: "object" },
+        [FRAGMENT]: { structure: world.getEntityId(oakEntity) },
+        [LAYER]: {},
+        [MOVABLE]: {
+          bumpGeneration: 0,
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          lastInteraction: 0,
+          flying: false,
+        },
+        [ORIENTABLE]: {
+          facing: limbOrientation,
+        },
+        [POSITION]: limbPosition,
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { shots: 0 },
+        [SPRITE]: oakBranchEnd,
+      });
+      state.args.limbs.push(world.getEntityId(limbEntity));
+    }
+  } else if (state.args.shrink) {
+    updated = true;
+    const shrinkage = Math.min(generation - state.args.shrink, limbCount);
+
+    for (let limbIndex = 0; limbIndex < shrinkage; limbIndex += 1) {
+      const limbId = state.args.limbs.slice(-1)[0];
+      const limbEntity = world.getEntityByIdAndComponents(limbId, [POSITION]);
+
+      if (!limbEntity) break;
+
+      // find any overlapping limbs
+      const fragments = getFragments(world, limbEntity[POSITION]);
+      for (const fragmentEntity of fragments) {
+        const limbIndex = state.args.limbs.indexOf(
+          world.getEntityId(fragmentEntity)
+        );
+        if (limbIndex === -1) continue;
+        disposeEntity(world, fragmentEntity);
+        state.args.limbs.splice(limbIndex, 1);
+      }
+    }
+
+    state.args.shrink = generation;
   }
 
   return { finished, updated };

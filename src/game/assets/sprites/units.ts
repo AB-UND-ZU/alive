@@ -229,6 +229,39 @@ export const oakLeaves: Sprite = {
   },
 };
 
+export const oakMouth: Sprite = {
+  name: "Oak",
+  layers: [
+    { char: "█", color: colors.green },
+    { char: "░", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: "█", color: colors.green },
+      { char: "│", color: colors.black },
+      { char: "║", color: colors.black },
+      { char: "▄", color: colors.green },
+      { char: "░", color: colors.black },
+    ],
+    right: [
+      { char: "▄", color: colors.green },
+      { char: "▌", color: colors.green },
+      { char: "░", color: colors.black },
+    ],
+    down: [
+      { char: "█", color: colors.green },
+      { char: "░", color: colors.black },
+      { char: "\u0108", color: colors.black },
+      { char: "\u0106", color: colors.black },
+    ],
+    left: [
+      { char: "▄", color: colors.green },
+      { char: "▐", color: colors.green },
+      { char: "░", color: colors.black },
+    ],
+  },
+};
+
 export const oakStem: Sprite = {
   name: "Oak",
   layers: [{ char: "║", color: colors.maroon }],
@@ -240,6 +273,84 @@ export const oakStem: Sprite = {
       { char: "─", color: colors.black },
     ],
     left: [{ char: "╣", color: colors.maroon }],
+  },
+};
+
+export const oakBranchEnd: Sprite = {
+  name: "Oak",
+  layers: [{ char: "╬", color: colors.maroon }],
+  facing: {
+    up: [
+      { char: "╥", color: colors.maroon },
+      { char: "─", color: colors.black },
+    ],
+    right: [
+      { char: "╡", color: colors.maroon },
+      { char: "│", color: colors.black },
+    ],
+    down: [
+      { char: "╨", color: colors.maroon },
+      { char: "─", color: colors.black },
+    ],
+    left: [
+      { char: "╞", color: colors.maroon },
+      { char: "│", color: colors.black },
+    ],
+  },
+};
+
+export const oakBranchSide: Sprite = {
+  name: "Oak",
+  layers: [{ char: "╬", color: colors.maroon }],
+  facing: {
+    up: [{ char: "║", color: colors.maroon }],
+    right: [{ char: "═", color: colors.maroon }],
+    down: [{ char: "║", color: colors.maroon }],
+    left: [{ char: "═", color: colors.maroon }],
+  },
+};
+
+export const oakBranchCorner: Sprite = {
+  name: "Oak",
+  layers: [{ char: "╬", color: colors.maroon }],
+  facing: {
+    up: [{ char: "╔", color: colors.maroon }],
+    right: [{ char: "╗", color: colors.maroon }],
+    down: [{ char: "╝", color: colors.maroon }],
+    left: [{ char: "╚", color: colors.maroon }],
+  },
+};
+
+export const oakBranchSplit: Sprite = {
+  name: "Oak",
+  layers: [{ char: "╬", color: colors.maroon }],
+  facing: {
+    up: [{ char: "╥", color: colors.maroon }],
+    right: [{ char: "╡", color: colors.maroon }],
+    down: [{ char: "╨", color: colors.maroon }],
+    left: [{ char: "╞", color: colors.maroon }],
+  },
+};
+
+export const oakLoopSide: Sprite = {
+  name: "Oak",
+  layers: [{ char: "┼", color: colors.maroon }],
+  facing: {
+    up: [{ char: "─", color: colors.maroon }],
+    right: [{ char: "│", color: colors.maroon }],
+    down: [{ char: "─", color: colors.maroon }],
+    left: [{ char: "│", color: colors.maroon }],
+  },
+};
+
+export const oakLoopCorner: Sprite = {
+  name: "Oak",
+  layers: [{ char: "┼", color: colors.maroon }],
+  facing: {
+    up: [{ char: "┌", color: colors.maroon }],
+    right: [{ char: "┐", color: colors.maroon }],
+    down: [{ char: "┘", color: colors.maroon }],
+    left: [{ char: "└", color: colors.maroon }],
   },
 };
 
