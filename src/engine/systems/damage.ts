@@ -42,7 +42,7 @@ import { closePopup, getActivePopup } from "./popup";
 import { Affectable, AFFECTABLE } from "../components/affectable";
 import { extinguishEntity } from "./burn";
 import { FRAGMENT } from "../components/fragment";
-import { getFragment } from "./enter";
+import { getFragment, isFragment } from "./enter";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isDecaying } from "./drop";
 import { STRUCTURABLE } from "../components/structurable";
@@ -112,6 +112,9 @@ export const getAttackables = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity[];
+
+export const getRoot = (world: World, entity: Entity) =>
+  isFragment(world, entity) ? getStructure(world, entity) : entity;
 
 export const getStructure = (world: World, entity: Entity) =>
   world.getEntityById(entity[FRAGMENT].structure);
@@ -326,6 +329,7 @@ export const createAmountMarker = (
       {
         amount,
         type,
+        orientation,
       }
     );
   }

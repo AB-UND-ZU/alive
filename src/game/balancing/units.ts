@@ -82,6 +82,7 @@ export type NpcDistribution = Partial<Record<NpcType, number>>;
 export type UnitDefinition = {
   faction: Faction;
   dormant?: boolean;
+  scratch: string;
   harvestable?: Omit<Harvestable, "maximum">;
   stats: Partial<UnitStats>;
   equipments: Omit<Item, "carrier">[];
@@ -101,6 +102,7 @@ export type UnitDefinition = {
 export type UnitData = {
   faction: Faction;
   dormant?: boolean;
+  scratch: string;
   harvestable?: Harvestable;
   stats: UnitStats;
   equipments: Omit<Item, "carrier">[];
@@ -121,6 +123,7 @@ export type NpcData = UnitData & {
 const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
     faction: "nomad",
+    scratch: colors.silver,
     stats: {
       hp: 30,
     },
@@ -151,6 +154,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthSmith: {
     faction: "earth",
+    scratch: colors.silver,
     stats: {
       hp: 30,
     },
@@ -171,6 +175,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthTrader: {
     faction: "earth",
+    scratch: colors.silver,
     stats: {
       hp: 20,
     },
@@ -195,6 +200,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthDruid: {
     faction: "earth",
+    scratch: colors.silver,
     stats: {
       hp: 20,
     },
@@ -208,6 +214,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthChief: {
     faction: "earth",
+    scratch: colors.silver,
     stats: {
       hp: 40,
     },
@@ -235,6 +242,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   earthGuard: {
     faction: "earth",
+    scratch: colors.silver,
     stats: {
       hp: 30,
     },
@@ -268,6 +276,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   banditKnight: {
     faction: "wild",
+    scratch: colors.silver,
     stats: {
       hp: 20,
     },
@@ -291,6 +300,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   banditArcher: {
     faction: "wild",
+    scratch: colors.silver,
     stats: {
       hp: 20,
     },
@@ -309,6 +319,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   tutorialBoss: {
     faction: "wild",
+    scratch: colors.silver,
     stats: {
       hp: 20,
     },
@@ -343,6 +354,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   commonChest: {
     faction: "unit",
+    scratch: colors.grey,
     stats: {
       hp: 15,
       armor: 1,
@@ -371,6 +383,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   uncommonChest: {
     faction: "unit",
+    scratch: colors.grey,
     stats: {
       hp: 20,
       armor: 2,
@@ -382,6 +395,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rareChest: {
     faction: "unit",
+    scratch: colors.grey,
     stats: {
       hp: 25,
       armor: 3,
@@ -393,6 +407,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   epicChest: {
     faction: "unit",
+    scratch: colors.grey,
     stats: {
       hp: 30,
       armor: 4,
@@ -404,6 +419,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   legendaryChest: {
     faction: "unit",
+    scratch: colors.grey,
     stats: {
       hp: 35,
       armor: 5,
@@ -415,6 +431,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   pot: {
     faction: "unit",
+    scratch: colors.maroon,
     stats: {
       hp: 10,
     },
@@ -434,6 +451,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   box: {
     faction: "unit",
+    scratch: colors.maroon,
     stats: {
       hp: 5,
     },
@@ -451,6 +469,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   dummy: {
     faction: "wild",
+    scratch: colors.maroon,
     stats: {
       hp: 25,
     },
@@ -470,6 +489,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   sign: {
     faction: "unit",
+    scratch: colors.maroon,
     stats: {
       hp: 20,
       armor: 2,
@@ -490,6 +510,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   fence: {
     faction: "unit",
+    scratch: colors.maroon,
     stats: {
       hp: 35,
       armor: 2,
@@ -507,6 +528,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   cactus1: {
     faction: "unit",
+    scratch: colors.green,
     stats: {
       hp: 10,
       armor: 1,
@@ -519,6 +541,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   cactus2: {
     faction: "unit",
+    scratch: colors.green,
     stats: {
       hp: 10,
       spike: 3,
@@ -530,6 +553,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rock1: {
     faction: "unit",
+    scratch: colors.grey,
     stats: {
       hp: 3,
       armor: 3,
@@ -544,6 +568,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rock2: {
     faction: "unit",
+    scratch: colors.grey,
     stats: {
       hp: 5,
       armor: 2,
@@ -558,6 +583,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   tumbleweed: {
     faction: "unit",
+    scratch: colors.maroon,
     stats: {
       hp: 5,
     },
@@ -568,6 +594,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hedge1: {
     faction: "unit",
+    scratch: colors.green,
     stats: {
       hp: 10,
     },
@@ -578,6 +605,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   hedge2: {
     faction: "unit",
+    scratch: colors.green,
     stats: {
       hp: 7,
       armor: 1,
@@ -589,6 +617,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   prism: {
     faction: "wild",
+    scratch: colors.grey,
     stats: {
       hp: 8,
     },
@@ -622,6 +651,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldPrism: {
     faction: "wild",
+    scratch: colors.yellow,
     stats: {
       hp: 16,
       armor: 1,
@@ -649,6 +679,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   eye: {
     faction: "wild",
+    scratch: colors.grey,
     stats: {
       hp: 1,
     },
@@ -682,6 +713,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldEye: {
     faction: "wild",
+    scratch: colors.yellow,
     stats: {
       hp: 2,
       armor: 1,
@@ -709,6 +741,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   orb: {
     faction: "wild",
+    scratch: colors.grey,
     stats: {
       hp: 5,
       mp: 1,
@@ -753,6 +786,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   goldOrb: {
     faction: "wild",
+    scratch: colors.yellow,
     stats: {
       hp: 10,
       mp: 1,
@@ -791,6 +825,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   diamondOrb: {
     faction: "wild",
+    scratch: colors.aqua,
     stats: {
       hp: 15,
       mp: 1,
@@ -829,6 +864,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   fairy: {
     faction: "wild",
+    scratch: colors.grey,
     stats: {
       hp: 10,
       armor: 2,
@@ -853,6 +889,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   rose: {
     faction: "unit",
+    scratch: colors.green,
     dormant: true,
     harvestable: { amount: 4, material: "wood", resource: "tree" },
     stats: {
@@ -888,6 +925,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   violet: {
     faction: "unit",
+    scratch: colors.green,
     dormant: true,
     harvestable: { amount: 4, material: "wood", resource: "tree" },
     stats: {
@@ -931,6 +969,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   clover: {
     faction: "unit",
+    scratch: colors.green,
     dormant: true,
     harvestable: { amount: 4, material: "wood", resource: "tree" },
     stats: {
@@ -992,6 +1031,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   waveTower: {
     faction: "wild",
+    scratch: colors.silver,
     stats: {
       hp: 20,
       mp: 1,
@@ -1017,6 +1057,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   oakBoss: {
     faction: "unit",
+    scratch: colors.maroon,
     dormant: true,
     stats: {
       hp: 300,
@@ -1030,6 +1071,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   oakTower: {
     faction: "wild",
+    scratch: colors.silver,
     stats: {
       hp: 50,
       mp: 1,
@@ -1050,6 +1092,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   oakClover: {
     faction: "wild",
+    scratch: colors.green,
     stats: {
       hp: 15,
       armor: 0,
@@ -1073,6 +1116,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   },
   chestBoss: {
     faction: "unit",
+    scratch: colors.grey,
     dormant: true,
     stats: {
       hp: 200,

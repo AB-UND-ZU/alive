@@ -46,7 +46,11 @@ export type PointerSequence = {
   target?: number;
   lastOrientation?: Orientation;
 };
-export type MarkerSequence = { amount: number; type: DamageType };
+export type MarkerSequence = {
+  amount: number;
+  type: DamageType;
+  orientation?: Orientation;
+};
 export type HarvestSequence = {
   amount: number;
   target: number;

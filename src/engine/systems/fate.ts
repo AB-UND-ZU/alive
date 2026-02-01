@@ -60,6 +60,7 @@ import { closePopup } from "./popup";
 import { getBurning } from "./burn";
 import { CONDITIONABLE } from "../components/conditionable";
 import { SHOOTABLE } from "../components/shootable";
+import { colors } from "../../game/assets/colors";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -129,7 +130,7 @@ export const createHero = (world: World, halo: Entity) => {
   const heroEntity = entities.createHero(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: getEmptyAffectable(),
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { scratchColor: colors.silver },
     [BELONGABLE]: { faction: halo[BELONGABLE].faction },
     [COLLECTABLE]: {},
     [CONDITIONABLE]: {},

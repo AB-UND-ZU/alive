@@ -550,7 +550,7 @@ export const createChest = (
 ) => {
   const chestData = generateUnitData(unitKey);
   const chestEntity = entities.createChest(world, {
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { scratchColor: chestData.scratch },
     [BELONGABLE]: { faction: chestData.faction },
     [DROPPABLE]: { decayed: false, remains: chestData.remains },
     [INVENTORY]: { items: [] },
@@ -575,7 +575,7 @@ export const createSign = (
 ) => {
   const signData = generateUnitData("sign");
   const signEntity = entities.createSign(world, {
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { scratchColor: signData.scratch },
     [BELONGABLE]: { faction: signData.faction },
     [BURNABLE]: {
       burning: false,
@@ -867,13 +867,13 @@ export const createCell = (
     return { cell: mountainEntity, all };
   } else if (cell === "rock" || cell === "desert_rock") {
     const rock = (["rock1", "rock2"] as const)[random(0, 1)];
-    const { items, sprite, stats, faction } = generateUnitData(rock);
+    const { items, sprite, stats, faction, scratch } = generateUnitData(rock);
     const sprites = {
       rock: { rock1, rock2 },
       desert_rock: { [rock]: sprite },
     };
     const rockEntity = entities.createDeposit(world, {
-      [ATTACKABLE]: {},
+      [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
       [DROPPABLE]: {
         decayed: false,
@@ -1328,11 +1328,11 @@ export const createCell = (
 
     return { cell: palmEntity, all };
   } else if (cell === "hedge" || cell === "path_hedge") {
-    const { items, sprite, stats, faction } = generateUnitData(
+    const { items, sprite, stats, faction, scratch } = generateUnitData(
       (["hedge1", "hedge2"] as const)[random(0, 1)]
     );
     const hedgeEntity = entities.createResource(world, {
-      [ATTACKABLE]: {},
+      [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
       [BURNABLE]: {
         burning: false,
@@ -1367,10 +1367,10 @@ export const createCell = (
     }
     return { cell: hedgeEntity, all };
   } else if (cell === "tumbleweed") {
-    const { items, sprite, stats, faction, patterns } =
+    const { items, sprite, stats, faction, patterns, scratch } =
       generateUnitData("tumbleweed");
     const tumbleweedEntity = entities.createTumbleweed(world, {
-      [ATTACKABLE]: {},
+      [ATTACKABLE]: { scratchColor: scratch },
       [AFFECTABLE]: getEmptyAffectable(),
       [BEHAVIOUR]: { patterns },
       [BELONGABLE]: { faction },
@@ -1511,7 +1511,7 @@ export const createCell = (
     setIdentifier(world, world.assertById(coinItem[ITEM].carrier), "coin");
     return { cell: coinItem, all };
   } else if (cell === "cactus") {
-    const { sprite, stats, faction, items } = generateUnitData(
+    const { sprite, stats, faction, items, scratch } = generateUnitData(
       (["cactus1", "cactus2"] as const)[random(0, 1)]
     );
     all.push(
@@ -1521,7 +1521,7 @@ export const createCell = (
       })
     );
     const cactusEntity = entities.createCactus(world, {
-      [ATTACKABLE]: {},
+      [ATTACKABLE]: { scratchColor: scratch },
       [AFFECTABLE]: getEmptyAffectable(),
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false, remains: sand },
@@ -1970,11 +1970,11 @@ export const createCell = (
     all.push(potEntity);
     return { cell: potEntity, all };
   } else if (cell === "fence") {
-    const { sprite, stats, faction, items, equipments } =
+    const { sprite, stats, faction, items, equipments, scratch } =
       generateUnitData("fence");
     const remains = [fenceBurnt1, fenceBurnt2][random(0, 1)];
     const fenceEntity = entities.createObject(world, {
-      [ATTACKABLE]: {},
+      [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
       [BURNABLE]: {
         burning: false,
@@ -2040,7 +2040,7 @@ export const createCell = (
     all.push(gateEntity);
     return { cell: gateEntity, all };
   } else if (cell === "box" || cell === "tutorial_box") {
-    const { items, equipments, sprite, stats, faction } =
+    const { items, equipments, sprite, stats, faction, scratch } =
       generateUnitData("box");
     const frameEntity = entities.createFrame(world, {
       [REFERENCE]: {
@@ -2054,7 +2054,7 @@ export const createCell = (
     all.push(frameEntity);
     const boxEntity = entities.createBox(world, {
       [AFFECTABLE]: getEmptyAffectable(),
-      [ATTACKABLE]: {},
+      [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false },
       [DISPLACABLE]: {},
@@ -2206,7 +2206,7 @@ export const createCell = (
       mobEntity = entities.createMob(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [AFFECTABLE]: getEmptyAffectable(),
-        [ATTACKABLE]: {},
+        [ATTACKABLE]: { scratchColor: mobUnit.scratch },
         [BEHAVIOUR]: {
           patterns: [
             { name: "wait", memory: { ticks: 1 } },

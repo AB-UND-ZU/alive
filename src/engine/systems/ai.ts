@@ -107,6 +107,7 @@ import { EQUIPPABLE } from "../components/equippable";
 import { SHOOTABLE } from "../components/shootable";
 import { createSequence, getSequence } from "./sequence";
 import { BranchSequence } from "../components/sequencable";
+import { generateNpcData, UnitDefinition } from "../../game/balancing/units";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -1336,7 +1337,11 @@ export default function setupAi(world: World) {
             addShootable(world, limbEntity, { shots: 0 });
           }
 
-          addAttackable(world, entity, {});
+          const mobType = entity[NPC]?.type;
+          const mobUnit = mobType
+            ? generateNpcData(mobType)
+            : ({} as Partial<UnitDefinition>);
+          addAttackable(world, entity, { scratchColor: mobUnit.scratch });
           addAffectable(world, entity, getEmptyAffectable());
           world.removeComponentFromEntity(
             entity as TypedEntity<"COLLIDABLE">,

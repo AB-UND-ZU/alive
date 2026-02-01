@@ -1,7 +1,9 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Attackable = {};
+export type Attackable = {
+  scratchColor?: string;
+};
 
 export const ATTACKABLE = "ATTACKABLE";
 

@@ -49,6 +49,7 @@ import {
 import {
   calculateHealing,
   getEntityDisplayStats,
+  getRoot,
   getStructure,
   isDead,
 } from "../../engine/systems/damage";
@@ -385,6 +386,7 @@ import { ACTIONABLE } from "../../engine/components/actionable";
 import { COLLIDABLE } from "../../engine/components/collidable";
 import { LAYER } from "../../engine/components/layer";
 import { SHOOTABLE } from "../../engine/components/shootable";
+import { ATTACKABLE } from "../../engine/components/attackable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1343,6 +1345,8 @@ const markerType: Record<DamageType, Sprite> = {
   true: heal,
 };
 
+const scratchChars = [..."',.`·∙"];
+
 export const amountMarker: Sequence<MarkerSequence> = (
   world,
   entity,
@@ -1354,6 +1358,7 @@ export const amountMarker: Sequence<MarkerSequence> = (
   let updated = false;
   const particleAmount = getParticleAmount(world, Math.abs(state.args.amount));
 
+  // create hit marker
   if (!state.particles.marker) {
     const markerParticle = entities.createParticle(world, {
       [PARTICLE]: {
@@ -1367,6 +1372,34 @@ export const amountMarker: Sequence<MarkerSequence> = (
       [SPRITE]: markerType[state.args.type],
     });
     state.particles.marker = world.getEntityId(markerParticle);
+  }
+
+  // create scratch
+  const orientation = state.args.orientation;
+  const rootEntity = getRoot(world, entity);
+  const scratchColor = rootEntity?.[ATTACKABLE]?.scratchColor;
+
+  if (
+    orientation &&
+    scratchColor &&
+    !state.particles.scratch &&
+    state.args.type !== "true"
+  ) {
+    const delta = orientationPoints[orientation];
+    const scratchParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: delta.x,
+        offsetY: delta.y,
+        offsetZ: particleHeight,
+        animatedOrigin: { x: 0, y: 0 },
+        duration: markerTime,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: createText(choice(...scratchChars), scratchColor)[0],
+    });
+    state.particles.scratch = world.getEntityId(scratchParticle);
+
+    updated = true;
   }
 
   if (state.elapsed > markerTime && state.particles.marker) {
@@ -1545,23 +1578,25 @@ export const creatureDecay: Sequence<DecaySequence> = (
   const decayDelay = state.args.fast ? 0 : haltTime;
   const finished = state.elapsed > decayDelay + decayTime;
 
-  // create death particle
+  // create decay particle
   if (!state.particles.decay && state.elapsed > decayDelay && !finished) {
-    const deathParticle = entities.createParticle(world, {
+    const decayParticle = entities.createParticle(world, {
       [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: decayHeight },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: decay,
     });
-    state.particles.decay = world.getEntityId(deathParticle);
+    state.particles.decay = world.getEntityId(decayParticle);
     updated = true;
   }
 
-  // delete death particle and make entity lootable
+  // delete decay particles and make entity lootable
   if (finished) {
-    if (state.particles.decay) {
-      disposeEntity(world, world.assertById(state.particles.decay));
-      delete state.particles.decay;
-    }
+    const decayParticle = world.assertByIdAndComponents(state.particles.decay, [
+      PARTICLE,
+    ]);
+
+    disposeEntity(world, decayParticle);
+    delete state.particles.decay;
 
     if (entity[DROPPABLE]) entity[DROPPABLE].decayed = true;
     if (entity[BURNABLE]) entity[BURNABLE].decayed = true;
