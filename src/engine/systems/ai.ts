@@ -110,11 +110,7 @@ import { shootHoming } from "./homing";
 import { EQUIPPABLE } from "../components/equippable";
 import { SHOOTABLE } from "../components/shootable";
 import { createSequence, getSequence } from "./sequence";
-import {
-  BranchSequence,
-  SEQUENCABLE,
-  WormSequence,
-} from "../components/sequencable";
+import { BranchSequence, SEQUENCABLE } from "../components/sequencable";
 import { generateNpcData, UnitDefinition } from "../../game/balancing/units";
 import { entities } from "..";
 import { FRAGMENT } from "../components/fragment";
@@ -2491,25 +2487,6 @@ export default function setupAi(world: World) {
                   waypoints,
                   iteration: pattern.memory.iteration,
                 });
-
-                // create spike
-                const length = limbs.filter(
-                  (limb) => limb.iteration === pattern.memory.iteration
-                ).length;
-                if (length % 3 === 0) {
-                  createSequence<"worm", WormSequence>(
-                    world,
-                    limbEntity,
-                    "worm",
-                    "wormLimbs",
-                    {
-                      type:
-                        rotation === -1
-                          ? "spikeCounterClockwise"
-                          : "spikeClockwise",
-                    }
-                  );
-                }
               }
             }
           }

@@ -230,8 +230,6 @@ import {
   wormMouthSideLeft,
   wormMouthCenter,
   wormMouthSideRight,
-  wormSpikeClockwise,
-  wormSpikeCounterClockwise,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -5873,20 +5871,6 @@ const wormConfig: Record<
     name: string;
   }[]
 > = {
-  spikeClockwise: [
-    {
-      offset: { x: -1, y: 0 },
-      sprite: wormSpikeClockwise,
-      name: "limb",
-    },
-  ],
-  spikeCounterClockwise: [
-    {
-      offset: { x: 1, y: 0 },
-      sprite: wormSpikeCounterClockwise,
-      name: "limb",
-    },
-  ],
   mouth: [
     {
       offset: { x: -1, y: 0 },

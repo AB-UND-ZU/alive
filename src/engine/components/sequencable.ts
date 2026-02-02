@@ -139,7 +139,7 @@ export type BranchSequence = {
   shrink?: number;
 };
 export type WormSequence = {
-  type: "mouth" | "spikeClockwise" | "spikeCounterClockwise";
+  type: "mouth";
 };
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
