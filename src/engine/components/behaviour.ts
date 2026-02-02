@@ -17,6 +17,7 @@ export type Pattern = {
     | "oak_boss"
     | "oak_tower"
     | "oak_clover"
+    | "worm_boss"
     | "chest_boss"
     | "wave_tower"
     | "wait"

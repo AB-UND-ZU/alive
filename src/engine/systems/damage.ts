@@ -120,7 +120,7 @@ export const getStructure = (world: World, entity: Entity) =>
   world.getEntityById(entity[FRAGMENT].structure);
 
 export const getLimbs = (world: World, entity: Entity) => {
-  const limbs = [entity];
+  const limbs = [];
 
   if (entity[STRUCTURABLE]) {
     const entityId = world.getEntityId(entity);
@@ -129,6 +129,8 @@ export const getLimbs = (world: World, entity: Entity) => {
         limbs.push(limbEntity);
       }
     }
+  } else {
+    limbs.push(entity);
   }
   return limbs;
 };

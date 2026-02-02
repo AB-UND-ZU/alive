@@ -45,6 +45,7 @@ import {
   FountainSequence,
   SEQUENCABLE,
   VortexSequence,
+  WormSequence,
 } from "../engine/components/sequencable";
 import { SPAWNABLE } from "../engine/components/spawnable";
 import { SPIKABLE } from "../engine/components/spikable";
@@ -149,6 +150,7 @@ import {
   oakStem,
   oakLeaves,
   oakMouth,
+  wormMouth,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -2187,7 +2189,7 @@ export const createCell = (
             duration: 200,
           },
           lastInteraction: 0,
-          flying: false,
+          flying: mobUnit.flying,
         },
         [NPC]: { type: mobUnit.type },
         [ORIENTABLE]: {
@@ -2228,7 +2230,7 @@ export const createCell = (
             duration: 200,
           },
           lastInteraction: 0,
-          flying: false,
+          flying: mobUnit.flying,
         },
         [NPC]: { type: mobUnit.type },
         [ORIENTABLE]: {
@@ -2719,6 +2721,62 @@ export const createCell = (
     });
     all.push(room);
     setIdentifier(world, room, "oakRoom");
+
+    return { cell: bossEntity, all };
+  } else if (cell === "worm_boss") {
+    const bossUnit = generateNpcData("wormBoss");
+
+    // create unit and base
+    const bossEntity = entities.createElite(world, {
+      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [AFFECTABLE]: getEmptyAffectable(),
+      [ATTACKABLE]: { scratchColor: bossUnit.scratch },
+      [BEHAVIOUR]: { patterns: bossUnit.patterns },
+      [BELONGABLE]: { faction: bossUnit.faction },
+      [DROPPABLE]: { decayed: false },
+      [EQUIPPABLE]: {},
+      [FOG]: { visibility, type: "unit" },
+      [FRAGMENT]: { structure: -1 },
+      [INVENTORY]: { items: [] },
+      [LAYER]: {},
+      [MELEE]: {},
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: bossUnit.spring || {
+          duration: 350,
+        },
+        lastInteraction: 0,
+        flying: bossUnit.flying,
+      },
+      [NPC]: { type: bossUnit.type },
+      [ORIENTABLE]: {},
+      [POSITION]: { x, y },
+      [RECHARGABLE]: { hit: false },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
+      [SPRITE]: wormMouth,
+      [STATS]: bossUnit.stats,
+      [STRUCTURABLE]: {},
+      [SWIMMABLE]: { swimming: false },
+      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+    });
+    all.push(bossEntity);
+    populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);
+
+    // npcSequence(world, bossEntity, "wormNpc", {});
+    setIdentifier(world, bossEntity, "worm_boss");
+    const bossId = world.getEntityId(bossEntity);
+    bossEntity[FRAGMENT].structure = bossId;
+    createSequence<"worm", WormSequence>(
+      world,
+      bossEntity,
+      "worm",
+      "wormMouth",
+      {}
+    );
 
     return { cell: bossEntity, all };
   } else if (cell === "chest_boss") {

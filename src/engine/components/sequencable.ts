@@ -138,6 +138,7 @@ export type BranchSequence = {
   grow: boolean;
   shrink?: number;
 };
+export type WormSequence = EmptyObject;
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
   step: string;
@@ -223,6 +224,7 @@ export type Sequencable = {
     arrow?: SequenceState<ArrowSequence>;
     slash?: SequenceState<SlashSequence>;
     branch?: SequenceState<BranchSequence>;
+    worm?: SequenceState<WormSequence>;
     npc?: SequenceState<NpcSequence>;
     quest?: SequenceState<QuestSequence>;
     discovery?: SequenceState<DiscoverySequence>;

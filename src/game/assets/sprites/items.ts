@@ -597,6 +597,24 @@ export const worm: Sprite = {
     { char: "≈", color: colors.maroon },
     { char: "\u0115", color: colors.black },
   ],
+  facing: {
+    up: [
+      { char: "=", color: colors.maroon },
+      { char: "\u0115", color: colors.black },
+    ],
+    right: [
+      { char: "=", color: colors.maroon },
+      { char: "\u0115", color: colors.black },
+    ],
+    down: [
+      { char: "=", color: colors.maroon },
+      { char: "\u0115", color: colors.black },
+    ],
+    left: [
+      { char: "=", color: colors.maroon },
+      { char: "\u0115", color: colors.black },
+    ],
+  },
 };
 
 export const algae: Sprite = {
@@ -751,4 +769,4 @@ export const lemon: Sprite = {
 export const grain: Sprite = {
   name: "Grain",
   layers: [{ char: "·", color: colors.olive }],
-}
+};

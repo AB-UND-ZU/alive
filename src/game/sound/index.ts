@@ -6,6 +6,7 @@ import { isPlaying, ResumableSoundEffect } from "./resumable";
 import { Params, sfxr, waveforms } from "jsfxr";
 
 export const npcVariants: Partial<Record<NpcType, number>> = {
+  wormBoss: 1,
   orb: 1,
   goldOrb: 1,
   prism: 2,

@@ -656,3 +656,321 @@ export const chick: Sprite = {
     { char: ".", color: colors.black },
   ],
 };
+export const wormBoss: Sprite = {
+  name: "Worm",
+  layers: [
+    { char: "│", color: colors.silver },
+    { char: "■", color: colors.grey },
+    { char: "\u0106", color: colors.red },
+    { char: "+", color: colors.red },
+    { char: "÷", color: colors.grey },
+    { char: ":", color: colors.red },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.grey },
+    { char: "▀", color: colors.black },
+  ],
+};
+
+export const wormSide: Sprite = {
+  name: "Worm",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "ç", color: colors.grey },
+    { char: "Q", color: colors.grey },
+    { char: "\u0101", color: colors.silver },
+    { char: "\u0100", color: colors.grey },
+    { char: "■", color: colors.silver },
+    { char: "=", color: colors.red },
+    { char: "|", color: colors.grey },
+  ],
+  facing: {
+    up: [
+      { char: "│", color: colors.grey },
+
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "\u0114", color: colors.grey },
+      { char: "\u0110", color: colors.grey },
+      { char: "¼", color: colors.grey },
+      { char: "ç", color: colors.grey },
+      { char: "Q", color: colors.grey },
+      { char: "\u0101", color: colors.silver },
+      { char: "\u0100", color: colors.grey },
+      { char: "■", color: colors.silver },
+      { char: "|", color: colors.silver },
+      { char: "=", color: colors.red },
+    ],
+    right: [
+      { char: "∞", color: colors.grey },
+
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "\u0114", color: colors.grey },
+      { char: "\u0110", color: colors.grey },
+      { char: "¼", color: colors.grey },
+      { char: "ç", color: colors.grey },
+      { char: "Q", color: colors.grey },
+      { char: "\u0101", color: colors.silver },
+      { char: "\u0100", color: colors.grey },
+      { char: "■", color: colors.silver },
+      { char: "[", color: colors.red },
+      { char: "]", color: colors.red },
+      { char: "|", color: colors.silver },
+    ],
+    down: [
+      { char: "│", color: colors.grey },
+
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "\u0114", color: colors.grey },
+      { char: "\u0110", color: colors.grey },
+      { char: "¼", color: colors.grey },
+      { char: "ç", color: colors.grey },
+      { char: "Q", color: colors.grey },
+      { char: "\u0101", color: colors.silver },
+      { char: "\u0100", color: colors.grey },
+      { char: "■", color: colors.silver },
+      { char: "|", color: colors.silver },
+      { char: "=", color: colors.red },
+    ],
+    left: [
+      { char: "∞", color: colors.grey },
+
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "\u0114", color: colors.grey },
+      { char: "\u0110", color: colors.grey },
+      { char: "¼", color: colors.grey },
+      { char: "ç", color: colors.grey },
+      { char: "Q", color: colors.grey },
+      { char: "\u0101", color: colors.silver },
+      { char: "\u0100", color: colors.grey },
+      { char: "■", color: colors.silver },
+      { char: "[", color: colors.red },
+      { char: "]", color: colors.red },
+      { char: "|", color: colors.silver },
+    ],
+  },
+};
+
+export const wormCorner: Sprite = {
+  name: "Worm",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "ç", color: colors.grey },
+    { char: "Q", color: colors.grey },
+    { char: "\u0101", color: colors.silver },
+    { char: "\u0100", color: colors.grey },
+    { char: "■", color: colors.silver },
+    { char: "=", color: colors.red },
+    { char: "|", color: colors.red },
+  ],
+  facing: {
+    up: [
+      { char: "┌", color: colors.grey },
+      { char: "∞", color: colors.grey },
+
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "\u0114", color: colors.grey },
+      { char: "\u0110", color: colors.grey },
+      { char: "¼", color: colors.grey },
+      { char: "ç", color: colors.grey },
+      { char: "Q", color: colors.grey },
+      { char: "\u0101", color: colors.silver },
+      { char: "\u0100", color: colors.grey },
+      { char: "■", color: colors.silver },
+      { char: "|", color: colors.silver },
+      { char: "=", color: colors.red },
+    ],
+    right: [
+      { char: "┐", color: colors.grey },
+
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "\u0114", color: colors.grey },
+      { char: "\u0110", color: colors.grey },
+      { char: "¼", color: colors.grey },
+      { char: "ç", color: colors.grey },
+      { char: "Q", color: colors.grey },
+      { char: "\u0101", color: colors.silver },
+      { char: "\u0100", color: colors.grey },
+      { char: "■", color: colors.silver },
+      { char: "[", color: colors.red },
+      { char: "]", color: colors.red },
+      { char: "|", color: colors.silver },
+    ],
+    down: [
+      { char: "┘", color: colors.grey },
+
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "\u0114", color: colors.grey },
+      { char: "\u0110", color: colors.grey },
+      { char: "¼", color: colors.grey },
+      { char: "ç", color: colors.grey },
+      { char: "Q", color: colors.grey },
+      { char: "\u0101", color: colors.silver },
+      { char: "\u0100", color: colors.grey },
+      { char: "■", color: colors.silver },
+      { char: "|", color: colors.silver },
+      { char: "=", color: colors.red },
+    ],
+    left: [
+      { char: "┘", color: colors.grey },
+      { char: "∞", color: colors.grey },
+
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "\u0114", color: colors.grey },
+      { char: "\u0110", color: colors.grey },
+      { char: "¼", color: colors.grey },
+      { char: "ç", color: colors.grey },
+      { char: "Q", color: colors.grey },
+      { char: "\u0101", color: colors.silver },
+      { char: "\u0100", color: colors.grey },
+      { char: "■", color: colors.silver },
+      { char: "[", color: colors.red },
+      { char: "]", color: colors.red },
+      { char: "|", color: colors.silver },
+    ],
+  },
+};
+
+export const wormMouth: Sprite = {
+  name: "Worm",
+  layers: [],
+  facing: {
+    up: [
+      { char: "X", color: colors.red },
+      { char: "▄", color: colors.grey },
+    ],
+    right: [
+      { char: "x", color: colors.red },
+      { char: "^", color: colors.red },
+      { char: "_", color: colors.red },
+      { char: "▌", color: colors.grey },
+    ],
+    down: [
+      { char: "X", color: colors.red },
+      { char: "▀", color: colors.grey },
+    ],
+    left: [
+      { char: "x", color: colors.red },
+      { char: "^", color: colors.red },
+      { char: "_", color: colors.red },
+      { char: "▐", color: colors.grey },
+    ],
+  },
+};
+
+export const wormMouthCornerLeft: Sprite = {
+  name: "Worm",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "X", color: colors.red },
+  ],
+  facing: {
+    up: [
+      { char: "/", color: colors.red },
+      { char: "~", color: colors.red },
+      { char: "▄", color: colors.grey },
+      { char: "▌", color: colors.grey },
+    ],
+    right: [{ char: "▄", color: colors.grey }],
+    down: [
+      { char: "/", color: colors.red },
+      { char: "_", color: colors.red },
+      { char: "▀", color: colors.grey },
+      { char: "▐", color: colors.grey },
+    ],
+    left: [
+      { char: "▀", color: colors.grey },
+      { char: "─", color: colors.grey },
+    ],
+  },
+};
+
+export const wormMouthCornerRight: Sprite = {
+  name: "Worm",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "X", color: colors.red },
+  ],
+  facing: {
+    up: [
+      { char: "\\", color: colors.red },
+      { char: "`", color: colors.red },
+      { char: "▄", color: colors.grey },
+      { char: "▐", color: colors.grey },
+    ],
+    right: [
+      { char: "▀", color: colors.grey },
+      { char: "─", color: colors.grey },
+    ],
+    down: [
+      { char: "\\", color: colors.red },
+      { char: "_", color: colors.red },
+      { char: "▀", color: colors.grey },
+      { char: "▌", color: colors.grey },
+    ],
+    left: [{ char: "▄", color: colors.grey }],
+  },
+};
+
+export const wormMouthSideLeft: Sprite = {
+  name: "Worm",
+  layers: [],
+  facing: {
+    right: [{ char: "▄", color: colors.grey }],
+    left: [
+      { char: "▀", color: colors.grey },
+      { char: "─", color: colors.grey },
+    ],
+  },
+};
+
+export const wormMouthCenter: Sprite = {
+  name: "Worm",
+  layers: [],
+  facing: {
+    right: [
+      { char: "│", color: colors.red },
+      { char: "|", color: colors.black },
+    ],
+    left: [
+      { char: "│", color: colors.red },
+      { char: "|", color: colors.black },
+    ],
+  },
+};
+
+export const wormMouthSideRight: Sprite = {
+  name: "Worm",
+  layers: [],
+  facing: {
+    right: [
+      { char: "▀", color: colors.grey },
+      { char: "─", color: colors.grey },
+    ],
+    left: [{ char: "▄", color: colors.grey }],
+  },
+};

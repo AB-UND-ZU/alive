@@ -38,6 +38,7 @@ import {
   uncommonChest,
   violet,
   waveTower,
+  wormBoss,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { choice, distribution } from "../math/std";
@@ -82,6 +83,7 @@ export type NpcDistribution = Partial<Record<NpcType, number>>;
 export type UnitDefinition = {
   faction: Faction;
   dormant?: boolean;
+  flying?: boolean;
   scratch: string;
   harvestable?: Omit<Harvestable, "maximum">;
   stats: Partial<UnitStats>;
@@ -102,6 +104,7 @@ export type UnitDefinition = {
 export type UnitData = {
   faction: Faction;
   dormant?: boolean;
+  flying: boolean;
   scratch: string;
   harvestable?: Harvestable;
   stats: UnitStats;
@@ -1114,6 +1117,21 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: ["oak_clover"],
     sprite: clover,
   },
+  wormBoss: {
+    faction: "unit",
+    flying: true,
+    scratch: colors.silver,
+    spring: { duration: 350 },
+    stats: {
+      hp: 200,
+      mp: 1,
+      armor: 1,
+    },
+    equipments: [],
+    drops: [],
+    patternNames: ["worm_boss"],
+    sprite: wormBoss,
+  },
   chestBoss: {
     faction: "unit",
     scratch: colors.grey,
@@ -1208,6 +1226,7 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
     patterns: patternNames.map((name) => ({ name, memory: {} })),
     remains: remainsChoices ? choice(...remainsChoices) : undefined,
     harvestable: harvestable && { maximum: harvestable.amount, ...harvestable },
+    flying: false,
     ...unitDefinition,
   };
 };

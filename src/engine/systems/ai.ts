@@ -8,6 +8,7 @@ import { getBiome, getTempo, isMovable, isWalkable } from "./movement";
 import {
   add,
   choice,
+  combine,
   copy,
   directedDistance,
   getDistance,
@@ -40,6 +41,7 @@ import {
   findPath,
   invertOrientation,
   relativeOrientations,
+  rotateOrientation,
 } from "../../game/math/path";
 import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
@@ -60,6 +62,8 @@ import {
   waterWaveTower,
   waveTower,
   waveTowerCharged,
+  wormCorner,
+  wormSide,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { INVENTORY } from "../components/inventory";
@@ -106,8 +110,11 @@ import { shootHoming } from "./homing";
 import { EQUIPPABLE } from "../components/equippable";
 import { SHOOTABLE } from "../components/shootable";
 import { createSequence, getSequence } from "./sequence";
-import { BranchSequence } from "../components/sequencable";
+import { BranchSequence, SEQUENCABLE } from "../components/sequencable";
 import { generateNpcData, UnitDefinition } from "../../game/balancing/units";
+import { entities } from "..";
+import { FRAGMENT } from "../components/fragment";
+import { LAYER } from "../components/layer";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -2280,6 +2287,201 @@ export default function setupAi(world: World) {
             entity[ORIENTABLE].facing = undefined;
           } else if (entity[ORIENTABLE]) {
             entity[MOVABLE].orientations = movingOrientations;
+          }
+        } else if (pattern.name === "worm_boss") {
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+          if (
+            !heroEntity ||
+            !entity[STATS] ||
+            !entity[SPRITE] ||
+            !entity[TOOLTIP]
+          ) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          if (pattern.memory.phase === undefined) {
+            // set initial phase
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "wait",
+                memory: { ticks: 5 },
+              },
+              {
+                name: "worm_boss",
+                memory: {
+                  phase: 0,
+                  length: 15,
+                  limbs: [
+                    // add head as limb
+                    {
+                      id: entityId,
+                      waypoints: [],
+                    },
+                  ],
+                  waypoints: [],
+                },
+              }
+            );
+            break;
+          }
+
+          if (pattern.memory.phase === 0) {
+            if (pattern.memory.waypoints.length === 0) {
+              const height = random(3, 6);
+              const width = random(5, 10) * choice(-1, 1);
+              const rotation = choice(-1, 1);
+              const vertical = random(-3, 3);
+
+              pattern.memory.waypoints = [
+                copy(entity[POSITION]),
+                combine(size, entity[POSITION], {
+                  x: 0,
+                  y: -height - Math.max(vertical, 0),
+                }),
+                combine(size, entity[POSITION], {
+                  x: width * rotation,
+                  y: -height - Math.max(vertical, 0),
+                }),
+                combine(size, entity[POSITION], {
+                  x: width * rotation,
+                  y: -vertical,
+                }),
+              ];
+              pattern.memory.rotation = rotation;
+              pattern.memory.limbs[0].waypoints = [...pattern.memory.waypoints];
+            }
+            const waypoints = [...pattern.memory.waypoints] as Position[];
+
+            const limbs: { id: number; waypoints: Position[] }[] = [
+              ...pattern.memory.limbs,
+            ];
+            limbs.forEach((limb) => {
+              const limbEntity = world.assertByIdAndComponents(limb.id, [
+                FOG,
+                MOVABLE,
+                ORIENTABLE,
+                POSITION,
+              ]);
+              const isHead = limbEntity === entity;
+
+              // push z-index up
+              if (limbEntity[FOG].type === "unit") {
+                limbEntity[FOG].type = "float";
+                rerenderEntity(world, limbEntity);
+              }
+
+              let nextWaypoint: Position | undefined = limb.waypoints[0];
+
+              // wait until tail has decreased
+              if (!nextWaypoint) return;
+
+              const distance = getDistance(
+                limbEntity[POSITION],
+                nextWaypoint,
+                size
+              );
+              const beforeWaypoint = distance === 1;
+              const reachedWaypoint = distance === 0;
+
+              // target next waypoint
+              if (reachedWaypoint) {
+                limb.waypoints.shift();
+                nextWaypoint = limb.waypoints[0];
+              }
+
+              if (!nextWaypoint) {
+                limbEntity[ORIENTABLE].facing = undefined;
+                limbEntity[MOVABLE].orientations = [];
+
+                if (!isHead) {
+                  disposeEntity(world, limbEntity);
+                  pattern.memory.limbs.splice(
+                    pattern.memory.limbs.indexOf(limb),
+                    1
+                  );
+                }
+
+                return;
+              }
+
+              // move toward next waypoint
+              const orientation = relativeOrientations(
+                world,
+                limbEntity[POSITION],
+                nextWaypoint
+              )[0];
+              limbEntity[MOVABLE].orientations = [orientation];
+
+              if (beforeWaypoint && !isHead && nextWaypoint) {
+                limbEntity[SPRITE] = wormCorner;
+                limbEntity[ORIENTABLE].facing = rotateOrientation(
+                  orientation,
+                  pattern.memory.rotation - 1
+                );
+              } else {
+                if (limbEntity[SPRITE] !== wormSide) {
+                  limbEntity[SPRITE] = isHead ? limbEntity[SPRITE] : wormSide;
+                }
+
+                limbEntity[ORIENTABLE].facing = orientation;
+              }
+              rerenderEntity(world, limbEntity);
+            });
+
+            if (limbs.length < pattern.memory.length) {
+              if (
+                getDistance(entity[POSITION], waypoints.slice(-1)[0], size) ===
+                0
+              ) {
+                // move head if reached end
+                moveEntity(
+                  world,
+                  entity,
+                  combine(size, entity[POSITION], {
+                    x: random(2, 5) * choice(-1, 1),
+                    y: random(2, 4) * choice(-1, 1),
+                  })
+                );
+                pattern.memory.waypoints = [];
+                pattern.memory.rotation = 0;
+              } else {
+                // attach new limb
+                const limbEntity = entities.createLimb(world, {
+                  [ACTIONABLE]: {
+                    primaryTriggered: false,
+                    secondaryTriggered: false,
+                  },
+                  [COLLIDABLE]: {},
+                  [FOG]: { visibility: "hidden", type: "unit" },
+                  [FRAGMENT]: { structure: entityId },
+                  [LAYER]: {},
+                  [MOVABLE]: {
+                    bumpGeneration: 0,
+                    orientations: [],
+                    reference: world.getEntityId(world.metadata.gameEntity),
+                    spring: entity[MOVABLE].spring,
+                    lastInteraction: 0,
+                    flying: true,
+                  },
+                  [ORIENTABLE]: { facing: "up" },
+                  [POSITION]: copy(pattern.memory.waypoints[0]),
+                  [RENDERABLE]: { generation: 0 },
+                  [SEQUENCABLE]: { states: {} },
+                  [SHOOTABLE]: { shots: 0 },
+                  [SPRITE]: wormSide,
+                });
+                pattern.memory.limbs.push({
+                  id: world.getEntityId(limbEntity),
+                  waypoints,
+                  rotation: pattern.memory.rotation,
+                });
+              }
+            }
           }
         } else if (pattern.name === "chest_boss") {
           const chaseTicks = 30;

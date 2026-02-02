@@ -34,7 +34,7 @@ import {
   orientations,
 } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
-import { POSITION } from "../../engine/components/position";
+import { Position, POSITION } from "../../engine/components/position";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { REVIVABLE } from "../../engine/components/revivable";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
@@ -225,6 +225,11 @@ import {
   goldBlast,
   diamondBlast,
   rubyBlast,
+  wormMouthCornerLeft,
+  wormMouthCornerRight,
+  wormMouthSideLeft,
+  wormMouthCenter,
+  wormMouthSideRight,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -260,6 +265,7 @@ import {
   HarvestSequence,
   ConditionSequence,
   BranchSequence,
+  WormSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
@@ -5852,6 +5858,109 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
     }
 
     state.args.shrink = generation;
+  }
+
+  return { finished, updated };
+};
+
+const mouthLimbs: {
+  offset: Position;
+  sprite: Sprite;
+  name: string;
+}[] = [
+  {
+    offset: { x: -1, y: 0 },
+    sprite: wormMouthCornerLeft,
+    name: "corner-left",
+  },
+  {
+    offset: { x: 1, y: 0 },
+    sprite: wormMouthCornerRight,
+    name: "corner-right",
+  },
+  {
+    offset: { x: -1, y: -1 },
+    sprite: wormMouthSideLeft,
+    name: "side-left",
+  },
+  {
+    offset: { x: 0, y: -1 },
+    sprite: wormMouthCenter,
+    name: "center",
+  },
+  {
+    offset: { x: 1, y: -1 },
+    sprite: wormMouthSideRight,
+    name: "side-right",
+  },
+];
+
+export const wormMouth: Sequence<WormSequence> = (world, entity, state) => {
+  const finished = false;
+  let updated = false;
+  const orientation = entity[ORIENTABLE].facing;
+
+  if (!orientation) {
+    // clear inactive mouth
+    if (state.particles.center) {
+      for (const particleName in state.particles) {
+        const mouthParticle = world.assertByIdAndComponents(
+          state.particles[particleName],
+          [ORIENTABLE, PARTICLE]
+        );
+        disposeEntity(world, mouthParticle);
+        delete state.particles[particleName];
+      }
+      updated = true;
+    }
+
+    return { finished, updated };
+  }
+
+  // create mouth particles
+  if (!state.particles.center) {
+    mouthLimbs.forEach((mouthLimb) => {
+      const mouthParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: orientation },
+        [PARTICLE]: {
+          offsetX: mouthLimb.offset.x,
+          offsetY: mouthLimb.offset.y,
+          offsetZ: floatHeight,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: mouthLimb.sprite,
+      });
+      state.particles[mouthLimb.name] = world.getEntityId(mouthParticle);
+    });
+    updated = true;
+  }
+
+  // rotate mouth
+  const mouthCenter = world.assertByIdAndComponents(state.particles.center, [
+    ORIENTABLE,
+  ]);
+  if (mouthCenter[ORIENTABLE].facing !== orientation) {
+    const rotation = Math.sign(
+      orientationDelta(
+        mouthCenter[ORIENTABLE].facing || orientation,
+        orientation
+      )
+    );
+    for (const particleName in state.particles) {
+      const mouthParticle = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [ORIENTABLE, PARTICLE]
+      );
+
+      const [offsetX, offsetY] = [
+        -mouthParticle[PARTICLE].offsetY * rotation,
+        mouthParticle[PARTICLE].offsetX * rotation,
+      ];
+      mouthParticle[PARTICLE].offsetX = offsetX;
+      mouthParticle[PARTICLE].offsetY = offsetY;
+      mouthParticle[ORIENTABLE].facing = orientation;
+    }
+    updated = true;
   }
 
   return { finished, updated };
