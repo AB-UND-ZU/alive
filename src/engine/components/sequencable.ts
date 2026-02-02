@@ -138,7 +138,9 @@ export type BranchSequence = {
   grow: boolean;
   shrink?: number;
 };
-export type WormSequence = EmptyObject;
+export type WormSequence = {
+  type: "mouth" | "spikeClockwise" | "spikeCounterClockwise";
+};
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
   step: string;

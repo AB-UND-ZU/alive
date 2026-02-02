@@ -2774,8 +2774,8 @@ export const createCell = (
       world,
       bossEntity,
       "worm",
-      "wormMouth",
-      {}
+      "wormLimbs",
+      { type: "mouth" }
     );
 
     return { cell: bossEntity, all };

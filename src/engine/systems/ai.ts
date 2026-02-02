@@ -110,7 +110,11 @@ import { shootHoming } from "./homing";
 import { EQUIPPABLE } from "../components/equippable";
 import { SHOOTABLE } from "../components/shootable";
 import { createSequence, getSequence } from "./sequence";
-import { BranchSequence, SEQUENCABLE } from "../components/sequencable";
+import {
+  BranchSequence,
+  SEQUENCABLE,
+  WormSequence,
+} from "../components/sequencable";
 import { generateNpcData, UnitDefinition } from "../../game/balancing/units";
 import { entities } from "..";
 import { FRAGMENT } from "../components/fragment";
@@ -2152,7 +2156,7 @@ export default function setupAi(world: World) {
               });
             }
           } else {
-            console.log(pattern.memory.phase);
+            console.error("Unhandled phase: ", pattern.memory.phase);
             patterns.splice(patterns.indexOf(pattern), 1);
           }
           break;
@@ -2316,11 +2320,13 @@ export default function setupAi(world: World) {
                 memory: {
                   phase: 0,
                   length: 15,
+                  iteration: 0,
                   limbs: [
                     // add head as limb
                     {
                       id: entityId,
                       waypoints: [],
+                      iteration: 1,
                     },
                   ],
                   waypoints: [],
@@ -2333,7 +2339,7 @@ export default function setupAi(world: World) {
           if (pattern.memory.phase === 0) {
             if (pattern.memory.waypoints.length === 0) {
               const height = random(3, 6);
-              const width = random(5, 10) * choice(-1, 1);
+              const width = random(5, 10);
               const rotation = choice(-1, 1);
               const vertical = random(-3, 3);
 
@@ -2353,13 +2359,17 @@ export default function setupAi(world: World) {
                 }),
               ];
               pattern.memory.rotation = rotation;
+              pattern.memory.iteration += 1;
               pattern.memory.limbs[0].waypoints = [...pattern.memory.waypoints];
             }
             const waypoints = [...pattern.memory.waypoints] as Position[];
+            const rotation = pattern.memory.rotation;
 
-            const limbs: { id: number; waypoints: Position[] }[] = [
-              ...pattern.memory.limbs,
-            ];
+            const limbs: {
+              id: number;
+              waypoints: Position[];
+              iteration: number;
+            }[] = [...pattern.memory.limbs];
             limbs.forEach((limb) => {
               const limbEntity = world.assertByIdAndComponents(limb.id, [
                 FOG,
@@ -2421,7 +2431,7 @@ export default function setupAi(world: World) {
                 limbEntity[SPRITE] = wormCorner;
                 limbEntity[ORIENTABLE].facing = rotateOrientation(
                   orientation,
-                  pattern.memory.rotation - 1
+                  rotation - 1
                 );
               } else {
                 if (limbEntity[SPRITE] !== wormSide) {
@@ -2443,12 +2453,13 @@ export default function setupAi(world: World) {
                   world,
                   entity,
                   combine(size, entity[POSITION], {
-                    x: random(2, 5) * choice(-1, 1),
-                    y: random(2, 4) * choice(-1, 1),
+                    x: random(4, 8) * choice(-1, 1),
+                    y: random(3, 6) * choice(-1, 1),
                   })
                 );
                 pattern.memory.waypoints = [];
                 pattern.memory.rotation = 0;
+                limbs[0].iteration += 1;
               } else {
                 // attach new limb
                 const limbEntity = entities.createLimb(world, {
@@ -2478,8 +2489,27 @@ export default function setupAi(world: World) {
                 pattern.memory.limbs.push({
                   id: world.getEntityId(limbEntity),
                   waypoints,
-                  rotation: pattern.memory.rotation,
+                  iteration: pattern.memory.iteration,
                 });
+
+                // create spike
+                const length = limbs.filter(
+                  (limb) => limb.iteration === pattern.memory.iteration
+                ).length;
+                if (length % 3 === 0) {
+                  createSequence<"worm", WormSequence>(
+                    world,
+                    limbEntity,
+                    "worm",
+                    "wormLimbs",
+                    {
+                      type:
+                        rotation === -1
+                          ? "spikeCounterClockwise"
+                          : "spikeClockwise",
+                    }
+                  );
+                }
               }
             }
           }

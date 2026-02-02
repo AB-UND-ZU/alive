@@ -974,3 +974,25 @@ export const wormMouthSideRight: Sprite = {
     left: [{ char: "▄", color: colors.grey }],
   },
 };
+
+export const wormSpikeClockwise: Sprite = {
+  name: "Worm",
+  layers: [],
+  facing: {
+    up: [{ char: "└", color: colors.red }],
+    right: [{ char: "┌", color: colors.red }],
+    down: [{ char: "┐", color: colors.red }],
+    left: [{ char: "┘", color: colors.red }],
+  },
+};
+
+export const wormSpikeCounterClockwise: Sprite = {
+  name: "Worm",
+  layers: [],
+  facing: {
+    up: [{ char: "┘", color: colors.red }],
+    right: [{ char: "└", color: colors.red }],
+    down: [{ char: "┌", color: colors.red }],
+    left: [{ char: "┐", color: colors.red }],
+  },
+};
