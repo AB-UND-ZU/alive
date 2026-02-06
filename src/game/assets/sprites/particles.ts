@@ -842,6 +842,92 @@ export const decay: Sprite = {
   layers: [{ char: "▒", color: colors.black }],
 };
 
+export const vanishGrow0: Sprite = {
+  name: "vanish_grow_0",
+  layers: [{ char: "·", color: colors.lime }],
+};
+
+export const vanishGrow1: Sprite = {
+  name: "vanish_grow_1",
+  layers: [{ char: "∙", color: colors.lime }],
+};
+
+export const vanishGrow2: Sprite = {
+  name: "vanish_grow_2",
+  layers: [{ char: "\u0106", color: colors.lime }],
+};
+
+export const vanishGrow3: Sprite = {
+  name: "vanish_grow_3",
+  layers: [
+    { char: "\u0106", color: colors.lime },
+    { char: "\u0108", color: colors.lime },
+  ],
+};
+
+export const vanishGrow4: Sprite = {
+  name: "vanish_grow_4",
+  layers: [
+    { char: "\u0100", color: colors.lime },
+    { char: "\u0101", color: colors.lime },
+  ],
+};
+
+export const vanishGrow5: Sprite = {
+  name: "vanish_grow_5",
+  layers: [{ char: "█", color: colors.lime }],
+};
+
+export const vanishShrink0: Sprite = {
+  name: "vanish_shrink_0",
+  layers: [{ char: "▓", color: colors.lime }],
+};
+
+export const vanishShrink1: Sprite = {
+  name: "vanish_shrink_1",
+  layers: [{ char: "▒", color: colors.lime }],
+};
+
+export const vanishShrink2: Sprite = {
+  name: "vanish_shrink_2",
+  layers: [{ char: "░", color: colors.lime }],
+};
+
+export const vanishEvaporate: Sprite = {
+  name: "vanish_evaporate",
+  layers: [{ char: "║", color: colors.green }],
+};
+
+export const woodEvaporate: Sprite = {
+  name: "wood_evaporate",
+  layers: [{ char: "│", color: colors.maroon }],
+};
+
+export const ironEvaporate: Sprite = {
+  name: "iron_evaporate",
+  layers: [{ char: "│", color: colors.grey }],
+};
+
+export const goldEvaporate: Sprite = {
+  name: "gold_evaporate",
+  layers: [{ char: "│", color: colors.yellow }],
+};
+
+export const diamondEvaporate: Sprite = {
+  name: "diamond_evaporate",
+  layers: [{ char: "│", color: colors.aqua }],
+};
+
+export const rubyEvaporate: Sprite = {
+  name: "ruby_evaporate",
+  layers: [{ char: "│", color: colors.fuchsia }],
+};
+
+export const plantEvaporate: Sprite = {
+  name: "plant_evaporate",
+  layers: [{ char: "│", color: colors.green }],
+};
+
 export const shotHit: Sprite = {
   name: "shot_hit",
   layers: [
@@ -1696,9 +1782,7 @@ export const woodBlast: Sprite = {
   name: "wood_blast",
   layers: [{ char: "█", color: colors.maroon }],
   facing: {
-    up: [
-      { char: "▄", color: colors.maroon },
-    ],
+    up: [{ char: "▄", color: colors.maroon }],
     right: [
       { char: "▌", color: colors.maroon },
       { char: "║", color: colors.maroon },
@@ -1720,9 +1804,7 @@ export const ironBlast: Sprite = {
   name: "iron_blast",
   layers: [{ char: "█", color: colors.silver }],
   facing: {
-    up: [
-      { char: "▄", color: colors.grey },
-    ],
+    up: [{ char: "▄", color: colors.grey }],
     right: [
       { char: "▌", color: colors.silver },
       { char: "║", color: colors.grey },
@@ -1744,9 +1826,7 @@ export const goldBlast: Sprite = {
   name: "gold_blast",
   layers: [{ char: "█", color: colors.yellow }],
   facing: {
-    up: [
-      { char: "▄", color: colors.olive },
-    ],
+    up: [{ char: "▄", color: colors.olive }],
     right: [
       { char: "▌", color: colors.yellow },
       { char: "║", color: colors.olive },
@@ -1768,9 +1848,7 @@ export const diamondBlast: Sprite = {
   name: "diamond_blast",
   layers: [{ char: "█", color: colors.aqua }],
   facing: {
-    up: [
-      { char: "▄", color: colors.teal },
-    ],
+    up: [{ char: "▄", color: colors.teal }],
     right: [
       { char: "▌", color: colors.aqua },
       { char: "║", color: colors.teal },
@@ -1792,9 +1870,7 @@ export const rubyBlast: Sprite = {
   name: "ruby_blast",
   layers: [{ char: "█", color: colors.fuchsia }],
   facing: {
-    up: [
-      { char: "▄", color: colors.purple },
-    ],
+    up: [{ char: "▄", color: colors.purple }],
     right: [
       { char: "▌", color: colors.fuchsia },
       { char: "║", color: colors.purple },

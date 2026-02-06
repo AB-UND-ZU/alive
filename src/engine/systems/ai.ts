@@ -115,6 +115,7 @@ import { generateNpcData, UnitDefinition } from "../../game/balancing/units";
 import { entities } from "..";
 import { FRAGMENT } from "../components/fragment";
 import { LAYER } from "../components/layer";
+import { DROPPABLE } from "../components/droppable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -2458,12 +2459,17 @@ export default function setupAi(world: World) {
                 limbs[0].iteration += 1;
               } else {
                 // attach new limb
+                const bossUnit = generateNpcData("oakBoss");
                 const limbEntity = entities.createLimb(world, {
                   [ACTIONABLE]: {
                     primaryTriggered: false,
                     secondaryTriggered: false,
                   },
                   [COLLIDABLE]: {},
+                  [DROPPABLE]: {
+                    decayed: false,
+                    evaporate: bossUnit.evaporate,
+                  },
                   [FOG]: { visibility: "hidden", type: "unit" },
                   [FRAGMENT]: { structure: entityId },
                   [LAYER]: {},

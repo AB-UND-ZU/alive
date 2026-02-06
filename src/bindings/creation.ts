@@ -229,6 +229,7 @@ import { craftingRecipes } from "../game/balancing/crafting";
 import addHarvestable, { HARVESTABLE } from "../engine/components/harvestable";
 import { getHarvestConfig } from "../game/balancing/harvesting";
 import { SHOOTABLE } from "../engine/components/shootable";
+import { VANISHABLE } from "../engine/components/vanishable";
 
 export const cellNames = [
   "air",
@@ -504,11 +505,15 @@ export const createNpc = (
   const npcEntity = entities.createVillager(world, {
     [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
     [AFFECTABLE]: getEmptyAffectable(),
-    [ATTACKABLE]: {},
+    [ATTACKABLE]: { scratchColor: npcUnit.scratch },
     [BEHAVIOUR]: { patterns: npcUnit.patterns },
     [BELONGABLE]: { faction: npcUnit.faction },
     [COLLECTABLE]: {},
-    [DROPPABLE]: { decayed: false },
+    [DROPPABLE]: {
+      decayed: false,
+      evaporate: npcUnit.evaporate,
+      remains: npcUnit.remains,
+    },
     [EQUIPPABLE]: {},
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
@@ -2175,7 +2180,11 @@ export const createCell = (
         [BELONGABLE]: { faction: mobUnit.faction },
         [CLICKABLE]: { clicked: false, player: true },
         [COLLIDABLE]: {},
-        [DROPPABLE]: { decayed: false },
+        [DROPPABLE]: {
+          decayed: false,
+          evaporate: mobUnit.evaporate,
+          remains: mobUnit.remains,
+        },
         [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
         [INVENTORY]: { items: [] },
@@ -2216,7 +2225,11 @@ export const createCell = (
           ],
         },
         [BELONGABLE]: { faction: mobUnit.faction },
-        [DROPPABLE]: { decayed: false },
+        [DROPPABLE]: {
+          decayed: false,
+          evaporate: mobUnit.evaporate,
+          remains: mobUnit.remains,
+        },
         [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
         [INVENTORY]: { items: [] },
@@ -2570,7 +2583,11 @@ export const createCell = (
       [ATTACKABLE]: {},
       [BEHAVIOUR]: { patterns: towerUnit.patterns },
       [BELONGABLE]: { faction: towerUnit.faction },
-      [DROPPABLE]: { decayed: false },
+      [DROPPABLE]: {
+        decayed: false,
+        evaporate: towerUnit.evaporate,
+        remains: towerUnit.remains,
+      },
       [EQUIPPABLE]: {},
       [FOG]: { visibility, type: "unit" },
       [INVENTORY]: { items: [] },
@@ -2648,6 +2665,7 @@ export const createCell = (
       [STRUCTURABLE]: { scale: 3, offsetY: 3 },
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+      [VANISHABLE]: { decayed: false, remains: [], spawns: [] },
     });
     all.push(bossEntity);
     populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);
@@ -2688,6 +2706,7 @@ export const createCell = (
       const limbEntity = entities.createLimb(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [COLLIDABLE]: {},
+        [DROPPABLE]: { decayed: false, evaporate: bossUnit.evaporate },
         [FOG]: { visibility, type: "object" },
         [FRAGMENT]: { structure: bossId },
         [LAYER]: {},
@@ -2762,6 +2781,7 @@ export const createCell = (
       [STRUCTURABLE]: {},
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+      [VANISHABLE]: { decayed: false, remains: [], spawns: [] },
     });
     all.push(bossEntity);
     populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);

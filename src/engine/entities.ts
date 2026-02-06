@@ -61,6 +61,7 @@ import { Harvestable, HARVESTABLE } from "./components/harvestable";
 import { Conditionable, CONDITIONABLE } from "./components/conditionable";
 import { Homing, HOMING } from "./components/homing";
 import { Shootable, SHOOTABLE } from "./components/shootable";
+import { Vanishable, VANISHABLE } from "./components/vanishable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -123,6 +124,7 @@ export type Entity = Record<LevelName, {}> & {
   [TEMPO]: Tempo;
   [TOOLTIP]: Tooltip;
   [TRACKABLE]: Trackable;
+  [VANISHABLE]: Vanishable;
   [VIEWABLE]: Viewable;
   [WARPABLE]: Warpable;
 };
@@ -203,6 +205,7 @@ export const createBoss = entityFactory([
   STRUCTURABLE,
   SWIMMABLE,
   TOOLTIP,
+  VANISHABLE,
 ]);
 
 export const createBox = entityFactory([
@@ -321,6 +324,7 @@ export const createElite = entityFactory([
   STRUCTURABLE,
   SWIMMABLE,
   TOOLTIP,
+  VANISHABLE,
 ]);
 
 export const createForging = entityFactory([
@@ -591,6 +595,7 @@ export const createLever = entityFactory([
 export const createLimb = entityFactory([
   ACTIONABLE,
   COLLIDABLE,
+  DROPPABLE,
   FOG,
   FRAGMENT,
   LAYER,

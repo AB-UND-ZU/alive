@@ -70,6 +70,12 @@ export type MessageSequence = {
   lastMessage: number;
 };
 export type DecaySequence = { fast: boolean };
+export type EvaporateSequence = { fast: boolean; sprite: Sprite };
+export type VanishSequence = {
+  generation: number;
+  grow: boolean;
+  limbs: Record<string, { generation: number }>;
+};
 export type BurnSequence = {
   generation: number;
   castable?: number;
@@ -213,6 +219,8 @@ export type Sequencable = {
     harvest?: SequenceState<HarvestSequence>;
     message?: SequenceState<MessageSequence>;
     decay?: SequenceState<DecaySequence>;
+    evaporate?: SequenceState<VanishSequence>;
+    vanish?: SequenceState<VanishSequence>;
     burn?: SequenceState<BurnSequence>;
     freeze?: SequenceState<FreezeSequence>;
     smoke?: SequenceState<SmokeSequence>;

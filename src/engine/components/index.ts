@@ -56,5 +56,6 @@ export { default as addSwimmable } from "./swimmable";
 export { default as addTempo } from "./tempo";
 export { default as addTooltip } from "./tooltip";
 export { default as addTrackable } from "./trackable";
+export { default as addVanishable } from "./vanishable";
 export { default as addViewable } from "./viewable";
 export { default as addWarpable } from "./warpable";

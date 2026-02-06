@@ -114,7 +114,7 @@ export const getAttackables = (world: World, position: Position) =>
   ) as Entity[];
 
 export const getRoot = (world: World, entity: Entity) =>
-  isFragment(world, entity) ? getStructure(world, entity) : entity;
+  (isFragment(world, entity) && getStructure(world, entity)) || entity;
 
 export const getStructure = (world: World, entity: Entity) =>
   world.getEntityById(entity[FRAGMENT].structure);

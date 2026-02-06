@@ -3,7 +3,7 @@ import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
 import { isEmpty } from "./collect";
 import { LOOTABLE } from "../components/lootable";
-import { isDead } from "./damage";
+import { getRoot, isDead } from "./damage";
 import { entities } from "..";
 import { disposeEntity, registerEntity } from "./map";
 import { DROPPABLE } from "../components/droppable";
@@ -23,7 +23,9 @@ import {
   CollectSequence,
   DecaySequence,
   DisposeSequence,
+  EvaporateSequence,
   SEQUENCABLE,
+  VanishSequence,
 } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
 import { TypedEntity } from "../entities";
@@ -52,14 +54,18 @@ import { createPopup } from "./popup";
 import { HARVESTABLE } from "../components/harvestable";
 import { BURNABLE } from "../components/burnable";
 import { SHOOTABLE } from "../components/shootable";
+import { VANISHABLE } from "../components/vanishable";
+import { BELONGABLE } from "../components/belongable";
+import { CASTABLE, getEmptyCastable } from "../components/castable";
 
 export const isDecayed = (world: World, entity: Entity) =>
-  entity[DROPPABLE]?.decayed;
+  entity[DROPPABLE]?.decayed || entity[VANISHABLE]?.decayed;
 
 export const isDecaying = (world: World, entity: Entity) =>
   isDead(world, entity) &&
   !isDecayed(world, entity) &&
-  !getSequence(world, entity, "decay");
+  !getSequence(world, entity, "decay") &&
+  !getSequence(world, entity, "vanish");
 
 export const isHarvested = (world: World, entity: Entity) =>
   entity[HARVESTABLE].amount <= 0 &&
@@ -457,6 +463,32 @@ export default function setupDrop(world: World) {
       }
     }
 
+    // create vanish animation
+    for (const entity of world.getEntities([
+      POSITION,
+      RENDERABLE,
+      SEQUENCABLE,
+      VANISHABLE,
+    ])) {
+      if (isDecaying(world, entity)) {
+        play("die", {
+          variant: entity[NPC] ? 1 : 2,
+          intensity: entity[STATS]?.maxHp,
+        });
+        createSequence<"vanish", VanishSequence>(
+          world,
+          entity,
+          "vanish",
+          "creatureVanish",
+          {
+            generation: 0,
+            limbs: {},
+            grow: true,
+          }
+        );
+      }
+    }
+
     // drop harvested resources
     for (const entity of world.getEntities([
       DROPPABLE,
@@ -487,15 +519,39 @@ export default function setupDrop(world: World) {
       }
     }
 
-    // replace decayed entities and increase slay counter
+    // replace decayed entities, increase slay counter and evaporate unit
     for (const entity of world.getEntities([DROPPABLE, RENDERABLE, POSITION])) {
-      if (isDead(world, entity) && isDecayed(world, entity)) {
+      const rootEntity = getRoot(world, entity);
+
+      if (isDead(world, rootEntity) && isDecayed(world, entity)) {
         disposeEntity(world, entity, true, false);
 
         const unitKey = entity[NPC]?.type;
         if (heroEntity && unitKey) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
+        }
+
+        // play evaporate animation with own anchor
+        const evaporate = entity[DROPPABLE].evaporate;
+        
+        if (evaporate) {
+          const castableEntity = entities.createSpell(world, {
+            [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
+            [CASTABLE]: getEmptyCastable(world, entity),
+            [ORIENTABLE]: {},
+            [POSITION]: copy(entity[POSITION]),
+            [RENDERABLE]: { generation: 0 },
+            [SEQUENCABLE]: { states: {} },
+            [SPRITE]: none,
+          });
+          createSequence<"evaporate", EvaporateSequence>(
+            world,
+            castableEntity,
+            "evaporate",
+            "creatureEvaporate",
+            { fast: evaporate.fast, sprite: evaporate.sprite }
+          );
         }
       }
     }

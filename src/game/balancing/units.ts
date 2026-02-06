@@ -2,6 +2,7 @@ import { Pattern } from "../../engine/components/behaviour";
 import {
   bandit,
   box,
+  bush,
   cactus1,
   cactus2,
   chief,
@@ -9,21 +10,26 @@ import {
   commonChest,
   desertRock1,
   desertRock2,
+  diamondEvaporate,
   diamondOrb,
   dummy,
   epicChest,
   eye,
   fairy,
+  ghost,
+  goldEvaporate,
   goldEye,
   goldOrb,
   goldPrism,
   hedge1,
   hedge2,
+  ironEvaporate,
   knight,
   legendaryChest,
   mage,
   oakBoss,
   orb,
+  plantEvaporate,
   pot,
   prism,
   rareChest,
@@ -32,6 +38,8 @@ import {
   rose,
   swimmingRogue,
   swimmingRogueBackdrop,
+  tombstone1,
+  tombstone2,
   treeBurnt1,
   treeBurnt2,
   tumbleweed,
@@ -57,6 +65,7 @@ import { classDefinitions, ClassKey } from "./classes";
 import { hairColors, recolorSprite } from "../assets/pixels";
 import { colors } from "../assets/colors";
 import { Harvestable } from "../../engine/components/harvestable";
+import { Droppable } from "../../engine/components/droppable";
 
 export type UnitKey =
   | NpcType
@@ -85,6 +94,7 @@ export type UnitDefinition = {
   dormant?: boolean;
   flying?: boolean;
   scratch: string;
+  evaporate?: Droppable["evaporate"];
   harvestable?: Omit<Harvestable, "maximum">;
   stats: Partial<UnitStats>;
   equipments: Omit<Item, "carrier">[];
@@ -106,6 +116,7 @@ export type UnitData = {
   dormant?: boolean;
   flying: boolean;
   scratch: string;
+  evaporate?: Droppable["evaporate"];
   harvestable?: Harvestable;
   stats: UnitStats;
   equipments: Omit<Item, "carrier">[];
@@ -154,6 +165,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [{ chance: 100, items: [{ stat: "xp", amount: 5 }] }],
     patternNames: [],
     sprite: { ...chief, name: "Guide" },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
   },
   earthSmith: {
     faction: "earth",
@@ -175,6 +188,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       ...recolorSprite(knight, { [colors.white]: colors.lime }),
       name: "Smith",
     },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
   },
   earthTrader: {
     faction: "earth",
@@ -200,6 +215,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     swimmingBackdrop: recolorSprite(swimmingRogueBackdrop, {
       [colors.white]: colors.lime,
     }),
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
   },
   earthDruid: {
     faction: "earth",
@@ -214,6 +231,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       ...recolorSprite(mage, { [colors.white]: colors.lime }),
       name: "Druid",
     },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
   },
   earthChief: {
     faction: "earth",
@@ -242,6 +261,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       ...recolorSprite(bandit, { [colors.white]: colors.lime }),
       name: "Chief",
     },
+    remainsChoices: [tombstone2],
+    evaporate: { sprite: ghost, fast: false },
   },
   earthGuard: {
     faction: "earth",
@@ -276,6 +297,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       ...recolorSprite(knight, { [colors.white]: colors.lime }),
       name: "Guard",
     },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
   },
   banditKnight: {
     faction: "wild",
@@ -300,6 +323,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: { ...bandit, name: "Bandit" },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
   },
   banditArcher: {
     faction: "wild",
@@ -319,6 +344,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: ["archer"],
     sprite: { ...bandit, name: "Bandit" },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
   },
   tutorialBoss: {
     faction: "wild",
@@ -354,6 +381,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["archer"],
     sprite: { ...bandit, name: "Bandit" },
+    remainsChoices: [tombstone2],
+    evaporate: { sprite: ghost, fast: false },
   },
   commonChest: {
     faction: "unit",
@@ -651,6 +680,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["prism"],
     sprite: prism,
+    evaporate: { sprite: ironEvaporate, fast: true },
   },
   goldPrism: {
     faction: "wild",
@@ -679,6 +709,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["prism"],
     sprite: goldPrism,
+    evaporate: { sprite: goldEvaporate, fast: true },
   },
   eye: {
     faction: "wild",
@@ -713,6 +744,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["eye", "chase"],
     sprite: eye,
+    evaporate: { sprite: ironEvaporate, fast: true },
   },
   goldEye: {
     faction: "wild",
@@ -741,6 +773,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["eye", "chase"],
     sprite: goldEye,
+    evaporate: { sprite: goldEvaporate, fast: true },
   },
   orb: {
     faction: "wild",
@@ -786,6 +819,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: ["orb"],
     sprite: orb,
     spring: { duration: 300 },
+    evaporate: { sprite: ironEvaporate, fast: true },
   },
   goldOrb: {
     faction: "wild",
@@ -825,6 +859,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: ["orb"],
     sprite: goldOrb,
     spring: { duration: 300 },
+    evaporate: { sprite: goldEvaporate, fast: true },
   },
   diamondOrb: {
     faction: "wild",
@@ -864,6 +899,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: ["orb"],
     sprite: diamondOrb,
     spring: { duration: 300 },
+    evaporate: { sprite: diamondEvaporate, fast: true },
   },
   fairy: {
     faction: "wild",
@@ -889,6 +925,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["fairy"],
     sprite: fairy,
+    evaporate: { sprite: ironEvaporate, fast: true },
   },
   rose: {
     faction: "unit",
@@ -925,6 +962,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["rose"],
     sprite: rose,
+    remainsChoices: [bush],
   },
   violet: {
     faction: "unit",
@@ -969,6 +1007,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["violet"],
     sprite: violet,
+    remainsChoices: [bush],
   },
   clover: {
     faction: "unit",
@@ -1031,6 +1070,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["clover", "chase_slow"],
     sprite: clover,
+    remainsChoices: [bush],
   },
   waveTower: {
     faction: "wild",
@@ -1057,13 +1097,14 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: waveTower,
+    evaporate: { sprite: ironEvaporate, fast: true },
   },
   oakBoss: {
     faction: "unit",
     scratch: colors.maroon,
     dormant: true,
     stats: {
-      hp: 300,
+      hp: 350,
       mp: 1,
       armor: 1,
     },
@@ -1071,12 +1112,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: ["oak_boss"],
     sprite: oakBoss,
+    evaporate: { sprite: plantEvaporate, fast: true },
   },
   oakTower: {
     faction: "wild",
     scratch: colors.silver,
     stats: {
-      hp: 50,
+      hp: 100,
       mp: 1,
       armor: 2,
     },
@@ -1092,6 +1134,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [],
     patternNames: [],
     sprite: { ...waveTower, name: "" },
+    evaporate: { sprite: ironEvaporate, fast: true },
   },
   oakClover: {
     faction: "wild",
