@@ -764,6 +764,7 @@ export const createRoom = entityFactory([
   LIGHT,
   POSITION,
   RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
   VIEWABLE,
 ]);

@@ -1467,8 +1467,9 @@ export default function setupAi(world: World) {
             world,
             add(entity[POSITION], { x: 0, y: 2 })
           ) as TypedEntity<"POSITION"> | undefined;
-          if (
-            !heroEntity ||
+
+          if (!heroEntity || isDead(world, heroEntity)) continue;
+          else if (
             !entity[STATS] ||
             !entity[SPRITE] ||
             !entity[TOOLTIP] ||

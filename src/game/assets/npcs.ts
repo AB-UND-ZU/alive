@@ -1787,7 +1787,7 @@ export const tombstoneNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
 const oakBarriers = getCircleOrientations();
 
-export const oakNpc: Sequence<NpcSequence> = (world, entity, state) => {
+export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
     entity,
@@ -1800,6 +1800,10 @@ export const oakNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const roomEntity = assertIdentifierAndComponents(world, "oakRoom", [
     LIGHT,
     VIEWABLE,
+  ]);
+  const oakBoss = getIdentifierAndComponents(world, "oak_boss", [
+    BELONGABLE,
+    POSITION,
   ]);
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     LIGHT,
@@ -1814,6 +1818,9 @@ export const oakNpc: Sequence<NpcSequence> = (world, entity, state) => {
     return { finished: stage.finished, updated: stage.updated };
   }
 
+  const inRoom =
+    getDistance(entity[POSITION], heroEntity[POSITION], size) < 5.43;
+
   step({
     stage,
     name: START_STEP,
@@ -1824,23 +1831,42 @@ export const oakNpc: Sequence<NpcSequence> = (world, entity, state) => {
   step({
     stage,
     name: "wait",
-    isCompleted: () =>
-      getDistance({ x: 0, y: 0 }, heroEntity[POSITION], size) < 5.43,
+    isCompleted: () => inRoom,
     onLeave: () => "enter",
   });
 
   step({
     stage,
-    name: "leave",
+    name: "defeat",
     forceEnter: () =>
-      state.args.step !== "wait" &&
-      getDistance({ x: 0, y: 0 }, heroEntity[POSITION], size) >= 5.43,
+      state.args.step === "fight" && (!oakBoss || isDead(world, heroEntity)),
+    isCompleted: () => true,
+    onLeave: () => {
+      // remove barrier
+      world
+        .getEntities([IDENTIFIABLE])
+        .filter((entity) => entity[IDENTIFIABLE].name === "oak:barrier")
+        .forEach((entity) => {
+          disposeEntity(world, entity);
+        });
+
+      return "enter";
+    },
+  });
+
+  step({
+    stage,
+    name: "leave",
+    forceEnter: () => state.args.step !== "wait" && !inRoom,
     isCompleted: () => true,
     onLeave: () => {
       heroEntity[LIGHT].brightness = heroEntity[LIGHT].visibility;
+      rerenderEntity(world, heroEntity);
+
       roomEntity[LIGHT].brightness = 0;
       roomEntity[LIGHT].visibility = 0;
       roomEntity[VIEWABLE].active = false;
+      rerenderEntity(world, roomEntity);
 
       return "wait";
     },
@@ -1851,19 +1877,23 @@ export const oakNpc: Sequence<NpcSequence> = (world, entity, state) => {
     name: "enter",
     onEnter: () => {
       heroEntity[LIGHT].brightness = 0;
+      rerenderEntity(world, heroEntity);
+
       roomEntity[LIGHT].brightness = 7.2;
       roomEntity[LIGHT].visibility = 7;
       roomEntity[VIEWABLE].active = true;
+      rerenderEntity(world, roomEntity);
 
       return true;
     },
-    isCompleted: () => entity[BELONGABLE].faction !== "unit",
-    onLeave: () => "awaken",
+    isCompleted: () =>
+      !isDead(world, heroEntity) && oakBoss?.[BELONGABLE].faction === "wild",
+    onLeave: () => "fight",
   });
 
   step({
     stage,
-    name: "awaken",
+    name: "fight",
     onEnter: () => {
       for (const oakBarrier of oakBarriers) {
         const target = combine(size, oakBarrier);

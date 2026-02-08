@@ -2673,8 +2673,6 @@ export const createCell = (
     });
     all.push(bossEntity);
     populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);
-
-    npcSequence(world, bossEntity, "oakNpc", {});
     setIdentifier(world, bossEntity, "oak_boss");
     const bossId = world.getEntityId(bossEntity);
     bossEntity[FRAGMENT].structure = bossId;
@@ -2735,15 +2733,17 @@ export const createCell = (
     }
 
     // create room
-    const room = entities.createRoom(world, {
+    const roomEntity = entities.createRoom(world, {
       [LIGHT]: { brightness: 0, darkness: 0, visibility: 0 },
       [POSITION]: { x: 0, y: 0 },
       [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
       [SPRITE]: none,
       [VIEWABLE]: { active: false, priority: 50 },
     });
-    all.push(room);
-    setIdentifier(world, room, "oakRoom");
+    all.push(roomEntity);
+    npcSequence(world, roomEntity, "oakRoom", {});
+    setIdentifier(world, roomEntity, "oakRoom");
 
     return { cell: bossEntity, all };
   } else if (cell === "oakChest") {
