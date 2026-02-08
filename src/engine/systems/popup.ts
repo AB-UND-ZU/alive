@@ -125,7 +125,7 @@ export const getDeal = (
   const selections = getTabSelections(world, popupEntity);
 
   if (tab === "buy") {
-    return popupEntity[POPUP].deals[getVerticalIndex(world, popupEntity)];
+    return popupEntity[POPUP].deals[verticalIndex];
   } else if (tab === "sell") {
     const soldItem = world.getEntityByIdAndComponents(
       entity[INVENTORY].items[verticalIndex],
@@ -158,7 +158,15 @@ export const getDeal = (
     const recipe = popupEntity[POPUP].recipes[selections[0]];
     return getCraftingDeal(recipe, verticalIndex);
   } else if (tab === "quest") {
-    return popupEntity[POPUP].deals[0];
+    const deal = popupEntity[POPUP].deals[verticalIndex];
+
+    if (deal) return deal;
+
+    return {
+      item: popupEntity[POPUP].choices[verticalIndex],
+      prices: [],
+      stock: 1,
+    };
   }
 };
 

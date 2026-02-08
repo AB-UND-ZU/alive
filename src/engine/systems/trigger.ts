@@ -118,6 +118,7 @@ import {
 import { SWIMMABLE } from "../components/swimmable";
 import { getClassData } from "../../game/balancing/classes";
 import { FRAGMENT } from "../components/fragment";
+import { createItemAsDrop } from "./drop";
 
 export const getAction = (world: World, entity: Entity) =>
   ACTIONABLE in entity &&
@@ -501,7 +502,18 @@ export const performTrade = (
           },
         })
       : entities.createItem(world, itemData);
-  addToInventory(world, entity, itemEntity, true);
+
+  // drop XP instead of collecting
+  if (itemEntity[ITEM].stat === "xp") {
+    createItemAsDrop(
+      world,
+      copy(shop[POSITION]),
+      entities.createItem,
+      itemData
+    );
+  } else {
+    addToInventory(world, entity, itemEntity, true);
+  }
 
   // reduce stock
   deal.stock -= 1;
@@ -516,9 +528,9 @@ export const performTrade = (
 
       if (!matchesItem(world, deal.item, storedItem[ITEM])) continue;
 
-      storedItem[ITEM].amount -= 1;
+      storedItem[ITEM].amount -= itemEntity[ITEM].amount;
 
-      if (storedItem[ITEM].amount === 0) {
+      if (storedItem[ITEM].amount <= 0) {
         removeFromInventory(world, carrierEntity, storedItem);
         disposeEntity(world, storedItem);
       }
@@ -623,6 +635,17 @@ export const applyCondition = (
 export const completeQuest = (world: World, entity: Entity, target: Entity) => {
   const popup = target[POPUP] as Popup;
   const choiceIndex = getVerticalIndex(world, target);
+
+  // apply selected choice
+  const choice = popup.choices[choiceIndex];
+  if (choice) {
+    performTrade(
+      world,
+      entity,
+      target as TypedEntity<"POPUP" | "TOOLTIP" | "POSITION">
+    );
+  }
+
   popup.deals.forEach((_, index) => {
     popup.verticalIndezes[target[POPUP].horizontalIndex] = index;
     performTrade(
@@ -631,28 +654,6 @@ export const completeQuest = (world: World, entity: Entity, target: Entity) => {
       target as TypedEntity<"POPUP" | "TOOLTIP" | "POSITION">
     );
   });
-
-  // apply selected choice
-  const choice = popup.choices[choiceIndex];
-  if (choice) {
-    const itemEntity = entities.createItem(world, {
-      [ITEM]: { ...choice, carrier: -1, bound: false },
-      [RENDERABLE]: { generation: 0 },
-      [SPRITE]: getItemSprite(choice),
-    });
-    addToInventory(world, entity, itemEntity, true);
-    queueMessage(world, entity, {
-      line: createText(
-        `${choice.amount}x ${getItemSprite(choice).name}`,
-        itemEntity[ITEM].equipment ? colors.black : colors.silver,
-        itemEntity[ITEM].equipment ? colors.silver : colors.black
-      ),
-      orientation: "up",
-      fast: false,
-      delay: 0,
-    });
-    play("pickup", pickupOptions[choice.stat || choice.stackable!]);
-  }
 
   popup.lines = [
     centerLayer(
