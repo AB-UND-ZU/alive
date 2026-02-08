@@ -7,13 +7,13 @@ import {
   cactus2,
   chief,
   clover,
-  commonChest,
+  woodChest,
   desertRock1,
   desertRock2,
   diamondEvaporate,
   diamondOrb,
   dummy,
-  epicChest,
+  diamondChest,
   eye,
   fairy,
   ghost,
@@ -25,14 +25,14 @@ import {
   hedge2,
   ironEvaporate,
   knight,
-  legendaryChest,
+  rubyChest,
   mage,
   oakBoss,
   orb,
   plantEvaporate,
   pot,
   prism,
-  rareChest,
+  goldChest,
   rogue,
   rogueBackdrop,
   rose,
@@ -43,7 +43,7 @@ import {
   treeBurnt1,
   treeBurnt2,
   tumbleweed,
-  uncommonChest,
+  ironChest,
   violet,
   waveTower,
   wormBoss,
@@ -66,14 +66,16 @@ import { hairColors, recolorSprite } from "../assets/pixels";
 import { colors } from "../assets/colors";
 import { Harvestable } from "../../engine/components/harvestable";
 import { Droppable } from "../../engine/components/droppable";
+import { Vanishable } from "../../engine/components/vanishable";
 
 export type UnitKey =
   | NpcType
-  | "commonChest"
-  | "uncommonChest"
-  | "rareChest"
-  | "epicChest"
-  | "legendaryChest"
+  | "woodChest"
+  | "ironChest"
+  | "goldChest"
+  | "diamondChest"
+  | "rubyChest"
+  | "oakChest"
   | "pot"
   | "box"
   | "dummy"
@@ -108,6 +110,7 @@ export type UnitDefinition = {
   swimming?: Sprite;
   swimmingBackdrop?: Sprite;
   remainsChoices?: Sprite[];
+  vanish?: Omit<Vanishable, "decayed">;
   spring?: SpringConfig;
 };
 
@@ -127,6 +130,7 @@ export type UnitData = {
   swimming?: Sprite;
   swimmingBackdrop?: Sprite;
   remains?: Sprite;
+  vanish?: Omit<Vanishable, "decayed">;
   spring?: SpringConfig;
 };
 
@@ -384,7 +388,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remainsChoices: [tombstone2],
     evaporate: { sprite: ghost, fast: false },
   },
-  commonChest: {
+  woodChest: {
     faction: "unit",
     scratch: colors.grey,
     stats: {
@@ -411,9 +415,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: commonChest,
+    sprite: woodChest,
   },
-  uncommonChest: {
+  ironChest: {
     faction: "unit",
     scratch: colors.grey,
     stats: {
@@ -423,9 +427,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: uncommonChest,
+    sprite: ironChest,
   },
-  rareChest: {
+  goldChest: {
     faction: "unit",
     scratch: colors.grey,
     stats: {
@@ -435,9 +439,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: rareChest,
+    sprite: goldChest,
   },
-  epicChest: {
+  diamondChest: {
     faction: "unit",
     scratch: colors.grey,
     stats: {
@@ -447,9 +451,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: epicChest,
+    sprite: diamondChest,
   },
-  legendaryChest: {
+  rubyChest: {
     faction: "unit",
     scratch: colors.grey,
     stats: {
@@ -459,7 +463,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: legendaryChest,
+    sprite: rubyChest,
   },
   pot: {
     faction: "unit",
@@ -1104,7 +1108,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     scratch: colors.maroon,
     dormant: true,
     stats: {
-      hp: 350,
+      hp: 400,
       mp: 1,
       armor: 1,
     },
@@ -1113,6 +1117,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: ["oak_boss"],
     sprite: oakBoss,
     evaporate: { sprite: plantEvaporate, fast: true },
+    vanish: {
+      spawns: [{ unit: "oakChest", delta: { x: 0, y: 1 } }],
+      remains: [],
+    },
   },
   oakTower: {
     faction: "wild",
@@ -1159,6 +1167,40 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["oak_clover"],
     sprite: clover,
+  },
+  oakChest: {
+    faction: "unit",
+    scratch: colors.grey,
+    stats: {
+      hp: 25,
+      armor: 3,
+    },
+    equipments: [],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          {
+            consume: "key",
+            amount: 1,
+            material: "gold",
+          },
+          {
+            stackable: "nugget",
+            amount: 1,
+          },
+          {
+            stackable: "resource",
+            amount: 1,
+            material: "wood",
+            element: "earth",
+          },
+          { stat: "xp", amount: 5 },
+        ],
+      },
+    ],
+    patternNames: [],
+    sprite: goldChest,
   },
   wormBoss: {
     faction: "unit",
@@ -1230,7 +1272,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: commonChest,
+    sprite: woodChest,
   },
 };
 

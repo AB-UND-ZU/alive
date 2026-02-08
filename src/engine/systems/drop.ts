@@ -18,7 +18,7 @@ import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
 import { iterations } from "../../game/math/tracing";
-import { add, copy, normalize, shuffle } from "../../game/math/std";
+import { add, combine, copy, normalize, shuffle } from "../../game/math/std";
 import {
   CollectSequence,
   DecaySequence,
@@ -57,6 +57,7 @@ import { SHOOTABLE } from "../components/shootable";
 import { VANISHABLE } from "../components/vanishable";
 import { BELONGABLE } from "../components/belongable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
+import { createCell } from "../../bindings/creation";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE]?.decayed || entity[VANISHABLE]?.decayed;
@@ -470,6 +471,8 @@ export default function setupDrop(world: World) {
       SEQUENCABLE,
       VANISHABLE,
     ])) {
+      const rootEntity = getRoot(world, entity);
+
       if (isDecaying(world, entity)) {
         play("die", {
           variant: entity[NPC] ? 1 : 2,
@@ -482,10 +485,39 @@ export default function setupDrop(world: World) {
           "creatureVanish",
           {
             generation: 0,
-            limbs: {},
             grow: true,
+            remaining: 0,
           }
         );
+      } else if (isDead(world, rootEntity) && isDecayed(world, entity)) {
+        disposeEntity(world, entity, true, false);
+
+        const unitKey = entity[NPC]?.type;
+        if (heroEntity && unitKey) {
+          heroEntity[PLAYER].defeatedUnits[unitKey] =
+            (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
+        }
+
+        // create spawns and remains for vanished units
+        const size = world.metadata.gameEntity[LEVEL].size;
+
+        entity[VANISHABLE].remains.forEach((remains) => {
+          entities.createGround(world, {
+            [FOG]: { visibility: "hidden", type: "terrain" },
+            [POSITION]: combine(size, entity[POSITION], remains.delta),
+            [SPRITE]: remains.sprite,
+            [RENDERABLE]: { generation: 0 },
+          });
+        });
+
+        entity[VANISHABLE].spawns.forEach((spawn) => {
+          createCell(
+            world,
+            combine(size, entity[POSITION], spawn.delta),
+            spawn.unit,
+            "hidden"
+          );
+        });
       }
     }
 
@@ -534,7 +566,7 @@ export default function setupDrop(world: World) {
 
         // play evaporate animation with own anchor
         const evaporate = entity[DROPPABLE].evaporate;
-        
+
         if (evaporate) {
           const castableEntity = entities.createSpell(world, {
             [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },

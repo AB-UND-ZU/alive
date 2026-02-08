@@ -34,7 +34,7 @@ import {
 } from "../math/std";
 import { bossArea, spawnArea } from "../levels/island/areas";
 import {
-  commonChest,
+  woodChest,
   createDialog,
   createShout,
   menuDot,
@@ -2017,7 +2017,7 @@ export const chestNpc: Sequence<NpcSequence> = (world, entity, state) => {
     onEnter: () => {
       // restore boss to normal state
       entity[STATS].hp = entity[STATS].maxHp;
-      entity[SPRITE] = commonChest;
+      entity[SPRITE] = woodChest;
       entity[BELONGABLE].faction = "unit";
       entity[BEHAVIOUR].patterns = [
         { name: "vulnerable", memory: {} },

@@ -74,7 +74,8 @@ export type EvaporateSequence = { fast: boolean; sprite: Sprite };
 export type VanishSequence = {
   generation: number;
   grow: boolean;
-  limbs: Record<string, { generation: number }>;
+  limbs?: Record<string, { generation: number }>;
+  remaining: number;
 };
 export type BurnSequence = {
   generation: number;

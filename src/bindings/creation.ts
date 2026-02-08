@@ -2106,7 +2106,7 @@ export const createCell = (
     );
     return { cell: boxEntity, all };
   } else if (cell === "fruit_chest") {
-    const chestEntity = createChest(world, "commonChest", { x, y }, [
+    const chestEntity = createChest(world, "woodChest", { x, y }, [
       {
         stackable: "banana",
         amount: 1,
@@ -2131,7 +2131,7 @@ export const createCell = (
     chestEntity[SPRITE] = mergeSprites(shadow, chestEntity[SPRITE]);
     return { cell: chestEntity, all };
   } else if (cell === "potion_chest") {
-    const chestEntity = createChest(world, "commonChest", { x, y }, [
+    const chestEntity = createChest(world, "woodChest", { x, y }, [
       {
         consume: "key",
         material: "iron",
@@ -2665,7 +2665,11 @@ export const createCell = (
       [STRUCTURABLE]: { scale: 3, offsetY: 3 },
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-      [VANISHABLE]: { decayed: false, remains: [], spawns: [] },
+      [VANISHABLE]: {
+        decayed: false,
+        remains: bossUnit.vanish?.remains || [],
+        spawns: bossUnit.vanish?.spawns || [],
+      },
     });
     all.push(bossEntity);
     populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);
@@ -2742,6 +2746,10 @@ export const createCell = (
     setIdentifier(world, room, "oakRoom");
 
     return { cell: bossEntity, all };
+  } else if (cell === "oakChest") {
+    const chestEntity = createChest(world, "oakChest", { x, y });
+    all.push(chestEntity);
+    return { cell: chestEntity, all };
   } else if (cell === "worm_boss") {
     const bossUnit = generateNpcData("wormBoss");
 
@@ -2781,7 +2789,11 @@ export const createCell = (
       [STRUCTURABLE]: {},
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-      [VANISHABLE]: { decayed: false, remains: [], spawns: [] },
+      [VANISHABLE]: {
+        decayed: false,
+        remains: bossUnit.vanish?.remains || [],
+        spawns: bossUnit.vanish?.spawns || [],
+      },
     });
     all.push(bossEntity);
     populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);

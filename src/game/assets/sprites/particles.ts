@@ -3937,3 +3937,23 @@ export const hostileBar: Sprite = {
   name: "Hostile",
   layers: [{ char: "_", color: colors.red }],
 };
+
+export const warnOn: Sprite = {
+  name: "warn_on",
+  layers: [
+    { char: "\u0101", color: colors.black },
+    { char: "\u0100", color: colors.red },
+    { char: "\u0106", color: colors.black },
+    { char: "I", color: colors.black },
+    { char: "!", color: colors.red },
+  ],
+};
+
+export const warnOff: Sprite = {
+  name: "warn_off",
+  layers: [
+    { char: "\u0101", color: colors.black },
+    { char: "\u0100", color: colors.red },
+    { char: "\u0106", color: colors.black },
+  ],
+};

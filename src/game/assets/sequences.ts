@@ -49,6 +49,7 @@ import {
 import {
   calculateHealing,
   getEntityDisplayStats,
+  getLimbs,
   getRoot,
   getStructure,
   isDead,
@@ -406,6 +407,7 @@ import { LAYER } from "../../engine/components/layer";
 import { SHOOTABLE } from "../../engine/components/shootable";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { generateNpcData } from "../balancing/units";
+import { VANISHABLE } from "../../engine/components/vanishable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1687,13 +1689,16 @@ export const creatureVanish: Sequence<VanishSequence> = (
   const size = world.metadata.gameEntity[LEVEL].size;
   const tick = world.metadata.gameEntity[REFERENCE].tick;
   const vanishGeneration = Math.floor(state.elapsed / tick);
-  const finished = false;
   let updated = false;
-  const limbs = state.args.limbs;
+  const existingLimbs = state.args.limbs;
+  const finished = state.args.remaining <= 0 && !!existingLimbs;
+  let limbs = existingLimbs || {};
 
   if (vanishGeneration === 0) {
     // create initial limb
+    state.args.remaining += 1;
     limbs[entityId] = { generation: 0 };
+    state.args.limbs = limbs;
     const vanishParticle = entities.createParticle(world, {
       [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: decayHeight },
       [RENDERABLE]: { generation: 1 },
@@ -1782,6 +1787,7 @@ export const creatureVanish: Sequence<VanishSequence> = (
         disposeEntity(world, evaporateParticle);
         delete state.particles[limbId];
         delete state.particles[evaporateName];
+        state.args.remaining -= 1;
 
         // evaporate limb
         const limbs = getFragments(
@@ -1842,6 +1848,25 @@ export const creatureVanish: Sequence<VanishSequence> = (
 
       rerenderEntity(world, vanishParticle);
     }
+  }
+
+  // wait for limbs to dispose
+  if (finished) {
+    if (getLimbs(world, entity).length > 1) {
+      return { updated, finished: false };
+    }
+
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    entity[VANISHABLE].decayed = true;
   }
 
   return { finished, updated };

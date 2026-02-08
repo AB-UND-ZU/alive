@@ -1292,8 +1292,38 @@ export const entitySprites: Record<
       createCountable({ xp: 1 }, "xp", "display"),
     ],
   },
-  ingot: { sprite: ingot },
-  nugget: { sprite: nugget },
+  ingot: {
+    sprite: ingot,
+    getDescription: () => [
+      createText("Valuable bar made"),
+      [
+        ...createText("from "),
+        ...createItemName({
+          stackable: "resource",
+          material: "gold",
+        }),
+        ...createText(" worth"),
+      ],
+      createItemText({
+        amount: 1000,
+        stackable: "coin",
+      }),
+    ],
+  },
+  nugget: {
+    sprite: nugget,
+    getDescription: () => [
+      createText("A small clump of"),
+      createText("raw gold worth"),
+      [
+        ...createItemText({
+          amount: 10,
+          stackable: "coin",
+        }),
+        ...createText("."),
+      ],
+    ],
+  },
   worm: { sprite: worm },
   arrow: {
     sprite: arrow,

@@ -1,7 +1,7 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
 
-export const commonChest: Sprite = {
+export const woodChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
@@ -11,17 +11,17 @@ export const commonChest: Sprite = {
   ],
 };
 
-export const uncommonChest: Sprite = {
+export const ironChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
-    { char: "±", color: colors.lime },
-    { char: "∙", color: colors.silver },
-    { char: "·", color: colors.lime },
+    { char: "±", color: colors.silver },
+    { char: "∙", color: colors.white },
+    { char: "·", color: colors.silver },
   ],
 };
 
-export const rareChest: Sprite = {
+export const goldChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
@@ -31,7 +31,7 @@ export const rareChest: Sprite = {
   ],
 };
 
-export const epicChest: Sprite = {
+export const diamondChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
@@ -41,7 +41,7 @@ export const epicChest: Sprite = {
   ],
 };
 
-export const legendaryChest: Sprite = {
+export const rubyChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.white },
@@ -747,5 +747,15 @@ export const egg: Sprite = {
     { char: "0", color: colors.black },
     { char: "\u0106", color: colors.white },
     { char: "\u0108", color: colors.white },
+  ],
+};
+
+export const spikes: Sprite = {
+  name: "Spikes",
+  layers: [
+    { char: "Ω", color: colors.red },
+    { char: "\u0102", color: colors.black },
+    { char: "\u011e", color: colors.black },
+    { char: "º", color: colors.black },
   ],
 };
