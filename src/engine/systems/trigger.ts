@@ -505,12 +505,10 @@ export const performTrade = (
 
   // drop XP instead of collecting
   if (itemEntity[ITEM].stat === "xp") {
-    createItemAsDrop(
-      world,
-      copy(shop[POSITION]),
-      entities.createItem,
-      itemData
-    );
+    createItemAsDrop(world, copy(shop[POSITION]), entities.createItem, {
+      ...itemData,
+      [SPRITE]: none,
+    });
   } else {
     addToInventory(world, entity, itemEntity, true);
   }

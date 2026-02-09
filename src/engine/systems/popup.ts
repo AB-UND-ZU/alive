@@ -16,7 +16,7 @@ import {
   quest,
   shop,
 } from "../../game/assets/sprites";
-import { getCell } from "./map";
+import { disposeEntity, getCell } from "./map";
 import { POSITION, Position } from "../components/position";
 import { createSequence, getSequence } from "./sequence";
 import { DiscoverySequence, PopupSequence } from "../components/sequencable";
@@ -384,6 +384,21 @@ export const createPopup = (
 };
 
 export const removePopup = (world: World, entity: Entity) => {
+  // close active popup
+  const entityId = world.getEntityId(entity);
+  const heroEntity = getIdentifierAndComponents(world, "hero", [PLAYER]);
+  if (heroEntity && heroEntity[PLAYER].popup === entityId) {
+    closePopup(world, heroEntity, entity);
+  }
+
+  // remove viewpoint
+  const viewpointEntity = world.assertByIdAndComponents(
+    entity[POPUP].viewpoint,
+    [VIEWABLE]
+  );
+  disposeEntity(world, viewpointEntity);
+
+  // remove popup
   world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP);
   const discovery = getSequence(world, entity, "discovery");
   if (discovery) {

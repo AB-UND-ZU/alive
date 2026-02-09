@@ -724,7 +724,6 @@ export const insertArea = (
       else if (cell === "p") entity = "potion_sign";
       else if (cell === "P") entity = "potion_chest";
       else if (cell === "g") entity = "guide_sign";
-      else if (cell === "w") entity = "warp_sign";
       else if (cell === "G") entity = "guide_door";
       else if (cell === "N") entity = "nomad_door";
       else if (cell === "Y") entity = "chest_tower";
@@ -1921,26 +1920,6 @@ export const createCell = (
     all.push(guideSign);
     setIdentifier(world, guideSign, "guide_sign");
     return { cell: guideSign, all };
-  } else if (cell === "warp_sign") {
-    const signEntity = createSign(world, { x, y }, [
-      [
-        [
-          ...createText("A "),
-          ...createItemName({ equipment: "compass", material: "iron" }),
-          ...createText(" points"),
-        ],
-        createText("to your spawn."),
-        [],
-        createText("Follow it in case"),
-        createText("you get lost."),
-        [],
-        createText("You can see it at"),
-        createText("the bottom part"),
-        createText("of the screen."),
-      ],
-    ]);
-    all.push(signEntity);
-    return { cell: signEntity, all };
   } else if (cell === "campfire" || cell === "fireplace") {
     const fireEntity = entities.createFire(world, {
       [BURNABLE]: {

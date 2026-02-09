@@ -7,8 +7,6 @@ import {
   createText,
   getOrientedSprite,
   none,
-  oakLeaves,
-  oakStem,
   path,
   questPointer,
 } from "../../assets/sprites";
@@ -45,7 +43,6 @@ import {
   lerp,
   normalize,
   random,
-  repeat,
   sigmoid,
   signedDistance,
 } from "../../math/std";
@@ -69,6 +66,7 @@ import {
   WeatherSequence,
 } from "../../../engine/components/sequencable";
 import {
+  createItemName,
   createUnitName,
   getUnitSprite,
   npcSequence,
@@ -103,6 +101,7 @@ import { initializeArea } from "../../../engine/systems/initialize";
 import { STICKY } from "../../../engine/components/sticky";
 import { createSequence } from "../../../engine/systems/sequence";
 import { SHOOTABLE } from "../../../engine/components/shootable";
+import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -903,84 +902,35 @@ export const generateIsland = (world: World) => {
     "earthChief",
     combine(size, inn, { x: choice(-1, 1), y: 2 })
   );
+
   createPopup(world, chiefEntity, {
-    targets: [{ amount: 1, unit: "oakBoss" }],
-    objectives: [
+    deals: [
       {
-        identifier: "earthDruid",
-        title: [...createUnitName("earthDruid")],
-        description: [
-          [
-            ...createText("Set "),
-            getOrientedSprite(questPointer, "right"),
-            ...createText("Focus", colors.grey),
-            ...createText(" to the"),
-          ],
-          [...createUnitName("earthDruid"), ...createText(" to start")],
-          createText("crafting."),
-        ],
-        available: true,
+        item: {
+          equipment: "compass",
+          material: "iron",
+          amount: 1,
+        },
+        stock: 1,
+        prices: [{ stackable: "coin", amount: 20 }],
       },
       {
-        identifier: "earthTrader",
-        title: [...createUnitName("earthTrader")],
-        description: [
-          [
-            ...createText("Set "),
-            getOrientedSprite(questPointer, "right"),
-            ...createText("Focus", colors.grey),
-            ...createText(" to the"),
-          ],
-          [...createUnitName("earthTrader"), ...createText(" to buy")],
-          createText("and sell items."),
-        ],
-        available: true,
+        item: {
+          consume: "key",
+          material: "iron",
+          amount: 1,
+        },
+        stock: 1,
+        prices: [],
       },
       {
-        identifier: "earthSmith",
-        title: [...createUnitName("earthSmith")],
-        description: [
-          [
-            ...createText("Set "),
-            getOrientedSprite(questPointer, "right"),
-            ...createText("Focus", colors.grey),
-            ...createText(" to the"),
-          ],
-          [...createUnitName("earthSmith"), ...createText(" to forge")],
-          createText("stronger gear."),
-        ],
-        available: true,
+        item: {
+          stat: "xp",
+          amount: 3,
+        },
+        stock: 1,
+        prices: [],
       },
-      {
-        identifier: "oakBoss",
-        title: [...createUnitName("oakBoss")],
-        description: [
-          [
-            ...createText("Set "),
-            getOrientedSprite(questPointer, "right"),
-            ...createText("Focus", colors.grey),
-            ...createText(" to the"),
-          ],
-          [...createUnitName("oakBoss"), ...createText(" to challenge")],
-          createText("the boss."),
-        ],
-        available: true,
-      },
-    ],
-    deals: [],
-    choices: [
-      // main
-      { equipment: "shield", material: "wood", amount: 1 },
-      // spell
-      choice(
-        { equipment: "primary", primary: "wave", material: "wood", amount: 1 },
-        { equipment: "primary", primary: "beam", material: "wood", amount: 1 }
-      ),
-      // accessory
-      choice(
-        { equipment: "ring", material: "wood", amount: 1 },
-        { equipment: "amulet", material: "wood", amount: 1 }
-      ),
     ],
     lines: [
       [
@@ -992,55 +942,45 @@ export const generateIsland = (world: World) => {
           ...createText("."),
         ],
         [],
-        createText("Can you help us"),
+        createText("I have a task for"),
+        createText("you with reward:"),
         [
-          ...createText("defeat the "),
-          ...createText("Oak", colors.maroon),
-          ...createText("?"),
+          ...createText("A "),
+          ...createItemName({ equipment: "compass", material: "iron" }),
+          ...createText("."),
         ],
         [],
-        [
-          ...repeat(none, 3),
-          getOrientedSprite(oakLeaves, "left"),
-          oakLeaves,
-          getOrientedSprite(oakLeaves, "right"),
-        ],
-        [
-          ...repeat(none, 2),
-          getOrientedSprite(oakLeaves, "left"),
-          oakLeaves,
-          oakLeaves,
-          oakLeaves,
-          getOrientedSprite(oakLeaves, "right"),
-        ],
-        [
-          ...repeat(none, 2),
-          getOrientedSprite(oakLeaves, "down"),
-          oakLeaves,
-          oakLeaves,
-          oakLeaves,
-          getOrientedSprite(oakLeaves, "down"),
-          ...createText(" <- evil", colors.red),
-        ],
-        [...repeat(none, 4), getOrientedSprite(oakStem, "left")],
-        [...repeat(none, 4), getOrientedSprite(oakStem, "down")],
+        createText("It points to your"),
+        createText("spawn, follow it"),
+        createText("if you get lost."),
+        [],
+        createText("You will see it"),
+        createText("at the bottom"),
+        createText("of your screen."),
         [],
         [
-          ...createText("Talk to "),
-          ...createUnitName("earthTrader"),
+          ...createText("Find some "),
+          ...createItemName({ stackable: "coin" }),
           ...createText(","),
         ],
+        createText("they drop from"),
         [
-          ...createUnitName("earthDruid"),
-          ...createText(" and "),
-          ...createUnitName("earthSmith"),
+          ...createText("Enemies", colors.maroon),
+          ...createText(": "),
+          getUnitSprite("eye"),
+          getUnitSprite("prism"),
+          getUnitSprite("orb"),
+          getUnitSprite("rose"),
+          getUnitSprite("clover"),
+          getUnitSprite("violet"),
         ],
-        createText("to get stronger"),
-        createText("before fighting."),
+        [],
+        createText("Then, come back!"),
       ],
     ],
     tabs: ["quest"],
   });
+
   npcSequence(world, chiefEntity, "earthChiefNpc", {});
 
   // smith's house
@@ -1173,12 +1113,25 @@ export const generateIsland = (world: World) => {
 
     if (furnishingBuilding === traderBuilding) {
       // trader's house
-      createNpc(world, "earthTrader", objectPosition);
+      const traderEntity = createNpc(world, "earthTrader", objectPosition);
+
+      createPopup(world, traderEntity, {
+        deals: purchasableItems.map((item) => ({
+          item: {
+            ...item,
+            amount: 1,
+          },
+          stock: Infinity,
+          prices: getItemBuyPrice(item),
+        })),
+
+        tabs: ["buy", "sell"],
+      });
       continue;
     }
 
     // add chest
-    const chestData = generateUnitData("commonChest");
+    const chestData = generateUnitData("woodChest");
     const chestEntity = entities.createChest(world, {
       [ATTACKABLE]: {},
       [BELONGABLE]: { faction: chestData.faction },
