@@ -308,8 +308,9 @@ export default function Controls() {
       return tab.toUpperCase();
     },
     (world, hero, tradeEntity) => {
+      const tab = getTab(world, tradeEntity);
       const deal = hero && getDeal(world, hero, tradeEntity);
-      return deal && canTrade(world, hero, tradeEntity)
+      return tab !== "quest" && deal && canTrade(world, hero, tradeEntity)
         ? [
             ...repeat(none, 2),
             ...getActivationRow(deal.item),

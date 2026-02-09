@@ -134,21 +134,29 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          stackable: "coin",
+          stackable: "apple",
           amount: Infinity,
         },
         {
-          stackable: "nugget",
+          stackable: "banana",
           amount: Infinity,
         },
         {
-          stackable: "ingot",
+          stackable: "shroom",
+          amount: Infinity,
+        },
+        {
+          stackable: "coconut",
           amount: Infinity,
         },
       ],
       [
         {
-          stackable: "ore",
+          stackable: "leaf",
+          amount: Infinity,
+        },
+        {
+          stackable: "seed",
           amount: Infinity,
         },
         {
@@ -156,14 +164,14 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
-          stackable: "leaf",
+          stackable: "resource",
+          material: "wood",
           amount: Infinity,
         },
       ],
       [
         {
-          stackable: "resource",
-          material: "wood",
+          stackable: "ore",
           amount: Infinity,
         },
         {
@@ -184,6 +192,20 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
+          stackable: "coin",
+          amount: Infinity,
+        },
+        {
+          stackable: "nugget",
+          amount: Infinity,
+        },
+        {
+          stackable: "ingot",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
           stackable: "fruit",
           amount: Infinity,
         },
@@ -195,13 +217,13 @@ export const generateMenu = async (world: World) => {
           consume: "potion",
           material: "wood",
           element: "fire",
-          amount: 999,
+          amount: Infinity,
         },
         {
           consume: "potion",
           material: "wood",
           element: "water",
-          amount: 999,
+          amount: Infinity,
         },
       ],
       [
@@ -368,7 +390,7 @@ export const generateMenu = async (world: World) => {
         {
           consume: "key",
           material: "iron",
-          amount: 999,
+          amount: Infinity,
         },
         {
           stackable: "arrow",
@@ -381,7 +403,7 @@ export const generateMenu = async (world: World) => {
       ],
     ];
 
-    const itemCorner = { x: -14, y: -5 };
+    const itemCorner = { x: 1 - itemColumns.length, y: -5 };
     itemColumns.forEach((items, columnIndex) => {
       items.forEach((item, rowIndex) => {
         createItemAsDrop(

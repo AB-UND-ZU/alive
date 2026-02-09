@@ -41,7 +41,7 @@ export const getConsumables = (world: World, entity: Entity) =>
     .map((itemId: number) => world.assertByIdAndComponents(itemId, [ITEM]))
     .filter(
       (consumable: Entity) =>
-        isConsumable(world, consumable)&&
+        isConsumable(world, consumable) &&
         (!entity[NPC] || consumable[ITEM].bound)
     ) as TypedEntity<"ITEM">[];
 
@@ -177,7 +177,7 @@ export const consumeItem = (world: World, entity: Entity, target: Entity) => {
     );
   } else {
     const countableItem = entities.createItem(world, itemData);
-    addToInventory(world, entity, countableItem, true);
+    addToInventory(world, entity, countableItem, itemData[ITEM].amount);
   }
 };
 

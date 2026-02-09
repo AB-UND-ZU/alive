@@ -679,7 +679,7 @@ export const insertArea = (
       else if (cell === "¥") entity = "cactus";
       else if (cell === ">") entity = "rock";
       else if (cell === "^") entity = "desert_rock";
-      else if (cell === "≡") entity = "wood_three";
+      else if (cell === "≡") entity = "wood_one";
       else if (cell === ".") entity = "fruit_one";
       else if (cell === ";") entity = "mushroom";
       else if (cell === "ß") entity = "hedge";
@@ -1053,17 +1053,17 @@ export const createCell = (
     const snowEntity = applySnow(world, { x, y });
     all.push(snowEntity);
     return { cell: snowEntity, all };
-  } else if (cell === "wood" || cell === "wood_three") {
+  } else if (cell === "wood" || cell === "wood_one") {
     const woodEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
         stackable: "stick",
-        amount: cell === "wood" ? distribution(80, 15, 5) + 1 : 3,
+        amount: cell === "wood_one" ? 1 : distribution(80, 15, 5) + 1,
         bound: false,
       },
       [SPRITE]: getItemSprite({ stackable: "stick" }, "resource"),
     });
     all.push(woodEntity);
-    if (cell === "wood_three")
+    if (cell === "wood_one")
       setIdentifier(world, world.assertById(woodEntity[ITEM].carrier), cell);
     return { cell: woodEntity, all };
   } else if (cell === "fruit" || cell === "fruit_one") {

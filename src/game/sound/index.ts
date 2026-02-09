@@ -1,4 +1,4 @@
-import { Stackable } from "../../engine/components/item";
+import { Consumable, Stackable } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 import { UnitStats } from "../../engine/components/stats";
 import { random } from "../math/std";
@@ -17,13 +17,20 @@ export const npcVariants: Partial<Record<NpcType, number>> = {
 };
 
 export const pickupOptions: Partial<
-  Record<Stackable | keyof UnitStats, { intensity: number; variant: number }>
+  Record<
+    Stackable | Consumable | keyof UnitStats,
+    { intensity: number; variant: number }
+  >
 > = {
   // stats
   hp: { variant: 4, intensity: 6 },
   mp: { variant: 2, intensity: 6 },
   maxHp: { variant: 4, intensity: 8 },
   maxMp: { variant: 2, intensity: 8 },
+
+  // consume
+  key: { variant: 6, intensity: 2 },
+  potion: { variant: 3, intensity: 2 },
 
   // stackable
   ore: { variant: 1, intensity: 1 },
@@ -180,7 +187,7 @@ class Presets extends Params {
     const proximity = options.proximity || 1;
     const variant = options.variant || 1;
     this.wave_type = waveforms.SINE;
-    this.sound_vol = (1 / 32) * proximity ** 1.2 * (variant ** 2);
+    this.sound_vol = (1 / 32) * proximity ** 1.2 * variant ** 2;
     this.p_env_attack = (frnd(0.2) + 0.2) / variant;
     this.p_env_sustain = 0.1 / variant;
     this.p_env_decay = 0.2 / variant;

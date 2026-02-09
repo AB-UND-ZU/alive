@@ -4838,7 +4838,7 @@ export const itemCollect: Sequence<CollectSequence> = (
         entity[SPRITE] = shadow;
       }
     } else {
-      addToInventory(world, entity, itemEntity, false, state.args.amount);
+      addToInventory(world, entity, itemEntity, state.args.amount);
     }
 
     finished = true;

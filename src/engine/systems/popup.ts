@@ -158,15 +158,7 @@ export const getDeal = (
     const recipe = popupEntity[POPUP].recipes[selections[0]];
     return getCraftingDeal(recipe, verticalIndex);
   } else if (tab === "quest") {
-    const deal = popupEntity[POPUP].deals[verticalIndex];
-
-    if (deal) return deal;
-
-    return {
-      item: popupEntity[POPUP].choices[verticalIndex],
-      prices: [],
-      stock: 1,
-    };
+    return popupEntity[POPUP].deals[verticalIndex];
   }
 };
 
@@ -178,11 +170,14 @@ export const canTrade = (
   heroEntity: Entity,
   shopEntity: Entity
 ) => {
+  const tab = getTab(world, shopEntity);
+
+  if (tab === "quest") return isQuestCompleted(world, heroEntity, shopEntity);
+
   const deal = getDeal(world, heroEntity, shopEntity);
 
   if (!deal) return false;
 
-  const tab = getTab(world, shopEntity);
   const selections = getTabSelections(world, shopEntity);
 
   if (tab === "buy") return canShop(world, heroEntity, deal);
@@ -191,7 +186,6 @@ export const canTrade = (
     return selections.length === 2 && canShop(world, heroEntity, deal);
   if (tab === "craft")
     return selections.length === 1 && canShop(world, heroEntity, deal);
-  if (tab === "quest") return isQuestCompleted(world, heroEntity, shopEntity);
 
   return false;
 };

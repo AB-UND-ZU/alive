@@ -14,7 +14,7 @@ import {
 import { LOOTABLE } from "../components/lootable";
 import { EQUIPPABLE } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
-import { Item, ITEM, STACK_SIZE } from "../components/item";
+import { Item, ITEM } from "../components/item";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
@@ -70,9 +70,9 @@ export const getStackable = (world: World, entity: Entity, item: Item) => {
     const inventoryItem = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
       inventoryItem[ITEM].stackable === item.stackable &&
+      inventoryItem[ITEM].consume === item.consume &&
       inventoryItem[ITEM].material === item.material &&
-      inventoryItem[ITEM].element === item.element &&
-      inventoryItem[ITEM].amount < STACK_SIZE
+      inventoryItem[ITEM].element === item.element
     );
   });
 
@@ -89,8 +89,7 @@ export const collectItem = (
   world: World,
   entity: Entity,
   target: Entity,
-  orientation?: Orientation,
-  fullStack = false
+  orientation?: Orientation
 ) => {
   // handle pick up
   for (
@@ -109,29 +108,18 @@ export const collectItem = (
     const equipment = itemEntity[ITEM].equipment;
     const consume = itemEntity[ITEM].consume;
     const stackable = itemEntity[ITEM].stackable;
-    let collectAmount = 1;
+    let collectAmount = isFinite(itemEntity[ITEM].amount)
+      ? itemEntity[ITEM].amount
+      : 1;
 
-    if (stat) {
-      itemEntity[ITEM].amount -= collectAmount;
-    } else if (stackable && !fullStack) {
-      itemEntity[ITEM].amount -= 1;
-    } else if (fullStack || consume) {
-      collectAmount = itemEntity[ITEM].amount;
-    }
-
-    // remove from target inventory
-    if (
-      equipment ||
-      consume ||
-      ((stat || stackable) && itemEntity[ITEM].amount === 0) ||
-      (stackable && fullStack)
-    ) {
-      removeFromInventory(world, target, itemEntity);
-    }
-
-    // assign new carrier on discrete items
-    if (!stat && (!stackable || fullStack)) {
+    if (equipment) {
+      // transfer inventory on discrete items
       itemEntity[ITEM].carrier = world.getEntityId(entity);
+      removeFromInventory(world, target, itemEntity);
+    } else if (isFinite(itemEntity[ITEM].amount)) {
+      // mark stacks as empty
+      itemEntity[ITEM].amount = 0;
+      removeFromInventory(world, target, itemEntity);
     }
 
     // initiate collecting animation on player
@@ -170,8 +158,8 @@ export const collectItem = (
     }
 
     // play sound
-    if (!["hp", "mp"].includes(itemEntity[ITEM].stat!)) {
-      const options = pickupOptions[(stackable || stat)!];
+    if (!stat) {
+      const options = pickupOptions[(stackable || consume)!];
       play("pickup", options);
     }
 
@@ -189,8 +177,7 @@ export const addToInventory = (
   world: World,
   entity: Entity,
   itemEntity: Entity,
-  fullStack = false,
-  amount = fullStack ? itemEntity[ITEM].amount : 1
+  amount: number
 ) => {
   const entityId = world.getEntityId(entity);
   let targetEquipment = itemEntity[ITEM].equipment;
@@ -219,7 +206,7 @@ export const addToInventory = (
       [SPRITE]: woodStick,
     });
 
-    addToInventory(world, entity, woodSword);
+    addToInventory(world, entity, woodSword, 1);
     amount -= 1;
   }
 
@@ -248,21 +235,15 @@ export const addToInventory = (
 
     entity[EQUIPPABLE][targetEquipment] = targetId;
     entity[INVENTORY].items.push(targetId);
-  } else if (
-    targetConsume ||
-    (targetStackable && itemEntity[ITEM].amount === STACK_SIZE)
-  ) {
-    entity[INVENTORY].items.push(targetId);
   } else if (targetStat) {
     const maxStat = getMaxCounter(targetStat);
     const maximum =
       maxStat !== targetStat && maxStat
         ? entity[STATS][maxStat]
         : MAX_STAT_VALUE;
-    const collectAmount = fullStack ? itemEntity[ITEM].amount : amount;
-    const newAmount = entity[STATS][targetStat] + collectAmount;
+    const newAmount = entity[STATS][targetStat] + amount;
     const overflow = Math.max(newAmount, maximum) - maximum;
-    const displayAmount = Math.ceil(collectAmount - overflow);
+    const displayAmount = Math.ceil(amount - overflow);
 
     entity[STATS][targetStat] = Math.min(newAmount, maximum);
 
@@ -283,7 +264,7 @@ export const addToInventory = (
     ) {
       entity[PLAYER].receivedStats[targetStat] += displayAmount;
     }
-  } else if (targetStackable) {
+  } else if (targetStackable || targetConsume) {
     // add to existing stack if available
     let targetStack = getStackable(world, entity, itemEntity[ITEM]);
 
@@ -307,7 +288,10 @@ export const addToInventory = (
   }
 
   // delete old stack
-  if ((targetStat || targetStackable) && itemEntity[ITEM].amount === 0) {
+  if (
+    (targetStat || targetStackable || targetConsume) &&
+    itemEntity[ITEM].amount === 0
+  ) {
     disposeEntity(world, itemEntity);
   }
 };

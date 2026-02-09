@@ -72,7 +72,6 @@ export const emptyItemStats = {
   ...emptyProcStats,
   ...emptyCastable,
 };
-export const STACK_SIZE = 999;
 
 export const ITEM = "ITEM";
 

@@ -6,7 +6,7 @@ import { add, copy } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, registerEntity } from "./map";
-import { ITEM, STACK_SIZE } from "../components/item";
+import { ITEM } from "../components/item";
 import { ORIENTABLE, orientationPoints } from "../components/orientable";
 import { createSequence, getSequence } from "./sequence";
 import { ArrowSequence, SEQUENCABLE } from "../components/sequencable";
@@ -88,10 +88,7 @@ export const getStackableArrow = (world: World, position: Position) => {
 
   const arrowId = lootable[INVENTORY].items.findLast((itemId: number) => {
     const arrowEntity = world.assertByIdAndComponents(itemId, [ITEM]);
-    return (
-      arrowEntity[ITEM].stackable === "arrow" &&
-      arrowEntity[ITEM].amount < STACK_SIZE
-    );
+    return arrowEntity[ITEM].stackable === "arrow";
   });
 
   return arrowId && world.assertById(arrowId);

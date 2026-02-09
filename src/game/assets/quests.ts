@@ -205,7 +205,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
   ]);
   const guideEntity = getIdentifierAndComponents(world, "guide", [POSITION]);
   const guideSign = getIdentifierAndComponents(world, "guide_sign", [POSITION]);
-  const woodThree = getIdentifierAndComponents(world, "wood_three", [POSITION]);
+  const woodOne = getIdentifierAndComponents(world, "wood_one", [POSITION]);
   const dummy = getIdentifierAndComponents(world, "dummy", [POSITION]);
   const coinDrop = getIdentifierAndComponents(world, "dummy:drop", [ITEM]);
   const inEntrance =
@@ -251,7 +251,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "stick",
     onEnter: () => {
-      setHighlight(world, "quest", woodThree);
+      setHighlight(world, "quest", woodOne);
       return true;
     },
     isCompleted: () => !!entity[EQUIPPABLE].sword,

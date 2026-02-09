@@ -510,7 +510,7 @@ export const performTrade = (
       [SPRITE]: none,
     });
   } else {
-    addToInventory(world, entity, itemEntity, true);
+    addToInventory(world, entity, itemEntity, itemData[ITEM].amount);
   }
 
   // reduce stock
@@ -547,7 +547,7 @@ export const performTrade = (
       fast: false,
       delay: 0,
     });
-    play("pickup", pickupOptions[deal.item.stackable!]);
+    play("pickup", pickupOptions[(deal.item.stackable || deal.item.consume)!]);
   }
 
   rerenderEntity(world, shop);
@@ -632,16 +632,28 @@ export const applyCondition = (
 
 export const completeQuest = (world: World, entity: Entity, target: Entity) => {
   const popup = target[POPUP] as Popup;
-  const choiceIndex = getVerticalIndex(world, target);
+  const choiceIndex = getTabSelections(world, target)[1];
 
   // apply selected choice
   const choice = popup.choices[choiceIndex];
   if (choice) {
-    performTrade(
-      world,
-      entity,
-      target as TypedEntity<"POPUP" | "TOOLTIP" | "POSITION">
-    );
+    const choiceItem = entities.createItem(world, {
+      [ITEM]: { ...choice, bound: false, carrier: -1 },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: getItemSprite(choice),
+    });
+    addToInventory(world, entity, choiceItem, choiceItem[ITEM].amount);
+    queueMessage(world, entity, {
+      line: createText(
+        `${choice.amount}x ${getItemSprite(choice).name}`,
+        colors.silver,
+        colors.black
+      ),
+      orientation: "up",
+      fast: false,
+      delay: 0,
+    });
+    play("pickup", pickupOptions[(choice.stackable || choice.consume)!]);
   }
 
   popup.deals.forEach((_, index) => {
@@ -956,7 +968,23 @@ export default function setupTrigger(world: World) {
           const tab = getTab(world, tradeEntity);
           const deal = getDeal(world, entity, tradeEntity);
 
-          if (!deal) {
+          if (tab === "quest") {
+            if (isQuestCompleted(world, entity, tradeEntity)) {
+              pushTabSelection(world, tradeEntity);
+              completeQuest(world, entity, tradeEntity);
+
+              // advance to completed screen
+              const selections = getTabSelections(world, tradeEntity);
+              if (selections.length === 1) pushTabSelection(world, tradeEntity);
+            } else {
+              queueMessage(world, entity, {
+                line: createText("Not completed!", colors.silver, colors.black),
+                orientation: "up",
+                fast: false,
+                delay: 0,
+              });
+            }
+          } else if (!deal) {
             // ignore
           } else if (tab === "buy") {
             const missingItem = missingFunds(world, entity, deal)[0];
@@ -1034,22 +1062,6 @@ export default function setupTrigger(world: World) {
                   ],
                   colors.black
                 ),
-                orientation: "up",
-                fast: false,
-                delay: 0,
-              });
-            }
-          } else if (tab === "quest") {
-            if (isQuestCompleted(world, entity, tradeEntity)) {
-              completeQuest(world, entity, tradeEntity);
-
-              // advance to completed screen
-              const selections = getTabSelections(world, tradeEntity);
-              if (selections.length === 0) pushTabSelection(world, tradeEntity);
-              pushTabSelection(world, tradeEntity);
-            } else {
-              queueMessage(world, entity, {
-                line: createText("Not completed!", colors.silver, colors.black),
                 orientation: "up",
                 fast: false,
                 delay: 0,

@@ -13,7 +13,7 @@ import { INVENTORY } from "../components/inventory";
 import { Position, POSITION } from "../components/position";
 import { SPRITE } from "../components/sprite";
 import { none, arrow, shadow, charge } from "../../game/assets/sprites";
-import { Item, ITEM, STACK_SIZE } from "../components/item";
+import { Item, ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
@@ -287,7 +287,6 @@ export const dropEntity = (
   }
 
   const arrowHits = entity[SHOOTABLE]?.shots || 0;
-  const arrowStacks = Math.ceil(arrowHits / STACK_SIZE);
   const recharge = entity[RECHARGABLE]?.hit;
   const items = [
     ...(inventory.filter(
@@ -295,14 +294,11 @@ export const dropEntity = (
         !world.assertByIdAndComponents(itemId, [ITEM])[ITEM].bound
     ) || []),
     ...(arrowHits > 0
-      ? Array.from({ length: arrowStacks }).map((_, index) =>
+      ? [
           world.getEntityId(
             entities.createItem(world, {
               [ITEM]: {
-                amount:
-                  index === arrowStacks - 1 && arrowHits % STACK_SIZE !== 0
-                    ? arrowHits % STACK_SIZE
-                    : STACK_SIZE,
+                amount: arrowHits,
                 stackable: "arrow",
                 carrier: -1,
                 bound: false,
@@ -310,8 +306,8 @@ export const dropEntity = (
               [RENDERABLE]: { generation: 0 },
               [SPRITE]: arrow,
             })
-          )
-        )
+          ),
+        ]
       : []),
     ...(recharge
       ? [
