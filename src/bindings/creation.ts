@@ -1378,7 +1378,6 @@ export const createCell = (
       generateUnitData("tumbleweed");
     const tumbleweedEntity = entities.createTumbleweed(world, {
       [ATTACKABLE]: { scratchColor: scratch },
-      [AFFECTABLE]: getEmptyAffectable(),
       [BEHAVIOUR]: { patterns },
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false },
@@ -1529,7 +1528,6 @@ export const createCell = (
     );
     const cactusEntity = entities.createCactus(world, {
       [ATTACKABLE]: { scratchColor: scratch },
-      [AFFECTABLE]: getEmptyAffectable(),
       [BELONGABLE]: { faction },
       [DROPPABLE]: { decayed: false, remains: sand },
       [FOG]: { visibility, type: "object" },
@@ -3147,11 +3145,12 @@ export const createCell = (
     });
     return { cell: fountainEntity, all };
   } else if (cell === "kettle" || cell === "kettle_passive") {
+    const isPassive = cell === "kettle_passive";
     const kettleEntity = entities.createCrafting(world, {
       [BURNABLE]: {
-        burning: true,
-        eternal: true,
-        simmer: true,
+        burning: !isPassive,
+        eternal: !isPassive,
+        simmer: !isPassive,
         decayed: false,
         combusted: false,
       },
@@ -3169,7 +3168,7 @@ export const createCell = (
       },
     });
     all.push(kettleEntity);
-    if (cell !== "kettle_passive") {
+    if (!isPassive) {
       createPopup(world, kettleEntity!, {
         recipes: craftingRecipes,
         tabs: ["craft"],

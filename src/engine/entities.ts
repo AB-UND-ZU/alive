@@ -247,7 +247,6 @@ export const createBuilding = entityFactory([
 
 export const createCactus = entityFactory([
   ATTACKABLE,
-  AFFECTABLE,
   BELONGABLE,
   DROPPABLE,
   FOG,
@@ -902,7 +901,6 @@ export const createTransient = entityFactory([
 
 export const createTumbleweed = entityFactory([
   ATTACKABLE,
-  AFFECTABLE,
   BEHAVIOUR,
   BELONGABLE,
   DROPPABLE,
