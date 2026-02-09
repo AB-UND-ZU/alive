@@ -24,7 +24,10 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
 
   gem: 10,
   crystal: 10,
+
+  // exchange items
   nugget: 10,
+  ingot: 1000,
 };
 
 export const itemMaterialPrices: Partial<
@@ -90,10 +93,19 @@ export const getItemSellPrice = (
   item: Omit<Item, "amount" | "carrier" | "bound">
 ): Deal["prices"] => {
   const prices = getItemPrice(item);
-  return prices.map((price) => ({
-    ...price,
-    amount: Math.ceil(price.amount / 2),
-  }));
+  const divisor =
+    item.stackable === "nugget" ||
+    (item.stackable === "resource" && item.material === "gold") ||
+    item.stackable === "ingot"
+      ? 1
+      : 2;
+
+  return prices.map((price) => {
+    return {
+      ...price,
+      amount: Math.ceil(price.amount / divisor),
+    };
+  });
 };
 
 export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
