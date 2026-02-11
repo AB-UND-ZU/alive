@@ -1576,11 +1576,7 @@ export const materialSprites: Record<
           ...createItemName({ stackable: "resource", material: "wood" }),
           ...createText("."),
         ],
-        stretch(
-          createCountable({ armor: 1 }, "armor", "display"),
-          createCountable({ haste: -1 }, "haste", "display"),
-          frameWidth - 2
-        ),
+        createCountable({ armor: 1 }, "armor", "display"),
       ],
     },
     iron: {
@@ -1592,11 +1588,7 @@ export const materialSprites: Record<
           ...createItemName({ stackable: "resource", material: "iron" }),
           ...createText("."),
         ],
-        stretch(
-          createCountable({ armor: 2 }, "armor", "display"),
-          createCountable({ haste: -1 }, "haste", "display"),
-          frameWidth - 2
-        ),
+        createCountable({ armor: 2 }, "armor", "display"),
       ],
     },
     gold: {
@@ -1608,11 +1600,7 @@ export const materialSprites: Record<
           ...createItemName({ stackable: "resource", material: "gold" }),
           ...createText("."),
         ],
-        stretch(
-          createCountable({ armor: 3 }, "armor", "display"),
-          createCountable({ haste: -1 }, "haste", "display"),
-          frameWidth - 2
-        ),
+        createCountable({ armor: 3 }, "armor", "display"),
       ],
     },
     diamond: { sprite: diamondShield },

@@ -63,44 +63,35 @@ export const gearStats: Partial<
     shield: {
       wood: {
         armor: 1,
-        haste: -1,
 
         air: {
           armor: 1,
-          haste: -1,
           resist: 1,
         },
         fire: {
           armor: 1,
-          haste: -1,
           damp: 2,
         },
         water: {
           armor: 1,
-          haste: -1,
           thaw: 5,
         },
         earth: {
           armor: 1,
-          haste: -1,
           spike: 1,
         },
       },
       iron: {
         armor: 2,
-        haste: -1,
       },
       gold: {
         armor: 3,
-        haste: -1,
       },
       diamond: {
         armor: 4,
-        haste: -1,
       },
       ruby: {
         armor: 5,
-        haste: -1,
       },
     },
     torch: {
