@@ -16,15 +16,13 @@ export const shadow: Sprite = {
 
 export const mist: Sprite = {
   name: "mist",
-  layers: [{ char: "≈", color: colors.grey }],
+  layers: [{ char: "≈", color: colors.white }],
 };
 
 export const fog: Sprite = {
   name: "fog_hidden",
-  layers: [
-    { char: "·", color: colors.grey },
-    { char: "[", color: colors.black },
-  ],
+  // colors.grey with shadow,
+  layers: [{ char: "≈", color: "#2e2e2e" }],
 };
 
 export const fogOfWar: Sprite = {
