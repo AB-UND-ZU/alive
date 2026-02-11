@@ -403,7 +403,7 @@ export default function setupMagic(world: World) {
           // process burning and freezing on hit
           applyProcs(
             world,
-            castableEntity,
+            casterEntity,
             {
               burn: castableEntity[CASTABLE].burn,
               freeze: castableEntity[CASTABLE].freeze,

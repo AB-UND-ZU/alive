@@ -2328,13 +2328,18 @@ export const elementSprites: Record<
           createText("A wave of magic."),
           stretch(
             [
-              ...createText("2", colors.lime),
-              minCountable(heal),
-              ...createText("Heal", colors.lime),
+              ...createText("1", colors.fuchsia),
+              minCountable(magicHit),
+              ...createText("Magic", colors.fuchsia),
             ],
             createCountable({ mp: -1 }, "mp", "display"),
             frameWidth - 2
           ),
+          [
+            ...createText("1", colors.purple),
+            drain,
+            ...createText("Drain", colors.purple),
+          ],
         ],
       },
     },

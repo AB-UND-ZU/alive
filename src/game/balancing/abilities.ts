@@ -43,7 +43,8 @@ export const abilityStats: Partial<
           freeze: 5,
         },
         earth: {
-          heal: 2,
+          magic: 1,
+          drain: 1,
         },
       },
       iron: {

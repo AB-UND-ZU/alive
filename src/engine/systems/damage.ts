@@ -273,7 +273,7 @@ const procDelay = 100;
 
 export const applyProcs = (
   world: World,
-  attackerEntity: Entity,
+  attackerEntity: Entity | undefined,
   itemStats: Pick<ItemStats, "burn" | "freeze" | "drain">,
   procId: number,
   targetEntity: Entity
@@ -292,7 +292,7 @@ export const applyProcs = (
 
   // handle drain
   const drain = itemStats.drain;
-  if (drain > 0) {
+  if (attackerEntity && drain > 0) {
     const { healing, hp } = calculateHealing(attackerEntity[STATS], drain);
     attackerEntity[STATS].hp = hp;
     if (healing > 0) {

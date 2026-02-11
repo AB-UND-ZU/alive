@@ -3264,7 +3264,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
       ),
       none,
     ],
-    createText("Upgrades: ", colors.grey),
+    createText("Changes:  ", colors.grey),
     ...Object.entries(resultDiff || {})
       .filter(([key, value]) => value !== 0)
       .map(([key, value]) => {
