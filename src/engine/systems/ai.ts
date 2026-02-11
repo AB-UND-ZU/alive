@@ -1539,7 +1539,7 @@ export default function setupAi(world: World) {
             patterns.splice(
               patterns.indexOf(pattern),
               1,
-              { name: "wait", memory: { ticks: 3 } },
+              { name: "wait", memory: { ticks: 2 } },
               { name: "oak_boss", memory: { phase: 2 } }
             );
           } else if (pattern.memory.phase === 2) {
@@ -1651,11 +1651,11 @@ export default function setupAi(world: World) {
             );
           } else if (pattern.memory.phase === 7) {
             // schedule phases and prevent repeating last one
-            let phases = shuffle([10, 20, 30]);
+            let phases = shuffle([10, 20]);
 
             if (pattern.memory.shuffled) {
-              phases = shuffle(pattern.memory.shuffled.slice(0, 2));
-              phases.splice(random(1, 2), 0, pattern.memory.shuffled[2]);
+              phases = shuffle(pattern.memory.shuffled.slice(0, 1));
+              phases.splice(random(0, 1), 0, pattern.memory.shuffled[1]);
             }
 
             patterns.splice(
@@ -1863,11 +1863,17 @@ export default function setupAi(world: World) {
             ];
             const plantCount = 3;
             const plantOffset = 4;
+            const plantShift = random(0, plantOffset - 1);
 
             const selectedSpawns = [];
             for (let offset = 0; offset < plantOffset; offset += 1) {
               for (let index = 0; index < plantCount; index += 1) {
-                const position = plantSpawns[offset + index * plantOffset];
+                const shiftedOffset = normalize(
+                  offset + plantShift,
+                  plantOffset
+                );
+                const position =
+                  plantSpawns[shiftedOffset + index * plantOffset];
                 const cell = getCell(world, position);
                 const bushEntity = Object.values(cell).find(
                   (bush) => bush[IDENTIFIABLE]?.name === "oak:bush"
@@ -1913,20 +1919,23 @@ export default function setupAi(world: World) {
               {
                 name: "oak_boss",
                 memory: { phase: 31, spawns: selectedSpawns },
-              },
-              { name: "wait", memory: { ticks: 4 } },
-              { name: "vulnerable", memory: {} },
-              { name: "oak_boss", memory: { phase: 33 } }
+              }
             );
           } else if (pattern.memory.phase === 31) {
-            // cast spawns
+            // cast spawns and wait
             pattern.memory.spawns.forEach((spawn: Position) => {
               shootHoming(world, castableEntity, {
                 type: "oakClover",
                 positions: [spawn],
               });
             });
-            patterns.splice(patterns.indexOf(pattern), 1);
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "wait", memory: { ticks: 4 } },
+              { name: "vulnerable", memory: {} },
+              { name: "oak_boss", memory: { phase: 33 } }
+            );
           } else if (pattern.memory.phase === 33) {
             // let towers heal and wait
             const availableTowers = getIdentifiersAndComponents(
@@ -1984,7 +1993,24 @@ export default function setupAi(world: World) {
             });
             patterns.splice(patterns.indexOf(pattern), 1);
           } else if (pattern.memory.phase === 40) {
-            if (percentage < 15) {
+            const bushEntities = world
+              .getEntities([IDENTIFIABLE])
+              .filter((bush) => bush[IDENTIFIABLE].name === "oak:bush");
+            const lowHpPercentage = 15;
+            const currentHealPatterns = patterns.filter(
+              (pattern) =>
+                pattern.name === "oak_boss" &&
+                (pattern.memory.phase === 30 || pattern.memory.phase === 31)
+            ).length;
+            const targetHealPatterns =
+              1 +
+              Math.floor(bushEntities.length / 3) -
+              Math.ceil(
+                ((percentage - lowHpPercentage) / (100 - lowHpPercentage)) * 5
+              ) -
+              currentHealPatterns;
+
+            if (percentage <= lowHpPercentage) {
               // advance to final phase and drop remaining phases
               entity[BEHAVIOUR].patterns = [
                 { name: "oak_boss", memory: { phase: 41 } },
@@ -2002,6 +2028,20 @@ export default function setupAi(world: World) {
                 ];
               });
               break;
+            } else if (targetHealPatterns > 0) {
+              // trigger spawning clovers
+              entity[BEHAVIOUR].patterns = [
+                { name: "oak_boss", memory: { phase: 40 } },
+                { name: "dialog", memory: { override: "hidden", dialogs: [] } },
+                ...Array.from({ length: targetHealPatterns }).map(
+                  () =>
+                    ({
+                      name: "oak_boss",
+                      memory: { phase: 30 },
+                    } as const)
+                ),
+                { name: "oak_boss", memory: { phase: 7 } },
+              ];
             }
             continue;
           } else if (pattern.memory.phase === 41) {

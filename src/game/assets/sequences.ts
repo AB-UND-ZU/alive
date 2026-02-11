@@ -5323,9 +5323,10 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   const changed = entity[TOOLTIP].changed;
   const totalLength = state.args.text.length;
   const expired =
-    !state.args.overridden &&
-    !state.args.isIdle &&
-    state.elapsed / charDelay > totalLength * 1.4 + 20;
+    isDead(world, entity) ||
+    (!state.args.overridden &&
+      !state.args.isIdle &&
+      state.elapsed / charDelay > totalLength * 1.4 + 20);
   const isCloseBy =
     isAdjacent &&
     !!heroEntity &&
