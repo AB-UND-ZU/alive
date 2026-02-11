@@ -177,6 +177,11 @@ export const gearStats: Partial<
       gold: { melee: 5 },
     },
   },
+  clover: {
+    sword: {
+      wood: { melee: 1 },
+    },
+  },
   oakClover: {
     sword: {
       default: {

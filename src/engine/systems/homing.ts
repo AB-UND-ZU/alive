@@ -2,10 +2,10 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { add, choice, combine, copy } from "../../game/math/std";
+import { add, choice, combine, copy, random } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { disposeEntity, registerEntity } from "./map";
+import { disposeEntity, getCell, registerEntity } from "./map";
 import {
   ORIENTABLE,
   Orientation,
@@ -16,6 +16,7 @@ import { entities } from "..";
 import { Sprite, SPRITE } from "../components/sprite";
 import {
   earthHoming,
+  earthSummon,
   goldDisc,
   hedgeDry1,
   hedgeDry2,
@@ -41,6 +42,8 @@ import { createCell } from "../../bindings/creation";
 import { relativeOrientations } from "../../game/math/path";
 import { CONDITIONABLE } from "../components/conditionable";
 import { SHOOTABLE } from "../components/shootable";
+import { IDENTIFIABLE } from "../components/identifiable";
+import { BEHAVIOUR } from "../components/behaviour";
 
 export const decayHoming = (world: World, entity: Entity) => {
   entity[HOMING].decayedGeneration =
@@ -60,8 +63,9 @@ const discConfig: Record<
   Homing["type"],
   { sprite: Sprite } & Partial<Castable>
 > = {
-  oakTower: { sprite: ironSummon, magic: 4, retrigger: 10 },
+  oakTower: { sprite: ironSummon, magic: 4, retrigger: 2 },
   oakHedge: { sprite: earthHoming },
+  oakClover: { sprite: earthSummon, magic: 4, retrigger: 2 },
   ironDisc: { sprite: ironDisc, magic: 1 },
   goldDisc: { sprite: goldDisc, magic: 2 },
 };
@@ -188,6 +192,28 @@ export default function setupHoming(world: World) {
           "hidden"
         ).cell;
         setIdentifier(world, towerEntity, "oak:tower");
+      } else if (entity[HOMING].type === "oakClover" && reached) {
+        // clear bushes
+        const cell = getCell(world, entity[POSITION]);
+        const bushEntity = Object.values(cell).find(
+          (bush) => bush[IDENTIFIABLE]?.name === "oak:bush"
+        );
+
+        if (bushEntity) {
+          disposeEntity(world, bushEntity);
+        }
+
+        const cloverEntity = createCell(
+          world,
+          copy(entity[POSITION]),
+          "oakClover",
+          "hidden"
+        ).cell;
+
+        // offset clovers to prevent all moving at same time
+        if (random(0, 1) === 0 && cloverEntity[BEHAVIOUR]) {
+          cloverEntity[BEHAVIOUR].patterns.shift();
+        }
       } else if (entity[HOMING].type === "oakHedge" && hasAffected) {
         const targetEntity = world.getEntityByIdAndComponents(
           entity[HOMING].target,

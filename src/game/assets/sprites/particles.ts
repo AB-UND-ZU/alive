@@ -1158,6 +1158,39 @@ export const rubySummon: Sprite = {
   ],
 };
 
+export const fireSummon: Sprite = {
+  name: "fire_summon",
+  layers: [
+    { char: "■", color: colors.red },
+    { char: "≡", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.red },
+    { char: "·", color: colors.black },
+  ],
+};
+
+export const waterSummon: Sprite = {
+  name: "water_summon",
+  layers: [
+    { char: "■", color: colors.blue },
+    { char: "≡", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.blue },
+    { char: "·", color: colors.black },
+  ],
+};
+
+export const earthSummon: Sprite = {
+  name: "earth_summon",
+  layers: [
+    { char: "■", color: colors.lime },
+    { char: "≡", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.lime },
+    { char: "·", color: colors.black },
+  ],
+};
+
 export const woodBall: Sprite = {
   name: "wood_ball",
   layers: [

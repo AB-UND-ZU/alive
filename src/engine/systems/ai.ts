@@ -1910,42 +1910,21 @@ export default function setupAi(world: World) {
               },
               { name: "wait", memory: { ticks: 5 } },
               { name: "dialog", memory: { override: "hidden", dialogs: [] } },
-              { name: "oak_boss", memory: { phase: 31 } },
-              { name: "wait", memory: { ticks: 4 } },
-              { name: "vulnerable", memory: {} },
               {
                 name: "oak_boss",
-                memory: {
-                  phase: 32,
-                  spawns: selectedSpawns,
-                },
+                memory: { phase: 31, spawns: selectedSpawns },
               },
+              { name: "wait", memory: { ticks: 4 } },
+              { name: "vulnerable", memory: {} },
               { name: "oak_boss", memory: { phase: 33 } }
             );
           } else if (pattern.memory.phase === 31) {
-            // cast wave
-            castSpell(world, castableEntity, {
-              [ITEM]: {
-                carrier: -1,
-                bound: false,
-                amount: 1,
-                equipment: "primary",
-                primary: "wave",
-                element: "earth",
-              },
-            });
-            patterns.splice(patterns.indexOf(pattern), 1);
-          } else if (pattern.memory.phase === 32) {
-            // spawn mobs
+            // cast spawns
             pattern.memory.spawns.forEach((spawn: Position) => {
-              const cell = getCell(world, spawn);
-              const bushEntity = Object.values(cell).find(
-                (bush) => bush[IDENTIFIABLE]?.name === "oak:bush"
-              );
-              if (!bushEntity) return;
-
-              disposeEntity(world, bushEntity);
-              createCell(world, copy(spawn), "oakClover", "hidden");
+              shootHoming(world, castableEntity, {
+                type: "oakClover",
+                positions: [spawn],
+              });
             });
             patterns.splice(patterns.indexOf(pattern), 1);
           } else if (pattern.memory.phase === 33) {
