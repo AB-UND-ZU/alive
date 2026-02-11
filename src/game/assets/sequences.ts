@@ -920,6 +920,14 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
     y: delta.y * state.args.range,
   };
 
+  // stop casting if caster is dead
+  const casterEntity = world.getEntityById(entity[CASTABLE].caster);
+  const abort = !casterEntity || isDead(world, casterEntity);
+
+  if (abort && state.args.duration > progress + state.args.range) {
+    state.args.duration = progress + state.args.range;
+  }
+
   let finished = progress > state.args.duration;
   let updated = false;
 
@@ -990,7 +998,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  if (state.args.progress !== progress && progress > 2) {
+  if (state.args.progress !== progress && progress > 3) {
     // create bolts
     if (
       progress <= state.args.duration - state.args.range &&
