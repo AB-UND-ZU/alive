@@ -933,6 +933,8 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
 
   // create edge particles
   if (!state.particles.start) {
+    updated = true;
+
     const startParticle = entities.createFibre(world, {
       [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
       [PARTICLE]: {
@@ -1073,8 +1075,6 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
       const aoeEntity = world.assertById(aoeId);
       disposeEntity(world, aoeEntity);
     }
-
-    updated = true;
   }
 
   return { finished, updated };
