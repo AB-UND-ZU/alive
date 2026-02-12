@@ -116,6 +116,25 @@ export const getParticleAmount = (world: World, amount: number) => {
   return 0;
 };
 
+export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
+  if (entity[CONDITIONABLE]?.block) {
+    entity[CONDITIONABLE].block.amount -= 1;
+
+    queueMessage(world, entity, {
+      line: createText("BLOCKED", colors.grey),
+      orientation: "up",
+      fast: false,
+      delay: 0,
+    });
+
+    if (entity[CONDITIONABLE].block.amount <= 0) {
+      delete entity[CONDITIONABLE].block;
+    }
+    return true;
+  }
+  return false;
+};
+
 export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
   if (!isEnemy(world, entity)) {
     consumeCharge(world, entity, { stackable: "charge" });
@@ -335,14 +354,11 @@ export default function setupMagic(world: World) {
           castableEntity[CASTABLE].drain;
 
         // prevent spell if bubble is active
-        if ((hasDamage || hasProcs) && targetEntity[CONDITIONABLE]?.block) {
-          targetEntity[CONDITIONABLE].block.amount -= 1;
 
-          if (targetEntity[CONDITIONABLE].block.amount <= 0) {
-            delete targetEntity[CONDITIONABLE].block;
-          }
-
-          createAmountMarker(world, targetEntity, 0, "up", "magic");
+        if (
+          (hasDamage || hasProcs) &&
+          attemptBubbleAbsorb(world, targetEntity)
+        ) {
           continue;
         }
 
@@ -516,29 +532,24 @@ export default function setupMagic(world: World) {
       if (delta === 0) continue;
 
       // burst bubble on dot
-      let displayedDamage = 0;
-      if (entity[CONDITIONABLE]?.block) {
-        delete entity[CONDITIONABLE].block;
-      } else {
-        const { damage, hp } = calculateDamage(
-          world,
-          { true: delta },
-          {},
-          entity
-        );
-        entity[STATS].hp = hp;
+      entityDots[entityId] = dot;
+      if (attemptBubbleAbsorb(world, entity)) continue;
 
-        const proximity = heroEntity
-          ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
-          : 0.5;
-        play("magic", { intensity: damage, proximity });
-        displayedDamage = damage;
-      }
+      const { damage, hp } = calculateDamage(
+        world,
+        { true: delta },
+        {},
+        entity
+      );
+      entity[STATS].hp = hp;
+
+      const proximity = heroEntity
+        ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
+        : 0.5;
+      play("magic", { intensity: damage, proximity });
 
       // add hit marker
-      createAmountMarker(world, entity, -displayedDamage, "up", "magic");
-
-      entityDots[entityId] = dot;
+      createAmountMarker(world, entity, -damage, "up", "magic");
     }
   };
 

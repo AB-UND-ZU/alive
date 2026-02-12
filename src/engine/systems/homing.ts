@@ -14,15 +14,7 @@ import {
 import { SEQUENCABLE } from "../components/sequencable";
 import { entities } from "..";
 import { Sprite, SPRITE } from "../components/sprite";
-import {
-  earthHoming,
-  earthSummon,
-  goldDisc,
-  hedgeDry1,
-  hedgeDry2,
-  ironDisc,
-  ironSummon,
-} from "../../game/assets/sprites";
+import { hedgeDry1, hedgeDry2 } from "../../game/assets/sprites";
 import { INVENTORY } from "../components/inventory";
 import { BELONGABLE } from "../components/belongable";
 import { isWalkable } from "./movement";
@@ -40,10 +32,11 @@ import { DROPPABLE } from "../components/droppable";
 import { setIdentifier } from "../utils";
 import { createCell } from "../../bindings/creation";
 import { relativeOrientations } from "../../game/math/path";
-import { CONDITIONABLE } from "../components/conditionable";
 import { SHOOTABLE } from "../components/shootable";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { BEHAVIOUR } from "../components/behaviour";
+import { disc, homing, summon } from "../../game/assets/templates/particles";
+import { attemptBubbleAbsorb } from "./magic";
 
 export const decayHoming = (world: World, entity: Entity) => {
   entity[HOMING].decayedGeneration =
@@ -63,11 +56,11 @@ const discConfig: Record<
   Homing["type"],
   { sprite: Sprite } & Partial<Castable>
 > = {
-  oakTower: { sprite: ironSummon, magic: 4, retrigger: 2 },
-  oakHedge: { sprite: earthHoming },
-  oakClover: { sprite: earthSummon, magic: 4, retrigger: 2 },
-  ironDisc: { sprite: ironDisc, magic: 1 },
-  goldDisc: { sprite: goldDisc, magic: 2 },
+  oakTower: { sprite: summon.iron.default, magic: 4, retrigger: 2 },
+  oakHedge: { sprite: homing.default.earth },
+  oakClover: { sprite: summon.default.earth, magic: 4, retrigger: 2 },
+  ironDisc: { sprite: disc.iron.default, magic: 1 },
+  goldDisc: { sprite: disc.gold.default, magic: 2 },
 };
 
 const HOMING_TTL = 30;
@@ -168,13 +161,7 @@ export default function setupHoming(world: World) {
       // prevent if bubble is active
       let hasAffected = !!affectedEntity;
 
-      if (affectedEntity && affectedEntity[CONDITIONABLE]?.block) {
-        affectedEntity[CONDITIONABLE].block.amount -= 1;
-
-        if (affectedEntity[CONDITIONABLE].block.amount <= 0) {
-          delete affectedEntity[CONDITIONABLE].block;
-        }
-
+      if (affectedEntity && attemptBubbleAbsorb(world, affectedEntity)) {
         hasAffected = false;
       }
 

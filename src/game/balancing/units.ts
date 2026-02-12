@@ -10,28 +10,18 @@ import {
   woodChest,
   desertRock1,
   desertRock2,
-  diamondEvaporate,
-  diamondOrb,
   dummy,
   diamondChest,
-  eye,
   fairy,
   ghost,
-  goldEvaporate,
-  goldEye,
-  goldOrb,
-  goldPrism,
   hedge1,
   hedge2,
-  ironEvaporate,
   knight,
   rubyChest,
   mage,
   oakBoss,
-  orb,
   plantEvaporate,
   pot,
-  prism,
   goldChest,
   rogue,
   rogueBackdrop,
@@ -45,7 +35,6 @@ import {
   tumbleweed,
   ironChest,
   violet,
-  waveTower,
   wormBoss,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
@@ -62,11 +51,14 @@ import {
 } from "../assets/sprites/structures";
 import { emptyUnitStats, UnitStats } from "../../engine/components/stats";
 import { classDefinitions, ClassKey } from "./classes";
-import { hairColors, recolorSprite } from "../assets/pixels";
+import { hairColors } from "../assets/pixels";
 import { colors } from "../assets/colors";
 import { Harvestable } from "../../engine/components/harvestable";
 import { Droppable } from "../../engine/components/droppable";
 import { Vanishable } from "../../engine/components/vanishable";
+import { recolorSprite } from "../assets/templates";
+import { eye, orb, prism, waveTower } from "../assets/templates/creatures";
+import { evaporate } from "../assets/templates/particles";
 
 export type UnitKey =
   | NpcType
@@ -683,8 +675,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["prism"],
-    sprite: prism,
-    evaporate: { sprite: ironEvaporate, fast: true },
+    sprite: prism.iron.default,
+    evaporate: { sprite: evaporate.iron.default, fast: true },
   },
   goldPrism: {
     faction: "wild",
@@ -712,8 +704,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["prism"],
-    sprite: goldPrism,
-    evaporate: { sprite: goldEvaporate, fast: true },
+    sprite: prism.gold.default,
+    evaporate: { sprite: evaporate.gold.default, fast: true },
   },
   eye: {
     faction: "wild",
@@ -747,8 +739,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["eye", "chase"],
-    sprite: eye,
-    evaporate: { sprite: ironEvaporate, fast: true },
+    sprite: eye.iron.default,
+    evaporate: { sprite: evaporate.iron.default, fast: true },
   },
   goldEye: {
     faction: "wild",
@@ -776,8 +768,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["eye", "chase"],
-    sprite: goldEye,
-    evaporate: { sprite: goldEvaporate, fast: true },
+    sprite: eye.gold.default,
+    evaporate: { sprite: evaporate.gold.default, fast: true },
   },
   orb: {
     faction: "wild",
@@ -821,9 +813,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["orb"],
-    sprite: orb,
+    sprite: orb.iron.default,
     spring: { duration: 300 },
-    evaporate: { sprite: ironEvaporate, fast: true },
+    evaporate: { sprite: evaporate.iron.default, fast: true },
   },
   goldOrb: {
     faction: "wild",
@@ -861,9 +853,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["orb"],
-    sprite: goldOrb,
+    sprite: orb.gold.default,
     spring: { duration: 300 },
-    evaporate: { sprite: goldEvaporate, fast: true },
+    evaporate: { sprite: evaporate.gold.default, fast: true },
   },
   diamondOrb: {
     faction: "wild",
@@ -901,9 +893,9 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["orb"],
-    sprite: diamondOrb,
+    sprite: orb.diamond.default,
     spring: { duration: 300 },
-    evaporate: { sprite: diamondEvaporate, fast: true },
+    evaporate: { sprite: evaporate.diamond.default, fast: true },
   },
   fairy: {
     faction: "wild",
@@ -929,7 +921,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["fairy"],
     sprite: fairy,
-    evaporate: { sprite: ironEvaporate, fast: true },
+    evaporate: { sprite: evaporate.iron.default, fast: true },
   },
   rose: {
     faction: "unit",
@@ -1100,8 +1092,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: waveTower,
-    evaporate: { sprite: ironEvaporate, fast: true },
+    sprite: waveTower.iron.default,
+    evaporate: { sprite: evaporate.iron.default, fast: true },
   },
   oakBoss: {
     faction: "unit",
@@ -1141,8 +1133,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     drops: [],
     patternNames: [],
-    sprite: { ...waveTower, name: "" },
-    evaporate: { sprite: ironEvaporate, fast: true },
+    sprite: { ...waveTower.iron.default, name: "" },
+    evaporate: { sprite: evaporate.iron.default, fast: true },
   },
   oakClover: {
     faction: "wild",

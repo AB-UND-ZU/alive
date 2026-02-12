@@ -21,7 +21,7 @@ import { MELEE } from "../components/melee";
 import { relativeOrientations } from "../../game/math/path";
 import { isControllable } from "./freeze";
 import { play } from "../../game/sound";
-import { CONDITIONABLE } from "../components/conditionable";
+import { attemptBubbleAbsorb } from "./magic";
 
 export const isSpikable = (world: World, entity: Entity) => {
   if (!isFightable(world, entity)) return false;
@@ -40,12 +40,8 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
   let displayedDamage = 0;
 
   // burst active bubble
-  if (target[CONDITIONABLE]?.block) {
-    target[CONDITIONABLE].block.amount -= 1;
-
-    if (target[CONDITIONABLE].block.amount <= 0) {
-      delete target[CONDITIONABLE].block;
-    }
+  if (attemptBubbleAbsorb(world, target)) {
+    return;
   } else {
     const entityStats = getEntityStats(world, entity);
     const attack = entityStats.spike;

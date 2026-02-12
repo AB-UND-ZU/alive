@@ -272,26 +272,6 @@ export const mining: Sprite = {
   ],
 };
 
-export const airEssence: Sprite = {
-  name: "Spirit",
-  layers: [{ char: "æ", color: colors.white }],
-};
-
-export const fireEssence: Sprite = {
-  name: "Spirit",
-  layers: [{ char: "æ", color: colors.red }],
-};
-
-export const waterEssence: Sprite = {
-  name: "Spirit",
-  layers: [{ char: "æ", color: colors.blue }],
-};
-
-export const earthEssence: Sprite = {
-  name: "Spirit",
-  layers: [{ char: "æ", color: colors.lime }],
-};
-
 export const coin: Sprite = {
   name: "Coin",
   layers: [

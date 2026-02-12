@@ -23,7 +23,6 @@ import {
   createText,
   getMaxCounter,
   times,
-  woodStick,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { createSequence, getSequence } from "./sequence";
@@ -43,7 +42,7 @@ import {
 import { pickupOptions, play } from "../../game/sound";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { setIdentifier } from "../utils";
-import { recolorSprite } from "../../game/assets/pixels";
+import { recolorSprite } from "../../game/assets/templates";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -192,18 +191,19 @@ export const addToInventory = (
     !entity[EQUIPPABLE].sword &&
     targetStackable === "stick"
   ) {
+    const itemData = {
+      amount: 1,
+      equipment: "sword",
+      material: "wood",
+      carrier: entityId,
+      bound: false,
+    } as const;
     const woodSword = entities.createSword(world, {
-      [ITEM]: {
-        amount: 1,
-        equipment: "sword",
-        material: "wood",
-        carrier: entityId,
-        bound: false,
-      },
+      [ITEM]: itemData,
       [ORIENTABLE]: {},
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: woodStick,
+      [SPRITE]: getItemSprite(itemData),
     });
 
     addToInventory(world, entity, woodSword, 1);

@@ -104,7 +104,7 @@ import { isGhost, isRespawning } from "../../engine/systems/fate";
 import { MOVABLE } from "../../engine/components/movable";
 import { TypedEntity } from "../../engine/entities";
 import { COLLIDABLE } from "../../engine/components/collidable";
-import { getCircleOrientations, recolorSprite } from "./pixels";
+import { getCircleOrientations } from "./pixels";
 import { colors } from "./colors";
 import {
   ORIENTABLE,
@@ -120,6 +120,7 @@ import { craftingRecipes } from "../balancing/crafting";
 import { isTouch } from "../../components/Dimensions";
 import { COVERABLE } from "../../engine/components/coverable";
 import { BURNABLE } from "../../engine/components/burnable";
+import { recolorSprite } from "./templates";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };

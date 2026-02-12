@@ -6,14 +6,14 @@ import { add, copy } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, registerEntity } from "./map";
-import { ITEM } from "../components/item";
+import { ITEM, Material } from "../components/item";
 import { ORIENTABLE, orientationPoints } from "../components/orientable";
 import { createSequence, getSequence } from "./sequence";
 import { ArrowSequence, SEQUENCABLE } from "../components/sequencable";
 import { entities } from "..";
 import { PROJECTILE } from "../components/projectile";
 import { SPRITE } from "../components/sprite";
-import { arrow, woodShot } from "../../game/assets/sprites";
+import { arrow } from "../../game/assets/sprites";
 import { INVENTORY } from "../components/inventory";
 import { consumeCharge } from "./trigger";
 import { createItemAsDrop, dropEntity, isDecayed, isDecaying } from "./drop";
@@ -35,10 +35,11 @@ import { getLockable } from "./action";
 import { invertOrientation } from "../../game/math/path";
 import { TypedEntity } from "../entities";
 import { getAbilityStats } from "../../game/balancing/abilities";
-import { CONDITIONABLE } from "../components/conditionable";
 import { getFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
 import { SHOOTABLE } from "../components/shootable";
+import { shot } from "../../game/assets/templates/particles";
+import { attemptBubbleAbsorb } from "./magic";
 
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -144,7 +145,7 @@ export const shootArrow = (
     },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: woodShot,
+    [SPRITE]: shot[bow[ITEM].material as Material].default,
   });
   registerEntity(world, shotEntity);
 
@@ -208,39 +209,33 @@ export default function setupBallistics(world: World) {
           targetEntity &&
           !isFriendlyFire(world, entity, targetEntity)
         ) {
-          let displayedDamage = 0;
-          if (targetEntity[CONDITIONABLE]?.block) {
-            targetEntity[CONDITIONABLE].block.amount -= 1;
-
-            if (targetEntity[CONDITIONABLE].block.amount <= 0) {
-              delete targetEntity[CONDITIONABLE].block;
-            }
+          if (attemptBubbleAbsorb(world, targetEntity)) {
             bouncable = true;
-          } else {
-            // inflict damage
-            const attack = entity[PROJECTILE].damage;
-            const { damage, hp } = calculateDamage(
-              world,
-              { melee: attack },
-              {},
-              targetEntity
-            );
-            targetEntity[STATS].hp = hp;
-
-            // increment arrow hit counter on target
-            if (!isEnemy(world, entity)) {
-              fragmentEntity[SHOOTABLE].shots += 1;
-            }
-            hit = true;
-            disposeEntity(world, entity, false);
-            displayedDamage = damage;
+            break;
           }
+
+          // inflict damage
+          const attack = entity[PROJECTILE].damage;
+          const { damage, hp } = calculateDamage(
+            world,
+            { melee: attack },
+            {},
+            targetEntity
+          );
+          targetEntity[STATS].hp = hp;
+
+          // increment arrow hit counter on target
+          if (!isEnemy(world, entity)) {
+            fragmentEntity[SHOOTABLE].shots += 1;
+          }
+          hit = true;
+          disposeEntity(world, entity, false);
 
           // add hit marker
           createAmountMarker(
             world,
             fragmentEntity,
-            -displayedDamage,
+            -damage,
             orientation,
             "melee"
           );

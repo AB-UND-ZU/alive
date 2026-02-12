@@ -49,65 +49,34 @@ import {
   arrow,
   banana,
   bananaDrop,
-  beamSpellWood,
   berry,
   berryDrop,
   bombActive,
-  bowWood,
   charge,
   coconut,
   coconutDrop,
   coin,
-  ironCompass,
   crystal,
   diamond,
-  diamondShield,
-  diamondSword,
-  doorClosedGold,
-  doorClosedIron,
-  doorClosedWood,
-  earthEssence,
-  entryClosedIron,
-  entryClosedWood,
   fenceDoor,
-  fireEssence,
   flower,
   flowerDrop,
   fruit,
   gem,
   getStatSprite,
   gold,
-  goldKey,
-  goldShield,
-  goldSword,
   herb,
-  hpPotion,
-  hpElixir,
   ingot,
   iron,
-  ironKey,
-  ironShield,
-  ironSword,
   leaf,
-  ironMap,
   minCountable,
-  mpPotion,
-  mpElixir,
   ore,
   oreDrop,
   ruby,
-  rubyShield,
-  rubySword,
   seed,
   shroom,
-  slashWood,
   stick,
-  torch,
-  waterEssence,
-  waveSpellWood,
   wood,
-  woodShield,
-  woodStick,
   worm,
   createCountable,
   tree1,
@@ -121,8 +90,6 @@ import {
   ironMine,
   ironMineDisplay,
   goldMineDisplay,
-  entryClosedWoodDisplay,
-  entryClosedIronDisplay,
   popupSeparator,
   popupSelection,
   level,
@@ -133,11 +100,7 @@ import {
   xp,
   armor,
   power,
-  woodStickAir,
-  woodStickFire,
   fire,
-  woodShieldAir,
-  woodShieldWater,
   vision,
   resist,
   damp,
@@ -146,67 +109,32 @@ import {
   spike,
   magicHit,
   meleeHit,
-  range,
   wisdom,
   haste,
-  waveSpellWoodAir,
-  waveSpellWoodFire,
-  waveSpellWoodWater,
-  waveSpellWoodEarth,
   heal,
-  beamSpellWoodFire,
-  beamSpellWoodWater,
-  airEssence,
   fog,
   stretch,
   popupSeparatorSelected,
   popupSeparatorInverted,
   popupCenterCrop,
-  beamSpellWoodEarth,
-  beamSpellWoodAir,
-  woodRing,
-  woodAmulet,
-  woodRingAir,
-  woodRingFire,
-  woodRingWater,
-  woodRingEarth,
-  woodAmuletAir,
-  woodAmuletFire,
-  woodAmuletWater,
-  woodAmuletEarth,
-  ironRing,
-  ironAmulet,
-  woodShieldFire,
-  woodShieldEarth,
   missing,
   popupActive,
   popupBlocked,
   delay,
   nugget,
-  hpBottle,
-  mpBottle,
   ironLock,
   goldLock,
   rogue,
   mage,
   knight,
   alien,
-  entryClosedGold,
-  entryClosedGoldDisplay,
   oreDisplay,
   note,
-  woodStickWater,
-  woodStickEarth,
   drain,
   none,
-  woodBoots,
-  woodAxe,
   logging,
-  woodRaise,
-  woodBlock,
   absorb,
   scout,
-  earthSword,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -230,6 +158,25 @@ import { disposeEntity } from "../../engine/systems/map";
 import { UnitStats } from "../../engine/components/stats";
 import { ClassKey, getClassData } from "../balancing/classes";
 import { brightenSprites } from "./pixels";
+import {
+  amulet,
+  axe,
+  beamSpell,
+  block,
+  boots,
+  bow,
+  compass,
+  map,
+  raise,
+  ring,
+  shield,
+  slash,
+  sword,
+  torch,
+  waveSpell,
+} from "./templates/equipments";
+import { bottle, elixir, key, potion, spirit } from "./templates/items";
+import { doorClosed, entryClosed, entryClosedDisplay } from "./templates/units";
 
 export const lootSpeed = 200;
 export const decayTime = 300;
@@ -1515,7 +1462,7 @@ export const materialSprites: Record<
 > = {
   sword: {
     wood: {
-      sprite: woodStick,
+      sprite: sword.wood.default,
       getDescription: () => [
         createText("Simple sword made"),
         [
@@ -1531,7 +1478,7 @@ export const materialSprites: Record<
       ],
     },
     iron: {
-      sprite: ironSword,
+      sprite: sword.iron.default,
       getDescription: () => [
         createText("Heavy sword made"),
         [
@@ -1547,7 +1494,7 @@ export const materialSprites: Record<
       ],
     },
     gold: {
-      sprite: goldSword,
+      sprite: sword.gold.default,
       getDescription: () => [
         createText("Shiny sword made"),
         [
@@ -1563,12 +1510,12 @@ export const materialSprites: Record<
       ],
     },
 
-    diamond: { sprite: diamondSword },
-    ruby: { sprite: rubySword },
+    diamond: { sprite: sword.diamond.default },
+    ruby: { sprite: sword.ruby.default },
   },
   shield: {
     wood: {
-      sprite: woodShield,
+      sprite: shield.wood.default,
       getDescription: () => [
         createText("A simple shield"),
         [
@@ -1580,7 +1527,7 @@ export const materialSprites: Record<
       ],
     },
     iron: {
-      sprite: ironShield,
+      sprite: shield.iron.default,
       getDescription: () => [
         createText("A heavy shield"),
         [
@@ -1592,7 +1539,7 @@ export const materialSprites: Record<
       ],
     },
     gold: {
-      sprite: goldShield,
+      sprite: shield.gold.default,
       getDescription: () => [
         createText("A shiny shield"),
         [
@@ -1603,40 +1550,42 @@ export const materialSprites: Record<
         createCountable({ armor: 3 }, "armor", "display"),
       ],
     },
-    diamond: { sprite: diamondShield },
-    ruby: { sprite: rubyShield },
+    diamond: { sprite: shield.diamond.default },
+    ruby: { sprite: shield.ruby.default },
   },
   ring: {
     wood: {
-      sprite: woodRing,
+      sprite: ring.wood.default,
       getDescription: () => [
         createText("A fragile ring"),
         createText("with arcane aura."),
         brightenSprites(createCountable({ maxMp: 2 }, "maxMp", "display")),
       ],
     },
-    iron: {
-      sprite: ironRing,
-    },
+    iron: { sprite: ring.iron.default },
+    gold: { sprite: ring.gold.default },
+    diamond: { sprite: ring.diamond.default },
+    ruby: { sprite: ring.ruby.default },
   },
   amulet: {
     wood: {
-      sprite: woodAmulet,
+      sprite: amulet.wood.default,
       getDescription: () => [
         createText("A protective and"),
         createText("delicate amulet."),
         brightenSprites(createCountable({ maxHp: 5 }, "maxHp", "display")),
       ],
     },
-    iron: {
-      sprite: ironAmulet,
-    },
+    iron: { sprite: amulet.iron.default },
+    gold: { sprite: amulet.gold.default },
+    diamond: { sprite: amulet.diamond.default },
+    ruby: { sprite: amulet.ruby.default },
   },
 
   // tools
   axe: {
     wood: {
-      sprite: woodAxe,
+      sprite: axe.wood.default,
       getDescription: () => [
         createText("Stand in front of"),
         [
@@ -1656,7 +1605,7 @@ export const materialSprites: Record<
   },
   compass: {
     iron: {
-      sprite: ironCompass,
+      sprite: compass.iron.default,
       getDescription: () => [
         createText("Shows the way"),
         createText("back to your"),
@@ -1666,7 +1615,7 @@ export const materialSprites: Record<
   },
   map: {
     iron: {
-      sprite: ironMap,
+      sprite: map.iron.default,
       getDescription: () => [
         [
           ...createText("Open your "),
@@ -1680,29 +1629,33 @@ export const materialSprites: Record<
   },
   torch: {
     wood: {
-      sprite: torch,
+      sprite: torch.wood.default,
       getDescription: () => [
         createText("Glows bright and"),
         createText("keeps you warm."),
         [...createCountable({ vision: 2 }, "vision", "display")],
       ],
     },
+    iron: { sprite: torch.iron.default },
+    gold: { sprite: torch.gold.default },
   },
   boots: {
     wood: {
-      sprite: woodBoots,
+      sprite: boots.wood.default,
       getDescription: () => [
         createText("Simple but soft"),
         createText("boots."),
         [...createCountable({ haste: 1 }, "haste", "display")],
       ],
     },
+    iron: { sprite: boots.iron.default },
+    gold: { sprite: boots.gold.default },
   },
 
   // primary spells
   wave: {
     wood: {
-      sprite: waveSpellWood,
+      sprite: waveSpell.wood.default,
       getDescription: () => [
         createText("Use to cast a"),
         createText("wave of magic."),
@@ -1717,10 +1670,14 @@ export const materialSprites: Record<
         ),
       ],
     },
+    iron: { sprite: waveSpell.iron.default },
+    gold: { sprite: waveSpell.gold.default },
+    diamond: { sprite: waveSpell.diamond.default },
+    ruby: { sprite: waveSpell.ruby.default },
   },
   beam: {
     wood: {
-      sprite: beamSpellWood,
+      sprite: beamSpell.wood.default,
       getDescription: () => [
         createText("Shoots multiple"),
         createText("bolts in a beam."),
@@ -1735,6 +1692,10 @@ export const materialSprites: Record<
         ),
       ],
     },
+    iron: { sprite: beamSpell.iron.default },
+    gold: { sprite: beamSpell.gold.default },
+    diamond: { sprite: beamSpell.diamond.default },
+    ruby: { sprite: beamSpell.ruby.default },
   },
   bolt: {},
   blast: {},
@@ -1742,7 +1703,7 @@ export const materialSprites: Record<
   // secondary items
   slash: {
     wood: {
-      sprite: slashWood,
+      sprite: slash.wood.default,
 
       getDescription: () => [
         createText("Spins and damages"),
@@ -1761,10 +1722,14 @@ export const materialSprites: Record<
         ),
       ],
     },
+    iron: { sprite: slash.iron.default },
+    gold: { sprite: slash.gold.default },
+    diamond: { sprite: slash.diamond.default },
+    ruby: { sprite: slash.ruby.default },
   },
   bow: {
     wood: {
-      sprite: bowWood,
+      sprite: bow.wood.default,
 
       getDescription: () => [
         createText("Shoots a ranged"),
@@ -1783,17 +1748,20 @@ export const materialSprites: Record<
         ),
       ],
     },
+    iron: { sprite: bow.iron.default },
+    gold: { sprite: bow.gold.default },
+    diamond: { sprite: bow.diamond.default },
+    ruby: { sprite: bow.ruby.default },
   },
   raise: {
     wood: {
-      sprite: woodRaise,
+      sprite: raise.wood.default,
       getDescription: () => [
         createText("Extra damage on"),
         createText("next attack."),
         stretch(
           [
-            ...createText("2", colors.red),
-
+            ...createText("3", colors.red),
             minCountable(meleeHit),
             ...createText("Melee", colors.red),
           ],
@@ -1805,13 +1773,17 @@ export const materialSprites: Record<
         ),
       ],
     },
+    iron: { sprite: raise.iron.default },
+    gold: { sprite: raise.gold.default },
+    diamond: { sprite: raise.diamond.default },
+    ruby: { sprite: raise.ruby.default },
   },
   block: {
     wood: {
-      sprite: woodBlock,
+      sprite: block.wood.default,
       getDescription: () => [
         [
-          ...createText("Absorbs "),
+          ...createText("Defends "),
           minCountable(meleeHit),
           ...createText("Melee", colors.red),
           ...createText(" or"),
@@ -1826,7 +1798,7 @@ export const materialSprites: Record<
             ...createText("1", colors.olive),
 
             minCountable(absorb),
-            ...createText("Bubble", colors.olive),
+            ...createText("Absorb", colors.olive),
           ],
           [
             ...createText("-1", colors.grey),
@@ -1836,6 +1808,10 @@ export const materialSprites: Record<
         ),
       ],
     },
+    iron: { sprite: block.iron.default },
+    gold: { sprite: block.gold.default },
+    diamond: { sprite: block.diamond.default },
+    ruby: { sprite: block.ruby.default },
   },
 
   // resource
@@ -1849,12 +1825,7 @@ export const materialSprites: Record<
           ...createText("."),
         ],
         createText("Craft into wooden"),
-        [
-          woodStick,
-          woodShield,
-          ...createText("Gear", colors.grey),
-          ...createText("."),
-        ],
+        [...createText("Gear", colors.grey), ...createText(".")],
       ],
     },
     iron: {
@@ -1866,12 +1837,7 @@ export const materialSprites: Record<
           ...createText("."),
         ],
         createText("Craft into iron"),
-        [
-          ironSword,
-          ironShield,
-          ...createText("Gear", colors.grey),
-          ...createText("."),
-        ],
+        [...createText("Gear", colors.grey), ...createText(".")],
       ],
     },
     gold: {
@@ -1883,12 +1849,7 @@ export const materialSprites: Record<
           ...createText("."),
         ],
         createText("Craft into golden"),
-        [
-          goldSword,
-          goldShield,
-          ...createText("Gear", colors.grey),
-          ...createText("."),
-        ],
+        [...createText("Gear", colors.grey), ...createText(".")],
       ],
     },
     diamond: { sprite: diamond },
@@ -1898,8 +1859,9 @@ export const materialSprites: Record<
   // consumable
   potion: {},
   key: {
+    wood: { sprite: key.wood.default },
     iron: {
-      sprite: ironKey,
+      sprite: key.iron.default,
       getDescription: () => [
         [
           ...createText("Opens a "),
@@ -1911,7 +1873,7 @@ export const materialSprites: Record<
       ],
     },
     gold: {
-      sprite: goldKey,
+      sprite: key.gold.default,
 
       getDescription: () => [
         [
@@ -1923,6 +1885,8 @@ export const materialSprites: Record<
         createText("use."),
       ],
     },
+    diamond: { sprite: key.diamond.default },
+    ruby: { sprite: key.ruby.default },
   },
 
   // materialized
@@ -1931,14 +1895,33 @@ export const materialSprites: Record<
     gold: { sprite: goldLock },
   },
   door: {
-    wood: { sprite: doorClosedWood },
-    iron: { sprite: doorClosedIron },
-    gold: { sprite: doorClosedGold },
+    wood: { sprite: doorClosed.wood.default },
+    iron: { sprite: doorClosed.iron.default },
+    gold: { sprite: doorClosed.gold.default },
+    diamond: { sprite: doorClosed.diamond.default },
+    ruby: { sprite: doorClosed.ruby.default },
   },
   entry: {
-    wood: { sprite: entryClosedWood, display: entryClosedWoodDisplay },
-    iron: { sprite: entryClosedIron, display: entryClosedIronDisplay },
-    gold: { sprite: entryClosedGold, display: entryClosedGoldDisplay },
+    wood: {
+      sprite: entryClosed.wood.default,
+      display: entryClosedDisplay.wood.default,
+    },
+    iron: {
+      sprite: entryClosed.iron.default,
+      display: entryClosedDisplay.iron.default,
+    },
+    gold: {
+      sprite: entryClosed.gold.default,
+      display: entryClosedDisplay.gold.default,
+    },
+    diamond: {
+      sprite: entryClosed.diamond.default,
+      display: entryClosedDisplay.diamond.default,
+    },
+    ruby: {
+      sprite: entryClosed.ruby.default,
+      display: entryClosedDisplay.ruby.default,
+    },
   },
   gate: {
     wood: { sprite: fenceDoor },
@@ -1959,7 +1942,7 @@ export const elementSprites: Record<
   sword: {
     wood: {
       air: {
-        sprite: woodStickAir,
+        sprite: sword.wood.air,
         getDescription: () => [
           [
             ...createText("A "),
@@ -1987,7 +1970,7 @@ export const elementSprites: Record<
         ],
       },
       fire: {
-        sprite: woodStickFire,
+        sprite: sword.wood.fire,
         getDescription: () => [
           [
             ...createText("A "),
@@ -2019,7 +2002,7 @@ export const elementSprites: Record<
         ],
       },
       water: {
-        sprite: woodStickWater,
+        sprite: sword.wood.water,
         getDescription: () => [
           [
             ...createText("A "),
@@ -2051,7 +2034,7 @@ export const elementSprites: Record<
         ],
       },
       earth: {
-        sprite: woodStickEarth,
+        sprite: sword.wood.earth,
         getDescription: () => [
           [
             ...createText("A "),
@@ -2083,17 +2066,42 @@ export const elementSprites: Record<
         ],
       },
     },
+    iron: {
+      air: { sprite: sword.iron.air },
+      fire: { sprite: sword.iron.fire },
+      water: { sprite: sword.iron.water },
+      earth: { sprite: sword.iron.earth },
+    },
+    gold: {
+      air: { sprite: sword.gold.air },
+      fire: { sprite: sword.gold.fire },
+      water: { sprite: sword.gold.water },
+      earth: { sprite: sword.gold.earth },
+    },
+    diamond: {
+      air: { sprite: sword.diamond.air },
+      fire: { sprite: sword.diamond.fire },
+      water: { sprite: sword.diamond.water },
+      earth: { sprite: sword.diamond.earth },
+    },
+    ruby: {
+      air: { sprite: sword.ruby.air },
+      fire: { sprite: sword.ruby.fire },
+      water: { sprite: sword.ruby.water },
+      earth: { sprite: sword.ruby.earth },
+    },
 
     default: {
-      earth: {
-        sprite: earthSword,
-      },
+      air: { sprite: sword.default.air },
+      fire: { sprite: sword.default.fire },
+      water: { sprite: sword.default.water },
+      earth: { sprite: sword.default.earth },
     },
   },
   shield: {
     wood: {
       air: {
-        sprite: woodShieldAir,
+        sprite: shield.wood.air,
         getDescription: () => [
           [
             ...createText("A "),
@@ -2106,14 +2114,13 @@ export const elementSprites: Record<
           ],
           stretch(
             createCountable({ armor: 1 }, "armor", "display"),
-            createCountable({ haste: -1 }, "haste", "display"),
+            createCountable({ resist: 1 }, "resist", "display"),
             frameWidth - 2
           ),
-          createCountable({ resist: 1 }, "resist", "display"),
         ],
       },
       fire: {
-        sprite: woodShieldFire,
+        sprite: shield.wood.fire,
         getDescription: () => [
           [
             ...createText("A "),
@@ -2126,14 +2133,13 @@ export const elementSprites: Record<
           ],
           stretch(
             createCountable({ armor: 1 }, "armor", "display"),
-            createCountable({ haste: -1 }, "haste", "display"),
+            createCountable({ damp: 2 }, "damp", "display"),
             frameWidth - 2
           ),
-          createCountable({ damp: 2 }, "damp", "display"),
         ],
       },
       water: {
-        sprite: woodShieldWater,
+        sprite: shield.wood.water,
         getDescription: () => [
           [
             ...createText("A "),
@@ -2146,14 +2152,13 @@ export const elementSprites: Record<
           ],
           stretch(
             createCountable({ armor: 1 }, "armor", "display"),
-            createCountable({ haste: -1 }, "haste", "display"),
+            createCountable({ thaw: 5 }, "thaw", "display"),
             frameWidth - 2
           ),
-          createCountable({ thaw: 5 }, "thaw", "display"),
         ],
       },
       earth: {
-        sprite: woodShieldEarth,
+        sprite: shield.wood.earth,
         getDescription: () => [
           [
             ...createText("A "),
@@ -2166,99 +2171,126 @@ export const elementSprites: Record<
           ],
           stretch(
             createCountable({ armor: 1 }, "armor", "display"),
-            createCountable({ haste: -1 }, "haste", "display"),
+            createCountable({ spike: 1 }, "spike", "display"),
             frameWidth - 2
           ),
-          createCountable({ spike: 1 }, "spike", "display"),
         ],
       },
+    },
+    iron: {
+      air: { sprite: shield.iron.air },
+      fire: { sprite: shield.iron.fire },
+      water: { sprite: shield.iron.water },
+      earth: { sprite: shield.iron.earth },
+    },
+    gold: {
+      air: { sprite: shield.gold.air },
+      fire: { sprite: shield.gold.fire },
+      water: { sprite: shield.gold.water },
+      earth: { sprite: shield.gold.earth },
+    },
+    diamond: {
+      air: { sprite: shield.diamond.air },
+      fire: { sprite: shield.diamond.fire },
+      water: { sprite: shield.diamond.water },
+      earth: { sprite: shield.diamond.earth },
+    },
+    ruby: {
+      air: { sprite: shield.ruby.air },
+      fire: { sprite: shield.ruby.fire },
+      water: { sprite: shield.ruby.water },
+      earth: { sprite: shield.ruby.earth },
+    },
+
+    default: {
+      air: { sprite: shield.default.air },
+      fire: { sprite: shield.default.fire },
+      water: { sprite: shield.default.water },
+      earth: { sprite: shield.default.earth },
     },
   },
   ring: {
     wood: {
-      air: {
-        sprite: woodRingAir,
-      },
-      fire: {
-        sprite: woodRingFire,
-      },
-      water: {
-        sprite: woodRingWater,
-      },
-      earth: {
-        sprite: woodRingEarth,
-      },
+      air: { sprite: ring.wood.air },
+      fire: { sprite: ring.wood.fire },
+      water: { sprite: ring.wood.water },
+      earth: { sprite: ring.wood.earth },
+    },
+    iron: {
+      air: { sprite: ring.iron.air },
+      fire: { sprite: ring.iron.fire },
+      water: { sprite: ring.iron.water },
+      earth: { sprite: ring.iron.earth },
+    },
+    gold: {
+      air: { sprite: ring.gold.air },
+      fire: { sprite: ring.gold.fire },
+      water: { sprite: ring.gold.water },
+      earth: { sprite: ring.gold.earth },
+    },
+    diamond: {
+      air: { sprite: ring.diamond.air },
+      fire: { sprite: ring.diamond.fire },
+      water: { sprite: ring.diamond.water },
+      earth: { sprite: ring.diamond.earth },
+    },
+    ruby: {
+      air: { sprite: ring.ruby.air },
+      fire: { sprite: ring.ruby.fire },
+      water: { sprite: ring.ruby.water },
+      earth: { sprite: ring.ruby.earth },
+    },
+
+    default: {
+      air: { sprite: ring.default.air },
+      fire: { sprite: ring.default.fire },
+      water: { sprite: ring.default.water },
+      earth: { sprite: ring.default.earth },
     },
   },
   amulet: {
     wood: {
-      air: {
-        sprite: woodAmuletAir,
-      },
-      fire: {
-        sprite: woodAmuletFire,
-      },
-      water: {
-        sprite: woodAmuletWater,
-      },
-      earth: {
-        sprite: woodAmuletEarth,
-      },
+      air: { sprite: amulet.wood.air },
+      fire: { sprite: amulet.wood.fire },
+      water: { sprite: amulet.wood.water },
+      earth: { sprite: amulet.wood.earth },
+    },
+    iron: {
+      air: { sprite: amulet.iron.air },
+      fire: { sprite: amulet.iron.fire },
+      water: { sprite: amulet.iron.water },
+      earth: { sprite: amulet.iron.earth },
+    },
+    gold: {
+      air: { sprite: amulet.gold.air },
+      fire: { sprite: amulet.gold.fire },
+      water: { sprite: amulet.gold.water },
+      earth: { sprite: amulet.gold.earth },
+    },
+    diamond: {
+      air: { sprite: amulet.diamond.air },
+      fire: { sprite: amulet.diamond.fire },
+      water: { sprite: amulet.diamond.water },
+      earth: { sprite: amulet.diamond.earth },
+    },
+    ruby: {
+      air: { sprite: amulet.ruby.air },
+      fire: { sprite: amulet.ruby.fire },
+      water: { sprite: amulet.ruby.water },
+      earth: { sprite: amulet.ruby.earth },
+    },
+
+    default: {
+      air: { sprite: amulet.default.air },
+      fire: { sprite: amulet.default.fire },
+      water: { sprite: amulet.default.water },
+      earth: { sprite: amulet.default.earth },
     },
   },
 
   // equipments
-  slash: {
-    wood: {
-      air: {
-        sprite: slashWood,
-
-        getDescription: () => [
-          createText("Spin with damage."),
-          stretch(
-            [
-              ...createText("1", colors.red),
-              minCountable(meleeHit),
-              ...createText("Melee", colors.red),
-            ],
-            [
-              ...createText("-1", colors.grey),
-              ...createItemName({ stackable: "charge" }),
-            ],
-            frameWidth - 2
-          ),
-          [
-            ...createText("2", colors.olive),
-            minCountable(range),
-            ...createText("Range", colors.olive),
-          ],
-        ],
-      },
-    },
-  },
-  bow: {
-    wood: {
-      air: {
-        sprite: bowWood,
-
-        getDescription: () => [
-          createText("Shoots at range."),
-          stretch(
-            [
-              ...createText("1", colors.red),
-              minCountable(meleeHit),
-              ...createText("Melee", colors.red),
-            ],
-            [
-              ...createText("-1", colors.grey),
-              ...createItemName({ stackable: "arrow" }),
-            ],
-            frameWidth - 2
-          ),
-        ],
-      },
-    },
-  },
+  slash: {},
+  bow: {},
   axe: {},
   raise: {},
   block: {},
@@ -2267,7 +2299,7 @@ export const elementSprites: Record<
   wave: {
     wood: {
       air: {
-        sprite: waveSpellWoodAir,
+        sprite: waveSpell.wood.air,
         getDescription: () => [
           createText("A wave of magic."),
           stretch(
@@ -2283,7 +2315,7 @@ export const elementSprites: Record<
         ],
       },
       fire: {
-        sprite: waveSpellWoodFire,
+        sprite: waveSpell.wood.fire,
         getDescription: () => [
           createText("A wave of magic."),
           stretch(
@@ -2303,7 +2335,7 @@ export const elementSprites: Record<
         ],
       },
       water: {
-        sprite: waveSpellWoodWater,
+        sprite: waveSpell.wood.water,
         getDescription: () => [
           createText("A wave of magic."),
           stretch(
@@ -2323,12 +2355,12 @@ export const elementSprites: Record<
         ],
       },
       earth: {
-        sprite: waveSpellWoodEarth,
+        sprite: waveSpell.wood.earth,
         getDescription: () => [
           createText("A wave of magic."),
           stretch(
             [
-              ...createText("1", colors.fuchsia),
+              ...createText("2", colors.fuchsia),
               minCountable(magicHit),
               ...createText("Magic", colors.fuchsia),
             ],
@@ -2343,11 +2375,42 @@ export const elementSprites: Record<
         ],
       },
     },
+    iron: {
+      air: { sprite: waveSpell.iron.air },
+      fire: { sprite: waveSpell.iron.fire },
+      water: { sprite: waveSpell.iron.water },
+      earth: { sprite: waveSpell.iron.earth },
+    },
+    gold: {
+      air: { sprite: waveSpell.gold.air },
+      fire: { sprite: waveSpell.gold.fire },
+      water: { sprite: waveSpell.gold.water },
+      earth: { sprite: waveSpell.gold.earth },
+    },
+    diamond: {
+      air: { sprite: waveSpell.diamond.air },
+      fire: { sprite: waveSpell.diamond.fire },
+      water: { sprite: waveSpell.diamond.water },
+      earth: { sprite: waveSpell.diamond.earth },
+    },
+    ruby: {
+      air: { sprite: waveSpell.ruby.air },
+      fire: { sprite: waveSpell.ruby.fire },
+      water: { sprite: waveSpell.ruby.water },
+      earth: { sprite: waveSpell.ruby.earth },
+    },
+
+    default: {
+      air: { sprite: waveSpell.default.air },
+      fire: { sprite: waveSpell.default.fire },
+      water: { sprite: waveSpell.default.water },
+      earth: { sprite: waveSpell.default.earth },
+    },
   },
   beam: {
     wood: {
       air: {
-        sprite: beamSpellWoodAir,
+        sprite: beamSpell.wood.air,
         getDescription: () => [
           createText("A beam of bolts."),
           stretch(
@@ -2363,7 +2426,7 @@ export const elementSprites: Record<
         ],
       },
       fire: {
-        sprite: beamSpellWoodFire,
+        sprite: beamSpell.wood.fire,
         getDescription: () => [
           createText("A beam of bolts."),
           stretch(
@@ -2383,7 +2446,7 @@ export const elementSprites: Record<
         ],
       },
       water: {
-        sprite: beamSpellWoodWater,
+        sprite: beamSpell.wood.water,
         getDescription: () => [
           createText("A beam of bolts."),
           stretch(
@@ -2403,20 +2466,56 @@ export const elementSprites: Record<
         ],
       },
       earth: {
-        sprite: beamSpellWoodEarth,
+        sprite: beamSpell.wood.earth,
         getDescription: () => [
           createText("A beam of bolts."),
           stretch(
             [
-              ...createText("1", colors.lime),
-              minCountable(heal),
-              ...createText("Heal", colors.lime),
+              ...createText("1", colors.fuchsia),
+              minCountable(magicHit),
+              ...createText("Magic", colors.fuchsia),
             ],
             createCountable({ mp: -1 }, "mp", "display"),
             frameWidth - 2
           ),
+          [
+            ...createText("1", colors.lime),
+            minCountable(heal),
+            ...createText("Heal", colors.lime),
+          ],
         ],
       },
+    },
+    iron: {
+      air: { sprite: beamSpell.iron.air },
+      fire: { sprite: beamSpell.iron.fire },
+      water: { sprite: beamSpell.iron.water },
+      earth: { sprite: beamSpell.iron.earth },
+    },
+    gold: {
+      air: { sprite: beamSpell.gold.air },
+      fire: { sprite: beamSpell.gold.fire },
+      water: { sprite: beamSpell.gold.water },
+      earth: { sprite: beamSpell.gold.earth },
+    },
+    diamond: {
+      air: { sprite: beamSpell.diamond.air },
+      fire: { sprite: beamSpell.diamond.fire },
+      water: { sprite: beamSpell.diamond.water },
+      earth: { sprite: beamSpell.diamond.earth },
+    },
+    ruby: {
+      air: { sprite: beamSpell.ruby.air },
+      fire: { sprite: beamSpell.ruby.fire },
+      water: { sprite: beamSpell.ruby.water },
+      earth: { sprite: beamSpell.ruby.earth },
+    },
+
+    default: {
+      air: { sprite: beamSpell.default.air },
+      fire: { sprite: beamSpell.default.fire },
+      water: { sprite: beamSpell.default.water },
+      earth: { sprite: beamSpell.default.earth },
     },
   },
   bolt: {},
@@ -2427,7 +2526,7 @@ export const elementSprites: Record<
   potion: {
     wood: {
       fire: {
-        sprite: hpBottle,
+        sprite: bottle.wood.fire,
         getDescription: () => [
           createText("Automatic healing"),
           createText("on low health."),
@@ -2443,7 +2542,7 @@ export const elementSprites: Record<
         ],
       },
       water: {
-        sprite: mpBottle,
+        sprite: bottle.wood.water,
         getDescription: () => [
           createText("Refills low mana"),
           createText("automatically."),
@@ -2461,7 +2560,7 @@ export const elementSprites: Record<
     },
     iron: {
       fire: {
-        sprite: hpPotion,
+        sprite: potion.iron.fire,
         getDescription: () => [
           createText("Automatic healing"),
           createText("on low health."),
@@ -2477,7 +2576,7 @@ export const elementSprites: Record<
         ],
       },
       water: {
-        sprite: mpPotion,
+        sprite: potion.iron.water,
         getDescription: () => [
           createText("Refills low mana"),
           createText("automatically."),
@@ -2495,7 +2594,7 @@ export const elementSprites: Record<
     },
     gold: {
       fire: {
-        sprite: hpElixir,
+        sprite: elixir.gold.fire,
         getDescription: () => [
           createText("Automatic healing"),
           createText("on low health."),
@@ -2511,7 +2610,7 @@ export const elementSprites: Record<
         ],
       },
       water: {
-        sprite: mpElixir,
+        sprite: elixir.gold.water,
         getDescription: () => [
           createText("Refills low mana"),
           createText("automatically."),
@@ -2532,14 +2631,14 @@ export const elementSprites: Record<
   resource: {
     wood: {
       air: {
-        sprite: airEssence,
+        sprite: spirit.wood.air,
         getDescription: () => [
           createText("Elemental spirit"),
           createText("used for forging."),
         ],
       },
       fire: {
-        sprite: fireEssence,
+        sprite: spirit.wood.fire,
         getDescription: () => [
           createText("Elemental spirit"),
           createText("used for forging"),
@@ -2551,7 +2650,7 @@ export const elementSprites: Record<
         ],
       },
       water: {
-        sprite: waterEssence,
+        sprite: spirit.wood.water,
         getDescription: () => [
           createText("Elemental spirit"),
           createText("used for forging"),
@@ -2563,7 +2662,7 @@ export const elementSprites: Record<
         ],
       },
       earth: {
-        sprite: earthEssence,
+        sprite: spirit.wood.earth,
         getDescription: () => [
           createText("Elemental spirit"),
           createText("used for forging"),

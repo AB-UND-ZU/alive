@@ -81,19 +81,13 @@ import {
   bush,
   campfire,
   coconut,
-  ironCompass,
   createButton,
   createDialog,
   createText,
   createTooltip,
   delay,
-  doorClosedIron,
-  doorClosedWood,
   doorOpen,
   enemySpawner,
-  entryClosedGold,
-  entryClosedIron,
-  entryClosedWood,
   fire,
   fog,
   fountain,
@@ -107,10 +101,8 @@ import {
   heal,
   heart,
   herb,
-  hpBottle,
   ice,
   info,
-  ironKey,
   ironMine,
   leaves,
   leverOn,
@@ -221,7 +213,7 @@ import {
   signedDistance,
 } from "../game/math/std";
 import { CLICKABLE } from "../engine/components/clickable";
-import { centerSprites, overlay, recolorSprite } from "../game/assets/pixels";
+import { centerSprites, overlay } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
 import { POPUP } from "../engine/components/popup";
 import { openDoor } from "../engine/systems/trigger";
@@ -230,6 +222,10 @@ import addHarvestable, { HARVESTABLE } from "../engine/components/harvestable";
 import { getHarvestConfig } from "../game/balancing/harvesting";
 import { SHOOTABLE } from "../engine/components/shootable";
 import { VANISHABLE } from "../engine/components/vanishable";
+import { recolorSprite } from "../game/assets/templates";
+import { doorClosed, entryClosed } from "../game/assets/templates/units";
+import { compass } from "../game/assets/templates/equipments";
+import { bottle, key } from "../game/assets/templates/items";
 
 export const cellNames = [
   "air",
@@ -1561,7 +1557,10 @@ export const createCell = (
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: cell === "iron_door" ? doorClosedIron : doorClosedWood,
+      [SPRITE]:
+        cell === "iron_door"
+          ? doorClosed.iron.default
+          : doorClosed.wood.default,
       [TOOLTIP]: {
         dialogs: [],
         persistent: false,
@@ -1597,10 +1596,10 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
       [SPRITE]:
         cell === "iron_entry"
-          ? entryClosedIron
+          ? entryClosed.iron.default
           : cell === "gold_entry"
-          ? entryClosedGold
-          : entryClosedWood,
+          ? entryClosed.gold.default
+          : entryClosed.wood.default,
     });
     all.push(entryEntity);
     if (cell === "entry") {
@@ -1619,7 +1618,7 @@ export const createCell = (
           amount: 1,
           bound: false,
         },
-        [SPRITE]: ironCompass,
+        [SPRITE]: compass.iron.default,
         [ORIENTABLE]: {},
         [SEQUENCABLE]: { states: {} },
         [TRACKABLE]: {},
@@ -1640,7 +1639,7 @@ export const createCell = (
           amount: 1,
           bound: false,
         },
-        [SPRITE]: ironKey,
+        [SPRITE]: key.iron.default,
       }
     );
     all.push(spawnKeyEntity);
@@ -1803,7 +1802,7 @@ export const createCell = (
       [
         [
           ...createText("A "),
-          hpBottle,
+          bottle.wood.fire,
           ...createItemName({
             consume: "potion",
             material: "wood",

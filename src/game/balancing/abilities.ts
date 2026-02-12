@@ -43,12 +43,89 @@ export const abilityStats: Partial<
           freeze: 5,
         },
         earth: {
-          magic: 1,
+          magic: 2,
           drain: 1,
         },
       },
       iron: {
         default: { magic: 6 },
+
+        air: {
+          magic: 6,
+          wisdom: 1,
+        },
+        fire: {
+          magic: 6,
+          burn: 2,
+        },
+        water: {
+          magic: 6,
+          freeze: 5,
+        },
+        earth: {
+          magic: 4,
+          drain: 1,
+        },
+      },
+      gold: {
+        default: { magic: 9 },
+
+        air: {
+          magic: 9,
+          wisdom: 1,
+        },
+        fire: {
+          magic: 9,
+          burn: 2,
+        },
+        water: {
+          magic: 9,
+          freeze: 5,
+        },
+        earth: {
+          magic: 6,
+          drain: 1,
+        },
+      },
+     diamond: {
+        default: { magic: 12 },
+
+        air: {
+          magic: 12,
+          wisdom: 1,
+        },
+        fire: {
+          magic: 12,
+          burn: 2,
+        },
+        water: {
+          magic: 12,
+          freeze: 5,
+        },
+        earth: {
+          magic: 8,
+          drain: 1,
+        },
+      },
+      ruby: {
+        default: { magic: 15 },
+
+        air: {
+          magic: 15,
+          wisdom: 1,
+        },
+        fire: {
+          magic: 15,
+          burn: 2,
+        },
+        water: {
+          magic: 15,
+          freeze: 5,
+        },
+        earth: {
+          magic: 10,
+          drain: 1,
+        },
       },
     },
     beam: {
@@ -68,6 +145,87 @@ export const abilityStats: Partial<
           freeze: 3,
         },
         earth: {
+          magic: 1,
+          heal: 1,
+        },
+      },
+      iron: {
+        default: { magic: 4 },
+
+        air: {
+          magic: 4,
+          wisdom: 1,
+        },
+        fire: {
+          magic: 4,
+          burn: 2,
+        },
+        water: {
+          magic: 4,
+          freeze: 3,
+        },
+        earth: {
+          magic: 2,
+          heal: 1,
+        },
+      },
+      gold: {
+        default: { magic: 6 },
+
+        air: {
+          magic: 6,
+          wisdom: 1,
+        },
+        fire: {
+          magic: 6,
+          burn: 2,
+        },
+        water: {
+          magic: 6,
+          freeze: 3,
+        },
+        earth: {
+          magic: 3,
+          heal: 1,
+        },
+      },
+      diamond: {
+        default: { magic: 8 },
+
+        air: {
+          magic: 8,
+          wisdom: 1,
+        },
+        fire: {
+          magic: 8,
+          burn: 2,
+        },
+        water: {
+          magic: 8,
+          freeze: 3,
+        },
+        earth: {
+          magic: 4,
+          heal: 1,
+        },
+      },
+      ruby: {
+        default: { magic: 10 },
+
+        air: {
+          magic: 10,
+          wisdom: 1,
+        },
+        fire: {
+          magic: 10,
+          burn: 2,
+        },
+        water: {
+          magic: 10,
+          freeze: 3,
+        },
+        earth: {
+          magic: 5,
           heal: 1,
         },
       },
@@ -85,6 +243,20 @@ export const abilityStats: Partial<
       gold: { default: { melee: 6 } },
       diamond: { default: { melee: 8 } },
       ruby: { default: { melee: 10 } },
+    },
+    raise: {
+      wood: { default: { melee: 3 } },
+      iron: { default: { melee: 6 } },
+      gold: { default: { melee: 9 } },
+      diamond: { default: { melee: 12 } },
+      ruby: { default: { melee: 15 } },
+    },
+    block: {
+      wood: { default: { absorb: 1 } },
+      iron: { default: { absorb: 2 } },
+      gold: { default: { absorb: 3 } },
+      diamond: { default: { absorb: 4 } },
+      ruby: { default: { absorb: 5 } },
     },
   },
 

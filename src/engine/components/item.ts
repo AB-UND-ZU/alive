@@ -44,9 +44,11 @@ export type ResourceItem = "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";
 export type Stackable = ResourceItem | Craftable | Reloadable;
 
+export type ConditionableStats = { absorb: number };
 export type ProcStats = { drain: number };
 export type ItemStats = Attributes &
   ProcStats &
+  ConditionableStats &
   Pick<Castable, DamageType | EffectType>;
 
 export type Item = {
@@ -63,13 +65,13 @@ export type Item = {
   bound: boolean;
 };
 
-export const emptyProcStats = {
-  drain: 0,
-};
+export const emptyProcStats = { drain: 0 };
+export const emptyConditionableStats = { absorb: 0 };
 
 export const emptyItemStats = {
   ...emptyAttributes,
   ...emptyProcStats,
+  ...emptyConditionableStats,
   ...emptyCastable,
 };
 

@@ -17,12 +17,7 @@ import { DROPPABLE } from "../../engine/components/droppable";
 import { Equipment, EQUIPPABLE } from "../../engine/components/equippable";
 import { Focusable, FOCUSABLE } from "../../engine/components/focusable";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
-import {
-  Element,
-  ITEM,
-  ItemStats,
-  Material,
-} from "../../engine/components/item";
+import { ITEM, ItemStats } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LIGHT } from "../../engine/components/light";
 import { LOOTABLE } from "../../engine/components/lootable";
@@ -88,7 +83,7 @@ import {
   ghost,
   none,
   getMaxCounter,
-  potion,
+  emptyPotion,
   getStatSprite,
   questPointer,
   enemyPointer,
@@ -107,17 +102,9 @@ import {
   smokeThick,
   levelProgress,
   addBackground,
-  woodFireBolt,
-  woodWaterBolt,
-  woodEarthBolt,
   freeze,
-  woodAirBolt,
   craft,
   shop,
-  woodSlashSide,
-  woodSlashCorner,
-  ironSlashSide,
-  ironSlashCorner,
   strikethrough,
   mergeSprites,
   hostileBar,
@@ -136,26 +123,6 @@ import {
   meleeHit,
   magicHit,
   getStatColor,
-  woodEdge,
-  ironEdge,
-  goldEdge,
-  diamondEdge,
-  rubyEdge,
-  woodBolt,
-  ironBolt,
-  goldBolt,
-  diamondBolt,
-  rubyBolt,
-  woodWave,
-  woodAirWave,
-  woodFireWave,
-  woodWaterWave,
-  woodEarthWave,
-  woodWaveCorner,
-  woodAirWaveCorner,
-  woodFireWaveCorner,
-  woodWaterWaveCorner,
-  woodEarthWaveCorner,
   missing,
   swordSlot,
   shieldSlot,
@@ -163,12 +130,6 @@ import {
   amuletSlot,
   compassSlot,
   torchSlot,
-  goldSlashSide,
-  diamondSlashSide,
-  rubySlashSide,
-  goldSlashCorner,
-  diamondSlashCorner,
-  rubySlashCorner,
   primarySlot,
   secondarySlot,
   dotted,
@@ -177,8 +138,8 @@ import {
   delay,
   addForeground,
   popupActive,
-  bottle,
-  elixir,
+  emptyBottle,
+  emptyElixir,
   popupBlocked,
   star,
   discovery,
@@ -189,13 +150,7 @@ import {
   diamondGem,
   snowflake,
   bootsSlot,
-  ironWave,
-  ironWaveCorner,
   raiseParticle,
-  woodBlockSide1,
-  woodBlockSide2,
-  woodBlockCorner1,
-  woodBlockCorner2,
   mapDiscovery,
   mapSlot,
   mapZoom1,
@@ -203,29 +158,12 @@ import {
   mapZoom3,
   mapPlayer,
   mapZoom4,
-  fireWave,
-  waterWave,
-  earthWave,
-  fireWaveCorner,
-  waterWaveCorner,
-  earthWaveCorner,
-  airBolt,
-  fireBolt,
-  waterBolt,
-  earthBolt,
-  goldWave,
-  goldWaveCorner,
   oakBranchSide,
   oakBranchCorner,
   oakBranchEnd,
   oakBranchSplit,
   oakLoopSide,
   oakLoopCorner,
-  woodBlast,
-  ironBlast,
-  goldBlast,
-  diamondBlast,
-  rubyBlast,
   wormMouthCornerLeft,
   wormMouthCornerRight,
   wormMouthSideLeft,
@@ -364,12 +302,10 @@ import {
   hairColors,
   knightPixels,
   magePixels,
-  materialElementColors,
   overlay,
   pixelFrame,
   recolorLine,
   recolorPixels,
-  recolorSprite,
   roguePixels,
   shieldElementPixels,
   shieldPixels,
@@ -408,6 +344,20 @@ import { SHOOTABLE } from "../../engine/components/shootable";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { generateNpcData } from "../balancing/units";
 import { VANISHABLE } from "../../engine/components/vanishable";
+import { colorPalettes, recolorSprite } from "./templates";
+import {
+  blast,
+  blockCorner1,
+  blockCorner2,
+  blockSide1,
+  blockSide2,
+  bolt,
+  edge,
+  slashCorner,
+  slashSide,
+  waveCorner,
+  waveSide,
+} from "./templates/particles";
 
 export * from "./npcs";
 export * from "./quests";
@@ -531,15 +481,6 @@ export const raiseCondition: Sequence<ConditionSequence> = (
   return { finished, updated };
 };
 
-const blockSprites: Partial<
-  Record<Material, { side: [Sprite, Sprite]; corner: [Sprite, Sprite] }>
-> = {
-  wood: {
-    side: [woodBlockSide1, woodBlockSide2],
-    corner: [woodBlockCorner1, woodBlockCorner2],
-  },
-};
-
 export const blockCondition: Sequence<ConditionSequence> = (
   world,
   entity,
@@ -558,14 +499,14 @@ export const blockCondition: Sequence<ConditionSequence> = (
 
   const finished = generation >= state.args.duration + 1;
 
-  const sideSprite = (blockSprites[state.args.material]?.side || [
-    woodBlockSide1,
-    woodBlockSide2,
-  ])[generation % 2];
-  const cornerSprite = (blockSprites[state.args.material]?.corner || [
-    woodBlockCorner1,
-    woodBlockCorner2,
-  ])[generation % 2];
+  const sideSprite = [
+    blockSide1[state.args.material].default,
+    blockSide2[state.args.material].default,
+  ][generation % 2];
+  const cornerSprite = [
+    blockCorner1[state.args.material].default,
+    blockCorner2[state.args.material].default,
+  ][generation % 2];
 
   if (!state.particles["side-up"]) {
     for (const iteration of iterations) {
@@ -705,21 +646,6 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
 };
 
 const slashTicks = 8;
-
-const slashSideSprites = {
-  wood: woodSlashSide,
-  iron: ironSlashSide,
-  gold: goldSlashSide,
-  diamond: diamondSlashSide,
-  ruby: rubySlashSide,
-};
-const slashCornerSprites = {
-  wood: woodSlashCorner,
-  iron: ironSlashCorner,
-  gold: goldSlashCorner,
-  diamond: diamondSlashCorner,
-  ruby: rubySlashCorner,
-};
 const slashInverse = true;
 
 export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
@@ -771,8 +697,8 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
   }
 
   if (targetProgress > currentProgress && !finished) {
-    const slashSide = slashSideSprites[state.args.material];
-    const slashCorner = slashCornerSprites[state.args.material];
+    const slashSideSprite = slashSide[state.args.material].default;
+    const slashCornerSprite = slashCorner[state.args.material].default;
 
     for (
       let particleIndex = currentProgress;
@@ -825,7 +751,7 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
                 ),
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: isCorner ? slashCorner : slashSide,
+        [SPRITE]: isCorner ? slashCornerSprite : slashSideSprite,
       });
       state.particles[`slash-${particleIndex}`] =
         world.getEntityId(slashParticle);
@@ -868,46 +794,6 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
 
 const beamSpeed = 100;
 const beamTicks = 3;
-const edgeSprites = {
-  default: woodEdge,
-  wood: woodEdge,
-  iron: ironEdge,
-  gold: goldEdge,
-  diamond: diamondEdge,
-  ruby: rubyEdge,
-};
-const boltSprites: Record<
-  Material | "default",
-  { default: Sprite } & Partial<Record<Element, Sprite>>
-> = {
-  default: {
-    default: woodBolt,
-    air: airBolt,
-    fire: fireBolt,
-    water: waterBolt,
-    earth: earthBolt,
-  },
-  wood: {
-    default: woodBolt,
-
-    air: woodAirBolt,
-    fire: woodFireBolt,
-    water: woodWaterBolt,
-    earth: woodEarthBolt,
-  },
-  iron: {
-    default: ironBolt,
-  },
-  gold: {
-    default: goldBolt,
-  },
-  diamond: {
-    default: diamondBolt,
-  },
-  ruby: {
-    default: rubyBolt,
-  },
-};
 
 export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
@@ -945,7 +831,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         animatedOrigin: { x: 0, y: 0 },
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: edgeSprites[material],
+      [SPRITE]: edge[material][element],
     });
     state.particles.start = world.getEntityId(startParticle);
 
@@ -959,7 +845,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
         animatedOrigin: { x: 0, y: 0 },
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: edgeSprites[material],
+      [SPRITE]: edge[material][element],
     });
     state.particles.end = world.getEntityId(endParticle);
   }
@@ -1016,8 +902,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
           animatedOrigin: copy(delta),
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]:
-          boltSprites[material][element] || boltSprites[material].default,
+        [SPRITE]: bolt[material][element],
       });
 
       state.particles[`bolt-${progress}`] = world.getEntityId(boltParticle);
@@ -1108,7 +993,7 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
         amount: 3,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: boltSprites[material][element] || boltSprites[material].default,
+      [SPRITE]: bolt[material][element],
     });
     state.particles.bolt = world.getEntityId(boltParticle);
   }
@@ -1169,29 +1054,6 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
 };
 
 const blastSpeed = 700;
-const blastSprites: Record<
-  Material | "default",
-  { default: Sprite } & Partial<Record<Element, Sprite>>
-> = {
-  default: {
-    default: woodBlast,
-  },
-  wood: {
-    default: woodBlast,
-  },
-  iron: {
-    default: ironBlast,
-  },
-  gold: {
-    default: goldBlast,
-  },
-  diamond: {
-    default: diamondBlast,
-  },
-  ruby: {
-    default: rubyBlast,
-  },
-};
 
 export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
@@ -1221,8 +1083,7 @@ export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
         amount: 3,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]:
-        blastSprites[material][element] || blastSprites[material].default,
+      [SPRITE]: blast[material][element],
     });
     state.particles.blast = world.getEntityId(blastParticle);
 
@@ -1237,8 +1098,7 @@ export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
           animatedOrigin: copy(iteration.direction),
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]:
-          blastSprites[material][element] || blastSprites[material].default,
+        [SPRITE]: blast[material][element],
       });
       state.particles[`side-${iteration.orientation}`] =
         world.getEntityId(sideParticle);
@@ -2628,16 +2488,19 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
   )?.[ITEM];
 
   const heroPixels = overlay(
-    shieldItem
-      ? shieldItem.material
-        ? recolorPixels(shieldPixels, {
-            [colors.white]: materialElementColors[shieldItem.material],
-          })
-        : shieldPixels
+    shieldItem?.material || shieldItem?.element
+      ? recolorPixels(shieldPixels, {
+          [colors.white]:
+            colorPalettes[(shieldItem.material || shieldItem.element)!].primary,
+        })
       : [],
-    shieldItem?.element
+    shieldItem?.material && shieldItem?.element
       ? recolorPixels(shieldElementPixels, {
-          [colors.white]: materialElementColors[shieldItem.element],
+          [colors.white]:
+            // adjust low constrast on gold material and air element
+            shieldItem.material === "gold" && shieldItem.element === "air"
+              ? colors.grey
+              : colorPalettes[shieldItem.element].primary,
         })
       : [],
     bodyPixels,
@@ -2647,16 +2510,19 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
         [colors.white]: entity[SPAWNABLE].hairColor,
       }
     ),
-    swordItem
-      ? swordItem.material
-        ? recolorPixels(swordPixels, {
-            [colors.white]: materialElementColors[swordItem.material],
-          })
-        : swordPixels
+    swordItem?.material || swordItem?.element
+      ? recolorPixels(swordPixels, {
+          [colors.white]:
+            colorPalettes[(swordItem?.material || swordItem?.element)!].primary,
+        })
       : [],
-    swordItem?.element
+    swordItem?.material && swordItem?.element
       ? recolorPixels(swordElementPixels, {
-          [colors.white]: materialElementColors[swordItem.element],
+          [colors.white]:
+            // adjust low constrast on gold material and air element
+            swordItem.material === "gold" && swordItem.element === "air"
+              ? colors.grey
+              : colorPalettes[swordItem.element].primary,
         })
       : []
   );
@@ -3905,50 +3771,6 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
 
 const waveSpeed = 350;
 const waveDissolve = 1;
-const waveSprites: Partial<
-  Record<Material | "default", Partial<Record<Element | "default", Sprite>>>
-> = {
-  default: {
-    fire: fireWave,
-    water: waterWave,
-    earth: earthWave,
-  },
-  wood: {
-    default: woodWave,
-    air: woodAirWave,
-    fire: woodFireWave,
-    water: woodWaterWave,
-    earth: woodEarthWave,
-  },
-  iron: {
-    default: ironWave,
-  },
-  gold: {
-    default: goldWave,
-  },
-};
-const waveCornerSprites: Partial<
-  Record<Material | "default", Partial<Record<Element | "default", Sprite>>>
-> = {
-  default: {
-    fire: fireWaveCorner,
-    water: waterWaveCorner,
-    earth: earthWaveCorner,
-  },
-  wood: {
-    default: woodWaveCorner,
-    air: woodAirWaveCorner,
-    fire: woodFireWaveCorner,
-    water: woodWaterWaveCorner,
-    earth: woodEarthWaveCorner,
-  },
-  iron: {
-    default: ironWaveCorner,
-  },
-  gold: {
-    default: goldWaveCorner,
-  },
-};
 
 export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
@@ -3974,7 +3796,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: waveSprites[material]?.[element] || woodWave,
+        [SPRITE]: waveSide[material][element],
       });
       state.particles[`side-${orientation}`] = world.getEntityId(waveParticle);
     }
@@ -4158,11 +3980,11 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 
       // only show elements on inner corners
       const cornerSprite =
-        waveCornerSprites[material]?.[
+        waveCorner[material][
           particleName.startsWith("inner") || material === "default"
             ? element
             : "default"
-        ] || woodWaveCorner;
+        ];
       if (waveParticle[SPRITE] === cornerSprite) continue;
 
       waveParticle[SPRITE] = cornerSprite;
@@ -4883,9 +4705,9 @@ export const itemCollect: Sequence<CollectSequence> = (
 const consumeSpeed = 500;
 
 const materialFlasks = {
-  wood: bottle,
-  iron: potion,
-  gold: elixir,
+  wood: emptyBottle,
+  iron: emptyPotion,
+  gold: emptyElixir,
   diamond: missing,
   ruby: missing,
 };

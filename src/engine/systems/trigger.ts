@@ -7,12 +7,13 @@ import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { TOOLTIP } from "../components/tooltip";
 import { Inventory, INVENTORY } from "../components/inventory";
-import { Item, ITEM, Material } from "../components/item";
+import { Item, ITEM, ItemStats, Material } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
 import {
   addBackground,
   createDialog,
   createText,
+  mana,
   none,
   strikethrough,
 } from "../../game/assets/sprites";
@@ -598,9 +599,12 @@ export const harvestTree = (world: World, entity: Entity, axe: Entity) => {
   );
 };
 
-const conditionSequences: Record<ConditionType, SequenceState<{}>["name"]> = {
-  raise: "raiseCondition",
-  block: "blockCondition",
+const conditionConfig: Record<
+  ConditionType,
+  { sequence: SequenceState<{}>["name"]; stat: keyof ItemStats }
+> = {
+  raise: { sequence: "raiseCondition", stat: "melee" },
+  block: { sequence: "blockCondition", stat: "absorb" },
 };
 
 export const applyCondition = (
@@ -622,11 +626,33 @@ export const applyCondition = (
     world,
     entity,
     "condition",
-    conditionSequences[type],
+    conditionConfig[type].sequence,
     {
       duration: 10,
       material,
     }
+  );
+};
+
+export const castConditionable = (
+  world: World,
+  entity: Entity,
+  item: TypedEntity<"ITEM">
+) => {
+  const condition = item[ITEM].secondary;
+  const material = item[ITEM].material;
+
+  if (!material || (condition !== "raise" && condition !== "block")) return;
+
+  const itemStats = getAbilityStats(item[ITEM]);
+
+  consumeCharge(world, entity, { stackable: "charge" });
+  applyCondition(
+    world,
+    entity,
+    condition,
+    material,
+    itemStats[conditionConfig[condition].stat]
   );
 };
 
@@ -1179,11 +1205,14 @@ export default function setupTrigger(world: World) {
             castSpell(world, entity, primaryEntity);
           } else {
             queueMessage(world, entity, {
-              line: createText(
-                castReady ? "Need mana!" : "Not ready!",
-                colors.silver,
-                colors.black
-              ),
+              line: castReady
+                ? [
+                    ...createText("Need ", colors.silver, colors.black),
+                    mana,
+                    ...createText("MP", colors.blue, colors.black),
+                    ...createText("!", colors.silver, colors.black),
+                  ]
+                : createText("Not ready!", colors.silver, colors.black),
               orientation: "up",
               fast: false,
               delay: 0,
@@ -1257,12 +1286,11 @@ export default function setupTrigger(world: World) {
             chargeSlash(world, entity, secondaryEntity);
           } else if (secondaryEntity[ITEM].secondary === "axe") {
             harvestTree(world, entity, secondaryEntity);
-          } else if (secondaryEntity[ITEM].secondary === "raise") {
-            consumeCharge(world, entity, { stackable: "charge" });
-            applyCondition(world, entity, "raise", "wood", 2);
-          } else if (secondaryEntity[ITEM].secondary === "block") {
-            consumeCharge(world, entity, { stackable: "charge" });
-            applyCondition(world, entity, "block", "wood", 1);
+          } else if (
+            secondaryEntity[ITEM].secondary === "raise" ||
+            secondaryEntity[ITEM].secondary === "block"
+          ) {
+            castConditionable(world, entity, secondaryEntity);
           }
         }
       }

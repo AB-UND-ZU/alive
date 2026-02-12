@@ -1,10 +1,9 @@
-import { Element, Material } from "../../engine/components/item";
 import { Orientation } from "../../engine/components/orientable";
 import { Sprite } from "../../engine/components/sprite";
 import { ClassKey } from "../balancing/classes";
 import { rotateOrientation } from "../math/path";
 import { padCenter, repeat, reversed } from "../math/std";
-import { brightColors, colors, recolor } from "./colors";
+import { brightColors, colors } from "./colors";
 import {
   addForeground,
   createText,
@@ -12,17 +11,7 @@ import {
   none,
   parseSprite,
 } from "./sprites";
-
-export const recolorSprite = (
-  sprite: Sprite,
-  colorOrMap: string | Record<string, string>
-): Sprite => ({
-  ...sprite,
-  layers: sprite.layers.map((layer) => ({
-    ...layer,
-    color: recolor(layer.color, colorOrMap),
-  })),
-});
+import { recolorSprite } from "./templates";
 
 export const brightenSprites = (sprites: Sprite[]) =>
   sprites.map((sprite) => recolorSprite(sprite, brightColors));
@@ -36,18 +25,6 @@ export const recolorPixels = (
   pixels: Sprite[][],
   colorOrMap: string | Record<string, string>
 ) => pixels.map((line) => recolorLine(line, colorOrMap));
-
-export const materialElementColors: Record<Material | Element, string> = {
-  wood: colors.maroon,
-  iron: colors.grey,
-  gold: colors.yellow,
-  diamond: colors.aqua,
-  ruby: colors.fuchsia,
-  air: colors.white,
-  fire: colors.red,
-  water: colors.blue,
-  earth: colors.lime,
-};
 
 export const pixelate = (...lines: string[]) =>
   lines.map((line) => line.split(" ").map(parseSprite));
@@ -235,13 +212,6 @@ export const shieldPixels = pixelate(
 );
 
 export const shieldElementPixels = pixelate("", "", "", "\x0f▄");
-
-export const elementColors: Record<Element, string> = {
-  air: colors.white,
-  fire: colors.red,
-  water: colors.blue,
-  earth: colors.lime,
-};
 
 export const displayedClasses = [
   "rogue",

@@ -54,13 +54,10 @@ import {
   confused,
   createShout,
   createText,
-  fireWaveTower,
   rage,
   rage2,
   sleep1,
   sleep2,
-  waterWaveTower,
-  waveTower,
   waveTowerCharged,
   wormCorner,
   wormSide,
@@ -116,6 +113,7 @@ import { entities } from "..";
 import { FRAGMENT } from "../components/fragment";
 import { LAYER } from "../components/layer";
 import { DROPPABLE } from "../components/droppable";
+import { waveTower } from "../../game/assets/templates/creatures";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -2630,7 +2628,7 @@ export default function setupAi(world: World) {
             ];
           } else if (pattern.memory.phase === 3) {
             const pendingTowers = waveTowers.filter(
-              (tower) => tower[SPRITE] === waveTower
+              (tower) => tower[SPRITE] === waveTower.iron.default
             );
 
             if (!pattern.memory.chase && !pendingPatterns) {
@@ -2695,7 +2693,7 @@ export default function setupAi(world: World) {
             ) {
               pattern.memory.chase = undefined;
               waveTowers.forEach((tower) => {
-                tower[SPRITE] = waveTower;
+                tower[SPRITE] = waveTower.iron.default;
               });
               entity[BEHAVIOUR].patterns = [
                 {
@@ -2874,7 +2872,7 @@ export default function setupAi(world: World) {
                 [ITEM]
               );
               towerItem[ITEM].element = "fire";
-              tower[SPRITE] = fireWaveTower;
+              tower[SPRITE] = waveTower.iron.fire;
 
               // cast fire waves
               tower[BEHAVIOUR].patterns = [
@@ -3073,7 +3071,7 @@ export default function setupAi(world: World) {
               );
               casterItem[ITEM].element = "water";
               if (caster !== entity) {
-                caster[SPRITE] = waterWaveTower;
+                caster[SPRITE] = waveTower.iron.water;
               }
 
               // cast water waves

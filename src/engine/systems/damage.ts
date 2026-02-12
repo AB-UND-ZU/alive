@@ -46,6 +46,7 @@ import { getFragment, isFragment } from "./enter";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isDecaying } from "./drop";
 import { STRUCTURABLE } from "../components/structurable";
+import { attemptBubbleAbsorb } from "./magic";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -429,13 +430,8 @@ export default function setupDamage(world: World) {
 
       // prevent attack if shield is active
       let displayedDamage = 0;
-      if (targetEntity[CONDITIONABLE]?.block && !healing) {
-        targetEntity[CONDITIONABLE].block.amount -= 1;
-
-        if (targetEntity[CONDITIONABLE].block.amount <= 0) {
-          delete targetEntity[CONDITIONABLE].block;
-        }
-      } else {
+      const absorbed = !healing && attemptBubbleAbsorb(world, targetEntity);
+      if (!absorbed) {
         const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
           ITEM,
           ORIENTABLE,
@@ -444,9 +440,9 @@ export default function setupDamage(world: World) {
 
         if (entity[CONDITIONABLE]?.raise) {
           if (healing) {
-            swordStats.heal += 2;
+            swordStats.heal += entity[CONDITIONABLE].raise.amount;
           } else {
-            swordStats.melee += 2;
+            swordStats.melee += entity[CONDITIONABLE].raise.amount;
           }
           delete entity[CONDITIONABLE].raise;
         }
@@ -527,7 +523,7 @@ export default function setupDamage(world: World) {
       const fragmentEntity =
         getAttackable(world, targetPosition, true) || targetEntity;
 
-      if (!healing || displayedDamage !== 0) {
+      if (!absorbed && !(healing && displayedDamage === 0)) {
         createAmountMarker(
           world,
           fragmentEntity,

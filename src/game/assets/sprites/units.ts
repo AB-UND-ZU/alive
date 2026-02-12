@@ -363,16 +363,6 @@ export const fountainHealing: Sprite = {
   ],
 };
 
-export const torch: Sprite = {
-  name: "Torch",
-  layers: [
-    { char: "┐", color: colors.maroon },
-    { char: "─", color: colors.black },
-    { char: "*", color: colors.red },
-    { char: "+", color: colors.yellow },
-  ],
-};
-
 export const pot: Sprite = {
   name: "Pot",
   layers: [
@@ -423,102 +413,6 @@ export const goldUnlock: Sprite = {
 export const doorOpen: Sprite = {
   name: "Door",
   layers: [{ char: "▌", color: colors.maroon }],
-};
-
-export const doorClosedWood: Sprite = {
-  name: "Door",
-  layers: [
-    { char: "\u0107", color: colors.maroon },
-    { char: "∙", color: colors.maroon },
-    { char: ".", color: colors.black },
-  ],
-};
-
-export const doorClosedIron: Sprite = {
-  name: "Locked",
-  layers: [
-    { char: "\u0107", color: colors.maroon },
-    { char: "\u0106", color: colors.silver },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.silver },
-  ],
-};
-
-export const doorClosedFire: Sprite = {
-  name: "Locked",
-  layers: [
-    { char: "\u0107", color: colors.maroon },
-    { char: "\u0106", color: colors.red },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.red },
-  ],
-};
-
-export const doorClosedGold: Sprite = {
-  name: "Locked",
-  layers: [
-    { char: "\u0107", color: colors.maroon },
-    { char: "\u0106", color: colors.yellow },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.yellow },
-  ],
-};
-
-export const entryClosedWood: Sprite = {
-  name: "Entry",
-  layers: [
-    { char: "█", color: colors.grey },
-    { char: "\u0106", color: colors.black },
-    { char: ".", color: colors.black },
-  ],
-};
-
-export const entryClosedWoodDisplay: Sprite = {
-  name: "Entry",
-  layers: [
-    { char: "\u0107", color: colors.grey },
-    { char: ".", color: colors.black },
-  ],
-};
-
-export const entryClosedIron: Sprite = {
-  name: "Entry",
-  layers: [
-    { char: "█", color: colors.grey },
-    { char: "\u0106", color: colors.silver },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.silver },
-  ],
-};
-
-export const entryClosedIronDisplay: Sprite = {
-  name: "Entry",
-  layers: [
-    { char: "\u0107", color: colors.grey },
-    { char: "\u0106", color: colors.silver },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.silver },
-  ],
-};
-
-export const entryClosedGold: Sprite = {
-  name: "Entry",
-  layers: [
-    { char: "█", color: colors.grey },
-    { char: "\u0106", color: colors.yellow },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.yellow },
-  ],
-};
-
-export const entryClosedGoldDisplay: Sprite = {
-  name: "Entry",
-  layers: [
-    { char: "\u0107", color: colors.grey },
-    { char: "\u0106", color: colors.yellow },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.yellow },
-  ],
 };
 
 export const leverOff: Sprite = {

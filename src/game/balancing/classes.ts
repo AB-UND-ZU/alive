@@ -15,8 +15,8 @@ import { Stackable } from "../../engine/components/item";
 import { Equipment } from "../../engine/components/equippable";
 import { UnitStats } from "../../engine/components/stats";
 import { getInitialXp } from "../../engine/systems/leveling";
-import { recolorSprite } from "../assets/pixels";
 import { colors } from "../assets/colors";
+import { recolorSprite } from "../assets/templates";
 
 export const classes = ["scout", "rogue", "knight", "mage", "???"] as const;
 
