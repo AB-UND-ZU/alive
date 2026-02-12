@@ -18,7 +18,7 @@ export const abilityStats: Partial<
         Partial<
           Record<
             Material | "default",
-            Partial<ItemStats> & Partial<Record<Element, Partial<ItemStats>>>
+            Partial<Record<Element | "default", Partial<ItemStats>>>
           >
         >
       >
@@ -28,7 +28,7 @@ export const abilityStats: Partial<
   default: {
     wave: {
       wood: {
-        magic: 3,
+        default: { magic: 3 },
 
         air: {
           magic: 3,
@@ -48,12 +48,12 @@ export const abilityStats: Partial<
         },
       },
       iron: {
-        magic: 6,
+        default: { magic: 6 },
       },
     },
     beam: {
       wood: {
-        magic: 2,
+        default: { magic: 2 },
 
         air: {
           magic: 2,
@@ -73,43 +73,43 @@ export const abilityStats: Partial<
       },
     },
     bow: {
-      wood: { melee: 2 },
-      iron: { melee: 4 },
-      gold: { melee: 6 },
-      diamond: { melee: 8 },
-      ruby: { melee: 10 },
+      wood: { default: { melee: 2 } },
+      iron: { default: { melee: 4 } },
+      gold: { default: { melee: 6 } },
+      diamond: { default: { melee: 8 } },
+      ruby: { default: { melee: 10 } },
     },
     slash: {
-      wood: { melee: 2 },
-      iron: { melee: 4 },
-      gold: { melee: 6 },
-      diamond: { melee: 8 },
-      ruby: { melee: 10 },
+      wood: { default: { melee: 2 } },
+      iron: { default: { melee: 4 } },
+      gold: { default: { melee: 6 } },
+      diamond: { default: { melee: 8 } },
+      ruby: { default: { melee: 10 } },
     },
   },
 
   orb: {
     beam: {
-      iron: { magic: 1 },
+      iron: { default: { magic: 1 } },
     },
   },
 
   goldOrb: {
     beam: {
-      gold: { magic: 3 },
+      gold: { default: { magic: 3 } },
     },
   },
 
   violet: {
     bolt: {
-      iron: { magic: 3 },
+      iron: { default: { magic: 3 } },
     },
   },
 
   tutorialBoss: {
     bow: {
       wood: {
-        melee: 1,
+        default: { melee: 1 },
       },
     },
   },
@@ -117,12 +117,12 @@ export const abilityStats: Partial<
   oakBoss: {
     wave: {
       gold: {
-        magic: 3,
+        default: { magic: 3 },
       },
     },
     blast: {
       gold: {
-        magic: 5,
+        default: { magic: 5 },
       },
     },
   },
@@ -130,7 +130,7 @@ export const abilityStats: Partial<
   oakTower: {
     wave: {
       iron: {
-        magic: 1,
+        default: { magic: 1 },
       },
     },
     bolt: {
@@ -145,7 +145,7 @@ export const abilityStats: Partial<
   chestBoss: {
     wave: {
       wood: {
-        magic: 10,
+        default: { magic: 10 },
 
         earth: { heal: 2 },
         water: {
@@ -159,7 +159,7 @@ export const abilityStats: Partial<
   waveTower: {
     wave: {
       wood: {
-        magic: 5,
+        default: { magic: 5 },
 
         fire: {
           magic: 3,
@@ -194,15 +194,11 @@ export const getAbilityStats = (
   const { primary, secondary, material, element } = item;
   const key = primary || secondary;
   const itemStats = key
-    ? element
-      ? lookupAbilityStats(
-          (stats) => stats?.[key]?.[material || "default"]?.[element],
-          caster
-        )
-      : lookupAbilityStats(
-          (stats) => stats?.[key]?.[material || "default"],
-          caster
-        )
+    ? lookupAbilityStats(
+        (stats) =>
+          stats?.[key]?.[material || "default"]?.[element || "default"],
+        caster
+      )
     : {};
 
   return {
