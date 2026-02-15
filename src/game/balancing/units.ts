@@ -628,7 +628,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       hp: 10,
     },
     equipments: [],
-    drops: [{ chance: 100, items: [{ stackable: "leaf", amount: 1 }] }],
+    drops: [
+      { chance: 90, items: [{ stackable: "leaf", amount: 1 }] },
+      { chance: 10, items: [{ stackable: "coin", amount: 1 }] },
+    ],
     patternNames: [],
     sprite: hedge1,
   },
@@ -640,7 +643,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       armor: 1,
     },
     equipments: [],
-    drops: [{ chance: 100, items: [{ stackable: "leaf", amount: 1 }] }],
+    drops: [
+      { chance: 90, items: [{ stackable: "leaf", amount: 1 }] },
+      { chance: 10, items: [{ stackable: "coin", amount: 1 }] },
+    ],
     patternNames: [],
     sprite: hedge2,
   },
