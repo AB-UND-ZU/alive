@@ -183,7 +183,7 @@ export default function setupHoming(world: World) {
         // clear bushes
         const cell = getCell(world, entity[POSITION]);
         const bushEntity = Object.values(cell).find(
-          (bush) => bush[IDENTIFIABLE]?.name === "oak:bush"
+          (bush) => bush[IDENTIFIABLE]?.name === "oak:spawn"
         );
 
         if (bushEntity) {

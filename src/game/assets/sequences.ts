@@ -343,7 +343,7 @@ import { LAYER } from "../../engine/components/layer";
 import { SHOOTABLE } from "../../engine/components/shootable";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { generateNpcData } from "../balancing/units";
-import { VANISHABLE } from "../../engine/components/vanishable";
+import { Vanishable, VANISHABLE } from "../../engine/components/vanishable";
 import { colorPalettes, recolorSprite } from "./templates";
 import {
   blast,
@@ -358,6 +358,11 @@ import {
   waveCorner,
   waveSide,
 } from "./templates/particles";
+import {
+  animateEvaporate,
+  dropEntity,
+  MAX_DROP_RADIUS,
+} from "../../engine/systems/drop";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1537,16 +1542,26 @@ export const creatureEvaporate: Sequence<EvaporateSequence> = (
   return { finished, updated };
 };
 
-const vanishGrowSprites = [
-  vanishGrow0,
-  vanishGrow1,
-  vanishGrow2,
-  vanishGrow3,
-  vanishGrow4,
-  vanishGrow5,
-  vanishGrow5,
-];
-const vanishShrinkSprites = [vanishShrink0, vanishShrink1, vanishShrink2];
+const vanishConfig: Record<
+  Vanishable["type"],
+  { grow: Sprite[]; shrink: Sprite[]; evaporate?: Sprite }
+> = {
+  plant: {
+    grow: [
+      vanishGrow0,
+      vanishGrow1,
+      vanishGrow2,
+      vanishGrow3,
+      vanishGrow4,
+      vanishGrow5,
+      vanishGrow5,
+    ],
+    shrink: [vanishShrink0, vanishShrink1, vanishShrink2],
+    evaporate: vanishEvaporate,
+  },
+  evaporate: { grow: [], shrink: [] },
+};
+const evaporateTicks = 3;
 
 export const creatureVanish: Sequence<VanishSequence> = (
   world,
@@ -1561,37 +1576,40 @@ export const creatureVanish: Sequence<VanishSequence> = (
   const existingLimbs = state.args.limbs;
   const finished = state.args.remaining <= 0 && !!existingLimbs;
   let limbs = existingLimbs || {};
+  const vanishGrowSprites = vanishConfig[state.args.type].grow;
+  const vanishShrinkSprites = vanishConfig[state.args.type].shrink;
+  const evaporateSprite = vanishConfig[state.args.type].evaporate;
 
-  if (vanishGeneration === 0) {
+  if (vanishGeneration === 0 && !existingLimbs) {
     // create initial limb
     state.args.remaining += 1;
-    limbs[entityId] = { generation: 0 };
+    limbs[entityId] = {
+      generation: 0,
+      delta: { x: 0, y: 0 },
+      evaporated: !evaporateSprite,
+      decayed: false,
+    };
     state.args.limbs = limbs;
     const vanishParticle = entities.createParticle(world, {
       [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: decayHeight },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: vanishGrowSprites[0],
+      [SPRITE]: vanishGrowSprites[0] || none,
     });
     state.particles[entityId] = world.getEntityId(vanishParticle);
+    updated = true;
   } else if (state.args.generation !== vanishGeneration) {
     state.args.generation = vanishGeneration;
     updated = true;
 
     // grow vanishing limbs
     if (state.args.grow) {
-      for (const limbId of Object.keys(limbs)) {
-        const limbEntity = world.getEntityByIdAndComponents(parseInt(limbId), [
-          POSITION,
-        ]);
-
-        // prevent disposed limbs to spread animation
-        if (!limbEntity) continue;
-
+      for (const { delta } of Object.values(limbs)) {
         // add adjacent limbs
         for (const iteration of iterations) {
           const target = combine(
             size,
-            limbEntity[POSITION],
+            entity[POSITION],
+            delta,
             iteration.direction
           );
           const fragmentEntity = getFragments(world, target).filter(
@@ -1604,20 +1622,29 @@ export const creatureVanish: Sequence<VanishSequence> = (
             // skip already added limbs in previous iterations
             if (fragmentId in limbs) continue;
 
+            const delta = {
+              x: signedDistance(
+                entity[POSITION].x,
+                fragmentEntity[POSITION].x,
+                size
+              ),
+              y: signedDistance(
+                entity[POSITION].y,
+                fragmentEntity[POSITION].y,
+                size
+              ),
+            };
             const delay = random(0, 1);
-            limbs[fragmentId] = { generation: vanishGeneration + delay };
+            limbs[fragmentId] = {
+              generation: vanishGeneration + delay,
+              delta: copy(delta),
+              evaporated: !evaporateSprite,
+              decayed: false,
+            };
             const vanishParticle = entities.createParticle(world, {
               [PARTICLE]: {
-                offsetX: signedDistance(
-                  entity[POSITION].x,
-                  fragmentEntity[POSITION].x,
-                  size
-                ),
-                offsetY: signedDistance(
-                  entity[POSITION].y,
-                  fragmentEntity[POSITION].y,
-                  size
-                ),
+                offsetX: delta.x,
+                offsetY: delta.y,
                 offsetZ: decayHeight,
               },
               [RENDERABLE]: { generation: 1 },
@@ -1628,11 +1655,64 @@ export const creatureVanish: Sequence<VanishSequence> = (
         }
       }
     }
+  }
 
-    // update vanish particles
-    for (const [limbId, { generation }] of Object.entries(limbs)) {
+  // update vanish and evaporate particles
+  if (updated) {
+    for (const [
+      limbId,
+      { generation, delta, evaporated, decayed },
+    ] of Object.entries(limbs)) {
       // expire finished particles
       const progress = vanishGeneration - generation;
+      const evaporateName = `${limbId}-evaporate`;
+      const evaporateParticle = world.getEntityByIdAndComponents(
+        state.particles[evaporateName],
+        [SPRITE, PARTICLE]
+      );
+      const shouldEvaporate =
+        !evaporated &&
+        evaporateParticle &&
+        (evaporateParticle[PARTICLE].amount || 0) + evaporateTicks <= progress;
+      const vanishParticle = world.getEntityByIdAndComponents(
+        state.particles[limbId],
+        [SPRITE, PARTICLE]
+      );
+      const vanished =
+        progress >= vanishGrowSprites.length + vanishShrinkSprites.length;
+
+      // dispose evaporate and vanish
+      if (evaporateParticle && shouldEvaporate) {
+        disposeEntity(world, evaporateParticle);
+        delete state.particles[evaporateName];
+        updated = true;
+      }
+      if (vanishParticle && vanished) {
+        disposeEntity(world, vanishParticle);
+        delete state.particles[limbId];
+        updated = true;
+      }
+
+      // decay limb
+      if (!decayed && vanished && (evaporated || shouldEvaporate)) {
+        state.args.remaining -= 1;
+        limbs[limbId].decayed = true;
+        const decayingLimbs = getFragments(world, add(entity[POSITION], delta));
+        decayingLimbs.forEach((fragmentEntity) => {
+          if (fragmentEntity[FRAGMENT].structure !== entityId) return;
+
+          if (fragmentEntity === entity) {
+            // drop and evaporate before unit is fully decayed with all limbs
+            dropEntity(world, entity, entity[POSITION], false, MAX_DROP_RADIUS);
+            animateEvaporate(world, entity);
+            entity[SPRITE] = none;
+            return;
+          }
+
+          fragmentEntity[DROPPABLE].decayed = true;
+        });
+        updated = true;
+      }
 
       if (
         progress > vanishGrowSprites.length + vanishShrinkSprites.length ||
@@ -1640,81 +1720,46 @@ export const creatureVanish: Sequence<VanishSequence> = (
       )
         continue;
 
-      const evaporateName = `${limbId}-evaporate`;
-      const vanishParticle = world.assertByIdAndComponents(
-        state.particles[limbId],
-        [SPRITE, PARTICLE]
-      );
-
-      if (progress === vanishGrowSprites.length + vanishShrinkSprites.length) {
-        // finish vanish animation
-        const evaporateParticle = world.assertById(
-          state.particles[evaporateName]
-        );
-        disposeEntity(world, vanishParticle);
-        disposeEntity(world, evaporateParticle);
-        delete state.particles[limbId];
-        delete state.particles[evaporateName];
-        state.args.remaining -= 1;
-
+      if (progress === vanishGrowSprites.length) {
         // evaporate limb
-        const limbs = getFragments(
-          world,
-          add(entity[POSITION], {
-            x: vanishParticle[PARTICLE].offsetX,
-            y: vanishParticle[PARTICLE].offsetY,
-          })
-        );
-        limbs.forEach((fragmentEntity) => {
-          if (fragmentEntity[FRAGMENT].structure !== entityId) return;
+        if (vanishParticle) {
+          vanishParticle[SPRITE] = vanishShrinkSprites[0] || none;
+          rerenderEntity(world, vanishParticle);
+        }
 
-          if (fragmentEntity === entity) {
-            entity[SPRITE] = none;
-            return;
-          }
-
-          fragmentEntity[DROPPABLE].decayed = true;
-        });
-        continue;
-      } else if (progress === vanishGrowSprites.length) {
-        // evaporate limb
-        vanishParticle[SPRITE] = vanishShrinkSprites[0];
-        const evaporateParticle = entities.createParticle(world, {
-          [PARTICLE]: {
-            offsetX: vanishParticle[PARTICLE].offsetX,
-            offsetY: vanishParticle[PARTICLE].offsetY - 9,
-            offsetZ: particleHeight,
-            duration: tick * 3,
-            animatedOrigin: {
-              x: vanishParticle[PARTICLE].offsetX,
-              y: vanishParticle[PARTICLE].offsetY,
+        if (evaporateSprite) {
+          const newEvaporateParticle = entities.createParticle(world, {
+            [PARTICLE]: {
+              amount: progress,
+              offsetX: delta.x,
+              offsetY: delta.y - evaporateTicks * 3,
+              offsetZ: particleHeight,
+              duration: tick * evaporateTicks,
+              animatedOrigin: copy(delta),
             },
-          },
-          [RENDERABLE]: { generation: 1 },
-          [SPRITE]: vanishEvaporate,
-        });
-        state.particles[evaporateName] = world.getEntityId(evaporateParticle);
-        const limbs = getFragments(
-          world,
-          add(entity[POSITION], {
-            x: vanishParticle[PARTICLE].offsetX,
-            y: vanishParticle[PARTICLE].offsetY,
-          })
-        );
+            [RENDERABLE]: { generation: 1 },
+            [SPRITE]: evaporateSprite,
+          });
+          state.particles[evaporateName] =
+            world.getEntityId(newEvaporateParticle);
+        }
+
+        // hide limbs
+        const limbs = getFragments(world, add(entity[POSITION], delta));
         limbs.forEach((fragmentEntity) => {
           fragmentEntity[SPRITE] = none;
           rerenderEntity(world, fragmentEntity);
         });
-      } else if (progress > vanishGrowSprites.length) {
+      } else if (progress > vanishGrowSprites.length && vanishParticle) {
         // animate shrink
         vanishParticle[SPRITE] =
           vanishShrinkSprites[progress - vanishGrowSprites.length];
-      } else if (progress >= 0) {
+        rerenderEntity(world, vanishParticle);
+      } else if (progress >= 0 && vanishParticle) {
         // animate grow
         vanishParticle[SPRITE] = vanishGrowSprites[progress];
+        rerenderEntity(world, vanishParticle);
       }
-
-      rerenderEntity(world, vanishParticle);
     }
   }
 

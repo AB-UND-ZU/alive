@@ -14,6 +14,7 @@ export type Pattern = {
     | "rose"
     | "violet"
     | "clover"
+    | "ilex"
     | "oak_boss"
     | "oak_tower"
     | "oak_clover"

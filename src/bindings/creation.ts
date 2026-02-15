@@ -724,6 +724,7 @@ export const insertArea = (
       else if (cell === "N") entity = "nomad_door";
       else if (cell === "Y") entity = "chest_tower";
       else if (cell === "y") entity = "chest_tower_statue";
+      else if (cell === "I") entity = "ilex_elite";
       else if (cell === "O") entity = "oak_boss";
       else if (cell === "C") entity = "chest_boss";
       else if (cell === "∩") entity = "portal";
@@ -1435,7 +1436,7 @@ export const createCell = (
     }
 
     if (cell === "berry" || cell === "berry_one") {
-      const berryEntity = createItemAsDrop(
+      const berryItem = createItemAsDrop(
         world,
         { x, y },
         entities.createItem,
@@ -1449,8 +1450,8 @@ export const createCell = (
         },
         false
       );
-      all.push(berryEntity);
-      return { cell: berryEntity, all };
+      all.push(berryItem);
+      return { cell: world.assertById(berryItem[ITEM].carrier), all };
     }
     return { cell: bushEntity, all };
   } else if (cell === "grass" || cell === "flower" || cell === "flower_one") {
@@ -1470,7 +1471,7 @@ export const createCell = (
     });
     all.push(grassEntity);
     if (cell === "flower" || cell === "flower_one") {
-      const flowerEntity = createItemAsDrop(
+      const flowerItem = createItemAsDrop(
         world,
         { x, y },
         entities.createItem,
@@ -1484,12 +1485,12 @@ export const createCell = (
         },
         false
       );
-      all.push(flowerEntity);
-      return { cell: flowerEntity, all };
+      all.push(flowerItem);
+      return { cell: world.assertById(flowerItem[ITEM].carrier), all };
     }
     return { cell: grassEntity, all };
   } else if (cell === "leaf") {
-    const leafEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
+    const leafItem = createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
         stackable: "leaf",
         amount: distribution(80, 15, 5) + 1,
@@ -1497,8 +1498,8 @@ export const createCell = (
       },
       [SPRITE]: getItemSprite({ stackable: "leaf" }, "resource"),
     });
-    all.push(leafEntity);
-    return { cell: leafEntity, all };
+    all.push(leafItem);
+    return { cell: world.assertById(leafItem[ITEM].carrier), all };
   } else if (cell === "coin_one") {
     const coinItem = createItemAsDrop(world, { x, y }, entities.createItem, {
       [ITEM]: {
@@ -2604,6 +2605,108 @@ export const createCell = (
     );
     setIdentifier(world, towerEntity, "chest_tower");
     return { cell: towerEntity, all };
+  } else if (cell === "ilex_elite") {
+    const eliteUnit = generateNpcData("ilexElite");
+
+    // create unit and base
+    const eliteEntity = entities.createBoss(world, {
+      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [BEHAVIOUR]: {
+        patterns: [{ name: "passive", memory: {} }, ...eliteUnit.patterns],
+      },
+      [BELONGABLE]: { faction: eliteUnit.faction },
+      [CLICKABLE]: { clicked: false, player: true },
+      [COLLIDABLE]: {},
+      [EQUIPPABLE]: {},
+      [FOG]: { visibility, type: "object" },
+      [FRAGMENT]: { structure: -1 },
+      [INVENTORY]: { items: [] },
+      [LAYER]: {},
+      [MELEE]: {},
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: eliteUnit.spring || {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
+      [NPC]: { type: eliteUnit.type },
+      [ORIENTABLE]: { facing: "up" },
+      [POSITION]: { x, y },
+      [RECHARGABLE]: { hit: false },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: eliteUnit.sprite,
+      [STATS]: eliteUnit.stats,
+      [STRUCTURABLE]: { scale: 3, offsetY: 2 },
+      [SWIMMABLE]: { swimming: false },
+      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+      [VANISHABLE]: {
+        decayed: false,
+        remains: eliteUnit.vanish?.remains || [],
+        spawns: eliteUnit.vanish?.spawns || [],
+        type: eliteUnit.vanish?.type || "evaporate",
+        evaporate: eliteUnit.vanish?.evaporate,
+      },
+    });
+    all.push(eliteEntity);
+    populateInventory(
+      world,
+      eliteEntity,
+      eliteUnit.items,
+      eliteUnit.equipments
+    );
+    setIdentifier(world, eliteEntity, "ilex_elite");
+    const eliteId = world.getEntityId(eliteEntity);
+    eliteEntity[FRAGMENT].structure = eliteId;
+
+    // create stem and leaves
+    const ilexLimbs: {
+      offset: Position;
+      sprite: Sprite;
+      orientation?: Orientation;
+    }[] = [
+      { offset: { x: 1, y: 0 }, sprite: eliteUnit.sprite, orientation: "up" },
+      { offset: { x: 1, y: 1 }, sprite: eliteUnit.sprite, orientation: "up" },
+      { offset: { x: 1, y: 2 }, sprite: eliteUnit.sprite, orientation: "up" },
+      { offset: { x: 0, y: 2 }, sprite: eliteUnit.sprite, orientation: "up" },
+      { offset: { x: -1, y: 2 }, sprite: eliteUnit.sprite, orientation: "up" },
+      { offset: { x: -1, y: 1 }, sprite: eliteUnit.sprite, orientation: "up" },
+      { offset: { x: -1, y: 0 }, sprite: eliteUnit.sprite, orientation: "up" },
+    ];
+
+    for (const { offset, sprite, orientation } of ilexLimbs) {
+      const limbEntity = entities.createLimb(world, {
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [COLLIDABLE]: {},
+        [DROPPABLE]: { decayed: false, evaporate: eliteUnit.vanish?.evaporate },
+        [FOG]: { visibility, type: "object" },
+        [FRAGMENT]: { structure: eliteId },
+        [LAYER]: {},
+        [MOVABLE]: {
+          bumpGeneration: 0,
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: eliteUnit.spring || {
+            duration: 200,
+          },
+          lastInteraction: 0,
+          flying: false,
+        },
+        [ORIENTABLE]: { facing: orientation },
+        [POSITION]: combine(size, { x, y }, offset),
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { shots: 0 },
+        [SPRITE]: sprite,
+      });
+      all.push(limbEntity);
+    }
+
+    return { cell: eliteEntity, all };
   } else if (cell === "oak_boss") {
     const bossUnit = generateNpcData("oakBoss");
 
@@ -2645,6 +2748,8 @@ export const createCell = (
         decayed: false,
         remains: bossUnit.vanish?.remains || [],
         spawns: bossUnit.vanish?.spawns || [],
+        type: bossUnit.vanish?.type || "evaporate",
+        evaporate: bossUnit.vanish?.evaporate,
       },
     });
     all.push(bossEntity);
@@ -2684,7 +2789,7 @@ export const createCell = (
       const limbEntity = entities.createLimb(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [COLLIDABLE]: {},
-        [DROPPABLE]: { decayed: false, evaporate: bossUnit.evaporate },
+        [DROPPABLE]: { decayed: false, evaporate: bossUnit.vanish?.evaporate },
         [FOG]: { visibility, type: "object" },
         [FRAGMENT]: { structure: bossId },
         [LAYER]: {},
@@ -2769,6 +2874,8 @@ export const createCell = (
         decayed: false,
         remains: bossUnit.vanish?.remains || [],
         spawns: bossUnit.vanish?.spawns || [],
+        type: bossUnit.vanish?.type || "evaporate",
+        evaporate: bossUnit.vanish?.evaporate,
       },
     });
     all.push(bossEntity);

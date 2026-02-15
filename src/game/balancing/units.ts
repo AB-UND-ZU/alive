@@ -36,6 +36,7 @@ import {
   ironChest,
   violet,
   wormBoss,
+  ilex,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { choice, distribution } from "../math/std";
@@ -1095,6 +1096,35 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: waveTower.iron.default,
     evaporate: { sprite: evaporate.iron.default, fast: true },
   },
+  ilexElite: {
+    faction: "unit",
+    scratch: colors.green,
+    dormant: true,
+    stats: {
+      hp: 100,
+      mp: 1,
+      armor: 1,
+    },
+    equipments: [],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "coin", amount: 5 },
+          { stat: "xp", amount: 5 },
+        ],
+      },
+    ],
+    patternNames: ["ilex"],
+    sprite: ilex,
+    vanish: {
+      spawns: [],
+      remains: [],
+      type: "evaporate",
+      evaporate: { sprite: plantEvaporate, fast: true },
+    },
+    remainsChoices: [bush],
+  },
   oakBoss: {
     faction: "unit",
     scratch: colors.maroon,
@@ -1105,13 +1135,19 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       armor: 1,
     },
     equipments: [],
-    drops: [],
+    drops: [
+      {
+        chance: 100,
+        items: [{ stat: "xp", amount: 5 }],
+      },
+    ],
     patternNames: ["oak_boss"],
     sprite: oakBoss,
-    evaporate: { sprite: plantEvaporate, fast: true },
     vanish: {
       spawns: [{ unit: "oakChest", delta: { x: 0, y: 1 } }],
       remains: [],
+      type: "plant",
+      evaporate: { sprite: plantEvaporate, fast: true },
     },
   },
   oakTower: {
@@ -1187,7 +1223,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
             material: "wood",
             element: "earth",
           },
-          { stat: "xp", amount: 5 },
         ],
       },
     ],

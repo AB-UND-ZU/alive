@@ -77,6 +77,31 @@ export const isDroppable = (world: World, position: Position) =>
   !!world.metadata.gameEntity[LEVEL].walkable[position.x][position.y] &&
   !getBurning(world, position);
 
+export const animateEvaporate = (world: World, entity: Entity) => {
+  // play evaporate animation with own anchor
+  const evaporate =
+    entity[DROPPABLE]?.evaporate || entity[VANISHABLE]?.evaporate;
+
+  if (!evaporate) return;
+
+  const castableEntity = entities.createSpell(world, {
+    [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
+    [CASTABLE]: getEmptyCastable(world, entity),
+    [ORIENTABLE]: {},
+    [POSITION]: copy(entity[POSITION]),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: none,
+  });
+  createSequence<"evaporate", EvaporateSequence>(
+    world,
+    castableEntity,
+    "evaporate",
+    "creatureEvaporate",
+    { fast: evaporate.fast, sprite: evaporate.sprite }
+  );
+};
+
 export const MAX_DROP_RADIUS = 5;
 export const findAdjacentDroppable = (
   world: World,
@@ -452,7 +477,7 @@ export default function setupDrop(world: World) {
           world,
           entity,
           entity[POSITION],
-          false,
+          undefined,
           MAX_DROP_RADIUS,
           undefined,
           lootSpeed + decayTime / 2
@@ -483,9 +508,11 @@ export default function setupDrop(world: World) {
             generation: 0,
             grow: true,
             remaining: 0,
+            type: entity[VANISHABLE].type,
           }
         );
       } else if (isDead(world, rootEntity) && isDecayed(world, entity)) {
+        // dropping items is handled by vanish sequence
         disposeEntity(world, entity, true, false);
 
         const unitKey = entity[NPC]?.type;
@@ -498,21 +525,23 @@ export default function setupDrop(world: World) {
         const size = world.metadata.gameEntity[LEVEL].size;
 
         entity[VANISHABLE].remains.forEach((remains) => {
-          entities.createGround(world, {
+          const remainsEntity = entities.createGround(world, {
             [FOG]: { visibility: "hidden", type: "terrain" },
             [POSITION]: combine(size, entity[POSITION], remains.delta),
             [SPRITE]: remains.sprite,
             [RENDERABLE]: { generation: 0 },
           });
+          registerEntity(world, remainsEntity);
         });
 
         entity[VANISHABLE].spawns.forEach((spawn) => {
-          createCell(
+          const spawnEntity = createCell(
             world,
             combine(size, entity[POSITION], spawn.delta),
             spawn.unit,
             "hidden"
-          );
+          ).cell;
+          registerEntity(world, spawnEntity);
         });
       }
     }
@@ -553,33 +582,12 @@ export default function setupDrop(world: World) {
 
       if (isDead(world, rootEntity) && isDecayed(world, entity)) {
         disposeEntity(world, entity, true, false);
+        animateEvaporate(world, entity);
 
         const unitKey = entity[NPC]?.type;
         if (heroEntity && unitKey) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
-        }
-
-        // play evaporate animation with own anchor
-        const evaporate = entity[DROPPABLE].evaporate;
-
-        if (evaporate) {
-          const castableEntity = entities.createSpell(world, {
-            [BELONGABLE]: { faction: entity[BELONGABLE]?.faction || "nature" },
-            [CASTABLE]: getEmptyCastable(world, entity),
-            [ORIENTABLE]: {},
-            [POSITION]: copy(entity[POSITION]),
-            [RENDERABLE]: { generation: 0 },
-            [SEQUENCABLE]: { states: {} },
-            [SPRITE]: none,
-          });
-          createSequence<"evaporate", EvaporateSequence>(
-            world,
-            castableEntity,
-            "evaporate",
-            "creatureEvaporate",
-            { fast: evaporate.fast, sprite: evaporate.sprite }
-          );
         }
       }
     }

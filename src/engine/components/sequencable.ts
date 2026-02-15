@@ -11,6 +11,7 @@ import { Popup } from "./popup";
 import { Liquid } from "./liquid";
 import { Castable, DamageType } from "./castable";
 import { Weather } from "../systems/water";
+import { Vanishable } from "./vanishable";
 
 type EmptyObject = Record<string, never>;
 
@@ -72,9 +73,18 @@ export type MessageSequence = {
 export type DecaySequence = { fast: boolean };
 export type EvaporateSequence = { fast: boolean; sprite: Sprite };
 export type VanishSequence = {
+  type: Vanishable["type"];
   generation: number;
   grow: boolean;
-  limbs?: Record<string, { generation: number }>;
+  limbs?: Record<
+    string,
+    {
+      generation: number;
+      delta: Position;
+      evaporated: boolean;
+      decayed: boolean;
+    }
+  >;
   remaining: number;
 };
 export type BurnSequence = {

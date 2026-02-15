@@ -243,6 +243,22 @@ export const fairy: Sprite = {
   layers: [{ char: "\u0100", color: colors.grey }],
 };
 
+export const ilex: Sprite = {
+  name: "Ilex",
+  layers: [
+    { char: "X", color: colors.green },
+    { char: "┼", color: colors.green },
+  ],
+  facing: {
+    up: [
+      { char: "X", color: colors.green },
+      { char: "┼", color: colors.green },
+      { char: "\u0106", color: colors.red },
+      { char: "∙", color: colors.maroon },
+    ],
+  },
+};
+
 export const oakBoss: Sprite = {
   name: "Oak",
   layers: [

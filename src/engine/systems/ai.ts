@@ -1296,8 +1296,6 @@ export default function setupAi(world: World) {
         } else if (pattern.name === "invincible") {
           // drop loaded charges
           if (entity[RECHARGABLE]) {
-            entity[RECHARGABLE].hit = false;
-
             dropEntity(
               world,
               {
@@ -1305,6 +1303,7 @@ export default function setupAi(world: World) {
               },
               entity[POSITION]
             );
+            entity[RECHARGABLE].hit = false;
           }
 
           // drop any stuck arrows of all limbs
@@ -1846,18 +1845,18 @@ export default function setupAi(world: World) {
           } else if (pattern.memory.phase === 30) {
             // check available spawn points
             const plantSpawns = [
-              { x: 6, y: 0 },
-              { x: 5, y: 2 },
-              { x: 3, y: 3 },
-              { x: 0, y: 4 },
-              { x: -3, y: 3 },
-              { x: -5, y: 2 },
-              { x: -6, y: 0 },
-              { x: -5, y: -2 },
-              { x: -3, y: -3 },
-              { x: 0, y: -4 },
-              { x: 3, y: -3 },
-              { x: 5, y: -2 },
+              { x: 6, y: 1 },
+              { x: 5, y: 3 },
+              { x: 3, y: 4 },
+              { x: 0, y: 5 },
+              { x: -3, y: 4 },
+              { x: -5, y: 3 },
+              { x: -6, y: 1 },
+              { x: -5, y: -1 },
+              { x: -3, y: -2 },
+              { x: 0, y: -3 },
+              { x: 3, y: -2 },
+              { x: 5, y: -1 },
             ];
             const plantCount = 3;
             const plantOffset = 4;
@@ -1870,8 +1869,11 @@ export default function setupAi(world: World) {
                   offset + plantShift,
                   plantOffset
                 );
-                const position =
-                  plantSpawns[shiftedOffset + index * plantOffset];
+                const position = combine(
+                  size,
+                  entity[POSITION],
+                  plantSpawns[shiftedOffset + index * plantOffset]
+                );
                 const cell = getCell(world, position);
                 const bushEntity = Object.values(cell).find(
                   (bush) => bush[IDENTIFIABLE]?.name === "oak:bush"
@@ -1884,13 +1886,23 @@ export default function setupAi(world: World) {
               if (selectedSpawns.length > 0) break;
             }
 
-            // no plants left, let towers heal only
             if (selectedSpawns.length === 0) {
+              // no plants left, let towers heal only
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "oak_boss",
                 memory: { phase: 33 },
               });
               break;
+            } else {
+              // mark bushes as spawns
+              selectedSpawns.forEach((spawn) => {
+                const cell = getCell(world, spawn);
+                const bushEntity = Object.values(cell).find(
+                  (bush) => bush[IDENTIFIABLE]?.name === "oak:bush"
+                );
+                if (!bushEntity) return;
+                bushEntity[IDENTIFIABLE].name = "oak:spawn";
+              });
             }
 
             patterns.splice(
@@ -1927,12 +1939,20 @@ export default function setupAi(world: World) {
                 positions: [spawn],
               });
             });
+            // don't wait if more spawns are queued
+            const currentHealPatterns = patterns.filter(
+              (pattern) =>
+                pattern.name === "oak_boss" &&
+                (pattern.memory.phase === 30 || pattern.memory.phase === 31)
+            ).length;
             patterns.splice(
               patterns.indexOf(pattern),
               1,
               { name: "wait", memory: { ticks: 4 } },
               { name: "vulnerable", memory: {} },
-              { name: "oak_boss", memory: { phase: 33 } }
+              ...(currentHealPatterns > 1
+                ? []
+                : [{ name: "oak_boss", memory: { phase: 33 } } as const])
             );
           } else if (pattern.memory.phase === 33) {
             // let towers heal and wait
@@ -1994,7 +2014,7 @@ export default function setupAi(world: World) {
             const bushEntities = world
               .getEntities([IDENTIFIABLE])
               .filter((bush) => bush[IDENTIFIABLE].name === "oak:bush");
-            const lowHpPercentage = 15;
+            const lowHpPercentage = 20;
             const currentHealPatterns = patterns.filter(
               (pattern) =>
                 pattern.name === "oak_boss" &&
@@ -2027,9 +2047,17 @@ export default function setupAi(world: World) {
               });
               break;
             } else if (targetHealPatterns > 0) {
-              // trigger spawning clovers
-              entity[BEHAVIOUR].patterns = [
-                { name: "oak_boss", memory: { phase: 40 } },
+              // insert trigger spawning clovers
+              const lastHealIndex = patterns.findIndex(
+                (pattern) =>
+                  pattern.name === "oak_boss" &&
+                  (pattern.memory.phase === 30 || pattern.memory.phase === 31)
+              );
+              patterns.splice(
+                lastHealIndex === -1
+                  ? patterns.indexOf(pattern) + 1
+                  : lastHealIndex + 1,
+                0,
                 { name: "dialog", memory: { override: "hidden", dialogs: [] } },
                 ...Array.from({ length: targetHealPatterns }).map(
                   () =>
@@ -2037,9 +2065,8 @@ export default function setupAi(world: World) {
                       name: "oak_boss",
                       memory: { phase: 30 },
                     } as const)
-                ),
-                { name: "oak_boss", memory: { phase: 7 } },
-              ];
+                )
+              );
             }
             continue;
           } else if (pattern.memory.phase === 41) {
@@ -2110,7 +2137,7 @@ export default function setupAi(world: World) {
               {
                 grow: true,
                 limbs: [],
-                threshold: entity[STATS].hp - 15,
+                threshold: entity[STATS].hp - 20,
               }
             );
             patterns.splice(
