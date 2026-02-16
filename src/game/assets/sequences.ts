@@ -362,6 +362,7 @@ import {
   animateEvaporate,
   dropEntity,
   MAX_DROP_RADIUS,
+  placeRemains,
 } from "../../engine/systems/drop";
 
 export * from "./npcs";
@@ -1706,9 +1707,18 @@ export const creatureVanish: Sequence<VanishSequence> = (
             dropEntity(world, entity, entity[POSITION], false, MAX_DROP_RADIUS);
             animateEvaporate(world, entity);
             entity[SPRITE] = none;
+
+            // place remains if available
+            const remainsLimb = getLimbs(world, entity).find(
+              (limb) => limb[DROPPABLE]?.remains
+            );
+            if (remainsLimb) {
+              placeRemains(world, remainsLimb, entity[POSITION]);
+            }
             return;
           }
 
+          placeRemains(world, fragmentEntity);
           fragmentEntity[DROPPABLE].decayed = true;
         });
         updated = true;

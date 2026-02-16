@@ -248,13 +248,31 @@ export const ilex: Sprite = {
   layers: [
     { char: "X", color: colors.green },
     { char: "┼", color: colors.green },
+      { char: "\u0106", color: colors.red },
+      { char: "∙", color: colors.maroon },
   ],
   facing: {
     up: [
       { char: "X", color: colors.green },
       { char: "┼", color: colors.green },
-      { char: "\u0106", color: colors.red },
-      { char: "∙", color: colors.maroon },
+      { char: "\u0106", color: colors.blue },
+      { char: "∙", color: colors.navy },
+    ],
+    right: [
+      { char: "X", color: colors.green },
+      { char: "┼", color: colors.green },
+      { char: "\u0106", color: colors.olive },
+      { char: "∙", color: colors.yellow },
+    ],
+    down: [
+      { char: "X", color: colors.green },
+      { char: "┼", color: colors.green },
+    ],
+    left: [
+      { char: "X", color: colors.green },
+      { char: "┼", color: colors.green },
+      { char: "\u0106", color: colors.silver },
+      { char: "∙", color: colors.grey },
     ],
   },
 };

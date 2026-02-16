@@ -37,12 +37,15 @@ import { IDENTIFIABLE } from "../components/identifiable";
 import { BEHAVIOUR } from "../components/behaviour";
 import { disc, homing, summon } from "../../game/assets/templates/particles";
 import { attemptBubbleAbsorb } from "./magic";
+import { isDead } from "./damage";
+import { rerenderEntity } from "./renderer";
 
 export const decayHoming = (world: World, entity: Entity) => {
   entity[HOMING].decayedGeneration =
     world.metadata.gameEntity[RENDERABLE].generation;
   entity[MOVABLE].orientations = [];
   entity[ORIENTABLE].facing = undefined;
+  rerenderEntity(world, entity);
 };
 
 export const isHomingActive = (world: World, entity: Entity) =>
@@ -54,13 +57,15 @@ export const isHomingDisposable = (world: World, entity: Entity) =>
 
 const discConfig: Record<
   Homing["type"],
-  { sprite: Sprite } & Partial<Castable>
+  { sprite: Sprite; orbit?: boolean } & Partial<Castable>
 > = {
   oakTower: { sprite: summon.iron.default, magic: 4, retrigger: 2 },
   oakHedge: { sprite: homing.default.earth },
   oakClover: { sprite: summon.default.earth, magic: 4, retrigger: 2 },
+  ilexViolet: { sprite: summon.default.water, magic: 1, retrigger: 2 },
   ironDisc: { sprite: disc.iron.default, magic: 1 },
   goldDisc: { sprite: disc.gold.default, magic: 2 },
+  ironOrbit: { sprite: disc.iron.default, magic: 1, orbit: true },
 };
 
 const HOMING_TTL = 30;
@@ -68,19 +73,26 @@ const HOMING_TTL = 30;
 export const shootHoming = (
   world: World,
   caster: Entity,
-  homing: Omit<Homing, "generation">
+  homingData: Omit<Homing, "generation">
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
-  const { sprite, ...castable } = discConfig[homing.type];
+  const { sprite, orbit, ...castable } = discConfig[homingData.type];
   const discEntity = entities.createHoming(world, {
     [BELONGABLE]: { faction: "wild" },
-    [CASTABLE]: { ...emptyCastable, ...castable, caster: -1, affected: {} },
+    [CASTABLE]: {
+      ...emptyCastable,
+      ...castable,
+      caster: world.getEntityId(caster),
+      affected: {},
+    },
     [EXERTABLE]: { castable: -1 },
     [HOMING]: {
-      ttl: homing.ttl || HOMING_TTL,
+      ttl: homingData.ttl || HOMING_TTL,
       generation: world.metadata.gameEntity[RENDERABLE].generation,
-      ...homing,
-      positions: homing.positions.map((position) => combine(size, position)),
+      ...homingData,
+      positions: homingData.positions.map((position) =>
+        combine(size, position)
+      ),
     },
     [FOG]: { type: "float", visibility: "hidden" },
     [MOVABLE]: {
@@ -96,7 +108,6 @@ export const shootHoming = (
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: sprite,
   });
-  discEntity[CASTABLE].caster = world.getEntityId(discEntity);
   discEntity[EXERTABLE].castable = world.getEntityId(discEntity);
   registerEntity(world, discEntity);
   return discEntity;
@@ -121,11 +132,20 @@ export default function setupHoming(world: World) {
     for (const entity of world.getEntities([CASTABLE, HOMING, POSITION])) {
       if (!isHomingActive(world, entity)) continue;
 
+      // stop if caster dies
+      const casterEntity = world.getEntityById(entity[CASTABLE].caster);
+
+      if (!casterEntity || isDead(world, casterEntity)) {
+        decayHoming(world, entity);
+        continue;
+      }
+
       // register disc hits
       const affectedId = Object.keys(entity[CASTABLE].affected)[0];
       const hasAffected = !!world.getEntityById(parseInt(affectedId));
 
       // register waypoint reaches
+      const { orbit } = discConfig[entity[HOMING].type];
       const nextPosition = entity[HOMING].positions[0];
       const destination = entity[HOMING].positions.length === 1;
       const reached =
@@ -141,7 +161,12 @@ export default function setupHoming(world: World) {
       if (!hasAffected && !reached && !timeout) continue;
 
       if (reached && !destination) {
-        entity[HOMING].positions.shift();
+        const reachedPosition = entity[HOMING].positions.shift();
+
+        if (orbit && reachedPosition) {
+          entity[HOMING].positions.push(reachedPosition);
+        }
+
         continue;
       } else if (!timeout && !(hasAffected && !entity[CASTABLE].retrigger)) {
         // remain only without TTL and retriggering discs
@@ -201,6 +226,8 @@ export default function setupHoming(world: World) {
         if (random(0, 1) === 0 && cloverEntity[BEHAVIOUR]) {
           cloverEntity[BEHAVIOUR].patterns.shift();
         }
+      } else if (entity[HOMING].type === "ilexViolet" && reached) {
+        createCell(world, copy(entity[POSITION]), "ilexViolet", "hidden");
       } else if (entity[HOMING].type === "oakHedge" && hasAffected) {
         const targetEntity = world.getEntityByIdAndComponents(
           entity[HOMING].target,

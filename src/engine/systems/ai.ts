@@ -71,6 +71,7 @@ import {
   degreesToOrientations,
   iterations,
   pointToDegree,
+  reversedIterations,
 } from "../../game/math/tracing";
 import { getProjectiles, shootArrow } from "./ballistics";
 import { canCast, getExertables } from "./magic";
@@ -1452,6 +1453,245 @@ export default function setupAi(world: World) {
           } else if (pattern.memory.heal) {
             delete pattern.memory.heal;
           }
+        } else if (pattern.name === "ilex") {
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+
+          if (!heroEntity || isDead(world, heroEntity)) continue;
+          else if (!entity[STATS] || !entity[SPRITE] || !entity[TOOLTIP]) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          if (pattern.memory.phase === undefined) {
+            // set initial phase and hp trigger
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "ilex", memory: { phase: 40 } },
+              { name: "ilex", memory: { phase: 10 } }
+            );
+            break;
+          }
+
+          const center = combine(size, entity[POSITION], { x: 0, y: 1 });
+
+          const distance = heroEntity
+            ? getDistance(center, heroEntity[POSITION], size)
+            : Infinity;
+
+          if (distance > 10) break;
+
+          const percentage = (100 * entity[STATS].hp) / entity[STATS].maxHp;
+
+          if (pattern.memory.phase === 10) {
+            // color limbs and show rage
+            const limbs = getLimbs(world, entity);
+            const availableLimbs = limbs.filter(
+              (limb) => limb[ORIENTABLE].facing === undefined
+            );
+            const selectedLimbs = shuffle(availableLimbs).slice(0, 4);
+            selectedLimbs.forEach((limb) => {
+              limb[ORIENTABLE].facing = "right";
+              rerenderEntity(world, limb);
+            });
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "ilex", memory: { phase: 11 } }
+            );
+          } else if (pattern.memory.phase === 11) {
+            // shoot from limbs
+            const limbs = getLimbs(world, entity);
+            const triggeredLimbs = limbs.filter(
+              (limb) => limb[ORIENTABLE].facing === "right"
+            );
+            const ilexCircle = [
+              { x: -2, y: 3 },
+              { x: 2, y: 3 },
+              { x: 2, y: -1 },
+              { x: -2, y: -1 },
+            ];
+            triggeredLimbs.forEach((limb) => {
+              const limbOrientation = relativeOrientations(
+                world,
+                center,
+                limb[POSITION]
+              )[0];
+              const iterationIndex = reversedIterations.findIndex(
+                (iteration) => iteration.orientation === limbOrientation
+              );
+              const iteration =
+                reversedIterations[iterationIndex] || reversedIterations[0];
+              const rotatedCircle =
+                iterationIndex === -1
+                  ? ilexCircle
+                  : rotate(ilexCircle, iterationIndex);
+              const circlePositions = rotatedCircle.map((position) =>
+                combine(size, entity[POSITION], position)
+              );
+              const intersectingPosition = combine(
+                size,
+                limb[POSITION],
+                iteration.direction
+              );
+              shootHoming(world, limb, {
+                type: "goldDisc",
+                positions: [
+                  intersectingPosition,
+                  ...circlePositions,
+                  intersectingPosition,
+                  copy(limb[POSITION]),
+                ],
+              });
+              limb[ORIENTABLE].facing = undefined;
+              rerenderEntity(world, limb);
+            });
+
+            // wait and go to next phase
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "wait", memory: { ticks: 20 } },
+              { name: "ilex", memory: { phase: 20 } }
+            );
+          } else if (pattern.memory.phase === 20) {
+            // color limb and show rage
+            const limbs = getLimbs(world, entity);
+            const availableLimbs = limbs.filter(
+              (limb) => limb[ORIENTABLE].facing === undefined
+            );
+            const selectedLimb = shuffle(availableLimbs)[0];
+            if (!selectedLimb) {
+              // no limbs available, skip
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "ilex",
+                memory: { phase: 10 },
+              });
+              continue;
+            }
+
+            selectedLimb[ORIENTABLE].facing = "left";
+            registerEntity(world, selectedLimb);
+
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "ilex", memory: { phase: 21 } }
+            );
+          } else if (pattern.memory.phase === 21) {
+            // show spawn homing and wait
+            const selectedLimb = getLimbs(world, entity).find(
+              (limb) => limb[ORIENTABLE].facing === "left"
+            );
+            if (selectedLimb) {
+              // rotate orbit start based on closest corner
+              const ilexOrbit = [
+                { x: 3, y: -2 },
+                { x: 3, y: 4 },
+                { x: -3, y: 4 },
+                { x: -3, y: -2 },
+              ];
+              const limbOrientation = relativeOrientations(
+                world,
+                center,
+                selectedLimb[POSITION]
+              )[0];
+              const iterationIndex = iterations.findIndex(
+                (iteration) => iteration.orientation === limbOrientation
+              );
+              const iteration = iterations[iterationIndex] || iterations[0];
+              const rotatedOrbit =
+                iterationIndex === -1
+                  ? ilexOrbit
+                  : rotate(ilexOrbit, iterationIndex);
+              const orbitPositions = rotatedOrbit.map((position) =>
+                combine(size, entity[POSITION], position)
+              );
+              const intersectingPosition = {
+                x:
+                  Math.abs(iteration.direction.x) * orbitPositions[0].x +
+                  Math.abs(iteration.normal.x) * selectedLimb[POSITION].x,
+                y:
+                  Math.abs(iteration.direction.y) * orbitPositions[0].y +
+                  Math.abs(iteration.normal.y) * selectedLimb[POSITION].y,
+              };
+              shootHoming(world, selectedLimb, {
+                type: "ironOrbit",
+                positions: [intersectingPosition, ...orbitPositions],
+                ttl: Infinity,
+              });
+              selectedLimb[ORIENTABLE].facing = undefined;
+              rerenderEntity(world, selectedLimb);
+            }
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              { name: "wait", memory: { ticks: 3 } },
+              { name: "ilex", memory: { phase: 10 } }
+            );
+          } else if (pattern.memory.phase === 40) {
+            const limbs = getLimbs(world, entity);
+            const activeLimbs = limbs.filter(
+              (limb) =>
+                limb[ORIENTABLE].facing !== "up" &&
+                limb[ORIENTABLE].facing !== "down"
+            );
+
+            if (percentage < (100 * activeLimbs.length) / (limbs.length + 1)) {
+              const selectedLimb = choice(...activeLimbs);
+              selectedLimb[ORIENTABLE].facing = "up";
+              rerenderEntity(world, selectedLimb);
+
+              patterns.splice(patterns.indexOf(pattern) + 1, 0, {
+                name: "ilex",
+                memory: { phase: 41 },
+              });
+            }
+          } else if (pattern.memory.phase === 41) {
+            // show rage and schedule spawn
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } },
+              { name: "ilex", memory: { phase: 42 } }
+            );
+          } else if (pattern.memory.phase === 42) {
+            const limbs = getLimbs(world, entity);
+            const spawnLimbs = limbs.filter(
+              (limb) => limb[ORIENTABLE].facing === "up"
+            );
+            spawnLimbs.forEach((limb) => {
+              const orientation = choice(
+                ...relativeOrientations(world, center, limb[POSITION])
+              );
+              const target = combine(
+                size,
+                limb[POSITION],
+                orientationPoints[orientation]
+              );
+              shootHoming(world, limb, {
+                type: "ilexViolet",
+                positions: [target],
+              });
+              limb[ORIENTABLE].facing = "down";
+              registerEntity(world, limb);
+            });
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "wait",
+              memory: { ticks: 2 },
+            });
+          }
         } else if (pattern.name === "oak_boss") {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
@@ -1491,7 +1731,7 @@ export default function setupAi(world: World) {
           }
 
           const distance = heroEntity
-            ? getDistance({ x: 0, y: 0 }, heroEntity[POSITION], size)
+            ? getDistance(castableEntity[POSITION], heroEntity[POSITION], size)
             : Infinity;
 
           if (distance > 10) break;

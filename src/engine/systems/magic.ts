@@ -53,6 +53,7 @@ import { getAbilityStats } from "../../game/balancing/abilities";
 import { CONDITIONABLE } from "../components/conditionable";
 import { getFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
+import { HOMING } from "../components/homing";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -221,7 +222,6 @@ export default function setupMagic(world: World) {
       POSITION,
       CASTABLE,
       RENDERABLE,
-      SEQUENCABLE,
     ])) {
       // unmark when entity leaves retriggering AoE
       if (entity[CASTABLE].retrigger > 0) {
@@ -260,7 +260,7 @@ export default function setupMagic(world: World) {
       if (casterEntity?.[BURNABLE]?.eternal) continue;
 
       // delete finished spell entities and smoke anchors
-      if (getSequences(world, entity).length === 0) {
+      if (getSequences(world, entity).length === 0 && !entity[HOMING]) {
         // ensure any remaining retrigger frames are disposed properly
         Object.values(entity[CASTABLE].affected).forEach((affected) => {
           if (affected.frame) {

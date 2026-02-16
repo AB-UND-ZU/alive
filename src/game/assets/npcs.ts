@@ -59,6 +59,8 @@ import {
   oakLeaves,
   oakStem,
   parseSprite,
+  ilex,
+  ironChest,
 } from "./sprites";
 import {
   createItemName,
@@ -104,7 +106,7 @@ import { isGhost, isRespawning } from "../../engine/systems/fate";
 import { MOVABLE } from "../../engine/components/movable";
 import { TypedEntity } from "../../engine/entities";
 import { COLLIDABLE } from "../../engine/components/collidable";
-import { getCircleOrientations } from "./pixels";
+import { centerSprites, getCircleOrientations } from "./pixels";
 import { colors } from "./colors";
 import {
   ORIENTABLE,
@@ -800,98 +802,94 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
     onLeave: () => {
       // set new quests for all NPCs in town
       createPopup(world, entity, {
-        targets: [{ amount: 1, unit: "oakBoss" }],
+        targets: [{ amount: 1, unit: "ilexElite" }],
         objectives: [],
-        deals: [],
+        deals: [
+          {
+            item: {
+              stackable: "resource",
+              material: "iron",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [],
+          },
+        ],
         choices: [
-          // main
-          { equipment: "shield", material: "wood", amount: 1 },
-          // spell
+          // harvesting
           choice(
             {
-              equipment: "primary",
-              primary: "wave",
+              equipment: "secondary",
+              secondary: "axe",
+              material: "wood",
+              amount: 1,
+            }
+            // {
+            //   equipment: "secondary",
+            //   secondary: "shovel",
+            //   material: "wood",
+            //   amount: 1,
+            // },
+          ),
+          // offensive
+          choice(
+            {
+              equipment: "secondary",
+              secondary: "bow",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "primary",
-              primary: "beam",
+              equipment: "secondary",
+              secondary: "slash",
+              material: "wood",
+              amount: 1,
+            },
+            {
+              equipment: "secondary",
+              secondary: "raise",
+              material: "wood",
+              amount: 1,
+            },
+            {
+              equipment: "secondary",
+              secondary: "block",
               material: "wood",
               amount: 1,
             }
           ),
-          // accessory
+          // utility
           choice(
-            { equipment: "ring", material: "wood", amount: 1 },
-            { equipment: "amulet", material: "wood", amount: 1 }
+            { equipment: "boots", material: "wood", amount: 1 },
+            { equipment: "torch", material: "wood", amount: 1 }
           ),
         ],
         lines: [
           [
-            createText("Your help with"),
+            createText("Great you got rid"),
             [
-              ...createText("fighting "),
+              ...createText("of some "),
               ...createText("Enemies", colors.maroon),
-            ],
-            createText("was appreciated."),
-            [],
-            createText("Can you help us"),
-            [
-              ...createText("defeat the "),
-              ...createText("Oak", colors.maroon),
-              ...createText("?"),
+              ...createText("!"),
             ],
             [],
-            [
-              ...repeat(none, 3),
-              getOrientedSprite(oakLeaves, "left"),
-              oakLeaves,
-              getOrientedSprite(oakLeaves, "right"),
-            ],
-            [
-              ...repeat(none, 2),
-              getOrientedSprite(oakLeaves, "left"),
-              oakLeaves,
-              oakLeaves,
-              oakLeaves,
-              getOrientedSprite(oakLeaves, "right"),
-            ],
-            [
-              ...repeat(none, 2),
-              getOrientedSprite(oakLeaves, "down"),
-              oakLeaves,
-              oakLeaves,
-              oakLeaves,
-              getOrientedSprite(oakLeaves, "down"),
-              ...createText(" <- evil", colors.red),
-            ],
-            [
-              ...repeat(none, 4),
-              getOrientedSprite(oakStem, choice("left", "right")),
-            ],
-            [...repeat(none, 4), getOrientedSprite(oakStem, "down")],
+            createText("Can you fight the"),
+            [...createText("Ilex", colors.maroon), ...createText(" for us?")],
             [],
+            centerSprites(repeat(ilex, 3), frameWidth - 2),
+            centerSprites([ilex, ironChest, ilex], frameWidth - 2),
+            centerSprites(repeat(ilex, 3), frameWidth - 2),
+            [],
+            [...createText("Talk to "), ...createUnitName("earthTrader")],
             [
-              ...createText("Talk to "),
-              ...createUnitName("earthTrader"),
-              ...createText(","),
-            ],
-            [
+              ...createText("and "),
               ...createUnitName("earthDruid"),
-              ...createText(" and "),
-              ...createUnitName("earthSmith"),
+              ...createText(" to get"),
             ],
-            createText("to get stronger."),
+            createText("useful items."),
             [],
-            createText("Ideally, get an"),
+            createText("Try to make some"),
             [
-              ...createText("iron "),
-              ...createItemName({ equipment: "sword", material: "iron" }),
-              ...createText(" and"),
-            ],
-            [
-              ...createText("a few "),
               ...createItemName({
                 consume: "potion",
                 material: "wood",
@@ -900,8 +898,6 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               ...createText("s", colors.grey),
               ...createText("."),
             ],
-            [],
-            [...createText("Good luck! "), parseSprite("\x0a\u0102")],
           ],
         ],
         tabs: ["quest"],
@@ -1013,6 +1009,14 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             },
             {
               item: {
+                stackable: "coin",
+                amount: 5,
+              },
+              stock: 1,
+              prices: [],
+            },
+            {
+              item: {
                 stackable: "resource",
                 material: "iron",
                 amount: 1,
@@ -1021,50 +1025,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               prices: [],
             },
           ],
-          choices: [
-            // resources
-            choice(
-              {
-                equipment: "secondary",
-                secondary: "axe",
-                material: "wood",
-                amount: 1,
-              },
-              { equipment: "boots", material: "wood", amount: 1 }
-            ),
-            // offensive
-            choice(
-              {
-                equipment: "secondary",
-                secondary: "bow",
-                material: "wood",
-                amount: 1,
-              },
-              {
-                equipment: "secondary",
-                secondary: "slash",
-                material: "wood",
-                amount: 1,
-              },
-              {
-                equipment: "secondary",
-                secondary: "raise",
-                material: "wood",
-                amount: 1,
-              },
-              {
-                equipment: "secondary",
-                secondary: "block",
-                material: "wood",
-                amount: 1,
-              }
-            ),
-            // visibility
-            choice(
-              { equipment: "torch", material: "wood", amount: 1 },
-              { equipment: "map", material: "iron", amount: 1 }
-            ),
-          ],
+          choices: [],
           lines: [
             [
               createText("Hey mate! My name"),
@@ -1097,15 +1058,109 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
                 ...createText("Plants", colors.maroon),
                 ...createText("."),
               ],
-              [],
-              createText("Then you can"),
-              createText("choose an item."),
             ],
           ],
           tabs: ["quest"],
         });
         npcSequence(world, smithEntity, "earthSmithNpc", {});
       }
+      return "ilex";
+    },
+  });
+
+  step({
+    stage,
+    name: "ilex",
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => {
+      // set oak quest for chief
+      createPopup(world, entity, {
+        targets: [{ amount: 1, unit: "oakBoss" }],
+        objectives: [],
+        deals: [],
+        choices: [
+          // defensive
+          { equipment: "shield", material: "wood", amount: 1 },
+          // spell
+          choice(
+            {
+              equipment: "primary",
+              primary: "wave",
+              material: "wood",
+              amount: 1,
+            },
+            {
+              equipment: "primary",
+              primary: "beam",
+              material: "wood",
+              amount: 1,
+            }
+          ),
+          // accessory
+          choice(
+            { equipment: "ring", material: "wood", amount: 1 },
+            { equipment: "amulet", material: "wood", amount: 1 }
+          ),
+        ],
+        lines: [
+          [
+            createText("We appreciate you"),
+            createText("helped us fight"),
+            [
+              ...createText("the "),
+              ...createUnitName("ilexElite"),
+              ...createText("."),
+            ],
+            [],
+            createText("Can you help us"),
+            [
+              ...createText("defeat the "),
+              ...createText("Oak", colors.maroon),
+              ...createText("?"),
+            ],
+            [],
+            [
+              ...repeat(none, 3),
+              getOrientedSprite(oakLeaves, "left"),
+              oakLeaves,
+              getOrientedSprite(oakLeaves, "right"),
+            ],
+            [
+              ...repeat(none, 2),
+              getOrientedSprite(oakLeaves, "left"),
+              oakLeaves,
+              oakLeaves,
+              oakLeaves,
+              getOrientedSprite(oakLeaves, "right"),
+            ],
+            [
+              ...repeat(none, 2),
+              getOrientedSprite(oakLeaves, "down"),
+              oakLeaves,
+              oakLeaves,
+              oakLeaves,
+              getOrientedSprite(oakLeaves, "down"),
+              ...createText(" <- evil", colors.red),
+            ],
+            [
+              ...repeat(none, 4),
+              getOrientedSprite(oakStem, choice("left", "right")),
+            ],
+            [...repeat(none, 4), getOrientedSprite(oakStem, "down")],
+            [],
+            [...createText("Go to the "), ...createUnitName("earthSmith")],
+            createText("and forge an iron"),
+            [
+              ...createItemName({ equipment: "sword", material: "iron" }),
+              ...createText(" to become"),
+            ],
+            createText("stronger."),
+            [],
+            [...createText("Good luck! "), parseSprite("\x0a\u0102")],
+          ],
+        ],
+        tabs: ["quest"],
+      });
       return "oak";
     },
   });

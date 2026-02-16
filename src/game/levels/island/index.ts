@@ -32,7 +32,7 @@ import {
 import { FOG } from "../../../engine/components/fog";
 import { ATTACKABLE } from "../../../engine/components/attackable";
 import { orientationPoints } from "../../../engine/components/orientable";
-import { oakArea, spawnArea, townSize } from "./areas";
+import { ilexArea, oakArea, spawnArea, townSize } from "./areas";
 import {
   add,
   angledOffset,
@@ -137,6 +137,7 @@ export const generateIsland = (world: World) => {
   const mainlandRatio = 0.8;
   const glacierRadius = size * 0.07;
   const glacierRatio = 0.3;
+  const ilexRatio = 0.6;
   const oakRatio = 0.6;
   const oceanDepth = -70;
   const archipelagoDepth = -30;
@@ -165,6 +166,7 @@ export const generateIsland = (world: World) => {
   const townFlipped = choice(true, false);
   const townOffset = townFlipped ? 90 : -90;
   const spawnAngle = islandAngle - random(30, 60) - (townFlipped ? 90 : 0);
+  const ilexAngle = islandAngle - 90;
   const townAngle = spawnAngle + townOffset;
 
   // precalculated values
@@ -201,6 +203,13 @@ export const generateIsland = (world: World) => {
     spawnExit,
     spawnWalkAngle,
     spawnWalkLength / 2,
+    mainlandRatio
+  );
+  const ilexPoint = angledOffset(
+    size,
+    { x: 0, y: 0 },
+    ilexAngle,
+    mainlandRadius * 0.8,
     mainlandRatio
   );
   const townCorner = combine(size, townPoint, {
@@ -317,18 +326,6 @@ export const generateIsland = (world: World) => {
         15,
         1
       );
-      const oakCircle = circularKernel(
-        size,
-        size,
-        x,
-        y,
-        oakPoint,
-        6,
-        1,
-        0,
-        15,
-        oakRatio
-      );
       const spawnWalk = rectangleKernel(
         size,
         size,
@@ -341,6 +338,30 @@ export const generateIsland = (world: World) => {
         1,
         0,
         5
+      );
+      const ilexCircle = circularKernel(
+        size,
+        size,
+        x,
+        y,
+        ilexPoint,
+        5,
+        1,
+        0,
+        15,
+        ilexRatio
+      );
+      const oakCircle = circularKernel(
+        size,
+        size,
+        x,
+        y,
+        oakPoint,
+        6,
+        1,
+        0,
+        15,
+        oakRatio
       );
       const townSquare = rectangleKernel(
         size,
@@ -357,7 +378,12 @@ export const generateIsland = (world: World) => {
         1
       );
       const flattenedKernel =
-        spawnCircle * spawnWalk * townSquare * oakCircle * passageKernel;
+        spawnCircle *
+        spawnWalk *
+        ilexCircle *
+        townSquare *
+        oakCircle *
+        passageKernel;
 
       const beachesKernel = simplexNoiseKernel(
         beachesFactory,
@@ -621,6 +647,16 @@ export const generateIsland = (world: World) => {
     setPath(pathMatrix, x + spawnCorner.x, y + spawnCorner.y, 0);
   });
 
+  // insert ilex
+  insertArea(world, ilexArea, ilexPoint.x, ilexPoint.y, true);
+  const ilexLines = ilexArea.split("\n");
+  const ilexWidth = ilexLines[0].length;
+  const ilexHeight = ilexLines.length;
+  const ilexCorner = {
+    x: ilexPoint.x - (ilexWidth - 1) / 2,
+    y: ilexPoint.y - (ilexHeight - 1) / 2,
+  };
+
   // insert oak
   insertArea(world, oakArea, oakPoint.x, oakPoint.y, true);
   const oakLines = oakArea.split("\n");
@@ -812,13 +848,23 @@ export const generateIsland = (world: World) => {
     }
   );
 
-  // initialize spawn and town
+  // initialize spawn, town, ilex and oak
   initializeArea(
     world,
     spawnCorner,
     combine(size, spawnCorner, { x: spawnWidth, y: spawnHeight })
   );
   initializeArea(world, townCorner, combine(size, townCorner, townSize));
+  initializeArea(
+    world,
+    ilexCorner,
+    combine(size, ilexCorner, { x: ilexWidth, y: ilexHeight })
+  );
+  initializeArea(
+    world,
+    oakCorner,
+    combine(size, oakCorner, { x: oakWidth, y: oakHeight })
+  );
 
   // adjust hero
   const heroEntity = assertIdentifierAndComponents(world, "hero", [
@@ -916,7 +962,7 @@ export const generateIsland = (world: World) => {
       },
       {
         item: {
-          consume: "key",
+          stackable: "resource",
           material: "iron",
           amount: 1,
         },

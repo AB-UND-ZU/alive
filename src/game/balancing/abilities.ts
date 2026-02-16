@@ -286,6 +286,12 @@ export const abilityStats: Partial<
     },
   },
 
+  ilexViolet: {
+    bolt: {
+      iron: { default: { magic: 1 } },
+    },
+  },
+
   oakBoss: {
     wave: {
       gold: {

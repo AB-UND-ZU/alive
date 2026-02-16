@@ -68,6 +68,7 @@ export type UnitKey =
   | "goldChest"
   | "diamondChest"
   | "rubyChest"
+  | "ilexChest"
   | "oakChest"
   | "pot"
   | "box"
@@ -1107,18 +1108,14 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     scratch: colors.green,
     dormant: true,
     stats: {
-      hp: 100,
+      hp: 350,
       mp: 1,
-      armor: 1,
     },
     equipments: [],
     drops: [
       {
         chance: 100,
-        items: [
-          { stackable: "coin", amount: 5 },
-          { stat: "xp", amount: 5 },
-        ],
+        items: [{ stat: "xp", amount: 5 }],
       },
     ],
     patternNames: ["ilex"],
@@ -1130,6 +1127,68 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       evaporate: { sprite: plantEvaporate, fast: true },
     },
     remainsChoices: [bush],
+  },
+  ilexViolet: {
+    faction: "wild",
+    scratch: colors.green,
+    stats: {
+      hp: 10,
+      mp: 1,
+    },
+    equipments: [
+      {
+        equipment: "primary",
+        primary: "bolt",
+        material: "iron",
+        bound: true,
+        amount: 1,
+      },
+    ],
+    drops: [
+      {
+        chance: 100,
+        items: [{ stat: "hp", amount: 1 }],
+      },
+    ],
+    patternNames: ["violet"],
+    sprite: violet,
+  },
+  ilexChest: {
+    faction: "unit",
+    scratch: colors.grey,
+    stats: {
+      hp: 20,
+      armor: 2,
+    },
+    equipments: [],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          {
+            consume: "key",
+            amount: 1,
+            material: "iron",
+          },
+          {
+            consume: "potion",
+            material: "wood",
+            element: "fire",
+            amount: 5,
+          },
+          {
+            stackable: "coin",
+            amount: 5,
+          },
+          {
+            stackable: "seed",
+            amount: 1,
+          },
+        ],
+      },
+    ],
+    patternNames: [],
+    sprite: ironChest,
   },
   oakBoss: {
     faction: "unit",
@@ -1183,7 +1242,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     scratch: colors.green,
     stats: {
       hp: 15,
-      armor: 0,
     },
     equipments: [
       {

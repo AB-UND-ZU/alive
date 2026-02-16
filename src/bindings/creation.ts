@@ -725,6 +725,7 @@ export const insertArea = (
       else if (cell === "Y") entity = "chest_tower";
       else if (cell === "y") entity = "chest_tower_statue";
       else if (cell === "I") entity = "ilex_elite";
+      else if (cell === "i") entity = "ilexChest";
       else if (cell === "O") entity = "oak_boss";
       else if (cell === "C") entity = "chest_boss";
       else if (cell === "∩") entity = "portal";
@@ -2606,6 +2607,7 @@ export const createCell = (
     setIdentifier(world, towerEntity, "chest_tower");
     return { cell: towerEntity, all };
   } else if (cell === "ilex_elite") {
+
     const eliteUnit = generateNpcData("ilexElite");
 
     // create unit and base
@@ -2634,7 +2636,7 @@ export const createCell = (
         flying: false,
       },
       [NPC]: { type: eliteUnit.type },
-      [ORIENTABLE]: { facing: "up" },
+      [ORIENTABLE]: {},
       [POSITION]: { x, y },
       [RECHARGABLE]: { hit: false },
       [RENDERABLE]: { generation: 0 },
@@ -2669,20 +2671,24 @@ export const createCell = (
       sprite: Sprite;
       orientation?: Orientation;
     }[] = [
-      { offset: { x: 1, y: 0 }, sprite: eliteUnit.sprite, orientation: "up" },
-      { offset: { x: 1, y: 1 }, sprite: eliteUnit.sprite, orientation: "up" },
-      { offset: { x: 1, y: 2 }, sprite: eliteUnit.sprite, orientation: "up" },
-      { offset: { x: 0, y: 2 }, sprite: eliteUnit.sprite, orientation: "up" },
-      { offset: { x: -1, y: 2 }, sprite: eliteUnit.sprite, orientation: "up" },
-      { offset: { x: -1, y: 1 }, sprite: eliteUnit.sprite, orientation: "up" },
-      { offset: { x: -1, y: 0 }, sprite: eliteUnit.sprite, orientation: "up" },
+      { offset: { x: 1, y: 0 }, sprite: eliteUnit.sprite },
+      { offset: { x: 1, y: 1 }, sprite: eliteUnit.sprite },
+      { offset: { x: 1, y: 2 }, sprite: eliteUnit.sprite },
+      { offset: { x: 0, y: 2 }, sprite: eliteUnit.sprite },
+      { offset: { x: -1, y: 2 }, sprite: eliteUnit.sprite },
+      { offset: { x: -1, y: 1 }, sprite: eliteUnit.sprite },
+      { offset: { x: -1, y: 0 }, sprite: eliteUnit.sprite },
     ];
 
     for (const { offset, sprite, orientation } of ilexLimbs) {
       const limbEntity = entities.createLimb(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
         [COLLIDABLE]: {},
-        [DROPPABLE]: { decayed: false, evaporate: eliteUnit.vanish?.evaporate },
+        [DROPPABLE]: {
+          decayed: false,
+          evaporate: eliteUnit.vanish?.evaporate,
+          remains: eliteUnit.remains,
+        },
         [FOG]: { visibility, type: "object" },
         [FRAGMENT]: { structure: eliteId },
         [LAYER]: {},
@@ -2707,6 +2713,10 @@ export const createCell = (
     }
 
     return { cell: eliteEntity, all };
+  } else if (cell === "ilexChest") {
+    const chestEntity = createChest(world, "ilexChest", { x, y });
+    all.push(chestEntity);
+    return { cell: chestEntity, all };
   } else if (cell === "oak_boss") {
     const bossUnit = generateNpcData("oakBoss");
 

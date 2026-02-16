@@ -102,6 +102,23 @@ export const animateEvaporate = (world: World, entity: Entity) => {
   );
 };
 
+export const placeRemains = (
+  world: World,
+  entity: Entity,
+  position = entity[POSITION]
+) => {
+  const remains = entity[DROPPABLE]?.remains;
+
+  if (remains) {
+    entities.createGround(world, {
+      [FOG]: { visibility: "hidden", type: "terrain" },
+      [POSITION]: position,
+      [SPRITE]: remains,
+      [RENDERABLE]: { generation: 0 },
+    });
+  }
+};
+
 export const MAX_DROP_RADIUS = 5;
 export const findAdjacentDroppable = (
   world: World,
@@ -267,16 +284,8 @@ export const dropEntity = (
   delay?: number
 ) => {
   const inventory = entity[INVENTORY]?.items || [];
-  const remains = entity[DROPPABLE]?.remains;
 
-  if (remains) {
-    entities.createGround(world, {
-      [FOG]: { visibility: "hidden", type: "terrain" },
-      [POSITION]: position,
-      [SPRITE]: remains,
-      [RENDERABLE]: { generation: 0 },
-    });
-  }
+  placeRemains(world, entity, position);
 
   // convert wood sword back to stick
   const stickId = inventory.find((itemId: number) => {
