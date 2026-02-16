@@ -52,12 +52,6 @@ export type MarkerSequence = {
   type: DamageType;
   orientation?: Orientation;
 };
-export type HarvestSequence = {
-  amount: number;
-  target: number;
-  item: number;
-  orientation: Orientation;
-};
 export type Message = {
   line: Sprite[];
   orientation: Orientation;
@@ -132,7 +126,11 @@ export type MeleeSequence = {
   facing: Orientation;
   rotate: boolean;
 };
-export type ConditionSequence = { duration: number; material: Material };
+export type ConditionSequence = {
+  duration: number;
+  material: Material;
+  orientation?: Orientation;
+};
 export type SpellSequence = {
   element?: Element;
   material?: Material;
@@ -227,7 +225,6 @@ export type Sequencable = {
     perish?: SequenceState<PerishSequence>;
     pointer?: SequenceState<PointerSequence>;
     marker?: SequenceState<MarkerSequence>;
-    harvest?: SequenceState<HarvestSequence>;
     message?: SequenceState<MessageSequence>;
     decay?: SequenceState<DecaySequence>;
     evaporate?: SequenceState<VanishSequence>;

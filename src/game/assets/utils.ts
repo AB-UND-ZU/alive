@@ -135,6 +135,8 @@ import {
   logging,
   absorb,
   scout,
+  wall,
+  mining,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -167,6 +169,7 @@ import {
   bow,
   compass,
   map,
+  pickaxe,
   raise,
   ring,
   shield,
@@ -1603,6 +1606,25 @@ export const materialSprites: Record<
       ],
     },
   },
+  pickaxe: {
+    wood: {
+      sprite: pickaxe.wood.default,
+      getDescription: () => [
+        createText("Stand in front of"),
+        [
+          ...createText("a "),
+          wall,
+          ...createText("Rock", colors.grey),
+          ...createText(" to mine."),
+        ],
+        [
+          ...createText("1", colors.green),
+          mining,
+          ...createText("Mining", colors.green),
+        ],
+      ],
+    },
+  },
   compass: {
     iron: {
       sprite: compass.iron.default,
@@ -2292,6 +2314,7 @@ export const elementSprites: Record<
   slash: {},
   bow: {},
   axe: {},
+  pickaxe: {},
   raise: {},
   block: {},
 

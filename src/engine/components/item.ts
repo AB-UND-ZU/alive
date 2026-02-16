@@ -13,7 +13,11 @@ export type Material = (typeof materials)[number];
 export type Primary = "wave" | "beam" | "bolt" | "blast";
 
 export const rechargables = ["slash", "raise", "block"] as const;
-export type Secondary = "bow" | "axe" | (typeof rechargables)[number];
+export type Secondary =
+  | "bow"
+  | "axe"
+  | "pickaxe"
+  | (typeof rechargables)[number];
 
 export type Consumable = "key" | "potion";
 

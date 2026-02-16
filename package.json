@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "@types/body-scroll-lock": "^3.1.2",
-    "@types/javascript-astar": "^0.0.35"
+    "@types/javascript-astar": "^0.0.35",
+    "prettier": "^2.8.8"
   }
 }

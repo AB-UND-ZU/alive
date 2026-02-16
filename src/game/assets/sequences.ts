@@ -211,7 +211,6 @@ import {
   VortexSequence,
   XpSequence,
   WeatherSequence,
-  HarvestSequence,
   ConditionSequence,
   BranchSequence,
   WormSequence,
@@ -364,6 +363,7 @@ import {
   MAX_DROP_RADIUS,
   placeRemains,
 } from "../../engine/systems/drop";
+import { getHarvestTarget } from "../../engine/systems/harvesting";
 
 export * from "./npcs";
 export * from "./quests";
@@ -603,6 +603,144 @@ export const blockCondition: Sequence<ConditionSequence> = (
       const particleEntity = world.assertById(state.particles[particleName]);
       disposeEntity(world, particleEntity);
       delete state.particles[particleName];
+    }
+  }
+
+  return { finished, updated };
+};
+
+export const axeCondition: Sequence<ConditionSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const tick = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+    REFERENCE,
+  ])[REFERENCE].tick;
+  let updated = false;
+  const finished = !entity[CONDITIONABLE].axe;
+
+  const axeEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].secondary,
+    [ITEM, SPRITE]
+  );
+  const swordEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].sword,
+    [ITEM]
+  );
+  const shieldEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].shield,
+    [ITEM]
+  );
+
+  // requires axe to be worn
+  if (!axeEntity) {
+    return { updated: false, finished: false };
+  }
+
+  // hide sword and shield
+  if (swordEntity && swordEntity[ITEM].amount !== 0) {
+    swordEntity[ITEM].amount = 0;
+    rerenderEntity(world, swordEntity);
+    updated = true;
+  }
+  if (shieldEntity && shieldEntity[ITEM].amount !== 0) {
+    shieldEntity[ITEM].amount = 0;
+    rerenderEntity(world, shieldEntity);
+    updated = true;
+  }
+
+  if (!state.particles.condition) {
+    const conditionParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: lootHeight,
+        amount: 0,
+        animatedOrigin: { x: 0, y: 0 },
+        duration: tick / 2,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: axeEntity[SPRITE],
+    });
+    state.particles.condition = world.getEntityId(conditionParticle);
+
+    updated = true;
+  }
+
+  const conditionParticle = world.assertByIdAndComponents(
+    state.particles.condition,
+    [PARTICLE]
+  );
+  if (finished) {
+    disposeEntity(world, conditionParticle);
+    delete state.particles.condition;
+
+    // reset sword and shield
+    if (swordEntity) {
+      swordEntity[ITEM].amount = 1;
+      rerenderEntity(world, swordEntity);
+    }
+    if (shieldEntity) {
+      shieldEntity[ITEM].amount = 1;
+      rerenderEntity(world, shieldEntity);
+    }
+  } else {
+    const targetDuration = entity[CONDITIONABLE].axe.duration;
+    const targetOrientation = entity[CONDITIONABLE].axe.orientation as
+      | Orientation
+      | undefined;
+    const targetEntity = getHarvestTarget(world, entity, axeEntity);
+
+    if (
+      targetEntity &&
+      targetDuration &&
+      targetDuration !== state.args.duration &&
+      targetOrientation
+    ) {
+      // move axe out
+      state.args.duration = targetDuration;
+      state.args.orientation = targetOrientation;
+      const delta = orientationPoints[targetOrientation];
+      conditionParticle[PARTICLE].offsetX = delta.x;
+      conditionParticle[PARTICLE].offsetY = delta.y;
+      rerenderEntity(world, conditionParticle);
+      updated = true;
+    } else if (
+      targetEntity &&
+      state.args.orientation &&
+      targetOrientation &&
+      state.elapsed - state.args.duration > tick / 2
+    ) {
+      // perform harvest
+      targetEntity[HARVESTABLE].amount -= entity[CONDITIONABLE].axe.amount;
+      rerenderEntity(world, targetEntity);
+
+      // bump target resource
+      if (targetEntity[ORIENTABLE] && targetEntity[MOVABLE]) {
+        targetEntity[ORIENTABLE].facing = state.args.orientation;
+        targetEntity[MOVABLE].bumpGeneration =
+          targetEntity[RENDERABLE].generation;
+      }
+
+      // move axe back
+      entity[CONDITIONABLE].axe.orientation = undefined;
+      state.args.orientation = undefined;
+      conditionParticle[PARTICLE].offsetX = 0;
+      conditionParticle[PARTICLE].offsetY = 0;
+      rerenderEntity(world, conditionParticle);
+      updated = true;
+    } else if (
+      !state.args.orientation &&
+      !targetOrientation &&
+      state.args.duration &&
+      targetDuration &&
+      state.elapsed - state.args.duration > tick
+    ) {
+      // reset axe
+      entity[CONDITIONABLE].axe.duration = 0;
+      state.args.duration = 0;
+      updated = true;
     }
   }
 
@@ -1305,76 +1443,74 @@ export const amountMarker: Sequence<MarkerSequence> = (
   return { finished, updated };
 };
 
-const harvestDuration = 100;
+// export const harvestResource: Sequence<HarvestSequence> = (
+//   world,
+//   entity,
+//   state
+// ) => {
+//   const targetEntity = world.getEntityByIdAndComponents(state.args.target, [
+//     HARVESTABLE,
+//     RENDERABLE,
+//   ]);
+//   const finished = !targetEntity || state.elapsed > harvestDuration * 2;
+//   let updated = false;
 
-export const harvestResource: Sequence<HarvestSequence> = (
-  world,
-  entity,
-  state
-) => {
-  const targetEntity = world.getEntityByIdAndComponents(state.args.target, [
-    HARVESTABLE,
-    RENDERABLE,
-  ]);
-  const finished = !targetEntity || state.elapsed > harvestDuration * 2;
-  let updated = false;
+//   if (finished) return { finished, updated };
 
-  if (finished) return { finished, updated };
+//   if (!state.particles.harvest) {
+//     const delta = orientationPoints[state.args.orientation];
+//     const harvestParticle = entities.createParticle(world, {
+//       [PARTICLE]: {
+//         offsetX: delta.x,
+//         offsetY: delta.y,
+//         offsetZ: particleHeight,
+//         animatedOrigin: { x: 0, y: 0 },
+//         duration: harvestDuration,
+//       },
+//       [RENDERABLE]: { generation: 1 },
+//       [SPRITE]: getItemSprite(
+//         world.assertByIdAndComponents(state.args.item, [ITEM])[ITEM]
+//       ),
+//     });
+//     state.particles.harvest = world.getEntityId(harvestParticle);
+//     updated = true;
+//   }
 
-  if (!state.particles.harvest) {
-    const delta = orientationPoints[state.args.orientation];
-    const harvestParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: delta.x,
-        offsetY: delta.y,
-        offsetZ: particleHeight,
-        animatedOrigin: { x: 0, y: 0 },
-        duration: harvestDuration,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: getItemSprite(
-        world.assertByIdAndComponents(state.args.item, [ITEM])[ITEM]
-      ),
-    });
-    state.particles.harvest = world.getEntityId(harvestParticle);
-    updated = true;
-  }
+//   const harvestParticle = world.getEntityByIdAndComponents(
+//     state.particles.harvest,
+//     [PARTICLE]
+//   );
 
-  const harvestParticle = world.getEntityByIdAndComponents(
-    state.particles.harvest,
-    [PARTICLE]
-  );
+//   if (
+//     state.elapsed > harvestDuration &&
+//     harvestParticle &&
+//     (harvestParticle[PARTICLE].offsetX !== 0 ||
+//       harvestParticle[PARTICLE].offsetY !== 0)
+//   ) {
+//     harvestParticle[PARTICLE].offsetX = 0;
+//     harvestParticle[PARTICLE].offsetY = 0;
 
-  if (
-    state.elapsed > harvestDuration &&
-    harvestParticle &&
-    (harvestParticle[PARTICLE].offsetX !== 0 ||
-      harvestParticle[PARTICLE].offsetY !== 0)
-  ) {
-    harvestParticle[PARTICLE].offsetX = 0;
-    harvestParticle[PARTICLE].offsetY = 0;
+//     // perform harvest
+//     targetEntity[HARVESTABLE].amount -= state.args.amount;
+//     rerenderEntity(world, targetEntity);
 
-    // perform harvest
-    targetEntity[HARVESTABLE].amount -= state.args.amount;
-    rerenderEntity(world, targetEntity);
+//     // bump target resource
+//     if (targetEntity[ORIENTABLE] && targetEntity[MOVABLE]) {
+//       targetEntity[ORIENTABLE].facing = state.args.orientation;
+//       targetEntity[MOVABLE].bumpGeneration =
+//         targetEntity[RENDERABLE].generation;
+//     }
 
-    // bump target resource
-    if (targetEntity[ORIENTABLE] && targetEntity[MOVABLE]) {
-      targetEntity[ORIENTABLE].facing = state.args.orientation;
-      targetEntity[MOVABLE].bumpGeneration =
-        targetEntity[RENDERABLE].generation;
-    }
+//     updated = true;
+//   }
 
-    updated = true;
-  }
+//   if (state.elapsed > harvestDuration * 2 && harvestParticle) {
+//     disposeEntity(world, harvestParticle);
+//     delete state.particles.harvest;
+//   }
 
-  if (state.elapsed > harvestDuration * 2 && harvestParticle) {
-    disposeEntity(world, harvestParticle);
-    delete state.particles.harvest;
-  }
-
-  return { finished, updated };
-};
+//   return { finished, updated };
+// };
 
 const messageDuration = 600;
 

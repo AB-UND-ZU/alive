@@ -11,6 +11,7 @@ export { default as setupEnter } from "./enter";
 export { default as setupFate } from "./fate";
 export { default as setupFocus } from "./focus";
 export { default as setupFreeze } from "./freeze";
+export { default as setupHarvesting } from "./harvesting";
 export { default as setupHoming } from "./homing";
 export { default as setupImmersion } from "./immersion";
 export { default as setupInitialize } from "./initialize";

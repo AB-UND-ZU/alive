@@ -10,7 +10,7 @@ import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
 import { INVENTORY } from "../components/inventory";
-import { ITEM, materials, rechargables } from "../components/item";
+import { ITEM, rechargables } from "../components/item";
 import { isDead, isEnemy, isNpc } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
@@ -29,13 +29,6 @@ import {
 import { WARPABLE } from "../components/warpable";
 import { POPUP } from "../components/popup";
 import { EQUIPPABLE } from "../components/equippable";
-import { HARVESTABLE } from "../components/harvestable";
-import {
-  ORIENTABLE,
-  Orientation,
-  orientationPoints,
-} from "../components/orientable";
-import { getLootable } from "./collect";
 import { CONDITIONABLE } from "../components/conditionable";
 import { FRAGMENT } from "../components/fragment";
 
@@ -74,38 +67,6 @@ export const getUnlockKey = (
     );
   });
   return keyId && world.getEntityById(keyId);
-};
-
-export const getHarvestable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => HARVESTABLE in entity
-  ) as Entity | undefined;
-
-export const getHarvestTarget = (
-  world: World,
-  entity: Entity,
-  tool: Entity
-) => {
-  // check if pointing to something harvestable
-  const orientation = entity[ORIENTABLE]?.facing as Orientation;
-
-  if (!orientation || !entity[POSITION]) return;
-
-  const target = add(entity[POSITION], orientationPoints[orientation]);
-  const harvestable = getHarvestable(world, target);
-  const lootable = getLootable(world, target);
-
-  if (
-    lootable ||
-    !harvestable ||
-    harvestable[HARVESTABLE].resource !== "tree" ||
-    harvestable[HARVESTABLE].amount <= 0 ||
-    materials.indexOf(harvestable[HARVESTABLE].material) >
-      materials.indexOf(tool[ITEM].material)
-  )
-    return;
-
-  return harvestable;
 };
 
 export const castablePrimary = (
@@ -156,8 +117,7 @@ export const castableSecondary = (
       (secondary === "block" && entity[CONDITIONABLE]?.block);
     if (hasCharge && !activeCondition) return true;
   } else if (secondary === "axe" && item[ITEM].material) {
-    // check if pointing to something harvestable
-    return !!getHarvestTarget(world, entity, item);
+    return true;
   }
 
   return false;

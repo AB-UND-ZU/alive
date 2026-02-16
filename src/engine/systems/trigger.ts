@@ -30,7 +30,6 @@ import {
   canUnlock,
   castablePrimary,
   castableSecondary,
-  getHarvestTarget,
   getUnlockKey,
 } from "./action";
 import {
@@ -45,7 +44,6 @@ import {
 import { canRevive, isRevivable, reviveEntity } from "./fate";
 import {
   ConditionSequence,
-  HarvestSequence,
   Sequencable,
   SEQUENCABLE,
   SequenceState,
@@ -580,31 +578,18 @@ export const consumeCharge = (
   }
 };
 
-export const harvestTree = (world: World, entity: Entity, axe: Entity) => {
-  const harvestable = getHarvestTarget(world, entity, axe);
-
-  if (!harvestable) return;
-
-  createSequence<"harvest", HarvestSequence>(
-    world,
-    entity,
-    "harvest",
-    "harvestResource",
-    {
-      amount: 1,
-      item: world.getEntityId(axe),
-      target: world.getEntityId(harvestable),
-      orientation: entity[ORIENTABLE].facing,
-    }
-  );
-};
-
 const conditionConfig: Record<
   ConditionType,
-  { sequence: SequenceState<{}>["name"]; stat: keyof ItemStats }
+  {
+    sequence: SequenceState<{}>["name"];
+    duration: number;
+    stat?: keyof ItemStats;
+  }
 > = {
-  raise: { sequence: "raiseCondition", stat: "melee" },
-  block: { sequence: "blockCondition", stat: "absorb" },
+  raise: { sequence: "raiseCondition", stat: "melee", duration: 10 },
+  block: { sequence: "blockCondition", stat: "absorb", duration: 10 },
+  axe: { sequence: "axeCondition", duration: 0 },
+  pickaxe: { sequence: "axeCondition", duration: 0 },
 };
 
 export const applyCondition = (
@@ -612,9 +597,9 @@ export const applyCondition = (
   entity: Entity,
   type: ConditionType,
   material: Material,
+  duration: number,
   amount: number
 ) => {
-  const duration = 10;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   (entity[CONDITIONABLE] as Conditionable)[type] = {
     duration,
@@ -628,7 +613,7 @@ export const applyCondition = (
     "condition",
     conditionConfig[type].sequence,
     {
-      duration: 10,
+      duration,
       material,
     }
   );
@@ -642,17 +627,40 @@ export const castConditionable = (
   const condition = item[ITEM].secondary;
   const material = item[ITEM].material;
 
-  if (!material || (condition !== "raise" && condition !== "block")) return;
+  if (
+    !material ||
+    (condition !== "raise" &&
+      condition !== "block" &&
+      condition !== "axe" &&
+      condition !== "pickaxe")
+  )
+    return;
+
+  // unequip tools if active
+  if (condition === "axe" && entity[CONDITIONABLE].axe) {
+    delete entity[CONDITIONABLE].axe;
+    return;
+  } else if (condition === "pickaxe" && entity[CONDITIONABLE].pickaxe) {
+    delete entity[CONDITIONABLE].pickaxe;
+    return;
+  }
 
   const itemStats = getAbilityStats(item[ITEM]);
 
-  consumeCharge(world, entity, { stackable: "charge" });
+  // consume charges for active skills
+  if (condition === "raise" || condition === "block") {
+    consumeCharge(world, entity, { stackable: "charge" });
+  }
+
+  const duration = conditionConfig[condition].duration;
+  const conditionStat = conditionConfig[condition].stat;
   applyCondition(
     world,
     entity,
     condition,
     material,
-    itemStats[conditionConfig[condition].stat]
+    duration,
+    conditionStat ? itemStats[conditionStat] : 1
   );
 };
 
@@ -1284,11 +1292,11 @@ export default function setupTrigger(world: World) {
             shootArrow(world, entity, secondaryEntity);
           } else if (secondaryEntity[ITEM].secondary === "slash") {
             chargeSlash(world, entity, secondaryEntity);
-          } else if (secondaryEntity[ITEM].secondary === "axe") {
-            harvestTree(world, entity, secondaryEntity);
           } else if (
             secondaryEntity[ITEM].secondary === "raise" ||
-            secondaryEntity[ITEM].secondary === "block"
+            secondaryEntity[ITEM].secondary === "block" ||
+            secondaryEntity[ITEM].secondary === "axe" ||
+            secondaryEntity[ITEM].secondary === "pickaxe"
           ) {
             castConditionable(world, entity, secondaryEntity);
           }

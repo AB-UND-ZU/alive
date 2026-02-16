@@ -29,7 +29,6 @@ import {
   canUnlock,
   castablePrimary,
   castableSecondary,
-  getHarvestTarget,
 } from "../../engine/systems/action";
 import { Entity } from "ecs";
 import { World } from "../../engine";
@@ -68,6 +67,7 @@ import { centerSprites } from "../../game/assets/pixels";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
 import { TEST_MODE } from "../../engine/utils";
+import { CONDITIONABLE } from "../../engine/components/conditionable";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -114,10 +114,14 @@ const getActiveActivations = (world: World, hero: TypedEntity, item: Item) => {
       stackableSprite,
     ].slice(-6);
   } else if (item.secondary === "axe") {
-    const harvestable = getHarvestTarget(world, hero, { [ITEM]: item });
-    if (harvestable) {
-      return centerSprites([itemSprite, harvestable[SPRITE]], 6);
+    if (!hero[CONDITIONABLE]?.axe) {
+      return centerSprites([itemSprite], 6);
     }
+    const swordEntity = world.getEntityByIdAndComponents(
+      hero[EQUIPPABLE]?.sword,
+      [SPRITE]
+    );
+    return centerSprites([swordEntity?.[SPRITE] || none], 6);
   } else if (item.primary) {
     const amount = item.primary.endsWith("2") ? 2 : 1;
     return [
@@ -463,7 +467,17 @@ export default function Controls() {
         secondaryEntity as TypedEntity<"ITEM">
       ),
 
-    (_, __, secondaryEntity) => secondaryEntity[SPRITE].name.toUpperCase(),
+    (world, hero, secondaryEntity) => {
+      const swordEntity = world.getEntityByIdAndComponents(
+        hero[EQUIPPABLE]?.sword,
+        [SPRITE]
+      );
+      if (hero[CONDITIONABLE]?.axe) {
+        return (swordEntity?.[SPRITE].name || "Stow").toUpperCase();
+      }
+
+      return secondaryEntity[SPRITE].name.toUpperCase();
+    },
     (world, _, secondaryEntity) =>
       hero
         ? getActiveActivations(world, hero, secondaryEntity[ITEM])

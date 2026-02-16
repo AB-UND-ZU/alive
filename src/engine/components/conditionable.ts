@@ -1,7 +1,8 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
+import { Orientation } from "./orientable";
 
-export type ConditionType = "raise" | "block";
+export type ConditionType = "raise" | "block" | "axe" | "pickaxe";
 
 export type Conditionable = Partial<
   Record<
@@ -10,6 +11,7 @@ export type Conditionable = Partial<
       generation: number;
       duration: number;
       amount: number;
+      orientation?: Orientation;
     }
   >
 >;
