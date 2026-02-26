@@ -47,6 +47,7 @@ export const clickEntity = (
 ) => {
   hero[ORIENTABLE].facing = orientation;
   hero[MOVABLE].bumpGeneration = hero[RENDERABLE].generation;
+  hero[MOVABLE].bumpOrientation = orientation;
   target[CLICKABLE].clicked = true;
   rerenderEntity(world, hero);
 };

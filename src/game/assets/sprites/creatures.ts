@@ -98,6 +98,15 @@ export const chief: Sprite = {
   name: "Chief",
 };
 
+export const zombie: Sprite = {
+  name: "Zombie",
+  layers: [
+    { char: "[", color: colors.red },
+    { char: "]", color: colors.black },
+    { char: "\u010b", color: colors.maroon },
+  ],
+};
+
 export const blade: Sprite = {
   name: "Blade",
   layers: [
@@ -248,8 +257,8 @@ export const ilex: Sprite = {
   layers: [
     { char: "X", color: colors.green },
     { char: "┼", color: colors.green },
-      { char: "\u0106", color: colors.red },
-      { char: "∙", color: colors.maroon },
+    { char: "\u0106", color: colors.red },
+    { char: "∙", color: colors.maroon },
   ],
   facing: {
     up: [
@@ -277,7 +286,7 @@ export const ilex: Sprite = {
   },
 };
 
-export const oakBoss: Sprite = {
+export const oakBossUnit: Sprite = {
   name: "Oak",
   layers: [
     { char: "\u0106", color: colors.green },
@@ -321,6 +330,309 @@ export const chick: Sprite = {
     { char: "∙", color: colors.yellow },
     { char: ".", color: colors.black },
   ],
+};
+
+export const golemUnit: Sprite = {
+  name: "Golem",
+  layers: [
+    { char: "|", color: colors.grey },
+    { char: "m", color: colors.grey },
+    { char: "\u010e", color: colors.grey },
+    { char: "\u0106", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.grey },
+    { char: "∙", color: colors.grey },
+    { char: ":", color: colors.grey },
+  ],
+};
+
+export const golem: Sprite = {
+  name: "Golem",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "¿", color: colors.black },
+    { char: "j", color: colors.black },
+    { char: "▄", color: colors.grey },
+    { char: "■", color: colors.grey },
+  ],
+  facing: {
+    up: [
+      { char: "█", color: colors.grey },
+      { char: "¿", color: colors.black },
+      { char: "j", color: colors.black },
+      { char: "▄", color: colors.grey },
+      { char: "■", color: colors.grey },
+      { char: "\u0106", color: colors.yellow },
+      { char: "\u0108", color: colors.olive },
+    ],
+    right: [
+      { char: "█", color: colors.grey },
+      { char: "¿", color: colors.black },
+      { char: "j", color: colors.black },
+      { char: "▄", color: colors.grey },
+      { char: "■", color: colors.grey },
+      { char: "\u0106", color: colors.yellow },
+      { char: "\u0108", color: colors.olive },
+    ],
+    down: [
+      { char: "█", color: colors.grey },
+      { char: "¿", color: colors.black },
+      { char: "j", color: colors.black },
+      { char: "▄", color: colors.grey },
+      { char: "■", color: colors.grey },
+      { char: "\u0106", color: colors.yellow },
+      { char: "\u0108", color: colors.olive },
+    ],
+    left: [
+      { char: "█", color: colors.grey },
+      { char: "¿", color: colors.black },
+      { char: "j", color: colors.black },
+      { char: "▄", color: colors.grey },
+      { char: "■", color: colors.grey },
+      { char: "\u0106", color: colors.yellow },
+      { char: "\u0108", color: colors.olive },
+    ],
+  },
+};
+
+export const golemBody: Sprite = {
+  name: "Golem",
+  layers: [{ char: "█", color: colors.grey }],
+  facing: {
+    up: [{ char: "▄", color: colors.grey }],
+    down: [
+      { char: "▀", color: colors.grey },
+      { char: "┴", color: colors.black },
+      { char: "╨", color: colors.grey },
+      { char: "─", color: colors.black },
+    ],
+  },
+};
+
+export const golemArm: Sprite = {
+  name: "Golem",
+  layers: [
+    { char: "╥", color: colors.grey },
+    { char: "┬", color: colors.grey },
+  ],
+  facing: {
+    up: [
+      { char: "╚", color: colors.grey },
+      { char: "└", color: colors.grey },
+    ],
+    right: [
+      { char: "╗", color: colors.grey },
+      { char: "┐", color: colors.grey },
+    ],
+    down: [
+      { char: "╝", color: colors.grey },
+      { char: "┘", color: colors.grey },
+    ],
+    left: [
+      { char: "╔", color: colors.grey },
+      { char: "┌", color: colors.grey },
+    ],
+  },
+};
+
+export const golemShoulderLeft: Sprite = {
+  name: "Golem",
+  layers: [{ char: "╔", color: colors.grey }],
+  facing: {
+    up: [{ char: "╚", color: colors.grey }],
+    left: [{ char: "═", color: colors.grey }],
+  },
+};
+
+export const golemShoulderRight: Sprite = {
+  name: "Golem",
+  layers: [{ char: "╗", color: colors.grey }],
+  facing: {
+    up: [{ char: "╝", color: colors.grey }],
+    right: [{ char: "═", color: colors.grey }],
+  },
+};
+
+export const golemLimb: Sprite = {
+  name: "Golem",
+  layers: [{ char: "╬", color: colors.grey }],
+  facing: {
+    up: [{ char: "║", color: colors.grey }],
+    right: [{ char: "═", color: colors.grey }],
+    down: [{ char: "║", color: colors.grey }],
+    left: [{ char: "═", color: colors.grey }],
+  },
+};
+
+export const golemFist: Sprite = {
+  name: "Golem",
+  layers: [
+    { char: "═", color: colors.grey },
+    { char: "■", color: colors.grey },
+  ],
+  facing: {
+    up: [
+      { char: "╥", color: colors.grey },
+      { char: "─", color: colors.black },
+      { char: "■", color: colors.grey },
+    ],
+    right: [
+      { char: "╡", color: colors.grey },
+      { char: "│", color: colors.black },
+      { char: "■", color: colors.grey },
+    ],
+    down: [
+      { char: "╨", color: colors.grey },
+      { char: "─", color: colors.black },
+      { char: "■", color: colors.grey },
+    ],
+    left: [
+      { char: "╞", color: colors.grey },
+      { char: "│", color: colors.black },
+      { char: "■", color: colors.grey },
+    ],
+  },
+};
+
+export const golemStrikeUp: Sprite = {
+  name: "Golem",
+  layers: [],
+  facing: {
+    up: [{ char: "─", color: colors.yellow }],
+    right: [{ char: "─", color: colors.yellow }],
+    left: [{ char: "─", color: colors.yellow }],
+  },
+};
+
+export const golemStrikeUpRight: Sprite = {
+  name: "Golem",
+  layers: [],
+  facing: {
+    up: [{ char: "┐", color: colors.yellow }],
+    right: [{ char: "┐", color: colors.yellow }],
+  },
+};
+
+export const golemStrikeRight: Sprite = {
+  name: "Golem",
+  layers: [],
+  facing: {
+    up: [{ char: "│", color: colors.yellow }],
+    right: [{ char: "│", color: colors.yellow }],
+    down: [{ char: "│", color: colors.yellow }],
+  },
+};
+
+export const golemStrikeRightDown: Sprite = {
+  name: "Golem",
+  layers: [],
+  facing: {
+    right: [{ char: "┘", color: colors.yellow }],
+    down: [{ char: "┘", color: colors.yellow }],
+  },
+};
+
+export const golemStrikeDown: Sprite = {
+  name: "Golem",
+  layers: [],
+  facing: {
+    right: [{ char: "─", color: colors.yellow }],
+    down: [{ char: "─", color: colors.yellow }],
+    left: [{ char: "─", color: colors.yellow }],
+  },
+};
+
+export const golemStrikeDownLeft: Sprite = {
+  name: "Golem",
+  layers: [],
+  facing: {
+    down: [{ char: "└", color: colors.yellow }],
+    left: [{ char: "└", color: colors.yellow }],
+  },
+};
+
+export const golemStrikeLeft: Sprite = {
+  name: "Golem",
+  layers: [],
+  facing: {
+    up: [{ char: "│", color: colors.yellow }],
+    down: [{ char: "│", color: colors.yellow }],
+    left: [{ char: "│", color: colors.yellow }],
+  },
+};
+
+export const golemStrikeLeftUp: Sprite = {
+  name: "Golem",
+  layers: [],
+  facing: {
+    up: [{ char: "┌", color: colors.yellow }],
+    left: [{ char: "┌", color: colors.yellow }],
+  },
+};
+
+export const giantHead: Sprite = {
+  name: "Giant",
+  layers: [{ char: "▀", color: colors.silver }],
+  facing: {
+    left: [
+      { char: "▄", color: colors.silver },
+      { char: "▐", color: colors.silver },
+    ],
+    right: [
+      { char: "▄", color: colors.silver },
+      { char: "▌", color: colors.silver },
+    ],
+  },
+};
+
+export const giantBody: Sprite = {
+  name: "Giant",
+  layers: [{ char: "▄", color: colors.silver }],
+  facing: {
+    left: [
+      { char: "█", color: colors.silver },
+      { char: "\u0107", color: colors.black },
+      { char: "M", color: colors.silver },
+      { char: "\u0101", color: colors.silver },
+      { char: "▌", color: colors.black },
+      { char: "▀", color: colors.silver },
+    ],
+    right: [
+      { char: "▌", color: colors.black },
+      { char: "M", color: colors.silver },
+      { char: "\u0101", color: colors.silver },
+      { char: "\u0106", color: colors.silver },
+      { char: "▐", color: colors.black },
+      { char: "▀", color: colors.silver },
+    ],
+  },
+};
+
+export const giantFeet: Sprite = {
+  name: "Giant",
+  layers: [
+    { char: "▀", color: colors.silver },
+    { char: "∞", color: colors.black },
+    { char: "═", color: colors.black },
+    { char: "*", color: colors.black },
+    { char: "▄", color: colors.black },
+    { char: "\u0106", color: colors.silver },
+    { char: "\u0107", color: colors.silver },
+  ],
+  facing: {
+    left: [
+      { char: "▀", color: colors.silver },
+      { char: "∞", color: colors.black },
+      { char: "═", color: colors.black },
+      { char: "*", color: colors.black },
+    ],
+    right: [
+      { char: "▀", color: colors.silver },
+      { char: "∞", color: colors.black },
+      { char: "═", color: colors.black },
+      { char: "*", color: colors.black },
+    ],
+  },
 };
 
 export const wormBoss: Sprite = {

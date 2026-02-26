@@ -137,6 +137,7 @@ import {
   scout,
   wall,
   mining,
+  golemHead,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1312,6 +1313,14 @@ export const entitySprites: Record<
       createText("A beautifully"),
       createText("written letter"),
       createText("to someone."),
+    ],
+  },
+  golemHead: {
+    sprite: golemHead,
+    getDescription: () => [
+      createText("Head of a slain"),
+      [...createUnitName("golem"), ...createText(". Might be")],
+      createText("worth something."),
     ],
   },
 

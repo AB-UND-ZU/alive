@@ -59,7 +59,7 @@ import { entities } from "..";
 import { BELONGABLE } from "../components/belongable";
 import { add, copy, repeat, signedDistance } from "../../game/math/std";
 import { ORIENTABLE } from "../components/orientable";
-import { CASTABLE } from "../components/castable";
+import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { isDead, isEnemy, isFriendlyFire, isNpc } from "./damage";
 import { canCast, chargeSlash } from "./magic";
 import { EQUIPPABLE } from "../components/equippable";
@@ -750,15 +750,26 @@ export const castSpell = (
         INVENTORY,
       ])
     : (entity as TypedEntity<"BELONGABLE">);
-  const spellStats = getAbilityStats(item[ITEM], castableEntity[NPC]?.type);
+
+  const defaultStats = getAbilityStats(
+    { ...item[ITEM], material: undefined, element: undefined },
+    "default"
+  );
+  const abilityStats = getAbilityStats(item[ITEM], castableEntity[NPC]?.type);
+  const spellStats = {
+    ...defaultStats,
+    ...abilityStats,
+    // apply default spell attributes for duration and range
+    range: abilityStats.range || defaultStats.range,
+    duration: abilityStats.duration || defaultStats.duration,
+    retrigger: abilityStats.retrigger || defaultStats.retrigger,
+  };
 
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: castableEntity[BELONGABLE].faction },
     [CASTABLE]: {
-      affected: {},
+      ...getEmptyCastable(world, castableEntity),
       ...spellStats,
-      retrigger: item[ITEM].primary === "beam" ? 2 : 0,
-      caster: world.getEntityId(castableEntity),
     },
     [ORIENTABLE]: { facing: entity[ORIENTABLE]?.facing },
     [POSITION]: copy(entity[POSITION]),
@@ -775,8 +786,8 @@ export const castSpell = (
       "castBeam1",
       {
         progress: 0,
-        duration: 31,
-        range: 12,
+        range: spellStats.range,
+        duration: spellStats.duration,
         areas: [],
         material: item[ITEM].material,
         element: item[ITEM].element,
@@ -791,8 +802,8 @@ export const castSpell = (
       "castBolt1",
       {
         progress: 0,
-        duration: 6,
-        range: 6,
+        range: spellStats.range,
+        duration: spellStats.duration,
         areas: [],
         material: item[ITEM].material,
         element: item[ITEM].element,
@@ -807,8 +818,8 @@ export const castSpell = (
       "castBlast",
       {
         progress: 0,
-        duration: 10,
-        range: 10,
+        range: spellStats.range,
+        duration: spellStats.duration,
         areas: [],
         material: item[ITEM].material,
         element: item[ITEM].element,
@@ -824,14 +835,14 @@ export const castSpell = (
       {
         memory: { innerRadius: 0 },
         progress: 0,
-        range: 7,
-        duration: 7,
+        range: spellStats.range,
+        duration: spellStats.duration,
         areas: [],
         material: item[ITEM].material,
         element: item[ITEM].element,
       }
     );
-    play("wave");
+    play("wave", { intensity: spellStats.duration / 7 });
   }
 
   if (castableEntity[STATS] && !isEnemy(world, castableEntity)) {

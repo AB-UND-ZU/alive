@@ -13,7 +13,7 @@ import { PLAYER } from "../components/player";
 import { LAYER } from "../components/layer";
 import { LEVEL } from "../components/level";
 import { getImmersible, isImmersible, isSubmerged } from "./immersion";
-import { getFragment } from "./enter";
+import { getEnterable } from "./enter";
 import { rerenderEntity } from "./renderer";
 import { lerp } from "three/src/math/MathUtils";
 import { SEQUENCABLE } from "../components/sequencable";
@@ -93,7 +93,7 @@ export const createBubble = (
   bubbleSound(world, position, droppedType);
 
   // don't show drops in buildings
-  if (getFragment(world, position)) return;
+  if (getEnterable(world, position)) return;
 
   const bubbleEntity = entities.createSplash(world, {
     [FOG]: { visibility: "hidden", type: "object" },

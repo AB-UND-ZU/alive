@@ -45,7 +45,7 @@ import {
   FountainSequence,
   SEQUENCABLE,
   VortexSequence,
-  WormSequence,
+  LimbSequence,
 } from "../engine/components/sequencable";
 import { SPAWNABLE } from "../engine/components/spawnable";
 import { SPIKABLE } from "../engine/components/spikable";
@@ -143,6 +143,9 @@ import {
   oakLeaves,
   oakMouth,
   wormMouth,
+  golemArm,
+  golem,
+  golemBody,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -226,6 +229,9 @@ import { recolorSprite } from "../game/assets/templates";
 import { doorClosed, entryClosed } from "../game/assets/templates/units";
 import { compass } from "../game/assets/templates/equipments";
 import { bottle, key } from "../game/assets/templates/items";
+import { CASTABLE, getEmptyCastable } from "../engine/components/castable";
+import { EXERTABLE } from "../engine/components/exertable";
+import { getAbilityStats } from "../game/balancing/abilities";
 
 export const cellNames = [
   "air",
@@ -879,6 +885,7 @@ export const createCell = (
     const rockEntity = entities.createDeposit(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [COLLIDABLE]: {},
       [DROPPABLE]: {
         decayed: false,
         remains: cell === "desert_rock" ? sand : undefined,
@@ -2144,6 +2151,124 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
     });
     all.push(spawnerEntity, all);
+  } else if (cell === "golem") {
+    const eliteUnit = generateNpcData("golem");
+
+    // create unit and base
+    const eliteEntity = entities.createRoaming(world, {
+      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [AFFECTABLE]: getEmptyAffectable(),
+      [ATTACKABLE]: { scratchColor: eliteUnit.scratch },
+      [BEHAVIOUR]: { patterns: eliteUnit.patterns },
+      [BELONGABLE]: { faction: eliteUnit.faction },
+      [CASTABLE]: {
+        ...getEmptyCastable(world, world.metadata.gameEntity),
+        ...getAbilityStats({}, eliteUnit.type),
+      },
+      [EQUIPPABLE]: {},
+      [EXERTABLE]: { castable: -1 },
+      [FOG]: { visibility, type: "object" },
+      [FRAGMENT]: { structure: -1 },
+      [INVENTORY]: { items: [] },
+      [LAYER]: {},
+      [MELEE]: {},
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: eliteUnit.spring || {
+          duration: 350,
+        },
+        lastInteraction: 0,
+        flying: eliteUnit.flying,
+      },
+      [NPC]: { type: eliteUnit.type },
+      [ORIENTABLE]: {},
+      [POSITION]: { x, y },
+      [RECHARGABLE]: { hit: false },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SHOOTABLE]: { shots: 0 },
+      [SPRITE]: { ...golem, name: "" },
+      [STATS]: eliteUnit.stats,
+      [STRUCTURABLE]: { rigid: true },
+      [SWIMMABLE]: { swimming: false },
+      [TOOLTIP]: {
+        dialogs: [],
+        persistent: false,
+        nextDialog: -1,
+      },
+      [VANISHABLE]: {
+        decayed: false,
+        remains: eliteUnit.vanish?.remains || [],
+        spawns: eliteUnit.vanish?.spawns || [],
+        type: eliteUnit.vanish?.type || "evaporate",
+        evaporate: eliteUnit.vanish?.evaporate,
+      },
+    });
+    all.push(eliteEntity);
+    populateInventory(
+      world,
+      eliteEntity,
+      eliteUnit.items,
+      eliteUnit.equipments
+    );
+    const eliteId = world.getEntityId(eliteEntity);
+    eliteEntity[FRAGMENT].structure = eliteId;
+    eliteEntity[CASTABLE].caster = eliteId;
+    eliteEntity[EXERTABLE].castable = eliteId;
+
+    // create stem and leaves
+    const golemLimbs: {
+      offset: Position;
+      sprite: Sprite;
+      orientation?: Orientation;
+    }[] = [
+      { offset: { x: 0, y: -1 }, sprite: golemBody, orientation: "up" },
+      { offset: { x: 0, y: 1 }, sprite: golemBody, orientation: "down" },
+      { offset: { x: -1, y: 0 }, sprite: golemArm, orientation: "left" },
+      { offset: { x: 1, y: 0 }, sprite: golemArm, orientation: "right" },
+    ];
+
+    for (const { offset, sprite, orientation } of golemLimbs) {
+      const limbUnit = generateNpcData("golemLimb");
+      const limbEntity = entities.createSegment(world, {
+        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [AFFECTABLE]: getEmptyAffectable(),
+        [ATTACKABLE]: {},
+        [BELONGABLE]: { faction: limbUnit.faction },
+        [COLLIDABLE]: {},
+        [DROPPABLE]: {
+          decayed: false,
+          evaporate: limbUnit.evaporate,
+          remains: limbUnit.remains,
+        },
+        [EXERTABLE]: { castable: eliteId },
+        [FOG]: { visibility, type: "object" },
+        [FRAGMENT]: { structure: eliteId },
+        [LAYER]: {},
+        [MOVABLE]: {
+          bumpGeneration: 0,
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: limbUnit.spring || {
+            duration: 350,
+          },
+          lastInteraction: 0,
+          flying: limbUnit.flying,
+        },
+        [ORIENTABLE]: { facing: orientation },
+        [POSITION]: combine(size, { x, y }, offset),
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SHOOTABLE]: { shots: 0 },
+        [STATS]: limbUnit.stats,
+        [SPRITE]: sprite,
+      });
+      all.push(limbEntity);
+    }
+
+    return { cell: eliteEntity, all };
   } else if (npcTypes.includes(cell as NpcType)) {
     const mobUnit = generateNpcData(cell as NpcType);
 
@@ -2607,7 +2732,6 @@ export const createCell = (
     setIdentifier(world, towerEntity, "chest_tower");
     return { cell: towerEntity, all };
   } else if (cell === "ilex_elite") {
-
     const eliteUnit = generateNpcData("ilexElite");
 
     // create unit and base
@@ -2643,7 +2767,7 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: eliteUnit.sprite,
       [STATS]: eliteUnit.stats,
-      [STRUCTURABLE]: { scale: 3, offsetY: 2 },
+      [STRUCTURABLE]: {},
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       [VANISHABLE]: {
@@ -2751,7 +2875,7 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: oakLeaves,
       [STATS]: bossUnit.stats,
-      [STRUCTURABLE]: { scale: 3, offsetY: 3 },
+      [STRUCTURABLE]: {},
       [SWIMMABLE]: { swimming: false },
       [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
       [VANISHABLE]: {
@@ -2845,14 +2969,18 @@ export const createCell = (
     const bossUnit = generateNpcData("wormBoss");
 
     // create unit and base
-    const bossEntity = entities.createElite(world, {
+    const bossEntity = entities.createRoaming(world, {
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { scratchColor: bossUnit.scratch },
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
       [BELONGABLE]: { faction: bossUnit.faction },
-      [DROPPABLE]: { decayed: false },
+      [CASTABLE]: {
+        ...getEmptyCastable(world, world.metadata.gameEntity),
+        ...getAbilityStats({}, bossUnit.type),
+      },
       [EQUIPPABLE]: {},
+      [EXERTABLE]: { castable: -1 },
       [FOG]: { visibility, type: "unit" },
       [FRAGMENT]: { structure: -1 },
       [INVENTORY]: { items: [] },
@@ -2875,7 +3003,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SHOOTABLE]: { shots: 0 },
-      [SPRITE]: wormMouth,
+      [SPRITE]: { ...wormMouth, name: "" },
       [STATS]: bossUnit.stats,
       [STRUCTURABLE]: {},
       [SWIMMABLE]: { swimming: false },
@@ -2890,17 +3018,24 @@ export const createCell = (
     });
     all.push(bossEntity);
     populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);
+    bossEntity[CASTABLE].caster = world.getEntityId(bossEntity);
+    bossEntity[EXERTABLE].castable = world.getEntityId(bossEntity);
 
     // npcSequence(world, bossEntity, "wormNpc", {});
     setIdentifier(world, bossEntity, "worm_boss");
     const bossId = world.getEntityId(bossEntity);
     bossEntity[FRAGMENT].structure = bossId;
-    createSequence<"worm", WormSequence>(
+    createSequence<"limb", LimbSequence>(
       world,
       bossEntity,
-      "worm",
-      "wormLimbs",
-      { type: "mouth" }
+      "limb",
+      "unitLimbs",
+      {
+        type: "wormMouth",
+        position: copy(bossEntity[POSITION]),
+        areas: [],
+        orientation: "up",
+      }
     );
 
     return { cell: bossEntity, all };

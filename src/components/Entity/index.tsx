@@ -197,7 +197,7 @@ function Entity({
     <Container
       position={[x * dimensions.aspectRatio, -y, 0]}
       spring={config}
-      bumpOrientation={entity[ORIENTABLE]?.facing}
+      bumpOrientation={entity[MOVABLE]?.bumpOrientation}
       bumpGeneration={entity[MOVABLE]?.bumpGeneration}
     >
       {isOpaque && isVisible && (

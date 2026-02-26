@@ -14,7 +14,7 @@ export const abilityStats: Partial<
     NpcType | "default",
     Partial<
       Record<
-        Primary | Secondary,
+        Primary | Secondary | "default",
         Partial<
           Record<
             Material | "default",
@@ -27,6 +27,14 @@ export const abilityStats: Partial<
 > = {
   default: {
     wave: {
+      // set default spell attributes
+      default: {
+        default: {
+          range: 7,
+          duration: 7,
+        },
+      },
+
       wood: {
         default: { magic: 3 },
 
@@ -87,7 +95,7 @@ export const abilityStats: Partial<
           drain: 1,
         },
       },
-     diamond: {
+      diamond: {
         default: { magic: 12 },
 
         air: {
@@ -129,6 +137,15 @@ export const abilityStats: Partial<
       },
     },
     beam: {
+      // set default spell attributes
+      default: {
+        default: {
+          duration: 31,
+          range: 12,
+          retrigger: 2,
+        },
+      },
+
       wood: {
         default: { magic: 2 },
 
@@ -230,6 +247,25 @@ export const abilityStats: Partial<
         },
       },
     },
+    bolt: {
+      // set default spell attributes
+      default: {
+        default: {
+          duration: 6,
+          range: 6,
+        },
+      },
+    },
+    blast: {
+      // set default spell attributes
+      default: {
+        default: {
+          duration: 10,
+          range: 10,
+          retrigger: 2,
+        },
+      },
+    },
     bow: {
       wood: { default: { melee: 2 } },
       iron: { default: { melee: 4 } },
@@ -320,6 +356,42 @@ export const abilityStats: Partial<
     },
   },
 
+  golem: {
+    // fist or standing in limb
+    default: {
+      default: {
+        default: {
+          true: 2,
+          retrigger: 1,
+        },
+      },
+    },
+    wave: {
+      gold: {
+        default: {
+          magic: 5,
+          duration: 4,
+          range: 4,
+        },
+      },
+    },
+    bolt: {
+      gold: { default: { magic: 4 } },
+    },
+  },
+
+  wormBoss: {
+    // mouth or standing in limb
+    default: {
+      default: {
+        default: {
+          true: 3,
+          retrigger: 1,
+        },
+      },
+    },
+  },
+
   chestBoss: {
     wave: {
       wood: {
@@ -371,13 +443,13 @@ export const getAbilityStats = (
 ): ItemStats => {
   const { primary, secondary, material, element } = item;
   const key = primary || secondary;
-  const itemStats = key
-    ? lookupAbilityStats(
-        (stats) =>
-          stats?.[key]?.[material || "default"]?.[element || "default"],
-        caster
-      )
-    : {};
+  const itemStats = lookupAbilityStats(
+    (stats) =>
+      stats?.[key || "default"]?.[material || "default"]?.[
+        element || "default"
+      ],
+    caster
+  );
 
   return {
     ...emptyItemStats,

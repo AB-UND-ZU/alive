@@ -291,6 +291,7 @@ export const dropEntity = (
   const stickId = inventory.find((itemId: number) => {
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
+      !itemEntity[ITEM].bound &&
       itemEntity[ITEM].equipment === "sword" &&
       itemEntity[ITEM].material === "wood" &&
       !itemEntity[ITEM].element
@@ -589,12 +590,15 @@ export default function setupDrop(world: World) {
     for (const entity of world.getEntities([DROPPABLE, RENDERABLE, POSITION])) {
       const rootEntity = getRoot(world, entity);
 
-      if (isDead(world, rootEntity) && isDecayed(world, entity)) {
+      if (
+        (isDead(world, entity) || isDead(world, rootEntity)) &&
+        isDecayed(world, entity)
+      ) {
         disposeEntity(world, entity, true, false);
         animateEvaporate(world, entity);
 
         const unitKey = entity[NPC]?.type;
-        if (heroEntity && unitKey) {
+        if (heroEntity && unitKey && entity === rootEntity) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
         }

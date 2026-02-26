@@ -11,10 +11,15 @@ export type Castable = {
 } & {
   caster: number;
   retrigger: number;
-  affected: Record<string, { generation: number; delta: number, frame?: number }>;
+  forceAffecting: boolean;
+  affected: Record<
+    string,
+    { generation: number; delta: number; frame?: number }
+  >;
 };
 
 export const emptyCastable: Omit<Castable, "caster" | "affected"> = {
+  forceAffecting: false,
   retrigger: 0,
   melee: 0,
   magic: 0,

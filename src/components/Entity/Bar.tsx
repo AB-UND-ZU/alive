@@ -10,7 +10,6 @@ import { Countable, STATS } from "../../engine/components/stats";
 import { isEnemy, isNeutral } from "../../engine/systems/damage";
 import { World } from "../../engine";
 import { clamp } from "../../game/math/std";
-import { STRUCTURABLE } from "../../engine/components/structurable";
 import { PLAYER } from "../../engine/components/player";
 
 const neutralColor = colors.silver;
@@ -32,6 +31,7 @@ export default function Bar({
   counter: keyof Countable;
 }) {
   const dimensions = useDimensions();
+
   const maxCounter = getMaxCounter(counter);
   const actualValue = entity[STATS][counter];
   const max = maxCounter ? entity[STATS][maxCounter] : actualValue;
@@ -39,13 +39,11 @@ export default function Bar({
   const enemy = isEnemy(world, entity);
   const neutral = isNeutral(world, entity);
   const player = entity[PLAYER];
-  const scale = entity[STRUCTURABLE]?.scale || 1;
-  const offsetX = entity[STRUCTURABLE]?.offsetX
-    ? entity[STRUCTURABLE].offsetX * dimensions.aspectRatio
+  const scale = entity[STATS]?.scale ?? 1;
+  const offsetX = entity[STATS]?.offsetX
+    ? entity[STATS].offsetX * dimensions.aspectRatio
     : 0;
-  const offsetY = entity[STRUCTURABLE]?.offsetY
-    ? -entity[STRUCTURABLE].offsetY
-    : 0;
+  const offsetY = entity[STATS]?.offsetY ? -entity[STATS].offsetY : 0;
   const offsetZ = player ? 2 / stack : 0;
   const spring = useSpring({
     scaleX: value / max,
@@ -58,7 +56,7 @@ export default function Bar({
     config: { duration: 75 },
   });
 
-  if (value === max && neutral) return null;
+  if (scale === 0 || (value === max && neutral)) return null;
 
   return (
     <>

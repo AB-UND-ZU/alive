@@ -43,16 +43,19 @@ export type Craftable =
   | "ingot"
   | "nugget"
   | "note"
-  | "worm";
+  | "worm"
+  | "golemHead";
 export type ResourceItem = "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";
 export type Stackable = ResourceItem | Craftable | Reloadable;
 
 export type ConditionableStats = { absorb: number };
 export type ProcStats = { drain: number };
+export type SpellStats = { duration: number; range: number, retrigger: number };
 export type ItemStats = Attributes &
   ProcStats &
   ConditionableStats &
+  SpellStats &
   Pick<Castable, DamageType | EffectType>;
 
 export type Item = {
@@ -71,11 +74,13 @@ export type Item = {
 
 export const emptyProcStats = { drain: 0 };
 export const emptyConditionableStats = { absorb: 0 };
+export const emptySpellStats = { range: 0, duration: 0 };
 
 export const emptyItemStats = {
   ...emptyAttributes,
   ...emptyProcStats,
   ...emptyConditionableStats,
+  ...emptySpellStats,
   ...emptyCastable,
 };
 

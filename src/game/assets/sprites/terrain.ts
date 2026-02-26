@@ -287,6 +287,17 @@ export const hedgeDry2: Sprite = {
   ],
 };
 
+export const flowerStem: Sprite = {
+  name: "flower_stem",
+  layers: [
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+    { char: "┐", color: colors.green },
+    { char: "╖", color: colors.black },
+    { char: "∙", color: colors.maroon },
+  ],
+};
+
 export const tree1: Sprite = {
   name: "tree_one",
   layers: [

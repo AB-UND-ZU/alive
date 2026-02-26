@@ -8,8 +8,8 @@ import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
 import {
+  combine,
   getDistance,
-  normalize,
   random,
   signedDistance,
   sum,
@@ -22,6 +22,7 @@ import {
 import {
   getAttackable,
   getEntityStats,
+  getLimbs,
   isDead,
   isFriendlyFire,
   isNeutral,
@@ -31,7 +32,7 @@ import { isImmersible, isSubmerged } from "./immersion";
 import { BiomeName, LEVEL } from "../components/level";
 import { canUnlock, getLockable, getWarpable, isLocked } from "./action";
 import { createBubble } from "./water";
-import { getOpaque } from "./enter";
+import { getFragment, getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { freezeMomentum, isFrozen } from "./freeze";
@@ -59,6 +60,8 @@ import { getClickable } from "./click";
 import { CLICKABLE } from "../components/clickable";
 import { getSpikable } from "./spike";
 import { getOverlappingCell } from "../../game/math/matrix";
+import { STRUCTURABLE } from "../components/structurable";
+import { FRAGMENT } from "../components/fragment";
 
 // haste:-4 interval:1100
 // haste:-3 interval:600
@@ -116,6 +119,24 @@ export const isWalkable = (world: World, position: Position) => {
   );
 };
 
+export const isLimbWalkable = (
+  world: World,
+  entity: Entity,
+  position: Position
+) => {
+  if (entity[FRAGMENT]?.structure) {
+    const fragmentEntity = getFragment(world, position);
+
+    if (
+      fragmentEntity &&
+      entity[FRAGMENT].structure === fragmentEntity[FRAGMENT]?.structure
+    )
+      return true;
+  }
+
+  return isWalkable(world, position);
+};
+
 export const isFlyable = (world: World, position: Position) => {
   const lockable = getLockable(world, position);
   return (
@@ -124,7 +145,7 @@ export const isFlyable = (world: World, position: Position) => {
 };
 
 export const isMovable = (world: World, entity: Entity, position: Position) => {
-  if (isWalkable(world, position)) return true;
+  if (isLimbWalkable(world, entity, position)) return true;
 
   const spikable = getSpikable(world, position);
   if (spikable && isNeutral(world, spikable)) return false;
@@ -221,7 +242,8 @@ export default function setupMovement(world: World) {
       if (attemptedOrientations.length === 0) continue;
 
       // set facing regardless of movement
-      if (entity[ORIENTABLE] && !entity[MOVABLE].flying)
+      const rigid = entity[STRUCTURABLE]?.rigid;
+      if (entity[ORIENTABLE] && !entity[MOVABLE].flying && !rigid)
         entity[ORIENTABLE].facing = attemptedOrientations[0];
 
       // skip if already interacted
@@ -231,150 +253,162 @@ export default function setupMovement(world: World) {
       )
         continue;
 
-      let movedOrientation: Orientation | undefined = undefined;
+      // move whole rigid body
+      const limbs = rigid ? getLimbs(world, entity) : [entity];
+      let movedOrientation: Orientation | undefined;
 
       for (const orientation of attemptedOrientations) {
         const delta = orientationPoints[orientation];
-        const position = {
-          x: normalize(entity[POSITION].x + delta.x, size),
-          y: normalize(entity[POSITION].y + delta.y, size),
-        };
+        let obstructed = false;
 
-        const lockable = getLockable(world, position);
-        const popup = getPopup(world, position);
-        const warp = getWarpable(world, position);
+        for (const limb of limbs) {
+          const position = combine(size, limb[POSITION], delta);
+          const lockable = getLockable(world, position);
+          const popup = getPopup(world, position);
+          const warp = getWarpable(world, position);
 
-        if (
-          entity[PLAYER] &&
-          !isWalkable(world, position) &&
-          lockable &&
-          isLocked(world, lockable) &&
-          !getSequence(world, lockable, "unlock")
-        ) {
-          // show message if unlockable
-          queueMessage(world, entity, {
-            line: canUnlock(world, entity, lockable)
-              ? [
-                  ...createText(
-                    isTouch ? "Tap on " : "[SPACE] to ",
-                    colors.silver,
+          if (
+            limb[PLAYER] &&
+            !isWalkable(world, position) &&
+            lockable &&
+            isLocked(world, lockable) &&
+            !getSequence(world, lockable, "unlock")
+          ) {
+            // show message if unlockable
+            queueMessage(world, limb, {
+              line: canUnlock(world, limb, lockable)
+                ? [
+                    ...createText(
+                      isTouch ? "Tap on " : "[SPACE] to ",
+                      colors.silver,
+                      colors.black
+                    ),
+                    ...createText("OPEN", colors.black, colors.lime),
+                  ]
+                : addBackground(
+                    [
+                      ...createText("Need ", colors.silver),
+                      ...createItemName({
+                        consume: "key",
+                        material: lockable[LOCKABLE].material,
+                      }),
+                      ...createText("!", colors.silver),
+                    ],
                     colors.black
                   ),
-                  ...createText("OPEN", colors.black, colors.lime),
-                ]
-              : addBackground(
-                  [
-                    ...createText("Need ", colors.silver),
-                    ...createItemName({
-                      consume: "key",
-                      material: lockable[LOCKABLE].material,
-                    }),
-                    ...createText("!", colors.silver),
-                  ],
+              orientation: invertOrientation(orientation),
+              fast: false,
+              delay: 0,
+            });
+          } else if (
+            limb[PLAYER] &&
+            !isWalkable(world, position) &&
+            popup &&
+            isPopupAvailable(world, popup)
+          ) {
+            // show message if popup available
+            const action = popupActions[getTab(world, popup)];
+            queueMessage(world, limb, {
+              line: [
+                ...createText(
+                  isTouch ? "Tap on " : "[SPACE] to ",
+                  colors.silver,
                   colors.black
                 ),
-            orientation: invertOrientation(orientation),
-            fast: false,
-            delay: 0,
-          });
-          continue;
-        } else if (
-          entity[PLAYER] &&
-          !isWalkable(world, position) &&
-          popup &&
-          isPopupAvailable(world, popup)
-        ) {
-          // show message if popup available
-          const action = popupActions[getTab(world, popup)];
-          queueMessage(world, entity, {
-            line: [
-              ...createText(
-                isTouch ? "Tap on " : "[SPACE] to ",
-                colors.silver,
-                colors.black
-              ),
-              ...createText(action, colors.black, colors.lime),
-            ],
-            orientation: invertOrientation(orientation),
-            fast: false,
-            delay: 0,
-          });
-          continue;
-        } else if (entity[PLAYER] && warp) {
-          queueMessage(world, entity, {
-            line: [
-              ...createText(
-                isTouch ? "Tap on " : "[SPACE] to ",
-                colors.silver,
-                colors.black
-              ),
-              ...createText("WARP", colors.black, colors.lime),
-            ],
-            orientation:
-              signedDistance(entity[POSITION].y, warp[POSITION].y, size) >= 0
-                ? "up"
-                : "down",
-            fast: false,
-            delay: 0,
-          });
-        } else if (
-          isWalkable(world, position) ||
-          (entity[MOVABLE].flying && isFlyable(world, position))
-        ) {
-          // leave bubble trail if walking through water
-          if (
-            isImmersible(world, entity[POSITION]) &&
-            !entity[MOVABLE].flying
+                ...createText(action, colors.black, colors.lime),
+              ],
+              orientation: invertOrientation(orientation),
+              fast: false,
+              delay: 0,
+            });
+          } else if (limb[PLAYER] && warp) {
+            queueMessage(world, limb, {
+              line: [
+                ...createText(
+                  isTouch ? "Tap on " : "[SPACE] to ",
+                  colors.silver,
+                  colors.black
+                ),
+                ...createText("WARP", colors.black, colors.lime),
+              ],
+              orientation:
+                signedDistance(limb[POSITION].y, warp[POSITION].y, size) >= 0
+                  ? "up"
+                  : "down",
+              fast: false,
+              delay: 0,
+            });
+          } else if (
+            isLimbWalkable(world, limb, position) ||
+            (limb[MOVABLE].flying && isFlyable(world, position))
           ) {
-            createBubble(world, entity[POSITION], "water");
+            continue;
           }
+          obstructed = true;
+          break;
+        }
 
-          const proximity =
-            Object.values(getCell(world, position)).filter(
-              (cell) => cell[RENDERABLE] && cell[SPRITE]?.layers.length
-            ).length > 0
-              ? 1
-              : 0.5;
-          moveEntity(world, entity, position);
-
-          if (entity[PLAYER]) {
-            const variant = isImmersible(world, position)
-              ? 3
-              : getTempo(world, position) < 0
-              ? 2
-              : 1;
-            play("move", {
-              intensity: movableReference[REFERENCE].tick,
-              variant,
-              proximity,
-            });
-          } else if (entity[NPC] && entity[FOG]?.visibility === "visible") {
-            play("slide", {
-              intensity: movableReference[REFERENCE].tick,
-              proximity: hero
-                ? 1 / (getDistance(hero[POSITION], entity[POSITION], size) + 1)
-                : 0.5,
-              variant: npcVariants[entity[NPC].type],
-              delay: random(0, 50),
-            });
-          }
-
-          // set facing to actual movement
-          if (entity[ORIENTABLE] && !entity[MOVABLE].flying)
-            entity[ORIENTABLE].facing = orientation;
-
-          rerenderEntity(world, entity);
-
+        if (!obstructed) {
           movedOrientation = orientation;
           break;
         }
       }
 
-      // preserve momentum before suspending frame
-      freezeMomentum(world, entity, movedOrientation);
+      if (movedOrientation) {
+        const delta = orientationPoints[movedOrientation];
+        const rootPosition = combine(size, entity[POSITION], delta);
+        // play sound
+        const proximity =
+          Object.values(getCell(world, rootPosition)).filter(
+            (cell) => cell[RENDERABLE] && cell[SPRITE]?.layers.length
+          ).length > 0
+            ? 1
+            : 0.5;
 
-      // mark as interacted but keep pending movement
-      entity[MOVABLE].lastInteraction = entityReference;
+        if (entity[PLAYER]) {
+          const variant = isImmersible(world, rootPosition)
+            ? 3
+            : getTempo(world, rootPosition) < 0
+            ? 2
+            : 1;
+          play("move", {
+            intensity: movableReference[REFERENCE].tick,
+            variant,
+            proximity,
+          });
+        } else if (entity[NPC] && entity[FOG]?.visibility === "visible") {
+          play("slide", {
+            intensity: movableReference[REFERENCE].tick,
+            proximity: hero
+              ? 1 / (getDistance(hero[POSITION], entity[POSITION], size) + 1)
+              : 0.5,
+            variant: npcVariants[entity[NPC].type],
+            delay: random(0, 50),
+          });
+        }
+
+        for (const limb of limbs) {
+          // leave bubble trail if walking through water
+          if (isImmersible(world, limb[POSITION]) && !limb[MOVABLE].flying) {
+            createBubble(world, limb[POSITION], "water");
+          }
+
+          // set facing to actual movement
+          if (!rigid && limb[ORIENTABLE] && !limb[MOVABLE].flying) {
+            limb[ORIENTABLE].facing = movedOrientation;
+          }
+
+          const limbPosition = combine(size, limb[POSITION], delta);
+          moveEntity(world, limb, limbPosition);
+          rerenderEntity(world, limb);
+
+          // preserve momentum before suspending frame
+          freezeMomentum(world, limb, movedOrientation);
+
+          // mark as interacted but keep pending movement
+          limb[MOVABLE].lastInteraction = entityReference;
+        }
+      }
     }
   };
 

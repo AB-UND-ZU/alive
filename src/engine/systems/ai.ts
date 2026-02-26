@@ -11,10 +11,12 @@ import {
   combine,
   copy,
   directedDistance,
+  distribution,
   getDistance,
   normalize,
   random,
   range,
+  repeat,
   reversed,
   rotate,
   shuffle,
@@ -54,6 +56,11 @@ import {
   confused,
   createShout,
   createText,
+  golemArm,
+  golemFist,
+  golemLimb,
+  golemShoulderLeft,
+  golemShoulderRight,
   rage,
   rage2,
   sleep1,
@@ -76,7 +83,7 @@ import {
 import { getProjectiles, shootArrow } from "./ballistics";
 import { canCast, getExertables } from "./magic";
 import { disposeEntity, getCell, moveEntity, registerEntity } from "./map";
-import { getFragment, getOpaque } from "./enter";
+import { getFragment, getFragments, getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
@@ -108,13 +115,18 @@ import { shootHoming } from "./homing";
 import { EQUIPPABLE } from "../components/equippable";
 import { SHOOTABLE } from "../components/shootable";
 import { createSequence, getSequence } from "./sequence";
-import { BranchSequence, SEQUENCABLE } from "../components/sequencable";
+import {
+  BranchSequence,
+  LimbSequence,
+  SEQUENCABLE,
+} from "../components/sequencable";
 import { generateNpcData, UnitDefinition } from "../../game/balancing/units";
 import { entities } from "..";
 import { FRAGMENT } from "../components/fragment";
 import { LAYER } from "../components/layer";
 import { DROPPABLE } from "../components/droppable";
 import { waveTower } from "../../game/assets/templates/creatures";
+import { Entity } from "ecs";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -456,19 +468,23 @@ export default function setupAi(world: World) {
             movements.push(invertOrientation(sidestepOrientation));
           }
 
-          if (entity[ORIENTABLE]?.facing && halfStep) {
+          if (pattern.memory.stepped && halfStep) {
             entity[MOVABLE].orientations = [];
-            entity[ORIENTABLE].facing = undefined;
+            pattern.memory.stepped = false;
           } else {
-            // don't run into spikes
+            // don't run into spikes with any limb
+            const limbs = getLimbs(world, entity);
             const movableOrientations = movements.filter((movingOrientation) =>
-              isMovable(
-                world,
-                entity,
-                add(entity[POSITION], orientationPoints[movingOrientation])
+              limbs.every((limb) =>
+                isMovable(
+                  world,
+                  limb,
+                  add(limb[POSITION], orientationPoints[movingOrientation])
+                )
               )
             );
             entity[MOVABLE].orientations = movableOrientations;
+            pattern.memory.stepped = true;
           }
           rerenderEntity(world, entity);
           break;
@@ -695,6 +711,7 @@ export default function setupAi(world: World) {
           const flee = distance < 5.5;
           const sidestep = distance < 7;
           let sidestepped = false;
+          let movements: Orientation[] = [];
 
           if (sidestep && heroEntity) {
             // dodge incoming projectiles
@@ -726,8 +743,7 @@ export default function setupAi(world: World) {
                   sidestepOrientations.push(
                     invertOrientation(iteration.orientation)
                   );
-                  entity[MOVABLE].orientations = sidestepOrientations;
-                  rerenderEntity(world, entity);
+                  movements = sidestepOrientations;
                   sidestepped = true;
                   break;
                 }
@@ -764,10 +780,18 @@ export default function setupAi(world: World) {
               }
             }
 
-            entity[MOVABLE].orientations = fleeingOrientations;
-            rerenderEntity(world, entity);
-            break;
+            movements = fleeingOrientations;
           }
+
+          // don't run into spikes
+          entity[MOVABLE].orientations = movements.filter((movingOrientation) =>
+            isMovable(
+              world,
+              entity,
+              add(entity[POSITION], orientationPoints[movingOrientation])
+            )
+          );
+          break;
         } else if (pattern.name === "shout") {
           if (!entity[TOOLTIP]) continue;
           const memory = pattern.memory;
@@ -2574,6 +2598,710 @@ export default function setupAi(world: World) {
           } else if (entity[ORIENTABLE]) {
             entity[MOVABLE].orientations = movingOrientations;
           }
+        } else if (pattern.name === "golem") {
+          if (!entity[ORIENTABLE] || !entity[STATS]) break;
+
+          if (pattern.memory.phase === undefined) {
+            // set initial phase
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "golem",
+              memory: { phase: 0 },
+            });
+            break;
+          }
+          if (pattern.memory.progress === undefined) {
+            pattern.memory.progress = 0;
+          }
+
+          pattern.memory.progress += 1;
+          const progress = pattern.memory.progress;
+
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+          const armEntities = (["left", "right"] as const)
+            .map((orientation) =>
+              getFragment(
+                world,
+                combine(size, entity[POSITION], orientationPoints[orientation])
+              )
+            )
+            .filter(
+              (fragment): fragment is Entity =>
+                !!fragment &&
+                fragment[FRAGMENT]?.structure === entity[FRAGMENT]?.structure
+            );
+          const legEntity = getFragment(
+            world,
+            combine(size, entity[POSITION], { x: 0, y: 1 })
+          );
+          const canWalk =
+            legEntity &&
+            legEntity[FRAGMENT]?.structure === entity[FRAGMENT]?.structure;
+
+          // update stats bar position
+          if (!canWalk && entity[STATS].offsetY !== 0) {
+            entity[STATS].offsetY = 0;
+            rerenderEntity(world, entity);
+          }
+
+          if (pattern.memory.phase === 0) {
+            // pause while out of range
+            const distance = heroEntity
+              ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.69)
+              : Infinity;
+
+            if (distance > 7) break;
+
+            if (canWalk) {
+              // show rage before walking
+              patterns.splice(
+                patterns.indexOf(pattern),
+                1,
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: rage,
+                  },
+                },
+                {
+                  name: "wait",
+                  memory: { ticks: 2 },
+                },
+                {
+                  name: "dialog",
+                  memory: {
+                    idle: undefined,
+                  },
+                },
+                {
+                  name: "golem",
+                  memory: {
+                    phase: 1,
+                  },
+                }
+              );
+              break;
+            }
+
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "golem",
+              memory: {
+                phase: 1,
+              },
+            });
+          } else if (pattern.memory.phase === 1) {
+            const duration = canWalk ? random(3, 7) * 2 : 2;
+
+            // attack player
+            if (progress > duration) {
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "golem",
+                memory: {
+                  phase: 2,
+                },
+              });
+              break;
+            }
+
+            // chase player if legs are not gone
+            if (canWalk) continue;
+          } else if (pattern.memory.phase === 2) {
+            // check available arms
+            const closestArm =
+              heroEntity &&
+              armEntities.sort(
+                (first, second) =>
+                  getDistance(first[POSITION], heroEntity[POSITION], size) -
+                  getDistance(second[POSITION], heroEntity[POSITION], size)
+              )[0];
+
+            if (!closestArm) {
+              // no arms left, shoot bolt
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "golem",
+                memory: {
+                  phase: 30,
+                },
+              });
+              break;
+            }
+
+            // check if aligning for strike
+            const strikeOrientation = relativeOrientations(
+              world,
+              entity[POSITION],
+              heroEntity[POSITION]
+            )[0];
+            const strikeDelta = orientationPoints[strikeOrientation];
+            const heroDelta = {
+              x: signedDistance(
+                closestArm[POSITION].x,
+                heroEntity[POSITION].x,
+                size
+              ),
+              y: signedDistance(
+                closestArm[POSITION].y,
+                heroEntity[POSITION].y,
+                size
+              ),
+            };
+            const strikeAligned =
+              Math.abs(strikeDelta.x * heroDelta.y) <= 1 &&
+              Math.abs(strikeDelta.y * heroDelta.x) <= 1;
+            const boltAligned = heroDelta.x * heroDelta.y === 0;
+            const inReach =
+              getDistance(
+                closestArm[POSITION],
+                heroEntity[POSITION],
+                size,
+                1
+              ) <= 3;
+
+            // sometimes prefer other attacks
+            const preferStrike =
+              strikeAligned &&
+              strikeOrientation !==
+                invertOrientation(closestArm[ORIENTABLE].facing);
+            const preferStomp = inReach && distribution(40, 60) === 0;
+            const preferBolt =
+              !preferStrike && boltAligned && distribution(40, 60) === 0;
+
+            if (preferStrike && !preferStomp) {
+              // prepare for strike
+              closestArm[SPRITE] = golemFist;
+              rerenderEntity(world, closestArm);
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "golem",
+                memory: {
+                  phase: 20,
+                  limbId: world.getEntityId(closestArm),
+                  orientation: strikeOrientation,
+                },
+              });
+              break;
+            } else if (inReach && !preferBolt) {
+              // prepare for stomping
+              closestArm[ORIENTABLE].facing = rotateOrientation(
+                closestArm[ORIENTABLE].facing,
+                1
+              );
+              rerenderEntity(world, closestArm);
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "golem",
+                memory: {
+                  phase: 10,
+                  limbId: world.getEntityId(closestArm),
+                },
+              });
+              break;
+            }
+
+            // shoot bolt
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "golem",
+              memory: {
+                phase: 30,
+              },
+            });
+          } else if (pattern.memory.phase === 10) {
+            // show rage before stomping
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "dialog",
+                memory: {
+                  idle: rage,
+                },
+              },
+              {
+                name: "wait",
+                memory: { ticks: 3 },
+              },
+              {
+                name: "dialog",
+                memory: {
+                  idle: undefined,
+                },
+              },
+              {
+                name: "golem",
+                memory: {
+                  phase: 11,
+                  limbId: pattern.memory.limbId,
+                },
+              }
+            );
+          } else if (pattern.memory.phase === 11) {
+            const activeArm = world.getEntityByIdAndComponents(
+              pattern.memory.limbId,
+              [POSITION, ORIENTABLE]
+            );
+
+            if (!activeArm || !activeArm[ORIENTABLE].facing) {
+              // no arms active, skip phase
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "golem",
+                memory: {
+                  phase: 0,
+                },
+              });
+              break;
+            }
+
+            // move back arm, stomp and cast wave
+            activeArm[ORIENTABLE].facing = rotateOrientation(
+              activeArm[ORIENTABLE].facing,
+              -1
+            );
+            const limbs = getLimbs(world, entity);
+            limbs.forEach((limb) => {
+              limb[MOVABLE].bumpGeneration = generation;
+              limb[MOVABLE].bumpOrientation = "down";
+              rerenderEntity(world, limb);
+            });
+
+            castSpell(world, activeArm, {
+              [ITEM]: {
+                carrier: -1,
+                bound: false,
+                amount: 1,
+                equipment: "primary",
+                primary: "wave",
+                material: "gold",
+              },
+            });
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "wait",
+                memory: { ticks: 1 },
+              },
+              {
+                name: "golem",
+                memory: { phase: 0 },
+              }
+            );
+          } else if (pattern.memory.phase === 20) {
+            // show rage before striking
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "dialog",
+                memory: {
+                  idle: rage2,
+                },
+              },
+              {
+                name: "wait",
+                memory: { ticks: 3 },
+              },
+              {
+                name: "dialog",
+                memory: {
+                  idle: undefined,
+                },
+              },
+              {
+                name: "golem",
+                memory: {
+                  phase: 21,
+                  limbId: pattern.memory.limbId,
+                  orientation: pattern.memory.orientation,
+                },
+              }
+            );
+          } else if (pattern.memory.phase === 21) {
+            const activeArm = world.getEntityByIdAndComponents(
+              pattern.memory.limbId,
+              [POSITION, MOVABLE, ORIENTABLE]
+            );
+
+            if (!activeArm || !activeArm[ORIENTABLE].facing) {
+              // no arms active, skip phase
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "golem",
+                memory: {
+                  phase: 0,
+                },
+              });
+              break;
+            }
+
+            // activate fist
+            const origin = activeArm[POSITION];
+            activeArm[ORIENTABLE].facing = pattern.memory.orientation;
+            createSequence<"limb", LimbSequence>(
+              world,
+              activeArm,
+              "limb",
+              "unitLimbs",
+              {
+                type: "golemFist",
+                position: copy(origin),
+                areas: [],
+              }
+            );
+
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "golem",
+              memory: {
+                phase: 22,
+                origin: copy(origin),
+                limbId: pattern.memory.limbId,
+                orientation: pattern.memory.orientation,
+                generation,
+              },
+            });
+          } else if (pattern.memory.phase === 22) {
+            const activeArm = world.getEntityByIdAndComponents(
+              pattern.memory.limbId,
+              [POSITION, MOVABLE, ORIENTABLE]
+            );
+
+            if (!activeArm || !activeArm[ORIENTABLE].facing) {
+              // no arms active, skip phase
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "golem",
+                memory: {
+                  phase: 0,
+                },
+              });
+              break;
+            }
+
+            // move fist
+            const next = combine(
+              size,
+              pattern.memory.origin,
+              orientationPoints[pattern.memory.orientation as Orientation]
+            );
+            if (isWalkable(world, next)) {
+              entities.createExtremity(world, {
+                [ACTIONABLE]: {
+                  primaryTriggered: false,
+                  secondaryTriggered: false,
+                },
+                [COLLIDABLE]: {},
+                [DROPPABLE]: {
+                  decayed: false,
+                  evaporate: activeArm[DROPPABLE]?.evaporate,
+                },
+                [EXERTABLE]: { castable: entityId },
+                [FOG]: { visibility: "hidden", type: "object" },
+                [FRAGMENT]: { structure: entityId },
+                [LAYER]: {},
+                [MOVABLE]: {
+                  bumpGeneration: 0,
+                  orientations: [],
+                  reference: world.getEntityId(world.metadata.gameEntity),
+                  spring: entity[MOVABLE].spring,
+                  lastInteraction: 0,
+                  flying: false,
+                },
+                [ORIENTABLE]: { facing: pattern.memory.orientation },
+                [POSITION]: copy(pattern.memory.origin),
+                [RENDERABLE]: { generation: 0 },
+                [SEQUENCABLE]: { states: {} },
+                [SHOOTABLE]: { shots: 0 },
+                [SPRITE]:
+                  relativeOrientations(
+                    world,
+                    entity[POSITION],
+                    activeArm[POSITION]
+                  )[0] === "right"
+                    ? golemShoulderRight
+                    : golemShoulderLeft,
+              });
+            }
+
+            activeArm[MOVABLE].orientations = [pattern.memory.orientation];
+            activeArm[MOVABLE].spring = { duration: 350 };
+
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "golem",
+              memory: {
+                phase: 23,
+                origin: pattern.memory.origin,
+                limbId: pattern.memory.limbId,
+                orientation: pattern.memory.orientation,
+                generation,
+              },
+            });
+          } else if (pattern.memory.phase === 23) {
+            // check if fist hit wall or exceeded range
+            const progress = generation - pattern.memory.generation;
+            const strikeDelta =
+              orientationPoints[pattern.memory.orientation as Orientation];
+            const fistEntity = world.getEntityByIdAndComponents(
+              pattern.memory.limbId,
+              [POSITION, ORIENTABLE, MOVABLE]
+            );
+            const fistRange = 4;
+            const length = fistEntity
+              ? getDistance(
+                  pattern.memory.origin,
+                  fistEntity[POSITION],
+                  size,
+                  1,
+                  false
+                )
+              : Infinity;
+
+            if (length !== progress || length >= fistRange || !fistEntity) {
+              // stop fist
+              if (fistEntity) {
+                fistEntity[MOVABLE].orientations = [];
+                fistEntity[MOVABLE].spring = { ...entity[MOVABLE].spring };
+                patterns.splice(
+                  patterns.indexOf(pattern),
+                  1,
+                  {
+                    name: "wait",
+                    memory: { ticks: 1 },
+                  },
+                  {
+                    name: "golem",
+                    memory: {
+                      phase: 24,
+                      origin: pattern.memory.origin,
+                      limbId: pattern.memory.limbId,
+                      orientation: pattern.memory.orientation,
+                    },
+                  }
+                );
+                break;
+              }
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "golem",
+                memory: {
+                  phase: 25,
+                  origin: pattern.memory.origin,
+                  orientation: pattern.memory.orientation,
+                },
+              });
+              break;
+            }
+
+            // extend arm
+            const target = combine(size, pattern.memory.origin, {
+              x: strikeDelta.x * length,
+              y: strikeDelta.y * length,
+            });
+            const next = combine(size, target, strikeDelta);
+            if (isWalkable(world, next)) {
+              entities.createExtremity(world, {
+                [ACTIONABLE]: {
+                  primaryTriggered: false,
+                  secondaryTriggered: false,
+                },
+                [COLLIDABLE]: {},
+                [DROPPABLE]: {
+                  decayed: false,
+                  evaporate: fistEntity[DROPPABLE]?.evaporate,
+                },
+                [EXERTABLE]: { castable: entityId },
+                [FOG]: { visibility: "hidden", type: "object" },
+                [FRAGMENT]: { structure: entityId },
+                [LAYER]: {},
+                [MOVABLE]: {
+                  bumpGeneration: 0,
+                  orientations: [],
+                  reference: world.getEntityId(world.metadata.gameEntity),
+                  spring: entity[MOVABLE].spring,
+                  lastInteraction: 0,
+                  flying: false,
+                },
+                [ORIENTABLE]: { facing: pattern.memory.orientation },
+                [POSITION]: target,
+                [RENDERABLE]: { generation: 0 },
+                [SEQUENCABLE]: { states: {} },
+                [SHOOTABLE]: { shots: 0 },
+                [SPRITE]: golemLimb,
+              });
+            }
+          } else if (pattern.memory.phase === 24) {
+            // deactivate strike
+            const fistEntity = world.getEntityByIdAndComponents(
+              pattern.memory.limbId,
+              [POSITION, ORIENTABLE, MOVABLE]
+            );
+            if (fistEntity) {
+              const strikeSequence = getSequence(world, fistEntity, "limb");
+              if (strikeSequence) {
+                strikeSequence.args.type = undefined;
+              }
+            }
+
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "wait",
+                memory: { ticks: 3 },
+              },
+              {
+                name: "golem",
+                memory: {
+                  phase: 25,
+                  origin: pattern.memory.origin,
+                  limbId: pattern.memory.limbId,
+                  orientation: pattern.memory.orientation,
+                },
+              }
+            );
+          } else if (pattern.memory.phase === 25) {
+            // clean up arm
+            const strikeDelta =
+              orientationPoints[pattern.memory.orientation as Orientation];
+            const fistEntity = world.getEntityByIdAndComponents(
+              pattern.memory.limbId,
+              [POSITION, ORIENTABLE, MOVABLE]
+            );
+            let offset = 0;
+            while (true) {
+              const limbEntities = getFragments(
+                world,
+                combine(size, pattern.memory.origin, {
+                  x: strikeDelta.x * offset,
+                  y: strikeDelta.y * offset,
+                })
+              ).filter(
+                (fragment) =>
+                  fragment[FRAGMENT]?.structure === entityId &&
+                  fragment !== fistEntity &&
+                  fragment !== entity
+              );
+
+              if (limbEntities.length === 0) break;
+
+              limbEntities.forEach((armEntity) => {
+                dropEntity(world, armEntity, armEntity[POSITION]);
+                disposeEntity(world, armEntity, false);
+              });
+              offset += 1;
+            }
+            if (fistEntity) {
+              fistEntity[ORIENTABLE].facing = relativeOrientations(
+                world,
+                entity[POSITION],
+                pattern.memory.origin
+              )[0];
+              fistEntity[SPRITE] = golemArm;
+              moveEntity(world, fistEntity, copy(pattern.memory.origin));
+              rerenderEntity(world, fistEntity);
+            }
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "golem",
+              memory: {
+                phase: 0,
+              },
+            });
+          } else if (pattern.memory.phase === 30) {
+            if (!heroEntity) {
+              // hero gone, abort phase
+              patterns.splice(patterns.indexOf(pattern), 1, {
+                name: "golem",
+                memory: {
+                  phase: 0,
+                },
+              });
+              break;
+            }
+
+            // orient and show rage before casting
+            entity[ORIENTABLE].facing = shuffle(
+              relativeOrientations(
+                world,
+                entity[POSITION],
+                heroEntity[POSITION]
+              )
+            )[0];
+            rerenderEntity(world, entity);
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "dialog",
+                memory: {
+                  idle: rage,
+                },
+              },
+              {
+                name: "wait",
+                memory: { ticks: 2 },
+              },
+              {
+                name: "dialog",
+                memory: {
+                  idle: undefined,
+                },
+              },
+              ...repeat(
+                {
+                  name: "golem",
+                  memory: {
+                    phase: 31,
+                  },
+                } as const,
+                2
+              ),
+              {
+                name: "golem",
+                memory: {
+                  phase: 32,
+                },
+              }
+            );
+          } else if (pattern.memory.phase === 31) {
+            // cast bolt towards hero
+            castSpell(world, entity, {
+              [ITEM]: {
+                carrier: -1,
+                bound: false,
+                amount: 1,
+                equipment: "primary",
+                primary: "bolt",
+                material: "gold",
+              },
+            });
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "wait",
+              memory: { ticks: 1 },
+            });
+          } else if (pattern.memory.phase === 32) {
+            // cast last bolt towards hero and reset orientation
+            castSpell(world, entity, {
+              [ITEM]: {
+                carrier: -1,
+                bound: false,
+                amount: 1,
+                equipment: "primary",
+                primary: "bolt",
+                material: "gold",
+              },
+            });
+            entity[ORIENTABLE].facing = undefined;
+            rerenderEntity(world, entity);
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "wait",
+                memory: { ticks: 1 },
+              },
+              {
+                name: "golem",
+                memory: {
+                  phase: 0,
+                },
+              }
+            );
+          }
+          break;
         } else if (pattern.name === "worm_boss") {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
@@ -2609,6 +3337,7 @@ export default function setupAi(world: World) {
                       id: entityId,
                       waypoints: [],
                       iteration: 1,
+                      steps: 0,
                     },
                   ],
                   waypoints: [],
@@ -2651,6 +3380,7 @@ export default function setupAi(world: World) {
               id: number;
               waypoints: Position[];
               iteration: number;
+              steps: number;
             }[] = [...pattern.memory.limbs];
             limbs.forEach((limb) => {
               const limbEntity = world.assertByIdAndComponents(limb.id, [
@@ -2679,6 +3409,7 @@ export default function setupAi(world: World) {
               );
               const beforeWaypoint = distance === 1;
               const reachedWaypoint = distance === 0;
+              const lastWaypoint = limb.waypoints.length === 1;
 
               // target next waypoint
               if (reachedWaypoint) {
@@ -2707,9 +3438,13 @@ export default function setupAi(world: World) {
                 limbEntity[POSITION],
                 nextWaypoint
               )[0];
-              limbEntity[MOVABLE].orientations = [orientation];
 
-              if (beforeWaypoint && !isHead && nextWaypoint) {
+              // don't move on first step
+              if (limb.steps !== 0) {
+                limbEntity[MOVABLE].orientations = [orientation];
+              }
+
+              if (beforeWaypoint && !isHead && nextWaypoint && !lastWaypoint) {
                 limbEntity[SPRITE] = wormCorner;
                 limbEntity[ORIENTABLE].facing = rotateOrientation(
                   orientation,
@@ -2722,6 +3457,7 @@ export default function setupAi(world: World) {
 
                 limbEntity[ORIENTABLE].facing = orientation;
               }
+              limb.steps += 1;
               rerenderEntity(world, limbEntity);
             });
 
@@ -2742,10 +3478,11 @@ export default function setupAi(world: World) {
                 pattern.memory.waypoints = [];
                 pattern.memory.rotation = 0;
                 limbs[0].iteration += 1;
+                limbs[0].steps = 0;
               } else {
                 // attach new limb
                 const bossUnit = generateNpcData("oakBoss");
-                const limbEntity = entities.createLimb(world, {
+                const limbEntity = entities.createExtremity(world, {
                   [ACTIONABLE]: {
                     primaryTriggered: false,
                     secondaryTriggered: false,
@@ -2755,6 +3492,7 @@ export default function setupAi(world: World) {
                     decayed: false,
                     evaporate: bossUnit.evaporate,
                   },
+                  [EXERTABLE]: { castable: entityId },
                   [FOG]: { visibility: "hidden", type: "unit" },
                   [FRAGMENT]: { structure: entityId },
                   [LAYER]: {},
@@ -2777,6 +3515,7 @@ export default function setupAi(world: World) {
                   id: world.getEntityId(limbEntity),
                   waypoints,
                   iteration: pattern.memory.iteration,
+                  steps: 0,
                 });
               }
             }

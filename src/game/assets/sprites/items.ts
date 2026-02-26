@@ -750,3 +750,15 @@ export const grain: Sprite = {
   name: "Grain",
   layers: [{ char: "·", color: colors.olive }],
 };
+
+export const golemHead: Sprite = {
+  name: "Head",
+  layers: [
+    { char: "■", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "÷", color: colors.grey },
+    { char: "\u0100", color: colors.black },
+    { char: "∙", color: colors.grey },
+    { char: ".", color: colors.grey },
+  ],
+};

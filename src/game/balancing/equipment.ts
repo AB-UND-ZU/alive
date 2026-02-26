@@ -461,6 +461,11 @@ export const gearStats: Partial<
       default: { earth: { heal: 1 } },
     },
   },
+  golem: {
+    sword: {
+      gold: { default: { melee: 4 } },
+    },
+  },
 };
 
 export const lookupEquipmentStats = (

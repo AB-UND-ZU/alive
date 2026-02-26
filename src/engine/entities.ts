@@ -38,7 +38,7 @@ import { Soul, SOUL } from "./components/soul";
 import { Spawnable, SPAWNABLE } from "./components/spawnable";
 import { Spikable, SPIKABLE } from "./components/spikable";
 import { Sprite, SPRITE } from "./components/sprite";
-import { UnitStats, STATS } from "./components/stats";
+import { Stats, STATS } from "./components/stats";
 import { Swimmable, SWIMMABLE } from "./components/swimmable";
 import { Tooltip, TOOLTIP } from "./components/tooltip";
 import { Trackable, TRACKABLE } from "./components/trackable";
@@ -117,7 +117,7 @@ export type Entity = Record<LevelName, {}> & {
   [SPAWNABLE]: Spawnable;
   [SPIKABLE]: Spikable;
   [SPRITE]: Sprite;
-  [STATS]: UnitStats;
+  [STATS]: Stats;
   [STICKY]: Sticky;
   [STRUCTURABLE]: Structurable;
   [SWIMMABLE]: Swimmable;
@@ -303,7 +303,6 @@ export const createElite = entityFactory([
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,
-  DROPPABLE,
   EQUIPPABLE,
   FOG,
   FRAGMENT,
@@ -362,6 +361,7 @@ export const createDecoration = entityFactory([
 export const createDeposit = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  COLLIDABLE,
   DROPPABLE,
   FOG,
   INVENTORY,
@@ -416,6 +416,23 @@ export const createEntry = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
+  SPRITE,
+]);
+
+export const createExtremity = entityFactory([
+  ACTIONABLE,
+  COLLIDABLE,
+  DROPPABLE,
+  EXERTABLE,
+  FOG,
+  FRAGMENT,
+  LAYER,
+  MOVABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SHOOTABLE,
   SPRITE,
 ]);
 
@@ -759,6 +776,36 @@ export const createResource = entityFactory([
   STATS,
 ]);
 
+export const createRoaming = entityFactory([
+  ACTIONABLE,
+  AFFECTABLE,
+  ATTACKABLE,
+  BEHAVIOUR,
+  BELONGABLE,
+  CASTABLE,
+  EQUIPPABLE,
+  EXERTABLE,
+  FOG,
+  FRAGMENT,
+  INVENTORY,
+  LAYER,
+  MELEE,
+  MOVABLE,
+  NPC,
+  ORIENTABLE,
+  POSITION,
+  RECHARGABLE,
+  RENDERABLE,
+  SEQUENCABLE,
+  SHOOTABLE,
+  SPRITE,
+  STATS,
+  STRUCTURABLE,
+  SWIMMABLE,
+  TOOLTIP,
+  VANISHABLE,
+]);
+
 export const createRoom = entityFactory([
   LIGHT,
   POSITION,
@@ -778,6 +825,27 @@ export const createRoot = entityFactory([
   SEQUENCABLE,
   SPRITE,
   STRUCTURABLE,
+]);
+
+export const createSegment = entityFactory([
+  ACTIONABLE,
+  AFFECTABLE,
+  ATTACKABLE,
+  BELONGABLE,
+  COLLIDABLE,
+  DROPPABLE,
+  EXERTABLE,
+  FOG,
+  FRAGMENT,
+  LAYER,
+  MOVABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SHOOTABLE,
+  STATS,
+  SPRITE,
 ]);
 
 export const createShot = entityFactory([

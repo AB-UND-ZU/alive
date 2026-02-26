@@ -19,7 +19,7 @@ import {
   knight,
   rubyChest,
   mage,
-  oakBoss,
+  oakBossUnit,
   plantEvaporate,
   pot,
   goldChest,
@@ -37,6 +37,9 @@ import {
   violet,
   wormBoss,
   ilex,
+  stoneEvaporate,
+  flowerStem,
+  golemUnit,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { choice, distribution } from "../math/std";
@@ -50,7 +53,11 @@ import {
   fenceBurnt2,
   sign,
 } from "../assets/sprites/structures";
-import { emptyUnitStats, UnitStats } from "../../engine/components/stats";
+import {
+  emptyUnitStats,
+  Stats,
+  UnitStats,
+} from "../../engine/components/stats";
 import { classDefinitions, ClassKey } from "./classes";
 import { hairColors } from "../assets/pixels";
 import { colors } from "../assets/colors";
@@ -92,7 +99,7 @@ export type UnitDefinition = {
   scratch: string;
   evaporate?: Droppable["evaporate"];
   harvestable?: Omit<Harvestable, "maximum">;
-  stats: Partial<UnitStats>;
+  stats: Partial<Stats>;
   equipments: Omit<Item, "carrier">[];
   drops: {
     chance: number;
@@ -966,7 +973,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["rose"],
     sprite: rose,
-    remainsChoices: [bush],
+    remainsChoices: [flowerStem],
   },
   violet: {
     faction: "unit",
@@ -1011,7 +1018,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["violet"],
     sprite: violet,
-    remainsChoices: [bush],
+    remainsChoices: [flowerStem],
   },
   clover: {
     faction: "unit",
@@ -1074,7 +1081,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["clover", "chase_slow"],
     sprite: clover,
-    remainsChoices: [bush],
+    remainsChoices: [flowerStem],
   },
   waveTower: {
     faction: "wild",
@@ -1110,6 +1117,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     stats: {
       hp: 350,
       mp: 1,
+      scale: 3,
+      offsetY: 2,
     },
     equipments: [],
     drops: [
@@ -1198,6 +1207,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       hp: 400,
       mp: 1,
       armor: 1,
+      scale: 3,
+      offsetY: 3,
     },
     equipments: [],
     drops: [
@@ -1207,7 +1218,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["oak_boss"],
-    sprite: oakBoss,
+    sprite: oakBossUnit,
     vanish: {
       spawns: [{ unit: "oakChest", delta: { x: 0, y: 1 } }],
       remains: [],
@@ -1292,6 +1303,67 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: goldChest,
+  },
+  golem: {
+    faction: "wild",
+    scratch: colors.grey,
+    spring: {
+      mass: 0.2,
+      friction: 50,
+      tension: 500,
+    },
+    stats: {
+      hp: 100,
+      mp: 1,
+      armor: 2,
+      offsetY: 1,
+    },
+    equipments: [
+      {
+        equipment: "sword",
+        material: "gold",
+        bound: true,
+        amount: 0,
+      },
+    ],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "golemHead", amount: 1 },
+          { stackable: "resource", material: "iron", amount: 1 },
+          { stat: "xp", amount: 3 },
+        ],
+      },
+    ],
+    patternNames: ["golem", "chase_slow"],
+    sprite: golemUnit,
+    vanish: {
+      spawns: [],
+      remains: [],
+      type: "evaporate",
+      evaporate: { sprite: stoneEvaporate, fast: true },
+    },
+  },
+  golemLimb: {
+    faction: "wild",
+    scratch: colors.grey,
+    spring: {
+      mass: 0.2,
+      friction: 50,
+      tension: 500,
+    },
+    stats: {
+      hp: 20,
+      mp: 1,
+      armor: 2,
+      scale: 0,
+    },
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: golemUnit,
+    evaporate: { sprite: stoneEvaporate, fast: true },
   },
   wormBoss: {
     faction: "unit",

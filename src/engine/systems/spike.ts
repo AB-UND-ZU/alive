@@ -11,6 +11,8 @@ import {
   calculateDamage,
   createAmountMarker,
   getEntityStats,
+  getLimbs,
+  getRoot,
   isFightable,
 } from "./damage";
 import { EQUIPPABLE } from "../components/equippable";
@@ -22,6 +24,7 @@ import { relativeOrientations } from "../../game/math/path";
 import { isControllable } from "./freeze";
 import { play } from "../../game/sound";
 import { attemptBubbleAbsorb } from "./magic";
+import { STRUCTURABLE } from "../components/structurable";
 
 export const isSpikable = (world: World, entity: Entity) => {
   if (!isFightable(world, entity)) return false;
@@ -35,6 +38,8 @@ export const getSpikable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find((entity) =>
     isSpikable(world, entity)
   ) as Entity | undefined;
+
+export const isStingable = (world: World, entity: Entity) => STATS in entity;
 
 export const stingEntity = (world: World, entity: Entity, target: Entity) => {
   let displayedDamage = 0;
@@ -54,6 +59,14 @@ export const stingEntity = (world: World, entity: Entity, target: Entity) => {
     );
 
     target[STATS].hp = hp;
+
+    // propagate damage
+    const rootEntity = getRoot(world, target);
+    if (target !== rootEntity) {
+      const { hp } = calculateDamage(world, { true: damage }, {}, rootEntity);
+      rootEntity[STATS].hp = hp;
+      rerenderEntity(world, rootEntity);
+    }
 
     play("magic", { intensity: damage, proximity: 0.5 });
     displayedDamage = damage;
@@ -109,19 +122,28 @@ export default function setupSpike(world: World) {
 
       if (!targetOrientation) continue;
 
+      const rigid = entity[STRUCTURABLE]?.rigid;
+      const limbs = rigid ? getLimbs(world, entity) : [entity];
       const delta = orientationPoints[targetOrientation];
-      const targetPosition = add(entity[POSITION], delta);
-      const targetEntity = getSpikable(world, targetPosition);
 
-      if (!targetEntity) continue;
+      let interacted = false;
 
-      stingEntity(world, targetEntity, entity);
+      for (const limb of limbs) {
+        const targetPosition = add(limb[POSITION], delta);
+        const targetEntity = getSpikable(world, targetPosition);
 
-      // already mark as interacted if not able to attack
-      if (
-        targetEntity[ATTACKABLE] &&
-        !(entity[MELEE] && entity[EQUIPPABLE]?.sword)
-      ) {
+        if (!targetEntity || !isStingable(world, limb)) continue;
+
+        stingEntity(world, targetEntity, limb);
+
+        interacted =
+          interacted ||
+          (targetEntity[ATTACKABLE] &&
+            !(entity[MELEE] && entity[EQUIPPABLE]?.sword));
+      }
+
+      // already mark as interacted if not able to attack after stinging
+      if (interacted) {
         entity[MOVABLE].pendingOrientation = undefined;
         entity[MOVABLE].lastInteraction = entityReference;
       }

@@ -362,6 +362,7 @@ export default function setupCollect(world: World) {
       if (collected && entity[ORIENTABLE]) {
         entity[ORIENTABLE].facing = targetOrientation;
         entity[MOVABLE].bumpGeneration = entity[RENDERABLE].generation;
+        entity[MOVABLE].bumpOrientation = targetOrientation;
       }
 
       // mark as interacted

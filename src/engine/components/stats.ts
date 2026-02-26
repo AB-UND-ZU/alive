@@ -29,7 +29,14 @@ export type Attributes = Pick<Countable, "maxHp" | "maxMp"> & {
   spike: number;
 };
 
+export type BarModifier = {
+  scale?: number;
+  offsetX?: number;
+  offsetY?: number;
+};
+
 export type UnitStats = Countable & Attributes;
+export type Stats = UnitStats & BarModifier;
 
 export const emptyAttributes: Attributes = {
   maxHp: 0,
@@ -69,10 +76,6 @@ export const MAX_STAT_VALUE = 99;
 
 export const STATS = "STATS";
 
-export default function addStats(
-  world: World,
-  entity: Entity,
-  stats: UnitStats
-) {
+export default function addStats(world: World, entity: Entity, stats: Stats) {
   world.addComponentToEntity(entity, STATS, stats);
 }

@@ -22,7 +22,7 @@ import { emptyUnitStats, STATS } from "../components/stats";
 import { ATTACKABLE } from "../components/attackable";
 import { Homing, HOMING } from "../components/homing";
 import { getOpaque } from "./enter";
-import { Castable, CASTABLE, emptyCastable } from "../components/castable";
+import { Castable, CASTABLE, getEmptyCastable } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { FOG } from "../components/fog";
 import { iterations } from "../../game/math/tracing";
@@ -59,9 +59,9 @@ const discConfig: Record<
   Homing["type"],
   { sprite: Sprite; orbit?: boolean } & Partial<Castable>
 > = {
-  oakTower: { sprite: summon.iron.default, magic: 4, retrigger: 2 },
-  oakHedge: { sprite: homing.default.earth },
-  oakClover: { sprite: summon.default.earth, magic: 4, retrigger: 2 },
+  oakTower: { sprite: summon.iron.default, magic: 2, retrigger: 2 },
+  oakHedge: { sprite: homing.default.earth, forceAffecting: true },
+  oakClover: { sprite: summon.default.earth, magic: 2, retrigger: 2 },
   ilexViolet: { sprite: summon.default.water, magic: 1, retrigger: 2 },
   ironDisc: { sprite: disc.iron.default, magic: 1 },
   goldDisc: { sprite: disc.gold.default, magic: 2 },
@@ -80,10 +80,8 @@ export const shootHoming = (
   const discEntity = entities.createHoming(world, {
     [BELONGABLE]: { faction: "wild" },
     [CASTABLE]: {
-      ...emptyCastable,
+      ...getEmptyCastable(world, caster),
       ...castable,
-      caster: world.getEntityId(caster),
-      affected: {},
     },
     [EXERTABLE]: { castable: -1 },
     [HOMING]: {

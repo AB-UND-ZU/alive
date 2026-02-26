@@ -179,6 +179,14 @@ import {
   vanishShrink1,
   vanishShrink2,
   vanishEvaporate,
+  golemStrikeUp,
+  golemStrikeUpRight,
+  golemStrikeRight,
+  golemStrikeRightDown,
+  golemStrikeDown,
+  golemStrikeDownLeft,
+  golemStrikeLeft,
+  golemStrikeLeftUp,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -213,7 +221,7 @@ import {
   WeatherSequence,
   ConditionSequence,
   BranchSequence,
-  WormSequence,
+  LimbSequence,
   VanishSequence,
   EvaporateSequence,
 } from "../../engine/components/sequencable";
@@ -364,6 +372,7 @@ import {
   placeRemains,
 } from "../../engine/systems/drop";
 import { getHarvestTarget } from "../../engine/systems/harvesting";
+import { TypedEntity } from "../../engine/entities";
 
 export * from "./npcs";
 export * from "./quests";
@@ -721,6 +730,7 @@ export const axeCondition: Sequence<ConditionSequence> = (
         targetEntity[ORIENTABLE].facing = state.args.orientation;
         targetEntity[MOVABLE].bumpGeneration =
           targetEntity[RENDERABLE].generation;
+        targetEntity[MOVABLE].bumpOrientation = state.args.orientation;
       }
 
       // move axe back
@@ -797,6 +807,7 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
   const slashIterations = slashInverse
     ? [...iterations.slice(1), ...iterations.slice(0, 3)]
     : [...reversedIterations.slice(2), ...reversedIterations.slice(0, 2)];
+  const size = world.metadata.gameEntity[LEVEL].size;
   const castableEntity = world.assertByIdAndComponents(state.args.castable, [
     POSITION,
   ]);
@@ -822,14 +833,18 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
   if (state.args.exertables.length === 0 && !finished) {
     // create ring around castable
     for (const iteration of iterations) {
-      const sidePosition = add(castableEntity[POSITION], iteration.direction);
+      const sidePosition = combine(
+        size,
+        castableEntity[POSITION],
+        iteration.direction
+      );
       const sideExertable = entities.createAoe(world, {
         [EXERTABLE]: { castable: state.args.castable },
         [POSITION]: sidePosition,
       });
       const cornerExertable = entities.createAoe(world, {
         [EXERTABLE]: { castable: state.args.castable },
-        [POSITION]: add(sidePosition, iteration.normal),
+        [POSITION]: combine(size, sidePosition, iteration.normal),
       });
       state.args.exertables.push(
         world.getEntityId(sideExertable),
@@ -941,6 +956,7 @@ const beamTicks = 3;
 
 export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
+  const size = world.metadata.gameEntity[LEVEL].size;
   const progress = Math.ceil(state.elapsed / beamSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
   const material = state.args.material || "default";
@@ -1006,7 +1022,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
     };
     const aoeEntity = entities.createAoe(world, {
       [EXERTABLE]: { castable: entityId },
-      [POSITION]: add(entity[POSITION], offset),
+      [POSITION]: combine(size, entity[POSITION], offset),
     });
     registerEntity(world, aoeEntity);
     state.args.areas.push(world.getEntityId(aoeEntity));
@@ -1113,6 +1129,7 @@ const boltSpeed = 200;
 
 export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
+  const size = world.metadata.gameEntity[LEVEL].size;
   const progress = Math.ceil(state.elapsed / boltSpeed);
   const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
   const material = state.args.material || "default";
@@ -1122,7 +1139,9 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
     y: delta.y * state.args.range,
   };
 
-  let finished = progress > state.args.duration;
+  let finished =
+    progress > state.args.duration ||
+    Object.keys(entity[CASTABLE].affected).length > 0;
   let updated = false;
 
   // create bolt particle
@@ -1154,7 +1173,7 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
     };
     const aoeEntity = entities.createAoe(world, {
       [EXERTABLE]: { castable: entityId },
-      [POSITION]: add(entity[POSITION], offset),
+      [POSITION]: combine(size, entity[POSITION], offset),
     });
     registerEntity(world, aoeEntity);
     state.args.areas.push(world.getEntityId(aoeEntity));
@@ -1443,75 +1462,6 @@ export const amountMarker: Sequence<MarkerSequence> = (
   return { finished, updated };
 };
 
-// export const harvestResource: Sequence<HarvestSequence> = (
-//   world,
-//   entity,
-//   state
-// ) => {
-//   const targetEntity = world.getEntityByIdAndComponents(state.args.target, [
-//     HARVESTABLE,
-//     RENDERABLE,
-//   ]);
-//   const finished = !targetEntity || state.elapsed > harvestDuration * 2;
-//   let updated = false;
-
-//   if (finished) return { finished, updated };
-
-//   if (!state.particles.harvest) {
-//     const delta = orientationPoints[state.args.orientation];
-//     const harvestParticle = entities.createParticle(world, {
-//       [PARTICLE]: {
-//         offsetX: delta.x,
-//         offsetY: delta.y,
-//         offsetZ: particleHeight,
-//         animatedOrigin: { x: 0, y: 0 },
-//         duration: harvestDuration,
-//       },
-//       [RENDERABLE]: { generation: 1 },
-//       [SPRITE]: getItemSprite(
-//         world.assertByIdAndComponents(state.args.item, [ITEM])[ITEM]
-//       ),
-//     });
-//     state.particles.harvest = world.getEntityId(harvestParticle);
-//     updated = true;
-//   }
-
-//   const harvestParticle = world.getEntityByIdAndComponents(
-//     state.particles.harvest,
-//     [PARTICLE]
-//   );
-
-//   if (
-//     state.elapsed > harvestDuration &&
-//     harvestParticle &&
-//     (harvestParticle[PARTICLE].offsetX !== 0 ||
-//       harvestParticle[PARTICLE].offsetY !== 0)
-//   ) {
-//     harvestParticle[PARTICLE].offsetX = 0;
-//     harvestParticle[PARTICLE].offsetY = 0;
-
-//     // perform harvest
-//     targetEntity[HARVESTABLE].amount -= state.args.amount;
-//     rerenderEntity(world, targetEntity);
-
-//     // bump target resource
-//     if (targetEntity[ORIENTABLE] && targetEntity[MOVABLE]) {
-//       targetEntity[ORIENTABLE].facing = state.args.orientation;
-//       targetEntity[MOVABLE].bumpGeneration =
-//         targetEntity[RENDERABLE].generation;
-//     }
-
-//     updated = true;
-//   }
-
-//   if (state.elapsed > harvestDuration * 2 && harvestParticle) {
-//     disposeEntity(world, harvestParticle);
-//     delete state.particles.harvest;
-//   }
-
-//   return { finished, updated };
-// };
-
 const messageDuration = 600;
 
 export const transientMessage: Sequence<MessageSequence> = (
@@ -1696,7 +1646,7 @@ const vanishConfig: Record<
     shrink: [vanishShrink0, vanishShrink1, vanishShrink2],
     evaporate: vanishEvaporate,
   },
-  evaporate: { grow: [], shrink: [] },
+  evaporate: { grow: [decay], shrink: [] },
 };
 const evaporateTicks = 3;
 
@@ -1855,6 +1805,7 @@ export const creatureVanish: Sequence<VanishSequence> = (
           }
 
           placeRemains(world, fragmentEntity);
+          dropEntity(world, fragmentEntity, fragmentEntity[POSITION]);
           fragmentEntity[DROPPABLE].decayed = true;
         });
         updated = true;
@@ -3965,6 +3916,7 @@ const waveDissolve = 1;
 
 export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
+  const size = world.metadata.gameEntity[LEVEL].size;
   let updated = false;
   let finished = false;
 
@@ -4186,14 +4138,14 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
     for (const iteration of iterations) {
       const aoeSide = entities.createAoe(world, {
         [EXERTABLE]: { castable: entityId },
-        [POSITION]: add(entity[POSITION], {
+        [POSITION]: combine(size, entity[POSITION], {
           x: innerRadius * iteration.direction.x,
           y: innerRadius * iteration.direction.y,
         }),
       });
       const aoeCorner = entities.createAoe(world, {
         [EXERTABLE]: { castable: entityId },
-        [POSITION]: add(entity[POSITION], {
+        [POSITION]: combine(size, entity[POSITION], {
           x: innerRadius * iteration.direction.x + iteration.normal.x,
           y: innerRadius * iteration.direction.y + iteration.normal.y,
         }),
@@ -4208,7 +4160,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
       for (let normal = 1; normal < innerRadius; normal += 1) {
         const aoeDiagonal = entities.createAoe(world, {
           [EXERTABLE]: { castable: entityId },
-          [POSITION]: add(entity[POSITION], {
+          [POSITION]: combine(size, entity[POSITION], {
             x:
               (innerRadius - normal) * iteration.direction.x +
               iteration.normal.x * (normal + 1),
@@ -6151,15 +6103,15 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-const wormConfig: Record<
-  WormSequence["type"],
+const limbConfig: Record<
+  NonNullable<LimbSequence["type"]>,
   {
     offset: Position;
     sprite: Sprite;
     name: string;
   }[]
 > = {
-  mouth: [
+  wormMouth: [
     {
       offset: { x: -1, y: 0 },
       sprite: wormMouthCornerLeft,
@@ -6186,17 +6138,59 @@ const wormConfig: Record<
       name: "side-right",
     },
   ],
+  golemFist: [
+    {
+      offset: { x: 0, y: -1 },
+      sprite: golemStrikeUp,
+      name: "limb",
+    },
+    {
+      offset: { x: 1, y: -1 },
+      sprite: golemStrikeUpRight,
+      name: "up-right",
+    },
+    {
+      offset: { x: 1, y: 0 },
+      sprite: golemStrikeRight,
+      name: "right",
+    },
+    {
+      offset: { x: 1, y: 1 },
+      sprite: golemStrikeRightDown,
+      name: "right-down",
+    },
+    {
+      offset: { x: 0, y: 1 },
+      sprite: golemStrikeDown,
+      name: "down",
+    },
+    {
+      offset: { x: -1, y: 1 },
+      sprite: golemStrikeDownLeft,
+      name: "down-left",
+    },
+    {
+      offset: { x: -1, y: 0 },
+      sprite: golemStrikeLeft,
+      name: "left",
+    },
+    {
+      offset: { x: -1, y: -1 },
+      sprite: golemStrikeLeftUp,
+      name: "left-up",
+    },
+  ],
 };
 
-export const wormLimbs: Sequence<WormSequence> = (world, entity, state) => {
-  const finished = false;
+export const unitLimbs: Sequence<LimbSequence> = (world, entity, state) => {
+  const finished = !state.args.type;
   let updated = false;
-  const orientation =
-    state.args.type === "mouth"
-      ? entity[ORIENTABLE].facing
-      : entity[MOVABLE].orientations[0];
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const rootEntity = getRoot(world, entity);
+  const entityId = world.getEntityId(rootEntity);
+  const orientation = entity[ORIENTABLE].facing as Orientation | undefined;
 
-  if (!orientation) {
+  if (!orientation || !state.args.type) {
     // clear inactive limb
     if (state.particles.limb) {
       for (const particleName in state.particles) {
@@ -6210,12 +6204,22 @@ export const wormLimbs: Sequence<WormSequence> = (world, entity, state) => {
       updated = true;
     }
 
+    // clear AoE
+    if (state.args.areas.length > 0) {
+      state.args.areas.forEach((aoeId) => {
+        const aoeEntity = world.assertById(aoeId);
+        disposeEntity(world, aoeEntity);
+      });
+      state.args.areas = [];
+      updated = true;
+    }
+
     return { finished, updated };
   }
 
-  // create limb particles and assume upwards orientation
+  // create limb particles and assume correct orientation
   if (!state.particles.limb) {
-    wormConfig[state.args.type].forEach((limbConfig) => {
+    limbConfig[state.args.type].forEach((limbConfig) => {
       const limbParticle = entities.createFibre(world, {
         [ORIENTABLE]: { facing: orientation },
         [PARTICLE]: {
@@ -6227,26 +6231,59 @@ export const wormLimbs: Sequence<WormSequence> = (world, entity, state) => {
         [SPRITE]: limbConfig.sprite,
       });
       state.particles[limbConfig.name] = world.getEntityId(limbParticle);
+
+      updated = true;
+
+      // create AoE
+      const aoeEntity = entities.createAoe(world, {
+        [EXERTABLE]: { castable: entityId },
+        [POSITION]: combine(size, entity[POSITION], limbConfig.offset),
+      });
+      // disable AoE if no visible oriented limb
+      if (!limbConfig.sprite.facing?.[orientation]?.length) {
+        world.removeComponentFromEntity(aoeEntity, EXERTABLE);
+      }
+      registerEntity(world, aoeEntity);
+      state.args.areas.push(world.getEntityId(aoeEntity));
     });
+    state.args.position = copy(entity[POSITION]);
+    state.args.orientation = orientation;
+
+    updated = true;
+  }
+
+  // move AoE
+  if (
+    state.args.position.x !== entity[POSITION].x ||
+    state.args.position.y !== entity[POSITION].y
+  ) {
+    const delta = {
+      x: signedDistance(state.args.position.x, entity[POSITION].x, size),
+      y: signedDistance(state.args.position.y, entity[POSITION].y, size),
+    };
+    state.args.areas.forEach((aoeId) => {
+      const aoeEntity = world.assertByIdAndComponents(aoeId, [POSITION]);
+      moveEntity(world, aoeEntity, combine(size, aoeEntity[POSITION], delta));
+    });
+    state.args.position = copy(entity[POSITION]);
     updated = true;
   }
 
   // rotate limb
-  const limbCenter = world.assertByIdAndComponents(state.particles.limb, [
-    ORIENTABLE,
-  ]);
-  if (limbCenter[ORIENTABLE].facing !== orientation) {
+  if (
+    orientation &&
+    state.args.orientation &&
+    orientation !== state.args.orientation
+  ) {
     const rotation = Math.sign(
-      orientationDelta(
-        limbCenter[ORIENTABLE].facing || orientation,
-        orientation
-      )
+      orientationDelta(state.args.orientation, orientation)
     );
+    state.args.orientation = orientation;
 
     for (const particleName in state.particles) {
       const limbParticle = world.assertByIdAndComponents(
         state.particles[particleName],
-        [ORIENTABLE, PARTICLE]
+        [ORIENTABLE, PARTICLE, SPRITE]
       );
 
       const [offsetX, offsetY] = [
@@ -6257,6 +6294,54 @@ export const wormLimbs: Sequence<WormSequence> = (world, entity, state) => {
       limbParticle[PARTICLE].offsetY = offsetY;
       limbParticle[ORIENTABLE].facing = orientation;
     }
+
+    // rotate AoE
+    state.args.areas.forEach((aoeId) => {
+      const aoeEntity = world.assertByIdAndComponents(aoeId, [POSITION]);
+      const delta = {
+        x: signedDistance(entity[POSITION].x, aoeEntity[POSITION].x, size),
+        y: signedDistance(entity[POSITION].y, aoeEntity[POSITION].y, size),
+      };
+      const target = {
+        x: -delta.y * rotation,
+        y: delta.x * rotation,
+      };
+      const position = combine(size, entity[POSITION], target);
+
+      // activate AoE if matching particle is visible
+      const limbParticle = Object.values(state.particles)
+        .map((particleId) =>
+          world.assertByIdAndComponents(particleId, [
+            ORIENTABLE,
+            PARTICLE,
+            SPRITE,
+          ])
+        )
+        .find(
+          (particleEntity) =>
+            particleEntity[PARTICLE].offsetX === target.x &&
+            particleEntity[PARTICLE].offsetY === target.y
+        );
+      if (limbParticle) {
+        const needsAoE =
+          limbParticle[SPRITE].facing?.[limbParticle[ORIENTABLE].facing!]
+            ?.length;
+        const hasAoE = EXERTABLE in aoeEntity;
+        if (needsAoE && !hasAoE) {
+          world.addComponentToEntity(aoeEntity, EXERTABLE, {
+            castable: entityId,
+          });
+        } else if (!needsAoE && hasAoE) {
+          world.removeComponentFromEntity(
+            aoeEntity as TypedEntity<"EXERTABLE">,
+            EXERTABLE
+          );
+        }
+      }
+
+      moveEntity(world, aoeEntity, position);
+    });
+
     updated = true;
   }
 

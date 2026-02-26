@@ -153,8 +153,11 @@ export type BranchSequence = {
   grow: boolean;
   shrink?: number;
 };
-export type WormSequence = {
-  type: "mouth";
+export type LimbSequence = {
+  type?: "wormMouth" | "golemFist";
+  orientation?: Orientation;
+  position: Position;
+  areas: number[];
 };
 export type NpcSequence = { step: string; lastStep?: string; memory: any };
 export type QuestSequence = {
@@ -242,7 +245,7 @@ export type Sequencable = {
     arrow?: SequenceState<ArrowSequence>;
     slash?: SequenceState<SlashSequence>;
     branch?: SequenceState<BranchSequence>;
-    worm?: SequenceState<WormSequence>;
+    limb?: SequenceState<LimbSequence>;
     npc?: SequenceState<NpcSequence>;
     quest?: SequenceState<QuestSequence>;
     discovery?: SequenceState<DiscoverySequence>;

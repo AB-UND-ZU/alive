@@ -222,7 +222,7 @@ export const calculateDamage = (
 
 export const calculateHealing = (targetStats: UnitStats, amount: number) => {
   const hp = Math.min(targetStats.maxHp, targetStats.hp + amount);
-  const visibleHealing = Math.ceil(hp - targetStats.hp);
+  const visibleHealing = Math.max(0, Math.ceil(hp - targetStats.hp));
   return { hp, healing: visibleHealing };
 };
 
@@ -232,7 +232,9 @@ export const applyEffects = (
   burn: number,
   freeze: number
 ) => {
-  if (!targetEntity[AFFECTABLE]) return;
+  let hasAffected = false;
+
+  if (!targetEntity[AFFECTABLE]) return hasAffected;
 
   const targetStats = getEntityStats(world, targetEntity);
 
@@ -245,6 +247,7 @@ export const applyEffects = (
     targetBurn > curentBurn &&
     !isDead(world, targetEntity)
   ) {
+    hasAffected = true;
     targetEntity[AFFECTABLE].burn = targetBurn;
   }
 
@@ -257,6 +260,7 @@ export const applyEffects = (
     targetFreeze > curentFreeze &&
     !isDead(world, targetEntity)
   ) {
+    hasAffected = true;
     targetEntity[AFFECTABLE].freeze = targetFreeze;
   }
 
@@ -265,9 +269,12 @@ export const applyEffects = (
     targetEntity[AFFECTABLE].freeze > 0 &&
     targetEntity[AFFECTABLE].burn > 0
   ) {
+    hasAffected = true;
     targetEntity[AFFECTABLE].freeze = 0;
     extinguishEntity(world, targetEntity);
   }
+
+  return hasAffected;
 };
 
 const procDelay = 100;
@@ -279,24 +286,33 @@ export const applyProcs = (
   procId: number,
   targetEntity: Entity
 ) => {
-  if (!targetEntity[AFFECTABLE]) return;
+  let hasAffected = false;
+
+  if (!targetEntity[AFFECTABLE]) return hasAffected;
 
   const { [procId]: lastProc, ...otherProcs } = (
     targetEntity[AFFECTABLE] as Affectable
   ).procs;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
 
-  if (lastProc && lastProc + procDelay > generation) return;
+  // skip if not ready to proc again
+  if (lastProc && lastProc + procDelay > generation) return hasAffected;
 
   // process burn and freeze
-  applyEffects(world, targetEntity, itemStats.burn, itemStats.freeze);
+  hasAffected = applyEffects(
+    world,
+    targetEntity,
+    itemStats.burn,
+    itemStats.freeze
+  );
 
   // handle drain
   const drain = itemStats.drain;
   if (attackerEntity && drain > 0) {
     const { healing, hp } = calculateHealing(attackerEntity[STATS], drain);
-    attackerEntity[STATS].hp = hp;
     if (healing > 0) {
+      attackerEntity[STATS].hp = hp;
+      hasAffected = true;
       createAmountMarker(world, attackerEntity, drain, "up", "true");
       play("pickup", pickupOptions.hp);
     }
@@ -314,6 +330,8 @@ export const applyProcs = (
       delete targetEntity[AFFECTABLE].procs[procId];
     }
   });
+
+  return hasAffected;
 };
 
 export const createAmountMarker = (
@@ -405,136 +423,171 @@ export default function setupDamage(world: World) {
       if (!targetOrientation) continue;
 
       const delta = orientationPoints[targetOrientation];
-      const targetPosition = add(entity[POSITION], delta);
-      const targetEntity = getAttackable(world, targetPosition);
+      const rigid = entity[STRUCTURABLE]?.rigid;
+      const limbs = rigid ? getLimbs(world, entity) : [entity];
 
-      // skip if entity has no sword or no target
+      // skip if entity has no sword
       const swordId = entity[EQUIPPABLE].sword;
       const swordEntity = world.getEntityByIdAndComponents(swordId, [ITEM]);
 
-      if (!swordId || !swordEntity || !targetEntity) continue;
+      if (!swordId || !swordEntity) continue;
 
-      // skip if not damaging enemy or healing ally
-      const healing =
-        swordEntity[ITEM].element === "earth" && !swordEntity[ITEM].material;
-      const friendly = isFriendlyFire(world, entity, targetEntity);
+      let interacted = false;
+      let attacked = false;
 
-      if (healing !== friendly) continue;
+      for (const limb of limbs) {
+        const targetPosition = add(limb[POSITION], delta);
+        const targetEntity = getAttackable(world, targetPosition);
 
-      // mark as interacted
-      entity[MOVABLE].pendingOrientation = undefined;
-      entity[MOVABLE].lastInteraction = entityGeneration;
+        // skip if there's no target
+        if (!targetEntity) continue;
 
-      // do nothing if target is dead and pending decay
-      if (isDead(world, targetEntity)) continue;
+        // skip if not damaging enemy or healing ally
+        const healing =
+          swordEntity[ITEM].element === "earth" && !swordEntity[ITEM].material;
+        const friendly = isFriendlyFire(world, entity, targetEntity);
 
-      // prevent attack if shield is active
-      let displayedDamage = 0;
-      const absorbed = !healing && attemptBubbleAbsorb(world, targetEntity);
-      if (!absorbed) {
-        const sword = world.assertByIdAndComponents(entity[EQUIPPABLE].sword, [
-          ITEM,
-          ORIENTABLE,
-        ]);
-        const swordStats = getEquipmentStats(sword[ITEM], entity[NPC]?.type);
+        if (healing !== friendly) continue;
 
-        if (entity[CONDITIONABLE]?.raise) {
+        interacted = true;
+
+        // do nothing if target is dead and pending decay
+        if (isDead(world, targetEntity)) continue;
+
+        attacked = true;
+
+        // prevent attack if shield is active
+        let displayedDamage = 0;
+        const absorbed = !healing && attemptBubbleAbsorb(world, targetEntity);
+        if (!absorbed) {
+          const swordStats = getEquipmentStats(
+            swordEntity[ITEM],
+            entity[NPC]?.type
+          );
+
+          if (entity[CONDITIONABLE]?.raise) {
+            if (healing) {
+              swordStats.heal += entity[CONDITIONABLE].raise.amount;
+            } else {
+              swordStats.melee += entity[CONDITIONABLE].raise.amount;
+            }
+            delete entity[CONDITIONABLE].raise;
+          }
+
           if (healing) {
-            swordStats.heal += entity[CONDITIONABLE].raise.amount;
+            const { healing, hp } = calculateHealing(
+              targetEntity[STATS],
+              swordStats.heal
+            );
+            targetEntity[STATS].hp = hp;
+
+            displayedDamage = -healing;
           } else {
-            swordStats.melee += entity[CONDITIONABLE].raise.amount;
+            const { damage, hp } = calculateDamage(
+              world,
+              swordStats,
+              entity,
+              targetEntity
+            );
+
+            targetEntity[STATS].hp = hp;
+
+            // propagate damage
+            const rootEntity = getRoot(world, targetEntity);
+            if (targetEntity !== rootEntity) {
+              const { hp } = calculateDamage(
+                world,
+                { true: damage },
+                {},
+                rootEntity
+              );
+              rootEntity[STATS].hp = hp;
+              rerenderEntity(world, rootEntity);
+            }
+
+            // trigger on hit effects
+            applyProcs(world, entity, swordStats, swordId, targetEntity);
+
+            // play sound
+            play("hit", {
+              intensity: damage,
+              proximity: targetEntity[PLAYER] ? 1 : 0.5,
+              variant: targetEntity[PLAYER] ? 1 : 2,
+            });
+
+            // set rechargable if applicable
+            const secondaryEntity = world.getEntityByIdAndComponents(
+              entity[EQUIPPABLE].secondary,
+              [ITEM]
+            );
+            const canRecharge = rechargables.includes(
+              secondaryEntity?.[ITEM].secondary as (typeof rechargables)[number]
+            );
+
+            if (canRecharge && targetEntity[RECHARGABLE]) {
+              targetEntity[RECHARGABLE].hit = true;
+            }
+
+            displayedDamage = damage;
           }
-          delete entity[CONDITIONABLE].raise;
         }
 
-        if (healing) {
-          const { healing, hp } = calculateHealing(
-            targetEntity[STATS],
-            swordStats.heal
-          );
-          targetEntity[STATS].hp = hp;
+        // close popup on target hits
+        const activePopup = getActivePopup(world, targetEntity);
+        if (activePopup) {
+          closePopup(world, targetEntity, activePopup);
+        }
 
-          displayedDamage = -healing;
-        } else {
-          const { damage, hp } = calculateDamage(
+        // create hit marker
+        const fragmentEntity =
+          getAttackable(world, targetPosition, true) || targetEntity;
+
+        if (!absorbed && !(healing && displayedDamage === 0)) {
+          createAmountMarker(
             world,
-            swordStats,
-            entity,
-            targetEntity
+            fragmentEntity,
+            -displayedDamage,
+            targetOrientation,
+            healing ? "true" : "melee"
           );
+        }
 
-          targetEntity[STATS].hp = hp;
+        rerenderEntity(world, targetEntity);
+        rerenderEntity(world, fragmentEntity);
+      }
 
-          // trigger on hit effects
-          applyProcs(world, entity, swordStats, swordId, targetEntity);
+      if (interacted) {
+        // mark as interacted
+        entity[MOVABLE].pendingOrientation = undefined;
+        entity[MOVABLE].lastInteraction = entityGeneration;
+      }
 
-          // play sound
-          play("hit", {
-            intensity: damage,
-            proximity: targetEntity[PLAYER] ? 1 : 0.5,
-            variant: targetEntity[PLAYER] ? 1 : 2,
-          });
+      if (attacked) {
+        // perform bump
+        entity[MELEE].facing = targetOrientation;
 
-          // set rechargable if applicable
-          const secondaryEntity = world.getEntityByIdAndComponents(
-            entity[EQUIPPABLE].secondary,
-            [ITEM]
-          );
-          const canRecharge = rechargables.includes(
-            secondaryEntity?.[ITEM].secondary as (typeof rechargables)[number]
-          );
+        for (const limb of limbs) {
+          limb[MOVABLE].bumpGeneration = entity[RENDERABLE].generation;
+          limb[MOVABLE].bumpOrientation = targetOrientation;
 
-          if (canRecharge && targetEntity[RECHARGABLE]) {
-            targetEntity[RECHARGABLE].hit = true;
+          if (!rigid && limb[ORIENTABLE]) {
+            limb[ORIENTABLE].facing = targetOrientation;
           }
-
-          displayedDamage = damage;
         }
-      }
 
-      // perform bump
-      entity[MELEE].facing = targetOrientation;
-      entity[MOVABLE].bumpGeneration = entity[RENDERABLE].generation;
-
-      if (entity[ORIENTABLE]) {
-        entity[ORIENTABLE].facing = targetOrientation;
-      }
-
-      // close popup on target hits
-      const activePopup = getActivePopup(world, targetEntity);
-      if (activePopup) {
-        closePopup(world, targetEntity, activePopup);
-      }
-
-      // animate sword orientation
-      createSequence<"melee", MeleeSequence>(
-        world,
-        entity,
-        "melee",
-        "swordAttack",
-        {
-          facing: targetOrientation,
-          tick: entityReference[REFERENCE].tick,
-          rotate: false,
-        }
-      );
-
-      // create hit marker
-      const fragmentEntity =
-        getAttackable(world, targetPosition, true) || targetEntity;
-
-      if (!absorbed && !(healing && displayedDamage === 0)) {
-        createAmountMarker(
+        // animate sword orientation
+        createSequence<"melee", MeleeSequence>(
           world,
-          fragmentEntity,
-          -displayedDamage,
-          targetOrientation,
-          healing ? "true" : "melee"
+          entity,
+          "melee",
+          "swordAttack",
+          {
+            facing: targetOrientation,
+            tick: entityReference[REFERENCE].tick,
+            rotate: false,
+          }
         );
       }
-
-      rerenderEntity(world, targetEntity);
-      rerenderEntity(world, fragmentEntity);
     }
   };
 

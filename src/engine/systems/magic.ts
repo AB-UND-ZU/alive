@@ -20,6 +20,7 @@ import {
   calculateHealing,
   createAmountMarker,
   getAttackable,
+  getRoot,
   isDead,
   isEnemy,
   isFriendlyFire,
@@ -218,11 +219,7 @@ export default function setupMagic(world: World) {
 
     referenceGenerations = generation;
 
-    for (const entity of world.getEntities([
-      POSITION,
-      CASTABLE,
-      RENDERABLE,
-    ])) {
+    for (const entity of world.getEntities([POSITION, CASTABLE, RENDERABLE])) {
       // unmark when entity leaves retriggering AoE
       if (entity[CASTABLE].retrigger > 0) {
         Object.entries(entity[CASTABLE].affected).forEach(
@@ -260,7 +257,11 @@ export default function setupMagic(world: World) {
       if (casterEntity?.[BURNABLE]?.eternal) continue;
 
       // delete finished spell entities and smoke anchors
-      if (getSequences(world, entity).length === 0 && !entity[HOMING]) {
+      if (
+        getSequences(world, entity).length === 0 &&
+        !entity[HOMING] &&
+        casterEntity !== entity
+      ) {
         // ensure any remaining retrigger frames are disposed properly
         Object.values(entity[CASTABLE].affected).forEach((affected) => {
           if (affected.frame) {
@@ -294,7 +295,8 @@ export default function setupMagic(world: World) {
         : getAffectable(world, entity[POSITION]);
 
       if (targetEntity) {
-        const affectableId = world.getEntityId(targetEntity);
+        const rootEntity = getRoot(world, targetEntity);
+        const affectableId = world.getEntityId(rootEntity);
         const previousAffected =
           castableEntity[CASTABLE].affected[affectableId];
 
@@ -310,40 +312,7 @@ export default function setupMagic(world: World) {
         )
           continue;
 
-        // set affected generation
-        castableEntity[CASTABLE].affected[affectableId] = previousAffected
-          ? {
-              ...previousAffected,
-              generation:
-                previousAffected.generation +
-                castableEntity[CASTABLE].retrigger,
-            }
-          : {
-              generation: worldGeneration,
-              delta: worldDelta,
-            };
-
-        // start ticking empty frame to ensure next tick is called in time
-        if (
-          castableEntity[CASTABLE].retrigger > 0 &&
-          !castableEntity[CASTABLE].affected[affectableId].frame
-        ) {
-          const retriggerEntity = entities.createFrame(world, {
-            [REFERENCE]: {
-              tick:
-                world.metadata.gameEntity[REFERENCE].tick *
-                castableEntity[CASTABLE].retrigger,
-              delta: 0,
-              suspended: false,
-              suspensionCounter: -1,
-            },
-            [RENDERABLE]: { generation: 1 },
-          });
-
-          castableEntity[CASTABLE].affected[affectableId].frame =
-            world.getEntityId(retriggerEntity);
-        }
-
+        let hasAffected = castableEntity[CASTABLE].forceAffecting;
         const hasDamage =
           castableEntity[CASTABLE].melee ||
           castableEntity[CASTABLE].magic ||
@@ -352,39 +321,38 @@ export default function setupMagic(world: World) {
           castableEntity[CASTABLE].burn ||
           castableEntity[CASTABLE].freeze ||
           castableEntity[CASTABLE].drain;
-
-        // prevent spell if bubble is active
-
-        if (
-          (hasDamage || hasProcs) &&
-          attemptBubbleAbsorb(world, targetEntity)
-        ) {
-          continue;
-        }
-
-        // create hit marker
         const fragmentEntity =
           (castableEntity[CASTABLE].melee
             ? getAttackable(world, entity[POSITION], true)
             : getAffectable(world, entity[POSITION], true)) || targetEntity;
 
-        if (isFriendlyFire(world, castableEntity, targetEntity)) {
+        // prevent spell if bubble is active
+        if (
+          (hasDamage || hasProcs) &&
+          attemptBubbleAbsorb(world, targetEntity)
+        ) {
+          hasAffected = true;
+        } else if (isFriendlyFire(world, castableEntity, targetEntity)) {
           // process healing
           if (castableEntity[CASTABLE].heal && targetEntity[STATS]) {
             const { healing, hp } = calculateHealing(
               targetEntity[STATS],
               castableEntity[CASTABLE].heal
             );
-            targetEntity[STATS].hp = hp;
 
-            createAmountMarker(world, fragmentEntity, healing, "up", "true");
+            // create hit marker
             if (healing > 0) {
+              targetEntity[STATS].hp = hp;
+              createAmountMarker(world, fragmentEntity, healing, "up", "true");
               play("pickup", pickupOptions.hp);
+              hasAffected = true;
             }
           }
         } else {
           // inflict direct damage
           if (hasDamage) {
+            hasAffected = true;
+
             const { damage, hp } = calculateDamage(
               world,
               castableEntity[CASTABLE],
@@ -392,6 +360,18 @@ export default function setupMagic(world: World) {
               targetEntity
             );
             targetEntity[STATS].hp = hp;
+
+            // propagate damage
+            if (targetEntity !== rootEntity) {
+              const { hp } = calculateDamage(
+                world,
+                { true: damage },
+                {},
+                rootEntity
+              );
+              rootEntity[STATS].hp = hp;
+              rerenderEntity(world, rootEntity);
+            }
 
             // play sound
             const proximity = heroEntity
@@ -417,7 +397,7 @@ export default function setupMagic(world: World) {
           }
 
           // process burning and freezing on hit
-          applyProcs(
+          const hasProc = applyProcs(
             world,
             casterEntity,
             {
@@ -428,8 +408,44 @@ export default function setupMagic(world: World) {
             entity[EXERTABLE].castable,
             targetEntity
           );
+          hasAffected = hasAffected || hasProc;
         }
 
+        if (hasAffected) {
+          // set affected generation
+          castableEntity[CASTABLE].affected[affectableId] = previousAffected
+            ? {
+                ...previousAffected,
+                generation:
+                  previousAffected.generation +
+                  castableEntity[CASTABLE].retrigger,
+              }
+            : {
+                generation: worldGeneration,
+                delta: worldDelta,
+              };
+
+          // start ticking empty frame to ensure next tick is called in time
+          if (
+            castableEntity[CASTABLE].retrigger > 0 &&
+            !castableEntity[CASTABLE].affected[affectableId].frame
+          ) {
+            const retriggerEntity = entities.createFrame(world, {
+              [REFERENCE]: {
+                tick:
+                  world.metadata.gameEntity[REFERENCE].tick *
+                  castableEntity[CASTABLE].retrigger,
+                delta: 0,
+                suspended: false,
+                suspensionCounter: -1,
+              },
+              [RENDERABLE]: { generation: 1 },
+            });
+
+            castableEntity[CASTABLE].affected[affectableId].frame =
+              world.getEntityId(retriggerEntity);
+          }
+        }
         rerenderEntity(world, targetEntity);
       }
 
@@ -542,6 +558,14 @@ export default function setupMagic(world: World) {
         entity
       );
       entity[STATS].hp = hp;
+
+      // propagate damage
+      const rootEntity = getRoot(world, entity);
+      if (entity !== rootEntity) {
+        const { hp } = calculateDamage(world, { true: damage }, {}, rootEntity);
+        rootEntity[STATS].hp = hp;
+        rerenderEntity(world, rootEntity);
+      }
 
       const proximity = heroEntity
         ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)

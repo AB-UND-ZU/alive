@@ -323,90 +323,11 @@ export const rainbowCharm2: Sprite = {
 
 export const pet: Sprite = {
   name: "Pet",
-  layers: [{ char: "\u0101", color: colors.silver }],
-};
-
-export const diamondPet1: Sprite = {
-  name: "Pet",
-  layers: [{ char: "\u0101", color: colors.aqua }],
-};
-
-export const firePet1: Sprite = {
-  name: "Pet",
-  layers: [{ char: "\u0101", color: colors.red }],
-};
-
-export const waterPet1: Sprite = {
-  name: "Pet",
-  layers: [{ char: "\u0101", color: colors.blue }],
-};
-
-export const earthPet1: Sprite = {
-  name: "Pet",
-  layers: [{ char: "\u0101", color: colors.lime }],
-};
-
-export const diamondPet2: Sprite = {
-  name: "Pet",
   layers: [
-    { char: '"', color: colors.teal },
-    { char: "\u0101", color: colors.aqua },
-  ],
-};
-
-export const firePet2: Sprite = {
-  name: "Pet",
-  layers: [
-    { char: '"', color: colors.maroon },
-    { char: "\u0101", color: colors.red },
-  ],
-};
-
-export const waterPet2: Sprite = {
-  name: "Pet",
-  layers: [
-    { char: '"', color: colors.navy },
-    { char: "\u0101", color: colors.blue },
-  ],
-};
-
-export const earthPet2: Sprite = {
-  name: "Pet",
-  layers: [
-    { char: '"', color: colors.green },
-    { char: "\u0101", color: colors.lime },
-  ],
-};
-
-export const rubyPet2: Sprite = {
-  name: "Pet",
-  layers: [
-    { char: '"', color: colors.purple },
-    { char: "\u0101", color: colors.fuchsia },
-  ],
-};
-
-export const aetherPet2: Sprite = {
-  name: "Pet",
-  layers: [
-    { char: '"', color: colors.silver },
-    { char: "\u0101", color: colors.white },
-  ],
-};
-
-export const voidPet2: Sprite = {
-  name: "Pet",
-  layers: [
-    { char: '"', color: colors.silver },
-    { char: "\u0101", color: colors.white },
-  ],
-};
-
-export const rainbowPet2: Sprite = {
-  name: "Pet",
-  layers: [
-    { char: '"', color: colors.silver },
-    { char: "\u0101", color: colors.white },
+    { char: '"', color: colors.red },
+    { char: 'ç', color: colors.red },
+    { char: '#', color: colors.black },
+    { char: "\u0101", color: colors.silver },
   ],
 };
 

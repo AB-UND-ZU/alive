@@ -2,7 +2,7 @@ import { createTemplate, TEMPLATE_COLORS } from ".";
 import { Sprite } from "../../../engine/components/sprite";
 import { colors } from "../colors";
 
-// melee items
+// weapon items
 
 const swordTemplate: Sprite = {
   name: "Sword",
@@ -87,6 +87,37 @@ export const spear = createTemplate({
   sprite: spearTemplate,
   materialElementSprite: spearElementTemplate,
 });
+
+const wandTemplate: Sprite = {
+  name: "Wand",
+  layers: [
+    { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
+    { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+const wandIron: Sprite = {
+  name: "Wand",
+  layers: [
+    { char: "\u0106", color: colors.grey },
+    { char: "∙", color: colors.white },
+    { char: ".", color: colors.white },
+  ],
+};
+const wandElementTemplate: Sprite = {
+  name: "Wand",
+  layers: [
+    { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
+    { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "·", color: TEMPLATE_COLORS.elementPrimary },
+    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+export const wand = createTemplate({
+  sprite: wandTemplate,
+  materialElementSprite: wandElementTemplate,
+});
+wand.iron.default = wandIron;
 
 // defensive items
 

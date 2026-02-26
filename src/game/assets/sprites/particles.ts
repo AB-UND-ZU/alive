@@ -26,6 +26,7 @@ import { World } from "../../../engine";
 import { isEnemy, isNeutral, isTribe } from "../../../engine/systems/damage";
 import { Entity } from "ecs";
 import { ItemStats } from "../../../engine/components/item";
+import { recolorSprite } from "../templates";
 
 export const blockDown: Sprite = {
   name: "block_down",
@@ -367,6 +368,11 @@ export const vanishEvaporate: Sprite = {
 export const plantEvaporate: Sprite = {
   name: "plant_evaporate",
   layers: [{ char: "│", color: colors.green }],
+};
+
+export const stoneEvaporate: Sprite = {
+  name: "stone_evaporate",
+  layers: [{ char: "│", color: colors.grey }],
 };
 
 export const shotHit: Sprite = {
@@ -1410,6 +1416,18 @@ const statConfig: Record<
     color: colors.olive,
     sprite: absorb,
   },
+  duration: {
+    color: colors.olive,
+    sprite: delay,
+  },
+  range: {
+    color: colors.olive,
+    sprite: range,
+  },
+  retrigger: {
+    color: colors.black,
+    sprite: none,
+  },
 };
 
 export const createCountable = (
@@ -1569,6 +1587,19 @@ export const stretch = (left: Sprite[], right: Sprite[], width: number) =>
     ...right,
   ].slice(0, width);
 
+export const emptySlot: Sprite = {
+  name: "Slot",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.grey },
+    { char: "]", color: colors.grey },
+    { char: "\u0114", color: colors.grey },
+    { char: "\u0110", color: colors.grey },
+    { char: "¼", color: colors.grey },
+    { char: "_", color: colors.black },
+  ],
+};
+
 export const discovery = createText("°", colors.lime)[0];
 export const quest = createText("?", colors.lime)[0];
 export const ongoing = createText("?", colors.silver)[0];
@@ -1579,7 +1610,10 @@ export const forge = createText("ƒ", colors.lime)[0];
 export const class_ = createText("\u010b", colors.lime)[0];
 
 export const rage = createAggro("\u0112")[0];
-export const rage2 = parseSprite("\x09█\x00\u0112");
+export const rage2 = mergeSprites(
+  recolorSprite(emptySlot, colors.red),
+  parseSprite("\x00\u0112")
+);
 
 export const sleep1 = createText("z", colors.white)[0];
 export const sleep2 = createText("Z", colors.white)[0];
@@ -1831,19 +1865,6 @@ export const double: Sprite = {
     { char: "-", color: colors.black },
     { char: ".", color: colors.black },
     { char: "²", color: colors.silver },
-  ],
-};
-
-export const emptySlot: Sprite = {
-  name: "Slot",
-  layers: [
-    { char: "M", color: colors.grey },
-    { char: "[", color: colors.grey },
-    { char: "]", color: colors.grey },
-    { char: "\u0114", color: colors.grey },
-    { char: "\u0110", color: colors.grey },
-    { char: "¼", color: colors.grey },
-    { char: "_", color: colors.black },
   ],
 };
 

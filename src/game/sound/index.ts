@@ -6,6 +6,7 @@ import { isPlaying, ResumableSoundEffect } from "./resumable";
 import { Params, sfxr, waveforms } from "jsfxr";
 
 export const npcVariants: Partial<Record<NpcType, number>> = {
+  golem: 1,
   wormBoss: 1,
   orb: 1,
   goldOrb: 1,
@@ -252,11 +253,12 @@ class Presets extends Params {
   }
 
   wave(options: SfxOptions) {
+    const intensity = options.intensity || 1;
     this.sound_vol = 1 / 4;
     this.wave_type = waveforms.NOISE;
     this.p_env_attack = 0.5;
     this.p_env_sustain = 0.2;
-    this.p_env_decay = 0.9;
+    this.p_env_decay = 0.9 * intensity;
     this.p_base_freq = 0.05 + frnd(0.02);
     this.p_freq_ramp = 0.15 + frnd(0.1);
     this.p_freq_dramp = -0.0025;

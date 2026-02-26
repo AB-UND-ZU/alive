@@ -28,6 +28,8 @@ export const npcTypes = [
   "oakBoss",
   "oakTower",
   "oakClover",
+  "golem",
+  "golemLimb",
   "wormBoss",
   "chestBoss",
   "waveTower",

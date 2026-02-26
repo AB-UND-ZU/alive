@@ -140,7 +140,8 @@ export default function Systems() {
       dimensions.renderedRows +
         Math.abs(overscan.y) +
         Math.abs(fractionY) +
-        flyingPadding + 1;
+        flyingPadding +
+        1;
       offsetY += 1
     ) {
       const oddX = dimensions.renderedColumns % 2;
@@ -175,7 +176,9 @@ export default function Systems() {
         if (
           !(RENDERABLE in entity) ||
           !(SPRITE in entity) ||
-          (CASTABLE in entity && !(HOMING in entity)) ||
+          (CASTABLE in entity &&
+            !(HOMING in entity) &&
+            entity[CASTABLE]?.caster !== parseInt(entityId)) ||
           STICKY in entity
         )
           continue;
@@ -195,9 +198,10 @@ export default function Systems() {
   // find closest quadrant to virtually place all castables
   const castableEntities = ecs.getEntities([CASTABLE, POSITION]);
   for (const entity of castableEntities) {
-    if (HOMING in entity) continue;
-
     const entityId = ecs.getEntityId(entity);
+
+    if (HOMING in entity || entity[CASTABLE].caster === entityId) continue;
+
     let castableQuadrant = stickyCastables.current[entityId];
 
     // check if quadrant has been calculated before

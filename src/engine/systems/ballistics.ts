@@ -21,6 +21,7 @@ import { BELONGABLE } from "../components/belongable";
 import {
   calculateDamage,
   createAmountMarker,
+  getRoot,
   isDead,
   isEnemy,
   isFriendlyFire,
@@ -177,7 +178,13 @@ export default function setupBallistics(world: World) {
 
     // handle projectile collision
     const selectedProjectiles = [
-      ...world.getEntities([POSITION, PROJECTILE, RENDERABLE, SEQUENCABLE]),
+      ...world.getEntities([
+        ORIENTABLE,
+        POSITION,
+        PROJECTILE,
+        RENDERABLE,
+        SEQUENCABLE,
+      ]),
     ];
     for (const entity of selectedProjectiles) {
       // hit crossing enemies
@@ -185,7 +192,7 @@ export default function setupBallistics(world: World) {
       const shootable = getShootable(world, entity[POSITION]);
       let bouncable = isBouncable(world, entity[POSITION]);
       const hitBoxes = [];
-      const orientation = entity[ORIENTABLE]?.facing || "up";
+      const orientation = entity[ORIENTABLE].facing || "up";
       const oppositeOrientation = invertOrientation(orientation);
 
       if (!isFlying) {
@@ -223,6 +230,19 @@ export default function setupBallistics(world: World) {
             targetEntity
           );
           targetEntity[STATS].hp = hp;
+
+          // propagate damage
+          const rootEntity = getRoot(world, targetEntity);
+          if (targetEntity !== rootEntity) {
+            const { hp } = calculateDamage(
+              world,
+              { true: damage },
+              {},
+              rootEntity
+            );
+            rootEntity[STATS].hp = hp;
+            rerenderEntity(world, rootEntity);
+          }
 
           // increment arrow hit counter on target
           if (!isEnemy(world, entity)) {
