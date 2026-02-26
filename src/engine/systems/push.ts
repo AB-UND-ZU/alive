@@ -34,7 +34,7 @@ export const pushEntity = (
   if (!orientation || !isProcessable(targetReference[REFERENCE])) return;
 
   entity[MOVABLE].orientations = [orientation];
-  targetReference[REFERENCE].delta = 0;
+  targetReference[REFERENCE].delta = targetReference[REFERENCE].tick;
   targetReference[REFERENCE].suspended = false;
   targetReference[REFERENCE].suspensionCounter = 0;
   rerenderEntity(world, targetReference);

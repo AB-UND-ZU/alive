@@ -5420,7 +5420,8 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  if (updated) {
+  // reveal characters and flip if needed
+  if (updated && particlesLength > 0) {
     const origin = add(orientationPoints[state.args.orientation], {
       x: -Math.floor((totalLength - 1) / 2),
       y: 0,

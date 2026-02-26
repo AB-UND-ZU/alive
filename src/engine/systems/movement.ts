@@ -401,14 +401,14 @@ export default function setupMovement(world: World) {
           const limbPosition = combine(size, limb[POSITION], delta);
           moveEntity(world, limb, limbPosition);
           rerenderEntity(world, limb);
-
-          // preserve momentum before suspending frame
-          freezeMomentum(world, limb, movedOrientation);
-
-          // mark as interacted but keep pending movement
-          limb[MOVABLE].lastInteraction = entityReference;
         }
       }
+
+      // preserve momentum before suspending frame
+      freezeMomentum(world, entity, movedOrientation);
+
+      // mark as interacted but keep pending movement
+      entity[MOVABLE].lastInteraction = entityReference;
     }
   };
 
