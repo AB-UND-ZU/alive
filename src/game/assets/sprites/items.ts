@@ -546,10 +546,10 @@ export const rubyGem: Sprite = {
 export const arrow: Sprite = {
   name: "Arrow",
   layers: [
-    { char: "»", color: colors.white },
+    { char: "»", color: colors.grey },
     { char: "\u0119", color: colors.black },
-    { char: "─", color: colors.white },
-    { char: "-", color: colors.grey },
+    { char: "─", color: colors.grey },
+    { char: "-", color: colors.maroon },
   ],
 };
 

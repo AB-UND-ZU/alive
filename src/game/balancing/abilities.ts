@@ -310,7 +310,7 @@ export const abilityStats: Partial<
 
   violet: {
     bolt: {
-      iron: { default: { magic: 3 } },
+      wood: { default: { magic: 3 } },
     },
   },
 
