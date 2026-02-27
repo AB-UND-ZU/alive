@@ -11,12 +11,8 @@ import {
 } from "../../engine/components/orientable";
 import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
-import {
-  QuestSequence,
-  SEQUENCABLE,
-  Sequence,
-} from "../../engine/components/sequencable";
-import { SPAWNABLE } from "../../engine/components/spawnable";
+import { QuestSequence, Sequence } from "../../engine/components/sequencable";
+import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { TRACKABLE } from "../../engine/components/trackable";
 import { getLockable, isUnlocked } from "../../engine/systems/action";
@@ -36,7 +32,7 @@ import { up2Cactus } from "../levels/tutorial/areas";
 import { findPath } from "../math/path";
 import { add, copy, getDistance } from "../math/std";
 import { createDialog } from "./sprites";
-import { END_STEP, QuestStage, START_STEP, step } from "./utils";
+import { END_STEP, questSequence, QuestStage, START_STEP, step } from "./utils";
 
 const menuDelay = 5000;
 
@@ -553,12 +549,16 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
       setHighlight(world);
 
       // restart existing quest
-      const currentQuest = entity[SPAWNABLE].quest;
+      const currentQuest = (entity[SPAWNABLE] as Spawnable).quest;
       if (currentQuest) {
-        currentQuest.args.step = START_STEP;
-        entity[SEQUENCABLE].states.quest = currentQuest;
+        questSequence(
+          world,
+          entity,
+          currentQuest.name as any,
+          currentQuest.args.memory,
+          world.getEntityById(currentQuest.args.giver)
+        );
         entity[SPAWNABLE].quest = undefined;
-        return "continue";
       }
 
       return END_STEP;

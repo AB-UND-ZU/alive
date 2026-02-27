@@ -761,6 +761,11 @@ export const earthTownNpc: Sequence<NpcSequence> = (world, entity, state) => {
     onLeave: () => {
       if (heroEntity) {
         heroEntity[SPAWNABLE].position = { ...spawn };
+        const spawnEntity = getIdentifier(world, "spawn");
+        if (spawnEntity) {
+          moveEntity(world, spawnEntity, heroEntity[SPAWNABLE].position);
+          setNeedle(world, spawnEntity);
+        }
 
         queueMessage(world, heroEntity, {
           line: createText("Spawn updated!", colors.black, colors.lime),

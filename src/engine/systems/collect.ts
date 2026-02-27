@@ -113,8 +113,8 @@ export const collectItem = (
 
     if (equipment) {
       // transfer inventory on discrete items
-      itemEntity[ITEM].carrier = world.getEntityId(entity);
       removeFromInventory(world, target, itemEntity);
+      itemEntity[ITEM].carrier = world.getEntityId(entity);
     } else if (isFinite(itemEntity[ITEM].amount)) {
       // mark stacks as empty
       itemEntity[ITEM].amount = 0;

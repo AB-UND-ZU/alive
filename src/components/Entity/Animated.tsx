@@ -63,12 +63,17 @@ export default function Animated({
             z: position[2],
             config: bumpSpring,
           });
-          await next({
-            x: position[0],
-            y: position[1],
-            z: position[2],
-            config: spring,
-          });
+
+          try {
+            await next({
+              x: position[0],
+              y: position[1],
+              z: position[2],
+              config: spring,
+            });
+          } catch {
+            //ignore aborted animations
+          }
         },
       });
     } else {

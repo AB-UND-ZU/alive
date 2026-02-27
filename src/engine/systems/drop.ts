@@ -18,7 +18,7 @@ import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
 import { iterations } from "../../game/math/tracing";
-import { add, combine, copy, normalize, shuffle } from "../../game/math/std";
+import { combine, copy, normalize, shuffle } from "../../game/math/std";
 import {
   CollectSequence,
   DecaySequence,
@@ -283,6 +283,7 @@ export const dropEntity = (
   orientation?: Orientation,
   delay?: number
 ) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
   const inventory = entity[INVENTORY]?.items || [];
 
   placeRemains(world, entity, position);
@@ -364,7 +365,7 @@ export const dropEntity = (
 
   return shuffle(items).map((itemId, index) => {
     const dropPosition = orientation
-      ? add(position, orientationPoints[orientation])
+      ? combine(size, position, orientationPoints[orientation])
       : findAdjacentDroppable(
           world,
           position,

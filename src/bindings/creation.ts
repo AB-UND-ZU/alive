@@ -71,7 +71,11 @@ import { applySnow } from "../engine/systems/freeze";
 import { getHasteInterval } from "../engine/systems/movement";
 import { createPopup } from "../engine/systems/popup";
 import { createSequence } from "../engine/systems/sequence";
-import { getIdentifier, setIdentifier } from "../engine/utils";
+import {
+  assertIdentifier,
+  getIdentifierAndComponents,
+  setIdentifier,
+} from "../engine/utils";
 import { colors } from "../game/assets/colors";
 import {
   apple,
@@ -780,10 +784,17 @@ export const createCell = (
   if (!cell) {
     return { cell: all[0], all };
   } else if (cell === "player") {
-    const hero = getIdentifier(world, "hero");
+    const hero = getIdentifierAndComponents(world, "hero", [
+      POSITION,
+      SPAWNABLE,
+    ]);
     if (hero) {
       all.push(hero);
       hero[POSITION] = { x, y };
+      hero[SPAWNABLE].position = { x, y };
+      const spawnEntity = assertIdentifier(world, "spawn");
+      all.push(spawnEntity);
+      spawnEntity[POSITION] = { x, y };
       return { cell: hero, all };
     }
 
