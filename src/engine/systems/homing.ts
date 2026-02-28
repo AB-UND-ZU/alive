@@ -263,6 +263,16 @@ export default function setupHoming(world: World) {
                 resource: "tree",
               },
               [INVENTORY]: { items: [] },
+              [MOVABLE]: {
+                bumpGeneration: 0,
+                orientations: [],
+                reference: world.getEntityId(world.metadata.gameEntity),
+                spring: {
+                  duration: 100,
+                },
+                lastInteraction: 0,
+                flying: false,
+              },
               [POSITION]: side,
               [RENDERABLE]: { generation: 0 },
               [SEQUENCABLE]: { states: {} },

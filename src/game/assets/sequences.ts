@@ -739,8 +739,7 @@ export const axeCondition: Sequence<ConditionSequence> = (
       rerenderEntity(world, targetEntity);
 
       // bump target resource
-      if (targetEntity[ORIENTABLE] && targetEntity[MOVABLE]) {
-        targetEntity[ORIENTABLE].facing = state.args.orientation;
+      if (targetEntity[MOVABLE]) {
         targetEntity[MOVABLE].bumpGeneration =
           targetEntity[RENDERABLE].generation;
         targetEntity[MOVABLE].bumpOrientation = state.args.orientation;

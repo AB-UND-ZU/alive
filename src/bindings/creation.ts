@@ -1100,7 +1100,6 @@ export const createCell = (
         [FOG]: { visibility, type: "object" },
         [HARVESTABLE]: harvestable,
         [INVENTORY]: { items: [] },
-        [ORIENTABLE]: {},
         [MOVABLE]: {
           bumpGeneration: 0,
           orientations: [],
@@ -1239,7 +1238,6 @@ export const createCell = (
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
-      [ORIENTABLE]: {},
       [MOVABLE]: {
         bumpGeneration: 0,
         orientations: [],
@@ -1298,7 +1296,6 @@ export const createCell = (
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
-      [ORIENTABLE]: {},
       [MOVABLE]: {
         bumpGeneration: 0,
         orientations: [],
@@ -1372,6 +1369,16 @@ export const createCell = (
         resource: "tree",
       },
       [INVENTORY]: { items: [] },
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 100,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -1559,6 +1566,16 @@ export const createCell = (
         resource: "tree",
       },
       [INVENTORY]: { items: [] },
+      [MOVABLE]: {
+        bumpGeneration: 0,
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 100,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
