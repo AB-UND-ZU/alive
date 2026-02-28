@@ -39,6 +39,7 @@ import { disc, homing, summon } from "../../game/assets/templates/particles";
 import { attemptBubbleAbsorb } from "./magic";
 import { isDead } from "./damage";
 import { rerenderEntity } from "./renderer";
+import { HARVESTABLE } from "../components/harvestable";
 
 export const decayHoming = (world: World, entity: Entity) => {
   entity[HOMING].decayedGeneration =
@@ -255,6 +256,12 @@ export default function setupHoming(world: World) {
               },
               [DROPPABLE]: { decayed: false },
               [FOG]: { visibility: "hidden", type: "object" },
+              [HARVESTABLE]: {
+                amount: 2,
+                maximum: 2,
+                material: "wood",
+                resource: "tree",
+              },
               [INVENTORY]: { items: [] },
               [POSITION]: side,
               [RENDERABLE]: { generation: 0 },

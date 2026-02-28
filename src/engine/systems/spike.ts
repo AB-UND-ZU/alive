@@ -114,6 +114,9 @@ export default function setupSpike(world: World) {
 
       entityReferences[entityId] = entityReference;
 
+      // skip if entity has already interacted
+      if (entity[MOVABLE].lastInteraction === entityReference) continue;
+
       // skip if not controllable or flying
       if (!isControllable(world, entity) || entity[MOVABLE].flying) continue;
 

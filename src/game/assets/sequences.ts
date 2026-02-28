@@ -340,7 +340,7 @@ import {
 } from "../../engine/systems/water";
 import { coverSnow } from "../../engine/systems/freeze";
 import { aspectRatio } from "../../components/Dimensions/sizing";
-import { HARVESTABLE } from "../../engine/components/harvestable";
+import { HARVESTABLE, Resource } from "../../engine/components/harvestable";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
 import { FOG } from "../../engine/components/fog";
 import { CellType } from "../../bindings/creation";
@@ -618,16 +618,20 @@ export const blockCondition: Sequence<ConditionSequence> = (
   return { finished, updated };
 };
 
+const harvestScratches: Record<Resource, string> = {
+  tree: colors.maroon,
+  rock: colors.silver,
+};
+
 export const axeCondition: Sequence<ConditionSequence> = (
   world,
   entity,
   state
 ) => {
-  const tick = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+  const tick = world.getEntityByIdAndComponents(entity[MOVABLE]?.reference, [
     REFERENCE,
-  ])[REFERENCE].tick;
+  ])?.[REFERENCE].tick;
   let updated = false;
-  const finished = !entity[CONDITIONABLE].axe;
 
   const axeEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].secondary,
@@ -641,6 +645,11 @@ export const axeCondition: Sequence<ConditionSequence> = (
     entity[EQUIPPABLE].shield,
     [ITEM]
   );
+
+  const finished =
+    !entity[CONDITIONABLE].axe ||
+    !tick ||
+    axeEntity?.[ITEM].secondary !== "axe";
 
   // requires axe to be worn
   if (!axeEntity) {
@@ -667,7 +676,7 @@ export const axeCondition: Sequence<ConditionSequence> = (
         offsetZ: lootHeight,
         amount: 0,
         animatedOrigin: { x: 0, y: 0 },
-        duration: tick / 2,
+        duration: tick && tick / 2,
       },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: axeEntity[SPRITE],
@@ -684,6 +693,7 @@ export const axeCondition: Sequence<ConditionSequence> = (
   if (finished) {
     disposeEntity(world, conditionParticle);
     delete state.particles.condition;
+    delete entity[CONDITIONABLE].axe;
 
     // reset sword and shield
     if (swordEntity) {
@@ -700,6 +710,8 @@ export const axeCondition: Sequence<ConditionSequence> = (
       | Orientation
       | undefined;
     const targetEntity = getHarvestTarget(world, entity, axeEntity);
+    const progress = state.elapsed - state.args.duration;
+    let scratching = true;
 
     if (
       targetEntity &&
@@ -714,12 +726,13 @@ export const axeCondition: Sequence<ConditionSequence> = (
       conditionParticle[PARTICLE].offsetX = delta.x;
       conditionParticle[PARTICLE].offsetY = delta.y;
       rerenderEntity(world, conditionParticle);
+      scratching = false;
       updated = true;
     } else if (
       targetEntity &&
       state.args.orientation &&
       targetOrientation &&
-      state.elapsed - state.args.duration > tick / 2
+      progress > tick / 2
     ) {
       // perform harvest
       targetEntity[HARVESTABLE].amount -= entity[CONDITIONABLE].axe.amount;
@@ -733,6 +746,22 @@ export const axeCondition: Sequence<ConditionSequence> = (
         targetEntity[MOVABLE].bumpOrientation = state.args.orientation;
       }
 
+      // create scratch
+      const delta = orientationPoints[targetOrientation];
+      const scratchParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: delta.x * 2,
+          offsetY: delta.y * 2,
+          offsetZ: particleHeight,
+          animatedOrigin: copy(delta),
+          duration: tick / 2,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: createText(choice(...scratchChars), harvestScratches.tree)[0],
+      });
+      state.particles[`scratch-${targetEntity[RENDERABLE].generation}`] =
+        world.getEntityId(scratchParticle);
+
       // move axe back
       entity[CONDITIONABLE].axe.orientation = undefined;
       state.args.orientation = undefined;
@@ -745,12 +774,23 @@ export const axeCondition: Sequence<ConditionSequence> = (
       !targetOrientation &&
       state.args.duration &&
       targetDuration &&
-      state.elapsed - state.args.duration > tick
+      progress > tick
     ) {
       // reset axe
       entity[CONDITIONABLE].axe.duration = 0;
       state.args.duration = 0;
+      scratching = false;
       updated = true;
+    }
+
+    if (!scratching) {
+      // clear scratch
+      for (const particleName in state.particles) {
+        if (!particleName.startsWith("scratch-")) continue;
+        const particleEntity = world.assertById(state.particles[particleName]);
+        disposeEntity(world, particleEntity);
+        delete state.particles[particleName];
+      }
     }
   }
 
