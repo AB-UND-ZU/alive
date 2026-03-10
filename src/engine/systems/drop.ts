@@ -582,7 +582,11 @@ export default function setupDrop(world: World) {
           undefined,
           lootSpeed + decayTime / 2
         );
-      } else if (isDecayed(world, entity) && !entity[BURNABLE]?.combusted) {
+      } else if (
+        isDecayed(world, entity) &&
+        !entity[BURNABLE]?.combusted &&
+        !isDead(world, entity)
+      ) {
         disposeEntity(world, entity, true);
       }
     }
