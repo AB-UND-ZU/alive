@@ -63,11 +63,11 @@ export const craftingRecipes: Recipe[] = [
     options: [
       [
         { stackable: "fruit", amount: 1 },
-        { stackable: "resource", material: "iron", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
       ],
       [
         { stackable: "banana", amount: 1 },
-        { stackable: "resource", material: "iron", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
       ],
     ],
   },
@@ -76,11 +76,11 @@ export const craftingRecipes: Recipe[] = [
     options: [
       [
         { stackable: "herb", amount: 1 },
-        { stackable: "resource", material: "iron", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
       ],
       [
         { stackable: "coconut", amount: 1 },
-        { stackable: "resource", material: "iron", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
       ],
     ],
   },
@@ -109,6 +109,38 @@ export const craftingRecipes: Recipe[] = [
     options: [
       [{ stackable: "nugget", amount: 10 }],
       [{ stackable: "resource", material: "iron", amount: 5 }],
+    ],
+  },
+
+  {
+    item: { stackable: "plank", amount: 1 },
+    options: [[{ stackable: "resource", material: "wood", amount: 10 }]],
+  },
+
+  {
+    item: { consume: "potion", material: "gold", element: "fire", amount: 10 },
+    options: [
+      [
+        { stackable: "fruit", amount: 3 },
+        { stackable: "plank", amount: 1 },
+      ],
+      [
+        { stackable: "banana", amount: 3 },
+        { stackable: "plank", amount: 1 },
+      ],
+    ],
+  },
+  {
+    item: { consume: "potion", material: "gold", element: "water", amount: 10 },
+    options: [
+      [
+        { stackable: "herb", amount: 3 },
+        { stackable: "plank", amount: 1 },
+      ],
+      [
+        { stackable: "coconut", amount: 3 },
+        { stackable: "plank", amount: 1 },
+      ],
     ],
   },
 ];

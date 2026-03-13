@@ -26,6 +26,7 @@ export type Materialized = "door" | "entry" | "gate" | "mine" | "lock";
 export type Craftable =
   | "coin"
   | "stick"
+  | "plank"
   | "ore"
   | "berry"
   | "flower"

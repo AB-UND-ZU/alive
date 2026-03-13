@@ -321,6 +321,16 @@ export const wood: Sprite = {
   ],
 };
 
+export const plank: Sprite = {
+  name: "Plank",
+  layers: [
+    { char: "M", color: colors.maroon },
+    { char: "!", color: colors.black },
+    { char: "|", color: colors.maroon },
+    { char: "≡", color: colors.maroon },
+  ],
+};
+
 export const leaf: Sprite = {
   name: "Leaf",
   layers: [

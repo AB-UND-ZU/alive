@@ -83,7 +83,7 @@ import {
   ghost,
   none,
   getMaxCounter,
-  emptyPotion,
+  emptyBottle,
   getStatSprite,
   questPointer,
   enemyPointer,
@@ -138,8 +138,8 @@ import {
   delay,
   addForeground,
   popupActive,
-  emptyBottle,
-  emptyElixir,
+  emptyFlask,
+  emptyPotion,
   popupBlocked,
   star,
   discovery,
@@ -4887,9 +4887,9 @@ export const itemCollect: Sequence<CollectSequence> = (
 const consumeSpeed = 500;
 
 const materialFlasks = {
-  wood: emptyBottle,
-  iron: emptyPotion,
-  gold: emptyElixir,
+  wood: emptyFlask,
+  iron: emptyBottle,
+  gold: emptyPotion,
   diamond: missing,
   ruby: missing,
 };

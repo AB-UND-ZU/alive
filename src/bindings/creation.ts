@@ -232,7 +232,7 @@ import { VANISHABLE } from "../engine/components/vanishable";
 import { recolorSprite } from "../game/assets/templates";
 import { doorClosed, entryClosed } from "../game/assets/templates/units";
 import { compass } from "../game/assets/templates/equipments";
-import { bottle, key } from "../game/assets/templates/items";
+import { flask, key } from "../game/assets/templates/items";
 import { CASTABLE, getEmptyCastable } from "../engine/components/castable";
 import { EXERTABLE } from "../engine/components/exertable";
 import { getAbilityStats } from "../game/balancing/abilities";
@@ -1851,7 +1851,7 @@ export const createCell = (
       [
         [
           ...createText("A "),
-          bottle.wood.fire,
+          flask.wood.fire,
           ...createItemName({
             consume: "potion",
             material: "wood",

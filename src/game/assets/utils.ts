@@ -138,6 +138,7 @@ import {
   wall,
   mining,
   golemHead,
+  plank,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -179,7 +180,7 @@ import {
   torch,
   waveSpell,
 } from "./templates/equipments";
-import { bottle, elixir, key, potion, spirit } from "./templates/items";
+import { flask, potion, key, bottle, spirit } from "./templates/items";
 import { doorClosed, entryClosed, entryClosedDisplay } from "./templates/units";
 
 export const lootSpeed = 200;
@@ -1040,6 +1041,17 @@ export const entitySprites: Record<
       ],
       [
         ...createText("Craft into "),
+        ...createItemName({ stackable: "resource", material: "wood" }),
+        ...createText("."),
+      ],
+    ],
+  },
+  plank: {
+    sprite: plank,
+    getDescription: () => [
+      createText("Sturdy board made"),
+      [
+        ...createText("from "),
         ...createItemName({ stackable: "resource", material: "wood" }),
         ...createText("."),
       ],
@@ -2558,7 +2570,7 @@ export const elementSprites: Record<
   potion: {
     wood: {
       fire: {
-        sprite: bottle.wood.fire,
+        sprite: flask.wood.fire,
         getDescription: () => [
           createText("Automatic healing"),
           createText("on low health."),
@@ -2574,7 +2586,7 @@ export const elementSprites: Record<
         ],
       },
       water: {
-        sprite: bottle.wood.water,
+        sprite: flask.wood.water,
         getDescription: () => [
           createText("Refills low mana"),
           createText("automatically."),
@@ -2592,7 +2604,7 @@ export const elementSprites: Record<
     },
     iron: {
       fire: {
-        sprite: potion.iron.fire,
+        sprite: bottle.wood.fire,
         getDescription: () => [
           createText("Automatic healing"),
           createText("on low health."),
@@ -2608,7 +2620,7 @@ export const elementSprites: Record<
         ],
       },
       water: {
-        sprite: potion.iron.water,
+        sprite: bottle.wood.water,
         getDescription: () => [
           createText("Refills low mana"),
           createText("automatically."),
@@ -2626,7 +2638,7 @@ export const elementSprites: Record<
     },
     gold: {
       fire: {
-        sprite: elixir.gold.fire,
+        sprite: potion.wood.fire,
         getDescription: () => [
           createText("Automatic healing"),
           createText("on low health."),
@@ -2636,13 +2648,13 @@ export const elementSprites: Record<
               delay,
               ...createText("Delay", colors.olive),
             ],
-            createCountable({ hp: 8 }, "hp", "display"),
+            createCountable({ hp: 10 }, "hp", "display"),
             frameWidth - 2
           ),
         ],
       },
       water: {
-        sprite: elixir.gold.water,
+        sprite: potion.wood.water,
         getDescription: () => [
           createText("Refills low mana"),
           createText("automatically."),
@@ -2652,7 +2664,7 @@ export const elementSprites: Record<
               delay,
               ...createText("Delay", colors.olive),
             ],
-            createCountable({ mp: 3 }, "mp", "display"),
+            createCountable({ mp: 4 }, "mp", "display"),
             frameWidth - 2
           ),
         ],

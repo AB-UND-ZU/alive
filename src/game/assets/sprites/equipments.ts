@@ -21,8 +21,8 @@ export const bombActive: Sprite = {
   ],
 };
 
-export const emptyBottle: Sprite = {
-  name: "Bottle",
+export const emptyFlask: Sprite = {
+  name: "Flask",
   layers: [
     { char: "\u0108", color: colors.maroon },
     { char: ":", color: colors.grey },
@@ -31,11 +31,27 @@ export const emptyBottle: Sprite = {
   ],
 };
 
-export const emptyPotion: Sprite = {
-  name: "Potion",
+export const emptyBottle: Sprite = {
+  name: "Bottle",
   layers: [
     { char: "\u011f", color: colors.silver },
     { char: "°", color: colors.grey },
+  ],
+};
+
+export const emptyPotion: Sprite = {
+  name: "Potion",
+  layers: [
+    { char: "¢", color: colors.silver },
+    { char: "\u0100", color: colors.maroon },
+    { char: "\u0101", color: colors.maroon },
+    { char: '"', color: colors.silver },
+    { char: "|", color: colors.silver },
+    { char: ".", color: colors.maroon },
+    { char: "\u0102", color: colors.maroon },
+    { char: "\u0103", color: colors.maroon },
+    { char: "\u0106", color: colors.black },
+    { char: "\u0108", color: colors.black },
   ],
 };
 
@@ -325,8 +341,8 @@ export const pet: Sprite = {
   name: "Pet",
   layers: [
     { char: '"', color: colors.red },
-    { char: 'ç', color: colors.red },
-    { char: '#', color: colors.black },
+    { char: "ç", color: colors.red },
+    { char: "#", color: colors.black },
     { char: "\u0101", color: colors.silver },
   ],
 };
