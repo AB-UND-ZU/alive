@@ -134,6 +134,46 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
+          consume: "potion",
+          material: "wood",
+          element: "fire",
+          amount: Infinity,
+        },
+        {
+          consume: "potion",
+          material: "iron",
+          element: "fire",
+          amount: Infinity,
+        },
+        {
+          consume: "potion",
+          material: "gold",
+          element: "fire",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
+          consume: "potion",
+          material: "wood",
+          element: "water",
+          amount: Infinity,
+        },
+        {
+          consume: "potion",
+          material: "iron",
+          element: "water",
+          amount: Infinity,
+        },
+        {
+          consume: "potion",
+          material: "gold",
+          element: "water",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
           stackable: "apple",
           amount: Infinity,
         },
@@ -160,12 +200,26 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
+          stackable: "fruit",
+          amount: Infinity,
+        },
+        {
+          stackable: "herb",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
           stackable: "stick",
           amount: Infinity,
         },
         {
           stackable: "resource",
           material: "wood",
+          amount: Infinity,
+        },
+        {
+          stackable: "plank",
           amount: Infinity,
         },
       ],
@@ -181,12 +235,12 @@ export const generateMenu = async (world: World) => {
         },
         {
           stackable: "resource",
-          material: "gold",
+          material: "diamond",
           amount: Infinity,
         },
         {
           stackable: "resource",
-          material: "diamond",
+          material: "ruby",
           amount: Infinity,
         },
       ],
@@ -200,29 +254,12 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
+          stackable: "resource",
+          material: "gold",
+          amount: Infinity,
+        },
+        {
           stackable: "ingot",
-          amount: Infinity,
-        },
-      ],
-      [
-        {
-          stackable: "fruit",
-          amount: Infinity,
-        },
-        {
-          stackable: "herb",
-          amount: Infinity,
-        },
-        {
-          consume: "potion",
-          material: "wood",
-          element: "fire",
-          amount: Infinity,
-        },
-        {
-          consume: "potion",
-          material: "wood",
-          element: "water",
           amount: Infinity,
         },
       ],
