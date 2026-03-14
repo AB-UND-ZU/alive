@@ -27,14 +27,18 @@ export const emptyFlask: Sprite = {
     { char: "\u0108", color: colors.maroon },
     { char: ":", color: colors.grey },
     { char: ".", color: colors.maroon },
-    { char: "\u0106", color: colors.black },
+    { char: "\u0106", color: colors.maroon },
+    { char: "∙", color: colors.black },
   ],
 };
 
 export const emptyBottle: Sprite = {
   name: "Bottle",
   layers: [
-    { char: "\u011f", color: colors.silver },
+    { char: "|", color: colors.grey },
+    { char: "+", color: colors.black },
+    { char: ".", color: colors.black },
+    { char: "\u011f", color: colors.maroon },
     { char: "°", color: colors.grey },
   ],
 };
@@ -43,15 +47,14 @@ export const emptyPotion: Sprite = {
   name: "Potion",
   layers: [
     { char: "¢", color: colors.silver },
-    { char: "\u0100", color: colors.maroon },
-    { char: "\u0101", color: colors.maroon },
+    { char: "0", color: colors.maroon },
     { char: '"', color: colors.silver },
     { char: "|", color: colors.silver },
     { char: ".", color: colors.maroon },
     { char: "\u0102", color: colors.maroon },
     { char: "\u0103", color: colors.maroon },
+    { char: "\u0108", color: colors.maroon },
     { char: "\u0106", color: colors.black },
-    { char: "\u0108", color: colors.black },
   ],
 };
 

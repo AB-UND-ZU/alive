@@ -30,7 +30,8 @@ const flaskTemplate: Sprite = {
     { char: "\u0108", color: TEMPLATE_COLORS.materialPrimary },
     { char: ":", color: TEMPLATE_COLORS.materialSecondary },
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
-    { char: "\u0106", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "∙", color: TEMPLATE_COLORS.elementPrimary },
   ],
 };
 export const flask = createTemplate({ sprite: flaskTemplate });
@@ -38,7 +39,7 @@ export const flask = createTemplate({ sprite: flaskTemplate });
 const bottleTemplate: Sprite = {
   name: "Bottle",
   layers: [
-  { char: "|", color: TEMPLATE_COLORS.materialSecondary },
+    { char: "|", color: TEMPLATE_COLORS.materialSecondary },
     { char: ".", color: TEMPLATE_COLORS.transparent },
     { char: "\u011d", color: TEMPLATE_COLORS.elementPrimary },
     { char: "\u011f", color: TEMPLATE_COLORS.materialPrimary },
@@ -51,15 +52,13 @@ const potionTemplate: Sprite = {
   name: "Potion",
   layers: [
     { char: "¢", color: TEMPLATE_COLORS.materialSecondary },
-    { char: "\u0100", color: TEMPLATE_COLORS.materialPrimary },
-    { char: "\u0101", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "0", color: TEMPLATE_COLORS.materialPrimary },
     { char: '"', color: TEMPLATE_COLORS.materialSecondary },
     { char: "|", color: TEMPLATE_COLORS.materialSecondary },
     { char: ".", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0102", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0103", color: TEMPLATE_COLORS.materialPrimary },
     { char: "\u0106", color: TEMPLATE_COLORS.elementPrimary },
-    { char: "\u0108", color: TEMPLATE_COLORS.elementPrimary },
   ],
 };
 export const potion = createTemplate({ sprite: potionTemplate });
