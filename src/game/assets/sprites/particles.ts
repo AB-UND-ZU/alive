@@ -1424,6 +1424,10 @@ const statConfig: Record<
     color: colors.olive,
     sprite: range,
   },
+  knock: {
+    color: colors.black,
+    sprite: none,
+  },
   retrigger: {
     color: colors.black,
     sprite: none,

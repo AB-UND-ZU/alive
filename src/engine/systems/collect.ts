@@ -43,6 +43,7 @@ import { pickupOptions, play } from "../../game/sound";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { setIdentifier } from "../utils";
 import { recolorSprite } from "../../game/assets/templates";
+import { BUMPABLE } from "../components/bumpable";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -361,8 +362,10 @@ export default function setupCollect(world: World) {
       // perform bump animation
       if (collected && entity[ORIENTABLE]) {
         entity[ORIENTABLE].facing = targetOrientation;
-        entity[MOVABLE].bumpGeneration = entity[RENDERABLE].generation;
-        entity[MOVABLE].bumpOrientation = targetOrientation;
+      }
+      if (collected && entity[BUMPABLE]) {
+        entity[BUMPABLE].generation = entity[RENDERABLE].generation;
+        entity[BUMPABLE].orientation = targetOrientation;
       }
 
       // mark as interacted

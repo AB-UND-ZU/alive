@@ -41,6 +41,7 @@ import FogOfWar from "./FogOfWar";
 import { LIQUID } from "../../engine/components/liquid";
 import { HARVESTABLE } from "../../engine/components/harvestable";
 import { enemySpawner } from "../../game/assets/sprites";
+import { BUMPABLE } from "../../engine/components/bumpable";
 
 function Entity({
   entity,
@@ -197,8 +198,8 @@ function Entity({
     <Container
       position={[x * dimensions.aspectRatio, -y, 0]}
       spring={config}
-      bumpOrientation={entity[MOVABLE]?.bumpOrientation}
-      bumpGeneration={entity[MOVABLE]?.bumpGeneration}
+      bumpOrientation={entity[BUMPABLE]?.orientation}
+      bumpGeneration={entity[BUMPABLE]?.generation}
     >
       {isOpaque && isVisible && (
         <Box height={wallHeight} castShadow orientation={opaqueOrientation}>

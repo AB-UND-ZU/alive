@@ -40,6 +40,7 @@ import { attemptBubbleAbsorb } from "./magic";
 import { isDead } from "./damage";
 import { rerenderEntity } from "./renderer";
 import { HARVESTABLE } from "../components/harvestable";
+import { BUMPABLE } from "../components/bumpable";
 
 export const decayHoming = (world: World, entity: Entity) => {
   entity[HOMING].decayedGeneration =
@@ -99,7 +100,6 @@ export const shootHoming = (
       reference: world.getEntityId(world.metadata.gameEntity),
       lastInteraction: 0,
       spring: { duration: world.metadata.gameEntity[REFERENCE].tick },
-      bumpGeneration: 0,
       flying: true,
     },
     [ORIENTABLE]: {},
@@ -247,6 +247,7 @@ export default function setupHoming(world: World) {
             const hedgeEntity = entities.createResource(world, {
               [ATTACKABLE]: {},
               [BELONGABLE]: { faction: "unit" },
+              [BUMPABLE]: { generation: 0 },
               [BURNABLE]: {
                 burning: false,
                 eternal: false,
@@ -263,16 +264,6 @@ export default function setupHoming(world: World) {
                 resource: "tree",
               },
               [INVENTORY]: { items: [] },
-              [MOVABLE]: {
-                bumpGeneration: 0,
-                orientations: [],
-                reference: world.getEntityId(world.metadata.gameEntity),
-                spring: {
-                  duration: 100,
-                },
-                lastInteraction: 0,
-                flying: false,
-              },
               [POSITION]: side,
               [RENDERABLE]: { generation: 0 },
               [SEQUENCABLE]: { states: {} },

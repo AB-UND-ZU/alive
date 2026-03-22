@@ -61,6 +61,7 @@ import { getBurning } from "./burn";
 import { CONDITIONABLE } from "../components/conditionable";
 import { SHOOTABLE } from "../components/shootable";
 import { colors } from "../../game/assets/colors";
+import { BUMPABLE } from "../components/bumpable";
 
 export const isGhost = (world: World, entity: Entity) => entity[PLAYER]?.ghost;
 
@@ -132,6 +133,7 @@ export const createHero = (world: World, halo: Entity) => {
     [AFFECTABLE]: getEmptyAffectable(),
     [ATTACKABLE]: { scratchColor: colors.silver },
     [BELONGABLE]: { faction: halo[BELONGABLE].faction },
+    [BUMPABLE]: { generation: 0 },
     [COLLECTABLE]: {},
     [CONDITIONABLE]: {},
     [DROPPABLE]: { decayed: false },
@@ -150,7 +152,6 @@ export const createHero = (world: World, halo: Entity) => {
         tension: 1000,
       },
       lastInteraction: 0,
-      bumpGeneration: 0,
       flying: false,
     },
     [ORIENTABLE]: {},
@@ -301,6 +302,7 @@ export default function setupFate(world: World) {
         const haloEntity = entities.createHalo(world, {
           [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
           [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+          [BUMPABLE]: { generation: 0 },
           [EQUIPPABLE]: {},
           [INVENTORY]: { items: [] },
           [LAYER]: { structure: entity[LAYER].structure },
@@ -314,7 +316,6 @@ export default function setupFate(world: World) {
               tension: 200,
             },
             lastInteraction: 0,
-            bumpGeneration: 0,
             flying: false,
           },
           [PLAYER]: {

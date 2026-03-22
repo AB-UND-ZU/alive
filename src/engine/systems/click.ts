@@ -17,6 +17,7 @@ import { PLAYER } from "../components/player";
 import { rerenderEntity } from "./renderer";
 import { isFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
+import { BUMPABLE } from "../components/bumpable";
 
 export const isClickable = (world: World, entity: Entity) =>
   CLICKABLE in entity;
@@ -46,8 +47,8 @@ export const clickEntity = (
   orientation: Orientation
 ) => {
   hero[ORIENTABLE].facing = orientation;
-  hero[MOVABLE].bumpGeneration = hero[RENDERABLE].generation;
-  hero[MOVABLE].bumpOrientation = orientation;
+  hero[BUMPABLE].generation = hero[RENDERABLE].generation;
+  hero[BUMPABLE].orientation = orientation;
   target[CLICKABLE].clicked = true;
   rerenderEntity(world, hero);
 };

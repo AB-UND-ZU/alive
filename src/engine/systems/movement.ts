@@ -145,6 +145,8 @@ export const isFlyable = (world: World, position: Position) => {
 };
 
 export const isMovable = (world: World, entity: Entity, position: Position) => {
+  if (!entity[MOVABLE]) return false;
+
   if (isLimbWalkable(world, entity, position)) return true;
 
   const spikable = getSpikable(world, position);

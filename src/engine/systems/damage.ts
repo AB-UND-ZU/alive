@@ -2,11 +2,11 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { add } from "../../game/math/std";
+import { add, combine, copy } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { MELEE } from "../components/melee";
-import { getCell } from "./map";
+import { getCell, moveEntity } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
 import { ITEM, ItemStats, rechargables } from "../components/item";
@@ -35,7 +35,10 @@ import { Castable, DamageType } from "../components/castable";
 import { TypedEntity } from "../entities";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
-import { getEquipmentStats } from "../../game/balancing/equipment";
+import {
+  getEquipmentStats,
+  getItemStats,
+} from "../../game/balancing/equipment";
 import { NPC } from "../components/npc";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { closePopup, getActivePopup } from "./popup";
@@ -47,6 +50,9 @@ import { CONDITIONABLE } from "../components/conditionable";
 import { isDecaying } from "./drop";
 import { STRUCTURABLE } from "../components/structurable";
 import { attemptBubbleAbsorb } from "./magic";
+import { LEVEL } from "../components/level";
+import { isMovable } from "./movement";
+import { BUMPABLE } from "../components/bumpable";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -385,6 +391,7 @@ export default function setupDamage(world: World) {
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
+    const size = world.metadata.gameEntity[LEVEL].size;
 
     if (referenceGenerations === generation) return;
 
@@ -471,6 +478,39 @@ export default function setupDamage(world: World) {
             } else {
               swordStats.melee += entity[CONDITIONABLE].raise.amount;
             }
+
+            // knock back
+            const raiseItem = world.getEntityByIdAndComponents(
+              entity[CONDITIONABLE].raise.item,
+              [ITEM]
+            );
+            const knock = raiseItem
+              ? getItemStats(raiseItem[ITEM], entity[NPC]?.type).knock
+              : 0;
+            if (knock > 0 && !targetEntity[FRAGMENT]) {
+              let target = copy(targetEntity[POSITION]);
+              let slide = knock;
+
+              while (slide > 0) {
+                const newTarget = combine(size, target, delta);
+
+                if (!isMovable(world, targetEntity, newTarget)) break;
+
+                slide -= 1;
+                target = newTarget;
+              }
+
+              // move or bump of not moved
+              if (slide < knock) {
+                moveEntity(world, targetEntity, target);
+                rerenderEntity(world, targetEntity);
+              } else if (targetEntity[BUMPABLE]) {
+                targetEntity[BUMPABLE].generation =
+                  targetEntity[RENDERABLE].generation;
+                targetEntity[BUMPABLE].orientation = targetOrientation;
+              }
+            }
+
             delete entity[CONDITIONABLE].raise;
           }
 
@@ -567,8 +607,10 @@ export default function setupDamage(world: World) {
         entity[MELEE].facing = targetOrientation;
 
         for (const limb of limbs) {
-          limb[MOVABLE].bumpGeneration = entity[RENDERABLE].generation;
-          limb[MOVABLE].bumpOrientation = targetOrientation;
+          if (limb[BUMPABLE]) {
+            limb[BUMPABLE].generation = entity[RENDERABLE].generation;
+            limb[BUMPABLE].orientation = targetOrientation;
+          }
 
           if (!rigid && limb[ORIENTABLE]) {
             limb[ORIENTABLE].facing = targetOrientation;

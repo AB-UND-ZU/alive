@@ -1800,8 +1800,8 @@ export const materialSprites: Record<
     wood: {
       sprite: raise.wood.default,
       getDescription: () => [
-        createText("Extra damage on"),
-        createText("next attack."),
+        createText("Knock back and"),
+        createText("extra damage."),
         stretch(
           [
             ...createText("3", colors.red),

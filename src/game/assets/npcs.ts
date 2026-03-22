@@ -244,7 +244,6 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
           duration: 200,
         },
         lastInteraction: 0,
-        bumpGeneration: 0,
         flying: false,
       },
       [POSITION]: add(menuOffset, { x: -1, y: 1 }),

@@ -373,6 +373,7 @@ import {
 } from "../../engine/systems/drop";
 import { getHarvestTarget } from "../../engine/systems/harvesting";
 import { TypedEntity } from "../../engine/entities";
+import { BUMPABLE } from "../../engine/components/bumpable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -739,10 +740,9 @@ export const axeCondition: Sequence<ConditionSequence> = (
       rerenderEntity(world, targetEntity);
 
       // bump target resource
-      if (targetEntity[MOVABLE]) {
-        targetEntity[MOVABLE].bumpGeneration =
-          targetEntity[RENDERABLE].generation;
-        targetEntity[MOVABLE].bumpOrientation = state.args.orientation;
+      if (targetEntity[BUMPABLE]) {
+        targetEntity[BUMPABLE].generation = targetEntity[RENDERABLE].generation;
+        targetEntity[BUMPABLE].orientation = state.args.orientation;
       }
 
       // create scratch
@@ -5999,13 +5999,13 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
               primaryTriggered: false,
               secondaryTriggered: false,
             },
+            [BUMPABLE]: { generation: 0 },
             [COLLIDABLE]: {},
             [DROPPABLE]: { decayed: false, evaporate: bossUnit.evaporate },
             [FOG]: { visibility: "hidden", type: "object" },
             [FRAGMENT]: { structure: world.getEntityId(oakEntity) },
             [LAYER]: {},
             [MOVABLE]: {
-              bumpGeneration: 0,
               orientations: [],
               reference: world.getEntityId(world.metadata.gameEntity),
               lastInteraction: 0,
@@ -6028,13 +6028,13 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
               primaryTriggered: false,
               secondaryTriggered: false,
             },
+            [BUMPABLE]: { generation: 0 },
             [COLLIDABLE]: {},
             [DROPPABLE]: { decayed: false, evaporate: bossUnit.evaporate },
             [FOG]: { visibility: "hidden", type: "object" },
             [FRAGMENT]: { structure: world.getEntityId(oakEntity) },
             [LAYER]: {},
             [MOVABLE]: {
-              bumpGeneration: 0,
               orientations: [],
               reference: world.getEntityId(world.metadata.gameEntity),
               lastInteraction: 0,
@@ -6092,13 +6092,13 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
 
       const limbEntity = entities.createLimb(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false, evaporate: bossUnit.evaporate },
         [FOG]: { visibility: "hidden", type: "object" },
         [FRAGMENT]: { structure: world.getEntityId(oakEntity) },
         [LAYER]: {},
         [MOVABLE]: {
-          bumpGeneration: 0,
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
           lastInteraction: 0,

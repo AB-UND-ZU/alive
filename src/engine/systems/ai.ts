@@ -127,6 +127,7 @@ import { LAYER } from "../components/layer";
 import { DROPPABLE } from "../components/droppable";
 import { waveTower } from "../../game/assets/templates/creatures";
 import { Entity } from "ecs";
+import { BUMPABLE } from "../components/bumpable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -2857,8 +2858,8 @@ export default function setupAi(world: World) {
             );
             const limbs = getLimbs(world, entity);
             limbs.forEach((limb) => {
-              limb[MOVABLE].bumpGeneration = generation;
-              limb[MOVABLE].bumpOrientation = "down";
+              limb[BUMPABLE].generation = generation;
+              limb[BUMPABLE].orientation = "down";
               rerenderEntity(world, limb);
             });
 
@@ -2985,6 +2986,7 @@ export default function setupAi(world: World) {
                   primaryTriggered: false,
                   secondaryTriggered: false,
                 },
+                [BUMPABLE]: { generation: 0 },
                 [COLLIDABLE]: {},
                 [DROPPABLE]: {
                   decayed: false,
@@ -2995,7 +2997,6 @@ export default function setupAi(world: World) {
                 [FRAGMENT]: { structure: entityId },
                 [LAYER]: {},
                 [MOVABLE]: {
-                  bumpGeneration: 0,
                   orientations: [],
                   reference: world.getEntityId(world.metadata.gameEntity),
                   spring: entity[MOVABLE].spring,
@@ -3098,6 +3099,7 @@ export default function setupAi(world: World) {
                   primaryTriggered: false,
                   secondaryTriggered: false,
                 },
+                [BUMPABLE]: { generation: 0 },
                 [COLLIDABLE]: {},
                 [DROPPABLE]: {
                   decayed: false,
@@ -3108,7 +3110,6 @@ export default function setupAi(world: World) {
                 [FRAGMENT]: { structure: entityId },
                 [LAYER]: {},
                 [MOVABLE]: {
-                  bumpGeneration: 0,
                   orientations: [],
                   reference: world.getEntityId(world.metadata.gameEntity),
                   spring: entity[MOVABLE].spring,
@@ -3487,6 +3488,7 @@ export default function setupAi(world: World) {
                     primaryTriggered: false,
                     secondaryTriggered: false,
                   },
+                  [BUMPABLE]: { generation: 0 },
                   [COLLIDABLE]: {},
                   [DROPPABLE]: {
                     decayed: false,
@@ -3497,7 +3499,6 @@ export default function setupAi(world: World) {
                   [FRAGMENT]: { structure: entityId },
                   [LAYER]: {},
                   [MOVABLE]: {
-                    bumpGeneration: 0,
                     orientations: [],
                     reference: world.getEntityId(world.metadata.gameEntity),
                     spring: entity[MOVABLE].spring,

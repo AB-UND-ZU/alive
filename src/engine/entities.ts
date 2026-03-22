@@ -62,6 +62,7 @@ import { Conditionable, CONDITIONABLE } from "./components/conditionable";
 import { Homing, HOMING } from "./components/homing";
 import { Shootable, SHOOTABLE } from "./components/shootable";
 import { Vanishable, VANISHABLE } from "./components/vanishable";
+import { Bumpable, BUMPABLE } from "./components/bumpable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -69,6 +70,7 @@ export type Entity = Record<LevelName, {}> & {
   [ATTACKABLE]: Attackable;
   [BEHAVIOUR]: Behaviour;
   [BELONGABLE]: Belongable;
+  [BUMPABLE]: Bumpable;
   [BURNABLE]: Burnable;
   [CASTABLE]: Castable;
   [CLICKABLE]: Clickable;
@@ -185,6 +187,7 @@ export const createBoss = entityFactory([
   ACTIONABLE,
   BEHAVIOUR,
   BELONGABLE,
+  BUMPABLE,
   CLICKABLE,
   COLLIDABLE,
   EQUIPPABLE,
@@ -212,6 +215,7 @@ export const createBox = entityFactory([
   AFFECTABLE,
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   DISPLACABLE,
   DROPPABLE,
   FOG,
@@ -248,6 +252,7 @@ export const createBuilding = entityFactory([
 export const createCactus = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   DROPPABLE,
   FOG,
   HARVESTABLE,
@@ -305,6 +310,7 @@ export const createElite = entityFactory([
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,
+  BUMPABLE,
   EQUIPPABLE,
   FOG,
   FRAGMENT,
@@ -390,6 +396,7 @@ export const createDormant = entityFactory([
   ACTIONABLE,
   BEHAVIOUR,
   BELONGABLE,
+  BUMPABLE,
   CLICKABLE,
   COLLIDABLE,
   DROPPABLE,
@@ -423,6 +430,7 @@ export const createEntry = entityFactory([
 
 export const createExtremity = entityFactory([
   ACTIONABLE,
+  BUMPABLE,
   COLLIDABLE,
   DROPPABLE,
   EXERTABLE,
@@ -519,6 +527,7 @@ export const createGround = entityFactory([FOG, POSITION, RENDERABLE, SPRITE]);
 export const createHalo = entityFactory([
   ACTIONABLE,
   BELONGABLE,
+  BUMPABLE,
   EQUIPPABLE,
   INVENTORY,
   LAYER,
@@ -539,6 +548,7 @@ export const createHero = entityFactory([
   AFFECTABLE,
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   COLLECTABLE,
   CONDITIONABLE,
   DROPPABLE,
@@ -612,6 +622,7 @@ export const createLever = entityFactory([
 
 export const createLimb = entityFactory([
   ACTIONABLE,
+  BUMPABLE,
   COLLIDABLE,
   DROPPABLE,
   FOG,
@@ -642,6 +653,7 @@ export const createMob = entityFactory([
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,
+  BUMPABLE,
   DROPPABLE,
   EQUIPPABLE,
   FOG,
@@ -707,13 +719,13 @@ export const createOre = entityFactory([
 ]);
 
 export const createOrganic = entityFactory([
+  BUMPABLE,
   BURNABLE,
   COLLIDABLE,
   DROPPABLE,
   FOG,
   HARVESTABLE,
   INVENTORY,
-  MOVABLE,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
@@ -765,12 +777,12 @@ export const createProcessor = entityFactory([
 export const createResource = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   BURNABLE,
   DROPPABLE,
   FOG,
   HARVESTABLE,
   INVENTORY,
-  MOVABLE,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
@@ -835,6 +847,7 @@ export const createSegment = entityFactory([
   AFFECTABLE,
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   COLLIDABLE,
   DROPPABLE,
   EXERTABLE,
@@ -893,7 +906,6 @@ export const createSpawner = entityFactory([
   BELONGABLE,
   FOG,
   LAYER,
-  MOVABLE,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
@@ -974,6 +986,7 @@ export const createTumbleweed = entityFactory([
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,
+  BUMPABLE,
   DROPPABLE,
   FOG,
   INVENTORY,
@@ -995,6 +1008,7 @@ export const createVillager = entityFactory([
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,
+  BUMPABLE,
   COLLECTABLE,
   DROPPABLE,
   EQUIPPABLE,

@@ -53,10 +53,12 @@ export type Stackable = ResourceItem | Craftable | Reloadable;
 export type ConditionableStats = { absorb: number };
 export type ProcStats = { drain: number };
 export type SpellStats = { duration: number; range: number, retrigger: number };
+export type EquipmentStats = { knock: number };
 export type ItemStats = Attributes &
   ProcStats &
   ConditionableStats &
   SpellStats &
+  EquipmentStats &
   Pick<Castable, DamageType | EffectType>;
 
 export type Item = {
@@ -76,12 +78,14 @@ export type Item = {
 export const emptyProcStats = { drain: 0 };
 export const emptyConditionableStats = { absorb: 0 };
 export const emptySpellStats = { range: 0, duration: 0 };
+export const emptyEquipmentStats = { knock: 0 };
 
 export const emptyItemStats = {
   ...emptyAttributes,
   ...emptyProcStats,
   ...emptyConditionableStats,
   ...emptySpellStats,
+  ...emptyEquipmentStats,
   ...emptyCastable,
 };
 

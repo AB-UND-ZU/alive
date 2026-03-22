@@ -236,6 +236,7 @@ import { flask, key } from "../game/assets/templates/items";
 import { CASTABLE, getEmptyCastable } from "../engine/components/castable";
 import { EXERTABLE } from "../engine/components/exertable";
 import { getAbilityStats } from "../game/balancing/abilities";
+import { BUMPABLE } from "../engine/components/bumpable";
 
 export const cellNames = [
   "air",
@@ -514,6 +515,7 @@ export const createNpc = (
     [ATTACKABLE]: { scratchColor: npcUnit.scratch },
     [BEHAVIOUR]: { patterns: npcUnit.patterns },
     [BELONGABLE]: { faction: npcUnit.faction },
+    [BUMPABLE]: { generation: 0 },
     [COLLECTABLE]: {},
     [DROPPABLE]: {
       decayed: false,
@@ -526,7 +528,6 @@ export const createNpc = (
     [LAYER]: {},
     [MELEE]: {},
     [MOVABLE]: {
-      bumpGeneration: 0,
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
       spring: {
@@ -811,7 +812,6 @@ export const createCell = (
     const highlighEntity = entities.createHighlight(world, {
       [FOCUSABLE]: {},
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: {
@@ -1087,6 +1087,7 @@ export const createCell = (
       const { harvestable, yields } = getHarvestConfig(world, "tree", "wood");
       const remains = [treeBurnt1, treeBurnt2][random(0, 1)];
       const treeEntity = entities.createOrganic(world, {
+        [BUMPABLE]: { generation: 0 },
         [BURNABLE]: {
           burning: false,
           eternal: false,
@@ -1100,16 +1101,6 @@ export const createCell = (
         [FOG]: { visibility, type: "object" },
         [HARVESTABLE]: harvestable,
         [INVENTORY]: { items: [] },
-        [MOVABLE]: {
-          bumpGeneration: 0,
-          orientations: [],
-          reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
-            duration: 100,
-          },
-          lastInteraction: 0,
-          flying: false,
-        },
         [POSITION]: { x, y },
         [SPRITE]: tree2,
         [RENDERABLE]: { generation: 0 },
@@ -1225,6 +1216,7 @@ export const createCell = (
     const { harvestable, yields } = getHarvestConfig(world, "tree", "wood");
     const remains = [treeBurnt1, treeBurnt2][random(0, 1)];
     const treeEntity = entities.createOrganic(world, {
+      [BUMPABLE]: { generation: 0 },
       [BURNABLE]: {
         burning: false,
         eternal: false,
@@ -1238,16 +1230,6 @@ export const createCell = (
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
-      [MOVABLE]: {
-        bumpGeneration: 0,
-        orientations: [],
-        reference: world.getEntityId(world.metadata.gameEntity),
-        spring: {
-          duration: 100,
-        },
-        lastInteraction: 0,
-        flying: false,
-      },
       [POSITION]: { x, y },
       [SPRITE]: [tree1, tree2][distribution(50, 50)],
       [RENDERABLE]: { generation: 0 },
@@ -1283,6 +1265,7 @@ export const createCell = (
         ? [palmBurnt1, palmBurnt2][random(0, 1)]
         : [desertPalmBurnt1, desertPalmBurnt2][random(0, 1)];
     const palmEntity = entities.createOrganic(world, {
+      [BUMPABLE]: { generation: 0 },
       [BURNABLE]: {
         burning: false,
         eternal: false,
@@ -1296,16 +1279,6 @@ export const createCell = (
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
-      [MOVABLE]: {
-        bumpGeneration: 0,
-        orientations: [],
-        reference: world.getEntityId(world.metadata.gameEntity),
-        spring: {
-          duration: 100,
-        },
-        lastInteraction: 0,
-        flying: false,
-      },
       [POSITION]: { x, y },
       [SPRITE]: palm,
       [RENDERABLE]: { generation: 0 },
@@ -1353,6 +1326,7 @@ export const createCell = (
     const hedgeEntity = entities.createResource(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [BUMPABLE]: { generation: 0 },
       [BURNABLE]: {
         burning: false,
         eternal: false,
@@ -1369,16 +1343,6 @@ export const createCell = (
         resource: "tree",
       },
       [INVENTORY]: { items: [] },
-      [MOVABLE]: {
-        bumpGeneration: 0,
-        orientations: [],
-        reference: world.getEntityId(world.metadata.gameEntity),
-        spring: {
-          duration: 100,
-        },
-        lastInteraction: 0,
-        flying: false,
-      },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -1408,11 +1372,11 @@ export const createCell = (
       [ATTACKABLE]: { scratchColor: scratch },
       [BEHAVIOUR]: { patterns },
       [BELONGABLE]: { faction },
+      [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "unit" },
       [INVENTORY]: { items: [] },
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: {
@@ -1557,6 +1521,7 @@ export const createCell = (
     const cactusEntity = entities.createCactus(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: { decayed: false, remains: sand },
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: {
@@ -1567,7 +1532,6 @@ export const createCell = (
       },
       [INVENTORY]: { items: [] },
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: {
@@ -2088,13 +2052,13 @@ export const createCell = (
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: { decayed: false },
       [DISPLACABLE]: {},
       [FOG]: { visibility, type: "object" },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(frameEntity),
         spring: {
@@ -2177,14 +2141,6 @@ export const createCell = (
       [BELONGABLE]: { faction: "wild" },
       [LAYER]: {},
       [FOG]: { visibility, type: "terrain" },
-      [MOVABLE]: {
-        bumpGeneration: 0,
-        orientations: [],
-        reference: world.getEntityId(world.metadata.gameEntity),
-        spring: { duration: 200 },
-        lastInteraction: 0,
-        flying: false,
-      },
       [POSITION]: { x, y },
       [SPRITE]: enemySpawner,
       [RENDERABLE]: { generation: 0 },
@@ -2213,7 +2169,6 @@ export const createCell = (
       [LAYER]: {},
       [MELEE]: {},
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: eliteUnit.spring || {
@@ -2277,6 +2232,7 @@ export const createCell = (
         [AFFECTABLE]: getEmptyAffectable(),
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction: limbUnit.faction },
+        [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},
         [DROPPABLE]: {
           decayed: false,
@@ -2288,7 +2244,6 @@ export const createCell = (
         [FRAGMENT]: { structure: eliteId },
         [LAYER]: {},
         [MOVABLE]: {
-          bumpGeneration: 0,
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: limbUnit.spring || {
@@ -2321,6 +2276,7 @@ export const createCell = (
           patterns: [{ name: "passive", memory: {} }, ...mobUnit.patterns],
         },
         [BELONGABLE]: { faction: mobUnit.faction },
+        [BUMPABLE]: { generation: 0 },
         [CLICKABLE]: { clicked: false, player: true },
         [COLLIDABLE]: {},
         [DROPPABLE]: {
@@ -2334,7 +2290,6 @@ export const createCell = (
         [LAYER]: {},
         [MELEE]: {},
         [MOVABLE]: {
-          bumpGeneration: 0,
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: mobUnit.spring || {
@@ -2368,6 +2323,7 @@ export const createCell = (
           ],
         },
         [BELONGABLE]: { faction: mobUnit.faction },
+        [BUMPABLE]: { generation: 0 },
         [DROPPABLE]: {
           decayed: false,
           evaporate: mobUnit.evaporate,
@@ -2379,7 +2335,6 @@ export const createCell = (
         [LAYER]: {},
         [MELEE]: {},
         [MOVABLE]: {
-          bumpGeneration: 0,
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: mobUnit.spring || {
@@ -2726,6 +2681,7 @@ export const createCell = (
       [ATTACKABLE]: {},
       [BEHAVIOUR]: { patterns: towerUnit.patterns },
       [BELONGABLE]: { faction: towerUnit.faction },
+      [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: {
         decayed: false,
         evaporate: towerUnit.evaporate,
@@ -2737,7 +2693,6 @@ export const createCell = (
       [LAYER]: {},
       [MELEE]: {},
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: towerUnit.spring || {
@@ -2781,6 +2736,7 @@ export const createCell = (
         patterns: [{ name: "passive", memory: {} }, ...eliteUnit.patterns],
       },
       [BELONGABLE]: { faction: eliteUnit.faction },
+      [BUMPABLE]: { generation: 0 },
       [CLICKABLE]: { clicked: false, player: true },
       [COLLIDABLE]: {},
       [EQUIPPABLE]: {},
@@ -2790,7 +2746,6 @@ export const createCell = (
       [LAYER]: {},
       [MELEE]: {},
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: eliteUnit.spring || {
@@ -2847,6 +2802,7 @@ export const createCell = (
     for (const { offset, sprite, orientation } of ilexLimbs) {
       const limbEntity = entities.createLimb(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},
         [DROPPABLE]: {
           decayed: false,
@@ -2857,7 +2813,6 @@ export const createCell = (
         [FRAGMENT]: { structure: eliteId },
         [LAYER]: {},
         [MOVABLE]: {
-          bumpGeneration: 0,
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: eliteUnit.spring || {
@@ -2889,6 +2844,7 @@ export const createCell = (
       [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
       [BELONGABLE]: { faction: bossUnit.faction },
+      [BUMPABLE]: { generation: 0 },
       [COLLIDABLE]: {},
       [CLICKABLE]: { clicked: false, player: true },
       [EQUIPPABLE]: {},
@@ -2898,7 +2854,6 @@ export const createCell = (
       [LAYER]: {},
       [MELEE]: {},
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: bossUnit.spring || {
@@ -2962,13 +2917,13 @@ export const createCell = (
     for (const { offset, sprite, orientation } of oakLimbs) {
       const limbEntity = entities.createLimb(world, {
         [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false, evaporate: bossUnit.vanish?.evaporate },
         [FOG]: { visibility, type: "object" },
         [FRAGMENT]: { structure: bossId },
         [LAYER]: {},
         [MOVABLE]: {
-          bumpGeneration: 0,
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
           spring: bossUnit.spring || {
@@ -3027,7 +2982,6 @@ export const createCell = (
       [LAYER]: {},
       [MELEE]: {},
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: bossUnit.spring || {
@@ -3088,6 +3042,7 @@ export const createCell = (
       [ATTACKABLE]: {},
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
       [BELONGABLE]: { faction: bossUnit.faction },
+      [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility, type: "unit" },
@@ -3095,7 +3050,6 @@ export const createCell = (
       [LAYER]: {},
       [MELEE]: {},
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: bossUnit.spring || {
@@ -3134,6 +3088,7 @@ export const createCell = (
         patterns: [{ name: "wait", memory: { ticks: 1 } }, ...mobUnit.patterns],
       },
       [BELONGABLE]: { faction: mobUnit.faction },
+      [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility: "hidden", type: "unit" },
@@ -3141,7 +3096,6 @@ export const createCell = (
       [LAYER]: {},
       [MELEE]: {},
       [MOVABLE]: {
-        bumpGeneration: 0,
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
         spring: mobUnit.spring || {

@@ -595,6 +595,7 @@ const conditionConfig: Record<
 export const applyCondition = (
   world: World,
   entity: Entity,
+  item: Entity,
   type: ConditionType,
   material: Material,
   duration: number,
@@ -603,6 +604,7 @@ export const applyCondition = (
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   (entity[CONDITIONABLE] as Conditionable)[type] = {
     duration,
+    item: world.getEntityId(item),
     generation,
     amount,
   };
@@ -657,6 +659,7 @@ export const castConditionable = (
   applyCondition(
     world,
     entity,
+    item,
     condition,
     material,
     duration,

@@ -8,6 +8,7 @@ export type Conditionable = Partial<
   Record<
     ConditionType,
     {
+      item: number;
       generation: number;
       duration: number;
       amount: number;

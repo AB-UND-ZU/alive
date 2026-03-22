@@ -281,11 +281,11 @@ export const abilityStats: Partial<
       ruby: { default: { melee: 10 } },
     },
     raise: {
-      wood: { default: { melee: 3 } },
-      iron: { default: { melee: 6 } },
-      gold: { default: { melee: 9 } },
-      diamond: { default: { melee: 12 } },
-      ruby: { default: { melee: 15 } },
+      wood: { default: { melee: 3, knock: 1 } },
+      iron: { default: { melee: 6, knock: 1 } },
+      gold: { default: { melee: 9, knock: 1 } },
+      diamond: { default: { melee: 12, knock: 1 } },
+      ruby: { default: { melee: 15, knock: 1 } },
     },
     block: {
       wood: { default: { absorb: 1 } },
