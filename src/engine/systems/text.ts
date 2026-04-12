@@ -11,7 +11,7 @@ import { TOOLTIP } from "../components/tooltip";
 import { Entity } from "ecs";
 import { createTooltip } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
-import { isDead } from "./damage";
+import { isDead, isFriendlyFire, isNeutral } from "./damage";
 import { isUnlocked } from "./action";
 import { DialogSequence, SEQUENCABLE } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
@@ -27,12 +27,16 @@ export const getTooltip = (world: World, position: Position) =>
     (entity) => TOOLTIP in entity
   ) as Entity | undefined;
 
+const tooltipCooldown = 15;
+const persistentCooldown = 30;
+
 export default function setupText(world: World) {
   let referencesGeneration = -1;
 
   const onUpdate = (delta: number) => {
     const hero = world.getEntity([PLAYER, POSITION, LIGHT, SPAWNABLE]);
     const size = world.metadata.gameEntity[LEVEL].size;
+    const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
 
     if (!world.metadata.gameEntity[LEVEL].initialized) return;
 
@@ -155,7 +159,17 @@ export default function setupText(world: World) {
       const needsUpdate =
         !isPending || (!tooltipEntity[TOOLTIP].changed && isChanged);
       const showingPopup = tooltipEntity[POPUP]?.active;
+      const interactSequence = getSequence(world, tooltipEntity, "interact");
+
       const isDone =
+        interactSequence ||
+        world.metadata.interact.last === world.getEntityId(tooltipEntity) ||
+        (tooltipEntity[TOOLTIP].lastTooltip &&
+          tooltipEntity[TOOLTIP].lastTooltip +
+            (tooltipEntity[TOOLTIP].persistent
+              ? persistentCooldown
+              : tooltipCooldown) >
+            worldGeneration) ||
         isDead(world, tooltipEntity) ||
         (hero && isInPopup(world, hero)) ||
         isUnlocked(world, tooltipEntity) ||
@@ -186,8 +200,19 @@ export default function setupText(world: World) {
           (isAdjacent && dialogs.length === 0 && spriteTooltip.length === 0));
       const dialog = dialogs[tooltipEntity[TOOLTIP].nextDialog] || dialogs[0];
       const text = isIdle && idle ? [idle] : dialog || spriteTooltip;
+      const isTooltip = !(isIdle && idle) && !dialog;
+      const isEnemy =
+        !!tooltipEntity[TOOLTIP].enemy ||
+        (isTooltip &&
+          hero &&
+          !isNeutral(world, tooltipEntity) &&
+          !isFriendlyFire(world, hero, tooltipEntity));
 
       if (text.length === 0) continue;
+
+      if (isTooltip) {
+        tooltipEntity[TOOLTIP].lastTooltip = worldGeneration;
+      }
 
       const textSequence = getSequence(world, tooltipEntity, "dialog");
       if (textSequence) {
@@ -212,7 +237,7 @@ export default function setupText(world: World) {
             timestamp: 0,
             active: true,
             isDialog: !isIdle && !!dialog,
-            isEnemy: !!tooltipEntity[TOOLTIP].enemy,
+            isEnemy,
             isIdle,
             lengthOffset: 0,
             overridden: tooltipEntity[TOOLTIP].override === "visible",

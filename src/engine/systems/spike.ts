@@ -25,6 +25,7 @@ import { isControllable } from "./freeze";
 import { play } from "../../game/sound";
 import { attemptBubbleAbsorb } from "./magic";
 import { STRUCTURABLE } from "../components/structurable";
+import { BUMPABLE } from "../components/bumpable";
 
 export const isSpikable = (world: World, entity: Entity) => {
   if (!isFightable(world, entity)) return false;
@@ -149,6 +150,11 @@ export default function setupSpike(world: World) {
       if (interacted) {
         entity[MOVABLE].pendingOrientation = undefined;
         entity[MOVABLE].lastInteraction = entityReference;
+
+        if (entity[BUMPABLE]) {
+          entity[BUMPABLE].generation = entity[RENDERABLE].generation;
+          entity[BUMPABLE].orientation = targetOrientation;
+        }
       }
     }
   };

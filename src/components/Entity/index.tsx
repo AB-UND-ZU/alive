@@ -62,7 +62,8 @@ function Entity({
   const dimensions = useDimensions();
   const { ecs, paused } = useWorld();
   const config = entity[MOVABLE]?.spring;
-  const Container = config ? Animated : "group";
+  const isBumpable = !!entity[BUMPABLE];
+  const Container = config || isBumpable ? Animated : "group";
 
   const visibility = entity[FOG]?.visibility;
   const isAir = entity[FOG]?.type === "air";

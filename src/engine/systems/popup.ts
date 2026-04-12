@@ -7,8 +7,9 @@ import addPopup, { Deal, Popup, POPUP, Target } from "../components/popup";
 import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
 import {
-  class_,
+  addBackground,
   craft,
+  createText,
   forge,
   info,
   mapDiscovery,
@@ -28,17 +29,30 @@ import { Equipment } from "../components/equippable";
 import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
-import { add } from "../../game/math/std";
+import { add, normalize } from "../../game/math/std";
 import { TypedEntity } from "../entities";
 import { isDead, isEnemy, isNeutral } from "./damage";
-import { frameHeight, popupTime } from "../../game/assets/utils";
+import {
+  createItemName,
+  frameHeight,
+  popupTime,
+  questSequence,
+  queueMessage,
+} from "../../game/assets/utils";
 import { getItemSellPrice } from "../../game/balancing/trading";
 import { getForgeStatus } from "../../game/balancing/forging";
 import { getCraftingDeal } from "../../game/balancing/crafting";
-import { getIdentifierAndComponents, setHighlight } from "../utils";
+import { getIdentifierAndComponents, setHighlight, TEST_MODE } from "../utils";
 import { FOCUSABLE } from "../components/focusable";
 import { TRACKABLE } from "../components/trackable";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
+import { ACTIONABLE } from "../components/actionable";
+import { canWarp, completeQuest, initiateWarp, performTrade } from "./trigger";
+import { colors } from "../../game/assets/colors";
+import { consumeItem, getConsumption } from "./consume";
+import { clamp } from "three/src/math/MathUtils";
+import { getSelectedLevel } from "../../game/levels";
+import { LEVEL } from "../components/level";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -162,8 +176,11 @@ export const getDeal = (
   }
 };
 
+export const getDefeated = (world: World, heroEntity: Entity, target: Target) =>
+  heroEntity[PLAYER].defeatedUnits[target.unit] || 0;
+
 export const hasDefeated = (world: World, heroEntity: Entity, target: Target) =>
-  (heroEntity[PLAYER].defeatedUnits[target.unit] || 0) >= target.amount;
+  getDefeated(world, heroEntity, target) >= target.amount;
 
 export const canTrade = (
   world: World,
@@ -225,6 +242,15 @@ export const missingFunds = (world: World, heroEntity: Entity, deal: Deal) =>
     });
   });
 
+export const existingFund = (
+  world: World,
+  heroEntity: Entity,
+  price: Deal["prices"][number]
+) =>
+  (heroEntity[INVENTORY] as Inventory).items
+    .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
+    .find((item) => matchesItem(world, item[ITEM], price))?.[ITEM].amount || 0;
+
 export const canRedeem = (world: World, heroEntity: Entity, deal: Deal) =>
   missingFunds(world, heroEntity, deal).length === 0;
 
@@ -247,13 +273,14 @@ export const canForge = (
 };
 
 export const isQuestCompleted = (world: World, hero: Entity, entity: Entity) =>
-  (entity[POPUP].tabs.includes("quest") &&
+  entity[POPUP].tabs.includes("quest") &&
+  ((entity[POPUP].targets.length === 0 &&
     entity[POPUP].deals.length === 0 &&
     entity[POPUP].choices.length === 0) ||
-  (entity[POPUP].deals.every((deal: Deal) => canShop(world, hero, deal)) &&
-    entity[POPUP].targets.every((target: Target) =>
-      hasDefeated(world, hero, target)
-    ));
+    (entity[POPUP].deals.every((deal: Deal) => canShop(world, hero, deal)) &&
+      entity[POPUP].targets.every((target: Target) =>
+        hasDefeated(world, hero, target)
+      )));
 
 export const popupIdles = {
   craft,
@@ -267,8 +294,8 @@ export const popupIdles = {
   stats: info,
   warp: mapDiscovery,
   gear: info,
-  class: class_,
-  style: class_,
+  class: mapDiscovery,
+  style: mapDiscovery,
   map: mapDiscovery,
 };
 
@@ -370,7 +397,7 @@ export const createPopup = (
       deals: [],
       recipes: [],
       targets: [],
-      objectives: [],
+      focuses: [],
       choices: [],
       ...component,
     });
@@ -409,8 +436,16 @@ export const openPopup = (
   const transaction = getDiscoveryTab(world, popupEntity);
   heroEntity[PLAYER].popup = popupId;
   popupEntity[POPUP].active = true;
-  popupEntity[TOOLTIP].override = "hidden";
-  popupEntity[TOOLTIP].changed = true;
+
+  // reset pending movements
+  heroEntity[MOVABLE].orientations = [];
+  heroEntity[MOVABLE].pendingOrientation = undefined;
+
+  if (popupEntity[TOOLTIP]) {
+    popupEntity[TOOLTIP].override = "hidden";
+    popupEntity[TOOLTIP].changed = true;
+  }
+
   const viewpointEntity = world.assertByIdAndComponents(
     popupEntity[POPUP].viewpoint,
     [VIEWABLE]
@@ -456,22 +491,38 @@ export const getActivePopup = (world: World, entity: Entity) =>
 export const closePopup = (
   world: World,
   heroEntity: Entity,
-  shopEntity: Entity
+  popupEntity: Entity
 ) => {
+  const tab = getTab(world, popupEntity);
+  const selections = getTabSelections(world, popupEntity);
+
   heroEntity[PLAYER].popup = undefined;
-  shopEntity[POPUP].active = false;
-  shopEntity[POPUP].selections = Array.from(
-    { length: shopEntity[POPUP].tabs.length },
+  popupEntity[POPUP].active = false;
+  popupEntity[POPUP].selections = Array.from(
+    { length: popupEntity[POPUP].tabs.length },
     () => []
   );
-  shopEntity[TOOLTIP].override = undefined;
-  shopEntity[TOOLTIP].changed = true;
+
+  if (popupEntity[TOOLTIP]) {
+    popupEntity[TOOLTIP].override = undefined;
+    popupEntity[TOOLTIP].changed = true;
+  }
+
   const viewpointEntity = world.assertByIdAndComponents(
-    shopEntity[POPUP].viewpoint,
+    popupEntity[POPUP].viewpoint,
     [VIEWABLE]
   );
   viewpointEntity[VIEWABLE].active = false;
-  rerenderEntity(world, shopEntity);
+  rerenderEntity(world, popupEntity);
+
+  // clear quest after closing completed screen
+  if (
+    tab === "quest" &&
+    isQuestCompleted(world, heroEntity, popupEntity) &&
+    selections.length === 2
+  ) {
+    removePopup(world, popupEntity);
+  }
 };
 
 export default function setupPopup(world: World) {
@@ -479,6 +530,7 @@ export default function setupPopup(world: World) {
 
   const onUpdate = (delta: number) => {
     const heroEntity = world.getEntity([
+      ACTIONABLE,
       MOVABLE,
       PLAYER,
       RENDERABLE,
@@ -498,7 +550,7 @@ export default function setupPopup(world: World) {
     heroGeneration = generation;
 
     const popupEntity = world.getEntityByIdAndComponents(
-      heroEntity?.[PLAYER].popup,
+      heroEntity[PLAYER].popup,
       [POPUP]
     );
 
@@ -509,19 +561,35 @@ export default function setupPopup(world: World) {
     const targetOrientation: Orientation | undefined =
       heroEntity[MOVABLE].pendingOrientation ||
       heroEntity[MOVABLE].orientations[0];
+    const inventoryItems = (heroEntity[INVENTORY]?.items || []).map((itemId) =>
+      world.assertByIdAndComponents(itemId, [ITEM])
+    );
+    const inspectItems = inventoryItems.filter((item) => !item[ITEM].equipment);
 
     const transaction = getTab(world, popupEntity);
+    const tradeEntity = world.getEntityByIdAndComponents(
+      heroEntity[ACTIONABLE].trade,
+      [TOOLTIP, POPUP, POSITION]
+    );
+    const useEntity = world.getEntityByIdAndComponents(
+      heroEntity[ACTIONABLE].use,
+      [TOOLTIP, POPUP, POSITION]
+    );
+    const addEntity = world.getEntityByIdAndComponents(
+      heroEntity[ACTIONABLE].add,
+      [TOOLTIP, POPUP, POSITION]
+    );
+    const warpEntity = world.getEntityByIdAndComponents(
+      heroEntity[ACTIONABLE].warp,
+      [POSITION, TOOLTIP]
+    );
+
+    const selections = getTabSelections(world, popupEntity);
 
     // handle vertical movements
-    const currentIndex = getVerticalIndex(world, popupEntity);
-    const selections = getTabSelections(world, popupEntity);
-    const inventoryItems = heroEntity[INVENTORY].items.length || 0;
     const lines =
       transaction === "inspect"
-        ? popupEntity?.[INVENTORY]?.items.filter(
-            (item) =>
-              !world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment
-          ).length || 0
+        ? inspectItems.length
         : transaction === "stats"
         ? visibleStats.length
         : transaction === "gear"
@@ -543,11 +611,11 @@ export default function setupPopup(world: World) {
               1
           )
         : transaction === "sell"
-        ? inventoryItems
+        ? inventoryItems.length
         : transaction === "forge"
         ? selections.length === 2
           ? 1
-          : inventoryItems
+          : inventoryItems.length
         : transaction === "buy"
         ? popupEntity[POPUP].deals.length
         : transaction === "craft"
@@ -576,47 +644,323 @@ export default function setupPopup(world: World) {
                 (frameHeight - 2) +
                 1
             )
-          : selections.length === 1
-          ? isQuestCompleted(world, heroEntity, popupEntity)
-            ? popupEntity[POPUP].choices.length
-            : popupEntity[POPUP].objectives.length
+          : selections.length === 1 &&
+            isQuestCompleted(world, heroEntity, popupEntity)
+          ? popupEntity[POPUP].choices.length
           : 0
         : 0;
-    const lastIndex = lines - 1;
-    popupEntity[POPUP].verticalIndezes[popupEntity[POPUP].horizontalIndex] =
-      Math.max(
-        0,
-        Math.min(
-          lastIndex,
-          currentIndex +
-            (targetOrientation === "up"
-              ? -1
-              : targetOrientation === "down"
-              ? 1
-              : 0)
-        )
-      );
 
-    // handle horizontal movements
-    const previousIndex = popupEntity[POPUP].horizontalIndex;
-    popupEntity[POPUP].horizontalIndex = Math.max(
-      0,
-      Math.min(
-        popupEntity[POPUP].tabs.length - 1,
+    if (targetOrientation === "up" || targetOrientation === "down") {
+      const previousIndex = getVerticalIndex(world, popupEntity);
+      setVerticalIndex(
+        world,
+        popupEntity,
         previousIndex +
-          (targetOrientation === "left"
+          (targetOrientation === "up"
             ? -1
-            : targetOrientation === "right"
+            : targetOrientation === "down"
             ? 1
             : 0)
-      )
-    );
+      );
+    }
 
-    const popupSequence = getSequence(world, popupEntity, "popup");
-    if (popupEntity[POPUP].horizontalIndex !== previousIndex && popupSequence) {
-      popupSequence.elapsed = popupTime;
-      popupSequence.args.contentIndex = 0;
-      rerenderEntity(world, popupEntity);
+    // ensure index is in bounds
+    const currentIndex = getVerticalIndex(world, popupEntity);
+    const boundIndex = clamp(currentIndex, 0, lines > 0 ? lines - 1 : 0);
+
+    if (currentIndex !== boundIndex) {
+      setVerticalIndex(world, popupEntity, boundIndex);
+    }
+
+    // handle actions
+    if (heroEntity[PLAYER].actionTriggered === "close") {
+      // close popup
+      heroEntity[PLAYER].actionTriggered = undefined;
+      const popupSequence = getSequence(world, popupEntity, "popup");
+      if (popupSequence) {
+        closePopup(world, heroEntity, popupEntity);
+      }
+    } else if (
+      heroEntity[PLAYER].actionTriggered === "tab" ||
+      heroEntity[PLAYER].actionTriggered === "backtab"
+    ) {
+      // handle tab changes
+      const previousIndex = popupEntity[POPUP].horizontalIndex;
+      popupEntity[POPUP].horizontalIndex = normalize(
+        heroEntity[PLAYER].tabTriggered ??
+          previousIndex +
+            (heroEntity[PLAYER].actionTriggered === "tab" ? 1 : -1),
+        popupEntity[POPUP].tabs.length
+      );
+      heroEntity[PLAYER].actionTriggered = undefined;
+      heroEntity[PLAYER].tabTriggered = undefined;
+      const popupSequence = getSequence(world, popupEntity, "popup");
+
+      // rerender on tab changes
+      if (
+        popupEntity[POPUP].horizontalIndex !== previousIndex &&
+        popupSequence
+      ) {
+        popupSequence.elapsed = popupTime;
+        popupSequence.args.contentIndex = 0;
+        rerenderEntity(world, popupEntity);
+      }
+    } else if (heroEntity[PLAYER].actionTriggered === "right") {
+      heroEntity[PLAYER].actionTriggered = undefined;
+
+      const verticalIndex = getVerticalIndex(world, popupEntity);
+      const tab = getTab(world, popupEntity);
+
+      if (tab === "quest") {
+        if (tradeEntity && isQuestCompleted(world, heroEntity, tradeEntity)) {
+          pushTabSelection(world, tradeEntity);
+          completeQuest(world, heroEntity, tradeEntity);
+
+          // advance to completed screen
+          if (selections.length === 1) pushTabSelection(world, tradeEntity);
+        } else if (addEntity) {
+          const focus =
+            addEntity[POPUP].focuses[addEntity[POPUP].horizontalIndex];
+          if (
+            !isQuestCompleted(world, heroEntity, addEntity) &&
+            focus &&
+            selections.length === 0
+          ) {
+            // set focus
+            questSequence(world, heroEntity, "waypointQuest", {
+              ...focus,
+              distance: 2,
+            });
+
+            closePopup(world, heroEntity, addEntity);
+          } else {
+            // proceed to choices screen
+            pushTabSelection(world, addEntity);
+            setVerticalIndex(world, addEntity, 0);
+          }
+        } else if (!isQuestCompleted(world, heroEntity, popupEntity)) {
+          queueMessage(world, heroEntity, {
+            line: createText("Not completed!", colors.silver, colors.black),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+        }
+      } else if (tab === "buy") {
+        const deal = tradeEntity && getDeal(world, heroEntity, tradeEntity);
+        if (deal) {
+          const missingItem = missingFunds(world, heroEntity, deal)[0];
+
+          if (canShop(world, heroEntity, deal)) {
+            performTrade(world, heroEntity, tradeEntity);
+          } else if (deal.stock === 0) {
+            queueMessage(world, heroEntity, {
+              line: createText("Sold out!", colors.silver, colors.black),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          } else if (missingItem) {
+            queueMessage(world, heroEntity, {
+              line: addBackground(
+                [
+                  ...createText("Need ", colors.silver),
+                  ...createItemName(missingItem),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          }
+        }
+      } else if (tab === "sell") {
+        const deal = tradeEntity && getDeal(world, heroEntity, tradeEntity);
+        if (deal) {
+          if (canSell(world, deal.prices[0])) {
+            performTrade(world, heroEntity, tradeEntity);
+          } else {
+            queueMessage(world, heroEntity, {
+              line: addBackground(
+                [
+                  ...createText("Can't sell ", colors.silver),
+                  ...createItemName(deal.prices[0]),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          }
+        }
+      } else if (tab === "forge") {
+        const deal = tradeEntity && getDeal(world, heroEntity, tradeEntity);
+        if (deal) {
+          const resultItem = deal.item;
+          performTrade(world, heroEntity, tradeEntity);
+          popTabSelection(world, tradeEntity);
+          popTabSelection(world, tradeEntity);
+
+          const resultIndex = (heroEntity[INVENTORY]?.items || []).findIndex(
+            (itemId) =>
+              matchesItem(
+                world,
+                resultItem,
+                world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
+              )
+          );
+
+          if (resultIndex !== -1) {
+            setVerticalIndex(world, tradeEntity, resultIndex);
+          }
+        } else if (addEntity) {
+          const [firstIndex, secondIndex] = selections;
+          const { forgeable, addItem, baseItem } = getForgeStatus(
+            world,
+            heroEntity,
+            firstIndex,
+            secondIndex,
+            verticalIndex
+          );
+          const nextItem = addItem || baseItem;
+
+          if (forgeable) {
+            pushTabSelection(world, addEntity);
+
+            // scroll up on final screen
+            if (addItem) {
+              setVerticalIndex(world, addEntity, 0);
+            }
+          } else {
+            queueMessage(world, heroEntity, {
+              line: nextItem
+                ? addBackground(
+                    [
+                      ...createText("Can't add ", colors.silver),
+                      ...createItemName(nextItem),
+                      ...createText("!", colors.silver),
+                    ],
+                    colors.black
+                  )
+                : createText("Nothing to add!", colors.silver, colors.black),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          }
+        }
+      } else if (tab === "craft") {
+        const deal = tradeEntity && getDeal(world, heroEntity, tradeEntity);
+        if (deal) {
+          const missingItem = missingFunds(world, heroEntity, deal)[0];
+          if (canShop(world, heroEntity, deal)) {
+            performTrade(world, heroEntity, tradeEntity);
+          } else if (missingItem) {
+            queueMessage(world, heroEntity, {
+              line: addBackground(
+                [
+                  ...createText("Need ", colors.silver),
+                  ...createItemName(missingItem),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          }
+        } else if (addEntity) {
+          pushTabSelection(world, addEntity);
+          setVerticalIndex(world, addEntity, 0);
+        }
+      } else if (tab === "inspect") {
+        if (useEntity && getConsumption(world, heroEntity, useEntity)) {
+          consumeItem(world, heroEntity, useEntity);
+        } else if (useEntity) {
+          const useItem =
+            inspectItems[getVerticalIndex(world, heroEntity)]?.[ITEM];
+          queueMessage(world, heroEntity, {
+            line: useItem?.equipment
+              ? addBackground(
+                  [
+                    ...createItemName(useItem),
+                    ...createText(" already worn!", colors.silver),
+                  ],
+                  colors.black
+                )
+              : useItem
+              ? [
+                  ...createText("Can't use ", colors.silver),
+                  ...createItemName(useItem),
+                  ...createText("!", colors.silver),
+                ]
+              : createText("Nothing to use!", colors.silver),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+        }
+      } else if (tab === "class" || tab === "style") {
+        if (!addEntity) {
+          // ignore
+        } else if (verticalIndex === 0 || TEST_MODE || tab === "style") {
+          popTabSelection(world, addEntity);
+          pushTabSelection(world, addEntity);
+          // proceed to next tab
+          addEntity[POPUP].horizontalIndex += 1;
+          rerenderEntity(world, addEntity);
+        } else {
+          queueMessage(world, heroEntity, {
+            line: createText("Not unlocked!", colors.silver, colors.black),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+        }
+      } else if (tab === "warp") {
+        const selectedLevel = warpEntity && getSelectedLevel(world, warpEntity);
+        if (!warpEntity) {
+          // ignore
+        } else if (canWarp(world, heroEntity, warpEntity)) {
+          initiateWarp(world, warpEntity, heroEntity);
+        } else if (selectedLevel) {
+          queueMessage(world, heroEntity, {
+            line: createText(
+              getSelectedLevel(world, warpEntity) ===
+                world.metadata.gameEntity[LEVEL].name
+                ? "Already here!"
+                : "Not unlocked!",
+              colors.silver,
+              colors.black
+            ),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+        }
+      }
+    } else if (heroEntity[PLAYER].actionTriggered === "left") {
+      heroEntity[PLAYER].actionTriggered = undefined;
+      const tab = getTab(world, popupEntity);
+
+      // don't allow going back from completed screen
+      if (
+        selections.length > 0 &&
+        !(
+          isQuestCompleted(world, heroEntity, popupEntity) &&
+          selections.length === 2
+        ) &&
+        tab !== "class" &&
+        tab !== "style"
+      ) {
+        const verticalIndex = popTabSelection(world, popupEntity);
+        setVerticalIndex(world, popupEntity, verticalIndex || 0);
+      }
     }
 
     // skip if player has already interacted or not going to

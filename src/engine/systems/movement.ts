@@ -7,13 +7,7 @@ import { getCell, moveEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
-import {
-  combine,
-  getDistance,
-  random,
-  signedDistance,
-  sum,
-} from "../../game/math/std";
+import { combine, getDistance, random, sum } from "../../game/math/std";
 import {
   ORIENTABLE,
   Orientation,
@@ -30,32 +24,19 @@ import {
 import { getCollecting, getLootable } from "./collect";
 import { isImmersible, isSubmerged } from "./immersion";
 import { BiomeName, LEVEL } from "../components/level";
-import { canUnlock, getLockable, getWarpable, isLocked } from "./action";
+import { getLockable, isLocked } from "./action";
 import { createBubble } from "./water";
 import { getFragment, getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { freezeMomentum, isFrozen } from "./freeze";
-import { createItemName, queueMessage } from "../../game/assets/utils";
-import { addBackground, createText } from "../../game/assets/sprites";
-import { colors } from "../../game/assets/colors";
-import { isTouch } from "../../components/Dimensions";
-import { invertOrientation } from "../../game/math/path";
-import {
-  getPopup,
-  getTab,
-  isInPopup,
-  isPopupAvailable,
-  popupActions,
-} from "./popup";
-import { getSequence } from "./sequence";
+import { isInPopup } from "./popup";
 import { PLAYER } from "../components/player";
 import { npcVariants, play } from "../../game/sound";
 import { NPC } from "../components/npc";
 import { LAYER } from "../components/layer";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
-import { LOCKABLE } from "../components/lockable";
 import { getClickable } from "./click";
 import { CLICKABLE } from "../components/clickable";
 import { getSpikable } from "./spike";
@@ -88,9 +69,7 @@ export const getTempo = (world: World, position: Position) =>
 const popupHaste = 8;
 
 export const getEntityHaste = (world: World, entity: Entity) =>
-  isInPopup(world, entity)
-    ? popupHaste
-    : getEntityStats(world, entity).haste + getTempo(world, entity[POSITION]);
+  isInPopup(world, entity) ? popupHaste : getEntityStats(world, entity).haste;
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(
@@ -265,82 +244,7 @@ export default function setupMovement(world: World) {
 
         for (const limb of limbs) {
           const position = combine(size, limb[POSITION], delta);
-          const lockable = getLockable(world, position);
-          const popup = getPopup(world, position);
-          const warp = getWarpable(world, position);
-
           if (
-            limb[PLAYER] &&
-            !isWalkable(world, position) &&
-            lockable &&
-            isLocked(world, lockable) &&
-            !getSequence(world, lockable, "unlock")
-          ) {
-            // show message if unlockable
-            queueMessage(world, limb, {
-              line: canUnlock(world, limb, lockable)
-                ? [
-                    ...createText(
-                      isTouch ? "Tap on " : "[SPACE] to ",
-                      colors.silver,
-                      colors.black
-                    ),
-                    ...createText("OPEN", colors.black, colors.lime),
-                  ]
-                : addBackground(
-                    [
-                      ...createText("Need ", colors.silver),
-                      ...createItemName({
-                        consume: "key",
-                        material: lockable[LOCKABLE].material,
-                      }),
-                      ...createText("!", colors.silver),
-                    ],
-                    colors.black
-                  ),
-              orientation: invertOrientation(orientation),
-              fast: false,
-              delay: 0,
-            });
-          } else if (
-            limb[PLAYER] &&
-            !isWalkable(world, position) &&
-            popup &&
-            isPopupAvailable(world, popup)
-          ) {
-            // show message if popup available
-            const action = popupActions[getTab(world, popup)];
-            queueMessage(world, limb, {
-              line: [
-                ...createText(
-                  isTouch ? "Tap on " : "[SPACE] to ",
-                  colors.silver,
-                  colors.black
-                ),
-                ...createText(action, colors.black, colors.lime),
-              ],
-              orientation: invertOrientation(orientation),
-              fast: false,
-              delay: 0,
-            });
-          } else if (limb[PLAYER] && warp) {
-            queueMessage(world, limb, {
-              line: [
-                ...createText(
-                  isTouch ? "Tap on " : "[SPACE] to ",
-                  colors.silver,
-                  colors.black
-                ),
-                ...createText("WARP", colors.black, colors.lime),
-              ],
-              orientation:
-                signedDistance(limb[POSITION].y, warp[POSITION].y, size) >= 0
-                  ? "up"
-                  : "down",
-              fast: false,
-              delay: 0,
-            });
-          } else if (
             isLimbWalkable(world, limb, position) ||
             (limb[MOVABLE].flying && isFlyable(world, position))
           ) {

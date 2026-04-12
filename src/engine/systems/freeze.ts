@@ -45,6 +45,7 @@ import { getLiquids, updateWaterCell } from "./water";
 import { matrixFactory } from "../../game/math/matrix";
 import { LEVEL } from "../components/level";
 import { COVERABLE } from "../components/coverable";
+import { isInPopup } from "./popup";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -70,11 +71,14 @@ export const getUnfrozen = (world: World, position: Position) =>
 export const isSliding = (world: World, entity: Entity) =>
   !!entity[MOVABLE]?.momentum;
 
-export const isControllable = (world: World, entity: Entity) =>
+export const isActionable = (world: World, entity: Entity) =>
   MOVABLE in entity &&
   !isDead(world, entity) &&
   !isFrozen(world, entity) &&
   !isSliding(world, entity);
+
+export const isControllable = (world: World, entity: Entity) =>
+  isActionable(world, entity) && !isInPopup(world, entity);
 
 const frozenSprites: Record<Immersible["type"], Sprite> = {
   water: ice,

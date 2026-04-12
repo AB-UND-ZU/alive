@@ -7,6 +7,7 @@ import {
   fogHeight,
   idleHeight,
   immersibleHeight,
+  interactHeight,
   lootHeight,
   particleHeight,
   tooltipHeight,
@@ -48,6 +49,7 @@ import {
   getRoot,
   getStructure,
   isDead,
+  isTribe,
 } from "../../engine/systems/damage";
 import {
   disposeEntity,
@@ -74,7 +76,12 @@ import {
   sigmoid,
   signedDistance,
 } from "../math/std";
-import { iterations, reversedIterations } from "../math/tracing";
+import {
+  iterations,
+  pixelCircle,
+  pointToDegree,
+  reversedIterations,
+} from "../math/tracing";
 import {
   createDialog,
   createText,
@@ -187,6 +194,14 @@ import {
   golemStrikeDownLeft,
   golemStrikeLeft,
   golemStrikeLeftUp,
+  interactBar,
+  createButton,
+  interactLeft,
+  interactRight,
+  auraEdge,
+  tooltipLine,
+  enemyLine,
+  allyLine,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -224,6 +239,8 @@ import {
   LimbSequence,
   VanishSequence,
   EvaporateSequence,
+  InteractSequence,
+  AuraSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
@@ -263,6 +280,7 @@ import {
   createUnitName,
   createItemName,
   questWidth,
+  rewardWidth,
 } from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
@@ -285,7 +303,9 @@ import {
   canRedeem,
   canSell,
   canShop,
+  existingFund,
   gearSlots,
+  getDefeated,
   getTab,
   getTabSelections,
   getVerticalIndex,
@@ -362,6 +382,7 @@ import {
   edge,
   slashCorner,
   slashSide,
+  trigger,
   waveCorner,
   waveSide,
 } from "./templates/particles";
@@ -374,6 +395,8 @@ import {
 import { getHarvestTarget } from "../../engine/systems/harvesting";
 import { TypedEntity } from "../../engine/entities";
 import { BUMPABLE } from "../../engine/components/bumpable";
+import { getSequence } from "../../engine/systems/sequence";
+import { POI } from "../../engine/components/poi";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1164,6 +1187,71 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
+export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
+  const entityId = world.getEntityId(entity);
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const progress = Math.ceil(
+    state.elapsed / world.metadata.gameEntity[REFERENCE].tick
+  );
+  const material = state.args.material || "default";
+  const element = state.args.element || "default";
+
+  let finished =
+    progress > state.args.duration ||
+    Object.keys(entity[CASTABLE].affected).length > 0;
+  let updated = false;
+
+  // create bolt particle
+  const casterEntity = world.getEntityByIdAndComponents(
+    entity[CASTABLE].caster,
+    [POSITION]
+  );
+  const hasMoved =
+    !casterEntity ||
+    getDistance(entity[POSITION], casterEntity[POSITION], size) !== 0;
+  if (!state.particles.trap && hasMoved) {
+    const trapParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: effectHeight,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: trigger[material][element],
+    });
+    state.particles.trap = world.getEntityId(trapParticle);
+
+    // create effect areas
+    const aoeEntity = entities.createAoe(world, {
+      [EXERTABLE]: { castable: entityId },
+      [POSITION]: copy(entity[POSITION]),
+    });
+    registerEntity(world, aoeEntity);
+    state.args.areas.push(world.getEntityId(aoeEntity));
+    updated = true;
+  }
+
+  // dispose particles and areas
+  if (finished) {
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertById(state.particles[particleName]);
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    for (const aoeId of state.args.areas) {
+      const aoeEntity = world.assertById(aoeId);
+      disposeEntity(world, aoeEntity);
+    }
+
+    updated = true;
+  }
+
+  state.args.progress = progress;
+
+  return { finished, updated };
+};
+
 const boltSpeed = 200;
 
 export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
@@ -1388,7 +1476,7 @@ export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
       const aoeEntities = getExertables(
         world,
         combine(size, entity[POSITION], position)
-      );
+      ).filter((exertable) => exertable[EXERTABLE].castable === entityId);
 
       for (const aoeEntity of aoeEntities) {
         const aoeId = world.getEntityId(aoeEntity);
@@ -1424,6 +1512,143 @@ export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
   }
 
   state.args.progress = progress;
+
+  return { finished, updated };
+};
+
+const auraSpeed = 75;
+
+export const totemAura: Sequence<AuraSequence> = (world, entity, state) => {
+  const entityId = world.getEntityId(entity);
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const generation = Math.floor(
+    state.elapsed / world.metadata.gameEntity[REFERENCE].tick
+  );
+  const auraGeneration = Math.floor(state.elapsed / auraSpeed);
+
+  let finished = isDead(world, entity);
+  let updated = false;
+
+  // create effect areas
+  if (state.args.areas.length === 0) {
+    state.args.memory = {
+      position: copy(entity[POSITION]),
+      generation: auraGeneration,
+    };
+
+    const areaPoints = pixelCircle(
+      { x: 0, y: 0 },
+      state.args.range,
+      undefined,
+      true
+    );
+
+    for (const aoePoint of areaPoints) {
+      const aoeEntity = entities.createAoe(world, {
+        [EXERTABLE]: { castable: entityId },
+        [POSITION]: combine(size, entity[POSITION], aoePoint),
+      });
+      registerEntity(world, aoeEntity);
+      state.args.areas.push(world.getEntityId(aoeEntity));
+    }
+
+    const circlePoints = pixelCircle({ x: 0, y: 0 }, state.args.range);
+    const sortedPoints = circlePoints.sort(
+      (left, right) =>
+        pointToDegree({
+          x: signedDistance(0, left.x, size) * aspectRatio,
+          y: signedDistance(0, left.y, size),
+        }) -
+        pointToDegree({
+          x: signedDistance(0, right.x, size) * aspectRatio,
+          y: signedDistance(0, right.y, size),
+        })
+    );
+    state.args.memory.circle = sortedPoints;
+    for (const auraPoint of sortedPoints) {
+      const auraParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: auraPoint.x,
+          offsetY: auraPoint.y,
+          offsetZ: particleHeight,
+          amount: 0,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: auraEdge,
+      });
+      state.particles[`aura-${auraPoint.x}-${auraPoint.y}`] =
+        world.getEntityId(auraParticle);
+    }
+
+    updated = true;
+  }
+
+  // reduce hp each tick
+  if (state.args.progress !== generation) {
+    entity[STATS].hp = Math.max(entity[STATS].hp - 1, 0);
+    rerenderEntity(world, entity);
+    state.args.progress = generation;
+  }
+
+  // move if totem was pushed
+  const delta = {
+    x: signedDistance(state.args.memory.position.x, entity[POSITION].x, size),
+    y: signedDistance(state.args.memory.position.y, entity[POSITION].y, size),
+  };
+  if (delta.x !== 0 || delta.y !== 0) {
+    for (const aoeId of state.args.areas) {
+      const aoeEntity = world.assertByIdAndComponents(aoeId, [POSITION]);
+      moveEntity(world, aoeEntity, combine(size, aoeEntity[POSITION], delta));
+      if (RENDERABLE in aoeEntity) {
+        rerenderEntity(world, aoeEntity);
+      }
+    }
+
+    state.args.memory.position = copy(entity[POSITION]);
+    updated = true;
+  }
+
+  // animate aura
+  if (state.args.memory.generation !== auraGeneration) {
+    const points = state.args.memory.circle.length;
+    for (let auraIndex = 0; auraIndex < points; auraIndex += 1) {
+      const auraPoint = state.args.memory.circle[auraIndex];
+      const auraParticle = world.assertByIdAndComponents(
+        state.particles[`aura-${auraPoint.x}-${auraPoint.y}`],
+        [PARTICLE]
+      );
+      const amount = Math.max(
+        0,
+        Math.abs(((auraGeneration + 10) % 15) - 7) -
+          4 -
+          Math.abs((auraIndex % 2) - 0) -
+          (auraIndex % 4 === 0 ? 2 : 0)
+      );
+      if (auraParticle[PARTICLE].amount !== amount) {
+        auraParticle[PARTICLE].amount = amount;
+        rerenderEntity(world, auraParticle);
+      }
+    }
+
+    state.args.memory.generation = auraGeneration;
+    updated = true;
+  }
+
+  // dispose particles and areas
+  if (finished) {
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertById(state.particles[particleName]);
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    for (const aoeId of state.args.areas) {
+      const aoeEntity = world.assertById(aoeId);
+      disposeEntity(world, aoeEntity);
+    }
+
+    updated = true;
+  }
 
   return { finished, updated };
 };
@@ -2359,7 +2584,9 @@ export const displayBuy: Sequence<PopupSequence> = (world, entity, state) => {
       : shoppable
       ? "active"
       : "selected",
-    details
+    details,
+    undefined,
+    createButton("BUY", 5, !shoppable, false, false, "lime")
   );
   return {
     updated: popupResult.updated,
@@ -2447,7 +2674,9 @@ export const displaySell: Sequence<PopupSequence> = (world, entity, state) => {
     info,
     content,
     !hasItems ? undefined : selectedItem && sellable ? "active" : "blocked",
-    details
+    details,
+    undefined,
+    createButton("SELL", 6, !sellable, false, false, "lime")
   );
 
   return {
@@ -2483,7 +2712,12 @@ export const displayInspect: Sequence<PopupSequence> = (
             itemEntity[ITEM].material!
           ]?.[itemEntity[ITEM].element!];
 
-        const itemSprite = getItemSprite(itemEntity[ITEM], "display");
+        const itemSprite = getItemSprite(
+          itemEntity[ITEM],
+          "display",
+          undefined,
+          1
+        );
         const consumptionColor =
           (itemConsumption && getStatColor(itemConsumption.countable)) ||
           (consumptionConfig && getStatColor(consumptionConfig.countable));
@@ -2548,6 +2782,8 @@ export const displayInspect: Sequence<PopupSequence> = (
     bagItems[verticalIndex],
     [ITEM]
   );
+  const selectedUsable =
+    selectedItem && getItemConsumption(world, selectedItem);
   const details = selectedItem && getItemDescription(selectedItem[ITEM]);
 
   const popupResult = renderPopup(
@@ -2556,12 +2792,17 @@ export const displayInspect: Sequence<PopupSequence> = (
     state,
     info,
     content,
-    selectedItem && getItemConsumption(world, selectedItem)
-      ? "active"
-      : hasItems
-      ? "selected"
-      : undefined,
-    details
+    selectedUsable ? "active" : hasItems ? "selected" : undefined,
+    details,
+    undefined,
+    createButton(
+      selectedUsable ? "EAT" : "USE",
+      5,
+      !selectedUsable,
+      false,
+      false,
+      "lime"
+    )
   );
   return {
     updated: popupResult.updated,
@@ -2615,11 +2856,11 @@ export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
 };
 
 const gearTitles: Record<Equipment, string> = {
-  sword: "Sword",
+  sword: "Weapon",
   shield: "Shield",
   boots: "Boots",
   primary: "Spell",
-  secondary: "Item",
+  secondary: "Skill",
   ring: "Ring",
   amulet: "Amulet",
   compass: "Compass",
@@ -2718,7 +2959,7 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
 
     if (!item) {
       descriptions.push([
-        createText(`No ${title.toLowerCase()} yet`, colors.grey),
+        createText(`No ${title.toLowerCase()} item`, colors.grey),
       ]);
 
       const line = [
@@ -2734,7 +2975,7 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
       ];
     }
 
-    const gearSprite = getItemSprite(item[ITEM]);
+    const gearSprite = getItemSprite(item[ITEM], "display", undefined, 1);
     const gearTitle = createText(
       gearSprite.name,
       selected ? colors.white : colors.grey
@@ -2839,6 +3080,13 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const fogSprite = [mapZoom1, mapZoom2, mapZoom3, mapZoom4][verticalIndex];
 
+  const poiMap = world.getEntities([FOG, POI, POSITION]).reduce((pois, poi) => {
+    const row = pois[poi[POSITION].x] || {};
+    pois[poi[POSITION].x] = row;
+    row[poi[POSITION].y] = poi;
+    return pois;
+  }, {} as Record<number, Record<number, TypedEntity<"FOG" | "POI">>>);
+
   const content: Sprite[][] = heroEntity
     ? Array.from({ length: frameHeight - 2 }).map((_, gridY) =>
         Array.from({ length: frameWidth - 2 }).map((_, gridX) => {
@@ -2848,14 +3096,15 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
           });
 
           const gridColorPixels: Record<string, number>[] = [];
+          const pois = [];
           for (let pixelX = 0; pixelX < gridPixels; pixelX += 1) {
             for (let pixelY = 0; pixelY < gridPixels; pixelY += 1) {
               const gridColors: Record<string, number> = {};
               for (let offsetX = 0; offsetX < resolution; offsetX += 1) {
                 for (let offsetY = 0; offsetY < resolution; offsetY += 1) {
                   const target = combine(size, topLeft, {
-                    x: offsetX + pixelX * gridPixels,
-                    y: offsetY + pixelY * gridPixels,
+                    x: offsetX + pixelX * resolution,
+                    y: offsetY + pixelY * resolution,
                   });
                   const initialized =
                     world.metadata.gameEntity[LEVEL].initialized[target.x][
@@ -2873,6 +3122,11 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
                         entity[FOG]?.type === "air" &&
                         entity[FOG]?.visibility === "hidden"
                     );
+
+                  const poi = poiMap[target.x]?.[target.y];
+                  if (poi && poi[FOG].visibility !== "hidden") {
+                    pois.push(poi);
+                  }
 
                   if (!discovered) continue;
                   const cellColor = cellColorWeights[cell]?.[0] || colors.black;
@@ -2906,7 +3160,36 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
               gridColorPixels[2],
               gridColorPixels[3],
             ];
-            const halfBlockIndex = (gridX + gridY) % orientations.length;
+
+            // determine adjacent cells with highest cell sum
+            const pixelPairs = [
+              [gridColorPixels[0], gridColorPixels[2]],
+              [gridColorPixels[2], gridColorPixels[3]],
+              [gridColorPixels[3], gridColorPixels[1]],
+              [gridColorPixels[1], gridColorPixels[0]],
+            ];
+            const mergedPairs = pixelPairs.map(([left, right]) =>
+              Object.keys(left).reduce(
+                (sums, key) => {
+                  sums[key] = left[key] + (right[key] || 0);
+                  return sums;
+                },
+                { ...right }
+              )
+            );
+            const maxMerged = mergedPairs.reduce(
+              (best, pair) => {
+                const pairMax = Math.max(...Object.values(pair));
+                return pairMax > best.max ? { pair, max: pairMax } : best;
+              },
+              { pair: {}, max: -Infinity }
+            );
+            const maxIndex = mergedPairs.indexOf(maxMerged.pair);
+            const halfBlockIndex =
+              maxIndex === -1
+                ? (gridX + gridY) % orientations.length
+                : maxIndex;
+
             const halfBlockColors = Object.entries(
               clockwisePixels[halfBlockIndex]
             )
@@ -2952,6 +3235,14 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
             if (layers.length < 3) {
               cellSprite = mergeSprites(fogSprite, cellSprite);
             }
+          }
+
+          // add points of interest
+          if (pois.length > 0) {
+            cellSprite = pois.reduce(
+              (merged, poi) => mergeSprites(merged, poi[POI].sprite),
+              cellSprite
+            );
           }
 
           if (
@@ -3024,6 +3315,8 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
       [],
       classOverscan
     );
+  const [firstIndex] = getTabSelections(world, entity);
+  const chosenIndex = firstIndex ?? 0;
 
   const selectedClass = displayedClasses[verticalIndex];
   const selectedAvailable = TEST_MODE || selectedClass === "rogue";
@@ -3048,6 +3341,7 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
       ];
 
     const selected = verticalIndex === rowIndex;
+    const chosen = chosenIndex === rowIndex;
     const available = TEST_MODE || className === "rogue";
     const classSprite = entitySprites[className].sprite;
     const classTitle = createText(
@@ -3064,7 +3358,10 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
     return [
       none,
       ...(available
-        ? createText("*", selected ? colors.lime : colors.green)
+        ? createText(
+            chosen ? "*" : selected ? "\u0108" : "·",
+            selected ? colors.lime : colors.green
+          )
         : selected
         ? [blocked]
         : [none]),
@@ -3082,7 +3379,7 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
     ...(heroPixels[content.length - scrollIndex] || []),
   ]);
   const details = selectedAvailable
-    ? getEntityDescription(entitySprites[selectedClass])
+    ? getEntityDescription({}, entitySprites[selectedClass])
     : classUnlock[selectedClass];
   const popupResult = renderPopup(
     world,
@@ -3092,7 +3389,8 @@ export const displayClass: Sequence<PopupSequence> = (world, entity, state) => {
     content,
     selectedAvailable ? "selected" : "blocked",
     details,
-    classOverscan
+    classOverscan,
+    createButton("PICK", 6, !selectedAvailable, false, false, "lime")
   );
   return {
     updated: popupResult.updated,
@@ -3122,6 +3420,8 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
       [],
       styleOverscan
     );
+  const [firstIndex] = getTabSelections(world, entity);
+  const chosenIndex = firstIndex ?? 0;
 
   const selectedStyle = hairColors[verticalIndex];
   const heroEntity = getIdentifierAndComponents(world, "hero", [SPAWNABLE]);
@@ -3145,6 +3445,7 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
     const style = hairColors[rowIndex];
 
     const selected = verticalIndex === rowIndex;
+    const chosen = chosenIndex === rowIndex;
     const styleTitle = createText(
       style.name,
       selected ? colors.white : colors.grey
@@ -3156,7 +3457,10 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
 
     return [
       none,
-      ...createText(selected ? "*" : "·", selected ? style.color : colors.grey),
+      ...createText(
+        chosen ? "*" : selected ? "\u0108" : "·",
+        selected || chosen ? style.color : colors.grey
+      ),
       ...(selected ? shaded(line, colors.grey) : line),
       none,
       ...(lines[rowIndex - scrollIndex] || []),
@@ -3179,7 +3483,8 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
       createText(`Choose ${styleSelections[selectedClass]}`),
       createText("color."),
     ],
-    styleOverscan
+    styleOverscan,
+    createButton("PICK", 6, false, false, false, "lime")
   );
   return {
     updated: popupResult.updated,
@@ -3230,13 +3535,19 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     : colors.red;
   const isAdding = firstItem && !resultItem;
 
-  const baseSprite = baseItem ? getItemSprite(baseItem) : missing;
-  const addSprite = addItem ? getItemSprite(addItem) : missing;
-  const resultSprite = resultItem ? getItemSprite(resultItem) : missing;
+  const baseSprite = baseItem
+    ? getItemSprite(baseItem, undefined, undefined, 1)
+    : missing;
+  const addSprite = addItem
+    ? getItemSprite(addItem, undefined, undefined, 1)
+    : missing;
+  const resultSprite = resultItem
+    ? getItemSprite(resultItem, undefined, undefined, 1)
+    : missing;
   const selectedSprite = selectedItem
-    ? getItemSprite(selectedItem[ITEM])
+    ? getItemSprite(selectedItem[ITEM], undefined, undefined, 1)
     : none;
-  const addingAmount = addItem?.amount.toString() || "";
+  const addingAmount = addItem ? `+${addItem.amount}` : "";
 
   const layers = [
     [
@@ -3244,13 +3555,13 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
       ...pixelFrame(
         forgeWidth,
         forgeHeight,
-        resultItem ? colors.grey : isAdding ? addColor : colors.grey,
+        resultItem ? colors.green : isAdding ? addColor : colors.grey,
         (isAdding || resultItem) && selectedForgeable ? "solid" : "dotted",
         [
           centerSprites(
             isAdding || resultItem
               ? [...createText(addingAmount), addSprite]
-              : [missing],
+              : [...createText("+", colors.grey), none, missing],
             forgeWidth - 2
           ),
         ],
@@ -3270,7 +3581,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     pixelFrame(
       forgeWidth,
       forgeHeight,
-      resultItem ? colors.white : firstItem ? colors.grey : addColor,
+      resultItem ? colors.lime : firstItem ? colors.grey : addColor,
       baseItem && !addItem && !selectedForgeable ? "dotted" : "solid",
       [
         centerSprites(
@@ -3279,7 +3590,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
         ),
       ],
       resultItem
-        ? createText("Yield")
+        ? createText("Yield", colors.lime)
         : firstItem
         ? []
         : createText("Base", addColor)
@@ -3351,7 +3662,12 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
 
         const selected = verticalIndex === rowIndex;
         const added = rowIndex === firstIndex || rowIndex === secondIndex;
-        const itemSprite = getItemSprite(forgeItem[ITEM], "display");
+        const itemSprite = getItemSprite(
+          forgeItem[ITEM],
+          "display",
+          undefined,
+          1
+        );
         const textColor = selected && !added ? colors.white : colors.grey;
         const itemText = createText(itemSprite.name, textColor);
         const forgeOptions = getForgeOptions(
@@ -3442,7 +3758,23 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
       : selectedForgeable
       ? "selected"
       : "blocked",
-    details
+    details,
+    undefined,
+    resultItem
+      ? createButton("YIELD", 7, !selectedForgeable, false, false, "lime")
+      : hasItems
+      ? createButton(
+          `${isAdding ? "ADD" : "BASE"}\u0119`,
+          isAdding ? 5 : 6,
+          !selectedForgeable,
+          false,
+          false,
+          "lime"
+        )
+      : undefined,
+    addItem
+      ? createButton("\u011aBACK", 6, false, false, false, "red")
+      : undefined
   );
 
   return {
@@ -3592,7 +3924,14 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
     icon,
     content,
     viewedDeal ? undefined : "selected",
-    details
+    details,
+    undefined,
+    viewedRecipe
+      ? createButton("MAKE", 6, !viewedShoppable, false, false, "lime")
+      : createButton("VIEW\u0119", 6, false, false, false, "lime"),
+    viewedRecipe
+      ? createButton("\u011aBACK", 6, false, false, false, "red")
+      : undefined
   );
   return {
     updated: popupResult.updated,
@@ -3641,7 +3980,7 @@ export const displayWarp: Sequence<PopupSequence> = (world, entity, state) => {
     ).map((line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]),
   ];
   const selectedLevel = getSelectedLevel(world, entity);
-  const level = levelConfig[selectedLevel];
+  const level = selectedLevel && levelConfig[selectedLevel];
   const currentLevel = selectedLevel === world.metadata.gameEntity[LEVEL].name;
   const lockedLevel = !currentLevel && !canWarp(world, {}, entity);
 
@@ -3651,50 +3990,63 @@ export const displayWarp: Sequence<PopupSequence> = (world, entity, state) => {
     ? colors.white
     : colors.lime;
 
-  const content = overlay(
-    map,
-    ...[
-      [
-        ...repeat([], level.mapOffsetY),
-        ...pixelFrame(
-          warpWidth,
-          warpHeight,
-          warpColor,
-          lockedLevel || currentLevel ? "dashed" : "thick",
-          [],
-          createText(level?.name || "", colors.black, warpColor)
-        ),
-      ],
-      [
-        ...repeat([], level.mapOffsetY + (warpHeight - 1) / 2),
-        [
-          lockedLevel
-            ? blocked
-            : showPlayer
-            ? mergeSprites(shadow, createText("\u010b", warpColor)[0])
-            : none,
-        ],
-      ],
-    ].map((layer) =>
-      layer.map((line) =>
-        centerSprites(
+  const content = level
+    ? overlay(
+        map,
+        ...[
           [
-            ...repeat(none, level.mapOffsetX * 2),
-            ...line,
-            ...repeat(none, level.mapOffsetX * -2),
+            ...repeat([], level.mapOffsetY),
+            ...pixelFrame(
+              warpWidth,
+              warpHeight,
+              warpColor,
+              lockedLevel || currentLevel ? "dashed" : "thick",
+              [],
+              createText(level?.name || "", colors.black, warpColor)
+            ),
           ],
-          frameWidth - 2
+          [
+            ...repeat([], level.mapOffsetY + (warpHeight - 1) / 2),
+            [
+              lockedLevel
+                ? blocked
+                : showPlayer
+                ? mergeSprites(shadow, createText("\u010b", warpColor)[0])
+                : none,
+            ],
+          ],
+        ].map((layer) =>
+          layer.map((line) =>
+            centerSprites(
+              [
+                ...repeat(none, level.mapOffsetX * 2),
+                ...line,
+                ...repeat(none, level.mapOffsetX * -2),
+              ],
+              frameWidth - 2
+            )
+          )
         )
       )
-    )
-  );
+    : map;
 
   const popupResult = renderPopup(
     world,
     entity,
     state,
     popupIdles[getTab(world, entity)],
-    content
+    content,
+    undefined,
+    undefined,
+    undefined,
+    createButton(
+      "GO!",
+      5,
+      !level || lockedLevel || currentLevel,
+      false,
+      false,
+      "lime"
+    )
   );
 
   return {
@@ -3735,12 +4087,7 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
     heroEntity &&
     popup.targets.every((target) => hasDefeated(world, heroEntity, target));
   const completed = allDefeated && allGathered;
-  const objectives = popup.objectives;
   const selections = getTabSelections(world, entity);
-  const selectedObjective =
-    selections.length === 1 && !completed
-      ? objectives[verticalIndex]
-      : undefined;
   const selectedChoice =
     selections.length === 1 && completed
       ? popup.choices[verticalIndex]
@@ -3759,16 +4106,30 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
             allDefeated ? colors.grey : colors.red,
             completed ? "dotted" : "solid",
             popup.targets.map((target) => {
+              const killed = heroEntity
+                ? getDefeated(world, heroEntity, target)
+                : 0;
               const defeated =
                 heroEntity && hasDefeated(world, heroEntity, target);
               const [sprite, ...name] = createUnitName(target.unit);
               const text = [
-                ...createText(
-                  target.amount > 1
-                    ? target.amount.toString().padStart(2)
-                    : "  ",
-                  defeated ? colors.grey : colors.silver
-                ),
+                ...(target.amount > 1
+                  ? defeated
+                    ? createText(
+                        target.amount.toString().padStart(5),
+                        colors.grey
+                      )
+                    : [
+                        ...createText(
+                          killed
+                            .toString()
+                            .padStart(4 - target.amount.toString().length),
+                          colors.silver
+                        ),
+                        ...createText("/", colors.grey),
+                        ...createText(target.amount.toString(), colors.silver),
+                      ]
+                  : repeat(none, 5)),
                 sprite,
                 ...(defeated ? name : brightenSprites(name)),
               ];
@@ -3791,11 +4152,25 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
             completed ? "dotted" : "solid",
             prices.map((price) => {
               const deal = { item: price, stock: 1, prices: [price] };
+              const existing = heroEntity
+                ? existingFund(world, heroEntity, price)
+                : 0;
               const gathered = heroEntity && canRedeem(world, heroEntity, deal);
               const color = gathered ? colors.grey : colors.silver;
 
               const text = [
-                ...createText(price.amount.toString().padStart(2), color),
+                ...(gathered
+                  ? repeat(none, 3)
+                  : [
+                      ...createText(
+                        existing
+                          .toString()
+                          .padStart(4 - price.amount.toString().length),
+                        color
+                      ),
+                      ...createText("/", colors.grey),
+                    ]),
+                ...createText(price.amount.toString(), color),
                 ...createItemName(price, color),
               ];
               const line = [
@@ -3811,7 +4186,7 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
       popup.deals.length === 0
         ? []
         : pixelFrame(
-            questWidth,
+            rewardWidth,
             popup.deals.length + 2,
             completed ? colors.lime : colors.grey,
             completed ? "solid" : "dotted",
@@ -3824,7 +4199,7 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
                 ),
                 ...createItemName(deal.item, rewardColor),
               ];
-              return [...text, ...repeat(none, questWidth - text.length - 2)];
+              return [...text, ...repeat(none, rewardWidth - text.length - 2)];
             }),
             createText("Reward", completed ? colors.lime : colors.grey)
           );
@@ -3832,7 +4207,7 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
       popup.choices.length === 0
         ? []
         : pixelFrame(
-            questWidth,
+            rewardWidth,
             popup.choices.length + 2,
             completed ? colors.green : colors.grey,
             completed ? "solid" : "dotted",
@@ -3844,7 +4219,7 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
                 ),
                 ...createItemName(choice, rewardColor),
               ];
-              return [...text, ...repeat(none, questWidth - text.length - 2)];
+              return [...text, ...repeat(none, rewardWidth - text.length - 2)];
             }),
             createText("Choose", completed ? colors.green : colors.grey)
           );
@@ -3868,12 +4243,18 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
       ),
       ...targets,
       ...gathers,
-      ...rewards.map((line) => [...repeat(none, 4), ...line]),
-      ...choices.map((line) => [...repeat(none, 4), ...line]),
+      ...rewards.map((line) => [
+        ...repeat(none, frameWidth - 2 - rewardWidth),
+        ...line,
+      ]),
+      ...choices.map((line) => [
+        ...repeat(none, frameWidth - 2 - rewardWidth),
+        ...line,
+      ]),
     ];
   } else if (selections.length === 2) {
     // show completed screen
-    content = popup.lines[verticalIndex];
+    content = popup.lines[entity[POPUP].horizontalIndex];
   } else if (completed) {
     // show reward choices
     content = popup.choices.map((choice, index) => {
@@ -3885,29 +4266,6 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
         : title;
       return [none, sprite, ...line];
     });
-  } else {
-    // show objectives
-    content = objectives.map((objective, index) => {
-      const selected = index === verticalIndex;
-      let sprite: Sprite = none;
-      let name: Sprite[] = [];
-
-      if (objective.item) {
-        [sprite, ...name] = createItemName(objective.item);
-      } else {
-        [sprite, ...name] = objective.title;
-      }
-
-      const title = [...name, ...repeat(none, frameWidth - 4 - name.length)];
-      const line = !selected
-        ? objective.available
-          ? title
-          : strikethrough(title)
-        : objective.available
-        ? shaded(brightenSprites(title), colors.grey)
-        : dotted(strikethrough(title), colors.red);
-      return [none, sprite, ...line];
-    });
   }
 
   const popupResult = renderPopup(
@@ -3916,24 +4274,29 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
     state,
     popupIdles[getTab(world, entity)],
     content,
-    selections.length !== 1
-      ? undefined
-      : completed
-      ? "active"
-      : selectedObjective?.available
-      ? "selected"
-      : "blocked",
-    selectedObjective
-      ? selectedObjective.available
-        ? selectedObjective.item
-          ? getItemDescription(selectedObjective.item)
-          : selectedObjective.description
-        : [
-            createText("Objective not", colors.grey),
-            createText("available.", colors.grey),
-          ]
-      : selectedChoice
+    selections.length !== 1 ? undefined : completed ? "active" : "blocked",
+    completed && selections.length === 1 && selectedChoice
       ? getItemDescription(selectedChoice)
+      : undefined,
+    undefined,
+    selections.length === 0 &&
+      !completed &&
+      popup.focuses[popup.horizontalIndex]
+      ? createButton("FOCUS", 7, false, false, false, "lime")
+      : selections.length < 2
+      ? createButton(
+          popup.choices.length > 0 && selections.length === 0
+            ? "VIEW\u0119"
+            : "CLAIM",
+          7,
+          !completed,
+          false,
+          false,
+          "lime"
+        )
+      : undefined,
+    selections.length === 1
+      ? createButton("\u011aBACK", 7, false, false, false, "red")
       : undefined
   );
   return {
@@ -4765,7 +5128,7 @@ export const tragicDeath: Sequence<PerishSequence> = (world, entity, state) => {
   let updated = false;
   const circleTime = state.args.fast ? visionTime / 2 : visionTime;
   const ripTime = circleTime + 500;
-  const spawnTime = ripTime + 500;
+  const spawnTime = ripTime + 1500;
   const finished = state.elapsed > spawnTime;
 
   if (state.elapsed > ripTime && !entity[TOOLTIP].dialogs.length) {
@@ -4777,6 +5140,10 @@ export const tragicDeath: Sequence<PerishSequence> = (world, entity, state) => {
 
   if (finished) {
     entity[REVIVABLE].available = true;
+    entity[TOOLTIP].dialogs = [];
+    entity[TOOLTIP].changed = true;
+    entity[TOOLTIP].override = undefined;
+    updated = true;
   }
 
   return { finished, updated };
@@ -5208,6 +5575,232 @@ export const focusCircle: Sequence<FocusSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
+const interactTime = 100;
+const horizontalTime = 50;
+const interactHighlight = 10;
+
+export const popupInteract: Sequence<InteractSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const orientation = state.args.orientation;
+  const delta = orientationPoints[orientation];
+  const horizontal = orientation === "left" || orientation === "right";
+  const interactSpeed = horizontal ? horizontalTime : interactTime;
+  const generation = Math.floor(state.elapsed / interactSpeed);
+  const shouldHide = !heroEntity || !state.args.active;
+  const interactWidth = state.args.text.length + 2;
+  const interactButton = createButton(
+    state.args.text,
+    interactWidth,
+    false,
+    false,
+    generation > interactWidth && normalize(generation, interactHighlight) <= 1,
+    "lime"
+  );
+  const paddingLeft = Math.floor((interactWidth - 1) / 2);
+  const paddingRight = Math.ceil((interactWidth - 1) / 2);
+
+  const initial = !state.particles.discovery;
+  const finished = shouldHide && !state.args.active;
+  let updated = false;
+
+  if (initial) {
+    updated = true;
+
+    const discoveryParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: delta.x * (horizontal ? 2 + interactWidth : 3),
+        offsetY: delta.y * 3,
+        offsetZ: particleHeight,
+        amount: 1,
+        animatedOrigin: copy(delta),
+        duration: interactSpeed * (horizontal ? interactWidth + 2 : 2),
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: state.args.sprite,
+    });
+    state.particles.discovery = world.getEntityId(discoveryParticle);
+
+    const innerBarParticle = entities.createFibre(world, {
+      [ORIENTABLE]: { facing: orientation },
+      [PARTICLE]: {
+        offsetX: delta.x,
+        offsetY: delta.y,
+        offsetZ: interactHeight,
+        amount: 1,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: interactBar,
+    });
+    state.particles.inner = world.getEntityId(innerBarParticle);
+  }
+
+  // render bar extension after one tick
+  if (state.args.generation === 0 && generation === 1) {
+    state.args.generation = generation;
+
+    const outerBarParticle = entities.createFibre(world, {
+      [ORIENTABLE]: { facing: orientation },
+      [PARTICLE]: {
+        offsetX: delta.x * 2,
+        offsetY: delta.y * 2,
+        offsetZ: interactHeight,
+        amount: 1,
+        animatedOrigin: copy(delta),
+        duration: interactSpeed,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: interactBar,
+    });
+    state.particles.outer = world.getEntityId(outerBarParticle);
+    updated = true;
+  }
+
+  // render button content and shadows
+  if (state.args.generation === 1 && generation === 2) {
+    state.args.generation = generation;
+    updated = true;
+
+    const barLeftParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX:
+          orientation === "left"
+            ? -interactWidth - 1
+            : orientation === "right"
+            ? 2
+            : -paddingLeft,
+        offsetY: delta.y * 2,
+        offsetZ: dialogHeight,
+        amount: 1,
+        animatedOrigin:
+          orientation === "left" ? { x: -2, y: 0 } : add(delta, delta),
+        duration:
+          interactSpeed *
+          (orientation === "left" ? interactWidth : paddingLeft),
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: interactLeft,
+    });
+    state.particles.left = world.getEntityId(barLeftParticle);
+
+    const barRightParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX:
+          orientation === "right"
+            ? interactWidth + 1
+            : orientation === "left"
+            ? -2
+            : paddingRight,
+        offsetY: delta.y * 2,
+        offsetZ: dialogHeight,
+        amount: 1,
+        animatedOrigin:
+          orientation === "right" ? { x: 2, y: 0 } : add(delta, delta),
+        duration:
+          interactSpeed *
+          (orientation === "right" ? interactWidth : paddingRight),
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: interactRight,
+    });
+    state.particles.right = world.getEntityId(barRightParticle);
+
+    for (
+      let columnIndex = 0;
+      columnIndex < interactButton.length;
+      columnIndex += 1
+    ) {
+      const offset = columnIndex - Math.ceil(interactWidth / 2) + 1;
+      const cellParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX:
+            orientation === "left"
+              ? columnIndex - interactWidth - 1
+              : orientation === "right"
+              ? columnIndex + 2
+              : offset,
+          offsetY: delta.y * 2,
+          offsetZ: particleHeight,
+          amount: 1,
+          animatedOrigin:
+            orientation === "right"
+              ? { x: 2, y: 0 }
+              : orientation === "left"
+              ? { x: -2, y: 0 }
+              : add(delta, delta),
+          duration:
+            interactSpeed *
+            (orientation === "left"
+              ? interactWidth - columnIndex
+              : orientation === "right"
+              ? columnIndex + 1
+              : Math.abs(offset)),
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: interactButton[columnIndex],
+      });
+      state.particles[`cell-${columnIndex}`] = world.getEntityId(cellParticle);
+    }
+  }
+
+  if (
+    (orientation === "left" &&
+      state.args.generation === interactWidth + 1 &&
+      generation === interactWidth + 2) ||
+    (orientation === "right" &&
+      state.args.generation === 2 &&
+      generation === 3) ||
+    (!horizontal &&
+      state.args.generation === paddingLeft + 1 &&
+      generation === paddingLeft + 2)
+  ) {
+    updated = true;
+    const leftParticle = world.assertById(state.particles.left);
+    disposeEntity(world, leftParticle);
+    delete state.particles.left;
+  }
+
+  if (
+    (orientation === "right" &&
+      state.args.generation === interactWidth + 1 &&
+      generation === interactWidth + 2) ||
+    (orientation === "left" &&
+      state.args.generation === 2 &&
+      generation === 3) ||
+    (!horizontal &&
+      state.args.generation === paddingRight + 1 &&
+      generation === paddingRight + 2)
+  ) {
+    updated = true;
+    const rightParticle = world.assertById(state.particles.right);
+    disposeEntity(world, rightParticle);
+    delete state.particles.right;
+  }
+
+  // highlight button
+  if (state.args.generation !== generation) {
+    state.args.generation = generation;
+    updated = true;
+    for (
+      let columnIndex = 0;
+      columnIndex < interactButton.length;
+      columnIndex += 1
+    ) {
+      const cellParticle = world.assertByIdAndComponents(
+        state.particles[`cell-${columnIndex}`],
+        [PARTICLE, SPRITE]
+      );
+      cellParticle[SPRITE] = interactButton[columnIndex];
+      rerenderEntity(world, cellParticle);
+    }
+  }
+
+  return { finished, updated };
+};
+
 const discoveryTime = 200;
 const discoveryReveal = 50;
 const discoveryEnter = 4;
@@ -5222,6 +5815,7 @@ export const discoveryIdle: Sequence<DiscoverySequence> = (
 
   const size = world.metadata.gameEntity[LEVEL].size;
   const controlled = state.args.force !== undefined;
+  const interactSequence = getSequence(world, entity, "interact");
   const shouldHide = state.args.force === false;
 
   const finished = state.args.idle === none;
@@ -5264,12 +5858,15 @@ export const discoveryIdle: Sequence<DiscoverySequence> = (
     heroEntity && !isDead(world, heroEntity)
       ? getDistance(entity[POSITION], heroEntity[POSITION], size)
       : Infinity;
-  const isAdjacent = controlled
-    ? !shouldHide
-    : heroEntity &&
-      !isDead(world, heroEntity) &&
-      distance < (isUp ? discoveryLeave : discoveryEnter) &&
-      !(isInside(world, heroEntity) && !onSameLayer(world, heroEntity, entity));
+  const isAdjacent =
+    controlled || interactSequence
+      ? !shouldHide
+      : heroEntity &&
+        !isDead(world, heroEntity) &&
+        distance < (isUp ? discoveryLeave : discoveryEnter) &&
+        !(
+          isInside(world, heroEntity) && !onSameLayer(world, heroEntity, entity)
+        );
 
   // move up when close
   const active = (controlled ? !shouldHide : isAdjacent) && !isUp;
@@ -5288,10 +5885,11 @@ export const discoveryIdle: Sequence<DiscoverySequence> = (
     updated = true;
   }
 
-  const visibleSprite =
-    isAdjacent && state.elapsed > state.args.timestamp
-      ? state.args.idle
-      : discovery;
+  const visibleSprite = !!interactSequence
+    ? none
+    : isAdjacent && state.elapsed > state.args.timestamp
+    ? state.args.idle
+    : discovery;
 
   // hide or reveal
   if (visibleSprite !== discoveryParticle[SPRITE]) {
@@ -5338,7 +5936,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     isDead(world, entity) ||
     (!state.args.overridden &&
       !state.args.isIdle &&
-      state.elapsed / charDelay > totalLength * 1.4 + 20);
+      state.elapsed / charDelay > totalLength * 1.3 + 20);
   const isCloseBy =
     isAdjacent &&
     !!heroEntity &&
@@ -5378,11 +5976,14 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   }
 
   // create char particles
-  const particlesLength = Object.keys(state.particles).length;
-  if (particlesLength === 0 && !expired) {
+  const leftOffset = Math.floor((totalLength - 1) / 2);
+  const charsLength = Object.keys(state.particles).filter(
+    (key) => key.startsWith("char-") || key === "bubble"
+  ).length;
+  if (charsLength === 0 && !expired) {
     for (let i = 0; i < totalLength; i += 1) {
       const origin = add(orientationPoints[state.args.orientation], {
-        x: -Math.floor((totalLength - 1) / 2),
+        x: -leftOffset,
         y: 0,
       });
       const charPosition = add(origin, { x: i, y: 0 });
@@ -5460,7 +6061,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
   }
 
   // reveal characters and flip if needed
-  if (updated && particlesLength > 0) {
+  if (updated && charsLength > 0) {
     const origin = add(orientationPoints[state.args.orientation], {
       x: -Math.floor((totalLength - 1) / 2),
       y: 0,
@@ -5514,6 +6115,61 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     updated = true;
   }
 
+  // reorient line
+  const tooltipCorner = world.getEntityByIdAndComponents(
+    state.particles["tooltip-corner"],
+    [ORIENTABLE, PARTICLE, SPRITE]
+  );
+  const tooltipOrientation = tooltipCorner?.[ORIENTABLE].facing;
+  if (
+    !state.args.isDialog &&
+    !state.args.isIdle &&
+    totalLength >= 3 &&
+    tooltipOrientation !== orientation
+  ) {
+    const isAlly = isTribe(world, entity);
+
+    // create tooltip line
+    if (!tooltipCorner) {
+      const cornerParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: orientation },
+        [PARTICLE]: {
+          offsetX: -leftOffset,
+          offsetY: 0,
+          offsetZ: tooltipHeight,
+        },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: state.args.isEnemy
+          ? enemyLine
+          : isAlly
+          ? allyLine
+          : tooltipLine,
+      });
+      state.particles["tooltip-corner"] = world.getEntityId(cornerParticle);
+      for (let tooltipIndex = 1; tooltipIndex < leftOffset; tooltipIndex += 1) {
+        const tooltipParticle = entities.createParticle(world, {
+          [PARTICLE]: {
+            offsetX: -tooltipIndex,
+            offsetY: 0,
+            offsetZ: tooltipHeight,
+          },
+          [RENDERABLE]: { generation: 0 },
+          [SPRITE]: state.args.isEnemy
+            ? enemyLine
+            : isAlly
+            ? allyLine
+            : tooltipLine,
+        });
+        state.particles[`tooltip-line-${tooltipIndex}`] =
+          world.getEntityId(tooltipParticle);
+      }
+    } else {
+      tooltipCorner[ORIENTABLE].facing = orientation;
+      rerenderEntity(world, tooltipCorner);
+    }
+    updated = true;
+  }
+
   // remove particles if player is not in adjacent position anymore and text is fully hidden,
   // or auto advance dialog
   if (
@@ -5522,8 +6178,7 @@ export const dialogText: Sequence<DialogSequence> = (world, entity, state) => {
     Object.keys(state.particles).length > 0 &&
     !state.particles.idle
   ) {
-    for (let i = 0; i < totalLength; i += 1) {
-      const particleName = `char-${i}`;
+    for (const particleName in state.particles) {
       disposeEntity(world, world.assertById(state.particles[particleName]));
       delete state.particles[particleName];
     }
@@ -6091,7 +6746,10 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
       rerenderEntity(world, previousLimb);
 
       const limbEntity = entities.createLimb(world, {
-        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [ACTIONABLE]: {
+          primaryTriggered: false,
+          secondaryTriggered: false,
+        },
         [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false, evaporate: bossUnit.evaporate },
@@ -6223,14 +6881,14 @@ const limbConfig: Record<
 };
 
 export const unitLimbs: Sequence<LimbSequence> = (world, entity, state) => {
-  const finished = !state.args.type;
+  const finished = !state.args.type || isDead(world, entity);
   let updated = false;
   const size = world.metadata.gameEntity[LEVEL].size;
   const rootEntity = getRoot(world, entity);
   const entityId = world.getEntityId(rootEntity);
   const orientation = entity[ORIENTABLE].facing as Orientation | undefined;
 
-  if (!orientation || !state.args.type) {
+  if (!orientation || !state.args.type || finished) {
     // clear inactive limb
     if (state.particles.limb) {
       for (const particleName in state.particles) {

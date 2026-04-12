@@ -106,10 +106,11 @@ export default function setupSequence(world: World) {
 
     for (const entity of world.getEntities([SEQUENCABLE, RENDERABLE])) {
       const sequencable = entity[SEQUENCABLE] as Sequencable;
+      const states = { ...sequencable.states };
 
-      for (const sequenceName in sequencable.states) {
+      for (const sequenceName in states) {
         const sequenceType = sequenceName as keyof Sequencable["states"];
-        const sequenceState = sequencable.states[sequenceType]!;
+        const sequenceState = states[sequenceType]!;
         const sequenceEntity = world.assertByIdAndComponents(
           sequenceState.reference,
           [RENDERABLE]

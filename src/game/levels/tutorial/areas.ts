@@ -8,14 +8,14 @@ export const centerArea = `\
 ██████████ ██████████
 █##ßτ,         ,τß##█
 █ßτ,             ,τß█
-█τ,       s       ,τ█
+█τ,               ,τ█
 █,       ,,,       ,█
 █       ,   ,       █
-█  ⌠   ,  ♀  ,   *  █
+█   ⌠  ,  ♀  ,  *   █
 █       ,   ,       █
 █,       ,,,       ,█
 █τ,               ,τ█
-█ßτ,      ¡      ,τß█
+█ßτ,  ¡       s  ,τß█
 █##ßτ,         ,τß##█
 █████████████████████\
 `;
@@ -158,6 +158,7 @@ export const tutorialRooms: {
     name: "north2east1",
     offsetX: roomSize.x,
     offsetY: roomSize.y * -2,
+    quest: "north2East1Quest",
     area: up2Right1Area,
   },
   {

@@ -32,6 +32,8 @@ import { calculateVision, getEntityVision } from "./visibility";
 import { LIGHT } from "../components/light";
 import { createItemAsDrop } from "./drop";
 import { POSITION } from "../components/position";
+import { getEntityEquipmentStats } from "./damage";
+import { clamp } from "../../game/math/std";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -187,6 +189,8 @@ export default function setupConsume(world: World) {
   let nextConsumptions: Record<number, Record<number, number>> = {};
   let entityHaste: Record<number, number> = {};
   let entityVision: Record<number, number> = {};
+  let entityHp: Record<number, number> = {};
+  let entityMp: Record<number, number> = {};
 
   const onUpdate = (delta: number) => {
     const generation = world.metadata.gameEntity[RENDERABLE].generation;
@@ -284,6 +288,7 @@ export default function setupConsume(world: World) {
       const entityId = world.getEntityId(entity);
       const haste = getEntityHaste(world, entity);
       const vision = getEntityVision(world, entity);
+      const equipmentStats = getEntityEquipmentStats(world, entity);
       const frame = world.assertByIdAndComponents(entity[MOVABLE].reference, [
         REFERENCE,
         RENDERABLE,
@@ -312,6 +317,32 @@ export default function setupConsume(world: World) {
           );
         }
         entityHaste[entityId] = vision.visibility;
+      }
+
+      const maxHp = equipmentStats.maxHp;
+      if (maxHp !== entityHp[entityId]) {
+        const hpDelta = maxHp - (entityHp[entityId] || 0);
+        entityHp[entityId] = maxHp;
+        entity[STATS].maxHp = clamp(
+          entity[STATS].maxHp + hpDelta,
+          1,
+          entity[STATS].maxHpCap
+        );
+        entity[STATS].hp = clamp(entity[STATS].hp, 0, entity[STATS].maxHp);
+        rerenderEntity(world, entity);
+      }
+
+      const maxMp = equipmentStats.maxMp;
+      if (maxMp !== entityMp[entityId]) {
+        const mpDelta = maxMp - (entityMp[entityId] || 0);
+        entityMp[entityId] = maxMp;
+        entity[STATS].maxMp = clamp(
+          entity[STATS].maxMp + mpDelta,
+          0,
+          entity[STATS].maxMpCap
+        );
+        entity[STATS].mp = clamp(entity[STATS].mp, 0, entity[STATS].maxMp);
+        rerenderEntity(world, entity);
       }
     }
   };

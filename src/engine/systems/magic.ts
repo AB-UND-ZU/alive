@@ -4,6 +4,7 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import {
+  AuraSequence,
   MeleeSequence,
   SEQUENCABLE,
   SlashSequence,
@@ -13,7 +14,7 @@ import { createSequence, getSequences } from "./sequence";
 import { Castable, CASTABLE, getEmptyCastable } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
 import { Entity } from "ecs";
-import { AFFECTABLE } from "../components/affectable";
+import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import {
   applyProcs,
   calculateDamage,
@@ -33,10 +34,14 @@ import { emptyReceivedStats, Player, PLAYER } from "../components/player";
 import { extinguishEntity, getBurnables } from "./burn";
 import { freezeTerrain, getFreezables, isFrozen, thawTerrain } from "./freeze";
 import { BELONGABLE } from "../components/belongable";
-import { ORIENTABLE } from "../components/orientable";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientationPoints,
+} from "../components/orientable";
 import { SPRITE } from "../components/sprite";
-import { ITEM } from "../components/item";
-import { copy, getDistance } from "../../game/math/std";
+import { ITEM, Material } from "../components/item";
+import { combine, copy, getDistance } from "../../game/math/std";
 import {
   createText,
   getStatColor,
@@ -55,6 +60,19 @@ import { CONDITIONABLE } from "../components/conditionable";
 import { getFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
 import { HOMING } from "../components/homing";
+import { ATTACKABLE } from "../components/attackable";
+import { generateUnitData } from "../../game/balancing/units";
+import { BUMPABLE } from "../components/bumpable";
+import { COLLIDABLE } from "../components/collidable";
+import { DISPLACABLE } from "../components/displacable";
+import { FOG } from "../components/fog";
+import { LAYER } from "../components/layer";
+import { SHOOTABLE } from "../components/shootable";
+import { DROPPABLE } from "../components/droppable";
+import { getHasteInterval } from "./movement";
+import { findAdjacentDroppable } from "./drop";
+import { SWIMMABLE } from "../components/swimmable";
+import { getBlockable } from "./action";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -64,6 +82,8 @@ export const getAffectable = (
   position: Position,
   fragment = false
 ) => {
+  if (getBlockable(world, position)) return;
+
   const targetEntity = Object.values(getCell(world, position)).find((target) =>
     isAffectable(world, target)
   ) as Entity | undefined;
@@ -84,9 +104,11 @@ export const getAffectable = (
 };
 
 export const getAffectables = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter((target) =>
-    isAffectable(world, target)
-  ) as Entity[];
+  getBlockable(world, position)
+    ? []
+    : (Object.values(getCell(world, position)).filter((target) =>
+        isAffectable(world, target)
+      ) as Entity[]);
 
 export const isExertable = (world: World, entity: Entity) =>
   EXERTABLE in entity;
@@ -106,7 +128,7 @@ export const canCast = (world: World, entity: Entity, item: Entity) => {
     .some(
       (castable) =>
         castable[CASTABLE].caster === entityId &&
-        !castable[SEQUENCABLE].states.smoke
+        castable[SEQUENCABLE].states.spell
     );
 };
 
@@ -182,6 +204,100 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
   );
 
   play("slash");
+};
+
+const totemUnits = {
+  wood: "woodTotem",
+  iron: "ironTotem",
+  gold: "goldTotem",
+  diamond: "diamondTotem",
+  ruby: "rubyTotem",
+} as const;
+
+export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
+  if (!isEnemy(world, entity)) {
+    consumeCharge(world, entity, { stackable: "charge" });
+  }
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const orientation = entity[ORIENTABLE].facing as Orientation | undefined;
+  const totemStats = getAbilityStats(totem[ITEM]);
+  const totemUnit = generateUnitData(
+    totemUnits[totem[ITEM].material as Material]
+  );
+  const target = findAdjacentDroppable(
+    world,
+    combine(
+      size,
+      entity[POSITION],
+      orientation ? orientationPoints[orientation] : { x: 0, y: 0 }
+    )
+  );
+  const frameEntity = entities.createFrame(world, {
+    [REFERENCE]: {
+      tick: getHasteInterval(world, 7),
+      delta: 0,
+      suspended: true,
+      suspensionCounter: -1,
+    },
+    [RENDERABLE]: { generation: 0 },
+  });
+
+  const totemEntity = entities.createTotem(world, {
+    [AFFECTABLE]: getEmptyAffectable(),
+    [ATTACKABLE]: { scratchColor: totemUnit.scratch },
+    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+    [BUMPABLE]: { generation: 0 },
+    [CASTABLE]: {
+      ...getEmptyCastable(world, entity),
+      ...totemStats,
+    },
+    [COLLIDABLE]: {},
+    [DISPLACABLE]: {},
+    [DROPPABLE]: { decayed: false, evaporate: totemUnit.evaporate },
+    [EXERTABLE]: { castable: -1 },
+    [FOG]: { visibility: "hidden", type: "object" },
+    [LAYER]: {},
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(frameEntity),
+      spring: {
+        duration: frameEntity[REFERENCE].tick,
+      },
+      lastInteraction: 0,
+      flying: false,
+    },
+    [POSITION]: target,
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SHOOTABLE]: { shots: 0 },
+    [STATS]: {
+      ...totemUnit.stats,
+      maxHp: totemStats.duration,
+      hp: totemStats.duration,
+      armor: -totemStats.duration,
+      resist: -totemStats.duration,
+    },
+    [SPRITE]: totemUnit.sprite,
+    [SWIMMABLE]: { swimming: false },
+  });
+  totemEntity[CASTABLE].caster = world.getEntityId(entity);
+  totemEntity[EXERTABLE].castable = world.getEntityId(totemEntity);
+
+  // cast totem aura
+  createSequence<"aura", AuraSequence>(
+    world,
+    totemEntity,
+    "aura",
+    "totemAura",
+    {
+      progress: 0,
+      range: totemStats.range,
+      duration: totemStats.duration,
+      areas: [],
+      material: totem[ITEM].material,
+      element: totem[ITEM].element,
+    }
+  );
 };
 
 export const hasTriggered = (
@@ -320,6 +436,7 @@ export default function setupMagic(world: World) {
         const hasProcs =
           castableEntity[CASTABLE].burn ||
           castableEntity[CASTABLE].freeze ||
+          castableEntity[CASTABLE].knock ||
           castableEntity[CASTABLE].drain;
         const fragmentEntity =
           (castableEntity[CASTABLE].melee
@@ -349,6 +466,12 @@ export default function setupMagic(world: World) {
             }
           }
         } else {
+          const orientation = relativeOrientations(
+            world,
+            castableEntity[POSITION],
+            targetEntity[POSITION]
+          )[0];
+
           // inflict direct damage
           if (hasDamage) {
             hasAffected = true;
@@ -380,12 +503,6 @@ export default function setupMagic(world: World) {
               : 0.5;
             play("magic", { intensity: damage, proximity });
 
-            const orientation = relativeOrientations(
-              world,
-              castableEntity[POSITION],
-              targetEntity[POSITION]
-            )[0];
-
             // add hit marker
             createAmountMarker(
               world,
@@ -396,19 +513,18 @@ export default function setupMagic(world: World) {
             );
           }
 
-          // process burning and freezing on hit
-          const hasProc = applyProcs(
-            world,
-            casterEntity,
-            {
-              burn: castableEntity[CASTABLE].burn,
-              freeze: castableEntity[CASTABLE].freeze,
-              drain: castableEntity[CASTABLE].drain,
-            },
-            entity[EXERTABLE].castable,
-            targetEntity
-          );
-          hasAffected = hasAffected || hasProc;
+          if (hasProcs) {
+            // process burning and freezing on hit
+            const procced = applyProcs(
+              world,
+              casterEntity,
+              castableEntity[CASTABLE],
+              entity[EXERTABLE].castable,
+              targetEntity,
+              entity[ORIENTABLE]?.facing || orientation
+            );
+            hasAffected = hasAffected || procced;
+          }
         }
 
         if (hasAffected) {

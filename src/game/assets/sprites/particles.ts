@@ -2,6 +2,10 @@ import { colors, orderedColors } from "../colors";
 import { Layer, SPRITE, Sprite } from "../../../engine/components/sprite";
 import { Countable, UnitStats } from "../../../engine/components/stats";
 import {
+  addArmor,
+  addPower,
+  addResist,
+  addWisdom,
   armor,
   damp,
   haste,
@@ -12,6 +16,7 @@ import {
   manaUp,
   power,
   resist,
+  rush,
   spike,
   thaw,
   vision,
@@ -128,6 +133,20 @@ export const raiseParticle: Sprite = {
   },
 };
 
+export const stats: Sprite = {
+  name: "Stats",
+  layers: [{ char: "₧", color: colors.green }],
+};
+
+export const aura: Sprite = {
+  name: "Aura",
+  layers: [
+    { char: "±", color: colors.fuchsia },
+    { char: "\u0115", color: colors.black },
+    { char: "+", color: colors.purple },
+  ],
+};
+
 export const range: Sprite = {
   name: "Range",
   layers: [
@@ -144,6 +163,16 @@ export const delay: Sprite = {
     { char: "■", color: colors.black },
     { char: "└", color: colors.yellow },
     { char: "·", color: colors.olive },
+  ],
+};
+
+export const time: Sprite = {
+  name: "Time",
+  layers: [
+    { char: "\u0101", color: colors.purple },
+    { char: "\u0100", color: colors.black },
+    { char: "■", color: colors.purple },
+    { char: "└", color: colors.fuchsia },
   ],
 };
 
@@ -411,95 +440,13 @@ export const woodShot2: Sprite = {
   },
 };
 
-export const trap: Sprite = {
-  name: "spell_trap",
-  layers: [
-    { char: "\u011c", color: colors.silver },
-    { char: "-", color: colors.black },
-  ],
+export const auraEdge: Sprite = {
+  name: "spell_aura",
+  layers: [],
   amounts: {
-    single: [
-      { char: "\u011c", color: colors.silver },
-      { char: "-", color: colors.black },
-    ],
-    double: [
-      { char: "■", color: colors.silver },
-      { char: "|", color: colors.black },
-      { char: "-", color: colors.black },
-    ],
-    multiple: [
-      { char: "#", color: colors.silver },
-      { char: "\u0103", color: colors.black },
-    ],
-  },
-};
-
-export const fireTrap: Sprite = {
-  name: "fire_trap",
-  layers: [
-    { char: "\u011c", color: colors.red },
-    { char: "-", color: colors.black },
-  ],
-  amounts: {
-    single: [
-      { char: "\u011c", color: colors.red },
-      { char: "-", color: colors.black },
-    ],
-    double: [
-      { char: "■", color: colors.red },
-      { char: "|", color: colors.black },
-      { char: "-", color: colors.black },
-    ],
-    multiple: [
-      { char: "#", color: colors.red },
-      { char: "\u0103", color: colors.black },
-    ],
-  },
-};
-
-export const waterTrap: Sprite = {
-  name: "water_trap",
-  layers: [
-    { char: "\u011c", color: colors.blue },
-    { char: "-", color: colors.black },
-  ],
-  amounts: {
-    single: [
-      { char: "\u011c", color: colors.blue },
-      { char: "-", color: colors.black },
-    ],
-    double: [
-      { char: "■", color: colors.blue },
-      { char: "|", color: colors.black },
-      { char: "-", color: colors.black },
-    ],
-    multiple: [
-      { char: "#", color: colors.blue },
-      { char: "\u0103", color: colors.black },
-    ],
-  },
-};
-
-export const earthTrap: Sprite = {
-  name: "earth_trap",
-  layers: [
-    { char: "\u011c", color: colors.lime },
-    { char: "-", color: colors.black },
-  ],
-  amounts: {
-    single: [
-      { char: "\u011c", color: colors.lime },
-      { char: "-", color: colors.black },
-    ],
-    double: [
-      { char: "■", color: colors.lime },
-      { char: "|", color: colors.black },
-      { char: "-", color: colors.black },
-    ],
-    multiple: [
-      { char: "#", color: colors.lime },
-      { char: "\u0103", color: colors.black },
-    ],
+    single: [{ char: "·", color: colors.purple }],
+    double: [{ char: "∙", color: colors.purple }],
+    multiple: [{ char: "+", color: colors.purple }],
   },
 };
 
@@ -652,18 +599,16 @@ export const dialogStart: Sprite = {
   name: "dialog_start",
   layers: [
     { char: "▐", color: colors.white },
-    { char: "║", color: colors.silver },
-    { char: "▌", color: colors.black },
-    { char: "│", color: colors.grey },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.white },
   ],
 };
 
 export const dialogEnd: Sprite = {
   name: "dialog_end",
   layers: [
-    { char: "▌", color: colors.silver },
-    { char: "║", color: colors.grey },
-    { char: "▐", color: colors.black },
+    { char: "▌", color: colors.white },
+    { char: "║", color: colors.white },
   ],
 };
 
@@ -671,7 +616,8 @@ export const shoutStart: Sprite = {
   name: "shout_start",
   layers: [
     { char: "▐", color: colors.red },
-    { char: "│", color: colors.maroon },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.red },
   ],
 };
 
@@ -679,24 +625,51 @@ export const shoutEnd: Sprite = {
   name: "shout_end",
   layers: [
     { char: "▌", color: colors.red },
-    { char: "│", color: colors.maroon },
+    { char: "║", color: colors.red },
   ],
 };
 
-export const separatorOut: Sprite = {
-  name: "separator_out",
+export const nextStart: Sprite = {
+  name: "next_start",
   layers: [
-    { char: "▌", color: colors.white },
-    { char: "■", color: colors.black },
+    { char: "▐", color: colors.lime },
+    { char: "│", color: colors.green },
   ],
 };
 
-export const separatorIn: Sprite = {
-  name: "separator_in",
+export const nextEnd: Sprite = {
+  name: "next_end",
   layers: [
-    { char: "▐", color: colors.white },
-    { char: "■", color: colors.black },
+    { char: "▌", color: colors.lime },
+    { char: "│", color: colors.green },
   ],
+};
+
+export const tooltipLine: Sprite = {
+  name: "tooltip_line",
+  layers: [{ char: "─", color: colors.silver }],
+  facing: {
+    up: [{ char: "└", color: colors.silver }],
+    down: [{ char: "┌", color: colors.silver }],
+  },
+};
+
+export const enemyLine: Sprite = {
+  name: "tooltip_line",
+  layers: [{ char: "─", color: colors.maroon }],
+  facing: {
+    up: [{ char: "└", color: colors.maroon }],
+    down: [{ char: "┌", color: colors.maroon }],
+  },
+};
+
+export const allyLine: Sprite = {
+  name: "tooltip_line",
+  layers: [{ char: "─", color: colors.green }],
+  facing: {
+    up: [{ char: "└", color: colors.green }],
+    down: [{ char: "┌", color: colors.green }],
+  },
 };
 
 export const bubbleUp: Sprite = {
@@ -819,19 +792,43 @@ export const createTooltip = (world: World, entity: Entity) => {
   ];
 };
 
-export const buttonPalettes = {
-  white: { background: colors.white, text: colors.black, shadow: colors.grey },
+export const buttonPalettes: Record<
+  string,
+  { background: string; text: string; shadow: string; contrast?: string }
+> = {
+  white: {
+    background: colors.white,
+    text: colors.black,
+    shadow: colors.grey,
+  },
   silver: {
-    background: colors.silver,
+    background: colors.white,
+    contrast: colors.silver,
     text: colors.black,
     shadow: colors.grey,
   },
   lime: { background: colors.lime, text: colors.black, shadow: colors.green },
   red: { background: colors.red, text: colors.black, shadow: colors.maroon },
+  maroon: {
+    background: colors.maroon,
+    text: colors.black,
+    shadow: colors.maroon,
+  },
   yellow: {
     background: colors.yellow,
     text: colors.black,
     shadow: colors.olive,
+  },
+  blue: { background: colors.blue, text: colors.black, shadow: colors.navy },
+  fuchsia: {
+    background: colors.fuchsia,
+    text: colors.black,
+    shadow: colors.purple,
+  },
+  aqua: {
+    background: colors.aqua,
+    text: colors.black,
+    shadow: colors.teal,
   },
 } as const;
 export type Palette = keyof typeof buttonPalettes;
@@ -844,8 +841,47 @@ export const getButton = (palette: Palette): Sprite => ({
 export const getButtonDisabled = (palette: Palette): Sprite => ({
   name: "button_disabled",
   layers: [
-    { char: "█", color: buttonPalettes[palette].shadow },
-    { char: "░", color: buttonPalettes[palette].text },
+    {
+      char: "█",
+      color: buttonPalettes[palette].contrast || buttonPalettes[palette].shadow,
+    },
+    { char: "░", color: colors.black },
+  ],
+});
+
+export const getButtonPressed = (palette: Palette): Sprite => ({
+  name: "button_pressed",
+  layers: [{ char: "█", color: buttonPalettes[palette].shadow }],
+});
+
+export const getButtonLeft = (
+  palette: Palette,
+  disabled: boolean,
+  highlight: boolean,
+  pressed: boolean
+): Sprite => ({
+  name: "button_left",
+  layers: [
+    {
+      char: "▐",
+      color: disabled
+        ? buttonPalettes[palette].contrast || buttonPalettes[palette].shadow
+        : pressed
+        ? buttonPalettes[palette].shadow
+        : buttonPalettes[palette].background,
+    },
+    {
+      char: "│",
+      color:
+        highlight && !disabled
+          ? buttonPalettes[palette].contrast ||
+            buttonPalettes[palette].background
+          : pressed
+          ? buttonPalettes[palette].background
+          : (disabled && buttonPalettes[palette].contrast) ||
+            buttonPalettes[palette].shadow,
+    },
+    ...(disabled ? [{ char: "░", color: colors.black }] : []),
   ],
 });
 
@@ -853,7 +889,7 @@ export const getButtonLeftUp = (palette: Palette): Sprite => ({
   name: "button_left_up",
   layers: [
     { char: "▄", color: buttonPalettes[palette].background },
-    { char: "░", color: buttonPalettes[palette].text },
+    { char: "░", color: colors.black },
     { char: "▌", color: buttonPalettes[palette].text },
     { char: "┌", color: buttonPalettes[palette].shadow },
   ],
@@ -863,7 +899,7 @@ export const getButtonUp = (palette: Palette): Sprite => ({
   name: "button_up",
   layers: [
     { char: "▄", color: buttonPalettes[palette].background },
-    { char: "░", color: buttonPalettes[palette].text },
+    { char: "░", color: colors.black },
     { char: "─", color: buttonPalettes[palette].shadow },
   ],
 });
@@ -872,9 +908,40 @@ export const getButtonUpRight = (palette: Palette): Sprite => ({
   name: "button_up_right",
   layers: [
     { char: "▄", color: buttonPalettes[palette].background },
-    { char: "░", color: buttonPalettes[palette].text },
+    { char: "░", color: colors.black },
     { char: "▐", color: buttonPalettes[palette].text },
     { char: "┐", color: buttonPalettes[palette].shadow },
+  ],
+});
+
+export const getButtonRight = (
+  palette: Palette,
+  disabled: boolean,
+  highlight: boolean,
+  pressed: boolean
+): Sprite => ({
+  name: "button_right",
+  layers: [
+    {
+      char: "▌",
+      color: disabled
+        ? buttonPalettes[palette].contrast || buttonPalettes[palette].shadow
+        : pressed
+        ? buttonPalettes[palette].shadow
+        : buttonPalettes[palette].background,
+    },
+    {
+      char: "│",
+      color:
+        highlight && !disabled
+          ? buttonPalettes[palette].contrast ||
+            buttonPalettes[palette].background
+          : pressed
+          ? buttonPalettes[palette].background
+          : (disabled && buttonPalettes[palette].contrast) ||
+            buttonPalettes[palette].shadow,
+    },
+    ...(disabled ? [{ char: "░", color: colors.black }] : []),
   ],
 });
 
@@ -882,7 +949,7 @@ export const getButtonRightDown = (palette: Palette): Sprite => ({
   name: "button_right_down",
   layers: [
     { char: "▀", color: buttonPalettes[palette].background },
-    { char: "░", color: buttonPalettes[palette].text },
+    { char: "░", color: colors.black },
     { char: "▐", color: buttonPalettes[palette].text },
     { char: "┘", color: buttonPalettes[palette].shadow },
   ],
@@ -892,7 +959,7 @@ export const getButtonDown = (palette: Palette): Sprite => ({
   name: "button_down",
   layers: [
     { char: "▀", color: buttonPalettes[palette].background },
-    { char: "░", color: buttonPalettes[palette].text },
+    { char: "░", color: colors.black },
     { char: "─", color: buttonPalettes[palette].shadow },
   ],
 });
@@ -901,10 +968,97 @@ export const getButtonDownLeft = (palette: Palette): Sprite => ({
   name: "button_down_left",
   layers: [
     { char: "▀", color: buttonPalettes[palette].background },
-    { char: "░", color: buttonPalettes[palette].text },
+    { char: "░", color: colors.black },
     { char: "▌", color: buttonPalettes[palette].text },
     { char: "└", color: buttonPalettes[palette].shadow },
   ],
+});
+
+export const getButtonSeparator = (
+  paletteLeft: Palette = "white",
+  disabledLeft: boolean,
+  highlightLeft: boolean,
+  pressedLeft: boolean,
+  paletteRight: Palette = "white",
+  disabledRight: boolean,
+  highlightRight: boolean,
+  pressedRight: boolean
+): Sprite => ({
+  name: "button_separator",
+  layers:
+    !disabledLeft && !disabledRight
+      ? [
+          {
+            char: "▐",
+            color:
+              buttonPalettes[paletteRight][
+                highlightRight || pressedRight ? "background" : "shadow"
+              ],
+          },
+          {
+            char: "▌",
+            color:
+              buttonPalettes[paletteLeft][
+                highlightLeft || pressedLeft ? "background" : "shadow"
+              ],
+          },
+          { char: "║", color: colors.black },
+          { char: "│", color: colors.black },
+        ]
+      : disabledLeft && !disabledRight
+      ? [
+          {
+            char: "▓",
+            color:
+              buttonPalettes[paletteLeft].contrast ||
+              buttonPalettes[paletteLeft].shadow,
+          },
+          {
+            char: "▐",
+            color:
+              buttonPalettes[paletteRight][
+                highlightRight || pressedRight ? "background" : "shadow"
+              ],
+          },
+          { char: "║", color: colors.black },
+          { char: "│", color: colors.black },
+        ]
+      : !disabledLeft && disabledRight
+      ? [
+          {
+            char: "▐",
+            color:
+              buttonPalettes[paletteRight].contrast ||
+              buttonPalettes[paletteRight].shadow,
+          },
+          { char: "░", color: colors.black },
+          {
+            char: "▌",
+            color:
+              buttonPalettes[paletteLeft][
+                highlightLeft || pressedLeft ? "background" : "shadow"
+              ],
+          },
+          { char: "║", color: colors.black },
+          { char: "│", color: colors.black },
+        ]
+      : [
+          {
+            char: "▐",
+            color:
+              buttonPalettes[paletteRight].contrast ||
+              buttonPalettes[paletteRight].shadow,
+          },
+          {
+            char: "▌",
+            color:
+              buttonPalettes[paletteLeft].contrast ||
+              buttonPalettes[paletteLeft].shadow,
+          },
+          { char: "░", color: colors.black },
+          { char: "║", color: colors.black },
+          { char: "│", color: colors.black },
+        ],
 });
 
 export const createButton: (
@@ -912,9 +1066,9 @@ export const createButton: (
   width: number,
   disabled?: boolean,
   pressed?: boolean,
-  highlight?: number,
+  highlight?: boolean,
   palette?: Palette
-) => [Sprite[], Sprite[]] = (
+) => Sprite[] = (
   text,
   width,
   disabled = false,
@@ -939,59 +1093,34 @@ export const createSpriteButton: (
   width: number,
   disabled?: boolean,
   pressed?: boolean,
-  highlight?: number,
+  highlight?: boolean,
   palette?: Palette
-) => [Sprite[], Sprite[]] = (
+) => Sprite[] = (
   sprites,
   width,
   disabled = false,
   pressed = false,
-  highlight,
+  highlight = false,
   palette = "white"
 ) => {
-  const paddingLeft = Math.max(0, Math.floor((width - sprites.length - 1) / 2));
-  const paddingRight = Math.max(0, Math.ceil((width - sprites.length - 1) / 2));
-  const activeHighlight = !disabled && highlight;
-  const { shadow } = buttonPalettes[palette];
+  const paddingLeft = Math.max(0, Math.floor((width - sprites.length - 2) / 2));
+  const paddingRight = Math.max(0, Math.ceil((width - sprites.length - 2) / 2));
 
-  if (pressed) {
-    return [
-      [
-        getButtonLeftUp(palette),
-        ...repeat(getButtonUp(palette), width - 2),
-        getButtonUpRight(palette),
-      ],
-      [
-        getButtonDownLeft(palette),
-        ...repeat(getButtonDown(palette), width - 2),
-        getButtonRightDown(palette),
-      ],
-    ];
-  }
-
-  const button = getButton(palette);
-  const buttonDisabled = getButtonDisabled(palette);
+  const button = disabled
+    ? getButtonDisabled(palette)
+    : pressed
+    ? getButtonPressed(palette)
+    : getButton(palette);
 
   return [
-    [
-      ...repeat(disabled ? buttonDisabled : button, paddingLeft),
-      ...sprites.map((sprite) => ({
-        name: "button_generic",
-        layers: [
-          ...(disabled ? buttonDisabled.layers : button.layers),
-          ...sprite.layers,
-        ],
-      })),
-      ...repeat(disabled ? buttonDisabled : button, paddingRight),
-      ...createText(activeHighlight === width ? " " : "┐", shadow),
-    ],
-    createText(
-      `└${"─".repeat(width - 2)}┘`
-        .split("")
-        .map((char, index) => (index === activeHighlight ? " " : char))
-        .join(""),
-      shadow
-    ),
+    getButtonLeft(palette, disabled, highlight, pressed),
+    ...repeat(button, paddingLeft),
+    ...sprites.map((sprite) => ({
+      name: "button_generic",
+      layers: [...button.layers, ...sprite.layers],
+    })),
+    ...repeat(button, paddingRight),
+    getButtonRight(palette, disabled, highlight, pressed),
   ];
 };
 
@@ -1116,33 +1245,35 @@ export const popupSide: Sprite = {
 export const popupSeparator: Sprite = {
   name: "popup_separator",
   layers: [
-    { char: "█", color: colors.silver },
-    { char: "░", color: colors.black },
+    { char: "█", color: colors.grey },
     { char: "│", color: colors.black },
-    { char: "║", color: colors.silver },
+    { char: "║", color: colors.grey },
+    { char: "▀", color: colors.black },
   ],
   facing: {
     up: [
-      { char: "▐", color: colors.silver },
-      { char: "░", color: colors.black },
-      { char: "│", color: colors.silver },
+      { char: "▐", color: colors.grey },
+      { char: "▀", color: colors.black },
+      { char: "│", color: colors.black },
     ],
     right: [
-      { char: "▄", color: colors.black },
-      { char: "▐", color: colors.silver },
-      { char: "░", color: colors.black },
-      { char: "╡", color: colors.silver },
+      { char: "▐", color: colors.grey },
+      { char: "▀", color: colors.black },
+      { char: "│", color: colors.black },
     ],
     down: [
-      { char: "▌", color: colors.silver },
-      { char: "░", color: colors.black },
-      { char: "│", color: colors.silver },
+      { char: "▌", color: colors.grey },
+      { char: "▀", color: colors.black },
+      { char: "│", color: colors.black },
+      { char: "║", color: colors.black },
     ],
     left: [
       { char: "▄", color: colors.black },
-      { char: "▌", color: colors.silver },
-      { char: "░", color: colors.black },
-      { char: "╞", color: colors.silver },
+      { char: "▌", color: colors.grey },
+      { char: "▀", color: colors.black },
+      { char: "╒", color: colors.silver },
+      { char: "╛", color: colors.black },
+      { char: "┐", color: colors.grey },
     ],
   },
 };
@@ -1150,30 +1281,30 @@ export const popupSeparator: Sprite = {
 export const popupSeparatorSelected: Sprite = {
   name: "popup_separator_selected",
   layers: [
-    { char: "▌", color: colors.silver },
-    { char: "░", color: colors.black },
-    { char: "▐", color: colors.black },
+    { char: "▌", color: colors.grey },
     { char: "│", color: colors.black },
-    { char: "║", color: colors.silver },
+    { char: "▀", color: colors.black },
+    { char: "▐", color: colors.white },
   ],
   facing: {
     up: [
-      { char: "▐", color: colors.black },
-      { char: "│", color: colors.silver },
+      { char: "▐", color: colors.white },
+      { char: "│", color: colors.black },
     ],
     right: [
-      { char: "▄", color: colors.black },
-      { char: "▐", color: colors.black },
-      { char: "╡", color: colors.silver },
+      { char: "▐", color: colors.white },
+      { char: "│", color: colors.black },
     ],
     down: [
-      { char: "▌", color: colors.black },
-      { char: "│", color: colors.silver },
+      { char: "▌", color: colors.white },
+      { char: "│", color: colors.black },
+      { char: "║", color: colors.black },
     ],
     left: [
       { char: "▄", color: colors.black },
-      { char: "▌", color: colors.black },
+      { char: "▌", color: colors.white },
       { char: "╞", color: colors.silver },
+      { char: "│", color: colors.white },
     ],
   },
 };
@@ -1181,11 +1312,94 @@ export const popupSeparatorSelected: Sprite = {
 export const popupSeparatorInverted: Sprite = {
   name: "popup_separator_inverted",
   layers: [
-    { char: "▐", color: colors.silver },
-    { char: "░", color: colors.black },
-    { char: "▌", color: colors.black },
+    { char: "▐", color: colors.grey },
+    { char: "▀", color: colors.black },
     { char: "│", color: colors.black },
-    { char: "║", color: colors.silver },
+    { char: "▌", color: colors.white },
+  ],
+};
+
+export const popupSeparatorDisabled: Sprite = {
+  name: "popup_separator_disabled",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "░", color: colors.black },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▀", color: colors.black },
+  ],
+  facing: {
+    up: [
+      { char: "▐", color: colors.grey },
+      { char: "▀", color: colors.black },
+      { char: "│", color: colors.black },
+      { char: "░", color: colors.black },
+    ],
+    right: [
+      { char: "▐", color: colors.grey },
+      { char: "▀", color: colors.black },
+      { char: "░", color: colors.black },
+      { char: "│", color: colors.black },
+    ],
+    down: [
+      { char: "▌", color: colors.grey },
+      { char: "▀", color: colors.black },
+      { char: "│", color: colors.black },
+      { char: "║", color: colors.black },
+      { char: "░", color: colors.black },
+    ],
+    left: [
+      { char: "▄", color: colors.black },
+      { char: "▌", color: colors.grey },
+      { char: "▀", color: colors.black },
+      { char: "╒", color: colors.silver },
+      { char: "╛", color: colors.black },
+      { char: "┐", color: colors.grey },
+      { char: "░", color: colors.black },
+    ],
+  },
+};
+
+export const popupSeparatorSelectedDisabled: Sprite = {
+  name: "popup_separator_selected_disabled",
+  layers: [
+    { char: "▌", color: colors.grey },
+    { char: "░", color: colors.black },
+    { char: "│", color: colors.black },
+    { char: "▀", color: colors.black },
+    { char: "▐", color: colors.white },
+  ],
+  facing: {
+    up: [
+      { char: "▐", color: colors.white },
+      { char: "│", color: colors.black },
+    ],
+    right: [
+      { char: "▐", color: colors.white },
+      { char: "│", color: colors.black },
+    ],
+    down: [
+      { char: "▌", color: colors.white },
+      { char: "│", color: colors.black },
+      { char: "║", color: colors.black },
+    ],
+    left: [
+      { char: "▄", color: colors.black },
+      { char: "▌", color: colors.white },
+      { char: "╞", color: colors.silver },
+      { char: "│", color: colors.white },
+    ],
+  },
+};
+
+export const popupSeparatorInvertedDisabled: Sprite = {
+  name: "popup_separator_inverted_disabled",
+  layers: [
+    { char: "▐", color: colors.grey },
+    { char: "▀", color: colors.black },
+    { char: "░", color: colors.black },
+    { char: "│", color: colors.black },
+    { char: "▌", color: colors.white },
   ],
 };
 
@@ -1352,21 +1566,41 @@ const statConfig: Record<
     color: colors.green,
     sprite: power,
   },
+  addPower: {
+    color: colors.purple,
+    sprite: addPower,
+  },
   wisdom: {
     color: colors.green,
     sprite: wisdom,
+  },
+  addWisdom: {
+    color: colors.purple,
+    sprite: addWisdom,
   },
   armor: {
     color: colors.green,
     sprite: armor,
   },
+  addArmor: {
+    color: colors.purple,
+    sprite: addArmor,
+  },
   resist: {
     color: colors.green,
     sprite: resist,
   },
+  addResist: {
+    color: colors.purple,
+    sprite: addResist,
+  },
   haste: {
     color: colors.green,
     sprite: haste,
+  },
+  addHaste: {
+    color: colors.purple,
+    sprite: rush,
   },
   vision: {
     color: colors.green,
@@ -1417,8 +1651,8 @@ const statConfig: Record<
     sprite: absorb,
   },
   duration: {
-    color: colors.olive,
-    sprite: delay,
+    color: colors.purple,
+    sprite: time,
   },
   range: {
     color: colors.olive,
@@ -1429,6 +1663,10 @@ const statConfig: Record<
     sprite: none,
   },
   retrigger: {
+    color: colors.olive,
+    sprite: delay,
+  },
+  reproc: {
     color: colors.black,
     sprite: none,
   },
@@ -1604,6 +1842,32 @@ export const emptySlot: Sprite = {
   ],
 };
 
+export const slotShadow: Sprite = recolorSprite(emptySlot, colors.black);
+
+export const interactLeft: Sprite = {
+  name: "interact_left",
+  layers: [
+    { char: "▌", color: colors.black },
+    { char: "│", color: colors.green },
+  ],
+};
+export const interactRight: Sprite = {
+  name: "interact_left",
+  layers: [
+    { char: "▐", color: colors.black },
+    { char: "│", color: colors.green },
+  ],
+};
+export const interactBar: Sprite = {
+  name: "interact_bar",
+  layers: [{ char: "┼", color: colors.green }],
+  facing: {
+    up: [{ char: "│", color: colors.green }],
+    right: [{ char: "─", color: colors.green }],
+    down: [{ char: "│", color: colors.green }],
+    left: [{ char: "─", color: colors.green }],
+  },
+};
 export const discovery = createText("°", colors.lime)[0];
 export const quest = createText("?", colors.lime)[0];
 export const ongoing = createText("?", colors.silver)[0];
@@ -1731,7 +1995,7 @@ export const joystick: Sprite = {
 export const pause: Sprite = {
   name: "Pause",
   layers: [
-    { char: "■", color: colors.white },
+    { char: "■", color: colors.red },
     { char: "|", color: colors.black },
   ],
 };
@@ -1739,9 +2003,18 @@ export const pause: Sprite = {
 export const pauseInvert: Sprite = {
   name: "Pause",
   layers: [
-    { char: "█", color: colors.silver },
+    { char: "█", color: colors.white },
     { char: "■", color: colors.black },
-    { char: "|", color: colors.silver },
+    { char: "|", color: colors.white },
+  ],
+};
+
+export const pauseInvertPressed: Sprite = {
+  name: "Pause",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "■", color: colors.black },
+    { char: "|", color: colors.grey },
   ],
 };
 
@@ -1753,7 +2026,15 @@ export const resume: Sprite = {
 export const resumeInvert: Sprite = {
   name: "Resume",
   layers: [
-    { char: "█", color: colors.lime },
+    { char: "█", color: colors.white },
+    { char: "»", color: colors.black },
+  ],
+};
+
+export const resumeInvertPressed: Sprite = {
+  name: "Resume",
+  layers: [
+    { char: "█", color: colors.grey },
     { char: "»", color: colors.black },
   ],
 };
@@ -1761,6 +2042,14 @@ export const resumeInvert: Sprite = {
 export const inspect: Sprite = {
   name: "Inspect",
   layers: [{ char: "?", color: colors.white }],
+};
+
+export const spawn: Sprite = {
+  name: "Map",
+  layers: [
+    { char: "\u010b", color: colors.green },
+    { char: "°", color: colors.lime },
+  ],
 };
 
 export const mapDiscovery: Sprite = {
@@ -1771,6 +2060,26 @@ export const mapDiscovery: Sprite = {
     { char: "-", color: colors.black },
     { char: "+", color: colors.green },
     { char: "·", color: colors.lime },
+  ],
+};
+
+export const mapHouse: Sprite = {
+  name: "House",
+  layers: [
+    { char: "█", color: colors.black },
+    { char: "\u011d", color: colors.maroon },
+    { char: "\u011f", color: colors.maroon },
+    { char: "\u0115", color: colors.grey },
+    { char: "-", color: colors.maroon },
+    { char: ".", color: colors.maroon },
+  ],
+};
+
+export const mapSpawn: Sprite = {
+  name: "House",
+  layers: [
+    { char: "█", color: colors.black },
+    { char: "*", color: colors.lime },
   ],
 };
 
@@ -1819,7 +2128,12 @@ export const mapZoom4: Sprite = {
 
 export const close: Sprite = {
   name: "Close",
-  layers: [{ char: "x", color: colors.white }],
+  layers: [
+    { char: "█", color: colors.red },
+    { char: "*", color: colors.black },
+    { char: "─", color: colors.red },
+    { char: "·", color: colors.black },
+  ],
 };
 
 export const backdrop: Sprite = {

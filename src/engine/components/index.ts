@@ -36,6 +36,7 @@ export { default as addNpc } from "./npc";
 export { default as addOrientable } from "./orientable";
 export { default as addParticle } from "./particle";
 export { default as addPlayer } from "./player";
+export { default as addPoi } from "./poi";
 export { default as addPopup } from "./popup";
 export { default as addPosition } from "./position";
 export { default as addProjectile } from "./projectile";

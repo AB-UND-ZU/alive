@@ -63,6 +63,8 @@ import { Homing, HOMING } from "./components/homing";
 import { Shootable, SHOOTABLE } from "./components/shootable";
 import { Vanishable, VANISHABLE } from "./components/vanishable";
 import { Bumpable, BUMPABLE } from "./components/bumpable";
+import { Poi, POI } from "./components/poi";
+import { Blockable, BLOCKABLE } from "./components/blockable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -70,6 +72,7 @@ export type Entity = Record<LevelName, {}> & {
   [ATTACKABLE]: Attackable;
   [BEHAVIOUR]: Behaviour;
   [BELONGABLE]: Belongable;
+  [BLOCKABLE]: Blockable;
   [BUMPABLE]: Bumpable;
   [BURNABLE]: Burnable;
   [CASTABLE]: Castable;
@@ -105,6 +108,7 @@ export type Entity = Record<LevelName, {}> & {
   [ORIENTABLE]: Orientable;
   [PARTICLE]: Particle;
   [PLAYER]: Player;
+  [POI]: Poi;
   [POPUP]: Popup;
   [POSITION]: Position;
   [PROJECTILE]: Projectile;
@@ -175,6 +179,7 @@ export const createAoe = entityFactory([EXERTABLE, POSITION]);
 export const createArea = entityFactory([POSITION, TEMPO]);
 
 export const createBarrier = entityFactory([
+  BLOCKABLE,
   COLLIDABLE,
   FOG,
   ORIENTABLE,
@@ -637,6 +642,17 @@ export const createLimb = entityFactory([
   SPRITE,
 ]);
 
+export const createMap = entityFactory([
+  POPUP,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  VIEWABLE,
+]);
+
+export const createMarker = entityFactory([FOG, POI, POSITION, RENDERABLE]);
+
 export const createMine = entityFactory([
   COLLIDABLE,
   FOG,
@@ -797,6 +813,7 @@ export const createRoaming = entityFactory([
   ATTACKABLE,
   BEHAVIOUR,
   BELONGABLE,
+  BUMPABLE,
   CASTABLE,
   EQUIPPABLE,
   EXERTABLE,
@@ -906,6 +923,7 @@ export const createSpawner = entityFactory([
   BELONGABLE,
   FOG,
   LAYER,
+  MOVABLE,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
@@ -972,6 +990,28 @@ export const createTombstone = entityFactory([
   SPRITE,
   SWIMMABLE,
   TOOLTIP,
+]);
+
+export const createTotem = entityFactory([
+  AFFECTABLE,
+  ATTACKABLE,
+  BELONGABLE,
+  BUMPABLE,
+  CASTABLE,
+  COLLIDABLE,
+  DISPLACABLE,
+  DROPPABLE,
+  EXERTABLE,
+  FOG,
+  LAYER,
+  MOVABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SHOOTABLE,
+  SPRITE,
+  STATS,
+  SWIMMABLE,
 ]);
 
 export const createTransient = entityFactory([

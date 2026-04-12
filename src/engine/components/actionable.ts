@@ -9,7 +9,6 @@ export const actions = [
   "trade",
   "use",
   "add",
-  "close",
   "primary",
   "secondary",
 ] as const;

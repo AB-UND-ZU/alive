@@ -82,7 +82,7 @@ export default function setupPush(world: World) {
       const delta = orientationPoints[targetOrientation];
       const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getDisplacable(world, targetPosition);
-
+      
       if (!targetEntity) continue;
 
       pushEntity(world, targetEntity, targetOrientation);

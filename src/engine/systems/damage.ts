@@ -31,7 +31,12 @@ import { createText } from "../../game/assets/sprites";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { RECHARGABLE } from "../components/rechargable";
-import { Castable, DamageType } from "../components/castable";
+import {
+  BuffStats,
+  CASTABLE,
+  Castable,
+  DamageType,
+} from "../components/castable";
 import { TypedEntity } from "../entities";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
@@ -49,10 +54,13 @@ import { getFragment, isFragment } from "./enter";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isDecaying } from "./drop";
 import { STRUCTURABLE } from "../components/structurable";
-import { attemptBubbleAbsorb } from "./magic";
+import { attemptBubbleAbsorb, getExertables } from "./magic";
 import { LEVEL } from "../components/level";
-import { isMovable } from "./movement";
+import { getTempo, isWalkable } from "./movement";
 import { BUMPABLE } from "../components/bumpable";
+import { EXERTABLE } from "../components/exertable";
+import { getSpikable, stingEntity } from "./spike";
+import { getBlockable } from "./action";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -73,7 +81,7 @@ export const isFriendlyFire = (
   entity: Entity,
   target: Entity
 ) => {
-  if (!target[BELONGABLE]) return true;
+  if (!entity[BELONGABLE] || !target[BELONGABLE]) return true;
 
   const entityFaction = entity[BELONGABLE].faction;
   const targetFaction = target[BELONGABLE].faction;
@@ -95,6 +103,8 @@ export const getAttackable = (
   position: Position,
   fragment = false
 ) => {
+  if (getBlockable(world, position)) return;
+
   const targetEntity = Object.values(getCell(world, position)).find(
     (target) => ATTACKABLE in target && STATS in target
   ) as Entity | undefined;
@@ -116,9 +126,11 @@ export const getAttackable = (
 };
 
 export const getAttackables = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter(
-    (target) => ATTACKABLE in target && STATS in target
-  ) as Entity[];
+  getBlockable(world, position)
+    ? []
+    : (Object.values(getCell(world, position)).filter(
+        (target) => ATTACKABLE in target && STATS in target
+      ) as Entity[]);
 
 export const getRoot = (world: World, entity: Entity) =>
   (isFragment(world, entity) && getStructure(world, entity)) || entity;
@@ -142,11 +154,11 @@ export const getLimbs = (world: World, entity: Entity) => {
   return limbs;
 };
 
-export const getEntityStats = (
+export const getEntityEquipmentStats = (
   world: World,
   entity: TypedEntity
 ): UnitStats => {
-  const entityStats = { ...(entity[STATS] || emptyUnitStats) };
+  const equipmentStats = { ...emptyUnitStats };
   Object.values(entity[EQUIPPABLE] || {}).forEach((itemId) => {
     const item = world.getEntityByIdAndComponents(itemId, [ITEM]);
 
@@ -158,18 +170,69 @@ export const getEntityStats = (
       : getEquipmentStats(item[ITEM], entity[NPC]?.type);
 
     attributes.forEach((attribute) => {
-      entityStats[attribute] += itemStats[attribute];
+      equipmentStats[attribute] += itemStats[attribute];
     });
   });
 
+  return equipmentStats;
+};
+
+export const getEntityBaseStats = (
+  world: World,
+  entity: TypedEntity
+): UnitStats => {
+  const equipmentStats = getEntityEquipmentStats(world, entity);
+  const entityStats = { ...(entity[STATS] || emptyUnitStats) };
+  attributes.forEach((attribute) => {
+    entityStats[attribute] += equipmentStats[attribute];
+  });
+
   return entityStats;
+};
+
+const statModifiers = {
+  addPower: "power",
+  addArmor: "armor",
+  addWisdom: "wisdom",
+  addResist: "resist",
+  addHaste: "haste",
+} as const;
+export const getEntityStats = (
+  world: World,
+  entity: TypedEntity
+): UnitStats => {
+  const baseStats = getEntityBaseStats(world, entity);
+  if (!entity[POSITION]) return baseStats;
+
+  const exertables = getExertables(world, entity[POSITION]);
+  const exertableStats = exertables.reduce((aggregated, exertable) => {
+    const castable = world.getEntityByIdAndComponents(
+      exertable[EXERTABLE].castable,
+      [CASTABLE]
+    );
+    if (!castable?.[CASTABLE]) return aggregated;
+
+    const allied = isFriendlyFire(world, entity, castable);
+
+    Object.entries(statModifiers).forEach(([modifier, target]) => {
+      const value = castable[CASTABLE][modifier as keyof BuffStats];
+      if ((value > 0 && allied) || (value < 0 && !allied)) {
+        aggregated[target] += value;
+      }
+    });
+    return aggregated;
+  }, baseStats) as UnitStats;
+
+  exertableStats.haste += getTempo(world, entity[POSITION]);
+
+  return exertableStats;
 };
 
 export const getEntityDisplayStats = (
   world: World,
   entity: TypedEntity
 ): UnitStats => {
-  const entityStats = getEntityStats(world, entity);
+  const entityStats = getEntityBaseStats(world, entity);
   return {
     ...entityStats,
     vision: entityStats.vision + 3,
@@ -288,9 +351,10 @@ const procDelay = 100;
 export const applyProcs = (
   world: World,
   attackerEntity: Entity | undefined,
-  itemStats: Pick<ItemStats, "burn" | "freeze" | "drain">,
+  itemStats: Partial<ItemStats>,
   procId: number,
-  targetEntity: Entity
+  targetEntity: Entity,
+  orientation: Orientation
 ) => {
   let hasAffected = false;
 
@@ -302,19 +366,20 @@ export const applyProcs = (
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
 
   // skip if not ready to proc again
-  if (lastProc && lastProc + procDelay > generation) return hasAffected;
+  if (lastProc && lastProc + (itemStats.reproc || procDelay) > generation)
+    return hasAffected;
 
   // process burn and freeze
   hasAffected = applyEffects(
     world,
     targetEntity,
-    itemStats.burn,
-    itemStats.freeze
+    itemStats.burn || 0,
+    itemStats.freeze || 0
   );
 
   // handle drain
   const drain = itemStats.drain;
-  if (attackerEntity && drain > 0) {
+  if (attackerEntity && drain) {
     const { healing, hp } = calculateHealing(attackerEntity[STATS], drain);
     if (healing > 0) {
       attackerEntity[STATS].hp = hp;
@@ -323,6 +388,9 @@ export const applyProcs = (
       play("pickup", pickupOptions.hp);
     }
   }
+
+  // handle knock
+  knockEntity(world, targetEntity, orientation, itemStats.knock || 0);
 
   // mark proc as handled
   targetEntity[AFFECTABLE].procs[procId] = generation;
@@ -338,6 +406,49 @@ export const applyProcs = (
   });
 
   return hasAffected;
+};
+
+export const knockEntity = (
+  world: World,
+  entity: Entity,
+  orientation: Orientation,
+  amount: number
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const delta = orientationPoints[orientation];
+
+  if (amount > 0 && !entity[FRAGMENT] && entity[MOVABLE]) {
+    let target = copy(entity[POSITION]);
+    let slide = amount;
+    let sting;
+
+    while (slide > 0) {
+      const newTarget = combine(size, target, delta);
+      const spikable = getSpikable(world, newTarget);
+      if (spikable) {
+        sting = spikable;
+        break;
+      }
+      if (!isWalkable(world, newTarget)) break;
+
+      slide -= 1;
+      target = newTarget;
+    }
+
+    // move or bump of not moved
+    if (slide < amount) {
+      moveEntity(world, entity, target);
+      rerenderEntity(world, entity);
+    } else if (entity[BUMPABLE]) {
+      entity[BUMPABLE].generation = entity[RENDERABLE].generation;
+      entity[BUMPABLE].orientation = orientation;
+    }
+
+    // knock into spikes
+    if (sting) {
+      stingEntity(world, sting, entity);
+    }
+  }
 };
 
 export const createAmountMarker = (
@@ -391,7 +502,6 @@ export default function setupDamage(world: World) {
     const generation = world
       .getEntities([RENDERABLE, REFERENCE])
       .reduce((total, entity) => entity[RENDERABLE].generation + total, 0);
-    const size = world.metadata.gameEntity[LEVEL].size;
 
     if (referenceGenerations === generation) return;
 
@@ -487,29 +597,8 @@ export default function setupDamage(world: World) {
             const knock = raiseItem
               ? getItemStats(raiseItem[ITEM], entity[NPC]?.type).knock
               : 0;
-            if (knock > 0 && !targetEntity[FRAGMENT]) {
-              let target = copy(targetEntity[POSITION]);
-              let slide = knock;
 
-              while (slide > 0) {
-                const newTarget = combine(size, target, delta);
-
-                if (!isMovable(world, targetEntity, newTarget)) break;
-
-                slide -= 1;
-                target = newTarget;
-              }
-
-              // move or bump of not moved
-              if (slide < knock) {
-                moveEntity(world, targetEntity, target);
-                rerenderEntity(world, targetEntity);
-              } else if (targetEntity[BUMPABLE]) {
-                targetEntity[BUMPABLE].generation =
-                  targetEntity[RENDERABLE].generation;
-                targetEntity[BUMPABLE].orientation = targetOrientation;
-              }
-            }
+            knockEntity(world, targetEntity, targetOrientation, knock);
 
             delete entity[CONDITIONABLE].raise;
           }
@@ -546,7 +635,14 @@ export default function setupDamage(world: World) {
             }
 
             // trigger on hit effects
-            applyProcs(world, entity, swordStats, swordId, targetEntity);
+            applyProcs(
+              world,
+              entity,
+              swordStats,
+              swordId,
+              rootEntity,
+              targetOrientation
+            );
 
             // play sound
             play("hit", {

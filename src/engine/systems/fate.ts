@@ -129,7 +129,10 @@ export const createHero = (world: World, halo: Entity) => {
     })
   );
   const heroEntity = entities.createHero(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+    [ACTIONABLE]: {
+      primaryTriggered: false,
+      secondaryTriggered: false,
+    },
     [AFFECTABLE]: getEmptyAffectable(),
     [ATTACKABLE]: { scratchColor: colors.silver },
     [BELONGABLE]: { faction: halo[BELONGABLE].faction },
@@ -159,7 +162,6 @@ export const createHero = (world: World, halo: Entity) => {
       ghost: false,
       receivedStats: { ...emptyReceivedStats },
       defeatedUnits: {},
-      inspectTriggered: false,
     },
     [POSITION]: copy(halo[POSITION]),
     [PUSHABLE]: {},
@@ -213,7 +215,7 @@ export const createHero = (world: World, halo: Entity) => {
     deals: [],
     recipes: [],
     targets: [],
-    objectives: [],
+    focuses: [],
     choices: [],
     tabs: ["inspect", "gear", "stats"],
     viewpoint: world.getEntityId(inspectEntity),
@@ -299,8 +301,12 @@ export default function setupFate(world: World) {
             [RENDERABLE]: { generation: 0 },
           })
         );
+        
         const haloEntity = entities.createHalo(world, {
-          [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+          [ACTIONABLE]: {
+            primaryTriggered: false,
+            secondaryTriggered: false,
+          },
           [BELONGABLE]: { faction: entity[BELONGABLE].faction },
           [BUMPABLE]: { generation: 0 },
           [EQUIPPABLE]: {},
@@ -322,7 +328,6 @@ export default function setupFate(world: World) {
             ghost: true,
             receivedStats: { ...emptyReceivedStats },
             defeatedUnits: {},
-            inspectTriggered: false,
           },
           [POSITION]: copy(tombstonePosition),
           [RENDERABLE]: { generation: 0 },
@@ -406,18 +411,6 @@ export default function setupFate(world: World) {
         heroEntity[INVENTORY].items.push(compassId);
         heroEntity[EQUIPPABLE].compass = compassId;
 
-        // set waypoint quest to tombstone
-        const tombstoneEntity = world.getEntityById(entity[SOUL].tombstoneId);
-        if (tombstoneEntity) {
-          questSequence(
-            world,
-            heroEntity,
-            "tombstoneQuest",
-            {},
-            tombstoneEntity
-          );
-        }
-
         // set needle to spawn
         const spawnEntity = getIdentifier(world, "spawn");
         if (spawnEntity) {
@@ -426,6 +419,12 @@ export default function setupFate(world: World) {
       } else if (compassEntity) {
         // only update needle
         compassEntity[TRACKABLE].target = heroId;
+      }
+
+      // set waypoint quest to tombstone
+      const tombstoneEntity = world.getEntityById(entity[SOUL].tombstoneId);
+      if (tombstoneEntity) {
+        questSequence(world, heroEntity, "tombstoneQuest", {}, tombstoneEntity);
       }
 
       registerEntity(world, heroEntity);

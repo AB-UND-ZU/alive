@@ -111,7 +111,6 @@ import {
   meleeHit,
   wisdom,
   haste,
-  heal,
   fog,
   stretch,
   popupSeparatorSelected,
@@ -120,7 +119,6 @@ import {
   missing,
   popupActive,
   popupBlocked,
-  delay,
   nugget,
   ironLock,
   goldLock,
@@ -130,7 +128,6 @@ import {
   alien,
   oreDisplay,
   note,
-  drain,
   none,
   logging,
   absorb,
@@ -139,6 +136,10 @@ import {
   mining,
   golemHead,
   plank,
+  createSpriteButton,
+  close,
+  stats,
+  aura,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -147,7 +148,9 @@ import {
   Consumable,
   Craftable,
   Element,
+  emptyItemStats,
   Item,
+  ItemStats,
   Material,
   Materialized,
   Primary,
@@ -178,10 +181,15 @@ import {
   slash,
   sword,
   torch,
+  totem,
+  trapSpell,
   waveSpell,
 } from "./templates/equipments";
 import { flask, potion, key, bottle, spirit } from "./templates/items";
 import { doorClosed, entryClosed, entryClosedDisplay } from "./templates/units";
+import { getItemStats } from "../balancing/equipment";
+import { colorPalettes, PartialSpriteTemplate } from "./templates";
+import { consumptionConfigs } from "../../engine/systems/consume";
 
 export const lootSpeed = 200;
 export const decayTime = 300;
@@ -293,7 +301,8 @@ export const detailsHeight = 3;
 export const contentDelay = 8;
 export const popupDelay = 60;
 export const popupTime = frameHeight * popupDelay;
-export const questWidth = 13;
+export const questWidth = 16;
+export const rewardWidth = 13;
 
 export const scrolledVerticalIndex = (
   world: World,
@@ -335,6 +344,8 @@ const selectionSprites = {
   active: popupActive,
 };
 
+const buttonWidth = 7;
+
 export const renderPopup = (
   world: World,
   entity: Entity,
@@ -343,7 +354,9 @@ export const renderPopup = (
   content: Sprite[][],
   selection?: PopupSelection,
   details?: Sprite[][],
-  overscan = 0
+  overscan = 0,
+  rightButton?: Sprite[],
+  leftButton?: Sprite[]
 ) => {
   let updated = false;
   let finished = !entity[POPUP].active;
@@ -377,9 +390,10 @@ export const renderPopup = (
   let renderTabs = horizontalIndex !== state.args.horizontalIndex;
   let renderDetails = settled;
   let renderSeparator = details && renderTabs;
+  let renderButtons = generationChanged;
 
   // create popup
-  if (!state.args.generation) {
+  if (initial) {
     state.args.generation = generation;
 
     for (const iteration of iterations) {
@@ -466,9 +480,25 @@ export const renderPopup = (
       }
     }
 
+    // placeholders for tabs
+    for (let column = 0; column < frameWidth; column += 1) {
+      const tabParticle = entities.createFibre(world, {
+        [ORIENTABLE]: {},
+        [PARTICLE]: {
+          offsetX: -(frameWidth + 1) / 2 + column,
+          offsetY: -frameHeight,
+          offsetZ: selectionHeight,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: none,
+      });
+      state.particles[`popup-tab-${column}`] = world.getEntityId(tabParticle);
+    }
+
     renderTabs = true;
     renderContent = true;
     renderSeparator = true;
+    renderButtons = true;
   }
 
   // rerender scroll handle
@@ -547,14 +577,10 @@ export const renderPopup = (
     // add top decoration
     for (let tabIndex = 0; tabIndex < tabs; tabIndex += 1) {
       const selected = tabIndex === horizontalIndex;
-      const offset = (tabs - 1) * -3 + tabIndex * 6;
+      const offset = tabIndex * 6;
 
       const upStartParticle = world.assertByIdAndComponents(
-        state.particles[
-          tabs === 3 && tabIndex === 0
-            ? "popup-up-corner"
-            : `popup-up-${(frameWidth - 3) / 2 - 3 + offset}`
-        ],
+        state.particles[`popup-tab-${offset}`],
         [PARTICLE, ORIENTABLE]
       );
       upStartParticle[SPRITE] = selected
@@ -566,11 +592,7 @@ export const renderPopup = (
         tabIndex === 0 ? (tabs === 3 ? "up" : "right") : undefined;
       if (tabIndex === tabs - 1) {
         const upEndParticle = world.assertByIdAndComponents(
-          state.particles[
-            tabs === 3 && tabIndex === 2
-              ? "popup-right-corner"
-              : `popup-up-${(frameWidth - 3) / 2 + 3 + offset}`
-          ],
+          state.particles[`popup-tab-${offset + 6}`],
           [PARTICLE, ORIENTABLE]
         );
         upEndParticle[SPRITE] = selected
@@ -582,17 +604,19 @@ export const renderPopup = (
       const title = popupTitles[transaction];
       const titleText = createText(
         padCenter(title.toUpperCase(), 5),
-        selected ? colors.lime : colors.black
+        selected ? colors.black : colors.white
       );
       const titleSprites = addBackground(
-        selected ? titleText : addBackground(titleText, colors.black, "░"),
-        selected ? colors.black : colors.silver
+        addBackground(
+          titleText,
+          selected ? colors.white : colors.grey,
+          selected ? undefined : "▄"
+        ),
+        colors.black
       );
       titleSprites.forEach((char, index) => {
         const charParticle = world.assertByIdAndComponents(
-          state.particles[
-            `popup-up-${(frameWidth - 3) / 2 + index - 2 + offset}`
-          ],
+          state.particles[`popup-tab-${offset + index + 1}`],
           [PARTICLE]
         );
         charParticle[SPRITE] = char;
@@ -732,6 +756,90 @@ export const renderPopup = (
       }
     }
     updated = true;
+  }
+
+  if (renderButtons) {
+    // add close button
+    if (initial) {
+      const closeButton = createSpriteButton(
+        [close],
+        3,
+        false,
+        false,
+        false,
+        "red"
+      );
+
+      for (let column = 0; column < closeButton.length; column += 1) {
+        const closeParticle = entities.createParticle(world, {
+          [PARTICLE]: {
+            offsetX: (frameWidth - 3) / 2 + column,
+            offsetY: -frameHeight,
+            offsetZ: selectionHeight,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: closeButton[column],
+        });
+        state.particles[`popup-close-${column}`] =
+          world.getEntityId(closeParticle);
+      }
+    }
+
+    for (let column = 0; column < buttonWidth; column += 1) {
+      const leftSprite = leftButton?.[column];
+      const leftName = `popup-prev-${column}`;
+
+      if (!leftSprite) {
+        const leftParticle = world.getEntityByIdAndComponents(
+          state.particles[leftName],
+          [PARTICLE]
+        );
+        if (leftParticle) {
+          disposeEntity(world, leftParticle);
+          delete state.particles[leftName];
+        }
+        continue;
+      }
+
+      const leftParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: -(frameWidth + 1) / 2 + column,
+          offsetY: -1,
+          offsetZ: selectionHeight,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: leftSprite,
+      });
+      state.particles[leftName] = world.getEntityId(leftParticle);
+    }
+
+    for (let column = 0; column < buttonWidth; column += 1) {
+      const rightSprite = rightButton?.[column];
+      const rightName = `popup-next-${column}`;
+
+      if (!rightSprite) {
+        const rightParticle = world.getEntityByIdAndComponents(
+          state.particles[rightName],
+          [PARTICLE]
+        );
+        if (rightParticle) {
+          disposeEntity(world, rightParticle);
+          delete state.particles[rightName];
+        }
+        continue;
+      }
+
+      const rightParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: (frameWidth - 1) / 2 + column - rightButton.length + 2,
+          offsetY: -1,
+          offsetZ: selectionHeight,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: rightSprite,
+      });
+      state.particles[rightName] = world.getEntityId(rightParticle);
+    }
   }
 
   if (initial) {
@@ -888,12 +996,18 @@ export const queueMessage = (
   }
 };
 
+type PartialDescriptionTemplate = Partial<
+  Record<Material | "default", Partial<Record<Element | "default", Sprite[][]>>>
+>;
 type SpriteDefinition = {
   sprite: Sprite;
   resource?: Sprite;
   display?: Sprite;
-  description?: Sprite[][];
-  getDescription?: () => Sprite[][]; // lazily initialized to avoid circular references
+  descriptions?: PartialDescriptionTemplate;
+  getDescription?: (
+    item: Omit<Item, "carrier" | "amount" | "bound">,
+    stats: ItemStats
+  ) => Sprite[][]; // lazily initialized to avoid circular references
 };
 
 export const entitySprites: Record<
@@ -992,7 +1106,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "hp", "progression"),
           [
-            ...createText("+", colors.green),
+            ...createText("+", colors.olive),
             ...createCountable(stats, "damp", "display"),
           ],
           frameWidth - 2
@@ -1000,7 +1114,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "spike", "display"),
           [
-            ...createText("+", colors.green),
+            ...createText("+", colors.teal),
             ...createCountable(stats, "thaw", "display"),
           ],
           frameWidth - 2
@@ -1445,12 +1559,11 @@ export const entitySprites: Record<
   damp: {
     sprite: damp,
     getDescription: () => [
-      createText("Reduces damage"),
+      createText("Reduces total"),
       [
-        ...createText("during "),
         maxCountable(fire),
         ...createText("Burn", colors.yellow),
-        ...createText("."),
+        ...createText(" damage."),
       ],
     ],
   },
@@ -1480,1243 +1593,775 @@ export const entitySprites: Record<
   },
 };
 
-export const materialSprites: Record<
-  Tools | Gear | Primary | Secondary | Consumable | ResourceItem | Materialized,
-  Partial<Record<Material, SpriteDefinition>>
+type SpriteTemplateDefinition = {
+  sprite: PartialSpriteTemplate;
+  resource?: PartialSpriteTemplate;
+  display?: PartialSpriteTemplate;
+  descriptions?: PartialDescriptionTemplate;
+  getDescription?: (
+    item: Omit<Item, "carrier" | "amount" | "bound">,
+    stats: ItemStats
+  ) => Sprite[][]; // lazily initialized to avoid circular references
+};
+
+export const materialSprites: Partial<
+  Record<
+    | Tools
+    | Gear
+    | Primary
+    | Secondary
+    | Consumable
+    | ResourceItem
+    | Materialized,
+    SpriteTemplateDefinition
+  >
 > = {
   sword: {
-    wood: {
-      sprite: sword.wood.default,
-      getDescription: () => [
-        createText("Simple sword made"),
-        [
-          ...createText("out of a "),
-          ...createItemName({ stackable: "stick" }),
-          ...createText("."),
-        ],
-        [
-          ...createText("2", colors.red),
-          minCountable(meleeHit),
-          ...createText("Melee", colors.red),
-        ],
-      ],
-    },
-    iron: {
-      sprite: sword.iron.default,
-      getDescription: () => [
-        createText("Heavy sword made"),
-        [
-          ...createText("of "),
-          ...createItemName({ stackable: "resource", material: "iron" }),
-          ...createText("."),
-        ],
-        [
-          ...createText("4", colors.red),
-          minCountable(meleeHit),
-          ...createText("Melee", colors.red),
-        ],
-      ],
-    },
-    gold: {
-      sprite: sword.gold.default,
-      getDescription: () => [
-        createText("Shiny sword made"),
-        [
-          ...createText("of "),
-          ...createItemName({ stackable: "resource", material: "gold" }),
-          ...createText("."),
-        ],
-        [
-          ...createText("6", colors.red),
-          minCountable(meleeHit),
-          ...createText("Melee", colors.red),
-        ],
-      ],
-    },
+    sprite: sword,
+    getDescription: (item, stats) => {
+      if (item.material === "wood") {
+        return [
+          createText("Simple sword made"),
+          [
+            ...createText("out of a "),
+            ...createItemName({ stackable: "stick" }),
+            ...createText("."),
+          ],
+          [
+            ...createText(stats.melee.toString(), colors.red),
+            minCountable(meleeHit),
+            ...createText("Melee", colors.red),
+          ],
+        ];
+      }
 
-    diamond: { sprite: sword.diamond.default },
-    ruby: { sprite: sword.ruby.default },
+      return [
+        createText(
+          `${
+            { iron: "Heavy", gold: "Shiny", diamond: "Sharp", ruby: "Mighty" }[
+              item.material!
+            ]
+          } sword made`
+        ),
+        [
+          ...createText("of "),
+          ...createItemName({ stackable: "resource", material: item.material }),
+          ...createText("."),
+        ],
+        [
+          ...createText(stats.melee.toString(), colors.red),
+          minCountable(meleeHit),
+          ...createText("Melee", colors.red),
+        ],
+      ];
+    },
   },
   shield: {
-    wood: {
-      sprite: shield.wood.default,
-      getDescription: () => [
-        createText("A simple shield"),
-        [
-          ...createText("made of "),
-          ...createItemName({ stackable: "resource", material: "wood" }),
-          ...createText("."),
-        ],
-        createCountable({ armor: 1 }, "armor", "display"),
+    sprite: shield,
+    getDescription: (item, stats) => [
+      createText(
+        `${
+          {
+            wood: "Simple",
+            iron: "Heavy",
+            gold: "Shiny",
+            diamond: "Rigid",
+            ruby: "Mighty",
+          }[item.material!]
+        } shield`
+      ),
+      [
+        ...createText("made of "),
+        ...createItemName({ stackable: "resource", material: item.material }),
+        ...createText("."),
       ],
-    },
-    iron: {
-      sprite: shield.iron.default,
-      getDescription: () => [
-        createText("A heavy shield"),
-        [
-          ...createText("made of "),
-          ...createItemName({ stackable: "resource", material: "iron" }),
-          ...createText("."),
-        ],
-        createCountable({ armor: 2 }, "armor", "display"),
-      ],
-    },
-    gold: {
-      sprite: shield.gold.default,
-      getDescription: () => [
-        createText("A shiny shield"),
-        [
-          ...createText("made of "),
-          ...createItemName({ stackable: "resource", material: "gold" }),
-          ...createText("."),
-        ],
-        createCountable({ armor: 3 }, "armor", "display"),
-      ],
-    },
-    diamond: { sprite: shield.diamond.default },
-    ruby: { sprite: shield.ruby.default },
+      createCountable(stats, "armor", "display"),
+    ],
   },
   ring: {
-    wood: {
-      sprite: ring.wood.default,
-      getDescription: () => [
-        createText("A fragile ring"),
-        createText("with arcane aura."),
-        brightenSprites(createCountable({ maxMp: 2 }, "maxMp", "display")),
-      ],
-    },
-    iron: { sprite: ring.iron.default },
-    gold: { sprite: ring.gold.default },
-    diamond: { sprite: ring.diamond.default },
-    ruby: { sprite: ring.ruby.default },
+    sprite: ring,
+    getDescription: (item, stats) => [
+      createText(
+        `A ${
+          {
+            wood: "fragile",
+            iron: "crude",
+            gold: "shiny",
+            diamond: "pure",
+            ruby: "mighty",
+          }[item.material!]
+        } ring`
+      ),
+      createText("with arcane aura."),
+      brightenSprites(createCountable(stats, "maxMp", "display")),
+    ],
   },
   amulet: {
-    wood: {
-      sprite: amulet.wood.default,
-      getDescription: () => [
-        createText("A protective and"),
-        createText("delicate amulet."),
-        brightenSprites(createCountable({ maxHp: 5 }, "maxHp", "display")),
-      ],
-    },
-    iron: { sprite: amulet.iron.default },
-    gold: { sprite: amulet.gold.default },
-    diamond: { sprite: amulet.diamond.default },
-    ruby: { sprite: amulet.ruby.default },
+    sprite: amulet,
+    getDescription: (item, stats) => [
+      createText("A protective and"),
+      createText(
+        `${
+          {
+            wood: "delicate",
+            iron: "sturdy",
+            gold: "shiny",
+            diamond: "radiant",
+            ruby: "mighty",
+          }[item.material!]
+        } amulet.`
+      ),
+      brightenSprites(createCountable(stats, "maxHp", "display")),
+    ],
   },
 
   // tools
   axe: {
-    wood: {
-      sprite: axe.wood.default,
-      getDescription: () => [
-        createText("Stand in front of"),
-        [
-          ...createText("a "),
-          tree1,
-          tree2,
-          ...createText("Tree", colors.grey),
-          ...createText(" to chop."),
-        ],
-        [
-          ...createText("1", colors.green),
-          logging,
-          ...createText("Logging", colors.green),
-        ],
+    sprite: axe,
+    getDescription: () => [
+      createText("Stand in front of"),
+      [
+        ...createText("a "),
+        tree1,
+        tree2,
+        ...createText("Tree", colors.grey),
+        ...createText(" to chop."),
       ],
-    },
+      [
+        ...createText("1", colors.green),
+        logging,
+        ...createText("Logging", colors.green),
+      ],
+    ],
   },
   pickaxe: {
-    wood: {
-      sprite: pickaxe.wood.default,
-      getDescription: () => [
-        createText("Stand in front of"),
-        [
-          ...createText("a "),
-          wall,
-          ...createText("Rock", colors.grey),
-          ...createText(" to mine."),
-        ],
-        [
-          ...createText("1", colors.green),
-          mining,
-          ...createText("Mining", colors.green),
-        ],
+    sprite: pickaxe,
+    getDescription: () => [
+      createText("Stand in front of"),
+      [
+        ...createText("a "),
+        wall,
+        ...createText("Rock", colors.grey),
+        ...createText(" to mine."),
       ],
-    },
+      [
+        ...createText("1", colors.green),
+        mining,
+        ...createText("Mining", colors.green),
+      ],
+    ],
   },
   compass: {
-    iron: {
-      sprite: compass.iron.default,
-      getDescription: () => [
-        createText("Shows the way"),
-        createText("back to your"),
-        createText("spawn point."),
-      ],
-    },
+    sprite: compass,
+    getDescription: () => [
+      createText("Shows the way"),
+      createText("back to your"),
+      createText("spawn point."),
+    ],
   },
   map: {
-    iron: {
-      sprite: map.iron.default,
-      getDescription: () => [
-        [
-          ...createText("Open your "),
-          ...createText("BAG", colors.black, colors.silver),
-          ...createText(" to"),
-        ],
-        createText("view the area you"),
-        createText("revealed so far."),
-      ],
-    },
+    sprite: map,
+    getDescription: () => [
+      createText("View the area you"),
+      createText("revealed so far."),
+    ],
   },
   torch: {
-    wood: {
-      sprite: torch.wood.default,
-      getDescription: () => [
-        createText("Glows bright and"),
-        createText("keeps you warm."),
-        [...createCountable({ vision: 2 }, "vision", "display")],
-      ],
-    },
-    iron: { sprite: torch.iron.default },
-    gold: { sprite: torch.gold.default },
+    sprite: torch,
+    getDescription: (item, stats) => [
+      createText("Glows bright and"),
+      createText("keeps you warm."),
+      [...createCountable(stats, "vision", "display")],
+    ],
   },
   boots: {
-    wood: {
-      sprite: boots.wood.default,
-      getDescription: () => [
-        createText("Simple but soft"),
-        createText("boots."),
-        [...createCountable({ haste: 1 }, "haste", "display")],
-      ],
-    },
-    iron: { sprite: boots.iron.default },
-    gold: { sprite: boots.gold.default },
+    sprite: boots,
+    getDescription: (item, stats) => [
+      createText(
+        `${
+          {
+            wood: "Simple",
+            iron: "Heavy",
+            gold: "Shiny",
+            diamond: "Rigid",
+            ruby: "Mighty",
+          }[item.material!]
+        } but soft`
+      ),
+      createText("boots."),
+      [...createCountable(stats, "haste", "display")],
+    ],
   },
 
   // primary spells
   wave: {
-    wood: {
-      sprite: waveSpell.wood.default,
-      getDescription: () => [
-        createText("Use to cast a"),
-        createText("wave of magic."),
-        stretch(
-          [
-            ...createText("3", colors.fuchsia),
-            minCountable(magicHit),
-            ...createText("Magic", colors.fuchsia),
-          ],
-          createCountable({ mp: -1 }, "mp", "display"),
-          frameWidth - 2
-        ),
-      ],
-    },
-    iron: { sprite: waveSpell.iron.default },
-    gold: { sprite: waveSpell.gold.default },
-    diamond: { sprite: waveSpell.diamond.default },
-    ruby: { sprite: waveSpell.ruby.default },
+    sprite: waveSpell,
+    getDescription: (item, stats) => [
+      createText("Use to cast a"),
+      createText("wave of magic."),
+      stretch(
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
+        ],
+        createCountable({ mp: -1 }, "mp", "display"),
+        frameWidth - 2
+      ),
+    ],
   },
   beam: {
-    wood: {
-      sprite: beamSpell.wood.default,
-      getDescription: () => [
-        createText("Shoots multiple"),
-        createText("bolts in a beam."),
-        stretch(
-          [
-            ...createText("2", colors.fuchsia),
-            minCountable(magicHit),
-            ...createText("Magic", colors.fuchsia),
-          ],
-          createCountable({ mp: -1 }, "mp", "display"),
-          frameWidth - 2
-        ),
-      ],
-    },
-    iron: { sprite: beamSpell.iron.default },
-    gold: { sprite: beamSpell.gold.default },
-    diamond: { sprite: beamSpell.diamond.default },
-    ruby: { sprite: beamSpell.ruby.default },
+    sprite: beamSpell,
+    getDescription: (item, stats) => [
+      createText("Shoots multiple"),
+      createText("bolts in a beam."),
+      stretch(
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
+        ],
+        createCountable({ mp: -1 }, "mp", "display"),
+        frameWidth - 2
+      ),
+    ],
   },
-  bolt: {},
-  blast: {},
+  trap: {
+    sprite: trapSpell,
+    getDescription: (item, stats) => [
+      createText("Damages enemies"),
+      createText("walking over it."),
+      stretch(
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
+        ],
+        createCountable({ mp: -1 }, "mp", "display"),
+        frameWidth - 2
+      ),
+    ],
+  },
 
   // secondary items
   slash: {
-    wood: {
-      sprite: slash.wood.default,
+    sprite: slash,
 
-      getDescription: () => [
-        createText("Spins and damages"),
-        createText("nearby enemies."),
-        stretch(
-          [
-            ...createText("2", colors.red),
-            minCountable(meleeHit),
-            ...createText("Melee", colors.red),
-          ],
-          [
-            ...createText("-1", colors.grey),
-            ...createItemName({ stackable: "charge" }),
-          ],
-          frameWidth - 2
-        ),
-      ],
-    },
-    iron: { sprite: slash.iron.default },
-    gold: { sprite: slash.gold.default },
-    diamond: { sprite: slash.diamond.default },
-    ruby: { sprite: slash.ruby.default },
-  },
-  bow: {
-    wood: {
-      sprite: bow.wood.default,
-
-      getDescription: () => [
-        createText("Shoots a ranged"),
-        createText("projectile."),
-        stretch(
-          [
-            ...createText("2", colors.red),
-            minCountable(meleeHit),
-            ...createText("Melee", colors.red),
-          ],
-          [
-            ...createText("-1", colors.grey),
-            ...createItemName({ stackable: "arrow" }),
-          ],
-          frameWidth - 2
-        ),
-      ],
-    },
-    iron: { sprite: bow.iron.default },
-    gold: { sprite: bow.gold.default },
-    diamond: { sprite: bow.diamond.default },
-    ruby: { sprite: bow.ruby.default },
-  },
-  raise: {
-    wood: {
-      sprite: raise.wood.default,
-      getDescription: () => [
-        createText("Knock back and"),
-        createText("extra damage."),
-        stretch(
-          [
-            ...createText("3", colors.red),
-            minCountable(meleeHit),
-            ...createText("Melee", colors.red),
-          ],
-          [
-            ...createText("-1", colors.grey),
-            ...createItemName({ stackable: "charge" }),
-          ],
-          frameWidth - 2
-        ),
-      ],
-    },
-    iron: { sprite: raise.iron.default },
-    gold: { sprite: raise.gold.default },
-    diamond: { sprite: raise.diamond.default },
-    ruby: { sprite: raise.ruby.default },
-  },
-  block: {
-    wood: {
-      sprite: block.wood.default,
-      getDescription: () => [
+    getDescription: (item, stats) => [
+      createText("Spins and damages"),
+      createText("nearby enemies."),
+      stretch(
         [
-          ...createText("Defends "),
+          ...createText(stats.melee.toString(), colors.red),
           minCountable(meleeHit),
           ...createText("Melee", colors.red),
-          ...createText(" or"),
         ],
         [
-          minCountable(magicHit),
-          ...createText("Magic", colors.fuchsia),
-          ...createText(" attacks."),
+          ...createText("-1", colors.grey),
+          ...createItemName({ stackable: "charge" }),
         ],
-        stretch(
-          [
-            ...createText("1", colors.olive),
+        frameWidth - 2
+      ),
+    ],
+  },
+  bow: {
+    sprite: bow,
 
-            minCountable(absorb),
-            ...createText("Absorb", colors.olive),
-          ],
-          [
-            ...createText("-1", colors.grey),
-            ...createItemName({ stackable: "charge" }),
-          ],
-          frameWidth - 2
-        ),
+    getDescription: (item, stats) => [
+      createText("Shoots a ranged"),
+      createText("projectile."),
+      stretch(
+        [
+          ...createText(stats.melee.toString(), colors.red),
+          minCountable(meleeHit),
+          ...createText("Melee", colors.red),
+        ],
+        [
+          ...createText("-1", colors.grey),
+          ...createItemName({ stackable: "arrow" }),
+        ],
+        frameWidth - 2
+      ),
+    ],
+  },
+  raise: {
+    sprite: raise,
+    getDescription: (item, stats) => [
+      createText("Knock back and"),
+      createText("extra damage."),
+      stretch(
+        [
+          ...createText(stats.melee.toString(), colors.red),
+          minCountable(meleeHit),
+          ...createText("Melee", colors.red),
+        ],
+        [
+          ...createText("-1", colors.grey),
+          ...createItemName({ stackable: "charge" }),
+        ],
+        frameWidth - 2
+      ),
+    ],
+  },
+  block: {
+    sprite: block,
+    getDescription: (item, stats) => [
+      [
+        ...createText("Defends "),
+        minCountable(meleeHit),
+        ...createText("Melee", colors.red),
+        ...createText(" or"),
       ],
-    },
-    iron: { sprite: block.iron.default },
-    gold: { sprite: block.gold.default },
-    diamond: { sprite: block.diamond.default },
-    ruby: { sprite: block.ruby.default },
+      [
+        minCountable(magicHit),
+        ...createText("Magic", colors.fuchsia),
+        ...createText(" attacks."),
+      ],
+      stretch(
+        [
+          ...createText(stats.absorb.toString(), colors.red),
+          minCountable(absorb),
+          ...createText("Absorb", colors.olive),
+        ],
+        [
+          ...createText("-1", colors.grey),
+          ...createItemName({ stackable: "charge" }),
+        ],
+        frameWidth - 2
+      ),
+    ],
+  },
+  totem: {
+    sprite: totem,
+    getDescription: (item, itemStats) => [
+      [
+        ...createText("Grants "),
+        ...createText("+1", colors.lime),
+        ...createText(" of all"),
+      ],
+      [
+        stats,
+        ...createText("Stats", colors.lime),
+        ...createText(" in "),
+        aura,
+        ...createText("Aura", colors.silver),
+        ...createText("."),
+      ],
+      stretch(
+        createCountable(itemStats, "duration", "display"),
+        [
+          ...createText("-1", colors.grey),
+          ...createItemName({ stackable: "charge" }),
+        ],
+        frameWidth - 2
+      ),
+    ],
   },
 
   // resource
   resource: {
-    wood: {
-      sprite: wood,
-      getDescription: () => [
-        [
-          ...createText("Made from "),
-          ...createItemName({ stackable: "stick" }),
-          ...createText("."),
-        ],
-        createText("Craft into wooden"),
-        [...createText("Gear", colors.grey), ...createText(".")],
-      ],
+    sprite: {
+      wood: { default: wood },
+      iron: { default: iron },
+      gold: { default: gold },
+      diamond: { default: diamond },
+      ruby: { default: ruby },
     },
-    iron: {
-      sprite: iron,
-      getDescription: () => [
-        [
-          ...createText("Made from "),
-          ...createItemName({ stackable: "ore" }),
-          ...createText("."),
-        ],
-        createText("Craft into iron"),
-        [...createText("Gear", colors.grey), ...createText(".")],
-      ],
-    },
-    gold: {
-      sprite: gold,
-      getDescription: () => [
+    getDescription: (item, stats) => {
+      if (item.material === "wood") {
+        return [
+          [
+            ...createText("Made from "),
+            ...createItemName({ stackable: "stick" }),
+            ...createText("."),
+          ],
+          createText("Used to forge"),
+          [...createText("wooden", colors.maroon), ...createText(" gear.")],
+        ];
+      } else if (item.material === "iron") {
+        return [
+          [
+            ...createText("Made from "),
+            ...createItemName({ stackable: "ore" }),
+            ...createText("."),
+          ],
+          createText("Used to forge"),
+          [...createText("iron", colors.grey), ...createText(" gear.")],
+        ];
+      }
+      return [
         [
           ...createText("Found at a "),
-          ...createItemName({ materialized: "mine", material: "gold" }),
+          ...createItemName({ materialized: "mine", material: item.material }),
           ...createText("."),
         ],
-        createText("Craft into golden"),
-        [...createText("Gear", colors.grey), ...createText(".")],
-      ],
+        createText("Used to forge"),
+        [
+          ...createText(
+            { gold: "golden", diamond: "diamond", ruby: "ruby" }[
+              item.material!
+            ],
+            colorPalettes[item.material!].primary
+          ),
+          ...createText(" gear."),
+        ],
+      ];
     },
-    diamond: { sprite: diamond },
-    ruby: { sprite: ruby },
   },
 
   // consumable
-  potion: {},
   key: {
-    wood: { sprite: key.wood.default },
-    iron: {
-      sprite: key.iron.default,
-      getDescription: () => [
-        [
-          ...createText("Opens a "),
-          ...createItemName({ materialized: "lock", material: "iron" }),
-          ...createText("."),
-        ],
-        createText("Disappears after"),
-        createText("use."),
+    sprite: key,
+    getDescription: (item, stats) => [
+      [
+        ...createText("Opens a "),
+        ...createItemName({ materialized: "lock", material: item.material }),
+        ...createText("."),
       ],
-    },
-    gold: {
-      sprite: key.gold.default,
-
-      getDescription: () => [
-        [
-          ...createText("Opens a "),
-          ...createItemName({ materialized: "lock", material: "gold" }),
-          ...createText("."),
-        ],
-        createText("Disappears after"),
-        createText("use."),
-      ],
-    },
-    diamond: { sprite: key.diamond.default },
-    ruby: { sprite: key.ruby.default },
+      createText("Disappears after"),
+      createText("use."),
+    ],
   },
 
   // materialized
   lock: {
-    iron: { sprite: ironLock },
-    gold: { sprite: goldLock },
+    sprite: {
+      iron: { default: ironLock },
+      gold: { default: goldLock },
+    },
   },
   door: {
-    wood: { sprite: doorClosed.wood.default },
-    iron: { sprite: doorClosed.iron.default },
-    gold: { sprite: doorClosed.gold.default },
-    diamond: { sprite: doorClosed.diamond.default },
-    ruby: { sprite: doorClosed.ruby.default },
+    sprite: doorClosed,
   },
   entry: {
-    wood: {
-      sprite: entryClosed.wood.default,
-      display: entryClosedDisplay.wood.default,
-    },
-    iron: {
-      sprite: entryClosed.iron.default,
-      display: entryClosedDisplay.iron.default,
-    },
-    gold: {
-      sprite: entryClosed.gold.default,
-      display: entryClosedDisplay.gold.default,
-    },
-    diamond: {
-      sprite: entryClosed.diamond.default,
-      display: entryClosedDisplay.diamond.default,
-    },
-    ruby: {
-      sprite: entryClosed.ruby.default,
-      display: entryClosedDisplay.ruby.default,
-    },
+    sprite: entryClosed,
+    display: entryClosedDisplay,
   },
   gate: {
-    wood: { sprite: fenceDoor },
+    sprite: { wood: { default: fenceDoor } },
   },
   mine: {
-    iron: { sprite: ironMine, display: ironMineDisplay },
-    gold: { sprite: goldMine, display: goldMineDisplay },
+    sprite: {
+      iron: { default: ironMine },
+      gold: { default: goldMine },
+    },
+    display: {
+      iron: { default: ironMineDisplay },
+      gold: { default: goldMineDisplay },
+    },
   },
 };
 
-export const elementSprites: Record<
-  Gear | Primary | Secondary | Consumable | ResourceItem,
-  Partial<
-    Record<Material | "default", Partial<Record<Element, SpriteDefinition>>>
+export const elementSprites: Partial<
+  Record<
+    Gear | Primary | Secondary | Consumable | ResourceItem,
+    SpriteTemplateDefinition
   >
 > = {
   // gear
   sword: {
-    wood: {
-      air: {
-        sprite: sword.wood.air,
-        getDescription: () => [
-          [
-            ...createText("A "),
-            ...createItemName({ stackable: "stick" }),
-            ...createText(" sword"),
-          ],
-          [
-            ...createText("with a "),
-            ...createItemName({
-              stackable: "resource",
-              material: "wood",
-              element: "air",
-            }),
-            ...createText("."),
-          ],
-          stretch(
-            [
-              ...createText("2", colors.red),
-              minCountable(meleeHit),
-              ...createText("Melee", colors.red),
-            ],
-            createCountable({ power: 1 }, "power", "display"),
-            frameWidth - 2
-          ),
+    sprite: sword,
+    getDescription: (item, stats) => [
+      [
+        ...createText("A "),
+        ...createItemName(
+          item.material === "wood"
+            ? { stackable: "stick" }
+            : { stackable: "resource", material: item.material }
+        ),
+        ...createText(" sword"),
+      ],
+      [
+        ...createText("with a "),
+        ...createItemName({
+          stackable: "resource",
+          material: "wood",
+          element: item.element,
+        }),
+        ...createText("."),
+      ],
+      stretch(
+        [
+          ...createText(stats.melee.toString(), colors.red),
+          minCountable(meleeHit),
+          ...createText("Melee", colors.red),
         ],
-      },
-      fire: {
-        sprite: sword.wood.fire,
-        getDescription: () => [
-          [
-            ...createText("A "),
-            ...createItemName({ stackable: "stick" }),
-            ...createText(" sword"),
-          ],
-          [
-            ...createText("with a "),
-            ...createItemName({
-              stackable: "resource",
-              material: "wood",
-              element: "fire",
-            }),
-            ...createText("."),
-          ],
-          stretch(
-            [
-              ...createText("2", colors.red),
-              minCountable(meleeHit),
-              ...createText("Melee", colors.red),
-            ],
-            [
-              ...createText("2", colors.yellow),
-              maxCountable(fire),
-              ...createText("Burn", colors.yellow),
-            ],
-            frameWidth - 2
-          ),
-        ],
-      },
-      water: {
-        sprite: sword.wood.water,
-        getDescription: () => [
-          [
-            ...createText("A "),
-            ...createItemName({ stackable: "stick" }),
-            ...createText(" sword"),
-          ],
-          [
-            ...createText("with a "),
-            ...createItemName({
-              stackable: "resource",
-              material: "wood",
-              element: "water",
-            }),
-            ...createText("."),
-          ],
-          stretch(
-            [
-              ...createText("2", colors.red),
-              minCountable(meleeHit),
-              ...createText("Melee", colors.red),
-            ],
-            [
-              ...createText("2", colors.aqua),
-              maxCountable(freeze),
-              ...createText("Freeze", colors.aqua),
-            ],
-            frameWidth - 2
-          ),
-        ],
-      },
-      earth: {
-        sprite: sword.wood.earth,
-        getDescription: () => [
-          [
-            ...createText("A "),
-            ...createItemName({ stackable: "stick" }),
-            ...createText(" sword"),
-          ],
-          [
-            ...createText("with a "),
-            ...createItemName({
-              stackable: "resource",
-              material: "wood",
-              element: "earth",
-            }),
-            ...createText("."),
-          ],
-          stretch(
-            [
-              ...createText("2", colors.red),
-              minCountable(meleeHit),
-              ...createText("Melee", colors.red),
-            ],
-            [
-              ...createText("1", colors.purple),
-              drain,
-              ...createText("Drain", colors.purple),
-            ],
-            frameWidth - 2
-          ),
-        ],
-      },
-    },
-    iron: {
-      air: { sprite: sword.iron.air },
-      fire: { sprite: sword.iron.fire },
-      water: { sprite: sword.iron.water },
-      earth: { sprite: sword.iron.earth },
-    },
-    gold: {
-      air: { sprite: sword.gold.air },
-      fire: { sprite: sword.gold.fire },
-      water: { sprite: sword.gold.water },
-      earth: { sprite: sword.gold.earth },
-    },
-    diamond: {
-      air: { sprite: sword.diamond.air },
-      fire: { sprite: sword.diamond.fire },
-      water: { sprite: sword.diamond.water },
-      earth: { sprite: sword.diamond.earth },
-    },
-    ruby: {
-      air: { sprite: sword.ruby.air },
-      fire: { sprite: sword.ruby.fire },
-      water: { sprite: sword.ruby.water },
-      earth: { sprite: sword.ruby.earth },
-    },
-
-    default: {
-      air: { sprite: sword.default.air },
-      fire: { sprite: sword.default.fire },
-      water: { sprite: sword.default.water },
-      earth: { sprite: sword.default.earth },
-    },
+        createCountable(
+          stats,
+          (
+            {
+              air: "power",
+              fire: "burn",
+              water: "freeze",
+              earth: "drain",
+            } as const
+          )[item.element!],
+          "display"
+        ),
+        frameWidth - 2
+      ),
+    ],
   },
   shield: {
-    wood: {
-      air: {
-        sprite: shield.wood.air,
-        getDescription: () => [
-          [
-            ...createText("A "),
-            ...createItemName({
-              stackable: "resource",
-              material: "wood",
-              element: "air",
-            }),
-            ...createText(" shield."),
-          ],
-          stretch(
-            createCountable({ armor: 1 }, "armor", "display"),
-            createCountable({ resist: 1 }, "resist", "display"),
-            frameWidth - 2
-          ),
-        ],
-      },
-      fire: {
-        sprite: shield.wood.fire,
-        getDescription: () => [
-          [
-            ...createText("A "),
-            ...createItemName({
-              stackable: "resource",
-              material: "wood",
-              element: "fire",
-            }),
-            ...createText(" shield."),
-          ],
-          stretch(
-            createCountable({ armor: 1 }, "armor", "display"),
-            createCountable({ damp: 2 }, "damp", "display"),
-            frameWidth - 2
-          ),
-        ],
-      },
-      water: {
-        sprite: shield.wood.water,
-        getDescription: () => [
-          [
-            ...createText("A "),
-            ...createItemName({
-              stackable: "resource",
-              material: "wood",
-              element: "water",
-            }),
-            ...createText(" shield."),
-          ],
-          stretch(
-            createCountable({ armor: 1 }, "armor", "display"),
-            createCountable({ thaw: 5 }, "thaw", "display"),
-            frameWidth - 2
-          ),
-        ],
-      },
-      earth: {
-        sprite: shield.wood.earth,
-        getDescription: () => [
-          [
-            ...createText("A "),
-            ...createItemName({
-              stackable: "resource",
-              material: "wood",
-              element: "earth",
-            }),
-            ...createText(" shield."),
-          ],
-          stretch(
-            createCountable({ armor: 1 }, "armor", "display"),
-            createCountable({ spike: 1 }, "spike", "display"),
-            frameWidth - 2
-          ),
-        ],
-      },
-    },
-    iron: {
-      air: { sprite: shield.iron.air },
-      fire: { sprite: shield.iron.fire },
-      water: { sprite: shield.iron.water },
-      earth: { sprite: shield.iron.earth },
-    },
-    gold: {
-      air: { sprite: shield.gold.air },
-      fire: { sprite: shield.gold.fire },
-      water: { sprite: shield.gold.water },
-      earth: { sprite: shield.gold.earth },
-    },
-    diamond: {
-      air: { sprite: shield.diamond.air },
-      fire: { sprite: shield.diamond.fire },
-      water: { sprite: shield.diamond.water },
-      earth: { sprite: shield.diamond.earth },
-    },
-    ruby: {
-      air: { sprite: shield.ruby.air },
-      fire: { sprite: shield.ruby.fire },
-      water: { sprite: shield.ruby.water },
-      earth: { sprite: shield.ruby.earth },
-    },
-
-    default: {
-      air: { sprite: shield.default.air },
-      fire: { sprite: shield.default.fire },
-      water: { sprite: shield.default.water },
-      earth: { sprite: shield.default.earth },
-    },
+    sprite: shield,
+    getDescription: (item, stats) => [
+      [
+        ...createText("A "),
+        ...createItemName({
+          stackable: "resource",
+          material: "wood",
+          element: item.element,
+        }),
+        ...createText(" shield"),
+      ],
+      [
+        ...createText("made of "),
+        ...createItemName({ stackable: "resource", material: item.material }),
+        ...createText("."),
+      ],
+      stretch(
+        createCountable(stats, "armor", "display"),
+        createCountable(
+          stats,
+          (
+            {
+              air: "resist",
+              fire: "damp",
+              water: "thaw",
+              earth: "spike",
+            } as const
+          )[item.element!],
+          "display"
+        ),
+        frameWidth - 2
+      ),
+    ],
   },
   ring: {
-    wood: {
-      air: { sprite: ring.wood.air },
-      fire: { sprite: ring.wood.fire },
-      water: { sprite: ring.wood.water },
-      earth: { sprite: ring.wood.earth },
-    },
-    iron: {
-      air: { sprite: ring.iron.air },
-      fire: { sprite: ring.iron.fire },
-      water: { sprite: ring.iron.water },
-      earth: { sprite: ring.iron.earth },
-    },
-    gold: {
-      air: { sprite: ring.gold.air },
-      fire: { sprite: ring.gold.fire },
-      water: { sprite: ring.gold.water },
-      earth: { sprite: ring.gold.earth },
-    },
-    diamond: {
-      air: { sprite: ring.diamond.air },
-      fire: { sprite: ring.diamond.fire },
-      water: { sprite: ring.diamond.water },
-      earth: { sprite: ring.diamond.earth },
-    },
-    ruby: {
-      air: { sprite: ring.ruby.air },
-      fire: { sprite: ring.ruby.fire },
-      water: { sprite: ring.ruby.water },
-      earth: { sprite: ring.ruby.earth },
-    },
-
-    default: {
-      air: { sprite: ring.default.air },
-      fire: { sprite: ring.default.fire },
-      water: { sprite: ring.default.water },
-      earth: { sprite: ring.default.earth },
-    },
+    sprite: ring,
+    getDescription: (item, stats) => [
+      createText(
+        `A ${
+          {
+            wood: "fragile",
+            iron: "crude",
+            gold: "shiny",
+            diamond: "pure",
+            ruby: "mighty",
+          }[item.material!]
+        } ring`
+      ),
+      [
+        ...createText("with a "),
+        ...createItemName({
+          stackable: "resource",
+          material: "wood",
+          element: item.element,
+        }),
+        ...createText("."),
+      ],
+      stretch(
+        brightenSprites(createCountable(stats, "maxMp", "display")),
+        createCountable(
+          stats,
+          (
+            {
+              air: "haste",
+              fire: "power",
+              water: "wisdom",
+              earth: "spike",
+            } as const
+          )[item.element!],
+          "display"
+        ),
+        frameWidth - 2
+      ),
+    ],
   },
   amulet: {
-    wood: {
-      air: { sprite: amulet.wood.air },
-      fire: { sprite: amulet.wood.fire },
-      water: { sprite: amulet.wood.water },
-      earth: { sprite: amulet.wood.earth },
-    },
-    iron: {
-      air: { sprite: amulet.iron.air },
-      fire: { sprite: amulet.iron.fire },
-      water: { sprite: amulet.iron.water },
-      earth: { sprite: amulet.iron.earth },
-    },
-    gold: {
-      air: { sprite: amulet.gold.air },
-      fire: { sprite: amulet.gold.fire },
-      water: { sprite: amulet.gold.water },
-      earth: { sprite: amulet.gold.earth },
-    },
-    diamond: {
-      air: { sprite: amulet.diamond.air },
-      fire: { sprite: amulet.diamond.fire },
-      water: { sprite: amulet.diamond.water },
-      earth: { sprite: amulet.diamond.earth },
-    },
-    ruby: {
-      air: { sprite: amulet.ruby.air },
-      fire: { sprite: amulet.ruby.fire },
-      water: { sprite: amulet.ruby.water },
-      earth: { sprite: amulet.ruby.earth },
-    },
-
-    default: {
-      air: { sprite: amulet.default.air },
-      fire: { sprite: amulet.default.fire },
-      water: { sprite: amulet.default.water },
-      earth: { sprite: amulet.default.earth },
-    },
+    sprite: amulet,
+    getDescription: (item, stats) => [
+      createText(
+        `${
+          {
+            wood: "Delicate",
+            iron: "Sturdy",
+            gold: "Shiny",
+            diamond: "Radiant",
+            ruby: "Mighty",
+          }[item.material!]
+        } amulet`
+      ),
+      [
+        ...createText("with a "),
+        ...createItemName({
+          stackable: "resource",
+          material: "wood",
+          element: item.element,
+        }),
+        ...createText("."),
+      ],
+      stretch(
+        brightenSprites(createCountable(stats, "maxHp", "display")),
+        createCountable(
+          stats,
+          (
+            {
+              air: "armor",
+              fire: "damp",
+              water: "thaw",
+              earth: "resist",
+            } as const
+          )[item.element!],
+          "display"
+        ),
+        frameWidth - 2
+      ),
+    ],
   },
-
-  // equipments
-  slash: {},
-  bow: {},
-  axe: {},
-  pickaxe: {},
-  raise: {},
-  block: {},
 
   // spells
   wave: {
-    wood: {
-      air: {
-        sprite: waveSpell.wood.air,
-        getDescription: () => [
-          createText("A wave of magic."),
-          stretch(
-            [
-              ...createText("3", colors.fuchsia),
-              minCountable(magicHit),
-              ...createText("Magic", colors.fuchsia),
-            ],
-            createCountable({ mp: -1 }, "mp", "display"),
-            frameWidth - 2
-          ),
-          [...createCountable({ wisdom: 1 }, "wisdom", "display")],
+    sprite: waveSpell,
+    getDescription: (item, stats) => [
+      createText("A wave of magic."),
+      stretch(
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
         ],
-      },
-      fire: {
-        sprite: waveSpell.wood.fire,
-        getDescription: () => [
-          createText("A wave of magic."),
-          stretch(
-            [
-              ...createText("3", colors.fuchsia),
-              minCountable(magicHit),
-              ...createText("Magic", colors.fuchsia),
-            ],
-            createCountable({ mp: -1 }, "mp", "display"),
-            frameWidth - 2
-          ),
-          [
-            ...createText("2", colors.yellow),
-            maxCountable(fire),
-            ...createText("Burn", colors.yellow),
-          ],
-        ],
-      },
-      water: {
-        sprite: waveSpell.wood.water,
-        getDescription: () => [
-          createText("A wave of magic."),
-          stretch(
-            [
-              ...createText("3", colors.fuchsia),
-              minCountable(magicHit),
-              ...createText("Magic", colors.fuchsia),
-            ],
-            createCountable({ mp: -1 }, "mp", "display"),
-            frameWidth - 2
-          ),
-          [
-            ...createText("5", colors.aqua),
-            maxCountable(freeze),
-            ...createText("Freeze", colors.aqua),
-          ],
-        ],
-      },
-      earth: {
-        sprite: waveSpell.wood.earth,
-        getDescription: () => [
-          createText("A wave of magic."),
-          stretch(
-            [
-              ...createText("2", colors.fuchsia),
-              minCountable(magicHit),
-              ...createText("Magic", colors.fuchsia),
-            ],
-            createCountable({ mp: -1 }, "mp", "display"),
-            frameWidth - 2
-          ),
-          [
-            ...createText("1", colors.purple),
-            drain,
-            ...createText("Drain", colors.purple),
-          ],
-        ],
-      },
-    },
-    iron: {
-      air: { sprite: waveSpell.iron.air },
-      fire: { sprite: waveSpell.iron.fire },
-      water: { sprite: waveSpell.iron.water },
-      earth: { sprite: waveSpell.iron.earth },
-    },
-    gold: {
-      air: { sprite: waveSpell.gold.air },
-      fire: { sprite: waveSpell.gold.fire },
-      water: { sprite: waveSpell.gold.water },
-      earth: { sprite: waveSpell.gold.earth },
-    },
-    diamond: {
-      air: { sprite: waveSpell.diamond.air },
-      fire: { sprite: waveSpell.diamond.fire },
-      water: { sprite: waveSpell.diamond.water },
-      earth: { sprite: waveSpell.diamond.earth },
-    },
-    ruby: {
-      air: { sprite: waveSpell.ruby.air },
-      fire: { sprite: waveSpell.ruby.fire },
-      water: { sprite: waveSpell.ruby.water },
-      earth: { sprite: waveSpell.ruby.earth },
-    },
-
-    default: {
-      air: { sprite: waveSpell.default.air },
-      fire: { sprite: waveSpell.default.fire },
-      water: { sprite: waveSpell.default.water },
-      earth: { sprite: waveSpell.default.earth },
-    },
+        createCountable({ mp: -1 }, "mp", "display"),
+        frameWidth - 2
+      ),
+      createCountable(
+        stats,
+        (
+          {
+            air: "wisdom",
+            fire: "burn",
+            water: "freeze",
+            earth: "drain",
+          } as const
+        )[item.element!],
+        "display"
+      ),
+    ],
   },
   beam: {
-    wood: {
-      air: {
-        sprite: beamSpell.wood.air,
-        getDescription: () => [
-          createText("A beam of bolts."),
-          stretch(
-            [
-              ...createText("2", colors.fuchsia),
-              minCountable(magicHit),
-              ...createText("Magic", colors.fuchsia),
-            ],
-            createCountable({ mp: -1 }, "mp", "display"),
-            frameWidth - 2
-          ),
-          [...createCountable({ wisdom: 1 }, "wisdom", "display")],
+    sprite: beamSpell,
+    getDescription: (item, stats) => [
+      createText("A beam of bolts."),
+      stretch(
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
         ],
-      },
-      fire: {
-        sprite: beamSpell.wood.fire,
-        getDescription: () => [
-          createText("A beam of bolts."),
-          stretch(
-            [
-              ...createText("2", colors.fuchsia),
-              minCountable(magicHit),
-              ...createText("Magic", colors.fuchsia),
-            ],
-            createCountable({ mp: -1 }, "mp", "display"),
-            frameWidth - 2
-          ),
-          [
-            ...createText("2", colors.yellow),
-            maxCountable(fire),
-            ...createText("Burn", colors.yellow),
-          ],
-        ],
-      },
-      water: {
-        sprite: beamSpell.wood.water,
-        getDescription: () => [
-          createText("A beam of bolts."),
-          stretch(
-            [
-              ...createText("2", colors.fuchsia),
-              minCountable(magicHit),
-              ...createText("Magic", colors.fuchsia),
-            ],
-            createCountable({ mp: -1 }, "mp", "display"),
-            frameWidth - 2
-          ),
-          [
-            ...createText("3", colors.aqua),
-            maxCountable(freeze),
-            ...createText("Freeze", colors.aqua),
-          ],
-        ],
-      },
-      earth: {
-        sprite: beamSpell.wood.earth,
-        getDescription: () => [
-          createText("A beam of bolts."),
-          stretch(
-            [
-              ...createText("1", colors.fuchsia),
-              minCountable(magicHit),
-              ...createText("Magic", colors.fuchsia),
-            ],
-            createCountable({ mp: -1 }, "mp", "display"),
-            frameWidth - 2
-          ),
-          [
-            ...createText("1", colors.lime),
-            minCountable(heal),
-            ...createText("Heal", colors.lime),
-          ],
-        ],
-      },
-    },
-    iron: {
-      air: { sprite: beamSpell.iron.air },
-      fire: { sprite: beamSpell.iron.fire },
-      water: { sprite: beamSpell.iron.water },
-      earth: { sprite: beamSpell.iron.earth },
-    },
-    gold: {
-      air: { sprite: beamSpell.gold.air },
-      fire: { sprite: beamSpell.gold.fire },
-      water: { sprite: beamSpell.gold.water },
-      earth: { sprite: beamSpell.gold.earth },
-    },
-    diamond: {
-      air: { sprite: beamSpell.diamond.air },
-      fire: { sprite: beamSpell.diamond.fire },
-      water: { sprite: beamSpell.diamond.water },
-      earth: { sprite: beamSpell.diamond.earth },
-    },
-    ruby: {
-      air: { sprite: beamSpell.ruby.air },
-      fire: { sprite: beamSpell.ruby.fire },
-      water: { sprite: beamSpell.ruby.water },
-      earth: { sprite: beamSpell.ruby.earth },
-    },
-
-    default: {
-      air: { sprite: beamSpell.default.air },
-      fire: { sprite: beamSpell.default.fire },
-      water: { sprite: beamSpell.default.water },
-      earth: { sprite: beamSpell.default.earth },
-    },
+        createCountable({ mp: -1 }, "mp", "display"),
+        frameWidth - 2
+      ),
+      createCountable(
+        stats,
+        (
+          {
+            air: "wisdom",
+            fire: "burn",
+            water: "freeze",
+            earth: "heal",
+          } as const
+        )[item.element!],
+        "display"
+      ),
+    ],
   },
-  bolt: {},
-  blast: {},
+  trap: {
+    sprite: trapSpell,
+    getDescription: (item, stats) => [
+      createText("Triggers effects."),
+      stretch(
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
+        ],
+        createCountable({ mp: -1 }, "mp", "display"),
+        frameWidth - 2
+      ),
+      createCountable(
+        stats,
+        (
+          {
+            air: "wisdom",
+            fire: "burn",
+            water: "freeze",
+            earth: "heal",
+          } as const
+        )[item.element!],
+        "display"
+      ),
+    ],
+  },
 
   // consumable
-  key: {},
   potion: {
-    wood: {
-      fire: {
-        sprite: flask.wood.fire,
-        getDescription: () => [
-          createText("Automatic healing"),
-          createText("on low health."),
-          stretch(
-            [
-              ...createText("5", colors.olive),
-              delay,
-              ...createText("Delay", colors.olive),
-            ],
-            createCountable({ hp: 2 }, "hp", "display"),
-            frameWidth - 2
-          ),
-        ],
+    sprite: {
+      wood: {
+        fire: flask.wood.fire,
+        water: flask.wood.water,
       },
-      water: {
-        sprite: flask.wood.water,
-        getDescription: () => [
-          createText("Refills low mana"),
-          createText("automatically."),
-          stretch(
-            [
-              ...createText("5", colors.olive),
-              delay,
-              ...createText("Delay", colors.olive),
-            ],
-            createCountable({ mp: 1 }, "mp", "display"),
-            frameWidth - 2
-          ),
-        ],
+      iron: {
+        fire: bottle.wood.fire,
+        water: bottle.wood.water,
+      },
+      gold: {
+        fire: potion.wood.fire,
+        water: potion.wood.water,
       },
     },
-    iron: {
-      fire: {
-        sprite: bottle.wood.fire,
-        getDescription: () => [
+    getDescription: (item, stats) => {
+      if (item.element === "fire") {
+        return [
           createText("Automatic healing"),
           createText("on low health."),
           stretch(
-            [
-              ...createText("8", colors.olive),
-              delay,
-              ...createText("Delay", colors.olive),
-            ],
-            createCountable({ hp: 5 }, "hp", "display"),
+            createCountable(stats, "retrigger", "display"),
+            createCountable(stats, "hp", "display"),
             frameWidth - 2
           ),
-        ],
-      },
-      water: {
-        sprite: bottle.wood.water,
-        getDescription: () => [
-          createText("Refills low mana"),
-          createText("automatically."),
-          stretch(
-            [
-              ...createText("8", colors.olive),
-              delay,
-              ...createText("Delay", colors.olive),
-            ],
-            createCountable({ mp: 2 }, "mp", "display"),
-            frameWidth - 2
-          ),
-        ],
-      },
-    },
-    gold: {
-      fire: {
-        sprite: potion.wood.fire,
-        getDescription: () => [
-          createText("Automatic healing"),
-          createText("on low health."),
-          stretch(
-            [
-              ...createText("10", colors.olive),
-              delay,
-              ...createText("Delay", colors.olive),
-            ],
-            createCountable({ hp: 10 }, "hp", "display"),
-            frameWidth - 2
-          ),
-        ],
-      },
-      water: {
-        sprite: potion.wood.water,
-        getDescription: () => [
-          createText("Refills low mana"),
-          createText("automatically."),
-          stretch(
-            [
-              ...createText("10", colors.olive),
-              delay,
-              ...createText("Delay", colors.olive),
-            ],
-            createCountable({ mp: 4 }, "mp", "display"),
-            frameWidth - 2
-          ),
-        ],
-      },
+        ];
+      }
+      return [
+        createText("Refills low mana"),
+        createText("automatically."),
+        stretch(
+          createCountable(stats, "retrigger", "display"),
+          createCountable(stats, "mp", "display"),
+          frameWidth - 2
+        ),
+      ];
     },
   },
 
   resource: {
-    wood: {
-      air: {
-        sprite: spirit.wood.air,
-        getDescription: () => [
+    sprite: spirit,
+    getDescription: (item, stats) => {
+      if (item.element === "air") {
+        return [
           createText("Elemental spirit"),
           createText("used for forging."),
+        ];
+      }
+
+      return [
+        createText("Elemental spirit"),
+        createText("used for forging"),
+        [
+          ...createText("with "),
+          ...createText(item.element!, colorPalettes[item.element!].primary),
+          ...createText("."),
         ],
-      },
-      fire: {
-        sprite: spirit.wood.fire,
-        getDescription: () => [
-          createText("Elemental spirit"),
-          createText("used for forging"),
-          [
-            ...createText("with "),
-            ...createText("fire", colors.red),
-            ...createText("."),
-          ],
-        ],
-      },
-      water: {
-        sprite: spirit.wood.water,
-        getDescription: () => [
-          createText("Elemental spirit"),
-          createText("used for forging"),
-          [
-            ...createText("with "),
-            ...createText("water", colors.blue),
-            ...createText("."),
-          ],
-        ],
-      },
-      earth: {
-        sprite: spirit.wood.earth,
-        getDescription: () => [
-          createText("Elemental spirit"),
-          createText("used for forging"),
-          [
-            ...createText("with "),
-            ...createText("earth", colors.lime),
-            ...createText("."),
-          ],
-        ],
-      },
+      ];
     },
   },
 };
@@ -2725,7 +2370,7 @@ export const getItemConfig = (
   item: Omit<Item, "amount" | "carrier" | "bound"> & {
     materialized?: Materialized;
   }
-) => {
+): SpriteDefinition | undefined => {
   const material = item.material;
   const element = item.element;
 
@@ -2747,10 +2392,19 @@ export const getItemConfig = (
         ? item.equipment
         : undefined) ||
       item.materialized;
+    const definition = lookup && materialSprites[lookup];
 
-    if (!lookup) return;
+    if (!definition) return;
 
-    return materialSprites[lookup]?.[material];
+    const resource = definition.resource?.[material]?.default;
+    const display = definition.display?.[material]?.default;
+
+    return {
+      ...definition,
+      sprite: definition.sprite[material]?.default || missing,
+      resource,
+      display,
+    };
   }
 
   if (element) {
@@ -2768,9 +2422,19 @@ export const getItemConfig = (
         ? item.equipment
         : undefined);
 
-    if (!lookup) return;
+    const definition = lookup && elementSprites[lookup];
 
-    return elementSprites[lookup]?.[material || "default"]?.[element];
+    if (!definition) return;
+
+    const resource = definition.resource?.[material || "default"]?.[element];
+    const display = definition.display?.[material || "default"]?.[element];
+
+    return {
+      ...definition,
+      sprite: definition.sprite[material || "default"]?.[element] || missing,
+      resource,
+      display,
+    };
   }
 };
 
@@ -2780,10 +2444,11 @@ export const getItemSprite = (
     amount?: number;
   },
   variant?: "resource" | "display",
-  orientation?: Orientation
+  orientation?: Orientation,
+  amount?: number
 ) => {
   // allow hiding claws of mobs
-  if (item.equipment && item.amount === 0) return none;
+  if (item.equipment && (amount ?? item.amount) === 0) return none;
 
   if (item.stat) return getStatSprite(item.stat, variant);
 
@@ -2797,7 +2462,7 @@ export const getItemSprite = (
 
   return {
     ...sprite,
-    layers: getFacingLayers(sprite, orientation),
+    layers: getFacingLayers(sprite, orientation, amount),
   };
 };
 
@@ -2872,13 +2537,38 @@ export const createUnitName = (unit: UnitKey) => {
   ];
 };
 
-export const getEntityDescription = (definition: SpriteDefinition) => {
-  if (definition.description) return definition.description;
+export const getEntityDescription = (
+  item: Omit<Item, "carrier" | "bound" | "amount">,
+  definition: SpriteDefinition
+) => {
+  const material = item.material || "default";
+  const element = item.element || "default";
+  const description = definition.descriptions?.[material]?.[element];
+  if (description) return description;
 
   if (definition.getDescription) {
-    definition.description = definition.getDescription();
-    definition.getDescription = undefined;
-    return definition.description;
+    const consumptionConfig =
+      item.material &&
+      item.element &&
+      item.consume === "potion" &&
+      consumptionConfigs.potion?.[item.material]?.[item.element];
+
+    const itemStats = consumptionConfig
+      ? {
+          ...emptyItemStats,
+          [consumptionConfig.countable]: consumptionConfig.amount,
+          retrigger: consumptionConfig.cooldown,
+        }
+      : getItemStats(item);
+
+    const descriptions = definition.descriptions || {};
+    definition.descriptions = descriptions;
+    const materialDescriptions = descriptions[material] || {};
+    descriptions[material] = materialDescriptions;
+
+    const newDescription = definition.getDescription(item, itemStats);
+    materialDescriptions[element] = newDescription;
+    return newDescription;
   }
 
   return [createText(definition.sprite.name, colors.white, colors.black)];
@@ -2891,5 +2581,5 @@ export const getItemDescription = (
 
   if (!itemConfig) return [[]];
 
-  return getEntityDescription(itemConfig);
+  return getEntityDescription(item, itemConfig);
 };

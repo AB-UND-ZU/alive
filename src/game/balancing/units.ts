@@ -38,7 +38,6 @@ import {
   wormBoss,
   ilex,
   stoneEvaporate,
-  flowerStem,
   golemUnit,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
@@ -66,10 +65,15 @@ import { Droppable } from "../../engine/components/droppable";
 import { Vanishable } from "../../engine/components/vanishable";
 import { recolorSprite } from "../assets/templates";
 import { eye, orb, prism, waveTower } from "../assets/templates/creatures";
-import { evaporate } from "../assets/templates/particles";
+import { banner, evaporate } from "../assets/templates/particles";
 
 export type UnitKey =
   | NpcType
+  | "woodTotem"
+  | "ironTotem"
+  | "goldTotem"
+  | "diamondTotem"
+  | "rubyTotem"
   | "woodChest"
   | "ironChest"
   | "goldChest"
@@ -503,6 +507,51 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: box,
+  },
+  woodTotem: {
+    faction: "settler",
+    scratch: colors.maroon,
+    stats: {},
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: banner.wood.default,
+  },
+  ironTotem: {
+    faction: "settler",
+    scratch: colors.silver,
+    stats: {},
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: banner.iron.default,
+  },
+  goldTotem: {
+    faction: "settler",
+    scratch: colors.yellow,
+    stats: {},
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: banner.gold.default,
+  },
+  diamondTotem: {
+    faction: "settler",
+    scratch: colors.aqua,
+    stats: {},
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: banner.diamond.default,
+  },
+  rubyTotem: {
+    faction: "settler",
+    scratch: colors.fuchsia,
+    stats: {},
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: banner.ruby.default,
   },
   dummy: {
     faction: "wild",
@@ -973,7 +1022,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["rose"],
     sprite: rose,
-    remainsChoices: [flowerStem],
+    evaporate: { sprite: plantEvaporate, fast: true },
   },
   violet: {
     faction: "unit",
@@ -1018,7 +1067,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["violet"],
     sprite: violet,
-    remainsChoices: [flowerStem],
+    evaporate: { sprite: plantEvaporate, fast: true },
   },
   clover: {
     faction: "unit",
@@ -1081,7 +1130,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: ["clover", "chase_slow"],
     sprite: clover,
-    remainsChoices: [flowerStem],
+    evaporate: { sprite: plantEvaporate, fast: true },
   },
   waveTower: {
     faction: "wild",

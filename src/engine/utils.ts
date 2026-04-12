@@ -5,6 +5,8 @@ import { Focusable, FOCUSABLE } from "./components/focusable";
 import { rerenderEntity } from "./systems/renderer";
 import { Entity, TypedEntity } from "./entities";
 import { PLAYER } from "./components/player";
+import { Sprite } from "./components/sprite";
+import { POI } from "./components/poi";
 
 export const TEST_MODE = window.location.search.substring(1) === "test";
 
@@ -104,4 +106,8 @@ export const setNeedle = (world: World, entity?: TypedEntity) => {
 
   compassEntity[TRACKABLE].target = entityId;
   rerenderEntity(world, compassEntity);
+};
+
+export const setPoi = (world: World, entity: TypedEntity, sprite: Sprite) => {
+  world.addComponentToEntity(entity, POI, { sprite });
 };

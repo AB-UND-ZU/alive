@@ -26,6 +26,7 @@ import {
   assertIdentifierAndComponents,
   getIdentifier,
   getIdentifierAndComponents,
+  getIdentifiersAndComponents,
   setHighlight,
 } from "../../engine/utils";
 import { up2Cactus } from "../levels/tutorial/areas";
@@ -203,7 +204,9 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
   const guideSign = getIdentifierAndComponents(world, "guide_sign", [POSITION]);
   const woodOne = getIdentifierAndComponents(world, "wood_one", [POSITION]);
   const dummy = getIdentifierAndComponents(world, "dummy", [POSITION]);
-  const coinDrop = getIdentifierAndComponents(world, "dummy:drop", [ITEM]);
+  const coinDrop = getIdentifiersAndComponents(world, "dummy:drop", [
+    ITEM,
+  ]).find((drop) => drop[ITEM].stackable === "coin");
   const inEntrance =
     getLockable(world, entity[POSITION])?.[LOCKABLE].type === "entry";
 
@@ -319,6 +322,9 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
     updated: false,
   };
 
+  const north2UpDoor = assertIdentifierAndComponents(world, "north2:door", [
+    POSITION,
+  ]);
   const north2RightDoor = assertIdentifierAndComponents(
     world,
     "north2east1:door",
@@ -342,7 +348,7 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "end",
     forceEnter: () =>
-      isUnlocked(world, north2RightDoor) ||
+      (isUnlocked(world, north2UpDoor) && isUnlocked(world, north2RightDoor)) ||
       (state.args.step !== START_STEP && inEntrance) ||
       (!fruitSign && state.args.step === "sign"),
     onEnter: () => {
@@ -393,14 +399,95 @@ export const north2Quest: Sequence<QuestSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () => !fruitChest,
-    onLeave: () => "door",
+    onLeave: () => "gold_door",
   });
 
   step({
     stage,
-    name: "door",
+    name: "gold_door",
     onEnter: () => {
       setHighlight(world, "quest", north2RightDoor);
+      return true;
+    },
+    isCompleted: () =>
+      !!(entity[INVENTORY] as Inventory).items.find((item) => {
+        const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
+        return (
+          itemEntity[ITEM].consume === "key" &&
+          itemEntity[ITEM].material === "iron"
+        );
+      }),
+    onLeave: () => "iron_door",
+  });
+
+  step({
+    stage,
+    name: "iron_door",
+    onEnter: () => {
+      setHighlight(world, "quest", north2UpDoor);
+      return true;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const north2East1Quest: Sequence<QuestSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const stage: QuestStage<QuestSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const north2UpDoor = assertIdentifierAndComponents(world, "north2:door", [
+    POSITION,
+  ]);
+  const north2RightDoor = assertIdentifierAndComponents(
+    world,
+    "north2east1:door",
+    [POSITION]
+  );
+  const potionChest = getIdentifierAndComponents(world, "potion_chest", [
+    POSITION,
+  ]);
+  const inEntrance =
+    getLockable(world, entity[POSITION])?.[LOCKABLE].type === "entry";
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => !inEntrance,
+    onLeave: () => "chest",
+  });
+
+  step({
+    stage,
+    name: "end",
+    forceEnter: () =>
+      (state.args.step !== START_STEP && inEntrance) || !potionChest,
+    onEnter: () => {
+      if (isUnlocked(world, north2UpDoor)) {
+        setHighlight(world);
+      } else {
+        setHighlight(world, "quest", north2RightDoor);
+      }
+      return true;
+    },
+    isCompleted: () => true,
+    onLeave: () => END_STEP,
+  });
+
+  step({
+    stage,
+    name: "chest",
+    onEnter: () => {
+      setHighlight(world, "enemy", potionChest);
       return true;
     },
   });
@@ -436,6 +523,7 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
     isCompleted: () =>
       townDistance < 10 ||
       !spawnSign ||
+      !getSequence(world, spawnSign, "discovery")?.args.idle ||
       (isInPopup(world, entity) &&
         world.getEntityById(entity[PLAYER].popup) === spawnSign),
     onLeave: () => "town",
@@ -473,10 +561,13 @@ export const waypointQuest: Sequence<QuestSequence> = (
     finished: false,
     updated: false,
   };
-  const { identifier, targetId, distance, highlight } = state.args.memory;
+  const { identifier, targetId, position, distance, highlight } =
+    state.args.memory;
 
   const size = world.metadata.gameEntity[LEVEL].size;
-  const targetEntity = identifier
+  const targetEntity = position
+    ? position
+    : identifier
     ? getIdentifierAndComponents(world, identifier, [POSITION])
     : world.getEntityByIdAndComponents(targetId || state.args.giver, [
         POSITION,
@@ -550,6 +641,7 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
 
       // restart existing quest
       const currentQuest = (entity[SPAWNABLE] as Spawnable).quest;
+
       if (currentQuest) {
         questSequence(
           world,
@@ -561,7 +653,8 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
         entity[SPAWNABLE].quest = undefined;
       }
 
-      return END_STEP;
+      // don't finish quest to avoid deletion of newly started quest
+      return "wait";
     },
   });
 

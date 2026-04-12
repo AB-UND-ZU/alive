@@ -14,6 +14,7 @@ export { default as setupFreeze } from "./freeze";
 export { default as setupHarvesting } from "./harvesting";
 export { default as setupHoming } from "./homing";
 export { default as setupImmersion } from "./immersion";
+export { default as setupInteract } from "./interact";
 export { default as setupInitialize } from "./initialize";
 export { default as setupLeveling } from "./leveling";
 export { default as setupMagic } from "./magic";

@@ -37,19 +37,9 @@ export const abilityStats: Partial<
 
       wood: {
         default: { magic: 3 },
-
-        air: {
-          magic: 3,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 3,
-          burn: 2,
-        },
-        water: {
-          magic: 3,
-          freeze: 5,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
         earth: {
           magic: 2,
           drain: 1,
@@ -57,19 +47,9 @@ export const abilityStats: Partial<
       },
       iron: {
         default: { magic: 6 },
-
-        air: {
-          magic: 6,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 6,
-          burn: 2,
-        },
-        water: {
-          magic: 6,
-          freeze: 5,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
         earth: {
           magic: 4,
           drain: 1,
@@ -77,19 +57,9 @@ export const abilityStats: Partial<
       },
       gold: {
         default: { magic: 9 },
-
-        air: {
-          magic: 9,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 9,
-          burn: 2,
-        },
-        water: {
-          magic: 9,
-          freeze: 5,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
         earth: {
           magic: 6,
           drain: 1,
@@ -97,19 +67,9 @@ export const abilityStats: Partial<
       },
       diamond: {
         default: { magic: 12 },
-
-        air: {
-          magic: 12,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 12,
-          burn: 2,
-        },
-        water: {
-          magic: 12,
-          freeze: 5,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
         earth: {
           magic: 8,
           drain: 1,
@@ -117,19 +77,9 @@ export const abilityStats: Partial<
       },
       ruby: {
         default: { magic: 15 },
-
-        air: {
-          magic: 15,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 15,
-          burn: 2,
-        },
-        water: {
-          magic: 15,
-          freeze: 5,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
         earth: {
           magic: 10,
           drain: 1,
@@ -148,19 +98,9 @@ export const abilityStats: Partial<
 
       wood: {
         default: { magic: 2 },
-
-        air: {
-          magic: 2,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 2,
-          burn: 2,
-        },
-        water: {
-          magic: 2,
-          freeze: 3,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
         earth: {
           magic: 1,
           heal: 1,
@@ -168,19 +108,9 @@ export const abilityStats: Partial<
       },
       iron: {
         default: { magic: 4 },
-
-        air: {
-          magic: 4,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 4,
-          burn: 2,
-        },
-        water: {
-          magic: 4,
-          freeze: 3,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
         earth: {
           magic: 2,
           heal: 1,
@@ -188,19 +118,9 @@ export const abilityStats: Partial<
       },
       gold: {
         default: { magic: 6 },
-
-        air: {
-          magic: 6,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 6,
-          burn: 2,
-        },
-        water: {
-          magic: 6,
-          freeze: 3,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
         earth: {
           magic: 3,
           heal: 1,
@@ -208,19 +128,9 @@ export const abilityStats: Partial<
       },
       diamond: {
         default: { magic: 8 },
-
-        air: {
-          magic: 8,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 8,
-          burn: 2,
-        },
-        water: {
-          magic: 8,
-          freeze: 3,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
         earth: {
           magic: 4,
           heal: 1,
@@ -228,23 +138,57 @@ export const abilityStats: Partial<
       },
       ruby: {
         default: { magic: 10 },
-
-        air: {
-          magic: 10,
-          wisdom: 1,
-        },
-        fire: {
-          magic: 10,
-          burn: 2,
-        },
-        water: {
-          magic: 10,
-          freeze: 3,
-        },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
         earth: {
           magic: 5,
           heal: 1,
         },
+      },
+    },
+    trap: {
+      // set default spell attributes
+      default: {
+        default: {
+          duration: 50,
+        },
+      },
+
+      wood: {
+        default: { magic: 5 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
+        earth: { heal: 3 },
+      },
+      iron: {
+        default: { magic: 10 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
+        earth: { heal: 3 },
+      },
+      gold: {
+        default: { magic: 15 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
+        earth: { heal: 3 },
+      },
+      diamond: {
+        default: { magic: 20 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
+        earth: { heal: 3 },
+      },
+      ruby: {
+        default: { magic: 25 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 3 },
+        earth: { heal: 3 },
       },
     },
     bolt: {
@@ -265,6 +209,24 @@ export const abilityStats: Partial<
           retrigger: 2,
         },
       },
+    },
+    totem: {
+      // set default spell attributes
+      default: {
+        default: {
+          range: 3,
+          addPower: 1,
+          addWisdom: 1,
+          addArmor: 1,
+          addResist: 1,
+        },
+      },
+
+      wood: { default: { duration: 10 } },
+      iron: { default: { duration: 15 } },
+      gold: { default: { duration: 20 } },
+      diamond: { default: { duration: 25 } },
+      ruby: { default: { duration: 30 } },
     },
     bow: {
       wood: { default: { melee: 2 } },
@@ -362,7 +324,9 @@ export const abilityStats: Partial<
       default: {
         default: {
           true: 2,
+          knock: 1,
           retrigger: 1,
+          reproc: 1,
         },
       },
     },
@@ -427,20 +391,14 @@ export const abilityStats: Partial<
 export const lookupAbilityStats = (
   lookup: (
     casterStats: (typeof abilityStats)[NpcType]
-  ) =>
-    | Partial<ItemStats & Partial<Record<Element, Partial<ItemStats>>>>
-    | undefined,
+  ) => Partial<ItemStats> | undefined,
   caster: NpcType | "default"
-) => {
-  const { air, fire, water, earth, ...result } =
-    lookup(abilityStats[caster]) || lookup(abilityStats.default) || {};
-  return result;
-};
+) => lookup(abilityStats[caster]) || lookup(abilityStats.default) || {};
 
-export const getAbilityStats = (
+const getDirectAbilityStats = (
   item: Omit<Item, "carrier" | "bound" | "amount">,
   caster: NpcType | "default" = "default"
-): ItemStats => {
+): Partial<ItemStats> => {
   const { primary, secondary, material, element } = item;
   const key = primary || secondary;
   const itemStats = lookupAbilityStats(
@@ -451,8 +409,27 @@ export const getAbilityStats = (
     caster
   );
 
+  return itemStats;
+};
+
+export const getAbilityStats = (
+  item: Omit<Item, "carrier" | "bound" | "amount">,
+  caster: NpcType | "default" = "default"
+): ItemStats => {
+  const defaultStats = getDirectAbilityStats(
+    { ...item, material: undefined, element: undefined },
+    "default"
+  );
+  const materialStats = getDirectAbilityStats(
+    { ...item, element: undefined },
+    "default"
+  );
+  const abilityStats = getDirectAbilityStats(item, caster);
+
   return {
     ...emptyItemStats,
-    ...itemStats,
+    ...defaultStats,
+    ...materialStats,
+    ...abilityStats,
   };
 };

@@ -5,9 +5,9 @@ import {
   none,
   createProgress,
   createButton,
-  resumeInvert,
   pauseInvert,
   createSpriteButton,
+  pauseInvertPressed,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
@@ -22,29 +22,41 @@ import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
+import { recolorLine } from "../../game/assets/pixels";
+import { getIdentifier } from "../../engine/utils";
+import { isDead } from "../../engine/systems/damage";
 
 const pressDuration = 200;
 const progressWidth = 13;
-const bagWidth = 4;
+const menuWidth = 3;
+const bagWidth = 5;
+const highlightDuration = 1 * 2 * 3 * 4 * 5;
 
 function StatsInner({
   padding,
   hidden,
   handleInspect,
+  handleSurvey,
   width,
   inspecting,
+  surveying,
+  map,
   ...stats
 }: {
   padding: number;
   hidden: boolean;
   inspecting: boolean;
+  surveying: boolean;
   width: number;
   handleInspect: (
     event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => void;
+  handleSurvey: (
+    event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => void;
 } & Partial<Countable> &
   Equippable) {
-  const { ecs, paused, setPaused, flipped } = useWorld();
+  const { ecs, paused, setPaused, flipped, initial } = useWorld();
   const dimensions = useDimensions();
   const [pressed, setPressed] = useState("");
   const level = ecs?.metadata.gameEntity[LEVEL].name;
@@ -54,15 +66,18 @@ function StatsInner({
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
 
+      if (initial || hidden) return;
+
       setPaused((prevPaused) => !prevPaused);
       setPressed("pause");
       setTimeout(setPressed, pressDuration, "");
     },
-    [setPaused]
+    [setPaused, initial, hidden]
   );
+
   const handleBag = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-      if (paused) return;
+      if (paused || hidden) return;
 
       event.preventDefault();
 
@@ -71,64 +86,119 @@ function StatsInner({
       setPressed("inspect");
       setTimeout(setPressed, pressDuration, "");
     },
-    [handleInspect, paused]
+    [handleInspect, paused, hidden]
+  );
+
+  const handleMap = useCallback(
+    (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      if (paused) return;
+
+      event.preventDefault();
+
+      handleSurvey(event);
+
+      setPressed("map");
+      setTimeout(setPressed, pressDuration, "");
+    },
+    [handleSurvey, paused]
   );
 
   const highlightRef = useRef<NodeJS.Timeout>();
-  const [highlight, setHighlight] = useState(8);
+  const [highlight, setHighlight] = useState(0);
+  const hpPercentage = ((stats.hp || 0) / (stats.maxHp || 1)) * 100;
+  const hpBlink =
+    !paused &&
+    hpPercentage > 0 &&
+    hpPercentage < 30 &&
+    highlight % (highlightDuration / (5 - Math.floor(hpPercentage / 6))) <= 1;
+  const normalProgress = createProgress(stats, "hp", progressWidth, false);
+  const hpProgress = hpBlink
+    ? recolorLine(normalProgress, { [colors.maroon]: colors.red })
+    : normalProgress;
 
   // rotate button shadow
   useEffect(() => {
     if (highlightRef.current) return;
 
-    setHighlight(8);
+    setHighlight(0);
 
     highlightRef.current = setInterval(() => {
-      setHighlight((prevHighlight) => normalize(prevHighlight - 1, 8));
+      setHighlight((prevHighlight) =>
+        normalize(prevHighlight + 1, highlightDuration)
+      );
     }, 100);
   }, []);
 
   const pauseButton = createSpriteButton(
-    [paused ? resumeInvert : pauseInvert],
-    2,
+    [paused ? pauseInvertPressed : pauseInvert],
+    menuWidth,
     false,
-    pressed === "pause",
-    highlight,
-    paused ? "lime" : "silver"
+    paused,
+    highlight === 3 || highlight === 4,
+    "white"
   );
   const bagButton = createButton(
-    inspecting ? " X " : "BAG",
+    "BAG",
     bagWidth,
     paused,
-    pressed === "inspect",
-    (highlight + 3) % 8,
-    inspecting ? "red" : "silver"
+    pressed === "inspect" || inspecting,
+    highlight === 9 || highlight === 10,
+    "white"
   );
+  const mapButton = map
+    ? createButton(
+        "MAP",
+        bagWidth,
+        paused,
+        pressed === "map" || surveying,
+        highlight === 15 || highlight === 16,
+        "yellow"
+      )
+    : repeat(none, bagWidth);
 
   return (
     <header className={flipped ? "StatsFlipped" : "Stats"}>
-      {hidden || inMenu ? (
+      {hidden || initial ? (
         <>
           <Row />
           <Row />
           <Row />
+        </>
+      ) : inMenu ? (
+        <>
+          <Row />
+          <Row />
+          <Row
+            cells={
+              flipped
+                ? [...repeat(none, progressWidth + bagWidth), ...pauseButton]
+                : [...pauseButton, ...repeat(none, progressWidth + bagWidth)]
+            }
+          />
         </>
       ) : (
         <>
           <Row
             cells={
               flipped
+                ? [...mapButton, ...hpProgress, none, ...repeat(none, 2)]
+                : [...repeat(none, 2), none, ...hpProgress, ...mapButton]
+            }
+          />
+          <Row
+            cells={
+              flipped
                 ? [
                     ...repeat(none, 4),
                     none,
-                    ...createProgress(stats, "hp", progressWidth, false),
+                    ...createProgress(stats, "mp", progressWidth),
                     none,
                     ...repeat(none, 2),
                   ]
                 : [
                     ...repeat(none, 2),
                     none,
-                    ...createProgress(stats, "hp", progressWidth, false),
+                    ...createProgress(stats, "mp", progressWidth),
                     none,
                     ...repeat(none, 4),
                   ]
@@ -138,37 +208,14 @@ function StatsInner({
             cells={
               flipped
                 ? [
-                    ...bagButton[0],
-                    none,
-                    ...createProgress(stats, "mp", progressWidth),
-                    none,
-                    ...pauseButton[0],
+                    ...bagButton,
+                    ...createProgress(stats, "xp", progressWidth),
+                    ...pauseButton,
                   ]
                 : [
-                    ...pauseButton[0],
-                    none,
-                    ...createProgress(stats, "mp", progressWidth),
-                    none,
-                    ...bagButton[0],
-                  ]
-            }
-          />
-          <Row
-            cells={
-              flipped
-                ? [
-                    ...bagButton[1],
-                    none,
+                    ...pauseButton,
                     ...createProgress(stats, "xp", progressWidth),
-                    none,
-                    ...pauseButton[1],
-                  ]
-                : [
-                    ...pauseButton[1],
-                    none,
-                    ...createProgress(stats, "xp", progressWidth),
-                    none,
-                    ...bagButton[1],
+                    ...bagButton,
                   ]
             }
           />
@@ -180,8 +227,17 @@ function StatsInner({
       <Row
         cells={createText("─".repeat(width + padding * 2 + 1), colors.grey)}
       />
-      <div className="Menu" id="menu" onClick={handleMenu} />
-      <div className="Inspect" id="inspect" onClick={handleBag} />
+      {!initial && <div className="Menu" id="menu" onClick={handleMenu} />}
+      {!initial && !hidden && !inMenu && (
+        <>
+          <div
+            className={map ? "InspectSurvey" : "Inspect"}
+            id="inspect"
+            onClick={handleBag}
+          />
+          {map && <div className="Survey" id="survey" onClick={handleMap} />}
+        </>
+      )}
     </header>
   );
 }
@@ -192,6 +248,8 @@ export default function Stats() {
   const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
   const hero = useHero();
+  const mapItem = hero && ecs && ecs.getEntityById(hero[EQUIPPABLE]?.map);
+  const mapViewpoint = hero && ecs && getIdentifier(ecs, "map");
 
   const handleInspect = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -205,11 +263,37 @@ export default function Stats() {
 
       if (!reference) return;
 
-      hero[PLAYER].inspectTriggered = true;
-      reference.suspensionCounter = reference.suspensionCounter === -1 ? -1 : 1;
+      hero[PLAYER].actionTriggered = "inspect";
+      reference.suspensionCounter =
+        reference.suspensionCounter === -1
+          ? -1
+          : reference.suspensionCounter + 1;
       reference.suspended = false;
     },
     [hero, ecs, paused]
+  );
+
+  const handleSurvey = useCallback(
+    (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      event.preventDefault();
+
+      if (!hero || !ecs || paused || !mapItem) return;
+
+      const reference = ecs.assertByIdAndComponents(hero[MOVABLE]?.reference, [
+        REFERENCE,
+      ])[REFERENCE];
+
+      if (!reference) return;
+
+      hero[PLAYER].actionTriggered = "map";
+
+      reference.suspensionCounter =
+        reference.suspensionCounter === -1
+          ? -1
+          : reference.suspensionCounter + 1;
+      reference.suspended = false;
+    },
+    [hero, ecs, paused, mapItem]
   );
 
   return (
@@ -218,10 +302,18 @@ export default function Stats() {
       width={dimensions.visibleColumns}
       {...hero?.[STATS]}
       {...hero?.[EQUIPPABLE]}
-      hidden={!ecs || !hero || isGhost(ecs, hero)}
+      hidden={!ecs || !hero || isGhost(ecs, hero) || isDead(ecs, hero)}
       handleInspect={handleInspect}
+      handleSurvey={handleSurvey}
       inspecting={
         !!hero && !!ecs && hero[PLAYER].popup === ecs.getEntityId(hero)
+      }
+      surveying={
+        !!hero &&
+        !!ecs &&
+        !!mapItem &&
+        !!mapViewpoint &&
+        hero[PLAYER].popup === ecs.getEntityId(mapViewpoint)
       }
     />
   );

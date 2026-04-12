@@ -180,6 +180,8 @@ export default function setupAi(world: World) {
           if (entity[CLICKABLE]?.clicked) {
             entity[BELONGABLE].faction = "wild";
             entity[SPRITE] = { ...entity[SPRITE], name: "" };
+            entity[TOOLTIP].idle = rage;
+            entity[TOOLTIP].changed = true;
 
             // apply invincible and dialog manually to avoid extra tick
             world.removeComponentFromEntity(
@@ -194,9 +196,9 @@ export default function setupAi(world: World) {
               );
             }
 
-            if (entity[TOOLTIP]) {
-              entity[TOOLTIP].idle = rage;
-              entity[TOOLTIP].changed = true;
+            const textSequence = getSequence(world, entity, "dialog");
+            if (textSequence) {
+              textSequence.args.text = [rage];
             }
 
             patterns.splice(

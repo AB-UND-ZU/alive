@@ -11,9 +11,19 @@ export type Player = {
       Pick<Castable, "melee" | "magic">),
     number
   >;
-  popup?: number;
-  inspectTriggered: boolean;
   defeatedUnits: Partial<Record<UnitKey, number>>;
+  popup?: number;
+  actionTriggered?:
+    | "interact"
+    | "inspect"
+    | "map"
+    | "close"
+    | "tab"
+    | "backtab"
+    | "left"
+    | "right";
+  tabTriggered?: number;
+  contentTriggered?: number;
 };
 
 export const emptyReceivedStats = {

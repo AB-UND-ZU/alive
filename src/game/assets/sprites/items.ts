@@ -1,5 +1,6 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
+import { recolorSprite } from "../templates";
 
 export const heart: Sprite = {
   name: "HP",
@@ -181,6 +182,10 @@ export const power: Sprite = {
     { char: "·", color: colors.lime },
   ],
 };
+export const addPower = recolorSprite(power, {
+  [colors.lime]: colors.fuchsia,
+  [colors.green]: colors.purple,
+});
 
 export const wisdom: Sprite = {
   name: "Wisdom",
@@ -190,6 +195,10 @@ export const wisdom: Sprite = {
     { char: "-", color: colors.lime },
   ],
 };
+export const addWisdom = recolorSprite(wisdom, {
+  [colors.lime]: colors.fuchsia,
+  [colors.green]: colors.purple,
+});
 
 export const armor: Sprite = {
   name: "Armor",
@@ -200,6 +209,10 @@ export const armor: Sprite = {
     { char: "∙", color: colors.lime },
   ],
 };
+export const addArmor = recolorSprite(armor, {
+  [colors.lime]: colors.fuchsia,
+  [colors.green]: colors.purple,
+});
 
 export const resist: Sprite = {
   name: "Resist",
@@ -210,6 +223,10 @@ export const resist: Sprite = {
     { char: "+", color: colors.green },
   ],
 };
+export const addResist = recolorSprite(resist, {
+  [colors.lime]: colors.fuchsia,
+  [colors.green]: colors.purple,
+});
 
 export const vision: Sprite = {
   name: "Vision",
@@ -225,6 +242,15 @@ export const haste: Sprite = {
   layers: [
     { char: "\u0119", color: colors.green },
     { char: "»", color: colors.lime },
+  ],
+};
+
+export const rush: Sprite = {
+  name: "Rush",
+  layers: [
+    { char: "\u0119", color: colors.fuchsia },
+    { char: "»", color: colors.purple },
+    { char: ">", color: colors.fuchsia },
   ],
 };
 

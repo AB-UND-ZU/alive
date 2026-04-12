@@ -20,7 +20,6 @@ import { TypedEntity } from "../entities";
 import {
   getPopup,
   getTabSelections,
-  getVerticalIndex,
   isInPopup,
   isInTab,
   isPopupAvailable,
@@ -31,6 +30,18 @@ import { POPUP } from "../components/popup";
 import { EQUIPPABLE } from "../components/equippable";
 import { CONDITIONABLE } from "../components/conditionable";
 import { FRAGMENT } from "../components/fragment";
+import { EXERTABLE } from "../components/exertable";
+import { CASTABLE } from "../components/castable";
+import { SEQUENCABLE } from "../components/sequencable";
+import { getItemSprite } from "../../game/assets/utils";
+import { none } from "../../game/assets/sprites";
+import { isControllable } from "./freeze";
+import { BLOCKABLE } from "../components/blockable";
+
+export const getBlockable = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).find(
+    (entity) => BLOCKABLE in entity
+  ) as Entity | undefined;
 
 export const getWarpable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -44,6 +55,9 @@ export const getLockable = (world: World, position: Position) =>
 
 export const isLocked = (world: World, entity: Entity) =>
   !!entity[LOCKABLE]?.locked;
+
+export const isUnlockable = (world: World, lockable: Entity) =>
+  isLocked(world, lockable) && !getBlockable(world, lockable[POSITION]);
 
 export const isUnlocked = (world: World, entity: Entity) =>
   entity[LOCKABLE]?.locked === false;
@@ -69,6 +83,26 @@ export const getUnlockKey = (
   return keyId && world.getEntityById(keyId);
 };
 
+export const getUnlockSprite = (world: World, lockable: Entity) =>
+  lockable[LOCKABLE].material === "wood"
+    ? none
+    : getItemSprite({ consume: "key", material: lockable[LOCKABLE].material });
+
+export const getPendingTotem = (world: World, entity: Entity) => {
+  const entityId = world.getEntityId(entity);
+  return world
+    .getEntities([CASTABLE, EXERTABLE, SEQUENCABLE])
+    .find((castable) => {
+      const auraSequence = getSequence(world, castable, "aura");
+
+      if (!auraSequence || castable[CASTABLE].caster !== entityId) return false;
+
+      return (
+        auraSequence.name === "totemAura" && auraSequence.args.progress < 3
+      );
+    });
+};
+
 export const castablePrimary = (
   world: World,
   entity: TypedEntity<"INVENTORY">,
@@ -91,6 +125,8 @@ export const castableSecondary = (
   entity: TypedEntity<"INVENTORY">,
   item: TypedEntity<"ITEM">
 ) => {
+  if (!isControllable(world, entity)) return false;
+
   if (isNpc(world, entity)) return true;
 
   const secondary = item[ITEM].secondary;
@@ -115,7 +151,10 @@ export const castableSecondary = (
     const activeCondition =
       (secondary === "raise" && entity[CONDITIONABLE]?.raise) ||
       (secondary === "block" && entity[CONDITIONABLE]?.block);
-    if (hasCharge && !activeCondition) return true;
+    const pendingTotem =
+      secondary === "totem" && !!getPendingTotem(world, entity);
+
+    if (hasCharge && !activeCondition && !pendingTotem) return true;
   } else if (secondary === "axe" && item[ITEM].material) {
     return true;
   }
@@ -147,9 +186,6 @@ export default function setupAction(world: World) {
       let trade: Entity | undefined = undefined;
       let use: Entity | undefined = undefined;
       let add_: Entity | undefined = undefined;
-      let close: Entity | undefined = world.getEntityById(
-        entity[PLAYER]?.popup
-      );
       let spawn: Entity | undefined = undefined;
 
       // check direct actions
@@ -193,7 +229,7 @@ export default function setupAction(world: World) {
               !unlock &&
               lockableEntity &&
               !isInPopup(world, entity) &&
-              isLocked(world, lockableEntity) &&
+              isUnlockable(world, lockableEntity) &&
               !isEnemy(world, entity) &&
               !isDead(world, entity)
             )
@@ -245,15 +281,13 @@ export default function setupAction(world: World) {
                 (isInTab(world, entity, "craft") && selections.length < 1) ||
                 ((isInTab(world, entity, "class") ||
                   isInTab(world, entity, "style")) &&
-                  selections.length < 1) ||
+                  selections.length <= 1) ||
                 (isInTab(world, entity, "quest") &&
                   ((!isQuestCompleted(world, entity, addEntity) &&
-                    ((selections.length === 0 &&
-                      addEntity[POPUP].objectives.length > 0) ||
-                      (selections.length === 1 &&
-                        addEntity[POPUP].objectives[
-                          getVerticalIndex(world, addEntity)
-                        ].identifier))) ||
+                    selections.length === 0 &&
+                    addEntity[POPUP].focuses[
+                      addEntity[POPUP].horizontalIndex
+                    ]) ||
                     (isQuestCompleted(world, entity, addEntity) &&
                       selections.length === 0 &&
                       addEntity[POPUP].choices.length > 0))))
@@ -281,15 +315,9 @@ export default function setupAction(world: World) {
       const tradeId = trade && world.getEntityId(trade);
       const useId = use && world.getEntityId(use);
       const addId = add_ && world.getEntityId(add_);
-      const closeId = close && world.getEntityId(close);
       const spawnId = spawn && world.getEntityId(spawn);
       const primaryId = primary && world.getEntityId(primary);
-      const secondaryId =
-        castableEntity &&
-        !isEnemy(world, castableEntity) &&
-        (warpId || unlockId || popupId || tradeId || useId || addId || spawnId)
-          ? undefined
-          : secondary && world.getEntityId(secondary);
+      const secondaryId = secondary && world.getEntityId(secondary);
 
       if (
         entity[ACTIONABLE].warp !== warpId ||
@@ -298,7 +326,6 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].trade !== tradeId ||
         entity[ACTIONABLE].use !== useId ||
         entity[ACTIONABLE].add !== addId ||
-        entity[ACTIONABLE].close !== closeId ||
         entity[ACTIONABLE].spawn !== spawnId ||
         entity[ACTIONABLE].primary !== primaryId ||
         entity[ACTIONABLE].secondary !== secondaryId
@@ -309,7 +336,6 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].use = useId;
         entity[ACTIONABLE].add = addId;
-        entity[ACTIONABLE].close = closeId;
         entity[ACTIONABLE].spawn = spawnId;
         entity[ACTIONABLE].primary = primaryId;
         entity[ACTIONABLE].secondary = secondaryId;

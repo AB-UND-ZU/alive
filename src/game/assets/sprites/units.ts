@@ -646,10 +646,26 @@ export const egg: Sprite = {
 
 export const spikes: Sprite = {
   name: "Spikes",
-  layers: [
-    { char: "Ω", color: colors.red },
-    { char: "\u0102", color: colors.black },
-    { char: "\u011e", color: colors.black },
-    { char: "º", color: colors.black },
-  ],
+  layers: [{ char: "-", color: colors.grey }],
+  amounts: {
+    single: [
+      { char: "\u011c", color: colors.white },
+      { char: "\u0106", color: colors.white },
+      { char: "=", color: colors.black },
+      { char: "-", color: colors.grey },
+      { char: "\u0115", color: colors.black },
+    ],
+    double: [
+      { char: "\u011c", color: colors.white },
+      { char: "÷", color: colors.white },
+      { char: "\u0106", color: colors.white },
+      { char: "-", color: colors.grey },
+      { char: "\u0115", color: colors.black },
+    ],
+    multiple: [
+      { char: "\u0103", color: colors.red },
+      { char: "-", color: colors.grey },
+      { char: "\u0115", color: colors.black },
+    ],
+  },
 };

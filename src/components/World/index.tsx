@@ -37,6 +37,8 @@ export default function World(props: React.PropsWithChildren) {
 
   const handlePause = useCallback(
     (action: React.SetStateAction<boolean>) => {
+      ecs.metadata.initial = false;
+
       const newPause =
         typeof action === "function" ? action(pauseRef.current) : action;
 
@@ -50,7 +52,7 @@ export default function World(props: React.PropsWithChildren) {
       setPaused(newPause);
       pauseRef.current = newPause;
     },
-    [setPaused, pauseRef]
+    [setPaused, pauseRef, ecs]
   );
 
   const context = useMemo(

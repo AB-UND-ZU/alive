@@ -75,6 +75,7 @@ import {
   assertIdentifier,
   getIdentifierAndComponents,
   setIdentifier,
+  setPoi,
 } from "../engine/utils";
 import { colors } from "../game/assets/colors";
 import {
@@ -88,7 +89,6 @@ import {
   createButton,
   createDialog,
   createText,
-  createTooltip,
   delay,
   doorOpen,
   enemySpawner,
@@ -150,6 +150,12 @@ import {
   golemArm,
   golem,
   golemBody,
+  ilex,
+  addBackground,
+  interactBar,
+  times,
+  createSpriteButton,
+  emptyFlask,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -220,7 +226,7 @@ import {
   signedDistance,
 } from "../game/math/std";
 import { CLICKABLE } from "../engine/components/clickable";
-import { centerSprites, overlay } from "../game/assets/pixels";
+import { centerLayer, centerSprites, overlay } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
 import { POPUP } from "../engine/components/popup";
 import { openDoor } from "../engine/systems/trigger";
@@ -274,81 +280,92 @@ export const cellNames = [
 ] as const;
 export type CellType = (typeof cellNames)[number];
 
-const populateItems = (
+export const populateItems = (
   world: World,
   entity: TypedEntity<"INVENTORY">,
   items: Omit<Item, "carrier">[],
   equip: boolean = true
 ) => {
+  const created = [];
   for (const item of items) {
     if (item.equipment === "sword") {
-      createItemInInventory(
-        world,
-        entity,
-        entities.createSword,
-        {
-          [ITEM]: item,
-          [ORIENTABLE]: {},
-          [SEQUENCABLE]: { states: {} },
-          [SPRITE]: getItemSprite(item),
-        },
-        equip
+      created.push(
+        createItemInInventory(
+          world,
+          entity,
+          entities.createSword,
+          {
+            [ITEM]: item,
+            [ORIENTABLE]: {},
+            [SEQUENCABLE]: { states: {} },
+            [SPRITE]: getItemSprite(item),
+          },
+          equip
+        )
       );
     } else if (item.stackable === "note") {
-      createItemInInventory(
-        world,
-        entity,
-        entities.createNote,
-        {
-          [ITEM]: item,
-          [SEQUENCABLE]: { states: {} },
-          [SPRITE]: getItemSprite(item),
-          [POPUP]: {
-            active: false,
-            verticalIndezes: [0],
-            horizontalIndex: 0,
-            selections: [],
-            deals: [],
-            recipes: [],
-            lines: [[]],
-            objectives: [],
-            choices: [],
-            targets: [],
-            viewpoint: world.getEntityId(entity),
-            tabs: ["info"],
+      created.push(
+        createItemInInventory(
+          world,
+          entity,
+          entities.createNote,
+          {
+            [ITEM]: item,
+            [SEQUENCABLE]: { states: {} },
+            [SPRITE]: getItemSprite(item),
+            [POPUP]: {
+              active: false,
+              verticalIndezes: [0],
+              horizontalIndex: 0,
+              selections: [],
+              deals: [],
+              recipes: [],
+              lines: [[]],
+              focuses: [],
+              choices: [],
+              targets: [],
+              viewpoint: world.getEntityId(entity),
+              tabs: ["info"],
+            },
           },
-        },
-        equip
+          equip
+        )
       );
     } else if (item.equipment === "compass") {
-      createItemInInventory(
-        world,
-        entity,
-        entities.createCompass,
-        {
-          [ITEM]: item,
-          [ORIENTABLE]: {},
-          [TRACKABLE]: {},
-          [SEQUENCABLE]: { states: {} },
-          [SPRITE]: getItemSprite(item),
-        },
-        equip
+      created.push(
+        createItemInInventory(
+          world,
+          entity,
+          entities.createCompass,
+          {
+            [ITEM]: item,
+            [ORIENTABLE]: {},
+            [TRACKABLE]: {},
+            [SEQUENCABLE]: { states: {} },
+            [SPRITE]: getItemSprite(item),
+          },
+          equip
+        )
       );
     } else {
-      createItemInInventory(
-        world,
-        entity,
-        entities.createItem,
-        {
-          [ITEM]: item,
-          [SPRITE]: item.stat
-            ? getStatSprite(item.stat, equip ? "resource" : "drop")
-            : getItemSprite(item, equip ? "resource" : undefined),
-        },
-        equip
+      created.push(
+        createItemInInventory(
+          world,
+          entity,
+          entities.createItem,
+          {
+            [ITEM]: item,
+            [SPRITE]: item.stat
+              ? getStatSprite(item.stat, equip ? "resource" : "drop")
+              : getItemSprite(item, equip ? "resource" : undefined),
+          },
+          equip
+        )
       );
     }
   }
+
+  return created;
 };
 
 export const populateInventory = (
@@ -510,7 +527,10 @@ export const createNpc = (
 ) => {
   const npcUnit = generateNpcData(npcKey);
   const npcEntity = entities.createVillager(world, {
-    [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+    [ACTIONABLE]: {
+      primaryTriggered: false,
+      secondaryTriggered: false,
+    },
     [AFFECTABLE]: getEmptyAffectable(),
     [ATTACKABLE]: { scratchColor: npcUnit.scratch },
     [BEHAVIOUR]: { patterns: npcUnit.patterns },
@@ -807,6 +827,31 @@ export const createCell = (
     });
     all.push(inspectEntity);
     setIdentifier(world, inspectEntity, "inspect");
+
+    // create viewpoint for map
+    const mapEntity = entities.createMap(world, {
+      [POSITION]: { x: 0, y: 0 },
+      [RENDERABLE]: { generation: 0 },
+      [VIEWABLE]: { active: false, priority: 90 },
+      [POPUP]: {
+        active: false,
+        verticalIndezes: [0],
+        horizontalIndex: 0,
+        selections: [[]],
+        viewpoint: world.getEntityId(inspectEntity),
+        deals: [],
+        recipes: [],
+        lines: [],
+        targets: [],
+        focuses: [],
+        choices: [],
+        tabs: ["map"],
+      },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: none,
+    });
+    all.push(mapEntity);
+    setIdentifier(world, mapEntity, "map");
 
     // set initial focus on hero
     const highlighEntity = entities.createHighlight(world, {
@@ -1666,7 +1711,7 @@ export const createCell = (
     }
     return { cell: spawnKeyEntity, all };
   } else if (cell === "menu_sign") {
-    const warpButton = createButton("WARP", 6, false, false, -1, "lime");
+    const scoutSprite = mergeSprites(scout, parseSprite("\x0a_"));
     const menuSign = createSign(world, { x, y }, [
       [
         repeat(swirl, 17),
@@ -1709,24 +1754,14 @@ export const createCell = (
         [],
         [
           ...createText("To change "),
-          ...createText("╡", colors.silver),
-          ...createText("TABS", colors.lime),
-          ...createText("╞", colors.silver),
+          ...addBackground(createText(" TABS "), colors.grey, "▄"),
           ...createText(","),
         ],
         isTouch
-          ? [
-              ...createText("swipe "),
-              ...createText("LEFT", colors.grey),
-              ...createText("/"),
-              ...createText("RIGHT", colors.grey),
-              ...createText("."),
-            ]
+          ? [...createText("tap", colors.grey), ...createText(" on them.")]
           : [
               ...createText("press "),
-              ...createText("\u011a", colors.grey),
-              ...createText(" or "),
-              ...createText("\u0119", colors.grey),
+              ...createText("[TAB]", colors.grey),
               ...createText("."),
             ],
         [],
@@ -1738,32 +1773,59 @@ export const createCell = (
         createText("Now walk down and"),
         createText("start a new game:"),
         [],
-        [...repeat(none, 4), mapDiscovery],
-        [
-          ...repeat(none, 3),
-          mergeSprites(scout, parseSprite("\x0a_")),
-          mergeSprites(portalVortex, portal),
-          ...repeat(none, 5),
-          ...warpButton[0],
-        ],
-        [
-          none,
-          ...createTooltip(world, { [SPRITE]: portal }),
-          none,
-          ...warpButton[1],
-        ],
-        [],
+        ...centerLayer(
+          [
+            [mapDiscovery],
+            [none, ...createButton("WARP", 6, false, false, false, "lime")],
+            [getOrientedSprite(interactBar, "up")],
+            [scoutSprite, mergeSprites(portalVortex, portal)],
+          ],
+          frameWidth - 2
+        ),
         [],
         isTouch
-          ? [...createText("Tap", colors.grey), ...createText(" button below")]
+          ? [
+              ...createText("Tap", colors.grey),
+              ...createText(" the "),
+              ...createButton("BUTTON", 8, false, false, false, "lime"),
+            ]
           : [
               ...createText("Press "),
-              ...createText("[SHIFT]", colors.grey),
+              ...createText("[ENTER]", colors.grey),
               ...createText(" key"),
             ],
         [
           ...createText("to "),
-          ...createText("CLOSE", colors.black, colors.red),
+          ...createText("interact", colors.lime),
+          ...createText("."),
+        ],
+        [],
+        isTouch
+          ? [
+              ...createText("Tap ", colors.grey),
+              ...createSpriteButton(
+                [
+                  recolorSprite(times, {
+                    [colors.white]: colors.black,
+                    [colors.black]: colors.red,
+                  }),
+                ],
+                3,
+                false,
+                false,
+                false,
+                "red"
+              ),
+              ...createText(" button"),
+            ]
+          : [
+              ...createText("Press "),
+              ...createText("[ESC]", colors.grey),
+              ...createText(" key"),
+            ],
+        [
+          ...createText("to "),
+          ...createText("close", colors.red),
           ...createText(" dialogs."),
         ],
         [],
@@ -1811,6 +1873,7 @@ export const createCell = (
     setIdentifier(world, spawnSign, "spawn_sign");
     return { cell: spawnSign, all };
   } else if (cell === "potion_sign") {
+    const scoutSprite = mergeSprites(scout, parseSprite("\x0a_"));
     const signEntity = createSign(world, { x, y }, [
       [
         [
@@ -1831,14 +1894,33 @@ export const createCell = (
           mana,
           ...createText("MP", colors.blue),
         ],
-        createText("automatically."),
-        [],
-        createText("It will activate"),
+        createText("automatically"),
         [
           ...createText("after a "),
           delay,
           ...createText("Delay", colors.olive),
           ...createText("."),
+        ],
+        [],
+        [...repeat(none, 8), flask.wood.fire, ...repeat(none, 3), emptyFlask],
+        [
+          ...repeat(none, 4),
+          flask.wood.fire,
+          ...repeat(none, 7),
+          heart,
+          ...repeat(none, 2),
+          ...createText("+2", colors.lime),
+        ],
+        [
+          scoutSprite,
+          ...repeat(none, 3),
+          scoutSprite,
+          ...repeat(none, 3),
+          scoutSprite,
+          ...repeat(none, 3),
+          scoutSprite,
+          ...repeat(none, 3),
+          scoutSprite,
         ],
       ],
     ]);
@@ -1872,13 +1954,14 @@ export const createCell = (
         createText("Open inventory by"),
         isTouch
           ? [
-              ...createText("tapping on "),
-              ...createText("BAG", colors.black, colors.silver),
+              ...createText("tapping", colors.grey),
+              ...createText(" on "),
+              ...createButton("BAG", 5, false, false, false, "white"),
               ...createText("."),
             ]
           : [
               ...createText("pressing "),
-              ...createText("[TAB]", colors.grey),
+              ...createText("[i]", colors.grey),
               ...createText("."),
             ],
         [],
@@ -2134,6 +2217,7 @@ export const createCell = (
       },
     ]);
     all.push(chestEntity);
+    setIdentifier(world, chestEntity, "potion_chest");
     return { cell: chestEntity, all };
   } else if (cell === "spawner") {
     const spawnerEntity = entities.createSpawner(world, {
@@ -2141,6 +2225,15 @@ export const createCell = (
       [BELONGABLE]: { faction: "wild" },
       [LAYER]: {},
       [FOG]: { visibility, type: "terrain" },
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: false,
+      },
       [POSITION]: { x, y },
       [SPRITE]: enemySpawner,
       [RENDERABLE]: { generation: 0 },
@@ -2152,9 +2245,13 @@ export const createCell = (
 
     // create unit and base
     const eliteEntity = entities.createRoaming(world, {
-      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [ACTIONABLE]: {
+        primaryTriggered: false,
+        secondaryTriggered: false,
+      },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { scratchColor: eliteUnit.scratch },
+      [BUMPABLE]: { generation: 0 },
       [BEHAVIOUR]: { patterns: eliteUnit.patterns },
       [BELONGABLE]: { faction: eliteUnit.faction },
       [CASTABLE]: {
@@ -2228,7 +2325,10 @@ export const createCell = (
     for (const { offset, sprite, orientation } of golemLimbs) {
       const limbUnit = generateNpcData("golemLimb");
       const limbEntity = entities.createSegment(world, {
-        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [ACTIONABLE]: {
+          primaryTriggered: false,
+          secondaryTriggered: false,
+        },
         [AFFECTABLE]: getEmptyAffectable(),
         [ATTACKABLE]: {},
         [BELONGABLE]: { faction: limbUnit.faction },
@@ -2271,7 +2371,10 @@ export const createCell = (
 
     if (mobUnit.dormant) {
       mobEntity = entities.createDormant(world, {
-        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [ACTIONABLE]: {
+          primaryTriggered: false,
+          secondaryTriggered: false,
+        },
         [BEHAVIOUR]: {
           patterns: [{ name: "passive", memory: {} }, ...mobUnit.patterns],
         },
@@ -2313,7 +2416,10 @@ export const createCell = (
       });
     } else {
       mobEntity = entities.createMob(world, {
-        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [ACTIONABLE]: {
+          primaryTriggered: false,
+          secondaryTriggered: false,
+        },
         [AFFECTABLE]: getEmptyAffectable(),
         [ATTACKABLE]: { scratchColor: mobUnit.scratch },
         [BEHAVIOUR]: {
@@ -2676,7 +2782,10 @@ export const createCell = (
   } else if (cell === "chest_tower") {
     const towerUnit = generateNpcData("waveTower");
     const towerEntity = entities.createMob(world, {
-      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [ACTIONABLE]: {
+        primaryTriggered: false,
+        secondaryTriggered: false,
+      },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: {},
       [BEHAVIOUR]: { patterns: towerUnit.patterns },
@@ -2731,7 +2840,10 @@ export const createCell = (
 
     // create unit and base
     const eliteEntity = entities.createBoss(world, {
-      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [ACTIONABLE]: {
+        primaryTriggered: false,
+        secondaryTriggered: false,
+      },
       [BEHAVIOUR]: {
         patterns: [{ name: "passive", memory: {} }, ...eliteUnit.patterns],
       },
@@ -2781,6 +2893,7 @@ export const createCell = (
       eliteUnit.equipments
     );
     setIdentifier(world, eliteEntity, "ilex_elite");
+    setPoi(world, eliteEntity, addBackground([ilex], colors.black)[0]);
     const eliteId = world.getEntityId(eliteEntity);
     eliteEntity[FRAGMENT].structure = eliteId;
 
@@ -2801,7 +2914,10 @@ export const createCell = (
 
     for (const { offset, sprite, orientation } of ilexLimbs) {
       const limbEntity = entities.createLimb(world, {
-        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [ACTIONABLE]: {
+          primaryTriggered: false,
+          secondaryTriggered: false,
+        },
         [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},
         [DROPPABLE]: {
@@ -2841,7 +2957,10 @@ export const createCell = (
 
     // create unit and base
     const bossEntity = entities.createBoss(world, {
-      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [ACTIONABLE]: {
+        primaryTriggered: false,
+        secondaryTriggered: false,
+      },
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
       [BELONGABLE]: { faction: bossUnit.faction },
       [BUMPABLE]: { generation: 0 },
@@ -2916,7 +3035,10 @@ export const createCell = (
 
     for (const { offset, sprite, orientation } of oakLimbs) {
       const limbEntity = entities.createLimb(world, {
-        [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+        [ACTIONABLE]: {
+          primaryTriggered: false,
+          secondaryTriggered: false,
+        },
         [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},
         [DROPPABLE]: { decayed: false, evaporate: bossUnit.vanish?.evaporate },
@@ -2965,11 +3087,15 @@ export const createCell = (
 
     // create unit and base
     const bossEntity = entities.createRoaming(world, {
-      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [ACTIONABLE]: {
+        primaryTriggered: false,
+        secondaryTriggered: false,
+      },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { scratchColor: bossUnit.scratch },
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
       [BELONGABLE]: { faction: bossUnit.faction },
+      [BUMPABLE]: { generation: 0 },
       [CASTABLE]: {
         ...getEmptyCastable(world, world.metadata.gameEntity),
         ...getAbilityStats({}, bossUnit.type),
@@ -3037,7 +3163,10 @@ export const createCell = (
     const bossUnit = generateNpcData("chestBoss");
 
     const bossEntity = entities.createMob(world, {
-      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [ACTIONABLE]: {
+        primaryTriggered: false,
+        secondaryTriggered: false,
+      },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: {},
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
@@ -3081,7 +3210,10 @@ export const createCell = (
       (["goldPrism", "goldOrb", "goldEye"] as const)[distribution(33, 33, 33)]
     );
     const mobEntity = entities.createMob(world, {
-      [ACTIONABLE]: { primaryTriggered: false, secondaryTriggered: false },
+      [ACTIONABLE]: {
+        primaryTriggered: false,
+        secondaryTriggered: false,
+      },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: {},
       [BEHAVIOUR]: {

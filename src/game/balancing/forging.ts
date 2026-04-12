@@ -47,6 +47,12 @@ const forgableConfigs: {
     elements: forgableElements,
   },
   {
+    item: { equipment: "primary", primary: "trap" },
+    materials: forgableMaterials,
+    materialCost: 4,
+    elements: forgableElements,
+  },
+  {
     item: { equipment: "ring" },
     materials: forgableMaterials,
     materialCost: 3,
@@ -90,6 +96,12 @@ const forgableConfigs: {
   },
   {
     item: { equipment: "secondary", secondary: "raise" },
+    materials: forgableMaterials,
+    materialCost: 4,
+    elements: [],
+  },
+  {
+    item: { equipment: "secondary", secondary: "totem" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: [],

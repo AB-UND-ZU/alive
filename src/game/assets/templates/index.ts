@@ -82,6 +82,14 @@ export const TEMPLATE_COLORS = {
   elementSecondary: "ELEMENT_SECONDARY",
 };
 
+export type SpriteTemplate = Record<
+  Material | "default",
+  Record<Element | "default", Sprite>
+>;
+export type PartialSpriteTemplate = Partial<
+  Record<Material | "default", Partial<Record<Element | "default", Sprite>>>
+>;
+
 export const createTemplate = ({
   sprite,
   materialElementSprite,
@@ -89,10 +97,7 @@ export const createTemplate = ({
   sprite: Sprite;
   materialElementSprite?: Sprite;
 }) => {
-  const sprites: Record<
-    Material | "default",
-    Record<Element | "default", Sprite>
-  > = {} as any;
+  const sprites: SpriteTemplate = {} as any;
 
   // material sprites
   materials.forEach((material) => {

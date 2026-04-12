@@ -365,6 +365,12 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
+        {
+          equipment: "primary",
+          primary: "trap",
+          material: "wood",
+          amount: 1,
+        },
       ],
       [
         {
@@ -393,7 +399,12 @@ export const generateMenu = async (world: World) => {
         },
       ],
       [
-        { equipment: "boots", material: "wood", amount: 1 },
+        {
+          equipment: "secondary",
+          secondary: "totem",
+          material: "wood",
+          amount: 1,
+        },
         {
           equipment: "secondary",
           secondary: "axe",
@@ -402,7 +413,7 @@ export const generateMenu = async (world: World) => {
         },
         {
           equipment: "map",
-          material: "iron",
+          material: "gold",
           amount: 1,
         },
         {
@@ -412,6 +423,7 @@ export const generateMenu = async (world: World) => {
         },
       ],
       [
+        { equipment: "boots", material: "wood", amount: 1 },
         {
           equipment: "ring",
           material: "wood",

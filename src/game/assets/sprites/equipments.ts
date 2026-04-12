@@ -390,23 +390,3 @@ export const waveSpellWoodAir2: Sprite = {
     { char: "~", color: colors.black },
   ],
 };
-
-export const trapSpellWood: Sprite = {
-  name: "Trap",
-  layers: [
-    { char: "≡", color: colors.maroon },
-    { char: "\u0103", color: colors.black },
-    { char: "\u011c", color: colors.maroon },
-    { char: "-", color: colors.black },
-  ],
-};
-
-export const trapSpellWoodAir: Sprite = {
-  name: "Trap",
-  layers: [
-    { char: "≡", color: colors.maroon },
-    { char: "\u0103", color: colors.black },
-    { char: "\u011c", color: colors.white },
-    { char: "-", color: colors.black },
-  ],
-};

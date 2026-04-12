@@ -206,6 +206,27 @@ export const waveCorner = createTemplate({
   materialElementSprite: waveCornerElementTemplate,
 });
 
+const triggerTemplate: Sprite = {
+  name: "spell_trigger",
+  layers: [
+    { char: "\\", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "/", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "▒", color: TEMPLATE_COLORS.transparent },
+  ],
+};
+const triggerElementTemplate: Sprite = {
+  name: "spell_trigger_element",
+  layers: [
+    { char: "\\", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "/", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "▒", color: TEMPLATE_COLORS.transparent },
+  ],
+};
+export const trigger = createTemplate({
+  sprite: triggerTemplate,
+  materialElementSprite: triggerElementTemplate,
+});
+
 // decay sprites
 
 const evaporateTemplate: Sprite = {
@@ -563,3 +584,16 @@ export const edge = createTemplate({
   sprite: edgeTemplate,
   materialElementSprite: edgeElementTemplate,
 });
+
+// totem particles
+
+const bannerTemplate: Sprite = {
+  name: "Banner",
+  layers: [
+    { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "+", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "·", color: TEMPLATE_COLORS.materialSecondary },
+    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+export const banner = createTemplate({ sprite: bannerTemplate });

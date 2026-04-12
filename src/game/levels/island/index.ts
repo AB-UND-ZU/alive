@@ -6,6 +6,8 @@ import { COLLIDABLE } from "../../../engine/components/collidable";
 import {
   createText,
   getOrientedSprite,
+  mapHouse,
+  mapSpawn,
   none,
   path,
   questPointer,
@@ -102,6 +104,7 @@ import { STICKY } from "../../../engine/components/sticky";
 import { createSequence } from "../../../engine/systems/sequence";
 import { SHOOTABLE } from "../../../engine/components/shootable";
 import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
+import { POI } from "../../../engine/components/poi";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -598,7 +601,10 @@ export const generateIsland = (world: World) => {
         cell = "desert_rock";
       else if (greens > cactusDepth && greens < cactusDepth + 2)
         cell = "cactus";
-      else if (cell === "sand" && spawn < -97)
+      else if (cell === "sand" && spawn < -99 && elevation < treeDepth) {
+        // TODO: clear area around golem
+        objects.push("golem");
+      } else if (cell === "sand" && spawn < -97)
         objects.push(generateNpcKey(distribution));
       else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
       else if (cell === "desert_palm" && random(0, 9) === 0)
@@ -880,6 +886,20 @@ export const generateIsland = (world: World) => {
     druidHouse,
     ...emptyHouses,
   ].map((building) => assignBuilding(world, building.position));
+
+  // add map markers
+  entities.createMarker(world, {
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [POI]: { sprite: mapHouse },
+    [POSITION]: townPoint,
+    [RENDERABLE]: { generation: 0 },
+  });
+  entities.createMarker(world, {
+    [FOG]: { visibility: "hidden", type: "terrain" },
+    [POI]: { sprite: mapSpawn },
+    [POSITION]: spawnPoint,
+    [RENDERABLE]: { generation: 0 },
+  });
 
   // add quest sign after exiting
   const spawnSign = createSign(world, copy(signPosition), [

@@ -51,6 +51,7 @@ export const fixedHeight = 7.5 * stackHeight;
 export const idleHeight = 8 * stackHeight;
 export const tooltipHeight = 8.5 * stackHeight;
 export const focusHeight = 9 * stackHeight;
+export const interactHeight = 9.1 * stackHeight;
 export const particleHeight = 9.2 * stackHeight;
 export const dialogHeight = 9.5 * stackHeight;
 export const popupHeight = 10 * stackHeight;

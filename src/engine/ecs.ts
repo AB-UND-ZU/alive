@@ -181,11 +181,19 @@ export default function createWorld() {
       listeners: {} as Record<number, (reset?: boolean) => void>,
       sequenceEntity: {} as TypedEntity<"RENDERABLE" | "REFERENCE">,
       renderEntity: {} as TypedEntity<"RENDERABLE">,
+      initial: true,
       suspend: () => {},
       resume: () => {},
       setFlipped: (flipped: boolean) => {},
       ecs: world,
       dimensions: initialDimensions,
+      interact: {
+        position: { x: 0, y: 0 },
+        size: { x: 0, y: 0 },
+        active: undefined as undefined | number,
+        last: undefined as undefined | number,
+        origin: { x: 0, y: 0 },
+      },
     },
   };
 
@@ -262,6 +270,7 @@ export const createSystems = (world: World) => {
   world.addSystem(systems.setupBurn);
   world.addSystem(systems.setupWater);
   world.addSystem(systems.setupAction);
+  world.addSystem(systems.setupInteract);
   world.addSystem(systems.setupText);
   world.addSystem(systems.setupMagic);
   world.addSystem(systems.setupSequence);

@@ -11,7 +11,7 @@ export const getSelectedLevel = (world: World, warpEntity: Entity) => {
 
   if (verticalIndex < 4) return menuName;
   else if (verticalIndex < 10) return tutorialName;
-  else return islandName;
+  else if (verticalIndex < 16) return islandName;
 };
 
 export const levelConfig: Record<

@@ -10,6 +10,7 @@ export type Tooltip = {
   override?: "visible" | "hidden";
   changed?: boolean;
   enemy?: boolean;
+  lastTooltip?: number;
 };
 
 export const TOOLTIP = "TOOLTIP";

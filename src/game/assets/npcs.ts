@@ -11,7 +11,7 @@ import { SPAWNABLE } from "../../engine/components/spawnable";
 import { SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { VIEWABLE } from "../../engine/components/viewable";
-import { getLockable, isUnlocked } from "../../engine/systems/action";
+import { getLockable } from "../../engine/systems/action";
 import { collectItem } from "../../engine/systems/collect";
 import {
   disposeEntity,
@@ -20,7 +20,7 @@ import {
   registerEntity,
 } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
-import { lockDoor, removeFromInventory } from "../../engine/systems/trigger";
+import { lockDoor } from "../../engine/systems/trigger";
 import {
   add,
   choice,
@@ -52,7 +52,6 @@ import {
   createText,
   craft,
   swirl,
-  underline,
   forge,
   kettle,
   getOrientedSprite,
@@ -61,6 +60,17 @@ import {
   parseSprite,
   ilex,
   ironChest,
+  addBackground,
+  createButton,
+  anvil,
+  iron,
+  parseSprites,
+  gold,
+  leaf,
+  stick,
+  wood,
+  berryDrop,
+  apple,
 } from "./sprites";
 import {
   createItemName,
@@ -94,8 +104,8 @@ import {
 import { INVENTORY } from "../../engine/components/inventory";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
-import { createPopup, removePopup } from "../../engine/systems/popup";
-import { isDead, isEnemy } from "../../engine/systems/damage";
+import { createPopup } from "../../engine/systems/popup";
+import { isDead } from "../../engine/systems/damage";
 import { createCell, insertArea } from "../../bindings/creation";
 import { SOUL } from "../../engine/components/soul";
 import { matrixFactory } from "../math/matrix";
@@ -106,7 +116,7 @@ import { isGhost, isRespawning } from "../../engine/systems/fate";
 import { MOVABLE } from "../../engine/components/movable";
 import { TypedEntity } from "../../engine/entities";
 import { COLLIDABLE } from "../../engine/components/collidable";
-import { centerSprites, getCircleOrientations } from "./pixels";
+import { centerLayer, centerSprites, getCircleOrientations } from "./pixels";
 import { colors } from "./colors";
 import {
   ORIENTABLE,
@@ -123,6 +133,9 @@ import { isTouch } from "../../components/Dimensions";
 import { COVERABLE } from "../../engine/components/coverable";
 import { BURNABLE } from "../../engine/components/burnable";
 import { recolorSprite } from "./templates";
+import { BLOCKABLE } from "../../engine/components/blockable";
+import { boots, bow, sword, waveSpell } from "./templates/equipments";
+import { flask, spirit } from "./templates/items";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
@@ -603,6 +616,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
               y: (delta.y - iteration.normal.y) * verticalOffset + offsetY,
             };
             const cornerEntity = entities.createBarrier(world, {
+              [BLOCKABLE]: {},
               [COLLIDABLE]: {},
               [FOG]: { visibility: "visible", type: "float", fixed: true },
               [ORIENTABLE]: { facing: iteration.orientation },
@@ -619,6 +633,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
             for (let sideOffset = 1; sideOffset <= length; sideOffset += 1) {
               const sideEntity = entities.createBarrier(world, {
+                [BLOCKABLE]: {},
                 [COLLIDABLE]: {},
                 [FOG]: { visibility: "visible", type: "float", fixed: true },
                 [ORIENTABLE]: { facing: iteration.orientation },
@@ -807,7 +822,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
       // set new quests for all NPCs in town
       createPopup(world, entity, {
         targets: [{ amount: 1, unit: "ilexElite" }],
-        objectives: [],
+        focuses: [{ identifier: "ilex_elite", highlight: "enemy" }],
         deals: [
           {
             item: {
@@ -860,12 +875,19 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               secondary: "block",
               material: "wood",
               amount: 1,
+            },
+            {
+              equipment: "secondary",
+              secondary: "totem",
+              material: "wood",
+              amount: 1,
             }
           ),
           // utility
           choice(
             { equipment: "boots", material: "wood", amount: 1 },
-            { equipment: "torch", material: "wood", amount: 1 }
+            { equipment: "torch", material: "wood", amount: 1 },
+            { equipment: "map", material: "gold", amount: 1 }
           ),
         ],
         lines: [
@@ -935,7 +957,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               prices: [],
             },
           ],
-          objectives: [],
+          focuses: [],
           lines: [
             [
               createText("Hello stranger!"),
@@ -1080,7 +1102,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
       // set oak quest for chief
       createPopup(world, entity, {
         targets: [{ amount: 1, unit: "oakBoss" }],
-        objectives: [],
+        focuses: [{ identifier: "oak_boss", highlight: "enemy" }],
         deals: [],
         choices: [
           // defensive
@@ -1231,41 +1253,44 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
             ],
             [...createItemName({ stackable: "berry" }), ...createText(".")],
             [],
+            createText("Then go to the"),
             [
-              ...createText("Scroll and "),
-              ...createText("VIEW", colors.black, colors.lime),
+              kettle,
+              ...createText("Kettle", colors.grey),
+              ...createText(" to view"),
             ],
-            createText("an item to craft."),
+            createText("and pick recipes."),
             [],
-            [
-              ...underline(createText("TIP", colors.silver)),
-              ...createText(": Some items"),
-            ],
-            createText("have few recipes."),
-            [],
-            repeat(swirl, frameWidth - 2),
-            [],
-            isTouch
-              ? [
-                  ...createText("Swipe "),
-                  ...createText("RIGHT", colors.grey),
-                  ...createText(" to"),
-                ]
-              : [
-                  ...createText("Press "),
-                  ...createText("\u0119", colors.grey),
-                  ...createText(" key to"),
+            ...centerLayer(
+              [
+                [...createText("     3"), leaf, ...createText(" =  1"), stick],
+                [],
+                [...createText("    10"), stick, ...createText(" =  1"), wood],
+                [],
+                [
+                  ...createText("3"),
+                  berryDrop,
+                  ...createText(" + 1"),
+                  wood,
+                  ...createText(" = 10"),
+                  flask.wood.fire,
                 ],
-            [
-              ...createText("view "),
-              ...createText("╡", colors.silver),
-              ...createText("CRAFT", colors.lime),
-              ...createText("╞", colors.silver),
-              ...createText(" tab."),
-            ],
+                [],
+                [
+                  ...createText("1"),
+                  apple,
+                  ...createText(" + 1"),
+                  wood,
+                  ...createText(" = 10"),
+                  flask.wood.fire,
+                ],
+              ],
+              frameWidth - 2
+            ),
+            [],
           ],
         ],
-        tabs: ["info"],
+        tabs: ["talk"],
       });
 
       return END_STEP;
@@ -1311,65 +1336,92 @@ export const earthSmithNpc: Sequence<NpcSequence> = (world, entity, state) => {
             [forge, ...createText("Forging", colors.silver)],
             repeat(swirl, frameWidth - 2),
             [],
-            createText("You can forge the"),
+            [
+              ...createText("With an "),
+              anvil,
+              ...createText("Anvil", colors.grey),
+            ],
+            createText("you can forge the"),
             createText("gear you hold."),
             [],
             [
               ...createText("View "),
-              ...createText("╡", colors.silver),
-              ...createText("GEAR", colors.lime),
-              ...createText("╞", colors.silver),
+              ...addBackground(createText(" GEAR "), colors.grey, "▄"),
               ...createText(" by"),
             ],
             isTouch
               ? [
                   ...createText("tapping on "),
-                  ...createText("BAG", colors.black, colors.silver),
+                  ...createButton("BAG", 5, false, false, false, "white"),
                   ...createText("."),
                 ]
               : [
                   ...createText("pressing "),
-                  ...createText("[TAB]", colors.grey),
+                  ...createText("[i]", colors.grey),
                   ...createText("."),
                 ],
             [],
-            createText("Scroll to choose"),
-            createText("gear and try to"),
-            createText("add items until"),
-            createText("you find a match."),
+            createText("Select some gear"),
+            createText("and add it with"),
+            createText("material to make"),
+            createText("it stronger."),
             [],
-            [
-              ...underline(createText("TIP", colors.silver)),
-              ...createText(": "),
-              ...createItemName({ stackable: "resource", material: "iron" }),
-              ...createText(" can be"),
-            ],
-            createText("added to wooden"),
-            createText("gear."),
-            [],
-            repeat(swirl, frameWidth - 2),
-            [],
-            isTouch
-              ? [
-                  ...createText("Swipe "),
-                  ...createText("RIGHT", colors.grey),
-                  ...createText(" to"),
-                ]
-              : [
-                  ...createText("Press "),
-                  ...createText("\u0119", colors.grey),
-                  ...createText(" key to"),
+            ...centerLayer(
+              [
+                [
+                  sword.wood.default,
+                  waveSpell.wood.default,
+                  bow.wood.default,
+                  boots.wood.default,
+                  ...createText(" + 5"),
+                  iron,
+                  ...parseSprites(" = "),
+                  sword.iron.default,
+                  waveSpell.iron.default,
+                  bow.iron.default,
+                  boots.iron.default,
                 ],
-            [
-              ...createText("view "),
-              ...createText("╡", colors.silver),
-              ...createText("FORGE", colors.lime),
-              ...createText("╞", colors.silver),
-              ...createText(" tab."),
-            ],
+                [],
+                [
+                  sword.wood.default,
+                  waveSpell.wood.default,
+                  ...createText(" + 1"),
+                  spirit.wood.earth,
+                  ...parseSprites(" = "),
+                  sword.wood.earth,
+                  waveSpell.wood.earth,
+                ],
+                [],
+                [
+                  sword.wood.earth,
+                  waveSpell.wood.earth,
+                  ...createText(" + 5"),
+                  iron,
+                  ...parseSprites(" = "),
+                  sword.iron.earth,
+                  waveSpell.iron.earth,
+                ],
+                [],
+                [
+                  sword.iron.default,
+                  waveSpell.iron.default,
+                  bow.iron.default,
+                  boots.iron.default,
+                  ...createText(" + 5"),
+                  gold,
+                  ...parseSprites(" = "),
+                  sword.gold.default,
+                  waveSpell.gold.default,
+                  bow.gold.default,
+                  boots.gold.default,
+                ],
+              ],
+              frameWidth - 2
+            ),
+            [],
           ],
         ],
-        tabs: ["info"],
+        tabs: ["talk"],
       });
 
       return END_STEP;
@@ -1643,205 +1695,6 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
   return { finished: stage.finished, updated: stage.updated };
 };
 
-const greetTime = 3000;
-
-export const nomadNpc: Sequence<NpcSequence> = (world, entity, state) => {
-  const stage: QuestStage<NpcSequence> = {
-    world,
-    entity,
-    state,
-    finished: false,
-    updated: false,
-  };
-
-  const doorEntity = getIdentifier(world, "nomad_door");
-  const heroEntity = getIdentifierAndComponents(world, "hero", [
-    POSITION,
-    EQUIPPABLE,
-    STATS,
-    SPAWNABLE,
-    INVENTORY,
-  ]);
-  const keyEntity = getIdentifierAndComponents(world, "nomad_key", [ITEM]);
-  const chestEntity =
-    keyEntity &&
-    world.getEntityByIdAndComponents(keyEntity[ITEM].carrier, [STATS]);
-
-  if (!doorEntity) {
-    return { finished: stage.finished, updated: stage.updated };
-  }
-
-  // remember initial nomad position
-  if (!state.args.memory.initialPosition) {
-    state.args.memory.initialPosition = copy(entity[POSITION]);
-  }
-
-  step({
-    stage,
-    name: START_STEP,
-    onEnter: () => true,
-    isCompleted: () => isUnlocked(world, doorEntity),
-    onLeave: () => "greet",
-  });
-
-  step({
-    stage,
-    name: "greet",
-    onEnter: () => {
-      state.args.memory.greeted = state.elapsed;
-      entity[BEHAVIOUR].patterns.push({
-        name: "dialog",
-        memory: {
-          override: "visible",
-          dialogs: [createDialog("Who's there?")],
-        },
-      });
-      return true;
-    },
-    isCompleted: () => state.elapsed > state.args.memory.greeted + greetTime,
-    onLeave: () => {
-      entity[BEHAVIOUR].patterns.push({
-        name: "dialog",
-        memory: {
-          override: undefined,
-          dialogs: [],
-        },
-      });
-
-      return "shop";
-    },
-  });
-
-  // warn player if chest is attacked by player
-  step({
-    stage,
-    name: "warn",
-    forceEnter: () =>
-      !state.args.memory.warned &&
-      !!chestEntity &&
-      chestEntity[STATS].hp < chestEntity[STATS].maxHp,
-    onEnter: () => {
-      state.args.memory.warned = true;
-      const previousDialog = { ...entity[TOOLTIP], changed: true };
-
-      entity[TOOLTIP].override = "visible";
-      entity[TOOLTIP].changed = true;
-      entity[TOOLTIP].dialogs = [createDialog("Stop it!")];
-      entity[BEHAVIOUR].patterns.unshift(
-        {
-          name: "wait",
-          memory: { ticks: 4 },
-        },
-        {
-          name: "dialog",
-          memory: previousDialog,
-        }
-      );
-      return false;
-    },
-  });
-
-  step({
-    stage,
-    name: "shop",
-    isCompleted: () =>
-      !!heroEntity &&
-      heroEntity[INVENTORY].items.some(
-        (item) =>
-          world.assertByIdAndComponents(item, [ITEM])[ITEM].consume === "key"
-      ),
-    onLeave: () => {
-      if (keyEntity) {
-        if (chestEntity) {
-          removeFromInventory(world, chestEntity, keyEntity);
-          disposeEntity(world, keyEntity);
-        } else {
-          const carrierEntity = world.assertById(keyEntity[ITEM].carrier);
-          disposeEntity(world, carrierEntity, false);
-        }
-      }
-      return END_STEP;
-    },
-  });
-
-  // attack player if key is stolen
-  const size = world.metadata.gameEntity[LEVEL].size;
-  const inAttackRange =
-    !!heroEntity &&
-    getDistance(
-      state.args.memory.initialPosition,
-      heroEntity[POSITION],
-      size,
-      1
-    ) < 5;
-  const outOfRange =
-    !!heroEntity &&
-    getDistance(
-      state.args.memory.initialPosition,
-      heroEntity[POSITION],
-      size,
-      1
-    ) > 16;
-  step({
-    stage,
-    name: "enrage",
-    forceEnter: () =>
-      !!heroEntity &&
-      ((!!keyEntity &&
-        keyEntity[ITEM].carrier === world.getEntityId(heroEntity)) ||
-        isEnemy(world, entity)) &&
-      inAttackRange,
-    onEnter: () => {
-      removePopup(world, entity);
-
-      entity[BEHAVIOUR].patterns = [
-        {
-          name: "enrage",
-          memory: { shout: "Thief\u0112" },
-        },
-        {
-          name: "kill",
-          memory: {
-            target: heroEntity && world.getEntityId(heroEntity),
-          },
-        },
-      ];
-      return true;
-    },
-  });
-
-  step({
-    stage,
-    name: "aggro",
-    forceEnter: () =>
-      !!heroEntity &&
-      ((!!keyEntity &&
-        keyEntity[ITEM].carrier === world.getEntityId(heroEntity)) ||
-        isEnemy(world, entity)) &&
-      outOfRange,
-    onEnter: () => {
-      entity[BEHAVIOUR].patterns = [
-        {
-          name: "dialog",
-          memory: {
-            override: undefined,
-            dialogs: [],
-          },
-        },
-        {
-          name: "move",
-          memory: {
-            targetPosition: state.args.memory.initialPosition,
-          },
-        },
-      ];
-      return true;
-    },
-  });
-
-  return { finished: stage.finished, updated: stage.updated };
-};
-
 export const tombstoneNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
     world,
@@ -1988,6 +1841,7 @@ export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
       for (const oakBarrier of oakBarriers) {
         const target = combine(size, oakBarrier);
         const barrierEntity = entities.createBarrier(world, {
+          [BLOCKABLE]: {},
           [COLLIDABLE]: {},
           [FOG]: { visibility: "visible", type: "float", fixed: true },
           [ORIENTABLE]: { facing: oakBarrier.orientation },

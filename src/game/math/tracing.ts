@@ -474,7 +474,8 @@ export const cellIntersectsCircle = (
 export const pixelCircle = (
   center: Point,
   radius: number,
-  ratio = aspectRatio
+  ratio = aspectRatio,
+  filled = false
 ) => {
   const width = Math.ceil(radius / ratio);
   const height = Math.ceil(radius);
@@ -492,7 +493,10 @@ export const pixelCircle = (
       const inner = add(point, { x: -offset.x, y: -offset.y });
       const innerRadius = Math.sqrt((inner.x * ratio) ** 2 + inner.y ** 2);
 
-      if (innerRadius <= radius && radius <= outerRadius) {
+      if (
+        (filled && outerRadius <= radius) ||
+        (innerRadius <= radius && radius <= outerRadius)
+      ) {
         points.push(add(center, point));
       }
     }

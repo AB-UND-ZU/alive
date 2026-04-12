@@ -2,7 +2,18 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Equipment } from "./equippable";
 import { Attributes, emptyAttributes, UnitStats } from "./stats";
-import { Castable, DamageType, EffectType, emptyCastable } from "./castable";
+import {
+  AbilityStats,
+  BuffStats,
+  Castable,
+  DamageType,
+  EffectType,
+  emptyAbilityStats,
+  emptyBuffStats,
+  emptyCastable,
+  emptyProcStats,
+  ProcStats,
+} from "./castable";
 
 export const elements = ["fire", "water", "earth", "air"] as const;
 export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
@@ -10,13 +21,13 @@ export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
 export type Element = (typeof elements)[number];
 export type Material = (typeof materials)[number];
 
-export type Primary = "wave" | "beam" | "bolt" | "blast";
+export type Primary = "wave" | "beam" | "trap" | "bolt" | "blast";
 
-export const rechargables = ["slash", "raise", "block"] as const;
+export const rechargables = ["slash", "raise", "block", "totem"] as const;
+export const tools = ["axe", "pickaxe"] as const;
 export type Secondary =
   | "bow"
-  | "axe"
-  | "pickaxe"
+  | (typeof tools)[number]
   | (typeof rechargables)[number];
 
 export type Consumable = "key" | "potion";
@@ -51,14 +62,11 @@ export type Reloadable = "arrow" | "bomb" | "charge";
 export type Stackable = ResourceItem | Craftable | Reloadable;
 
 export type ConditionableStats = { absorb: number };
-export type ProcStats = { drain: number };
-export type SpellStats = { duration: number; range: number, retrigger: number };
-export type EquipmentStats = { knock: number };
 export type ItemStats = Attributes &
   ProcStats &
   ConditionableStats &
-  SpellStats &
-  EquipmentStats &
+  AbilityStats &
+  BuffStats &
   Pick<Castable, DamageType | EffectType>;
 
 export type Item = {
@@ -75,17 +83,14 @@ export type Item = {
   bound: boolean;
 };
 
-export const emptyProcStats = { drain: 0 };
 export const emptyConditionableStats = { absorb: 0 };
-export const emptySpellStats = { range: 0, duration: 0 };
-export const emptyEquipmentStats = { knock: 0 };
 
-export const emptyItemStats = {
+export const emptyItemStats: ItemStats = {
   ...emptyAttributes,
   ...emptyProcStats,
   ...emptyConditionableStats,
-  ...emptySpellStats,
-  ...emptyEquipmentStats,
+  ...emptyAbilityStats,
+  ...emptyBuffStats,
   ...emptyCastable,
 };
 

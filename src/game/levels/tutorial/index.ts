@@ -26,9 +26,7 @@ import { SEQUENCABLE } from "../../../engine/components/sequencable";
 import { FOG } from "../../../engine/components/fog";
 import { SPRITE } from "../../../engine/components/sprite";
 import { Item } from "../../../engine/components/item";
-import { TOOLTIP } from "../../../engine/components/tooltip";
-import { chairLeft, createDialog, table } from "../../assets/sprites";
-import { isTouch } from "../../../components/Dimensions";
+import { chairLeft, table } from "../../assets/sprites";
 import { LAYER } from "../../../engine/components/layer";
 import { COLLIDABLE } from "../../../engine/components/collidable";
 
@@ -148,13 +146,6 @@ export const generateTutorial = async (world: World) => {
 
   const guidePosition = add(guideHouse, { x: 2, y: 0 });
   const guideEntity = createNpc(world, "guide", guidePosition);
-  guideEntity[TOOLTIP].dialogs = [
-    createDialog("Hi stranger"),
-    createDialog("How are you?"),
-    createDialog("I'm the Guide"),
-    createDialog("And I have a key"),
-    createDialog(isTouch ? "Tap on [SHOP]" : "[SPACE] to shop"),
-  ];
   createPopup(world, guideEntity, {
     deals: guideItems.map((item) => ({
       item,

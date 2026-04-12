@@ -140,6 +140,7 @@ export type SpellSequence = {
   range: number;
   areas: number[];
 };
+export type AuraSequence = SpellSequence;
 export type ArrowSequence = { origin: Position; range: number; caster: number };
 export type SlashSequence = {
   material: Material;
@@ -165,6 +166,13 @@ export type QuestSequence = {
   lastStep?: string;
   memory: any;
   giver?: number;
+};
+export type InteractSequence = {
+  active: boolean;
+  orientation: Orientation;
+  generation: number;
+  text: string;
+  sprite: Sprite;
 };
 export type DiscoverySequence = {
   idle: Sprite;
@@ -222,6 +230,7 @@ export type Sequencable = {
   states: {
     consume?: SequenceState<ConsumeSequence>;
     spell?: SequenceState<SpellSequence>;
+    aura?: SequenceState<AuraSequence>;
     drop?: SequenceState<DropSequence>;
     weather?: SequenceState<WeatherSequence>;
     vision?: SequenceState<VisionSequence>;
@@ -248,6 +257,7 @@ export type Sequencable = {
     limb?: SequenceState<LimbSequence>;
     npc?: SequenceState<NpcSequence>;
     quest?: SequenceState<QuestSequence>;
+    interact?: SequenceState<InteractSequence>;
     discovery?: SequenceState<DiscoverySequence>;
     dialog?: SequenceState<DialogSequence>;
     progress?: SequenceState<ProgressSequence>;

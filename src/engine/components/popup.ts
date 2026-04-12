@@ -3,6 +3,8 @@ import { World } from "../ecs";
 import { Item } from "./item";
 import { Sprite } from "./sprite";
 import { UnitKey } from "../../game/balancing/units";
+import { Position } from "./position";
+import { Focusable } from "./focusable";
 
 export type Deal = {
   item: Omit<Item, "carrier" | "bound">;
@@ -21,21 +23,12 @@ export type Target = {
   amount: number;
 };
 
-export type Objective =
-  | {
-      item: Omit<Item, "carrier" | "bound" | "amount">;
-      identifier?: never;
-      title?: Sprite[];
-      description?: Sprite[][];
-      available: boolean;
-    }
-  | {
-      item?: never;
-      identifier?: string;
-      title: Sprite[];
-      description: Sprite[][];
-      available: boolean;
-    };
+export type Focus = {
+  identifier?: string;
+  targetId?: number;
+  position?: Position;
+  highlight: NonNullable<Focusable["highlight"]>;
+};
 
 export const shops = ["buy", "sell"] as const;
 
@@ -64,7 +57,7 @@ export type Popup = {
   recipes: Recipe[];
   lines: Sprite[][][];
   targets: Target[];
-  objectives: Objective[];
+  focuses: Focus[];
   choices: Omit<Item, "carrier" | "bound">[];
   viewpoint: number;
   tabs: (typeof popups)[number][];
