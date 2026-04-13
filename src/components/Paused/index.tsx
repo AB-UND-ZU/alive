@@ -1,9 +1,10 @@
 import {
   createText,
   backdrop,
-  resume,
   addBackground,
   createDialog,
+  createSpriteButton,
+  pauseInvertPressed,
 } from "../../game/assets/sprites";
 import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
@@ -34,17 +35,15 @@ export default function Paused() {
   return (
     <div className="Paused">
       <div className="Cover">
-        {Array.from({ length: dimensions.renderedRows }).map(
-          (_, index) => (
-            <Row
-              key={index}
-              cells={repeat(
-                backdrop,
-                dimensions.visibleColumns + dimensions.padding * 2
-              )}
-            />
-          )
-        )}
+        {Array.from({ length: dimensions.renderedRows }).map((_, index) => (
+          <Row
+            key={index}
+            cells={repeat(
+              backdrop,
+              dimensions.visibleColumns + dimensions.padding * 2
+            )}
+          />
+        ))}
       </div>
 
       <div className="Overlay">
@@ -86,11 +85,23 @@ export default function Paused() {
             <Row />
             <Row
               cells={addBackground(
-                [
-                  ...createText(isTouch ? "Tap " : "Press "),
-                  ...(isTouch ? [resume] : createText("ESC")),
-                  ...createText(" to resume"),
-                ],
+                isTouch
+                  ? [
+                      ...createText("Tap "),
+                      ...createSpriteButton(
+                        [pauseInvertPressed],
+                        3,
+                        false,
+                        true,
+                        false,
+                        "white"
+                      ),
+                      ...createText(" to resume"),
+                    ]
+                  : [
+                      ...createText("Resume with "),
+                      ...createText("[ESC]", colors.grey),
+                    ],
                 colors.black
               )}
             />
