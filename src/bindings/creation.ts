@@ -1833,6 +1833,7 @@ export const createCell = (
       ],
     ]);
     all.push(menuSign);
+    setIdentifier(world, menuSign, "menu_sign");
     return { cell: menuSign, all };
   } else if (cell === "spawn_sign") {
     const spawnSign = createSign(world, { x, y }, [

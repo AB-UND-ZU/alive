@@ -15,6 +15,7 @@ import { QuestSequence, Sequence } from "../../engine/components/sequencable";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { TRACKABLE } from "../../engine/components/trackable";
+import { WARPABLE } from "../../engine/components/warpable";
 import { getLockable, isUnlocked } from "../../engine/systems/action";
 import { getLootable } from "../../engine/systems/collect";
 import { getCell } from "../../engine/systems/map";
@@ -45,6 +46,8 @@ export const menuQuest: Sequence<QuestSequence> = (world, entity, state) => {
     finished: false,
     updated: false,
   };
+  const menuSign = getIdentifierAndComponents(world, "menu_sign", [POSITION]);
+  const menuPortal = world.getEntities([WARPABLE])[0];
 
   // remember initial hero position
   if (!state.args.memory.initialPosition) {
@@ -87,8 +90,33 @@ export const menuQuest: Sequence<QuestSequence> = (world, entity, state) => {
       entity[TOOLTIP].override = undefined;
       entity[TOOLTIP].dialogs = [];
       entity[TOOLTIP].changed = true;
-      return END_STEP;
+      return "sign";
     },
+  });
+
+  step({
+    stage,
+    name: "sign",
+    onEnter: () => {
+      setHighlight(world, "quest", menuSign);
+      return true;
+    },
+    isCompleted: () =>
+      !!menuSign &&
+      !isInPopup(world, entity) &&
+      !getSequence(world, menuSign, "discovery"),
+    onLeave: () => "warp",
+  });
+
+  step({
+    stage,
+    name: "warp",
+    onEnter: () => {
+      setHighlight(world, "quest", menuPortal);
+      return true;
+    },
+    isCompleted: () => true,
+    onLeave: () => END_STEP,
   });
 
   return { finished: stage.finished, updated: stage.updated };
@@ -523,7 +551,7 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
     isCompleted: () =>
       townDistance < 10 ||
       !spawnSign ||
-      !getSequence(world, spawnSign, "discovery")?.args.idle ||
+      !getSequence(world, spawnSign, "discovery") ||
       (isInPopup(world, entity) &&
         world.getEntityById(entity[PLAYER].popup) === spawnSign),
     onLeave: () => "town",
