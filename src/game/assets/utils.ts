@@ -22,6 +22,7 @@ import { PARTICLE } from "../../engine/components/particle";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
 import {
   getFacingLayers,
+  overlayHeight,
   popupHeight,
   selectionHeight,
 } from "../../components/Entity/utils";
@@ -140,6 +141,8 @@ import {
   close,
   stats,
   aura,
+  popupHint,
+  popupOverlay,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -360,6 +363,7 @@ export const renderPopup = (
 ) => {
   let updated = false;
   let finished = !entity[POPUP].active;
+  const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
   const generation = entity[RENDERABLE].generation;
   const popupMiddle = { x: 0, y: (frameHeight + 1) / -2 };
   const initial = !state.args.generation;
@@ -380,17 +384,54 @@ export const renderPopup = (
       details,
       overscan
     );
+  const scrollRatio =
+    verticalIndex /
+    (lines -
+      (selection
+        ? 1
+        : details
+        ? frameHeight - detailsHeight - 3
+        : frameHeight - 2));
   const contentSize =
     ((details ? frameHeight - detailsHeight : frameHeight) - 2) *
     (frameWidth - 2);
   const foldSize = (verticalIndex - scrollIndex) * (frameWidth - 2);
   const settled =
     state.args.contentIndex >= foldSize && state.elapsed > popupTime;
+  const hintGeneration = world.getEntityByIdAndComponents(
+    state.particles["hint-0"],
+    [PARTICLE]
+  )?.[PARTICLE].amount;
+  const visibleScroll =
+    lines > (details ? frameHeight - detailsHeight - 3 : frameHeight - 2);
+  const visibleOverlay = visibleScroll && !details && !selection;
+  const topOverlayTarget = visibleOverlay && scrollRatio > 0 ? 1 : 0;
+  const topOverlayAmount = world.getEntityByIdAndComponents(
+    state.particles["overlay-up-0"],
+    [PARTICLE]
+  )?.[PARTICLE].amount;
+  const bottomOverlayTarget = visibleOverlay && scrollRatio < 1 ? 1 : 0;
+  const bottomOverlayAmount = world.getEntityByIdAndComponents(
+    state.particles["overlay-down-0"],
+    [PARTICLE]
+  )?.[PARTICLE].amount;
+  const hintAmount =
+    details || selection || !settled || bottomOverlayTarget === 0
+      ? 0
+      : worldGeneration % 4 === 0
+      ? 1
+      : 0;
   let renderContent = false;
   let renderTabs = horizontalIndex !== state.args.horizontalIndex;
   let renderDetails = settled;
   let renderSeparator = details && renderTabs;
   let renderButtons = generationChanged;
+  let renderHint = !details && hintGeneration !== hintAmount;
+  let renderScroll =
+    visibleScroll && (generationChanged || renderContent || renderTabs);
+  let renderTopOverlay = visibleScroll && topOverlayAmount !== topOverlayTarget;
+  let renderBottomOverlay =
+    visibleScroll && bottomOverlayAmount !== bottomOverlayTarget;
 
   // create popup
   if (initial) {
@@ -501,11 +542,8 @@ export const renderPopup = (
     renderButtons = true;
   }
 
-  // rerender scroll handle
-  const visibleScroll =
-    lines > (details ? frameHeight - detailsHeight - 3 : frameHeight - 2);
-
-  if (visibleScroll && (generationChanged || renderContent || renderTabs)) {
+  // rerender scroll handle and bars
+  if (renderScroll) {
     // top and bottom handles
     world.assertByIdAndComponents(state.particles["popup-right-0"], [PARTICLE])[
       SPRITE
@@ -522,19 +560,7 @@ export const renderPopup = (
       ])[SPRITE] = scrollBar;
     }
 
-    const progress = Math.floor(
-      lerp(
-        2,
-        (frameHeight - 5) * 2,
-        verticalIndex /
-          (lines -
-            (selection
-              ? 1
-              : details
-              ? frameHeight - detailsHeight - 3
-              : frameHeight - 2))
-      )
-    );
+    const progress = Math.floor(lerp(2, (frameHeight - 5) * 2, scrollRatio));
 
     // add handle
     const handleStart = world.assertByIdAndComponents(
@@ -559,6 +585,7 @@ export const renderPopup = (
     state.args.scrollIndex = scrollIndex;
     renderContent = true;
   } else if (!visibleScroll && (renderTabs || heightChanged)) {
+    // reset scroll bar
     for (let row = 0; row < frameHeight - 2; row += 1) {
       const sideParticle = world.assertByIdAndComponents(
         state.particles[`popup-right-${row}`],
@@ -937,6 +964,118 @@ export const renderPopup = (
     disposeEntity(world, selectionParticle);
     delete state.particles.selection;
     updated = true;
+  }
+
+  // scroll overlays
+  if (renderTopOverlay) {
+    updated = true;
+    if (!state.particles["overlay-up-0"]) {
+      for (
+        let overlayIndex = 0;
+        overlayIndex < frameWidth - 2;
+        overlayIndex += 1
+      ) {
+        const overlayParticle = entities.createFibre(world, {
+          [ORIENTABLE]: { facing: topOverlayTarget > 0 ? "up" : undefined },
+          [PARTICLE]: {
+            offsetX: (frameWidth - 3) / 2 - overlayIndex,
+            offsetY: 1 - frameHeight,
+            offsetZ: overlayHeight,
+            amount: topOverlayTarget,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: popupOverlay,
+        });
+        state.particles[`overlay-up-${overlayIndex}`] =
+          world.getEntityId(overlayParticle);
+      }
+    }
+
+    for (
+      let overlayIndex = 0;
+      overlayIndex < frameWidth - 2;
+      overlayIndex += 1
+    ) {
+      const overlayParticle = world.assertByIdAndComponents(
+        state.particles[`overlay-up-${overlayIndex}`],
+        [PARTICLE, ORIENTABLE]
+      );
+      overlayParticle[PARTICLE].amount = topOverlayTarget;
+      overlayParticle[ORIENTABLE].facing =
+        topOverlayTarget > 0 ? "up" : undefined;
+      rerenderEntity(world, overlayParticle);
+    }
+  }
+
+  if (renderBottomOverlay) {
+    updated = true;
+    if (!state.particles["overlay-down-0"]) {
+      for (
+        let overlayIndex = 0;
+        overlayIndex < frameWidth - 2;
+        overlayIndex += 1
+      ) {
+        const overlayParticle = entities.createFibre(world, {
+          [ORIENTABLE]: {
+            facing: bottomOverlayTarget > 0 ? "down" : undefined,
+          },
+          [PARTICLE]: {
+            offsetX: (frameWidth - 3) / 2 - overlayIndex,
+            offsetY: -2,
+            offsetZ: overlayHeight,
+            amount: bottomOverlayTarget,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: popupOverlay,
+        });
+        state.particles[`overlay-down-${overlayIndex}`] =
+          world.getEntityId(overlayParticle);
+      }
+    }
+
+    for (
+      let overlayIndex = 0;
+      overlayIndex < frameWidth - 2;
+      overlayIndex += 1
+    ) {
+      const overlayParticle = world.assertByIdAndComponents(
+        state.particles[`overlay-down-${overlayIndex}`],
+        [PARTICLE, ORIENTABLE]
+      );
+      overlayParticle[PARTICLE].amount = bottomOverlayTarget;
+      overlayParticle[ORIENTABLE].facing =
+        bottomOverlayTarget > 0 ? "down" : undefined;
+      rerenderEntity(world, overlayParticle);
+    }
+  }
+
+  // blinking scroll hint
+  if (renderHint) {
+    updated = true;
+    if (!state.particles["hint-0"]) {
+      for (let hintIndex = 0; hintIndex < 3; hintIndex += 1) {
+        const hintParticle = entities.createParticle(world, {
+          [PARTICLE]: {
+            offsetX: (hintIndex - 1) * -3,
+            offsetY: -2,
+            offsetZ: selectionHeight,
+            amount: hintAmount,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: popupHint,
+        });
+        state.particles[`hint-${hintIndex}`] = world.getEntityId(hintParticle);
+      }
+    }
+
+    for (let hintIndex = 0; hintIndex < 3; hintIndex += 1) {
+      const hintParticle = world.assertByIdAndComponents(
+        state.particles[`hint-${hintIndex}`],
+        [PARTICLE]
+      );
+      hintParticle[PARTICLE].amount = hintAmount;
+      rerenderEntity(world, hintParticle);
+    }
   }
 
   return { finished, updated };

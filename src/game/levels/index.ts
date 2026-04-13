@@ -1,17 +1,20 @@
 import { Entity } from "ecs";
 import { World } from "../../engine";
 import { LevelName } from "../../engine/components/level";
-import { islandName, islandSize, generateIsland } from "./island";
-import { generateMenu, menuName, menuSize } from "./menu";
-import { generateTutorial, tutorialName, tutorialSize } from "./tutorial";
+import { islandSize, generateIsland } from "./island";
+import { generateMenu, menuSize } from "./menu";
+import { generateTutorial, tutorialSize } from "./tutorial";
 import { getVerticalIndex } from "../../engine/systems/popup";
 
 export const getSelectedLevel = (world: World, warpEntity: Entity) => {
   const verticalIndex = getVerticalIndex(world, warpEntity);
 
-  if (verticalIndex < 4) return menuName;
-  else if (verticalIndex < 10) return tutorialName;
-  else if (verticalIndex < 16) return islandName;
+  for (const key in levelConfig) {
+    const levelName = key as LevelName;
+    if (verticalIndex <= levelConfig[levelName].mapOffsetY) {
+      return levelName;
+    }
+  }
 };
 
 export const levelConfig: Record<
@@ -30,7 +33,7 @@ export const levelConfig: Record<
     name: "Menu",
     warps: ["LEVEL_TUTORIAL"],
     mapOffsetX: 0,
-    mapOffsetY: 3,
+    mapOffsetY: 2,
     size: menuSize,
     generator: generateMenu,
     vision: 6,
@@ -39,7 +42,7 @@ export const levelConfig: Record<
     name: "Dungeon",
     warps: ["LEVEL_ISLAND"],
     mapOffsetX: -3,
-    mapOffsetY: 9,
+    mapOffsetY: 8,
     size: tutorialSize,
     generator: generateTutorial,
     vision: 23,
@@ -48,7 +51,7 @@ export const levelConfig: Record<
     name: "Island",
     warps: [],
     mapOffsetX: 3,
-    mapOffsetY: 15,
+    mapOffsetY: 14,
     size: islandSize,
     generator: generateIsland,
     vision: 0,

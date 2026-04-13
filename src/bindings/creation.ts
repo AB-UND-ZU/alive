@@ -3298,11 +3298,6 @@ export const createCell = (
       }
     );
     const mapText = [
-      [
-        ...repeat(swirl, 3),
-        ...createText("scroll down", colors.grey),
-        ...repeat(swirl, 3),
-      ],
       [],
       [],
       [],

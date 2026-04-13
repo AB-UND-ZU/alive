@@ -1151,6 +1151,29 @@ export const popupSelection: Sprite = {
   layers: [{ char: ">", color: colors.white }],
 };
 
+export const popupHint: Sprite = {
+  name: "popup_hint",
+  layers: [],
+  amounts: {
+    single: [{ char: "\u0118", color: colors.silver }],
+  },
+};
+
+export const popupOverlay: Sprite = {
+  name: "popup_overlay",
+  layers: [],
+  facing: {
+    up: [
+      { char: "▒", color: colors.black },
+      { char: "▀", color: colors.black },
+    ],
+    down: [
+      { char: "▒", color: colors.black },
+      { char: "▄", color: colors.black },
+    ],
+  },
+};
+
 export const popupBlocked: Sprite = {
   name: "popup_blocked",
   layers: [
