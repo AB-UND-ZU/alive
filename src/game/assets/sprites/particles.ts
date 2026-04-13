@@ -784,11 +784,7 @@ export const createTooltip = (world: World, entity: Entity) => {
       enemy ? colors.maroon : friendly ? colors.green : colors.silver,
       colors.black
     ),
-    enemy
-      ? tooltipHostileEnd
-      : friendly
-      ? tooltipFriendlyEnd
-      : tooltipNeutralEnd,
+    none,
   ];
 };
 
