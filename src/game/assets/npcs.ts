@@ -1120,6 +1120,18 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               primary: "beam",
               material: "wood",
               amount: 1,
+            },
+            {
+              equipment: "primary",
+              primary: "trap",
+              material: "wood",
+              amount: 1,
+            },
+            {
+              equipment: "primary",
+              primary: "dash",
+              material: "wood",
+              amount: 1,
             }
           ),
           // accessory
