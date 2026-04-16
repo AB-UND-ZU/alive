@@ -3,6 +3,7 @@ import { Layer, SPRITE, Sprite } from "../../../engine/components/sprite";
 import { Countable, UnitStats } from "../../../engine/components/stats";
 import {
   addArmor,
+  addHaste,
   addPower,
   addResist,
   addWisdom,
@@ -16,7 +17,6 @@ import {
   manaUp,
   power,
   resist,
-  rush,
   spike,
   thaw,
   vision,
@@ -1619,7 +1619,7 @@ const statConfig: Record<
   },
   addHaste: {
     color: colors.purple,
-    sprite: rush,
+    sprite: addHaste,
   },
   vision: {
     color: colors.green,

@@ -838,6 +838,22 @@ export const castSpell = (
       }
     );
     // TODO: add sound
+  } else if (item[ITEM].primary === "dash") {
+    createSequence<"spell", SpellSequence>(
+      world,
+      spellEntity,
+      "spell",
+      "castDash",
+      {
+        progress: 0,
+        range: spellStats.range,
+        duration: spellStats.duration,
+        areas: [],
+        material: item[ITEM].material,
+        element: item[ITEM].element,
+      }
+    );
+    // TODO: add sound
   } else if (item[ITEM].primary === "wave") {
     createSequence<"spell", SpellSequence>(
       world,

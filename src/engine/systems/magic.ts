@@ -21,6 +21,7 @@ import {
   calculateHealing,
   createAmountMarker,
   getAttackable,
+  getAttackables,
   getRoot,
   isDead,
   isEnemy,
@@ -406,11 +407,11 @@ export default function setupMagic(world: World) {
 
       const casterEntity = world.getEntityById(castableEntity[CASTABLE].caster);
 
-      const targetEntity = castableEntity[CASTABLE].melee
-        ? getAttackable(world, entity[POSITION])
-        : getAffectable(world, entity[POSITION]);
+      const targetEntities = castableEntity[CASTABLE].melee
+        ? getAttackables(world, entity[POSITION])
+        : getAffectables(world, entity[POSITION]);
 
-      if (targetEntity) {
+      for (const targetEntity of targetEntities) {
         const rootEntity = getRoot(world, targetEntity);
         const affectableId = world.getEntityId(rootEntity);
         const previousAffected =

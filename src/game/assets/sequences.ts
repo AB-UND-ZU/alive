@@ -40,15 +40,18 @@ import { isUnlocked } from "../../engine/systems/action";
 import {
   addToInventory,
   collectItem,
+  getLootable,
   isEmpty,
 } from "../../engine/systems/collect";
 import {
   calculateHealing,
+  getAttackable,
   getEntityDisplayStats,
   getLimbs,
   getRoot,
   getStructure,
   isDead,
+  isFriendlyFire,
   isTribe,
 } from "../../engine/systems/damage";
 import {
@@ -379,6 +382,7 @@ import {
   blockSide1,
   blockSide2,
   bolt,
+  dash,
   edge,
   slashCorner,
   slashSide,
@@ -397,6 +401,7 @@ import { TypedEntity } from "../../engine/entities";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { getSequence } from "../../engine/systems/sequence";
 import { POI } from "../../engine/components/poi";
+import { isWalkable } from "../../engine/systems/movement";
 
 export * from "./npcs";
 export * from "./quests";
@@ -1228,6 +1233,165 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
     });
     registerEntity(world, aoeEntity);
     state.args.areas.push(world.getEntityId(aoeEntity));
+    updated = true;
+  }
+
+  // dispose particles and areas
+  if (finished) {
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertById(state.particles[particleName]);
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    for (const aoeId of state.args.areas) {
+      const aoeEntity = world.assertById(aoeId);
+      disposeEntity(world, aoeEntity);
+    }
+
+    updated = true;
+  }
+
+  state.args.progress = progress;
+
+  return { finished, updated };
+};
+
+const dashRemain = 2;
+const dashTicks = 2;
+const dashTime = 50;
+
+export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
+  const casterEntity = world.getEntityByIdAndComponents(
+    entity[CASTABLE].caster,
+    [POSITION, RENDERABLE]
+  );
+  const tick = state.args.duration * dashTime;
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const entityId = world.getEntityId(entity);
+  const orientation = entity[ORIENTABLE].facing as Orientation;
+  const delta = orientationPoints[orientation];
+  const progress = Math.ceil(state.elapsed / tick);
+  const material = state.args.material || "default";
+  const element = state.args.element || "default";
+
+  let finished = progress >= dashTicks + dashRemain;
+  let updated = false;
+
+  // create dash particles and teleport anchor
+  if (!state.args.memory?.position && progress < dashTicks) {
+    let position = copy(entity[POSITION]);
+
+    // dash through attackables and lootables
+    let offset = 0;
+    let target = 0;
+
+    while (offset < state.args.range) {
+      position = combine(size, position, delta);
+      offset += 1;
+      if (isWalkable(world, position)) {
+        target = offset;
+        continue;
+      }
+      const attackable = getAttackable(world, position);
+      const lootable = getLootable(world, position);
+      if (
+        !(attackable && !isFriendlyFire(world, entity, attackable)) &&
+        !lootable
+      )
+        break;
+    }
+
+    // create particles
+    offset = 0;
+    position = { x: 0, y: 0 };
+    while (offset <= target) {
+      const particleEntity = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: orientation },
+        [PARTICLE]: {
+          offsetX: position.x,
+          offsetY: position.y,
+          offsetZ: effectHeight,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: dash[material][offset % 2 === 0 ? "default" : element],
+      });
+      state.particles[`dash-${offset}`] = world.getEntityId(particleEntity);
+
+      position = add(position, delta);
+      offset += 1;
+    }
+
+    if (target === 0) {
+      finished = true;
+    } else {
+      updated = true;
+      state.args.memory = { position, target };
+
+      // create blocking anchor
+      const teleportEntity = entities.createTeleport(world, {
+        [COLLIDABLE]: {},
+        [POSITION]: combine(size, entity[POSITION], {
+          x: delta.x * target,
+          y: delta.y * target,
+        }),
+        [RENDERABLE]: { generation: 1 },
+        [LIGHT]: {
+          brightness: 0,
+          visibility: casterEntity?.[LIGHT]?.visibility || 0,
+          darkness: 0,
+        },
+      });
+      registerEntity(world, teleportEntity);
+      state.args.memory.teleport = world.getEntityId(teleportEntity);
+
+      // prevent movements
+      if (casterEntity && casterEntity[MOVABLE]) {
+        state.args.memory.movable = casterEntity[MOVABLE];
+        world.removeComponentFromEntity(
+          casterEntity as TypedEntity<"MOVABLE">,
+          MOVABLE
+        );
+      }
+    }
+  }
+
+  // move entity and activate areas
+  if (casterEntity && progress >= dashTicks && state.args.memory?.position) {
+    delete state.args.memory.position;
+    const target = state.args.memory.target;
+
+    let offset = 0;
+    let origin = copy(entity[POSITION]);
+    while (offset <= target) {
+      const aoeEntity = entities.createAoe(world, {
+        [EXERTABLE]: { castable: entityId },
+        [POSITION]: origin,
+      });
+      registerEntity(world, aoeEntity);
+      state.args.areas.push(world.getEntityId(aoeEntity));
+
+      origin = combine(size, origin, delta);
+      offset += 1;
+    }
+
+    moveEntity(
+      world,
+      casterEntity,
+      combine(size, entity[POSITION], {
+        x: delta.x * target,
+        y: delta.y * target,
+      })
+    );
+    rerenderEntity(world, casterEntity);
+    world.addComponentToEntity(
+      casterEntity,
+      MOVABLE,
+      state.args.memory.movable
+    );
+    const teleportEntity = world.assertById(state.args.memory.teleport);
+    disposeEntity(world, teleportEntity);
+
     updated = true;
   }
 

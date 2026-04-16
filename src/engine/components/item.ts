@@ -21,7 +21,7 @@ export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
 export type Element = (typeof elements)[number];
 export type Material = (typeof materials)[number];
 
-export type Primary = "wave" | "beam" | "trap" | "bolt" | "blast";
+export type Primary = "wave" | "beam" | "trap" | "dash" | "bolt" | "blast";
 
 export const rechargables = ["slash", "raise", "block", "totem"] as const;
 export const tools = ["axe", "pickaxe"] as const;

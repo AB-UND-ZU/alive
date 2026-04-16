@@ -17,7 +17,6 @@ import { LAYER } from "../components/layer";
 import { Entity } from "ecs";
 import { getEntityStats } from "./damage";
 import { levelConfig } from "../../game/levels";
-import { VIEWABLE } from "../components/viewable";
 
 type PendingChanges = Record<
   number,
@@ -183,7 +182,7 @@ export default function setupVisibility(world: World) {
 
   const onUpdate = (delta: number) => {
     const revealables = world
-      .getEntities([LIGHT, POSITION, VIEWABLE])
+      .getEntities([LIGHT, POSITION])
       .filter((entity) => entity[LIGHT].visibility > 0);
 
     if (

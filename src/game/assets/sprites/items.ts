@@ -244,15 +244,10 @@ export const haste: Sprite = {
     { char: "»", color: colors.lime },
   ],
 };
-
-export const rush: Sprite = {
-  name: "Rush",
-  layers: [
-    { char: "\u0119", color: colors.fuchsia },
-    { char: "»", color: colors.purple },
-    { char: ">", color: colors.fuchsia },
-  ],
-};
+export const addHaste = recolorSprite(haste, {
+  [colors.lime]: colors.fuchsia,
+  [colors.green]: colors.purple,
+});
 
 export const damp: Sprite = {
   name: "Damp",

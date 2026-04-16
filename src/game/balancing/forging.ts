@@ -53,6 +53,12 @@ const forgableConfigs: {
     elements: forgableElements,
   },
   {
+    item: { equipment: "primary", primary: "dash" },
+    materials: forgableMaterials,
+    materialCost: 4,
+    elements: forgableElements,
+  },
+  {
     item: { equipment: "ring" },
     materials: forgableMaterials,
     materialCost: 3,

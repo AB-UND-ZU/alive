@@ -178,6 +178,14 @@ export const createAoe = entityFactory([EXERTABLE, POSITION]);
 
 export const createArea = entityFactory([POSITION, TEMPO]);
 
+export const createAura = entityFactory([
+  EXERTABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createBarrier = entityFactory([
   BLOCKABLE,
   COLLIDABLE,
@@ -962,6 +970,13 @@ export const createSword = entityFactory([
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
+]);
+
+export const createTeleport = entityFactory([
+  COLLIDABLE,
+  LIGHT,
+  POSITION,
+  RENDERABLE,
 ]);
 
 export const createTerrain = entityFactory([

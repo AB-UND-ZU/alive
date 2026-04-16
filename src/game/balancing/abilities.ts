@@ -159,36 +159,93 @@ export const abilityStats: Partial<
         default: { magic: 5 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
-        water: { freeze: 3 },
+        water: { freeze: 5 },
         earth: { heal: 3 },
       },
       iron: {
         default: { magic: 10 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
-        water: { freeze: 3 },
+        water: { freeze: 5 },
         earth: { heal: 3 },
       },
       gold: {
         default: { magic: 15 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
-        water: { freeze: 3 },
+        water: { freeze: 5 },
         earth: { heal: 3 },
       },
       diamond: {
         default: { magic: 20 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
-        water: { freeze: 3 },
+        water: { freeze: 5 },
         earth: { heal: 3 },
       },
       ruby: {
         default: { magic: 25 },
         air: { wisdom: 1 },
         fire: { burn: 2 },
-        water: { freeze: 3 },
+        water: { freeze: 5 },
         earth: { heal: 3 },
+      },
+    },
+    dash: {
+      // set default spell attributes
+      default: {
+        default: {
+          range: 6,
+          duration: 5,
+        },
+      },
+
+      wood: {
+        default: { magic: 4 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
+        earth: {
+          magic: 3,
+          drain: 2,
+        },
+      },
+      iron: {
+        default: { magic: 8 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
+        earth: { magic: 6, drain: 2 },
+      },
+      gold: {
+        default: { magic: 12 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
+        earth: {
+          magic: 9,
+          drain: 2,
+        },
+      },
+      diamond: {
+        default: { magic: 16 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
+        earth: {
+          magic: 12,
+          drain: 2,
+        },
+      },
+      ruby: {
+        default: { magic: 20 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 5 },
+        earth: {
+          magic: 15,
+          drain: 2,
+        },
       },
     },
     bolt: {

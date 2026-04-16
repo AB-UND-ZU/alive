@@ -227,6 +227,76 @@ export const trigger = createTemplate({
   materialElementSprite: triggerElementTemplate,
 });
 
+const dashTemplate: Sprite = {
+  name: "spell_dash",
+  layers: [{ char: "+", color: TEMPLATE_COLORS.materialPrimary }],
+  facing: {
+    up: [
+      { char: "\u0100", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0101", color: TEMPLATE_COLORS.transparent },
+      { char: "X", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "Y", color: TEMPLATE_COLORS.transparent },
+      { char: "!", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+      { char: ",", color: TEMPLATE_COLORS.transparent },
+      { char: "∙", color: TEMPLATE_COLORS.transparent },
+      { char: "·", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    right: [
+      { char: "\u0100", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0101", color: TEMPLATE_COLORS.transparent },
+      { char: ">", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    down: [
+      { char: "\u0100", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0101", color: TEMPLATE_COLORS.transparent },
+      { char: "v", color: TEMPLATE_COLORS.materialPrimary, },
+      { char: "\u0104", color: TEMPLATE_COLORS.transparent, },
+      { char: "\u0105", color: TEMPLATE_COLORS.materialPrimary, },
+      { char: "═", color: TEMPLATE_COLORS.transparent, },
+      { char: "i", color: TEMPLATE_COLORS.transparent, },
+      { char: "*", color: TEMPLATE_COLORS.materialPrimary, },
+      { char: "\u0106", color: TEMPLATE_COLORS.transparent, },
+      { char: "=", color: TEMPLATE_COLORS.materialPrimary, },
+      { char: "Y", color: TEMPLATE_COLORS.transparent, },
+      { char: "!", color: TEMPLATE_COLORS.transparent, },
+      { char: ".", color: TEMPLATE_COLORS.materialPrimary, },
+    ],
+    left: [
+      { char: "\u0100", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0101", color: TEMPLATE_COLORS.transparent },
+      { char: "<", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+  },
+};
+const dashElementTemplate: Sprite = {
+  name: "spell_dash_element",
+  layers: [{ char: "+", color: TEMPLATE_COLORS.elementPrimary }],
+  facing: {
+    up: [
+      { char: "X", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "Y", color: TEMPLATE_COLORS.transparent },
+      { char: "!", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0106", color: TEMPLATE_COLORS.elementPrimary },
+      { char: ",", color: TEMPLATE_COLORS.transparent },
+      { char: "∙", color: TEMPLATE_COLORS.transparent },
+      { char: "·", color: TEMPLATE_COLORS.elementPrimary },
+    ],
+    right: [{ char: ">", color: TEMPLATE_COLORS.elementPrimary }],
+    down: [
+      { char: "X", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "▄", color: TEMPLATE_COLORS.transparent },
+      { char: "·", color: TEMPLATE_COLORS.elementPrimary },
+      { char: ":", color: TEMPLATE_COLORS.transparent },
+    ],
+    left: [{ char: "<", color: TEMPLATE_COLORS.elementPrimary }],
+  },
+};
+export const dash = createTemplate({
+  sprite: dashTemplate,
+  materialElementSprite: dashElementTemplate,
+});
+
 // decay sprites
 
 const evaporateTemplate: Sprite = {

@@ -176,6 +176,7 @@ import {
   boots,
   bow,
   compass,
+  dashSpell,
   map,
   pickaxe,
   raise,
@@ -1981,6 +1982,22 @@ export const materialSprites: Partial<
       ),
     ],
   },
+  dash: {
+    sprite: dashSpell,
+    getDescription: (item, stats) => [
+      createText("Leap forward and"),
+      createText("pierce enemies."),
+      stretch(
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
+        ],
+        createCountable({ mp: -1 }, "mp", "display"),
+        frameWidth - 2
+      ),
+    ],
+  },
 
   // secondary items
   slash: {
@@ -2435,6 +2452,33 @@ export const elementSprites: Partial<
             fire: "burn",
             water: "freeze",
             earth: "heal",
+          } as const
+        )[item.element!],
+        "display"
+      ),
+    ],
+  },
+  dash: {
+    sprite: dashSpell,
+    getDescription: (item, stats) => [
+      createText("Pierce forward."),
+      stretch(
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
+        ],
+        createCountable({ mp: -1 }, "mp", "display"),
+        frameWidth - 2
+      ),
+      createCountable(
+        stats,
+        (
+          {
+            air: "wisdom",
+            fire: "burn",
+            water: "freeze",
+            earth: "drain",
           } as const
         )[item.element!],
         "display"

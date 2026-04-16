@@ -333,6 +333,27 @@ export const trapSpell = createTemplate({
   materialElementSprite: trapSpellElementTemplate,
 });
 
+const dashSpellTemplate: Sprite = {
+  name: "Rush",
+  layers: [
+    { char: "-", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "»", color: TEMPLATE_COLORS.materialPrimary },
+    { char: ">", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+const dashSpellElementTemplate: Sprite = {
+  name: "Rush",
+  layers: [
+    { char: "-", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "»", color: TEMPLATE_COLORS.elementPrimary },
+    { char: ">", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+export const dashSpell = createTemplate({
+  sprite: dashSpellTemplate,
+  materialElementSprite: dashSpellElementTemplate,
+});
+
 // secondary items
 
 const raiseTemplate: Sprite = {
