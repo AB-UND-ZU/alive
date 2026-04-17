@@ -747,19 +747,7 @@ export const castSpell = (
       ])
     : (entity as TypedEntity<"BELONGABLE">);
 
-  const defaultStats = getAbilityStats(
-    { ...item[ITEM], material: undefined, element: undefined },
-    "default"
-  );
-  const abilityStats = getAbilityStats(item[ITEM], castableEntity[NPC]?.type);
-  const spellStats = {
-    ...defaultStats,
-    ...abilityStats,
-    // apply default spell attributes for duration and range
-    range: abilityStats.range || defaultStats.range,
-    duration: abilityStats.duration || defaultStats.duration,
-    retrigger: abilityStats.retrigger || defaultStats.retrigger,
-  };
+  const spellStats = getAbilityStats(item[ITEM], castableEntity[NPC]?.type);
 
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: castableEntity[BELONGABLE].faction },

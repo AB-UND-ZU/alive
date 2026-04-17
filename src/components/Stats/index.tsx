@@ -60,19 +60,19 @@ function StatsInner({
   const dimensions = useDimensions();
   const [pressed, setPressed] = useState("");
   const level = ecs?.metadata.gameEntity[LEVEL].name;
-  const inMenu = level === menuName;
+  const menuOnly = level === menuName || hidden;
 
   const handleMenu = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
 
-      if (initial || hidden) return;
+      if (initial) return;
 
       setPaused((prevPaused) => !prevPaused);
       setPressed("pause");
       setTimeout(setPressed, pressDuration, "");
     },
-    [setPaused, initial, hidden]
+    [setPaused, initial]
   );
 
   const handleBag = useCallback(
@@ -158,13 +158,7 @@ function StatsInner({
 
   return (
     <header className={flipped ? "StatsFlipped" : "Stats"}>
-      {hidden || initial ? (
-        <>
-          <Row />
-          <Row />
-          <Row />
-        </>
-      ) : inMenu ? (
+      {menuOnly ? (
         <>
           <Row />
           <Row />
@@ -175,6 +169,12 @@ function StatsInner({
                 : [...pauseButton, ...repeat(none, progressWidth + bagWidth)]
             }
           />
+        </>
+      ) : hidden || initial ? (
+        <>
+          <Row />
+          <Row />
+          <Row />
         </>
       ) : (
         <>
@@ -228,7 +228,7 @@ function StatsInner({
         cells={createText("─".repeat(width + padding * 2 + 1), colors.grey)}
       />
       {!initial && <div className="Menu" id="menu" onClick={handleMenu} />}
-      {!initial && !hidden && !inMenu && (
+      {!initial && !hidden && !menuOnly && (
         <>
           <div
             className={map ? "InspectSurvey" : "Inspect"}
@@ -302,7 +302,7 @@ export default function Stats() {
       width={dimensions.visibleColumns}
       {...hero?.[STATS]}
       {...hero?.[EQUIPPABLE]}
-      hidden={!ecs || !hero || isGhost(ecs, hero) || isDead(ecs, hero)}
+      hidden={!ecs || !hero || isDead(ecs, hero)}
       handleInspect={handleInspect}
       handleSurvey={handleSurvey}
       inspecting={

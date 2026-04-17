@@ -47,7 +47,7 @@ import {
 } from "../../game/math/path";
 import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
-import { getLockable, isLocked, isUnlocked } from "./action";
+import { castablePrimary, getLockable, isLocked, isUnlocked } from "./action";
 import { ITEM } from "../components/item";
 import { castSpell, lockDoor } from "./trigger";
 import { dropEntity } from "./drop";
@@ -128,6 +128,8 @@ import { DROPPABLE } from "../components/droppable";
 import { waveTower } from "../../game/assets/templates/creatures";
 import { Entity } from "ecs";
 import { BUMPABLE } from "../components/bumpable";
+import { getActiveViewable } from "../../bindings/hooks";
+import { VIEWABLE } from "../components/viewable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -491,6 +493,49 @@ export default function setupAi(world: World) {
           }
           rerenderEntity(world, entity);
           break;
+        } else if (pattern.name === "tutorial_boss") {
+          const spellItem = world.getEntityByIdAndComponents(
+            entity[EQUIPPABLE]?.primary,
+            [ITEM]
+          );
+          if (
+            !entity[STATS] ||
+            !entity[INVENTORY] ||
+            !spellItem ||
+            !entity[ORIENTABLE] ||
+            !entity[ACTIONABLE]
+          )
+            continue;
+
+          if (pattern.memory.percentage === undefined) {
+            pattern.memory.percentage = 100;
+          }
+
+          const percentage = (100 * entity[STATS].hp) / entity[STATS].maxHp;
+
+          if (
+            percentage <= pattern.memory.percentage &&
+            canCast(world, entity, spellItem) &&
+            castablePrimary(
+              world,
+              entity as TypedEntity<"INVENTORY">,
+              spellItem
+            )
+          ) {
+            pattern.memory.percentage -= 20;
+            const viewables = world.getEntities([VIEWABLE, POSITION]);
+            const viewable = getActiveViewable(viewables);
+            const orientations = relativeOrientations(
+              world,
+              entity[POSITION],
+              viewable[POSITION]
+            );
+            entity[ORIENTABLE].facing = choice(...orientations);
+            entity[MOVABLE].pendingOrientation = undefined;
+            entity[MOVABLE].orientations = [];
+            entity[ACTIONABLE].primaryTriggered = true;
+            break;
+          }
         } else if (
           pattern.name === "orb" ||
           pattern.name === "archer" ||
@@ -507,7 +552,6 @@ export default function setupAi(world: World) {
 
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
-            MOVABLE,
           ]);
           const circularDistance = heroEntity
             ? getDistance(entity[POSITION], heroEntity[POSITION], size)
@@ -599,7 +643,7 @@ export default function setupAi(world: World) {
             // shoot into momentum
             const speedFactor = 1.5;
             for (const iteration of iterations) {
-              if (shootingOrientation) break;
+              if (shootingOrientation || !heroEntity[MOVABLE]) break;
 
               const directionOffset =
                 (delta.x * iteration.direction.x) / speedFactor +
@@ -656,10 +700,7 @@ export default function setupAi(world: World) {
               fleeingOrientations.push(sidestepOrientation);
               fleeingOrientations.push(invertOrientation(sidestepOrientation));
             }
-            const sidestep = !halfStep && random(0, 10) === 0;
-            movements = sidestep
-              ? [...reversed(fleeingOrientations)]
-              : fleeingOrientations;
+            movements = fleeingOrientations;
           } else if (heroEntity && repositioning) {
             if (delta.x === 0 || delta.y === 0) break;
 

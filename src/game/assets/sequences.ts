@@ -828,7 +828,8 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
   const tick = world.assertByIdAndComponents(entity[MOVABLE].reference, [
     REFERENCE,
   ])[REFERENCE].tick;
-  const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
+  const orientation = (entity[ORIENTABLE].facing || "up") as Orientation;
+  const delta = orientationPoints[orientation];
   const targetDistance = Math.floor(state.elapsed / tick);
   let currentDistance = getDistance(
     state.args.origin,
@@ -1025,7 +1026,8 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
   const entityId = world.getEntityId(entity);
   const size = world.metadata.gameEntity[LEVEL].size;
   const progress = Math.ceil(state.elapsed / beamSpeed);
-  const delta = orientationPoints[entity[ORIENTABLE].facing as Orientation];
+  const orientation = (entity[ORIENTABLE].facing || "up") as Orientation;
+  const delta = orientationPoints[orientation];
   const material = state.args.material || "default";
   const element = state.args.element || "default";
   const limit = {
@@ -1258,7 +1260,6 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
 };
 
 const dashRemain = 2;
-const dashTicks = 2;
 const dashTime = 50;
 
 export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
@@ -1266,20 +1267,20 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
     entity[CASTABLE].caster,
     [POSITION, RENDERABLE]
   );
-  const tick = state.args.duration * dashTime;
   const size = world.metadata.gameEntity[LEVEL].size;
   const entityId = world.getEntityId(entity);
-  const orientation = entity[ORIENTABLE].facing as Orientation;
+  const orientation = (entity[ORIENTABLE].facing || "up") as Orientation;
   const delta = orientationPoints[orientation];
-  const progress = Math.ceil(state.elapsed / tick);
+  const progress = Math.ceil(state.elapsed / dashTime);
   const material = state.args.material || "default";
   const element = state.args.element || "default";
+  const teleportTicks = state.args.duration;
 
-  let finished = progress >= dashTicks + dashRemain;
+  let finished = progress >= teleportTicks + dashRemain;
   let updated = false;
 
   // create dash particles and teleport anchor
-  if (!state.args.memory?.position && progress < dashTicks) {
+  if (!state.args.memory?.position && progress < teleportTicks) {
     let position = copy(entity[POSITION]);
 
     // dash through attackables and lootables
@@ -1357,7 +1358,11 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
   }
 
   // move entity and activate areas
-  if (casterEntity && progress >= dashTicks && state.args.memory?.position) {
+  if (
+    casterEntity &&
+    progress >= teleportTicks &&
+    state.args.memory?.position
+  ) {
     delete state.args.memory.position;
     const target = state.args.memory.target;
 
@@ -1384,14 +1389,25 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
       })
     );
     rerenderEntity(world, casterEntity);
+    const teleportEntity = world.assertById(state.args.memory.teleport);
+    disposeEntity(world, teleportEntity);
+
+    updated = true;
+  }
+
+  // reactivate movement and disable damage
+  if (casterEntity && progress > teleportTicks && !casterEntity[MOVABLE]) {
+    for (const aoeId of state.args.areas) {
+      const aoeEntity = world.assertById(aoeId);
+      disposeEntity(world, aoeEntity);
+    }
+    state.args.areas = [];
+
     world.addComponentToEntity(
       casterEntity,
       MOVABLE,
       state.args.memory.movable
     );
-    const teleportEntity = world.assertById(state.args.memory.teleport);
-    disposeEntity(world, teleportEntity);
-
     updated = true;
   }
 

@@ -360,9 +360,17 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     faction: "wild",
     scratch: colors.silver,
     stats: {
-      hp: 20,
+      hp: 30,
+      mp: 1,
     },
     equipments: [
+      {
+        equipment: "primary",
+        primary: "dash",
+        material: "wood",
+        amount: 1,
+        bound: true,
+      },
       {
         equipment: "secondary",
         secondary: "bow",
@@ -388,7 +396,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         ],
       },
     ],
-    patternNames: ["archer"],
+    patternNames: ["tutorial_boss", "archer"],
     sprite: { ...bandit, name: "Bandit" },
     remainsChoices: [tombstone2],
     evaporate: { sprite: ghost, fast: false },

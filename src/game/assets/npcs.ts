@@ -498,7 +498,6 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
   const size = world.metadata.gameEntity[LEVEL].size;
   const heroEntity = world.getEntity([
-    MOVABLE,
     PLAYER,
     POSITION,
     VIEWABLE,
@@ -736,7 +735,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
     forceEnter: () =>
       !!heroEntity &&
       isGhost(world, heroEntity) &&
-      heroEntity[MOVABLE].flying &&
+      heroEntity[MOVABLE]?.flying &&
       state.args.step !== "death",
     onEnter: () => {
       entity[VIEWABLE].active = false;

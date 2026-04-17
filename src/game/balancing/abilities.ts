@@ -196,7 +196,7 @@ export const abilityStats: Partial<
       default: {
         default: {
           range: 6,
-          duration: 5,
+          duration: 10,
         },
       },
 
@@ -334,6 +334,14 @@ export const abilityStats: Partial<
   },
 
   tutorialBoss: {
+    dash: {
+      wood: {
+        default: {
+          duration: 21,
+          magic: 1
+        },
+      },
+    },
     bow: {
       wood: {
         default: { melee: 1 },

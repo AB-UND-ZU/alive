@@ -165,6 +165,11 @@ export default function setupText(world: World) {
         interactSequence ||
         world.metadata.interact.last === world.getEntityId(tooltipEntity) ||
         (tooltipEntity[TOOLTIP].lastTooltip &&
+          !isIdle &&
+          !(
+            tooltipEntity[TOOLTIP].idle &&
+            tooltipEntity[TOOLTIP].dialogs.length === 0
+          ) &&
           tooltipEntity[TOOLTIP].lastTooltip +
             (tooltipEntity[TOOLTIP].persistent
               ? persistentCooldown

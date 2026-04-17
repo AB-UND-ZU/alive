@@ -41,6 +41,7 @@ import { FRAGMENT } from "../components/fragment";
 import { SHOOTABLE } from "../components/shootable";
 import { shot } from "../../game/assets/templates/particles";
 import { attemptBubbleAbsorb } from "./magic";
+import { NPC } from "../components/npc";
 
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -126,7 +127,7 @@ export const shootArrow = (
       [RENDERABLE]: { generation: 0 },
     })
   );
-  const bowStats = getAbilityStats(bow[ITEM]);
+  const bowStats = getAbilityStats(bow[ITEM], entity[NPC]?.type);
   const { damage } = calculateDamage(world, bowStats, entity, emptyUnitStats);
   const shotEntity = entities.createShot(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },

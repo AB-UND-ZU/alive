@@ -15,6 +15,7 @@ export type Pattern = {
     | "violet"
     | "clover"
     | "ilex"
+    | "tutorial_boss"
     | "oak_boss"
     | "oak_tower"
     | "oak_clover"
