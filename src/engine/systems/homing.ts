@@ -64,7 +64,7 @@ const discConfig: Record<
   oakTower: { sprite: summon.iron.default, magic: 2, retrigger: 2 },
   oakHedge: { sprite: homing.default.earth, forceAffecting: true },
   oakClover: { sprite: summon.default.earth, magic: 2, retrigger: 2 },
-  ilexViolet: { sprite: summon.default.water, magic: 1, retrigger: 2 },
+  ilexTulip: { sprite: summon.default.earth, magic: 1, retrigger: 2 },
   ironDisc: { sprite: disc.iron.default, magic: 1 },
   goldDisc: { sprite: disc.gold.default, magic: 2 },
   ironOrbit: { sprite: disc.iron.default, magic: 1, orbit: true },
@@ -225,8 +225,8 @@ export default function setupHoming(world: World) {
         if (random(0, 1) === 0 && cloverEntity[BEHAVIOUR]) {
           cloverEntity[BEHAVIOUR].patterns.shift();
         }
-      } else if (entity[HOMING].type === "ilexViolet" && reached) {
-        createCell(world, copy(entity[POSITION]), "ilexViolet", "hidden");
+      } else if (entity[HOMING].type === "ilexTulip" && reached) {
+        createCell(world, copy(entity[POSITION]), "ilexTulip", "hidden");
       } else if (entity[HOMING].type === "oakHedge" && hasAffected) {
         const targetEntity = world.getEntityByIdAndComponents(
           entity[HOMING].target,

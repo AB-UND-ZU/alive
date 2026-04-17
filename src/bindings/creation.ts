@@ -2475,8 +2475,8 @@ export const createCell = (
     if (mobUnit.faction === "unit") {
       mobEntity[FOG].type = "object";
     }
-    if (cell === "dummy") {
-      setIdentifier(world, mobEntity, "dummy");
+    if (cell === "dummy" || cell === "ilexTulip") {
+      setIdentifier(world, mobEntity, cell);
     }
 
     return { cell: mobEntity, all };

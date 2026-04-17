@@ -334,7 +334,7 @@ export const trapSpell = createTemplate({
 });
 
 const dashSpellTemplate: Sprite = {
-  name: "Rush",
+  name: "Dash",
   layers: [
     { char: "-", color: TEMPLATE_COLORS.materialPrimary },
     { char: "»", color: TEMPLATE_COLORS.materialPrimary },
@@ -342,7 +342,7 @@ const dashSpellTemplate: Sprite = {
   ],
 };
 const dashSpellElementTemplate: Sprite = {
-  name: "Rush",
+  name: "Dash",
   layers: [
     { char: "-", color: TEMPLATE_COLORS.materialPrimary },
     { char: "»", color: TEMPLATE_COLORS.elementPrimary },

@@ -130,6 +130,7 @@ import { Entity } from "ecs";
 import { BUMPABLE } from "../components/bumpable";
 import { getActiveViewable } from "../../bindings/hooks";
 import { VIEWABLE } from "../components/viewable";
+import { HOMING } from "../components/homing";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -1559,9 +1560,9 @@ export default function setupAi(world: World) {
             const availableLimbs = limbs.filter(
               (limb) => limb[ORIENTABLE].facing === undefined
             );
-            const selectedLimbs = shuffle(availableLimbs).slice(0, 4);
+            const selectedLimbs = shuffle(availableLimbs).slice(0, 3);
             selectedLimbs.forEach((limb) => {
-              limb[ORIENTABLE].facing = "right";
+              limb[ORIENTABLE].facing = "left";
               rerenderEntity(world, limb);
             });
             patterns.splice(
@@ -1576,7 +1577,7 @@ export default function setupAi(world: World) {
             // shoot from limbs
             const limbs = getLimbs(world, entity);
             const triggeredLimbs = limbs.filter(
-              (limb) => limb[ORIENTABLE].facing === "right"
+              (limb) => limb[ORIENTABLE].facing === "left"
             );
             const ilexCircle = [
               { x: -2, y: 3 },
@@ -1608,7 +1609,7 @@ export default function setupAi(world: World) {
                 iteration.direction
               );
               shootHoming(world, limb, {
-                type: "goldDisc",
+                type: "ironDisc",
                 positions: [
                   intersectingPosition,
                   ...circlePositions,
@@ -1628,13 +1629,12 @@ export default function setupAi(world: World) {
               { name: "ilex", memory: { phase: 20 } }
             );
           } else if (pattern.memory.phase === 20) {
-            // color limb and show rage
+            // color limbs and show rage
             const limbs = getLimbs(world, entity);
             const availableLimbs = limbs.filter(
               (limb) => limb[ORIENTABLE].facing === undefined
             );
-            const selectedLimb = shuffle(availableLimbs)[0];
-            if (!selectedLimb) {
+            if (availableLimbs.length === 0) {
               // no limbs available, skip
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "ilex",
@@ -1643,66 +1643,53 @@ export default function setupAi(world: World) {
               continue;
             }
 
-            selectedLimb[ORIENTABLE].facing = "left";
-            registerEntity(world, selectedLimb);
+            availableLimbs.forEach((limb) => {
+              limb[ORIENTABLE].facing = "right";
+              registerEntity(world, limb);
+            });
 
             patterns.splice(
               patterns.indexOf(pattern),
               1,
-              { name: "dialog", memory: { idle: rage } },
-              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: rage2 } },
+              { name: "wait", memory: { ticks: 3 } },
               { name: "dialog", memory: { idle: undefined } },
               { name: "ilex", memory: { phase: 21 } }
             );
           } else if (pattern.memory.phase === 21) {
             // show spawn homing and wait
-            const selectedLimb = getLimbs(world, entity).find(
-              (limb) => limb[ORIENTABLE].facing === "left"
+            const selectedLimbs = getLimbs(world, entity).filter(
+              (limb) => limb[ORIENTABLE].facing === "right"
             );
-            if (selectedLimb) {
-              // rotate orbit start based on closest corner
-              const ilexOrbit = [
-                { x: 3, y: -2 },
-                { x: 3, y: 4 },
-                { x: -3, y: 4 },
-                { x: -3, y: -2 },
-              ];
-              const limbOrientation = relativeOrientations(
+
+            for (const selectedLimb of selectedLimbs) {
+              // shoot away from center
+              const limbOrientations = relativeOrientations(
                 world,
                 center,
                 selectedLimb[POSITION]
-              )[0];
-              const iterationIndex = iterations.findIndex(
-                (iteration) => iteration.orientation === limbOrientation
               );
-              const iteration = iterations[iterationIndex] || iterations[0];
-              const rotatedOrbit =
-                iterationIndex === -1
-                  ? ilexOrbit
-                  : rotate(ilexOrbit, iterationIndex);
-              const orbitPositions = rotatedOrbit.map((position) =>
-                combine(size, entity[POSITION], position)
-              );
-              const intersectingPosition = {
-                x:
-                  Math.abs(iteration.direction.x) * orbitPositions[0].x +
-                  Math.abs(iteration.normal.x) * selectedLimb[POSITION].x,
-                y:
-                  Math.abs(iteration.direction.y) * orbitPositions[0].y +
-                  Math.abs(iteration.normal.y) * selectedLimb[POSITION].y,
-              };
-              shootHoming(world, selectedLimb, {
-                type: "ironOrbit",
-                positions: [intersectingPosition, ...orbitPositions],
-                ttl: Infinity,
-              });
+
+              for (const orientation of limbOrientations) {
+                const delta = orientationPoints[orientation];
+                shootHoming(world, selectedLimb, {
+                  type: "goldDisc",
+                  positions: [
+                    combine(size, selectedLimb[POSITION], {
+                      x: delta.x * 6,
+                      y: delta.y * 6,
+                    }),
+                  ],
+                  ttl: Infinity,
+                });
+              }
               selectedLimb[ORIENTABLE].facing = undefined;
               rerenderEntity(world, selectedLimb);
             }
             patterns.splice(
               patterns.indexOf(pattern),
               1,
-              { name: "wait", memory: { ticks: 3 } },
+              { name: "wait", memory: { ticks: 5 } },
               { name: "ilex", memory: { phase: 10 } }
             );
           } else if (pattern.memory.phase === 40) {
@@ -1724,17 +1711,6 @@ export default function setupAi(world: World) {
               });
             }
           } else if (pattern.memory.phase === 41) {
-            // show rage and schedule spawn
-            patterns.splice(
-              patterns.indexOf(pattern),
-              1,
-
-              { name: "dialog", memory: { idle: rage } },
-              { name: "wait", memory: { ticks: 2 } },
-              { name: "dialog", memory: { idle: undefined } },
-              { name: "ilex", memory: { phase: 42 } }
-            );
-          } else if (pattern.memory.phase === 42) {
             const limbs = getLimbs(world, entity);
             const spawnLimbs = limbs.filter(
               (limb) => limb[ORIENTABLE].facing === "up"
@@ -1743,13 +1719,10 @@ export default function setupAi(world: World) {
               const orientation = choice(
                 ...relativeOrientations(world, center, limb[POSITION])
               );
-              const target = combine(
-                size,
-                limb[POSITION],
-                orientationPoints[orientation]
-              );
+              const delta = orientationPoints[orientation];
+              const target = combine(size, limb[POSITION], delta);
               shootHoming(world, limb, {
-                type: "ilexViolet",
+                type: "ilexTulip",
                 positions: [target],
               });
               limb[ORIENTABLE].facing = "down";
@@ -1760,6 +1733,77 @@ export default function setupAi(world: World) {
               memory: { ticks: 2 },
             });
           }
+        } else if (pattern.name === "tulip") {
+          const ilex = getIdentifierAndComponents(world, "ilex_elite", [
+            POSITION,
+          ]);
+          if (!ilex) continue;
+
+          const previousHoming = world
+            .getEntities([CASTABLE, HOMING])
+            .find((homing) => homing[CASTABLE].caster === entityId);
+          if (previousHoming) continue;
+
+          if (!pattern.memory.positions) {
+            const ilexCenter = combine(size, ilex[POSITION], { x: 0, y: 1 });
+            // rotate orbit start based on closest corner
+            const ilexOrbit = [
+              { x: 2, y: -1 },
+              { x: 2, y: 3 },
+              { x: -2, y: 3 },
+              { x: -2, y: -1 },
+            ];
+            const limbOrientation = relativeOrientations(
+              world,
+              ilexCenter,
+              entity[POSITION]
+            )[0];
+            const iterationIndex = iterations.findIndex(
+              (iteration) => iteration.orientation === limbOrientation
+            );
+            const iteration = iterations[iterationIndex] || iterations[0];
+            const rotatedOrbit =
+              iterationIndex === -1
+                ? ilexOrbit
+                : rotate(ilexOrbit, iterationIndex);
+            const orbitPositions = rotatedOrbit.map((position) =>
+              combine(size, ilex[POSITION], position)
+            );
+            const intersectingPosition = {
+              x:
+                Math.abs(iteration.direction.x) * orbitPositions[0].x +
+                Math.abs(iteration.normal.x) * entity[POSITION].x,
+              y:
+                Math.abs(iteration.direction.y) * orbitPositions[0].y +
+                Math.abs(iteration.normal.y) * entity[POSITION].y,
+            };
+            pattern.memory.positions = [
+              intersectingPosition,
+              ...orbitPositions,
+            ];
+            rerenderEntity(world, entity);
+          }
+
+          if (!pattern.memory.rage) {
+            pattern.memory.rage = true;
+            patterns.splice(
+              patterns.indexOf(pattern),
+              0,
+              { name: "dialog", memory: { idle: rage } },
+              { name: "wait", memory: { ticks: 2 } },
+              { name: "dialog", memory: { idle: undefined } }
+            );
+            continue;
+          }
+
+          pattern.memory.rage = false;
+
+          shootHoming(world, entity, {
+            type: "ironOrbit",
+            positions: pattern.memory.positions,
+            ttl: 16,
+          });
+          rerenderEntity(world, entity);
         } else if (pattern.name === "oak_boss") {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,

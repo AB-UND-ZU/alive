@@ -264,14 +264,14 @@ export const ilex: Sprite = {
     up: [
       { char: "X", color: colors.green },
       { char: "┼", color: colors.green },
-      { char: "\u0106", color: colors.blue },
-      { char: "∙", color: colors.navy },
+      { char: "\u0106", color: colors.lime },
+      { char: "∙", color: colors.green },
     ],
     right: [
       { char: "X", color: colors.green },
       { char: "┼", color: colors.green },
-      { char: "\u0106", color: colors.olive },
-      { char: "∙", color: colors.yellow },
+      { char: "\u0106", color: colors.yellow },
+      { char: "∙", color: colors.olive },
     ],
     down: [
       { char: "X", color: colors.green },

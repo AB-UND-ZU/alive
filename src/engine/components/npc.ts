@@ -24,7 +24,7 @@ export const npcTypes = [
   "clover",
   "tutorialBoss",
   "ilexElite",
-  "ilexViolet",
+  "ilexTulip",
   "oakBoss",
   "oakTower",
   "oakClover",

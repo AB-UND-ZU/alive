@@ -39,6 +39,7 @@ import {
   ilex,
   stoneEvaporate,
   golemUnit,
+  tulip,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { choice, distribution } from "../math/std";
@@ -1172,7 +1173,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     scratch: colors.green,
     dormant: true,
     stats: {
-      hp: 350,
+      hp: 400,
       mp: 1,
       scale: 3,
       offsetY: 2,
@@ -1194,7 +1195,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     remainsChoices: [bush],
   },
-  ilexViolet: {
+  ilexTulip: {
     faction: "wild",
     scratch: colors.green,
     stats: {
@@ -1216,8 +1217,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         items: [{ stat: "hp", amount: 1 }],
       },
     ],
-    patternNames: ["violet"],
-    sprite: violet,
+    patternNames: ["tulip"],
+    sprite: { ...tulip, name: "" },
   },
   ilexChest: {
     faction: "unit",

@@ -349,7 +349,7 @@ export const abilityStats: Partial<
     },
   },
 
-  ilexViolet: {
+  ilexTulip: {
     bolt: {
       iron: { default: { magic: 1 } },
     },
