@@ -100,3 +100,39 @@
   width: calc(6 * var(--cell-width) + 2 * var(--pixel-size));
   height: var(--cell-height);
 }
+
+.PopupUp {
+  position: fixed;
+  top: 50%;
+  right: 50%;
+  transform: translate(
+    calc(10 * var(--cell-width) - 4 * var(--pixel-size)),
+    calc(-4.5 * var(--cell-height) + 0 * var(--pixel-size))
+  );
+  width: calc(var(--cell-width) + 1 * var(--pixel-size));
+  height: calc(4.5 * var(--cell-height) - 1 * var(--pixel-size));
+}
+
+.PopupDown {
+  position: fixed;
+  top: 50%;
+  right: 50%;
+  transform: translate(
+    calc(10 * var(--cell-width) - 4 * var(--pixel-size)),
+    calc(0 * var(--cell-height) + 0 * var(--pixel-size))
+  );
+  width: calc(var(--cell-width) + 1 * var(--pixel-size));
+  height: calc(4.5 * var(--cell-height) - 1 * var(--pixel-size));
+}
+
+.PopupContent {
+  position: fixed;
+  top: 50%;
+  right: 50%;
+  transform: translate(
+    calc(8.5 * var(--cell-width) - 2 * var(--pixel-size)),
+    calc(-4.5 * var(--cell-height))
+  );
+  width: calc(17 * var(--cell-width) - var(--pixel-size));
+  height: calc(9 * var(--cell-height) - 2 * var(--pixel-size));
+}

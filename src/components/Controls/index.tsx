@@ -45,7 +45,7 @@ import { STATS } from "../../engine/components/stats";
 import { PLAYER } from "../../engine/components/player";
 import { ensureAudio } from "../../game/sound/resumable";
 import Cursor from "../Cursor";
-import { getItemSprite } from "../../game/assets/utils";
+import { frameHeight, getItemSprite } from "../../game/assets/utils";
 import { centerSprites } from "../../game/assets/pixels";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
@@ -307,6 +307,9 @@ export default function Controls() {
         | "close"
         | "left"
         | "right"
+        | "up"
+        | "down"
+        | "content"
         | "tab"
         | "backtab",
       index?: number
@@ -356,6 +359,8 @@ export default function Controls() {
 
         if (index !== undefined && action === "tab") {
           heroEntity[PLAYER].tabTriggered = index;
+        } else if (index !== undefined && action === "content") {
+          heroEntity[PLAYER].contentTriggered = index;
         }
       }
 
@@ -508,6 +513,60 @@ export default function Controls() {
     ) => {
       event.preventDefault();
       handleAction("right");
+    },
+    [handleAction]
+  );
+
+  const handleUp = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      handleAction("up");
+    },
+    [handleAction]
+  );
+
+  const handleDown = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      handleAction("down");
+    },
+    [handleAction]
+  );
+
+  const handleContent = useCallback(
+    (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      event.preventDefault();
+      const div = event.currentTarget as HTMLDivElement | undefined;
+      if (!div || ("touches" in event && event.touches.length > 1)) return;
+
+      const rect = div.getBoundingClientRect();
+
+      let offsetY: number = 0;
+
+      if ("clientY" in event && typeof event.clientY === "number") {
+        offsetY = event.clientY - rect.top;
+      } else if ("touches" in event && event.touches.length > 0) {
+        offsetY = event.touches[0].clientY - rect.top;
+      }
+
+      const totalHeight = div.offsetHeight;
+      const rowHeight = totalHeight / (frameHeight - 2);
+      const rowIndex = Math.min(
+        frameHeight - 3,
+        Math.floor(offsetY / rowHeight)
+      );
+
+      handleAction("content", rowIndex);
     },
     [handleAction]
   );
@@ -701,6 +760,9 @@ export default function Controls() {
             "tab-2",
             "left",
             "right",
+            "up",
+            "down",
+            "content",
             "stats",
           ].includes(
             (touch.target as HTMLElement).id ||
@@ -1008,6 +1070,9 @@ export default function Controls() {
           <div className="PopupClose" id="close" onClick={handleClose} />
           <div className="PopupLeft" id="left" onClick={handleLeft} />
           <div className="PopupRight" id="right" onClick={handleRight} />
+          <div className="PopupUp" id="up" onClick={handleUp} />
+          <div className="PopupDown" id="down" onClick={handleDown} />
+          <div className="PopupContent" id="content" onClick={handleContent} />
         </>
       )}
     </footer>

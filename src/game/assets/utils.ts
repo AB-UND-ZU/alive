@@ -374,6 +374,7 @@ export const renderPopup = (
   const horizontalIndex = entity[POPUP].horizontalIndex;
   const tabs = entity[POPUP].tabs.length;
   const lines = content.length - overscan;
+  const detailsPadding = details ? detailsHeight : 0;
   const scrollIndex =
     verticalIndex -
     scrolledVerticalIndex(
@@ -427,12 +428,14 @@ export const renderPopup = (
   let renderDetails = settled;
   let renderSeparator = details && renderTabs;
   let renderButtons = generationChanged;
-  let renderHint = !details && hintGeneration !== hintAmount;
+  let renderHint = renderTabs || (!details && hintGeneration !== hintAmount);
   let renderScroll =
     visibleScroll && (generationChanged || renderContent || renderTabs);
-  let renderTopOverlay = visibleScroll && topOverlayAmount !== topOverlayTarget;
+  let renderTopOverlay =
+    renderTabs || (visibleScroll && topOverlayAmount !== topOverlayTarget);
   let renderBottomOverlay =
-    visibleScroll && bottomOverlayAmount !== bottomOverlayTarget;
+    renderTabs ||
+    (visibleScroll && bottomOverlayAmount !== bottomOverlayTarget);
 
   // create popup
   if (initial) {
@@ -769,6 +772,7 @@ export const renderPopup = (
   }
 
   // popup details
+  state.args.detailsPadding = detailsPadding;
   if (renderDetails && details) {
     for (let row = 0; row < Math.min(detailsHeight, details.length); row += 1) {
       for (let column = 0; column < details[row].length; column += 1) {
@@ -904,6 +908,7 @@ export const renderPopup = (
   const popupOrigin = { x: 0, y: (frameHeight + 1) / -2 };
   const selectionX = popupOrigin.x - (frameWidth - 3) / 2;
   const selectionY = popupOrigin.y - (frameHeight - 3) / 2;
+  state.args.contentClickable = !!selection;
 
   if (
     !state.particles.selection &&

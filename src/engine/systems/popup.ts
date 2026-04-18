@@ -467,6 +467,8 @@ export const openPopup = (
     {
       contentIndex: 0,
       contentHeight: 0,
+      contentClickable: false,
+      detailsPadding: 0,
       verticalIndex: 0,
       horizontalIndex: 0,
       transaction: getTab(world, popupEntity),
@@ -585,6 +587,7 @@ export default function setupPopup(world: World) {
     );
 
     const selections = getTabSelections(world, popupEntity);
+    const popupSequence = getSequence(world, popupEntity, "popup");
 
     // handle vertical movements
     const lines =
@@ -650,18 +653,52 @@ export default function setupPopup(world: World) {
           : 0
         : 0;
 
-    if (targetOrientation === "up" || targetOrientation === "down") {
-      const previousIndex = getVerticalIndex(world, popupEntity);
+    const previousIndex = getVerticalIndex(world, popupEntity);
+    if (
+      targetOrientation === "up" ||
+      targetOrientation === "down" ||
+      heroEntity[PLAYER].actionTriggered === "up" ||
+      heroEntity[PLAYER].actionTriggered === "down"
+    ) {
+      const targetScroll =
+        targetOrientation || heroEntity[PLAYER].actionTriggered;
       setVerticalIndex(
         world,
         popupEntity,
         previousIndex +
-          (targetOrientation === "up"
-            ? -1
-            : targetOrientation === "down"
-            ? 1
-            : 0)
+          (targetScroll === "up" ? -1 : targetScroll === "down" ? 1 : 0)
       );
+
+      if (
+        heroEntity[PLAYER].actionTriggered === "up" ||
+        heroEntity[PLAYER].actionTriggered === "down"
+      ) {
+        heroEntity[PLAYER].actionTriggered = undefined;
+      }
+    } else if (heroEntity[PLAYER].actionTriggered === "content") {
+      const contentIndex = heroEntity[PLAYER].contentTriggered;
+
+      heroEntity[PLAYER].actionTriggered = undefined;
+      heroEntity[PLAYER].contentTriggered = undefined;
+
+      const scrollIndex = popupSequence?.args.scrollIndex;
+      const detailsPadding = popupSequence?.args.detailsPadding || 0;
+      const contentClickable = popupSequence?.args.contentClickable;
+
+      if (
+        contentClickable &&
+        contentIndex !== undefined &&
+        scrollIndex !== undefined &&
+        contentIndex < frameHeight - 2 - detailsPadding
+      ) {
+        // treat clicking active row like confirming
+        const newIndex = contentIndex + scrollIndex;
+        if (newIndex === previousIndex) {
+          heroEntity[PLAYER].actionTriggered = "right";
+        } else {
+          setVerticalIndex(world, popupEntity, newIndex);
+        }
+      }
     }
 
     // ensure index is in bounds
@@ -676,7 +713,6 @@ export default function setupPopup(world: World) {
     if (heroEntity[PLAYER].actionTriggered === "close") {
       // close popup
       heroEntity[PLAYER].actionTriggered = undefined;
-      const popupSequence = getSequence(world, popupEntity, "popup");
       if (popupSequence) {
         closePopup(world, heroEntity, popupEntity);
       }
@@ -694,7 +730,6 @@ export default function setupPopup(world: World) {
       );
       heroEntity[PLAYER].actionTriggered = undefined;
       heroEntity[PLAYER].tabTriggered = undefined;
-      const popupSequence = getSequence(world, popupEntity, "popup");
 
       // rerender on tab changes
       if (

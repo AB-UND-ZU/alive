@@ -206,6 +206,8 @@ export type ProgressSequence = {
 export type PopupSequence = {
   contentIndex: number;
   contentHeight: number;
+  contentClickable: boolean;
+  detailsPadding: number;
   generation?: number;
   scrollIndex?: number;
   verticalIndex: number;

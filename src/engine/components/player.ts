@@ -21,7 +21,10 @@ export type Player = {
     | "tab"
     | "backtab"
     | "left"
-    | "right";
+    | "right"
+    | "up"
+    | "down"
+    | "content";
   tabTriggered?: number;
   contentTriggered?: number;
 };
