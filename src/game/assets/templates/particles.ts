@@ -153,6 +153,43 @@ export const waveSide = createTemplate({
   materialElementSprite: waveSideElementTemplate,
 });
 
+const waveSideDoubleTemplate: Sprite = {
+  name: "wave_side_double",
+  layers: [{ char: "╬", color: TEMPLATE_COLORS.materialPrimary }],
+  facing: {
+    up: [{ char: "═", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "║", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "═", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "║", color: TEMPLATE_COLORS.materialPrimary }],
+  },
+};
+const waveSideDoubleElementTemplate: Sprite = {
+  name: "wave_side_double_element",
+  layers: [ { char: "╬", color: TEMPLATE_COLORS.materialPrimary }, ],
+  facing: {
+    up: [
+      { char: "╦", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "═", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    right: [
+      { char: "╣", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "║", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    down: [
+      { char: "╩", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "═", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    left: [
+      { char: "╠", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "║", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+  },
+};
+export const waveSideDouble = createTemplate({
+  sprite: waveSideDoubleTemplate,
+  materialElementSprite: waveSideDoubleElementTemplate,
+});
+
 const waveCornerTemplate: Sprite = {
   name: "wave_corner",
   layers: [],
@@ -206,6 +243,43 @@ export const waveCorner = createTemplate({
   materialElementSprite: waveCornerElementTemplate,
 });
 
+const waveCornerDoubleTemplate: Sprite = {
+  name: "wave_corner_double",
+  layers: [],
+  facing: {
+    up: [ { char: "╗", color: TEMPLATE_COLORS.materialPrimary }, ],
+    right: [ { char: "╝", color: TEMPLATE_COLORS.materialPrimary }, ],
+    down: [ { char: "╚", color: TEMPLATE_COLORS.materialPrimary }, ],
+    left: [ { char: "╔", color: TEMPLATE_COLORS.materialPrimary }, ],
+  },
+};
+const waveCornerDoubleElementTemplate: Sprite = {
+  name: "wave_corner_double_element",
+  layers: [],
+  facing: {
+    up: [
+      { char: "╦", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "╗", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    right: [
+      { char: "╩", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "╝", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    down: [
+      { char: "╩", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "╚", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    left: [
+      { char: "╦", color: TEMPLATE_COLORS.elementPrimary },
+      { char: "╔", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+  },
+};
+export const waveCornerDouble = createTemplate({
+  sprite: waveCornerDoubleTemplate,
+  materialElementSprite: waveCornerDoubleElementTemplate,
+});
+
 const triggerTemplate: Sprite = {
   name: "spell_trigger",
   layers: [
@@ -250,17 +324,17 @@ const dashTemplate: Sprite = {
     down: [
       { char: "\u0100", color: TEMPLATE_COLORS.transparent },
       { char: "\u0101", color: TEMPLATE_COLORS.transparent },
-      { char: "v", color: TEMPLATE_COLORS.materialPrimary, },
-      { char: "\u0104", color: TEMPLATE_COLORS.transparent, },
-      { char: "\u0105", color: TEMPLATE_COLORS.materialPrimary, },
-      { char: "═", color: TEMPLATE_COLORS.transparent, },
-      { char: "i", color: TEMPLATE_COLORS.transparent, },
-      { char: "*", color: TEMPLATE_COLORS.materialPrimary, },
-      { char: "\u0106", color: TEMPLATE_COLORS.transparent, },
-      { char: "=", color: TEMPLATE_COLORS.materialPrimary, },
-      { char: "Y", color: TEMPLATE_COLORS.transparent, },
-      { char: "!", color: TEMPLATE_COLORS.transparent, },
-      { char: ".", color: TEMPLATE_COLORS.materialPrimary, },
+      { char: "v", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "\u0104", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0105", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "═", color: TEMPLATE_COLORS.transparent },
+      { char: "i", color: TEMPLATE_COLORS.transparent },
+      { char: "*", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "\u0106", color: TEMPLATE_COLORS.transparent },
+      { char: "=", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "Y", color: TEMPLATE_COLORS.transparent },
+      { char: "!", color: TEMPLATE_COLORS.transparent },
+      { char: ".", color: TEMPLATE_COLORS.materialPrimary },
     ],
     left: [
       { char: "\u0100", color: TEMPLATE_COLORS.transparent },

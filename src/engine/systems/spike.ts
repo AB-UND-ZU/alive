@@ -26,6 +26,7 @@ import { play } from "../../game/sound";
 import { attemptBubbleAbsorb } from "./magic";
 import { STRUCTURABLE } from "../components/structurable";
 import { BUMPABLE } from "../components/bumpable";
+import { getBlockable } from "./action";
 
 export const isSpikable = (world: World, entity: Entity) => {
   if (!isFightable(world, entity)) return false;
@@ -35,10 +36,13 @@ export const isSpikable = (world: World, entity: Entity) => {
   return entityStats.spike > 0;
 };
 
-export const getSpikable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) =>
+export const getSpikable = (world: World, position: Position) => {
+  if (getBlockable(world, position)) return;
+
+  return Object.values(getCell(world, position)).find((entity) =>
     isSpikable(world, entity)
   ) as Entity | undefined;
+};
 
 export const isStingable = (world: World, entity: Entity) => STATS in entity;
 

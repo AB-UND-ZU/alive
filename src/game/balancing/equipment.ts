@@ -215,7 +215,7 @@ export const gearStats: Partial<
       wood: { default: { melee: 2 } },
     },
   },
-  oakClover: {
+  oakLily: {
     sword: {
       default: { earth: { heal: 1 } },
     },

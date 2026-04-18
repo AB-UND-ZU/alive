@@ -388,7 +388,9 @@ import {
   slashSide,
   trigger,
   waveCorner,
+  waveCornerDouble,
   waveSide,
+  waveSideDouble,
 } from "./templates/particles";
 import {
   animateEvaporate,
@@ -4506,6 +4508,9 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
   const innerRadius = Math.round(state.elapsed / waveSpeed);
   const material = state.args.material || "default";
   const element = state.args.element || "default";
+  const sideTemplate = entity[CASTABLE].knock > 0 ? waveSideDouble : waveSide;
+  const cornerTemplate =
+    entity[CASTABLE].knock > 0 ? waveCornerDouble : waveCorner;
 
   // create wave sides, initial corners and AoE
   if (state.args.progress === 0) {
@@ -4521,7 +4526,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
           animatedOrigin: { x: 0, y: 0 },
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: waveSide[material][element],
+        [SPRITE]: sideTemplate[material][element],
       });
       state.particles[`side-${orientation}`] = world.getEntityId(waveParticle);
     }
@@ -4705,7 +4710,7 @@ export const castWave1: Sequence<SpellSequence> = (world, entity, state) => {
 
       // only show elements on inner corners
       const cornerSprite =
-        waveCorner[material][
+        cornerTemplate[material][
           particleName.startsWith("inner") || material === "default"
             ? element
             : "default"

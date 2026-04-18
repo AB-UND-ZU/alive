@@ -63,7 +63,7 @@ const discConfig: Record<
 > = {
   oakTower: { sprite: summon.iron.default, magic: 2, retrigger: 2 },
   oakHedge: { sprite: homing.default.earth, forceAffecting: true },
-  oakClover: { sprite: summon.default.earth, magic: 2, retrigger: 2 },
+  oakLily: { sprite: summon.default.earth, magic: 2, retrigger: 2 },
   ilexTulip: { sprite: summon.default.earth, magic: 1, retrigger: 2 },
   ironDisc: { sprite: disc.iron.default, magic: 1 },
   goldDisc: { sprite: disc.gold.default, magic: 2 },
@@ -203,7 +203,7 @@ export default function setupHoming(world: World) {
           "hidden"
         ).cell;
         setIdentifier(world, towerEntity, "oak:tower");
-      } else if (entity[HOMING].type === "oakClover" && reached) {
+      } else if (entity[HOMING].type === "oakLily" && reached) {
         // clear bushes
         const cell = getCell(world, entity[POSITION]);
         const bushEntity = Object.values(cell).find(
@@ -217,7 +217,7 @@ export default function setupHoming(world: World) {
         const cloverEntity = createCell(
           world,
           copy(entity[POSITION]),
-          "oakClover",
+          "oakLily",
           "hidden"
         ).cell;
 

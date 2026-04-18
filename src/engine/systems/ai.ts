@@ -1830,6 +1830,10 @@ export default function setupAi(world: World) {
           }
 
           const percentage = (100 * entity[STATS].hp) / entity[STATS].maxHp;
+          const lowHpPercentage = 25;
+          const branchThreshold = 25;
+          const lilyWaves = 3;
+          const lilyCount = 4;
 
           if (pattern.memory.phase === undefined) {
             // set initial phase and low hp trigger
@@ -2210,21 +2214,16 @@ export default function setupAi(world: World) {
               { x: 3, y: -2 },
               { x: 5, y: -1 },
             ];
-            const plantCount = 3;
-            const plantOffset = 4;
-            const plantShift = random(0, plantOffset - 1);
+            const plantShift = random(0, lilyCount - 1);
 
             const selectedSpawns = [];
-            for (let offset = 0; offset < plantOffset; offset += 1) {
-              for (let index = 0; index < plantCount; index += 1) {
-                const shiftedOffset = normalize(
-                  offset + plantShift,
-                  plantOffset
-                );
+            for (let offset = 0; offset < lilyWaves; offset += 1) {
+              for (let index = 0; index < lilyCount; index += 1) {
+                const shiftedOffset = normalize(offset + plantShift, lilyWaves);
                 const position = combine(
                   size,
                   entity[POSITION],
-                  plantSpawns[shiftedOffset + index * plantOffset]
+                  plantSpawns[shiftedOffset + index * lilyWaves]
                 );
                 const cell = getCell(world, position);
                 const bushEntity = Object.values(cell).find(
@@ -2287,7 +2286,7 @@ export default function setupAi(world: World) {
             // cast spawns and wait
             pattern.memory.spawns.forEach((spawn: Position) => {
               shootHoming(world, castableEntity, {
-                type: "oakClover",
+                type: "oakLily",
                 positions: [spawn],
               });
             });
@@ -2366,7 +2365,6 @@ export default function setupAi(world: World) {
             const bushEntities = world
               .getEntities([IDENTIFIABLE])
               .filter((bush) => bush[IDENTIFIABLE].name === "oak:bush");
-            const lowHpPercentage = 20;
             const currentHealPatterns = patterns.filter(
               (pattern) =>
                 pattern.name === "oak_boss" &&
@@ -2374,9 +2372,10 @@ export default function setupAi(world: World) {
             ).length;
             const targetHealPatterns =
               1 +
-              Math.floor(bushEntities.length / 3) -
+              Math.floor(bushEntities.length / lilyCount) -
               Math.ceil(
-                ((percentage - lowHpPercentage) / (100 - lowHpPercentage)) * 5
+                ((percentage - lowHpPercentage) / (100 - lowHpPercentage)) *
+                  (lilyWaves + 1)
               ) -
               currentHealPatterns;
 
@@ -2445,12 +2444,20 @@ export default function setupAi(world: World) {
               { name: "wait", memory: { ticks: 5 } },
               { name: "dialog", memory: { override: "hidden", dialogs: [] } },
               { name: "wait", memory: { ticks: 5 } },
+              { name: "vulnerable", memory: {} },
+              { name: "oak_boss", memory: { phase: 50 } }
+            );
+          } else if (pattern.memory.phase === 50) {
+            // show rage before wave
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
               { name: "dialog", memory: { idle: rage } },
               { name: "wait", memory: { ticks: 2 } },
               { name: "dialog", memory: { idle: undefined } },
-              { name: "oak_boss", memory: { phase: 42 } }
+              { name: "oak_boss", memory: { phase: 51 } }
             );
-          } else if (pattern.memory.phase === 42) {
+          } else if (pattern.memory.phase === 51) {
             // cast wave
             castSpell(world, castableEntity, {
               [ITEM]: {
@@ -2462,14 +2469,11 @@ export default function setupAi(world: World) {
                 material: "gold",
               },
             });
-            patterns.splice(
-              patterns.indexOf(pattern),
-              1,
-              { name: "wait", memory: { ticks: 7 } },
-              { name: "vulnerable", memory: {} },
-              { name: "oak_boss", memory: { phase: 43 } }
-            );
-          } else if (pattern.memory.phase === 43) {
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "oak_boss",
+              memory: { phase: 52 },
+            });
+          } else if (pattern.memory.phase === 52) {
             // show rage before casting branch
             patterns.splice(
               patterns.indexOf(pattern),
@@ -2477,9 +2481,9 @@ export default function setupAi(world: World) {
               { name: "dialog", memory: { idle: rage } },
               { name: "wait", memory: { ticks: 2 } },
               { name: "dialog", memory: { idle: undefined } },
-              { name: "oak_boss", memory: { phase: 44 } }
+              { name: "oak_boss", memory: { phase: 53 } }
             );
-          } else if (pattern.memory.phase === 44) {
+          } else if (pattern.memory.phase === 53) {
             // extend branch
             createSequence<"branch", BranchSequence>(
               world,
@@ -2489,7 +2493,7 @@ export default function setupAi(world: World) {
               {
                 grow: true,
                 limbs: [],
-                threshold: entity[STATS].hp - 20,
+                threshold: entity[STATS].hp - branchThreshold,
               }
             );
             patterns.splice(
@@ -2498,9 +2502,9 @@ export default function setupAi(world: World) {
               { name: "wait", memory: { ticks: 3 } },
               { name: "dialog", memory: { idle: rage2 } },
               { name: "wait", memory: { ticks: 3 } },
-              { name: "oak_boss", memory: { phase: 45 } }
+              { name: "oak_boss", memory: { phase: 54 } }
             );
-          } else if (pattern.memory.phase === 45) {
+          } else if (pattern.memory.phase === 54) {
             // set orientation
             castableEntity[ORIENTABLE].facing = relativeOrientations(
               world,
@@ -2513,9 +2517,9 @@ export default function setupAi(world: World) {
               1,
               { name: "wait", memory: { ticks: 1 } },
               { name: "dialog", memory: { idle: undefined } },
-              { name: "oak_boss", memory: { phase: 46 } }
+              { name: "oak_boss", memory: { phase: 55 } }
             );
-          } else if (pattern.memory.phase === 46) {
+          } else if (pattern.memory.phase === 55) {
             // cast blast
             castSpell(world, castableEntity, {
               [ITEM]: {
@@ -2532,21 +2536,21 @@ export default function setupAi(world: World) {
               patterns.indexOf(pattern),
               1,
               { name: "wait", memory: { ticks: 3 } },
-              { name: "oak_boss", memory: { phase: 47 } }
+              { name: "oak_boss", memory: { phase: 56 } }
             );
-          } else if (pattern.memory.phase === 47) {
+          } else if (pattern.memory.phase === 56) {
             // reset orientation
             castableEntity[ORIENTABLE].facing = undefined;
             patterns.splice(patterns.indexOf(pattern), 1, {
               name: "oak_boss",
-              memory: { phase: 48 },
+              memory: { phase: 57 },
             });
-          } else if (pattern.memory.phase === 48) {
+          } else if (pattern.memory.phase === 57) {
             // wait till branch is broken
             if (!getSequence(world, stemEntity, "branch")) {
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "oak_boss",
-                memory: { phase: 43 },
+                memory: { phase: 50 },
               });
             }
           } else {
@@ -2657,7 +2661,7 @@ export default function setupAi(world: World) {
             patterns.splice(patterns.indexOf(pattern), 1);
           }
           break;
-        } else if (pattern.name === "oak_clover") {
+        } else if (pattern.name === "oak_lily") {
           const oakBoss = getIdentifierAndComponents(world, "oak_boss", [
             POSITION,
           ]);

@@ -40,6 +40,7 @@ import {
   stoneEvaporate,
   golemUnit,
   tulip,
+  lily,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { choice, distribution } from "../math/std";
@@ -1262,7 +1263,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     scratch: colors.maroon,
     dormant: true,
     stats: {
-      hp: 400,
+      hp: 500,
       mp: 1,
       armor: 1,
       scale: 3,
@@ -1306,7 +1307,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: { ...waveTower.iron.default, name: "" },
     evaporate: { sprite: evaporate.iron.default, fast: true },
   },
-  oakClover: {
+  oakLily: {
     faction: "wild",
     scratch: colors.green,
     stats: {
@@ -1326,8 +1327,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         items: [{ stat: "hp", amount: 1 }],
       },
     ],
-    patternNames: ["oak_clover"],
-    sprite: clover,
+    patternNames: ["oak_lily"],
+    sprite: { ...lily, name: "" },
   },
   oakChest: {
     faction: "unit",

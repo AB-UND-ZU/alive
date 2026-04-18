@@ -338,7 +338,7 @@ export const abilityStats: Partial<
       wood: {
         default: {
           duration: 21,
-          magic: 1
+          magic: 1,
         },
       },
     },
@@ -358,7 +358,12 @@ export const abilityStats: Partial<
   oakBoss: {
     wave: {
       gold: {
-        default: { magic: 3 },
+        default: {
+          magic: 1,
+          knock: 1,
+          retrigger: 1,
+          reproc: 1,
+        },
       },
     },
     blast: {
