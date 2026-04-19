@@ -517,32 +517,6 @@ export default function Controls() {
     [handleAction]
   );
 
-  const handleUp = useCallback(
-    (
-      event:
-        | KeyboardEvent
-        | TouchEvent
-        | React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
-      event.preventDefault();
-      handleAction("up");
-    },
-    [handleAction]
-  );
-
-  const handleDown = useCallback(
-    (
-      event:
-        | KeyboardEvent
-        | TouchEvent
-        | React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
-      event.preventDefault();
-      handleAction("down");
-    },
-    [handleAction]
-  );
-
   const handleContent = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
@@ -619,6 +593,45 @@ export default function Controls() {
       }
     },
     [ecs]
+  );
+
+  const handleUp = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      handleMove(["up"]);
+    },
+    [handleMove]
+  );
+
+  const handleDown = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      handleMove(["down"]);
+    },
+    [handleMove]
+  );
+
+  const handleRelease = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      handleMove([]);
+    },
+    [handleMove]
   );
 
   const handleKey = useCallback(
@@ -1070,8 +1083,20 @@ export default function Controls() {
           <div className="PopupClose" id="close" onClick={handleClose} />
           <div className="PopupLeft" id="left" onClick={handleLeft} />
           <div className="PopupRight" id="right" onClick={handleRight} />
-          <div className="PopupUp" id="up" onClick={handleUp} />
-          <div className="PopupDown" id="down" onClick={handleDown} />
+          <div
+            className="PopupUp"
+            id="up"
+            onPointerDown={handleUp}
+            onPointerUp={handleRelease}
+            onPointerCancel={handleRelease}
+          />
+          <div
+            className="PopupDown"
+            id="down"
+            onPointerDown={handleDown}
+            onPointerUp={handleRelease}
+            onPointerCancel={handleRelease}
+          />
           <div className="PopupContent" id="content" onClick={handleContent} />
         </>
       )}
