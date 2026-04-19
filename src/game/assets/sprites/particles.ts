@@ -1270,11 +1270,7 @@ export const popupSeparator: Sprite = {
     { char: "▀", color: colors.black },
   ],
   facing: {
-    up: [
-      { char: "▐", color: colors.grey },
-      { char: "▀", color: colors.black },
-      { char: "│", color: colors.black },
-    ],
+    up: [],
     right: [
       { char: "▐", color: colors.grey },
       { char: "▀", color: colors.black },
@@ -1306,14 +1302,8 @@ export const popupSeparatorSelected: Sprite = {
     { char: "▐", color: colors.white },
   ],
   facing: {
-    up: [
-      { char: "▐", color: colors.white },
-      { char: "│", color: colors.black },
-    ],
-    right: [
-      { char: "▐", color: colors.white },
-      { char: "│", color: colors.black },
-    ],
+    up: [{ char: "▐", color: colors.white }],
+    right: [{ char: "▐", color: colors.white }],
     down: [
       { char: "▌", color: colors.white },
       { char: "│", color: colors.black },

@@ -420,7 +420,7 @@ export const removePopup = (world: World, entity: Entity) => {
   disposeEntity(world, viewpointEntity);
 
   // remove popup
-  world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP);
+  world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP, false);
   const discovery = getSequence(world, entity, "discovery");
   if (discovery) {
     discovery.args.idle = none;
@@ -563,6 +563,14 @@ export default function setupPopup(world: World) {
     const targetOrientation: Orientation | undefined =
       heroEntity[MOVABLE].pendingOrientation ||
       heroEntity[MOVABLE].orientations[0];
+
+    // skip if player has already interacted or not going to
+    if (
+      heroEntity[MOVABLE].lastInteraction === generation ||
+      (!targetOrientation && !heroEntity[PLAYER].actionTriggered)
+    )
+      return;
+
     const inventoryItems = (heroEntity[INVENTORY]?.items || []).map((itemId) =>
       world.assertByIdAndComponents(itemId, [ITEM])
     );
@@ -915,7 +923,10 @@ export default function setupPopup(world: World) {
         }
       } else if (tab === "inspect") {
         if (useEntity && getConsumption(world, heroEntity, useEntity)) {
-          consumeItem(world, heroEntity, useEntity);
+          const consumed = consumeItem(world, heroEntity, useEntity);
+          if (consumed) {
+            setVerticalIndex(world, popupEntity, Math.max(0, boundIndex - 1));
+          }
         } else if (useEntity) {
           const useItem =
             inspectItems[getVerticalIndex(world, heroEntity)]?.[ITEM];
@@ -997,13 +1008,6 @@ export default function setupPopup(world: World) {
         setVerticalIndex(world, popupEntity, verticalIndex || 0);
       }
     }
-
-    // skip if player has already interacted or not going to
-    if (
-      heroEntity[MOVABLE].lastInteraction === generation ||
-      !targetOrientation
-    )
-      return;
 
     // mark as interacted
     heroEntity[MOVABLE].pendingOrientation = undefined;

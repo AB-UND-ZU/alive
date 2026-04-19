@@ -145,6 +145,7 @@ export const getItemConsumption = (
 
 export const consumeItem = (world: World, entity: Entity, target: Entity) => {
   const consumption = getConsumption(world, entity, target);
+  let consumed = false;
 
   if (!consumption) return;
 
@@ -153,6 +154,7 @@ export const consumeItem = (world: World, entity: Entity, target: Entity) => {
 
   if (consumption.item[ITEM].amount === 0) {
     removeFromInventory(world, entity, consumption.item);
+    consumed = true;
   }
 
   rerenderEntity(world, entity);
@@ -181,6 +183,8 @@ export const consumeItem = (world: World, entity: Entity, target: Entity) => {
     const countableItem = entities.createItem(world, itemData);
     addToInventory(world, entity, countableItem, itemData[ITEM].amount);
   }
+
+  return consumed;
 };
 
 export default function setupConsume(world: World) {

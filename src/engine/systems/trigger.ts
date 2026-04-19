@@ -905,7 +905,9 @@ export default function setupTrigger(world: World) {
         !(
           entity[ACTIONABLE].primaryTriggered ||
           entity[ACTIONABLE].secondaryTriggered ||
-          entity[PLAYER]?.actionTriggered
+          ["inspect", "interact", "map"].includes(
+            entity[PLAYER]?.actionTriggered!
+          )
         )
       )
         continue;
