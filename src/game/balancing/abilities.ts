@@ -393,7 +393,7 @@ export const abilityStats: Partial<
     default: {
       default: {
         default: {
-          true: 2,
+          melee: 2,
           knock: 1,
           retrigger: 1,
           reproc: 1,
@@ -403,9 +403,12 @@ export const abilityStats: Partial<
     wave: {
       gold: {
         default: {
-          magic: 5,
+          magic: 2,
           duration: 4,
           range: 4,
+          knock: 1,
+          retrigger: 1,
+          reproc: 1,
         },
       },
     },

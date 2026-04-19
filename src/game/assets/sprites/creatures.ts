@@ -498,9 +498,9 @@ export const golemStrikeUp: Sprite = {
   name: "Golem",
   layers: [],
   facing: {
-    up: [{ char: "─", color: colors.yellow }],
-    right: [{ char: "─", color: colors.yellow }],
-    left: [{ char: "─", color: colors.yellow }],
+    up: [{ char: "═", color: colors.yellow }],
+    right: [{ char: "═", color: colors.yellow }],
+    left: [{ char: "═", color: colors.yellow }],
   },
 };
 
@@ -508,8 +508,8 @@ export const golemStrikeUpRight: Sprite = {
   name: "Golem",
   layers: [],
   facing: {
-    up: [{ char: "┐", color: colors.yellow }],
-    right: [{ char: "┐", color: colors.yellow }],
+    up: [{ char: "╗", color: colors.yellow }],
+    right: [{ char: "╗", color: colors.yellow }],
   },
 };
 
@@ -517,9 +517,9 @@ export const golemStrikeRight: Sprite = {
   name: "Golem",
   layers: [],
   facing: {
-    up: [{ char: "│", color: colors.yellow }],
-    right: [{ char: "│", color: colors.yellow }],
-    down: [{ char: "│", color: colors.yellow }],
+    up: [{ char: "║", color: colors.yellow }],
+    right: [{ char: "║", color: colors.yellow }],
+    down: [{ char: "║", color: colors.yellow }],
   },
 };
 
@@ -527,8 +527,8 @@ export const golemStrikeRightDown: Sprite = {
   name: "Golem",
   layers: [],
   facing: {
-    right: [{ char: "┘", color: colors.yellow }],
-    down: [{ char: "┘", color: colors.yellow }],
+    right: [{ char: "╝", color: colors.yellow }],
+    down: [{ char: "╝", color: colors.yellow }],
   },
 };
 
@@ -536,9 +536,9 @@ export const golemStrikeDown: Sprite = {
   name: "Golem",
   layers: [],
   facing: {
-    right: [{ char: "─", color: colors.yellow }],
-    down: [{ char: "─", color: colors.yellow }],
-    left: [{ char: "─", color: colors.yellow }],
+    right: [{ char: "═", color: colors.yellow }],
+    down: [{ char: "═", color: colors.yellow }],
+    left: [{ char: "═", color: colors.yellow }],
   },
 };
 
@@ -546,8 +546,8 @@ export const golemStrikeDownLeft: Sprite = {
   name: "Golem",
   layers: [],
   facing: {
-    down: [{ char: "└", color: colors.yellow }],
-    left: [{ char: "└", color: colors.yellow }],
+    down: [{ char: "╚", color: colors.yellow }],
+    left: [{ char: "╚", color: colors.yellow }],
   },
 };
 
@@ -555,9 +555,9 @@ export const golemStrikeLeft: Sprite = {
   name: "Golem",
   layers: [],
   facing: {
-    up: [{ char: "│", color: colors.yellow }],
-    down: [{ char: "│", color: colors.yellow }],
-    left: [{ char: "│", color: colors.yellow }],
+    up: [{ char: "║", color: colors.yellow }],
+    down: [{ char: "║", color: colors.yellow }],
+    left: [{ char: "║", color: colors.yellow }],
   },
 };
 
@@ -565,8 +565,8 @@ export const golemStrikeLeftUp: Sprite = {
   name: "Golem",
   layers: [],
   facing: {
-    up: [{ char: "┌", color: colors.yellow }],
-    left: [{ char: "┌", color: colors.yellow }],
+    up: [{ char: "╔", color: colors.yellow }],
+    left: [{ char: "╔", color: colors.yellow }],
   },
 };
 
