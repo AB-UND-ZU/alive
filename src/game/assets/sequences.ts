@@ -2542,11 +2542,15 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
       }
     }
 
-    // add item stats
+    // add max stats and add to current stats
     if (state.args.maxHp) {
       entity[STATS].maxHp = Math.min(
         entity[STATS].maxHpCap,
         entity[STATS].maxHp + state.args.maxHp
+      );
+      entity[STATS].hp = Math.min(
+        entity[STATS].maxHp,
+        entity[STATS].hp + state.args.maxHp
       );
       entity[PLAYER].receivedStats.maxHp += state.args.maxHp;
     }
@@ -2554,6 +2558,10 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
       entity[STATS].maxMp = Math.min(
         entity[STATS].maxMpCap,
         entity[STATS].maxMp + state.args.maxMp
+      );
+      entity[STATS].mp = Math.min(
+        entity[STATS].maxMp,
+        entity[STATS].mp + state.args.maxMp
       );
       entity[PLAYER].receivedStats.maxMp += state.args.maxMp;
     }
