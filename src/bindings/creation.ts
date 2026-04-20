@@ -156,6 +156,7 @@ import {
   times,
   createSpriteButton,
   emptyFlask,
+  oakBossUnit,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -3004,6 +3005,7 @@ export const createCell = (
     all.push(bossEntity);
     populateInventory(world, bossEntity, bossUnit.items, bossUnit.equipments);
     setIdentifier(world, bossEntity, "oak_boss");
+    setPoi(world, bossEntity, addBackground([oakBossUnit], colors.black)[0]);
     const bossId = world.getEntityId(bossEntity);
     bossEntity[FRAGMENT].structure = bossId;
 

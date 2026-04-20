@@ -16,7 +16,6 @@ import "./index.css";
 import { Countable, STATS } from "../../engine/components/stats";
 import { EQUIPPABLE, Equippable } from "../../engine/components/equippable";
 import { normalize, repeat } from "../../game/math/std";
-import { isGhost } from "../../engine/systems/fate";
 import { PLAYER } from "../../engine/components/player";
 import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
