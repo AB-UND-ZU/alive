@@ -473,24 +473,24 @@ shot.iron.default = shotIron;
 
 const slashSideTemplate: Sprite = {
   name: "slash_side",
-  layers: [{ char: "┐", color: TEMPLATE_COLORS.materialPrimary }],
+  layers: [{ char: "╗", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
-    up: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
-    right: [{ char: "┘", color: TEMPLATE_COLORS.materialPrimary }],
-    down: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
-    left: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
+    up: [{ char: "═", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "╝", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "═", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "║", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
 export const slashSide = createTemplate({ sprite: slashSideTemplate });
 
 const slashCornerTemplate: Sprite = {
   name: "slash_corner",
-  layers: [{ char: "┼", color: TEMPLATE_COLORS.materialPrimary }],
+  layers: [],
   facing: {
-    up: [{ char: "┌", color: TEMPLATE_COLORS.materialPrimary }],
-    right: [{ char: "┐", color: TEMPLATE_COLORS.materialPrimary }],
-    down: [{ char: "┘", color: TEMPLATE_COLORS.materialPrimary }],
-    left: [{ char: "└", color: TEMPLATE_COLORS.materialPrimary }],
+    up: [{ char: "╔", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "╗", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "╝", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "╚", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
 export const slashCorner = createTemplate({ sprite: slashCornerTemplate });

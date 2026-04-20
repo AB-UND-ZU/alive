@@ -149,12 +149,14 @@ export const castableSecondary = (
         "charge"
     );
     const activeCondition =
-      (secondary === "raise" && entity[CONDITIONABLE]?.raise) ||
+      (secondary === "zap" && entity[CONDITIONABLE]?.zap) ||
       (secondary === "block" && entity[CONDITIONABLE]?.block);
     const pendingTotem =
       secondary === "totem" && !!getPendingTotem(world, entity);
+    const missingSword = secondary === "slash" && !entity[EQUIPPABLE]?.sword;
 
-    if (hasCharge && !activeCondition && !pendingTotem) return true;
+    if (hasCharge && !activeCondition && !pendingTotem && !missingSword)
+      return true;
   } else if (secondary === "axe" && item[ITEM].material) {
     return true;
   }

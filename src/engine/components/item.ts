@@ -23,7 +23,7 @@ export type Material = (typeof materials)[number];
 
 export type Primary = "wave" | "beam" | "trap" | "dash" | "bolt" | "blast";
 
-export const rechargables = ["slash", "raise", "block", "totem"] as const;
+export const rechargables = ["slash", "zap", "block", "totem"] as const;
 export const tools = ["axe", "pickaxe"] as const;
 export type Secondary =
   | "bow"

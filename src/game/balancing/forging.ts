@@ -101,7 +101,7 @@ const forgableConfigs: {
     elements: [],
   },
   {
-    item: { equipment: "secondary", secondary: "raise" },
+    item: { equipment: "secondary", secondary: "zap" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: [],

@@ -143,6 +143,7 @@ import {
   aura,
   popupHint,
   popupOverlay,
+  times,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -163,7 +164,11 @@ import {
 } from "../../engine/components/item";
 import { generateUnitData, UnitKey } from "../balancing/units";
 import { Gear, Tools } from "../../engine/components/equippable";
-import { getVerticalIndex, popupTitles } from "../../engine/systems/popup";
+import {
+  getTab,
+  getVerticalIndex,
+  popupTitles,
+} from "../../engine/systems/popup";
 import { disposeEntity } from "../../engine/systems/map";
 import { UnitStats } from "../../engine/components/stats";
 import { ClassKey, getClassData } from "../balancing/classes";
@@ -179,7 +184,7 @@ import {
   dashSpell,
   map,
   pickaxe,
-  raise,
+  zap,
   ring,
   shield,
   slash,
@@ -406,7 +411,8 @@ export const renderPopup = (
   )?.[PARTICLE].amount;
   const visibleScroll =
     lines > (details ? frameHeight - detailsHeight - 3 : frameHeight - 2);
-  const visibleOverlay = visibleScroll && !details && !selection;
+  const visibleOverlay =
+    visibleScroll && !details && !selection && getTab(world, entity) !== "map";
   const topOverlayTarget = visibleOverlay && scrollRatio > 0 ? 1 : 0;
   const topOverlayAmount = world.getEntityByIdAndComponents(
     state.particles["overlay-up-0"],
@@ -432,9 +438,12 @@ export const renderPopup = (
   let renderScroll =
     visibleScroll && (generationChanged || renderContent || renderTabs);
   let renderTopOverlay =
-    renderTabs || (visibleScroll && topOverlayAmount !== topOverlayTarget);
+    renderTabs ||
+    generationChanged ||
+    (visibleScroll && topOverlayAmount !== topOverlayTarget);
   let renderBottomOverlay =
     renderTabs ||
+    generationChanged ||
     (visibleScroll && bottomOverlayAmount !== bottomOverlayTarget);
 
   // create popup
@@ -2009,8 +2018,8 @@ export const materialSprites: Partial<
     sprite: slash,
 
     getDescription: (item, stats) => [
-      createText("Spins and damages"),
-      createText("nearby enemies."),
+      createText("Spins sword with"),
+      createText("extra damage."),
       stretch(
         [
           ...createText(stats.melee.toString(), colors.red),
@@ -2045,16 +2054,21 @@ export const materialSprites: Partial<
       ),
     ],
   },
-  raise: {
-    sprite: raise,
+  zap: {
+    sprite: zap,
     getDescription: (item, stats) => [
-      createText("Knock back and"),
-      createText("extra damage."),
+      [
+        ...createText("Strikes "),
+        ...createText(stats.range.toString()),
+        times,
+        ...createText(" times"),
+      ],
+      createText("to near enemies."),
       stretch(
         [
-          ...createText(stats.melee.toString(), colors.red),
-          minCountable(meleeHit),
-          ...createText("Melee", colors.red),
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
         ],
         [
           ...createText("-1", colors.grey),

@@ -74,6 +74,9 @@ import { getHasteInterval } from "./movement";
 import { findAdjacentDroppable } from "./drop";
 import { SWIMMABLE } from "../components/swimmable";
 import { getBlockable } from "./action";
+import { getEquipmentStats } from "../../game/balancing/equipment";
+import { EQUIPPABLE } from "../components/equippable";
+import { NPC } from "../components/npc";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
@@ -161,11 +164,25 @@ export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
 };
 
 export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
+  const swordEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE]?.sword,
+    [ITEM]
+  );
+
+  if (!swordEntity) return;
+
   if (!isEnemy(world, entity)) {
     consumeCharge(world, entity, { stackable: "charge" });
   }
 
-  const slashStats = getAbilityStats(slash[ITEM]);
+  const swordStats = getEquipmentStats(swordEntity[ITEM], entity[NPC]?.type);
+  const abilityStats = getAbilityStats(slash[ITEM]);
+
+  const slashStats = {
+    ...abilityStats,
+    melee: abilityStats.melee + swordStats.melee,
+  };
+
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: entity[BELONGABLE].faction },
     [CASTABLE]: {
@@ -438,7 +455,8 @@ export default function setupMagic(world: World) {
           castableEntity[CASTABLE].burn ||
           castableEntity[CASTABLE].freeze ||
           castableEntity[CASTABLE].knock ||
-          castableEntity[CASTABLE].drain;
+          castableEntity[CASTABLE].drain ||
+          casterEntity?.[CONDITIONABLE]?.zap;
         const fragmentEntity =
           (castableEntity[CASTABLE].melee
             ? getAttackable(world, entity[POSITION], true)
@@ -521,7 +539,7 @@ export default function setupMagic(world: World) {
               casterEntity,
               castableEntity[CASTABLE],
               entity[EXERTABLE].castable,
-              targetEntity,
+              rootEntity,
               entity[ORIENTABLE]?.facing || orientation
             );
             hasAffected = hasAffected || procced;

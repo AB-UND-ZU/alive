@@ -581,7 +581,7 @@ const conditionConfig: Record<
     stat?: keyof ItemStats;
   }
 > = {
-  raise: { sequence: "raiseCondition", stat: "melee", duration: 10 },
+  zap: { sequence: "zapCondition", stat: "range", duration: 50 },
   block: { sequence: "blockCondition", stat: "absorb", duration: 10 },
   axe: { sequence: "axeCondition", duration: 0 },
   pickaxe: { sequence: "axeCondition", duration: 0 },
@@ -626,7 +626,7 @@ export const castConditionable = (
 
   if (
     !material ||
-    (condition !== "raise" &&
+    (condition !== "zap" &&
       condition !== "block" &&
       condition !== "axe" &&
       condition !== "pickaxe")
@@ -645,7 +645,7 @@ export const castConditionable = (
   const itemStats = getAbilityStats(item[ITEM]);
 
   // consume charges for active skills
-  if (condition === "raise" || condition === "block") {
+  if (condition === "zap" || condition === "block") {
     consumeCharge(world, entity, { stackable: "charge" });
   }
 
@@ -954,7 +954,11 @@ export default function setupTrigger(world: World) {
           if (popupEntity) {
             const selections = popupEntity[POPUP].selections;
             closePopup(world, entity, popupEntity);
-            popupEntity[POPUP].selections = selections;
+
+            // ensure popup was not removed when closed
+            if (popupEntity[POPUP]) {
+              popupEntity[POPUP].selections = selections;
+            }
           }
 
           const mapEntity = assertIdentifier(world, "map");
@@ -1077,8 +1081,8 @@ export default function setupTrigger(world: World) {
               !isInPopup(world, entity) &&
               secondaryEntity[ITEM].secondary !== "axe" &&
               !(
-                secondaryEntity[ITEM].secondary === "raise" &&
-                entity[CONDITIONABLE]?.raise
+                secondaryEntity[ITEM].secondary === "zap" &&
+                entity[CONDITIONABLE]?.zap
               ) &&
               !(
                 secondaryEntity[ITEM].secondary === "block" &&
@@ -1093,12 +1097,20 @@ export default function setupTrigger(world: World) {
                 line: addBackground(
                   [
                     ...createText("Need ", colors.silver),
-                    ...createItemName({
-                      stackable:
-                        secondaryEntity[ITEM].secondary === "bow"
-                          ? "arrow"
-                          : "charge",
-                    }),
+                    ...createItemName(
+                      secondaryEntity[ITEM].secondary === "slash" &&
+                        !entity[EQUIPPABLE]?.sword
+                        ? {
+                            equipment: "sword",
+                            material: "wood",
+                          }
+                        : {
+                            stackable:
+                              secondaryEntity[ITEM].secondary === "bow"
+                                ? "arrow"
+                                : "charge",
+                          }
+                    ),
                     ...createText("!", colors.silver),
                   ],
                   colors.black
@@ -1116,7 +1128,7 @@ export default function setupTrigger(world: World) {
           } else if (secondaryEntity[ITEM].secondary === "totem") {
             summonTotem(world, entity, secondaryEntity);
           } else if (
-            secondaryEntity[ITEM].secondary === "raise" ||
+            secondaryEntity[ITEM].secondary === "zap" ||
             secondaryEntity[ITEM].secondary === "block" ||
             secondaryEntity[ITEM].secondary === "axe" ||
             secondaryEntity[ITEM].secondary === "pickaxe"

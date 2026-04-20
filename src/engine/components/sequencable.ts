@@ -96,6 +96,7 @@ export type SmokeSequence = {
   extinguish: number;
   simmer: boolean;
 };
+export type FlashSequence = { targets: Position[] };
 export type DisposeSequence = EmptyObject;
 export type ReviveSequence = {
   target: Position;
@@ -246,6 +247,7 @@ export type Sequencable = {
     burn?: SequenceState<BurnSequence>;
     freeze?: SequenceState<FreezeSequence>;
     smoke?: SequenceState<SmokeSequence>;
+    flash?: SequenceState<FlashSequence>;
     dispose?: SequenceState<DisposeSequence>;
     revive?: SequenceState<ReviveSequence>;
     collect?: SequenceState<CollectSequence>;

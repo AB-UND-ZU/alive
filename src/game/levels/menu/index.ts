@@ -110,6 +110,7 @@ export const generateMenu = async (world: World) => {
 
     // add dummy and anvil
     setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 4, "dummy");
+    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 7, "dummy");
     setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 4, "kettle");
     setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 4, "anvil");
 
@@ -393,7 +394,7 @@ export const generateMenu = async (world: World) => {
         },
         {
           equipment: "secondary",
-          secondary: "raise",
+          secondary: "zap",
           material: "wood",
           amount: 1,
         },

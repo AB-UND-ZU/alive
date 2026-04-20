@@ -125,11 +125,41 @@ export const magicHit: Sprite = {
   },
 };
 
-export const raiseParticle: Sprite = {
-  name: "Raise",
+export const zapParticle: Sprite = {
+  name: "Zap",
   layers: [],
   amounts: {
-    single: [{ char: "%", color: colors.red }],
+    single: [{ char: ":", color: colors.yellow }],
+  },
+};
+
+export const zapSwordParticle: Sprite = {
+  name: "Zap",
+  layers: [],
+  amounts: {
+    single: [{ char: "%", color: colors.yellow }],
+  },
+};
+
+export const lightningSide: Sprite = {
+  name: "lightning_side",
+  layers: [{ char: "┼", color: colors.yellow }],
+  facing: {
+    up: [{ char: "│", color: colors.yellow }],
+    right: [{ char: "─", color: colors.yellow }],
+    down: [{ char: "│", color: colors.yellow }],
+    left: [{ char: "─", color: colors.yellow }],
+  },
+};
+
+export const lightninCorner: Sprite = {
+  name: "lightning_corner",
+  layers: [{ char: "┼", color: colors.yellow }],
+  facing: {
+    up: [{ char: "┌", color: colors.yellow }],
+    right: [{ char: "┐", color: colors.yellow }],
+    down: [{ char: "┘", color: colors.yellow }],
+    left: [{ char: "└", color: colors.yellow }],
   },
 };
 

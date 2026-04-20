@@ -160,7 +160,7 @@ import {
   diamondGem,
   snowflake,
   bootsSlot,
-  raiseParticle,
+  zapParticle,
   mapDiscovery,
   mapSlot,
   mapZoom1,
@@ -205,6 +205,9 @@ import {
   tooltipLine,
   enemyLine,
   allyLine,
+  lightningSide,
+  lightninCorner,
+  zapSwordParticle,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -244,6 +247,7 @@ import {
   EvaporateSequence,
   InteractSequence,
   AuraSequence,
+  FlashSequence,
 } from "../../engine/components/sequencable";
 import { SOUL } from "../../engine/components/soul";
 import { VIEWABLE } from "../../engine/components/viewable";
@@ -449,27 +453,22 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
   return { finished, updated };
 };
 
-export const raiseCondition: Sequence<ConditionSequence> = (
+const zapTick = 250;
+
+export const zapCondition: Sequence<ConditionSequence> = (
   world,
   entity,
   state
 ) => {
-  const generation = Math.ceil(
-    state.elapsed / world.metadata.gameEntity[REFERENCE].tick
-  );
+  const generation = Math.ceil(state.elapsed / zapTick);
   let updated = false;
   const finished =
-    !entity[CONDITIONABLE].raise || generation > state.args.duration;
+    !entity[CONDITIONABLE].zap || generation > state.args.duration;
 
   const swordEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].sword,
     [SPRITE]
   );
-
-  // requires sword to be worn
-  if (!swordEntity) {
-    return { updated: false, finished: false };
-  }
 
   if (!state.particles.condition) {
     const conditionParticle = entities.createParticle(world, {
@@ -480,21 +479,23 @@ export const raiseCondition: Sequence<ConditionSequence> = (
         amount: 0,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: raiseParticle,
+      [SPRITE]: swordEntity ? zapSwordParticle : zapParticle,
     });
     state.particles.condition = world.getEntityId(conditionParticle);
 
-    const swordParticle = entities.createParticle(world, {
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: decayHeight,
-        amount: 0,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: swordEntity[SPRITE],
-    });
-    state.particles.sword = world.getEntityId(swordParticle);
+    if (swordEntity) {
+      const swordParticle = entities.createParticle(world, {
+        [PARTICLE]: {
+          offsetX: 0,
+          offsetY: 0,
+          offsetZ: decayHeight,
+          amount: 0,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: swordEntity[SPRITE],
+      });
+      state.particles.sword = world.getEntityId(swordParticle);
+    }
 
     updated = true;
   }
@@ -521,7 +522,7 @@ export const raiseCondition: Sequence<ConditionSequence> = (
     }
 
     // clear condition from entity
-    delete entity[CONDITIONABLE].raise;
+    delete entity[CONDITIONABLE].zap;
   }
 
   return { finished, updated };
@@ -5208,6 +5209,125 @@ export const smokeWind: Sequence<SmokeSequence> = (world, entity, state) => {
 
         updated = true;
       }
+    }
+  }
+
+  return { finished, updated };
+};
+
+const lightningTime = 200;
+
+export const lightningFlash: Sequence<FlashSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const finished = state.elapsed > lightningTime;
+  let updated = false;
+
+  // create lightning
+  if (!state.particles["flash-0"]) {
+    updated = true;
+    const size = world.metadata.gameEntity[LEVEL].size;
+    let currentPosition = copy(entity[POSITION]);
+    let currentOffset = { x: 0, y: 0 };
+    let currentOrientation = choice(...orientations);
+    const targets = [...state.args.targets];
+    const particles: [Position, Sprite, Orientation | undefined][] = [
+      [currentOffset, lightningSide, undefined],
+    ];
+
+    let nextTarget = targets.shift();
+    currentPosition = combine(
+      size,
+      currentPosition,
+      orientationPoints[currentOrientation]
+    );
+    currentOffset = add(currentOffset, orientationPoints[currentOrientation]);
+
+    // calculate lightning path
+    while (nextTarget) {
+      while (
+        nextTarget &&
+        (currentPosition.x !== nextTarget.x ||
+          currentPosition.y !== nextTarget.y)
+      ) {
+        const targetOrientations = relativeOrientations(
+          world,
+          currentPosition,
+          nextTarget,
+          1
+        );
+
+        // let flash go on sides if directly facing target
+        if (targetOrientations.length === 1) {
+          targetOrientations.push(
+            rotateOrientation(targetOrientations[0], 1),
+            rotateOrientation(targetOrientations[0], -1)
+          );
+        }
+
+        // ensure not passing through itself
+        const oppositeOrientation = invertOrientation(currentOrientation);
+        const nextOrientation = choice(
+          ...targetOrientations.filter(
+            (orientation) => orientation !== oppositeOrientation
+          )
+        );
+        const delta = orientationPoints[nextOrientation];
+
+        particles.push([
+          currentOffset,
+          nextOrientation === currentOrientation
+            ? lightningSide
+            : lightninCorner,
+          nextOrientation === currentOrientation
+            ? nextOrientation
+            : rotateOrientation(
+                currentOrientation,
+                orientationDelta(currentOrientation, nextOrientation) > 0
+                  ? 0
+                  : 1
+              ),
+        ]);
+
+        currentPosition = combine(size, currentPosition, delta);
+        currentOffset = add(currentOffset, delta);
+        currentOrientation = nextOrientation;
+      }
+
+      nextTarget = targets.shift();
+    }
+
+    // add final particle
+    particles.push([currentOffset, lightningSide, undefined]);
+
+    // create lightning particles
+    for (
+      let particleIndex = 0;
+      particleIndex < particles.length;
+      particleIndex += 1
+    ) {
+      const [offset, sprite, orientation] = particles[particleIndex];
+      const flashParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: orientation },
+        [PARTICLE]: {
+          offsetX: offset.x,
+          offsetY: offset.y,
+          offsetZ: particleHeight,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: sprite,
+      });
+      state.particles[`flash-${particleIndex}`] =
+        world.getEntityId(flashParticle);
+    }
+  }
+
+  if (finished) {
+    for (const particleName in state.particles) {
+      disposeEntity(world, world.assertById(state.particles[particleName]));
+      delete state.particles[particleName];
     }
   }
 

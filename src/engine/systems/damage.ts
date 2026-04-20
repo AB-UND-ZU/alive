@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { add, combine, copy } from "../../game/math/std";
+import { add, combine, copy, getDistance, shuffle } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { MELEE } from "../components/melee";
@@ -18,7 +18,12 @@ import {
 import { EQUIPPABLE } from "../components/equippable";
 import { isGhost } from "./fate";
 import { createSequence, getSequence } from "./sequence";
-import { MarkerSequence, MeleeSequence } from "../components/sequencable";
+import {
+  FlashSequence,
+  MarkerSequence,
+  MeleeSequence,
+  SEQUENCABLE,
+} from "../components/sequencable";
 import { BELONGABLE, neutrals, tribes } from "../components/belongable";
 import {
   attributes,
@@ -27,7 +32,7 @@ import {
   STATS,
 } from "../components/stats";
 import { colors } from "../../game/assets/colors";
-import { createText } from "../../game/assets/sprites";
+import { createText, none } from "../../game/assets/sprites";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { RECHARGABLE } from "../components/rechargable";
@@ -36,14 +41,12 @@ import {
   CASTABLE,
   Castable,
   DamageType,
+  getEmptyCastable,
 } from "../components/castable";
 import { TypedEntity } from "../entities";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
-import {
-  getEquipmentStats,
-  getItemStats,
-} from "../../game/balancing/equipment";
+import { getEquipmentStats } from "../../game/balancing/equipment";
 import { NPC } from "../components/npc";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { closePopup, getActivePopup } from "./popup";
@@ -54,13 +57,15 @@ import { getFragment, isFragment } from "./enter";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isDecaying } from "./drop";
 import { STRUCTURABLE } from "../components/structurable";
-import { attemptBubbleAbsorb, getExertables } from "./magic";
+import { attemptBubbleAbsorb, getAffectables, getExertables } from "./magic";
 import { LEVEL } from "../components/level";
 import { getTempo, isWalkable } from "./movement";
 import { BUMPABLE } from "../components/bumpable";
 import { EXERTABLE } from "../components/exertable";
 import { getSpikable, stingEntity } from "./spike";
 import { getBlockable } from "./action";
+import { entities } from "..";
+import { SPRITE } from "../components/sprite";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -295,6 +300,105 @@ export const calculateHealing = (targetStats: UnitStats, amount: number) => {
   return { hp, healing: visibleHealing };
 };
 
+const zapSize = 11;
+const zapDelay = 100;
+
+export const triggerZap = (
+  world: World,
+  attackerEntity: Entity,
+  targetEntity: Entity,
+  itemStats: Partial<ItemStats>
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const count = attackerEntity[CONDITIONABLE]?.zap?.amount || 1;
+  const targets = [];
+
+  for (let offsetX = 0; offsetX < zapSize; offsetX += 1) {
+    for (let offsetY = 0; offsetY < zapSize; offsetY += 1) {
+      const position = combine(size, targetEntity[POSITION], {
+        x: offsetX - (zapSize - 1) / 2,
+        y: offsetY - (zapSize - 1) / 2,
+      });
+
+      const enemies = getAffectables(world, position)
+        .map((affectable) => getRoot(world, affectable))
+        .filter(
+          (root) =>
+            root !== targetEntity &&
+            !isFriendlyFire(world, attackerEntity, root)
+        );
+      targets.push(...enemies);
+    }
+  }
+
+  // hit other enemies first before retriggering target again
+  const ordered = [];
+  while (ordered.length < count) {
+    const sorted = shuffle(targets);
+    sorted.sort(
+      (left, right) =>
+        getDistance(targetEntity[POSITION], left[POSITION], size, 1) -
+        getDistance(targetEntity[POSITION], right[POSITION], size, 1)
+    );
+    ordered.push(...sorted, targetEntity);
+  }
+
+  const zapped = ordered.slice(0, count);
+  const zapCounts: Record<number, number> = {};
+  const zapPositions = [];
+
+  for (const zapTarget of zapped) {
+    if (attemptBubbleAbsorb(world, zapTarget)) continue;
+
+    const { damage, hp } = calculateDamage(
+      world,
+      itemStats,
+      attackerEntity,
+      zapTarget
+    );
+    zapTarget[STATS].hp = hp;
+    rerenderEntity(world, zapTarget);
+
+    // add hit marker
+    const zapId = world.getEntityId(zapTarget);
+    if (!(zapId in zapCounts)) {
+      zapPositions.push(zapTarget[POSITION]);
+      zapCounts[zapId] = 0;
+    }
+    zapCounts[zapId] += 1;
+
+    createAmountMarker(
+      world,
+      zapTarget,
+      -damage,
+      "up",
+      itemStats.melee ? "melee" : "magic",
+      zapDelay * zapCounts[zapId]
+    );
+  }
+
+  // animate lightning flash
+  const castableEntity = entities.createSpell(world, {
+    [BELONGABLE]: { faction: "nature" },
+    [CASTABLE]: getEmptyCastable(world, targetEntity),
+    [ORIENTABLE]: {},
+    [POSITION]: copy(targetEntity[POSITION]),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: none,
+  });
+  createSequence<"flash", FlashSequence>(
+    world,
+    castableEntity,
+    "flash",
+    "lightningFlash",
+    { targets: zapPositions }
+  );
+
+  delete attackerEntity[CONDITIONABLE]?.zap;
+  rerenderEntity(world, attackerEntity);
+};
+
 export const applyEffects = (
   world: World,
   targetEntity: Entity,
@@ -364,6 +468,17 @@ export const applyProcs = (
     targetEntity[AFFECTABLE] as Affectable
   ).procs;
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
+
+  // handle zap regardless of other procs
+  const zapCondition = attackerEntity?.[CONDITIONABLE]?.zap;
+  const zapEntity = world.getEntityByIdAndComponents(zapCondition?.item, [
+    ITEM,
+  ]);
+
+  if (zapEntity && zapCondition && attackerEntity) {
+    const zapStats = getAbilityStats(zapEntity[ITEM]);
+    triggerZap(world, attackerEntity, targetEntity, zapStats);
+  }
 
   // skip if not ready to proc again
   if (lastProc && lastProc + (itemStats.reproc || procDelay) > generation)
@@ -456,7 +571,8 @@ export const createAmountMarker = (
   entity: Entity,
   amount: number,
   orientation: Orientation,
-  type: DamageType
+  type: DamageType,
+  delay = 0
 ) => {
   if (!getSequence(world, entity, "marker")) {
     createSequence<"marker", MarkerSequence>(
@@ -485,7 +601,7 @@ export const createAmountMarker = (
     ),
     orientation,
     fast: amount <= 0,
-    delay: 0,
+    delay,
   });
 
   // increase total damage counter
@@ -581,27 +697,6 @@ export default function setupDamage(world: World) {
             swordEntity[ITEM],
             entity[NPC]?.type
           );
-
-          if (entity[CONDITIONABLE]?.raise) {
-            if (healing) {
-              swordStats.heal += entity[CONDITIONABLE].raise.amount;
-            } else {
-              swordStats.melee += entity[CONDITIONABLE].raise.amount;
-            }
-
-            // knock back
-            const raiseItem = world.getEntityByIdAndComponents(
-              entity[CONDITIONABLE].raise.item,
-              [ITEM]
-            );
-            const knock = raiseItem
-              ? getItemStats(raiseItem[ITEM], entity[NPC]?.type).knock
-              : 0;
-
-            knockEntity(world, targetEntity, targetOrientation, knock);
-
-            delete entity[CONDITIONABLE].raise;
-          }
 
           if (healing) {
             const { healing, hp } = calculateHealing(

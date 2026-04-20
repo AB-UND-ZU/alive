@@ -356,8 +356,8 @@ export const dashSpell = createTemplate({
 
 // secondary items
 
-const raiseTemplate: Sprite = {
-  name: "Raise",
+const zapTemplate: Sprite = {
+  name: "Zap",
   layers: [
     { char: "%", color: TEMPLATE_COLORS.materialPrimary },
     { char: "/", color: TEMPLATE_COLORS.transparent },
@@ -366,7 +366,7 @@ const raiseTemplate: Sprite = {
     { char: "-", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-export const raise = createTemplate({ sprite: raiseTemplate });
+export const zap = createTemplate({ sprite: zapTemplate });
 
 const bowTemplate: Sprite = {
   name: "Bow",
