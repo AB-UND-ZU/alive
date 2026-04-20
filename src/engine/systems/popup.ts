@@ -17,10 +17,14 @@ import {
   quest,
   shop,
 } from "../../game/assets/sprites";
-import { disposeEntity, getCell } from "./map";
+import { disposeEntity, disposeSequence, getCell } from "./map";
 import { POSITION, Position } from "../components/position";
 import { createSequence, getSequence } from "./sequence";
-import { DiscoverySequence, PopupSequence } from "../components/sequencable";
+import {
+  DiscoverySequence,
+  PopupSequence,
+  SEQUENCABLE,
+} from "../components/sequencable";
 import { REFERENCE } from "../components/reference";
 import { VIEWABLE } from "../components/viewable";
 import { UnitStats, STATS } from "../components/stats";
@@ -424,6 +428,11 @@ export const removePopup = (world: World, entity: Entity) => {
   const discovery = getSequence(world, entity, "discovery");
   if (discovery) {
     discovery.args.idle = none;
+  }
+
+  // abort popup sequence
+  if (entity[SEQUENCABLE].states.popup) {
+    disposeSequence(world, entity, "popup");
   }
 };
 
