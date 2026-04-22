@@ -69,7 +69,7 @@ export const menuQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "wait",
     isCompleted: () => hasMoved || stage.state.elapsed > menuDelay,
-    onLeave: () => (hasMoved ? END_STEP : "move"),
+    onLeave: () => (hasMoved ? "sign" : "move"),
   });
 
   step({

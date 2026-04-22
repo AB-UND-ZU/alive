@@ -244,6 +244,7 @@ import { CASTABLE, getEmptyCastable } from "../engine/components/castable";
 import { EXERTABLE } from "../engine/components/exertable";
 import { getAbilityStats } from "../game/balancing/abilities";
 import { BUMPABLE } from "../engine/components/bumpable";
+import { PLAYER } from "../engine/components/player";
 
 export const cellNames = [
   "air",
@@ -809,11 +810,13 @@ export const createCell = (
     const hero = getIdentifierAndComponents(world, "hero", [
       POSITION,
       SPAWNABLE,
+      PLAYER,
     ]);
     if (hero) {
       all.push(hero);
       hero[POSITION] = { x, y };
       hero[SPAWNABLE].position = { x, y };
+      hero[PLAYER].defeatedUnits = {};
       const spawnEntity = assertIdentifier(world, "spawn");
       all.push(spawnEntity);
       spawnEntity[POSITION] = { x, y };

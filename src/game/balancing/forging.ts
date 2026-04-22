@@ -79,37 +79,37 @@ const forgableConfigs: {
   {
     item: { equipment: "boots" },
     materials: ["wood", "iron"],
-    materialCost: 4,
+    materialCost: 6,
     elements: [],
   },
   {
     item: { equipment: "secondary", secondary: "bow" },
     materials: forgableMaterials,
-    materialCost: 4,
+    materialCost: 3,
     elements: [],
   },
   {
     item: { equipment: "secondary", secondary: "slash" },
     materials: forgableMaterials,
-    materialCost: 4,
+    materialCost: 3,
     elements: [],
   },
   {
     item: { equipment: "secondary", secondary: "block" },
     materials: forgableMaterials,
-    materialCost: 4,
+    materialCost: 3,
     elements: [],
   },
   {
     item: { equipment: "secondary", secondary: "zap" },
     materials: forgableMaterials,
-    materialCost: 4,
+    materialCost: 3,
     elements: [],
   },
   {
     item: { equipment: "secondary", secondary: "totem" },
     materials: forgableMaterials,
-    materialCost: 4,
+    materialCost: 3,
     elements: [],
   },
 ];

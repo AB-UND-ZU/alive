@@ -6551,6 +6551,7 @@ const pointers: Record<NonNullable<Focusable["highlight"]>, Sprite> = {
 
 const pointerX = 5;
 const pointerY = 3;
+const pointerDistance = 3.9;
 
 export const pointerArrow: Sequence<PointerSequence> = (
   world,
@@ -6615,8 +6616,8 @@ export const pointerArrow: Sequence<PointerSequence> = (
       ) <=
         pointerY + 1
     ) &&
-    getDistance(entity[POSITION], targetEntity[POSITION], size) >=
-      entity[LIGHT].visibility;
+    getDistance(entity[POSITION], targetEntity[POSITION], size) >
+      pointerDistance;
   const targetChanged = state.args.target !== targetId;
   if (
     state.args.lastOrientation &&
