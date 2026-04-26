@@ -28,29 +28,24 @@ import { isDead } from "../../engine/systems/damage";
 const pressDuration = 200;
 const progressWidth = 13;
 const menuWidth = 3;
-const bagWidth = 5;
+const useWidth = 5;
 const highlightDuration = 1 * 2 * 3 * 4 * 5;
 
 function StatsInner({
   padding,
   hidden,
-  handleInspect,
-  handleSurvey,
+  handleQuick,
   width,
   inspecting,
-  surveying,
-  map,
+  quick,
   ...stats
 }: {
   padding: number;
   hidden: boolean;
   inspecting: boolean;
-  surveying: boolean;
+  quick: boolean;
   width: number;
-  handleInspect: (
-    event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => void;
-  handleSurvey: (
+  handleQuick: (
     event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => void;
 } & Partial<Countable> &
@@ -74,32 +69,18 @@ function StatsInner({
     [setPaused, initial]
   );
 
-  const handleBag = useCallback(
-    (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-      if (paused || hidden) return;
-
-      event.preventDefault();
-
-      handleInspect(event);
-
-      setPressed("inspect");
-      setTimeout(setPressed, pressDuration, "");
-    },
-    [handleInspect, paused, hidden]
-  );
-
-  const handleMap = useCallback(
+  const handleUse = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       if (paused) return;
 
       event.preventDefault();
 
-      handleSurvey(event);
+      handleQuick(event);
 
-      setPressed("map");
+      setPressed("use");
       setTimeout(setPressed, pressDuration, "");
     },
-    [handleSurvey, paused]
+    [handleQuick, paused]
   );
 
   const highlightRef = useRef<NodeJS.Timeout>();
@@ -136,24 +117,14 @@ function StatsInner({
     highlight === 3 || highlight === 4,
     "white"
   );
-  const bagButton = createButton(
-    "BAG",
-    bagWidth,
+  const useButton = createButton(
+    paused ? "TAB" : "USE",
+    useWidth,
     paused,
-    pressed === "inspect" || inspecting,
-    highlight === 9 || highlight === 10,
-    "white"
+    pressed === "use" || quick,
+    highlight === 15 || highlight === 16,
+    paused ? "white" : "yellow"
   );
-  const mapButton = map
-    ? createButton(
-        "MAP",
-        bagWidth,
-        paused,
-        pressed === "map" || surveying,
-        highlight === 15 || highlight === 16,
-        "yellow"
-      )
-    : repeat(none, bagWidth);
 
   return (
     <header className={flipped ? "StatsFlipped" : "Stats"}>
@@ -164,8 +135,8 @@ function StatsInner({
           <Row
             cells={
               flipped
-                ? [...repeat(none, progressWidth + bagWidth), ...pauseButton]
-                : [...pauseButton, ...repeat(none, progressWidth + bagWidth)]
+                ? [...repeat(none, progressWidth + useWidth), ...pauseButton]
+                : [...pauseButton, ...repeat(none, progressWidth + useWidth)]
             }
           />
         </>
@@ -180,8 +151,8 @@ function StatsInner({
           <Row
             cells={
               flipped
-                ? [...mapButton, ...hpProgress, none, ...repeat(none, 2)]
-                : [...repeat(none, 2), none, ...hpProgress, ...mapButton]
+                ? [...repeat(none, 5), ...hpProgress, ...repeat(none, 3)]
+                : [...repeat(none, 3), ...hpProgress, ...repeat(none, 5)]
             }
           />
           <Row
@@ -207,14 +178,14 @@ function StatsInner({
             cells={
               flipped
                 ? [
-                    ...bagButton,
+                    ...useButton,
                     ...createProgress(stats, "xp", progressWidth),
                     ...pauseButton,
                   ]
                 : [
                     ...pauseButton,
                     ...createProgress(stats, "xp", progressWidth),
-                    ...bagButton,
+                    ...useButton,
                   ]
             }
           />
@@ -229,12 +200,7 @@ function StatsInner({
       {!initial && <div className="Menu" id="menu" onClick={handleMenu} />}
       {!initial && !hidden && !menuOnly && (
         <>
-          <div
-            className={map ? "InspectSurvey" : "Inspect"}
-            id="inspect"
-            onClick={handleBag}
-          />
-          {map && <div className="Survey" id="survey" onClick={handleMap} />}
+          <div className="Quick" id="quick" onClick={handleUse} />
         </>
       )}
     </header>
@@ -247,14 +213,13 @@ export default function Stats() {
   const { ecs, paused } = useWorld();
   const dimensions = useDimensions();
   const hero = useHero();
-  const mapItem = hero && ecs && ecs.getEntityById(hero[EQUIPPABLE]?.map);
-  const mapViewpoint = hero && ecs && getIdentifier(ecs, "map");
+  const useViewpoint = hero && ecs && getIdentifier(ecs, "use");
 
-  const handleInspect = useCallback(
+  const handleQuick = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
 
-      if (!hero || !ecs || paused) return;
+      if (!hero || !ecs || paused || !hero[MOVABLE]) return;
 
       const reference = ecs.assertByIdAndComponents(hero[MOVABLE]?.reference, [
         REFERENCE,
@@ -262,7 +227,8 @@ export default function Stats() {
 
       if (!reference) return;
 
-      hero[PLAYER].actionTriggered = "inspect";
+      hero[PLAYER].actionTriggered = "use";
+
       reference.suspensionCounter =
         reference.suspensionCounter === -1
           ? -1
@@ -272,29 +238,6 @@ export default function Stats() {
     [hero, ecs, paused]
   );
 
-  const handleSurvey = useCallback(
-    (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-      event.preventDefault();
-
-      if (!hero || !ecs || paused || !mapItem) return;
-
-      const reference = ecs.assertByIdAndComponents(hero[MOVABLE]?.reference, [
-        REFERENCE,
-      ])[REFERENCE];
-
-      if (!reference) return;
-
-      hero[PLAYER].actionTriggered = "map";
-
-      reference.suspensionCounter =
-        reference.suspensionCounter === -1
-          ? -1
-          : reference.suspensionCounter + 1;
-      reference.suspended = false;
-    },
-    [hero, ecs, paused, mapItem]
-  );
-
   return (
     <PureState
       padding={dimensions.padding}
@@ -302,17 +245,15 @@ export default function Stats() {
       {...hero?.[STATS]}
       {...hero?.[EQUIPPABLE]}
       hidden={!ecs || !hero || isDead(ecs, hero)}
-      handleInspect={handleInspect}
-      handleSurvey={handleSurvey}
+      handleQuick={handleQuick}
       inspecting={
         !!hero && !!ecs && hero[PLAYER].popup === ecs.getEntityId(hero)
       }
-      surveying={
+      quick={
         !!hero &&
         !!ecs &&
-        !!mapItem &&
-        !!mapViewpoint &&
-        hero[PLAYER].popup === ecs.getEntityId(mapViewpoint)
+        !!useViewpoint &&
+        hero[PLAYER].popup === ecs.getEntityId(useViewpoint)
       }
     />
   );

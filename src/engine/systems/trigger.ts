@@ -68,8 +68,10 @@ import { EQUIPPABLE } from "../components/equippable";
 import {
   closePopup,
   getDeal,
+  getTab,
   getTabSelections,
   isInPopup,
+  isInTab,
   isPopupAvailable,
   matchesItem,
   openPopup,
@@ -110,6 +112,8 @@ import { FRAGMENT } from "../components/fragment";
 import { createItemAsDrop } from "./drop";
 import { populateItems } from "../../bindings/creation";
 import { TRACKABLE } from "../components/trackable";
+import { getActiveViewable } from "../../bindings/hooks";
+import { IDENTIFIABLE } from "../components/identifiable";
 
 export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
@@ -181,7 +185,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
       const light = calculateVision(vision);
 
       const inspectEntity = assertIdentifier(world, "inspect");
-      const mapEntity = assertIdentifier(world, "map");
+      const useEntity = assertIdentifier(world, "use");
       const spawnEntity = assertIdentifier(world, "spawn");
       const focusEntity = assertIdentifierAndComponents(world, "focus", [
         MOVABLE,
@@ -201,7 +205,7 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
         entity,
         ...inventory,
         inspectEntity,
-        mapEntity,
+        useEntity,
         spawnEntity,
         focusEntity,
         reference,
@@ -413,7 +417,7 @@ export const removeFromInventory = (
 export const performTrade = (
   world: World,
   entity: Entity,
-  shop: TypedEntity<"POPUP" | "TOOLTIP" | "POSITION">
+  shop: TypedEntity<"POPUP" | "POSITION">
 ) => {
   const deal = getDeal(world, entity, shop);
 
@@ -687,11 +691,7 @@ export const completeQuest = (world: World, entity: Entity, target: Entity) => {
 
   popup.deals.forEach((_, index) => {
     setVerticalIndex(world, target, index);
-    performTrade(
-      world,
-      entity,
-      target as TypedEntity<"POPUP" | "TOOLTIP" | "POSITION">
-    );
+    performTrade(world, entity, target as TypedEntity<"POPUP" | "POSITION">);
   });
   setVerticalIndex(world, target, 0);
 
@@ -905,15 +905,23 @@ export default function setupTrigger(world: World) {
         !(
           entity[ACTIONABLE].primaryTriggered ||
           entity[ACTIONABLE].secondaryTriggered ||
-          ["inspect", "interact", "map"].includes(
-            entity[PLAYER]?.actionTriggered!
-          )
+          [
+            "inspect",
+            "interact",
+            "use",
+            "map",
+            "gear",
+            "stats",
+            "content",
+          ].includes(entity[PLAYER]?.actionTriggered!)
         )
       )
         continue;
 
-      // mark as interacted and update orientation
-      entity[MOVABLE].lastInteraction = entityReference;
+      // mark as interacted and update orientation, except certain content clicks
+      if (entity[PLAYER]?.actionTriggered !== "content") {
+        entity[MOVABLE].lastInteraction = entityReference;
+      }
 
       if (entity[ORIENTABLE]) {
         entity[ORIENTABLE].facing =
@@ -937,51 +945,112 @@ export default function setupTrigger(world: World) {
         [ITEM]
       );
 
+      const currentPopup = world.getEntityByIdAndComponents(
+        entity[PLAYER]?.popup,
+        [POPUP]
+      );
+
+      // remap quick screen clicks
+      if (
+        entity[PLAYER]?.actionTriggered === "content" &&
+        currentPopup?.[IDENTIFIABLE]?.name === "use"
+      ) {
+        const contentIndex = entity[PLAYER].contentTriggered;
+        const offsetIndex = entity[PLAYER].offsetTriggered;
+
+        entity[PLAYER].actionTriggered = undefined;
+        entity[PLAYER].contentTriggered = undefined;
+        entity[PLAYER].offsetTriggered = undefined;
+
+        // mark interaction
+        entity[MOVABLE].lastInteraction = entityReference;
+
+        if (contentIndex === undefined || offsetIndex === undefined) {
+          // ignore
+        } else if (contentIndex === 0 && offsetIndex >= 10) {
+          entity[PLAYER].actionTriggered = "inspect";
+        } else if (contentIndex === 2 && offsetIndex >= 10) {
+          entity[PLAYER].actionTriggered = "gear";
+        } else if (contentIndex === 4 && offsetIndex >= 10) {
+          entity[PLAYER].actionTriggered = "stats";
+        } else if (contentIndex === 6 && offsetIndex >= 10) {
+          entity[PLAYER].actionTriggered = "map";
+        }
+      }
+
       if (
         entity[PLAYER]?.actionTriggered === "inspect" ||
-        entity[PLAYER]?.actionTriggered === "map"
+        entity[PLAYER]?.actionTriggered === "map" ||
+        entity[PLAYER]?.actionTriggered === "gear" ||
+        entity[PLAYER]?.actionTriggered === "stats" ||
+        entity[PLAYER]?.actionTriggered === "use"
       ) {
-        const inspecting = entity[PLAYER]?.actionTriggered === "inspect";
+        const targetTab = entity[PLAYER].actionTriggered;
         entity[PLAYER].actionTriggered = undefined;
 
-        // skip if trying to open missing map
-        if (inspecting || entity[EQUIPPABLE]?.map) {
-          // close any popup but preserve selections
-          const popupEntity = world.getEntityByIdAndComponents(
-            entity[PLAYER].popup,
-            [POPUP]
+        // skip trying to open missing map
+        const useEntity = assertIdentifierAndComponents(world, "use", [
+          POPUP,
+          VIEWABLE,
+        ]);
+        if (targetTab === "map" && !entity[EQUIPPABLE]?.map) {
+          if (currentPopup === useEntity && isInTab(world, entity, "use")) {
+            queueMessage(world, entity, {
+              line: addBackground(
+                [
+                  ...createText("Need ", colors.silver),
+                  ...createItemName({
+                    equipment: "map",
+                    material: "gold",
+                  }),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          }
+          continue;
+        }
+
+        // close any popup but preserve selections
+        const currentTab = getTab(world, useEntity);
+        const shouldClose =
+          currentPopup &&
+          (targetTab === currentTab ||
+            currentPopup !== useEntity ||
+            (targetTab === "use" && currentTab !== "use"));
+        if (currentPopup && shouldClose) {
+          const selections = currentPopup[POPUP].selections;
+          closePopup(world, entity, currentPopup);
+
+          // ensure popup was not removed when closed
+          if (currentPopup[POPUP]) {
+            currentPopup[POPUP].selections = selections;
+          }
+        }
+
+        const shouldOpen = currentPopup !== useEntity;
+
+        useEntity[POPUP].tabs = [targetTab];
+        setVerticalIndex(world, useEntity, 0);
+        rerenderEntity(world, useEntity);
+
+        if (shouldOpen) {
+          const inspectEntity = assertIdentifier(world, "inspect");
+
+          // move viewpoints
+          const viewables = world.getEntities([VIEWABLE, POSITION]);
+          const viewable = getActiveViewable(viewables);
+          moveEntity(world, inspectEntity, viewable[POSITION]);
+          moveEntity(
+            world,
+            useEntity,
+            add(viewable[POSITION], { x: 0, y: (frameHeight + 1) / 2 })
           );
-          if (popupEntity) {
-            const selections = popupEntity[POPUP].selections;
-            closePopup(world, entity, popupEntity);
-
-            // ensure popup was not removed when closed
-            if (popupEntity[POPUP]) {
-              popupEntity[POPUP].selections = selections;
-            }
-          }
-
-          const mapEntity = assertIdentifier(world, "map");
-          const shouldOpen =
-            (!inspecting && popupEntity !== mapEntity) ||
-            (inspecting && popupEntity !== entity);
-
-          if (shouldOpen) {
-            const inspectEntity = assertIdentifier(world, "inspect");
-            moveEntity(
-              world,
-              inspectEntity,
-              add(entity[POSITION], { x: 0, y: (frameHeight + 1) / -2 })
-            );
-
-            // move viewpoints
-            if (inspecting) {
-              openPopup(world, entity, entity);
-            } else {
-              moveEntity(world, mapEntity, copy(entity[POSITION]));
-              openPopup(world, entity, mapEntity);
-            }
-          }
+          openPopup(world, entity, useEntity, true);
         }
       } else if (entity[PLAYER]?.actionTriggered === "interact") {
         entity[PLAYER].actionTriggered = undefined;
@@ -1023,7 +1092,7 @@ export default function setupTrigger(world: World) {
               fast: false,
               delay: 0,
             });
-            return;
+            continue;
           }
         } else if (popupEntity && isPopupAvailable(world, popupEntity)) {
           openPopup(world, entity, popupEntity);
@@ -1063,7 +1132,7 @@ export default function setupTrigger(world: World) {
               fast: false,
               delay: 0,
             });
-            return;
+            continue;
           }
         }
       } else if (entity[ACTIONABLE].secondaryTriggered) {
@@ -1120,7 +1189,7 @@ export default function setupTrigger(world: World) {
                 delay: 0,
               });
             }
-            return;
+            continue;
           } else if (secondaryEntity[ITEM].secondary === "bow") {
             shootArrow(world, entity, secondaryEntity);
           } else if (secondaryEntity[ITEM].secondary === "slash") {

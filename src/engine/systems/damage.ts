@@ -42,6 +42,7 @@ import {
   Castable,
   DamageType,
   getEmptyCastable,
+  MarkerType,
 } from "../components/castable";
 import { TypedEntity } from "../entities";
 import { queueMessage } from "../../game/assets/utils";
@@ -66,6 +67,7 @@ import { getSpikable, stingEntity } from "./spike";
 import { getBlockable } from "./action";
 import { entities } from "..";
 import { SPRITE } from "../components/sprite";
+import { IDENTIFIABLE } from "../components/identifiable";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -103,39 +105,47 @@ export const isFightable = (world: World, entity: Entity) =>
   ATTACKABLE in entity &&
   !(isDead(world, entity) && !isDecaying(world, entity));
 
-export const getAttackable = (
+export const getAttackables = (
   world: World,
   position: Position,
   fragment = false
 ) => {
-  if (getBlockable(world, position)) return;
+  if (getBlockable(world, position)) return [];
 
-  const targetEntity = Object.values(getCell(world, position)).find(
-    (target) => ATTACKABLE in target && STATS in target
-  ) as Entity | undefined;
+  const attackables: Entity[] = [];
 
-  if (targetEntity) return targetEntity;
+  Object.values(getCell(world, position)).forEach((target) => {
+    if (ATTACKABLE in target && STATS in target) {
+      attackables.push(target);
+      return;
+    }
 
-  const fragmentEntity = getFragment(world, position);
+    const fragmentEntity = getFragment(world, position);
 
-  if (!fragmentEntity) return;
+    if (!fragmentEntity) return;
 
-  if (fragment) return fragmentEntity;
+    if (fragment) {
+      attackables.push(fragmentEntity);
+      return;
+    }
 
-  const structurableEntity = world.assertById(
-    fragmentEntity[FRAGMENT].structure
-  );
+    const structurableEntity = world.assertById(
+      fragmentEntity[FRAGMENT].structure
+    );
 
-  if (ATTACKABLE in structurableEntity && STATS in structurableEntity)
-    return structurableEntity;
+    if (ATTACKABLE in structurableEntity && STATS in structurableEntity) {
+      attackables.push(structurableEntity);
+    }
+  });
+
+  return attackables;
 };
 
-export const getAttackables = (world: World, position: Position) =>
-  getBlockable(world, position)
-    ? []
-    : (Object.values(getCell(world, position)).filter(
-        (target) => ATTACKABLE in target && STATS in target
-      ) as Entity[]);
+export const getAttackable = (
+  world: World,
+  position: Position,
+  fragment?: boolean
+) => getAttackables(world, position, fragment)[0];
 
 export const getRoot = (world: World, entity: Entity) =>
   (isFragment(world, entity) && getStructure(world, entity)) || entity;
@@ -307,27 +317,29 @@ export const triggerZap = (
   world: World,
   attackerEntity: Entity,
   targetEntity: Entity,
+  fragmentEntity: Entity,
   itemStats: Partial<ItemStats>
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const count = attackerEntity[CONDITIONABLE]?.zap?.amount || 1;
+  const rootEntity = getRoot(world, targetEntity);
   const targets = [];
 
   for (let offsetX = 0; offsetX < zapSize; offsetX += 1) {
     for (let offsetY = 0; offsetY < zapSize; offsetY += 1) {
-      const position = combine(size, targetEntity[POSITION], {
+      const position = combine(size, fragmentEntity[POSITION], {
         x: offsetX - (zapSize - 1) / 2,
         y: offsetY - (zapSize - 1) / 2,
       });
 
+      // force hitting other enemy roots only
       const enemies = getAffectables(world, position)
         .map((affectable) => getRoot(world, affectable))
         .filter(
           (root) =>
-            root !== targetEntity &&
-            !isFriendlyFire(world, attackerEntity, root)
+            root !== rootEntity && !isFriendlyFire(world, attackerEntity, root)
         );
-      targets.push(...enemies);
+      targets.push(...new Set(enemies));
     }
   }
 
@@ -337,10 +349,10 @@ export const triggerZap = (
     const sorted = shuffle(targets);
     sorted.sort(
       (left, right) =>
-        getDistance(targetEntity[POSITION], left[POSITION], size, 1) -
-        getDistance(targetEntity[POSITION], right[POSITION], size, 1)
+        getDistance(fragmentEntity[POSITION], left[POSITION], size, 1) -
+        getDistance(fragmentEntity[POSITION], right[POSITION], size, 1)
     );
-    ordered.push(...sorted, targetEntity);
+    ordered.push(...sorted, rootEntity);
   }
 
   const zapped = ordered.slice(0, count);
@@ -348,19 +360,20 @@ export const triggerZap = (
   const zapPositions = [];
 
   for (const zapTarget of zapped) {
-    if (attemptBubbleAbsorb(world, zapTarget)) continue;
+    const zapRoot = getRoot(world, zapTarget);
+    if (attemptBubbleAbsorb(world, zapRoot)) continue;
 
     const { damage, hp } = calculateDamage(
       world,
       itemStats,
       attackerEntity,
-      zapTarget
+      zapRoot
     );
-    zapTarget[STATS].hp = hp;
-    rerenderEntity(world, zapTarget);
+    zapRoot[STATS].hp = hp;
+    rerenderEntity(world, zapRoot);
 
     // add hit marker
-    const zapId = world.getEntityId(zapTarget);
+    const zapId = world.getEntityId(zapRoot);
     if (!(zapId in zapCounts)) {
       zapPositions.push(zapTarget[POSITION]);
       zapCounts[zapId] = 0;
@@ -382,7 +395,7 @@ export const triggerZap = (
     [BELONGABLE]: { faction: "nature" },
     [CASTABLE]: getEmptyCastable(world, targetEntity),
     [ORIENTABLE]: {},
-    [POSITION]: copy(targetEntity[POSITION]),
+    [POSITION]: copy(fragmentEntity[POSITION]),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SPRITE]: none,
@@ -458,6 +471,7 @@ export const applyProcs = (
   itemStats: Partial<ItemStats>,
   procId: number,
   targetEntity: Entity,
+  fragmentEntity: Entity,
   orientation: Orientation
 ) => {
   let hasAffected = false;
@@ -477,7 +491,7 @@ export const applyProcs = (
 
   if (zapEntity && zapCondition && attackerEntity) {
     const zapStats = getAbilityStats(zapEntity[ITEM]);
-    triggerZap(world, attackerEntity, targetEntity, zapStats);
+    triggerZap(world, attackerEntity, targetEntity, fragmentEntity, zapStats);
   }
 
   // skip if not ready to proc again
@@ -499,7 +513,7 @@ export const applyProcs = (
     if (healing > 0) {
       attackerEntity[STATS].hp = hp;
       hasAffected = true;
-      createAmountMarker(world, attackerEntity, drain, "up", "true");
+      createAmountMarker(world, attackerEntity, drain, "up", "heal");
       play("pickup", pickupOptions.hp);
     }
   }
@@ -571,7 +585,7 @@ export const createAmountMarker = (
   entity: Entity,
   amount: number,
   orientation: Orientation,
-  type: DamageType,
+  type: MarkerType,
   delay = 0
 ) => {
   if (!getSequence(world, entity, "marker")) {
@@ -597,6 +611,8 @@ export const createAmountMarker = (
         ? colors.lime
         : type === "magic"
         ? colors.fuchsia
+        : type === "true"
+        ? colors.white
         : colors.red
     ),
     orientation,
@@ -692,6 +708,9 @@ export default function setupDamage(world: World) {
         // prevent attack if shield is active
         let displayedDamage = 0;
         const absorbed = !healing && attemptBubbleAbsorb(world, targetEntity);
+        const fragmentEntity =
+          getAttackable(world, targetPosition, true) || targetEntity;
+
         if (!absorbed) {
           const swordStats = getEquipmentStats(
             swordEntity[ITEM],
@@ -736,6 +755,7 @@ export default function setupDamage(world: World) {
               swordStats,
               swordId,
               rootEntity,
+              fragmentEntity,
               targetOrientation
             );
 
@@ -765,21 +785,18 @@ export default function setupDamage(world: World) {
 
         // close popup on target hits
         const activePopup = getActivePopup(world, targetEntity);
-        if (activePopup) {
+        if (activePopup && activePopup[IDENTIFIABLE]?.name !== "use") {
           closePopup(world, targetEntity, activePopup);
         }
 
         // create hit marker
-        const fragmentEntity =
-          getAttackable(world, targetPosition, true) || targetEntity;
-
         if (!absorbed && !(healing && displayedDamage === 0)) {
           createAmountMarker(
             world,
             fragmentEntity,
             -displayedDamage,
             targetOrientation,
-            healing ? "true" : "melee"
+            healing ? "heal" : "melee"
           );
         }
 

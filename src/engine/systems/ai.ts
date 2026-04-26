@@ -1192,7 +1192,7 @@ export default function setupAi(world: World) {
                 healingAmount
               );
               entity[STATS].hp = hp;
-              createAmountMarker(world, entity, healing, "up", "true");
+              createAmountMarker(world, entity, healing, "up", "heal");
               if (healing > 0) {
                 play("pickup", pickupOptions.hp);
               }
@@ -1516,7 +1516,7 @@ export default function setupAi(world: World) {
             );
             entity[STATS].hp = hp;
             if (healing > 0) {
-              createAmountMarker(world, entity, healing, "up", "true");
+              createAmountMarker(world, entity, healing, "up", "heal");
               play("pickup", pickupOptions.hp);
             }
           } else if (pattern.memory.heal) {

@@ -37,6 +37,7 @@ import { getItemSprite } from "../../game/assets/utils";
 import { none } from "../../game/assets/sprites";
 import { isControllable } from "./freeze";
 import { BLOCKABLE } from "../components/blockable";
+import { getIdentifier } from "../utils";
 
 export const getBlockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -186,7 +187,6 @@ export default function setupAction(world: World) {
       let unlock: Entity | undefined = undefined;
       let popup: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
-      let use: Entity | undefined = undefined;
       let add_: Entity | undefined = undefined;
       let spawn: Entity | undefined = undefined;
 
@@ -213,7 +213,6 @@ export default function setupAction(world: World) {
               ? getTabSelections(world, popupEntity)
               : [];
             const tradeEntity = popupEntity;
-            const useEntity = entity;
             const addEntity = popupEntity;
 
             // portals can warp players
@@ -265,18 +264,8 @@ export default function setupAction(world: World) {
             )
               trade = tradeEntity;
 
-            // using only while in inspect
-            if (
-              !use &&
-              entity[PLAYER] &&
-              useEntity &&
-              isInTab(world, entity, "inspect")
-            )
-              use = useEntity;
-
             // adding only while in certain popup states
             if (
-              !use &&
               entity[PLAYER] &&
               addEntity &&
               ((isInTab(world, entity, "forge") && selections.length < 2) ||
@@ -311,11 +300,15 @@ export default function setupAction(world: World) {
       const secondary = world.getEntityById(
         castableEntity?.[EQUIPPABLE]?.secondary
       );
+      const usePopup = getIdentifier(world, "use");
       const warpId = warp && world.getEntityId(warp);
       const unlockId = unlock && world.getEntityId(unlock);
       const popupId = popup && world.getEntityId(popup);
       const tradeId = trade && world.getEntityId(trade);
-      const useId = use && world.getEntityId(use);
+      const useId =
+        usePopup && isInTab(world, entity, "inspect")
+          ? world.getEntityId(usePopup)
+          : undefined;
       const addId = add_ && world.getEntityId(add_);
       const spawnId = spawn && world.getEntityId(spawn);
       const primaryId = primary && world.getEntityId(primary);

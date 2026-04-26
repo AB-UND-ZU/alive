@@ -81,38 +81,47 @@ import { NPC } from "../components/npc";
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;
 
-export const getAffectable = (
+export const getAffectables = (
   world: World,
   position: Position,
   fragment = false
 ) => {
-  if (getBlockable(world, position)) return;
+  if (getBlockable(world, position)) return [];
 
-  const targetEntity = Object.values(getCell(world, position)).find((target) =>
-    isAffectable(world, target)
-  ) as Entity | undefined;
+  const affectables: Entity[] = [];
 
-  if (targetEntity) return targetEntity;
+  Object.values(getCell(world, position)).forEach((target) => {
+    if (isAffectable(world, target)) {
+      affectables.push(target);
+      return;
+    }
 
-  const fragmentEntity = getFragment(world, position);
+    const fragmentEntity = getFragment(world, position);
 
-  if (!fragmentEntity) return;
+    if (!fragmentEntity) return;
 
-  if (fragment) return fragmentEntity;
+    if (fragment) {
+      affectables.push(fragmentEntity);
+      return;
+    }
 
-  const structurableEntity = world.assertById(
-    fragmentEntity[FRAGMENT].structure
-  );
+    const structurableEntity = world.assertById(
+      fragmentEntity[FRAGMENT].structure
+    );
 
-  if (isAffectable(world, structurableEntity)) return structurableEntity;
+    if (isAffectable(world, structurableEntity)) {
+      affectables.push(structurableEntity);
+    }
+  });
+
+  return affectables;
 };
 
-export const getAffectables = (world: World, position: Position) =>
-  getBlockable(world, position)
-    ? []
-    : (Object.values(getCell(world, position)).filter((target) =>
-        isAffectable(world, target)
-      ) as Entity[]);
+export const getAffectable = (
+  world: World,
+  position: Position,
+  fragment?: boolean
+) => getAffectables(world, position, fragment)[0];
 
 export const isExertable = (world: World, entity: Entity) =>
   EXERTABLE in entity;
@@ -479,7 +488,7 @@ export default function setupMagic(world: World) {
             // create hit marker
             if (healing > 0) {
               targetEntity[STATS].hp = hp;
-              createAmountMarker(world, fragmentEntity, healing, "up", "true");
+              createAmountMarker(world, fragmentEntity, healing, "up", "heal");
               play("pickup", pickupOptions.hp);
               hasAffected = true;
             }
@@ -528,7 +537,11 @@ export default function setupMagic(world: World) {
               fragmentEntity,
               -damage,
               orientation,
-              castableEntity[CASTABLE].melee ? "melee" : "magic"
+              castableEntity[CASTABLE].melee
+                ? "melee"
+                : castableEntity[CASTABLE].true
+                ? "true"
+                : "magic"
             );
           }
 
@@ -540,6 +553,7 @@ export default function setupMagic(world: World) {
               castableEntity[CASTABLE],
               entity[EXERTABLE].castable,
               rootEntity,
+              fragmentEntity,
               entity[ORIENTABLE]?.facing || orientation
             );
             hasAffected = hasAffected || procced;
@@ -637,7 +651,7 @@ export default function setupMagic(world: World) {
         const delay = previousStats * 500;
 
         if (statName === "hp") {
-          createAmountMarker(world, entity, pendingStat, "up", "true");
+          createAmountMarker(world, entity, pendingStat, "up", "heal");
         } else if (statName === "mp") {
           const statColor = getStatColor(statName);
           queueMessage(world, entity, {
@@ -708,7 +722,7 @@ export default function setupMagic(world: World) {
       play("magic", { intensity: damage, proximity });
 
       // add hit marker
-      createAmountMarker(world, entity, -damage, "up", "magic");
+      createAmountMarker(world, entity, -damage, "up", "true");
     }
   };
 

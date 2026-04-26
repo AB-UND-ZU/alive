@@ -102,7 +102,6 @@ import {
   getStatSprite,
   granite,
   grass,
-  heal,
   heart,
   herb,
   ice,
@@ -157,6 +156,7 @@ import {
   createSpriteButton,
   emptyFlask,
   oakBossUnit,
+  healHit,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -507,14 +507,6 @@ export const assignBuilding = (
     });
   }
 
-  const width = Math.abs(signedDistance(leftCursor.x, rightCursor.x, size)) + 1;
-  const height = Math.abs(signedDistance(leftCursor.y, upCursor.y, size)) + 1;
-
-  buildingEntity[VIEWABLE].fraction = {
-    x: width % 2 === 0 ? 0.5 : 0,
-    y: height % 2 === 0 ? 0.5 : 0,
-  };
-
   return {
     building: buildingEntity,
     fragments: fragmentEntities,
@@ -832,8 +824,9 @@ export const createCell = (
     all.push(inspectEntity);
     setIdentifier(world, inspectEntity, "inspect");
 
-    // create viewpoint for map
-    const mapEntity = entities.createMap(world, {
+    // create viewpoint for use
+    const useEntity = entities.createUse(world, {
+      [FOG]: { type: "terrain", visibility: "visible", fixed: true },
       [POSITION]: { x: 0, y: 0 },
       [RENDERABLE]: { generation: 0 },
       [VIEWABLE]: { active: false, priority: 90 },
@@ -849,13 +842,13 @@ export const createCell = (
         targets: [],
         focuses: [],
         choices: [],
-        tabs: ["map"],
+        tabs: ["use"],
       },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: none,
     });
-    all.push(mapEntity);
-    setIdentifier(world, mapEntity, "map");
+    all.push(useEntity);
+    setIdentifier(world, useEntity, "use");
 
     // set initial focus on hero
     const highlighEntity = entities.createHighlight(world, {
@@ -1868,7 +1861,7 @@ export const createCell = (
         ],
         [
           ...createText("always "),
-          minCountable(heal),
+          minCountable(healHit),
           ...createText("Heal", colors.lime),
           ...createText(" you."),
         ],
@@ -1972,7 +1965,7 @@ export const createCell = (
         [],
         [
           ...createText("Or you can "),
-          minCountable(heal),
+          minCountable(healHit),
           ...createText("Heal", colors.lime),
         ],
         [

@@ -300,7 +300,8 @@ export const popupIdles = {
   gear: info,
   class: mapDiscovery,
   style: mapDiscovery,
-  map: mapDiscovery,
+  map: undefined,
+  use: undefined,
 };
 
 export const popupActions = {
@@ -313,6 +314,7 @@ export const popupActions = {
   buy: "SHOP",
   sell: "SHOP",
   inspect: "BAG",
+  use: "USE",
   map: "MAP",
   stats: "STATS",
   gear: "GEAR",
@@ -329,7 +331,7 @@ export const popupTitles = {
   class: "CLASS",
   style: "STYLE",
   warp: "LEVEL",
-  map: "MAP",
+  use: "QUICK",
 };
 
 export const visibleStats: (keyof UnitStats)[] = [
@@ -340,8 +342,8 @@ export const visibleStats: (keyof UnitStats)[] = [
   "armor",
   "wisdom",
   "resist",
-  "haste",
   "vision",
+  "haste",
   "damp",
   "thaw",
   "spike",
@@ -367,17 +369,21 @@ export const createPopup = (
   entity: Entity,
   popup: Pick<Popup, "tabs"> & Partial<Popup>
 ) => {
-  createSequence<"discovery", DiscoverySequence>(
-    world,
-    entity,
-    "discovery",
-    "discoveryIdle",
-    {
-      idle: popupIdles[getDiscoveryTab(world, { [POPUP]: popup })],
-      hidden: false,
-      timestamp: 0,
-    }
-  );
+  const idle = popupIdles[getDiscoveryTab(world, { [POPUP]: popup })];
+
+  if (idle) {
+    createSequence<"discovery", DiscoverySequence>(
+      world,
+      entity,
+      "discovery",
+      "discoveryIdle",
+      {
+        idle,
+        hidden: false,
+        timestamp: 0,
+      }
+    );
+  }
 
   const viewpointEntity = entities.createViewpoint(world, {
     [POSITION]: add(entity[POSITION], { x: 0, y: (frameHeight + 1) / -2 }),
@@ -439,7 +445,8 @@ export const removePopup = (world: World, entity: Entity) => {
 export const openPopup = (
   world: World,
   heroEntity: Entity,
-  popupEntity: Entity
+  popupEntity: Entity,
+  instant = false
 ) => {
   const popupId = world.getEntityId(popupEntity);
   const transaction = getDiscoveryTab(world, popupEntity);
@@ -481,6 +488,7 @@ export const openPopup = (
       verticalIndex: 0,
       horizontalIndex: 0,
       transaction: getTab(world, popupEntity),
+      instant,
     }
   );
 
@@ -588,19 +596,19 @@ export default function setupPopup(world: World) {
     const transaction = getTab(world, popupEntity);
     const tradeEntity = world.getEntityByIdAndComponents(
       heroEntity[ACTIONABLE].trade,
-      [TOOLTIP, POPUP, POSITION]
+      [POPUP, POSITION]
     );
     const useEntity = world.getEntityByIdAndComponents(
       heroEntity[ACTIONABLE].use,
-      [TOOLTIP, POPUP, POSITION]
+      [POPUP, POSITION]
     );
     const addEntity = world.getEntityByIdAndComponents(
       heroEntity[ACTIONABLE].add,
-      [TOOLTIP, POPUP, POSITION]
+      [POPUP, POSITION]
     );
     const warpEntity = world.getEntityByIdAndComponents(
       heroEntity[ACTIONABLE].warp,
-      [POSITION, TOOLTIP]
+      [POSITION]
     );
 
     const selections = getTabSelections(world, popupEntity);
@@ -611,7 +619,7 @@ export default function setupPopup(world: World) {
       transaction === "inspect"
         ? inspectItems.length
         : transaction === "stats"
-        ? visibleStats.length
+        ? visibleStats.length + 1
         : transaction === "gear"
         ? gearSlots.length
         : transaction === "map"
@@ -697,6 +705,7 @@ export default function setupPopup(world: World) {
 
       heroEntity[PLAYER].actionTriggered = undefined;
       heroEntity[PLAYER].contentTriggered = undefined;
+      heroEntity[PLAYER].offsetTriggered = undefined;
 
       const scrollIndex = popupSequence?.args.scrollIndex;
       const detailsPadding = popupSequence?.args.detailsPadding || 0;
@@ -938,7 +947,7 @@ export default function setupPopup(world: World) {
           }
         } else if (useEntity) {
           const useItem =
-            inspectItems[getVerticalIndex(world, heroEntity)]?.[ITEM];
+            inspectItems[getVerticalIndex(world, useEntity)]?.[ITEM];
           queueMessage(world, heroEntity, {
             line: useItem?.equipment
               ? addBackground(

@@ -45,11 +45,16 @@ import { STATS } from "../../engine/components/stats";
 import { PLAYER } from "../../engine/components/player";
 import { ensureAudio } from "../../game/sound/resumable";
 import Cursor from "../Cursor";
-import { frameHeight, getItemSprite } from "../../game/assets/utils";
+import {
+  frameHeight,
+  frameWidth,
+  getItemSprite,
+} from "../../game/assets/utils";
 import { centerSprites } from "../../game/assets/pixels";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
+import { IDENTIFIABLE } from "../../engine/components/identifiable";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -72,8 +77,11 @@ export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
 export const primaryKeys = [" "];
 export const secondaryKeys = ["Shift"];
 export const tabKeys = ["Tab"];
-export const inspectKeys = ["i", "b"];
-export const mapKeys = ["m"];
+export const inspectKeys = ["b", "B"];
+export const useKeys = ["u", "U"];
+export const mapKeys = ["m", "M"];
+export const gearKeys = ["g", "G"];
+export const statsKeys = ["t", "T"];
 export const interactKeys = ["Enter"];
 export const closeKeys = ["Escape"];
 
@@ -303,6 +311,9 @@ export default function Controls() {
         | "secondary"
         | "interact"
         | "inspect"
+        | "use"
+        | "gear"
+        | "stats"
         | "map"
         | "close"
         | "left"
@@ -312,7 +323,8 @@ export default function Controls() {
         | "content"
         | "tab"
         | "backtab",
-      index?: number
+      index?: number,
+      offset?: number
     ) => {
       const heroEntity = heroRef.current;
       const currentAction = actionRef.current;
@@ -361,6 +373,7 @@ export default function Controls() {
           heroEntity[PLAYER].tabTriggered = index;
         } else if (index !== undefined && action === "content") {
           heroEntity[PLAYER].contentTriggered = index;
+          heroEntity[PLAYER].offsetTriggered = offset;
         }
       }
 
@@ -427,6 +440,51 @@ export default function Controls() {
       handleAction("interact");
     },
     [handleAction]
+  );
+
+  const handleUse = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      if (inMenu || !ecs || !hero || !isActionable(ecs, hero)) return;
+
+      handleAction("use");
+    },
+    [handleAction, inMenu, ecs, hero]
+  );
+
+  const handleGear = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      if (inMenu || !ecs || !hero || !isActionable(ecs, hero)) return;
+
+      handleAction("gear");
+    },
+    [handleAction, inMenu, ecs, hero]
+  );
+
+  const handleStats = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      if (inMenu || !ecs || !hero || !isActionable(ecs, hero)) return;
+
+      handleAction("stats");
+    },
+    [handleAction, inMenu, ecs, hero]
   );
 
   const handleMap = useCallback(
@@ -525,13 +583,27 @@ export default function Controls() {
 
       const rect = div.getBoundingClientRect();
 
-      let offsetY: number = 0;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if ("clientX" in event && typeof event.clientX === "number") {
+        offsetX = event.clientX - rect.left;
+      } else if ("touches" in event && event.touches.length > 0) {
+        offsetX = event.touches[0].clientX - rect.left;
+      }
 
       if ("clientY" in event && typeof event.clientY === "number") {
         offsetY = event.clientY - rect.top;
       } else if ("touches" in event && event.touches.length > 0) {
         offsetY = event.touches[0].clientY - rect.top;
       }
+
+      const totalWidth = div.offsetWidth;
+      const columnWidth = totalWidth / (frameWidth - 2);
+      const columnIndex = Math.min(
+        frameWidth - 3,
+        Math.floor(offsetX / columnWidth)
+      );
 
       const totalHeight = div.offsetHeight;
       const rowHeight = totalHeight / (frameHeight - 2);
@@ -540,7 +612,7 @@ export default function Controls() {
         Math.floor(offsetY / rowHeight)
       );
 
-      handleAction("content", rowIndex);
+      handleAction("content", rowIndex, columnIndex);
     },
     [handleAction]
   );
@@ -679,14 +751,27 @@ export default function Controls() {
       } else if (mapKeys.includes(event.key) && event.type === "keydown") {
         handleMap(event);
         return;
+      } else if (useKeys.includes(event.key) && event.type === "keydown") {
+        handleUse(event);
+        return;
+      } else if (gearKeys.includes(event.key) && event.type === "keydown") {
+        handleGear(event);
+        return;
+      } else if (statsKeys.includes(event.key) && event.type === "keydown") {
+        handleStats(event);
+        return;
       } else if (inspectKeys.includes(event.key) && event.type === "keydown") {
         handleInspect(event);
         return;
       } else if (tabKeys.includes(event.key) && event.type === "keydown") {
         if (popup) {
-          handleTab(event, event.shiftKey);
+          if (popup[IDENTIFIABLE]?.name === "use") {
+            handleClose(event);
+          } else {
+            handleTab(event, event.shiftKey);
+          }
         } else {
-          handleInspect(event);
+          handleUse(event);
         }
         return;
       } else if (closeKeys.includes(event.key) && event.type === "keydown") {
@@ -735,6 +820,9 @@ export default function Controls() {
       handleInteract,
       handleInspect,
       handleTab,
+      handleUse,
+      handleStats,
+      handleGear,
       handleMap,
       handleLeft,
       handleRight,
@@ -766,7 +854,7 @@ export default function Controls() {
             "resume",
             "interact",
             "inspect",
-            "survey",
+            "quick",
             "close",
             "tab-0",
             "tab-1",
@@ -1066,7 +1154,7 @@ export default function Controls() {
           }
         />
       )}
-      {Array.from({ length: popup?.[POPUP].tabs.length || 0 }).map(
+      {Array.from({ length: popup?.[POPUP]?.tabs.length || 0 }).map(
         (_, index) => (
           <div
             key={index}

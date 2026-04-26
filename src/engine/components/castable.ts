@@ -2,6 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 
 export type DamageType = "melee" | "magic" | "true";
+export type MarkerType = DamageType | "heal";
 export type EffectType = "burn" | "freeze" | "heal";
 export type ProcStats = { drain: number; knock: number };
 export type BuffStats = {

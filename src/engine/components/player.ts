@@ -16,7 +16,10 @@ export type Player = {
   actionTriggered?:
     | "interact"
     | "inspect"
+    | "use"
     | "map"
+    | "gear"
+    | "stats"
     | "close"
     | "tab"
     | "backtab"
@@ -27,6 +30,7 @@ export type Player = {
     | "content";
   tabTriggered?: number;
   contentTriggered?: number;
+  offsetTriggered?: number;
 };
 
 export const emptyReceivedStats = {

@@ -31,7 +31,6 @@ import {
   createText,
   friendlyBar,
   hostileBar,
-  info,
   mergeSprites,
   popupBackground,
   popupCenter,
@@ -144,6 +143,12 @@ import {
   popupHint,
   popupOverlay,
   times,
+  quickSide,
+  quickCorner,
+  getStatColor,
+  quickSeparatorSelected,
+  quickCenterStart,
+  quickCenterEnd,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -197,7 +202,11 @@ import {
 import { flask, potion, key, bottle, spirit } from "./templates/items";
 import { doorClosed, entryClosed, entryClosedDisplay } from "./templates/units";
 import { getItemStats } from "../balancing/equipment";
-import { colorPalettes, PartialSpriteTemplate } from "./templates";
+import {
+  colorPalettes,
+  PartialSpriteTemplate,
+  recolorSprite,
+} from "./templates";
 import { consumptionConfigs } from "../../engine/systems/consume";
 
 export const lootSpeed = 200;
@@ -354,12 +363,45 @@ const selectionSprites = {
 };
 
 const buttonWidth = 7;
+const popupSprites = {
+  corner: popupCorner,
+  side: popupSide,
+  downStart: popupDownStart,
+  downEnd: popupDownEnd,
+  background: popupBackground,
+  scrollBarTop,
+  scrollBarBottom,
+  scrollBar,
+  scrollHandle,
+  separatorSelected: popupSeparatorSelected,
+  separatorInverted: popupSeparatorInverted,
+  separator: popupSeparator,
+  centerStart: popupCenterStart,
+  centerEnd: popupCenterEnd,
+  center: popupCenter,
+  centerCrop: popupCenterCrop,
+};
+const quickSprites = Object.fromEntries(
+  Object.entries(popupSprites).map(([name, sprite]) => [
+    name,
+    recolorSprite(sprite, {
+      [colors.white]: colors.yellow,
+      [colors.silver]: colors.olive,
+      [colors.grey]: colors.olive,
+    }),
+  ])
+);
+quickSprites.side = quickSide;
+quickSprites.corner = quickCorner;
+quickSprites.separatorSelected = quickSeparatorSelected;
+quickSprites.centerStart = quickCenterStart;
+quickSprites.centerEnd = quickCenterEnd;
 
 export const renderPopup = (
   world: World,
   entity: Entity,
   state: SequenceState<PopupSequence>,
-  icon: Sprite = info,
+  icon: Sprite | undefined = undefined,
   content: Sprite[][],
   selection?: PopupSelection,
   details?: Sprite[][],
@@ -373,6 +415,7 @@ export const renderPopup = (
   const generation = entity[RENDERABLE].generation;
   const popupMiddle = { x: 0, y: (frameHeight + 1) / -2 };
   const initial = !state.args.generation;
+  const spriteConfig = state.args.instant ? quickSprites : popupSprites;
   const generationChanged = state.args.generation !== generation;
   const heightChanged = state.args.contentHeight !== content.length;
   const verticalIndex = getVerticalIndex(world, entity);
@@ -404,7 +447,8 @@ export const renderPopup = (
     (frameWidth - 2);
   const foldSize = (verticalIndex - scrollIndex) * (frameWidth - 2);
   const settled =
-    state.args.contentIndex >= foldSize && state.elapsed > popupTime;
+    (state.args.contentIndex >= foldSize && state.elapsed > popupTime) ||
+    state.args.instant;
   const hintGeneration = world.getEntityByIdAndComponents(
     state.particles["hint-0"],
     [PARTICLE]
@@ -412,7 +456,10 @@ export const renderPopup = (
   const visibleScroll =
     lines > (details ? frameHeight - detailsHeight - 3 : frameHeight - 2);
   const visibleOverlay =
-    visibleScroll && !details && !selection && getTab(world, entity) !== "map";
+    visibleScroll &&
+    !details &&
+    !selection &&
+    !["use", "map"].includes(getTab(world, entity));
   const topOverlayTarget = visibleOverlay && scrollRatio > 0 ? 1 : 0;
   const topOverlayAmount = world.getEntityByIdAndComponents(
     state.particles["overlay-up-0"],
@@ -429,8 +476,9 @@ export const renderPopup = (
       : worldGeneration % 4 === 0
       ? 1
       : 0;
-  let renderContent = false;
-  let renderTabs = horizontalIndex !== state.args.horizontalIndex;
+  let renderContent = generationChanged;
+  let renderTabs =
+    horizontalIndex !== state.args.horizontalIndex || generationChanged;
   let renderDetails = settled;
   let renderSeparator = details && renderTabs;
   let renderButtons = generationChanged;
@@ -464,7 +512,7 @@ export const renderPopup = (
           offsetZ: popupHeight,
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: popupCorner,
+        [SPRITE]: spriteConfig.corner,
       });
       state.particles[`popup-${iteration.orientation}-corner`] =
         world.getEntityId(cornerParticle);
@@ -492,7 +540,7 @@ export const renderPopup = (
             offsetZ: popupHeight,
           },
           [RENDERABLE]: { generation: 1 },
-          [SPRITE]: popupSide,
+          [SPRITE]: spriteConfig.side,
         });
         state.particles[`popup-${iteration.orientation}-${i}`] =
           world.getEntityId(sideParticle);
@@ -500,22 +548,24 @@ export const renderPopup = (
     }
 
     // add bottom decoration
-    const downStartParticle = world.assertByIdAndComponents(
-      state.particles[`popup-down-${(frameWidth - 3) / 2 + 1}`],
-      [PARTICLE]
-    );
-    downStartParticle[SPRITE] = popupDownStart;
-    const downEndParticle = world.assertByIdAndComponents(
-      state.particles[`popup-down-${(frameWidth - 3) / 2 - 1}`],
-      [PARTICLE]
-    );
-    downEndParticle[SPRITE] = popupDownEnd;
-    const downCenterName = `popup-down-${(frameWidth - 3) / 2}`;
-    const downCenterParticle = world.assertByIdAndComponents(
-      state.particles[downCenterName],
-      [PARTICLE]
-    );
-    downCenterParticle[SPRITE] = addBackground([icon], colors.black)[0];
+    if (icon) {
+      const downStartParticle = world.assertByIdAndComponents(
+        state.particles[`popup-down-${(frameWidth - 3) / 2 + 1}`],
+        [PARTICLE]
+      );
+      downStartParticle[SPRITE] = spriteConfig.downStart;
+      const downEndParticle = world.assertByIdAndComponents(
+        state.particles[`popup-down-${(frameWidth - 3) / 2 - 1}`],
+        [PARTICLE]
+      );
+      downEndParticle[SPRITE] = spriteConfig.downEnd;
+      const downCenterName = `popup-down-${(frameWidth - 3) / 2}`;
+      const downCenterParticle = world.assertByIdAndComponents(
+        state.particles[downCenterName],
+        [PARTICLE]
+      );
+      downCenterParticle[SPRITE] = addBackground([icon], colors.black)[0];
+    }
 
     // add background
     for (let row = 0; row < frameHeight - 2; row += 1) {
@@ -527,7 +577,7 @@ export const renderPopup = (
             offsetZ: popupHeight,
           },
           [RENDERABLE]: { generation: 1 },
-          [SPRITE]: popupBackground,
+          [SPRITE]: spriteConfig.background,
         });
         state.particles[`popup-content-${row}-${column}`] =
           world.getEntityId(charParticle);
@@ -560,17 +610,17 @@ export const renderPopup = (
     // top and bottom handles
     world.assertByIdAndComponents(state.particles["popup-right-0"], [PARTICLE])[
       SPRITE
-    ] = scrollBarTop;
+    ] = spriteConfig.scrollBarTop;
     world.assertByIdAndComponents(
       state.particles[`popup-right-${frameHeight - 3}`],
       [PARTICLE]
-    )[SPRITE] = scrollBarBottom;
+    )[SPRITE] = spriteConfig.scrollBarBottom;
 
     // render bar
     for (let row = 1; row < frameHeight - 3; row += 1) {
       world.assertByIdAndComponents(state.particles[`popup-right-${row}`], [
         PARTICLE,
-      ])[SPRITE] = scrollBar;
+      ])[SPRITE] = spriteConfig.scrollBar;
     }
 
     const progress = Math.floor(lerp(2, (frameHeight - 5) * 2, scrollRatio));
@@ -580,19 +630,19 @@ export const renderPopup = (
       state.particles[`popup-right-${Math.floor(progress / 2)}`],
       [PARTICLE, ORIENTABLE]
     );
-    handleStart[SPRITE] = scrollHandle;
+    handleStart[SPRITE] = spriteConfig.scrollHandle;
     handleStart[ORIENTABLE].facing = progress % 2 === 1 ? "down" : undefined;
     const handleCenter = world.assertByIdAndComponents(
       state.particles[`popup-right-${Math.floor(progress / 2) + 1}`],
       [PARTICLE, ORIENTABLE]
     );
-    handleCenter[SPRITE] = scrollHandle;
+    handleCenter[SPRITE] = spriteConfig.scrollHandle;
     handleCenter[ORIENTABLE].facing = undefined;
     const handleEnd = world.assertByIdAndComponents(
       state.particles[`popup-right-${Math.ceil(progress / 2) + 1}`],
       [PARTICLE, ORIENTABLE]
     );
-    handleEnd[SPRITE] = scrollHandle;
+    handleEnd[SPRITE] = spriteConfig.scrollHandle;
     handleEnd[ORIENTABLE].facing = progress % 2 === 1 ? "up" : undefined;
 
     state.args.scrollIndex = scrollIndex;
@@ -604,7 +654,7 @@ export const renderPopup = (
         state.particles[`popup-right-${row}`],
         [PARTICLE, ORIENTABLE]
       );
-      sideParticle[SPRITE] = popupSide;
+      sideParticle[SPRITE] = spriteConfig.side;
       sideParticle[ORIENTABLE].facing = "right";
     }
 
@@ -624,10 +674,10 @@ export const renderPopup = (
         [PARTICLE, ORIENTABLE]
       );
       upStartParticle[SPRITE] = selected
-        ? popupSeparatorSelected
+        ? spriteConfig.separatorSelected
         : tabIndex === horizontalIndex + 1
-        ? popupSeparatorInverted
-        : popupSeparator;
+        ? spriteConfig.separatorInverted
+        : spriteConfig.separator;
       upStartParticle[ORIENTABLE].facing =
         tabIndex === 0 ? (tabs === 3 ? "up" : "right") : undefined;
       if (tabIndex === tabs - 1) {
@@ -636,20 +686,30 @@ export const renderPopup = (
           [PARTICLE, ORIENTABLE]
         );
         upEndParticle[SPRITE] = selected
-          ? popupSeparatorSelected
-          : popupSeparator;
+          ? spriteConfig.separatorSelected
+          : spriteConfig.separator;
         upEndParticle[ORIENTABLE].facing = tabIndex === 2 ? "down" : "left";
       }
       const transaction = entity[POPUP].tabs[tabIndex] as Popup["tabs"][number];
       const title = popupTitles[transaction];
       const titleText = createText(
         padCenter(title.toUpperCase(), 5),
-        selected ? colors.black : colors.white
+        selected
+          ? colors.black
+          : state.args.instant
+          ? colors.yellow
+          : colors.white
       );
       const titleSprites = addBackground(
         addBackground(
           titleText,
-          selected ? colors.white : colors.grey,
+          selected
+            ? state.args.instant
+              ? colors.yellow
+              : colors.white
+            : state.args.instant
+            ? colors.olive
+            : colors.grey,
           selected ? undefined : "▄"
         ),
         colors.black
@@ -673,13 +733,17 @@ export const renderPopup = (
       state.particles[`popup-left-${detailsHeight}`],
       [PARTICLE]
     );
-    centerStartParticle[SPRITE] = details ? popupCenterStart : popupSide;
+    centerStartParticle[SPRITE] = details
+      ? spriteConfig.centerStart
+      : spriteConfig.side;
     if (!visibleScroll) {
       const centerEndParticle = world.assertByIdAndComponents(
         state.particles[`popup-right-${frameHeight - detailsHeight - 3}`],
         [PARTICLE]
       );
-      centerEndParticle[SPRITE] = details ? popupCenterEnd : popupSide;
+      centerEndParticle[SPRITE] = details
+        ? spriteConfig.centerEnd
+        : spriteConfig.side;
     }
 
     updated = true;
@@ -688,7 +752,7 @@ export const renderPopup = (
   // clear content on changes
   if (
     (generationChanged || scrollIndex !== state.args.scrollIndex) &&
-    state.elapsed > popupTime
+    (state.elapsed > popupTime || state.args.instant)
   ) {
     state.args.generation = generation;
     state.args.scrollIndex = scrollIndex;
@@ -709,7 +773,7 @@ export const renderPopup = (
         [PARTICLE, SPRITE]
       );
 
-      particleEntity[SPRITE] = popupBackground;
+      particleEntity[SPRITE] = spriteConfig.background;
     }
 
     renderContent = true;
@@ -725,7 +789,9 @@ export const renderPopup = (
         ],
         [PARTICLE]
       );
-      centerParticle[SPRITE] = details ? popupCenter : popupBackground;
+      centerParticle[SPRITE] = details
+        ? spriteConfig.center
+        : spriteConfig.background;
     }
 
     updated = true;
@@ -736,7 +802,9 @@ export const renderPopup = (
     renderContent ||
     (state.elapsed > popupTime && state.args.contentIndex < contentSize)
   ) {
-    const contentIndex = Math.floor((state.elapsed - popupTime) / contentDelay);
+    const contentIndex = state.args.instant
+      ? contentSize
+      : Math.floor((state.elapsed - popupTime) / contentDelay);
     const scrollContent = content
       .slice(scrollIndex)
       .slice(0, details ? frameHeight - detailsHeight - 2 : frameHeight - 2);
@@ -769,7 +837,7 @@ export const renderPopup = (
           row === scrollContent.length - 1 &&
           scrollContent.length > frameHeight - detailsHeight - 3;
         charParticle[SPRITE] = cropContent
-          ? mergeSprites(char, popupCenterCrop)
+          ? mergeSprites(char, spriteConfig.centerCrop)
           : char;
         rerenderEntity(world, charParticle);
       }
@@ -883,7 +951,7 @@ export const renderPopup = (
     }
   }
 
-  if (initial) {
+  if (initial && !state.args.instant) {
     // interpolate frame on initial render
     for (const particleName in state.particles) {
       const particleEntity = world.assertByIdAndComponents(
@@ -900,7 +968,7 @@ export const renderPopup = (
         particleEntity[PARTICLE].duration = -offsetY * popupDelay;
       }
     }
-  } else if (settled) {
+  } else if (settled && !state.args.instant) {
     // stop animating settled popup
     for (const particleName in state.particles) {
       if (particleName === "selection") continue;
@@ -921,10 +989,11 @@ export const renderPopup = (
 
   if (
     !state.particles.selection &&
-    state.elapsed >
-      popupTime +
-        (verticalIndex - scrollIndex) * (frameWidth - 2) * contentDelay &&
-    selection
+    selection &&
+    (state.args.instant ||
+      state.elapsed >
+        popupTime +
+          (verticalIndex - scrollIndex) * (frameWidth - 2) * contentDelay)
   ) {
     // add selection arrow
     const selectionParticle = entities.createParticle(world, {
@@ -1182,7 +1251,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "hp", "progression"),
           [
-            ...createText("+", colors.green),
+            ...createText("+", getStatColor("power")),
             ...createCountable(stats, "power", "display"),
           ],
           frameWidth - 2
@@ -1190,7 +1259,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "mp", "progression"),
           [
-            ...createText("+", colors.green),
+            ...createText("+", getStatColor("haste")),
             ...createCountable(stats, "haste", "display"),
           ],
           frameWidth - 2
@@ -1208,7 +1277,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "hp", "progression"),
           [
-            ...createText("+", colors.green),
+            ...createText("+", getStatColor("wisdom")),
             ...createCountable(stats, "wisdom", "display"),
           ],
           frameWidth - 2
@@ -1216,7 +1285,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "mp", "progression"),
           [
-            ...createText("+", colors.green),
+            ...createText("+", getStatColor("vision")),
             ...createCountable(stats, "vision", "display"),
           ],
           frameWidth - 2
@@ -1234,7 +1303,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "hp", "progression"),
           [
-            ...createText("+", colors.green),
+            ...createText("+", getStatColor("armor")),
             ...createCountable(stats, "armor", "display"),
           ],
           frameWidth - 2
@@ -1242,7 +1311,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "mp", "progression"),
           [
-            ...createText("+", colors.green),
+            ...createText("+", getStatColor("resist")),
             ...createCountable(stats, "resist", "display"),
           ],
           frameWidth - 2
@@ -1260,7 +1329,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "hp", "progression"),
           [
-            ...createText("+", colors.olive),
+            ...createText("+", getStatColor("damp")),
             ...createCountable(stats, "damp", "display"),
           ],
           frameWidth - 2
@@ -1268,7 +1337,7 @@ export const entitySprites: Record<
         stretch(
           createCountable(stats, "spike", "display"),
           [
-            ...createText("+", colors.teal),
+            ...createText("+", getStatColor("thaw")),
             ...createCountable(stats, "thaw", "display"),
           ],
           frameWidth - 2
@@ -2094,7 +2163,7 @@ export const materialSprites: Partial<
       ],
       stretch(
         [
-          ...createText(stats.absorb.toString(), colors.red),
+          ...createText(stats.absorb.toString(), colors.olive),
           minCountable(absorb),
           ...createText("Absorb", colors.olive),
         ],

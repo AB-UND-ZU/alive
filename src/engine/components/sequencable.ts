@@ -9,7 +9,7 @@ import { Light } from "./light";
 import { Element, Item, Material } from "./item";
 import { Popup } from "./popup";
 import { Liquid } from "./liquid";
-import { Castable, DamageType } from "./castable";
+import { Castable, MarkerType } from "./castable";
 import { Weather } from "../systems/water";
 import { Vanishable } from "./vanishable";
 
@@ -49,7 +49,7 @@ export type PointerSequence = {
 };
 export type MarkerSequence = {
   amount: number;
-  type: DamageType;
+  type: MarkerType
   orientation?: Orientation;
 };
 export type Message = {
@@ -214,6 +214,7 @@ export type PopupSequence = {
   verticalIndex: number;
   horizontalIndex: number;
   transaction: Popup["tabs"][number];
+  instant: boolean;
 };
 
 export type SequenceState<A> = {

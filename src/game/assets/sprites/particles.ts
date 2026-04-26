@@ -206,7 +206,21 @@ export const time: Sprite = {
   ],
 };
 
-export const heal: Sprite = {
+export const trueHit: Sprite = {
+  name: "True",
+  layers: [{ char: "O", color: colors.white }],
+  amounts: {
+    single: [
+      { char: "*", color: colors.white },
+      { char: "─", color: colors.black },
+      { char: "·", color: colors.white },
+    ],
+    double: [{ char: "x", color: colors.white }],
+    multiple: [{ char: "X", color: colors.white }],
+  },
+};
+
+export const healHit: Sprite = {
   name: "Heal",
   layers: [{ char: "+", color: colors.lime }],
 };
@@ -1243,6 +1257,81 @@ export const blocked: Sprite = {
   ],
 };
 
+export const quickCorner: Sprite = {
+  name: "quick_corner",
+  layers: [{ char: "┼", color: colors.olive }],
+  facing: {
+    up: [{ char: "┌", color: colors.olive }],
+    right: [{ char: "┐", color: colors.olive }],
+    down: [{ char: "┘", color: colors.olive }],
+    left: [{ char: "└", color: colors.olive }],
+  },
+};
+
+export const quickSide: Sprite = {
+  name: "quick_side",
+  layers: [{ char: "┼", color: colors.olive }],
+  facing: {
+    up: [
+      { char: "▄", color: colors.black },
+      { char: "─", color: colors.olive },
+    ],
+    right: [
+      { char: "▌", color: colors.black },
+      { char: "│", color: colors.olive },
+    ],
+    down: [
+      { char: "▀", color: colors.black },
+      { char: "─", color: colors.olive },
+    ],
+    left: [
+      { char: "▐", color: colors.black },
+      { char: "│", color: colors.olive },
+    ],
+  },
+};
+
+export const quickSeparatorSelected: Sprite = {
+  name: "quick_separator_selected",
+  layers: [
+    { char: "▌", color: colors.olive },
+    { char: "│", color: colors.black },
+    { char: "▀", color: colors.black },
+    { char: "▐", color: colors.yellow },
+  ],
+  facing: {
+    up: [{ char: "▐", color: colors.yellow }],
+    right: [{ char: "▐", color: colors.yellow }],
+    down: [
+      { char: "▌", color: colors.yellow },
+      { char: "│", color: colors.black },
+      { char: "║", color: colors.black },
+    ],
+    left: [
+      { char: "▄", color: colors.black },
+      { char: "▌", color: colors.yellow },
+      { char: "├", color: colors.olive },
+      { char: "│", color: colors.yellow },
+    ],
+  },
+};
+
+export const quickCenterStart: Sprite = {
+  name: "quick_center_start",
+  layers: [
+    { char: "▐", color: colors.black },
+    { char: "├", color: colors.olive },
+  ],
+};
+
+export const quickCenterEnd: Sprite = {
+  name: "quick_center_end",
+  layers: [
+    { char: "▌", color: colors.black },
+    { char: "┤", color: colors.olive },
+  ],
+};
+
 export const popupCorner: Sprite = {
   name: "popup_corner",
   layers: [{ char: "╬", color: colors.silver }],
@@ -1301,11 +1390,7 @@ export const popupSeparator: Sprite = {
   ],
   facing: {
     up: [],
-    right: [
-      { char: "▐", color: colors.grey },
-      { char: "▀", color: colors.black },
-      { char: "│", color: colors.black },
-    ],
+    right: [],
     down: [
       { char: "▌", color: colors.grey },
       { char: "▀", color: colors.black },
@@ -1577,7 +1662,7 @@ const statConfig: Record<
     sprite: heart,
     max: "maxHp",
   },
-  maxHp: { color: colors.maroon, sprite: heartUp, max: "maxHpCap" },
+  maxHp: { color: colors.red, sprite: heartUp, max: "maxHpCap" },
   maxHpCap: { color: colors.maroon, sprite: heartUp },
   mp: {
     color: colors.blue,
@@ -1585,7 +1670,7 @@ const statConfig: Record<
     sprite: mana,
     max: "maxMp",
   },
-  maxMp: { color: colors.navy, sprite: manaUp, max: "maxMpCap" },
+  maxMp: { color: colors.blue, sprite: manaUp, max: "maxMpCap" },
   maxMpCap: { color: colors.navy, sprite: manaUp },
   xp: {
     color: colors.lime,
@@ -1598,11 +1683,11 @@ const statConfig: Record<
   maxXp: { color: colors.green, sprite: nonCountable(xp), max: "maxXpCap" },
   maxXpCap: { color: colors.green, sprite: nonCountable(xp) },
   level: {
-    color: colors.silver,
+    color: colors.lime,
     sprite: level,
   },
   power: {
-    color: colors.green,
+    color: colors.aqua,
     sprite: power,
   },
   addPower: {
@@ -1610,7 +1695,7 @@ const statConfig: Record<
     sprite: addPower,
   },
   wisdom: {
-    color: colors.green,
+    color: colors.fuchsia,
     sprite: wisdom,
   },
   addWisdom: {
@@ -1618,7 +1703,7 @@ const statConfig: Record<
     sprite: addWisdom,
   },
   armor: {
-    color: colors.green,
+    color: colors.teal,
     sprite: armor,
   },
   addArmor: {
@@ -1626,7 +1711,7 @@ const statConfig: Record<
     sprite: addArmor,
   },
   resist: {
-    color: colors.green,
+    color: colors.purple,
     sprite: resist,
   },
   addResist: {
@@ -1642,7 +1727,7 @@ const statConfig: Record<
     sprite: addHaste,
   },
   vision: {
-    color: colors.green,
+    color: colors.grey,
     sprite: vision,
   },
   damp: {
@@ -1650,7 +1735,7 @@ const statConfig: Record<
     sprite: damp,
   },
   thaw: {
-    color: colors.teal,
+    color: colors.navy,
     sprite: thaw,
   },
   spike: {
@@ -1679,7 +1764,7 @@ const statConfig: Record<
   },
   heal: {
     color: colors.lime,
-    sprite: heal,
+    sprite: healHit,
   },
   drain: {
     color: colors.purple,
@@ -1914,7 +1999,8 @@ export const info = createText("i", colors.lime)[0];
 export const shop = createText("$", colors.lime)[0];
 export const craft = createText("¢", colors.lime)[0];
 export const forge = createText("ƒ", colors.lime)[0];
-export const class_ = createText("\u010b", colors.lime)[0];
+
+export const class_ = createText("\u010b")[0];
 
 export const rage = createAggro("\u0112")[0];
 export const rage2 = mergeSprites(

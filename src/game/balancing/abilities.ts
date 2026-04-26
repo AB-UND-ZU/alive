@@ -301,7 +301,7 @@ export const abilityStats: Partial<
       ruby: { default: { melee: 10 } },
     },
     zap: {
-      default: { default: { magic: 2 } },
+      default: { default: { magic: 3 } },
       wood: { default: { range: 1 } },
       iron: { default: { range: 2 } },
       gold: { default: { range: 3 } },

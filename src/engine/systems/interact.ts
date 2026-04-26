@@ -54,7 +54,7 @@ export default function setupInteract(world: World) {
         !isInPopup(world, heroEntity) &&
         !(entity[LOCKABLE] && !isUnlockable(world, entity)) &&
         entity !== heroEntity &&
-        entity[IDENTIFIABLE]?.name !== "map" &&
+        entity[IDENTIFIABLE]?.name !== "use" &&
         getDistance(entity[POSITION], heroEntity[POSITION], size, 1, false) <=
           1;
       const interactSequence = getSequence(world, entity, "interact");
@@ -122,7 +122,9 @@ export default function setupInteract(world: World) {
             generation: 0,
             text,
             sprite:
-              sprite === none ? none : addBackground([sprite], colors.black)[0],
+              !sprite || sprite === none
+                ? none
+                : addBackground([sprite], colors.black)[0],
           }
         );
         world.metadata.interact = {

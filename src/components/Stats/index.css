@@ -26,36 +26,17 @@
   right: 0;
 }
 
-.Inspect,
-.InspectSurvey {
+.Quick {
   position: absolute;
   bottom: calc(var(--top-offset) * -1);
   width: calc(50% - var(--cell-width) * 5.5);
-}
-
-.Inspect {
   top: 0;
 }
 
-.InspectSurvey {
-  top: calc(var(--cell-height) * 1.5);
-}
-
-.Survey {
-  position: absolute;
-  top: 0;
-  bottom: calc(var(--top-offset) * -1 + var(--cell-height) * 2);
-  width: calc(50% - var(--cell-width) * 5.5);
-}
-
-.Stats .InspectSurvey,
-.Stats .Inspect,
-.Stats .Survey {
+.Stats .Quick {
   right: 0;
 }
 
-.StatsFlipped .InspectSurvey,
-.StatsFlipped .Inspect,
-.StatsFlipped .Survey {
+.StatsFlipped .Quick {
   left: 0;
 }

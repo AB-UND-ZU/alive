@@ -49,13 +49,11 @@ import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import { defaultLight } from "./consume";
 import { LAYER } from "../components/layer";
 import {
-  assertIdentifier,
   getIdentifier,
   setHighlight,
   setIdentifier,
   setNeedle,
 } from "../utils";
-import { addPopup } from "../components";
 import { closePopup } from "./popup";
 import { getBurning } from "./burn";
 import { CONDITIONABLE } from "../components/conditionable";
@@ -205,22 +203,6 @@ export const createHero = (world: World, halo: Entity) => {
     {}
   );
 
-  const inspectEntity = assertIdentifier(world, "inspect");
-  addPopup(world, heroEntity, {
-    active: false,
-    verticalIndezes: [0, 0, 0],
-    horizontalIndex: 0,
-    selections: [[], [], []],
-    lines: [],
-    deals: [],
-    recipes: [],
-    targets: [],
-    focuses: [],
-    choices: [],
-    tabs: ["inspect", "gear", "stats"],
-    viewpoint: world.getEntityId(inspectEntity),
-  });
-
   return heroEntity;
 };
 
@@ -301,7 +283,7 @@ export default function setupFate(world: World) {
             [RENDERABLE]: { generation: 0 },
           })
         );
-        
+
         const haloEntity = entities.createHalo(world, {
           [ACTIONABLE]: {
             primaryTriggered: false,

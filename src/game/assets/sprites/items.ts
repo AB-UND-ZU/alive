@@ -148,7 +148,7 @@ export const crystal: Sprite = {
 
 export const level: Sprite = {
   name: "Level",
-  layers: [{ char: "#", color: colors.silver }],
+  layers: [{ char: "#", color: colors.lime }],
 };
 
 export const xp: Sprite = {
@@ -172,14 +172,14 @@ export const xp: Sprite = {
 export const power: Sprite = {
   name: "Power",
   layers: [
-    { char: "=", color: colors.green },
-    { char: "|", color: colors.green },
+    { char: "=", color: colors.teal },
+    { char: "|", color: colors.teal },
     { char: "▀", color: colors.black },
-    { char: "+", color: colors.green },
+    { char: "+", color: colors.teal },
     { char: "-", color: colors.black },
-    { char: "x", color: colors.lime },
-    { char: "∙", color: colors.green },
-    { char: "·", color: colors.lime },
+    { char: "x", color: colors.aqua },
+    { char: "∙", color: colors.teal },
+    { char: "·", color: colors.aqua },
   ],
 };
 export const addPower = recolorSprite(power, {
@@ -190,9 +190,9 @@ export const addPower = recolorSprite(power, {
 export const wisdom: Sprite = {
   name: "Wisdom",
   layers: [
-    { char: "\u0103", color: colors.lime },
-    { char: "\u011c", color: colors.green },
-    { char: "-", color: colors.lime },
+    { char: "\u0103", color: colors.fuchsia },
+    { char: "\u011c", color: colors.purple },
+    { char: "-", color: colors.fuchsia },
   ],
 };
 export const addWisdom = recolorSprite(wisdom, {
@@ -203,10 +203,10 @@ export const addWisdom = recolorSprite(wisdom, {
 export const armor: Sprite = {
   name: "Armor",
   layers: [
-    { char: "\u0108", color: colors.lime },
-    { char: "v", color: colors.lime },
-    { char: "\u0106", color: colors.green },
-    { char: "∙", color: colors.lime },
+    { char: "\u0108", color: colors.teal },
+    { char: "v", color: colors.teal },
+    { char: "\u0106", color: colors.black },
+    { char: "∙", color: colors.teal },
   ],
 };
 export const addArmor = recolorSprite(armor, {
@@ -217,10 +217,12 @@ export const addArmor = recolorSprite(armor, {
 export const resist: Sprite = {
   name: "Resist",
   layers: [
-    { char: "\u0106", color: colors.lime },
-    { char: "\u0108", color: colors.lime },
-    { char: "v", color: colors.lime },
-    { char: "+", color: colors.green },
+    { char: "\u0106", color: colors.purple },
+    { char: "v", color: colors.purple },
+    { char: "÷", color: colors.black },
+    { char: ":", color: colors.purple },
+    { char: "°", color: colors.black },
+    { char: "\u0108", color: colors.purple },
   ],
 };
 export const addResist = recolorSprite(resist, {
@@ -231,18 +233,15 @@ export const addResist = recolorSprite(resist, {
 export const vision: Sprite = {
   name: "Vision",
   layers: [
-    { char: "\u0108", color: colors.lime },
-    { char: "\u0106", color: colors.green },
-    { char: "·", color: colors.lime },
+    { char: "\u0108", color: colors.grey },
+    { char: "\u0106", color: colors.black },
+    { char: "·", color: colors.grey },
   ],
 };
 
 export const haste: Sprite = {
   name: "Haste",
-  layers: [
-    { char: "\u0119", color: colors.green },
-    { char: "»", color: colors.lime },
-  ],
+  layers: [{ char: "»", color: colors.green }],
 };
 export const addHaste = recolorSprite(haste, {
   [colors.lime]: colors.fuchsia,
@@ -260,9 +259,9 @@ export const damp: Sprite = {
 export const thaw: Sprite = {
   name: "Thaw",
   layers: [
-    { char: "\u0101", color: colors.teal },
-    { char: "\u0100", color: colors.aqua },
-    { char: "■", color: colors.teal },
+    { char: "\u0101", color: colors.navy },
+    { char: "\u0100", color: colors.blue },
+    { char: "■", color: colors.navy },
     { char: "▒", color: colors.black },
   ],
 };

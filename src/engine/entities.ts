@@ -650,15 +650,6 @@ export const createLimb = entityFactory([
   SPRITE,
 ]);
 
-export const createMap = entityFactory([
-  POPUP,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-  VIEWABLE,
-]);
-
 export const createMarker = entityFactory([FOG, POI, POSITION, RENDERABLE]);
 
 export const createMine = entityFactory([
@@ -1053,6 +1044,16 @@ export const createTumbleweed = entityFactory([
   SHOOTABLE,
   SPRITE,
   STATS,
+]);
+
+export const createUse = entityFactory([
+  FOG,
+  POPUP,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  VIEWABLE,
 ]);
 
 export const createViewpoint = entityFactory([POSITION, RENDERABLE, VIEWABLE]);

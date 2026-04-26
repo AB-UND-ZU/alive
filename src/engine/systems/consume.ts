@@ -114,8 +114,8 @@ export const getConsumption = (
   entity: Entity,
   target: Entity
 ) => {
-  const bagItems = target[INVENTORY]
-    ? (target[INVENTORY] as Inventory).items.filter(
+  const bagItems = entity[INVENTORY]
+    ? (entity[INVENTORY] as Inventory).items.filter(
         (item) => !world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment
       )
     : [];
