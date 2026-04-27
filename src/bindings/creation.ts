@@ -1954,12 +1954,12 @@ export const createCell = (
           ? [
               ...createText("tapping", colors.grey),
               ...createText(" on "),
-              ...createButton("BAG", 5, false, false, false, "white"),
+              ...createButton("USE", 5, false, false, false, "yellow"),
               ...createText("."),
             ]
           : [
               ...createText("pressing "),
-              ...createText("[i]", colors.grey),
+              ...createText("[TAB]", colors.grey),
               ...createText("."),
             ],
         [],
