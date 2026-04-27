@@ -112,7 +112,7 @@ export const placeRemains = (
   if (remains) {
     entities.createGround(world, {
       [FOG]: { visibility: "hidden", type: "terrain" },
-      [POSITION]: position,
+      [POSITION]: copy(position),
       [SPRITE]: remains,
       [RENDERABLE]: { generation: 0 },
     });

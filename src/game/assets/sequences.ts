@@ -1286,7 +1286,9 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
   const element = state.args.element || "default";
   const teleportTicks = state.args.duration;
 
-  let finished = progress >= teleportTicks + dashRemain;
+  let finished =
+    progress >= teleportTicks + dashRemain ||
+    (casterEntity && isDead(world, casterEntity));
   let updated = false;
 
   // create dash particles and teleport anchor
@@ -1357,7 +1359,11 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
       state.args.memory.teleport = world.getEntityId(teleportEntity);
 
       // prevent movements
-      if (casterEntity && casterEntity[MOVABLE]) {
+      if (
+        casterEntity &&
+        casterEntity[MOVABLE] &&
+        !isDead(world, casterEntity)
+      ) {
         state.args.memory.movable = casterEntity[MOVABLE];
         world.removeComponentFromEntity(
           casterEntity as TypedEntity<"MOVABLE">,
@@ -1432,6 +1438,11 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
     for (const aoeId of state.args.areas) {
       const aoeEntity = world.assertById(aoeId);
       disposeEntity(world, aoeEntity);
+    }
+
+    const teleportEntity = world.getEntityById(state.args.memory?.teleport);
+    if (teleportEntity) {
+      disposeEntity(world, teleportEntity);
     }
 
     updated = true;
