@@ -1034,8 +1034,8 @@ export default function setupTrigger(world: World) {
 
         const shouldOpen = currentPopup !== useEntity;
 
-        useEntity[POPUP].tabs = [targetTab];
-        setVerticalIndex(world, useEntity, 0);
+        useEntity[POPUP].horizontalIndex =
+          useEntity[POPUP].tabs.indexOf(targetTab);
         rerenderEntity(world, useEntity);
 
         if (shouldOpen) {

@@ -420,7 +420,6 @@ export const renderPopup = (
   const heightChanged = state.args.contentHeight !== content.length;
   const verticalIndex = getVerticalIndex(world, entity);
   const horizontalIndex = entity[POPUP].horizontalIndex;
-  const tabs = entity[POPUP].tabs.length;
   const lines = content.length - overscan;
   const detailsPadding = details ? detailsHeight : 0;
   const scrollIndex =
@@ -665,8 +664,12 @@ export const renderPopup = (
     state.args.horizontalIndex = horizontalIndex;
 
     // add top decoration
-    for (let tabIndex = 0; tabIndex < tabs; tabIndex += 1) {
-      const selected = tabIndex === horizontalIndex;
+    const displayedTabs: Popup["tabs"] = state.args.instant
+      ? [entity[POPUP].tabs[horizontalIndex]]
+      : entity[POPUP].tabs;
+    for (let tabIndex = 0; tabIndex < displayedTabs.length; tabIndex += 1) {
+      const displayedHorizontalIndex = state.args.instant ? 0 : horizontalIndex;
+      const selected = tabIndex === displayedHorizontalIndex;
       const offset = tabIndex * 6;
 
       const upStartParticle = world.assertByIdAndComponents(
@@ -675,12 +678,16 @@ export const renderPopup = (
       );
       upStartParticle[SPRITE] = selected
         ? spriteConfig.separatorSelected
-        : tabIndex === horizontalIndex + 1
+        : tabIndex === displayedHorizontalIndex + 1
         ? spriteConfig.separatorInverted
         : spriteConfig.separator;
       upStartParticle[ORIENTABLE].facing =
-        tabIndex === 0 ? (tabs === 3 ? "up" : "right") : undefined;
-      if (tabIndex === tabs - 1) {
+        tabIndex === 0
+          ? displayedTabs.length === 3
+            ? "up"
+            : "right"
+          : undefined;
+      if (tabIndex === displayedTabs.length - 1) {
         const upEndParticle = world.assertByIdAndComponents(
           state.particles[`popup-tab-${offset + 6}`],
           [PARTICLE, ORIENTABLE]
@@ -690,7 +697,7 @@ export const renderPopup = (
           : spriteConfig.separator;
         upEndParticle[ORIENTABLE].facing = tabIndex === 2 ? "down" : "left";
       }
-      const transaction = entity[POPUP].tabs[tabIndex] as Popup["tabs"][number];
+      const transaction = displayedTabs[tabIndex];
       const title = popupTitles[transaction];
       const titleText = createText(
         padCenter(title.toUpperCase(), 5),
