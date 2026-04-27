@@ -9,13 +9,15 @@ export const actions = [
   "trade",
   "use",
   "add",
-  "primary",
-  "secondary",
+  "spell",
+  "skill",
+  "tool",
 ] as const;
 
 export type Actionable = {
-  primaryTriggered: boolean;
-  secondaryTriggered: boolean;
+  spellTriggered: boolean;
+  skillTriggered: boolean;
+  toolEquipped: boolean;
 } & Partial<Record<(typeof actions)[number], number | undefined>>;
 
 export const ACTIONABLE = "ACTIONABLE";

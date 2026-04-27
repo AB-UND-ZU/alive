@@ -174,7 +174,7 @@ export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
 
 export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
   const swordEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE]?.sword,
+    entity[EQUIPPABLE]?.weapon,
     [ITEM]
   );
 

@@ -53,7 +53,7 @@ import { displayedClasses, hairColors } from "../../game/assets/pixels";
 import { ACTIONABLE } from "../components/actionable";
 import { canWarp, completeQuest, initiateWarp, performTrade } from "./trigger";
 import { colors } from "../../game/assets/colors";
-import { consumeItem, getConsumption } from "./consume";
+import { consumeItem, getConsumption, getItemConsumption } from "./consume";
 import { clamp } from "three/src/math/MathUtils";
 import { getSelectedLevel } from "../../game/levels";
 import { LEVEL } from "../components/level";
@@ -226,8 +226,8 @@ export const matchesItem = (
   first.equipment === second.equipment &&
   first.material === second.material &&
   first.element === second.element &&
-  first.primary === second.primary &&
-  first.secondary === second.secondary &&
+  first.spell === second.spell &&
+  first.skill === second.skill &&
   first.stackable === second.stackable &&
   first.stat === second.stat;
 
@@ -246,14 +246,20 @@ export const missingFunds = (world: World, heroEntity: Entity, deal: Deal) =>
     });
   });
 
-export const existingFund = (
+export const existingItem = (
   world: World,
   heroEntity: Entity,
-  price: Deal["prices"][number]
+  item: Omit<Item, "carrier" | "bound" | "amount">
 ) =>
   (heroEntity[INVENTORY] as Inventory).items
     .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
-    .find((item) => matchesItem(world, item[ITEM], price))?.[ITEM].amount || 0;
+    .find((inventoryItem) => matchesItem(world, inventoryItem[ITEM], item));
+
+export const existingFund = (
+  world: World,
+  heroEntity: Entity,
+  item: Omit<Item, "carrier" | "bound" | "amount">
+) => existingItem(world, heroEntity, item)?.[ITEM].amount || 0;
 
 export const canRedeem = (world: World, heroEntity: Entity, deal: Deal) =>
   missingFunds(world, heroEntity, deal).length === 0;
@@ -331,7 +337,7 @@ export const popupTitles = {
   class: "CLASS",
   style: "STYLE",
   warp: "LEVEL",
-  use: "QUICK",
+  use: "USE",
 };
 
 export const visibleStats: (keyof UnitStats)[] = [
@@ -350,11 +356,12 @@ export const visibleStats: (keyof UnitStats)[] = [
 ];
 
 export const gearSlots: Equipment[] = [
-  "sword",
+  "weapon",
   "shield",
   "boots",
-  "primary",
-  "secondary",
+  "spell",
+  "skill",
+  "tool",
   "map",
   "compass",
   "torch",
@@ -592,6 +599,9 @@ export default function setupPopup(world: World) {
       world.assertByIdAndComponents(itemId, [ITEM])
     );
     const inspectItems = inventoryItems.filter((item) => !item[ITEM].equipment);
+    const quickItems = inventoryItems.filter((item) =>
+      getItemConsumption(world, item)
+    );
 
     const transaction = getTab(world, popupEntity);
     const tradeEntity = world.getEntityByIdAndComponents(
@@ -618,6 +628,8 @@ export default function setupPopup(world: World) {
     const lines =
       transaction === "inspect"
         ? inspectItems.length
+        : transaction === "use" && selections.length === 2
+        ? quickItems.length
         : transaction === "stats"
         ? visibleStats.length + 1
         : transaction === "gear"
@@ -940,8 +952,10 @@ export default function setupPopup(world: World) {
           setVerticalIndex(world, addEntity, 0);
         }
       } else if (tab === "inspect") {
-        if (useEntity && getConsumption(world, heroEntity, useEntity)) {
-          const consumed = consumeItem(world, heroEntity, useEntity);
+        const consumption =
+          useEntity && getConsumption(world, heroEntity, useEntity);
+        if (useEntity && consumption) {
+          const consumed = consumeItem(world, heroEntity, consumption);
           if (consumed) {
             setVerticalIndex(world, popupEntity, Math.max(0, boundIndex - 1));
           }
@@ -1007,6 +1021,22 @@ export default function setupPopup(world: World) {
             delay: 0,
           });
         }
+      } else if (tab === "use") {
+        if (addEntity && selections.length === 0) {
+          pushTabSelection(world, addEntity);
+        } else if (
+          addEntity &&
+          selections.length === 2 &&
+          quickItems.length > 0
+        ) {
+          const { amount, carrier, bound, ...hotItem } =
+            quickItems[verticalIndex][ITEM];
+          const hotKey = selections[1];
+          heroEntity[PLAYER].quickItems[hotKey] = hotItem;
+          popTabSelection(world, addEntity);
+          popTabSelection(world, addEntity);
+          setVerticalIndex(world, addEntity, 0)
+        }
       }
     } else if (heroEntity[PLAYER].actionTriggered === "left") {
       heroEntity[PLAYER].actionTriggered = undefined;
@@ -1023,7 +1053,9 @@ export default function setupPopup(world: World) {
         tab !== "style"
       ) {
         const verticalIndex = popTabSelection(world, popupEntity);
-        setVerticalIndex(world, popupEntity, verticalIndex || 0);
+        const previousIndex =
+          verticalIndex === undefined || tab === "use" ? 0 : verticalIndex;
+        setVerticalIndex(world, popupEntity, previousIndex);
       }
     }
 

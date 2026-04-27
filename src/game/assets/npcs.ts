@@ -837,14 +837,14 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           // harvesting
           choice(
             {
-              equipment: "secondary",
-              secondary: "axe",
+              equipment: "tool",
+              tool: "axe",
               material: "wood",
               amount: 1,
             }
             // {
-            //   equipment: "secondary",
-            //   secondary: "shovel",
+            //   equipment: "tool",
+            //   tool: "shovel",
             //   material: "wood",
             //   amount: 1,
             // },
@@ -852,32 +852,32 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           // offensive
           choice(
             {
-              equipment: "secondary",
-              secondary: "bow",
+              equipment: "skill",
+              skill: "bow",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "secondary",
-              secondary: "slash",
+              equipment: "skill",
+              skill: "slash",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "secondary",
-              secondary: "zap",
+              equipment: "skill",
+              skill: "zap",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "secondary",
-              secondary: "block",
+              equipment: "skill",
+              skill: "block",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "secondary",
-              secondary: "totem",
+              equipment: "skill",
+              skill: "totem",
               material: "wood",
               amount: 1,
             }
@@ -1109,26 +1109,26 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           // spell
           choice(
             {
-              equipment: "primary",
-              primary: "wave",
+              equipment: "spell",
+              spell: "wave",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "primary",
-              primary: "beam",
+              equipment: "spell",
+              spell: "beam",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "primary",
-              primary: "trap",
+              equipment: "spell",
+              spell: "trap",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "primary",
-              primary: "dash",
+              equipment: "spell",
+              spell: "dash",
               material: "wood",
               amount: 1,
             }
@@ -1188,7 +1188,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             [...createText("Go to the "), ...createUnitName("earthSmith")],
             createText("and forge an iron"),
             [
-              ...createItemName({ equipment: "sword", material: "iron" }),
+              ...createItemName({ equipment: "weapon", material: "iron" }),
               ...createText(" to become"),
             ],
             createText("stronger."),

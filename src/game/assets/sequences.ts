@@ -133,14 +133,14 @@ import {
   magicHit,
   getStatColor,
   missing,
-  swordSlot,
+  weaponSlot,
   shieldSlot,
   ringSlot,
   amuletSlot,
   compassSlot,
   torchSlot,
-  primarySlot,
-  secondarySlot,
+  spellSlot,
+  skillSlot,
   dotted,
   times,
   shaded,
@@ -212,6 +212,8 @@ import {
   healHit,
   trueHit,
   class_,
+  toolSlot,
+  ninePlus,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -421,7 +423,7 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
   const finished =
     state.elapsed > state.args.tick / (state.args.rotate ? 0.5 : 2);
   const swordEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].sword,
+    entity[EQUIPPABLE].weapon,
     [ORIENTABLE]
   );
 
@@ -470,7 +472,7 @@ export const zapCondition: Sequence<ConditionSequence> = (
     !entity[CONDITIONABLE].zap || generation > state.args.duration;
 
   const swordEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].sword,
+    entity[EQUIPPABLE].weapon,
     [SPRITE]
   );
 
@@ -669,12 +671,12 @@ export const axeCondition: Sequence<ConditionSequence> = (
   ])?.[REFERENCE].tick;
   let updated = false;
 
-  const axeEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].secondary,
-    [ITEM, SPRITE]
-  );
+  const axeEntity = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
+    ITEM,
+    SPRITE,
+  ]);
   const swordEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].sword,
+    entity[EQUIPPABLE].weapon,
     [ITEM]
   );
   const shieldEntity = world.getEntityByIdAndComponents(
@@ -683,9 +685,10 @@ export const axeCondition: Sequence<ConditionSequence> = (
   );
 
   const finished =
+    !entity[ACTIONABLE].toolEquipped ||
     !entity[CONDITIONABLE].axe ||
     !tick ||
-    axeEntity?.[ITEM].secondary !== "axe";
+    axeEntity?.[ITEM].tool !== "axe";
 
   // requires axe to be worn
   if (!axeEntity) {
@@ -3104,11 +3107,12 @@ export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
 };
 
 const gearTitles: Record<Equipment, string> = {
-  sword: "Weapon",
+  weapon: "Weapon",
   shield: "Shield",
   boots: "Boots",
-  primary: "Spell",
-  secondary: "Skill",
+  spell: "Spell",
+  skill: "Skill",
+  tool: "Tool",
   ring: "Ring",
   amulet: "Amulet",
   compass: "Compass",
@@ -3116,10 +3120,11 @@ const gearTitles: Record<Equipment, string> = {
   map: "Map",
 };
 const gearShadows: Record<Equipment, Sprite> = {
-  sword: swordSlot,
+  weapon: weaponSlot,
   shield: shieldSlot,
-  primary: primarySlot,
-  secondary: secondarySlot,
+  spell: spellSlot,
+  skill: skillSlot,
+  tool: toolSlot,
   ring: ringSlot,
   amulet: amuletSlot,
   compass: compassSlot,
@@ -3159,7 +3164,7 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
     );
 
   const swordItem = world.getEntityByIdAndComponents(
-    heroEntity[EQUIPPABLE].sword,
+    heroEntity[EQUIPPABLE].weapon,
     [ITEM]
   )?.[ITEM];
   const shieldItem = world.getEntityByIdAndComponents(
@@ -3543,177 +3548,217 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
 };
 
 export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
-  const content: Sprite[][] = [
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    EQUIPPABLE,
+    PLAYER,
+  ]);
+
+  if (!heroEntity) {
+    return { updated: false, finished: true };
+  }
+
+  const useButtons: [string, string, boolean][] = [
+    ["BAG", "B", true],
+    ["GEAR", "G", true],
+    ["STATS", "T", true],
+    ["MAP", "M", !!heroEntity[EQUIPPABLE].map],
     [
-      ...createSpriteButton(
-        underline(createText("1", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
-      none,
-      none,
-      ...createSpriteButton(
-        underline(createText("2", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
-      none,
-      none,
-      none,
-      none,
-      ...createSpriteButton(
-        [
-          ...underline(createText("B", colors.black), colors.black),
-          ...createText("AG", colors.black),
-        ],
-        5,
-        false,
-        false,
-        false,
-        "yellow"
-      ),
-    ],
-    [],
-    [
-      ...createSpriteButton(
-        underline(createText("3", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
-      none,
-      none,
-      ...createSpriteButton(
-        underline(createText("4", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
-      none,
-      none,
-      none,
-      ...createSpriteButton(
-        [
-          ...underline(createText("G", colors.black), colors.black),
-          ...createText("EAR", colors.black),
-        ],
-        6,
-        false,
-        false,
-        false,
-        "yellow"
-      ),
-    ],
-    [],
-    [
-      ...createSpriteButton(
-        underline(createText("5", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
-      none,
-      none,
-      ...createSpriteButton(
-        underline(createText("6", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
-      none,
-      none,
-      ...createSpriteButton(
-        [
-          ...createText("S", colors.black),
-          ...underline(createText("T", colors.black), colors.black),
-          ...createText("ATS", colors.black),
-        ],
-        7,
-        false,
-        false,
-        false,
-        "yellow"
-      ),
-    ],
-    [],
-    [
-      ...createSpriteButton(
-        underline(createText("7", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
-      none,
-      none,
-      ...createSpriteButton(
-        underline(createText("8", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
-      none,
-      none,
-      none,
-      none,
-      ...createSpriteButton(
-        [
-          ...underline(createText("M", colors.black), colors.black),
-          ...createText("AP", colors.black),
-        ],
-        5,
-        true,
-        false,
-        false,
-        "yellow"
-      ),
-    ],
-    [],
-    [
-      ...createSpriteButton(
-        underline(createText("9", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
-      none,
-      none,
-      ...createSpriteButton(
-        underline(createText("0", colors.black), colors.black),
-        3,
-        true,
-        false,
-        false,
-        "white"
-      ),
+      "EQUIP",
+      "Q",
+      !!heroEntity[EQUIPPABLE].tool && !!heroEntity[EQUIPPABLE].skill,
     ],
   ];
+
+  const [firstIndex, secondIndex] = getTabSelections(world, entity);
+  const isOverview = firstIndex === undefined;
+  const isEditing = !isOverview && secondIndex === undefined;
+  const isSelecting = !isOverview && !isEditing;
+  const quickItems = (heroEntity[INVENTORY] as Inventory).items.filter(
+    (item) => {
+      const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
+      const itemConsumption = getItemConsumption(world, itemEntity);
+      return !!itemConsumption;
+    }
+  );
+  const hasItems = quickItems.length > 0;
+
+  let content;
+
+  if (isSelecting) {
+    const verticalIndex = getVerticalIndex(world, entity);
+
+    content = hasItems
+      ? quickItems.map((item, rowIndex) => {
+          const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
+
+          const selected = verticalIndex === rowIndex;
+          const itemConsumption = getItemConsumption(world, itemEntity);
+          const itemSprite = getItemSprite(
+            itemEntity[ITEM],
+            "display",
+            undefined,
+            1
+          );
+          const consumptionColor =
+            itemConsumption && getStatColor(itemConsumption.countable);
+          const textColor = selected ? colors.white : colors.grey;
+
+          const amountText = [
+            ...createText(`${itemEntity[ITEM].amount}`, textColor),
+            recolorSprite(times, {
+              [colors.white]: textColor,
+              [colors.black]:
+                selected && consumptionColor
+                  ? darken(consumptionColor)
+                  : colors.black,
+            }),
+          ];
+          const consumptionText = itemConsumption
+            ? createCountable(
+                { [itemConsumption.countable]: itemConsumption.amount },
+                itemConsumption.countable
+              )
+            : [];
+          const useText = itemConsumption
+            ? [...createText("\u0119", colors.lime), ...consumptionText]
+            : [];
+          const itemText = createText(itemSprite.name, textColor);
+          const line = [
+            ...itemText,
+            ...useText,
+            ...repeat(
+              none,
+              frameWidth -
+                4 -
+                amountText.length -
+                itemText.length -
+                useText.length
+            ),
+            ...amountText,
+          ];
+
+          return [
+            none,
+            itemSprite,
+            ...(selected
+              ? itemConsumption && consumptionColor
+                ? shaded(line, darken(consumptionColor), "▄")
+                : shaded(line, colors.grey)
+              : line),
+          ];
+        })
+      : [createText("No usable items.", colors.grey)];
+  } else {
+    content = Array.from({ length: frameHeight - 2 }).map((_, rowIndex) => {
+      if (rowIndex % 2 === 1) return [];
+
+      const index = (rowIndex - (rowIndex % 2)) / 2;
+      const [title, hotkey, enabled] = useButtons[index];
+      const underlineIndex = title.indexOf(hotkey);
+
+      const leftIndex = index * 2 + 1;
+      const leftItem = heroEntity[PLAYER].quickItems[leftIndex];
+      const leftExisting = leftItem
+        ? existingFund(world, heroEntity, leftItem)
+        : 0;
+
+      const rightIndex = index === 4 ? 0 : (index + 1) * 2;
+      const rightItem = heroEntity[PLAYER].quickItems[rightIndex];
+      const rightExisting = rightItem
+        ? existingFund(world, heroEntity, rightItem)
+        : 0;
+
+      return [
+        ...createSpriteButton(
+          underline(
+            createText(leftIndex.toString(), colors.black),
+            colors.black
+          ),
+          3,
+          !isEditing && (!leftItem || leftExisting === 0),
+          false,
+          false,
+          !leftItem
+            ? "white"
+            : leftExisting === 0 && !isEditing
+            ? "red"
+            : isEditing
+            ? "yellow"
+            : "lime"
+        ),
+        leftItem
+          ? leftExisting > 9
+            ? ninePlus
+            : createText(leftExisting.toString(), colors.grey)[0]
+          : none,
+        leftItem ? getItemSprite(leftItem) : none,
+        ...createSpriteButton(
+          underline(
+            createText(rightIndex.toString(), colors.black),
+            colors.black
+          ),
+          3,
+          !isEditing && (!rightItem || rightExisting === 0),
+          false,
+          false,
+          !rightItem
+            ? "white"
+            : rightExisting === 0 && !isEditing
+            ? "red"
+            : isEditing
+            ? "yellow"
+            : "lime"
+        ),
+        rightItem
+          ? rightExisting > 9
+            ? ninePlus
+            : createText(rightExisting.toString(), colors.grey)[0]
+          : none,
+        rightItem ? getItemSprite(rightItem) : none,
+        ...repeat(none, 5 - title.length),
+        ...(index >= useButtons.length || isEditing
+          ? []
+          : createSpriteButton(
+              [
+                ...createText(title.slice(0, underlineIndex), colors.black),
+                ...underline(
+                  createText(title[underlineIndex], colors.black),
+                  colors.black
+                ),
+                ...createText(title.slice(underlineIndex + 1), colors.black),
+              ],
+              title.length + 2,
+              !enabled,
+              false,
+              false,
+              "yellow"
+            )),
+      ];
+    });
+  }
 
   const popupResult = renderPopup(
     world,
     entity,
     state,
     popupIdles[getTab(world, entity)],
-    content
+    content,
+    isSelecting && hasItems ? "active" : undefined,
+    undefined,
+    undefined,
+    isEditing
+      ? undefined
+      : createButton(
+          isOverview ? "EDIT\u0119" : "PICK",
+          isOverview ? 7 : 6,
+          isEditing || (isSelecting && !hasItems),
+          false,
+          false,
+          "lime"
+        ),
+    isSelecting || isEditing
+      ? createButton("\u011aBACK", 7, false, false, false, "red")
+      : undefined
   );
 
   return {
@@ -4222,7 +4267,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
         )
       : undefined,
     addItem
-      ? createButton("\u011aBACK", 6, false, false, false, "red")
+      ? createButton("\u011aBACK", 7, false, false, false, "red")
       : undefined
   );
 
@@ -4377,9 +4422,9 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
     undefined,
     viewedRecipe
       ? createButton("MAKE", 6, !viewedShoppable, false, false, "lime")
-      : createButton("VIEW\u0119", 6, false, false, false, "lime"),
+      : createButton("VIEW\u0119", 7, false, false, false, "lime"),
     viewedRecipe
-      ? createButton("\u011aBACK", 6, false, false, false, "red")
+      ? createButton("\u011aBACK", 7, false, false, false, "red")
       : undefined
   );
   return {
@@ -7223,8 +7268,9 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
           );
           const sideEntity = entities.createLimb(world, {
             [ACTIONABLE]: {
-              primaryTriggered: false,
-              secondaryTriggered: false,
+              spellTriggered: false,
+              skillTriggered: false,
+              toolEquipped: false,
             },
             [BUMPABLE]: { generation: 0 },
             [COLLIDABLE]: {},
@@ -7252,8 +7298,9 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
           const cornerPosition = combine(size, sidePosition, iteration.normal);
           const cornerEntity = entities.createLimb(world, {
             [ACTIONABLE]: {
-              primaryTriggered: false,
-              secondaryTriggered: false,
+              spellTriggered: false,
+              skillTriggered: false,
+              toolEquipped: false,
             },
             [BUMPABLE]: { generation: 0 },
             [COLLIDABLE]: {},
@@ -7319,8 +7366,9 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
 
       const limbEntity = entities.createLimb(world, {
         [ACTIONABLE]: {
-          primaryTriggered: false,
-          secondaryTriggered: false,
+          spellTriggered: false,
+          skillTriggered: false,
+          toolEquipped: false,
         },
         [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},

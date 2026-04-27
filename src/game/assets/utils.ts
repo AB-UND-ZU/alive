@@ -162,13 +162,14 @@ import {
   ItemStats,
   Material,
   Materialized,
-  Primary,
+  Spell,
   Reloadable,
   ResourceItem,
-  Secondary,
+  Skill,
+  Tool,
 } from "../../engine/components/item";
 import { generateUnitData, UnitKey } from "../balancing/units";
-import { Gear, Tools } from "../../engine/components/equippable";
+import { Gear, Slots } from "../../engine/components/equippable";
 import {
   getTab,
   getVerticalIndex,
@@ -1638,9 +1639,9 @@ export const entitySprites: Record<
       createText("To be used with a"),
       [
         ...createItemName({
-          equipment: "secondary",
+          equipment: "skill",
           material: "wood",
-          secondary: "bow",
+          skill: "bow",
         }),
         ...createText(" for a long-"),
       ],
@@ -1651,16 +1652,8 @@ export const entitySprites: Record<
   charge: {
     sprite: charge,
     getDescription: () => [
-      createText("Can be used with"),
-      [
-        ...createItemName({
-          equipment: "secondary",
-          material: "wood",
-          secondary: "slash",
-        }),
-        ...createText(" as short-"),
-      ],
-      createText("range attack."),
+      createText("Can be used for"),
+      createText("powerful skills."),
     ],
   },
   note: {
@@ -1836,17 +1829,18 @@ type SpriteTemplateDefinition = {
 
 export const materialSprites: Partial<
   Record<
-    | Tools
+    | Slots
     | Gear
-    | Primary
-    | Secondary
+    | Spell
+    | Skill
+    | Tool
     | Consumable
     | ResourceItem
     | Materialized,
     SpriteTemplateDefinition
   >
 > = {
-  sword: {
+  weapon: {
     sprite: sword,
     getDescription: (item, stats) => {
       if (item.material === "wood") {
@@ -1981,6 +1975,8 @@ export const materialSprites: Partial<
       ],
     ],
   },
+
+  // slots
   compass: {
     sprite: compass,
     getDescription: () => [
@@ -2089,7 +2085,7 @@ export const materialSprites: Partial<
     ],
   },
 
-  // secondary items
+  // secondary skills
   slash: {
     sprite: slash,
 
@@ -2305,12 +2301,12 @@ export const materialSprites: Partial<
 
 export const elementSprites: Partial<
   Record<
-    Gear | Primary | Secondary | Consumable | ResourceItem,
+    Gear | Spell | Skill | Tool | Consumable | ResourceItem,
     SpriteTemplateDefinition
   >
 > = {
   // gear
-  sword: {
+  weapon: {
     sprite: sword,
     getDescription: (item, stats) => [
       [
@@ -2662,11 +2658,14 @@ export const getItemConfig = (
 
   if (material && !element) {
     let lookup =
-      item.primary ||
-      item.secondary ||
+      item.spell ||
+      item.skill ||
+      item.tool ||
       item.consume ||
       (item.stackable === "resource" ? item.stackable : undefined) ||
-      (item.equipment !== "primary" && item.equipment !== "secondary"
+      (item.equipment !== "spell" &&
+      item.equipment !== "skill" &&
+      item.equipment !== "tool"
         ? item.equipment
         : undefined) ||
       item.materialized;
@@ -2687,12 +2686,14 @@ export const getItemConfig = (
 
   if (element) {
     let lookup =
-      item.primary ||
-      item.secondary ||
+      item.spell ||
+      item.skill ||
+      item.tool ||
       item.consume ||
       (item.stackable === "resource" ? item.stackable : undefined) ||
-      (item.equipment !== "primary" &&
-      item.equipment !== "secondary" &&
+      (item.equipment !== "spell" &&
+      item.equipment !== "skill" &&
+      item.equipment !== "tool" &&
       item.equipment !== "torch" &&
       item.equipment !== "boots" &&
       item.equipment !== "map" &&
@@ -2787,7 +2788,7 @@ export const getUnitSprite = (unit: UnitKey) => {
         (equipment) =>
           equipment.amount !== 0 &&
           equipment.equipment &&
-          equipment.equipment === "sword"
+          equipment.equipment === "weapon"
       )
       .map((equipment) => getItemSprite(equipment)),
     unitData.faction === "unit"

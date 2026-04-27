@@ -28,7 +28,7 @@ export const gearStats: Partial<
   >
 > = {
   default: {
-    sword: {
+    weapon: {
       wood: {
         default: { melee: 2 },
         air: { power: 1 },
@@ -191,37 +191,37 @@ export const gearStats: Partial<
   },
 
   prism: {
-    sword: {
+    weapon: {
       iron: { default: { melee: 1 } },
     },
   },
   goldPrism: {
-    sword: {
+    weapon: {
       gold: { default: { melee: 2 } },
     },
   },
   eye: {
-    sword: {
+    weapon: {
       iron: { default: { melee: 1 } },
     },
   },
   goldEye: {
-    sword: {
+    weapon: {
       gold: { default: { melee: 5 } },
     },
   },
   clover: {
-    sword: {
+    weapon: {
       wood: { default: { melee: 2 } },
     },
   },
   oakLily: {
-    sword: {
+    weapon: {
       default: { earth: { heal: 1 } },
     },
   },
   golem: {
-    sword: {
+    weapon: {
       gold: { default: { melee: 4 } },
     },
   },
@@ -276,7 +276,7 @@ export const getItemStats = (
   item: Omit<Item, "carrier" | "bound" | "amount">,
   caster: NpcType | "default" = "default"
 ): ItemStats =>
-  item.primary || item.secondary
+  item.spell || item.skill
     ? getAbilityStats(item, caster)
     : getEquipmentStats(item, caster);
 

@@ -9,8 +9,8 @@ import {
   Item,
   Material,
   materials,
-  Primary,
-  Secondary,
+  Spell,
+  Skill,
 } from "../../engine/components/item";
 import { matchesItem } from "../../engine/systems/popup";
 
@@ -23,7 +23,7 @@ const forgableConfigs: {
   elements: Element[];
 }[] = [
   {
-    item: { equipment: "sword" },
+    item: { equipment: "weapon" },
     materials: forgableMaterials,
     materialCost: 5,
     elements: forgableElements,
@@ -35,25 +35,25 @@ const forgableConfigs: {
     elements: forgableElements,
   },
   {
-    item: { equipment: "primary", primary: "wave" },
+    item: { equipment: "spell", spell: "wave" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: forgableElements,
   },
   {
-    item: { equipment: "primary", primary: "beam" },
+    item: { equipment: "spell", spell: "beam" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: forgableElements,
   },
   {
-    item: { equipment: "primary", primary: "trap" },
+    item: { equipment: "spell", spell: "trap" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: forgableElements,
   },
   {
-    item: { equipment: "primary", primary: "dash" },
+    item: { equipment: "spell", spell: "dash" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: forgableElements,
@@ -83,31 +83,31 @@ const forgableConfigs: {
     elements: [],
   },
   {
-    item: { equipment: "secondary", secondary: "bow" },
+    item: { equipment: "skill", skill: "bow" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
   },
   {
-    item: { equipment: "secondary", secondary: "slash" },
+    item: { equipment: "skill", skill: "slash" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
   },
   {
-    item: { equipment: "secondary", secondary: "block" },
+    item: { equipment: "skill", skill: "block" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
   },
   {
-    item: { equipment: "secondary", secondary: "zap" },
+    item: { equipment: "skill", skill: "zap" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
   },
   {
-    item: { equipment: "secondary", secondary: "totem" },
+    item: { equipment: "skill", skill: "totem" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
@@ -117,7 +117,7 @@ const forgableConfigs: {
 const calculateForgeStats = () => {
   const forgeConfig: Partial<
     Record<
-      Equipment | Primary | Secondary,
+      Equipment | Spell | Skill,
       Partial<
         Record<
           Material,
@@ -129,7 +129,7 @@ const calculateForgeStats = () => {
 
   forgableConfigs.forEach((config) => {
     const lookup =
-      config.item.secondary || config.item.primary || config.item.equipment!;
+      config.item.skill || config.item.spell || config.item.equipment!;
     forgeConfig[lookup] = {};
     const itemConfig = forgeConfig[lookup]!;
 
@@ -203,9 +203,9 @@ export type ForgeOptionResult = Omit<ForgeOption, "result"> & {
 };
 
 export const getForgeOptions = (item: Item): ForgeOptionResult[] => {
-  const { equipment, primary, secondary, material, element } = item;
+  const { equipment, spell, skill, material, element } = item;
 
-  const key = primary || secondary || equipment;
+  const key = spell || skill || equipment;
 
   if (!key || !material) return [];
 

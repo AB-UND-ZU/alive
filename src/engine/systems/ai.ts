@@ -47,7 +47,7 @@ import {
 } from "../../game/math/path";
 import { TOOLTIP } from "../components/tooltip";
 import { ACTIONABLE } from "../components/actionable";
-import { castablePrimary, getLockable, isLocked, isUnlocked } from "./action";
+import { castableSpell, getLockable, isLocked, isUnlocked } from "./action";
 import { ITEM } from "../components/item";
 import { castSpell, lockDoor } from "./trigger";
 import { dropEntity } from "./drop";
@@ -496,7 +496,7 @@ export default function setupAi(world: World) {
           break;
         } else if (pattern.name === "tutorial_boss") {
           const spellItem = world.getEntityByIdAndComponents(
-            entity[EQUIPPABLE]?.primary,
+            entity[EQUIPPABLE]?.spell,
             [ITEM]
           );
           if (
@@ -517,11 +517,7 @@ export default function setupAi(world: World) {
           if (
             percentage <= pattern.memory.percentage &&
             canCast(world, entity, spellItem) &&
-            castablePrimary(
-              world,
-              entity as TypedEntity<"INVENTORY">,
-              spellItem
-            )
+            castableSpell(world, entity as TypedEntity<"INVENTORY">, spellItem)
           ) {
             pattern.memory.percentage -= 20;
             const viewables = world.getEntities([VIEWABLE, POSITION]);
@@ -534,7 +530,7 @@ export default function setupAi(world: World) {
             entity[ORIENTABLE].facing = choice(...orientations);
             entity[MOVABLE].pendingOrientation = undefined;
             entity[MOVABLE].orientations = [];
-            entity[ACTIONABLE].primaryTriggered = true;
+            entity[ACTIONABLE].spellTriggered = true;
             break;
           }
         } else if (
@@ -544,8 +540,8 @@ export default function setupAi(world: World) {
         ) {
           if (!entity[TOOLTIP]) continue;
 
-          const isPrimary = pattern.name === "orb" || pattern.name === "violet";
-          const halfStep = isPrimary;
+          const isSpell = pattern.name === "orb" || pattern.name === "violet";
+          const halfStep = isSpell;
           const canReposition =
             pattern.name === "archer" || pattern.name === "violet";
           const range = pattern.name === "violet" ? 6 : 9;
@@ -575,7 +571,7 @@ export default function setupAi(world: World) {
                 false
               )
             : Infinity;
-          const canShoot = isPrimary
+          const canShoot = isSpell
             ? canCast(
                 world,
                 entity,
@@ -583,7 +579,7 @@ export default function setupAi(world: World) {
                   entity[INVENTORY]?.items.find(
                     (itemId) =>
                       world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
-                        .equipment === "primary"
+                        .equipment === "spell"
                   ),
                   [ITEM]
                 )
@@ -595,7 +591,7 @@ export default function setupAi(world: World) {
             : circularDistance < 4;
           const attack =
             blockDistance > gap &&
-            (isPrimary
+            (isSpell
               ? visualDistance < (range / 9) * 7
               : blockDistance <= range);
           const repositioning = canReposition && blockDistance <= range;
@@ -618,10 +614,10 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
 
-            if (isPrimary) {
-              entity[ACTIONABLE].primaryTriggered = true;
+            if (isSpell) {
+              entity[ACTIONABLE].spellTriggered = true;
             } else {
-              entity[ACTIONABLE].secondaryTriggered = true;
+              entity[ACTIONABLE].skillTriggered = true;
             }
             break;
           } else if (canShoot && attack && heroEntity) {
@@ -1333,7 +1329,7 @@ export default function setupAi(world: World) {
             }
 
             if (hasArrived && pattern.name === "unlock" && entity[ACTIONABLE]) {
-              entity[ACTIONABLE].primaryTriggered = true;
+              entity[ACTIONABLE].spellTriggered = true;
             } else if (hasArrived && placementPattern) {
               if (pattern.name === "drop") {
                 dropEntity(
@@ -1356,10 +1352,10 @@ export default function setupAi(world: World) {
           patterns.splice(patterns.indexOf(pattern), 1);
           break;
         } else if (pattern.name === "action") {
-          if (entity[ACTIONABLE] && pattern.memory.primary) {
-            entity[ACTIONABLE].primaryTriggered = true;
-          } else if (entity[ACTIONABLE] && pattern.memory.secondary) {
-            entity[ACTIONABLE].secondaryTriggered = true;
+          if (entity[ACTIONABLE] && pattern.memory.spell) {
+            entity[ACTIONABLE].spellTriggered = true;
+          } else if (entity[ACTIONABLE] && pattern.memory.skill) {
+            entity[ACTIONABLE].skillTriggered = true;
           }
           patterns.splice(patterns.indexOf(pattern), 1);
           break;
@@ -1990,8 +1986,8 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "primary",
-                primary: "wave",
+                equipment: "spell",
+                spell: "wave",
                 material: "gold",
               },
             });
@@ -2166,11 +2162,11 @@ export default function setupAi(world: World) {
             );
             availableTowers.forEach((towerEntity) => {
               const spellItem = world.getEntityByIdAndComponents(
-                towerEntity[EQUIPPABLE].primary,
+                towerEntity[EQUIPPABLE].spell,
                 [ITEM]
               );
               if (!spellItem) return;
-              spellItem[ITEM].primary = "wave";
+              spellItem[ITEM].spell = "wave";
               spellItem[ITEM].material = "iron";
               spellItem[ITEM].element = undefined;
               towerEntity[BEHAVIOUR].patterns = [
@@ -2178,7 +2174,7 @@ export default function setupAi(world: World) {
                 { name: "dialog", memory: { idle: rage } },
                 { name: "wait", memory: { ticks: 2 } },
                 { name: "dialog", memory: { idle: undefined } },
-                { name: "action", memory: { primary: true } },
+                { name: "action", memory: { spell: true } },
               ];
             });
           } else if (pattern.memory.phase === 22) {
@@ -2188,8 +2184,8 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "primary",
-                primary: "wave",
+                equipment: "spell",
+                spell: "wave",
                 material: "gold",
               },
             });
@@ -2314,11 +2310,11 @@ export default function setupAi(world: World) {
             );
             availableTowers.forEach((towerEntity, index) => {
               const spellItem = world.getEntityByIdAndComponents(
-                towerEntity[EQUIPPABLE].primary,
+                towerEntity[EQUIPPABLE].spell,
                 [ITEM]
               );
               if (!spellItem) return;
-              spellItem[ITEM].primary = "bolt";
+              spellItem[ITEM].spell = "bolt";
               spellItem[ITEM].material = undefined;
               spellItem[ITEM].element = "earth";
               towerEntity[ORIENTABLE].facing =
@@ -2334,7 +2330,7 @@ export default function setupAi(world: World) {
                         { name: "dialog", memory: { idle: rage } },
                         { name: "wait", memory: { ticks: 2 } },
                         { name: "dialog", memory: { idle: undefined } },
-                        { name: "action", memory: { primary: true } },
+                        { name: "action", memory: { spell: true } },
                         { name: "wait", memory: { ticks: 4 } },
                       ] as const
                   )
@@ -2464,8 +2460,8 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "primary",
-                primary: "wave",
+                equipment: "spell",
+                spell: "wave",
                 material: "gold",
               },
             });
@@ -2526,8 +2522,8 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "primary",
-                primary: "blast",
+                equipment: "spell",
+                spell: "blast",
                 material: "gold",
               },
             });
@@ -2959,8 +2955,8 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "primary",
-                primary: "wave",
+                equipment: "spell",
+                spell: "wave",
                 material: "gold",
               },
             });
@@ -3074,8 +3070,9 @@ export default function setupAi(world: World) {
             if (isWalkable(world, next)) {
               entities.createExtremity(world, {
                 [ACTIONABLE]: {
-                  primaryTriggered: false,
-                  secondaryTriggered: false,
+                  spellTriggered: false,
+                  skillTriggered: false,
+                  toolEquipped: false,
                 },
                 [BUMPABLE]: { generation: 0 },
                 [COLLIDABLE]: {},
@@ -3187,8 +3184,9 @@ export default function setupAi(world: World) {
             if (isWalkable(world, next)) {
               entities.createExtremity(world, {
                 [ACTIONABLE]: {
-                  primaryTriggered: false,
-                  secondaryTriggered: false,
+                  spellTriggered: false,
+                  skillTriggered: false,
+                  toolEquipped: false,
                 },
                 [BUMPABLE]: { generation: 0 },
                 [COLLIDABLE]: {},
@@ -3355,8 +3353,8 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "primary",
-                primary: "bolt",
+                equipment: "spell",
+                spell: "bolt",
                 material: "gold",
               },
             });
@@ -3371,8 +3369,8 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "primary",
-                primary: "bolt",
+                equipment: "spell",
+                spell: "bolt",
                 material: "gold",
               },
             });
@@ -3576,8 +3574,9 @@ export default function setupAi(world: World) {
                 const bossUnit = generateNpcData("oakBoss");
                 const limbEntity = entities.createExtremity(world, {
                   [ACTIONABLE]: {
-                    primaryTriggered: false,
-                    secondaryTriggered: false,
+                    spellTriggered: false,
+                    skillTriggered: false,
+                    toolEquipped: false,
                   },
                   [BUMPABLE]: { generation: 0 },
                   [COLLIDABLE]: {},
@@ -3626,7 +3625,7 @@ export default function setupAi(world: World) {
           const spellItem = world.getEntityByIdAndComponents(
             entity[INVENTORY]?.items.find(
               (item) =>
-                world.assertByIdAndComponents(item, [ITEM])[ITEM].primary ===
+                world.assertByIdAndComponents(item, [ITEM])[ITEM].spell ===
                 "wave"
             ),
             [ITEM]
@@ -3717,7 +3716,7 @@ export default function setupAi(world: World) {
               },
               {
                 name: "action",
-                memory: { primary: true },
+                memory: { spell: true },
               },
               {
                 name: "wait",
@@ -3782,7 +3781,7 @@ export default function setupAi(world: World) {
                 },
                 {
                   name: "action",
-                  memory: { primary: true },
+                  memory: { spell: true },
                 },
               ];
             } else if (
@@ -3874,7 +3873,7 @@ export default function setupAi(world: World) {
 
               patterns.push({
                 name: "action",
-                memory: { primary: true },
+                memory: { spell: true },
               });
             }
 
@@ -3964,8 +3963,8 @@ export default function setupAi(world: World) {
               const towerItem = world.assertByIdAndComponents(
                 tower[INVENTORY]?.items.find(
                   (item) =>
-                    world.assertByIdAndComponents(item, [ITEM])[ITEM]
-                      .primary === "wave"
+                    world.assertByIdAndComponents(item, [ITEM])[ITEM].spell ===
+                    "wave"
                 ),
                 [ITEM]
               );
@@ -3992,7 +3991,7 @@ export default function setupAi(world: World) {
                 },
                 {
                   name: "action",
-                  memory: { primary: true },
+                  memory: { spell: true },
                 },
               ];
             });
@@ -4055,7 +4054,7 @@ export default function setupAi(world: World) {
                 },
                 {
                   name: "action",
-                  memory: { secondary: true },
+                  memory: { skill: true },
                 },
                 {
                   name: "wait",
@@ -4105,7 +4104,7 @@ export default function setupAi(world: World) {
                   },
                   {
                     name: "action",
-                    memory: { primary: true },
+                    memory: { spell: true },
                   },
                 ];
               }
@@ -4162,8 +4161,8 @@ export default function setupAi(world: World) {
               const casterItem = world.assertByIdAndComponents(
                 caster[INVENTORY]?.items.find(
                   (item) =>
-                    world.assertByIdAndComponents(item, [ITEM])[ITEM]
-                      .primary === "wave"
+                    world.assertByIdAndComponents(item, [ITEM])[ITEM].spell ===
+                    "wave"
                 ),
                 [ITEM]
               );
@@ -4192,7 +4191,7 @@ export default function setupAi(world: World) {
                 },
                 {
                   name: "action",
-                  memory: { primary: true },
+                  memory: { spell: true },
                 }
               );
             });
@@ -4236,7 +4235,7 @@ export default function setupAi(world: World) {
                 },
                 {
                   name: "action",
-                  memory: { primary: true },
+                  memory: { spell: true },
                 }
               );
             }

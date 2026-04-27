@@ -281,7 +281,7 @@ export const north1Quest: Sequence<QuestSequence> = (world, entity, state) => {
       setHighlight(world, "quest", woodOne);
       return true;
     },
-    isCompleted: () => !!entity[EQUIPPABLE].sword,
+    isCompleted: () => !!entity[EQUIPPABLE].weapon,
     onLeave: () => "dummy",
   });
 

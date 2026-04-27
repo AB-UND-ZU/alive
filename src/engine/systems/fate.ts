@@ -128,8 +128,9 @@ export const createHero = (world: World, halo: Entity) => {
   );
   const heroEntity = entities.createHero(world, {
     [ACTIONABLE]: {
-      primaryTriggered: false,
-      secondaryTriggered: false,
+      spellTriggered: false,
+      skillTriggered: false,
+      toolEquipped: false,
     },
     [AFFECTABLE]: getEmptyAffectable(),
     [ATTACKABLE]: { scratchColor: colors.silver },
@@ -160,6 +161,7 @@ export const createHero = (world: World, halo: Entity) => {
       ghost: false,
       receivedStats: { ...emptyReceivedStats },
       defeatedUnits: {},
+      quickItems: {},
     },
     [POSITION]: copy(halo[POSITION]),
     [PUSHABLE]: {},
@@ -286,8 +288,9 @@ export default function setupFate(world: World) {
 
         const haloEntity = entities.createHalo(world, {
           [ACTIONABLE]: {
-            primaryTriggered: false,
-            secondaryTriggered: false,
+            spellTriggered: false,
+            skillTriggered: false,
+            toolEquipped: false,
           },
           [BELONGABLE]: { faction: entity[BELONGABLE].faction },
           [BUMPABLE]: { generation: 0 },
@@ -310,6 +313,7 @@ export default function setupFate(world: World) {
             ghost: true,
             receivedStats: { ...emptyReceivedStats },
             defeatedUnits: {},
+            quickItems: {},
           },
           [POSITION]: copy(tombstonePosition),
           [RENDERABLE]: { generation: 0 },

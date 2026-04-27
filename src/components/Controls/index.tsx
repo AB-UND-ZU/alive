@@ -18,13 +18,10 @@ import {
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
-import { normalize, repeat, signedDistance } from "../../game/math/std";
+import { normalize, range, repeat, signedDistance } from "../../game/math/std";
 import { SPRITE, Sprite } from "../../engine/components/sprite";
 import { ITEM, Item, rechargables } from "../../engine/components/item";
-import {
-  castablePrimary,
-  castableSecondary,
-} from "../../engine/systems/action";
+import { castableSpell, castableSkill } from "../../engine/systems/action";
 import { Entity } from "ecs";
 import { World } from "../../engine";
 import { isDead } from "../../engine/systems/damage";
@@ -74,25 +71,27 @@ export const keyToOrientation: Record<KeyboardEvent["key"], Orientation> = {
   A: "left",
 };
 
-export const primaryKeys = [" "];
-export const secondaryKeys = ["Shift"];
+export const spellKeys = [" "];
+export const skillKeys = ["Shift"];
+export const equipKeys = ["q", "Q"];
 export const tabKeys = ["Tab"];
 export const inspectKeys = ["b", "B"];
-export const useKeys = ["u", "U"];
+export const useKeys = ["e", "E"];
 export const mapKeys = ["m", "M"];
 export const gearKeys = ["g", "G"];
 export const statsKeys = ["t", "T"];
 export const interactKeys = ["Enter"];
 export const closeKeys = ["Escape"];
+export const hotKeys = range(0, 9).map((key) => key.toString());
 
-const getActiveActivations = (world: World, hero: TypedEntity, item: Item) => {
+const getActionActivations = (world: World, hero: TypedEntity, item: Item) => {
   const itemSprite = getItemSprite(item, "display");
 
   if (
-    item.secondary === "bow" ||
-    rechargables.includes(item.secondary as (typeof rechargables)[number])
+    item.skill === "bow" ||
+    rechargables.includes(item.skill as (typeof rechargables)[number])
   ) {
-    const ammo = item.secondary === "bow" ? "arrow" : "charge";
+    const ammo = item.skill === "bow" ? "arrow" : "charge";
     const stackableItem = hero[INVENTORY]?.items
       .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
       .find((item) => item[ITEM].stackable === ammo);
@@ -107,17 +106,17 @@ const getActiveActivations = (world: World, hero: TypedEntity, item: Item) => {
       ),
       stackableSprite,
     ].slice(-6);
-  } else if (item.secondary === "axe") {
+  } else if (item.tool === "axe") {
     if (!hero[CONDITIONABLE]?.axe) {
       return centerSprites([itemSprite], 6);
     }
     const swordEntity = world.getEntityByIdAndComponents(
-      hero[EQUIPPABLE]?.sword,
+      hero[EQUIPPABLE]?.weapon,
       [SPRITE]
     );
     return centerSprites([swordEntity?.[SPRITE] || none], 6);
-  } else if (item.primary) {
-    const amount = item.primary.endsWith("2") ? 2 : 1;
+  } else if (item.spell) {
+    const amount = item.spell.endsWith("2") ? 2 : 1;
     return [
       ...repeat(none, 2),
       itemSprite,
@@ -215,13 +214,13 @@ export default function Controls() {
   const [joystickOrientations, setJoystickOrientations] = useState<
     Orientation[]
   >([]);
-  const [primary, setPrimary] = useState<Action>();
-  const [secondary, setSecondary] = useState<Action>();
+  const [spell, setSpell] = useState<Action>();
+  const [skill, setSkill] = useState<Action>();
   const [highlight, setHighlight] = useState(0);
   const highlightRef = useRef<NodeJS.Timeout>();
   const actionRef = useRef<Action>();
-  const primaryRef = useRef<Action>();
-  const secondaryRef = useRef<Action>();
+  const spellRef = useRef<Action>();
+  const skillRef = useRef<Action>();
 
   // update ref for listeners to consume
   heroRef.current = hero || undefined;
@@ -229,66 +228,92 @@ export default function Controls() {
   const hidden =
     initial || !ecs || !heroRef.current || isDead(ecs, heroRef.current);
 
-  const primaryAction = useAction(
-    "primary",
-    (world, hero, primaryEntity) =>
+  const spellAction = useAction(
+    "spell",
+    (world, hero, spellEntity) =>
       !isControllable(world, hero) ||
-      !canCast(world, hero, primaryEntity) ||
-      !castablePrimary(
+      !canCast(world, hero, spellEntity) ||
+      !castableSpell(
         world,
         hero as TypedEntity<"INVENTORY">,
-        primaryEntity as TypedEntity<"ITEM">
+        spellEntity as TypedEntity<"ITEM">
       ),
-    (_, __, primaryEntity) => primaryEntity[SPRITE].name.toUpperCase(),
-    (world, _, primaryEntity) =>
+    (_, __, spellEntity) => spellEntity[SPRITE].name.toUpperCase(),
+    (world, _, spellEntity) =>
       hero
-        ? getActiveActivations(world, hero, primaryEntity[ITEM])
+        ? getActionActivations(world, hero, spellEntity[ITEM])
         : repeat(none, 6),
     "silver"
   );
 
-  const secondaryAction = useAction(
-    "secondary",
-    (world, hero, secondaryEntity) =>
+  const skillAction = useAction(
+    "skill",
+    (world, hero, skillEntity) =>
       !isControllable(world, hero) ||
-      !castableSecondary(
+      !castableSkill(
         world,
         hero as TypedEntity<"INVENTORY">,
-        secondaryEntity as TypedEntity<"ITEM">
+        skillEntity as TypedEntity<"ITEM">
       ),
 
-    (world, hero, secondaryEntity) => {
+    (_, __, skillEntity) => skillEntity[SPRITE].name.toUpperCase(),
+    (world, _, skillEntity) =>
+      hero
+        ? getActionActivations(world, hero, skillEntity[ITEM])
+        : repeat(none, 6),
+    "silver"
+  );
+
+  const toolAction = useAction(
+    "tool",
+    (world, hero, toolEntity) =>
+      !isControllable(world, hero) ||
+      !castableSkill(
+        world,
+        hero as TypedEntity<"INVENTORY">,
+        toolEntity as TypedEntity<"ITEM">
+      ),
+
+    (world, hero, toolEntity) => {
       const swordEntity = world.getEntityByIdAndComponents(
-        hero[EQUIPPABLE]?.sword,
+        hero[EQUIPPABLE]?.weapon,
         [SPRITE]
       );
       if (hero[CONDITIONABLE]?.axe) {
         return (swordEntity?.[SPRITE].name || "Stow").toUpperCase();
       }
 
-      return secondaryEntity[SPRITE].name.toUpperCase();
+      return toolEntity[SPRITE].name.toUpperCase();
     },
-    (world, _, secondaryEntity) =>
+    (world, _, toolEntity) =>
       hero
-        ? getActiveActivations(world, hero, secondaryEntity[ITEM])
+        ? getActionActivations(world, hero, toolEntity[ITEM])
         : repeat(none, 6),
     "silver"
   );
 
-  primaryRef.current = primaryAction;
-  secondaryRef.current = secondaryAction;
+  const skillOrToolAction = useMemo(
+    () =>
+      hero?.[ACTIONABLE]?.toolEquipped || !hero?.[EQUIPPABLE]?.skill
+        ? toolAction
+        : skillAction,
+    [skillAction, toolAction, hero]
+  );
+
+  spellRef.current = spellAction;
+  skillRef.current = skillOrToolAction;
 
   // rotate button shadow
   useEffect(() => {
     // clear on fading action
-    if (highlightRef.current && !primaryAction && !secondaryAction) {
+    if (highlightRef.current && !spellAction && !skillOrToolAction) {
       clearInterval(highlightRef.current);
       highlightRef.current = undefined;
     }
 
     if (
-      (!primaryAction || primaryAction.disabled) &&
-      (!secondaryAction || secondaryAction.disabled)
+      (!spellAction || spellAction.disabled) &&
+      (!skillOrToolAction || skillOrToolAction.disabled)
     )
       return;
 
@@ -302,16 +327,17 @@ export default function Controls() {
         );
       }, 100);
     }
-  }, [primaryAction, secondaryAction]);
+  }, [spellAction, skillOrToolAction]);
 
   const handleAction = useCallback(
     (
       action:
-        | "primary"
-        | "secondary"
+        | "spell"
+        | "skill"
         | "interact"
         | "inspect"
         | "use"
+        | "equip"
         | "gear"
         | "stats"
         | "map"
@@ -329,10 +355,10 @@ export default function Controls() {
       const heroEntity = heroRef.current;
       const currentAction = actionRef.current;
       const active =
-        action === "primary"
-          ? primaryRef.current
-          : action === "secondary"
-          ? secondaryRef.current
+        action === "spell"
+          ? spellRef.current
+          : action === "skill"
+          ? skillRef.current
           : undefined;
 
       // allow action while moving but not in popup
@@ -356,22 +382,22 @@ export default function Controls() {
 
       // skip if already triggered
       if (
-        heroEntity[ACTIONABLE].primaryTriggered ||
-        heroEntity[ACTIONABLE].secondaryTriggered ||
+        heroEntity[ACTIONABLE].spellTriggered ||
+        heroEntity[ACTIONABLE].skillTriggered ||
         heroEntity[PLAYER].actionTriggered
       )
         return;
 
-      if (action === "primary") {
-        heroEntity[ACTIONABLE].primaryTriggered = true;
-      } else if (action === "secondary") {
-        heroEntity[ACTIONABLE].secondaryTriggered = true;
+      if (action === "spell") {
+        heroEntity[ACTIONABLE].spellTriggered = true;
+      } else if (action === "skill") {
+        heroEntity[ACTIONABLE].skillTriggered = true;
       } else {
         heroEntity[PLAYER].actionTriggered = action;
 
         if (index !== undefined && action === "tab") {
           heroEntity[PLAYER].tabTriggered = index;
-        } else if (index !== undefined && action === "content") {
+        } else if (index !== undefined && ["content", "use"].includes(action)) {
           heroEntity[PLAYER].contentTriggered = index;
           heroEntity[PLAYER].offsetTriggered = offset;
         }
@@ -384,17 +410,17 @@ export default function Controls() {
       reference.suspended = false;
 
       if (active && !active.disabled) {
-        if (action === "primary") {
-          setPrimary(active);
-        } else if (action === "secondary") {
-          setSecondary(active);
+        if (action === "spell") {
+          setSpell(active);
+        } else if (action === "skill") {
+          setSkill(active);
         }
         actionRef.current = active;
         setTimeout(() => {
-          if (action === "primary") {
-            setPrimary(undefined);
-          } else if (action === "secondary") {
-            setSecondary(undefined);
+          if (action === "spell") {
+            setSpell(undefined);
+          } else if (action === "skill") {
+            setSkill(undefined);
           }
           actionRef.current = undefined;
         }, reference.tick);
@@ -403,7 +429,7 @@ export default function Controls() {
     [ecs, paused]
   );
 
-  const handlePrimary = useCallback(
+  const handleSpell = useCallback(
     (
       event:
         | KeyboardEvent
@@ -411,12 +437,12 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
-      handleAction("primary");
+      handleAction("spell");
     },
     [handleAction]
   );
 
-  const handleSecondary = useCallback(
+  const handleSkill = useCallback(
     (
       event:
         | KeyboardEvent
@@ -424,7 +450,7 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
-      handleAction("secondary");
+      handleAction("skill");
     },
     [handleAction]
   );
@@ -447,14 +473,28 @@ export default function Controls() {
       event:
         | KeyboardEvent
         | TouchEvent
-        | React.MouseEvent<HTMLDivElement, MouseEvent>
+        | React.MouseEvent<HTMLDivElement, MouseEvent>,
+      keyNumber?: number
     ) => {
       event.preventDefault();
       if (inMenu || !ecs || !hero || !isActionable(ecs, hero)) return;
 
-      handleAction("use");
+      handleAction("use", keyNumber);
     },
     [handleAction, inMenu, ecs, hero]
+  );
+
+  const handleEquip = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      handleAction("equip");
+    },
+    [handleAction]
   );
 
   const handleGear = useCallback(
@@ -653,8 +693,8 @@ export default function Controls() {
         if (
           (remaining < queueThreshold &&
             heroEntity[MOVABLE].pendingOrientation) ||
-          heroEntity[ACTIONABLE].primaryTriggered ||
-          heroEntity[ACTIONABLE].secondaryTriggered ||
+          heroEntity[ACTIONABLE].spellTriggered ||
+          heroEntity[ACTIONABLE].skillTriggered ||
           heroEntity[PLAYER].actionTriggered
         ) {
           reference.suspensionCounter += 1;
@@ -732,14 +772,11 @@ export default function Controls() {
       )
         return;
 
-      if (primaryKeys.includes(event.key) && event.type === "keydown") {
-        handlePrimary(event);
+      if (spellKeys.includes(event.key) && event.type === "keydown") {
+        handleSpell(event);
         return;
-      } else if (
-        secondaryKeys.includes(event.key) &&
-        event.type === "keydown"
-      ) {
-        handleSecondary(event);
+      } else if (skillKeys.includes(event.key) && event.type === "keydown") {
+        handleSkill(event);
         return;
       } else if (interactKeys.includes(event.key) && event.type === "keydown") {
         if (popup) {
@@ -754,6 +791,9 @@ export default function Controls() {
       } else if (useKeys.includes(event.key) && event.type === "keydown") {
         handleUse(event);
         return;
+      } else if (equipKeys.includes(event.key) && event.type === "keydown") {
+        handleEquip(event);
+        return;
       } else if (gearKeys.includes(event.key) && event.type === "keydown") {
         handleGear(event);
         return;
@@ -762,6 +802,9 @@ export default function Controls() {
         return;
       } else if (inspectKeys.includes(event.key) && event.type === "keydown") {
         handleInspect(event);
+        return;
+      } else if (hotKeys.includes(event.key) && event.type === "keydown") {
+        handleUse(event, parseInt(event.key));
         return;
       } else if (tabKeys.includes(event.key) && event.type === "keydown") {
         if (popup) {
@@ -815,12 +858,13 @@ export default function Controls() {
       initial,
       handleMove,
       setPaused,
-      handlePrimary,
-      handleSecondary,
+      handleSpell,
+      handleSkill,
       handleInteract,
       handleInspect,
       handleTab,
       handleUse,
+      handleEquip,
       handleStats,
       handleGear,
       handleMap,
@@ -848,8 +892,8 @@ export default function Controls() {
       if (
         ![...event.changedTouches].some((touch) =>
           [
-            "primary",
-            "secondary",
+            "spell",
+            "skill",
             "menu",
             "resume",
             "interact",
@@ -956,7 +1000,7 @@ export default function Controls() {
     };
   }, [handleKey, handleMouseMove, handleTouchMove, handleVisibility]);
 
-  const emptyPrimary = createButton(
+  const emptySpell = createButton(
     isTouch ? "SPELL" : "SPACE",
     buttonWidth,
     true,
@@ -964,19 +1008,19 @@ export default function Controls() {
     false,
     "white"
   );
-  const primaryHighlighted = highlight === 0 || highlight === 1;
-  const primaryButton =
-    primaryAction &&
+  const spellHighlighted = highlight === 0 || highlight === 1;
+  const spellButton =
+    spellAction &&
     createButton(
-      primaryAction.name,
+      spellAction.name,
       buttonWidth,
-      primaryAction.disabled,
+      spellAction.disabled,
       false,
-      primaryHighlighted,
-      primaryAction.palette
+      spellHighlighted,
+      spellAction.palette
     );
-  const rightButton = primaryButton || emptyPrimary;
-  const emptySecondary = createButton(
+  const rightButton = spellButton || emptySpell;
+  const emptySkill = createButton(
     isTouch ? "SKILL" : "SHIFT",
     buttonWidth,
     true,
@@ -984,24 +1028,24 @@ export default function Controls() {
     false,
     "white"
   );
-  const secondaryHighlighted = highlight === 4 || highlight === 5;
-  const secondaryButton =
-    secondaryAction &&
+  const skillHighlighted = highlight === 4 || highlight === 5;
+  const skillButton =
+    skillOrToolAction &&
     createButton(
-      secondaryAction.name,
+      skillOrToolAction.name,
       buttonWidth,
-      !secondary && secondaryAction.disabled,
-      !!secondary,
-      !secondary && secondaryHighlighted,
-      secondaryAction.palette
+      !skill && skillOrToolAction.disabled,
+      !!skill,
+      !skill && skillHighlighted,
+      skillOrToolAction.palette
     );
-  const leftButton = secondaryButton || emptySecondary;
+  const leftButton = skillButton || emptySkill;
 
   const emptyActivation = repeat(none, 6);
-  const primaryActivation =
-    primary?.activation || primaryAction?.activation || emptyActivation;
-  const secondaryActivation =
-    secondary?.activation || secondaryAction?.activation || emptyActivation;
+  const spellActivation =
+    spell?.activation || spellAction?.activation || emptyActivation;
+  const skillActivation =
+    skill?.activation || skillOrToolAction?.activation || emptyActivation;
 
   const equipments = ecs
     ? (["compass"] as const)
@@ -1079,28 +1123,28 @@ export default function Controls() {
                     ...equipmentRows[0],
                     ...rightButton.slice(0, -1),
                     getButtonSeparator(
-                      primaryAction?.palette || "white",
-                      !primaryAction || primaryAction.disabled,
-                      primaryHighlighted,
-                      !!primary,
-                      secondaryAction?.palette || "white",
-                      !secondaryAction || secondaryAction.disabled,
-                      secondaryHighlighted,
-                      !!secondary
+                      spellAction?.palette || "white",
+                      !spellAction || spellAction.disabled,
+                      spellHighlighted,
+                      !!spell,
+                      skillOrToolAction?.palette || "white",
+                      !skillOrToolAction || skillOrToolAction.disabled,
+                      skillHighlighted,
+                      !!skill
                     ),
                     ...leftButton.slice(1),
                   ]
                 : [
                     ...leftButton.slice(0, -1),
                     getButtonSeparator(
-                      secondaryAction?.palette || "white",
-                      !secondaryAction || secondaryAction.disabled,
-                      secondaryHighlighted,
-                      !!secondary,
-                      primaryAction?.palette || "white",
-                      !primaryAction || primaryAction.disabled,
-                      primaryHighlighted,
-                      !!primary
+                      skillOrToolAction?.palette || "white",
+                      !skillOrToolAction || skillOrToolAction.disabled,
+                      skillHighlighted,
+                      !!skill,
+                      spellAction?.palette || "white",
+                      !spellAction || spellAction.disabled,
+                      spellHighlighted,
+                      !!spell
                     ),
                     ...rightButton.slice(1),
                     ...equipmentRows[0],
@@ -1113,12 +1157,12 @@ export default function Controls() {
                 ? [
                     ...equipmentRows[1],
                     none,
-                    ...primaryActivation,
-                    ...secondaryActivation,
+                    ...spellActivation,
+                    ...skillActivation,
                   ]
                 : [
-                    ...secondaryActivation,
-                    ...primaryActivation,
+                    ...skillActivation,
+                    ...spellActivation,
                     none,
                     ...equipmentRows[1],
                   ]
@@ -1133,8 +1177,8 @@ export default function Controls() {
           />
         </>
       )}
-      <div className="Secondary" id="secondary" onClick={handleSecondary} />
-      <div className="Primary" id="primary" onClick={handlePrimary} />
+      <div className="Skill" id="skill" onClick={handleSkill} />
+      <div className="Spell" id="spell" onClick={handleSpell} />
       {interactable && (
         <div
           className="Interact"

@@ -290,7 +290,7 @@ export const populateItems = (
 ) => {
   const created = [];
   for (const item of items) {
-    if (item.equipment === "sword") {
+    if (item.equipment === "weapon") {
       created.push(
         createItemInInventory(
           world,
@@ -522,8 +522,9 @@ export const createNpc = (
   const npcUnit = generateNpcData(npcKey);
   const npcEntity = entities.createVillager(world, {
     [ACTIONABLE]: {
-      primaryTriggered: false,
-      secondaryTriggered: false,
+      spellTriggered: false,
+      skillTriggered: false,
+      toolEquipped: false,
     },
     [AFFECTABLE]: getEmptyAffectable(),
     [ATTACKABLE]: { scratchColor: npcUnit.scratch },
@@ -1991,7 +1992,7 @@ export const createCell = (
         createText("It will turn into"),
         [
           ...createText("a "),
-          ...createItemName({ equipment: "sword", material: "wood" }),
+          ...createItemName({ equipment: "weapon", material: "wood" }),
           ...createText("."),
         ],
         [],
@@ -2244,8 +2245,9 @@ export const createCell = (
     // create unit and base
     const eliteEntity = entities.createRoaming(world, {
       [ACTIONABLE]: {
-        primaryTriggered: false,
-        secondaryTriggered: false,
+        spellTriggered: false,
+        skillTriggered: false,
+        toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { scratchColor: eliteUnit.scratch },
@@ -2324,8 +2326,9 @@ export const createCell = (
       const limbUnit = generateNpcData("golemLimb");
       const limbEntity = entities.createSegment(world, {
         [ACTIONABLE]: {
-          primaryTriggered: false,
-          secondaryTriggered: false,
+          spellTriggered: false,
+          skillTriggered: false,
+          toolEquipped: false,
         },
         [AFFECTABLE]: getEmptyAffectable(),
         [ATTACKABLE]: {},
@@ -2370,8 +2373,9 @@ export const createCell = (
     if (mobUnit.dormant) {
       mobEntity = entities.createDormant(world, {
         [ACTIONABLE]: {
-          primaryTriggered: false,
-          secondaryTriggered: false,
+          spellTriggered: false,
+          skillTriggered: false,
+          toolEquipped: false,
         },
         [BEHAVIOUR]: {
           patterns: [{ name: "passive", memory: {} }, ...mobUnit.patterns],
@@ -2415,8 +2419,9 @@ export const createCell = (
     } else {
       mobEntity = entities.createMob(world, {
         [ACTIONABLE]: {
-          primaryTriggered: false,
-          secondaryTriggered: false,
+          spellTriggered: false,
+          skillTriggered: false,
+          toolEquipped: false,
         },
         [AFFECTABLE]: getEmptyAffectable(),
         [ATTACKABLE]: { scratchColor: mobUnit.scratch },
@@ -2781,8 +2786,9 @@ export const createCell = (
     const towerUnit = generateNpcData("waveTower");
     const towerEntity = entities.createMob(world, {
       [ACTIONABLE]: {
-        primaryTriggered: false,
-        secondaryTriggered: false,
+        spellTriggered: false,
+        skillTriggered: false,
+        toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: {},
@@ -2839,8 +2845,9 @@ export const createCell = (
     // create unit and base
     const eliteEntity = entities.createBoss(world, {
       [ACTIONABLE]: {
-        primaryTriggered: false,
-        secondaryTriggered: false,
+        spellTriggered: false,
+        skillTriggered: false,
+        toolEquipped: false,
       },
       [BEHAVIOUR]: {
         patterns: [{ name: "passive", memory: {} }, ...eliteUnit.patterns],
@@ -2913,8 +2920,9 @@ export const createCell = (
     for (const { offset, sprite, orientation } of ilexLimbs) {
       const limbEntity = entities.createLimb(world, {
         [ACTIONABLE]: {
-          primaryTriggered: false,
-          secondaryTriggered: false,
+          spellTriggered: false,
+          skillTriggered: false,
+          toolEquipped: false,
         },
         [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},
@@ -2956,8 +2964,9 @@ export const createCell = (
     // create unit and base
     const bossEntity = entities.createBoss(world, {
       [ACTIONABLE]: {
-        primaryTriggered: false,
-        secondaryTriggered: false,
+        spellTriggered: false,
+        skillTriggered: false,
+        toolEquipped: false,
       },
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
       [BELONGABLE]: { faction: bossUnit.faction },
@@ -3035,8 +3044,9 @@ export const createCell = (
     for (const { offset, sprite, orientation } of oakLimbs) {
       const limbEntity = entities.createLimb(world, {
         [ACTIONABLE]: {
-          primaryTriggered: false,
-          secondaryTriggered: false,
+          spellTriggered: false,
+          skillTriggered: false,
+          toolEquipped: false,
         },
         [BUMPABLE]: { generation: 0 },
         [COLLIDABLE]: {},
@@ -3087,8 +3097,9 @@ export const createCell = (
     // create unit and base
     const bossEntity = entities.createRoaming(world, {
       [ACTIONABLE]: {
-        primaryTriggered: false,
-        secondaryTriggered: false,
+        spellTriggered: false,
+        skillTriggered: false,
+        toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { scratchColor: bossUnit.scratch },
@@ -3163,8 +3174,9 @@ export const createCell = (
 
     const bossEntity = entities.createMob(world, {
       [ACTIONABLE]: {
-        primaryTriggered: false,
-        secondaryTriggered: false,
+        spellTriggered: false,
+        skillTriggered: false,
+        toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: {},
@@ -3210,8 +3222,9 @@ export const createCell = (
     );
     const mobEntity = entities.createMob(world, {
       [ACTIONABLE]: {
-        primaryTriggered: false,
-        secondaryTriggered: false,
+        spellTriggered: false,
+        skillTriggered: false,
+        toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: {},

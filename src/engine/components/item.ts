@@ -21,14 +21,11 @@ export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
 export type Element = (typeof elements)[number];
 export type Material = (typeof materials)[number];
 
-export type Primary = "wave" | "beam" | "trap" | "dash" | "bolt" | "blast";
+export type Spell = "wave" | "beam" | "trap" | "dash" | "bolt" | "blast";
 
 export const rechargables = ["slash", "zap", "block", "totem"] as const;
-export const tools = ["axe", "pickaxe"] as const;
-export type Secondary =
-  | "bow"
-  | (typeof tools)[number]
-  | (typeof rechargables)[number];
+export type Tool = "axe" | "pickaxe";
+export type Skill = "bow" | (typeof rechargables)[number];
 
 export type Consumable = "key" | "potion";
 
@@ -75,8 +72,9 @@ export type Item = {
   material?: Material;
   element?: Element;
   equipment?: Equipment;
-  primary?: Primary;
-  secondary?: Secondary;
+  spell?: Spell;
+  skill?: Skill;
+  tool?: Tool;
   stat?: keyof UnitStats;
   consume?: Consumable;
   stackable?: Stackable;

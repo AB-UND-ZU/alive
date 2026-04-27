@@ -3,6 +3,7 @@ import { World } from "../ecs";
 import { UnitKey } from "../../game/balancing/units";
 import { Countable } from "./stats";
 import { Castable } from "./castable";
+import { Item } from "./item";
 
 export type Player = {
   ghost: boolean;
@@ -13,6 +14,7 @@ export type Player = {
   >;
   defeatedUnits: Partial<Record<UnitKey, number>>;
   popup?: number;
+  quickItems: Record<string, Omit<Item, "bound" | "amount" | "carrier">>;
   actionTriggered?:
     | "interact"
     | "inspect"
@@ -20,6 +22,7 @@ export type Player = {
     | "map"
     | "gear"
     | "stats"
+    | "equip"
     | "close"
     | "tab"
     | "backtab"

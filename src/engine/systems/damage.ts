@@ -179,7 +179,7 @@ export const getEntityEquipmentStats = (
 
     if (!item) return;
 
-    const isAbility = item[ITEM].primary || item[ITEM].secondary;
+    const isAbility = item[ITEM].spell || item[ITEM].skill;
     const itemStats = isAbility
       ? getAbilityStats(item[ITEM], entity[NPC]?.type)
       : getEquipmentStats(item[ITEM], entity[NPC]?.type);
@@ -676,7 +676,7 @@ export default function setupDamage(world: World) {
       const limbs = rigid ? getLimbs(world, entity) : [entity];
 
       // skip if entity has no sword
-      const swordId = entity[EQUIPPABLE].sword;
+      const swordId = entity[EQUIPPABLE].weapon;
       const swordEntity = world.getEntityByIdAndComponents(swordId, [ITEM]);
 
       if (!swordId || !swordEntity) continue;
@@ -767,12 +767,12 @@ export default function setupDamage(world: World) {
             });
 
             // set rechargable if applicable
-            const secondaryEntity = world.getEntityByIdAndComponents(
-              entity[EQUIPPABLE].secondary,
+            const skillEntity = world.getEntityByIdAndComponents(
+              entity[EQUIPPABLE].skill,
               [ITEM]
             );
             const canRecharge = rechargables.includes(
-              secondaryEntity?.[ITEM].secondary as (typeof rechargables)[number]
+              skillEntity?.[ITEM].skill as (typeof rechargables)[number]
             );
 
             if (canRecharge && targetEntity[RECHARGABLE]) {

@@ -143,11 +143,14 @@ export const getItemConsumption = (
   return consumption ? { ...consumption, item } : undefined;
 };
 
-export const consumeItem = (world: World, entity: Entity, target: Entity) => {
-  const consumption = getConsumption(world, entity, target);
+export const consumeItem = (
+  world: World,
+  entity: Entity,
+  consumption?: ItemConsumption
+) => {
   let consumed = false;
 
-  if (!consumption) return;
+  if (!consumption) return consumed;
 
   // remove from inventory
   consumption.item[ITEM].amount -= 1;

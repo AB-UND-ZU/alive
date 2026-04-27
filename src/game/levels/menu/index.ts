@@ -338,12 +338,12 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          equipment: "sword",
+          equipment: "weapon",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "sword",
+          equipment: "weapon",
           element: "earth",
           amount: 1,
         },
@@ -355,66 +355,66 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          equipment: "primary",
-          primary: "wave",
+          equipment: "spell",
+          spell: "wave",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "primary",
-          primary: "beam",
+          equipment: "spell",
+          spell: "beam",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "primary",
-          primary: "trap",
+          equipment: "spell",
+          spell: "trap",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "primary",
-          primary: "dash",
-          material: "wood",
-          amount: 1,
-        },
-      ],
-      [
-        {
-          equipment: "secondary",
-          secondary: "bow",
-          material: "wood",
-          amount: 1,
-        },
-        {
-          equipment: "secondary",
-          secondary: "slash",
-          material: "wood",
-          amount: 1,
-        },
-        {
-          equipment: "secondary",
-          secondary: "zap",
-          material: "wood",
-          amount: 1,
-        },
-        {
-          equipment: "secondary",
-          secondary: "block",
+          equipment: "spell",
+          spell: "dash",
           material: "wood",
           amount: 1,
         },
       ],
       [
         {
-          equipment: "secondary",
-          secondary: "totem",
+          equipment: "skill",
+          skill: "bow",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "secondary",
-          secondary: "axe",
+          equipment: "skill",
+          skill: "slash",
+          material: "wood",
+          amount: 1,
+        },
+        {
+          equipment: "skill",
+          skill: "zap",
+          material: "wood",
+          amount: 1,
+        },
+        {
+          equipment: "skill",
+          skill: "block",
+          material: "wood",
+          amount: 1,
+        },
+      ],
+      [
+        {
+          equipment: "skill",
+          skill: "totem",
+          material: "wood",
+          amount: 1,
+        },
+        {
+          equipment: "tool",
+          tool: "axe",
           material: "wood",
           amount: 1,
         },
@@ -469,13 +469,13 @@ export const generateMenu = async (world: World) => {
             y: rowIndex,
           }),
           // @ts-ignore
-          item.equipment === "sword"
+          item.equipment === "weapon"
             ? entities.createSword
             : entities.createItem,
           {
             [ITEM]: { ...item, bound: false },
             [SPRITE]: getItemSprite(item),
-            ...(item.equipment === "sword"
+            ...(item.equipment === "weapon"
               ? {
                   [SEQUENCABLE]: { states: [] },
                   [ORIENTABLE]: {},

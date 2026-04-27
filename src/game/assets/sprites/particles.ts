@@ -2298,6 +2298,14 @@ export const plusBox: Sprite = {
   ],
 };
 
+export const ninePlus: Sprite = {
+  name: "9+",
+  layers: [
+    { char: "9", color: colors.grey },
+    { char: "+", color: colors.silver },
+  ],
+};
+
 export const double: Sprite = {
   name: "Double",
   layers: [
@@ -2311,9 +2319,14 @@ export const double: Sprite = {
   ],
 };
 
-export const swordSlot: Sprite = mergeSprites(emptySlot, {
-  name: "Sword",
-  layers: [{ char: "/", color: colors.black }],
+export const weaponSlot: Sprite = mergeSprites(emptySlot, {
+  name: "Weapon",
+  layers: [
+    { char: "*", color: colors.black },
+    { char: "\u0100", color: colors.grey },
+    { char: "-", color: colors.grey },
+    { char: "∙", color: colors.black },
+  ],
 });
 
 export const shieldSlot: Sprite = mergeSprites(emptySlot, {
@@ -2331,14 +2344,22 @@ export const bootsSlot: Sprite = mergeSprites(emptySlot, {
   ],
 });
 
-export const primarySlot: Sprite = mergeSprites(emptySlot, {
+export const spellSlot: Sprite = mergeSprites(emptySlot, {
   name: "Spell",
   layers: [{ char: "+", color: colors.black }],
 });
 
-export const secondarySlot: Sprite = mergeSprites(emptySlot, {
-  name: "Item",
+export const skillSlot: Sprite = mergeSprites(emptySlot, {
+  name: "Skill",
   layers: [{ char: "»", color: colors.black }],
+});
+
+export const toolSlot: Sprite = mergeSprites(emptySlot, {
+  name: "Tool",
+  layers: [
+    { char: "\u0106", color: colors.black },
+    { char: "∙", color: colors.grey },
+  ],
 });
 
 export const ringSlot: Sprite = mergeSprites(emptySlot, {

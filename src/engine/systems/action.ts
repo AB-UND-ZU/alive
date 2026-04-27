@@ -104,24 +104,24 @@ export const getPendingTotem = (world: World, entity: Entity) => {
     });
 };
 
-export const castablePrimary = (
+export const castableSpell = (
   world: World,
   entity: TypedEntity<"INVENTORY">,
   item: TypedEntity<"ITEM">
 ) => {
-  const primary = item[ITEM].primary;
+  const spell = item[ITEM].spell;
   const castableEntity = entity[FRAGMENT]
     ? world.assertByIdAndComponents(entity[FRAGMENT].structure, [STATS])
     : entity;
 
   // check mana for spells
-  if (castableEntity[STATS] && primary && castableEntity[STATS].mp >= 1)
+  if (castableEntity[STATS] && spell && castableEntity[STATS].mp >= 1)
     return true;
 
   return false;
 };
 
-export const castableSecondary = (
+export const castableSkill = (
   world: World,
   entity: TypedEntity<"INVENTORY">,
   item: TypedEntity<"ITEM">
@@ -130,9 +130,10 @@ export const castableSecondary = (
 
   if (isNpc(world, entity)) return true;
 
-  const secondary = item[ITEM].secondary;
+  const skill = item[ITEM].skill;
+  const tool = item[ITEM].tool;
 
-  if (secondary === "bow") {
+  if (skill === "bow") {
     // check if there is arrows for a bow
     const hasArrow = entity[INVENTORY].items.some(
       (itemId) =>
@@ -140,9 +141,7 @@ export const castableSecondary = (
         "arrow"
     );
     if (hasArrow) return true;
-  } else if (
-    rechargables.includes(secondary as (typeof rechargables)[number])
-  ) {
+  } else if (rechargables.includes(skill as (typeof rechargables)[number])) {
     // check if there is charges for active items
     const hasCharge = entity[INVENTORY].items.some(
       (itemId) =>
@@ -150,15 +149,14 @@ export const castableSecondary = (
         "charge"
     );
     const activeCondition =
-      (secondary === "zap" && entity[CONDITIONABLE]?.zap) ||
-      (secondary === "block" && entity[CONDITIONABLE]?.block);
-    const pendingTotem =
-      secondary === "totem" && !!getPendingTotem(world, entity);
-    const missingSword = secondary === "slash" && !entity[EQUIPPABLE]?.sword;
+      (skill === "zap" && entity[CONDITIONABLE]?.zap) ||
+      (skill === "block" && entity[CONDITIONABLE]?.block);
+    const pendingTotem = skill === "totem" && !!getPendingTotem(world, entity);
+    const missingSword = skill === "slash" && !entity[EQUIPPABLE]?.weapon;
 
     if (hasCharge && !activeCondition && !pendingTotem && !missingSword)
       return true;
-  } else if (secondary === "axe" && item[ITEM].material) {
+  } else if (tool === "axe" && item[ITEM].material) {
     return true;
   }
 
@@ -294,25 +292,34 @@ export default function setupAction(world: World) {
             EQUIPPABLE,
           ])
         : entity;
-      const primary = world.getEntityById(
-        castableEntity?.[EQUIPPABLE]?.primary
-      );
-      const secondary = world.getEntityById(
-        castableEntity?.[EQUIPPABLE]?.secondary
-      );
+      const spell = world.getEntityById(castableEntity?.[EQUIPPABLE]?.spell);
+      const skill = world.getEntityById(castableEntity?.[EQUIPPABLE]?.skill);
+      const tool = world.getEntityById(castableEntity?.[EQUIPPABLE]?.tool);
+
       const usePopup = getIdentifier(world, "use");
-      const warpId = warp && world.getEntityId(warp);
-      const unlockId = unlock && world.getEntityId(unlock);
-      const popupId = popup && world.getEntityId(popup);
-      const tradeId = trade && world.getEntityId(trade);
       const useId =
         usePopup && isInTab(world, entity, "inspect")
           ? world.getEntityId(usePopup)
           : undefined;
+
+      if (
+        usePopup &&
+        !add_ &&
+        isInTab(world, entity, "use") &&
+        getTabSelections(world, usePopup).length <= 2
+      ) {
+        add_ = usePopup;
+      }
+
+      const warpId = warp && world.getEntityId(warp);
+      const unlockId = unlock && world.getEntityId(unlock);
+      const popupId = popup && world.getEntityId(popup);
+      const tradeId = trade && world.getEntityId(trade);
       const addId = add_ && world.getEntityId(add_);
       const spawnId = spawn && world.getEntityId(spawn);
-      const primaryId = primary && world.getEntityId(primary);
-      const secondaryId = secondary && world.getEntityId(secondary);
+      const spellId = spell && world.getEntityId(spell);
+      const skillId = skill && world.getEntityId(skill);
+      const toolId = tool && world.getEntityId(tool);
 
       if (
         entity[ACTIONABLE].warp !== warpId ||
@@ -322,8 +329,9 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].use !== useId ||
         entity[ACTIONABLE].add !== addId ||
         entity[ACTIONABLE].spawn !== spawnId ||
-        entity[ACTIONABLE].primary !== primaryId ||
-        entity[ACTIONABLE].secondary !== secondaryId
+        entity[ACTIONABLE].spell !== spellId ||
+        entity[ACTIONABLE].skill !== skillId ||
+        entity[ACTIONABLE].tool !== toolId
       ) {
         entity[ACTIONABLE].warp = warpId;
         entity[ACTIONABLE].unlock = unlockId;
@@ -332,8 +340,9 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].use = useId;
         entity[ACTIONABLE].add = addId;
         entity[ACTIONABLE].spawn = spawnId;
-        entity[ACTIONABLE].primary = primaryId;
-        entity[ACTIONABLE].secondary = secondaryId;
+        entity[ACTIONABLE].spell = spellId;
+        entity[ACTIONABLE].skill = skillId;
+        entity[ACTIONABLE].tool = toolId;
         rerenderEntity(world, entity);
       }
     }

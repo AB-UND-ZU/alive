@@ -4,8 +4,8 @@ import {
   Item,
   ItemStats,
   Material,
-  Primary,
-  Secondary,
+  Spell,
+  Skill,
 } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 
@@ -14,7 +14,7 @@ export const abilityStats: Partial<
     NpcType | "default",
     Partial<
       Record<
-        Primary | Secondary | "default",
+        Spell | Skill | "default",
         Partial<
           Record<
             Material | "default",
@@ -474,8 +474,8 @@ const getDirectAbilityStats = (
   item: Omit<Item, "carrier" | "bound" | "amount">,
   caster: NpcType | "default" = "default"
 ): Partial<ItemStats> => {
-  const { primary, secondary, material, element } = item;
-  const key = primary || secondary;
+  const { spell, skill, material, element } = item;
+  const key = spell || skill;
   const itemStats = lookupAbilityStats(
     (stats) =>
       stats?.[key || "default"]?.[material || "default"]?.[

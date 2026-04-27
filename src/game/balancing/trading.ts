@@ -92,6 +92,11 @@ export const getItemBuyPrice = (
 export const getItemSellPrice = (
   item: Omit<Item, "amount" | "carrier" | "bound">
 ): Deal["prices"] => {
+  // prevent selling charges
+  if (item.stackable === "charge") {
+    return [{ stackable: "coin", amount: 0 }];
+  }
+
   const prices = getItemPrice(item);
   const divisor =
     item.stackable === "nugget" ||

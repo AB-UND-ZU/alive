@@ -293,7 +293,7 @@ export const dropEntity = (
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
       !itemEntity[ITEM].bound &&
-      itemEntity[ITEM].equipment === "sword" &&
+      itemEntity[ITEM].equipment === "weapon" &&
       itemEntity[ITEM].material === "wood" &&
       !itemEntity[ITEM].element
     );

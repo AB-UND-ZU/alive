@@ -147,7 +147,7 @@ export default function setupSpike(world: World) {
         interacted =
           interacted ||
           (targetEntity[ATTACKABLE] &&
-            !(entity[MELEE] && entity[EQUIPPABLE]?.sword));
+            !(entity[MELEE] && entity[EQUIPPABLE]?.weapon));
       }
 
       // already mark as interacted if not able to attack after stinging

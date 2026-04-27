@@ -99,14 +99,14 @@ export default function setupHarvesting(world: World) {
 
       // skip if unable to interact or harvest
       const harvestItem = world.getEntityByIdAndComponents(
-        entity[EQUIPPABLE].secondary,
+        entity[EQUIPPABLE].tool,
         [ITEM]
       );
       const axeCondition = entity[CONDITIONABLE].axe;
       if (
         !isControllable(world, entity) ||
         !axeCondition ||
-        harvestItem?.[ITEM].secondary !== "axe"
+        harvestItem?.[ITEM].tool !== "axe"
       )
         continue;
 

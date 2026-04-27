@@ -4,10 +4,10 @@ import {
   createText,
   none,
   createProgress,
-  createButton,
   pauseInvert,
   createSpriteButton,
   pauseInvertPressed,
+  underline,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
@@ -117,8 +117,13 @@ function StatsInner({
     highlight === 3 || highlight === 4,
     "white"
   );
-  const useButton = createButton(
-    paused ? "TAB" : "USE",
+  const useButton = createSpriteButton(
+    paused
+      ? createText("TAB", colors.black)
+      : [
+          ...createText("US", colors.black),
+          ...underline(createText("E", colors.black), colors.black),
+        ],
     useWidth,
     paused,
     pressed === "use" || quick,

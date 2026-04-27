@@ -354,7 +354,7 @@ export const dashSpell = createTemplate({
   materialElementSprite: dashSpellElementTemplate,
 });
 
-// secondary items
+// secondary skills
 
 const zapTemplate: Sprite = {
   name: "Zap",

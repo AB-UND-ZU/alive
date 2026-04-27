@@ -189,12 +189,12 @@ export const addToInventory = (
   // if no sword is equipped, use wood as stick
   if (
     entity[MELEE] &&
-    !entity[EQUIPPABLE].sword &&
+    !entity[EQUIPPABLE].weapon &&
     targetStackable === "stick"
   ) {
     const itemData = {
       amount: 1,
-      equipment: "sword",
+      equipment: "weapon",
       material: "wood",
       carrier: entityId,
       bound: false,

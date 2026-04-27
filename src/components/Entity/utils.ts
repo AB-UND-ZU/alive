@@ -122,7 +122,7 @@ export const getSegments = (
     ? { ...layerProps, receiveShadow: false, isTransparent: false }
     : layerProps;
 
-  // from back to front: shadow, backdrop, shield, body, sword
+  // from back to front: shadow, backdrop, shield, body, weapon
   const orderedSegments: Segment[] = [];
 
   // 1. shadow
@@ -190,14 +190,14 @@ export const getSegments = (
     layerProps: visibleProps,
   });
 
-  // 5. sword
+  // 5. weapon
   const swordEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE]?.sword,
+    entity[EQUIPPABLE]?.weapon,
     [ITEM, SPRITE, ORIENTABLE]
   );
   if (swordEntity && swordEntity[ITEM].amount > 0) {
     orderedSegments.push({
-      id: entity[EQUIPPABLE].sword,
+      id: entity[EQUIPPABLE].weapon,
       sprite: swordEntity[SPRITE],
       facing: swordEntity[ORIENTABLE].facing,
       offsetX: 0,
