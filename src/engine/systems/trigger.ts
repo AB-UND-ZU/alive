@@ -970,10 +970,12 @@ export default function setupTrigger(world: World) {
         const contentIndex = entity[PLAYER].contentTriggered;
         const offsetIndex = entity[PLAYER].offsetTriggered;
         const selections = getTabSelections(world, currentPopup);
+        const tab = getTab(world, currentPopup);
 
         if (
           contentIndex === undefined ||
           offsetIndex === undefined ||
+          tab !== "use" ||
           selections.length === 2
         ) {
           // ignore

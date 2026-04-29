@@ -955,6 +955,28 @@ export default function setupPopup(world: World) {
         const consumption =
           useEntity && getConsumption(world, heroEntity, useEntity);
         if (useEntity && consumption) {
+          // remember quick item slot
+          let emptySlot = -1;
+          for (let slotIndex = 1; slotIndex <= 10; slotIndex += 1) {
+            const slotNumber = slotIndex % 10;
+            const slotItem = heroEntity[PLAYER].quickItems[slotNumber];
+            if (!slotItem) {
+              if (emptySlot === -1) {
+                emptySlot = slotNumber;
+              }
+              continue;
+            }
+            if (matchesItem(world, slotItem, consumption.item[ITEM])) {
+              emptySlot = -1;
+              break;
+            }
+          }
+          if (emptySlot !== -1) {
+            const { amount, carrier, bound, ...quickItem } =
+              consumption.item[ITEM];
+            heroEntity[PLAYER].quickItems[emptySlot] = quickItem;
+          }
+
           const consumed = consumeItem(world, heroEntity, consumption);
           if (consumed) {
             setVerticalIndex(world, popupEntity, Math.max(0, boundIndex - 1));
@@ -1035,7 +1057,7 @@ export default function setupPopup(world: World) {
           heroEntity[PLAYER].quickItems[hotKey] = hotItem;
           popTabSelection(world, addEntity);
           popTabSelection(world, addEntity);
-          setVerticalIndex(world, addEntity, 0)
+          setVerticalIndex(world, addEntity, 0);
         }
       }
     } else if (heroEntity[PLAYER].actionTriggered === "left") {

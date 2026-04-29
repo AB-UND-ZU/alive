@@ -3580,6 +3580,7 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
     ],
   ];
 
+  const verticalIndex = getVerticalIndex(world, entity);
   const [firstIndex, secondIndex] = getTabSelections(world, entity);
   const isOverview = firstIndex === undefined;
   const isEditing = !isOverview && secondIndex === undefined;
@@ -3596,8 +3597,6 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
   let content;
 
   if (isSelecting) {
-    const verticalIndex = getVerticalIndex(world, entity);
-
     content = hasItems
       ? quickItems.map((item, rowIndex) => {
           const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
@@ -3689,13 +3688,7 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
           !isEditing && (!leftItem || leftExisting === 0),
           false,
           false,
-          !leftItem
-            ? "white"
-            : leftExisting === 0 && !isEditing
-            ? "red"
-            : isEditing
-            ? "yellow"
-            : "lime"
+          !leftItem ? "white" : isEditing ? "red" : "lime"
         ),
         leftItem
           ? leftExisting > 9
@@ -3712,13 +3705,7 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
           !isEditing && (!rightItem || rightExisting === 0),
           false,
           false,
-          !rightItem
-            ? "white"
-            : rightExisting === 0 && !isEditing
-            ? "red"
-            : isEditing
-            ? "yellow"
-            : "lime"
+          !rightItem ? "white" : isEditing ? "red" : "lime"
         ),
         rightItem
           ? rightExisting > 9
@@ -3755,7 +3742,12 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
     popupIdles[getTab(world, entity)],
     content,
     isSelecting && hasItems ? "active" : undefined,
-    undefined,
+    isSelecting && hasItems && secondIndex !== undefined
+      ? [
+          createText("Select an item", colors.grey),
+          createText(`for quick slot ${secondIndex}`, colors.grey),
+        ]
+      : undefined,
     undefined,
     isEditing
       ? undefined

@@ -10,7 +10,7 @@ import {
   underline,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
-import { useDimensions } from "../Dimensions";
+import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
 import { Countable, STATS } from "../../engine/components/stats";
@@ -118,7 +118,7 @@ function StatsInner({
     "white"
   );
   const useButton = createSpriteButton(
-    paused
+    paused && !isTouch
       ? createText("TAB", colors.black)
       : [
           ...createText("US", colors.black),
