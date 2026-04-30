@@ -52,6 +52,8 @@ import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
+import { SEQUENCABLE } from "../../engine/components/sequencable";
+import { getSequence } from "../../engine/systems/sequence";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -208,7 +210,11 @@ export default function Controls() {
     ecs &&
     hero &&
     isInPopup(ecs, hero) &&
-    ecs.getEntityById(hero[PLAYER].popup);
+    ecs.getEntityByIdAndComponents(hero[PLAYER].popup, [POPUP, SEQUENCABLE]);
+  const popupTabs =
+    ecs && popup && !getSequence(ecs, popup, "popup")?.args.instant
+      ? popup[POPUP].tabs.length
+      : 0;
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
   const [joystickOrientations, setJoystickOrientations] = useState<
@@ -1198,18 +1204,16 @@ export default function Controls() {
           }
         />
       )}
-      {Array.from({ length: popup?.[POPUP]?.tabs.length || 0 }).map(
-        (_, index) => (
-          <div
-            key={index}
-            className="PopupTab"
-            id={`tab-${index}`}
-            onClick={handleTab}
-            data-tab={index}
-            style={{ "--popup-tab": index } as React.CSSProperties}
-          />
-        )
-      )}
+      {Array.from({ length: popupTabs }).map((_, index) => (
+        <div
+          key={index}
+          className="PopupTab"
+          id={`tab-${index}`}
+          onClick={handleTab}
+          data-tab={index}
+          style={{ "--popup-tab": index } as React.CSSProperties}
+        />
+      ))}
       {popup && (
         <>
           <div className="PopupClose" id="close" onClick={handleClose} />

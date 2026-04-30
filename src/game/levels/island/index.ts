@@ -68,7 +68,6 @@ import {
   WeatherSequence,
 } from "../../../engine/components/sequencable";
 import {
-  createItemName,
   createUnitName,
   getUnitSprite,
   npcSequence,
@@ -968,85 +967,6 @@ export const generateIsland = (world: World) => {
     "earthChief",
     combine(size, inn, { x: choice(-1, 1), y: 2 })
   );
-
-  createPopup(world, chiefEntity, {
-    deals: [
-      {
-        item: {
-          equipment: "compass",
-          material: "iron",
-          amount: 1,
-        },
-        stock: 1,
-        prices: [{ stackable: "coin", amount: 20 }],
-      },
-      {
-        item: {
-          stackable: "resource",
-          material: "iron",
-          amount: 1,
-        },
-        stock: 1,
-        prices: [],
-      },
-      {
-        item: {
-          stat: "xp",
-          amount: 3,
-        },
-        stock: 1,
-        prices: [],
-      },
-    ],
-    lines: [
-      [
-        createText("Welcome to the"),
-        [...createText("earth", colors.lime), ...createText(" town! I am")],
-        [
-          ...createText("the "),
-          ...createText("Chief", colors.green),
-          ...createText("."),
-        ],
-        [],
-        createText("I have a task for"),
-        createText("you with reward:"),
-        [
-          ...createText("A "),
-          ...createItemName({ equipment: "compass", material: "iron" }),
-          ...createText("."),
-        ],
-        [],
-        createText("It points to your"),
-        createText("spawn, follow it"),
-        createText("if you get lost."),
-        [],
-        createText("You will see it"),
-        createText("at the bottom"),
-        createText("of your screen."),
-        [],
-        [
-          ...createText("Find some "),
-          ...createItemName({ stackable: "coin" }),
-          ...createText(","),
-        ],
-        createText("they drop from"),
-        [
-          ...createText("Enemies", colors.maroon),
-          ...createText(": "),
-          getUnitSprite("eye"),
-          getUnitSprite("prism"),
-          getUnitSprite("orb"),
-          getUnitSprite("rose"),
-          getUnitSprite("clover"),
-          getUnitSprite("violet"),
-        ],
-        [],
-        createText("Then, come back!"),
-      ],
-    ],
-    tabs: ["quest"],
-  });
-
   npcSequence(world, chiefEntity, "earthChiefNpc", {});
 
   // smith's house

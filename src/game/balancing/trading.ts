@@ -122,6 +122,8 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "charge" },
   { consume: "potion", material: "iron", element: "fire" },
   { consume: "potion", material: "iron", element: "water" },
+  { stackable: "fruit" },
+  { stackable: "herb" },
   { stackable: "banana" },
   { stackable: "coconut" },
   { stackable: "resource", material: "wood" },

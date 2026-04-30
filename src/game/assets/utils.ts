@@ -1560,7 +1560,7 @@ export const entitySprites: Record<
         ...createText("Base for "),
         ...createItemName({
           consume: "potion",
-          material: "wood",
+          material: "iron",
           element: "water",
         }),
         ...createText("."),
@@ -1580,7 +1580,7 @@ export const entitySprites: Record<
         ...createText("Base for "),
         ...createItemName({
           consume: "potion",
-          material: "wood",
+          material: "iron",
           element: "fire",
         }),
         ...createText("."),
@@ -1652,8 +1652,16 @@ export const entitySprites: Record<
   charge: {
     sprite: charge,
     getDescription: () => [
-      createText("Can be used for"),
-      createText("powerful skills."),
+      createText("Used for skills."),
+      createText("Drops on hitting"),
+      [
+        ...createText("with a "),
+        ...createItemName({
+          equipment: "weapon",
+          material: "wood",
+        }),
+        ...createText("."),
+      ],
     ],
   },
   note: {
