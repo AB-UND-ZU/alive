@@ -40,6 +40,7 @@ export const playerHeight = 1.3 * stackHeight;
 export const lootHeight = 1.5 * stackHeight;
 export const decayHeight = 1.8 * stackHeight;
 export const immersibleHeight = 2 * stackHeight;
+export const wireHeight = 2.2 * stackHeight;
 export const dotsHeight = 2.5 * stackHeight;
 export const lightHeight = 3 * stackHeight;
 export const wallHeight = 4 * stackHeight;

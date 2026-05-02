@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Orientation } from "./orientable";
 
-export type ConditionType = "zap" | "block" | "axe" | "pickaxe";
+export type ConditionType = "zap" | "block" | "axe" | "pickaxe" | "hook";
 
 export type Conditionable = Partial<
   Record<

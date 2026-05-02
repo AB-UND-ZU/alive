@@ -101,6 +101,7 @@ export const shootHoming = (
       lastInteraction: 0,
       spring: { duration: world.metadata.gameEntity[REFERENCE].tick },
       flying: true,
+      swimming: false,
     },
     [ORIENTABLE]: {},
     [POSITION]: copy(caster[POSITION]),

@@ -40,8 +40,8 @@ import { LAYER } from "../../engine/components/layer";
 import FogOfWar from "./FogOfWar";
 import { LIQUID } from "../../engine/components/liquid";
 import { HARVESTABLE } from "../../engine/components/harvestable";
-import { enemySpawner } from "../../game/assets/sprites";
 import { BUMPABLE } from "../../engine/components/bumpable";
+import { none } from "../../game/assets/sprites";
 
 function Entity({
   entity,
@@ -179,7 +179,7 @@ function Entity({
   const harvestSegment = harvestable
     ? {
         id: -5,
-        sprite: enemySpawner,
+        sprite: none,
         amount:
           harvestable.amount < harvestable.maximum ? harvestable.amount : 0,
         offsetX: 0,
@@ -243,7 +243,12 @@ function Entity({
       )}
 
       {dotsSegment && (
-        <Dots segment={dotsSegment} entity={entity} isVisible={isVisible} />
+        <Dots
+          segment={dotsSegment}
+          entity={entity}
+          isVisible={isVisible}
+          negative={isOpaque}
+        />
       )}
 
       {isFog &&

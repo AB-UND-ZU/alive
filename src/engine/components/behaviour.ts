@@ -42,6 +42,7 @@ export type Pattern = {
     | "soothe"
     | "tumbleweed"
     | "spawner"
+    | "habitat"
     | "dummy"
     | "guard"
     | "watch";

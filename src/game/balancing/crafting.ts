@@ -69,6 +69,10 @@ export const craftingRecipes: Recipe[] = [
         { stackable: "banana", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
       ],
+      [
+        { stackable: "salmon", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
+      ],
     ],
   },
   {
@@ -80,6 +84,10 @@ export const craftingRecipes: Recipe[] = [
       ],
       [
         { stackable: "coconut", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
+      ],
+      [
+        { stackable: "pike", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
       ],
     ],
@@ -121,11 +129,19 @@ export const craftingRecipes: Recipe[] = [
     item: { consume: "potion", material: "gold", element: "fire", amount: 10 },
     options: [
       [
-        { stackable: "fruit", amount: 3 },
+        { stackable: "fruit", amount: 2 },
         { stackable: "plank", amount: 1 },
       ],
       [
-        { stackable: "banana", amount: 3 },
+        { stackable: "banana", amount: 2 },
+        { stackable: "plank", amount: 1 },
+      ],
+      [
+        { stackable: "salmon", amount: 2 },
+        { stackable: "plank", amount: 1 },
+      ],
+      [
+        { stackable: "tuna", amount: 1 },
         { stackable: "plank", amount: 1 },
       ],
     ],
@@ -134,11 +150,19 @@ export const craftingRecipes: Recipe[] = [
     item: { consume: "potion", material: "gold", element: "water", amount: 10 },
     options: [
       [
-        { stackable: "herb", amount: 3 },
+        { stackable: "herb", amount: 2 },
         { stackable: "plank", amount: 1 },
       ],
       [
-        { stackable: "coconut", amount: 3 },
+        { stackable: "coconut", amount: 2 },
+        { stackable: "plank", amount: 1 },
+      ],
+      [
+        { stackable: "pike", amount: 2 },
+        { stackable: "plank", amount: 1 },
+      ],
+      [
+        { stackable: "cod", amount: 1 },
         { stackable: "plank", amount: 1 },
       ],
     ],

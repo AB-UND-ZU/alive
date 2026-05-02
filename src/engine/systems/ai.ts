@@ -50,7 +50,7 @@ import { ACTIONABLE } from "../components/actionable";
 import { castableSpell, getLockable, isLocked, isUnlocked } from "./action";
 import { ITEM } from "../components/item";
 import { castSpell, lockDoor } from "./trigger";
-import { dropEntity } from "./drop";
+import { createItemAsDrop, dropEntity } from "./drop";
 import {
   chestBoss,
   confused,
@@ -61,8 +61,10 @@ import {
   golemLimb,
   golemShoulderLeft,
   golemShoulderRight,
+  none,
   rage,
   rage2,
+  shadow,
   sleep1,
   sleep2,
   waveTowerCharged,
@@ -105,9 +107,9 @@ import { RECHARGABLE } from "../components/rechargable";
 import { addAffectable, addCollidable, addShootable } from "../components";
 import { COLLIDABLE } from "../components/collidable";
 import { NPC } from "../components/npc";
-import { queueMessage } from "../../game/assets/utils";
+import { getItemSprite, queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
-import { isImmersible } from "./immersion";
+import { isImmersible, isSwimming } from "./immersion";
 import { CLICKABLE } from "../components/clickable";
 import { getEmptyAffectable } from "../components/affectable";
 import { HARVESTABLE } from "../components/harvestable";
@@ -131,6 +133,11 @@ import { BUMPABLE } from "../components/bumpable";
 import { getActiveViewable } from "../../bindings/hooks";
 import { VIEWABLE } from "../components/viewable";
 import { HOMING } from "../components/homing";
+import { FISHABLE } from "../components/fishable";
+import { BAITABLE } from "../components/baitable";
+import { createBubble } from "./water";
+import { HOOKABLE } from "../components/hookable";
+import { fishingDistribution } from "./fishing";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -141,13 +148,7 @@ export default function setupAi(world: World) {
 
     lastGeneration = generation;
 
-    for (const entity of world.getEntities([
-      BELONGABLE,
-      POSITION,
-      MOVABLE,
-      BEHAVIOUR,
-      FOG,
-    ])) {
+    for (const entity of world.getEntities([POSITION, MOVABLE, BEHAVIOUR])) {
       const patterns = (entity[BEHAVIOUR] as Behaviour).patterns;
       const entityId = world.getEntityId(entity);
       const size = world.metadata.gameEntity[LEVEL].size;
@@ -175,7 +176,12 @@ export default function setupAi(world: World) {
           pattern.memory.ticks -= 1;
           break;
         } else if (pattern.name === "passive") {
-          if (!entity[STATS] || !entity[SPRITE] || !entity[TOOLTIP]) {
+          if (
+            !entity[STATS] ||
+            !entity[SPRITE] ||
+            !entity[TOOLTIP] ||
+            !entity[BELONGABLE]
+          ) {
             patterns.splice(patterns.indexOf(pattern), 1);
             continue;
           }
@@ -218,6 +224,7 @@ export default function setupAi(world: World) {
           }
           break;
         } else if (pattern.name === "tumbleweed") {
+          if (!entity[FOG]) continue;
           const facingPosition = add(entity[POSITION], orientationPoints.right);
 
           if (pattern.memory.hidden === true) {
@@ -388,7 +395,7 @@ export default function setupAi(world: World) {
 
           break;
         } else if (pattern.name === "eye") {
-          if (!entity[TOOLTIP]) continue;
+          if (!entity[TOOLTIP] || !entity[FOG]) continue;
 
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
@@ -867,7 +874,7 @@ export default function setupAi(world: World) {
           patterns.splice(patterns.indexOf(pattern), 1);
           break;
         } else if (pattern.name === "enrage") {
-          if (!entity[TOOLTIP]) continue;
+          if (!entity[TOOLTIP] || !entity[BELONGABLE]) continue;
           const memory = pattern.memory;
           entity[BELONGABLE].faction = "hostile";
           entity[TOOLTIP].changed = true;
@@ -880,7 +887,7 @@ export default function setupAi(world: World) {
 
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "soothe") {
-          if (!entity[TOOLTIP]) continue;
+          if (!entity[TOOLTIP] || !entity[BELONGABLE]) continue;
           entity[BELONGABLE].faction = "settler";
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = undefined;
@@ -1518,6 +1525,217 @@ export default function setupAi(world: World) {
           } else if (pattern.memory.heal) {
             delete pattern.memory.heal;
           }
+        } else if (pattern.name === "habitat") {
+          if (!entity[FISHABLE]) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          // check surrounding baits
+          const baitDistance = 3;
+          const spawnDistance = 5;
+
+          const baitEntity = world
+            .getEntities([BAITABLE, POSITION])
+            .filter(
+              (bait) =>
+                isSwimming(world, bait) &&
+                getDistance(entity[POSITION], bait[POSITION], size, 1) <=
+                  baitDistance
+            )[0];
+          const fishEntity = world.getEntityByIdAndComponents(
+            pattern.memory.fish,
+            [HOOKABLE, INVENTORY, MOVABLE, POSITION, RENDERABLE]
+          );
+          const baitId = baitEntity && world.getEntityId(baitEntity);
+
+          // clear invalid references
+          if (pattern.memory.fish && !fishEntity) {
+            pattern.memory.fish = undefined;
+            pattern.memory.caught = undefined;
+            pattern.memory.stranded = undefined;
+          } else if (
+            pattern.memory.escaping &&
+            baitEntity &&
+            world.getEntityById(pattern.memory.escaping) !== baitEntity
+          ) {
+            pattern.memory.escaping = undefined;
+          } else if (fishEntity && fishEntity[HOOKABLE].escaping) {
+            pattern.memory.escaping = fishEntity[HOOKABLE].hooked;
+          } else if (
+            baitEntity &&
+            baitEntity[BAITABLE].caught &&
+            fishEntity &&
+            fishEntity[HOOKABLE].hooked !== baitId
+          ) {
+            // abort if other fish caught first
+            pattern.memory.escaping = baitId;
+          } else if (fishEntity && fishEntity[HOOKABLE].catching) {
+            pattern.memory.caught = fishEntity[HOOKABLE].catching;
+            fishEntity[MOVABLE].orientations = [];
+          }
+
+          const fishShadow =
+            fishEntity && isImmersible(world, fishEntity[POSITION])
+              ? none
+              : shadow;
+          if (fishEntity && fishEntity[SPRITE] !== fishShadow) {
+            fishEntity[SPRITE] = fishShadow;
+            rerenderEntity(world, fishEntity);
+          }
+
+          if (
+            !pattern.memory.escaping &&
+            baitEntity &&
+            !baitEntity[BAITABLE].caught &&
+            !fishEntity &&
+            entity[FISHABLE].population > 0
+          ) {
+            // create fish
+            const fishingArea = shuffle(
+              range(0, spawnDistance * 2).map((offsetX) =>
+                shuffle(
+                  range(0, spawnDistance * 2)
+                    .map((offsetY) =>
+                      combine(size, entity[POSITION], {
+                        x: offsetX - spawnDistance,
+                        y: offsetY - spawnDistance,
+                      })
+                    )
+                    .filter((position) => isImmersible(world, position))
+                )
+              )
+            ).flat();
+            const fishingSpawn = fishingArea.find(
+              (fishingPosition) =>
+                getDistance(baitEntity[POSITION], fishingPosition, size, 1) >=
+                spawnDistance
+            );
+
+            const fishChoice =
+              fishingDistribution[
+                distribution(...fishingDistribution.map((fish) => fish[0]))
+              ][1];
+            const fishItem = { ...fishChoice, bound: false };
+
+            if (fishingSpawn) {
+              const newFish = createItemAsDrop(
+                world,
+                fishingSpawn,
+                entities.createItem,
+                {
+                  [ITEM]: fishItem,
+                  [SPRITE]: getItemSprite(fishItem),
+                },
+                false
+              );
+              const carrierEntity = world.assertByIdAndComponents(
+                newFish[ITEM].carrier,
+                [MOVABLE]
+              );
+              carrierEntity[MOVABLE].swimming = true;
+              pattern.memory.fish = newFish[ITEM].carrier;
+              entity[FISHABLE].population -= 1;
+            }
+          } else if (
+            fishEntity &&
+            (!baitEntity || pattern.memory.escaping) &&
+            !fishEntity[HOOKABLE].catching
+          ) {
+            if (
+              getDistance(fishEntity[POSITION], entity[POSITION], size) === 0
+            ) {
+              // despawn fish
+              disposeEntity(world, fishEntity, false);
+              pattern.memory.fish = undefined;
+              pattern.memory.caught = undefined;
+              pattern.memory.stranded = undefined;
+              entity[FISHABLE].population += 1;
+            } else if (pattern.memory.caught) {
+              // let fish sit for one tick after being caught
+              pattern.memory.caught = undefined;
+            } else {
+              // let fish swim back to habitat
+              const movement = relativeOrientations(
+                world,
+                fishEntity[POSITION],
+                entity[POSITION]
+              );
+
+              const stranded = !isImmersible(world, fishEntity[POSITION]);
+
+              const hopping =
+                stranded &&
+                pattern.memory.stranded &&
+                generation - pattern.memory.stranded > 10;
+
+              if (
+                hopping ||
+                (stranded && pattern.memory.stranded === undefined)
+              ) {
+                pattern.memory.stranded = generation;
+              }
+
+              fishEntity[MOVABLE].swimming = !hopping;
+
+              if (
+                !stranded ||
+                hopping ||
+                generation % 4 === 0 ||
+                random(0, 10) === 0
+              ) {
+                fishEntity[MOVABLE].orientations = movement;
+              } else {
+                fishEntity[MOVABLE].orientations = [];
+              }
+            }
+          } else if (baitEntity && fishEntity) {
+            // let fish swim towards bait or attempt escaping
+            const movements = relativeOrientations(
+              world,
+              fishEntity[POSITION],
+              baitEntity[POSITION]
+            );
+            const fishType = world.assertByIdAndComponents(
+              fishEntity[INVENTORY].items[0],
+              [ITEM]
+            )[ITEM].stackable;
+            if (fishType === "seastar") {
+              if (fishEntity[MOVABLE].orientations.length > 0) {
+                fishEntity[MOVABLE].orientations = [];
+              } else {
+                fishEntity[MOVABLE].orientations = movements;
+              }
+            } else {
+              fishEntity[MOVABLE].orientations =
+                movements.length === 0
+                  ? [choice(...orientations)]
+                  : getDistance(
+                      fishEntity[POSITION],
+                      baitEntity[POSITION],
+                      size,
+                      1
+                    ) >= 4
+                  ? movements
+                  : shuffle([...movements, ...orientations]);
+            }
+          } else if (
+            !baitEntity &&
+            !fishEntity &&
+            entity[FISHABLE].population > 0
+          ) {
+            // indicate available spawn
+            if (
+              (generation + entity[POSITION].x + entity[POSITION].y) % 15 ===
+                0 &&
+              !pattern.memory.fish
+            ) {
+              createBubble(world, entity[POSITION], "water");
+            }
+          } else if (!fishEntity && entity[FISHABLE].population === 0) {
+            // clear habitat
+            disposeEntity(world, entity);
+          }
         } else if (pattern.name === "ilex") {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
@@ -1818,6 +2036,7 @@ export default function setupAi(world: World) {
             !entity[STATS] ||
             !entity[SPRITE] ||
             !entity[TOOLTIP] ||
+            !entity[BELONGABLE] ||
             !castableEntity ||
             !stemEntity
           ) {
@@ -3090,6 +3309,7 @@ export default function setupAi(world: World) {
                   spring: entity[MOVABLE].spring,
                   lastInteraction: 0,
                   flying: false,
+                  swimming: false,
                 },
                 [ORIENTABLE]: { facing: pattern.memory.orientation },
                 [POSITION]: copy(pattern.memory.origin),
@@ -3204,6 +3424,7 @@ export default function setupAi(world: World) {
                   spring: entity[MOVABLE].spring,
                   lastInteraction: 0,
                   flying: false,
+                  swimming: false,
                 },
                 [ORIENTABLE]: { facing: pattern.memory.orientation },
                 [POSITION]: target,
@@ -3594,6 +3815,7 @@ export default function setupAi(world: World) {
                     spring: entity[MOVABLE].spring,
                     lastInteraction: 0,
                     flying: true,
+                    swimming: false,
                   },
                   [ORIENTABLE]: { facing: "up" },
                   [POSITION]: copy(pattern.memory.waypoints[0]),
@@ -3636,6 +3858,7 @@ export default function setupAi(world: World) {
             !entity[ACTIONABLE] ||
             !entity[TOOLTIP] ||
             !entity[STATS] ||
+            !entity[BELONGABLE] ||
             !spellItem
           ) {
             patterns.splice(patterns.indexOf(pattern), 1);

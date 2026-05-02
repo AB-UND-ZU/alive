@@ -50,10 +50,14 @@ import {
 import { centerSprites } from "../../game/assets/pixels";
 import { LEVEL } from "../../engine/components/level";
 import { menuName } from "../../game/levels/menu";
-import { CONDITIONABLE } from "../../engine/components/conditionable";
+import {
+  Conditionable,
+  CONDITIONABLE,
+} from "../../engine/components/conditionable";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { getSequence } from "../../engine/systems/sequence";
+import { harvestConditions } from "../../game/balancing/harvesting";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -88,12 +92,15 @@ export const hotKeys = range(0, 9).map((key) => key.toString());
 
 const getActionActivations = (world: World, hero: TypedEntity, item: Item) => {
   const itemSprite = getItemSprite(item, "display");
+  const hookCondition = hero[CONDITIONABLE]?.hook;
 
   if (
     item.skill === "bow" ||
-    rechargables.includes(item.skill as (typeof rechargables)[number])
+    rechargables.includes(item.skill as (typeof rechargables)[number]) ||
+    (item.tool === "hook" && !hookCondition)
   ) {
-    const ammo = item.skill === "bow" ? "arrow" : "charge";
+    const ammo =
+      item.skill === "bow" ? "arrow" : item.tool === "hook" ? "worm" : "charge";
     const stackableItem = hero[INVENTORY]?.items
       .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
       .find((item) => item[ITEM].stackable === ammo);
@@ -108,10 +115,20 @@ const getActionActivations = (world: World, hero: TypedEntity, item: Item) => {
       ),
       stackableSprite,
     ].slice(-6);
-  } else if (item.tool === "axe") {
-    if (!hero[CONDITIONABLE]?.axe) {
+  } else if (item.tool === "axe" || item.tool === "pickaxe") {
+    if (!hero[CONDITIONABLE]?.[harvestConditions[item.tool]]) {
       return centerSprites([itemSprite], 6);
     }
+    const swordEntity = world.getEntityByIdAndComponents(
+      hero[EQUIPPABLE]?.weapon,
+      [SPRITE]
+    );
+    return centerSprites([swordEntity?.[SPRITE] || none], 6);
+  } else if (
+    item.tool === "hook" &&
+    hookCondition &&
+    !hookCondition.orientation
+  ) {
     const swordEntity = world.getEntityByIdAndComponents(
       hero[EQUIPPABLE]?.weapon,
       [SPRITE]
@@ -285,8 +302,19 @@ export default function Controls() {
         hero[EQUIPPABLE]?.weapon,
         [SPRITE]
       );
-      if (hero[CONDITIONABLE]?.axe) {
+      const hookCondition = (hero[CONDITIONABLE] as Conditionable)?.hook;
+      if (hookCondition && hookCondition.amount === hookCondition.duration) {
+        return "CATCH";
+      }
+      if (
+        hero[CONDITIONABLE]?.axe ||
+        hero[CONDITIONABLE]?.pickaxe ||
+        hookCondition
+      ) {
         return (swordEntity?.[SPRITE].name || "Stow").toUpperCase();
+      }
+      if (toolEntity[ITEM].tool === "pickaxe") {
+        return "MINE";
       }
 
       return toolEntity[SPRITE].name.toUpperCase();

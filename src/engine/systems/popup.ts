@@ -600,7 +600,7 @@ export default function setupPopup(world: World) {
     );
     const inspectItems = inventoryItems.filter((item) => !item[ITEM].equipment);
     const quickItems = inventoryItems.filter((item) =>
-      getItemConsumption(world, item)
+      getItemConsumption(item)
     );
 
     const transaction = getTab(world, popupEntity);

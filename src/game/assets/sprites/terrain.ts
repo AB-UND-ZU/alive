@@ -157,18 +157,100 @@ export const birch: Sprite = {
 export const stem: Sprite = {
   name: "tree_stem",
   layers: [
-    { char: "│", color: colors.silver },
+    { char: "│", color: colors.maroon },
     { char: "┬", color: colors.black },
-    { char: "l", color: colors.silver },
+    { char: "l", color: colors.maroon },
   ],
 };
 
 export const leaves: Sprite = {
   name: "tree_leaves",
   layers: [
-    { char: "\u0107", color: colors.green },
     { char: "\u0106", color: colors.green },
+    { char: "\u0107", color: colors.green },
     { char: "▀", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "░", color: colors.black },
+  ],
+};
+
+export const stemRottenLeft: Sprite = {
+  name: "tree_stem_rotten_left",
+  layers: [
+    { char: "[", color: colors.maroon },
+    { char: ".", color: colors.black },
+    { char: "|", color: colors.black },
+    { char: "·", color: colors.red },
+    { char: "Ω", color: colors.maroon },
+    { char: "∩", color: colors.black },
+    { char: "°", color: colors.black },
+    { char: "'", color: colors.black },
+  ],
+};
+
+export const stemRottenRight: Sprite = {
+  name: "tree_stem_rotten_right",
+  layers: [
+    { char: "]", color: colors.maroon },
+    { char: ".", color: colors.black },
+    { char: "·", color: colors.red },
+    { char: "Ω", color: colors.maroon },
+    { char: "∩", color: colors.black },
+    { char: "°", color: colors.black },
+    { char: "'", color: colors.black },
+  ],
+};
+
+export const branchRottenLeft: Sprite = {
+  name: "tree_branch_rotten_left",
+  layers: [
+    { char: "+", color: colors.maroon },
+    { char: "±", color: colors.black },
+    { char: "∙", color: colors.maroon },
+    { char: "]", color: colors.black },
+    { char: "═", color: colors.maroon },
+    { char: "─", color: colors.black },
+    { char: "-", color: colors.maroon },
+    { char: "·", color: colors.red },
+  ],
+};
+
+export const branchRottenRight: Sprite = {
+  name: "tree_branch_rotten_right",
+  layers: [
+    { char: "|", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "+", color: colors.black },
+    { char: ".", color: colors.black },
+    { char: "═", color: colors.maroon },
+    { char: "·", color: colors.red },
+    { char: ",", color: colors.black },
+    { char: "⌐", color: colors.black },
+  ],
+};
+
+export const leavesRottenLeft: Sprite = {
+  name: "tree_leaves_rotten_left",
+  layers: [
+    { char: "╞", color: colors.maroon },
+    { char: "│", color: colors.black },
+    { char: "H", color: colors.green },
+    { char: "[", color: colors.green },
+    { char: "]", color: colors.green },
+    { char: "+", color: colors.red },
+    { char: "÷", color: colors.green },
+    { char: "░", color: colors.black },
+  ],
+};
+
+export const leavesRottenRight: Sprite = {
+  name: "tree_leaves_rotten_right",
+  layers: [
+    { char: "H", color: colors.green },
+    { char: "[", color: colors.green },
+    { char: "]", color: colors.green },
+    { char: "+", color: colors.red },
+    { char: "÷", color: colors.green },
     { char: "░", color: colors.black },
   ],
 };

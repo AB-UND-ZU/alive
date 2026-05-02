@@ -3,7 +3,7 @@ import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
 import { isEmpty } from "./collect";
 import { LOOTABLE } from "../components/lootable";
-import { getRoot, isDead } from "./damage";
+import { getLimbs, getRoot, getStructure, isDead } from "./damage";
 import { entities } from "..";
 import { disposeEntity, registerEntity } from "./map";
 import { DROPPABLE } from "../components/droppable";
@@ -58,6 +58,10 @@ import { VANISHABLE } from "../components/vanishable";
 import { BELONGABLE } from "../components/belongable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { createCell } from "../../bindings/creation";
+import { HOOKABLE } from "../components/hookable";
+import { MOVABLE } from "../components/movable";
+import { FRAGMENT } from "../components/fragment";
+import { STRUCTURABLE } from "../components/structurable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE]?.decayed || entity[VANISHABLE]?.decayed;
@@ -205,9 +209,20 @@ export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
 ) => {
   const containerEntity = entities.createContainer(world, {
     [FOG]: { visibility: "fog", type: "unit" },
+    [HOOKABLE]: { escaping: false },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
     [LOOTABLE]: { disposable: true },
+    [MOVABLE]: {
+      orientations: [],
+      reference: world.getEntityId(world.metadata.gameEntity),
+      spring: {
+        duration: 200,
+      },
+      lastInteraction: 0,
+      flying: false,
+      swimming: false,
+    },
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
@@ -394,16 +409,27 @@ export const dropEntity = (
     }
 
     const containerData = {
-      [FOG]: { visibility: "fog", type: "unit" },
+      [FOG]: { visibility: "fog", type: "unit" } as const,
+      [HOOKABLE]: { escaping: false },
       [INVENTORY]: { items: isCentered ? [itemId] : [] },
       [LAYER]: {},
       [LOOTABLE]: { disposable: isCentered },
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: false,
+        swimming: false,
+      },
       [POSITION]: dropPosition,
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: !isImmersible(world, dropPosition) ? shadow : none,
       [SWIMMABLE]: { swimming: false },
-    } as const;
+    };
 
     const containerEntity = itemEntity[POPUP]
       ? entities.createWrapper(world, {
@@ -566,13 +592,16 @@ export default function setupDrop(world: World) {
       POSITION,
     ])) {
       if (isHarvested(world, entity)) {
-        createSequence<"decay", DecaySequence>(
-          world,
-          entity,
-          "decay",
-          "creatureDecay",
-          { fast: false }
-        );
+        const limbs = getLimbs(world, entity);
+        limbs.forEach((limb) => {
+          createSequence<"decay", DecaySequence>(
+            world,
+            limb,
+            "decay",
+            "creatureDecay",
+            { fast: false }
+          );
+        });
         dropEntity(
           world,
           entity,
@@ -588,6 +617,24 @@ export default function setupDrop(world: World) {
         !isDead(world, entity)
       ) {
         disposeEntity(world, entity, true);
+      }
+    }
+
+    // decay harvested limbs
+    for (const entity of world.getEntities([
+      FRAGMENT,
+      RENDERABLE,
+      SEQUENCABLE,
+      POSITION,
+    ])) {
+      if (STRUCTURABLE in entity) continue;
+
+      const rootEntity = getStructure(world, entity);
+
+      if (rootEntity && !(HARVESTABLE in rootEntity)) continue;
+
+      if (!rootEntity || isDecayed(world, entity)) {
+        disposeEntity(world, entity);
       }
     }
 

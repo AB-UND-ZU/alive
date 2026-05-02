@@ -137,6 +137,7 @@ export const shootArrow = (
       lastInteraction: 0,
       spring: { duration: tick },
       flying: false,
+      swimming: false,
     },
     [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
     [POSITION]: copy(entity[POSITION]),

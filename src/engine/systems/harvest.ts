@@ -12,18 +12,39 @@ import {
   orientationPoints,
 } from "../components/orientable";
 import { isControllable } from "./freeze";
-import { HARVESTABLE } from "../components/harvestable";
+import { Harvestable, HARVESTABLE } from "../components/harvestable";
 import { getLootable } from "./collect";
-import { ITEM, materials } from "../components/item";
+import { Item, ITEM } from "../components/item";
 import { getSequence } from "./sequence";
 import { EQUIPPABLE } from "../components/equippable";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isWalkable } from "./movement";
+import { getBlockable } from "./action";
+import { getFragment } from "./enter";
+import { FRAGMENT } from "../components/fragment";
+import {
+  harvestConditions,
+  harvestTools,
+} from "../../game/balancing/harvesting";
 
-export const getHarvestable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => HARVESTABLE in entity
-  ) as Entity | undefined;
+export const getHarvestable = (world: World, position: Position) => {
+  if (getBlockable(world, position)) return;
+
+  for (const target of Object.values(getCell(world, position))) {
+    if (HARVESTABLE in target) return target;
+
+    const fragmentEntity = getFragment(world, position);
+
+    if (!fragmentEntity) continue;
+
+    const structurableEntity = world.getEntityById(
+      fragmentEntity[FRAGMENT].structure
+    );
+
+    if (structurableEntity && HARVESTABLE in structurableEntity)
+      return structurableEntity;
+  }
+};
 
 export const getHarvestTarget = (
   world: World,
@@ -38,31 +59,34 @@ export const getHarvestTarget = (
   const target = add(entity[POSITION], orientationPoints[orientation]);
   const harvestable = getHarvestable(world, target);
   const lootable = getLootable(world, target);
+  const toolName =
+    harvestable &&
+    harvestTools[(harvestable[HARVESTABLE] as Harvestable).resource];
 
   if (
     lootable ||
     !harvestable ||
-    harvestable[HARVESTABLE].resource !== "tree" ||
-    harvestable[HARVESTABLE].amount <= 0 ||
-    materials.indexOf(harvestable[HARVESTABLE].material) >
-      materials.indexOf(tool[ITEM].material)
+    tool[ITEM].tool !== toolName ||
+    harvestable[HARVESTABLE].amount <= 0
   )
     return;
 
   return harvestable;
 };
 
-export const harvestTree = (world: World, entity: Entity, axe: Entity) => {
-  const harvestable = getHarvestTarget(world, entity, axe);
-  const axeCondition = getSequence(world, entity, "condition");
+export const harvestResource = (world: World, entity: Entity, tool: Entity) => {
+  const harvestable = getHarvestTarget(world, entity, tool);
+  const toolCondition = getSequence(world, entity, "condition");
+  const conditionName =
+    tool[ITEM].tool && harvestConditions[(tool[ITEM] as Item).tool!];
 
-  if (!harvestable || axeCondition?.name !== "axeCondition") return;
+  if (!harvestable || toolCondition?.name !== "toolCondition") return;
 
-  entity[CONDITIONABLE].axe.duration = axeCondition.elapsed;
-  entity[CONDITIONABLE].axe.orientation = entity[ORIENTABLE].facing;
+  entity[CONDITIONABLE][conditionName].duration = toolCondition.elapsed;
+  entity[CONDITIONABLE][conditionName].orientation = entity[ORIENTABLE].facing;
 };
 
-export default function setupHarvesting(world: World) {
+export default function setupHarvest(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
 
@@ -102,11 +126,16 @@ export default function setupHarvesting(world: World) {
         entity[EQUIPPABLE].tool,
         [ITEM]
       );
-      const axeCondition = entity[CONDITIONABLE].axe;
+      const conditionName =
+        harvestItem?.[ITEM].tool && harvestConditions[harvestItem[ITEM].tool];
+      const toolCondition =
+        conditionName && entity[CONDITIONABLE][conditionName];
       if (
+        !conditionName ||
         !isControllable(world, entity) ||
-        !axeCondition ||
-        harvestItem?.[ITEM].tool !== "axe"
+        !toolCondition ||
+        (harvestItem?.[ITEM].tool !== "axe" &&
+          harvestItem?.[ITEM].tool !== "pickaxe")
       )
         continue;
 
@@ -125,7 +154,7 @@ export default function setupHarvesting(world: World) {
       const lootable = getLootable(world, targetPosition);
 
       if (targetEntity) {
-        harvestTree(world, entity, harvestItem);
+        harvestResource(world, entity, harvestItem);
       } else if (walkable || lootable) {
         // prevent all actions except walking and looting
         continue;

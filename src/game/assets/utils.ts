@@ -149,6 +149,16 @@ import {
   quickSeparatorSelected,
   quickCenterStart,
   quickCenterEnd,
+  salmon,
+  tuna,
+  pike,
+  cod,
+  pearl,
+  seastar,
+  eel,
+  algae,
+  fishing,
+  bubble,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -167,6 +177,7 @@ import {
   ResourceItem,
   Skill,
   Tool,
+  ITEM,
 } from "../../engine/components/item";
 import { generateUnitData, UnitKey } from "../balancing/units";
 import { Gear, Slots } from "../../engine/components/equippable";
@@ -199,6 +210,7 @@ import {
   totem,
   trapSpell,
   waveSpell,
+  hook,
 } from "./templates/equipments";
 import { flask, potion, key, bottle, spirit } from "./templates/items";
 import { doorClosed, entryClosed, entryClosedDisplay } from "./templates/units";
@@ -208,7 +220,10 @@ import {
   PartialSpriteTemplate,
   recolorSprite,
 } from "./templates";
-import { consumptionConfigs } from "../../engine/systems/consume";
+import {
+  consumptionConfigs,
+  getItemConsumption,
+} from "../../engine/systems/consume";
 
 export const lootSpeed = 200;
 export const decayTime = 300;
@@ -1236,8 +1251,8 @@ type SpriteDefinition = {
   display?: Sprite;
   descriptions?: PartialDescriptionTemplate;
   getDescription?: (
-    item: Omit<Item, "carrier" | "amount" | "bound">,
-    stats: ItemStats
+    stats: ItemStats,
+    item: Omit<Item, "carrier" | "amount" | "bound">
   ) => Sprite[][]; // lazily initialized to avoid circular references
 };
 
@@ -1481,7 +1496,7 @@ export const entitySprites: Record<
   apple: {
     sprite: appleDrop,
     resource: apple,
-    getDescription: () => [
+    getDescription: (stats) => [
       createText("Crisp apple from"),
       [
         ...createText("a "),
@@ -1489,21 +1504,21 @@ export const entitySprites: Record<
         ...createText("Tree", colors.grey),
         ...createText("."),
       ],
-      createCountable({ hp: 2 }, "hp", "display"),
+      createCountable(stats, "hp", "display"),
     ],
   },
   shroom: {
     sprite: shroom,
-    getDescription: () => [
+    getDescription: (stats) => [
       createText("A savoury shroom"),
       createText("from the forest."),
-      createCountable({ mp: 1 }, "mp", "display"),
+      createCountable(stats, "mp", "display"),
     ],
   },
   banana: {
     sprite: bananaDrop,
     resource: banana,
-    getDescription: () => [
+    getDescription: (stats) => [
       createText("Ripe banana from"),
       [
         ...createText("a "),
@@ -1511,13 +1526,13 @@ export const entitySprites: Record<
         ...createText("Palm", colors.grey),
         ...createText("."),
       ],
-      createCountable({ hp: 5 }, "hp", "display"),
+      createCountable(stats, "hp", "display"),
     ],
   },
   coconut: {
     sprite: coconutDrop,
     resource: coconut,
-    getDescription: () => [
+    getDescription: (stats) => [
       createText("A tender coconut"),
       [
         ...createText("from a "),
@@ -1525,7 +1540,7 @@ export const entitySprites: Record<
         ...createText("Palm", colors.grey),
         ...createText("."),
       ],
-      createCountable({ mp: 2 }, "mp", "display"),
+      createCountable(stats, "mp", "display"),
     ],
   },
   gem: {
@@ -1554,7 +1569,7 @@ export const entitySprites: Record<
   },
   herb: {
     sprite: herb,
-    getDescription: () => [
+    getDescription: (stats) => [
       [...createItemName({ stackable: "flower" }), ...createText(" extract.")],
       [
         ...createText("Base for "),
@@ -1565,12 +1580,12 @@ export const entitySprites: Record<
         }),
         ...createText("."),
       ],
-      createCountable({ mp: 2 }, "mp", "display"),
+      createCountable(stats, "mp", "display"),
     ],
   },
   fruit: {
     sprite: fruit,
-    getDescription: () => [
+    getDescription: (stats) => [
       [
         ...createText("Made from "),
         ...createItemName({ stackable: "berry" }),
@@ -1585,19 +1600,19 @@ export const entitySprites: Record<
         }),
         ...createText("."),
       ],
-      createCountable({ hp: 5 }, "hp", "display"),
+      createCountable(stats, "hp", "display"),
     ],
   },
   seed: {
     sprite: seed,
-    getDescription: () => [
+    getDescription: (stats) => [
       createText("About to sprout."),
       [
         ...createText("Made from "),
         ...createItemName({ stackable: "leaf" }),
         ...createText("."),
       ],
-      createCountable({ xp: 1 }, "xp", "display"),
+      createCountable(stats, "xp", "display"),
     ],
   },
   ingot: {
@@ -1632,7 +1647,82 @@ export const entitySprites: Record<
       ],
     ],
   },
-  worm: { sprite: worm },
+  worm: {
+    sprite: worm,
+    getDescription: () => [
+      createText("A tasty bait used"),
+      [
+        ...createText("for "),
+        fishing,
+        ...createText("Fishing", colors.green),
+        ...createText("."),
+      ],
+    ],
+  },
+  salmon: {
+    sprite: salmon,
+    getDescription: (stats) => [
+      createText("A delicious fish"),
+      createText("with red meat."),
+      createCountable(stats, "hp", "display"),
+    ],
+  },
+  tuna: {
+    sprite: tuna,
+    getDescription: (stats) => [
+      createText("A large fish with"),
+      createText("dark red meat."),
+      createCountable(stats, "hp", "display"),
+    ],
+  },
+  pike: {
+    sprite: pike,
+    getDescription: (stats) => [
+      createText("A fierce fish"),
+      createText("with white meat."),
+      createCountable(stats, "mp", "display"),
+    ],
+  },
+  cod: {
+    sprite: cod,
+    getDescription: (stats) => [
+      createText("A mild fish with"),
+      createText("white flaky meat."),
+      createCountable(stats, "mp", "display"),
+    ],
+  },
+  algae: {
+    sprite: algae,
+    getDescription: (stats) => [
+      createText("Slimy green sea"),
+      createText("weed from oceans."),
+      createCountable(stats, "xp", "display"),
+    ],
+  },
+  eel: {
+    sprite: eel,
+    getDescription: (stats) => [
+      createText("A slithering fish"),
+      createText("with smooth skin."),
+      createCountable(stats, "xp", "display"),
+    ],
+  },
+  pearl: {
+    sprite: pearl,
+    getDescription: () => [
+      createText("An exceptionally"),
+      createText("rare creation of"),
+      createText("an oyster."),
+    ],
+  },
+  seastar: {
+    sprite: seastar,
+    getDescription: () => [
+      createText("A colorful star-"),
+      createText("shaped creature."),
+      createText("Not edible."),
+    ],
+  },
   arrow: {
     sprite: arrow,
     getDescription: () => [
@@ -1830,8 +1920,8 @@ type SpriteTemplateDefinition = {
   display?: PartialSpriteTemplate;
   descriptions?: PartialDescriptionTemplate;
   getDescription?: (
-    item: Omit<Item, "carrier" | "amount" | "bound">,
-    stats: ItemStats
+    stats: ItemStats,
+    item: Omit<Item, "carrier" | "amount" | "bound">
   ) => Sprite[][]; // lazily initialized to avoid circular references
 };
 
@@ -1850,7 +1940,7 @@ export const materialSprites: Partial<
 > = {
   weapon: {
     sprite: sword,
-    getDescription: (item, stats) => {
+    getDescription: (stats, item) => {
       if (item.material === "wood") {
         return [
           createText("Simple sword made"),
@@ -1890,7 +1980,7 @@ export const materialSprites: Partial<
   },
   shield: {
     sprite: shield,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText(
         `${
           {
@@ -1912,7 +2002,7 @@ export const materialSprites: Partial<
   },
   ring: {
     sprite: ring,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText(
         `A ${
           {
@@ -1930,7 +2020,7 @@ export const materialSprites: Partial<
   },
   amulet: {
     sprite: amulet,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText("A protective and"),
       createText(
         `${
@@ -1963,6 +2053,29 @@ export const materialSprites: Partial<
         ...createText("1", colors.green),
         logging,
         ...createText("Logging", colors.green),
+      ],
+    ],
+  },
+  hook: {
+    sprite: hook,
+    getDescription: () => [
+      [
+        ...createText("Catch "),
+        salmon,
+        cod,
+        ...createText("Fish", colors.grey),
+        ...createText(" from"),
+      ],
+      [
+        ...createText("the "),
+        maxCountable(bubble),
+        ...createText("Water", colors.blue),
+        ...createText("."),
+      ],
+      [
+        ...createText("1", colors.green),
+        fishing,
+        ...createText("Fishing", colors.green),
       ],
     ],
   },
@@ -2002,7 +2115,7 @@ export const materialSprites: Partial<
   },
   torch: {
     sprite: torch,
-    getDescription: (item, stats) => [
+    getDescription: (stats) => [
       createText("Glows bright and"),
       createText("keeps you warm."),
       [...createCountable(stats, "vision", "display")],
@@ -2010,7 +2123,7 @@ export const materialSprites: Partial<
   },
   boots: {
     sprite: boots,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText(
         `${
           {
@@ -2030,7 +2143,7 @@ export const materialSprites: Partial<
   // primary spells
   wave: {
     sprite: waveSpell,
-    getDescription: (item, stats) => [
+    getDescription: (stats) => [
       createText("Use to cast a"),
       createText("wave of magic."),
       stretch(
@@ -2046,7 +2159,7 @@ export const materialSprites: Partial<
   },
   beam: {
     sprite: beamSpell,
-    getDescription: (item, stats) => [
+    getDescription: (stats) => [
       createText("Shoots multiple"),
       createText("bolts in a beam."),
       stretch(
@@ -2062,7 +2175,7 @@ export const materialSprites: Partial<
   },
   trap: {
     sprite: trapSpell,
-    getDescription: (item, stats) => [
+    getDescription: (stats) => [
       createText("Damages enemies"),
       createText("walking over it."),
       stretch(
@@ -2078,7 +2191,7 @@ export const materialSprites: Partial<
   },
   dash: {
     sprite: dashSpell,
-    getDescription: (item, stats) => [
+    getDescription: (stats) => [
       createText("Leap forward and"),
       createText("pierce enemies."),
       stretch(
@@ -2097,7 +2210,7 @@ export const materialSprites: Partial<
   slash: {
     sprite: slash,
 
-    getDescription: (item, stats) => [
+    getDescription: (stats) => [
       createText("Spins sword with"),
       createText("extra damage."),
       stretch(
@@ -2117,7 +2230,7 @@ export const materialSprites: Partial<
   bow: {
     sprite: bow,
 
-    getDescription: (item, stats) => [
+    getDescription: (stats) => [
       createText("Shoots a ranged"),
       createText("projectile."),
       stretch(
@@ -2136,7 +2249,7 @@ export const materialSprites: Partial<
   },
   zap: {
     sprite: zap,
-    getDescription: (item, stats) => [
+    getDescription: (stats) => [
       [
         ...createText("Strikes "),
         ...createText(stats.range.toString()),
@@ -2160,7 +2273,7 @@ export const materialSprites: Partial<
   },
   block: {
     sprite: block,
-    getDescription: (item, stats) => [
+    getDescription: (stats) => [
       [
         ...createText("Defends "),
         minCountable(meleeHit),
@@ -2188,7 +2301,7 @@ export const materialSprites: Partial<
   },
   totem: {
     sprite: totem,
-    getDescription: (item, itemStats) => [
+    getDescription: (itemStats) => [
       [
         ...createText("Grants "),
         ...createText("+1", colors.lime),
@@ -2222,7 +2335,7 @@ export const materialSprites: Partial<
       diamond: { default: diamond },
       ruby: { default: ruby },
     },
-    getDescription: (item, stats) => {
+    getDescription: (_, item) => {
       if (item.material === "wood") {
         return [
           [
@@ -2267,7 +2380,7 @@ export const materialSprites: Partial<
   // consumable
   key: {
     sprite: key,
-    getDescription: (item, stats) => [
+    getDescription: (_, item) => [
       [
         ...createText("Opens a "),
         ...createItemName({ materialized: "lock", material: item.material }),
@@ -2316,7 +2429,7 @@ export const elementSprites: Partial<
   // gear
   weapon: {
     sprite: sword,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       [
         ...createText("A "),
         ...createItemName(
@@ -2359,7 +2472,7 @@ export const elementSprites: Partial<
   },
   shield: {
     sprite: shield,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       [
         ...createText("A "),
         ...createItemName({
@@ -2394,7 +2507,7 @@ export const elementSprites: Partial<
   },
   ring: {
     sprite: ring,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText(
         `A ${
           {
@@ -2435,7 +2548,7 @@ export const elementSprites: Partial<
   },
   amulet: {
     sprite: amulet,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText(
         `${
           {
@@ -2478,7 +2591,7 @@ export const elementSprites: Partial<
   // spells
   wave: {
     sprite: waveSpell,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText("A wave of magic."),
       stretch(
         [
@@ -2505,7 +2618,7 @@ export const elementSprites: Partial<
   },
   beam: {
     sprite: beamSpell,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText("A beam of bolts."),
       stretch(
         [
@@ -2532,7 +2645,7 @@ export const elementSprites: Partial<
   },
   trap: {
     sprite: trapSpell,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText("Triggers effects."),
       stretch(
         [
@@ -2559,7 +2672,7 @@ export const elementSprites: Partial<
   },
   dash: {
     sprite: dashSpell,
-    getDescription: (item, stats) => [
+    getDescription: (stats, item) => [
       createText("Pierce forward."),
       stretch(
         [
@@ -2601,7 +2714,7 @@ export const elementSprites: Partial<
         water: potion.wood.water,
       },
     },
-    getDescription: (item, stats) => {
+    getDescription: (stats, item) => {
       if (item.element === "fire") {
         return [
           createText("Automatic healing"),
@@ -2627,7 +2740,7 @@ export const elementSprites: Partial<
 
   resource: {
     sprite: spirit,
-    getDescription: (item, stats) => {
+    getDescription: (_, item) => {
       if (item.element === "air") {
         return [
           createText("Elemental spirit"),
@@ -2839,12 +2952,18 @@ export const getEntityDescription = (
       item.element &&
       item.consume === "potion" &&
       consumptionConfigs.potion?.[item.material]?.[item.element];
+    const itemConsumption = getItemConsumption({ [ITEM]: item });
 
     const itemStats = consumptionConfig
       ? {
           ...emptyItemStats,
           [consumptionConfig.countable]: consumptionConfig.amount,
           retrigger: consumptionConfig.cooldown,
+        }
+      : itemConsumption
+      ? {
+          ...emptyItemStats,
+          [itemConsumption.countable]: itemConsumption.amount,
         }
       : getItemStats(item);
 
@@ -2853,7 +2972,7 @@ export const getEntityDescription = (
     const materialDescriptions = descriptions[material] || {};
     descriptions[material] = materialDescriptions;
 
-    const newDescription = definition.getDescription(item, itemStats);
+    const newDescription = definition.getDescription(itemStats, item);
     materialDescriptions[element] = newDescription;
     return newDescription;
   }

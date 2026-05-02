@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Material } from "./item";
 
-export type Resource = "tree" | "rock";
+export type Resource = "hedge" | "plant" | "tree" | "oak" | "rock" | "mountain";
 
 export type Harvestable = {
   resource: Resource;

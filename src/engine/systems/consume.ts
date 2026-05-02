@@ -83,8 +83,8 @@ export const consumptionConfigs: Partial<
       water: { cooldown: 8, amount: 2, countable: "mp", buffer: 2 },
     },
     gold: {
-      fire: { cooldown: 10, amount: 10, countable: "hp", buffer: 2 },
-      water: { cooldown: 10, amount: 4, countable: "mp", buffer: 2 },
+      fire: { cooldown: 10, amount: 8, countable: "hp", buffer: 2 },
+      water: { cooldown: 10, amount: 3, countable: "mp", buffer: 2 },
     },
   },
 };
@@ -107,6 +107,13 @@ export const stackableConsumptions: Partial<
   fruit: { countable: "hp", amount: 5 },
   herb: { countable: "mp", amount: 2 },
   seed: { countable: "xp", amount: 1 },
+
+  salmon: { countable: "hp", amount: 5 },
+  pike: { countable: "mp", amount: 2 },
+  tuna: { countable: "hp", amount: 8 },
+  cod: { countable: "mp", amount: 3 },
+  algae: { countable: "xp", amount: 1 },
+  eel: { countable: "xp", amount: 3 },
 };
 
 export const getConsumption = (
@@ -129,11 +136,10 @@ export const getConsumption = (
 
   if (!item) return;
 
-  return getItemConsumption(world, item);
+  return getItemConsumption(item);
 };
 
 export const getItemConsumption = (
-  world: World,
   item: Entity
 ): ItemConsumption | undefined => {
   const consumption =

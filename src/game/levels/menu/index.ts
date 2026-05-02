@@ -211,6 +211,46 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
+          stackable: "salmon",
+          amount: Infinity,
+        },
+        {
+          stackable: "pike",
+          amount: Infinity,
+        },
+        {
+          stackable: "tuna",
+          amount: Infinity,
+        },
+        {
+          stackable: "cod",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
+          stackable: "algae",
+          amount: Infinity,
+        },
+        {
+          stackable: "eel",
+          amount: Infinity,
+        },
+        {
+          stackable: "seastar",
+          amount: Infinity,
+        },
+        {
+          stackable: "pearl",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
+          stackable: "worm",
+          amount: Infinity,
+        },
+        {
           stackable: "stick",
           amount: Infinity,
         },
@@ -352,6 +392,11 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
+        {
+          equipment: "map",
+          material: "gold",
+          amount: 1,
+        },
       ],
       [
         {
@@ -419,17 +464,24 @@ export const generateMenu = async (world: World) => {
           amount: 1,
         },
         {
-          equipment: "map",
-          material: "gold",
+          equipment: "tool",
+          tool: "hook",
+          material: "wood",
           amount: 1,
         },
         {
-          equipment: "torch",
+          equipment: "tool",
+          tool: "pickaxe",
           material: "wood",
           amount: 1,
         },
       ],
       [
+        {
+          equipment: "torch",
+          material: "wood",
+          amount: 1,
+        },
         { equipment: "boots", material: "wood", amount: 1 },
         {
           equipment: "ring",

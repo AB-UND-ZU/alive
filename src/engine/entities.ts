@@ -65,11 +65,15 @@ import { Vanishable, VANISHABLE } from "./components/vanishable";
 import { Bumpable, BUMPABLE } from "./components/bumpable";
 import { Poi, POI } from "./components/poi";
 import { Blockable, BLOCKABLE } from "./components/blockable";
+import { Hookable, HOOKABLE } from "./components/hookable";
+import { Baitable, BAITABLE } from "./components/baitable";
+import { Fishable, FISHABLE } from "./components/fishable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
   [AFFECTABLE]: Affectable;
   [ATTACKABLE]: Attackable;
+  [BAITABLE]: Baitable;
   [BEHAVIOUR]: Behaviour;
   [BELONGABLE]: Belongable;
   [BLOCKABLE]: Blockable;
@@ -86,12 +90,14 @@ export type Entity = Record<LevelName, {}> & {
   [ENTERABLE]: Enterable;
   [EQUIPPABLE]: Equippable;
   [EXERTABLE]: Exertable;
+  [FISHABLE]: Fishable;
   [FOCUSABLE]: Focusable;
   [FOG]: Fog;
   [FRAGMENT]: Fragment;
   [FREEZABLE]: Freezable;
   [HARVESTABLE]: Harvestable;
   [HOMING]: Homing;
+  [HOOKABLE]: Hookable;
   [IDENTIFIABLE]: Identifiable;
   [IMMERSIBLE]: Immersible;
   [INVENTORY]: Inventory;
@@ -184,6 +190,17 @@ export const createAura = entityFactory([
   POSITION,
   RENDERABLE,
   SPRITE,
+]);
+
+export const createBait = entityFactory([
+  BAITABLE,
+  BUMPABLE,
+  FOG,
+  LIGHT,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+  SWIMMABLE,
 ]);
 
 export const createBarrier = entityFactory([
@@ -307,9 +324,11 @@ export const createCompass = entityFactory([
 
 export const createContainer = entityFactory([
   FOG,
+  HOOKABLE,
   INVENTORY,
   LAYER,
   LOOTABLE,
+  MOVABLE,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
@@ -382,9 +401,11 @@ export const createDecoration = entityFactory([
 export const createDeposit = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   COLLIDABLE,
   DROPPABLE,
   FOG,
+  HARVESTABLE,
   INVENTORY,
   POSITION,
   RENDERABLE,
@@ -415,6 +436,7 @@ export const createDormant = entityFactory([
   DROPPABLE,
   EQUIPPABLE,
   FOG,
+  HOOKABLE,
   INVENTORY,
   LAYER,
   MELEE,
@@ -535,7 +557,26 @@ export const createGate = entityFactory([
   TOOLTIP,
 ]);
 
+export const createGranite = entityFactory([
+  COLLIDABLE,
+  FOG,
+  LIGHT,
+  POSITION,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createGround = entityFactory([FOG, POSITION, RENDERABLE, SPRITE]);
+
+export const createHabitat = entityFactory([
+  BEHAVIOUR,
+  FISHABLE,
+  MOVABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+]);
 
 export const createHalo = entityFactory([
   ACTIONABLE,
@@ -622,6 +663,18 @@ export const createIce = entityFactory([
 
 export const createItem = entityFactory([ITEM, RENDERABLE, SPRITE]);
 
+export const createLeaves = entityFactory([
+  BUMPABLE,
+  BURNABLE,
+  COLLIDABLE,
+  FOG,
+  FRAGMENT,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+]);
+
 export const createLever = entityFactory([
   CLICKABLE,
   COLLIDABLE,
@@ -672,6 +725,7 @@ export const createMob = entityFactory([
   DROPPABLE,
   EQUIPPABLE,
   FOG,
+  HOOKABLE,
   INVENTORY,
   LAYER,
   MELEE,
@@ -691,10 +745,14 @@ export const createMob = entityFactory([
 
 export const createMountain = entityFactory([
   COLLIDABLE,
+  DROPPABLE,
   FOG,
+  HARVESTABLE,
+  INVENTORY,
   LIGHT,
   POSITION,
   RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
 ]);
 
@@ -724,12 +782,15 @@ export const createObject = entityFactory([
 
 export const createOre = entityFactory([
   COLLIDABLE,
+  DROPPABLE,
   FOG,
+  HARVESTABLE,
   INVENTORY,
   LIGHT,
   LOOTABLE,
   POSITION,
   RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
 ]);
 
@@ -748,17 +809,6 @@ export const createOrganic = entityFactory([
 ]);
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
-
-export const createPlant = entityFactory([
-  BURNABLE,
-  COLLIDABLE,
-  FOG,
-  FRAGMENT,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-]);
 
 export const createPlate = entityFactory([
   COLLIDABLE,
@@ -847,10 +897,14 @@ export const createRoom = entityFactory([
 ]);
 
 export const createRoot = entityFactory([
+  BUMPABLE,
   BURNABLE,
   COLLIDABLE,
+  DROPPABLE,
   FOG,
   FRAGMENT,
+  HARVESTABLE,
+  INVENTORY,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
@@ -1018,6 +1072,33 @@ export const createTotem = entityFactory([
   SPRITE,
   STATS,
   SWIMMABLE,
+]);
+
+export const createTower = entityFactory([
+  ACTIONABLE,
+  AFFECTABLE,
+  ATTACKABLE,
+  BEHAVIOUR,
+  BELONGABLE,
+  BUMPABLE,
+  DROPPABLE,
+  EQUIPPABLE,
+  FOG,
+  INVENTORY,
+  LAYER,
+  MELEE,
+  MOVABLE,
+  NPC,
+  ORIENTABLE,
+  POSITION,
+  RECHARGABLE,
+  RENDERABLE,
+  SEQUENCABLE,
+  SHOOTABLE,
+  SPRITE,
+  STATS,
+  SWIMMABLE,
+  TOOLTIP,
 ]);
 
 export const createTransient = entityFactory([

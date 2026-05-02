@@ -43,6 +43,7 @@ import { getSpikable } from "./spike";
 import { getOverlappingCell } from "../../game/math/matrix";
 import { STRUCTURABLE } from "../components/structurable";
 import { FRAGMENT } from "../components/fragment";
+import { BUMPABLE } from "../components/bumpable";
 
 // haste:-4 interval:1100
 // haste:-3 interval:600
@@ -245,8 +246,12 @@ export default function setupMovement(world: World) {
         for (const limb of limbs) {
           const position = combine(size, limb[POSITION], delta);
           if (
-            isLimbWalkable(world, limb, position) ||
-            (limb[MOVABLE].flying && isFlyable(world, position))
+            (!limb[MOVABLE].swimming &&
+              isLimbWalkable(world, limb, position)) ||
+            (limb[MOVABLE].flying && isFlyable(world, position)) ||
+            (limb[MOVABLE].swimming &&
+              isImmersible(world, position) &&
+              isImmersible(world, limb[POSITION]))
           ) {
             continue;
           }
@@ -307,6 +312,22 @@ export default function setupMovement(world: World) {
           const limbPosition = combine(size, limb[POSITION], delta);
           moveEntity(world, limb, limbPosition);
           rerenderEntity(world, limb);
+        }
+      } else if (
+        entity[MOVABLE].swimming &&
+        !isImmersible(world, entity[POSITION])
+      ) {
+        // bump stranded entities
+        if (!(BUMPABLE in entity)) {
+          world.addComponentToEntity(entity, BUMPABLE, {
+            generation: 0,
+          });
+        }
+
+        if (entity[BUMPABLE]) {
+          entity[BUMPABLE].generation = entity[RENDERABLE].generation;
+          entity[BUMPABLE].orientation = "up";
+          rerenderEntity(world, entity);
         }
       }
 

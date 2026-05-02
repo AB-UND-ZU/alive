@@ -258,6 +258,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [POSITION]: add(menuOffset, { x: -1, y: 1 }),
       [RENDERABLE]: { generation: 0 },
@@ -1083,20 +1084,35 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         ],
         choices: [
           {
-            equipment: "tool",
-            tool: "axe",
+            equipment: "skill",
+            skill: "bow",
             material: "wood",
             amount: 1,
           },
-          // {
-          //   equipment: "tool",
-          //   tool: "shovel",
-          //   material: "wood",
-          //   amount: 1,
-          // },
-          { equipment: "boots", material: "wood", amount: 1 },
-          { equipment: "torch", material: "wood", amount: 1 },
-          { equipment: "map", material: "gold", amount: 1 },
+          {
+            equipment: "skill",
+            skill: "slash",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            equipment: "skill",
+            skill: "zap",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            equipment: "skill",
+            skill: "block",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            equipment: "skill",
+            skill: "totem",
+            material: "wood",
+            amount: 1,
+          },
         ],
         lines: [
           [
@@ -1178,35 +1194,32 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           ],
           choices: [
             {
-              equipment: "skill",
-              skill: "bow",
+              equipment: "tool",
+              tool: "axe",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "skill",
-              skill: "slash",
+              equipment: "tool",
+              tool: "hook",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "skill",
-              skill: "zap",
+              equipment: "tool",
+              tool: "pickaxe",
               material: "wood",
               amount: 1,
             },
-            {
-              equipment: "skill",
-              skill: "block",
-              material: "wood",
-              amount: 1,
-            },
-            {
-              equipment: "skill",
-              skill: "totem",
-              material: "wood",
-              amount: 1,
-            },
+            // {
+            //   equipment: "tool",
+            //   tool: "shovel",
+            //   material: "wood",
+            //   amount: 1,
+            // },
+            { equipment: "boots", material: "wood", amount: 1 },
+            { equipment: "torch", material: "wood", amount: 1 },
+            { equipment: "map", material: "gold", amount: 1 },
           ],
           lines: [
             [

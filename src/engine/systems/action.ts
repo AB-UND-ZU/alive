@@ -158,6 +158,26 @@ export const castableSkill = (
       return true;
   } else if (tool === "axe" && item[ITEM].material) {
     return true;
+  } else if (tool === "pickaxe" && item[ITEM].material) {
+    return true;
+  } else if (tool === "hook") {
+    const hookCondition = entity[CONDITIONABLE]?.hook;
+    const hookSequence = getSequence(world, entity, "condition");
+    const hasWorm = entity[INVENTORY].items.some(
+      (itemId) =>
+        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
+        "worm"
+    );
+    if (
+      (!hookCondition && hasWorm) ||
+      (hookCondition && !hookCondition.orientation) ||
+      (hookCondition &&
+        hookSequence &&
+        hookCondition.amount === hookCondition.duration &&
+        hookSequence.args.duration > 0)
+    ) {
+      return true;
+    }
   }
 
   return false;

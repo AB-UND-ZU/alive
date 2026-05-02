@@ -256,7 +256,8 @@ export const createSystems = (world: World) => {
   world.addSystem(systems.setupAi);
   world.addSystem(systems.setupTrigger);
   world.addSystem(systems.setupPopup);
-  world.addSystem(systems.setupHarvesting);
+  world.addSystem(systems.setupFishing);
+  world.addSystem(systems.setupHarvest);
   world.addSystem(systems.setupClick);
   world.addSystem(systems.setupCollect);
   world.addSystem(systems.setupConsume);

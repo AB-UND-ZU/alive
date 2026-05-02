@@ -186,11 +186,76 @@ axe.iron.default = ironAxe;
 const pickaxeTemplate: Sprite = {
   name: "Pickaxe",
   layers: [
-    { char: "\u0119", color: TEMPLATE_COLORS.materialSecondary },
+    { char: "\u0119", color: colors.white },
     { char: "-", color: TEMPLATE_COLORS.materialPrimary },
   ],
+  facing: {
+    up: [
+      { char: "\u0117", color: colors.white },
+      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    right: [
+      { char: "\u0119", color: colors.white },
+      { char: "-", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    down: [
+      { char: "\u0118", color: colors.white },
+      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    left: [
+      { char: "\u011a", color: colors.white },
+      { char: "-", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+  },
 };
 export const pickaxe = createTemplate({ sprite: pickaxeTemplate });
+
+const hookTemplate: Sprite = {
+  name: "Hook",
+  layers: [
+    { char: "│", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "┐", color: TEMPLATE_COLORS.transparent },
+    { char: "'", color: colors.grey },
+    { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
+    { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+  facing: {
+    up: [
+      { char: "│", color: colors.grey },
+      { char: "┐", color: TEMPLATE_COLORS.transparent },
+      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
+      { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    right: [
+      { char: "└", color: colors.grey },
+      { char: "│", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "┐", color: TEMPLATE_COLORS.transparent },
+      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
+      { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    down: [
+      { char: "│", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "┘", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "┐", color: colors.grey },
+      { char: "-", color: TEMPLATE_COLORS.transparent },
+      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
+      { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+    left: [
+      { char: "┘", color: colors.grey },
+      { char: "│", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "┌", color: TEMPLATE_COLORS.transparent },
+      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
+      { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+    ],
+  },
+};
+export const hook = createTemplate({ sprite: hookTemplate });
 
 // accessories
 

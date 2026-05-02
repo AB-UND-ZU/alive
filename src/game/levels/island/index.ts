@@ -145,6 +145,8 @@ export const generateIsland = (world: World) => {
   const archipelagoDepth = -30;
   const sandDepth = 0;
   const airDepth = 6;
+  const treeChance = 0.04;
+  const rottenChance = 0.035;
   const stoneChance = 0.08;
   const oreChance = 0.05;
   const terrainDepth = 10;
@@ -547,7 +549,7 @@ export const generateIsland = (world: World) => {
   const elevationMap = smoothenBeaches(rawMap, biomeMap);
 
   // fourth pass: process terrain based on biomes and spawn mobs or items
-  const terrainMap = mapMatrix(elevationMap, (x, y, cell) => {
+  const terrainMap = mapMatrix(elevationMap, (x, y, cell, matrix) => {
     const biome = biomeMap[x][y];
     const flattened = flattenedMatrix[x][y];
     const elevation = elevationMatrix[x][y];
@@ -566,10 +568,19 @@ export const generateIsland = (world: World) => {
       if (elevation > 6 && elevation < 10 && Math.random() < 0.4)
         cell = Math.random() < 0.25 ? "palm_fruit" : "palm";
       else if (elevation > 20 && elevation < 25) cell = "bush";
-      else if (elevation < 40 && spawn > 93) cell = "pot";
+      else if (elevation >= 25 && elevation < 40 && spawn > 93) cell = "pot";
     } else if (biome === "jungle") {
-      // spawn ore in inner part of jungle
+      // spawn fish along coasts and lakes
       if (
+        elevation > -15 &&
+        elevation < -10 &&
+        spawnMatrix[x][y] > 80 &&
+        cell === "water_deep"
+      ) {
+        objects.push("habitat");
+      }
+      // spawn ore in inner part of jungle
+      else if (
         cell === "mountain" &&
         temperature < heatTemperature - 10 &&
         Math.random() < oreChance * 2
@@ -585,10 +596,41 @@ export const generateIsland = (world: World) => {
           mainlandRadius * 0.8
       )
         cell = cell === "sand" ? "desert_stone" : "stone";
-      else if (terrain > treeDepth) cell = "tree";
-      else if (terrain > hedgeDepth)
-        cell = spawn > 95 ? "fruit" : spawn > 80 ? "wood" : "hedge";
-      else if (greens > bushDepth)
+      else if (terrain > treeDepth) {
+        if (
+          y > 0 &&
+          Math.random() < treeChance &&
+          matrix[x][y - 1] === "tree"
+        ) {
+          matrix[x][y - 1] = "leaves";
+          cell = "stem";
+        } else {
+          cell = "tree";
+        }
+      } else if (terrain > hedgeDepth) {
+        if (spawn > 95) cell = "fruit";
+        else if (spawn > 80) cell = "wood";
+        else if (
+          x > 1 &&
+          Math.random() < rottenChance &&
+          ["hedge", "air", "grass", "bush"].includes(matrix[x - 1][y]) &&
+          ["hedge", "air", "grass", "bush"].includes(matrix[x - 2][y])
+        ) {
+          if (Math.random() < 0.5) {
+            objectsMap[x - 2][y] = [];
+            objectsMap[x - 1][y] = [];
+            matrix[x - 2][y] = "rotten_stem_right";
+            matrix[x - 1][y] = "rotten_branch_right";
+            cell = "rotten_leaves_right";
+          } else {
+            objectsMap[x - 2][y] = [];
+            objectsMap[x - 1][y] = [];
+            matrix[x - 2][y] = "rotten_leaves_left";
+            matrix[x - 1][y] = "rotten_branch_left";
+            cell = "rotten_stem_left";
+          }
+        } else cell = "hedge";
+      } else if (greens > bushDepth)
         cell = spawn > 98 ? "leaf" : spawn > 89 ? "berry" : "bush";
       else if (greens > grassDepth)
         cell = spawn > 98 ? "leaf" : spawn > 95 ? "flower" : "grass";
@@ -1165,7 +1207,8 @@ export const stringifyMap = (
         y + center.y
       );
 
-      if (cell === "water_shallow") row += "~";
+      if (objects.includes("habitat")) row += "\u03b1";
+      else if (cell === "water_shallow") row += "~";
       else if (cell === "water_deep") row += "≈";
       else if (cell === "snow" || objects.includes("snow")) row += ".";
       else if (cell === "ice") row += "/";

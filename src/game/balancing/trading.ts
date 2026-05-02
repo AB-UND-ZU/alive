@@ -9,14 +9,28 @@ import {
 import { Deal } from "../../engine/components/popup";
 
 export const itemPrices: Partial<Record<Stackable, number>> = {
+  worm: 1,
+
   arrow: 3,
   charge: 3,
 
   apple: 3,
   shroom: 3,
 
+  salmon: 8,
+  pike: 8,
+
   coconut: 8,
   banana: 8,
+
+  tuna: 12,
+  cod: 12,
+
+  algae: 3,
+  eel: 10,
+
+  pearl: 20,
+  seastar: 20,
 
   seed: 3,
   fruit: 8,
@@ -120,6 +134,7 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "shroom" },
   { stackable: "arrow" },
   { stackable: "charge" },
+  { stackable: "worm" },
   { consume: "potion", material: "iron", element: "fire" },
   { consume: "potion", material: "iron", element: "water" },
   { stackable: "fruit" },

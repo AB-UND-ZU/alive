@@ -1,22 +1,25 @@
 import { Entity } from "ecs";
 import { animated } from "@react-spring/three";
 import { colors } from "../../game/assets/colors";
-import { dotsHeight, stack, stackHeight } from "./utils";
+import { dotsHeight, floatHeight, stack, stackHeight } from "./utils";
 import { Segment } from "./Stack";
 import { pixels } from "../Dimensions/sizing";
 import { HARVESTABLE } from "../../engine/components/harvestable";
 
 const dotColor = colors.silver;
+const negativeColor = colors.black;
 export const dotCount = 5;
 
 export default function Dots({
   entity,
   isVisible,
   segment,
+  negative,
 }: {
   entity: Entity;
   isVisible: boolean;
   segment: Segment;
+  negative: boolean;
 }) {
   const amount = segment.amount || 0;
   const isHarvestable = !!entity[HARVESTABLE];
@@ -36,11 +39,11 @@ export default function Dots({
           key={index}
           position-x={((index % dotCount) * 2 - 4) / pixels}
           position-y={(-5.5 + (index >= dotCount ? -2 : 0)) / pixels}
-          position-z={stackHeight * dotsHeight}
+          position-z={stackHeight * (negative ? floatHeight : dotsHeight)}
         >
           <boxGeometry args={[1 / pixels, 1 / pixels, 1 / stack]} />
           <animated.meshBasicMaterial
-            color={dotColor}
+            color={negative ? negativeColor : dotColor}
             opacity={segment.layerProps.opacity}
             transparent
           />

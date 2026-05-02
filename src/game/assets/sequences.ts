@@ -12,6 +12,7 @@ import {
   particleHeight,
   tooltipHeight,
   transientHeight,
+  wireHeight,
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { DROPPABLE } from "../../engine/components/droppable";
@@ -214,6 +215,8 @@ import {
   class_,
   toolSlot,
   ninePlus,
+  bait,
+  wire,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -373,8 +376,11 @@ import {
 } from "../../engine/systems/water";
 import { coverSnow } from "../../engine/systems/freeze";
 import { aspectRatio } from "../../components/Dimensions/sizing";
-import { HARVESTABLE, Resource } from "../../engine/components/harvestable";
-import { CONDITIONABLE } from "../../engine/components/conditionable";
+import { Harvestable, HARVESTABLE } from "../../engine/components/harvestable";
+import {
+  Conditionable,
+  CONDITIONABLE,
+} from "../../engine/components/conditionable";
 import { FOG } from "../../engine/components/fog";
 import { CellType } from "../../bindings/creation";
 import { ACTIONABLE } from "../../engine/components/actionable";
@@ -408,12 +414,21 @@ import {
   MAX_DROP_RADIUS,
   placeRemains,
 } from "../../engine/systems/drop";
-import { getHarvestTarget } from "../../engine/systems/harvesting";
+import { getHarvestTarget } from "../../engine/systems/harvest";
 import { TypedEntity } from "../../engine/entities";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { getSequence } from "../../engine/systems/sequence";
 import { POI } from "../../engine/components/poi";
 import { isWalkable } from "../../engine/systems/movement";
+import {
+  getHookable,
+  getHookables,
+  isWireTossable,
+} from "../../engine/systems/fishing";
+import { BAITABLE } from "../../engine/components/baitable";
+import { SWIMMABLE } from "../../engine/components/swimmable";
+import { HOOKABLE } from "../../engine/components/hookable";
+import { harvestConditions, harvestScratches } from "../balancing/harvesting";
 
 export * from "./npcs";
 export * from "./quests";
@@ -656,12 +671,7 @@ export const blockCondition: Sequence<ConditionSequence> = (
   return { finished, updated };
 };
 
-const harvestScratches: Record<Resource, string> = {
-  tree: colors.maroon,
-  rock: colors.silver,
-};
-
-export const axeCondition: Sequence<ConditionSequence> = (
+export const toolCondition: Sequence<ConditionSequence> = (
   world,
   entity,
   state
@@ -671,7 +681,7 @@ export const axeCondition: Sequence<ConditionSequence> = (
   ])?.[REFERENCE].tick;
   let updated = false;
 
-  const axeEntity = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
+  const toolEntity = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
     ITEM,
     SPRITE,
   ]);
@@ -683,16 +693,20 @@ export const axeCondition: Sequence<ConditionSequence> = (
     entity[EQUIPPABLE].shield,
     [ITEM]
   );
+  const conditionName =
+    toolEntity?.[ITEM].tool && harvestConditions[toolEntity[ITEM].tool];
 
   const finished =
+    !conditionName ||
     !entity[ACTIONABLE].toolEquipped ||
-    !entity[CONDITIONABLE].axe ||
+    !entity[CONDITIONABLE][conditionName] ||
     !tick ||
-    axeEntity?.[ITEM].tool !== "axe";
+    (toolEntity?.[ITEM].tool !== "axe" &&
+      toolEntity?.[ITEM].tool !== "pickaxe");
 
-  // requires axe to be worn
-  if (!axeEntity) {
-    return { updated: false, finished: false };
+  // requires tool to be worn
+  if (!toolEntity || !conditionName) {
+    return { updated: false, finished: true };
   }
 
   // hide sword and shield
@@ -708,17 +722,18 @@ export const axeCondition: Sequence<ConditionSequence> = (
   }
 
   if (!state.particles.condition) {
-    const conditionParticle = entities.createParticle(world, {
+    const conditionParticle = entities.createFibre(world, {
+      [ORIENTABLE]: {},
       [PARTICLE]: {
         offsetX: 0,
         offsetY: 0,
-        offsetZ: lootHeight,
+        offsetZ: floatHeight,
         amount: 0,
         animatedOrigin: { x: 0, y: 0 },
         duration: tick && tick / 2,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: axeEntity[SPRITE],
+      [SPRITE]: toolEntity[SPRITE],
     });
     state.particles.condition = world.getEntityId(conditionParticle);
 
@@ -727,12 +742,12 @@ export const axeCondition: Sequence<ConditionSequence> = (
 
   const conditionParticle = world.assertByIdAndComponents(
     state.particles.condition,
-    [PARTICLE]
+    [ORIENTABLE, PARTICLE]
   );
   if (finished) {
     disposeEntity(world, conditionParticle);
     delete state.particles.condition;
-    delete entity[CONDITIONABLE].axe;
+    delete entity[CONDITIONABLE][conditionName];
 
     // reset sword and shield
     if (swordEntity) {
@@ -744,11 +759,10 @@ export const axeCondition: Sequence<ConditionSequence> = (
       rerenderEntity(world, shieldEntity);
     }
   } else {
-    const targetDuration = entity[CONDITIONABLE].axe.duration;
-    const targetOrientation = entity[CONDITIONABLE].axe.orientation as
-      | Orientation
-      | undefined;
-    const targetEntity = getHarvestTarget(world, entity, axeEntity);
+    const targetDuration = entity[CONDITIONABLE][conditionName].duration;
+    const targetOrientation = entity[CONDITIONABLE][conditionName]
+      .orientation as Orientation | undefined;
+    const targetEntity = getHarvestTarget(world, entity, toolEntity);
     const progress = state.elapsed - state.args.duration;
     let scratching = true;
 
@@ -758,12 +772,13 @@ export const axeCondition: Sequence<ConditionSequence> = (
       targetDuration !== state.args.duration &&
       targetOrientation
     ) {
-      // move axe out
+      // move tool out
       state.args.duration = targetDuration;
       state.args.orientation = targetOrientation;
       const delta = orientationPoints[targetOrientation];
       conditionParticle[PARTICLE].offsetX = delta.x;
       conditionParticle[PARTICLE].offsetY = delta.y;
+      conditionParticle[ORIENTABLE].facing = targetOrientation;
       rerenderEntity(world, conditionParticle);
       scratching = false;
       updated = true;
@@ -774,14 +789,19 @@ export const axeCondition: Sequence<ConditionSequence> = (
       progress > tick / 2
     ) {
       // perform harvest
-      targetEntity[HARVESTABLE].amount -= entity[CONDITIONABLE].axe.amount;
+      targetEntity[HARVESTABLE].amount -=
+        entity[CONDITIONABLE][conditionName].amount;
       rerenderEntity(world, targetEntity);
 
       // bump target resource
-      if (targetEntity[BUMPABLE]) {
-        targetEntity[BUMPABLE].generation = targetEntity[RENDERABLE].generation;
-        targetEntity[BUMPABLE].orientation = state.args.orientation;
-      }
+      const targetLimbs = getLimbs(world, targetEntity);
+      targetLimbs.forEach((limb) => {
+        if (limb[BUMPABLE]) {
+          limb[BUMPABLE].generation = limb[RENDERABLE].generation;
+          limb[BUMPABLE].orientation = state.args.orientation;
+          rerenderEntity(world, limb);
+        }
+      });
 
       // create scratch
       const delta = orientationPoints[targetOrientation];
@@ -794,13 +814,16 @@ export const axeCondition: Sequence<ConditionSequence> = (
           duration: tick / 2,
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: createText(choice(...scratchChars), harvestScratches.tree)[0],
+        [SPRITE]: createText(
+          choice(...scratchChars),
+          harvestScratches[(targetEntity[HARVESTABLE] as Harvestable).resource]
+        )[0],
       });
       state.particles[`scratch-${targetEntity[RENDERABLE].generation}`] =
         world.getEntityId(scratchParticle);
 
-      // move axe back
-      entity[CONDITIONABLE].axe.orientation = undefined;
+      // move tool back
+      entity[CONDITIONABLE][conditionName].orientation = undefined;
       state.args.orientation = undefined;
       conditionParticle[PARTICLE].offsetX = 0;
       conditionParticle[PARTICLE].offsetY = 0;
@@ -813,8 +836,9 @@ export const axeCondition: Sequence<ConditionSequence> = (
       targetDuration &&
       progress > tick
     ) {
-      // reset axe
-      entity[CONDITIONABLE].axe.duration = 0;
+      // reset tool
+      entity[CONDITIONABLE][conditionName].duration = 0;
+      conditionParticle[ORIENTABLE].facing = undefined;
       state.args.duration = 0;
       scratching = false;
       updated = true;
@@ -828,6 +852,294 @@ export const axeCondition: Sequence<ConditionSequence> = (
         disposeEntity(world, particleEntity);
         delete state.particles[particleName];
       }
+    }
+  }
+
+  return { finished, updated };
+};
+
+const hookSpeed = 100;
+
+export const hookCondition: Sequence<ConditionSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const condition = (entity[CONDITIONABLE] as Conditionable).hook;
+  const entityId = world.getEntityId(entity);
+  const isCatching = state.args.duration <= 0;
+  const catchGeneration =
+    isCatching && condition
+      ? Math.ceil((state.elapsed - condition.generation) / hookSpeed)
+      : 0;
+  let updated = false;
+  const finished = !condition || catchGeneration > condition.duration + 1;
+
+  const swordEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].weapon,
+    [ITEM]
+  );
+  const shieldEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].shield,
+    [ITEM]
+  );
+
+  const hookEntity = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
+    SPRITE,
+    ITEM,
+  ]);
+
+  if (!hookEntity || !condition || finished) {
+    delete entity[CONDITIONABLE].hook;
+
+    // reset sword and shield
+    if (swordEntity) {
+      swordEntity[ITEM].amount = 1;
+      rerenderEntity(world, swordEntity);
+    }
+    if (shieldEntity) {
+      shieldEntity[ITEM].amount = 1;
+      rerenderEntity(world, shieldEntity);
+    }
+    return { finished: true, updated };
+  }
+
+  const hookGeneration = isCatching
+    ? condition.duration
+    : state.particles.bait
+    ? Math.ceil((state.elapsed - condition.generation) / hookSpeed)
+    : 0;
+
+  // hide sword and shield
+  if (swordEntity && swordEntity[ITEM].amount !== 0) {
+    swordEntity[ITEM].amount = 0;
+    rerenderEntity(world, swordEntity);
+    updated = true;
+  }
+  if (shieldEntity && shieldEntity[ITEM].amount !== 0) {
+    shieldEntity[ITEM].amount = 0;
+    rerenderEntity(world, shieldEntity);
+    updated = true;
+  }
+
+  if (!state.particles.condition) {
+    const conditionParticle = entities.createFibre(world, {
+      [ORIENTABLE]: {},
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: idleHeight,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: hookEntity[SPRITE],
+    });
+    state.particles.condition = world.getEntityId(conditionParticle);
+
+    updated = true;
+  }
+
+  const conditionParticle = world.assertByIdAndComponents(
+    state.particles.condition,
+    [ORIENTABLE, PARTICLE]
+  );
+
+  // toss bait
+  if (!conditionParticle[ORIENTABLE].facing && condition.orientation) {
+    conditionParticle[ORIENTABLE].facing = condition.orientation;
+    updated = true;
+
+    const baitParticle = entities.createFibre(world, {
+      [ORIENTABLE]: {},
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        animatedOrigin: { x: 0, y: 0 },
+        duration: hookSpeed,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: bait,
+    });
+    state.particles.bait = world.getEntityId(baitParticle);
+
+    condition.generation = state.elapsed;
+    condition.amount = -1;
+
+    updated = true;
+  }
+
+  const baitParticle = world.getEntityByIdAndComponents(state.particles.bait, [
+    PARTICLE,
+  ]);
+
+  // move bait and extend line
+  if (condition.orientation && baitParticle && !isCatching) {
+    const delta = orientationPoints[condition.orientation];
+
+    for (
+      let wireLength = condition.amount + 1;
+      wireLength < hookGeneration && wireLength <= condition.duration;
+      wireLength += 1
+    ) {
+      condition.amount = wireLength;
+      updated = true;
+
+      if (wireLength >= condition.duration) break;
+
+      const current = {
+        x: delta.x * wireLength,
+        y: delta.y * wireLength,
+      };
+      const offset = {
+        x: delta.x * (wireLength + 1),
+        y: delta.y * (wireLength + 1),
+      };
+      const target = combine(size, entity[POSITION], offset);
+
+      if (
+        getHookable(world, combine(size, entity[POSITION], current)) ||
+        !isWireTossable(world, target)
+      ) {
+        condition.duration = wireLength;
+        break;
+      }
+
+      // move bait
+      baitParticle[PARTICLE].offsetX = offset.x;
+      baitParticle[PARTICLE].offsetY = offset.y;
+      rerenderEntity(world, baitParticle);
+
+      // add wire part
+      const wireParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: condition.orientation },
+        [PARTICLE]: {
+          offsetX: offset.x,
+          offsetY: offset.y,
+          offsetZ: wireHeight,
+          animatedOrigin: add(
+            offset,
+            orientationPoints[invertOrientation(condition.orientation)]
+          ),
+          duration: hookSpeed,
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: wire,
+      });
+      state.particles[`wire-${wireLength}`] = world.getEntityId(wireParticle);
+    }
+  }
+
+  // create bait
+  const baitEntity = world
+    .getEntities([BAITABLE, POSITION])
+    .find((entity) => entity[BAITABLE].caster === entityId);
+
+  if (
+    !isCatching &&
+    condition.amount === condition.duration &&
+    hookGeneration > condition.amount + 1 &&
+    !baitEntity &&
+    baitParticle &&
+    condition.orientation
+  ) {
+    // replace bait particle with unit
+    baitParticle[SPRITE] = none;
+    rerenderEntity(world, baitParticle);
+
+    const delta = orientationPoints[condition.orientation];
+    const baitEntity = entities.createBait(world, {
+      [BAITABLE]: { caster: entityId },
+      [BUMPABLE]: { generation: 0 },
+      [FOG]: { type: "object", visibility: "hidden" },
+      [LIGHT]: { darkness: 0, brightness: 0, visibility: 2 },
+      [POSITION]: combine(size, entity[POSITION], {
+        x: delta.x * condition.amount,
+        y: delta.y * condition.amount,
+      }),
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: bait,
+      [SWIMMABLE]: { swimming: false },
+    });
+    registerEntity(world, baitEntity);
+
+    updated = true;
+  }
+
+  // dispose bait if caught something
+  if (isCatching && baitEntity && baitParticle) {
+    if (!world.getEntityById(baitEntity[BAITABLE].caught)) {
+      baitParticle[SPRITE] = bait;
+      rerenderEntity(world, baitParticle);
+    }
+    disposeEntity(world, baitEntity);
+    updated = true;
+  }
+
+  // catch wire
+  if (isCatching && condition.orientation && baitParticle) {
+    const delta = orientationPoints[condition.orientation];
+
+    for (
+      let wireLength = condition.duration + state.args.duration;
+      wireLength >= 0 && state.args.duration * -1 < catchGeneration;
+      wireLength -= 1
+    ) {
+      const previous = {
+        x: delta.x * (wireLength + 1),
+        y: delta.y * (wireLength + 1),
+      };
+      const offset = {
+        x: delta.x * wireLength,
+        y: delta.y * wireLength,
+      };
+      const target = combine(size, entity[POSITION], offset);
+
+      // move bait
+      baitParticle[PARTICLE].offsetX = offset.x;
+      baitParticle[PARTICLE].offsetY = offset.y;
+      rerenderEntity(world, baitParticle);
+
+      // remove previous wire
+      const extensionName = `wire-${wireLength + 1}`;
+      const extensionParticle = world.getEntityById(
+        state.particles[extensionName]
+      );
+      if (extensionParticle) {
+        disposeEntity(world, extensionParticle);
+        delete state.particles[extensionName];
+      }
+
+      // pull in wire
+      const wireName = `wire-${wireLength}`;
+      const wireParticle = world.getEntityByIdAndComponents(
+        state.particles[wireName],
+        [PARTICLE]
+      );
+      if (wireParticle) {
+        wireParticle[PARTICLE].offsetX = offset.x;
+        wireParticle[PARTICLE].offsetY = offset.y;
+        rerenderEntity(world, wireParticle);
+      }
+      state.args.duration = wireLength - condition.duration - 1;
+
+      // move catch
+      const caughtEntity = getHookables(
+        world,
+        combine(size, entity[POSITION], previous)
+      ).filter((hookable) => hookable[HOOKABLE].catching === entityId)[0];
+
+      if (caughtEntity && wireLength > 0) {
+        moveEntity(world, caughtEntity, target);
+        rerenderEntity(world, caughtEntity);
+      } else if (caughtEntity && wireLength === 0) {
+        caughtEntity[HOOKABLE].hooked = undefined;
+        caughtEntity[HOOKABLE].catching = undefined;
+        caughtEntity[HOOKABLE].escaping = false;
+        rerenderEntity(world, caughtEntity);
+      }
+
+      updated = true;
     }
   }
 
@@ -2028,7 +2340,11 @@ export const creatureDecay: Sequence<DecaySequence> = (
   // create decay particle
   if (!state.particles.decay && state.elapsed > decayDelay && !finished) {
     const decayParticle = entities.createParticle(world, {
-      [PARTICLE]: { offsetX: 0, offsetY: 0, offsetZ: decayHeight },
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: entity[LIGHT]?.darkness ? floatHeight : decayHeight,
+      },
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: decay,
     });
@@ -2926,7 +3242,7 @@ export const displayInspect: Sequence<PopupSequence> = (
         }
 
         const selected = verticalIndex === rowIndex;
-        const itemConsumption = getItemConsumption(world, itemEntity);
+        const itemConsumption = getItemConsumption(itemEntity);
         const consumptionConfig =
           itemEntity &&
           consumptionConfigs[itemEntity[ITEM].consume!]?.[
@@ -3003,8 +3319,7 @@ export const displayInspect: Sequence<PopupSequence> = (
     bagItems[verticalIndex],
     [ITEM]
   );
-  const selectedUsable =
-    selectedItem && getItemConsumption(world, selectedItem);
+  const selectedUsable = selectedItem && getItemConsumption(selectedItem);
   const details = selectedItem && getItemDescription(selectedItem[ITEM]);
 
   const popupResult = renderPopup(
@@ -3588,7 +3903,7 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
   const quickItems = (heroEntity[INVENTORY] as Inventory).items.filter(
     (item) => {
       const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
-      const itemConsumption = getItemConsumption(world, itemEntity);
+      const itemConsumption = getItemConsumption(itemEntity);
       return !!itemConsumption;
     }
   );
@@ -3602,7 +3917,7 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
           const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
 
           const selected = verticalIndex === rowIndex;
-          const itemConsumption = getItemConsumption(world, itemEntity);
+          const itemConsumption = getItemConsumption(itemEntity);
           const itemSprite = getItemSprite(
             itemEntity[ITEM],
             "display",
@@ -7286,6 +7601,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
               reference: world.getEntityId(world.metadata.gameEntity),
               lastInteraction: 0,
               flying: false,
+              swimming: false,
             },
             [ORIENTABLE]: {
               facing: iteration.orientation,
@@ -7316,6 +7632,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
               reference: world.getEntityId(world.metadata.gameEntity),
               lastInteraction: 0,
               flying: false,
+              swimming: false,
             },
             [ORIENTABLE]: {
               facing: rotateOrientation(iteration.orientation, 1),
@@ -7384,6 +7701,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
           reference: world.getEntityId(world.metadata.gameEntity),
           lastInteraction: 0,
           flying: false,
+          swimming: false,
         },
         [ORIENTABLE]: {
           facing: limbOrientation,

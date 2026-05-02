@@ -1992,6 +1992,19 @@ export const interactBar: Sprite = {
     left: [{ char: "─", color: colors.green }],
   },
 };
+
+export const fishing: Sprite = {
+  name: "Fishing",
+  layers: [
+    { char: "│", color: colors.green },
+    { char: "┐", color: colors.black },
+    { char: "'", color: colors.lime },
+    { char: "|", color: colors.green },
+    { char: "\u0106", color: colors.lime },
+    { char: "∙", color: colors.green },
+  ],
+};
+
 export const discovery = createText("°", colors.lime)[0];
 export const quest = createText("?", colors.lime)[0];
 export const ongoing = createText("?", colors.silver)[0];

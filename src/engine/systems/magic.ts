@@ -292,6 +292,7 @@ export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
       },
       lastInteraction: 0,
       flying: false,
+      swimming: false,
     },
     [POSITION]: target,
     [RENDERABLE]: { generation: 0 },

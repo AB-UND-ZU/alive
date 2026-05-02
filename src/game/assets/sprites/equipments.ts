@@ -117,41 +117,24 @@ export const hammer: Sprite = {
   ],
 };
 
-export const fishingRod: Sprite = {
-  name: "Rod",
+export const bait: Sprite = {
+  name: "Bait",
   layers: [
-    { char: "│", color: colors.maroon },
-    { char: "┐", color: colors.black },
-    { char: "'", color: colors.grey },
-    { char: "|", color: colors.maroon },
-    { char: "\u0106", color: colors.grey },
-    { char: "∙", color: colors.maroon },
+    { char: "\u0108", color: colors.red },
+    { char: "\u0106", color: colors.red },
+    { char: "\u0118", color: colors.white },
+    { char: "+", color: colors.red },
   ],
+};
+
+export const wire: Sprite = {
+  name: "Wire",
+  layers: [{ char: "┼", color: colors.grey }],
   facing: {
-    up: [
-      { char: "┘", color: colors.grey },
-      { char: "┐", color: colors.maroon },
-      { char: "\u0106", color: colors.grey },
-      { char: "∙", color: colors.maroon },
-    ],
-    right: [
-      { char: "└", color: colors.grey },
-      { char: "│", color: colors.maroon },
-      { char: "\u0106", color: colors.grey },
-      { char: "∙", color: colors.maroon },
-    ],
-    down: [
-      { char: "┌", color: colors.grey },
-      { char: "└", color: colors.maroon },
-      { char: "\u0106", color: colors.grey },
-      { char: "∙", color: colors.maroon },
-    ],
-    left: [
-      { char: "┘", color: colors.grey },
-      { char: "│", color: colors.maroon },
-      { char: "\u0106", color: colors.grey },
-      { char: "∙", color: colors.maroon },
-    ],
+    up: [{ char: "│", color: colors.grey }],
+    right: [{ char: "─", color: colors.grey }],
+    down: [{ char: "│", color: colors.grey }],
+    left: [{ char: "─", color: colors.grey }],
   },
 };
 

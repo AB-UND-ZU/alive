@@ -31,13 +31,13 @@ export const iterateMatrix = <T>(
 export const matrixFactory = <T>(
   width: number,
   height: number,
-  generator: (x: number, y: number) => T
+  generator: (x: number, y: number, matrix: Matrix<T>) => T
 ): Matrix<T> => {
   const matrix = new Array(width);
   for (let x = 0; x < width; x++) {
     matrix[x] = new Array(height);
     for (let y = 0; y < height; y++) {
-      matrix[x][y] = generator(x, y);
+      matrix[x][y] = generator(x, y, matrix);
     }
   }
   return matrix;
@@ -60,10 +60,10 @@ export const createMatrix = <T>(
 
 export const mapMatrix = <T>(
   matrix: Matrix<T>,
-  callback: (x: number, y: number, value: T) => T
+  callback: (x: number, y: number, value: T, newMatrix: Matrix<T>) => T
 ) =>
-  matrixFactory(matrix[0].length, matrix.length, (x, y) =>
-    callback(x, y, matrix[x][y])
+  matrixFactory<T>(matrix[0].length, matrix.length, (x, y, newMatrix) =>
+    callback(x, y, matrix[x][y], newMatrix)
   );
 
 export const circularKernel = (

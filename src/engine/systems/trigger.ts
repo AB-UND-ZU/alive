@@ -83,7 +83,7 @@ import { Popup, POPUP } from "../components/popup";
 import { addToInventory } from "./collect";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { PLAYER } from "../components/player";
-import { isActionable } from "./freeze";
+import { isActionable, isControllable } from "./freeze";
 import {
   assertIdentifier,
   assertIdentifierAndComponents,
@@ -117,6 +117,9 @@ import { TRACKABLE } from "../components/trackable";
 import { getActiveViewable } from "../../bindings/hooks";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { consumeItem, getItemConsumption } from "./consume";
+import { getHookable } from "./fishing";
+import { HOOKABLE } from "../components/hookable";
+import { BAITABLE } from "../components/baitable";
 
 export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
@@ -590,8 +593,9 @@ const conditionConfig: Record<
 > = {
   zap: { sequence: "zapCondition", stat: "range", duration: 50 },
   block: { sequence: "blockCondition", stat: "absorb", duration: 10 },
-  axe: { sequence: "axeCondition", duration: 0 },
-  pickaxe: { sequence: "axeCondition", duration: 0 },
+  axe: { sequence: "toolCondition", duration: 0 },
+  pickaxe: { sequence: "toolCondition", duration: 0 },
+  hook: { sequence: "hookCondition", duration: 5 },
 };
 
 export const applyCondition = (
@@ -630,22 +634,62 @@ export const castConditionable = (
 ) => {
   const condition = item[ITEM].skill || item[ITEM].tool;
   const material = item[ITEM].material;
+  const entityId = world.getEntityId(entity);
 
   if (
     !material ||
     (condition !== "zap" &&
       condition !== "block" &&
       condition !== "axe" &&
-      condition !== "pickaxe")
+      condition !== "pickaxe" &&
+      condition !== "hook")
   )
     return;
 
   // unequip tools if active
+  const hookCondition = (entity[CONDITIONABLE] as Conditionable).hook;
   if (condition === "axe" && entity[CONDITIONABLE].axe) {
     delete entity[CONDITIONABLE].axe;
     return;
   } else if (condition === "pickaxe" && entity[CONDITIONABLE].pickaxe) {
     delete entity[CONDITIONABLE].pickaxe;
+    return;
+  } else if (condition === "hook" && hookCondition) {
+    const hookSequence = getSequence(world, entity, "condition");
+    if (!hookCondition.orientation) {
+      // restore charge if never tossed
+      addToInventory(
+        world,
+        entity,
+        { [ITEM]: { stackable: "worm", amount: 1 } },
+        1
+      );
+      delete entity[CONDITIONABLE].hook;
+    } else if (
+      hookSequence &&
+      hookCondition.amount === hookCondition.duration &&
+      hookCondition.orientation
+    ) {
+      // catch wire
+      hookSequence.args.duration = 0;
+      hookCondition.generation = hookSequence.elapsed;
+
+      // catch entity
+      const baitEntity = world
+        .getEntities([BAITABLE, POSITION])
+        .find((entity) => entity[BAITABLE].caster === entityId);
+
+      const hookable = baitEntity && getHookable(world, baitEntity[POSITION]);
+      if (hookable) {
+        hookable[HOOKABLE].hooked = undefined;
+        hookable[HOOKABLE].catching = entityId;
+        hookable[HOOKABLE].escaping = false;
+      }
+    } else {
+      // stow hook
+      delete entity[CONDITIONABLE].hook;
+    }
+
     return;
   }
 
@@ -654,6 +698,8 @@ export const castConditionable = (
   // consume charges for active skills
   if (condition === "zap" || condition === "block") {
     consumeCharge(world, entity, { stackable: "charge" });
+  } else if (condition === "hook") {
+    consumeCharge(world, entity, { stackable: "worm" });
   }
 
   const duration = conditionConfig[condition].duration;
@@ -1069,7 +1115,7 @@ export default function setupTrigger(world: World) {
           const hotItem = entity[PLAYER].quickItems[hotKey];
           const inventoryItem = hotItem && existingItem(world, entity, hotItem);
           const consumption =
-            inventoryItem && getItemConsumption(world, inventoryItem);
+            inventoryItem && getItemConsumption(inventoryItem);
           consumeItem(world, entity, consumption);
           rerenderEntity(world, useEntity);
           continue;
@@ -1252,6 +1298,7 @@ export default function setupTrigger(world: World) {
             if (
               !isInPopup(world, entity) &&
               skillEntity[ITEM].tool !== "axe" &&
+              skillEntity[ITEM].tool !== "pickaxe" &&
               !(
                 skillEntity[ITEM].skill === "zap" && entity[CONDITIONABLE]?.zap
               ) &&
@@ -1306,13 +1353,40 @@ export default function setupTrigger(world: World) {
           }
         } else if (toolEntity && entity[ACTIONABLE].toolEquipped) {
           if (
-            castableSkill(
+            !castableSkill(
               world,
               entity as TypedEntity<"INVENTORY">,
               toolEntity
             ) &&
-            (toolEntity[ITEM].tool === "axe" ||
-              toolEntity[ITEM].tool === "pickaxe")
+            isControllable(world, entity)
+          ) {
+            if (
+              toolEntity[ITEM].tool === "hook" &&
+              !entity[CONDITIONABLE]?.hook
+            ) {
+              queueMessage(world, entity, {
+                line: addBackground(
+                  [
+                    ...createText("Need ", colors.silver),
+                    ...createItemName({
+                      stackable: "worm",
+                    }),
+                    ...createText("!", colors.silver),
+                  ],
+                  colors.black
+                ),
+                orientation: "up",
+                fast: false,
+                delay: 0,
+              });
+            }
+            continue;
+          }
+
+          if (
+            toolEntity[ITEM].tool === "axe" ||
+            toolEntity[ITEM].tool === "pickaxe" ||
+            toolEntity[ITEM].tool === "hook"
           ) {
             castConditionable(world, entity, toolEntity);
           }

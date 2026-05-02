@@ -137,12 +137,58 @@ export const blade: Sprite = {
   },
 };
 
-export const fish: Sprite = {
-  name: "Fish",
+export const salmon: Sprite = {
+  name: "Salmon",
   layers: [
-    { char: "\u0106", color: colors.blue },
-    { char: "\u0119", color: colors.blue },
-    { char: "∞", color: colors.blue },
+    { char: "\u011a", color: colors.purple },
+    { char: "-", color: colors.black },
+    { char: "\u0108", color: colors.purple },
+    { char: "o", color: colors.black },
+    { char: "\u03b1", color: colors.purple },
+  ],
+};
+
+export const pike: Sprite = {
+  name: "Pike",
+  layers: [
+    { char: "\u011a", color: colors.teal },
+    { char: "-", color: colors.black },
+    { char: "\u0108", color: colors.teal },
+    { char: "o", color: colors.black },
+    { char: "\u03b1", color: colors.teal },
+  ],
+};
+
+export const tuna: Sprite = {
+  name: "Tuna",
+  layers: [
+    { char: "\u0106", color: colors.purple },
+    { char: "\u0119", color: colors.purple },
+    { char: "∞", color: colors.purple },
+  ],
+};
+
+export const cod: Sprite = {
+  name: "Cod",
+  layers: [
+    { char: "\u0106", color: colors.teal },
+    { char: "\u0119", color: colors.teal },
+    { char: "∞", color: colors.teal },
+  ],
+};
+
+export const eel: Sprite = {
+  name: "Eel",
+  layers: [{ char: "S", color: colors.green }],
+};
+
+export const seastar: Sprite = {
+  name: "Seastar",
+  layers: [
+    { char: "x", color: colors.olive },
+    { char: "+", color: colors.olive },
+    { char: ":", color: colors.olive },
+    { char: ".", color: colors.black },
   ],
 };
 

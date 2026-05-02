@@ -155,6 +155,7 @@ export const createHero = (world: World, halo: Entity) => {
       },
       lastInteraction: 0,
       flying: false,
+      swimming: false,
     },
     [ORIENTABLE]: {},
     [PLAYER]: {
@@ -308,6 +309,7 @@ export default function setupFate(world: World) {
             },
             lastInteraction: 0,
             flying: false,
+            swimming: false,
           },
           [PLAYER]: {
             ghost: true,

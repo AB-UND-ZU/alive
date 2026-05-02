@@ -157,6 +157,12 @@ import {
   emptyFlask,
   oakBossUnit,
   healHit,
+  stemRottenRight,
+  branchRottenRight,
+  leavesRottenRight,
+  stemRottenLeft,
+  leavesRottenLeft,
+  branchRottenLeft,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -245,6 +251,10 @@ import { EXERTABLE } from "../engine/components/exertable";
 import { getAbilityStats } from "../game/balancing/abilities";
 import { BUMPABLE } from "../engine/components/bumpable";
 import { PLAYER } from "../engine/components/player";
+import { HOOKABLE } from "../engine/components/hookable";
+import { FISHABLE } from "../engine/components/fishable";
+import { habitatDistribution } from "../engine/systems/fishing";
+import { getCell } from "../engine/systems/map";
 
 export const cellNames = [
   "air",
@@ -260,6 +270,14 @@ export const cellNames = [
   "rock",
   "desert_rock",
   "tree",
+  "leaves",
+  "stem",
+  "rotten_stem_left",
+  "rotten_stem_right",
+  "rotten_branch_left",
+  "rotten_branch_right",
+  "rotten_leaves_left",
+  "rotten_leaves_right",
   "hedge",
   "bush",
   "grass",
@@ -278,6 +296,7 @@ export const cellNames = [
   "leaf",
   "tumbleweed",
   "pot",
+  "habitat",
   ...npcTypes,
 ] as const;
 export type CellType = (typeof cellNames)[number];
@@ -550,6 +569,7 @@ export const createNpc = (
       },
       lastInteraction: 0,
       flying: false,
+      swimming: false,
     },
     [NPC]: { type: npcUnit.type },
     [ORIENTABLE]: {},
@@ -862,6 +882,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [ORIENTABLE]: {},
       [POSITION]: { x, y },
@@ -908,30 +929,37 @@ export const createCell = (
     all.push(heroEntity);
     return { cell: heroEntity, all };
   } else if (cell === "mountain") {
+    const { harvestable, yields } = getHarvestConfig(world, "mountain", "wood");
     const mountainEntity = entities.createMountain(world, {
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "terrain" },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [SPRITE]: wall,
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [RENDERABLE]: { generation: 0 },
-      [COLLIDABLE]: {},
+      [SEQUENCABLE]: { states: {} },
     });
     all.push(mountainEntity);
+    populateInventory(world, mountainEntity, yields);
     return { cell: mountainEntity, all };
   } else if (cell === "granite") {
-    const mountainEntity = entities.createMountain(world, {
+    const mountainEntity = entities.createGranite(world, {
+      [COLLIDABLE]: {},
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [SPRITE]: granite,
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [RENDERABLE]: { generation: 0 },
-      [COLLIDABLE]: {},
     });
     all.push(mountainEntity);
     return { cell: mountainEntity, all };
   } else if (cell === "rock" || cell === "desert_rock") {
     const rock = (["rock1", "rock2"] as const)[random(0, 1)];
     const { items, sprite, stats, faction, scratch } = generateUnitData(rock);
+    const { harvestable } = getHarvestConfig(world, "rock", "wood");
     const sprites = {
       rock: { rock1, rock2 },
       desert_rock: { [rock]: sprite },
@@ -939,12 +967,14 @@ export const createCell = (
     const rockEntity = entities.createDeposit(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [BUMPABLE]: { generation: 0 },
       [COLLIDABLE]: {},
       [DROPPABLE]: {
         decayed: false,
         remains: cell === "desert_rock" ? sand : undefined,
       },
       [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -975,15 +1005,19 @@ export const createCell = (
     all.push(mineEntity);
     return { cell: mineEntity, all };
   } else if (cell === "ore" || cell === "ore_one") {
+    const { harvestable } = getHarvestConfig(world, "mountain", "wood");
     const oreEntity = entities.createOre(world, {
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false },
+      [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [LOOTABLE]: { disposable: false },
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
       [SPRITE]: wall,
-      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
-      [COLLIDABLE]: {},
     });
     all.push(oreEntity);
     populateInventory(
@@ -1154,9 +1188,20 @@ export const createCell = (
 
       const fruitEntity = entities.createContainer(world, {
         [FOG]: { visibility, type: "object" },
+        [HOOKABLE]: { escaping: false },
         [INVENTORY]: { items: [] },
         [LAYER]: {},
         [LOOTABLE]: { disposable: true },
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 200,
+          },
+          lastInteraction: 0,
+          flying: false,
+          swimming: false,
+        },
         [POSITION]: { x, y },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: tree2,
@@ -1211,51 +1256,99 @@ export const createCell = (
     );
     all.push(mushroomEntity);
     return { cell: mushroomEntity, all };
-  } else if (cell === "tree" || cell === "leaves") {
-    if (cell === "leaves") {
-      const rootEntity = entities.createRoot(world, {
-        [BURNABLE]: {
-          burning: false,
-          eternal: false,
-          simmer: false,
-          combusted: false,
-          decayed: false,
-          remains: oakBurnt,
-        },
-        [COLLIDABLE]: {},
-        [FOG]: { visibility, type: "object" },
-        [FRAGMENT]: { structure: -1 },
-        [POSITION]: { x, y: y + 1 },
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: stem,
-        [STRUCTURABLE]: {},
-      });
-      all.push(rootEntity);
-      const rootId = world.getEntityId(rootEntity);
-      rootEntity[FRAGMENT].structure = rootId;
-
-      const leavesEntity = entities.createPlant(world, {
-        [BURNABLE]: {
-          burning: false,
-          eternal: false,
-          simmer: false,
-          combusted: false,
-          decayed: false,
-        },
-        [FOG]: { visibility, type: "object" },
-        [FRAGMENT]: { structure: rootId },
-        [COLLIDABLE]: {},
-        [POSITION]: { x, y },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: leaves,
-        [RENDERABLE]: { generation: 0 },
-      });
-      all.push(leavesEntity);
-
-      return { cell: leavesEntity, all };
+  } else if (cell === "stem" || cell === "leaves") {
+    const existingCell = Object.values(getCell(world, { x, y }))[0];
+    if (existingCell) {
+      return { cell: existingCell, all: [] };
     }
 
+    const { harvestable, yields } = getHarvestConfig(world, "oak", "wood");
+    const leavesY = cell === "stem" ? normalize(y - 1, size) : y;
+    const rootY = cell === "stem" ? y : normalize(y + 1, size);
+    const rootEntity = entities.createRoot(world, {
+      [BUMPABLE]: { generation: 0 },
+      [BURNABLE]: {
+        burning: false,
+        eternal: false,
+        simmer: false,
+        combusted: false,
+        decayed: false,
+        remains: oakBurnt,
+      },
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false, remains: oakBurnt },
+      [FOG]: { visibility, type: "object" },
+      [FRAGMENT]: { structure: -1 },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
+      [POSITION]: { x, y: rootY },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: stem,
+      [STRUCTURABLE]: {},
+    });
+    all.push(rootEntity);
+    populateInventory(world, rootEntity, yields);
+    const rootId = world.getEntityId(rootEntity);
+    rootEntity[FRAGMENT].structure = rootId;
+
+    const leavesEntity = entities.createLeaves(world, {
+      [BUMPABLE]: { generation: 0 },
+      [BURNABLE]: {
+        burning: false,
+        eternal: false,
+        simmer: false,
+        combusted: false,
+        decayed: false,
+      },
+      [FOG]: { visibility, type: "object" },
+      [FRAGMENT]: { structure: rootId },
+      [COLLIDABLE]: {},
+      [POSITION]: { x, y: leavesY },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: leaves,
+      [RENDERABLE]: { generation: 0 },
+    });
+    all.push(leavesEntity);
+
+    return { cell: leavesEntity, all };
+  } else if (
+    [
+      "rotten_stem_left",
+      "rotten_stem_right",
+      "rotten_branch_left",
+      "rotten_branch_right",
+      "rotten_leaves_left",
+      "rotten_leaves_right",
+    ].includes(cell)
+  ) {
+    const existingCell = Object.values(getCell(world, { x, y }))[0];
+    if (existingCell) {
+      return { cell: existingCell, all: [] };
+    }
+    const rottenX = ["rotten_stem_right", "rotten_leaves_left"].includes(cell)
+      ? 0
+      : ["rotten_branch_left", "rotten_branch_right"].includes(cell)
+      ? -1
+      : -2;
+    const rottenSprites = [
+      "rotten_stem_right",
+      "rotten_branch_right",
+      "rotten_leaves_right",
+    ].includes(cell)
+      ? [stemRottenRight, branchRottenRight, leavesRottenRight]
+      : [leavesRottenLeft, branchRottenLeft, stemRottenLeft];
+
+    rottenSprites.forEach((sprite, offsetX) => {
+      const rottenEntity = createChest(world, "rotten", {
+        x: normalize(x + offsetX + rottenX, size),
+        y,
+      });
+      rottenEntity[SPRITE] = { ...sprite, name: "" };
+      all.push(rottenEntity);
+    });
+    return { cell: all[0], all };
+  } else if (cell === "tree") {
     const { harvestable, yields } = getHarvestConfig(world, "tree", "wood");
     const remains = [treeBurnt1, treeBurnt2][random(0, 1)];
     const treeEntity = entities.createOrganic(world, {
@@ -1337,9 +1430,20 @@ export const createCell = (
     ) {
       const fruitEntity = entities.createContainer(world, {
         [FOG]: { visibility, type: "object" },
+        [HOOKABLE]: { escaping: false },
         [INVENTORY]: { items: [] },
         [LAYER]: {},
         [LOOTABLE]: { disposable: true },
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 200,
+          },
+          lastInteraction: 0,
+          flying: false,
+          swimming: false,
+        },
         [POSITION]: { x, y },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: palm,
@@ -1427,6 +1531,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: true,
+        swimming: false,
       },
       [ORIENTABLE]: {},
       [POSITION]: { x, y },
@@ -1582,6 +1687,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -2014,6 +2120,54 @@ export const createCell = (
     all.push(guideSign);
     setIdentifier(world, guideSign, "guide_sign");
     return { cell: guideSign, all };
+  } else if (cell === "habitat") {
+    const habitatCell =
+      habitatDistribution[
+        distribution(...habitatDistribution.map((cell) => cell[0]))
+      ][1];
+    let cell;
+
+    if (habitatCell === "habitat") {
+      const habitatEntity = entities.createHabitat(world, {
+        [BEHAVIOUR]: { patterns: [{ name: "habitat", memory: {} }] },
+        [FISHABLE]: { population: 1 },
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 200,
+          },
+          lastInteraction: 0,
+          flying: false,
+          swimming: true,
+        },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: none,
+      });
+      cell = habitatEntity;
+      all.push(habitatEntity);
+    } else {
+      const dropEntity = createItemAsDrop(
+        world,
+        { x, y },
+        entities.createItem,
+        {
+          [ITEM]: {
+            stackable: habitatCell,
+            amount: 1,
+            bound: false,
+          },
+          [SPRITE]: getItemSprite({ stackable: habitatCell }),
+        },
+        false
+      );
+      cell = world.assertById(dropEntity[ITEM].carrier);
+      all.push(cell);
+    }
+
+    return { cell: cell!, all };
   } else if (cell === "campfire" || cell === "fireplace") {
     const fireEntity = entities.createFire(world, {
       [BURNABLE]: {
@@ -2148,6 +2302,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -2232,6 +2387,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [POSITION]: { x, y },
       [SPRITE]: enemySpawner,
@@ -2273,6 +2429,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: eliteUnit.flying,
+        swimming: false,
       },
       [NPC]: { type: eliteUnit.type },
       [ORIENTABLE]: {},
@@ -2352,6 +2509,7 @@ export const createCell = (
           },
           lastInteraction: 0,
           flying: limbUnit.flying,
+          swimming: false,
         },
         [ORIENTABLE]: { facing: orientation },
         [POSITION]: combine(size, { x, y }, offset),
@@ -2391,6 +2549,7 @@ export const createCell = (
         },
         [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
+        [HOOKABLE]: { escaping: false },
         [INVENTORY]: { items: [] },
         [LAYER]: {},
         [MELEE]: {},
@@ -2402,6 +2561,7 @@ export const createCell = (
           },
           lastInteraction: 0,
           flying: mobUnit.flying,
+          swimming: false,
         },
         [NPC]: { type: mobUnit.type },
         [ORIENTABLE]: {
@@ -2440,6 +2600,7 @@ export const createCell = (
         },
         [EQUIPPABLE]: {},
         [FOG]: { visibility, type: "unit" },
+        [HOOKABLE]: { escaping: false },
         [INVENTORY]: { items: [] },
         [LAYER]: {},
         [MELEE]: {},
@@ -2451,6 +2612,7 @@ export const createCell = (
           },
           lastInteraction: 0,
           flying: mobUnit.flying,
+          swimming: false,
         },
         [NPC]: { type: mobUnit.type },
         [ORIENTABLE]: {
@@ -2784,7 +2946,7 @@ export const createCell = (
     return { cell: towerEntity, all };
   } else if (cell === "chest_tower") {
     const towerUnit = generateNpcData("waveTower");
-    const towerEntity = entities.createMob(world, {
+    const towerEntity = entities.createTower(world, {
       [ACTIONABLE]: {
         spellTriggered: false,
         skillTriggered: false,
@@ -2813,6 +2975,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [NPC]: { type: towerUnit.type },
       [ORIENTABLE]: {},
@@ -2870,6 +3033,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [NPC]: { type: eliteUnit.type },
       [ORIENTABLE]: {},
@@ -2942,6 +3106,7 @@ export const createCell = (
           },
           lastInteraction: 0,
           flying: false,
+          swimming: false,
         },
         [ORIENTABLE]: { facing: orientation },
         [POSITION]: combine(size, { x, y }, offset),
@@ -2987,6 +3152,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [NPC]: { type: bossUnit.type },
       [ORIENTABLE]: {},
@@ -3062,6 +3228,7 @@ export const createCell = (
           },
           lastInteraction: 0,
           flying: false,
+          swimming: false,
         },
         [ORIENTABLE]: { facing: orientation },
         [POSITION]: combine(size, { x, y }, offset),
@@ -3125,6 +3292,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: bossUnit.flying,
+        swimming: false,
       },
       [NPC]: { type: bossUnit.type },
       [ORIENTABLE]: {},
@@ -3186,6 +3354,7 @@ export const createCell = (
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility, type: "unit" },
+      [HOOKABLE]: { escaping: false },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MELEE]: {},
@@ -3197,6 +3366,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [NPC]: { type: bossUnit.type },
       [ORIENTABLE]: {},
@@ -3236,6 +3406,7 @@ export const createCell = (
       [DROPPABLE]: { decayed: false },
       [EQUIPPABLE]: {},
       [FOG]: { visibility: "hidden", type: "unit" },
+      [HOOKABLE]: { escaping: false },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MELEE]: {},
@@ -3247,6 +3418,7 @@ export const createCell = (
         },
         lastInteraction: 0,
         flying: false,
+        swimming: false,
       },
       [NPC]: { type: mobUnit.type },
       [ORIENTABLE]: {},

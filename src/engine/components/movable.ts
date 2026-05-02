@@ -11,6 +11,7 @@ export type Movable = {
   spring?: SpringConfig;
   lastInteraction: number;
   flying: boolean;
+  swimming: boolean;
 };
 
 export const MOVABLE = "MOVABLE";

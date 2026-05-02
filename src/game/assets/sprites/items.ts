@@ -604,24 +604,24 @@ export const charge: Sprite = {
 export const worm: Sprite = {
   name: "Worm",
   layers: [
-    { char: "≈", color: colors.maroon },
+    { char: "≈", color: colors.red },
     { char: "\u0115", color: colors.black },
   ],
   facing: {
     up: [
-      { char: "=", color: colors.maroon },
+      { char: "=", color: colors.red },
       { char: "\u0115", color: colors.black },
     ],
     right: [
-      { char: "=", color: colors.maroon },
+      { char: "=", color: colors.red },
       { char: "\u0115", color: colors.black },
     ],
     down: [
-      { char: "=", color: colors.maroon },
+      { char: "=", color: colors.red },
       { char: "\u0115", color: colors.black },
     ],
     left: [
-      { char: "=", color: colors.maroon },
+      { char: "=", color: colors.red },
       { char: "\u0115", color: colors.black },
     ],
   },
@@ -630,9 +630,20 @@ export const worm: Sprite = {
 export const algae: Sprite = {
   name: "Algae",
   layers: [
+    { char: "+", color: colors.green },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.green },
+    { char: ":", color: colors.green },
     { char: "v", color: colors.green },
-    { char: "|", color: colors.green },
-    { char: "~", color: colors.black },
+  ],
+};
+
+export const pearl: Sprite = {
+  name: "Pearl",
+  layers: [
+    { char: "\u0106", color: colors.white },
+    { char: "∙", color: colors.grey },
+    { char: "·", color: colors.silver },
   ],
 };
 

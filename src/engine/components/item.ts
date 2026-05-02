@@ -24,7 +24,7 @@ export type Material = (typeof materials)[number];
 export type Spell = "wave" | "beam" | "trap" | "dash" | "bolt" | "blast";
 
 export const rechargables = ["slash", "zap", "block", "totem"] as const;
-export type Tool = "axe" | "pickaxe";
+export type Tool = "axe" | "pickaxe" | "hook";
 export type Skill = "bow" | (typeof rechargables)[number];
 
 export type Consumable = "key" | "potion";
@@ -53,6 +53,14 @@ export type Craftable =
   | "nugget"
   | "note"
   | "worm"
+  | "salmon"
+  | "tuna"
+  | "pike"
+  | "cod"
+  | "algae"
+  | "eel"
+  | "seastar"
+  | "pearl"
   | "golemHead";
 export type ResourceItem = "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";

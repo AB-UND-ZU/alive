@@ -41,6 +41,7 @@ import {
   golemUnit,
   tulip,
   lily,
+  none,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { choice, distribution } from "../math/std";
@@ -94,7 +95,8 @@ export type UnitKey =
   | "rock2"
   | "tumbleweed"
   | "hedge1"
-  | "hedge2";
+  | "hedge2"
+  | "rotten";
 
 export type NpcDistribution = Partial<Record<NpcType, number>>;
 
@@ -656,7 +658,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     drops: [
-      { chance: 90, items: [{ stackable: "ore", amount: 1 }] },
+      { chance: 75, items: [{ stackable: "ore", amount: 1 }] },
+      { chance: 15, items: [{ stackable: "worm", amount: 1 }] },
       { chance: 10, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
@@ -671,7 +674,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     drops: [
-      { chance: 90, items: [{ stackable: "ore", amount: 1 }] },
+      { chance: 75, items: [{ stackable: "ore", amount: 1 }] },
+      { chance: 15, items: [{ stackable: "worm", amount: 1 }] },
       { chance: 10, items: [{ stackable: "gem", amount: 1 }] },
     ],
     patternNames: [],
@@ -716,6 +720,20 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     ],
     patternNames: [],
     sprite: hedge2,
+  },
+  rotten: {
+    faction: "unit",
+    scratch: colors.maroon,
+    stats: {
+      hp: 1,
+    },
+    equipments: [],
+    drops: [
+      { chance: 70, items: [{ stackable: "worm", amount: 1 }] },
+      { chance: 30, items: [] },
+    ],
+    patternNames: [],
+    sprite: none,
   },
   prism: {
     faction: "wild",
