@@ -1511,6 +1511,7 @@ export const castBeam1: Sequence<SpellSequence> = (world, entity, state) => {
       const aoeEntity = world.assertById(aoeId);
       disposeEntity(world, aoeEntity);
     }
+    state.args.areas = [];
   }
 
   return { finished, updated };
@@ -1572,6 +1573,7 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
       const aoeEntity = world.assertById(aoeId);
       disposeEntity(world, aoeEntity);
     }
+    state.args.areas = [];
 
     updated = true;
   }
@@ -1719,6 +1721,7 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
     rerenderEntity(world, casterEntity);
     const teleportEntity = world.assertById(state.args.memory.teleport);
     disposeEntity(world, teleportEntity);
+    delete state.args.memory.teleport;
 
     updated = true;
   }
@@ -1751,10 +1754,12 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
       const aoeEntity = world.assertById(aoeId);
       disposeEntity(world, aoeEntity);
     }
+    state.args.areas = [];
 
     const teleportEntity = world.getEntityById(state.args.memory?.teleport);
     if (teleportEntity) {
       disposeEntity(world, teleportEntity);
+      delete state.args.memory?.teleport;
     }
 
     updated = true;
@@ -1847,6 +1852,7 @@ export const castBolt1: Sequence<SpellSequence> = (world, entity, state) => {
       const aoeEntity = world.assertById(aoeId);
       disposeEntity(world, aoeEntity);
     }
+    state.args.areas = [];
 
     updated = true;
   }
@@ -1993,7 +1999,6 @@ export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
 
       for (const aoeEntity of aoeEntities) {
         const aoeId = world.getEntityId(aoeEntity);
-
         const aoeIndex = state.args.areas.indexOf(aoeId);
 
         if (aoeIndex === -1) {
@@ -2020,6 +2025,7 @@ export const castBlast: Sequence<SpellSequence> = (world, entity, state) => {
       const aoeEntity = world.assertById(aoeId);
       disposeEntity(world, aoeEntity);
     }
+    state.args.areas = [];
 
     updated = true;
   }
@@ -2159,6 +2165,7 @@ export const totemAura: Sequence<AuraSequence> = (world, entity, state) => {
       const aoeEntity = world.assertById(aoeId);
       disposeEntity(world, aoeEntity);
     }
+    state.args.areas = [];
 
     updated = true;
   }

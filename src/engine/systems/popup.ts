@@ -459,6 +459,7 @@ export const openPopup = (
   const transaction = getDiscoveryTab(world, popupEntity);
   heroEntity[PLAYER].popup = popupId;
   popupEntity[POPUP].active = true;
+  rerenderEntity(world, heroEntity);
 
   // reset pending movements
   heroEntity[MOVABLE].orientations = [];
@@ -587,13 +588,6 @@ export default function setupPopup(world: World) {
     const targetOrientation: Orientation | undefined =
       heroEntity[MOVABLE].pendingOrientation ||
       heroEntity[MOVABLE].orientations[0];
-
-    // skip if player has already interacted or not going to
-    if (
-      heroEntity[MOVABLE].lastInteraction === generation ||
-      (!targetOrientation && !heroEntity[PLAYER].actionTriggered)
-    )
-      return;
 
     const inventoryItems = (heroEntity[INVENTORY]?.items || []).map((itemId) =>
       world.assertByIdAndComponents(itemId, [ITEM])
@@ -746,6 +740,13 @@ export default function setupPopup(world: World) {
     if (currentIndex !== boundIndex) {
       setVerticalIndex(world, popupEntity, boundIndex);
     }
+
+    // skip if player has already interacted or not going to
+    if (
+      heroEntity[MOVABLE].lastInteraction === generation ||
+      (!targetOrientation && !heroEntity[PLAYER].actionTriggered)
+    )
+      return;
 
     // handle actions
     if (heroEntity[PLAYER].actionTriggered === "close") {
