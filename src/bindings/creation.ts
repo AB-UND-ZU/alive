@@ -146,9 +146,6 @@ import {
   oakLeaves,
   oakMouth,
   wormMouth,
-  golemArm,
-  golem,
-  golemBody,
   ilex,
   addBackground,
   interactBar,
@@ -163,6 +160,8 @@ import {
   stemRottenLeft,
   leavesRottenLeft,
   branchRottenLeft,
+  gravel,
+  goldMine,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -265,6 +264,7 @@ export const cellNames = [
   "path",
   "mountain",
   "ore",
+  "iron",
   "stone",
   "desert_stone",
   "rock",
@@ -932,7 +932,7 @@ export const createCell = (
     const { harvestable, yields } = getHarvestConfig(world, "mountain", "wood");
     const mountainEntity = entities.createMountain(world, {
       [COLLIDABLE]: {},
-      [DROPPABLE]: { decayed: false },
+      [DROPPABLE]: { decayed: false, remains: gravel },
       [FOG]: { visibility, type: "terrain" },
       [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
@@ -993,27 +993,49 @@ export const createCell = (
     }
     return { cell: rockEntity, all };
   } else if (cell === "iron") {
+    const { harvestable, yields } = getHarvestConfig(world, "iron", "wood");
     const mineEntity = entities.createMine(world, {
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false, remains: gravel },
       [FOG]: { visibility, type: "terrain" },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: ironMine,
-      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
-      [COLLIDABLE]: {},
     });
     all.push(mineEntity);
+    populateInventory(world, mineEntity, yields);
+    return { cell: mineEntity, all };
+  } else if (cell === "gold") {
+    const { harvestable, yields } = getHarvestConfig(world, "gold", "wood");
+    const mineEntity = entities.createMine(world, {
+      [COLLIDABLE]: {},
+      [DROPPABLE]: { decayed: false, remains: gravel },
+      [FOG]: { visibility, type: "terrain" },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: goldMine,
+    });
+    all.push(mineEntity);
+    populateInventory(world, mineEntity, yields);
     return { cell: mineEntity, all };
   } else if (cell === "ore" || cell === "ore_one") {
     const { harvestable } = getHarvestConfig(world, "mountain", "wood");
     const oreEntity = entities.createOre(world, {
       [COLLIDABLE]: {},
-      [DROPPABLE]: { decayed: false },
+      [DROPPABLE]: { decayed: false, remains: gravel },
+      [FOG]: { visibility, type: "terrain" },
       [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [LOOTABLE]: { disposable: false },
-      [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -2438,7 +2460,8 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SHOOTABLE]: { shots: 0 },
-      [SPRITE]: { ...golem, name: "" },
+      // [SPRITE]: { ...golem, name: "" },
+      [SPRITE]: mergeSprites(shadow, rock2),
       [STATS]: eliteUnit.stats,
       [STRUCTURABLE]: { rigid: true },
       [SWIMMABLE]: { swimming: false },
@@ -2468,15 +2491,16 @@ export const createCell = (
     eliteEntity[EXERTABLE].castable = eliteId;
 
     // create stem and leaves
+    const rockShadow = mergeSprites(shadow, rock1);
     const golemLimbs: {
       offset: Position;
       sprite: Sprite;
       orientation?: Orientation;
     }[] = [
-      { offset: { x: 0, y: -1 }, sprite: golemBody, orientation: "up" },
-      { offset: { x: 0, y: 1 }, sprite: golemBody, orientation: "down" },
-      { offset: { x: -1, y: 0 }, sprite: golemArm, orientation: "left" },
-      { offset: { x: 1, y: 0 }, sprite: golemArm, orientation: "right" },
+      { offset: { x: 0, y: -1 }, sprite: rockShadow, orientation: "up" },
+      { offset: { x: 0, y: 1 }, sprite: rockShadow, orientation: "down" },
+      { offset: { x: -1, y: 0 }, sprite: rockShadow, orientation: "left" },
+      { offset: { x: 1, y: 0 }, sprite: rockShadow, orientation: "right" },
     ];
 
     for (const { offset, sprite, orientation } of golemLimbs) {

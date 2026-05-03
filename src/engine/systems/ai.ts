@@ -56,7 +56,9 @@ import {
   confused,
   createShout,
   createText,
+  golem,
   golemArm,
+  golemBody,
   golemFist,
   golemLimb,
   golemShoulderLeft,
@@ -64,6 +66,7 @@ import {
   none,
   rage,
   rage2,
+  rock1,
   shadow,
   sleep1,
   sleep2,
@@ -2906,7 +2909,8 @@ export default function setupAi(world: World) {
             entity[MOVABLE].orientations = movingOrientations;
           }
         } else if (pattern.name === "golem") {
-          if (!entity[ORIENTABLE] || !entity[STATS]) break;
+          if (!entity[ORIENTABLE] || !entity[STATS] || !entity[BELONGABLE])
+            break;
 
           if (pattern.memory.phase === undefined) {
             // set initial phase
@@ -2926,6 +2930,7 @@ export default function setupAi(world: World) {
           const heroEntity = getIdentifierAndComponents(world, "hero", [
             POSITION,
           ]);
+          const limbs = getLimbs(world, entity);
           const armEntities = (["left", "right"] as const)
             .map((orientation) =>
               getFragment(
@@ -2950,9 +2955,148 @@ export default function setupAi(world: World) {
           if (!canWalk && entity[STATS].offsetY !== 0) {
             entity[STATS].offsetY = 0;
             rerenderEntity(world, entity);
+          } else if (canWalk && entity[STATS].offsetY !== 1) {
+            entity[STATS].offsetY = 1;
+            rerenderEntity(world, entity);
           }
 
           if (pattern.memory.phase === 0) {
+            if (entity[STATS].hp === entity[STATS].maxHp) {
+              if (entity[BELONGABLE].faction !== "unit") {
+                limbs.forEach((limb) => {
+                  limb[BELONGABLE].faction = "unit";
+                });
+                rerenderEntity(world, entity);
+              }
+              break;
+            }
+
+            // start unfolding sequence
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "golem",
+              memory: { phase: 1 },
+            });
+            break;
+          } else if (pattern.memory.phase === 1) {
+            entity[SPRITE] = { ...golem, name: "" };
+            rerenderEntity(world, entity);
+
+            patterns.splice(patterns.indexOf(pattern), 1, {
+              name: "golem",
+              memory: { phase: 2 },
+            });
+            break;
+          } else if (pattern.memory.phase === 2) {
+            // contract rocks
+            limbs.forEach((limb) => {
+              if (limb === entity) return;
+
+              moveEntity(world, limb, entity[POSITION]);
+              limb[SPRITE] = rock1;
+              rerenderEntity(world, limb);
+            });
+            entity[STATS].offsetY = 0;
+            rerenderEntity(world, entity);
+
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "wait",
+                memory: { ticks: 1 },
+              },
+              {
+                name: "golem",
+                memory: { phase: 3 },
+              }
+            );
+            break;
+          } else if (pattern.memory.phase === 3) {
+            limbs.forEach((limb) => {
+              limb[BELONGABLE].faction = "wild";
+            });
+            rerenderEntity(world, entity);
+
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "wait",
+                memory: { ticks: 1 },
+              },
+              {
+                name: "golem",
+                memory: { phase: 4 },
+              }
+            );
+            break;
+          } else if (pattern.memory.phase === 4) {
+            // extend body
+            const targetOrientations = ["up", "down"];
+            limbs.forEach((limb) => {
+              const orientation = limb[ORIENTABLE].facing as Orientation;
+              if (limb === entity || !targetOrientations.includes(orientation))
+                return;
+
+              moveEntity(
+                world,
+                limb,
+                add(entity[POSITION], orientationPoints[orientation])
+              );
+
+              limb[SPRITE] = golemBody;
+              rerenderEntity(world, limb);
+            });
+            entity[STATS].offsetY = 1;
+            rerenderEntity(world, entity);
+
+            // start fighting
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "wait",
+                memory: { ticks: 1 },
+              },
+              {
+                name: "golem",
+                memory: { phase: 5 },
+              }
+            );
+            break;
+          } else if (pattern.memory.phase === 5) {
+            // extend body
+            const targetOrientations = ["left", "right"];
+            limbs.forEach((limb) => {
+              const orientation = limb[ORIENTABLE].facing as Orientation;
+              if (limb === entity || !targetOrientations.includes(orientation))
+                return;
+
+              moveEntity(
+                world,
+                limb,
+                add(entity[POSITION], orientationPoints[orientation])
+              );
+
+              limb[SPRITE] = golemArm;
+              rerenderEntity(world, limb);
+            });
+
+            // start fighting
+            patterns.splice(
+              patterns.indexOf(pattern),
+              1,
+              {
+                name: "wait",
+                memory: { ticks: 1 },
+              },
+              {
+                name: "golem",
+                memory: { phase: 10 },
+              }
+            );
+            break;
+          } else if (pattern.memory.phase === 10) {
             // pause while out of range
             const distance = heroEntity
               ? getDistance(entity[POSITION], heroEntity[POSITION], size, 0.69)
@@ -2984,7 +3128,7 @@ export default function setupAi(world: World) {
                 {
                   name: "golem",
                   memory: {
-                    phase: 1,
+                    phase: 11,
                   },
                 }
               );
@@ -2994,10 +3138,10 @@ export default function setupAi(world: World) {
             patterns.splice(patterns.indexOf(pattern), 1, {
               name: "golem",
               memory: {
-                phase: 1,
+                phase: 11,
               },
             });
-          } else if (pattern.memory.phase === 1) {
+          } else if (pattern.memory.phase === 11) {
             const duration = canWalk ? random(3, 7) * 2 : 2;
 
             // attack player
@@ -3005,7 +3149,7 @@ export default function setupAi(world: World) {
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
                 memory: {
-                  phase: 2,
+                  phase: 12,
                 },
               });
               break;
@@ -3013,7 +3157,7 @@ export default function setupAi(world: World) {
 
             // chase player if legs are not gone
             if (canWalk) continue;
-          } else if (pattern.memory.phase === 2) {
+          } else if (pattern.memory.phase === 12) {
             // check available arms
             const closestArm =
               heroEntity &&
@@ -3028,7 +3172,7 @@ export default function setupAi(world: World) {
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
                 memory: {
-                  phase: 30,
+                  phase: 40,
                 },
               });
               break;
@@ -3081,7 +3225,7 @@ export default function setupAi(world: World) {
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
                 memory: {
-                  phase: 20,
+                  phase: 30,
                   limbId: world.getEntityId(closestArm),
                   orientation: strikeOrientation,
                 },
@@ -3097,7 +3241,7 @@ export default function setupAi(world: World) {
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
                 memory: {
-                  phase: 10,
+                  phase: 20,
                   limbId: world.getEntityId(closestArm),
                 },
               });
@@ -3108,10 +3252,10 @@ export default function setupAi(world: World) {
             patterns.splice(patterns.indexOf(pattern), 1, {
               name: "golem",
               memory: {
-                phase: 30,
+                phase: 40,
               },
             });
-          } else if (pattern.memory.phase === 10) {
+          } else if (pattern.memory.phase === 20) {
             // show rage before stomping
             patterns.splice(
               patterns.indexOf(pattern),
@@ -3135,12 +3279,12 @@ export default function setupAi(world: World) {
               {
                 name: "golem",
                 memory: {
-                  phase: 11,
+                  phase: 21,
                   limbId: pattern.memory.limbId,
                 },
               }
             );
-          } else if (pattern.memory.phase === 11) {
+          } else if (pattern.memory.phase === 21) {
             const activeArm = world.getEntityByIdAndComponents(
               pattern.memory.limbId,
               [POSITION, ORIENTABLE]
@@ -3151,7 +3295,7 @@ export default function setupAi(world: World) {
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
                 memory: {
-                  phase: 0,
+                  phase: 10,
                 },
               });
               break;
@@ -3188,10 +3332,10 @@ export default function setupAi(world: World) {
               },
               {
                 name: "golem",
-                memory: { phase: 0 },
+                memory: { phase: 10 },
               }
             );
-          } else if (pattern.memory.phase === 20) {
+          } else if (pattern.memory.phase === 30) {
             // show rage before striking
             patterns.splice(
               patterns.indexOf(pattern),
@@ -3215,13 +3359,13 @@ export default function setupAi(world: World) {
               {
                 name: "golem",
                 memory: {
-                  phase: 21,
+                  phase: 31,
                   limbId: pattern.memory.limbId,
                   orientation: pattern.memory.orientation,
                 },
               }
             );
-          } else if (pattern.memory.phase === 21) {
+          } else if (pattern.memory.phase === 31) {
             const activeArm = world.getEntityByIdAndComponents(
               pattern.memory.limbId,
               [POSITION, MOVABLE, ORIENTABLE]
@@ -3232,7 +3376,7 @@ export default function setupAi(world: World) {
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
                 memory: {
-                  phase: 0,
+                  phase: 10,
                 },
               });
               break;
@@ -3256,14 +3400,14 @@ export default function setupAi(world: World) {
             patterns.splice(patterns.indexOf(pattern), 1, {
               name: "golem",
               memory: {
-                phase: 22,
+                phase: 32,
                 origin: copy(origin),
                 limbId: pattern.memory.limbId,
                 orientation: pattern.memory.orientation,
                 generation,
               },
             });
-          } else if (pattern.memory.phase === 22) {
+          } else if (pattern.memory.phase === 32) {
             const activeArm = world.getEntityByIdAndComponents(
               pattern.memory.limbId,
               [POSITION, MOVABLE, ORIENTABLE]
@@ -3274,7 +3418,7 @@ export default function setupAi(world: World) {
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
                 memory: {
-                  phase: 0,
+                  phase: 10,
                 },
               });
               break;
@@ -3333,14 +3477,14 @@ export default function setupAi(world: World) {
             patterns.splice(patterns.indexOf(pattern), 1, {
               name: "golem",
               memory: {
-                phase: 23,
+                phase: 33,
                 origin: pattern.memory.origin,
                 limbId: pattern.memory.limbId,
                 orientation: pattern.memory.orientation,
                 generation,
               },
             });
-          } else if (pattern.memory.phase === 23) {
+          } else if (pattern.memory.phase === 33) {
             // check if fist hit wall or exceeded range
             const progress = generation - pattern.memory.generation;
             const strikeDelta =
@@ -3375,7 +3519,7 @@ export default function setupAi(world: World) {
                   {
                     name: "golem",
                     memory: {
-                      phase: 24,
+                      phase: 34,
                       origin: pattern.memory.origin,
                       limbId: pattern.memory.limbId,
                       orientation: pattern.memory.orientation,
@@ -3387,7 +3531,7 @@ export default function setupAi(world: World) {
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
                 memory: {
-                  phase: 25,
+                  phase: 35,
                   origin: pattern.memory.origin,
                   orientation: pattern.memory.orientation,
                 },
@@ -3434,7 +3578,7 @@ export default function setupAi(world: World) {
                 [SPRITE]: golemLimb,
               });
             }
-          } else if (pattern.memory.phase === 24) {
+          } else if (pattern.memory.phase === 34) {
             // deactivate strike
             const fistEntity = world.getEntityByIdAndComponents(
               pattern.memory.limbId,
@@ -3457,14 +3601,14 @@ export default function setupAi(world: World) {
               {
                 name: "golem",
                 memory: {
-                  phase: 25,
+                  phase: 35,
                   origin: pattern.memory.origin,
                   limbId: pattern.memory.limbId,
                   orientation: pattern.memory.orientation,
                 },
               }
             );
-          } else if (pattern.memory.phase === 25) {
+          } else if (pattern.memory.phase === 35) {
             // clean up arm
             const strikeDelta =
               orientationPoints[pattern.memory.orientation as Orientation];
@@ -3508,16 +3652,16 @@ export default function setupAi(world: World) {
             patterns.splice(patterns.indexOf(pattern), 1, {
               name: "golem",
               memory: {
-                phase: 0,
+                phase: 10,
               },
             });
-          } else if (pattern.memory.phase === 30) {
+          } else if (pattern.memory.phase === 40) {
             if (!heroEntity) {
               // hero gone, abort phase
               patterns.splice(patterns.indexOf(pattern), 1, {
                 name: "golem",
                 memory: {
-                  phase: 0,
+                  phase: 10,
                 },
               });
               break;
@@ -3555,7 +3699,7 @@ export default function setupAi(world: World) {
                 {
                   name: "golem",
                   memory: {
-                    phase: 31,
+                    phase: 41,
                   },
                 } as const,
                 2
@@ -3563,11 +3707,11 @@ export default function setupAi(world: World) {
               {
                 name: "golem",
                 memory: {
-                  phase: 32,
+                  phase: 42,
                 },
               }
             );
-          } else if (pattern.memory.phase === 31) {
+          } else if (pattern.memory.phase === 41) {
             // cast bolt towards hero
             castSpell(world, entity, {
               [ITEM]: {
@@ -3583,7 +3727,7 @@ export default function setupAi(world: World) {
               name: "wait",
               memory: { ticks: 1 },
             });
-          } else if (pattern.memory.phase === 32) {
+          } else if (pattern.memory.phase === 42) {
             // cast last bolt towards hero and reset orientation
             castSpell(world, entity, {
               [ITEM]: {
@@ -3607,7 +3751,7 @@ export default function setupAi(world: World) {
               {
                 name: "golem",
                 memory: {
-                  phase: 0,
+                  phase: 10,
                 },
               }
             );

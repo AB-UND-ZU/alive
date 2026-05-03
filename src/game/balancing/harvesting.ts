@@ -10,7 +10,9 @@ const harvestEfforts: Record<Resource, number> = {
   tree: 4,
   oak: 11,
   rock: 3,
-  mountain: 11,
+  mountain: 6,
+  iron: 11,
+  gold: 11,
 };
 
 const harvestYields: Record<Resource, Omit<Item, "carrier" | "bound">[]> = {
@@ -23,6 +25,8 @@ const harvestYields: Record<Resource, Omit<Item, "carrier" | "bound">[]> = {
   ],
   rock: [{ stackable: "ore", amount: 1 }],
   mountain: [{ stackable: "ore", amount: 1 }],
+  iron: [{ stackable: "resource", material: "iron", amount: 1 }],
+  gold: [{ stackable: "resource", material: "gold", amount: 1 }],
 };
 
 export const harvestScratches: Record<Resource, string> = {
@@ -32,6 +36,8 @@ export const harvestScratches: Record<Resource, string> = {
   oak: colors.maroon,
   rock: colors.silver,
   mountain: colors.silver,
+  iron: colors.silver,
+  gold: colors.yellow,
 };
 
 export const harvestConditions: Record<Tool, ConditionType> = {
@@ -47,6 +53,8 @@ export const harvestTools: Record<Resource, Tool> = {
   oak: "axe",
   rock: "pickaxe",
   mountain: "pickaxe",
+  iron: "pickaxe",
+  gold: "pickaxe",
 };
 
 export type HarvestConfig = {

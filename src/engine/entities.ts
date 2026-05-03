@@ -707,7 +707,10 @@ export const createMarker = entityFactory([FOG, POI, POSITION, RENDERABLE]);
 
 export const createMine = entityFactory([
   COLLIDABLE,
+  DROPPABLE,
   FOG,
+  HARVESTABLE,
+  INVENTORY,
   LIGHT,
   POSITION,
   RENDERABLE,

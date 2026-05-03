@@ -141,6 +141,16 @@ export const path: Sprite = {
   ],
 };
 
+export const gravel: Sprite = {
+  name: "gravel",
+  layers: [
+    { char: "\u0112", color: colors.grey },
+    { char: "\u0105", color: colors.black },
+    { char: "\u0117", color: colors.black },
+    { char: "▓", color: colors.black },
+  ],
+};
+
 export const birch: Sprite = {
   name: "tree_birch",
   layers: [

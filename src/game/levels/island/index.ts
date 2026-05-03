@@ -45,6 +45,7 @@ import {
   lerp,
   normalize,
   random,
+  range,
   sigmoid,
   signedDistance,
 } from "../../math/std";
@@ -148,7 +149,9 @@ export const generateIsland = (world: World) => {
   const treeChance = 0.04;
   const rottenChance = 0.035;
   const stoneChance = 0.08;
-  const oreChance = 0.05;
+  const oreChance = 0.1;
+  const ironChance = 0.4;
+  const mountainIronChance = 0.03;
   const terrainDepth = 10;
   const grassDepth = 50;
   const bushDepth = 65;
@@ -157,6 +160,7 @@ export const generateIsland = (world: World) => {
   const palmDepth = 8;
   const palmChance = 0.3;
   const desertDepth = 60;
+  const ironDepth = 100;
   const hedgeDepth = 55;
   const treeDepth = 60;
   const mountainDepth = 125;
@@ -636,16 +640,72 @@ export const generateIsland = (world: World) => {
         cell = spawn > 98 ? "leaf" : spawn > 95 ? "flower" : "grass";
       else if (spawn < -95) objects.push(generateNpcKey(distribution));
     } else if (biome === "desert") {
-      if (terrain > desertDepth)
-        cell = Math.random() < oreChance ? "ore" : "mountain";
-      else if (terrain > rockDepth && terrain < rockDepth + 5)
+      // place mountains first
+      if (terrain > desertDepth) cell = "mountain";
+
+      // then process ores for previous cells
+      matrix[x][y] = cell;
+      if (x > 3 && y > 3) {
+        // ensure iron is surrounded by mountains
+        const targetDelta = [-1, -1];
+        const largeTargetDelta = [-2, -2];
+        const smallSquareDeltas = range(-2, 0)
+          .map((deltaX) => range(-2, 0).map((deltaY) => [deltaX, deltaY]))
+          .flat();
+        const largeSquareDeltas = range(-4, 0)
+          .map((deltaX) => range(-4, 0).map((deltaY) => [deltaX, deltaY]))
+          .flat();
+        const adjacentDeltas = Object.values(orientationPoints).map((delta) => [
+          delta.x - 1,
+          delta.y - 1,
+        ]);
+
+        if (
+          ((elevation < ironDepth && Math.random() < ironChance) ||
+            (elevation > ironDepth && Math.random() < mountainIronChance)) &&
+          smallSquareDeltas.every(
+            ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "mountain"
+          )
+        ) {
+          // spawn iron only fully inside mountain
+          matrix[x + targetDelta[0]][y + targetDelta[1]] = "iron";
+        } else if (
+          Math.random() < oreChance &&
+          matrix[x + targetDelta[0]][y + targetDelta[1]] === "mountain" &&
+          adjacentDeltas.some(
+            ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "sand"
+          )
+        ) {
+          // spawn ore in mountain only if accessible from outside
+          matrix[x + targetDelta[0]][y + targetDelta[1]] = "ore";
+        } else if (
+          spawn > 93 &&
+          largeSquareDeltas.every(
+            ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "sand"
+          )
+        ) {
+          // spawn golem only in cleared areas
+          matrix[x + largeTargetDelta[0]][y + largeTargetDelta[1]] = "golem";
+          smallSquareDeltas.forEach(([deltaX, deltaY]) => {
+            objectsMap[x + deltaX + targetDelta[0]][
+              y + deltaY + targetDelta[1]
+            ] = [];
+          });
+          objectsMap[x + largeTargetDelta[0]][y + largeTargetDelta[1]] = [
+            "sand",
+          ];
+        }
+      }
+
+      if (
+        terrain <= desertDepth &&
+        terrain > rockDepth &&
+        terrain < rockDepth + 5
+      )
         cell = "desert_rock";
       else if (greens > cactusDepth && greens < cactusDepth + 2)
         cell = "cactus";
-      else if (cell === "sand" && spawn < -99 && elevation < treeDepth) {
-        // TODO: clear area around golem
-        objects.push("golem");
-      } else if (cell === "sand" && spawn < -97)
+      else if (cell === "sand" && spawn < -97)
         objects.push(generateNpcKey(distribution));
       else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
       else if (cell === "desert_palm" && random(0, 9) === 0)
@@ -1219,6 +1279,8 @@ export const stringifyMap = (
       else if (cell === "cactus" || objects.includes("cactus")) row += "¥";
       else if (cell === "mountain") row += "█";
       else if (cell === "ore") row += "◘";
+      else if (cell === "iron") row += "+";
+      else if (cell === "golem") row += "G";
       else if (cell === "stone" || cell === "desert_stone") row += "∙";
       else if (cell === "desert_rock" || objects.includes("rock")) row += "^";
       else if (cell === "palm" || cell === "desert_palm") row += "¶";

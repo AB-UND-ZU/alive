@@ -658,8 +658,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     drops: [
-      { chance: 75, items: [{ stackable: "ore", amount: 1 }] },
-      { chance: 15, items: [{ stackable: "worm", amount: 1 }] },
+      { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
+      { chance: 20, items: [{ stackable: "worm", amount: 1 }] },
       { chance: 10, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
@@ -674,8 +674,8 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     drops: [
-      { chance: 75, items: [{ stackable: "ore", amount: 1 }] },
-      { chance: 15, items: [{ stackable: "worm", amount: 1 }] },
+      { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
+      { chance: 20, items: [{ stackable: "worm", amount: 1 }] },
       { chance: 10, items: [{ stackable: "gem", amount: 1 }] },
     ],
     patternNames: [],

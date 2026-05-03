@@ -186,7 +186,7 @@ axe.iron.default = ironAxe;
 const pickaxeTemplate: Sprite = {
   name: "Pickaxe",
   layers: [
-    { char: "\u0119", color: colors.white },
+    { char: "\u0119", color: colors.grey },
     { char: "-", color: TEMPLATE_COLORS.materialPrimary },
   ],
   facing: {
