@@ -303,13 +303,13 @@ export type CellType = (typeof cellNames)[number];
 
 export const populateItems = (
   world: World,
-  entity: TypedEntity<"INVENTORY">,
+  entity: TypedEntity<"INVENTORY" | "POSITION">,
   items: Omit<Item, "carrier">[],
   equip: boolean = true
 ) => {
   const created = [];
   for (const item of items) {
-    if (item.equipment === "weapon") {
+    if (item.weapon) {
       created.push(
         createItemInInventory(
           world,
@@ -352,7 +352,7 @@ export const populateItems = (
           equip
         )
       );
-    } else if (item.equipment === "compass") {
+    } else if (item.accessory === "compass") {
       created.push(
         createItemInInventory(
           world,
@@ -391,7 +391,7 @@ export const populateItems = (
 
 export const populateInventory = (
   world: World,
-  entity: TypedEntity<"INVENTORY">,
+  entity: TypedEntity<"INVENTORY" | "POSITION">,
   items: Omit<Item, "carrier" | "bound">[],
   equipments: Omit<Item, "carrier">[] = []
 ) => {
@@ -1797,7 +1797,7 @@ export const createCell = (
       entities.createCompass,
       {
         [ITEM]: {
-          equipment: "compass",
+          accessory: "compass",
           material: "iron",
           amount: 1,
           bound: false,
@@ -2120,7 +2120,7 @@ export const createCell = (
         createText("It will turn into"),
         [
           ...createText("a "),
-          ...createItemName({ equipment: "weapon", material: "wood" }),
+          ...createItemName({ weapon: "sword", material: "wood" }),
           ...createText("."),
         ],
         [],
@@ -2550,7 +2550,7 @@ export const createCell = (
   } else if (npcTypes.includes(cell as NpcType)) {
     const mobUnit = generateNpcData(cell as NpcType);
 
-    let mobEntity: TypedEntity<"FOG" | "INVENTORY">;
+    let mobEntity: TypedEntity<"FOG" | "INVENTORY" | "POSITION">;
 
     if (mobUnit.dormant) {
       mobEntity = entities.createDormant(world, {

@@ -64,7 +64,7 @@ import { ORIENTABLE } from "../components/orientable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { isDead, isEnemy, isNpc } from "./damage";
 import { canCast, chargeSlash, summonTotem } from "./magic";
-import { EQUIPPABLE } from "../components/equippable";
+import { EQUIPPABLE, slots } from "../components/equippable";
 import {
   closePopup,
   existingItem,
@@ -396,10 +396,7 @@ export const removeFromInventory = (
   const itemId = world.getEntityId(item);
   const itemIndex = entity[INVENTORY].items.indexOf(itemId);
 
-  const equipment = item[ITEM].equipment;
-  if (EQUIPPABLE in entity && entity[EQUIPPABLE][equipment] === itemId) {
-    entity[EQUIPPABLE][equipment] = undefined;
-  } else if (itemIndex === -1) {
+  if (itemIndex === -1) {
     console.error(
       Date.now(),
       "Unable to remove item from inventory",
@@ -407,6 +404,14 @@ export const removeFromInventory = (
       entity
     );
     return;
+  }
+
+  if (EQUIPPABLE in entity) {
+    for (const slot of slots) {
+      if (item[ITEM][slot]) {
+        entity[EQUIPPABLE][slot] = undefined;
+      }
+    }
   }
 
   if (itemIndex !== -1) {
@@ -448,8 +453,10 @@ export const performTrade = (
         ) {
           tradedEntity[ITEM].amount -= priceItem.amount;
         } else {
-          if (tradedEntity[ITEM].equipment) {
-            entity[EQUIPPABLE][tradedEntity[ITEM].equipment] = undefined;
+          for (const slot of slots) {
+            if (tradedEntity[ITEM][slot]) {
+              entity[EQUIPPABLE][slot] = undefined;
+            }
           }
           removeFromInventory(world, entity, tradedEntity);
           disposeEntity(world, tradedEntity);
@@ -473,7 +480,7 @@ export const performTrade = (
     [SPRITE]: getItemSprite(deal.item),
   };
   const itemEntity =
-    deal.item.equipment === "weapon"
+    deal.item.weapon === "sword"
       ? entities.createSword(world, {
           ...itemData,
           [SEQUENCABLE]: { states: {} },
@@ -498,7 +505,7 @@ export const performTrade = (
             tabs: ["info"],
           },
         })
-      : deal.item.equipment === "compass"
+      : deal.item.accessory === "compass"
       ? entities.createCompass(world, {
           ...itemData,
           [ORIENTABLE]: {},
@@ -722,7 +729,7 @@ export const completeQuest = (world: World, entity: Entity, target: Entity) => {
   // apply selected choice
   const choice = popup.choices[choiceIndex];
   if (choice) {
-    populateItems(world, entity as TypedEntity<"INVENTORY">, [
+    populateItems(world, entity as TypedEntity<"INVENTORY" | "POSITION">, [
       { ...choice, bound: false },
     ]);
     queueMessage(world, entity, {
@@ -1076,7 +1083,7 @@ export default function setupTrigger(world: World) {
                 [
                   ...createText("Need ", colors.silver),
                   ...createItemName({
-                    equipment: "map",
+                    accessory: "map",
                     material: "gold",
                   }),
                   ...createText("!", colors.silver),
@@ -1319,7 +1326,7 @@ export default function setupTrigger(world: World) {
                       skillEntity[ITEM].skill === "slash" &&
                         !entity[EQUIPPABLE]?.weapon
                         ? {
-                            equipment: "weapon",
+                            weapon: "sword",
                             material: "wood",
                           }
                         : {

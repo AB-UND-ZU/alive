@@ -29,7 +29,7 @@ import { REFERENCE } from "../components/reference";
 import { VIEWABLE } from "../components/viewable";
 import { UnitStats, STATS } from "../components/stats";
 import { Inventory, INVENTORY } from "../components/inventory";
-import { Equipment } from "../components/equippable";
+import { Equipment, slots } from "../components/equippable";
 import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
@@ -222,14 +222,12 @@ export const matchesItem = (
   first: Omit<Item, "carrier" | "bound" | "amount">,
   second: Omit<Item, "carrier" | "bound" | "amount">
 ) =>
-  first.consume === second.consume &&
-  first.equipment === second.equipment &&
   first.material === second.material &&
   first.element === second.element &&
-  first.spell === second.spell &&
-  first.skill === second.skill &&
+  first.consume === second.consume &&
   first.stackable === second.stackable &&
-  first.stat === second.stat;
+  first.stat === second.stat &&
+  slots.every((slot) => first[slot] === second[slot]);
 
 export const missingFunds = (world: World, heroEntity: Entity, deal: Deal) =>
   deal.prices.filter((priceItem) => {
@@ -357,7 +355,7 @@ export const visibleStats: (keyof UnitStats)[] = [
 
 export const gearSlots: Equipment[] = [
   "weapon",
-  "shield",
+  "offhand",
   "boots",
   "spell",
   "skill",
@@ -592,7 +590,9 @@ export default function setupPopup(world: World) {
     const inventoryItems = (heroEntity[INVENTORY]?.items || []).map((itemId) =>
       world.assertByIdAndComponents(itemId, [ITEM])
     );
-    const inspectItems = inventoryItems.filter((item) => !item[ITEM].equipment);
+    const inspectItems = inventoryItems.filter(
+      (item) => !slots.some((slot) => item[ITEM][slot])
+    );
     const quickItems = inventoryItems.filter((item) =>
       getItemConsumption(item)
     );
@@ -986,7 +986,7 @@ export default function setupPopup(world: World) {
           const useItem =
             inspectItems[getVerticalIndex(world, useEntity)]?.[ITEM];
           queueMessage(world, heroEntity, {
-            line: useItem?.equipment
+            line: slots.some((slot) => useItem?.[slot])
               ? addBackground(
                   [
                     ...createItemName(useItem),

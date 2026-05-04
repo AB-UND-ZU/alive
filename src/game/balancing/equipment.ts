@@ -1,11 +1,13 @@
 import { World } from "../../engine";
-import { Equipment } from "../../engine/components/equippable";
+import { Accessory } from "../../engine/components/equippable";
 import {
   Element,
   emptyItemStats,
   Item,
   ItemStats,
   Material,
+  Offhand,
+  Weapon,
 } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
 import { Attributes } from "../../engine/components/stats";
@@ -16,7 +18,7 @@ export const gearStats: Partial<
     NpcType | "default",
     Partial<
       Record<
-        Equipment,
+        Accessory | Weapon | Offhand,
         Partial<
           Record<
             Material | "default",
@@ -28,7 +30,7 @@ export const gearStats: Partial<
   >
 > = {
   default: {
-    weapon: {
+    sword: {
       wood: {
         default: { melee: 2 },
         air: { power: 1 },
@@ -191,37 +193,37 @@ export const gearStats: Partial<
   },
 
   prism: {
-    weapon: {
+    sword: {
       iron: { default: { melee: 1 } },
     },
   },
   goldPrism: {
-    weapon: {
+    sword: {
       gold: { default: { melee: 2 } },
     },
   },
   eye: {
-    weapon: {
+    sword: {
       iron: { default: { melee: 1 } },
     },
   },
   goldEye: {
-    weapon: {
+    sword: {
       gold: { default: { melee: 5 } },
     },
   },
   clover: {
-    weapon: {
+    sword: {
       wood: { default: { melee: 2 } },
     },
   },
   oakLily: {
-    weapon: {
+    sword: {
       default: { earth: { heal: 1 } },
     },
   },
   golem: {
-    weapon: {
+    sword: {
       gold: { default: { melee: 4 } },
     },
   },
@@ -238,11 +240,17 @@ const getDirectEquipmentStats = (
   item: Omit<Item, "carrier" | "bound" | "amount">,
   caster: NpcType | "default" = "default"
 ): Partial<ItemStats> => {
-  const { equipment, material, element } = item;
-  const itemStats = equipment
+  const { material, element, ...itemSlots } = item;
+  const gearSlot = (["weapon", "offhand", "accessory"] as const).find(
+    (slot) => item[slot]
+  );
+  const equipmentSlot = gearSlot && itemSlots[gearSlot];
+  const itemStats = equipmentSlot
     ? lookupEquipmentStats(
         (stats) =>
-          stats?.[equipment]?.[material || "default"]?.[element || "default"],
+          stats?.[equipmentSlot]?.[material || "default"]?.[
+            element || "default"
+          ],
         caster
       )
     : {};

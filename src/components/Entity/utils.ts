@@ -123,7 +123,7 @@ export const getSegments = (
     ? { ...layerProps, receiveShadow: false, isTransparent: false }
     : layerProps;
 
-  // from back to front: shadow, backdrop, shield, body, weapon
+  // from back to front: shadow, backdrop, offhand, body, weapon
   const orderedSegments: Segment[] = [];
 
   // 1. shadow
@@ -160,15 +160,15 @@ export const getSegments = (
     });
   }
 
-  // 3. shield
-  const shieldEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE]?.shield,
+  // 3. offhand
+  const offhandEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE]?.offhand,
     [ITEM, SPRITE]
   );
-  if (shieldEntity && shieldEntity[ITEM].amount > 0) {
+  if (offhandEntity && offhandEntity[ITEM].amount > 0) {
     orderedSegments.push({
-      id: entity[EQUIPPABLE].shield,
-      sprite: shieldEntity[SPRITE],
+      id: entity[EQUIPPABLE].offhand,
+      sprite: offhandEntity[SPRITE],
       offsetX: 0,
       offsetY: 0,
       offsetZ,

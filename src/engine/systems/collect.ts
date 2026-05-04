@@ -12,7 +12,7 @@ import {
   orientationPoints,
 } from "../components/orientable";
 import { LOOTABLE } from "../components/lootable";
-import { EQUIPPABLE } from "../components/equippable";
+import { equipments, EQUIPPABLE, Gear, slots } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { Item, ITEM } from "../components/item";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
@@ -105,14 +105,14 @@ export const collectItem = (
 
     // reduce counter items
     const stat = itemEntity[ITEM].stat;
-    const equipment = itemEntity[ITEM].equipment;
     const consume = itemEntity[ITEM].consume;
     const stackable = itemEntity[ITEM].stackable;
+    const isEquipment = slots.some((slot) => itemEntity[ITEM][slot]);
     let collectAmount = isFinite(itemEntity[ITEM].amount)
       ? itemEntity[ITEM].amount
       : 1;
 
-    if (equipment) {
+    if (isEquipment) {
       // transfer inventory on discrete items
       removeFromInventory(world, target, itemEntity);
       itemEntity[ITEM].carrier = world.getEntityId(entity);
@@ -134,8 +134,8 @@ export const collectItem = (
     // initiate collecting animation on player
     if (orientation && !itemEntity[ITEM].stat) {
       const sprite = getItemSprite(itemEntity[ITEM]);
-      const textColor = equipment ? colors.black : colors.silver;
-      const backgroundColor = equipment ? colors.silver : colors.black;
+      const textColor = isEquipment ? colors.black : colors.silver;
+      const backgroundColor = isEquipment ? colors.silver : colors.black;
 
       queueMessage(world, entity, {
         line: [
@@ -180,7 +180,7 @@ export const addToInventory = (
   amount: number
 ) => {
   const entityId = world.getEntityId(entity);
-  let targetEquipment = itemEntity[ITEM].equipment;
+  let isEquipment = slots.some((slot) => itemEntity[ITEM][slot]);
   let targetStat = itemEntity[ITEM].stat;
   let targetConsume = itemEntity[ITEM].consume;
   let targetStackable = itemEntity[ITEM].stackable;
@@ -194,7 +194,7 @@ export const addToInventory = (
   ) {
     const itemData = {
       amount: 1,
-      equipment: "weapon",
+      weapon: "sword",
       material: "wood",
       carrier: entityId,
       bound: false,
@@ -215,26 +215,34 @@ export const addToInventory = (
 
   if (amount === 0) {
     // empty block
-  } else if (targetEquipment) {
-    const existingId = entity[EQUIPPABLE][targetEquipment];
+  } else if (isEquipment) {
+    for (const equipment of equipments) {
+      if (
+        itemEntity[ITEM].accessory !== equipment &&
+        !itemEntity[ITEM][equipment as Gear]
+      )
+        continue;
 
-    // add existing render count if item is replaced
-    if (existingId) {
-      const existingItem = world.assertById(existingId);
-      targetItem[RENDERABLE].generation += getEntityGeneration(
-        world,
-        existingItem
-      );
+      const existingId = entity[EQUIPPABLE][equipment];
 
-      removeFromInventory(world, entity, existingItem);
-      dropEntity(
-        world,
-        { [INVENTORY]: { items: [existingId] } },
-        entity[POSITION]
-      );
+      // add existing render count if item is replaced
+      if (existingId) {
+        const existingItem = world.assertById(existingId);
+        targetItem[RENDERABLE].generation += getEntityGeneration(
+          world,
+          existingItem
+        );
+
+        removeFromInventory(world, entity, existingItem);
+        dropEntity(
+          world,
+          { [INVENTORY]: { items: [existingId] } },
+          entity[POSITION]
+        );
+      }
+
+      entity[EQUIPPABLE][equipment] = targetId;
     }
-
-    entity[EQUIPPABLE][targetEquipment] = targetId;
     entity[INVENTORY].items.push(targetId);
   } else if (targetStat) {
     const maxStat = getMaxCounter(targetStat);

@@ -822,7 +822,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         deals: [
           {
             item: {
-              equipment: "compass",
+              accessory: "compass",
               material: "iron",
               amount: 1,
             },
@@ -853,7 +853,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             [],
             [
               ...createText("A "),
-              ...createItemName({ equipment: "compass", material: "iron" }),
+              ...createItemName({ accessory: "compass", material: "iron" }),
               ...createText("."),
             ],
             [],
@@ -900,28 +900,24 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         ],
         choices: [
           // defensive
-          { equipment: "shield", material: "wood", amount: 1 },
+          { offhand: "shield", material: "wood", amount: 1 },
           // spells
           {
-            equipment: "spell",
             spell: "wave",
             material: "wood",
             amount: 1,
           },
           {
-            equipment: "spell",
             spell: "beam",
             material: "wood",
             amount: 1,
           },
           {
-            equipment: "spell",
             spell: "trap",
             material: "wood",
             amount: 1,
           },
           {
-            equipment: "spell",
             spell: "dash",
             material: "wood",
             amount: 1,
@@ -1084,31 +1080,26 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         ],
         choices: [
           {
-            equipment: "skill",
             skill: "bow",
             material: "wood",
             amount: 1,
           },
           {
-            equipment: "skill",
             skill: "slash",
             material: "wood",
             amount: 1,
           },
           {
-            equipment: "skill",
             skill: "zap",
             material: "wood",
             amount: 1,
           },
           {
-            equipment: "skill",
             skill: "block",
             material: "wood",
             amount: 1,
           },
           {
-            equipment: "skill",
             skill: "totem",
             material: "wood",
             amount: 1,
@@ -1194,32 +1185,28 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           ],
           choices: [
             {
-              equipment: "tool",
               tool: "axe",
               material: "wood",
               amount: 1,
             },
             {
-              equipment: "tool",
               tool: "hook",
               material: "wood",
               amount: 1,
             },
-            {
-              equipment: "tool",
-              tool: "pickaxe",
-              material: "wood",
-              amount: 1,
-            },
             // {
-            //   equipment: "tool",
+            //   tool: "pickaxe",
+            //   material: "wood",
+            //   amount: 1,
+            // },
+            // {
             //   tool: "shovel",
             //   material: "wood",
             //   amount: 1,
             // },
-            { equipment: "boots", material: "wood", amount: 1 },
-            { equipment: "torch", material: "wood", amount: 1 },
-            { equipment: "map", material: "gold", amount: 1 },
+            { accessory: "boots", material: "wood", amount: 1 },
+            { accessory: "torch", material: "wood", amount: 1 },
+            { accessory: "map", material: "gold", amount: 1 },
           ],
           lines: [
             [
@@ -1327,7 +1314,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             [...createText("Go to the "), ...createUnitName("earthSmith")],
             createText("and forge an iron"),
             [
-              ...createItemName({ equipment: "weapon", material: "iron" }),
+              ...createItemName({ weapon: "sword", material: "iron" }),
               ...createText(" to become"),
             ],
             createText("stronger."),

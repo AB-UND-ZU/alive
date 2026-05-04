@@ -156,13 +156,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "iron",
         bound: false,
         amount: 1,
       },
       {
-        equipment: "shield",
+        offhand: "shield",
         material: "wood",
         bound: false,
         amount: 1,
@@ -189,7 +189,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "shield",
+        offhand: "shield",
         material: "iron",
         amount: 1,
         bound: true,
@@ -255,7 +255,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "iron",
         amount: 1,
         bound: true,
@@ -285,13 +285,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "iron",
         amount: 1,
         bound: true,
       },
       {
-        equipment: "shield",
+        offhand: "shield",
         material: "wood",
         amount: 1,
         bound: true,
@@ -321,13 +321,13 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "wood",
         amount: 1,
         bound: true,
       },
       {
-        equipment: "shield",
+        offhand: "shield",
         material: "wood",
         amount: 1,
         bound: true,
@@ -347,7 +347,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "skill",
         skill: "bow",
         material: "wood",
         amount: 1,
@@ -369,14 +368,12 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "spell",
         spell: "dash",
         material: "wood",
         amount: 1,
         bound: true,
       },
       {
-        equipment: "skill",
         skill: "bow",
         material: "wood",
         amount: 1,
@@ -743,7 +740,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "iron",
         bound: true,
         amount: 0,
@@ -779,7 +776,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "gold",
         bound: true,
         amount: 0,
@@ -807,7 +804,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "iron",
         bound: true,
         amount: 0,
@@ -843,7 +840,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "gold",
         bound: true,
         amount: 0,
@@ -872,7 +869,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "spell",
         spell: "beam",
         material: "iron",
         bound: true,
@@ -919,7 +915,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "spell",
         spell: "beam",
         material: "gold",
         bound: true,
@@ -959,7 +954,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "spell",
         spell: "beam",
         material: "diamond",
         bound: true,
@@ -1064,7 +1058,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "spell",
         spell: "bolt",
         material: "wood",
         bound: true,
@@ -1108,7 +1101,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "wood",
         bound: true,
         amount: 0,
@@ -1170,7 +1163,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "spell",
         spell: "wave",
         material: "wood",
         bound: true,
@@ -1223,7 +1215,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "spell",
         spell: "bolt",
         material: "iron",
         bound: true,
@@ -1313,7 +1304,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "spell",
         spell: "wave",
         material: "iron",
         bound: true,
@@ -1333,7 +1323,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         element: "earth",
         bound: true,
         amount: 0,
@@ -1397,7 +1387,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "gold",
         bound: true,
         amount: 0,
@@ -1468,20 +1458,18 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [
       {
-        equipment: "weapon",
+        weapon: "sword",
         material: "ruby",
         bound: true,
         amount: 0,
       },
       {
-        equipment: "spell",
         spell: "wave",
         material: "wood",
         bound: true,
         amount: 1,
       },
       {
-        equipment: "skill",
         skill: "slash",
         bound: true,
         amount: 1,
@@ -1499,12 +1487,12 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
           { consume: "key", amount: 1, material: "iron" },
           { stackable: "resource", amount: 3, material: "gold" },
           {
-            equipment: "weapon",
+            weapon: "sword",
             amount: 1,
             material: "gold",
           },
           {
-            equipment: "shield",
+            offhand: "shield",
             amount: 1,
             material: "gold",
           },

@@ -378,47 +378,43 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          equipment: "weapon",
+          weapon: "sword",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "weapon",
+          weapon: "sword",
           element: "earth",
           amount: 1,
         },
         {
-          equipment: "shield",
+          offhand: "shield",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "map",
+          accessory: "map",
           material: "gold",
           amount: 1,
         },
       ],
       [
         {
-          equipment: "spell",
           spell: "wave",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "spell",
           spell: "beam",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "spell",
           spell: "trap",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "spell",
           spell: "dash",
           material: "wood",
           amount: 1,
@@ -426,25 +422,21 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          equipment: "skill",
           skill: "bow",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "skill",
           skill: "slash",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "skill",
           skill: "zap",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "skill",
           skill: "block",
           material: "wood",
           amount: 1,
@@ -452,25 +444,21 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          equipment: "skill",
           skill: "totem",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "tool",
           tool: "axe",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "tool",
           tool: "hook",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "tool",
           tool: "pickaxe",
           material: "wood",
           amount: 1,
@@ -478,18 +466,18 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          equipment: "torch",
+          accessory: "torch",
           material: "wood",
           amount: 1,
         },
-        { equipment: "boots", material: "wood", amount: 1 },
+        { accessory: "boots", material: "wood", amount: 1 },
         {
-          equipment: "ring",
+          accessory: "ring",
           material: "wood",
           amount: 1,
         },
         {
-          equipment: "amulet",
+          accessory: "amulet",
           material: "wood",
           amount: 1,
         },
@@ -521,13 +509,11 @@ export const generateMenu = async (world: World) => {
             y: rowIndex,
           }),
           // @ts-ignore
-          item.equipment === "weapon"
-            ? entities.createSword
-            : entities.createItem,
+          item.weapon ? entities.createSword : entities.createItem,
           {
             [ITEM]: { ...item, bound: false },
             [SPRITE]: getItemSprite(item),
-            ...(item.equipment === "weapon"
+            ...(item.weapon
               ? {
                   [SEQUENCABLE]: { states: [] },
                   [ORIENTABLE]: {},

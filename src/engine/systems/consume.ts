@@ -34,6 +34,7 @@ import { createItemAsDrop } from "./drop";
 import { POSITION } from "../components/position";
 import { getEntityEquipmentStats } from "./damage";
 import { clamp } from "../../game/math/std";
+import { slots } from "../components/equippable";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;
@@ -123,7 +124,10 @@ export const getConsumption = (
 ) => {
   const bagItems = entity[INVENTORY]
     ? (entity[INVENTORY] as Inventory).items.filter(
-        (item) => !world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment
+        (item) =>
+          !slots.some(
+            (slot) => world.assertByIdAndComponents(item, [ITEM])[ITEM][slot]
+          )
       )
     : [];
 

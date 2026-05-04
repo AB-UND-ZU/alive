@@ -1,9 +1,21 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
 
-export type Gear = "weapon" | "shield" | "ring" | "amulet";
-export type Slots = "torch" | "compass" | "boots" | "map" | "tool";
-export type Equipment = Gear | Slots | "spell" | "skill";
+export const gear = ["weapon", "offhand", "spell", "skill", "tool"] as const;
+export const slots = ["accessory", ...gear] as const;
+export const accessories = [
+  "ring",
+  "amulet",
+  "torch",
+  "compass",
+  "boots",
+  "map",
+] as const;
+export const equipments = [...gear, ...accessories];
+
+export type Gear = (typeof gear)[number];
+export type Accessory = (typeof accessories)[number];
+export type Equipment = (typeof equipments)[number];
 
 export type Equippable = {
   [key in Equipment]?: number;

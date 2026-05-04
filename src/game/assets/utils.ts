@@ -178,9 +178,11 @@ import {
   Skill,
   Tool,
   ITEM,
+  Weapon,
+  Offhand,
 } from "../../engine/components/item";
 import { generateUnitData, UnitKey } from "../balancing/units";
-import { Gear, Slots } from "../../engine/components/equippable";
+import { Accessory } from "../../engine/components/equippable";
 import {
   getTab,
   getVerticalIndex,
@@ -1729,7 +1731,6 @@ export const entitySprites: Record<
       createText("To be used with a"),
       [
         ...createItemName({
-          equipment: "skill",
           material: "wood",
           skill: "bow",
         }),
@@ -1747,7 +1748,7 @@ export const entitySprites: Record<
       [
         ...createText("with a "),
         ...createItemName({
-          equipment: "weapon",
+          weapon: "sword",
           material: "wood",
         }),
         ...createText("."),
@@ -1927,8 +1928,9 @@ type SpriteTemplateDefinition = {
 
 export const materialSprites: Partial<
   Record<
-    | Slots
-    | Gear
+    | Accessory
+    | Weapon
+    | Offhand
     | Spell
     | Skill
     | Tool
@@ -1938,7 +1940,7 @@ export const materialSprites: Partial<
     SpriteTemplateDefinition
   >
 > = {
-  weapon: {
+  sword: {
     sprite: sword,
     getDescription: (stats, item) => {
       if (item.material === "wood") {
@@ -2422,12 +2424,19 @@ export const materialSprites: Partial<
 
 export const elementSprites: Partial<
   Record<
-    Gear | Spell | Skill | Tool | Consumable | ResourceItem,
+    | "ring"
+    | "amulet"
+    | Weapon
+    | Offhand
+    | Spell
+    | Skill
+    | Consumable
+    | ResourceItem,
     SpriteTemplateDefinition
   >
 > = {
   // gear
-  weapon: {
+  sword: {
     sprite: sword,
     getDescription: (stats, item) => [
       [
@@ -2779,16 +2788,14 @@ export const getItemConfig = (
 
   if (material && !element) {
     let lookup =
+      item.weapon ||
+      item.offhand ||
       item.spell ||
       item.skill ||
       item.tool ||
+      item.accessory ||
       item.consume ||
       (item.stackable === "resource" ? item.stackable : undefined) ||
-      (item.equipment !== "spell" &&
-      item.equipment !== "skill" &&
-      item.equipment !== "tool"
-        ? item.equipment
-        : undefined) ||
       item.materialized;
     const definition = lookup && materialSprites[lookup];
 
@@ -2807,21 +2814,15 @@ export const getItemConfig = (
 
   if (element) {
     let lookup =
+      item.weapon ||
+      item.offhand ||
       item.spell ||
       item.skill ||
-      item.tool ||
       item.consume ||
       (item.stackable === "resource" ? item.stackable : undefined) ||
-      (item.equipment !== "spell" &&
-      item.equipment !== "skill" &&
-      item.equipment !== "tool" &&
-      item.equipment !== "torch" &&
-      item.equipment !== "boots" &&
-      item.equipment !== "map" &&
-      item.equipment !== "compass"
-        ? item.equipment
+      (item.accessory === "ring" || item.accessory === "amulet"
+        ? item.accessory
         : undefined);
-
     const definition = lookup && elementSprites[lookup];
 
     if (!definition) return;
@@ -2848,7 +2849,7 @@ export const getItemSprite = (
   amount?: number
 ) => {
   // allow hiding claws of mobs
-  if (item.equipment && (amount ?? item.amount) === 0) return none;
+  if (item.weapon && (amount ?? item.amount) === 0) return none;
 
   if (item.stat) return getStatSprite(item.stat, variant);
 
@@ -2901,15 +2902,12 @@ export const getUnitSprite = (unit: UnitKey) => {
   return mergeSprites(
     unitData.backdrop || none,
     ...unitData.equipments
-      .filter((equipment) => equipment.equipment === "shield")
+      .filter((equipment) => equipment.offhand === "shield")
       .map((equipment) => getItemSprite(equipment)),
     unitData.sprite,
     ...unitData.equipments
       .filter(
-        (equipment) =>
-          equipment.amount !== 0 &&
-          equipment.equipment &&
-          equipment.equipment === "weapon"
+        (equipment) => equipment.amount !== 0 && equipment.weapon === "sword"
       )
       .map((equipment) => getItemSprite(equipment)),
     unitData.faction === "unit"

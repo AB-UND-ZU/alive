@@ -1,6 +1,6 @@
 import { Entity } from "ecs";
 import { World } from "../../engine";
-import { Equipment } from "../../engine/components/equippable";
+import { Accessory } from "../../engine/components/equippable";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import {
   Element,
@@ -11,6 +11,8 @@ import {
   materials,
   Spell,
   Skill,
+  Weapon,
+  Offhand,
 } from "../../engine/components/item";
 import { matchesItem } from "../../engine/systems/popup";
 
@@ -23,101 +25,109 @@ const forgableConfigs: {
   elements: Element[];
 }[] = [
   {
-    item: { equipment: "weapon" },
+    item: { weapon: "sword" },
     materials: forgableMaterials,
     materialCost: 5,
     elements: forgableElements,
   },
   {
-    item: { equipment: "shield" },
+    item: { offhand: "shield" },
     materials: forgableMaterials,
     materialCost: 6,
     elements: forgableElements,
   },
   {
-    item: { equipment: "spell", spell: "wave" },
+    item: { spell: "wave" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: forgableElements,
   },
   {
-    item: { equipment: "spell", spell: "beam" },
+    item: { spell: "beam" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: forgableElements,
   },
   {
-    item: { equipment: "spell", spell: "trap" },
+    item: { spell: "trap" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: forgableElements,
   },
   {
-    item: { equipment: "spell", spell: "dash" },
+    item: { spell: "dash" },
     materials: forgableMaterials,
     materialCost: 4,
     elements: forgableElements,
   },
   {
-    item: { equipment: "ring" },
+    item: { accessory: "ring" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: forgableElements,
   },
   {
-    item: { equipment: "amulet" },
+    item: { accessory: "amulet" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: forgableElements,
   },
   {
-    item: { equipment: "torch" },
+    item: { accessory: "torch" },
     materials: ["wood", "iron"],
     materialCost: 4,
     elements: [],
   },
   {
-    item: { equipment: "boots" },
+    item: { accessory: "boots" },
     materials: ["wood", "iron"],
     materialCost: 6,
     elements: [],
   },
   {
-    item: { equipment: "skill", skill: "bow" },
+    item: { skill: "bow" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
   },
   {
-    item: { equipment: "skill", skill: "slash" },
+    item: { skill: "slash" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
   },
   {
-    item: { equipment: "skill", skill: "block" },
+    item: { skill: "block" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
   },
   {
-    item: { equipment: "skill", skill: "zap" },
+    item: { skill: "zap" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
   },
   {
-    item: { equipment: "skill", skill: "totem" },
+    item: { skill: "totem" },
     materials: forgableMaterials,
     materialCost: 3,
     elements: [],
   },
 ];
 
+export const forgableSlots = [
+  "weapon",
+  "offhand",
+  "spell",
+  "skill",
+  "accessory",
+] as const;
+
 const calculateForgeStats = () => {
   const forgeConfig: Partial<
     Record<
-      Equipment | Spell | Skill,
+      Weapon | Offhand | Spell | Skill | Accessory,
       Partial<
         Record<
           Material,
@@ -128,8 +138,11 @@ const calculateForgeStats = () => {
   > = {};
 
   forgableConfigs.forEach((config) => {
-    const lookup =
-      config.item.skill || config.item.spell || config.item.equipment!;
+    const lookupSlot = forgableSlots.find((slot) => config.item[slot]);
+    const lookup = lookupSlot && config.item[lookupSlot];
+
+    if (!lookup) return;
+
     forgeConfig[lookup] = {};
     const itemConfig = forgeConfig[lookup]!;
 
@@ -203,9 +216,9 @@ export type ForgeOptionResult = Omit<ForgeOption, "result"> & {
 };
 
 export const getForgeOptions = (item: Item): ForgeOptionResult[] => {
-  const { equipment, spell, skill, material, element } = item;
+  const { weapon, offhand, spell, skill, accessory, material, element } = item;
 
-  const key = spell || skill || equipment;
+  const key = weapon || offhand || spell || skill || accessory;
 
   if (!key || !material) return [];
 

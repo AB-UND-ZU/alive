@@ -1,6 +1,6 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
-import { Equipment } from "./equippable";
+import { Accessory } from "./equippable";
 import { Attributes, emptyAttributes, UnitStats } from "./stats";
 import {
   AbilityStats,
@@ -21,6 +21,8 @@ export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
 export type Element = (typeof elements)[number];
 export type Material = (typeof materials)[number];
 
+export type Weapon = "sword";
+export type Offhand = "shield";
 export type Spell = "wave" | "beam" | "trap" | "dash" | "bolt" | "blast";
 
 export const rechargables = ["slash", "zap", "block", "totem"] as const;
@@ -79,7 +81,9 @@ export type Item = {
   amount: number;
   material?: Material;
   element?: Element;
-  equipment?: Equipment;
+  accessory?: Accessory;
+  weapon?: Weapon;
+  offhand?: Offhand;
   spell?: Spell;
   skill?: Skill;
   tool?: Tool;

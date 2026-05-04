@@ -2342,8 +2342,8 @@ export const weaponSlot: Sprite = mergeSprites(emptySlot, {
   ],
 });
 
-export const shieldSlot: Sprite = mergeSprites(emptySlot, {
-  name: "Shield",
+export const offhandSlot: Sprite = mergeSprites(emptySlot, {
+  name: "Offhand",
   layers: [{ char: "¬", color: colors.black }],
 });
 

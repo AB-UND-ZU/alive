@@ -588,8 +588,7 @@ export default function setupAi(world: World) {
                 world.assertByIdAndComponents(
                   entity[INVENTORY]?.items.find(
                     (itemId) =>
-                      world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
-                        .equipment === "spell"
+                      world.assertByIdAndComponents(itemId, [ITEM])[ITEM].spell
                   ),
                   [ITEM]
                 )
@@ -2208,7 +2207,6 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "spell",
                 spell: "wave",
                 material: "gold",
               },
@@ -2406,7 +2404,6 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "spell",
                 spell: "wave",
                 material: "gold",
               },
@@ -2682,7 +2679,6 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "spell",
                 spell: "wave",
                 material: "gold",
               },
@@ -2744,7 +2740,6 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "spell",
                 spell: "blast",
                 material: "gold",
               },
@@ -3318,7 +3313,6 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "spell",
                 spell: "wave",
                 material: "gold",
               },
@@ -3718,7 +3712,6 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "spell",
                 spell: "bolt",
                 material: "gold",
               },
@@ -3734,7 +3727,6 @@ export default function setupAi(world: World) {
                 carrier: -1,
                 bound: false,
                 amount: 1,
-                equipment: "spell",
                 spell: "bolt",
                 material: "gold",
               },

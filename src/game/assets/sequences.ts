@@ -16,7 +16,11 @@ import {
 } from "../../components/Entity/utils";
 import { entities } from "../../engine";
 import { DROPPABLE } from "../../engine/components/droppable";
-import { Equipment, EQUIPPABLE } from "../../engine/components/equippable";
+import {
+  Equipment,
+  EQUIPPABLE,
+  slots,
+} from "../../engine/components/equippable";
 import { Focusable, FOCUSABLE } from "../../engine/components/focusable";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM, ItemStats } from "../../engine/components/item";
@@ -135,7 +139,7 @@ import {
   getStatColor,
   missing,
   weaponSlot,
-  shieldSlot,
+  offhandSlot,
   ringSlot,
   amuletSlot,
   compassSlot,
@@ -437,13 +441,13 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
   // align sword with facing direction
   const finished =
     state.elapsed > state.args.tick / (state.args.rotate ? 0.5 : 2);
-  const swordEntity = world.getEntityByIdAndComponents(
+  const weaponEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].weapon,
     [ORIENTABLE]
   );
 
   // abort if wood sword is converted to stick on entity death during animation
-  if (!swordEntity) {
+  if (!weaponEntity) {
     return { updated: false, finished: true };
   }
 
@@ -457,17 +461,17 @@ export const swordAttack: Sequence<MeleeSequence> = (world, entity, state) => {
             4
         ]
       : state.args.facing;
-  const currentFacing = swordEntity[ORIENTABLE].facing;
+  const currentFacing = weaponEntity[ORIENTABLE].facing;
   const updated = currentFacing !== facing;
 
   if (updated) {
-    swordEntity[ORIENTABLE].facing = facing;
-    rerenderEntity(world, swordEntity);
+    weaponEntity[ORIENTABLE].facing = facing;
+    rerenderEntity(world, weaponEntity);
   }
 
   if (finished) {
     entity[MELEE].facing = undefined;
-    swordEntity[ORIENTABLE].facing = undefined;
+    weaponEntity[ORIENTABLE].facing = undefined;
     rerenderEntity(world, entity);
   }
 
@@ -484,9 +488,11 @@ export const zapCondition: Sequence<ConditionSequence> = (
   const generation = Math.ceil(state.elapsed / zapTick);
   let updated = false;
   const finished =
-    !entity[CONDITIONABLE].zap || generation > state.args.duration;
+    !entity[CONDITIONABLE].zap ||
+    entity[ACTIONABLE].toolEquipped ||
+    generation > state.args.duration;
 
-  const swordEntity = world.getEntityByIdAndComponents(
+  const weaponEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].weapon,
     [SPRITE]
   );
@@ -500,11 +506,11 @@ export const zapCondition: Sequence<ConditionSequence> = (
         amount: 0,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: swordEntity ? zapSwordParticle : zapParticle,
+      [SPRITE]: weaponEntity ? zapSwordParticle : zapParticle,
     });
     state.particles.condition = world.getEntityId(conditionParticle);
 
-    if (swordEntity) {
+    if (weaponEntity) {
       const swordParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX: 0,
@@ -513,7 +519,7 @@ export const zapCondition: Sequence<ConditionSequence> = (
           amount: 0,
         },
         [RENDERABLE]: { generation: 1 },
-        [SPRITE]: swordEntity[SPRITE],
+        [SPRITE]: weaponEntity[SPRITE],
       });
       state.particles.sword = world.getEntityId(swordParticle);
     }
@@ -558,7 +564,9 @@ export const blockCondition: Sequence<ConditionSequence> = (
   const generation = Math.ceil(state.elapsed / tick);
   let updated = false;
   const inactive =
-    !entity[CONDITIONABLE].block || generation >= state.args.duration;
+    !entity[CONDITIONABLE].block ||
+    entity[ACTIONABLE].toolEquipped ||
+    generation >= state.args.duration;
 
   // trim duration on popping bubble
   if (inactive && state.args.duration > generation + 1) {
@@ -685,12 +693,12 @@ export const toolCondition: Sequence<ConditionSequence> = (
     ITEM,
     SPRITE,
   ]);
-  const swordEntity = world.getEntityByIdAndComponents(
+  const weaponEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].weapon,
     [ITEM]
   );
-  const shieldEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].shield,
+  const offhandEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].offhand,
     [ITEM]
   );
   const conditionName =
@@ -710,14 +718,14 @@ export const toolCondition: Sequence<ConditionSequence> = (
   }
 
   // hide sword and shield
-  if (swordEntity && swordEntity[ITEM].amount !== 0) {
-    swordEntity[ITEM].amount = 0;
-    rerenderEntity(world, swordEntity);
+  if (weaponEntity && weaponEntity[ITEM].amount !== 0) {
+    weaponEntity[ITEM].amount = 0;
+    rerenderEntity(world, weaponEntity);
     updated = true;
   }
-  if (shieldEntity && shieldEntity[ITEM].amount !== 0) {
-    shieldEntity[ITEM].amount = 0;
-    rerenderEntity(world, shieldEntity);
+  if (offhandEntity && offhandEntity[ITEM].amount !== 0) {
+    offhandEntity[ITEM].amount = 0;
+    rerenderEntity(world, offhandEntity);
     updated = true;
   }
 
@@ -750,13 +758,13 @@ export const toolCondition: Sequence<ConditionSequence> = (
     delete entity[CONDITIONABLE][conditionName];
 
     // reset sword and shield
-    if (swordEntity) {
-      swordEntity[ITEM].amount = 1;
-      rerenderEntity(world, swordEntity);
+    if (weaponEntity) {
+      weaponEntity[ITEM].amount = 1;
+      rerenderEntity(world, weaponEntity);
     }
-    if (shieldEntity) {
-      shieldEntity[ITEM].amount = 1;
-      rerenderEntity(world, shieldEntity);
+    if (offhandEntity) {
+      offhandEntity[ITEM].amount = 1;
+      rerenderEntity(world, offhandEntity);
     }
   } else {
     const targetDuration = entity[CONDITIONABLE][conditionName].duration;
@@ -876,12 +884,12 @@ export const hookCondition: Sequence<ConditionSequence> = (
   let updated = false;
   const finished = !condition || catchGeneration > condition.duration + 1;
 
-  const swordEntity = world.getEntityByIdAndComponents(
+  const weaponEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].weapon,
     [ITEM]
   );
-  const shieldEntity = world.getEntityByIdAndComponents(
-    entity[EQUIPPABLE].shield,
+  const offhandEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].offhand,
     [ITEM]
   );
 
@@ -894,13 +902,13 @@ export const hookCondition: Sequence<ConditionSequence> = (
     delete entity[CONDITIONABLE].hook;
 
     // reset sword and shield
-    if (swordEntity) {
-      swordEntity[ITEM].amount = 1;
-      rerenderEntity(world, swordEntity);
+    if (weaponEntity) {
+      weaponEntity[ITEM].amount = 1;
+      rerenderEntity(world, weaponEntity);
     }
-    if (shieldEntity) {
-      shieldEntity[ITEM].amount = 1;
-      rerenderEntity(world, shieldEntity);
+    if (offhandEntity) {
+      offhandEntity[ITEM].amount = 1;
+      rerenderEntity(world, offhandEntity);
     }
     return { finished: true, updated };
   }
@@ -912,14 +920,14 @@ export const hookCondition: Sequence<ConditionSequence> = (
     : 0;
 
   // hide sword and shield
-  if (swordEntity && swordEntity[ITEM].amount !== 0) {
-    swordEntity[ITEM].amount = 0;
-    rerenderEntity(world, swordEntity);
+  if (weaponEntity && weaponEntity[ITEM].amount !== 0) {
+    weaponEntity[ITEM].amount = 0;
+    rerenderEntity(world, weaponEntity);
     updated = true;
   }
-  if (shieldEntity && shieldEntity[ITEM].amount !== 0) {
-    shieldEntity[ITEM].amount = 0;
-    rerenderEntity(world, shieldEntity);
+  if (offhandEntity && offhandEntity[ITEM].amount !== 0) {
+    offhandEntity[ITEM].amount = 0;
+    rerenderEntity(world, offhandEntity);
     updated = true;
   }
 
@@ -3235,7 +3243,10 @@ export const displayInspect: Sequence<PopupSequence> = (
   }
 
   const bagItems = (heroEntity[INVENTORY] as Inventory).items.filter(
-    (item) => !world.assertByIdAndComponents(item, [ITEM])[ITEM].equipment
+    (item) =>
+      !slots.some(
+        (slot) => world.assertByIdAndComponents(item, [ITEM])[ITEM][slot]
+      )
   );
   const hasItems = bagItems.length > 0;
   const verticalIndex = getVerticalIndex(world, entity);
@@ -3244,7 +3255,7 @@ export const displayInspect: Sequence<PopupSequence> = (
     ? bagItems.map((item, rowIndex) => {
         const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
 
-        if (itemEntity[ITEM].equipment) {
+        if (slots.some((slot) => itemEntity[ITEM][slot])) {
           return [];
         }
 
@@ -3441,7 +3452,7 @@ export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
 
 const gearTitles: Record<Equipment, string> = {
   weapon: "Weapon",
-  shield: "Shield",
+  offhand: "Offhand",
   boots: "Boots",
   spell: "Spell",
   skill: "Skill",
@@ -3454,7 +3465,7 @@ const gearTitles: Record<Equipment, string> = {
 };
 const gearShadows: Record<Equipment, Sprite> = {
   weapon: weaponSlot,
-  shield: shieldSlot,
+  offhand: offhandSlot,
   spell: spellSlot,
   skill: skillSlot,
   tool: toolSlot,
@@ -3496,29 +3507,30 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
       gearOverscan
     );
 
-  const swordItem = world.getEntityByIdAndComponents(
+  const weaponItem = world.getEntityByIdAndComponents(
     heroEntity[EQUIPPABLE].weapon,
     [ITEM]
   )?.[ITEM];
-  const shieldItem = world.getEntityByIdAndComponents(
-    heroEntity[EQUIPPABLE].shield,
+  const offhandItem = world.getEntityByIdAndComponents(
+    heroEntity[EQUIPPABLE].offhand,
     [ITEM]
   )?.[ITEM];
 
   const heroPixels = overlay(
-    shieldItem?.material || shieldItem?.element
+    offhandItem?.material || offhandItem?.element
       ? recolorPixels(shieldPixels, {
           [colors.white]:
-            colorPalettes[(shieldItem.material || shieldItem.element)!].primary,
+            colorPalettes[(offhandItem.material || offhandItem.element)!]
+              .primary,
         })
       : [],
-    shieldItem?.material && shieldItem?.element
+    offhandItem?.material && offhandItem?.element
       ? recolorPixels(shieldElementPixels, {
           [colors.white]:
             // adjust low constrast on gold material and air element
-            shieldItem.material === "gold" && shieldItem.element === "air"
+            offhandItem.material === "gold" && offhandItem.element === "air"
               ? colors.grey
-              : colorPalettes[shieldItem.element].primary,
+              : colorPalettes[offhandItem.element].primary,
         })
       : [],
     bodyPixels,
@@ -3528,19 +3540,20 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
         [colors.white]: heroEntity[SPAWNABLE].hairColor,
       }
     ),
-    swordItem?.material || swordItem?.element
+    weaponItem?.material || weaponItem?.element
       ? recolorPixels(swordPixels, {
           [colors.white]:
-            colorPalettes[(swordItem?.material || swordItem?.element)!].primary,
+            colorPalettes[(weaponItem?.material || weaponItem?.element)!]
+              .primary,
         })
       : [],
-    swordItem?.material && swordItem?.element
+    weaponItem?.material && weaponItem?.element
       ? recolorPixels(swordElementPixels, {
           [colors.white]:
             // adjust low constrast on gold material and air element
-            swordItem.material === "gold" && swordItem.element === "air"
+            weaponItem.material === "gold" && weaponItem.element === "air"
               ? colors.grey
-              : colorPalettes[swordItem.element].primary,
+              : colorPalettes[weaponItem.element].primary,
         })
       : []
   );
@@ -3555,7 +3568,7 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
 
     if (!item) {
       descriptions.push([
-        createText(`No ${title.toLowerCase()} item`, colors.grey),
+        createText(`No ${title.toLowerCase()} item.`, colors.grey),
       ]);
 
       const line = [
