@@ -406,6 +406,8 @@ import {
   edge,
   slashCorner,
   slashSide,
+  spearLine,
+  spearTip,
   trigger,
   waveCorner,
   waveCornerDouble,
@@ -1344,6 +1346,121 @@ export const chargeSlash: Sequence<SlashSequence> = (world, entity, state) => {
       disposeEntity(world, world.assertById(exertableId));
     }
     state.args.exertables = [];
+  }
+
+  return { finished, updated };
+};
+
+const spearTicks = 5;
+const spearRange = 3;
+
+export const chargeSpear: Sequence<SlashSequence> = (world, entity, state) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const castableEntity = world.assertByIdAndComponents(state.args.castable, [
+    BELONGABLE,
+    CASTABLE,
+    POSITION,
+  ]);
+  const targetProgress = Math.min(
+    Math.ceil((state.elapsed * spearTicks) / state.args.tick),
+    spearTicks
+  );
+  const spearSpeed = (state.args.tick / spearTicks) * 2;
+  const material = state.args.material;
+  const element = state.args.element || "default";
+  const casterEntity = world.getEntityByIdAndComponents(
+    entity[CASTABLE].caster,
+    [EQUIPPABLE, MELEE]
+  );
+  const weaponEntity = world.getEntityByIdAndComponents(
+    casterEntity?.[EQUIPPABLE].weapon,
+    [ORIENTABLE]
+  );
+
+  if (!casterEntity || !weaponEntity) {
+    return { updated: false, finished: true };
+  }
+
+  let finished = targetProgress >= spearTicks - 1;
+  let updated = false;
+  const orientation = (castableEntity[ORIENTABLE]?.facing ||
+    "right") as Orientation;
+
+  if (state.args.exertables.length === 0 && !finished) {
+    // orient weapon
+    weaponEntity[ORIENTABLE].facing = orientation;
+    rerenderEntity(world, weaponEntity);
+
+    // create individual damage areas along spear
+    const delta = orientationPoints[orientation];
+    const { affected, ...castableData } = castableEntity[CASTABLE];
+    for (let rangeIndex = 0; rangeIndex < spearRange; rangeIndex += 1) {
+      const offset = {
+        x: delta.x * (rangeIndex + 1),
+        y: delta.y * (rangeIndex + 1),
+      };
+      const rangePosition = combine(size, castableEntity[POSITION], offset);
+      const rangeDamage = entities.createDamage(world, {
+        [BELONGABLE]: castableEntity[BELONGABLE],
+        [CASTABLE]: {
+          ...getEmptyCastable(world, entity),
+          ...castableData,
+        },
+        [EXERTABLE]: { castable: -1 },
+        [FRAGMENT]: { structure: world.getEntityId(entity) },
+        [ORIENTABLE]: { facing: orientation },
+        [POSITION]: rangePosition,
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: none,
+      });
+      const damageId = world.getEntityId(rangeDamage);
+      rangeDamage[EXERTABLE].castable = damageId;
+      state.args.exertables.push(damageId);
+
+      // create spear line and tip particles
+      const spearParticle = entities.createFibre(world, {
+        [ORIENTABLE]: { facing: orientation },
+        [PARTICLE]: {
+          offsetX: offset.x,
+          offsetY: offset.y,
+          offsetZ: particleHeight,
+          duration: spearSpeed,
+          animatedOrigin: { x: 0, y: 0 },
+        },
+        [RENDERABLE]: { generation: 1 },
+        [SPRITE]: (rangeIndex === spearRange - 1 ? spearTip : spearLine)[
+          material
+        ][rangeIndex === 0 ? element : "default"],
+      });
+      state.particles[`spear-${rangeIndex}`] = world.getEntityId(spearParticle);
+    }
+
+    updated = true;
+  }
+
+  if (finished) {
+    // reset weapon
+    casterEntity[MELEE].facing = undefined;
+    weaponEntity[ORIENTABLE].facing = undefined;
+    rerenderEntity(world, weaponEntity);
+
+    // delete castable and AoE
+    for (const exertableId of state.args.exertables) {
+      disposeEntity(world, world.assertById(exertableId));
+    }
+    state.args.exertables = [];
+
+    // delete particles
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
   }
 
   return { finished, updated };

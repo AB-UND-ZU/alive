@@ -383,18 +383,20 @@ export const generateMenu = async (world: World) => {
           amount: 1,
         },
         {
-          weapon: "sword",
-          element: "earth",
+          weapon: "spear",
+          skill: "spear",
+          material: "wood",
+          amount: 1,
+        },
+        {
+          weapon: "wand",
+          skill: "wand",
+          material: "wood",
           amount: 1,
         },
         {
           offhand: "shield",
           material: "wood",
-          amount: 1,
-        },
-        {
-          accessory: "map",
-          material: "gold",
           amount: 1,
         },
       ],
@@ -479,6 +481,11 @@ export const generateMenu = async (world: World) => {
         {
           accessory: "amulet",
           material: "wood",
+          amount: 1,
+        },
+        {
+          accessory: "map",
+          material: "gold",
           amount: 1,
         },
       ],

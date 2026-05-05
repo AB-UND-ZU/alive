@@ -257,6 +257,51 @@ export const abilityStats: Partial<
         },
       },
     },
+    wand: {
+      // set default spell attributes
+      default: {
+        default: {
+          duration: 6,
+          range: 6,
+        },
+      },
+
+      wood: {
+        default: { magic: 1 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+      iron: {
+        default: { magic: 2 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+      gold: {
+        default: { magic: 3 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+      diamond: {
+        default: { magic: 4 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+      ruby: {
+        default: { magic: 5 },
+        air: { wisdom: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+    },
     blast: {
       // set default spell attributes
       default: {

@@ -69,6 +69,47 @@ export const gearStats: Partial<
 
       default: { earth: { heal: 2 } },
     },
+    spear: {
+      wood: {
+        default: { melee: 1 },
+        air: { power: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+      iron: {
+        default: { melee: 2 },
+        air: { power: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+      gold: {
+        default: { melee: 3 },
+        air: { power: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+      diamond: {
+        default: { melee: 4 },
+        air: { power: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+      ruby: {
+        default: { melee: 5 },
+        air: { power: 1 },
+        fire: { burn: 2 },
+        water: { freeze: 2 },
+        earth: { drain: 1 },
+      },
+    },
+    wand: {
+      // melee attacks for wands
+      default: { default: { true: 1 } },
+    },
     shield: {
       wood: {
         default: { armor: 1 },
@@ -284,7 +325,7 @@ export const getItemStats = (
   item: Omit<Item, "carrier" | "bound" | "amount">,
   caster: NpcType | "default" = "default"
 ): ItemStats =>
-  item.spell || item.skill
+  item.spell || (item.skill && item.weapon !== "spear")
     ? getAbilityStats(item, caster)
     : getEquipmentStats(item, caster);
 

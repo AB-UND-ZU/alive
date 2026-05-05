@@ -110,9 +110,10 @@ export const castableSpell = (
   item: TypedEntity<"ITEM">
 ) => {
   const spell = item[ITEM].spell;
-  const castableEntity = entity[FRAGMENT]
-    ? world.assertByIdAndComponents(entity[FRAGMENT].structure, [STATS])
-    : entity;
+  const castableEntity =
+    (entity[FRAGMENT] &&
+      world.getEntityByIdAndComponents(entity[FRAGMENT].structure, [STATS])) ||
+    entity;
 
   // check mana for spells
   if (castableEntity[STATS] && spell && castableEntity[STATS].mp >= 1)
@@ -156,6 +157,10 @@ export const castableSkill = (
 
     if (hasCharge && !activeCondition && !pendingTotem && !missingSword)
       return true;
+  } else if (skill === "spear" && item[ITEM].material) {
+    return true;
+  } else if (skill === "wand" && item[ITEM].material) {
+    return true;
   } else if (tool === "axe" && item[ITEM].material) {
     return true;
   } else if (tool === "pickaxe" && item[ITEM].material) {
@@ -165,8 +170,7 @@ export const castableSkill = (
     const hookSequence = getSequence(world, entity, "condition");
     const hasWorm = entity[INVENTORY].items.some(
       (itemId) =>
-        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable ===
-        "worm"
+        world.assertByIdAndComponents(itemId, [ITEM])[ITEM].stackable === "worm"
     );
     if (
       (!hookCondition && hasWorm) ||

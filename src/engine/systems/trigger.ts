@@ -60,9 +60,9 @@ import { TypedEntity } from "../entities";
 import { entities } from "..";
 import { BELONGABLE } from "../components/belongable";
 import { add, copy, repeat, signedDistance } from "../../game/math/std";
-import { ORIENTABLE } from "../components/orientable";
+import { ORIENTABLE, Orientation } from "../components/orientable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
-import { isDead, isEnemy, isNpc } from "./damage";
+import { isDead, isEnemy, isNpc, triggerSpear } from "./damage";
 import { canCast, chargeSlash, summonTotem } from "./magic";
 import { EQUIPPABLE, slots } from "../components/equippable";
 import {
@@ -479,40 +479,39 @@ export const performTrade = (
     [RENDERABLE]: { generation: 1 },
     [SPRITE]: getItemSprite(deal.item),
   };
-  const itemEntity =
-    deal.item.weapon === "sword"
-      ? entities.createSword(world, {
-          ...itemData,
-          [SEQUENCABLE]: { states: {} },
-          [ORIENTABLE]: {},
-        })
-      : deal.item.stackable === "note"
-      ? entities.createNote(world, {
-          ...itemData,
-          [SEQUENCABLE]: { states: {} },
-          [POPUP]: {
-            active: false,
-            verticalIndezes: [0],
-            horizontalIndex: 0,
-            selections: [],
-            deals: [],
-            recipes: [],
-            lines: [],
-            targets: [],
-            focuses: [],
-            choices: [],
-            viewpoint: world.getEntityId(entity),
-            tabs: ["info"],
-          },
-        })
-      : deal.item.accessory === "compass"
-      ? entities.createCompass(world, {
-          ...itemData,
-          [ORIENTABLE]: {},
-          [SEQUENCABLE]: { states: {} },
-          [TRACKABLE]: {},
-        })
-      : entities.createItem(world, itemData);
+  const itemEntity = deal.item.weapon
+    ? entities.createSword(world, {
+        ...itemData,
+        [SEQUENCABLE]: { states: {} },
+        [ORIENTABLE]: {},
+      })
+    : deal.item.stackable === "note"
+    ? entities.createNote(world, {
+        ...itemData,
+        [SEQUENCABLE]: { states: {} },
+        [POPUP]: {
+          active: false,
+          verticalIndezes: [0],
+          horizontalIndex: 0,
+          selections: [],
+          deals: [],
+          recipes: [],
+          lines: [],
+          targets: [],
+          focuses: [],
+          choices: [],
+          viewpoint: world.getEntityId(entity),
+          tabs: ["info"],
+        },
+      })
+    : deal.item.accessory === "compass"
+    ? entities.createCompass(world, {
+        ...itemData,
+        [ORIENTABLE]: {},
+        [SEQUENCABLE]: { states: {} },
+        [TRACKABLE]: {},
+      })
+    : entities.createItem(world, itemData);
 
   // drop XP instead of collecting
   if (itemEntity[ITEM].stat === "xp") {
@@ -792,18 +791,21 @@ export const completeQuest = (world: World, entity: Entity, target: Entity) => {
 export const castSpell = (
   world: World,
   entity: TypedEntity<"POSITION">,
-  item: TypedEntity<"ITEM">
+  item: TypedEntity<"ITEM">,
+  orientation?: Orientation
 ) => {
   // use overriden damage values for NPCs and mobs
-  const castableEntity = entity[FRAGMENT]
-    ? world.assertByIdAndComponents(entity[FRAGMENT].structure, [
+  const castableEntity =
+    (entity[FRAGMENT] &&
+      world.getEntityByIdAndComponents(entity[FRAGMENT].structure, [
         BELONGABLE,
         STATS,
         INVENTORY,
-      ])
-    : (entity as TypedEntity<"BELONGABLE">);
+      ])) ||
+    (entity as TypedEntity<"BELONGABLE">);
 
   const spellStats = getAbilityStats(item[ITEM], castableEntity[NPC]?.type);
+  const targetOrientation = orientation || entity[ORIENTABLE]?.facing || "up";
 
   const spellEntity = entities.createSpell(world, {
     [BELONGABLE]: { faction: castableEntity[BELONGABLE].faction },
@@ -811,7 +813,7 @@ export const castSpell = (
       ...getEmptyCastable(world, castableEntity),
       ...spellStats,
     },
-    [ORIENTABLE]: { facing: entity[ORIENTABLE]?.facing },
+    [ORIENTABLE]: { facing: targetOrientation },
     [POSITION]: copy(entity[POSITION]),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
@@ -834,7 +836,12 @@ export const castSpell = (
       }
     );
     play("beam", { variant: 3 });
-  } else if (item[ITEM].spell === "bolt") {
+  } else if (item[ITEM].spell === "bolt" || item[ITEM].skill === "wand") {
+    // ensure wand proccing only once like melee weapons
+    if (item[ITEM].skill === "wand") {
+      spellEntity[CASTABLE].cascade = world.getEntityId(entity);
+    }
+
     createSequence<"spell", SpellSequence>(
       world,
       spellEntity,
@@ -917,7 +924,11 @@ export const castSpell = (
     play("wave", { intensity: spellStats.duration / 7 });
   }
 
-  if (castableEntity[STATS] && !isEnemy(world, castableEntity)) {
+  if (
+    castableEntity[STATS] &&
+    !isEnemy(world, castableEntity) &&
+    item[ITEM].skill !== "wand"
+  ) {
     castableEntity[STATS].mp -= 1;
     rerenderEntity(world, castableEntity);
   }
@@ -1348,6 +1359,15 @@ export default function setupTrigger(world: World) {
             continue;
           } else if (skillEntity[ITEM].skill === "bow") {
             shootArrow(world, entity, skillEntity);
+          } else if (skillEntity[ITEM].skill === "spear") {
+            triggerSpear(
+              world,
+              entity,
+              skillEntity,
+              entity[ORIENTABLE]?.facing
+            );
+          } else if (skillEntity[ITEM].skill === "wand") {
+            castSpell(world, entity, skillEntity);
           } else if (skillEntity[ITEM].skill === "slash") {
             chargeSlash(world, entity, skillEntity);
           } else if (skillEntity[ITEM].skill === "totem") {

@@ -31,6 +31,18 @@ const forgableConfigs: {
     elements: forgableElements,
   },
   {
+    item: { weapon: "spear", skill: "spear" },
+    materials: forgableMaterials,
+    materialCost: 6,
+    elements: forgableElements,
+  },
+  {
+    item: { weapon: "wand", skill: "wand" },
+    materials: forgableMaterials,
+    materialCost: 6,
+    elements: forgableElements,
+  },
+  {
     item: { offhand: "shield" },
     materials: forgableMaterials,
     materialCost: 6,

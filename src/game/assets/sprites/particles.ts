@@ -23,7 +23,7 @@ import {
   wisdom,
   xp,
 } from "./items";
-import { lerp, normalize, padCenter, repeat } from "../../math/std";
+import { clamp, lerp, normalize, padCenter, repeat } from "../../math/std";
 import { Orientation } from "../../../engine/components/orientable";
 import { getFacingLayers } from "../../../components/Entity/utils";
 import { none } from "./terrain";
@@ -1877,7 +1877,7 @@ export const createProgress = (
   const value = Math.min(stats[stat] ?? 0, maximum);
   const display =
     depletable || value === 0 || value >= 1 ? Math.floor(value) : 1;
-  const progress = lerp(0, width, value / (maximum || 1));
+  const progress = clamp(lerp(0, width, value / (maximum || 1)), 0, width);
   const full = Math.floor(progress);
   const partial = normalize(progress, 1);
   const segment = Math.floor(partial * progressResolution);

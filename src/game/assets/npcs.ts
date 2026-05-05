@@ -1080,6 +1080,18 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         ],
         choices: [
           {
+            weapon: "spear",
+            skill: "spear",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            weapon: "wand",
+            skill: "wand",
+            material: "wood",
+            amount: 1,
+          },
+          {
             skill: "bow",
             material: "wood",
             amount: 1,
@@ -1183,31 +1195,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               prices: [],
             },
           ],
-          choices: [
-            {
-              tool: "axe",
-              material: "wood",
-              amount: 1,
-            },
-            {
-              tool: "hook",
-              material: "wood",
-              amount: 1,
-            },
-            // {
-            //   tool: "pickaxe",
-            //   material: "wood",
-            //   amount: 1,
-            // },
-            // {
-            //   tool: "shovel",
-            //   material: "wood",
-            //   amount: 1,
-            // },
-            { accessory: "boots", material: "wood", amount: 1 },
-            { accessory: "torch", material: "wood", amount: 1 },
-            { accessory: "map", material: "gold", amount: 1 },
-          ],
+          choices: [],
           lines: [
             [
               createText("Hey mate! My name"),
@@ -1248,23 +1236,29 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         deals: [
           {
             item: {
-              stackable: "coin",
-              amount: 50,
-            },
-            stock: 1,
-            prices: [],
-          },
-          {
-            item: {
               stackable: "resource",
-              material: "iron",
+              material: "gold",
               amount: 1,
             },
             stock: 1,
             prices: [],
           },
         ],
-        choices: [],
+        choices: [
+          {
+            tool: "axe",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            tool: "hook",
+            material: "wood",
+            amount: 1,
+          },
+          { accessory: "boots", material: "wood", amount: 1 },
+          { accessory: "torch", material: "wood", amount: 1 },
+          { accessory: "map", material: "gold", amount: 1 },
+        ],
         lines: [
           [
             createText("We appreciate you"),

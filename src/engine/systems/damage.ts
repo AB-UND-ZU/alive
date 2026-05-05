@@ -9,7 +9,13 @@ import { MELEE } from "../components/melee";
 import { getCell, moveEntity } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
-import { ITEM, ItemStats, rechargables } from "../components/item";
+import {
+  ITEM,
+  ItemStats,
+  Ranged,
+  ranged,
+  rechargables,
+} from "../components/item";
 import {
   ORIENTABLE,
   Orientation,
@@ -23,6 +29,7 @@ import {
   MarkerSequence,
   MeleeSequence,
   SEQUENCABLE,
+  SlashSequence,
 } from "../components/sequencable";
 import { BELONGABLE, neutrals, tribes } from "../components/belongable";
 import {
@@ -47,7 +54,10 @@ import {
 import { TypedEntity } from "../entities";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
-import { getEquipmentStats } from "../../game/balancing/equipment";
+import {
+  getEquipmentStats,
+  getItemStats,
+} from "../../game/balancing/equipment";
 import { NPC } from "../components/npc";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { closePopup, getActivePopup } from "./popup";
@@ -68,6 +78,7 @@ import { getBlockable } from "./action";
 import { entities } from "..";
 import { SPRITE } from "../components/sprite";
 import { IDENTIFIABLE } from "../components/identifiable";
+import { castSpell } from "./trigger";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -82,6 +93,54 @@ export const isEnemy = (world: World, entity: Entity) =>
 
 export const isNeutral = (world: World, entity: Entity) =>
   BELONGABLE in entity && neutrals.includes(entity[BELONGABLE].faction);
+
+export const triggerSpear = (
+  world: World,
+  entity: Entity,
+  weapon: Entity,
+  orientation?: Orientation
+) => {
+  if (weapon[ITEM].weapon !== "spear") return;
+
+  const weaponStats = getEquipmentStats(weapon[ITEM], entity[NPC]?.type);
+  const castableStats = {
+    ...getEmptyCastable(world, entity),
+    ...weaponStats,
+    cascade: world.getEntityId(entity),
+  };
+
+  const spellEntity = entities.createCascade(world, {
+    [BELONGABLE]: { faction: entity[BELONGABLE].faction },
+    [CASTABLE]: castableStats,
+    [FRAGMENT]: { structure: -1 },
+    [ORIENTABLE]: { facing: orientation },
+    [POSITION]: copy(entity[POSITION]),
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [SPRITE]: none,
+    [STRUCTURABLE]: {},
+  });
+  const spellId = world.getEntityId(spellEntity);
+  spellEntity[FRAGMENT].structure = spellId;
+  const tick = world.assertByIdAndComponents(entity[MOVABLE].reference, [
+    REFERENCE,
+  ])[REFERENCE].tick;
+
+  // create spear slash
+  createSequence<"slash", SlashSequence>(
+    world,
+    spellEntity,
+    "slash",
+    "chargeSpear",
+    {
+      tick,
+      material: weapon[ITEM].material,
+      element: weapon[ITEM].element,
+      castable: spellId,
+      exertables: [],
+    }
+  );
+};
 
 export const isFriendlyFire = (
   world: World,
@@ -105,6 +164,9 @@ export const isFightable = (world: World, entity: Entity) =>
   ATTACKABLE in entity &&
   !(isDead(world, entity) && !isDecaying(world, entity));
 
+export const isAttackable = (world: World, entity: Entity) =>
+  ATTACKABLE in entity && STATS in entity;
+
 export const getAttackables = (
   world: World,
   position: Position,
@@ -115,7 +177,7 @@ export const getAttackables = (
   const attackables: Entity[] = [];
 
   Object.values(getCell(world, position)).forEach((target) => {
-    if (ATTACKABLE in target && STATS in target) {
+    if (isAttackable(world, target)) {
       attackables.push(target);
       return;
     }
@@ -124,16 +186,16 @@ export const getAttackables = (
 
     if (!fragmentEntity) return;
 
-    if (fragment) {
+    if (fragment && isAttackable(world, fragmentEntity)) {
       attackables.push(fragmentEntity);
       return;
     }
 
-    const structurableEntity = world.assertById(
+    const structurableEntity = world.getEntityById(
       fragmentEntity[FRAGMENT].structure
     );
 
-    if (ATTACKABLE in structurableEntity && STATS in structurableEntity) {
+    if (structurableEntity && isAttackable(world, structurableEntity)) {
       attackables.push(structurableEntity);
     }
   });
@@ -174,15 +236,13 @@ export const getEntityEquipmentStats = (
   entity: TypedEntity
 ): UnitStats => {
   const equipmentStats = { ...emptyUnitStats };
-  Object.values(entity[EQUIPPABLE] || {}).forEach((itemId) => {
+  const items = [...new Set(Object.values(entity[EQUIPPABLE] || {}))];
+  items.forEach((itemId) => {
     const item = world.getEntityByIdAndComponents(itemId, [ITEM]);
 
     if (!item) return;
 
-    const isAbility = item[ITEM].spell || item[ITEM].skill;
-    const itemStats = isAbility
-      ? getAbilityStats(item[ITEM], entity[NPC]?.type)
-      : getEquipmentStats(item[ITEM], entity[NPC]?.type);
+    const itemStats = getItemStats(item[ITEM], entity[NPC]?.type);
 
     attributes.forEach((attribute) => {
       equipmentStats[attribute] += itemStats[attribute];
@@ -675,14 +735,20 @@ export default function setupDamage(world: World) {
       const rigid = entity[STRUCTURABLE]?.rigid;
       const limbs = rigid ? getLimbs(world, entity) : [entity];
 
-      // skip if entity has no sword
-      const swordId = entity[EQUIPPABLE].weapon;
-      const swordEntity = world.getEntityByIdAndComponents(swordId, [ITEM]);
+      // skip if entity has no weapon
+      const weaponId = entity[EQUIPPABLE].weapon;
+      const weaponEntity = world.getEntityByIdAndComponents(weaponId, [ITEM]);
 
-      if (!swordId || !swordEntity) continue;
+      if (!weaponId || !weaponEntity) continue;
+
+      const weaponStats = getEquipmentStats(
+        weaponEntity[ITEM],
+        entity[NPC]?.type
+      );
 
       let interacted = false;
       let attacked = false;
+      let trigger = false;
 
       for (const limb of limbs) {
         const targetPosition = add(limb[POSITION], delta);
@@ -693,7 +759,8 @@ export default function setupDamage(world: World) {
 
         // skip if not damaging enemy or healing ally
         const healing =
-          swordEntity[ITEM].element === "earth" && !swordEntity[ITEM].material;
+          weaponEntity[ITEM].element === "earth" &&
+          !weaponEntity[ITEM].material;
         const friendly = isFriendlyFire(world, entity, targetEntity);
 
         if (healing !== friendly) continue;
@@ -705,6 +772,21 @@ export default function setupDamage(world: World) {
 
         attacked = true;
 
+        // trigger ranged weapons if necessary
+        if (ranged.includes(weaponEntity[ITEM].weapon as Ranged)) {
+          if (weaponEntity[ITEM].weapon === "wand" && !trigger) {
+            castSpell(world, entity, weaponEntity, targetOrientation);
+          }
+
+          trigger = true;
+          interacted = true;
+
+          if (weaponEntity[ITEM].weapon === "spear") {
+            triggerSpear(world, entity, weaponEntity, targetOrientation);
+            break;
+          }
+        }
+
         // prevent attack if shield is active
         let displayedDamage = 0;
         const absorbed = !healing && attemptBubbleAbsorb(world, targetEntity);
@@ -712,15 +794,10 @@ export default function setupDamage(world: World) {
           getAttackable(world, targetPosition, true) || targetEntity;
 
         if (!absorbed) {
-          const swordStats = getEquipmentStats(
-            swordEntity[ITEM],
-            entity[NPC]?.type
-          );
-
           if (healing) {
             const { healing, hp } = calculateHealing(
               targetEntity[STATS],
-              swordStats.heal
+              weaponStats.heal
             );
             targetEntity[STATS].hp = hp;
 
@@ -728,7 +805,7 @@ export default function setupDamage(world: World) {
           } else {
             const { damage, hp } = calculateDamage(
               world,
-              swordStats,
+              weaponStats,
               entity,
               targetEntity
             );
@@ -752,8 +829,8 @@ export default function setupDamage(world: World) {
             applyProcs(
               world,
               entity,
-              swordStats,
-              swordId,
+              weaponStats,
+              weaponId,
               rootEntity,
               fragmentEntity,
               targetOrientation
@@ -796,10 +873,9 @@ export default function setupDamage(world: World) {
             fragmentEntity,
             -displayedDamage,
             targetOrientation,
-            healing ? "heal" : "melee"
+            healing ? "heal" : weaponStats.true > 0 ? "true" : "melee"
           );
         }
-
         rerenderEntity(world, targetEntity);
         rerenderEntity(world, fragmentEntity);
       }
@@ -825,18 +901,22 @@ export default function setupDamage(world: World) {
           }
         }
 
+        rerenderEntity(world, entity);
+
         // animate sword orientation
-        createSequence<"melee", MeleeSequence>(
-          world,
-          entity,
-          "melee",
-          "swordAttack",
-          {
-            facing: targetOrientation,
-            tick: entityReference[REFERENCE].tick,
-            rotate: false,
-          }
-        );
+        if (!trigger) {
+          createSequence<"melee", MeleeSequence>(
+            world,
+            entity,
+            "melee",
+            "swordAttack",
+            {
+              facing: targetOrientation,
+              tick: entityReference[REFERENCE].tick,
+              rotate: false,
+            }
+          );
+        }
       }
     }
   };

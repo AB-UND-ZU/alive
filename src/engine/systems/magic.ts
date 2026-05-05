@@ -58,7 +58,7 @@ import { pickupOptions, play } from "../../game/sound";
 import { LEVEL } from "../components/level";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { CONDITIONABLE } from "../components/conditionable";
-import { getFragment } from "./enter";
+import { getFragment, isStructurable } from "./enter";
 import { FRAGMENT } from "../components/fragment";
 import { HOMING } from "../components/homing";
 import { ATTACKABLE } from "../components/attackable";
@@ -100,16 +100,16 @@ export const getAffectables = (
 
     if (!fragmentEntity) return;
 
-    if (fragment) {
+    if (fragment && isAffectable(world, fragmentEntity)) {
       affectables.push(fragmentEntity);
       return;
     }
 
-    const structurableEntity = world.assertById(
+    const structurableEntity = world.getEntityById(
       fragmentEntity[FRAGMENT].structure
     );
 
-    if (isAffectable(world, structurableEntity)) {
+    if (structurableEntity && isAffectable(world, structurableEntity)) {
       affectables.push(structurableEntity);
     }
   });
@@ -173,23 +173,23 @@ export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
 };
 
 export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
-  const swordEntity = world.getEntityByIdAndComponents(
+  const weaponEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE]?.weapon,
     [ITEM]
   );
 
-  if (!swordEntity) return;
+  if (!weaponEntity) return;
 
   if (!isEnemy(world, entity)) {
     consumeCharge(world, entity, { stackable: "charge" });
   }
 
-  const swordStats = getEquipmentStats(swordEntity[ITEM], entity[NPC]?.type);
+  const weaponStats = getEquipmentStats(weaponEntity[ITEM], entity[NPC]?.type);
   const abilityStats = getAbilityStats(slash[ITEM]);
 
   const slashStats = {
     ...abilityStats,
-    melee: abilityStats.melee + swordStats.melee,
+    melee: abilityStats.melee + weaponStats.melee,
   };
 
   const spellEntity = entities.createSpell(world, {
@@ -404,6 +404,7 @@ export default function setupMagic(world: World) {
       if (
         getSequences(world, entity).length === 0 &&
         !entity[HOMING] &&
+        (!entity[FRAGMENT] || isStructurable(world, entity)) &&
         casterEntity !== entity
       ) {
         // ensure any remaining retrigger frames are disposed properly
@@ -547,12 +548,19 @@ export default function setupMagic(world: World) {
           }
 
           if (hasProcs) {
+            // let cascades proc only once
+            const cascadeEntity = world.getEntityById(
+              castableEntity[CASTABLE].cascade
+            );
+
             // process burning and freezing on hit
             const procced = applyProcs(
               world,
               casterEntity,
               castableEntity[CASTABLE],
-              entity[EXERTABLE].castable,
+              cascadeEntity
+                ? castableEntity[CASTABLE].cascade!
+                : entity[EXERTABLE].castable,
               rootEntity,
               fragmentEntity,
               entity[ORIENTABLE]?.facing || orientation
@@ -598,6 +606,9 @@ export default function setupMagic(world: World) {
         }
         rerenderEntity(world, targetEntity);
       }
+
+      // prevent cascades from affecting terrain
+      if (castableEntity[CASTABLE].cascade) continue;
 
       const targetBurn = castableEntity[CASTABLE].burn;
       const targetFreeze = castableEntity[CASTABLE].freeze;

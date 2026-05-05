@@ -65,22 +65,10 @@ const spearElementTemplate: Sprite = {
     { char: "·", color: TEMPLATE_COLORS.elementPrimary },
   ],
   facing: {
-    up: [
-      { char: "│", color: TEMPLATE_COLORS.materialPrimary },
-      { char: "·", color: TEMPLATE_COLORS.elementPrimary },
-    ],
-    right: [
-      { char: "─", color: TEMPLATE_COLORS.materialPrimary },
-      { char: "·", color: TEMPLATE_COLORS.elementPrimary },
-    ],
-    down: [
-      { char: "│", color: TEMPLATE_COLORS.materialPrimary },
-      { char: "·", color: TEMPLATE_COLORS.elementPrimary },
-    ],
-    left: [
-      { char: "─", color: TEMPLATE_COLORS.materialPrimary },
-      { char: "·", color: TEMPLATE_COLORS.elementPrimary },
-    ],
+    up: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
 export const spear = createTemplate({

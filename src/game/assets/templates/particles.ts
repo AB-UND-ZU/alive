@@ -165,7 +165,7 @@ const waveSideDoubleTemplate: Sprite = {
 };
 const waveSideDoubleElementTemplate: Sprite = {
   name: "wave_side_double_element",
-  layers: [ { char: "╬", color: TEMPLATE_COLORS.materialPrimary }, ],
+  layers: [{ char: "╬", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
     up: [
       { char: "╦", color: TEMPLATE_COLORS.elementPrimary },
@@ -247,10 +247,10 @@ const waveCornerDoubleTemplate: Sprite = {
   name: "wave_corner_double",
   layers: [],
   facing: {
-    up: [ { char: "╗", color: TEMPLATE_COLORS.materialPrimary }, ],
-    right: [ { char: "╝", color: TEMPLATE_COLORS.materialPrimary }, ],
-    down: [ { char: "╚", color: TEMPLATE_COLORS.materialPrimary }, ],
-    left: [ { char: "╔", color: TEMPLATE_COLORS.materialPrimary }, ],
+    up: [{ char: "╗", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "╝", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "╚", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "╔", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
 const waveCornerDoubleElementTemplate: Sprite = {
@@ -494,6 +494,43 @@ const slashCornerTemplate: Sprite = {
   },
 };
 export const slashCorner = createTemplate({ sprite: slashCornerTemplate });
+
+const spearLineTemplate: Sprite = {
+  name: "spear_line",
+  layers: [{ char: "┼", color: TEMPLATE_COLORS.materialPrimary }],
+  facing: {
+    up: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
+  },
+};
+const spearLineElementTemplate: Sprite = {
+  name: "spear_line_element",
+  layers: [{ char: "┼", color: TEMPLATE_COLORS.elementPrimary }],
+  facing: {
+    up: [{ char: "│", color: TEMPLATE_COLORS.elementPrimary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.elementPrimary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.elementPrimary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.elementPrimary }],
+  },
+};
+export const spearLine = createTemplate({
+  sprite: spearLineTemplate,
+  materialElementSprite: spearLineElementTemplate,
+});
+
+const spearTipTemplate: Sprite = {
+  name: "spear_tip",
+  layers: [{ char: "┼", color: TEMPLATE_COLORS.materialSecondary }],
+  facing: {
+    up: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
+  },
+};
+export const spearTip = createTemplate({ sprite: spearTipTemplate });
 
 // homing particles
 

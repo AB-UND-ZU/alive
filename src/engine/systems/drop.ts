@@ -273,14 +273,12 @@ export const createItemInInventory = <
         const existingId = carrier[EQUIPPABLE][equipment];
 
         // add existing render count if item is replaced
-        if (existingId) {
+        if (existingId && existingId !== itemId) {
           const existingItem = world.assertById(existingId);
           itemEntity[RENDERABLE].generation += getEntityGeneration(
             world,
             existingItem
           );
-
-          console.log("existing", existingItem, itemEntity);
 
           removeFromInventory(world, carrier, existingItem);
           dropEntity(

@@ -41,6 +41,7 @@ export type Castable = {
 } & ProcStats &
   BuffStats & {
     caster: number;
+    cascade?: number;
     retrigger: number;
     reproc: number;
     forceAffecting: boolean;

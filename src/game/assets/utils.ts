@@ -213,6 +213,8 @@ import {
   trapSpell,
   waveSpell,
   hook,
+  spear,
+  wand,
 } from "./templates/equipments";
 import { flask, potion, key, bottle, spirit } from "./templates/items";
 import { doorClosed, entryClosed, entryClosedDisplay } from "./templates/units";
@@ -1980,6 +1982,86 @@ export const materialSprites: Partial<
       ];
     },
   },
+  spear: {
+    sprite: spear,
+    getDescription: (stats, item) => {
+      if (item.material === "wood") {
+        return [
+          createText("A long spear made"),
+          [
+            ...createText("out of a "),
+            ...createItemName({ stackable: "stick" }),
+            ...createText("."),
+          ],
+          [
+            ...createText(stats.melee.toString(), colors.red),
+            minCountable(meleeHit),
+            ...createText("Melee", colors.red),
+          ],
+        ];
+      }
+
+      return [
+        createText(
+          `${
+            { iron: "Heavy", gold: "Shiny", diamond: "Sharp", ruby: "Mighty" }[
+              item.material!
+            ]
+          } spear made`
+        ),
+        [
+          ...createText("of "),
+          ...createItemName({ stackable: "resource", material: item.material }),
+          ...createText("."),
+        ],
+        [
+          ...createText(stats.melee.toString(), colors.red),
+          minCountable(meleeHit),
+          ...createText("Melee", colors.red),
+        ],
+      ];
+    },
+  },
+  wand: {
+    sprite: wand,
+    getDescription: (stats, item) => {
+      if (item.material === "wood") {
+        return [
+          createText("A short wand made"),
+          [
+            ...createText("out of a "),
+            ...createItemName({ stackable: "stick" }),
+            ...createText("."),
+          ],
+          [
+            ...createText(stats.magic.toString(), colors.fuchsia),
+            minCountable(magicHit),
+            ...createText("Magic", colors.fuchsia),
+          ],
+        ];
+      }
+
+      return [
+        createText(
+          `${
+            { iron: "Heavy", gold: "Shiny", diamond: "Sharp", ruby: "Mighty" }[
+              item.material!
+            ]
+          } wand made`
+        ),
+        [
+          ...createText("of "),
+          ...createItemName({ stackable: "resource", material: item.material }),
+          ...createText("."),
+        ],
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
+        ],
+      ];
+    },
+  },
   shield: {
     sprite: shield,
     getDescription: (stats, item) => [
@@ -2468,6 +2550,92 @@ export const elementSprites: Partial<
           (
             {
               air: "power",
+              fire: "burn",
+              water: "freeze",
+              earth: "drain",
+            } as const
+          )[item.element!],
+          "display"
+        ),
+        frameWidth - 2
+      ),
+    ],
+  },
+  spear: {
+    sprite: spear,
+    getDescription: (stats, item) => [
+      [
+        ...createText("A "),
+        ...createItemName(
+          item.material === "wood"
+            ? { stackable: "stick" }
+            : { stackable: "resource", material: item.material }
+        ),
+        ...createText(" spear"),
+      ],
+      [
+        ...createText("with a "),
+        ...createItemName({
+          stackable: "resource",
+          material: "wood",
+          element: item.element,
+        }),
+        ...createText("."),
+      ],
+      stretch(
+        [
+          ...createText(stats.melee.toString(), colors.red),
+          minCountable(meleeHit),
+          ...createText("Melee", colors.red),
+        ],
+        createCountable(
+          stats,
+          (
+            {
+              air: "power",
+              fire: "burn",
+              water: "freeze",
+              earth: "drain",
+            } as const
+          )[item.element!],
+          "display"
+        ),
+        frameWidth - 2
+      ),
+    ],
+  },
+  wand: {
+    sprite: wand,
+    getDescription: (stats, item) => [
+      [
+        ...createText("A "),
+        ...createItemName(
+          item.material === "wood"
+            ? { stackable: "stick" }
+            : { stackable: "resource", material: item.material }
+        ),
+        ...createText(" wand"),
+      ],
+      [
+        ...createText("with a "),
+        ...createItemName({
+          stackable: "resource",
+          material: "wood",
+          element: item.element,
+        }),
+        ...createText("."),
+      ],
+      stretch(
+        [
+          ...createText(stats.magic.toString(), colors.fuchsia),
+          minCountable(magicHit),
+          ...createText("Magic", colors.fuchsia),
+        ],
+        createCountable(
+          stats,
+          (
+            {
+              air: "wisdom",
               fire: "burn",
               water: "freeze",
               earth: "drain",

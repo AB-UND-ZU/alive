@@ -69,13 +69,14 @@ export const getShootable = (
 
   if (!fragmentEntity) return;
 
-  if (fragment) return fragmentEntity;
+  if (fragment && isShootable(world, fragmentEntity)) return fragmentEntity;
 
-  const structurableEntity = world.assertById(
+  const structurableEntity = world.getEntityById(
     fragmentEntity[FRAGMENT].structure
   );
 
-  if (isShootable(world, structurableEntity)) return structurableEntity;
+  if (structurableEntity && isShootable(world, structurableEntity))
+    return structurableEntity;
 };
 
 export const isBouncable = (world: World, position: Position) =>
@@ -106,6 +107,7 @@ export const shootArrow = (
   const entity = { ...origin, ...overrides } as TypedEntity<
     "MOVABLE" | "EQUIPPABLE" | "BELONGABLE" | "ORIENTABLE" | "POSITION"
   >;
+  const orientation = entity[ORIENTABLE].facing || "up";
 
   if (!isNpc(world, entity)) {
     consumeCharge(world, entity, { stackable: "arrow" });
@@ -139,7 +141,7 @@ export const shootArrow = (
       flying: false,
       swimming: false,
     },
-    [ORIENTABLE]: { facing: entity[ORIENTABLE].facing },
+    [ORIENTABLE]: { facing: orientation },
     [POSITION]: copy(entity[POSITION]),
     [PROJECTILE]: {
       damage,

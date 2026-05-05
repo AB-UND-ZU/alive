@@ -226,7 +226,7 @@ export const addToInventory = (
       const existingId = entity[EQUIPPABLE][equipment];
 
       // add existing render count if item is replaced
-      if (existingId) {
+      if (existingId && existingId !== targetId) {
         const existingItem = world.assertById(existingId);
         targetItem[RENDERABLE].generation += getEntityGeneration(
           world,

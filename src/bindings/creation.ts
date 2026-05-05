@@ -2460,7 +2460,6 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SHOOTABLE]: { shots: 0 },
-      // [SPRITE]: { ...golem, name: "" },
       [SPRITE]: mergeSprites(shadow, rock2),
       [STATS]: eliteUnit.stats,
       [STRUCTURABLE]: { rigid: true },

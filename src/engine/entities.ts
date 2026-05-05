@@ -297,6 +297,18 @@ export const createCactus = entityFactory([
   STATS,
 ]);
 
+export const createCascade = entityFactory([
+  BELONGABLE,
+  CASTABLE,
+  FRAGMENT,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  STRUCTURABLE,
+]);
+
 export const createChest = entityFactory([
   ATTACKABLE,
   BELONGABLE,
@@ -336,46 +348,6 @@ export const createContainer = entityFactory([
   SWIMMABLE,
 ]);
 
-export const createElite = entityFactory([
-  ACTIONABLE,
-  AFFECTABLE,
-  ATTACKABLE,
-  BEHAVIOUR,
-  BELONGABLE,
-  BUMPABLE,
-  EQUIPPABLE,
-  FOG,
-  FRAGMENT,
-  INVENTORY,
-  LAYER,
-  MELEE,
-  MOVABLE,
-  NPC,
-  ORIENTABLE,
-  POSITION,
-  RECHARGABLE,
-  RENDERABLE,
-  SEQUENCABLE,
-  SHOOTABLE,
-  SPRITE,
-  STATS,
-  STRUCTURABLE,
-  SWIMMABLE,
-  TOOLTIP,
-  VANISHABLE,
-]);
-
-export const createForging = entityFactory([
-  COLLIDABLE,
-  LAYER,
-  FOG,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-  TOOLTIP,
-]);
-
 export const createCounter = entityFactory([RENDERABLE]);
 
 export const createCrafting = entityFactory([
@@ -388,6 +360,18 @@ export const createCrafting = entityFactory([
   SEQUENCABLE,
   SPRITE,
   TOOLTIP,
+]);
+
+export const createDamage = entityFactory([
+  BELONGABLE,
+  EXERTABLE,
+  CASTABLE,
+  FRAGMENT,
+  POSITION,
+  ORIENTABLE,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
 ]);
 
 export const createDecoration = entityFactory([
@@ -451,6 +435,35 @@ export const createDormant = entityFactory([
   STATS,
   SWIMMABLE,
   TOOLTIP,
+]);
+
+export const createElite = entityFactory([
+  ACTIONABLE,
+  AFFECTABLE,
+  ATTACKABLE,
+  BEHAVIOUR,
+  BELONGABLE,
+  BUMPABLE,
+  EQUIPPABLE,
+  FOG,
+  FRAGMENT,
+  INVENTORY,
+  LAYER,
+  MELEE,
+  MOVABLE,
+  NPC,
+  ORIENTABLE,
+  POSITION,
+  RECHARGABLE,
+  RENDERABLE,
+  SEQUENCABLE,
+  SHOOTABLE,
+  SPRITE,
+  STATS,
+  STRUCTURABLE,
+  SWIMMABLE,
+  TOOLTIP,
+  VANISHABLE,
 ]);
 
 export const createEntry = entityFactory([
@@ -520,6 +533,17 @@ export const createFloor = entityFactory([
   POSITION,
   RENDERABLE,
   SPRITE,
+]);
+
+export const createForging = entityFactory([
+  COLLIDABLE,
+  LAYER,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
 ]);
 
 export const createFountain = entityFactory([

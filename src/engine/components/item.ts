@@ -21,13 +21,16 @@ export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
 export type Element = (typeof elements)[number];
 export type Material = (typeof materials)[number];
 
-export type Weapon = "sword";
+export type Weapon = "sword" | "spear" | "wand";
 export type Offhand = "shield";
 export type Spell = "wave" | "beam" | "trap" | "dash" | "bolt" | "blast";
 
 export const rechargables = ["slash", "zap", "block", "totem"] as const;
+export const ranged = ["bow", "spear", "wand"] as const;
+
+export type Ranged = (typeof ranged)[number];
 export type Tool = "axe" | "pickaxe" | "hook";
-export type Skill = "bow" | (typeof rechargables)[number];
+export type Skill = Ranged | (typeof rechargables)[number];
 
 export type Consumable = "key" | "potion";
 

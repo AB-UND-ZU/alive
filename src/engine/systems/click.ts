@@ -27,8 +27,11 @@ export const getClickables = (world: World, position: Position) =>
     .map((entity) => {
       if (isClickable(world, entity)) return entity;
       if (isFragment(world, entity)) {
-        const structurableEntity = world.assertById(entity[FRAGMENT].structure);
-        if (isClickable(world, structurableEntity)) return structurableEntity;
+        const structurableEntity = world.getEntityById(
+          entity[FRAGMENT].structure
+        );
+        if (structurableEntity && isClickable(world, structurableEntity))
+          return structurableEntity;
       }
 
       return undefined;

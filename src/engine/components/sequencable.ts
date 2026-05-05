@@ -49,7 +49,7 @@ export type PointerSequence = {
 };
 export type MarkerSequence = {
   amount: number;
-  type: MarkerType
+  type: MarkerType;
   orientation?: Orientation;
 };
 export type Message = {
@@ -145,6 +145,7 @@ export type AuraSequence = SpellSequence;
 export type ArrowSequence = { origin: Position; range: number; caster: number };
 export type SlashSequence = {
   material: Material;
+  element?: Element;
   castable: number;
   exertables: number[];
   tick: number;
