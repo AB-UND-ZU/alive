@@ -1633,9 +1633,19 @@ export default function setupAi(world: World) {
               );
               const carrierEntity = world.assertByIdAndComponents(
                 newFish[ITEM].carrier,
-                [MOVABLE]
+                [POSITION]
               );
-              carrierEntity[MOVABLE].swimming = true;
+              registerEntity(world, carrierEntity);
+              world.addComponentToEntity(carrierEntity, MOVABLE, {
+                orientations: [],
+                reference: world.getEntityId(world.metadata.gameEntity),
+                spring: {
+                  duration: 200,
+                },
+                lastInteraction: 0,
+                flying: false,
+                swimming: true,
+              });
               pattern.memory.fish = newFish[ITEM].carrier;
               entity[FISHABLE].population -= 1;
             }

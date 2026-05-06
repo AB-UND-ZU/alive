@@ -301,6 +301,7 @@ import {
   createItemName,
   questWidth,
   rewardWidth,
+  hookSpeed,
 } from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
@@ -867,8 +868,6 @@ export const toolCondition: Sequence<ConditionSequence> = (
 
   return { finished, updated };
 };
-
-const hookSpeed = 100;
 
 export const hookCondition: Sequence<ConditionSequence> = (
   world,

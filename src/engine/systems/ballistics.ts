@@ -69,14 +69,15 @@ export const getShootable = (
 
   if (!fragmentEntity) return;
 
-  if (fragment && isShootable(world, fragmentEntity)) return fragmentEntity;
-
   const structurableEntity = world.getEntityById(
     fragmentEntity[FRAGMENT].structure
   );
 
-  if (structurableEntity && isShootable(world, structurableEntity))
-    return structurableEntity;
+  if (!structurableEntity) return;
+
+  if (fragment && isShootable(world, structurableEntity)) return fragmentEntity;
+
+  if (isShootable(world, structurableEntity)) return structurableEntity;
 };
 
 export const isBouncable = (world: World, position: Position) =>

@@ -39,6 +39,7 @@ import {
   frameHeight,
   frameWidth,
   getItemSprite,
+  hookSpeed,
   queueMessage,
   rewardWidth,
 } from "../../game/assets/utils";
@@ -687,6 +688,20 @@ export const castConditionable = (
 
       const hookable = baitEntity && getHookable(world, baitEntity[POSITION]);
       if (hookable) {
+        // ensure target is movable
+        if (!(MOVABLE in hookable)) {
+          world.addComponentToEntity(hookable, MOVABLE, {
+            orientations: [],
+            reference: world.getEntityId(world.metadata.gameEntity),
+            spring: {
+              duration: hookSpeed,
+            },
+            lastInteraction: 0,
+            flying: false,
+            swimming: false,
+          });
+        }
+
         hookable[HOOKABLE].hooked = undefined;
         hookable[HOOKABLE].catching = entityId;
         hookable[HOOKABLE].escaping = false;

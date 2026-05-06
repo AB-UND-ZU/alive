@@ -100,16 +100,18 @@ export const getAffectables = (
 
     if (!fragmentEntity) return;
 
-    if (fragment && isAffectable(world, fragmentEntity)) {
-      affectables.push(fragmentEntity);
-      return;
-    }
-
     const structurableEntity = world.getEntityById(
       fragmentEntity[FRAGMENT].structure
     );
 
-    if (structurableEntity && isAffectable(world, structurableEntity)) {
+    if (!structurableEntity) return;
+
+    if (fragment && isAffectable(world, structurableEntity)) {
+      affectables.push(fragmentEntity);
+      return;
+    }
+
+    if (isAffectable(world, structurableEntity)) {
       affectables.push(structurableEntity);
     }
   });

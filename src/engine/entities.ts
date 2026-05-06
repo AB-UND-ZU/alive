@@ -437,6 +437,19 @@ export const createDormant = entityFactory([
   TOOLTIP,
 ]);
 
+export const createDrop = entityFactory([
+  FOG,
+  HOOKABLE,
+  INVENTORY,
+  LAYER,
+  LOOTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  SWIMMABLE,
+]);
+
 export const createElite = entityFactory([
   ACTIONABLE,
   AFFECTABLE,
@@ -725,6 +738,18 @@ export const createLimb = entityFactory([
   SEQUENCABLE,
   SHOOTABLE,
   SPRITE,
+]);
+
+export const createLoot = entityFactory([
+  FOG,
+  INVENTORY,
+  LAYER,
+  LOOTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  SWIMMABLE,
 ]);
 
 export const createMarker = entityFactory([FOG, POI, POSITION, RENDERABLE]);

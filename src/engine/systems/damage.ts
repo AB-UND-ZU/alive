@@ -186,16 +186,18 @@ export const getAttackables = (
 
     if (!fragmentEntity) return;
 
-    if (fragment && isAttackable(world, fragmentEntity)) {
-      attackables.push(fragmentEntity);
-      return;
-    }
-
     const structurableEntity = world.getEntityById(
       fragmentEntity[FRAGMENT].structure
     );
 
-    if (structurableEntity && isAttackable(world, structurableEntity)) {
+    if (!structurableEntity) return;
+
+    if (fragment && isAttackable(world, structurableEntity)) {
+      attackables.push(fragmentEntity);
+      return;
+    }
+
+    if (isAttackable(world, structurableEntity)) {
       attackables.push(structurableEntity);
     }
   });
@@ -648,6 +650,17 @@ export const createAmountMarker = (
   type: MarkerType,
   delay = 0
 ) => {
+  if (!(SEQUENCABLE in entity)) {
+    const rootEntity = getRoot(world, entity);
+
+    if (!(SEQUENCABLE in rootEntity)) {
+      console.warn("Unable to display marker for entity:", entity);
+      return;
+    }
+
+    entity = rootEntity;
+  }
+
   if (!getSequence(world, entity, "marker")) {
     createSequence<"marker", MarkerSequence>(
       world,

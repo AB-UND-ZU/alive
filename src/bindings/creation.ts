@@ -1208,22 +1208,11 @@ export const createCell = (
       all.push(treeEntity);
       populateInventory(world, treeEntity, yields);
 
-      const fruitEntity = entities.createContainer(world, {
+      const fruitEntity = entities.createLoot(world, {
         [FOG]: { visibility, type: "object" },
-        [HOOKABLE]: { escaping: false },
         [INVENTORY]: { items: [] },
         [LAYER]: {},
         [LOOTABLE]: { disposable: true },
-        [MOVABLE]: {
-          orientations: [],
-          reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
-            duration: 200,
-          },
-          lastInteraction: 0,
-          flying: false,
-          swimming: false,
-        },
         [POSITION]: { x, y },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: tree2,
@@ -1450,22 +1439,11 @@ export const createCell = (
       cell === "desert_palm_fruit" ||
       cell === "banana"
     ) {
-      const fruitEntity = entities.createContainer(world, {
+      const fruitEntity = entities.createLoot(world, {
         [FOG]: { visibility, type: "object" },
-        [HOOKABLE]: { escaping: false },
         [INVENTORY]: { items: [] },
         [LAYER]: {},
         [LOOTABLE]: { disposable: true },
-        [MOVABLE]: {
-          orientations: [],
-          reference: world.getEntityId(world.metadata.gameEntity),
-          spring: {
-            duration: 200,
-          },
-          lastInteraction: 0,
-          flying: false,
-          swimming: false,
-        },
         [POSITION]: { x, y },
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: palm,

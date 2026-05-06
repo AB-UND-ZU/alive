@@ -59,7 +59,6 @@ import { BELONGABLE } from "../components/belongable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { createCell } from "../../bindings/creation";
 import { HOOKABLE } from "../components/hookable";
-import { MOVABLE } from "../components/movable";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
 
@@ -207,22 +206,12 @@ export const createItemAsDrop = <T extends TypedEntity<"ITEM" | "RENDERABLE">>(
   },
   drop = true
 ) => {
-  const containerEntity = entities.createContainer(world, {
+  const containerEntity = entities.createDrop(world, {
     [FOG]: { visibility: "fog", type: "unit" },
     [HOOKABLE]: { escaping: false },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
     [LOOTABLE]: { disposable: true },
-    [MOVABLE]: {
-      orientations: [],
-      reference: world.getEntityId(world.metadata.gameEntity),
-      spring: {
-        duration: 200,
-      },
-      lastInteraction: 0,
-      flying: false,
-      swimming: false,
-    },
     [POSITION]: position,
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
@@ -426,16 +415,6 @@ export const dropEntity = (
       [INVENTORY]: { items: isCentered ? [itemId] : [] },
       [LAYER]: {},
       [LOOTABLE]: { disposable: isCentered },
-      [MOVABLE]: {
-        orientations: [],
-        reference: world.getEntityId(world.metadata.gameEntity),
-        spring: {
-          duration: 200,
-        },
-        lastInteraction: 0,
-        flying: false,
-        swimming: false,
-      },
       [POSITION]: dropPosition,
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -448,7 +427,7 @@ export const dropEntity = (
           ...containerData,
           [TOOLTIP]: { dialogs: [], nextDialog: -1, persistent: false },
         })
-      : entities.createContainer(world, containerData);
+      : entities.createDrop(world, containerData);
 
     if (itemEntity[POPUP]) {
       const { viewpoint, ...popup } = itemEntity[POPUP];

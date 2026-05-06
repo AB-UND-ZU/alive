@@ -231,6 +231,7 @@ import {
 
 export const lootSpeed = 200;
 export const decayTime = 300;
+export const hookSpeed = 100;
 
 export const START_STEP = "START_STEP";
 export const END_STEP = "END_STEP";
