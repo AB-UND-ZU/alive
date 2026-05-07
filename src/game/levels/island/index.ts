@@ -854,18 +854,14 @@ export const generateIsland = (world: World) => {
     setPath(pathMatrix, x, y, height);
   });
 
-  // select quadrant pairs as closest distance might be contained by island
-  const townPath = findPath(
-    pathMatrix,
-    spawnExit,
-    exits[signedDistance(spawnExit.y, townPoint.y, size) > 0 ? 0 : 1],
-    false,
-    false,
-    {
-      x: Number(spawnPoint.x > size / 2) - Number(townPoint.x > size / 2),
-      y: Number(spawnPoint.y > size / 2) - Number(townPoint.y > size / 2),
-    }
-  );
+  // select quadrant pairs manually to ensure paht is contained by island
+  const closestExit =
+    exits[signedDistance(spawnExit.y, townPoint.y, size) > 0 ? 0 : 1];
+  const townPath = findPath(pathMatrix, spawnExit, closestExit, false, false, {
+    x: Number(spawnPoint.x > size / 2) - Number(closestExit.x > size / 2),
+    y: Number(spawnPoint.y > size / 2) - Number(closestExit.y > size / 2),
+  });
+
   townPath.forEach(({ x, y }) => {
     worldMap[x][y] = "path";
     objectsMap[x][y] = [];
