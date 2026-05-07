@@ -150,6 +150,21 @@ export type SlashSequence = {
   exertables: number[];
   tick: number;
 };
+export type TornadoSequence = {
+  material?: Material;
+  element?: Element;
+  radius: number;
+  position: Position;
+  exertables: number[];
+  generation: number;
+  last?: number;
+  gusts: {
+    index: number;
+    radius: number;
+    generation: number;
+    orientation: Orientation;
+  }[];
+};
 export type BranchSequence = {
   threshold: number;
   limbs: number[];
@@ -259,6 +274,7 @@ export type Sequencable = {
     condition?: SequenceState<ConditionSequence>;
     arrow?: SequenceState<ArrowSequence>;
     slash?: SequenceState<SlashSequence>;
+    tornado?: SequenceState<TornadoSequence>;
     branch?: SequenceState<BranchSequence>;
     limb?: SequenceState<LimbSequence>;
     npc?: SequenceState<NpcSequence>;

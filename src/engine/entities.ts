@@ -182,6 +182,8 @@ export const createAnchor = entityFactory([
 
 export const createAoe = entityFactory([EXERTABLE, POSITION]);
 
+export const createEffect = entityFactory([EXERTABLE, ORIENTABLE, POSITION]);
+
 export const createArea = entityFactory([POSITION, TEMPO]);
 
 export const createAura = entityFactory([
@@ -1102,6 +1104,17 @@ export const createTombstone = entityFactory([
   SPRITE,
   SWIMMABLE,
   TOOLTIP,
+]);
+
+export const createTornado = entityFactory([
+  BELONGABLE,
+  CASTABLE,
+  MOVABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
 ]);
 
 export const createTotem = entityFactory([

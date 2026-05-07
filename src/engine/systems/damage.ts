@@ -79,6 +79,7 @@ import { entities } from "..";
 import { SPRITE } from "../components/sprite";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { castSpell } from "./trigger";
+import { FOG } from "../components/fog";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -635,8 +636,11 @@ export const knockEntity = (
       entity[BUMPABLE].orientation = orientation;
     }
 
-    // knock into spikes
-    if (sting) {
+    // knock into spikes but prevent tornadoes killing all mobs in desert
+    if (
+      sting &&
+      !(isNpc(world, entity) && entity[FOG]?.visibility !== "visible")
+    ) {
       stingEntity(world, sting, entity);
     }
   }

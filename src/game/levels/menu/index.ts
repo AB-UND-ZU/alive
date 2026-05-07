@@ -483,11 +483,6 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
-        {
-          accessory: "map",
-          material: "gold",
-          amount: 1,
-        },
       ],
       [
         {
@@ -502,6 +497,11 @@ export const generateMenu = async (world: World) => {
         {
           stackable: "charge",
           amount: Infinity,
+        },
+        {
+          accessory: "map",
+          material: "gold",
+          amount: 1,
         },
       ],
     ];

@@ -78,6 +78,7 @@ import {
   lerp,
   normalize,
   random,
+  range,
   repeat,
   reversed,
   shuffle,
@@ -248,6 +249,7 @@ import {
   SlashSequence,
   SmokeSequence,
   SpellSequence,
+  TornadoSequence,
   UnlockSequence,
   VisionSequence,
   VortexSequence,
@@ -414,6 +416,8 @@ import {
   waveCornerDouble,
   waveSide,
   waveSideDouble,
+  windCorner,
+  windSide,
 } from "./templates/particles";
 import {
   animateEvaporate,
@@ -1193,6 +1197,217 @@ export const arrowShot: Sequence<ArrowSequence> = (world, entity, state) => {
     entity[PROJECTILE].moved = true;
     currentDistance += 1;
     updated = true;
+  }
+
+  return { finished, updated };
+};
+
+const tornadoTicks = 21;
+const tornadoSpeed = 25;
+const gustLength = 11;
+
+export const tornadoSpin: Sequence<TornadoSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const entityId = world.getEntityId(entity);
+  const material = state.args.material || "default";
+  const element = state.args.element || "default";
+  const tornadoGeneration = Math.floor(state.elapsed / tornadoSpeed);
+  const windSideSprite = windSide[material][element];
+  const windCornerSprite = windCorner[material][element];
+  const ringSize = state.args.radius * 8;
+  const targetKnock = Math.min(state.args.radius, 2);
+  const nextGeneration = Math.floor(tornadoGeneration / tornadoTicks);
+
+  const finished = false;
+  let updated = false;
+
+  // create new gusts in random direction
+  if (state.args.last !== nextGeneration && state.args.radius > 0) {
+    const orientation = choice(...orientations);
+    state.args.last = nextGeneration;
+    state.args.gusts.push(
+      ...range(0, gustLength - 1).map((offset) => ({
+        index: nextGeneration * gustLength + offset,
+        generation: tornadoGeneration + gustLength + offset,
+        orientation,
+        radius: state.args.radius,
+      }))
+    );
+
+    updated = true;
+  }
+
+  // update knock intensity
+  if (entity[CASTABLE].knock !== targetKnock) {
+    entity[CASTABLE].knock = targetKnock;
+    rerenderEntity(world, entity);
+    updated = true;
+  }
+
+  // create exertables on sides only
+  if (state.args.exertables.length !== ringSize - 4) {
+    // clear previous exertables first
+    for (const exertableId of state.args.exertables) {
+      const exertableEntity = world.assertById(exertableId);
+      disposeEntity(world, exertableEntity);
+    }
+    state.args.exertables = [];
+
+    // create sides
+    const sideLength = (state.args.radius - 1) * 2 + 1;
+
+    for (const iteration of iterations) {
+      for (let sideIndex = 0; sideIndex < sideLength; sideIndex += 1) {
+        const invertedOrientation = invertOrientation(iteration.orientation);
+        const offset = {
+          x:
+            iteration.direction.x * state.args.radius +
+            iteration.normal.x * (state.args.radius - sideLength + sideIndex),
+          y:
+            iteration.direction.y * state.args.radius +
+            iteration.normal.y * (state.args.radius - sideLength + sideIndex),
+        };
+        const effectEntity = entities.createEffect(world, {
+          [EXERTABLE]: { castable: entityId },
+          [ORIENTABLE]: { facing: invertedOrientation },
+          [POSITION]: combine(size, entity[POSITION], offset),
+        });
+        state.args.exertables.push(world.getEntityId(effectEntity));
+        registerEntity(world, effectEntity);
+      }
+    }
+    updated = true;
+  }
+
+  // update exertable positions
+  const moved = {
+    x: signedDistance(state.args.position.x, entity[POSITION].x, size),
+    y: signedDistance(state.args.position.y, entity[POSITION].y, size),
+  };
+  if (moved.x !== 0 || moved.y !== 0) {
+    for (const exertableId of state.args.exertables) {
+      const exertableEntity = world.assertByIdAndComponents(exertableId, [
+        POSITION,
+      ]);
+      moveEntity(
+        world,
+        exertableEntity,
+        combine(size, exertableEntity[POSITION], moved)
+      );
+    }
+    state.args.position = copy(entity[POSITION]);
+  }
+
+  // move particles in inward circular motion around the square, or remove
+  if (state.args.generation !== tornadoGeneration) {
+    state.args.generation = tornadoGeneration;
+    updated = true;
+
+    const remainingGusts: TornadoSequence["gusts"] = [];
+    state.args.gusts.forEach((gust) => {
+      const { generation, index, orientation, radius } = gust;
+      const gustProgress = tornadoGeneration - generation;
+      const gustName = `gust-${index}`;
+
+      // deduct current ring and offset from progress
+      const gustMaximum = (radius * 2 + 1) ** 2;
+      const gustGeneration = gustMaximum - gustProgress;
+      const gustRing = Math.ceil((Math.sqrt(1 + gustGeneration) - 1) / 2);
+      const gustRingSize = gustRing * 8;
+      const ringOffset = 4 * gustRing * (gustRing - 1);
+      const ringIndex = gustGeneration - ringOffset - 1;
+      const sideIndex = gustRing === 0 ? 0 : ringIndex % (gustRingSize / 4);
+      const sideLength = (gustRing - 1) * 2 + 1;
+      const isCorner =
+        ringIndex === 0 ||
+        (sideIndex === gustRingSize / 4 - 1 && ringIndex !== gustRingSize - 1);
+
+      // wait until gust becomes visible
+      if (gustGeneration >= gustMaximum - 1) {
+        remainingGusts.push(gust);
+        return;
+      }
+
+      // create new gusts
+      if (!state.particles[gustName]) {
+        const delta = orientationPoints[orientation];
+        const gustParticle = entities.createFibre(world, {
+          [ORIENTABLE]: { facing: orientation },
+          [PARTICLE]: {
+            offsetX: delta.x,
+            offsetY: delta.y,
+            offsetZ: particleHeight,
+            duration: tornadoSpeed,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: none,
+        });
+        state.particles[`gust-${index}`] = world.getEntityId(gustParticle);
+      }
+
+      const gustEntity = world.assertByIdAndComponents(
+        state.particles[gustName],
+        [ORIENTABLE, PARTICLE, SPRITE]
+      );
+
+      const gustOrientation = rotateOrientation(
+        orientation,
+        gustRing === 0 ? -1 : Math.floor(ringIndex / (gustRingSize / 4))
+      );
+
+      // delete finished gusts
+      if (gustGeneration < 0) {
+        disposeEntity(world, gustEntity);
+        delete state.particles[gustName];
+        return;
+      }
+
+      remainingGusts.push(gust);
+
+      // update particle position and sprite
+      const iteration = iterations.find(
+        (iter) => iter.orientation === gustOrientation
+      )!;
+      gustEntity[PARTICLE].offsetX =
+        gustRing === 0
+          ? 0
+          : iteration.direction.x * gustRing +
+            iteration.normal.x * (gustRing - sideLength + sideIndex);
+      gustEntity[PARTICLE].offsetY =
+        gustRing === 0
+          ? 0
+          : iteration.direction.y * gustRing +
+            iteration.normal.y * (gustRing - sideLength + sideIndex);
+      gustEntity[ORIENTABLE].facing = rotateOrientation(
+        gustOrientation,
+        ringIndex === 0 && gustGeneration !== 0 ? 0 : 1
+      );
+      gustEntity[SPRITE] = isCorner ? windCornerSprite : windSideSprite;
+      rerenderEntity(world, gustEntity);
+    });
+
+    state.args.gusts = remainingGusts;
+
+    updated = true;
+  }
+
+  // clean up particles and exertables
+  if (finished) {
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertById(state.particles[particleName]);
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+
+    for (const exertableId of state.args.exertables) {
+      const exertableEntity = world.assertById(exertableId);
+      disposeEntity(world, exertableEntity);
+    }
+    state.args.exertables = [];
   }
 
   return { finished, updated };

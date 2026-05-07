@@ -33,7 +33,10 @@ import {
 } from "../../math/matrix";
 import { FOG } from "../../../engine/components/fog";
 import { ATTACKABLE } from "../../../engine/components/attackable";
-import { orientationPoints } from "../../../engine/components/orientable";
+import {
+  ORIENTABLE,
+  orientationPoints,
+} from "../../../engine/components/orientable";
 import { ilexArea, oakArea, spawnArea, townSize } from "./areas";
 import {
   add,
@@ -66,6 +69,7 @@ import {
 } from "../../assets/sprites/structures";
 import {
   SEQUENCABLE,
+  TornadoSequence,
   WeatherSequence,
 } from "../../../engine/components/sequencable";
 import {
@@ -105,6 +109,11 @@ import { createSequence } from "../../../engine/systems/sequence";
 import { SHOOTABLE } from "../../../engine/components/shootable";
 import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
 import { POI } from "../../../engine/components/poi";
+import {
+  CASTABLE,
+  getEmptyCastable,
+} from "../../../engine/components/castable";
+import { MOVABLE } from "../../../engine/components/movable";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -892,7 +901,7 @@ export const generateIsland = (world: World) => {
     "house_druid"
   );
 
-  // set weather
+  // set rain for forest
   const mainlandStorm = entities.createAnchor(world, {
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },
@@ -930,6 +939,61 @@ export const generateIsland = (world: World) => {
     frequency: 1 / 100,
     ratio: mainlandRatio,
   });
+
+  // create tornados in desert
+  for (let tornadoIndex = 0; tornadoIndex < 5; tornadoIndex += 1) {
+    const tornadoEntity = entities.createTornado(world, {
+      [BELONGABLE]: { faction: "hostile" },
+      [CASTABLE]: {
+        ...getEmptyCastable(world, world.metadata.gameEntity),
+        reproc: 3,
+      },
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(world.metadata.gameEntity),
+        spring: {
+          duration: 200,
+        },
+        lastInteraction: 0,
+        flying: true,
+        swimming: false,
+      },
+      [ORIENTABLE]: {},
+      [POSITION]: { x: 13, y: 30 },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: none,
+    });
+    tornadoEntity[CASTABLE].caster = world.getEntityId(tornadoEntity);
+    createSequence<"tornado", TornadoSequence>(
+      world,
+      tornadoEntity,
+      "tornado",
+      "tornadoSpin",
+      {
+        element: "air",
+        position: copy(tornadoEntity[POSITION]),
+        radius: 0,
+        exertables: [],
+        gusts: [],
+        generation: 0,
+      }
+    );
+    npcSequence(world, tornadoEntity, "wanderingTornadoNpc", {
+      maximum: 3,
+      lastMove: world.metadata.gameEntity[RENDERABLE].generation,
+      lastGrow: world.metadata.gameEntity[RENDERABLE].generation,
+      orientation: "right",
+      growing: false,
+      biome: "desert",
+      center: copy(oakExit),
+      angle: islandAngle + 90,
+      radius: mainlandRadius,
+      ratio: mainlandRatio,
+    });
+  }
+
+  // set snow for glacier
   const glacierStorm = entities.createAnchor(world, {
     [POSITION]: { x: 0, y: 0 },
     [RENDERABLE]: { generation: 0 },

@@ -301,6 +301,56 @@ export const trigger = createTemplate({
   materialElementSprite: triggerElementTemplate,
 });
 
+const windSideTemplate: Sprite = {
+  name: "wind_side",
+  layers: [{ char: "~", color: TEMPLATE_COLORS.materialPrimary }],
+  facing: {
+    up: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
+  },
+};
+const windSideElementTemplate: Sprite = {
+  name: "wind_side_element",
+  layers: [{ char: "~", color: TEMPLATE_COLORS.elementPrimary }],
+  facing: {
+    up: [{ char: "│", color: TEMPLATE_COLORS.elementPrimary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.elementPrimary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.elementPrimary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.elementPrimary }],
+  },
+};
+export const windSide = createTemplate({
+  sprite: windSideTemplate,
+  materialElementSprite: windSideElementTemplate,
+});
+
+const windCornerTemplate: Sprite = {
+  name: "wind_corner",
+  layers: [{ char: "┼", color: TEMPLATE_COLORS.materialPrimary }],
+  facing: {
+    up: [{ char: "┌", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "┐", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "┘", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "└", color: TEMPLATE_COLORS.materialPrimary }],
+  },
+};
+const windCornerElementTemplate: Sprite = {
+  name: "wind_corner_element",
+  layers: [{ char: "┼", color: TEMPLATE_COLORS.elementPrimary }],
+  facing: {
+    up: [{ char: "┌", color: TEMPLATE_COLORS.elementPrimary }],
+    right: [{ char: "┐", color: TEMPLATE_COLORS.elementPrimary }],
+    down: [{ char: "┘", color: TEMPLATE_COLORS.elementPrimary }],
+    left: [{ char: "└", color: TEMPLATE_COLORS.elementPrimary }],
+  },
+};
+export const windCorner = createTemplate({
+  sprite: windCornerTemplate,
+  materialElementSprite: windCornerElementTemplate,
+});
+
 const dashTemplate: Sprite = {
   name: "spell_dash",
   layers: [{ char: "+", color: TEMPLATE_COLORS.materialPrimary }],

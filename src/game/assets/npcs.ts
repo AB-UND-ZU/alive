@@ -23,11 +23,13 @@ import { rerenderEntity } from "../../engine/systems/renderer";
 import { lockDoor } from "../../engine/systems/trigger";
 import {
   add,
+  angledOffset,
   choice,
   combine,
   copy,
   getDistance,
   normalize,
+  random,
   repeat,
   signedDistance,
   within,
@@ -120,6 +122,7 @@ import { centerLayer, centerSprites, getCircleOrientations } from "./pixels";
 import { colors } from "./colors";
 import {
   ORIENTABLE,
+  Orientation,
   orientationPoints,
 } from "../../engine/components/orientable";
 import { CLICKABLE } from "../../engine/components/clickable";
@@ -136,6 +139,8 @@ import { recolorSprite } from "./templates";
 import { BLOCKABLE } from "../../engine/components/blockable";
 import { boots, bow, sword, waveSpell } from "./templates/equipments";
 import { flask, spirit } from "./templates/items";
+import { getBiome, isFlyable } from "../../engine/systems/movement";
+import { relativeOrientations } from "../math/path";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
@@ -2221,6 +2226,92 @@ export const oscillatingStormNpc: Sequence<NpcSequence> = (
     weatherSequence.args.position.y !== position.y
   ) {
     weatherSequence.args.position = position;
+  }
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const wanderingTornadoNpc: Sequence<NpcSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const {
+    maximum,
+    lastMove,
+    lastGrow,
+    orientation,
+    biome,
+    center,
+    angle,
+    radius,
+    ratio,
+  } = state.args.memory;
+  const tornadoSequence = getSequence(world, entity, "tornado");
+
+  if (!tornadoSequence) {
+    return { finished: stage.finished, updated: stage.updated };
+  }
+
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const moveTicks = generation - lastMove;
+  const growTicks = generation - lastGrow;
+
+  // move or shrink tornado
+  if (moveTicks >= 3 && tornadoSequence.args.radius > 0 && orientation) {
+    const delta = orientationPoints[orientation as Orientation];
+    const target = combine(size, entity[POSITION], delta);
+    if (isFlyable(world, target) && getBiome(world, target) === biome) {
+      moveEntity(world, entity, target);
+      state.args.memory.growing = true;
+    } else if (tornadoSequence.args.radius > 0) {
+      state.args.memory.growing = false;
+      tornadoSequence.args.radius -= 1;
+    }
+    state.args.memory.lastMove = generation;
+  }
+
+  // grow tornado
+  if (
+    state.args.memory.growing &&
+    growTicks >= 11 &&
+    tornadoSequence.args.radius < maximum
+  ) {
+    tornadoSequence.args.radius += 1;
+    state.args.memory.lastGrow = generation;
+    state.args.memory.lastMove = generation;
+  }
+
+  // reposition tornado
+  if (
+    !state.args.memory.growing &&
+    tornadoSequence.args.radius === 0 &&
+    growTicks >= 11
+  ) {
+    const spawnPoint = angledOffset(
+      size,
+      center,
+      angle + random(-90, 90),
+      random(10, Math.ceil(radius)),
+      ratio
+    );
+
+    state.args.memory.growing = true;
+    state.args.memory.orientation = relativeOrientations(
+      world,
+      spawnPoint,
+      entity[POSITION]
+    )[0];
+    moveEntity(world, entity, spawnPoint);
   }
 
   return { finished: stage.finished, updated: stage.updated };
