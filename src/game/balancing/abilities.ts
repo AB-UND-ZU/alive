@@ -339,11 +339,11 @@ export const abilityStats: Partial<
     },
     slash: {
       default: { default: { knock: 2 } },
-      wood: { default: { melee: 2 } },
-      iron: { default: { melee: 4 } },
-      gold: { default: { melee: 6 } },
-      diamond: { default: { melee: 8 } },
-      ruby: { default: { melee: 10 } },
+      wood: { default: { melee: 1 } },
+      iron: { default: { melee: 2 } },
+      gold: { default: { melee: 3 } },
+      diamond: { default: { melee: 4 } },
+      ruby: { default: { melee: 5 } },
     },
     zap: {
       default: { default: { magic: 3 } },
