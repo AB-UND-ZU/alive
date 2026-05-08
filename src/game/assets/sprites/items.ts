@@ -292,6 +292,18 @@ export const mining: Sprite = {
   ],
 };
 
+export const fishing: Sprite = {
+  name: "Fishing",
+  layers: [
+    { char: "│", color: colors.green },
+    { char: "┐", color: colors.black },
+    { char: "'", color: colors.lime },
+    { char: "|", color: colors.green },
+    { char: "\u0106", color: colors.lime },
+    { char: "∙", color: colors.green },
+  ],
+};
+
 export const coin: Sprite = {
   name: "Coin",
   layers: [

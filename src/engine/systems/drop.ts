@@ -57,10 +57,11 @@ import { SHOOTABLE } from "../components/shootable";
 import { VANISHABLE } from "../components/vanishable";
 import { BELONGABLE } from "../components/belongable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
-import { createCell } from "../../bindings/creation";
+import { createCell, populateInventory } from "../../bindings/creation";
 import { HOOKABLE } from "../components/hookable";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
+import { getHarvestConfig } from "../../game/balancing/harvesting";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE]?.decayed || entity[VANISHABLE]?.decayed;
@@ -593,12 +594,31 @@ export default function setupDrop(world: World) {
             { fast: false }
           );
         });
+
+        const { yields } = getHarvestConfig(entity[HARVESTABLE].resource);
+        if (yields.length > 0) {
+          const dummy: TypedEntity<"INVENTORY" | "POSITION"> = {
+            [INVENTORY]: { items: [] },
+            [POSITION]: copy(entity[POSITION]),
+          };
+          populateInventory(world, dummy, yields);
+          dropEntity(
+            world,
+            dummy,
+            dummy[POSITION],
+            false,
+            undefined,
+            undefined,
+            lootSpeed + decayTime / 2
+          );
+        }
+
         dropEntity(
           world,
           entity,
           entity[POSITION],
           false,
-          MAX_DROP_RADIUS,
+          undefined,
           undefined,
           lootSpeed + decayTime / 2
         );

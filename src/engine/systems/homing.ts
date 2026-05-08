@@ -14,11 +14,10 @@ import {
 import { SEQUENCABLE } from "../components/sequencable";
 import { entities } from "..";
 import { Sprite, SPRITE } from "../components/sprite";
-import { hedgeDry1, hedgeDry2 } from "../../game/assets/sprites";
 import { INVENTORY } from "../components/inventory";
 import { BELONGABLE } from "../components/belongable";
 import { isWalkable } from "./movement";
-import { emptyUnitStats, STATS } from "../components/stats";
+import { STATS } from "../components/stats";
 import { ATTACKABLE } from "../components/attackable";
 import { Homing, HOMING } from "../components/homing";
 import { getOpaque } from "./enter";
@@ -41,6 +40,7 @@ import { isDead } from "./damage";
 import { rerenderEntity } from "./renderer";
 import { HARVESTABLE } from "../components/harvestable";
 import { BUMPABLE } from "../components/bumpable";
+import { generateUnitData } from "../../game/balancing/units";
 
 export const decayHoming = (world: World, entity: Entity) => {
   entity[HOMING].decayedGeneration =
@@ -245,9 +245,11 @@ export default function setupHoming(world: World) {
 
             if (!isWalkable(world, side)) continue;
 
-            const hedgeEntity = entities.createResource(world, {
-              [ATTACKABLE]: {},
-              [BELONGABLE]: { faction: "unit" },
+            const { sprite, stats, faction, scratch, harvestable } =
+              generateUnitData(choice("oakHedge1", "oakHedge2"));
+            const hedgeEntity = entities.createPlant(world, {
+              [ATTACKABLE]: { scratchColor: scratch },
+              [BELONGABLE]: { faction },
               [BUMPABLE]: { generation: 0 },
               [BURNABLE]: {
                 burning: false,
@@ -258,19 +260,14 @@ export default function setupHoming(world: World) {
               },
               [DROPPABLE]: { decayed: false },
               [FOG]: { visibility: "hidden", type: "object" },
-              [HARVESTABLE]: {
-                amount: 2,
-                maximum: 2,
-                material: "wood",
-                resource: "tree",
-              },
+              [HARVESTABLE]: harvestable,
               [INVENTORY]: { items: [] },
               [POSITION]: side,
               [RENDERABLE]: { generation: 0 },
               [SEQUENCABLE]: { states: {} },
               [SHOOTABLE]: { shots: 0 },
-              [SPRITE]: choice(hedgeDry1, hedgeDry2),
-              [STATS]: { ...emptyUnitStats, hp: 25, maxHp: 25 },
+              [SPRITE]: sprite,
+              [STATS]: stats,
             });
             registerEntity(world, hedgeEntity);
             setIdentifier(world, hedgeEntity, "oak:hedge");

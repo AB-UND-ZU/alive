@@ -761,7 +761,6 @@ export const createMine = entityFactory([
   DROPPABLE,
   FOG,
   HARVESTABLE,
-  INVENTORY,
   LIGHT,
   POSITION,
   RENDERABLE,
@@ -802,7 +801,6 @@ export const createMountain = entityFactory([
   DROPPABLE,
   FOG,
   HARVESTABLE,
-  INVENTORY,
   LIGHT,
   POSITION,
   RENDERABLE,
@@ -824,6 +822,7 @@ export const createObject = entityFactory([
   BURNABLE,
   DROPPABLE,
   FOG,
+  HARVESTABLE,
   INVENTORY,
   LAYER,
   POSITION,
@@ -855,7 +854,6 @@ export const createOrganic = entityFactory([
   DROPPABLE,
   FOG,
   HARVESTABLE,
-  INVENTORY,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
@@ -863,6 +861,23 @@ export const createOrganic = entityFactory([
 ]);
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
+
+export const createPlant = entityFactory([
+  ATTACKABLE,
+  BELONGABLE,
+  BUMPABLE,
+  BURNABLE,
+  DROPPABLE,
+  FOG,
+  HARVESTABLE,
+  INVENTORY,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SHOOTABLE,
+  SPRITE,
+  STATS,
+]);
 
 export const createPlate = entityFactory([
   COLLIDABLE,
@@ -891,23 +906,6 @@ export const createProcessor = entityFactory([
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
-]);
-
-export const createResource = entityFactory([
-  ATTACKABLE,
-  BELONGABLE,
-  BUMPABLE,
-  BURNABLE,
-  DROPPABLE,
-  FOG,
-  HARVESTABLE,
-  INVENTORY,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SHOOTABLE,
-  SPRITE,
-  STATS,
 ]);
 
 export const createRoaming = entityFactory([
@@ -1005,6 +1003,7 @@ export const createSign = entityFactory([
   BELONGABLE,
   DROPPABLE,
   FOG,
+  HARVESTABLE,
   INVENTORY,
   LAYER,
   POSITION,

@@ -10,7 +10,7 @@ export type Conditionable = Partial<
     {
       item: number;
       generation: number;
-      duration: number;
+      modifier: number;
       amount: number;
       orientation?: Orientation;
     }

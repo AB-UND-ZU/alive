@@ -427,7 +427,7 @@ import {
   MAX_DROP_RADIUS,
   placeRemains,
 } from "../../engine/systems/drop";
-import { getHarvestTarget } from "../../engine/systems/harvest";
+import { getHarvestTarget, performHarvest } from "../../engine/systems/harvest";
 import { TypedEntity } from "../../engine/entities";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { getSequence } from "../../engine/systems/sequence";
@@ -499,7 +499,7 @@ export const zapCondition: Sequence<ConditionSequence> = (
   const finished =
     !entity[CONDITIONABLE].zap ||
     entity[ACTIONABLE].toolEquipped ||
-    generation > state.args.duration;
+    generation > state.args.modifier;
 
   const weaponEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].weapon,
@@ -575,14 +575,14 @@ export const blockCondition: Sequence<ConditionSequence> = (
   const inactive =
     !entity[CONDITIONABLE].block ||
     entity[ACTIONABLE].toolEquipped ||
-    generation >= state.args.duration;
+    generation >= state.args.modifier;
 
   // trim duration on popping bubble
-  if (inactive && state.args.duration > generation + 1) {
-    state.args.duration = generation;
+  if (inactive && state.args.modifier > generation + 1) {
+    state.args.modifier = generation;
   }
 
-  const finished = generation >= state.args.duration + 1;
+  const finished = generation >= state.args.modifier + 1;
 
   const sideSprite = [
     blockSide1[state.args.material].default,
@@ -776,21 +776,26 @@ export const toolCondition: Sequence<ConditionSequence> = (
       rerenderEntity(world, offhandEntity);
     }
   } else {
-    const targetDuration = entity[CONDITIONABLE][conditionName].duration;
+    const targetModifier = entity[CONDITIONABLE][conditionName].modifier;
     const targetOrientation = entity[CONDITIONABLE][conditionName]
       .orientation as Orientation | undefined;
-    const targetEntity = getHarvestTarget(world, entity, toolEntity);
-    const progress = state.elapsed - state.args.duration;
+    const targetEntity = getHarvestTarget(
+      world,
+      entity,
+      toolEntity,
+      targetOrientation || "up"
+    );
+    const progress = state.elapsed - state.args.modifier;
     let scratching = true;
 
     if (
       targetEntity &&
-      targetDuration &&
-      targetDuration !== state.args.duration &&
+      targetModifier &&
+      targetModifier !== state.args.modifier &&
       targetOrientation
     ) {
       // move tool out
-      state.args.duration = targetDuration;
+      state.args.modifier = targetModifier;
       state.args.orientation = targetOrientation;
       const delta = orientationPoints[targetOrientation];
       conditionParticle[PARTICLE].offsetX = delta.x;
@@ -805,39 +810,44 @@ export const toolCondition: Sequence<ConditionSequence> = (
       targetOrientation &&
       progress > tick / 2
     ) {
-      // perform harvest
-      targetEntity[HARVESTABLE].amount -=
-        entity[CONDITIONABLE][conditionName].amount;
-      rerenderEntity(world, targetEntity);
+      // perform harvest and get entities to show scratches
+      const scratchEntities = performHarvest(
+        world,
+        entity,
+        toolEntity,
+        targetEntity,
+        targetOrientation
+      );
 
-      // bump target resource
-      const targetLimbs = getLimbs(world, targetEntity);
-      targetLimbs.forEach((limb) => {
-        if (limb[BUMPABLE]) {
-          limb[BUMPABLE].generation = limb[RENDERABLE].generation;
-          limb[BUMPABLE].orientation = state.args.orientation;
-          rerenderEntity(world, limb);
-        }
-      });
-
-      // create scratch
-      const delta = orientationPoints[targetOrientation];
-      const scratchParticle = entities.createParticle(world, {
-        [PARTICLE]: {
-          offsetX: delta.x * 2,
-          offsetY: delta.y * 2,
-          offsetZ: particleHeight,
-          animatedOrigin: copy(delta),
-          duration: tick / 2,
-        },
-        [RENDERABLE]: { generation: 1 },
-        [SPRITE]: createText(
-          choice(...scratchChars),
-          harvestScratches[(targetEntity[HARVESTABLE] as Harvestable).resource]
-        )[0],
-      });
-      state.particles[`scratch-${targetEntity[RENDERABLE].generation}`] =
-        world.getEntityId(scratchParticle);
+      for (const scratchEntity of scratchEntities) {
+        const scratchOrientation =
+          relativeOrientations(
+            world,
+            entity[POSITION],
+            scratchEntity[POSITION]
+          )[0] || targetOrientation;
+        const delta = orientationPoints[scratchOrientation];
+        const scratchParticle = entities.createParticle(world, {
+          [PARTICLE]: {
+            offsetX: delta.x * 2,
+            offsetY: delta.y * 2,
+            offsetZ: particleHeight,
+            animatedOrigin: copy(delta),
+            duration: tick / 2,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: createText(
+            choice(...scratchChars),
+            harvestScratches[
+              (targetEntity[HARVESTABLE] as Harvestable).resource
+            ]
+          )[0],
+        });
+        const scratchId = world.getEntityId(scratchEntity);
+        state.particles[
+          `scratch-${scratchId}-${scratchEntity[RENDERABLE].generation}`
+        ] = world.getEntityId(scratchParticle);
+      }
 
       // move tool back
       entity[CONDITIONABLE][conditionName].orientation = undefined;
@@ -849,14 +859,14 @@ export const toolCondition: Sequence<ConditionSequence> = (
     } else if (
       !state.args.orientation &&
       !targetOrientation &&
-      state.args.duration &&
-      targetDuration &&
+      state.args.modifier &&
+      targetModifier &&
       progress > tick
     ) {
       // reset tool
-      entity[CONDITIONABLE][conditionName].duration = 0;
+      entity[CONDITIONABLE][conditionName].modifier = 0;
       conditionParticle[ORIENTABLE].facing = undefined;
-      state.args.duration = 0;
+      state.args.modifier = 0;
       scratching = false;
       updated = true;
     }
@@ -883,13 +893,13 @@ export const hookCondition: Sequence<ConditionSequence> = (
   const size = world.metadata.gameEntity[LEVEL].size;
   const condition = (entity[CONDITIONABLE] as Conditionable).hook;
   const entityId = world.getEntityId(entity);
-  const isCatching = state.args.duration <= 0;
+  const isCatching = state.args.modifier <= 0;
   const catchGeneration =
     isCatching && condition
       ? Math.ceil((state.elapsed - condition.generation) / hookSpeed)
       : 0;
   let updated = false;
-  const finished = !condition || catchGeneration > condition.duration + 1;
+  const finished = !condition || catchGeneration > condition.modifier + 1;
 
   const weaponEntity = world.getEntityByIdAndComponents(
     entity[EQUIPPABLE].weapon,
@@ -921,7 +931,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
   }
 
   const hookGeneration = isCatching
-    ? condition.duration
+    ? condition.modifier
     : state.particles.bait
     ? Math.ceil((state.elapsed - condition.generation) / hookSpeed)
     : 0;
@@ -994,13 +1004,13 @@ export const hookCondition: Sequence<ConditionSequence> = (
 
     for (
       let wireLength = condition.amount + 1;
-      wireLength < hookGeneration && wireLength <= condition.duration;
+      wireLength < hookGeneration && wireLength <= condition.modifier;
       wireLength += 1
     ) {
       condition.amount = wireLength;
       updated = true;
 
-      if (wireLength >= condition.duration) break;
+      if (wireLength >= condition.modifier) break;
 
       const current = {
         x: delta.x * wireLength,
@@ -1016,7 +1026,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
         getHookable(world, combine(size, entity[POSITION], current)) ||
         !isWireTossable(world, target)
       ) {
-        condition.duration = wireLength;
+        condition.modifier = wireLength;
         break;
       }
 
@@ -1052,7 +1062,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
 
   if (
     !isCatching &&
-    condition.amount === condition.duration &&
+    condition.amount === condition.modifier &&
     hookGeneration > condition.amount + 1 &&
     !baitEntity &&
     baitParticle &&
@@ -1096,8 +1106,8 @@ export const hookCondition: Sequence<ConditionSequence> = (
     const delta = orientationPoints[condition.orientation];
 
     for (
-      let wireLength = condition.duration + state.args.duration;
-      wireLength >= 0 && state.args.duration * -1 < catchGeneration;
+      let wireLength = condition.modifier + state.args.modifier;
+      wireLength >= 0 && state.args.modifier * -1 < catchGeneration;
       wireLength -= 1
     ) {
       const previous = {
@@ -1136,7 +1146,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
         wireParticle[PARTICLE].offsetY = offset.y;
         rerenderEntity(world, wireParticle);
       }
-      state.args.duration = wireLength - condition.duration - 1;
+      state.args.modifier = wireLength - condition.modifier - 1;
 
       // move catch
       const caughtEntity = getHookables(

@@ -9,12 +9,15 @@ import {
   addWisdom,
   armor,
   damp,
+  fishing,
   haste,
   heart,
   heartUp,
   level,
+  logging,
   mana,
   manaUp,
+  mining,
   power,
   resist,
   spike,
@@ -182,7 +185,11 @@ export const range: Sprite = {
   layers: [
     { char: "\u0117", color: colors.yellow },
     { char: "\u0118", color: colors.yellow },
-    { char: "|", color: colors.olive },
+    { char: ":", color: colors.olive },
+    { char: "+", color: colors.olive },
+    { char: ".", color: colors.yellow },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.olive },
   ],
 };
 
@@ -1794,6 +1801,18 @@ const statConfig: Record<
     color: colors.black,
     sprite: none,
   },
+  fishing: {
+    color: colors.green,
+    sprite: fishing,
+  },
+  mining: {
+    color: colors.green,
+    sprite: mining,
+  },
+  logging: {
+    color: colors.green,
+    sprite: logging,
+  },
 };
 
 export const createCountable = (
@@ -1991,18 +2010,6 @@ export const interactBar: Sprite = {
     down: [{ char: "│", color: colors.green }],
     left: [{ char: "─", color: colors.green }],
   },
-};
-
-export const fishing: Sprite = {
-  name: "Fishing",
-  layers: [
-    { char: "│", color: colors.green },
-    { char: "┐", color: colors.black },
-    { char: "'", color: colors.lime },
-    { char: "|", color: colors.green },
-    { char: "\u0106", color: colors.lime },
-    { char: "∙", color: colors.green },
-  ],
 };
 
 export const discovery = createText("°", colors.lime)[0];

@@ -614,6 +614,11 @@ export const createChest = (
     [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
   });
   populateInventory(world, chestEntity, items || chestData.items);
+
+  if (chestData.harvestable.maximum > 0) {
+    world.addComponentToEntity(chestEntity, HARVESTABLE, chestData.harvestable);
+  }
+
   return chestEntity;
 };
 
@@ -639,6 +644,7 @@ export const createSign = (
       remains: choice(treeBurnt1, treeBurnt2),
     },
     [FOG]: { visibility: "hidden", type: "object" },
+    [HARVESTABLE]: signData.harvestable,
     [INVENTORY]: { items: [] },
     [LAYER]: {},
     [POSITION]: position,
@@ -929,13 +935,12 @@ export const createCell = (
     all.push(heroEntity);
     return { cell: heroEntity, all };
   } else if (cell === "mountain") {
-    const { harvestable, yields } = getHarvestConfig(world, "mountain", "wood");
+    const { harvestable } = getHarvestConfig("mountain");
     const mountainEntity = entities.createMountain(world, {
       [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false, remains: gravel },
       [FOG]: { visibility, type: "terrain" },
       [HARVESTABLE]: harvestable,
-      [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [SPRITE]: wall,
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
@@ -943,7 +948,6 @@ export const createCell = (
       [SEQUENCABLE]: { states: {} },
     });
     all.push(mountainEntity);
-    populateInventory(world, mountainEntity, yields);
     return { cell: mountainEntity, all };
   } else if (cell === "granite") {
     const mountainEntity = entities.createGranite(world, {
@@ -958,8 +962,8 @@ export const createCell = (
     return { cell: mountainEntity, all };
   } else if (cell === "rock" || cell === "desert_rock") {
     const rock = (["rock1", "rock2"] as const)[random(0, 1)];
-    const { items, sprite, stats, faction, scratch } = generateUnitData(rock);
-    const { harvestable } = getHarvestConfig(world, "rock", "wood");
+    const { items, sprite, stats, faction, scratch, harvestable } =
+      generateUnitData(rock);
     const sprites = {
       rock: { rock1, rock2 },
       desert_rock: { [rock]: sprite },
@@ -993,13 +997,12 @@ export const createCell = (
     }
     return { cell: rockEntity, all };
   } else if (cell === "iron") {
-    const { harvestable, yields } = getHarvestConfig(world, "iron", "wood");
+    const { harvestable } = getHarvestConfig("iron");
     const mineEntity = entities.createMine(world, {
       [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false, remains: gravel },
       [FOG]: { visibility, type: "terrain" },
       [HARVESTABLE]: harvestable,
-      [INVENTORY]: { items: [] },
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1007,16 +1010,14 @@ export const createCell = (
       [SPRITE]: ironMine,
     });
     all.push(mineEntity);
-    populateInventory(world, mineEntity, yields);
     return { cell: mineEntity, all };
   } else if (cell === "gold") {
-    const { harvestable, yields } = getHarvestConfig(world, "gold", "wood");
+    const { harvestable } = getHarvestConfig("gold");
     const mineEntity = entities.createMine(world, {
       [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false, remains: gravel },
       [FOG]: { visibility, type: "terrain" },
       [HARVESTABLE]: harvestable,
-      [INVENTORY]: { items: [] },
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1024,10 +1025,9 @@ export const createCell = (
       [SPRITE]: goldMine,
     });
     all.push(mineEntity);
-    populateInventory(world, mineEntity, yields);
     return { cell: mineEntity, all };
   } else if (cell === "ore" || cell === "ore_one") {
-    const { harvestable } = getHarvestConfig(world, "mountain", "wood");
+    const { harvestable } = getHarvestConfig("mountain");
     const oreEntity = entities.createOre(world, {
       [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false, remains: gravel },
@@ -1183,7 +1183,7 @@ export const createCell = (
     return { cell: woodEntity, all };
   } else if (cell === "fruit" || cell === "fruit_one") {
     if (random(0, 1) === 0 || cell === "fruit_one") {
-      const { harvestable, yields } = getHarvestConfig(world, "tree", "wood");
+      const { harvestable } = getHarvestConfig("tree");
       const remains = [treeBurnt1, treeBurnt2][random(0, 1)];
       const treeEntity = entities.createOrganic(world, {
         [BUMPABLE]: { generation: 0 },
@@ -1199,14 +1199,12 @@ export const createCell = (
         [DROPPABLE]: { decayed: false, remains },
         [FOG]: { visibility, type: "object" },
         [HARVESTABLE]: harvestable,
-        [INVENTORY]: { items: [] },
         [POSITION]: { x, y },
         [SPRITE]: tree2,
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
       });
       all.push(treeEntity);
-      populateInventory(world, treeEntity, yields);
 
       const fruitEntity = entities.createLoot(world, {
         [FOG]: { visibility, type: "object" },
@@ -1273,7 +1271,7 @@ export const createCell = (
       return { cell: existingCell, all: [] };
     }
 
-    const { harvestable, yields } = getHarvestConfig(world, "oak", "wood");
+    const { harvestable, yields } = getHarvestConfig("oak");
     const leavesY = cell === "stem" ? normalize(y - 1, size) : y;
     const rootY = cell === "stem" ? y : normalize(y + 1, size);
     const rootEntity = entities.createRoot(world, {
@@ -1360,7 +1358,7 @@ export const createCell = (
     });
     return { cell: all[0], all };
   } else if (cell === "tree") {
-    const { harvestable, yields } = getHarvestConfig(world, "tree", "wood");
+    const { harvestable } = getHarvestConfig("tree");
     const remains = [treeBurnt1, treeBurnt2][random(0, 1)];
     const treeEntity = entities.createOrganic(world, {
       [BUMPABLE]: { generation: 0 },
@@ -1376,14 +1374,12 @@ export const createCell = (
       [DROPPABLE]: { decayed: false, remains },
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
-      [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [SPRITE]: [tree1, tree2][distribution(50, 50)],
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
     });
     all.push(treeEntity);
-    populateInventory(world, treeEntity, yields);
     return { cell: treeEntity, all };
   } else if (
     cell === "palm" ||
@@ -1406,7 +1402,7 @@ export const createCell = (
       })
     );
 
-    const { harvestable, yields } = getHarvestConfig(world, "tree", "iron");
+    const { harvestable } = getHarvestConfig("palm");
     const remains =
       cell === "palm"
         ? [palmBurnt1, palmBurnt2][random(0, 1)]
@@ -1425,14 +1421,12 @@ export const createCell = (
       [DROPPABLE]: { decayed: false, remains },
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
-      [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [SPRITE]: palm,
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
     });
     all.push(palmEntity);
-    populateInventory(world, palmEntity, yields);
 
     if (
       cell === "palm_fruit" ||
@@ -1467,10 +1461,9 @@ export const createCell = (
 
     return { cell: palmEntity, all };
   } else if (cell === "hedge" || cell === "path_hedge") {
-    const { items, sprite, stats, faction, scratch } = generateUnitData(
-      (["hedge1", "hedge2"] as const)[random(0, 1)]
-    );
-    const hedgeEntity = entities.createResource(world, {
+    const { items, sprite, stats, faction, scratch, harvestable } =
+      generateUnitData((["hedge1", "hedge2"] as const)[random(0, 1)]);
+    const hedgeEntity = entities.createPlant(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
       [BUMPABLE]: { generation: 0 },
@@ -1483,12 +1476,7 @@ export const createCell = (
       },
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "object" },
-      [HARVESTABLE]: {
-        amount: 2,
-        maximum: 2,
-        material: "wood",
-        resource: "tree",
-      },
+      [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
@@ -1657,9 +1645,8 @@ export const createCell = (
     setIdentifier(world, world.assertById(coinItem[ITEM].carrier), "coin");
     return { cell: coinItem, all };
   } else if (cell === "cactus") {
-    const { sprite, stats, faction, items, scratch } = generateUnitData(
-      (["cactus1", "cactus2"] as const)[random(0, 1)]
-    );
+    const { sprite, stats, faction, items, scratch, harvestable } =
+      generateUnitData((["cactus1", "cactus2"] as const)[random(0, 1)]);
     all.push(
       entities.createArea(world, {
         [POSITION]: { x, y },
@@ -1672,12 +1659,7 @@ export const createCell = (
       [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: { decayed: false, remains: sand },
       [FOG]: { visibility, type: "object" },
-      [HARVESTABLE]: {
-        amount: 5,
-        maximum: 5,
-        material: "wood",
-        resource: "tree",
-      },
+      [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
       [MOVABLE]: {
         orientations: [],
@@ -2202,7 +2184,7 @@ export const createCell = (
     all.push(potEntity);
     return { cell: potEntity, all };
   } else if (cell === "fence") {
-    const { sprite, stats, faction, items, equipments, scratch } =
+    const { sprite, stats, faction, items, equipments, scratch, harvestable } =
       generateUnitData("fence");
     const remains = [fenceBurnt1, fenceBurnt2][random(0, 1)];
     const fenceEntity = entities.createObject(world, {
@@ -2218,6 +2200,7 @@ export const createCell = (
       },
       [DROPPABLE]: { decayed: false, remains },
       [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
       [LAYER]: {},
       [POSITION]: { x, y },
@@ -2633,7 +2616,7 @@ export const createCell = (
     all.push(mobEntity);
     populateInventory(world, mobEntity, mobUnit.items, mobUnit.equipments);
 
-    if (mobUnit.harvestable) {
+    if (mobUnit.harvestable.maximum > 0) {
       addHarvestable(world, mobEntity, mobUnit.harvestable);
     }
 

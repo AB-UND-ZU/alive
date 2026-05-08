@@ -303,7 +303,7 @@ export default function Controls() {
         [SPRITE]
       );
       const hookCondition = (hero[CONDITIONABLE] as Conditionable)?.hook;
-      if (hookCondition && hookCondition.amount === hookCondition.duration) {
+      if (hookCondition && hookCondition.amount === hookCondition.modifier) {
         return "CATCH";
       }
       if (

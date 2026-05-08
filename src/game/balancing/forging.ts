@@ -13,10 +13,13 @@ import {
   Skill,
   Weapon,
   Offhand,
+  Tool,
 } from "../../engine/components/item";
 import { matchesItem } from "../../engine/systems/popup";
 
 const forgableMaterials = materials.slice(0, -1);
+const harvestMaterials: Material[] = ["wood", "iron"];
+const accessoryMaterials: Material[] = ["wood", "iron"];
 const forgableElements = [...elements];
 const forgableConfigs: {
   item: Omit<Item, "carrier" | "bound" | "amount">;
@@ -86,13 +89,13 @@ const forgableConfigs: {
   },
   {
     item: { accessory: "torch" },
-    materials: ["wood", "iron"],
+    materials: accessoryMaterials,
     materialCost: 4,
     elements: [],
   },
   {
     item: { accessory: "boots" },
-    materials: ["wood", "iron"],
+    materials: accessoryMaterials,
     materialCost: 6,
     elements: [],
   },
@@ -126,6 +129,24 @@ const forgableConfigs: {
     materialCost: 3,
     elements: [],
   },
+  {
+    item: { tool: "axe" },
+    materials: harvestMaterials,
+    materialCost: 4,
+    elements: [],
+  },
+  {
+    item: { tool: "pickaxe" },
+    materials: harvestMaterials,
+    materialCost: 4,
+    elements: [],
+  },
+  {
+    item: { tool: "hook" },
+    materials: harvestMaterials,
+    materialCost: 4,
+    elements: [],
+  },
 ];
 
 export const forgableSlots = [
@@ -134,12 +155,13 @@ export const forgableSlots = [
   "spell",
   "skill",
   "accessory",
+  "tool",
 ] as const;
 
 const calculateForgeStats = () => {
   const forgeConfig: Partial<
     Record<
-      Weapon | Offhand | Spell | Skill | Accessory,
+      Weapon | Offhand | Spell | Skill | Accessory | Tool,
       Partial<
         Record<
           Material,
@@ -228,9 +250,10 @@ export type ForgeOptionResult = Omit<ForgeOption, "result"> & {
 };
 
 export const getForgeOptions = (item: Item): ForgeOptionResult[] => {
-  const { weapon, offhand, spell, skill, accessory, material, element } = item;
+  const { weapon, offhand, spell, skill, accessory, material, tool, element } =
+    item;
 
-  const key = weapon || offhand || spell || skill || accessory;
+  const key = weapon || offhand || spell || skill || accessory || tool;
 
   if (!key || !material) return [];
 

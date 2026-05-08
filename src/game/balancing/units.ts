@@ -42,6 +42,8 @@ import {
   tulip,
   lily,
   none,
+  hedgeDry1,
+  hedgeDry2,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { choice, distribution } from "../math/std";
@@ -63,12 +65,13 @@ import {
 import { classDefinitions, ClassKey } from "./classes";
 import { hairColors } from "../assets/pixels";
 import { colors } from "../assets/colors";
-import { Harvestable } from "../../engine/components/harvestable";
+import { Harvestable, Resource } from "../../engine/components/harvestable";
 import { Droppable } from "../../engine/components/droppable";
 import { Vanishable } from "../../engine/components/vanishable";
 import { recolorSprite } from "../assets/templates";
 import { eye, orb, prism, waveTower } from "../assets/templates/creatures";
 import { banner, evaporate } from "../assets/templates/particles";
+import { getHarvestConfig } from "./harvesting";
 
 export type UnitKey =
   | NpcType
@@ -84,6 +87,8 @@ export type UnitKey =
   | "rubyChest"
   | "ilexChest"
   | "oakChest"
+  | "oakHedge1"
+  | "oakHedge2"
   | "pot"
   | "box"
   | "dummy"
@@ -106,7 +111,7 @@ export type UnitDefinition = {
   flying?: boolean;
   scratch: string;
   evaporate?: Droppable["evaporate"];
-  harvestable?: Omit<Harvestable, "maximum">;
+  harvestable?: Resource;
   stats: Partial<Stats>;
   equipments: Omit<Item, "carrier">[];
   drops: {
@@ -129,7 +134,7 @@ export type UnitData = {
   flying: boolean;
   scratch: string;
   evaporate?: Droppable["evaporate"];
-  harvestable?: Harvestable;
+  harvestable: Harvestable;
   stats: UnitStats;
   equipments: Omit<Item, "carrier">[];
   items: Omit<Item, "carrier">[];
@@ -569,6 +574,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       hp: 25,
     },
     equipments: [],
+    harvestable: "fence",
     drops: [
       {
         chance: 100,
@@ -590,6 +596,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       armor: 2,
     },
     equipments: [],
+    harvestable: "sign",
     drops: [
       {
         chance: 100,
@@ -611,6 +618,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       armor: 2,
     },
     equipments: [],
+    harvestable: "fence",
     drops: [
       {
         chance: 100,
@@ -630,6 +638,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       spike: 2,
     },
     equipments: [],
+    harvestable: "cactus",
     drops: [{ chance: 100, items: [{ stackable: "seed", amount: 1 }] }],
     patternNames: [],
     sprite: cactus1,
@@ -642,6 +651,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       spike: 3,
     },
     equipments: [],
+    harvestable: "cactus",
     drops: [{ chance: 100, items: [{ stackable: "seed", amount: 1 }] }],
     patternNames: [],
     sprite: cactus2,
@@ -654,6 +664,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       armor: 3,
     },
     equipments: [],
+    harvestable: "rock",
     drops: [
       { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
       { chance: 20, items: [{ stackable: "worm", amount: 1 }] },
@@ -670,6 +681,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       armor: 2,
     },
     equipments: [],
+    harvestable: "rock",
     drops: [
       { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
       { chance: 20, items: [{ stackable: "worm", amount: 1 }] },
@@ -696,6 +708,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       hp: 10,
     },
     equipments: [],
+    harvestable: "hedge",
     drops: [
       { chance: 90, items: [{ stackable: "leaf", amount: 1 }] },
       { chance: 10, items: [{ stackable: "coin", amount: 1 }] },
@@ -711,6 +724,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       armor: 1,
     },
     equipments: [],
+    harvestable: "hedge",
     drops: [
       { chance: 90, items: [{ stackable: "leaf", amount: 1 }] },
       { chance: 10, items: [{ stackable: "coin", amount: 1 }] },
@@ -725,6 +739,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       hp: 1,
     },
     equipments: [],
+    harvestable: "rotten",
     drops: [
       { chance: 70, items: [{ stackable: "worm", amount: 1 }] },
       { chance: 30, items: [] },
@@ -1013,7 +1028,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     faction: "unit",
     scratch: colors.green,
     dormant: true,
-    harvestable: { amount: 4, material: "wood", resource: "tree" },
+    harvestable: "plant",
     stats: {
       hp: 30,
       spike: 1,
@@ -1050,7 +1065,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     faction: "unit",
     scratch: colors.green,
     dormant: true,
-    harvestable: { amount: 4, material: "wood", resource: "tree" },
+    harvestable: "plant",
     stats: {
       hp: 30,
       mp: 1,
@@ -1094,7 +1109,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     faction: "unit",
     scratch: colors.green,
     dormant: true,
-    harvestable: { amount: 4, material: "wood", resource: "tree" },
+    harvestable: "plant",
     stats: {
       hp: 30,
       armor: 0,
@@ -1338,6 +1353,30 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: ["oak_lily"],
     sprite: { ...lily, name: "" },
   },
+  oakHedge1: {
+    faction: "unit",
+    scratch: colors.green,
+    stats: {
+      hp: 25,
+    },
+    equipments: [],
+    harvestable: "hedge",
+    drops: [],
+    patternNames: [],
+    sprite: hedgeDry1,
+  },
+  oakHedge2: {
+    faction: "unit",
+    scratch: colors.green,
+    stats: {
+      hp: 25,
+    },
+    equipments: [],
+    harvestable: "hedge",
+    drops: [],
+    patternNames: [],
+    sprite: hedgeDry2,
+  },
   oakChest: {
     faction: "unit",
     scratch: colors.grey,
@@ -1538,7 +1577,7 @@ export const generateUnitData = (unitKey: UnitKey): UnitData => {
     },
     patterns: patternNames.map((name) => ({ name, memory: {} })),
     remains: remainsChoices ? choice(...remainsChoices) : undefined,
-    harvestable: harvestable && { maximum: harvestable.amount, ...harvestable },
+    harvestable: getHarvestConfig(harvestable).harvestable,
     flying: false,
     ...unitDefinition,
   };

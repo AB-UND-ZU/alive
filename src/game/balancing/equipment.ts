@@ -7,6 +7,7 @@ import {
   ItemStats,
   Material,
   Offhand,
+  Tool,
   Weapon,
 } from "../../engine/components/item";
 import { NpcType } from "../../engine/components/npc";
@@ -18,7 +19,7 @@ export const gearStats: Partial<
     NpcType | "default",
     Partial<
       Record<
-        Accessory | Weapon | Offhand,
+        Accessory | Weapon | Offhand | Tool,
         Partial<
           Record<
             Material | "default",
@@ -231,6 +232,21 @@ export const gearStats: Partial<
         earth: { resist: 1 },
       },
     },
+    axe: {
+      wood: { default: { logging: 1, range: 1 } },
+      iron: { default: { logging: 2, range: 1 } },
+      gold: { default: { logging: 2, range: 2 } },
+    },
+    pickaxe: {
+      wood: { default: { mining: 1, range: 1 } },
+      iron: { default: { mining: 2, range: 1 } },
+      gold: { default: { mining: 2, range: 2 } },
+    },
+    hook: {
+      wood: { default: { fishing: 1, range: 5 } },
+      iron: { default: { fishing: 2, range: 5 } },
+      gold: { default: { fishing: 3, range: 5 } },
+    },
   },
 
   prism: {
@@ -282,7 +298,7 @@ const getDirectEquipmentStats = (
   caster: NpcType | "default" = "default"
 ): Partial<ItemStats> => {
   const { material, element, ...itemSlots } = item;
-  const gearSlot = (["weapon", "offhand", "accessory"] as const).find(
+  const gearSlot = (["weapon", "offhand", "accessory", "tool"] as const).find(
     (slot) => item[slot]
   );
   const equipmentSlot = gearSlot && itemSlots[gearSlot];

@@ -129,11 +129,9 @@ import {
   oreDisplay,
   note,
   none,
-  logging,
   absorb,
   scout,
   wall,
-  mining,
   golemHead,
   plank,
   createSpriteButton,
@@ -2125,7 +2123,7 @@ export const materialSprites: Partial<
   // tools
   axe: {
     sprite: axe,
-    getDescription: () => [
+    getDescription: (stats) => [
       createText("Stand in front of"),
       [
         ...createText("a "),
@@ -2134,16 +2132,16 @@ export const materialSprites: Partial<
         ...createText("Tree", colors.grey),
         ...createText(" to chop."),
       ],
-      [
-        ...createText("1", colors.green),
-        logging,
-        ...createText("Logging", colors.green),
-      ],
+      stretch(
+        createCountable(stats, "logging", "display"),
+        createCountable(stats, "range", "display"),
+        frameWidth - 2
+      ),
     ],
   },
   hook: {
     sprite: hook,
-    getDescription: () => [
+    getDescription: (stats) => [
       [
         ...createText("Catch "),
         salmon,
@@ -2157,16 +2155,16 @@ export const materialSprites: Partial<
         ...createText("Water", colors.blue),
         ...createText("."),
       ],
-      [
-        ...createText("1", colors.green),
-        fishing,
-        ...createText("Fishing", colors.green),
-      ],
+      stretch(
+        createCountable(stats, "fishing", "display"),
+        createCountable(stats, "range", "display"),
+        frameWidth - 2
+      ),
     ],
   },
   pickaxe: {
     sprite: pickaxe,
-    getDescription: () => [
+    getDescription: (stats) => [
       createText("Stand in front of"),
       [
         ...createText("a "),
@@ -2174,11 +2172,11 @@ export const materialSprites: Partial<
         ...createText("Rock", colors.grey),
         ...createText(" to mine."),
       ],
-      [
-        ...createText("1", colors.green),
-        mining,
-        ...createText("Mining", colors.green),
-      ],
+      stretch(
+        createCountable(stats, "mining", "display"),
+        createCountable(stats, "range", "display"),
+        frameWidth - 2
+      ),
     ],
   },
 

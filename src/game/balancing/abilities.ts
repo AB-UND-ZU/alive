@@ -346,7 +346,7 @@ export const abilityStats: Partial<
       ruby: { default: { melee: 5 } },
     },
     zap: {
-      default: { default: { magic: 3 } },
+      default: { default: { magic: 3, duration: 50 } },
       wood: { default: { range: 1 } },
       iron: { default: { range: 2 } },
       gold: { default: { range: 3 } },
@@ -354,6 +354,7 @@ export const abilityStats: Partial<
       ruby: { default: { range: 5 } },
     },
     block: {
+      default: { default: { duration: 10 } },
       wood: { default: { absorb: 1 } },
       iron: { default: { absorb: 2 } },
       gold: { default: { absorb: 3 } },

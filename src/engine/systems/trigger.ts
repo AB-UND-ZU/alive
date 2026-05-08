@@ -121,6 +121,7 @@ import { consumeItem, getItemConsumption } from "./consume";
 import { getHookable } from "./fishing";
 import { HOOKABLE } from "../components/hookable";
 import { BAITABLE } from "../components/baitable";
+import { getItemStats } from "../../game/balancing/equipment";
 
 export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
@@ -594,15 +595,15 @@ const conditionConfig: Record<
   ConditionType,
   {
     sequence: SequenceState<{}>["name"];
-    duration: number;
+    modifier?: "range" | "duration";
     stat?: keyof ItemStats;
   }
 > = {
-  zap: { sequence: "zapCondition", stat: "range", duration: 50 },
-  block: { sequence: "blockCondition", stat: "absorb", duration: 10 },
-  axe: { sequence: "toolCondition", duration: 0 },
-  pickaxe: { sequence: "toolCondition", duration: 0 },
-  hook: { sequence: "hookCondition", duration: 5 },
+  zap: { sequence: "zapCondition", stat: "range", modifier: "duration" },
+  block: { sequence: "blockCondition", stat: "absorb", modifier: "duration" },
+  axe: { sequence: "toolCondition", stat: "logging" },
+  pickaxe: { sequence: "toolCondition", stat: "mining" },
+  hook: { sequence: "hookCondition", stat: "fishing", modifier: "range" },
 };
 
 export const applyCondition = (
@@ -611,12 +612,12 @@ export const applyCondition = (
   item: Entity,
   type: ConditionType,
   material: Material,
-  duration: number,
+  modifier: number,
   amount: number
 ) => {
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   (entity[CONDITIONABLE] as Conditionable)[type] = {
-    duration,
+    modifier,
     item: world.getEntityId(item),
     generation,
     amount,
@@ -628,7 +629,7 @@ export const applyCondition = (
     "condition",
     conditionConfig[type].sequence,
     {
-      duration,
+      modifier,
       material,
     }
   );
@@ -674,11 +675,11 @@ export const castConditionable = (
       delete entity[CONDITIONABLE].hook;
     } else if (
       hookSequence &&
-      hookCondition.amount === hookCondition.duration &&
+      hookCondition.amount === hookCondition.modifier &&
       hookCondition.orientation
     ) {
       // catch wire
-      hookSequence.args.duration = 0;
+      hookSequence.args.modifier = 0;
       hookCondition.generation = hookSequence.elapsed;
 
       // catch entity
@@ -714,7 +715,7 @@ export const castConditionable = (
     return;
   }
 
-  const itemStats = getAbilityStats(item[ITEM]);
+  const itemStats = getItemStats(item[ITEM]);
 
   // consume charges for active skills
   if (condition === "zap" || condition === "block") {
@@ -723,7 +724,7 @@ export const castConditionable = (
     consumeCharge(world, entity, { stackable: "worm" });
   }
 
-  const duration = conditionConfig[condition].duration;
+  const modifierStat = conditionConfig[condition].modifier;
   const conditionStat = conditionConfig[condition].stat;
   applyCondition(
     world,
@@ -731,7 +732,7 @@ export const castConditionable = (
     item,
     condition,
     material,
-    duration,
+    modifierStat ? itemStats[modifierStat] : 0,
     conditionStat ? itemStats[conditionStat] : 1
   );
 };

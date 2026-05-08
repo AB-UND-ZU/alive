@@ -128,7 +128,7 @@ export type MeleeSequence = {
   rotate: boolean;
 };
 export type ConditionSequence = {
-  duration: number;
+  modifier: number;
   material: Material;
   orientation?: Orientation;
 };
@@ -153,6 +153,7 @@ export type SlashSequence = {
 export type TornadoSequence = {
   material?: Material;
   element?: Element;
+  amount: number;
   radius: number;
   position: Position;
   exertables: number[];

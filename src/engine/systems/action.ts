@@ -177,8 +177,8 @@ export const castableSkill = (
       (hookCondition && !hookCondition.orientation) ||
       (hookCondition &&
         hookSequence &&
-        hookCondition.amount === hookCondition.duration &&
-        hookSequence.args.duration > 0)
+        hookCondition.amount === hookCondition.modifier &&
+        hookSequence.args.modifier > 0)
     ) {
       return true;
     }

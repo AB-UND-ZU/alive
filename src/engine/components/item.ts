@@ -14,6 +14,7 @@ import {
   emptyProcStats,
   ProcStats,
 } from "./castable";
+import { emptyHarvestStats, HarvestStats } from "./harvestable";
 
 export const elements = ["fire", "water", "earth", "air"] as const;
 export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
@@ -77,6 +78,7 @@ export type ItemStats = Attributes &
   ConditionableStats &
   AbilityStats &
   BuffStats &
+  HarvestStats &
   Pick<Castable, DamageType | EffectType>;
 
 export type Item = {
@@ -105,6 +107,7 @@ export const emptyItemStats: ItemStats = {
   ...emptyAbilityStats,
   ...emptyBuffStats,
   ...emptyCastable,
+  ...emptyHarvestStats,
 };
 
 export const ITEM = "ITEM";
