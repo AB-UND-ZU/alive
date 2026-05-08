@@ -351,6 +351,56 @@ export const windCorner = createTemplate({
   materialElementSprite: windCornerElementTemplate,
 });
 
+const gustSideTemplate: Sprite = {
+  name: "gust_side",
+  layers: [{ char: "~", color: TEMPLATE_COLORS.materialPrimary }],
+  facing: {
+    up: [{ char: "║", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "═", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "║", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "═", color: TEMPLATE_COLORS.materialPrimary }],
+  },
+};
+const gustSideElementTemplate: Sprite = {
+  name: "gust_side_element",
+  layers: [{ char: "~", color: TEMPLATE_COLORS.elementPrimary }],
+  facing: {
+    up: [{ char: "║", color: TEMPLATE_COLORS.elementPrimary }],
+    right: [{ char: "═", color: TEMPLATE_COLORS.elementPrimary }],
+    down: [{ char: "║", color: TEMPLATE_COLORS.elementPrimary }],
+    left: [{ char: "═", color: TEMPLATE_COLORS.elementPrimary }],
+  },
+};
+export const gustSide = createTemplate({
+  sprite: gustSideTemplate,
+  materialElementSprite: gustSideElementTemplate,
+});
+
+const gustCornerTemplate: Sprite = {
+  name: "gust_corner",
+  layers: [{ char: "┼", color: TEMPLATE_COLORS.materialPrimary }],
+  facing: {
+    up: [{ char: "╔", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "╗", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "╝", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "╚", color: TEMPLATE_COLORS.materialPrimary }],
+  },
+};
+const gustCornerElementTemplate: Sprite = {
+  name: "gust_corner_element",
+  layers: [{ char: "┼", color: TEMPLATE_COLORS.elementPrimary }],
+  facing: {
+    up: [{ char: "╔", color: TEMPLATE_COLORS.elementPrimary }],
+    right: [{ char: "╗", color: TEMPLATE_COLORS.elementPrimary }],
+    down: [{ char: "╝", color: TEMPLATE_COLORS.elementPrimary }],
+    left: [{ char: "╚", color: TEMPLATE_COLORS.elementPrimary }],
+  },
+};
+export const gustCorner = createTemplate({
+  sprite: gustCornerTemplate,
+  materialElementSprite: gustCornerElementTemplate,
+});
+
 const dashTemplate: Sprite = {
   name: "spell_dash",
   layers: [{ char: "+", color: TEMPLATE_COLORS.materialPrimary }],
@@ -547,12 +597,12 @@ export const slashCorner = createTemplate({ sprite: slashCornerTemplate });
 
 const spearLineTemplate: Sprite = {
   name: "spear_line",
-  layers: [{ char: "┼", color: TEMPLATE_COLORS.materialPrimary }],
+  layers: [{ char: "┼", color: TEMPLATE_COLORS.materialSecondary }],
   facing: {
-    up: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
-    right: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
-    down: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
-    left: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
+    up: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
   },
 };
 const spearLineElementTemplate: Sprite = {
@@ -568,19 +618,23 @@ const spearLineElementTemplate: Sprite = {
 export const spearLine = createTemplate({
   sprite: spearLineTemplate,
   materialElementSprite: spearLineElementTemplate,
+  invertWoodIron: true,
 });
 
 const spearTipTemplate: Sprite = {
   name: "spear_tip",
-  layers: [{ char: "┼", color: TEMPLATE_COLORS.materialSecondary }],
+  layers: [{ char: "┼", color: TEMPLATE_COLORS.materialPrimary }],
   facing: {
-    up: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
-    right: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
-    down: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
-    left: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
+    up: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
   },
 };
-export const spearTip = createTemplate({ sprite: spearTipTemplate });
+export const spearTip = createTemplate({
+  sprite: spearTipTemplate,
+  invertWoodIron: true,
+});
 
 // homing particles
 

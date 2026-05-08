@@ -47,63 +47,65 @@ export const sword = createTemplate({
 const spearTemplate: Sprite = {
   name: "Spear",
   layers: [
-    { char: "─", color: TEMPLATE_COLORS.materialSecondary },
-    { char: "-", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "─", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "-", color: TEMPLATE_COLORS.materialSecondary },
   ],
   facing: {
-    up: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
-    right: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
-    down: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
-    left: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
+    up: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
   },
 };
 const spearElementTemplate: Sprite = {
   name: "Spear",
   layers: [
-    { char: "─", color: TEMPLATE_COLORS.materialSecondary },
-    { char: "-", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "─", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "-", color: TEMPLATE_COLORS.materialSecondary },
     { char: "·", color: TEMPLATE_COLORS.elementPrimary },
   ],
   facing: {
-    up: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
-    right: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
-    down: [{ char: "│", color: TEMPLATE_COLORS.materialPrimary }],
-    left: [{ char: "─", color: TEMPLATE_COLORS.materialPrimary }],
+    up: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
+    right: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
+    down: [{ char: "│", color: TEMPLATE_COLORS.materialSecondary }],
+    left: [{ char: "─", color: TEMPLATE_COLORS.materialSecondary }],
   },
 };
 export const spear = createTemplate({
   sprite: spearTemplate,
   materialElementSprite: spearElementTemplate,
+  invertWoodIron: true,
 });
 
 const wandTemplate: Sprite = {
   name: "Wand",
   layers: [
-    { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
-    { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
-    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "∙", color: TEMPLATE_COLORS.materialSecondary },
+    { char: ".", color: TEMPLATE_COLORS.materialSecondary },
   ],
 };
 const wandIron: Sprite = {
   name: "Wand",
   layers: [
-    { char: "\u0106", color: colors.grey },
-    { char: "∙", color: colors.white },
-    { char: ".", color: colors.white },
+    { char: "\u0106", color: colors.white },
+    { char: "∙", color: colors.grey },
+    { char: ".", color: colors.grey },
   ],
 };
 const wandElementTemplate: Sprite = {
   name: "Wand",
   layers: [
-    { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
-    { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "∙", color: TEMPLATE_COLORS.materialSecondary },
     { char: "·", color: TEMPLATE_COLORS.elementPrimary },
-    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
+    { char: ".", color: TEMPLATE_COLORS.materialSecondary },
   ],
 };
 export const wand = createTemplate({
   sprite: wandTemplate,
   materialElementSprite: wandElementTemplate,
+  invertWoodIron: true,
 });
 wand.iron.default = wandIron;
 
@@ -131,14 +133,17 @@ export const shield = createTemplate({
 const shovelTemplate: Sprite = {
   name: "Shovel",
   layers: [
-    { char: "I", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "I", color: TEMPLATE_COLORS.materialSecondary },
     { char: "i", color: TEMPLATE_COLORS.transparent },
-    { char: "\u0118", color: TEMPLATE_COLORS.materialSecondary },
-    { char: "|", color: TEMPLATE_COLORS.materialPrimary },
-    { char: ".", color: TEMPLATE_COLORS.materialSecondary },
+    { char: "\u0118", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "|", color: TEMPLATE_COLORS.materialSecondary },
+    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-export const shovel = createTemplate({ sprite: shovelTemplate });
+export const shovel = createTemplate({
+  sprite: shovelTemplate,
+  invertWoodIron: true,
+});
 
 const axeTemplate: Sprite = {
   name: "Axe",
@@ -148,102 +153,251 @@ const axeTemplate: Sprite = {
     { char: "-", color: TEMPLATE_COLORS.transparent },
     { char: "\\", color: TEMPLATE_COLORS.materialSecondary },
   ],
-};
-const woodAxe: Sprite = {
-  name: "Axe",
-  layers: [
-    { char: "'", color: colors.grey },
-    { char: "º", color: colors.grey },
-    { char: "-", color: colors.black },
-    { char: "\\", color: colors.maroon },
-  ],
+  facing: {
+    up: [
+      { char: "'", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "º", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "-", color: TEMPLATE_COLORS.transparent },
+      { char: "\\", color: TEMPLATE_COLORS.materialSecondary },
+    ],
+    right: [
+      { char: "'", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "º", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "-", color: TEMPLATE_COLORS.transparent },
+      { char: "\\", color: TEMPLATE_COLORS.materialSecondary },
+    ],
+    down: [
+      { char: "'", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "º", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "-", color: TEMPLATE_COLORS.transparent },
+      { char: "/", color: TEMPLATE_COLORS.materialSecondary },
+    ],
+    left: [
+      { char: "'", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "º", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "-", color: TEMPLATE_COLORS.transparent },
+      { char: "/", color: TEMPLATE_COLORS.materialSecondary },
+    ],
+  },
 };
 const ironAxe: Sprite = {
   name: "Axe",
   layers: [
-    { char: "'", color: colors.silver },
-    { char: "º", color: colors.silver },
+    { char: "'", color: colors.white },
+    { char: "º", color: colors.white },
     { char: "-", color: colors.black },
     { char: "\\", color: colors.grey },
   ],
+  facing: {
+    up: [
+      { char: "'", color: colors.white },
+      { char: "º", color: colors.white },
+      { char: "-", color: colors.black },
+      { char: "\\", color: colors.grey },
+    ],
+    right: [
+      { char: "'", color: colors.white },
+      { char: "º", color: colors.white },
+      { char: "-", color: colors.black },
+      { char: "\\", color: colors.grey },
+    ],
+    down: [
+      { char: "'", color: colors.white },
+      { char: "º", color: colors.white },
+      { char: "-", color: colors.black },
+      { char: "/", color: colors.grey },
+    ],
+    left: [
+      { char: "'", color: colors.white },
+      { char: "º", color: colors.white },
+      { char: "-", color: colors.black },
+      { char: "/", color: colors.grey },
+    ],
+  },
 };
-export const axe = createTemplate({ sprite: axeTemplate });
-axe.wood.default = woodAxe;
+export const axe = createTemplate({
+  sprite: axeTemplate,
+  invertWoodIron: true,
+});
 axe.iron.default = ironAxe;
 
 const pickaxeTemplate: Sprite = {
   name: "Pickaxe",
   layers: [
+    { char: "\u0119", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "-", color: TEMPLATE_COLORS.materialSecondary },
+  ],
+  facing: {
+    up: [
+      { char: "\u0117", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: TEMPLATE_COLORS.materialSecondary },
+    ],
+    right: [
+      { char: "\u0119", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "-", color: TEMPLATE_COLORS.materialSecondary },
+    ],
+    down: [
+      { char: "\u0118", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: TEMPLATE_COLORS.materialSecondary },
+    ],
+    left: [
+      { char: "\u011a", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "-", color: TEMPLATE_COLORS.materialSecondary },
+    ],
+  },
+};
+const woodPickaxe: Sprite = {
+  name: "Pickaxe",
+  layers: [
     { char: "\u0119", color: colors.grey },
-    { char: "-", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "-", color: colors.maroon },
   ],
   facing: {
     up: [
       { char: "\u0117", color: colors.white },
-      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: colors.maroon },
     ],
     right: [
       { char: "\u0119", color: colors.white },
-      { char: "-", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "-", color: colors.maroon },
     ],
     down: [
       { char: "\u0118", color: colors.white },
-      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: colors.maroon },
     ],
     left: [
       { char: "\u011a", color: colors.white },
-      { char: "-", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "-", color: colors.maroon },
     ],
   },
 };
-export const pickaxe = createTemplate({ sprite: pickaxeTemplate });
+const ironPickaxe: Sprite = {
+  name: "Pickaxe",
+  layers: [
+    { char: "\u0119", color: colors.white },
+    { char: "-", color: colors.grey },
+  ],
+  facing: {
+    up: [
+      { char: "\u0117", color: colors.white },
+      { char: "|", color: colors.silver },
+    ],
+    right: [
+      { char: "\u0119", color: colors.white },
+      { char: "-", color: colors.silver },
+    ],
+    down: [
+      { char: "\u0118", color: colors.white },
+      { char: "|", color: colors.silver },
+    ],
+    left: [
+      { char: "\u011a", color: colors.white },
+      { char: "-", color: colors.silver },
+    ],
+  },
+};
+export const pickaxe = createTemplate({
+  sprite: pickaxeTemplate,
+  invertWoodIron: true,
+});
+pickaxe.wood.default = woodPickaxe;
+pickaxe.iron.default = ironPickaxe;
 
 const hookTemplate: Sprite = {
   name: "Hook",
   layers: [
-    { char: "│", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "│", color: TEMPLATE_COLORS.materialSecondary },
     { char: "┐", color: TEMPLATE_COLORS.transparent },
-    { char: "'", color: colors.grey },
-    { char: "|", color: TEMPLATE_COLORS.materialPrimary },
-    { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
-    { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "'", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "|", color: TEMPLATE_COLORS.materialSecondary },
+    { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "∙", color: TEMPLATE_COLORS.materialSecondary },
   ],
   facing: {
     up: [
       { char: "│", color: colors.grey },
       { char: "┐", color: TEMPLATE_COLORS.transparent },
-      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
-      { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
-      { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: TEMPLATE_COLORS.materialSecondary },
+      { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "∙", color: TEMPLATE_COLORS.materialSecondary },
     ],
     right: [
       { char: "└", color: colors.grey },
-      { char: "│", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "│", color: TEMPLATE_COLORS.materialSecondary },
       { char: "┐", color: TEMPLATE_COLORS.transparent },
-      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
-      { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
-      { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: TEMPLATE_COLORS.materialSecondary },
+      { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "∙", color: TEMPLATE_COLORS.materialSecondary },
     ],
     down: [
-      { char: "│", color: TEMPLATE_COLORS.materialPrimary },
-      { char: "┘", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "│", color: TEMPLATE_COLORS.materialSecondary },
+      { char: "┘", color: TEMPLATE_COLORS.materialSecondary },
       { char: "┐", color: colors.grey },
       { char: "-", color: TEMPLATE_COLORS.transparent },
-      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
-      { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
-      { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: TEMPLATE_COLORS.materialSecondary },
+      { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "∙", color: TEMPLATE_COLORS.materialSecondary },
     ],
     left: [
       { char: "┘", color: colors.grey },
-      { char: "│", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "│", color: TEMPLATE_COLORS.materialSecondary },
       { char: "┌", color: TEMPLATE_COLORS.transparent },
-      { char: "|", color: TEMPLATE_COLORS.materialPrimary },
-      { char: "\u0106", color: TEMPLATE_COLORS.materialSecondary },
-      { char: "∙", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: TEMPLATE_COLORS.materialSecondary },
+      { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "∙", color: TEMPLATE_COLORS.materialSecondary },
     ],
   },
 };
-export const hook = createTemplate({ sprite: hookTemplate });
+const ironHook: Sprite = {
+  name: "Hook",
+  layers: [
+    { char: "│", color: colors.grey },
+    { char: "┐", color: colors.black },
+    { char: "'", color: colors.white },
+    { char: "|", color: colors.grey },
+    { char: "\u0106", color: colors.white },
+    { char: "∙", color: colors.grey },
+  ],
+  facing: {
+    up: [
+      { char: "│", color: colors.grey },
+      { char: "┐", color: colors.black },
+      { char: "|", color: colors.grey },
+      { char: "\u0106", color: colors.white },
+      { char: "∙", color: colors.grey },
+    ],
+    right: [
+      { char: "└", color: colors.grey },
+      { char: "│", color: colors.grey },
+      { char: "┐", color: colors.black },
+      { char: "|", color: colors.grey },
+      { char: "\u0106", color: colors.white },
+      { char: "∙", color: colors.grey },
+    ],
+    down: [
+      { char: "│", color: colors.grey },
+      { char: "┘", color: colors.grey },
+      { char: "┐", color: colors.grey },
+      { char: "-", color: colors.black },
+      { char: "|", color: colors.grey },
+      { char: "\u0106", color: colors.white },
+      { char: "∙", color: colors.grey },
+    ],
+    left: [
+      { char: "┘", color: colors.grey },
+      { char: "│", color: colors.grey },
+      { char: "┌", color: colors.black },
+      { char: "|", color: colors.grey },
+      { char: "\u0106", color: colors.white },
+      { char: "∙", color: colors.grey },
+    ],
+  },
+};
+export const hook = createTemplate({
+  sprite: hookTemplate,
+  invertWoodIron: true,
+});
+hook.iron.default = ironHook;
 
 // accessories
 
@@ -558,4 +712,7 @@ const mapTemplate: Sprite = {
     { char: "·", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-export const map = createTemplate({ sprite: mapTemplate });
+export const map = createTemplate({
+  sprite: mapTemplate,
+  invertWoodIron: true,
+});

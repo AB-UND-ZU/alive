@@ -93,20 +93,29 @@ export type PartialSpriteTemplate = Partial<
 export const createTemplate = ({
   sprite,
   materialElementSprite,
+  invertWoodIron,
 }: {
   sprite: Sprite;
   materialElementSprite?: Sprite;
+  invertWoodIron?: boolean;
 }) => {
   const sprites: SpriteTemplate = {} as any;
 
   // material sprites
   materials.forEach((material) => {
     const materialPalette = colorPalettes[material];
+    const shouldInvert = invertWoodIron && ["wood", "iron"].includes(material);
+    const materialPrimary = shouldInvert
+      ? materialPalette.secondary
+      : materialPalette.primary;
+    const materialSecondary = shouldInvert
+      ? materialPalette.primary
+      : materialPalette.secondary;
     sprites[material] = {
       default: recolorSprite(sprite, {
         [TEMPLATE_COLORS.transparent]: colors.black,
-        [TEMPLATE_COLORS.materialPrimary]: materialPalette.primary,
-        [TEMPLATE_COLORS.materialSecondary]: materialPalette.secondary,
+        [TEMPLATE_COLORS.materialPrimary]: materialPrimary,
+        [TEMPLATE_COLORS.materialSecondary]: materialSecondary,
         [TEMPLATE_COLORS.elementPrimary]: colors.black,
         [TEMPLATE_COLORS.elementSecondary]: colors.black,
       }),
@@ -138,12 +147,22 @@ export const createTemplate = ({
           ? colors.grey
           : elementPalette.primary;
 
+      // invert wood and iron for contrast with player
+      const shouldInvert =
+        invertWoodIron && ["wood", "iron"].includes(material);
+      const materialPrimary = shouldInvert
+        ? materialPalette.secondary
+        : materialPalette.primary;
+      const materialSecondary = shouldInvert
+        ? materialPalette.primary
+        : materialPalette.secondary;
+
       sprites[material][element] = recolorSprite(
         materialElementSprite || sprite,
         {
           [TEMPLATE_COLORS.transparent]: colors.black,
-          [TEMPLATE_COLORS.materialPrimary]: materialPalette.primary,
-          [TEMPLATE_COLORS.materialSecondary]: materialPalette.secondary,
+          [TEMPLATE_COLORS.materialPrimary]: materialPrimary,
+          [TEMPLATE_COLORS.materialSecondary]: materialSecondary,
           [TEMPLATE_COLORS.elementPrimary]: elementPrimary,
           [TEMPLATE_COLORS.elementSecondary]: elementPalette.secondary,
         }
