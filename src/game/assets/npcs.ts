@@ -2295,7 +2295,7 @@ export const wanderingTornadoNpc: Sequence<NpcSequence> = (
   if (
     !state.args.memory.growing &&
     tornadoSequence.args.radius === 0 &&
-    growTicks >= 11
+    moveTicks >= 11
   ) {
     const spawnPoint = angledOffset(
       size,

@@ -970,6 +970,7 @@ export const generateIsland = (world: World) => {
         element: "air",
         position: copy(tornadoEntity[POSITION]),
         radius: 0,
+        amount: 1,
         exertables: [],
         gusts: [],
         generation: 0,

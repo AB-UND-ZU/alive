@@ -407,6 +407,8 @@ import {
   bolt,
   dash,
   edge,
+  gustCorner,
+  gustSide,
   slashCorner,
   slashSide,
   spearLine,
@@ -1215,9 +1217,13 @@ export const tornadoSpin: Sequence<TornadoSequence> = (
   const entityId = world.getEntityId(entity);
   const material = state.args.material || "default";
   const element = state.args.element || "default";
+  const windSideSprite = (state.args.amount <= 1 ? windSide : gustSide)[
+    material
+  ][element];
+  const windCornerSprite = (state.args.amount <= 1 ? windCorner : gustCorner)[
+    material
+  ][element];
   const tornadoGeneration = Math.floor(state.elapsed / tornadoSpeed);
-  const windSideSprite = windSide[material][element];
-  const windCornerSprite = windCorner[material][element];
   const ringSize = state.args.radius * 8;
   const targetKnock = Math.min(state.args.radius, 2);
   const nextGeneration = Math.floor(tornadoGeneration / tornadoTicks);
