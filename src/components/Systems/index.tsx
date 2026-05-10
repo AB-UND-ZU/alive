@@ -54,19 +54,33 @@ export default function Systems() {
     pause: paused,
   }));
   const elapsedRef = useRef(systemsFrame);
+  const runningRef = useRef(false);
   const stickyCastables = useRef<Record<number, Position>>({});
 
   // rerender on explicit systems updates
   useRenderable([RENDERABLE], "renderer");
 
   useFrame((_, delta) => {
-    if (!ecs || paused || suspended) return;
+    if (!ecs || paused || suspended || runningRef.current) return;
 
     elapsedRef.current += Math.min(delta * 1000, systemsFrame * catchupFrames);
+    runningRef.current = true;
+    let error: Error | undefined;
 
     while (elapsedRef.current >= systemsFrame) {
-      ecs.update(systemsFrame);
-      elapsedRef.current -= systemsFrame;
+      try {
+        elapsedRef.current -= systemsFrame;
+        ecs.update(systemsFrame);
+      } catch (err) {
+        error = err as Error;
+        break;
+      }
+    }
+
+    runningRef.current = false;
+    if (error) {
+      console.error("Systems failed:", error);
+      throw error;
     }
   });
 
