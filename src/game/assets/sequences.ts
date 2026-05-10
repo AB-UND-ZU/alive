@@ -222,6 +222,7 @@ import {
   ninePlus,
   bait,
   wire,
+  blockedInactive,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -304,6 +305,7 @@ import {
   questWidth,
   rewardWidth,
   hookSpeed,
+  createItemText,
 } from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
@@ -3908,6 +3910,11 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
   const descriptions: Sprite[][][] = [];
   const content: Sprite[][] = gearSlots.map((gear, rowIndex) => {
     const equippedId = heroEntity[EQUIPPABLE][gear];
+    const duplicateSlot =
+      equippedId &&
+      gearSlots
+        .slice(0, rowIndex)
+        .find((slot) => heroEntity[EQUIPPABLE][slot] === equippedId);
     const item = world.getEntityByIdAndComponents(equippedId, [ITEM]);
     const name = gearTitles[gear];
     const selected = verticalIndex === rowIndex;
@@ -3919,12 +3926,35 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
       ]);
 
       const line = [
-        ...createText(title, colors.grey),
+        ...createText(title, selected ? colors.white : colors.grey),
         ...repeat(none, 7 - title.length),
       ];
       return [
         none,
         selected ? gearShadows[gear] : none,
+        ...(selected ? dotted(line, colors.red) : line),
+        none,
+        ...(heroPixels[rowIndex - scrollIndex] || []),
+      ];
+    }
+
+    if (duplicateSlot) {
+      descriptions.push([
+        createText(`${title} occupied`, colors.grey),
+        [
+          ...createText(`by `, colors.grey),
+          ...createItemName(item[ITEM]),
+          ...createText(".", colors.grey),
+        ],
+      ]);
+
+      const line = [
+        ...createText(title, selected ? colors.white : colors.grey),
+        ...repeat(none, 7 - title.length),
+      ];
+      return [
+        none,
+        selected ? blocked : blockedInactive,
         ...(selected ? dotted(line, colors.red) : line),
         none,
         ...(heroPixels[rowIndex - scrollIndex] || []),

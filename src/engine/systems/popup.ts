@@ -355,16 +355,16 @@ export const visibleStats: (keyof UnitStats)[] = [
 
 export const gearSlots: Equipment[] = [
   "weapon",
-  "offhand",
-  "boots",
-  "spell",
   "skill",
+  "spell",
+  "offhand",
   "tool",
-  "map",
-  "compass",
-  "torch",
   "ring",
   "amulet",
+  "boots",
+  "compass",
+  "map",
+  "torch",
 ];
 
 export const mapScroll = 4;

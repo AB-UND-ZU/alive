@@ -1264,6 +1264,8 @@ export const blocked: Sprite = {
   ],
 };
 
+export const blockedInactive = recolorSprite(blocked, colors.grey);
+
 export const quickCorner: Sprite = {
   name: "quick_corner",
   layers: [{ char: "┼", color: colors.olive }],
