@@ -28,7 +28,7 @@ import { createSequence } from "../../../engine/systems/sequence";
 import { none } from "../../assets/sprites";
 import { STICKY } from "../../../engine/components/sticky";
 
-export const menuSize = 40;
+export const menuSize = 42;
 export const menuName: LevelName = "LEVEL_MENU";
 
 export const generateMenu = async (world: World) => {
@@ -109,10 +109,10 @@ export const generateMenu = async (world: World) => {
     });
 
     // add dummy and anvil
-    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 4, "dummy");
-    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 7, "dummy");
-    setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 4, "kettle");
-    setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 4, "anvil");
+    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 6, "dummy");
+    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 9, "dummy");
+    setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 6, "kettle");
+    setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 6, "anvil");
 
     const itemColumns: Omit<Item, "bound" | "carrier">[][] = [
       [
@@ -152,8 +152,6 @@ export const generateMenu = async (world: World) => {
           element: "fire",
           amount: Infinity,
         },
-      ],
-      [
         {
           consume: "potion",
           material: "wood",
@@ -246,10 +244,6 @@ export const generateMenu = async (world: World) => {
         },
       ],
       [
-        {
-          stackable: "worm",
-          amount: Infinity,
-        },
         {
           stackable: "stick",
           amount: Infinity,
@@ -394,6 +388,8 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
+      ],
+      [
         {
           offhand: "shield",
           material: "wood",
@@ -443,13 +439,13 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
-      ],
-      [
         {
           skill: "totem",
           material: "wood",
           amount: 1,
         },
+      ],
+      [
         {
           tool: "axe",
           material: "wood",
@@ -483,6 +479,16 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
+        {
+          accessory: "compass",
+          material: "iron",
+          amount: 1,
+        },
+        {
+          accessory: "map",
+          material: "gold",
+          amount: 1,
+        },
       ],
       [
         {
@@ -499,14 +505,13 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
-          accessory: "map",
-          material: "gold",
-          amount: 1,
+          stackable: "worm",
+          amount: Infinity,
         },
       ],
     ];
 
-    const itemCorner = { x: 1 - itemColumns.length, y: -5 };
+    const itemCorner = { x: 1 - itemColumns.length, y: -7 };
     itemColumns.forEach((items, columnIndex) => {
       items.forEach((item, rowIndex) => {
         createItemAsDrop(
