@@ -2328,6 +2328,22 @@ export const ninePlus: Sprite = {
   ],
 };
 
+export const ninePlusAmmo: Sprite = {
+  name: "9+",
+  layers: [
+    { char: "9", color: colors.silver },
+    { char: "+", color: colors.white },
+  ],
+};
+
+export const ninePlusMana: Sprite = {
+  name: "9+",
+  layers: [
+    { char: "9", color: colors.blue },
+    { char: "+", color: colors.teal },
+  ],
+};
+
 export const double: Sprite = {
   name: "Double",
   layers: [

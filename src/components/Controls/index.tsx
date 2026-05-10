@@ -9,10 +9,11 @@ import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import Row from "../Row";
 import {
   createButton,
-  createCountable,
   createText,
   getButtonSeparator,
   mana,
+  ninePlusAmmo,
+  ninePlusMana,
   none,
   Palette,
 } from "../../game/assets/sprites";
@@ -90,7 +91,12 @@ export const interactKeys = ["Enter"];
 export const closeKeys = ["Escape"];
 export const hotKeys = range(0, 9).map((key) => key.toString());
 
-const getActionActivations = (world: World, hero: TypedEntity, item: Item) => {
+const getActionActivations = (
+  world: World,
+  hero: TypedEntity,
+  item: Item,
+  alignRight: boolean
+) => {
   const itemSprite = getItemSprite(item, "display");
   const hookCondition = hero[CONDITIONABLE]?.hook;
 
@@ -105,16 +111,21 @@ const getActionActivations = (world: World, hero: TypedEntity, item: Item) => {
       .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
       .find((item) => item[ITEM].stackable === ammo);
     const stackableSprite = getItemSprite({ stackable: ammo });
+    const supply = stackableItem ? stackableItem[ITEM].amount : 0;
+    const supplySegment =
+      supply > 99
+        ? [...createText("9", colors.silver), ninePlusAmmo]
+        : createText(supply.toString(), colors.silver);
 
     return [
-      ...repeat(none, 2),
+      ...repeat(none, alignRight ? 2 : 0),
       itemSprite,
-      ...createText(
-        `1/${stackableItem ? stackableItem[ITEM].amount : 0}`,
-        colors.grey
-      ),
+      ...createText("1", colors.silver),
+      ...createText("/", colors.grey),
+      ...supplySegment,
       stackableSprite,
-    ].slice(-6);
+      ...repeat(none, alignRight ? 0 : 2),
+    ].slice(alignRight ? -6 : 0, alignRight ? undefined : 6);
   } else if (item.tool === "axe" || item.tool === "pickaxe") {
     if (!hero[CONDITIONABLE]?.[harvestConditions[item.tool]]) {
       return centerSprites([itemSprite], 6);
@@ -135,32 +146,23 @@ const getActionActivations = (world: World, hero: TypedEntity, item: Item) => {
     );
     return centerSprites([swordEntity?.[SPRITE] || none], 6);
   } else if (item.spell) {
-    const amount = item.spell.endsWith("2") ? 2 : 1;
+    const mp = hero[STATS]?.mp || 0;
+    const mpSegment =
+      mp > 99
+        ? [...createText("9", colors.blue), ninePlusMana]
+        : createText(mp.toString(), colors.blue);
     return [
-      ...repeat(none, 2),
+      ...repeat(none, alignRight ? 2 : 0),
       itemSprite,
-      ...createText(`${amount}/${hero[STATS]?.mp || 0}`, colors.blue),
+      ...createText("1", colors.blue),
+      ...createText("/", colors.navy),
+      ...mpSegment,
       mana,
-    ].slice(-6);
+      ...repeat(none, alignRight ? 0 : 2),
+    ].slice(alignRight ? -6 : 0, alignRight ? undefined : 6);
   }
 
   return repeat(none, 6);
-};
-
-export const getActivationRow = (item?: Omit<Item, "carrier" | "bound">) => {
-  if (!item) return repeat(none, 3);
-
-  if (item.stat)
-    return createCountable(
-      { [item.stat]: item.amount },
-      item.stat,
-      "countable"
-    );
-
-  return [
-    ...createText(item.amount.toString().padStart(2, " "), colors.grey),
-    getItemSprite(item),
-  ];
 };
 
 const buttonWidth = 7;
@@ -264,7 +266,7 @@ export default function Controls() {
     (_, __, spellEntity) => spellEntity[SPRITE].name.toUpperCase(),
     (world, _, spellEntity) =>
       hero
-        ? getActionActivations(world, hero, spellEntity[ITEM])
+        ? getActionActivations(world, hero, spellEntity[ITEM], false)
         : repeat(none, 6),
     "silver"
   );
@@ -282,7 +284,7 @@ export default function Controls() {
     (_, __, skillEntity) => skillEntity[SPRITE].name.toUpperCase(),
     (world, _, skillEntity) =>
       hero
-        ? getActionActivations(world, hero, skillEntity[ITEM])
+        ? getActionActivations(world, hero, skillEntity[ITEM], true)
         : repeat(none, 6),
     "silver"
   );
@@ -321,7 +323,7 @@ export default function Controls() {
     },
     (world, _, toolEntity) =>
       hero
-        ? getActionActivations(world, hero, toolEntity[ITEM])
+        ? getActionActivations(world, hero, toolEntity[ITEM], true)
         : repeat(none, 6),
     "silver"
   );
@@ -1190,14 +1192,14 @@ export default function Controls() {
               flipped
                 ? [
                     ...equipmentRows[1],
-                    none,
                     ...spellActivation,
+                    none,
                     ...skillActivation,
                   ]
                 : [
                     ...skillActivation,
-                    ...spellActivation,
                     none,
+                    ...spellActivation,
                     ...equipmentRows[1],
                   ]
             }
