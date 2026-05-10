@@ -125,6 +125,7 @@ import { MOVABLE } from "../../../engine/components/movable";
 import { pixelCircle } from "../../math/tracing";
 import { aspectRatio } from "../../../components/Dimensions/sizing";
 import generateHaven from "../../../engine/wfc/haven";
+import { disposeEntity } from "../../../engine/systems/map";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -191,1494 +192,1543 @@ export const generateIsland = (world: World) => {
   const pathHeight = 50;
   const spawnWalkLength = 12;
 
-  // randomize parameters
-  const islandAngle = random(0, 360);
-  const townFlipped = choice(true, false);
-  const townOffset = townFlipped ? 90 : -90;
-  const spawnAngle = islandAngle - random(30, 60) - (townFlipped ? 90 : 0);
-  const ilexAngle = islandAngle - 90;
-  const townAngle = spawnAngle + townOffset;
+  const ISLAND_TRIES = 5;
 
-  // precalculated values
-  const oakPoint = { x: 0, y: 0 };
-  const spawnPoint = angledOffset(
-    size,
-    { x: 0, y: 0 },
-    spawnAngle,
-    mainlandRadius * 0.9,
-    mainlandRatio
-  );
-  const townPoint = angledOffset(
-    size,
-    { x: 0, y: 0 },
-    townAngle,
-    mainlandRadius * 0.7,
-    mainlandRatio
-  );
-  const spawnWalkAngle = spawnAngle + 180;
-  const spawnInverted = signedDistance(spawnPoint.y, townPoint.y, size) < 0;
-  const signPosition = combine(size, spawnPoint, {
-    x: choice(-1, 1),
-    y: spawnInverted ? -4 : 4,
-  });
-  const spawnExit = angledOffset(
-    size,
-    spawnPoint,
-    spawnInverted ? 0 : 180,
-    4,
-    mainlandRatio
-  );
-  const spawnPath = angledOffset(
-    size,
-    spawnExit,
-    spawnWalkAngle,
-    spawnWalkLength / 2,
-    mainlandRatio
-  );
-  const ilexPoint = angledOffset(
-    size,
-    { x: 0, y: 0 },
-    ilexAngle,
-    mainlandRadius * 0.8,
-    mainlandRatio
-  );
-  const townCorner = combine(size, townPoint, {
-    x: townSize.x / -2,
-    y: townSize.y / -2,
-  });
+  const existingEntities = world.getEntities([]);
 
-  // preload world matrizes
-  const hillsFactory = simplexNoiseFactory();
-  const beachesFactory = simplexNoiseFactory();
-  const terrainFactory = simplexNoiseFactory();
-  const archipelagoFactory = simplexNoiseFactory();
-  const greensMatrix = valueNoiseMatrix(size, size, 1, 0, 100); // expensive
-  const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100); // expensive
-  const pathMatrix = createMatrix(size * 2, size * 2, 0);
+  for (let attempt = 0; attempt < ISLAND_TRIES; attempt += 1) {
+    try {
+      // randomize parameters
+      const islandAngle = random(0, 360);
+      const townFlipped = choice(true, false);
+      const townOffset = townFlipped ? 90 : -90;
+      const spawnAngle = islandAngle - random(30, 60) - (townFlipped ? 90 : 0);
+      const ilexAngle = islandAngle - 90;
+      const townAngle = spawnAngle + townOffset;
 
-  // first pass: generate matrices from kernel values
-  const elevationMatrix: Matrix<number> = new Array(size);
-  const terrainMatrix: Matrix<number> = new Array(size);
-  const temperatureMatrix: Matrix<number> = new Array(size);
-  const islandsMatrix: Matrix<number> = new Array(size);
-  const flattenedMatrix: Matrix<number> = new Array(size);
-  const objectsMap: Matrix<CellType[]> = new Array(size);
-  const biomeMap: Matrix<BiomeName> = new Array(size);
-
-  for (let x = 0; x < size; x++) {
-    elevationMatrix[x] = new Array(size);
-    terrainMatrix[x] = new Array(size);
-    temperatureMatrix[x] = new Array(size);
-    islandsMatrix[x] = new Array(size);
-    flattenedMatrix[x] = new Array(size);
-    objectsMap[x] = new Array(size);
-    biomeMap[x] = new Array(size);
-
-    for (let y = 0; y < size; y++) {
-      objectsMap[x][y] = [];
-      biomeMap[x][y] = "jungle";
-
-      const mainlandKernel = circularKernel(
+      // precalculated values
+      const oakPoint = { x: 0, y: 0 };
+      const spawnPoint = angledOffset(
         size,
-        size,
-        x,
-        y,
         { x: 0, y: 0 },
-        mainlandRadius,
-        0,
-        125,
-        0.09,
+        spawnAngle,
+        mainlandRadius * 0.9,
         mainlandRatio
       );
-      const glacierKernel = circularKernel(
+      const townPoint = angledOffset(
         size,
-        size,
-        x,
-        y,
-        { x: size / 2, y: size / 2 },
-        glacierRadius,
-        0,
-        225,
-        0.1,
-        glacierRatio
-      );
-
-      const hillsKernel = simplexNoiseKernel(
-        hillsFactory,
-        size,
-        size,
-        x,
-        y,
-        0,
-        0.3,
-        1.5,
-        0.25
-      );
-      const mountainKernel =
-        hillsKernel *
-        rectangleKernel(
-          size,
-          size,
-          x,
-          y,
-          { x: 0, y: 0 },
-          8,
-          mainlandRadius * 2,
-          islandAngle,
-          0,
-          200,
-          0.8,
-          mainlandRatio
-        );
-      const passageKernel = rectangleKernel(
-        size,
-        size,
-        x,
-        y,
         { x: 0, y: 0 },
-        3,
-        30,
-        islandAngle + 90,
-        1,
-        0,
-        10,
-        oakRatio
+        townAngle,
+        mainlandRadius * 0.7,
+        mainlandRatio
       );
-      const spawnCircle = circularKernel(
+      const spawnWalkAngle = spawnAngle + 180;
+      const spawnInverted = signedDistance(spawnPoint.y, townPoint.y, size) < 0;
+      const signPosition = combine(size, spawnPoint, {
+        x: choice(-1, 1),
+        y: spawnInverted ? -4 : 4,
+      });
+      const spawnExit = angledOffset(
         size,
-        size,
-        x,
-        y,
         spawnPoint,
-        8,
-        1,
-        0,
-        15,
-        1
-      );
-      const spawnWalk = rectangleKernel(
-        size,
-        size,
-        x,
-        y,
-        spawnPath,
+        spawnInverted ? 0 : 180,
         4,
-        spawnWalkLength,
+        mainlandRatio
+      );
+      const spawnPath = angledOffset(
+        size,
+        spawnExit,
         spawnWalkAngle,
-        1,
-        0,
-        5
+        spawnWalkLength / 2,
+        mainlandRatio
       );
-      const ilexCircle = circularKernel(
+      const ilexPoint = angledOffset(
         size,
-        size,
-        x,
-        y,
-        ilexPoint,
-        5,
-        1,
-        0,
-        15,
-        ilexRatio
+        { x: 0, y: 0 },
+        ilexAngle,
+        mainlandRadius * 0.8,
+        mainlandRatio
       );
-      const oakCircle = circularKernel(
-        size,
-        size,
-        x,
-        y,
-        oakPoint,
-        6,
-        1,
-        0,
-        15,
-        oakRatio
-      );
-      const townSquare = rectangleKernel(
-        size,
-        size,
-        x,
-        y,
-        townPoint,
-        townSize.x + 7,
-        townSize.y + 7,
-        0,
-        1,
-        0,
-        1.5,
-        1
-      );
-      const flattenedKernel =
-        spawnCircle *
-        spawnWalk *
-        ilexCircle *
-        townSquare *
-        oakCircle *
-        passageKernel;
+      const townCorner = combine(size, townPoint, {
+        x: townSize.x / -2,
+        y: townSize.y / -2,
+      });
 
-      const beachesKernel = simplexNoiseKernel(
-        beachesFactory,
-        size,
-        size,
-        x,
-        y,
-        0,
-        0,
-        1,
-        0.7
-      );
-      const islandsKernel =
-        (oceanDepth +
-          mountainKernel +
-          Math.max(mainlandKernel, glacierKernel) * (beachesKernel + 0.5) +
-          (beachesKernel - 0.5) * 30) *
-          flattenedKernel +
-        (flattenedKernel * -(airDepth + 1) + airDepth + 1);
+      // preload world matrizes
+      const hillsFactory = simplexNoiseFactory();
+      const beachesFactory = simplexNoiseFactory();
+      const terrainFactory = simplexNoiseFactory();
+      const archipelagoFactory = simplexNoiseFactory();
+      const greensMatrix = valueNoiseMatrix(size, size, 1, 0, 100); // expensive
+      const spawnMatrix = valueNoiseMatrix(size, size, 0, -100, 100); // expensive
+      const pathMatrix = createMatrix(size * 2, size * 2, 0);
 
-      const archipelagoKernel = simplexNoiseKernel(
-        archipelagoFactory,
-        size,
-        size,
-        x,
-        y,
-        0,
-        -0.5,
-        0.9,
-        0.5
-      );
+      // first pass: generate matrices from kernel values
+      const elevationMatrix: Matrix<number> = new Array(size);
+      const terrainMatrix: Matrix<number> = new Array(size);
+      const temperatureMatrix: Matrix<number> = new Array(size);
+      const islandsMatrix: Matrix<number> = new Array(size);
+      const flattenedMatrix: Matrix<number> = new Array(size);
+      const objectsMap: Matrix<CellType[]> = new Array(size);
+      const biomeMap: Matrix<BiomeName> = new Array(size);
 
-      const freezingKernel =
-        Math.max(
-          circularKernel(
+      for (let x = 0; x < size; x++) {
+        elevationMatrix[x] = new Array(size);
+        terrainMatrix[x] = new Array(size);
+        temperatureMatrix[x] = new Array(size);
+        islandsMatrix[x] = new Array(size);
+        flattenedMatrix[x] = new Array(size);
+        objectsMap[x] = new Array(size);
+        biomeMap[x] = new Array(size);
+
+        for (let y = 0; y < size; y++) {
+          objectsMap[x][y] = [];
+          biomeMap[x][y] = "jungle";
+
+          const mainlandKernel = circularKernel(
+            size,
+            size,
+            x,
+            y,
+            { x: 0, y: 0 },
+            mainlandRadius,
+            0,
+            125,
+            0.09,
+            mainlandRatio
+          );
+          const glacierKernel = circularKernel(
             size,
             size,
             x,
             y,
             { x: size / 2, y: size / 2 },
-            glacierRadius * 1.4,
+            glacierRadius,
             0,
-            1,
-            0.3,
+            225,
+            0.1,
             glacierRatio
-          ) *
-            (islandsKernel + 30),
-          0
-        ) * -10;
+          );
 
-      flattenedMatrix[x][y] = flattenedKernel;
-      islandsMatrix[x][y] = islandsKernel;
-      elevationMatrix[x][y] =
-        islandsKernel > archipelagoDepth
-          ? islandsKernel
-          : islandsKernel +
-            lerp(
-              0,
-              archipelagoKernel * 90 - islandsKernel,
-              (archipelagoDepth - islandsKernel) /
-                (archipelagoDepth - oceanDepth)
-            );
-      temperatureMatrix[x][y] =
-        freezingKernel +
-        Math.max(
-          (islandsKernel + heatTemperature) *
-            gradientKernel(
+          const hillsKernel = simplexNoiseKernel(
+            hillsFactory,
+            size,
+            size,
+            x,
+            y,
+            0,
+            0.3,
+            1.5,
+            0.25
+          );
+          const mountainKernel =
+            hillsKernel *
+            rectangleKernel(
               size,
               size,
               x,
               y,
               { x: 0, y: 0 },
-              mainlandRadius * 1.14,
-              islandAngle - 90,
+              8,
+              mainlandRadius * 2,
+              islandAngle,
               0,
-              1,
-              0.5,
+              200,
+              0.8,
               mainlandRatio
-            ) +
-            heatTemperature / 2 -
-            10,
-          heatTemperature / 2
-        );
-
-      terrainMatrix[x][y] = simplexNoiseKernel(
-        terrainFactory,
-        size,
-        size,
-        x,
-        y,
-        0,
-        0,
-        100,
-        0.175
-      );
-    }
-  }
-
-  // second pass: set biomes, cell types and objects
-  const rawMap = matrixFactory<CellType>(size, size, (x, y) => {
-    let biome: BiomeName = "ocean";
-    let cell: CellType = "air";
-    const objects: CellType[] = [];
-    const temperature = temperatureMatrix[x][y];
-    const islands = islandsMatrix[x][y];
-
-    if (islands > archipelagoDepth) biome = "jungle";
-    if (temperature > heatTemperature) biome = "desert";
-    else if (temperature < freezeTemperature) biome = "glacier";
-
-    const elevation = elevationMatrix[x][y];
-    const flattened = flattenedMatrix[x][y];
-
-    if (elevation < sandDepth) cell = "water_deep";
-    else if (elevation < airDepth) cell = "sand";
-    else if (elevation > mountainDepth) cell = "mountain";
-
-    // process biomes
-    if (biome === "ocean") {
-      const underwater =
-        terrainMatrix[x][y] * (1 - sigmoid(elevation, archipelagoDepth, 0.6));
-      if (underwater > 50) cell = "mountain";
-    } else if (biome === "desert") {
-      if (cell === "air") cell = "sand";
-
-      // spawn palms around water level but avoid in flattened areas
-      if (
-        elevation < palmDepth &&
-        elevation > palmDepth - 4 &&
-        Math.random() < palmChance &&
-        flattened > 0.95
-      )
-        cell = "desert_palm";
-    } else if (biome === "glacier") {
-      if (cell === "water_deep") {
-        if (
-          elevation > -5 ||
-          Math.random() * (1 - sigmoid(elevation, -5, 0.4)) < 0.1
-        ) {
-          cell = "ice";
-        }
-      } else {
-        if (cell === "sand") {
-          cell = "ice";
-        }
-
-        if (Math.random() <= snowFill) {
-          objects.push("snow");
-        }
-      }
-    }
-
-    biomeMap[x][y] = biome;
-    objectsMap[x][y] = objects;
-    return cell;
-  });
-
-  // third pass: place shallow water and ensure is surrounded by sand
-  const elevationMap = smoothenBeaches(rawMap, biomeMap);
-
-  // fourth pass: process terrain based on biomes and spawn mobs or items
-  const terrainMap = mapMatrix(elevationMap, (x, y, cell, matrix) => {
-    const biome = biomeMap[x][y];
-    const flattened = flattenedMatrix[x][y];
-    const elevation = elevationMatrix[x][y];
-    const temperature = temperatureMatrix[x][y];
-    const objects = objectsMap[x][y];
-    const elevationFactor =
-      sigmoid(elevation, terrainDepth) *
-      (1 - sigmoid(elevation, mountainDepth - 3));
-    const greens = greensMatrix[x][y] * elevationFactor;
-    const terrain = terrainMatrix[x][y] * elevationFactor;
-    const spawn = spawnMatrix[x][y] * elevationFactor;
-    const distribution = islandNpcDistribution[biome];
-
-    // process biome's terrain
-    if (biome === "ocean") {
-      if (elevation > 6 && elevation < 10 && Math.random() < 0.4)
-        cell = Math.random() < 0.25 ? "palm_fruit" : "palm";
-      else if (elevation > 20 && elevation < 25) cell = "bush";
-      else if (elevation >= 25 && elevation < 40 && spawn > 93) cell = "pot";
-    } else if (biome === "jungle") {
-      // spawn fish along coasts and lakes
-      if (
-        elevation > -15 &&
-        elevation < -10 &&
-        spawnMatrix[x][y] > 80 &&
-        cell === "water_deep"
-      ) {
-        objects.push("habitat");
-      }
-      // spawn ore in inner part of jungle
-      else if (
-        cell === "mountain" &&
-        temperature < heatTemperature - 10 &&
-        Math.random() < oreChance * 2
-      )
-        cell = "ore";
-      // spawn rocks around lakes but away from flattened areas
-      else if (
-        elevation > sandDepth &&
-        elevation < airDepth &&
-        Math.random() < stoneChance &&
-        flattened > 0.95 &&
-        getDistance({ x: 0, y: 0 }, { x, y }, size, mainlandRatio) <
-          mainlandRadius * 0.8
-      )
-        cell = cell === "sand" ? "desert_rock" : "rock";
-      else if (terrain > treeDepth) {
-        if (
-          y > 0 &&
-          Math.random() < treeChance &&
-          matrix[x][y - 1] === "tree"
-        ) {
-          matrix[x][y - 1] = "leaves";
-          cell = "stem";
-        } else {
-          cell = "tree";
-        }
-      } else if (terrain > hedgeDepth) {
-        if (spawn > 95) cell = "fruit";
-        else if (spawn > 80) cell = "wood";
-        else if (
-          x > 1 &&
-          Math.random() < rottenChance &&
-          ["hedge", "air", "grass", "bush"].includes(matrix[x - 1][y]) &&
-          ["hedge", "air", "grass", "bush"].includes(matrix[x - 2][y])
-        ) {
-          if (Math.random() < 0.5) {
-            objectsMap[x - 2][y] = [];
-            objectsMap[x - 1][y] = [];
-            matrix[x - 2][y] = "rotten_stem_right";
-            matrix[x - 1][y] = "rotten_branch_right";
-            cell = "rotten_leaves_right";
-          } else {
-            objectsMap[x - 2][y] = [];
-            objectsMap[x - 1][y] = [];
-            matrix[x - 2][y] = "rotten_leaves_left";
-            matrix[x - 1][y] = "rotten_branch_left";
-            cell = "rotten_stem_left";
-          }
-        } else cell = "hedge";
-      } else if (greens > bushDepth)
-        cell = spawn > 98 ? "leaf" : spawn > 89 ? "berry" : "bush";
-      else if (greens > grassDepth)
-        cell = spawn > 98 ? "leaf" : spawn > 95 ? "flower" : "grass";
-      else if (spawn < -95) objects.push(generateNpcKey(distribution));
-    } else if (biome === "desert") {
-      // place mountains first
-      if (terrain > desertDepth) cell = "mountain";
-
-      // then process ores for previous cells
-      matrix[x][y] = cell;
-      if (x > 3 && y > 3) {
-        // ensure iron is surrounded by mountains
-        const targetDelta = [-1, -1];
-        const largeTargetDelta = [-2, -2];
-        const smallSquareDeltas = range(-2, 0)
-          .map((deltaX) => range(-2, 0).map((deltaY) => [deltaX, deltaY]))
-          .flat();
-        const largeSquareDeltas = range(-4, 0)
-          .map((deltaX) => range(-4, 0).map((deltaY) => [deltaX, deltaY]))
-          .flat();
-        const adjacentDeltas = Object.values(orientationPoints).map((delta) => [
-          delta.x - 1,
-          delta.y - 1,
-        ]);
-
-        if (
-          ((elevation < ironDepth && Math.random() < ironChance) ||
-            (elevation > ironDepth && Math.random() < mountainIronChance)) &&
-          smallSquareDeltas.every(
-            ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "mountain"
-          )
-        ) {
-          // spawn iron only fully inside mountain
-          matrix[x + targetDelta[0]][y + targetDelta[1]] = "iron";
-        } else if (
-          Math.random() < oreChance &&
-          matrix[x + targetDelta[0]][y + targetDelta[1]] === "mountain" &&
-          adjacentDeltas.some(
-            ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "sand"
-          )
-        ) {
-          // spawn ore in mountain only if accessible from outside
-          matrix[x + targetDelta[0]][y + targetDelta[1]] = "ore";
-        } else if (
-          spawn > 93 &&
-          largeSquareDeltas.every(
-            ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "sand"
-          )
-        ) {
-          // spawn golem only in cleared areas
-          matrix[x + largeTargetDelta[0]][y + largeTargetDelta[1]] = "golem";
-          smallSquareDeltas.forEach(([deltaX, deltaY]) => {
-            objectsMap[x + deltaX + targetDelta[0]][
-              y + deltaY + targetDelta[1]
-            ] = [];
-          });
-          objectsMap[x + largeTargetDelta[0]][y + largeTargetDelta[1]] = [
-            "sand",
-          ];
-        }
-      }
-
-      if (
-        terrain <= desertDepth &&
-        terrain > rockDepth &&
-        terrain < rockDepth + 5
-      )
-        cell = "desert_rock";
-      else if (greens > cactusDepth && greens < cactusDepth + 2)
-        cell = "cactus";
-      else if (cell === "sand" && spawn < -97)
-        objects.push(generateNpcKey(distribution));
-      else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
-      else if (cell === "desert_palm" && random(0, 9) === 0)
-        cell = "desert_palm_fruit";
-    } else if (biome === "glacier") {
-      // TODO: add terrain to glacier
-    }
-
-    // set path weight
-    if (["air", "bush", "grass", "path", "sand", "hedge"].includes(cell)) {
-      pathMatrix[x][y] =
-        (Math.abs(elevation - pathHeight) + 4) ** 2 / 16 +
-        (cell === "hedge" ? 100 : 0);
-    }
-
-    return cell;
-  });
-
-  // persist pre-processed matrizes for lazy initialization
-  const worldMap = terrainMap;
-
-  world.metadata.gameEntity[LEVEL].initialized = createMatrix(
-    size,
-    size,
-    false
-  );
-  world.metadata.gameEntity[LEVEL].biomes = biomeMap;
-  world.metadata.gameEntity[LEVEL].cells = worldMap;
-  world.metadata.gameEntity[LEVEL].objects = objectsMap;
-
-  // insert spawn
-  insertArea(
-    world,
-    flipArea(spawnArea, spawnInverted, choice(true, false)),
-    spawnPoint.x,
-    spawnPoint.y,
-    true
-  );
-  const spawnLines = spawnArea.split("\n");
-  const spawnWidth = spawnLines[0].length;
-  const spawnHeight = spawnLines.length;
-  const spawnCorner = combine(size, spawnPoint, {
-    x: -(spawnWidth - 1) / 2,
-    y: -(spawnHeight - 1) / 2,
-  });
-  matrixFactory(spawnWidth, spawnHeight, (x, y) => {
-    setPath(pathMatrix, x + spawnCorner.x, y + spawnCorner.y, 0);
-  });
-
-  // insert ilex
-  insertArea(world, ilexArea, ilexPoint.x, ilexPoint.y, true);
-  const ilexLines = ilexArea.split("\n");
-  const ilexWidth = ilexLines[0].length;
-  const ilexHeight = ilexLines.length;
-  const ilexCorner = {
-    x: ilexPoint.x - (ilexWidth - 1) / 2,
-    y: ilexPoint.y - (ilexHeight - 1) / 2,
-  };
-
-  // insert oak
-  insertArea(world, oakArea, oakPoint.x, oakPoint.y, true);
-  const oakLines = oakArea.split("\n");
-  const oakWidth = oakLines[0].length;
-  const oakHeight = oakLines.length;
-  const oakCorner = {
-    x: oakPoint.x - (oakWidth - 1) / 2,
-    y: oakPoint.y - (oakHeight - 1) / 2,
-  };
-  const oakEntrance = angledOffset(
-    size,
-    oakPoint,
-    islandAngle - 90,
-    6,
-    oakRatio
-  );
-  const oakExit = angledOffset(size, oakPoint, islandAngle + 90, 6, oakRatio);
-  for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-    for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-      const entrancePoint = combine(size, oakEntrance, {
-        x: offsetX,
-        y: offsetY,
-      });
-      const exitPoint = combine(size, oakExit, { x: offsetX, y: offsetY });
-      worldMap[entrancePoint.x][entrancePoint.y] = "air";
-      worldMap[exitPoint.x][exitPoint.y] = "sand";
-    }
-  }
-  matrixFactory(oakWidth, oakHeight, (offsetX, offsetY) => {
-    const x = normalize(oakCorner.x + offsetX, size);
-    const y = normalize(oakCorner.y + offsetY, size);
-    if (oakLines[offsetY][offsetX] !== "?") {
-      setPath(pathMatrix, x, y, 0);
-      biomeMap[x][y] = "jungle";
-      objectsMap[x][y] = [];
-    }
-
-    if (oakLines[offsetY][offsetX] === " ") {
-      worldMap[x][y] = "air";
-    } else if (
-      oakLines[offsetY][offsetX] === "█" &&
-      worldMap[x][y] !== "mountain"
-    ) {
-      worldMap[x][y] = worldMap[x][y] === "air" ? "hedge" : "cactus";
-    }
-  });
-
-  // insert town
-  const {
-    matrix: townMatrix,
-    houses: relativeHouses,
-    exits: relativeExits,
-    inn: relativeInn,
-    guards: relativeGuards,
-  } = generateTown(townSize.x, townSize.y);
-  iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
-    const x = normalize(townPoint.x + offsetX - townSize.x / 2, size);
-    const y = normalize(townPoint.y + offsetY - townSize.y / 2, size);
-
-    worldMap[x][y] = value ? (value as CellType) : "air";
-    setPath(pathMatrix, x, y, 0);
-  });
-
-  const houses = relativeHouses.map((house) => ({
-    ...house,
-    position: combine(size, house.position, townCorner),
-    door: combine(size, house.door, townCorner),
-  }));
-  const exits = relativeExits.map((exit) => combine(size, exit, townCorner));
-  const guards = relativeGuards.map((guard) =>
-    combine(size, guard, townCorner)
-  );
-  const inn = combine(size, relativeInn, townCorner);
-
-  // create shortest path from spawn to town
-  setPath(pathMatrix, spawnExit.x, spawnExit.y, 0, false);
-  iterateMatrix(worldMap, (x, y) => {
-    const height = pathMatrix[x][y];
-    setPath(pathMatrix, x, y, height);
-  });
-
-  // select quadrant pairs manually to ensure path is contained by island
-  const closestExit =
-    exits[signedDistance(spawnExit.y, townPoint.y, size) > 0 ? 0 : 1];
-  const townPath = findPath(pathMatrix, spawnExit, closestExit, false, false, {
-    x: Number(spawnPoint.x > size / 2) - Number(closestExit.x > size / 2),
-    y: Number(spawnPoint.y > size / 2) - Number(closestExit.y > size / 2),
-  });
-
-  townPath.forEach(({ x, y }) => {
-    worldMap[x][y] = "path";
-    objectsMap[x][y] = [];
-    setPath(pathMatrix, x, y, 1);
-  });
-
-  // preprocess town
-  const [traderHouse, smithHouse, druidHouse, ...emptyHouses] = houses;
-
-  setMatrix(
-    worldMap,
-    smithHouse.position.x + choice(-1, 1),
-    smithHouse.position.y + 3,
-    "campfire"
-  );
-  setMatrix(worldMap, smithHouse.door.x, smithHouse.door.y, "iron_door");
-  setMatrix(
-    worldMap,
-    smithHouse.position.x + choice(-1, 1),
-    smithHouse.position.y + 2,
-    "house_smith"
-  );
-  setMatrix(
-    worldMap,
-    traderHouse.position.x + choice(-1, 1),
-    traderHouse.position.y + 2,
-    "house_trader"
-  );
-  setMatrix(
-    worldMap,
-    druidHouse.position.x + choice(-1, 1),
-    druidHouse.position.y + 2,
-    "house_druid"
-  );
-
-  // mark entrance of desert for further processing
-  const desertEntrance = angledOffset(
-    size,
-    oakExit,
-    islandAngle + 90,
-    2,
-    oakRatio
-  );
-  worldMap[desertEntrance.x][desertEntrance.y] = "sand";
-  objectsMap[desertEntrance.x][desertEntrance.y] = [];
-  setPath(pathMatrix, desertEntrance.x, desertEntrance.y, 1);
-
-  // find suitable angle for haven with largest distance to known neighbouring islands
-  const havenAngles = [-45, 0, 45, 135, 180, 225];
-  const closestHavenAngles = [...havenAngles].sort(
-    (left, right) =>
-      Math.abs(signedDistance(left, islandAngle + 90, 360)) -
-      Math.abs(signedDistance(right, islandAngle + 90, 360))
-  );
-  const havenAngle = closestHavenAngles[0];
-
-  // find haven point as first beach starting from ocean towards center
-  const beachPoint = marchLinePredicate(
-    world,
-    desertEntrance,
-    havenAngle,
-    mainlandRadius * 1.25,
-    mainlandRatio,
-    (x, y) =>
-      biomeMap[x][y] === "desert" &&
-      elevationMatrix[x][y] > sandDepth &&
-      findPath(pathMatrix, { x, y }, desertEntrance, false, true).length > 0
-  );
-
-  // move haven center to free area inwards
-  const havenInnRadius = 2;
-  const havenPoint = marchLinePredicate(
-    world,
-    desertEntrance,
-    havenAngle,
-    getDistance(desertEntrance, beachPoint, size, mainlandRatio) - 5,
-    mainlandRatio,
-    (x, y) =>
-      range(-havenInnRadius, havenInnRadius).every((offsetX) =>
-        range(-havenInnRadius, havenInnRadius).every((offsetY) => {
-          const target = combine(size, { x: x + offsetX, y: y + offsetY });
-          return elevationMatrix[target.x][target.y] > havenDepth;
-        })
-      )
-  );
-
-  // determine radius size for haven, ensuring sandy areas free from beach
-  const havenRatio = aspectRatio;
-  const havenCells = 460;
-  let havenRadius = 11;
-  let havenUsable = 0;
-  do {
-    havenUsable = 0;
-    havenRadius += 1;
-
-    for (const { x, y } of pixelCircle(
-      havenPoint,
-      havenRadius,
-      havenRatio,
-      true
-    )) {
-      const target = combine(size, { x, y });
-      const elevation = elevationMatrix[target.x][target.y];
-      const cell = worldMap[target.x][target.y];
-      const biome = biomeMap[target.x][target.y];
-      if (elevation > havenDepth && biome === "desert") havenUsable += 1;
-      else if (cell === "water_shallow") havenUsable -= 1.5;
-      else if (cell === "water_deep") havenUsable -= 0.05;
-    }
-  } while (havenUsable < havenCells);
-
-  // create virtual map for filling haven town
-  const havenWidth = Math.ceil(havenRadius / havenRatio) * 2 + 1;
-  const havenHeight = Math.ceil(havenRadius) * 2 + 1;
-  const havenCorner = combine(size, havenPoint, {
-    x: (havenWidth - 1) / -2,
-    y: (havenHeight - 1) / -2,
-  });
-  const havenArea: Record<number, Record<number, boolean>> = {};
-
-  // clear area for haven
-  for (const { x, y } of pixelCircle(
-    havenPoint,
-    havenRadius,
-    havenRatio,
-    true
-  )) {
-    const target = combine(size, { x, y });
-    const elevation = elevationMatrix[target.x][target.y];
-    const biome = biomeMap[target.x][target.y];
-    if (elevation > sandDepth && biome === "desert") {
-      worldMap[target.x][target.y] = "sand";
-      objectsMap[target.x][target.y] = [];
-
-      // mark area as free if within zone
-      const havenX = normalize(target.x - havenCorner.x, size);
-      const havenY = normalize(target.y - havenCorner.y, size);
-
-      const withinPalisades =
-        getDistance(havenPoint, target, size, havenRatio) < havenRadius - 2 &&
-        elevation > havenDepth;
-      havenArea[havenX] = havenArea[havenX] || {};
-      havenArea[havenX][havenY] = withinPalisades;
-    }
-  }
-
-  // place palisades
-  for (const { x, y } of pixelCircle(havenPoint, havenRadius - 1, havenRatio)) {
-    const target = combine(size, { x, y });
-    const cell = worldMap[target.x][target.y];
-    const elevation = elevationMatrix[target.x][target.y];
-    const biome = biomeMap[target.x][target.y];
-
-    if (
-      biome === "desert" &&
-      ((elevation > palisadeDepth && cell === "water_shallow") ||
-        elevation > sandDepth)
-    ) {
-      worldMap[target.x][target.y] =
-        elevation > sandDepth ? "sand" : "water_shallow";
-      objectsMap[target.x][target.y] = ["palisade"];
-
-      // mark area as occupied
-      const havenX = normalize(target.x - havenCorner.x, size);
-      const havenY = normalize(target.y - havenCorner.y, size);
-      havenArea[havenX] = havenArea[havenX] || {};
-      havenArea[havenX][havenY] = false;
-    }
-  }
-
-  // check if jetty is outside of haven, and extend palisades if needed
-  const jettyInnDistance = getDistance(
-    beachPoint,
-    havenPoint,
-    size,
-    havenRatio
-  );
-  const jettyRadius = jettyInnDistance + 5 - havenRadius;
-  if (jettyRadius > 0) {
-    // clear existing palisades and area
-    for (const { x, y } of pixelCircle(
-      beachPoint,
-      jettyRadius + 5,
-      havenRatio,
-      true
-    )) {
-      const target = combine(size, { x, y });
-      const objects = objectsMap[target.x][target.y];
-      const elevation = elevationMatrix[target.x][target.y];
-      const biome = biomeMap[target.x][target.y];
-      if (
-        biome === "desert" &&
-        (elevation > sandDepth || objects.includes("palisade"))
-      ) {
-        worldMap[target.x][target.y] =
-          elevation > sandDepth ? "sand" : "water_shallow";
-        objectsMap[target.x][target.y] = [];
-      }
-    }
-
-    // extend palisade by circle around jetty
-    for (const { x, y } of pixelCircle(
-      beachPoint,
-      jettyRadius + 5,
-      havenRatio
-    )) {
-      const target = combine(size, { x, y });
-      const cell = worldMap[target.x][target.y];
-      const elevation = elevationMatrix[target.x][target.y];
-      const biome = biomeMap[target.x][target.y];
-
-      if (
-        biome === "desert" &&
-        getDistance(havenPoint, target, size, havenRatio) > havenRadius - 1 &&
-        ((elevation > palisadeDepth && cell === "water_shallow") ||
-          elevation > sandDepth)
-      ) {
-        worldMap[target.x][target.y] =
-          elevation > sandDepth ? "sand" : "water_shallow";
-        objectsMap[target.x][target.y] = ["palisade"];
-      }
-    }
-  }
-
-  // find closest angle for jetty which has most water
-  const jettyConfigurations: Record<
-    Orientation,
-    {
-      cell: CellType;
-      length: number;
-    }
-  > = {
-    up: {
-      cell: "jetty_vertical",
-      length: 5,
-    },
-    right: {
-      cell: "jetty_horizontal",
-      length: 8,
-    },
-    down: {
-      cell: "jetty_vertical",
-      length: 5,
-    },
-    left: {
-      cell: "jetty_horizontal",
-      length: 8,
-    },
-  };
-  const placementScores: Partial<Record<CellType, number>> = {
-    sand: -5,
-    water_shallow: 1,
-    water_deep: 3,
-  };
-  const defaultScore = -3;
-  const jettyOrientations = relativeOrientations(
-    world,
-    desertEntrance,
-    beachPoint,
-    mainlandRatio
-  );
-  const calculatePlacementScore = (
-    orientation: Orientation,
-    origin: Position
-  ) => {
-    let score = 0;
-    const delta = orientationPoints[orientation];
-    const leftDelta = orientationPoints[rotateOrientation(orientation, -1)];
-    const rightDelta = orientationPoints[rotateOrientation(orientation, 1)];
-    let placementCursor = origin;
-    const range = jettyConfigurations[orientation].length + 2;
-    for (let rangeOffset = 0; rangeOffset < range; rangeOffset += 1) {
-      placementCursor = combine(size, placementCursor, delta);
-      score +=
-        placementScores[worldMap[placementCursor.x][placementCursor.y]] ||
-        defaultScore;
-      const leftPosition = combine(size, placementCursor, leftDelta);
-      score +=
-        placementScores[worldMap[leftPosition.x][leftPosition.y]] ||
-        defaultScore;
-      const rightPosition = combine(size, placementCursor, rightDelta);
-      score +=
-        placementScores[worldMap[rightPosition.x][rightPosition.y]] ||
-        defaultScore;
-    }
-    return score;
-  };
-  const jettyOrientation =
-    jettyOrientations.length === 1
-      ? jettyOrientations[0]
-      : [...jettyOrientations].sort(
-          (left, right) =>
-            calculatePlacementScore(right, beachPoint) -
-            calculatePlacementScore(left, beachPoint)
-        )[0];
-
-  const jettyConfiguration = jettyConfigurations[jettyOrientation];
-  const jettyDelta = orientationPoints[jettyOrientation];
-
-  // place jetty and clear ocean area
-  const oceanClear = 5;
-  let jettyCursor = beachPoint;
-  for (
-    let jettyOffset = 0;
-    jettyOffset < jettyConfiguration.length + oceanClear;
-    jettyOffset += 1
-  ) {
-    const clearCell: CellType | undefined =
-      jettyOffset === jettyConfiguration.length
-        ? "water_shallow"
-        : jettyOffset > jettyConfiguration.length
-        ? "water_deep"
-        : undefined;
-    jettyCursor = combine(size, jettyCursor, jettyDelta);
-
-    worldMap[jettyCursor.x][jettyCursor.y] =
-      clearCell ?? jettyConfiguration.cell;
-    objectsMap[jettyCursor.x][jettyCursor.y] = [];
-
-    // place fences
-    const leftFence = combine(
-      size,
-      jettyCursor,
-      orientationPoints[rotateOrientation(jettyOrientation, -1)]
-    );
-    const rightFence = combine(
-      size,
-      jettyCursor,
-      orientationPoints[rotateOrientation(jettyOrientation, 1)]
-    );
-    worldMap[leftFence.x][leftFence.y] = clearCell ?? "water_shallow";
-    worldMap[rightFence.x][rightFence.y] = clearCell ?? "water_shallow";
-    objectsMap[leftFence.x][leftFence.y] = clearCell ? [] : ["fence"];
-    objectsMap[rightFence.x][rightFence.y] = clearCell ? [] : ["fence"];
-
-    if (clearCell === "water_deep") {
-      worldMap[jettyCursor.x][jettyCursor.y] = getWaterCell(
-        worldMap,
-        jettyCursor.x,
-        jettyCursor.y
-      );
-      worldMap[leftFence.x][leftFence.y] = getWaterCell(
-        worldMap,
-        leftFence.x,
-        leftFence.y
-      );
-      worldMap[rightFence.x][rightFence.y] = getWaterCell(
-        worldMap,
-        rightFence.x,
-        rightFence.y
-      );
-    }
-  }
-
-  const havenMap = matrixFactory<CellType | "">(
-    havenWidth,
-    havenHeight,
-    (x, y) => {
-      if (havenArea[x]?.[y]) {
-        return "";
-      }
-
-      return "sand";
-    }
-  );
-
-  // insert haven
-  const havenInnDelta = combine(size, havenPoint, {
-    x: -havenCorner.x,
-    y: -havenCorner.y,
-  });
-  const { matrix: havenMatrix, houses: relativeHavenHouses } = generateHaven(
-    havenMap,
-    havenInnDelta
-  );
-
-  iterateMatrix(havenMatrix, (offsetX, offsetY, value) => {
-    const x = normalize(havenCorner.x + offsetX, size);
-    const y = normalize(havenCorner.y + offsetY, size);
-
-    if (value && value !== "sand") {
-      worldMap[x][y] = value as CellType;
-    }
-  });
-
-  const havenHouses = relativeHavenHouses.map((house) => ({
-    ...house,
-    position: combine(size, house.position, havenCorner),
-    door: combine(size, house.door, havenCorner),
-  }));
-
-  // set rain for forest
-  const mainlandStorm = entities.createAnchor(world, {
-    [POSITION]: { x: 0, y: 0 },
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [STICKY]: {},
-    [SPRITE]: none,
-  });
-  createSequence<"weather", WeatherSequence>(
-    world,
-    mainlandStorm,
-    "weather",
-    "weatherStorm",
-    {
-      position: { x: 0, y: 0 },
-      generation: 0,
-      intensity: 20,
-      drops: [],
-      start: 0,
-      end: 0,
-      type: "rain",
-      viewable: { x: 0, y: 0 },
-      ratio: mainlandRatio,
-    }
-  );
-  npcSequence(world, mainlandStorm, "oscillatingStormNpc", {
-    center: angledOffset(
-      size,
-      { x: 0, y: 0 },
-      islandAngle - 90,
-      mainlandRadius / 2,
-      mainlandRatio
-    ),
-    degrees: islandAngle - 90,
-    amplitude: mainlandRadius * 0.8,
-    frequency: 1 / 100,
-    ratio: mainlandRatio,
-  });
-
-  // create tornados in desert
-  for (let tornadoIndex = 0; tornadoIndex < 5; tornadoIndex += 1) {
-    const tornadoEntity = entities.createTornado(world, {
-      [BELONGABLE]: { faction: "hostile" },
-      [CASTABLE]: {
-        ...getEmptyCastable(world, world.metadata.gameEntity),
-        reproc: 3,
-      },
-      [MOVABLE]: {
-        orientations: [],
-        reference: world.getEntityId(world.metadata.gameEntity),
-        spring: {
-          duration: 200,
-        },
-        lastInteraction: 0,
-        flying: true,
-        swimming: false,
-      },
-      [ORIENTABLE]: {},
-      [POSITION]: { x: 13, y: 30 },
-      [RENDERABLE]: { generation: 0 },
-      [SEQUENCABLE]: { states: {} },
-      [SPRITE]: none,
-    });
-    tornadoEntity[CASTABLE].caster = world.getEntityId(tornadoEntity);
-    createSequence<"tornado", TornadoSequence>(
-      world,
-      tornadoEntity,
-      "tornado",
-      "tornadoSpin",
-      {
-        element: "air",
-        position: copy(tornadoEntity[POSITION]),
-        radius: 0,
-        amount: 1,
-        exertables: [],
-        gusts: [],
-        generation: 0,
-      }
-    );
-    npcSequence(world, tornadoEntity, "wanderingTornadoNpc", {
-      maximum: 3,
-      lastMove: world.metadata.gameEntity[RENDERABLE].generation,
-      lastGrow: world.metadata.gameEntity[RENDERABLE].generation,
-      orientation: "right",
-      growing: false,
-      biome: "desert",
-      center: copy(desertEntrance),
-      angle: islandAngle + 90,
-      radius: mainlandRadius,
-      ratio: mainlandRatio,
-    });
-  }
-
-  // set snow for glacier
-  const glacierStorm = entities.createAnchor(world, {
-    [POSITION]: { x: 0, y: 0 },
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [STICKY]: {},
-    [SPRITE]: none,
-  });
-  createSequence<"weather", WeatherSequence>(
-    world,
-    glacierStorm,
-    "weather",
-    "weatherStorm",
-    {
-      position: { x: size / 2, y: size / 2 },
-      generation: 0,
-      intensity: glacierRadius * 0.9,
-      drops: [],
-      start: 0,
-      end: Infinity,
-      type: "snow",
-      viewable: { x: 0, y: 0 },
-      ratio: glacierRatio,
-    }
-  );
-
-  // initialize spawn, town, ilex and oak
-  initializeArea(
-    world,
-    spawnCorner,
-    combine(size, spawnCorner, { x: spawnWidth, y: spawnHeight })
-  );
-  initializeArea(world, townCorner, combine(size, townCorner, townSize));
-  initializeArea(
-    world,
-    ilexCorner,
-    combine(size, ilexCorner, { x: ilexWidth, y: ilexHeight })
-  );
-  initializeArea(
-    world,
-    oakCorner,
-    combine(size, oakCorner, { x: oakWidth, y: oakHeight })
-  );
-  initializeArea(
-    world,
-    havenCorner,
-    combine(size, havenCorner, { x: havenWidth, y: havenHeight })
-  );
-
-  // adjust hero
-  const heroEntity = assertIdentifierAndComponents(world, "hero", [
-    POSITION,
-    VIEWABLE,
-  ]);
-  questSequence(world, heroEntity, "spawnQuest", {});
-
-  // assign buildings
-  const [traderBuilding, smithBuilding, druidBuilding, ...emptyBuildings] = [
-    traderHouse,
-    smithHouse,
-    druidHouse,
-    ...emptyHouses,
-  ].map((building) => assignBuilding(world, building.position));
-
-  havenHouses.forEach((building) => assignBuilding(world, building.position));
-
-  // add map markers
-  entities.createMarker(world, {
-    [FOG]: { visibility: "hidden", type: "terrain" },
-    [POI]: { sprite: mapHouse },
-    [POSITION]: townPoint,
-    [RENDERABLE]: { generation: 0 },
-  });
-  entities.createMarker(world, {
-    [FOG]: { visibility: "hidden", type: "terrain" },
-    [POI]: { sprite: mapSpawn },
-    [POSITION]: spawnPoint,
-    [RENDERABLE]: { generation: 0 },
-  });
-
-  // add quest sign after exiting
-  const spawnSign = createSign(world, copy(signPosition), [
-    [
-      createText("Find the town and"),
-      createText("speak with the"),
-      [...createUnitName("earthChief"), ...createText(".")],
-      [],
-      createText("Follow either the"),
-      [
-        getOrientedSprite(questPointer, "right"),
-        ...createText("Focus", colors.grey),
-        ...createText(" or "),
-        path,
-        ...createText("Path", colors.grey),
-        ...createText("."),
-      ],
-      [],
-      createText("Be careful with"),
-      [
-        ...createText("the "),
-        getUnitSprite("rose"),
-        getUnitSprite("clover"),
-        getUnitSprite("violet"),
-        ...createText("Plants", colors.maroon),
-        ...createText("."),
-      ],
-    ],
-  ]);
-  setIdentifier(world, spawnSign, "spawn_sign");
-
-  // postprocess town
-
-  const townEnd = combine(size, townCorner, {
-    x: townSize.x - 1,
-    y: townSize.y - 1,
-  });
-  const earthTown = entities.createProcessor(world, {
-    [RENDERABLE]: { generation: 0 },
-    [SEQUENCABLE]: { states: {} },
-    [POSITION]: { ...townPoint },
-  });
-  setIdentifier(world, earthTown, "earth_town");
-  npcSequence(world, earthTown, "earthTownNpc", {
-    topLeft: townCorner,
-    bottomRight: townEnd,
-    spawn: combine(size, inn, { x: 0, y: 2 }),
-  });
-
-  // place guards at exits
-  guards.forEach((guard) => {
-    const guardEntity = createNpc(world, "earthGuard", { ...guard });
-    guardEntity[BEHAVIOUR].patterns.unshift({
-      name: "watch",
-      memory: {
-        origin: guard,
-        topLeft: townCorner,
-        bottomRight: townEnd,
-      },
-    });
-  });
-
-  // chief next to fountain
-  const chiefEntity = createNpc(
-    world,
-    "earthChief",
-    combine(size, inn, { x: choice(-1, 1), y: 2 })
-  );
-  npcSequence(world, chiefEntity, "earthChiefNpc", {});
-
-  // smith's house
-  const smithOffset = choice(-1, 1);
-  createNpc(
-    world,
-    "earthSmith",
-    combine(size, smithBuilding.building[POSITION], { x: smithOffset, y: 0 })
-  );
-
-  const anvilEntity = createCell(
-    world,
-    add(smithBuilding.building[POSITION], {
-      x: smithOffset * -2,
-      y: 0,
-    }),
-    "anvil_passive",
-    "hidden"
-  ).cell;
-  setIdentifier(world, anvilEntity, "earth_anvil");
-
-  // druid's house
-  const druidOffset = choice(-1, 1);
-  createNpc(
-    world,
-    "earthDruid",
-    combine(size, druidBuilding.building[POSITION], { x: druidOffset, y: 0 })
-  );
-
-  const kettleEntity = createCell(
-    world,
-    add(druidBuilding.building[POSITION], {
-      x: druidOffset * -2,
-      y: 0,
-    }),
-    "kettle_passive",
-    "hidden"
-  ).cell;
-  setIdentifier(world, kettleEntity, "earth_kettle");
-
-  // furnish houses
-  const furnishingBuildings = [traderBuilding, ...emptyBuildings];
-  for (const furnishingBuilding of furnishingBuildings) {
-    // add furniture
-    const furnitureOrientation = (["left", "right"] as const)[random(0, 1)];
-    const invertFurniture = invertOrientation(
-      furnitureOrientation
-    ) as typeof furnitureOrientation;
-    const chairSprites = { left: chairLeft, right: chairRight };
-    const bedHeadSprites = { left: bedHeadLeft, right: bedHeadRight };
-    const bedEndSprites = { left: bedEndLeft, right: bedEndRight };
-    if (random(0, 1) === 0) {
-      // create bed
-      entities.createFurniture(world, {
-        [FOG]: { visibility: "hidden", type: "terrain" },
-        [LAYER]: {},
-        [POSITION]: combine(
-          size,
-          furnishingBuilding.building[POSITION],
-          orientationPoints[invertFurniture]
-        ),
-        [SPRITE]: bedHeadSprites[invertFurniture],
-        [RENDERABLE]: { generation: 0 },
-        [COLLIDABLE]: {},
-      });
-      entities.createFurniture(world, {
-        [FOG]: { visibility: "hidden", type: "terrain" },
-        [LAYER]: {},
-        [POSITION]: furnishingBuilding.building[POSITION],
-        [SPRITE]: bedCenter,
-        [RENDERABLE]: { generation: 0 },
-        [COLLIDABLE]: {},
-      });
-      entities.createFurniture(world, {
-        [FOG]: { visibility: "hidden", type: "terrain" },
-        [LAYER]: {},
-        [POSITION]: combine(
-          size,
-          furnishingBuilding.building[POSITION],
-          orientationPoints[furnitureOrientation]
-        ),
-        [SPRITE]: bedEndSprites[furnitureOrientation],
-        [RENDERABLE]: { generation: 0 },
-        [COLLIDABLE]: {},
-      });
-    } else {
-      // create table and chairs
-      entities.createFurniture(world, {
-        [FOG]: { visibility: "hidden", type: "terrain" },
-        [LAYER]: {},
-        [POSITION]: copy(furnishingBuilding.building[POSITION]),
-        [SPRITE]: table,
-        [RENDERABLE]: { generation: 0 },
-        [COLLIDABLE]: {},
-      });
-      entities.createFloor(world, {
-        [FOG]: { visibility: "hidden", type: "terrain" },
-        [LAYER]: {},
-        [POSITION]: combine(
-          size,
-          furnishingBuilding.building[POSITION],
-          orientationPoints[furnitureOrientation]
-        ),
-        [SPRITE]: chairSprites[furnitureOrientation],
-        [RENDERABLE]: { generation: 0 },
-      });
-      if (random(0, 1) === 0) {
-        entities.createFloor(world, {
-          [FOG]: { visibility: "hidden", type: "terrain" },
-          [LAYER]: {},
-          [POSITION]: combine(
+            );
+          const passageKernel = rectangleKernel(
             size,
-            furnishingBuilding.building[POSITION],
-            orientationPoints[invertFurniture]
-          ),
-          [SPRITE]: chairSprites[invertFurniture],
+            size,
+            x,
+            y,
+            { x: 0, y: 0 },
+            3,
+            30,
+            islandAngle + 90,
+            1,
+            0,
+            10,
+            oakRatio
+          );
+          const spawnCircle = circularKernel(
+            size,
+            size,
+            x,
+            y,
+            spawnPoint,
+            8,
+            1,
+            0,
+            15,
+            1
+          );
+          const spawnWalk = rectangleKernel(
+            size,
+            size,
+            x,
+            y,
+            spawnPath,
+            4,
+            spawnWalkLength,
+            spawnWalkAngle,
+            1,
+            0,
+            5
+          );
+          const ilexCircle = circularKernel(
+            size,
+            size,
+            x,
+            y,
+            ilexPoint,
+            5,
+            1,
+            0,
+            15,
+            ilexRatio
+          );
+          const oakCircle = circularKernel(
+            size,
+            size,
+            x,
+            y,
+            oakPoint,
+            6,
+            1,
+            0,
+            15,
+            oakRatio
+          );
+          const townSquare = rectangleKernel(
+            size,
+            size,
+            x,
+            y,
+            townPoint,
+            townSize.x + 7,
+            townSize.y + 7,
+            0,
+            1,
+            0,
+            1.5,
+            1
+          );
+          const flattenedKernel =
+            spawnCircle *
+            spawnWalk *
+            ilexCircle *
+            townSquare *
+            oakCircle *
+            passageKernel;
+
+          const beachesKernel = simplexNoiseKernel(
+            beachesFactory,
+            size,
+            size,
+            x,
+            y,
+            0,
+            0,
+            1,
+            0.7
+          );
+          const islandsKernel =
+            (oceanDepth +
+              mountainKernel +
+              Math.max(mainlandKernel, glacierKernel) * (beachesKernel + 0.5) +
+              (beachesKernel - 0.5) * 30) *
+              flattenedKernel +
+            (flattenedKernel * -(airDepth + 1) + airDepth + 1);
+
+          const archipelagoKernel = simplexNoiseKernel(
+            archipelagoFactory,
+            size,
+            size,
+            x,
+            y,
+            0,
+            -0.5,
+            0.9,
+            0.5
+          );
+
+          const freezingKernel =
+            Math.max(
+              circularKernel(
+                size,
+                size,
+                x,
+                y,
+                { x: size / 2, y: size / 2 },
+                glacierRadius * 1.4,
+                0,
+                1,
+                0.3,
+                glacierRatio
+              ) *
+                (islandsKernel + 30),
+              0
+            ) * -10;
+
+          flattenedMatrix[x][y] = flattenedKernel;
+          islandsMatrix[x][y] = islandsKernel;
+          elevationMatrix[x][y] =
+            islandsKernel > archipelagoDepth
+              ? islandsKernel
+              : islandsKernel +
+                lerp(
+                  0,
+                  archipelagoKernel * 90 - islandsKernel,
+                  (archipelagoDepth - islandsKernel) /
+                    (archipelagoDepth - oceanDepth)
+                );
+          temperatureMatrix[x][y] =
+            freezingKernel +
+            Math.max(
+              (islandsKernel + heatTemperature) *
+                gradientKernel(
+                  size,
+                  size,
+                  x,
+                  y,
+                  { x: 0, y: 0 },
+                  mainlandRadius * 1.14,
+                  islandAngle - 90,
+                  0,
+                  1,
+                  0.5,
+                  mainlandRatio
+                ) +
+                heatTemperature / 2 -
+                10,
+              heatTemperature / 2
+            );
+
+          terrainMatrix[x][y] = simplexNoiseKernel(
+            terrainFactory,
+            size,
+            size,
+            x,
+            y,
+            0,
+            0,
+            100,
+            0.175
+          );
+        }
+      }
+
+      // second pass: set biomes, cell types and objects
+      const rawMap = matrixFactory<CellType>(size, size, (x, y) => {
+        let biome: BiomeName = "ocean";
+        let cell: CellType = "air";
+        const objects: CellType[] = [];
+        const temperature = temperatureMatrix[x][y];
+        const islands = islandsMatrix[x][y];
+
+        if (islands > archipelagoDepth) biome = "jungle";
+        if (temperature > heatTemperature) biome = "desert";
+        else if (temperature < freezeTemperature) biome = "glacier";
+
+        const elevation = elevationMatrix[x][y];
+        const flattened = flattenedMatrix[x][y];
+
+        if (elevation < sandDepth) cell = "water_deep";
+        else if (elevation < airDepth) cell = "sand";
+        else if (elevation > mountainDepth) cell = "mountain";
+
+        // process biomes
+        if (biome === "ocean") {
+          const underwater =
+            terrainMatrix[x][y] *
+            (1 - sigmoid(elevation, archipelagoDepth, 0.6));
+          if (underwater > 50) cell = "mountain";
+        } else if (biome === "desert") {
+          if (cell === "air") cell = "sand";
+
+          // spawn palms around water level but avoid in flattened areas
+          if (
+            elevation < palmDepth &&
+            elevation > palmDepth - 4 &&
+            Math.random() < palmChance &&
+            flattened > 0.95
+          )
+            cell = "desert_palm";
+        } else if (biome === "glacier") {
+          if (cell === "water_deep") {
+            if (
+              elevation > -5 ||
+              Math.random() * (1 - sigmoid(elevation, -5, 0.4)) < 0.1
+            ) {
+              cell = "ice";
+            }
+          } else {
+            if (cell === "sand") {
+              cell = "ice";
+            }
+
+            if (Math.random() <= snowFill) {
+              objects.push("snow");
+            }
+          }
+        }
+
+        biomeMap[x][y] = biome;
+        objectsMap[x][y] = objects;
+        return cell;
+      });
+
+      // third pass: place shallow water and ensure is surrounded by sand
+      const elevationMap = smoothenBeaches(rawMap, biomeMap);
+
+      // fourth pass: process terrain based on biomes and spawn mobs or items
+      const terrainMap = mapMatrix(elevationMap, (x, y, cell, matrix) => {
+        const biome = biomeMap[x][y];
+        const flattened = flattenedMatrix[x][y];
+        const elevation = elevationMatrix[x][y];
+        const temperature = temperatureMatrix[x][y];
+        const objects = objectsMap[x][y];
+        const elevationFactor =
+          sigmoid(elevation, terrainDepth) *
+          (1 - sigmoid(elevation, mountainDepth - 3));
+        const greens = greensMatrix[x][y] * elevationFactor;
+        const terrain = terrainMatrix[x][y] * elevationFactor;
+        const spawn = spawnMatrix[x][y] * elevationFactor;
+        const distribution = islandNpcDistribution[biome];
+
+        // process biome's terrain
+        if (biome === "ocean") {
+          if (elevation > 6 && elevation < 10 && Math.random() < 0.4)
+            cell = Math.random() < 0.25 ? "palm_fruit" : "palm";
+          else if (elevation > 20 && elevation < 25) cell = "bush";
+          else if (elevation >= 25 && elevation < 40 && spawn > 93)
+            cell = "pot";
+        } else if (biome === "jungle") {
+          // spawn fish along coasts and lakes
+          if (
+            elevation > -15 &&
+            elevation < -10 &&
+            spawnMatrix[x][y] > 80 &&
+            cell === "water_deep"
+          ) {
+            objects.push("habitat");
+          }
+          // spawn ore in inner part of jungle
+          else if (
+            cell === "mountain" &&
+            temperature < heatTemperature - 10 &&
+            Math.random() < oreChance * 2
+          )
+            cell = "ore";
+          // spawn rocks around lakes but away from flattened areas
+          else if (
+            elevation > sandDepth &&
+            elevation < airDepth &&
+            Math.random() < stoneChance &&
+            flattened > 0.95 &&
+            getDistance({ x: 0, y: 0 }, { x, y }, size, mainlandRatio) <
+              mainlandRadius * 0.8
+          )
+            cell = cell === "sand" ? "desert_rock" : "rock";
+          else if (terrain > treeDepth) {
+            if (
+              y > 0 &&
+              Math.random() < treeChance &&
+              matrix[x][y - 1] === "tree"
+            ) {
+              matrix[x][y - 1] = "leaves";
+              cell = "stem";
+            } else {
+              cell = "tree";
+            }
+          } else if (terrain > hedgeDepth) {
+            if (spawn > 95) cell = "fruit";
+            else if (spawn > 80) cell = "wood";
+            else if (
+              x > 1 &&
+              Math.random() < rottenChance &&
+              ["hedge", "air", "grass", "bush"].includes(matrix[x - 1][y]) &&
+              ["hedge", "air", "grass", "bush"].includes(matrix[x - 2][y])
+            ) {
+              if (Math.random() < 0.5) {
+                objectsMap[x - 2][y] = [];
+                objectsMap[x - 1][y] = [];
+                matrix[x - 2][y] = "rotten_stem_right";
+                matrix[x - 1][y] = "rotten_branch_right";
+                cell = "rotten_leaves_right";
+              } else {
+                objectsMap[x - 2][y] = [];
+                objectsMap[x - 1][y] = [];
+                matrix[x - 2][y] = "rotten_leaves_left";
+                matrix[x - 1][y] = "rotten_branch_left";
+                cell = "rotten_stem_left";
+              }
+            } else cell = "hedge";
+          } else if (greens > bushDepth)
+            cell = spawn > 98 ? "leaf" : spawn > 89 ? "berry" : "bush";
+          else if (greens > grassDepth)
+            cell = spawn > 98 ? "leaf" : spawn > 95 ? "flower" : "grass";
+          else if (spawn < -95) objects.push(generateNpcKey(distribution));
+        } else if (biome === "desert") {
+          // place mountains first
+          if (terrain > desertDepth) cell = "mountain";
+
+          // then process ores for previous cells
+          matrix[x][y] = cell;
+          if (x > 3 && y > 3) {
+            // ensure iron is surrounded by mountains
+            const targetDelta = [-1, -1];
+            const largeTargetDelta = [-2, -2];
+            const smallSquareDeltas = range(-2, 0)
+              .map((deltaX) => range(-2, 0).map((deltaY) => [deltaX, deltaY]))
+              .flat();
+            const largeSquareDeltas = range(-4, 0)
+              .map((deltaX) => range(-4, 0).map((deltaY) => [deltaX, deltaY]))
+              .flat();
+            const adjacentDeltas = Object.values(orientationPoints).map(
+              (delta) => [delta.x - 1, delta.y - 1]
+            );
+
+            if (
+              ((elevation < ironDepth && Math.random() < ironChance) ||
+                (elevation > ironDepth &&
+                  Math.random() < mountainIronChance)) &&
+              smallSquareDeltas.every(
+                ([deltaX, deltaY]) =>
+                  matrix[x + deltaX][y + deltaY] === "mountain"
+              )
+            ) {
+              // spawn iron only fully inside mountain
+              matrix[x + targetDelta[0]][y + targetDelta[1]] = "iron";
+            } else if (
+              Math.random() < oreChance &&
+              matrix[x + targetDelta[0]][y + targetDelta[1]] === "mountain" &&
+              adjacentDeltas.some(
+                ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "sand"
+              )
+            ) {
+              // spawn ore in mountain only if accessible from outside
+              matrix[x + targetDelta[0]][y + targetDelta[1]] = "ore";
+            } else if (
+              spawn > 93 &&
+              largeSquareDeltas.every(
+                ([deltaX, deltaY]) => matrix[x + deltaX][y + deltaY] === "sand"
+              )
+            ) {
+              // spawn golem only in cleared areas
+              matrix[x + largeTargetDelta[0]][y + largeTargetDelta[1]] =
+                "golem";
+              smallSquareDeltas.forEach(([deltaX, deltaY]) => {
+                objectsMap[x + deltaX + targetDelta[0]][
+                  y + deltaY + targetDelta[1]
+                ] = [];
+              });
+              objectsMap[x + largeTargetDelta[0]][y + largeTargetDelta[1]] = [
+                "sand",
+              ];
+            }
+          }
+
+          if (
+            terrain <= desertDepth &&
+            terrain > rockDepth &&
+            terrain < rockDepth + 5
+          )
+            cell = "desert_rock";
+          else if (greens > cactusDepth && greens < cactusDepth + 2)
+            cell = "cactus";
+          else if (cell === "sand" && spawn < -97)
+            objects.push(generateNpcKey(distribution));
+          else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
+          else if (cell === "desert_palm" && random(0, 9) === 0)
+            cell = "desert_palm_fruit";
+        } else if (biome === "glacier") {
+          // TODO: add terrain to glacier
+        }
+
+        // set path weight
+        if (["air", "bush", "grass", "path", "sand", "hedge"].includes(cell)) {
+          pathMatrix[x][y] =
+            (Math.abs(elevation - pathHeight) + 4) ** 2 / 16 +
+            (cell === "hedge" ? 100 : 0);
+        }
+
+        return cell;
+      });
+
+      // persist pre-processed matrizes for lazy initialization
+      const worldMap = terrainMap;
+
+      world.metadata.gameEntity[LEVEL].initialized = createMatrix(
+        size,
+        size,
+        false
+      );
+      world.metadata.gameEntity[LEVEL].biomes = biomeMap;
+      world.metadata.gameEntity[LEVEL].cells = worldMap;
+      world.metadata.gameEntity[LEVEL].objects = objectsMap;
+
+      // insert spawn
+      insertArea(
+        world,
+        flipArea(spawnArea, spawnInverted, choice(true, false)),
+        spawnPoint.x,
+        spawnPoint.y,
+        true
+      );
+      const spawnLines = spawnArea.split("\n");
+      const spawnWidth = spawnLines[0].length;
+      const spawnHeight = spawnLines.length;
+      const spawnCorner = combine(size, spawnPoint, {
+        x: -(spawnWidth - 1) / 2,
+        y: -(spawnHeight - 1) / 2,
+      });
+      matrixFactory(spawnWidth, spawnHeight, (x, y) => {
+        setPath(pathMatrix, x + spawnCorner.x, y + spawnCorner.y, 0);
+      });
+
+      // insert ilex
+      insertArea(world, ilexArea, ilexPoint.x, ilexPoint.y, true);
+      const ilexLines = ilexArea.split("\n");
+      const ilexWidth = ilexLines[0].length;
+      const ilexHeight = ilexLines.length;
+      const ilexCorner = {
+        x: ilexPoint.x - (ilexWidth - 1) / 2,
+        y: ilexPoint.y - (ilexHeight - 1) / 2,
+      };
+
+      // insert oak
+      insertArea(world, oakArea, oakPoint.x, oakPoint.y, true);
+      const oakLines = oakArea.split("\n");
+      const oakWidth = oakLines[0].length;
+      const oakHeight = oakLines.length;
+      const oakCorner = {
+        x: oakPoint.x - (oakWidth - 1) / 2,
+        y: oakPoint.y - (oakHeight - 1) / 2,
+      };
+      const oakEntrance = angledOffset(
+        size,
+        oakPoint,
+        islandAngle - 90,
+        6,
+        oakRatio
+      );
+      const oakExit = angledOffset(
+        size,
+        oakPoint,
+        islandAngle + 90,
+        6,
+        oakRatio
+      );
+      for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+        for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+          const entrancePoint = combine(size, oakEntrance, {
+            x: offsetX,
+            y: offsetY,
+          });
+          const exitPoint = combine(size, oakExit, { x: offsetX, y: offsetY });
+          worldMap[entrancePoint.x][entrancePoint.y] = "air";
+          worldMap[exitPoint.x][exitPoint.y] = "sand";
+        }
+      }
+      matrixFactory(oakWidth, oakHeight, (offsetX, offsetY) => {
+        const x = normalize(oakCorner.x + offsetX, size);
+        const y = normalize(oakCorner.y + offsetY, size);
+        if (oakLines[offsetY][offsetX] !== "?") {
+          setPath(pathMatrix, x, y, 0);
+          biomeMap[x][y] = "jungle";
+          objectsMap[x][y] = [];
+        }
+
+        if (oakLines[offsetY][offsetX] === " ") {
+          worldMap[x][y] = "air";
+        } else if (
+          oakLines[offsetY][offsetX] === "█" &&
+          worldMap[x][y] !== "mountain"
+        ) {
+          worldMap[x][y] = worldMap[x][y] === "air" ? "hedge" : "cactus";
+        }
+      });
+
+      // insert town
+      const {
+        matrix: townMatrix,
+        houses: relativeHouses,
+        exits: relativeExits,
+        inn: relativeInn,
+        guards: relativeGuards,
+      } = generateTown(townSize.x, townSize.y);
+      iterateMatrix(townMatrix, (offsetX, offsetY, value) => {
+        const x = normalize(townPoint.x + offsetX - townSize.x / 2, size);
+        const y = normalize(townPoint.y + offsetY - townSize.y / 2, size);
+
+        worldMap[x][y] = value ? (value as CellType) : "air";
+        setPath(pathMatrix, x, y, 0);
+      });
+
+      const houses = relativeHouses.map((house) => ({
+        ...house,
+        position: combine(size, house.position, townCorner),
+        door: combine(size, house.door, townCorner),
+      }));
+      const exits = relativeExits.map((exit) =>
+        combine(size, exit, townCorner)
+      );
+      const guards = relativeGuards.map((guard) =>
+        combine(size, guard, townCorner)
+      );
+      const inn = combine(size, relativeInn, townCorner);
+
+      // create shortest path from spawn to town
+      setPath(pathMatrix, spawnExit.x, spawnExit.y, 0, false);
+      iterateMatrix(worldMap, (x, y) => {
+        const height = pathMatrix[x][y];
+        setPath(pathMatrix, x, y, height);
+      });
+
+      // select quadrant pairs manually to ensure path is contained by island
+      const closestExit =
+        exits[signedDistance(spawnExit.y, townPoint.y, size) > 0 ? 0 : 1];
+      const townPath = findPath(
+        pathMatrix,
+        spawnExit,
+        closestExit,
+        false,
+        false,
+        {
+          x: Number(spawnPoint.x > size / 2) - Number(closestExit.x > size / 2),
+          y: Number(spawnPoint.y > size / 2) - Number(closestExit.y > size / 2),
+        }
+      );
+
+      townPath.forEach(({ x, y }) => {
+        worldMap[x][y] = "path";
+        objectsMap[x][y] = [];
+        setPath(pathMatrix, x, y, 1);
+      });
+
+      // preprocess town
+      const [traderHouse, smithHouse, druidHouse, ...emptyHouses] = houses;
+
+      setMatrix(
+        worldMap,
+        smithHouse.position.x + choice(-1, 1),
+        smithHouse.position.y + 3,
+        "campfire"
+      );
+      setMatrix(worldMap, smithHouse.door.x, smithHouse.door.y, "iron_door");
+      setMatrix(
+        worldMap,
+        smithHouse.position.x + choice(-1, 1),
+        smithHouse.position.y + 2,
+        "house_smith"
+      );
+      setMatrix(
+        worldMap,
+        traderHouse.position.x + choice(-1, 1),
+        traderHouse.position.y + 2,
+        "house_trader"
+      );
+      setMatrix(
+        worldMap,
+        druidHouse.position.x + choice(-1, 1),
+        druidHouse.position.y + 2,
+        "house_druid"
+      );
+
+      // mark entrance of desert for further processing
+      const desertEntrance = angledOffset(
+        size,
+        oakExit,
+        islandAngle + 90,
+        2,
+        oakRatio
+      );
+      worldMap[desertEntrance.x][desertEntrance.y] = "sand";
+      objectsMap[desertEntrance.x][desertEntrance.y] = [];
+      setPath(pathMatrix, desertEntrance.x, desertEntrance.y, 1);
+
+      // find suitable angle for haven with largest distance to known neighbouring islands
+      const havenAngles = [-45, 0, 45, 135, 180, 225];
+      const closestHavenAngles = [...havenAngles].sort(
+        (left, right) =>
+          Math.abs(signedDistance(left, islandAngle + 90, 360)) -
+          Math.abs(signedDistance(right, islandAngle + 90, 360))
+      );
+      const havenAngle = closestHavenAngles[0];
+
+      // find haven point as first beach starting from ocean towards center
+      const beachPoint = marchLinePredicate(
+        world,
+        desertEntrance,
+        havenAngle,
+        mainlandRadius * 1.25,
+        mainlandRatio,
+        (x, y) =>
+          biomeMap[x][y] === "desert" &&
+          elevationMatrix[x][y] > sandDepth &&
+          findPath(pathMatrix, { x, y }, desertEntrance, false, true).length > 0
+      );
+
+      // move haven center to free area inwards
+      const havenInnRadius = 2;
+      const havenPoint = marchLinePredicate(
+        world,
+        desertEntrance,
+        havenAngle,
+        getDistance(desertEntrance, beachPoint, size, mainlandRatio) - 5,
+        mainlandRatio,
+        (x, y) =>
+          range(-havenInnRadius, havenInnRadius).every((offsetX) =>
+            range(-havenInnRadius, havenInnRadius).every((offsetY) => {
+              const target = combine(size, { x: x + offsetX, y: y + offsetY });
+              return elevationMatrix[target.x][target.y] > havenDepth;
+            })
+          )
+      );
+
+      // determine radius size for haven, ensuring sandy areas free from beach
+      const havenRatio = aspectRatio;
+      const havenCells = 460;
+      let havenRadius = 11;
+      let havenUsable = 0;
+      do {
+        havenUsable = 0;
+        havenRadius += 1;
+
+        for (const { x, y } of pixelCircle(
+          havenPoint,
+          havenRadius,
+          havenRatio,
+          true
+        )) {
+          const target = combine(size, { x, y });
+          const elevation = elevationMatrix[target.x][target.y];
+          const cell = worldMap[target.x][target.y];
+          const biome = biomeMap[target.x][target.y];
+          if (elevation > havenDepth && biome === "desert") havenUsable += 1;
+          else if (cell === "water_shallow") havenUsable -= 1.5;
+          else if (cell === "water_deep") havenUsable -= 0.05;
+        }
+      } while (havenUsable < havenCells);
+
+      // create virtual map for filling haven town
+      const havenWidth = Math.ceil(havenRadius / havenRatio) * 2 + 1;
+      const havenHeight = Math.ceil(havenRadius) * 2 + 1;
+      const havenCorner = combine(size, havenPoint, {
+        x: (havenWidth - 1) / -2,
+        y: (havenHeight - 1) / -2,
+      });
+      const havenArea: Record<number, Record<number, boolean>> = {};
+
+      // clear area for haven
+      for (const { x, y } of pixelCircle(
+        havenPoint,
+        havenRadius,
+        havenRatio,
+        true
+      )) {
+        const target = combine(size, { x, y });
+        const elevation = elevationMatrix[target.x][target.y];
+        const biome = biomeMap[target.x][target.y];
+        if (elevation > sandDepth && biome === "desert") {
+          worldMap[target.x][target.y] = "sand";
+          objectsMap[target.x][target.y] = [];
+
+          // mark area as free if within zone
+          const havenX = normalize(target.x - havenCorner.x, size);
+          const havenY = normalize(target.y - havenCorner.y, size);
+
+          const withinPalisades =
+            getDistance(havenPoint, target, size, havenRatio) <
+              havenRadius - 2 && elevation > havenDepth;
+          havenArea[havenX] = havenArea[havenX] || {};
+          havenArea[havenX][havenY] = withinPalisades;
+        }
+      }
+
+      // place palisades
+      for (const { x, y } of pixelCircle(
+        havenPoint,
+        havenRadius - 1,
+        havenRatio
+      )) {
+        const target = combine(size, { x, y });
+        const cell = worldMap[target.x][target.y];
+        const elevation = elevationMatrix[target.x][target.y];
+        const biome = biomeMap[target.x][target.y];
+
+        if (
+          biome === "desert" &&
+          ((elevation > palisadeDepth && cell === "water_shallow") ||
+            elevation > sandDepth)
+        ) {
+          worldMap[target.x][target.y] =
+            elevation > sandDepth ? "sand" : "water_shallow";
+          objectsMap[target.x][target.y] = ["palisade"];
+
+          // mark area as occupied
+          const havenX = normalize(target.x - havenCorner.x, size);
+          const havenY = normalize(target.y - havenCorner.y, size);
+          havenArea[havenX] = havenArea[havenX] || {};
+          havenArea[havenX][havenY] = false;
+        }
+      }
+
+      // check if jetty is outside of haven, and extend palisades if needed
+      const jettyInnDistance = getDistance(
+        beachPoint,
+        havenPoint,
+        size,
+        havenRatio
+      );
+      const jettyRadius = jettyInnDistance + 5 - havenRadius;
+      if (jettyRadius > 0) {
+        // clear existing palisades and area
+        for (const { x, y } of pixelCircle(
+          beachPoint,
+          jettyRadius + 5,
+          havenRatio,
+          true
+        )) {
+          const target = combine(size, { x, y });
+          const objects = objectsMap[target.x][target.y];
+          const elevation = elevationMatrix[target.x][target.y];
+          const biome = biomeMap[target.x][target.y];
+          if (
+            biome === "desert" &&
+            (elevation > sandDepth || objects.includes("palisade"))
+          ) {
+            worldMap[target.x][target.y] =
+              elevation > sandDepth ? "sand" : "water_shallow";
+            objectsMap[target.x][target.y] = [];
+          }
+        }
+
+        // extend palisade by circle around jetty
+        for (const { x, y } of pixelCircle(
+          beachPoint,
+          jettyRadius + 5,
+          havenRatio
+        )) {
+          const target = combine(size, { x, y });
+          const cell = worldMap[target.x][target.y];
+          const elevation = elevationMatrix[target.x][target.y];
+          const biome = biomeMap[target.x][target.y];
+
+          if (
+            biome === "desert" &&
+            getDistance(havenPoint, target, size, havenRatio) >
+              havenRadius - 1 &&
+            ((elevation > palisadeDepth && cell === "water_shallow") ||
+              elevation > sandDepth)
+          ) {
+            worldMap[target.x][target.y] =
+              elevation > sandDepth ? "sand" : "water_shallow";
+            objectsMap[target.x][target.y] = ["palisade"];
+          }
+        }
+      }
+
+      // find closest angle for jetty which has most water
+      const jettyConfigurations: Record<
+        Orientation,
+        {
+          cell: CellType;
+          length: number;
+        }
+      > = {
+        up: {
+          cell: "jetty_vertical",
+          length: 5,
+        },
+        right: {
+          cell: "jetty_horizontal",
+          length: 8,
+        },
+        down: {
+          cell: "jetty_vertical",
+          length: 5,
+        },
+        left: {
+          cell: "jetty_horizontal",
+          length: 8,
+        },
+      };
+      const placementScores: Partial<Record<CellType, number>> = {
+        sand: -5,
+        water_shallow: 1,
+        water_deep: 3,
+      };
+      const defaultScore = -3;
+      const jettyOrientations = relativeOrientations(
+        world,
+        desertEntrance,
+        beachPoint,
+        mainlandRatio
+      );
+      const calculatePlacementScore = (
+        orientation: Orientation,
+        origin: Position
+      ) => {
+        let score = 0;
+        const delta = orientationPoints[orientation];
+        const leftDelta = orientationPoints[rotateOrientation(orientation, -1)];
+        const rightDelta = orientationPoints[rotateOrientation(orientation, 1)];
+        let placementCursor = origin;
+        const range = jettyConfigurations[orientation].length + 2;
+        for (let rangeOffset = 0; rangeOffset < range; rangeOffset += 1) {
+          placementCursor = combine(size, placementCursor, delta);
+          score +=
+            placementScores[worldMap[placementCursor.x][placementCursor.y]] ||
+            defaultScore;
+          const leftPosition = combine(size, placementCursor, leftDelta);
+          score +=
+            placementScores[worldMap[leftPosition.x][leftPosition.y]] ||
+            defaultScore;
+          const rightPosition = combine(size, placementCursor, rightDelta);
+          score +=
+            placementScores[worldMap[rightPosition.x][rightPosition.y]] ||
+            defaultScore;
+        }
+        return score;
+      };
+      const jettyOrientation =
+        jettyOrientations.length === 1
+          ? jettyOrientations[0]
+          : [...jettyOrientations].sort(
+              (left, right) =>
+                calculatePlacementScore(right, beachPoint) -
+                calculatePlacementScore(left, beachPoint)
+            )[0];
+
+      const jettyConfiguration = jettyConfigurations[jettyOrientation];
+      const jettyDelta = orientationPoints[jettyOrientation];
+
+      // place jetty and clear ocean area
+      const oceanClear = 5;
+      let jettyCursor = beachPoint;
+      for (
+        let jettyOffset = 0;
+        jettyOffset < jettyConfiguration.length + oceanClear;
+        jettyOffset += 1
+      ) {
+        const clearCell: CellType | undefined =
+          jettyOffset === jettyConfiguration.length
+            ? "water_shallow"
+            : jettyOffset > jettyConfiguration.length
+            ? "water_deep"
+            : undefined;
+        jettyCursor = combine(size, jettyCursor, jettyDelta);
+
+        worldMap[jettyCursor.x][jettyCursor.y] =
+          clearCell ?? jettyConfiguration.cell;
+        objectsMap[jettyCursor.x][jettyCursor.y] = [];
+
+        // place fences
+        const leftFence = combine(
+          size,
+          jettyCursor,
+          orientationPoints[rotateOrientation(jettyOrientation, -1)]
+        );
+        const rightFence = combine(
+          size,
+          jettyCursor,
+          orientationPoints[rotateOrientation(jettyOrientation, 1)]
+        );
+        worldMap[leftFence.x][leftFence.y] = clearCell ?? "water_shallow";
+        worldMap[rightFence.x][rightFence.y] = clearCell ?? "water_shallow";
+        objectsMap[leftFence.x][leftFence.y] = clearCell ? [] : ["fence"];
+        objectsMap[rightFence.x][rightFence.y] = clearCell ? [] : ["fence"];
+
+        if (clearCell === "water_deep") {
+          worldMap[jettyCursor.x][jettyCursor.y] = getWaterCell(
+            worldMap,
+            jettyCursor.x,
+            jettyCursor.y
+          );
+          worldMap[leftFence.x][leftFence.y] = getWaterCell(
+            worldMap,
+            leftFence.x,
+            leftFence.y
+          );
+          worldMap[rightFence.x][rightFence.y] = getWaterCell(
+            worldMap,
+            rightFence.x,
+            rightFence.y
+          );
+        }
+      }
+
+      const havenMap = matrixFactory<CellType | "">(
+        havenWidth,
+        havenHeight,
+        (x, y) => {
+          if (havenArea[x]?.[y]) {
+            return "";
+          }
+
+          return "sand";
+        }
+      );
+
+      // insert haven
+      const havenInnDelta = combine(size, havenPoint, {
+        x: -havenCorner.x,
+        y: -havenCorner.y,
+      });
+      const { matrix: havenMatrix, houses: relativeHavenHouses } =
+        generateHaven(havenMap, havenInnDelta);
+
+      iterateMatrix(havenMatrix, (offsetX, offsetY, value) => {
+        const x = normalize(havenCorner.x + offsetX, size);
+        const y = normalize(havenCorner.y + offsetY, size);
+
+        if (value && value !== "sand") {
+          worldMap[x][y] = value as CellType;
+        }
+      });
+
+      const havenHouses = relativeHavenHouses.map((house) => ({
+        ...house,
+        position: combine(size, house.position, havenCorner),
+        door: combine(size, house.door, havenCorner),
+      }));
+
+      // set rain for forest
+      const mainlandStorm = entities.createAnchor(world, {
+        [POSITION]: { x: 0, y: 0 },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [STICKY]: {},
+        [SPRITE]: none,
+      });
+      createSequence<"weather", WeatherSequence>(
+        world,
+        mainlandStorm,
+        "weather",
+        "weatherStorm",
+        {
+          position: { x: 0, y: 0 },
+          generation: 0,
+          intensity: 20,
+          drops: [],
+          start: 0,
+          end: 0,
+          type: "rain",
+          viewable: { x: 0, y: 0 },
+          ratio: mainlandRatio,
+        }
+      );
+      npcSequence(world, mainlandStorm, "oscillatingStormNpc", {
+        center: angledOffset(
+          size,
+          { x: 0, y: 0 },
+          islandAngle - 90,
+          mainlandRadius / 2,
+          mainlandRatio
+        ),
+        degrees: islandAngle - 90,
+        amplitude: mainlandRadius * 0.8,
+        frequency: 1 / 100,
+        ratio: mainlandRatio,
+      });
+
+      // create tornados in desert
+      for (let tornadoIndex = 0; tornadoIndex < 5; tornadoIndex += 1) {
+        const tornadoEntity = entities.createTornado(world, {
+          [BELONGABLE]: { faction: "hostile" },
+          [CASTABLE]: {
+            ...getEmptyCastable(world, world.metadata.gameEntity),
+            reproc: 3,
+          },
+          [MOVABLE]: {
+            orientations: [],
+            reference: world.getEntityId(world.metadata.gameEntity),
+            spring: {
+              duration: 200,
+            },
+            lastInteraction: 0,
+            flying: true,
+            swimming: false,
+          },
+          [ORIENTABLE]: {},
+          [POSITION]: { x: 13, y: 30 },
           [RENDERABLE]: { generation: 0 },
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: none,
+        });
+        tornadoEntity[CASTABLE].caster = world.getEntityId(tornadoEntity);
+        createSequence<"tornado", TornadoSequence>(
+          world,
+          tornadoEntity,
+          "tornado",
+          "tornadoSpin",
+          {
+            element: "air",
+            position: copy(tornadoEntity[POSITION]),
+            radius: 0,
+            amount: 1,
+            exertables: [],
+            gusts: [],
+            generation: 0,
+          }
+        );
+        npcSequence(world, tornadoEntity, "wanderingTornadoNpc", {
+          maximum: 3,
+          lastMove: world.metadata.gameEntity[RENDERABLE].generation,
+          lastGrow: world.metadata.gameEntity[RENDERABLE].generation,
+          orientation: "right",
+          growing: false,
+          biome: "desert",
+          center: copy(desertEntrance),
+          angle: islandAngle + 90,
+          radius: mainlandRadius,
+          ratio: mainlandRatio,
         });
       }
-    }
 
-    const objectPosition = combine(
-      size,
-      furnishingBuilding.building[POSITION],
-      {
-        x: random(0, 1) * 4 - 2,
-        y: 0,
-      }
-    );
-
-    if (furnishingBuilding === traderBuilding) {
-      // trader's house
-      const traderEntity = createNpc(world, "earthTrader", objectPosition);
-
-      createPopup(world, traderEntity, {
-        deals: purchasableItems.map((item) => ({
-          item: {
-            ...item,
-            amount: 1,
-          },
-          stock: Infinity,
-          prices: getItemBuyPrice(item),
-        })),
-
-        tabs: ["buy", "sell"],
+      // set snow for glacier
+      const glacierStorm = entities.createAnchor(world, {
+        [POSITION]: { x: 0, y: 0 },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [STICKY]: {},
+        [SPRITE]: none,
       });
-      continue;
-    }
+      createSequence<"weather", WeatherSequence>(
+        world,
+        glacierStorm,
+        "weather",
+        "weatherStorm",
+        {
+          position: { x: size / 2, y: size / 2 },
+          generation: 0,
+          intensity: glacierRadius * 0.9,
+          drops: [],
+          start: 0,
+          end: Infinity,
+          type: "snow",
+          viewable: { x: 0, y: 0 },
+          ratio: glacierRatio,
+        }
+      );
 
-    // add chest
-    const chestData = generateUnitData("woodChest");
-    const chestEntity = entities.createChest(world, {
-      [ATTACKABLE]: {},
-      [BELONGABLE]: { faction: chestData.faction },
-      [DROPPABLE]: { decayed: false },
-      [INVENTORY]: { items: [] },
-      [FOG]: { visibility: "hidden", type: "terrain" },
-      [LAYER]: {},
-      [POSITION]: objectPosition,
-      [RENDERABLE]: { generation: 0 },
-      [SEQUENCABLE]: { states: {} },
-      [SHOOTABLE]: { shots: 0 },
-      [SPRITE]: chestData.sprite,
-      [STATS]: { ...emptyUnitStats, ...chestData.stats },
-      [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-    });
-    populateInventory(
-      world,
-      chestEntity,
-      chestData.items,
-      chestData.equipments
-    );
+      // initialize spawn, town, ilex and oak
+      initializeArea(
+        world,
+        spawnCorner,
+        combine(size, spawnCorner, { x: spawnWidth, y: spawnHeight })
+      );
+      initializeArea(world, townCorner, combine(size, townCorner, townSize));
+      initializeArea(
+        world,
+        ilexCorner,
+        combine(size, ilexCorner, { x: ilexWidth, y: ilexHeight })
+      );
+      initializeArea(
+        world,
+        oakCorner,
+        combine(size, oakCorner, { x: oakWidth, y: oakHeight })
+      );
+      initializeArea(
+        world,
+        havenCorner,
+        combine(size, havenCorner, { x: havenWidth, y: havenHeight })
+      );
+
+      // adjust hero
+      const heroEntity = assertIdentifierAndComponents(world, "hero", [
+        POSITION,
+        VIEWABLE,
+      ]);
+      questSequence(world, heroEntity, "spawnQuest", {});
+
+      // assign buildings
+      const [traderBuilding, smithBuilding, druidBuilding, ...emptyBuildings] =
+        [traderHouse, smithHouse, druidHouse, ...emptyHouses].map((building) =>
+          assignBuilding(world, building.position)
+        );
+
+      havenHouses.forEach((building) =>
+        assignBuilding(world, building.position)
+      );
+
+      // add map markers
+      entities.createMarker(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [POI]: { sprite: mapHouse },
+        [POSITION]: townPoint,
+        [RENDERABLE]: { generation: 0 },
+      });
+      entities.createMarker(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [POI]: { sprite: mapSpawn },
+        [POSITION]: spawnPoint,
+        [RENDERABLE]: { generation: 0 },
+      });
+
+      // add quest sign after exiting
+      const spawnSign = createSign(world, copy(signPosition), [
+        [
+          createText("Find the town and"),
+          createText("speak with the"),
+          [...createUnitName("earthChief"), ...createText(".")],
+          [],
+          createText("Follow either the"),
+          [
+            getOrientedSprite(questPointer, "right"),
+            ...createText("Focus", colors.grey),
+            ...createText(" or "),
+            path,
+            ...createText("Path", colors.grey),
+            ...createText("."),
+          ],
+          [],
+          createText("Be careful with"),
+          [
+            ...createText("the "),
+            getUnitSprite("rose"),
+            getUnitSprite("clover"),
+            getUnitSprite("violet"),
+            ...createText("Plants", colors.maroon),
+            ...createText("."),
+          ],
+        ],
+      ]);
+      setIdentifier(world, spawnSign, "spawn_sign");
+
+      // postprocess town
+
+      const townEnd = combine(size, townCorner, {
+        x: townSize.x - 1,
+        y: townSize.y - 1,
+      });
+      const earthTown = entities.createProcessor(world, {
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [POSITION]: { ...townPoint },
+      });
+      setIdentifier(world, earthTown, "earth_town");
+      npcSequence(world, earthTown, "earthTownNpc", {
+        topLeft: townCorner,
+        bottomRight: townEnd,
+        spawn: combine(size, inn, { x: 0, y: 2 }),
+      });
+
+      // place guards at exits
+      guards.forEach((guard) => {
+        const guardEntity = createNpc(world, "earthGuard", { ...guard });
+        guardEntity[BEHAVIOUR].patterns.unshift({
+          name: "watch",
+          memory: {
+            origin: guard,
+            topLeft: townCorner,
+            bottomRight: townEnd,
+          },
+        });
+      });
+
+      // chief next to fountain
+      const chiefEntity = createNpc(
+        world,
+        "earthChief",
+        combine(size, inn, { x: choice(-1, 1), y: 2 })
+      );
+      npcSequence(world, chiefEntity, "earthChiefNpc", {});
+
+      // smith's house
+      const smithOffset = choice(-1, 1);
+      createNpc(
+        world,
+        "earthSmith",
+        combine(size, smithBuilding.building[POSITION], {
+          x: smithOffset,
+          y: 0,
+        })
+      );
+
+      const anvilEntity = createCell(
+        world,
+        add(smithBuilding.building[POSITION], {
+          x: smithOffset * -2,
+          y: 0,
+        }),
+        "anvil_passive",
+        "hidden"
+      ).cell;
+      setIdentifier(world, anvilEntity, "earth_anvil");
+
+      // druid's house
+      const druidOffset = choice(-1, 1);
+      createNpc(
+        world,
+        "earthDruid",
+        combine(size, druidBuilding.building[POSITION], {
+          x: druidOffset,
+          y: 0,
+        })
+      );
+
+      const kettleEntity = createCell(
+        world,
+        add(druidBuilding.building[POSITION], {
+          x: druidOffset * -2,
+          y: 0,
+        }),
+        "kettle_passive",
+        "hidden"
+      ).cell;
+      setIdentifier(world, kettleEntity, "earth_kettle");
+
+      // furnish houses
+      const furnishingBuildings = [traderBuilding, ...emptyBuildings];
+      for (const furnishingBuilding of furnishingBuildings) {
+        // add furniture
+        const furnitureOrientation = (["left", "right"] as const)[random(0, 1)];
+        const invertFurniture = invertOrientation(
+          furnitureOrientation
+        ) as typeof furnitureOrientation;
+        const chairSprites = { left: chairLeft, right: chairRight };
+        const bedHeadSprites = { left: bedHeadLeft, right: bedHeadRight };
+        const bedEndSprites = { left: bedEndLeft, right: bedEndRight };
+        if (random(0, 1) === 0) {
+          // create bed
+          entities.createFurniture(world, {
+            [FOG]: { visibility: "hidden", type: "terrain" },
+            [LAYER]: {},
+            [POSITION]: combine(
+              size,
+              furnishingBuilding.building[POSITION],
+              orientationPoints[invertFurniture]
+            ),
+            [SPRITE]: bedHeadSprites[invertFurniture],
+            [RENDERABLE]: { generation: 0 },
+            [COLLIDABLE]: {},
+          });
+          entities.createFurniture(world, {
+            [FOG]: { visibility: "hidden", type: "terrain" },
+            [LAYER]: {},
+            [POSITION]: furnishingBuilding.building[POSITION],
+            [SPRITE]: bedCenter,
+            [RENDERABLE]: { generation: 0 },
+            [COLLIDABLE]: {},
+          });
+          entities.createFurniture(world, {
+            [FOG]: { visibility: "hidden", type: "terrain" },
+            [LAYER]: {},
+            [POSITION]: combine(
+              size,
+              furnishingBuilding.building[POSITION],
+              orientationPoints[furnitureOrientation]
+            ),
+            [SPRITE]: bedEndSprites[furnitureOrientation],
+            [RENDERABLE]: { generation: 0 },
+            [COLLIDABLE]: {},
+          });
+        } else {
+          // create table and chairs
+          entities.createFurniture(world, {
+            [FOG]: { visibility: "hidden", type: "terrain" },
+            [LAYER]: {},
+            [POSITION]: copy(furnishingBuilding.building[POSITION]),
+            [SPRITE]: table,
+            [RENDERABLE]: { generation: 0 },
+            [COLLIDABLE]: {},
+          });
+          entities.createFloor(world, {
+            [FOG]: { visibility: "hidden", type: "terrain" },
+            [LAYER]: {},
+            [POSITION]: combine(
+              size,
+              furnishingBuilding.building[POSITION],
+              orientationPoints[furnitureOrientation]
+            ),
+            [SPRITE]: chairSprites[furnitureOrientation],
+            [RENDERABLE]: { generation: 0 },
+          });
+          if (random(0, 1) === 0) {
+            entities.createFloor(world, {
+              [FOG]: { visibility: "hidden", type: "terrain" },
+              [LAYER]: {},
+              [POSITION]: combine(
+                size,
+                furnishingBuilding.building[POSITION],
+                orientationPoints[invertFurniture]
+              ),
+              [SPRITE]: chairSprites[invertFurniture],
+              [RENDERABLE]: { generation: 0 },
+            });
+          }
+        }
+
+        const objectPosition = combine(
+          size,
+          furnishingBuilding.building[POSITION],
+          {
+            x: random(0, 1) * 4 - 2,
+            y: 0,
+          }
+        );
+
+        if (furnishingBuilding === traderBuilding) {
+          // trader's house
+          const traderEntity = createNpc(world, "earthTrader", objectPosition);
+
+          createPopup(world, traderEntity, {
+            deals: purchasableItems.map((item) => ({
+              item: {
+                ...item,
+                amount: 1,
+              },
+              stock: Infinity,
+              prices: getItemBuyPrice(item),
+            })),
+
+            tabs: ["buy", "sell"],
+          });
+          continue;
+        }
+
+        // add chest
+        const chestData = generateUnitData("woodChest");
+        const chestEntity = entities.createChest(world, {
+          [ATTACKABLE]: {},
+          [BELONGABLE]: { faction: chestData.faction },
+          [DROPPABLE]: { decayed: false },
+          [INVENTORY]: { items: [] },
+          [FOG]: { visibility: "hidden", type: "terrain" },
+          [LAYER]: {},
+          [POSITION]: objectPosition,
+          [RENDERABLE]: { generation: 0 },
+          [SEQUENCABLE]: { states: {} },
+          [SHOOTABLE]: { shots: 0 },
+          [SPRITE]: chestData.sprite,
+          [STATS]: { ...emptyUnitStats, ...chestData.stats },
+          [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+        });
+        populateInventory(
+          world,
+          chestEntity,
+          chestData.items,
+          chestData.equipments
+        );
+      }
+      break;
+    } catch (error) {
+      console.error(
+        `Failed island generation attempt ${attempt} with error:`,
+        error
+      );
+
+      // clear up all newly created entities
+      world.getEntities([]).forEach((target) => {
+        if (existingEntities.includes(target)) return;
+
+        disposeEntity(world, target);
+      });
+    }
   }
 
   // console.log(stringifyMap(worldMap, { x: size / 2, y: size / 2 }, objectsMap));
