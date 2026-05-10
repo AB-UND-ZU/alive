@@ -70,6 +70,7 @@ export const getStackable = (world: World, entity: Entity, item: Item) => {
     const inventoryItem = world.assertByIdAndComponents(itemId, [ITEM]);
     return (
       inventoryItem[ITEM].stackable === item.stackable &&
+      inventoryItem[ITEM].stat === item.stat &&
       inventoryItem[ITEM].consume === item.consume &&
       inventoryItem[ITEM].material === item.material &&
       inventoryItem[ITEM].element === item.element
@@ -245,6 +246,8 @@ export const addToInventory = (
           { [INVENTORY]: { items: [existingId] } },
           entity[POSITION]
         );
+
+        entity[EQUIPPABLE][equipment] = undefined;
       }
 
       entity[EQUIPPABLE][equipment] = targetId;

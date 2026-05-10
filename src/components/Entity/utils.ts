@@ -25,6 +25,7 @@ import { SPAWNABLE } from "../../engine/components/spawnable";
 import { ClassKey } from "../../game/balancing/classes";
 import { isDead } from "../../engine/systems/damage";
 import { colors } from "../../game/assets/colors";
+import { HARVESTABLE } from "../../engine/components/harvestable";
 
 export const textSize = 18 / 25 + 0.001;
 
@@ -95,9 +96,10 @@ export const getSegments = (
   const isPlayer = !!entity[PLAYER];
   const isAir = entity[FOG]?.type === "air";
   const isFloat = entity[FOG]?.type === "float";
-  const isUnit = entity[FOG]?.type === "unit" || entity[PROJECTILE];
+  const isUnit = entity[FOG]?.type === "unit";
   const isObject = entity[FOG]?.type === "object";
   const isLiquid = !!entity[LIQUID];
+  const isHarvestable = !!entity[HARVESTABLE];
   const isLootable = !!entity[LOOTABLE];
   const isOpaque = !!entity[LIGHT] && entity[LIGHT].darkness > 0;
   const isFixed = isFloat && entity[FOG].fixed;
@@ -109,7 +111,7 @@ export const getSegments = (
     ? wallHeight
     : isPlayer
     ? playerHeight
-    : isUnit
+    : isUnit || entity[PROJECTILE]
     ? unitHeight
     : isAir
     ? fogHeight
@@ -180,11 +182,21 @@ export const getSegments = (
   }
 
   // 4. body
+  const sprite = (inside && entity[ENTERABLE]?.sprite) || entity[SPRITE];
   orderedSegments.push({
     id: world.getEntityId(entity),
-    sprite: (inside && entity[ENTERABLE]?.sprite) || entity[SPRITE],
+    sprite,
     facing: entity[ORIENTABLE]?.facing,
-    amount: isLiquid ? entity[LIQUID].amount : undefined,
+    amount: isLiquid
+      ? entity[LIQUID].amount
+      : isHarvestable &&
+        sprite.amounts &&
+        entity[HARVESTABLE].amount < entity[HARVESTABLE].maximum
+      ? 1 +
+        Math.floor(
+          (entity[HARVESTABLE].amount / (entity[HARVESTABLE].maximum || 1)) * 3
+        )
+      : undefined,
     offsetX: 0,
     offsetY: 0,
     offsetZ,

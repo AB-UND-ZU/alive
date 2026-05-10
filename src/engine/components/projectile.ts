@@ -4,8 +4,9 @@ import { Material } from "./item";
 
 export type Projectile = {
   damage: number;
-  material?: Material;
+  material: Material;
   moved: boolean;
+  shadow: boolean;
 };
 
 export const PROJECTILE = "PROJECTILE";

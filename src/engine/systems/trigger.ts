@@ -411,7 +411,8 @@ export const removeFromInventory = (
   if (EQUIPPABLE in entity) {
     for (const slot of slots) {
       if (item[ITEM][slot]) {
-        entity[EQUIPPABLE][slot] = undefined;
+        entity[EQUIPPABLE][slot === "accessory" ? item[ITEM].accessory : slot] =
+          undefined;
       }
     }
   }

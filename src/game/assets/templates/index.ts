@@ -92,10 +92,12 @@ export type PartialSpriteTemplate = Partial<
 
 export const createTemplate = ({
   sprite,
+  elementSprite,
   materialElementSprite,
   invertWoodIron,
 }: {
   sprite: Sprite;
+  elementSprite?: Sprite;
   materialElementSprite?: Sprite;
   invertWoodIron?: boolean;
 }) => {
@@ -126,12 +128,20 @@ export const createTemplate = ({
   sprites.default = { default: missing } as any;
   elements.forEach((element) => {
     const elementPalette = colorPalettes[element];
-    sprites.default[element] = recolorSprite(sprite, {
+    sprites.default[element] = recolorSprite(elementSprite || sprite, {
       [TEMPLATE_COLORS.transparent]: colors.black,
-      [TEMPLATE_COLORS.materialPrimary]: elementPalette.primary,
-      [TEMPLATE_COLORS.materialSecondary]: elementPalette.secondary,
-      [TEMPLATE_COLORS.elementPrimary]: colors.black,
-      [TEMPLATE_COLORS.elementSecondary]: colors.black,
+      [TEMPLATE_COLORS.materialPrimary]: elementSprite
+        ? colors.black
+        : elementPalette.primary,
+      [TEMPLATE_COLORS.materialSecondary]: elementSprite
+        ? colors.black
+        : elementPalette.secondary,
+      [TEMPLATE_COLORS.elementPrimary]: elementSprite
+        ? elementPalette.primary
+        : colors.black,
+      [TEMPLATE_COLORS.elementSecondary]: elementSprite
+        ? elementPalette.secondary
+        : colors.black,
     });
   });
 

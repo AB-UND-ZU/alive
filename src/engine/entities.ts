@@ -864,6 +864,7 @@ export const createOrganic = entityFactory([
 export const createPalisade = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  COLLIDABLE,
   DROPPABLE,
   FOG,
   HARVESTABLE,
@@ -973,7 +974,6 @@ export const createRoot = entityFactory([
   FOG,
   FRAGMENT,
   HARVESTABLE,
-  INVENTORY,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,

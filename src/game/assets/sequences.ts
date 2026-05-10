@@ -3559,6 +3559,8 @@ export const displaySell: Sequence<PopupSequence> = (world, entity, state) => {
           colors.grey
         ),
       ]
+    : inventoryItems.length > 0
+    ? []
     : undefined;
 
   const popupResult = renderPopup(
@@ -4012,6 +4014,7 @@ const cellColorWeights: Partial<Record<CellType, [string, number]>> = {
   desert_palm: [colors.olive, 1],
   desert_palm_fruit: [colors.olive, 1],
   fence: [colors.maroon, 3],
+  palisade: [colors.silver, 3],
   fruit: [colors.green, 1],
 };
 
@@ -6560,9 +6563,7 @@ export const itemCollect: Sequence<CollectSequence> = (
         amount: state.args.amount,
       },
       [RENDERABLE]: { generation: 1 },
-      [SPRITE]: itemEntity[ITEM].stat
-        ? getStatSprite(itemEntity[ITEM].stat, "drop")
-        : getItemSprite(itemEntity[ITEM]),
+      [SPRITE]: getItemSprite(itemEntity[ITEM]),
     });
     state.particles.loot = world.getEntityId(lootParticle);
     updated = true;

@@ -25,7 +25,6 @@ import {
   PopupSequence,
   SEQUENCABLE,
 } from "../components/sequencable";
-import { REFERENCE } from "../components/reference";
 import { VIEWABLE } from "../components/viewable";
 import { UnitStats, STATS } from "../components/stats";
 import { Inventory, INVENTORY } from "../components/inventory";
@@ -57,6 +56,7 @@ import { consumeItem, getConsumption, getItemConsumption } from "./consume";
 import { clamp } from "three/src/math/MathUtils";
 import { getSelectedLevel } from "../../game/levels";
 import { LEVEL } from "../components/level";
+import { REFERENCE } from "../components/reference";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -581,9 +581,10 @@ export default function setupPopup(world: World) {
       heroEntity[MOVABLE].reference,
       [RENDERABLE, REFERENCE]
     );
-    const generation = heroReference[RENDERABLE].generation;
+    const referenceGeneration = heroReference[RENDERABLE].generation;
+    const generation = referenceGeneration + heroEntity[RENDERABLE].generation;
 
-    if (heroGeneration === generation) return;
+    if (heroGeneration === generation) return
 
     heroGeneration = generation;
 
@@ -868,6 +869,8 @@ export default function setupPopup(world: World) {
         if (deal) {
           if (canSell(world, deal.prices[0])) {
             performTrade(world, heroEntity, tradeEntity);
+            rerenderEntity(world, heroEntity);
+            rerenderEntity(world, popupEntity);
           } else {
             queueMessage(world, heroEntity, {
               line: addBackground(
@@ -1097,7 +1100,7 @@ export default function setupPopup(world: World) {
 
     // mark as interacted
     heroEntity[MOVABLE].pendingOrientation = undefined;
-    heroEntity[MOVABLE].lastInteraction = generation;
+    heroEntity[MOVABLE].lastInteraction = referenceGeneration;
 
     rerenderEntity(world, popupEntity);
   };

@@ -395,7 +395,9 @@ export const dropEntity = (
         );
 
     const isCentered =
-      dropPosition.x === position.x && dropPosition.y === position.y;
+      dropPosition.x === position.x &&
+      dropPosition.y === position.y &&
+      !(overrideCenterWalkable && delay);
 
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
     const previousCarrier = itemEntity[ITEM].carrier;
@@ -419,7 +421,7 @@ export const dropEntity = (
       [POSITION]: dropPosition,
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: !isImmersible(world, dropPosition) ? shadow : none,
+      [SPRITE]: none,
       [SWIMMABLE]: { swimming: false },
     };
 
@@ -606,10 +608,10 @@ export default function setupDrop(world: World) {
             world,
             dummy,
             dummy[POSITION],
-            false,
+            true,
             undefined,
             undefined,
-            lootSpeed + decayTime / 2
+            lootSpeed + decayTime
           );
         }
 
@@ -617,10 +619,10 @@ export default function setupDrop(world: World) {
           world,
           entity,
           entity[POSITION],
-          false,
+          yields.length === 0,
           undefined,
           undefined,
-          lootSpeed + decayTime / 2
+          lootSpeed + decayTime / (yields.length === 0 ? 1 : 2)
         );
       } else if (
         isDecayed(world, entity) &&

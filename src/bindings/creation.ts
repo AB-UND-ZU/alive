@@ -99,7 +99,6 @@ import {
   fountainSide,
   fruit,
   getOrientedSprite,
-  getStatSprite,
   granite,
   grass,
   heart,
@@ -383,9 +382,7 @@ export const populateItems = (
           entities.createItem,
           {
             [ITEM]: item,
-            [SPRITE]: item.stat
-              ? getStatSprite(item.stat, equip ? "resource" : "drop")
-              : getItemSprite(item, equip ? "resource" : undefined),
+            [SPRITE]: getItemSprite(item, equip ? "resource" : undefined),
           },
           equip
         )
@@ -1328,7 +1325,7 @@ export const createCell = (
       return { cell: existingCell, all: [] };
     }
 
-    const { harvestable, yields } = getHarvestConfig("oak");
+    const { harvestable } = getHarvestConfig("oak");
     const leavesY = cell === "stem" ? normalize(y - 1, size) : y;
     const rootY = cell === "stem" ? y : normalize(y + 1, size);
     const rootEntity = entities.createRoot(world, {
@@ -1346,7 +1343,6 @@ export const createCell = (
       [FOG]: { visibility, type: "object" },
       [FRAGMENT]: { structure: -1 },
       [HARVESTABLE]: harvestable,
-      [INVENTORY]: { items: [] },
       [POSITION]: { x, y: rootY },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
@@ -1354,7 +1350,6 @@ export const createCell = (
       [STRUCTURABLE]: {},
     });
     all.push(rootEntity);
-    populateInventory(world, rootEntity, yields);
     const rootId = world.getEntityId(rootEntity);
     rootEntity[FRAGMENT].structure = rootId;
 
@@ -2291,6 +2286,7 @@ export const createCell = (
     const palisadeEntity = entities.createPalisade(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false, remains },
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,

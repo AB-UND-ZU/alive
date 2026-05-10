@@ -1628,7 +1628,7 @@ export const scrollHandle: Sprite = {
   },
 };
 
-export const mergeSprites = (...sprites: Sprite[]) => ({
+export const mergeSprites = (...sprites: Sprite[]): Sprite => ({
   name: sprites.filter((sprite) => sprite.name).slice(-1)[0]?.name || "",
   layers: sprites.reduce(
     (merged, { layers }) => merged.concat(layers),

@@ -29,6 +29,7 @@ import { none } from "../../assets/sprites";
 import { STICKY } from "../../../engine/components/sticky";
 import { createPopup } from "../../../engine/systems/popup";
 import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
+import { TRACKABLE } from "../../../engine/components/trackable";
 
 export const menuSize = 42;
 export const menuName: LevelName = "LEVEL_MENU";
@@ -112,7 +113,7 @@ export const generateMenu = async (world: World) => {
 
     // add dummy and anvil
     setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 9, "dummy");
-    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 9, "dummy");
+    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 9, "campfire");
     setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 9, "dummy");
     setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 6, "kettle");
     setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 6, "anvil");
@@ -544,7 +545,11 @@ export const generateMenu = async (world: World) => {
             y: rowIndex,
           }),
           // @ts-ignore
-          item.weapon ? entities.createSword : entities.createItem,
+          item.weapon
+            ? entities.createSword
+            : item.accessory === "compass"
+            ? entities.createCompass
+            : entities.createItem,
           {
             [ITEM]: { ...item, bound: false },
             [SPRITE]: getItemSprite(item),
@@ -552,6 +557,12 @@ export const generateMenu = async (world: World) => {
               ? {
                   [SEQUENCABLE]: { states: [] },
                   [ORIENTABLE]: {},
+                }
+              : {}),
+            ...(item.accessory === "compass"
+              ? {
+                  [SEQUENCABLE]: { states: {} },
+                  [TRACKABLE]: {},
                 }
               : {}),
           }

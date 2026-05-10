@@ -17,9 +17,9 @@ const doorClosedElementTemplate: Sprite = {
   name: "Locked",
   layers: [
     { char: "\u0107", color: colors.maroon },
-    { char: "\u0106", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "\u0106", color: TEMPLATE_COLORS.elementSecondary },
     { char: "∙", color: TEMPLATE_COLORS.transparent },
-    { char: ".", color: TEMPLATE_COLORS.elementPrimary },
+    { char: ".", color: TEMPLATE_COLORS.elementSecondary },
   ],
 };
 const doorClosedWood: Sprite = {
@@ -30,11 +30,21 @@ const doorClosedWood: Sprite = {
     { char: ".", color: colors.black },
   ],
 };
+const doorClosedFire: Sprite = {
+  name: "Door",
+  layers: [
+    { char: "\u0107", color: colors.maroon },
+    { char: "\u0106", color: colors.red },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.red },
+  ],
+};
 export const doorClosed = createTemplate({
   sprite: doorClosedTemplate,
-  materialElementSprite: doorClosedElementTemplate,
+  elementSprite: doorClosedElementTemplate,
 });
 doorClosed.wood.default = doorClosedWood;
+doorClosed.default.fire = doorClosedFire;
 
 const entryClosedTemplate: Sprite = {
   name: "Entry",
@@ -49,9 +59,9 @@ const entryClosedElementTemplate: Sprite = {
   name: "Entry",
   layers: [
     { char: "█", color: colors.grey },
-    { char: "\u0106", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "\u0106", color: TEMPLATE_COLORS.elementSecondary },
     { char: "∙", color: TEMPLATE_COLORS.transparent },
-    { char: ".", color: TEMPLATE_COLORS.elementPrimary },
+    { char: ".", color: TEMPLATE_COLORS.elementSecondary },
   ],
 };
 const entryClosedWood: Sprite = {
@@ -71,12 +81,22 @@ const entryClosedIron: Sprite = {
     { char: ".", color: colors.silver },
   ],
 };
+const entryClosedFire: Sprite = {
+  name: "Entry",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "\u0106", color: colors.red },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.red },
+  ],
+};
 export const entryClosed = createTemplate({
   sprite: entryClosedTemplate,
-  materialElementSprite: entryClosedElementTemplate,
+  elementSprite: entryClosedElementTemplate,
 });
 entryClosed.wood.default = entryClosedWood;
 entryClosed.iron.default = entryClosedIron;
+entryClosed.default.fire = entryClosedFire;
 
 const entryClosedDisplayTemplate: Sprite = {
   name: "Entry",
@@ -91,9 +111,9 @@ const entryClosedDisplayElementTemplate: Sprite = {
   name: "Entry",
   layers: [
     { char: "\u0107", color: colors.grey },
-    { char: "\u0106", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "\u0106", color: TEMPLATE_COLORS.elementSecondary },
     { char: "∙", color: colors.black },
-    { char: ".", color: TEMPLATE_COLORS.elementPrimary },
+    { char: ".", color: TEMPLATE_COLORS.elementSecondary },
   ],
 };
 const entryClosedDisplayWood: Sprite = {
@@ -112,12 +132,22 @@ const entryClosedDisplayIron: Sprite = {
     { char: ".", color: colors.silver },
   ],
 };
+const entryClosedDisplayFire: Sprite = {
+  name: "Entry",
+  layers: [
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0106", color: colors.red },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.red },
+  ],
+};
 export const entryClosedDisplay = createTemplate({
   sprite: entryClosedDisplayTemplate,
-  materialElementSprite: entryClosedDisplayElementTemplate,
+  elementSprite: entryClosedDisplayElementTemplate,
 });
 entryClosedDisplay.wood.default = entryClosedDisplayWood;
 entryClosedDisplay.iron.default = entryClosedDisplayIron;
+entryClosedDisplay.default.fire = entryClosedDisplayFire;
 
 const lockTemplate: Sprite = {
   name: "Lock",
@@ -130,12 +160,21 @@ const lockTemplate: Sprite = {
 const lockElementTemplate: Sprite = {
   name: "Lock",
   layers: [
-    { char: "\u0106", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "\u0106", color: TEMPLATE_COLORS.elementSecondary },
     { char: "∙", color: TEMPLATE_COLORS.transparent },
-    { char: ".", color: TEMPLATE_COLORS.elementPrimary },
+    { char: ".", color: TEMPLATE_COLORS.elementSecondary },
+  ],
+};
+const fireLock: Sprite = {
+  name: "Lock",
+  layers: [
+    { char: "\u0106", color: colors.red },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.red },
   ],
 };
 export const lock = createTemplate({
   sprite: lockTemplate,
-  materialElementSprite: lockElementTemplate,
+  elementSprite: lockElementTemplate,
 });
+lock.default.fire = fireLock;

@@ -39,9 +39,7 @@ import { PROJECTILE } from "../../engine/components/projectile";
 import { LAYER } from "../../engine/components/layer";
 import FogOfWar from "./FogOfWar";
 import { LIQUID } from "../../engine/components/liquid";
-import { HARVESTABLE } from "../../engine/components/harvestable";
 import { BUMPABLE } from "../../engine/components/bumpable";
-import { none } from "../../game/assets/sprites";
 
 function Entity({
   entity,
@@ -92,9 +90,8 @@ function Entity({
     (outside && !isFixed);
 
   const hasLoot = ecs && (isLootable(ecs, entity) || isCollecting(ecs, entity));
-  const harvestable = entity[HARVESTABLE];
   const isDotsTransparent =
-    !(hasLoot || harvestable) || (isOpaque ? !inRadius : !isVisible) || outside;
+    !hasLoot || (isOpaque ? !inRadius : !isVisible) || outside;
 
   const spring = useSpring({
     opacity: isTransparent ? 0 : 1,
@@ -176,24 +173,7 @@ function Entity({
     })
   );
 
-  const harvestSegment = harvestable
-    ? {
-        id: -5,
-        sprite: none,
-        amount:
-          harvestable.amount < harvestable.maximum ? harvestable.amount : 0,
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: oreHeight,
-        layerProps: {
-          isTransparent,
-          opacity: spring.dotsOpacity,
-          receiveShadow: !isOpaque && inRadius && !inside,
-          colorFactor: outside ? shadowFactor : undefined,
-        },
-      }
-    : undefined;
-  const dotsSegment = harvestSegment || lootSegments[0];
+  const dotsSegment = lootSegments[0];
 
   return (
     <Container
@@ -243,12 +223,7 @@ function Entity({
       )}
 
       {dotsSegment && (
-        <Dots
-          segment={dotsSegment}
-          entity={entity}
-          isVisible={isVisible}
-          negative={isOpaque}
-        />
+        <Dots segment={dotsSegment} entity={entity} isVisible={isVisible} />
       )}
 
       {isFog &&

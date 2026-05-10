@@ -1249,9 +1249,8 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         deals: [
           {
             item: {
-              stackable: "resource",
-              material: "gold",
-              amount: 1,
+              stackable: "coin",
+              amount: 50,
             },
             stock: 1,
             prices: [],

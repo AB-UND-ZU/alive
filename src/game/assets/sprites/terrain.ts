@@ -33,6 +33,25 @@ export const fogOfWar: Sprite = {
 export const wall: Sprite = {
   name: "wall_solid",
   layers: [{ char: "█", color: colors.grey }],
+  amounts: {
+    single: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+    ],
+    double: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "■", color: colors.grey },
+      { char: "∞", color: colors.grey },
+    ],
+    multiple: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+    ],
+  },
 };
 
 export const granite: Sprite = {
@@ -47,6 +66,31 @@ export const ironMine: Sprite = {
     { char: "÷", color: colors.silver },
     { char: "·", color: colors.grey },
   ],
+  amounts: {
+    single: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "÷", color: colors.silver },
+      { char: "·", color: colors.grey },
+    ],
+    double: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "■", color: colors.grey },
+      { char: "∞", color: colors.grey },
+      { char: "÷", color: colors.silver },
+      { char: "·", color: colors.grey },
+    ],
+    multiple: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "÷", color: colors.silver },
+      { char: "·", color: colors.grey },
+    ],
+  },
 };
 
 export const ironMineDisplay: Sprite = {
@@ -66,6 +110,31 @@ export const goldMine: Sprite = {
     { char: "÷", color: colors.yellow },
     { char: "·", color: colors.grey },
   ],
+  amounts: {
+    single: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "÷", color: colors.yellow },
+      { char: "·", color: colors.grey },
+    ],
+    double: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "■", color: colors.grey },
+      { char: "∞", color: colors.grey },
+      { char: "÷", color: colors.yellow },
+      { char: "·", color: colors.grey },
+    ],
+    multiple: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "÷", color: colors.yellow },
+      { char: "·", color: colors.grey },
+    ],
+  },
 };
 
 export const goldMineDisplay: Sprite = {
@@ -85,6 +154,31 @@ export const diamondMine: Sprite = {
     { char: "÷", color: colors.aqua },
     { char: "·", color: colors.grey },
   ],
+  amounts: {
+    single: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "÷", color: colors.aqua },
+      { char: "·", color: colors.grey },
+    ],
+    double: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "■", color: colors.grey },
+      { char: "∞", color: colors.grey },
+      { char: "÷", color: colors.aqua },
+      { char: "·", color: colors.grey },
+    ],
+    multiple: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "÷", color: colors.aqua },
+      { char: "·", color: colors.grey },
+    ],
+  },
 };
 
 export const rubyMine: Sprite = {
@@ -94,6 +188,31 @@ export const rubyMine: Sprite = {
     { char: "÷", color: colors.fuchsia },
     { char: "·", color: colors.grey },
   ],
+  amounts: {
+    single: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "÷", color: colors.fuchsia },
+      { char: "·", color: colors.grey },
+    ],
+    double: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "■", color: colors.grey },
+      { char: "∞", color: colors.grey },
+      { char: "÷", color: colors.fuchsia },
+      { char: "·", color: colors.grey },
+    ],
+    multiple: [
+      { char: "█", color: colors.grey },
+      { char: "░", color: colors.black },
+      { char: "M", color: colors.grey },
+      { char: "[", color: colors.grey },
+      { char: "]", color: colors.grey },
+      { char: "÷", color: colors.fuchsia },
+      { char: "·", color: colors.grey },
+    ],
+  },
 };
 
 export const waterShallow: Sprite = {

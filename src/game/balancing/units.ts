@@ -1416,6 +1416,12 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
           {
             stackable: "resource",
             material: "wood",
+            element: "earth",
+            amount: 1,
+          },
+          {
+            stackable: "resource",
+            material: "wood",
             amount: 5,
           },
           {

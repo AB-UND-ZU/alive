@@ -5,9 +5,9 @@ import { colors } from "../assets/colors";
 
 const harvestEfforts: Record<Resource, number> = {
   rotten: 1,
-  hedge: 2,
+  hedge: 1,
   plant: 4,
-  tree: 4,
+  tree: 5,
   oak: 11,
   palm: 6,
   cactus: 4,
@@ -15,28 +15,20 @@ const harvestEfforts: Record<Resource, number> = {
   fence: 11,
 
   palisade: 11,
-  rock: 2,
+  rock: 1,
   mountain: 6,
   iron: 11,
-  gold: 11,
+  gold: 21,
 };
 
-const harvestYields: Record<Resource, Omit<Item, "carrier" | "bound">[]> = {
-  rotten: [],
-  hedge: [],
-  plant: [],
+const harvestYields: Partial<Record<Resource, Omit<Item, "carrier" | "bound">[]>> = {
   tree: [{ stackable: "stick", amount: 1 }],
   oak: [
     { stackable: "resource", material: "wood", amount: 1 },
     { stackable: "leaf", amount: 3 },
   ],
-  cactus: [],
   palm: [{ stackable: "stick", amount: 2 }],
-  sign: [],
-  fence: [],
 
-  palisade: [],
-  rock: [],
   mountain: [{ stackable: "ore", amount: 1 }],
   iron: [{ stackable: "resource", material: "iron", amount: 1 }],
   gold: [{ stackable: "resource", material: "gold", amount: 1 }],
@@ -110,6 +102,6 @@ export const getHarvestConfig = (resource?: Resource): HarvestConfig => {
       maximum: effort,
       resource,
     },
-    yields,
+    yields: yields || [],
   };
 };

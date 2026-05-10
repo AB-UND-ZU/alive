@@ -1,5 +1,6 @@
 import { createTemplate, TEMPLATE_COLORS } from ".";
 import { Sprite } from "../../../engine/components/sprite";
+import { colors } from "../colors";
 
 // craftables
 
@@ -25,15 +26,24 @@ const keyTemplate: Sprite = {
 const keyElementTemplate: Sprite = {
   name: "Key",
   layers: [
-    { char: "\u0103", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "\u0103", color: TEMPLATE_COLORS.elementSecondary },
     { char: "\u011c", color: TEMPLATE_COLORS.transparent },
-    { char: "º", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "º", color: TEMPLATE_COLORS.elementSecondary },
+  ],
+};
+const fireKey: Sprite = {
+  name: "Key",
+  layers: [
+    { char: "\u0103", color: colors.red },
+    { char: "\u011c", color: colors.black },
+    { char: "º", color: colors.red },
   ],
 };
 export const key = createTemplate({
   sprite: keyTemplate,
-  materialElementSprite: keyElementTemplate,
+  elementSprite: keyElementTemplate,
 });
+key.default.fire = fireKey;
 
 const flaskTemplate: Sprite = {
   name: "Flask",

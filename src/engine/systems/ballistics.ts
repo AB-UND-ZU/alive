@@ -39,7 +39,7 @@ import { getAbilityStats } from "../../game/balancing/abilities";
 import { getFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
 import { SHOOTABLE } from "../components/shootable";
-import { shot } from "../../game/assets/templates/particles";
+import { shot, shotShadow } from "../../game/assets/templates/particles";
 import { attemptBubbleAbsorb } from "./magic";
 import { NPC } from "../components/npc";
 
@@ -130,6 +130,9 @@ export const shootArrow = (
       [RENDERABLE]: { generation: 0 },
     })
   );
+  const hasShadow = !isImmersible(world, entity[POSITION]);
+  const material = bow[ITEM].material as Material;
+  const sprite = (hasShadow ? shotShadow : shot)[material].default;
   const bowStats = getAbilityStats(bow[ITEM], entity[NPC]?.type);
   const { damage } = calculateDamage(world, bowStats, entity, emptyUnitStats);
   const shotEntity = entities.createShot(world, {
@@ -147,10 +150,12 @@ export const shootArrow = (
     [PROJECTILE]: {
       damage,
       moved: false,
+      material,
+      shadow: hasShadow,
     },
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
-    [SPRITE]: shot[bow[ITEM].material as Material].default,
+    [SPRITE]: sprite,
   });
   registerEntity(world, shotEntity);
 
@@ -198,6 +203,16 @@ export default function setupBallistics(world: World) {
       const hitBoxes = [];
       const orientation = entity[ORIENTABLE].facing || "up";
       const oppositeOrientation = invertOrientation(orientation);
+
+      // update shadow
+      const hasShadow = !isImmersible(world, entity[POSITION]);
+      if (entity[PROJECTILE].shadow !== hasShadow) {
+        entity[PROJECTILE].shadow = hasShadow;
+        const material = entity[PROJECTILE].material;
+        const sprite = (hasShadow ? shotShadow : shot)[material].default;
+        entity[SPRITE] = sprite;
+        rerenderEntity(world, entity);
+      }
 
       if (!isFlying) {
         hitBoxes.push(entity[POSITION]);

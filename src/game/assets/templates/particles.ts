@@ -509,65 +509,53 @@ const shotTemplate: Sprite = {
     ],
   },
 };
-const shotWood: Sprite = {
-  name: "shot",
+export const shot = createTemplate({
+  sprite: shotTemplate,
+  invertWoodIron: true,
+});
+
+const shotShadowTemplate: Sprite = {
+  name: "shot_shadow",
   layers: [
-    { char: "\u011c", color: colors.maroon },
-    { char: "\u011a", color: colors.black },
-    { char: "-", color: colors.maroon },
+    { char: "\u0100", color: TEMPLATE_COLORS.transparent },
+    { char: "\u0101", color: TEMPLATE_COLORS.transparent },
+    { char: "\u011c", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "\u011a", color: TEMPLATE_COLORS.transparent },
+    { char: "-", color: TEMPLATE_COLORS.materialSecondary },
   ],
   facing: {
     up: [
-      { char: "\u0117", color: colors.maroon },
-      { char: "|", color: colors.maroon },
+      { char: "\u0100", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0101", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0117", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: TEMPLATE_COLORS.materialSecondary },
     ],
     right: [
-      { char: "\u011c", color: colors.maroon },
-      { char: "\u011a", color: colors.black },
-      { char: "-", color: colors.maroon },
+      { char: "\u0100", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0101", color: TEMPLATE_COLORS.transparent },
+      { char: "\u011c", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "\u011a", color: TEMPLATE_COLORS.transparent },
+      { char: "-", color: TEMPLATE_COLORS.materialSecondary },
     ],
     down: [
-      { char: "\u0118", color: colors.maroon },
-      { char: "|", color: colors.maroon },
+      { char: "\u0100", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0101", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0118", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "|", color: TEMPLATE_COLORS.materialSecondary },
     ],
     left: [
-      { char: "\u011c", color: colors.maroon },
-      { char: "\u0119", color: colors.black },
-      { char: "-", color: colors.maroon },
+      { char: "\u0100", color: TEMPLATE_COLORS.transparent },
+      { char: "\u0101", color: TEMPLATE_COLORS.transparent },
+      { char: "\u011c", color: TEMPLATE_COLORS.materialPrimary },
+      { char: "\u0119", color: TEMPLATE_COLORS.transparent },
+      { char: "-", color: TEMPLATE_COLORS.materialSecondary },
     ],
   },
 };
-const shotIron: Sprite = {
-  name: "shot",
-  layers: [
-    { char: "\u011c", color: colors.silver },
-    { char: "\u011a", color: colors.black },
-    { char: "-", color: colors.grey },
-  ],
-  facing: {
-    up: [
-      { char: "\u0117", color: colors.silver },
-      { char: "|", color: colors.grey },
-    ],
-    right: [
-      { char: "\u011c", color: colors.silver },
-      { char: "\u011a", color: colors.black },
-      { char: "-", color: colors.grey },
-    ],
-    down: [
-      { char: "\u0118", color: colors.silver },
-      { char: "|", color: colors.grey },
-    ],
-    left: [
-      { char: "\u011c", color: colors.silver },
-      { char: "\u0119", color: colors.black },
-      { char: "-", color: colors.grey },
-    ],
-  },
-};
-export const shot = createTemplate({ sprite: shotTemplate });
-shot.wood.default = shotWood;
-shot.iron.default = shotIron;
+export const shotShadow = createTemplate({
+  sprite: shotShadowTemplate,
+  invertWoodIron: true,
+});
 
 // slash particles
 
