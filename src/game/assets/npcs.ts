@@ -904,26 +904,40 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           },
         ],
         choices: [
-          // defensive
-          { offhand: "shield", material: "wood", amount: 1 },
-          // spells
           {
-            spell: "wave",
+            weapon: "spear",
+            skill: "spear",
             material: "wood",
             amount: 1,
           },
           {
-            spell: "beam",
+            weapon: "wand",
+            skill: "wand",
             material: "wood",
             amount: 1,
           },
           {
-            spell: "trap",
+            skill: "bow",
             material: "wood",
             amount: 1,
           },
           {
-            spell: "dash",
+            skill: "slash",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "zap",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "block",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "totem",
             material: "wood",
             amount: 1,
           },
@@ -971,14 +985,14 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           {
             consume: "potion",
             material: "wood",
-            element: "fire",
-            amount: 10,
+            stat: "hp",
+            amount: 5,
           },
           {
             consume: "potion",
             material: "wood",
-            element: "water",
-            amount: 10,
+            stat: "mp",
+            amount: 5,
           }
         );
         createPopup(world, druidEntity, {
@@ -1075,6 +1089,14 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         deals: [
           {
             item: {
+              stat: "xp",
+              amount: 5,
+            },
+            stock: 1,
+            prices: [],
+          },
+          {
+            item: {
               stackable: "resource",
               material: "iron",
               amount: 1,
@@ -1084,40 +1106,26 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           },
         ],
         choices: [
+          // defensive: offhand
+          { offhand: "shield", material: "wood", amount: 1 },
+          // offensive: spells
           {
-            weapon: "spear",
-            skill: "spear",
+            spell: "wave",
             material: "wood",
             amount: 1,
           },
           {
-            weapon: "wand",
-            skill: "wand",
+            spell: "beam",
             material: "wood",
             amount: 1,
           },
           {
-            skill: "bow",
+            spell: "trap",
             material: "wood",
             amount: 1,
           },
           {
-            skill: "slash",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "zap",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "block",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "totem",
+            spell: "dash",
             material: "wood",
             amount: 1,
           },
@@ -1152,7 +1160,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               ...createItemName({
                 consume: "potion",
                 material: "wood",
-                element: "fire",
+                stat: "hp",
               }),
               ...createText("s", colors.grey),
               ...createText("."),
@@ -1901,6 +1909,7 @@ export const oakRoom: Sequence<NpcSequence> = (world, entity, state) => {
   }
 
   const inRoom =
+    !isDead(world, heroEntity) &&
     getDistance(entity[POSITION], heroEntity[POSITION], size) < 5.43;
 
   step({

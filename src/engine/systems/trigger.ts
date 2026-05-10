@@ -438,7 +438,7 @@ export const performTrade = (
 
   for (const priceItem of deal.prices) {
     // remove stats and items
-    if (priceItem.stat) {
+    if (priceItem.stat && !priceItem.material) {
       entity[STATS][priceItem.stat] -= priceItem.amount;
     } else {
       const tradedId = (entity[INVENTORY] as Inventory).items.find((itemId) => {
@@ -516,7 +516,7 @@ export const performTrade = (
     : entities.createItem(world, itemData);
 
   // drop XP instead of collecting
-  if (itemEntity[ITEM].stat === "xp") {
+  if (itemEntity[ITEM].stat === "xp" && !itemEntity[ITEM].material) {
     createItemAsDrop(world, copy(shop[POSITION]), entities.createItem, {
       ...itemData,
       [SPRITE]: none,
@@ -548,7 +548,7 @@ export const performTrade = (
   }
 
   // play sound
-  if (!deal.item.stat) {
+  if (!(deal.item.stat && !deal.item.material)) {
     queueMessage(world, entity, {
       line: createText(
         `${deal.item.amount}x ${getItemSprite(deal.item).name}`,
@@ -858,10 +858,10 @@ export const castSpell = (
       spellEntity[CASTABLE].cascade = world.getEntityId(entity);
     }
 
-    createSequence<"spell", SpellSequence>(
+    createSequence<"aura", AuraSequence>(
       world,
       spellEntity,
-      "spell",
+      "aura",
       "castBolt1",
       {
         progress: 0,
@@ -1254,6 +1254,7 @@ export default function setupTrigger(world: World) {
                   ...createItemName({
                     consume: "key",
                     material: unlockEntity[LOCKABLE].material,
+                    element: unlockEntity[LOCKABLE].element,
                   }),
                   ...createText("!", colors.silver),
                 ],

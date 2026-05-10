@@ -917,7 +917,7 @@ export const generateIsland = (world: World) => {
         smithHouse.position.y + 3,
         "campfire"
       );
-      setMatrix(worldMap, smithHouse.door.x, smithHouse.door.y, "iron_door");
+      setMatrix(worldMap, smithHouse.door.x, smithHouse.door.y, "earth_door");
       setMatrix(
         worldMap,
         smithHouse.position.x + choice(-1, 1),

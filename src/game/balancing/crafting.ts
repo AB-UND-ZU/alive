@@ -2,42 +2,6 @@ import { Deal, Recipe } from "../../engine/components/popup";
 
 export const craftingRecipes: Recipe[] = [
   {
-    item: { stackable: "stick", amount: 1 },
-    options: [[{ stackable: "leaf", amount: 3 }]],
-  },
-  {
-    item: { stackable: "resource", material: "wood", amount: 1 },
-    options: [[{ stackable: "stick", amount: 10 }]],
-  },
-
-  {
-    item: { consume: "potion", material: "wood", element: "fire", amount: 10 },
-    options: [
-      [
-        { stackable: "apple", amount: 1 },
-        { stackable: "resource", material: "wood", amount: 1 },
-      ],
-      [
-        { stackable: "berry", amount: 3 },
-        { stackable: "resource", material: "wood", amount: 1 },
-      ],
-    ],
-  },
-  {
-    item: { consume: "potion", material: "wood", element: "water", amount: 10 },
-    options: [
-      [
-        { stackable: "shroom", amount: 1 },
-        { stackable: "resource", material: "wood", amount: 1 },
-      ],
-      [
-        { stackable: "flower", amount: 3 },
-        { stackable: "resource", material: "wood", amount: 1 },
-      ],
-    ],
-  },
-
-  {
     item: { stackable: "fruit", amount: 1 },
     options: [[{ stackable: "berry", amount: 10 }]],
   },
@@ -51,15 +15,20 @@ export const craftingRecipes: Recipe[] = [
   },
 
   {
-    item: { stackable: "resource", material: "iron", amount: 1 },
+    item: { consume: "potion", material: "wood", stat: "hp", amount: 10 },
     options: [
-      [{ stackable: "ore", amount: 10 }],
-      [{ stackable: "resource", material: "wood", amount: 2 }],
+      [
+        { stackable: "apple", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 1 },
+      ],
+      [
+        { stackable: "berry", amount: 3 },
+        { stackable: "resource", material: "wood", amount: 1 },
+      ],
     ],
   },
-
   {
-    item: { consume: "potion", material: "iron", element: "fire", amount: 10 },
+    item: { consume: "potion", material: "iron", stat: "hp", amount: 10 },
     options: [
       [
         { stackable: "fruit", amount: 1 },
@@ -76,57 +45,7 @@ export const craftingRecipes: Recipe[] = [
     ],
   },
   {
-    item: { consume: "potion", material: "iron", element: "water", amount: 10 },
-    options: [
-      [
-        { stackable: "herb", amount: 1 },
-        { stackable: "resource", material: "wood", amount: 3 },
-      ],
-      [
-        { stackable: "coconut", amount: 1 },
-        { stackable: "resource", material: "wood", amount: 3 },
-      ],
-      [
-        { stackable: "pike", amount: 1 },
-        { stackable: "resource", material: "wood", amount: 3 },
-      ],
-    ],
-  },
-
-  {
-    item: { stackable: "arrow", amount: 1 },
-    options: [
-      [
-        { stackable: "stick", amount: 1 },
-        { stackable: "ore", amount: 1 },
-      ],
-    ],
-  },
-  {
-    item: { stackable: "charge", amount: 1 },
-    options: [
-      [
-        { stackable: "stick", amount: 1 },
-        { stackable: "ore", amount: 1 },
-      ],
-    ],
-  },
-
-  {
-    item: { stackable: "resource", material: "gold", amount: 1 },
-    options: [
-      [{ stackable: "nugget", amount: 10 }],
-      [{ stackable: "resource", material: "iron", amount: 5 }],
-    ],
-  },
-
-  {
-    item: { stackable: "plank", amount: 1 },
-    options: [[{ stackable: "resource", material: "wood", amount: 10 }]],
-  },
-
-  {
-    item: { consume: "potion", material: "gold", element: "fire", amount: 10 },
+    item: { consume: "potion", material: "gold", stat: "hp", amount: 10 },
     options: [
       [
         { stackable: "fruit", amount: 2 },
@@ -147,7 +66,37 @@ export const craftingRecipes: Recipe[] = [
     ],
   },
   {
-    item: { consume: "potion", material: "gold", element: "water", amount: 10 },
+    item: { consume: "potion", material: "wood", stat: "mp", amount: 10 },
+    options: [
+      [
+        { stackable: "shroom", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 1 },
+      ],
+      [
+        { stackable: "flower", amount: 3 },
+        { stackable: "resource", material: "wood", amount: 1 },
+      ],
+    ],
+  },
+  {
+    item: { consume: "potion", material: "iron", stat: "mp", amount: 10 },
+    options: [
+      [
+        { stackable: "herb", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
+      ],
+      [
+        { stackable: "coconut", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
+      ],
+      [
+        { stackable: "pike", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
+      ],
+    ],
+  },
+  {
+    item: { consume: "potion", material: "gold", stat: "mp", amount: 10 },
     options: [
       [
         { stackable: "herb", amount: 2 },
@@ -164,6 +113,66 @@ export const craftingRecipes: Recipe[] = [
       [
         { stackable: "cod", amount: 1 },
         { stackable: "plank", amount: 1 },
+      ],
+    ],
+  },
+
+  {
+    item: { stackable: "stick", amount: 1 },
+    options: [[{ stackable: "leaf", amount: 3 }]],
+  },
+  {
+    item: { stackable: "resource", material: "wood", amount: 1 },
+    options: [[{ stackable: "stick", amount: 10 }]],
+  },
+  {
+    item: { stackable: "plank", amount: 1 },
+    options: [[{ stackable: "resource", material: "wood", amount: 10 }]],
+  },
+
+  {
+    item: { stackable: "resource", material: "iron", amount: 1 },
+    options: [[{ stackable: "ore", amount: 10 }]],
+  },
+
+  {
+    item: { stackable: "resource", material: "gold", amount: 1 },
+    options: [[{ stackable: "nugget", amount: 10 }]],
+  },
+
+  {
+    item: { stackable: "arrow", amount: 1 },
+    options: [
+      [
+        { stackable: "stick", amount: 1 },
+        { stackable: "ore", amount: 1 },
+      ],
+    ],
+  },
+  {
+    item: { stackable: "arrow", amount: 10 },
+    options: [
+      [
+        { stackable: "resource", material: "wood", amount: 1 },
+        { stackable: "resource", material: "iron", amount: 1 },
+      ],
+    ],
+  },
+  {
+    item: { stackable: "charge", amount: 1 },
+    options: [
+      [
+        { stackable: "stick", amount: 1 },
+        { stackable: "ore", amount: 1 },
+      ],
+    ],
+  },
+  {
+    item: { stackable: "charge", amount: 10 },
+    options: [
+      [
+        { stackable: "resource", material: "wood", amount: 1 },
+        { stackable: "resource", material: "iron", amount: 1 },
       ],
     ],
   },

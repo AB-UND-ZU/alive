@@ -120,8 +120,6 @@ import {
   popupActive,
   popupBlocked,
   nugget,
-  ironLock,
-  goldLock,
   rogue,
   mage,
   knight,
@@ -157,6 +155,8 @@ import {
   algae,
   fishing,
   bubble,
+  getBlockedSlot,
+  skillSlot,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -215,7 +215,12 @@ import {
   wand,
 } from "./templates/equipments";
 import { flask, potion, key, bottle, spirit } from "./templates/items";
-import { doorClosed, entryClosed, entryClosedDisplay } from "./templates/units";
+import {
+  doorClosed,
+  entryClosed,
+  entryClosedDisplay,
+  lock,
+} from "./templates/units";
 import { getItemStats } from "../balancing/equipment";
 import {
   colorPalettes,
@@ -1579,7 +1584,7 @@ export const entitySprites: Record<
         ...createItemName({
           consume: "potion",
           material: "iron",
-          element: "water",
+          stat: "mp",
         }),
         ...createText("."),
       ],
@@ -1599,7 +1604,7 @@ export const entitySprites: Record<
         ...createItemName({
           consume: "potion",
           material: "iron",
-          element: "fire",
+          stat: "hp",
         }),
         ...createText("."),
       ],
@@ -1992,11 +1997,19 @@ export const materialSprites: Partial<
             ...createItemName({ stackable: "stick" }),
             ...createText("."),
           ],
-          [
-            ...createText(stats.melee.toString(), colors.red),
-            minCountable(meleeHit),
-            ...createText("Melee", colors.red),
-          ],
+          stretch(
+            [
+              ...createText(stats.melee.toString(), colors.red),
+              minCountable(meleeHit),
+              ...createText("Melee", colors.red),
+            ],
+            [
+              ...createText("-1", colors.silver),
+              getBlockedSlot(skillSlot),
+              ...createText("Slot", colors.silver),
+            ],
+            frameWidth - 2
+          ),
         ];
       }
 
@@ -2013,11 +2026,19 @@ export const materialSprites: Partial<
           ...createItemName({ stackable: "resource", material: item.material }),
           ...createText("."),
         ],
-        [
-          ...createText(stats.melee.toString(), colors.red),
-          minCountable(meleeHit),
-          ...createText("Melee", colors.red),
-        ],
+        stretch(
+          [
+            ...createText(stats.melee.toString(), colors.red),
+            minCountable(meleeHit),
+            ...createText("Melee", colors.red),
+          ],
+          [
+            ...createText("-1", colors.silver),
+            getBlockedSlot(skillSlot),
+            ...createText("Slot", colors.silver),
+          ],
+          frameWidth - 2
+        ),
       ];
     },
   },
@@ -2032,11 +2053,19 @@ export const materialSprites: Partial<
             ...createItemName({ stackable: "stick" }),
             ...createText("."),
           ],
-          [
-            ...createText(stats.magic.toString(), colors.fuchsia),
-            minCountable(magicHit),
-            ...createText("Magic", colors.fuchsia),
-          ],
+          stretch(
+            [
+              ...createText(stats.magic.toString(), colors.fuchsia),
+              minCountable(magicHit),
+              ...createText("Magic", colors.fuchsia),
+            ],
+            [
+              ...createText("-1", colors.silver),
+              getBlockedSlot(skillSlot),
+              ...createText("Slot", colors.silver),
+            ],
+            frameWidth - 2
+          ),
         ];
       }
 
@@ -2053,11 +2082,19 @@ export const materialSprites: Partial<
           ...createItemName({ stackable: "resource", material: item.material }),
           ...createText("."),
         ],
-        [
-          ...createText(stats.magic.toString(), colors.fuchsia),
-          minCountable(magicHit),
-          ...createText("Magic", colors.fuchsia),
-        ],
+        stretch(
+          [
+            ...createText(stats.magic.toString(), colors.fuchsia),
+            minCountable(magicHit),
+            ...createText("Magic", colors.fuchsia),
+          ],
+          [
+            ...createText("-1", colors.silver),
+            getBlockedSlot(skillSlot),
+            ...createText("Slot", colors.silver),
+          ],
+          frameWidth - 2
+        ),
       ];
     },
   },
@@ -2476,10 +2513,7 @@ export const materialSprites: Partial<
 
   // materialized
   lock: {
-    sprite: {
-      iron: { default: ironLock },
-      gold: { default: goldLock },
-    },
+    sprite: lock,
   },
   door: {
     sprite: doorClosed,
@@ -2512,7 +2546,8 @@ export const elementSprites: Partial<
     | Spell
     | Skill
     | Consumable
-    | ResourceItem,
+    | ResourceItem
+    | Materialized,
     SpriteTemplateDefinition
   >
 > = {
@@ -2565,21 +2600,12 @@ export const elementSprites: Partial<
     getDescription: (stats, item) => [
       [
         ...createText("A "),
-        ...createItemName(
-          item.material === "wood"
-            ? { stackable: "stick" }
-            : { stackable: "resource", material: item.material }
-        ),
-        ...createText(" spear"),
-      ],
-      [
-        ...createText("with a "),
         ...createItemName({
           stackable: "resource",
           material: "wood",
           element: item.element,
         }),
-        ...createText("."),
+        ...createText(" spear."),
       ],
       stretch(
         [
@@ -2601,6 +2627,11 @@ export const elementSprites: Partial<
         ),
         frameWidth - 2
       ),
+      [
+        ...createText("-1", colors.silver),
+        getBlockedSlot(skillSlot),
+        ...createText("Slot", colors.silver),
+      ],
     ],
   },
   wand: {
@@ -2608,21 +2639,12 @@ export const elementSprites: Partial<
     getDescription: (stats, item) => [
       [
         ...createText("A "),
-        ...createItemName(
-          item.material === "wood"
-            ? { stackable: "stick" }
-            : { stackable: "resource", material: item.material }
-        ),
-        ...createText(" wand"),
-      ],
-      [
-        ...createText("with a "),
         ...createItemName({
           stackable: "resource",
           material: "wood",
           element: item.element,
         }),
-        ...createText("."),
+        ...createText(" wand."),
       ],
       stretch(
         [
@@ -2644,6 +2666,11 @@ export const elementSprites: Partial<
         ),
         frameWidth - 2
       ),
+      [
+        ...createText("-1", colors.silver),
+        getBlockedSlot(skillSlot),
+        ...createText("Slot", colors.silver),
+      ],
     ],
   },
   shield: {
@@ -2874,46 +2901,6 @@ export const elementSprites: Partial<
     ],
   },
 
-  // consumable
-  potion: {
-    sprite: {
-      wood: {
-        fire: flask.wood.fire,
-        water: flask.wood.water,
-      },
-      iron: {
-        fire: bottle.wood.fire,
-        water: bottle.wood.water,
-      },
-      gold: {
-        fire: potion.wood.fire,
-        water: potion.wood.water,
-      },
-    },
-    getDescription: (stats, item) => {
-      if (item.element === "fire") {
-        return [
-          createText("Automatic healing"),
-          createText("on low health."),
-          stretch(
-            createCountable(stats, "retrigger", "display"),
-            createCountable(stats, "hp", "display"),
-            frameWidth - 2
-          ),
-        ];
-      }
-      return [
-        createText("Refills low mana"),
-        createText("automatically."),
-        stretch(
-          createCountable(stats, "retrigger", "display"),
-          createCountable(stats, "mp", "display"),
-          frameWidth - 2
-        ),
-      ];
-    },
-  },
-
   resource: {
     sprite: spirit,
     getDescription: (_, item) => {
@@ -2935,6 +2922,93 @@ export const elementSprites: Partial<
       ];
     },
   },
+
+  // consumable
+  key: {
+    sprite: key,
+    getDescription: (_, item) => [
+      [
+        ...createText("Opens a "),
+        ...createItemName({
+          materialized: "lock",
+          element: item.element,
+        }),
+        ...createText("."),
+      ],
+      createText("Disappears after"),
+      createText("use."),
+    ],
+  },
+
+  // materialized
+  lock: {
+    sprite: lock,
+  },
+  door: {
+    sprite: doorClosed,
+  },
+  entry: {
+    sprite: entryClosed,
+    display: entryClosedDisplay,
+  },
+};
+
+type StatSprite = Partial<
+  Record<Material, Partial<Record<keyof UnitStats, Sprite>>>
+>;
+type SpriteStatDefinition = {
+  sprite: StatSprite;
+  resource?: StatSprite;
+  display?: StatSprite;
+  descriptions?: PartialDescriptionTemplate;
+  getDescription?: (
+    stats: ItemStats,
+    item: Omit<Item, "carrier" | "amount" | "bound">
+  ) => Sprite[][]; // lazily initialized to avoid circular references
+};
+export const statSprites: Partial<Record<Consumable, SpriteStatDefinition>> = {
+  // consumables
+  potion: {
+    sprite: {
+      wood: {
+        hp: flask.wood.fire,
+        mp: flask.wood.water,
+      },
+      iron: {
+        hp: bottle.wood.fire,
+        mp: bottle.wood.water,
+      },
+      gold: {
+        hp: potion.wood.fire,
+        mp: potion.wood.water,
+      },
+    },
+    getDescription: (stats, item) => {
+      if (item.stat === "hp") {
+        return [
+          createText("Automatic healing"),
+          createText("on low health."),
+          stretch(
+            createCountable(stats, "retrigger", "display"),
+            createCountable(stats, "hp", "display"),
+            frameWidth - 2
+          ),
+        ];
+      }
+      if (item.stat === "mp") {
+        return [
+          createText("Refills low mana"),
+          createText("automatically."),
+          stretch(
+            createCountable(stats, "retrigger", "display"),
+            createCountable(stats, "mp", "display"),
+            frameWidth - 2
+          ),
+        ];
+      }
+      return [];
+    },
+  },
 };
 
 export const getItemConfig = (
@@ -2944,6 +3018,7 @@ export const getItemConfig = (
 ): SpriteDefinition | undefined => {
   const material = item.material;
   const element = item.element;
+  const stat = item.stat;
 
   if (!material && !element) {
     const lookup = item.stackable || item.stat;
@@ -2951,6 +3026,23 @@ export const getItemConfig = (
     if (!lookup || lookup === "resource") return;
 
     return entitySprites[lookup];
+  }
+
+  if (material && stat) {
+    let lookup = item.consume;
+    const definition = lookup && statSprites[lookup];
+
+    if (!definition) return;
+
+    const resource = definition.resource?.[material]?.[stat];
+    const display = definition.display?.[material]?.[stat];
+
+    return {
+      ...definition,
+      sprite: definition.sprite[material]?.[stat] || missing,
+      resource,
+      display,
+    };
   }
 
   if (material && !element) {
@@ -2962,8 +3054,8 @@ export const getItemConfig = (
       item.tool ||
       item.accessory ||
       item.consume ||
-      (item.stackable === "resource" ? item.stackable : undefined) ||
-      item.materialized;
+      item.materialized ||
+      (item.stackable === "resource" ? item.stackable : undefined);
     const definition = lookup && materialSprites[lookup];
 
     if (!definition) return;
@@ -2986,6 +3078,7 @@ export const getItemConfig = (
       item.spell ||
       item.skill ||
       item.consume ||
+      item.materialized ||
       (item.stackable === "resource" ? item.stackable : undefined) ||
       (item.accessory === "ring" || item.accessory === "amulet"
         ? item.accessory
@@ -3018,7 +3111,7 @@ export const getItemSprite = (
   // allow hiding claws of mobs
   if (item.weapon && (amount ?? item.amount) === 0) return none;
 
-  if (item.stat) return getStatSprite(item.stat, variant);
+  if (item.stat && !item.material) return getStatSprite(item.stat, variant);
 
   const itemConfig = getItemConfig(item);
 
@@ -3114,9 +3207,9 @@ export const getEntityDescription = (
   if (definition.getDescription) {
     const consumptionConfig =
       item.material &&
-      item.element &&
+      item.stat &&
       item.consume === "potion" &&
-      consumptionConfigs.potion?.[item.material]?.[item.element];
+      consumptionConfigs.potion?.[item.material]?.[item.stat];
     const itemConsumption = getItemConsumption({ [ITEM]: item });
 
     const itemStats = consumptionConfig

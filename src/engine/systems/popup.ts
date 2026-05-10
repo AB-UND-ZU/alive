@@ -231,7 +231,7 @@ export const matchesItem = (
 
 export const missingFunds = (world: World, heroEntity: Entity, deal: Deal) =>
   deal.prices.filter((priceItem) => {
-    if (priceItem.stat) {
+    if (priceItem.stat && !priceItem.material) {
       // check if entity has sufficient of stat
       return heroEntity[STATS][priceItem.stat] < priceItem.amount;
     }
@@ -366,6 +366,19 @@ export const gearSlots: Equipment[] = [
   "map",
   "torch",
 ];
+export const gearTitles: Record<Equipment, string> = {
+  weapon: "Weapon",
+  offhand: "Offhand",
+  boots: "Boots",
+  spell: "Spell",
+  skill: "Skill",
+  tool: "Tool",
+  ring: "Ring",
+  amulet: "Amulet",
+  compass: "Compass",
+  torch: "Torch",
+  map: "Map",
+};
 
 export const mapScroll = 4;
 

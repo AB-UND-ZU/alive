@@ -4,7 +4,7 @@ import { LEVEL, LevelName } from "../../../engine/components/level";
 import { createMatrix, matrixFactory, setMatrix } from "../../math/matrix";
 import { centerArea, menuSpawn } from "./areas";
 import { VIEWABLE } from "../../../engine/components/viewable";
-import { CellType, insertArea } from "./../../../bindings/creation";
+import { CellType, createNpc, insertArea } from "./../../../bindings/creation";
 import { getItemSprite, npcSequence, questSequence } from "../../assets/utils";
 import { RENDERABLE } from "../../../engine/components/renderable";
 import {
@@ -23,10 +23,12 @@ import {
   initializeArea,
   initializeCell,
 } from "../../../engine/systems/initialize";
-import { add } from "../../math/std";
+import { add, combine } from "../../math/std";
 import { createSequence } from "../../../engine/systems/sequence";
 import { none } from "../../assets/sprites";
 import { STICKY } from "../../../engine/components/sticky";
+import { createPopup } from "../../../engine/systems/popup";
+import { getItemBuyPrice, purchasableItems } from "../../balancing/trading";
 
 export const menuSize = 42;
 export const menuName: LevelName = "LEVEL_MENU";
@@ -109,10 +111,31 @@ export const generateMenu = async (world: World) => {
     });
 
     // add dummy and anvil
-    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 6, "dummy");
+    setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 9, "dummy");
     setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 9, "dummy");
+    setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 9, "dummy");
     setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 6, "kettle");
     setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 6, "anvil");
+
+    // add trader
+    const traderEntity = createNpc(
+      world,
+      "guide",
+      combine(size, titleCenter, { x: 0, y: -6 })
+    );
+
+    createPopup(world, traderEntity, {
+      deals: purchasableItems.map((item) => ({
+        item: {
+          ...item,
+          amount: 1,
+        },
+        stock: Infinity,
+        prices: getItemBuyPrice(item),
+      })),
+
+      tabs: ["buy", "sell"],
+    });
 
     const itemColumns: Omit<Item, "bound" | "carrier">[][] = [
       [
@@ -137,37 +160,37 @@ export const generateMenu = async (world: World) => {
         {
           consume: "potion",
           material: "wood",
-          element: "fire",
+          stat: "hp",
           amount: Infinity,
         },
         {
           consume: "potion",
           material: "iron",
-          element: "fire",
+          stat: "hp",
           amount: Infinity,
         },
         {
           consume: "potion",
           material: "gold",
-          element: "fire",
+          stat: "hp",
           amount: Infinity,
         },
         {
           consume: "potion",
           material: "wood",
-          element: "water",
+          stat: "mp",
           amount: Infinity,
         },
         {
           consume: "potion",
           material: "iron",
-          element: "water",
+          stat: "mp",
           amount: Infinity,
         },
         {
           consume: "potion",
           material: "gold",
-          element: "water",
+          stat: "mp",
           amount: Infinity,
         },
       ],

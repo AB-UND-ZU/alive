@@ -2357,7 +2357,7 @@ export const double: Sprite = {
   ],
 };
 
-export const weaponSlot: Sprite = mergeSprites(emptySlot, {
+export const weaponSlot: Sprite = {
   name: "Weapon",
   layers: [
     { char: "*", color: colors.black },
@@ -2365,14 +2365,14 @@ export const weaponSlot: Sprite = mergeSprites(emptySlot, {
     { char: "-", color: colors.grey },
     { char: "∙", color: colors.black },
   ],
-});
+};
 
-export const offhandSlot: Sprite = mergeSprites(emptySlot, {
+export const offhandSlot: Sprite = {
   name: "Offhand",
   layers: [{ char: "¬", color: colors.black }],
-});
+};
 
-export const bootsSlot: Sprite = mergeSprites(emptySlot, {
+export const bootsSlot: Sprite = {
   name: "Boots",
   layers: [
     { char: "\u0116", color: colors.black },
@@ -2380,27 +2380,27 @@ export const bootsSlot: Sprite = mergeSprites(emptySlot, {
     { char: "¡", color: colors.black },
     { char: "|", color: colors.grey },
   ],
-});
+};
 
-export const spellSlot: Sprite = mergeSprites(emptySlot, {
+export const spellSlot: Sprite = {
   name: "Spell",
   layers: [{ char: "+", color: colors.black }],
-});
+};
 
-export const skillSlot: Sprite = mergeSprites(emptySlot, {
+export const skillSlot: Sprite = {
   name: "Skill",
   layers: [{ char: "»", color: colors.black }],
-});
+};
 
-export const toolSlot: Sprite = mergeSprites(emptySlot, {
+export const toolSlot: Sprite = {
   name: "Tool",
   layers: [
     { char: "\u0106", color: colors.black },
     { char: "∙", color: colors.grey },
   ],
-});
+};
 
-export const ringSlot: Sprite = mergeSprites(emptySlot, {
+export const ringSlot: Sprite = {
   name: "Ring",
   layers: [
     { char: "|", color: colors.black },
@@ -2409,9 +2409,9 @@ export const ringSlot: Sprite = mergeSprites(emptySlot, {
     { char: "\u0108", color: colors.black },
     { char: "\u0106", color: colors.grey },
   ],
-});
+};
 
-export const amuletSlot: Sprite = mergeSprites(emptySlot, {
+export const amuletSlot: Sprite = {
   name: "Amulet",
   layers: [
     { char: "t", color: colors.black },
@@ -2420,9 +2420,9 @@ export const amuletSlot: Sprite = mergeSprites(emptySlot, {
     { char: "\u0115", color: colors.grey },
     { char: "\u0103", color: colors.black },
   ],
-});
+};
 
-export const compassSlot: Sprite = mergeSprites(emptySlot, {
+export const compassSlot: Sprite = {
   name: "Compass",
   layers: [
     { char: "\u0108", color: colors.black },
@@ -2433,9 +2433,9 @@ export const compassSlot: Sprite = mergeSprites(emptySlot, {
     { char: "\u0106", color: colors.grey },
     { char: "|", color: colors.black },
   ],
-});
+};
 
-export const torchSlot: Sprite = mergeSprites(emptySlot, {
+export const torchSlot: Sprite = {
   name: "Torch",
   layers: [
     { char: "┐", color: colors.black },
@@ -2443,9 +2443,9 @@ export const torchSlot: Sprite = mergeSprites(emptySlot, {
     { char: "*", color: colors.black },
     { char: "∙", color: colors.grey },
   ],
-});
+};
 
-export const mapSlot: Sprite = mergeSprites(emptySlot, {
+export const mapSlot: Sprite = {
   name: "Map",
   layers: [
     { char: "■", color: colors.black },
@@ -2454,7 +2454,16 @@ export const mapSlot: Sprite = mergeSprites(emptySlot, {
     { char: "+", color: colors.black },
     { char: "·", color: colors.grey },
   ],
-});
+};
+
+export const getBlockedSlot = (shadow: Sprite) =>
+  mergeSprites(
+    emptySlot,
+    createText("\u0100", colors.red)[0],
+    createText("■", colors.grey)[0],
+    shadow,
+    createText("/", colors.red)[0]
+  );
 
 export const friendlyBar: Sprite = {
   name: "Friendly",

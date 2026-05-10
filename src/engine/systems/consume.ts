@@ -1,16 +1,10 @@
 import { World } from "../ecs";
 import { RENDERABLE } from "../components/renderable";
 import { Entity } from "ecs";
-import {
-  Consumable,
-  Element,
-  ITEM,
-  Material,
-  Stackable,
-} from "../components/item";
+import { Consumable, ITEM, Material, Stackable } from "../components/item";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { PLAYER } from "../components/player";
-import { Countable, STATS } from "../components/stats";
+import { Countable, STATS, UnitStats } from "../components/stats";
 import { TypedEntity } from "../entities";
 import { rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
@@ -61,7 +55,7 @@ export const consumptionConfigs: Partial<
         Material,
         Partial<
           Record<
-            Element,
+            keyof UnitStats,
             {
               cooldown: number;
               amount: number;
@@ -76,16 +70,16 @@ export const consumptionConfigs: Partial<
 > = {
   potion: {
     wood: {
-      fire: { cooldown: 5, amount: 2, countable: "hp", buffer: 2 },
-      water: { cooldown: 5, amount: 1, countable: "mp", buffer: 2 },
+      hp: { cooldown: 5, amount: 2, countable: "hp", buffer: 2 },
+      mp: { cooldown: 5, amount: 1, countable: "mp", buffer: 2 },
     },
     iron: {
-      fire: { cooldown: 8, amount: 5, countable: "hp", buffer: 2 },
-      water: { cooldown: 8, amount: 2, countable: "mp", buffer: 2 },
+      hp: { cooldown: 8, amount: 5, countable: "hp", buffer: 2 },
+      mp: { cooldown: 8, amount: 2, countable: "mp", buffer: 2 },
     },
     gold: {
-      fire: { cooldown: 10, amount: 8, countable: "hp", buffer: 2 },
-      water: { cooldown: 10, amount: 3, countable: "mp", buffer: 2 },
+      hp: { cooldown: 10, amount: 8, countable: "hp", buffer: 2 },
+      mp: { cooldown: 10, amount: 3, countable: "mp", buffer: 2 },
     },
   },
 };
@@ -239,7 +233,7 @@ export default function setupConsume(world: World) {
         const consumptionConfig =
           consumptionConfigs[consumable[ITEM].consume!]?.[
             consumable[ITEM].material!
-          ]?.[consumable[ITEM].element!];
+          ]?.[consumable[ITEM].stat!];
         const maxCounter =
           consumptionConfig && getMaxCounter(consumptionConfig.countable);
 

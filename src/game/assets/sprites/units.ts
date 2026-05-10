@@ -376,40 +376,6 @@ export const pot: Sprite = {
   ],
 };
 
-export const ironLock: Sprite = {
-  name: "Lock",
-  layers: [
-    { char: "\u0106", color: colors.grey },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.grey },
-  ],
-};
-
-export const goldLock: Sprite = {
-  name: "Lock",
-  layers: [
-    { char: "\u0106", color: colors.yellow },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.yellow },
-  ],
-};
-
-export const goldUnlock: Sprite = {
-  name: "Unlock",
-  layers: [
-    { char: "M", color: colors.grey },
-    { char: "[", color: colors.grey },
-    { char: "]", color: colors.grey },
-    { char: "\u0114", color: colors.grey },
-    { char: "\u0110", color: colors.grey },
-    { char: "¼", color: colors.grey },
-    { char: "_", color: colors.black },
-    { char: "\u0106", color: colors.yellow },
-    { char: "∙", color: colors.black },
-    { char: ".", color: colors.yellow },
-  ],
-};
-
 export const doorOpen: Sprite = {
   name: "Door",
   layers: [{ char: "▌", color: colors.maroon }],

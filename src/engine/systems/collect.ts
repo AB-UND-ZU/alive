@@ -101,10 +101,15 @@ export const collectItem = (
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
 
     // skip bound items and XP
-    if (itemEntity[ITEM].bound || itemEntity[ITEM].stat === "xp") continue;
+    if (
+      itemEntity[ITEM].bound ||
+      (itemEntity[ITEM].stat === "xp" && !itemEntity[ITEM].material)
+    )
+      continue;
 
     // reduce counter items
     const stat = itemEntity[ITEM].stat;
+    const material = itemEntity[ITEM].material;
     const consume = itemEntity[ITEM].consume;
     const stackable = itemEntity[ITEM].stackable;
     const isEquipment = slots.some((slot) => itemEntity[ITEM][slot]);
@@ -132,7 +137,7 @@ export const collectItem = (
     );
 
     // initiate collecting animation on player
-    if (orientation && !itemEntity[ITEM].stat) {
+    if (orientation && !(stat && !material)) {
       const sprite = getItemSprite(itemEntity[ITEM]);
       const textColor = isEquipment ? colors.black : colors.silver;
       const backgroundColor = isEquipment ? colors.silver : colors.black;
@@ -158,7 +163,7 @@ export const collectItem = (
     }
 
     // play sound
-    if (!stat) {
+    if (!(stat && !material)) {
       const options = pickupOptions[(stackable || consume)!];
       play("pickup", options);
     }
@@ -182,6 +187,7 @@ export const addToInventory = (
   const entityId = world.getEntityId(entity);
   let isEquipment = slots.some((slot) => itemEntity[ITEM][slot]);
   let targetStat = itemEntity[ITEM].stat;
+  let targetMaterial = itemEntity[ITEM].material;
   let targetConsume = itemEntity[ITEM].consume;
   let targetStackable = itemEntity[ITEM].stackable;
   let targetItem = itemEntity;
@@ -244,7 +250,7 @@ export const addToInventory = (
       entity[EQUIPPABLE][equipment] = targetId;
     }
     entity[INVENTORY].items.push(targetId);
-  } else if (targetStat) {
+  } else if (targetStat && !targetMaterial) {
     const maxStat = getMaxCounter(targetStat);
     const maximum =
       maxStat !== targetStat && maxStat
@@ -259,7 +265,8 @@ export const addToInventory = (
     if (
       entity[PLAYER] &&
       displayAmount === 0 &&
-      (targetStat === "hp" || targetStat === "mp")
+      (targetStat === "hp" || targetStat === "mp") &&
+      !targetMaterial
     ) {
       queueMessage(world, entity, {
         line: createText("0"),
@@ -269,7 +276,8 @@ export const addToInventory = (
       });
     } else if (
       entity[PLAYER] &&
-      ["hp", "mp", "maxHp", "maxMp"].includes(targetStat)
+      ["hp", "mp", "maxHp", "maxMp"].includes(targetStat) &&
+      !targetMaterial
     ) {
       entity[PLAYER].receivedStats[targetStat] += displayAmount;
     }

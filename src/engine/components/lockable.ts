@@ -1,11 +1,12 @@
 import { Entity } from "ecs";
 import { World } from "../ecs";
-import { Material, Materialized } from "./item";
+import { Element, Material, Materialized } from "./item";
 import { Sprite } from "./sprite";
 
 export type Lockable = {
   locked: boolean;
-  material: Material;
+  material?: Material;
+  element?: Element;
   sprite?: Sprite;
   type: Materialized;
 };

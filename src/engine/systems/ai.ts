@@ -114,7 +114,7 @@ import { getItemSprite, queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
 import { isImmersible, isSwimming } from "./immersion";
 import { CLICKABLE } from "../components/clickable";
-import { getEmptyAffectable } from "../components/affectable";
+import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import { HARVESTABLE } from "../components/harvestable";
 import { shootHoming } from "./homing";
 import { EQUIPPABLE } from "../components/equippable";
@@ -195,7 +195,7 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
 
-            // apply invincible and dialog manually to avoid extra tick
+            // apply dialog manually to avoid extra tick
             world.removeComponentFromEntity(
               entity as TypedEntity<"CLICKABLE">,
               "CLICKABLE"
@@ -1407,9 +1407,15 @@ export default function setupAi(world: World) {
               entity as TypedEntity<"ATTACKABLE">,
               "ATTACKABLE"
             );
-            addCollidable(world, entity, {});
+          }
+          if (entity[AFFECTABLE]) {
+            world.removeComponentFromEntity(
+              entity as TypedEntity<"AFFECTABLE">,
+              "AFFECTABLE"
+            );
           }
 
+          addCollidable(world, entity, {});
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "vulnerable") {
           const limbs = getLimbs(world, entity);
@@ -2042,8 +2048,20 @@ export default function setupAi(world: World) {
             world,
             add(entity[POSITION], { x: 0, y: 2 })
           ) as TypedEntity<"POSITION"> | undefined;
+          const oakRoom = getIdentifierAndComponents(world, "oakRoom", [
+            POSITION,
+          ]);
+          const oakTriggered = entity[BELONGABLE]?.faction === "wild";
+          const roomStep =
+            oakRoom && getSequence(world, oakRoom, "npc")?.args.step;
 
-          if (!heroEntity || isDead(world, heroEntity)) continue;
+          if (
+            !heroEntity ||
+            isDead(world, heroEntity) ||
+            !oakRoom ||
+            (oakTriggered && roomStep !== "fight")
+          )
+            continue;
           else if (
             !entity[STATS] ||
             !entity[SPRITE] ||

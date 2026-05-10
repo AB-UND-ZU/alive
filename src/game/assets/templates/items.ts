@@ -22,7 +22,18 @@ const keyTemplate: Sprite = {
     { char: "º", color: TEMPLATE_COLORS.materialPrimary },
   ],
 };
-export const key = createTemplate({ sprite: keyTemplate });
+const keyElementTemplate: Sprite = {
+  name: "Key",
+  layers: [
+    { char: "\u0103", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "\u011c", color: TEMPLATE_COLORS.transparent },
+    { char: "º", color: TEMPLATE_COLORS.elementPrimary },
+  ],
+};
+export const key = createTemplate({
+  sprite: keyTemplate,
+  materialElementSprite: keyElementTemplate,
+});
 
 const flaskTemplate: Sprite = {
   name: "Flask",

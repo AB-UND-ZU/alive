@@ -7,6 +7,7 @@ import {
   Stackable,
 } from "../../engine/components/item";
 import { Deal } from "../../engine/components/popup";
+import { UnitStats } from "../../engine/components/stats";
 
 export const itemPrices: Partial<Record<Stackable, number>> = {
   worm: 1,
@@ -29,8 +30,8 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
   algae: 3,
   eel: 10,
 
-  pearl: 20,
-  seastar: 20,
+  pearl: 50,
+  seastar: 30,
 
   seed: 3,
   fruit: 8,
@@ -38,6 +39,10 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
 
   gem: 10,
   crystal: 10,
+
+  golemHead: 20,
+
+  plank: 100,
 
   // exchange items
   nugget: 10,
@@ -61,19 +66,26 @@ export const itemElementPrices: Partial<
     ResourceItem | Consumable,
     Partial<Record<Material, Partial<Record<Element, number>>>>
   >
+> = {};
+
+export const itemStatPrices: Partial<
+  Record<
+    ResourceItem | Consumable,
+    Partial<Record<Material, Partial<Record<keyof UnitStats, number>>>>
+  >
 > = {
   potion: {
     wood: {
-      fire: 2,
-      water: 2,
+      mp: 2,
+      hp: 2,
     },
     iron: {
-      fire: 5,
-      water: 5,
+      mp: 5,
+      hp: 5,
     },
     gold: {
-      fire: 12,
-      water: 12,
+      mp: 12,
+      hp: 12,
     },
   },
 };
@@ -87,9 +99,12 @@ const getItemPrice = (
   } else {
     const material = item.material;
     const element = item.element;
+    const stat = item.stat;
     const lookup = item.stackable || item.consume;
 
-    if (lookup && material && element) {
+    if (lookup && material && stat) {
+      price = itemStatPrices[lookup]?.[material]?.[stat];
+    } else if (lookup && material && element) {
       price = itemElementPrices[lookup]?.[material]?.[element];
     } else if (lookup && material) {
       price = itemMaterialPrices[lookup]?.[material];
@@ -128,21 +143,26 @@ export const getItemSellPrice = (
 };
 
 export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
-  { consume: "potion", material: "wood", element: "fire" },
-  { consume: "potion", material: "wood", element: "water" },
   { stackable: "apple" },
   { stackable: "shroom" },
-  { stackable: "worm" },
-  { stackable: "arrow" },
-  { stackable: "charge" },
-  { consume: "potion", material: "iron", element: "fire" },
-  { consume: "potion", material: "iron", element: "water" },
   { stackable: "fruit" },
   { stackable: "herb" },
   { stackable: "banana" },
   { stackable: "coconut" },
+  { consume: "potion", material: "wood", stat: "hp" },
+  { consume: "potion", material: "iron", stat: "hp" },
+  { consume: "potion", material: "gold", stat: "hp" },
+  { consume: "potion", material: "wood", stat: "mp" },
+  { consume: "potion", material: "iron", stat: "mp" },
+  { consume: "potion", material: "gold", stat: "mp" },
   { stackable: "resource", material: "wood" },
+  { stackable: "plank" },
   { stackable: "resource", material: "iron" },
+  { stackable: "nugget" },
+  { stackable: "resource", material: "gold" },
+  { stackable: "arrow" },
+  { stackable: "charge" },
+  { stackable: "worm" },
 ];
 
 /* balance: <count> * <coins> ~= 20

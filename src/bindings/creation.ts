@@ -1743,25 +1743,31 @@ export const createCell = (
     cell === "wood_door" ||
     cell === "guide_door" ||
     cell === "nomad_door" ||
+    cell === "earth_door" ||
     cell === "iron_door"
   ) {
+    const material =
+      cell === "earth_door"
+        ? undefined
+        : cell === "iron_door"
+        ? "iron"
+        : "wood";
+    const element = cell === "earth_door" ? "earth" : undefined;
     const doorEntity = entities.createDoor(world, {
       [ENTERABLE]: { sprite: doorOpen, orientation: "down" },
       [FOG]: { visibility, type: "float" },
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [LOCKABLE]: {
         locked: true,
-        material: cell === "iron_door" ? "iron" : "wood",
+        material,
+        element,
         sprite: doorOpen,
         type: "door",
       },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]:
-        cell === "iron_door"
-          ? doorClosed.iron.default
-          : doorClosed.wood.default,
+      [SPRITE]: doorClosed[material || "default"][element || "default"],
       [TOOLTIP]: {
         dialogs: [],
         persistent: false,
@@ -2026,7 +2032,7 @@ export const createCell = (
           ...createItemName({
             consume: "potion",
             material: "wood",
-            element: "water",
+            stat: "mp",
           }),
           ...createText(" will"),
         ],
@@ -2392,7 +2398,7 @@ export const createCell = (
             {
               consume: "potion",
               material: "wood",
-              element: "water",
+              stat: "mp",
               amount: 10,
               bound: false,
             },
@@ -2436,7 +2442,7 @@ export const createCell = (
       {
         consume: "potion",
         material: "wood",
-        element: "fire",
+        stat: "hp",
         amount: 10,
       },
     ]);

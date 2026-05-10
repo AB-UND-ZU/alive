@@ -223,6 +223,8 @@ import {
   bait,
   wire,
   blockedInactive,
+  emptySlot,
+  getBlockedSlot,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -305,7 +307,6 @@ import {
   questWidth,
   rewardWidth,
   hookSpeed,
-  createItemText,
 } from "./utils";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
@@ -330,6 +331,7 @@ import {
   canShop,
   existingFund,
   gearSlots,
+  gearTitles,
   getDefeated,
   getTab,
   getTabSelections,
@@ -3614,7 +3616,7 @@ export const displayInspect: Sequence<PopupSequence> = (
           itemEntity &&
           consumptionConfigs[itemEntity[ITEM].consume!]?.[
             itemEntity[ITEM].material!
-          ]?.[itemEntity[ITEM].element!];
+          ]?.[itemEntity[ITEM].stat!];
 
         const itemSprite = getItemSprite(
           itemEntity[ITEM],
@@ -3799,19 +3801,6 @@ export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
   };
 };
 
-const gearTitles: Record<Equipment, string> = {
-  weapon: "Weapon",
-  offhand: "Offhand",
-  boots: "Boots",
-  spell: "Spell",
-  skill: "Skill",
-  tool: "Tool",
-  ring: "Ring",
-  amulet: "Amulet",
-  compass: "Compass",
-  torch: "Torch",
-  map: "Map",
-};
 const gearShadows: Record<Equipment, Sprite> = {
   weapon: weaponSlot,
   offhand: offhandSlot,
@@ -3931,7 +3920,7 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
       ];
       return [
         none,
-        selected ? gearShadows[gear] : none,
+        selected ? mergeSprites(emptySlot, gearShadows[gear]) : none,
         ...(selected ? dotted(line, colors.red) : line),
         none,
         ...(heroPixels[rowIndex - scrollIndex] || []),
@@ -3954,7 +3943,7 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
       ];
       return [
         none,
-        selected ? blocked : blockedInactive,
+        selected ? getBlockedSlot(gearShadows[gear]) : blockedInactive,
         ...(selected ? dotted(line, colors.red) : line),
         none,
         ...(heroPixels[rowIndex - scrollIndex] || []),
@@ -6612,7 +6601,7 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
     itemEntity &&
     consumptionConfigs[itemEntity[ITEM].consume!]?.[
       itemEntity[ITEM].material!
-    ]?.[itemEntity[ITEM].element!];
+    ]?.[itemEntity[ITEM].stat!];
 
   const maxCountable =
     consumptionConfig && getMaxCounter(consumptionConfig.countable);
@@ -8128,6 +8117,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
           world.getEntityId(fragmentEntity)
         );
         if (limbIndex === -1) continue;
+        dropEntity(world, fragmentEntity, fragmentEntity[POSITION]);
         disposeEntity(world, fragmentEntity);
         state.args.limbs.splice(limbIndex, 1);
       }

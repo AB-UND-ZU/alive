@@ -74,11 +74,13 @@ export const getUnlockKey = (
   lockable: Entity
 ) => {
   const material = lockable[LOCKABLE].material;
+  const element = lockable[LOCKABLE].element;
   const keyId = entity[INVENTORY].items.find((item: number) => {
     const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
     return (
       itemEntity[ITEM].consume === "key" &&
-      itemEntity[ITEM].material === material
+      itemEntity[ITEM].material === material &&
+      itemEntity[ITEM].element === element
     );
   });
   return keyId && world.getEntityById(keyId);
@@ -87,7 +89,11 @@ export const getUnlockKey = (
 export const getUnlockSprite = (world: World, lockable: Entity) =>
   lockable[LOCKABLE].material === "wood"
     ? none
-    : getItemSprite({ consume: "key", material: lockable[LOCKABLE].material });
+    : getItemSprite({
+        consume: "key",
+        material: lockable[LOCKABLE].material,
+        element: lockable[LOCKABLE].element,
+      });
 
 export const getPendingTotem = (world: World, entity: Entity) => {
   const entityId = world.getEntityId(entity);
