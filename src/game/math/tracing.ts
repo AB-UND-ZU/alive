@@ -214,7 +214,7 @@ const cellToIntervals = (
 };
 
 export const degreesToOrientations = (degrees: number): Orientation[] => {
-  const normalized = degrees % 360;
+  const normalized = normalize(degrees, 360);
 
   const step = 360 / 16;
 

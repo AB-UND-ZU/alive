@@ -35,6 +35,7 @@ import { FOG } from "../../../engine/components/fog";
 import { ATTACKABLE } from "../../../engine/components/attackable";
 import {
   ORIENTABLE,
+  Orientation,
   orientationPoints,
 } from "../../../engine/components/orientable";
 import { ilexArea, oakArea, spawnArea, townSize } from "./areas";
@@ -92,8 +93,15 @@ import {
   smoothenBeaches,
   CellType,
   flipArea,
+  marchLinePredicate,
+  getWaterCell,
 } from "../../../bindings/creation";
-import { findPath, invertOrientation } from "../../math/path";
+import {
+  findPath,
+  invertOrientation,
+  relativeOrientations,
+  rotateOrientation,
+} from "../../math/path";
 import { LAYER } from "../../../engine/components/layer";
 import { createPopup } from "../../../engine/systems/popup";
 import {
@@ -114,6 +122,9 @@ import {
   getEmptyCastable,
 } from "../../../engine/components/castable";
 import { MOVABLE } from "../../../engine/components/movable";
+import { pixelCircle } from "../../math/tracing";
+import { aspectRatio } from "../../../components/Dimensions/sizing";
+import generateHaven from "../../../engine/wfc/haven";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -153,11 +164,13 @@ export const generateIsland = (world: World) => {
   const oakRatio = 0.6;
   const oceanDepth = -70;
   const archipelagoDepth = -30;
+  const palisadeDepth = -10;
   const sandDepth = 0;
+  const havenDepth = 3;
   const airDepth = 6;
   const treeChance = 0.04;
   const rottenChance = 0.035;
-  const stoneChance = 0.08;
+  const stoneChance = 0.07;
   const oreChance = 0.1;
   const ironChance = 0.4;
   const mountainIronChance = 0.03;
@@ -599,7 +612,7 @@ export const generateIsland = (world: World) => {
         Math.random() < oreChance * 2
       )
         cell = "ore";
-      // spawn stones around lakes but away from flattened areas
+      // spawn rocks around lakes but away from flattened areas
       else if (
         elevation > sandDepth &&
         elevation < airDepth &&
@@ -608,7 +621,7 @@ export const generateIsland = (world: World) => {
         getDistance({ x: 0, y: 0 }, { x, y }, size, mainlandRatio) <
           mainlandRadius * 0.8
       )
-        cell = cell === "sand" ? "desert_stone" : "stone";
+        cell = cell === "sand" ? "desert_rock" : "rock";
       else if (terrain > treeDepth) {
         if (
           y > 0 &&
@@ -720,10 +733,11 @@ export const generateIsland = (world: World) => {
       else if (cell === "desert_palm" && random(0, 9) === 0)
         cell = "desert_palm_fruit";
     } else if (biome === "glacier") {
+      // TODO: add terrain to glacier
     }
 
     // set path weight
-    if (["air", "bush", "grass", "path", "desert", "hedge"].includes(cell)) {
+    if (["air", "bush", "grass", "path", "sand", "hedge"].includes(cell)) {
       pathMatrix[x][y] =
         (Math.abs(elevation - pathHeight) + 4) ** 2 / 16 +
         (cell === "hedge" ? 100 : 0);
@@ -854,7 +868,7 @@ export const generateIsland = (world: World) => {
     setPath(pathMatrix, x, y, height);
   });
 
-  // select quadrant pairs manually to ensure paht is contained by island
+  // select quadrant pairs manually to ensure path is contained by island
   const closestExit =
     exits[signedDistance(spawnExit.y, townPoint.y, size) > 0 ? 0 : 1];
   const townPath = findPath(pathMatrix, spawnExit, closestExit, false, false, {
@@ -896,6 +910,362 @@ export const generateIsland = (world: World) => {
     druidHouse.position.y + 2,
     "house_druid"
   );
+
+  // mark entrance of desert for further processing
+  const desertEntrance = angledOffset(
+    size,
+    oakExit,
+    islandAngle + 90,
+    2,
+    oakRatio
+  );
+  worldMap[desertEntrance.x][desertEntrance.y] = "sand";
+  objectsMap[desertEntrance.x][desertEntrance.y] = [];
+  setPath(pathMatrix, desertEntrance.x, desertEntrance.y, 1);
+
+  // find suitable angle for haven with largest distance to known neighbouring islands
+  const havenAngles = [-45, 0, 45, 135, 180, 225];
+  const closestHavenAngles = [...havenAngles].sort(
+    (left, right) =>
+      Math.abs(signedDistance(left, islandAngle + 90, 360)) -
+      Math.abs(signedDistance(right, islandAngle + 90, 360))
+  );
+  const havenAngle = closestHavenAngles[0];
+
+  // find haven point as first beach starting from ocean towards center
+  const beachPoint = marchLinePredicate(
+    world,
+    desertEntrance,
+    havenAngle,
+    mainlandRadius * 1.25,
+    mainlandRatio,
+    (x, y) =>
+      biomeMap[x][y] === "desert" &&
+      elevationMatrix[x][y] > sandDepth &&
+      findPath(pathMatrix, { x, y }, desertEntrance, false, true).length > 0
+  );
+
+  // move haven center to free area inwards
+  const havenInnRadius = 2;
+  const havenPoint = marchLinePredicate(
+    world,
+    desertEntrance,
+    havenAngle,
+    getDistance(desertEntrance, beachPoint, size, mainlandRatio) - 5,
+    mainlandRatio,
+    (x, y) =>
+      range(-havenInnRadius, havenInnRadius).every((offsetX) =>
+        range(-havenInnRadius, havenInnRadius).every((offsetY) => {
+          const target = combine(size, { x: x + offsetX, y: y + offsetY });
+          return elevationMatrix[target.x][target.y] > havenDepth;
+        })
+      )
+  );
+
+  // determine radius size for haven, ensuring sandy areas free from beach
+  const havenRatio = aspectRatio;
+  const havenCells = 460;
+  let havenRadius = 11;
+  let havenUsable = 0;
+  do {
+    havenUsable = 0;
+    havenRadius += 1;
+
+    for (const { x, y } of pixelCircle(
+      havenPoint,
+      havenRadius,
+      havenRatio,
+      true
+    )) {
+      const target = combine(size, { x, y });
+      const elevation = elevationMatrix[target.x][target.y];
+      const cell = worldMap[target.x][target.y];
+      const biome = biomeMap[target.x][target.y];
+      if (elevation > havenDepth && biome === "desert") havenUsable += 1;
+      else if (cell === "water_shallow") havenUsable -= 1.5;
+      else if (cell === "water_deep") havenUsable -= 0.05;
+    }
+  } while (havenUsable < havenCells);
+
+  // create virtual map for filling haven town
+  const havenWidth = Math.ceil(havenRadius / havenRatio) * 2 + 1;
+  const havenHeight = Math.ceil(havenRadius) * 2 + 1;
+  const havenCorner = combine(size, havenPoint, {
+    x: (havenWidth - 1) / -2,
+    y: (havenHeight - 1) / -2,
+  });
+  const havenArea: Record<number, Record<number, boolean>> = {};
+
+  // clear area for haven
+  for (const { x, y } of pixelCircle(
+    havenPoint,
+    havenRadius,
+    havenRatio,
+    true
+  )) {
+    const target = combine(size, { x, y });
+    const elevation = elevationMatrix[target.x][target.y];
+    const biome = biomeMap[target.x][target.y];
+    if (elevation > sandDepth && biome === "desert") {
+      worldMap[target.x][target.y] = "sand";
+      objectsMap[target.x][target.y] = [];
+
+      // mark area as free if within zone
+      const havenX = normalize(target.x - havenCorner.x, size);
+      const havenY = normalize(target.y - havenCorner.y, size);
+
+      const withinPalisades =
+        getDistance(havenPoint, target, size, havenRatio) < havenRadius - 2 &&
+        elevation > havenDepth;
+      havenArea[havenX] = havenArea[havenX] || {};
+      havenArea[havenX][havenY] = withinPalisades;
+    }
+  }
+
+  // place palisades
+  for (const { x, y } of pixelCircle(havenPoint, havenRadius - 1, havenRatio)) {
+    const target = combine(size, { x, y });
+    const cell = worldMap[target.x][target.y];
+    const elevation = elevationMatrix[target.x][target.y];
+    const biome = biomeMap[target.x][target.y];
+
+    if (
+      biome === "desert" &&
+      ((elevation > palisadeDepth && cell === "water_shallow") ||
+        elevation > sandDepth)
+    ) {
+      worldMap[target.x][target.y] =
+        elevation > sandDepth ? "sand" : "water_shallow";
+      objectsMap[target.x][target.y] = ["palisade"];
+
+      // mark area as occupied
+      const havenX = normalize(target.x - havenCorner.x, size);
+      const havenY = normalize(target.y - havenCorner.y, size);
+      havenArea[havenX] = havenArea[havenX] || {};
+      havenArea[havenX][havenY] = false;
+    }
+  }
+
+  // check if jetty is outside of haven, and extend palisades if needed
+  const jettyInnDistance = getDistance(
+    beachPoint,
+    havenPoint,
+    size,
+    havenRatio
+  );
+  const jettyRadius = jettyInnDistance + 5 - havenRadius;
+  if (jettyRadius > 0) {
+    // clear existing palisades and area
+    for (const { x, y } of pixelCircle(
+      beachPoint,
+      jettyRadius + 5,
+      havenRatio,
+      true
+    )) {
+      const target = combine(size, { x, y });
+      const objects = objectsMap[target.x][target.y];
+      const elevation = elevationMatrix[target.x][target.y];
+      const biome = biomeMap[target.x][target.y];
+      if (
+        biome === "desert" &&
+        (elevation > sandDepth || objects.includes("palisade"))
+      ) {
+        worldMap[target.x][target.y] =
+          elevation > sandDepth ? "sand" : "water_shallow";
+        objectsMap[target.x][target.y] = [];
+      }
+    }
+
+    // extend palisade by circle around jetty
+    for (const { x, y } of pixelCircle(
+      beachPoint,
+      jettyRadius + 5,
+      havenRatio
+    )) {
+      const target = combine(size, { x, y });
+      const cell = worldMap[target.x][target.y];
+      const elevation = elevationMatrix[target.x][target.y];
+      const biome = biomeMap[target.x][target.y];
+
+      if (
+        biome === "desert" &&
+        getDistance(havenPoint, target, size, havenRatio) > havenRadius - 1 &&
+        ((elevation > palisadeDepth && cell === "water_shallow") ||
+          elevation > sandDepth)
+      ) {
+        worldMap[target.x][target.y] =
+          elevation > sandDepth ? "sand" : "water_shallow";
+        objectsMap[target.x][target.y] = ["palisade"];
+      }
+    }
+  }
+
+  // find closest angle for jetty which has most water
+  const jettyConfigurations: Record<
+    Orientation,
+    {
+      cell: CellType;
+      length: number;
+    }
+  > = {
+    up: {
+      cell: "jetty_vertical",
+      length: 5,
+    },
+    right: {
+      cell: "jetty_horizontal",
+      length: 8,
+    },
+    down: {
+      cell: "jetty_vertical",
+      length: 5,
+    },
+    left: {
+      cell: "jetty_horizontal",
+      length: 8,
+    },
+  };
+  const placementScores: Partial<Record<CellType, number>> = {
+    sand: -5,
+    water_shallow: 1,
+    water_deep: 3,
+  };
+  const defaultScore = -3;
+  const jettyOrientations = relativeOrientations(
+    world,
+    desertEntrance,
+    beachPoint,
+    mainlandRatio
+  );
+  const calculatePlacementScore = (
+    orientation: Orientation,
+    origin: Position
+  ) => {
+    let score = 0;
+    const delta = orientationPoints[orientation];
+    const leftDelta = orientationPoints[rotateOrientation(orientation, -1)];
+    const rightDelta = orientationPoints[rotateOrientation(orientation, 1)];
+    let placementCursor = origin;
+    const range = jettyConfigurations[orientation].length + 2;
+    for (let rangeOffset = 0; rangeOffset < range; rangeOffset += 1) {
+      placementCursor = combine(size, placementCursor, delta);
+      score +=
+        placementScores[worldMap[placementCursor.x][placementCursor.y]] ||
+        defaultScore;
+      const leftPosition = combine(size, placementCursor, leftDelta);
+      score +=
+        placementScores[worldMap[leftPosition.x][leftPosition.y]] ||
+        defaultScore;
+      const rightPosition = combine(size, placementCursor, rightDelta);
+      score +=
+        placementScores[worldMap[rightPosition.x][rightPosition.y]] ||
+        defaultScore;
+    }
+    return score;
+  };
+  const jettyOrientation =
+    jettyOrientations.length === 1
+      ? jettyOrientations[0]
+      : [...jettyOrientations].sort(
+          (left, right) =>
+            calculatePlacementScore(right, beachPoint) -
+            calculatePlacementScore(left, beachPoint)
+        )[0];
+
+  const jettyConfiguration = jettyConfigurations[jettyOrientation];
+  const jettyDelta = orientationPoints[jettyOrientation];
+
+  // place jetty and clear ocean area
+  const oceanClear = 5;
+  let jettyCursor = beachPoint;
+  for (
+    let jettyOffset = 0;
+    jettyOffset < jettyConfiguration.length + oceanClear;
+    jettyOffset += 1
+  ) {
+    const clearCell: CellType | undefined =
+      jettyOffset === jettyConfiguration.length
+        ? "water_shallow"
+        : jettyOffset > jettyConfiguration.length
+        ? "water_deep"
+        : undefined;
+    jettyCursor = combine(size, jettyCursor, jettyDelta);
+
+    worldMap[jettyCursor.x][jettyCursor.y] =
+      clearCell ?? jettyConfiguration.cell;
+    objectsMap[jettyCursor.x][jettyCursor.y] = [];
+
+    // place fences
+    const leftFence = combine(
+      size,
+      jettyCursor,
+      orientationPoints[rotateOrientation(jettyOrientation, -1)]
+    );
+    const rightFence = combine(
+      size,
+      jettyCursor,
+      orientationPoints[rotateOrientation(jettyOrientation, 1)]
+    );
+    worldMap[leftFence.x][leftFence.y] = clearCell ?? "water_shallow";
+    worldMap[rightFence.x][rightFence.y] = clearCell ?? "water_shallow";
+    objectsMap[leftFence.x][leftFence.y] = clearCell ? [] : ["fence"];
+    objectsMap[rightFence.x][rightFence.y] = clearCell ? [] : ["fence"];
+
+    if (clearCell === "water_deep") {
+      worldMap[jettyCursor.x][jettyCursor.y] = getWaterCell(
+        worldMap,
+        jettyCursor.x,
+        jettyCursor.y
+      );
+      worldMap[leftFence.x][leftFence.y] = getWaterCell(
+        worldMap,
+        leftFence.x,
+        leftFence.y
+      );
+      worldMap[rightFence.x][rightFence.y] = getWaterCell(
+        worldMap,
+        rightFence.x,
+        rightFence.y
+      );
+    }
+  }
+
+  const havenMap = matrixFactory<CellType | "">(
+    havenWidth,
+    havenHeight,
+    (x, y) => {
+      if (havenArea[x]?.[y]) {
+        return "";
+      }
+
+      return "sand";
+    }
+  );
+
+  // insert haven
+  const havenInnDelta = combine(size, havenPoint, {
+    x: -havenCorner.x,
+    y: -havenCorner.y,
+  });
+  const { matrix: havenMatrix, houses: relativeHavenHouses } = generateHaven(
+    havenMap,
+    havenInnDelta
+  );
+
+  iterateMatrix(havenMatrix, (offsetX, offsetY, value) => {
+    const x = normalize(havenCorner.x + offsetX, size);
+    const y = normalize(havenCorner.y + offsetY, size);
+
+    if (value && value !== "sand") {
+      worldMap[x][y] = value as CellType;
+    }
+  });
+
+  const havenHouses = relativeHavenHouses.map((house) => ({
+    ...house,
+    position: combine(size, house.position, havenCorner),
+    door: combine(size, house.door, havenCorner),
+  }));
 
   // set rain for forest
   const mainlandStorm = entities.createAnchor(world, {
@@ -983,7 +1353,7 @@ export const generateIsland = (world: World) => {
       orientation: "right",
       growing: false,
       biome: "desert",
-      center: copy(oakExit),
+      center: copy(desertEntrance),
       angle: islandAngle + 90,
       radius: mainlandRadius,
       ratio: mainlandRatio,
@@ -1033,6 +1403,11 @@ export const generateIsland = (world: World) => {
     oakCorner,
     combine(size, oakCorner, { x: oakWidth, y: oakHeight })
   );
+  initializeArea(
+    world,
+    havenCorner,
+    combine(size, havenCorner, { x: havenWidth, y: havenHeight })
+  );
 
   // adjust hero
   const heroEntity = assertIdentifierAndComponents(world, "hero", [
@@ -1048,6 +1423,8 @@ export const generateIsland = (world: World) => {
     druidHouse,
     ...emptyHouses,
   ].map((building) => assignBuilding(world, building.position));
+
+  havenHouses.forEach((building) => assignBuilding(world, building.position));
 
   // add map markers
   entities.createMarker(world, {
@@ -1304,14 +1681,14 @@ export const generateIsland = (world: World) => {
     );
   }
 
-  // console.log(stringifyMap(worldMap, objectsMap, { x: size / 2, y: size / 2 }));
-  // console.log(stringifyMap(worldMap, objectsMap, { x: 0, y: 0 }));
+  // console.log(stringifyMap(worldMap, { x: size / 2, y: size / 2 }, objectsMap));
+  // console.log(stringifyMap(worldMap, { x: 0, y: 0 }, objectsMap));
 };
 
 export const stringifyMap = (
-  cellMap: CellType[][],
-  objectsMap: CellType[][][],
-  center: Position
+  cellMap: (CellType | "")[][],
+  center: Position,
+  objectsMap?: CellType[][][]
 ) => {
   const height = cellMap[0].length;
   const width = cellMap.length;
@@ -1322,13 +1699,12 @@ export const stringifyMap = (
     let row = "";
     for (let x = 0; x < width; x++) {
       const cell = getOverlappingCell(cellMap, x + center.x, y + center.y);
-      const objects = getOverlappingCell(
-        objectsMap,
-        x + center.x,
-        y + center.y
-      );
+      const objects = objectsMap
+        ? getOverlappingCell(objectsMap, x + center.x, y + center.y)
+        : [];
 
       if (objects.includes("habitat")) row += "\u03b1";
+      else if (objects.includes("palisade")) row += "î";
       else if (cell === "water_shallow") row += "~";
       else if (cell === "water_deep") row += "≈";
       else if (cell === "snow" || objects.includes("snow")) row += ".";
@@ -1350,9 +1726,12 @@ export const stringifyMap = (
       else if (cell === "sand") row += "▒";
       else if (cell === "fence") row += "±";
       else if (cell === "path") row += "░";
+      else if (cell === "jetty_vertical" || cell === "jetty_horizontal")
+        row += "J";
       else if (cell === "pot") row += "o";
       else if (cell.includes("door")) row += "D";
-      else row += " ";
+      else if (cell === "air" || cell === ("gap" as CellType)) row += " ";
+      else row += "?";
     }
     mapString += row + "\n";
   }

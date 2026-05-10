@@ -831,6 +831,7 @@ export const createObject = entityFactory([
   SHOOTABLE,
   SPRITE,
   STATS,
+  SWIMMABLE,
 ]);
 
 export const createOre = entityFactory([
@@ -858,6 +859,22 @@ export const createOrganic = entityFactory([
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
+]);
+
+export const createPalisade = entityFactory([
+  ATTACKABLE,
+  BELONGABLE,
+  DROPPABLE,
+  FOG,
+  HARVESTABLE,
+  INVENTORY,
+  LAYER,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SWIMMABLE,
+  SPRITE,
+  STATS,
 ]);
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);

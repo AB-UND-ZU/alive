@@ -52,9 +52,12 @@ import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
 import { NpcType } from "../../engine/components/npc";
 import {
+  brokenPalisade1,
+  brokenPalisade2,
   fence,
   fenceBurnt1,
   fenceBurnt2,
+  palisade,
   sign,
 } from "../assets/sprites/structures";
 import {
@@ -94,6 +97,7 @@ export type UnitKey =
   | "dummy"
   | "sign"
   | "fence"
+  | "palisade"
   | "cactus1"
   | "cactus2"
   | "rock1"
@@ -628,6 +632,25 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: [],
     sprite: fence,
     remainsChoices: [fenceBurnt1, fenceBurnt2],
+  },
+  palisade: {
+    faction: "unit",
+    scratch: colors.silver,
+    stats: {
+      hp: 50,
+      armor: 3,
+    },
+    equipments: [],
+    harvestable: "palisade",
+    drops: [
+      {
+        chance: 100,
+        items: [{ stackable: "ore", amount: 1 }],
+      },
+    ],
+    patternNames: [],
+    sprite: palisade,
+    remainsChoices: [brokenPalisade1, brokenPalisade2],
   },
   cactus1: {
     faction: "unit",

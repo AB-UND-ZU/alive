@@ -162,6 +162,7 @@ import {
   branchRottenLeft,
   gravel,
   goldMine,
+  jetty,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -198,6 +199,7 @@ import {
   wallInside,
   window,
   windowInside,
+  swimmingPalisade,
 } from "../game/assets/sprites/structures";
 import {
   createItemName,
@@ -220,10 +222,12 @@ import {
 } from "../game/math/matrix";
 import {
   add,
+  angledOffset,
   choice,
   combine,
   copy,
   distribution,
+  getDistance,
   normalize,
   Point,
   random,
@@ -262,6 +266,8 @@ export const cellNames = [
   "water_deep",
   "sand",
   "path",
+  "jetty_horizontal",
+  "jetty_vertical",
   "mountain",
   "ore",
   "iron",
@@ -289,6 +295,7 @@ export const cellNames = [
   "desert_palm",
   "desert_palm_fruit",
   "fence",
+  "palisade",
   "fruit",
   "wood",
   "berry",
@@ -404,25 +411,33 @@ export const populateInventory = (
   populateItems(world, entity, equipments);
 };
 
-export const smoothenWater = (cellMatrix: Matrix<CellType>): Matrix<CellType> =>
-  mapMatrix(cellMatrix, (x, y, cell) => {
-    if (cell !== "water_deep") return cell;
+export const getWaterCell = (
+  cellMatrix: Matrix<CellType>,
+  x: number,
+  y: number
+): CellType => {
+  const cell = cellMatrix[x][y];
 
-    for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-      for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-        const neighbour = getOverlappingCell(
-          cellMatrix,
-          x + offsetX,
-          y + offsetY
-        );
+  if (cell !== "water_deep") return cell;
 
-        if (neighbour !== "water_deep") {
-          return "water_shallow";
-        }
+  for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+    for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+      const neighbour = getOverlappingCell(
+        cellMatrix,
+        x + offsetX,
+        y + offsetY
+      );
+
+      if (neighbour !== "water_deep" && neighbour !== "water_shallow") {
+        return "water_shallow";
       }
     }
-    return cell;
-  });
+  }
+  return cell;
+};
+
+export const smoothenWater = (cellMatrix: Matrix<CellType>): Matrix<CellType> =>
+  mapMatrix(cellMatrix, (x, y, cell) => getWaterCell(cellMatrix, x, y));
 
 export const smoothenSand = (
   cellMatrix: Matrix<CellType>,
@@ -531,6 +546,37 @@ export const assignBuilding = (
     fragments: fragmentEntities,
     door: doorEntity,
   };
+};
+
+export const marchLinePredicate = (
+  world: World,
+  origin: Position,
+  angle: number,
+  distance: number,
+  ratio: number,
+  predicate: (x: number, y: number) => boolean
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const startPoint = angledOffset(size, origin, angle, distance, ratio);
+  let cursorPoint = startPoint;
+  let cursorDistance = getDistance(startPoint, origin, size, ratio);
+  const cursorStep = ratio;
+
+  while (cursorPoint.x !== origin.x || cursorPoint.y !== origin.y) {
+    if (predicate(cursorPoint.x, cursorPoint.y)) {
+      return cursorPoint;
+    }
+
+    cursorDistance -= cursorStep;
+    if (cursorDistance <= cursorStep) break;
+
+    const nextCursor = angledOffset(size, origin, angle, cursorDistance, ratio);
+    cursorPoint = combine(size, {
+      x: Math.round(nextCursor.x),
+      y: Math.round(nextCursor.y),
+    });
+  }
+  return origin;
 };
 
 export const createNpc = (
@@ -747,6 +793,7 @@ export const insertArea = (
       else if (cell === "x") entity = "fireplace";
       else if (cell === "Ω") entity = "dummy";
       else if (cell === "±") entity = "fence";
+      else if (cell === "î") entity = "palisade";
       else if (cell === "=") entity = "fence_door";
       else if (cell === "├") entity = "house_left";
       else if (cell === "└") entity = "basement_left";
@@ -1126,6 +1173,16 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: path,
       [TEMPO]: { amount: 2 },
+    });
+    all.push(tileEntity);
+    return { cell: tileEntity, all };
+  } else if (cell === "jetty_horizontal" || cell === "jetty_vertical") {
+    const tileEntity = entities.createDecoration(world, {
+      [FOG]: { visibility, type: "terrain" },
+      [ORIENTABLE]: { facing: cell === "jetty_vertical" ? "up" : "right" },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SPRITE]: jetty,
     });
     all.push(tileEntity);
     return { cell: tileEntity, all };
@@ -2209,10 +2266,40 @@ export const createCell = (
       [SHOOTABLE]: { shots: 0 },
       [SPRITE]: sprite,
       [STATS]: stats,
+      [SWIMMABLE]: { swimming: false },
     });
     all.push(fenceEntity);
     populateInventory(world, fenceEntity, items, equipments);
     return { cell: fenceEntity, all };
+  } else if (cell === "palisade") {
+    const {
+      sprite,
+      stats,
+      faction,
+      items,
+      equipments,
+      scratch,
+      remains,
+      harvestable,
+    } = generateUnitData("palisade");
+    const palisadeEntity = entities.createPalisade(world, {
+      [ATTACKABLE]: { scratchColor: scratch },
+      [BELONGABLE]: { faction },
+      [DROPPABLE]: { decayed: false, remains },
+      [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SWIMMABLE]: { swimming: false, sprite: swimmingPalisade },
+      [SPRITE]: sprite,
+      [STATS]: stats,
+    });
+    all.push(palisadeEntity);
+    populateInventory(world, palisadeEntity, items, equipments);
+    return { cell: palisadeEntity, all };
   } else if (cell === "fence_door" || cell === "fence_door_path") {
     if (cell === "fence_door_path") {
       all.push(

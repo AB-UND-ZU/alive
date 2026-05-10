@@ -14,6 +14,7 @@ const harvestEfforts: Record<Resource, number> = {
   sign: 6,
   fence: 11,
 
+  palisade: 11,
   rock: 2,
   mountain: 6,
   iron: 11,
@@ -34,6 +35,7 @@ const harvestYields: Record<Resource, Omit<Item, "carrier" | "bound">[]> = {
   sign: [],
   fence: [],
 
+  palisade: [],
   rock: [],
   mountain: [{ stackable: "ore", amount: 1 }],
   iron: [{ stackable: "resource", material: "iron", amount: 1 }],
@@ -51,6 +53,7 @@ export const harvestScratches: Record<Resource, string> = {
   sign: colors.maroon,
   fence: colors.maroon,
 
+  palisade: colors.silver,
   rock: colors.silver,
   mountain: colors.silver,
   iron: colors.silver,
@@ -74,6 +77,7 @@ export const harvestTools: Record<Resource, Tool> = {
   sign: "axe",
   fence: "axe",
 
+  palisade: "pickaxe",
   rock: "pickaxe",
   mountain: "pickaxe",
   iron: "pickaxe",

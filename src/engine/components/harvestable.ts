@@ -11,6 +11,7 @@ export type Resource =
   | "cactus"
   | "sign"
   | "fence"
+  | "palisade"
   | "rock"
   | "mountain"
   | "iron"

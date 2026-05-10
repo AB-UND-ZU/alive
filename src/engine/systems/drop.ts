@@ -113,7 +113,7 @@ export const placeRemains = (
 ) => {
   const remains = entity[DROPPABLE]?.remains;
 
-  if (remains) {
+  if (remains && !isImmersible(world, position)) {
     entities.createGround(world, {
       [FOG]: { visibility: "hidden", type: "terrain" },
       [POSITION]: copy(position),

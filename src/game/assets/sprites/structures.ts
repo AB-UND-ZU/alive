@@ -1,5 +1,6 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
+import { slotShadow } from "./particles";
 
 export const sign: Sprite = {
   name: "Sign",
@@ -73,6 +74,67 @@ export const fence: Sprite = {
   layers: [
     { char: "=", color: colors.maroon },
     { char: "|", color: colors.maroon },
+  ],
+};
+
+export const swimmingPalisade: Sprite = {
+  name: "palisade_wall",
+  layers: [
+    { char: "±", color: colors.grey },
+    { char: "⌐", color: colors.black },
+    { char: "+", color: colors.grey },
+    { char: "-", color: colors.black },
+    { char: "·", color: colors.grey },
+    { char: "=", color: colors.grey },
+    { char: ":", color: colors.grey },
+    { char: ".", color: colors.grey },
+  ],
+};
+
+export const palisade: Sprite = {
+  name: "palisade_wall",
+  layers: [
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
+    ...slotShadow.layers,
+
+    ...swimmingPalisade.layers,
+  ],
+};
+
+export const brokenPalisade1: Sprite = {
+  name: "palisade_broken_1",
+  layers: [
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
+    ...slotShadow.layers,
+
+    { char: "±", color: colors.grey },
+    { char: "⌐", color: colors.black },
+    { char: "\u011d", color: colors.black },
+    { char: "\u011e", color: colors.black },
+    { char: ".", color: colors.grey },
+  ],
+};
+
+export const brokenPalisade2: Sprite = {
+  name: "palisade_broken_2",
+  layers: [
+    { char: "\u0107", color: colors.olive },
+    { char: "\u0109", color: colors.olive },
+    { char: "▓", color: colors.black },
+    ...slotShadow.layers,
+
+    { char: "±", color: colors.grey },
+    { char: "⌐", color: colors.black },
+    { char: "\u011d", color: colors.black },
+    { char: "\u011e", color: colors.black },
+    { char: "÷", color: colors.grey },
+    { char: "-", color: colors.black },
+    { char: "=", color: colors.black },
+    { char: ".", color: colors.grey },
   ],
 };
 
@@ -401,7 +463,6 @@ export const bedItem: Sprite = {
     { char: "¬", color: colors.maroon },
     { char: "⌐", color: colors.maroon },
     { char: "\u0115", color: colors.black },
-
   ],
 };
 

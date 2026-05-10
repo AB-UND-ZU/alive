@@ -151,6 +151,45 @@ export const gravel: Sprite = {
   ],
 };
 
+export const jetty: Sprite = {
+  name: "jetty",
+  layers: [{ char: "█", color: colors.maroon }],
+  facing: {
+    up: [
+      { char: "█", color: colors.maroon },
+      { char: "Φ", color: colors.navy },
+      { char: "■", color: colors.maroon },
+      { char: "\u010e", color: colors.maroon },
+      { char: ".", color: colors.navy },
+      { char: ":", color: colors.maroon },
+    ],
+    right: [
+      { char: "█", color: colors.maroon },
+      { char: "Γ", color: colors.navy },
+      { char: "■", color: colors.maroon },
+      { char: "\u0112", color: colors.maroon },
+      { char: "|", color: colors.navy },
+      { char: "║", color: colors.maroon },
+    ],
+    down: [
+      { char: "█", color: colors.maroon },
+      { char: "Φ", color: colors.navy },
+      { char: "■", color: colors.maroon },
+      { char: "\u010e", color: colors.maroon },
+      { char: ".", color: colors.navy },
+      { char: ":", color: colors.maroon },
+    ],
+    left: [
+      { char: "█", color: colors.maroon },
+      { char: "Γ", color: colors.navy },
+      { char: "■", color: colors.maroon },
+      { char: "\u0112", color: colors.maroon },
+      { char: "|", color: colors.navy },
+      { char: "║", color: colors.maroon },
+    ],
+  },
+};
+
 export const birch: Sprite = {
   name: "tree_birch",
   layers: [
