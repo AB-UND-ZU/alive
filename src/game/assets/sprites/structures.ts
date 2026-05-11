@@ -237,6 +237,58 @@ export const fenceDoorBurntPath: Sprite = {
   ],
 };
 
+export const palisadeDoorPath: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0109", color: colors.grey },
+    { char: "▓", color: colors.black },
+    { char: "▒", color: colors.black },
+    { char: "≡", color: colors.black },
+
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "=", color: colors.maroon },
+  ],
+};
+
+export const palisadeDoor: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "=", color: colors.maroon },
+  ],
+};
+
+export const palisadeDoorOpen: Sprite = {
+  name: "palisade_door",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "=", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+
+export const palisadeDoorOpenPath: Sprite = {
+  name: "palisade_door",
+  layers: [
+    { char: "\u0107", color: colors.grey },
+    { char: "\u0109", color: colors.grey },
+    { char: "▓", color: colors.black },
+    { char: "▒", color: colors.black },
+    { char: "≡", color: colors.black },
+
+    { char: "M", color: colors.grey },
+    { char: "=", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+
 export const stairs: Sprite = {
   name: "Stairs",
   layers: [
@@ -266,6 +318,14 @@ export const kettle: Sprite = {
     { char: "w", color: colors.grey },
     { char: ".", color: colors.grey },
     { char: "\u0106", color: colors.blue },
+  ],
+};
+
+export const bench: Sprite = {
+  name: "Bench",
+  layers: [
+    { char: "\u011e", color: colors.grey },
+    { char: "π", color: colors.maroon },
   ],
 };
 

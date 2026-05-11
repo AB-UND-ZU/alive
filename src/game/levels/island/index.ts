@@ -126,6 +126,7 @@ import { pixelCircle } from "../../math/tracing";
 import { aspectRatio } from "../../../components/Dimensions/sizing";
 import generateHaven from "../../../engine/wfc/haven";
 import { disposeEntity } from "../../../engine/systems/map";
+import { findAdjacentDroppable } from "../../../engine/systems/drop";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -942,7 +943,7 @@ export const generateIsland = (world: World) => {
         size,
         oakExit,
         islandAngle + 90,
-        2,
+        1,
         oakRatio
       );
       worldMap[desertEntrance.x][desertEntrance.y] = "sand";
@@ -1025,7 +1026,7 @@ export const generateIsland = (world: World) => {
       // clear area for haven
       for (const { x, y } of pixelCircle(
         havenPoint,
-        havenRadius,
+        havenRadius + 1,
         havenRatio,
         true
       )) {
@@ -1036,19 +1037,25 @@ export const generateIsland = (world: World) => {
           worldMap[target.x][target.y] = "sand";
           objectsMap[target.x][target.y] = [];
 
+          // prevent paths going through town
+          const distance = getDistance(havenPoint, target, size, havenRatio);
+          if (distance < havenRadius - 1) {
+            setPath(pathMatrix, target.x, target.y, 0);
+          }
+
           // mark area as free if within zone
           const havenX = normalize(target.x - havenCorner.x, size);
           const havenY = normalize(target.y - havenCorner.y, size);
 
           const withinPalisades =
-            getDistance(havenPoint, target, size, havenRatio) <
-              havenRadius - 2 && elevation > havenDepth;
+            distance < havenRadius - 2 && elevation > havenDepth;
           havenArea[havenX] = havenArea[havenX] || {};
           havenArea[havenX][havenY] = withinPalisades;
         }
       }
 
       // place palisades
+      const palisadePositions: Position[] = [];
       for (const { x, y } of pixelCircle(
         havenPoint,
         havenRadius - 1,
@@ -1067,6 +1074,7 @@ export const generateIsland = (world: World) => {
           worldMap[target.x][target.y] =
             elevation > sandDepth ? "sand" : "water_shallow";
           objectsMap[target.x][target.y] = ["palisade"];
+          palisadePositions.push(target);
 
           // mark area as occupied
           const havenX = normalize(target.x - havenCorner.x, size);
@@ -1083,7 +1091,7 @@ export const generateIsland = (world: World) => {
         size,
         havenRatio
       );
-      const jettyRadius = jettyInnDistance + 5 - havenRadius;
+      const jettyRadius = jettyInnDistance + 3 - havenRadius;
       if (jettyRadius > 0) {
         // clear existing palisades and area
         for (const { x, y } of pixelCircle(
@@ -1096,6 +1104,10 @@ export const generateIsland = (world: World) => {
           const objects = objectsMap[target.x][target.y];
           const elevation = elevationMatrix[target.x][target.y];
           const biome = biomeMap[target.x][target.y];
+
+          // prevent paths going through jetty
+          setPath(pathMatrix, target.x, target.y, 0);
+
           if (
             biome === "desert" &&
             (elevation > sandDepth || objects.includes("palisade"))
@@ -1273,13 +1285,77 @@ export const generateIsland = (world: World) => {
         }
       );
 
+      // find gap for gate and guards
+      const gatePositions: {
+        gate: Position;
+        guard: Position;
+        orientation: Orientation;
+      }[] = [];
+      for (const position of palisadePositions) {
+        if (objectsMap[position.x][position.y][0] !== "palisade") continue;
+
+        const directions = relativeOrientations(
+          world,
+          position,
+          havenPoint,
+          havenRatio
+        );
+        for (const direction of directions) {
+          const delta = orientationPoints[direction];
+          const innerPoint = combine(size, position, delta);
+          const outerPoint = combine(
+            size,
+            position,
+            orientationPoints[invertOrientation(direction)]
+          );
+          if (
+            worldMap[innerPoint.x][innerPoint.y] === "sand" &&
+            objectsMap[innerPoint.x][innerPoint.y].length === 0 &&
+            worldMap[outerPoint.x][outerPoint.y] === "sand" &&
+            objectsMap[outerPoint.x][outerPoint.y].length === 0
+          ) {
+            gatePositions.push({
+              gate: position,
+              guard: innerPoint,
+              orientation: direction,
+            });
+          }
+        }
+      }
+      if (gatePositions.length === 0)
+        throw new Error("Unable to create gate for haven.");
+      const idealGatePosition = angledOffset(
+        size,
+        havenPoint,
+        havenAngle + 180,
+        havenRadius - 1,
+        havenRatio
+      );
+      gatePositions.sort(
+        (left, right) =>
+          getDistance(idealGatePosition, left.gate, size) -
+          getDistance(idealGatePosition, right.gate, size)
+      );
+      const gatePosition = gatePositions[0].gate;
+      const guardPosition = gatePositions[0].guard;
+      worldMap[gatePosition.x][gatePosition.y] = "palisade_door_path";
+      objectsMap[gatePosition.x][gatePosition.y] = [];
+
       // insert haven
       const havenInnDelta = combine(size, havenPoint, {
         x: -havenCorner.x,
         y: -havenCorner.y,
       });
+      const havenGateDelta = combine(size, gatePosition, {
+        x: -havenCorner.x,
+        y: -havenCorner.y,
+      });
+      const havenJettyDelta = combine(size, beachPoint, {
+        x: -havenCorner.x,
+        y: -havenCorner.y,
+      });
       const { matrix: havenMatrix, houses: relativeHavenHouses } =
-        generateHaven(havenMap, havenInnDelta);
+        generateHaven(havenMap, havenInnDelta, havenGateDelta, havenJettyDelta);
 
       iterateMatrix(havenMatrix, (offsetX, offsetY, value) => {
         const x = normalize(havenCorner.x + offsetX, size);
@@ -1288,6 +1364,33 @@ export const generateIsland = (world: World) => {
         if (value && value !== "sand") {
           worldMap[x][y] = value as CellType;
         }
+      });
+
+      // draw path from oak to haven gate
+      const havenGate = combine(
+        size,
+        gatePosition,
+        orientationPoints[invertOrientation(gatePositions[0].orientation)]
+      );
+      const havenPath = findPath(
+        pathMatrix,
+        desertEntrance,
+        havenGate,
+        false,
+        false,
+        {
+          x:
+            Number(desertEntrance.x > size / 2) -
+            Number(havenGate.x > size / 2),
+          y:
+            Number(desertEntrance.y > size / 2) -
+            Number(havenGate.y > size / 2),
+        }
+      );
+      havenPath.forEach(({ x, y }) => {
+        worldMap[x][y] = "path";
+        objectsMap[x][y] = [];
+        setPath(pathMatrix, x, y, 1);
       });
 
       const havenHouses = relativeHavenHouses.map((house) => ({
@@ -1369,7 +1472,7 @@ export const generateIsland = (world: World) => {
             element: "air",
             position: copy(tornadoEntity[POSITION]),
             radius: 0,
-            amount: 1,
+            amount: 2,
             exertables: [],
             gusts: [],
             generation: 0,
@@ -1715,6 +1818,30 @@ export const generateIsland = (world: World) => {
           chestData.equipments
         );
       }
+
+      // postprocess haven
+
+      // place guard behind door and walk away when nearby
+      const guardDelta = orientationPoints[gatePositions[0].orientation];
+      const guardWait = findAdjacentDroppable(
+        world,
+        combine(size, guardPosition, {
+          x: guardDelta.x * 2,
+          y: guardDelta.y * 2,
+        })
+      );
+      const fireGuard = createNpc(world, "fireGuard", guardPosition);
+      fireGuard[BEHAVIOUR].patterns.push({
+        name: "gate",
+        memory: {
+          origin: copy(guardPosition),
+          target: guardWait,
+          gate: gatePosition,
+          inn: havenPoint,
+          radius: havenRadius - 1,
+        },
+      });
+
       // console.log(
       //   stringifyMap(worldMap, { x: size / 2, y: size / 2 }, objectsMap)
       // );
@@ -1723,7 +1850,7 @@ export const generateIsland = (world: World) => {
       break;
     } catch (error) {
       console.error(
-        `Failed island generation attempt ${attempt} with error:`,
+        `Failed island generation attempt ${attempt + 1} with error:`,
         error
       );
 

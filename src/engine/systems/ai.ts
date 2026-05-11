@@ -1052,6 +1052,73 @@ export default function setupAi(world: World) {
             ];
             break;
           }
+        } else if (pattern.name === "gate") {
+          const memory = pattern.memory;
+          entity[MOVABLE].orientations = [];
+
+          if (!memory.entrance && memory.gate) {
+            const lockable = getLockable(world, memory.gate);
+            if (lockable) {
+              memory.entrance = lockable;
+            }
+          }
+
+          // invalid placement of guard
+          if (
+            !memory.entrance ||
+            !memory.origin ||
+            !memory.target ||
+            !memory.inn ||
+            !memory.radius
+          ) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+          const distance = heroEntity
+            ? getDistance(
+                memory.entrance[POSITION],
+                heroEntity[POSITION],
+                size,
+                1
+              )
+            : Infinity;
+          const unlocked = isUnlocked(world, memory.entrance);
+          const fromInside =
+            heroEntity &&
+            getDistance(memory.inn, heroEntity[POSITION], size) < memory.radius;
+          const shouldOpen =
+            heroEntity && (unlocked || fromInside) && distance <= 3.5;
+          const shouldClose = !(unlocked || fromInside) || distance >= 4;
+          const originDistance = getDistance(
+            memory.origin,
+            entity[POSITION],
+            size
+          );
+          const targetDistance = getDistance(
+            memory.target,
+            entity[POSITION],
+            size
+          );
+
+          if (shouldOpen && targetDistance > 0) {
+            entity[MOVABLE].orientations = relativeOrientations(
+              world,
+              entity[POSITION],
+              memory.target
+            );
+            break;
+          } else if (shouldClose && originDistance > 0) {
+            entity[MOVABLE].orientations = relativeOrientations(
+              world,
+              entity[POSITION],
+              memory.origin
+            );
+            break;
+          }
         } else if (pattern.name === "move") {
           const memory = pattern.memory;
           entity[MOVABLE].orientations = [];

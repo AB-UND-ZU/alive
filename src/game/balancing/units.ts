@@ -322,6 +322,138 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remainsChoices: [tombstone1],
     evaporate: { sprite: ghost, fast: false },
   },
+  fireSmith: {
+    faction: "fire",
+    scratch: colors.silver,
+    stats: {
+      hp: 30,
+    },
+    equipments: [
+      {
+        offhand: "shield",
+        material: "iron",
+        amount: 1,
+        bound: true,
+      },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: {
+      ...recolorSprite(knight, { [colors.white]: colors.red }),
+      name: "Smith",
+    },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
+  },
+  fireTrader: {
+    faction: "fire",
+    scratch: colors.silver,
+    stats: {
+      hp: 20,
+    },
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: {
+      ...recolorSprite(rogue, {
+        [colors.white]: colors.red,
+      }),
+      name: "Trader",
+    },
+    swimming: recolorSprite(swimmingRogue, {
+      [colors.white]: colors.red,
+    }),
+    backdrop: recolorSprite(rogueBackdrop, {
+      [colors.white]: colors.red,
+    }),
+    swimmingBackdrop: recolorSprite(swimmingRogueBackdrop, {
+      [colors.white]: colors.red,
+    }),
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
+  },
+  fireDruid: {
+    faction: "fire",
+    scratch: colors.silver,
+    stats: {
+      hp: 20,
+    },
+    equipments: [],
+    drops: [],
+    patternNames: [],
+    sprite: {
+      ...recolorSprite(mage, { [colors.white]: colors.red }),
+      name: "Druid",
+    },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
+  },
+  fireChief: {
+    faction: "fire",
+    scratch: colors.silver,
+    stats: {
+      hp: 40,
+    },
+    equipments: [
+      {
+        weapon: "sword",
+        material: "iron",
+        amount: 1,
+        bound: true,
+      },
+      {
+        amount: Infinity,
+        consume: "potion",
+        material: "iron",
+        stat: "hp",
+        bound: true,
+      },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: {
+      ...recolorSprite(bandit, { [colors.white]: colors.red }),
+      name: "Chief",
+    },
+    remainsChoices: [tombstone2],
+    evaporate: { sprite: ghost, fast: false },
+  },
+  fireGuard: {
+    faction: "fire",
+    scratch: colors.silver,
+    stats: {
+      hp: 40,
+    },
+    equipments: [
+      {
+        weapon: "sword",
+        material: "gold",
+        amount: 1,
+        bound: true,
+      },
+      {
+        offhand: "shield",
+        material: "iron",
+        amount: 1,
+        bound: true,
+      },
+      {
+        amount: Infinity,
+        consume: "potion",
+        material: "iron",
+        stat: "hp",
+        bound: true,
+      },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: {
+      ...recolorSprite(knight, { [colors.white]: colors.red }),
+      name: "Guard",
+    },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
+  },
   banditKnight: {
     faction: "wild",
     scratch: colors.silver,

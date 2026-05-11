@@ -45,6 +45,7 @@ export type Pattern = {
     | "habitat"
     | "dummy"
     | "guard"
+    | "gate"
     | "watch";
   memory: any;
 };

@@ -222,6 +222,10 @@ import {
   fortressRoofRightDown,
   fortressHouseLeftInside,
   fortressHouseRightInside,
+  palisadeDoor,
+  palisadeDoorPath,
+  palisadeDoorOpenPath,
+  palisadeDoorOpen,
 } from "../game/assets/sprites/structures";
 import {
   createItemName,
@@ -321,6 +325,8 @@ export const cellNames = [
   "desert_palm",
   "desert_palm_fruit",
   "fence",
+  "fence_door_path",
+  "palisade_door_path",
   "palisade",
   "fruit",
   "wood",
@@ -2360,6 +2366,37 @@ export const createCell = (
     all.push(palisadeEntity);
     populateInventory(world, palisadeEntity, items, equipments);
     return { cell: palisadeEntity, all };
+  } else if (cell === "palisade_door" || cell === "palisade_door_path") {
+    if (cell === "palisade_door_path") {
+      all.push(
+        entities.createTile(world, {
+          [FOG]: { visibility, type: "object" },
+          [POSITION]: { x, y },
+          [RENDERABLE]: { generation: 0 },
+          [SPRITE]: none,
+          [TEMPO]: { amount: 2 },
+        })
+      );
+    }
+    const gateEntity = entities.createEntry(world, {
+      [FOG]: { visibility, type: "object" },
+      [LIGHT]: { darkness: 0, visibility: 0, brightness: 0 },
+      [LOCKABLE]: {
+        material: "wood",
+        locked: true,
+        sprite:
+          cell === "palisade_door_path"
+            ? palisadeDoorOpenPath
+            : palisadeDoorOpen,
+        type: "gate",
+      },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: cell === "palisade_door_path" ? palisadeDoorPath : palisadeDoor,
+    });
+    all.push(gateEntity);
+    return { cell: gateEntity, all };
   } else if (cell === "fence_door" || cell === "fence_door_path") {
     if (cell === "fence_door_path") {
       all.push(

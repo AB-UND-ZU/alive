@@ -1,5 +1,6 @@
 import { Matrix, matrixFactory } from "../../game/math/matrix";
-import { add, Point, range } from "../../game/math/std";
+import { findPathSimple } from "../../game/math/path";
+import { add, Point, range, shuffle } from "../../game/math/std";
 import { Orientation } from "../components/orientable";
 import { getDefinition } from "./utils";
 import { Definition, Wave, WaveFunctionCollapse } from "./wfc";
@@ -25,7 +26,7 @@ const havenDefinition: Definition = {
 };
 
 const mapTiles: Record<string, string> = {
-  fountain: "air",
+  fountain: "sand",
   air: "sand",
   sand: "",
   gap: "",
@@ -97,7 +98,9 @@ const innRadius = 2;
 
 export default function generateHaven(
   beachMap: Matrix<string>,
-  innDelta: Point
+  innDelta: Point,
+  gateDelta: Point,
+  jettyDelta: Point
 ) {
   let wave: Wave | undefined;
   const wfc = new WaveFunctionCollapse(havenDefinition);
@@ -132,7 +135,7 @@ export default function generateHaven(
     if (!wave) continue;
 
     const tileMatrix = wave.chosen;
-    const paths: Point[] = [];
+    let paths: Point[] = [gateDelta, jettyDelta];
     let houses: {
       door: Point;
       position: Point;
@@ -141,7 +144,7 @@ export default function generateHaven(
     }[] = [];
 
     // parse houses
-    matrixFactory<number>(width, height, (x, y) => {
+    const walkableMatrix = matrixFactory<number>(width, height, (x, y) => {
       if (
         (Math.abs(x - innDelta.x) < innRadius &&
           Math.abs(y - innDelta.y) < innRadius) ||
@@ -157,27 +160,46 @@ export default function generateHaven(
         tile === "doorCenter" ||
         tile === "doorRight"
       ) {
-        if (x !== innDelta.x || y !== innDelta.y) {
-          paths.push({ x, y });
-          houses.push({
-            door: { x, y },
-            position: add({ x, y }, doorOffsets[tile]),
-            orientation:
-              tile === "doorLeft"
-                ? "left"
-                : tile === "doorRight"
-                ? "right"
-                : undefined,
-            inn: false,
-          });
-        }
+        paths.push({ x, y });
+        houses.push({
+          door: { x, y },
+          position: add({ x, y }, doorOffsets[tile]),
+          orientation:
+            tile === "doorLeft"
+              ? "left"
+              : tile === "doorRight"
+              ? "right"
+              : undefined,
+          inn: false,
+        });
 
         return airWeight;
       }
-      return tile === "path" ? pathWeight : tile === "air" ? airWeight : 0;
+      return tile === "path"
+        ? pathWeight
+        : tile === "air" || tile === "fountain"
+        ? airWeight
+        : 0;
     });
 
     if (houses.length < minHouses) continue;
+
+    // randomize order of paths and houses
+    paths = shuffle(paths);
+    houses = shuffle(houses);
+
+    // draw paths from exits and houses to center inn
+    walkableMatrix[gateDelta.x][gateDelta.y] = airWeight;
+    walkableMatrix[jettyDelta.x][jettyDelta.y] = airWeight;
+    const innPath = { x: innDelta.x, y: innDelta.y + innRadius };
+    const pathIndex = wfc.tileNames.indexOf("path");
+    paths.forEach((path) => {
+      const route = findPathSimple(walkableMatrix, path, innPath);
+      route.forEach((point) => {
+        tileMatrix[point.x][point.y] = pathIndex;
+        walkableMatrix[point.x][point.y] = pathWeight;
+      });
+    });
 
     const havenMatrix = matrixFactory(
       width,
