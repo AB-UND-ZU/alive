@@ -5,11 +5,13 @@ import {
   normalize,
   Point,
   product,
+  random,
+  rotate,
   sigmoid,
   signedDistance,
   sum,
 } from "./std";
-import { pointToDegree } from "./tracing";
+import { iterations, pointToDegree } from "./tracing";
 
 export type Matrix<T> = T[][];
 
@@ -24,6 +26,74 @@ export const iterateMatrix = <T>(
       rowIndex += 1
     ) {
       callback(columnIndex, rowIndex, matrix[columnIndex][rowIndex]);
+    }
+  }
+};
+
+export const iterateMatrixFromCenter = <T>(
+  matrix: Matrix<T>,
+  center: Point,
+  callback: (x: number, y: number, value: T) => void | boolean,
+  maxRadius?: number,
+  shuffled = false
+) => {
+  const size = matrix.length;
+  const radius = maxRadius ?? Math.floor(size / 2);
+  const turnedIterations = shuffled
+    ? rotate(iterations, random(0, 3))
+    : iterations;
+
+  // start with center
+  if (callback(center.x, center.y, matrix[center.x][center.y])) return center;
+
+  for (let direction = 1; direction <= radius; direction += 1) {
+    // outwards from center to corners alternating
+    for (let normal = 0; normal <= direction; normal += 1) {
+      for (const iteration of turnedIterations) {
+        // skip duplicate overlaps on even matrix sizes
+        const iterationIndex = turnedIterations.indexOf(iteration);
+        if (
+          size % 2 === 0 &&
+          direction === radius &&
+          ((iterationIndex === 1 && normal === direction) || iterationIndex > 1)
+        )
+          continue;
+
+        // positive or zero normal
+        const positiveX = normalize(
+          center.x +
+            direction * iteration.direction.x +
+            normal * iteration.normal.x,
+          size
+        );
+        const positiveY = normalize(
+          center.y +
+            direction * iteration.direction.y +
+            normal * iteration.normal.y,
+          size
+        );
+        if (callback(positiveX, positiveY, matrix[positiveX][positiveY]))
+          return { x: positiveX, y: positiveY };
+
+        // skip duplicate centers and corners
+        if (normal === 0 || normal === direction) continue;
+
+        // negative normal
+        const negativeX = normalize(
+          center.x +
+            direction * iteration.direction.x -
+            normal * iteration.normal.x,
+          size
+        );
+        const negativeY = normalize(
+          center.y +
+            direction * iteration.direction.y -
+            normal * iteration.normal.y,
+          size
+        );
+        if (callback(negativeX, negativeY, matrix[negativeX][negativeY]))
+          return { x: negativeX, y: negativeY };
+      }
     }
   }
 };

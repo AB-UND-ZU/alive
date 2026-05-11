@@ -17,8 +17,7 @@ import { Item, ITEM } from "../components/item";
 import { SWIMMABLE } from "../components/swimmable";
 import { removeFromInventory } from "./trigger";
 import { Level, LEVEL } from "../components/level";
-import { iterations } from "../../game/math/tracing";
-import { combine, copy, normalize, shuffle } from "../../game/math/std";
+import { combine, copy, shuffle } from "../../game/math/std";
 import {
   CollectSequence,
   DecaySequence,
@@ -62,6 +61,7 @@ import { HOOKABLE } from "../components/hookable";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
 import { getHarvestConfig } from "../../game/balancing/harvesting";
+import { iterateMatrixFromCenter } from "../../game/math/matrix";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE]?.decayed || entity[VANISHABLE]?.decayed;
@@ -142,53 +142,21 @@ export const findAdjacentDroppable = (
     return position;
   }
 
-  for (let direction = 1; direction <= maxRadius; direction += 1) {
-    // centers
-    const turnedIterations = shuffle(iterations);
-    for (const iteration of turnedIterations) {
-      let normal = 0;
-      const centerPosition = {
-        x: normalize(
-          position.x +
-            direction * iteration.direction.x +
-            normal * iteration.normal.x,
-          level.size
-        ),
-        y: normalize(
-          position.y +
-            direction * iteration.direction.y +
-            normal * iteration.normal.y,
-          level.size
-        ),
-      };
-      if (isDroppable(world, centerPosition)) {
-        return centerPosition;
+  let drop: Position | undefined;
+  iterateMatrixFromCenter(
+    level.cells,
+    position,
+    (x, y) => {
+      if (isDroppable(world, { x, y })) {
+        drop = { x, y };
+        return true;
       }
-    }
+    },
+    MAX_DROP_RADIUS,
+    true
+  );
 
-    // sides
-    for (const iteration of turnedIterations) {
-      for (let normal = 1; normal <= direction; normal += 1) {
-        const sidePosition = {
-          x: normalize(
-            position.x +
-              direction * iteration.direction.x +
-              normal * iteration.normal.x,
-            level.size
-          ),
-          y: normalize(
-            position.y +
-              direction * iteration.direction.y +
-              normal * iteration.normal.y,
-            level.size
-          ),
-        };
-        if (isDroppable(world, sidePosition)) {
-          return sidePosition;
-        }
-      }
-    }
-  }
+  if (drop) return drop;
 
   console.error(
     Date.now(),

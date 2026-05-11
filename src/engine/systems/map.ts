@@ -4,7 +4,10 @@ import { Position, POSITION } from "../components/position";
 import { LEVEL } from "../components/level";
 import { add, normalize } from "../../game/math/std";
 import { isWalkable } from "./movement";
-import { getOverlappingCell } from "../../game/math/matrix";
+import {
+  getOverlappingCell,
+  iterateMatrixFromCenter,
+} from "../../game/math/matrix";
 import { INVENTORY } from "../components/inventory";
 import { rerenderEntity } from "./renderer";
 import { EQUIPPABLE } from "../components/equippable";
@@ -80,12 +83,40 @@ const unregisterEntity = (world: World, entity: Entity) => {
     throw new Error(`Unable to unregister position for entity ${entity}!`);
   }
 
-  const cell = getCell(world, position);
+  let cell = getCell(world, position);
 
-  const entityId = Object.entries(cell).find(
+  let matchingEntry = Object.entries(cell).find(
     ([_, cellEntity]) => cellEntity === entity
-  )![0];
-  delete cell[entityId];
+  );
+
+  if (!matchingEntry) {
+    // traverse entire map from entity center to try recovering
+    const level = world.metadata.gameEntity[LEVEL];
+    iterateMatrixFromCenter(level.cells, position, (x, y) => {
+      cell = getCell(world, { x, y });
+
+      matchingEntry = Object.entries(cell).find(
+        ([_, cellEntity]) => cellEntity === entity
+      );
+
+      if (matchingEntry) {
+        console.warn(
+          "Recovered missing cell for entity",
+          entity,
+          "at position",
+          position,
+          "!"
+        );
+        return true;
+      }
+    });
+  }
+
+  if (matchingEntry) {
+    delete cell[matchingEntry[0]];
+  } else {
+    console.warn("Unable to unregister", entity, "at position", position, "!");
+  }
 
   updateWalkable(world, position);
 };
