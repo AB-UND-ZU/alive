@@ -109,6 +109,16 @@ export const wand = createTemplate({
 });
 wand.iron.default = wandIron;
 
+const staffTemplate: Sprite = {
+  name: "Staff",
+  layers: [
+    { char: "!", color: TEMPLATE_COLORS.materialPrimary },
+    { char: '"', color: TEMPLATE_COLORS.materialSecondary },
+    { char: ":", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+export const staff = createTemplate({ sprite: staffTemplate });
+
 // defensive items
 
 const shieldTemplate: Sprite = {
@@ -128,7 +138,24 @@ export const shield = createTemplate({
   materialElementSprite: shieldElementTemplate,
 });
 
-// harvesting
+// tools
+
+const hammerTemplate: Sprite = {
+  name: "Hammer",
+  layers: [
+    { char: "|", color: TEMPLATE_COLORS.materialPrimary },
+    { char: '"', color: TEMPLATE_COLORS.materialSecondary },
+    { char: "'", color: TEMPLATE_COLORS.materialSecondary },
+    { char: "°", color: TEMPLATE_COLORS.materialSecondary },
+  ],
+  facing: {
+    up: [{ char: "|", color: TEMPLATE_COLORS.materialPrimary }],
+    right: [{ char: "-", color: TEMPLATE_COLORS.materialPrimary }],
+    down: [{ char: "|", color: TEMPLATE_COLORS.materialPrimary }],
+    left: [{ char: "-", color: TEMPLATE_COLORS.materialPrimary }],
+  },
+};
+export const hammer = createTemplate({ sprite: hammerTemplate });
 
 const shovelTemplate: Sprite = {
   name: "Shovel",

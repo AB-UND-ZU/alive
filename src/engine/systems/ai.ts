@@ -140,7 +140,7 @@ import { FISHABLE } from "../components/fishable";
 import { BAITABLE } from "../components/baitable";
 import { createBubble } from "./water";
 import { HOOKABLE } from "../components/hookable";
-import { fishingDistribution } from "./fishing";
+import { fishingDistributionLevels } from "./fishing";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -1620,6 +1620,8 @@ export default function setupAi(world: World) {
                 spawnDistance
             );
 
+            const fishingDistribution =
+              fishingDistributionLevels[baitEntity[BAITABLE].amount];
             const fishChoice =
               fishingDistribution[
                 distribution(...fishingDistribution.map((fish) => fish[0]))
@@ -1633,7 +1635,7 @@ export default function setupAi(world: World) {
                 entities.createItem,
                 {
                   [ITEM]: fishItem,
-                  [SPRITE]: getItemSprite(fishItem),
+                  [SPRITE]: getItemSprite(fishItem, "resource"),
                 },
                 false
               );

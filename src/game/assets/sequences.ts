@@ -368,7 +368,7 @@ import {
 } from "./pixels";
 import { getItemSellPrice } from "../balancing/trading";
 import { getForgeOptions, getForgeStatus } from "../balancing/forging";
-import { getItemDiff } from "../balancing/equipment";
+import { getItemDiff, getItemStats } from "../balancing/equipment";
 import { getCraftingDeal } from "../balancing/crafting";
 import {
   getFragments,
@@ -1077,8 +1077,9 @@ export const hookCondition: Sequence<ConditionSequence> = (
     rerenderEntity(world, baitParticle);
 
     const delta = orientationPoints[condition.orientation];
+    const baitStats = getItemStats(hookEntity[ITEM])
     const baitEntity = entities.createBait(world, {
-      [BAITABLE]: { caster: entityId },
+      [BAITABLE]: { caster: entityId, amount: baitStats.fishing },
       [BUMPABLE]: { generation: 0 },
       [FOG]: { type: "object", visibility: "hidden" },
       [LIGHT]: { darkness: 0, brightness: 0, visibility: 2 },

@@ -157,6 +157,7 @@ import {
   bubble,
   getBlockedSlot,
   skillSlot,
+  swimmingEel,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1709,6 +1710,7 @@ export const entitySprites: Record<
   },
   eel: {
     sprite: eel,
+    resource: swimmingEel,
     getDescription: (stats) => [
       createText("A slithering fish"),
       createText("with smooth skin."),

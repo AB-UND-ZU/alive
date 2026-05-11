@@ -41,15 +41,34 @@ export const habitatDistribution = [
   [5, "pearl"],
 ] as const;
 
-export const fishingDistribution: [number, Omit<Item, "bound" | "carrier">][] =
+export const fishingDistributionLevels: [
+  number,
+  Omit<Item, "bound" | "carrier">
+][][] = [
+  [],
   [
-    [42, { stackable: "salmon", amount: 1 }],
-    [28, { stackable: "pike", amount: 1 }],
-    [12, { stackable: "tuna", amount: 1 }],
-    [8, { stackable: "cod", amount: 1 }],
+    [54, { stackable: "salmon", amount: 1 }],
+    [36, { stackable: "pike", amount: 1 }],
+    [6, { stackable: "tuna", amount: 1 }],
+    [4, { stackable: "cod", amount: 1 }],
+  ],
+  [
+    [30, { stackable: "salmon", amount: 1 }],
+    [20, { stackable: "pike", amount: 1 }],
+    [24, { stackable: "tuna", amount: 1 }],
+    [16, { stackable: "cod", amount: 1 }],
     [6, { stackable: "eel", amount: 1 }],
     [4, { stackable: "seastar", amount: 1 }],
-  ];
+  ],
+  [
+    [14, { stackable: "salmon", amount: 1 }],
+    [6, { stackable: "pike", amount: 1 }],
+    [40, { stackable: "tuna", amount: 1 }],
+    [20, { stackable: "cod", amount: 1 }],
+    [12, { stackable: "eel", amount: 1 }],
+    [8, { stackable: "seastar", amount: 1 }],
+  ],
+];
 
 export default function setupFishing(world: World) {
   let referenceGenerations = -1;

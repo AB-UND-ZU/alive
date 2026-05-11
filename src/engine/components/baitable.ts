@@ -4,6 +4,7 @@ import { World } from "../ecs";
 export type Baitable = {
   caught?: number;
   caster: number;
+  amount: number;
 };
 
 export const BAITABLE = "BAITABLE";

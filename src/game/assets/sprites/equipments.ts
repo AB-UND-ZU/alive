@@ -105,18 +105,6 @@ export const woodShieldAir2: Sprite = {
   ],
 };
 
-export const hammer: Sprite = {
-  name: "Hammer",
-  layers: [
-    { char: "┐", color: colors.maroon },
-    { char: "─", color: colors.black },
-    { char: "\u0115", color: colors.grey },
-    { char: ".", color: colors.maroon },
-    { char: ",", color: colors.maroon },
-    { char: "∙", color: colors.maroon },
-  ],
-};
-
 export const bait: Sprite = {
   name: "Bait",
   layers: [

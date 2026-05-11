@@ -179,7 +179,24 @@ export const cod: Sprite = {
 
 export const eel: Sprite = {
   name: "Eel",
-  layers: [{ char: "S", color: colors.green }],
+  layers: [
+    { char: "\u0103", color: colors.green },
+    { char: "\u011c", color: colors.black },
+    { char: "·", color: colors.green },
+    { char: ".", color: colors.black },
+    { char: "S", color: colors.green },
+  ],
+};
+
+export const swimmingEel: Sprite = {
+  name: "Eel",
+  layers: [
+    { char: "\u0103", color: colors.green },
+    { char: "\u011c", color: colors.navy },
+    { char: "·", color: colors.green },
+    { char: ".", color: colors.navy },
+    { char: "S", color: colors.green },
+  ],
 };
 
 export const seastar: Sprite = {

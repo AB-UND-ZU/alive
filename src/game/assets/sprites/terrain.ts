@@ -37,6 +37,7 @@ export const wall: Sprite = {
     single: [
       { char: "█", color: colors.grey },
       { char: "░", color: colors.black },
+      { char: "-", color: colors.grey },
     ],
     double: [
       { char: "█", color: colors.grey },
@@ -70,6 +71,7 @@ export const ironMine: Sprite = {
     single: [
       { char: "█", color: colors.grey },
       { char: "░", color: colors.black },
+      { char: "+", color: colors.grey },
       { char: "÷", color: colors.silver },
       { char: "·", color: colors.grey },
     ],
@@ -114,6 +116,7 @@ export const goldMine: Sprite = {
     single: [
       { char: "█", color: colors.grey },
       { char: "░", color: colors.black },
+      { char: "+", color: colors.grey },
       { char: "÷", color: colors.yellow },
       { char: "·", color: colors.grey },
     ],
@@ -158,6 +161,7 @@ export const diamondMine: Sprite = {
     single: [
       { char: "█", color: colors.grey },
       { char: "░", color: colors.black },
+      { char: "+", color: colors.grey },
       { char: "÷", color: colors.aqua },
       { char: "·", color: colors.grey },
     ],
@@ -192,6 +196,7 @@ export const rubyMine: Sprite = {
     single: [
       { char: "█", color: colors.grey },
       { char: "░", color: colors.black },
+      { char: "+", color: colors.grey },
       { char: "÷", color: colors.fuchsia },
       { char: "·", color: colors.grey },
     ],
