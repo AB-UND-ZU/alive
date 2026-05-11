@@ -46,6 +46,48 @@ export const doorClosed = createTemplate({
 doorClosed.wood.default = doorClosedWood;
 doorClosed.default.fire = doorClosedFire;
 
+const portClosedTemplate: Sprite = {
+  name: "Port",
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "∙", color: TEMPLATE_COLORS.transparent },
+    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+const portClosedElementTemplate: Sprite = {
+  name: "Port",
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "\u0106", color: TEMPLATE_COLORS.elementSecondary },
+    { char: "∙", color: TEMPLATE_COLORS.transparent },
+    { char: ".", color: TEMPLATE_COLORS.elementSecondary },
+  ],
+};
+const portClosedWood: Sprite = {
+  name: "Port",
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "\u0106", color: colors.black },
+    { char: ".", color: colors.black },
+  ],
+};
+const portClosedFire: Sprite = {
+  name: "Port",
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "\u0106", color: colors.red },
+    { char: "∙", color: colors.black },
+    { char: ".", color: colors.red },
+  ],
+};
+export const portClosed = createTemplate({
+  sprite: portClosedTemplate,
+  elementSprite: portClosedElementTemplate,
+});
+portClosed.wood.default = portClosedWood;
+portClosed.default.fire = portClosedFire;
+
 const entryClosedTemplate: Sprite = {
   name: "Entry",
   layers: [

@@ -381,6 +381,11 @@ export const doorOpen: Sprite = {
   layers: [{ char: "▌", color: colors.maroon }],
 };
 
+export const portOpen: Sprite = {
+  name: "Port",
+  layers: [{ char: "▌", color: colors.silver }],
+};
+
 export const leverOff: Sprite = {
   name: "Lever",
   layers: [

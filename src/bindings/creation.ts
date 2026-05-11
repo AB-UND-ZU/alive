@@ -162,6 +162,7 @@ import {
   gravel,
   goldMine,
   jetty,
+  portOpen,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -199,6 +200,28 @@ import {
   window,
   windowInside,
   swimmingPalisade,
+  fortressHouseRight,
+  fortressHouseLeft,
+  fortressBasementLeftInside,
+  fortressBasementRightInside,
+  fortressWallInside,
+  fortressHouse,
+  fortressWindowInside,
+  fortressWindow,
+  fortressRoof,
+  fortressRoofLeft,
+  fortressRoofRight,
+  fortressRoofLeftUpInside,
+  fortressRoofLeftUp,
+  fortressRoofUpInside,
+  fortressRoofUp,
+  fortressRoofUpRightInside,
+  fortressRoofUpRight,
+  fortressRoofDownLeft,
+  fortressRoofDown,
+  fortressRoofRightDown,
+  fortressHouseLeftInside,
+  fortressHouseRightInside,
 } from "../game/assets/sprites/structures";
 import {
   createItemName,
@@ -245,7 +268,11 @@ import { getHarvestConfig } from "../game/balancing/harvesting";
 import { SHOOTABLE } from "../engine/components/shootable";
 import { VANISHABLE } from "../engine/components/vanishable";
 import { recolorSprite } from "../game/assets/templates";
-import { doorClosed, entryClosed } from "../game/assets/templates/units";
+import {
+  doorClosed,
+  entryClosed,
+  portClosed,
+} from "../game/assets/templates/units";
 import { compass } from "../game/assets/templates/equipments";
 import { flask, key } from "../game/assets/templates/items";
 import { CASTABLE, getEmptyCastable } from "../engine/components/castable";
@@ -1775,6 +1802,37 @@ export const createCell = (
     }
     return { cell: doorEntity, all };
   } else if (
+    cell === "wood_port" ||
+    cell === "fire_port" ||
+    cell === "iron_port"
+  ) {
+    const material =
+      cell === "fire_port" ? undefined : cell === "iron_port" ? "iron" : "wood";
+    const element = cell === "fire_port" ? "fire" : undefined;
+    const doorEntity = entities.createDoor(world, {
+      [ENTERABLE]: { sprite: portOpen, orientation: "down" },
+      [FOG]: { visibility, type: "float" },
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [LOCKABLE]: {
+        locked: true,
+        material,
+        element,
+        sprite: portOpen,
+        type: "port",
+      },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: portClosed[material || "default"][element || "default"],
+      [TOOLTIP]: {
+        dialogs: [],
+        persistent: false,
+        nextDialog: 0,
+      },
+    });
+    all.push(doorEntity);
+    return { cell: doorEntity, all };
+  } else if (
     cell === "entry" ||
     cell === "wood_entry" ||
     cell === "iron_entry" ||
@@ -2446,6 +2504,10 @@ export const createCell = (
     all.push(chestEntity);
     setIdentifier(world, chestEntity, "potion_chest");
     return { cell: chestEntity, all };
+  } else if (cell === "woodChest") {
+    const chestEntity = createChest(world, cell, { x, y });
+    all.push(chestEntity);
+    return { cell: chestEntity, all };
   } else if (cell === "spawner") {
     const spawnerEntity = entities.createSpawner(world, {
       [BEHAVIOUR]: { patterns: [] },
@@ -2719,9 +2781,16 @@ export const createCell = (
 
     return { cell: mobEntity, all };
   } else if (
-    ["house_left", "house_right", "basement_left", "basement_right"].includes(
-      cell
-    )
+    [
+      "house_left",
+      "house_right",
+      "basement_left",
+      "basement_right",
+      "fortress_house_left",
+      "fortress_house_right",
+      "fortress_basement_left",
+      "fortress_basement_right",
+    ].includes(cell)
   ) {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
@@ -2732,9 +2801,19 @@ export const createCell = (
             house_right: houseLeft,
             basement_left: basementLeftInside,
             basement_right: basementRightInside,
+            fortress_house_left: fortressHouseLeftInside,
+            fortress_house_right: fortressHouseRightInside,
+            fortress_basement_left: fortressBasementLeftInside,
+            fortress_basement_right: fortressBasementRightInside,
           }[cell] || none,
-        orientation:
-          cell === "house_left" || cell === "basement_left" ? "right" : "left",
+        orientation: [
+          "house_left",
+          "basement_left",
+          "fortress_house_left",
+          "fortress_basement_left",
+        ].includes(cell)
+          ? "right"
+          : "left",
       },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
@@ -2742,43 +2821,59 @@ export const createCell = (
         brightness: 0,
         darkness: 1,
         visibility: 0,
-        orientation:
-          cell === "house_left" || cell === "basement_left" ? "right" : "left",
+        orientation: [
+          "house_left",
+          "basement_left",
+          "fortress_house_left",
+          "fortress_basement_left",
+        ].includes(cell)
+          ? "right"
+          : "left",
       },
       [POSITION]: { x, y },
       [SPRITE]:
-        cell === "house_left" || cell === "basement_left"
-          ? houseLeft
-          : houseRight,
+        {
+          house_left: houseLeft,
+          house_right: houseRight,
+          basement_left: houseLeft,
+          basement_right: houseRight,
+          fortress_house_left: fortressHouseLeft,
+          fortress_house_right: fortressHouseRight,
+          fortress_basement_left: fortressHouseLeft,
+          fortress_basement_right: fortressHouseRight,
+        }[cell] || none,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "wall") {
-    const wallEntity = entities.createWall(world, {
-      [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: wallInside, orientation: "down" },
-      [FOG]: { visibility, type: "terrain" },
-      [LAYER]: {},
-      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
-      [POSITION]: { x, y },
-      [SPRITE]: house,
-      [RENDERABLE]: { generation: 0 },
-    });
-    all.push(wallEntity);
-    return { cell: wallEntity, all };
-  } else if (cell === "wall_window") {
+  } else if (cell === "wall" || cell === "fortress_wall") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
       [ENTERABLE]: {
-        sprite: windowInside,
+        sprite: cell === "wall" ? wallInside : fortressWallInside,
         orientation: "down",
       },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [POSITION]: { x, y },
-      [SPRITE]: window,
+      [SPRITE]: cell === "wall" ? house : fortressHouse,
+      [RENDERABLE]: { generation: 0 },
+    });
+    all.push(wallEntity);
+    return { cell: wallEntity, all };
+  } else if (cell === "wall_window" || cell === "fortress_wall_window") {
+    const wallEntity = entities.createWall(world, {
+      [COLLIDABLE]: {},
+      [ENTERABLE]: {
+        sprite: cell === "wall_window" ? windowInside : fortressWindowInside,
+        orientation: "down",
+      },
+      [FOG]: { visibility, type: "terrain" },
+      [LAYER]: {},
+      [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
+      [POSITION]: { x, y },
+      [SPRITE]: cell === "wall_window" ? window : fortressWindow,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
@@ -2793,32 +2888,34 @@ export const createCell = (
     });
     all.push(floatEntity);
     return { cell: floatEntity, all };
-  } else if (cell === "house") {
+  } else if (cell === "house" || cell === "fortress_house") {
     const facadeEntity = entities.createFacade(world, {
       [ENTERABLE]: { sprite: none },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
       [POSITION]: { x, y },
-      [SPRITE]: house,
+      [SPRITE]: cell === "house" ? house : fortressHouse,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(facadeEntity);
     return { cell: facadeEntity, all };
-  } else if (cell === "roof") {
+  } else if (cell === "roof" || cell === "fortress_roof") {
     const facadeEntity = entities.createFacade(world, {
       [ENTERABLE]: { sprite: none },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
       [POSITION]: { x, y },
-      [SPRITE]: roof,
+      [SPRITE]: cell === "roof" ? roof : fortressRoof,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(facadeEntity);
     return { cell: facadeEntity, all };
-  } else if (cell === "roof_left") {
+  } else if (cell === "roof_left" || cell === "fortress_roof_left") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: houseRight },
+      [ENTERABLE]: {
+        sprite: cell === "roof_left" ? houseRight : fortressHouseLeftInside,
+      },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
       [LIGHT]: {
@@ -2828,15 +2925,17 @@ export const createCell = (
         orientation: "right",
       },
       [POSITION]: { x, y },
-      [SPRITE]: roofLeft,
+      [SPRITE]: cell === "roof_left" ? roofLeft : fortressRoofLeft,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "roof_right") {
+  } else if (cell === "roof_right" || cell === "fortress_roof_right") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: houseLeft },
+      [ENTERABLE]: {
+        sprite: cell === "roof_right" ? houseLeft : fortressHouseRightInside,
+      },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
       [LIGHT]: {
@@ -2846,28 +2945,33 @@ export const createCell = (
         orientation: "left",
       },
       [POSITION]: { x, y },
-      [SPRITE]: roofRight,
+      [SPRITE]: cell === "roof_right" ? roofRight : fortressRoofRight,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "roof_left_up") {
+  } else if (cell === "roof_left_up" || cell === "fortress_roof_left_up") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: roofLeftUpInside },
+      [ENTERABLE]: {
+        sprite:
+          cell === "roof_left_up" ? roofLeftUpInside : fortressRoofLeftUpInside,
+      },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
       [LIGHT]: { brightness: 0, darkness: 0, visibility: 0 },
       [POSITION]: { x, y },
-      [SPRITE]: roofLeftUp,
+      [SPRITE]: cell === "roof_left_up" ? roofLeftUp : fortressRoofLeftUp,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "roof_up") {
+  } else if (cell === "roof_up" || cell === "fortress_roof_up") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: roofUpInside },
+      [ENTERABLE]: {
+        sprite: cell === "roof_up" ? roofUpInside : fortressRoofUpInside,
+      },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
       [LIGHT]: {
@@ -2877,28 +2981,36 @@ export const createCell = (
         orientation: "down",
       },
       [POSITION]: { x, y },
-      [SPRITE]: roofUp,
+      [SPRITE]: cell === "roof_up" ? roofUp : fortressRoofUp,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "roof_up_right") {
+  } else if (cell === "roof_up_right" || cell === "fortress_roof_up_right") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: roofUpRightInside },
+      [ENTERABLE]: {
+        sprite:
+          cell === "roof_up_right"
+            ? roofUpRightInside
+            : fortressRoofUpRightInside,
+      },
       [LAYER]: {},
       [LIGHT]: { brightness: 0, darkness: 0, visibility: 0 },
       [FOG]: { visibility, type: "float" },
       [POSITION]: { x, y },
-      [SPRITE]: roofUpRight,
+      [SPRITE]: cell === "roof_up_right" ? roofUpRight : fortressRoofUpRight,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "roof_down_left") {
+  } else if (cell === "roof_down_left" || cell === "fortress_roof_down_left") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: houseRight },
+      [ENTERABLE]: {
+        sprite:
+          cell === "roof_down_left" ? houseRight : fortressHouseLeftInside,
+      },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
       [LIGHT]: {
@@ -2908,26 +3020,32 @@ export const createCell = (
         orientation: "right",
       },
       [POSITION]: { x, y },
-      [SPRITE]: roofDownLeft,
+      [SPRITE]: cell === "roof_down_left" ? roofDownLeft : fortressRoofDownLeft,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "roof_down") {
+  } else if (cell === "roof_down" || cell === "fortress_roof_down") {
     const facadeEntity = entities.createFacade(world, {
       [ENTERABLE]: { sprite: none },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
       [POSITION]: { x, y },
-      [SPRITE]: roofDown,
+      [SPRITE]: cell === "roof_down" ? roofDown : fortressRoofDown,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(facadeEntity);
     return { cell: facadeEntity, all };
-  } else if (cell === "roof_right_down") {
+  } else if (
+    cell === "roof_right_down" ||
+    cell === "fortress_roof_right_down"
+  ) {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: houseLeft },
+      [ENTERABLE]: {
+        sprite:
+          cell === "roof_right_down" ? houseLeft : fortressHouseRightInside,
+      },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
       [LIGHT]: {
@@ -2937,18 +3055,19 @@ export const createCell = (
         orientation: "left",
       },
       [POSITION]: { x, y },
-      [SPRITE]: roofRightDown,
+      [SPRITE]:
+        cell === "roof_right_down" ? roofRightDown : fortressRoofRightDown,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "house_window") {
+  } else if (cell === "house_window" || cell === "fortress_house_window") {
     const facadeEntity = entities.createFacade(world, {
       [ENTERABLE]: { sprite: none },
       [FOG]: { visibility, type: "float" },
       [LAYER]: {},
       [POSITION]: { x, y },
-      [SPRITE]: window,
+      [SPRITE]: cell === "house_window" ? window : fortressWindow,
       [RENDERABLE]: { generation: 0 },
     });
     all.push(facadeEntity);

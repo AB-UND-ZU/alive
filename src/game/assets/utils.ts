@@ -221,6 +221,7 @@ import {
   entryClosed,
   entryClosedDisplay,
   lock,
+  portClosed,
 } from "./templates/units";
 import { getItemStats } from "../balancing/equipment";
 import {
@@ -2520,6 +2521,9 @@ export const materialSprites: Partial<
   door: {
     sprite: doorClosed,
   },
+  port: {
+    sprite: portClosed,
+  },
   entry: {
     sprite: entryClosed,
     display: entryClosedDisplay,
@@ -2948,6 +2952,9 @@ export const elementSprites: Partial<
   },
   door: {
     sprite: doorClosed,
+  },
+  port: {
+    sprite: portClosed,
   },
   entry: {
     sprite: entryClosed,

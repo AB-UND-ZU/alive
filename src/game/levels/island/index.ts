@@ -1715,6 +1715,11 @@ export const generateIsland = (world: World) => {
           chestData.equipments
         );
       }
+      // console.log(
+      //   stringifyMap(worldMap, { x: size / 2, y: size / 2 }, objectsMap)
+      // );
+      // console.log(stringifyMap(worldMap, { x: 0, y: 0 }, objectsMap));
+
       break;
     } catch (error) {
       console.error(
@@ -1730,9 +1735,6 @@ export const generateIsland = (world: World) => {
       });
     }
   }
-
-  // console.log(stringifyMap(worldMap, { x: size / 2, y: size / 2 }, objectsMap));
-  // console.log(stringifyMap(worldMap, { x: 0, y: 0 }, objectsMap));
 };
 
 export const stringifyMap = (

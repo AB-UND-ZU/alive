@@ -35,7 +35,7 @@ export type Skill = Ranged | (typeof rechargables)[number];
 
 export type Consumable = "key" | "potion";
 
-export type Materialized = "door" | "entry" | "gate" | "mine" | "lock";
+export type Materialized = "door" | "port" | "entry" | "gate" | "mine" | "lock";
 
 export type Craftable =
   | "coin"

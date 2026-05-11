@@ -279,6 +279,260 @@ export const bucket: Sprite = {
   ],
 };
 
+export const fortressRoof: Sprite = {
+  name: "fortress_roof_center",
+  layers: [{ char: "█", color: colors.olive }],
+};
+
+export const fortressRoofLeft: Sprite = {
+  name: "fortress_roof_left",
+  layers: [
+    { char: "▌", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "▐", color: colors.olive },
+    { char: "╙", color: colors.silver },
+    { char: "┌", color: colors.olive },
+    { char: "│", color: colors.silver },
+  ],
+};
+
+export const fortressRoofRight: Sprite = {
+  name: "fortress_roof_right",
+  layers: [
+    { char: "▐", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "▌", color: colors.olive },
+    { char: "╜", color: colors.silver },
+    { char: "┘", color: colors.olive },
+    { char: "│", color: colors.silver },
+  ],
+};
+
+export const fortressRoofUp: Sprite = {
+  name: "fortress_roof_up",
+  layers: [
+    { char: "▄", color: colors.olive },
+    { char: "▀", color: colors.black },
+    { char: "╨", color: colors.silver },
+    { char: "┴", color: colors.silver },
+  ],
+};
+
+export const fortressRoofUpInside: Sprite = {
+  name: "fortress_roof_up_inside",
+  layers: [
+    { char: "▀", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "─", color: colors.silver },
+  ],
+};
+
+export const fortressRoofUpRight: Sprite = {
+  name: "fortress_roof_up_right",
+  layers: [
+    { char: "█", color: colors.olive },
+    { char: "▐", color: colors.black },
+    { char: "▀", color: colors.black },
+    { char: "┤", color: colors.silver },
+    { char: "╜", color: colors.silver },
+  ],
+};
+
+export const fortressRoofUpRightInside: Sprite = {
+  name: "fortress_roof_up_right_inside",
+  layers: [
+    { char: "▐", color: colors.grey },
+    { char: "▀", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "┐", color: colors.silver },
+  ],
+};
+
+export const fortressRoofDownLeft: Sprite = {
+  name: "fortress_roof_down_left",
+  layers: [
+    { char: "▐", color: colors.olive },
+    { char: "▌", color: colors.grey },
+    { char: "▄", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "╙", color: colors.silver },
+    { char: "└", color: colors.silver },
+  ],
+};
+
+export const fortressRoofDown: Sprite = {
+  name: "fortress_roof_down",
+  layers: [
+    { char: "▄", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "▀", color: colors.olive },
+    { char: "╨", color: colors.silver },
+    { char: "┴", color: colors.silver },
+  ],
+};
+
+export const fortressRoofRightDown: Sprite = {
+  name: "fortress_roof_right_down",
+  layers: [
+    { char: "▄", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "▀", color: colors.olive },
+    { char: "▐", color: colors.grey },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: ":", color: colors.black },
+    { char: "+", color: colors.grey },
+    { char: "╜", color: colors.silver },
+    { char: "┘", color: colors.silver },
+  ],
+};
+
+export const fortressRoofLeftUp: Sprite = {
+  name: "fortress_roof_left_up",
+  layers: [
+    { char: "█", color: colors.olive },
+    { char: "▌", color: colors.black },
+    { char: "▀", color: colors.black },
+    { char: "╙", color: colors.silver },
+    { char: "├", color: colors.silver },
+  ],
+};
+
+export const fortressRoofLeftUpInside: Sprite = {
+  name: "fortress_roof_left_up_inside",
+  layers: [
+    { char: "▌", color: colors.grey },
+    { char: "▀", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "┌", color: colors.silver },
+  ],
+};
+
+export const fortressHouse: Sprite = {
+  name: "fortress_house",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "*", color: colors.black },
+    { char: "■", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "_", color: colors.black },
+  ],
+};
+
+export const fortressHouseLeft: Sprite = {
+  name: "fortress_house_left",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "*", color: colors.black },
+    { char: "■", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "_", color: colors.black },
+  ],
+};
+
+export const fortressHouseLeftInside: Sprite = {
+  name: "fortress_house_left_inside",
+  layers: [
+    { char: "▌", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "│", color: colors.silver },
+  ],
+};
+
+export const fortressBasementLeftInside: Sprite = {
+  name: "fortress_basement_left_inside",
+  layers: [
+    { char: "▌", color: colors.grey },
+    { char: "▄", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "└", color: colors.silver },
+  ],
+};
+
+export const fortressHouseRight: Sprite = {
+  name: "fortress_house_right",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "*", color: colors.black },
+    { char: "■", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "_", color: colors.black },
+  ],
+};
+
+export const fortressHouseRightInside: Sprite = {
+  name: "fortress_house_right_inside",
+  layers: [
+    { char: "▐", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "│", color: colors.silver },
+  ],
+};
+
+export const fortressBasementRightInside: Sprite = {
+  name: "fortress_basement_right_inside",
+  layers: [
+    { char: "▐", color: colors.grey },
+    { char: "▄", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "┘", color: colors.silver },
+  ],
+};
+
+export const fortressWallInside: Sprite = {
+  name: "fortress_wall_inside",
+  layers: [
+    { char: "▄", color: colors.grey },
+    { char: "≡", color: colors.black },
+    { char: "─", color: colors.black },
+    { char: "_", color: colors.black },
+    { char: "─", color: colors.silver },
+  ],
+};
+
+export const fortressWindow: Sprite = {
+  name: "fortress_window",
+  layers: [
+    { char: "█", color: colors.grey },
+    { char: "_", color: colors.black },
+    { char: "±", color: colors.silver },
+    { char: "■", color: colors.black },
+  ],
+};
+
+export const fortressWindowInside: Sprite = {
+  name: "fortress_window_inside",
+  layers: [
+    { char: "▄", color: colors.grey },
+    { char: "_", color: colors.black },
+    { char: "─", color: colors.silver },
+    { char: "±", color: colors.silver },
+    { char: "■", color: colors.black },
+  ],
+};
+
 export const roof: Sprite = {
   name: "roof_center",
   layers: [
