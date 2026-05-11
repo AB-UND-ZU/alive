@@ -9,6 +9,7 @@ export type Resource =
   | "oak"
   | "palm"
   | "cactus"
+  | "box"
   | "sign"
   | "fence"
   | "palisade"

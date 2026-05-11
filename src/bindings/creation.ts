@@ -2344,7 +2344,7 @@ export const createCell = (
     all.push(gateEntity);
     return { cell: gateEntity, all };
   } else if (cell === "box" || cell === "tutorial_box") {
-    const { items, equipments, sprite, stats, faction, scratch } =
+    const { items, equipments, sprite, stats, faction, scratch, harvestable } =
       generateUnitData("box");
     const frameEntity = entities.createFrame(world, {
       [REFERENCE]: {
@@ -2364,6 +2364,7 @@ export const createCell = (
       [DROPPABLE]: { decayed: false },
       [DISPLACABLE]: {},
       [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
       [LAYER]: {},
       [MOVABLE]: {

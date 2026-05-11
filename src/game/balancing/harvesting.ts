@@ -11,6 +11,7 @@ const harvestEfforts: Record<Resource, number> = {
   oak: 11,
   palm: 6,
   cactus: 4,
+  box: 4,
   sign: 6,
   fence: 11,
 
@@ -21,7 +22,9 @@ const harvestEfforts: Record<Resource, number> = {
   gold: 21,
 };
 
-const harvestYields: Partial<Record<Resource, Omit<Item, "carrier" | "bound">[]>> = {
+const harvestYields: Partial<
+  Record<Resource, Omit<Item, "carrier" | "bound">[]>
+> = {
   tree: [{ stackable: "stick", amount: 1 }],
   oak: [
     { stackable: "resource", material: "wood", amount: 1 },
@@ -42,6 +45,7 @@ export const harvestScratches: Record<Resource, string> = {
   oak: colors.maroon,
   palm: colors.maroon,
   cactus: colors.green,
+  box: colors.maroon,
   sign: colors.maroon,
   fence: colors.maroon,
 
@@ -65,6 +69,7 @@ export const harvestTools: Record<Resource, Tool> = {
   tree: "axe",
   oak: "axe",
   cactus: "axe",
+  box: "axe",
   palm: "axe",
   sign: "axe",
   fence: "axe",

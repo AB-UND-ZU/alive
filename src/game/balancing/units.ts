@@ -515,6 +515,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       hp: 5,
     },
     equipments: [],
+    harvestable: "box",
     drops: [
       { chance: 15, items: [{ stat: "xp", amount: 1 }] },
       { chance: 20, items: [{ stackable: "apple", amount: 3 }] },

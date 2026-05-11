@@ -251,6 +251,7 @@ export const createBox = entityFactory([
   DISPLACABLE,
   DROPPABLE,
   FOG,
+  HARVESTABLE,
   INVENTORY,
   LAYER,
   MOVABLE,
