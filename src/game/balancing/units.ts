@@ -265,7 +265,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [
       {
         weapon: "sword",
-        material: "iron",
+        element: "earth",
         amount: 1,
         bound: true,
       },
@@ -397,7 +397,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [
       {
         weapon: "sword",
-        material: "iron",
+        element: "fire",
         amount: 1,
         bound: true,
       },

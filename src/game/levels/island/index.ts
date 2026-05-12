@@ -126,7 +126,6 @@ import { pixelCircle } from "../../math/tracing";
 import { aspectRatio } from "../../../components/Dimensions/sizing";
 import generateHaven from "../../../engine/wfc/haven";
 import { disposeEntity } from "../../../engine/systems/map";
-import { findAdjacentDroppable } from "../../../engine/systems/drop";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -943,10 +942,10 @@ export const generateIsland = (world: World) => {
         size,
         oakExit,
         islandAngle + 90,
-        1,
+        1.5,
         oakRatio
       );
-      worldMap[desertEntrance.x][desertEntrance.y] = "sand";
+      worldMap[desertEntrance.x][desertEntrance.y] = "path";
       objectsMap[desertEntrance.x][desertEntrance.y] = [];
       setPath(pathMatrix, desertEntrance.x, desertEntrance.y, 1);
 
@@ -1039,7 +1038,7 @@ export const generateIsland = (world: World) => {
 
           // prevent paths going through town
           const distance = getDistance(havenPoint, target, size, havenRatio);
-          if (distance < havenRadius - 1) {
+          if (distance < havenRadius - 1.5) {
             setPath(pathMatrix, target.x, target.y, 0);
           }
 
@@ -1075,6 +1074,8 @@ export const generateIsland = (world: World) => {
             elevation > sandDepth ? "sand" : "water_shallow";
           objectsMap[target.x][target.y] = ["palisade"];
           palisadePositions.push(target);
+
+          setPath(pathMatrix, target.x, target.y, 0);
 
           // mark area as occupied
           const havenX = normalize(target.x - havenCorner.x, size);
@@ -1303,16 +1304,20 @@ export const generateIsland = (world: World) => {
         for (const direction of directions) {
           const delta = orientationPoints[direction];
           const innerPoint = combine(size, position, delta);
-          const outerPoint = combine(
-            size,
-            position,
-            orientationPoints[invertOrientation(direction)]
-          );
+
+          // ensure path is free inside and outside of gate
           if (
-            worldMap[innerPoint.x][innerPoint.y] === "sand" &&
-            objectsMap[innerPoint.x][innerPoint.y].length === 0 &&
-            worldMap[outerPoint.x][outerPoint.y] === "sand" &&
-            objectsMap[outerPoint.x][outerPoint.y].length === 0
+            range(-2, 2).every((offset) => {
+              const offsetPoint = combine(size, position, {
+                x: delta.x * offset,
+                y: delta.y * offset,
+              });
+              return (
+                offset === 0 ||
+                (worldMap[offsetPoint.x][offsetPoint.y] === "sand" &&
+                  objectsMap[offsetPoint.x][offsetPoint.y].length === 0)
+              );
+            })
           ) {
             gatePositions.push({
               gate: position,
@@ -1338,15 +1343,28 @@ export const generateIsland = (world: World) => {
       );
       const gatePosition = gatePositions[0].gate;
       const guardPosition = gatePositions[0].guard;
-      worldMap[gatePosition.x][gatePosition.y] = "palisade_door_path";
+      const guardDelta = orientationPoints[gatePositions[0].orientation];
+      const guardPath = combine(size, guardPosition, guardDelta);
+      const guardWait = combine(size, guardPath, guardDelta);
+      const havenGate = combine(
+        size,
+        gatePosition,
+        orientationPoints[invertOrientation(gatePositions[0].orientation)]
+      );
+
       objectsMap[gatePosition.x][gatePosition.y] = [];
+      worldMap[havenGate.x][havenGate.y] = "path";
+      worldMap[gatePosition.x][gatePosition.y] = "palisade_door_path";
+      worldMap[guardPosition.x][guardPosition.y] = "path";
+      worldMap[guardPath.x][guardPath.y] = "path";
+      worldMap[guardWait.x][guardWait.y] = "path";
 
       // insert haven
       const havenInnDelta = combine(size, havenPoint, {
         x: -havenCorner.x,
         y: -havenCorner.y,
       });
-      const havenGateDelta = combine(size, gatePosition, {
+      const havenGuardDelta = combine(size, guardWait, {
         x: -havenCorner.x,
         y: -havenCorner.y,
       });
@@ -1355,7 +1373,12 @@ export const generateIsland = (world: World) => {
         y: -havenCorner.y,
       });
       const { matrix: havenMatrix, houses: relativeHavenHouses } =
-        generateHaven(havenMap, havenInnDelta, havenGateDelta, havenJettyDelta);
+        generateHaven(
+          havenMap,
+          havenInnDelta,
+          havenGuardDelta,
+          havenJettyDelta
+        );
 
       iterateMatrix(havenMatrix, (offsetX, offsetY, value) => {
         const x = normalize(havenCorner.x + offsetX, size);
@@ -1367,11 +1390,6 @@ export const generateIsland = (world: World) => {
       });
 
       // draw path from oak to haven gate
-      const havenGate = combine(
-        size,
-        gatePosition,
-        orientationPoints[invertOrientation(gatePositions[0].orientation)]
-      );
       const havenPath = findPath(
         pathMatrix,
         desertEntrance,
@@ -1821,17 +1839,16 @@ export const generateIsland = (world: World) => {
 
       // postprocess haven
 
-      // place guard behind door and walk away when nearby
-      const guardDelta = orientationPoints[gatePositions[0].orientation];
-      const guardWait = findAdjacentDroppable(
+      // fire chief next to inn
+      createNpc(
         world,
-        combine(size, guardPosition, {
-          x: guardDelta.x * 2,
-          y: guardDelta.y * 2,
-        })
+        "fireChief",
+        combine(size, havenPoint, { x: choice(-1, 1), y: 2 })
       );
-      const fireGuard = createNpc(world, "fireGuard", guardPosition);
-      fireGuard[BEHAVIOUR].patterns.push({
+
+      // place first guard behind door and walk away when nearby
+      const fireGateGuard = createNpc(world, "fireGuard", guardPosition);
+      fireGateGuard[BEHAVIOUR].patterns.push({
         name: "gate",
         memory: {
           origin: copy(guardPosition),
@@ -1841,6 +1858,9 @@ export const generateIsland = (world: World) => {
           radius: havenRadius - 1,
         },
       });
+
+      // place second guard in front of jetty
+      createNpc(world, "fireGuard", beachPoint);
 
       // console.log(
       //   stringifyMap(worldMap, { x: size / 2, y: size / 2 }, objectsMap)

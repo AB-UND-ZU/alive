@@ -99,7 +99,7 @@ const innRadius = 2;
 export default function generateHaven(
   beachMap: Matrix<string>,
   innDelta: Point,
-  gateDelta: Point,
+  guardDelta: Point,
   jettyDelta: Point
 ) {
   let wave: Wave | undefined;
@@ -108,7 +108,10 @@ export default function generateHaven(
   const height = beachMap[0].length;
 
   for (let attempt = 0; attempt < HAVEN_TRIES; attempt += 1) {
-    const forced = [
+    const forced: [number, number, string][] = [
+      // ensure guard not blocking a house
+      [guardDelta.x, guardDelta.y, "air"],
+
       // free space in center
       ...range(-innRadius, innRadius)
         .map((offsetX) =>
@@ -126,16 +129,19 @@ export default function generateHaven(
         .map((column, x) =>
           column
             .map((cell, y) => [x, y, cell] as [number, number, string])
-            .filter((cell) => !!cell[2])
+            .filter(
+              ([x, y, cell]) =>
+                !!cell && x !== guardDelta.x && y !== guardDelta.y
+            )
         )
         .flat(),
     ];
-    wave = wfc.generate(width, height, [...forced]);
+    wave = wfc.generate(width, height, forced);
 
     if (!wave) continue;
 
     const tileMatrix = wave.chosen;
-    let paths: Point[] = [gateDelta, jettyDelta];
+    let paths: Point[] = [guardDelta, jettyDelta];
     let houses: {
       door: Point;
       position: Point;
@@ -177,7 +183,7 @@ export default function generateHaven(
       }
       return tile === "path"
         ? pathWeight
-        : tile === "air" || tile === "fountain"
+        : ["air", "fountain"].includes(tile)
         ? airWeight
         : 0;
     });
@@ -189,7 +195,7 @@ export default function generateHaven(
     houses = shuffle(houses);
 
     // draw paths from exits and houses to center inn
-    walkableMatrix[gateDelta.x][gateDelta.y] = airWeight;
+    walkableMatrix[guardDelta.x][guardDelta.y] = airWeight;
     walkableMatrix[jettyDelta.x][jettyDelta.y] = airWeight;
     const innPath = { x: innDelta.x, y: innDelta.y + innRadius };
     const pathIndex = wfc.tileNames.indexOf("path");
@@ -206,6 +212,9 @@ export default function generateHaven(
       height,
       (x, y) => mapTiles[wfc.tileNames[tileMatrix[x][y]]]
     );
+
+    havenMatrix[innDelta.x][innDelta.y] = "fountain";
+    havenMatrix[jettyDelta.x][jettyDelta.y] = "path";
 
     return {
       matrix: havenMatrix,
