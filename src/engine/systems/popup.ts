@@ -10,12 +10,17 @@ import {
   addBackground,
   craft,
   createText,
+  dialogEnd,
+  dialogStart,
   forge,
   info,
   mapDiscovery,
   none,
+  parseSprite,
   quest,
   shop,
+  shoutEnd,
+  shoutStart,
 } from "../../game/assets/sprites";
 import { disposeEntity, disposeSequence, getCell } from "./map";
 import { POSITION, Position } from "../components/position";
@@ -38,7 +43,7 @@ import { isDead, isEnemy, isNeutral } from "./damage";
 import {
   createItemName,
   frameHeight,
-  popupTime,
+  popupDelay,
   questSequence,
   queueMessage,
 } from "../../game/assets/utils";
@@ -57,6 +62,13 @@ import { clamp } from "three/src/math/MathUtils";
 import { getSelectedLevel } from "../../game/levels";
 import { LEVEL } from "../components/level";
 import { REFERENCE } from "../components/reference";
+import {
+  getKeyFromIndex,
+  keyboardColumns,
+  keyboardSize,
+} from "../../components/Keyboard";
+import { executeCommand, parseCommand } from "../../game/assets/commands";
+import { recolorSprite } from "../../game/assets/templates";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -306,6 +318,7 @@ export const popupIdles = {
   style: mapDiscovery,
   map: undefined,
   use: undefined,
+  chat: undefined,
 };
 
 export const popupActions = {
@@ -324,6 +337,7 @@ export const popupActions = {
   gear: "GEAR",
   class: "CLASS",
   style: "STYLE",
+  chat: "CHAT",
 };
 
 export const popupTitles = {
@@ -500,6 +514,7 @@ export const openPopup = (
     "popup",
     "displayPopup",
     {
+      windowHeight: 0,
       contentIndex: 0,
       contentHeight: 0,
       contentClickable: false,
@@ -573,6 +588,7 @@ export default function setupPopup(world: World) {
       PLAYER,
       RENDERABLE,
       INVENTORY,
+      TOOLTIP,
     ]);
 
     if (!heroEntity) return;
@@ -584,7 +600,7 @@ export default function setupPopup(world: World) {
     const referenceGeneration = heroReference[RENDERABLE].generation;
     const generation = referenceGeneration + heroEntity[RENDERABLE].generation;
 
-    if (heroGeneration === generation) return
+    if (heroGeneration === generation) return;
 
     heroGeneration = generation;
 
@@ -789,10 +805,31 @@ export default function setupPopup(world: World) {
         popupEntity[POPUP].horizontalIndex !== previousIndex &&
         popupSequence
       ) {
-        popupSequence.elapsed = popupTime;
+        popupSequence.elapsed = popupSequence.args.windowHeight * popupDelay;
         popupSequence.args.contentIndex = 0;
         rerenderEntity(world, popupEntity);
       }
+    } else if (heroEntity[PLAYER].actionTriggered === "type") {
+      if (
+        heroEntity[PLAYER].tabTriggered !== undefined &&
+        heroEntity[PLAYER].contentTriggered !== undefined &&
+        heroEntity[PLAYER].offsetTriggered !== undefined
+      ) {
+        // type new key
+        const keyIndex =
+          heroEntity[PLAYER].tabTriggered * keyboardSize +
+          heroEntity[PLAYER].offsetTriggered * keyboardColumns +
+          heroEntity[PLAYER].contentTriggered;
+        pushTabSelection(world, popupEntity, keyIndex);
+      } else {
+        // delete last char
+        popTabSelection(world, popupEntity);
+      }
+
+      heroEntity[PLAYER].actionTriggered = undefined;
+      heroEntity[PLAYER].tabTriggered = undefined;
+      heroEntity[PLAYER].contentTriggered = undefined;
+      heroEntity[PLAYER].offsetTriggered = undefined;
     } else if (heroEntity[PLAYER].actionTriggered === "right") {
       heroEntity[PLAYER].actionTriggered = undefined;
 
@@ -1060,6 +1097,44 @@ export default function setupPopup(world: World) {
             delay: 0,
           });
         }
+      } else if (tab === "chat") {
+        if (TEST_MODE) {
+          if (selections.length > 0) {
+            const prompt = selections
+              .map((keyIndex) => getKeyFromIndex(keyIndex))
+              .join("");
+            const command = parseCommand(prompt);
+
+            let dialog;
+            let shout = false;
+            if (command) {
+              const error = executeCommand(world, heroEntity, command);
+              shout = true;
+              dialog = error;
+            } else {
+              dialog = prompt;
+            }
+
+            if (dialog) {
+              heroEntity[TOOLTIP].enemy = shout;
+              heroEntity[TOOLTIP].dialogs = [
+                [
+                  shout ? shoutStart : dialogStart,
+                  ...[...dialog].map((char) =>
+                    recolorSprite(
+                      parseSprite(`\x0f█\x00${char}`),
+                      shout ? colors.red : colors.white
+                    )
+                  ),
+                  shout ? shoutEnd : dialogEnd,
+                ],
+              ];
+              heroEntity[TOOLTIP].changed = true;
+              heroEntity[TOOLTIP].override = "visible";
+            }
+          }
+          closePopup(world, heroEntity, popupEntity);
+        }
       } else if (tab === "use") {
         if (addEntity && selections.length === 0) {
           pushTabSelection(world, addEntity);
@@ -1081,8 +1156,10 @@ export default function setupPopup(world: World) {
       heroEntity[PLAYER].actionTriggered = undefined;
       const tab = getTab(world, popupEntity);
 
-      // don't allow going back from completed screen
-      if (
+      if (tab === "chat") {
+        // clear chat
+        popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
+      } else if (
         selections.length > 0 &&
         !(
           isQuestCompleted(world, heroEntity, popupEntity) &&
@@ -1091,6 +1168,7 @@ export default function setupPopup(world: World) {
         tab !== "class" &&
         tab !== "style"
       ) {
+        // don't allow going back from completed screen or customizations
         const verticalIndex = popTabSelection(world, popupEntity);
         const previousIndex =
           verticalIndex === undefined || tab === "use" ? 0 : verticalIndex;

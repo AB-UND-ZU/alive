@@ -71,6 +71,7 @@ import { brighten, colors, darken } from "../../game/assets/colors";
 import {
   add,
   choice,
+  chunked,
   combine,
   copy,
   distribution,
@@ -225,6 +226,7 @@ import {
   blockedInactive,
   emptySlot,
   getBlockedSlot,
+  caret,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -446,6 +448,7 @@ import { BAITABLE } from "../../engine/components/baitable";
 import { SWIMMABLE } from "../../engine/components/swimmable";
 import { HOOKABLE } from "../../engine/components/hookable";
 import { harvestConditions, harvestScratches } from "../balancing/harvesting";
+import { getKeyFromIndex } from "../../components/Keyboard";
 
 export * from "./npcs";
 export * from "./quests";
@@ -3389,6 +3392,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayStyle;
   } else if (transaction === "warp") {
     handler = displayWarp;
+  } else if (transaction === "chat") {
+    handler = displayChat;
   }
 
   return handler(world, entity, state);
@@ -5512,6 +5517,68 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
       ? createButton("\u011aBACK", 7, false, false, false, "red")
       : undefined
   );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displayChat: Sequence<PopupSequence> = (world, entity, state) => {
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const showCaret = generation % 2 === 0;
+
+  // show blinking caret
+  if (!state.particles.caret) {
+    const caretParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: generation,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.caret = world.getEntityId(caretParticle);
+  }
+
+  const caretParticle = world.assertByIdAndComponents(state.particles.caret, [
+    PARTICLE,
+  ]);
+  const lastGeneration = caretParticle[PARTICLE].amount;
+
+  // rerender content on blinking
+  if (lastGeneration !== generation) {
+    rerenderEntity(world, entity);
+    caretParticle[PARTICLE].amount = generation;
+  }
+
+  const selections = getTabSelections(world, entity);
+  const lines = [
+    ...selections.map((keyIndex) =>
+      recolorSprite(parseSprite(`\x0f█\x00${getKeyFromIndex(keyIndex)}`), {
+        [colors.black]: colors.white,
+        [colors.white]: colors.black,
+      })
+    ),
+    showCaret ? caret : none,
+  ];
+  const content: Sprite[][] = chunked(lines, frameWidth - 2);
+
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    popupIdles[getTab(world, entity)],
+    content,
+    undefined,
+    undefined,
+    undefined,
+    createButton("SEND", 6, selections.length === 0, false, false, "lime"),
+    createButton("CLEAR", 7, selections.length === 0, false, false, "red"),
+    6
+  );
+
   return {
     updated: popupResult.updated,
     finished: popupResult.finished,

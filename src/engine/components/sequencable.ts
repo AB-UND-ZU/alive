@@ -222,6 +222,7 @@ export type ProgressSequence = {
   maxHp: number;
 };
 export type PopupSequence = {
+  windowHeight: number;
   contentIndex: number;
   contentHeight: number;
   contentClickable: boolean;

@@ -30,7 +30,7 @@ import { getFragment, getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { TEMPO } from "../components/tempo";
 import { freezeMomentum, isFrozen } from "./freeze";
-import { isInPopup } from "./popup";
+import { isInPopup, isInTab } from "./popup";
 import { PLAYER } from "../components/player";
 import { npcVariants, play } from "../../game/sound";
 import { NPC } from "../components/npc";
@@ -67,10 +67,15 @@ export const getTempo = (world: World, position: Position) =>
     )
   );
 
+const chatHaste = 100;
 const popupHaste = 8;
 
 export const getEntityHaste = (world: World, entity: Entity) =>
-  isInPopup(world, entity) ? popupHaste : getEntityStats(world, entity).haste;
+  isInTab(world, entity, "chat")
+    ? chatHaste
+    : isInPopup(world, entity)
+    ? popupHaste
+    : getEntityStats(world, entity).haste;
 
 export const isCollision = (world: World, position: Position) =>
   Object.values(getCell(world, position)).some(

@@ -6,7 +6,6 @@
   width: calc(100% + var(--pixel-size) * 2);
   left: calc(var(--pixel-size) * -1);
   right: calc(var(--pixel-size) * -1);
-  overflow: hidden;
   margin: 0 auto;
   margin-top: calc(var(--bottom-offset) - var(--cell-height));
 }
@@ -59,7 +58,10 @@
       (6 * var(--popup-tab) - 4) * var(--cell-width) - var(--popup-tab) *
         var(--pixel-size)
     ),
-    calc(-5.5 * var(--cell-height) - var(--pixel-size))
+    calc(
+      (var(--popup-height) / -2 + var(--popup-offset)) * var(--cell-height) -
+        var(--pixel-size)
+    )
   );
   width: calc(6 * var(--cell-width) - 2 * var(--pixel-size));
   height: var(--cell-height);
@@ -71,7 +73,10 @@
   right: 50%;
   transform: translate(
     calc(10 * var(--cell-width) + var(--pixel-size)),
-    calc(-5.5 * var(--cell-height) - var(--pixel-size))
+    calc(
+      (var(--popup-height) / -2 + var(--popup-offset)) * var(--cell-height) -
+        var(--pixel-size)
+    )
   );
   width: calc(2 * var(--cell-width) + 2 * var(--pixel-size));
   height: var(--cell-height);
@@ -83,7 +88,10 @@
   right: 50%;
   transform: translate(
     calc(-4 * var(--cell-width)),
-    calc(4.5 * var(--cell-height) - var(--pixel-size))
+    calc(
+      (var(--popup-height) / 2 - 1 + var(--popup-offset)) * var(--cell-height) -
+        var(--pixel-size)
+    )
   );
   width: calc(6 * var(--cell-width) + 2 * var(--pixel-size));
   height: var(--cell-height);
@@ -95,7 +103,10 @@
   right: 50%;
   transform: translate(
     calc(10 * var(--cell-width)),
-    calc(4.5 * var(--cell-height) - var(--pixel-size))
+    calc(
+      (var(--popup-height) / 2 - 1 + var(--popup-offset)) * var(--cell-height) -
+        var(--pixel-size)
+    )
   );
   width: calc(6 * var(--cell-width) + 2 * var(--pixel-size));
   height: var(--cell-height);
@@ -107,10 +118,14 @@
   right: 50%;
   transform: translate(
     calc(10 * var(--cell-width) - 4 * var(--pixel-size)),
-    calc(-4.5 * var(--cell-height) + 0 * var(--pixel-size))
+    calc(
+      (var(--popup-height) / -2 + 1 + var(--popup-offset)) * var(--cell-height)
+    )
   );
   width: calc(var(--cell-width) + 1 * var(--pixel-size));
-  height: calc(4.5 * var(--cell-height) - 1 * var(--pixel-size));
+  height: calc(
+    (var(--popup-height) / 2 - 1) * var(--cell-height) - 1 * var(--pixel-size)
+  );
 }
 
 .PopupDown {
@@ -119,10 +134,12 @@
   right: 50%;
   transform: translate(
     calc(10 * var(--cell-width) - 4 * var(--pixel-size)),
-    calc(0 * var(--cell-height) + 0 * var(--pixel-size))
+    calc(var(--popup-offset) * var(--cell-height))
   );
   width: calc(var(--cell-width) + 1 * var(--pixel-size));
-  height: calc(4.5 * var(--cell-height) - 1 * var(--pixel-size));
+  height: calc(
+    (var(--popup-height) / 2 - 1) * var(--cell-height) - 1 * var(--pixel-size)
+  );
 }
 
 .PopupContent {
@@ -131,8 +148,12 @@
   right: 50%;
   transform: translate(
     calc(8.5 * var(--cell-width) - 2 * var(--pixel-size)),
-    calc(-4.5 * var(--cell-height))
+    calc(
+      (var(--popup-height) / -2 + 1 + var(--popup-offset)) * var(--cell-height)
+    )
   );
   width: calc(17 * var(--cell-width) - var(--pixel-size));
-  height: calc(9 * var(--cell-height) - 2 * var(--pixel-size));
+  height: calc(
+    (var(--popup-height) - 2) * var(--cell-height) - 2 * var(--pixel-size)
+  );
 }

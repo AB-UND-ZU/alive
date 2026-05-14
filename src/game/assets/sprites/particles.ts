@@ -1171,6 +1171,314 @@ export const createSpriteButton: (
   ];
 };
 
+export const upperKey: Sprite = {
+  name: "upper_key",
+  layers: [
+    { char: "█", color: colors.lime },
+    { char: "\u0117", color: colors.black },
+  ],
+};
+
+export const lowerKey: Sprite = {
+  name: "lower_key",
+  layers: [
+    { char: "█", color: colors.lime },
+    { char: "\u0118", color: colors.black },
+  ],
+};
+
+export const deleteKey: Sprite = {
+  name: "delete_key",
+  layers: [
+    { char: "█", color: colors.red },
+    { char: "\u011a", color: colors.black },
+  ],
+};
+
+export const lettersKey: Sprite = {
+  name: "numbers_key",
+  layers: [
+    { char: "█", color: colors.lime },
+    { char: "±", color: colors.black },
+    { char: "■", color: colors.black },
+    { char: "\u0108", color: colors.lime },
+    { char: "\u0106", color: colors.lime },
+    { char: "▀", color: colors.lime },
+    { char: "-", color: colors.lime },
+    { char: "=", color: colors.lime },
+    { char: "ª", color: colors.black },
+  ],
+};
+
+export const numbersKey: Sprite = {
+  name: "numbers_key",
+  layers: [
+    { char: "█", color: colors.lime },
+    { char: "½", color: colors.black },
+  ],
+};
+
+export const specialKey: Sprite = {
+  name: "special_key",
+  layers: [
+    { char: "█", color: colors.lime },
+    { char: "#", color: colors.black },
+  ],
+};
+
+export const keyLeft: Sprite = {
+  name: "key_left",
+  layers: [
+    { char: "▐", color: colors.white },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▌", color: colors.black },
+  ],
+};
+
+export const keyGap: Sprite = {
+  name: "key_gap",
+  layers: [
+    { char: "█", color: colors.white },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+  ],
+};
+
+export const keyRight: Sprite = {
+  name: "key_right",
+  layers: [
+    { char: "▌", color: colors.white },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▐", color: colors.black },
+  ],
+};
+
+export const keySocketLeft: Sprite = {
+  name: "key_socket_left",
+  layers: [
+    { char: "▐", color: colors.silver },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▌", color: colors.black },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const keySocket: Sprite = {
+  name: "key_socket",
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const keySocketGap: Sprite = {
+  name: "key_socket_gap",
+  layers: [
+    { char: "█", color: colors.silver },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const keySocketRight: Sprite = {
+  name: "key_socket_right",
+  layers: [
+    { char: "▌", color: colors.silver },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▐", color: colors.black },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const modifierLeft: Sprite = {
+  name: "modifier_left",
+  layers: [
+    { char: "▐", color: colors.lime },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▌", color: colors.black },
+  ],
+};
+
+export const modifierGapLeft: Sprite = {
+  name: "modifier_gap_left",
+  layers: [
+    { char: "▌", color: colors.lime },
+    { char: "▐", color: colors.white },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+  ],
+};
+
+export const modifierGapRight: Sprite = {
+  name: "modifier_gap_right",
+  layers: [
+    { char: "▌", color: colors.white },
+    { char: "▐", color: colors.lime },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+  ],
+};
+
+export const modifierRight: Sprite = {
+  name: "modifier_right",
+  layers: [
+    { char: "▌", color: colors.lime },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▐", color: colors.black },
+  ],
+};
+
+export const modifierSocketLeft: Sprite = {
+  name: "modifier_socket_left",
+  layers: [
+    { char: "▐", color: colors.green },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▌", color: colors.black },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const modifierSocketGapLeft: Sprite = {
+  name: "modifier_socket_gap_left",
+  layers: [
+    { char: "▌", color: colors.green },
+    { char: "▐", color: colors.silver },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const modifierSocket: Sprite = {
+  name: "modifier_socket",
+  layers: [
+    { char: "█", color: colors.green },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const modifierSocketGapRight: Sprite = {
+  name: "modifier_socket_gap_right",
+  layers: [
+    { char: "▌", color: colors.silver },
+    { char: "▐", color: colors.green },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const modifierSocketRight: Sprite = {
+  name: "modifier_socket_right",
+  layers: [
+    { char: "▌", color: colors.green },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▐", color: colors.black },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const deleteLeft: Sprite = {
+  name: "delete_left",
+  layers: [
+    { char: "▐", color: colors.red },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▌", color: colors.black },
+  ],
+};
+
+export const deleteGapLeft: Sprite = {
+  name: "delete_gap_left",
+  layers: [
+    { char: "▌", color: colors.red },
+    { char: "▐", color: colors.white },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+  ],
+};
+
+export const deleteGapRight: Sprite = {
+  name: "delete_gap_right",
+  layers: [
+    { char: "▌", color: colors.white },
+    { char: "▐", color: colors.red },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+  ],
+};
+
+export const deleteRight: Sprite = {
+  name: "delete_right",
+  layers: [
+    { char: "▌", color: colors.red },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▐", color: colors.black },
+  ],
+};
+
+export const deleteSocketLeft: Sprite = {
+  name: "delete_socket_left",
+  layers: [
+    { char: "▐", color: colors.maroon },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▌", color: colors.black },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const deleteSocketGapLeft: Sprite = {
+  name: "delete_socket_gap_left",
+  layers: [
+    { char: "▌", color: colors.maroon },
+    { char: "▐", color: colors.silver },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const deleteSocket: Sprite = {
+  name: "delete_socket",
+  layers: [
+    { char: "█", color: colors.maroon },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const deleteSocketGapRight: Sprite = {
+  name: "delete_socket_gap_right",
+  layers: [
+    { char: "▌", color: colors.silver },
+    { char: "▐", color: colors.maroon },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▄", color: colors.black },
+  ],
+};
+
+export const deleteSocketRight: Sprite = {
+  name: "delete_socket_right",
+  layers: [
+    { char: "▌", color: colors.maroon },
+    { char: "│", color: colors.black },
+    { char: "║", color: colors.grey },
+    { char: "▐", color: colors.black },
+    { char: "▄", color: colors.black },
+  ],
+};
+
 export const popupBackground: Sprite = {
   name: "popup_background",
   layers: [{ char: "█", color: colors.black }],
@@ -2196,6 +2504,27 @@ export const spawn: Sprite = {
   layers: [
     { char: "\u010b", color: colors.green },
     { char: "°", color: colors.lime },
+  ],
+};
+
+export const chatDiscovery: Sprite = {
+  name: "Chat",
+  layers: [
+    { char: "µ", color: colors.lime },
+    { char: "o", color: colors.lime },
+    { char: "+", color: colors.lime },
+    { char: ".", color: colors.lime },
+  ],
+};
+
+export const caret: Sprite = {
+  name: "Caret",
+  layers: [
+    { char: "\u0107", color: colors.white },
+    { char: "\u0100", color: colors.black },
+    { char: "\u0101", color: colors.black },
+    { char: "M", color: colors.black },
+    { char: "▀", color: colors.black },
   ],
 };
 

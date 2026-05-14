@@ -22,55 +22,88 @@ export const materials = ["wood", "iron", "gold", "diamond", "ruby"] as const;
 export type Element = (typeof elements)[number];
 export type Material = (typeof materials)[number];
 
-export type Weapon = "sword" | "spear" | "wand";
-export type Offhand = "shield";
-export type Spell = "wave" | "beam" | "trap" | "dash" | "bolt" | "blast";
+export const mainWeapons = ["sword"] as const;
+export const skillWeapons = ["spear", "wand"] as const;
+export const weapons = [...mainWeapons, ...skillWeapons];
+export type Weapon = (typeof weapons)[number];
+
+export const offhands = ["shield"] as const;
+export type Offhand = (typeof offhands)[number];
+
+export const spells = [
+  "wave",
+  "beam",
+  "trap",
+  "dash",
+  "bolt",
+  "blast",
+] as const;
+export type Spell = (typeof spells)[number];
 
 export const rechargables = ["slash", "zap", "block", "totem"] as const;
 export const ranged = ["bow", "spear", "wand"] as const;
-
+export const skills = [...rechargables, ...ranged];
 export type Ranged = (typeof ranged)[number];
-export type Tool = "axe" | "pickaxe" | "hook";
-export type Skill = Ranged | (typeof rechargables)[number];
+export type Rechargables = (typeof rechargables)[number];
+export type Skill = Ranged | Rechargables;
 
-export type Consumable = "key" | "potion";
+export const tools = ["axe", "pickaxe", "hook"] as const;
+export type Tool = (typeof tools)[number];
 
-export type Materialized = "door" | "port" | "entry" | "gate" | "mine" | "lock";
+export const consumables = ["key", "potion"] as const;
+export type Consumable = (typeof consumables)[number];
 
-export type Craftable =
-  | "coin"
-  | "stick"
-  | "plank"
-  | "ore"
-  | "berry"
-  | "flower"
-  | "leaf"
-  | "apple"
-  | "shroom"
-  | "banana"
-  | "coconut"
-  | "gem"
-  | "crystal"
-  | "herb"
-  | "fruit"
-  | "leaf"
-  | "seed"
-  | "ingot"
-  | "nugget"
-  | "worm"
-  | "salmon"
-  | "tuna"
-  | "pike"
-  | "cod"
-  | "algae"
-  | "eel"
-  | "seastar"
-  | "pearl"
-  | "golemHead"
-  | "letter"
-  | "schema";
-export type ResourceItem = "resource";
-export type Reloadable = "arrow" | "bomb" | "charge";
+export const materialized = [
+  "door",
+  "port",
+  "entry",
+  "gate",
+  "mine",
+  "lock",
+] as const;
+export type Materialized = (typeof materialized)[number];
+
+export const craftables = [
+  "coin",
+  "stick",
+  "plank",
+  "ore",
+  "berry",
+  "flower",
+  "leaf",
+  "apple",
+  "shroom",
+  "banana",
+  "coconut",
+  "gem",
+  "crystal",
+  "herb",
+  "fruit",
+  "leaf",
+  "seed",
+  "ingot",
+  "nugget",
+  "worm",
+  "salmon",
+  "tuna",
+  "pike",
+  "cod",
+  "algae",
+  "eel",
+  "seastar",
+  "pearl",
+  "golemHead",
+  "letter",
+  "schema",
+] as const;
+export type Craftable = (typeof craftables)[number];
+
+export const resourceItem = "resource";
+export type ResourceItem = typeof resourceItem;
+
+export const reloadables = ["arrow", "bomb", "charge"] as const;
+export type Reloadable = (typeof reloadables)[number];
+
 export type Stackable = ResourceItem | Craftable | Reloadable;
 
 export type ConditionableStats = { absorb: number };

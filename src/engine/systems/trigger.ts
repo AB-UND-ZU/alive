@@ -979,6 +979,7 @@ export default function setupTrigger(world: World) {
             "gear",
             "stats",
             "content",
+            "chat",
           ].includes(entity[PLAYER]?.actionTriggered!)
         )
       )
@@ -1060,6 +1061,9 @@ export default function setupTrigger(world: World) {
 
           entity[PLAYER].actionTriggered = "use";
           entity[PLAYER].contentTriggered = hotkey;
+        } else if (TEST_MODE) {
+          // trigger chat in test mode only
+          entity[PLAYER].actionTriggered = "chat";
         } else continue;
 
         // mark interaction
@@ -1076,6 +1080,7 @@ export default function setupTrigger(world: World) {
         entity[PLAYER]?.actionTriggered === "map" ||
         entity[PLAYER]?.actionTriggered === "gear" ||
         entity[PLAYER]?.actionTriggered === "stats" ||
+        entity[PLAYER]?.actionTriggered === "chat" ||
         entity[PLAYER]?.actionTriggered === "use"
       ) {
         const targetTab = entity[PLAYER].actionTriggered;
@@ -1135,6 +1140,12 @@ export default function setupTrigger(world: World) {
           consumeItem(world, entity, consumption);
           rerenderEntity(world, useEntity);
           continue;
+        } else if (targetTab === "chat" && entity[TOOLTIP]) {
+          // clear previous chat
+          entity[TOOLTIP].dialogs = [];
+          entity[TOOLTIP].changed = true;
+          entity[TOOLTIP].override = undefined;
+          entity[TOOLTIP].enemy = false;
         }
 
         // close any popup but preserve selections

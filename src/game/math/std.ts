@@ -103,6 +103,14 @@ export function* reversed<T>(array: T[]) {
   }
 }
 
+export function chunked<T>(array: T[], size: number) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export const random = (minimum: number, maximumInclusive: number) =>
   Math.min(
     Math.floor(Math.random() * (maximumInclusive - minimum + 1)) + minimum,

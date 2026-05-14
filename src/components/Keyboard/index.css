@@ -1,0 +1,11 @@
+.Keyboard {
+  position: absolute;
+  z-index: 2;
+  height: calc(var(--cell-height) * 6);
+  width: calc(21 * var(--cell-width) - 4 * var(--pixel-size));
+  bottom: 0;
+  overflow: hidden;
+  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
+}

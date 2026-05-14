@@ -345,7 +345,6 @@ export const frameHeight = 11;
 export const detailsHeight = 3;
 export const contentDelay = 8;
 export const popupDelay = 60;
-export const popupTime = frameHeight * popupDelay;
 export const questWidth = 16;
 export const rewardWidth = 13;
 
@@ -434,16 +433,19 @@ export const renderPopup = (
   details?: Sprite[][],
   overscan = 0,
   rightButton?: Sprite[],
-  leftButton?: Sprite[]
+  leftButton?: Sprite[],
+  windowHeight = frameHeight
 ) => {
   let updated = false;
   let finished = !entity[POPUP].active;
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
   const generation = entity[RENDERABLE].generation;
-  const popupMiddle = { x: 0, y: (frameHeight + 1) / -2 };
+  const popupMiddle = { x: 0, y: (windowHeight + 1) / -2 };
   const initial = !state.args.generation;
   const spriteConfig = state.args.instant ? quickSprites : popupSprites;
-  const generationChanged = state.args.generation !== generation;
+  const windowChanged = state.args.windowHeight !== windowHeight;
+  const generationChanged =
+    state.args.generation !== generation || windowChanged;
   const heightChanged = state.args.contentHeight !== content.length;
   const verticalIndex = getVerticalIndex(world, entity);
   const horizontalIndex = entity[POPUP].horizontalIndex;
@@ -466,12 +468,14 @@ export const renderPopup = (
       (selection
         ? 1
         : details
-        ? frameHeight - detailsHeight - 3
-        : frameHeight - 2));
+        ? windowHeight - detailsHeight - 3
+        : windowHeight - 2));
   const contentSize =
-    ((details ? frameHeight - detailsHeight : frameHeight) - 2) *
+    ((details ? windowHeight - detailsHeight : windowHeight) - 2) *
     (frameWidth - 2);
   const foldSize = (verticalIndex - scrollIndex) * (frameWidth - 2);
+  const windowOffset = Math.floor((windowHeight - frameHeight) / 2);
+  const popupTime = windowHeight * popupDelay;
   const settled =
     (state.args.contentIndex >= foldSize && state.elapsed > popupTime) ||
     state.args.instant;
@@ -480,7 +484,7 @@ export const renderPopup = (
     [PARTICLE]
   )?.[PARTICLE].amount;
   const visibleScroll =
-    lines > (details ? frameHeight - detailsHeight - 3 : frameHeight - 2);
+    lines > (details ? windowHeight - detailsHeight - 3 : windowHeight - 2);
   const visibleOverlay =
     visibleScroll &&
     !details &&
@@ -520,8 +524,24 @@ export const renderPopup = (
     generationChanged ||
     (visibleScroll && bottomOverlayAmount !== bottomOverlayTarget);
 
+  // reset entire popup on window height change
+  if (windowChanged) {
+    state.args.windowHeight = windowHeight;
+
+    for (const particleName in state.particles) {
+      const particleEntity = world.assertByIdAndComponents(
+        state.particles[particleName],
+        [PARTICLE]
+      );
+
+      disposeEntity(world, particleEntity);
+      delete state.particles[particleName];
+    }
+    updated = true;
+  }
+
   // create popup
-  if (initial) {
+  if (initial || windowChanged) {
     state.args.generation = generation;
 
     for (const iteration of iterations) {
@@ -534,7 +554,10 @@ export const renderPopup = (
         [ORIENTABLE]: { facing: iteration.orientation },
         [PARTICLE]: {
           offsetX: popupMiddle.x + cornerDelta.x * ((frameWidth - 1) / 2),
-          offsetY: popupMiddle.y + cornerDelta.y * ((frameHeight - 1) / 2),
+          offsetY:
+            popupMiddle.y +
+            cornerDelta.y * ((windowHeight - 1) / 2) +
+            windowOffset,
           offsetZ: popupHeight,
         },
         [RENDERABLE]: { generation: 1 },
@@ -545,11 +568,12 @@ export const renderPopup = (
 
       // sides
       const directionLength = Math.abs(
-        frameWidth * iteration.direction.x + frameHeight * iteration.direction.y
+        frameWidth * iteration.direction.x +
+          windowHeight * iteration.direction.y
       );
       const normalLength =
         Math.abs(
-          frameWidth * iteration.normal.x + frameHeight * iteration.normal.y
+          frameWidth * iteration.normal.x + windowHeight * iteration.normal.y
         ) - 2;
       for (let i = 0; i < normalLength; i += 1) {
         const sideParticle = entities.createFibre(world, {
@@ -562,7 +586,8 @@ export const renderPopup = (
             offsetY:
               popupMiddle.y +
               iteration.normal.y * (i - (normalLength - 1) / 2) +
-              (iteration.direction.y * (directionLength - 1)) / 2,
+              (iteration.direction.y * (directionLength - 1)) / 2 +
+              windowOffset,
             offsetZ: popupHeight,
           },
           [RENDERABLE]: { generation: 1 },
@@ -594,12 +619,13 @@ export const renderPopup = (
     }
 
     // add background
-    for (let row = 0; row < frameHeight - 2; row += 1) {
+    for (let row = 0; row < windowHeight - 2; row += 1) {
       for (let column = 0; column < frameWidth - 2; column += 1) {
         const charParticle = entities.createParticle(world, {
           [PARTICLE]: {
             offsetX: popupMiddle.x - (frameWidth - 3) / 2 + column,
-            offsetY: popupMiddle.y - (frameHeight - 3) / 2 + row,
+            offsetY:
+              popupMiddle.y - (windowHeight - 3) / 2 + row + windowOffset,
             offsetZ: popupHeight,
           },
           [RENDERABLE]: { generation: 1 },
@@ -616,7 +642,7 @@ export const renderPopup = (
         [ORIENTABLE]: {},
         [PARTICLE]: {
           offsetX: -(frameWidth + 1) / 2 + column,
-          offsetY: -frameHeight,
+          offsetY: -windowHeight + windowOffset,
           offsetZ: selectionHeight,
         },
         [RENDERABLE]: { generation: 1 },
@@ -638,18 +664,18 @@ export const renderPopup = (
       SPRITE
     ] = spriteConfig.scrollBarTop;
     world.assertByIdAndComponents(
-      state.particles[`popup-right-${frameHeight - 3}`],
+      state.particles[`popup-right-${windowHeight - 3}`],
       [PARTICLE]
     )[SPRITE] = spriteConfig.scrollBarBottom;
 
     // render bar
-    for (let row = 1; row < frameHeight - 3; row += 1) {
+    for (let row = 1; row < windowHeight - 3; row += 1) {
       world.assertByIdAndComponents(state.particles[`popup-right-${row}`], [
         PARTICLE,
       ])[SPRITE] = spriteConfig.scrollBar;
     }
 
-    const progress = Math.floor(lerp(2, (frameHeight - 5) * 2, scrollRatio));
+    const progress = Math.floor(lerp(2, (windowHeight - 5) * 2, scrollRatio));
 
     // add handle
     const handleStart = world.assertByIdAndComponents(
@@ -675,7 +701,7 @@ export const renderPopup = (
     renderContent = true;
   } else if (!visibleScroll && (renderTabs || heightChanged)) {
     // reset scroll bar
-    for (let row = 0; row < frameHeight - 2; row += 1) {
+    for (let row = 0; row < windowHeight - 2; row += 1) {
       const sideParticle = world.assertByIdAndComponents(
         state.particles[`popup-right-${row}`],
         [PARTICLE, ORIENTABLE]
@@ -772,7 +798,7 @@ export const renderPopup = (
       : spriteConfig.side;
     if (!visibleScroll) {
       const centerEndParticle = world.assertByIdAndComponents(
-        state.particles[`popup-right-${frameHeight - detailsHeight - 3}`],
+        state.particles[`popup-right-${windowHeight - detailsHeight - 3}`],
         [PARTICLE]
       );
       centerEndParticle[SPRITE] = details
@@ -797,7 +823,7 @@ export const renderPopup = (
         !particleName.startsWith("popup-content-") ||
         (details &&
           particleName.startsWith(
-            `popup-content-${frameHeight - detailsHeight - 3}-`
+            `popup-content-${windowHeight - detailsHeight - 3}-`
           ))
       )
         continue;
@@ -819,7 +845,7 @@ export const renderPopup = (
     for (let i = 0; i < frameWidth - 2; i += 1) {
       const centerParticle = world.assertByIdAndComponents(
         state.particles[
-          `popup-content-${frameHeight - detailsHeight - 3}-${i}`
+          `popup-content-${windowHeight - detailsHeight - 3}-${i}`
         ],
         [PARTICLE]
       );
@@ -841,7 +867,7 @@ export const renderPopup = (
       : Math.floor((state.elapsed - popupTime) / contentDelay);
     const scrollContent = content
       .slice(scrollIndex)
-      .slice(0, details ? frameHeight - detailsHeight - 2 : frameHeight - 2);
+      .slice(0, details ? windowHeight - detailsHeight - 2 : windowHeight - 2);
 
     // gradually animate typed content
     for (
@@ -867,9 +893,9 @@ export const renderPopup = (
         );
         const cropContent =
           details &&
-          lines >= frameHeight - 2 - detailsHeight - overscan &&
+          lines >= windowHeight - 2 - detailsHeight - overscan &&
           row === scrollContent.length - 1 &&
-          scrollContent.length > frameHeight - detailsHeight - 3;
+          scrollContent.length > windowHeight - detailsHeight - 3;
         charParticle[SPRITE] = cropContent
           ? mergeSprites(char, spriteConfig.centerCrop)
           : char;
@@ -890,7 +916,7 @@ export const renderPopup = (
         const char = mergeSprites(popupBackground, details[row][column]);
         const charParticle = world.assertByIdAndComponents(
           state.particles[
-            `popup-content-${row + frameHeight - detailsHeight - 2}-${column}`
+            `popup-content-${row + windowHeight - detailsHeight - 2}-${column}`
           ],
           [PARTICLE, SPRITE]
         );
@@ -903,7 +929,7 @@ export const renderPopup = (
 
   if (renderButtons) {
     // add close button
-    if (initial) {
+    if (initial || windowChanged) {
       const closeButton = createSpriteButton(
         [close],
         3,
@@ -917,7 +943,7 @@ export const renderPopup = (
         const closeParticle = entities.createParticle(world, {
           [PARTICLE]: {
             offsetX: (frameWidth - 3) / 2 + column,
-            offsetY: -frameHeight,
+            offsetY: -windowHeight + windowOffset,
             offsetZ: selectionHeight,
           },
           [RENDERABLE]: { generation: 1 },
@@ -947,7 +973,7 @@ export const renderPopup = (
       const leftParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX: -(frameWidth + 1) / 2 + column,
-          offsetY: -1,
+          offsetY: -1 + windowOffset,
           offsetZ: selectionHeight,
         },
         [RENDERABLE]: { generation: 1 },
@@ -975,7 +1001,7 @@ export const renderPopup = (
       const rightParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX: (frameWidth - 1) / 2 + column - rightButton.length + 2,
-          offsetY: -1,
+          offsetY: -1 + windowOffset,
           offsetZ: selectionHeight,
         },
         [RENDERABLE]: { generation: 1 },
@@ -985,7 +1011,7 @@ export const renderPopup = (
     }
   }
 
-  if (initial && !state.args.instant) {
+  if ((initial || windowChanged) && !state.args.instant) {
     // interpolate frame on initial render
     for (const particleName in state.particles) {
       const particleEntity = world.assertByIdAndComponents(
@@ -994,11 +1020,17 @@ export const renderPopup = (
       );
 
       const { offsetX, offsetY } = particleEntity[PARTICLE];
-      if (offsetY <= -frameHeight) {
-        particleEntity[PARTICLE].animatedOrigin = { x: offsetX, y: -3 };
-        particleEntity[PARTICLE].duration = (frameHeight - 1) * popupDelay;
-      } else if (offsetY < -1) {
-        particleEntity[PARTICLE].animatedOrigin = { x: offsetX, y: -2 };
+      if (offsetY <= -windowHeight + windowOffset) {
+        particleEntity[PARTICLE].animatedOrigin = {
+          x: offsetX,
+          y: -3 + windowOffset,
+        };
+        particleEntity[PARTICLE].duration = (windowHeight - 1) * popupDelay;
+      } else if (offsetY < -1 + windowOffset) {
+        particleEntity[PARTICLE].animatedOrigin = {
+          x: offsetX,
+          y: -2 + windowOffset,
+        };
         particleEntity[PARTICLE].duration = -offsetY * popupDelay;
       }
     }
@@ -1016,9 +1048,9 @@ export const renderPopup = (
   }
 
   // vertical selection
-  const popupOrigin = { x: 0, y: (frameHeight + 1) / -2 };
+  const popupOrigin = { x: 0, y: (windowHeight + 1) / -2 };
   const selectionX = popupOrigin.x - (frameWidth - 3) / 2;
-  const selectionY = popupOrigin.y - (frameHeight - 3) / 2;
+  const selectionY = popupOrigin.y - (windowHeight - 3) / 2;
   state.args.contentClickable = !!selection;
 
   if (
@@ -1033,11 +1065,11 @@ export const renderPopup = (
     const selectionParticle = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX: selectionX,
-        offsetY: selectionY + (verticalIndex - scrollIndex),
+        offsetY: selectionY + (verticalIndex - scrollIndex) + windowOffset,
         offsetZ: selectionHeight,
         animatedOrigin: {
           x: selectionX - 1,
-          y: selectionY + (verticalIndex - scrollIndex),
+          y: selectionY + (verticalIndex - scrollIndex) + windowOffset,
         },
         duration: 100,
       },
@@ -1060,7 +1092,7 @@ export const renderPopup = (
       [PARTICLE]
     );
     selectionParticle[PARTICLE].offsetY =
-      selectionY + (verticalIndex - scrollIndex);
+      selectionY + (verticalIndex - scrollIndex) + windowOffset;
     state.args.verticalIndex = verticalIndex;
 
     // update selection type if needed
@@ -1097,7 +1129,7 @@ export const renderPopup = (
           [ORIENTABLE]: { facing: topOverlayTarget > 0 ? "up" : undefined },
           [PARTICLE]: {
             offsetX: (frameWidth - 3) / 2 - overlayIndex,
-            offsetY: 1 - frameHeight,
+            offsetY: 1 - windowHeight + windowOffset,
             offsetZ: overlayHeight,
             amount: topOverlayTarget,
           },
@@ -1139,7 +1171,7 @@ export const renderPopup = (
           },
           [PARTICLE]: {
             offsetX: (frameWidth - 3) / 2 - overlayIndex,
-            offsetY: -2,
+            offsetY: -2 + windowOffset,
             offsetZ: overlayHeight,
             amount: bottomOverlayTarget,
           },
@@ -1175,7 +1207,7 @@ export const renderPopup = (
         const hintParticle = entities.createParticle(world, {
           [PARTICLE]: {
             offsetX: (hintIndex - 1) * -3,
-            offsetY: -2,
+            offsetY: -2 + windowOffset,
             offsetZ: selectionHeight,
             amount: hintAmount,
           },

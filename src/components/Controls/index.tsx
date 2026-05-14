@@ -59,6 +59,8 @@ import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { getSequence } from "../../engine/systems/sequence";
 import { harvestConditions } from "../../game/balancing/harvesting";
+import Keyboard, { getIndexFromKey } from "../Keyboard";
+import { TEST_MODE } from "../../engine/utils";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -87,6 +89,8 @@ export const useKeys = ["e", "E"];
 export const mapKeys = ["m", "M"];
 export const gearKeys = ["g", "G"];
 export const statsKeys = ["t", "T"];
+export const chatKeys = ["c", "C"];
+export const backspaceKeys = ["Backspace"];
 export const interactKeys = ["Enter"];
 export const closeKeys = ["Escape"];
 export const hotKeys = range(0, 9).map((key) => key.toString());
@@ -234,6 +238,8 @@ export default function Controls() {
     ecs && popup && !getSequence(ecs, popup, "popup")?.args.instant
       ? popup[POPUP].tabs.length
       : 0;
+  const popupSequence = ecs && popup && getSequence(ecs, popup, "popup");
+  const popupTab = ecs && popup && getTab(ecs, popup);
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);
   const [joystickOrientations, setJoystickOrientations] = useState<
@@ -377,6 +383,8 @@ export default function Controls() {
         | "gear"
         | "stats"
         | "map"
+        | "chat"
+        | "type"
         | "close"
         | "left"
         | "right"
@@ -386,7 +394,8 @@ export default function Controls() {
         | "tab"
         | "backtab",
       index?: number,
-      offset?: number
+      offset?: number,
+      tab?: number
     ) => {
       const heroEntity = heroRef.current;
       const currentAction = actionRef.current;
@@ -431,9 +440,13 @@ export default function Controls() {
       } else {
         heroEntity[PLAYER].actionTriggered = action;
 
-        if (index !== undefined && action === "tab") {
-          heroEntity[PLAYER].tabTriggered = index;
-        } else if (index !== undefined && ["content", "use"].includes(action)) {
+        if (action === "type" || (index !== undefined && action === "tab")) {
+          heroEntity[PLAYER].tabTriggered = tab;
+        }
+        if (
+          action === "type" ||
+          (index !== undefined && ["content", "use"].includes(action))
+        ) {
           heroEntity[PLAYER].contentTriggered = index;
           heroEntity[PLAYER].offsetTriggered = offset;
         }
@@ -563,6 +576,46 @@ export default function Controls() {
     [handleAction, inMenu, ecs, hero]
   );
 
+  const handleChat = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      event.preventDefault();
+      if (inMenu || !ecs || !hero || !isActionable(ecs, hero) || !TEST_MODE)
+        return;
+
+      handleAction("chat");
+    },
+    [handleAction, inMenu, ecs, hero]
+  );
+
+  const handleType = useCallback(
+    (
+      event:
+        | KeyboardEvent
+        | TouchEvent
+        | React.MouseEvent<HTMLDivElement, MouseEvent>,
+      key: string
+    ) => {
+      event.preventDefault();
+      if (inMenu || !ecs || !hero || !isActionable(ecs, hero)) return;
+
+      if (backspaceKeys.includes(key)) {
+        handleAction("type");
+        return;
+      }
+
+      const keyMap = getIndexFromKey(key);
+      if (!keyMap) return;
+
+      handleAction("type", keyMap.content, keyMap.offset, keyMap.tab);
+    },
+    [handleAction, inMenu, ecs, hero]
+  );
+
   const handleMap = useCallback(
     (
       event:
@@ -620,7 +673,12 @@ export default function Controls() {
         return;
       }
       const tab = (event.target as HTMLElement)?.dataset.tab;
-      handleAction("tab", tab ? parseInt(tab) : undefined);
+      handleAction(
+        "tab",
+        undefined,
+        undefined,
+        tab ? parseInt(tab) : undefined
+      );
     },
     [handleAction]
   );
@@ -808,18 +866,21 @@ export default function Controls() {
       )
         return;
 
-      if (spellKeys.includes(event.key) && event.type === "keydown") {
+      if (
+        TEST_MODE &&
+        popupTab === "chat" &&
+        !interactKeys.includes(event.key) &&
+        !closeKeys.includes(event.key) &&
+        event.type === "keydown"
+      ) {
+        // allow typing in chat
+        handleType(event, event.key);
+        return;
+      } else if (spellKeys.includes(event.key) && event.type === "keydown") {
         handleSpell(event);
         return;
       } else if (skillKeys.includes(event.key) && event.type === "keydown") {
         handleSkill(event);
-        return;
-      } else if (interactKeys.includes(event.key) && event.type === "keydown") {
-        if (popup) {
-          handleRight(event);
-        } else {
-          handleInteract(event);
-        }
         return;
       } else if (mapKeys.includes(event.key) && event.type === "keydown") {
         handleMap(event);
@@ -835,6 +896,30 @@ export default function Controls() {
         return;
       } else if (statsKeys.includes(event.key) && event.type === "keydown") {
         handleStats(event);
+        return;
+      } else if (
+        TEST_MODE &&
+        (chatKeys.includes(event.key) ||
+          (!interactable && !popup && interactKeys.includes(event.key))) &&
+        event.type === "keydown"
+      ) {
+        // allow opening chat in test mode
+        handleChat(event);
+        return;
+      } else if (
+        backspaceKeys.includes(event.key) &&
+        event.type === "keydown"
+      ) {
+        if (ecs && popup && getTab(ecs, popup) === "chat") {
+          handleLeft(event);
+        }
+        return;
+      } else if (interactKeys.includes(event.key) && event.type === "keydown") {
+        if (popup) {
+          handleRight(event);
+        } else {
+          handleInteract(event);
+        }
         return;
       } else if (inspectKeys.includes(event.key) && event.type === "keydown") {
         handleInspect(event);
@@ -904,11 +989,15 @@ export default function Controls() {
       handleStats,
       handleGear,
       handleMap,
+      handleChat,
+      handleType,
       handleLeft,
       handleRight,
       handleClose,
       paused,
       popup,
+      popupTab,
+      interactable,
     ]
   );
 
@@ -923,6 +1012,14 @@ export default function Controls() {
       if (!paused) {
         ensureAudio();
       }
+
+      // defer keyboard clicks to own component
+      if (
+        [...event.changedTouches].some((touch) =>
+          (touch.target as HTMLElement).closest("#keyboard")
+        )
+      )
+        return;
 
       // prevent touches over action bar
       if (
@@ -1124,7 +1221,17 @@ export default function Controls() {
   ];
 
   return (
-    <footer className={flipped ? "ControlsFlipped" : "Controls"}>
+    <footer
+      className={flipped ? "ControlsFlipped" : "Controls"}
+      style={
+        popupSequence &&
+        ({
+          "--popup-height": popupSequence.args.windowHeight,
+          "--popup-offset":
+            ((frameHeight - popupSequence.args.windowHeight) % 2) * -0.5,
+        } as React.CSSProperties)
+      }
+    >
       <Joystick
         orientations={joystickOrientations}
         origin={touchOrigin.current}
@@ -1264,6 +1371,7 @@ export default function Controls() {
             onPointerCancel={handleRelease}
           />
           <div className="PopupContent" id="content" onClick={handleContent} />
+          {popupTab === "chat" && <Keyboard />}
         </>
       )}
     </footer>

@@ -23,6 +23,7 @@ export type Player = {
     | "gear"
     | "stats"
     | "equip"
+    | "chat"
     | "close"
     | "tab"
     | "backtab"
@@ -30,7 +31,8 @@ export type Player = {
     | "right"
     | "up"
     | "down"
-    | "content";
+    | "content"
+    | "type";
   tabTriggered?: number;
   contentTriggered?: number;
   offsetTriggered?: number;
