@@ -22,17 +22,52 @@ export const relativeOrientations = (
   world: World,
   origin: Position,
   target: Position,
-  ratio: number = aspectRatio
+  ratio: number = aspectRatio,
+  quadrant?: Position
 ) => {
   if (origin.x === target.x && origin.y === target.y) return [];
 
   const size = world.metadata.gameEntity[LEVEL].size;
-  const delta = {
-    x: signedDistance(origin.x, target.x, size) * ratio,
-    y: signedDistance(origin.y, target.y, size),
-  };
+  let delta = { x: 0, y: 0 };
+
+  if (quadrant) {
+    const normalizedOrigin = {
+      x: normalize(origin.x, size),
+      y: normalize(origin.y, size),
+    };
+    const normalizedTarget = {
+      x: normalize(target.x, size),
+      y: normalize(target.y, size),
+    };
+    origin = add(normalizedOrigin, {
+      x: quadrant.x === -1 ? size : 0,
+      y: quadrant.y === -1 ? size : 0,
+    });
+    target = add(normalizedTarget, {
+      x: Math.max(0, quadrant.x) * size,
+      y: Math.max(0, quadrant.y) * size,
+    });
+    delta = {
+      x: signedDistance(origin.x, target.x, size * 2) * ratio,
+      y: signedDistance(origin.y, target.y, size * 2),
+    };
+  } else {
+    delta = {
+      x: signedDistance(origin.x, target.x, size) * ratio,
+      y: signedDistance(origin.y, target.y, size),
+    };
+  }
   return degreesToOrientations(pointToDegree(delta));
 };
+
+export const getAbsoluteQuadrant = (
+  size: number,
+  origin: Position,
+  target: Position
+) => ({
+  x: Number(origin.x > size / 2) - Number(target.x > size / 2),
+  y: Number(origin.y > size / 2) - Number(target.y > size / 2),
+});
 
 export const getClosestQuadrant = (
   origin: Position,

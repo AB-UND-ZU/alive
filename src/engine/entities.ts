@@ -809,14 +809,6 @@ export const createMountain = entityFactory([
   SPRITE,
 ]);
 
-export const createNote = entityFactory([
-  ITEM,
-  POPUP,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-]);
-
 export const createObject = entityFactory([
   ATTACKABLE,
   BELONGABLE,

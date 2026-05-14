@@ -533,6 +533,20 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
       ],
+      [
+        {
+          stackable: "letter",
+          amount: Infinity,
+        },
+        {
+          stackable: "golemHead",
+          amount: Infinity,
+        },
+        {
+          stackable: "schema",
+          amount: Infinity,
+        },
+      ],
     ];
 
     const itemCorner = { x: 1 - itemColumns.length, y: -7 };

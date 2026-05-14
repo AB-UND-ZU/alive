@@ -811,6 +811,11 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
   };
   const druidEntity = getIdentifier(world, "earthDruid");
   const smithEntity = getIdentifier(world, "earthSmith");
+  const fireGateGuardEntity = getIdentifierAndComponents(
+    world,
+    "fireGateGuard",
+    [POSITION]
+  );
 
   step({
     stage,
@@ -1255,6 +1260,14 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             stock: 1,
             prices: [],
           },
+          {
+            item: {
+              stackable: "letter",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [],
+          },
         ],
         choices: [
           {
@@ -1326,6 +1339,42 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             createText("stronger."),
             [],
             [...createText("Good luck! "), parseSprite("\x0a\u0102")],
+          ],
+        ],
+        tabs: ["quest"],
+      });
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => "haven",
+  });
+
+  step({
+    stage,
+    name: "haven",
+    onEnter: () => {
+      // set guard note quest for chief
+      createPopup(world, entity, {
+        targets: [{ amount: 1, unit: "fireGateGuard" }],
+        focuses: [
+          {
+            identifier: "fireGateGuard",
+            highlight: "quest",
+            quadrant: fireGateGuardEntity && { x: 0, y: 0 },
+          },
+        ],
+        lines: [
+          [
+            [...createText("Finally, the "), ...createUnitName("oakBoss")],
+            createText("has been slain!"),
+            [],
+            createText("Please bring the"),
+            [
+              ...createItemName({ stackable: "letter" }),
+              ...createText(" to the"),
+            ],
+            [...createText("fire", colors.red), ...createText(" haven and")],
+            createText("report the news."),
           ],
         ],
         tabs: ["quest"],
@@ -1566,6 +1615,227 @@ export const earthSmithNpc: Sequence<NpcSequence> = (world, entity, state) => {
           ],
         ],
         tabs: ["talk"],
+      });
+
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => END_STEP,
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const fireHavenNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const { spawn, center, radius, ratio } = state.args.memory;
+
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    POSITION,
+    VIEWABLE,
+    LIGHT,
+    SPAWNABLE,
+  ]);
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () =>
+      !!heroEntity &&
+      getDistance(center, heroEntity[POSITION], size, ratio) < radius,
+    onLeave: () => {
+      if (heroEntity) {
+        heroEntity[SPAWNABLE].position = { ...spawn };
+        const spawnEntity = getIdentifier(world, "spawn");
+        if (spawnEntity) {
+          moveEntity(world, spawnEntity, heroEntity[SPAWNABLE].position);
+          setNeedle(world, spawnEntity);
+        }
+
+        queueMessage(world, heroEntity, {
+          line: createText("Spawn updated!", colors.black, colors.lime),
+          orientation: "up",
+          fast: false,
+          delay: 0,
+        });
+      }
+
+      return END_STEP;
+    },
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => true,
+    onLeave: () => "quest",
+  });
+
+  step({
+    stage,
+    name: "quest",
+    onEnter: () => {
+      createPopup(world, entity, {
+        deals: [
+          {
+            item: {
+              stackable: "resource",
+              material: "gold",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [{ stackable: "golemHead", amount: 3 }],
+          },
+          {
+            item: {
+              stat: "xp",
+              amount: 10,
+            },
+            stock: 1,
+            prices: [],
+          },
+        ],
+        choices: [
+          {
+            tool: "pickaxe",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            tool: "hook",
+            material: "wood",
+            amount: 1,
+          },
+          { accessory: "boots", material: "wood", amount: 1 },
+          { accessory: "torch", material: "wood", amount: 1 },
+          { accessory: "map", material: "gold", amount: 1 },
+        ],
+        lines: [
+          [
+            createText("Greetings, I am"),
+            [
+              ...createText("the "),
+              ...createText("Chief", colors.red),
+              ...createText(" of "),
+              ...createText("fire", colors.red),
+            ],
+            createText("haven."),
+            [],
+            createText("It's a dangerous"),
+            createText("place, especially"),
+            [
+              ...createUnitName("golem"),
+              ...createText("s", colors.maroon),
+              ...createText(" nearby."),
+            ],
+            [],
+            createText("Please, bring me"),
+            [
+              ...createItemText({
+                stackable: "golemHead",
+                amount: 3,
+              }),
+              ...createText(" from those"),
+            ],
+            createText("monsters."),
+          ],
+        ],
+        tabs: ["quest"],
+      });
+
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => END_STEP,
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const fireGateGuardNpc: Sequence<NpcSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+  const earthChiefEntity = getIdentifier(world, "earthChief");
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () =>
+      !!earthChiefEntity &&
+      getSequence(world, earthChiefEntity, "npc")?.args.step === "haven",
+    onLeave: () => "quest",
+  });
+
+  step({
+    stage,
+    name: "quest",
+    onEnter: () => {
+      createPopup(world, entity, {
+        deals: [
+          {
+            item: {
+              stackable: "resource",
+              material: "gold",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [{ stackable: "letter", amount: 1 }],
+          },
+          {
+            item: {
+              stat: "xp",
+              amount: 5,
+            },
+            stock: 1,
+            prices: [],
+          },
+        ],
+        lines: [
+          [
+            createText("Hello traveller."),
+            [],
+            createText("I see..."),
+            [],
+            createText("You have a report"),
+            [...createText("from the "), ...createText("earth", colors.lime)],
+            [...createUnitName("earthChief"), ...createText(".")],
+            [],
+            createText("Wow, great news!"),
+            [],
+            createText("We have a similar"),
+            createText("problem, can you"),
+            createText("help us too?"),
+          ],
+        ],
+        tabs: ["quest"],
       });
 
       return true;

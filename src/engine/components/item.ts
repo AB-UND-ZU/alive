@@ -57,7 +57,6 @@ export type Craftable =
   | "seed"
   | "ingot"
   | "nugget"
-  | "note"
   | "worm"
   | "salmon"
   | "tuna"
@@ -67,7 +66,9 @@ export type Craftable =
   | "eel"
   | "seastar"
   | "pearl"
-  | "golemHead";
+  | "golemHead"
+  | "letter"
+  | "schema";
 export type ResourceItem = "resource";
 export type Reloadable = "arrow" | "bomb" | "charge";
 export type Stackable = ResourceItem | Craftable | Reloadable;

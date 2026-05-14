@@ -561,7 +561,7 @@ export const spawnQuest: Sequence<QuestSequence> = (world, entity, state) => {
     stage,
     name: "town",
     onEnter: () => {
-      setHighlight(world, "quest", earthChief);
+      setHighlight(world, "quest", earthChief, earthChief && { x: 0, y: 0 });
       return true;
     },
     isCompleted: () =>
@@ -589,7 +589,7 @@ export const waypointQuest: Sequence<QuestSequence> = (
     finished: false,
     updated: false,
   };
-  const { identifier, targetId, position, distance, highlight } =
+  const { identifier, targetId, position, distance, highlight, quadrant } =
     state.args.memory;
 
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -612,7 +612,7 @@ export const waypointQuest: Sequence<QuestSequence> = (
     stage,
     name: "search",
     onEnter: () => {
-      setHighlight(world, highlight || "quest", targetEntity);
+      setHighlight(world, highlight || "quest", targetEntity, quadrant);
       return true;
     },
     isCompleted: () =>

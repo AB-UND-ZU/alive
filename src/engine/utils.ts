@@ -7,6 +7,7 @@ import { Entity, TypedEntity } from "./entities";
 import { PLAYER } from "./components/player";
 import { Sprite } from "./components/sprite";
 import { POI } from "./components/poi";
+import { Position } from "./components/position";
 
 export const TEST_MODE = window.location.search.substring(1) === "test";
 
@@ -79,7 +80,8 @@ export const getIdentifiersAndComponents = <C extends keyof Entity>(
 export const setHighlight = (
   world: World,
   highlight?: Focusable["highlight"],
-  entity?: TypedEntity
+  entity?: TypedEntity,
+  quadrant?: Position
 ) => {
   const entityId = highlight && entity && world.getEntityId(entity);
   const focusEntity = getIdentifierAndComponents(world, "focus", [
@@ -93,6 +95,7 @@ export const setHighlight = (
   focusEntity[FOCUSABLE].pendingTarget = entityId;
   focusEntity[FOCUSABLE].highlight = highlight;
   focusEntity[TRACKABLE].target = heroEntity && world.getEntityId(heroEntity);
+  focusEntity[TRACKABLE].quadrant = quadrant;
   rerenderEntity(world, focusEntity);
 };
 

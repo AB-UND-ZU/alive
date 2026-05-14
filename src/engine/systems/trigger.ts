@@ -488,25 +488,6 @@ export const performTrade = (
         [SEQUENCABLE]: { states: {} },
         [ORIENTABLE]: {},
       })
-    : deal.item.stackable === "note"
-    ? entities.createNote(world, {
-        ...itemData,
-        [SEQUENCABLE]: { states: {} },
-        [POPUP]: {
-          active: false,
-          verticalIndezes: [0],
-          horizontalIndex: 0,
-          selections: [],
-          deals: [],
-          recipes: [],
-          lines: [],
-          targets: [],
-          focuses: [],
-          choices: [],
-          viewpoint: world.getEntityId(entity),
-          tabs: ["info"],
-        },
-      })
     : deal.item.accessory === "compass"
     ? entities.createCompass(world, {
         ...itemData,

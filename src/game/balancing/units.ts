@@ -925,7 +925,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       hp: 5,
     },
     equipments: [],
-    drops: [{ chance: 100, items: [{ stackable: "stick", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "stick", amount: 3 }] }],
     patternNames: ["tumbleweed"],
     sprite: tumbleweed,
   },

@@ -8,9 +8,13 @@ import {
   getOrientedSprite,
   mapHouse,
   mapSpawn,
+  mergeSprites,
   none,
   path,
   questPointer,
+  rock1,
+  rock2,
+  shadow,
 } from "../../assets/sprites";
 import {
   simplexNoiseFactory,
@@ -75,6 +79,7 @@ import {
 } from "../../../engine/components/sequencable";
 import {
   createUnitName,
+  frameWidth,
   getUnitSprite,
   npcSequence,
   questSequence,
@@ -98,6 +103,7 @@ import {
 } from "../../../bindings/creation";
 import {
   findPath,
+  getAbsoluteQuadrant,
   invertOrientation,
   relativeOrientations,
   rotateOrientation,
@@ -126,6 +132,7 @@ import { pixelCircle } from "../../math/tracing";
 import { aspectRatio } from "../../../components/Dimensions/sizing";
 import generateHaven from "../../../engine/wfc/haven";
 import { disposeEntity } from "../../../engine/systems/map";
+import { centerLayer } from "../../assets/pixels";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -896,10 +903,7 @@ export const generateIsland = (world: World) => {
         closestExit,
         false,
         false,
-        {
-          x: Number(spawnPoint.x > size / 2) - Number(closestExit.x > size / 2),
-          y: Number(spawnPoint.y > size / 2) - Number(closestExit.y > size / 2),
-        }
+        getAbsoluteQuadrant(size, spawnPoint, closestExit)
       );
 
       townPath.forEach(({ x, y }) => {
@@ -942,10 +946,10 @@ export const generateIsland = (world: World) => {
         size,
         oakExit,
         islandAngle + 90,
-        1.5,
+        2,
         oakRatio
       );
-      worldMap[desertEntrance.x][desertEntrance.y] = "path";
+      worldMap[desertEntrance.x][desertEntrance.y] = "sand";
       objectsMap[desertEntrance.x][desertEntrance.y] = [];
       setPath(pathMatrix, desertEntrance.x, desertEntrance.y, 1);
 
@@ -972,7 +976,7 @@ export const generateIsland = (world: World) => {
       );
 
       // move haven center to free area inwards
-      const havenInnRadius = 2;
+      const havenInnRadius = 3;
       const havenPoint = marchLinePredicate(
         world,
         desertEntrance,
@@ -990,7 +994,7 @@ export const generateIsland = (world: World) => {
 
       // determine radius size for haven, ensuring sandy areas free from beach
       const havenRatio = aspectRatio;
-      const havenCells = 460;
+      const havenCells = 475;
       let havenRadius = 11;
       let havenUsable = 0;
       do {
@@ -1047,7 +1051,7 @@ export const generateIsland = (world: World) => {
           const havenY = normalize(target.y - havenCorner.y, size);
 
           const withinPalisades =
-            distance < havenRadius - 2 && elevation > havenDepth;
+            distance < havenRadius - 2 && elevation > sandDepth;
           havenArea[havenX] = havenArea[havenX] || {};
           havenArea[havenX][havenY] = withinPalisades;
         }
@@ -1278,7 +1282,15 @@ export const generateIsland = (world: World) => {
         havenWidth,
         havenHeight,
         (x, y) => {
-          if (havenArea[x]?.[y]) {
+          const hasAdjacentWater = Object.values(orientationPoints).some(
+            (delta) => {
+              const target = combine(size, havenCorner, { x, y }, delta);
+              return ["water_deep", "water_shallow"].includes(
+                worldMap[target.x][target.y]
+              );
+            }
+          );
+          if (havenArea[x]?.[y] && !hasAdjacentWater) {
             return "";
           }
 
@@ -1591,7 +1603,7 @@ export const generateIsland = (world: World) => {
       });
 
       // add quest sign after exiting
-      const spawnSign = createSign(world, copy(signPosition), [
+      const spawnSign = createSign(world, signPosition, [
         [
           createText("Find the town and"),
           createText("speak with the"),
@@ -1839,15 +1851,61 @@ export const generateIsland = (world: World) => {
 
       // postprocess haven
 
+      // create sign at desert entrace
+      const desertSign = createSign(world, desertEntrance, [
+        [
+          createText("Dangerous desert"),
+          createText("ahead. Proceed at"),
+          createText("own risk."),
+          [],
+          [
+            ...createText("Follow the "),
+            path,
+            ...createText("Path", colors.grey),
+          ],
+          createText("to the haven."),
+          [],
+          createText("Watch out for the"),
+          [
+            ...createUnitName("golem"),
+            ...createText("s", colors.maroon),
+            ...createText(" in these"),
+          ],
+          [...createText("Rock", colors.grey), ...createText(" formations:")],
+          [],
+          ...centerLayer(
+            [[rock1], [rock1, rock2, rock1], [rock1]],
+            frameWidth - 2
+          ),
+          [],
+        ],
+      ]);
+      desertSign[SPRITE] = mergeSprites(shadow, desertSign[SPRITE]);
+
+      const fireHaven = entities.createProcessor(world, {
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [POSITION]: { ...havenPoint },
+      });
+      setIdentifier(world, fireHaven, "fire_haven");
+      npcSequence(world, earthTown, "fireHavenNpc", {
+        center: havenPoint,
+        radius: havenRadius - 1,
+        ratio: havenRatio,
+        spawn: combine(size, havenPoint, { x: 0, y: 2 }),
+      });
+
       // fire chief next to inn
-      createNpc(
+      const fireChief = createNpc(
         world,
         "fireChief",
         combine(size, havenPoint, { x: choice(-1, 1), y: 2 })
       );
+      npcSequence(world, fireChief, "fireChiefNpc", {});
 
       // place first guard behind door and walk away when nearby
       const fireGateGuard = createNpc(world, "fireGateGuard", guardPosition);
+      npcSequence(world, fireGateGuard, "fireGateGuardNpc", {});
       fireGateGuard[BEHAVIOUR].patterns.push(
         {
           name: "watch",
@@ -1859,14 +1917,14 @@ export const generateIsland = (world: World) => {
           },
         },
         {
-        name: "gate",
-        memory: {
-          origin: copy(guardPosition),
-          target: guardWait,
-          gate: gatePosition,
-          inn: havenPoint,
-          radius: havenRadius - 1,
-        },
+          name: "gate",
+          memory: {
+            origin: copy(guardPosition),
+            target: guardWait,
+            gate: gatePosition,
+            inn: havenPoint,
+            radius: havenRadius - 1,
+          },
         }
       );
 

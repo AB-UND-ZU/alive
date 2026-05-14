@@ -659,20 +659,32 @@ export const pearl: Sprite = {
   ],
 };
 
-export const note: Sprite = {
-  name: "Note",
+export const schema: Sprite = {
+  name: "Schema",
+  layers: [
+    { char: "±", color: colors.silver },
+    { char: "■", color: colors.white },
+    { char: "≈", color: colors.grey },
+    { char: "=", color: colors.white },
+    { char: "Γ", color: colors.black },
+    { char: "°", color: colors.black },
+  ],
+};
+
+export const letter: Sprite = {
+  name: "Letter",
   layers: [
     { char: "\u0115", color: colors.grey },
-    { char: "\u0103", color: colors.silver },
+    { char: "\u0103", color: colors.white },
     { char: "▀", color: colors.black },
   ],
 };
 
-export const noteRead: Sprite = {
-  name: "Note",
+export const letterRead: Sprite = {
+  name: "Letter",
   layers: [
     { char: "\u0115", color: colors.grey },
-    { char: "\u0103", color: colors.silver },
+    { char: "\u0103", color: colors.white },
     { char: "-", color: colors.grey },
   ],
 };

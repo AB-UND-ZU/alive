@@ -7,9 +7,15 @@ import { ORIENTABLE } from "../components/orientable";
 import { ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { TRACKABLE } from "../components/trackable";
-import { relativeOrientations } from "../../game/math/path";
+import {
+  getAbsoluteQuadrant,
+  relativeOrientations,
+} from "../../game/math/path";
 import { PLAYER } from "../components/player";
 import { getIdentifier } from "../utils";
+import { aspectRatio } from "../../components/Dimensions/sizing";
+import { LEVEL } from "../components/level";
+import { add } from "../../game/math/std";
 
 export default function setupNeedle(world: World) {
   let referenceGenerations = -1;
@@ -85,10 +91,21 @@ export default function setupNeedle(world: World) {
       entityReferences[entityId] = entityReference;
 
       const currentOrientation = entity[ORIENTABLE].facing;
+      const size = world.metadata.gameEntity[LEVEL].size;
       const targetOrientations = relativeOrientations(
         world,
         originEntity[POSITION],
-        targetEntity[POSITION]
+        targetEntity[POSITION],
+        aspectRatio,
+        entity[TRACKABLE].quadrant &&
+          add(
+            entity[TRACKABLE].quadrant,
+            getAbsoluteQuadrant(
+              size,
+              originEntity[POSITION],
+              targetEntity[POSITION]
+            )
+          )
       );
 
       // reorient needle lazily, only if within 45° of a linear direction

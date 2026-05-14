@@ -363,34 +363,6 @@ export const populateItems = (
           equip
         )
       );
-    } else if (item.stackable === "note") {
-      created.push(
-        createItemInInventory(
-          world,
-          entity,
-          entities.createNote,
-          {
-            [ITEM]: item,
-            [SEQUENCABLE]: { states: {} },
-            [SPRITE]: getItemSprite(item),
-            [POPUP]: {
-              active: false,
-              verticalIndezes: [0],
-              horizontalIndex: 0,
-              selections: [],
-              deals: [],
-              recipes: [],
-              lines: [[]],
-              focuses: [],
-              choices: [],
-              targets: [],
-              viewpoint: world.getEntityId(entity),
-              tabs: ["info"],
-            },
-          },
-          equip
-        )
-      );
     } else if (item.accessory === "compass") {
       created.push(
         createItemInInventory(
@@ -723,7 +695,7 @@ export const createSign = (
     [HARVESTABLE]: signData.harvestable,
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [POSITION]: position,
+    [POSITION]: copy(position),
     [RENDERABLE]: { generation: 0 },
     [SEQUENCABLE]: { states: {} },
     [SHOOTABLE]: { shots: 0 },
@@ -955,7 +927,7 @@ export const createCell = (
     setIdentifier(world, useEntity, "use");
 
     // set initial focus on hero
-    const highlighEntity = entities.createHighlight(world, {
+    const highlightEntity = entities.createHighlight(world, {
       [FOCUSABLE]: {},
       [MOVABLE]: {
         orientations: [],
@@ -974,15 +946,15 @@ export const createCell = (
       [SPRITE]: none,
       [TRACKABLE]: {},
     });
-    all.push(highlighEntity);
+    all.push(highlightEntity);
     createSequence<"focus", FocusSequence>(
       world,
-      highlighEntity,
+      highlightEntity,
       "focus",
       "focusCircle",
       {}
     );
-    setIdentifier(world, highlighEntity, "focus");
+    setIdentifier(world, highlightEntity, "focus");
 
     // create spawn dummy to set needle target
     const spawnEntity = entities.createViewpoint(world, {

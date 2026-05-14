@@ -28,6 +28,7 @@ export type Focus = {
   targetId?: number;
   position?: Position;
   highlight: NonNullable<Focusable["highlight"]>;
+  quadrant?: Position;
 };
 
 export const shops = ["buy", "sell"] as const;

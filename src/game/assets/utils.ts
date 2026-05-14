@@ -125,7 +125,6 @@ import {
   knight,
   alien,
   oreDisplay,
-  note,
   none,
   absorb,
   scout,
@@ -158,6 +157,8 @@ import {
   getBlockedSlot,
   skillSlot,
   swimmingEel,
+  letter,
+  schema,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1764,20 +1765,28 @@ export const entitySprites: Record<
       ],
     ],
   },
-  note: {
-    sprite: note,
-    getDescription: () => [
-      createText("A beautifully"),
-      createText("written letter"),
-      createText("to someone."),
-    ],
-  },
   golemHead: {
     sprite: golemHead,
     getDescription: () => [
       createText("Head of a slain"),
       [...createUnitName("golem"), ...createText(". Might be")],
       createText("worth something."),
+    ],
+  },
+  letter: {
+    sprite: letter,
+    getDescription: () => [
+      createText("A beautifully"),
+      createText("written note for"),
+      createText("someone."),
+    ],
+  },
+  schema: {
+    sprite: schema,
+    getDescription: () => [
+      createText("Detailed drawing"),
+      createText("how to build"),
+      createText("something."),
     ],
   },
 

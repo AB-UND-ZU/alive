@@ -399,7 +399,7 @@ import { COLLIDABLE } from "../../engine/components/collidable";
 import { LAYER } from "../../engine/components/layer";
 import { SHOOTABLE } from "../../engine/components/shootable";
 import { ATTACKABLE } from "../../engine/components/attackable";
-import { generateNpcData } from "../balancing/units";
+import { generateNpcData, generateUnitData } from "../balancing/units";
 import { Vanishable, VANISHABLE } from "../../engine/components/vanishable";
 import { colorPalettes, recolorSprite } from "./templates";
 import {
@@ -1077,7 +1077,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
     rerenderEntity(world, baitParticle);
 
     const delta = orientationPoints[condition.orientation];
-    const baitStats = getItemStats(hookEntity[ITEM])
+    const baitStats = getItemStats(hookEntity[ITEM]);
     const baitEntity = entities.createBait(world, {
       [BAITABLE]: { caster: entityId, amount: baitStats.fishing },
       [BUMPABLE]: { generation: 0 },
@@ -5288,6 +5288,15 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
   const allDefeated =
     heroEntity &&
     popup.targets.every((target) => hasDefeated(world, heroEntity, target));
+  const findTarget =
+    heroEntity &&
+    popup.targets.some((target) =>
+      isFriendlyFire(world, heroEntity, {
+        [BELONGABLE]: {
+          faction: generateUnitData(target.unit).faction,
+        },
+      })
+    );
   const completed = allDefeated && allGathered;
   const selections = getTabSelections(world, entity);
   const selectedChoice =
@@ -5305,7 +5314,7 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
         : pixelFrame(
             questWidth,
             popup.targets.length + 2,
-            allDefeated ? colors.grey : colors.red,
+            allDefeated ? colors.grey : findTarget ? colors.yellow : colors.red,
             completed ? "dotted" : "solid",
             popup.targets.map((target) => {
               const killed = heroEntity
@@ -5341,7 +5350,9 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
               ];
               return defeated ? strikethrough(line) : line;
             }),
-            createText("Defeat", allDefeated ? colors.grey : colors.red)
+            heroEntity && findTarget
+              ? createText("Find", allDefeated ? colors.grey : colors.yellow)
+              : createText("Defeat", allDefeated ? colors.grey : colors.red)
           );
     const prices = popup.deals[0]?.prices || [];
     const gathers =
@@ -7570,16 +7581,16 @@ export const pointerArrow: Sequence<PointerSequence> = (
   let updated = false;
   let finished = false;
 
-  const highlighEntity = world.getEntities([
+  const highlightEntity = world.getEntities([
     FOCUSABLE,
     TRACKABLE,
     ORIENTABLE,
   ])[0];
-  const targetId = highlighEntity?.[FOCUSABLE].target;
-  const highlight = highlighEntity?.[FOCUSABLE].highlight;
+  const targetId = highlightEntity?.[FOCUSABLE].target;
+  const highlight = highlightEntity?.[FOCUSABLE].highlight;
   const targetEntity = world.getEntityByIdAndComponents(targetId, [POSITION]);
 
-  if (!state.args.lastOrientation && (!highlighEntity || !targetEntity)) {
+  if (!state.args.lastOrientation && (!highlightEntity || !targetEntity)) {
     return { updated, finished };
   }
 
@@ -7630,7 +7641,7 @@ export const pointerArrow: Sequence<PointerSequence> = (
   const targetChanged = state.args.target !== targetId;
   if (
     state.args.lastOrientation &&
-    (!highlighEntity || !targetEntity || targetChanged || !shouldDisplay)
+    (!highlightEntity || !targetEntity || targetChanged || !shouldDisplay)
   ) {
     pointerParticle[ORIENTABLE].facing = undefined;
     pointerParticle[PARTICLE].offsetX = 0;
@@ -7642,9 +7653,9 @@ export const pointerArrow: Sequence<PointerSequence> = (
     }
     state.args.lastOrientation = undefined;
     updated = true;
-  } else if (highlighEntity && targetEntity && shouldDisplay) {
+  } else if (highlightEntity && targetEntity && shouldDisplay) {
     // invert orientation as needle from highlight is pointing to hero
-    const orientation = highlighEntity[ORIENTABLE].facing;
+    const orientation = highlightEntity[ORIENTABLE].facing;
     const invertedOrientation = orientation && invertOrientation(orientation);
     if (
       invertedOrientation &&
