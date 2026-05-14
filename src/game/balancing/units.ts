@@ -454,6 +454,78 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     remainsChoices: [tombstone1],
     evaporate: { sprite: ghost, fast: false },
   },
+  fireGateGuard: {
+    faction: "fire",
+    scratch: colors.silver,
+    stats: {
+      hp: 40,
+    },
+    equipments: [
+      {
+        weapon: "sword",
+        material: "gold",
+        amount: 1,
+        bound: true,
+      },
+      {
+        offhand: "shield",
+        material: "iron",
+        amount: 1,
+        bound: true,
+      },
+      {
+        amount: Infinity,
+        consume: "potion",
+        material: "iron",
+        stat: "hp",
+        bound: true,
+      },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: {
+      ...recolorSprite(knight, { [colors.white]: colors.red }),
+      name: "Guard",
+    },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
+  },
+  fireJettyGuard: {
+    faction: "fire",
+    scratch: colors.silver,
+    stats: {
+      hp: 40,
+    },
+    equipments: [
+      {
+        weapon: "sword",
+        material: "gold",
+        amount: 1,
+        bound: true,
+      },
+      {
+        offhand: "shield",
+        material: "iron",
+        amount: 1,
+        bound: true,
+      },
+      {
+        amount: Infinity,
+        consume: "potion",
+        material: "iron",
+        stat: "hp",
+        bound: true,
+      },
+    ],
+    drops: [],
+    patternNames: [],
+    sprite: {
+      ...recolorSprite(knight, { [colors.white]: colors.red }),
+      name: "Guard",
+    },
+    remainsChoices: [tombstone1],
+    evaporate: { sprite: ghost, fast: false },
+  },
   banditKnight: {
     faction: "wild",
     scratch: colors.silver,

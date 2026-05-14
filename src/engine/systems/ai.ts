@@ -82,6 +82,7 @@ import { BELONGABLE } from "../components/belongable";
 import {
   degreesToOrientations,
   iterations,
+  pixelCircle,
   pointToDegree,
   reversedIterations,
 } from "../../game/math/tracing";
@@ -901,6 +902,8 @@ export default function setupAi(world: World) {
         } else if (pattern.name === "watch") {
           const memory = pattern.memory;
           const nextIndex = patterns.indexOf(pattern) + 1;
+          const isSquare = memory.topLeft && memory.bottomRight;
+          const isCircle = memory.center && memory.radius && memory.ratio;
 
           if (memory.target) {
             const targetEntity = world.getEntityByIdAndComponents(
@@ -911,12 +914,20 @@ export default function setupAi(world: World) {
             // handle target leaving watched area
             if (
               !targetEntity ||
-              !within(
-                memory.topLeft,
-                memory.bottomRight,
-                targetEntity[POSITION],
-                size
-              )
+              (isSquare &&
+                !within(
+                  memory.topLeft,
+                  memory.bottomRight,
+                  targetEntity[POSITION],
+                  size
+                )) ||
+              (isCircle &&
+                getDistance(
+                  memory.center,
+                  targetEntity[POSITION],
+                  size,
+                  memory.ratio
+                ) > memory.radius)
             ) {
               memory.target = undefined;
 
@@ -940,33 +951,49 @@ export default function setupAi(world: World) {
           }
 
           // scan area
-          const delta = {
-            x: directedDistance(memory.topLeft.x, memory.bottomRight.x, size),
-            y: directedDistance(memory.topLeft.y, memory.bottomRight.y, size),
-          };
+          let scannedArea: Position[] = [];
 
-          for (let offsetX = 0; offsetX <= delta.x; offsetX += 1) {
-            for (let offsetY = 0; offsetY <= delta.y; offsetY += 1) {
-              const target = add(memory.topLeft, { x: offsetX, y: offsetY });
-              const attackable = getAttackable(world, target);
+          if (isSquare) {
+            const delta = {
+              x: directedDistance(memory.topLeft.x, memory.bottomRight.x, size),
+              y: directedDistance(memory.topLeft.y, memory.bottomRight.y, size),
+            };
 
-              // attack intruders
-              if (
-                attackable &&
-                !isNeutral(world, attackable) &&
-                isEnemy(world, entity) !== isEnemy(world, attackable)
-              ) {
-                memory.target = world.getEntityId(attackable);
-                patterns.splice(nextIndex, 0, {
-                  name: "kill",
-                  memory: { target: memory.target },
-                });
-
-                if (entity[TOOLTIP]) {
-                  entity[TOOLTIP].idle = rage;
-                  entity[TOOLTIP].changed = true;
-                }
+            for (let offsetX = 0; offsetX <= delta.x; offsetX += 1) {
+              for (let offsetY = 0; offsetY <= delta.y; offsetY += 1) {
+                const target = add(memory.topLeft, { x: offsetX, y: offsetY });
+                scannedArea.push(target);
               }
+            }
+          } else if (isCircle) {
+            scannedArea = pixelCircle(
+              memory.center,
+              memory.radius,
+              memory.ratio,
+              true
+            ).map((point) => combine(size, point));
+          }
+
+          for (const target of scannedArea) {
+            const attackable = getAttackable(world, target);
+
+            // attack intruders
+            if (
+              attackable &&
+              !isNeutral(world, attackable) &&
+              isEnemy(world, entity) !== isEnemy(world, attackable)
+            ) {
+              memory.target = world.getEntityId(attackable);
+              patterns.splice(nextIndex, 0, {
+                name: "kill",
+                memory: { target: memory.target },
+              });
+
+              if (entity[TOOLTIP]) {
+                entity[TOOLTIP].idle = rage;
+                entity[TOOLTIP].changed = true;
+              }
+              break;
             }
           }
         } else if (pattern.name === "guard") {
@@ -1247,8 +1274,8 @@ export default function setupAi(world: World) {
 
           const healingDelay = 16;
           const healingPause = 3;
-          const healingDuration = 10;
-          const healingAmount = 6;
+          const healingDuration = 8;
+          const healingAmount = 5;
           const healingInterval = 2;
           const wait = generation > healingDelay;
           const healing = generation > healingDelay + healingPause;

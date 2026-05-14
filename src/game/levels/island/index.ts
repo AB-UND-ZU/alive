@@ -1847,8 +1847,18 @@ export const generateIsland = (world: World) => {
       );
 
       // place first guard behind door and walk away when nearby
-      const fireGateGuard = createNpc(world, "fireGuard", guardPosition);
-      fireGateGuard[BEHAVIOUR].patterns.push({
+      const fireGateGuard = createNpc(world, "fireGateGuard", guardPosition);
+      fireGateGuard[BEHAVIOUR].patterns.push(
+        {
+          name: "watch",
+          memory: {
+            origin: guardPosition,
+            center: havenPoint,
+            radius: havenRadius - 1,
+            ratio: havenRatio,
+          },
+        },
+        {
         name: "gate",
         memory: {
           origin: copy(guardPosition),
@@ -1857,7 +1867,8 @@ export const generateIsland = (world: World) => {
           inn: havenPoint,
           radius: havenRadius - 1,
         },
-      });
+        }
+      );
 
       // place second guard in front of jetty
       createNpc(world, "fireGuard", beachPoint);

@@ -14,6 +14,8 @@ export const npcTypes = [
   "fireDruid",
   "fireChief",
   "fireGuard",
+  "fireGateGuard",
+  "fireJettyGuard",
   "banditKnight",
   "banditArcher",
   "prism",
