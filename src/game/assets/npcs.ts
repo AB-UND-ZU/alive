@@ -1703,7 +1703,7 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               amount: 1,
             },
             stock: 1,
-            prices: [{ stackable: "golemHead", amount: 3 }],
+            prices: [{ stackable: "golem", amount: 3 }],
           },
           {
             item: {
@@ -1751,7 +1751,7 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             createText("Please, bring me"),
             [
               ...createItemText({
-                stackable: "golemHead",
+                stackable: "golem",
                 amount: 3,
               }),
               ...createText(" from those"),

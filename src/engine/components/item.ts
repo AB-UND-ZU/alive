@@ -92,7 +92,7 @@ export const craftables = [
   "eel",
   "seastar",
   "pearl",
-  "golemHead",
+  "golem",
   "letter",
   "schema",
 ] as const;

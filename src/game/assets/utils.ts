@@ -485,13 +485,15 @@ export const renderPopup = (
     state.particles["hint-0"],
     [PARTICLE]
   )?.[PARTICLE].amount;
+  const tab = getTab(world, entity);
   const visibleScroll =
-    lines > (details ? windowHeight - detailsHeight - 3 : windowHeight - 2);
+    lines > (details ? windowHeight - detailsHeight - 3 : windowHeight - 2) &&
+    tab !== "chat";
   const visibleOverlay =
     visibleScroll &&
     !details &&
     !selection &&
-    !["use", "map"].includes(getTab(world, entity));
+    !["use", "map", "chat"].includes(tab);
   const topOverlayTarget = visibleOverlay && scrollRatio > 0 ? 1 : 0;
   const topOverlayAmount = world.getEntityByIdAndComponents(
     state.particles["overlay-up-0"],
@@ -1799,7 +1801,7 @@ export const entitySprites: Record<
       ],
     ],
   },
-  golemHead: {
+  golem: {
     sprite: golemHead,
     getDescription: () => [
       createText("Head of a slain"),

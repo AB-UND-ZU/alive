@@ -21,7 +21,7 @@ import {
   findAdjacentDroppable,
 } from "../../engine/systems/drop";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
-import { getItemSprite, queueMessage } from "./utils";
+import { createItemName, getItemSprite, queueMessage } from "./utils";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { TRACKABLE } from "../../engine/components/trackable";
@@ -35,12 +35,13 @@ import {
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { castSkill, castSpell } from "../../engine/systems/trigger";
 import { TypedEntity } from "../../engine/entities";
-import { createText } from "./sprites";
+import { createText, none } from "./sprites";
 import { moveEntity } from "../../engine/systems/map";
-import { normalize } from "../math/std";
+import { normalize, repeat } from "../math/std";
 import { LEVEL } from "../../engine/components/level";
-import { getIdentifierAndComponents } from "../../engine/utils";
+import { getIdentifierAndComponents, setHighlight } from "../../engine/utils";
 import { MOVABLE } from "../../engine/components/movable";
+import { IDENTIFIABLE } from "../../engine/components/identifiable";
 
 export type CommandCall = {
   handler: string;
@@ -116,19 +117,23 @@ const expandCommand = (commandOrShort: string) => {
   }
 };
 
-const helpDelay = 1000;
+const helpDelay = 350;
+
 const executeHelp = (world: World, entity: Entity, command: string) => {
   if (!command) {
     return commandSignatures.help.usage;
   }
 
-  if (command === "all") {
-    Object.entries(commandSignatures).forEach(([name, signature], index) => {
+  if (command === "list") {
+    const commandNames = Object.keys(commandSignatures);
+    commandNames.sort();
+    commandNames.forEach((name, index) => {
+      const signature = commandSignatures[name];
       queueMessage(world, entity, {
         fast: false,
         orientation: "up",
         delay: index * helpDelay,
-        line: createText(`/${name}│/${signature.short}`),
+        line: createText(`/${name}│/${signature.short}`.padStart(10)),
       });
     });
     return;
@@ -296,12 +301,12 @@ const executeTp = (world: World, entity: Entity, idOrLoc: string) => {
     }
   }
 
-  return `No target "${idOrLoc}"!`;
+  return `No id "${idOrLoc}"!`;
 };
 
 const mods = ["fly", "swim", "walk"];
 const executeMod = (world: World, entity: Entity, mod: string) => {
-  if (mod === "all") {
+  if (mod === "list") {
     mods.forEach((name, index) => {
       queueMessage(world, entity, {
         fast: false,
@@ -324,12 +329,78 @@ const executeMod = (world: World, entity: Entity, mod: string) => {
   }
 };
 
+const lists = ["item", "id", "stat"];
+const executeList = (world: World, entity: Entity, list: string) => {
+  let lines: string[] | Sprite[][] = [];
+  if (!list) {
+    lines = lists.map((name) => `/list ${name}`.padEnd(12));
+  } else if (list === "item") {
+    const itemNames = Object.keys(items);
+    itemNames.sort();
+    lines = itemNames.map((itemName) => {
+      const text = createText(`${itemName}│`);
+      const name = createItemName(items[itemName]);
+      return [
+        ...repeat(none, 8 - text.length),
+        ...text,
+        ...name,
+        ...repeat(none, 8 - name.length),
+      ];
+    });
+  } else if (list === "id") {
+    const identifiables = world.getEntities([IDENTIFIABLE, POSITION]);
+    const ids = new Set(
+      identifiables.map((identifiable) => identifiable[IDENTIFIABLE].name)
+    );
+    const idNames = [...ids];
+    idNames.sort();
+    lines = idNames;
+  } else if (list === "stat") {
+    lines = unitStats.map((stat) => {
+      const text = createText(`${stat}│`);
+      const name = createItemName({ stat });
+      return [
+        ...repeat(none, 9 - text.length),
+        ...text,
+        ...name,
+        ...repeat(none, 9 - name.length),
+      ];
+    });
+  } else {
+    return `No list "${list}"!`;
+  }
+
+  lines.forEach((line, index) => {
+    queueMessage(world, entity, {
+      fast: false,
+      orientation: "up",
+      delay: index * helpDelay,
+      line: typeof line === "string" ? createText(line) : line,
+    });
+  });
+};
+
+const executeFocus = (world: World, entity: Entity, id: string) => {
+  if (id === "off") {
+    setHighlight(world);
+    return;
+  }
+
+  const target = getIdentifierAndComponents(world, id, [POSITION]);
+  if (target) {
+    setHighlight(world, "quest", target);
+    return;
+  }
+
+  return `No id "${id}"!`;
+};
+
 commandSignatures.help = {
   short: "h",
   executor: executeHelp,
   minArgs: 0,
   maxArgs: 1,
-  usage: "/help all│/help <cmd>",
+  usage: "/help list│/help <cmd>",
 };
 commandSignatures.give = {
   short: "g",
@@ -364,7 +435,21 @@ commandSignatures.mod = {
   executor: executeMod,
   minArgs: 1,
   maxArgs: 1,
-  usage: "/mod all│/mod <type>",
+  usage: "/mod list│/mod <type>",
+};
+commandSignatures.list = {
+  short: "l",
+  executor: executeList,
+  minArgs: 0,
+  maxArgs: 1,
+  usage: "/list│/list <type>",
+};
+commandSignatures.focus = {
+  short: "f",
+  executor: executeFocus,
+  minArgs: 1,
+  maxArgs: 1,
+  usage: "/focus off│/focus <id>",
 };
 
 export const parseCommand = (prompt: string): CommandCall | undefined => {
@@ -379,7 +464,7 @@ export const parseCommand = (prompt: string): CommandCall | undefined => {
     }
   }
 
-  return { handler: "help", args: ["all"] };
+  return { handler: "help", args: [] };
 };
 
 export const executeCommand = (

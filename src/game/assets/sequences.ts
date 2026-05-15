@@ -5554,6 +5554,7 @@ export const displayChat: Sequence<PopupSequence> = (world, entity, state) => {
   }
 
   const selections = getTabSelections(world, entity);
+  const verticalIndex = getVerticalIndex(world, entity);
   const lines = [
     ...selections.map((keyIndex) =>
       recolorSprite(parseSprite(`\x0f█\x00${getKeyFromIndex(keyIndex)}`), {
@@ -5563,7 +5564,10 @@ export const displayChat: Sequence<PopupSequence> = (world, entity, state) => {
     ),
     showCaret ? caret : none,
   ];
-  const content: Sprite[][] = chunked(lines, frameWidth - 2);
+  const content: Sprite[][] = [
+    ...repeat([], verticalIndex),
+    ...chunked(lines, frameWidth - 2),
+  ];
 
   const popupResult = renderPopup(
     world,

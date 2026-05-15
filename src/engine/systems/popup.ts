@@ -69,6 +69,7 @@ import {
 } from "../../components/Keyboard";
 import { executeCommand, parseCommand } from "../../game/assets/commands";
 import { recolorSprite } from "../../game/assets/templates";
+import { invertOrientation } from "../../game/math/path";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -712,6 +713,8 @@ export default function setupPopup(world: World) {
             isQuestCompleted(world, heroEntity, popupEntity)
           ? popupEntity[POPUP].choices.length
           : 0
+        : transaction === "chat"
+        ? heroEntity[PLAYER].chatHistory.length + 1
         : 0;
 
     const previousIndex = getVerticalIndex(world, popupEntity);
@@ -721,20 +724,32 @@ export default function setupPopup(world: World) {
       heroEntity[PLAYER].actionTriggered === "up" ||
       heroEntity[PLAYER].actionTriggered === "down"
     ) {
-      const targetScroll =
+      const history = isInTab(world, heroEntity, "chat") && lines > 1;
+      const orientation =
         targetOrientation || heroEntity[PLAYER].actionTriggered;
-      setVerticalIndex(
-        world,
-        popupEntity,
+      const targetScroll = history
+        ? invertOrientation(orientation)
+        : orientation;
+      const newIndex =
         previousIndex +
-          (targetScroll === "up" ? -1 : targetScroll === "down" ? 1 : 0)
-      );
+        (targetScroll === "up" ? -1 : targetScroll === "down" ? 1 : 0);
+      setVerticalIndex(world, popupEntity, newIndex);
 
       if (
         heroEntity[PLAYER].actionTriggered === "up" ||
         heroEntity[PLAYER].actionTriggered === "down"
       ) {
         heroEntity[PLAYER].actionTriggered = undefined;
+      }
+
+      // scroll through history
+      if (history) {
+        const historyIndex = clamp(newIndex, 0, lines - 1) - 1;
+        popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] =
+          historyIndex < 0
+            ? []
+            : [...heroEntity[PLAYER].chatHistory[historyIndex]];
+        rerenderEntity(world, popupEntity);
       }
     } else if (heroEntity[PLAYER].actionTriggered === "content") {
       const contentIndex = heroEntity[PLAYER].contentTriggered;
@@ -1104,6 +1119,9 @@ export default function setupPopup(world: World) {
               .map((keyIndex) => getKeyFromIndex(keyIndex))
               .join("");
             const command = parseCommand(prompt);
+
+            heroEntity[PLAYER].chatHistory.unshift(selections);
+            setVerticalIndex(world, popupEntity, 0);
 
             let dialog = [];
             let shout = false;

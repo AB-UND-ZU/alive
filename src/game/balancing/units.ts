@@ -1670,7 +1670,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { stackable: "golemHead", amount: 1 },
+          { stackable: "golem", amount: 1 },
           { stackable: "resource", material: "iron", amount: 1 },
           { stackable: "nugget", amount: 1 },
           { stat: "xp", amount: 3 },

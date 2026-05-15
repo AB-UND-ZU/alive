@@ -40,7 +40,7 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
   gem: 10,
   crystal: 10,
 
-  golemHead: 20,
+  golem: 20,
 
   plank: 100,
 

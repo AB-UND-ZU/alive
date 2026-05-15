@@ -1171,11 +1171,25 @@ export const createSpriteButton: (
   ];
 };
 
+export const keyboardOverlay: Sprite = {
+  name: "keyboard_overlay",
+  layers: [{ char: "█", color: colors.black }],
+};
+
+export const keyboardBorder: Sprite = {
+  name: "keyboard_border",
+  layers: [
+    { char: "▄", color: colors.black },
+    { char: "─", color: colors.grey },
+  ],
+};
+
 export const upperKey: Sprite = {
   name: "upper_key",
   layers: [
     { char: "█", color: colors.lime },
     { char: "\u0117", color: colors.black },
+    { char: "_", color: colors.black },
   ],
 };
 

@@ -29,12 +29,15 @@ import {
   specialKey,
   lowerKey,
   lettersKey,
+  keyboardBorder,
 } from "../../game/assets/sprites";
 import Row from "../Row";
 import "./index.css";
 import { MOVABLE } from "../../engine/components/movable";
 import { REFERENCE } from "../../engine/components/reference";
 import { PLAYER } from "../../engine/components/player";
+import { useDimensions } from "../Dimensions";
+import { repeat } from "../../game/math/std";
 
 export const keyboardColumns = 10;
 export const keyboardRows = 3;
@@ -107,6 +110,7 @@ export const getIndexFromKey = (key: string) => {
 export default function Keyboard() {
   const { ecs, paused } = useWorld();
   const hero = useHero();
+  const dimensions = useDimensions();
   const [shift, setShift] = useState(false);
   const [modifier, setModifier] = useState(false);
   const pageIndex = Number(shift) + Number(modifier) * 2;
@@ -269,11 +273,25 @@ export default function Keyboard() {
     ],
   ];
 
+  const overlayWidth = dimensions.renderedColumns;
+
   return (
-    <aside id="keyboard" className="Keyboard" onClick={handleType}>
+    <aside
+      className="KeyboardOverlay"
+      style={{ "--overlay-width": overlayWidth } as React.CSSProperties}
+    >
+      <div className="KeyboardBorder">
+        <Row cells={repeat(keyboardBorder, overlayWidth + 1)} />
+      </div>
       {keyboardSprites.map((row, index) => (
         <Row key={index} cells={row} />
       ))}
+      <div
+        id="keyboard"
+        onClick={handleType}
+        className="Keyboard"
+        style={{ "--keyboard-width": keyboardWidth } as React.CSSProperties}
+      />
     </aside>
   );
 }

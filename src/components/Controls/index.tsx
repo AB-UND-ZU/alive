@@ -94,6 +94,7 @@ export const commandKeys = ["/"];
 export const backspaceKeys = ["Backspace"];
 export const interactKeys = ["Enter"];
 export const closeKeys = ["Escape"];
+export const historyKeys = ["ArrowUp", "ArrowDown"];
 export const hotKeys = range(0, 9).map((key) => key.toString());
 
 const getActionActivations = (
@@ -884,8 +885,17 @@ export default function Controls() {
         !closeKeys.includes(event.key) &&
         event.type === "keydown"
       ) {
-        // allow typing in chat
-        handleType(event, event.key);
+        if (historyKeys.includes(event.key)) {
+          // scroll through history
+          if (event.key === "ArrowUp") {
+            handleAction("up");
+          } else if (event.key === "ArrowDown") {
+            handleAction("down");
+          }
+        } else {
+          // allow typing in chat
+          handleType(event, event.key);
+        }
         return;
       } else if (spellKeys.includes(event.key) && event.type === "keydown") {
         handleSpell(event);
@@ -989,8 +999,13 @@ export default function Controls() {
       ecs,
       hero,
       initial,
-      handleMove,
+      paused,
+      popup,
+      popupTab,
+      interactable,
       setPaused,
+      handleMove,
+      handleAction,
       handleSpell,
       handleSkill,
       handleInteract,
@@ -1006,10 +1021,6 @@ export default function Controls() {
       handleLeft,
       handleRight,
       handleClose,
-      paused,
-      popup,
-      popupTab,
-      interactable,
     ]
   );
 
@@ -1091,7 +1102,16 @@ export default function Controls() {
       const nextOrientations = degreesToOrientations(degrees);
 
       if (nextOrientations.length > 0) {
-        if (
+        // handle history in single steps
+        const primaryOrientation = nextOrientations[0];
+        if (TEST_MODE && popupTab === "chat") {
+          if (
+            ["up", "down"].includes(primaryOrientation) &&
+            pressedOrientations.current[0] !== primaryOrientation
+          ) {
+            handleAction(primaryOrientation);
+          }
+        } else if (
           nextOrientations.length !== pressedOrientations.current.length ||
           !nextOrientations.every(
             (orientation, index) =>
@@ -1108,7 +1128,7 @@ export default function Controls() {
 
       return false;
     },
-    [handleMove, setJoystickOrientations, paused]
+    [handleAction, handleMove, setJoystickOrientations, paused, popupTab]
   );
 
   const handleVisibility = useCallback(() => {

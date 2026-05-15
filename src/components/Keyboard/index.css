@@ -1,11 +1,26 @@
-.Keyboard {
+.KeyboardOverlay {
   position: absolute;
   z-index: 2;
-  height: calc(var(--cell-height) * 6);
-  width: calc(21 * var(--cell-width) - 4 * var(--pixel-size));
+  height: calc(var(--cell-height) * 6.5);
+  width: calc(var(--overlay-width) * var(--cell-width));
   bottom: 0;
   overflow: hidden;
-  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: black;
+}
+
+.KeyboardBorder {
+  margin-top: calc(var(--cell-height) / -2 + 1 * var(--pixel-size));
+}
+
+.Keyboard {
+  position: absolute;
+  height: calc(var(--cell-height) * 6);
+  width: calc(
+    var(--keyboard-width) * var(--cell-width) - 4 * var(--pixel-size)
+  );
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
 }

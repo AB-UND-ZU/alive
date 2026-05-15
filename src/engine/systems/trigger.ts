@@ -1229,18 +1229,22 @@ export default function setupTrigger(world: World) {
           openPopup(world, entity, useEntity, true);
         }
 
-        // handle typing command slash
-        if (
-          targetTab === "chat" &&
-          contentIndex !== undefined &&
-          offsetIndex !== undefined &&
-          tabIndex !== undefined
-        ) {
-          entity[PLAYER].actionTriggered = "type";
-          entity[PLAYER].contentTriggered = contentIndex;
-          entity[PLAYER].offsetTriggered = offsetIndex;
-          entity[PLAYER].tabTriggered = tabIndex;
-          continue;
+        if (targetTab === "chat") {
+          // reset history index
+          setVerticalIndex(world, useEntity, 0);
+
+          // handle typing command slash
+          if (
+            contentIndex !== undefined &&
+            offsetIndex !== undefined &&
+            tabIndex !== undefined
+          ) {
+            entity[PLAYER].actionTriggered = "type";
+            entity[PLAYER].contentTriggered = contentIndex;
+            entity[PLAYER].offsetTriggered = offsetIndex;
+            entity[PLAYER].tabTriggered = tabIndex;
+            continue;
+          }
         }
 
         entity[MOVABLE].lastInteraction = entityReference;

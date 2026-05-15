@@ -539,7 +539,7 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
-          stackable: "golemHead",
+          stackable: "golem",
           amount: Infinity,
         },
         {

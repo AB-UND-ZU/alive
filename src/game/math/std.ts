@@ -155,7 +155,7 @@ export const range = (start: number, endInclusive: number) =>
   );
 
 export const repeat = <T>(obj: T, count: number) =>
-  Array.from({ length: count }, () => obj);
+  count <= 0 ? [] : Array.from({ length: count }, () => obj);
 
 export const padCenter = (text: string, length: number, char = " ") =>
   text
