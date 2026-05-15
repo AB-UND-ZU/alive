@@ -45,6 +45,9 @@ import { STRUCTURABLE } from "../components/structurable";
 import { FRAGMENT } from "../components/fragment";
 import { BUMPABLE } from "../components/bumpable";
 
+const chatHaste = -1001;
+const popupHaste = -1002;
+
 // haste:-4 interval:1100
 // haste:-3 interval:600
 // haste:-2 interval:433
@@ -58,7 +61,11 @@ import { BUMPABLE } from "../components/bumpable";
 // haste:6 interval:190
 // haste:7 interval:183
 export const getHasteInterval = (world: World, haste: number) =>
-  Math.floor(1000 / (Math.max(haste, -4) + 5) + 100);
+  haste === chatHaste
+    ? 10
+    : haste === popupHaste
+    ? 175
+    : Math.floor(1000 / (Math.max(haste, -4) + 5) + 100);
 
 export const getTempo = (world: World, position: Position) =>
   sum(
@@ -66,9 +73,6 @@ export const getTempo = (world: World, position: Position) =>
       (target) => target[TEMPO]?.amount || 0
     )
   );
-
-const chatHaste = 100;
-const popupHaste = 8;
 
 export const getEntityHaste = (world: World, entity: Entity) =>
   isInTab(world, entity, "chat")

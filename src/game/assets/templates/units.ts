@@ -4,6 +4,12 @@ import { colors } from "../colors";
 
 // doors
 
+const doorOpenTemplate: Sprite = {
+  name: "Door",
+  layers: [{ char: "▌", color: colors.maroon }],
+};
+export const doorOpen = createTemplate({ sprite: doorOpenTemplate });
+
 const doorClosedTemplate: Sprite = {
   name: "Locked",
   layers: [
@@ -45,6 +51,12 @@ export const doorClosed = createTemplate({
 });
 doorClosed.wood.default = doorClosedWood;
 doorClosed.default.fire = doorClosedFire;
+
+export const portOpenTemplate: Sprite = {
+  name: "Port",
+  layers: [{ char: "▌", color: colors.silver }],
+};
+export const portOpen = createTemplate({ sprite: portOpenTemplate });
 
 const portClosedTemplate: Sprite = {
   name: "Port",

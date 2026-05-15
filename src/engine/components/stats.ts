@@ -72,6 +72,9 @@ export const emptyUnitStats: UnitStats = {
   level: 0,
 };
 
+export const unitStats = Object.keys(emptyUnitStats) as (keyof UnitStats)[];
+export type UnitStat = (typeof unitStats)[number];
+
 export const MAX_STAT_VALUE = 99;
 
 export const STATS = "STATS";

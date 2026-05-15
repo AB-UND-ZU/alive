@@ -90,7 +90,6 @@ import {
   createDialog,
   createText,
   delay,
-  doorOpen,
   enemySpawner,
   fire,
   fog,
@@ -162,7 +161,6 @@ import {
   gravel,
   goldMine,
   jetty,
-  portOpen,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -272,11 +270,7 @@ import { getHarvestConfig } from "../game/balancing/harvesting";
 import { SHOOTABLE } from "../engine/components/shootable";
 import { VANISHABLE } from "../engine/components/vanishable";
 import { recolorSprite } from "../game/assets/templates";
-import {
-  doorClosed,
-  entryClosed,
-  portClosed,
-} from "../game/assets/templates/units";
+import { entryClosed } from "../game/assets/templates/units";
 import { compass } from "../game/assets/templates/equipments";
 import { flask, key } from "../game/assets/templates/items";
 import { CASTABLE, getEmptyCastable } from "../engine/components/castable";
@@ -1753,21 +1747,26 @@ export const createCell = (
         ? "iron"
         : "wood";
     const element = cell === "earth_door" ? "earth" : undefined;
+    const sprite = getItemSprite(
+      { materialized: "door", material, element },
+      "resource"
+    );
+
     const doorEntity = entities.createDoor(world, {
-      [ENTERABLE]: { sprite: doorOpen, orientation: "down" },
+      [ENTERABLE]: { sprite },
       [FOG]: { visibility, type: "float" },
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [LOCKABLE]: {
         locked: true,
         material,
         element,
-        sprite: doorOpen,
+        sprite: getItemSprite({ materialized: "door", material, element }),
         type: "door",
       },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: doorClosed[material || "default"][element || "default"],
+      [SPRITE]: sprite,
       [TOOLTIP]: {
         dialogs: [],
         persistent: false,
@@ -1787,21 +1786,25 @@ export const createCell = (
     const material =
       cell === "fire_port" ? undefined : cell === "iron_port" ? "iron" : "wood";
     const element = cell === "fire_port" ? "fire" : undefined;
+    const sprite = getItemSprite(
+      { materialized: "port", material, element },
+      "resource"
+    );
     const doorEntity = entities.createDoor(world, {
-      [ENTERABLE]: { sprite: portOpen, orientation: "down" },
+      [ENTERABLE]: { sprite },
       [FOG]: { visibility, type: "float" },
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
       [LOCKABLE]: {
         locked: true,
         material,
         element,
-        sprite: portOpen,
+        sprite: getItemSprite({ materialized: "port", material, element }),
         type: "port",
       },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: portClosed[material || "default"][element || "default"],
+      [SPRITE]: sprite,
       [TOOLTIP]: {
         dialogs: [],
         persistent: false,

@@ -48,7 +48,6 @@ import { play } from "../../game/sound";
 import { STATS } from "../components/stats";
 import { isImmersible } from "./immersion";
 import { POPUP } from "../components/popup";
-import { TOOLTIP } from "../components/tooltip";
 import { createPopup } from "./popup";
 import { HARVESTABLE } from "../components/harvestable";
 import { BURNABLE } from "../components/burnable";
@@ -393,12 +392,7 @@ export const dropEntity = (
       [SWIMMABLE]: { swimming: false },
     };
 
-    const containerEntity = itemEntity[POPUP]
-      ? entities.createWrapper(world, {
-          ...containerData,
-          [TOOLTIP]: { dialogs: [], nextDialog: -1, persistent: false },
-        })
-      : entities.createDrop(world, containerData);
+    const containerEntity = entities.createDrop(world, containerData);
 
     if (itemEntity[POPUP]) {
       const { viewpoint, ...popup } = itemEntity[POPUP];

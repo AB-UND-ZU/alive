@@ -219,10 +219,12 @@ import {
 import { flask, potion, key, bottle, spirit } from "./templates/items";
 import {
   doorClosed,
+  doorOpen,
   entryClosed,
   entryClosedDisplay,
   lock,
   portClosed,
+  portOpen,
 } from "./templates/units";
 import { getItemStats } from "../balancing/equipment";
 import {
@@ -2560,10 +2562,14 @@ export const materialSprites: Partial<
     sprite: lock,
   },
   door: {
-    sprite: doorClosed,
+    sprite: doorOpen,
+    resource: doorClosed,
+    display: doorClosed,
   },
   port: {
-    sprite: portClosed,
+    sprite: portOpen,
+    resource: portClosed,
+    display: portClosed,
   },
   entry: {
     sprite: entryClosed,
@@ -2992,10 +2998,14 @@ export const elementSprites: Partial<
     sprite: lock,
   },
   door: {
-    sprite: doorClosed,
+    sprite: doorOpen,
+    resource: doorClosed,
+    display: doorClosed,
   },
   port: {
-    sprite: portClosed,
+    sprite: portOpen,
+    resource: portClosed,
+    display: portClosed,
   },
   entry: {
     sprite: entryClosed,

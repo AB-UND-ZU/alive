@@ -90,6 +90,7 @@ export const mapKeys = ["m", "M"];
 export const gearKeys = ["g", "G"];
 export const statsKeys = ["t", "T"];
 export const chatKeys = ["c", "C"];
+export const commandKeys = ["/"];
 export const backspaceKeys = ["Backspace"];
 export const interactKeys = ["Enter"];
 export const closeKeys = ["Escape"];
@@ -440,11 +441,14 @@ export default function Controls() {
       } else {
         heroEntity[PLAYER].actionTriggered = action;
 
-        if (action === "type" || (index !== undefined && action === "tab")) {
+        if (
+          ["type", "chat"].includes(action) ||
+          (index !== undefined && action === "tab")
+        ) {
           heroEntity[PLAYER].tabTriggered = tab;
         }
         if (
-          action === "type" ||
+          ["type", "chat"].includes(action) ||
           (index !== undefined && ["content", "use"].includes(action))
         ) {
           heroEntity[PLAYER].contentTriggered = index;
@@ -581,13 +585,20 @@ export default function Controls() {
       event:
         | KeyboardEvent
         | TouchEvent
-        | React.MouseEvent<HTMLDivElement, MouseEvent>
+        | React.MouseEvent<HTMLDivElement, MouseEvent>,
+      command = false
     ) => {
       event.preventDefault();
       if (inMenu || !ecs || !hero || !isActionable(ecs, hero) || !TEST_MODE)
         return;
 
-      handleAction("chat");
+      if (command) {
+        // type slash character for convenience
+        const keyMap = getIndexFromKey("/");
+        handleAction("chat", keyMap?.content, keyMap?.offset, keyMap?.tab);
+      } else {
+        handleAction("chat");
+      }
     },
     [handleAction, inMenu, ecs, hero]
   );
@@ -900,11 +911,12 @@ export default function Controls() {
       } else if (
         TEST_MODE &&
         (chatKeys.includes(event.key) ||
+          commandKeys.includes(event.key) ||
           (!interactable && !popup && interactKeys.includes(event.key))) &&
         event.type === "keydown"
       ) {
         // allow opening chat in test mode
-        handleChat(event);
+        handleChat(event, commandKeys.includes(event.key));
         return;
       } else if (
         backspaceKeys.includes(event.key) &&

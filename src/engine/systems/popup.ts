@@ -1105,27 +1105,41 @@ export default function setupPopup(world: World) {
               .join("");
             const command = parseCommand(prompt);
 
-            let dialog;
+            let dialog = [];
             let shout = false;
             if (command) {
               const error = executeCommand(world, heroEntity, command);
               shout = true;
-              dialog = error;
+              dialog = error
+                ? Array.isArray(error)
+                  ? addBackground(
+                      error.map((char) =>
+                        recolorSprite(char, {
+                          [colors.white]: colors.black,
+                          [colors.black]: colors.red,
+                        })
+                      ),
+                      colors.red
+                    )
+                  : createText(error, colors.black, colors.red)
+                : [];
             } else {
-              dialog = prompt;
+              dialog = selections
+                .map((keyIndex) => getKeyFromIndex(keyIndex))
+                .map((char) =>
+                  recolorSprite(
+                    parseSprite(`\x0f█\x00${char}`),
+                    shout ? colors.red : colors.white
+                  )
+                );
             }
 
-            if (dialog) {
+            if (dialog.length > 0) {
               heroEntity[TOOLTIP].enemy = shout;
               heroEntity[TOOLTIP].dialogs = [
                 [
                   shout ? shoutStart : dialogStart,
-                  ...[...dialog].map((char) =>
-                    recolorSprite(
-                      parseSprite(`\x0f█\x00${char}`),
-                      shout ? colors.red : colors.white
-                    )
-                  ),
+                  ...dialog,
                   shout ? shoutEnd : dialogEnd,
                 ],
               ];

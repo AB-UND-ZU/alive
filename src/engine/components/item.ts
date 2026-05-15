@@ -104,7 +104,12 @@ export type ResourceItem = typeof resourceItem;
 export const reloadables = ["arrow", "bomb", "charge"] as const;
 export type Reloadable = (typeof reloadables)[number];
 
-export type Stackable = ResourceItem | Craftable | Reloadable;
+export const stackables = [
+  ...craftables,
+  resourceItem,
+  ...reloadables,
+] as const;
+export type Stackable = (typeof stackables)[number];
 
 export type ConditionableStats = { absorb: number };
 export type ItemStats = Attributes &

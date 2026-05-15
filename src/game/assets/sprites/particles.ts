@@ -1992,7 +1992,8 @@ const statConfig: Record<
   xp: {
     color: colors.lime,
     background: colors.green,
-    sprite: nonCountable(xp),
+    sprite: xp,
+    display: nonCountable(xp),
     drop: xp,
     resource: xp,
     max: "maxXp",

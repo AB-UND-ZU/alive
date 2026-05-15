@@ -122,6 +122,7 @@ import { getHookable } from "./fishing";
 import { HOOKABLE } from "../components/hookable";
 import { BAITABLE } from "../components/baitable";
 import { getItemStats } from "../../game/balancing/equipment";
+import { ENTERABLE } from "../components/enterable";
 
 export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
@@ -368,6 +369,15 @@ export const openDoor = (world: World, entity: Entity) => {
     } else {
       entity[LIGHT].darkness = 0;
     }
+  }
+
+  if (entity[ENTERABLE]) {
+    entity[ENTERABLE].orientation = "down";
+    entity[ENTERABLE].sprite = getItemSprite({
+      materialized: entity[LOCKABLE].type,
+      material: entity[LOCKABLE].material,
+      element: entity[LOCKABLE].element,
+    });
   }
 
   if (entity[TOOLTIP]) {
@@ -932,6 +942,24 @@ export const castSpell = (
   }
 };
 
+export const castSkill = (world: World, entity: Entity, skill: Entity) => {
+  if (skill[ITEM].skill === "bow") {
+    shootArrow(world, entity, skill);
+  } else if (skill[ITEM].skill === "spear") {
+    triggerSpear(world, entity, skill, entity[ORIENTABLE]?.facing);
+  } else if (skill[ITEM].skill === "wand") {
+    castSpell(
+      world,
+      entity as TypedEntity<"POSITION">,
+      skill as TypedEntity<"ITEM">
+    );
+  } else if (skill[ITEM].skill === "slash") {
+    chargeSlash(world, entity, skill);
+  } else if (skill[ITEM].skill === "totem") {
+    summonTotem(world, entity, skill);
+  }
+};
+
 export default function setupTrigger(world: World) {
   let referenceGenerations = -1;
   const entityReferences: Record<string, number> = {};
@@ -986,7 +1014,10 @@ export default function setupTrigger(world: World) {
         continue;
 
       // mark as interacted and update orientation, except certain content clicks
-      if (entity[PLAYER]?.actionTriggered !== "content") {
+      if (
+        !entity[PLAYER]?.actionTriggered ||
+        !["content", "chat"].includes(entity[PLAYER].actionTriggered)
+      ) {
         entity[MOVABLE].lastInteraction = entityReference;
       }
 
@@ -1084,10 +1115,14 @@ export default function setupTrigger(world: World) {
         entity[PLAYER]?.actionTriggered === "use"
       ) {
         const targetTab = entity[PLAYER].actionTriggered;
-        const hotKey = entity[PLAYER].contentTriggered;
+        const contentIndex = entity[PLAYER].contentTriggered;
+        const offsetIndex = entity[PLAYER].offsetTriggered;
+        const tabIndex = entity[PLAYER].tabTriggered;
 
         entity[PLAYER].actionTriggered = undefined;
         entity[PLAYER].contentTriggered = undefined;
+        entity[PLAYER].offsetTriggered = undefined;
+        entity[PLAYER].tabTriggered = undefined;
 
         // skip trying to open missing map
         if (targetTab === "map" && !entity[EQUIPPABLE]?.map) {
@@ -1110,8 +1145,9 @@ export default function setupTrigger(world: World) {
             });
           }
           continue;
-        } else if (targetTab === "use" && hotKey !== undefined) {
+        } else if (targetTab === "use" && contentIndex !== undefined) {
           // prevent while viewing other popups or editing
+          const hotKey = contentIndex;
           const selections = getTabSelections(world, useEntity);
           if (
             (currentPopup && currentPopup !== useEntity) ||
@@ -1140,12 +1176,14 @@ export default function setupTrigger(world: World) {
           consumeItem(world, entity, consumption);
           rerenderEntity(world, useEntity);
           continue;
-        } else if (targetTab === "chat" && entity[TOOLTIP]) {
-          // clear previous chat
-          entity[TOOLTIP].dialogs = [];
-          entity[TOOLTIP].changed = true;
-          entity[TOOLTIP].override = undefined;
-          entity[TOOLTIP].enemy = false;
+        } else if (targetTab === "chat") {
+          if (entity[TOOLTIP]) {
+            // clear previous chat
+            entity[TOOLTIP].dialogs = [];
+            entity[TOOLTIP].changed = true;
+            entity[TOOLTIP].override = undefined;
+            entity[TOOLTIP].enemy = false;
+          }
         }
 
         // close any popup but preserve selections
@@ -1190,6 +1228,22 @@ export default function setupTrigger(world: World) {
           );
           openPopup(world, entity, useEntity, true);
         }
+
+        // handle typing command slash
+        if (
+          targetTab === "chat" &&
+          contentIndex !== undefined &&
+          offsetIndex !== undefined &&
+          tabIndex !== undefined
+        ) {
+          entity[PLAYER].actionTriggered = "type";
+          entity[PLAYER].contentTriggered = contentIndex;
+          entity[PLAYER].offsetTriggered = offsetIndex;
+          entity[PLAYER].tabTriggered = tabIndex;
+          continue;
+        }
+
+        entity[MOVABLE].lastInteraction = entityReference;
       } else if (entity[PLAYER]?.actionTriggered === "equip") {
         entity[PLAYER].actionTriggered = undefined;
         let targetItem;
@@ -1367,26 +1421,13 @@ export default function setupTrigger(world: World) {
               });
             }
             continue;
-          } else if (skillEntity[ITEM].skill === "bow") {
-            shootArrow(world, entity, skillEntity);
-          } else if (skillEntity[ITEM].skill === "spear") {
-            triggerSpear(
-              world,
-              entity,
-              skillEntity,
-              entity[ORIENTABLE]?.facing
-            );
-          } else if (skillEntity[ITEM].skill === "wand") {
-            castSpell(world, entity, skillEntity);
-          } else if (skillEntity[ITEM].skill === "slash") {
-            chargeSlash(world, entity, skillEntity);
-          } else if (skillEntity[ITEM].skill === "totem") {
-            summonTotem(world, entity, skillEntity);
           } else if (
             skillEntity[ITEM].skill === "zap" ||
             skillEntity[ITEM].skill === "block"
           ) {
             castConditionable(world, entity, skillEntity);
+          } else if (skillEntity[ITEM].skill) {
+            castSkill(world, entity, skillEntity);
           }
         } else if (toolEntity && entity[ACTIONABLE].toolEquipped) {
           if (

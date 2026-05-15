@@ -1276,16 +1276,3 @@ export const createWorld = entityFactory([
   SEQUENCABLE,
   VIEWABLE,
 ]);
-
-export const createWrapper = entityFactory([
-  FOG,
-  INVENTORY,
-  LAYER,
-  LOOTABLE,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-  SWIMMABLE,
-  TOOLTIP,
-]);
