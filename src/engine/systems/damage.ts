@@ -2,7 +2,14 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { add, combine, copy, getDistance, shuffle } from "../../game/math/std";
+import {
+  add,
+  choice,
+  combine,
+  copy,
+  getDistance,
+  shuffle,
+} from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { MELEE } from "../components/melee";
@@ -20,6 +27,7 @@ import {
   ORIENTABLE,
   Orientation,
   orientationPoints,
+  orientations,
 } from "../components/orientable";
 import { EQUIPPABLE } from "../components/equippable";
 import { isGhost } from "./fate";
@@ -607,6 +615,7 @@ export const knockEntity = (
   amount: number
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
+  if (!orientation) orientation = choice(...orientations);
   const delta = orientationPoints[orientation];
 
   if (amount > 0 && !entity[FRAGMENT] && entity[MOVABLE]) {

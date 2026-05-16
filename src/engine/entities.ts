@@ -873,6 +873,8 @@ export const createPalisade = entityFactory([
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
 
+export const createPin = entityFactory([POSITION]);
+
 export const createPlant = entityFactory([
   ATTACKABLE,
   BELONGABLE,

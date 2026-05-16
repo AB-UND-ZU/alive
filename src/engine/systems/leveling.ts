@@ -30,7 +30,7 @@ import { PLAYER } from "../components/player";
 import { isDead } from "./damage";
 import { isGhost } from "./fate";
 import { LEVEL } from "../components/level";
-import { ClassKey } from "../../game/balancing/classes";
+import { ClassKey, getClassData } from "../../game/balancing/classes";
 import { SPAWNABLE } from "../components/spawnable";
 
 export type Level = {
@@ -83,6 +83,18 @@ const levelingStats: Record<ClassKey, Level[]> = {
 
 export const getInitialXp = (classKey: ClassKey) =>
   levelingStats[classKey][0].xp;
+
+export const getLevelStats = (classKey: ClassKey, level: number) => {
+  const stats = levelingStats[classKey]
+    .slice(0, level - 1)
+    .reduce((total, levelStats) => {
+      total.maxHp += levelStats.maxHp;
+      total.maxMp += levelStats.maxMp;
+      return total;
+    }, getClassData(classKey).stats);
+  stats.maxXp = levelingStats[classKey][level - 1].xp;
+  return stats;
+};
 
 export const hasLevelUp = (world: World, entity: Entity) =>
   entity[STATS].level > 0 && entity[STATS].xp >= entity[STATS].maxXp;

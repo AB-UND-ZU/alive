@@ -138,6 +138,12 @@ export const distribution = (...counts: number[]) => {
 export const choice = <T>(...choices: T[]) =>
   choices[random(0, choices.length - 1)];
 
+export const sorted = <T>(unsorted: T[]) => {
+  const copy = [...unsorted];
+  copy.sort();
+  return copy;
+};
+
 export const shuffle = <T>(unshuffled: T[]) =>
   unshuffled
     .map((value) => ({ value, sort: Math.random() }))

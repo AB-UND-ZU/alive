@@ -228,7 +228,7 @@ export default function Controls() {
   const size = ecs?.metadata.gameEntity[LEVEL].size || 0;
   const interactable = ecs?.metadata.interact.active && ecs.metadata.interact;
   const { position, fraction } = useViewpoint();
-  const inMenu = level === menuName;
+  const inMenu = !TEST_MODE && level === menuName;
   const hero = useHero();
   const heroRef = useRef<Entity>();
   const popup =

@@ -14,6 +14,7 @@ import {
   spells,
   stackables,
   tools,
+  Weapon,
 } from "../../engine/components/item";
 import { POSITION } from "../../engine/components/position";
 import {
@@ -21,9 +22,18 @@ import {
   findAdjacentDroppable,
 } from "../../engine/systems/drop";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
-import { createItemName, getItemSprite, queueMessage } from "./utils";
+import {
+  createItemName,
+  createUnitName,
+  getItemSprite,
+  queueMessage,
+} from "./utils";
 import { SEQUENCABLE } from "../../engine/components/sequencable";
-import { ORIENTABLE } from "../../engine/components/orientable";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientationPoints,
+} from "../../engine/components/orientable";
 import { TRACKABLE } from "../../engine/components/trackable";
 import { accessories } from "../../engine/components/equippable";
 import {
@@ -36,12 +46,23 @@ import { rerenderEntity } from "../../engine/systems/renderer";
 import { castSkill, castSpell } from "../../engine/systems/trigger";
 import { TypedEntity } from "../../engine/entities";
 import { createText, none } from "./sprites";
-import { moveEntity } from "../../engine/systems/map";
-import { normalize, repeat } from "../math/std";
+import { moveEntity, registerEntity } from "../../engine/systems/map";
+import { combine, copy, normalize, repeat, sorted } from "../math/std";
 import { LEVEL } from "../../engine/components/level";
-import { getIdentifierAndComponents, setHighlight } from "../../engine/utils";
+import {
+  getIdentifier,
+  getIdentifierAndComponents,
+  setHighlight,
+  setIdentifier,
+} from "../../engine/utils";
 import { MOVABLE } from "../../engine/components/movable";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
+import { NpcType, npcTypes } from "../../engine/components/npc";
+import { PLAYER } from "../../engine/components/player";
+import { BELONGABLE } from "../../engine/components/belongable";
+import { SPAWNABLE } from "../../engine/components/spawnable";
+import { getLevelStats } from "../../engine/systems/leveling";
+import { cellNames, CellType, createCell } from "../../bindings/creation";
 
 export type CommandCall = {
   handler: string;
@@ -124,21 +145,6 @@ const executeHelp = (world: World, entity: Entity, command: string) => {
     return commandSignatures.help.usage;
   }
 
-  if (command === "list") {
-    const commandNames = Object.keys(commandSignatures);
-    commandNames.sort();
-    commandNames.forEach((name, index) => {
-      const signature = commandSignatures[name];
-      queueMessage(world, entity, {
-        fast: false,
-        orientation: "up",
-        delay: index * helpDelay,
-        line: createText(`/${name}│/${signature.short}`.padStart(10)),
-      });
-    });
-    return;
-  }
-
   const expanded = expandCommand(command);
 
   if (expanded && commandSignatures[expanded]) {
@@ -156,13 +162,12 @@ const executeGive = (
   material?: string,
   element?: string
 ) => {
-  const amount = parseInt(amountText);
-
   if (!(itemName in items)) {
     return `No item "${itemName}"!`;
   }
 
   const item = { ...items[itemName] };
+  const amount = parseInt(amountText);
 
   if (isNaN(amount)) {
     return `No number "${amountText}"!`;
@@ -230,8 +235,10 @@ const executeStat = (
   amountText = "1"
 ) => {
   const amount = parseInt(amountText);
+  const isStat = unitStats.includes(stat as UnitStat);
+  const isUnit = npcTypes.includes(stat as NpcType);
 
-  if (!unitStats.includes(stat as UnitStat)) {
+  if (!isStat && !isUnit) {
     return `No stat "${stat}"!`;
   }
 
@@ -239,7 +246,12 @@ const executeStat = (
     return `No amount "${amountText}"!`;
   }
 
-  entity[STATS][stat] = amount;
+  if (isStat) {
+    entity[STATS][stat] = amount;
+  } else if (isUnit) {
+    entity[PLAYER].defeatedUnits[stat] = amount;
+  }
+
   rerenderEntity(world, entity);
 };
 
@@ -288,10 +300,11 @@ const executeTp = (world: World, entity: Entity, idOrLoc: string) => {
     const size = world.metadata.gameEntity[LEVEL].size;
     const normalizedX = normalize(parseInt(x), size);
     const normalizedY = normalize(parseInt(y), size);
-    if (!isNaN(normalizedX) && !isNaN(normalizedY)) {
-      moveEntity(world, entity, { x: normalizedX, y: normalizedY });
-      return;
+    if (isNaN(normalizedX) || isNaN(normalizedY)) {
+      return `No loc "${idOrLoc}"!`;
     }
+    moveEntity(world, entity, { x: normalizedX, y: normalizedY });
+    return;
   } else if (idOrLoc) {
     const target = getIdentifierAndComponents(world, idOrLoc, [POSITION]);
     if (target) {
@@ -304,7 +317,7 @@ const executeTp = (world: World, entity: Entity, idOrLoc: string) => {
   return `No id "${idOrLoc}"!`;
 };
 
-const mods = ["fly", "swim", "walk"];
+const mods = ["fly", "swim", "walk", "pvp", "pve", "god"];
 const executeMod = (world: World, entity: Entity, mod: string) => {
   if (mod === "list") {
     mods.forEach((name, index) => {
@@ -324,24 +337,62 @@ const executeMod = (world: World, entity: Entity, mod: string) => {
   } else if (mod === "swim") {
     entity[MOVABLE].swimming = true;
     entity[MOVABLE].flying = false;
+  } else if (mod === "pvp") {
+    entity[BELONGABLE].faction = "hostile";
+  } else if (mod === "pve") {
+    entity[BELONGABLE].faction = "settler";
+  } else if (mod === "god") {
+    entity[STATS].maxHp = 99;
+    entity[STATS].hp = 99;
+    entity[STATS].maxMp = 99;
+    entity[STATS].mp = 99;
+    entity[STATS].haste = 99;
+    entity[STATS].power = 99;
+    entity[STATS].armor = 99;
+    entity[STATS].wisdom = 99;
+    entity[STATS].resist = 99;
+  } else if (mod === "reset") {
+    const stats = getLevelStats(
+      entity[SPAWNABLE].classKey,
+      entity[STATS].level
+    );
+    entity[STATS].maxHp = stats.maxHp;
+    entity[STATS].hp = stats.maxHp;
+    entity[STATS].maxMp = stats.maxMp;
+    entity[STATS].mp = stats.maxMp;
+    entity[STATS].maxXp = stats.maxXp;
+    entity[STATS].xp = 0;
+    entity[STATS].haste = stats.haste;
+    entity[STATS].power = stats.power;
+    entity[STATS].armor = stats.armor;
+    entity[STATS].wisdom = stats.wisdom;
+    entity[STATS].resist = stats.resist;
   } else {
     return `No mod "${mod}"!`;
   }
 };
 
-const lists = ["item", "id", "stat"];
+const lists = ["list", "cmd", "item", "id", "stat", "cast", "cell"];
 const executeList = (world: World, entity: Entity, list: string) => {
   let lines: string[] | Sprite[][] = [];
-  if (!list) {
-    lines = lists.map((name) => `/list ${name}`.padEnd(12));
+
+  if (!list || list === "cmd") {
+    const commandNames = sorted(Object.keys(commandSignatures));
+    lines = commandNames.map((name, index) => {
+      const signature = commandSignatures[name];
+      return createText(`/${name}│/${signature.short}`.padStart(10).padEnd(14));
+    });
+  } else if (list === "list") {
+    lines = sorted(lists).map((name) => `/list ${name}`.padEnd(10));
+  } else if (list === "cell") {
+    lines = sorted([...cellNames]);
   } else if (list === "item") {
-    const itemNames = Object.keys(items);
-    itemNames.sort();
+    const itemNames = sorted(Object.keys(items));
     lines = itemNames.map((itemName) => {
       const text = createText(`${itemName}│`);
       const name = createItemName(items[itemName]);
       return [
-        ...repeat(none, 8 - text.length),
+        ...repeat(none, 9 - text.length),
         ...text,
         ...name,
         ...repeat(none, 8 - name.length),
@@ -352,18 +403,57 @@ const executeList = (world: World, entity: Entity, list: string) => {
     const ids = new Set(
       identifiables.map((identifiable) => identifiable[IDENTIFIABLE].name)
     );
-    const idNames = [...ids];
-    idNames.sort();
-    lines = idNames;
+    lines = sorted([...ids]);
   } else if (list === "stat") {
-    lines = unitStats.map((stat) => {
+    const unitLines = unitStats.map((stat) => {
       const text = createText(`${stat}│`);
       const name = createItemName({ stat });
+      return [
+        ...repeat(none, 10 - text.length),
+        ...text,
+        ...name,
+        ...repeat(none, 9 - name.length),
+      ];
+    });
+    const npcLines = npcTypes.map((npcType) => {
+      const text = createText(`${npcType}│`);
+      const name = createUnitName(npcType);
+      return [
+        ...repeat(none, 15 - text.length),
+        ...text,
+        ...name,
+        ...repeat(none, 14 - name.length),
+      ];
+    });
+    lines = [...unitLines, ...npcLines];
+  } else if (list === "cast") {
+    const castables: Omit<Item, "amount" | "carrier" | "bound">[] = [
+      ...sorted([...spells]).map(
+        (spell) => ({ spell, material: "wood" } as const)
+      ),
+      ...sorted(
+        skills.filter((skill) => !["zap", "block"].includes(skill))
+      ).map(
+        (skill) =>
+          ({
+            skill,
+            material: "wood",
+            weapon: skillWeapons.includes(
+              skill as (typeof skillWeapons)[number]
+            )
+              ? (skill as Weapon)
+              : undefined,
+          } as const)
+      ),
+    ];
+    lines = castables.map((castable) => {
+      const text = createText(`${castable.spell || castable.skill}│`);
+      const name = createItemName(castable);
       return [
         ...repeat(none, 9 - text.length),
         ...text,
         ...name,
-        ...repeat(none, 9 - name.length),
+        ...repeat(none, 8 - name.length),
       ];
     });
   } else {
@@ -374,7 +464,7 @@ const executeList = (world: World, entity: Entity, list: string) => {
     queueMessage(world, entity, {
       fast: false,
       orientation: "up",
-      delay: index * helpDelay,
+      delay: (index + 1) * helpDelay,
       line: typeof line === "string" ? createText(line) : line,
     });
   });
@@ -395,33 +485,92 @@ const executeFocus = (world: World, entity: Entity, id: string) => {
   return `No id "${id}"!`;
 };
 
+const executeNew = (
+  world: World,
+  entity: Entity,
+  cell: string,
+  amountText = "1"
+) => {
+  if (!cellNames.includes(cell as CellType)) {
+    return `No cell "${cell}"!`;
+  }
+
+  const amount = parseInt(amountText);
+
+  if (isNaN(amount)) {
+    return `No number "${amountText}"!`;
+  }
+
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const delta =
+    orientationPoints[(entity[ORIENTABLE]?.facing || "up") as Orientation];
+  for (let offset = 0; offset < amount; offset += 1) {
+    const { all } = createCell(
+      world,
+      combine(size, entity[POSITION], {
+        x: delta.x * (offset + 1),
+        y: delta.y * (offset + 1),
+      }),
+      cell,
+      "hidden"
+    );
+    all.forEach((unit) => {
+      registerEntity(world, unit);
+    });
+  }
+};
+
+const executePin = (world: World, entity: Entity, id: string, loc?: string) => {
+  const existing = getIdentifier(world, id);
+  if (existing) {
+    return `Duplicate "${id}"!`;
+  }
+
+  let position = copy(entity[POSITION]);
+
+  const parts = loc ? loc.split(",") : [];
+  if (loc && parts.length === 2) {
+    const [x, y] = parts;
+    const size = world.metadata.gameEntity[LEVEL].size;
+    const normalizedX = normalize(parseInt(x), size);
+    const normalizedY = normalize(parseInt(y), size);
+    if (isNaN(normalizedX) || isNaN(normalizedY)) {
+      return `No loc "${loc}"!`;
+    }
+    position = { x: normalizedX, y: normalizedY };
+  }
+
+  const pinEntity = entities.createPin(world, { [POSITION]: position });
+  setIdentifier(world, pinEntity, id);
+};
+
 commandSignatures.help = {
   short: "h",
   executor: executeHelp,
   minArgs: 0,
   maxArgs: 1,
-  usage: "/help list│/help <cmd>",
+  usage: "/list│/help [cmd]",
 };
 commandSignatures.give = {
   short: "g",
   executor: executeGive,
   minArgs: 1,
   maxArgs: 4,
-  usage: "/give item <num> <mat> <ele>",
+  usage: "/give <item> [num] [mat] [ele]",
 };
 commandSignatures.stat = {
   short: "s",
   executor: executeStat,
   minArgs: 2,
   maxArgs: 2,
-  usage: "/stat stat num",
+  usage: "/stat <type> <num>",
 };
 commandSignatures.cast = {
   short: "c",
   executor: executeCast,
   minArgs: 1,
   maxArgs: 3,
-  usage: "/cast item <mat> <ele>",
+  usage: "/cast <item> [mat] [ele]",
 };
 commandSignatures.tp = {
   short: "t",
@@ -435,21 +584,35 @@ commandSignatures.mod = {
   executor: executeMod,
   minArgs: 1,
   maxArgs: 1,
-  usage: "/mod list│/mod <type>",
+  usage: "/mod <type>",
 };
 commandSignatures.list = {
   short: "l",
   executor: executeList,
   minArgs: 0,
   maxArgs: 1,
-  usage: "/list│/list <type>",
+  usage: "/list [type]",
 };
 commandSignatures.focus = {
   short: "f",
   executor: executeFocus,
   minArgs: 1,
   maxArgs: 1,
-  usage: "/focus off│/focus <id>",
+  usage: "/focus <id>",
+};
+commandSignatures.new = {
+  short: "n",
+  executor: executeNew,
+  minArgs: 1,
+  maxArgs: 2,
+  usage: "/new <cell> [num]",
+};
+commandSignatures.pin = {
+  short: "p",
+  executor: executePin,
+  minArgs: 1,
+  maxArgs: 2,
+  usage: "/pin <name> [x,y]",
 };
 
 export const parseCommand = (prompt: string): CommandCall | undefined => {
