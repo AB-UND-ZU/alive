@@ -265,13 +265,24 @@ export const path: Sprite = {
   ],
 };
 
-export const gravel: Sprite = {
-  name: "gravel",
+export const gravel1: Sprite = {
+  name: "gravel_one",
   layers: [
     { char: "\u0112", color: colors.grey },
     { char: "\u0105", color: colors.black },
     { char: "\u0117", color: colors.black },
     { char: "▓", color: colors.black },
+  ],
+};
+
+export const gravel2: Sprite = {
+  name: "gravel_two",
+  layers: [
+    { char: "-", color: colors.grey },
+    { char: ":", color: colors.grey },
+    { char: "º", color: colors.black },
+    { char: "\u0106", color: colors.black },
+    { char: "]", color: colors.black },
   ],
 };
 

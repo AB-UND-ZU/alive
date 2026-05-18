@@ -32,6 +32,7 @@ import { relativeOrientations, rotateOrientation } from "../../game/math/path";
 import { rerenderEntity } from "./renderer";
 import { getLimbs } from "./damage";
 import { BUMPABLE } from "../components/bumpable";
+import { getSpikable } from "./spike";
 
 export const getHarvestable = (world: World, position: Position) => {
   if (getBlockable(world, position)) return;
@@ -218,10 +219,11 @@ export default function setupHarvest(world: World) {
       );
       const walkable = isWalkable(world, targetPosition);
       const lootable = getLootable(world, targetPosition);
+      const spikable = getSpikable(world, targetPosition);
 
       if (targetEntity) {
         triggerHarvest(world, entity, harvestItem);
-      } else if (walkable || lootable) {
+      } else if (walkable || lootable || spikable) {
         // prevent all actions except walking and looting
         continue;
       }

@@ -22,7 +22,7 @@ import {
   shoutEnd,
   shoutStart,
 } from "../../game/assets/sprites";
-import { disposeEntity, disposeSequence, getCell } from "./map";
+import { disposeEntity, disposeSequence, getCell, moveEntity } from "./map";
 import { POSITION, Position } from "../components/position";
 import { createSequence, getSequence } from "./sequence";
 import {
@@ -37,7 +37,7 @@ import { Equipment, slots } from "../components/equippable";
 import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
-import { add, normalize } from "../../game/math/std";
+import { add, combine, getDistance, normalize } from "../../game/math/std";
 import { TypedEntity } from "../entities";
 import { isDead, isEnemy, isNeutral } from "./damage";
 import {
@@ -498,10 +498,23 @@ export const openPopup = (
 
   const viewpointEntity = world.assertByIdAndComponents(
     popupEntity[POPUP].viewpoint,
-    [VIEWABLE]
+    [VIEWABLE, POSITION]
   );
   viewpointEntity[VIEWABLE].active = true;
   rerenderEntity(world, popupEntity);
+
+  // ensure viewpoint is placed correctly if entity moved
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const targetViewpoint = combine(size, popupEntity[POSITION], {
+    x: 0,
+    y: (frameHeight + 1) / -2,
+  });
+  if (
+    !instant &&
+    getDistance(viewpointEntity[POSITION], targetViewpoint, size) !== 0
+  ) {
+    moveEntity(world, viewpointEntity, targetViewpoint);
+  }
 
   // mark sign as read
   const discovery = getSequence(world, popupEntity, "discovery");

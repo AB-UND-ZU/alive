@@ -158,9 +158,10 @@ import {
   stemRottenLeft,
   leavesRottenLeft,
   branchRottenLeft,
-  gravel,
+  gravel1,
   goldMine,
   jetty,
+  gravel2,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -981,7 +982,7 @@ export const createCell = (
     const { harvestable } = getHarvestConfig("mountain");
     const mountainEntity = entities.createMountain(world, {
       [COLLIDABLE]: {},
-      [DROPPABLE]: { decayed: false, remains: gravel },
+      [DROPPABLE]: { decayed: false, remains: [gravel1, gravel2][(x + y) % 2] },
       [FOG]: { visibility, type: "terrain" },
       [HARVESTABLE]: harvestable,
       [POSITION]: { x, y },
@@ -1043,7 +1044,7 @@ export const createCell = (
     const { harvestable } = getHarvestConfig("iron");
     const mineEntity = entities.createMine(world, {
       [COLLIDABLE]: {},
-      [DROPPABLE]: { decayed: false, remains: gravel },
+      [DROPPABLE]: { decayed: false, remains: [gravel1, gravel2][(x + y) % 2] },
       [FOG]: { visibility, type: "terrain" },
       [HARVESTABLE]: harvestable,
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
@@ -1058,7 +1059,7 @@ export const createCell = (
     const { harvestable } = getHarvestConfig("gold");
     const mineEntity = entities.createMine(world, {
       [COLLIDABLE]: {},
-      [DROPPABLE]: { decayed: false, remains: gravel },
+      [DROPPABLE]: { decayed: false, remains: [gravel1, gravel2][(x + y) % 2] },
       [FOG]: { visibility, type: "terrain" },
       [HARVESTABLE]: harvestable,
       [LIGHT]: { brightness: 0, darkness: 1, visibility: 0 },
@@ -1073,7 +1074,7 @@ export const createCell = (
     const { harvestable } = getHarvestConfig("mountain");
     const oreEntity = entities.createOre(world, {
       [COLLIDABLE]: {},
-      [DROPPABLE]: { decayed: false, remains: gravel },
+      [DROPPABLE]: { decayed: false, remains: [gravel1, gravel2][(x + y) % 2] },
       [FOG]: { visibility, type: "terrain" },
       [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
