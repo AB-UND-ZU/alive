@@ -38,6 +38,7 @@ import { none } from "../../game/assets/sprites";
 import { isControllable } from "./freeze";
 import { BLOCKABLE } from "../components/blockable";
 import { getIdentifier } from "../utils";
+import { canDig, getFarmable } from "./harvest";
 
 export const getBlockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -130,7 +131,7 @@ export const castableSpell = (
 
 export const castableSkill = (
   world: World,
-  entity: TypedEntity<"INVENTORY">,
+  entity: TypedEntity<"INVENTORY" | "POSITION">,
   item: TypedEntity<"ITEM">
 ) => {
   if (!isControllable(world, entity)) return false;
@@ -169,6 +170,8 @@ export const castableSkill = (
     return true;
   } else if (tool === "axe" && item[ITEM].material) {
     return true;
+  } else if (tool === "shovel" && item[ITEM].material) {
+    return canDig(world, entity, entity[POSITION]);
   } else if (tool === "pickaxe" && item[ITEM].material) {
     return true;
   } else if (tool === "hook") {
@@ -213,6 +216,7 @@ export default function setupAction(world: World) {
     ])) {
       let warp: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
+      let plant: Entity | undefined = undefined;
       let popup: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
       let add_: Entity | undefined = undefined;
@@ -227,6 +231,11 @@ export default function setupAction(world: World) {
           spawn = spawnEntity;
         }
       } else {
+        const farmable = getFarmable(world, entity[POSITION]);
+        if (farmable) {
+          plant = farmable;
+        }
+
         for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
           for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
             // check any adjacent actions
@@ -335,14 +344,16 @@ export default function setupAction(world: World) {
       if (
         usePopup &&
         !add_ &&
-        isInTab(world, entity, "use") &&
-        getTabSelections(world, usePopup).length <= 2
+        (isInTab(world, entity, "plant") ||
+          (isInTab(world, entity, "use") &&
+            getTabSelections(world, usePopup).length <= 2))
       ) {
         add_ = usePopup;
       }
 
       const warpId = warp && world.getEntityId(warp);
       const unlockId = unlock && world.getEntityId(unlock);
+      const plantId = plant && world.getEntityId(plant);
       const popupId = popup && world.getEntityId(popup);
       const tradeId = trade && world.getEntityId(trade);
       const addId = add_ && world.getEntityId(add_);
@@ -354,6 +365,7 @@ export default function setupAction(world: World) {
       if (
         entity[ACTIONABLE].warp !== warpId ||
         entity[ACTIONABLE].unlock !== unlockId ||
+        entity[ACTIONABLE].plant !== plantId ||
         entity[ACTIONABLE].popup !== popupId ||
         entity[ACTIONABLE].trade !== tradeId ||
         entity[ACTIONABLE].use !== useId ||
@@ -365,6 +377,7 @@ export default function setupAction(world: World) {
       ) {
         entity[ACTIONABLE].warp = warpId;
         entity[ACTIONABLE].unlock = unlockId;
+        entity[ACTIONABLE].plant = plantId;
         entity[ACTIONABLE].popup = popupId;
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].use = useId;

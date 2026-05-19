@@ -103,6 +103,8 @@ export const stackableConsumptions: Partial<
   herb: { countable: "mp", amount: 2 },
   seed: { countable: "xp", amount: 1 },
 
+  bread: { countable: "hp", amount: 5 },
+
   salmon: { countable: "hp", amount: 5 },
   pike: { countable: "mp", amount: 2 },
   tuna: { countable: "hp", amount: 8 },

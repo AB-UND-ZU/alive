@@ -284,6 +284,17 @@ export const logging: Sprite = {
   ],
 };
 
+export const farming: Sprite = {
+  name: "Farming",
+  layers: [
+    { char: "I", color: colors.green },
+    { char: "i", color: colors.black },
+    { char: "\u0118", color: colors.lime },
+    { char: "|", color: colors.green },
+    { char: ".", color: colors.lime },
+  ],
+};
+
 export const mining: Sprite = {
   name: "Mining",
   layers: [
@@ -813,7 +824,34 @@ export const lemon: Sprite = {
 
 export const grain: Sprite = {
   name: "Grain",
-  layers: [{ char: "·", color: colors.olive }],
+  layers: [
+    { char: "∙", color: colors.olive },
+    { char: "·", color: colors.yellow },
+  ],
+};
+
+export const wheat: Sprite = {
+  name: "Wheat",
+  layers: [
+    { char: "\u00a5", color: colors.yellow },
+    { char: "∞", color: colors.black },
+    { char: "x", color: colors.yellow },
+    { char: "▄", color: colors.black },
+    { char: "\u0106", color: colors.yellow },
+    { char: "\u0115", color: colors.black },
+    { char: "|", color: colors.olive },
+  ],
+};
+
+export const bread: Sprite = {
+  name: "Bread",
+  layers: [
+    { char: "»", color: colors.yellow },
+    { char: "«", color: colors.yellow },
+    // { char: "≡", color: colors.black },
+    // { char: "─", color: colors.olive },
+    { char: "\u0115", color: colors.olive },
+  ],
 };
 
 export const golemHead: Sprite = {

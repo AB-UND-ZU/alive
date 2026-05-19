@@ -197,6 +197,32 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
+          stackable: "berry",
+          amount: Infinity,
+        },
+        {
+          stackable: "fruit",
+          amount: Infinity,
+        },
+        {
+          stackable: "flower",
+          amount: Infinity,
+        },
+        {
+          stackable: "herb",
+          amount: Infinity,
+        },
+        {
+          stackable: "leaf",
+          amount: Infinity,
+        },
+        {
+          stackable: "seed",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
           stackable: "apple",
           amount: Infinity,
         },
@@ -212,22 +238,12 @@ export const generateMenu = async (world: World) => {
           stackable: "coconut",
           amount: Infinity,
         },
-      ],
-      [
         {
-          stackable: "leaf",
+          stackable: "grain",
           amount: Infinity,
         },
         {
-          stackable: "seed",
-          amount: Infinity,
-        },
-        {
-          stackable: "fruit",
-          amount: Infinity,
-        },
-        {
-          stackable: "herb",
+          stackable: "wheat",
           amount: Infinity,
         },
       ],
@@ -246,6 +262,10 @@ export const generateMenu = async (world: World) => {
         },
         {
           stackable: "cod",
+          amount: Infinity,
+        },
+        {
+          stackable: "bread",
           amount: Infinity,
         },
       ],
@@ -471,6 +491,11 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
+          tool: "shovel",
+          material: "wood",
+          amount: 1,
+        },
+        {
           tool: "axe",
           material: "wood",
           amount: 1,
@@ -515,6 +540,11 @@ export const generateMenu = async (world: World) => {
         },
       ],
       [
+        {
+          consume: "bucket",
+          material: "iron",
+          amount: Infinity,
+        },
         {
           consume: "key",
           material: "iron",

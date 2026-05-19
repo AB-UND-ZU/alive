@@ -12,6 +12,11 @@ export type Resource =
   | "box"
   | "sign"
   | "fence"
+  | "grass"
+  | "bush"
+  | "flower"
+  | "berry"
+  | "seed"
   | "palisade"
   | "rock"
   | "mountain"
@@ -28,12 +33,14 @@ export type HarvestStats = {
   logging: number;
   mining: number;
   fishing: number;
+  farming: number;
 };
 
 export const emptyHarvestStats: HarvestStats = {
   logging: 0,
   mining: 0,
   fishing: 0,
+  farming: 0,
 };
 
 export const HARVESTABLE = "HARVESTABLE";

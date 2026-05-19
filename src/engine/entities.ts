@@ -68,6 +68,8 @@ import { Blockable, BLOCKABLE } from "./components/blockable";
 import { Hookable, HOOKABLE } from "./components/hookable";
 import { Baitable, BAITABLE } from "./components/baitable";
 import { Fishable, FISHABLE } from "./components/fishable";
+import { Farmable, FARMABLE } from "./components/farmable";
+import { Refillable, REFILLABLE } from "./components/refillable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -90,6 +92,7 @@ export type Entity = Record<LevelName, {}> & {
   [ENTERABLE]: Enterable;
   [EQUIPPABLE]: Equippable;
   [EXERTABLE]: Exertable;
+  [FARMABLE]: Farmable;
   [FISHABLE]: Fishable;
   [FOCUSABLE]: Focusable;
   [FOG]: Fog;
@@ -121,6 +124,7 @@ export type Entity = Record<LevelName, {}> & {
   [PUSHABLE]: Pushable;
   [RECHARGABLE]: Rechargable;
   [REFERENCE]: Reference;
+  [REFILLABLE]: Refillable;
   [RENDERABLE]: Renderable;
   [REVIVABLE]: Revivable;
   [SEQUENCABLE]: Sequencable;
@@ -565,10 +569,12 @@ export const createForging = entityFactory([
 export const createFountain = entityFactory([
   COLLIDABLE,
   FOG,
+  FRAGMENT,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
+  STRUCTURABLE,
 ]);
 
 export const createFrame = entityFactory([RENDERABLE, REFERENCE]);
@@ -904,6 +910,16 @@ export const createPlate = entityFactory([
   TOOLTIP,
 ]);
 
+export const createPond = entityFactory([
+  FOG,
+  FRAGMENT,
+  ORIENTABLE,
+  POSITION,
+  REFILLABLE,
+  RENDERABLE,
+  SPRITE,
+]);
+
 export const createPortal = entityFactory([
   COLLIDABLE,
   FOG,
@@ -1033,6 +1049,14 @@ export const createSnow = entityFactory([
   FOG,
   POSITION,
   RENDERABLE,
+  SPRITE,
+]);
+
+export const createSoil = entityFactory([
+  FARMABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
 ]);
 
@@ -1258,6 +1282,7 @@ export const createWater = entityFactory([
   FREEZABLE,
   IMMERSIBLE,
   POSITION,
+  REFILLABLE,
   RENDERABLE,
   SPRITE,
   TEMPO,
@@ -1265,7 +1290,9 @@ export const createWater = entityFactory([
 
 export const createWeeds = entityFactory([
   BURNABLE,
+  DROPPABLE,
   FOG,
+  HARVESTABLE,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,

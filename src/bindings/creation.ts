@@ -283,6 +283,7 @@ import { HOOKABLE } from "../engine/components/hookable";
 import { FISHABLE } from "../engine/components/fishable";
 import { habitatDistribution } from "../engine/systems/fishing";
 import { getCell } from "../engine/systems/map";
+import { REFILLABLE } from "../engine/components/refillable";
 
 export const cellNames = [
   "air",
@@ -903,9 +904,9 @@ export const createCell = (
       [VIEWABLE]: { active: false, priority: 90 },
       [POPUP]: {
         active: false,
-        verticalIndezes: [0, 0, 0, 0, 0, 0],
+        verticalIndezes: [0, 0, 0, 0, 0, 0, 0],
         horizontalIndex: 0,
-        selections: [[], [], [], [], [], []],
+        selections: [[], [], [], [], [], [], []],
         viewpoint: world.getEntityId(inspectEntity),
         deals: [],
         recipes: [],
@@ -913,7 +914,7 @@ export const createCell = (
         targets: [],
         focuses: [],
         choices: [],
-        tabs: ["use", "inspect", "gear", "stats", "map", "chat"],
+        tabs: ["use", "inspect", "gear", "stats", "map", "chat", "plant"],
       },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]: none,
@@ -1189,6 +1190,7 @@ export const createCell = (
       [FREEZABLE]: { frozen: false },
       [IMMERSIBLE]: { type: "water", deep: false },
       [POSITION]: { x, y },
+      [REFILLABLE]: { element: "water" },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: waterShallow,
       [TEMPO]: { amount: -2 },
@@ -1201,6 +1203,7 @@ export const createCell = (
       [FREEZABLE]: { frozen: false },
       [IMMERSIBLE]: { type: "water", deep: true },
       [POSITION]: { x, y },
+      [REFILLABLE]: { element: "water" },
       [RENDERABLE]: { generation: 0 },
       [SPRITE]: waterDeep,
       [TEMPO]: { amount: -2 },
@@ -1599,6 +1602,7 @@ export const createCell = (
     cell === "berry" ||
     cell === "berry_one"
   ) {
+    const { harvestable } = getHarvestConfig("bush");
     const bushEntity = entities.createWeeds(world, {
       [BURNABLE]: {
         burning: false,
@@ -1607,7 +1611,9 @@ export const createCell = (
         combusted: false,
         decayed: false,
       },
+      [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
       [POSITION]: { x, y },
       [SPRITE]: bush,
       [RENDERABLE]: { generation: 0 },
@@ -1639,6 +1645,7 @@ export const createCell = (
     }
     return { cell: bushEntity, all };
   } else if (cell === "grass" || cell === "flower" || cell === "flower_one") {
+    const { harvestable } = getHarvestConfig("grass");
     const grassEntity = entities.createWeeds(world, {
       [BURNABLE]: {
         burning: false,
@@ -1647,7 +1654,9 @@ export const createCell = (
         combusted: false,
         decayed: false,
       },
+      [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
       [POSITION]: { x, y },
       [SPRITE]: grass,
       [RENDERABLE]: { generation: 0 },
@@ -3836,12 +3845,17 @@ export const createCell = (
     const fountainEntity = entities.createFountain(world, {
       [COLLIDABLE]: {},
       [FOG]: { visibility, type: "object" },
+      [FRAGMENT]: { structure: -1 },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
+      [STRUCTURABLE]: {},
       [SPRITE]: fountain,
     });
     all.push(fountainEntity);
+    const fountainId = world.getEntityId(fountainEntity);
+    fountainEntity[FRAGMENT].structure = fountainId;
+
     createSequence<"fountain", FountainSequence>(
       world,
       fountainEntity,
@@ -3854,11 +3868,12 @@ export const createCell = (
     [-1, 0, 1].forEach((columnOffset) => {
       [-1, 0, 1].forEach((rowOffset) => {
         all.push(
-          entities.createDecoration(world, {
+          entities.createPond(world, {
             [FOG]: {
               visibility,
               type: "object",
             },
+            [FRAGMENT]: { structure: fountainId },
             [ORIENTABLE]: {
               facing: (
                 [
@@ -3875,6 +3890,7 @@ export const createCell = (
               )[columnOffset + 1 + (rowOffset + 1) * 3],
             },
             [POSITION]: { x: x + columnOffset, y: y + rowOffset },
+            [REFILLABLE]: { element: "water" },
             [RENDERABLE]: { generation: 0 },
             [SPRITE]:
               (columnOffset + rowOffset + 2) % 2 === 0

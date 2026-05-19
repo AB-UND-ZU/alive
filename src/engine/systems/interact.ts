@@ -15,12 +15,13 @@ import { rerenderEntity } from "./renderer";
 import { isControllable } from "./freeze";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { LOCKABLE } from "../components/lockable";
-import { addBackground, none, spawn } from "../../game/assets/sprites";
+import { addBackground, farming, none, spawn } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { getUnlockSprite, isUnlockable } from "./action";
 import { orientationPoints } from "../components/orientable";
 import { canRevive } from "./fate";
 import { REVIVABLE } from "../components/revivable";
+import { FARMABLE } from "../components/farmable";
 
 export default function setupInteract(world: World) {
   let referenceGenerations = -1;
@@ -42,10 +43,14 @@ export default function setupInteract(world: World) {
       ...world.getEntities([POSITION, POPUP, RENDERABLE, SEQUENCABLE]),
       ...world.getEntities([POSITION, LOCKABLE, RENDERABLE, SEQUENCABLE]),
       ...world.getEntities([POSITION, REVIVABLE, RENDERABLE, SEQUENCABLE]),
+      ...world.getEntities([POSITION, FARMABLE, RENDERABLE, SEQUENCABLE]),
     ];
 
     for (const entity of interactEntities) {
       const entityId = world.getEntityId(entity);
+      const distance = heroEntity
+        ? getDistance(entity[POSITION], heroEntity[POSITION], size, 1, false)
+        : Infinity;
       const isAdjacent =
         !!heroEntity &&
         (entity[REVIVABLE]
@@ -55,8 +60,8 @@ export default function setupInteract(world: World) {
         !(entity[LOCKABLE] && !isUnlockable(world, entity)) &&
         entity !== heroEntity &&
         entity[IDENTIFIABLE]?.name !== "use" &&
-        getDistance(entity[POSITION], heroEntity[POSITION], size, 1, false) <=
-          1;
+        ((entity[FARMABLE] && !entity[FARMABLE].planted && distance === 0) ||
+          (!entity[FARMABLE] && distance <= 1));
       const interactSequence = getSequence(world, entity, "interact");
 
       // reset stale active interact
@@ -103,6 +108,8 @@ export default function setupInteract(world: World) {
         const horizontal = orientation === "left" || orientation === "right";
         const text = entity[LOCKABLE]
           ? "OPEN"
+          : entity[FARMABLE]
+          ? "PLANT"
           : entity[REVIVABLE]
           ? "SPAWN"
           : popupActions[getDiscoveryTab(world, entity)];
@@ -110,6 +117,8 @@ export default function setupInteract(world: World) {
           ? getUnlockSprite(world, entity)
           : entity[REVIVABLE]
           ? spawn
+          : entity[FARMABLE]
+          ? farming
           : popupIdles[getDiscoveryTab(world, entity)];
         createSequence<"interact", InteractSequence>(
           world,

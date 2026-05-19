@@ -73,6 +73,18 @@ import {
   wood,
   berryDrop,
   apple,
+  grain,
+  farming,
+  soil,
+  logging,
+  tree1,
+  tree2,
+  fishing,
+  bubble,
+  maxCountable,
+  salmon,
+  cod,
+  flowerDrop,
 } from "./sprites";
 import {
   createItemName,
@@ -80,6 +92,7 @@ import {
   createUnitName,
   END_STEP,
   frameWidth,
+  getItemSprite,
   getUnitSprite,
   npcSequence,
   questSequence,
@@ -880,12 +893,12 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
       return true;
     },
     isCompleted: () => !entity[POPUP],
-    onLeave: () => "plants",
+    onLeave: () => "wood",
   });
 
   step({
     stage,
-    name: "plants",
+    name: "wood",
     onEnter: () => {
       // set new quests for chief and druid
       createPopup(world, entity, {
@@ -893,91 +906,122 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           {
             item: {
               stat: "xp",
-              amount: 5,
+              amount: 3,
             },
             stock: 1,
-            prices: [{ stackable: "seed", amount: 5 }],
-          },
-          {
-            item: {
-              stackable: "resource",
-              material: "iron",
-              amount: 1,
-            },
-            stock: 1,
-            prices: [],
+            prices: [{ stackable: "stick", amount: 10 }],
           },
         ],
         choices: [
           {
-            weapon: "spear",
-            skill: "spear",
+            tool: "shovel",
             material: "wood",
             amount: 1,
           },
           {
-            weapon: "wand",
-            skill: "wand",
+            tool: "axe",
             material: "wood",
             amount: 1,
           },
           {
-            skill: "bow",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "slash",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "zap",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "block",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "totem",
+            tool: "hook",
             material: "wood",
             amount: 1,
           },
         ],
         lines: [
           [
-            createText("There have been a"),
-            createText("few dangerous"),
+            createText("Gathering is the"),
+            createText("key to survive."),
+            [],
             [
-              getUnitSprite("rose"),
-              getUnitSprite("clover"),
-              getUnitSprite("violet"),
-              ...createText("Plants", colors.maroon),
-              ...createText(" around."),
+              ...centerSprites(
+                [farming, ...createText("Farming", colors.green)],
+                frameWidth - 2,
+                swirl
+              ),
+            ],
+            [
+              ...createText("Dig "),
+              soil,
+              ...createText("Soil", colors.grey),
+              ...createText(" and"),
+            ],
+            [
+              ...createText("use "),
+              ...createText("water", colors.blue),
+              ...createText(" "),
+              ...createItemName({ consume: "bucket", material: "iron" }),
+            ],
+            [
+              ...createText("to plant "),
+              grain,
+              flowerDrop,
+              berryDrop,
+              ...createText("Seed", colors.grey),
+              ...createText("."),
             ],
             [],
-            createText("Fight them and"),
             [
-              ...createText("get "),
-              ...createItemText({
-                stackable: "seed",
-                amount: 5,
-              }),
-              ...createText(", or "),
+              ...centerSprites(
+                [logging, ...createText("Logging", colors.green)],
+                frameWidth - 2,
+                swirl
+              ),
+            ],
+            [
+              ...createText("Fell "),
+              tree1,
+              tree2,
+              ...createText("Trees", colors.grey),
+              ...createText(" and"),
+            ],
+            [
+              ...createText("use "),
+              ...createItemName({ stackable: "resource", material: "wood" }),
+              ...createText(" to"),
             ],
             [
               craft,
               ...createText("Craft", colors.grey),
-              ...createText(" from "),
-              ...createItemName({ stackable: "leaf" }),
+              ...createText(" "),
+              getItemSprite({
+                consume: "potion",
+                material: "gold",
+                stat: "hp",
+              }),
+              ...createItemName({
+                consume: "potion",
+                material: "gold",
+                stat: "mp",
+              }),
+              ...createText("s", colors.grey),
+              ...createText("."),
+            ],
+            [],
+            [
+              ...centerSprites(
+                [fishing, ...createText("Fishing", colors.green)],
+                frameWidth - 2,
+                swirl
+              ),
             ],
             [
-              ...createText("at the "),
-              kettle,
-              ...createText("Kettle", colors.grey),
+              ...createText("Use a "),
+              ...createItemName({ stackable: "worm" }),
+              ...createText(" to"),
+            ],
+            [
+              ...createText("bait "),
+              salmon,
+              cod,
+              ...createText("Fish", colors.grey),
+              ...createText(" near"),
+            ],
+            [
+              ...createText("water "),
+              maxCountable(bubble),
+              ...createText("Bubbles", colors.blue),
               ...createText("."),
             ],
           ],
@@ -1076,6 +1120,114 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
         });
         npcSequence(world, druidEntity, "earthDruidNpc", {});
       }
+
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => "plants",
+  });
+
+  step({
+    stage,
+    name: "plants",
+    onEnter: () => {
+      // set new quest for chief
+      createPopup(world, entity, {
+        deals: [
+          {
+            item: {
+              stat: "xp",
+              amount: 5,
+            },
+            stock: 1,
+            prices: [{ stackable: "seed", amount: 5 }],
+          },
+          {
+            item: {
+              stackable: "resource",
+              material: "iron",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [],
+          },
+        ],
+        choices: [
+          {
+            weapon: "spear",
+            skill: "spear",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            weapon: "wand",
+            skill: "wand",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "bow",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "slash",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "zap",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "block",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "totem",
+            material: "wood",
+            amount: 1,
+          },
+        ],
+        lines: [
+          [
+            createText("There have been a"),
+            createText("few dangerous"),
+            [
+              getUnitSprite("rose"),
+              getUnitSprite("clover"),
+              getUnitSprite("violet"),
+              ...createText("Plants", colors.maroon),
+              ...createText(" around."),
+            ],
+            [],
+            createText("Fight them and"),
+            [
+              ...createText("get "),
+              ...createItemText({
+                stackable: "seed",
+                amount: 5,
+              }),
+              ...createText(", or "),
+            ],
+            [
+              craft,
+              ...createText("Craft", colors.grey),
+              ...createText(" from "),
+              ...createItemName({ stackable: "leaf" }),
+            ],
+            [
+              ...createText("at the "),
+              kettle,
+              ...createText("Kettle", colors.grey),
+              ...createText("."),
+            ],
+          ],
+        ],
+        tabs: ["quest"],
+      });
 
       return true;
     },
@@ -1270,16 +1422,6 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           },
         ],
         choices: [
-          {
-            tool: "axe",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            tool: "hook",
-            material: "wood",
-            amount: 1,
-          },
           { accessory: "boots", material: "wood", amount: 1 },
           { accessory: "torch", material: "wood", amount: 1 },
           { accessory: "map", material: "gold", amount: 1 },
@@ -1715,6 +1857,11 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           },
         ],
         choices: [
+          {
+            tool: "shovel",
+            material: "wood",
+            amount: 1,
+          },
           {
             tool: "pickaxe",
             material: "wood",

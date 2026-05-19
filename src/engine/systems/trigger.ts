@@ -121,8 +121,12 @@ import { consumeItem, getItemConsumption } from "./consume";
 import { getHookable } from "./fishing";
 import { HOOKABLE } from "../components/hookable";
 import { BAITABLE } from "../components/baitable";
-import { getItemStats } from "../../game/balancing/equipment";
+import {
+  getEquipmentStats,
+  getItemStats,
+} from "../../game/balancing/equipment";
 import { ENTERABLE } from "../components/enterable";
+import { FARMABLE } from "../components/farmable";
 
 export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
@@ -565,12 +569,7 @@ export const consumeCharge = (
   // consume one stackable from inventory
   const chargeId = entity[INVENTORY].items.findLast((itemId: number) => {
     const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
-    return (
-      (item.stackable && itemEntity[ITEM].stackable === item.stackable) ||
-      (item.consume &&
-        itemEntity[ITEM].consume === item.consume &&
-        itemEntity[ITEM].material === item.material)
-    );
+    return matchesItem(world, item, itemEntity[ITEM]);
   });
   const chargeEntity = world.assertByIdAndComponents(chargeId, [ITEM]);
   if (!isEnemy(world, entity)) {
@@ -594,6 +593,7 @@ const conditionConfig: Record<
   zap: { sequence: "zapCondition", stat: "range", modifier: "duration" },
   block: { sequence: "blockCondition", stat: "absorb", modifier: "duration" },
   axe: { sequence: "toolCondition", stat: "logging" },
+  shovel: { sequence: "shovelCondition", stat: "farming" },
   pickaxe: { sequence: "toolCondition", stat: "mining" },
   hook: { sequence: "hookCondition", stat: "fishing", modifier: "range" },
 };
@@ -728,6 +728,26 @@ export const castConditionable = (
     conditionStat ? itemStats[conditionStat] : 1
   );
 };
+
+export const digShovel = (
+  world: World,
+  entity: Entity,
+  tool: TypedEntity<"ITEM">
+) => {
+  const toolStats = getEquipmentStats(tool[ITEM], entity[NPC]?.type);
+  applyCondition(
+    world,
+    entity,
+    tool,
+    "shovel",
+    tool[ITEM].material!,
+    0,
+    toolStats.farming
+  );
+};
+
+export const canPlant = (world: World, entity: Entity, plant: Entity) =>
+  plant[FARMABLE]?.watered;
 
 export const completeQuest = (world: World, entity: Entity, target: Entity) => {
   const popup = target[POPUP] as Popup;
@@ -1032,6 +1052,10 @@ export default function setupTrigger(world: World) {
         entity[ACTIONABLE].unlock,
         [LOCKABLE, POSITION]
       );
+      const plantEntity = world.getEntityByIdAndComponents(
+        entity[ACTIONABLE].plant,
+        [FARMABLE, POSITION]
+      );
       const popupEntity = world.getEntityById(entity[ACTIONABLE].popup);
       const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
       const spellEntity = world.getEntityByIdAndComponents(
@@ -1324,6 +1348,45 @@ export default function setupTrigger(world: World) {
             });
             continue;
           }
+        } else if (plantEntity) {
+          if (canPlant(world, entity, plantEntity)) {
+            const targetIndex = useEntity[POPUP].tabs.indexOf("plant");
+            useEntity[POPUP].horizontalIndex = targetIndex;
+            rerenderEntity(world, useEntity);
+
+            const inspectEntity = assertIdentifier(world, "inspect");
+
+            // move viewpoints
+            const viewables = world.getEntities([VIEWABLE, POSITION]);
+            const viewable = getActiveViewable(viewables);
+            moveEntity(world, inspectEntity, viewable[POSITION]);
+            moveEntity(
+              world,
+              useEntity,
+              add(viewable[POSITION], { x: 0, y: (frameHeight + 1) / 2 })
+            );
+            openPopup(world, entity, useEntity, true);
+            world.metadata.interact.last = world.getEntityId(plantEntity);
+          } else {
+            queueMessage(world, entity, {
+              line: addBackground(
+                [
+                  ...createText("Need ", colors.silver),
+                  ...createItemName({
+                    consume: "bucket",
+                    material: "iron",
+                    element: "water",
+                  }),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+            continue;
+          }
         } else if (popupEntity && isPopupAvailable(world, popupEntity)) {
           openPopup(world, entity, popupEntity);
           world.metadata.interact.last = world.getEntityId(popupEntity);
@@ -1377,13 +1440,14 @@ export default function setupTrigger(world: World) {
           if (
             !castableSkill(
               world,
-              entity as TypedEntity<"INVENTORY">,
+              entity as TypedEntity<"INVENTORY" | "POSITION">,
               skillEntity
             )
           ) {
             if (
               !isInPopup(world, entity) &&
               skillEntity[ITEM].tool !== "axe" &&
+              skillEntity[ITEM].tool !== "shovel" &&
               skillEntity[ITEM].tool !== "pickaxe" &&
               !(
                 skillEntity[ITEM].skill === "zap" && entity[CONDITIONABLE]?.zap
@@ -1437,7 +1501,7 @@ export default function setupTrigger(world: World) {
           if (
             !castableSkill(
               world,
-              entity as TypedEntity<"INVENTORY">,
+              entity as TypedEntity<"INVENTORY" | "POSITION">,
               toolEntity
             ) &&
             isControllable(world, entity)
@@ -1471,6 +1535,8 @@ export default function setupTrigger(world: World) {
             toolEntity[ITEM].tool === "hook"
           ) {
             castConditionable(world, entity, toolEntity);
+          } else if (toolEntity[ITEM].tool === "shovel") {
+            digShovel(world, entity, toolEntity);
           }
         }
       }

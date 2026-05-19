@@ -433,7 +433,12 @@ import {
   MAX_DROP_RADIUS,
   placeRemains,
 } from "../../engine/systems/drop";
-import { getHarvestTarget, performHarvest } from "../../engine/systems/harvest";
+import {
+  getHarvestTarget,
+  isPlantable,
+  performHarvest,
+  plantSoil,
+} from "../../engine/systems/harvest";
 import { TypedEntity } from "../../engine/entities";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { getSequence } from "../../engine/systems/sequence";
@@ -447,7 +452,11 @@ import {
 import { BAITABLE } from "../../engine/components/baitable";
 import { SWIMMABLE } from "../../engine/components/swimmable";
 import { HOOKABLE } from "../../engine/components/hookable";
-import { harvestConditions, harvestScratches } from "../balancing/harvesting";
+import {
+  harvestConditions,
+  harvestScratches,
+  plantConfigs,
+} from "../balancing/harvesting";
 import { getKeyFromIndex } from "../../components/Keyboard";
 
 export * from "./npcs";
@@ -805,9 +814,17 @@ export const toolCondition: Sequence<ConditionSequence> = (
       state.args.modifier = targetModifier;
       state.args.orientation = targetOrientation;
       const delta = orientationPoints[targetOrientation];
-      conditionParticle[PARTICLE].offsetX = delta.x;
-      conditionParticle[PARTICLE].offsetY = delta.y;
-      conditionParticle[ORIENTABLE].facing = targetOrientation;
+      if (toolEntity[ITEM].tool === "shovel") {
+        if (entity[BUMPABLE]) {
+          entity[BUMPABLE].generation = entity[RENDERABLE].generation;
+          entity[BUMPABLE].orientation = "down";
+          rerenderEntity(world, entity);
+        }
+      } else {
+        conditionParticle[PARTICLE].offsetX = delta.x;
+        conditionParticle[PARTICLE].offsetY = delta.y;
+        conditionParticle[ORIENTABLE].facing = targetOrientation;
+      }
       rerenderEntity(world, conditionParticle);
       scratching = false;
       updated = true;
@@ -859,8 +876,10 @@ export const toolCondition: Sequence<ConditionSequence> = (
       // move tool back
       entity[CONDITIONABLE][conditionName].orientation = undefined;
       state.args.orientation = undefined;
-      conditionParticle[PARTICLE].offsetX = 0;
-      conditionParticle[PARTICLE].offsetY = 0;
+      if (toolEntity[ITEM].tool !== "shovel") {
+        conditionParticle[PARTICLE].offsetX = 0;
+        conditionParticle[PARTICLE].offsetY = 0;
+      }
       rerenderEntity(world, conditionParticle);
       updated = true;
     } else if (
@@ -886,6 +905,111 @@ export const toolCondition: Sequence<ConditionSequence> = (
         disposeEntity(world, particleEntity);
         delete state.particles[particleName];
       }
+    }
+  }
+
+  return { finished, updated };
+};
+
+export const shovelCondition: Sequence<ConditionSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const tick = world.getEntityByIdAndComponents(entity[MOVABLE]?.reference, [
+    REFERENCE,
+  ])?.[REFERENCE].tick;
+  let updated = false;
+
+  const toolEntity = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
+    ITEM,
+    SPRITE,
+  ]);
+  const weaponEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].weapon,
+    [ITEM]
+  );
+  const offhandEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].offhand,
+    [ITEM]
+  );
+  const conditionName =
+    toolEntity?.[ITEM].tool && harvestConditions[toolEntity[ITEM].tool];
+
+  const harvestSpeed = tick && tick - 50;
+  const finished =
+    !conditionName ||
+    !entity[ACTIONABLE].toolEquipped ||
+    !entity[CONDITIONABLE][conditionName] ||
+    !harvestSpeed ||
+    state.elapsed > harvestSpeed ||
+    toolEntity?.[ITEM].tool !== "shovel";
+
+  // requires tool to be worn
+  if (!toolEntity || !conditionName) {
+    return { updated: false, finished: true };
+  }
+
+  // hide sword and shield
+  if (weaponEntity && weaponEntity[ITEM].amount !== 0) {
+    weaponEntity[ITEM].amount = 0;
+    rerenderEntity(world, weaponEntity);
+    updated = true;
+  }
+  if (offhandEntity && offhandEntity[ITEM].amount !== 0) {
+    offhandEntity[ITEM].amount = 0;
+    rerenderEntity(world, offhandEntity);
+    updated = true;
+  }
+
+  if (!state.particles.condition) {
+    const conditionParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: floatHeight,
+        amount: 0,
+        animatedOrigin: { x: 0, y: -1 },
+        duration: harvestSpeed,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: toolEntity[SPRITE],
+    });
+    state.particles.condition = world.getEntityId(conditionParticle);
+
+    updated = true;
+  }
+
+  const conditionParticle = world.assertByIdAndComponents(
+    state.particles.condition,
+    [PARTICLE]
+  );
+  if (finished) {
+    const targetEntity = getHarvestTarget(world, entity, toolEntity);
+    if (targetEntity) {
+      performHarvest(world, entity, toolEntity, targetEntity, "down");
+    } else {
+      plantSoil(world, entity[POSITION]);
+    }
+
+    if (entity[BUMPABLE]) {
+      entity[BUMPABLE].generation = entity[RENDERABLE].generation;
+      entity[BUMPABLE].orientation = "down";
+      rerenderEntity(world, entity);
+    }
+
+    disposeEntity(world, conditionParticle);
+    delete state.particles.condition;
+    delete entity[CONDITIONABLE][conditionName];
+
+    // reset sword and shield
+    if (weaponEntity) {
+      weaponEntity[ITEM].amount = 1;
+      rerenderEntity(world, weaponEntity);
+    }
+    if (offhandEntity) {
+      offhandEntity[ITEM].amount = 1;
+      rerenderEntity(world, offhandEntity);
     }
   }
 
@@ -3392,6 +3516,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayStyle;
   } else if (transaction === "warp") {
     handler = displayWarp;
+  } else if (transaction === "plant") {
+    handler = displayPlant;
   } else if (transaction === "chat") {
     handler = displayChat;
   }
@@ -3716,6 +3842,97 @@ export const displayInspect: Sequence<PopupSequence> = (
       false,
       "lime"
     )
+  );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displayPlant: Sequence<PopupSequence> = (world, entity, state) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    INVENTORY,
+    POSITION,
+  ]);
+
+  if (!heroEntity) {
+    return { updated: false, finished: true };
+  }
+
+  const plantItems = (heroEntity[INVENTORY] as Inventory).items.filter((item) =>
+    isPlantable(world, world.assertByIdAndComponents(item, [ITEM])[ITEM])
+  );
+  const hasItems = plantItems.length > 0;
+  const verticalIndex = getVerticalIndex(world, entity);
+
+  const content: Sprite[][] = hasItems
+    ? plantItems.map((item, rowIndex) => {
+        const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
+
+        const selected = verticalIndex === rowIndex;
+        const plantConfig =
+          itemEntity && plantConfigs[itemEntity[ITEM].stackable!];
+
+        const itemSprite = getItemSprite(
+          itemEntity[ITEM],
+          "display",
+          undefined,
+          1
+        );
+        const textColor = selected ? colors.white : colors.grey;
+
+        const amountText = [
+          ...createText(`${itemEntity[ITEM].amount}`, textColor),
+          recolorSprite(times, {
+            [colors.white]: textColor,
+          }),
+        ];
+        const plantText = [
+          delay,
+          ...createText(
+            plantConfig?.duration.toString() || "0",
+            selected ? colors.yellow : colors.olive
+          ),
+        ];
+        const itemText = createText(itemSprite.name, textColor);
+        const line = [
+          ...itemText,
+          ...plantText,
+          ...repeat(
+            none,
+            frameWidth -
+              4 -
+              amountText.length -
+              itemText.length -
+              plantText.length
+          ),
+          ...amountText,
+        ];
+
+        return [
+          none,
+          itemSprite,
+          ...(selected ? shaded(line, colors.grey) : line),
+        ];
+      })
+    : [createText("Nothing to plant.", colors.grey)];
+
+  const selectedItem = world.getEntityByIdAndComponents(
+    plantItems[verticalIndex],
+    [ITEM]
+  );
+  const details = selectedItem && getItemDescription(selectedItem[ITEM]);
+
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    undefined,
+    content,
+    hasItems ? "selected" : undefined,
+    details,
+    undefined,
+    createButton("PLANT", 6, !hasItems, false, false, "lime")
   );
   return {
     updated: popupResult.updated,

@@ -136,6 +136,12 @@ const forgableConfigs: {
     elements: [],
   },
   {
+    item: { tool: "shovel" },
+    materials: harvestMaterials,
+    materialCost: 4,
+    elements: [],
+  },
+  {
     item: { tool: "pickaxe" },
     materials: harvestMaterials,
     materialCost: 4,

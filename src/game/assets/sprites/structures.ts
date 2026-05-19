@@ -329,16 +329,6 @@ export const bench: Sprite = {
   ],
 };
 
-export const bucket: Sprite = {
-  name: "Bucket",
-  layers: [
-    { char: "\u011d", color: colors.blue },
-    { char: "-", color: colors.black },
-    { char: "U", color: colors.maroon },
-    { char: "▀", color: colors.black },
-  ],
-};
-
 export const fortressRoof: Sprite = {
   name: "fortress_roof_center",
   layers: [{ char: "█", color: colors.olive }],

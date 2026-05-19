@@ -8,11 +8,15 @@ import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
 import {
   addBackground,
+  berry,
   craft,
   createText,
   dialogEnd,
   dialogStart,
+  farming,
+  flower,
   forge,
+  grain,
   info,
   mapDiscovery,
   none,
@@ -55,7 +59,12 @@ import { FOCUSABLE } from "../components/focusable";
 import { TRACKABLE } from "../components/trackable";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
 import { ACTIONABLE } from "../components/actionable";
-import { canWarp, completeQuest, initiateWarp, performTrade } from "./trigger";
+import {
+  canWarp,
+  completeQuest,
+  initiateWarp,
+  performTrade,
+} from "./trigger";
 import { colors } from "../../game/assets/colors";
 import { consumeItem, getConsumption, getItemConsumption } from "./consume";
 import { clamp } from "three/src/math/MathUtils";
@@ -70,6 +79,8 @@ import {
 import { executeCommand, parseCommand } from "../../game/assets/commands";
 import { recolorSprite } from "../../game/assets/templates";
 import { invertOrientation } from "../../game/math/path";
+import { plantConfigs } from "../../game/balancing/harvesting";
+import { isPlantable, plantSeed } from "./harvest";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -308,6 +319,7 @@ export const popupIdles = {
   forge,
   info,
   talk: info,
+  plant: farming,
   quest,
   buy: shop,
   sell: shop,
@@ -327,6 +339,7 @@ export const popupActions = {
   forge: "FORGE",
   info: "READ",
   talk: "TALK",
+  plant: "SEEDS",
   warp: "WARP",
   quest: "QUEST",
   buy: "SHOP",
@@ -640,6 +653,9 @@ export default function setupPopup(world: World) {
     const quickItems = inventoryItems.filter((item) =>
       getItemConsumption(item)
     );
+    const plantItems = inventoryItems.filter(
+      (item) => plantConfigs[item[ITEM].stackable!]
+    );
 
     const transaction = getTab(world, popupEntity);
     const tradeEntity = world.getEntityByIdAndComponents(
@@ -674,6 +690,8 @@ export default function setupPopup(world: World) {
         ? gearSlots.length
         : transaction === "map"
         ? mapScroll
+        : transaction === "plant"
+        ? plantItems.length
         : transaction === "class"
         ? displayedClasses.length
         : transaction === "style"
@@ -1032,6 +1050,32 @@ export default function setupPopup(world: World) {
         } else if (addEntity) {
           pushTabSelection(world, addEntity);
           setVerticalIndex(world, addEntity, 0);
+        }
+      } else if (tab === "plant") {
+        const plantedItem = plantItems[verticalIndex];
+
+        if (addEntity && plantedItem) {
+          if (isPlantable(world, plantedItem[ITEM])) {
+            closePopup(world, heroEntity, popupEntity);
+            plantSeed(world, heroEntity, plantedItem);
+          } else {
+            queueMessage(world, heroEntity, {
+              line: addBackground(
+                [
+                  ...createText("Need ", colors.silver),
+                  berry,
+                  flower,
+                  grain,
+                  ...createText("Seeds", colors.grey),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          }
         }
       } else if (tab === "inspect") {
         const consumption =

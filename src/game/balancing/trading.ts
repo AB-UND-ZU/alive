@@ -34,6 +34,8 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
   seastar: 30,
 
   seed: 3,
+  wheat: 3,
+  bread: 8,
   fruit: 8,
   herb: 8,
 
@@ -59,6 +61,7 @@ export const itemMaterialPrices: Partial<
     diamond: 500,
     ruby: 2500,
   },
+  bucket: { iron: 20 },
 };
 
 export const itemElementPrices: Partial<
@@ -66,7 +69,9 @@ export const itemElementPrices: Partial<
     ResourceItem | Consumable,
     Partial<Record<Material, Partial<Record<Element, number>>>>
   >
-> = {};
+> = {
+  bucket: { iron: { water: 22 } },
+};
 
 export const itemStatPrices: Partial<
   Record<
@@ -163,6 +168,7 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "arrow" },
   { stackable: "charge" },
   { stackable: "worm" },
+  { consume: "bucket", material: "iron" },
 ];
 
 /* balance: <count> * <coins> ~= 20

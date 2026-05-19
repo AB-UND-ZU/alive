@@ -159,6 +159,14 @@ import {
   swimmingEel,
   letter,
   schema,
+  grain,
+  grass,
+  bush,
+  wheat,
+  bread,
+  farming,
+  soil,
+  waterShallow,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -215,8 +223,9 @@ import {
   hook,
   spear,
   wand,
+  shovel,
 } from "./templates/equipments";
-import { flask, potion, key, bottle, spirit } from "./templates/items";
+import { flask, potion, key, bottle, spirit, bucket } from "./templates/items";
 import {
   doorClosed,
   doorOpen,
@@ -1540,6 +1549,49 @@ export const entitySprites: Record<
       ],
     ],
   },
+  grain: {
+    sprite: grain,
+    getDescription: () => [
+      createText("A small corn from"),
+      [
+        ...createText("the "),
+        grass,
+        bush,
+        ...createText("Grass", colors.grey),
+        ...createText("."),
+      ],
+      [
+        ...createText("Crafts to "),
+        ...createItemName({ stackable: "wheat" }),
+        ...createText("."),
+      ],
+    ],
+  },
+  wheat: {
+    sprite: wheat,
+    getDescription: () => [
+      createText("Golden grain used"),
+      [
+        ...createText("for "),
+        farming,
+        ...createText("Farming", colors.green),
+        ...createText(" and"),
+      ],
+      [
+        ...createText("making "),
+        ...createItemName({ stackable: "bread" }),
+        ...createText("."),
+      ],
+    ],
+  },
+  bread: {
+    sprite: bread,
+    getDescription: (stats) => [
+      createText("Crunchy loaf,"),
+      createText("a perfect snack."),
+      createCountable(stats, "hp", "display"),
+    ],
+  },
   apple: {
     sprite: appleDrop,
     resource: apple,
@@ -2264,6 +2316,26 @@ export const materialSprites: Partial<
       ),
     ],
   },
+  shovel: {
+    sprite: shovel,
+    getDescription: (stats) => [
+      [
+        ...createText("Dig "),
+        soil,
+        ...createText("Soil", colors.grey),
+        ...createText(" and"),
+      ],
+      [
+        ...createText("plant "),
+        grain,
+        flowerDrop,
+        berryDrop,
+        ...createText("Seed", colors.grey),
+        ...createText("."),
+      ],
+      createCountable(stats, "farming", "display"),
+    ],
+  },
 
   // slots
   compass: {
@@ -2556,6 +2628,23 @@ export const materialSprites: Partial<
       ],
       createText("Disappears after"),
       createText("use."),
+    ],
+  },
+  bucket: {
+    sprite: bucket,
+    getDescription: (_, item) => [
+      createText(`An empty ${item.material === "wood" ? "bowl" : "bucket"}`),
+      [
+        ...createText("made of "),
+        ...createItemName({ stackable: "resource", material: item.material }),
+        ...createText("."),
+      ],
+      [
+        ...createText("Refill in "),
+        waterShallow,
+        ...createText("Water", colors.blue),
+        ...createText("."),
+      ],
     ],
   },
 
@@ -2992,6 +3081,23 @@ export const elementSprites: Partial<
       ],
       createText("Disappears after"),
       createText("use."),
+    ],
+  },
+  bucket: {
+    sprite: bucket,
+    getDescription: (_, item) => [
+      [
+        ...createText("A "),
+        ...createItemName({ stackable: "resource", material: item.material }),
+        ...createText(" "),
+        ...createText(item.material === "wood" ? "bowl" : "bucket"),
+      ],
+
+      [
+        ...createText("full of "),
+        ...createText(item.element!, colorPalettes[item.element!].primary),
+        ...createText("."),
+      ],
     ],
   },
 

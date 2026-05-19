@@ -286,6 +286,26 @@ export const gravel2: Sprite = {
   ],
 };
 
+export const soil: Sprite = {
+  name: "Soil",
+  layers: [
+    { char: "\u0107", color: colors.maroon },
+    { char: "\u0109", color: colors.maroon },
+    { char: "▓", color: colors.black },
+  ],
+};
+
+export const soilWet: Sprite = {
+  name: "Soil",
+  layers: [
+    { char: "\u0107", color: colors.maroon },
+    { char: "\u0109", color: colors.maroon },
+    { char: "[", color: colors.blue },
+    { char: "]", color: colors.blue },
+    { char: "▓", color: colors.black },
+  ],
+};
+
 export const jetty: Sprite = {
   name: "jetty",
   layers: [{ char: "█", color: colors.maroon }],
@@ -698,6 +718,43 @@ export const bush: Sprite = {
 export const grass: Sprite = {
   name: "grass_empty",
   layers: [{ char: ",", color: colors.olive }],
+};
+
+export const sapling1: Sprite = {
+  name: "sapling_one",
+  layers: [{ char: ".", color: colors.green }],
+};
+
+export const sapling2: Sprite = {
+  name: "sapling_two",
+  layers: [{ char: ",", color: colors.green }],
+};
+
+export const sapling3: Sprite = {
+  name: "sapling_three",
+  layers: [
+    { char: ",", color: colors.green },
+    { char: "∙", color: colors.green },
+  ],
+};
+
+export const sapling4: Sprite = {
+  name: "sapling_four",
+  layers: [
+    { char: "+", color: colors.green },
+    { char: "÷", color: colors.black },
+    { char: "∙", color: colors.green },
+    { char: ",", color: colors.green },
+    { char: ":", color: colors.green },
+  ],
+};
+
+export const sapling5: Sprite = {
+  name: "sapling_five",
+  layers: [
+    { char: ",", color: colors.green },
+    { char: "|", color: colors.green },
+  ],
 };
 
 export const cactus1: Sprite = {

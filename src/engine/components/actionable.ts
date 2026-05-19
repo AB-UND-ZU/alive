@@ -5,6 +5,7 @@ export const actions = [
   "warp",
   "spawn",
   "unlock",
+  "plant",
   "popup",
   "trade",
   "use",

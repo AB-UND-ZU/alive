@@ -94,3 +94,26 @@ const elixirTemplate: Sprite = {
   ],
 };
 export const elixir = createTemplate({ sprite: elixirTemplate });
+
+const bucketTemplate: Sprite = {
+  name: "Bucket",
+  layers: [
+    { char: "U", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "▀", color: TEMPLATE_COLORS.transparent },
+  ],
+};
+const bucketElementTemplate: Sprite = {
+  name: "Bucket",
+  layers: [
+    { char: "\u011d", color: TEMPLATE_COLORS.elementPrimary },
+    { char: "-", color: TEMPLATE_COLORS.transparent },
+    { char: "U", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "▀", color: TEMPLATE_COLORS.transparent },
+  ],
+};
+export const bucket = createTemplate({
+  sprite: bucketTemplate,
+  materialElementSprite: bucketElementTemplate,
+});
+bucket.wood.default.name = "Bowl";
+bucket.iron.water.name = "Water";

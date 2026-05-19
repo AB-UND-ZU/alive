@@ -9,6 +9,7 @@ import {
   addWisdom,
   armor,
   damp,
+  farming,
   fishing,
   haste,
   heart,
@@ -2137,6 +2138,10 @@ const statConfig: Record<
   logging: {
     color: colors.green,
     sprite: logging,
+  },
+  farming: {
+    color: colors.green,
+    sprite: farming,
   },
 };
 

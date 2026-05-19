@@ -124,6 +124,7 @@ unitStats.forEach((stat) => {
 });
 items.key = { consume: "key", material: "iron" };
 items.potion = { consume: "potion", material: "wood" };
+items.bucket = { consume: "bucket", material: "wood" };
 
 const commandSignatures: Record<string, CommandSignature> = {};
 

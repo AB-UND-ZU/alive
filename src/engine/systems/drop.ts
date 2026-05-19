@@ -59,7 +59,10 @@ import { createCell, populateInventory } from "../../bindings/creation";
 import { HOOKABLE } from "../components/hookable";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
-import { getHarvestConfig } from "../../game/balancing/harvesting";
+import {
+  getHarvestConfig,
+  harvestTools,
+} from "../../game/balancing/harvesting";
 import { iterateMatrixFromCenter } from "../../game/math/matrix";
 
 export const isDecayed = (world: World, entity: Entity) =>
@@ -548,32 +551,47 @@ export default function setupDrop(world: World) {
       POSITION,
     ])) {
       if (isHarvested(world, entity)) {
-        const limbs = getLimbs(world, entity);
-        limbs.forEach((limb) => {
-          createSequence<"decay", DecaySequence>(
-            world,
-            limb,
-            "decay",
-            "creatureDecay",
-            { fast: false }
-          );
-        });
+        const { yields, harvestable } = getHarvestConfig(
+          entity[HARVESTABLE].resource
+        );
+        const isDigging = harvestTools[harvestable.resource] === "shovel";
 
-        const { yields } = getHarvestConfig(entity[HARVESTABLE].resource);
+        if (isDigging) {
+          const limbs = getLimbs(world, entity);
+          limbs.forEach((limb) => {
+            disposeEntity(world, limb);
+          });
+        } else {
+          const limbs = getLimbs(world, entity);
+          limbs.forEach((limb) => {
+            createSequence<"decay", DecaySequence>(
+              world,
+              limb,
+              "decay",
+              "creatureDecay",
+              { fast: false }
+            );
+          });
+        }
+
         if (yields.length > 0) {
-          const dummy: TypedEntity<"INVENTORY" | "POSITION"> = {
+          const placeholder: TypedEntity<
+            "INVENTORY" | "POSITION" | "LOOTABLE"
+          > = {
+            [LOOTABLE]: { disposable: true },
             [INVENTORY]: { items: [] },
             [POSITION]: copy(entity[POSITION]),
+            [RENDERABLE]: { generation: 0 },
           };
-          populateInventory(world, dummy, yields);
+          populateInventory(world, placeholder, yields);
           dropEntity(
             world,
-            dummy,
-            dummy[POSITION],
-            true,
+            placeholder,
+            placeholder[POSITION],
+            !isDigging,
             undefined,
             undefined,
-            lootSpeed + decayTime
+            isDigging ? 0 : lootSpeed + decayTime
           );
         }
 

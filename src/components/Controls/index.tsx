@@ -132,7 +132,11 @@ const getActionActivations = (
       stackableSprite,
       ...repeat(none, alignRight ? 0 : 2),
     ].slice(alignRight ? -6 : 0, alignRight ? undefined : 6);
-  } else if (item.tool === "axe" || item.tool === "pickaxe") {
+  } else if (
+    item.tool === "axe" ||
+    item.tool === "pickaxe" ||
+    item.tool === "shovel"
+  ) {
     if (!hero[CONDITIONABLE]?.[harvestConditions[item.tool]]) {
       return centerSprites([itemSprite], 6);
     }
@@ -285,7 +289,7 @@ export default function Controls() {
       !isControllable(world, hero) ||
       !castableSkill(
         world,
-        hero as TypedEntity<"INVENTORY">,
+        hero as TypedEntity<"INVENTORY" | "POSITION">,
         skillEntity as TypedEntity<"ITEM">
       ),
 
@@ -303,7 +307,7 @@ export default function Controls() {
       !isControllable(world, hero) ||
       !castableSkill(
         world,
-        hero as TypedEntity<"INVENTORY">,
+        hero as TypedEntity<"INVENTORY" | "POSITION">,
         toolEntity as TypedEntity<"ITEM">
       ),
 
@@ -325,6 +329,8 @@ export default function Controls() {
       }
       if (toolEntity[ITEM].tool === "pickaxe") {
         return "MINE";
+      } else if (toolEntity[ITEM].tool === "shovel") {
+        return "DIG";
       }
 
       return toolEntity[SPRITE].name.toUpperCase();
@@ -444,7 +450,7 @@ export default function Controls() {
 
         if (
           ["type", "chat"].includes(action) ||
-          (index !== undefined && action === "tab")
+          (tab !== undefined && action === "tab")
         ) {
           heroEntity[PLAYER].tabTriggered = tab;
         }

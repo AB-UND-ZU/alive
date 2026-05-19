@@ -237,6 +237,11 @@ export const gearStats: Partial<
       iron: { default: { logging: 2, range: 1 } },
       gold: { default: { logging: 2, range: 2 } },
     },
+    shovel: {
+      wood: { default: { farming: 1 } },
+      iron: { default: { farming: 2 } },
+      gold: { default: { farming: 3 } },
+    },
     pickaxe: {
       wood: { default: { mining: 1, range: 1 } },
       iron: { default: { mining: 2, range: 1 } },

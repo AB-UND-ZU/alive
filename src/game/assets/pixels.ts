@@ -29,10 +29,14 @@ export const recolorPixels = (
 export const pixelate = (...lines: string[]) =>
   lines.map((line) => line.split(" ").map(parseSprite));
 
-export const centerSprites = (line: Sprite[], width: number) => [
-  ...repeat(none, Math.floor((width - line.length) / 2)),
+export const centerSprites = (
+  line: Sprite[],
+  width: number,
+  placeholder = none
+) => [
+  ...repeat(placeholder, Math.floor((width - line.length) / 2)),
   ...line,
-  ...repeat(none, Math.ceil((width - line.length) / 2)),
+  ...repeat(placeholder, Math.ceil((width - line.length) / 2)),
 ];
 
 export const centerLayer = (layer: Sprite[][], width: number) =>
