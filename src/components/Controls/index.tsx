@@ -672,6 +672,10 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
+
+      // prevent tap after swiping
+      if (pressedOrientations.current.length > 0) return;
+
       handleAction("close");
     },
     [handleAction]
@@ -709,6 +713,10 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
+
+      // prevent tap after swiping
+      if (pressedOrientations.current.length > 0) return;
+
       handleAction("left");
     },
     [handleAction]
@@ -722,6 +730,10 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
+
+      // prevent tap after swiping
+      if (pressedOrientations.current.length > 0) return;
+
       handleAction("right");
     },
     [handleAction]
@@ -730,6 +742,10 @@ export default function Controls() {
   const handleContent = useCallback(
     (event: TouchEvent | React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       event.preventDefault();
+
+      // prevent tap after swiping
+      if (pressedOrientations.current.length > 0) return;
+
       const div = event.currentTarget as HTMLDivElement | undefined;
       if (!div || ("touches" in event && event.touches.length > 1)) return;
 
@@ -853,6 +869,7 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
+
       handleMove([]);
     },
     [handleMove]
@@ -1071,9 +1088,8 @@ export default function Controls() {
             "down",
             "content",
             "stats",
-          ].includes(
-            (touch.target as HTMLElement).id ||
-              (touch.target as HTMLElement).parentElement?.id!
+          ].some((target) =>
+            (touch.target as HTMLElement).closest(`#${target}`)
           )
         )
       ) {
@@ -1100,7 +1116,7 @@ export default function Controls() {
       ];
 
       if (Math.sqrt(deltaX ** 2 + deltaY ** 2) <= swipeThreshold) {
-        // handle spell
+        // handle button taps
         return false;
       }
 

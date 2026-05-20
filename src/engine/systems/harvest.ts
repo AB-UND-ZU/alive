@@ -392,9 +392,10 @@ export default function setupHarvest(world: World) {
       entity[FARMABLE].nextGeneration =
         worldGeneration +
         Math.floor(
-          (plantConfig.duration * harvestDurationFactor) / saplings.length
-        ) +
-        random(-5, 5);
+          (((plantConfig.duration * harvestDurationFactor) / saplings.length) *
+            random(7, 13)) /
+            10
+        );
     }
 
     // handle player harvesting entities or refilling land

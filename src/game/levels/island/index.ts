@@ -1888,7 +1888,7 @@ export const generateIsland = (world: World) => {
         [POSITION]: { ...havenPoint },
       });
       setIdentifier(world, fireHaven, "fire_haven");
-      npcSequence(world, earthTown, "fireHavenNpc", {
+      npcSequence(world, fireHaven, "fireHavenNpc", {
         center: havenPoint,
         radius: havenRadius - 1,
         ratio: havenRatio,

@@ -63,6 +63,7 @@ import { BELONGABLE } from "../../engine/components/belongable";
 import { SPAWNABLE } from "../../engine/components/spawnable";
 import { getLevelStats } from "../../engine/systems/leveling";
 import { cellNames, CellType, createCell } from "../../bindings/creation";
+import { VIEWABLE } from "../../engine/components/viewable";
 
 export type CommandCall = {
   handler: string;
@@ -229,31 +230,54 @@ const executeGive = (
   );
 };
 
+const commandStats = ["view"];
 const executeStat = (
   world: World,
   entity: Entity,
   stat: string,
-  amountText = "1"
+  amountText?: string
 ) => {
-  const amount = parseInt(amountText);
+  const isReading = amountText === undefined;
+  const amount = isReading ? NaN : parseInt(amountText);
   const isStat = unitStats.includes(stat as UnitStat);
   const isUnit = npcTypes.includes(stat as NpcType);
+  const isCommand = commandStats.includes(stat);
 
-  if (!isStat && !isUnit) {
+  if (!isStat && !isUnit && !isCommand) {
     return `No stat "${stat}"!`;
   }
 
-  if (isNaN(amount)) {
+  if (!isReading && isNaN(amount)) {
     return `No amount "${amountText}"!`;
   }
 
+  let value = "";
+
   if (isStat) {
-    entity[STATS][stat] = amount;
+    if (isReading) {
+      value = entity[STATS][stat];
+    } else {
+      entity[STATS][stat] = amount;
+    }
   } else if (isUnit) {
-    entity[PLAYER].defeatedUnits[stat] = amount;
+    if (isReading) {
+      value = entity[PLAYER].defeatedUnits[stat] || 0;
+    } else {
+      entity[PLAYER].defeatedUnits[stat] = amount;
+    }
+  } else if (stat === "view") {
+    if (isReading) {
+      value = entity[VIEWABLE].priority;
+    } else {
+      entity[VIEWABLE].priority = amount;
+    }
   }
 
-  rerenderEntity(world, entity);
+  if (isReading) {
+    return `${stat} = ${value}`;
+  } else {
+    rerenderEntity(world, entity);
+  }
 };
 
 const executeCast = (
@@ -562,9 +586,9 @@ commandSignatures.give = {
 commandSignatures.stat = {
   short: "s",
   executor: executeStat,
-  minArgs: 2,
+  minArgs: 1,
   maxArgs: 2,
-  usage: "/stat <type> <num>",
+  usage: "/stat <type> [num]",
 };
 commandSignatures.cast = {
   short: "c",
