@@ -63,6 +63,7 @@ import { FOG } from "../components/fog";
 import { createItemAsDrop } from "./drop";
 import { PLAYER } from "../components/player";
 import { REFILLABLE } from "../components/refillable";
+import { createCell } from "../../bindings/creation";
 
 export const isPlantable = (
   world: World,
@@ -371,11 +372,17 @@ export default function setupHarvest(world: World) {
         entity[FARMABLE].progress += 1;
 
         if (entity[FARMABLE].progress >= saplings.length) {
-          // replace sapling with crop
-          createItemAsDrop(world, entity[POSITION], entities.createItem, {
-            [ITEM]: { ...plantConfig.crop, bound: false },
-            [SPRITE]: getItemSprite(plantConfig.crop),
-          });
+          if (plantConfig.crop) {
+            // replace sapling with crop
+            createItemAsDrop(world, entity[POSITION], entities.createItem, {
+              [ITEM]: { ...plantConfig.crop, bound: false },
+              [SPRITE]: getItemSprite(plantConfig.crop),
+            });
+          } else if (plantConfig.cell) {
+            // replace soil with cell
+            createCell(world, entity[POSITION], plantConfig.cell, "hidden");
+            disposeEntity(world, entity);
+          }
           entity[FARMABLE].planted = undefined;
           entity[FARMABLE].progress = undefined;
           entity[FARMABLE].sapling = undefined;

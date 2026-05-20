@@ -302,6 +302,7 @@ export const cellNames = [
   "rock",
   "desert_rock",
   "tree",
+  "apple",
   "leaves",
   "stem",
   "rotten_stem_left",
@@ -772,7 +773,7 @@ export const insertArea = (
       else if (cell === ">") entity = "rock";
       else if (cell === "^") entity = "desert_rock";
       else if (cell === "≡") entity = "wood_one";
-      else if (cell === ".") entity = "fruit_one";
+      else if (cell === ".") entity = "apple";
       else if (cell === ";") entity = "mushroom";
       else if (cell === "ß") entity = "hedge";
       else if (cell === "&") entity = "path_hedge";
@@ -1238,8 +1239,8 @@ export const createCell = (
     if (cell === "wood_one")
       setIdentifier(world, world.assertById(woodEntity[ITEM].carrier), cell);
     return { cell: woodEntity, all };
-  } else if (cell === "fruit" || cell === "fruit_one") {
-    if (random(0, 1) === 0 || cell === "fruit_one") {
+  } else if (cell === "fruit" || cell === "apple") {
+    if (random(0, 1) === 0 || cell === "apple") {
       const { harvestable } = getHarvestConfig("tree");
       const remains = [treeBurnt1, treeBurnt2][random(0, 1)];
       const treeEntity = entities.createOrganic(world, {

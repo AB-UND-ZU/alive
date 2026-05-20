@@ -1,3 +1,4 @@
+import { CellType } from "../../bindings/creation";
 import { ConditionType } from "../../engine/components/conditionable";
 import { Harvestable, Resource } from "../../engine/components/harvestable";
 import { Item, Stackable, Tool } from "../../engine/components/item";
@@ -19,6 +20,7 @@ const harvestEfforts: Record<Resource, number> = {
   bush: 1,
   flower: 1,
   berry: 1,
+  leaf: 1,
   seed: 1,
 
   palisade: 11,
@@ -42,6 +44,7 @@ const harvestYields: Partial<
   bush: [{ stackable: "grain", amount: 2 }],
   flower: [{ stackable: "flower", amount: 1 }],
   berry: [{ stackable: "berry", amount: 1 }],
+  leaf: [{ stackable: "leaf", amount: 1 }],
   seed: [{ stackable: "seed", amount: 1 }],
 
   mountain: [{ stackable: "ore", amount: 1 }],
@@ -64,6 +67,7 @@ export const harvestScratches: Record<Resource, string> = {
   grass: colors.yellow,
   bush: colors.yellow,
   berry: colors.purple,
+  leaf: colors.lime,
   seed: colors.lime,
   flower: colors.teal,
 
@@ -97,6 +101,7 @@ export const harvestTools: Record<Resource, Tool> = {
   bush: "shovel",
   flower: "shovel",
   berry: "shovel",
+  leaf: "shovel",
   seed: "shovel",
 
   palisade: "pickaxe",
@@ -141,7 +146,8 @@ export const plantConfigs: Partial<
     Stackable,
     {
       duration: number;
-      crop: Omit<Item, "carrier" | "bound">;
+      crop?: Omit<Item, "carrier" | "bound">;
+      cell?: CellType;
       harvest: Resource;
     }
   >
@@ -161,9 +167,14 @@ export const plantConfigs: Partial<
     crop: { stackable: "wheat", amount: 1 },
     harvest: "grass",
   },
+  leaf: {
+    duration: 100,
+    cell: "hedge",
+    harvest: "leaf",
+  },
   seed: {
-    duration: 250,
-    crop: { stat: "mp", amount: 5 },
+    duration: 300,
+    cell: "apple",
     harvest: "seed",
   },
 };

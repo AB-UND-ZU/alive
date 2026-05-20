@@ -1975,12 +1975,13 @@ export const stringifyMap = (
       else if (objects.includes("palisade")) row += "î";
       else if (cell === "water_shallow") row += "~";
       else if (cell === "water_deep") row += "≈";
-      else if (cell === "snow" || objects.includes("snow")) row += ".";
+      else if (cell === "snow" || objects.includes("snow")) row += "▒";
       else if (cell === "ice") row += "/";
       else if (cell === "grass") row += ",";
       else if (cell === "bush") row += "τ";
       else if (cell === "hedge") row += "ß";
       else if (cell === "tree") row += "#";
+      else if (cell === "apple" || cell === "fruit") row += ".";
       else if (cell === "cactus" || objects.includes("cactus")) row += "¥";
       else if (cell === "mountain") row += "█";
       else if (cell === "ore") row += "◘";
@@ -1991,9 +1992,9 @@ export const stringifyMap = (
       else if (cell === "palm" || cell === "desert_palm") row += "¶";
       else if (cell === "palm_fruit" || cell === "desert_palm_fruit")
         row += "«";
-      else if (cell === "sand") row += "▒";
+      else if (cell === "sand") row += "░";
       else if (cell === "fence") row += "±";
-      else if (cell === "path") row += "░";
+      else if (cell === "path") row += "▓";
       else if (cell === "jetty_vertical" || cell === "jetty_horizontal")
         row += "J";
       else if (cell === "pot") row += "o";
