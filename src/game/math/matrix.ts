@@ -54,6 +54,7 @@ export const iterateMatrixFromCenter = <T>(
         const iterationIndex = turnedIterations.indexOf(iteration);
         if (
           size % 2 === 0 &&
+          size === radius * 2 &&
           direction === radius &&
           ((iterationIndex === 1 && normal === direction) || iterationIndex > 1)
         )

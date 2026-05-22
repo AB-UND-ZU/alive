@@ -362,6 +362,7 @@ const executeMod = (world: World, entity: Entity, mod: string) => {
     entity[STATS].hp = 99;
     entity[STATS].maxMp = 99;
     entity[STATS].mp = 99;
+    entity[STATS].maxXp = Infinity;
     entity[STATS].haste = 99;
     entity[STATS].power = 99;
     entity[STATS].armor = 99;

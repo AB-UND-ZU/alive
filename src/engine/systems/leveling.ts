@@ -6,7 +6,7 @@ import { World } from "../ecs";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { REFERENCE } from "../components/reference";
 import { STATS } from "../components/stats";
-import { createSequence } from "./sequence";
+import { createSequence, getSequence } from "./sequence";
 import {
   ProgressSequence,
   SEQUENCABLE,
@@ -41,58 +41,59 @@ export type Level = {
 };
 
 const levelingStats: Record<ClassKey, Level[]> = {
-  scout: [{ level: 1, xp: 99, maxHp: 0, maxMp: 0 }],
+  scout: [{ level: 1, xp: Infinity, maxHp: 0, maxMp: 0 }],
   rogue: [
     { level: 1, xp: 10, maxHp: 1, maxMp: 0 },
     { level: 2, xp: 15, maxHp: 1, maxMp: 1 },
     { level: 3, xp: 20, maxHp: 2, maxMp: 1 },
-    { level: 4, xp: 25, maxHp: 2, maxMp: 1 },
-    { level: 5, xp: 30, maxHp: 2, maxMp: 2 },
-    { level: 6, xp: 40, maxHp: 3, maxMp: 2 },
-    { level: 7, xp: 50, maxHp: 3, maxMp: 2 },
-    { level: 8, xp: 65, maxHp: 3, maxMp: 2 },
-    { level: 9, xp: 80, maxHp: 4, maxMp: 2 },
-    { level: 10, xp: 99, maxHp: 4, maxMp: 2 },
+    { level: 4, xp: 30, maxHp: 2, maxMp: 2 },
+    { level: 5, xp: 40, maxHp: 3, maxMp: 2 },
+    { level: 6, xp: 50, maxHp: 3, maxMp: 2 },
+    { level: 7, xp: 65, maxHp: 4, maxMp: 2 },
+    { level: 8, xp: 80, maxHp: 4, maxMp: 2 },
+    { level: 9, xp: 99, maxHp: 5, maxMp: 3 },
+    { level: 10, xp: Infinity, maxHp: 0, maxMp: 0 },
   ],
   knight: [
     { level: 1, xp: 10, maxHp: 1, maxMp: 0 },
     { level: 2, xp: 15, maxHp: 2, maxMp: 0 },
-    { level: 3, xp: 20, maxHp: 2, maxMp: 0 },
-    { level: 4, xp: 25, maxHp: 2, maxMp: 1 },
-    { level: 5, xp: 30, maxHp: 3, maxMp: 1 },
-    { level: 6, xp: 40, maxHp: 3, maxMp: 1 },
-    { level: 7, xp: 50, maxHp: 4, maxMp: 1 },
-    { level: 8, xp: 65, maxHp: 4, maxMp: 2 },
-    { level: 9, xp: 80, maxHp: 4, maxMp: 2 },
-    { level: 10, xp: 99, maxHp: 5, maxMp: 2 },
+    { level: 3, xp: 20, maxHp: 2, maxMp: 1 },
+    { level: 4, xp: 30, maxHp: 3, maxMp: 1 },
+    { level: 5, xp: 40, maxHp: 4, maxMp: 1 },
+    { level: 6, xp: 50, maxHp: 4, maxMp: 1 },
+    { level: 7, xp: 65, maxHp: 4, maxMp: 2 },
+    { level: 8, xp: 80, maxHp: 5, maxMp: 2 },
+    { level: 9, xp: 99, maxHp: 5, maxMp: 2 },
+
+    { level: 10, xp: Infinity, maxHp: 0, maxMp: 0 },
   ],
   mage: [
     { level: 1, xp: 10, maxHp: 0, maxMp: 1 },
     { level: 2, xp: 15, maxHp: 1, maxMp: 1 },
     { level: 3, xp: 20, maxHp: 1, maxMp: 2 },
-    { level: 4, xp: 25, maxHp: 2, maxMp: 2 },
-    { level: 5, xp: 30, maxHp: 2, maxMp: 2 },
-    { level: 6, xp: 40, maxHp: 2, maxMp: 2 },
-    { level: 7, xp: 50, maxHp: 2, maxMp: 2 },
-    { level: 8, xp: 65, maxHp: 3, maxMp: 2 },
-    { level: 9, xp: 80, maxHp: 3, maxMp: 3 },
-    { level: 10, xp: 99, maxHp: 3, maxMp: 3 },
+    { level: 4, xp: 30, maxHp: 2, maxMp: 2 },
+    { level: 5, xp: 40, maxHp: 3, maxMp: 2 },
+    { level: 6, xp: 50, maxHp: 3, maxMp: 2 },
+    { level: 7, xp: 60, maxHp: 3, maxMp: 3 },
+    { level: 8, xp: 85, maxHp: 3, maxMp: 3 },
+    { level: 9, xp: 90, maxHp: 4, maxMp: 4 },
+    { level: 10, xp: Infinity, maxHp: 0, maxMp: 0 },
   ],
-  "???": [{ level: 1, xp: 99, maxHp: 0, maxMp: 0 }],
+  "???": [{ level: 1, xp: Infinity, maxHp: 0, maxMp: 0 }],
 };
 
 export const getInitialXp = (classKey: ClassKey) =>
   levelingStats[classKey][0].xp;
 
 export const getLevelStats = (classKey: ClassKey, level: number) => {
-  const stats = levelingStats[classKey]
-    .slice(0, level - 1)
-    .reduce((total, levelStats) => {
-      total.maxHp += levelStats.maxHp;
-      total.maxMp += levelStats.maxMp;
-      return total;
-    }, getClassData(classKey).stats);
-  stats.maxXp = levelingStats[classKey][level - 1].xp;
+  const classLevels = levelingStats[classKey];
+  const stats = classLevels.slice(0, level - 1).reduce((total, levelStats) => {
+    total.maxHp += levelStats.maxHp;
+    total.maxMp += levelStats.maxMp;
+    return total;
+  }, getClassData(classKey).stats);
+  stats.maxXp =
+    levelingStats[classKey][Math.min(level - 1, classLevels.length - 1)].xp;
   return stats;
 };
 
@@ -129,13 +130,16 @@ export default function setupLeveling(world: World) {
 
       entityGenerations[entityId] = entityGeneration;
 
-      if (hasLevelUp(world, entity)) {
+      if (
+        hasLevelUp(world, entity) &&
+        !getSequence(world, entity, "progress")
+      ) {
         const levelingStat = levelingStats[entity[SPAWNABLE].classKey];
         const currentLevel = levelingStat.find(
           (level) => level.level === entity[STATS].level
         )!;
         const maxLevel = levelingStat.slice(-1)[0].level;
-        entity[STATS].xp -= currentLevel.xp;
+        entity[STATS].xp = Math.max(entity[STATS].xp - currentLevel.xp, 0);
         entity[STATS].level = Math.min(maxLevel, entity[STATS].level + 1);
         const targetLevel = levelingStat.find(
           (level) => level.level === entity[STATS].level

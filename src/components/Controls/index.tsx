@@ -878,7 +878,7 @@ export default function Controls() {
   const handleKey = useCallback(
     (event: KeyboardEvent) => {
       if (event.type === "keydown" && closeKeys.includes(event.key)) {
-        if (!popup && !initial) {
+        if (!(popup && !paused) && !initial) {
           // handle pause and resume
           setPaused((prevPaused) => !prevPaused);
           return;

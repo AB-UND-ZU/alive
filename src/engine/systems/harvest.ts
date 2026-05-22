@@ -12,7 +12,7 @@ import {
   orientationPoints,
   orientations,
 } from "../components/orientable";
-import { isControllable } from "./freeze";
+import { isControllable, isSnowy } from "./freeze";
 import { Harvestable, HARVESTABLE, Resource } from "../components/harvestable";
 import { addToInventory, getLootable } from "./collect";
 import { Element, Item, ITEM, Stackable, Tool } from "../components/item";
@@ -647,7 +647,10 @@ export default function setupHarvest(world: World) {
       ) {
         if (entity[FARMABLE].nextGeneration > worldGeneration) continue;
 
-        entity[FARMABLE].progress += 1;
+        // prevent growth if covered by snow
+        if (!isSnowy(world, entity[POSITION])) {
+          entity[FARMABLE].progress += 1;
+        }
 
         if (entity[FARMABLE].progress >= saplings.length) {
           if (plantConfig.crop) {

@@ -168,6 +168,7 @@ import {
   soil,
   waterShallow,
   sandBlock,
+  soilWet,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1562,8 +1563,9 @@ export const entitySprites: Record<
         ...createText("."),
       ],
       [
-        ...createText("Crafts to "),
-        ...createItemName({ stackable: "wheat" }),
+        ...createText("Plant on "),
+        soilWet,
+        ...createText("Soil", colors.grey),
         ...createText("."),
       ],
     ],
@@ -2597,8 +2599,13 @@ export const materialSprites: Partial<
             ...createItemName({ stackable: "stick" }),
             ...createText("."),
           ],
-          createText("Used to forge"),
-          [...createText("wooden", colors.maroon), ...createText(" gear.")],
+          createText("Used to craft"),
+          [
+            getItemSprite({ consume: "potion", material: "wood", stat: "hp" }),
+            getItemSprite({ consume: "potion", material: "iron", stat: "mp" }),
+            ...createText("Potions", colors.grey),
+            ...createText("."),
+          ],
         ];
       } else if (item.material === "iron") {
         return [

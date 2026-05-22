@@ -2232,9 +2232,11 @@ export const createProgress = (
   const segment = Math.floor(partial * progressResolution);
 
   const text = padCenter(
-    ` ${display.toString().padStart(2, " ")}/${(stats[config.max!] ?? 99)
-      .toString()
-      .padEnd(2, " ")}`,
+    isFinite(maximum)
+      ? ` ${display.toString().padStart(2, " ")}/${(stats[config.max!] ?? 99)
+          .toString()
+          .padEnd(2, " ")}`
+      : ` ${display}`,
     width - 3
   );
   const sprites = [

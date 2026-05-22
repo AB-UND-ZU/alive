@@ -15,8 +15,8 @@ export const craftingRecipes: Recipe[] = [
   },
 
   {
-    item: { stackable: "wheat", amount: 1 },
-    options: [[{ stackable: "grain", amount: 10 }]],
+    item: { stackable: "grain", amount: 5 },
+    options: [[{ stackable: "wheat", amount: 1 }]],
   },
   {
     item: { stackable: "bread", amount: 1 },

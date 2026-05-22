@@ -44,7 +44,7 @@ export const classDefinitions: Record<ClassKey, ClassDefinition> = {
       maxMp: 0,
       maxMpCap: 99,
 
-      maxXp: 99,
+      maxXp: getInitialXp("scout"),
       maxXpCap: 99,
 
       level: 1,
