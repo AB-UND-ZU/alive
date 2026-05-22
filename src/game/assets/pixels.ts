@@ -204,7 +204,23 @@ export const swordPixels = pixelate(
   "\x0f█ \x0f▀"
 );
 
-export const swordElementPixels = pixelate("", "", "", "   \x0f▄ \x0f▄");
+export const spearPixels = pixelate(
+  "",
+  "",
+  "",
+  "\x0f▄ \x0f▄ \x0f▄ \x0f▄ \x0f▄ \x0f▄ \x0f▄"
+);
+
+export const wandPixels = pixelate(
+  "",
+  "",
+  "",
+  "  \x08▄ \x0f▄\x08▀ \x0f▄\x08▀ \x08▄",
+  "  \x08▀ \x0f▀\x08▄ \x0f▀\x08▄ \x08▀",
+  "   \x0f█ \x0f█"
+);
+
+export const weaponElementPixels = pixelate("", "", "", "   \x0f▄ \x0f▄");
 
 export const shieldPixels = pixelate(
   "",

@@ -365,8 +365,10 @@ import {
   roguePixels,
   shieldElementPixels,
   shieldPixels,
-  swordElementPixels,
+  spearPixels,
+  weaponElementPixels,
   swordPixels,
+  wandPixels,
 } from "./pixels";
 import { getItemSellPrice } from "../balancing/trading";
 import { getForgeOptions, getForgeStatus } from "../balancing/forging";
@@ -4099,14 +4101,26 @@ export const displayGear: Sequence<PopupSequence> = (world, entity, state) => {
       }
     ),
     weaponItem?.material || weaponItem?.element
-      ? recolorPixels(swordPixels, {
-          [colors.white]:
-            colorPalettes[(weaponItem?.material || weaponItem?.element)!]
-              .primary,
-        })
+      ? recolorPixels(
+          weaponItem.weapon === "spear"
+            ? spearPixels
+            : weaponItem.weapon === "wand"
+            ? wandPixels
+            : swordPixels,
+          {
+            [colors.white]:
+              colorPalettes[(weaponItem?.material || weaponItem?.element)!]
+                .primary,
+            [colors.grey]:
+              weaponItem.material === "iron"
+                ? colors.white
+                : colorPalettes[(weaponItem?.material || weaponItem?.element)!]
+                    .secondary,
+          }
+        )
       : [],
     weaponItem?.material && weaponItem?.element
-      ? recolorPixels(swordElementPixels, {
+      ? recolorPixels(weaponElementPixels, {
           [colors.white]:
             // adjust low constrast on gold material and air element
             weaponItem.material === "gold" && weaponItem.element === "air"
