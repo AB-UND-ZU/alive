@@ -113,7 +113,7 @@ import { COLLIDABLE } from "../components/collidable";
 import { NPC } from "../components/npc";
 import { getItemSprite, queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
-import { isImmersible, isSwimming } from "./immersion";
+import { getImmersible, isImmersible, isSwimming } from "./immersion";
 import { CLICKABLE } from "../components/clickable";
 import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import { HARVESTABLE } from "../components/harvestable";
@@ -1628,9 +1628,10 @@ export default function setupAi(world: World) {
             delete pattern.memory.heal;
           }
         } else if (pattern.name === "habitat") {
-          if (!entity[FISHABLE]) {
-            patterns.splice(patterns.indexOf(pattern), 1);
-            continue;
+          const immersible = getImmersible(world, entity[POSITION]);
+          if (!entity[FISHABLE] || !immersible) {
+            disposeEntity(world, entity);
+            break;
           }
 
           // check surrounding baits

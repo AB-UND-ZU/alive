@@ -992,6 +992,17 @@ export const createRoot = entityFactory([
   STRUCTURABLE,
 ]);
 
+export const createSand = entityFactory([
+  DROPPABLE,
+  HARVESTABLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TEMPO,
+]);
+
 export const createSegment = entityFactory([
   ACTIONABLE,
   AFFECTABLE,

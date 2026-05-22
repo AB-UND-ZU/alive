@@ -162,6 +162,7 @@ import {
   goldMine,
   jetty,
   gravel2,
+  beach,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -291,6 +292,7 @@ export const cellNames = [
   "water_shallow",
   "water_deep",
   "sand",
+  "beach",
   "path",
   "jetty_horizontal",
   "jetty_vertical",
@@ -443,7 +445,7 @@ export const smoothenSand = (
   biomeMatrix: Matrix<BiomeName>
 ) => {
   iterateMatrix(cellMatrix, (x, y, cell) => {
-    if (cell !== "water_shallow" && cell !== "water_deep") return;
+    if (!["water_shallow", "water_deep"].includes(cell)) return;
 
     const targetCell = biomeMatrix[x][y] === "glacier" ? "ice" : "sand";
 
@@ -464,7 +466,24 @@ export const smoothenSand = (
 export const smoothenBeaches = (
   cellMatrix: Matrix<CellType>,
   biomeMatrix: Matrix<BiomeName>
-) => smoothenWater(smoothenSand(cellMatrix, biomeMatrix));
+) => {
+  iterateMatrix(cellMatrix, (x, y, cell) => {
+    if (cell !== "sand") return;
+
+    for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+      for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+        const target = { x: x + offsetX, y: y + offsetY };
+        const neighbour = getOverlappingCell(cellMatrix, target.x, target.y);
+
+        if (["water_shallow", "water_deep"].includes(neighbour)) {
+          setMatrix(cellMatrix, x, y, "beach");
+          return;
+        }
+      }
+    }
+  });
+  return cellMatrix;
+};
 
 export const assignBuilding = (
   world: World,
@@ -1156,11 +1175,17 @@ export const createCell = (
     }
     return { cell: all[0], all };
   } else if (cell === "beach" || cell === "desert" || cell === "sand") {
-    const tileEntity = entities.createTile(world, {
+    const { harvestable } = getHarvestConfig(
+      cell === "beach" ? "beach" : "sand"
+    );
+    const tileEntity = entities.createSand(world, {
+      [DROPPABLE]: { decayed: false },
+      [HARVESTABLE]: harvestable,
       [FOG]: { visibility, type: "terrain" },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
-      [SPRITE]: sand,
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: cell === "beach" ? beach : sand,
       [TEMPO]: { amount: -1 },
     });
     all.push(tileEntity);

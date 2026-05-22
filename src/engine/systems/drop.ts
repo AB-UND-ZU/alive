@@ -154,7 +154,7 @@ export const findAdjacentDroppable = (
         return true;
       }
     },
-    MAX_DROP_RADIUS,
+    maxRadius,
     true
   );
 

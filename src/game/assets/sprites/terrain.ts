@@ -254,6 +254,11 @@ export const sand: Sprite = {
   ],
 };
 
+export const beach: Sprite = {
+  name: "sand_beach",
+  layers: [{ char: "▒", color: colors.olive }],
+};
+
 export const path: Sprite = {
   name: "path_normal",
   layers: [

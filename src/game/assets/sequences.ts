@@ -436,8 +436,8 @@ import {
 import {
   getHarvestTarget,
   isPlantable,
+  performDig,
   performHarvest,
-  plantSoil,
 } from "../../engine/systems/harvest";
 import { TypedEntity } from "../../engine/entities";
 import { BUMPABLE } from "../../engine/components/bumpable";
@@ -967,7 +967,7 @@ export const shovelCondition: Sequence<ConditionSequence> = (
       [PARTICLE]: {
         offsetX: 0,
         offsetY: 0,
-        offsetZ: floatHeight,
+        offsetZ: particleHeight,
         amount: 0,
         animatedOrigin: { x: 0, y: -1 },
         duration: harvestSpeed,
@@ -985,12 +985,7 @@ export const shovelCondition: Sequence<ConditionSequence> = (
     [PARTICLE]
   );
   if (finished) {
-    const targetEntity = getHarvestTarget(world, entity, toolEntity);
-    if (targetEntity) {
-      performHarvest(world, entity, toolEntity, targetEntity, "down");
-    } else {
-      plantSoil(world, entity[POSITION]);
-    }
+    performDig(world, entity, toolEntity);
 
     if (entity[BUMPABLE]) {
       entity[BUMPABLE].generation = entity[RENDERABLE].generation;
@@ -6839,6 +6834,7 @@ export const itemCollect: Sequence<CollectSequence> = (
       if (!isImmersible(world, entity[POSITION])) {
         entity[SPRITE] = shadow;
       }
+      rerenderEntity(world, entity);
     } else {
       addToInventory(world, entity, itemEntity, state.args.amount);
     }

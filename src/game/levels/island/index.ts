@@ -95,11 +95,13 @@ import {
   populateInventory,
   createNpc,
   createSign,
-  smoothenBeaches,
   CellType,
   flipArea,
   marchLinePredicate,
   getWaterCell,
+  smoothenWater,
+  smoothenSand,
+  smoothenBeaches,
 } from "../../../bindings/creation";
 import {
   findPath,
@@ -587,7 +589,7 @@ export const generateIsland = (world: World) => {
       });
 
       // third pass: place shallow water and ensure is surrounded by sand
-      const elevationMap = smoothenBeaches(rawMap, biomeMap);
+      const elevationMap = smoothenWater(smoothenSand(rawMap, biomeMap));
 
       // fourth pass: process terrain based on biomes and spawn mobs or items
       const terrainMap = mapMatrix(elevationMap, (x, y, cell, matrix) => {
@@ -1428,6 +1430,12 @@ export const generateIsland = (world: World) => {
         position: combine(size, house.position, havenCorner),
         door: combine(size, house.door, havenCorner),
       }));
+
+      // fifth pass: ensure adjacent sand to water becomes
+      world.metadata.gameEntity[LEVEL].cells = smoothenBeaches(
+        world.metadata.gameEntity[LEVEL].cells,
+        world.metadata.gameEntity[LEVEL].biomes
+      );
 
       // set rain for forest
       const mainlandStorm = entities.createAnchor(world, {

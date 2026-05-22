@@ -18,6 +18,8 @@ export type Resource =
   | "berry"
   | "leaf"
   | "seed"
+  | "sand"
+  | "beach"
   | "palisade"
   | "rock"
   | "mountain"

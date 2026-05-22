@@ -23,6 +23,9 @@ const harvestEfforts: Record<Resource, number> = {
   leaf: 1,
   seed: 1,
 
+  sand: 1,
+  beach: 1,
+
   palisade: 11,
   rock: 1,
   mountain: 6,
@@ -47,6 +50,9 @@ const harvestYields: Partial<
   leaf: [{ stackable: "leaf", amount: 1 }],
   seed: [{ stackable: "seed", amount: 1 }],
 
+  sand: [{ stackable: "sand", amount: 1 }],
+  beach: [{ stackable: "sand", amount: 1 }],
+
   mountain: [{ stackable: "ore", amount: 1 }],
   iron: [{ stackable: "resource", material: "iron", amount: 1 }],
   gold: [{ stackable: "resource", material: "gold", amount: 1 }],
@@ -67,9 +73,12 @@ export const harvestScratches: Record<Resource, string> = {
   grass: colors.yellow,
   bush: colors.yellow,
   berry: colors.purple,
+  flower: colors.teal,
   leaf: colors.lime,
   seed: colors.lime,
-  flower: colors.teal,
+
+  sand: colors.yellow,
+  beach: colors.yellow,
 
   palisade: colors.silver,
   rock: colors.silver,
@@ -103,6 +112,9 @@ export const harvestTools: Record<Resource, Tool> = {
   berry: "shovel",
   leaf: "shovel",
   seed: "shovel",
+
+  sand: "shovel",
+  beach: "shovel",
 
   palisade: "pickaxe",
   rock: "pickaxe",
@@ -180,3 +192,6 @@ export const plantConfigs: Partial<
 };
 
 export const harvestDurationFactor = 3;
+export const trenchResources = ["sand", "beach"];
+export const trenchFill = 3;
+export const soilWaterDistance = 3;

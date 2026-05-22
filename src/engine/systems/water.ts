@@ -6,8 +6,15 @@ import { Liquid, LIQUID } from "../components/liquid";
 import { entities } from "..";
 import { FOG } from "../components/fog";
 import { SPRITE } from "../components/sprite";
-import { bubble, waterShallow, waterDeep } from "../../game/assets/sprites";
-import { add, copy, getDistance, random } from "../../game/math/std";
+import {
+  bubble,
+  waterShallow,
+  waterDeep,
+  sand,
+  beach,
+  soilWet,
+} from "../../game/assets/sprites";
+import { add, combine, copy, getDistance, random } from "../../game/math/std";
 import { play } from "../../game/sound";
 import { PLAYER } from "../components/player";
 import { LAYER } from "../components/layer";
@@ -18,6 +25,11 @@ import { rerenderEntity } from "./renderer";
 import { lerp } from "three/src/math/MathUtils";
 import { SEQUENCABLE } from "../components/sequencable";
 import { IMMERSIBLE } from "../components/immersible";
+import { getOverlappingCell } from "../../game/math/matrix";
+import { trenchResources } from "../../game/balancing/harvesting";
+import { HARVESTABLE } from "../components/harvestable";
+import { getFarmable } from "./harvest";
+import { FARMABLE } from "../components/farmable";
 
 export type Weather = "rain" | "snow";
 
@@ -92,6 +104,19 @@ export const createBubble = (
   // play sound in proximity
   bubbleSound(world, position, droppedType);
 
+  // water soil
+  const soil = getFarmable(world, position);
+  if (
+    bubbleType === "rain" &&
+    soil &&
+    !soil[FARMABLE].watered &&
+    !soil[FARMABLE].planted
+  ) {
+    soil[SPRITE] = soilWet;
+    soil[FARMABLE].watered = true;
+    rerenderEntity(world, soil);
+  }
+
   // don't show drops in buildings
   if (getEnterable(world, position)) return;
 
@@ -135,6 +160,76 @@ export const applyWaterMap = (world: World) => {
       applyWaterCell(world, cell);
     }
   );
+};
+export const applySandCell = (world: World, position: Position) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+    for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+      const target = combine(size, position, { x: offsetX, y: offsetY });
+      const neighbour = getOverlappingCell(
+        world.metadata.gameEntity[LEVEL].cells,
+        target.x,
+        target.y
+      );
+
+      if (!trenchResources.includes(neighbour)) continue;
+
+      let nearbyWater = false;
+      for (let neighbourX = -1; neighbourX <= 1; neighbourX += 1) {
+        for (let neighbourY = -1; neighbourY <= 1; neighbourY += 1) {
+          const neighbourTarget = combine(size, target, {
+            x: neighbourX,
+            y: neighbourY,
+          });
+          const neighbourCell = getOverlappingCell(
+            world.metadata.gameEntity[LEVEL].cells,
+            neighbourTarget.x,
+            neighbourTarget.y
+          );
+          if (["water_shallow", "water_deep"].includes(neighbourCell)) {
+            nearbyWater = true;
+          }
+        }
+      }
+
+      if (
+        nearbyWater &&
+        world.metadata.gameEntity[LEVEL].cells[target.x][target.y] === "sand"
+      ) {
+        const cells = Object.values(getCell(world, target));
+        cells.forEach((cell) => {
+          if (trenchResources.includes(cell[HARVESTABLE]?.resource)) {
+            world.metadata.gameEntity[LEVEL].cells[target.x][target.y] =
+              "beach";
+            cell[SPRITE] = beach;
+            cell[HARVESTABLE].resource = "beach";
+            rerenderEntity(world, cell);
+          }
+        });
+      } else if (
+        !nearbyWater &&
+        world.metadata.gameEntity[LEVEL].cells[target.x][target.y] === "beach"
+      ) {
+        const cells = Object.values(getCell(world, target));
+        cells.forEach((cell) => {
+          if (trenchResources.includes(cell[HARVESTABLE]?.resource)) {
+            world.metadata.gameEntity[LEVEL].cells[target.x][target.y] = "sand";
+            cell[SPRITE] = sand;
+            cell[HARVESTABLE].resource = "sand";
+            rerenderEntity(world, cell);
+          }
+        });
+      }
+    }
+  }
+};
+
+export const updateSandCell = (world: World, position: Position) => {
+  for (let x = -1; x <= 1; x += 1) {
+    for (let y = -1; y <= 1; y += 1) {
+      applySandCell(world, add(position, { x, y }));
+    }
+  }
 };
 
 const waterTick = 250;

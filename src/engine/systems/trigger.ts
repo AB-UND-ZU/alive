@@ -564,7 +564,8 @@ export const performTrade = (
 export const consumeCharge = (
   world: World,
   entity: Entity,
-  item: Pick<Item, "stackable" | "consume" | "material">
+  item: Pick<Item, "stackable" | "consume" | "material">,
+  amount = 1
 ) => {
   // consume one stackable from inventory
   const chargeId = entity[INVENTORY].items.findLast((itemId: number) => {
@@ -573,11 +574,11 @@ export const consumeCharge = (
   });
   const chargeEntity = world.assertByIdAndComponents(chargeId, [ITEM]);
   if (!isEnemy(world, entity)) {
-    if (chargeEntity[ITEM].amount === 1) {
+    if (chargeEntity[ITEM].amount === amount) {
       removeFromInventory(world, entity, chargeEntity);
       disposeEntity(world, chargeEntity);
     } else {
-      chargeEntity[ITEM].amount -= 1;
+      chargeEntity[ITEM].amount -= amount;
     }
   }
 };
