@@ -301,6 +301,10 @@ export const generateMenu = async (world: World) => {
           stackable: "plank",
           amount: Infinity,
         },
+        {
+          stackable: "sand",
+          amount: Infinity,
+        },
       ],
       [
         {

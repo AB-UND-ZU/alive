@@ -95,6 +95,7 @@ export const craftables = [
   "eel",
   "seastar",
   "pearl",
+  "sand",
   "golem",
   "letter",
   "schema",

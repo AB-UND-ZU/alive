@@ -167,6 +167,7 @@ import {
   farming,
   soil,
   waterShallow,
+  sandBlock,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1875,6 +1876,19 @@ export const entitySprites: Record<
       createText("Detailed drawing"),
       createText("how to build"),
       createText("something."),
+    ],
+  },
+  sand: {
+    sprite: sandBlock,
+    getDescription: () => [
+      createText("A block of sand"),
+      createText("used for filling"),
+      [
+        ...createText("up "),
+        waterShallow,
+        ...createText("Water", colors.blue),
+        ...createText("."),
+      ],
     ],
   },
 

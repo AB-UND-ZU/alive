@@ -344,16 +344,7 @@ const executeTp = (world: World, entity: Entity, idOrLoc: string) => {
 
 const mods = ["fly", "swim", "walk", "pvp", "pve", "god"];
 const executeMod = (world: World, entity: Entity, mod: string) => {
-  if (mod === "list") {
-    mods.forEach((name, index) => {
-      queueMessage(world, entity, {
-        fast: false,
-        orientation: "up",
-        delay: index * helpDelay,
-        line: createText(`/mod ${name}`),
-      });
-    });
-  } else if (mod === "walk") {
+  if (mod === "walk") {
     entity[MOVABLE].swimming = false;
     entity[MOVABLE].flying = false;
   } else if (mod === "fly") {
@@ -397,7 +388,7 @@ const executeMod = (world: World, entity: Entity, mod: string) => {
   }
 };
 
-const lists = ["list", "cmd", "item", "id", "stat", "cast", "cell"];
+const lists = ["list", "mod", "cmd", "item", "id", "stat", "cast", "cell"];
 const executeList = (world: World, entity: Entity, list: string) => {
   let lines: string[] | Sprite[][] = [];
 
@@ -409,6 +400,8 @@ const executeList = (world: World, entity: Entity, list: string) => {
     });
   } else if (list === "list") {
     lines = sorted(lists).map((name) => `/list ${name}`.padEnd(10));
+  } else if (list === "mod") {
+    lines = sorted(mods).map((name) => `/mod ${name}`);
   } else if (list === "cell") {
     lines = sorted([...cellNames]);
   } else if (list === "item") {

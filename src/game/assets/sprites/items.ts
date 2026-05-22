@@ -848,8 +848,6 @@ export const bread: Sprite = {
   layers: [
     { char: "»", color: colors.yellow },
     { char: "«", color: colors.yellow },
-    // { char: "≡", color: colors.black },
-    // { char: "─", color: colors.olive },
     { char: "\u0115", color: colors.olive },
   ],
 };
@@ -863,5 +861,13 @@ export const golemHead: Sprite = {
     { char: "\u0100", color: colors.black },
     { char: "∙", color: colors.grey },
     { char: ".", color: colors.grey },
+  ],
+};
+
+export const sandBlock: Sprite = {
+  name: "Sand",
+  layers: [
+    { char: "■", color: colors.yellow },
+    { char: "▓", color: colors.black },
   ],
 };
