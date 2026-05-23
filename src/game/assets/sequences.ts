@@ -3773,7 +3773,9 @@ export const displayInspect: Sequence<PopupSequence> = (
         const consumptionText = itemConsumption
           ? createCountable(
               { [itemConsumption.countable]: itemConsumption.amount },
-              itemConsumption.countable
+              itemConsumption.countable,
+              "text",
+              itemConsumption.percentage
             )
           : consumptionConfig
           ? createCountable(

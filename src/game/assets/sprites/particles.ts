@@ -2154,14 +2154,15 @@ export const createCountable = (
     | "max"
     | "cap"
     | "display"
-    | "progression" = "text"
+    | "progression" = "text",
+  percentage?: boolean
 ) => {
   const displayedStat = display === "progression" ? getMaxCounter(stat) : stat;
   if (!displayedStat || !(displayedStat in stats)) return [];
 
   // const counter = stat as keyof Countable;
   const value = Math.ceil(stats[displayedStat] || 0);
-  const stringified = value.toString();
+  const stringified = percentage ? `${value}%` : value.toString();
   const color = statConfig[stat].color;
 
   const maxCounter = getMaxCounter(stat) || stat;

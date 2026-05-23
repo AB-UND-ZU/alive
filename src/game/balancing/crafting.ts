@@ -24,6 +24,93 @@ export const craftingRecipes: Recipe[] = [
   },
 
   {
+    item: { stackable: "granola", amount: 1 },
+    options: [
+      [
+        { stackable: "stick", amount: 3 },
+        { stackable: "grain", amount: 5 },
+        { stackable: "seed", amount: 1 },
+      ],
+    ],
+  },
+  {
+    item: { stackable: "juice", amount: 1 },
+    options: [
+      [
+        { stackable: "stick", amount: 3 },
+        { stackable: "apple", amount: 2 },
+        { stackable: "fruit", amount: 1 },
+      ],
+      [
+        { stackable: "stick", amount: 3 },
+        { stackable: "apple", amount: 2 },
+        { stackable: "banana", amount: 1 },
+      ],
+      [
+        { stackable: "stick", amount: 3 },
+        { stackable: "banana", amount: 1 },
+        { stackable: "fruit", amount: 1 },
+      ],
+    ],
+  },
+  {
+    item: { stackable: "toast", amount: 1 },
+    options: [
+      [
+        { stackable: "bread", amount: 1 },
+        { stackable: "salmon", amount: 2 },
+        { stackable: "leaf", amount: 2 },
+      ],
+      [
+        { stackable: "bread", amount: 1 },
+        { stackable: "tuna", amount: 1 },
+        { stackable: "leaf", amount: 2 },
+      ],
+    ],
+  },
+
+  {
+    item: { stackable: "tea", amount: 1 },
+    options: [
+      [
+        { stackable: "stick", amount: 3 },
+        { stackable: "herb", amount: 1 },
+        { stackable: "leaf", amount: 5 },
+      ],
+      [
+        { stackable: "stick", amount: 3 },
+        { stackable: "algae", amount: 1 },
+        { stackable: "leaf", amount: 5 },
+      ],
+    ],
+  },
+  {
+    item: { stackable: "soup", amount: 1 },
+    options: [
+      [
+        { stackable: "stick", amount: 3 },
+        { stackable: "shroom", amount: 2 },
+        { stackable: "coconut", amount: 1 },
+      ],
+    ],
+  },
+  {
+    item: { stackable: "stew", amount: 1 },
+    options: [
+      [
+        { stackable: "stick", amount: 3 },
+        { stackable: "pike", amount: 2 },
+        { stackable: "eel", amount: 1 },
+      ],
+      [
+        { stackable: "stick", amount: 3 },
+        { stackable: "cod", amount: 1 },
+        { stackable: "eel", amount: 1 },
+      ],
+    ],
+  },
+
+  {
     item: { consume: "potion", material: "wood", stat: "hp", amount: 10 },
     options: [
       [

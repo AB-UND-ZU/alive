@@ -289,6 +289,32 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
+          stackable: "granola",
+          amount: Infinity,
+        },
+        {
+          stackable: "juice",
+          amount: Infinity,
+        },
+        {
+          stackable: "toast",
+          amount: Infinity,
+        },
+        {
+          stackable: "tea",
+          amount: Infinity,
+        },
+        {
+          stackable: "soup",
+          amount: Infinity,
+        },
+        {
+          stackable: "stew",
+          amount: Infinity,
+        },
+      ],
+      [
+        {
           stackable: "stick",
           amount: Infinity,
         },
@@ -378,11 +404,15 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
-          stat: "vision",
+          stat: "damp",
           amount: Infinity,
         },
         {
-          stat: "haste",
+          stat: "thaw",
+          amount: Infinity,
+        },
+        {
+          stat: "spike",
           amount: Infinity,
         },
       ],
@@ -403,18 +433,12 @@ export const generateMenu = async (world: World) => {
           stat: "resist",
           amount: Infinity,
         },
-      ],
-      [
         {
-          stat: "damp",
+          stat: "vision",
           amount: Infinity,
         },
         {
-          stat: "thaw",
-          amount: Infinity,
-        },
-        {
-          stat: "spike",
+          stat: "haste",
           amount: Infinity,
         },
       ],

@@ -169,6 +169,12 @@ import {
   waterShallow,
   sandBlock,
   soilWet,
+  soup,
+  stew,
+  tea,
+  juice,
+  granola,
+  toast,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1824,6 +1830,54 @@ export const entitySprites: Record<
       createText("A colorful star-"),
       createText("shaped creature."),
       createText("Not edible."),
+    ],
+  },
+  stew: {
+    sprite: stew,
+    getDescription: (stats) => [
+      createText("A thick and rich"),
+      createText("fish broth."),
+      createCountable(stats, "mp", "display", true),
+    ],
+  },
+  soup: {
+    sprite: soup,
+    getDescription: (stats) => [
+      createText("Slowly cooked"),
+      createText("with vegetables."),
+      createCountable(stats, "mp", "display", true),
+    ],
+  },
+  tea: {
+    sprite: tea,
+    getDescription: (stats) => [
+      createText("A herbal infusion"),
+      createText("boiled in water."),
+      createCountable(stats, "mp", "display", true),
+    ],
+  },
+  toast: {
+    sprite: toast,
+    getDescription: (stats) => [
+      createText("Crispy sandwich"),
+      createText("with a topping."),
+      createCountable(stats, "hp", "display", true),
+    ],
+  },
+  juice: {
+    sprite: juice,
+    getDescription: (stats) => [
+      createText("Sweet fruit,"),
+      createText("freshly squeezed."),
+      createCountable(stats, "hp", "display", true),
+    ],
+  },
+  granola: {
+    sprite: granola,
+    getDescription: (stats) => [
+      createText("Low heat roasted"),
+      createText("grains and seeds."),
+      createCountable(stats, "hp", "display", true),
     ],
   },
   arrow: {

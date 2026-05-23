@@ -86,6 +86,7 @@ export const consumptionConfigs: Partial<
 
 export type StackableConsumption = {
   amount: number;
+  percentage?: boolean;
   countable: keyof Countable;
 };
 export type ItemConsumption = StackableConsumption & {
@@ -111,6 +112,13 @@ export const stackableConsumptions: Partial<
   cod: { countable: "mp", amount: 3 },
   algae: { countable: "xp", amount: 1 },
   eel: { countable: "xp", amount: 3 },
+
+  stew: { countable: "mp", amount: 25, percentage: true },
+  soup: { countable: "mp", amount: 20, percentage: true },
+  tea: { countable: "mp", amount: 15, percentage: true },
+  toast: { countable: "hp", amount: 25, percentage: true },
+  juice: { countable: "hp", amount: 20, percentage: true },
+  granola: { countable: "hp", amount: 15, percentage: true },
 };
 
 export const getConsumption = (
@@ -169,12 +177,21 @@ export const consumeItem = (
   rerenderEntity(world, entity);
 
   // add stats
+  const amount = consumption.percentage
+    ? Math.round(
+        (entity[STATS][
+          getMaxCounter(consumption.countable) || consumption.countable
+        ] *
+          consumption.amount) /
+          100
+      )
+    : consumption.amount;
   const itemData = {
     [ITEM]: {
       stat: consumption.countable,
       carrier: -1,
       bound: false,
-      amount: consumption.amount,
+      amount,
     },
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,

@@ -99,6 +99,12 @@ export const craftables = [
   "golem",
   "letter",
   "schema",
+  "stew",
+  "soup",
+  "tea",
+  "toast",
+  "juice",
+  "granola",
 ] as const;
 export type Craftable = (typeof craftables)[number];
 

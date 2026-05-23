@@ -670,6 +670,56 @@ export const pearl: Sprite = {
   ],
 };
 
+export const stew: Sprite = {
+  name: "Stew",
+  layers: [
+    { char: "\u011d", color: colors.fuchsia },
+    { char: "-", color: colors.black },
+    { char: "U", color: colors.maroon },
+    { char: "▀", color: colors.black },
+  ],
+};
+
+export const soup: Sprite = {
+  name: "Soup",
+  layers: [
+    { char: "\u011d", color: colors.yellow },
+    { char: "-", color: colors.black },
+    { char: "U", color: colors.maroon },
+    { char: "▀", color: colors.black },
+  ],
+};
+
+export const tea: Sprite = {
+  name: "Tea",
+  layers: [
+    { char: "\u011d", color: colors.teal },
+    { char: "-", color: colors.black },
+    { char: "U", color: colors.maroon },
+    { char: "▀", color: colors.black },
+  ],
+};
+
+export const juice: Sprite = {
+  name: "Juice",
+  layers: [
+    { char: "\u011d", color: colors.red },
+    { char: "-", color: colors.black },
+    { char: "U", color: colors.maroon },
+    { char: "▀", color: colors.black },
+  ],
+};
+
+export const granola: Sprite = {
+  name: "Granola",
+  layers: [
+    { char: "\u011d", color: colors.silver },
+    { char: "-", color: colors.black },
+    { char: "U", color: colors.maroon },
+    { char: "▀", color: colors.black },
+  ],
+};
+
 export const schema: Sprite = {
   name: "Schema",
   layers: [
@@ -849,6 +899,18 @@ export const bread: Sprite = {
     { char: "»", color: colors.yellow },
     { char: "«", color: colors.yellow },
     { char: "\u0115", color: colors.olive },
+  ],
+};
+
+export const toast: Sprite = {
+  name: "Toast",
+  layers: [
+    { char: "\u0108", color: colors.olive },
+    { char: "=", color: colors.olive },
+    { char: "\u0106", color: colors.olive },
+    { char: "+", color: colors.lime },
+    { char: "÷", color: colors.olive },
+    { char: "·", color: colors.fuchsia },
   ],
 };
 
