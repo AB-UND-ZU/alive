@@ -278,6 +278,18 @@ export const createBlock = entityFactory([
   SPRITE,
 ]);
 
+export const createBrewing = entityFactory([
+  BURNABLE,
+  COLLIDABLE,
+  LAYER,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TOOLTIP,
+]);
+
 export const createBuilding = entityFactory([
   FOG,
   POSITION,
@@ -358,7 +370,6 @@ export const createContainer = entityFactory([
 export const createCounter = entityFactory([RENDERABLE]);
 
 export const createCrafting = entityFactory([
-  BURNABLE,
   COLLIDABLE,
   LAYER,
   FOG,

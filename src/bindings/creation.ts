@@ -182,7 +182,6 @@ import {
   houseLeft,
   houseRight,
   houseTrader,
-  kettle,
   roof,
   roofDown,
   roofDownLeft,
@@ -226,6 +225,8 @@ import {
   palisadeDoorPath,
   palisadeDoorOpenPath,
   palisadeDoorOpen,
+  bench,
+  kettle,
 } from "../game/assets/sprites/structures";
 import {
   createItemName,
@@ -266,7 +267,7 @@ import { centerLayer, centerSprites, overlay } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
 import { POPUP } from "../engine/components/popup";
 import { openDoor } from "../engine/systems/trigger";
-import { craftingRecipes } from "../game/balancing/crafting";
+import { craftingIngredients } from "../game/balancing/crafting";
 import addHarvestable, { HARVESTABLE } from "../engine/components/harvestable";
 import { getHarvestConfig } from "../game/balancing/harvesting";
 import { SHOOTABLE } from "../engine/components/shootable";
@@ -285,6 +286,7 @@ import { FISHABLE } from "../engine/components/fishable";
 import { habitatDistribution } from "../engine/systems/fishing";
 import { getCell } from "../engine/systems/map";
 import { REFILLABLE } from "../engine/components/refillable";
+import { brewingRecipes } from "../game/balancing/brewing";
 
 export const cellNames = [
   "air",
@@ -929,6 +931,7 @@ export const createCell = (
         selections: [[], [], [], [], [], [], []],
         viewpoint: world.getEntityId(inspectEntity),
         deals: [],
+        ingredients: [],
         recipes: [],
         lines: [],
         targets: [],
@@ -1774,13 +1777,16 @@ export const createCell = (
     cell === "guide_door" ||
     cell === "nomad_door" ||
     cell === "earth_door" ||
-    cell === "iron_door"
+    cell === "iron_door" ||
+    cell === "gold_door"
   ) {
     const material =
       cell === "earth_door"
         ? undefined
         : cell === "iron_door"
         ? "iron"
+        : cell === "gold_door"
+        ? "gold"
         : "wood";
     const element = cell === "earth_door" ? "earth" : undefined;
     const sprite = getItemSprite(
@@ -3929,7 +3935,7 @@ export const createCell = (
     return { cell: fountainEntity, all };
   } else if (cell === "kettle" || cell === "kettle_passive") {
     const isPassive = cell === "kettle_passive";
-    const kettleEntity = entities.createCrafting(world, {
+    const kettleEntity = entities.createBrewing(world, {
       [BURNABLE]: {
         burning: !isPassive,
         eternal: !isPassive,
@@ -3953,11 +3959,35 @@ export const createCell = (
     all.push(kettleEntity);
     if (!isPassive) {
       createPopup(world, kettleEntity!, {
-        recipes: craftingRecipes,
-        tabs: ["craft"],
+        recipes: brewingRecipes,
+        tabs: ["brew"],
       });
     }
     return { cell: kettleEntity, all };
+  } else if (cell === "bench" || cell === "bench_passive") {
+    const isPassive = cell === "bench_passive";
+    const benchEntity = entities.createCrafting(world, {
+      [COLLIDABLE]: {},
+      [FOG]: { visibility: "hidden", type: "unit" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: bench,
+      [TOOLTIP]: {
+        dialogs: [],
+        persistent: false,
+        nextDialog: -1,
+      },
+    });
+    all.push(benchEntity);
+    if (!isPassive) {
+      createPopup(world, benchEntity!, {
+        ingredients: craftingIngredients,
+        tabs: ["craft"],
+      });
+    }
+    return { cell: benchEntity, all };
   } else if (cell === "anvil" || cell === "anvil_passive") {
     const anvilEntity = entities.createForging(world, {
       [COLLIDABLE]: {},

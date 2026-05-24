@@ -9,6 +9,7 @@ import { TOOLTIP } from "../components/tooltip";
 import {
   addBackground,
   berry,
+  brew,
   craft,
   createText,
   dialogEnd,
@@ -59,12 +60,7 @@ import { FOCUSABLE } from "../components/focusable";
 import { TRACKABLE } from "../components/trackable";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
 import { ACTIONABLE } from "../components/actionable";
-import {
-  canWarp,
-  completeQuest,
-  initiateWarp,
-  performTrade,
-} from "./trigger";
+import { canWarp, completeQuest, initiateWarp, performTrade } from "./trigger";
 import { colors } from "../../game/assets/colors";
 import { consumeItem, getConsumption, getItemConsumption } from "./consume";
 import { clamp } from "three/src/math/MathUtils";
@@ -81,6 +77,7 @@ import { recolorSprite } from "../../game/assets/templates";
 import { invertOrientation } from "../../game/math/path";
 import { plantConfigs } from "../../game/balancing/harvesting";
 import { isPlantable, plantSeed } from "./harvest";
+import { getBrewingDeal } from "../../game/balancing/brewing";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -196,9 +193,12 @@ export const getDeal = (
         item: resultItem,
       };
     }
-  } else if (tab === "craft" && selections.length === 1) {
+  } else if (tab === "craft") {
+    const ingredients = popupEntity[POPUP].ingredients[verticalIndex];
+    return getCraftingDeal(ingredients);
+  } else if (tab === "brew" && selections.length === 1) {
     const recipe = popupEntity[POPUP].recipes[selections[0]];
-    return getCraftingDeal(recipe, verticalIndex);
+    return getBrewingDeal(recipe, verticalIndex);
   } else if (tab === "quest") {
     return popupEntity[POPUP].deals[verticalIndex];
   }
@@ -317,6 +317,7 @@ export const isQuestCompleted = (world: World, hero: Entity, entity: Entity) =>
 export const popupIdles = {
   craft,
   forge,
+  brew,
   info,
   talk: info,
   plant: farming,
@@ -337,6 +338,7 @@ export const popupIdles = {
 export const popupActions = {
   craft: "CRAFT",
   forge: "FORGE",
+  brew: "BREW",
   info: "READ",
   talk: "TALK",
   plant: "SEEDS",
@@ -451,6 +453,7 @@ export const createPopup = (
     addPopup(world, entity, {
       lines: [],
       deals: [],
+      ingredients: [],
       recipes: [],
       targets: [],
       focuses: [],
@@ -715,6 +718,8 @@ export default function setupPopup(world: World) {
         : transaction === "buy"
         ? popupEntity[POPUP].deals.length
         : transaction === "craft"
+        ? popupEntity[POPUP].ingredients.length
+        : transaction === "brew"
         ? selections.length === 1
           ? popupEntity[POPUP].recipes[selections[0]].options.length
           : popupEntity[POPUP].recipes.length
@@ -1027,6 +1032,28 @@ export default function setupPopup(world: World) {
           }
         }
       } else if (tab === "craft") {
+        const deal = tradeEntity && getDeal(world, heroEntity, tradeEntity);
+        if (deal) {
+          const missingItem = missingFunds(world, heroEntity, deal)[0];
+          if (canShop(world, heroEntity, deal)) {
+            performTrade(world, heroEntity, tradeEntity);
+          } else if (missingItem) {
+            queueMessage(world, heroEntity, {
+              line: addBackground(
+                [
+                  ...createText("Need ", colors.silver),
+                  ...createItemName(missingItem),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          }
+        }
+      } else if (tab === "brew") {
         const deal = tradeEntity && getDeal(world, heroEntity, tradeEntity);
         if (deal) {
           const missingItem = missingFunds(world, heroEntity, deal)[0];

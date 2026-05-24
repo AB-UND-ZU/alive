@@ -244,7 +244,8 @@ export default function Controls() {
     ecs && popup && !getSequence(ecs, popup, "popup")?.args.instant
       ? popup[POPUP].tabs.length
       : 0;
-  const popupSequence = ecs && popup && getSequence(ecs, popup, "popup");
+  const popupSequence =
+    ecs && popup ? getSequence(ecs, popup, "popup") : undefined;
   const popupTab = ecs && popup && getTab(ecs, popup);
   const pressedOrientations = useRef<Orientation[]>([]);
   const touchOrigin = useRef<[number, number] | undefined>(undefined);

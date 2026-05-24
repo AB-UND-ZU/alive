@@ -316,7 +316,6 @@ export const kettle: Sprite = {
     { char: "=", color: colors.black },
     { char: "-", color: colors.blue },
     { char: "w", color: colors.grey },
-    { char: ".", color: colors.grey },
     { char: "\u0106", color: colors.blue },
   ],
 };
@@ -324,7 +323,8 @@ export const kettle: Sprite = {
 export const bench: Sprite = {
   name: "Bench",
   layers: [
-    { char: "\u011e", color: colors.grey },
+    { char: "\u011e", color: colors.silver },
+    { char: ",", color: colors.black },
     { char: "π", color: colors.maroon },
   ],
 };
@@ -825,8 +825,9 @@ export const bedEndLeft: Sprite = {
 export const table: Sprite = {
   name: "table",
   layers: [
+    { char: "┬", color: colors.maroon },
     { char: "╥", color: colors.maroon },
-    { char: "─", color: colors.silver },
+    { char: "─", color: colors.grey },
   ],
 };
 

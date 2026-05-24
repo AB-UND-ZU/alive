@@ -1486,11 +1486,6 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 100,
         items: [
           {
-            consume: "key",
-            amount: 1,
-            element: "earth",
-          },
-          {
             consume: "potion",
             material: "wood",
             stat: "hp",

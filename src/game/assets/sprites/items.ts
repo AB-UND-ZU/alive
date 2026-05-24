@@ -673,39 +673,42 @@ export const pearl: Sprite = {
 export const stew: Sprite = {
   name: "Stew",
   layers: [
+    { char: "∞", color: colors.maroon },
     { char: "\u011d", color: colors.fuchsia },
-    { char: "-", color: colors.black },
-    { char: "U", color: colors.maroon },
+    { char: "U", color: colors.grey },
     { char: "▀", color: colors.black },
+    { char: "º", color: colors.black },
   ],
 };
 
 export const soup: Sprite = {
   name: "Soup",
   layers: [
-    { char: "\u011d", color: colors.yellow },
-    { char: "-", color: colors.black },
-    { char: "U", color: colors.maroon },
+    { char: "∞", color: colors.maroon },
+    { char: "\u011d", color: colors.aqua },
+    { char: "U", color: colors.grey },
     { char: "▀", color: colors.black },
+    { char: "º", color: colors.black },
   ],
 };
 
 export const tea: Sprite = {
   name: "Tea",
   layers: [
-    { char: "\u011d", color: colors.teal },
-    { char: "-", color: colors.black },
-    { char: "U", color: colors.maroon },
+    { char: "∞", color: colors.maroon },
+    { char: "\u011d", color: colors.yellow },
+    { char: "U", color: colors.grey },
     { char: "▀", color: colors.black },
+    { char: "º", color: colors.black },
   ],
 };
 
 export const juice: Sprite = {
   name: "Juice",
   layers: [
-    { char: "\u011d", color: colors.red },
-    { char: "-", color: colors.black },
-    { char: "U", color: colors.maroon },
+    { char: "■", color: colors.maroon },
+    { char: "\u0106", color: colors.green },
+    { char: "\u0108", color: colors.maroon },
     { char: "▀", color: colors.black },
   ],
 };
@@ -713,9 +716,9 @@ export const juice: Sprite = {
 export const granola: Sprite = {
   name: "Granola",
   layers: [
-    { char: "\u011d", color: colors.silver },
-    { char: "-", color: colors.black },
-    { char: "U", color: colors.maroon },
+    { char: "■", color: colors.maroon },
+    { char: "\u0106", color: colors.silver },
+    { char: "\u0108", color: colors.maroon },
     { char: "▀", color: colors.black },
   ],
 };

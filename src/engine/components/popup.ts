@@ -13,6 +13,11 @@ export type Deal = {
   carrier?: number;
 };
 
+export type Ingredients = {
+  item: Omit<Item, "carrier" | "bound">;
+  parts: Omit<Item, "carrier" | "bound">[];
+};
+
 export type Recipe = {
   item: Omit<Item, "carrier" | "bound">;
   options: Omit<Item, "carrier" | "bound">[][];
@@ -36,6 +41,7 @@ export const shops = ["buy", "sell"] as const;
 const popups = [
   ...shops,
   "craft",
+  "brew",
   "forge",
   "quest",
   "info",
@@ -58,6 +64,7 @@ export type Popup = {
   horizontalIndex: number;
   selections: number[][];
   deals: Deal[];
+  ingredients: Ingredients[];
   recipes: Recipe[];
   lines: Sprite[][][];
   targets: Target[];

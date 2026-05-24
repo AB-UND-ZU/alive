@@ -73,7 +73,7 @@ import { createItemAsDrop } from "./drop";
 import { PLAYER } from "../components/player";
 import { REFILLABLE } from "../components/refillable";
 import { createCell } from "../../bindings/creation";
-import { getImmersible } from "./immersion";
+import { getImmersible, isImmersible } from "./immersion";
 import { TEMPO } from "../components/tempo";
 import { LEVEL } from "../components/level";
 import { iterateMatrixFromCenter } from "../../game/math/matrix";
@@ -501,7 +501,7 @@ export const plantSoil = (world: World, position: Position) => {
     world.metadata.gameEntity[LEVEL].cells,
     position,
     (x, y) => {
-      if (getRefillable(world, { x, y })) {
+      if (isImmersible(world, { x, y })) {
         nearbyWater = true;
         return true;
       }

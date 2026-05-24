@@ -1735,10 +1735,13 @@ export const entitySprites: Record<
         }),
         ...createText(" worth"),
       ],
-      createItemText({
-        amount: 1000,
-        stackable: "coin",
-      }),
+      [
+        ...createItemText({
+          amount: 1000,
+          stackable: "coin",
+        }),
+        ...createText("."),
+      ],
     ],
   },
   nugget: {
@@ -3372,10 +3375,14 @@ export const getItemSprite = (
 
 export const createItemText = (
   item: Omit<Item, "carrier" | "bound"> & { materialized?: Materialized },
-
-  color = colors.grey
+  color = colors.grey,
+  type: "full" | "short" = "full"
 ) => {
   const stringified = item.amount.toString();
+
+  if (type === "short") {
+    return [...createText(stringified, color), getItemSprite(item)];
+  }
 
   return [...createText(stringified, color), ...createItemName(item, color)];
 };

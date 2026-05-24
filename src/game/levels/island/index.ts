@@ -923,7 +923,7 @@ export const generateIsland = (world: World) => {
         smithHouse.position.y + 3,
         "campfire"
       );
-      setMatrix(worldMap, smithHouse.door.x, smithHouse.door.y, "earth_door");
+      setMatrix(worldMap, smithHouse.door.x, smithHouse.door.y, "gold_door");
       setMatrix(
         worldMap,
         smithHouse.position.x + choice(-1, 1),
@@ -942,6 +942,7 @@ export const generateIsland = (world: World) => {
         druidHouse.position.y + 2,
         "house_druid"
       );
+      setMatrix(worldMap, druidHouse.door.x, druidHouse.door.y, "iron_door");
 
       // mark entrance of desert for further processing
       const desertEntrance = angledOffset(
@@ -1680,7 +1681,7 @@ export const generateIsland = (world: World) => {
       npcSequence(world, chiefEntity, "earthChiefNpc", {});
 
       // smith's house
-      const smithOffset = choice(-1, 1);
+      const smithOffset = choice(-2, 2);
       createNpc(
         world,
         "earthSmith",
@@ -1693,7 +1694,7 @@ export const generateIsland = (world: World) => {
       const anvilEntity = createCell(
         world,
         add(smithBuilding.building[POSITION], {
-          x: smithOffset * -2,
+          x: smithOffset * -1,
           y: 0,
         }),
         "anvil_passive",
@@ -1702,7 +1703,7 @@ export const generateIsland = (world: World) => {
       setIdentifier(world, anvilEntity, "earth_anvil");
 
       // druid's house
-      const druidOffset = choice(-1, 1);
+      const druidOffset = choice(-2, 2);
       createNpc(
         world,
         "earthDruid",
@@ -1715,7 +1716,7 @@ export const generateIsland = (world: World) => {
       const kettleEntity = createCell(
         world,
         add(druidBuilding.building[POSITION], {
-          x: druidOffset * -2,
+          x: druidOffset * -1,
           y: 0,
         }),
         "kettle_passive",
@@ -1723,8 +1724,47 @@ export const generateIsland = (world: World) => {
       ).cell;
       setIdentifier(world, kettleEntity, "earth_kettle");
 
+      // trader's house
+      const traderOffset = choice(-2, 2);
+      const traderEntity = createNpc(
+        world,
+        "earthTrader",
+        combine(size, traderBuilding.building[POSITION], {
+          x: traderOffset,
+          y: 0,
+        })
+      );
+
+      createPopup(world, traderEntity, {
+        deals: purchasableItems.map((item) => ({
+          item: {
+            ...item,
+            amount: 1,
+          },
+          stock: Infinity,
+          prices: getItemBuyPrice(item),
+        })),
+
+        tabs: ["buy", "sell"],
+      });
+      const benchEntity = createCell(
+        world,
+        add(traderBuilding.building[POSITION], {
+          x: traderOffset * -1,
+          y: 0,
+        }),
+        "bench",
+        "hidden"
+      ).cell;
+      setIdentifier(world, benchEntity, "earth_bench");
+
       // furnish houses
-      const furnishingBuildings = [traderBuilding, ...emptyBuildings];
+      const furnishingBuildings = [
+        traderBuilding,
+        smithBuilding,
+        druidBuilding,
+        ...emptyBuildings,
+      ];
       for (const furnishingBuilding of furnishingBuildings) {
         // add furniture
         const furnitureOrientation = (["left", "right"] as const)[random(0, 1)];
@@ -1813,22 +1853,7 @@ export const generateIsland = (world: World) => {
           }
         );
 
-        if (furnishingBuilding === traderBuilding) {
-          // trader's house
-          const traderEntity = createNpc(world, "earthTrader", objectPosition);
-
-          createPopup(world, traderEntity, {
-            deals: purchasableItems.map((item) => ({
-              item: {
-                ...item,
-                amount: 1,
-              },
-              stock: Infinity,
-              prices: getItemBuyPrice(item),
-            })),
-
-            tabs: ["buy", "sell"],
-          });
+        if (!emptyBuildings.includes(furnishingBuilding)) {
           continue;
         }
 

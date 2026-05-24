@@ -126,7 +126,6 @@ import {
   hostileBar,
   xpDot,
   rain,
-  info,
   createCountable,
   crackle,
   keyHole,
@@ -167,7 +166,6 @@ import {
   snowflake,
   bootsSlot,
   zapParticle,
-  mapDiscovery,
   mapSlot,
   mapZoom1,
   mapZoom2,
@@ -227,6 +225,8 @@ import {
   emptySlot,
   getBlockedSlot,
   caret,
+  forge,
+  popupCenterTop,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -460,6 +460,7 @@ import {
   plantConfigs,
 } from "../balancing/harvesting";
 import { getKeyFromIndex } from "../../components/Keyboard";
+import { getBrewingDeal } from "../balancing/brewing";
 
 export * from "./npcs";
 export * from "./quests";
@@ -3495,6 +3496,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayForge;
   } else if (transaction === "craft") {
     handler = displayCraft;
+  } else if (transaction === "brew") {
+    handler = displayBrew;
   } else if (transaction === "quest") {
     handler = displayQuest;
   } else if (transaction === "inspect") {
@@ -3696,7 +3699,7 @@ export const displaySell: Sequence<PopupSequence> = (world, entity, state) => {
     world,
     entity,
     state,
-    info,
+    shop,
     content,
     !hasItems ? undefined : selectedItem && sellable ? "active" : "blocked",
     details,
@@ -4260,7 +4263,7 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
 
   if (!heroEntity?.[EQUIPPABLE]?.map) {
-    const popupResult = renderPopup(world, entity, state, mapDiscovery, [
+    const popupResult = renderPopup(world, entity, state, undefined, [
       createText("No map item yet.", colors.grey),
     ]);
     return {
@@ -4489,7 +4492,7 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
     content.push([]);
   }
 
-  const popupResult = renderPopup(world, entity, state, mapDiscovery, content);
+  const popupResult = renderPopup(world, entity, state, undefined, content);
   return {
     updated: popupResult.updated,
     finished: popupResult.finished,
@@ -4929,9 +4932,40 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
 
 const forgeWidth = 7;
 const forgeHeight = 3;
+const forgeBlink = 3;
 
 export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [INVENTORY]);
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+
+  const showItem = generation % forgeBlink > 0;
+
+  // value container to rerender content
+  if (!state.particles.blink) {
+    const blinkParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: generation,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.blink = world.getEntityId(blinkParticle);
+  }
+
+  const blinkParticle = world.assertByIdAndComponents(state.particles.blink, [
+    PARTICLE,
+  ]);
+  const lastBlinkGeneration = blinkParticle[PARTICLE].amount;
+
+  // rerender content on blinking
+  if (lastBlinkGeneration !== generation) {
+    rerenderEntity(world, entity);
+    blinkParticle[PARTICLE].amount = generation;
+  }
+
   const inventoryItems = heroEntity
     ? (heroEntity[INVENTORY] as Inventory).items.map((item) =>
         world.assertByIdAndComponents(item, [ITEM])
@@ -4968,17 +5002,26 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     : selectedInsufficient
     ? colors.yellow
     : colors.red;
+  const isBasing = !firstItem && !resultItem;
   const isAdding = firstItem && !resultItem;
+  const isYielding = firstItem && resultItem;
 
-  const baseSprite = baseItem
-    ? getItemSprite(baseItem, undefined, undefined, 1)
-    : missing;
-  const addSprite = addItem
-    ? getItemSprite(addItem, undefined, undefined, 1)
-    : missing;
-  const resultSprite = resultItem
+  const baseSprite =
+    isBasing && !showItem
+      ? none
+      : baseItem
+      ? getItemSprite(baseItem, undefined, undefined, 1)
+      : missing;
+  const addSprite =
+    isAdding && !showItem
+      ? none
+      : addItem
+      ? getItemSprite(addItem, undefined, undefined, 1)
+      : missing;
+  const yieldSprite = resultItem
     ? getItemSprite(resultItem, undefined, undefined, 1)
     : missing;
+  const resultSprite = isYielding && !showItem ? none : yieldSprite;
   const selectedSprite = selectedItem
     ? getItemSprite(selectedItem[ITEM], undefined, undefined, 1)
     : none;
@@ -5055,10 +5098,10 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     createText("Preview:  ", colors.grey),
     [
       popupActive,
-      resultSprite,
+      yieldSprite,
       ...shaded(
         createText(
-          `${resultSprite.name}${" ".repeat(7 - resultSprite.name.length)}`
+          `${yieldSprite.name}${" ".repeat(7 - yieldSprite.name.length)}`
         ),
         colors.green,
         "▄"
@@ -5184,7 +5227,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     world,
     entity,
     state,
-    info,
+    forge,
     resultContent
       ? content.slice(0, Math.max(5, resultContent.length))
       : content,
@@ -5218,7 +5261,138 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
   };
 };
 
+const craftSeparator = 9;
+
 export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const icon = craft;
+  const verticalIndex = getVerticalIndex(world, entity);
+  const ingredients = (entity[POPUP] as Popup).ingredients;
+  const selectedIngredients = ingredients[verticalIndex];
+  const selectedShoppable =
+    heroEntity &&
+    selectedIngredients &&
+    canShop(world, heroEntity, getCraftingDeal(selectedIngredients));
+
+  let content = [createText("Nothing to craft.", colors.grey)];
+
+  if (heroEntity && selectedIngredients) {
+    const scrollIndex =
+      verticalIndex -
+      scrolledVerticalIndex(
+        world,
+        entity,
+        state,
+        Array.from({ length: ingredients.length }),
+        "selected",
+        []
+      );
+    const ingredientLines = [
+      ...selectedIngredients.parts
+        .map((item) => {
+          const existingIngredient = existingFund(world, heroEntity, item);
+          const itemLine = [
+            ...createText(existingIngredient.toString()),
+            ...createText("/", colors.grey),
+            ...createText(
+              item.amount.toString(),
+              existingIngredient >= item.amount ? colors.lime : colors.red
+            ),
+            getItemSprite(item),
+          ];
+          return [
+            [
+              ...createText("│", colors.silver),
+              ...createText(getItemSprite(item).name, colors.grey),
+            ],
+            [
+              ...createText("│", colors.silver),
+              ...repeat(
+                none,
+                frameWidth - 3 - craftSeparator - itemLine.length
+              ),
+              ...itemLine,
+            ],
+          ];
+        })
+        .flat(),
+      createText(
+        `└${"─".repeat(frameWidth - 3 - craftSeparator)}`,
+        colors.silver
+      ),
+    ];
+    content = ingredients.map((ingredient, rowIndex) => {
+      const selected = verticalIndex === rowIndex;
+      const craftItem = ingredient.item;
+      const textColor = selected ? colors.white : colors.grey;
+      const itemSprite = getItemSprite(craftItem, "display");
+
+      const ingredientShoppable =
+        heroEntity && canShop(world, heroEntity, getCraftingDeal(ingredient));
+      const itemName = [
+        ...createText(
+          selected ? itemSprite.name : "─".repeat(itemSprite.name.length),
+          textColor
+        ),
+        ...repeat(none, 7 - itemSprite.name.length),
+      ];
+      const visibleIndex = rowIndex - scrollIndex;
+      const line = ingredientLines[visibleIndex] || [];
+
+      return [
+        ingredientShoppable && !selected
+          ? recolorSprite(star, colors.lime)
+          : none,
+        itemSprite,
+        ...(selected
+          ? shaded(
+              itemName,
+              selectedShoppable ? colors.green : colors.grey,
+              selectedShoppable ? "▄" : undefined
+            )
+          : itemName),
+        ...line,
+      ];
+    });
+  }
+
+  const details =
+    selectedIngredients && getItemDescription(selectedIngredients.item);
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    icon,
+    content,
+    selectedShoppable ? "active" : selectedIngredients ? "selected" : undefined,
+    details,
+    undefined,
+    createButton("MAKE", 6, !selectedShoppable, false, false, "lime")
+  );
+
+  // draw top separator
+  const topSeparatorParticle = world.assertByIdAndComponents(
+    state.particles[`popup-up-${craftSeparator}`],
+    [ORIENTABLE, PARTICLE, SPRITE]
+  );
+  if (
+    state.args.contentIndex > 0 &&
+    entity[POPUP].tabs.length === 1 &&
+    topSeparatorParticle[ORIENTABLE].facing &&
+    selectedIngredients
+  ) {
+    topSeparatorParticle[SPRITE] = popupCenterTop;
+    topSeparatorParticle[ORIENTABLE].facing = undefined;
+    popupResult.updated = true;
+  }
+
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
   const icon = craft;
   const verticalIndex = getVerticalIndex(world, entity);
@@ -5234,15 +5408,15 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
   const viewedRecipe = recipes[recipeIndex];
   const viewedSprite = viewedRecipe && getItemSprite(viewedRecipe.item);
   const viewedDeal =
-    viewedRecipe && getCraftingDeal(viewedRecipe, verticalIndex);
+    viewedRecipe && getBrewingDeal(viewedRecipe, verticalIndex);
   const viewedShoppable =
     viewedDeal && heroEntity && canShop(world, heroEntity, viewedDeal);
 
-  let content = [createText("Nothing to craft", colors.grey)];
+  let content = [createText("Nothing to brew.", colors.grey)];
 
   if (heroEntity && viewedRecipe) {
     const optionItem = viewedRecipe.item;
-    const optionDeal = getCraftingDeal(viewedRecipe, verticalIndex);
+    const optionDeal = getBrewingDeal(viewedRecipe, verticalIndex);
     const optionShoppable = canShop(world, heroEntity, optionDeal);
     const amountText = [
       recolorSprite(times, {
@@ -5321,7 +5495,7 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
       const itemSprite = getItemSprite(craftItem, "display");
 
       const recipeShoppable = recipe.options.some((_, optionIndex) =>
-        canShop(world, heroEntity, getCraftingDeal(recipe, optionIndex))
+        canShop(world, heroEntity, getBrewingDeal(recipe, optionIndex))
       );
       const amountText = [
         recolorSprite(times, textColor),
@@ -5349,8 +5523,8 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
     !(viewedRecipe && selectedRecipe) || viewedShoppable
       ? getItemDescription(viewedRecipe?.item || selectedRecipe.item)
       : [
-          createText("Unable to craft", colors.grey),
-          createText(viewedSprite.name.toLowerCase(), colors.grey),
+          createText("Not enough items", colors.grey),
+          createText(`for ${viewedSprite.name.toLowerCase()}.`, colors.grey),
         ];
   const popupResult = renderPopup(
     world,
@@ -5362,7 +5536,7 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
     details,
     undefined,
     viewedRecipe
-      ? createButton("MAKE", 6, !viewedShoppable, false, false, "lime")
+      ? createButton("COOK", 6, !viewedShoppable, false, false, "lime")
       : createButton("VIEW\u0119", 7, false, false, false, "lime"),
     viewedRecipe
       ? createButton("\u011aBACK", 7, false, false, false, "red")

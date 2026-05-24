@@ -62,7 +62,7 @@ export const itemMaterialPrices: Partial<
   Record<ResourceItem | Consumable, Partial<Record<Material, number>>>
 > = {
   resource: {
-    wood: 10,
+    wood: 20,
     iron: 20,
     gold: 100,
     diamond: 500,

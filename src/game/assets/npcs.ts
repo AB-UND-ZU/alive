@@ -52,10 +52,8 @@ import {
   barrierCorner,
   barrierSide,
   createText,
-  craft,
   swirl,
   forge,
-  kettle,
   getOrientedSprite,
   oakLeaves,
   oakStem,
@@ -68,11 +66,7 @@ import {
   iron,
   parseSprites,
   gold,
-  leaf,
-  stick,
-  wood,
   berryDrop,
-  apple,
   grain,
   farming,
   soil,
@@ -85,6 +79,9 @@ import {
   salmon,
   cod,
   flowerDrop,
+  kettle,
+  brew,
+  bench,
 } from "./sprites";
 import {
   createItemName,
@@ -144,16 +141,16 @@ import { getClickables } from "../../engine/systems/click";
 import { muteAudio, unmuteAudio } from "../sound/resumable";
 import { REFERENCE } from "../../engine/components/reference";
 import { POPUP } from "../../engine/components/popup";
-import { craftingRecipes } from "../balancing/crafting";
 import { isTouch } from "../../components/Dimensions";
 import { COVERABLE } from "../../engine/components/coverable";
 import { BURNABLE } from "../../engine/components/burnable";
 import { recolorSprite } from "./templates";
 import { BLOCKABLE } from "../../engine/components/blockable";
 import { boots, bow, sword, waveSpell } from "./templates/equipments";
-import { flask, spirit } from "./templates/items";
+import { spirit } from "./templates/items";
 import { getBiome, isFlyable } from "../../engine/systems/movement";
 import { relativeOrientations } from "../math/path";
+import { brewingRecipes } from "../balancing/brewing";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
@@ -909,7 +906,16 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               amount: 3,
             },
             stock: 1,
-            prices: [{ stackable: "stick", amount: 10 }],
+            prices: [{ stackable: "resource", material: "wood", amount: 1 }],
+          },
+          {
+            item: {
+              consume: "key",
+              material: "iron",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [],
           },
         ],
         choices: [
@@ -933,6 +939,29 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           [
             createText("Gathering is the"),
             createText("key to survive."),
+            [],
+            createText("For now, please"),
+            [
+              ...createText("collect "),
+              ...createItemText({ stackable: "stick", amount: 10 }),
+            ],
+            [
+              ...createText("and craft "),
+              ...createItemText({
+                stackable: "resource",
+                material: "wood",
+                amount: 1,
+              }),
+            ],
+            [
+              ...createText("at the "),
+              bench,
+              ...createText("Bench", colors.grey),
+              ...createText("."),
+            ],
+            [],
+            createText("Then you can pick"),
+            createText("one of the tools:"),
             [],
             [
               ...centerSprites(
@@ -982,9 +1011,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               ...createText(" to"),
             ],
             [
-              craft,
-              ...createText("Craft", colors.grey),
-              ...createText(" "),
+              ...createText("brew "),
               getItemSprite({
                 consume: "potion",
                 material: "gold",
@@ -1077,8 +1104,8 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               createText("I can help you"),
               [
                 ...createText("with "),
-                craft,
-                ...createText("Crafting", colors.silver),
+                brew,
+                ...createText("Brewing", colors.grey),
                 ...createText("."),
               ],
               [],
@@ -1086,21 +1113,16 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               [...createItemText(questItem), ...createText("?")],
               [],
               [
-                ...createText("Collect "),
-                ...createItemText({ stackable: "stick", amount: 10 }),
-              ],
-              [
-                ...createText("and craft "),
+                ...createText("Craft "),
                 ...createItemText({
                   stackable: "resource",
                   material: "wood",
                   amount: 1,
                 }),
-                ...createText("."),
+                ...createText(","),
               ],
-              [],
               [
-                ...createText("Find an "),
+                ...createText("find a "),
                 ...createItemText({
                   stackable: questItem.element === "fire" ? "apple" : "shroom",
                   amount: 1,
@@ -1213,8 +1235,8 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               ...createText(", or "),
             ],
             [
-              craft,
-              ...createText("Craft", colors.grey),
+              brew,
+              ...createText("Brew", colors.grey),
               ...createText(" from "),
               ...createItemName({ stackable: "leaf" }),
             ],
@@ -1248,6 +1270,15 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             item: {
               stat: "xp",
               amount: 5,
+            },
+            stock: 1,
+            prices: [],
+          },
+          {
+            item: {
+              consume: "key",
+              material: "gold",
+              amount: 1,
             },
             stock: 1,
             prices: [],
@@ -1342,7 +1373,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             {
               item: {
                 stat: "xp",
-                amount: 5,
+                amount: 3,
               },
               stock: 1,
               prices: [questItem],
@@ -1561,8 +1592,8 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
         kettleEntity[BURNABLE].eternal = true;
         kettleEntity[BURNABLE].simmer = true;
         createPopup(world, kettleEntity, {
-          recipes: craftingRecipes,
-          tabs: ["craft"],
+          recipes: brewingRecipes,
+          tabs: ["brew"],
         });
       }
 
@@ -1578,7 +1609,7 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
       createPopup(world, entity, {
         lines: [
           [
-            [craft, ...createText("Crafting", colors.silver)],
+            [brew, ...createText("Brewing", colors.silver)],
             repeat(swirl, frameWidth - 2),
             [],
             createText("Gather some items"),
@@ -1599,26 +1630,106 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
             [],
             ...centerLayer(
               [
-                [...createText("     3"), leaf, ...createText(" =  1"), stick],
-                [],
-                [...createText("    10"), stick, ...createText(" =  1"), wood],
-                [],
                 [
-                  ...createText("3"),
-                  berryDrop,
-                  ...createText(" + 1"),
-                  wood,
-                  ...createText(" = 10"),
-                  flask.wood.fire,
+                  ...repeat(none, 4),
+                  ...createItemText(
+                    { stackable: "berry", amount: 10 },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" = "),
+                  ...createItemText(
+                    { stackable: "fruit", amount: 1 },
+                    colors.grey,
+                    "short"
+                  ),
                 ],
                 [],
                 [
-                  ...createText("1"),
-                  apple,
-                  ...createText(" + 1"),
-                  wood,
-                  ...createText(" = 10"),
-                  flask.wood.fire,
+                  ...createItemText(
+                    { stackable: "berry", amount: 3 },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" + "),
+                  ...createItemText(
+                    {
+                      stackable: "resource",
+                      material: "wood",
+                      amount: 1,
+                    },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" = "),
+                  ...createItemText(
+                    {
+                      consume: "potion",
+                      material: "wood",
+                      stat: "hp",
+                      amount: 10,
+                    },
+                    colors.grey,
+                    "short"
+                  ),
+                ],
+                [],
+                [
+                  ...createItemText(
+                    { stackable: "fruit", amount: 1 },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" + "),
+                  ...createItemText(
+                    {
+                      stackable: "resource",
+                      material: "wood",
+                      amount: 3,
+                    },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" = "),
+                  ...createItemText(
+                    {
+                      consume: "potion",
+                      material: "iron",
+                      stat: "hp",
+                      amount: 10,
+                    },
+                    colors.grey,
+                    "short"
+                  ),
+                ],
+                [],
+                [
+                  ...createItemText(
+                    { stackable: "shroom", amount: 1 },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" + "),
+                  ...createItemText(
+                    {
+                      stackable: "resource",
+                      material: "wood",
+                      amount: 1,
+                    },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" = "),
+                  ...createItemText(
+                    {
+                      consume: "potion",
+                      material: "wood",
+                      stat: "mp",
+                      amount: 10,
+                    },
+                    colors.grey,
+                    "short"
+                  ),
                 ],
               ],
               frameWidth - 2

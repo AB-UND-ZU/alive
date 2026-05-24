@@ -660,6 +660,7 @@ export const dialogEnd: Sprite = {
   name: "dialog_end",
   layers: [
     { char: "▌", color: colors.white },
+    { char: "│", color: colors.black },
     { char: "║", color: colors.white },
   ],
 };
@@ -677,6 +678,7 @@ export const shoutEnd: Sprite = {
   name: "shout_end",
   layers: [
     { char: "▌", color: colors.red },
+    { char: "│", color: colors.black },
     { char: "║", color: colors.red },
   ],
 };
@@ -1892,6 +1894,14 @@ export const popupCenterEnd: Sprite = {
   ],
 };
 
+export const popupCenterTop: Sprite = {
+  name: "popup_center_top",
+  layers: [
+    { char: "▄", color: colors.black },
+    { char: "╤", color: colors.silver },
+  ],
+};
+
 export const popupDownStart: Sprite = {
   name: "popup_down_start",
   layers: [
@@ -2352,6 +2362,7 @@ export const info = createText("i", colors.lime)[0];
 export const shop = createText("$", colors.lime)[0];
 export const craft = createText("¢", colors.lime)[0];
 export const forge = createText("ƒ", colors.lime)[0];
+export const brew = createText("Σ", colors.lime)[0];
 
 export const class_ = createText("\u010b")[0];
 

@@ -112,17 +112,17 @@ export const generateMenu = async (world: World) => {
     });
 
     // add dummy and anvil
-    setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 9, "dummy");
-    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 9, "campfire");
-    setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 9, "dummy");
-    setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 6, "kettle");
+    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 10, "campfire");
+    setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 10, "dummy");
+    setMatrix(worldMatrix, titleCenter.x - 4, titleCenter.y - 6, "bench");
+    setMatrix(worldMatrix, titleCenter.x, titleCenter.y - 6, "kettle");
     setMatrix(worldMatrix, titleCenter.x + 4, titleCenter.y - 6, "anvil");
 
     // add trader
     const traderEntity = createNpc(
       world,
       "guide",
-      combine(size, titleCenter, { x: 0, y: -6 })
+      combine(size, titleCenter, { x: -4, y: -10 })
     );
 
     createPopup(world, traderEntity, {
