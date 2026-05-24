@@ -2355,6 +2355,14 @@ export const interactBar: Sprite = {
   },
 };
 
+export const brewItem: Sprite = {
+  name: "brew_item",
+  layers: [
+    { char: "∙", color: colors.grey },
+    { char: "·", color: colors.white },
+  ],
+};
+
 export const discovery = createText("°", colors.lime)[0];
 export const quest = createText("?", colors.lime)[0];
 export const ongoing = createText("?", colors.silver)[0];

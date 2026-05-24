@@ -11,7 +11,7 @@ import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM, rechargables } from "../components/item";
-import { isDead, isEnemy, isNpc } from "./damage";
+import { isDead, isEnemy } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
@@ -135,8 +135,6 @@ export const castableSkill = (
   item: TypedEntity<"ITEM">
 ) => {
   if (!isControllable(world, entity)) return false;
-
-  if (isNpc(world, entity)) return true;
 
   const skill = item[ITEM].skill;
   const tool = item[ITEM].tool;

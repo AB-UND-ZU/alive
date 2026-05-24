@@ -287,6 +287,7 @@ import { habitatDistribution } from "../engine/systems/fishing";
 import { getCell } from "../engine/systems/map";
 import { REFILLABLE } from "../engine/components/refillable";
 import { brewingRecipes } from "../game/balancing/brewing";
+import { BREWABLE } from "../engine/components/brewable";
 
 export const cellNames = [
   "air",
@@ -3936,6 +3937,7 @@ export const createCell = (
   } else if (cell === "kettle" || cell === "kettle_passive") {
     const isPassive = cell === "kettle_passive";
     const kettleEntity = entities.createBrewing(world, {
+      [BREWABLE]: { queue: [] },
       [BURNABLE]: {
         burning: !isPassive,
         eternal: !isPassive,
@@ -3945,7 +3947,9 @@ export const createCell = (
       },
       [COLLIDABLE]: {},
       [FOG]: { visibility: "hidden", type: "unit" },
+      [INVENTORY]: { items: [] },
       [LAYER]: {},
+      [LOOTABLE]: { disposable: false },
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },

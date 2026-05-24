@@ -24,7 +24,6 @@ import {
   getAttackables,
   getRoot,
   isDead,
-  isEnemy,
   isFriendlyFire,
 } from "./damage";
 import { STATS } from "../components/stats";
@@ -51,7 +50,7 @@ import {
 } from "../../game/assets/sprites";
 import { brighten, colors } from "../../game/assets/colors";
 import { MOVABLE } from "../components/movable";
-import { consumeCharge } from "./trigger";
+import { spendItem } from "./trigger";
 import { isInPopup } from "./popup";
 import { queueMessage } from "../../game/assets/utils";
 import { pickupOptions, play } from "../../game/sound";
@@ -182,9 +181,7 @@ export const chargeSlash = (world: World, entity: Entity, slash: Entity) => {
 
   if (!weaponEntity) return;
 
-  if (!isEnemy(world, entity)) {
-    consumeCharge(world, entity, { stackable: "charge" });
-  }
+  spendItem(world, entity, { stackable: "charge", amount: 1 });
 
   const weaponStats = getEquipmentStats(weaponEntity[ITEM], entity[NPC]?.type);
   const abilityStats = getAbilityStats(slash[ITEM]);
@@ -244,9 +241,8 @@ const totemUnits = {
 } as const;
 
 export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
-  if (!isEnemy(world, entity)) {
-    consumeCharge(world, entity, { stackable: "charge" });
-  }
+  spendItem(world, entity, { stackable: "charge", amount: 1 });
+
   const size = world.metadata.gameEntity[LEVEL].size;
   const orientation = entity[ORIENTABLE].facing as Orientation | undefined;
   const totemStats = getAbilityStats(totem[ITEM]);

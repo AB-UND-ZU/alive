@@ -346,7 +346,7 @@ export const unlockDoor = (world: World, entity: Entity, lockable: Entity) => {
   // consume one key
   const keyEntity = getUnlockKey(world, entity, lockable);
   if (!keyEntity) return;
-  consumeCharge(world, entity, keyEntity[ITEM]);
+  spendItem(world, entity, { ...keyEntity[ITEM], amount: 1 });
 
   // start animation
   createSequence<"unlock", UnlockSequence>(
@@ -452,42 +452,7 @@ export const performTrade = (
   if (!deal) return;
 
   for (const priceItem of deal.prices) {
-    // remove stats and items
-    if (priceItem.stat && !priceItem.material) {
-      entity[STATS][priceItem.stat] -= priceItem.amount;
-    } else {
-      const tradedId = (entity[INVENTORY] as Inventory).items.find((itemId) => {
-        const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
-        return matchesItem(world, itemEntity[ITEM], priceItem);
-      });
-
-      if (tradedId) {
-        const tradedEntity = world.assertByIdAndComponents(tradedId, [ITEM]);
-
-        if (
-          (priceItem.stackable || priceItem.consume) &&
-          tradedEntity[ITEM].amount > priceItem.amount
-        ) {
-          tradedEntity[ITEM].amount -= priceItem.amount;
-        } else {
-          for (const slot of slots) {
-            if (tradedEntity[ITEM][slot]) {
-              entity[EQUIPPABLE][slot] = undefined;
-            }
-          }
-          removeFromInventory(world, entity, tradedEntity);
-          disposeEntity(world, tradedEntity);
-        }
-      } else {
-        console.error("Unable to perform trade!", {
-          entity,
-          shop,
-          item: priceItem,
-        });
-
-        return;
-      }
-    }
+    spendItem(world, entity, priceItem);
   }
 
   // collect item
@@ -561,25 +526,45 @@ export const performTrade = (
   rerenderEntity(world, shop);
 };
 
-export const consumeCharge = (
+export const spendItem = (
   world: World,
   entity: Entity,
-  item: Pick<Item, "stackable" | "consume" | "material">,
-  amount = 1
+  item: Omit<Item, "bound" | "carrier">
 ) => {
-  // consume one stackable from inventory
-  const chargeId = entity[INVENTORY].items.findLast((itemId: number) => {
-    const itemEntity = world.assertByIdAndComponents(itemId, [ITEM]);
-    return matchesItem(world, item, itemEntity[ITEM]);
-  });
-  const chargeEntity = world.assertByIdAndComponents(chargeId, [ITEM]);
-  if (!isEnemy(world, entity)) {
-    if (chargeEntity[ITEM].amount === amount) {
-      removeFromInventory(world, entity, chargeEntity);
-      disposeEntity(world, chargeEntity);
-    } else {
-      chargeEntity[ITEM].amount -= amount;
+  if (item.stat && !item.material) {
+    if (!entity[STATS] || entity[STATS][item.stat] < item.amount) {
+      console.warn("Unable to spend stat", item, "for entity", entity, "!");
+      throw Error("Unable to spend stat!");
     }
+    entity[STATS][item.stat] -= item.amount;
+    return;
+  }
+
+  const inventoryItems =
+    (entity[INVENTORY] as Inventory)?.items.map((itemId) =>
+      world.assertByIdAndComponents(itemId, [ITEM])
+    ) || [];
+  const itemEntity = inventoryItems.findLast((itemEntity) =>
+    matchesItem(world, item, itemEntity[ITEM])
+  );
+
+  if (!itemEntity || itemEntity[ITEM].amount < item.amount) {
+    console.warn("Unable to spend item", item, "for entity", entity, "!");
+    throw Error("Unable to spend item!");
+  }
+
+  if (itemEntity[ITEM].amount === item.amount) {
+    if (entity[EQUIPPABLE]) {
+      for (const slot of slots) {
+        if (itemEntity[ITEM][slot]) {
+          entity[EQUIPPABLE][slot] = undefined;
+        }
+      }
+    }
+    removeFromInventory(world, entity, itemEntity);
+    disposeEntity(world, itemEntity);
+  } else {
+    itemEntity[ITEM].amount -= item.amount;
   }
 };
 
@@ -712,9 +697,9 @@ export const castConditionable = (
 
   // consume charges for active skills
   if (condition === "zap" || condition === "block") {
-    consumeCharge(world, entity, { stackable: "charge" });
+    spendItem(world, entity, { stackable: "charge", amount: 1 });
   } else if (condition === "hook") {
-    consumeCharge(world, entity, { stackable: "worm" });
+    spendItem(world, entity, { stackable: "worm", amount: 1 });
   }
 
   const modifierStat = conditionConfig[condition].modifier;

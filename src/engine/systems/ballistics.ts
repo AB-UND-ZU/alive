@@ -15,7 +15,6 @@ import { PROJECTILE } from "../components/projectile";
 import { SPRITE } from "../components/sprite";
 import { arrow } from "../../game/assets/sprites";
 import { INVENTORY } from "../components/inventory";
-import { consumeCharge } from "./trigger";
 import { createItemAsDrop, dropEntity, isDecayed, isDecaying } from "./drop";
 import { BELONGABLE } from "../components/belongable";
 import {
@@ -25,7 +24,6 @@ import {
   isDead,
   isEnemy,
   isFriendlyFire,
-  isNpc,
 } from "./damage";
 import { isCollision } from "./movement";
 import { isImmersible, isSubmerged } from "./immersion";
@@ -42,6 +40,7 @@ import { SHOOTABLE } from "../components/shootable";
 import { shot, shotShadow } from "../../game/assets/templates/particles";
 import { attemptBubbleAbsorb } from "./magic";
 import { NPC } from "../components/npc";
+import { spendItem } from "./trigger";
 
 export const getProjectiles = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -110,9 +109,7 @@ export const shootArrow = (
   >;
   const orientation = entity[ORIENTABLE].facing || "up";
 
-  if (!isNpc(world, entity)) {
-    consumeCharge(world, entity, { stackable: "arrow" });
-  }
+  spendItem(world, entity, { stackable: "arrow", amount: 1 });
 
   const tick =
     world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[

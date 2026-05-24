@@ -45,6 +45,7 @@ import { FARMABLE } from "../components/farmable";
 import { SPRITE } from "../components/sprite";
 import {
   beach,
+  brewItem,
   createText,
   mergeSprites,
   sapling1,
@@ -64,7 +65,7 @@ import {
   getItemSprite,
   queueMessage,
 } from "../../game/assets/utils";
-import { consumeCharge, removeFromInventory } from "./trigger";
+import { removeFromInventory, spendItem } from "./trigger";
 import { SEQUENCABLE } from "../components/sequencable";
 import { BURNABLE } from "../components/burnable";
 import { DROPPABLE } from "../components/droppable";
@@ -82,6 +83,12 @@ import { FREEZABLE } from "../components/freezable";
 import { updateSandCell, updateWaterCell } from "./water";
 import { ENTERABLE } from "../components/enterable";
 import { LOCKABLE } from "../components/lockable";
+import { Recipe } from "../components/popup";
+import { Brewable, BREWABLE } from "../components/brewable";
+import {
+  brewingDurationFactor,
+  getBrewingDeal,
+} from "../../game/balancing/brewing";
 
 export const isPlantable = (
   world: World,
@@ -361,7 +368,7 @@ export const performFill = (
   if (!immersible) return;
 
   // fill sand
-  consumeCharge(world, entity, { stackable: "sand" }, trenchFill);
+  spendItem(world, entity, { stackable: "sand", amount: trenchFill });
   disposeEntity(world, immersible);
 
   // place beach
@@ -526,7 +533,7 @@ export const plantSeed = (world: World, entity: Entity, item: Entity) => {
   if (!farmable || !stackable || !plantConfig) return;
 
   // remove seed
-  consumeCharge(world, entity, item[ITEM]);
+  spendItem(world, entity, { ...item[ITEM], amount: 1 });
 
   // place crop
   const saplingEntity = entities.createWeeds(world, {
@@ -590,6 +597,24 @@ export const refillWater = (world: World, entity: Entity, element: Element) => {
     );
     removeFromInventory(world, entity, bucketItem);
   }
+};
+
+export const queueBrew = (
+  world: World,
+  entity: Entity,
+  brewing: Entity,
+  recipe: Recipe,
+  optionIndex: number
+) => {
+  const deal = getBrewingDeal(recipe, optionIndex);
+  for (const priceItem of deal.prices) {
+    spendItem(world, entity, priceItem);
+  }
+
+  (brewing[BREWABLE] as Brewable).queue.push({
+    item: deal.item,
+    duration: recipe.duration,
+  });
 };
 
 const saplings = [sapling1, sapling2, sapling3, sapling4, sapling5];
@@ -684,6 +709,64 @@ export default function setupHarvest(world: World) {
             random(7, 13)) /
             10
         );
+    }
+
+    // handle kettle brewing
+    for (const entity of world.getEntities([
+      BREWABLE,
+      BURNABLE,
+      INVENTORY,
+      POSITION,
+      RENDERABLE,
+      SPRITE,
+    ])) {
+      const queuedItem = entity[BREWABLE].queue[0];
+
+      // ensure kettle is simmering when active
+      const shouldSimmer = !!queuedItem;
+      if (entity[BURNABLE].simmer !== shouldSimmer) {
+        entity[BURNABLE].burning = shouldSimmer;
+        entity[BURNABLE].eternal = shouldSimmer;
+        entity[BURNABLE].simmer = shouldSimmer;
+        rerenderEntity(world, entity);
+      }
+
+      if (!queuedItem) continue;
+
+      // start brewing
+      const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
+      if (!queuedItem.generation) {
+        queuedItem.generation = worldGeneration;
+        continue;
+      }
+
+      // transform finished items
+      if (
+        worldGeneration <
+        queuedItem.generation + queuedItem.duration * brewingDurationFactor
+      )
+        continue;
+
+      entity[BREWABLE].queue.shift();
+      addToInventory(
+        world,
+        entity,
+        { [ITEM]: queuedItem.item },
+        queuedItem.item.amount
+      );
+
+      // shrink items
+      entity[INVENTORY].items.forEach((itemId) => {
+        const itemEntity = world.assertByIdAndComponents(itemId, [
+          ITEM,
+          RENDERABLE,
+          SPRITE,
+        ]);
+        itemEntity[SPRITE] = brewItem;
+        rerenderEntity(world, itemEntity);
+      });
+
+      rerenderEntity(world, entity);
     }
 
     // handle player harvesting entities or refilling land

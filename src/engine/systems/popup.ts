@@ -76,7 +76,7 @@ import { executeCommand, parseCommand } from "../../game/assets/commands";
 import { recolorSprite } from "../../game/assets/templates";
 import { invertOrientation } from "../../game/math/path";
 import { plantConfigs } from "../../game/balancing/harvesting";
-import { isPlantable, plantSeed } from "./harvest";
+import { isPlantable, plantSeed, queueBrew } from "./harvest";
 import { getBrewingDeal } from "../../game/balancing/brewing";
 
 export const isInPopup = (world: World, entity: Entity) =>
@@ -1058,7 +1058,9 @@ export default function setupPopup(world: World) {
         if (deal) {
           const missingItem = missingFunds(world, heroEntity, deal)[0];
           if (canShop(world, heroEntity, deal)) {
-            performTrade(world, heroEntity, tradeEntity);
+            const recipeIndex = selections[0];
+            const recipe = popupEntity[POPUP].recipes[recipeIndex];
+            queueBrew(world, heroEntity, tradeEntity, recipe, verticalIndex);
           } else if (missingItem) {
             queueMessage(world, heroEntity, {
               line: addBackground(

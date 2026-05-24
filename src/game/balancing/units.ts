@@ -593,6 +593,11 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         bound: true,
       },
       {
+        stackable: "arrow",
+        amount: Infinity,
+        bound: true,
+      },
+      {
         amount: 10,
         consume: "potion",
         material: "wood",

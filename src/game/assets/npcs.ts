@@ -143,7 +143,6 @@ import { REFERENCE } from "../../engine/components/reference";
 import { POPUP } from "../../engine/components/popup";
 import { isTouch } from "../../components/Dimensions";
 import { COVERABLE } from "../../engine/components/coverable";
-import { BURNABLE } from "../../engine/components/burnable";
 import { recolorSprite } from "./templates";
 import { BLOCKABLE } from "../../engine/components/blockable";
 import { boots, bow, sword, waveSpell } from "./templates/equipments";
@@ -1578,9 +1577,7 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
     finished: false,
     updated: false,
   };
-  const kettleEntity = getIdentifierAndComponents(world, "earth_kettle", [
-    BURNABLE,
-  ]);
+  const kettleEntity = getIdentifier(world, "earth_kettle");
 
   step({
     stage,
@@ -1588,9 +1585,6 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
     isCompleted: () => !!kettleEntity && entity[POPUP].active,
     onLeave: () => {
       if (kettleEntity) {
-        kettleEntity[BURNABLE].burning = true;
-        kettleEntity[BURNABLE].eternal = true;
-        kettleEntity[BURNABLE].simmer = true;
         createPopup(world, kettleEntity, {
           recipes: brewingRecipes,
           tabs: ["brew"],

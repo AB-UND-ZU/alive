@@ -4567,7 +4567,9 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
           const consumptionText = itemConsumption
             ? createCountable(
                 { [itemConsumption.countable]: itemConsumption.amount },
-                itemConsumption.countable
+                itemConsumption.countable,
+                "text",
+                itemConsumption.percentage
               )
             : [];
           const useText = itemConsumption
@@ -5200,7 +5202,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
           ...(forgePreview[rowIndex - scrollIndex] || []),
         ];
       })
-    : [createText("No items to forge", colors.grey)];
+    : [createText("Nothing to forge.", colors.grey)];
 
   const details = !hasItems
     ? undefined
@@ -5220,7 +5222,7 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
               `Not able to ${isAdding ? "add" : "forge"}`,
               colors.grey
             ),
-        createText(selectedSprite.name.toLowerCase(), colors.grey),
+        createText(`${selectedSprite.name.toLowerCase()}.`, colors.grey),
       ];
 
   const popupResult = renderPopup(
@@ -5403,6 +5405,12 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
     : [];
   const recipes = (entity[POPUP] as Popup).recipes;
   const selectedRecipe = recipes[verticalIndex];
+  const selectedShoppable =
+    selectedRecipe &&
+    heroEntity &&
+    selectedRecipe.options.some((_, optionIndex) =>
+      canShop(world, heroEntity, getBrewingDeal(selectedRecipe, optionIndex))
+    );
 
   const [recipeIndex] = getTabSelections(world, entity);
   const viewedRecipe = recipes[recipeIndex];
@@ -5424,13 +5432,14 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
       }),
       ...createText(`${optionItem.amount}`),
     ];
+    const durationText = [
+      delay,
+      ...createText(viewedRecipe.duration.toString(), colors.yellow),
+    ];
     const line = [
       ...createText(viewedSprite.name),
       ...amountText,
-      ...repeat(
-        none,
-        frameWidth - 4 - viewedSprite.name.length - amountText.length
-      ),
+      ...repeat(none, 10 - amountText.length - viewedSprite.name.length),
     ];
     content = [
       ...repeat([], verticalIndex),
@@ -5440,13 +5449,24 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
         ...(optionShoppable
           ? shaded(line, colors.green, "▄")
           : dotted(line, colors.red)),
+        ...repeat(none, frameWidth - 4 - durationText.length - line.length),
+        ...durationText,
       ],
-      createText(
-        viewedRecipe.options.length > 1
-          ? `Recipe ${verticalIndex + 1} of ${viewedRecipe.options.length}:`
-          : `Recipe:`,
-        colors.grey
-      ),
+      viewedRecipe.options.length > 1
+        ? [
+            ...createText("Recipe ", colors.grey),
+            ...underline(
+              createText((verticalIndex + 1).toString(), colors.silver),
+              colors.grey
+            ),
+            ...createText(" of ", colors.grey),
+            ...createText(
+              viewedRecipe.options.length.toString(),
+              colors.silver
+            ),
+            ...createText(":", colors.grey),
+          ]
+        : createText("Recipe:", colors.grey),
       ...optionDeal.prices.map((price) => {
         const priceSprite = getItemSprite(price);
         const hasIngredient =
@@ -5501,20 +5521,30 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
         recolorSprite(times, textColor),
         ...createText(`${craftItem.amount}`, textColor),
       ];
+      const durationText = selected
+        ? [
+            delay,
+            ...createText(selectedRecipe.duration.toString(), colors.yellow),
+          ]
+        : [recipeShoppable ? recolorSprite(star, colors.lime) : none];
       const line = [
         ...createText(itemSprite.name, textColor),
         ...amountText,
-        ...repeat(
-          none,
-          frameWidth - 5 - amountText.length - itemSprite.name.length
-        ),
-        recipeShoppable ? recolorSprite(star, colors.lime) : none,
+        ...repeat(none, 10 - amountText.length - itemSprite.name.length),
       ];
 
       return [
         none,
         itemSprite,
-        ...(selected ? shaded(line, colors.grey) : line),
+        ...(selected
+          ? shaded(
+              line,
+              recipeShoppable ? colors.green : colors.grey,
+              recipeShoppable ? "▄" : undefined
+            )
+          : line),
+        ...repeat(none, frameWidth - 4 - durationText.length - line.length),
+        ...durationText,
       ];
     });
   }
@@ -5532,7 +5562,7 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
     state,
     icon,
     content,
-    viewedDeal ? undefined : "selected",
+    viewedDeal ? undefined : selectedShoppable ? "active" : "selected",
     details,
     undefined,
     viewedRecipe

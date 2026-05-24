@@ -70,6 +70,7 @@ import { Baitable, BAITABLE } from "./components/baitable";
 import { Fishable, FISHABLE } from "./components/fishable";
 import { Farmable, FARMABLE } from "./components/farmable";
 import { Refillable, REFILLABLE } from "./components/refillable";
+import { Brewable, BREWABLE } from "./components/brewable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -79,6 +80,7 @@ export type Entity = Record<LevelName, {}> & {
   [BEHAVIOUR]: Behaviour;
   [BELONGABLE]: Belongable;
   [BLOCKABLE]: Blockable;
+  [BREWABLE]: Brewable;
   [BUMPABLE]: Bumpable;
   [BURNABLE]: Burnable;
   [CASTABLE]: Castable;
@@ -279,10 +281,13 @@ export const createBlock = entityFactory([
 ]);
 
 export const createBrewing = entityFactory([
+  BREWABLE,
   BURNABLE,
   COLLIDABLE,
   LAYER,
+  LOOTABLE,
   FOG,
+  INVENTORY,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,

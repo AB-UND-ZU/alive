@@ -490,7 +490,7 @@ const executeList = (world: World, entity: Entity, list: string) => {
 };
 
 const executeFocus = (world: World, entity: Entity, id: string) => {
-  if (id === "off") {
+  if (!id) {
     setHighlight(world);
     return;
   }
@@ -615,9 +615,9 @@ commandSignatures.list = {
 commandSignatures.focus = {
   short: "f",
   executor: executeFocus,
-  minArgs: 1,
+  minArgs: 0,
   maxArgs: 1,
-  usage: "/focus <id>",
+  usage: "/focus [id]",
 };
 commandSignatures.new = {
   short: "n",

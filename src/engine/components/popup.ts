@@ -21,6 +21,7 @@ export type Ingredients = {
 export type Recipe = {
   item: Omit<Item, "carrier" | "bound">;
   options: Omit<Item, "carrier" | "bound">[][];
+  duration: number;
 };
 
 export type Target = {
