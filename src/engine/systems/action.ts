@@ -291,7 +291,7 @@ export default function setupAction(world: World) {
                 isInTab(world, entity, "sell") ||
                 (isInTab(world, entity, "forge") && selections.length === 2) ||
                 isInTab(world, entity, "craft") ||
-                (isInTab(world, entity, "brew") && selections.length === 1) ||
+                (isInTab(world, entity, "brew") && selections.length === 2) ||
                 (isInTab(world, entity, "quest") &&
                   isQuestCompleted(world, entity, tradeEntity) &&
                   ((selections.length === 0 &&
@@ -305,7 +305,7 @@ export default function setupAction(world: World) {
               entity[PLAYER] &&
               addEntity &&
               ((isInTab(world, entity, "forge") && selections.length < 2) ||
-                (isInTab(world, entity, "brew") && selections.length < 1) ||
+                (isInTab(world, entity, "brew") && selections.length <= 1) ||
                 ((isInTab(world, entity, "class") ||
                   isInTab(world, entity, "style")) &&
                   selections.length <= 1) ||

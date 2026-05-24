@@ -227,6 +227,8 @@ import {
   caret,
   forge,
   popupCenterTop,
+  createProgress,
+  stretch,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -369,6 +371,9 @@ import {
   weaponElementPixels,
   swordPixels,
   wandPixels,
+  kettlePixels,
+  brewingPixels,
+  centerLayer,
 } from "./pixels";
 import { getItemSellPrice } from "../balancing/trading";
 import { getForgeOptions, getForgeStatus } from "../balancing/forging";
@@ -460,7 +465,8 @@ import {
   plantConfigs,
 } from "../balancing/harvesting";
 import { getKeyFromIndex } from "../../components/Keyboard";
-import { getBrewingDeal } from "../balancing/brewing";
+import { brewingDurationFactor, getBrewingDeal } from "../balancing/brewing";
+import { Brewable, BREWABLE } from "../../engine/components/brewable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -5404,21 +5410,49 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
       )
     : [];
   const recipes = (entity[POPUP] as Popup).recipes;
-  const selectedRecipe = recipes[verticalIndex];
+
+  const [firstIndex, recipeIndex] = getTabSelections(world, entity);
+  const isOverview = firstIndex === undefined;
+  const selectedRecipe = isOverview ? undefined : recipes[verticalIndex];
   const selectedShoppable =
     selectedRecipe &&
     heroEntity &&
     selectedRecipe.options.some((_, optionIndex) =>
       canShop(world, heroEntity, getBrewingDeal(selectedRecipe, optionIndex))
     );
-
-  const [recipeIndex] = getTabSelections(world, entity);
   const viewedRecipe = recipes[recipeIndex];
   const viewedSprite = viewedRecipe && getItemSprite(viewedRecipe.item);
   const viewedDeal =
     viewedRecipe && getBrewingDeal(viewedRecipe, verticalIndex);
   const viewedShoppable =
     viewedDeal && heroEntity && canShop(world, heroEntity, viewedDeal);
+
+  // value container to rerender content
+  const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
+  if (!state.particles.brew) {
+    const brewParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: worldGeneration,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.brew = world.getEntityId(brewParticle);
+  }
+
+  const brewParticle = world.assertByIdAndComponents(state.particles.brew, [
+    PARTICLE,
+  ]);
+  const lastBrewGeneration = brewParticle[PARTICLE].amount;
+
+  // rerender content on blinking
+  if (lastBrewGeneration !== worldGeneration) {
+    rerenderEntity(world, entity);
+    brewParticle[PARTICLE].amount = worldGeneration;
+  }
 
   let content = [createText("Nothing to brew.", colors.grey)];
 
@@ -5547,28 +5581,142 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
         ...durationText,
       ];
     });
+  } else {
+    const brewedItems = (entity[INVENTORY] as Inventory).items.map((itemId) =>
+      world.assertByIdAndComponents(itemId, [ITEM])
+    );
+    const hasLoot = brewedItems.length > 0;
+    const frameColor = hasLoot ? colors.blue : colors.grey;
+    const frameOverflow = brewedItems.length > 4;
+    const brewingQueue = (entity[BREWABLE] as Brewable).queue;
+    const brewingItem = brewingQueue[0];
+    const queuedItems = brewingQueue.slice(1, 3);
+    const queueOverflow = brewingQueue.length > 3;
+    const barWidth = frameWidth - 5;
+    const progress = brewingItem?.generation
+      ? worldGeneration - brewingItem.generation
+      : 0;
+
+    content = overlay(
+      overlay(kettlePixels, hasLoot ? brewingPixels : []).map((line) => [
+        ...repeat(none, 9),
+        ...line,
+      ]),
+      pixelFrame(
+        8,
+        4,
+        frameColor,
+        undefined,
+        centerLayer(
+          hasLoot
+            ? chunked(
+                [
+                  ...brewedItems
+                    .slice(0, frameOverflow ? 3 : 4)
+                    .map((item) => [
+                      ...(item[ITEM].amount > 99
+                        ? [...createText("9", colors.grey), ninePlus]
+                        : createText(
+                            item[ITEM].amount.toString().padStart(2),
+                            colors.grey
+                          )),
+                      getItemSprite(item[ITEM]),
+                    ])
+                    .flat(),
+                  ...(frameOverflow ? createText("...", colors.white) : []),
+                ],
+                6
+              )
+            : [
+                createText("Kettle", colors.grey),
+                createText("empty.", colors.grey),
+              ],
+          6
+        ),
+        hasLoot ? createText("-Done", frameColor) : undefined
+      ),
+      [
+        ...repeat([], 4),
+        ...pixelFrame(
+          frameWidth - 2,
+          5,
+          brewingItem ? colors.blue : colors.grey,
+          "dotted",
+          brewingItem
+            ? [
+                [
+                  getItemSprite(brewingItem.item),
+                  ...createProgress(
+                    {
+                      mp: progress,
+                      maxMp: brewingItem.duration * brewingDurationFactor - 1,
+                    },
+                    "mp",
+                    barWidth,
+                    true,
+                    undefined,
+                    [
+                      ...createText(getItemSprite(brewingItem.item).name),
+                      times,
+                      ...createText(brewingItem.item.amount.toString()),
+                    ]
+                  ),
+                ],
+                ...queuedItems.map((queue, index) =>
+                  stretch(
+                    [
+                      ...createItemName(queue.item),
+                      recolorSprite(times, colors.grey),
+                      ...createText(queue.item.amount.toString(), colors.grey),
+                    ],
+                    index === 0 || !queueOverflow
+                      ? createCountable(
+                          { retrigger: queue.duration },
+                          "retrigger"
+                        )
+                      : index === 1 && queueOverflow
+                      ? createText(`+${brewingQueue.length - 3}`, colors.silver)
+                      : [],
+                    barWidth + 1
+                  )
+                ),
+              ]
+            : [
+                createText("Select recipes", colors.grey),
+                createText("for brewing.", colors.grey),
+              ]
+        ),
+      ]
+    );
   }
 
-  const details =
-    !(viewedRecipe && selectedRecipe) || viewedShoppable
-      ? getItemDescription(viewedRecipe?.item || selectedRecipe.item)
-      : [
-          createText("Not enough items", colors.grey),
-          createText(`for ${viewedSprite.name.toLowerCase()}.`, colors.grey),
-        ];
+  const details = isOverview
+    ? undefined
+    : !(viewedRecipe && selectedRecipe) || viewedShoppable
+    ? getItemDescription(viewedRecipe?.item || selectedRecipe?.item)
+    : [
+        createText("Not enough items", colors.grey),
+        createText(`for ${viewedSprite.name.toLowerCase()}.`, colors.grey),
+      ];
   const popupResult = renderPopup(
     world,
     entity,
     state,
     icon,
     content,
-    viewedDeal ? undefined : selectedShoppable ? "active" : "selected",
+    viewedDeal || isOverview
+      ? undefined
+      : selectedShoppable
+      ? "active"
+      : "selected",
     details,
     undefined,
-    viewedRecipe
+    isOverview
+      ? createButton("ADD\u0119", 6, false, false, false, "lime")
+      : viewedRecipe
       ? createButton("COOK", 6, !viewedShoppable, false, false, "lime")
       : createButton("VIEW\u0119", 7, false, false, false, "lime"),
-    viewedRecipe
+    !isOverview
       ? createButton("\u011aBACK", 7, false, false, false, "red")
       : undefined
   );

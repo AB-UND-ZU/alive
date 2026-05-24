@@ -169,6 +169,19 @@ export const getCircleOrientations = () => {
   return fullCircle;
 };
 
+export const kettlePixels = pixelate(
+  "\x08▄ \x08▄     \x08▄ \x08▄",
+  "\x08█ \x08█ \x0c█ \x0c█ \x0c█ \x0c█ \x08█ \x08█",
+  "\x08█ \x08█ \x0c█ \x0c█ \x0c█ \x0c█ \x08█ \x08█",
+  "\x08▀ \x08█ \x08█ \x08▀ \x08▀ \x08█ \x08█ \x08▀",
+);
+
+export const brewingPixels = pixelate(
+  "",
+  "   \x0f▄ \x0f▄",
+  "   \x04▀ \x04▀",
+);
+
 export const bodyPixels = pixelate(
   "",
   "\x07▄ \x07█ \x07▀ \x07▀ \x07█ \x07▄",

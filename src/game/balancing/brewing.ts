@@ -3,23 +3,23 @@ import { Deal, Recipe } from "../../engine/components/popup";
 export const brewingRecipes: Recipe[] = [
   {
     item: { stackable: "fruit", amount: 1 },
-    duration: 3,
+    duration: 5,
     options: [[{ stackable: "berry", amount: 10 }]],
   },
   {
     item: { stackable: "herb", amount: 1 },
-    duration: 3,
+    duration: 5,
     options: [[{ stackable: "flower", amount: 10 }]],
   },
   {
     item: { stackable: "seed", amount: 1 },
-    duration: 3,
+    duration: 5,
     options: [[{ stackable: "leaf", amount: 10 }]],
   },
 
   {
     item: { stackable: "grain", amount: 5 },
-    duration: 3,
+    duration: 5,
     options: [[{ stackable: "wheat", amount: 1 }]],
   },
   {

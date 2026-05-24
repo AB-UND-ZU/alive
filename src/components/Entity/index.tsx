@@ -41,7 +41,6 @@ import FogOfWar from "./FogOfWar";
 import { LIQUID } from "../../engine/components/liquid";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { BREWABLE } from "../../engine/components/brewable";
-import { sum } from "../../game/math/std";
 
 function Entity({
   entity,
@@ -180,7 +179,7 @@ function Entity({
     entity[BREWABLE] && visibleLoot
       ? {
           ...visibleLoot,
-          amount: sum(lootSegments.map((segment) => segment.amount || 0)),
+          amount: lootSegments.length,
         }
       : visibleLoot;
 

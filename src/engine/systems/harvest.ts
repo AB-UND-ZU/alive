@@ -615,6 +615,13 @@ export const queueBrew = (
     item: deal.item,
     duration: recipe.duration,
   });
+
+  queueMessage(world, entity, {
+    delay: 0,
+    fast: false,
+    orientation: "up",
+    line: [...createText("Added "), ...createItemText(deal.item)],
+  });
 };
 
 const saplings = [sapling1, sapling2, sapling3, sapling4, sapling5];

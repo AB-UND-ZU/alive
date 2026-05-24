@@ -196,8 +196,8 @@ export const getDeal = (
   } else if (tab === "craft") {
     const ingredients = popupEntity[POPUP].ingredients[verticalIndex];
     return getCraftingDeal(ingredients);
-  } else if (tab === "brew" && selections.length === 1) {
-    const recipe = popupEntity[POPUP].recipes[selections[0]];
+  } else if (tab === "brew" && selections.length === 2) {
+    const recipe = popupEntity[POPUP].recipes[selections[1]];
     return getBrewingDeal(recipe, verticalIndex);
   } else if (tab === "quest") {
     return popupEntity[POPUP].deals[verticalIndex];
@@ -721,8 +721,10 @@ export default function setupPopup(world: World) {
         ? popupEntity[POPUP].ingredients.length
         : transaction === "brew"
         ? selections.length === 1
-          ? popupEntity[POPUP].recipes[selections[0]].options.length
-          : popupEntity[POPUP].recipes.length
+          ? popupEntity[POPUP].recipes.length
+          : selections.length === 2
+          ? popupEntity[POPUP].recipes[selections[1]].options.length
+          : 0
         : transaction === "quest"
         ? selections.length === 0
           ? Math.max(
@@ -1058,7 +1060,7 @@ export default function setupPopup(world: World) {
         if (deal) {
           const missingItem = missingFunds(world, heroEntity, deal)[0];
           if (canShop(world, heroEntity, deal)) {
-            const recipeIndex = selections[0];
+            const recipeIndex = selections[1];
             const recipe = popupEntity[POPUP].recipes[recipeIndex];
             queueBrew(world, heroEntity, tradeEntity, recipe, verticalIndex);
           } else if (missingItem) {

@@ -2131,6 +2131,7 @@ const statConfig: Record<
   },
   retrigger: {
     color: colors.olive,
+    background: colors.olive,
     sprite: delay,
   },
   reproc: {
@@ -2229,28 +2230,30 @@ export const createProgress = (
   stats: Partial<Stats>,
   stat: keyof Stats,
   width: number,
-  depletable = true
+  depletable = true,
+  maximum: number | null = null,
+  content?: Sprite[]
 ) => {
   const config = statConfig[stat];
   const background = config.background || colors.grey;
-  const maximum = (config.max && stats[config.max]) ?? 99;
-  const value = Math.min(stats[stat] ?? 0, maximum);
+  const statMaximum = maximum ?? (config.max && stats[config.max]) ?? 99;
+  const value = Math.min(stats[stat] ?? 0, statMaximum);
   const display =
     depletable || value === 0 || value >= 1 ? Math.floor(value) : 1;
-  const progress = clamp(lerp(0, width, value / (maximum || 1)), 0, width);
+  const progress = clamp(lerp(0, width, value / (statMaximum || 1)), 0, width);
   const full = Math.floor(progress);
   const partial = normalize(progress, 1);
   const segment = Math.floor(partial * progressResolution);
 
   const text = padCenter(
-    isFinite(maximum)
-      ? ` ${display.toString().padStart(2, " ")}/${(stats[config.max!] ?? 99)
+    isFinite(statMaximum)
+      ? ` ${display.toString().padStart(2, " ")}/${statMaximum
           .toString()
           .padEnd(2, " ")}`
       : ` ${display}`,
     width - 3
   );
-  const sprites = [
+  const sprites = content || [
     ...createText(text, config.color),
     ...repeat(none, width - text.length - stat.length - 1),
     config.sprite,
@@ -2276,7 +2279,7 @@ export const createProgress = (
       { char: "░", color: background },
       ...sprite.layers,
       { char: "▀", color: colors.black },
-      ...sprites[index].layers,
+      ...(sprites[index]?.layers || []),
     ],
   }));
 };
@@ -2358,7 +2361,7 @@ export const interactBar: Sprite = {
 export const brewItem: Sprite = {
   name: "brew_item",
   layers: [
-    { char: "∙", color: colors.grey },
+    { char: "∙", color: colors.navy },
     { char: "·", color: colors.white },
   ],
 };
