@@ -53,7 +53,12 @@ import {
   queueMessage,
 } from "../../game/assets/utils";
 import { getItemSellPrice } from "../../game/balancing/trading";
-import { getForgeStatus } from "../../game/balancing/forging";
+import {
+  forgeTicks,
+  getForgeStatus,
+  getForgingSteps,
+  hittingWidth,
+} from "../../game/balancing/forging";
 import { getCraftingDeal } from "../../game/balancing/crafting";
 import { getIdentifierAndComponents, setHighlight, TEST_MODE } from "../utils";
 import { FOCUSABLE } from "../components/focusable";
@@ -78,6 +83,7 @@ import { invertOrientation } from "../../game/math/path";
 import { plantConfigs } from "../../game/balancing/harvesting";
 import { isPlantable, plantSeed, queueBrew } from "./harvest";
 import { getBrewingDeal } from "../../game/balancing/brewing";
+import { FORGABLE } from "../components/forgable";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -178,7 +184,7 @@ export const getDeal = (
         item: getItemSellPrice(soldItem[ITEM])[0],
       };
     }
-  } else if (tab === "forge" && selections.length === 2) {
+  } else if (tab === "forge" && selections.length >= 2) {
     const { baseItem, addItem, resultItem } = getForgeStatus(
       world,
       entity,
@@ -228,7 +234,7 @@ export const canTrade = (
   if (tab === "buy") return canShop(world, heroEntity, deal);
   if (tab === "sell") return canSell(world, deal.prices[0]);
   if (tab === "forge")
-    return selections.length === 2 && canShop(world, heroEntity, deal);
+    return selections.length === 4 && canShop(world, heroEntity, deal);
   if (tab === "craft")
     return selections.length === 1 && canShop(world, heroEntity, deal);
 
@@ -712,8 +718,8 @@ export default function setupPopup(world: World) {
         : transaction === "sell"
         ? inventoryItems.length
         : transaction === "forge"
-        ? selections.length === 2
-          ? 1
+        ? selections.length >= 2
+          ? 0
           : inventoryItems.length
         : transaction === "buy"
         ? popupEntity[POPUP].deals.length
@@ -979,42 +985,49 @@ export default function setupPopup(world: World) {
         }
       } else if (tab === "forge") {
         const deal = tradeEntity && getDeal(world, heroEntity, tradeEntity);
-        if (deal) {
-          const resultItem = deal.item;
+        const [firstIndex, secondIndex] = selections;
+        const forgeStatus = getForgeStatus(
+          world,
+          heroEntity,
+          firstIndex,
+          secondIndex,
+          verticalIndex
+        );
+        if (deal && tradeEntity[FORGABLE]) {
+          tradeEntity[FORGABLE].steps = [];
+          tradeEntity[FORGABLE].progress = 0;
+          tradeEntity[FORGABLE].completed = deal.item;
+          tradeEntity[FORGABLE].lastElapsed = 0;
+          tradeEntity[FORGABLE].lastAction = undefined;
+          tradeEntity[FORGABLE].hitIndex = undefined;
           performTrade(world, heroEntity, tradeEntity);
-          popTabSelection(world, tradeEntity);
-          popTabSelection(world, tradeEntity);
-
-          const resultIndex = (heroEntity[INVENTORY]?.items || []).findIndex(
-            (itemId) =>
-              matchesItem(
-                world,
-                resultItem,
-                world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
-              )
-          );
-
-          if (resultIndex !== -1) {
-            setVerticalIndex(world, tradeEntity, resultIndex);
-          }
+          pushTabSelection(world, tradeEntity);
         } else if (addEntity) {
-          const [firstIndex, secondIndex] = selections;
-          const { forgeable, addItem, baseItem } = getForgeStatus(
-            world,
-            heroEntity,
-            firstIndex,
-            secondIndex,
-            verticalIndex
-          );
+          const popupSequence = getSequence(world, addEntity, "popup");
+          const { forgeable, addItem, baseItem, resultItem } = forgeStatus;
           const nextItem = addItem || baseItem;
 
-          if (forgeable) {
+          if (forgeable && selections.length < 2) {
             pushTabSelection(world, addEntity);
 
-            // scroll up on final screen
-            if (addItem) {
+            // scroll up for preview
+            if (selections.length === 2) {
               setVerticalIndex(world, addEntity, 0);
             }
+          } else if (
+            selections.length === 2 &&
+            addEntity[FORGABLE] &&
+            baseItem &&
+            addItem &&
+            resultItem &&
+            popupSequence
+          ) {
+            addEntity[FORGABLE].steps = getForgingSteps(forgeStatus);
+            addEntity[FORGABLE].progress = 0;
+            addEntity[FORGABLE].completed = undefined;
+            addEntity[FORGABLE].lastElapsed = popupSequence.elapsed;
+            addEntity[FORGABLE].lastAction = "swing";
+            pushTabSelection(world, addEntity);
           } else {
             queueMessage(world, heroEntity, {
               line: nextItem
@@ -1031,6 +1044,25 @@ export default function setupPopup(world: World) {
               fast: false,
               delay: 0,
             });
+          }
+        } else if (useEntity && useEntity[FORGABLE]) {
+          const popupSequence = getSequence(world, useEntity, "popup");
+          if (useEntity[FORGABLE].lastAction === "swing" && popupSequence) {
+            // calculate hammer position from animation offset
+            const tick = world.metadata.gameEntity[REFERENCE].tick;
+            const delta =
+              popupSequence.elapsed - useEntity[FORGABLE].lastElapsed;
+            useEntity[FORGABLE].lastElapsed = popupSequence.elapsed;
+            useEntity[FORGABLE].lastAction = "trigger";
+            const offset = delta % (tick * forgeTicks);
+            const distance =
+              Math.floor(delta / tick) % (forgeTicks * 2) < forgeTicks
+                ? tick * forgeTicks - offset
+                : offset;
+            useEntity[FORGABLE].hitIndex = Math.floor(
+              (distance / (tick * forgeTicks)) * hittingWidth
+            );
+            rerenderEntity(world, useEntity);
           }
         }
       } else if (tab === "craft") {
@@ -1275,16 +1307,18 @@ export default function setupPopup(world: World) {
     } else if (heroEntity[PLAYER].actionTriggered === "left") {
       heroEntity[PLAYER].actionTriggered = undefined;
       const tab = getTab(world, popupEntity);
+      const questCompleted =
+        isQuestCompleted(world, heroEntity, popupEntity) &&
+        selections.length === 2;
+      const forgeCompleted = tab === "forge" && selections.length === 4;
 
       if (tab === "chat") {
         // clear chat
         popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
       } else if (
         selections.length > 0 &&
-        !(
-          isQuestCompleted(world, heroEntity, popupEntity) &&
-          selections.length === 2
-        ) &&
+        !questCompleted &&
+        !forgeCompleted &&
         tab !== "class" &&
         tab !== "style"
       ) {
@@ -1293,6 +1327,9 @@ export default function setupPopup(world: World) {
         const previousIndex =
           verticalIndex === undefined || tab === "use" ? 0 : verticalIndex;
         setVerticalIndex(world, popupEntity, previousIndex);
+      } else if (questCompleted || forgeCompleted) {
+        // close final screens on escape
+        closePopup(world, heroEntity, popupEntity);
       }
     }
 

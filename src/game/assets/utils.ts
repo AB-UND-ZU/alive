@@ -499,7 +499,7 @@ export const renderPopup = (
     (state.args.contentIndex >= foldSize && state.elapsed > popupTime) ||
     state.args.instant;
   const hintGeneration = world.getEntityByIdAndComponents(
-    state.particles["hint-0"],
+    state.particles["popup-hint-0"],
     [PARTICLE]
   )?.[PARTICLE].amount;
   const tab = getTab(world, entity);
@@ -513,12 +513,12 @@ export const renderPopup = (
     !["use", "map", "chat"].includes(tab);
   const topOverlayTarget = visibleOverlay && scrollRatio > 0 ? 1 : 0;
   const topOverlayAmount = world.getEntityByIdAndComponents(
-    state.particles["overlay-up-0"],
+    state.particles["popup-overlay-up-0"],
     [PARTICLE]
   )?.[PARTICLE].amount;
   const bottomOverlayTarget = visibleOverlay && scrollRatio < 1 ? 1 : 0;
   const bottomOverlayAmount = world.getEntityByIdAndComponents(
-    state.particles["overlay-down-0"],
+    state.particles["popup-overlay-down-0"],
     [PARTICLE]
   )?.[PARTICLE].amount;
   const hintAmount =
@@ -527,15 +527,14 @@ export const renderPopup = (
       : worldGeneration % 4 === 0
       ? 1
       : 0;
+  const scrolled = verticalIndex !== state.args.verticalIndex;
   let renderContent = generationChanged;
-  let renderTabs =
-    horizontalIndex !== state.args.horizontalIndex || generationChanged;
+  let renderTabs = horizontalIndex !== state.args.horizontalIndex;
   let renderDetails = settled;
   let renderSeparator = details && renderTabs;
   let renderButtons = generationChanged;
   let renderHint = renderTabs || (!details && hintGeneration !== hintAmount);
-  let renderScroll =
-    visibleScroll && (generationChanged || renderContent || renderTabs);
+  let renderScroll = visibleScroll && (scrolled || heightChanged || renderTabs);
   let renderTopOverlay =
     renderTabs ||
     generationChanged ||
@@ -1035,6 +1034,8 @@ export const renderPopup = (
   if ((initial || windowChanged) && !state.args.instant) {
     // interpolate frame on initial render
     for (const particleName in state.particles) {
+      if (!particleName.startsWith("popup-")) continue;
+
       const particleEntity = world.assertByIdAndComponents(
         state.particles[particleName],
         [PARTICLE]
@@ -1058,7 +1059,7 @@ export const renderPopup = (
   } else if (settled && !state.args.instant) {
     // stop animating settled popup
     for (const particleName in state.particles) {
-      if (particleName === "selection") continue;
+      if (!particleName.startsWith("popup-")) continue;
 
       const particleEntity = world.assertByIdAndComponents(
         state.particles[particleName],
@@ -1102,9 +1103,7 @@ export const renderPopup = (
 
   // move selection
   if (
-    (verticalIndex !== state.args.verticalIndex ||
-      renderTabs ||
-      generationChanged) &&
+    (scrolled || renderTabs || generationChanged) &&
     state.particles.selection &&
     selection
   ) {
@@ -1140,7 +1139,7 @@ export const renderPopup = (
   // scroll overlays
   if (renderTopOverlay) {
     updated = true;
-    if (!state.particles["overlay-up-0"]) {
+    if (!state.particles["popup-overlay-up-0"]) {
       for (
         let overlayIndex = 0;
         overlayIndex < frameWidth - 2;
@@ -1157,7 +1156,7 @@ export const renderPopup = (
           [RENDERABLE]: { generation: 1 },
           [SPRITE]: popupOverlay,
         });
-        state.particles[`overlay-up-${overlayIndex}`] =
+        state.particles[`popup-overlay-up-${overlayIndex}`] =
           world.getEntityId(overlayParticle);
       }
     }
@@ -1168,7 +1167,7 @@ export const renderPopup = (
       overlayIndex += 1
     ) {
       const overlayParticle = world.assertByIdAndComponents(
-        state.particles[`overlay-up-${overlayIndex}`],
+        state.particles[`popup-overlay-up-${overlayIndex}`],
         [PARTICLE, ORIENTABLE]
       );
       overlayParticle[PARTICLE].amount = topOverlayTarget;
@@ -1180,7 +1179,7 @@ export const renderPopup = (
 
   if (renderBottomOverlay) {
     updated = true;
-    if (!state.particles["overlay-down-0"]) {
+    if (!state.particles["popup-overlay-down-0"]) {
       for (
         let overlayIndex = 0;
         overlayIndex < frameWidth - 2;
@@ -1199,7 +1198,7 @@ export const renderPopup = (
           [RENDERABLE]: { generation: 1 },
           [SPRITE]: popupOverlay,
         });
-        state.particles[`overlay-down-${overlayIndex}`] =
+        state.particles[`popup-overlay-down-${overlayIndex}`] =
           world.getEntityId(overlayParticle);
       }
     }
@@ -1210,7 +1209,7 @@ export const renderPopup = (
       overlayIndex += 1
     ) {
       const overlayParticle = world.assertByIdAndComponents(
-        state.particles[`overlay-down-${overlayIndex}`],
+        state.particles[`popup-overlay-down-${overlayIndex}`],
         [PARTICLE, ORIENTABLE]
       );
       overlayParticle[PARTICLE].amount = bottomOverlayTarget;
@@ -1223,7 +1222,7 @@ export const renderPopup = (
   // blinking scroll hint
   if (renderHint) {
     updated = true;
-    if (!state.particles["hint-0"]) {
+    if (!state.particles["popup-hint-0"]) {
       for (let hintIndex = 0; hintIndex < 3; hintIndex += 1) {
         const hintParticle = entities.createParticle(world, {
           [PARTICLE]: {
@@ -1235,13 +1234,14 @@ export const renderPopup = (
           [RENDERABLE]: { generation: 1 },
           [SPRITE]: popupHint,
         });
-        state.particles[`hint-${hintIndex}`] = world.getEntityId(hintParticle);
+        state.particles[`popup-hint-${hintIndex}`] =
+          world.getEntityId(hintParticle);
       }
     }
 
     for (let hintIndex = 0; hintIndex < 3; hintIndex += 1) {
       const hintParticle = world.assertByIdAndComponents(
-        state.particles[`hint-${hintIndex}`],
+        state.particles[`popup-hint-${hintIndex}`],
         [PARTICLE]
       );
       hintParticle[PARTICLE].amount = hintAmount;

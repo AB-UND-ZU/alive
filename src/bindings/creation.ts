@@ -288,6 +288,7 @@ import { getCell } from "../engine/systems/map";
 import { REFILLABLE } from "../engine/components/refillable";
 import { brewingRecipes } from "../game/balancing/brewing";
 import { BREWABLE } from "../engine/components/brewable";
+import { FORGABLE } from "../engine/components/forgable";
 
 export const cellNames = [
   "air",
@@ -3996,6 +3997,7 @@ export const createCell = (
     const anvilEntity = entities.createForging(world, {
       [COLLIDABLE]: {},
       [FOG]: { visibility: "hidden", type: "unit" },
+      [FORGABLE]: { steps: [], progress: 0, lastElapsed: 0 },
       [LAYER]: {},
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },

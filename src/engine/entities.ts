@@ -71,6 +71,7 @@ import { Fishable, FISHABLE } from "./components/fishable";
 import { Farmable, FARMABLE } from "./components/farmable";
 import { Refillable, REFILLABLE } from "./components/refillable";
 import { Brewable, BREWABLE } from "./components/brewable";
+import { Forgable, FORGABLE } from "./components/forgable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -98,6 +99,7 @@ export type Entity = Record<LevelName, {}> & {
   [FISHABLE]: Fishable;
   [FOCUSABLE]: Focusable;
   [FOG]: Fog;
+  [FORGABLE]: Forgable;
   [FRAGMENT]: Fragment;
   [FREEZABLE]: Freezable;
   [HARVESTABLE]: Harvestable;
@@ -575,6 +577,7 @@ export const createForging = entityFactory([
   COLLIDABLE,
   LAYER,
   FOG,
+  FORGABLE,
   POSITION,
   RENDERABLE,
   SEQUENCABLE,

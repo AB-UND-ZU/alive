@@ -10,6 +10,7 @@ import {
   interactHeight,
   lootHeight,
   particleHeight,
+  selectionHeight,
   tooltipHeight,
   transientHeight,
   wireHeight,
@@ -236,6 +237,13 @@ import {
   craftLeftActive,
   craftDownLeftActive,
   craftDownActive,
+  forgeHammer,
+  forgeHandle,
+  popupCenterStart,
+  popupCenterEnd,
+  popupSide,
+  forgeMiss,
+  forgeHit,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -381,9 +389,19 @@ import {
   kettlePixels,
   brewingPixels,
   centerLayer,
+  anvilPixels,
 } from "./pixels";
 import { getItemSellPrice } from "../balancing/trading";
-import { getForgeOptions, getForgeStatus } from "../balancing/forging";
+import {
+  hittingOffset,
+  hittingArea,
+  getForgeOptions,
+  getForgeStatus,
+  hittingWidth,
+  forgingCompleted,
+  forgeTicks,
+  performForgeHit,
+} from "../balancing/forging";
 import { getItemDiff, getItemStats } from "../balancing/equipment";
 import { getCraftingDeal } from "../balancing/crafting";
 import {
@@ -474,6 +492,7 @@ import {
 import { getKeyFromIndex } from "../../components/Keyboard";
 import { brewingDurationFactor, getBrewingDeal } from "../balancing/brewing";
 import { Brewable, BREWABLE } from "../../engine/components/brewable";
+import { Forgable, FORGABLE } from "../../engine/components/forgable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -4948,10 +4967,12 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
 const forgeWidth = 7;
 const forgeHeight = 3;
 const forgeBlink = 3;
+const forgeSeparator = 2;
 
 export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [INVENTORY]);
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  let updated = false;
 
   const showItem = generation % forgeBlink > 0;
 
@@ -4998,8 +5019,12 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
       "selected",
       []
     );
-  const [firstIndex, secondIndex] = getTabSelections(world, entity);
+  const selections = getTabSelections(world, entity);
+  const [firstIndex, secondIndex] = selections;
 
+  const isHitting = selections.length === 3;
+  const hittingDone = isHitting && forgingCompleted(entity);
+  const isCompleted = selections.length === 4;
   const firstItem = inventoryItems[firstIndex];
   const secondItem = inventoryItems[secondIndex];
   const selectedItem = inventoryItems[verticalIndex];
@@ -5042,6 +5067,38 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
     : none;
   const addingAmount = addItem ? `+${addItem.amount}` : "";
 
+  const resultDiff =
+    baseItem && resultItem && getItemDiff(world, baseItem, resultItem);
+  const resultContent = resultItem && [
+    createText("Preview:  ", colors.grey),
+    [
+      popupActive,
+      yieldSprite,
+      ...shaded(
+        createText(
+          `${yieldSprite.name}${" ".repeat(7 - yieldSprite.name.length)}`
+        ),
+        colors.green,
+        "▄"
+      ),
+      none,
+    ],
+    createText("Changes:  ", colors.grey),
+    ...Object.entries(resultDiff || {})
+      .filter(([key, value]) => value !== 0)
+      .map(([key, value]) => {
+        const stat = key as keyof ItemStats;
+        const statSprite = getStatSprite(stat, "display");
+        const statColor = getStatColor(stat);
+        const valueText = `${value > 0 ? "+" : ""}${value}`;
+        return [
+          ...createText(valueText, statColor),
+          statSprite,
+          ...createText(statSprite.name, statColor),
+          ...repeat(none, 9 - valueText.length - statSprite.name.length),
+        ];
+      }),
+  ];
   const layers = [
     [
       ...repeat([], forgeHeight - 1),
@@ -5107,155 +5164,326 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
       : layers)
   );
 
-  const resultDiff =
-    baseItem && resultItem && getItemDiff(world, baseItem, resultItem);
-  const resultContent = resultItem && [
-    createText("Preview:  ", colors.grey),
-    [
-      popupActive,
-      yieldSprite,
-      ...shaded(
-        createText(
-          `${yieldSprite.name}${" ".repeat(7 - yieldSprite.name.length)}`
-        ),
-        colors.green,
-        "▄"
-      ),
-      none,
-    ],
-    createText("Changes:  ", colors.grey),
-    ...Object.entries(resultDiff || {})
-      .filter(([key, value]) => value !== 0)
-      .map(([key, value]) => {
-        const stat = key as keyof ItemStats;
-        const statSprite = getStatSprite(stat, "display");
-        const statColor = getStatColor(stat);
-        const valueText = `${value > 0 ? "+" : ""}${value}`;
-        return [
-          ...createText(valueText, statColor),
-          statSprite,
-          ...createText(statSprite.name, statColor),
-          ...repeat(none, 9 - valueText.length - statSprite.name.length),
-        ];
-      }),
-  ];
+  // show hammer for hitting
+  const steps = (entity[FORGABLE] as Forgable).steps;
+  const step = steps[entity[FORGABLE].progress];
+  const tick = world.metadata.gameEntity[REFERENCE].tick;
+  const hammerGeneration = Math.floor(
+    (state.elapsed - entity[FORGABLE].lastElapsed) / tick
+  );
+  const hammerStart = {
+    x: (hittingWidth + 1) / -2,
+    y: -8,
+  };
+  if (!state.particles.hammer) {
+    const hammerParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: hammerStart.x,
+        offsetY: hammerStart.y,
+        offsetZ: selectionHeight,
+        animatedOrigin: copy(hammerStart),
+        amount: hammerGeneration,
+        duration: tick,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.hammer = world.getEntityId(hammerParticle);
+    const handleParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: hammerStart.x + 1,
+        offsetY: hammerStart.y,
+        offsetZ: selectionHeight,
+        animatedOrigin: add(hammerStart, { x: 1, y: 0 }),
+        duration: tick,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.handle = world.getEntityId(handleParticle);
+    const endParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: hammerStart.x + 2,
+        offsetY: hammerStart.y,
+        offsetZ: selectionHeight,
+        animatedOrigin: add(hammerStart, { x: 2, y: 0 }),
+        duration: tick,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.end = world.getEntityId(endParticle);
+  }
 
-  const content: Sprite[][] = hasItems
-    ? Array.from({
-        length: Math.max(5, inventoryItems.length, resultContent?.length || 0),
-      }).map((_, rowIndex) => {
-        const forgeItem = inventoryItems[rowIndex];
+  const hammerParticle = world.assertByIdAndComponents(state.particles.hammer, [
+    PARTICLE,
+  ]);
+  const handleParticle = world.assertByIdAndComponents(state.particles.handle, [
+    PARTICLE,
+  ]);
+  const endParticle = world.assertByIdAndComponents(state.particles.end, [
+    PARTICLE,
+  ]);
+  const lastHammerGeneration = hammerParticle[PARTICLE].amount;
+  const isAnimating = hammerParticle[PARTICLE].duration !== tick;
+  const animateHammer =
+    isHitting && !hittingDone && entity[FORGABLE].lastAction;
 
-        if (!forgeItem || resultContent) {
-          return [
-            ...(resultContent?.[rowIndex] || repeat(none, 10)),
-            ...(forgePreview[rowIndex - scrollIndex] || []),
-          ];
+  // rerender content on blinking
+  if (
+    (animateHammer && lastHammerGeneration !== hammerGeneration) ||
+    (!animateHammer && isAnimating)
+  ) {
+    updated = true;
+    hammerParticle[PARTICLE].amount = hammerGeneration;
+
+    const particles: [TypedEntity<"PARTICLE">, Sprite][] = [
+      [hammerParticle, forgeHammer],
+      [handleParticle, forgeHandle],
+      [endParticle, forgeHandle],
+    ];
+    if (animateHammer && entity[FORGABLE].lastAction === "swing") {
+      particles.forEach(([particleEntity, sprite], index) => {
+        particleEntity[SPRITE] = sprite;
+        particleEntity[PARTICLE].offsetX =
+          hammerGeneration % (forgeTicks * 2) < forgeTicks
+            ? (hittingWidth + 1) / -2 + index
+            : (hittingWidth + 1) / 2 - 2 + index;
+        particleEntity[PARTICLE].duration = tick * forgeTicks;
+        rerenderEntity(world, particleEntity);
+      });
+    } else if (
+      animateHammer &&
+      ["trigger", "hit", "miss"].includes(entity[FORGABLE].lastAction)
+    ) {
+      if (hammerGeneration >= 5) {
+        entity[FORGABLE].lastElapsed = state.elapsed;
+        if (entity[FORGABLE].lastAction === "hit") {
+          entity[FORGABLE].progress += 1;
         }
+        entity[FORGABLE].lastAction = "swing";
+        rerenderEntity(world, entity);
+      } else {
+        const trigger = entity[FORGABLE].lastAction === "trigger";
+        particles.forEach(([particleEntity], index) => {
+          if (hammerGeneration < 2) {
+            particleEntity[PARTICLE].offsetX =
+              (hittingWidth + 1) / -2 + index + entity[FORGABLE].hitIndex;
+            particleEntity[PARTICLE].duration = tick / 2;
+          } else if (hammerGeneration < 3) {
+            particleEntity[PARTICLE].offsetY = -6;
+          } else if (hammerGeneration < 4 && trigger) {
+            performForgeHit(world, entity);
+            particleEntity[PARTICLE].offsetY = -8;
+          } else if (hammerGeneration < 5) {
+            particleEntity[PARTICLE].offsetX = (hittingWidth + 1) / -2 + index;
+          }
+          rerenderEntity(world, particleEntity);
+        });
+      }
+    } else if (!animateHammer && isAnimating) {
+      particles.forEach(([particleEntity], index) => {
+        particleEntity[SPRITE] = none;
+        particleEntity[PARTICLE].offsetX = (hittingWidth + 1) / -2 + index;
+        particleEntity[PARTICLE].duration = tick;
+        rerenderEntity(world, particleEntity);
+      });
+    }
+  }
 
-        const selected = verticalIndex === rowIndex;
-        const added = rowIndex === firstIndex || rowIndex === secondIndex;
-        const itemSprite = getItemSprite(
-          forgeItem[ITEM],
-          "display",
-          undefined,
-          1
-        );
-        const textColor = selected && !added ? colors.white : colors.grey;
-        const itemText = createText(itemSprite.name, textColor);
-        const forgeOptions = getForgeOptions(
-          firstItem?.[ITEM] || forgeItem[ITEM]
-        );
-        const materialOption = forgeOptions.find((option) =>
-          matchesItem(world, forgeItem[ITEM], option.add)
-        );
-        const insufficientMaterials =
-          materialOption && forgeItem[ITEM].amount < materialOption.add.amount;
-        const forgeable =
-          !added &&
-          ((!firstItem && forgeOptions.length > 0) ||
-            (firstItem &&
-              !secondItem &&
-              materialOption &&
-              !insufficientMaterials));
+  let content: Sprite[][] = [createText("Nothing to forge.", colors.grey)];
+  let details: Sprite[][] | undefined = undefined;
 
-        if (added) {
-          const placeholder = [
-            itemSprite,
-            ...itemText,
-            ...repeat(none, 7 - itemText.length),
-          ];
-          return [
-            none,
-            ...strikethrough(
-              selected ? dotted(placeholder, colors.red) : placeholder
+  if (isCompleted) {
+    content = centerLayer(
+      [
+        [],
+        ...pixelFrame(
+          rewardWidth,
+          3,
+          colors.lime,
+          "solid",
+          [
+            centerSprites(
+              createItemName(entity[FORGABLE].completed),
+              rewardWidth - 2
             ),
-            none,
-            ...(forgePreview[rowIndex - scrollIndex] || []),
-          ];
-        }
+          ],
+          createText("Result", colors.lime)
+        ),
+      ],
+      frameWidth - 2
+    );
+    details = getItemDescription(entity[FORGABLE].completed);
+  } else if (isHitting && addItem && entity[FORGABLE]) {
+    const hittingPreview = [
+      hittingDone
+        ? centerSprites([forgeHammer, forgeHandle, forgeHandle], 7)
+        : [],
+      ...pixelFrame(7, 3, colors.grey, undefined, [
+        centerSprites(
+          hittingDone
+            ? createText("Done!")
+            : [
+                ...createText((entity[FORGABLE].progress + 1).toString()),
+                ...createText("/", colors.grey),
+                ...createText(entity[FORGABLE].steps.length.toString()),
+              ],
+          5
+        ),
+      ]),
+    ];
+    const hitBox = step
+      ? [
+          ...repeat(none, hittingOffset),
+          ...repeat(forgeMiss, step.offset),
+          ...repeat(forgeHit, Math.floor((step.width - 1) / 2)),
+          mergeSprites(getItemSprite(step.item), forgeHit),
+          ...repeat(forgeHit, Math.ceil((step.width - 1) / 2)),
+          ...repeat(forgeMiss, hittingArea - step.offset - step.width),
+        ]
+      : resultItem
+      ? [
+          ...repeat(none, hittingOffset + Math.floor((hittingArea - 1) / 2)),
+          getItemSprite(resultItem),
+        ]
+      : [];
+    content = [
+      [
+        ...(hittingDone ? [] : createText("Steps: ")),
+        ...steps
+          .slice(entity[FORGABLE].progress)
+          .map((step) => getItemSprite(step.item)),
+      ],
+      createText("─".repeat(frameWidth - 2), colors.silver),
+      [],
+      [],
+      hitBox,
+      ...overlay(
+        anvilPixels.map((line) => [...repeat(none, hittingOffset), ...line]),
+        hittingPreview.map((line) => [...repeat(none, 10), ...line])
+      ),
+    ];
+  } else if (hasItems) {
+    content = Array.from({
+      length: Math.max(5, inventoryItems.length, resultContent?.length || 0),
+    }).map((_, rowIndex) => {
+      const forgeItem = inventoryItems[rowIndex];
 
-        const line = [...itemText, ...repeat(none, 7 - itemText.length)];
+      if (!forgeItem || resultContent) {
+        return [
+          ...(resultContent?.[rowIndex] || repeat(none, 10)),
+          ...(forgePreview[rowIndex - scrollIndex] || []),
+        ];
+      }
 
-        if (!forgeable) {
-          return [
-            none,
-            itemSprite,
-            ...(selected ? dotted(line, colors.red) : line),
-            none,
-            ...(forgePreview[rowIndex - scrollIndex] || []),
-          ];
-        }
+      const selected = verticalIndex === rowIndex;
+      const added = rowIndex === firstIndex || rowIndex === secondIndex;
+      const itemSprite = getItemSprite(
+        forgeItem[ITEM],
+        "display",
+        undefined,
+        1
+      );
+      const textColor = selected && !added ? colors.white : colors.grey;
+      const itemText = createText(itemSprite.name, textColor);
+      const forgeOptions = getForgeOptions(
+        firstItem?.[ITEM] || forgeItem[ITEM]
+      );
+      const materialOption = forgeOptions.find((option) =>
+        matchesItem(world, forgeItem[ITEM], option.add)
+      );
+      const insufficientMaterials =
+        materialOption && forgeItem[ITEM].amount < materialOption.add.amount;
+      const forgeable =
+        !added &&
+        ((!firstItem && forgeOptions.length > 0) ||
+          (firstItem &&
+            !secondItem &&
+            materialOption &&
+            !insufficientMaterials));
 
+      if (added) {
+        const placeholder = [
+          itemSprite,
+          ...itemText,
+          ...repeat(none, 7 - itemText.length),
+        ];
         return [
           none,
-          itemSprite,
-          ...(selected ? shaded(line, colors.grey) : line),
+          ...strikethrough(
+            selected ? dotted(placeholder, colors.red) : placeholder
+          ),
           none,
           ...(forgePreview[rowIndex - scrollIndex] || []),
         ];
-      })
-    : [createText("Nothing to forge.", colors.grey)];
+      }
 
-  const details = !hasItems
-    ? undefined
-    : resultItem
-    ? getItemDescription(resultItem)
-    : selectedForgeable
-    ? getItemDescription(selectedItem[ITEM])
-    : [
-        selectedInsufficient && addItem
-          ? createText(
-              `Only have ${selectedInsufficient.amount} of ${addItem.amount}`,
-              colors.grey
-            )
-          : selectedDuplicate
-          ? createText("Already added", colors.grey)
-          : createText(
-              `Not able to ${isAdding ? "add" : "forge"}`,
-              colors.grey
-            ),
-        createText(`${selectedSprite.name.toLowerCase()}.`, colors.grey),
+      const line = [...itemText, ...repeat(none, 7 - itemText.length)];
+
+      if (!forgeable) {
+        return [
+          none,
+          itemSprite,
+          ...(selected ? dotted(line, colors.red) : line),
+          none,
+          ...(forgePreview[rowIndex - scrollIndex] || []),
+        ];
+      }
+
+      return [
+        none,
+        itemSprite,
+        ...(selected ? shaded(line, colors.grey) : line),
+        none,
+        ...(forgePreview[rowIndex - scrollIndex] || []),
       ];
+    });
+
+    details = resultItem
+      ? getItemDescription(resultItem)
+      : selectedForgeable
+      ? getItemDescription(selectedItem[ITEM])
+      : [
+          selectedInsufficient && addItem
+            ? createText(
+                `Only have ${selectedInsufficient.amount} of ${addItem.amount}`,
+                colors.grey
+              )
+            : selectedDuplicate
+            ? createText("Already added", colors.grey)
+            : createText(
+                `Not able to ${isAdding ? "add" : "forge"}`,
+                colors.grey
+              ),
+          createText(`${selectedSprite.name.toLowerCase()}.`, colors.grey),
+        ];
+  }
 
   const popupResult = renderPopup(
     world,
     entity,
     state,
     forge,
-    resultContent
+    resultContent && !isHitting
       ? content.slice(0, Math.max(5, resultContent.length))
       : content,
-    !hasItems || resultItem
+    !hasItems || resultItem || isHitting || isCompleted
       ? undefined
       : selectedForgeable
       ? "selected"
       : "blocked",
     details,
     undefined,
-    resultItem
-      ? createButton("YIELD", 7, !selectedForgeable, false, false, "lime")
-      : hasItems
+    hittingDone
+      ? createButton("YIELD", 7, false, false, false, "lime")
+      : isHitting
+      ? entity[FORGABLE].hitGeneration
+        ? createButton("NEXT", 6, false, false, false, "lime")
+        : createButton("HIT", 5, false, false, false, "lime")
+      : resultItem
+      ? createButton("START", 7, !selectedForgeable, false, false, "lime")
+      : hasItems && !isCompleted
       ? createButton(
           `${isAdding ? "ADD" : "BASE"}\u0119`,
           isAdding ? 5 : 6,
@@ -5265,13 +5493,44 @@ export const displayForge: Sequence<PopupSequence> = (world, entity, state) => {
           "lime"
         )
       : undefined,
-    addItem
+    isHitting
+      ? createButton("ABORT", 7, false, false, false, "red")
+      : addItem
       ? createButton("\u011aBACK", 7, false, false, false, "red")
       : undefined
   );
 
+  // draw side separators
+  const leftSeparatorParticle = world.assertByIdAndComponents(
+    state.particles[`popup-left-${frameHeight - 2 - forgeSeparator}`],
+    [ORIENTABLE, PARTICLE, SPRITE]
+  );
+  const rightSeparatorParticle = world.assertByIdAndComponents(
+    state.particles[`popup-right-${forgeSeparator - 1}`],
+    [ORIENTABLE, PARTICLE, SPRITE]
+  );
+  const separatorVisible = isHitting;
+  if (
+    separatorVisible &&
+    state.args.contentIndex > 0 &&
+    entity[POPUP].tabs.length === 1 &&
+    leftSeparatorParticle[ORIENTABLE].facing
+  ) {
+    leftSeparatorParticle[SPRITE] = popupCenterStart;
+    leftSeparatorParticle[ORIENTABLE].facing = undefined;
+    rightSeparatorParticle[SPRITE] = popupCenterEnd;
+    rightSeparatorParticle[ORIENTABLE].facing = undefined;
+    updated = true;
+  } else if (!separatorVisible && !leftSeparatorParticle[ORIENTABLE].facing) {
+    leftSeparatorParticle[SPRITE] = popupSide;
+    leftSeparatorParticle[ORIENTABLE].facing = "left";
+    rightSeparatorParticle[SPRITE] = popupSide;
+    rightSeparatorParticle[ORIENTABLE].facing = "right";
+    updated = true;
+  }
+
   return {
-    updated: popupResult.updated,
+    updated: updated || popupResult.updated,
     finished: popupResult.finished,
   };
 };

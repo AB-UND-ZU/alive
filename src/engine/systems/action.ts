@@ -39,6 +39,7 @@ import { isControllable } from "./freeze";
 import { BLOCKABLE } from "../components/blockable";
 import { getIdentifier } from "../utils";
 import { canDig, getFarmable } from "./harvest";
+import { forgingCompleted } from "../../game/balancing/forging";
 
 export const getBlockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -289,7 +290,9 @@ export default function setupAction(world: World) {
               tradeEntity &&
               (isInTab(world, entity, "buy") ||
                 isInTab(world, entity, "sell") ||
-                (isInTab(world, entity, "forge") && selections.length === 2) ||
+                (isInTab(world, entity, "forge") &&
+                  selections.length === 3 &&
+                  forgingCompleted(popupEntity)) ||
                 isInTab(world, entity, "craft") ||
                 (isInTab(world, entity, "brew") && selections.length === 2) ||
                 (isInTab(world, entity, "quest") &&
@@ -304,8 +307,8 @@ export default function setupAction(world: World) {
             if (
               entity[PLAYER] &&
               addEntity &&
-              ((isInTab(world, entity, "forge") && selections.length < 2) ||
-                (isInTab(world, entity, "brew") && selections.length <= 1) ||
+              ((isInTab(world, entity, "forge") && selections.length < 3) ||
+                (isInTab(world, entity, "brew") && selections.length < 2) ||
                 ((isInTab(world, entity, "class") ||
                   isInTab(world, entity, "style")) &&
                   selections.length <= 1) ||
@@ -335,9 +338,22 @@ export default function setupAction(world: World) {
       const tool = world.getEntityById(castableEntity?.[EQUIPPABLE]?.tool);
 
       const usePopup = getIdentifier(world, "use");
+      const currentPopup = world.getEntityByIdAndComponents(
+        entity[PLAYER]?.popup,
+        [POPUP]
+      );
+      const popupSelections = currentPopup
+        ? getTabSelections(world, currentPopup)
+        : [];
+
       const useId =
         usePopup && isInTab(world, entity, "inspect")
           ? world.getEntityId(usePopup)
+          : currentPopup &&
+            isInTab(world, entity, "forge") &&
+            popupSelections.length === 3 &&
+            !forgingCompleted(currentPopup)
+          ? world.getEntityId(currentPopup)
           : undefined;
 
       if (

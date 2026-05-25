@@ -16,6 +16,21 @@ import {
   Tool,
 } from "../../engine/components/item";
 import { matchesItem } from "../../engine/systems/popup";
+import { choice, normalize, random, repeat } from "../math/std";
+import {
+  Forgable,
+  FORGABLE,
+  ForgeStep,
+} from "../../engine/components/forgable";
+import { getSequence } from "../../engine/systems/sequence";
+import {
+  calculateDamage,
+  createAmountMarker,
+} from "../../engine/systems/damage";
+import { STATS } from "../../engine/components/stats";
+import { PLAYER } from "../../engine/components/player";
+import { play } from "../sound";
+import { rerenderEntity } from "../../engine/systems/renderer";
 
 const forgableMaterials = materials.slice(0, -1);
 const harvestMaterials: Material[] = ["wood", "iron"];
@@ -349,4 +364,90 @@ export const getForgeStatus = (
     addItem: targetOption.add,
     resultItem: secondIndex === undefined ? undefined : targetOption.result,
   };
+};
+
+export const forgeTicks = 3;
+export const hittingOffset = 2;
+export const hittingWidth = 15;
+export const hittingArea = 6;
+
+const stepWidths: Record<Element | Material, number> = {
+  wood: 5,
+  iron: 4,
+  gold: 3,
+  diamond: 2,
+  ruby: 1,
+  air: 1,
+  fire: 1,
+  water: 1,
+  earth: 1,
+};
+
+export const forgingCompleted = (entity: Entity) =>
+  entity[FORGABLE] &&
+  entity[FORGABLE].steps.length === entity[FORGABLE].progress;
+
+export const getForgingSteps = (forgeStatus: ForgeStatus) => {
+  const { forgeable, addItem, resultItem } = forgeStatus;
+  if (!forgeable || !addItem || !resultItem) return [];
+
+  const items = [...repeat(addItem, addItem.amount), resultItem];
+
+  // ensure no offset is repeated
+  const steps: ForgeStep[] = [];
+  let offset = -1;
+  for (const item of items) {
+    const width = stepWidths[item.element || item.material || "wood"];
+    const gap = hittingArea - width;
+    let newOffset = random(0, gap);
+    if (newOffset === offset) {
+      newOffset = normalize(newOffset + choice(-1, 1), gap);
+    }
+    offset = newOffset;
+    steps.push({
+      width,
+      offset,
+      item,
+    });
+  }
+  return steps;
+};
+
+export const performForgeHit = (world: World, entity: Entity) => {
+  const popupSequence = getSequence(world, entity, "popup");
+  const steps = (entity[FORGABLE] as Forgable).steps;
+  const step = steps[entity[FORGABLE].progress];
+  const heroEntity = world.getEntity([PLAYER, STATS]);
+  const hitIndex = entity[FORGABLE].hitIndex;
+
+  if (
+    !popupSequence ||
+    !step ||
+    !heroEntity ||
+    hitIndex === undefined ||
+    entity[FORGABLE].lastAction !== "trigger"
+  )
+    return;
+
+  if (hitIndex < hittingOffset || hitIndex >= hittingArea + hittingOffset) {
+    // outside of anvil, hit self
+    entity[FORGABLE].lastAction = "miss";
+
+    const { damage, hp } = calculateDamage(world, { true: 1 }, {}, heroEntity);
+    heroEntity[STATS].hp = hp;
+
+    play("magic", { intensity: damage, proximity: 1 });
+
+    // add hit marker
+    createAmountMarker(world, heroEntity, -damage, "up", "true");
+  } else if (
+    hitIndex < hittingOffset + step.offset ||
+    hitIndex >= hittingOffset + step.offset + step.width
+  ) {
+    // miss
+    entity[FORGABLE].lastAction = "miss";
+    rerenderEntity(world, entity);
+  } else {
+    entity[FORGABLE].lastAction = "hit";
+  }
 };

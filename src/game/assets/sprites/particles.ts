@@ -2020,6 +2020,75 @@ export const scrollHandle: Sprite = {
   },
 };
 
+export const forgeHammer: Sprite = {
+  name: "forge_hammer",
+  layers: [
+    { char: "∞", color: colors.maroon },
+    { char: "\u0106", color: colors.maroon },
+    { char: "∟", color: colors.black },
+    { char: "¬", color: colors.maroon },
+    { char: "\u0115", color: colors.black },
+    { char: "\u0104", color: colors.maroon },
+    { char: "I", color: colors.black },
+    { char: "!", color: colors.black },
+    { char: "+", color: colors.maroon },
+    { char: ":", color: colors.black },
+    { char: "═", color: colors.black },
+    { char: "─", color: colors.maroon },
+    { char: "▐", color: colors.grey },
+    { char: "║", color: colors.grey },
+  ],
+};
+
+export const forgeHandle: Sprite = {
+  name: "forge_handle",
+  layers: [
+    { char: "∞", color: colors.maroon },
+    { char: "\u0106", color: colors.maroon },
+    { char: "∟", color: colors.black },
+    { char: "¬", color: colors.maroon },
+    { char: "\u0115", color: colors.black },
+    { char: "\u0104", color: colors.maroon },
+    { char: "I", color: colors.black },
+    { char: "!", color: colors.black },
+    { char: "+", color: colors.maroon },
+    { char: ":", color: colors.black },
+    { char: "═", color: colors.black },
+    { char: "─", color: colors.maroon },
+  ],
+};
+
+export const forgeHit: Sprite = {
+  name: "forge_hit",
+  layers: [{ char: "_", color: colors.lime }],
+};
+
+export const forgeMiss: Sprite = {
+  name: "forge_miss",
+  layers: [
+    { char: "_", color: colors.red },
+    { char: "▒", color: colors.black },
+  ],
+};
+
+export const thickLine: Sprite = {
+  name: "thick_line",
+  layers: [
+    { char: "∞", color: colors.red },
+    { char: "\u0106", color: colors.red },
+    { char: "∟", color: colors.grey },
+    { char: "\u0115", color: colors.grey },
+    { char: "\u0104", color: colors.red },
+    { char: "I", color: colors.grey },
+    { char: "!", color: colors.grey },
+    { char: "+", color: colors.red },
+    { char: ":", color: colors.grey },
+    { char: "═", color: colors.grey },
+    { char: "─", color: colors.red },
+    { char: "▀", color: colors.black },
+  ],
+};
+
 export const mergeSprites = (...sprites: Sprite[]): Sprite => ({
   name: sprites.filter((sprite) => sprite.name).slice(-1)[0]?.name || "",
   layers: sprites.reduce(
