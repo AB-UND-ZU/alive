@@ -670,11 +670,22 @@ export const pearl: Sprite = {
   ],
 };
 
-export const stew: Sprite = {
-  name: "Stew",
+export const tea: Sprite = {
+  name: "Tea",
   layers: [
     { char: "∞", color: colors.maroon },
-    { char: "\u011d", color: colors.fuchsia },
+    { char: "\u011d", color: colors.aqua },
+    { char: "U", color: colors.grey },
+    { char: "▀", color: colors.black },
+    { char: "º", color: colors.black },
+  ],
+};
+
+export const curry: Sprite = {
+  name: "Curry",
+  layers: [
+    { char: "∞", color: colors.maroon },
+    { char: "\u011d", color: colors.yellow },
     { char: "U", color: colors.grey },
     { char: "▀", color: colors.black },
     { char: "º", color: colors.black },
@@ -685,18 +696,7 @@ export const soup: Sprite = {
   name: "Soup",
   layers: [
     { char: "∞", color: colors.maroon },
-    { char: "\u011d", color: colors.aqua },
-    { char: "U", color: colors.grey },
-    { char: "▀", color: colors.black },
-    { char: "º", color: colors.black },
-  ],
-};
-
-export const tea: Sprite = {
-  name: "Tea",
-  layers: [
-    { char: "∞", color: colors.maroon },
-    { char: "\u011d", color: colors.yellow },
+    { char: "\u011d", color: colors.fuchsia },
     { char: "U", color: colors.grey },
     { char: "▀", color: colors.black },
     { char: "º", color: colors.black },

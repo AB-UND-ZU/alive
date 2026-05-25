@@ -226,9 +226,16 @@ import {
   getBlockedSlot,
   caret,
   forge,
-  popupCenterTop,
+  craftCenterTop,
   createProgress,
   stretch,
+  scroll,
+  craftDownLeft,
+  craftDown,
+  craftLeft,
+  craftLeftActive,
+  craftDownLeftActive,
+  craftDownActive,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -5297,7 +5304,7 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
       );
     const ingredientLines = [
       ...selectedIngredients.parts
-        .map((item) => {
+        .map((item, index) => {
           const existingIngredient = existingFund(world, heroEntity, item);
           const itemLine = [
             ...createText(existingIngredient.toString()),
@@ -5308,26 +5315,48 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
             ),
             getItemSprite(item),
           ];
+          const padding = selectedIngredients.parts.length === 1 && index === 0;
           return [
+            ...(padding
+              ? [
+                  [
+                    selectedShoppable ? craftLeftActive : craftLeft,
+                    ...repeat(none, frameWidth - 3 - craftSeparator),
+                  ],
+                ]
+              : []),
             [
-              ...createText("│", colors.silver),
+              selectedShoppable ? craftLeftActive : craftLeft,
               ...createText(getItemSprite(item).name, colors.grey),
             ],
             [
-              ...createText("│", colors.silver),
+              selectedShoppable ? craftLeftActive : craftLeft,
               ...repeat(
                 none,
                 frameWidth - 3 - craftSeparator - itemLine.length
               ),
               ...itemLine,
             ],
+            ...(padding
+              ? [
+                  [
+                    selectedShoppable ? craftLeftActive : craftLeft,
+                    ...repeat(none, frameWidth - 3 - craftSeparator),
+                  ],
+                ]
+              : []),
           ];
         })
         .flat(),
-      createText(
-        `└${"─".repeat(frameWidth - 3 - craftSeparator)}`,
-        colors.silver
-      ),
+      selectedShoppable
+        ? [
+            craftDownLeftActive,
+            ...repeat(craftDownActive, frameWidth - 3 - craftSeparator),
+          ]
+        : [
+            craftDownLeft,
+            ...repeat(craftDown, frameWidth - 3 - craftSeparator),
+          ],
     ];
     content = ingredients.map((ingredient, rowIndex) => {
       const selected = verticalIndex === rowIndex;
@@ -5344,21 +5373,23 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
         ),
         ...repeat(none, 7 - itemSprite.name.length),
       ];
+      const itemLine =
+        ingredientShoppable && !selected
+          ? [...itemName.slice(0, 6), recolorSprite(star, colors.lime)]
+          : itemName;
       const visibleIndex = rowIndex - scrollIndex;
       const line = ingredientLines[visibleIndex] || [];
 
       return [
-        ingredientShoppable && !selected
-          ? recolorSprite(star, colors.lime)
-          : none,
+        none,
         itemSprite,
         ...(selected
           ? shaded(
-              itemName,
+              itemLine,
               selectedShoppable ? colors.green : colors.grey,
               selectedShoppable ? "▄" : undefined
             )
-          : itemName),
+          : itemLine),
         ...line,
       ];
     });
@@ -5383,14 +5414,15 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
     state.particles[`popup-up-${craftSeparator}`],
     [ORIENTABLE, PARTICLE, SPRITE]
   );
+  const separatorFacing = selectedShoppable ? "right" : "down";
   if (
     state.args.contentIndex > 0 &&
     entity[POPUP].tabs.length === 1 &&
-    topSeparatorParticle[ORIENTABLE].facing &&
+    topSeparatorParticle[ORIENTABLE].facing !== separatorFacing &&
     selectedIngredients
   ) {
-    topSeparatorParticle[SPRITE] = popupCenterTop;
-    topSeparatorParticle[ORIENTABLE].facing = undefined;
+    topSeparatorParticle[SPRITE] = craftCenterTop;
+    topSeparatorParticle[ORIENTABLE].facing = separatorFacing;
     popupResult.updated = true;
   }
 
@@ -5457,6 +5489,8 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
   let content = [createText("Nothing to brew.", colors.grey)];
 
   if (heroEntity && viewedRecipe) {
+    const showScroll =
+      viewedRecipe.options.length > 1 && worldGeneration % 3 > 0;
     const optionItem = viewedRecipe.item;
     const optionDeal = getBrewingDeal(viewedRecipe, verticalIndex);
     const optionShoppable = canShop(world, heroEntity, optionDeal);
@@ -5499,6 +5533,8 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
               colors.silver
             ),
             ...createText(":", colors.grey),
+            ...repeat(none, 2),
+            showScroll ? scroll : none,
           ]
         : createText("Recipe:", colors.grey),
       ...optionDeal.prices.map((price) => {
@@ -5648,18 +5684,18 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
                   getItemSprite(brewingItem.item),
                   ...createProgress(
                     {
-                      mp: progress,
-                      maxMp: brewingItem.duration * brewingDurationFactor - 1,
+                      duration: progress,
                     },
-                    "mp",
+                    "duration",
                     barWidth,
                     true,
-                    undefined,
                     [
                       ...createText(getItemSprite(brewingItem.item).name),
                       times,
                       ...createText(brewingItem.item.amount.toString()),
-                    ]
+                    ],
+                    brewingItem.duration * brewingDurationFactor - 1,
+                    colors.blue
                   ),
                 ],
                 ...queuedItems.map((queue, index) =>

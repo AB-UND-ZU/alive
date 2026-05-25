@@ -113,8 +113,8 @@ export const stackableConsumptions: Partial<
   algae: { countable: "xp", amount: 1 },
   eel: { countable: "xp", amount: 3 },
 
-  stew: { countable: "mp", amount: 25, percentage: true },
-  soup: { countable: "mp", amount: 20, percentage: true },
+  soup: { countable: "mp", amount: 25, percentage: true },
+  curry: { countable: "mp", amount: 20, percentage: true },
   tea: { countable: "mp", amount: 15, percentage: true },
   toast: { countable: "hp", amount: 25, percentage: true },
   juice: { countable: "hp", amount: 20, percentage: true },

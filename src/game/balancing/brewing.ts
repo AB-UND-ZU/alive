@@ -203,7 +203,7 @@ export const brewingRecipes: Recipe[] = [
     ],
   },
   {
-    item: { stackable: "soup", amount: 1 },
+    item: { stackable: "curry", amount: 1 },
     duration: 10,
     options: [
       [
@@ -214,7 +214,7 @@ export const brewingRecipes: Recipe[] = [
     ],
   },
   {
-    item: { stackable: "stew", amount: 1 },
+    item: { stackable: "soup", amount: 1 },
     duration: 15,
     options: [
       [

@@ -305,11 +305,11 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
-          stackable: "soup",
+          stackable: "curry",
           amount: Infinity,
         },
         {
-          stackable: "stew",
+          stackable: "soup",
           amount: Infinity,
         },
       ],

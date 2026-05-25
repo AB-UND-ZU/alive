@@ -1894,14 +1894,6 @@ export const popupCenterEnd: Sprite = {
   ],
 };
 
-export const popupCenterTop: Sprite = {
-  name: "popup_center_top",
-  layers: [
-    { char: "▄", color: colors.black },
-    { char: "╤", color: colors.silver },
-  ],
-};
-
 export const popupDownStart: Sprite = {
   name: "popup_down_start",
   layers: [
@@ -1918,6 +1910,73 @@ export const popupDownEnd: Sprite = {
     { char: "▌", color: colors.black },
     { char: "╞", color: colors.silver },
   ],
+};
+
+export const craftCenterTop: Sprite = {
+  name: "craft_center_top",
+  layers: [{ char: "═", color: colors.silver }],
+  facing: {
+    down: [
+      { char: "▄", color: colors.black },
+      { char: "╤", color: colors.grey },
+      { char: "▒", color: colors.black },
+      { char: "╦", color: colors.black },
+      { char: "═", color: colors.silver },
+    ],
+    right: [
+      { char: "▄", color: colors.black },
+      { char: "╤", color: colors.white },
+      { char: "╦", color: colors.black },
+      { char: "═", color: colors.silver },
+    ],
+  },
+};
+
+export const craftLeft: Sprite = {
+  name: "craft_left",
+  layers: [
+    { char: "│", color: colors.grey },
+    { char: "▒", color: colors.black },
+    { char: "║", color: colors.black },
+  ],
+};
+
+export const craftLeftActive: Sprite = {
+  name: "craft_left_active",
+  layers: [
+    { char: "│", color: colors.white },
+    { char: "║", color: colors.black },
+  ],
+};
+
+export const craftDownLeft: Sprite = {
+  name: "craft_down_left",
+  layers: [
+    { char: "└", color: colors.grey },
+    { char: "▒", color: colors.black },
+    { char: "▌", color: colors.black },
+  ],
+};
+
+export const craftDownLeftActive: Sprite = {
+  name: "craft_down_left_active",
+  layers: [
+    { char: "└", color: colors.white },
+    { char: "▌", color: colors.black },
+  ],
+};
+
+export const craftDown: Sprite = {
+  name: "craft_down",
+  layers: [
+    { char: "─", color: colors.grey },
+    { char: "▒", color: colors.black },
+  ],
+};
+
+export const craftDownActive: Sprite = {
+  name: "craft_down_active",
+  layers: [{ char: "─", color: colors.white }],
 };
 
 export const scrollBarTop: Sprite = {
@@ -2131,7 +2190,6 @@ const statConfig: Record<
   },
   retrigger: {
     color: colors.olive,
-    background: colors.olive,
     sprite: delay,
   },
   reproc: {
@@ -2231,11 +2289,12 @@ export const createProgress = (
   stat: keyof Stats,
   width: number,
   depletable = true,
-  maximum: number | null = null,
-  content?: Sprite[]
+  content?: Sprite[],
+  maximum?: number,
+  background?: string
 ) => {
   const config = statConfig[stat];
-  const background = config.background || colors.grey;
+  const statBackground = config.background || background || colors.grey;
   const statMaximum = maximum ?? (config.max && stats[config.max]) ?? 99;
   const value = Math.min(stats[stat] ?? 0, statMaximum);
   const display =
@@ -2261,12 +2320,12 @@ export const createProgress = (
   ];
 
   return [
-    ...createText("█".repeat(full), background),
+    ...createText("█".repeat(full), statBackground),
     ...(full < width
       ? [
           {
             name: "progress",
-            layers: [[], [{ char: "▌", color: background }]][
+            layers: [[], [{ char: "▌", color: statBackground }]][
               full === 0 && partial > 0 && !depletable ? 1 : segment
             ],
           },
@@ -2276,7 +2335,7 @@ export const createProgress = (
   ].map((sprite, index) => ({
     ...sprite,
     layers: [
-      { char: "░", color: background },
+      { char: "░", color: statBackground },
       ...sprite.layers,
       { char: "▀", color: colors.black },
       ...(sprites[index]?.layers || []),
@@ -2715,6 +2774,18 @@ export const ninePlusMana: Sprite = {
   layers: [
     { char: "9", color: colors.blue },
     { char: "+", color: colors.teal },
+  ],
+};
+
+export const scroll: Sprite = {
+  name: "scroll",
+  layers: [
+    { char: "\u0117", color: colors.silver },
+    { char: "\u0118", color: colors.silver },
+    { char: "+", color: colors.black },
+    { char: "÷", color: colors.silver },
+    { char: "-", color: colors.black },
+    { char: "=", color: colors.black },
   ],
 };
 

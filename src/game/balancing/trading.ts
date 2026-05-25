@@ -43,8 +43,8 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
   juice: 20,
   toast: 30,
   tea: 10,
-  soup: 20,
-  stew: 30,
+  curry: 20,
+  soup: 30,
 
   gem: 10,
   crystal: 10,

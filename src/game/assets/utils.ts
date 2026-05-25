@@ -170,11 +170,11 @@ import {
   sandBlock,
   soilWet,
   soup,
-  stew,
   tea,
   juice,
   granola,
   toast,
+  curry,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1835,19 +1835,19 @@ export const entitySprites: Record<
       createText("Not edible."),
     ],
   },
-  stew: {
-    sprite: stew,
+  curry: {
+    sprite: curry,
     getDescription: (stats) => [
-      createText("A thick and rich"),
-      createText("fish broth."),
+      createText("Creamy mushroom"),
+      createText("coconut curry."),
       createCountable(stats, "mp", "display", true),
     ],
   },
   soup: {
     sprite: soup,
     getDescription: (stats) => [
-      createText("Slowly cooked"),
-      createText("with vegetables."),
+      createText("A thick and rich"),
+      createText("fish broth."),
       createCountable(stats, "mp", "display", true),
     ],
   },
