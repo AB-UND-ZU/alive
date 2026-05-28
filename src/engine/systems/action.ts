@@ -235,7 +235,7 @@ export default function setupAction(world: World) {
         }
       } else {
         const farmable = getFarmable(world, entity[POSITION]);
-        if (farmable) {
+        if (farmable && !isInPopup(world, entity)) {
           plant = farmable;
           action = plant;
         }
