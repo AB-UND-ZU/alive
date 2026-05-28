@@ -30,5 +30,6 @@ export { default as setupSpike } from "./spike";
 export { default as setupText } from "./text";
 export { default as setupTick } from "./tick";
 export { default as setupTrigger } from "./trigger";
+export { default as setupVessel } from "./vessel";
 export { default as setupVisibility } from "./visibility";
 export { default as setupWater } from "./water";

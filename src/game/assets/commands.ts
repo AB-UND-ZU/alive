@@ -46,7 +46,11 @@ import { rerenderEntity } from "../../engine/systems/renderer";
 import { castSkill, castSpell } from "../../engine/systems/trigger";
 import { TypedEntity } from "../../engine/entities";
 import { createText, none } from "./sprites";
-import { moveEntity, registerEntity } from "../../engine/systems/map";
+import {
+  moveEntity,
+  registerEntity,
+  updateWalkable,
+} from "../../engine/systems/map";
 import { combine, copy, normalize, repeat, sorted } from "../math/std";
 import { LEVEL } from "../../engine/components/level";
 import {
@@ -507,10 +511,11 @@ const executeFocus = (world: World, entity: Entity, id: string) => {
 const executeNew = (
   world: World,
   entity: Entity,
-  cell: string,
+  cellName: string,
   amountText = "1"
 ) => {
-  if (!cellNames.includes(cell as CellType)) {
+  const cell = cellName as CellType;
+  if (!cellNames.includes(cell)) {
     return `No cell "${cell}"!`;
   }
 
@@ -524,18 +529,16 @@ const executeNew = (
   const delta =
     orientationPoints[(entity[ORIENTABLE]?.facing || "up") as Orientation];
   for (let offset = 0; offset < amount; offset += 1) {
-    const { all } = createCell(
-      world,
-      combine(size, entity[POSITION], {
-        x: delta.x * (offset + 1),
-        y: delta.y * (offset + 1),
-      }),
-      cell,
-      "hidden"
-    );
+    const target = combine(size, entity[POSITION], {
+      x: delta.x * (offset + 1),
+      y: delta.y * (offset + 1),
+    });
+    const { all } = createCell(world, target, cell, "hidden");
     all.forEach((unit) => {
       registerEntity(world, unit);
     });
+    world.metadata.gameEntity[LEVEL].cells[target.x][target.y] = cell;
+    updateWalkable(world, target);
   }
 };
 

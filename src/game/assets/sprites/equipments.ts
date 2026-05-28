@@ -1,14 +1,5 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
-
-export const boat: Sprite = {
-  name: "Boat",
-  layers: [
-    { char: "\u0115", color: colors.maroon },
-    { char: "─", color: colors.grey },
-  ],
-};
-
 // active spells (no mana)
 
 export const bombActive: Sprite = {

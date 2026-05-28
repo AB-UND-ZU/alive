@@ -46,6 +46,8 @@ import { matrixFactory } from "../../game/math/matrix";
 import { LEVEL } from "../components/level";
 import { COVERABLE } from "../components/coverable";
 import { isInPopup } from "./popup";
+import { isMounting } from "./vessel";
+import { DISPLACABLE } from "../components/displacable";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
@@ -79,6 +81,9 @@ export const isActionable = (world: World, entity: Entity) =>
 
 export const isControllable = (world: World, entity: Entity) =>
   isActionable(world, entity) && !isInPopup(world, entity);
+
+export const isInteractable = (world: World, entity: Entity) =>
+  isControllable(world, entity) && !isMounting(world, entity);
 
 const frozenSprites: Record<Immersible["type"], Sprite> = {
   water: ice,
@@ -198,11 +203,11 @@ export const freezeMomentum = (
   if (
     entity[MOVABLE].momentum &&
     movableReference[REFERENCE].suspensionCounter === 0 &&
-    entity[PLAYER]
+    (entity[PLAYER] || entity[DISPLACABLE])
   ) {
     movableReference[REFERENCE].suspensionCounter = -1;
   } else if (
-    entity[PLAYER] &&
+    (entity[PLAYER] || entity[DISPLACABLE]) &&
     !entity[MOVABLE].momentum &&
     entity[MOVABLE].orientations.length === 0
   ) {

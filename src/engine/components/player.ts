@@ -14,6 +14,7 @@ export type Player = {
   >;
   defeatedUnits: Partial<Record<UnitKey, number>>;
   popup?: number;
+  mount?: number;
   quickItems: Record<string, Omit<Item, "bound" | "amount" | "carrier">>;
   chatHistory: number[][];
   actionTriggered?:

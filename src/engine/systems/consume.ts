@@ -327,6 +327,7 @@ export default function setupConsume(world: World) {
       if (haste !== entityHaste[entityId]) {
         frame[REFERENCE].tick = getHasteInterval(world, haste);
         entityHaste[entityId] = haste;
+        rerenderEntity(world, entity)
       }
 
       if (vision.visibility !== entityVision[entityId] && entity[LIGHT]) {
@@ -346,7 +347,8 @@ export default function setupConsume(world: World) {
             }
           );
         }
-        entityHaste[entityId] = vision.visibility;
+        entityVision[entityId] = vision.visibility;
+        rerenderEntity(world, entity)
       }
 
       const maxHp = equipmentStats.maxHp;

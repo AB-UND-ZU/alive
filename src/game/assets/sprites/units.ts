@@ -630,3 +630,22 @@ export const spikes: Sprite = {
     ],
   },
 };
+
+export const boat: Sprite = {
+  name: "Boat",
+  layers: [
+    { char: "\u0115", color: colors.maroon },
+    { char: "─", color: colors.grey },
+  ],
+};
+
+export const cart: Sprite = {
+  name: "Cart",
+  layers: [
+    { char: "w", color: colors.grey },
+    { char: "\u0115", color: colors.maroon },
+    { char: "⌐", color: colors.grey },
+    { char: "x", color: colors.grey },
+    { char: "v", color: colors.grey },
+  ],
+};

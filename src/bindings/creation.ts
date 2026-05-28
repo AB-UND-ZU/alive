@@ -68,7 +68,7 @@ import {
 import { getEnterable } from "../engine/systems/enter";
 import { createHero } from "../engine/systems/fate";
 import { applySnow } from "../engine/systems/freeze";
-import { getHasteInterval } from "../engine/systems/movement";
+import { boatHaste, getHasteInterval } from "../engine/systems/movement";
 import { createPopup } from "../engine/systems/popup";
 import { createSequence } from "../engine/systems/sequence";
 import {
@@ -163,6 +163,7 @@ import {
   jetty,
   gravel2,
   beach,
+  boat,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -283,12 +284,13 @@ import { BUMPABLE } from "../engine/components/bumpable";
 import { PLAYER } from "../engine/components/player";
 import { HOOKABLE } from "../engine/components/hookable";
 import { FISHABLE } from "../engine/components/fishable";
-import { habitatDistribution } from "../engine/systems/fishing";
 import { getCell } from "../engine/systems/map";
 import { REFILLABLE } from "../engine/components/refillable";
 import { brewingRecipes } from "../game/balancing/brewing";
 import { BREWABLE } from "../engine/components/brewable";
 import { FORGABLE } from "../engine/components/forgable";
+import { MOUNTABLE } from "../engine/components/mountable";
+import { habitatDistribution } from "../game/balancing/fishing";
 
 export const cellNames = [
   "air",
@@ -338,7 +340,9 @@ export const cellNames = [
   "leaf",
   "tumbleweed",
   "pot",
+  "box",
   "habitat",
+  "boat",
   ...npcTypes,
 ] as const;
 export type CellType = (typeof cellNames)[number];
@@ -789,6 +793,7 @@ export const insertArea = (
       else if (cell === "o") entity = "intro_pot";
       else if (cell === "φ") entity = "compass";
       else if (cell === "■") entity = "tutorial_box";
+      else if (cell === "▬") entity = "boat";
       else if (cell === "#") entity = "tree";
       else if (cell === "¶") entity = "palm";
       else if (cell === "(") entity = "banana";
@@ -2462,14 +2467,13 @@ export const createCell = (
       generateUnitData("box");
     const frameEntity = entities.createFrame(world, {
       [REFERENCE]: {
-        tick: getHasteInterval(world, 7),
+        tick: getHasteInterval(world, -1),
         delta: 0,
         suspended: true,
         suspensionCounter: -1,
       },
       [RENDERABLE]: { generation: 0 },
     });
-    all.push(frameEntity);
     const boxEntity = entities.createBox(world, {
       [AFFECTABLE]: getEmptyAffectable(),
       [ATTACKABLE]: { scratchColor: scratch },
@@ -2485,7 +2489,7 @@ export const createCell = (
         orientations: [],
         reference: world.getEntityId(frameEntity),
         spring: {
-          duration: frameEntity[REFERENCE].tick,
+          duration: frameEntity[REFERENCE].tick / 2,
         },
         lastInteraction: 0,
         flying: false,
@@ -2564,6 +2568,39 @@ export const createCell = (
     const chestEntity = createChest(world, cell, { x, y });
     all.push(chestEntity);
     return { cell: chestEntity, all };
+  } else if (cell === "boat") {
+    const frameEntity = entities.createFrame(world, {
+      [REFERENCE]: {
+        tick: getHasteInterval(world, boatHaste),
+        delta: 0,
+        suspended: true,
+        suspensionCounter: -1,
+      },
+      [RENDERABLE]: { generation: 0 },
+    });
+    const boatEntity = entities.createBoat(world, {
+      [BUMPABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+      [DISPLACABLE]: {},
+      [FOG]: { visibility, type: "float" },
+      [MOUNTABLE]: { medium: "water" },
+      [MOVABLE]: {
+        orientations: [],
+        reference: world.getEntityId(frameEntity),
+        spring: {
+          duration: frameEntity[REFERENCE].tick,
+        },
+        lastInteraction: 0,
+        flying: false,
+        swimming: true,
+      },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [SPRITE]: boat,
+    });
+    all.push(boatEntity);
+    return { cell: boatEntity, all };
   } else if (cell === "spawner") {
     const spawnerEntity = entities.createSpawner(world, {
       [BEHAVIOUR]: { patterns: [] },
@@ -2585,7 +2622,8 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
     });
-    all.push(spawnerEntity, all);
+    all.push(spawnerEntity);
+    return { cell: spawnerEntity, all };
   } else if (cell === "golem") {
     const eliteUnit = generateNpcData("golem");
 

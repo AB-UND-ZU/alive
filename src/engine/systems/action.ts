@@ -40,6 +40,7 @@ import { BLOCKABLE } from "../components/blockable";
 import { getIdentifier } from "../utils";
 import { canDig, getFarmable } from "./harvest";
 import { forgingCompleted } from "../../game/balancing/forging";
+import { canMount, getMountable } from "./vessel";
 
 export const getBlockable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -213,9 +214,11 @@ export default function setupAction(world: World) {
       MOVABLE,
       RENDERABLE,
     ])) {
+      let action: Entity | undefined = undefined;
       let warp: Entity | undefined = undefined;
       let unlock: Entity | undefined = undefined;
       let plant: Entity | undefined = undefined;
+      let mount: Entity | undefined = undefined;
       let popup: Entity | undefined = undefined;
       let trade: Entity | undefined = undefined;
       let add_: Entity | undefined = undefined;
@@ -228,11 +231,13 @@ export default function setupAction(world: World) {
       if (isDead(world, entity)) {
         if (spawnEntity && canRevive(world, spawnEntity, entity)) {
           spawn = spawnEntity;
+          action = spawn;
         }
       } else {
         const farmable = getFarmable(world, entity[POSITION]);
         if (farmable) {
           plant = farmable;
+          action = plant;
         }
 
         for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
@@ -243,6 +248,7 @@ export default function setupAction(world: World) {
             const warpableEntity = getWarpable(world, targetPosition);
             const lockableEntity = getLockable(world, targetPosition);
             const adjacentPopup = getPopup(world, targetPosition);
+            const mountableEntity = getMountable(world, targetPosition);
             const popupEntity =
               adjacentPopup === entity ? undefined : adjacentPopup;
             const selections = popupEntity
@@ -253,39 +259,55 @@ export default function setupAction(world: World) {
 
             // portals can warp players
             if (
-              !warp &&
+              !action &&
               entity[PLAYER] &&
               warpableEntity &&
               isInTab(world, entity, "warp")
             ) {
               warp = warpableEntity;
+              action = warp;
+            }
+
+            // players can mount vessels
+            if (
+              !action &&
+              entity[PLAYER] &&
+              mountableEntity &&
+              canMount(world, entity, mountableEntity)
+            ) {
+              mount = mountableEntity;
+              action = mount;
             }
 
             // only locked doors can be unlocked
             if (
-              !unlock &&
+              !action &&
               lockableEntity &&
               !isInPopup(world, entity) &&
               isUnlockable(world, lockableEntity) &&
               !isEnemy(world, entity) &&
               !isDead(world, entity)
-            )
+            ) {
               unlock = lockableEntity;
+              action = unlock;
+            }
 
             // only available popups can be opened when not already viewing one
             if (
-              !popup &&
+              !action &&
               entity[PLAYER] &&
               !isInPopup(world, entity) &&
               popupEntity &&
               isPopupAvailable(world, popupEntity) &&
               entity !== popupEntity
-            )
+            ) {
               popup = popupEntity;
+              action = popup;
+            }
 
             // trading only while in shops or finished forging
             if (
-              !trade &&
+              !action &&
               entity[PLAYER] &&
               tradeEntity &&
               (isInTab(world, entity, "buy") ||
@@ -300,11 +322,14 @@ export default function setupAction(world: World) {
                   ((selections.length === 0 &&
                     tradeEntity[POPUP].choices.length === 0) ||
                     selections.length === 1)))
-            )
+            ) {
               trade = tradeEntity;
+              action = trade;
+            }
 
             // adding only while in certain popup states
             if (
+              !action &&
               entity[PLAYER] &&
               addEntity &&
               ((isInTab(world, entity, "forge") && selections.length < 3) ||
@@ -321,8 +346,10 @@ export default function setupAction(world: World) {
                     (isQuestCompleted(world, entity, addEntity) &&
                       selections.length === 0 &&
                       addEntity[POPUP].choices.length > 0))))
-            )
+            ) {
               add_ = addEntity;
+              action = add_;
+            }
           }
         }
       }
@@ -357,18 +384,20 @@ export default function setupAction(world: World) {
           : undefined;
 
       if (
+        !action &&
         usePopup &&
-        !add_ &&
         (isInTab(world, entity, "plant") ||
           (isInTab(world, entity, "use") &&
             getTabSelections(world, usePopup).length <= 2))
       ) {
         add_ = usePopup;
+        action = add_;
       }
 
       const warpId = warp && world.getEntityId(warp);
       const unlockId = unlock && world.getEntityId(unlock);
       const plantId = plant && world.getEntityId(plant);
+      const mountId = mount && world.getEntityId(mount);
       const popupId = popup && world.getEntityId(popup);
       const tradeId = trade && world.getEntityId(trade);
       const addId = add_ && world.getEntityId(add_);
@@ -381,6 +410,7 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].warp !== warpId ||
         entity[ACTIONABLE].unlock !== unlockId ||
         entity[ACTIONABLE].plant !== plantId ||
+        entity[ACTIONABLE].mount !== mountId ||
         entity[ACTIONABLE].popup !== popupId ||
         entity[ACTIONABLE].trade !== tradeId ||
         entity[ACTIONABLE].use !== useId ||
@@ -393,6 +423,7 @@ export default function setupAction(world: World) {
         entity[ACTIONABLE].warp = warpId;
         entity[ACTIONABLE].unlock = unlockId;
         entity[ACTIONABLE].plant = plantId;
+        entity[ACTIONABLE].mount = mountId;
         entity[ACTIONABLE].popup = popupId;
         entity[ACTIONABLE].trade = tradeId;
         entity[ACTIONABLE].use = useId;

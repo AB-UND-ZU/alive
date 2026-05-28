@@ -34,7 +34,7 @@ import {
   isInPopup,
   isQuestCompleted,
 } from "../../engine/systems/popup";
-import { isActionable, isControllable } from "../../engine/systems/freeze";
+import { isActionable, isInteractable } from "../../engine/systems/freeze";
 import { POPUP } from "../../engine/components/popup";
 import { TypedEntity } from "../../engine/entities";
 import { EQUIPPABLE } from "../../engine/components/equippable";
@@ -269,7 +269,7 @@ export default function Controls() {
   const spellAction = useAction(
     "spell",
     (world, hero, spellEntity) =>
-      !isControllable(world, hero) ||
+      !isInteractable(world, hero) ||
       !canCast(world, hero, spellEntity) ||
       !castableSpell(
         world,
@@ -287,7 +287,7 @@ export default function Controls() {
   const skillAction = useAction(
     "skill",
     (world, hero, skillEntity) =>
-      !isControllable(world, hero) ||
+      !isInteractable(world, hero) ||
       !castableSkill(
         world,
         hero as TypedEntity<"INVENTORY" | "POSITION">,
@@ -305,7 +305,7 @@ export default function Controls() {
   const toolAction = useAction(
     "tool",
     (world, hero, toolEntity) =>
-      !isControllable(world, hero) ||
+      !isInteractable(world, hero) ||
       !castableSkill(
         world,
         hero as TypedEntity<"INVENTORY" | "POSITION">,
@@ -498,9 +498,10 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
+      if (!ecs || !hero || !isInteractable(ecs, hero)) return;
       handleAction("spell");
     },
-    [handleAction]
+    [handleAction, ecs, hero]
   );
 
   const handleSkill = useCallback(
@@ -511,9 +512,10 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
+      if (!ecs || !hero || !isInteractable(ecs, hero)) return;
       handleAction("skill");
     },
-    [handleAction]
+    [handleAction, ecs, hero]
   );
 
   const handleInteract = useCallback(
@@ -524,9 +526,11 @@ export default function Controls() {
         | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) => {
       event.preventDefault();
+      if (!ecs || !hero || (!isInteractable(ecs, hero) && !isDead(ecs, hero)))
+        return;
       handleAction("interact");
     },
-    [handleAction]
+    [handleAction, ecs, hero]
   );
 
   const handleUse = useCallback(

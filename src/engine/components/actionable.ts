@@ -13,6 +13,7 @@ export const actions = [
   "spell",
   "skill",
   "tool",
+  "mount",
 ] as const;
 
 export type Actionable = {

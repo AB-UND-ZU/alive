@@ -141,7 +141,7 @@ import { FISHABLE } from "../components/fishable";
 import { BAITABLE } from "../components/baitable";
 import { createBubble } from "./water";
 import { HOOKABLE } from "../components/hookable";
-import { fishingDistributionLevels } from "./fishing";
+import { fishingDistributionLevels } from "../../game/balancing/fishing";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;

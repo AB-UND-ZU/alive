@@ -22,6 +22,8 @@ import { orientationPoints } from "../components/orientable";
 import { canRevive } from "./fate";
 import { REVIVABLE } from "../components/revivable";
 import { FARMABLE } from "../components/farmable";
+import { MOUNTABLE } from "../components/mountable";
+import { canMount, isMounting } from "./vessel";
 
 export default function setupInteract(world: World) {
   let referenceGenerations = -1;
@@ -44,6 +46,7 @@ export default function setupInteract(world: World) {
       ...world.getEntities([POSITION, LOCKABLE, RENDERABLE, SEQUENCABLE]),
       ...world.getEntities([POSITION, REVIVABLE, RENDERABLE, SEQUENCABLE]),
       ...world.getEntities([POSITION, FARMABLE, RENDERABLE, SEQUENCABLE]),
+      ...world.getEntities([POSITION, MOUNTABLE, RENDERABLE, SEQUENCABLE]),
     ];
 
     for (const entity of interactEntities) {
@@ -53,6 +56,9 @@ export default function setupInteract(world: World) {
         : Infinity;
       const isAdjacent =
         !!heroEntity &&
+        !isMounting(world, heroEntity) &&
+        (!entity[MOUNTABLE] ||
+          (entity[MOUNTABLE] && canMount(world, heroEntity, entity))) &&
         (entity[REVIVABLE]
           ? canRevive(world, entity, heroEntity)
           : isControllable(world, heroEntity)) &&
@@ -112,6 +118,8 @@ export default function setupInteract(world: World) {
           ? "PLANT"
           : entity[REVIVABLE]
           ? "SPAWN"
+          : entity[MOUNTABLE]
+          ? "BOAT"
           : popupActions[getDiscoveryTab(world, entity)];
         const sprite = entity[LOCKABLE]
           ? getUnlockSprite(world, entity)
@@ -119,6 +127,8 @@ export default function setupInteract(world: World) {
           ? spawn
           : entity[FARMABLE]
           ? farming
+          : entity[MOUNTABLE]
+          ? none
           : popupIdles[getDiscoveryTab(world, entity)];
         createSequence<"interact", InteractSequence>(
           world,

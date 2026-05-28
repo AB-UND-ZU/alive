@@ -1281,6 +1281,13 @@ export const generateIsland = (world: World) => {
         }
       }
 
+      // add boat at end of jetty
+      const boatPoint = combine(size, beachPoint, {
+        x: jettyDelta.x * (jettyConfiguration.length + 1),
+        y: jettyDelta.y * (jettyConfiguration.length + 1),
+      });
+      objectsMap[boatPoint.x][boatPoint.y] = ["boat"];
+
       const havenMap = matrixFactory<CellType | "">(
         havenWidth,
         havenHeight,

@@ -20,7 +20,6 @@ import { BAITABLE } from "../components/baitable";
 import { attemptBubbleAbsorb } from "./magic";
 import { getDistance } from "../../game/math/std";
 import { LEVEL } from "../components/level";
-import { Item } from "../components/item";
 
 export const getHookables = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -34,41 +33,6 @@ export const isWireTossable = (world: World, position: Position) =>
   isWalkable(world, position) ||
   getHookable(world, position) ||
   isSubmerged(world, position);
-
-export const habitatDistribution = [
-  [75, "habitat"],
-  [20, "algae"],
-  [5, "pearl"],
-] as const;
-
-export const fishingDistributionLevels: [
-  number,
-  Omit<Item, "bound" | "carrier">
-][][] = [
-  [],
-  [
-    [54, { stackable: "salmon", amount: 1 }],
-    [36, { stackable: "pike", amount: 1 }],
-    [6, { stackable: "tuna", amount: 1 }],
-    [4, { stackable: "cod", amount: 1 }],
-  ],
-  [
-    [30, { stackable: "salmon", amount: 1 }],
-    [20, { stackable: "pike", amount: 1 }],
-    [24, { stackable: "tuna", amount: 1 }],
-    [16, { stackable: "cod", amount: 1 }],
-    [6, { stackable: "eel", amount: 1 }],
-    [4, { stackable: "seastar", amount: 1 }],
-  ],
-  [
-    [14, { stackable: "salmon", amount: 1 }],
-    [6, { stackable: "pike", amount: 1 }],
-    [40, { stackable: "tuna", amount: 1 }],
-    [20, { stackable: "cod", amount: 1 }],
-    [12, { stackable: "eel", amount: 1 }],
-    [8, { stackable: "seastar", amount: 1 }],
-  ],
-];
 
 export default function setupFishing(world: World) {
   let referenceGenerations = -1;

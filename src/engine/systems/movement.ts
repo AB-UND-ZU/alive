@@ -44,9 +44,12 @@ import { getOverlappingCell } from "../../game/math/matrix";
 import { STRUCTURABLE } from "../components/structurable";
 import { FRAGMENT } from "../components/fragment";
 import { BUMPABLE } from "../components/bumpable";
+import { MOUNTABLE } from "../components/mountable";
+import { isMounting, stopVessel } from "./vessel";
 
 const chatHaste = -1001;
 const popupHaste = -1002;
+export const boatHaste = 5;
 
 // haste:-4 interval:1100
 // haste:-3 interval:600
@@ -79,14 +82,23 @@ export const getEntityHaste = (world: World, entity: Entity) =>
     ? chatHaste
     : isInPopup(world, entity)
     ? popupHaste
+    : isMounting(world, entity)
+    ? boatHaste
     : getEntityStats(world, entity).haste;
 
-export const isCollision = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).some(
+export const getCollidable = (world: World, position: Position) =>
+  Object.values(getCell(world, position)).find(
     (entity) => COLLIDABLE in (entity as Entity)
   );
 
-export const isWalkable = (world: World, position: Position) => {
+export const isCollision = (world: World, position: Position) =>
+  !!getCollidable(world, position);
+
+export const isPassable = (
+  world: World,
+  position: Position,
+  exclude?: Entity
+) => {
   if (
     !getOverlappingCell(
       world.metadata.gameEntity[LEVEL].initialized,
@@ -97,16 +109,30 @@ export const isWalkable = (world: World, position: Position) => {
     return false;
 
   const lockable = getLockable(world, position);
+  const collidable = getCollidable(world, position);
+  const attackable = getAttackable(world, position);
+
   return (
-    !isCollision(world, position) &&
-    !isSubmerged(world, position) &&
+    (!collidable || collidable === exclude) &&
+    (!attackable || attackable === exclude) &&
     !(lockable && isLocked(world, lockable)) &&
-    !getAttackable(world, position) &&
     !getLootable(world, position) &&
     !getCollecting(world, position) &&
     !getClickable(world, position)
   );
 };
+
+export const isFloatable = (
+  world: World,
+  position: Position,
+  exclude?: Entity
+) => isPassable(world, position, exclude) && isImmersible(world, position);
+
+export const isWalkable = (
+  world: World,
+  position: Position,
+  exclude?: Entity
+) => isPassable(world, position, exclude) && !isSubmerged(world, position);
 
 export const isLimbWalkable = (
   world: World,
@@ -207,7 +233,7 @@ export default function setupMovement(world: World) {
       const pendingOrientation = entity[MOVABLE].pendingOrientation;
       entity[MOVABLE].pendingOrientation = undefined;
 
-      // skip if dead or frozen
+      // skip if immovable or not sliding
       if (
         isDead(world, entity) ||
         (isFrozen(world, entity) && !entity[MOVABLE].momentum)
@@ -259,7 +285,7 @@ export default function setupMovement(world: World) {
               isLimbWalkable(world, limb, position)) ||
             (limb[MOVABLE].flying && isFlyable(world, position)) ||
             (limb[MOVABLE].swimming &&
-              isImmersible(world, position) &&
+              isFloatable(world, position) &&
               isImmersible(world, limb[POSITION]))
           ) {
             continue;
@@ -307,20 +333,26 @@ export default function setupMovement(world: World) {
           });
         }
 
-        for (const limb of limbs) {
+        const passenger = world.getEntityByIdAndComponents(
+          entity[MOUNTABLE]?.passenger,
+          [MOVABLE]
+        );
+        const parts = [...limbs, ...(passenger ? [passenger] : [])];
+
+        for (const part of parts) {
           // leave bubble trail if walking through water
-          if (isImmersible(world, limb[POSITION]) && !limb[MOVABLE].flying) {
-            createBubble(world, limb[POSITION], "water");
+          if (isImmersible(world, part[POSITION]) && !part[MOVABLE].flying) {
+            createBubble(world, part[POSITION], "water");
           }
 
           // set facing to actual movement
-          if (!rigid && limb[ORIENTABLE] && !limb[MOVABLE].flying) {
-            limb[ORIENTABLE].facing = movedOrientation;
+          if (!rigid && part[ORIENTABLE] && !part[MOVABLE].flying) {
+            part[ORIENTABLE].facing = movedOrientation;
           }
 
-          const limbPosition = combine(size, limb[POSITION], delta);
-          moveEntity(world, limb, limbPosition);
-          rerenderEntity(world, limb);
+          const limbPosition = combine(size, part[POSITION], delta);
+          moveEntity(world, part, limbPosition);
+          rerenderEntity(world, part);
         }
       } else if (
         entity[MOVABLE].swimming &&
@@ -338,6 +370,9 @@ export default function setupMovement(world: World) {
           entity[BUMPABLE].orientation = "up";
           rerenderEntity(world, entity);
         }
+      } else if (entity[MOUNTABLE]) {
+        // reset movement for vessels
+        stopVessel(world, entity);
       }
 
       // preserve momentum before suspending frame

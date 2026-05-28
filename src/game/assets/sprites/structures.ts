@@ -846,3 +846,57 @@ export const chairRight: Sprite = {
     { char: "\u010f", color: colors.black },
   ],
 };
+
+export const railSide: Sprite = {
+  name: "rail_side",
+  layers: [
+    { char: "φ", color: colors.maroon },
+    { char: "∩", color: colors.maroon },
+    { char: "\\", color: colors.maroon },
+    { char: "∞", color: colors.black },
+    { char: "■", color: colors.black },
+    { char: "≡", color: colors.black },
+    { char: "\u0115", color: colors.black },
+    { char: "%", color: colors.black },
+    { char: "─", color: colors.maroon },
+    { char: "║", color: colors.silver },
+  ],
+  facing: {
+    right: [
+      { char: "[", color: colors.maroon },
+      { char: "]", color: colors.maroon },
+      { char: "|", color: colors.black },
+      { char: "i", color: colors.black },
+      { char: "═", color: colors.silver },
+    ],
+    left: [
+      { char: "[", color: colors.maroon },
+      { char: "]", color: colors.maroon },
+      { char: "|", color: colors.black },
+      { char: "i", color: colors.black },
+      { char: "═", color: colors.silver },
+    ],
+  },
+};
+
+export const railCorner: Sprite = {
+  name: "rail_corner",
+  layers: [
+    { char: "\\", color: colors.maroon },
+    { char: "╔", color: colors.silver },
+  ],
+  facing: {
+    right: [
+      { char: "/", color: colors.maroon },
+      { char: "╗", color: colors.silver },
+    ],
+    down: [
+      { char: "\\", color: colors.maroon },
+      { char: "╝", color: colors.silver },
+    ],
+    left: [
+      { char: "/", color: colors.maroon },
+      { char: "╚", color: colors.silver },
+    ],
+  },
+};

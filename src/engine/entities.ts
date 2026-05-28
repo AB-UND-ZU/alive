@@ -72,6 +72,7 @@ import { Farmable, FARMABLE } from "./components/farmable";
 import { Refillable, REFILLABLE } from "./components/refillable";
 import { Brewable, BREWABLE } from "./components/brewable";
 import { Forgable, FORGABLE } from "./components/forgable";
+import { Mountable, MOUNTABLE } from "./components/mountable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -116,6 +117,7 @@ export type Entity = Record<LevelName, {}> & {
   [LOCKABLE]: Lockable;
   [LOOTABLE]: Lootable;
   [MELEE]: Melee;
+  [MOUNTABLE]: Mountable;
   [MOVABLE]: Movable;
   [NPC]: Npc;
   [ORIENTABLE]: Orientable;
@@ -220,6 +222,19 @@ export const createBarrier = entityFactory([
   ORIENTABLE,
   POSITION,
   RENDERABLE,
+  SPRITE,
+]);
+
+export const createBoat = entityFactory([
+  BUMPABLE,
+  COLLIDABLE,
+  DISPLACABLE,
+  FOG,
+  MOUNTABLE,
+  MOVABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
   SPRITE,
 ]);
 

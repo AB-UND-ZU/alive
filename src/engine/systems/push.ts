@@ -3,7 +3,7 @@ import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { add } from "../../game/math/std";
-import { isProcessable, REFERENCE } from "../components/reference";
+import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { getCell } from "./map";
 import { Orientation, orientationPoints } from "../components/orientable";
@@ -12,6 +12,8 @@ import { PUSHABLE } from "../components/pushable";
 import { DISPLACABLE } from "../components/displacable";
 import { isControllable, isFrozen } from "./freeze";
 import { isDead } from "./damage";
+import { MOUNTABLE } from "../components/mountable";
+import { isWalkable } from "./movement";
 
 export const isDisplacable = (world: World, entity: Entity) =>
   DISPLACABLE in entity && !isFrozen(world, entity) && !isDead(world, entity);
@@ -31,12 +33,12 @@ export const pushEntity = (
     [REFERENCE]
   );
 
-  if (!orientation || !isProcessable(targetReference[REFERENCE])) return;
+  if (!orientation) return;
 
   entity[MOVABLE].orientations = [orientation];
   targetReference[REFERENCE].delta = targetReference[REFERENCE].tick;
   targetReference[REFERENCE].suspended = false;
-  targetReference[REFERENCE].suspensionCounter = 0;
+  targetReference[REFERENCE].suspensionCounter = -1;
   rerenderEntity(world, targetReference);
 };
 
@@ -52,6 +54,18 @@ export default function setupPush(world: World) {
     if (referenceGenerations === generation) return;
 
     referenceGenerations = generation;
+
+    // stop sliding boxes or drifting boats
+    for (const entity of world.getEntities([POSITION, MOVABLE, DISPLACABLE])) {
+      if (entity[MOVABLE].momentum || entity[MOUNTABLE]?.passenger) continue;
+
+      const targetReference = world.assertByIdAndComponents(
+        entity[MOVABLE].reference,
+        [REFERENCE]
+      );
+      entity[MOVABLE].orientations = [];
+      targetReference[REFERENCE].suspensionCounter = 0;
+    }
 
     // handle player pushing displacable entities
     for (const entity of world.getEntities([POSITION, MOVABLE, PUSHABLE])) {
@@ -82,21 +96,18 @@ export default function setupPush(world: World) {
       const delta = orientationPoints[targetOrientation];
       const targetPosition = add(entity[POSITION], delta);
       const targetEntity = getDisplacable(world, targetPosition);
-      
-      if (!targetEntity) continue;
+
+      if (
+        !targetEntity ||
+        !isWalkable(world, targetEntity[POSITION], targetEntity)
+      )
+        continue;
 
       pushEntity(world, targetEntity, targetOrientation);
 
       // prevent attacking boxes but allow movements
       entity[MOVABLE].momentum = targetOrientation;
       entity[MOVABLE].lastInteraction = entityReference;
-    }
-
-    // handle sliding boxes
-    for (const entity of world.getEntities([POSITION, MOVABLE, DISPLACABLE])) {
-      if (!entity[MOVABLE].momentum) continue;
-
-      pushEntity(world, entity, entity[MOVABLE].momentum);
     }
   };
 

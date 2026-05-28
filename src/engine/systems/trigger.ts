@@ -84,7 +84,7 @@ import { Popup, POPUP } from "../components/popup";
 import { addToInventory } from "./collect";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { PLAYER } from "../components/player";
-import { isActionable, isControllable } from "./freeze";
+import { isActionable, isControllable, isInteractable } from "./freeze";
 import {
   assertIdentifier,
   assertIdentifierAndComponents,
@@ -127,6 +127,8 @@ import {
 } from "../../game/balancing/equipment";
 import { ENTERABLE } from "../components/enterable";
 import { FARMABLE } from "../components/farmable";
+import { MOUNTABLE } from "../components/mountable";
+import { isMounting, mountVessel, stopVessel } from "./vessel";
 
 export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
@@ -1027,6 +1029,26 @@ export default function setupTrigger(world: World) {
         entity[MOVABLE].lastInteraction = entityReference;
       }
 
+      // prevent sliding away while in popup
+      const mount = world.getEntityByIdAndComponents(entity[PLAYER]?.mount, [
+        MOUNTABLE,
+        MOVABLE,
+      ]);
+      if (isMounting(world, entity) && mount) {
+        stopVessel(world, mount);
+      }
+
+      // remove dangling actions
+      if (
+        (entity[ACTIONABLE].spellTriggered ||
+          entity[ACTIONABLE].skillTriggered) &&
+        !isInteractable(world, entity)
+      ) {
+        entity[ACTIONABLE].spellTriggered = false;
+        entity[ACTIONABLE].skillTriggered = false;
+        continue;
+      }
+
       if (entity[ORIENTABLE]) {
         entity[ORIENTABLE].facing =
           entity[MOVABLE].orientations[0] ||
@@ -1041,6 +1063,10 @@ export default function setupTrigger(world: World) {
       const plantEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].plant,
         [FARMABLE, POSITION]
+      );
+      const mountEntity = world.getEntityByIdAndComponents(
+        entity[ACTIONABLE].mount,
+        [MOUNTABLE, POSITION]
       );
       const popupEntity = world.getEntityById(entity[ACTIONABLE].popup);
       const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
@@ -1373,6 +1399,9 @@ export default function setupTrigger(world: World) {
             });
             continue;
           }
+        } else if (mountEntity) {
+          mountVessel(world, entity, mountEntity);
+          world.metadata.interact.last = world.getEntityId(mountEntity);
         } else if (popupEntity && isPopupAvailable(world, popupEntity)) {
           openPopup(world, entity, popupEntity);
           world.metadata.interact.last = world.getEntityId(popupEntity);
