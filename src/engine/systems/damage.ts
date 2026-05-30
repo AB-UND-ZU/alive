@@ -76,7 +76,12 @@ import { getFragment, isFragment } from "./enter";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isDecaying } from "./drop";
 import { STRUCTURABLE } from "../components/structurable";
-import { attemptBubbleAbsorb, getAffectables, getExertables } from "./magic";
+import {
+  attemptBubbleAbsorb,
+  getAffectables,
+  getExertables,
+  isAffectable,
+} from "./magic";
 import { LEVEL } from "../components/level";
 import { getTempo, isWalkable } from "./movement";
 import { BUMPABLE } from "../components/bumpable";
@@ -800,14 +805,17 @@ export default function setupDamage(world: World) {
 
         // trigger ranged weapons if necessary
         if (ranged.includes(weaponEntity[ITEM].weapon as Ranged)) {
-          if (weaponEntity[ITEM].weapon === "wand" && !trigger) {
+          if (
+            weaponEntity[ITEM].weapon === "wand" &&
+            isAffectable(world, targetEntity)
+          ) {
+            trigger = true;
             castSpell(world, entity, weaponEntity, targetOrientation);
+            break;
           }
 
-          trigger = true;
-          interacted = true;
-
           if (weaponEntity[ITEM].weapon === "spear") {
+            trigger = true;
             triggerSpear(world, entity, weaponEntity, targetOrientation);
             break;
           }
@@ -899,7 +907,13 @@ export default function setupDamage(world: World) {
             fragmentEntity,
             -displayedDamage,
             targetOrientation,
-            healing ? "heal" : weaponStats.true > 0 ? "true" : "melee"
+            healing
+              ? "heal"
+              : weaponStats.true > 0
+              ? "true"
+              : weaponStats.magic > 0
+              ? "magic"
+              : "melee"
           );
         }
         rerenderEntity(world, targetEntity);

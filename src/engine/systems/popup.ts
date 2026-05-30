@@ -38,7 +38,7 @@ import {
 import { VIEWABLE } from "../components/viewable";
 import { UnitStats, STATS } from "../components/stats";
 import { Inventory, INVENTORY } from "../components/inventory";
-import { Equipment, slots } from "../components/equippable";
+import { Equipment, EQUIPPABLE, gear, slots } from "../components/equippable";
 import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
@@ -84,6 +84,7 @@ import { plantConfigs } from "../../game/balancing/harvesting";
 import { isPlantable, plantSeed, queueBrew } from "./harvest";
 import { getBrewingDeal } from "../../game/balancing/brewing";
 import { FORGABLE } from "../components/forgable";
+import { equipItem } from "./collect";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -338,6 +339,7 @@ export const popupIdles = {
   style: mapDiscovery,
   map: undefined,
   use: undefined,
+  equip: undefined,
   chat: undefined,
 };
 
@@ -354,6 +356,7 @@ export const popupActions = {
   sell: "SHOP",
   inspect: "BAG",
   use: "USE",
+  equip: "EQUIP",
   map: "MAP",
   stats: "STATS",
   gear: "GEAR",
@@ -620,6 +623,7 @@ export default function setupPopup(world: World) {
   const onUpdate = (delta: number) => {
     const heroEntity = world.getEntity([
       ACTIONABLE,
+      EQUIPPABLE,
       MOVABLE,
       PLAYER,
       RENDERABLE,
@@ -665,6 +669,9 @@ export default function setupPopup(world: World) {
     const plantItems = inventoryItems.filter(
       (item) => plantConfigs[item[ITEM].stackable!]
     );
+    const equipItems = inventoryItems.filter((item) =>
+      slots.some((slot) => item[ITEM][slot])
+    );
 
     const transaction = getTab(world, popupEntity);
     const tradeEntity = world.getEntityByIdAndComponents(
@@ -697,6 +704,8 @@ export default function setupPopup(world: World) {
         ? visibleStats.length + 1
         : transaction === "gear"
         ? gearSlots.length
+        : transaction === "equip"
+        ? equipItems.length
         : transaction === "map"
         ? mapScroll
         : transaction === "plant"
@@ -1174,21 +1183,66 @@ export default function setupPopup(world: World) {
           const useItem =
             inspectItems[getVerticalIndex(world, useEntity)]?.[ITEM];
           queueMessage(world, heroEntity, {
-            line: slots.some((slot) => useItem?.[slot])
-              ? addBackground(
-                  [
-                    ...createItemName(useItem),
-                    ...createText(" already worn!", colors.silver),
-                  ],
-                  colors.black
-                )
-              : useItem
+            line: useItem
               ? [
                   ...createText("Can't use ", colors.silver),
                   ...createItemName(useItem),
                   ...createText("!", colors.silver),
                 ]
               : createText("Nothing to use!", colors.silver),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+        }
+      } else if (tab === "equip") {
+        const targetItem = useEntity && equipItems[verticalIndex];
+        const selectedEquipped = targetItem
+          ? heroEntity[EQUIPPABLE][
+              targetItem[ITEM].accessory
+                ? targetItem[ITEM].accessory
+                : gear.find((slot) => targetItem[ITEM][slot])!
+            ] === world.getEntityId(equipItems[verticalIndex]) &&
+            !(
+              heroEntity[ACTIONABLE].toolEquipped &&
+              heroEntity[EQUIPPABLE].skill &&
+              targetItem[ITEM].skill
+            ) &&
+            !(
+              !heroEntity[ACTIONABLE].toolEquipped &&
+              heroEntity[EQUIPPABLE].tool &&
+              targetItem[ITEM].tool
+            )
+          : false;
+
+        if (useEntity && !selectedEquipped && targetItem) {
+          // check if tool should be swapped with skill
+          if (
+            heroEntity[ACTIONABLE].toolEquipped &&
+            heroEntity[EQUIPPABLE].skill &&
+            targetItem[ITEM].skill
+          ) {
+            heroEntity[ACTIONABLE].toolEquipped = false;
+          } else if (
+            !heroEntity[ACTIONABLE].toolEquipped &&
+            heroEntity[EQUIPPABLE].tool &&
+            targetItem[ITEM].tool
+          ) {
+            heroEntity[ACTIONABLE].toolEquipped = true;
+          }
+
+          equipItem(world, heroEntity, targetItem);
+          closePopup(world, heroEntity, useEntity);
+          rerenderEntity(world, heroEntity);
+        } else if (useEntity && selectedEquipped && targetItem) {
+          queueMessage(world, heroEntity, {
+            line: addBackground(
+              [
+                ...createItemName(targetItem[ITEM]),
+                ...createText(" already worn!", colors.silver),
+              ],
+              colors.black
+            ),
             orientation: "up",
             fast: false,
             delay: 0,

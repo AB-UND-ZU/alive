@@ -13,6 +13,7 @@ export const accessories = [
 ] as const;
 export const equipments = [...gear, ...accessories];
 
+export type Slot = (typeof slots)[number];
 export type Gear = (typeof gear)[number];
 export type Accessory = (typeof accessories)[number];
 export type Equipment = (typeof equipments)[number];

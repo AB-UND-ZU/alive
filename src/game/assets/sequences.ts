@@ -20,6 +20,7 @@ import { DROPPABLE } from "../../engine/components/droppable";
 import {
   Equipment,
   EQUIPPABLE,
+  gear,
   slots,
 } from "../../engine/components/equippable";
 import { Focusable, FOCUSABLE } from "../../engine/components/focusable";
@@ -3542,6 +3543,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayMap;
   } else if (transaction === "use") {
     handler = displayUse;
+  } else if (transaction === "equip") {
+    handler = displayEquip;
   } else if (transaction === "class") {
     handler = displayClass;
   } else if (transaction === "style") {
@@ -4543,14 +4546,10 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
 
   const useButtons: [string, string, boolean][] = [
     ["BAG", "B", true],
+    ["EQUIP", "Q", true],
     ["GEAR", "G", true],
     ["STATS", "T", true],
     ["MAP", "M", !!heroEntity[EQUIPPABLE].map],
-    [
-      "EQUIP",
-      "Q",
-      !!heroEntity[EQUIPPABLE].tool && !!heroEntity[EQUIPPABLE].skill,
-    ],
   ];
 
   const verticalIndex = getVerticalIndex(world, entity);
@@ -4736,6 +4735,124 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
         ),
     isSelecting || isEditing
       ? createButton("\u011aBACK", 7, false, false, false, "red")
+      : undefined
+  );
+
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+export const displayEquip: Sequence<PopupSequence> = (world, entity, state) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    ACTIONABLE,
+    EQUIPPABLE,
+    INVENTORY,
+    PLAYER,
+  ]);
+
+  if (!heroEntity) {
+    return { updated: false, finished: true };
+  }
+
+  const equipItems = (heroEntity[INVENTORY] as Inventory).items.filter((item) =>
+    slots.some(
+      (slot) => world.assertByIdAndComponents(item, [ITEM])[ITEM][slot]
+    )
+  );
+  const hasItems = equipItems.length > 0;
+  const verticalIndex = getVerticalIndex(world, entity);
+  const selectedItem = world.getEntityByIdAndComponents(
+    equipItems[verticalIndex],
+    [ITEM]
+  );
+  const selectedEquipped = selectedItem
+    ? heroEntity[EQUIPPABLE][
+        selectedItem[ITEM].accessory
+          ? selectedItem[ITEM].accessory
+          : gear.find((slot) => selectedItem[ITEM][slot])!
+      ] === equipItems[verticalIndex] &&
+      !(
+        heroEntity[ACTIONABLE].toolEquipped &&
+        heroEntity[EQUIPPABLE].skill &&
+        selectedItem[ITEM].skill
+      ) &&
+      !(
+        !heroEntity[ACTIONABLE].toolEquipped &&
+        heroEntity[EQUIPPABLE].tool &&
+        selectedItem[ITEM].tool
+      )
+    : false;
+
+  const content = hasItems
+    ? equipItems.map((item, rowIndex) => {
+        const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
+
+        const selected = verticalIndex === rowIndex;
+        const itemSprite = getItemSprite(
+          itemEntity[ITEM],
+          "display",
+          undefined,
+          1
+        );
+        const textColor = selected ? colors.white : colors.grey;
+        const slotText = selected
+          ? (itemEntity[ITEM].weapon && !itemEntity[ITEM].skill) ||
+            itemEntity[ITEM].offhand ||
+            itemEntity[ITEM].accessory
+            ? createText(
+                itemEntity[ITEM].accessory
+                  ? "Utility"
+                  : itemEntity[ITEM].weapon
+                  ? gearTitles.weapon
+                  : gearTitles.offhand,
+                selectedEquipped ? colors.grey : colors.lime
+              )
+            : createButton(
+                itemEntity[ITEM].skill || itemEntity[ITEM].tool
+                  ? "SKILL"
+                  : "SPELL",
+                7,
+                selectedEquipped,
+                false,
+                false,
+                selectedEquipped ? "silver" : "lime"
+              )
+          : [];
+
+        const itemText = createText(itemSprite.name, textColor);
+        const line = [...itemText, ...repeat(none, 7 - itemText.length)];
+
+        return [
+          none,
+          itemSprite,
+          ...(selected
+            ? shaded(
+                line,
+                selectedEquipped ? colors.grey : colors.green,
+                selectedEquipped ? undefined : "▄"
+              )
+            : line),
+          ...repeat(none, 8 - slotText.length),
+          ...slotText,
+        ];
+      })
+    : [createText("No equipments.", colors.grey)];
+
+  const details = selectedItem && getItemDescription(selectedItem[ITEM]);
+
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    popupIdles[getTab(world, entity)],
+    content,
+    hasItems ? (selectedEquipped ? "selected" : "active") : undefined,
+    hasItems ? details : undefined,
+    undefined,
+    hasItems
+      ? createButton("SWAP", 6, selectedEquipped, false, false, "lime")
       : undefined
   );
 

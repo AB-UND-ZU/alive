@@ -20,9 +20,11 @@ import { removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
 import {
   addBackground,
+  createSpriteButton,
   createText,
   getMaxCounter,
   times,
+  underline,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { createSequence, getSequence } from "./sequence";
@@ -31,10 +33,10 @@ import { MAX_STAT_VALUE, STATS } from "../components/stats";
 import { MELEE } from "../components/melee";
 import { entities } from "..";
 import { SPRITE } from "../components/sprite";
-import { dropEntity } from "./drop";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import {
+  createItemName,
   getItemSprite,
   getLootDelay,
   queueMessage,
@@ -44,6 +46,8 @@ import { IDENTIFIABLE } from "../components/identifiable";
 import { setIdentifier } from "../utils";
 import { recolorSprite } from "../../game/assets/templates";
 import { BUMPABLE } from "../components/bumpable";
+import { ACTIONABLE } from "../components/actionable";
+import { isNpc } from "./damage";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -179,6 +183,125 @@ export const collectItem = (
   return false;
 };
 
+export const attempEquipItem = (
+  world: World,
+  entity: Entity,
+  itemEntity: Entity
+) => {
+  if (!entity[EQUIPPABLE]) return;
+
+  for (const equipment of equipments) {
+    if (
+      itemEntity[ITEM].accessory !== equipment &&
+      !itemEntity[ITEM][equipment as Gear]
+    )
+      continue;
+
+    const checkedSlots = ["skill", "tool"].includes(equipment)
+      ? ["skill", "tool"]
+      : [equipment];
+    const hasExisting = checkedSlots.some((slot) => entity[EQUIPPABLE][slot]);
+
+    if (hasExisting) {
+      if (!isNpc(world, entity)) {
+        queueMessage(world, entity, {
+          line: addBackground(
+            [
+              ...createText("Swap with ", colors.silver),
+              ...createSpriteButton(
+                [
+                  ...createText("E", colors.black),
+                  ...underline(createText("Q", colors.black), colors.black),
+                  ...createText("UIP", colors.black),
+                ],
+                7,
+                false,
+                false,
+                false,
+                "yellow"
+              ),
+            ],
+            colors.black
+          ),
+          orientation: "up",
+          fast: false,
+          delay: 400,
+        });
+      }
+
+      return;
+    }
+  }
+
+  equipItem(world, entity, itemEntity);
+};
+
+export const equipItem = (world: World, entity: Entity, itemEntity: Entity) => {
+  if (!entity[EQUIPPABLE]) return;
+  const itemId = world.getEntityId(itemEntity);
+
+  for (const equipment of equipments) {
+    if (
+      itemEntity[ITEM].accessory !== equipment &&
+      !itemEntity[ITEM][equipment as Gear]
+    )
+      continue;
+
+    const existingId = entity[EQUIPPABLE][equipment];
+
+    // add existing render count if item is replaced
+    if (existingId && existingId !== itemId) {
+      const existingItem = world.assertByIdAndComponents(existingId, [ITEM]);
+      itemEntity[RENDERABLE].generation += getEntityGeneration(
+        world,
+        existingItem
+      );
+
+      unequipItem(world, entity, existingItem);
+    }
+
+    entity[EQUIPPABLE][equipment] = itemId;
+
+    // swap tool if needed
+    if (equipment === "tool" && !entity[ACTIONABLE].toolEquipped) {
+      entity[ACTIONABLE].toolEquipped = true;
+    } else if (equipment === "skill" && entity[ACTIONABLE].toolEquipped) {
+      entity[ACTIONABLE].toolEquipped = false;
+    }
+  }
+
+  if (!isNpc(world, entity)) {
+    queueMessage(world, entity, {
+      line: addBackground(
+        [
+          ...createText("Equipped ", colors.silver),
+          ...createItemName(itemEntity[ITEM]),
+        ],
+        colors.black
+      ),
+      orientation: "up",
+      fast: false,
+      delay: 400,
+    });
+  }
+};
+
+export const unequipItem = (
+  world: World,
+  entity: Entity,
+  itemEntity: Entity
+) => {
+  if (!entity[EQUIPPABLE]) return;
+
+  for (const slot of slots) {
+    if (itemEntity[ITEM][slot]) {
+      entity[EQUIPPABLE][
+        slot === "accessory" ? itemEntity[ITEM].accessory! : slot
+      ] = undefined;
+    }
+  }
+};
+
 export const addToInventory = (
   world: World,
   entity: Entity,
@@ -223,35 +346,7 @@ export const addToInventory = (
   if (amount === 0) {
     // empty block
   } else if (isEquipment) {
-    for (const equipment of equipments) {
-      if (
-        itemEntity[ITEM].accessory !== equipment &&
-        !itemEntity[ITEM][equipment as Gear]
-      )
-        continue;
-
-      const existingId = entity[EQUIPPABLE][equipment];
-
-      // add existing render count if item is replaced
-      if (existingId && existingId !== targetId) {
-        const existingItem = world.assertById(existingId);
-        targetItem[RENDERABLE].generation += getEntityGeneration(
-          world,
-          existingItem
-        );
-
-        removeFromInventory(world, entity, existingItem);
-        dropEntity(
-          world,
-          { [INVENTORY]: { items: [existingId] } },
-          entity[POSITION]
-        );
-
-        entity[EQUIPPABLE][equipment] = undefined;
-      }
-
-      entity[EQUIPPABLE][equipment] = targetId;
-    }
+    attempEquipItem(world, entity, itemEntity);
     entity[INVENTORY].items.push(targetId);
   } else if (targetStat && !targetMaterial) {
     const maxStat = getMaxCounter(targetStat);

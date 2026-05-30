@@ -1,7 +1,7 @@
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
-import { isEmpty } from "./collect";
+import { attempEquipItem, isEmpty } from "./collect";
 import { LOOTABLE } from "../components/lootable";
 import { getLimbs, getRoot, getStructure, isDead } from "./damage";
 import { entities } from "..";
@@ -28,8 +28,7 @@ import {
 } from "../components/sequencable";
 import { createSequence, getSequence } from "./sequence";
 import { TypedEntity } from "../entities";
-import { equipments, EQUIPPABLE, Gear, slots } from "../components/equippable";
-import { getEntityGeneration } from "./renderer";
+import { EQUIPPABLE, slots } from "../components/equippable";
 import {
   ORIENTABLE,
   Orientation,
@@ -222,36 +221,7 @@ export const createItemInInventory = <
   if (!equip) {
     carrier[INVENTORY].items.push(itemId);
   } else if (isEquipment) {
-    if (carrier[EQUIPPABLE]) {
-      for (const equipment of equipments) {
-        if (
-          itemEntity[ITEM].accessory !== equipment &&
-          !itemEntity[ITEM][equipment as Gear]
-        )
-          continue;
-
-        const existingId = carrier[EQUIPPABLE][equipment];
-
-        // add existing render count if item is replaced
-        if (existingId && existingId !== itemId) {
-          const existingItem = world.assertById(existingId);
-          itemEntity[RENDERABLE].generation += getEntityGeneration(
-            world,
-            existingItem
-          );
-
-          removeFromInventory(world, carrier, existingItem);
-          dropEntity(
-            world,
-            { [INVENTORY]: { items: [existingId] } },
-            carrier[POSITION]
-          );
-        }
-
-        carrier[EQUIPPABLE][equipment] = itemId;
-      }
-    }
-
+    attempEquipItem(world, carrier, itemEntity);
     carrier[INVENTORY].items.push(itemId);
   } else if (targetConsume || targetStackable) {
     carrier[INVENTORY].items.push(itemId);

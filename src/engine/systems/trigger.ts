@@ -1113,13 +1113,13 @@ export default function setupTrigger(world: World) {
         } else if (contentIndex === 0 && offsetIndex >= 10) {
           entity[PLAYER].actionTriggered = "inspect";
         } else if (contentIndex === 2 && offsetIndex >= 10) {
-          entity[PLAYER].actionTriggered = "gear";
-        } else if (contentIndex === 4 && offsetIndex >= 10) {
-          entity[PLAYER].actionTriggered = "stats";
-        } else if (contentIndex === 6 && offsetIndex >= 10) {
-          entity[PLAYER].actionTriggered = "map";
-        } else if (contentIndex === 8 && offsetIndex >= 10) {
           entity[PLAYER].actionTriggered = "equip";
+        } else if (contentIndex === 4 && offsetIndex >= 10) {
+          entity[PLAYER].actionTriggered = "gear";
+        } else if (contentIndex === 6 && offsetIndex >= 10) {
+          entity[PLAYER].actionTriggered = "stats";
+        } else if (contentIndex === 8 && offsetIndex >= 10) {
+          entity[PLAYER].actionTriggered = "map";
         } else if (contentIndex % 2 === 0) {
           const rowIndex = (contentIndex - (contentIndex % 2)) / 2;
           const columnIndex = Math.floor(offsetIndex / 5);
@@ -1145,6 +1145,7 @@ export default function setupTrigger(world: World) {
       if (
         entity[PLAYER]?.actionTriggered === "inspect" ||
         entity[PLAYER]?.actionTriggered === "map" ||
+        entity[PLAYER]?.actionTriggered === "equip" ||
         entity[PLAYER]?.actionTriggered === "gear" ||
         entity[PLAYER]?.actionTriggered === "stats" ||
         entity[PLAYER]?.actionTriggered === "chat" ||
@@ -1284,39 +1285,6 @@ export default function setupTrigger(world: World) {
         }
 
         entity[MOVABLE].lastInteraction = entityReference;
-      } else if (entity[PLAYER]?.actionTriggered === "equip") {
-        entity[PLAYER].actionTriggered = undefined;
-        let targetItem;
-
-        if (entity[ACTIONABLE].toolEquipped && skillEntity) {
-          entity[ACTIONABLE].toolEquipped = false;
-          targetItem = skillEntity;
-        } else if (!entity[ACTIONABLE].toolEquipped && toolEntity) {
-          entity[ACTIONABLE].toolEquipped = true;
-          targetItem = skillEntity && toolEntity;
-        } else continue;
-
-        // close quick dialog if visible
-        if (currentPopup === useEntity) {
-          closePopup(world, entity, useEntity);
-        }
-
-        if (targetItem) {
-          queueMessage(world, entity, {
-            line: addBackground(
-              [
-                ...createText("Equipped ", colors.silver),
-                ...createItemName(targetItem[ITEM]),
-              ],
-              colors.black
-            ),
-            orientation: "up",
-            fast: false,
-            delay: 0,
-          });
-        }
-
-        rerenderEntity(world, entity);
       } else if (entity[PLAYER]?.actionTriggered === "interact") {
         entity[PLAYER].actionTriggered = undefined;
 

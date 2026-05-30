@@ -235,7 +235,15 @@ export default function setupAction(world: World) {
         }
       } else {
         const farmable = getFarmable(world, entity[POSITION]);
-        if (farmable && !isInPopup(world, entity)) {
+        const toolEntity = world.getEntityByIdAndComponents(
+          entity[EQUIPPABLE]?.tool,
+          [ITEM]
+        );
+        if (
+          toolEntity?.[ITEM].tool === "shovel" &&
+          farmable &&
+          !isInPopup(world, entity)
+        ) {
           plant = farmable;
           action = plant;
         }
@@ -374,7 +382,8 @@ export default function setupAction(world: World) {
         : [];
 
       const useId =
-        usePopup && isInTab(world, entity, "inspect")
+        usePopup &&
+        (isInTab(world, entity, "inspect") || isInTab(world, entity, "equip"))
           ? world.getEntityId(usePopup)
           : currentPopup &&
             isInTab(world, entity, "forge") &&

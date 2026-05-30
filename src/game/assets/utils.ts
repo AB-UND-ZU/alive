@@ -1283,7 +1283,6 @@ export const queueMessage = (
         messageState.args.lastMessage + messageDelay
       );
       delay = lastMessage;
-
       messageState.args.lastMessage = lastMessage;
     }
 
@@ -1300,7 +1299,7 @@ export const queueMessage = (
       {
         messages: [message],
         index: 0,
-        lastMessage: 0,
+        lastMessage: message.delay,
       }
     );
   }
