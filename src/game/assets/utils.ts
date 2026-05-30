@@ -73,7 +73,7 @@ import {
   ore,
   oreDrop,
   ruby,
-  seed,
+  sapling,
   shroom,
   stick,
   wood,
@@ -1512,7 +1512,7 @@ export const entitySprites: Record<
         ...createText("."),
       ],
       [
-        ...createText("Crafts to "),
+        ...createText("Brews to "),
         ...createItemName({ stackable: "fruit" }),
         ...createText("."),
       ],
@@ -1531,7 +1531,7 @@ export const entitySprites: Record<
         ...createText("."),
       ],
       [
-        ...createText("Craft into "),
+        ...createText("Brews into "),
         ...createItemName({ stackable: "herb" }),
         ...createText("."),
       ],
@@ -1550,8 +1550,8 @@ export const entitySprites: Record<
         ...createText("."),
       ],
       [
-        ...createText("Craft into "),
-        ...createItemName({ stackable: "seed" }),
+        ...createText("Brew to "),
+        ...createItemName({ stackable: "sapling" }),
         ...createText("."),
       ],
     ],
@@ -1710,8 +1710,8 @@ export const entitySprites: Record<
       createCountable(stats, "hp", "display"),
     ],
   },
-  seed: {
-    sprite: seed,
+  sapling: {
+    sprite: sapling,
     getDescription: (stats) => [
       createText("About to sprout."),
       [
@@ -2655,7 +2655,7 @@ export const materialSprites: Partial<
             ...createItemName({ stackable: "stick" }),
             ...createText("."),
           ],
-          createText("Used to craft"),
+          createText("Used to brew"),
           [
             getItemSprite({ consume: "potion", material: "wood", stat: "hp" }),
             getItemSprite({ consume: "potion", material: "iron", stat: "mp" }),

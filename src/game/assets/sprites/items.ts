@@ -404,8 +404,8 @@ export const leaf: Sprite = {
   },
 };
 
-export const seed: Sprite = {
-  name: "Seed",
+export const sapling: Sprite = {
+  name: "Sapling",
   layers: [
     { char: ",", color: colors.maroon },
     { char: "+", color: colors.green },

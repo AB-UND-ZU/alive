@@ -48,6 +48,7 @@ import { recolorSprite } from "../../game/assets/templates";
 import { BUMPABLE } from "../components/bumpable";
 import { ACTIONABLE } from "../components/actionable";
 import { isNpc } from "./damage";
+import { assignQuickItem } from "./popup";
 
 export const isLootable = (world: World, entity: Entity) =>
   LOOTABLE in entity &&
@@ -183,10 +184,11 @@ export const collectItem = (
   return false;
 };
 
-export const attempEquipItem = (
+export const attemptEquipItem = (
   world: World,
   entity: Entity,
-  itemEntity: Entity
+  itemEntity: Entity,
+  delay = 0
 ) => {
   if (!entity[EQUIPPABLE]) return;
 
@@ -225,21 +227,31 @@ export const attempEquipItem = (
           ),
           orientation: "up",
           fast: false,
-          delay: 400,
+          delay,
         });
+      }
+
+      if (entity[PLAYER]) {
+        assignQuickItem(world, entity, itemEntity[ITEM]);
       }
 
       return;
     }
   }
 
-  equipItem(world, entity, itemEntity);
+  return equipItem(world, entity, itemEntity, delay);
 };
 
-export const equipItem = (world: World, entity: Entity, itemEntity: Entity) => {
+export const equipItem = (
+  world: World,
+  entity: Entity,
+  itemEntity: Entity,
+  delay = 0
+) => {
   if (!entity[EQUIPPABLE]) return;
   const itemId = world.getEntityId(itemEntity);
 
+  let unequippedId: number | undefined;
   for (const equipment of equipments) {
     if (
       itemEntity[ITEM].accessory !== equipment &&
@@ -250,14 +262,20 @@ export const equipItem = (world: World, entity: Entity, itemEntity: Entity) => {
     const existingId = entity[EQUIPPABLE][equipment];
 
     // add existing render count if item is replaced
-    if (existingId && existingId !== itemId) {
-      const existingItem = world.assertByIdAndComponents(existingId, [ITEM]);
-      itemEntity[RENDERABLE].generation += getEntityGeneration(
-        world,
-        existingItem
-      );
+    if (existingId) {
+      if (!unequippedId) {
+        unequippedId = existingId;
+      }
 
-      unequipItem(world, entity, existingItem);
+      if (existingId !== itemId) {
+        const existingItem = world.assertByIdAndComponents(existingId, [ITEM]);
+        itemEntity[RENDERABLE].generation += getEntityGeneration(
+          world,
+          existingItem
+        );
+
+        unequipItem(world, entity, existingItem);
+      }
     }
 
     entity[EQUIPPABLE][equipment] = itemId;
@@ -271,19 +289,37 @@ export const equipItem = (world: World, entity: Entity, itemEntity: Entity) => {
   }
 
   if (!isNpc(world, entity)) {
-    queueMessage(world, entity, {
-      line: addBackground(
-        [
-          ...createText("Equipped ", colors.silver),
-          ...createItemName(itemEntity[ITEM]),
-        ],
-        colors.black
-      ),
-      orientation: "up",
-      fast: false,
-      delay: 400,
-    });
+    if (unequippedId === itemId) {
+      queueMessage(world, entity, {
+        line: addBackground(
+          [
+            ...createItemName(itemEntity[ITEM]),
+            ...createText(" already worn!", colors.silver),
+          ],
+          colors.black
+        ),
+        orientation: "up",
+        fast: false,
+        delay: 0,
+      });
+      return;
+    } else {
+      queueMessage(world, entity, {
+        line: addBackground(
+          [
+            ...createText("Equipped ", colors.silver),
+            ...createItemName(itemEntity[ITEM]),
+          ],
+          colors.black
+        ),
+        orientation: "up",
+        fast: false,
+        delay,
+      });
+    }
   }
+
+  return world.getEntityByIdAndComponents(unequippedId, [ITEM]);
 };
 
 export const unequipItem = (
@@ -346,7 +382,7 @@ export const addToInventory = (
   if (amount === 0) {
     // empty block
   } else if (isEquipment) {
-    attempEquipItem(world, entity, itemEntity);
+    attemptEquipItem(world, entity, itemEntity, 400);
     entity[INVENTORY].items.push(targetId);
   } else if (targetStat && !targetMaterial) {
     const maxStat = getMaxCounter(targetStat);

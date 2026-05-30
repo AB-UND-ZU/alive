@@ -83,7 +83,7 @@ export const craftables = [
   "herb",
   "fruit",
   "leaf",
-  "seed",
+  "sapling",
   "ingot",
   "nugget",
   "worm",

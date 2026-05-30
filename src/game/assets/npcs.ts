@@ -1161,7 +1161,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               amount: 5,
             },
             stock: 1,
-            prices: [{ stackable: "seed", amount: 5 }],
+            prices: [{ stackable: "sapling", amount: 5 }],
           },
           {
             item: {
@@ -1228,10 +1228,10 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             [
               ...createText("get "),
               ...createItemText({
-                stackable: "seed",
+                stackable: "sapling",
                 amount: 5,
               }),
-              ...createText(", or "),
+              ...createText(", or"),
             ],
             [
               brew,

@@ -12,7 +12,7 @@ export const brewingRecipes: Recipe[] = [
     options: [[{ stackable: "flower", amount: 10 }]],
   },
   {
-    item: { stackable: "seed", amount: 1 },
+    item: { stackable: "sapling", amount: 1 },
     duration: 5,
     options: [[{ stackable: "leaf", amount: 10 }]],
   },
@@ -144,7 +144,7 @@ export const brewingRecipes: Recipe[] = [
       [
         { stackable: "stick", amount: 3 },
         { stackable: "grain", amount: 5 },
-        { stackable: "seed", amount: 1 },
+        { stackable: "sapling", amount: 1 },
       ],
     ],
   },

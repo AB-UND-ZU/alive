@@ -102,7 +102,7 @@ export const stackableConsumptions: Partial<
   coconut: { countable: "mp", amount: 2 },
   fruit: { countable: "hp", amount: 5 },
   herb: { countable: "mp", amount: 2 },
-  seed: { countable: "xp", amount: 1 },
+  sapling: { countable: "xp", amount: 1 },
 
   bread: { countable: "hp", amount: 5 },
 

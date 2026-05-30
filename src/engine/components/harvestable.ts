@@ -17,7 +17,7 @@ export type Resource =
   | "flower"
   | "berry"
   | "leaf"
-  | "seed"
+  | "sapling"
   | "sand"
   | "beach"
   | "palisade"

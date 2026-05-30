@@ -4561,7 +4561,7 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
     (item) => {
       const itemEntity = world.assertByIdAndComponents(item, [ITEM]);
       const itemConsumption = getItemConsumption(itemEntity);
-      return !!itemConsumption;
+      return !!itemConsumption || slots.some((slot) => itemEntity[ITEM][slot]);
     }
   );
   const hasItems = quickItems.length > 0;
@@ -4585,16 +4585,38 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
             itemConsumption && getStatColor(itemConsumption.countable);
           const textColor = selected ? colors.white : colors.grey;
 
-          const amountText = [
-            ...createText(`${itemEntity[ITEM].amount}`, textColor),
-            recolorSprite(times, {
-              [colors.white]: textColor,
-              [colors.black]:
-                selected && consumptionColor
-                  ? darken(consumptionColor)
-                  : colors.black,
-            }),
-          ];
+          const amountText = itemConsumption
+            ? [
+                ...createText(`${itemEntity[ITEM].amount}`, textColor),
+                recolorSprite(times, {
+                  [colors.white]: textColor,
+                  [colors.black]:
+                    selected && consumptionColor
+                      ? darken(consumptionColor)
+                      : colors.black,
+                }),
+              ]
+            : (itemEntity[ITEM].weapon && !itemEntity[ITEM].skill) ||
+              itemEntity[ITEM].offhand ||
+              itemEntity[ITEM].accessory
+            ? createText(
+                itemEntity[ITEM].accessory
+                  ? "Utility"
+                  : itemEntity[ITEM].weapon
+                  ? gearTitles.weapon
+                  : gearTitles.offhand,
+                selected ? colors.lime : colors.grey
+              )
+            : createButton(
+                itemEntity[ITEM].skill || itemEntity[ITEM].tool
+                  ? "SKILL"
+                  : "SPELL",
+                7,
+                !selected,
+                false,
+                false,
+                selected ? "lime" : "silver"
+              );
           const consumptionText = itemConsumption
             ? createCountable(
                 { [itemConsumption.countable]: itemConsumption.amount },
@@ -4625,9 +4647,13 @@ export const displayUse: Sequence<PopupSequence> = (world, entity, state) => {
             none,
             itemSprite,
             ...(selected
-              ? itemConsumption && consumptionColor
-                ? shaded(line, darken(consumptionColor), "▄")
-                : shaded(line, colors.grey)
+              ? shaded(
+                  line,
+                  itemConsumption && consumptionColor
+                    ? darken(consumptionColor)
+                    : colors.green,
+                  "▄"
+                )
               : line),
           ];
         })

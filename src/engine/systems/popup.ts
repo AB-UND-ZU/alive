@@ -38,7 +38,7 @@ import {
 import { VIEWABLE } from "../components/viewable";
 import { UnitStats, STATS } from "../components/stats";
 import { Inventory, INVENTORY } from "../components/inventory";
-import { Equipment, EQUIPPABLE, gear, slots } from "../components/equippable";
+import { Equipment, EQUIPPABLE, slots } from "../components/equippable";
 import { Item, ITEM } from "../components/item";
 import { rerenderEntity } from "./renderer";
 import { entities } from "..";
@@ -617,6 +617,41 @@ export const closePopup = (
   }
 };
 
+export const assignQuickItem = (
+  world: World,
+  entity: Entity,
+  item: Partial<Item>,
+  hotKey?: number
+) => {
+  let assignedSlot = hotKey;
+  let existingSlot: number | undefined;
+
+  for (let slotIndex = 1; slotIndex <= 10; slotIndex += 1) {
+    const slotNumber = slotIndex % 10;
+    const slotItem = entity[PLAYER].quickItems[slotNumber];
+    if (!slotItem) {
+      if (assignedSlot === undefined) {
+        assignedSlot = slotNumber;
+      }
+      continue;
+    }
+    if (matchesItem(world, slotItem, item)) {
+      existingSlot = slotNumber;
+      break;
+    }
+  }
+
+  if (assignedSlot === undefined) return;
+
+  const { amount, carrier, bound, ...quickItem } = item;
+  entity[PLAYER].quickItems[assignedSlot] = quickItem;
+
+  // clear existing slot to prevent duplicates
+  if (existingSlot !== undefined) {
+    entity[PLAYER].quickItems[existingSlot] = undefined;
+  }
+};
+
 export default function setupPopup(world: World) {
   let heroGeneration = -1;
 
@@ -663,8 +698,9 @@ export default function setupPopup(world: World) {
     const inspectItems = inventoryItems.filter(
       (item) => !slots.some((slot) => item[ITEM][slot])
     );
-    const quickItems = inventoryItems.filter((item) =>
-      getItemConsumption(item)
+    const quickItems = inventoryItems.filter(
+      (item) =>
+        getItemConsumption(item) || slots.some((slot) => item[ITEM][slot])
     );
     const plantItems = inventoryItems.filter(
       (item) => plantConfigs[item[ITEM].stackable!]
@@ -1153,27 +1189,7 @@ export default function setupPopup(world: World) {
         const consumption =
           useEntity && getConsumption(world, heroEntity, useEntity);
         if (useEntity && consumption) {
-          // remember quick item slot
-          let emptySlot = -1;
-          for (let slotIndex = 1; slotIndex <= 10; slotIndex += 1) {
-            const slotNumber = slotIndex % 10;
-            const slotItem = heroEntity[PLAYER].quickItems[slotNumber];
-            if (!slotItem) {
-              if (emptySlot === -1) {
-                emptySlot = slotNumber;
-              }
-              continue;
-            }
-            if (matchesItem(world, slotItem, consumption.item[ITEM])) {
-              emptySlot = -1;
-              break;
-            }
-          }
-          if (emptySlot !== -1) {
-            const { amount, carrier, bound, ...quickItem } =
-              consumption.item[ITEM];
-            heroEntity[PLAYER].quickItems[emptySlot] = quickItem;
-          }
+          assignQuickItem(world, heroEntity, consumption.item[ITEM]);
 
           const consumed = consumeItem(world, heroEntity, consumption);
           if (consumed) {
@@ -1197,25 +1213,8 @@ export default function setupPopup(world: World) {
         }
       } else if (tab === "equip") {
         const targetItem = useEntity && equipItems[verticalIndex];
-        const selectedEquipped = targetItem
-          ? heroEntity[EQUIPPABLE][
-              targetItem[ITEM].accessory
-                ? targetItem[ITEM].accessory
-                : gear.find((slot) => targetItem[ITEM][slot])!
-            ] === world.getEntityId(equipItems[verticalIndex]) &&
-            !(
-              heroEntity[ACTIONABLE].toolEquipped &&
-              heroEntity[EQUIPPABLE].skill &&
-              targetItem[ITEM].skill
-            ) &&
-            !(
-              !heroEntity[ACTIONABLE].toolEquipped &&
-              heroEntity[EQUIPPABLE].tool &&
-              targetItem[ITEM].tool
-            )
-          : false;
 
-        if (useEntity && !selectedEquipped && targetItem) {
+        if (useEntity && targetItem) {
           // check if tool should be swapped with skill
           if (
             heroEntity[ACTIONABLE].toolEquipped &&
@@ -1234,19 +1233,6 @@ export default function setupPopup(world: World) {
           equipItem(world, heroEntity, targetItem);
           closePopup(world, heroEntity, useEntity);
           rerenderEntity(world, heroEntity);
-        } else if (useEntity && selectedEquipped && targetItem) {
-          queueMessage(world, heroEntity, {
-            line: addBackground(
-              [
-                ...createItemName(targetItem[ITEM]),
-                ...createText(" already worn!", colors.silver),
-              ],
-              colors.black
-            ),
-            orientation: "up",
-            fast: false,
-            delay: 0,
-          });
         }
       } else if (tab === "class" || tab === "style") {
         if (!addEntity) {
@@ -1352,7 +1338,7 @@ export default function setupPopup(world: World) {
           const { amount, carrier, bound, ...hotItem } =
             quickItems[verticalIndex][ITEM];
           const hotKey = selections[1];
-          heroEntity[PLAYER].quickItems[hotKey] = hotItem;
+          assignQuickItem(world, heroEntity, hotItem, hotKey);
           popTabSelection(world, addEntity);
           popTabSelection(world, addEntity);
           setVerticalIndex(world, addEntity, 0);

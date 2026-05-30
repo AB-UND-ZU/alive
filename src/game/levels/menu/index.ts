@@ -217,7 +217,7 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
-          stackable: "seed",
+          stackable: "sapling",
           amount: Infinity,
         },
       ],

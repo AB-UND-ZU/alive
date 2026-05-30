@@ -731,7 +731,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 20, items: [{ stackable: "shroom", amount: 3 }] },
       { chance: 15, items: [{ stackable: "fruit", amount: 1 }] },
       { chance: 15, items: [{ stackable: "herb", amount: 1 }] },
-      { chance: 15, items: [{ stackable: "seed", amount: 1 }] },
+      { chance: 15, items: [{ stackable: "sapling", amount: 1 }] },
     ],
     patternNames: [],
     sprite: box,
@@ -872,7 +872,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     harvestable: "cactus",
-    drops: [{ chance: 100, items: [{ stackable: "seed", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "sapling", amount: 1 }] }],
     patternNames: [],
     sprite: cactus1,
   },
@@ -885,7 +885,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     harvestable: "cactus",
-    drops: [{ chance: 100, items: [{ stackable: "seed", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "sapling", amount: 1 }] }],
     patternNames: [],
     sprite: cactus2,
   },
@@ -1273,7 +1273,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 100,
         items: [
           {
-            stackable: "seed",
+            stackable: "sapling",
             amount: 1,
           },
           {
@@ -1317,7 +1317,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 100,
         items: [
           {
-            stackable: "seed",
+            stackable: "sapling",
             amount: 1,
           },
           {
@@ -1360,7 +1360,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 50,
         items: [
           {
-            stackable: "seed",
+            stackable: "sapling",
             amount: 1,
           },
           {
@@ -1380,7 +1380,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 50,
         items: [
           {
-            stackable: "seed",
+            stackable: "sapling",
             amount: 1,
           },
           {
@@ -1501,7 +1501,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
             amount: 5,
           },
           {
-            stackable: "seed",
+            stackable: "sapling",
             amount: 1,
           },
         ],

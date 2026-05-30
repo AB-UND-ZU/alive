@@ -33,7 +33,7 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
   pearl: 50,
   seastar: 30,
 
-  seed: 3,
+  sapling: 3,
   wheat: 3,
   bread: 8,
   fruit: 8,

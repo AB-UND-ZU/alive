@@ -67,6 +67,7 @@ import { isDead, isEnemy, isNpc, triggerSpear } from "./damage";
 import { canCast, chargeSlash, summonTotem } from "./magic";
 import { EQUIPPABLE, slots } from "../components/equippable";
 import {
+  assignQuickItem,
   closePopup,
   existingItem,
   getDeal,
@@ -81,7 +82,7 @@ import {
   setVerticalIndex,
 } from "./popup";
 import { Popup, POPUP } from "../components/popup";
-import { addToInventory } from "./collect";
+import { addToInventory, equipItem } from "./collect";
 import { getAbilityStats } from "../../game/balancing/abilities";
 import { PLAYER } from "../components/player";
 import { isActionable, isControllable, isInteractable } from "./freeze";
@@ -1210,7 +1211,14 @@ export default function setupTrigger(world: World) {
           const inventoryItem = hotItem && existingItem(world, entity, hotItem);
           const consumption =
             inventoryItem && getItemConsumption(inventoryItem);
-          consumeItem(world, entity, consumption);
+          if (consumption) {
+            consumeItem(world, entity, consumption);
+          } else if (inventoryItem) {
+            const unequippedItem = equipItem(world, entity, inventoryItem);
+            if (unequippedItem) {
+              assignQuickItem(world, entity, unequippedItem[ITEM], hotKey);
+            }
+          }
           rerenderEntity(world, useEntity);
           continue;
         } else if (targetTab === "chat") {

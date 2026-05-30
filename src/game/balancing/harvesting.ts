@@ -21,7 +21,7 @@ const harvestEfforts: Record<Resource, number> = {
   flower: 1,
   berry: 1,
   leaf: 1,
-  seed: 1,
+  sapling: 1,
 
   sand: 1,
   beach: 1,
@@ -48,7 +48,7 @@ const harvestYields: Partial<
   flower: [{ stackable: "flower", amount: 1 }],
   berry: [{ stackable: "berry", amount: 1 }],
   leaf: [{ stackable: "leaf", amount: 1 }],
-  seed: [{ stackable: "seed", amount: 1 }],
+  sapling: [{ stackable: "sapling", amount: 1 }],
 
   sand: [{ stackable: "sand", amount: 1 }],
   beach: [{ stackable: "sand", amount: 1 }],
@@ -75,7 +75,7 @@ export const harvestScratches: Record<Resource, string> = {
   berry: colors.purple,
   flower: colors.teal,
   leaf: colors.lime,
-  seed: colors.lime,
+  sapling: colors.lime,
 
   sand: colors.yellow,
   beach: colors.yellow,
@@ -111,7 +111,7 @@ export const harvestTools: Record<Resource, Tool> = {
   flower: "shovel",
   berry: "shovel",
   leaf: "shovel",
-  seed: "shovel",
+  sapling: "shovel",
 
   sand: "shovel",
   beach: "shovel",
@@ -184,10 +184,10 @@ export const plantConfigs: Partial<
     cell: "hedge",
     harvest: "leaf",
   },
-  seed: {
+  sapling: {
     duration: 300,
     cell: "apple",
-    harvest: "seed",
+    harvest: "sapling",
   },
 };
 

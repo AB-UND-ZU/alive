@@ -45,7 +45,7 @@ export const pickupOptions: Partial<
   coconut: { variant: 5, intensity: 6 },
   fruit: { variant: 7, intensity: 2 },
   herb: { variant: 7, intensity: 3 },
-  seed: { variant: 7, intensity: 4 },
+  sapling: { variant: 7, intensity: 4 },
   gem: { variant: 10, intensity: 2 },
   crystal: { variant: 10, intensity: 3 },
   coin: { variant: 13, intensity: 4 },

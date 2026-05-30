@@ -1,7 +1,7 @@
 import { RENDERABLE } from "../components/renderable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
-import { attempEquipItem, isEmpty } from "./collect";
+import { attemptEquipItem, isEmpty } from "./collect";
 import { LOOTABLE } from "../components/lootable";
 import { getLimbs, getRoot, getStructure, isDead } from "./damage";
 import { entities } from "..";
@@ -221,7 +221,7 @@ export const createItemInInventory = <
   if (!equip) {
     carrier[INVENTORY].items.push(itemId);
   } else if (isEquipment) {
-    attempEquipItem(world, carrier, itemEntity);
+    attemptEquipItem(world, carrier, itemEntity);
     carrier[INVENTORY].items.push(itemId);
   } else if (targetConsume || targetStackable) {
     carrier[INVENTORY].items.push(itemId);
