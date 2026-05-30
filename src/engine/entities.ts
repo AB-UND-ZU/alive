@@ -73,6 +73,7 @@ import { Refillable, REFILLABLE } from "./components/refillable";
 import { Brewable, BREWABLE } from "./components/brewable";
 import { Forgable, FORGABLE } from "./components/forgable";
 import { Mountable, MOUNTABLE } from "./components/mountable";
+import { Remainable, REMAINABLE } from "./components/remainable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -131,6 +132,7 @@ export type Entity = Record<LevelName, {}> & {
   [RECHARGABLE]: Rechargable;
   [REFERENCE]: Reference;
   [REFILLABLE]: Refillable;
+  [REMAINABLE]: Remainable;
   [RENDERABLE]: Renderable;
   [REVIVABLE]: Revivable;
   [SEQUENCABLE]: Sequencable;
@@ -256,6 +258,7 @@ export const createBoss = entityFactory([
   ORIENTABLE,
   POSITION,
   RECHARGABLE,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
@@ -330,6 +333,7 @@ export const createCactus = entityFactory([
   INVENTORY,
   MOVABLE,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,
@@ -358,6 +362,7 @@ export const createChest = entityFactory([
   INVENTORY,
   LAYER,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,
@@ -468,6 +473,7 @@ export const createDormant = entityFactory([
   NPC,
   ORIENTABLE,
   POSITION,
+  REMAINABLE,
   RECHARGABLE,
   RENDERABLE,
   SEQUENCABLE,
@@ -631,6 +637,7 @@ export const createGate = entityFactory([
   FOG,
   LOCKABLE,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
@@ -777,6 +784,7 @@ export const createLimb = entityFactory([
   MOVABLE,
   ORIENTABLE,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,
@@ -804,6 +812,7 @@ export const createMine = entityFactory([
   HARVESTABLE,
   LIGHT,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
@@ -828,6 +837,7 @@ export const createMob = entityFactory([
   ORIENTABLE,
   POSITION,
   RECHARGABLE,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,
@@ -844,6 +854,7 @@ export const createMountain = entityFactory([
   HARVESTABLE,
   LIGHT,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
@@ -859,6 +870,7 @@ export const createObject = entityFactory([
   INVENTORY,
   LAYER,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,
@@ -876,6 +888,7 @@ export const createOre = entityFactory([
   LIGHT,
   LOOTABLE,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
@@ -889,6 +902,7 @@ export const createOrganic = entityFactory([
   FOG,
   HARVESTABLE,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
@@ -904,6 +918,7 @@ export const createPalisade = entityFactory([
   INVENTORY,
   LAYER,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SWIMMABLE,
@@ -912,6 +927,17 @@ export const createPalisade = entityFactory([
 ]);
 
 export const createParticle = entityFactory([PARTICLE, RENDERABLE, SPRITE]);
+
+export const createPaving = entityFactory([
+  DROPPABLE,
+  HARVESTABLE,
+  FOG,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  TEMPO,
+]);
 
 export const createPin = entityFactory([POSITION]);
 
@@ -971,6 +997,16 @@ export const createProcessor = entityFactory([
   SEQUENCABLE,
 ]);
 
+export const createRemains = entityFactory([
+  DROPPABLE,
+  FOG,
+  HARVESTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+]);
+
 export const createRoaming = entityFactory([
   ACTIONABLE,
   AFFECTABLE,
@@ -1020,21 +1056,11 @@ export const createRoot = entityFactory([
   FRAGMENT,
   HARVESTABLE,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
   STRUCTURABLE,
-]);
-
-export const createSand = entityFactory([
-  DROPPABLE,
-  HARVESTABLE,
-  FOG,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-  TEMPO,
 ]);
 
 export const createSegment = entityFactory([
@@ -1052,6 +1078,7 @@ export const createSegment = entityFactory([
   MOVABLE,
   ORIENTABLE,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,
@@ -1080,6 +1107,7 @@ export const createSign = entityFactory([
   INVENTORY,
   LAYER,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,
@@ -1237,6 +1265,7 @@ export const createTower = entityFactory([
   ORIENTABLE,
   POSITION,
   RECHARGABLE,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,
@@ -1302,6 +1331,7 @@ export const createVillager = entityFactory([
   NPC,
   ORIENTABLE,
   POSITION,
+  REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SHOOTABLE,

@@ -360,7 +360,11 @@ export const wood: Sprite = {
   name: "Wood",
   layers: [
     { char: "■", color: colors.maroon },
-    { char: "▒", color: colors.black },
+    { char: "\u011e", color: colors.maroon },
+    { char: "\u011f", color: colors.maroon },
+    { char: "¬", color: colors.maroon },
+    { char: "░", color: colors.black },
+    { char: "-", color: colors.maroon },
   ],
 };
 
@@ -934,5 +938,13 @@ export const sandBlock: Sprite = {
   layers: [
     { char: "■", color: colors.yellow },
     { char: "▓", color: colors.black },
+  ],
+};
+
+export const gravelBlock: Sprite = {
+  name: "Gravel",
+  layers: [
+    { char: "■", color: colors.silver },
+    { char: "▒", color: colors.black },
   ],
 };

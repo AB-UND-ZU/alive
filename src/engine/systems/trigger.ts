@@ -616,6 +616,20 @@ export const applyCondition = (
   );
 };
 
+export const resetConditionables = (
+  world: World,
+  entity: Entity,
+  all = false
+) => {
+  if (all) {
+    entity[CONDITIONABLE] = {};
+  } else {
+    delete entity[CONDITIONABLE].axe;
+    delete entity[CONDITIONABLE].pickaxe;
+  }
+  rerenderEntity(world, entity);
+};
+
 export const castConditionable = (
   world: World,
   entity: Entity,
@@ -735,7 +749,7 @@ export const digShovel = (
   );
 };
 
-export const canPlant = (world: World, entity: Entity, plant: Entity) =>
+export const canSeed = (world: World, entity: Entity, plant: Entity) =>
   plant[FARMABLE]?.watered;
 
 export const completeQuest = (world: World, entity: Entity, target: Entity) => {
@@ -1337,7 +1351,7 @@ export default function setupTrigger(world: World) {
             continue;
           }
         } else if (plantEntity) {
-          if (canPlant(world, entity, plantEntity)) {
+          if (canSeed(world, entity, plantEntity)) {
             const targetIndex = useEntity[POPUP].tabs.indexOf("plant");
             useEntity[POPUP].horizontalIndex = targetIndex;
             rerenderEntity(world, useEntity);

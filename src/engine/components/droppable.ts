@@ -4,7 +4,6 @@ import { Sprite } from "./sprite";
 
 export type Droppable = {
   decayed: boolean;
-  remains?: Sprite;
   evaporate?: { sprite: Sprite; fast: boolean };
 };
 

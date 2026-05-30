@@ -354,25 +354,28 @@ export default function setupMovement(world: World) {
           moveEntity(world, part, limbPosition);
           rerenderEntity(world, part);
         }
-      } else if (
-        entity[MOVABLE].swimming &&
-        !isImmersible(world, entity[POSITION])
-      ) {
-        // bump stranded entities
-        if (!(BUMPABLE in entity)) {
-          world.addComponentToEntity(entity, BUMPABLE, {
-            generation: 0,
-          });
-        }
+      } else {
+        if (
+          entity[MOVABLE].swimming &&
+          !isImmersible(world, entity[POSITION])
+        ) {
+          // bump stranded entities
+          if (!(BUMPABLE in entity)) {
+            world.addComponentToEntity(entity, BUMPABLE, {
+              generation: 0,
+            });
+          }
 
-        if (entity[BUMPABLE]) {
-          entity[BUMPABLE].generation = entity[RENDERABLE].generation;
-          entity[BUMPABLE].orientation = "up";
-          rerenderEntity(world, entity);
+          if (entity[BUMPABLE]) {
+            entity[BUMPABLE].generation = entity[RENDERABLE].generation;
+            entity[BUMPABLE].orientation = "up";
+            rerenderEntity(world, entity);
+          }
         }
-      } else if (entity[MOUNTABLE]) {
-        // reset movement for vessels
-        stopVessel(world, entity);
+        if (entity[MOUNTABLE]) {
+          // reset movement for vessels
+          stopVessel(world, entity);
+        }
       }
 
       // preserve momentum before suspending frame

@@ -15,6 +15,11 @@ const harvestEfforts: Record<Resource, number> = {
   box: 4,
   sign: 6,
   fence: 11,
+  post: 1,
+  stump: 1,
+  husk: 1,
+  desert_husk: 1,
+  root: 1,
 
   grass: 1,
   bush: 1,
@@ -25,8 +30,13 @@ const harvestEfforts: Record<Resource, number> = {
 
   sand: 1,
   beach: 1,
+  path: 1,
+  rubble: 1,
 
   palisade: 11,
+  hinge: 1,
+  path_hinge: 1,
+  footing: 1,
   rock: 1,
   mountain: 6,
   iron: 11,
@@ -42,6 +52,11 @@ const harvestYields: Partial<
     { stackable: "leaf", amount: 3 },
   ],
   palm: [{ stackable: "stick", amount: 2 }],
+  post: [{ stackable: "stick", amount: 1 }],
+  stump: [{ stackable: "stick", amount: 1 }],
+  husk: [{ stackable: "stick", amount: 1 }],
+  desert_husk: [{ stackable: "stick", amount: 1 }],
+  root: [{ stackable: "stick", amount: 1 }],
 
   grass: [{ stackable: "grain", amount: 1 }],
   bush: [{ stackable: "grain", amount: 2 }],
@@ -52,7 +67,12 @@ const harvestYields: Partial<
 
   sand: [{ stackable: "sand", amount: 1 }],
   beach: [{ stackable: "sand", amount: 1 }],
+  path: [{ stackable: "gravel", amount: 1 }],
+  rubble: [{ stackable: "gravel", amount: 1 }],
 
+  footing: [{ stackable: "ore", amount: 1 }],
+  hinge: [{ stackable: "ore", amount: 1 }],
+  path_hinge: [{ stackable: "ore", amount: 1 }],
   mountain: [{ stackable: "ore", amount: 1 }],
   iron: [{ stackable: "resource", material: "iron", amount: 1 }],
   gold: [{ stackable: "resource", material: "gold", amount: 1 }],
@@ -69,6 +89,11 @@ export const harvestScratches: Record<Resource, string> = {
   box: colors.maroon,
   sign: colors.maroon,
   fence: colors.maroon,
+  post: colors.maroon,
+  stump: colors.maroon,
+  husk: colors.maroon,
+  desert_husk: colors.maroon,
+  root: colors.maroon,
 
   grass: colors.yellow,
   bush: colors.yellow,
@@ -79,8 +104,13 @@ export const harvestScratches: Record<Resource, string> = {
 
   sand: colors.yellow,
   beach: colors.yellow,
+  path: colors.silver,
+  rubble: colors.silver,
 
   palisade: colors.silver,
+  footing: colors.silver,
+  hinge: colors.silver,
+  path_hinge: colors.silver,
   rock: colors.silver,
   mountain: colors.silver,
   iron: colors.silver,
@@ -105,6 +135,11 @@ export const harvestTools: Record<Resource, Tool> = {
   palm: "axe",
   sign: "axe",
   fence: "axe",
+  post: "shovel",
+  stump: "shovel",
+  husk: "shovel",
+  desert_husk: "shovel",
+  root: "shovel",
 
   grass: "shovel",
   bush: "shovel",
@@ -115,8 +150,13 @@ export const harvestTools: Record<Resource, Tool> = {
 
   sand: "shovel",
   beach: "shovel",
+  path: "shovel",
+  rubble: "shovel",
 
   palisade: "pickaxe",
+  footing: "shovel",
+  hinge: "shovel",
+  path_hinge: "shovel",
   rock: "pickaxe",
   mountain: "pickaxe",
   iron: "pickaxe",
@@ -193,5 +233,12 @@ export const plantConfigs: Partial<
 
 export const harvestDurationFactor = 3;
 export const trenchResources = ["sand", "beach"];
-export const trenchFill = 3;
+export const pavingResources = ["path", "rubble"];
+export const fillItems: Record<
+  "beach" | "path",
+  Omit<Item, "carrier" | "bound">
+> = {
+  path: { stackable: "gravel", amount: 1 },
+  beach: { stackable: "sand", amount: 3 },
+};
 export const soilWaterDistance = 3;

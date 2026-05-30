@@ -40,6 +40,13 @@ export const npcTypes = [
   "wormBoss",
   "chestBoss",
   "waveTower",
+  "woodChest",
+  "ironChest",
+  "goldChest",
+  "diamondChest",
+  "rubyChest",
+  "ilexChest",
+  "oakChest",
 ] as const;
 export type NpcType = (typeof npcTypes)[number];
 

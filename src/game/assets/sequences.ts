@@ -464,7 +464,6 @@ import {
   animateEvaporate,
   dropEntity,
   MAX_DROP_RADIUS,
-  placeRemains,
 } from "../../engine/systems/drop";
 import {
   getHarvestTarget,
@@ -494,6 +493,7 @@ import { getKeyFromIndex } from "../../components/Keyboard";
 import { brewingDurationFactor, getBrewingDeal } from "../balancing/brewing";
 import { Brewable, BREWABLE } from "../../engine/components/brewable";
 import { Forgable, FORGABLE } from "../../engine/components/forgable";
+import { REMAINABLE } from "../../engine/components/remainable";
 
 export * from "./npcs";
 export * from "./quests";
@@ -3100,18 +3100,9 @@ export const creatureVanish: Sequence<VanishSequence> = (
             dropEntity(world, entity, entity[POSITION], false, MAX_DROP_RADIUS);
             animateEvaporate(world, entity);
             entity[SPRITE] = none;
-
-            // place remains if available
-            const remainsLimb = getLimbs(world, entity).find(
-              (limb) => limb[DROPPABLE]?.remains
-            );
-            if (remainsLimb) {
-              placeRemains(world, remainsLimb, entity[POSITION]);
-            }
             return;
           }
 
-          placeRemains(world, fragmentEntity);
           dropEntity(world, fragmentEntity, fragmentEntity[POSITION]);
           fragmentEntity[DROPPABLE].decayed = true;
         });
@@ -6980,9 +6971,9 @@ export const fireBurn: Sequence<BurnSequence> = (world, entity, state) => {
 
   // create castable and AoE for eternal fire
   const burnFactor =
-    entity[FRAGMENT]?.structure && entity[BURNABLE]?.remains
+    entity[FRAGMENT]?.structure && entity[REMAINABLE]?.cell
       ? 5
-      : entity[FRAGMENT]?.structure || entity[BURNABLE]?.remains
+      : entity[FRAGMENT]?.structure || entity[REMAINABLE]?.cell
       ? 3
       : 1;
   if (
@@ -9096,6 +9087,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
               facing: iteration.orientation,
             },
             [POSITION]: sidePosition,
+            [REMAINABLE]: {},
             [RENDERABLE]: { generation: 0 },
             [SEQUENCABLE]: { states: {} },
             [SHOOTABLE]: { shots: 0 },
@@ -9127,6 +9119,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
               facing: rotateOrientation(iteration.orientation, 1),
             },
             [POSITION]: cornerPosition,
+            [REMAINABLE]: {},
             [RENDERABLE]: { generation: 0 },
             [SEQUENCABLE]: { states: {} },
             [SHOOTABLE]: { shots: 0 },
@@ -9196,6 +9189,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
           facing: limbOrientation,
         },
         [POSITION]: limbPosition,
+        [REMAINABLE]: {},
         [RENDERABLE]: { generation: 0 },
         [SEQUENCABLE]: { states: {} },
         [SHOOTABLE]: { shots: 0 },

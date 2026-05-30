@@ -10,6 +10,7 @@ import {
   createCell,
   createNpc,
   insertArea,
+  smoothenBeaches,
   smoothenWater,
 } from "../../../bindings/creation";
 import {
@@ -79,7 +80,7 @@ export const generateTutorial = async (world: World) => {
     }
   });
 
-  const smoothenedMatrix = smoothenWater(worldMap);
+  const smoothenedMatrix = smoothenBeaches(smoothenWater(worldMap));
 
   iterateMatrix(smoothenedMatrix, (x, y, cell) => {
     createCell(

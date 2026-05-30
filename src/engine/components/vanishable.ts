@@ -2,11 +2,11 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Sprite } from "./sprite";
 import { Position } from "./position";
+import { CellType } from "../../bindings/creation";
 
 export type Vanishable = {
   type: "plant" | "evaporate";
-  spawns: { unit: string; delta: Position }[];
-  remains: { sprite: Sprite; delta: Position }[];
+  cells: { cell: CellType; delta: Position }[];
   decayed: boolean;
   evaporate?: { sprite: Sprite; fast: boolean };
 };

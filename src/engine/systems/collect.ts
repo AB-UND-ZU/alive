@@ -16,7 +16,7 @@ import { equipments, EQUIPPABLE, Gear, slots } from "../components/equippable";
 import { INVENTORY } from "../components/inventory";
 import { Item, ITEM } from "../components/item";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
-import { removeFromInventory } from "./trigger";
+import { resetConditionables, removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
 import {
   addBackground,
@@ -328,6 +328,8 @@ export const unequipItem = (
   itemEntity: Entity
 ) => {
   if (!entity[EQUIPPABLE]) return;
+
+  resetConditionables(world, entity, true);
 
   for (const slot of slots) {
     if (itemEntity[ITEM][slot]) {

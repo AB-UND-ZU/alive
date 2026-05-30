@@ -135,6 +135,7 @@ import { aspectRatio } from "../../../components/Dimensions/sizing";
 import generateHaven from "../../../engine/wfc/haven";
 import { disposeEntity } from "../../../engine/systems/map";
 import { centerLayer } from "../../assets/pixels";
+import { REMAINABLE } from "../../../engine/components/remainable";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -1441,8 +1442,7 @@ export const generateIsland = (world: World) => {
 
       // fifth pass: ensure adjacent sand to water becomes
       world.metadata.gameEntity[LEVEL].cells = smoothenBeaches(
-        world.metadata.gameEntity[LEVEL].cells,
-        world.metadata.gameEntity[LEVEL].biomes
+        world.metadata.gameEntity[LEVEL].cells
       );
 
       // set rain for forest
@@ -1874,6 +1874,7 @@ export const generateIsland = (world: World) => {
           [FOG]: { visibility: "hidden", type: "terrain" },
           [LAYER]: {},
           [POSITION]: objectPosition,
+          [REMAINABLE]: {},
           [RENDERABLE]: { generation: 0 },
           [SEQUENCABLE]: { states: {} },
           [SHOOTABLE]: { shots: 0 },

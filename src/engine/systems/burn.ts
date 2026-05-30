@@ -22,7 +22,6 @@ import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
 import { createText, none } from "../../game/assets/sprites";
-import { FOG } from "../components/fog";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
 import { getItemSprite, queueMessage } from "../../game/assets/utils";
@@ -30,7 +29,8 @@ import { colors } from "../../game/assets/colors";
 import { getLootable } from "./collect";
 import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
-import { createItemAsDrop } from "./drop";
+import { createItemAsDrop, placeRemains } from "./drop";
+import { REMAINABLE } from "../components/remainable";
 
 export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
 
@@ -152,7 +152,7 @@ export default function setupBurn(world: World) {
 
           if (
             burningEntity[BURNABLE].eternal ||
-            burningEntity[BURNABLE].remains ||
+            burningEntity[REMAINABLE]?.cell ||
             simmer
           )
             createSequence<"smoke", SmokeSequence>(
@@ -236,16 +236,7 @@ export default function setupBurn(world: World) {
     ])) {
       if (!entity[BURNABLE].combusted || !entity[BURNABLE].decayed) continue;
 
-      const remains = entity[BURNABLE].remains;
-
-      if (remains) {
-        entities.createGround(world, {
-          [FOG]: { visibility: "hidden", type: "terrain" },
-          [POSITION]: copy(entity[POSITION]),
-          [SPRITE]: remains,
-          [RENDERABLE]: { generation: 0 },
-        });
-      }
+      placeRemains(world, entity);
 
       // transfer smoke sequence
       const smokeState = entity[SEQUENCABLE].states.smoke;

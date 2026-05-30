@@ -38,7 +38,7 @@ import { none } from "../../game/assets/sprites";
 import { isControllable } from "./freeze";
 import { BLOCKABLE } from "../components/blockable";
 import { getIdentifier } from "../utils";
-import { canDig, getFarmable } from "./harvest";
+import { canDig, canPlant, getFarmable } from "./harvest";
 import { forgingCompleted } from "../../game/balancing/forging";
 import { canMount, getMountable } from "./vessel";
 
@@ -235,15 +235,7 @@ export default function setupAction(world: World) {
         }
       } else {
         const farmable = getFarmable(world, entity[POSITION]);
-        const toolEntity = world.getEntityByIdAndComponents(
-          entity[EQUIPPABLE]?.tool,
-          [ITEM]
-        );
-        if (
-          toolEntity?.[ITEM].tool === "shovel" &&
-          farmable &&
-          !isInPopup(world, entity)
-        ) {
+        if (canPlant(world, entity)) {
           plant = farmable;
           action = plant;
         }

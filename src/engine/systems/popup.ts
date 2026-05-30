@@ -65,7 +65,13 @@ import { FOCUSABLE } from "../components/focusable";
 import { TRACKABLE } from "../components/trackable";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
 import { ACTIONABLE } from "../components/actionable";
-import { canWarp, completeQuest, initiateWarp, performTrade } from "./trigger";
+import {
+  canWarp,
+  completeQuest,
+  resetConditionables,
+  initiateWarp,
+  performTrade,
+} from "./trigger";
 import { colors } from "../../game/assets/colors";
 import { consumeItem, getConsumption, getItemConsumption } from "./consume";
 import { clamp } from "three/src/math/MathUtils";
@@ -515,6 +521,7 @@ export const openPopup = (
   // reset pending movements
   heroEntity[MOVABLE].orientations = [];
   heroEntity[MOVABLE].pendingOrientation = undefined;
+  resetConditionables(world, heroEntity);
 
   if (popupEntity[TOOLTIP]) {
     popupEntity[TOOLTIP].override = "hidden";

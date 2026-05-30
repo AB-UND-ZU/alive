@@ -19,6 +19,7 @@ import { isWalkable } from "./movement";
 import { isImmersible } from "./immersion";
 import { getLootable } from "./collect";
 import { getSpikable } from "./spike";
+import { getClickable } from "./click";
 
 export const getMountable = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -36,12 +37,16 @@ export const mountVessel = (world: World, entity: Entity, vessel: Entity) => {
   const mountId = world.getEntityId(vessel);
   const frameEntity = world.assertByIdAndComponents(vessel[MOVABLE].reference, [
     REFERENCE,
+    RENDERABLE,
   ]);
 
   vessel[MOVABLE].orientations = [];
   vessel[MOUNTABLE].passenger = entityId;
   vessel[MOUNTABLE].spring = entity[MOVABLE].spring;
   entity[MOVABLE].spring = { duration: frameEntity[REFERENCE].tick };
+  entity[MOVABLE].orientations = [];
+  entity[MOVABLE].pendingOrientation = undefined;
+  entity[MOVABLE].lastInteraction = frameEntity[RENDERABLE].generation;
   entity[PLAYER].mount = mountId;
 
   // hide gear
@@ -72,16 +77,18 @@ export const stopVessel = (world: World, vessel: Entity) => {
 };
 
 export const unmountVessel = (world: World, entity: Entity, vessel: Entity) => {
+  const frameEntity = world.assertByIdAndComponents(vessel[MOVABLE].reference, [
+    REFERENCE,
+    RENDERABLE,
+  ]);
+
   entity[PLAYER].mount = undefined;
   entity[MOVABLE].spring = vessel[MOUNTABLE].spring;
+  entity[MOVABLE].lastInteraction = frameEntity[RENDERABLE].generation;
   vessel[MOUNTABLE].passenger = undefined;
   vessel[MOUNTABLE].spring = undefined;
 
   stopVessel(world, vessel);
-
-  const frameEntity = world.assertByIdAndComponents(vessel[MOVABLE].reference, [
-    REFERENCE,
-  ]);
 
   // reset boat being displacable
   frameEntity[REFERENCE].delta = 0;
@@ -164,17 +171,24 @@ export default function setupVessel(world: World) {
       );
 
       // allow picking up and spiking
+      const mountOrientation = mount[MOVABLE].orientations[0];
       const lootable = getLootable(world, targetPosition);
       const spikable = getSpikable(world, targetPosition);
-      if (lootable || spikable) {
-        stopVessel(world, mount);
-        continue;
+      const clickable = getClickable(world, targetPosition);
+      if (lootable || spikable || clickable) {
+        if (mountOrientation) {
+          stopVessel(world, mount);
+        } else continue;
       } else if (
         isWalkable(world, targetPosition) &&
         !isImmersible(world, targetPosition)
       ) {
-        unmountVessel(world, entity, mount);
-        continue;
+        if (mountOrientation) {
+          stopVessel(world, mount);
+        } else {
+          unmountVessel(world, entity, mount);
+          continue;
+        }
       }
 
       // mark as interacted and remove pending movements
@@ -186,7 +200,6 @@ export default function setupVessel(world: World) {
         mount[MOVABLE].reference,
         [REFERENCE]
       );
-      const mountOrientation = mount[MOVABLE].orientations[0];
 
       if (targetOrientation === mountOrientation) continue;
 

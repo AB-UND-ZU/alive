@@ -63,6 +63,7 @@ import {
   harvestTools,
 } from "../../game/balancing/harvesting";
 import { iterateMatrixFromCenter } from "../../game/math/matrix";
+import { REMAINABLE } from "../components/remainable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE]?.decayed || entity[VANISHABLE]?.decayed;
@@ -112,15 +113,10 @@ export const placeRemains = (
   entity: Entity,
   position = entity[POSITION]
 ) => {
-  const remains = entity[DROPPABLE]?.remains;
+  const remains = entity[REMAINABLE]?.cell;
 
   if (remains && !isImmersible(world, position)) {
-    entities.createGround(world, {
-      [FOG]: { visibility: "hidden", type: "terrain" },
-      [POSITION]: copy(position),
-      [SPRITE]: remains,
-      [RENDERABLE]: { generation: 0 },
-    });
+    createCell(world, position, remains, "hidden");
   }
 };
 
@@ -361,7 +357,8 @@ export const dropEntity = (
       [POSITION]: dropPosition,
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: none,
+      [SPRITE]:
+        isImmersible(world, entity[POSITION]) || !isCentered ? none : shadow,
       [SWIMMABLE]: { swimming: false },
     };
 
@@ -490,24 +487,14 @@ export default function setupDrop(world: World) {
         // create spawns and remains for vanished units
         const size = world.metadata.gameEntity[LEVEL].size;
 
-        entity[VANISHABLE].remains.forEach((remains) => {
-          const remainsEntity = entities.createGround(world, {
-            [FOG]: { visibility: "hidden", type: "terrain" },
-            [POSITION]: combine(size, entity[POSITION], remains.delta),
-            [SPRITE]: remains.sprite,
-            [RENDERABLE]: { generation: 0 },
-          });
-          registerEntity(world, remainsEntity);
-        });
-
-        entity[VANISHABLE].spawns.forEach((spawn) => {
-          const spawnEntity = createCell(
+        entity[VANISHABLE].cells.forEach((cell) => {
+          const cellEntity = createCell(
             world,
-            combine(size, entity[POSITION], spawn.delta),
-            spawn.unit,
+            combine(size, entity[POSITION], cell.delta),
+            cell.cell,
             "hidden"
           ).cell;
-          registerEntity(world, spawnEntity);
+          registerEntity(world, cellEntity);
         });
       }
     }

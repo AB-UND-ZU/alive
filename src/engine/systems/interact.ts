@@ -24,6 +24,7 @@ import { REVIVABLE } from "../components/revivable";
 import { FARMABLE } from "../components/farmable";
 import { MOUNTABLE } from "../components/mountable";
 import { canMount, isMounting } from "./vessel";
+import { canPlant } from "./harvest";
 
 export default function setupInteract(world: World) {
   let referenceGenerations = -1;
@@ -66,7 +67,7 @@ export default function setupInteract(world: World) {
         !(entity[LOCKABLE] && !isUnlockable(world, entity)) &&
         entity !== heroEntity &&
         entity[IDENTIFIABLE]?.name !== "use" &&
-        ((entity[FARMABLE] && !entity[FARMABLE].planted && distance === 0) ||
+        ((entity[FARMABLE] && distance === 0 && canPlant(world, heroEntity)) ||
           (!entity[FARMABLE] && distance <= 1));
       const interactSequence = getSequence(world, entity, "interact");
 

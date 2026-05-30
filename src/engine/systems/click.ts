@@ -18,6 +18,7 @@ import { rerenderEntity } from "./renderer";
 import { isFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
 import { BUMPABLE } from "../components/bumpable";
+import { MOUNTABLE } from "../components/mountable";
 
 export const isClickable = (world: World, entity: Entity) =>
   CLICKABLE in entity;
@@ -45,15 +46,17 @@ export const getClickable = (world: World, position: Position) =>
 
 export const clickEntity = (
   world: World,
-  hero: Entity,
+  entity: Entity,
   target: Entity,
   orientation: Orientation
 ) => {
-  hero[ORIENTABLE].facing = orientation;
-  hero[BUMPABLE].generation = hero[RENDERABLE].generation;
-  hero[BUMPABLE].orientation = orientation;
+  if (entity[ORIENTABLE]) {
+    entity[ORIENTABLE].facing = orientation;
+  }
+  entity[BUMPABLE].generation = entity[RENDERABLE].generation;
+  entity[BUMPABLE].orientation = orientation;
   target[CLICKABLE].clicked = true;
-  rerenderEntity(world, hero);
+  rerenderEntity(world, entity);
 };
 
 export default function setupClick(world: World) {
@@ -86,7 +89,7 @@ export default function setupClick(world: World) {
       if (entity[MOVABLE].lastInteraction === entityReference) continue;
 
       // skip if unable to interact
-      if (!isControllable(world, entity)) continue;
+      if (!isControllable(world, entity) || entity[MOUNTABLE]) continue;
 
       const targetOrientation: Orientation | null =
         entity[MOVABLE].momentum ||

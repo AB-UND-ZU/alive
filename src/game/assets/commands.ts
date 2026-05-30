@@ -47,6 +47,8 @@ import { castSkill, castSpell } from "../../engine/systems/trigger";
 import { TypedEntity } from "../../engine/entities";
 import { createText, none } from "./sprites";
 import {
+  disposeEntity,
+  getCell,
   moveEntity,
   registerEntity,
   updateWalkable,
@@ -511,11 +513,11 @@ const executeFocus = (world: World, entity: Entity, id: string) => {
 const executeNew = (
   world: World,
   entity: Entity,
-  cellName: string,
+  cellName: string = "",
   amountText = "1"
 ) => {
-  const cell = cellName as CellType;
-  if (!cellNames.includes(cell)) {
+  const cell = cellName as CellType | "";
+  if (cell !== "" && !cellNames.includes(cell)) {
     return `No cell "${cell}"!`;
   }
 
@@ -533,6 +535,18 @@ const executeNew = (
       x: delta.x * (offset + 1),
       y: delta.y * (offset + 1),
     });
+
+    // clear cell but prevent removing self
+    if (cell === "") {
+      Object.values(getCell(world, target)).forEach((cellEntity) => {
+        if (cellEntity === entity || !cellEntity[SPRITE]) return;
+        disposeEntity(world, cellEntity);
+      });
+      world.metadata.gameEntity[LEVEL].cells[target.x][target.y] = "air";
+      updateWalkable(world, target);
+      continue;
+    }
+
     const { all } = createCell(world, target, cell, "hidden");
     all.forEach((unit) => {
       registerEntity(world, unit);
@@ -625,9 +639,9 @@ commandSignatures.focus = {
 commandSignatures.new = {
   short: "n",
   executor: executeNew,
-  minArgs: 1,
+  minArgs: 0,
   maxArgs: 2,
-  usage: "/new <cell> [num]",
+  usage: "/new [cell] [num]",
 };
 commandSignatures.pin = {
   short: "p",

@@ -175,6 +175,8 @@ import {
   granola,
   toast,
   curry,
+  gravelBlock,
+  path,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -533,7 +535,10 @@ export const renderPopup = (
   let renderDetails = settled;
   let renderSeparator = details && renderTabs;
   let renderButtons = generationChanged;
-  let renderHint = renderTabs || (!details && hintGeneration !== hintAmount);
+  let renderHint =
+    generationChanged ||
+    renderTabs ||
+    (!details && hintGeneration !== hintAmount);
   let renderScroll = visibleScroll && (scrolled || heightChanged || renderTabs);
   let renderTopOverlay =
     renderTabs ||
@@ -1947,6 +1952,14 @@ export const entitySprites: Record<
         ...createText("Water", colors.blue),
         ...createText("."),
       ],
+    ],
+  },
+  gravel: {
+    sprite: gravelBlock,
+    getDescription: () => [
+      createText("A block of gravel"),
+      createText("used for paving a"),
+      [path, ...createText("Path", colors.grey), ...createText(".")],
     ],
   },
 
