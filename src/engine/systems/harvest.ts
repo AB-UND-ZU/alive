@@ -85,6 +85,7 @@ import {
   brewingDurationFactor,
   getBrewingDeal,
 } from "../../game/balancing/brewing";
+import { iterations } from "../../game/math/tracing";
 
 export const isPlantable = (
   world: World,
@@ -191,6 +192,14 @@ export const performDig = (
     .some((delta) =>
       getImmersible(world, combine(size, entity[POSITION], delta))
     );
+  const nearbyWater =
+    adjacentWater ||
+    iterations.some((iteration) =>
+      getImmersible(
+        world,
+        combine(size, entity[POSITION], iteration.direction, iteration.normal)
+      )
+    );
 
   if (immersible || isPaving) {
     performFill(world, entity, entity[POSITION], isPaving ? "path" : "beach");
@@ -204,8 +213,11 @@ export const performDig = (
     // refill beach if path next to water
     if (
       pavingResources.includes(harvestable[HARVESTABLE].resource) &&
-      adjacentWater
+      nearbyWater
     ) {
+      world.metadata.gameEntity[LEVEL].cells[entity[POSITION].x][
+        entity[POSITION].y
+      ] = "beach";
       const sandEntity = createCell(
         world,
         copy(entity[POSITION]),
