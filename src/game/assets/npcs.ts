@@ -116,7 +116,7 @@ import {
 import { INVENTORY } from "../../engine/components/inventory";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
-import { createPopup } from "../../engine/systems/popup";
+import { createPopup, removePopup } from "../../engine/systems/popup";
 import { isDead } from "../../engine/systems/damage";
 import { createCell, insertArea } from "../../bindings/creation";
 import { SOUL } from "../../engine/components/soul";
@@ -1174,40 +1174,26 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           },
         ],
         choices: [
+          // defensive: offhand
+          { offhand: "shield", material: "wood", amount: 1 },
+          // offensive: spells
           {
-            weapon: "spear",
-            skill: "spear",
+            spell: "wave",
             material: "wood",
             amount: 1,
           },
           {
-            weapon: "wand",
-            skill: "wand",
+            spell: "beam",
             material: "wood",
             amount: 1,
           },
           {
-            skill: "bow",
+            spell: "trap",
             material: "wood",
             amount: 1,
           },
           {
-            skill: "slash",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "zap",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "block",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            skill: "totem",
+            spell: "dash",
             material: "wood",
             amount: 1,
           },
@@ -1293,26 +1279,40 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
           },
         ],
         choices: [
-          // defensive: offhand
-          { offhand: "shield", material: "wood", amount: 1 },
-          // offensive: spells
           {
-            spell: "wave",
+            weapon: "spear",
+            skill: "spear",
             material: "wood",
             amount: 1,
           },
           {
-            spell: "beam",
+            weapon: "wand",
+            skill: "wand",
             material: "wood",
             amount: 1,
           },
           {
-            spell: "trap",
+            skill: "bow",
             material: "wood",
             amount: 1,
           },
           {
-            spell: "dash",
+            skill: "slash",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "zap",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "block",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            skill: "totem",
             material: "wood",
             amount: 1,
           },
@@ -1553,15 +1553,17 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
       });
       return true;
     },
-    isCompleted: () => !entity[POPUP],
-    onLeave: () => "wait",
+    // wait for quest to attach
+    isCompleted: () => !!fireGateGuardEntity?.[POPUP],
+    onLeave: () => "guard",
   });
 
   step({
     stage,
-    name: "wait",
-    isCompleted: () => false,
+    name: "guard",
+    isCompleted: () => !fireGateGuardEntity || !fireGateGuardEntity[POPUP],
     onLeave: () => {
+      removePopup(world, entity);
       return END_STEP;
     },
   });
@@ -1977,9 +1979,6 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             material: "wood",
             amount: 1,
           },
-          { accessory: "boots", material: "wood", amount: 1 },
-          { accessory: "torch", material: "wood", amount: 1 },
-          { accessory: "map", material: "gold", amount: 1 },
         ],
         lines: [
           [
