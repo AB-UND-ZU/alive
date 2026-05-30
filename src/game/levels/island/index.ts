@@ -2,7 +2,6 @@ import { entities, World } from "../../../engine";
 import { Position, POSITION } from "../../../engine/components/position";
 import { SPRITE } from "../../../engine/components/sprite";
 import { RENDERABLE } from "../../../engine/components/renderable";
-import { COLLIDABLE } from "../../../engine/components/collidable";
 import {
   createText,
   getOrientedSprite,
@@ -62,16 +61,6 @@ import { emptyUnitStats, STATS } from "../../../engine/components/stats";
 import { VIEWABLE } from "../../../engine/components/viewable";
 import { TOOLTIP } from "../../../engine/components/tooltip";
 import { DROPPABLE } from "../../../engine/components/droppable";
-import {
-  bedCenter,
-  bedEndLeft,
-  bedEndRight,
-  bedHeadLeft,
-  bedHeadRight,
-  chairLeft,
-  chairRight,
-  table,
-} from "../../assets/sprites/structures";
 import {
   SEQUENCABLE,
   TornadoSequence,
@@ -136,6 +125,7 @@ import generateHaven from "../../../engine/wfc/haven";
 import { disposeEntity } from "../../../engine/systems/map";
 import { centerLayer } from "../../assets/pixels";
 import { REMAINABLE } from "../../../engine/components/remainable";
+import { LOCKABLE } from "../../../engine/components/lockable";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -864,7 +854,7 @@ export const generateIsland = (world: World) => {
       // insert town
       const {
         matrix: townMatrix,
-        houses: relativeHouses,
+        houses: relativeEarthHouses,
         exits: relativeExits,
         inn: relativeInn,
         guards: relativeGuards,
@@ -877,7 +867,7 @@ export const generateIsland = (world: World) => {
         setPath(pathMatrix, x, y, 0);
       });
 
-      const houses = relativeHouses.map((house) => ({
+      const earthHouses = relativeEarthHouses.map((house) => ({
         ...house,
         position: combine(size, house.position, townCorner),
         door: combine(size, house.door, townCorner),
@@ -916,34 +906,49 @@ export const generateIsland = (world: World) => {
       });
 
       // preprocess town
-      const [traderHouse, smithHouse, druidHouse, ...emptyHouses] = houses;
+      const [
+        earthTraderHouse,
+        earthSmithHouse,
+        earthDruidHouse,
+        ...emptyEarthHouses
+      ] = earthHouses;
 
       setMatrix(
         worldMap,
-        smithHouse.position.x + choice(-1, 1),
-        smithHouse.position.y + 3,
+        earthSmithHouse.position.x + choice(-1, 1),
+        earthSmithHouse.position.y + 3,
         "campfire"
       );
-      setMatrix(worldMap, smithHouse.door.x, smithHouse.door.y, "gold_door");
       setMatrix(
         worldMap,
-        smithHouse.position.x + choice(-1, 1),
-        smithHouse.position.y + 2,
+        earthSmithHouse.door.x,
+        earthSmithHouse.door.y,
+        "gold_door"
+      );
+      setMatrix(
+        worldMap,
+        earthSmithHouse.position.x + choice(-1, 1),
+        earthSmithHouse.position.y + 2,
         "house_smith"
       );
       setMatrix(
         worldMap,
-        traderHouse.position.x + choice(-1, 1),
-        traderHouse.position.y + 2,
+        earthTraderHouse.position.x + choice(-1, 1),
+        earthTraderHouse.position.y + 2,
         "house_trader"
       );
       setMatrix(
         worldMap,
-        druidHouse.position.x + choice(-1, 1),
-        druidHouse.position.y + 2,
+        earthDruidHouse.position.x + choice(-1, 1),
+        earthDruidHouse.position.y + 2,
         "house_druid"
       );
-      setMatrix(worldMap, druidHouse.door.x, druidHouse.door.y, "iron_door");
+      setMatrix(
+        worldMap,
+        earthDruidHouse.door.x,
+        earthDruidHouse.door.y,
+        "iron_door"
+      );
 
       // mark entrance of desert for further processing
       const desertEntrance = angledOffset(
@@ -1395,13 +1400,12 @@ export const generateIsland = (world: World) => {
         x: -havenCorner.x,
         y: -havenCorner.y,
       });
-      const { matrix: havenMatrix, houses: relativeHavenHouses } =
-        generateHaven(
-          havenMap,
-          havenInnDelta,
-          havenGuardDelta,
-          havenJettyDelta
-        );
+      const { matrix: havenMatrix, houses: relativeFireHouses } = generateHaven(
+        havenMap,
+        havenInnDelta,
+        havenGuardDelta,
+        havenJettyDelta
+      );
 
       iterateMatrix(havenMatrix, (offsetX, offsetY, value) => {
         const x = normalize(havenCorner.x + offsetX, size);
@@ -1434,15 +1438,48 @@ export const generateIsland = (world: World) => {
         setPath(pathMatrix, x, y, 1);
       });
 
-      const havenHouses = relativeHavenHouses.map((house) => ({
+      // fifth pass: ensure adjacent sand to water becomes
+      world.metadata.gameEntity[LEVEL].cells = smoothenBeaches(
+        world.metadata.gameEntity[LEVEL].cells
+      );
+
+      // preprocess haven
+      const fireHouses = relativeFireHouses.map((house) => ({
         ...house,
         position: combine(size, house.position, havenCorner),
         door: combine(size, house.door, havenCorner),
       }));
 
-      // fifth pass: ensure adjacent sand to water becomes
-      world.metadata.gameEntity[LEVEL].cells = smoothenBeaches(
-        world.metadata.gameEntity[LEVEL].cells
+      const [
+        fireTraderHouse,
+        fireSmithHouse,
+        fireDruidHouse,
+        ...emptyFireHouses
+      ] = fireHouses;
+
+      setMatrix(
+        worldMap,
+        fireSmithHouse.position.x + choice(-1, 1),
+        fireSmithHouse.position.y + 3,
+        "campfire"
+      );
+      setMatrix(
+        worldMap,
+        fireSmithHouse.position.x + choice(-1, 1),
+        fireSmithHouse.position.y + 2,
+        "house_smith"
+      );
+      setMatrix(
+        worldMap,
+        fireTraderHouse.position.x + choice(-1, 1),
+        fireTraderHouse.position.y + 2,
+        "house_trader"
+      );
+      setMatrix(
+        worldMap,
+        fireDruidHouse.position.x + choice(-1, 1),
+        fireDruidHouse.position.y + 2,
+        "house_druid"
       );
 
       // set rain for forest
@@ -1595,14 +1632,29 @@ export const generateIsland = (world: World) => {
       questSequence(world, heroEntity, "spawnQuest", {});
 
       // assign buildings
-      const [traderBuilding, smithBuilding, druidBuilding, ...emptyBuildings] =
-        [traderHouse, smithHouse, druidHouse, ...emptyHouses].map((building) =>
-          assignBuilding(world, building.position)
-        );
+      const [
+        earthTraderBuilding,
+        earthSmithBuilding,
+        earthDruidBuilding,
+        ...emptyEarthBuildings
+      ] = [
+        earthTraderHouse,
+        earthSmithHouse,
+        earthDruidHouse,
+        ...emptyEarthHouses,
+      ].map((building) => assignBuilding(world, building.position));
 
-      havenHouses.forEach((building) =>
-        assignBuilding(world, building.position)
-      );
+      const [
+        fireTraderBuilding,
+        fireSmithBuilding,
+        fireDruidBuilding,
+        ...emptyFireBuildings
+      ] = [
+        fireTraderHouse,
+        fireSmithHouse,
+        fireDruidHouse,
+        ...emptyFireHouses,
+      ].map((building) => assignBuilding(world, building.position));
 
       // add map markers
       entities.createMarker(world, {
@@ -1688,20 +1740,20 @@ export const generateIsland = (world: World) => {
       npcSequence(world, chiefEntity, "earthChiefNpc", {});
 
       // smith's house
-      const smithOffset = choice(-2, 2);
+      const earthSmithOffset = choice(-2, 2);
       createNpc(
         world,
         "earthSmith",
-        combine(size, smithBuilding.building[POSITION], {
-          x: smithOffset,
+        combine(size, earthSmithBuilding.building[POSITION], {
+          x: earthSmithOffset,
           y: 0,
         })
       );
 
       const anvilEntity = createCell(
         world,
-        add(smithBuilding.building[POSITION], {
-          x: smithOffset * -1,
+        add(earthSmithBuilding.building[POSITION], {
+          x: earthSmithOffset * -1,
           y: 0,
         }),
         "anvil_passive",
@@ -1710,20 +1762,20 @@ export const generateIsland = (world: World) => {
       setIdentifier(world, anvilEntity, "earth_anvil");
 
       // druid's house
-      const druidOffset = choice(-2, 2);
+      const earthDruidOffset = choice(-2, 2);
       createNpc(
         world,
         "earthDruid",
-        combine(size, druidBuilding.building[POSITION], {
-          x: druidOffset,
+        combine(size, earthDruidBuilding.building[POSITION], {
+          x: earthDruidOffset,
           y: 0,
         })
       );
 
       const kettleEntity = createCell(
         world,
-        add(druidBuilding.building[POSITION], {
-          x: druidOffset * -1,
+        add(earthDruidBuilding.building[POSITION], {
+          x: earthDruidOffset * -1,
           y: 0,
         }),
         "kettle_passive",
@@ -1732,12 +1784,12 @@ export const generateIsland = (world: World) => {
       setIdentifier(world, kettleEntity, "earth_kettle");
 
       // trader's house
-      const traderOffset = choice(-2, 2);
+      const earthTraderOffset = choice(-2, 2);
       const traderEntity = createNpc(
         world,
         "earthTrader",
-        combine(size, traderBuilding.building[POSITION], {
-          x: traderOffset,
+        combine(size, earthTraderBuilding.building[POSITION], {
+          x: earthTraderOffset,
           y: 0,
         })
       );
@@ -1756,139 +1808,14 @@ export const generateIsland = (world: World) => {
       });
       const benchEntity = createCell(
         world,
-        add(traderBuilding.building[POSITION], {
-          x: traderOffset * -1,
+        add(earthTraderBuilding.building[POSITION], {
+          x: earthTraderOffset * -1,
           y: 0,
         }),
         "bench",
         "hidden"
       ).cell;
       setIdentifier(world, benchEntity, "earth_bench");
-
-      // furnish houses
-      const furnishingBuildings = [
-        traderBuilding,
-        smithBuilding,
-        druidBuilding,
-        ...emptyBuildings,
-      ];
-      for (const furnishingBuilding of furnishingBuildings) {
-        // add furniture
-        const furnitureOrientation = (["left", "right"] as const)[random(0, 1)];
-        const invertFurniture = invertOrientation(
-          furnitureOrientation
-        ) as typeof furnitureOrientation;
-        const chairSprites = { left: chairLeft, right: chairRight };
-        const bedHeadSprites = { left: bedHeadLeft, right: bedHeadRight };
-        const bedEndSprites = { left: bedEndLeft, right: bedEndRight };
-        if (random(0, 1) === 0) {
-          // create bed
-          entities.createFurniture(world, {
-            [FOG]: { visibility: "hidden", type: "terrain" },
-            [LAYER]: {},
-            [POSITION]: combine(
-              size,
-              furnishingBuilding.building[POSITION],
-              orientationPoints[invertFurniture]
-            ),
-            [SPRITE]: bedHeadSprites[invertFurniture],
-            [RENDERABLE]: { generation: 0 },
-            [COLLIDABLE]: {},
-          });
-          entities.createFurniture(world, {
-            [FOG]: { visibility: "hidden", type: "terrain" },
-            [LAYER]: {},
-            [POSITION]: furnishingBuilding.building[POSITION],
-            [SPRITE]: bedCenter,
-            [RENDERABLE]: { generation: 0 },
-            [COLLIDABLE]: {},
-          });
-          entities.createFurniture(world, {
-            [FOG]: { visibility: "hidden", type: "terrain" },
-            [LAYER]: {},
-            [POSITION]: combine(
-              size,
-              furnishingBuilding.building[POSITION],
-              orientationPoints[furnitureOrientation]
-            ),
-            [SPRITE]: bedEndSprites[furnitureOrientation],
-            [RENDERABLE]: { generation: 0 },
-            [COLLIDABLE]: {},
-          });
-        } else {
-          // create table and chairs
-          entities.createFurniture(world, {
-            [FOG]: { visibility: "hidden", type: "terrain" },
-            [LAYER]: {},
-            [POSITION]: copy(furnishingBuilding.building[POSITION]),
-            [SPRITE]: table,
-            [RENDERABLE]: { generation: 0 },
-            [COLLIDABLE]: {},
-          });
-          entities.createFloor(world, {
-            [FOG]: { visibility: "hidden", type: "terrain" },
-            [LAYER]: {},
-            [POSITION]: combine(
-              size,
-              furnishingBuilding.building[POSITION],
-              orientationPoints[furnitureOrientation]
-            ),
-            [SPRITE]: chairSprites[furnitureOrientation],
-            [RENDERABLE]: { generation: 0 },
-          });
-          if (random(0, 1) === 0) {
-            entities.createFloor(world, {
-              [FOG]: { visibility: "hidden", type: "terrain" },
-              [LAYER]: {},
-              [POSITION]: combine(
-                size,
-                furnishingBuilding.building[POSITION],
-                orientationPoints[invertFurniture]
-              ),
-              [SPRITE]: chairSprites[invertFurniture],
-              [RENDERABLE]: { generation: 0 },
-            });
-          }
-        }
-
-        const objectPosition = combine(
-          size,
-          furnishingBuilding.building[POSITION],
-          {
-            x: random(0, 1) * 4 - 2,
-            y: 0,
-          }
-        );
-
-        if (!emptyBuildings.includes(furnishingBuilding)) {
-          continue;
-        }
-
-        // add chest
-        const chestData = generateUnitData("woodChest");
-        const chestEntity = entities.createChest(world, {
-          [ATTACKABLE]: {},
-          [BELONGABLE]: { faction: chestData.faction },
-          [DROPPABLE]: { decayed: false },
-          [INVENTORY]: { items: [] },
-          [FOG]: { visibility: "hidden", type: "terrain" },
-          [LAYER]: {},
-          [POSITION]: objectPosition,
-          [REMAINABLE]: {},
-          [RENDERABLE]: { generation: 0 },
-          [SEQUENCABLE]: { states: {} },
-          [SHOOTABLE]: { shots: 0 },
-          [SPRITE]: chestData.sprite,
-          [STATS]: { ...emptyUnitStats, ...chestData.stats },
-          [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
-        });
-        populateInventory(
-          world,
-          chestEntity,
-          chestData.items,
-          chestData.equipments
-        );
-      }
 
       // postprocess haven
 
@@ -1971,6 +1898,111 @@ export const generateIsland = (world: World) => {
 
       // place second guard in front of jetty
       createNpc(world, "fireGuard", beachPoint);
+
+      // furnish houses
+      const furnishingBuildings = [
+        earthTraderBuilding,
+        earthSmithBuilding,
+        earthDruidBuilding,
+        ...emptyEarthBuildings,
+        fireTraderBuilding,
+        fireSmithBuilding,
+        fireDruidBuilding,
+        ...emptyFireBuildings,
+      ];
+
+      for (const furnishingBuilding of furnishingBuildings) {
+        // add furniture
+        const furnitureOrientation = (["left", "right"] as const)[random(0, 1)];
+        const invertFurniture = invertOrientation(
+          furnitureOrientation
+        ) as typeof furnitureOrientation;
+        if (random(0, 1) === 0) {
+          // create bed
+          createCell(
+            world,
+            furnishingBuilding.building[POSITION],
+            "bed",
+            "hidden"
+          );
+        } else {
+          // create table and chairs
+          createCell(
+            world,
+            furnishingBuilding.building[POSITION],
+            "table",
+            "hidden"
+          );
+          const chairCells = { left: "chair_left", right: "chair_right" };
+          createCell(
+            world,
+            combine(
+              size,
+              furnishingBuilding.building[POSITION],
+              orientationPoints[furnitureOrientation]
+            ),
+            chairCells[furnitureOrientation],
+            "hidden"
+          );
+          if (random(0, 1) === 0) {
+            createCell(
+              world,
+              combine(
+                size,
+                furnishingBuilding.building[POSITION],
+                orientationPoints[invertFurniture]
+              ),
+              chairCells[invertFurniture],
+              "hidden"
+            );
+          }
+        }
+
+        const objectPosition = combine(
+          size,
+          furnishingBuilding.building[POSITION],
+          {
+            x: random(0, 1) * 4 - 2,
+            y: 0,
+          }
+        );
+
+        if (
+          !emptyEarthBuildings.includes(furnishingBuilding) &&
+          !emptyFireBuildings.includes(furnishingBuilding)
+        ) {
+          continue;
+        }
+
+        // add chest
+        const chestType =
+          furnishingBuilding.door?.[LOCKABLE].type === "port"
+            ? "ironChest"
+            : "woodChest";
+        const chestData = generateUnitData(chestType);
+        const chestEntity = entities.createChest(world, {
+          [ATTACKABLE]: {},
+          [BELONGABLE]: { faction: chestData.faction },
+          [DROPPABLE]: { decayed: false },
+          [INVENTORY]: { items: [] },
+          [FOG]: { visibility: "hidden", type: "terrain" },
+          [LAYER]: {},
+          [POSITION]: objectPosition,
+          [REMAINABLE]: {},
+          [RENDERABLE]: { generation: 0 },
+          [SEQUENCABLE]: { states: {} },
+          [SHOOTABLE]: { shots: 0 },
+          [SPRITE]: chestData.sprite,
+          [STATS]: { ...emptyUnitStats, ...chestData.stats },
+          [TOOLTIP]: { dialogs: [], persistent: false, nextDialog: -1 },
+        });
+        populateInventory(
+          world,
+          chestEntity,
+          chestData.items,
+          chestData.equipments
+        );
+      }
 
       // console.log(
       //   stringifyMap(worldMap, { x: size / 2, y: size / 2 }, objectsMap)

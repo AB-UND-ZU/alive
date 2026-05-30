@@ -619,6 +619,9 @@ export const knockEntity = (
   orientation: Orientation,
   amount: number
 ) => {
+  // fire tribe has knock immunity
+  if (entity[BELONGABLE]?.faction === "fire") return;
+
   const size = world.metadata.gameEntity[LEVEL].size;
   if (!orientation) orientation = choice(...orientations);
   const delta = orientationPoints[orientation];

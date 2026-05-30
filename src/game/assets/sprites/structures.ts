@@ -825,9 +825,9 @@ export const bedEndLeft: Sprite = {
 export const table: Sprite = {
   name: "table",
   layers: [
-    { char: "┬", color: colors.maroon },
-    { char: "╥", color: colors.maroon },
-    { char: "─", color: colors.grey },
+    { char: "∩", color: colors.maroon },
+    { char: "▀", color: colors.black },
+    { char: "-", color: colors.grey },
   ],
 };
 

@@ -34,6 +34,7 @@ import { NPC, NpcType, npcTypes } from "../engine/components/npc";
 import {
   ORIENTABLE,
   Orientation,
+  orientationPoints,
   orientations,
 } from "../engine/components/orientable";
 import { Position, POSITION } from "../engine/components/position";
@@ -232,6 +233,14 @@ import {
   kettle,
   brokenPalisade1,
   brokenPalisade2,
+  bedHeadLeft,
+  bedHeadRight,
+  bedEndRight,
+  bedEndLeft,
+  bedCenter,
+  chairLeft,
+  chairRight,
+  table,
 } from "../game/assets/sprites/structures";
 import {
   createItemName,
@@ -297,6 +306,7 @@ import { MOUNTABLE } from "../engine/components/mountable";
 import { habitatDistribution } from "../game/balancing/fishing";
 import { REMAINABLE } from "../engine/components/remainable";
 import { FARMABLE } from "../engine/components/farmable";
+import { invertOrientation } from "../game/math/path";
 
 export const cellNames = [
   "air",
@@ -311,6 +321,12 @@ export const cellNames = [
   "kettle",
   "bench",
   "anvil",
+  "bed",
+  "bed_left",
+  "bed_right",
+  "chair_left",
+  "chair_right",
+  "table",
   "mountain",
   "ore",
   "iron",
@@ -4163,6 +4179,72 @@ export const createCell = (
       });
     }
     return { cell: anvilEntity, all };
+  } else if (cell === "bed" || cell === "bed_left" || cell === "bed_right") {
+    const furnitureOrientation = (["left", "right"] as const)[
+      cell === "bed_left" ? 0 : cell === "bed_right" ? 1 : choice(0, 1)
+    ];
+    const invertFurniture = invertOrientation(furnitureOrientation) as
+      | typeof furnitureOrientation
+      | "right";
+    const bedHeadSprites = { left: bedHeadLeft, right: bedHeadRight };
+    const bedEndSprites = { left: bedEndLeft, right: bedEndRight };
+    all.push(
+      entities.createFurniture(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [LAYER]: {},
+        [POSITION]: combine(size, { x, y }, orientationPoints[invertFurniture]),
+        [SPRITE]: bedHeadSprites[invertFurniture],
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      })
+    );
+    const bedEntity = entities.createFurniture(world, {
+      [FOG]: { visibility: "hidden", type: "terrain" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [SPRITE]: bedCenter,
+      [RENDERABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+    });
+    all.push(bedEntity);
+    all.push(
+      entities.createFurniture(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [LAYER]: {},
+        [POSITION]: combine(
+          size,
+          { x, y },
+          orientationPoints[furnitureOrientation]
+        ),
+        [SPRITE]: bedEndSprites[furnitureOrientation],
+        [RENDERABLE]: { generation: 0 },
+        [COLLIDABLE]: {},
+      })
+    );
+    return { cell: bedEntity, all };
+  } else if (cell === "chair_left" || cell === "chair_right") {
+    const furnitureOrientation = cell === "chair_left" ? "left" : "right";
+    const chairSprites = { left: chairLeft, right: chairRight };
+    const chairEntity = entities.createFloor(world, {
+      [FOG]: { visibility: "hidden", type: "terrain" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [SPRITE]: chairSprites[furnitureOrientation],
+      [RENDERABLE]: { generation: 0 },
+    });
+    all.push(chairEntity);
+    return { cell: chairEntity, all };
+  } else if (cell === "table") {
+    const tableEntity = entities.createFurniture(world, {
+      [FOG]: { visibility: "hidden", type: "terrain" },
+      [LAYER]: {},
+      [POSITION]: { x, y },
+      [SPRITE]: table,
+      [RENDERABLE]: { generation: 0 },
+      [COLLIDABLE]: {},
+    });
+    all.push(tableEntity);
+    return { cell: tableEntity, all };
   } else if (cell === "1") {
     const patterns = [
       [..."Tutorial  ", ".\x00:", ..."  ", ".\x00:"],
