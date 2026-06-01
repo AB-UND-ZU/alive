@@ -74,7 +74,7 @@ import { extinguishEntity } from "./burn";
 import { FRAGMENT } from "../components/fragment";
 import { getFragment, isFragment } from "./enter";
 import { CONDITIONABLE } from "../components/conditionable";
-import { isDecaying } from "./drop";
+import { isDecaying, isHarvested } from "./drop";
 import { STRUCTURABLE } from "../components/structurable";
 import {
   attemptBubbleAbsorb,
@@ -93,6 +93,7 @@ import { SPRITE } from "../components/sprite";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { castSpell } from "./trigger";
 import { FOG } from "../components/fog";
+import { Inventory, INVENTORY } from "../components/inventory";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -176,7 +177,10 @@ export const isFriendlyFire = (
 
 export const isFightable = (world: World, entity: Entity) =>
   ATTACKABLE in entity &&
-  !(isDead(world, entity) && !isDecaying(world, entity));
+  !isDead(world, entity) &&
+  !isHarvested(world, entity) &&
+  !getSequence(world, entity, "decay") &&
+  !isDecaying(world, entity);
 
 export const isAttackable = (world: World, entity: Entity) =>
   ATTACKABLE in entity && STATS in entity;
@@ -385,6 +389,14 @@ export const calculateHealing = (targetStats: UnitStats, amount: number) => {
   const visibleHealing = Math.max(0, Math.ceil(hp - targetStats.hp));
   return { hp, healing: visibleHealing };
 };
+
+export const canRecharge = (world: World, entity: Entity) =>
+  !!((entity[INVENTORY] as Inventory).items || []).find((itemId) =>
+    rechargables.includes(
+      world.getEntityByIdAndComponents(itemId, [ITEM])?.[ITEM]
+        .skill as (typeof rechargables)[number]
+    )
+  );
 
 const zapSize = 11;
 const zapDelay = 100;
@@ -881,15 +893,9 @@ export default function setupDamage(world: World) {
             });
 
             // set rechargable if applicable
-            const skillEntity = world.getEntityByIdAndComponents(
-              entity[EQUIPPABLE].skill,
-              [ITEM]
-            );
-            const canRecharge = rechargables.includes(
-              skillEntity?.[ITEM].skill as (typeof rechargables)[number]
-            );
+            const shouldRecharge = canRecharge(world, entity);
 
-            if (canRecharge && targetEntity[RECHARGABLE]) {
+            if (shouldRecharge && targetEntity[RECHARGABLE]) {
               targetEntity[RECHARGABLE].hit = true;
             }
 

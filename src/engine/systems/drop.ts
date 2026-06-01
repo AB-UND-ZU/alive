@@ -75,6 +75,7 @@ export const isDecaying = (world: World, entity: Entity) =>
   !getSequence(world, entity, "vanish");
 
 export const isHarvested = (world: World, entity: Entity) =>
+  HARVESTABLE in entity &&
   entity[HARVESTABLE].amount <= 0 &&
   !isDecayed(world, entity) &&
   !getSequence(world, entity, "decay");
@@ -358,7 +359,10 @@ export const dropEntity = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SPRITE]:
-        isImmersible(world, entity[POSITION]) || !isCentered ? none : shadow,
+        (entity[POSITION] && isImmersible(world, entity[POSITION])) ||
+        !isCentered
+          ? none
+          : shadow,
       [SWIMMABLE]: { swimming: false },
     };
 

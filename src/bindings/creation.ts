@@ -2679,7 +2679,9 @@ export const createCell = (
     cell === "ironChest" ||
     cell === "goldChest" ||
     cell === "diamondChest" ||
-    cell === "rubyChest"
+    cell === "rubyChest" ||
+    cell === "ilexChest" ||
+    cell === "oakChest"
   ) {
     const chestEntity = createChest(world, cell, { x, y });
     all.push(chestEntity);
@@ -3526,10 +3528,6 @@ export const createCell = (
     }
 
     return { cell: eliteEntity, all };
-  } else if (cell === "ilexChest") {
-    const chestEntity = createChest(world, "ilexChest", { x, y });
-    all.push(chestEntity);
-    return { cell: chestEntity, all };
   } else if (cell === "oak_boss") {
     const bossUnit = generateNpcData("oakBoss");
 
@@ -3662,10 +3660,6 @@ export const createCell = (
     setIdentifier(world, roomEntity, "oakRoom");
 
     return { cell: bossEntity, all };
-  } else if (cell === "oakChest") {
-    const chestEntity = createChest(world, "oakChest", { x, y });
-    all.push(chestEntity);
-    return { cell: chestEntity, all };
   } else if (cell === "worm_boss") {
     const bossUnit = generateNpcData("wormBoss");
 

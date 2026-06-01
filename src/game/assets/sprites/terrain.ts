@@ -545,18 +545,18 @@ export const desertPalmBurnt2: Sprite = {
   ],
 };
 
-export const hedge1: Sprite = {
+export const hedge1: Sprite = mergeSprites(slotShadow, {
   name: "hedge_one",
   layers: [{ char: "\u0104", color: colors.green }],
-};
+});
 
-export const hedge2: Sprite = {
+export const hedge2: Sprite = mergeSprites(slotShadow, {
   name: "hedge_two",
   layers: [
     { char: "ß", color: colors.green },
     { char: "!", color: colors.green },
   ],
-};
+});
 
 export const hedgeDry1: Sprite = {
   name: "hedge_one_dry",

@@ -42,13 +42,6 @@ export const craftingIngredients: Ingredients[] = [
       { stackable: "ore", amount: 1 },
     ],
   },
-  {
-    item: { stackable: "charge", amount: 1 },
-    parts: [
-      { stackable: "stick", amount: 1 },
-      { stackable: "ore", amount: 1 },
-    ],
-  },
 ];
 
 export const getCraftingDeal = (ingredients: Ingredients): Deal => ({

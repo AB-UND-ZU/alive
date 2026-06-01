@@ -68,7 +68,7 @@ export const itemMaterialPrices: Partial<
     diamond: 500,
     ruby: 2500,
   },
-  bucket: { iron: 20 },
+  bucket: { iron: 22 },
 };
 
 export const itemElementPrices: Partial<
@@ -77,7 +77,7 @@ export const itemElementPrices: Partial<
     Partial<Record<Material, Partial<Record<Element, number>>>>
   >
 > = {
-  bucket: { iron: { water: 22 } },
+  bucket: { iron: { water: 25 } },
 };
 
 export const itemStatPrices: Partial<
@@ -162,12 +162,6 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "banana" },
   { stackable: "coconut" },
   { stackable: "bread" },
-  { consume: "potion", material: "wood", stat: "hp" },
-  { consume: "potion", material: "iron", stat: "hp" },
-  { consume: "potion", material: "gold", stat: "hp" },
-  { consume: "potion", material: "wood", stat: "mp" },
-  { consume: "potion", material: "iron", stat: "mp" },
-  { consume: "potion", material: "gold", stat: "mp" },
   { stackable: "resource", material: "wood" },
   { stackable: "plank" },
   { stackable: "resource", material: "iron" },
@@ -176,7 +170,6 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "arrow" },
   { stackable: "charge" },
   { stackable: "worm" },
-  { consume: "bucket", material: "iron" },
 ];
 
 /* balance: <count> * <coins> ~= 20

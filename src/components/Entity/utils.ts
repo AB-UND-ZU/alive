@@ -23,7 +23,7 @@ import {
 import { NPC, NpcType } from "../../engine/components/npc";
 import { SPAWNABLE } from "../../engine/components/spawnable";
 import { ClassKey } from "../../game/balancing/classes";
-import { isDead } from "../../engine/systems/damage";
+import { isDead, isNpc } from "../../engine/systems/damage";
 import { colors } from "../../game/assets/colors";
 import { HARVESTABLE } from "../../engine/components/harvestable";
 
@@ -129,7 +129,12 @@ export const getSegments = (
   const orderedSegments: Segment[] = [];
 
   // 1. shadow
-  if (isUnit && !swimming && !isLiquid && !isLootable) {
+  if (
+    (isUnit || isNpc(world, entity)) &&
+    !swimming &&
+    !isLiquid &&
+    !isLootable
+  ) {
     orderedSegments.push({
       id: -2,
       sprite: shadow,
