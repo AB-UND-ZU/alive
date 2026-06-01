@@ -2,7 +2,7 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { add } from "../../game/math/std";
+import { add, clamp } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, updateWalkable } from "./map";
@@ -396,16 +396,23 @@ export const addToInventory = (
     const overflow = Math.max(newAmount, maximum) - maximum;
     const displayAmount = Math.ceil(amount - overflow);
 
-    entity[STATS][targetStat] = Math.min(newAmount, maximum);
+    entity[STATS][targetStat] = clamp(newAmount, 0, maximum);
 
     if (
       entity[PLAYER] &&
-      displayAmount === 0 &&
+      displayAmount <= 0 &&
       (targetStat === "hp" || targetStat === "mp") &&
       !targetMaterial
     ) {
       queueMessage(world, entity, {
-        line: createText("0"),
+        line: createText(
+          displayAmount.toString(),
+          displayAmount === 0
+            ? colors.white
+            : targetStat === "hp"
+            ? colors.red
+            : colors.blue
+        ),
         orientation: "up",
         fast: false,
         delay: 0,

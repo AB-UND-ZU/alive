@@ -286,6 +286,14 @@ export const generateMenu = async (world: World) => {
           stackable: "pearl",
           amount: Infinity,
         },
+        {
+          stackable: "spore",
+          amount: Infinity,
+        },
+        {
+          stackable: "thorn",
+          amount: Infinity,
+        },
       ],
       [
         {
@@ -338,12 +346,13 @@ export const generateMenu = async (world: World) => {
       ],
       [
         {
-          stackable: "ore",
+          stackable: "resource",
+          material: "iron",
           amount: Infinity,
         },
         {
           stackable: "resource",
-          material: "iron",
+          material: "gold",
           amount: Infinity,
         },
         {
@@ -363,12 +372,19 @@ export const generateMenu = async (world: World) => {
           amount: Infinity,
         },
         {
-          stackable: "nugget",
+          stackable: "ore",
           amount: Infinity,
         },
         {
-          stackable: "resource",
-          material: "gold",
+          stackable: "mineral",
+          amount: Infinity,
+        },
+        {
+          stackable: "crystal",
+          amount: Infinity,
+        },
+        {
+          stackable: "nugget",
           amount: Infinity,
         },
         {

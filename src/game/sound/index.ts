@@ -46,8 +46,8 @@ export const pickupOptions: Partial<
   fruit: { variant: 7, intensity: 2 },
   herb: { variant: 7, intensity: 3 },
   sapling: { variant: 7, intensity: 4 },
-  gem: { variant: 10, intensity: 2 },
-  crystal: { variant: 10, intensity: 3 },
+  crystal: { variant: 10, intensity: 2 },
+  mineral: { variant: 10, intensity: 3 },
   coin: { variant: 13, intensity: 4 },
 };
 

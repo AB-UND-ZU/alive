@@ -128,8 +128,8 @@ export const coconut: Sprite = {
   },
 };
 
-export const gem: Sprite = {
-  name: "Gem",
+export const mineral: Sprite = {
+  name: "Mineral",
   layers: [
     { char: "+", color: colors.green },
     { char: "÷", color: colors.black },
@@ -143,6 +143,24 @@ export const crystal: Sprite = {
     { char: "\u0106", color: colors.teal },
     { char: "÷", color: colors.black },
     { char: "∙", color: colors.blue },
+  ],
+};
+
+export const thorn: Sprite = {
+  name: "Thorn",
+  layers: [
+    { char: "<", color: colors.white },
+    { char: ">", color: colors.grey },
+    { char: "\u0115", color: colors.black },
+  ],
+};
+
+export const spore: Sprite = {
+  name: "Spore",
+  layers: [
+    { char: "*", color: colors.white },
+    { char: "∞", color: colors.black },
+    { char: "-", color: colors.black },
   ],
 };
 
@@ -333,7 +351,13 @@ export const coin: Sprite = {
 
 export const nugget: Sprite = {
   name: "Nugget",
-  layers: [{ char: "\u011c", color: colors.yellow }],
+  layers: [
+    { char: "\u011d", color: colors.olive },
+    { char: "-", color: colors.black },
+    { char: "\u0115", color: colors.black },
+    { char: "\u0106", color: colors.olive },
+    { char: "∙", color: colors.yellow },
+  ],
 };
 
 export const ingot: Sprite = {

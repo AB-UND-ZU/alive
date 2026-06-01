@@ -8,7 +8,7 @@ import { LIGHT } from "../../engine/components/light";
 import { Position, POSITION } from "../../engine/components/position";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { SPAWNABLE } from "../../engine/components/spawnable";
-import { SPRITE } from "../../engine/components/sprite";
+import { Sprite, SPRITE } from "../../engine/components/sprite";
 import { TOOLTIP } from "../../engine/components/tooltip";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { getLockable } from "../../engine/systems/action";
@@ -82,6 +82,8 @@ import {
   kettle,
   brew,
   bench,
+  rock1,
+  cactus1,
 } from "./sprites";
 import {
   createItemName,
@@ -140,7 +142,7 @@ import { iterations, pixelCircle } from "../math/tracing";
 import { getClickables } from "../../engine/systems/click";
 import { muteAudio, unmuteAudio } from "../sound/resumable";
 import { REFERENCE } from "../../engine/components/reference";
-import { POPUP } from "../../engine/components/popup";
+import { POPUP, Target } from "../../engine/components/popup";
 import { isTouch } from "../../components/Dimensions";
 import { COVERABLE } from "../../engine/components/coverable";
 import { recolorSprite } from "./templates";
@@ -2084,6 +2086,214 @@ export const fireGateGuardNpc: Sequence<NpcSequence> = (
             createText("We have a similar"),
             createText("problem, can you"),
             createText("help us too?"),
+          ],
+        ],
+        tabs: ["quest"],
+      });
+
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => END_STEP,
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const fireSmithNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => true,
+    onLeave: () => "quest",
+  });
+
+  step({
+    stage,
+    name: "quest",
+    onEnter: () => {
+      const questTarget: Target = {
+        amount: 10,
+        unit: choice("goldPrism", "goldOrb", "goldEye"),
+      };
+      createPopup(world, entity, {
+        targets: [questTarget],
+        deals: [
+          {
+            item: {
+              stackable: "resource",
+              material: "gold",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [],
+          },
+          {
+            item: {
+              stat: "xp",
+              amount: 5,
+            },
+            stock: 1,
+            prices: [],
+          },
+        ],
+        lines: [
+          [
+            createText("You came here all"),
+            createText("the way through"),
+            createText("the desert?"),
+            [],
+            createText("Then I'm sure you"),
+            createText("are brave enough"),
+            createText("for this quest!"),
+            [],
+            [
+              ...createText("Kill "),
+              ...createText(questTarget.amount.toString(), colors.maroon),
+              ...createUnitName(questTarget.unit),
+              ...createText(" and"),
+            ],
+            createText("claim the reward."),
+          ],
+        ],
+        tabs: ["quest"],
+      });
+
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => END_STEP,
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const fireDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => true,
+    onLeave: () => "quest",
+  });
+
+  step({
+    stage,
+    name: "quest",
+    onEnter: () => {
+      const [questItem, description]: [
+        Omit<Item, "carrier" | "bound">,
+        Sprite[][] | undefined
+      ] = choice(
+        [{ stackable: "juice", amount: 2 }, undefined],
+        [{ stackable: "curry", amount: 2 }, undefined],
+        [
+          { stackable: "crystal", amount: 2 },
+          [
+            [
+              ...createText("Break some "),
+              rock1,
+              ...createText("Stone", colors.grey),
+            ],
+            [
+              ...createText("to get "),
+              ...createItemText({ stackable: "crystal", amount: 2 }),
+              ...createText("."),
+            ],
+          ],
+        ],
+        [
+          { stackable: "mineral", amount: 2 },
+          [
+            [
+              ...createText("Break some "),
+              rock1,
+              ...createText("Stone", colors.grey),
+            ],
+            [
+              ...createText("to get "),
+              ...createItemText({ stackable: "mineral", amount: 2 }),
+              ...createText("."),
+            ],
+          ],
+        ],
+        [
+          { stackable: "thorn", amount: 10 },
+          [
+            [
+              ...createText("Cut some "),
+              cactus1,
+              ...createText("Cactus", colors.grey),
+            ],
+            [
+              ...createText("to get "),
+              ...createItemText({ stackable: "thorn", amount: 10 }),
+              ...createText("."),
+            ],
+          ],
+        ],
+        [
+          { consume: "potion", material: "iron", stat: "hp", amount: 5 },
+          undefined,
+        ],
+        [
+          { consume: "potion", material: "iron", stat: "mp", amount: 5 },
+          undefined,
+        ]
+      );
+      createPopup(world, entity, {
+        deals: [
+          {
+            item: {
+              stackable: "resource",
+              material: "gold",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [questItem],
+          },
+          {
+            item: {
+              stat: "xp",
+              amount: 5,
+            },
+            stock: 1,
+            prices: [],
+          },
+        ],
+        lines: [
+          [
+            createText("Life gets boring"),
+            createText("here sometimes."),
+            [],
+            createText("And some items"),
+            createText("are hard to get."),
+            [],
+            ...(description
+              ? description
+              : [
+                  [
+                    ...createText("Could you "),
+                    brew,
+                    ...createText("Brew", colors.grey),
+                  ],
+                  [...createItemText(questItem), ...createText(" for me?")],
+                ]),
           ],
         ],
         tabs: ["quest"],

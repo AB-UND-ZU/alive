@@ -26,7 +26,11 @@ const harvestEfforts: Record<Resource, number> = {
   flower: 1,
   berry: 1,
   leaf: 1,
+  spore: 1,
   sapling: 1,
+  thorn: 1,
+  banana: 1,
+  coconut: 1,
 
   sand: 1,
   beach: 1,
@@ -63,7 +67,11 @@ const harvestYields: Partial<
   flower: [{ stackable: "flower", amount: 1 }],
   berry: [{ stackable: "berry", amount: 1 }],
   leaf: [{ stackable: "leaf", amount: 1 }],
+  spore: [{ stackable: "spore", amount: 1 }],
   sapling: [{ stackable: "sapling", amount: 1 }],
+  thorn: [{ stackable: "thorn", amount: 1 }],
+  banana: [{ stackable: "banana", amount: 1 }],
+  coconut: [{ stackable: "coconut", amount: 1 }],
 
   sand: [{ stackable: "sand", amount: 1 }],
   beach: [{ stackable: "sand", amount: 1 }],
@@ -99,8 +107,12 @@ export const harvestScratches: Record<Resource, string> = {
   bush: colors.yellow,
   berry: colors.purple,
   flower: colors.teal,
+  spore: colors.white,
   leaf: colors.lime,
   sapling: colors.lime,
+  thorn: colors.silver,
+  banana: colors.yellow,
+  coconut: colors.maroon,
 
   sand: colors.yellow,
   beach: colors.yellow,
@@ -145,8 +157,12 @@ export const harvestTools: Record<Resource, Tool> = {
   bush: "shovel",
   flower: "shovel",
   berry: "shovel",
+  spore: "shovel",
   leaf: "shovel",
   sapling: "shovel",
+  thorn: "shovel",
+  banana: "shovel",
+  coconut: "shovel",
 
   sand: "shovel",
   beach: "shovel",
@@ -215,9 +231,14 @@ export const plantConfigs: Partial<
     harvest: "flower",
   },
   grain: {
-    duration: 250,
+    duration: 200,
     crop: { stackable: "wheat", amount: 1 },
     harvest: "grass",
+  },
+  spore: {
+    duration: 100,
+    crop: { stackable: "shroom", amount: 1 },
+    harvest: "spore",
   },
   leaf: {
     duration: 100,
@@ -228,6 +249,21 @@ export const plantConfigs: Partial<
     duration: 300,
     cell: "apple",
     harvest: "sapling",
+  },
+  thorn: {
+    duration: 200,
+    cell: "cactus",
+    harvest: "thorn",
+  },
+  banana: {
+    duration: 250,
+    cell: "banana",
+    harvest: "banana",
+  },
+  coconut: {
+    duration: 250,
+    cell: "coconut",
+    harvest: "coconut",
   },
 };
 

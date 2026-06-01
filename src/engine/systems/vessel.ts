@@ -152,7 +152,7 @@ export default function setupVessel(world: World) {
         MOVABLE,
       ]);
       if (
-        !(isControllable(world, entity) || isMounting(world, entity)) ||
+        !isControllable(world, entity) ||
         !mount
       )
         continue;

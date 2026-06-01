@@ -532,7 +532,6 @@ export const generateIsland = (world: World) => {
         else if (temperature < freezeTemperature) biome = "glacier";
 
         const elevation = elevationMatrix[x][y];
-        const flattened = flattenedMatrix[x][y];
 
         if (elevation < sandDepth) cell = "water_deep";
         else if (elevation < airDepth) cell = "sand";
@@ -546,15 +545,6 @@ export const generateIsland = (world: World) => {
           if (underwater > 50) cell = "mountain";
         } else if (biome === "desert") {
           if (cell === "air") cell = "sand";
-
-          // spawn palms around water level but avoid in flattened areas
-          if (
-            elevation < palmDepth &&
-            elevation > palmDepth - 4 &&
-            Math.random() < palmChance &&
-            flattened > 0.95
-          )
-            cell = "desert_palm";
         } else if (biome === "glacier") {
           if (cell === "water_deep") {
             if (
@@ -629,9 +619,9 @@ export const generateIsland = (world: World) => {
             flattened > 0.95 &&
             getDistance({ x: 0, y: 0 }, { x, y }, size, mainlandRatio) <
               mainlandRadius * 0.8
-          )
-            cell = cell === "sand" ? "desert_rock" : "rock";
-          else if (terrain > treeDepth) {
+          ) {
+            objects.push("rock");
+          } else if (terrain > treeDepth) {
             if (
               y > 0 &&
               Math.random() < treeChance &&
@@ -734,15 +724,24 @@ export const generateIsland = (world: World) => {
             terrain <= desertDepth &&
             terrain > rockDepth &&
             terrain < rockDepth + 5
-          )
-            cell = "desert_rock";
-          else if (greens > cactusDepth && greens < cactusDepth + 2)
-            cell = "cactus";
-          else if (cell === "sand" && spawn < -97)
+          ) {
+            cell = "sand";
+            objects.push("rock");
+          } else if (
+            elevation < palmDepth &&
+            elevation > palmDepth - 4 &&
+            Math.random() < palmChance &&
+            flattened > 0.95
+          ) {
+            // spawn palms around water level but avoid in flattened areas
+            cell = "sand";
+            objects.push(random(0, 9) === 0 ? "palm_fruit" : "palm");
+          } else if (greens > cactusDepth && greens < cactusDepth + 2) {
+            cell = "sand";
+            objects.push("cactus");
+          } else if (cell === "sand" && spawn < -97)
             objects.push(generateNpcKey(distribution));
           else if (cell === "sand" && spawn > 97) objects.push("tumbleweed");
-          else if (cell === "desert_palm" && random(0, 9) === 0)
-            cell = "desert_palm_fruit";
         } else if (biome === "glacier") {
           // TODO: add terrain to glacier
         }
@@ -1467,19 +1466,19 @@ export const generateIsland = (world: World) => {
         worldMap,
         fireSmithHouse.position.x + choice(-1, 1),
         fireSmithHouse.position.y + 2,
-        "house_smith"
+        "fortress_smith"
       );
       setMatrix(
         worldMap,
         fireTraderHouse.position.x + choice(-1, 1),
         fireTraderHouse.position.y + 2,
-        "house_trader"
+        "fortress_trader"
       );
       setMatrix(
         worldMap,
         fireDruidHouse.position.x + choice(-1, 1),
         fireDruidHouse.position.y + 2,
-        "house_druid"
+        "fortress_druid"
       );
 
       // set rain for forest
@@ -1750,7 +1749,7 @@ export const generateIsland = (world: World) => {
         })
       );
 
-      const anvilEntity = createCell(
+      const earthAnvilEntity = createCell(
         world,
         add(earthSmithBuilding.building[POSITION], {
           x: earthSmithOffset * -1,
@@ -1759,7 +1758,7 @@ export const generateIsland = (world: World) => {
         "anvil_passive",
         "hidden"
       ).cell;
-      setIdentifier(world, anvilEntity, "earth_anvil");
+      setIdentifier(world, earthAnvilEntity, "earth_anvil");
 
       // druid's house
       const earthDruidOffset = choice(-2, 2);
@@ -1772,7 +1771,7 @@ export const generateIsland = (world: World) => {
         })
       );
 
-      const kettleEntity = createCell(
+      const earthKettleEntity = createCell(
         world,
         add(earthDruidBuilding.building[POSITION], {
           x: earthDruidOffset * -1,
@@ -1781,11 +1780,11 @@ export const generateIsland = (world: World) => {
         "kettle_passive",
         "hidden"
       ).cell;
-      setIdentifier(world, kettleEntity, "earth_kettle");
+      setIdentifier(world, earthKettleEntity, "earth_kettle");
 
       // trader's house
       const earthTraderOffset = choice(-2, 2);
-      const traderEntity = createNpc(
+      const earthTraderEntity = createNpc(
         world,
         "earthTrader",
         combine(size, earthTraderBuilding.building[POSITION], {
@@ -1794,7 +1793,7 @@ export const generateIsland = (world: World) => {
         })
       );
 
-      createPopup(world, traderEntity, {
+      createPopup(world, earthTraderEntity, {
         deals: purchasableItems.map((item) => ({
           item: {
             ...item,
@@ -1806,7 +1805,7 @@ export const generateIsland = (world: World) => {
 
         tabs: ["buy", "sell"],
       });
-      const benchEntity = createCell(
+      const earthBenchEntity = createCell(
         world,
         add(earthTraderBuilding.building[POSITION], {
           x: earthTraderOffset * -1,
@@ -1815,7 +1814,7 @@ export const generateIsland = (world: World) => {
         "bench",
         "hidden"
       ).cell;
-      setIdentifier(world, benchEntity, "earth_bench");
+      setIdentifier(world, earthBenchEntity, "earth_bench");
 
       // postprocess haven
 
@@ -1899,7 +1898,87 @@ export const generateIsland = (world: World) => {
       // place second guard in front of jetty
       createNpc(world, "fireGuard", beachPoint);
 
-      // furnish houses
+      // smith's house
+      const fireSmithOffset = choice(-2, 2);
+      const fireSmith = createNpc(
+        world,
+        "fireSmith",
+        combine(size, fireSmithBuilding.building[POSITION], {
+          x: fireSmithOffset,
+          y: 0,
+        })
+      );
+      npcSequence(world, fireSmith, "fireSmithNpc", {});
+
+      const fireAnvilEntity = createCell(
+        world,
+        add(fireSmithBuilding.building[POSITION], {
+          x: fireSmithOffset * -1,
+          y: 0,
+        }),
+        "anvil",
+        "hidden"
+      ).cell;
+      setIdentifier(world, fireAnvilEntity, "fire_anvil");
+
+      // druid's house
+      const fireDruidOffset = choice(-2, 2);
+      const fireDruid = createNpc(
+        world,
+        "fireDruid",
+        combine(size, fireDruidBuilding.building[POSITION], {
+          x: fireDruidOffset,
+          y: 0,
+        })
+      );
+      npcSequence(world, fireDruid, "fireDruidNpc", {});
+
+      const fireKettleEntity = createCell(
+        world,
+        add(fireDruidBuilding.building[POSITION], {
+          x: fireDruidOffset * -1,
+          y: 0,
+        }),
+        "kettle",
+        "hidden"
+      ).cell;
+      setIdentifier(world, fireKettleEntity, "fire_kettle");
+
+      // trader's house
+      const fireTraderOffset = choice(-2, 2);
+      const fireTraderEntity = createNpc(
+        world,
+        "fireTrader",
+        combine(size, fireTraderBuilding.building[POSITION], {
+          x: fireTraderOffset,
+          y: 0,
+        })
+      );
+
+      createPopup(world, fireTraderEntity, {
+        deals: purchasableItems.map((item) => ({
+          item: {
+            ...item,
+            amount: 1,
+          },
+          stock: Infinity,
+          prices: getItemBuyPrice(item),
+        })),
+
+        tabs: ["buy", "sell"],
+      });
+      const fireBenchEntity = createCell(
+        world,
+        add(fireTraderBuilding.building[POSITION], {
+          x: fireTraderOffset * -1,
+          y: 0,
+        }),
+        "bench",
+        "hidden"
+      ).cell;
+      setIdentifier(world, fireBenchEntity, "fire_bench");
+
+      // furnish houses of town and haven
       const furnishingBuildings = [
         earthTraderBuilding,
         earthSmithBuilding,
@@ -2060,11 +2139,10 @@ export const stringifyMap = (
       else if (cell === "ore") row += "◘";
       else if (cell === "iron") row += "+";
       else if (cell === "golem") row += "G";
-      else if (cell === "stone" || cell === "desert_stone") row += "∙";
-      else if (cell === "desert_rock" || objects.includes("rock")) row += "^";
-      else if (cell === "palm" || cell === "desert_palm") row += "¶";
-      else if (cell === "palm_fruit" || cell === "desert_palm_fruit")
-        row += "«";
+      else if (cell === "stone") row += "∙";
+      else if (objects.includes("rock")) row += "^";
+      else if (objects.includes("palm")) row += "¶";
+      else if (objects.includes("palm_fruit")) row += "«";
       else if (cell === "sand") row += "░";
       else if (cell === "fence") row += "±";
       else if (cell === "path") row += "▓";

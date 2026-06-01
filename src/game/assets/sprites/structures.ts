@@ -1,8 +1,8 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
-import { slotShadow } from "./particles";
+import { mergeSprites, slotShadow } from "./particles";
 
-export const sign: Sprite = {
+export const sign: Sprite = mergeSprites(slotShadow, {
   name: "Sign",
   layers: [
     { char: "┐", color: colors.maroon },
@@ -12,7 +12,7 @@ export const sign: Sprite = {
     { char: "\u0106", color: colors.grey },
     { char: "÷", color: colors.silver },
   ],
-};
+});
 
 export const housePlate: Sprite = {
   name: "Sign",

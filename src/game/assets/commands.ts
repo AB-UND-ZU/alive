@@ -70,6 +70,7 @@ import { SPAWNABLE } from "../../engine/components/spawnable";
 import { getLevelStats } from "../../engine/systems/leveling";
 import { cellNames, CellType, createCell } from "../../bindings/creation";
 import { VIEWABLE } from "../../engine/components/viewable";
+import { ENTERABLE } from "../../engine/components/enterable";
 
 export type CommandCall = {
   handler: string;
@@ -536,10 +537,15 @@ const executeNew = (
       y: delta.y * (offset + 1),
     });
 
-    // clear cell but prevent removing self
+    // clear cell but prevent removing self and buildings
     if (cell === "") {
       Object.values(getCell(world, target)).forEach((cellEntity) => {
-        if (cellEntity === entity || !cellEntity[SPRITE]) return;
+        if (
+          cellEntity === entity ||
+          !cellEntity[SPRITE] ||
+          cellEntity[ENTERABLE]
+        )
+          return;
         disposeEntity(world, cellEntity);
       });
       world.metadata.gameEntity[LEVEL].cells[target.x][target.y] = "air";

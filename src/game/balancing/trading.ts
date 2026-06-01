@@ -46,8 +46,8 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
   curry: 20,
   soup: 30,
 
-  gem: 10,
-  crystal: 10,
+  mineral: 20,
+  crystal: 20,
 
   golem: 20,
 
@@ -88,12 +88,12 @@ export const itemStatPrices: Partial<
 > = {
   potion: {
     wood: {
-      mp: 2,
-      hp: 2,
+      mp: 3,
+      hp: 3,
     },
     iron: {
-      mp: 5,
-      hp: 5,
+      mp: 8,
+      hp: 8,
     },
     gold: {
       mp: 12,

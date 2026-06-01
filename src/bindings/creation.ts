@@ -125,7 +125,6 @@ import {
   rock1,
   rock2,
   sand,
-  shadow,
   shroom,
   stem,
   swirl,
@@ -331,9 +330,7 @@ export const cellNames = [
   "ore",
   "iron",
   "stone",
-  "desert_stone",
   "rock",
-  "desert_rock",
   "tree",
   "apple",
   "leaves",
@@ -352,8 +349,6 @@ export const cellNames = [
   "snow",
   "palm",
   "palm_fruit",
-  "desert_palm",
-  "desert_palm_fruit",
   "fence",
   "fence_door_path",
   "palisade_door_path",
@@ -364,6 +359,8 @@ export const cellNames = [
   "flower",
   "leaf",
   "tumbleweed",
+  "banana",
+  "coconut",
   "pot",
   "box",
   "habitat",
@@ -834,7 +831,7 @@ export const insertArea = (
       else if (cell === "#") entity = "tree";
       else if (cell === "¶") entity = "palm";
       else if (cell === "(") entity = "banana";
-      else if (cell === "¥") entity = "cactus";
+      else if (cell === "¥") entity = "desert_cactus";
       else if (cell === ">") entity = "rock";
       else if (cell === "^") entity = "desert_rock";
       else if (cell === "≡") entity = "wood_one";
@@ -1083,13 +1080,25 @@ export const createCell = (
     all.push(mountainEntity);
     return { cell: mountainEntity, all };
   } else if (cell === "rock" || cell === "desert_rock") {
+    if (cell === "desert_rock") {
+      const { harvestable: sandHarvestable } = getHarvestConfig("sand");
+      all.push(
+        entities.createPaving(world, {
+          [DROPPABLE]: { decayed: false },
+          [HARVESTABLE]: sandHarvestable,
+          [FOG]: { visibility, type: "terrain" },
+          [POSITION]: { x, y },
+          [RENDERABLE]: { generation: 0 },
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: sand,
+          [TEMPO]: { amount: -1 },
+        })
+      );
+    }
+
     const rock = (["rock1", "rock2"] as const)[random(0, 1)];
     const { items, sprite, stats, faction, scratch, harvestable } =
       generateUnitData(rock);
-    const sprites = {
-      rock: { rock1, rock2 },
-      desert_rock: { [rock]: sprite },
-    };
     const rockEntity = entities.createDeposit(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
@@ -1104,18 +1113,11 @@ export const createCell = (
       [POSITION]: { x, y },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: sprites[cell][rock],
+      [SPRITE]: sprite,
       [STATS]: stats,
     });
     all.push(rockEntity);
     populateInventory(world, rockEntity, items);
-    if (cell === "desert_rock") {
-      const areaEntity = entities.createArea(world, {
-        [POSITION]: { x, y },
-        [TEMPO]: { amount: -1 },
-      });
-      all.push(areaEntity);
-    }
     return { cell: rockEntity, all };
   } else if (cell === "iron") {
     const { harvestable } = getHarvestConfig("iron");
@@ -1179,36 +1181,15 @@ export const createCell = (
       ]
     );
     return { cell: oreEntity, all };
-  } else if (cell === "stone" || cell === "desert_stone") {
-    if (cell === "desert_stone") {
-      const { harvestable } = getHarvestConfig("sand");
-      all.push(
-        entities.createPaving(world, {
-          [DROPPABLE]: { decayed: false },
-          [HARVESTABLE]: harvestable,
-          [FOG]: { visibility, type: "terrain" },
-          [POSITION]: { x, y },
-          [RENDERABLE]: { generation: 0 },
-          [SEQUENCABLE]: { states: {} },
-          [SPRITE]: sand,
-          [TEMPO]: { amount: -1 },
-        })
-      );
-    }
-    const stoneEntity = createItemAsDrop(
-      world,
-      { x, y },
-      entities.createItem,
-      {
-        [ITEM]: {
-          stackable: "ore",
-          amount: 1,
-          bound: false,
-        },
-        [SPRITE]: getItemSprite({ stackable: "ore" }),
+  } else if (cell === "stone") {
+    const stoneEntity = createItemAsDrop(world, { x, y }, entities.createItem, {
+      [ITEM]: {
+        stackable: "ore",
+        amount: 1,
+        bound: false,
       },
-      cell === "desert_stone"
-    );
+      [SPRITE]: getItemSprite({ stackable: "ore" }),
+    });
     all.push(stoneEntity);
     return { cell: stoneEntity, all };
   } else if (["block", "block_down", "block_up"].includes(cell)) {
@@ -1540,23 +1521,15 @@ export const createCell = (
   } else if (
     cell === "palm" ||
     cell === "palm_fruit" ||
-    cell === "desert_palm" ||
-    cell === "desert_palm_fruit" ||
-    cell === "banana"
+    cell === "banana" ||
+    cell === "coconut"
   ) {
     const [stack, palm] = (
       [
         ["coconut", palm1],
         ["banana", palm2],
       ] as const
-    )[cell === "banana" ? 1 : random(0, 1)];
-
-    all.push(
-      entities.createArea(world, {
-        [POSITION]: { x, y },
-        [TEMPO]: { amount: -1 },
-      })
-    );
+    )[cell === "banana" ? 1 : cell === "coconut" ? 0 : random(0, 1)];
 
     const { harvestable } = getHarvestConfig("palm");
     const palmEntity = entities.createOrganic(world, {
@@ -1580,11 +1553,7 @@ export const createCell = (
     });
     all.push(palmEntity);
 
-    if (
-      cell === "palm_fruit" ||
-      cell === "desert_palm_fruit" ||
-      cell === "banana"
-    ) {
+    if (cell === "palm_fruit" || cell === "banana" || cell === "coconut") {
       const fruitEntity = entities.createLoot(world, {
         [FOG]: { visibility, type: "object" },
         [INVENTORY]: { items: [] },
@@ -1686,19 +1655,6 @@ export const createCell = (
       [STATS]: stats,
     });
     all.push(tumbleweedEntity);
-    const { harvestable } = getHarvestConfig("sand");
-    all.push(
-      entities.createPaving(world, {
-        [DROPPABLE]: { decayed: false },
-        [HARVESTABLE]: harvestable,
-        [FOG]: { visibility, type: "terrain" },
-        [POSITION]: { x, y },
-        [RENDERABLE]: { generation: 0 },
-        [SEQUENCABLE]: { states: {} },
-        [SPRITE]: sand,
-        [TEMPO]: { amount: -1 },
-      })
-    );
     populateInventory(world, tumbleweedEntity, items);
     return { cell: tumbleweedEntity, all };
   } else if (
@@ -1853,15 +1809,25 @@ export const createCell = (
     all.push(coinItem);
     setIdentifier(world, world.assertById(coinItem[ITEM].carrier), "coin");
     return { cell: coinItem, all };
-  } else if (cell === "cactus") {
+  } else if (cell === "cactus" || cell === "desert_cactus") {
+    if (cell === "desert_cactus") {
+      const { harvestable: sandHarvestable } = getHarvestConfig("sand");
+      all.push(
+        entities.createPaving(world, {
+          [DROPPABLE]: { decayed: false },
+          [HARVESTABLE]: sandHarvestable,
+          [FOG]: { visibility, type: "terrain" },
+          [POSITION]: { x, y },
+          [RENDERABLE]: { generation: 0 },
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: sand,
+          [TEMPO]: { amount: -1 },
+        })
+      );
+    }
+
     const { sprite, stats, faction, items, scratch, harvestable } =
       generateUnitData((["cactus1", "cactus2"] as const)[random(0, 1)]);
-    all.push(
-      entities.createArea(world, {
-        [POSITION]: { x, y },
-        [TEMPO]: { amount: -1 },
-      })
-    );
     const cactusEntity = entities.createCactus(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
@@ -1870,18 +1836,8 @@ export const createCell = (
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
       [INVENTORY]: { items: [] },
-      [MOVABLE]: {
-        orientations: [],
-        reference: world.getEntityId(world.metadata.gameEntity),
-        spring: {
-          duration: 100,
-        },
-        lastInteraction: 0,
-        flying: false,
-        swimming: false,
-      },
       [POSITION]: { x, y },
-      [REMAINABLE]: { cell: "sand" },
+      [REMAINABLE]: {},
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SHOOTABLE]: { shots: 0 },
@@ -2219,6 +2175,19 @@ export const createCell = (
     setIdentifier(world, spawnSign, "spawn_sign");
     return { cell: spawnSign, all };
   } else if (cell === "potion_sign") {
+    const { harvestable } = getHarvestConfig("beach");
+    all.push(
+      entities.createPaving(world, {
+        [DROPPABLE]: { decayed: false },
+        [HARVESTABLE]: harvestable,
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: beach,
+        [TEMPO]: { amount: -1 },
+      })
+    );
     const scoutSprite = mergeSprites(scout, parseSprite("\x0a_"));
     const signEntity = createSign(world, { x, y }, [
       [
@@ -2272,9 +2241,21 @@ export const createCell = (
     ]);
     all.push(signEntity);
     setIdentifier(world, signEntity, "potion_sign");
-    signEntity[SPRITE] = mergeSprites(shadow, signEntity[SPRITE]);
     return { cell: signEntity, all };
   } else if (cell === "fruit_sign") {
+    const { harvestable } = getHarvestConfig("sand");
+    all.push(
+      entities.createPaving(world, {
+        [DROPPABLE]: { decayed: false },
+        [HARVESTABLE]: harvestable,
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: sand,
+        [TEMPO]: { amount: -1 },
+      })
+    );
     const signEntity = createSign(world, { x, y }, [
       [
         [
@@ -2326,7 +2307,6 @@ export const createCell = (
     ]);
     all.push(signEntity);
     setIdentifier(world, signEntity, "fruit_sign");
-    signEntity[SPRITE] = mergeSprites(shadow, signEntity[SPRITE]);
     return { cell: signEntity, all };
   } else if (cell === "guide_sign") {
     const guideSign = createSign(world, { x, y }, [
@@ -2663,9 +2643,21 @@ export const createCell = (
         [TEMPO]: { amount: -1 },
       })
     );
-    chestEntity[SPRITE] = mergeSprites(shadow, chestEntity[SPRITE]);
     return { cell: chestEntity, all };
   } else if (cell === "potion_chest") {
+    const { harvestable } = getHarvestConfig("beach");
+    all.push(
+      entities.createPaving(world, {
+        [DROPPABLE]: { decayed: false },
+        [HARVESTABLE]: harvestable,
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: beach,
+        [TEMPO]: { amount: -1 },
+      })
+    );
     const chestEntity = createChest(world, "woodChest", { x, y }, [
       {
         consume: "key",
@@ -2791,7 +2783,7 @@ export const createCell = (
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
       [SHOOTABLE]: { shots: 0 },
-      [SPRITE]: mergeSprites(shadow, rock2),
+      [SPRITE]: rock2,
       [STATS]: eliteUnit.stats,
       [STRUCTURABLE]: { rigid: true },
       [SWIMMABLE]: { swimming: false },
@@ -2820,16 +2812,15 @@ export const createCell = (
     eliteEntity[EXERTABLE].castable = eliteId;
 
     // create stem and leaves
-    const rockShadow = mergeSprites(shadow, rock1);
     const golemLimbs: {
       offset: Position;
       sprite: Sprite;
       orientation?: Orientation;
     }[] = [
-      { offset: { x: 0, y: -1 }, sprite: rockShadow, orientation: "up" },
-      { offset: { x: 0, y: 1 }, sprite: rockShadow, orientation: "down" },
-      { offset: { x: -1, y: 0 }, sprite: rockShadow, orientation: "left" },
-      { offset: { x: 1, y: 0 }, sprite: rockShadow, orientation: "right" },
+      { offset: { x: 0, y: -1 }, sprite: rock1, orientation: "up" },
+      { offset: { x: 0, y: 1 }, sprite: rock1, orientation: "down" },
+      { offset: { x: -1, y: 0 }, sprite: rock1, orientation: "left" },
+      { offset: { x: 1, y: 0 }, sprite: rock1, orientation: "right" },
     ];
 
     for (const { offset, sprite, orientation } of golemLimbs) {
@@ -3289,10 +3280,12 @@ export const createCell = (
     });
     all.push(facadeEntity);
     return { cell: facadeEntity, all };
-  } else if (cell === "house_druid") {
+  } else if (cell === "house_druid" || cell === "fortress_druid") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: wallInside },
+      [ENTERABLE]: {
+        sprite: cell === "house_druid" ? wallInside : fortressWallInside,
+      },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
       [LIGHT]: {
@@ -3307,10 +3300,12 @@ export const createCell = (
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "house_smith") {
+  } else if (cell === "house_smith" || cell === "fortress_smith") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: wallInside },
+      [ENTERABLE]: {
+        sprite: cell === "house_smith" ? wallInside : fortressWallInside,
+      },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
       [LIGHT]: {
@@ -3325,10 +3320,12 @@ export const createCell = (
     });
     all.push(wallEntity);
     return { cell: wallEntity, all };
-  } else if (cell === "house_trader") {
+  } else if (cell === "house_trader" || cell === "fortress_trader") {
     const wallEntity = entities.createWall(world, {
       [COLLIDABLE]: {},
-      [ENTERABLE]: { sprite: wallInside },
+      [ENTERABLE]: {
+        sprite: cell === "house_trader" ? wallInside : fortressWallInside,
+      },
       [FOG]: { visibility, type: "terrain" },
       [LAYER]: {},
       [LIGHT]: {

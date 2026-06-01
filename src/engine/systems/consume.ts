@@ -103,6 +103,7 @@ export const stackableConsumptions: Partial<
   fruit: { countable: "hp", amount: 5 },
   herb: { countable: "mp", amount: 2 },
   sapling: { countable: "xp", amount: 1 },
+  thorn: { countable: "hp", amount: -1 },
 
   bread: { countable: "hp", amount: 5 },
 
@@ -110,8 +111,8 @@ export const stackableConsumptions: Partial<
   pike: { countable: "mp", amount: 2 },
   tuna: { countable: "hp", amount: 8 },
   cod: { countable: "mp", amount: 3 },
-  algae: { countable: "xp", amount: 1 },
-  eel: { countable: "xp", amount: 3 },
+  algae: { countable: "xp", amount: 2 },
+  eel: { countable: "xp", amount: 4 },
 
   soup: { countable: "mp", amount: 25, percentage: true },
   curry: { countable: "mp", amount: 20, percentage: true },
@@ -327,7 +328,7 @@ export default function setupConsume(world: World) {
       if (haste !== entityHaste[entityId]) {
         frame[REFERENCE].tick = getHasteInterval(world, haste);
         entityHaste[entityId] = haste;
-        rerenderEntity(world, entity)
+        rerenderEntity(world, entity);
       }
 
       if (vision.visibility !== entityVision[entityId] && entity[LIGHT]) {
@@ -348,7 +349,7 @@ export default function setupConsume(world: World) {
           );
         }
         entityVision[entityId] = vision.visibility;
-        rerenderEntity(world, entity)
+        rerenderEntity(world, entity);
       }
 
       const maxHp = equipmentStats.maxHp;

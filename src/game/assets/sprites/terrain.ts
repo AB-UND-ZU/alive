@@ -1,10 +1,6 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
-
-export const none: Sprite = {
-  name: "",
-  layers: [],
-};
+import { mergeSprites, slotShadow } from "./particles";
 
 export const shadow: Sprite = {
   name: "",
@@ -467,6 +463,7 @@ export const leavesRottenRight: Sprite = {
 export const palm1: Sprite = {
   name: "palm_one",
   layers: [
+    { char: "█", color: colors.black },
     { char: "T", color: colors.green },
     { char: "\u0104", color: colors.green },
     { char: "▄", color: colors.black },
@@ -481,6 +478,7 @@ export const palm1: Sprite = {
 export const palm2: Sprite = {
   name: "palm_two",
   layers: [
+    { char: "█", color: colors.black },
     { char: "┐", color: colors.olive },
     { char: "─", color: colors.black },
     { char: "W", color: colors.green },
@@ -489,7 +487,7 @@ export const palm2: Sprite = {
   ],
 };
 
-export const palmBurnt1: Sprite = {
+export const palmBurnt1: Sprite = mergeSprites(slotShadow, {
   name: "palm_burnt_one",
   layers: [
     { char: "┐", color: colors.olive },
@@ -498,9 +496,9 @@ export const palmBurnt1: Sprite = {
     { char: ".", color: colors.maroon },
     { char: ":", color: colors.black },
   ],
-};
+});
 
-export const palmBurnt2: Sprite = {
+export const palmBurnt2: Sprite = mergeSprites(slotShadow, {
   name: "palm_burnt_two",
   layers: [
     { char: "┐", color: colors.olive },
@@ -510,7 +508,8 @@ export const palmBurnt2: Sprite = {
     { char: "≡", color: colors.black },
     { char: ".", color: colors.olive },
   ],
-};
+});
+
 export const desertPalmBurnt1: Sprite = {
   name: "desert_palm_burnt_one",
   layers: [
@@ -627,27 +626,26 @@ export const tree2: Sprite = {
   },
 };
 
-export const treeBurnt1: Sprite = {
+export const treeBurnt1: Sprite = mergeSprites(slotShadow, {
   name: "tree_burnt_one",
   layers: [
     { char: "│", color: colors.maroon },
-    { char: "▀", color: colors.black },
+    { char: "┘", color: colors.black },
     { char: "+", color: colors.black },
     { char: ".", color: colors.grey },
     { char: ":", color: colors.black },
   ],
-};
+});
 
-export const treeBurnt2: Sprite = {
+export const treeBurnt2: Sprite = mergeSprites(slotShadow, {
   name: "tree_burnt_two",
   layers: [
     { char: "│", color: colors.maroon },
-    { char: "▀", color: colors.black },
     { char: ":", color: colors.grey },
     { char: "+", color: colors.black },
     { char: "┘", color: colors.black },
   ],
-};
+});
 
 export const oakBurnt: Sprite = {
   name: "oak_burnt",
@@ -762,25 +760,24 @@ export const sapling5: Sprite = {
   ],
 };
 
-export const cactus1: Sprite = {
+export const cactus1: Sprite = mergeSprites(shadow, {
   name: "cactus_one",
   layers: [
-    { char: "\u0107", color: colors.olive },
-    { char: "\u0109", color: colors.olive },
-    { char: "▓", color: colors.black },
-    { char: "\u0100", color: colors.black },
-    { char: "\u0101", color: colors.black },
-
     { char: "-", color: colors.green },
     { char: "«", color: colors.black },
     { char: "[", color: colors.black },
     { char: "\u011b", color: colors.green },
     { char: "|", color: colors.green },
   ],
-};
+});
 
-export const cactus2: Sprite = {
+export const cactus2: Sprite = mergeSprites(shadow, {
   name: "cactus_two",
+  layers: [{ char: "¥", color: colors.green }],
+});
+
+export const desertCactus2: Sprite = {
+  name: "desert_cactus_two",
   layers: [
     { char: "\u0107", color: colors.olive },
     { char: "\u0109", color: colors.olive },
@@ -815,46 +812,15 @@ export const tombstone2: Sprite = {
   ],
 };
 
-export const desertRock1: Sprite = {
-  name: "",
-  layers: [
-    { char: "\u0107", color: colors.olive },
-    { char: "\u0109", color: colors.olive },
-    { char: "▓", color: colors.black },
-    { char: "\u0100", color: colors.black },
-    { char: "\u0101", color: colors.black },
-
-    { char: "\u011f", color: colors.grey },
-    { char: "\u0103", color: colors.grey },
-  ],
-};
-
-export const desertRock2: Sprite = {
-  name: "",
-  layers: [
-    { char: "\u0107", color: colors.olive },
-    { char: "\u0109", color: colors.olive },
-    { char: "▓", color: colors.black },
-    { char: "\u0100", color: colors.black },
-    { char: "\u0101", color: colors.black },
-
-    { char: "\u0105", color: colors.grey },
-    { char: "I", color: colors.black },
-    { char: "+", color: colors.grey },
-    { char: ":", color: colors.grey },
-    { char: ",", color: colors.black },
-  ],
-};
-
-export const rock1: Sprite = {
+export const rock1: Sprite = mergeSprites(shadow, {
   name: "",
   layers: [
     { char: "\u011f", color: colors.grey },
     { char: "\u0103", color: colors.grey },
   ],
-};
+});
 
-export const rock2: Sprite = {
+export const rock2: Sprite = mergeSprites(shadow, {
   name: "",
   layers: [
     { char: "\u0105", color: colors.grey },
@@ -863,7 +829,7 @@ export const rock2: Sprite = {
     { char: ":", color: colors.grey },
     { char: ",", color: colors.black },
   ],
-};
+});
 
 export const enemySpawner: Sprite = {
   name: "Spawn",

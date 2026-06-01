@@ -331,7 +331,6 @@ export const createCactus = entityFactory([
   FOG,
   HARVESTABLE,
   INVENTORY,
-  MOVABLE,
   POSITION,
   REMAINABLE,
   RENDERABLE,

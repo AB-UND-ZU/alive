@@ -16,6 +16,11 @@ export const brewingRecipes: Recipe[] = [
     duration: 5,
     options: [[{ stackable: "leaf", amount: 10 }]],
   },
+  {
+    item: { stackable: "spore", amount: 5 },
+    duration: 5,
+    options: [[{ stackable: "shroom", amount: 1 }]],
+  },
 
   {
     item: { stackable: "grain", amount: 5 },
@@ -40,12 +45,20 @@ export const brewingRecipes: Recipe[] = [
         { stackable: "berry", amount: 3 },
         { stackable: "resource", material: "wood", amount: 1 },
       ],
+      [
+        { stackable: "wheat", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 1 },
+      ],
     ],
   },
   {
     item: { consume: "potion", material: "iron", stat: "hp", amount: 10 },
     duration: 20,
     options: [
+      [
+        { stackable: "apple", amount: 3 },
+        { stackable: "resource", material: "wood", amount: 3 },
+      ],
       [
         { stackable: "fruit", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
@@ -56,6 +69,10 @@ export const brewingRecipes: Recipe[] = [
       ],
       [
         { stackable: "salmon", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
+      ],
+      [
+        { stackable: "bread", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
       ],
     ],
@@ -80,6 +97,10 @@ export const brewingRecipes: Recipe[] = [
         { stackable: "tuna", amount: 1 },
         { stackable: "plank", amount: 1 },
       ],
+      [
+        { stackable: "bread", amount: 2 },
+        { stackable: "plank", amount: 1 },
+      ],
     ],
   },
   {
@@ -94,12 +115,20 @@ export const brewingRecipes: Recipe[] = [
         { stackable: "flower", amount: 3 },
         { stackable: "resource", material: "wood", amount: 1 },
       ],
+      [
+        { stackable: "sapling", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 1 },
+      ],
     ],
   },
   {
     item: { consume: "potion", material: "iron", stat: "mp", amount: 10 },
     duration: 20,
     options: [
+      [
+        { stackable: "shroom", amount: 3 },
+        { stackable: "resource", material: "wood", amount: 3 },
+      ],
       [
         { stackable: "herb", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
@@ -110,6 +139,10 @@ export const brewingRecipes: Recipe[] = [
       ],
       [
         { stackable: "pike", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
+      ],
+      [
+        { stackable: "algae", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
       ],
     ],
@@ -134,6 +167,10 @@ export const brewingRecipes: Recipe[] = [
         { stackable: "cod", amount: 1 },
         { stackable: "plank", amount: 1 },
       ],
+      [
+        { stackable: "algae", amount: 2 },
+        { stackable: "plank", amount: 1 },
+      ],
     ],
   },
 
@@ -154,12 +191,12 @@ export const brewingRecipes: Recipe[] = [
     options: [
       [
         { stackable: "stick", amount: 3 },
-        { stackable: "apple", amount: 2 },
+        { stackable: "apple", amount: 3 },
         { stackable: "fruit", amount: 1 },
       ],
       [
         { stackable: "stick", amount: 3 },
-        { stackable: "apple", amount: 2 },
+        { stackable: "apple", amount: 3 },
         { stackable: "banana", amount: 1 },
       ],
       [
@@ -208,7 +245,7 @@ export const brewingRecipes: Recipe[] = [
     options: [
       [
         { stackable: "ore", amount: 3 },
-        { stackable: "shroom", amount: 2 },
+        { stackable: "shroom", amount: 3 },
         { stackable: "coconut", amount: 1 },
       ],
     ],

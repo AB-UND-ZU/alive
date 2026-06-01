@@ -128,7 +128,7 @@ export const generateTutorial = async (world: World) => {
     [RENDERABLE]: { generation: 0 },
   });
 
-  // create guide with chest
+  // create guide with shop
   const guideItems: Omit<Item, "carrier" | "bound">[] = [
     {
       consume: "key",

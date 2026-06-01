@@ -30,12 +30,16 @@ import {
 import { clamp, lerp, normalize, padCenter, repeat } from "../../math/std";
 import { Orientation } from "../../../engine/components/orientable";
 import { getFacingLayers } from "../../../components/Entity/utils";
-import { none } from "./terrain";
 import { World } from "../../../engine";
 import { isEnemy, isNeutral, isTribe } from "../../../engine/systems/damage";
 import { Entity } from "ecs";
 import { ItemStats } from "../../../engine/components/item";
 import { recolorSprite } from "../templates";
+
+export const none: Sprite = {
+  name: "",
+  layers: [],
+};
 
 export const blockDown: Sprite = {
   name: "block_down",

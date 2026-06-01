@@ -62,7 +62,7 @@ import {
   flower,
   flowerDrop,
   fruit,
-  gem,
+  mineral,
   getStatSprite,
   gold,
   herb,
@@ -177,6 +177,9 @@ import {
   curry,
   gravelBlock,
   path,
+  thorn,
+  cactus1,
+  spore,
 } from "./sprites";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { MOVABLE } from "../../engine/components/movable";
@@ -1655,28 +1658,20 @@ export const entitySprites: Record<
       createCountable(stats, "mp", "display"),
     ],
   },
-  gem: {
-    sprite: gem,
+  mineral: {
+    sprite: mineral,
     getDescription: () => [
-      createText("A valuable gem"),
-      [
-        ...createText("from a "),
-        rock2,
-        ...createText("Stone", colors.grey),
-        ...createText("."),
-      ],
+      createText("A pure deposit"),
+      createText("from a round"),
+      [rock2, ...createText("Stone", colors.grey), ...createText(".")],
     ],
   },
   crystal: {
     sprite: crystal,
     getDescription: () => [
       createText("A sparkly crystal"),
-      [
-        ...createText("from a "),
-        rock1,
-        ...createText("Stone", colors.grey),
-        ...createText("."),
-      ],
+      createText("from a sharp"),
+      [rock1, ...createText("Stone", colors.grey), ...createText(".")],
     ],
   },
   herb: {
@@ -1725,6 +1720,36 @@ export const entitySprites: Record<
         ...createText("."),
       ],
       createCountable(stats, "xp", "display"),
+    ],
+  },
+  thorn: {
+    sprite: thorn,
+    getDescription: (stats) => [
+      createText("Sharp needle from"),
+      [
+        ...createText("a "),
+        cactus1,
+        ...createText("Cactus", colors.grey),
+        ...createText("."),
+      ],
+      createCountable(stats, "hp", "display"),
+    ],
+  },
+  spore: {
+    sprite: spore,
+    getDescription: () => [
+      createText("Tiny seeds taken"),
+      [
+        ...createText("from a "),
+        ...createItemName({ stackable: "shroom" }),
+        ...createText("."),
+      ],
+      [
+        ...createText("Regrows on "),
+        soilWet,
+        ...createText("Soil", colors.grey),
+        ...createText("."),
+      ],
     ],
   },
   ingot: {

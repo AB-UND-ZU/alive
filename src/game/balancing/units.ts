@@ -2,13 +2,9 @@ import { Pattern } from "../../engine/components/behaviour";
 import {
   bandit,
   box,
-  cactus1,
-  cactus2,
   chief,
   clover,
   woodChest,
-  desertRock1,
-  desertRock2,
   dummy,
   diamondChest,
   fairy,
@@ -39,6 +35,10 @@ import {
   none,
   hedgeDry1,
   hedgeDry2,
+  rock1,
+  rock2,
+  cactus1,
+  cactus2,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
@@ -853,7 +853,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     harvestable: "cactus",
-    drops: [{ chance: 100, items: [{ stackable: "sapling", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 1 }] }],
     patternNames: [],
     sprite: cactus1,
   },
@@ -866,7 +866,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     harvestable: "cactus",
-    drops: [{ chance: 100, items: [{ stackable: "sapling", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 1 }] }],
     patternNames: [],
     sprite: cactus2,
   },
@@ -882,10 +882,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [
       { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
       { chance: 20, items: [{ stackable: "worm", amount: 1 }] },
-      { chance: 10, items: [{ stackable: "crystal", amount: 1 }] },
+      { chance: 10, items: [{ stackable: "mineral", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: desertRock1,
+    sprite: rock1,
   },
   rock2: {
     faction: "unit",
@@ -899,10 +899,10 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [
       { chance: 70, items: [{ stackable: "ore", amount: 1 }] },
       { chance: 20, items: [{ stackable: "worm", amount: 1 }] },
-      { chance: 10, items: [{ stackable: "gem", amount: 1 }] },
+      { chance: 10, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: desertRock2,
+    sprite: rock2,
   },
   tumbleweed: {
     faction: "unit",
