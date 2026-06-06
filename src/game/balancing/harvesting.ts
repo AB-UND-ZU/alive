@@ -21,6 +21,7 @@ const harvestEfforts: Record<Resource, number> = {
   desert_husk: 1,
   root: 1,
 
+  plot: 1,
   grass: 1,
   bush: 1,
   flower: 1,
@@ -39,7 +40,6 @@ const harvestEfforts: Record<Resource, number> = {
 
   palisade: 11,
   hinge: 1,
-  path_hinge: 1,
   footing: 1,
   rock: 1,
   mountain: 6,
@@ -78,9 +78,11 @@ const harvestYields: Partial<
   path: [{ stackable: "gravel", amount: 1 }],
   rubble: [{ stackable: "gravel", amount: 1 }],
 
-  footing: [{ stackable: "ore", amount: 1 }],
-  hinge: [{ stackable: "ore", amount: 1 }],
-  path_hinge: [{ stackable: "ore", amount: 1 }],
+  footing: [{ stackable: "ore", amount: 2 }],
+  hinge: [
+    { stackable: "stick", amount: 1 },
+    { stackable: "ore", amount: 1 },
+  ],
   mountain: [{ stackable: "ore", amount: 1 }],
   iron: [{ stackable: "resource", material: "iron", amount: 1 }],
   gold: [{ stackable: "resource", material: "gold", amount: 1 }],
@@ -103,6 +105,7 @@ export const harvestScratches: Record<Resource, string> = {
   desert_husk: colors.maroon,
   root: colors.maroon,
 
+  plot: colors.silver,
   grass: colors.yellow,
   bush: colors.yellow,
   berry: colors.purple,
@@ -122,7 +125,6 @@ export const harvestScratches: Record<Resource, string> = {
   palisade: colors.silver,
   footing: colors.silver,
   hinge: colors.silver,
-  path_hinge: colors.silver,
   rock: colors.silver,
   mountain: colors.silver,
   iron: colors.silver,
@@ -134,6 +136,7 @@ export const harvestConditions: Record<Tool, ConditionType> = {
   shovel: "shovel",
   pickaxe: "pickaxe",
   hook: "hook",
+  hammer: "hammer",
 };
 
 export const harvestTools: Record<Resource, Tool> = {
@@ -153,6 +156,7 @@ export const harvestTools: Record<Resource, Tool> = {
   desert_husk: "shovel",
   root: "shovel",
 
+  plot: "shovel",
   grass: "shovel",
   bush: "shovel",
   flower: "shovel",
@@ -172,7 +176,6 @@ export const harvestTools: Record<Resource, Tool> = {
   palisade: "pickaxe",
   footing: "shovel",
   hinge: "shovel",
-  path_hinge: "shovel",
   rock: "pickaxe",
   mountain: "pickaxe",
   iron: "pickaxe",
@@ -270,11 +273,8 @@ export const plantConfigs: Partial<
 export const harvestDurationFactor = 3;
 export const trenchResources = ["sand", "beach"];
 export const pavingResources = ["path", "rubble"];
-export const fillItems: Record<
-  "beach" | "path",
-  Omit<Item, "carrier" | "bound">
-> = {
-  path: { stackable: "gravel", amount: 1 },
-  beach: { stackable: "sand", amount: 3 },
+export const fillItem: Omit<Item, "carrier" | "bound"> = {
+  stackable: "sand",
+  amount: 3,
 };
 export const soilWaterDistance = 3;

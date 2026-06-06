@@ -1,8 +1,7 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
-import { mergeSprites, slotShadow } from "./particles";
 
-export const woodChest: Sprite = mergeSprites(slotShadow, {
+export const woodChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
@@ -10,9 +9,9 @@ export const woodChest: Sprite = mergeSprites(slotShadow, {
     { char: "∙", color: colors.silver },
     { char: "·", color: colors.maroon },
   ],
-});
+};
 
-export const ironChest: Sprite = mergeSprites(slotShadow, {
+export const ironChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
@@ -20,9 +19,9 @@ export const ironChest: Sprite = mergeSprites(slotShadow, {
     { char: "∙", color: colors.white },
     { char: "·", color: colors.silver },
   ],
-});
+};
 
-export const goldChest: Sprite = mergeSprites(slotShadow, {
+export const goldChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
@@ -30,9 +29,9 @@ export const goldChest: Sprite = mergeSprites(slotShadow, {
     { char: "∙", color: colors.silver },
     { char: "·", color: colors.yellow },
   ],
-});
+};
 
-export const diamondChest: Sprite = mergeSprites(slotShadow, {
+export const diamondChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.grey },
@@ -40,9 +39,9 @@ export const diamondChest: Sprite = mergeSprites(slotShadow, {
     { char: "∙", color: colors.silver },
     { char: "·", color: colors.aqua },
   ],
-});
+};
 
-export const rubyChest: Sprite = mergeSprites(slotShadow, {
+export const rubyChest: Sprite = {
   name: "Chest",
   layers: [
     { char: "■", color: colors.white },
@@ -50,7 +49,7 @@ export const rubyChest: Sprite = mergeSprites(slotShadow, {
     { char: "∙", color: colors.silver },
     { char: "·", color: colors.fuchsia },
   ],
-});
+};
 
 export const rose: Sprite = {
   name: "Rose",
@@ -120,7 +119,7 @@ export const dummy: Sprite = {
 };
 
 export const campfire: Sprite = {
-  name: "Fire",
+  name: "Bonfire",
   layers: [
     { char: "X", color: colors.maroon },
     { char: "|", color: colors.maroon },
@@ -364,8 +363,8 @@ export const fountainHealing: Sprite = {
   ],
 };
 
-export const pot: Sprite = mergeSprites(slotShadow, {
-  name: "Pot",
+export const pot: Sprite = {
+  name: "Vase",
   layers: [
     { char: "I", color: colors.maroon },
     { char: "\u0106", color: colors.maroon },
@@ -375,7 +374,7 @@ export const pot: Sprite = mergeSprites(slotShadow, {
     { char: "∙", color: colors.grey },
     { char: "·", color: colors.maroon },
   ],
-});
+};
 
 export const leverOff: Sprite = {
   name: "Lever",
@@ -404,7 +403,7 @@ export const leverOn: Sprite = {
   ],
 };
 
-export const box: Sprite = mergeSprites(slotShadow, {
+export const box: Sprite = {
   name: "Box",
   layers: [
     { char: "■", color: colors.grey },
@@ -414,7 +413,7 @@ export const box: Sprite = mergeSprites(slotShadow, {
     { char: ":", color: colors.maroon },
     { char: ".", color: colors.maroon },
   ],
-});
+};
 
 export const ironCask: Sprite = {
   name: "Cask",

@@ -7,23 +7,14 @@ import addPopup, { Deal, Popup, POPUP, Target } from "../components/popup";
 import { Entity } from "ecs";
 import { TOOLTIP } from "../components/tooltip";
 import {
-  addBackground,
   berry,
-  brew,
-  craft,
-  createText,
   dialogEnd,
   dialogStart,
   farming,
   flower,
-  forge,
   grain,
-  info,
   mapDiscovery,
   none,
-  parseSprite,
-  quest,
-  shop,
   shoutEnd,
   shoutStart,
 } from "../../game/assets/sprites";
@@ -71,6 +62,7 @@ import {
   resetConditionables,
   initiateWarp,
   performTrade,
+  castConditionable,
 } from "./trigger";
 import { colors } from "../../game/assets/colors";
 import { consumeItem, getConsumption, getItemConsumption } from "./consume";
@@ -84,13 +76,26 @@ import {
   keyboardSize,
 } from "../../components/Keyboard";
 import { executeCommand, parseCommand } from "../../game/assets/commands";
-import { recolorSprite } from "../../game/assets/templates";
+import {
+  addBackground,
+  brew,
+  craft,
+  createText,
+  forge,
+  info,
+  parseSprite,
+  quest,
+  recolorSprite,
+  shop,
+} from "../../game/assets/ui";
 import { invertOrientation } from "../../game/math/path";
 import { plantConfigs } from "../../game/balancing/harvesting";
 import { isPlantable, plantSeed, queueBrew } from "./harvest";
 import { getBrewingDeal } from "../../game/balancing/brewing";
 import { FORGABLE } from "../components/forgable";
 import { equipItem } from "./collect";
+import { buildConstructions } from "../../game/balancing/building";
+import { canBuild, canConstruct, getBuildingDeal } from "./build";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -347,6 +352,7 @@ export const popupIdles = {
   use: undefined,
   equip: undefined,
   chat: undefined,
+  build: undefined,
 };
 
 export const popupActions = {
@@ -356,6 +362,7 @@ export const popupActions = {
   info: "READ",
   talk: "TALK",
   plant: "SEEDS",
+  build: "BUILD",
   warp: "WARP",
   quest: "QUEST",
   buy: "SHOP",
@@ -753,6 +760,8 @@ export default function setupPopup(world: World) {
         ? mapScroll
         : transaction === "plant"
         ? plantItems.length
+        : transaction === "build"
+        ? buildConstructions.length + 1
         : transaction === "class"
         ? displayedClasses.length
         : transaction === "style"
@@ -1182,6 +1191,61 @@ export default function setupPopup(world: World) {
                   flower,
                   grain,
                   ...createText("Seeds", colors.grey),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          }
+        }
+      } else if (tab === "build") {
+        const buildingConstruction = buildConstructions[verticalIndex - 1];
+        const toolEntity = world.getEntityByIdAndComponents(
+          heroEntity[EQUIPPABLE].tool,
+          [ITEM]
+        );
+
+        if (addEntity && toolEntity?.[ITEM].tool === "hammer") {
+          if (
+            verticalIndex === 0 ||
+            (buildingConstruction &&
+              canBuild(world, heroEntity, buildingConstruction))
+          ) {
+            closePopup(world, heroEntity, popupEntity);
+            castConditionable(world, heroEntity, toolEntity);
+          } else if (
+            buildingConstruction &&
+            !canConstruct(world, heroEntity, buildingConstruction)
+          ) {
+            const buildingSprite = buildingConstruction.variants[0].sprite;
+            queueMessage(world, heroEntity, {
+              line: addBackground(
+                [
+                  ...createText("Can't build ", colors.silver),
+                  buildingSprite,
+                  ...createText(buildingSprite.name, colors.grey),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+          } else {
+            const missingItem = missingFunds(
+              world,
+              heroEntity,
+              getBuildingDeal(buildingConstruction)
+            )[0];
+            queueMessage(world, heroEntity, {
+              line: addBackground(
+                [
+                  ...createText("Need ", colors.silver),
+                  ...createItemName(missingItem),
                   ...createText("!", colors.silver),
                 ],
                 colors.black

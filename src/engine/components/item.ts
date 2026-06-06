@@ -47,7 +47,7 @@ export type Ranged = (typeof ranged)[number];
 export type Rechargables = (typeof rechargables)[number];
 export type Skill = Ranged | Rechargables;
 
-export const tools = ["axe", "pickaxe", "hook", "shovel"] as const;
+export const tools = ["axe", "pickaxe", "hook", "shovel", "hammer"] as const;
 export type Tool = (typeof tools)[number];
 
 export const consumables = ["key", "potion", "bucket"] as const;

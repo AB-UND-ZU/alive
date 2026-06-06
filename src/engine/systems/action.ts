@@ -191,6 +191,8 @@ export const castableSkill = (
     ) {
       return true;
     }
+  } else if (tool === "hammer") {
+    return !isInPopup(world, entity);
   }
 
   return false;
@@ -388,6 +390,7 @@ export default function setupAction(world: World) {
         !action &&
         usePopup &&
         (isInTab(world, entity, "plant") ||
+          isInTab(world, entity, "build") ||
           (isInTab(world, entity, "use") &&
             getTabSelections(world, usePopup).length <= 2))
       ) {

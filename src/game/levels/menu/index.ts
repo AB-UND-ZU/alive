@@ -558,6 +558,11 @@ export const generateMenu = async (world: World) => {
           material: "wood",
           amount: 1,
         },
+        {
+          tool: "hammer",
+          material: "wood",
+          amount: 1,
+        },
       ],
       [
         {

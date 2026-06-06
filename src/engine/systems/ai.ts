@@ -53,9 +53,6 @@ import { castSpell, lockDoor } from "./trigger";
 import { createItemAsDrop, dropEntity } from "./drop";
 import {
   chestBoss,
-  confused,
-  createShout,
-  createText,
   golem,
   golemArm,
   golemBody,
@@ -64,12 +61,8 @@ import {
   golemShoulderLeft,
   golemShoulderRight,
   none,
-  rage,
-  rage2,
   rock1,
   shadow,
-  sleep1,
-  sleep2,
   waveTowerCharged,
   wormCorner,
   wormSide,
@@ -142,6 +135,15 @@ import { BAITABLE } from "../components/baitable";
 import { createBubble } from "./water";
 import { HOOKABLE } from "../components/hookable";
 import { fishingDistributionLevels } from "../../game/balancing/fishing";
+import {
+  rage,
+  confused,
+  sleep1,
+  sleep2,
+  createShout,
+  createText,
+  rage2,
+} from "../../game/assets/ui";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;

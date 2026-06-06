@@ -47,7 +47,12 @@ import {
   STATS,
 } from "../components/stats";
 import { colors } from "../../game/assets/colors";
-import { createText, none } from "../../game/assets/sprites";
+import {
+  none,
+  tooltipFriendlyStart,
+  tooltipHostileStart,
+  tooltipNeutralStart,
+} from "../../game/assets/sprites";
 import { PLAYER } from "../components/player";
 import { isControllable } from "./freeze";
 import { RECHARGABLE } from "../components/rechargable";
@@ -94,6 +99,7 @@ import { IDENTIFIABLE } from "../components/identifiable";
 import { castSpell } from "./trigger";
 import { FOG } from "../components/fog";
 import { Inventory, INVENTORY } from "../components/inventory";
+import { createText } from "../../game/assets/ui";
 
 export const isDead = (world: World, entity: Entity) =>
   (STATS in entity && entity[STATS].hp <= 0) || isGhost(world, entity);
@@ -108,6 +114,25 @@ export const isEnemy = (world: World, entity: Entity) =>
 
 export const isNeutral = (world: World, entity: Entity) =>
   BELONGABLE in entity && neutrals.includes(entity[BELONGABLE].faction);
+
+export const createTooltip = (world: World, entity: Entity) => {
+  const text = entity[SPRITE].name;
+  const enemy = isEnemy(world, entity) && !isNeutral(world, entity);
+  const friendly = isTribe(world, entity);
+  return [
+    enemy
+      ? tooltipHostileStart
+      : friendly
+      ? tooltipFriendlyStart
+      : tooltipNeutralStart,
+    ...createText(
+      text,
+      enemy ? colors.maroon : friendly ? colors.green : colors.silver,
+      colors.black
+    ),
+    none,
+  ];
+};
 
 export const triggerSpear = (
   world: World,

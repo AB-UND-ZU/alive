@@ -520,7 +520,7 @@ export default function setupDrop(world: World) {
         if (isDigging) {
           const limbs = getLimbs(world, entity);
           limbs.forEach((limb) => {
-            disposeEntity(world, limb);
+            disposeEntity(world, limb, undefined, false);
           });
         } else {
           const limbs = getLimbs(world, entity);
@@ -560,10 +560,10 @@ export default function setupDrop(world: World) {
           world,
           entity,
           entity[POSITION],
-          yields.length === 0,
+          yields.length === 0 && !isDigging,
           undefined,
           undefined,
-          lootSpeed + decayTime / (yields.length === 0 ? 1 : 2)
+          isDigging ? 0 : lootSpeed + decayTime / (yields.length === 0 ? 1 : 2)
         );
       } else if (
         isDecayed(world, entity) &&

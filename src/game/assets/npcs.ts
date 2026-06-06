@@ -37,13 +37,9 @@ import {
 import { bossArea, spawnArea } from "../levels/island/areas";
 import {
   woodChest,
-  createDialog,
-  createShout,
   menuDot,
   fog,
-  shade,
   menuArrow,
-  dots,
   popupSelection,
   popupBlocked,
   none,
@@ -51,20 +47,13 @@ import {
   leverOff,
   barrierCorner,
   barrierSide,
-  createText,
   swirl,
-  forge,
-  getOrientedSprite,
   oakLeaves,
   oakStem,
-  parseSprite,
   ilex,
   ironChest,
-  addBackground,
-  createButton,
   anvil,
   iron,
-  parseSprites,
   gold,
   berryDrop,
   grain,
@@ -75,15 +64,14 @@ import {
   tree2,
   fishing,
   bubble,
-  maxCountable,
   salmon,
   cod,
   flowerDrop,
   kettle,
-  brew,
   bench,
   rock1,
   cactus1,
+  mining,
 } from "./sprites";
 import {
   createItemName,
@@ -100,6 +88,7 @@ import {
   START_STEP,
   step,
 } from "./utils";
+import { getOrientedSprite } from "./ui";
 import {
   NpcSequence,
   SEQUENCABLE,
@@ -145,13 +134,26 @@ import { REFERENCE } from "../../engine/components/reference";
 import { POPUP, Target } from "../../engine/components/popup";
 import { isTouch } from "../../components/Dimensions";
 import { COVERABLE } from "../../engine/components/coverable";
-import { recolorSprite } from "./templates";
+import {
+  addBackground,
+  brew,
+  createButton,
+  createDialog,
+  createShout,
+  createText,
+  forge,
+  maxCountable,
+  parseSprite,
+  parseSprites,
+  recolorSprite,
+} from "./ui";
 import { BLOCKABLE } from "../../engine/components/blockable";
 import { boots, bow, sword, waveSpell } from "./templates/equipments";
 import { spirit } from "./templates/items";
 import { getBiome, isFlyable } from "../../engine/systems/movement";
 import { relativeOrientations } from "../math/path";
 import { brewingRecipes } from "../balancing/brewing";
+import { dotted, shaded } from "./ui";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
@@ -227,6 +229,9 @@ type ContactCircle = {
   position: Position;
   color: string;
 };
+
+const shade = shaded([none], colors.grey)[0];
+const dots = dotted([none], colors.red)[0];
 
 export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
   const stage: QuestStage<NpcSequence> = {
@@ -1123,13 +1128,22 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
                 ...createText(","),
               ],
               [
+                ...createText("buy "),
+                ...createItemText({
+                  stackable: "ore",
+                  amount: 1,
+                }),
+                ...createText(" and"),
+              ],
+              [
                 ...createText("find a "),
                 ...createItemText({
                   stackable: questItem.element === "fire" ? "apple" : "shroom",
                   amount: 1,
                 }),
+                ...createText(","),
               ],
-              createText("and combine them."),
+              createText("then combine all."),
               [],
               [
                 ...createText("Use the "),
@@ -1629,7 +1643,7 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
             ...centerLayer(
               [
                 [
-                  ...repeat(none, 4),
+                  ...repeat(none, 9),
                   ...createItemText(
                     { stackable: "berry", amount: 10 },
                     colors.grey,
@@ -1659,7 +1673,13 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
                     colors.grey,
                     "short"
                   ),
-                  ...createText(" = "),
+                  ...createText(" + "),
+                  ...createItemText(
+                    { stackable: "ore", amount: 1 },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" ="),
                   ...createItemText(
                     {
                       consume: "potion",
@@ -1688,7 +1708,13 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
                     colors.grey,
                     "short"
                   ),
-                  ...createText(" = "),
+                  ...createText(" + "),
+                  ...createItemText(
+                    { stackable: "ore", amount: 1 },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" ="),
                   ...createItemText(
                     {
                       consume: "potion",
@@ -1717,7 +1743,13 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
                     colors.grey,
                     "short"
                   ),
-                  ...createText(" = "),
+                  ...createText(" + "),
+                  ...createItemText(
+                    { stackable: "ore", amount: 1 },
+                    colors.grey,
+                    "short"
+                  ),
+                  ...createText(" ="),
                   ...createItemText(
                     {
                       consume: "potion",
@@ -1964,22 +1996,14 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             stock: 1,
             prices: [],
           },
-        ],
-        choices: [
           {
-            tool: "shovel",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            tool: "pickaxe",
-            material: "wood",
-            amount: 1,
-          },
-          {
-            tool: "hook",
-            material: "wood",
-            amount: 1,
+            item: {
+              tool: "pickaxe",
+              material: "wood",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [],
           },
         ],
         lines: [
@@ -2010,6 +2034,21 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               ...createText(" from those"),
             ],
             createText("monsters."),
+            [],
+            createText("As a reward, you"),
+            [
+              ...createText("get a "),
+              ...createItemName({
+                tool: "pickaxe",
+                material: "wood",
+              }),
+            ],
+            [
+              ...createText("for "),
+              mining,
+              ...createText("Mining", colors.green),
+              ...createText("."),
+            ],
           ],
         ],
         tabs: ["quest"],

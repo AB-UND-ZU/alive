@@ -8,14 +8,10 @@ import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
 import { degreesToOrientations, pointToDegree } from "../../game/math/tracing";
 import Row from "../Row";
 import {
-  createButton,
-  createText,
-  getButtonSeparator,
   mana,
   ninePlusAmmo,
   ninePlusMana,
   none,
-  Palette,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { ACTIONABLE, actions } from "../../engine/components/actionable";
@@ -61,6 +57,13 @@ import { getSequence } from "../../engine/systems/sequence";
 import { harvestConditions } from "../../game/balancing/harvesting";
 import Keyboard, { getIndexFromKey } from "../Keyboard";
 import { TEST_MODE } from "../../engine/utils";
+import {
+  createText,
+  Palette,
+  createButton,
+  getButtonSeparator,
+} from "../../game/assets/ui";
+import { frameColor } from "../Terminal";
 
 // allow queueing of next actions 50ms before start of next tick
 const queueThreshold = 50;
@@ -324,6 +327,7 @@ export default function Controls() {
       if (
         hero[CONDITIONABLE]?.axe ||
         hero[CONDITIONABLE]?.pickaxe ||
+        hero[CONDITIONABLE]?.hammer ||
         hookCondition
       ) {
         return (swordEntity?.[SPRITE].name || "Stow").toUpperCase();
@@ -332,6 +336,8 @@ export default function Controls() {
         return "MINE";
       } else if (toolEntity[ITEM].tool === "shovel") {
         return "DIG";
+      } else if (toolEntity[ITEM].tool === "hammer") {
+        return "BUILD";
       }
 
       return toolEntity[SPRITE].name.toUpperCase();
@@ -1304,7 +1310,7 @@ export default function Controls() {
       <Row
         cells={createText(
           "─".repeat(dimensions.visibleColumns + dimensions.padding * 2 + 1),
-          colors.grey
+          frameColor
         )}
       />
       {Array.from({ length: dimensions.hudRows - 4 }).map((_, index) => (

@@ -191,6 +191,7 @@ export type InteractSequence = {
   generation: number;
   text: string;
   sprite: Sprite;
+  offset: Position;
 };
 export type DiscoverySequence = {
   idle: Sprite;

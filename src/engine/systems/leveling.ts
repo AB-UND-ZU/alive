@@ -13,7 +13,7 @@ import {
   XpSequence,
 } from "../components/sequencable";
 import { queueMessage } from "../../game/assets/utils";
-import { createText, none } from "../../game/assets/sprites";
+import { none } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { INVENTORY } from "../components/inventory";
 import { LOOTABLE } from "../components/lootable";
@@ -32,6 +32,7 @@ import { isGhost } from "./fate";
 import { LEVEL } from "../components/level";
 import { ClassKey, getClassData } from "../../game/balancing/classes";
 import { SPAWNABLE } from "../components/spawnable";
+import { createText } from "../../game/assets/ui";
 
 export type Level = {
   level: number;

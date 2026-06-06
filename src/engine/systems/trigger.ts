@@ -1,5 +1,5 @@
 import { createLevel, preloadLevel, World } from "../ecs";
-import { POSITION } from "../components/position";
+import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { Entity } from "ecs";
@@ -9,14 +9,7 @@ import { TOOLTIP } from "../components/tooltip";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { Item, ITEM, ItemStats, Material } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
-import {
-  addBackground,
-  createDialog,
-  createText,
-  mana,
-  none,
-  strikethrough,
-} from "../../game/assets/sprites";
+import { mana, none } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
 import { LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
@@ -56,12 +49,22 @@ import {
 } from "../components/sequencable";
 import { createSequence, getParticles, getSequence } from "./sequence";
 import { shootArrow } from "./ballistics";
-import { STATS } from "../components/stats";
+import { emptyUnitStats, STATS } from "../components/stats";
 import { TypedEntity } from "../entities";
 import { entities } from "..";
 import { BELONGABLE } from "../components/belongable";
-import { add, copy, repeat, signedDistance } from "../../game/math/std";
-import { ORIENTABLE, Orientation } from "../components/orientable";
+import {
+  add,
+  combine,
+  copy,
+  repeat,
+  signedDistance,
+} from "../../game/math/std";
+import {
+  ORIENTABLE,
+  Orientation,
+  orientationPoints,
+} from "../components/orientable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { isDead, isEnemy, isNpc, triggerSpear } from "./damage";
 import { canCast, chargeSlash, summonTotem } from "./magic";
@@ -77,6 +80,7 @@ import {
   isInTab,
   isPopupAvailable,
   matchesItem,
+  missingFunds,
   openPopup,
   pushTabSelection,
   setVerticalIndex,
@@ -114,7 +118,7 @@ import { SWIMMABLE } from "../components/swimmable";
 import { getClassData } from "../../game/balancing/classes";
 import { FRAGMENT } from "../components/fragment";
 import { createItemAsDrop } from "./drop";
-import { populateItems } from "../../bindings/creation";
+import { populateInventory, populateItems } from "../../bindings/creation";
 import { TRACKABLE } from "../components/trackable";
 import { getActiveViewable } from "../../bindings/hooks";
 import { IDENTIFIABLE } from "../components/identifiable";
@@ -130,6 +134,24 @@ import { ENTERABLE } from "../components/enterable";
 import { FARMABLE } from "../components/farmable";
 import { MOUNTABLE } from "../components/mountable";
 import { isMounting, mountVessel, stopVessel } from "./vessel";
+import { ATTACKABLE } from "../components/attackable";
+import {
+  createDialog,
+  createText,
+  strikethrough,
+  addBackground,
+  plot,
+} from "../../game/assets/ui";
+import {
+  buildConstructions,
+  Construction,
+} from "../../game/balancing/building";
+import { BUILDABLE } from "../components/buildable";
+import { DROPPABLE } from "../components/droppable";
+import { FOG } from "../components/fog";
+import { getHarvestConfig } from "../../game/balancing/harvesting";
+import { HARVESTABLE } from "../components/harvestable";
+import { getBuildingDeal } from "./build";
 
 export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   const currentLevel = world.metadata.gameEntity[LEVEL].name;
@@ -391,6 +413,14 @@ export const openDoor = (world: World, entity: Entity) => {
     entity[TOOLTIP].override = "hidden";
   }
 
+  if (entity[ATTACKABLE] && entity[STATS]) {
+    world.removeComponentFromEntity(
+      entity as TypedEntity<"ATTACKABLE">,
+      ATTACKABLE
+    );
+    world.removeComponentFromEntity(entity as TypedEntity<"STATS">, STATS);
+  }
+
   rerenderEntity(world, entity);
   updateWalkable(world, entity[POSITION]);
 };
@@ -571,6 +601,51 @@ export const spendItem = (
   }
 };
 
+export const performPlot = (
+  world: World,
+  entity: Entity,
+  construction: Construction,
+  position: Position,
+  orientation?: Orientation
+) => {
+  // remove parts from inventory
+  for (const priceItem of construction.parts) {
+    spendItem(world, entity, priceItem);
+  }
+
+  const variant =
+    construction.variants.find(
+      (option) => option.orientation === orientation
+    ) || construction.variants[0];
+
+  const { harvestable } = getHarvestConfig("plot");
+
+  const plotEntity = entities.createPlot(world, {
+    [BUILDABLE]: { cell: variant.cell },
+    [DROPPABLE]: { decayed: false },
+    [FOG]: { visibility: "hidden", type: "object" },
+    [HARVESTABLE]: harvestable,
+    [INVENTORY]: { items: [] },
+    [POSITION]: position,
+    [RENDERABLE]: { generation: 0 },
+    [SEQUENCABLE]: { states: {} },
+    [STATS]: { ...emptyUnitStats, maxHp: construction.effort + 1, hp: 1 },
+    [SPRITE]: plot,
+  });
+  registerEntity(world, plotEntity);
+
+  populateInventory(world, plotEntity, construction.parts);
+};
+
+export const getSelectedConstruction = (world: World, entity: Entity) => {
+  const useEntity = assertIdentifierAndComponents(world, "use", [POPUP]);
+  const buildIndex = useEntity[POPUP].tabs.indexOf("build");
+  const verticalIndex = useEntity[POPUP].verticalIndezes[buildIndex];
+  return verticalIndex === 0
+    ? undefined
+    : buildConstructions[verticalIndex - 1];
+};
+
 const conditionConfig: Record<
   ConditionType,
   {
@@ -585,6 +660,8 @@ const conditionConfig: Record<
   shovel: { sequence: "shovelCondition", stat: "farming" },
   pickaxe: { sequence: "toolCondition", stat: "mining" },
   hook: { sequence: "hookCondition", stat: "fishing", modifier: "range" },
+  hammer: { sequence: "toolCondition", stat: "build" },
+  build: { sequence: "buildCondition", stat: "build" },
 };
 
 export const applyCondition = (
@@ -633,9 +710,10 @@ export const resetConditionables = (
 export const castConditionable = (
   world: World,
   entity: Entity,
-  item: TypedEntity<"ITEM">
+  item: TypedEntity<"ITEM">,
+  amount = 1
 ) => {
-  const condition = item[ITEM].skill || item[ITEM].tool;
+  let condition = (item[ITEM].skill || item[ITEM].tool) as ConditionType;
   const material = item[ITEM].material;
   const entityId = world.getEntityId(entity);
 
@@ -645,7 +723,8 @@ export const castConditionable = (
       condition !== "block" &&
       condition !== "axe" &&
       condition !== "pickaxe" &&
-      condition !== "hook")
+      condition !== "hook" &&
+      condition !== "hammer")
   )
     return;
 
@@ -657,6 +736,16 @@ export const castConditionable = (
   } else if (condition === "pickaxe" && entity[CONDITIONABLE].pickaxe) {
     delete entity[CONDITIONABLE].pickaxe;
     return;
+  } else if (condition === "hammer") {
+    if (entity[CONDITIONABLE].hammer) {
+      delete entity[CONDITIONABLE].hammer;
+      return;
+    } else if (entity[CONDITIONABLE].build) {
+      delete entity[CONDITIONABLE].build;
+    } else {
+      const construction = getSelectedConstruction(world, entity);
+      condition = construction ? "build" : "hammer";
+    }
   } else if (condition === "hook" && hookCondition) {
     const hookSequence = getSequence(world, entity, "condition");
     if (!hookCondition.orientation) {
@@ -728,7 +817,7 @@ export const castConditionable = (
     condition,
     material,
     modifierStat ? itemStats[modifierStat] : 0,
-    conditionStat ? itemStats[conditionStat] : 1
+    conditionStat ? itemStats[conditionStat] : amount
   );
 };
 
@@ -1107,11 +1196,11 @@ export default function setupTrigger(world: World) {
         VIEWABLE,
       ]);
 
-      // remap quick screen clicks
       if (
         entity[PLAYER]?.actionTriggered === "content" &&
         currentPopup?.[IDENTIFIABLE]?.name === "use"
       ) {
+        // remap quick screen clicks
         const contentIndex = entity[PLAYER].contentTriggered;
         const offsetIndex = entity[PLAYER].offsetTriggered;
         const selections = getTabSelections(world, currentPopup);
@@ -1155,6 +1244,18 @@ export default function setupTrigger(world: World) {
         }
 
         entity[MOVABLE].lastInteraction = entityReference;
+      } else if (
+        entity[PLAYER] &&
+        entity[ACTIONABLE].skillTriggered &&
+        toolEntity &&
+        entity[ACTIONABLE].toolEquipped &&
+        toolEntity[ITEM].tool === "hammer" &&
+        !entity[CONDITIONABLE]?.hammer &&
+        !entity[CONDITIONABLE]?.build
+      ) {
+        // trigger hammer dialog
+        entity[PLAYER].actionTriggered = "build";
+        entity[ACTIONABLE].skillTriggered = false;
       }
 
       if (
@@ -1164,6 +1265,7 @@ export default function setupTrigger(world: World) {
         entity[PLAYER]?.actionTriggered === "gear" ||
         entity[PLAYER]?.actionTriggered === "stats" ||
         entity[PLAYER]?.actionTriggered === "chat" ||
+        entity[PLAYER]?.actionTriggered === "build" ||
         entity[PLAYER]?.actionTriggered === "use"
       ) {
         const targetTab = entity[PLAYER].actionTriggered;
@@ -1309,9 +1411,43 @@ export default function setupTrigger(world: World) {
         entity[MOVABLE].lastInteraction = entityReference;
       } else if (entity[PLAYER]?.actionTriggered === "interact") {
         entity[PLAYER].actionTriggered = undefined;
+        const buildCondition = entity[CONDITIONABLE]?.build;
+        const construction = getSelectedConstruction(world, entity);
 
         if (!world.metadata.interact.active) {
           // skip
+        } else if (buildCondition && construction) {
+          const orientation = entity[ORIENTABLE]?.facing || "up";
+          const target = combine(
+            size,
+            entity[POSITION],
+            orientationPoints[orientation]
+          );
+
+          const missingItem = missingFunds(
+            world,
+            entity,
+            getBuildingDeal(construction)
+          )[0];
+          if (missingItem) {
+            queueMessage(world, entity, {
+              line: addBackground(
+                [
+                  ...createText("Need ", colors.silver),
+                  ...createItemName(missingItem),
+                  ...createText("!", colors.silver),
+                ],
+                colors.black
+              ),
+              orientation: "up",
+              fast: false,
+              delay: 0,
+            });
+            continue;
+          } else {
+            performPlot(world, entity, construction, target, orientation);
+          }
+          world.metadata.interact.last = world.getEntityId(entity);
         } else if (
           spawnEntity &&
           isRevivable(world, spawnEntity) &&
@@ -1537,7 +1673,8 @@ export default function setupTrigger(world: World) {
           if (
             toolEntity[ITEM].tool === "axe" ||
             toolEntity[ITEM].tool === "pickaxe" ||
-            toolEntity[ITEM].tool === "hook"
+            toolEntity[ITEM].tool === "hook" ||
+            toolEntity[ITEM].tool === "hammer"
           ) {
             castConditionable(world, entity, toolEntity);
           } else if (toolEntity[ITEM].tool === "shovel") {

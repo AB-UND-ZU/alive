@@ -1,8 +1,7 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
-import { mergeSprites, slotShadow } from "./particles";
 
-export const sign: Sprite = mergeSprites(slotShadow, {
+export const sign: Sprite = {
   name: "Sign",
   layers: [
     { char: "┐", color: colors.maroon },
@@ -12,7 +11,7 @@ export const sign: Sprite = mergeSprites(slotShadow, {
     { char: "\u0106", color: colors.grey },
     { char: "÷", color: colors.silver },
   ],
-});
+};
 
 export const housePlate: Sprite = {
   name: "Sign",
@@ -70,15 +69,15 @@ export const houseHunter: Sprite = {
 };
 
 export const fence: Sprite = {
-  name: "fence_wall",
+  name: "Fence",
   layers: [
     { char: "=", color: colors.maroon },
     { char: "|", color: colors.maroon },
   ],
 };
 
-export const swimmingPalisade: Sprite = {
-  name: "palisade_wall",
+export const palisade: Sprite = {
+  name: "Wall",
   layers: [
     { char: "±", color: colors.grey },
     { char: "⌐", color: colors.black },
@@ -91,26 +90,9 @@ export const swimmingPalisade: Sprite = {
   ],
 };
 
-export const palisade: Sprite = {
-  name: "palisade_wall",
-  layers: [
-    { char: "\u0107", color: colors.olive },
-    { char: "\u0109", color: colors.olive },
-    { char: "▓", color: colors.black },
-    ...slotShadow.layers,
-
-    ...swimmingPalisade.layers,
-  ],
-};
-
 export const brokenPalisade1: Sprite = {
   name: "palisade_broken_1",
   layers: [
-    { char: "\u0107", color: colors.olive },
-    { char: "\u0109", color: colors.olive },
-    { char: "▓", color: colors.black },
-    ...slotShadow.layers,
-
     { char: "±", color: colors.grey },
     { char: "⌐", color: colors.black },
     { char: "\u011d", color: colors.black },
@@ -122,11 +104,6 @@ export const brokenPalisade1: Sprite = {
 export const brokenPalisade2: Sprite = {
   name: "palisade_broken_2",
   layers: [
-    { char: "\u0107", color: colors.olive },
-    { char: "\u0109", color: colors.olive },
-    { char: "▓", color: colors.black },
-    ...slotShadow.layers,
-
     { char: "±", color: colors.grey },
     { char: "⌐", color: colors.black },
     { char: "\u011d", color: colors.black },
@@ -157,22 +134,6 @@ export const fenceBurnt2: Sprite = {
   ],
 };
 
-export const fenceDoorPath: Sprite = {
-  name: "Gate",
-  layers: [
-    { char: "\u0107", color: colors.grey },
-    { char: "\u0109", color: colors.grey },
-    { char: "▓", color: colors.black },
-    { char: "▒", color: colors.black },
-    { char: "≡", color: colors.black },
-
-    { char: "M", color: colors.maroon },
-    { char: "[", color: colors.black },
-    { char: "]", color: colors.black },
-    { char: "=", color: colors.grey },
-  ],
-};
-
 export const fenceDoor: Sprite = {
   name: "Gate",
   layers: [
@@ -193,22 +154,6 @@ export const fenceDoorOpen: Sprite = {
   ],
 };
 
-export const fenceDoorOpenPath: Sprite = {
-  name: "fence_door",
-  layers: [
-    { char: "\u0107", color: colors.grey },
-    { char: "\u0109", color: colors.grey },
-    { char: "▓", color: colors.black },
-    { char: "▒", color: colors.black },
-    { char: "≡", color: colors.black },
-
-    { char: "M", color: colors.maroon },
-    { char: "=", color: colors.grey },
-    { char: "[", color: colors.black },
-    { char: "]", color: colors.black },
-  ],
-};
-
 export const fenceDoorBurnt: Sprite = {
   name: "fence_door_burnt",
   layers: [
@@ -220,41 +165,8 @@ export const fenceDoorBurnt: Sprite = {
   ],
 };
 
-export const fenceDoorBurntPath: Sprite = {
-  name: "fence_door_burnt",
-  layers: [
-    { char: "\u0107", color: colors.grey },
-    { char: "\u0109", color: colors.grey },
-    { char: "▓", color: colors.black },
-    { char: "▒", color: colors.black },
-    { char: "≡", color: colors.black },
-
-    { char: "\u011f", color: colors.maroon },
-    { char: "\u011e", color: colors.black },
-    { char: "-", color: colors.grey },
-    { char: "[", color: colors.black },
-    { char: "|", color: colors.black },
-  ],
-};
-
-export const palisadeDoorPath: Sprite = {
-  name: "Gate",
-  layers: [
-    { char: "\u0107", color: colors.grey },
-    { char: "\u0109", color: colors.grey },
-    { char: "▓", color: colors.black },
-    { char: "▒", color: colors.black },
-    { char: "≡", color: colors.black },
-
-    { char: "M", color: colors.grey },
-    { char: "[", color: colors.black },
-    { char: "]", color: colors.black },
-    { char: "=", color: colors.maroon },
-  ],
-};
-
 export const palisadeDoor: Sprite = {
-  name: "Gate",
+  name: "Port",
   layers: [
     { char: "M", color: colors.grey },
     { char: "[", color: colors.black },
@@ -273,19 +185,14 @@ export const palisadeDoorOpen: Sprite = {
   ],
 };
 
-export const palisadeDoorOpenPath: Sprite = {
-  name: "palisade_door",
+export const palisadeDoorBroken: Sprite = {
+  name: "palisade_door_broken",
   layers: [
-    { char: "\u0107", color: colors.grey },
-    { char: "\u0109", color: colors.grey },
-    { char: "▓", color: colors.black },
-    { char: "▒", color: colors.black },
-    { char: "≡", color: colors.black },
-
-    { char: "M", color: colors.grey },
-    { char: "=", color: colors.maroon },
+    { char: "\u011f", color: colors.grey },
+    { char: "\u011e", color: colors.black },
+    { char: "-", color: colors.maroon },
     { char: "[", color: colors.black },
-    { char: "]", color: colors.black },
+    { char: "|", color: colors.black },
   ],
 };
 
@@ -823,7 +730,7 @@ export const bedEndLeft: Sprite = {
 };
 
 export const table: Sprite = {
-  name: "table",
+  name: "Table",
   layers: [
     { char: "∩", color: colors.maroon },
     { char: "▀", color: colors.black },
@@ -832,7 +739,7 @@ export const table: Sprite = {
 };
 
 export const chairLeft: Sprite = {
-  name: "chair_left",
+  name: "Chair",
   layers: [
     { char: "\u011f", color: colors.maroon },
     { char: "\u0110", color: colors.black },
@@ -840,7 +747,7 @@ export const chairLeft: Sprite = {
 };
 
 export const chairRight: Sprite = {
-  name: "chair_right",
+  name: "Chair",
   layers: [
     { char: "\u011f", color: colors.maroon },
     { char: "\u010f", color: colors.black },

@@ -68,7 +68,11 @@ import {
   registerEntity,
 } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
-import { canWarp, openDoor } from "../../engine/systems/trigger";
+import {
+  canWarp,
+  getSelectedConstruction,
+  openDoor,
+} from "../../engine/systems/trigger";
 import { brighten, colors, darken } from "../../game/assets/colors";
 import {
   add,
@@ -95,15 +99,11 @@ import {
   reversedIterations,
 } from "../math/tracing";
 import {
-  createDialog,
-  createText,
   decay,
   fire,
   ghost,
   none,
-  getMaxCounter,
   emptyBottle,
-  getStatSprite,
   questPointer,
   enemyPointer,
   tombstonePointer,
@@ -119,16 +119,10 @@ import {
   smokeLight,
   smokeThick,
   levelProgress,
-  addBackground,
   freeze,
-  craft,
-  shop,
-  strikethrough,
-  mergeSprites,
   hostileBar,
   xpDot,
   rain,
-  createCountable,
   crackle,
   keyHole,
   portalBackdrop,
@@ -139,7 +133,6 @@ import {
   fountainHealing,
   meleeHit,
   magicHit,
-  getStatColor,
   missing,
   weaponSlot,
   offhandSlot,
@@ -149,19 +142,13 @@ import {
   torchSlot,
   spellSlot,
   skillSlot,
-  dotted,
   times,
-  shaded,
   delay,
-  addForeground,
   popupActive,
   emptyFlask,
   emptyPotion,
   popupBlocked,
   star,
-  discovery,
-  parseSprite,
-  colorToCode,
   blocked,
   chief,
   diamondGem,
@@ -204,7 +191,6 @@ import {
   golemStrikeLeft,
   golemStrikeLeftUp,
   interactBar,
-  createButton,
   interactLeft,
   interactRight,
   auraEdge,
@@ -214,23 +200,15 @@ import {
   lightningSide,
   lightninCorner,
   zapSwordParticle,
-  createSpriteButton,
-  underline,
   healHit,
   trueHit,
-  class_,
   toolSlot,
   ninePlus,
   bait,
   wire,
-  blockedInactive,
   emptySlot,
-  getBlockedSlot,
   caret,
-  forge,
   craftCenterTop,
-  createProgress,
-  stretch,
   scroll,
   craftDownLeft,
   craftDown,
@@ -245,6 +223,15 @@ import {
   popupSide,
   forgeMiss,
   forgeHit,
+  buildCenterTop,
+  buildDown,
+  buildDownActive,
+  buildDownLeft,
+  buildDownLeftActive,
+  buildLeft,
+  buildLeftActive,
+  repair,
+  build,
 } from "./sprites";
 import {
   ArrowSequence,
@@ -316,18 +303,18 @@ import {
   renderPopup,
   frameHeight,
   frameWidth,
-  getItemDescription,
   getItemSprite,
   getLootDelay,
   scrolledVerticalIndex,
-  getEntityDescription,
-  entitySprites,
   createUnitName,
   createItemName,
   questWidth,
   rewardWidth,
   hookSpeed,
 } from "./utils";
+import { getItemDescription } from "./descriptions";
+import { getEntityDescription } from "./descriptions";
+import { entitySprites } from "./descriptions";
 import { isImmersible } from "../../engine/systems/immersion";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
@@ -370,7 +357,6 @@ import { extinguishEntity } from "../../engine/systems/burn";
 import {
   alienPixels,
   bodyPixels,
-  brightenSprites,
   centerSprites,
   displayedClasses,
   hairColors,
@@ -392,6 +378,7 @@ import {
   centerLayer,
   anvilPixels,
 } from "./pixels";
+import { brightenSprites, plot } from "./ui";
 import { getItemSellPrice } from "../balancing/trading";
 import {
   hittingOffset,
@@ -436,7 +423,36 @@ import { SHOOTABLE } from "../../engine/components/shootable";
 import { ATTACKABLE } from "../../engine/components/attackable";
 import { generateNpcData, generateUnitData } from "../balancing/units";
 import { Vanishable, VANISHABLE } from "../../engine/components/vanishable";
-import { colorPalettes, recolorSprite } from "./templates";
+import { colorPalettes } from "./templates";
+import {
+  addBackground,
+  addForeground,
+  blockedInactive,
+  class_,
+  colorToCode,
+  craft,
+  createButton,
+  createCountable,
+  createDialog,
+  createProgress,
+  createSpriteButton,
+  createText,
+  discovery,
+  dotted,
+  forge,
+  getBlockedSlot,
+  getMaxCounter,
+  getStatColor,
+  getStatSprite,
+  mergeSprites,
+  parseSprite,
+  recolorSprite,
+  shaded,
+  shop,
+  stretch,
+  strikethrough,
+  underline,
+} from "./ui";
 import {
   blast,
   blockCorner1,
@@ -494,6 +510,14 @@ import { brewingDurationFactor, getBrewingDeal } from "../balancing/brewing";
 import { Brewable, BREWABLE } from "../../engine/components/brewable";
 import { Forgable, FORGABLE } from "../../engine/components/forgable";
 import { REMAINABLE } from "../../engine/components/remainable";
+import { getBuildTarget } from "../../engine/systems/harvest";
+import { buildConstructions, Construction } from "../balancing/building";
+import {
+  canConstruct,
+  canPlot,
+  getBuildingDeal,
+  getPlotPreview,
+} from "../../engine/systems/build";
 
 export * from "./npcs";
 export * from "./quests";
@@ -764,60 +788,21 @@ export const toolCondition: Sequence<ConditionSequence> = (
   );
   const conditionName =
     toolEntity?.[ITEM].tool && harvestConditions[toolEntity[ITEM].tool];
+  const condition =
+    conditionName && (entity[CONDITIONABLE] as Conditionable)[conditionName];
 
   const finished =
+    !toolEntity ||
+    !condition ||
     !conditionName ||
     !entity[ACTIONABLE].toolEquipped ||
-    !entity[CONDITIONABLE][conditionName] ||
+    !condition ||
     !tick ||
     (toolEntity?.[ITEM].tool !== "axe" &&
-      toolEntity?.[ITEM].tool !== "pickaxe");
+      toolEntity?.[ITEM].tool !== "pickaxe" &&
+      toolEntity?.[ITEM].tool !== "hammer");
 
-  // requires tool to be worn
-  if (!toolEntity || !conditionName) {
-    return { updated: false, finished: true };
-  }
-
-  // hide sword and shield
-  if (weaponEntity && weaponEntity[ITEM].amount !== 0) {
-    weaponEntity[ITEM].amount = 0;
-    rerenderEntity(world, weaponEntity);
-    updated = true;
-  }
-  if (offhandEntity && offhandEntity[ITEM].amount !== 0) {
-    offhandEntity[ITEM].amount = 0;
-    rerenderEntity(world, offhandEntity);
-    updated = true;
-  }
-
-  if (!state.particles.condition) {
-    const conditionParticle = entities.createFibre(world, {
-      [ORIENTABLE]: {},
-      [PARTICLE]: {
-        offsetX: 0,
-        offsetY: 0,
-        offsetZ: floatHeight,
-        amount: 0,
-        animatedOrigin: { x: 0, y: 0 },
-        duration: tick && tick / 2,
-      },
-      [RENDERABLE]: { generation: 1 },
-      [SPRITE]: toolEntity[SPRITE],
-    });
-    state.particles.condition = world.getEntityId(conditionParticle);
-
-    updated = true;
-  }
-
-  const conditionParticle = world.assertByIdAndComponents(
-    state.particles.condition,
-    [ORIENTABLE, PARTICLE]
-  );
   if (finished) {
-    disposeEntity(world, conditionParticle);
-    delete state.particles.condition;
-    delete entity[CONDITIONABLE][conditionName];
-
     // reset sword and shield
     if (weaponEntity) {
       weaponEntity[ITEM].amount = 1;
@@ -827,16 +812,64 @@ export const toolCondition: Sequence<ConditionSequence> = (
       offhandEntity[ITEM].amount = 1;
       rerenderEntity(world, offhandEntity);
     }
+  }
+
+  // requires tool to be worn
+  if (!toolEntity || !condition || !conditionName) {
+    return { updated: false, finished: true };
+  }
+
+  // hide sword and shield
+  if (!finished && weaponEntity && weaponEntity[ITEM].amount !== 0) {
+    weaponEntity[ITEM].amount = 0;
+    rerenderEntity(world, weaponEntity);
+    updated = true;
+  }
+  if (!finished && offhandEntity && offhandEntity[ITEM].amount !== 0) {
+    offhandEntity[ITEM].amount = 0;
+    rerenderEntity(world, offhandEntity);
+    updated = true;
+  }
+
+  if (!state.particles.tool) {
+    const toolParticle = entities.createFibre(world, {
+      [ORIENTABLE]: {},
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: 0,
+        animatedOrigin: { x: 0, y: 0 },
+        duration: tick && tick / 2,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: toolEntity[SPRITE],
+    });
+    state.particles.tool = world.getEntityId(toolParticle);
+
+    updated = true;
+  }
+
+  const toolParticle = world.assertByIdAndComponents(state.particles.tool, [
+    ORIENTABLE,
+    PARTICLE,
+  ]);
+  if (finished) {
+    disposeEntity(world, toolParticle);
+    delete state.particles.tool;
+    delete entity[CONDITIONABLE][conditionName];
   } else {
-    const targetModifier = entity[CONDITIONABLE][conditionName].modifier;
-    const targetOrientation = entity[CONDITIONABLE][conditionName]
-      .orientation as Orientation | undefined;
-    const targetEntity = getHarvestTarget(
-      world,
-      entity,
-      toolEntity,
-      targetOrientation || "up"
-    );
+    const targetModifier = condition.modifier;
+    const targetOrientation = condition.orientation as Orientation | undefined;
+    const targetEntity =
+      toolEntity[ITEM].tool === "hammer"
+        ? getBuildTarget(world, entity, toolEntity, targetOrientation || "up")
+        : getHarvestTarget(
+            world,
+            entity,
+            toolEntity,
+            targetOrientation || "up"
+          );
     const progress = state.elapsed - state.args.modifier;
     let scratching = true;
 
@@ -850,18 +883,10 @@ export const toolCondition: Sequence<ConditionSequence> = (
       state.args.modifier = targetModifier;
       state.args.orientation = targetOrientation;
       const delta = orientationPoints[targetOrientation];
-      if (toolEntity[ITEM].tool === "shovel") {
-        if (entity[BUMPABLE]) {
-          entity[BUMPABLE].generation = entity[RENDERABLE].generation;
-          entity[BUMPABLE].orientation = "down";
-          rerenderEntity(world, entity);
-        }
-      } else {
-        conditionParticle[PARTICLE].offsetX = delta.x;
-        conditionParticle[PARTICLE].offsetY = delta.y;
-        conditionParticle[ORIENTABLE].facing = targetOrientation;
-      }
-      rerenderEntity(world, conditionParticle);
+      toolParticle[PARTICLE].offsetX = delta.x;
+      toolParticle[PARTICLE].offsetY = delta.y;
+      toolParticle[ORIENTABLE].facing = targetOrientation;
+      rerenderEntity(world, toolParticle);
       scratching = false;
       updated = true;
     } else if (
@@ -870,53 +895,59 @@ export const toolCondition: Sequence<ConditionSequence> = (
       targetOrientation &&
       progress > tick / 2
     ) {
-      // perform harvest and get entities to show scratches
-      const scratchEntities = performHarvest(
-        world,
-        entity,
-        toolEntity,
-        targetEntity,
-        targetOrientation
-      );
+      if (toolEntity[ITEM].tool === "hammer") {
+        targetEntity[STATS].hp = Math.min(
+          targetEntity[STATS].maxHp,
+          targetEntity[STATS].hp + condition.amount
+        );
+        rerenderEntity(world, targetEntity);
+      } else {
+        // perform harvest and get entities to show scratches
+        const scratchEntities = performHarvest(
+          world,
+          entity,
+          toolEntity,
+          targetEntity,
+          targetOrientation
+        );
 
-      for (const scratchEntity of scratchEntities) {
-        const scratchOrientation =
-          relativeOrientations(
-            world,
-            entity[POSITION],
-            scratchEntity[POSITION]
-          )[0] || targetOrientation;
-        const delta = orientationPoints[scratchOrientation];
-        const scratchParticle = entities.createParticle(world, {
-          [PARTICLE]: {
-            offsetX: delta.x * 2,
-            offsetY: delta.y * 2,
-            offsetZ: particleHeight,
-            animatedOrigin: copy(delta),
-            duration: tick / 2,
-          },
-          [RENDERABLE]: { generation: 1 },
-          [SPRITE]: createText(
-            choice(...scratchChars),
-            harvestScratches[
-              (targetEntity[HARVESTABLE] as Harvestable).resource
-            ]
-          )[0],
-        });
-        const scratchId = world.getEntityId(scratchEntity);
-        state.particles[
-          `scratch-${scratchId}-${scratchEntity[RENDERABLE].generation}`
-        ] = world.getEntityId(scratchParticle);
+        for (const scratchEntity of scratchEntities) {
+          const scratchOrientation =
+            relativeOrientations(
+              world,
+              entity[POSITION],
+              scratchEntity[POSITION]
+            )[0] || targetOrientation;
+          const delta = orientationPoints[scratchOrientation];
+          const scratchParticle = entities.createParticle(world, {
+            [PARTICLE]: {
+              offsetX: delta.x * 2,
+              offsetY: delta.y * 2,
+              offsetZ: particleHeight,
+              animatedOrigin: copy(delta),
+              duration: tick / 2,
+            },
+            [RENDERABLE]: { generation: 1 },
+            [SPRITE]: createText(
+              choice(...scratchChars),
+              harvestScratches[
+                (targetEntity[HARVESTABLE] as Harvestable).resource
+              ]
+            )[0],
+          });
+          const scratchId = world.getEntityId(scratchEntity);
+          state.particles[
+            `scratch-${scratchId}-${scratchEntity[RENDERABLE].generation}`
+          ] = world.getEntityId(scratchParticle);
+        }
       }
 
       // move tool back
-      entity[CONDITIONABLE][conditionName].orientation = undefined;
+      condition.orientation = undefined;
       state.args.orientation = undefined;
-      if (toolEntity[ITEM].tool !== "shovel") {
-        conditionParticle[PARTICLE].offsetX = 0;
-        conditionParticle[PARTICLE].offsetY = 0;
-      }
-      rerenderEntity(world, conditionParticle);
+      toolParticle[PARTICLE].offsetX = 0;
+      toolParticle[PARTICLE].offsetY = 0;
+      rerenderEntity(world, toolParticle);
       updated = true;
     } else if (
       !state.args.orientation &&
@@ -926,8 +957,8 @@ export const toolCondition: Sequence<ConditionSequence> = (
       progress > tick
     ) {
       // reset tool
-      entity[CONDITIONABLE][conditionName].modifier = 0;
-      conditionParticle[ORIENTABLE].facing = undefined;
+      condition.modifier = 0;
+      toolParticle[ORIENTABLE].facing = undefined;
       state.args.modifier = 0;
       scratching = false;
       updated = true;
@@ -987,19 +1018,19 @@ export const shovelCondition: Sequence<ConditionSequence> = (
   }
 
   // hide sword and shield
-  if (weaponEntity && weaponEntity[ITEM].amount !== 0) {
+  if (!finished && weaponEntity && weaponEntity[ITEM].amount !== 0) {
     weaponEntity[ITEM].amount = 0;
     rerenderEntity(world, weaponEntity);
     updated = true;
   }
-  if (offhandEntity && offhandEntity[ITEM].amount !== 0) {
+  if (!finished && offhandEntity && offhandEntity[ITEM].amount !== 0) {
     offhandEntity[ITEM].amount = 0;
     rerenderEntity(world, offhandEntity);
     updated = true;
   }
 
-  if (!state.particles.condition) {
-    const conditionParticle = entities.createParticle(world, {
+  if (!state.particles.tool) {
+    const toolParticle = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX: 0,
         offsetY: 0,
@@ -1011,15 +1042,14 @@ export const shovelCondition: Sequence<ConditionSequence> = (
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: toolEntity[SPRITE],
     });
-    state.particles.condition = world.getEntityId(conditionParticle);
+    state.particles.tool = world.getEntityId(toolParticle);
 
     updated = true;
   }
 
-  const conditionParticle = world.assertByIdAndComponents(
-    state.particles.condition,
-    [PARTICLE]
-  );
+  const toolParticle = world.assertByIdAndComponents(state.particles.tool, [
+    PARTICLE,
+  ]);
   if (finished) {
     performDig(world, entity, toolEntity);
 
@@ -1029,8 +1059,8 @@ export const shovelCondition: Sequence<ConditionSequence> = (
       rerenderEntity(world, entity);
     }
 
-    disposeEntity(world, conditionParticle);
-    delete state.particles.condition;
+    disposeEntity(world, toolParticle);
+    delete state.particles.tool;
     delete entity[CONDITIONABLE][conditionName];
 
     // reset sword and shield
@@ -1042,6 +1072,128 @@ export const shovelCondition: Sequence<ConditionSequence> = (
       offhandEntity[ITEM].amount = 1;
       rerenderEntity(world, offhandEntity);
     }
+  }
+
+  return { finished, updated };
+};
+
+export const buildCondition: Sequence<ConditionSequence> = (
+  world,
+  entity,
+  state
+) => {
+  let updated = false;
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
+  const showPreview = worldGeneration % 2 === 0;
+
+  const toolEntity = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
+    ITEM,
+    SPRITE,
+  ]);
+  const weaponEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].weapon,
+    [ITEM]
+  );
+  const offhandEntity = world.getEntityByIdAndComponents(
+    entity[EQUIPPABLE].offhand,
+    [ITEM]
+  );
+  const conditionName = "build";
+  const condition = (entity[CONDITIONABLE] as Conditionable)[conditionName];
+  const construction = getSelectedConstruction(world, entity);
+
+  const finished =
+    !toolEntity ||
+    !construction ||
+    !conditionName ||
+    !entity[ACTIONABLE].toolEquipped ||
+    !condition ||
+    toolEntity?.[ITEM].tool !== "hammer";
+
+  if (finished) {
+    // reset sword and shield
+    if (weaponEntity) {
+      weaponEntity[ITEM].amount = 1;
+      rerenderEntity(world, weaponEntity);
+    }
+    if (offhandEntity) {
+      offhandEntity[ITEM].amount = 1;
+      rerenderEntity(world, offhandEntity);
+    }
+  }
+
+  // requires tool to be worn
+  if (!toolEntity || !construction || !condition) {
+    return { updated: false, finished: true };
+  }
+
+  // hide sword and shield
+  if (!finished && weaponEntity && weaponEntity[ITEM].amount !== 0) {
+    weaponEntity[ITEM].amount = 0;
+    rerenderEntity(world, weaponEntity);
+    updated = true;
+  }
+  if (!finished && offhandEntity && offhandEntity[ITEM].amount !== 0) {
+    offhandEntity[ITEM].amount = 0;
+    rerenderEntity(world, offhandEntity);
+    updated = true;
+  }
+
+  const orientation = (entity[ORIENTABLE].facing || "up") as Orientation;
+  const delta = orientationPoints[orientation];
+  const target = combine(size, entity[POSITION], delta);
+
+  if (!state.particles.preview) {
+    const previewParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: delta.x,
+        offsetY: delta.y,
+        offsetZ: particleHeight,
+        amount: 0,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.preview = world.getEntityId(previewParticle);
+
+    updated = true;
+  }
+
+  const previewParticle = world.assertByIdAndComponents(
+    state.particles.preview,
+    [PARTICLE]
+  );
+
+  const plottable = canPlot(world, entity, target);
+  const targetAmount = showPreview
+    ? plottable
+      ? -condition.modifier
+      : undefined
+    : 1;
+
+  if (previewParticle[PARTICLE].amount !== targetAmount) {
+    previewParticle[SPRITE] = showPreview
+      ? plottable
+        ? getPlotPreview(world, construction, condition.modifier, target)
+        : addBackground([blocked], colors.black)[0]
+      : none;
+    previewParticle[PARTICLE].amount = targetAmount;
+    rerenderEntity(world, previewParticle);
+    updated = true;
+  }
+
+  if (state.args.orientation !== orientation) {
+    previewParticle[PARTICLE].offsetX = delta.x;
+    previewParticle[PARTICLE].offsetY = delta.y;
+    rerenderEntity(world, previewParticle);
+    updated = true;
+  }
+
+  if (finished) {
+    disposeEntity(world, previewParticle);
+    delete state.particles.preview;
+    delete entity[CONDITIONABLE][conditionName];
   }
 
   return { finished, updated };
@@ -1110,8 +1262,8 @@ export const hookCondition: Sequence<ConditionSequence> = (
     updated = true;
   }
 
-  if (!state.particles.condition) {
-    const conditionParticle = entities.createFibre(world, {
+  if (!state.particles.tool) {
+    const toolParticle = entities.createFibre(world, {
       [ORIENTABLE]: {},
       [PARTICLE]: {
         offsetX: 0,
@@ -1121,19 +1273,19 @@ export const hookCondition: Sequence<ConditionSequence> = (
       [RENDERABLE]: { generation: 1 },
       [SPRITE]: hookEntity[SPRITE],
     });
-    state.particles.condition = world.getEntityId(conditionParticle);
+    state.particles.tool = world.getEntityId(toolParticle);
 
     updated = true;
   }
 
-  const conditionParticle = world.assertByIdAndComponents(
-    state.particles.condition,
-    [ORIENTABLE, PARTICLE]
-  );
+  const toolParticle = world.assertByIdAndComponents(state.particles.tool, [
+    ORIENTABLE,
+    PARTICLE,
+  ]);
 
   // toss bait
-  if (!conditionParticle[ORIENTABLE].facing && condition.orientation) {
-    conditionParticle[ORIENTABLE].facing = condition.orientation;
+  if (!toolParticle[ORIENTABLE].facing && condition.orientation) {
+    toolParticle[ORIENTABLE].facing = condition.orientation;
     updated = true;
 
     const baitParticle = entities.createFibre(world, {
@@ -3544,6 +3696,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayWarp;
   } else if (transaction === "plant") {
     handler = displayPlant;
+  } else if (transaction === "build") {
+    handler = displayBuild;
   } else if (transaction === "chat") {
     handler = displayChat;
   }
@@ -3968,6 +4122,228 @@ export const displayPlant: Sequence<PopupSequence> = (world, entity, state) => {
   };
 };
 
+const buildSeparator = 9;
+
+export const displayBuild: Sequence<PopupSequence> = (world, entity, state) => {
+  const heroEntity = getIdentifierAndComponents(world, "hero", [
+    EQUIPPABLE,
+    POSITION,
+  ]);
+  const verticalIndex = getVerticalIndex(world, entity);
+  const toolEntity = world.getEntityByIdAndComponents(
+    heroEntity?.[EQUIPPABLE].tool,
+    [ITEM, SPRITE]
+  );
+
+  if (!heroEntity || !toolEntity) {
+    return { finished: true, updated: true };
+  }
+
+  const buildStat = getItemStats(toolEntity[ITEM]).build;
+  const entityConstructions: Construction[] = [
+    {
+      description: [
+        [
+          ...createText("Select to "),
+          build,
+          ...createText("Build", colors.green),
+        ],
+        [
+          ...createText("a "),
+          plot,
+          ...createText("Plot", colors.grey),
+          ...createText(" or fix"),
+        ],
+        createText("damaged objects."),
+      ],
+      variants: [
+        {
+          cell: "air",
+          sprite: repair,
+        },
+      ],
+      grounds: [],
+      parts: [toolEntity[ITEM]],
+      level: buildStat || 1,
+      effort: 0,
+    },
+    ...buildConstructions,
+  ];
+  const selectedConstruction = entityConstructions[verticalIndex];
+  const selectedShoppable =
+    selectedConstruction &&
+    canShop(world, heroEntity, getBuildingDeal(selectedConstruction));
+  const selectedConstructable =
+    selectedConstruction &&
+    canConstruct(world, heroEntity, selectedConstruction);
+  const selectedBuildable = selectedShoppable && selectedConstructable;
+
+  let content = [createText("Nothing to build.", colors.grey)];
+
+  if (heroEntity && selectedConstruction) {
+    const scrollIndex =
+      verticalIndex -
+      scrolledVerticalIndex(
+        world,
+        entity,
+        state,
+        Array.from({ length: entityConstructions.length }),
+        "selected",
+        []
+      );
+    const constructionLines = [
+      ...selectedConstruction.parts
+        .map((item, index) => {
+          const existingPart = existingFund(world, heroEntity, item);
+          const itemLine = [
+            ...createText(existingPart.toString()),
+            ...createText("/", colors.grey),
+            ...createText(
+              item.amount.toString(),
+              existingPart >= item.amount ? colors.lime : colors.red
+            ),
+            getItemSprite(item),
+          ];
+          const padding =
+            selectedConstruction.parts.length === 1 && index === 0;
+          return [
+            ...(padding
+              ? [
+                  [
+                    selectedBuildable ? buildLeftActive : buildLeft,
+                    ...repeat(none, frameWidth - 3 - buildSeparator),
+                  ],
+                ]
+              : []),
+            [
+              selectedBuildable ? buildLeftActive : buildLeft,
+              ...createText(getItemSprite(item).name, colors.grey),
+            ],
+            [
+              selectedBuildable ? buildLeftActive : buildLeft,
+              ...repeat(
+                none,
+                frameWidth - 3 - buildSeparator - itemLine.length
+              ),
+              ...itemLine,
+            ],
+            ...(padding
+              ? [
+                  [
+                    selectedBuildable ? buildLeftActive : buildLeft,
+                    ...repeat(none, frameWidth - 3 - buildSeparator),
+                  ],
+                ]
+              : []),
+          ];
+        })
+        .flat(),
+      selectedBuildable
+        ? [
+            buildDownLeftActive,
+            ...repeat(buildDownActive, frameWidth - 3 - buildSeparator),
+          ]
+        : [
+            buildDownLeft,
+            ...repeat(buildDown, frameWidth - 3 - buildSeparator),
+          ],
+    ];
+    content = entityConstructions.map((construction, rowIndex) => {
+      const selected = verticalIndex === rowIndex;
+      const textColor = selected ? colors.white : colors.grey;
+      const itemSprite = construction.variants[0].sprite;
+
+      const rowShoppable = canShop(
+        world,
+        heroEntity,
+        getBuildingDeal(construction)
+      );
+      const rowConstructable = canConstruct(world, heroEntity, construction);
+      const itemLine = [
+        ...createText(
+          selected ? itemSprite.name : "─".repeat(itemSprite.name.length),
+          textColor
+        ),
+        ...repeat(none, 7 - itemSprite.name.length),
+      ];
+      const visibleIndex = rowIndex - scrollIndex;
+      const line = constructionLines[visibleIndex] || [];
+
+      return [
+        !rowConstructable && !selected
+          ? blocked
+          : rowShoppable && !selected
+          ? recolorSprite(star, colors.lime)
+          : none,
+        itemSprite,
+        ...(selected
+          ? selectedConstructable
+            ? shaded(
+                itemLine,
+                selectedBuildable ? colors.green : colors.grey,
+                selectedBuildable ? "▄" : undefined
+              )
+            : dotted(itemLine, colors.red)
+          : itemLine),
+        ...line,
+      ];
+    });
+  }
+
+  const details = selectedConstructable
+    ? selectedConstruction.description
+    : [
+        [
+          ...createText("Requires ", colors.grey),
+          ...createCountable(
+            { build: selectedConstruction.level },
+            "build",
+            "display"
+          ),
+          ...createText(".", colors.grey),
+        ],
+      ];
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    undefined,
+    content,
+    !selectedConstructable
+      ? "blocked"
+      : selectedShoppable
+      ? "active"
+      : selectedConstruction
+      ? "selected"
+      : undefined,
+    details,
+    undefined,
+    verticalIndex === 0
+      ? createButton("USE", 5, false, false, false, "lime")
+      : createButton("PICK", 6, !selectedBuildable, false, false, "lime")
+  );
+
+  // draw top separator
+  const topSeparatorParticle = world.assertByIdAndComponents(
+    state.particles[`popup-up-${buildSeparator}`],
+    [ORIENTABLE, PARTICLE, SPRITE]
+  );
+  const separatorFacing = selectedBuildable ? "right" : "down";
+  if (
+    topSeparatorParticle[ORIENTABLE].facing !== separatorFacing &&
+    selectedConstruction
+  ) {
+    topSeparatorParticle[SPRITE] = buildCenterTop;
+    topSeparatorParticle[ORIENTABLE].facing = separatorFacing;
+    popupResult.updated = true;
+  }
+
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
 export const displayStats: Sequence<PopupSequence> = (world, entity, state) => {
   const heroEntity = getIdentifierAndComponents(world, "hero", [
     SPAWNABLE,
@@ -4261,6 +4637,7 @@ const cellColorWeights: Partial<Record<CellType, [string, number]>> = {
   water_shallow: [colors.navy, 2],
   water_deep: [colors.navy, 4],
   sand: [colors.olive, 2],
+  beach: [colors.olive, 2],
   // TODO: draw path using line chars
   // path: [colors.white, 5],
   mountain: [colors.silver, 4],
@@ -5755,22 +6132,20 @@ export const displayCraft: Sequence<PopupSequence> = (world, entity, state) => {
 
       const ingredientShoppable =
         heroEntity && canShop(world, heroEntity, getCraftingDeal(ingredient));
-      const itemName = [
+      const itemLine = [
         ...createText(
           selected ? itemSprite.name : "─".repeat(itemSprite.name.length),
           textColor
         ),
         ...repeat(none, 7 - itemSprite.name.length),
       ];
-      const itemLine =
-        ingredientShoppable && !selected
-          ? [...itemName.slice(0, 6), recolorSprite(star, colors.lime)]
-          : itemName;
       const visibleIndex = rowIndex - scrollIndex;
       const line = ingredientLines[visibleIndex] || [];
 
       return [
-        none,
+        ingredientShoppable && !selected
+          ? recolorSprite(star, colors.lime)
+          : none,
         itemSprite,
         ...(selected
           ? shaded(
@@ -5985,7 +6360,7 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
             delay,
             ...createText(selectedRecipe.duration.toString(), colors.yellow),
           ]
-        : [recipeShoppable ? recolorSprite(star, colors.lime) : none];
+        : [];
       const line = [
         ...createText(itemSprite.name, textColor),
         ...amountText,
@@ -5993,7 +6368,7 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
       ];
 
       return [
-        none,
+        recipeShoppable ? recolorSprite(star, colors.lime) : none,
         itemSprite,
         ...(selected
           ? shaded(
@@ -8022,11 +8397,12 @@ export const popupInteract: Sequence<InteractSequence> = (
 
     const discoveryParticle = entities.createParticle(world, {
       [PARTICLE]: {
-        offsetX: delta.x * (horizontal ? 2 + interactWidth : 3),
-        offsetY: delta.y * 3,
+        offsetX:
+          delta.x * (horizontal ? 2 + interactWidth : 3) + state.args.offset.x,
+        offsetY: delta.y * 3 + state.args.offset.y,
         offsetZ: particleHeight,
         amount: 1,
-        animatedOrigin: copy(delta),
+        animatedOrigin: add(delta, state.args.offset),
         duration: interactSpeed * (horizontal ? interactWidth + 2 : 2),
       },
       [RENDERABLE]: { generation: 1 },
@@ -8037,8 +8413,8 @@ export const popupInteract: Sequence<InteractSequence> = (
     const innerBarParticle = entities.createFibre(world, {
       [ORIENTABLE]: { facing: orientation },
       [PARTICLE]: {
-        offsetX: delta.x,
-        offsetY: delta.y,
+        offsetX: delta.x + state.args.offset.x,
+        offsetY: delta.y + state.args.offset.y,
         offsetZ: interactHeight,
         amount: 1,
       },
@@ -8055,11 +8431,11 @@ export const popupInteract: Sequence<InteractSequence> = (
     const outerBarParticle = entities.createFibre(world, {
       [ORIENTABLE]: { facing: orientation },
       [PARTICLE]: {
-        offsetX: delta.x * 2,
-        offsetY: delta.y * 2,
+        offsetX: delta.x * 2 + state.args.offset.x,
+        offsetY: delta.y * 2 + state.args.offset.y,
         offsetZ: interactHeight,
         amount: 1,
-        animatedOrigin: copy(delta),
+        animatedOrigin: add(delta, state.args.offset),
         duration: interactSpeed,
       },
       [RENDERABLE]: { generation: 1 },
@@ -8077,16 +8453,18 @@ export const popupInteract: Sequence<InteractSequence> = (
     const barLeftParticle = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX:
-          orientation === "left"
+          (orientation === "left"
             ? -interactWidth - 1
             : orientation === "right"
             ? 2
-            : -paddingLeft,
-        offsetY: delta.y * 2,
+            : -paddingLeft) + state.args.offset.x,
+        offsetY: delta.y * 2 + state.args.offset.y,
         offsetZ: dialogHeight,
         amount: 1,
-        animatedOrigin:
+        animatedOrigin: add(
           orientation === "left" ? { x: -2, y: 0 } : add(delta, delta),
+          state.args.offset
+        ),
         duration:
           interactSpeed *
           (orientation === "left" ? interactWidth : paddingLeft),
@@ -8099,16 +8477,18 @@ export const popupInteract: Sequence<InteractSequence> = (
     const barRightParticle = entities.createParticle(world, {
       [PARTICLE]: {
         offsetX:
-          orientation === "right"
+          (orientation === "right"
             ? interactWidth + 1
             : orientation === "left"
             ? -2
-            : paddingRight,
-        offsetY: delta.y * 2,
+            : paddingRight) + state.args.offset.x,
+        offsetY: delta.y * 2 + state.args.offset.y,
         offsetZ: dialogHeight,
         amount: 1,
-        animatedOrigin:
+        animatedOrigin: add(
           orientation === "right" ? { x: 2, y: 0 } : add(delta, delta),
+          state.args.offset
+        ),
         duration:
           interactSpeed *
           (orientation === "right" ? interactWidth : paddingRight),
@@ -8127,20 +8507,22 @@ export const popupInteract: Sequence<InteractSequence> = (
       const cellParticle = entities.createParticle(world, {
         [PARTICLE]: {
           offsetX:
-            orientation === "left"
+            (orientation === "left"
               ? columnIndex - interactWidth - 1
               : orientation === "right"
               ? columnIndex + 2
-              : offset,
-          offsetY: delta.y * 2,
+              : offset) + state.args.offset.x,
+          offsetY: delta.y * 2 + state.args.offset.y,
           offsetZ: particleHeight,
           amount: 1,
-          animatedOrigin:
+          animatedOrigin: add(
             orientation === "right"
               ? { x: 2, y: 0 }
               : orientation === "left"
               ? { x: -2, y: 0 }
               : add(delta, delta),
+            state.args.offset
+          ),
           duration:
             interactSpeed *
             (orientation === "left"

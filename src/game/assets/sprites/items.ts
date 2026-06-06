@@ -1,6 +1,5 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
-import { recolorSprite } from "../templates";
 
 export const heart: Sprite = {
   name: "HP",
@@ -200,10 +199,6 @@ export const power: Sprite = {
     { char: "·", color: colors.aqua },
   ],
 };
-export const addPower = recolorSprite(power, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
 
 export const wisdom: Sprite = {
   name: "Wisdom",
@@ -213,10 +208,6 @@ export const wisdom: Sprite = {
     { char: "-", color: colors.fuchsia },
   ],
 };
-export const addWisdom = recolorSprite(wisdom, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
 
 export const armor: Sprite = {
   name: "Armor",
@@ -227,10 +218,6 @@ export const armor: Sprite = {
     { char: "∙", color: colors.teal },
   ],
 };
-export const addArmor = recolorSprite(armor, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
 
 export const resist: Sprite = {
   name: "Resist",
@@ -243,10 +230,6 @@ export const resist: Sprite = {
     { char: "\u0108", color: colors.purple },
   ],
 };
-export const addResist = recolorSprite(resist, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
 
 export const vision: Sprite = {
   name: "Vision",
@@ -261,10 +244,6 @@ export const haste: Sprite = {
   name: "Haste",
   layers: [{ char: "»", color: colors.green }],
 };
-export const addHaste = recolorSprite(haste, {
-  [colors.lime]: colors.fuchsia,
-  [colors.green]: colors.purple,
-});
 
 export const damp: Sprite = {
   name: "Damp",
@@ -333,6 +312,16 @@ export const fishing: Sprite = {
   ],
 };
 
+export const build: Sprite = {
+  name: "Build",
+  layers: [
+    { char: "|", color: colors.green },
+    { char: '"', color: colors.lime },
+    { char: "'", color: colors.lime },
+    { char: "°", color: colors.lime },
+  ],
+};
+
 export const coin: Sprite = {
   name: "Coin",
   layers: [
@@ -383,12 +372,8 @@ export const stick: Sprite = {
 export const wood: Sprite = {
   name: "Wood",
   layers: [
-    { char: "■", color: colors.maroon },
-    { char: "\u011e", color: colors.maroon },
-    { char: "\u011f", color: colors.maroon },
-    { char: "¬", color: colors.maroon },
-    { char: "░", color: colors.black },
-    { char: "-", color: colors.maroon },
+    { char: "»", color: colors.maroon },
+    { char: "«", color: colors.maroon },
   ],
 };
 
@@ -398,7 +383,8 @@ export const plank: Sprite = {
     { char: "M", color: colors.maroon },
     { char: "!", color: colors.black },
     { char: "|", color: colors.maroon },
-    { char: "≡", color: colors.maroon },
+    { char: "{", color: colors.maroon },
+    { char: "}", color: colors.maroon },
   ],
 };
 

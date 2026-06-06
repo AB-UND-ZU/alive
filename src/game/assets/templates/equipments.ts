@@ -148,12 +148,6 @@ const hammerTemplate: Sprite = {
     { char: "'", color: TEMPLATE_COLORS.materialSecondary },
     { char: "°", color: TEMPLATE_COLORS.materialSecondary },
   ],
-  facing: {
-    up: [{ char: "|", color: TEMPLATE_COLORS.materialPrimary }],
-    right: [{ char: "-", color: TEMPLATE_COLORS.materialPrimary }],
-    down: [{ char: "|", color: TEMPLATE_COLORS.materialPrimary }],
-    left: [{ char: "-", color: TEMPLATE_COLORS.materialPrimary }],
-  },
 };
 export const hammer = createTemplate({ sprite: hammerTemplate });
 

@@ -40,14 +40,17 @@ export const brewingRecipes: Recipe[] = [
       [
         { stackable: "apple", amount: 1 },
         { stackable: "resource", material: "wood", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "berry", amount: 3 },
         { stackable: "resource", material: "wood", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "wheat", amount: 1 },
         { stackable: "resource", material: "wood", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
     ],
   },
@@ -58,22 +61,27 @@ export const brewingRecipes: Recipe[] = [
       [
         { stackable: "apple", amount: 3 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "fruit", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "banana", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "salmon", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "bread", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
     ],
   },
@@ -84,22 +92,27 @@ export const brewingRecipes: Recipe[] = [
       [
         { stackable: "fruit", amount: 2 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "banana", amount: 2 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "salmon", amount: 2 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "tuna", amount: 1 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "bread", amount: 2 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
     ],
   },
@@ -110,14 +123,17 @@ export const brewingRecipes: Recipe[] = [
       [
         { stackable: "shroom", amount: 1 },
         { stackable: "resource", material: "wood", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "flower", amount: 3 },
         { stackable: "resource", material: "wood", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "sapling", amount: 1 },
         { stackable: "resource", material: "wood", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
     ],
   },
@@ -128,22 +144,27 @@ export const brewingRecipes: Recipe[] = [
       [
         { stackable: "shroom", amount: 3 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "herb", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "coconut", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "pike", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "algae", amount: 1 },
         { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
       ],
     ],
   },
@@ -154,22 +175,27 @@ export const brewingRecipes: Recipe[] = [
       [
         { stackable: "herb", amount: 2 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "coconut", amount: 2 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "pike", amount: 2 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "cod", amount: 1 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
       [
         { stackable: "algae", amount: 2 },
         { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
       ],
     ],
   },

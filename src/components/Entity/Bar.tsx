@@ -4,13 +4,14 @@ import { animated, useSpring } from "@react-spring/three";
 import { colors } from "../../game/assets/colors";
 import { particleHeight, stack, stackHeight } from "./utils";
 import { useDimensions } from "../Dimensions";
-import { getMaxCounter } from "../../game/assets/sprites";
 import { pixels } from "../Dimensions/sizing";
 import { Countable, STATS } from "../../engine/components/stats";
 import { isEnemy, isNeutral } from "../../engine/systems/damage";
 import { World } from "../../engine";
 import { clamp } from "../../game/math/std";
 import { PLAYER } from "../../engine/components/player";
+import { getMaxCounter } from "../../game/assets/ui";
+import { BUILDABLE } from "../../engine/components/buildable";
 
 const neutralColor = colors.silver;
 const neutralBar = new THREE.Color(neutralColor).multiplyScalar(0.075);
@@ -37,7 +38,7 @@ export default function Bar({
   const max = maxCounter ? entity[STATS][maxCounter] : actualValue;
   const value = actualValue <= 0 ? 0 : clamp(Math.floor(actualValue), 1, max);
   const enemy = isEnemy(world, entity);
-  const neutral = isNeutral(world, entity);
+  const neutral = entity[BUILDABLE] || isNeutral(world, entity);
   const player = entity[PLAYER];
   const scale = entity[STATS]?.scale ?? 1;
   const offsetX = entity[STATS]?.offsetX

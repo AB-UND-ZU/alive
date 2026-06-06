@@ -27,13 +27,7 @@ import { getSwimmables } from "./immersion";
 import { SWIMMABLE } from "../components/swimmable";
 import { extinguishEntity } from "./burn";
 import { queueMessage } from "../../game/assets/utils";
-import {
-  createText,
-  ice,
-  snow,
-  snowCover,
-  waterDeep,
-} from "../../game/assets/sprites";
+import { ice, snow, snowCover, waterDeep } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { getLockable } from "./action";
 import { LOCKABLE } from "../components/lockable";
@@ -48,6 +42,7 @@ import { COVERABLE } from "../components/coverable";
 import { isInPopup } from "./popup";
 import { isMounting } from "./vessel";
 import { DISPLACABLE } from "../components/displacable";
+import { createText } from "../../game/assets/ui";
 
 export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;

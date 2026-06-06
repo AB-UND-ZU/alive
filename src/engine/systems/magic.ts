@@ -42,12 +42,7 @@ import {
 import { SPRITE } from "../components/sprite";
 import { ITEM, Material } from "../components/item";
 import { combine, copy, getDistance } from "../../game/math/std";
-import {
-  createText,
-  getStatColor,
-  getStatSprite,
-  none,
-} from "../../game/assets/sprites";
+import { none } from "../../game/assets/sprites";
 import { brighten, colors } from "../../game/assets/colors";
 import { MOVABLE } from "../components/movable";
 import { spendItem } from "./trigger";
@@ -76,6 +71,7 @@ import { getBlockable } from "./action";
 import { getEquipmentStats } from "../../game/balancing/equipment";
 import { EQUIPPABLE } from "../components/equippable";
 import { NPC } from "../components/npc";
+import { createText, getStatColor, getStatSprite } from "../../game/assets/ui";
 
 export const isAffectable = (world: World, entity: Entity) =>
   AFFECTABLE in entity;

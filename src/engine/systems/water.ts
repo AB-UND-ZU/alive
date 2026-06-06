@@ -30,6 +30,10 @@ import { trenchResources } from "../../game/balancing/harvesting";
 import { HARVESTABLE } from "../components/harvestable";
 import { getFarmable } from "./harvest";
 import { FARMABLE } from "../components/farmable";
+import { extinguishEntity, getBurnables } from "./burn";
+import { BURNABLE } from "../components/burnable";
+import { getAffectables } from "./magic";
+import { AFFECTABLE } from "../components/affectable";
 
 export type Weather = "rain" | "snow";
 
@@ -116,6 +120,17 @@ export const createBubble = (
     soil[FARMABLE].watered = true;
     rerenderEntity(world, soil);
   }
+
+  // extinguish fire
+  const burnables = getBurnables(world, position).filter(
+    (cell) => cell[BURNABLE].burning
+  );
+  const affectables = getAffectables(world, position).filter(
+    (cell) => cell[AFFECTABLE].burn > 0
+  );
+  [...burnables, ...affectables].forEach((cell) => {
+    extinguishEntity(world, cell);
+  });
 
   // don't show drops in buildings
   if (getEnterable(world, position)) return;

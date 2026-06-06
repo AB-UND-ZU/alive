@@ -34,7 +34,8 @@ export type Player = {
     | "up"
     | "down"
     | "content"
-    | "type";
+    | "type"
+    | "build";
   tabTriggered?: number;
   contentTriggered?: number;
   offsetTriggered?: number;

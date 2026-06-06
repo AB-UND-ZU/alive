@@ -45,7 +45,7 @@ import {
 import { rerenderEntity } from "../../engine/systems/renderer";
 import { castSkill, castSpell } from "../../engine/systems/trigger";
 import { TypedEntity } from "../../engine/entities";
-import { createText, none } from "./sprites";
+import { none } from "./sprites";
 import {
   disposeEntity,
   getCell,
@@ -71,6 +71,8 @@ import { getLevelStats } from "../../engine/systems/leveling";
 import { cellNames, CellType, createCell } from "../../bindings/creation";
 import { VIEWABLE } from "../../engine/components/viewable";
 import { ENTERABLE } from "../../engine/components/enterable";
+import { createText } from "./ui";
+import { updateSandCell, updateWaterCell } from "../../engine/systems/water";
 
 export type CommandCall = {
   handler: string;
@@ -549,16 +551,18 @@ const executeNew = (
         disposeEntity(world, cellEntity);
       });
       world.metadata.gameEntity[LEVEL].cells[target.x][target.y] = "air";
-      updateWalkable(world, target);
-      continue;
+    } else {
+      const { all } = createCell(world, target, cell, "hidden");
+      all.forEach((unit) => {
+        registerEntity(world, unit);
+      });
+      world.metadata.gameEntity[LEVEL].cells[target.x][target.y] =
+        cell === "water" ? "water_deep" : cell;
     }
 
-    const { all } = createCell(world, target, cell, "hidden");
-    all.forEach((unit) => {
-      registerEntity(world, unit);
-    });
-    world.metadata.gameEntity[LEVEL].cells[target.x][target.y] = cell;
     updateWalkable(world, target);
+    updateWaterCell(world, target);
+    updateSandCell(world, target);
   }
 };
 

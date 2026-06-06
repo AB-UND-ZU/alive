@@ -1,11 +1,4 @@
-import {
-  createText,
-  backdrop,
-  addBackground,
-  createDialog,
-  createSpriteButton,
-  pauseInvertPressed,
-} from "../../game/assets/sprites";
+import { backdrop, pauseInvertPressed } from "../../game/assets/sprites";
 import { isTouch, useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
@@ -13,6 +6,12 @@ import { useCallback } from "react";
 import { useWorld } from "../../bindings/hooks";
 import { repeat } from "../../game/math/std";
 import { colors } from "../../game/assets/colors";
+import {
+  createDialog,
+  createText,
+  addBackground,
+  createSpriteButton,
+} from "../../game/assets/ui";
 
 export default function Paused() {
   const { paused, setPaused, initial, setInitial, suspended } = useWorld();

@@ -11,6 +11,10 @@ import { UnitStats } from "../../engine/components/stats";
 
 export const itemPrices: Partial<Record<Stackable, number>> = {
   worm: 1,
+  thorn: 2,
+
+  stick: 2,
+  ore: 2,
 
   arrow: 3,
   charge: 3,
@@ -162,8 +166,10 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "banana" },
   { stackable: "coconut" },
   { stackable: "bread" },
+  { stackable: "stick" },
   { stackable: "resource", material: "wood" },
   { stackable: "plank" },
+  { stackable: "ore" },
   { stackable: "resource", material: "iron" },
   { stackable: "nugget" },
   { stackable: "resource", material: "gold" },

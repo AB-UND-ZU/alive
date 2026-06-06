@@ -39,6 +39,8 @@ import {
   rock2,
   cactus1,
   cactus2,
+  shadow,
+  emptySlot,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
@@ -46,7 +48,13 @@ import { Item } from "../../engine/components/item";
 import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
 import { NpcType } from "../../engine/components/npc";
-import { fence, palisade, sign } from "../assets/sprites/structures";
+import {
+  fence,
+  fenceDoor,
+  palisade,
+  palisadeDoor,
+  sign,
+} from "../assets/sprites/structures";
 import {
   emptyUnitStats,
   Stats,
@@ -58,7 +66,7 @@ import { colors } from "../assets/colors";
 import { Harvestable, Resource } from "../../engine/components/harvestable";
 import { Droppable } from "../../engine/components/droppable";
 import { Vanishable } from "../../engine/components/vanishable";
-import { recolorSprite } from "../assets/templates";
+import { mergeSprites, recolorSprite, slotShadow } from "../assets/ui";
 import { eye, orb, prism, waveTower } from "../assets/templates/creatures";
 import { banner, evaporate } from "../assets/templates/particles";
 import { getHarvestConfig } from "./harvesting";
@@ -78,7 +86,9 @@ export type UnitKey =
   | "dummy"
   | "sign"
   | "fence"
+  | "fenceDoor"
   | "palisade"
+  | "palisadeDoor"
   | "cactus1"
   | "cactus2"
   | "rock1"
@@ -628,7 +638,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: woodChest,
+    sprite: mergeSprites(slotShadow, woodChest),
   },
   ironChest: {
     faction: "unit",
@@ -640,7 +650,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: ironChest,
+    sprite: mergeSprites(slotShadow, ironChest),
   },
   goldChest: {
     faction: "unit",
@@ -652,7 +662,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: goldChest,
+    sprite: mergeSprites(slotShadow, goldChest),
   },
   diamondChest: {
     faction: "unit",
@@ -664,7 +674,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: diamondChest,
+    sprite: mergeSprites(slotShadow, diamondChest),
   },
   rubyChest: {
     faction: "unit",
@@ -676,7 +686,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     drops: [],
     patternNames: [],
-    sprite: rubyChest,
+    sprite: mergeSprites(slotShadow, rubyChest),
   },
   pot: {
     faction: "unit",
@@ -696,7 +706,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 10, items: [{ stat: "mp", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: pot,
+    sprite: mergeSprites(slotShadow, pot),
   },
   box: {
     faction: "unit",
@@ -715,7 +725,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 15, items: [{ stackable: "sapling", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: box,
+    sprite: mergeSprites(slotShadow, box),
   },
   woodTotem: {
     faction: "settler",
@@ -780,7 +790,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: ["dummy"],
-    sprite: dummy,
+    sprite: mergeSprites(slotShadow, dummy),
     remains: "stump",
   },
   sign: {
@@ -802,7 +812,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: sign,
+    sprite: mergeSprites(slotShadow, sign),
     remains: "stump",
   },
   fence: {
@@ -821,8 +831,31 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: fence,
+    swimming: mergeSprites(recolorSprite(emptySlot, colors.navy), fence),
+    sprite: mergeSprites(slotShadow, fence),
     remains: "post",
+  },
+  fenceDoor: {
+    faction: "unit",
+    scratch: colors.maroon,
+    stats: {
+      hp: 50,
+      armor: 2,
+    },
+    equipments: [],
+    harvestable: "fence",
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "stick", amount: 1 },
+          { stackable: "ore", amount: 1 },
+        ],
+      },
+    ],
+    patternNames: [],
+    sprite: mergeSprites(shadow, fenceDoor),
+    remains: "fence_hinge",
   },
   palisade: {
     faction: "unit",
@@ -836,12 +869,35 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     drops: [
       {
         chance: 100,
-        items: [{ stackable: "ore", amount: 1 }],
+        items: [{ stackable: "ore", amount: 4 }],
       },
     ],
     patternNames: [],
-    sprite: palisade,
+    swimming: mergeSprites(recolorSprite(emptySlot, colors.navy), palisade),
+    sprite: mergeSprites(slotShadow, palisade),
     remains: "footing",
+  },
+  palisadeDoor: {
+    faction: "unit",
+    scratch: colors.silver,
+    stats: {
+      hp: 75,
+      armor: 3,
+    },
+    equipments: [],
+    harvestable: "palisade",
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "stick", amount: 1 },
+          { stackable: "ore", amount: 3 },
+        ],
+      },
+    ],
+    patternNames: [],
+    sprite: mergeSprites(shadow, palisadeDoor),
+    remains: "palisade_hinge",
   },
   cactus1: {
     faction: "unit",
@@ -855,7 +911,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     harvestable: "cactus",
     drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 1 }] }],
     patternNames: [],
-    sprite: cactus1,
+    sprite: mergeSprites(shadow, cactus1),
   },
   cactus2: {
     faction: "unit",
@@ -868,7 +924,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     harvestable: "cactus",
     drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 1 }] }],
     patternNames: [],
-    sprite: cactus2,
+    sprite: mergeSprites(shadow, cactus2),
   },
   rock1: {
     faction: "unit",
@@ -885,7 +941,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 10, items: [{ stackable: "mineral", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: rock1,
+    sprite: mergeSprites(shadow, rock1),
   },
   rock2: {
     faction: "unit",
@@ -902,7 +958,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 10, items: [{ stackable: "crystal", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: rock2,
+    sprite: mergeSprites(shadow, rock2),
   },
   tumbleweed: {
     faction: "unit",
@@ -928,7 +984,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 10, items: [{ stackable: "coin", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: hedge1,
+    sprite: mergeSprites(slotShadow, hedge1),
   },
   hedge2: {
     faction: "unit",
@@ -944,7 +1000,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 10, items: [{ stackable: "coin", amount: 1 }] },
     ],
     patternNames: [],
-    sprite: hedge2,
+    sprite: mergeSprites(slotShadow, hedge2),
   },
   rotten: {
     faction: "unit",
@@ -1488,7 +1544,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: ironChest,
+    sprite: mergeSprites(slotShadow, ironChest),
   },
   oakBoss: {
     faction: "unit",
@@ -1621,7 +1677,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: goldChest,
+    sprite: mergeSprites(slotShadow, goldChest),
   },
   golem: {
     faction: "wild",

@@ -2,7 +2,6 @@ import React, { useCallback, useState } from "react";
 import { useHero, useWorld } from "../../bindings/hooks";
 import {
   keyLeft,
-  parseSprite,
   keyGap,
   keyRight,
   modifierLeft,
@@ -38,6 +37,7 @@ import { REFERENCE } from "../../engine/components/reference";
 import { PLAYER } from "../../engine/components/player";
 import { useDimensions } from "../Dimensions";
 import { repeat } from "../../game/math/std";
+import { parseSprite } from "../../game/assets/ui";
 
 export const keyboardColumns = 10;
 export const keyboardRows = 3;

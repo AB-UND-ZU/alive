@@ -1,5 +1,6 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
+
 // active spells (no mana)
 
 export const bombActive: Sprite = {

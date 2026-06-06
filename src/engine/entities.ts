@@ -74,6 +74,7 @@ import { Brewable, BREWABLE } from "./components/brewable";
 import { Forgable, FORGABLE } from "./components/forgable";
 import { Mountable, MOUNTABLE } from "./components/mountable";
 import { Remainable, REMAINABLE } from "./components/remainable";
+import { Buildable, BUILDABLE } from "./components/buildable";
 
 export type Entity = Record<LevelName, {}> & {
   [ACTIONABLE]: Actionable;
@@ -84,6 +85,7 @@ export type Entity = Record<LevelName, {}> & {
   [BELONGABLE]: Belongable;
   [BLOCKABLE]: Blockable;
   [BREWABLE]: Brewable;
+  [BUILDABLE]: Buildable;
   [BUMPABLE]: Bumpable;
   [BURNABLE]: Burnable;
   [CASTABLE]: Castable;
@@ -632,14 +634,20 @@ export const createGame = entityFactory([LEVEL, RENDERABLE, REFERENCE], {
 });
 
 export const createGate = entityFactory([
+  ATTACKABLE,
+  BELONGABLE,
   BURNABLE,
+  DROPPABLE,
   FOG,
+  HARVESTABLE,
+  INVENTORY,
   LOCKABLE,
   POSITION,
   REMAINABLE,
   RENDERABLE,
   SEQUENCABLE,
   SPRITE,
+  STATS,
   TOOLTIP,
 ]);
 
@@ -969,6 +977,19 @@ export const createPlate = entityFactory([
   TOOLTIP,
 ]);
 
+export const createPlot = entityFactory([
+  BUILDABLE,
+  DROPPABLE,
+  FOG,
+  HARVESTABLE,
+  INVENTORY,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  STATS,
+  SPRITE,
+]);
+
 export const createPond = entityFactory([
   FOG,
   FRAGMENT,
@@ -976,6 +997,22 @@ export const createPond = entityFactory([
   POSITION,
   REFILLABLE,
   RENDERABLE,
+  SPRITE,
+]);
+
+export const createPort = entityFactory([
+  ATTACKABLE,
+  BELONGABLE,
+  DROPPABLE,
+  FOG,
+  HARVESTABLE,
+  INVENTORY,
+  LOCKABLE,
+  POSITION,
+  REMAINABLE,
+  RENDERABLE,
+  SEQUENCABLE,
+  STATS,
   SPRITE,
 ]);
 
@@ -1191,14 +1228,6 @@ export const createTerrain = entityFactory([
   POSITION,
   RENDERABLE,
   SPRITE,
-]);
-
-export const createTile = entityFactory([
-  FOG,
-  POSITION,
-  RENDERABLE,
-  SPRITE,
-  TEMPO,
 ]);
 
 export const createTombstone = entityFactory([

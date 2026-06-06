@@ -18,14 +18,7 @@ import { Item, ITEM } from "../components/item";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { resetConditionables, removeFromInventory } from "./trigger";
 import { COLLECTABLE } from "../components/collectable";
-import {
-  addBackground,
-  createSpriteButton,
-  createText,
-  getMaxCounter,
-  times,
-  underline,
-} from "../../game/assets/sprites";
+import { times } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { createSequence, getSequence } from "./sequence";
 import { CollectSequence, SEQUENCABLE } from "../components/sequencable";
@@ -44,7 +37,14 @@ import {
 import { pickupOptions, play } from "../../game/sound";
 import { IDENTIFIABLE } from "../components/identifiable";
 import { setIdentifier } from "../utils";
-import { recolorSprite } from "../../game/assets/templates";
+import {
+  addBackground,
+  createSpriteButton,
+  createText,
+  getMaxCounter,
+  recolorSprite,
+  underline,
+} from "../../game/assets/ui";
 import { BUMPABLE } from "../components/bumpable";
 import { ACTIONABLE } from "../components/actionable";
 import { isNpc } from "./damage";

@@ -1,5 +1,5 @@
-import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
-import { Layer, SPRITE, Sprite } from "../../engine/components/sprite";
+import { ORIENTABLE } from "../../engine/components/orientable";
+import { Layer, SPRITE } from "../../engine/components/sprite";
 import { World } from "../../engine";
 import { Segment } from "./Stack";
 import { Entity } from "ecs";
@@ -26,6 +26,7 @@ import { ClassKey } from "../../game/balancing/classes";
 import { isDead, isNpc } from "../../engine/systems/damage";
 import { colors } from "../../game/assets/colors";
 import { HARVESTABLE } from "../../engine/components/harvestable";
+import { getFacingLayers } from "../../game/assets/ui";
 
 export const textSize = 18 / 25 + 0.001;
 
@@ -61,23 +62,6 @@ export const overlayHeight = 10.2 * stackHeight;
 export const selectionHeight = 10.5 * stackHeight;
 export const transientHeight = 11 * stackHeight;
 export const cameraHeight = 12 * stackHeight;
-
-export const getFacingLayers = (
-  sprite: Sprite,
-  facing?: Orientation,
-  amount?: number
-) => {
-  let layers;
-  if (facing && sprite.facing?.[facing]) layers = sprite.facing[facing];
-
-  if (amount && sprite.amounts && amount > 0) {
-    if (amount === 1) layers = sprite.amounts.single;
-    else if (amount === 2) layers = sprite.amounts.double;
-    else layers = sprite.amounts.multiple;
-  }
-
-  return layers || sprite.layers;
-};
 
 export const getLayerCount = (segments: Segment[]) =>
   segments.reduce(

@@ -1,5 +1,6 @@
 import { Sprite as SpriteType } from "../../engine/components/sprite";
-import { getFacingLayers, stack, stackHeight } from "./utils";
+import { stack, stackHeight } from "./utils";
+import { getFacingLayers } from "../../game/assets/ui";
 import { useWorld } from "../../bindings/hooks";
 import { Orientation } from "../../engine/components/orientable";
 import { animated, useSpring } from "@react-spring/three";

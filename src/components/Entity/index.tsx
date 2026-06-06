@@ -41,6 +41,7 @@ import FogOfWar from "./FogOfWar";
 import { LIQUID } from "../../engine/components/liquid";
 import { BUMPABLE } from "../../engine/components/bumpable";
 import { BREWABLE } from "../../engine/components/brewable";
+import { BUILDABLE } from "../../engine/components/buildable";
 
 function Entity({
   entity,
@@ -81,7 +82,7 @@ function Entity({
   const isBright = !!entity[LIGHT] && entity[LIGHT].brightness > 0 && !inside;
   const isSwimming = !!entity[SWIMMABLE]?.swimming;
   const isLiquid = !!entity[LIQUID];
-  const hasStats = !!entity[STATS] && entity[ATTACKABLE];
+  const hasStats = !!entity[STATS] && (entity[ATTACKABLE] || entity[BUILDABLE]);
   const isFlying = !!entity[MOVABLE]?.flying;
 
   const isTransparent =

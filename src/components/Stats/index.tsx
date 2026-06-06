@@ -1,13 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useHero, useWorld } from "../../bindings/hooks";
 import {
-  createText,
   none,
-  createProgress,
   pauseInvert,
-  createSpriteButton,
   pauseInvertPressed,
-  underline,
 } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { isTouch, useDimensions } from "../Dimensions";
@@ -24,6 +20,13 @@ import { menuName } from "../../game/levels/menu";
 import { recolorLine } from "../../game/assets/pixels";
 import { getIdentifier, TEST_MODE } from "../../engine/utils";
 import { isDead } from "../../engine/systems/damage";
+import {
+  createProgress,
+  createSpriteButton,
+  createText,
+  underline,
+} from "../../game/assets/ui";
+import { frameColor } from "../Terminal";
 
 const pressDuration = 200;
 const progressWidth = 13;
@@ -200,7 +203,7 @@ function StatsInner({
         <Row key={index} />
       ))}
       <Row
-        cells={createText("─".repeat(width + padding * 2 + 1), colors.grey)}
+        cells={createText("─".repeat(width + padding * 2 + 1), frameColor)}
       />
       {!initial && <div className="Menu" id="menu" onClick={handleMenu} />}
       {!initial && !hidden && !menuOnly && (

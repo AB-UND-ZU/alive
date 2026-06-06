@@ -8,7 +8,7 @@ import { Countable, STATS, UnitStats } from "../components/stats";
 import { TypedEntity } from "../entities";
 import { rerenderEntity } from "./renderer";
 import { removeFromInventory } from "./trigger";
-import { getMaxCounter, none } from "../../game/assets/sprites";
+import { none } from "../../game/assets/sprites";
 import { createSequence, getSequence } from "./sequence";
 import { ConsumeSequence, VisionSequence } from "../components/sequencable";
 import { MOVABLE } from "../components/movable";
@@ -29,6 +29,7 @@ import { POSITION } from "../components/position";
 import { getEntityEquipmentStats } from "./damage";
 import { clamp } from "../../game/math/std";
 import { slots } from "../components/equippable";
+import { getMaxCounter } from "../../game/assets/ui";
 
 export const isConsumable = (world: World, entity: Entity) =>
   !!entity[ITEM]?.consume;

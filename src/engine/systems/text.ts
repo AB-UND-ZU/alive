@@ -9,7 +9,6 @@ import { getCell } from "./map";
 import { rerenderEntity } from "./renderer";
 import { TOOLTIP } from "../components/tooltip";
 import { Entity } from "ecs";
-import { createTooltip } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
 import { isDead, isFriendlyFire, isNeutral } from "./damage";
 import { isUnlocked } from "./action";
@@ -21,6 +20,7 @@ import { SPAWNABLE } from "../components/spawnable";
 import { isInPopup } from "./popup";
 import { play } from "../../game/sound";
 import { POPUP } from "../components/popup";
+import { createTooltip } from "./damage";
 
 export const getTooltip = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(

@@ -1,14 +1,5 @@
 import { colors } from "../colors";
 import { Sprite } from "../../../engine/components/sprite";
-import { mergeSprites, slotShadow } from "./particles";
-
-export const shadow: Sprite = {
-  name: "",
-  layers: [
-    { char: "\u0100", color: colors.black },
-    { char: "\u0101", color: colors.black },
-  ],
-};
 
 export const mist: Sprite = {
   name: "mist",
@@ -242,7 +233,7 @@ export const ice: Sprite = {
 };
 
 export const sand: Sprite = {
-  name: "sand_dry",
+  name: "Desert",
   layers: [
     { char: "\u0107", color: colors.olive },
     { char: "\u0109", color: colors.olive },
@@ -256,7 +247,7 @@ export const beach: Sprite = {
 };
 
 export const path: Sprite = {
-  name: "path_normal",
+  name: "Path",
   layers: [
     { char: "\u0107", color: colors.grey },
     { char: "\u0109", color: colors.grey },
@@ -308,39 +299,39 @@ export const soilWet: Sprite = {
 };
 
 export const jetty: Sprite = {
-  name: "jetty",
+  name: "Dock",
   layers: [{ char: "█", color: colors.maroon }],
   facing: {
     up: [
       { char: "█", color: colors.maroon },
-      { char: "Φ", color: colors.navy },
+      { char: "Φ", color: colors.blue },
       { char: "■", color: colors.maroon },
       { char: "\u010e", color: colors.maroon },
-      { char: ".", color: colors.navy },
+      { char: ".", color: colors.blue },
       { char: ":", color: colors.maroon },
     ],
     right: [
       { char: "█", color: colors.maroon },
-      { char: "Γ", color: colors.navy },
+      { char: "Γ", color: colors.blue },
       { char: "■", color: colors.maroon },
       { char: "\u0112", color: colors.maroon },
-      { char: "|", color: colors.navy },
+      { char: "|", color: colors.blue },
       { char: "║", color: colors.maroon },
     ],
     down: [
       { char: "█", color: colors.maroon },
-      { char: "Φ", color: colors.navy },
+      { char: "Φ", color: colors.blue },
       { char: "■", color: colors.maroon },
       { char: "\u010e", color: colors.maroon },
-      { char: ".", color: colors.navy },
+      { char: ".", color: colors.blue },
       { char: ":", color: colors.maroon },
     ],
     left: [
       { char: "█", color: colors.maroon },
-      { char: "Γ", color: colors.navy },
+      { char: "Γ", color: colors.blue },
       { char: "■", color: colors.maroon },
       { char: "\u0112", color: colors.maroon },
-      { char: "|", color: colors.navy },
+      { char: "|", color: colors.blue },
       { char: "║", color: colors.maroon },
     ],
   },
@@ -487,7 +478,7 @@ export const palm2: Sprite = {
   ],
 };
 
-export const palmBurnt1: Sprite = mergeSprites(slotShadow, {
+export const palmBurnt1: Sprite = {
   name: "palm_burnt_one",
   layers: [
     { char: "┐", color: colors.olive },
@@ -496,9 +487,9 @@ export const palmBurnt1: Sprite = mergeSprites(slotShadow, {
     { char: ".", color: colors.maroon },
     { char: ":", color: colors.black },
   ],
-});
+};
 
-export const palmBurnt2: Sprite = mergeSprites(slotShadow, {
+export const palmBurnt2: Sprite = {
   name: "palm_burnt_two",
   layers: [
     { char: "┐", color: colors.olive },
@@ -508,7 +499,7 @@ export const palmBurnt2: Sprite = mergeSprites(slotShadow, {
     { char: "≡", color: colors.black },
     { char: ".", color: colors.olive },
   ],
-});
+};
 
 export const desertPalmBurnt1: Sprite = {
   name: "desert_palm_burnt_one",
@@ -545,18 +536,18 @@ export const desertPalmBurnt2: Sprite = {
   ],
 };
 
-export const hedge1: Sprite = mergeSprites(slotShadow, {
+export const hedge1: Sprite = {
   name: "hedge_one",
   layers: [{ char: "\u0104", color: colors.green }],
-});
+};
 
-export const hedge2: Sprite = mergeSprites(slotShadow, {
+export const hedge2: Sprite = {
   name: "hedge_two",
   layers: [
     { char: "ß", color: colors.green },
     { char: "!", color: colors.green },
   ],
-});
+};
 
 export const hedgeDry1: Sprite = {
   name: "hedge_one_dry",
@@ -626,7 +617,7 @@ export const tree2: Sprite = {
   },
 };
 
-export const treeBurnt1: Sprite = mergeSprites(slotShadow, {
+export const treeBurnt1: Sprite = {
   name: "tree_burnt_one",
   layers: [
     { char: "│", color: colors.maroon },
@@ -635,9 +626,9 @@ export const treeBurnt1: Sprite = mergeSprites(slotShadow, {
     { char: ".", color: colors.grey },
     { char: ":", color: colors.black },
   ],
-});
+};
 
-export const treeBurnt2: Sprite = mergeSprites(slotShadow, {
+export const treeBurnt2: Sprite = {
   name: "tree_burnt_two",
   layers: [
     { char: "│", color: colors.maroon },
@@ -645,7 +636,7 @@ export const treeBurnt2: Sprite = mergeSprites(slotShadow, {
     { char: "+", color: colors.black },
     { char: "┘", color: colors.black },
   ],
-});
+};
 
 export const oakBurnt: Sprite = {
   name: "oak_burnt",
@@ -760,7 +751,7 @@ export const sapling5: Sprite = {
   ],
 };
 
-export const cactus1: Sprite = mergeSprites(shadow, {
+export const cactus1: Sprite = {
   name: "cactus_one",
   layers: [
     { char: "-", color: colors.green },
@@ -769,12 +760,12 @@ export const cactus1: Sprite = mergeSprites(shadow, {
     { char: "\u011b", color: colors.green },
     { char: "|", color: colors.green },
   ],
-});
+};
 
-export const cactus2: Sprite = mergeSprites(shadow, {
+export const cactus2: Sprite = {
   name: "cactus_two",
   layers: [{ char: "¥", color: colors.green }],
-});
+};
 
 export const desertCactus2: Sprite = {
   name: "desert_cactus_two",
@@ -812,15 +803,15 @@ export const tombstone2: Sprite = {
   ],
 };
 
-export const rock1: Sprite = mergeSprites(shadow, {
+export const rock1: Sprite = {
   name: "",
   layers: [
     { char: "\u011f", color: colors.grey },
     { char: "\u0103", color: colors.grey },
   ],
-});
+};
 
-export const rock2: Sprite = mergeSprites(shadow, {
+export const rock2: Sprite = {
   name: "",
   layers: [
     { char: "\u0105", color: colors.grey },
@@ -829,7 +820,7 @@ export const rock2: Sprite = mergeSprites(shadow, {
     { char: ":", color: colors.grey },
     { char: ",", color: colors.black },
   ],
-});
+};
 
 export const enemySpawner: Sprite = {
   name: "Spawn",

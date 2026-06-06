@@ -16,7 +16,7 @@ import { Equipment } from "../../engine/components/equippable";
 import { UnitStats } from "../../engine/components/stats";
 import { getInitialXp } from "../../engine/systems/leveling";
 import { colors } from "../assets/colors";
-import { recolorSprite } from "../assets/templates";
+import { recolorSprite } from "../assets/ui";
 
 export const classes = ["scout", "rogue", "knight", "mage", "???"] as const;
 

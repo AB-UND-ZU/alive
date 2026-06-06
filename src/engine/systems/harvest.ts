@@ -24,7 +24,7 @@ import { getBlockable } from "./action";
 import { getFragment } from "./enter";
 import { FRAGMENT } from "../components/fragment";
 import {
-  fillItems,
+  fillItem,
   harvestConditions,
   harvestDurationFactor,
   harvestTools,
@@ -37,7 +37,7 @@ import { getEquipmentStats } from "../../game/balancing/equipment";
 import { NPC } from "../components/npc";
 import { relativeOrientations, rotateOrientation } from "../../game/math/path";
 import { rerenderEntity } from "./renderer";
-import { getLimbs } from "./damage";
+import { getLimbs, isNeutral } from "./damage";
 import { BUMPABLE } from "../components/bumpable";
 import { getSpikable } from "./spike";
 import { entities } from "..";
@@ -45,8 +45,6 @@ import { FARMABLE } from "../components/farmable";
 import { SPRITE } from "../components/sprite";
 import {
   brewItem,
-  createText,
-  mergeSprites,
   sapling1,
   sapling2,
   sapling3,
@@ -86,6 +84,9 @@ import {
   getBrewingDeal,
 } from "../../game/balancing/brewing";
 import { iterations } from "../../game/math/tracing";
+import { mergeSprites, createText } from "../../game/assets/ui";
+import { BUILDABLE } from "../components/buildable";
+import { STATS } from "../components/stats";
 
 export const isPlantable = (
   world: World,
@@ -120,8 +121,23 @@ export const getHarvestables = (world: World, position: Position) => {
   return harvestables;
 };
 
-export const getHarvestable = (world: World, position: Position) =>
-  getHarvestables(world, position)[0];
+export const getHarvestable = (world: World, position: Position) => {
+  // prioritize objects over sand
+  const harvestables = getHarvestables(world, position);
+  const grounds = harvestables.filter((cell) =>
+    [...trenchResources, ...pavingResources].includes(
+      cell[HARVESTABLE].resource
+    )
+  );
+  return (
+    harvestables.find(
+      (cell) =>
+        ![...trenchResources, ...pavingResources].includes(
+          cell[HARVESTABLE].resource
+        )
+    ) || grounds[0]
+  );
+};
 
 // check if pointing to something harvestable
 export const getHarvestTarget = (
@@ -133,22 +149,8 @@ export const getHarvestTarget = (
   const target = orientation
     ? add(entity[POSITION], orientationPoints[orientation])
     : entity[POSITION];
-  const harvestables = getHarvestables(world, target);
+  const harvestable = getHarvestable(world, target);
   const lootable = getLootable(world, target);
-
-  // prioritize objects over sand
-  const grounds = harvestables.filter((cell) =>
-    [...trenchResources, ...pavingResources].includes(
-      cell[HARVESTABLE].resource
-    )
-  );
-  const harvestable =
-    harvestables.find(
-      (cell) =>
-        ![...trenchResources, ...pavingResources].includes(
-          cell[HARVESTABLE].resource
-        )
-    ) || grounds[0];
 
   const toolName =
     harvestable &&
@@ -165,9 +167,66 @@ export const getHarvestTarget = (
   return harvestable;
 };
 
-export const triggerHarvest = (world: World, entity: Entity, tool: Entity) => {
+export const getBuildables = (world: World, position: Position) => {
+  const buildables: Entity[] = [];
+
+  if (getBlockable(world, position)) return buildables;
+
+  Object.values(getCell(world, position)).forEach((target) => {
+    if (BUILDABLE in target) {
+      buildables.push(target);
+      return;
+    }
+
+    const fragmentEntity = getFragment(world, position);
+
+    if (!fragmentEntity) return;
+
+    const structurableEntity = world.getEntityById(
+      fragmentEntity[FRAGMENT].structure
+    );
+
+    if (structurableEntity && BUILDABLE in structurableEntity) {
+      buildables.push(structurableEntity);
+      return;
+    }
+  });
+
+  return buildables;
+};
+
+export const getBuildable = (world: World, position: Position) =>
+  getBuildables(world, position)[0];
+
+export const getBuildTarget = (
+  world: World,
+  entity: Entity,
+  tool: Entity,
+  orienation: Orientation
+) => {
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const delta = orientationPoints[orienation];
+  const target = combine(size, entity[POSITION], delta);
+  const buildable = getBuildable(world, target);
+  if (buildable) return buildable;
+
+  for (const cell of Object.values(getCell(world, target))) {
+    if (
+      STATS in cell &&
+      isNeutral(world, cell) &&
+      cell[STATS].hp < cell[STATS].maxHp
+    ) {
+      return cell;
+    }
+  }
+};
+
+export const triggerTool = (world: World, entity: Entity, tool: Entity) => {
   const orientation = entity[ORIENTABLE].facing || "up";
-  const harvestable = getHarvestTarget(world, entity, tool, orientation);
+  const harvestable =
+    tool[ITEM].tool === "hammer"
+      ? getBuildTarget(world, entity, tool, orientation)
+      : getHarvestTarget(world, entity, tool, orientation);
   const toolCondition = getSequence(world, entity, "condition");
   const conditionName =
     tool[ITEM].tool && harvestConditions[(tool[ITEM] as Item).tool!];
@@ -185,7 +244,6 @@ export const performDig = (
 ) => {
   const size = world.metadata.gameEntity[LEVEL].size;
   const immersible = getImmersible(world, entity[POSITION]);
-  const isPaving = canPave(world, entity, entity[POSITION]);
   const harvestable = getHarvestTarget(world, entity, toolEntity);
   const adjacentWater = orientations
     .map((orientation) => orientationPoints[orientation])
@@ -201,8 +259,8 @@ export const performDig = (
       )
     );
 
-  if (immersible || isPaving) {
-    performFill(world, entity, entity[POSITION], isPaving ? "path" : "beach");
+  if (immersible) {
+    performFill(world, entity, entity[POSITION]);
   } else if (
     harvestable &&
     (!adjacentWater ||
@@ -323,12 +381,13 @@ export const canPlant = (world: World, entity: Entity) => {
   );
 };
 
-export const canPlow = (world: World, entity: Entity, position: Position) => {
-  const sprites = Object.values(getCell(world, position)).filter(
-    (cell) => cell[SPRITE] && cell[SPRITE].layers.length > 0 && cell !== entity
+export const isCell = (world: World, entity: Entity) =>
+  entity[SPRITE] && entity[SPRITE].layers.length > 0;
+
+export const canPlow = (world: World, entity: Entity, position: Position) =>
+  !Object.values(getCell(world, position)).some(
+    (cell) => isCell(world, cell) && cell !== entity
   );
-  return sprites.length === 0;
-};
 
 export const canTrench = (world: World, entity: Entity, position: Position) => {
   const size = world.metadata.gameEntity[LEVEL].size;
@@ -360,7 +419,7 @@ export const canTrench = (world: World, entity: Entity, position: Position) => {
     adjacentSand &&
     missingFunds(world, entity, {
       item: { amount: 0 },
-      prices: [fillItems.beach],
+      prices: [fillItem],
       stock: 1,
     }).length === 0
   )
@@ -377,45 +436,6 @@ export const canTrench = (world: World, entity: Entity, position: Position) => {
     resource === "beach" &&
     toolEntity[ITEM].material === "gold" &&
     adjacentWater
-  )
-    return true;
-
-  return false;
-};
-
-export const canPave = (world: World, entity: Entity, position: Position) => {
-  if (!canPlow(world, entity, position)) return false;
-
-  const size = world.metadata.gameEntity[LEVEL].size;
-
-  const toolEntity = world.getEntityByIdAndComponents(entity[EQUIPPABLE].tool, [
-    ITEM,
-    SPRITE,
-  ]);
-
-  if (
-    !toolEntity ||
-    !toolEntity[ITEM].material ||
-    toolEntity[ITEM].tool !== "shovel"
-  )
-    return false;
-
-  const adjacentPath = orientations
-    .map((orientation) => orientationPoints[orientation])
-    .some((delta) =>
-      Object.values(getCell(world, combine(size, position, delta))).some(
-        (cell) => cell[HARVESTABLE]?.resource === "path"
-      )
-    );
-
-  if (
-    toolEntity[ITEM].material !== "wood" &&
-    adjacentPath &&
-    missingFunds(world, entity, {
-      item: { amount: 0 },
-      prices: [fillItems.path],
-      stock: 1,
-    }).length === 0
   )
     return true;
 
@@ -447,7 +467,6 @@ export const canHarvest = (
 export const canDig = (world: World, entity: Entity, position: Position) => {
   if (canPlow(world, entity, position)) return true;
   if (canTrench(world, entity, position)) return true;
-  if (canPave(world, entity, position)) return true;
   if (canHarvest(world, entity, position)) return true;
   if (getFarmable(world, position)) return true;
   return false;
@@ -456,35 +475,23 @@ export const canDig = (world: World, entity: Entity, position: Position) => {
 export const performFill = (
   world: World,
   entity: Entity,
-  position: Position,
-  type: "path" | "beach"
+  position: Position
 ) => {
   const immersible = getImmersible(world, entity[POSITION]);
-  const isPaving = type === "path";
-  if (!isPaving && !immersible) return;
+  if (!immersible) return;
 
   // fill cell
-  spendItem(world, entity, fillItems[type]);
-
-  if (!isPaving && immersible) {
-    disposeEntity(world, immersible);
-  }
+  spendItem(world, entity, fillItem);
+  disposeEntity(world, immersible);
 
   // place cell
-  world.metadata.gameEntity[LEVEL].cells[position.x][position.y] = type;
-  const fillEntity = createCell(
-    world,
-    copy(position),
-    isPaving ? "path" : "beach",
-    "hidden"
-  ).cell;
+  world.metadata.gameEntity[LEVEL].cells[position.x][position.y] = "beach";
+  const fillEntity = createCell(world, copy(position), "beach", "hidden").cell;
   registerEntity(world, fillEntity);
 
   // update surrounding beaches and water
-  if (!isPaving) {
-    updateWaterCell(world, position);
-    updateSandCell(world, position);
-  }
+  updateWaterCell(world, position);
+  updateSandCell(world, position);
 };
 
 export const performTrench = (
@@ -519,9 +526,9 @@ export const performTrench = (
   for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
     for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
       const target = combine(size, position, { x: offsetX, y: offsetY });
-      const cells = Object.values(getCell(world, target));
+      let cells = Object.values(getCell(world, target));
 
-      // destroy soil and saplings
+      // destroy soil, sand and saplings
       cells.forEach((cell) => {
         if (FARMABLE in cell) {
           const saplingEntity = world.getEntityByIdAndComponents(
@@ -536,9 +543,12 @@ export const performTrench = (
             cell[FARMABLE].sapling = undefined;
             cell[FARMABLE].nextGeneration = undefined;
           }
-          disposeEntity(world, cell);
-        }
+        } else if (cell[HARVESTABLE]?.resource !== "sand") return;
+
+        disposeEntity(world, cell);
       });
+
+      cells = Object.values(getCell(world, target));
 
       // don't place beach under fixed tiles
       if (
@@ -968,7 +978,7 @@ export default function setupHarvest(world: World) {
       const spikable = getSpikable(world, targetPosition);
 
       if (targetEntity) {
-        triggerHarvest(world, entity, harvestItem);
+        triggerTool(world, entity, harvestItem);
       } else if (walkable || lootable || spikable) {
         // prevent all actions except walking and looting
         continue;

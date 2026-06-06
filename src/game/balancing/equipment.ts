@@ -252,6 +252,11 @@ export const gearStats: Partial<
       iron: { default: { fishing: 2, range: 5 } },
       gold: { default: { fishing: 3, range: 5 } },
     },
+    hammer: {
+      wood: { default: { build: 1 } },
+      iron: { default: { build: 2 } },
+      gold: { default: { build: 3 } },
+    },
   },
 
   prism: {

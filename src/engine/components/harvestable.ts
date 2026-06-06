@@ -22,12 +22,12 @@ export type Resource =
   | "thorn"
   | "banana"
   | "coconut"
+  | "plot"
   | "post"
   | "stump"
   | "husk"
   | "desert_husk"
   | "hinge"
-  | "path_hinge"
   | "root"
   | "sand"
   | "beach"
@@ -51,6 +51,7 @@ export type HarvestStats = {
   mining: number;
   fishing: number;
   farming: number;
+  build: number;
 };
 
 export const emptyHarvestStats: HarvestStats = {
@@ -58,6 +59,7 @@ export const emptyHarvestStats: HarvestStats = {
   mining: 0,
   fishing: 0,
   farming: 0,
+  build: 0,
 };
 
 export const HARVESTABLE = "HARVESTABLE";

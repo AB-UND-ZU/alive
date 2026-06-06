@@ -3,18 +3,15 @@ import { Sprite } from "../../engine/components/sprite";
 import { ClassKey } from "../balancing/classes";
 import { rotateOrientation } from "../math/path";
 import { padCenter, repeat, reversed } from "../math/std";
-import { brightColors, colors } from "./colors";
+import { colors } from "./colors";
+import { none } from "./sprites";
 import {
   addForeground,
   createText,
   mergeSprites,
-  none,
   parseSprite,
-} from "./sprites";
-import { recolorSprite } from "./templates";
-
-export const brightenSprites = (sprites: Sprite[]) =>
-  sprites.map((sprite) => recolorSprite(sprite, brightColors));
+  recolorSprite,
+} from "./ui";
 
 export const recolorLine = (
   line: Sprite[],

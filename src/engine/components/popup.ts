@@ -58,6 +58,7 @@ const popups = [
   "warp",
   "chat",
   "plant",
+  "build",
 ] as const;
 
 export type Popup = {

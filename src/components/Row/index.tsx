@@ -1,6 +1,6 @@
 import { Layer, Sprite } from "../../engine/components/sprite";
 import { dotCount } from "../Entity/Dots";
-import { getFacingLayers } from "../Entity/utils";
+import { getFacingLayers } from "../../game/assets/ui";
 import "./index.css";
 
 export type CellSprite = Sprite & { stackableAmount?: number };

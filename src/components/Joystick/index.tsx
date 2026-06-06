@@ -1,9 +1,10 @@
-import { createText, joystick, none } from "../../game/assets/sprites";
+import { joystick, none } from "../../game/assets/sprites";
 import { colors } from "../../game/assets/colors";
 import { useDimensions } from "../Dimensions";
 import Row from "../Row";
 import "./index.css";
 import { Orientation } from "../../engine/components/orientable";
+import { createText } from "../../game/assets/ui";
 
 export default function Joystick({
   orientations,
@@ -17,7 +18,13 @@ export default function Joystick({
   if (!origin || orientations.length === 0) return null;
 
   return (
-    <div className="Joystick" style={{ top: origin[1] - dimensions.cellHeight * 1.5, left: origin[0] - dimensions.cellWidth * 1.5 }}>
+    <div
+      className="Joystick"
+      style={{
+        top: origin[1] - dimensions.cellHeight * 1.5,
+        left: origin[0] - dimensions.cellWidth * 1.5,
+      }}
+    >
       <Row
         cells={[
           none,
@@ -38,7 +45,7 @@ export default function Joystick({
                 orientations[0] === "left" ? colors.white : colors.grey
               )[0]
             : none,
-            joystick,
+          joystick,
           orientations.includes("right")
             ? createText(
                 "\u0119",

@@ -87,9 +87,6 @@ import {
   bush,
   campfire,
   coconut,
-  createButton,
-  createDialog,
-  createText,
   delay,
   enemySpawner,
   fire,
@@ -98,27 +95,21 @@ import {
   fountainCorner,
   fountainSide,
   fruit,
-  getOrientedSprite,
   granite,
   grass,
   heart,
   herb,
   ice,
-  info,
   ironMine,
   leaves,
   leverOn,
   mana,
-  maxCountable,
-  mergeSprites,
-  minCountable,
   none,
   oakBurnt,
   palm1,
   palm2,
   palmBurnt1,
   palmBurnt2,
-  parseSprite,
   path,
   portal,
   portalVortex,
@@ -145,10 +136,8 @@ import {
   oakMouth,
   wormMouth,
   ilex,
-  addBackground,
   interactBar,
   times,
-  createSpriteButton,
   emptyFlask,
   oakBossUnit,
   healHit,
@@ -168,6 +157,7 @@ import {
   tombstone2,
   soilWet,
   soil,
+  shadow,
 } from "../game/assets/sprites";
 import {
   anvil,
@@ -175,10 +165,7 @@ import {
   basementRightInside,
   fenceBurnt1,
   fenceBurnt2,
-  fenceDoor,
   fenceDoorOpen,
-  fenceDoorOpenPath,
-  fenceDoorPath,
   house,
   houseDruid,
   houseSmith,
@@ -201,7 +188,6 @@ import {
   wallInside,
   window,
   windowInside,
-  swimmingPalisade,
   fortressHouseRight,
   fortressHouseLeft,
   fortressBasementLeftInside,
@@ -224,9 +210,6 @@ import {
   fortressRoofRightDown,
   fortressHouseLeftInside,
   fortressHouseRightInside,
-  palisadeDoor,
-  palisadeDoorPath,
-  palisadeDoorOpenPath,
   palisadeDoorOpen,
   bench,
   kettle,
@@ -240,6 +223,8 @@ import {
   chairLeft,
   chairRight,
   table,
+  fenceDoorBurnt,
+  palisadeDoorBroken,
 } from "../game/assets/sprites/structures";
 import {
   createItemName,
@@ -248,6 +233,7 @@ import {
   getItemSprite,
   npcSequence,
 } from "../game/assets/utils";
+import { getOrientedSprite } from "../game/assets/ui";
 import {
   generateNpcData,
   generateUnitData,
@@ -285,7 +271,20 @@ import addHarvestable, { HARVESTABLE } from "../engine/components/harvestable";
 import { getHarvestConfig } from "../game/balancing/harvesting";
 import { SHOOTABLE } from "../engine/components/shootable";
 import { VANISHABLE } from "../engine/components/vanishable";
-import { recolorSprite } from "../game/assets/templates";
+import {
+  addBackground,
+  createButton,
+  createDialog,
+  createSpriteButton,
+  createText,
+  info,
+  maxCountable,
+  mergeSprites,
+  minCountable,
+  parseSprite,
+  recolorSprite,
+  slotShadow,
+} from "../game/assets/ui";
 import { entryClosed } from "../game/assets/templates/units";
 import { compass } from "../game/assets/templates/equipments";
 import { flask, key } from "../game/assets/templates/items";
@@ -306,15 +305,18 @@ import { habitatDistribution } from "../game/balancing/fishing";
 import { REMAINABLE } from "../engine/components/remainable";
 import { FARMABLE } from "../engine/components/farmable";
 import { invertOrientation } from "../game/math/path";
+import { isSubmerged } from "../engine/systems/immersion";
 
 export const cellNames = [
   "air",
   "player",
+  "water",
   "water_shallow",
   "water_deep",
   "sand",
   "beach",
   "path",
+  "campfire",
   "jetty_horizontal",
   "jetty_vertical",
   "kettle",
@@ -350,7 +352,9 @@ export const cellNames = [
   "palm",
   "palm_fruit",
   "fence",
+  "fence_door",
   "fence_door_path",
+  "palisade_door",
   "palisade_door_path",
   "palisade",
   "fruit",
@@ -362,7 +366,9 @@ export const cellNames = [
   "banana",
   "coconut",
   "pot",
+  "pot_empty",
   "box",
+  "box_empty",
   "habitat",
   "boat",
   "soil",
@@ -371,8 +377,8 @@ export const cellNames = [
   "post",
   "husk",
   "desert_husk",
-  "hinge",
-  "path_hinge",
+  "fence_hinge",
+  "palisade_hinge",
   "root",
   "rubble",
   "footing",
@@ -967,9 +973,9 @@ export const createCell = (
       [VIEWABLE]: { active: false, priority: 90 },
       [POPUP]: {
         active: false,
-        verticalIndezes: [0, 0, 0, 0, 0, 0, 0, 0],
+        verticalIndezes: [0, 0, 0, 0, 0, 0, 0, 0, 0],
         horizontalIndex: 0,
-        selections: [[], [], [], [], [], [], [], []],
+        selections: [[], [], [], [], [], [], [], [], []],
         viewpoint: world.getEntityId(inspectEntity),
         deals: [],
         ingredients: [],
@@ -987,6 +993,7 @@ export const createCell = (
           "map",
           "chat",
           "plant",
+          "build",
         ],
       },
       [SEQUENCABLE]: { states: {} },
@@ -1268,28 +1275,22 @@ export const createCell = (
     });
     all.push(tileEntity);
     return { cell: tileEntity, all };
-  } else if (cell === "water_shallow" || cell === "spring") {
+  } else if (
+    cell === "water_shallow" ||
+    cell === "water_deep" ||
+    cell === "water"
+  ) {
+    const deep =
+      cell === "water_deep" ||
+      (cell === "water" && isSubmerged(world, { x, y }));
     const waterEntity = entities.createWater(world, {
       [FOG]: { visibility, type: "terrain" },
       [FREEZABLE]: { frozen: false },
-      [IMMERSIBLE]: { type: "water", deep: false },
+      [IMMERSIBLE]: { type: "water", deep },
       [POSITION]: { x, y },
       [REFILLABLE]: { element: "water" },
       [RENDERABLE]: { generation: 0 },
-      [SPRITE]: waterShallow,
-      [TEMPO]: { amount: -2 },
-    });
-    all.push(waterEntity);
-    return { cell: waterEntity, all };
-  } else if (cell === "water_deep") {
-    const waterEntity = entities.createWater(world, {
-      [FOG]: { visibility, type: "terrain" },
-      [FREEZABLE]: { frozen: false },
-      [IMMERSIBLE]: { type: "water", deep: true },
-      [POSITION]: { x, y },
-      [REFILLABLE]: { element: "water" },
-      [RENDERABLE]: { generation: 0 },
-      [SPRITE]: waterDeep,
+      [SPRITE]: deep ? waterDeep : waterShallow,
       [TEMPO]: { amount: -2 },
     });
     all.push(waterEntity);
@@ -1763,9 +1764,13 @@ export const createCell = (
     cell === "post" ||
     cell === "root" ||
     cell === "footing" ||
-    cell === "rubble"
+    cell === "rubble" ||
+    cell === "fence_hinge" ||
+    cell === "palisade_hinge"
   ) {
-    const { harvestable } = getHarvestConfig(cell);
+    const { harvestable } = getHarvestConfig(
+      cell === "fence_hinge" || cell === "palisade_hinge" ? "hinge" : cell
+    );
     const remainsSprite: Record<typeof cell, Sprite> = {
       stump: choice(treeBurnt1, treeBurnt2),
       husk: choice(palmBurnt1, palmBurnt2),
@@ -1773,6 +1778,8 @@ export const createCell = (
       post: choice(fenceBurnt1, fenceBurnt2),
       root: oakBurnt,
       footing: choice(brokenPalisade1, brokenPalisade2),
+      fence_hinge: fenceDoorBurnt,
+      palisade_hinge: palisadeDoorBroken,
       rubble: [gravel1, gravel2][(x + y) % 2],
     };
     const remainsEntity = entities.createRemains(world, {
@@ -1780,7 +1787,7 @@ export const createCell = (
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
       [POSITION]: { x, y },
-      [SPRITE]: remainsSprite[cell],
+      [SPRITE]: mergeSprites(slotShadow, remainsSprite[cell]),
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
     });
@@ -2406,12 +2413,14 @@ export const createCell = (
     });
     all.push(fireEntity);
     return { cell: fireEntity, all };
-  } else if (cell === "pot" || cell === "intro_pot") {
+  } else if (cell === "pot" || cell === "intro_pot" || cell === "pot_empty") {
     const potEntity = createChest(
       world,
       "pot",
       { x, y },
-      cell === "intro_pot"
+      cell === "pot_empty"
+        ? []
+        : cell === "intro_pot"
         ? [
             {
               stackable: "apple",
@@ -2423,8 +2432,16 @@ export const createCell = (
     all.push(potEntity);
     return { cell: potEntity, all };
   } else if (cell === "fence") {
-    const { sprite, stats, faction, items, equipments, scratch, harvestable } =
-      generateUnitData("fence");
+    const {
+      sprite,
+      stats,
+      faction,
+      items,
+      equipments,
+      scratch,
+      harvestable,
+      swimming,
+    } = generateUnitData("fence");
     const fenceEntity = entities.createObject(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
@@ -2447,7 +2464,7 @@ export const createCell = (
       [SHOOTABLE]: { shots: 0 },
       [SPRITE]: sprite,
       [STATS]: stats,
-      [SWIMMABLE]: { swimming: false },
+      [SWIMMABLE]: { swimming: false, sprite: swimming },
     });
     all.push(fenceEntity);
     populateInventory(world, fenceEntity, items, equipments);
@@ -2462,6 +2479,7 @@ export const createCell = (
       scratch,
       remains,
       harvestable,
+      swimming,
     } = generateUnitData("palisade");
     const palisadeEntity = entities.createPalisade(world, {
       [ATTACKABLE]: { scratchColor: scratch },
@@ -2476,7 +2494,7 @@ export const createCell = (
       [REMAINABLE]: { cell: remains },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SWIMMABLE]: { swimming: false, sprite: swimmingPalisade },
+      [SWIMMABLE]: { swimming: false, sprite: swimming },
       [SPRITE]: sprite,
       [STATS]: stats,
     });
@@ -2485,48 +2503,66 @@ export const createCell = (
     return { cell: palisadeEntity, all };
   } else if (cell === "palisade_door" || cell === "palisade_door_path") {
     if (cell === "palisade_door_path") {
+      const { harvestable: pathHarvestable } = getHarvestConfig("path");
       all.push(
-        entities.createTile(world, {
-          [FOG]: { visibility, type: "object" },
+        entities.createPaving(world, {
+          [DROPPABLE]: { decayed: false },
+          [HARVESTABLE]: pathHarvestable,
+          [FOG]: { visibility, type: "terrain" },
           [POSITION]: { x, y },
           [RENDERABLE]: { generation: 0 },
-          [SPRITE]: none,
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: path,
           [TEMPO]: { amount: 2 },
         })
       );
     }
-    const gateEntity = entities.createEntry(world, {
+    const { sprite, stats, faction, items, equipments, scratch, harvestable } =
+      generateUnitData("palisadeDoor");
+    const gateEntity = entities.createPort(world, {
+      [ATTACKABLE]: { scratchColor: scratch },
+      [BELONGABLE]: { faction },
+      [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "object" },
-      [LIGHT]: { darkness: 0, visibility: 0, brightness: 0 },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
       [LOCKABLE]: {
         material: "wood",
         locked: true,
-        sprite:
-          cell === "palisade_door_path"
-            ? palisadeDoorOpenPath
-            : palisadeDoorOpen,
+        sprite: mergeSprites(shadow, palisadeDoorOpen),
         type: "gate",
       },
       [POSITION]: { x, y },
+      [REMAINABLE]: { cell: "palisade_hinge" },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: cell === "palisade_door_path" ? palisadeDoorPath : palisadeDoor,
+      [STATS]: stats,
+      [SPRITE]: sprite,
     });
     all.push(gateEntity);
+    populateInventory(world, gateEntity, items, equipments);
     return { cell: gateEntity, all };
   } else if (cell === "fence_door" || cell === "fence_door_path") {
     if (cell === "fence_door_path") {
+      const { harvestable: pathHarvestable } = getHarvestConfig("path");
       all.push(
-        entities.createTile(world, {
-          [FOG]: { visibility, type: "object" },
+        entities.createPaving(world, {
+          [DROPPABLE]: { decayed: false },
+          [HARVESTABLE]: pathHarvestable,
+          [FOG]: { visibility, type: "terrain" },
           [POSITION]: { x, y },
           [RENDERABLE]: { generation: 0 },
-          [SPRITE]: none,
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: path,
           [TEMPO]: { amount: 2 },
         })
       );
     }
+    const { sprite, stats, faction, items, equipments, scratch, harvestable } =
+      generateUnitData("fenceDoor");
     const gateEntity = entities.createGate(world, {
+      [ATTACKABLE]: { scratchColor: scratch },
+      [BELONGABLE]: { faction },
       [BURNABLE]: {
         burning: false,
         eternal: false,
@@ -2534,29 +2570,36 @@ export const createCell = (
         decayed: false,
         combusted: false,
       },
+      [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
       [LOCKABLE]: {
         material: "wood",
         locked: true,
-        sprite: cell === "fence_door_path" ? fenceDoorOpenPath : fenceDoorOpen,
+        sprite: mergeSprites(shadow, fenceDoorOpen),
         type: "gate",
       },
       [POSITION]: { x, y },
-      [REMAINABLE]: {
-        cell: cell === "fence_door_path" ? "path_hinge" : "hinge",
-      },
+      [REMAINABLE]: { cell: "fence_hinge" },
       [RENDERABLE]: { generation: 0 },
       [SEQUENCABLE]: { states: {} },
-      [SPRITE]: cell === "fence_door_path" ? fenceDoorPath : fenceDoor,
+      [STATS]: stats,
+      [SPRITE]: sprite,
       [TOOLTIP]: {
         dialogs: [],
         persistent: false,
         nextDialog: 0,
       },
     });
+    populateInventory(world, gateEntity, items, equipments);
     all.push(gateEntity);
     return { cell: gateEntity, all };
-  } else if (cell === "box" || cell === "tutorial_box") {
+  } else if (
+    cell === "box" ||
+    cell === "tutorial_box" ||
+    cell === "box_empty"
+  ) {
     const { items, equipments, sprite, stats, faction, scratch, harvestable } =
       generateUnitData("box");
     const frameEntity = entities.createFrame(world, {
@@ -2599,22 +2642,24 @@ export const createCell = (
       [STATS]: stats,
     });
     all.push(boxEntity);
-    populateInventory(
-      world,
-      boxEntity,
-      cell === "tutorial_box"
-        ? [
-            {
-              consume: "potion",
-              material: "wood",
-              stat: "mp",
-              amount: 10,
-              bound: false,
-            },
-          ]
-        : items,
-      equipments
-    );
+    if (cell !== "box_empty") {
+      populateInventory(
+        world,
+        boxEntity,
+        cell === "tutorial_box"
+          ? [
+              {
+                consume: "potion",
+                material: "wood",
+                stat: "mp",
+                amount: 10,
+                bound: false,
+              },
+            ]
+          : items,
+        equipments
+      );
+    }
     return { cell: boxEntity, all };
   } else if (cell === "fruit_chest") {
     const chestEntity = createChest(world, "woodChest", { x, y }, [
@@ -2814,15 +2859,16 @@ export const createCell = (
     eliteEntity[EXERTABLE].castable = eliteId;
 
     // create stem and leaves
+    const limbRock = mergeSprites(shadow, rock1);
     const golemLimbs: {
       offset: Position;
       sprite: Sprite;
       orientation?: Orientation;
     }[] = [
-      { offset: { x: 0, y: -1 }, sprite: rock1, orientation: "up" },
-      { offset: { x: 0, y: 1 }, sprite: rock1, orientation: "down" },
-      { offset: { x: -1, y: 0 }, sprite: rock1, orientation: "left" },
-      { offset: { x: 1, y: 0 }, sprite: rock1, orientation: "right" },
+      { offset: { x: 0, y: -1 }, sprite: limbRock, orientation: "up" },
+      { offset: { x: 0, y: 1 }, sprite: limbRock, orientation: "down" },
+      { offset: { x: -1, y: 0 }, sprite: limbRock, orientation: "left" },
+      { offset: { x: 1, y: 0 }, sprite: limbRock, orientation: "right" },
     ];
 
     for (const { offset, sprite, orientation } of golemLimbs) {

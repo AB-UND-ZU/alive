@@ -33,7 +33,7 @@ import {
 import { up2Cactus } from "../levels/tutorial/areas";
 import { findPath } from "../math/path";
 import { add, copy, getDistance } from "../math/std";
-import { createDialog } from "./sprites";
+import { createDialog } from "./ui";
 import { END_STEP, questSequence, QuestStage, START_STEP, step } from "./utils";
 
 const menuDelay = 5000;

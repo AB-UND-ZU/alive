@@ -3,11 +3,8 @@ import { Position, POSITION } from "../../../engine/components/position";
 import { SPRITE } from "../../../engine/components/sprite";
 import { RENDERABLE } from "../../../engine/components/renderable";
 import {
-  createText,
-  getOrientedSprite,
   mapHouse,
   mapSpawn,
-  mergeSprites,
   none,
   path,
   questPointer,
@@ -73,6 +70,7 @@ import {
   npcSequence,
   questSequence,
 } from "../../assets/utils";
+import { getOrientedSprite } from "../../assets/ui";
 import { colors } from "../../assets/colors";
 import { generateNpcKey, generateUnitData } from "../../balancing/units";
 import { BELONGABLE } from "../../../engine/components/belongable";
@@ -126,6 +124,7 @@ import { disposeEntity } from "../../../engine/systems/map";
 import { centerLayer } from "../../assets/pixels";
 import { REMAINABLE } from "../../../engine/components/remainable";
 import { LOCKABLE } from "../../../engine/components/lockable";
+import { createText, mergeSprites } from "../../assets/ui";
 
 export const islandSize = 240;
 export const islandName: LevelName = "LEVEL_ISLAND";
@@ -914,7 +913,10 @@ export const generateIsland = (world: World) => {
 
       setMatrix(
         worldMap,
-        earthSmithHouse.position.x + choice(-1, 1),
+        earthSmithHouse.position.x +
+          (earthSmithHouse.position.x === earthSmithHouse.door.x
+            ? choice(-3, 3)
+            : earthSmithHouse.position.x - earthSmithHouse.door.x),
         earthSmithHouse.position.y + 3,
         "campfire"
       );
@@ -1489,6 +1491,7 @@ export const generateIsland = (world: World) => {
         [STICKY]: {},
         [SPRITE]: none,
       });
+      setIdentifier(world, mainlandStorm, "storm");
       createSequence<"weather", WeatherSequence>(
         world,
         mainlandStorm,

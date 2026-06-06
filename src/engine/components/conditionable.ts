@@ -8,7 +8,9 @@ export type ConditionType =
   | "axe"
   | "pickaxe"
   | "shovel"
-  | "hook";
+  | "hook"
+  | "hammer"
+  | "build";
 
 export type Conditionable = Partial<
   Record<

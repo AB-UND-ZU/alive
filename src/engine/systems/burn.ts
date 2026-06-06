@@ -21,7 +21,7 @@ import { BELONGABLE } from "../components/belongable";
 import { CASTABLE, getEmptyCastable } from "../components/castable";
 import { ORIENTABLE } from "../components/orientable";
 import { SPRITE } from "../components/sprite";
-import { createText, none } from "../../game/assets/sprites";
+import { none } from "../../game/assets/sprites";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
 import { getItemSprite, queueMessage } from "../../game/assets/utils";
@@ -31,6 +31,7 @@ import { INVENTORY } from "../components/inventory";
 import { ITEM } from "../components/item";
 import { createItemAsDrop, placeRemains } from "./drop";
 import { REMAINABLE } from "../components/remainable";
+import { createText } from "../../game/assets/ui";
 
 export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
 
