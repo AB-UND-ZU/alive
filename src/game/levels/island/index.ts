@@ -70,7 +70,7 @@ import {
   npcSequence,
   questSequence,
 } from "../../assets/utils";
-import { getOrientedSprite } from "../../assets/ui";
+import { createDialog, getOrientedSprite } from "../../assets/ui";
 import { colors } from "../../assets/colors";
 import { generateNpcKey, generateUnitData } from "../../balancing/units";
 import { BELONGABLE } from "../../../engine/components/belongable";
@@ -1721,7 +1721,7 @@ export const generateIsland = (world: World) => {
       });
 
       // place guards at exits
-      guards.forEach((guard) => {
+      guards.forEach((guard, index) => {
         const guardEntity = createNpc(world, "earthGuard", { ...guard });
         guardEntity[BEHAVIOUR].patterns.unshift({
           name: "watch",
@@ -1731,6 +1731,19 @@ export const generateIsland = (world: World) => {
             bottomRight: townEnd,
           },
         });
+        guardEntity[TOOLTIP].dialogs =
+          [
+            [
+              createDialog("Welcome stranger"),
+              createDialog("This is Earth Town"),
+              createDialog("Stay safe!"),
+            ],
+            [
+              createDialog("Hey there"),
+              createDialog("Enjoy Earth Town"),
+              createDialog("See you around!"),
+            ],
+          ][index] || [];
       });
 
       // chief next to fountain

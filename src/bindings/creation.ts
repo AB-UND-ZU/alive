@@ -328,6 +328,7 @@ export const cellNames = [
   "chair_left",
   "chair_right",
   "table",
+  "fountain",
   "mountain",
   "ore",
   "iron",

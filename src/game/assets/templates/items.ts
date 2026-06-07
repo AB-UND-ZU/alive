@@ -111,9 +111,26 @@ const bucketElementTemplate: Sprite = {
     { char: "▀", color: TEMPLATE_COLORS.transparent },
   ],
 };
+const ironBucket: Sprite = {
+  name: "Bucket",
+  layers: [
+    { char: "U", color: colors.silver },
+    { char: "▀", color: colors.black },
+  ],
+};
+const ironWaterBucket: Sprite = {
+  name: "Water",
+  layers: [
+    { char: "\u011d", color: colors.blue },
+    { char: "-", color: colors.black },
+    { char: "U", color: colors.silver },
+    { char: "▀", color: colors.black },
+  ],
+};
 export const bucket = createTemplate({
   sprite: bucketTemplate,
   materialElementSprite: bucketElementTemplate,
 });
 bucket.wood.default.name = "Bowl";
-bucket.iron.water.name = "Water";
+bucket.iron.default = ironBucket;
+bucket.iron.water = ironWaterBucket;
