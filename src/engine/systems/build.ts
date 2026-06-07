@@ -245,7 +245,6 @@ export default function setupBuild(world: World) {
       const targetPosition = add(entity[POSITION], delta);
       const walkable = isWalkable(world, targetPosition);
       const lootable = getLootable(world, targetPosition);
-      const spikable = getSpikable(world, targetPosition);
 
       if (buildCondition) {
         if (currentOrientation === targetOrientation && walkable) {
@@ -261,7 +260,7 @@ export default function setupBuild(world: World) {
 
         if (targetEntity) {
           triggerTool(world, entity, toolItem);
-        } else if (walkable || lootable || spikable) {
+        } else if (walkable || lootable) {
           // prevent all actions except walking and looting
           continue;
         }

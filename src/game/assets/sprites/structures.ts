@@ -90,6 +90,20 @@ export const palisade: Sprite = {
   ],
 };
 
+export const barrier: Sprite = {
+  name: "Barrier",
+  layers: [
+    { char: "±", color: colors.grey },
+    { char: "⌐", color: colors.black },
+    { char: "+", color: colors.grey },
+    { char: "-", color: colors.black },
+    { char: "=", color: colors.red },
+    { char: "∙", color: colors.grey },
+    { char: ":", color: colors.grey },
+    { char: ".", color: colors.grey },
+  ],
+};
+
 export const brokenPalisade1: Sprite = {
   name: "palisade_broken_1",
   layers: [

@@ -34,6 +34,7 @@ export type Resource =
   | "path"
   | "rubble"
   | "palisade"
+  | "barrier"
   | "footing"
   | "rock"
   | "mountain"

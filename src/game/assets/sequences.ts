@@ -8107,7 +8107,7 @@ export const flaskConsume: Sequence<ConsumeSequence> = (
       [PARTICLE]: {
         offsetX: 0,
         offsetY: -2,
-        offsetZ: effectHeight,
+        offsetZ: focusHeight,
         duration: consumeSpeed,
         animatedOrigin: { x: 0, y: 0 },
       },

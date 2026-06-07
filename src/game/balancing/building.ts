@@ -5,6 +5,7 @@ import { Sprite } from "../../engine/components/sprite";
 import { colors } from "../assets/colors";
 import {
   anvil,
+  barrier,
   bench,
   boat,
   box,
@@ -24,7 +25,14 @@ import {
   table,
   waterShallow,
 } from "../assets/sprites";
-import { brew, craft, createText, forge, recolorSprite } from "../assets/ui";
+import {
+  brew,
+  craft,
+  createCountable,
+  createText,
+  forge,
+  recolorSprite,
+} from "../assets/ui";
 import { getOrientedSprite } from "../assets/ui";
 
 export type Construction = {
@@ -347,6 +355,26 @@ export const buildConstructions: Construction[] = [
     ],
     grounds: ["air", "sand", "path", "water"],
     parts: [{ stackable: "ore", amount: 6 }],
+    level: 2,
+    effort: 20,
+  },
+  {
+    description: [
+      createText("A defensive stone"),
+      createText("wall with spikes."),
+      createCountable({ spike: 1 }, "spike", "display"),
+    ],
+    variants: [
+      {
+        cell: "barrier",
+        sprite: barrier,
+      },
+    ],
+    grounds: ["air", "sand", "path", "water"],
+    parts: [
+      { stackable: "ore", amount: 6 },
+      { stackable: "thorn", amount: 4 },
+    ],
     level: 2,
     effort: 20,
   },

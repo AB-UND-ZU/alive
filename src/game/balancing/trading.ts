@@ -176,6 +176,7 @@ export const purchasableItems: Omit<Item, "amount" | "carrier" | "bound">[] = [
   { stackable: "arrow" },
   { stackable: "charge" },
   { stackable: "worm" },
+  { stackable: "thorn" },
 ];
 
 /* balance: <count> * <coins> ~= 20

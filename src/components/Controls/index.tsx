@@ -143,21 +143,21 @@ const getActionActivations = (
     if (!hero[CONDITIONABLE]?.[harvestConditions[item.tool]]) {
       return centerSprites([itemSprite], 6);
     }
-    const swordEntity = world.getEntityByIdAndComponents(
+    const weaponEntity = world.getEntityByIdAndComponents(
       hero[EQUIPPABLE]?.weapon,
       [SPRITE]
     );
-    return centerSprites([swordEntity?.[SPRITE] || none], 6);
+    return centerSprites([weaponEntity?.[SPRITE] || none], 6);
   } else if (
     item.tool === "hook" &&
     hookCondition &&
     !hookCondition.orientation
   ) {
-    const swordEntity = world.getEntityByIdAndComponents(
+    const weaponEntity = world.getEntityByIdAndComponents(
       hero[EQUIPPABLE]?.weapon,
       [SPRITE]
     );
-    return centerSprites([swordEntity?.[SPRITE] || none], 6);
+    return centerSprites([weaponEntity?.[SPRITE] || none], 6);
   } else if (item.spell) {
     const mp = hero[STATS]?.mp || 0;
     const mpSegment =
@@ -173,6 +173,12 @@ const getActionActivations = (
       mana,
       ...repeat(none, alignRight ? 0 : 2),
     ].slice(alignRight ? -6 : 0, alignRight ? undefined : 6);
+  } else if (item.weapon) {
+    const weaponEntity = world.getEntityByIdAndComponents(
+      hero[EQUIPPABLE]?.weapon,
+      [SPRITE]
+    );
+    return centerSprites([weaponEntity?.[SPRITE] || none], 6);
   }
 
   return repeat(none, 6);
@@ -316,7 +322,7 @@ export default function Controls() {
       ),
 
     (world, hero, toolEntity) => {
-      const swordEntity = world.getEntityByIdAndComponents(
+      const weaponEntity = world.getEntityByIdAndComponents(
         hero[EQUIPPABLE]?.weapon,
         [SPRITE]
       );
@@ -330,7 +336,7 @@ export default function Controls() {
         hero[CONDITIONABLE]?.hammer ||
         hookCondition
       ) {
-        return (swordEntity?.[SPRITE].name || "Stow").toUpperCase();
+        return (weaponEntity?.[SPRITE].name || "Stow").toUpperCase();
       }
       if (toolEntity[ITEM].tool === "pickaxe") {
         return "MINE";

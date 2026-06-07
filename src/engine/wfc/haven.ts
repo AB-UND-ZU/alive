@@ -33,10 +33,10 @@ const mapTiles: Record<string, string> = {
   hedge: "hedge",
   path: "path",
 
-  potLeft: "pot",
-  potRight: "pot",
-  boxLeft: "woodChest",
-  boxRight: "woodChest",
+  potLeft: "desert_pot",
+  potRight: "desert_pot",
+  boxLeft: "desert_wood_chest",
+  boxRight: "desert_wood_chest",
 
   doorLeft: "wood_port",
   doorCenter: "wood_port",

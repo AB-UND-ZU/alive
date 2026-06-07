@@ -49,6 +49,7 @@ import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
 import { NpcType } from "../../engine/components/npc";
 import {
+  barrier,
   fence,
   fenceDoor,
   palisade,
@@ -89,6 +90,7 @@ export type UnitKey =
   | "fenceDoor"
   | "palisade"
   | "palisadeDoor"
+  | "barrier"
   | "cactus1"
   | "cactus2"
   | "rock1"
@@ -1008,6 +1010,30 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: mergeSprites(shadow, palisadeDoor),
     remains: "palisade_hinge",
   },
+  barrier: {
+    faction: "unit",
+    scratch: colors.silver,
+    stats: {
+      hp: 50,
+      armor: 3,
+      spike: 1,
+    },
+    equipments: [],
+    harvestable: "barrier",
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "ore", amount: 4 },
+          { stackable: "thorn", amount: 4 },
+        ],
+      },
+    ],
+    patternNames: [],
+    swimming: mergeSprites(recolorSprite(emptySlot, colors.navy), barrier),
+    sprite: mergeSprites(slotShadow, barrier),
+    remains: "footing",
+  },
   cactus1: {
     faction: "unit",
     scratch: colors.green,
@@ -1018,7 +1044,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     harvestable: "cactus",
-    drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 3 }] }],
     patternNames: [],
     sprite: mergeSprites(shadow, cactus1),
   },

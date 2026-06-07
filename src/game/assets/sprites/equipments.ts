@@ -28,8 +28,7 @@ export const emptyBottle: Sprite = {
   name: "Bottle",
   layers: [
     { char: "|", color: colors.grey },
-    { char: "+", color: colors.black },
-    { char: ".", color: colors.black },
+    { char: "\u011d", color: colors.black },
     { char: "\u011f", color: colors.maroon },
     { char: "°", color: colors.grey },
   ],

@@ -502,13 +502,12 @@ export const removePopup = (world: World, entity: Entity) => {
 
   // remove popup
   world.removeComponentFromEntity(entity as TypedEntity<"POPUP">, POPUP, false);
-  const discovery = getSequence(world, entity, "discovery");
-  if (discovery) {
-    discovery.args.idle = none;
+  if (getSequence(world, entity, "discovery")) {
+    disposeSequence(world, entity, "discovery");
   }
 
   // abort popup sequence
-  if (entity[SEQUENCABLE].states.popup) {
+  if (getSequence(world, entity, "popup")) {
     disposeSequence(world, entity, "popup");
   }
 };

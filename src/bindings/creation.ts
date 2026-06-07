@@ -328,6 +328,23 @@ export const cellNames = [
   "chair_left",
   "chair_right",
   "table",
+  "house_left",
+  "basement_left",
+  "house_right",
+  "basement_right",
+  "wall",
+  "wall_window",
+  "house",
+  "house_window",
+  "roof",
+  "roof_left",
+  "roof_right",
+  "roof_left_up",
+  "roof_up",
+  "roof_up_right",
+  "roof_down_left",
+  "roof_down",
+  "roof_right_down",
   "fountain",
   "mountain",
   "ore",
@@ -358,6 +375,7 @@ export const cellNames = [
   "palisade_door",
   "palisade_door_path",
   "palisade",
+  "barrier",
   "fruit",
   "wood",
   "berry",
@@ -2414,7 +2432,28 @@ export const createCell = (
     });
     all.push(fireEntity);
     return { cell: fireEntity, all };
-  } else if (cell === "pot" || cell === "intro_pot" || cell === "pot_empty") {
+  } else if (
+    cell === "desert_pot" ||
+    cell === "pot" ||
+    cell === "intro_pot" ||
+    cell === "pot_empty"
+  ) {
+    if (cell === "desert_pot") {
+      const { harvestable } = getHarvestConfig("sand");
+      all.push(
+        entities.createPaving(world, {
+          [DROPPABLE]: { decayed: false },
+          [HARVESTABLE]: harvestable,
+          [FOG]: { visibility, type: "terrain" },
+          [POSITION]: { x, y },
+          [RENDERABLE]: { generation: 0 },
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: sand,
+          [TEMPO]: { amount: -1 },
+        })
+      );
+    }
+
     const potEntity = createChest(
       world,
       "pot",
@@ -2470,7 +2509,7 @@ export const createCell = (
     all.push(fenceEntity);
     populateInventory(world, fenceEntity, items, equipments);
     return { cell: fenceEntity, all };
-  } else if (cell === "palisade") {
+  } else if (cell === "palisade" || cell === "barrier") {
     const {
       sprite,
       stats,
@@ -2481,7 +2520,7 @@ export const createCell = (
       remains,
       harvestable,
       swimming,
-    } = generateUnitData("palisade");
+    } = generateUnitData(cell);
     const palisadeEntity = entities.createPalisade(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
@@ -2721,6 +2760,7 @@ export const createCell = (
     setIdentifier(world, chestEntity, "potion_chest");
     return { cell: chestEntity, all };
   } else if (
+    cell === "desert_wood_chest" ||
     cell === "woodChest" ||
     cell === "ironChest" ||
     cell === "goldChest" ||
@@ -2729,7 +2769,27 @@ export const createCell = (
     cell === "ilexChest" ||
     cell === "oakChest"
   ) {
-    const chestEntity = createChest(world, cell, { x, y });
+    if (cell === "desert_wood_chest") {
+      const { harvestable } = getHarvestConfig("sand");
+      all.push(
+        entities.createPaving(world, {
+          [DROPPABLE]: { decayed: false },
+          [HARVESTABLE]: harvestable,
+          [FOG]: { visibility, type: "terrain" },
+          [POSITION]: { x, y },
+          [RENDERABLE]: { generation: 0 },
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: sand,
+          [TEMPO]: { amount: -1 },
+        })
+      );
+    }
+
+    const chestEntity = createChest(
+      world,
+      cell === "desert_wood_chest" ? "woodChest" : cell,
+      { x, y }
+    );
     all.push(chestEntity);
     return { cell: chestEntity, all };
   } else if (cell === "boat") {

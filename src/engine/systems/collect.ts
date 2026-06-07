@@ -252,6 +252,7 @@ export const equipItem = (
   const itemId = world.getEntityId(itemEntity);
 
   let unequippedId: number | undefined;
+  let toolSwapped = false;
   for (const equipment of equipments) {
     if (
       itemEntity[ITEM].accessory !== equipment &&
@@ -283,13 +284,17 @@ export const equipItem = (
     // swap tool if needed
     if (equipment === "tool" && !entity[ACTIONABLE].toolEquipped) {
       entity[ACTIONABLE].toolEquipped = true;
+      unequippedId = entity[EQUIPPABLE].skill;
+      toolSwapped = true;
     } else if (equipment === "skill" && entity[ACTIONABLE].toolEquipped) {
       entity[ACTIONABLE].toolEquipped = false;
+      unequippedId = entity[EQUIPPABLE].tool;
+      toolSwapped = true;
     }
   }
 
   if (!isNpc(world, entity)) {
-    if (unequippedId === itemId) {
+    if (unequippedId === itemId && !toolSwapped) {
       queueMessage(world, entity, {
         line: addBackground(
           [

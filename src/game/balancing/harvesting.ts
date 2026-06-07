@@ -39,6 +39,7 @@ const harvestEfforts: Record<Resource, number> = {
   rubble: 1,
 
   palisade: 11,
+  barrier: 11,
   hinge: 1,
   footing: 1,
   rock: 1,
@@ -123,6 +124,7 @@ export const harvestScratches: Record<Resource, string> = {
   rubble: colors.silver,
 
   palisade: colors.silver,
+  barrier: colors.red,
   footing: colors.silver,
   hinge: colors.silver,
   rock: colors.silver,
@@ -174,6 +176,7 @@ export const harvestTools: Record<Resource, Tool> = {
   rubble: "shovel",
 
   palisade: "pickaxe",
+  barrier: "pickaxe",
   footing: "shovel",
   hinge: "shovel",
   rock: "pickaxe",

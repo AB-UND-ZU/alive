@@ -2140,7 +2140,8 @@ export const stringifyMap = (
         : [];
 
       if (objects.includes("habitat")) row += "\u03b1";
-      else if (objects.includes("palisade")) row += "î";
+      else if (objects.includes("palisade") || objects.includes("barrier"))
+        row += "î";
       else if (cell === "water_shallow") row += "~";
       else if (cell === "water_deep") row += "≈";
       else if (cell === "snow" || objects.includes("snow")) row += "▒";
@@ -2160,12 +2161,32 @@ export const stringifyMap = (
       else if (objects.includes("palm")) row += "¶";
       else if (objects.includes("palm_fruit")) row += "«";
       else if (cell === "sand") row += "░";
+      else if (cell === "beach") row += "▒";
       else if (cell === "fence") row += "±";
       else if (cell === "path") row += "▓";
       else if (cell === "jetty_vertical" || cell === "jetty_horizontal")
         row += "J";
-      else if (cell === "pot") row += "o";
-      else if (cell.includes("door")) row += "D";
+      else if (cell === "box") row += "■";
+      else if (cell.endsWith("pot")) row += "o";
+      else if (cell.toLowerCase().endsWith("chest")) row += "π";
+      else if (cell.includes("door")) row += "◙";
+      else if (cell.endsWith("house_left")) row += "├";
+      else if (cell.endsWith("basement_left")) row += "└";
+      else if (cell.endsWith("house_right")) row += "┤";
+      else if (cell.endsWith("basement_right")) row += "┘";
+      else if (cell.endsWith("wall")) row += "┴";
+      else if (cell.endsWith("wall_window")) row += "─";
+      else if (cell.endsWith("house")) row += "┼";
+      else if (cell.endsWith("house_window")) row += "┬";
+      else if (cell.endsWith("roof")) row += "╬";
+      else if (cell.endsWith("roof_left")) row += "╠";
+      else if (cell.endsWith("roof_right")) row += "╣";
+      else if (cell.endsWith("roof_left_up")) row += "╒";
+      else if (cell.endsWith("roof_up")) row += "╦";
+      else if (cell.endsWith("roof_up_right")) row += "╕";
+      else if (cell.endsWith("roof_down_left")) row += "╞";
+      else if (cell.endsWith("roof_down")) row += "╪";
+      else if (cell.endsWith("roof_right_down")) row += "╡";
       else if (cell === "air" || cell === ("gap" as CellType)) row += " ";
       else row += "?";
     }
