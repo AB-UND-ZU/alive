@@ -620,21 +620,53 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     drops: [
+      { chance: 9, items: [{ stackable: "nugget", amount: 2 }] },
       {
-        chance: 35,
-        items: [
-          { consume: "potion", material: "wood", stat: "hp", amount: 10 },
-        ],
-      },
-      {
-        chance: 35,
-        items: [
-          { consume: "potion", material: "wood", stat: "mp", amount: 10 },
-        ],
-      },
-      {
-        chance: 30,
+        chance: 7,
         items: [{ stackable: "resource", material: "wood", amount: 1 }],
+      },
+      {
+        chance: 7,
+        items: [{ stackable: "resource", material: "iron", amount: 1 }],
+      },
+
+      { chance: 7, items: [{ stackable: "crystal", amount: 1 }] },
+      { chance: 7, items: [{ stackable: "mineral", amount: 1 }] },
+
+      { chance: 7, items: [{ stackable: "algae", amount: 1 }] },
+      {
+        chance: 7,
+        items: [
+          { stackable: "salmon", amount: 1 },
+          { stackable: "tuna", amount: 1 },
+        ],
+      },
+      {
+        chance: 7,
+        items: [
+          { stackable: "pike", amount: 1 },
+          { stackable: "cod", amount: 1 },
+        ],
+      },
+
+      { chance: 7, items: [{ stackable: "granola", amount: 2 }] },
+      { chance: 7, items: [{ stackable: "tea", amount: 2 }] },
+
+      {
+        chance: 7,
+        items: [{ consume: "potion", material: "wood", stat: "hp", amount: 5 }],
+      },
+      {
+        chance: 7,
+        items: [{ consume: "potion", material: "wood", stat: "mp", amount: 5 }],
+      },
+      {
+        chance: 7,
+        items: [{ consume: "potion", material: "iron", stat: "hp", amount: 2 }],
+      },
+      {
+        chance: 7,
+        items: [{ consume: "potion", material: "iron", stat: "mp", amount: 2 }],
       },
     ],
     patternNames: [],
@@ -648,7 +680,32 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       armor: 2,
     },
     equipments: [],
-    drops: [],
+    drops: [
+      { chance: 20, items: [{ stackable: "nugget", amount: 6 }] },
+      {
+        chance: 10,
+        items: [{ stackable: "resource", material: "wood", amount: 3 }],
+      },
+      {
+        chance: 10,
+        items: [{ stackable: "resource", material: "iron", amount: 3 }],
+      },
+
+      { chance: 10, items: [{ stackable: "eel", amount: 2 }] },
+      { chance: 10, items: [{ stackable: "seastar", amount: 2 }] },
+
+      { chance: 10, items: [{ stackable: "juice", amount: 3 }] },
+      { chance: 10, items: [{ stackable: "curry", amount: 3 }] },
+
+      {
+        chance: 10,
+        items: [{ consume: "potion", material: "iron", stat: "hp", amount: 6 }],
+      },
+      {
+        chance: 10,
+        items: [{ consume: "potion", material: "iron", stat: "mp", amount: 6 }],
+      },
+    ],
     patternNames: [],
     sprite: mergeSprites(slotShadow, ironChest),
   },
@@ -696,14 +753,36 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     drops: [
-      { chance: 30, items: [{ stackable: "coin", amount: 3 }] },
-      { chance: 10, items: [{ stackable: "berry", amount: 3 }] },
-      { chance: 10, items: [{ stackable: "flower", amount: 3 }] },
-      { chance: 10, items: [{ stackable: "leaf", amount: 3 }] },
-      { chance: 10, items: [{ stackable: "ore", amount: 3 }] },
-      { chance: 10, items: [{ stackable: "stick", amount: 3 }] },
-      { chance: 10, items: [{ stat: "hp", amount: 1 }] },
-      { chance: 10, items: [{ stat: "mp", amount: 1 }] },
+      { chance: 15, items: [{ stackable: "coin", amount: 3 }] },
+      { chance: 5, items: [{ stackable: "ore", amount: 2 }] },
+      { chance: 5, items: [{ stackable: "stick", amount: 2 }] },
+
+      { chance: 5, items: [{ stackable: "berry", amount: 4 }] },
+      { chance: 5, items: [{ stackable: "flower", amount: 4 }] },
+      { chance: 5, items: [{ stackable: "leaf", amount: 4 }] },
+
+      { chance: 5, items: [{ stackable: "apple", amount: 1 }] },
+      { chance: 5, items: [{ stackable: "shroom", amount: 1 }] },
+
+      { chance: 5, items: [{ stackable: "grain", amount: 4 }] },
+      { chance: 5, items: [{ stackable: "spore", amount: 4 }] },
+      { chance: 5, items: [{ stackable: "wheat", amount: 1 }] },
+      { chance: 5, items: [{ stackable: "worm", amount: 3 }] },
+
+      { chance: 5, items: [{ stackable: "gravel", amount: 3 }] },
+      { chance: 5, items: [{ stackable: "sand", amount: 3 }] },
+
+      {
+        chance: 5,
+        items: [{ consume: "potion", material: "wood", stat: "hp", amount: 1 }],
+      },
+      {
+        chance: 5,
+        items: [{ consume: "potion", material: "wood", stat: "mp", amount: 1 }],
+      },
+
+      { chance: 5, items: [{ stat: "hp", amount: 1 }] },
+      { chance: 5, items: [{ stat: "mp", amount: 1 }] },
     ],
     patternNames: [],
     sprite: mergeSprites(slotShadow, pot),
@@ -717,12 +796,42 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     equipments: [],
     harvestable: "box",
     drops: [
-      { chance: 15, items: [{ stat: "xp", amount: 1 }] },
-      { chance: 20, items: [{ stackable: "apple", amount: 3 }] },
-      { chance: 20, items: [{ stackable: "shroom", amount: 3 }] },
-      { chance: 15, items: [{ stackable: "fruit", amount: 1 }] },
-      { chance: 15, items: [{ stackable: "herb", amount: 1 }] },
-      { chance: 15, items: [{ stackable: "sapling", amount: 1 }] },
+      { chance: 15, items: [{ stackable: "coin", amount: 8 }] },
+      { chance: 5, items: [{ stackable: "ore", amount: 4 }] },
+      { chance: 5, items: [{ stackable: "stick", amount: 4 }] },
+
+      { chance: 5, items: [{ stackable: "fruit", amount: 1 }] },
+      { chance: 5, items: [{ stackable: "herb", amount: 1 }] },
+      { chance: 5, items: [{ stackable: "sapling", amount: 1 }] },
+
+      { chance: 5, items: [{ stackable: "banana", amount: 1 }] },
+      { chance: 5, items: [{ stackable: "coconut", amount: 1 }] },
+
+      { chance: 5, items: [{ stackable: "wheat", amount: 3 }] },
+      { chance: 5, items: [{ stackable: "bread", amount: 1 }] },
+
+      { chance: 5, items: [{ stackable: "thorn", amount: 4 }] },
+      { chance: 5, items: [{ stackable: "arrow", amount: 3 }] },
+
+      { chance: 5, items: [{ stackable: "salmon", amount: 1 }] },
+      { chance: 5, items: [{ stackable: "pike", amount: 1 }] },
+
+      {
+        chance: 5,
+        items: [{ consume: "potion", material: "wood", stat: "hp", amount: 2 }],
+      },
+      {
+        chance: 5,
+        items: [{ consume: "potion", material: "wood", stat: "mp", amount: 2 }],
+      },
+      {
+        chance: 5,
+        items: [{ consume: "potion", material: "iron", stat: "hp", amount: 1 }],
+      },
+      {
+        chance: 5,
+        items: [{ consume: "potion", material: "iron", stat: "mp", amount: 1 }],
+      },
     ],
     patternNames: [],
     sprite: mergeSprites(slotShadow, box),

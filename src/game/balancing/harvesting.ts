@@ -53,7 +53,7 @@ const harvestYields: Partial<
   tree: [{ stackable: "stick", amount: 1 }],
   oak: [
     { stackable: "resource", material: "wood", amount: 1 },
-    { stackable: "leaf", amount: 3 },
+    { stackable: "sapling", amount: 1 },
   ],
   palm: [{ stackable: "stick", amount: 2 }],
   post: [{ stackable: "stick", amount: 1 }],
@@ -75,7 +75,7 @@ const harvestYields: Partial<
 
   sand: [{ stackable: "sand", amount: 1 }],
   beach: [{ stackable: "sand", amount: 1 }],
-  path: [{ stackable: "gravel", amount: 1 }],
+  path: [{ stackable: "gravel", amount: 2 }],
   rubble: [{ stackable: "gravel", amount: 1 }],
 
   footing: [{ stackable: "ore", amount: 2 }],

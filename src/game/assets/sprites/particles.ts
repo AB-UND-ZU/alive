@@ -36,23 +36,23 @@ export const keyHole: Sprite = {
 
 export const barrierSide: Sprite = {
   name: "barrier_side",
-  layers: [{ char: "╬", color: colors.white }],
+  layers: [{ char: "╬", color: colors.red }],
   facing: {
-    up: [{ char: "═", color: colors.white }],
-    right: [{ char: "║", color: colors.white }],
-    down: [{ char: "═", color: colors.white }],
-    left: [{ char: "║", color: colors.white }],
+    up: [{ char: "═", color: colors.red }],
+    right: [{ char: "║", color: colors.red }],
+    down: [{ char: "═", color: colors.red }],
+    left: [{ char: "║", color: colors.red }],
   },
 };
 
 export const barrierCorner: Sprite = {
   name: "barrier_corner",
-  layers: [{ char: "╬", color: colors.white }],
+  layers: [{ char: "╬", color: colors.red }],
   facing: {
-    up: [{ char: "╔", color: colors.white }],
-    right: [{ char: "╗", color: colors.white }],
-    down: [{ char: "╝", color: colors.white }],
-    left: [{ char: "╚", color: colors.white }],
+    up: [{ char: "╔", color: colors.red }],
+    right: [{ char: "╗", color: colors.red }],
+    down: [{ char: "╝", color: colors.red }],
+    left: [{ char: "╚", color: colors.red }],
   },
 };
 

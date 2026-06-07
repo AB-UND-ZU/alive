@@ -708,8 +708,8 @@ export const entitySprites: Record<
   algae: {
     sprite: algae,
     getDescription: (stats) => [
-      createText("Slimy green sea"),
-      createText("weed from oceans."),
+      createText("Slimy green algae"),
+      createText("from the ocean."),
       createCountable(stats, "xp", "display"),
     ],
   },

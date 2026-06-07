@@ -28,7 +28,7 @@ import { brew, craft, createText, forge, recolorSprite } from "../assets/ui";
 import { getOrientedSprite } from "../assets/ui";
 
 export type Construction = {
-description: Sprite[][];
+  description: Sprite[][];
   variants: {
     orientation?: Orientation;
     sprite: Sprite;
@@ -280,7 +280,7 @@ export const buildConstructions: Construction[] = [
       },
     ],
     grounds: ["air"],
-    parts: [{ stackable: "gravel", amount: 1 }],
+    parts: [{ stackable: "gravel", amount: 2 }],
     level: 1,
     effort: 0,
   },

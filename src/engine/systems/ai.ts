@@ -134,7 +134,10 @@ import { FISHABLE } from "../components/fishable";
 import { BAITABLE } from "../components/baitable";
 import { createBubble } from "./water";
 import { HOOKABLE } from "../components/hookable";
-import { fishingDistributionLevels } from "../../game/balancing/fishing";
+import {
+  fishingDistributionLevels,
+  habitatRegenerationChance,
+} from "../../game/balancing/fishing";
 import {
   rage,
   confused,
@@ -1850,8 +1853,10 @@ export default function setupAi(world: World) {
               createBubble(world, entity[POSITION], "water");
             }
           } else if (!fishEntity && entity[FISHABLE].population === 0) {
-            // clear habitat
-            disposeEntity(world, entity);
+            // regenerate habitat
+            if (Math.random() < habitatRegenerationChance) {
+              entity[FISHABLE].population = 1;
+            }
           }
         } else if (pattern.name === "ilex") {
           const heroEntity = getIdentifierAndComponents(world, "hero", [

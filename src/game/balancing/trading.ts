@@ -31,8 +31,8 @@ export const itemPrices: Partial<Record<Stackable, number>> = {
   tuna: 12,
   cod: 12,
 
-  algae: 3,
-  eel: 10,
+  algae: 15,
+  eel: 30,
 
   pearl: 50,
   seastar: 30,

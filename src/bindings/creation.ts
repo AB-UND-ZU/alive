@@ -2295,7 +2295,7 @@ export const createCell = (
             ]
           : [
               ...createText("pressing "),
-              ...createText("[TAB]", colors.grey),
+              ...createText("[B]", colors.grey),
               ...createText("."),
             ],
         [],

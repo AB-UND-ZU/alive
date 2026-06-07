@@ -665,7 +665,7 @@ export const worm: Sprite = {
 };
 
 export const algae: Sprite = {
-  name: "Algae",
+  name: "Seaweed",
   layers: [
     { char: "+", color: colors.green },
     { char: "-", color: colors.black },

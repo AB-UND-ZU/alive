@@ -6,6 +6,8 @@ export const habitatDistribution = [
   [5, "pearl"],
 ] as const;
 
+export const habitatRegenerationChance = 0.005;
+
 export const fishingDistributionLevels: [
   number,
   Omit<Item, "bound" | "carrier">

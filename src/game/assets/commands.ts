@@ -33,6 +33,7 @@ import {
   ORIENTABLE,
   Orientation,
   orientationPoints,
+  orientations,
 } from "../../engine/components/orientable";
 import { TRACKABLE } from "../../engine/components/trackable";
 import { accessories } from "../../engine/components/equippable";
@@ -517,7 +518,8 @@ const executeNew = (
   world: World,
   entity: Entity,
   cellName: string = "",
-  amountText = "1"
+  amountText = "1",
+  direction?: string
 ) => {
   const cell = cellName as CellType | "";
   if (cell !== "" && !cellNames.includes(cell)) {
@@ -530,9 +532,15 @@ const executeNew = (
     return `No number "${amountText}"!`;
   }
 
+  let orientation = (entity[ORIENTABLE]?.facing || "up") as Orientation;
+  if (direction && !orientations.includes(direction as Orientation)) {
+    return `No direction "${orientation}"!`;
+  } else if (direction) {
+    orientation = direction as Orientation;
+  }
+
   const size = world.metadata.gameEntity[LEVEL].size;
-  const delta =
-    orientationPoints[(entity[ORIENTABLE]?.facing || "up") as Orientation];
+  const delta = orientationPoints[orientation];
   for (let offset = 0; offset < amount; offset += 1) {
     const target = combine(size, entity[POSITION], {
       x: delta.x * (offset + 1),
@@ -650,8 +658,8 @@ commandSignatures.new = {
   short: "n",
   executor: executeNew,
   minArgs: 0,
-  maxArgs: 2,
-  usage: "/new [cell] [num]",
+  maxArgs: 3,
+  usage: "/new [cell] [num] [dir]",
 };
 commandSignatures.pin = {
   short: "p",

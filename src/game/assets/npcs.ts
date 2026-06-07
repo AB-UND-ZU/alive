@@ -2159,10 +2159,20 @@ export const fireSmithNpc: Sequence<NpcSequence> = (world, entity, state) => {
     stage,
     name: "quest",
     onEnter: () => {
-      const questTarget: Target = {
-        amount: 10,
-        unit: choice("goldPrism", "goldOrb", "goldEye"),
-      };
+      const questTarget: Target = choice(
+        {
+          amount: 10,
+          unit: "goldPrism",
+        },
+        {
+          amount: 8,
+          unit: "goldEye",
+        },
+        {
+          amount: 6,
+          unit: "goldOrb",
+        }
+      );
       createPopup(world, entity, {
         targets: [questTarget],
         deals: [
