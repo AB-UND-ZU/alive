@@ -165,7 +165,6 @@ import {
   basementRightInside,
   fenceBurnt1,
   fenceBurnt2,
-  fenceDoorOpen,
   house,
   houseDruid,
   houseSmith,
@@ -210,7 +209,6 @@ import {
   fortressRoofRightDown,
   fortressHouseLeftInside,
   fortressHouseRightInside,
-  palisadeDoorOpen,
   bench,
   kettle,
   brokenPalisade1,
@@ -285,7 +283,12 @@ import {
   recolorSprite,
   slotShadow,
 } from "../game/assets/ui";
-import { entryClosed } from "../game/assets/templates/units";
+import {
+  barrierDoorOpen,
+  entryClosed,
+  fenceDoorOpen,
+  palisadeDoorOpen,
+} from "../game/assets/templates/units";
 import { compass } from "../game/assets/templates/equipments";
 import { flask, key } from "../game/assets/templates/items";
 import { CASTABLE, getEmptyCastable } from "../engine/components/castable";
@@ -376,6 +379,7 @@ export const cellNames = [
   "palisade_door_path",
   "palisade",
   "barrier",
+  "fire_entrance",
   "fruit",
   "wood",
   "berry",
@@ -672,6 +676,7 @@ export const createNpc = (
     [ACTIONABLE]: {
       spellTriggered: false,
       skillTriggered: false,
+      interactTriggered: false,
       toolEquipped: false,
     },
     [AFFECTABLE]: getEmptyAffectable(),
@@ -688,7 +693,7 @@ export const createNpc = (
     [FOG]: { visibility: "hidden", type: "unit" },
     [INVENTORY]: { items: [] },
     [LAYER]: {},
-    [MELEE]: {},
+    [MELEE]: { hits: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: world.getEntityId(world.metadata.gameEntity),
@@ -862,6 +867,7 @@ export const insertArea = (
       else if (cell === "≡") entity = "wood_one";
       else if (cell === ".") entity = "apple";
       else if (cell === ";") entity = "mushroom";
+      else if (cell === "☼") entity = "soil_wet";
       else if (cell === "ß") entity = "hedge";
       else if (cell === "&") entity = "path_hedge";
       else if (cell === "τ") entity = "bush";
@@ -880,6 +886,7 @@ export const insertArea = (
       else if (cell === "Ω") entity = "dummy";
       else if (cell === "±") entity = "fence";
       else if (cell === "î") entity = "palisade";
+      else if (cell === "ï") entity = "barrier";
       else if (cell === "=") entity = "fence_door";
       else if (cell === "├") entity = "house_left";
       else if (cell === "└") entity = "basement_left";
@@ -2569,7 +2576,39 @@ export const createCell = (
       [LOCKABLE]: {
         material: "wood",
         locked: true,
-        sprite: mergeSprites(shadow, palisadeDoorOpen),
+        sprite: mergeSprites(shadow, palisadeDoorOpen.wood.default),
+        type: "gate",
+      },
+      [POSITION]: { x, y },
+      [REMAINABLE]: { cell: "palisade_hinge" },
+      [RENDERABLE]: { generation: 0 },
+      [SEQUENCABLE]: { states: {} },
+      [STATS]: stats,
+      [SPRITE]: sprite,
+    });
+    all.push(gateEntity);
+    populateInventory(world, gateEntity, items, equipments);
+    return { cell: gateEntity, all };
+  } else if (cell === "entrance" || cell === "fire_entrance") {
+    const { sprite, stats, faction, items, equipments, scratch, harvestable } =
+      generateUnitData("barrierDoor");
+    const material = cell === "fire_entrance" ? undefined : "wood";
+    const element = cell === "fire_entrance" ? "fire" : undefined;
+    const gateEntity = entities.createPort(world, {
+      [ATTACKABLE]: { scratchColor: scratch },
+      [BELONGABLE]: { faction },
+      [DROPPABLE]: { decayed: false },
+      [FOG]: { visibility, type: "object" },
+      [HARVESTABLE]: harvestable,
+      [INVENTORY]: { items: [] },
+      [LOCKABLE]: {
+        material,
+        element,
+        locked: true,
+        sprite: mergeSprites(
+          shadow,
+          barrierDoorOpen[material || "default"][element || "default"]
+        ),
         type: "gate",
       },
       [POSITION]: { x, y },
@@ -2617,7 +2656,7 @@ export const createCell = (
       [LOCKABLE]: {
         material: "wood",
         locked: true,
-        sprite: mergeSprites(shadow, fenceDoorOpen),
+        sprite: mergeSprites(shadow, fenceDoorOpen.wood.default),
         type: "gate",
       },
       [POSITION]: { x, y },
@@ -2767,7 +2806,8 @@ export const createCell = (
     cell === "diamondChest" ||
     cell === "rubyChest" ||
     cell === "ilexChest" ||
-    cell === "oakChest"
+    cell === "oakChest" ||
+    cell === "nomadChest"
   ) {
     if (cell === "desert_wood_chest") {
       const { harvestable } = getHarvestConfig("sand");
@@ -2790,6 +2830,10 @@ export const createCell = (
       cell === "desert_wood_chest" ? "woodChest" : cell,
       { x, y }
     );
+
+    if (cell === "nomadChest") {
+      setIdentifier(world, chestEntity, cell);
+    }
     all.push(chestEntity);
     return { cell: chestEntity, all };
   } else if (cell === "boat") {
@@ -2824,6 +2868,7 @@ export const createCell = (
       [SPRITE]: boat,
     });
     all.push(boatEntity);
+    setPoi(world, boatEntity, addBackground([boat], colors.black)[0]);
     return { cell: boatEntity, all };
   } else if (cell === "spawner") {
     const spawnerEntity = entities.createSpawner(world, {
@@ -2856,6 +2901,7 @@ export const createCell = (
       [ACTIONABLE]: {
         spellTriggered: false,
         skillTriggered: false,
+        interactTriggered: false,
         toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
@@ -2873,7 +2919,7 @@ export const createCell = (
       [FRAGMENT]: { structure: -1 },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: {},
+      [MELEE]: { hits: 0 },
       [MOVABLE]: {
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
@@ -2938,6 +2984,7 @@ export const createCell = (
         [ACTIONABLE]: {
           spellTriggered: false,
           skillTriggered: false,
+          interactTriggered: false,
           toolEquipped: false,
         },
         [AFFECTABLE]: getEmptyAffectable(),
@@ -2986,6 +3033,7 @@ export const createCell = (
         [ACTIONABLE]: {
           spellTriggered: false,
           skillTriggered: false,
+          interactTriggered: false,
           toolEquipped: false,
         },
         [BEHAVIOUR]: {
@@ -3004,7 +3052,7 @@ export const createCell = (
         [HOOKABLE]: { escaping: false },
         [INVENTORY]: { items: [] },
         [LAYER]: {},
-        [MELEE]: {},
+        [MELEE]: { hits: 0 },
         [MOVABLE]: {
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
@@ -3034,6 +3082,7 @@ export const createCell = (
         [ACTIONABLE]: {
           spellTriggered: false,
           skillTriggered: false,
+          interactTriggered: false,
           toolEquipped: false,
         },
         [AFFECTABLE]: getEmptyAffectable(),
@@ -3055,7 +3104,7 @@ export const createCell = (
         [HOOKABLE]: { escaping: false },
         [INVENTORY]: { items: [] },
         [LAYER]: {},
-        [MELEE]: {},
+        [MELEE]: { hits: 0 },
         [MOVABLE]: {
           orientations: [],
           reference: world.getEntityId(world.metadata.gameEntity),
@@ -3466,6 +3515,7 @@ export const createCell = (
       [ACTIONABLE]: {
         spellTriggered: false,
         skillTriggered: false,
+        interactTriggered: false,
         toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
@@ -3481,7 +3531,7 @@ export const createCell = (
       [FOG]: { visibility, type: "unit" },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: {},
+      [MELEE]: { hits: 0 },
       [MOVABLE]: {
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
@@ -3526,6 +3576,7 @@ export const createCell = (
       [ACTIONABLE]: {
         spellTriggered: false,
         skillTriggered: false,
+        interactTriggered: false,
         toolEquipped: false,
       },
       [BEHAVIOUR]: {
@@ -3540,7 +3591,7 @@ export const createCell = (
       [FRAGMENT]: { structure: -1 },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: {},
+      [MELEE]: { hits: 0 },
       [MOVABLE]: {
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
@@ -3602,6 +3653,7 @@ export const createCell = (
         [ACTIONABLE]: {
           spellTriggered: false,
           skillTriggered: false,
+          interactTriggered: false,
           toolEquipped: false,
         },
         [BUMPABLE]: { generation: 0 },
@@ -3643,6 +3695,7 @@ export const createCell = (
       [ACTIONABLE]: {
         spellTriggered: false,
         skillTriggered: false,
+        interactTriggered: false,
         toolEquipped: false,
       },
       [BEHAVIOUR]: { patterns: bossUnit.patterns },
@@ -3655,7 +3708,7 @@ export const createCell = (
       [FRAGMENT]: { structure: -1 },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: {},
+      [MELEE]: { hits: 0 },
       [MOVABLE]: {
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
@@ -3724,6 +3777,7 @@ export const createCell = (
         [ACTIONABLE]: {
           spellTriggered: false,
           skillTriggered: false,
+          interactTriggered: false,
           toolEquipped: false,
         },
         [BUMPABLE]: { generation: 0 },
@@ -3775,6 +3829,7 @@ export const createCell = (
       [ACTIONABLE]: {
         spellTriggered: false,
         skillTriggered: false,
+        interactTriggered: false,
         toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
@@ -3792,7 +3847,7 @@ export const createCell = (
       [FRAGMENT]: { structure: -1 },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: {},
+      [MELEE]: { hits: 0 },
       [MOVABLE]: {
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
@@ -3852,6 +3907,7 @@ export const createCell = (
       [ACTIONABLE]: {
         spellTriggered: false,
         skillTriggered: false,
+        interactTriggered: false,
         toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
@@ -3865,7 +3921,7 @@ export const createCell = (
       [HOOKABLE]: { escaping: false },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: {},
+      [MELEE]: { hits: 0 },
       [MOVABLE]: {
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),
@@ -3903,6 +3959,7 @@ export const createCell = (
       [ACTIONABLE]: {
         spellTriggered: false,
         skillTriggered: false,
+        interactTriggered: false,
         toolEquipped: false,
       },
       [AFFECTABLE]: getEmptyAffectable(),
@@ -3918,7 +3975,7 @@ export const createCell = (
       [HOOKABLE]: { escaping: false },
       [INVENTORY]: { items: [] },
       [LAYER]: {},
-      [MELEE]: {},
+      [MELEE]: { hits: 0 },
       [MOVABLE]: {
         orientations: [],
         reference: world.getEntityId(world.metadata.gameEntity),

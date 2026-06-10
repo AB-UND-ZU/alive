@@ -896,7 +896,7 @@ export default function setupAi(world: World) {
           patterns.splice(patterns.indexOf(pattern), 1);
         } else if (pattern.name === "soothe") {
           if (!entity[TOOLTIP] || !entity[BELONGABLE]) continue;
-          entity[BELONGABLE].faction = "settler";
+          entity[BELONGABLE].faction = pattern.memory.faction || "settler";
           entity[TOOLTIP].changed = true;
           entity[TOOLTIP].idle = undefined;
           entity[TOOLTIP].enemy = undefined;
@@ -1437,7 +1437,7 @@ export default function setupAi(world: World) {
             }
 
             if (hasArrived && pattern.name === "unlock" && entity[ACTIONABLE]) {
-              entity[ACTIONABLE].spellTriggered = true;
+              entity[ACTIONABLE].interactTriggered = true;
             } else if (hasArrived && placementPattern) {
               if (pattern.name === "drop") {
                 dropEntity(
@@ -3561,6 +3561,7 @@ export default function setupAi(world: World) {
                 [ACTIONABLE]: {
                   spellTriggered: false,
                   skillTriggered: false,
+                  interactTriggered: false,
                   toolEquipped: false,
                 },
                 [BUMPABLE]: { generation: 0 },
@@ -3676,6 +3677,7 @@ export default function setupAi(world: World) {
                 [ACTIONABLE]: {
                   spellTriggered: false,
                   skillTriggered: false,
+                  interactTriggered: false,
                   toolEquipped: false,
                 },
                 [BUMPABLE]: { generation: 0 },
@@ -4065,6 +4067,7 @@ export default function setupAi(world: World) {
                   [ACTIONABLE]: {
                     spellTriggered: false,
                     skillTriggered: false,
+                    interactTriggered: false,
                     toolEquipped: false,
                   },
                   [BUMPABLE]: { generation: 0 },

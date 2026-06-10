@@ -17,9 +17,8 @@ import { createSequence, getSequence } from "./sequence";
 import { TypedEntity } from "../entities";
 import { LIGHT } from "../components/light";
 import { SPAWNABLE } from "../components/spawnable";
-import { isInPopup } from "./popup";
+import { isInPopup, isShowingPopup } from "./popup";
 import { play } from "../../game/sound";
-import { POPUP } from "../components/popup";
 import { createTooltip } from "./damage";
 
 export const getTooltip = (world: World, position: Position) =>
@@ -158,7 +157,7 @@ export default function setupText(world: World) {
       const isChanged = isIdle && isAdjacent;
       const needsUpdate =
         !isPending || (!tooltipEntity[TOOLTIP].changed && isChanged);
-      const showingPopup = tooltipEntity[POPUP]?.active;
+      const showingPopup = isShowingPopup(world, tooltipEntity);
       const interactSequence = getSequence(world, tooltipEntity, "interact");
 
       const isDone =

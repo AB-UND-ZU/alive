@@ -67,6 +67,7 @@ import { generateUnitData, UnitKey } from "../balancing/units";
 import {
   getTab,
   getVerticalIndex,
+  isShowingPopup,
   popupTitles,
 } from "../../engine/systems/popup";
 import { disposeEntity } from "../../engine/systems/map";
@@ -288,7 +289,7 @@ export const renderPopup = (
   windowHeight = frameHeight
 ) => {
   let updated = false;
-  let finished = !entity[POPUP].active;
+  let finished = !isShowingPopup(world, entity);
   const worldGeneration = world.metadata.gameEntity[RENDERABLE].generation;
   const generation = entity[RENDERABLE].generation;
   const popupMiddle = { x: 0, y: (windowHeight + 1) / -2 };

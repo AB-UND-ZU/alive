@@ -527,18 +527,7 @@ export const performTrade = (
     INVENTORY,
   ]);
   if (carrierEntity) {
-    for (const itemId of carrierEntity[INVENTORY].items) {
-      const storedItem = world.assertByIdAndComponents(itemId, [ITEM]);
-
-      if (!matchesItem(world, deal.item, storedItem[ITEM])) continue;
-
-      storedItem[ITEM].amount -= itemEntity[ITEM].amount;
-
-      if (storedItem[ITEM].amount <= 0) {
-        removeFromInventory(world, carrierEntity, storedItem);
-        disposeEntity(world, storedItem);
-      }
-    }
+    spendItem(world, carrierEntity, deal.item);
   }
 
   // play sound
@@ -606,22 +595,19 @@ export const performPlot = (
   entity: Entity,
   construction: Construction,
   position: Position,
-  orientation?: Orientation
+  variant: number
 ) => {
   // remove parts from inventory
   for (const priceItem of construction.parts) {
     spendItem(world, entity, priceItem);
   }
 
-  const variant =
-    construction.variants.find(
-      (option) => option.orientation === orientation
-    ) || construction.variants[0];
+  const constructionVariant = construction.variants[variant];
 
   const { harvestable } = getHarvestConfig("plot");
 
   const plotEntity = entities.createPlot(world, {
-    [BUILDABLE]: { cell: variant.cell },
+    [BUILDABLE]: { cell: constructionVariant.cell },
     [DROPPABLE]: { decayed: false },
     [FOG]: { visibility: "hidden", type: "object" },
     [HARVESTABLE]: harvestable,
@@ -1110,9 +1096,9 @@ export default function setupTrigger(world: World) {
         !(
           entity[ACTIONABLE].spellTriggered ||
           entity[ACTIONABLE].skillTriggered ||
+          entity[ACTIONABLE].interactTriggered ||
           [
             "inspect",
-            "interact",
             "equip",
             "use",
             "map",
@@ -1143,13 +1129,21 @@ export default function setupTrigger(world: World) {
       }
 
       // remove dangling actions
+      const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
       if (
         (entity[ACTIONABLE].spellTriggered ||
-          entity[ACTIONABLE].skillTriggered) &&
-        !isInteractable(world, entity)
+          entity[ACTIONABLE].skillTriggered ||
+          entity[ACTIONABLE].interactTriggered) &&
+        !isInteractable(world, entity) &&
+        !(
+          entity[ACTIONABLE].interactTriggered &&
+          spawnEntity &&
+          isDead(world, entity)
+        )
       ) {
         entity[ACTIONABLE].spellTriggered = false;
         entity[ACTIONABLE].skillTriggered = false;
+        entity[ACTIONABLE].interactTriggered = false;
         continue;
       }
 
@@ -1173,7 +1167,6 @@ export default function setupTrigger(world: World) {
         [MOUNTABLE, POSITION]
       );
       const popupEntity = world.getEntityById(entity[ACTIONABLE].popup);
-      const spawnEntity = world.getEntityById(entity[ACTIONABLE].spawn);
       const spellEntity = world.getEntityByIdAndComponents(
         entity[ACTIONABLE].spell,
         [ITEM]
@@ -1409,12 +1402,12 @@ export default function setupTrigger(world: World) {
         }
 
         entity[MOVABLE].lastInteraction = entityReference;
-      } else if (entity[PLAYER]?.actionTriggered === "interact") {
-        entity[PLAYER].actionTriggered = undefined;
+      } else if (entity[ACTIONABLE].interactTriggered) {
+        entity[ACTIONABLE].interactTriggered = false;
         const buildCondition = entity[CONDITIONABLE]?.build;
         const construction = getSelectedConstruction(world, entity);
 
-        if (!world.metadata.interact.active) {
+        if (!world.metadata.interact.active && entity[PLAYER]) {
           // skip
         } else if (buildCondition && construction) {
           const orientation = entity[ORIENTABLE]?.facing || "up";
@@ -1445,20 +1438,32 @@ export default function setupTrigger(world: World) {
             });
             continue;
           } else {
-            performPlot(world, entity, construction, target, orientation);
+            performPlot(
+              world,
+              entity,
+              construction,
+              target,
+              buildCondition.modifier
+            );
           }
-          world.metadata.interact.last = world.getEntityId(entity);
+          if (entity[PLAYER]) {
+            world.metadata.interact.last = world.getEntityId(entity);
+          }
         } else if (
           spawnEntity &&
           isRevivable(world, spawnEntity) &&
           canRevive(world, spawnEntity, entity)
         ) {
           reviveEntity(world, spawnEntity, entity);
-          world.metadata.interact.last = world.getEntityId(spawnEntity);
+          if (entity[PLAYER]) {
+            world.metadata.interact.last = world.getEntityId(spawnEntity);
+          }
         } else if (unlockEntity) {
           if (canUnlock(world, entity, unlockEntity)) {
             unlockDoor(world, entity, unlockEntity);
-            world.metadata.interact.last = world.getEntityId(unlockEntity);
+            if (entity[PLAYER]) {
+              world.metadata.interact.last = world.getEntityId(unlockEntity);
+            }
           } else {
             queueMessage(world, entity, {
               line: addBackground(
@@ -1504,7 +1509,9 @@ export default function setupTrigger(world: World) {
               add(viewable[POSITION], { x: 0, y: (frameHeight + 1) / 2 })
             );
             openPopup(world, entity, useEntity, true);
-            world.metadata.interact.last = world.getEntityId(plantEntity);
+            if (entity[PLAYER]) {
+              world.metadata.interact.last = world.getEntityId(plantEntity);
+            }
           } else {
             queueMessage(world, entity, {
               line: addBackground(
@@ -1527,13 +1534,19 @@ export default function setupTrigger(world: World) {
           }
         } else if (mountEntity) {
           mountVessel(world, entity, mountEntity);
-          world.metadata.interact.last = world.getEntityId(mountEntity);
+          if (entity[PLAYER]) {
+            world.metadata.interact.last = world.getEntityId(mountEntity);
+          }
         } else if (popupEntity && isPopupAvailable(world, popupEntity)) {
           openPopup(world, entity, popupEntity);
-          world.metadata.interact.last = world.getEntityId(popupEntity);
+          if (entity[PLAYER]) {
+            world.metadata.interact.last = world.getEntityId(popupEntity);
+          }
         }
 
-        world.metadata.interact.active = undefined;
+        if (entity[PLAYER]) {
+          world.metadata.interact.active = undefined;
+        }
       } else if (entity[ACTIONABLE].spellTriggered) {
         entity[ACTIONABLE].spellTriggered = false;
 

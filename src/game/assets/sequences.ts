@@ -4142,6 +4142,7 @@ export const displayBuild: Sequence<PopupSequence> = (world, entity, state) => {
   const buildStat = getItemStats(toolEntity[ITEM]).build;
   const entityConstructions: Construction[] = [
     {
+      sprite: repair,
       description: [
         [
           ...createText("Select to "),
@@ -4159,7 +4160,6 @@ export const displayBuild: Sequence<PopupSequence> = (world, entity, state) => {
       variants: [
         {
           cell: "air",
-          sprite: repair,
         },
       ],
       grounds: [],
@@ -4251,7 +4251,7 @@ export const displayBuild: Sequence<PopupSequence> = (world, entity, state) => {
     content = entityConstructions.map((construction, rowIndex) => {
       const selected = verticalIndex === rowIndex;
       const textColor = selected ? colors.white : colors.grey;
-      const itemSprite = construction.variants[0].sprite;
+      const itemSprite = construction.sprite;
 
       const rowShoppable = canShop(
         world,
@@ -9446,6 +9446,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
             [ACTIONABLE]: {
               spellTriggered: false,
               skillTriggered: false,
+              interactTriggered: false,
               toolEquipped: false,
             },
             [BUMPABLE]: { generation: 0 },
@@ -9478,6 +9479,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
             [ACTIONABLE]: {
               spellTriggered: false,
               skillTriggered: false,
+              interactTriggered: false,
               toolEquipped: false,
             },
             [BUMPABLE]: { generation: 0 },
@@ -9548,6 +9550,7 @@ export const oakBranch: Sequence<BranchSequence> = (world, entity, state) => {
         [ACTIONABLE]: {
           spellTriggered: false,
           skillTriggered: false,
+          interactTriggered: false,
           toolEquipped: false,
         },
         [BUMPABLE]: { generation: 0 },

@@ -21,11 +21,7 @@ import {
 import { disposeEntity, disposeSequence, getCell, moveEntity } from "./map";
 import { POSITION, Position } from "../components/position";
 import { createSequence, getSequence } from "./sequence";
-import {
-  DiscoverySequence,
-  PopupSequence,
-  SEQUENCABLE,
-} from "../components/sequencable";
+import { DiscoverySequence, PopupSequence } from "../components/sequencable";
 import { VIEWABLE } from "../components/viewable";
 import { UnitStats, STATS } from "../components/stats";
 import { Inventory, INVENTORY } from "../components/inventory";
@@ -99,6 +95,9 @@ import { canBuild, canConstruct, getBuildingDeal } from "./build";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
+
+export const isShowingPopup = (world: World, entity: Entity) =>
+  entity[POPUP]?.active;
 
 export const isInTab = (
   world: World,
@@ -1219,7 +1218,7 @@ export default function setupPopup(world: World) {
             buildingConstruction &&
             !canConstruct(world, heroEntity, buildingConstruction)
           ) {
-            const buildingSprite = buildingConstruction.variants[0].sprite;
+            const buildingSprite = buildingConstruction.sprite;
             queueMessage(world, heroEntity, {
               line: addBackground(
                 [

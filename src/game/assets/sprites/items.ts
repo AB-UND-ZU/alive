@@ -372,8 +372,12 @@ export const stick: Sprite = {
 export const wood: Sprite = {
   name: "Wood",
   layers: [
-    { char: "»", color: colors.maroon },
-    { char: "«", color: colors.maroon },
+    { char: "o", color: colors.maroon },
+    { char: "w", color: colors.maroon },
+    { char: "■", color: colors.maroon },
+    { char: "\u0108", color: colors.olive },
+    { char: "\u0106", color: colors.maroon },
+    { char: "∙", color: colors.olive },
   ],
 };
 

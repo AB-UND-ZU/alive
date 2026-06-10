@@ -300,7 +300,14 @@ export const soilWet: Sprite = {
 
 export const jetty: Sprite = {
   name: "Dock",
-  layers: [{ char: "█", color: colors.maroon }],
+  layers: [
+    { char: "█", color: colors.maroon },
+    { char: "Φ", color: colors.black },
+    { char: "■", color: colors.maroon },
+    { char: "\u010e", color: colors.maroon },
+    { char: ".", color: colors.black },
+    { char: ":", color: colors.maroon },
+  ],
   facing: {
     up: [
       { char: "█", color: colors.maroon },

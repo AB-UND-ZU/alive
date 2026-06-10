@@ -48,14 +48,7 @@ import { Item } from "../../engine/components/item";
 import { Faction } from "../../engine/components/belongable";
 import { SpringConfig } from "@react-spring/three";
 import { NpcType } from "../../engine/components/npc";
-import {
-  barrier,
-  fence,
-  fenceDoor,
-  palisade,
-  palisadeDoor,
-  sign,
-} from "../assets/sprites/structures";
+import { barrier, fence, palisade, sign } from "../assets/sprites/structures";
 import {
   emptyUnitStats,
   Stats,
@@ -72,6 +65,11 @@ import { eye, orb, prism, waveTower } from "../assets/templates/creatures";
 import { banner, evaporate } from "../assets/templates/particles";
 import { getHarvestConfig } from "./harvesting";
 import { CellType } from "../../bindings/creation";
+import {
+  barrierDoorClosed,
+  fenceDoorClosed,
+  palisadeDoorClosed,
+} from "../assets/templates/units";
 
 export type UnitKey =
   | NpcType
@@ -91,6 +89,7 @@ export type UnitKey =
   | "palisade"
   | "palisadeDoor"
   | "barrier"
+  | "barrierDoor"
   | "cactus1"
   | "cactus2"
   | "rock1"
@@ -517,6 +516,45 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       name: "Guard",
     },
     remains: "tombstone1",
+    evaporate: { sprite: ghost, fast: false },
+  },
+  fireNomad: {
+    faction: "fire",
+    scratch: colors.silver,
+    stats: {
+      hp: 50,
+      armor: 1,
+      resist: 1,
+    },
+    equipments: [
+      {
+        weapon: "sword",
+        material: "wood",
+        amount: 1,
+        bound: true,
+      },
+      {
+        offhand: "shield",
+        material: "gold",
+        amount: 1,
+        bound: true,
+      },
+    ],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "nugget", amount: 3 },
+          { stat: "xp", amount: 5 },
+        ],
+      },
+    ],
+    patternNames: [],
+    sprite: {
+      ...recolorSprite(knight, { [colors.white]: colors.red }),
+      name: "Nomad",
+    },
+    remains: "tombstone2",
     evaporate: { sprite: ghost, fast: false },
   },
   banditKnight: {
@@ -965,7 +1003,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(shadow, fenceDoor),
+    sprite: mergeSprites(shadow, fenceDoorClosed.wood.default),
     remains: "fence_hinge",
   },
   palisade: {
@@ -1007,7 +1045,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       },
     ],
     patternNames: [],
-    sprite: mergeSprites(shadow, palisadeDoor),
+    sprite: mergeSprites(shadow, palisadeDoorClosed.wood.default),
     remains: "palisade_hinge",
   },
   barrier: {
@@ -1032,6 +1070,33 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     patternNames: [],
     swimming: mergeSprites(recolorSprite(emptySlot, colors.navy), barrier),
     sprite: mergeSprites(slotShadow, barrier),
+    remains: "footing",
+  },
+  barrierDoor: {
+    faction: "unit",
+    scratch: colors.silver,
+    stats: {
+      hp: 75,
+      armor: 3,
+      spike: 1,
+    },
+    equipments: [],
+    harvestable: "barrier",
+    drops: [
+      {
+        chance: 100,
+        items: [
+          { stackable: "ore", amount: 4 },
+          { stackable: "thorn", amount: 4 },
+        ],
+      },
+    ],
+    patternNames: [],
+    swimming: mergeSprites(
+      recolorSprite(emptySlot, colors.navy),
+      barrierDoorClosed.default.fire
+    ),
+    sprite: mergeSprites(slotShadow, barrierDoorClosed.default.fire),
     remains: "footing",
   },
   cactus1: {
@@ -1807,6 +1872,36 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
           {
             stackable: "nugget",
             amount: 1,
+          },
+        ],
+      },
+    ],
+    patternNames: [],
+    sprite: mergeSprites(slotShadow, goldChest),
+  },
+  nomadChest: {
+    faction: "unit",
+    scratch: colors.grey,
+    stats: {
+      hp: 25,
+      armor: 3,
+    },
+    equipments: [],
+    drops: [
+      {
+        chance: 100,
+        items: [
+          {
+            stackable: "schema",
+            amount: 1,
+          },
+          {
+            stackable: "apple",
+            amount: 5,
+          },
+          {
+            stackable: "shroom",
+            amount: 5,
           },
         ],
       },

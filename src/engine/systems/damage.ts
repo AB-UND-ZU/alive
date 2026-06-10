@@ -115,6 +115,14 @@ export const isEnemy = (world: World, entity: Entity) =>
 export const isNeutral = (world: World, entity: Entity) =>
   BELONGABLE in entity && neutrals.includes(entity[BELONGABLE].faction);
 
+export const isHostile = (world: World, entity: Entity) =>
+  entity[BELONGABLE]?.faction === "hostile";
+
+export const isCooperating = (world: World, entity: Entity, target: Entity) =>
+  !target[BELONGABLE] ||
+  (!isHostile(world, target) &&
+    (isNeutral(world, target) || isFriendlyFire(world, entity, target)));
+
 export const createTooltip = (world: World, entity: Entity) => {
   const text = entity[SPRITE].name;
   const enemy = isEnemy(world, entity) && !isNeutral(world, entity);
@@ -963,6 +971,7 @@ export default function setupDamage(world: World) {
       if (attacked) {
         // perform bump
         entity[MELEE].facing = targetOrientation;
+        entity[MELEE].hits += 1;
 
         for (const limb of limbs) {
           if (limb[BUMPABLE]) {

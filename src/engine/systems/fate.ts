@@ -130,6 +130,7 @@ export const createHero = (world: World, halo: Entity) => {
     [ACTIONABLE]: {
       spellTriggered: false,
       skillTriggered: false,
+      interactTriggered: false,
       toolEquipped: false,
     },
     [AFFECTABLE]: getEmptyAffectable(),
@@ -144,7 +145,7 @@ export const createHero = (world: World, halo: Entity) => {
     [INVENTORY]: { items: [] },
     [LAYER]: {},
     [LIGHT]: { visibility: 1, brightness: 1, darkness: 0 },
-    [MELEE]: {},
+    [MELEE]: { hits: 0 },
     [MOVABLE]: {
       orientations: [],
       reference: frameId,
@@ -292,6 +293,7 @@ export default function setupFate(world: World) {
           [ACTIONABLE]: {
             spellTriggered: false,
             skillTriggered: false,
+            interactTriggered: false,
             toolEquipped: false,
           },
           [BELONGABLE]: { faction: entity[BELONGABLE].faction },

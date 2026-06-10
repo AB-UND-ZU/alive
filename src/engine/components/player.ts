@@ -18,7 +18,6 @@ export type Player = {
   quickItems: Record<string, Omit<Item, "bound" | "amount" | "carrier">>;
   chatHistory: number[][];
   actionTriggered?:
-    | "interact"
     | "inspect"
     | "use"
     | "map"

@@ -58,6 +58,7 @@ export const materialized = [
   "port",
   "entry",
   "gate",
+  "entrance",
   "mine",
   "lock",
 ] as const;

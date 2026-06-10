@@ -148,26 +148,6 @@ export const fenceBurnt2: Sprite = {
   ],
 };
 
-export const fenceDoor: Sprite = {
-  name: "Gate",
-  layers: [
-    { char: "M", color: colors.maroon },
-    { char: "[", color: colors.black },
-    { char: "]", color: colors.black },
-    { char: "=", color: colors.grey },
-  ],
-};
-
-export const fenceDoorOpen: Sprite = {
-  name: "fence_door",
-  layers: [
-    { char: "M", color: colors.maroon },
-    { char: "=", color: colors.grey },
-    { char: "[", color: colors.black },
-    { char: "]", color: colors.black },
-  ],
-};
-
 export const fenceDoorBurnt: Sprite = {
   name: "fence_door_burnt",
   layers: [
@@ -176,26 +156,6 @@ export const fenceDoorBurnt: Sprite = {
     { char: "-", color: colors.grey },
     { char: "[", color: colors.black },
     { char: "|", color: colors.black },
-  ],
-};
-
-export const palisadeDoor: Sprite = {
-  name: "Port",
-  layers: [
-    { char: "M", color: colors.grey },
-    { char: "[", color: colors.black },
-    { char: "]", color: colors.black },
-    { char: "=", color: colors.maroon },
-  ],
-};
-
-export const palisadeDoorOpen: Sprite = {
-  name: "palisade_door",
-  layers: [
-    { char: "M", color: colors.grey },
-    { char: "=", color: colors.maroon },
-    { char: "[", color: colors.black },
-    { char: "]", color: colors.black },
   ],
 };
 

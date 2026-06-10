@@ -74,6 +74,7 @@ import { VIEWABLE } from "../../engine/components/viewable";
 import { ENTERABLE } from "../../engine/components/enterable";
 import { createText } from "./ui";
 import { updateSandCell, updateWaterCell } from "../../engine/systems/water";
+import { isCell } from "../../engine/systems/harvest";
 
 export type CommandCall = {
   handler: string;
@@ -552,7 +553,7 @@ const executeNew = (
       Object.values(getCell(world, target)).forEach((cellEntity) => {
         if (
           cellEntity === entity ||
-          !cellEntity[SPRITE] ||
+          !isCell(world, cellEntity) ||
           cellEntity[ENTERABLE]
         )
           return;

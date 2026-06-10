@@ -3,7 +3,9 @@ import { Position, POSITION } from "../../../engine/components/position";
 import { SPRITE } from "../../../engine/components/sprite";
 import { RENDERABLE } from "../../../engine/components/renderable";
 import {
+  mapFortress,
   mapHouse,
+  mapNomad,
   mapSpawn,
   none,
   path,
@@ -38,7 +40,14 @@ import {
   Orientation,
   orientationPoints,
 } from "../../../engine/components/orientable";
-import { ilexArea, oakArea, spawnArea, townSize } from "./areas";
+import {
+  ilexArea,
+  nomadArea,
+  nomadSize,
+  oakArea,
+  spawnArea,
+  townSize,
+} from "./areas";
 import {
   add,
   angledOffset,
@@ -253,6 +262,27 @@ export const generateIsland = (world: World) => {
         y: townSize.y / -2,
       });
 
+      // find suitable angle for haven with largest distance to known neighbouring islands
+      const havenAngles = [-45, 0, 45, 135, 180, 225];
+      const closestHavenAngles = [...havenAngles].sort(
+        (left, right) =>
+          Math.abs(signedDistance(left, islandAngle + 90, 360)) -
+          Math.abs(signedDistance(right, islandAngle + 90, 360))
+      );
+      const havenAngle = closestHavenAngles[0];
+      const nomadFlipped = signedDistance(islandAngle, havenAngle, 360) > 90;
+      const nomadPoint = angledOffset(
+        size,
+        { x: 0, y: 0 },
+        nomadFlipped ? islandAngle + 180 : islandAngle,
+        mainlandRadius * 0.95,
+        mainlandRatio
+      );
+      const nomadCorner = combine(size, nomadPoint, {
+        x: nomadSize.x / -2,
+        y: nomadSize.y / -2,
+      });
+
       // preload world matrizes
       const hillsFactory = simplexNoiseFactory();
       const beachesFactory = simplexNoiseFactory();
@@ -413,13 +443,28 @@ export const generateIsland = (world: World) => {
             1.5,
             1
           );
+          const nomadSquare = rectangleKernel(
+            size,
+            size,
+            x,
+            y,
+            nomadPoint,
+            nomadSize.x + 6,
+            nomadSize.y + 6,
+            0,
+            1,
+            0,
+            1.5,
+            1
+          );
           const flattenedKernel =
             spawnCircle *
             spawnWalk *
             ilexCircle *
             townSquare *
             oakCircle *
-            passageKernel;
+            passageKernel *
+            nomadSquare;
 
           const beachesKernel = simplexNoiseKernel(
             beachesFactory,
@@ -963,14 +1008,13 @@ export const generateIsland = (world: World) => {
       objectsMap[desertEntrance.x][desertEntrance.y] = [];
       setPath(pathMatrix, desertEntrance.x, desertEntrance.y, 1);
 
-      // find suitable angle for haven with largest distance to known neighbouring islands
-      const havenAngles = [-45, 0, 45, 135, 180, 225];
-      const closestHavenAngles = [...havenAngles].sort(
-        (left, right) =>
-          Math.abs(signedDistance(left, islandAngle + 90, 360)) -
-          Math.abs(signedDistance(right, islandAngle + 90, 360))
-      );
-      const havenAngle = closestHavenAngles[0];
+      // insert nomad
+      insertArea(world, nomadArea, nomadPoint.x, nomadPoint.y, true);
+      setMatrix(worldMap, nomadPoint.x, nomadPoint.y + 3, "fire_entrance");
+      setMatrix(worldMap, nomadPoint.x - 5, nomadPoint.y + 1, "nomadChest");
+      const fireNomadHouse = {
+        position: combine(size, nomadPoint, { x: -2, y: -1 }),
+      };
 
       // find haven point as first beach starting from ocean towards center
       const beachPoint = marchLinePredicate(
@@ -1439,7 +1483,7 @@ export const generateIsland = (world: World) => {
         setPath(pathMatrix, x, y, 1);
       });
 
-      // fifth pass: ensure adjacent sand to water becomes
+      // fifth pass: ensure adjacent sand to water becomes beach
       world.metadata.gameEntity[LEVEL].cells = smoothenBeaches(
         world.metadata.gameEntity[LEVEL].cells
       );
@@ -1625,6 +1669,11 @@ export const generateIsland = (world: World) => {
         havenCorner,
         combine(size, havenCorner, { x: havenWidth, y: havenHeight })
       );
+      initializeArea(
+        world,
+        nomadCorner,
+        combine(size, nomadCorner, { x: nomadSize.x, y: nomadSize.y })
+      );
 
       // adjust hero
       const heroEntity = assertIdentifierAndComponents(world, "hero", [
@@ -1650,15 +1699,23 @@ export const generateIsland = (world: World) => {
         fireTraderBuilding,
         fireSmithBuilding,
         fireDruidBuilding,
+        fireNomadBuilding,
         ...emptyFireBuildings
       ] = [
         fireTraderHouse,
         fireSmithHouse,
         fireDruidHouse,
+        fireNomadHouse,
         ...emptyFireHouses,
       ].map((building) => assignBuilding(world, building.position));
 
       // add map markers
+      entities.createMarker(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [POI]: { sprite: mapSpawn },
+        [POSITION]: spawnPoint,
+        [RENDERABLE]: { generation: 0 },
+      });
       entities.createMarker(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
         [POI]: { sprite: mapHouse },
@@ -1667,10 +1724,17 @@ export const generateIsland = (world: World) => {
       });
       entities.createMarker(world, {
         [FOG]: { visibility: "hidden", type: "terrain" },
-        [POI]: { sprite: mapSpawn },
-        [POSITION]: spawnPoint,
+        [POI]: { sprite: mapFortress },
+        [POSITION]: havenPoint,
         [RENDERABLE]: { generation: 0 },
       });
+      const nomadPoi = entities.createMarker(world, {
+        [FOG]: { visibility: "hidden", type: "terrain" },
+        [POI]: { sprite: mapNomad },
+        [POSITION]: nomadPoint,
+        [RENDERABLE]: { generation: 0 },
+      });
+      setIdentifier(world, nomadPoi, "nomad_house");
 
       // add quest sign after exiting
       const spawnSign = createSign(world, signPosition, [
@@ -1994,6 +2058,25 @@ export const generateIsland = (world: World) => {
       ).cell;
       setIdentifier(world, fireBenchEntity, "fire_bench");
 
+      // nomad's house
+      const nomadEntity = createNpc(
+        world,
+        "fireNomad",
+        combine(size, fireNomadHouse.position, { x: 2, y: 0 })
+      );
+      npcSequence(world, nomadEntity, "fireNomadNpc", {
+        origin: copy(nomadEntity[POSITION]),
+        door: fireNomadBuilding.door,
+        topLeft: combine(size, nomadCorner, {
+          x: 1,
+          y: 1,
+        }),
+        bottomRight: combine(size, nomadCorner, nomadSize, {
+          x: -2,
+          y: -2,
+        }),
+      });
+
       // furnish houses of town and haven
       const furnishingBuildings = [
         earthTraderBuilding,
@@ -2003,6 +2086,7 @@ export const generateIsland = (world: World) => {
         fireTraderBuilding,
         fireSmithBuilding,
         fireDruidBuilding,
+        fireNomadBuilding,
         ...emptyFireBuildings,
       ];
 
@@ -2140,8 +2224,8 @@ export const stringifyMap = (
         : [];
 
       if (objects.includes("habitat")) row += "\u03b1";
-      else if (objects.includes("palisade") || objects.includes("barrier"))
-        row += "î";
+      else if (objects.includes("palisade")) row += "î";
+      else if (cell === "barrier") row += "ï";
       else if (cell === "water_shallow") row += "~";
       else if (cell === "water_deep") row += "≈";
       else if (cell === "snow" || objects.includes("snow")) row += "▒";

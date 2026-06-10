@@ -15,7 +15,6 @@ import { ITEM } from "../components/item";
 import { EQUIPPABLE } from "../components/equippable";
 import { CONDITIONABLE } from "../components/conditionable";
 import { isWalkable } from "./movement";
-import { getSpikable } from "./spike";
 import { canRedeem } from "./popup";
 import { Deal } from "../components/popup";
 import { getBuildTarget, isCell, triggerTool } from "./harvest";
@@ -107,7 +106,7 @@ export const getPlotPreview = (
 ) => {
   const immersible = isImmersible(world, position);
   const previewSprite = colorizeSprite(
-    construction.variants[variant].sprite,
+    construction.variants[variant].sprite || construction.sprite,
     colors.green,
     colors.lime
   );

@@ -1,6 +1,5 @@
 import { CellType } from "../../bindings/creation";
 import { Item } from "../../engine/components/item";
-import { Orientation } from "../../engine/components/orientable";
 import { Sprite } from "../../engine/components/sprite";
 import { colors } from "../assets/colors";
 import {
@@ -13,18 +12,17 @@ import {
   chairLeft,
   chairRight,
   fence,
-  fenceDoor,
   fire,
   jetty,
   kettle,
   palisade,
-  palisadeDoor,
   path,
   pot,
   sand,
   table,
   waterShallow,
 } from "../assets/sprites";
+import { fenceDoorClosed, palisadeDoorClosed } from "../assets/templates/units";
 import {
   brew,
   craft,
@@ -37,9 +35,9 @@ import { getOrientedSprite } from "../assets/ui";
 
 export type Construction = {
   description: Sprite[][];
+  sprite: Sprite;
   variants: {
-    orientation?: Orientation;
-    sprite: Sprite;
+    sprite?: Sprite;
     cell: CellType;
   }[];
   grounds: ("air" | "water" | "sand" | "path")[];
@@ -50,6 +48,7 @@ export type Construction = {
 
 export const buildConstructions: Construction[] = [
   {
+    sprite: fence,
     description: [
       createText("A sturdy wooden"),
       createText("post to enclose"),
@@ -58,7 +57,6 @@ export const buildConstructions: Construction[] = [
     variants: [
       {
         cell: "fence",
-        sprite: fence,
       },
     ],
     grounds: ["air", "sand", "path", "water"],
@@ -67,6 +65,7 @@ export const buildConstructions: Construction[] = [
     effort: 10,
   },
   {
+    sprite: fenceDoorClosed.wood.default,
     description: [
       createText("Pass through a"),
       [...createText("wall of "), fence, ...createText("Fences", colors.grey)],
@@ -74,7 +73,6 @@ export const buildConstructions: Construction[] = [
     ],
     variants: [
       {
-        sprite: fenceDoor,
         cell: "fence_door",
       },
     ],
@@ -87,6 +85,7 @@ export const buildConstructions: Construction[] = [
     effort: 15,
   },
   {
+    sprite: box,
     description: [
       createText("An empty crate"),
       createText("that can be moved"),
@@ -94,7 +93,6 @@ export const buildConstructions: Construction[] = [
     ],
     variants: [
       {
-        sprite: box,
         cell: "box_empty",
       },
     ],
@@ -107,6 +105,7 @@ export const buildConstructions: Construction[] = [
     effort: 8,
   },
   {
+    sprite: pot,
     description: [
       createText("A decorative pot"),
       createText("made from burnt"),
@@ -114,7 +113,6 @@ export const buildConstructions: Construction[] = [
     ],
     variants: [
       {
-        sprite: pot,
         cell: "pot_empty",
       },
     ],
@@ -127,6 +125,7 @@ export const buildConstructions: Construction[] = [
     effort: 8,
   },
   {
+    sprite: chairLeft,
     description: [
       createText("A small but comfy"),
       createText("stool made from"),
@@ -148,13 +147,13 @@ export const buildConstructions: Construction[] = [
     effort: 8,
   },
   {
+    sprite: table,
     description: [
       createText("A flat surface to"),
       createText("put things on."),
     ],
     variants: [
       {
-        sprite: table,
         cell: "table",
       },
     ],
@@ -167,6 +166,7 @@ export const buildConstructions: Construction[] = [
     effort: 10,
   },
   {
+    sprite: bench,
     description: [
       createText("A workbench with"),
       createText("tools used for"),
@@ -187,6 +187,7 @@ export const buildConstructions: Construction[] = [
     effort: 20,
   },
   {
+    sprite: anvil,
     description: [
       createText("Heavy iron block"),
       createText("which can be used"),
@@ -199,7 +200,6 @@ export const buildConstructions: Construction[] = [
     ],
     variants: [
       {
-        sprite: anvil,
         cell: "anvil",
       },
     ],
@@ -212,6 +212,7 @@ export const buildConstructions: Construction[] = [
     effort: 25,
   },
   {
+    sprite: kettle,
     description: [
       createText("A large cauldron"),
       createText("with lot of space"),
@@ -237,6 +238,7 @@ export const buildConstructions: Construction[] = [
     effort: 20,
   },
   {
+    sprite: campfire,
     description: [
       createText("Neatly arranged"),
       createText("sticks to start"),
@@ -249,7 +251,6 @@ export const buildConstructions: Construction[] = [
     ],
     variants: [
       {
-        sprite: campfire,
         cell: "campfire",
       },
     ],
@@ -259,6 +260,7 @@ export const buildConstructions: Construction[] = [
     effort: 8,
   },
   {
+    sprite: sand,
     description: [
       createText("A dry and sandy"),
       createText("ground slowing"),
@@ -267,7 +269,6 @@ export const buildConstructions: Construction[] = [
     variants: [
       {
         cell: "sand",
-        sprite: sand,
       },
     ],
     grounds: ["air"],
@@ -276,6 +277,7 @@ export const buildConstructions: Construction[] = [
     effort: 0,
   },
   {
+    sprite: path,
     description: [
       createText("A trail made of"),
       createText("gravel speeding"),
@@ -284,7 +286,6 @@ export const buildConstructions: Construction[] = [
     variants: [
       {
         cell: "path",
-        sprite: path,
       },
     ],
     grounds: ["air"],
@@ -293,6 +294,7 @@ export const buildConstructions: Construction[] = [
     effort: 0,
   },
   {
+    sprite: boat,
     description: [
       createText("A small vessel"),
       createText("which can carry"),
@@ -306,7 +308,6 @@ export const buildConstructions: Construction[] = [
     variants: [
       {
         cell: "boat",
-        sprite: boat,
       },
     ],
     grounds: ["water"],
@@ -318,6 +319,7 @@ export const buildConstructions: Construction[] = [
     effort: 15,
   },
   {
+    sprite: jetty,
     description: [
       createText("Used to build a"),
       createText("jetty by the"),
@@ -325,11 +327,11 @@ export const buildConstructions: Construction[] = [
     ],
     variants: [
       {
-        cell: "jetty_horizontal",
+        cell: "jetty_vertical",
         sprite: getOrientedSprite(jetty, "up"),
       },
       {
-        cell: "jetty_vertical",
+        cell: "jetty_horizontal",
         sprite: getOrientedSprite(jetty, "right"),
       },
     ],
@@ -342,6 +344,7 @@ export const buildConstructions: Construction[] = [
     effort: 15,
   },
   {
+    sprite: palisade,
     description: [
       createText("A heavy stone"),
       createText("barrier enclosing"),
@@ -350,7 +353,6 @@ export const buildConstructions: Construction[] = [
     variants: [
       {
         cell: "palisade",
-        sprite: palisade,
       },
     ],
     grounds: ["air", "sand", "path", "water"],
@@ -359,6 +361,7 @@ export const buildConstructions: Construction[] = [
     effort: 20,
   },
   {
+    sprite: barrier,
     description: [
       createText("A defensive stone"),
       createText("wall with spikes."),
@@ -367,7 +370,6 @@ export const buildConstructions: Construction[] = [
     variants: [
       {
         cell: "barrier",
-        sprite: barrier,
       },
     ],
     grounds: ["air", "sand", "path", "water"],
@@ -379,6 +381,7 @@ export const buildConstructions: Construction[] = [
     effort: 20,
   },
   {
+    sprite: palisadeDoorClosed.wood.default,
     description: [
       createText("Pass through a"),
       [...createText("stone "), palisade, ...createText("Wall", colors.grey)],
@@ -386,7 +389,6 @@ export const buildConstructions: Construction[] = [
     ],
     variants: [
       {
-        sprite: palisadeDoor,
         cell: "palisade_door",
       },
     ],

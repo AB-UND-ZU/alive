@@ -231,9 +231,11 @@ export const bubble: Sprite = {
     ],
     double: [{ char: "\u0108", color: colors.blue }],
     multiple: [
-      { char: "\u0101", color: colors.navy },
-      { char: "\u0100", color: colors.blue },
-      { char: "■", color: colors.navy },
+      { char: "o", color: colors.blue },
+      { char: "w", color: colors.blue },
+      { char: "■", color: colors.blue },
+      { char: "\u0108", color: colors.navy },
+      { char: "\u0106", color: colors.navy },
     ],
   },
 };
@@ -1931,6 +1933,18 @@ export const mapHouse: Sprite = {
   ],
 };
 
+export const mapFortress: Sprite = {
+  name: "Fort",
+  layers: [
+    { char: "█", color: colors.black },
+    { char: "\u011d", color: colors.silver },
+    { char: "\u011f", color: colors.silver },
+    { char: "\u0115", color: colors.grey },
+    { char: "-", color: colors.silver },
+    { char: ".", color: colors.silver },
+  ],
+};
+
 export const mapSpawn: Sprite = {
   name: "House",
   layers: [
@@ -1942,6 +1956,15 @@ export const mapSpawn: Sprite = {
 export const mapPlayer: Sprite = {
   name: "Map",
   layers: [{ char: "\u010b", color: colors.lime }],
+};
+
+export const mapNomad: Sprite = {
+  name: "Map",
+  layers: [
+    { char: "█", color: colors.black },
+    { char: "\u010b", color: colors.silver },
+    { char: "'", color: colors.red },
+  ],
 };
 
 export const mapZoom1: Sprite = {

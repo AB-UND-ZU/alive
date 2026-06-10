@@ -450,6 +450,7 @@ export default function Controls() {
       if (
         heroEntity[ACTIONABLE].spellTriggered ||
         heroEntity[ACTIONABLE].skillTriggered ||
+        heroEntity[ACTIONABLE].interactTriggered ||
         heroEntity[PLAYER].actionTriggered
       )
         return;
@@ -458,6 +459,8 @@ export default function Controls() {
         heroEntity[ACTIONABLE].spellTriggered = true;
       } else if (action === "skill") {
         heroEntity[ACTIONABLE].skillTriggered = true;
+      } else if (action === "interact") {
+        heroEntity[ACTIONABLE].interactTriggered = true;
       } else {
         heroEntity[PLAYER].actionTriggered = action;
 

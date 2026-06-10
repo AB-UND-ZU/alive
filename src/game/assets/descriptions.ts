@@ -125,7 +125,6 @@ import {
   aura,
   bubble,
   diamond,
-  fenceDoor,
   gold,
   goldMine,
   goldMineDisplay,
@@ -186,6 +185,10 @@ import {
   portClosed,
   entryClosed,
   entryClosedDisplay,
+  fenceDoorClosed,
+  fenceDoorOpen,
+  palisadeDoorOpen,
+  palisadeDoorClosed,
 } from "./templates/units";
 import {
   frameWidth,
@@ -1684,7 +1687,12 @@ export const materialSprites: Partial<
     display: entryClosedDisplay,
   },
   gate: {
-    sprite: { wood: { default: fenceDoor } },
+    sprite: fenceDoorOpen,
+    resource: fenceDoorClosed,
+  },
+  entrance: {
+    sprite: palisadeDoorOpen,
+    resource: palisadeDoorClosed,
   },
   mine: {
     sprite: {

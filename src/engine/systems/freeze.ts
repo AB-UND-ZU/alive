@@ -39,7 +39,7 @@ import { getLiquids, updateWaterCell } from "./water";
 import { matrixFactory } from "../../game/math/matrix";
 import { LEVEL } from "../components/level";
 import { COVERABLE } from "../components/coverable";
-import { isInPopup } from "./popup";
+import { isInPopup, isShowingPopup } from "./popup";
 import { isMounting } from "./vessel";
 import { DISPLACABLE } from "../components/displacable";
 import { createText } from "../../game/assets/ui";
@@ -75,7 +75,8 @@ export const isActionable = (world: World, entity: Entity) =>
   !isSliding(world, entity);
 
 export const isControllable = (world: World, entity: Entity) =>
-  isActionable(world, entity) && !isInPopup(world, entity);
+  isActionable(world, entity) &&
+  !(isInPopup(world, entity) || isShowingPopup(world, entity));
 
 export const isInteractable = (world: World, entity: Entity) =>
   isControllable(world, entity) && !isMounting(world, entity);

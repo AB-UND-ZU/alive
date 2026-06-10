@@ -11,7 +11,7 @@ import { MOVABLE } from "../components/movable";
 import { LOCKABLE } from "../components/lockable";
 import { INVENTORY } from "../components/inventory";
 import { ITEM, rechargables } from "../components/item";
-import { isDead, isEnemy } from "./damage";
+import { isDead } from "./damage";
 import { canRevive, getRevivable } from "./fate";
 import { getSequence } from "./sequence";
 import { rerenderEntity } from "./renderer";
@@ -287,7 +287,6 @@ export default function setupAction(world: World) {
               lockableEntity &&
               !isInPopup(world, entity) &&
               isUnlockable(world, lockableEntity) &&
-              !isEnemy(world, entity) &&
               !isDead(world, entity)
             ) {
               unlock = lockableEntity;

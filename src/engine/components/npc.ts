@@ -16,6 +16,7 @@ export const npcTypes = [
   "fireGuard",
   "fireGateGuard",
   "fireJettyGuard",
+  "fireNomad",
   "banditKnight",
   "banditArcher",
   "prism",
@@ -47,6 +48,7 @@ export const npcTypes = [
   "rubyChest",
   "ilexChest",
   "oakChest",
+  "nomadChest",
 ] as const;
 export type NpcType = (typeof npcTypes)[number];
 

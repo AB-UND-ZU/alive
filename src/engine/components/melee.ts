@@ -4,6 +4,7 @@ import { Orientation } from "./orientable";
 
 export type Melee = {
   facing?: Orientation;
+  hits: 0;
 };
 
 export const MELEE = "MELEE";

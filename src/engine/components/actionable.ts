@@ -19,6 +19,7 @@ export const actions = [
 export type Actionable = {
   spellTriggered: boolean;
   skillTriggered: boolean;
+  interactTriggered: boolean;
   toolEquipped: boolean;
 } & Partial<Record<(typeof actions)[number], number | undefined>>;
 

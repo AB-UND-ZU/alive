@@ -107,8 +107,12 @@ import {
 import { INVENTORY } from "../../engine/components/inventory";
 import { PLAYER } from "../../engine/components/player";
 import { BELONGABLE } from "../../engine/components/belongable";
-import { createPopup, removePopup } from "../../engine/systems/popup";
-import { isDead } from "../../engine/systems/damage";
+import {
+  createPopup,
+  isShowingPopup,
+  removePopup,
+} from "../../engine/systems/popup";
+import { isDead, isEnemy } from "../../engine/systems/damage";
 import { createCell, insertArea } from "../../bindings/creation";
 import { SOUL } from "../../engine/components/soul";
 import { matrixFactory } from "../math/matrix";
@@ -154,6 +158,7 @@ import { getBiome, isFlyable } from "../../engine/systems/movement";
 import { relativeOrientations } from "../math/path";
 import { brewingRecipes } from "../balancing/brewing";
 import { dotted, shaded } from "./ui";
+import { MELEE } from "../../engine/components/melee";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
@@ -1600,7 +1605,7 @@ export const earthDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
   step({
     stage,
     name: START_STEP,
-    isCompleted: () => !!kettleEntity && entity[POPUP].active,
+    isCompleted: () => !!kettleEntity && isShowingPopup(world, entity),
     onLeave: () => {
       if (kettleEntity) {
         createPopup(world, kettleEntity, {
@@ -2352,6 +2357,315 @@ export const fireDruidNpc: Sequence<NpcSequence> = (world, entity, state) => {
     },
     isCompleted: () => !entity[POPUP],
     onLeave: () => END_STEP,
+  });
+
+  return { finished: stage.finished, updated: stage.updated };
+};
+
+export const fireNomadNpc: Sequence<NpcSequence> = (world, entity, state) => {
+  const stage: QuestStage<NpcSequence> = {
+    world,
+    entity,
+    state,
+    finished: false,
+    updated: false,
+  };
+
+  const size = world.metadata.gameEntity[LEVEL].size;
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const nomadChest = getIdentifierAndComponents(world, "nomadChest", [STATS]);
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const inArea =
+    !!heroEntity &&
+    !isDead(world, heroEntity) &&
+    within(
+      state.args.memory.topLeft,
+      state.args.memory.bottomRight,
+      heroEntity[POSITION],
+      size
+    );
+  const farAway =
+    !heroEntity ||
+    getDistance(state.args.memory.origin, heroEntity[POSITION], size) > 15;
+  const closeUp =
+    !!heroEntity &&
+    getDistance(entity[POSITION], heroEntity[POSITION], size) < 3;
+
+  step({
+    stage,
+    name: START_STEP,
+    isCompleted: () => true,
+    onLeave: () => "watch",
+  });
+
+  step({
+    stage,
+    name: "warn",
+    forceEnter: () =>
+      !state.args.memory.warned &&
+      !!nomadChest &&
+      nomadChest[STATS].hp < nomadChest[STATS].maxHp,
+    onEnter: () => {
+      if (!heroEntity) return false;
+
+      if (entity[POPUP]) {
+        removePopup(world, entity);
+      }
+      state.args.memory.warned = true;
+      entity[BEHAVIOUR].patterns = [
+        {
+          name: "enrage",
+          memory: {
+            shout: "Don't touch!",
+          },
+        },
+        {
+          name: "unlock",
+          memory: {
+            target: world.getEntityId(state.args.memory.door),
+          },
+        },
+        {
+          name: "kill",
+          memory: {
+            target: world.getEntityId(heroEntity),
+          },
+        },
+      ];
+      return true;
+    },
+    isCompleted: () => entity[MELEE].hits > 0 || farAway,
+    onLeave: () => {
+      state.args.memory.greetGeneration = generation;
+      entity[BEHAVIOUR].patterns = [
+        {
+          name: "soothe",
+          memory: {
+            faction: "fire",
+          },
+        },
+        {
+          name: "move",
+          memory: { targetPosition: state.args.memory.origin },
+        },
+      ];
+      return state.args.memory.nextStep;
+    },
+  });
+
+  step({
+    stage,
+    name: "rage",
+    forceEnter: () =>
+      !state.args.memory.chasing && (inArea || closeUp) && !nomadChest,
+    onEnter: () => {
+      if (!heroEntity) return false;
+
+      if (entity[POPUP]) {
+        removePopup(world, entity);
+      }
+      state.args.memory.chasing = true;
+      entity[TOOLTIP].dialogs = [];
+      entity[TOOLTIP].override = undefined;
+      entity[TOOLTIP].changed = true;
+      entity[BEHAVIOUR].patterns = [
+        {
+          name: "enrage",
+          memory: {
+            shout: state.args.memory.raged ? undefined : "You thief\u0112",
+          },
+        },
+        {
+          name: "unlock",
+          memory: {
+            target: world.getEntityId(state.args.memory.door),
+          },
+        },
+        {
+          name: "kill",
+          memory: {
+            target: world.getEntityId(heroEntity),
+          },
+        },
+      ];
+
+      if (!state.args.memory.raged) {
+        state.args.memory.raged = true;
+      }
+
+      return true;
+    },
+    isCompleted: () =>
+      !heroEntity || isDead(world, heroEntity) || (farAway && !closeUp),
+    onLeave: () => {
+      state.args.memory.chasing = false;
+      entity[TOOLTIP].override = undefined;
+      entity[TOOLTIP].changed = true;
+      entity[BEHAVIOUR].patterns = [
+        {
+          name: "move",
+          memory: { targetPosition: state.args.memory.origin },
+        },
+      ];
+      return "wait";
+    },
+  });
+
+  step({
+    stage,
+    name: "watch",
+    isCompleted: () => inArea,
+    onLeave: () => {
+      state.args.memory.greetGeneration = generation;
+      entity[TOOLTIP].dialogs = [createDialog("Who's there?")];
+      entity[TOOLTIP].override = "visible";
+      entity[TOOLTIP].changed = true;
+      state.args.memory.nextStep = "greet";
+      return "greet";
+    },
+  });
+
+  step({
+    stage,
+    name: "greet",
+    isCompleted: () => generation > state.args.memory.greetGeneration + 8,
+    onLeave: () => {
+      state.args.memory.greetGeneration = generation;
+      entity[TOOLTIP].dialogs = [];
+      entity[TOOLTIP].override = undefined;
+      entity[TOOLTIP].changed = true;
+      state.args.memory.nextStep = "farm";
+      return "farm";
+    },
+  });
+
+  step({
+    stage,
+    name: "farm",
+    onEnter: () => {
+      const questItem: Omit<Item, "carrier" | "bound"> = choice(
+        { stackable: "berry", amount: 16 },
+        { stackable: "flower", amount: 16 },
+        { stackable: "spore", amount: 16 }
+      );
+      createPopup(world, entity, {
+        deals: [
+          {
+            item: {
+              stat: "xp",
+              amount: 5,
+            },
+            stock: 1,
+            prices: [questItem],
+          },
+        ],
+        lines: [
+          [
+            createText("..."),
+            [],
+            createText("I don't like"),
+            createText("visitors."),
+            [],
+            createText("So, what do you"),
+            createText("want from me?"),
+            [],
+            createText("..."),
+            [],
+            createText("I see, you need"),
+            [
+              ...createText("a "),
+              ...createItemName({ stackable: "schema" }),
+              ...createText("."),
+            ],
+            [],
+            createText("If you help me"),
+            createText("with some things,"),
+            createText("I will consider."),
+            [],
+            createText("Please bring me"),
+            [...createItemText(questItem), ...createText(" for my")],
+            createText("farm."),
+          ],
+        ],
+        tabs: ["quest"],
+      });
+
+      return true;
+    },
+    isCompleted: () => !entity[POPUP] && !isEnemy(world, entity),
+    onLeave: () => {
+      state.args.memory.nextStep = "schema";
+      return "schema";
+    },
+  });
+
+  step({
+    stage,
+    name: "schema",
+    onEnter: () => {
+      createPopup(world, entity, {
+        deals: [
+          {
+            item: {
+              stackable: "schema",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [
+              {
+                stackable: "resource",
+                material: "iron",
+                amount: 8,
+              },
+            ],
+            carrier: nomadChest && world.getEntityId(nomadChest),
+          },
+          {
+            item: {
+              stat: "xp",
+              amount: 3,
+            },
+            stock: 1,
+            prices: [],
+          },
+        ],
+        lines: [
+          [
+            createText("Only I have the"),
+            [
+              ...createItemName({ stackable: "schema" }),
+              ...createText(" you want."),
+            ],
+            [],
+            createText("It will cost you"),
+            createText("a lot to get it."),
+            [],
+            [
+              ...createText("How about "),
+              ...createItemText({
+                stackable: "resource",
+                material: "iron",
+                amount: 8,
+              }),
+              ...createText("?"),
+            ],
+          ],
+        ],
+        tabs: ["quest"],
+      });
+
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => {
+      state.args.memory.nextStep = "wait";
+      return "wait";
+    },
+  });
+
+  step({
+    stage,
+    name: "wait",
   });
 
   return { finished: stage.finished, updated: stage.updated };

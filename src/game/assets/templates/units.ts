@@ -203,6 +203,170 @@ entryClosedDisplay.wood.default = entryClosedDisplayWood;
 entryClosedDisplay.iron.default = entryClosedDisplayIron;
 entryClosedDisplay.default.fire = entryClosedDisplayFire;
 
+const fenceDoorClosedTemplate: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "■", color: colors.grey },
+    { char: "±", color: colors.grey },
+
+    { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "∙", color: TEMPLATE_COLORS.transparent },
+    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+const woodFenceDoorClosed: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "=", color: colors.grey },
+  ],
+};
+export const fenceDoorClosed = createTemplate({
+  sprite: fenceDoorClosedTemplate,
+});
+fenceDoorClosed.wood.default = woodFenceDoorClosed;
+
+const fenceDoorOpenTemplate: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.maroon },
+    { char: "■", color: colors.grey },
+    { char: "±", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+const woodFenceDoorOpen: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.maroon },
+    { char: "=", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+export const fenceDoorOpen = createTemplate({
+  sprite: fenceDoorOpenTemplate,
+});
+fenceDoorOpen.wood.default = woodFenceDoorOpen;
+
+const palisadeDoorClosedTemplate: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "■", color: colors.maroon },
+    { char: "±", color: colors.maroon },
+
+    { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "∙", color: TEMPLATE_COLORS.transparent },
+    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+const woodPalisadeDoorClosed: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "=", color: colors.maroon },
+  ],
+};
+export const palisadeDoorClosed = createTemplate({
+  sprite: palisadeDoorClosedTemplate,
+});
+palisadeDoorClosed.wood.default = woodPalisadeDoorClosed;
+
+const palisadeDoorOpenTemplate: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "■", color: colors.maroon },
+    { char: "±", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+const woodPalisadeDoorOpen: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.grey },
+    { char: "=", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+export const palisadeDoorOpen = createTemplate({
+  sprite: palisadeDoorOpenTemplate,
+});
+palisadeDoorOpen.wood.default = woodPalisadeDoorOpen;
+
+const barrierDoorClosedTemplate: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.red },
+    { char: "m", color: colors.grey },
+    { char: "w", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "■", color: colors.maroon },
+    { char: "±", color: colors.maroon },
+
+    { char: "\u0106", color: TEMPLATE_COLORS.materialPrimary },
+    { char: "∙", color: TEMPLATE_COLORS.transparent },
+    { char: ".", color: TEMPLATE_COLORS.materialPrimary },
+  ],
+};
+const woodBarrierDoorClosed: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.red },
+    { char: "m", color: colors.grey },
+    { char: "w", color: colors.grey },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+    { char: "=", color: colors.maroon },
+  ],
+};
+export const barrierDoorClosed = createTemplate({
+  sprite: barrierDoorClosedTemplate,
+});
+barrierDoorClosed.wood.default = woodBarrierDoorClosed;
+
+const barrierDoorOpenTemplate: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.red },
+    { char: "m", color: colors.grey },
+    { char: "w", color: colors.grey },
+    { char: "■", color: colors.maroon },
+    { char: "±", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+const woodBarrierDoorOpen: Sprite = {
+  name: "Gate",
+  layers: [
+    { char: "M", color: colors.red },
+    { char: "m", color: colors.grey },
+    { char: "w", color: colors.grey },
+    { char: "=", color: colors.maroon },
+    { char: "[", color: colors.black },
+    { char: "]", color: colors.black },
+  ],
+};
+export const barrierDoorOpen = createTemplate({
+  sprite: barrierDoorOpenTemplate,
+});
+barrierDoorOpen.wood.default = woodBarrierDoorOpen;
+
 const lockTemplate: Sprite = {
   name: "Lock",
   layers: [

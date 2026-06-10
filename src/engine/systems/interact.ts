@@ -34,6 +34,7 @@ import { addBackground } from "../../game/assets/ui";
 import { CONDITIONABLE } from "../components/conditionable";
 import { TypedEntity } from "../entities";
 import { canPlot } from "./build";
+import { isCooperating } from "./damage";
 
 export default function setupInteract(world: World) {
   let referenceGenerations = -1;
@@ -81,6 +82,8 @@ export default function setupInteract(world: World) {
       const isAdjacent =
         !!heroEntity &&
         !isMounting(world, heroEntity) &&
+        (!entity[POPUP] ||
+          (entity[POPUP] && isCooperating(world, heroEntity, entity))) &&
         (!entity[MOUNTABLE] ||
           (entity[MOUNTABLE] && canMount(world, heroEntity, entity))) &&
         (entity[REVIVABLE]
