@@ -343,7 +343,7 @@ import {
   getTab,
   getTabSelections,
   getVerticalIndex,
-  hasDefeated,
+  hasCompletedTargets,
   isInPopup,
   mapScroll,
   matchesItem,
@@ -6672,7 +6672,7 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
     heroEntity && popup.deals.every((deal) => canShop(world, heroEntity, deal));
   const allDefeated =
     heroEntity &&
-    popup.targets.every((target) => hasDefeated(world, heroEntity, target));
+    popup.targets.every((target) => hasCompletedTargets(world, heroEntity, target));
   const findTarget =
     heroEntity &&
     popup.targets.some((target) =>
@@ -6706,7 +6706,7 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
                 ? getDefeated(world, heroEntity, target)
                 : 0;
               const defeated =
-                heroEntity && hasDefeated(world, heroEntity, target);
+                heroEntity && hasCompletedTargets(world, heroEntity, target);
               const [sprite, ...name] = createUnitName(target.unit);
               const text = [
                 ...(target.amount > 1

@@ -328,11 +328,15 @@ export const buildConstructions: Construction[] = [
     variants: [
       {
         cell: "jetty_vertical",
-        sprite: getOrientedSprite(jetty, "up"),
+        sprite: recolorSprite(getOrientedSprite(jetty, "up"), {
+          [colors.navy]: colors.blue,
+        }),
       },
       {
         cell: "jetty_horizontal",
-        sprite: getOrientedSprite(jetty, "right"),
+        sprite: recolorSprite(getOrientedSprite(jetty, "right"), {
+          [colors.navy]: colors.blue,
+        }),
       },
     ],
     grounds: ["water"],
@@ -395,7 +399,7 @@ export const buildConstructions: Construction[] = [
     grounds: ["air", "sand", "path"],
     parts: [
       { stackable: "ore", amount: 4 },
-      { stackable: "stick", amount: 2 },
+      { stackable: "stick", amount: 4 },
     ],
     level: 2,
     effort: 30,

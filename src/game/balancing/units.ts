@@ -1039,7 +1039,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       {
         chance: 100,
         items: [
-          { stackable: "stick", amount: 1 },
+          { stackable: "stick", amount: 3 },
           { stackable: "ore", amount: 3 },
         ],
       },

@@ -74,6 +74,18 @@ export const fence: Sprite = {
     { char: "=", color: colors.maroon },
     { char: "|", color: colors.maroon },
   ],
+  amounts: {
+    single: [{ char: "|", color: colors.maroon }],
+    double: [
+      { char: "=", color: colors.maroon },
+      { char: "═", color: colors.black },
+      { char: "|", color: colors.maroon },
+    ],
+    multiple: [
+      { char: "=", color: colors.maroon },
+      { char: "|", color: colors.maroon },
+    ],
+  },
 };
 
 export const palisade: Sprite = {
@@ -88,6 +100,38 @@ export const palisade: Sprite = {
     { char: ":", color: colors.grey },
     { char: ".", color: colors.grey },
   ],
+  amounts: {
+    single: [
+      { char: "±", color: colors.grey },
+      { char: "⌐", color: colors.black },
+      { char: "+", color: colors.grey },
+      { char: "-", color: colors.black },
+      { char: "·", color: colors.grey },
+      { char: ":", color: colors.grey },
+      { char: ".", color: colors.grey },
+    ],
+    double: [
+      { char: "±", color: colors.grey },
+      { char: "⌐", color: colors.black },
+      { char: "+", color: colors.grey },
+      { char: "-", color: colors.black },
+      { char: "=", color: colors.grey },
+      { char: "═", color: colors.black },
+      { char: "·", color: colors.grey },
+      { char: ":", color: colors.grey },
+      { char: ".", color: colors.grey },
+    ],
+    multiple: [
+      { char: "±", color: colors.grey },
+      { char: "⌐", color: colors.black },
+      { char: "+", color: colors.grey },
+      { char: "-", color: colors.black },
+      { char: "·", color: colors.grey },
+      { char: "=", color: colors.grey },
+      { char: ":", color: colors.grey },
+      { char: ".", color: colors.grey },
+    ],
+  },
 };
 
 export const barrier: Sprite = {
@@ -102,6 +146,38 @@ export const barrier: Sprite = {
     { char: ":", color: colors.grey },
     { char: ".", color: colors.grey },
   ],
+  amounts: {
+    single: [
+      { char: "±", color: colors.grey },
+      { char: "⌐", color: colors.black },
+      { char: "+", color: colors.grey },
+      { char: "-", color: colors.black },
+      { char: "·", color: colors.red },
+      { char: ":", color: colors.grey },
+      { char: ".", color: colors.grey },
+    ],
+    double: [
+      { char: "±", color: colors.grey },
+      { char: "⌐", color: colors.black },
+      { char: "+", color: colors.grey },
+      { char: "-", color: colors.black },
+      { char: "=", color: colors.red },
+      { char: "═", color: colors.black },
+      { char: "∙", color: colors.grey },
+      { char: ":", color: colors.grey },
+      { char: ".", color: colors.grey },
+    ],
+    multiple: [
+      { char: "±", color: colors.grey },
+      { char: "⌐", color: colors.black },
+      { char: "+", color: colors.grey },
+      { char: "-", color: colors.black },
+      { char: "=", color: colors.red },
+      { char: "∙", color: colors.grey },
+      { char: ":", color: colors.grey },
+      { char: ".", color: colors.grey },
+    ],
+  },
 };
 
 export const brokenPalisade1: Sprite = {

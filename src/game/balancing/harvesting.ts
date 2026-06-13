@@ -38,8 +38,8 @@ const harvestEfforts: Record<Resource, number> = {
   path: 1,
   rubble: 1,
 
-  palisade: 11,
-  barrier: 11,
+  palisade: 16,
+  barrier: 21,
   hinge: 1,
   footing: 1,
   rock: 1,

@@ -26,6 +26,7 @@ export type Recipe = {
 
 export type Target = {
   unit: UnitKey;
+  identifier?: string;
   amount: number;
 };
 

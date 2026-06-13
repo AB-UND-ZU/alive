@@ -171,7 +171,8 @@ export default function setupAi(world: World) {
       if (
         isDead(world, entity) ||
         patterns.length === 0 ||
-        !isControllable(world, entity)
+        !isControllable(world, entity) ||
+        world.metadata.interact.active === entityId
       )
         continue;
 

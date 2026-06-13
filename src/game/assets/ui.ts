@@ -554,12 +554,42 @@ export const colorizeSprite = (
 
 export const blockedInactive = recolorSprite(blocked, colors.grey);
 
+export const mergeLayers = (
+  layerSets: (Sprite["layers"] | undefined)[]
+): Sprite["layers"] | undefined =>
+  layerSets.reduce(
+    (merged, layers) => (layers ? (merged || []).concat(layers) : merged),
+    undefined
+  );
+
 export const mergeSprites = (...sprites: Sprite[]): Sprite => ({
   name: sprites.filter((sprite) => sprite.name).slice(-1)[0]?.name || "",
-  layers: sprites.reduce(
-    (merged, { layers }) => merged.concat(layers),
-    [] as Layer[]
-  ),
+  layers: mergeLayers(sprites.map((sprite) => sprite.layers)) || [],
+  facing: {
+    up: mergeLayers(
+      sprites.map((sprite) => sprite.facing?.up || sprite.layers)
+    ),
+    right: mergeLayers(
+      sprites.map((sprite) => sprite.facing?.right || sprite.layers)
+    ),
+    down: mergeLayers(
+      sprites.map((sprite) => sprite.facing?.down || sprite.layers)
+    ),
+    left: mergeLayers(
+      sprites.map((sprite) => sprite.facing?.left || sprite.layers)
+    ),
+  },
+  amounts: {
+    single: mergeLayers(
+      sprites.map((sprite) => sprite.amounts?.single || sprite.layers)
+    ),
+    double: mergeLayers(
+      sprites.map((sprite) => sprite.amounts?.double || sprite.layers)
+    ),
+    multiple: mergeLayers(
+      sprites.map((sprite) => sprite.amounts?.multiple || sprite.layers)
+    ),
+  },
 });
 
 export const nonCountable = (sprite: Sprite) => ({

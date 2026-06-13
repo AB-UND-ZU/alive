@@ -92,6 +92,7 @@ import { FORGABLE } from "../components/forgable";
 import { equipItem } from "./collect";
 import { buildConstructions } from "../../game/balancing/building";
 import { canBuild, canConstruct, getBuildingDeal } from "./build";
+import { FOG } from "../components/fog";
 
 export const isInPopup = (world: World, entity: Entity) =>
   entity[PLAYER]?.popup && !isDead(world, entity);
@@ -222,10 +223,23 @@ export const getDeal = (
 };
 
 export const getDefeated = (world: World, heroEntity: Entity, target: Target) =>
-  heroEntity[PLAYER].defeatedUnits[target.unit] || 0;
+  heroEntity[PLAYER].defeatedUnits[target.unit!] || 0;
 
-export const hasDefeated = (world: World, heroEntity: Entity, target: Target) =>
-  getDefeated(world, heroEntity, target) >= target.amount;
+export const hasCompletedTargets = (
+  world: World,
+  heroEntity: Entity,
+  target: Target
+) => {
+  if (target.identifier) {
+    const targetEntity = getIdentifierAndComponents(world, target.identifier, [
+      FOG,
+    ]);
+
+    return !targetEntity || targetEntity[FOG].visibility !== "hidden";
+  }
+
+  if (getDefeated(world, heroEntity, target) >= target.amount) return true;
+};
 
 export const canTrade = (
   world: World,
@@ -328,7 +342,7 @@ export const isQuestCompleted = (world: World, hero: Entity, entity: Entity) =>
     entity[POPUP].choices.length === 0) ||
     (entity[POPUP].deals.every((deal: Deal) => canShop(world, hero, deal)) &&
       entity[POPUP].targets.every((target: Target) =>
-        hasDefeated(world, hero, target)
+        hasCompletedTargets(world, hero, target)
       )));
 
 export const popupIdles = {

@@ -275,7 +275,8 @@ const woodPalisadeDoorClosed: Sprite = {
     { char: "M", color: colors.grey },
     { char: "[", color: colors.black },
     { char: "]", color: colors.black },
-    { char: "=", color: colors.maroon },
+    { char: "■", color: colors.maroon },
+    { char: "±", color: colors.maroon },
   ],
 };
 export const palisadeDoorClosed = createTemplate({
@@ -297,7 +298,8 @@ const woodPalisadeDoorOpen: Sprite = {
   name: "Gate",
   layers: [
     { char: "M", color: colors.grey },
-    { char: "=", color: colors.maroon },
+    { char: "■", color: colors.maroon },
+    { char: "±", color: colors.maroon },
     { char: "[", color: colors.black },
     { char: "]", color: colors.black },
   ],

@@ -1975,12 +1975,12 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
     stage,
     name: START_STEP,
     isCompleted: () => true,
-    onLeave: () => "quest",
+    onLeave: () => "golem",
   });
 
   step({
     stage,
-    name: "quest",
+    name: "golem",
     onEnter: () => {
       createPopup(world, entity, {
         deals: [
@@ -2054,6 +2054,75 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               ...createText("Mining", colors.green),
               ...createText("."),
             ],
+          ],
+        ],
+        tabs: ["quest"],
+      });
+
+      return true;
+    },
+    isCompleted: () => !entity[POPUP],
+    onLeave: () => "nomad",
+  });
+
+  step({
+    stage,
+    name: "nomad",
+    onEnter: () => {
+      createPopup(world, entity, {
+        targets: [{ unit: "fireNomad", amount: 1, identifier: "fireNomad" }],
+        focuses: [{ identifier: "fireNomad", highlight: "quest" }],
+        deals: [
+          {
+            item: {
+              stackable: "resource",
+              material: "gold",
+              amount: 1,
+            },
+            stock: 1,
+            prices: [{ stackable: "schema", amount: 1 }],
+          },
+          {
+            item: {
+              stat: "xp",
+              amount: 3,
+            },
+            stock: 1,
+            prices: [],
+          },
+        ],
+        choices: [
+          {
+            accessory: "ring",
+            material: "wood",
+            amount: 1,
+          },
+          {
+            accessory: "amulet",
+            material: "wood",
+            amount: 1,
+          },
+
+        ],
+        lines: [
+          [
+            createText("I need to ask you"),
+            createText("for a favor..."),
+            [],
+            [...createText("Find the "), ...createUnitName("fireNomad")],
+            createText("and take away the"),
+            [
+              ...createItemName({
+                stackable: "schema",
+              }),
+              ...createText(" from him."),
+            ],
+            [],
+            createText("We will need it"),
+            createText("later!"),
+            [],
+            createText("He is not very"),
+            createText("welcoming though."),
           ],
         ],
         tabs: ["quest"],
@@ -2573,7 +2642,7 @@ export const fireNomadNpc: Sequence<NpcSequence> = (world, entity, state) => {
             [],
             createText("I see, you need"),
             [
-              ...createText("a "),
+              ...createText("the "),
               ...createItemName({ stackable: "schema" }),
               ...createText("."),
             ],

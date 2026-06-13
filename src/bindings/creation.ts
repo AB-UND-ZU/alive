@@ -2868,7 +2868,7 @@ export const createCell = (
       [SPRITE]: boat,
     });
     all.push(boatEntity);
-    setPoi(world, boatEntity, addBackground([boat], colors.black)[0]);
+    setPoi(world, boatEntity, addBackground([boat], colors.blue)[0]);
     return { cell: boatEntity, all };
   } else if (cell === "spawner") {
     const spawnerEntity = entities.createSpawner(world, {
