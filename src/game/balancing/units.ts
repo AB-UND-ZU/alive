@@ -41,6 +41,7 @@ import {
   cactus2,
   shadow,
   emptySlot,
+  chick,
 } from "../assets/sprites";
 import { Sprite } from "../../engine/components/sprite";
 import { distribution } from "../math/std";
@@ -807,7 +808,14 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
       { chance: 5, items: [{ stackable: "grain", amount: 4 }] },
       { chance: 5, items: [{ stackable: "spore", amount: 4 }] },
       { chance: 5, items: [{ stackable: "wheat", amount: 1 }] },
-      { chance: 5, items: [{ stackable: "worm", amount: 3 }] },
+      {
+        chance: 5,
+        items: [
+          { stackable: "worm", amount: 1 },
+          { stackable: "worm", amount: 1 },
+          { stackable: "worm", amount: 1 },
+        ],
+      },
 
       { chance: 5, items: [{ stackable: "gravel", amount: 3 }] },
       { chance: 5, items: [{ stackable: "sand", amount: 3 }] },
@@ -1467,6 +1475,22 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     sprite: orb.diamond.default,
     spring: { duration: 300 },
     evaporate: { sprite: evaporate.diamond.default, fast: true },
+  },
+  chick: {
+    faction: "animal",
+    scratch: colors.yellow,
+    stats: {
+      hp: 1,
+    },
+    equipments: [],
+    drops: [
+      {
+        chance: 100,
+        items: [{ stat: "xp", amount: 1 }],
+      },
+    ],
+    patternNames: ["chick"],
+    sprite: { ...chick, name: "" },
   },
   fairy: {
     faction: "wild",

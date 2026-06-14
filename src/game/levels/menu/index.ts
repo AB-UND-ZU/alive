@@ -268,6 +268,10 @@ export const generateMenu = async (world: World) => {
           stackable: "bread",
           amount: Infinity,
         },
+        {
+          stackable: "egg",
+          amount: Infinity,
+        },
       ],
       [
         {

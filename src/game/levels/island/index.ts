@@ -39,6 +39,7 @@ import {
   ORIENTABLE,
   Orientation,
   orientationPoints,
+  orientations,
 } from "../../../engine/components/orientable";
 import {
   ilexArea,
@@ -47,6 +48,7 @@ import {
   oakArea,
   spawnArea,
   townSize,
+  wormArea,
 } from "./areas";
 import {
   add,
@@ -282,6 +284,13 @@ export const generateIsland = (world: World) => {
         x: nomadSize.x / -2,
         y: nomadSize.y / -2,
       });
+      const wormPoint = angledOffset(
+        size,
+        { x: 0, y: 0 },
+        nomadFlipped ? islandAngle + 40 : islandAngle + 140,
+        mainlandRadius * 0.6,
+        mainlandRatio
+      );
 
       // preload world matrizes
       const hillsFactory = simplexNoiseFactory();
@@ -457,6 +466,17 @@ export const generateIsland = (world: World) => {
             1.5,
             1
           );
+          const wormCircle = circularKernel(
+            size,
+            size,
+            x,
+            y,
+            wormPoint,
+            10,
+            1,
+            0,
+            15
+          );
           const flattenedKernel =
             spawnCircle *
             spawnWalk *
@@ -464,7 +484,8 @@ export const generateIsland = (world: World) => {
             townSquare *
             oakCircle *
             passageKernel *
-            nomadSquare;
+            nomadSquare *
+            wormCircle;
 
           const beachesKernel = simplexNoiseKernel(
             beachesFactory,
@@ -985,6 +1006,15 @@ export const generateIsland = (world: World) => {
       );
       setMatrix(
         worldMap,
+        earthTraderHouse.position.x +
+          (earthTraderHouse.position.x === earthTraderHouse.door.x
+            ? choice(-3, 3)
+            : earthTraderHouse.position.x - earthTraderHouse.door.x),
+        earthTraderHouse.position.y + 3,
+        "trader_sign"
+      );
+      setMatrix(
+        worldMap,
         earthDruidHouse.position.x + choice(-1, 1),
         earthDruidHouse.position.y + 2,
         "house_druid"
@@ -1015,6 +1045,19 @@ export const generateIsland = (world: World) => {
       const fireNomadHouse = {
         position: combine(size, nomadPoint, { x: -2, y: -1 }),
       };
+
+      // create worm area
+      const wormMountain = pixelCircle(wormPoint, 8, aspectRatio, true);
+      wormMountain.forEach((position) => {
+        setMatrix(worldMap, position.x, position.y, "mountain");
+        objectsMap[normalize(position.x, size)][normalize(position.y, size)] =
+          [];
+      });
+      const wormSand = pixelCircle(wormPoint, 6, aspectRatio, true);
+      wormSand.forEach((position) => {
+        setMatrix(worldMap, position.x, position.y, "sand");
+      });
+      insertArea(world, wormArea, wormPoint.x, wormPoint.y, true);
 
       // find haven point as first beach starting from ocean towards center
       const beachPoint = marchLinePredicate(
@@ -1504,7 +1547,10 @@ export const generateIsland = (world: World) => {
 
       setMatrix(
         worldMap,
-        fireSmithHouse.position.x + choice(-1, 1),
+        fireSmithHouse.position.x +
+          (fireSmithHouse.position.x === fireSmithHouse.door.x
+            ? choice(-3, 3)
+            : fireSmithHouse.position.x - fireSmithHouse.door.x),
         fireSmithHouse.position.y + 3,
         "campfire"
       );
@@ -1783,6 +1829,12 @@ export const generateIsland = (world: World) => {
         bottomRight: townEnd,
         spawn: combine(size, inn, { x: 0, y: 2 }),
       });
+
+      // add chicken around fountain
+      for (const orientation of orientations) {
+        const target = combine(size, inn, orientationPoints[orientation]);
+        createCell(world, target, "chick", "hidden");
+      }
 
       // place guards at exits
       guards.forEach((guard, index) => {

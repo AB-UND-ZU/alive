@@ -26,6 +26,7 @@ export const npcTypes = [
   "orb",
   "goldOrb",
   "diamondOrb",
+  "chick",
   "fairy",
   "rose",
   "violet",

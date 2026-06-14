@@ -75,6 +75,7 @@ export const craftables = [
   "grain",
   "wheat",
   "bread",
+  "egg",
   "apple",
   "shroom",
   "banana",

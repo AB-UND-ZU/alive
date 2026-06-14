@@ -17,6 +17,7 @@ import {
   getAttackable,
   getEntityStats,
   getLimbs,
+  getRoot,
   isDead,
   isFriendlyFire,
   isNeutral,
@@ -236,6 +237,7 @@ export default function setupMovement(world: World) {
       // skip if immovable or not sliding
       if (
         isDead(world, entity) ||
+        (FRAGMENT in entity && isDead(world, getRoot(world, entity))) ||
         (isFrozen(world, entity) && !entity[MOVABLE].momentum)
       )
         continue;

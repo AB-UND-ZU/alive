@@ -12,6 +12,7 @@ import { UnitStats } from "../../engine/components/stats";
 export const itemPrices: Partial<Record<Stackable, number>> = {
   worm: 1,
   thorn: 2,
+  egg: 8,
 
   berry: 1,
   flower: 1,

@@ -36,6 +36,9 @@ export const pushEntity = (
   if (!orientation) return;
 
   entity[MOVABLE].orientations = [orientation];
+
+  if (targetReference === world.metadata.gameEntity) return;
+
   targetReference[REFERENCE].delta = targetReference[REFERENCE].tick;
   targetReference[REFERENCE].suspended = false;
   targetReference[REFERENCE].suspensionCounter = -1;
@@ -63,6 +66,9 @@ export default function setupPush(world: World) {
         entity[MOVABLE].reference,
         [REFERENCE]
       );
+
+      if (targetReference === world.metadata.gameEntity) return;
+
       entity[MOVABLE].orientations = [];
       targetReference[REFERENCE].suspensionCounter = 0;
     }

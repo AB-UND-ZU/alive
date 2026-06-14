@@ -50,7 +50,7 @@ import { ACTIONABLE } from "../components/actionable";
 import { castableSpell, getLockable, isLocked, isUnlocked } from "./action";
 import { ITEM } from "../components/item";
 import { castSpell, lockDoor } from "./trigger";
-import { createItemAsDrop, dropEntity } from "./drop";
+import { createItemAsDrop, dropEntity, findAdjacentDroppable } from "./drop";
 import {
   chestBoss,
   golem,
@@ -60,6 +60,7 @@ import {
   golemLimb,
   golemShoulderLeft,
   golemShoulderRight,
+  heart,
   none,
   rock1,
   shadow,
@@ -146,7 +147,10 @@ import {
   createShout,
   createText,
   rage2,
+  createDialog,
 } from "../../game/assets/ui";
+import { getLootable } from "./collect";
+import { getFarmable, getHarvestable } from "./harvest";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -306,6 +310,270 @@ export default function setupAi(world: World) {
 
           rerenderEntity(world, entity);
           break;
+        } else if (pattern.name === "worm") {
+          const wormItem = world.getEntityById(entity[INVENTORY]?.items[0]);
+          if (!wormItem) continue;
+
+          if (!wormItem[ORIENTABLE]) {
+            world.addComponentToEntity(wormItem, ORIENTABLE, {});
+            continue;
+          }
+
+          if (!pattern.memory.origin) {
+            pattern.memory.origin = copy(entity[POSITION]);
+            pattern.memory.wait = random(0, 2);
+          }
+
+          if (pattern.memory.wait > 0) {
+            pattern.memory.wait -= 1;
+            wormItem[ORIENTABLE].facing = undefined;
+            rerenderEntity(world, wormItem);
+            entity[MOVABLE].orientations = [];
+            continue;
+          }
+
+          const distance = getDistance(
+            entity[POSITION],
+            pattern.memory.origin,
+            size,
+            1
+          );
+
+          const orientation =
+            distance > 3
+              ? choice(
+                  ...relativeOrientations(
+                    world,
+                    entity[POSITION],
+                    pattern.memory.origin,
+                    1
+                  )
+                )
+              : choice(...orientations);
+          wormItem[ORIENTABLE].facing = orientation;
+          rerenderEntity(world, wormItem);
+          entity[MOVABLE].orientations = [orientation];
+          pattern.memory.wait = choice(1, 3);
+        } else if (pattern.name === "chick") {
+          if (!entity[TOOLTIP]) {
+            patterns.splice(patterns.indexOf(pattern), 1);
+            continue;
+          }
+
+          const eggEntity = world.getEntityByIdAndComponents(
+            pattern.memory.egg,
+            [POSITION]
+          );
+          if (pattern.memory.egg && !eggEntity) {
+            pattern.memory.egg = undefined;
+          }
+
+          // pick up grains
+          let grainEntity = world.getEntityByIdAndComponents(
+            pattern.memory.grain,
+            [POSITION]
+          );
+          if (pattern.memory.grain && !grainEntity) {
+            pattern.memory.grain = undefined;
+          }
+
+          if (!pattern.memory.grain) {
+            const grainDistance = 5;
+            for (
+              let offsetX = -grainDistance;
+              offsetX <= grainDistance && !grainEntity;
+              offsetX += 1
+            ) {
+              for (
+                let offsetY = -grainDistance;
+                offsetY <= grainDistance;
+                offsetY += 1
+              ) {
+                const scanned = combine(size, entity[POSITION], {
+                  x: offsetX,
+                  y: offsetY,
+                });
+                const lootable = getLootable(world, scanned);
+                if (
+                  lootable &&
+                  world.getEntityByIdAndComponents(
+                    lootable[INVENTORY].items[0],
+                    [ITEM]
+                  )?.[ITEM].stackable === "grain"
+                ) {
+                  grainEntity = lootable as TypedEntity<"POSITION">;
+                  pattern.memory.grain = world.getEntityId(lootable);
+                  pattern.memory.noise = generation + 4;
+                  entity[TOOLTIP].idle = heart;
+                  entity[TOOLTIP].dialogs = [];
+                  entity[TOOLTIP].override = undefined;
+                  entity[TOOLTIP].changed = true;
+                  break;
+                }
+              }
+            }
+          }
+
+          let movement: Orientation | undefined;
+          if (grainEntity) {
+            movement = relativeOrientations(
+              world,
+              entity[POSITION],
+              grainEntity[POSITION],
+              1
+            )[0];
+          }
+
+          // flee from hero
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+          if (!movement && heroEntity) {
+            const distance = getDistance(
+              entity[POSITION],
+              heroEntity[POSITION],
+              size,
+              1
+            );
+            const adjacent = distance === 1;
+            const flee = distance <= 3;
+            const nearby = distance <= 5;
+            const outward = relativeOrientations(
+              world,
+              heroEntity[POSITION],
+              entity[POSITION],
+              1
+            )[0];
+            if (adjacent) {
+              movement = rotateOrientation(outward, choice(-1, 1));
+              pattern.memory.wander = undefined;
+            } else if (flee) {
+              movement = outward;
+              pattern.memory.wander = undefined;
+            } else if (
+              nearby &&
+              Math.random() < 0.01 &&
+              !pattern.memory.noise
+            ) {
+              entity[TOOLTIP].dialogs = [createDialog("Chirp")];
+              entity[TOOLTIP].override = "visible";
+              entity[TOOLTIP].changed = true;
+              pattern.memory.noise = generation + 2;
+            }
+          }
+
+          // wander around, hack on the ground or hatch egg
+          if (!movement && !pattern.memory.wander) {
+            if (entity[BUMPABLE] && Math.random() < 0.2) {
+              for (const hack of orientations) {
+                const hackTarget = combine(
+                  size,
+                  entity[POSITION],
+                  orientationPoints[hack]
+                );
+                const harvestable = getHarvestable(world, hackTarget);
+                const farmable = getFarmable(world, hackTarget);
+                if (
+                  (harvestable &&
+                    ["grass", "bush"].includes(
+                      harvestable[HARVESTABLE].resource
+                    )) ||
+                  farmable
+                ) {
+                  entity[BUMPABLE].generation = generation;
+                  entity[BUMPABLE].orientation = hack;
+                  break;
+                }
+              }
+            } else if (Math.random() < 0.15) {
+              movement = choice(...orientations);
+              pattern.memory.wander = movement;
+            } else if (Math.random() < 0.001 && !pattern.memory.egg) {
+              const eggData = {
+                stackable: "egg",
+                amount: 1,
+                bound: false,
+              } as const;
+              const eggItem = createItemAsDrop(
+                world,
+                findAdjacentDroppable(world, entity[POSITION]),
+                entities.createItem,
+                {
+                  [ITEM]: eggData,
+                  [SPRITE]: getItemSprite(eggData),
+                }
+              );
+              pattern.memory.egg = eggItem[ITEM].carrier;
+            }
+          } else if (!movement && pattern.memory.wander) {
+            if (Math.random() < 0.5) {
+              pattern.memory.wander = undefined;
+            } else {
+              movement = pattern.memory.wander;
+            }
+          }
+
+          if (pattern.memory.noise && generation > pattern.memory.noise) {
+            entity[TOOLTIP].idle = undefined;
+            entity[TOOLTIP].dialogs = [];
+            entity[TOOLTIP].override = "hidden";
+            entity[TOOLTIP].changed = true;
+            pattern.memory.noise = undefined;
+          }
+
+          if (!movement) {
+            entity[MOVABLE].orientations = [];
+            continue;
+          }
+
+          const offset = choice(-1, 1);
+          const movements = [
+            movement,
+            rotateOrientation(movement, offset),
+            rotateOrientation(movement, -offset),
+            invertOrientation(movement),
+          ];
+          movement = undefined;
+          for (const attemptedMovement of movements) {
+            const target = combine(
+              size,
+              entity[POSITION],
+              orientationPoints[attemptedMovement]
+            );
+
+            // avoid fires
+            const castableEntity = getExertables(world, target).map(
+              (exertable) =>
+                world.getEntityByIdAndComponents(
+                  exertable[EXERTABLE].castable,
+                  [CASTABLE]
+                )
+            )[0];
+            const isFire = castableEntity && castableEntity[CASTABLE].burn > 0;
+            const lootable = getLootable(world, target);
+            const attackable = getAttackable(world, target);
+
+            if (
+              (!isWalkable(world, target) &&
+                (!lootable ||
+                  world.getEntityByIdAndComponents(
+                    lootable[INVENTORY].items[0],
+                    [ITEM]
+                  )?.[ITEM].stackable === "egg") &&
+                (!entity[EQUIPPABLE]?.weapon ||
+                  !attackable ||
+                  isFriendlyFire(world, entity, attackable))) ||
+              isFire
+            ) {
+              continue;
+            }
+            movement = attemptedMovement;
+            break;
+          }
+
+          if (movement) {
+            entity[MOVABLE].orientations = [movement];
+          }
         } else if (pattern.name === "prism") {
           const facing = (entity[ORIENTABLE]?.facing ||
             orientations[random(0, orientations.length - 1)]) as Orientation;

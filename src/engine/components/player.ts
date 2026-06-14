@@ -9,7 +9,7 @@ export type Player = {
   ghost: boolean;
   receivedStats: Record<
     keyof (Pick<Countable, "hp" | "maxHp" | "mp" | "maxMp" | "xp"> &
-      Pick<Castable, "melee" | "magic">),
+      Pick<Castable, "melee" | "magic" | "true">),
     number
   >;
   defeatedUnits: Partial<Record<UnitKey, number>>;
@@ -46,6 +46,7 @@ export const emptyReceivedStats = {
   mp: 0,
   maxMp: 0,
   xp: 0,
+  true: 0,
   melee: 0,
   magic: 0,
   heal: 0,

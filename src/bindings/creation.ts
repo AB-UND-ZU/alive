@@ -65,6 +65,7 @@ import { defaultLight, roomLight, spawnLight } from "../engine/systems/consume";
 import {
   createItemAsDrop,
   createItemInInventory,
+  dropEntity,
 } from "../engine/systems/drop";
 import { getEnterable } from "../engine/systems/enter";
 import { createHero } from "../engine/systems/fate";
@@ -231,7 +232,7 @@ import {
   getItemSprite,
   npcSequence,
 } from "../game/assets/utils";
-import { getOrientedSprite } from "../game/assets/ui";
+import { craft, getOrientedSprite, shop } from "../game/assets/ui";
 import {
   generateNpcData,
   generateUnitData,
@@ -285,6 +286,7 @@ import {
 } from "../game/assets/ui";
 import {
   barrierDoorOpen,
+  doorClosed,
   entryClosed,
   fenceDoorOpen,
   palisadeDoorOpen,
@@ -919,6 +921,8 @@ export const insertArea = (
       else if (cell === "I") entity = "ilex_elite";
       else if (cell === "i") entity = "ilexChest";
       else if (cell === "O") entity = "oak_boss";
+      else if (cell === "w") entity = "worm_sign";
+      else if (cell === "W") entity = "worm_bait";
       else if (cell === "C") entity = "chest_boss";
       else if (cell === "∩") entity = "portal";
       else if (cell === "⌠") entity = "fountain";
@@ -2374,6 +2378,91 @@ export const createCell = (
     all.push(guideSign);
     setIdentifier(world, guideSign, "guide_sign");
     return { cell: guideSign, all };
+  } else if (cell === "trader_sign") {
+    const traderSign = createSign(world, { x, y }, [
+      [
+        centerSprites(createText("Welcome"), frameWidth - 2),
+        repeat(swirl, 17),
+        [],
+        createText("This is the house"),
+        [
+          ...createText("of the "),
+          ...createUnitName("earthTrader"),
+          ...createText("."),
+        ],
+        [],
+        [
+          ...createText("In the "),
+          shop,
+          ...createText("Shop", colors.grey),
+          ...createText(", you"),
+        ],
+        createText("can buy and sell"),
+        [
+          ...createText("items for "),
+          ...createItemName({ stackable: "coin" }),
+          ...createText("s", colors.grey),
+          ...createText("."),
+        ],
+        [],
+        [
+          ...createText("The "),
+          bench,
+          ...createText("Bench", colors.grey),
+          ...createText(" is for"),
+        ],
+        [
+          craft,
+          ...createText("Crafting", colors.grey),
+          ...createText(" items."),
+        ],
+        [],
+        [
+          ...createText("Open the "),
+          doorClosed.wood.default,
+          ...createText("Door", colors.grey),
+        ],
+        createText("and come in!"),
+      ],
+    ]);
+    all.push(traderSign);
+    setIdentifier(world, traderSign, "trader_sign");
+    return { cell: traderSign, all };
+  } else if (cell === "worm_sign") {
+    const { harvestable: sandHarvestable } = getHarvestConfig("sand");
+    all.push(
+      entities.createPaving(world, {
+        [DROPPABLE]: { decayed: false },
+        [HARVESTABLE]: sandHarvestable,
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: sand,
+        [TEMPO]: { amount: -1 },
+      })
+    );
+    const wormSign = createSign(world, { x, y }, [
+      [
+        centerSprites(createText("Warning"), frameWidth - 2),
+        repeat(swirl, 17),
+        [],
+        [
+          ...createText("Dangerous "),
+          ...createItemName({ stackable: "worm" }),
+          ...createText(","),
+        ],
+        createText("do not touch it!"),
+        [],
+        createText("..."),
+        [],
+        createText("Actually, RUN"),
+        createText("WHILE YOU CAN\u0112"),
+      ],
+    ]);
+    all.push(wormSign);
+    setIdentifier(world, wormSign, "worm_sign");
+    return { cell: wormSign, all };
   } else if (cell === "habitat") {
     const habitatCell =
       habitatDistribution[
@@ -3026,7 +3115,7 @@ export const createCell = (
   } else if (npcTypes.includes(cell as NpcType)) {
     const mobUnit = generateNpcData(cell as NpcType);
 
-    let mobEntity: TypedEntity<"FOG" | "INVENTORY" | "POSITION">;
+    let mobEntity: TypedEntity<"FOG" | "INVENTORY" | "POSITION" | "TOOLTIP">;
 
     if (mobUnit.dormant) {
       mobEntity = entities.createDormant(world, {
@@ -3143,6 +3232,8 @@ export const createCell = (
     }
     if (cell === "dummy" || cell === "ilexTulip") {
       setIdentifier(world, mobEntity, cell);
+    } else if (cell === "chick") {
+      world.addComponentToEntity(mobEntity, COLLECTABLE, {});
     }
 
     return { cell: mobEntity, all };
@@ -3900,6 +3991,31 @@ export const createCell = (
     );
 
     return { cell: bossEntity, all };
+  } else if (cell === "worm_bait") {
+    const { harvestable: sandHarvestable } = getHarvestConfig("sand");
+    all.push(
+      entities.createPaving(world, {
+        [DROPPABLE]: { decayed: false },
+        [HARVESTABLE]: sandHarvestable,
+        [FOG]: { visibility, type: "terrain" },
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: sand,
+        [TEMPO]: { amount: -1 },
+      })
+    );
+    const placeholder: TypedEntity<"INVENTORY" | "POSITION" | "LOOTABLE"> = {
+      [LOOTABLE]: { disposable: true },
+      [INVENTORY]: { items: [] },
+      [POSITION]: { x, y },
+      [RENDERABLE]: { generation: 0 },
+    };
+    populateInventory(world, placeholder, [{ stackable: "worm", amount: 1 }]);
+    const wormEntity = dropEntity(world, placeholder, { x, y }, true)[0];
+    all.push(wormEntity);
+    setIdentifier(world, wormEntity, "worm_bait");
+    return { cell: wormEntity, all };
   } else if (cell === "chest_boss") {
     const bossUnit = generateNpcData("chestBoss");
 

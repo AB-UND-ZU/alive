@@ -474,12 +474,11 @@ export default function setupCollect(world: World) {
 
     referenceGenerations = generation;
 
-    // handle player collecting item
+    // handle units collecting items
     for (const entity of world.getEntities([
       POSITION,
       COLLECTABLE,
       MOVABLE,
-      EQUIPPABLE,
       INVENTORY,
       STATS,
       RENDERABLE,

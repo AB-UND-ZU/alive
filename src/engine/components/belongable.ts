@@ -3,7 +3,7 @@ import { World } from "../ecs";
 
 export const tribes = ["settler", "nomad", "fire", "water", "earth"] as const;
 export const enemies = ["wild", "hostile", "nature"] as const;
-export const neutrals = ["unit"] as const;
+export const neutrals = ["unit", "animal"] as const;
 
 export type Faction =
   | (typeof tribes)[number]

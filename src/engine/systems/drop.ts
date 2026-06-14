@@ -64,6 +64,8 @@ import {
 } from "../../game/balancing/harvesting";
 import { iterateMatrixFromCenter } from "../../game/math/matrix";
 import { REMAINABLE } from "../components/remainable";
+import { BEHAVIOUR } from "../components/behaviour";
+import { MOVABLE } from "../components/movable";
 
 export const isDecayed = (world: World, entity: Entity) =>
   entity[DROPPABLE]?.decayed || entity[VANISHABLE]?.decayed;
@@ -366,7 +368,24 @@ export const dropEntity = (
       [SWIMMABLE]: { swimming: false },
     };
 
-    const containerEntity = entities.createDrop(world, containerData);
+    const containerEntity =
+      itemEntity[ITEM].stackable === "worm" && itemEntity[ITEM].amount === 1
+        ? entities.createWorm(world, {
+            ...containerData,
+            [BEHAVIOUR]: { patterns: [{ name: "worm", memory: {} }] },
+            [MOVABLE]: {
+              orientations: [],
+              reference: world.getEntityId(world.metadata.gameEntity),
+              spring: {
+                duration: 350,
+              },
+              lastInteraction: 0,
+              flying: false,
+              swimming: false,
+            },
+            [ORIENTABLE]: {},
+          })
+        : entities.createDrop(world, containerData);
 
     if (itemEntity[POPUP]) {
       const { viewpoint, ...popup } = itemEntity[POPUP];

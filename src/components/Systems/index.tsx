@@ -46,7 +46,8 @@ export default function Systems() {
   const damageRef = useRef(0);
   const damageReceived =
     (hero?.[PLAYER].receivedStats.melee || 0) +
-    (hero?.[PLAYER].receivedStats.magic || 0);
+    (hero?.[PLAYER].receivedStats.magic || 0) +
+    (hero?.[PLAYER].receivedStats.true || 0);
   const [values, api] = useSpring(() => ({
     x: 0,
     y: 0,
@@ -100,7 +101,9 @@ export default function Systems() {
 
     if (hero && shakeIntensity > 0) {
       damageRef.current =
-        hero[PLAYER].receivedStats.melee + hero[PLAYER].receivedStats.magic;
+        hero[PLAYER].receivedStats.melee +
+        hero[PLAYER].receivedStats.magic +
+        hero[PLAYER].receivedStats.true;
       const shakeDistance = (Math.sqrt(shakeIntensity) + 1) * shakeFactor;
       const shakeAngle = random(0, 359);
       const shakeX = Math.sin((shakeAngle / 360) * Math.PI * 2) * shakeDistance;

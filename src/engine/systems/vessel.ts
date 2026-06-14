@@ -91,6 +91,8 @@ export const unmountVessel = (world: World, entity: Entity, vessel: Entity) => {
   stopVessel(world, vessel);
 
   // reset boat being displacable
+  if (frameEntity === world.metadata.gameEntity) return;
+
   frameEntity[REFERENCE].delta = 0;
   frameEntity[REFERENCE].suspended = true;
   frameEntity[REFERENCE].suspensionCounter = -1;
@@ -151,11 +153,7 @@ export default function setupVessel(world: World) {
         MOUNTABLE,
         MOVABLE,
       ]);
-      if (
-        !isControllable(world, entity) ||
-        !mount
-      )
-        continue;
+      if (!isControllable(world, entity) || !mount) continue;
 
       const targetOrientation: Orientation | null =
         entity[MOVABLE].pendingOrientation || entity[MOVABLE].orientations[0];

@@ -3,25 +3,25 @@ import { Deal, Recipe } from "../../engine/components/popup";
 export const brewingRecipes: Recipe[] = [
   {
     item: { stackable: "fruit", amount: 1 },
-    duration: 5,
+    duration: 10,
     options: [[{ stackable: "berry", amount: 10 }]],
   },
   {
     item: { stackable: "herb", amount: 1 },
-    duration: 5,
+    duration: 10,
     options: [[{ stackable: "flower", amount: 10 }]],
   },
   {
     item: { stackable: "sapling", amount: 1 },
-    duration: 5,
+    duration: 10,
     options: [[{ stackable: "leaf", amount: 10 }]],
   },
+
   {
     item: { stackable: "spore", amount: 5 },
     duration: 5,
     options: [[{ stackable: "shroom", amount: 1 }]],
   },
-
   {
     item: { stackable: "grain", amount: 5 },
     duration: 5,
@@ -29,13 +29,13 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { stackable: "bread", amount: 1 },
-    duration: 10,
+    duration: 15,
     options: [[{ stackable: "wheat", amount: 3 }]],
   },
 
   {
     item: { consume: "potion", material: "wood", stat: "hp", amount: 10 },
-    duration: 15,
+    duration: 20,
     options: [
       [
         { stackable: "apple", amount: 1 },
@@ -56,7 +56,7 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { consume: "potion", material: "iron", stat: "hp", amount: 10 },
-    duration: 20,
+    duration: 25,
     options: [
       [
         { stackable: "apple", amount: 3 },
@@ -87,7 +87,7 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { consume: "potion", material: "gold", stat: "hp", amount: 10 },
-    duration: 25,
+    duration: 30,
     options: [
       [
         { stackable: "fruit", amount: 2 },
@@ -118,7 +118,7 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { consume: "potion", material: "wood", stat: "mp", amount: 10 },
-    duration: 15,
+    duration: 20,
     options: [
       [
         { stackable: "shroom", amount: 1 },
@@ -139,7 +139,7 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { consume: "potion", material: "iron", stat: "mp", amount: 10 },
-    duration: 20,
+    duration: 25,
     options: [
       [
         { stackable: "shroom", amount: 3 },
@@ -170,7 +170,7 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { consume: "potion", material: "gold", stat: "mp", amount: 10 },
-    duration: 25,
+    duration: 30,
     options: [
       [
         { stackable: "herb", amount: 2 },
@@ -202,7 +202,7 @@ export const brewingRecipes: Recipe[] = [
 
   {
     item: { stackable: "granola", amount: 1 },
-    duration: 5,
+    duration: 10,
     options: [
       [
         { stackable: "stick", amount: 3 },
@@ -213,7 +213,7 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { stackable: "juice", amount: 1 },
-    duration: 10,
+    duration: 15,
     options: [
       [
         { stackable: "stick", amount: 3 },
@@ -234,7 +234,7 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { stackable: "toast", amount: 1 },
-    duration: 15,
+    duration: 20,
     options: [
       [
         { stackable: "bread", amount: 1 },
@@ -246,12 +246,17 @@ export const brewingRecipes: Recipe[] = [
         { stackable: "tuna", amount: 1 },
         { stackable: "leaf", amount: 2 },
       ],
+      [
+        { stackable: "bread", amount: 1 },
+        { stackable: "egg", amount: 2 },
+        { stackable: "leaf", amount: 2 },
+      ],
     ],
   },
 
   {
     item: { stackable: "tea", amount: 1 },
-    duration: 5,
+    duration: 10,
     options: [
       [
         { stackable: "ore", amount: 3 },
@@ -267,7 +272,7 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { stackable: "curry", amount: 1 },
-    duration: 10,
+    duration: 15,
     options: [
       [
         { stackable: "ore", amount: 3 },
@@ -278,7 +283,7 @@ export const brewingRecipes: Recipe[] = [
   },
   {
     item: { stackable: "soup", amount: 1 },
-    duration: 15,
+    duration: 20,
     options: [
       [
         { stackable: "ore", amount: 3 },

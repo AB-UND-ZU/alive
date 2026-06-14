@@ -139,6 +139,8 @@ import {
   wall,
   wood,
   repair,
+  egg,
+  chick,
 } from "./sprites";
 import {
   createCountable,
@@ -482,6 +484,19 @@ export const entitySprites: Record<
     getDescription: (stats) => [
       createText("Crunchy loaf,"),
       createText("a perfect snack."),
+      createCountable(stats, "hp", "display"),
+    ],
+  },
+  egg: {
+    sprite: egg,
+    getDescription: (stats) => [
+      [
+        ...createText("From a "),
+        chick,
+        ...createText("Chick", colors.grey),
+        ...createText(","),
+      ],
+      createText("handle with care."),
       createCountable(stats, "hp", "display"),
     ],
   },

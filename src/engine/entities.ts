@@ -1408,3 +1408,19 @@ export const createWorld = entityFactory([
   SEQUENCABLE,
   VIEWABLE,
 ]);
+
+export const createWorm = entityFactory([
+  BEHAVIOUR,
+  FOG,
+  HOOKABLE,
+  INVENTORY,
+  LAYER,
+  LOOTABLE,
+  MOVABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  SWIMMABLE,
+]);

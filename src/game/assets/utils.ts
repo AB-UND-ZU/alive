@@ -1304,7 +1304,7 @@ export const getUnitSprite = (unit: UnitKey) => {
         (equipment) => equipment.amount !== 0 && equipment.weapon === "sword"
       )
       .map((equipment) => getItemSprite(equipment)),
-    unitData.faction === "unit"
+    unitData.faction === "unit" || unitData.faction === "animal"
       ? none
       : unitData.faction === "wild"
       ? hostileBar
@@ -1322,7 +1322,7 @@ export const createUnitName = (unit: UnitKey) => {
       unitData.sprite.name,
       unitData.faction === "wild"
         ? colors.maroon
-        : unitData.faction === "unit"
+        : unitData.faction === "unit" || unitData.faction === "animal"
         ? colors.grey
         : colors.green
     ),

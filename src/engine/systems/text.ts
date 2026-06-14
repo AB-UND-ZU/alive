@@ -20,6 +20,7 @@ import { SPAWNABLE } from "../components/spawnable";
 import { isInPopup, isShowingPopup } from "./popup";
 import { play } from "../../game/sound";
 import { createTooltip } from "./damage";
+import { BELONGABLE } from "../components/belongable";
 
 export const getTooltip = (world: World, position: Position) =>
   Object.values(getCell(world, position)).find(
@@ -250,7 +251,13 @@ export default function setupText(world: World) {
 
         // play sound
         if (!isIdle && !!dialog) {
-          play("talk", { variant: tooltipEntity[TOOLTIP].enemy ? 2 : 1 });
+          play("talk", {
+            variant: tooltipEntity[TOOLTIP].enemy
+              ? 2
+              : tooltipEntity[BELONGABLE]?.faction === "animal"
+              ? 0.5
+              : 1,
+          });
         }
 
         pendingTooltip = tooltipEntity;

@@ -196,6 +196,9 @@ export const freezeMomentum = (
     entity[MOVABLE].reference,
     [REFERENCE, RENDERABLE]
   );
+
+  if (movableReference === world.metadata.gameEntity) return;
+
   if (
     entity[MOVABLE].momentum &&
     movableReference[REFERENCE].suspensionCounter === 0 &&

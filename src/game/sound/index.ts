@@ -15,6 +15,7 @@ export const npcVariants: Partial<Record<NpcType, number>> = {
   eye: 3,
   goldEye: 3,
   fairy: 18,
+  chick: 18,
 };
 
 export const pickupOptions: Partial<

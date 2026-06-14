@@ -650,20 +650,20 @@ export const worm: Sprite = {
   ],
   facing: {
     up: [
-      { char: "=", color: colors.red },
-      { char: "\u0115", color: colors.black },
+      { char: "|", color: colors.red },
+      { char: "[", color: colors.black },
     ],
     right: [
-      { char: "=", color: colors.red },
-      { char: "\u0115", color: colors.black },
+      { char: "═", color: colors.red },
+      { char: "─", color: colors.black },
     ],
     down: [
-      { char: "=", color: colors.red },
-      { char: "\u0115", color: colors.black },
+      { char: "|", color: colors.red },
+      { char: "]", color: colors.black },
     ],
     left: [
-      { char: "=", color: colors.red },
-      { char: "\u0115", color: colors.black },
+      { char: "═", color: colors.red },
+      { char: "─", color: colors.black },
     ],
   },
 };

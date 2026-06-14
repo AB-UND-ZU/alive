@@ -41,6 +41,8 @@ export type Pattern = {
     | "enrage"
     | "soothe"
     | "tumbleweed"
+    | "worm"
+    | "chick"
     | "spawner"
     | "habitat"
     | "dummy"
