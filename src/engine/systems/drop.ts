@@ -370,7 +370,7 @@ export const dropEntity = (
 
     const containerEntity =
       itemEntity[ITEM].stackable === "worm" && itemEntity[ITEM].amount === 1
-        ? entities.createWorm(world, {
+        ? entities.createMiniature(world, {
             ...containerData,
             [BEHAVIOUR]: { patterns: [{ name: "worm", memory: {} }] },
             [MOVABLE]: {

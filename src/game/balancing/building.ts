@@ -379,7 +379,7 @@ export const buildConstructions: Construction[] = [
     grounds: ["air", "sand", "path", "water"],
     parts: [
       { stackable: "ore", amount: 6 },
-      { stackable: "thorn", amount: 4 },
+      { stackable: "thorn", amount: 10 },
     ],
     level: 2,
     effort: 20,

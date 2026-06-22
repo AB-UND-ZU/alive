@@ -911,13 +911,21 @@ export const toolCondition: Sequence<ConditionSequence> = (
           targetOrientation
         );
 
-        for (const scratchEntity of scratchEntities) {
+        for (
+          let scratchIndex = 0;
+          scratchIndex < scratchEntities.length;
+          scratchIndex += 1
+        ) {
+          const scratchEntity = scratchEntities[scratchIndex];
+          const entityOrientation = relativeOrientations(
+            world,
+            entity[POSITION],
+            scratchEntity[POSITION]
+          )[0];
           const scratchOrientation =
-            relativeOrientations(
-              world,
-              entity[POSITION],
-              scratchEntity[POSITION]
-            )[0] || targetOrientation;
+            scratchIndex === 0
+              ? targetOrientation || entityOrientation
+              : entityOrientation || targetOrientation;
           const delta = orientationPoints[scratchOrientation];
           const scratchParticle = entities.createParticle(world, {
             [PARTICLE]: {
@@ -6672,7 +6680,9 @@ export const displayQuest: Sequence<PopupSequence> = (world, entity, state) => {
     heroEntity && popup.deals.every((deal) => canShop(world, heroEntity, deal));
   const allDefeated =
     heroEntity &&
-    popup.targets.every((target) => hasCompletedTargets(world, heroEntity, target));
+    popup.targets.every((target) =>
+      hasCompletedTargets(world, heroEntity, target)
+    );
   const findTarget =
     heroEntity &&
     popup.targets.some((target) =>

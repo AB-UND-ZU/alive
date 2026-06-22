@@ -47,6 +47,10 @@ import { FRAGMENT } from "../components/fragment";
 import { BUMPABLE } from "../components/bumpable";
 import { MOUNTABLE } from "../components/mountable";
 import { isMounting, stopVessel } from "./vessel";
+import { getExertables } from "./magic";
+import { EXERTABLE } from "../components/exertable";
+import { CASTABLE } from "../components/castable";
+import { EQUIPPABLE } from "../components/equippable";
 
 const chatHaste = -1001;
 const popupHaste = -1002;
@@ -135,6 +139,27 @@ export const isWalkable = (
   exclude?: Entity
 ) => isPassable(world, position, exclude) && !isSubmerged(world, position);
 
+export const isRoamable = (
+  world: World,
+  entity: Entity,
+  position: Position
+) => {
+  // avoid fires
+  const castableEntity = getExertables(world, position).map((exertable) =>
+    world.getEntityByIdAndComponents(exertable[EXERTABLE].castable, [CASTABLE])
+  )[0];
+  const isFire = castableEntity && castableEntity[CASTABLE].burn > 0;
+  if (isFire) return false;
+
+  // don't walk through open locks
+  const isLockable = getLockable(world, position);
+  if (isLockable) return false;
+
+  if (!isMovable(world, entity, position)) return false;
+
+  return true;
+};
+
 export const isLimbWalkable = (
   world: World,
   entity: Entity,
@@ -170,7 +195,12 @@ export const isMovable = (world: World, entity: Entity, position: Position) => {
 
   // allow attacking opposing entities
   const attackable = getAttackable(world, position);
-  if (attackable && !isFriendlyFire(world, entity, attackable)) return true;
+  if (
+    entity[EQUIPPABLE]?.weapon &&
+    attackable &&
+    !isFriendlyFire(world, entity, attackable)
+  )
+    return true;
 
   // allow clicking
   const clickable = getClickable(world, position);

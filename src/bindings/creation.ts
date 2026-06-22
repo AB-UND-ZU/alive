@@ -388,6 +388,7 @@ export const cellNames = [
   "flower",
   "leaf",
   "tumbleweed",
+  "fish",
   "banana",
   "coconut",
   "pot",
@@ -2463,14 +2464,46 @@ export const createCell = (
     all.push(wormSign);
     setIdentifier(world, wormSign, "worm_sign");
     return { cell: wormSign, all };
-  } else if (cell === "habitat") {
+  } else if (cell === "habitat" || cell === "fish") {
     const habitatCell =
-      habitatDistribution[
-        distribution(...habitatDistribution.map((cell) => cell[0]))
-      ][1];
-    let cell;
+      cell === "fish"
+        ? "fish"
+        : habitatDistribution[
+            distribution(...habitatDistribution.map((cell) => cell[0]))
+          ][1];
+    let cellEntity;
 
-    if (habitatCell === "habitat") {
+    if (habitatCell === "fish") {
+      const fishItem = {
+        stackable: choice("salmon", "tuna", "cod", "pike"),
+        amount: 1,
+      } as const;
+      cellEntity = entities.createMiniature(world, {
+        [BEHAVIOUR]: { patterns: [{ name: "fish", memory: {} }] },
+        [FOG]: { visibility, type: "unit" },
+        [HOOKABLE]: { escaping: false },
+        [INVENTORY]: { items: [] },
+        [LAYER]: {},
+        [LOOTABLE]: { disposable: true },
+        [MOVABLE]: {
+          orientations: [],
+          reference: world.getEntityId(world.metadata.gameEntity),
+          spring: {
+            duration: 200,
+          },
+          lastInteraction: 0,
+          flying: false,
+          swimming: true,
+        },
+        [ORIENTABLE]: {},
+        [POSITION]: { x, y },
+        [RENDERABLE]: { generation: 0 },
+        [SEQUENCABLE]: { states: {} },
+        [SPRITE]: none,
+        [SWIMMABLE]: { swimming: false },
+      });
+      populateInventory(world, cellEntity, [fishItem]);
+    } else if (habitatCell === "habitat") {
       const habitatEntity = entities.createHabitat(world, {
         [BEHAVIOUR]: { patterns: [{ name: "habitat", memory: {} }] },
         [FISHABLE]: { population: 1 },
@@ -2489,7 +2522,7 @@ export const createCell = (
         [SEQUENCABLE]: { states: {} },
         [SPRITE]: none,
       });
-      cell = habitatEntity;
+      cellEntity = habitatEntity;
       all.push(habitatEntity);
     } else {
       const dropEntity = createItemAsDrop(
@@ -2506,11 +2539,11 @@ export const createCell = (
         },
         false
       );
-      cell = world.assertById(dropEntity[ITEM].carrier);
-      all.push(cell);
+      cellEntity = world.assertById(dropEntity[ITEM].carrier);
+      all.push(cellEntity);
     }
 
-    return { cell: cell!, all };
+    return { cell: cellEntity!, all };
   } else if (cell === "campfire" || cell === "fireplace") {
     const fireEntity = entities.createFire(world, {
       [BURNABLE]: {
@@ -2581,6 +2614,7 @@ export const createCell = (
     const fenceEntity = entities.createObject(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [BUMPABLE]: { generation: 0 },
       [BURNABLE]: {
         burning: false,
         eternal: false,
@@ -2620,6 +2654,7 @@ export const createCell = (
     const palisadeEntity = entities.createPalisade(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [BUMPABLE]: { generation: 0 },
       [COLLIDABLE]: {},
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "object" },
@@ -2658,6 +2693,7 @@ export const createCell = (
     const gateEntity = entities.createPort(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
@@ -2686,6 +2722,7 @@ export const createCell = (
     const gateEntity = entities.createPort(world, {
       [ATTACKABLE]: { scratchColor: scratch },
       [BELONGABLE]: { faction },
+      [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,
@@ -2738,6 +2775,7 @@ export const createCell = (
         decayed: false,
         combusted: false,
       },
+      [BUMPABLE]: { generation: 0 },
       [DROPPABLE]: { decayed: false },
       [FOG]: { visibility, type: "object" },
       [HARVESTABLE]: harvestable,

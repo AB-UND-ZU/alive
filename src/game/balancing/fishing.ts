@@ -3,6 +3,7 @@ import { Item } from "../../engine/components/item";
 export const habitatDistribution = [
   [75, "habitat"],
   [20, "algae"],
+  [10, "fish"],
   [5, "pearl"],
 ] as const;
 

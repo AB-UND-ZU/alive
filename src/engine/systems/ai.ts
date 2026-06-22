@@ -4,7 +4,13 @@ import { World } from "../ecs";
 import { rerenderEntity } from "./renderer";
 import { MOVABLE } from "../components/movable";
 import { Behaviour, BEHAVIOUR } from "../components/behaviour";
-import { getBiome, getTempo, isMovable, isWalkable } from "./movement";
+import {
+  getBiome,
+  getTempo,
+  isMovable,
+  isRoamable,
+  isWalkable,
+} from "./movement";
 import {
   add,
   choice,
@@ -81,14 +87,13 @@ import {
   reversedIterations,
 } from "../../game/math/tracing";
 import { getProjectiles, shootArrow } from "./ballistics";
-import { canCast, getExertables } from "./magic";
+import { canCast } from "./magic";
 import { disposeEntity, getCell, moveEntity, registerEntity } from "./map";
 import { getFragment, getFragments, getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
 import { EXERTABLE } from "../components/exertable";
 import { CASTABLE } from "../components/castable";
-import { BURNABLE } from "../components/burnable";
 import { createPopup } from "./popup";
 import { isControllable } from "./freeze";
 import {
@@ -350,10 +355,85 @@ export default function setupAi(world: World) {
                   )
                 )
               : choice(...orientations);
-          wormItem[ORIENTABLE].facing = orientation;
-          rerenderEntity(world, wormItem);
-          entity[MOVABLE].orientations = [orientation];
-          pattern.memory.wait = choice(1, 3);
+
+          const target = combine(
+            size,
+            entity[POSITION],
+            orientationPoints[orientation]
+          );
+          const immersible = isImmersible(world, target);
+
+          if (isRoamable(world, entity, target) && !immersible) {
+            wormItem[ORIENTABLE].facing = orientation;
+            rerenderEntity(world, wormItem);
+            entity[MOVABLE].orientations = [orientation];
+            pattern.memory.wait = choice(1, 3);
+          }
+        } else if (pattern.name === "fish") {
+          const fishItem = world.getEntityById(entity[INVENTORY]?.items[0]);
+          if (!fishItem) continue;
+
+          if (!pattern.memory.origin) {
+            pattern.memory.origin = copy(entity[POSITION]);
+            pattern.memory.wait = random(0, 5);
+            pattern.memory.move = 0;
+          }
+
+          const heroEntity = getIdentifierAndComponents(world, "hero", [
+            POSITION,
+          ]);
+          const proximity = heroEntity
+            ? getDistance(entity[POSITION], heroEntity[POSITION], size, 1)
+            : Infinity;
+
+          if (pattern.memory.wait > 0 && proximity >= 3) {
+            pattern.memory.wait -= 1;
+            rerenderEntity(world, fishItem);
+            entity[MOVABLE].orientations = [];
+            continue;
+          } else if (pattern.memory.move === 0) {
+            pattern.memory.move = random(2, 8);
+          }
+
+          const distance = getDistance(
+            entity[POSITION],
+            pattern.memory.origin,
+            size,
+            1
+          );
+
+          const orientation =
+            proximity < 3 && heroEntity
+              ? relativeOrientations(
+                  world,
+                  heroEntity[POSITION],
+                  entity[POSITION],
+                  1
+                )[0]
+              : distance > 5
+              ? choice(
+                  ...relativeOrientations(
+                    world,
+                    entity[POSITION],
+                    pattern.memory.origin,
+                    1
+                  )
+                )
+              : choice(...orientations);
+
+          rerenderEntity(world, fishItem);
+          const offset = choice(-1, 1);
+          const movements = [
+            orientation,
+            rotateOrientation(orientation, offset),
+            rotateOrientation(orientation, -offset),
+            invertOrientation(orientation),
+          ];
+          entity[MOVABLE].orientations = movements;
+          pattern.memory.move -= 1;
+          if (pattern.memory.move <= 0) {
+            pattern.memory.wait = choice(5, 15);
+          }
         } else if (pattern.name === "chick") {
           if (!entity[TOOLTIP]) {
             patterns.splice(patterns.indexOf(pattern), 1);
@@ -368,25 +448,25 @@ export default function setupAi(world: World) {
             pattern.memory.egg = undefined;
           }
 
-          // pick up grains
-          let grainEntity = world.getEntityByIdAndComponents(
-            pattern.memory.grain,
+          // pick up grains and worms
+          let lootEntity = world.getEntityByIdAndComponents(
+            pattern.memory.loot,
             [POSITION]
           );
-          if (pattern.memory.grain && !grainEntity) {
-            pattern.memory.grain = undefined;
+          if (pattern.memory.loot && !lootEntity) {
+            pattern.memory.loot = undefined;
           }
 
-          if (!pattern.memory.grain) {
-            const grainDistance = 5;
+          if (!pattern.memory.loot) {
+            const lootDistance = 5;
             for (
-              let offsetX = -grainDistance;
-              offsetX <= grainDistance && !grainEntity;
+              let offsetX = -lootDistance;
+              offsetX <= lootDistance && !lootEntity;
               offsetX += 1
             ) {
               for (
-                let offsetY = -grainDistance;
-                offsetY <= grainDistance;
+                let offsetY = -lootDistance;
+                offsetY <= lootDistance;
                 offsetY += 1
               ) {
                 const scanned = combine(size, entity[POSITION], {
@@ -396,13 +476,15 @@ export default function setupAi(world: World) {
                 const lootable = getLootable(world, scanned);
                 if (
                   lootable &&
-                  world.getEntityByIdAndComponents(
-                    lootable[INVENTORY].items[0],
-                    [ITEM]
-                  )?.[ITEM].stackable === "grain"
+                  ["grain", "worm"].includes(
+                    world.getEntityByIdAndComponents(
+                      lootable[INVENTORY].items[0],
+                      [ITEM]
+                    )?.[ITEM].stackable!
+                  )
                 ) {
-                  grainEntity = lootable as TypedEntity<"POSITION">;
-                  pattern.memory.grain = world.getEntityId(lootable);
+                  lootEntity = lootable as TypedEntity<"POSITION">;
+                  pattern.memory.loot = world.getEntityId(lootable);
                   pattern.memory.noise = generation + 4;
                   entity[TOOLTIP].idle = heart;
                   entity[TOOLTIP].dialogs = [];
@@ -415,11 +497,11 @@ export default function setupAi(world: World) {
           }
 
           let movement: Orientation | undefined;
-          if (grainEntity) {
+          if (lootEntity) {
             movement = relativeOrientations(
               world,
               entity[POSITION],
-              grainEntity[POSITION],
+              lootEntity[POSITION],
               1
             )[0];
           }
@@ -488,7 +570,7 @@ export default function setupAi(world: World) {
             } else if (Math.random() < 0.15) {
               movement = choice(...orientations);
               pattern.memory.wander = movement;
-            } else if (Math.random() < 0.001 && !pattern.memory.egg) {
+            } else if (Math.random() < 0.0005 && !pattern.memory.egg) {
               const eggData = {
                 stackable: "egg",
                 amount: 1,
@@ -541,29 +623,14 @@ export default function setupAi(world: World) {
               orientationPoints[attemptedMovement]
             );
 
-            // avoid fires
-            const castableEntity = getExertables(world, target).map(
-              (exertable) =>
-                world.getEntityByIdAndComponents(
-                  exertable[EXERTABLE].castable,
-                  [CASTABLE]
-                )
-            )[0];
-            const isFire = castableEntity && castableEntity[CASTABLE].burn > 0;
             const lootable = getLootable(world, target);
-            const attackable = getAttackable(world, target);
 
             if (
-              (!isWalkable(world, target) &&
-                (!lootable ||
-                  world.getEntityByIdAndComponents(
-                    lootable[INVENTORY].items[0],
-                    [ITEM]
-                  )?.[ITEM].stackable === "egg") &&
-                (!entity[EQUIPPABLE]?.weapon ||
-                  !attackable ||
-                  isFriendlyFire(world, entity, attackable))) ||
-              isFire
+              !isRoamable(world, entity, target) &&
+              (!lootable ||
+                world.getEntityByIdAndComponents(lootable[INVENTORY].items[0], [
+                  ITEM,
+                ])?.[ITEM].stackable === "egg")
             ) {
               continue;
             }
@@ -584,30 +651,11 @@ export default function setupAi(world: World) {
           const target = add(entity[POSITION], delta);
 
           // avoid eternal fires
-          const castableEntity = getExertables(world, target).map((exertable) =>
-            world.getEntityByIdAndComponents(exertable[EXERTABLE].castable, [
-              CASTABLE,
-            ])
-          )[0];
-          const fireEntity = world.getEntityByIdAndComponents(
-            castableEntity?.[CASTABLE].caster,
-            [BURNABLE]
-          );
-          const isEternalFire =
-            fireEntity?.[BURNABLE].eternal &&
-            castableEntity?.[CASTABLE] &&
-            castableEntity[CASTABLE].burn > 0;
-          const isLockable = getLockable(world, target);
           const isSameBiome =
             getBiome(world, entity[POSITION]) === getBiome(world, target);
 
           // unable to move, attempt reorienting
-          if (
-            !isMovable(world, entity, target) ||
-            isEternalFire ||
-            isLockable ||
-            !isSameBiome
-          ) {
+          if (!isRoamable(world, entity, target) || !isSameBiome) {
             const preferredFacing =
               orientations[
                 (orientations.indexOf(facing) + 1 + random(0, 1) * 2) %

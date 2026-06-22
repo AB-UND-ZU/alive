@@ -83,6 +83,11 @@ export const brewingRecipes: Recipe[] = [
         { stackable: "resource", material: "wood", amount: 3 },
         { stackable: "ore", amount: 1 },
       ],
+      [
+        { stackable: "egg", amount: 1 },
+        { stackable: "resource", material: "wood", amount: 3 },
+        { stackable: "ore", amount: 1 },
+      ],
     ],
   },
   {
@@ -111,6 +116,11 @@ export const brewingRecipes: Recipe[] = [
       ],
       [
         { stackable: "bread", amount: 2 },
+        { stackable: "plank", amount: 1 },
+        { stackable: "ore", amount: 1 },
+      ],
+      [
+        { stackable: "egg", amount: 2 },
         { stackable: "plank", amount: 1 },
         { stackable: "ore", amount: 1 },
       ],

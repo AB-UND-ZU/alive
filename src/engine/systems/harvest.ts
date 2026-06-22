@@ -324,15 +324,22 @@ export const performHarvest = (
     tool[ITEM].tool && harvestConditions[tool[ITEM].tool as Tool];
   const harvestAmount = entity[CONDITIONABLE][conditionName].amount;
 
-  for (const rangeTarget of targets) {
+  for (let targetIndex = 0; targetIndex < targets.length; targetIndex += 1) {
+    const rangeTarget = targets[targetIndex];
     rangeTarget[HARVESTABLE].amount = Math.max(
       0,
       rangeTarget[HARVESTABLE].amount - harvestAmount
     );
     rerenderEntity(world, rangeTarget);
+    const entityOrientation = relativeOrientations(
+      world,
+      entity[POSITION],
+      rangeTarget[POSITION]
+    )[0];
     const bumpOrientation =
-      relativeOrientations(world, entity[POSITION], rangeTarget[POSITION])[0] ||
-      orientation;
+      targetIndex === 0
+        ? orientation || entityOrientation
+        : entityOrientation || orientation;
 
     // reset soil
     const farmable = getFarmable(world, rangeTarget[POSITION]);

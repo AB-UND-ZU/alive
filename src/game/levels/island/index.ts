@@ -1151,6 +1151,12 @@ export const generateIsland = (world: World) => {
             distance < havenRadius - 2 && elevation > sandDepth;
           havenArea[havenX] = havenArea[havenX] || {};
           havenArea[havenX][havenY] = withinPalisades;
+        } else if (
+          elevation < sandDepth &&
+          (objectsMap[target.x][target.y][0] === "habitat" ||
+            (elevation > palisadeDepth && Math.random() < 1 / havenRadius))
+        ) {
+          objectsMap[target.x][target.y] = ["fish"];
         }
       }
 
@@ -2276,6 +2282,7 @@ export const stringifyMap = (
         : [];
 
       if (objects.includes("habitat")) row += "\u03b1";
+      if (objects.includes("fish")) row += "æ";
       else if (objects.includes("palisade")) row += "î";
       else if (cell === "barrier") row += "ï";
       else if (cell === "water_shallow") row += "~";

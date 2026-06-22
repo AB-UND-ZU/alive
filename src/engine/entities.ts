@@ -636,6 +636,7 @@ export const createGame = entityFactory([LEVEL, RENDERABLE, REFERENCE], {
 export const createGate = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   BURNABLE,
   DROPPABLE,
   FOG,
@@ -825,6 +826,22 @@ export const createMine = entityFactory([
   SPRITE,
 ]);
 
+export const createMiniature = entityFactory([
+  BEHAVIOUR,
+  FOG,
+  HOOKABLE,
+  INVENTORY,
+  LAYER,
+  LOOTABLE,
+  MOVABLE,
+  ORIENTABLE,
+  POSITION,
+  RENDERABLE,
+  SEQUENCABLE,
+  SPRITE,
+  SWIMMABLE,
+]);
+
 export const createMob = entityFactory([
   ACTIONABLE,
   AFFECTABLE,
@@ -870,6 +887,7 @@ export const createMountain = entityFactory([
 export const createObject = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   BURNABLE,
   DROPPABLE,
   FOG,
@@ -918,6 +936,7 @@ export const createOrganic = entityFactory([
 export const createPalisade = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   COLLIDABLE,
   DROPPABLE,
   FOG,
@@ -1003,6 +1022,7 @@ export const createPond = entityFactory([
 export const createPort = entityFactory([
   ATTACKABLE,
   BELONGABLE,
+  BUMPABLE,
   DROPPABLE,
   FOG,
   HARVESTABLE,
@@ -1407,20 +1427,4 @@ export const createWorld = entityFactory([
   RENDERABLE,
   SEQUENCABLE,
   VIEWABLE,
-]);
-
-export const createWorm = entityFactory([
-  BEHAVIOUR,
-  FOG,
-  HOOKABLE,
-  INVENTORY,
-  LAYER,
-  LOOTABLE,
-  MOVABLE,
-  ORIENTABLE,
-  POSITION,
-  RENDERABLE,
-  SEQUENCABLE,
-  SPRITE,
-  SWIMMABLE,
 ]);

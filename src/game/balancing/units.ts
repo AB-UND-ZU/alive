@@ -1095,7 +1095,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
         chance: 100,
         items: [
           { stackable: "ore", amount: 4 },
-          { stackable: "thorn", amount: 4 },
+          { stackable: "thorn", amount: 10 },
         ],
       },
     ],
@@ -1130,7 +1130,7 @@ const unitDefinitions: Record<UnitKey, UnitDefinition> = {
     },
     equipments: [],
     harvestable: "cactus",
-    drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 1 }] }],
+    drops: [{ chance: 100, items: [{ stackable: "thorn", amount: 3 }] }],
     patternNames: [],
     sprite: mergeSprites(shadow, cactus2),
   },
