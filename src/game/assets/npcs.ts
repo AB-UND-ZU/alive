@@ -1143,7 +1143,7 @@ export const earthChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
               [
                 ...createText("find a "),
                 ...createItemText({
-                  stackable: questItem.element === "fire" ? "apple" : "shroom",
+                  stackable: questItem.stat === "hp" ? "apple" : "shroom",
                   amount: 1,
                 }),
                 ...createText(","),
@@ -2071,7 +2071,13 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
     onEnter: () => {
       createPopup(world, entity, {
         targets: [{ unit: "fireNomad", amount: 1, identifier: "fireNomad" }],
-        focuses: [{ identifier: "fireNomad", highlight: "quest" }],
+        focuses: [
+          {
+            identifier: "fireNomad",
+            highlight: "quest",
+            quadrant: { x: 0, y: 0 },
+          },
+        ],
         deals: [
           {
             item: {
@@ -2102,7 +2108,6 @@ export const fireChiefNpc: Sequence<NpcSequence> = (world, entity, state) => {
             material: "wood",
             amount: 1,
           },
-
         ],
         lines: [
           [

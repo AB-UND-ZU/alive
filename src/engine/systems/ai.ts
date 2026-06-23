@@ -156,6 +156,7 @@ import {
 } from "../../game/assets/ui";
 import { getLootable } from "./collect";
 import { getFarmable, getHarvestable } from "./harvest";
+import { FARMABLE } from "../components/farmable";
 
 export default function setupAi(world: World) {
   let lastGeneration = -1;
@@ -440,6 +441,7 @@ export default function setupAi(world: World) {
             continue;
           }
 
+          const lootStackables = ["grain", "worm"];
           const eggEntity = world.getEntityByIdAndComponents(
             pattern.memory.egg,
             [POSITION]
@@ -476,7 +478,7 @@ export default function setupAi(world: World) {
                 const lootable = getLootable(world, scanned);
                 if (
                   lootable &&
-                  ["grain", "worm"].includes(
+                  lootStackables.includes(
                     world.getEntityByIdAndComponents(
                       lootable[INVENTORY].items[0],
                       [ITEM]
@@ -544,7 +546,7 @@ export default function setupAi(world: World) {
             }
           }
 
-          // wander around, hack on the ground or hatch egg
+          // wander around, hack planted seeds or hatch egg
           if (!movement && !pattern.memory.wander) {
             if (entity[BUMPABLE] && Math.random() < 0.2) {
               for (const hack of orientations) {
@@ -564,13 +566,22 @@ export default function setupAi(world: World) {
                 ) {
                   entity[BUMPABLE].generation = generation;
                   entity[BUMPABLE].orientation = hack;
+
+                  // pick crop seed
+                  if (harvestable && farmable?.[FARMABLE].planted && Math.random() < 0.05) {
+                    farmable[FARMABLE].planted = undefined;
+                    farmable[FARMABLE].progress = undefined;
+                    farmable[FARMABLE].sapling = undefined;
+                    farmable[FARMABLE].nextGeneration = undefined;
+                    harvestable[HARVESTABLE].amount = 0;
+                  }
                   break;
                 }
               }
             } else if (Math.random() < 0.15) {
               movement = choice(...orientations);
               pattern.memory.wander = movement;
-            } else if (Math.random() < 0.0005 && !pattern.memory.egg) {
+            } else if (Math.random() < 0.001 && !pattern.memory.egg) {
               const eggData = {
                 stackable: "egg",
                 amount: 1,
@@ -623,14 +634,20 @@ export default function setupAi(world: World) {
               orientationPoints[attemptedMovement]
             );
 
+            // let chick only steal farm crops and certain items
             const lootable = getLootable(world, target);
 
             if (
-              !isRoamable(world, entity, target) &&
-              (!lootable ||
-                world.getEntityByIdAndComponents(lootable[INVENTORY].items[0], [
-                  ITEM,
-                ])?.[ITEM].stackable === "egg")
+              !(
+                isRoamable(world, entity, target) ||
+                (lootable &&
+                  lootStackables.includes(
+                    world.getEntityByIdAndComponents(
+                      lootable[INVENTORY].items[0],
+                      [ITEM]
+                    )?.[ITEM].stackable!
+                  ))
+              )
             ) {
               continue;
             }

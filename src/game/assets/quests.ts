@@ -1,37 +1,27 @@
 import { isTouch } from "../../components/Dimensions";
 import { EQUIPPABLE } from "../../engine/components/equippable";
-import { FOCUSABLE } from "../../engine/components/focusable";
 import { Inventory, INVENTORY } from "../../engine/components/inventory";
 import { ITEM } from "../../engine/components/item";
 import { LEVEL } from "../../engine/components/level";
 import { LOCKABLE } from "../../engine/components/lockable";
-import {
-  orientationPoints,
-  orientations,
-} from "../../engine/components/orientable";
 import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
 import { QuestSequence, Sequence } from "../../engine/components/sequencable";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
 import { TOOLTIP } from "../../engine/components/tooltip";
-import { TRACKABLE } from "../../engine/components/trackable";
 import { WARPABLE } from "../../engine/components/warpable";
 import { getLockable, isUnlocked } from "../../engine/systems/action";
-import { getLootable } from "../../engine/systems/collect";
 import { getCell } from "../../engine/systems/map";
-import { isWalkable } from "../../engine/systems/movement";
 import { isInPopup } from "../../engine/systems/popup";
 import { getSequence } from "../../engine/systems/sequence";
 import { isSpikable } from "../../engine/systems/spike";
 import {
   assertIdentifierAndComponents,
-  getIdentifier,
   getIdentifierAndComponents,
   getIdentifiersAndComponents,
   setHighlight,
 } from "../../engine/utils";
 import { up2Cactus } from "../levels/tutorial/areas";
-import { findPath } from "../math/path";
 import { add, copy, getDistance } from "../math/std";
 import { createDialog } from "./ui";
 import { END_STEP, questSequence, QuestStage, START_STEP, step } from "./utils";
@@ -683,168 +673,6 @@ export const tombstoneQuest: Sequence<QuestSequence> = (
 
       // don't finish quest to avoid deletion of newly started quest
       return "wait";
-    },
-  });
-
-  return { updated: stage.updated, finished: stage.finished };
-};
-
-export const nomadQuest: Sequence<QuestSequence> = (world, entity, state) => {
-  const stage: QuestStage<QuestSequence> = {
-    world,
-    entity,
-    state,
-    finished: false,
-    updated: false,
-  };
-  const signEntity = world.getEntityById(state.args.giver);
-  const nomadEntity = getIdentifier(world, "nomad");
-  const smithEntity = getIdentifier(world, "smith");
-  const doorEntity = getIdentifier(world, "chief_door");
-  const focusEntity = getIdentifierAndComponents(world, "focus", [
-    FOCUSABLE,
-    TRACKABLE,
-  ]);
-  const size = world.metadata.gameEntity[LEVEL].size;
-  const currentOre =
-    (entity[INVENTORY] as Inventory).items
-      .map((itemId) => world.assertByIdAndComponents(itemId, [ITEM]))
-      .find((item) => item[ITEM].stackable === "ore")?.[ITEM].amount || 0;
-
-  if (state.args.memory.currentOre === undefined) {
-    state.args.memory.currentOre = currentOre;
-  }
-
-  if (!focusEntity || !signEntity || !doorEntity) {
-    return { updated: stage.updated, finished: stage.finished };
-  }
-
-  step({
-    stage,
-    name: START_STEP,
-    isCompleted: () => true,
-    onLeave: () => "ore:focus",
-  });
-
-  const hasIron = entity[INVENTORY].items.some((itemId: number) => {
-    const item = world.assertByIdAndComponents(itemId, [ITEM])[ITEM];
-    return item.stackable === "resource" && item.material === "iron";
-  });
-
-  const hasKey = entity[INVENTORY].items.some((itemId: number) => {
-    const item = world.assertByIdAndComponents(itemId, [ITEM])[ITEM];
-    return item.consume === "key" && item.material === "iron";
-  });
-
-  step({
-    stage,
-    name: "ore:focus",
-    onEnter: () => {
-      // find closest ore to collect which are walkable
-      const ores = [
-        ...world.metadata.gameEntity[LEVEL].cellPositions.ore,
-        ...world.metadata.gameEntity[LEVEL].cellPositions.stone,
-      ]
-        .map((ore) => getLootable(world, ore))
-        .filter(
-          (ore): ore is NonNullable<typeof ore> =>
-            !!ore &&
-            orientations.some((orientation) =>
-              isWalkable(
-                world,
-                add(ore[POSITION], orientationPoints[orientation])
-              )
-            )
-        );
-
-      if (ores.length === 0 || currentOre >= 10 || hasIron || hasKey) {
-        setHighlight(world);
-        return true;
-      }
-
-      // pick 10 closest by simple distance
-      const closestOres = ores
-        .sort(
-          (left, right) =>
-            getDistance(entity[POSITION], left[POSITION], size) -
-            getDistance(entity[POSITION], right[POSITION], size)
-        )
-        .slice(0, 10);
-
-      // sort by walkable distance
-      const orePaths = closestOres
-        .map((ore) => ({
-          ore,
-          path: findPath(
-            world.metadata.gameEntity[LEVEL].walkable,
-            entity[POSITION],
-            ore[POSITION],
-            true,
-            true
-          ),
-        }))
-        .filter(({ path }) => path.length > 0);
-      orePaths.sort((left, right) => left.path.length - right.path.length);
-
-      const targetOre = orePaths[0]?.ore;
-      setHighlight(world, "quest", targetOre);
-
-      return true;
-    },
-    isCompleted: () => true,
-    onLeave: () => (currentOre >= 10 ? "iron" : "ore:collect"),
-  });
-
-  step({
-    stage,
-    name: "ore:collect",
-    isCompleted: () =>
-      hasKey || hasIron || currentOre > state.args.memory.currentOre,
-    onLeave: () => {
-      state.args.memory.currentOre = currentOre;
-
-      if (currentOre >= 10 || hasIron || hasKey) {
-        setHighlight(world);
-        return "iron";
-      }
-
-      return "ore:focus";
-    },
-  });
-
-  step({
-    stage,
-    name: "iron",
-    onEnter: () => {
-      setHighlight(world, "quest", smithEntity);
-      return true;
-    },
-    isCompleted: () => hasIron || hasKey,
-    onLeave: () => "key",
-  });
-
-  step({
-    stage,
-    name: "key",
-    onEnter: () => {
-      setHighlight(world, "quest", nomadEntity);
-      return true;
-    },
-    isCompleted: () => hasKey,
-    onLeave: () => "door",
-  });
-
-  step({
-    stage,
-    name: "door",
-    onEnter: () => {
-      setHighlight(world, "quest", doorEntity);
-      return true;
-    },
-    isCompleted: () => isUnlocked(world, doorEntity),
-    onLeave: () => {
-      setHighlight(world);
-      return END_STEP;
     },
   });
 

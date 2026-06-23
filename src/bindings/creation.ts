@@ -908,6 +908,9 @@ export const insertArea = (
       else if (cell === "╞") entity = "roof_down_left";
       else if (cell === "╪") entity = "roof_down";
       else if (cell === "╡") entity = "roof_right_down";
+      else if (cell === "ø") entity = "desert_tumbleweed";
+      else if (cell === "c") entity = "chick";
+      else if (cell === "\u03b1") entity = "water_fish";
       else if (cell === "m") entity = "menu_sign";
       else if (cell === "s") entity = "spawn_sign";
       else if (cell === "f") entity = "fruit_sign";
@@ -1657,7 +1660,23 @@ export const createCell = (
       );
     }
     return { cell: hedgeEntity, all };
-  } else if (cell === "tumbleweed") {
+  } else if (cell === "tumbleweed" || cell === "desert_tumbleweed") {
+    if (cell === "desert_tumbleweed") {
+      const { harvestable: sandHarvestable } = getHarvestConfig("sand");
+      all.push(
+        entities.createPaving(world, {
+          [DROPPABLE]: { decayed: false },
+          [HARVESTABLE]: sandHarvestable,
+          [FOG]: { visibility, type: "terrain" },
+          [POSITION]: { x, y },
+          [RENDERABLE]: { generation: 0 },
+          [SEQUENCABLE]: { states: {} },
+          [SPRITE]: sand,
+          [TEMPO]: { amount: -1 },
+        })
+      );
+    }
+
     const { items, sprite, stats, faction, patterns, scratch } =
       generateUnitData("tumbleweed");
     const tumbleweedEntity = entities.createTumbleweed(world, {
@@ -2464,9 +2483,22 @@ export const createCell = (
     all.push(wormSign);
     setIdentifier(world, wormSign, "worm_sign");
     return { cell: wormSign, all };
-  } else if (cell === "habitat" || cell === "fish") {
+  } else if (cell === "habitat" || cell === "fish" || cell === "water_fish") {
+    if (cell === "water_fish") {
+      const waterEntity = entities.createWater(world, {
+        [FOG]: { visibility, type: "terrain" },
+        [FREEZABLE]: { frozen: false },
+        [IMMERSIBLE]: { type: "water", deep: false },
+        [POSITION]: { x, y },
+        [REFILLABLE]: { element: "water" },
+        [RENDERABLE]: { generation: 0 },
+        [SPRITE]: waterShallow,
+        [TEMPO]: { amount: -2 },
+      });
+      all.push(waterEntity);
+    }
     const habitatCell =
-      cell === "fish"
+      cell === "fish" || cell === "water_fish"
         ? "fish"
         : habitatDistribution[
             distribution(...habitatDistribution.map((cell) => cell[0]))
@@ -2591,6 +2623,10 @@ export const createCell = (
         ? []
         : cell === "intro_pot"
         ? [
+            {
+              stackable: "grain",
+              amount: 1,
+            },
             {
               stackable: "apple",
               amount: 1,

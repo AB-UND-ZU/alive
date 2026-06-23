@@ -18,6 +18,8 @@ import {
 } from "../components/sequencable";
 import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
+import { POPUP } from "../components/popup";
+import { removePopup } from "./popup";
 
 export const updateWalkable = (world: World, position: Position) => {
   // update walkable map after initialization
@@ -181,6 +183,10 @@ export const disposeEntity = (
       if (!itemEntity) continue;
       world.removeEntity(itemEntity, deferredRemoval);
     }
+  }
+
+  if (POPUP in entity) {
+    removePopup(world, entity);
   }
 
   // clean up any remaining sequences

@@ -2281,8 +2281,8 @@ export const stringifyMap = (
         ? getOverlappingCell(objectsMap, x + center.x, y + center.y)
         : [];
 
-      if (objects.includes("habitat")) row += "\u03b1";
-      if (objects.includes("fish")) row += "æ";
+      if (objects.includes("habitat")) row += "@";
+      if (objects.includes("fish")) row += "\u03b1";
       else if (objects.includes("palisade")) row += "î";
       else if (cell === "barrier") row += "ï";
       else if (cell === "water_shallow") row += "~";
