@@ -12,6 +12,14 @@ Play it here: https://ab-und-zu.github.io/alive
 
 _Spawn area with intro quest_
 
+## Title headers
+
+After changing `version` in `package.json`, run `npm run media:titles` to
+regenerate both transparent `media/title-*.png` images (for example, `0.3`
+becomes `V0x03`). Requires ImageMagick 7 with `magick` on PATH. The script
+renders the menu's title layout using the bundled DOS font, game colors,
+and cell proportions; it does not need existing PNGs.
+
 ## Game modes
 
 - Adventure: Single player
