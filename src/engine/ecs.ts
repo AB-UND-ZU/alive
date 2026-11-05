@@ -1,9 +1,11 @@
-import ECS, {
+import type ECSLibrary from "ecs";
+import {
   System,
   World as ECSWorld,
   Entity as ECSEntity,
   ListenerType,
 } from "ecs";
+import FastECS from "./vendor/ecs";
 import { entities, systems } from ".";
 import { RENDERABLE } from "./components/renderable";
 import { REFERENCE } from "./components/reference";
@@ -12,6 +14,9 @@ import { LEVEL, LevelName } from "./components/level";
 import { getHasteInterval } from "./systems/movement";
 import { initialDimensions } from "../components/Dimensions/sizing";
 import { ECS_DEBUG, setIdentifier } from "./utils";
+
+// performance fork with the same API as the "ecs" package, see vendor/ecs.js
+const ECS = FastECS as unknown as typeof ECSLibrary;
 
 export type World = ReturnType<typeof createWorld>;
 export type PatchedWorld = ECSWorld & { ecs: World };
