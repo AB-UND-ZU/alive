@@ -170,6 +170,7 @@ const menuItems: { name: string; disabled?: boolean }[] = [
   { name: "continue", disabled: true },
   { name: "sound-fx" },
   { name: "controls" },
+  { name: "credits" },
 ];
 
 const circleTime = 100;

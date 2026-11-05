@@ -338,6 +338,7 @@ export default function setupAction(world: World) {
                 ((isInTab(world, entity, "class") ||
                   isInTab(world, entity, "style")) &&
                   selections.length <= 1) ||
+                isInTab(world, entity, "credits") ||
                 (isInTab(world, entity, "quest") &&
                   ((!isQuestCompleted(world, entity, addEntity) &&
                     selections.length === 0 &&

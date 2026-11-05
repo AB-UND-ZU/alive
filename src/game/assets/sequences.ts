@@ -378,6 +378,7 @@ import {
   centerLayer,
   anvilPixels,
 } from "./pixels";
+import { credits } from "./credits";
 import { brightenSprites, plot } from "./ui";
 import { getItemSellPrice } from "../balancing/trading";
 import {
@@ -398,7 +399,7 @@ import {
   onSameLayer,
 } from "../../engine/systems/enter";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
-import { ClassKey } from "../balancing/classes";
+import { ClassKey, getClassData } from "../balancing/classes";
 import { getSelectedLevel, levelConfig } from "../levels";
 import { getActiveViewable } from "../../bindings/hooks";
 import {
@@ -421,7 +422,11 @@ import { COLLIDABLE } from "../../engine/components/collidable";
 import { LAYER } from "../../engine/components/layer";
 import { SHOOTABLE } from "../../engine/components/shootable";
 import { ATTACKABLE } from "../../engine/components/attackable";
-import { generateNpcData, generateUnitData } from "../balancing/units";
+import {
+  generateNpcData,
+  generateUnitData,
+  unitBackdrops,
+} from "../balancing/units";
 import { Vanishable, VANISHABLE } from "../../engine/components/vanishable";
 import { colorPalettes } from "./templates";
 import {
@@ -3708,6 +3713,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayBuild;
   } else if (transaction === "chat") {
     handler = displayChat;
+  } else if (transaction === "credits") {
+    handler = displayCredits;
   }
 
   return handler(world, entity, state);
@@ -5472,6 +5479,108 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
     ],
     styleOverscan,
     createButton("PICK", 6, false, false, false, "lime")
+  );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+const creditsGap = "   ";
+
+export const displayCredits: Sequence<PopupSequence> = (
+  world,
+  entity,
+  state
+) => {
+  const generation = world.metadata.gameEntity[RENDERABLE].generation;
+  const verticalIndex = getVerticalIndex(world, entity);
+  const selectedCredit = credits[verticalIndex];
+
+  // marquee long links or names
+  const footerWidth = frameWidth - 2;
+  const footer = selectedCredit.link || selectedCredit.names?.join(" ") || "";
+  const footerText = `${footer}${creditsGap}`;
+  const marquee = footer.length > footerWidth;
+  const marqueeOffset = marquee ? generation % footerText.length : 0;
+  const displayedFooter = marquee
+    ? `${footerText}${footerText}`.slice(
+        marqueeOffset,
+        marqueeOffset + footerWidth
+      )
+    : footer;
+
+  // value container to rerender content
+  if (!state.particles.blink) {
+    const blinkParticle = entities.createParticle(world, {
+      [PARTICLE]: {
+        offsetX: 0,
+        offsetY: 0,
+        offsetZ: particleHeight,
+        amount: marqueeOffset,
+      },
+      [RENDERABLE]: { generation: 1 },
+      [SPRITE]: none,
+    });
+    state.particles.blink = world.getEntityId(blinkParticle);
+  }
+
+  const blinkParticle = world.assertByIdAndComponents(state.particles.blink, [
+    PARTICLE,
+  ]);
+
+  // rerender content on scrolling
+  if (blinkParticle[PARTICLE].amount !== marqueeOffset) {
+    rerenderEntity(world, entity);
+    blinkParticle[PARTICLE].amount = marqueeOffset;
+  }
+
+  const content: Sprite[][] = credits.map((credit, rowIndex) => {
+    const selected = verticalIndex === rowIndex;
+    const creditSprite =
+      credit.classKey && credit.hairColor
+        ? mergeSprites(
+            unitBackdrops[credit.classKey]?.[credit.hairColor] || none,
+            getClassData(credit.classKey, credit.hairColor).sprite
+          )
+        : credit.sprite || none;
+    const creditTitle = createText(
+      credit.name,
+      selected ? colors.white : colors.grey
+    );
+    const line = [
+      ...creditTitle,
+      ...repeat(none, frameWidth - 4 - creditTitle.length),
+    ];
+
+    return [
+      none,
+      creditSprite,
+      ...(selected ? shaded(line, colors.grey) : line),
+    ];
+  });
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    popupIdles[getTab(world, entity)],
+    content,
+    "selected",
+    [
+      ...selectedCredit.thanks.map((thanks) => createText(thanks)),
+      ...(selectedCredit.role
+        ? [createText(selectedCredit.role, colors.grey)]
+        : []),
+      selectedCredit.link
+        ? [...displayedFooter].map((char) =>
+            char === " "
+              ? none
+              : underline(createText(char, colors.blue), colors.blue)[0]
+          )
+        : createText(displayedFooter, colors.grey),
+    ],
+    undefined,
+    createButton("VISIT", 7, !selectedCredit.link, false, false, "lime")
   );
   return {
     updated: popupResult.updated,

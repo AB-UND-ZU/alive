@@ -10,6 +10,9 @@ export const centerArea = `\
                    
                    
                    
+                   
+                   
+                   
  ▓▀▄ ▓   ▓ ▓ ▓ ▄▀▀ 
  ▓▄▓ ▓   ▓ ▓ ▓ ▓▄▄ 
  ▓ ▓ ▀▄▄ ▓ ▓▄▀ ▓▄▄ 
@@ -29,5 +32,8 @@ export const centerArea = `\
                  ½ 
                    
                    
-                 ¼ \
+                 ¼ 
+                   
+                   
+                 ¾ \
 `;

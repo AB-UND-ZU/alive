@@ -264,7 +264,7 @@ import {
 import { CLICKABLE } from "../engine/components/clickable";
 import { centerLayer, centerSprites, overlay } from "../game/assets/pixels";
 import { levelConfig } from "../game/levels";
-import { POPUP } from "../engine/components/popup";
+import { Popup, POPUP } from "../engine/components/popup";
 import { openDoor } from "../engine/systems/trigger";
 import { craftingIngredients } from "../game/balancing/crafting";
 import addHarvestable, { HARVESTABLE } from "../engine/components/harvestable";
@@ -764,7 +764,8 @@ export const createChest = (
 export const createSign = (
   world: World,
   position: Position,
-  lines: Sprite[][][]
+  lines: Sprite[][][],
+  tabs: Popup["tabs"] = repeat("info", lines.length)
 ) => {
   const signData = generateUnitData("sign");
   const signEntity = entities.createSign(world, {
@@ -802,7 +803,7 @@ export const createSign = (
   populateInventory(world, signEntity, signData.items);
   createPopup(world, signEntity, {
     lines,
-    tabs: repeat("info", lines.length),
+    tabs,
   });
   return signEntity;
 };
@@ -934,6 +935,7 @@ export const insertArea = (
       else if (cell === "1") entity = "1";
       else if (cell === "½") entity = "settings_sound";
       else if (cell === "¼") entity = "settings_controls";
+      else if (cell === "¾") entity = "credits_sign";
       else if (!override) {
         console.error(`Unrecognized cell: "${cell}"!`);
       }
@@ -2194,6 +2196,10 @@ export const createCell = (
     all.push(menuSign);
     setIdentifier(world, menuSign, "menu_sign");
     return { cell: menuSign, all };
+  } else if (cell === "credits_sign") {
+    const creditsSign = createSign(world, { x, y }, [], ["credits"]);
+    all.push(creditsSign);
+    return { cell: creditsSign, all };
   } else if (cell === "spawn_sign") {
     const spawnSign = createSign(world, { x, y }, [
       [
@@ -4610,6 +4616,9 @@ export const createCell = (
       [],
       [],
       [..."Controls  ", ".\x00:", ..."  ", ".\x00:"],
+      [],
+      [],
+      [..."Credits   ", ".\x00:", ..."  ", ".\x00:"],
     ];
 
     patterns.forEach((pattern, rowIndex) => {

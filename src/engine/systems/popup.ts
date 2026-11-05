@@ -51,6 +51,7 @@ import { getIdentifierAndComponents, setHighlight, TEST_MODE } from "../utils";
 import { FOCUSABLE } from "../components/focusable";
 import { TRACKABLE } from "../components/trackable";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
+import { credits } from "../../game/assets/credits";
 import { ACTIONABLE } from "../components/actionable";
 import {
   canWarp,
@@ -366,6 +367,7 @@ export const popupIdles = {
   equip: undefined,
   chat: undefined,
   build: undefined,
+  credits: info,
 };
 
 export const popupActions = {
@@ -389,6 +391,7 @@ export const popupActions = {
   class: "CLASS",
   style: "STYLE",
   chat: "CHAT",
+  credits: "READ",
 };
 
 export const popupTitles = {
@@ -401,6 +404,7 @@ export const popupTitles = {
   style: "STYLE",
   warp: "LEVEL",
   use: "USE",
+  credits: "TY <3",
 };
 
 export const visibleStats: (keyof UnitStats)[] = [
@@ -778,6 +782,8 @@ export default function setupPopup(world: World) {
         ? displayedClasses.length
         : transaction === "style"
         ? hairColors.length
+        : transaction === "credits"
+        ? credits.length
         : transaction === "info" ||
           transaction === "warp" ||
           transaction === "talk"
@@ -1333,6 +1339,11 @@ export default function setupPopup(world: World) {
             fast: false,
             delay: 0,
           });
+        }
+      } else if (tab === "credits") {
+        const credit = credits[verticalIndex];
+        if (addEntity && credit?.link) {
+          window.open(credit.link, "_blank");
         }
       } else if (tab === "warp") {
         const selectedLevel = warpEntity && getSelectedLevel(world, warpEntity);
