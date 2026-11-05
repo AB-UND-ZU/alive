@@ -1,5 +1,6 @@
 import { Entity } from "ecs";
 import { isTouch } from "../components/Dimensions";
+import { gameVersion } from "../components/World";
 import { entities, World } from "../engine";
 import { ACTIONABLE } from "../engine/components/actionable";
 import {
@@ -4592,6 +4593,10 @@ export const createCell = (
     return { cell: tableEntity, all };
   } else if (cell === "1") {
     const patterns = [
+      [...gameVersion.padStart(17)],
+      [],
+      [],
+      [],
       [..."Tutorial  ", ".\x00:", ..."  ", ".\x00:"],
       [],
       [],
