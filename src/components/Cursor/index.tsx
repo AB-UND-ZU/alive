@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useDimensions } from "../Dimensions";
 import "./index.css";
 
@@ -43,8 +44,16 @@ const assetToBase64 = (asset: string, scale = 1) => {
 export default function Cursor() {
   const dimensions = useDimensions();
 
-  const single = assetToBase64(cursor, Math.round(dimensions.pixelSize));
-  const double = assetToBase64(cursor, Math.round(dimensions.pixelSize * 2));
+  const pixelSize = dimensions.pixelSize;
+
+  // rasterizing and encoding the cursor only depends on the pixel size
+  const [single, double] = useMemo(
+    () => [
+      assetToBase64(cursor, Math.round(pixelSize)),
+      assetToBase64(cursor, Math.round(pixelSize * 2)),
+    ],
+    [pixelSize]
+  );
 
   if (!single || !double) return null;
 
