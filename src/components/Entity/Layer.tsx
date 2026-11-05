@@ -7,7 +7,8 @@ import { animated, SpringValue } from "@react-spring/three";
 import { stack, stackHeight } from "./utils";
 import Box from "./Box";
 import { Point } from "../../game/math/std";
-import { fontUrl, getGlyphGeometry } from "./geometries";
+import { fontUrl, getBoxGeometry, getGlyphGeometry } from "./geometries";
+import { Instance } from "./Instances";
 
 export type LayerProps = {
   isTransparent: boolean;
@@ -41,6 +42,33 @@ export default function Layer({
     ? colorObjects[layer.color].clone().multiplyScalar(props.colorFactor)
     : colorObjects[layer.color];
   if (!color) debugger;
+  // opaque layers are drawn as instances, fading units keep their own material
+  if (!props.opacity) {
+    if (layer.char === "█") {
+      const height = stackHeight / stack;
+      return (
+        <Instance
+          batchKey={`box${dimensions.aspectRatio}`}
+          geometry={getBoxGeometry(dimensions.aspectRatio, 1, height)}
+          lambert={props.receiveShadow}
+          color={color}
+          darkness={props.darkness}
+          position={[0, 0, height / 2 + offsetZ]}
+        />
+      );
+    }
+
+    return (
+      <InstancedGlyph
+        char={layer.char}
+        lambert={props.receiveShadow}
+        color={color}
+        darkness={props.darkness}
+        position={[-0.5 * dimensions.aspectRatio, -0.25, offsetZ]}
+      />
+    );
+  }
+
   const Material = props.receiveShadow
     ? "meshLambertMaterial"
     : "meshBasicMaterial";
@@ -107,5 +135,33 @@ function Glyph({
     >
       {children}
     </mesh>
+  );
+}
+
+function InstancedGlyph({
+  char,
+  lambert,
+  color,
+  darkness,
+  position,
+}: {
+  char: string;
+  lambert: boolean;
+  color: THREE.Color;
+  darkness?: SpringValue<number>;
+  position: [number, number, number];
+}) {
+  const font = useFont(fontUrl);
+
+  return (
+    <Instance
+      batchKey={`glyph${char}`}
+      geometry={getGlyphGeometry(font, char)}
+      lambert={lambert}
+      color={color}
+      darkness={darkness}
+      position={position}
+      userData={{ char }}
+    />
   );
 }

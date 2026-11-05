@@ -10,6 +10,7 @@ import { colors } from "../../game/assets/colors";
 import { overscanRows } from "../Dimensions/sizing";
 import { ExtendedStats } from "../Debug";
 import { createText } from "../../game/assets/ui";
+import { InstanceRoot } from "../Entity/Instances";
 
 const stats = false;
 const controls = false;
@@ -31,6 +32,7 @@ export default function Terminal() {
       <Canvas shadows="basic" flat>
         {stats && <ExtendedStats />}
         {controls && <OrbitControls />}
+        <InstanceRoot />
         <ambientLight intensity={Math.PI / 8} />
         <Camera />
         <Systems />
