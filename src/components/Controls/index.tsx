@@ -27,9 +27,11 @@ import { canCast } from "../../engine/systems/magic";
 import {
   getTab,
   getTabSelections,
+  getVerticalIndex,
   isInPopup,
   isQuestCompleted,
 } from "../../engine/systems/popup";
+import { credits } from "../../game/assets/credits";
 import { isActionable, isInteractable } from "../../engine/systems/freeze";
 import { POPUP } from "../../engine/components/popup";
 import { TypedEntity } from "../../engine/entities";
@@ -754,9 +756,16 @@ export default function Controls() {
       // prevent tap after swiping
       if (pressedOrientations.current.length > 0) return;
 
+      // open links within user gesture for mobile browsers
+      if (ecs && popup && getTab(ecs, popup) === "credits") {
+        const credit = credits[getVerticalIndex(ecs, popup)];
+        if (credit?.link) window.open(credit.link, "_blank");
+        return;
+      }
+
       handleAction("right");
     },
-    [handleAction]
+    [handleAction, ecs, popup]
   );
 
   const handleContent = useCallback(

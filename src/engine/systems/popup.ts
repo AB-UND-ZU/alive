@@ -1340,11 +1340,6 @@ export default function setupPopup(world: World) {
             delay: 0,
           });
         }
-      } else if (tab === "credits") {
-        const credit = credits[verticalIndex];
-        if (addEntity && credit?.link) {
-          window.open(credit.link, "_blank");
-        }
       } else if (tab === "warp") {
         const selectedLevel = warpEntity && getSelectedLevel(world, warpEntity);
         if (!warpEntity) {
