@@ -2,7 +2,16 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { add, choice, combine, copy, random } from "../../game/math/std";
+import {
+  add,
+  choice,
+  combine,
+  copy,
+  getDistance,
+  random,
+} from "../../game/math/std";
+import { PLAYER } from "../components/player";
+import { play } from "../../game/sound";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, registerEntity } from "./map";
@@ -110,6 +119,14 @@ export const shootHoming = (
   });
   discEntity[EXERTABLE].castable = world.getEntityId(discEntity);
   registerEntity(world, discEntity);
+
+  // soft hum on launch, quieter with distance to hero
+  const heroEntity = world.getEntity([PLAYER, POSITION]);
+  const distance = heroEntity
+    ? getDistance(caster[POSITION], heroEntity[POSITION], size)
+    : 0;
+  if (distance < 10) play("disc", { proximity: 2 / (distance + 2) });
+
   return discEntity;
 };
 

@@ -2,7 +2,10 @@ import { Entity } from "ecs";
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { add, copy } from "../../game/math/std";
+import { add, copy, getDistance } from "../../game/math/std";
+import { PLAYER } from "../components/player";
+import { LEVEL } from "../components/level";
+import { play } from "../../game/sound";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { disposeEntity, getCell, registerEntity } from "./map";
@@ -111,6 +114,21 @@ export const shootArrow = (
 
   spendItem(world, entity, { stackable: "arrow", amount: 1 });
 
+  // scale sounds by distance to hero
+  const heroEntity = world.getEntity([PLAYER, POSITION]);
+  play("arrow", {
+    variant: 1,
+    proximity: heroEntity
+      ? 1 /
+        (getDistance(
+          entity[POSITION],
+          heroEntity[POSITION],
+          world.metadata.gameEntity[LEVEL].size
+        ) +
+          1)
+      : 0.5,
+  });
+
   const tick =
     world.assertByIdAndComponents(entity[MOVABLE].reference, [REFERENCE])[
       REFERENCE
@@ -192,7 +210,14 @@ export default function setupBallistics(world: World) {
         SEQUENCABLE,
       ]),
     ];
+    const heroEntity = world.getEntity([PLAYER, POSITION]);
+    const size = world.metadata.gameEntity[LEVEL].size;
     for (const entity of selectedProjectiles) {
+      // scale sounds by distance to hero
+      const arrowProximity = heroEntity
+        ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
+        : 0.5;
+
       // hit crossing enemies
       const isFlying = getSequence(world, entity, "arrow");
       const shootable = getShootable(world, entity[POSITION]);
@@ -265,6 +290,7 @@ export default function setupBallistics(world: World) {
             fragmentEntity[SHOOTABLE].shots += 1;
           }
           hit = true;
+          play("arrow", { variant: 3, proximity: arrowProximity });
           disposeEntity(world, entity, false);
 
           // add hit marker
@@ -308,6 +334,8 @@ export default function setupBallistics(world: World) {
           getSequence(world, entity, "arrow")?.args.caster !==
             world.getEntityId(shootable))
       ) {
+        play("arrow", { variant: 2, proximity: arrowProximity });
+        play("arrow", { variant: 4, delay: 160, proximity: arrowProximity });
         const targetPosition = add(
           entity[POSITION],
           orientationPoints[oppositeOrientation]

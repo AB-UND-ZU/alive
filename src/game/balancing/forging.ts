@@ -446,8 +446,11 @@ export const performForgeHit = (world: World, entity: Entity) => {
   ) {
     // miss
     entity[FORGABLE].lastAction = "miss";
+    play("anvil");
+    play("cling");
     rerenderEntity(world, entity);
   } else {
     entity[FORGABLE].lastAction = "hit";
+    play("anvil");
   }
 };

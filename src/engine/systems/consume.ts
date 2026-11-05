@@ -4,6 +4,7 @@ import { Entity } from "ecs";
 import { Consumable, ITEM, Material, Stackable } from "../components/item";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { PLAYER } from "../components/player";
+import { play } from "../../game/sound";
 import { Countable, STATS, UnitStats } from "../components/stats";
 import { TypedEntity } from "../entities";
 import { rerenderEntity } from "./renderer";
@@ -199,6 +200,12 @@ export const consumeItem = (
     [RENDERABLE]: { generation: 0 },
     [SPRITE]: none,
   };
+
+  // hurt like true damage to shake screen, gains play existing pickup sounds
+  if (entity[PLAYER] && amount < 0) {
+    entity[PLAYER].receivedStats.true -= amount;
+    play("hit", { intensity: -amount, proximity: 1, variant: 1 });
+  }
 
   if (consumption.countable === "xp") {
     createItemAsDrop(

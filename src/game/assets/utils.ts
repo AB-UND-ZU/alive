@@ -71,6 +71,7 @@ import {
   popupTitles,
 } from "../../engine/systems/popup";
 import { disposeEntity } from "../../engine/systems/map";
+import { play } from "../sound";
 import {
   addBackground,
   createSpriteButton,
@@ -757,6 +758,24 @@ export const renderPopup = (
           : char;
         rerenderEntity(world, charParticle);
       }
+    }
+
+    // beep on each word start of a started row, rest on remaining chars
+    const typedRow = Math.ceil(contentIndex / (frameWidth - 2)) - 1;
+    const typedChars = scrollContent[typedRow]
+      ?.map((sprite) => sprite.layers.some((layer) => layer.char !== " "))
+      .map((visible, index, visibles) => visible && !visibles[index - 1]);
+    if (
+      !renderContent &&
+      !state.args.instant &&
+      typedRow > Math.ceil(state.args.contentIndex / (frameWidth - 2)) - 1 &&
+      typedChars?.includes(true)
+    ) {
+      play("text", {
+        notes: typedChars.length,
+        spacing: contentDelay,
+        pattern: typedChars,
+      });
     }
 
     if (!renderContent) state.args.contentIndex = contentIndex;

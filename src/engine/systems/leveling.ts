@@ -12,9 +12,7 @@ import {
   SEQUENCABLE,
   XpSequence,
 } from "../components/sequencable";
-import { queueMessage } from "../../game/assets/utils";
 import { none } from "../../game/assets/sprites";
-import { colors } from "../../game/assets/colors";
 import { INVENTORY } from "../components/inventory";
 import { LOOTABLE } from "../components/lootable";
 import { ITEM } from "../components/item";
@@ -32,6 +30,8 @@ import { isGhost } from "./fate";
 import { LEVEL } from "../components/level";
 import { ClassKey, getClassData } from "../../game/balancing/classes";
 import { SPAWNABLE } from "../components/spawnable";
+import { queueMessage } from "../../game/assets/utils";
+import { colors } from "../../game/assets/colors";
 import { createText } from "../../game/assets/ui";
 
 export type Level = {
@@ -140,20 +140,23 @@ export default function setupLeveling(world: World) {
           (level) => level.level === entity[STATS].level
         )!;
         const maxLevel = levelingStat.slice(-1)[0].level;
-        entity[STATS].xp = Math.max(entity[STATS].xp - currentLevel.xp, 0);
-        entity[STATS].level = Math.min(maxLevel, entity[STATS].level + 1);
+        const level = Math.min(maxLevel, entity[STATS].level + 1);
         const targetLevel = levelingStat.find(
-          (level) => level.level === entity[STATS].level
+          (targetLevel) => targetLevel.level === level
         )!;
-        entity[STATS].maxXp = targetLevel.xp;
 
+        // send one ring per level and apply stats after the last ring
         createSequence<"progress", ProgressSequence>(
           world,
           entity,
           "progress",
           "levelUp",
           {
-            dropped: false,
+            level,
+            note: 0,
+            ring: 0,
+            xp: currentLevel.xp,
+            maxXp: targetLevel.xp,
             maxHp: currentLevel.maxHp,
             maxMp: currentLevel.maxMp,
           }

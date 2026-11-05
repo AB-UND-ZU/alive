@@ -134,6 +134,7 @@ import { CLICKABLE } from "../../engine/components/clickable";
 import { iterations, pixelCircle } from "../math/tracing";
 import { getClickables } from "../../engine/systems/click";
 import { muteAudio, unmuteAudio } from "../sound/resumable";
+import { play } from "../sound";
 import { REFERENCE } from "../../engine/components/reference";
 import { POPUP, Target } from "../../engine/components/popup";
 import { isTouch } from "../../components/Dimensions";
@@ -329,6 +330,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
       soundLever[TOOLTIP].changed = true;
     } else {
       unmuteAudio();
+      play("lever", { intensity: 1 });
       soundLever[SPRITE] = leverOn;
       soundLever[TOOLTIP].dialogs = [createDialog("Sound on")];
       soundLever[TOOLTIP].changed = true;
@@ -341,11 +343,13 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
   if (controlsLever[CLICKABLE].clicked) {
     if (controlsLever[SPRITE] === leverOn) {
       world.metadata.setFlipped(true);
+      play("lever", { intensity: 2 });
       controlsLever[SPRITE] = leverOff;
       controlsLever[TOOLTIP].dialogs = [createDialog("Right side")];
       controlsLever[TOOLTIP].changed = true;
     } else {
       world.metadata.setFlipped(false);
+      play("lever", { intensity: 1 });
       controlsLever[SPRITE] = leverOn;
       controlsLever[TOOLTIP].dialogs = [createDialog("Left side")];
       controlsLever[TOOLTIP].changed = true;
@@ -549,6 +553,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
     );
 
     unlockLever[SPRITE] = leverOn;
+    play("lever", { intensity: 1 });
     rerenderEntity(world, unlockLever);
   }
 

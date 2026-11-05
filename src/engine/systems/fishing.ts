@@ -20,6 +20,7 @@ import { BAITABLE } from "../components/baitable";
 import { attemptBubbleAbsorb } from "./magic";
 import { getDistance } from "../../game/math/std";
 import { LEVEL } from "../components/level";
+import { play } from "../../game/sound";
 
 export const getHookables = (world: World, position: Position) =>
   Object.values(getCell(world, position)).filter(
@@ -134,6 +135,7 @@ export default function setupFishing(world: World) {
         hookable[HOOKABLE].hooked = entityId;
         hookable[HOOKABLE].casting = undefined;
         entity[BAITABLE].caught = hookableId;
+        play("fish", { variant: 3 });
         entity[BUMPABLE].orientation = "down";
         entity[BUMPABLE].generation = entity[RENDERABLE].generation;
         rerenderEntity(world, entity);
@@ -189,6 +191,7 @@ export default function setupFishing(world: World) {
         (!entity[HOOKABLE].catching && entity[HOOKABLE].escaping)
       ) {
         // escape
+        if (entity[HOOKABLE].hooked) play("escape", { notes: 4, spacing: 110 });
         entity[HOOKABLE].hooked = undefined;
         entity[HOOKABLE].catching = undefined;
         entity[HOOKABLE].escaping = false;
@@ -196,6 +199,7 @@ export default function setupFishing(world: World) {
       } else if (!entity[HOOKABLE].escaping && baitEntity) {
         // escape on next movement
         entity[HOOKABLE].escaping = true;
+        play("fish", { variant: 4 });
         baitEntity[BUMPABLE].orientation = "down";
         baitEntity[BUMPABLE].generation = baitEntity[RENDERABLE].generation;
         rerenderEntity(world, baitEntity);

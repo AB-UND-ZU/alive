@@ -68,14 +68,15 @@ ResumableSoundEffect.prototype._resumable_sfxr_getAudioFn = function (
           volume = v;
           return obj;
         },
-        play: function () {
+        play: function (delay = 0) {
           var proc = audioContext.createBufferSource();
           proc.buffer = buff;
           var gainNode = audioContext.createGain();
           gainNode.gain.value = volume;
           gainNode.connect(masterGain);
           proc.connect(gainNode);
-          proc.start();
+          // schedule on audio clock to keep timing when frames lag
+          proc.start(audioContext.currentTime + delay / 1000);
           this.channels.push(proc);
           return proc;
         },

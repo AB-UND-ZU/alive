@@ -542,6 +542,7 @@ export default function setupDrop(world: World) {
             disposeEntity(world, limb, undefined, false);
           });
         } else {
+          play("harvest", { variant: 4 });
           const limbs = getLimbs(world, entity);
           limbs.forEach((limb) => {
             createSequence<"decay", DecaySequence>(

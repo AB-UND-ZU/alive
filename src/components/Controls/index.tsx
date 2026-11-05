@@ -40,6 +40,7 @@ import { INVENTORY } from "../../engine/components/inventory";
 import { STATS } from "../../engine/components/stats";
 import { PLAYER } from "../../engine/components/player";
 import { ensureAudio } from "../../game/sound/resumable";
+import { play } from "../../game/sound";
 import Cursor from "../Cursor";
 import {
   frameHeight,
@@ -759,7 +760,10 @@ export default function Controls() {
       // open links within user gesture for mobile browsers
       if (ecs && popup && getTab(ecs, popup) === "credits") {
         const credit = credits[getVerticalIndex(ecs, popup)];
-        if (credit?.link) window.open(credit.link, "_blank");
+        if (credit?.link) {
+          play("confirm");
+          window.open(credit.link, "_blank");
+        }
         return;
       }
 

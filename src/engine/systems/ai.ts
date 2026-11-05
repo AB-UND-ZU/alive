@@ -116,6 +116,7 @@ import { getImmersible, isImmersible, isSwimming } from "./immersion";
 import { CLICKABLE } from "../components/clickable";
 import { AFFECTABLE, getEmptyAffectable } from "../components/affectable";
 import { HARVESTABLE } from "../components/harvestable";
+import { PLAYER } from "../components/player";
 import { shootHoming } from "./homing";
 import { EQUIPPABLE } from "../components/equippable";
 import { SHOOTABLE } from "../components/shootable";
@@ -166,11 +167,28 @@ export default function setupAi(world: World) {
     if (lastGeneration === generation) return;
 
     lastGeneration = generation;
+    const rageHero = world.getEntity([PLAYER, POSITION]);
 
     for (const entity of world.getEntities([POSITION, MOVABLE, BEHAVIOUR])) {
       const patterns = (entity[BEHAVIOUR] as Behaviour).patterns;
       const entityId = world.getEntityId(entity);
       const size = world.metadata.gameEntity[LEVEL].size;
+
+      // scale danger sound on rage by distance to hero
+      const heroDistance = rageHero
+        ? getDistance(entity[POSITION], rageHero[POSITION], size)
+        : 0;
+      const rageProximity = heroDistance < 10 ? 2 / (heroDistance + 2) : 0;
+      // distinct alert pitch and tone per mob type, longer for bosses
+      const rageType = entity[NPC]?.type || "";
+      const rageVariant =
+        ([...rageType].reduce(
+          (hash, char) => (hash * 33 + char.charCodeAt(0)) % 1009,
+          150
+        ) %
+          72) +
+        1;
+      const rageIntensity = rageType.toLowerCase().includes("boss") ? 2 : 1;
 
       // always reset movement first to cover cases of changed patterns
       if (entity[MOVABLE]) {
@@ -229,6 +247,12 @@ export default function setupAi(world: World) {
             if (textSequence) {
               textSequence.args.text = [rage];
             }
+            if (rageProximity)
+              play("danger", {
+                variant: rageVariant,
+                intensity: rageIntensity,
+                proximity: rageProximity,
+              });
 
             patterns.splice(
               patterns.indexOf(pattern),
@@ -568,7 +592,11 @@ export default function setupAi(world: World) {
                   entity[BUMPABLE].orientation = hack;
 
                   // pick crop seed
-                  if (harvestable && farmable?.[FARMABLE].planted && Math.random() < 0.05) {
+                  if (
+                    harvestable &&
+                    farmable?.[FARMABLE].planted &&
+                    Math.random() < 0.05
+                  ) {
                     farmable[FARMABLE].planted = undefined;
                     farmable[FARMABLE].progress = undefined;
                     farmable[FARMABLE].sapling = undefined;
@@ -729,6 +757,12 @@ export default function setupAi(world: World) {
             }
           }
           if (inWalkableRange && entity[TOOLTIP] && !entity[TOOLTIP]?.idle) {
+            if (rageProximity)
+              play("danger", {
+                variant: rageVariant,
+                intensity: rageIntensity,
+                proximity: rageProximity,
+              });
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
           } else if (!inWalkableRange && entity[TOOLTIP]?.idle) {
@@ -783,6 +817,13 @@ export default function setupAi(world: World) {
             entity[TOOLTIP].idle = undefined;
             entity[TOOLTIP].changed = true;
           } else if (!isMoving) {
+            if (rageProximity) {
+              play("danger", {
+                variant: rageVariant,
+                intensity: rageIntensity,
+                proximity: rageProximity,
+              });
+            }
             entity[TOOLTIP].idle = rage;
             entity[TOOLTIP].changed = true;
           }
@@ -1016,6 +1057,13 @@ export default function setupAi(world: World) {
               shootingOrientation
             ) {
               entity[ORIENTABLE].facing = shootingOrientation;
+              if (entity[TOOLTIP].idle !== rage && rageProximity) {
+                play("danger", {
+                  variant: rageVariant,
+                  intensity: rageIntensity,
+                  proximity: rageProximity,
+                });
+              }
               entity[TOOLTIP].idle = rage;
               entity[TOOLTIP].changed = true;
               rerenderEntity(world, entity);
@@ -1199,6 +1247,18 @@ export default function setupAi(world: World) {
           if (!entity[TOOLTIP]) continue;
           const memory = pattern.memory;
 
+          if (
+            (memory.idle === rage || memory.idle === rage2) &&
+            entity[TOOLTIP].idle !== memory.idle &&
+            rageProximity
+          ) {
+            play("danger", {
+              variant: rageVariant,
+              intensity: memory.idle === rage2 ? 2 : rageIntensity,
+              proximity: rageProximity,
+            });
+          }
+
           for (const [key, value] of Object.entries(memory)) {
             // TODO: find a better way to infer types
             (entity[TOOLTIP] as any)[key] = value;
@@ -1220,6 +1280,12 @@ export default function setupAi(world: World) {
           const memory = pattern.memory;
           entity[BELONGABLE].faction = "hostile";
           entity[TOOLTIP].changed = true;
+          if (rageProximity)
+            play("danger", {
+              variant: rageVariant,
+              intensity: rageIntensity,
+              proximity: rageProximity,
+            });
           entity[TOOLTIP].idle = rage;
           entity[TOOLTIP].enemy = true;
           entity[TOOLTIP].override = memory.shout ? "visible" : undefined;
@@ -1329,6 +1395,13 @@ export default function setupAi(world: World) {
               });
 
               if (entity[TOOLTIP]) {
+                if (entity[TOOLTIP].idle !== rage && rageProximity) {
+                  play("danger", {
+                    variant: rageVariant,
+                    intensity: rageIntensity,
+                    proximity: rageProximity,
+                  });
+                }
                 entity[TOOLTIP].idle = rage;
                 entity[TOOLTIP].changed = true;
               }
@@ -1641,6 +1714,12 @@ export default function setupAi(world: World) {
               entity[TOOLTIP].changed = true;
               if (restart) pattern.memory.generation = 0;
             } else if (((wait && !healing) || done) && !entity[TOOLTIP].idle) {
+              if (rageProximity)
+                play("danger", {
+                  variant: rageVariant,
+                  intensity: rageIntensity,
+                  proximity: rageProximity,
+                });
               entity[TOOLTIP].idle = rage;
               entity[TOOLTIP].changed = true;
             }

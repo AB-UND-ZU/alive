@@ -629,6 +629,8 @@ export const zapCondition: Sequence<ConditionSequence> = (
     conditionParticle[PARTICLE].amount = targetAmount;
     rerenderEntity(world, conditionParticle);
     updated = true;
+
+    if (targetAmount === 1 && !finished) play("zap", { variant: 3 });
   }
 
   if (finished) {
@@ -735,6 +737,8 @@ export const blockCondition: Sequence<ConditionSequence> = (
       rerenderEntity(world, particleEntity);
     }
     updated = true;
+
+    if (!inactive) play("block", { variant: 4 });
   }
 
   // burst bubble
@@ -900,6 +904,15 @@ export const toolCondition: Sequence<ConditionSequence> = (
       targetOrientation &&
       progress > tick / 2
     ) {
+      play("harvest", {
+        variant:
+          toolEntity[ITEM].tool === "hammer"
+            ? 3
+            : toolEntity[ITEM].tool === "pickaxe"
+            ? 2
+            : 1,
+      });
+
       if (toolEntity[ITEM].tool === "hammer") {
         targetEntity[STATS].hp = Math.min(
           targetEntity[STATS].maxHp,
@@ -1064,6 +1077,7 @@ export const shovelCondition: Sequence<ConditionSequence> = (
     PARTICLE,
   ]);
   if (finished) {
+    play("dig");
     performDig(world, entity, toolEntity);
 
     if (entity[BUMPABLE]) {
@@ -1300,6 +1314,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
   if (!toolParticle[ORIENTABLE].facing && condition.orientation) {
     toolParticle[ORIENTABLE].facing = condition.orientation;
     updated = true;
+    play("fish", { variant: 1 });
 
     const baitParticle = entities.createFibre(world, {
       [ORIENTABLE]: {},
@@ -1401,6 +1416,7 @@ export const hookCondition: Sequence<ConditionSequence> = (
 
     const delta = orientationPoints[condition.orientation];
     const baitStats = getItemStats(hookEntity[ITEM]);
+    play("fish", { variant: 2 });
     const baitEntity = entities.createBait(world, {
       [BAITABLE]: { caster: entityId, amount: baitStats.fishing },
       [BUMPABLE]: { generation: 0 },
@@ -2246,6 +2262,10 @@ export const trapAura: Sequence<AuraSequence> = (world, entity, state) => {
 
   // dispose particles and areas
   if (finished) {
+    if (Object.keys(entity[CASTABLE].affected).length > 0) {
+      play("trap", { intensity: 2, notes: 2, spacing: 0 });
+    }
+
     for (const particleName in state.particles) {
       const particleEntity = world.assertById(state.particles[particleName]);
       disposeEntity(world, particleEntity);
@@ -2287,6 +2307,12 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
     progress >= teleportTicks + dashRemain ||
     (casterEntity && isDead(world, casterEntity));
   let updated = false;
+
+  // scale sounds by distance to hero
+  const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+  const dashProximity = heroEntity
+    ? 1 / (getDistance(entity[POSITION], heroEntity[POSITION], size) + 1)
+    : 0.5;
 
   // create dash particles and teleport anchor
   if (!state.args.memory?.position && progress < teleportTicks) {
@@ -2337,6 +2363,11 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
     } else {
       updated = true;
       state.args.memory = { position, target };
+      play("dash", {
+        variant: 1,
+        intensity: teleportTicks * dashTime,
+        proximity: dashProximity,
+      });
 
       // create blocking anchor
       const teleportEntity = entities.createTeleport(world, {
@@ -2378,6 +2409,7 @@ export const castDash: Sequence<SpellSequence> = (world, entity, state) => {
   ) {
     delete state.args.memory.position;
     const target = state.args.memory.target;
+    play("dash", { variant: 2, proximity: dashProximity });
 
     let offset = 0;
     let origin = copy(entity[POSITION]);
@@ -2830,6 +2862,15 @@ export const totemAura: Sequence<AuraSequence> = (world, entity, state) => {
         auraParticle[PARTICLE].amount = amount;
         rerenderEntity(world, auraParticle);
       }
+    }
+
+    // swell along with the aura brightening
+    if ((auraGeneration + 10) % 15 === 12 && !finished) {
+      const heroEntity = getIdentifierAndComponents(world, "hero", [POSITION]);
+      const distance = heroEntity
+        ? getDistance(entity[POSITION], heroEntity[POSITION], size) + 1
+        : 2;
+      if (distance < 10) play("totem", { variant: 2, proximity: 1 / distance });
     }
 
     state.args.memory.generation = auraGeneration;
@@ -3485,14 +3526,23 @@ export const weatherStorm: Sequence<WeatherSequence> = (
 
 const progressParts = 17;
 const progressTime = 60;
+const ringTime = 600;
 
 export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
   let updated = false;
-  let finished = state.elapsed > progressParts * progressTime * 3;
+  const crossTime = progressParts * progressTime;
+  // keep running until all stats are applied
+  const finished =
+    state.elapsed > crossTime * 4 + (state.args.level - 1) * ringTime &&
+    state.args.note >
+      1 + (state.args.maxHp ? 1 : 0) + (state.args.maxMp ? 1 : 0);
 
-  // create progress particles
-  if (Object.keys(state.particles).length === 0) {
-    // orthogonal lines
+  // create orthogonal lines as cross
+  if (state.args.note === 0) {
+    // noise riser while the cross expands to build tension for the rings
+    state.args.note = 1;
+    play("progress", { intensity: crossTime });
+
     for (let i = 0; i < progressParts; i += 1) {
       for (const orientation of orientations) {
         const delta = orientationPoints[orientation];
@@ -3530,37 +3580,87 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
     updated = true;
   }
 
-  if (!state.args.dropped && state.elapsed > progressParts * progressTime) {
-    // move lines out of screen
+  // send out one ring per level once cross is complete
+  const rings = Math.min(
+    state.args.level,
+    Math.floor((state.elapsed - crossTime) / ringTime) + 1
+  );
+  while (state.elapsed > crossTime && state.args.ring < rings) {
+    state.args.ring += 1;
+    play("level", { variant: state.args.ring });
+
     for (let i = 0; i < progressParts; i += 1) {
       for (const orientation of orientations) {
-        const delta =
+        const delta = orientationPoints[orientation];
+        const sweep =
           orientationPoints[
             orientations[(orientations.indexOf(orientation) + 1) % 4]
           ];
-        const progressParticle = world.assertByIdAndComponents(
-          state.particles[`progress-${i}-${orientation}`],
-          [PARTICLE]
-        );
-        const inverseParticle = world.assertByIdAndComponents(
-          state.particles[`progress-${i}-${orientation}-inverse`],
-          [PARTICLE]
-        );
 
-        if (delta.x === 0) {
-          progressParticle[PARTICLE].offsetY = delta.y * progressParts;
-          inverseParticle[PARTICLE].offsetY = delta.y * progressParts;
-        } else {
-          progressParticle[PARTICLE].offsetX = delta.x * progressParts;
-          inverseParticle[PARTICLE].offsetX = delta.x * progressParts;
+        for (const [suffix, sign] of [
+          ["", 1],
+          ["-inverse", -1],
+        ] as const) {
+          const origin = { x: delta.x * i * sign, y: delta.y * i * sign };
+          const target =
+            sweep.x === 0
+              ? { x: origin.x, y: sweep.y * progressParts }
+              : { x: sweep.x * progressParts, y: origin.y };
+          const name = `progress-${i}-${orientation}${suffix}`;
+
+          // move cross out as first ring, then add copies for further rings
+          if (state.args.ring === 1) {
+            const crossParticle = world.assertByIdAndComponents(
+              state.particles[name],
+              [PARTICLE]
+            );
+            crossParticle[PARTICLE].offsetX = target.x;
+            crossParticle[PARTICLE].offsetY = target.y;
+            crossParticle[PARTICLE].duration = crossTime * 3;
+          } else {
+            const ringParticle = entities.createFibre(world, {
+              [ORIENTABLE]: { facing: orientation },
+              [PARTICLE]: {
+                offsetX: target.x,
+                offsetY: target.y,
+                offsetZ: particleHeight,
+                duration: crossTime * 3,
+                animatedOrigin: origin,
+              },
+              [RENDERABLE]: { generation: 1 },
+              [SPRITE]: levelProgress,
+            });
+            state.particles[`ring-${state.args.ring}-${name}`] =
+              world.getEntityId(ringParticle);
+          }
         }
-        progressParticle[PARTICLE].duration = progressTime * progressParts * 2;
-        inverseParticle[PARTICLE].duration = progressTime * progressParts * 2;
       }
     }
 
-    // add max stats and add to current stats
-    if (state.args.maxHp) {
+    updated = true;
+  }
+
+  // apply level, then each stat one at a time, a while after the last ring
+  const statSteps = [
+    "level",
+    ...(state.args.maxHp ? ["maxHp"] : []),
+    ...(state.args.maxMp ? ["maxMp"] : []),
+  ];
+  const statStep = state.args.note - 1;
+  if (
+    state.args.note > 0 &&
+    statStep < statSteps.length &&
+    state.elapsed >
+      crossTime + (state.args.level - 1) * ringTime + 1000 + statStep * 500
+  ) {
+    const stat = statSteps[statStep];
+    state.args.note += 1;
+
+    if (stat === "level") {
+      entity[STATS].xp = Math.max(entity[STATS].xp - state.args.xp, 0);
+      entity[STATS].level = state.args.level;
+      entity[STATS].maxXp = state.args.maxXp;
+    } else if (stat === "maxHp") {
       entity[STATS].maxHp = Math.min(
         entity[STATS].maxHpCap,
         entity[STATS].maxHp + state.args.maxHp
@@ -3570,8 +3670,7 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
         entity[STATS].hp + state.args.maxHp
       );
       entity[PLAYER].receivedStats.maxHp += state.args.maxHp;
-    }
-    if (state.args.maxMp) {
+    } else {
       entity[STATS].maxMp = Math.min(
         entity[STATS].maxMpCap,
         entity[STATS].maxMp + state.args.maxMp
@@ -3583,7 +3682,24 @@ export const levelUp: Sequence<ProgressSequence> = (world, entity, state) => {
       entity[PLAYER].receivedStats.maxMp += state.args.maxMp;
     }
 
-    state.args.dropped = true;
+    rerenderEntity(world, entity);
+    updated = true;
+  }
+
+  // remove each ring once it has swept out
+  for (let ring = 1; ring <= state.args.ring; ring += 1) {
+    const prefix = ring === 1 ? "progress-" : `ring-${ring}-`;
+    if (
+      !state.particles[`${prefix}${ring === 1 ? "" : "progress-"}0-up`] ||
+      state.elapsed < crossTime * 4 + (ring - 1) * ringTime
+    )
+      continue;
+
+    for (const particleName in state.particles) {
+      if (!particleName.startsWith(prefix)) continue;
+      disposeEntity(world, world.assertById(state.particles[particleName]));
+      delete state.particles[particleName];
+    }
     updated = true;
   }
 
@@ -7935,7 +8051,7 @@ export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
   const finished = state.elapsed > unlockTime;
 
   // create key particle
-  if (!state.particles.key && !finished) {
+  if (!state.particles.key && !state.particles.hole && !finished) {
     const size = world.metadata.gameEntity[LEVEL].size;
     const delta = {
       x: signedDistance(entity[POSITION].x, state.args.origin.x, size),
@@ -7959,6 +8075,7 @@ export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
   if (state.particles.key && (finished || state.elapsed > keyTime)) {
     disposeEntity(world, world.assertById(state.particles.key));
     delete state.particles.key;
+    play("unlock", { notes: 2, spacing: 80 });
 
     const holeParticle = entities.createParticle(world, {
       [PARTICLE]: {
@@ -7975,6 +8092,7 @@ export const doorUnlock: Sequence<UnlockSequence> = (world, entity, state) => {
 
   if (finished) {
     openDoor(world, entity);
+    play("door");
   }
 
   return { finished, updated };
@@ -8513,6 +8631,8 @@ export const popupInteract: Sequence<InteractSequence> = (
 
   if (initial) {
     updated = true;
+
+    play("prompt", { notes: 2, spacing: 70 });
 
     const discoveryParticle = entities.createParticle(world, {
       [PARTICLE]: {

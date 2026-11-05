@@ -174,6 +174,20 @@ export const triggerSpear = (
     REFERENCE,
   ])[REFERENCE].tick;
 
+  // scale sound by distance to hero
+  const heroEntity = world.getEntity([PLAYER, POSITION]);
+  play("spear", {
+    proximity: heroEntity
+      ? 1 /
+        (getDistance(
+          entity[POSITION],
+          heroEntity[POSITION],
+          world.metadata.gameEntity[LEVEL].size
+        ) +
+          1)
+      : 0.5,
+  });
+
   // create spear slash
   createSequence<"slash", SlashSequence>(
     world,
@@ -528,6 +542,12 @@ export const triggerZap = (
     "lightningFlash",
     { targets: zapPositions }
   );
+  play("zap", { variant: 2 });
+
+  // electric spark on each hit target in quick succession
+  if (zapPositions.length > 0) {
+    play("spark", { notes: zapPositions.length, spacing: 35 });
+  }
 
   delete attackerEntity[CONDITIONABLE]?.zap;
   rerenderEntity(world, attackerEntity);

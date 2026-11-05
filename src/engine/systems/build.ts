@@ -38,6 +38,7 @@ import {
 import { IMMERSIBLE } from "../components/immersible";
 import { LIQUID } from "../components/liquid";
 import { isEnterable } from "./enter";
+import { play } from "../../game/sound";
 
 export const canPlot = (world: World, entity: Entity, position: Position) => {
   const construction = getSelectedConstruction(world, entity);
@@ -148,6 +149,7 @@ export default function setupBuild(world: World) {
       if (entity[STATS].hp < entity[STATS].maxHp) continue;
 
       // replace plot with cell
+      play("build", { intensity: 2, notes: 3, spacing: 45 });
       createCell(world, entity[POSITION], entity[BUILDABLE].cell, "hidden");
       disposeEntity(world, entity);
 

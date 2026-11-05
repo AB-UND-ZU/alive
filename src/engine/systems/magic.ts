@@ -163,6 +163,9 @@ export const attemptBubbleAbsorb = (world: World, entity: Entity) => {
 
     if (entity[CONDITIONABLE].block.amount <= 0) {
       delete entity[CONDITIONABLE].block;
+      play("block", { variant: 3 });
+    } else {
+      play("block", { variant: 2 });
     }
     return true;
   }
@@ -320,6 +323,7 @@ export const summonTotem = (world: World, entity: Entity, totem: Entity) => {
       element: totem[ITEM].element,
     }
   );
+  play("totem");
 };
 
 export const hasTriggered = (

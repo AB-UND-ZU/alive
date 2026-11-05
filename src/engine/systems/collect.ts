@@ -309,6 +309,7 @@ export const equipItem = (
       });
       return;
     } else {
+      play("equip", { notes: 4, spacing: 45, delay });
       queueMessage(world, entity, {
         line: addBackground(
           [

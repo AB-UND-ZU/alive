@@ -218,7 +218,11 @@ export type FountainSequence = {
   healed?: number;
 };
 export type ProgressSequence = {
-  dropped: boolean;
+  level: number;
+  note: number;
+  ring: number;
+  xp: number;
+  maxXp: number;
   maxMp: number;
   maxHp: number;
 };
