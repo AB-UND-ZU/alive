@@ -1,6 +1,6 @@
 import { entities, World } from "../../../engine";
 import { Position, POSITION } from "../../../engine/components/position";
-import { LEVEL, LevelName } from "../../../engine/components/level";
+import { BiomeName, LEVEL, LevelName } from "../../../engine/components/level";
 import { createMatrix, iterateMatrix, setMatrix } from "../../math/matrix";
 import { leverPosition, roomSize, tutorialRooms } from "./areas";
 import { VIEWABLE } from "../../../engine/components/viewable";
@@ -91,7 +91,15 @@ export const generateTutorial = async (world: World) => {
 
   const smoothenedMatrix = smoothenBeaches(smoothenWater(worldMap));
 
+  // mark sand as desert to allow tumbleweeds to sweep
+  const biomeMatrix = createMatrix<BiomeName>(size, size, "jungle");
+  world.metadata.gameEntity[LEVEL].biomes = biomeMatrix;
+
   iterateMatrix(smoothenedMatrix, (x, y, cell) => {
+    if (cell === "sand" || cell === "beach" || cell.startsWith("desert_")) {
+      setMatrix(biomeMatrix, x, y, "desert");
+    }
+
     createCell(
       world,
       { x, y },
