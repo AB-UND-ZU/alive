@@ -8,7 +8,7 @@
     "@react-three/drei": "^9.114.3",
     "@react-three/fiber": "^8.17.9",
     "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
+    "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.104",
@@ -32,12 +32,27 @@
     "start": "FAST_REFRESH=false react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test:fast": "CI=true react-scripts test --watchAll=false --testPathIgnorePatterns='\\.slow\\.test\\.'",
+    "test:slow": "CI=true react-scripts test --watchAll=false --testPathPattern='\\.slow\\.test\\.'",
+    "test:all": "CI=true react-scripts test --watchAll=false",
+    "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/tsbuildinfo",
+    "lint": "eslint src --max-warnings=0 --cache --cache-location node_modules/.cache/eslint/",
+    "check:fast": "npm run --silent typecheck && npm run --silent lint && npm run --silent test:fast",
+    "eject": "react-scripts eject",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "ignorePatterns": [
+      "src/engine/vendor/"
+    ]
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!(ecs|remove-array-items|three/src)/)"
     ]
   },
   "prettier": {
@@ -56,6 +71,7 @@
     ]
   },
   "devDependencies": {
+    "@react-three/test-renderer": "^8.2.4",
     "@types/body-scroll-lock": "^3.1.2",
     "@types/javascript-astar": "^0.0.35",
     "prettier": "^2.8.8"

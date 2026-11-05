@@ -1,0 +1,4 @@
+#!/bin/sh
+# Typecheck, lint and run fast tests before each commit, slow tests run in CI.
+# Enabled via `npm install` (prepare script), skip with `git commit --no-verify`.
+npm run --silent check:fast
