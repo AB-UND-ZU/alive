@@ -4,7 +4,7 @@ import { RENDERABLE } from "../components/renderable";
 import { add } from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { REFERENCE } from "../components/reference";
-import { getCell } from "./map";
+import { getCellEntities } from "./map";
 import { Entity } from "ecs";
 import { ACTIONABLE } from "../components/actionable";
 import { MOVABLE } from "../components/movable";
@@ -43,19 +43,19 @@ import { forgingCompleted } from "../../game/balancing/forging";
 import { canMount, getMountable } from "./vessel";
 
 export const getBlockable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => BLOCKABLE in entity
-  ) as Entity | undefined;
+  getCellEntities(world, position).find((entity) => BLOCKABLE in entity) as
+    | Entity
+    | undefined;
 
 export const getWarpable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => WARPABLE in entity
-  ) as Entity | undefined;
+  getCellEntities(world, position).find((entity) => WARPABLE in entity) as
+    | Entity
+    | undefined;
 
 export const getLockable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => LOCKABLE in entity
-  ) as Entity | undefined;
+  getCellEntities(world, position).find((entity) => LOCKABLE in entity) as
+    | Entity
+    | undefined;
 
 export const isLocked = (world: World, entity: Entity) =>
   !!entity[LOCKABLE]?.locked;

@@ -10,7 +10,7 @@ import { LEVEL } from "../engine/components/level";
 import { Position, POSITION } from "../engine/components/position";
 import { COLLIDABLE } from "../engine/components/collidable";
 import { LOCKABLE } from "../engine/components/lockable";
-import { getCell } from "../engine/systems/map";
+import { getCellEntities } from "../engine/systems/map";
 import { initializeCell } from "../engine/systems/initialize";
 import { assertIdentifierAndComponents } from "../engine/utils";
 import { findPath } from "../game/math/path";
@@ -51,7 +51,7 @@ const getPlayableMatrix = (world: World) => {
   const isWater = (x: number, y: number) =>
     waterCells.includes(getOverlappingCell(level.cells, x, y));
   const isBlocked = (x: number, y: number) =>
-    Object.values(getCell(world, { x, y })).some(
+    getCellEntities(world, { x, y }).some(
       (entity) => COLLIDABLE in entity && !(LOCKABLE in entity)
     );
 

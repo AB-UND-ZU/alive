@@ -18,7 +18,12 @@ import {
   shoutEnd,
   shoutStart,
 } from "../../game/assets/sprites";
-import { disposeEntity, disposeSequence, getCell, moveEntity } from "./map";
+import {
+  disposeEntity,
+  disposeSequence,
+  getCellEntities,
+  moveEntity,
+} from "./map";
 import { POSITION, Position } from "../components/position";
 import { createSequence, getSequence } from "./sequence";
 import { DiscoverySequence, PopupSequence } from "../components/sequencable";
@@ -124,7 +129,7 @@ export const isPopupAvailable = (world: World, entity: Entity) =>
   (!isEnemy(world, entity) || isNeutral(world, entity));
 
 export const getPopup = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) =>
+  getCellEntities(world, position).find((entity) =>
     isPopupAvailable(world, entity)
   ) as Entity | undefined;
 

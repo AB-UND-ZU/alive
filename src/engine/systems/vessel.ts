@@ -4,7 +4,7 @@ import { POSITION, Position } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { getCell, moveEntity } from "./map";
+import { getCellEntities, moveEntity } from "./map";
 import { isControllable } from "./freeze";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { MOUNTABLE } from "../components/mountable";
@@ -22,9 +22,9 @@ import { getSpikable } from "./spike";
 import { getClickable } from "./click";
 
 export const getMountable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => MOUNTABLE in entity
-  ) as Entity | undefined;
+  getCellEntities(world, position).find((entity) => MOUNTABLE in entity) as
+    | Entity
+    | undefined;
 
 export const isMounting = (world: World, entity: Entity) =>
   !!entity[PLAYER]?.mount;

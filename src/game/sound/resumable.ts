@@ -40,7 +40,8 @@ ResumableSoundEffect.prototype.generate = function () {
   var wave = new RIFFWAVE() as any;
   wave.header.sampleRate = this.sampleRate;
   wave.header.bitsPerSample = this.bitsPerChannel;
-  wave.Make(rendered.buffer);
+  // skip encoding the base64 data URI (wave.Make), it is only used as a
+  // fallback without Web Audio, which is always present
   wave.clipping = rendered.clipped;
   wave.buffer = rendered.normalized;
   wave.getAudio = this._resumable_sfxr_getAudioFn(wave);

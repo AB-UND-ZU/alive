@@ -11,7 +11,7 @@ import {
   SmokeSequence,
 } from "../components/sequencable";
 import { BURNABLE } from "../components/burnable";
-import { disposeEntity, getCell, registerEntity } from "./map";
+import { disposeEntity, getCellEntities, registerEntity } from "./map";
 import { createSequence } from "./sequence";
 import { getSequence } from "./sequence";
 import { AFFECTABLE } from "../components/affectable";
@@ -36,7 +36,7 @@ import { createText } from "../../game/assets/ui";
 export const isBurnable = (world: World, entity: Entity) => BURNABLE in entity;
 
 export const getBurnables = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter((entity) =>
+  getCellEntities(world, position).filter((entity) =>
     isBurnable(world, entity)
   ) as Entity[];
 
@@ -44,7 +44,7 @@ export const isBurning = (world: World, entity: Entity) =>
   entity[BURNABLE]?.burning;
 
 export const getBurning = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) =>
+  getCellEntities(world, position).find((entity) =>
     isBurning(world, entity)
   ) as Entity | undefined;
 

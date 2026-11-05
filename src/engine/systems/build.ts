@@ -24,7 +24,7 @@ import { getItemStats } from "../../game/balancing/equipment";
 import { BUILDABLE } from "../components/buildable";
 import { STATS } from "../components/stats";
 import { createCell } from "../../bindings/creation";
-import { disposeEntity, getCell } from "./map";
+import { disposeEntity, getCellEntities } from "./map";
 import { getSelectedConstruction } from "./trigger";
 import { orientationDelta } from "../../game/math/path";
 import { HARVESTABLE } from "../components/harvestable";
@@ -46,7 +46,7 @@ export const canPlot = (world: World, entity: Entity, position: Position) => {
   if (!construction) return false;
 
   return construction.grounds.some((ground) => {
-    const cells = Object.values(getCell(world, position)).filter(
+    const cells = getCellEntities(world, position).filter(
       (cell) =>
         isCell(world, cell) && !isEnterable(world, cell) && !(LIQUID in cell)
     );
@@ -157,7 +157,7 @@ export default function setupBuild(world: World) {
       if (
         ["jetty_horizontal", "jetty_vertical"].includes(entity[BUILDABLE].cell)
       ) {
-        Object.values(getCell(world, entity[POSITION])).forEach((cell) => {
+        getCellEntities(world, entity[POSITION]).forEach((cell) => {
           if (IMMERSIBLE in cell) {
             disposeEntity(world, cell);
           }

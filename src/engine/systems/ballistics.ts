@@ -8,7 +8,7 @@ import { LEVEL } from "../components/level";
 import { play } from "../../game/sound";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { disposeEntity, getCell, registerEntity } from "./map";
+import { disposeEntity, getCellEntities, registerEntity } from "./map";
 import { ITEM, Material } from "../components/item";
 import { ORIENTABLE, orientationPoints } from "../components/orientable";
 import { createSequence, getSequence } from "./sequence";
@@ -46,7 +46,7 @@ import { NPC } from "../components/npc";
 import { spendItem } from "./trigger";
 
 export const getProjectiles = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter(
+  getCellEntities(world, position).filter(
     (target) => PROJECTILE in target
   ) as Entity[];
 
@@ -61,7 +61,7 @@ export const getShootable = (
   position: Position,
   fragment = false
 ) => {
-  const targetEntity = Object.values(getCell(world, position)).find((target) =>
+  const targetEntity = getCellEntities(world, position).find((target) =>
     isShootable(world, target)
   ) as Entity | undefined;
 

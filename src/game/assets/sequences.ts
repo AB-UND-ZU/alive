@@ -63,7 +63,7 @@ import {
 } from "../../engine/systems/damage";
 import {
   disposeEntity,
-  getCell,
+  getCellEntities,
   moveEntity,
   registerEntity,
 } from "../../engine/systems/map";
@@ -4869,7 +4869,7 @@ export const displayMap: Sequence<PopupSequence> = (world, entity, state) => {
                   const cell =
                     world.metadata.gameEntity[LEVEL].cells[target.x][target.y];
                   const entities = initialized
-                    ? Object.values(getCell(world, target))
+                    ? getCellEntities(world, target)
                     : [];
                   const discovered =
                     initialized &&

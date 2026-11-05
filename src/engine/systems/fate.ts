@@ -11,7 +11,7 @@ import {
   VisionSequence,
 } from "../components/sequencable";
 import { entities } from "..";
-import { disposeEntity, getCell, registerEntity } from "./map";
+import { disposeEntity, getCellEntities, registerEntity } from "./map";
 import { DROPPABLE } from "../components/droppable";
 import { Entity } from "ecs";
 import { FOG } from "../components/fog";
@@ -73,7 +73,7 @@ export const isRevivable = (world: World, entity: Entity) =>
   entity[REVIVABLE]?.available;
 
 export const getRevivable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((target) =>
+  getCellEntities(world, position).find((target) =>
     isRevivable(world, target)
   ) as Entity | undefined;
 

@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { add, getDistance, signedDistance } from "../../game/math/std";
 import { PLAYER } from "../components/player";
 import { REFERENCE } from "../components/reference";
-import { getCell } from "./map";
+import { getCellEntities } from "./map";
 import { rerenderEntity } from "./renderer";
 import { TOOLTIP } from "../components/tooltip";
 import { Entity } from "ecs";
@@ -23,9 +23,9 @@ import { createTooltip } from "./damage";
 import { BELONGABLE } from "../components/belongable";
 
 export const getTooltip = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => TOOLTIP in entity
-  ) as Entity | undefined;
+  getCellEntities(world, position).find((entity) => TOOLTIP in entity) as
+    | Entity
+    | undefined;
 
 const tooltipCooldown = 15;
 const persistentCooldown = 30;

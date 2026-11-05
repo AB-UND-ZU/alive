@@ -16,6 +16,7 @@ import { collectItem } from "../../engine/systems/collect";
 import {
   disposeEntity,
   getCell,
+  getCellEntities,
   moveEntity,
   registerEntity,
 } from "../../engine/systems/map";
@@ -476,7 +477,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
           state.args.memory.grounds.push(groundEntity);
           registerEntity(world, groundEntity);
 
-          const dotEntity = Object.values(getCell(world, cellPosition)).find(
+          const dotEntity = getCellEntities(world, cellPosition).find(
             (entity) => entity[COLLIDABLE]
           );
 
@@ -545,12 +546,10 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
   ]);
 
   if (unlockLever[CLICKABLE].clicked && unlockLever[SPRITE] === leverOff) {
-    Object.values(getCell(world, { x: 0, y: roomSize.y / 2 })).forEach(
-      (entity) => {
-        if (!entity[COLLIDABLE]) return;
-        disposeEntity(world, entity);
-      }
-    );
+    getCellEntities(world, { x: 0, y: roomSize.y / 2 }).forEach((entity) => {
+      if (!entity[COLLIDABLE]) return;
+      disposeEntity(world, entity);
+    });
 
     unlockLever[SPRITE] = leverOn;
     play("lever", { intensity: 1 });
@@ -577,7 +576,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
       y: offsetY + roomSize.y * 0.5,
     };
     const availableSpawners = (waves || [])
-      .map((wave) => Object.values(getCell(world, wave.position)))
+      .map((wave) => getCellEntities(world, wave.position))
       .flat()
       .filter(
         (spawner) => spawner && spawner[BEHAVIOUR]?.patterns.length === 0
@@ -685,7 +684,7 @@ export const tutorialNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
           // activate spawners
           waves.forEach(({ position, types }) => {
-            const spawnerEntity = Object.values(getCell(world, position)).find(
+            const spawnerEntity = getCellEntities(world, position).find(
               (entity) => entity[BEHAVIOUR]
             ) as TypedEntity<"BEHAVIOUR">;
             spawnerEntity[BEHAVIOUR].patterns = [
@@ -2979,7 +2978,7 @@ export const worldNpc: Sequence<NpcSequence> = (world, entity, state) => {
         )
           return;
 
-        Object.values(getCell(world, { x, y })).forEach((cellEntity) => {
+        getCellEntities(world, { x, y }).forEach((cellEntity) => {
           if (!cellEntity[FOG]) return;
 
           cellEntity[FOG].visibility = "hidden";
@@ -3335,7 +3334,7 @@ export const chestNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
       // restore statues
       state.args.memory.towerPositions.forEach((position: Position) => {
-        Object.values(getCell(world, position)).forEach((entity) =>
+        getCellEntities(world, position).forEach((entity) =>
           disposeEntity(world, entity)
         );
 

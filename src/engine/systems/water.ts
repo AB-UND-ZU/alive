@@ -1,7 +1,7 @@
 import { World } from "../ecs";
 import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
-import { disposeEntity, getCell, registerEntity } from "./map";
+import { disposeEntity, getCellEntities, registerEntity } from "./map";
 import { Liquid, LIQUID } from "../components/liquid";
 import { entities } from "..";
 import { FOG } from "../components/fog";
@@ -38,7 +38,7 @@ import { AFFECTABLE } from "../components/affectable";
 export type Weather = "rain" | "snow";
 
 export const getLiquids = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter((entity) => LIQUID in entity);
+  getCellEntities(world, position).filter((entity) => LIQUID in entity);
 
 export const calculateWeatherIntensity = (
   duration: number,
@@ -211,7 +211,7 @@ export const applySandCell = (world: World, position: Position) => {
         nearbyWater &&
         world.metadata.gameEntity[LEVEL].cells[target.x][target.y] === "sand"
       ) {
-        const cells = Object.values(getCell(world, target));
+        const cells = getCellEntities(world, target);
         cells.forEach((cell) => {
           if (trenchResources.includes(cell[HARVESTABLE]?.resource)) {
             world.metadata.gameEntity[LEVEL].cells[target.x][target.y] =
@@ -225,7 +225,7 @@ export const applySandCell = (world: World, position: Position) => {
         !nearbyWater &&
         world.metadata.gameEntity[LEVEL].cells[target.x][target.y] === "beach"
       ) {
-        const cells = Object.values(getCell(world, target));
+        const cells = getCellEntities(world, target);
         cells.forEach((cell) => {
           if (trenchResources.includes(cell[HARVESTABLE]?.resource)) {
             world.metadata.gameEntity[LEVEL].cells[target.x][target.y] = "sand";

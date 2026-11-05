@@ -4,7 +4,7 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { disposeEntity, getCell } from "./map";
+import { disposeEntity, getCellEntities } from "./map";
 import { rerenderEntity } from "./renderer";
 import { ACTIONABLE } from "../components/actionable";
 import { EQUIPPABLE } from "../components/equippable";
@@ -23,7 +23,7 @@ import { LEVEL } from "../components/level";
 import { play } from "../../game/sound";
 
 export const getHookables = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter(
+  getCellEntities(world, position).filter(
     (entity) => HOOKABLE in entity
   ) as Entity[];
 

@@ -4,7 +4,7 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { SWIMMABLE } from "../components/swimmable";
 import { World } from "../ecs";
-import { getCell } from "./map";
+import { getCellEntities } from "./map";
 import { getEntityGeneration, rerenderEntity } from "./renderer";
 import { REFERENCE } from "../components/reference";
 import { SPRITE } from "../components/sprite";
@@ -12,9 +12,7 @@ import { getOverlappingCell } from "../../game/math/matrix";
 import { LEVEL } from "../components/level";
 
 export const getImmersible = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => IMMERSIBLE in entity
-  );
+  getCellEntities(world, position).find((entity) => IMMERSIBLE in entity);
 
 export const isImmersible = (world: World, position: Position) =>
   !!getImmersible(world, position);
@@ -26,7 +24,7 @@ export const isSwimming = (world: World, entity: Entity) =>
   entity[SWIMMABLE]?.swimming;
 
 export const getSwimmables = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter((entity) =>
+  getCellEntities(world, position).filter((entity) =>
     isSwimmable(world, entity)
   );
 

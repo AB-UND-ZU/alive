@@ -8,7 +8,7 @@ import { Light, LIGHT } from "../components/light";
 import { aspectRatio } from "../../components/Dimensions/sizing";
 import { traceCircularVisiblity } from "../../game/math/tracing";
 import { REFERENCE } from "../components/reference";
-import { disposeEntity, getCell } from "./map";
+import { disposeEntity, getCell, getCellEntities } from "./map";
 import { rerenderEntity } from "./renderer";
 import { FRAGMENT } from "../components/fragment";
 import { STRUCTURABLE } from "../components/structurable";
@@ -27,7 +27,7 @@ type PendingChanges = Record<
 >;
 
 export const isHidden = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).some(
+  getCellEntities(world, position).some(
     (entity) => entity[FOG]?.visibility === "hidden"
   );
 
@@ -131,17 +131,15 @@ const commitVisibility = (world: World, pendingChanges: PendingChanges) => {
                 rerenderEntity(world, fragment);
 
                 // also remove any air above fragments
-                Object.values(getCell(world, fragment[POSITION])).forEach(
-                  (cell) => {
-                    if (
-                      FOG in cell &&
-                      cell[FOG].type === "air" &&
-                      pendingChange[entityId].to !== "hidden"
-                    ) {
-                      disposeEntity(world, cell);
-                    }
+                getCellEntities(world, fragment[POSITION]).forEach((cell) => {
+                  if (
+                    FOG in cell &&
+                    cell[FOG].type === "air" &&
+                    pendingChange[entityId].to !== "hidden"
+                  ) {
+                    disposeEntity(world, cell);
                   }
-                );
+                });
               }
             });
 

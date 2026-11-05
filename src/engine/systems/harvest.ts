@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { add, combine, copy, random } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { disposeEntity, getCell, registerEntity } from "./map";
+import { disposeEntity, getCellEntities, registerEntity } from "./map";
 import {
   ORIENTABLE,
   Orientation,
@@ -98,7 +98,7 @@ export const getHarvestables = (world: World, position: Position) => {
 
   if (getBlockable(world, position)) return harvestables;
 
-  Object.values(getCell(world, position)).forEach((target) => {
+  getCellEntities(world, position).forEach((target) => {
     if (HARVESTABLE in target) {
       harvestables.push(target);
       return;
@@ -172,7 +172,7 @@ export const getBuildables = (world: World, position: Position) => {
 
   if (getBlockable(world, position)) return buildables;
 
-  Object.values(getCell(world, position)).forEach((target) => {
+  getCellEntities(world, position).forEach((target) => {
     if (BUILDABLE in target) {
       buildables.push(target);
       return;
@@ -210,7 +210,7 @@ export const getBuildTarget = (
   const buildable = getBuildable(world, target);
   if (buildable) return buildable;
 
-  for (const cell of Object.values(getCell(world, target))) {
+  for (const cell of getCellEntities(world, target)) {
     if (
       STATS in cell &&
       isNeutral(world, cell) &&
@@ -365,14 +365,14 @@ export const performHarvest = (
 };
 
 export const getFarmable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => FARMABLE in entity
-  ) as Entity | undefined;
+  getCellEntities(world, position).find((entity) => FARMABLE in entity) as
+    | Entity
+    | undefined;
 
 export const getRefillable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
-    (entity) => REFILLABLE in entity
-  ) as Entity | undefined;
+  getCellEntities(world, position).find((entity) => REFILLABLE in entity) as
+    | Entity
+    | undefined;
 
 export const canPlant = (world: World, entity: Entity) => {
   const farmable = getFarmable(world, entity[POSITION]);
@@ -392,7 +392,7 @@ export const isCell = (world: World, entity: Entity) =>
   entity[SPRITE] && entity[SPRITE].layers.length > 0;
 
 export const canPlow = (world: World, entity: Entity, position: Position) =>
-  !Object.values(getCell(world, position)).some(
+  !getCellEntities(world, position).some(
     (cell) => isCell(world, cell) && cell !== entity
   );
 
@@ -416,8 +416,8 @@ export const canTrench = (world: World, entity: Entity, position: Position) => {
   const adjacentSand = orientations
     .map((orientation) => orientationPoints[orientation])
     .some((delta) =>
-      Object.values(getCell(world, combine(size, position, delta))).some(
-        (cell) => trenchResources.includes(cell[HARVESTABLE]?.resource)
+      getCellEntities(world, combine(size, position, delta)).some((cell) =>
+        trenchResources.includes(cell[HARVESTABLE]?.resource)
       )
     );
   if (
@@ -533,7 +533,7 @@ export const performTrench = (
   for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
     for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
       const target = combine(size, position, { x: offsetX, y: offsetY });
-      let cells = Object.values(getCell(world, target));
+      let cells = getCellEntities(world, target);
 
       // destroy soil, sand and saplings
       cells.forEach((cell) => {
@@ -555,7 +555,7 @@ export const performTrench = (
         disposeEntity(world, cell);
       });
 
-      cells = Object.values(getCell(world, target));
+      cells = getCellEntities(world, target);
 
       // don't place beach under fixed tiles
       if (

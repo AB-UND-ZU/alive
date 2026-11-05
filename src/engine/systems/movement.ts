@@ -3,7 +3,7 @@ import { RENDERABLE } from "../components/renderable";
 import { MOVABLE } from "../components/movable";
 import { World } from "../ecs";
 import { REFERENCE } from "../components/reference";
-import { getCell, moveEntity } from "./map";
+import { getCellEntities, moveEntity } from "./map";
 import { COLLIDABLE } from "../components/collidable";
 import { Entity } from "ecs";
 import { rerenderEntity } from "./renderer";
@@ -77,9 +77,7 @@ export const getHasteInterval = (world: World, haste: number) =>
 
 export const getTempo = (world: World, position: Position) =>
   sum(
-    Object.values(getCell(world, position)).map(
-      (target) => target[TEMPO]?.amount || 0
-    )
+    getCellEntities(world, position).map((target) => target[TEMPO]?.amount || 0)
   );
 
 export const getEntityHaste = (world: World, entity: Entity) =>
@@ -92,7 +90,7 @@ export const getEntityHaste = (world: World, entity: Entity) =>
     : getEntityStats(world, entity).haste;
 
 export const getCollidable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find(
+  getCellEntities(world, position).find(
     (entity) => COLLIDABLE in (entity as Entity)
   );
 
@@ -337,7 +335,7 @@ export default function setupMovement(world: World) {
         const rootPosition = combine(size, entity[POSITION], delta);
         // play sound
         const proximity =
-          Object.values(getCell(world, rootPosition)).filter(
+          getCellEntities(world, rootPosition).filter(
             (cell) => cell[RENDERABLE] && cell[SPRITE]?.layers.length
           ).length > 0
             ? 1

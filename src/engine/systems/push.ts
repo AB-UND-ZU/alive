@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { add } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { getCell } from "./map";
+import { getCellEntities } from "./map";
 import { Orientation, orientationPoints } from "../components/orientable";
 import { rerenderEntity } from "./renderer";
 import { PUSHABLE } from "../components/pushable";
@@ -21,7 +21,7 @@ export const isDisplacable = (world: World, entity: Entity) =>
   DISPLACABLE in entity && !isFrozen(world, entity) && !isDead(world, entity);
 
 export const getDisplacable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) =>
+  getCellEntities(world, position).find((entity) =>
     isDisplacable(world, entity)
   ) as Entity | undefined;
 

@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { add } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { getCell } from "./map";
+import { getCellEntities } from "./map";
 import { Orientation, orientationPoints } from "../components/orientable";
 import {
   calculateDamage,
@@ -39,7 +39,7 @@ export const isSpikable = (world: World, entity: Entity) => {
 export const getSpikable = (world: World, position: Position) => {
   if (getBlockable(world, position)) return;
 
-  return Object.values(getCell(world, position)).find((entity) =>
+  return getCellEntities(world, position).find((entity) =>
     isSpikable(world, entity)
   ) as Entity | undefined;
 };

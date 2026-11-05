@@ -4,7 +4,7 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { FreezeSequence, SEQUENCABLE } from "../components/sequencable";
-import { disposeEntity, getCell, updateWalkable } from "./map";
+import { disposeEntity, getCellEntities, updateWalkable } from "./map";
 import { createSequence } from "./sequence";
 import { getSequence } from "./sequence";
 import { AFFECTABLE } from "../components/affectable";
@@ -49,7 +49,7 @@ export const isFreezable = (world: World, entity: Entity) =>
   FREEZABLE in entity;
 
 export const getFreezables = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter((entity) =>
+  getCellEntities(world, position).filter((entity) =>
     isFreezable(world, entity)
   ) as Entity[];
 
@@ -57,12 +57,12 @@ export const isFrozen = (world: World, entity: Entity) =>
   entity[FREEZABLE]?.frozen || entity[AFFECTABLE]?.freeze > 0;
 
 export const getFrozen = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter(
+  getCellEntities(world, position).filter(
     (entity) => isFreezable(world, entity) && isFrozen(world, entity)
   ) as Entity[];
 
 export const getUnfrozen = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter(
+  getCellEntities(world, position).filter(
     (entity) => isFreezable(world, entity) && !isFrozen(world, entity)
   ) as Entity[];
 
@@ -216,7 +216,7 @@ export const freezeMomentum = (
 };
 
 export const isSnowy = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).some(
+  getCellEntities(world, position).some(
     (entity) => entity[COVERABLE]?.type === "snow"
   );
 

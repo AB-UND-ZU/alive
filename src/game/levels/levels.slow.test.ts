@@ -7,7 +7,7 @@ import {
 import { seedRandom } from "../../testing/env";
 import { LEVEL, LevelName } from "../../engine/components/level";
 import { VIEWABLE } from "../../engine/components/viewable";
-import { getCell } from "../../engine/systems/map";
+import { getCellEntities } from "../../engine/systems/map";
 import { isWalkable } from "../../engine/systems/movement";
 
 // island is covered by seeded island/generation-*.slow.test.ts
@@ -25,7 +25,7 @@ describe.each(levels)("level %s", (level) => {
     expect(world.assertComponents(hero, [VIEWABLE])[VIEWABLE].active).toBe(
       true
     );
-    expect(Object.values(getCell(world, hero.POSITION))).toContain(hero);
+    expect(getCellEntities(world, hero.POSITION)).toContain(hero);
   });
 
   it("lets the hero walk off the spawn", () => {

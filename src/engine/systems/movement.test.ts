@@ -14,7 +14,7 @@ import { POSITION } from "../components/position";
 import { REFERENCE } from "../components/reference";
 import { getEntityStats } from "./damage";
 import { getHasteInterval } from "./movement";
-import { getCell } from "./map";
+import { getCellEntities } from "./map";
 
 // ♀ hero, █ mountain, ≈ deep water, ~ shallow water, " " air
 const openArea = `
@@ -55,8 +55,8 @@ describe("movement", () => {
     holdMove(world, []);
 
     expect(hero[POSITION]).toEqual({ x: start.x, y: start.y + 2 });
-    expect(Object.values(getCell(world, hero[POSITION]))).toContain(hero);
-    expect(Object.values(getCell(world, start))).not.toContain(hero);
+    expect(getCellEntities(world, hero[POSITION])).toContain(hero);
+    expect(getCellEntities(world, start)).not.toContain(hero);
   });
 
   it("stops on release and suspends the hero reference frame", () => {

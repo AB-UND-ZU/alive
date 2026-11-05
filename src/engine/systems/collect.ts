@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { add, clamp } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { disposeEntity, getCell, updateWalkable } from "./map";
+import { disposeEntity, getCellEntities, updateWalkable } from "./map";
 import {
   ORIENTABLE,
   Orientation,
@@ -56,7 +56,7 @@ export const isLootable = (world: World, entity: Entity) =>
   entity[INVENTORY].items.length > 0;
 
 export const getLootable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) =>
+  getCellEntities(world, position).find((entity) =>
     isLootable(world, entity)
   ) as Entity | undefined;
 
@@ -66,7 +66,7 @@ export const isCollecting = (world: World, entity: Entity) =>
   getSequence(world, entity, "collect");
 
 export const getCollecting = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) =>
+  getCellEntities(world, position).find((entity) =>
     isCollecting(world, entity)
   ) as Entity | undefined;
 

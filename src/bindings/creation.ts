@@ -301,7 +301,7 @@ import { BUMPABLE } from "../engine/components/bumpable";
 import { PLAYER } from "../engine/components/player";
 import { HOOKABLE } from "../engine/components/hookable";
 import { FISHABLE } from "../engine/components/fishable";
-import { getCell } from "../engine/systems/map";
+import { getCellEntities } from "../engine/systems/map";
 import { REFILLABLE } from "../engine/components/refillable";
 import { brewingRecipes } from "../game/balancing/brewing";
 import { BREWABLE } from "../engine/components/brewable";
@@ -1445,7 +1445,7 @@ export const createCell = (
     all.push(mushroomEntity);
     return { cell: mushroomEntity, all };
   } else if (cell === "stem" || cell === "leaves") {
-    const existingCell = Object.values(getCell(world, { x, y }))[0];
+    const existingCell = getCellEntities(world, { x, y })[0];
     if (existingCell) {
       return { cell: existingCell, all: [] };
     }
@@ -1508,7 +1508,7 @@ export const createCell = (
       "rotten_leaves_right",
     ].includes(cell)
   ) {
-    const existingCell = Object.values(getCell(world, { x, y }))[0];
+    const existingCell = getCellEntities(world, { x, y })[0];
     if (existingCell) {
       return { cell: existingCell, all: [] };
     }

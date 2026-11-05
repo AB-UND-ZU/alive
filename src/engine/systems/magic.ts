@@ -9,7 +9,7 @@ import {
   SEQUENCABLE,
   SlashSequence,
 } from "../components/sequencable";
-import { disposeEntity, disposeFrame, getCell } from "./map";
+import { disposeEntity, disposeFrame, getCellEntities } from "./map";
 import { createSequence, getSequences } from "./sequence";
 import { Castable, CASTABLE, getEmptyCastable } from "../components/castable";
 import { EXERTABLE } from "../components/exertable";
@@ -85,7 +85,7 @@ export const getAffectables = (
 
   const affectables: Entity[] = [];
 
-  Object.values(getCell(world, position)).forEach((target) => {
+  getCellEntities(world, position).forEach((target) => {
     if (isAffectable(world, target)) {
       affectables.push(target);
       return;
@@ -124,7 +124,7 @@ export const isExertable = (world: World, entity: Entity) =>
   EXERTABLE in entity;
 
 export const getExertables = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter((target) =>
+  getCellEntities(world, position).filter((target) =>
     isExertable(world, target)
   ) as Entity[];
 

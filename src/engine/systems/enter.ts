@@ -4,7 +4,7 @@ import { Position, POSITION } from "../components/position";
 import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { getCell } from "./map";
+import { getCellEntities } from "./map";
 import { rerenderEntity } from "./renderer";
 import { ENTERABLE } from "../components/enterable";
 import { LIGHT } from "../components/light";
@@ -24,17 +24,17 @@ export const isEnterable = (world: World, entity: Entity) =>
   ENTERABLE in entity;
 
 export const getEnterable = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) =>
+  getCellEntities(world, position).find((entity) =>
     isEnterable(world, entity)
   ) as Entity | undefined;
 
 export const getFragment = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) =>
+  getCellEntities(world, position).find((entity) =>
     isFragment(world, entity)
   ) as Entity | undefined;
 
 export const getFragments = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).filter((entity) =>
+  getCellEntities(world, position).filter((entity) =>
     isFragment(world, entity)
   ) as Entity[];
 
@@ -42,9 +42,9 @@ export const isOpaque = (world: World, entity: Entity) =>
   LIGHT in entity && entity[LIGHT].darkness > 0;
 
 export const getOpaque = (world: World, position: Position) =>
-  Object.values(getCell(world, position)).find((entity) =>
-    isOpaque(world, entity)
-  ) as Entity | undefined;
+  getCellEntities(world, position).find((entity) => isOpaque(world, entity)) as
+    | Entity
+    | undefined;
 
 export const isInside = (world: World, entity: Entity) =>
   !!entity[LAYER]?.structure;

@@ -10,7 +10,7 @@ import { LEVEL } from "./components/level";
 import { REFERENCE } from "./components/reference";
 import { RENDERABLE } from "./components/renderable";
 import { VIEWABLE } from "./components/viewable";
-import { getCell } from "./systems/map";
+import { getCellEntities } from "./systems/map";
 import { isCollision, isWalkable } from "./systems/movement";
 
 // ♀ hero, █ mountain, # tree, ~ shallow water, " " air
@@ -34,7 +34,7 @@ describe("bootstrap", () => {
     expect(world.assertComponents(hero!, [VIEWABLE])[VIEWABLE].active).toBe(
       true
     );
-    expect(Object.values(getCell(world, hero!.POSITION))).toContain(hero);
+    expect(getCellEntities(world, hero!.POSITION)).toContain(hero);
   });
 
   it("creates entities for each cell of the area", () => {

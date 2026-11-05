@@ -69,6 +69,7 @@ export const registerEntity = (world: World, entity: Entity) => {
   const cell = (column[normalizedY] = column[normalizedY] || {});
 
   cell[world.getEntityId(entity)] = entity;
+  cellEntities.delete(cell);
 
   // ensure position is normalized
   entity[POSITION].x = normalizedX;
@@ -116,6 +117,7 @@ const unregisterEntity = (world: World, entity: Entity) => {
 
   if (matchingEntry) {
     delete cell[matchingEntry[0]];
+    cellEntities.delete(cell);
   } else {
     console.warn("Unable to unregister", entity, "at position", position, "!");
   }
@@ -222,6 +224,27 @@ export const moveEntity = (
   registerEntity(world, entity);
 };
 
+// Object.values() of each cell is cached until the cell changes. A changed
+// cell gets a new array, so callers iterating while mutating keep a snapshot
+const cellEntities = new WeakMap<object, Entity[]>();
+const emptyCell = Object.freeze([]) as unknown as Entity[];
+
+export const getCellEntities = (world: World, position: Position): Entity[] => {
+  const level = world.metadata.gameEntity[LEVEL];
+  const cell =
+    level.map[normalize(position.x, level.size)]?.[
+      normalize(position.y, level.size)
+    ];
+  if (!cell) return emptyCell;
+
+  let values = cellEntities.get(cell);
+  if (!values) {
+    values = Object.freeze(Object.values(cell)) as Entity[];
+    cellEntities.set(cell, values);
+  }
+  return values;
+};
+
 export const getCell = (world: World, position: Position) => {
   const level = world.metadata.gameEntity[LEVEL];
   const normalizedX = normalize(position.x, level.size);
@@ -260,7 +283,7 @@ export default function setupMap(world: World) {
     for (let i = 0; i < removedEntities.count; i++) {
       const removedEntity = removedEntities.entries[i];
       if (
-        Object.values(getCell(world, removedEntity[POSITION])).indexOf(
+        getCellEntities(world, removedEntity[POSITION]).indexOf(
           removedEntity
         ) !== -1
       ) {

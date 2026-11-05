@@ -49,7 +49,7 @@ import { TypedEntity } from "../../engine/entities";
 import { none } from "./sprites";
 import {
   disposeEntity,
-  getCell,
+  getCellEntities,
   moveEntity,
   registerEntity,
   updateWalkable,
@@ -550,7 +550,7 @@ const executeNew = (
 
     // clear cell but prevent removing self and buildings
     if (cell === "") {
-      Object.values(getCell(world, target)).forEach((cellEntity) => {
+      getCellEntities(world, target).forEach((cellEntity) => {
         if (
           cellEntity === entity ||
           !isCell(world, cellEntity) ||

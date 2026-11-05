@@ -88,7 +88,13 @@ import {
 } from "../../game/math/tracing";
 import { getProjectiles, shootArrow } from "./ballistics";
 import { canCast } from "./magic";
-import { disposeEntity, getCell, moveEntity, registerEntity } from "./map";
+import {
+  disposeEntity,
+  getCell,
+  getCellEntities,
+  moveEntity,
+  registerEntity,
+} from "./map";
 import { getFragment, getFragments, getOpaque } from "./enter";
 import { TypedEntity } from "../entities";
 import { STATS } from "../components/stats";
@@ -305,11 +311,10 @@ export default function setupAi(world: World) {
           } else if (entity[ORIENTABLE] && !entity[ORIENTABLE].facing) {
             entity[ORIENTABLE].facing = orientations[random(0, 3)];
           } else if (
-            !Object.values(getCell(world, facingPosition)).some(
-              (cell: TypedEntity) =>
-                (cell[BEHAVIOUR]?.patterns || []).some(
-                  (pattern) => pattern.name === "tumbleweed"
-                )
+            !getCellEntities(world, facingPosition).some((cell: TypedEntity) =>
+              (cell[BEHAVIOUR]?.patterns || []).some(
+                (pattern) => pattern.name === "tumbleweed"
+              )
             )
           ) {
             if (

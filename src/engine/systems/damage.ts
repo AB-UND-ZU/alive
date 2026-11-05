@@ -13,7 +13,7 @@ import {
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
 import { MELEE } from "../components/melee";
-import { getCell, moveEntity } from "./map";
+import { getCellEntities, moveEntity } from "./map";
 import { ATTACKABLE } from "../components/attackable";
 import { rerenderEntity } from "./renderer";
 import {
@@ -241,7 +241,7 @@ export const getAttackables = (
 
   const attackables: Entity[] = [];
 
-  Object.values(getCell(world, position)).forEach((target) => {
+  getCellEntities(world, position).forEach((target) => {
     if (isAttackable(world, target)) {
       attackables.push(target);
       return;

@@ -5,7 +5,7 @@ import { RENDERABLE } from "../components/renderable";
 import { add } from "../../game/math/std";
 import { REFERENCE } from "../components/reference";
 import { MOVABLE } from "../components/movable";
-import { getCell } from "./map";
+import { getCellEntities } from "./map";
 import {
   ORIENTABLE,
   Orientation,
@@ -24,7 +24,7 @@ export const isClickable = (world: World, entity: Entity) =>
   CLICKABLE in entity;
 
 export const getClickables = (world: World, position: Position) =>
-  Object.values(getCell(world, position))
+  getCellEntities(world, position)
     .map((entity) => {
       if (isClickable(world, entity)) return entity;
       if (isFragment(world, entity)) {
