@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { lightHeight, shadowHeight } from "./utils";
-import { useOverscan, useViewpoint, useWorld } from "../../bindings/hooks";
-import { signedDistance } from "../../game/math/std";
-import { LEVEL } from "../../engine/components/level";
+
+// a fixed oversized cover is clipped by the camera and only depends on the
+// radius, so the ring is not rebuilt on every step
+const ringCover = 1000;
 
 type InvertedRingProps = {
   width: number;
@@ -39,30 +40,13 @@ function InvertedRingGeometry({
     return new THREE.ShapeGeometry(shape, segments);
   }, [width, height, innerRadius, segments]);
 
+  // primitives are never disposed by R3F, release replaced geometries
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
   return <primitive object={geometry} />;
 }
 
-export default function CoveredLight({
-  brightness,
-  width,
-  height,
-  x,
-  y,
-}: {
-  brightness: number;
-  width: number;
-  height: number;
-  x: number;
-  y: number;
-}) {
-  const { position } = useViewpoint();
-  const overscan = useOverscan(position.x, position.y)
-  const { ecs } = useWorld();
-
-  const size = ecs?.metadata.gameEntity[LEVEL].size || 0;
-  const paddingX = size && Math.abs(signedDistance(x, position.x, size)) + Math.abs(overscan.x) * 2;
-  const paddingY = size && Math.abs(signedDistance(y, position.y, size)) + Math.abs(overscan.y) * 2;
-
+export default function CoveredLight({ brightness }: { brightness: number }) {
   const adjustedBrightness = Math.max(0, brightness - 0.25);
 
   return (
@@ -85,8 +69,8 @@ export default function CoveredLight({
       />
       <mesh position={[0, 0, shadowHeight]}>
         <InvertedRingGeometry
-          width={width + paddingX * 2}
-          height={height + paddingY * 2}
+          width={ringCover}
+          height={ringCover}
           innerRadius={adjustedBrightness}
           segments={128}
         />

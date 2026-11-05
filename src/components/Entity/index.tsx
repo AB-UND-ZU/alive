@@ -207,16 +207,7 @@ function Entity({
       )}
 
       {isBright && (
-        <CoveredLight
-          brightness={entity[LIGHT]!.brightness}
-          width={
-            dimensions.renderedColumns * dimensions.aspectRatio +
-            (isFlying ? 10 : 0)
-          }
-          height={dimensions.renderedRows + (isFlying ? 10 : 0)}
-          x={x}
-          y={y}
-        />
+        <CoveredLight brightness={entity[LIGHT]!.brightness} />
       )}
 
       {!!entity[SWIMMABLE] && !isFlying && (
