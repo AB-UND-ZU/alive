@@ -11,6 +11,7 @@ import { overscanRows } from "../Dimensions/sizing";
 import { ExtendedStats } from "../Debug";
 import { createText } from "../../game/assets/ui";
 import { InstanceRoot } from "../Entity/Instances";
+import ShadowCache from "../Entity/ShadowCache";
 
 const stats = false;
 const controls = false;
@@ -33,6 +34,7 @@ export default function Terminal() {
         {stats && <ExtendedStats />}
         {controls && <OrbitControls />}
         <InstanceRoot />
+        <ShadowCache />
         <ambientLight intensity={Math.PI / 8} />
         <Camera />
         <Systems />
