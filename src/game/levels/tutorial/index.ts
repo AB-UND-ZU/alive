@@ -1,7 +1,7 @@
 import { entities, World } from "../../../engine";
-import { POSITION } from "../../../engine/components/position";
+import { Position, POSITION } from "../../../engine/components/position";
 import { LEVEL, LevelName } from "../../../engine/components/level";
-import { createMatrix, iterateMatrix } from "../../math/matrix";
+import { createMatrix, iterateMatrix, setMatrix } from "../../math/matrix";
 import { leverPosition, roomSize, tutorialRooms } from "./areas";
 import { VIEWABLE } from "../../../engine/components/viewable";
 import {
@@ -80,6 +80,15 @@ export const generateTutorial = async (world: World) => {
     }
   });
 
+  // replace fish with water to smoothen surroundings
+  const fishPositions: Position[] = [];
+  iterateMatrix(worldMap, (x, y, cell) => {
+    if (cell !== "water_fish") return;
+
+    fishPositions.push({ x, y });
+    setMatrix(worldMap, x, y, "water_deep");
+  });
+
   const smoothenedMatrix = smoothenBeaches(smoothenWater(worldMap));
 
   iterateMatrix(smoothenedMatrix, (x, y, cell) => {
@@ -90,6 +99,10 @@ export const generateTutorial = async (world: World) => {
       cell === "mountain" ? "fog" : "hidden",
       false
     );
+  });
+
+  fishPositions.forEach((position) => {
+    createCell(world, position, "fish", "hidden", false);
   });
 
   const viewpointEntity = entities.createWorld(world, {

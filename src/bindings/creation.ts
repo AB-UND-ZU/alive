@@ -390,6 +390,7 @@ export const cellNames = [
   "leaf",
   "tumbleweed",
   "fish",
+  "water_fish",
   "banana",
   "coconut",
   "pot",
