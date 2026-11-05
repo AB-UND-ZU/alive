@@ -1,6 +1,7 @@
 import { ThreeElements } from "@react-three/fiber";
 import { useDimensions } from "../Dimensions";
 import { Orientation } from "../../engine/components/orientable";
+import { getBoxGeometry } from "./geometries";
 
 export default function Box({
   height,
@@ -15,9 +16,18 @@ export default function Box({
 }) {
   const dimensions = useDimensions();
 
+  const width =
+    orientation === "right"
+      ? (dimensions.aspectRatio * 5) / 9
+      : orientation === "left"
+      ? (dimensions.aspectRatio * 4) / 9
+      : dimensions.aspectRatio;
+  const depth = orientation === "up" || orientation === "down" ? 0.5 : 1;
+
   return (
     <mesh
       {...props}
+      geometry={getBoxGeometry(width, depth, height)}
       position={[
         orientation === "right"
           ? (dimensions.aspectRatio * 4) / 18
@@ -28,17 +38,6 @@ export default function Box({
         height / 2 + offset,
       ]}
     >
-      <boxGeometry
-        args={[
-          orientation === "right"
-            ? (dimensions.aspectRatio * 5) / 9
-            : orientation === "left"
-            ? (dimensions.aspectRatio * 4) / 9
-            : dimensions.aspectRatio,
-          orientation === "up" || orientation === "down" ? 0.5 : 1,
-          height,
-        ]}
-      />
       {children}
     </mesh>
   );

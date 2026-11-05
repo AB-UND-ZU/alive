@@ -11,18 +11,16 @@ import { World } from "../../engine";
 import { TypedEntity } from "../../engine/entities";
 import type { ReactThreeTest } from "@react-three/test-renderer";
 
-// Text3D loads a font over the network, render each glyph as a tagged mesh
-jest.mock("@react-three/drei", () => ({
-  ...jest.requireActual("@react-three/drei"),
-  Text3D: ({ children }: { children: React.ReactNode[] }) =>
-    require("react").createElement("mesh", {
-      userData: {
-        char: require("react")
-          .Children.toArray(children)
-          .find((child: unknown) => typeof child === "string"),
-      },
-    }),
-}));
+// the font is loaded over the network, provide it from disk instead.
+// glyphs are tagged with their char to be found in the scene
+jest.mock("@react-three/drei", () => {
+  const { Font } = require("three-stdlib");
+  const font = new Font(require("../../../public/fonts/MostPerfectDOSVGA.json"));
+  return {
+    ...jest.requireActual("@react-three/drei"),
+    useFont: () => font,
+  };
+});
 
 const getGlyphs = (scene: ReactThreeTest.Renderer["scene"]) =>
   scene

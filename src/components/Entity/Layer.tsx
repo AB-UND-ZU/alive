@@ -1,12 +1,13 @@
 import * as THREE from "three";
-import { Text3D } from "@react-three/drei";
+import { useFont } from "@react-three/drei";
 import { useDimensions } from "../Dimensions";
 import { Layer as LayerType } from "../../engine/components/sprite";
 import { colors } from "../../game/assets/colors";
 import { animated, SpringValue } from "@react-spring/three";
-import { stack, stackHeight, textSize } from "./utils";
+import { stack, stackHeight } from "./utils";
 import Box from "./Box";
 import { Point } from "../../game/math/std";
+import { fontUrl, getGlyphGeometry } from "./geometries";
 
 export type LayerProps = {
   isTransparent: boolean;
@@ -74,15 +75,37 @@ export default function Layer({
   }
 
   return (
-    <Text3D
-      font={`${process.env.PUBLIC_URL}/fonts/MostPerfectDOSVGA.json`}
+    <Glyph
+      char={layer.char}
       receiveShadow={props.receiveShadow}
-      size={textSize}
       position={[-0.5 * dimensions.aspectRatio, -0.25, offsetZ]}
-      height={stackHeight / stack}
     >
       {materialElement}
-      {layer.char}
-    </Text3D>
+    </Glyph>
+  );
+}
+
+function Glyph({
+  char,
+  receiveShadow,
+  position,
+  children,
+}: {
+  char: string;
+  receiveShadow: boolean;
+  position: [number, number, number];
+  children: React.ReactNode;
+}) {
+  const font = useFont(fontUrl);
+
+  return (
+    <mesh
+      geometry={getGlyphGeometry(font, char)}
+      receiveShadow={receiveShadow}
+      position={position}
+      userData={{ char }}
+    >
+      {children}
+    </mesh>
   );
 }
