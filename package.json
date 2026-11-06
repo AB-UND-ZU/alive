@@ -40,7 +40,10 @@
     "check:fast": "npm run --silent typecheck && npm run --silent lint && npm run --silent test:fast",
     "eject": "react-scripts eject",
     "prepare": "git config core.hooksPath .githooks || true",
-    "media:titles": "node scripts/regenerate-titles.cjs"
+    "media:titles": "node scripts/regenerate-titles.cjs",
+    "docs:build": "node scripts/docs/build.mjs",
+    "docs:dev": "node scripts/docs/serve.mjs",
+    "docs:test": "playwright test"
   },
   "eslintConfig": {
     "extends": [
@@ -72,9 +75,12 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@react-three/test-renderer": "^8.2.4",
     "@types/body-scroll-lock": "^3.1.2",
     "@types/javascript-astar": "^0.0.35",
+    "esbuild": "^0.25.12",
+    "marked": "^15.0.12",
     "prettier": "^2.8.8"
   }
 }

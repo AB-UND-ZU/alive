@@ -22,7 +22,7 @@ import { LEVEL } from "../components/level";
 import { getImmersible, isImmersible, isSubmerged } from "./immersion";
 import { getEnterable } from "./enter";
 import { rerenderEntity } from "./renderer";
-import { lerp } from "three/src/math/MathUtils";
+import { lerp } from "three/src/math/MathUtils.js";
 import { SEQUENCABLE } from "../components/sequencable";
 import { IMMERSIBLE } from "../components/immersible";
 import { getOverlappingCell } from "../../game/math/matrix";

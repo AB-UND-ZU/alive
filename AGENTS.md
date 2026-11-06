@@ -1,0 +1,43 @@
+# Development guidelines
+
+Alive is a browser adventure game built with TypeScript, React, Three.js and an entity component system (ECS).
+
+## Work in the local style
+
+- Read the surrounding code and relevant tests before changing a feature.
+- Keep code simple to read and follow. Use existing naming, formatting and file structure.
+- Reuse existing helpers, entity factories, sprites and balancing data. Add a helper only when it is needed and makes the code simpler.
+- Keep game rules in the engine or balancing files, rather than duplicating them in UI code or documentation examples.
+- Explain why only when the reason is not clear from the code. Avoid comments that repeat what the code does.
+- Use plain, readable English in documentation and UI text.
+
+## Verify every change
+
+- General functionality needs tests. Test an explicit game feature and its observable outcome, including relevant failure cases.
+- Keep tests about the feature, not a timeline of changes or a record of implementation steps. Update existing tests when behavior changes.
+- A small change to a specific behavior may be verified manually. Record the steps and result, and adjust existing tests if needed.
+- Visual implementation needs a reference screenshot and inspection of the result. Check desktop and small screens, interaction states and readability. Record the screenshots and what was inspected.
+- Run checks appropriate to the affected code. `npm run check:fast` covers type checking, lint and fast tests; `npm run test:all` includes level generation and rendering tests. Run `npm run build` for production game changes.
+- For documentation, run `npm run docs:build` and `npm run docs:test`. Inspect the built pages and working examples in a browser after visual changes.
+- Report what passed, what was checked manually, and any remaining limits. Do not claim checks that were not run.
+
+## Find the right place
+
+- `src/engine/components/`: component data and types.
+- `src/engine/systems/`: game rules. System order is set in `src/engine/ecs.ts`.
+- `src/bindings/creation.ts`: cell legend and entity creation.
+- `src/game/balancing/`: class stats, equipment, recipes and resource data.
+- `src/game/assets/`: layered character sprites, colors, text and sequences.
+- `src/game/levels/`: menu, tutorial dungeon and generated island.
+- `src/components/`: React rendering and controls.
+- `src/testing/`: existing deterministic world and rendering helpers. Prefer these for game feature tests.
+
+## Keep documentation current
+
+- Put player-facing feature documentation in `docs/` as Markdown.
+- Put important implementation details beside the source file as `filename.md`, for example `src/engine/ecs.md` for `ecs.ts`.
+- Use separate player and development chapters in the documentation UI.
+- Check claims against current code and the game. Clearly identify unavailable or experimental features; do not present design plans as playable features.
+- Reference interactive scenes with fenced `scene` blocks. Import game code or data in the scene implementation rather than copying rules or recipe tables.
+- Match the game's DOS font, terminal palette, character sprites and box borders using simple HTML. Preserve keyboard access, readable contrast and responsive layouts.
+- See `src/documentation/index.md` for authoring, local preview and deployment.

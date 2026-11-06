@@ -68,7 +68,7 @@ import {
 } from "./trigger";
 import { colors } from "../../game/assets/colors";
 import { consumeItem, getConsumption, getItemConsumption } from "./consume";
-import { clamp } from "three/src/math/MathUtils";
+import { clamp } from "three/src/math/MathUtils.js";
 import { getSelectedLevel } from "../../game/levels";
 import { LEVEL } from "../components/level";
 import { REFERENCE } from "../components/reference";
