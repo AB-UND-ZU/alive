@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,12 +18,12 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
       - name: Lint
         run: npm run lint
       - name: Run all tests
         run: npm run test:all
-      - name: Install browser
-        run: npx playwright install --with-deps chromium
       - name: Verify documentation
         run: npm run docs:test
       # build type checks, but skips its own lint
