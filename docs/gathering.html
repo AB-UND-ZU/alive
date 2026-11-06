@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><title>Gathering | Alive</title><link rel="icon" href="data:,"><link rel="stylesheet" href="assets/style.css"><script defer src="assets/scenes.js"></script></head>
+<body><a class="skip" href="#content">Skip to content</a><header><a class="brand" href="index.html"><span class="halo">°</span><span class="heart">♥</span> ALIVE</a><span>FIELD GUIDE</span><a href="https://ab-und-zu.github.io/alive/">[ PLAY GAME ]</a></header>
+<div class="layout"><nav aria-label="Chapters"><details open><summary>Player guide</summary><a  href="index.html">Alive field guide</a><a  href="controls.html">Controls</a><a  href="world.html">World</a><a  href="combat.html">Combat</a><a  href="gear.html">Gear and life</a><a aria-current="page" href="gathering.html">Gathering</a><a  href="making.html">Making things</a></details><details open><summary>Development</summary><a  href="development/src/documentation/scenes.html">Documentation examples and research</a><a  href="development/src/engine/ecs.html">Engine and timing</a><a  href="development/src/bindings/creation.html">World creation</a><a  href="development/src/components/Row/index.html">Character rendering</a><a  href="development/src/testing/harness.html">Testing game features</a><a  href="development/src/documentation/index.html">Documentation tools</a></details><a class="source" href="https://github.com/AB-UND-ZU/alive">[ SOURCE ]</a></nav><main id="content" tabindex="-1"><p class="eyebrow">PLAYER GUIDE</p><h1 id="gathering">Gathering</h1><p>Tools let you change the ground and collect materials. Activate a tool, then give a direction toward the target. A tool needs the right kind of target and enough work to finish it.</p>
+<h2 id="chopping-mining-and-digging">Chopping, mining, and digging</h2><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Typical targets</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Axe</td>
+<td>Trees, hedges, palms, wooden objects</td>
+</tr>
+<tr>
+<td>Pickaxe</td>
+<td>Mountains, mines, stone barriers</td>
+</tr>
+<tr>
+<td>Shovel</td>
+<td>Crops, roots, sand, paths, loose ground</td>
+</tr>
+<tr>
+<td>Hook</td>
+<td>Fishing and hooking targets</td>
+</tr>
+<tr>
+<td>Hammer</td>
+<td>Construction</td>
+</tr>
+</tbody></table>
+<div class="scene" data-scene="harvesting"><p>Interactive example. Enable JavaScript to use its controls.</p></div><p>Trees yield sticks. Oaks yield wood and a sapling. Mountains yield ore; iron and gold deposits yield their material. Digging sand gives sand, while paths give gravel. The reference shows work requirements and drops from the current harvesting table.</p>
+<p>A higher tool stat can change how quickly work finishes. Some scenery can also be burned or broken, but destroying it that way need not give the same harvest.</p>
+<h2 id="planting">Planting</h2><p>Seeds and other plantable items need watered soil. The planting interaction selects what to plant. Crops then grow over game ticks. Some yield a crop; others grow into terrain such as a hedge, tree, or cactus.</p>
+<div class="scene" data-scene="farming"><p>Interactive example. Enable JavaScript to use its controls.</p></div><p>Berries grow fruit, flowers grow herbs, and grain grows wheat. Leaves grow hedges. Saplings grow apple trees. Keep water close to soil or use a filled bucket. Harvest the result with the appropriate tool.</p>
+<p>The example includes the growth duration multiplier. Growth stages vary in length, and snow can delay them. These are approximate world ticks, not a wall-clock countdown.</p>
+<h2 id="fishing">Fishing</h2><p>Equip a hook and carry worms. Activate the hook and choose a direction to cast. Watch for a catch, then use the action when the game calls for it. Hooks can interact with other hookable targets as well.</p>
+<div class="scene" data-scene="fishing"><p>Interactive example. Enable JavaScript to use its controls.</p></div><p>The reference shows the catch distribution for the three configured fishing levels. Higher levels change which fish are likely. These percentages apply to the catch table; they are not the chance that any cast will succeed.</p>
+<p>Fish have different uses. Salmon and tuna restore health; pike and cod restore mana. Algae and eel give experience. Pearls and other catches may be useful for trade or recipes.</p>
+<h2 id="boats-and-building">Boats and building</h2><p>Boats let you cross water beyond the wading limit. A hammer can build a boat on water if you have the parts and the required construction level. Jetties, paths, fences, and workstations are also construction plans. See <a href="making.html">making things</a>.</p>
+<footer>ALIVE · <a href="https://github.com/AB-UND-ZU/alive/blob/main/docs/gathering.md">Edit this page</a></footer></main><aside aria-label="On this page">On this page<a href="#chopping-mining-and-digging">Chopping, mining, and digging</a><a href="#planting">Planting</a><a href="#fishing">Fishing</a><a href="#boats-and-building">Boats and building</a></aside></div></body></html>

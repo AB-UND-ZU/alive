@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><title>Combat | Alive</title><link rel="icon" href="data:,"><link rel="stylesheet" href="assets/style.css"><script defer src="assets/scenes.js"></script></head>
+<body><a class="skip" href="#content">Skip to content</a><header><a class="brand" href="index.html"><span class="halo">°</span><span class="heart">♥</span> ALIVE</a><span>FIELD GUIDE</span><a href="https://ab-und-zu.github.io/alive/">[ PLAY GAME ]</a></header>
+<div class="layout"><nav aria-label="Chapters"><details open><summary>Player guide</summary><a  href="index.html">Alive field guide</a><a  href="controls.html">Controls</a><a  href="world.html">World</a><a aria-current="page" href="combat.html">Combat</a><a  href="gear.html">Gear and life</a><a  href="gathering.html">Gathering</a><a  href="making.html">Making things</a></details><details open><summary>Development</summary><a  href="development/src/documentation/scenes.html">Documentation examples and research</a><a  href="development/src/engine/ecs.html">Engine and timing</a><a  href="development/src/bindings/creation.html">World creation</a><a  href="development/src/components/Row/index.html">Character rendering</a><a  href="development/src/testing/harness.html">Testing game features</a><a  href="development/src/documentation/index.html">Documentation tools</a></details><a class="source" href="https://github.com/AB-UND-ZU/alive">[ SOURCE ]</a></nav><main id="content" tabindex="-1"><p class="eyebrow">PLAYER GUIDE</p><h1 id="combat">Combat</h1><p>Walk toward an attackable target to strike with an equipped sword. Movement, attacks, and other actions share the unit&#39;s action timing. Watch an enemy&#39;s direction and warning before moving close.</p>
+<h2 id="physical-and-magic-damage">Physical and magic damage</h2><p>Power adds to physical attacks. Wisdom adds to magic attacks. Armor reduces physical damage; resist reduces magic damage. Equipment adds its own stats.</p>
+<p>A weak hit can still deal a fraction of a health point. The display shows whole-point changes when enough damage has accumulated. A shield does not make every weak attack harmless. Spikes deal true damage when touched or attacked.</p>
+<h2 id="spells">Spells</h2><p>Space activates the equipped spell when you can cast it. Spells use mana. Their shapes, range, and effects depend on the spell and its material or element.</p>
+<table>
+<thead>
+<tr>
+<th>Spell</th>
+<th>Shape or use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Wave</td>
+<td>Expanding wave around the caster</td>
+</tr>
+<tr>
+<td>Beam</td>
+<td>A line of magic that can leave a trail</td>
+</tr>
+<tr>
+<td>Trap</td>
+<td>A placed effect that threatens its cells</td>
+</tr>
+<tr>
+<td>Dash</td>
+<td>Movement with a spell effect</td>
+</tr>
+<tr>
+<td>Bolt</td>
+<td>Directed projectile</td>
+</tr>
+<tr>
+<td>Blast</td>
+<td>Burst effect</td>
+</tr>
+</tbody></table>
+<div class="scene" data-scene="abilities"><p>Interactive example. Enable JavaScript to use its controls.</p></div><p>This reference reads spell values from the game. It shows base wood spells without an element, before the caster&#39;s bonuses. It is a data viewer, not a combat arena. Availability depends on the items you find.</p>
+<h2 id="skills">Skills</h2><p>Shift activates a skill or the selected tool. Skills include bow, spear, wand, slash, zap, block, and totem. Some use ammunition; rechargeable skills use charges. The action bar shows the required supply.</p>
+<p>A bow uses arrows. Slash works with the sword. Q switches between a tool and a skill when both are equipped. Keep an eye on the current button label before pressing Shift.</p>
+<h2 id="elements">Elements</h2><p>Fire can burn units and plants and thaw ice. Burning continues to hurt until it ends or is extinguished. Water can freeze units and water cells. Earth effects can drain or restore health, depending on the ability. Air modifies abilities as defined by their equipment.</p>
+<p>Effects do not all work on every target. Friendly relationships, immunity, terrain, and the spell&#39;s own hit tracking affect the result. One cast can affect several targets without repeatedly applying the same hit to each one.</p>
+<h2 id="enemies">Enemies</h2><p>Prisms move in straight lines and turn at obstacles. Eyes wake when a target gets close and approach it. Orbs align ranged attacks and retreat. Fairies try to stay away. Other creatures and encounters have their own patterns.</p>
+<p>Keep space to dodge, avoid standing in a firing line, and use terrain to break an approach. Better materials can make the same creature more dangerous.</p>
+<footer>ALIVE · <a href="https://github.com/AB-UND-ZU/alive/blob/main/docs/combat.md">Edit this page</a></footer></main><aside aria-label="On this page">On this page<a href="#physical-and-magic-damage">Physical and magic damage</a><a href="#spells">Spells</a><a href="#skills">Skills</a><a href="#elements">Elements</a><a href="#enemies">Enemies</a></aside></div></body></html>
