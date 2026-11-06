@@ -9,7 +9,7 @@
 import { createWorld, World } from "../engine";
 import { createLevel, createSystems, preloadLevel } from "../engine/ecs";
 import { LEVEL, LevelName } from "../engine/components/level";
-import { CellType, insertArea } from "../bindings/creation";
+import { CellType, insertArea, populateItems } from "../bindings/creation";
 import { createMatrix } from "../game/math/matrix";
 import { initializeCell } from "../engine/systems/initialize";
 import { levelConfig } from "../game/levels";
@@ -21,9 +21,16 @@ import { Orientation } from "../engine/components/orientable";
 import { SPRITE } from "../engine/components/sprite";
 import { Player, PLAYER } from "../engine/components/player";
 import { ACTIONABLE } from "../engine/components/actionable";
-import { TypedEntity } from "../engine/entities";
+import { Entity, TypedEntity } from "../engine/entities";
 import { getHasteInterval } from "../engine/systems/movement";
 import { getEntityStats } from "../engine/systems/damage";
+import { getCellEntities } from "../engine/systems/map";
+import { Item, ITEM } from "../engine/components/item";
+import { INVENTORY } from "../engine/components/inventory";
+import { ORIENTABLE } from "../engine/components/orientable";
+import { slots } from "../engine/components/equippable";
+import { getSequence } from "../engine/systems/sequence";
+import { Position } from "../engine/components/position";
 
 /** Fixed systems step, must match `systemsFrame` in components/Systems. */
 export const FRAME = 1000 / 30;
@@ -85,6 +92,8 @@ export type AreaWorldOptions = {
   level?: LevelName;
   /** square map size, defaults to the larger side of the area */
   size?: number;
+  /** extra characters mapped to any cell type, e.g. `{ D: "iron_door" }` */
+  legend?: Record<string, string>;
 };
 
 /**
@@ -95,7 +104,7 @@ export type AreaWorldOptions = {
  */
 export const createAreaWorld = (
   area: string,
-  { level = "LEVEL_TUTORIAL", size }: AreaWorldOptions = {}
+  { level = "LEVEL_TUTORIAL", size, legend = {} }: AreaWorldOptions = {}
 ) => {
   const rows = parseArea(area);
   const width = rows[0].length;
@@ -115,7 +124,24 @@ export const createAreaWorld = (
   levelData.initialized = createMatrix(mapSize, mapSize, false);
 
   // insertArea centers the area on the given offset, override sets air cells
-  insertArea(world, rows.join("\n"), (width - 1) / 2, (height - 1) / 2, true);
+  const legendRows = rows.map((row) =>
+    row
+      .split("")
+      .map((char) => (char in legend ? " " : char))
+      .join("")
+  );
+  insertArea(
+    world,
+    legendRows.join("\n"),
+    (width - 1) / 2,
+    (height - 1) / 2,
+    true
+  );
+  rows.forEach((row, y) =>
+    row.split("").forEach((char, x) => {
+      if (char in legend) levelData.cells[x][y] = legend[char] as CellType;
+    })
+  );
   initializeCell(world, spawn.x, spawn.y);
   preloadLevel(world);
 
@@ -209,6 +235,22 @@ export const trigger = (world: World, action: HeroAction) => {
   reference.suspended = false;
 };
 
+/** Trigger a hero action and wait until the hero has processed it. */
+export const act = (world: World, action: HeroAction) => {
+  const hero = world.assertComponents(assertHero(world), [ACTIONABLE, PLAYER]);
+  trigger(world, action);
+  advanceUntil(
+    world,
+    () =>
+      !hero[ACTIONABLE].spellTriggered &&
+      !hero[ACTIONABLE].skillTriggered &&
+      !hero[ACTIONABLE].interactTriggered &&
+      !hero[PLAYER].actionTriggered,
+    1000
+  );
+  step(world);
+};
+
 /**
  * Walk `cells` steps into one direction and release input afterwards.
  * Throws if the hero gets stuck, so blocked paths fail loudly.
@@ -244,3 +286,73 @@ export const snapshot = (world: World) =>
     })
     .sort()
     .join("|");
+
+/** All entities registered in a cell. */
+export const getEntitiesAt = (world: World, position: Position) =>
+  getCellEntities(world, position);
+
+/** First entity in a cell that has all given components. */
+export const findEntityAt = <C extends keyof Entity>(
+  world: World,
+  position: Position,
+  components: C[]
+) =>
+  getCellEntities(world, position).find((entity) =>
+    components.every((component) => component in entity)
+  ) as TypedEntity<C> | undefined;
+
+export type GivenItem = Omit<Item, "carrier" | "bound"> & { bound?: boolean };
+
+/**
+ * Put items into an entity's inventory. Equipment is equipped if its slot is
+ * free, like picking it up for the first time.
+ */
+export const giveItems = (
+  world: World,
+  entity: TypedEntity<"INVENTORY" | "POSITION">,
+  items: GivenItem[]
+) =>
+  items.flatMap((item) =>
+    populateItems(
+      world,
+      entity,
+      [{ bound: false, ...item }],
+      slots.some((slot) => item[slot])
+    )
+  );
+
+/** Item data of everything an entity carries. */
+export const getItems = (world: World, entity: TypedEntity<"INVENTORY">) =>
+  entity[INVENTORY].items.map(
+    (itemId) => world.assertByIdAndComponents(itemId, [ITEM])[ITEM]
+  );
+
+/** Total amount of carried items matching every given property. */
+export const countItems = (
+  world: World,
+  entity: TypedEntity<"INVENTORY">,
+  match: Partial<Item>
+) =>
+  getItems(world, entity)
+    .filter((item) =>
+      (Object.keys(match) as (keyof Item)[]).every(
+        (key) => item[key] === match[key]
+      )
+    )
+    .reduce((total, item) => total + item.amount, 0);
+
+/** Turn the hero without moving, e.g. before casting or using a tool. */
+export const face = (world: World, orientation: Orientation) => {
+  const hero = assertHero(world);
+  world.assertComponents(hero, [ORIENTABLE])[ORIENTABLE].facing = orientation;
+  // a pending orientation would also step into a free cell
+  hero[MOVABLE].pendingOrientation = undefined;
+};
+
+/** Text of the messages currently shown above an entity, e.g. "Need MP!". */
+export const getMessages = (world: World, entity: TypedEntity) =>
+  getSequence(world, entity, "message")?.args.messages.map((message) =>
+    message.line
+      .map((sprite) => sprite.layers[sprite.layers.length - 1]?.char || "")
+      .join("")
+  ) || [];

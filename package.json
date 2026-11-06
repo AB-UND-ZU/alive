@@ -35,6 +35,7 @@
     "test:fast": "CI=true react-scripts test --watchAll=false --testPathIgnorePatterns='\\.slow\\.test\\.'",
     "test:slow": "CI=true react-scripts test --watchAll=false --testPathPattern='\\.slow\\.test\\.'",
     "test:all": "CI=true react-scripts test --watchAll=false",
+    "test:coverage": "CI=true react-scripts test --watchAll=false --coverage",
     "typecheck": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/tsbuildinfo",
     "lint": "eslint src --max-warnings=0 --cache --cache-location node_modules/.cache/eslint/",
     "check:fast": "npm run --silent typecheck && npm run --silent lint && npm run --silent test:fast",
@@ -58,6 +59,20 @@
   "jest": {
     "transformIgnorePatterns": [
       "node_modules/(?!(ecs|remove-array-items|three/src)/)"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.d.ts",
+      "!src/**/*.test.{ts,tsx}",
+      "!src/engine/vendor/**",
+      "!src/features/**",
+      "!src/testing/**",
+      "!src/index.tsx"
+    ],
+    "coverageReporters": [
+      "text-summary",
+      "json-summary",
+      "lcov"
     ]
   },
   "prettier": {

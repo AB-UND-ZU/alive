@@ -22,8 +22,17 @@ jobs:
         run: npm run typecheck
       - name: Lint
         run: npm run lint
-      - name: Run all tests
-        run: npm run test:all
+      - name: Run all tests with coverage
+        run: npm run test:coverage
+      - name: Report coverage
+        if: ${{ !cancelled() }}
+        run: node scripts/coverage-summary.mjs >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov-report
       - name: Verify wiki
         run: npm run wiki:test
       - name: Build wiki
