@@ -198,4 +198,39 @@ describe("shovel", () => {
     expect(isWater(world, position)).toBe(true);
     expect(countItems(world, hero, { stackable: "sand" })).toBe(2);
   });
+  it("dries up a beach into sand once the water next to it is filled", () => {
+    const { world, position } = digOn(ground("~B"), "gold", { B: "beach" }, [
+      { stackable: "sand", amount: 3 },
+    ]);
+    const beach = { x: position.x + 1, y: position.y };
+
+    expect(isWater(world, position)).toBe(false);
+    expect(getResource(world, beach)?.[HARVESTABLE].resource).toBe("sand");
+  });
+
+  it("turns deep water shallow when filling the water next to it", () => {
+    const lake = `
+|♀        |
+|░~~~~~   |
+|░~≈≈≈~   |
+|░~~~~~   |
+|         |
+`;
+    const { world } = setupTools(lake, [
+      sword,
+      { tool: "shovel", material: "gold", amount: 1 },
+      { stackable: "sand", amount: 3 },
+    ]);
+    const getWater = () => findEntityAt(world, { x: 2, y: 2 }, [IMMERSIBLE])!;
+    expect(getWater()[IMMERSIBLE].deep).toBe(true);
+
+    walk(world, "down");
+    walk(world, "right");
+    step(world, 10);
+    act(world, "skill");
+    step(world, 30);
+
+    expect(isWater(world, { x: 1, y: 1 })).toBe(false);
+    expect(getWater()[IMMERSIBLE].deep).toBe(false);
+  });
 });

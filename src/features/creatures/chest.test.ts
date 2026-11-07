@@ -3,10 +3,17 @@ import { BELONGABLE } from "../../engine/components/belongable";
 import { IDENTIFIABLE } from "../../engine/components/identifiable";
 import { POSITION } from "../../engine/components/position";
 import { STATS } from "../../engine/components/stats";
+import { SPRITE } from "../../engine/components/sprite";
+import { waveTower } from "../../game/assets/templates/creatures";
 import { TypedEntity } from "../../engine/entities";
 import { isDead } from "../../engine/systems/damage";
 import { getIdentifier } from "../../engine/utils";
-import { advanceUntil, assertHero, holdMove } from "../../testing/harness";
+import {
+  advanceUntil,
+  assertHero,
+  getItems,
+  holdMove,
+} from "../../testing/harness";
 import {
   advanceTicks,
   createCreatureWorld,
@@ -112,4 +119,35 @@ describe("chest boss", () => {
       10000
     );
   });
+
+  it.each([
+    ["fire", "two thirds", 2 / 3],
+    ["water", "one third", 1 / 3],
+  ] as const)(
+    "turns its towers to %s waves at %s of its health",
+    (element, _, ratio) => {
+      const { world, chest } = setup();
+      provoke(world, chest);
+      advanceUntil(world, () => named(world, "chest_tower").length === 4, 3000);
+      chest[STATS].hp = Math.floor(chest[STATS].maxHp * ratio);
+
+      const towerElements = () =>
+        named(world, "chest_tower").map(
+          (tower) =>
+            getItems(world, tower as TypedEntity<"INVENTORY">).find(
+              (item) => item.spell === "wave"
+            )?.element
+        );
+      sustained(
+        world,
+        () => towerElements().every((towerElement) => towerElement === element),
+        10000
+      );
+
+      expect(towerElements()).toHaveLength(4);
+      named(world, "chest_tower").forEach((tower) =>
+        expect(tower[SPRITE]).toBe(waveTower.iron[element])
+      );
+    }
+  );
 });

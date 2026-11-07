@@ -73,7 +73,15 @@
       "text-summary",
       "json-summary",
       "lcov"
-    ]
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 85,
+        "branches": 83,
+        "functions": 82,
+        "lines": 86
+      }
+    }
   },
   "prettier": {
     "trailingComma": "es5"

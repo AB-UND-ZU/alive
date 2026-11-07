@@ -174,6 +174,30 @@ describe("equip tab", () => {
     expect(isInPopup(world, hero)).toBeFalsy();
   });
 
+  it("selects a clicked row and equips it when clicked again", () => {
+    const { world, hero, menu } = setup();
+    giveItems(world, hero, [{ weapon: "sword", material: "wood", amount: 1 }]);
+    const [ironSword] = giveItems(world, hero, [
+      { weapon: "sword", material: "iron", amount: 1 },
+    ]);
+    const click = (row: number) => {
+      hero[PLAYER].contentTriggered = row;
+      act(world, "content");
+    };
+
+    act(world, "equip");
+    click(1);
+
+    expect(getVerticalIndex(world, menu)).toBe(1);
+    expect(playedSounds).toContain("select");
+    expect(isInPopup(world, hero)).toBeTruthy();
+
+    click(1);
+
+    expect(hero[EQUIPPABLE].weapon).toBe(world.getEntityId(ironSword));
+    expect(isInPopup(world, hero)).toBeFalsy();
+  });
+
   it("switches back to a carried tool", () => {
     const { world, hero } = setup();
     const [axe] = giveItems(world, hero, [

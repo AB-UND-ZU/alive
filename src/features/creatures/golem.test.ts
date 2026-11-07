@@ -1,5 +1,7 @@
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
 import { POSITION } from "../../engine/components/position";
+import { FRAGMENT } from "../../engine/components/fragment";
+import { PLAYER } from "../../engine/components/player";
 import { STATS } from "../../engine/components/stats";
 import { isDead } from "../../engine/systems/damage";
 import { advanceUntil, holdMove } from "../../testing/harness";
@@ -9,6 +11,8 @@ import {
   createCreatureWorld,
   distanceBetween,
   getCreature,
+  getCreatures,
+  getSpells,
   giveSword,
   toughen,
 } from "./helpers";
@@ -104,7 +108,11 @@ describe("golem", () => {
       () =>
         world
           .getEntities([CASTABLE])
-          .some((spell) => spell[CASTABLE].caster === world.getEntityId(golem)),
+          .some(
+            (spell) =>
+              spell !== golem &&
+              spell[CASTABLE].caster === world.getEntityId(golem)
+          ),
       10000
     );
   });
@@ -119,5 +127,53 @@ describe("golem", () => {
     advanceUntil(world, () => isDead(world, golem), 20000);
     holdMove(world, []);
     advanceUntil(world, () => countDrops(world, { stackable: "golem" }) > 0);
+  });
+  it("vanishes entirely after its defeat and counts as defeated", () => {
+    const { world, hero, golem, phases } = setup();
+    provoke(world, golem);
+    advanceUntil(world, () => phases().some((phase) => phase >= 10), 10000);
+
+    golem[STATS].hp = 1;
+    holdMove(world, ["up"]);
+    advanceUntil(world, () => isDead(world, golem), 20000);
+    holdMove(world, []);
+    advanceUntil(world, () => getCreatures(world, "golem").length === 0, 20000);
+
+    expect(world.getEntities([FRAGMENT])).toHaveLength(0);
+    expect(
+      world.assertComponents(hero, [PLAYER])[PLAYER].defeatedUnits.golem
+    ).toBe(1);
+  });
+  it("stomps with an arm and sends a wave when the hero is close", () => {
+    const { world, hero, golem, phases } = setup();
+    provoke(world, golem);
+    advanceUntil(
+      world,
+      () => {
+        hero[STATS].hp = hero[STATS].maxHp;
+        return phases().includes(21);
+      },
+      60000
+    );
+    advanceUntil(world, () => getSpells(world, golem).length > 0, 3000);
+  });
+
+  it("strikes with a fist that extends towards the hero and retracts", () => {
+    const { world, hero, golem, phases } = setup();
+    provoke(world, golem);
+    const limbs = () => world.getEntities([FRAGMENT]).length;
+    const resting = limbs();
+
+    advanceUntil(
+      world,
+      () => {
+        hero[STATS].hp = hero[STATS].maxHp;
+        return phases().includes(33) && limbs() > resting;
+      },
+      30000
+    );
+    advanceUntil(world, () => phases().includes(10), 10000);
+
+    expect(limbs()).toBe(resting);
   });
 });

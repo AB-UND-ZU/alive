@@ -68,4 +68,23 @@ describe("signs", () => {
     interact(world, 30);
     expect(hero[PLAYER].popup).toBeUndefined();
   });
+  it("closes when the reading hero gets hit", () => {
+    const corridor = `
+|███████|
+|█S♀  ◀█|
+|███████|
+`;
+    const { world, hero } = setup(corridor, { legend: { S: "spawn_sign" } });
+    const sign = findEntityAt(world, findInArea(corridor, "S"), [POPUP])!;
+    hero[STATS].maxHp = 20;
+    hero[STATS].hp = 20;
+
+    interact(world, 30);
+    expect(hero[PLAYER].popup).toBe(world.getEntityId(sign));
+
+    advanceUntil(world, () => hero[STATS].hp < hero[STATS].maxHp, 10000);
+    step(world);
+
+    expect(isInPopup(world, hero)).toBeFalsy();
+  });
 });

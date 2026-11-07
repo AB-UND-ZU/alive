@@ -144,4 +144,34 @@ describe("hook", () => {
     );
     expect(caught).toEqual([expect.objectContaining({ amount: 1 })]);
   });
+  it("lets a hooked fish escape when not reeled in quickly", () => {
+    const { world, hero } = setupTools(lake, [woodHook, worms]);
+    addHabitat(world, { x: 7, y: 5 });
+
+    cast(world);
+    holdMove(world, []);
+    const isHooked = () =>
+      world
+        .getEntities([HOOKABLE])
+        .some((entity) => entity[HOOKABLE].hooked !== undefined);
+    advanceUntil(world, isHooked, 30000);
+    advanceUntil(world, () => !isHooked(), 3000);
+    step(world, 30);
+
+    expect(getBait(world)[BAITABLE].caught).toBeUndefined();
+    expect(playedSounds).toContain("escape");
+
+    act(world, "skill");
+    advanceUntil(world, () => !hero[CONDITIONABLE].hook, 3000);
+    step(world, 30);
+
+    expect(getBait(world)).toBeUndefined();
+    expect(countItems(world, hero, { stackable: "worm" })).toBe(1);
+    const catchable = fishingDistributionLevels[
+      getEquipmentStats(woodHook).fishing
+    ].map(([, fish]) => fish.stackable);
+    expect(
+      getItems(world, hero).filter((item) => catchable.includes(item.stackable))
+    ).toEqual([]);
+  });
 });

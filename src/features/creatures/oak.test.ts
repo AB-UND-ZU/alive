@@ -144,4 +144,24 @@ describe("oak boss", () => {
     const before = Math.min(hp, hero[STATS].hp);
     advanceUntil(world, () => hero[STATS].hp < before, 10000);
   });
+  it("lets both towers hurl half rings of iron discs together", () => {
+    const { world, hero } = setup();
+    awaken(world);
+    const isShooting = (tower: TypedEntity<"BEHAVIOUR">) =>
+      tower[BEHAVIOUR].patterns.some(
+        (pattern: Pattern) =>
+          pattern.name === "oak_tower" && pattern.memory.phase === 30
+      );
+
+    advanceUntil(
+      world,
+      () => {
+        hero[STATS].hp = hero[STATS].maxHp;
+        const towers = getCreatures(world, "oakTower");
+        return towers.length === 2 && towers.every(isShooting);
+      },
+      120000
+    );
+    advanceUntil(world, () => getHomings(world, "ironDisc").length >= 2, 10000);
+  });
 });

@@ -1,9 +1,12 @@
 import { World } from "../../engine";
 import { BEHAVIOUR, Pattern } from "../../engine/components/behaviour";
+import { BUMPABLE } from "../../engine/components/bumpable";
+import { FREEZABLE } from "../../engine/components/freezable";
 import { INVENTORY } from "../../engine/components/inventory";
 import { POSITION } from "../../engine/components/position";
 import { TypedEntity } from "../../engine/entities";
 import { dropEntity } from "../../engine/systems/drop";
+import { freezeTerrain } from "../../engine/systems/freeze";
 import { giveItems } from "../../testing/harness";
 import {
   advanceTicks,
@@ -61,6 +64,22 @@ describe("fish", () => {
     expect(
       distanceBetween(world, fish[POSITION], hero[POSITION])
     ).toBeGreaterThan(start);
+  });
+  it("gets stuck and flounders when its water freezes over", () => {
+    const { world, hero } = createCreatureWorld(pond);
+    teleport(world, hero, { x: 30, y: 30 });
+    const fish = getCritter(world, "fish") as TypedEntity<
+      "BEHAVIOUR" | "POSITION" | "RENDERABLE"
+    >;
+    world
+      .getEntities([FREEZABLE, POSITION])
+      .forEach((water) => freezeTerrain(world, water));
+    const start = { ...fish[POSITION] };
+
+    const positions = trace(world, 20, () => ({ ...fish[POSITION] }));
+
+    positions.forEach((position) => expect(position).toEqual(start));
+    expect(fish[BUMPABLE]).toMatchObject({ orientation: "up" });
   });
 });
 

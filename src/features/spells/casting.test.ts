@@ -1,9 +1,16 @@
 import { AFFECTABLE } from "../../engine/components/affectable";
 import { CASTABLE } from "../../engine/components/castable";
+import { FRAGMENT } from "../../engine/components/fragment";
 import { Spell } from "../../engine/components/item";
 import { STATS } from "../../engine/components/stats";
 import { playedSounds } from "../../testing/env";
-import { face, step, trigger } from "../../testing/harness";
+import {
+  assertHero,
+  face,
+  findEntityAt,
+  step,
+  trigger,
+} from "../../testing/harness";
 import {
   cast,
   createSpellWorld,
@@ -114,5 +121,27 @@ describe("casting spells", () => {
     expect(hero[STATS].mp).toBe(5);
     expect(isCasting(world, hero)).toBe(false);
     expect(playedSounds).not.toContain("deny");
+  });
+  it("passes damage on a limb of a large creature to its body", () => {
+    const quarry = `
+|           |
+|     G     |
+|           |
+|     ♀     |
+`;
+    const { world } = createSpellWorld(
+      quarry,
+      { spell: "beam", material: "wood" },
+      { legend: { G: "golem" }, size: 24 }
+    );
+    const golem = getUnit(world, quarry, "G");
+    const leg = findEntityAt(world, { x: 5, y: 2 }, [FRAGMENT, STATS])!;
+
+    cast(world, "up");
+    waitForSpell(world, assertHero(world));
+
+    const damage = leg[STATS].maxHp - leg[STATS].hp;
+    expect(damage).toBeGreaterThan(0);
+    expect(golem[STATS].hp).toBeLessThanOrEqual(golem[STATS].maxHp - damage);
   });
 });

@@ -12,11 +12,14 @@ import { playedSounds } from "../../testing/env";
 import { World } from "../../engine";
 import { BUILDABLE } from "../../engine/components/buildable";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
+import { IMMERSIBLE } from "../../engine/components/immersible";
 import { MOUNTABLE } from "../../engine/components/mountable";
 import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
 import { PLAYER } from "../../engine/components/player";
 import { POSITION } from "../../engine/components/position";
+import { SPRITE } from "../../engine/components/sprite";
 import { STATS } from "../../engine/components/stats";
+import { jetty as jettySprite } from "../../game/assets/sprites";
 import { getTab } from "../../engine/systems/popup";
 import { CellType } from "../../bindings/creation";
 import { buildConstructions } from "../../game/balancing/building";
@@ -259,5 +262,88 @@ describe("hammer", () => {
     expect(getPlot(world, target)?.[BUILDABLE].cell).toBe(
       chair.variants[1].cell
     );
+  });
+  it.each([
+    ["sand", "░"],
+    ["a path", "▒"],
+  ])("places a fence plot on %s", (_, ground) => {
+    const { world, hero } = setupTools(
+      `
+|       |
+| ♀${ground}    |
+|       |
+`,
+      [woodHammer, ...fence.parts]
+    );
+    const target = { x: hero[POSITION].x + 1, y: hero[POSITION].y };
+
+    selectPlan(world, "fence");
+    placePlot(world);
+
+    expect(getPlot(world, target)?.[BUILDABLE].cell).toBe("fence");
+  });
+
+  it("builds a jetty over water and removes the water below", () => {
+    const jetty = getConstruction("jetty_horizontal");
+    const { world, hero } = setup([ironHammer, ...jetty.parts]);
+    const water = { x: hero[POSITION].x + 2, y: hero[POSITION].y };
+
+    holdUntil(world, "right", () => hero[POSITION].x === water.x - 1);
+    selectPlan(world, "jetty_vertical");
+    placePlot(world);
+    hammerPlot(world, water);
+
+    expect(findEntityAt(world, water, [ORIENTABLE, SPRITE])).toMatchObject({
+      [ORIENTABLE]: { facing: "up" },
+      [SPRITE]: jettySprite,
+    });
+    expect(
+      getEntitiesAt(world, water).some((entity) => IMMERSIBLE in entity)
+    ).toBe(false);
+    holdUntil(world, "right", () => hero[POSITION].x === water.x);
+  });
+
+  it("wraps around the variants when turning past the last one", () => {
+    const chair = getConstruction("chair_right");
+    const { world, hero } = setup([woodHammer, ...chair.parts]);
+    const start = { ...hero[POSITION] };
+
+    selectPlan(world, "chair_right");
+    turn(world, "right");
+    holdUntil(world, "down", () => hero[CONDITIONABLE].build?.modifier === 1);
+    step(world, 30);
+    holdUntil(world, "down", () => hero[CONDITIONABLE].build?.modifier === 0);
+    step(world, 30);
+
+    expect(hero[ORIENTABLE].facing).toBe("down");
+
+    holdUntil(world, "right", () => hero[CONDITIONABLE].build?.modifier === 1);
+
+    expect(hero[ORIENTABLE].facing).toBe("right");
+    expect(hero[POSITION]).toEqual(start);
+  });
+
+  it("walks while planning by moving into the faced direction", () => {
+    const { world, hero } = setup([woodHammer, ...fence.parts]);
+
+    selectPlan(world, "fence");
+    turn(world, "down");
+    holdUntil(world, "down", () => hero[POSITION].y === 2);
+
+    expect(hero[CONDITIONABLE].build).toBeDefined();
+    expect(getPlot(world, { x: 2, y: 2 })).toBeUndefined();
+  });
+
+  it("walks with the hammer ready when there is nothing to repair", () => {
+    const { world, hero } = setup([woodHammer]);
+
+    act(world, "skill");
+    step(world, 30);
+    act(world, "right");
+    expect(hero[CONDITIONABLE].hammer).toBeDefined();
+
+    holdUntil(world, "down", () => hero[POSITION].y === 2);
+
+    expect(hero[CONDITIONABLE].hammer).toBeDefined();
   });
 });
