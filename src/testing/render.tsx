@@ -20,6 +20,8 @@ export const createWorldContext = (
   setPaused: () => {},
   flipped: false,
   setFlipped: () => {},
+  saveGame: () => {},
+  openMenu: () => {},
   ...overrides,
 });
 

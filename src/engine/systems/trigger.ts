@@ -4,14 +4,14 @@ import { RENDERABLE } from "../components/renderable";
 import { REFERENCE } from "../components/reference";
 import { Entity } from "ecs";
 import { ACTIONABLE } from "../components/actionable";
-import { MOVABLE } from "../components/movable";
+import { Movable, MOVABLE } from "../components/movable";
 import { TOOLTIP } from "../components/tooltip";
 import { Inventory, INVENTORY } from "../components/inventory";
 import { Item, ITEM, ItemStats, Material } from "../components/item";
 import { LOCKABLE } from "../components/lockable";
 import { mana, none } from "../../game/assets/sprites";
 import { SPRITE } from "../components/sprite";
-import { LIGHT } from "../components/light";
+import { Light, LIGHT } from "../components/light";
 import { rerenderEntity } from "./renderer";
 import {
   disposeEntity,
@@ -167,6 +167,93 @@ export const canWarp = (world: World, entity: Entity, warp: Entity) => {
   return levelConfig[currentLevel].warps.includes(selectedLevel);
 };
 
+const portalLight = { visibility: 1.5, brightness: 1.5, darkness: 0 };
+
+// step into portal and close vision before switching worlds
+const enterPortal = (
+  world: World,
+  portal: Entity,
+  entity: Entity,
+  dialog: string
+) => {
+  closePopup(world, entity, portal);
+  const discovery = getSequence(world, portal, "discovery");
+  if (discovery) {
+    discovery.args.idle = none;
+  }
+
+  moveEntity(world, entity, portal[POSITION]);
+  rerenderEntity(world, entity);
+  entity[ORIENTABLE].facing = undefined;
+  const previousMovable = entity[MOVABLE];
+  const reference = world.assertByIdAndComponents(previousMovable.reference, [
+    REFERENCE,
+  ]);
+  world.removeComponentFromEntity(entity as TypedEntity<"MOVABLE">, MOVABLE);
+
+  portal[TOOLTIP].dialogs = [createDialog(dialog)];
+  portal[TOOLTIP].changed = true;
+  portal[TOOLTIP].override = "visible";
+
+  createSequence<"vision", VisionSequence>(
+    world,
+    entity,
+    "vision",
+    "changeRadius",
+    {
+      light: portalLight,
+      fast: false,
+    }
+  );
+
+  return { previousMovable, reference };
+};
+
+// open vision and release hero after the new world is shown
+const revealWorld = (
+  world: World,
+  entity: Entity,
+  previousMovable: Movable,
+  light: Light
+) => {
+  setTimeout(() => {
+    world.metadata.resume();
+
+    setTimeout(() => {
+      createSequence<"vision", VisionSequence>(
+        world,
+        entity,
+        "vision",
+        "changeRadius",
+        {
+          light,
+          fast: false,
+        }
+      );
+      previousMovable.orientations = [];
+      previousMovable.pendingOrientation = undefined;
+      world.addComponentToEntity(entity, MOVABLE, previousMovable);
+    }, 1000);
+  }, 1000);
+};
+
+export const initiateLoad = (
+  world: World,
+  portal: Entity,
+  entity: Entity,
+  saveId: string
+) => {
+  enterPortal(world, portal, entity, "Loading game...");
+
+  setTimeout(() => {
+    world.metadata.suspend();
+
+    setTimeout(() => {
+      world.metadata.loadGame(saveId);
+    }, 500);
+  }, 3000);
+};
+
 export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
   const levelName = getSelectedLevel(world, warp);
   if (!levelName) return;
@@ -185,34 +272,11 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
     ? hairColors[warp[POPUP].selections[styleIndex][0] ?? 0].color
     : entity[SPAWNABLE].hairColor;
 
-  closePopup(world, entity, warp);
-  const discovery = getSequence(world, warp, "discovery");
-  if (discovery) {
-    discovery.args.idle = none;
-  }
-
-  moveEntity(world, entity, warp[POSITION]);
-  rerenderEntity(world, entity);
-  entity[ORIENTABLE].facing = undefined;
-  const previousMovable = entity[MOVABLE];
-  const reference = world.assertByIdAndComponents(previousMovable.reference, [
-    REFERENCE,
-  ]);
-  world.removeComponentFromEntity(entity as TypedEntity<"MOVABLE">, MOVABLE);
-
-  warp[TOOLTIP].dialogs = [createDialog("Generating map...")];
-  warp[TOOLTIP].changed = true;
-  warp[TOOLTIP].override = "visible";
-
-  createSequence<"vision", VisionSequence>(
+  const { previousMovable, reference } = enterPortal(
     world,
+    warp,
     entity,
-    "vision",
-    "changeRadius",
-    {
-      light: { visibility: 1.5, brightness: 1.5, darkness: 0 },
-      fast: false,
-    }
+    "Generating map..."
   );
 
   setTimeout(() => {
@@ -333,31 +397,15 @@ export const initiateWarp = (world: World, warp: Entity, entity: Entity) => {
 
       if (styleUpdated || classUpdated) {
         entity[SPRITE] = sprite;
-        entity[SWIMMABLE].swimming = swimming;
+        entity[SWIMMABLE] = { swimming: false, sprite: swimming };
       }
 
       preloadLevel(world);
 
+      revealWorld(world, entity, previousMovable, light);
       setTimeout(() => {
-        world.metadata.resume();
-
-        setTimeout(() => {
-          entity[VIEWABLE].spring = previousSpring;
-          createSequence<"vision", VisionSequence>(
-            world,
-            entity,
-            "vision",
-            "changeRadius",
-            {
-              light,
-              fast: false,
-            }
-          );
-          previousMovable.orientations = [];
-          previousMovable.pendingOrientation = undefined;
-          world.addComponentToEntity(entity, MOVABLE, previousMovable);
-        }, 1000);
-      }, 1000);
+        entity[VIEWABLE].spring = previousSpring;
+      }, 2000);
     }, 500);
   }, 3000);
 };

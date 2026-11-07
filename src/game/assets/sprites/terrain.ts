@@ -810,6 +810,18 @@ export const tombstone2: Sprite = {
   ],
 };
 
+// ghost without halo and with a hit marker, for defeated units
+export const kills: Sprite = {
+  name: "Kills",
+  layers: [
+    // 50% of silver
+    { char: "\u010b", color: "#606060" },
+    { char: "*", color: colors.red },
+    { char: "─", color: colors.black },
+    { char: "·", color: colors.red },
+  ],
+};
+
 export const rock1: Sprite = {
   name: "",
   layers: [

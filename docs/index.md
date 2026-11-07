@@ -29,10 +29,10 @@ The small worlds use the game's systems and sprite layers, drawn in HTML. Refere
 
 This guide describes the current browser game. Normal class selection offers Rogue. The Dungeon and Island are implemented. Other class definitions and a larger set of equipment exist in the code, but that does not mean everything can be found in an ordinary run.
 
-Multiplayer realms, tribe campaigns, and several worlds in the design PDF are plans. There is no save system in the current game; reloading starts a new session.
+Multiplayer realms, tribe campaigns, and several worlds in the design PDF are plans. Games are saved in your browser when you pause, see [save and continue](controls.md#save-and-continue).
 
 ## About this guide
 
 The reference is **alive_Docs.pdf**, especially its short feature descriptions, sprite examples, and terminal style. Current code takes precedence where the design has changed. The [research notes](../src/documentation/scenes.md) list the sources checked and visual inspection evidence.
 
-Development chapters explain the [engine](../src/engine/ecs.md), [world creation](../src/bindings/creation.md), [rendering](../src/components/Row/index.md), [tests](../src/testing/harness.md), and [documentation tools](../src/documentation/index.md).
+Development chapters explain the [engine](../src/engine/ecs.md), [world creation](../src/bindings/creation.md), [rendering](../src/components/Row/index.md), [saving](../src/game/saves/index.md), [tests](../src/testing/harness.md), and [documentation tools](../src/documentation/index.md).

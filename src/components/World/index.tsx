@@ -1,11 +1,25 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createWorld } from "../../engine";
-import { WorldProvider } from "../../bindings/hooks";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createWorld, World as WorldType } from "../../engine";
+import { SaveStatus, WorldProvider } from "../../bindings/hooks";
 import { ensureAudio, suspendAudio } from "../../game/sound/resumable";
 import { createLevel, createSystems, preloadLevel } from "../../engine/ecs";
 import { LevelName } from "../../engine/components/level";
 import { levelConfig } from "../../game/levels";
 import { useDimensions } from "../Dimensions";
+import { canSave } from "../../game/saves";
+import {
+  eraseGame,
+  loadSaveSummaries,
+  restoreGame,
+  storeGame,
+} from "../../game/saves/storage";
 import packageJson from "../../../package.json";
 
 // encode package version as V<major>x<minor>[.<patch>], e.g. 0.2.0 -> V0x02
@@ -24,25 +38,91 @@ export default function World(props: React.PropsWithChildren) {
   const [suspended, setSuspended] = useState(true);
   const [initial, setInitial] = useState(true);
   const [flipped, setFlipped] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>();
   const pauseRef = useRef(paused);
+  const suspendedRef = useRef(suspended);
+  const dimensionsRef = useRef(dimensions);
+  suspendedRef.current = suspended;
+  dimensionsRef.current = dimensions;
 
-  // generate initial world
-  // TODO: find better way to prevent double generation
-  const [ecs] = useState(() => {
-    const world = createWorld();
-    world.metadata.suspend = () => setSuspended(true);
-    world.metadata.resume = () => setSuspended(false);
-    world.metadata.setFlipped = setFlipped;
-    createLevel(world, initialLevel, levelConfig[initialLevel].size);
-    createSystems(world);
-    setTimeout(() => {
-      levelConfig[initialLevel].generator(world);
-      preloadLevel(world);
-      world.metadata.resume();
-    }, 0);
+  // world callbacks only use stable state setters, so they are created once
+  const [actions] = useState(() => {
+    const connectWorld = (world: WorldType) => {
+      world.metadata.suspend = () => setSuspended(true);
+      world.metadata.resume = () => setSuspended(false);
+      world.metadata.setFlipped = setFlipped;
+      world.metadata.loadGame = loadGame;
+      world.metadata.eraseGame = (saveId) =>
+        eraseGame(saveId).catch((error) =>
+          console.error("Erasing failed:", error)
+        );
+      world.metadata.dimensions = dimensionsRef.current;
+    };
 
-    return world;
+    // switching worlds remounts all children to drop old entity references
+    const showWorld = (world: WorldType) =>
+      setCurrent((previous) => ({ ecs: world, key: previous.key + 1 }));
+
+    // generate menu after showing loading screen
+    const createMenu = () => {
+      const world = createWorld();
+      connectWorld(world);
+      createLevel(world, initialLevel, levelConfig[initialLevel].size);
+      createSystems(world);
+      setTimeout(() => {
+        levelConfig[initialLevel].generator(world);
+        preloadLevel(world);
+        world.metadata.resume();
+      }, 0);
+
+      return world;
+    };
+
+    const openMenu = () => {
+      setSuspended(true);
+      setSaveStatus(undefined);
+      const world = createMenu();
+      world.metadata.initial = false;
+      showWorld(world);
+    };
+
+    const loadGame = async (saveId: string) => {
+      try {
+        const world = await restoreGame(saveId);
+        connectWorld(world);
+        world.metadata.initial = false;
+        createSystems(world);
+        preloadLevel(world);
+        setSaveStatus(undefined);
+        showWorld(world);
+        world.metadata.resume();
+      } catch (error) {
+        console.error("Loading failed:", error);
+        openMenu();
+      }
+    };
+
+    return { createMenu, openMenu };
   });
+
+  const [current, setCurrent] = useState(() => ({
+    ecs: actions.createMenu(),
+    key: 0,
+  }));
+  const { ecs } = current;
+
+  const saveGame = useCallback(() => {
+    if (suspendedRef.current || !canSave(ecs)) return;
+
+    setSaveStatus({ saving: true });
+    storeGame(ecs).then(
+      (save) => setSaveStatus({ saving: false, name: save.name }),
+      (error) => {
+        console.error("Saving failed:", error);
+        setSaveStatus({ saving: false, failed: true });
+      }
+    );
+  }, [ecs]);
 
   const handlePause = useCallback(
     (action: React.SetStateAction<boolean>) => {
@@ -51,9 +131,10 @@ export default function World(props: React.PropsWithChildren) {
       const newPause =
         typeof action === "function" ? action(pauseRef.current) : action;
 
-      // toggle sound
+      // toggle sound and save when pausing
       if (newPause) {
         suspendAudio();
+        if (!pauseRef.current) saveGame();
       } else {
         ensureAudio();
       }
@@ -61,8 +142,14 @@ export default function World(props: React.PropsWithChildren) {
       setPaused(newPause);
       pauseRef.current = newPause;
     },
-    [setPaused, pauseRef, ecs]
+    [setPaused, pauseRef, ecs, saveGame]
   );
+
+  const openMenu = useCallback(() => {
+    saveGame();
+    actions.openMenu();
+    handlePause(false);
+  }, [saveGame, actions, handlePause]);
 
   const context = useMemo(
     () => ({
@@ -75,14 +162,39 @@ export default function World(props: React.PropsWithChildren) {
       setInitial,
       flipped,
       setFlipped,
+      saveStatus,
+      saveGame,
+      openMenu,
     }),
-    [ecs, suspended, setSuspended, paused, handlePause, initial, flipped]
+    [
+      ecs,
+      suspended,
+      setSuspended,
+      paused,
+      handlePause,
+      initial,
+      flipped,
+      saveStatus,
+      saveGame,
+      openMenu,
+    ]
   );
+
+  // list saves for continuing
+  useEffect(() => {
+    loadSaveSummaries().catch((error) =>
+      console.error("Loading saves failed:", error)
+    );
+  }, []);
 
   // expose utilities to world metadata
   useEffect(() => {
     ecs.metadata.dimensions = dimensions;
   }, [ecs.metadata, dimensions]);
 
-  return <WorldProvider value={context} {...props} />;
+  return (
+    <WorldProvider value={context}>
+      <Fragment key={current.key}>{props.children}</Fragment>
+    </WorldProvider>
+  );
 }

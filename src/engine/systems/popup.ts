@@ -57,11 +57,17 @@ import { FOCUSABLE } from "../components/focusable";
 import { TRACKABLE } from "../components/trackable";
 import { displayedClasses, hairColors } from "../../game/assets/pixels";
 import { credits } from "../../game/assets/credits";
+import {
+  getSaveSummaries,
+  isLoadable,
+  removeSaveSummary,
+} from "../../game/saves";
 import { ACTIONABLE } from "../components/actionable";
 import {
   canWarp,
   completeQuest,
   resetConditionables,
+  initiateLoad,
   initiateWarp,
   performTrade,
   castConditionable,
@@ -374,6 +380,7 @@ export const popupIdles = {
   chat: undefined,
   build: undefined,
   credits: info,
+  load: mapDiscovery,
 };
 
 export const popupActions = {
@@ -398,6 +405,7 @@ export const popupActions = {
   style: "STYLE",
   chat: "CHAT",
   credits: "READ",
+  load: "LOAD",
 };
 
 export const popupTitles = {
@@ -411,6 +419,7 @@ export const popupTitles = {
   warp: "LEVEL",
   use: "USE",
   credits: "TY <3",
+  load: "SAVES",
 };
 
 export const visibleStats: (keyof UnitStats)[] = [
@@ -795,6 +804,10 @@ export default function setupPopup(world: World) {
         ? hairColors.length
         : transaction === "credits"
         ? credits.length
+        : transaction === "load"
+        ? selections.length === 0
+          ? getSaveSummaries().length
+          : 0
         : transaction === "info" ||
           transaction === "warp" ||
           transaction === "talk"
@@ -1383,6 +1396,36 @@ export default function setupPopup(world: World) {
             delay: 0,
           });
         }
+      } else if (tab === "load") {
+        const erasing = selections.length === 1;
+        const save =
+          getSaveSummaries()[erasing ? selections[0] : verticalIndex];
+
+        if (erasing) {
+          // stay at the same row, which then shows the next save
+          setVerticalIndex(world, popupEntity, selections[0]);
+          popTabSelection(world, popupEntity);
+          if (save) {
+            removeSaveSummary(save.id);
+            world.metadata.eraseGame(save.id);
+            play("die", { variant: 2 });
+          }
+        } else if (save && isLoadable(save)) {
+          initiateLoad(world, popupEntity, heroEntity, save.id);
+          play("confirm");
+        } else {
+          play("deny");
+          queueMessage(world, heroEntity, {
+            line: createText(
+              save ? "Newer version!" : "No saves yet!",
+              colors.silver,
+              colors.black
+            ),
+            orientation: "up",
+            fast: false,
+            delay: 0,
+          });
+        }
       } else if (tab === "warp") {
         const selectedLevel = warpEntity && getSelectedLevel(world, warpEntity);
         if (!warpEntity) {
@@ -1493,6 +1536,14 @@ export default function setupPopup(world: World) {
         // clear chat
         popupEntity[POPUP].selections[popupEntity[POPUP].horizontalIndex] = [];
         play("back");
+      } else if (tab === "load" && selections.length === 0) {
+        // ask before erasing a saved game
+        if (getSaveSummaries()[getVerticalIndex(world, popupEntity)]) {
+          // the confirmation only shows the selected save in the first row
+          pushTabSelection(world, popupEntity);
+          setVerticalIndex(world, popupEntity, 0);
+          play("confirm");
+        }
       } else if (
         selections.length > 0 &&
         !questCompleted &&

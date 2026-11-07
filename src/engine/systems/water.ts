@@ -250,7 +250,13 @@ export const updateSandCell = (world: World, position: Position) => {
 const waterTick = 250;
 
 export default function setupWater(world: World) {
-  let elapsed = 0;
+  // continue after restored bubbles, so they burst after loading a saved game
+  let elapsed = Math.max(
+    0,
+    ...world
+      .getEntities([LIQUID])
+      .map((entity) => entity[LIQUID].timestamp || 0)
+  );
 
   const onUpdate = (delta: number) => {
     elapsed += delta;

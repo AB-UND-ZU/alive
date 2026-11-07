@@ -23,3 +23,10 @@
   justify-content: center;
   align-items: center;
 }
+
+/* above the resume area */
+.PauseButton {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+}

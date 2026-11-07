@@ -6,6 +6,8 @@
 
 Create the world, call `createLevel`, install systems with `createSystems`, run the level generator, then call `preloadLevel`. The React World component follows that order. Preloading registers positioned entities and performs an initial update.
 
+A saved game is restored from a [snapshot](snapshot.md) instead of a generator, then gets systems and a preload the same way.
+
 Metadata holds level entities, render counters, listeners, interaction state, and UI callbacks. `getEntityById` can return nothing. The assert variants throw when an ID or required component is missing.
 
 ## Reference frames

@@ -114,7 +114,11 @@ import {
   removePopup,
 } from "../../engine/systems/popup";
 import { isDead, isEnemy } from "../../engine/systems/damage";
-import { createCell, insertArea } from "../../bindings/creation";
+import {
+  createCell,
+  insertArea,
+  setContinuePortal,
+} from "../../bindings/creation";
 import { SOUL } from "../../engine/components/soul";
 import { matrixFactory } from "../math/matrix";
 import { getSequence } from "../../engine/systems/sequence";
@@ -161,15 +165,16 @@ import { relativeOrientations } from "../math/path";
 import { brewingRecipes } from "../balancing/brewing";
 import { dotted, shaded } from "./ui";
 import { MELEE } from "../../engine/components/melee";
+import { getSaveSummaries } from "../saves";
 
 const menuOffset = { x: -8, y: 1 };
 const menuSize = { x: 17, y: 3 };
 const menuPadding = 4;
 const menuArrows = [10, 13];
-const menuItems: { name: string; disabled?: boolean }[] = [
+const menuItems: { name: string; disabled?: () => boolean }[] = [
   { name: "tutorial" },
   { name: "new-game" },
-  { name: "continue", disabled: true },
+  { name: "continue", disabled: () => getSaveSummaries().length === 0 },
   { name: "sound-fx" },
   { name: "controls" },
   { name: "credits" },
@@ -434,6 +439,19 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
     circle.rendered = circleGeneration;
   }
 
+  // open continue portal when saves are listed and close it after erasing all
+  const continuePortal = getIdentifier(world, "continue_portal");
+  const loadable = getSaveSummaries().length > 0;
+  if (continuePortal && loadable !== !!continuePortal[POPUP]) {
+    setContinuePortal(world, continuePortal, loadable);
+
+    const discovery = getSequence(world, continuePortal, "discovery");
+    if (discovery) discovery.args.force = false;
+
+    // enter current menu item again to update it
+    state.args.lastStep = undefined;
+  }
+
   // select and deselect menu items
   menuItems.forEach(({ name, disabled }, menuIndex) => {
     const topLeft = add(menuOffset, {
@@ -450,8 +468,9 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
       name,
       forceEnter: () => within(topLeft, bottomRight, heroPosition, size),
       onEnter: () => {
+        const blocked = !!disabled?.();
         deselectItem(stage);
-        arrowEntity[SPRITE] = disabled ? popupBlocked : popupSelection;
+        arrowEntity[SPRITE] = blocked ? popupBlocked : popupSelection;
         moveEntity(
           world,
           arrowEntity,
@@ -472,7 +491,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
             },
             [POSITION]: cellPosition,
             [RENDERABLE]: { generation: 0 },
-            [SPRITE]: disabled ? dots : shade,
+            [SPRITE]: blocked ? dots : shade,
           });
           state.args.memory.grounds.push(groundEntity);
           registerEntity(world, groundEntity);
@@ -483,7 +502,7 @@ export const menuNpc: Sequence<NpcSequence> = (world, entity, state) => {
 
           if (dotEntity) {
             dotEntity[SPRITE] =
-              menuArrows.includes(cellIndex) && !disabled
+              menuArrows.includes(cellIndex) && !blocked
                 ? menuArrow
                 : recolorSprite(dotEntity[SPRITE], colors.white);
             rerenderEntity(world, dotEntity);

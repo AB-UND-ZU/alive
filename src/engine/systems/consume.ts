@@ -225,12 +225,23 @@ export const consumeItem = (
 
 export default function setupConsume(world: World) {
   let worldGeneration = -1;
-  let worldName = "";
+  let worldName = world.metadata.gameEntity[LEVEL]?.name || "";
   let nextConsumptions: Record<number, Record<number, number>> = {};
   let entityHaste: Record<number, number> = {};
   let entityVision: Record<number, number> = {};
   let entityHp: Record<number, number> = {};
   let entityMp: Record<number, number> = {};
+
+  // continue from restored players, so loading neither changes vision nor adds
+  // equipment stats again
+  for (const entity of world.getEntities([PLAYER, STATS])) {
+    const entityId = world.getEntityId(entity);
+    const equipmentStats = getEntityEquipmentStats(world, entity);
+    entityHaste[entityId] = getEntityHaste(world, entity);
+    entityVision[entityId] = getEntityVision(world, entity).visibility;
+    entityHp[entityId] = equipmentStats.maxHp;
+    entityMp[entityId] = equipmentStats.maxMp;
+  }
 
   const onUpdate = (delta: number) => {
     const generation = world.metadata.gameEntity[RENDERABLE].generation;

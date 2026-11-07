@@ -38,6 +38,18 @@ In menus, use up and down to select a row and left and right where the menu offe
 
 ## Pause and touch
 
-The pause screen offers settings and a way back to the game. Switching away from the browser tab pauses play. On touch screens, the two main buttons use their action names rather than keyboard shortcuts. Dragging outside the buttons controls direction.
+Press Escape or the pause button to pause. Escape or the pause button resumes. Switching away from the browser tab pauses play. On touch screens, the two main buttons use their action names rather than keyboard shortcuts. Dragging outside the buttons controls direction.
 
 For tools, activate the tool first and then give a direction. Q lets you return to your combat skill without discarding the tool. See [gathering](gathering.md) for each tool's job.
+
+## Save and continue
+
+Pausing the game saves it. The pause screen lists **RESUME**, **MENU** and **SAVE**. **MENU** saves and returns to the main menu, and **SAVE** saves again. The name of the game's save appears below **SAVE**. Nothing is saved in the main menu or while stepping through a portal, and the main menu's pause screen only offers **RESUME**.
+
+Saves stay in this browser on this device. Clearing the site data of your browser deletes them. Each game keeps one save that is updated whenever you save it, and every new game gets its own save. Its name is the time of the last save, for example `20261011-151323` for 11 October 2026 at 15:13:23.
+
+The **Continue** row of the main menu and its portal only open once there is a save. Walk to the portal and interact with it. The list shows the latest save first. Below it are the hero's class and equipped items, level and world, deaths, enemies killed and time played. Choose a save and confirm **LOAD**. The hero steps into the portal and appears where the game was saved, with all stats and items.
+
+To delete a save, choose it and press **ERASE**, then confirm with **YES** or go **BACK**. Erased saves can't be restored.
+
+Saves from a newer version of the game are shown in dark red and can't be loaded. Saves from older versions are upgraded when loaded.

@@ -25,6 +25,15 @@ export default function createWorld() {
   const world = ECS.createWorld() as PatchedWorld;
 
   const createEntity = ECS.createEntity.bind(ECS, world);
+  // recreate an entity with its previous ID, e.g. when loading a saved game
+  const restoreEntity = (entityId: number) => {
+    const ids = world as unknown as { nextId: number };
+    const nextId = ids.nextId;
+    ids.nextId = entityId;
+    const entity = createEntity() as TypedEntity;
+    ids.nextId = Math.max(nextId, entityId + 1);
+    return entity;
+  };
   const removeEntity = ECS.removeEntity.bind(ECS, world);
   const getEntity = <C extends keyof Entity>(componentNames: C[]) =>
     ECS.getEntity(world, [
@@ -159,11 +168,17 @@ export default function createWorld() {
   const addSystem: (system: (world: World) => System) => void = (system) =>
     ECS.addSystem(world, () => system(ecs));
 
-  const update = ECS.update.bind(ECS, world);
+  const update = (delta: number) => {
+    if (world.ecs.metadata.gameEntity[LEVEL]?.name !== "LEVEL_MENU") {
+      world.ecs.metadata.playtime += delta;
+    }
+    ECS.update(world, delta);
+  };
   const cleanup = ECS.cleanup.bind(ECS, world);
 
   const ecs = {
     createEntity,
+    restoreEntity,
     removeEntity,
     getEntity,
     getEntityById,
@@ -187,6 +202,12 @@ export default function createWorld() {
       sequenceEntity: {} as TypedEntity<"RENDERABLE" | "REFERENCE">,
       renderEntity: {} as TypedEntity<"RENDERABLE">,
       initial: true,
+      // milliseconds spent in levels other than the menu
+      playtime: 0,
+      // stored game this world was loaded from or saved to
+      saveId: undefined as string | undefined,
+      loadGame: (saveId: string) => {},
+      eraseGame: (saveId: string) => {},
       suspend: () => {},
       resume: () => {},
       setFlipped: (flipped: boolean) => {},

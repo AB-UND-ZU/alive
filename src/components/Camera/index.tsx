@@ -14,7 +14,7 @@ const initialCamera = {
 export default function Camera() {
   const { paused } = useWorld();
   const dimensions = useDimensions();
-  const { position, fraction, config } = useViewpoint();
+  const { position, fraction, config, jump } = useViewpoint();
 
   const zoom = dimensions.cellHeight;
   const spring = useSpring({
@@ -25,6 +25,7 @@ export default function Camera() {
       z: cameraHeight,
     },
     pause: paused,
+    immediate: jump,
     config,
   });
 

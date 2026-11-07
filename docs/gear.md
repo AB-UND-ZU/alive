@@ -42,4 +42,4 @@ At zero health, the hero dies and a grave marks the location. The game drops unb
 
 The respawn sequence returns a new hero to a spawn point. A quest marker points toward the grave so you can recover what was dropped. Recovering items does not restore the old session's current mana or experience automatically.
 
-Reloading the page starts over. The current browser game does not store a saved character or world.
+Deaths are counted for the whole game and shown with your [saved games](controls.md#save-and-continue).

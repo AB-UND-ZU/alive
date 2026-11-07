@@ -38,16 +38,16 @@ const catchupFrames = 15;
 export default function Systems() {
   const { ecs, paused, suspended } = useWorld();
   const dimensions = useDimensions();
-  const { position, fraction, viewable } = useViewpoint();
-  const overscan = useOverscan(position.x, position.y, suspended);
+  const { position, fraction, viewable, jump } = useViewpoint();
+  const overscan = useOverscan(position.x, position.y, suspended || jump);
   const game = useGame();
   const hero = useHero();
   const structure = hero?.[LAYER]?.structure;
-  const damageRef = useRef(0);
   const damageReceived =
     (hero?.[PLAYER].receivedStats.melee || 0) +
     (hero?.[PLAYER].receivedStats.magic || 0) +
     (hero?.[PLAYER].receivedStats.true || 0);
+  const damageRef = useRef<number>();
   const [values, api] = useSpring(() => ({
     x: 0,
     y: 0,
@@ -96,8 +96,14 @@ export default function Systems() {
   }, [api, paused, suspended]);
 
   useEffect(() => {
+    // don't shake for damage received before loading a saved game
+    if (hero && damageRef.current === undefined) {
+      damageRef.current = damageReceived;
+      return;
+    }
+
     // shake screen on damage
-    const shakeIntensity = damageReceived - damageRef.current;
+    const shakeIntensity = damageReceived - (damageRef.current || 0);
 
     if (hero && shakeIntensity > 0) {
       damageRef.current =

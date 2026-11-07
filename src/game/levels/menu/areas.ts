@@ -26,7 +26,7 @@ export const centerArea = `\
                  ∩ 
                    
                    
-                   
+                 Π 
                    
                    
                  ½ 

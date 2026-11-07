@@ -505,6 +505,7 @@ export default function setupDrop(world: World) {
         if (heroEntity && unitKey) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
+          heroEntity[PLAYER].kills += 1;
         }
 
         // create spawns and remains for vanished units
@@ -627,6 +628,7 @@ export default function setupDrop(world: World) {
         if (heroEntity && unitKey && entity === rootEntity) {
           heroEntity[PLAYER].defeatedUnits[unitKey] =
             (heroEntity[PLAYER].defeatedUnits[unitKey] || 0) + 1;
+          heroEntity[PLAYER].kills += 1;
         }
       }
     }

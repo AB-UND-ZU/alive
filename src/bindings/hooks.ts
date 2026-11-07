@@ -19,6 +19,8 @@ import { LIGHT } from "../engine/components/light";
 import { Entity, TypedEntity } from "../engine/entities";
 import { IDENTIFIABLE } from "../engine/components/identifiable";
 
+export type SaveStatus = { saving: boolean; name?: string; failed?: boolean };
+
 export type WorldContext = {
   ecs: WorldType | null;
   initial: boolean;
@@ -29,6 +31,9 @@ export type WorldContext = {
   setPaused: React.Dispatch<React.SetStateAction<boolean>>;
   flipped: boolean;
   setFlipped: React.Dispatch<React.SetStateAction<boolean>>;
+  saveStatus?: SaveStatus;
+  saveGame: () => void;
+  openMenu: () => void;
 };
 
 const initialContext: WorldContext = {
@@ -41,6 +46,8 @@ const initialContext: WorldContext = {
   setPaused: () => {},
   flipped: false,
   setFlipped: () => {},
+  saveGame: () => {},
+  openMenu: () => {},
 };
 const Context = createContext(initialContext);
 
@@ -160,26 +167,40 @@ const defaultSpring = {
 
 const zeroFraction = { x: 0, y: 0 };
 export const useViewpoint = () => {
-  const viewable = useViewable();
-  const [position, setPosition] = useState({ x: 0, y: 0 });
   const { ecs } = useWorld();
+  const renderedViewable = useViewable();
+  // read world directly until renderables are listed, e.g. in loaded worlds
+  const viewable =
+    renderedViewable ||
+    (ecs && getActiveViewable(ecs.getEntities([VIEWABLE, POSITION])));
+  const level = ecs?.metadata.gameEntity[LEVEL]?.name;
+  const committed = useRef<{ position: Position; level?: string }>();
 
+  // start right at the viewpoint in new or loaded worlds
+  const previous = committed.current;
+  const jump = !previous || previous.level !== level;
   const x = viewable?.[POSITION].x;
   const y = viewable?.[POSITION].y;
+  let position = previous?.position || { x: 0, y: 0 };
+
+  if (ecs && x !== undefined && y !== undefined) {
+    const size = ecs.metadata.gameEntity[LEVEL].size;
+    position = jump
+      ? { x, y }
+      : {
+          x: position.x + signedDistance(position.x, x, size),
+          y: position.y + signedDistance(position.y, y, size),
+        };
+  }
 
   useEffect(() => {
-    if (!ecs || x === undefined || y === undefined) return;
-
-    const size = ecs.metadata.gameEntity[LEVEL].size;
-
-    setPosition((prevPosition) => ({
-      x: prevPosition.x + signedDistance(prevPosition.x, x, size),
-      y: prevPosition.y + signedDistance(prevPosition.y, y, size),
-    }));
-  }, [x, y, ecs]);
+    if (x === undefined || y === undefined) return;
+    committed.current = { position, level };
+  });
 
   return {
     position,
+    jump,
     config: viewable?.[VIEWABLE].spring || defaultSpring,
     radius: viewable?.[LIGHT]?.brightness || Infinity,
     fraction: viewable?.[VIEWABLE].fraction || zeroFraction,

@@ -988,7 +988,7 @@ export default function Controls() {
         backspaceKeys.includes(event.key) &&
         event.type === "keydown"
       ) {
-        if (ecs && popup && getTab(ecs, popup) === "chat") {
+        if (ecs && popup && ["chat", "load"].includes(getTab(ecs, popup))) {
           handleLeft(event);
         }
         return;
@@ -1108,6 +1108,9 @@ export default function Controls() {
             "skill",
             "menu",
             "resume",
+            "pause-resume",
+            "pause-menu",
+            "pause-save",
             "interact",
             "inspect",
             "quick",

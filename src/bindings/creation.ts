@@ -72,7 +72,7 @@ import { getEnterable } from "../engine/systems/enter";
 import { createHero } from "../engine/systems/fate";
 import { applySnow } from "../engine/systems/freeze";
 import { boatHaste, getHasteInterval } from "../engine/systems/movement";
-import { createPopup } from "../engine/systems/popup";
+import { createPopup, removePopup } from "../engine/systems/popup";
 import { createSequence } from "../engine/systems/sequence";
 import {
   assertIdentifier,
@@ -301,7 +301,8 @@ import { BUMPABLE } from "../engine/components/bumpable";
 import { PLAYER } from "../engine/components/player";
 import { HOOKABLE } from "../engine/components/hookable";
 import { FISHABLE } from "../engine/components/fishable";
-import { getCellEntities } from "../engine/systems/map";
+import { disposeSequence, getCellEntities } from "../engine/systems/map";
+import { getSaveSummaries } from "../game/saves";
 import { REFILLABLE } from "../engine/components/refillable";
 import { brewingRecipes } from "../game/balancing/brewing";
 import { BREWABLE } from "../engine/components/brewable";
@@ -932,6 +933,7 @@ export const insertArea = (
       else if (cell === "W") entity = "worm_bait";
       else if (cell === "C") entity = "chest_boss";
       else if (cell === "∩") entity = "portal";
+      else if (cell === "Π") entity = "continue_portal";
       else if (cell === "⌠") entity = "fountain";
       else if (cell === "1") entity = "1";
       else if (cell === "½") entity = "settings_sound";
@@ -945,6 +947,32 @@ export const insertArea = (
       matrix[x][y] = entity as CellType;
     });
   });
+};
+
+// the continue portal only opens with saved games to load
+export const setContinuePortal = (
+  world: World,
+  portalEntity: Entity,
+  active: boolean
+) => {
+  portalEntity[TOOLTIP].override = active ? undefined : "hidden";
+  portalEntity[TOOLTIP].changed = true;
+
+  if (active === !!portalEntity[POPUP]) return;
+
+  if (active) {
+    createSequence<"vortex", VortexSequence>(
+      world,
+      portalEntity,
+      "vortex",
+      "vortexDots",
+      { generation: 0 }
+    );
+    createPopup(world, portalEntity, { tabs: ["load"] });
+  } else {
+    disposeSequence(world, portalEntity, "vortex");
+    removePopup(world, portalEntity);
+  }
 };
 
 export const createCell = (
@@ -4215,9 +4243,10 @@ export const createCell = (
     );
     setIdentifier(world, mobEntity, "chest_mob");
     return { cell: mobEntity, all };
-  } else if (cell === "portal") {
+  } else if (cell === "portal" || cell === "continue_portal") {
     const currentLevel = world.metadata.gameEntity[LEVEL].name;
     const inMenu = currentLevel === "LEVEL_MENU";
+    const loading = cell === "continue_portal";
     const level = levelConfig[currentLevel];
     const portalEntity = entities.createPortal(world, {
       [COLLIDABLE]: {},
@@ -4236,6 +4265,13 @@ export const createCell = (
       },
     });
     all.push(portalEntity);
+
+    if (loading) {
+      setIdentifier(world, portalEntity, "continue_portal");
+      setContinuePortal(world, portalEntity, getSaveSummaries().length > 0);
+      return { cell: portalEntity, all };
+    }
+
     createSequence<"vortex", VortexSequence>(
       world,
       portalEntity,
@@ -4610,7 +4646,7 @@ export const createCell = (
       [..."New Game  ", ".\x00:", ..."  ", ".\x00:"],
       [],
       [],
-      [..."Continue  ", ".\x00:", ..."  ", ".\x00:", ..."  ", "\x08∩"],
+      [..."Continue  ", ".\x00:", ..."  ", ".\x00:"],
       [],
       [],
       [..."Sound FX  ", ".\x00:", ..."  ", ".\x00:"],

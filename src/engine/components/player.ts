@@ -13,6 +13,9 @@ export type Player = {
     number
   >;
   defeatedUnits: Partial<Record<UnitKey, number>>;
+  // totals of the whole game, unlike defeated units of current level
+  kills: number;
+  deaths: number;
   popup?: number;
   mount?: number;
   quickItems: Record<string, Omit<Item, "bound" | "amount" | "carrier">>;

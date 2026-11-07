@@ -345,8 +345,16 @@ export const hasTriggered = (
 
 export default function setupMagic(world: World) {
   let referenceGenerations = -1;
-  const playerStats: Player["receivedStats"] = { ...emptyReceivedStats };
+  // continue from restored entities, so loading a saved game doesn't replay
+  // received stats or damage over time
+  const playerStats: Player["receivedStats"] = {
+    ...(world.getEntity([PLAYER])?.[PLAYER].receivedStats ||
+      emptyReceivedStats),
+  };
   const entityDots: Record<number, number> = {};
+  for (const entity of world.getEntities([AFFECTABLE])) {
+    entityDots[world.getEntityId(entity)] = entity[AFFECTABLE].dot;
+  }
 
   const onUpdate = (delta: number) => {
     const generation = world

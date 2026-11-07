@@ -61,6 +61,7 @@ const popups = [
   "plant",
   "build",
   "credits",
+  "load",
 ] as const;
 
 export type Popup = {

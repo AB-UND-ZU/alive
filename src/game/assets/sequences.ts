@@ -143,6 +143,10 @@ import {
   spellSlot,
   skillSlot,
   times,
+  tombstone1,
+  kills,
+  portal,
+  portalVortex,
   delay,
   popupActive,
   emptyFlask,
@@ -379,6 +383,12 @@ import {
   anvilPixels,
 } from "./pixels";
 import { credits } from "./credits";
+import {
+  formatPlaytime,
+  getSaveSummaries,
+  isLoadable,
+  SaveSummary,
+} from "../saves";
 import { brightenSprites, plot } from "./ui";
 import { getItemSellPrice } from "../balancing/trading";
 import {
@@ -3831,6 +3841,8 @@ export const displayPopup: Sequence<PopupSequence> = (world, entity, state) => {
     handler = displayChat;
   } else if (transaction === "credits") {
     handler = displayCredits;
+  } else if (transaction === "load") {
+    handler = displayLoad;
   }
 
   return handler(world, entity, state);
@@ -5602,6 +5614,12 @@ export const displayStyle: Sequence<PopupSequence> = (world, entity, state) => {
   };
 };
 
+const getHeroSprite = (classKey: ClassKey, hairColor: string) =>
+  mergeSprites(
+    unitBackdrops[classKey]?.[hairColor] || none,
+    getClassData(classKey, hairColor).sprite
+  );
+
 const creditsGap = "   ";
 
 export const displayCredits: Sequence<PopupSequence> = (
@@ -5655,10 +5673,7 @@ export const displayCredits: Sequence<PopupSequence> = (
     const selected = verticalIndex === rowIndex;
     const creditSprite =
       credit.classKey && credit.hairColor
-        ? mergeSprites(
-            unitBackdrops[credit.classKey]?.[credit.hairColor] || none,
-            getClassData(credit.classKey, credit.hairColor).sprite
-          )
+        ? getHeroSprite(credit.classKey, credit.hairColor)
         : credit.sprite || none;
     const creditTitle = createText(
       credit.name,
@@ -5697,6 +5712,128 @@ export const displayCredits: Sequence<PopupSequence> = (
     ],
     undefined,
     createButton("VISIT", 7, !selectedCredit.link, false, false, "lime")
+  );
+  return {
+    updated: popupResult.updated,
+    finished: popupResult.finished,
+  };
+};
+
+// align two texts to both sides of a details line
+const spreadText = (left: Sprite[], right: Sprite[]) => [
+  ...left,
+  ...repeat(none, Math.max(1, frameWidth - 2 - left.length - right.length)),
+  ...right,
+];
+
+const eraseQuestion = [
+  createText("Are you sure you"),
+  [...createText("want to "), ...createText("delete", colors.red)],
+  createText("this saved game?"),
+];
+
+export const displayLoad: Sequence<PopupSequence> = (world, entity, state) => {
+  const saves = getSaveSummaries();
+  const selections = getTabSelections(world, entity);
+  const erasing = selections.length === 1;
+  const verticalIndex = getVerticalIndex(world, entity);
+  const selectedSave = saves[erasing ? selections[0] : verticalIndex];
+
+  const getSaveRow = (save: SaveSummary, selected: boolean) => {
+    const saveTitle = createText(
+      save.name,
+      !isLoadable(save) ? colors.maroon : selected ? colors.white : colors.grey
+    );
+    const line = [
+      ...saveTitle,
+      ...repeat(none, frameWidth - 4 - saveTitle.length),
+    ];
+
+    return [
+      none,
+      getHeroSprite(save.classKey, save.hairColor),
+      ...(erasing
+        ? shaded(line, colors.maroon, "█")
+        : selected
+        ? shaded(line, colors.grey)
+        : line),
+    ];
+  };
+
+  const content: Sprite[][] =
+    erasing && selectedSave
+      ? [getSaveRow(selectedSave, true)]
+      : saves.length
+      ? saves.map((save, rowIndex) =>
+          getSaveRow(save, verticalIndex === rowIndex)
+        )
+      : [[none, none, ...createText("No saves yet", colors.grey)]];
+
+  let details: Sprite[][] | undefined;
+  if (erasing) {
+    details = eraseQuestion;
+  } else if (selectedSave) {
+    const className = createText(
+      entitySprites[selectedSave.classKey].sprite.name
+    );
+    const itemSprites = (selectedSave.items || []).map((item) =>
+      getItemSprite(item, "display")
+    );
+    details = [
+      spreadText(
+        className,
+        itemSprites.slice(0, frameWidth - 3 - className.length)
+      ),
+      spreadText(createText(`Level#${selectedSave.heroLevel}`, colors.lime), [
+        mergeSprites(portalVortex, portal),
+        ...createText(levelConfig[selectedSave.level].name, colors.silver),
+      ]),
+      spreadText(
+        [
+          tombstone1,
+          ...createText(
+            Math.min(selectedSave.deaths, 99).toString(),
+            colors.grey
+          ),
+          none,
+          kills,
+          ...createText(
+            Math.min(selectedSave.kills, 999).toString(),
+            colors.maroon
+          ),
+        ],
+        [
+          delay,
+          ...createText(formatPlaytime(selectedSave.playtime), colors.olive),
+        ]
+      ),
+    ];
+  } else {
+    details = [createText("Pause the game"), createText("to save it.")];
+  }
+
+  const popupResult = renderPopup(
+    world,
+    entity,
+    state,
+    popupIdles[getTab(world, entity)],
+    content,
+    erasing ? "blocked" : selectedSave ? "selected" : undefined,
+    details,
+    undefined,
+    erasing
+      ? createButton("YES", 5, false, false, false, "lime")
+      : createButton(
+          "LOAD",
+          6,
+          !selectedSave || !isLoadable(selectedSave),
+          false,
+          false,
+          "lime"
+        ),
+    erasing
+      ? createButton("\u011aBACK", 7, false, false, false, "red")
+      : createButton("ERASE", 7, !selectedSave, false, false, "red")
   );
   return {
     updated: popupResult.updated,
