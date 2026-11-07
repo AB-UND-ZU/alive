@@ -23,3 +23,29 @@ The result must be stored with structured cloning, as IndexedDB does, to keep sh
 `restoreSnapshot` creates a world and recreates the entities in their original order with `restoreEntity`, so IDs and query order stay the same. Afterwards, install systems with `createSystems` and call `preloadLevel`, as for a generated level. Systems start with fresh internal state and lazily initialize cells around the hero again.
 
 Renaming or removing an exported sprite makes older snapshots fail to load unless a save upgrade maps the name.
+<!-- source-types -->
+
+## WorldSnapshot
+
+```ts src/engine/snapshot.ts
+export type WorldSnapshot = {
+  nextId: number;
+  playtime: number;
+  game: number;
+  sequence: number;
+  render: number;
+  entities: [number, Record<string, unknown>][];
+};
+```
+
+## SpriteToken
+
+```ts src/engine/snapshot.ts
+type SpriteToken = { $sprite: string };
+```
+
+## EntityToken
+
+```ts src/engine/snapshot.ts
+type EntityToken = { $entity: number };
+```

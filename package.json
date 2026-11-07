@@ -41,6 +41,7 @@
     "eject": "react-scripts eject",
     "prepare": "git config core.hooksPath .githooks || true",
     "media:titles": "node scripts/regenerate-titles.cjs",
+    "docs:types": "node scripts/docs/types.mjs",
     "docs:build": "node scripts/docs/build.mjs",
     "docs:dev": "node scripts/docs/serve.mjs",
     "docs:test": "playwright test"

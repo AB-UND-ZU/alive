@@ -93,52 +93,55 @@ export type CommandSignature = {
   short: string;
 };
 
-const items: Record<string, Omit<Item, "carrier" | "amount" | "bound">> = {};
+export const commandItems: Record<
+  string,
+  Omit<Item, "carrier" | "amount" | "bound">
+> = {};
 mainWeapons.forEach((weapon) => {
-  items[weapon] = { weapon, material: "wood" };
+  commandItems[weapon] = { weapon, material: "wood" };
 });
 skillWeapons.forEach((weapon) => {
-  items[weapon] = { weapon, skill: weapon, material: "wood" };
+  commandItems[weapon] = { weapon, skill: weapon, material: "wood" };
 });
 offhands.forEach((offhand) => {
-  items[offhand] = { offhand, material: "wood" };
+  commandItems[offhand] = { offhand, material: "wood" };
 });
 spells.forEach((spell) => {
-  items[spell] = { spell, material: "wood" };
+  commandItems[spell] = { spell, material: "wood" };
 });
 skills.forEach((skill) => {
   // don't override skill weapons
-  if (skill in items) return;
+  if (skill in commandItems) return;
 
-  items[skill] = { skill, material: "wood" };
+  commandItems[skill] = { skill, material: "wood" };
 });
 tools.forEach((tool) => {
-  items[tool] = { tool, material: "wood" };
+  commandItems[tool] = { tool, material: "wood" };
 });
 stackables.forEach((stackable) => {
-  items[stackable] = { stackable };
+  commandItems[stackable] = { stackable };
 });
 materials.forEach((material) => {
-  items[material] = { stackable: "resource", material };
+  commandItems[material] = { stackable: "resource", material };
 });
 elements.forEach((element) => {
-  items[element] = { stackable: "resource", material: "wood", element };
+  commandItems[element] = { stackable: "resource", material: "wood", element };
 });
 accessories.forEach((accessory) => {
-  items[accessory] = {
+  commandItems[accessory] = {
     accessory,
     material:
       accessory === "map" ? "gold" : accessory === "compass" ? "iron" : "wood",
   };
 });
 unitStats.forEach((stat) => {
-  items[stat] = { stat };
+  commandItems[stat] = { stat };
 });
-items.key = { consume: "key", material: "iron" };
-items.potion = { consume: "potion", material: "wood" };
-items.bucket = { consume: "bucket", material: "iron" };
+commandItems.key = { consume: "key", material: "iron" };
+commandItems.potion = { consume: "potion", material: "wood" };
+commandItems.bucket = { consume: "bucket", material: "iron" };
 
-const commandSignatures: Record<string, CommandSignature> = {};
+export const commandSignatures: Record<string, CommandSignature> = {};
 
 const expandCommand = (commandOrShort: string) => {
   if (commandOrShort in commandSignatures) return commandOrShort;
@@ -175,11 +178,11 @@ const executeGive = (
   material?: string,
   element?: string
 ) => {
-  if (!(itemName in items)) {
+  if (!(itemName in commandItems)) {
     return `No item "${itemName}"!`;
   }
 
-  const item = { ...items[itemName] };
+  const item = { ...commandItems[itemName] };
   const amount = parseInt(amountText);
 
   if (isNaN(amount)) {
@@ -298,10 +301,10 @@ const executeCast = (
   material = "wood",
   element = ""
 ) => {
-  if (!(itemName in items)) {
+  if (!(itemName in commandItems)) {
     return `No item "${itemName}"!`;
   }
-  const item = { ...items[itemName], amount: 1 };
+  const item = { ...commandItems[itemName], amount: 1 };
 
   if (!(item.spell || item.skill) || ["zap", "block"].includes(item.skill!)) {
     return `Can't cast "${itemName}"!`;
@@ -353,7 +356,15 @@ const executeTp = (world: World, entity: Entity, idOrLoc: string) => {
   return `No id "${idOrLoc}"!`;
 };
 
-const mods = ["fly", "swim", "walk", "pvp", "pve", "god"];
+export const commandMods = [
+  "fly",
+  "swim",
+  "walk",
+  "pvp",
+  "pve",
+  "god",
+  "reset",
+];
 const executeMod = (world: World, entity: Entity, mod: string) => {
   if (mod === "walk") {
     entity[MOVABLE].swimming = false;
@@ -400,7 +411,16 @@ const executeMod = (world: World, entity: Entity, mod: string) => {
   }
 };
 
-const lists = ["list", "mod", "cmd", "item", "id", "stat", "cast", "cell"];
+export const commandLists = [
+  "list",
+  "mod",
+  "cmd",
+  "item",
+  "id",
+  "stat",
+  "cast",
+  "cell",
+];
 const executeList = (world: World, entity: Entity, list: string) => {
   let lines: string[] | Sprite[][] = [];
 
@@ -411,16 +431,16 @@ const executeList = (world: World, entity: Entity, list: string) => {
       return createText(`/${name}│/${signature.short}`.padStart(10).padEnd(14));
     });
   } else if (list === "list") {
-    lines = sorted(lists).map((name) => `/list ${name}`.padEnd(10));
+    lines = sorted(commandLists).map((name) => `/list ${name}`.padEnd(10));
   } else if (list === "mod") {
-    lines = sorted(mods).map((name) => `/mod ${name}`);
+    lines = sorted(commandMods).map((name) => `/mod ${name}`);
   } else if (list === "cell") {
     lines = sorted([...cellNames]);
   } else if (list === "item") {
-    const itemNames = sorted(Object.keys(items));
+    const itemNames = sorted(Object.keys(commandItems));
     lines = itemNames.map((itemName) => {
       const text = createText(`${itemName}│`);
-      const name = createItemName(items[itemName]);
+      const name = createItemName(commandItems[itemName]);
       return [
         ...repeat(none, 9 - text.length),
         ...text,

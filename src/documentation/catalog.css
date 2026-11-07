@@ -1,0 +1,24 @@
+.CatalogEntry.CatalogEntry {
+  margin: 64px 0;
+  scroll-margin-top: 128px;
+}
+.CatalogEntry .LargePreview {
+  margin: 0;
+}
+.CatalogEntry .CatalogDescription {
+  overflow: visible;
+  margin: 0;
+}
+.CatalogOverview .CatalogIndex {
+  display: grid;
+  gap: 0 18px;
+  margin: 0;
+}
+.CatalogIndex > span {
+  display: inline-block;
+}
+.GridValue .Parts,
+.GridValue .Parts > span,
+.CatalogLines > div {
+  display: block;
+}

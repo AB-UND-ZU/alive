@@ -1,9 +1,60 @@
 import { createServer } from "node:http";
-import { readFile, stat } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
+import { watch } from "node:fs";
 import path from "node:path";
-import { buildDocs, root } from "./build.mjs";
+import { root } from "./build.mjs";
+async function buildDocs() {
+  const builder = await import(`./build.mjs?revision=${Date.now()}`);
+  await builder.buildDocs(".docs-dev");
+}
 await buildDocs();
-const directory = path.join(root, ".docs-build");
+const directory = path.join(root, ".docs-dev"),
+  clients = new Set();
+async function snapshotFiles(folder, prefix = "") {
+  const snapshot = new Map();
+  for (const entry of await readdir(folder, { withFileTypes: true })) {
+    const file = path.join(folder, entry.name),
+      route = prefix + "/" + entry.name;
+    if (entry.isDirectory())
+      for (const [key, data] of await snapshotFiles(file, route))
+        snapshot.set(key, data);
+    else snapshot.set(route, await readFile(file));
+  }
+  return snapshot;
+}
+let snapshot = await snapshotFiles(directory);
+let building = false,
+  dirty = false,
+  timer;
+async function rebuild() {
+  if (building) {
+    dirty = true;
+    return;
+  }
+  building = true;
+  try {
+    await buildDocs();
+    snapshot = await snapshotFiles(directory);
+    for (const client of clients) client.write("data: reload\n\n");
+  } catch (error) {
+    console.error(error.message);
+  } finally {
+    building = false;
+    if (dirty) {
+      dirty = false;
+      schedule();
+    }
+  }
+}
+function schedule() {
+  clearTimeout(timer);
+  timer = setTimeout(rebuild, 180);
+}
+for (const folder of ["docs", "src", "scripts/docs", "public/fonts"])
+  watch(path.join(root, folder), { recursive: true }, schedule);
+for (const file of ["package.json", "tsconfig.json"])
+  watch(path.join(root, file), schedule);
+const reloadClient = `const changes=new EventSource('/__docs_events');changes.onmessage=event=>{if(event.data==='reload')window.location.reload();};`;
 const types = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -11,17 +62,49 @@ const types = {
   ".png": "image/png",
   ".woff2": "font/woff2",
   ".woff": "font/woff",
+  ".json": "application/json",
 };
 createServer(async (request, response) => {
   try {
     const url = new URL(request.url, "http://localhost");
-    let file = path.resolve(directory, "." + decodeURIComponent(url.pathname));
-    if (!file.startsWith(directory + path.sep) && file !== directory)
-      throw new Error("Invalid path");
-    if ((await stat(file)).isDirectory()) file = path.join(file, "index.html");
-    const data = await readFile(file);
+    if (url.pathname === "/__docs_health") {
+      response.writeHead(200);
+      response.end("Ready");
+      return;
+    }
+    if (url.pathname === "/__docs_events") {
+      response.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+      response.write(": connected\n\n");
+      clients.add(response);
+      request.on("close", () => clients.delete(response));
+      return;
+    }
+    if (url.pathname === "/__docs_reload.js") {
+      response.writeHead(200, {
+        "Content-Type": "text/javascript",
+        "Cache-Control": "no-store",
+      });
+      response.end(reloadClient);
+      return;
+    }
+    const route = url.pathname.endsWith("/")
+      ? url.pathname + "index.html"
+      : url.pathname;
+    let data = snapshot.get(decodeURIComponent(route));
+    if (!data) throw Error("Not found");
+    if (route.endsWith(".html") && path.basename(route) !== "preview.html")
+      data = data
+        .toString()
+        .replace(
+          "</head>",
+          '<script defer src="/__docs_reload.js"></script></head>'
+        );
     response.writeHead(200, {
-      "Content-Type": types[path.extname(file)] || "application/octet-stream",
+      "Content-Type": types[path.extname(route)] || "application/octet-stream",
       "Cache-Control": "no-store",
     });
     response.end(data);
@@ -29,6 +112,10 @@ createServer(async (request, response) => {
     response.writeHead(404);
     response.end("Not found");
   }
-}).listen(4173, "127.0.0.1", () =>
-  console.log("Docs: http://127.0.0.1:4173 (restart to rebuild)")
+}).listen(Number(process.env.DOCS_PORT || 4173), "127.0.0.1", () =>
+  console.log(
+    `Docs: http://127.0.0.1:${
+      process.env.DOCS_PORT || 4173
+    } (watching Markdown, React and CSS)`
+  )
 );

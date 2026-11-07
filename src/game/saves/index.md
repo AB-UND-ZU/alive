@@ -1,6 +1,6 @@
 # Saved games
 
-`index.ts` creates and upgrades saved games and keeps a list of save summaries for the menu. `storage.ts` stores them in the browser's IndexedDB. Players find the controls in [save and continue](../../../docs/controls.md#save-and-continue).
+`index.ts` creates and upgrades saved games and keeps a list of save summaries for the menu. `storage.ts` stores them in the browser's IndexedDB. Players find the controls in [Savegames](../../../docs/savegames.md).
 
 ## Saving
 
@@ -14,7 +14,7 @@ Playtime counts world updates outside the main menu. Kills and deaths are totals
 
 ## Storage
 
-Summaries and saves are separate object stores in one database. The menu reads only summaries; a whole world is read when loading. `storeGame` also asks the browser to persist site storage, so saves aren't evicted when space runs low. Clearing site data still deletes them.
+Summaries and saves are separate object stores in one database. The menu reads only summaries; a whole world is read when loading. `storeGame` also asks the browser to persist site storage, to reduce eviction when space runs low; the browser may decline. Clearing site data still deletes them.
 
 The summaries are kept in memory, latest first, because popups render synchronously. They are read once on start and updated after each save or erase. Erasing removes the summary right away and deletes the stored save through `world.metadata.eraseGame`.
 
@@ -31,3 +31,36 @@ Each save stores the package version. When a release changes world data, such as
 Saves from newer versions can't be loaded. The saves dialog shows them in dark red.
 
 Test upgrades with saved data from the previous version. The tests in `index.test.ts` cover ordering and refusal with example upgrades.
+<!-- source-types -->
+
+## SaveItem
+
+```ts src/game/saves/index.ts
+export type SaveItem = Omit<Item, "carrier" | "amount" | "bound">;
+```
+
+## SaveSummary
+
+```ts src/game/saves/index.ts
+export type SaveSummary = {
+  id: string;
+  // local time as YYYYMMDD-HHMMSS, fits exactly into a popup row
+  name: string;
+  version: string;
+  level: LevelName;
+  classKey: ClassKey;
+  hairColor: string;
+  heroLevel: number;
+  // equipped gear, then accessories
+  items: SaveItem[];
+  playtime: number;
+  kills: number;
+  deaths: number;
+};
+```
+
+## SaveGame
+
+```ts src/game/saves/index.ts
+export type SaveGame = SaveSummary & { snapshot: WorldSnapshot };
+```

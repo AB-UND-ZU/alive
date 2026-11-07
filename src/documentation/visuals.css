@@ -1,0 +1,60 @@
+.DocLink:is(:hover, :focus-visible) .LinkText svg rect {
+  fill: #00ffff;
+}
+.GameButton.SpriteStates,
+.GameSelection.SpriteStates {
+  display: inline-grid;
+}
+.SpriteStates > .SpriteState {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  user-select: none;
+  pointer-events: none;
+}
+.SpriteStates > .StateIdle {
+  visibility: visible;
+}
+.SpriteStates:not(:disabled):is(:hover, :focus-visible) > .StateIdle {
+  visibility: hidden;
+}
+.SpriteStates:not(:disabled):is(:hover, :focus-visible) > .StateHover {
+  visibility: visible;
+}
+.GameButton.SpriteStates:not(:disabled):active > .StateIdle,
+.GameButton.SpriteStates:not(:disabled):active > .StateHover {
+  visibility: hidden;
+}
+.GameButton.SpriteStates:not(:disabled):active > .StatePressed {
+  visibility: visible;
+}
+.FrameScroll {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+.TextFrame {
+  display: block;
+}
+.FrameEdge {
+  display: block;
+  height: 32px;
+  line-height: 32px;
+  user-select: none;
+  pointer-events: none;
+}
+.FrameContent {
+  min-height: 32px;
+  padding: 0 18px;
+  background-repeat: repeat-y;
+  background-size: 18px 32px;
+  background-position: left top, right top;
+}
+.LinkSpace {
+  mask-repeat: repeat-x;
+  mask-size: 18px 32px;
+  mask-position: left top;
+}
+.DocLink:is(:hover, :focus-visible) .LinkSpace {
+  background-color: #00ffff !important;
+}

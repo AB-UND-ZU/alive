@@ -31,7 +31,7 @@ const readOverlay = (container: HTMLElement) =>
   Array.from(container.querySelectorAll(".Paused .Overlay .Row"))
     .map((row) =>
       Array.from(row.querySelectorAll(".Cell"))
-        .map((cell) => cell.querySelector(".Layer:last-child")?.textContent)
+        .map((cell) => cell.textContent)
         .join("")
     )
     .join("\n");

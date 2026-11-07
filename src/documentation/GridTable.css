@@ -1,0 +1,44 @@
+.GridTable th.GridValue .Word {
+  display: inline-flex;
+}
+.GridTable th.GridValue .Word > .Row {
+  display: flex;
+}
+.GridTable .GridValue {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.GridTable.CompactGrid .GridValue {
+  padding: 0;
+  text-align: center;
+}
+.TableScroll:has(> .GridTable) {
+  position: relative;
+  max-height: calc(100dvh - 160px);
+  overflow: auto;
+  isolation: isolate;
+}
+.GridTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #000;
+}
+.GridTable .GridValue[data-column="0"],
+.GridTable .GridFrozenRule {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: #000;
+}
+.GridTable thead .GridValue[data-column="0"],
+.GridTable thead .GridFrozenRule {
+  z-index: 4;
+}
+.GridTable.FramedGrid tr > .GridEdge:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: #000;
+}

@@ -32,11 +32,18 @@ export const gameVersion = `V${major}x${minor.toString().padStart(2, "0")}${
 
 const initialLevel: LevelName = "LEVEL_MENU";
 
-export default function World(props: React.PropsWithChildren) {
+export default function World({
+  createInitialWorld,
+  persistent = !createInitialWorld,
+  children,
+}: React.PropsWithChildren<{
+  createInitialWorld?: () => WorldType;
+  persistent?: boolean;
+}>) {
   const dimensions = useDimensions();
   const [paused, setPaused] = useState(true);
-  const [suspended, setSuspended] = useState(true);
-  const [initial, setInitial] = useState(true);
+  const [suspended, setSuspended] = useState(!createInitialWorld);
+  const [initial, setInitial] = useState(!createInitialWorld);
   const [flipped, setFlipped] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>();
   const pauseRef = useRef(paused);
@@ -102,17 +109,21 @@ export default function World(props: React.PropsWithChildren) {
       }
     };
 
-    return { createMenu, openMenu };
+    return { connectWorld, createMenu, openMenu };
   });
 
-  const [current, setCurrent] = useState(() => ({
-    ecs: actions.createMenu(),
-    key: 0,
-  }));
+  const [current, setCurrent] = useState(() => {
+    if (!createInitialWorld) return { ecs: actions.createMenu(), key: 0 };
+
+    const world = createInitialWorld();
+    actions.connectWorld(world);
+    return { ecs: world, key: 0 };
+  });
   const { ecs } = current;
 
   const saveGame = useCallback(() => {
-    if (suspendedRef.current || !canSave(ecs)) return;
+    // Composed documentation scenes must not overwrite playable saves.
+    if (!persistent || suspendedRef.current || !canSave(ecs)) return;
 
     setSaveStatus({ saving: true });
     storeGame(ecs).then(
@@ -122,7 +133,7 @@ export default function World(props: React.PropsWithChildren) {
         setSaveStatus({ saving: false, failed: true });
       }
     );
-  }, [ecs]);
+  }, [ecs, persistent]);
 
   const handlePause = useCallback(
     (action: React.SetStateAction<boolean>) => {
@@ -182,10 +193,11 @@ export default function World(props: React.PropsWithChildren) {
 
   // list saves for continuing
   useEffect(() => {
+    if (!persistent) return;
     loadSaveSummaries().catch((error) =>
       console.error("Loading saves failed:", error)
     );
-  }, []);
+  }, [persistent]);
 
   // expose utilities to world metadata
   useEffect(() => {
@@ -194,7 +206,7 @@ export default function World(props: React.PropsWithChildren) {
 
   return (
     <WorldProvider value={context}>
-      <Fragment key={current.key}>{props.children}</Fragment>
+      <Fragment key={current.key}>{children}</Fragment>
     </WorldProvider>
   );
 }

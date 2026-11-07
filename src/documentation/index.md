@@ -1,49 +1,32 @@
-# Documentation tools
+# Docs Build
 
-The docs are static HTML generated from Markdown with Marked. Esbuild bundles the small interactive examples. The game and docs share npm dependencies; there is no Python documentation environment or client-side Markdown router.
+| Command                            | Result                                     |
+| ---------------------------------- | ------------------------------------------ |
+| `npm run docs:dev`                 | Build and serve at `http://127.0.0.1:4173` |
+| `npm run docs:build`               | Generate `.docs-build/`                    |
+| `npm run docs:build -- build/docs` | Generate the deployment subtree            |
+| `npm run docs:types`               | Refresh adjacent source type definitions   |
+| `npm run docs:test`                | Browser checks                             |
 
-## Preview locally
+The preview server rebuilds and reloads the browser after Markdown, React, CSS, font or build-script changes. The current URL stays open. Page content comes from Markdown in `docs/` and `src/`. Links resolve to generated HTML.
 
-```sh
-npm ci
-npm run docs:dev
-```
+| Markdown                   | Output                                  |
+| -------------------------- | --------------------------------------- |
+| `scene` fence              | Isolated game-engine preview            |
+| `widget` fence             | Imported data table or interactive tool |
+| `[[key:Enter]]`            | Keyboard key                            |
+| `[[item:sword iron fire]]` | Item sprite and name                    |
+| `[[item:10 arrow]]`        | Count, sprite and item name             |
+| `[[button:OPEN]]`          | Game button                             |
 
-Open `http://127.0.0.1:4173`. Restart the command after editing Markdown, styles, or scenes. It rebuilds before serving. Pages work without JavaScript; only the interactive examples need it.
+`App.tsx` renders Markdown tokens in React and handles browser history. Routes follow menu groups under `game-design/` and `development/`; Welcome remains `index.html`. Each route has a generated HTML shell, so direct links work on static hosting. Old flat URLs remain aliases. `GamePreview.tsx` manages isolated frames; `preview.tsx` mounts the game. `Widgets.tsx` imports game tables and calculators. `visuals.tsx` uses the shared `Row` and composed glyph helper for selectable text.
 
-```sh
-npm run docs:build
-npm run docs:test
-```
+Body cells are 18 by 32 pixels. Only page headings use three character rows. Scrolling is native.
 
-The default build is `.docs-build/`. For deployment, `node scripts/docs/build.mjs build/docs` places the site under the game's build directory. The build only allows those two output locations to avoid deleting source folders.
+The workflow builds the game and docs, then publishes `build/` to `gh-pages`. The runner is pinned to Ubuntu 24.04 for Playwright support.
 
-## Write a page
+Item and unit references resolve to the catalog anchors. Type references resolve to adjacent source documentation. Code fences accept a filename after the language and render with game popup sprites, line numbers and Copy.
 
-Add a Markdown file to `docs/` with one level-one title. The player chapter discovers those files. Important technical explanations belong beside their source as `filename.md`; the development chapter discovers Markdown in `src/` and includes this tools page.
+The dev server serves the last completed build while a new build runs. A server event reloads connected documentation pages after the replacement is ready.
 
-Link Markdown files by relative path. The builder resolves them to HTML and rejects unknown page links. Put images in `docs/media/` and reference them with `media/name.png`. Use short headings, concrete descriptions, and tables when values need comparison.
-
-The builder supplies the shared HTML shell, chapter navigation, heading links, font, and stylesheet. Authors do not write page components or HTML wrappers.
-
-## Import an example
-
-Use a fenced block with the language `scene` and one registered scene name, such as `movement`. `src/documentation/scenes.json` lists names. `scenes.ts` implements examples by importing the game harness, balancing tables, and sprite helpers. The builder rejects unknown scene names.
-
-Every example gets Play, Auto/Pause, and Reset controls. World examples also have direction buttons; references have a native select. Nothing starts automatically. Offscreen or hidden-tab examples pause. Reset creates a fresh scene and stops the timer.
-
-Reference examples browse current data; they do not simulate spending resources. World examples run real systems with HTML sprite layers. Keep that distinction visible in the player text.
-
-## Verify in a browser
-
-Install Chromium for Playwright once with `npx playwright install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to a local Chromium executable. Then run `npm run docs:test`. The test runner starts its own docs server unless one is already available.
-
-The browser suite checks game-feature examples and documentation behavior. Capture desktop and mobile screenshots after visual edits and inspect them against the game and PDF. The research page records the checked sources and screenshot locations.
-
-## Publish with GitHub Actions
-
-The existing Deployment workflow builds the game, runs the checks and browser suite, then builds documentation into `build/docs/` and publishes the combined `build/` folder to `gh-pages`. This preserves the game's root URL and the existing deploy-key setup. Docs appear at `https://ab-und-zu.github.io/alive/docs/`.
-
-The workflow runs on a push to `main` or a manual dispatch. The repository needs its existing `ACTIONS_DEPLOY_KEY` secret and Pages configured to serve the `gh-pages` branch. The pull-request workflow builds and tests docs without publishing.
-
-The [Marked renderer documentation](https://marked.js.org/using_pro) describes the small renderer hooks. [GitHub's publishing-source guide](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site) describes branch and workflow deployment.
+The dev server builds into `.docs-dev/`, separately from the static build, so running both does not replace files underneath the watcher.

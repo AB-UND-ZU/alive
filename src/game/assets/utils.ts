@@ -16,7 +16,7 @@ import { colors } from "./colors";
 import { Popup, POPUP } from "../../engine/components/popup";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { iterations } from "../math/tracing";
-import { add, lerp, padCenter } from "../math/std";
+import { add, lerp } from "../math/std";
 import { ORIENTABLE, Orientation } from "../../engine/components/orientable";
 import { PARTICLE } from "../../engine/components/particle";
 import { Sprite, SPRITE } from "../../engine/components/sprite";
@@ -25,7 +25,7 @@ import {
   popupHeight,
   selectionHeight,
 } from "../../components/Entity/utils";
-import { getFacingLayers } from "./ui";
+import { getFacingLayers, createTab } from "./ui";
 import {
   friendlyBar,
   hostileBar,
@@ -609,28 +609,7 @@ export const renderPopup = (
       }
       const transaction = displayedTabs[tabIndex];
       const title = popupTitles[transaction];
-      const titleText = createText(
-        padCenter(title.toUpperCase(), 5),
-        selected
-          ? colors.black
-          : state.args.instant
-          ? colors.yellow
-          : colors.white
-      );
-      const titleSprites = addBackground(
-        addBackground(
-          titleText,
-          selected
-            ? state.args.instant
-              ? colors.yellow
-              : colors.white
-            : state.args.instant
-            ? colors.olive
-            : colors.grey,
-          selected ? undefined : "▄"
-        ),
-        colors.black
-      );
+      const titleSprites = createTab(title, 5, selected, state.args.instant);
       titleSprites.forEach((char, index) => {
         const charParticle = world.assertByIdAndComponents(
           state.particles[`popup-tab-${offset + index + 1}`],

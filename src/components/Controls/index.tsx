@@ -237,7 +237,10 @@ const useAction = (
 const highlightDuration = 100;
 const swipeThreshold = 10;
 
-export default function Controls() {
+export default function Controls({
+  compact = false,
+  children,
+}: React.PropsWithChildren<{ compact?: boolean }>) {
   const dimensions = useDimensions();
   const { ecs, setPaused, paused, initial, flipped } = useWorld();
   const level = ecs?.metadata.gameEntity[LEVEL].name;
@@ -1351,7 +1354,13 @@ export default function Controls() {
         <>
           <Row
             cells={
-              flipped
+              compact
+                ? skillOrToolAction
+                  ? leftButton
+                  : spellAction
+                  ? rightButton
+                  : []
+                : flipped
                 ? [
                     ...equipmentRows[0],
                     ...rightButton.slice(0, -1),
@@ -1464,6 +1473,7 @@ export default function Controls() {
           {popupTab === "chat" && <Keyboard />}
         </>
       )}
+      {children}
     </footer>
   );
 }

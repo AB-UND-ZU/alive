@@ -118,6 +118,30 @@ export const createText: (
   return sprites;
 };
 
+export const createTab = (
+  title: string,
+  width: number,
+  selected: boolean,
+  instant = false
+) =>
+  addBackground(
+    addBackground(
+      createText(
+        padCenter(title.toUpperCase(), width),
+        selected ? colors.black : instant ? colors.yellow : colors.white
+      ),
+      selected
+        ? instant
+          ? colors.yellow
+          : colors.white
+        : instant
+        ? colors.olive
+        : colors.grey,
+      selected ? undefined : "▄"
+    ),
+    colors.black
+  );
+
 export const createDialog = (...content: (string | Sprite[])[]) => [
   dialogStart,
   ...content

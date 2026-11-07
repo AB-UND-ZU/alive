@@ -149,7 +149,7 @@ export type NpcData = UnitData & {
   type: NpcType;
 };
 
-const unitDefinitions: Record<UnitKey, UnitDefinition> = {
+export const unitDefinitions: Record<UnitKey, UnitDefinition> = {
   guide: {
     faction: "nomad",
     scratch: colors.silver,

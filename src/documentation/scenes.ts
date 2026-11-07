@@ -1,391 +1,295 @@
-import {
-  createAreaWorld,
-  assertHero,
-  holdMove,
-  step,
-} from "../testing/harness";
-import { World } from "../engine";
-import { getHasteInterval } from "../engine/systems/movement";
-import { getEntityStats } from "../engine/systems/damage";
-import { FRAME } from "../testing/harness";
-import { POSITION } from "../engine/components/position";
-import { SPRITE, Sprite } from "../engine/components/sprite";
-import { ORIENTABLE, Orientation } from "../engine/components/orientable";
+import { disposeSequence } from "../engine/systems/map";
+import { createViewpoint } from "../engine/entities";
+import { none } from "../game/assets/sprites";
+import { normalize } from "../game/math/std";
+import { spawnArea } from "../game/levels/island/areas";
+import { createPopup } from "../engine/systems/popup";
+import { purchasableItems, getItemBuyPrice } from "../game/balancing/trading";
+import { commandItems } from "../game/assets/commands";
+import { createAreaWorld, assertHero } from "../testing/harness";
+import { createCell, populateInventory } from "../bindings/creation";
+import { preloadLevel } from "../engine/ecs";
+import { getClassData, ClassKey } from "../game/balancing/classes";
+import { SPRITE } from "../engine/components/sprite";
 import { STATS } from "../engine/components/stats";
+import { LIGHT } from "../engine/components/light";
+import { SPAWNABLE } from "../engine/components/spawnable";
+import { VIEWABLE } from "../engine/components/viewable";
+import { calculateVision } from "../engine/systems/visibility";
 import { Item } from "../engine/components/item";
-import { getFacingLayers } from "../game/assets/ui";
-import { getItemSprite } from "../game/assets/utils";
-import { classDefinitions } from "../game/balancing/classes";
-import { craftingIngredients } from "../game/balancing/crafting";
-import { brewingRecipes } from "../game/balancing/brewing";
-import { buildConstructions } from "../game/balancing/building";
-import {
-  getHarvestConfig,
-  harvestTools,
-  plantConfigs,
-  harvestDurationFactor,
-} from "../game/balancing/harvesting";
-import { fishingDistributionLevels } from "../game/balancing/fishing";
-import { getAbilityStats } from "../game/balancing/abilities";
-import { getForgeOptions } from "../game/balancing/forging";
-import { stackableConsumptions } from "../engine/systems/consume";
+import { setIdentifier } from "../engine/utils";
 
-export type Scene = {
-  title: string;
-  hint: string;
-  render: (screen: HTMLElement) => void;
-  play: () => void;
-  move?: (orientation: Orientation) => void;
-  options?: string[];
-  select?: (index: number) => void;
-};
-
-export const spriteElement = (sprite: Sprite, orientation?: Orientation) => {
-  const cell = document.createElement("span");
-  cell.className = "sprite";
-  cell.title = sprite.name;
-  cell.setAttribute("aria-label", sprite.name);
-  for (const layer of getFacingLayers(sprite, orientation)) {
-    const span = document.createElement("span");
-    span.textContent = layer.char;
-    span.style.color = layer.color;
-    span.setAttribute("aria-hidden", "true");
-    cell.append(span);
-  }
-  return cell;
-};
-const text = (screen: HTMLElement, value: string, className = "") => {
-  const paragraph = document.createElement("p");
-  paragraph.textContent = value;
-  paragraph.className = className;
-  screen.append(paragraph);
-};
-const itemRow = (screen: HTMLElement, item: Partial<Item>, prefix = "") => {
-  const sprite = getItemSprite(item, "display");
-  const row = document.createElement("div");
-  row.className = "item-row";
-  row.append(
-    spriteElement(sprite),
-    document.createTextNode(`${prefix}${item.amount ?? 1} × ${sprite.name}`)
-  );
-  screen.append(row);
-};
-const catalog = (
-  title: string,
-  options: string[],
-  render: (screen: HTMLElement, index: number) => void
-): Scene => {
-  let index = 0;
-  return {
-    title,
-    options,
-    hint: "Choose an entry or press Play to see the next one. Auto cycles through the entries.",
-    play: () => {
-      index = (index + 1) % options.length;
-    },
-    select: (value) => {
-      index = value;
-    },
-    render: (screen) => {
-      screen.dataset.index = String(index);
-      render(screen, index);
-    },
-  };
-};
-
-const areas: Record<string, { title: string; area: string }> = {
+export const sceneDefinitions = {
+  game: { title: "Game", keys: [] },
+  interface: { title: "Interface", keys: [] },
+  trading: {
+    title: "Shop",
+    keys: ["Enter"],
+  },
+  combat: {
+    title: "Melee",
+    keys: ["ArrowRight", "ArrowRight", "ArrowRight", "ArrowRight"],
+  },
+  gear: { title: "Gear", keys: ["g"] },
   movement: {
-    title: "Walking and walls",
-    area: `
-|           |
-|           |
-| ♀    █    |
-|           |
-|           |`,
+    title: "Movement",
+    keys: ["ArrowRight", "ArrowRight", "ArrowRight"],
   },
   water: {
-    title: "Shallow and deep water",
-    area: `
-|   ~≈≈≈≈   |
-|   ~≈≈≈≈   |
-| ♀ ~≈≈≈≈   |
-|   ~≈≈≈≈   |
-|   ~≈≈≈≈   |`,
+    title: "Water",
+    keys: ["ArrowRight", "ArrowRight", "ArrowRight", "ArrowRight"],
   },
   pushing: {
-    title: "Push a crate",
-    area: `
-|           |
-|           |
-| ♀ ■   █   |
-|           |
-|           |`,
+    title: "Containers",
+    keys: ["ArrowRight", "ArrowRight", "ArrowRight"],
   },
-};
-const worldScene = (id: string): Scene => {
-  const { title, area } = areas[id];
-  const world: World = createAreaWorld(area);
-  let direction: Orientation = "right";
-  let count = 0;
-  const move = (orientation: Orientation) => {
-    direction = orientation;
-    holdMove(world, [direction]);
-    const hero = assertHero(world);
-    const start = { ...hero[POSITION] };
-    const interval = getHasteInterval(world, getEntityStats(world, hero).haste);
-    for (let frame = 0; frame < Math.ceil((interval * 2) / FRAME); frame += 1) {
-      step(world);
-      if (hero[POSITION].x !== start.x || hero[POSITION].y !== start.y) break;
-    }
-    holdMove(world, []);
-    count += 1;
-  };
-  return {
-    title,
-    hint: "A live game world, drawn with HTML sprites. Play walks right. Use the direction buttons to explore.",
-    play: () => move("right"),
-    move,
-    render(screen) {
-      const grid = document.createElement("div");
-      grid.className = "scene-grid";
-      grid.style.setProperty("--columns", "11");
-      const positioned = world.getEntities([POSITION, SPRITE]);
-      for (let y = 0; y < 5; y += 1) {
-        for (let x = 0; x < 11; x += 1) {
-          const cell = document.createElement("span");
-          cell.className = "sprite";
-          for (const entity of positioned) {
-            if (entity[POSITION].x !== x || entity[POSITION].y !== y) continue;
-            const sprite = spriteElement(
-              entity[SPRITE],
-              entity[ORIENTABLE]?.facing
-            );
-            for (const layer of Array.from(sprite.children)) cell.append(layer);
-          }
-          grid.append(cell);
-        }
-      }
-      screen.append(grid);
-      const hero = assertHero(world);
-      screen.dataset.x = String(hero[POSITION].x);
-      screen.dataset.y = String(hero[POSITION].y);
-      screen.dataset.steps = String(count);
-      const stats = world.assertComponents(hero, [STATS])[STATS];
-      text(
-        screen,
-        `Position ${hero[POSITION].x}, ${hero[POSITION].y} · Health ${Math.ceil(
-          stats.hp
-        )}/${stats.maxHp}`,
-        "scene-status"
-      );
-    },
-  };
-};
+  classes: { title: "Character", keys: ["t"] },
+  abilities: { title: "Spells", keys: ["ArrowRight", " "] },
+  skills: {
+    title: "Skills",
+    keys: ["ArrowRight", "ArrowRight", "ArrowRight", "Shift"],
+  },
+  harvesting: {
+    title: "Tools",
+    keys: ["Shift", "ArrowRight"],
+  },
+  farming: { title: "Planting", keys: ["Enter"] },
+  fishing: {
+    title: "Fishing",
+    keys: ["ArrowRight", "ArrowRight", "ArrowRight", "Shift", "ArrowRight"],
+  },
+  crafting: {
+    title: "Crafting",
+    keys: ["Enter"],
+  },
+  brewing: {
+    title: "Brewing",
+    keys: ["Enter"],
+  },
+  building: {
+    title: "Building",
+    keys: ["Shift"],
+  },
+  food: { title: "Food", keys: ["e"] },
+  forging: { title: "Forging", keys: ["Enter"] },
+  chat: { title: "Chat", keys: [] },
+} as const;
+export type SceneName = keyof typeof sceneDefinitions;
 
-export const createScene = (id: string): Scene => {
-  if (id in areas) return worldScene(id);
-  if (id === "classes") {
-    const keys = Object.keys(
-      classDefinitions
-    ) as (keyof typeof classDefinitions)[];
-    return catalog("Class definitions", keys, (screen, index) => {
-      const key = keys[index];
-      const { sprite, stats } = classDefinitions[key];
-      screen.append(spriteElement(sprite));
-      text(
-        screen,
-        `${
-          key === "rogue" ? "Playable" : "Restricted in normal class selection"
-        }: ${sprite.name}`,
-        "scene-status"
-      );
-      text(
-        screen,
-        `HP ${stats.maxHp} · MP ${stats.maxMp} · Power ${stats.power} · Wisdom ${stats.wisdom} · Armor ${stats.armor} · Resist ${stats.resist} · Haste ${stats.haste}`
-      );
+export const createPreviewWorld = (name: SceneName, option = "") => {
+  const terrain =
+    name === "water" || name === "fishing"
+      ? `
+|             |
+|      ~≈≈≈≈≈ |
+|      ~≈≈≈≈≈ |
+|      ~≈≈≈≈≈ |
+|  ♀   ~≈≈≈≈≈ |
+|      ~≈≈≈≈≈ |
+|      ~≈≈≈≈≈ |
+|             |`
+      : name === "pushing"
+      ? `
+|             |
+|             |
+|             |
+|             |
+|  ♀ ■    █   |
+|             |
+|             |
+|             |`
+      : `
+|             |
+|             |
+|             |
+|             |
+|  ♀      █   |
+|             |
+|             |
+|             |`;
+  const area =
+    name === "interface"
+      ? spawnArea
+          .split("\n")
+          .map((row) => `|${row}|`)
+          .join("\n")
+      : terrain;
+  const world = createAreaWorld(area, { size: 32 });
+  const hero = world.assertComponents(assertHero(world), [
+    STATS,
+    SPAWNABLE,
+    SPRITE,
+    LIGHT,
+    VIEWABLE,
+    "INVENTORY",
+    "POSITION",
+  ]);
+  const data = getClassData(
+    name === "classes" && option ? (option as ClassKey) : "rogue"
+  );
+  Object.assign(hero[STATS], data.stats, {
+    hp: data.stats.maxHp,
+    mp: data.stats.maxMp,
+  });
+  hero[SPRITE] = data.sprite;
+  hero[SPAWNABLE].classKey =
+    name === "classes" && option ? (option as ClassKey) : "rogue";
+  hero[LIGHT] = calculateVision(6);
+  hero[VIEWABLE].active = true;
+  setIdentifier(world, hero, "hero");
+  const equipment: Omit<Item, "carrier">[] = [];
+  const items: Omit<Item, "bound" | "carrier">[] = [];
+  if (["skills", "forging", "combat", "gear"].includes(name)) {
+    equipment.push({
+      weapon: "sword",
+      material: "wood",
+      amount: 1,
+      bound: false,
     });
   }
-  if (id === "abilities") {
-    const spells = ["wave", "beam", "trap", "dash", "bolt", "blast"] as const;
-    return catalog("Spell reference", [...spells], (screen, index) => {
-      const item = { spell: spells[index], material: "wood" as const };
-      const stats = getAbilityStats(item);
-      itemRow(screen, item);
-      text(
-        screen,
-        "Wood material, no element. These are spell values before the caster's stats."
-      );
-      text(
-        screen,
-        Object.entries(stats)
-          .filter(([, value]) => value !== 0)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(" · "),
-        "scene-status"
-      );
+  if (name === "interface") {
+    equipment.push(
+      { weapon: "sword", material: "wood", amount: 1, bound: false },
+      {
+        spell: "wave",
+        material: "wood",
+        element: "fire",
+        amount: 1,
+        bound: false,
+      },
+      { skill: "slash", material: "wood", amount: 1, bound: false }
+    );
+    items.push(
+      { stackable: "charge", amount: 5 },
+      { stackable: "apple", amount: 3 }
+    );
+  }
+  if (name === "abilities")
+    equipment.push({
+      spell: (option || "wave") as Item["spell"],
+      material: "wood",
+      element: "fire",
+      amount: 1,
+      bound: false,
     });
+  if (["abilities", "skills", "chat", "combat"].includes(name)) {
+    const target = createCell(world, { x: 6, y: 4 }, "dummy", "visible").cell;
+    setIdentifier(world, target, "target");
   }
-  if (id === "crafting")
-    return catalog(
-      "Workbench recipes",
-      craftingIngredients.map(({ item }) => getItemSprite(item).name),
-      (screen, index) => {
-        const recipe = craftingIngredients[index];
-        text(screen, "Ingredients");
-        recipe.parts.forEach((item) => itemRow(screen, item));
-        text(screen, "Result", "scene-status");
-        itemRow(screen, recipe.item);
-      }
-    );
-  if (id === "brewing")
-    return catalog(
-      "Kettle recipes",
-      brewingRecipes.map(
-        ({ item }, index) => `${index + 1}. ${getItemSprite(item).name}`
-      ),
-      (screen, index) => {
-        const recipe = brewingRecipes[index];
-        recipe.options.forEach((parts, option) => {
-          text(screen, `Ingredient option ${option + 1}`);
-          parts.forEach((item) => itemRow(screen, item));
-        });
-        text(screen, "Result", "scene-status");
-        itemRow(screen, recipe.item);
-      }
-    );
-  if (id === "forging") {
-    const bases: Item[] = [
-      {
-        weapon: "sword",
-        material: "wood",
-        amount: 1,
-        carrier: 0,
-        bound: false,
-      },
-      {
-        offhand: "shield",
-        material: "wood",
-        amount: 1,
-        carrier: 0,
-        bound: false,
-      },
-      { spell: "wave", material: "wood", amount: 1, carrier: 0, bound: false },
-      {
-        tool: "pickaxe",
-        material: "wood",
-        amount: 1,
-        carrier: 0,
-        bound: false,
-      },
-    ];
-    return catalog(
-      "Forge upgrades",
-      bases.map((item) => getItemSprite(item).name),
-      (screen, index) => {
-        text(screen, "Starting item");
-        itemRow(screen, bases[index]);
-        getForgeOptions(bases[index]).forEach((option) => {
-          text(screen, "Add", "scene-status");
-          itemRow(screen, option.add);
-          itemRow(screen, option.result, "Result: ");
-        });
-      }
+  const stations: Record<string, string> = {
+    crafting: "bench",
+    brewing: "kettle",
+    forging: "anvil",
+    farming: "soil_wet",
+  };
+  const station = stations[name];
+  if (station) createCell(world, { x: 3, y: 4 }, station, "visible");
+  if (name === "skills") {
+    equipment.push({
+      ...commandItems[option || "slash"],
+      material: "wood",
+      amount: 1,
+      bound: false,
+    });
+    items.push(
+      { stackable: "charge", amount: 99 },
+      { stackable: "arrow", amount: 99 }
     );
   }
-  if (id === "building")
-    return catalog(
-      "Construction plans",
-      buildConstructions.map(({ sprite }) => sprite.name),
-      (screen, index) => {
-        const plan = buildConstructions[index];
-        screen.append(spriteElement(plan.sprite));
-        text(
-          screen,
-          `Hammer level ${plan.level} · Ground: ${plan.grounds.join(", ")}`,
-          "scene-status"
-        );
-        plan.parts.forEach((item) => itemRow(screen, item));
-        text(screen, `Work required: ${plan.effort}`);
-      }
+  if (name === "harvesting") {
+    equipment.push({
+      tool: (option || "axe") as Item["tool"],
+      material: "wood",
+      amount: 1,
+      bound: false,
+    });
+    createCell(
+      world,
+      { x: 3, y: 4 },
+      option === "pickaxe" ? "mountain" : option === "shovel" ? "sand" : "tree",
+      "visible"
     );
-  if (id === "harvesting") {
-    const resources = [
-      "tree",
-      "oak",
-      "palm",
-      "mountain",
-      "iron",
-      "gold",
-      "grass",
+  }
+  if (name === "fishing") {
+    equipment.push({ tool: "hook", material: "wood", amount: 1, bound: false });
+    items.push({ stackable: "worm", amount: 20 });
+    createCell(world, { x: 7, y: 4 }, "fish", "visible");
+  }
+  if (name === "building")
+    equipment.push({
+      tool: "hammer",
+      material: "iron",
+      amount: 1,
+      bound: false,
+    });
+  if (
+    ["crafting", "brewing", "building", "forging", "farming"].includes(name)
+  ) {
+    for (const stackable of [
+      "stick",
+      "ore",
       "berry",
       "flower",
+      "grain",
       "sand",
-      "path",
-    ] as const;
-    return catalog("Gathering reference", [...resources], (screen, index) => {
-      const resource = resources[index];
-      const config = getHarvestConfig(resource);
-      itemRow(screen, { tool: harvestTools[resource], material: "wood" });
-      text(
-        screen,
-        `${resource} · Work required: ${config.harvestable.maximum}`,
-        "scene-status"
-      );
-      config.yields.forEach((item) => itemRow(screen, item, "Drop: "));
+      "gravel",
+      "plank",
+    ] as const)
+      items.push({ stackable, amount: 99 });
+    items.push(
+      { stackable: "resource", material: "wood", amount: 99 },
+      { stackable: "resource", material: "iron", amount: 99 }
+    );
+  }
+  if (name === "food") {
+    hero[STATS].hp = 10;
+    items.push(
+      { stackable: "apple", amount: 5 },
+      { stackable: "shroom", amount: 5 }
+    );
+  }
+  if (name === "trading") {
+    const merchant = createCell(
+      world,
+      { x: 3, y: 4 },
+      "earthTrader",
+      "visible"
+    ).cell;
+    if (merchant.BEHAVIOUR) merchant.BEHAVIOUR.patterns = [];
+    createPopup(world, merchant, {
+      tabs: ["buy", "sell"],
+      deals: purchasableItems.map((item) => ({
+        item: { ...item, amount: 1 },
+        stock: 9,
+        prices: getItemBuyPrice(item),
+      })),
     });
-  }
-  if (id === "farming") {
-    const entries = Object.entries(plantConfigs);
-    return catalog(
-      "Planting reference",
-      entries.map(([key]) => key),
-      (screen, index) => {
-        const [key, config] = entries[index];
-        itemRow(screen, { stackable: key as Item["stackable"] });
-        text(
-          screen,
-          `Typical growth: about ${
-            config.duration * harvestDurationFactor
-          } world ticks`,
-          "scene-status"
-        );
-        if (config.crop) itemRow(screen, config.crop, "Crop: ");
-        if (config.cell) text(screen, `Grows into: ${config.cell}`);
-      }
+    items.push(
+      { stackable: "coin", amount: 99 },
+      { stackable: "apple", amount: 5 }
     );
   }
-  if (id === "fishing")
-    return catalog(
-      "Fishing catches",
-      ["Level 1", "Level 2", "Level 3"],
-      (screen, index) => {
-        text(
-          screen,
-          `Catch distribution for level ${index + 1}`,
-          "scene-status"
-        );
-        fishingDistributionLevels[index + 1].forEach(([weight, item]) =>
-          itemRow(screen, item, `${weight}% · `)
-        );
+  populateInventory(world, hero, items, equipment);
+  if (name !== "interface") {
+    for (let y = -2; y <= 10; y++)
+      for (let x = -4; x <= 16; x++) {
+        if (x !== -4 && x !== 16 && y !== -2 && y !== 10) continue;
+        const wall = createCell(
+          world,
+          { x: normalize(x, 32), y: normalize(y, 32) },
+          "mountain",
+          "visible"
+        ).cell;
+        wall[SPRITE] = none;
       }
-    );
-  if (id === "food") {
-    const entries = Object.entries(stackableConsumptions);
-    return catalog(
-      "Food and other usable items",
-      entries.map(([key]) => key),
-      (screen, index) => {
-        const [key, value] = entries[index];
-        itemRow(screen, { stackable: key as Item["stackable"] });
-        text(
-          screen,
-          `${value.amount > 0 ? "+" : ""}${value.amount}${
-            value.percentage ? "%" : ""
-          } ${value.countable.toUpperCase()}`,
-          "scene-status"
-        );
-      }
-    );
   }
-  throw new Error(`Unknown scene: ${id}`);
+  createViewpoint(world, {
+    POSITION: name === "interface" ? { x: 4, y: 4 } : { x: 6, y: 4 },
+    VIEWABLE: { active: true, priority: 80, spring: { duration: 0 } },
+    RENDERABLE: { generation: 0 },
+  });
+  preloadLevel(world);
+  if (name === "interface" && hero.SEQUENCABLE?.states.message)
+    disposeSequence(world, hero, "message");
+  return world;
 };

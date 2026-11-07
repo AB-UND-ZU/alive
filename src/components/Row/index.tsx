@@ -1,59 +1,33 @@
-import { Layer, Sprite } from "../../engine/components/sprite";
-import { dotCount } from "../Entity/Dots";
+import { Sprite } from "../../engine/components/sprite";
 import { getFacingLayers } from "../../game/assets/ui";
+import { characterMarkup } from "./characters";
 import "./index.css";
 
 export type CellSprite = Sprite & { stackableAmount?: number };
 
-function Cell({
-  layers,
-  stackableAmount,
-}: {
-  layers: Layer[];
-  stackableAmount?: number;
-}) {
+export function Cell({ sprite }: { sprite: CellSprite }) {
+  const layers = getFacingLayers(sprite, undefined, sprite.stackableAmount);
+  const text = layers[layers.length - 1]?.char || " ";
   return (
-    <div className="Cell">
-      &nbsp;
-      {layers.map((layer, index) => (
-        <span key={index} style={{ color: layer.color }} className="Layer">
-          {layer.char}
-        </span>
-      ))}
-      {stackableAmount !== undefined && stackableAmount > 1 && (
-        <>
-          {Array.from({ length: Math.min(stackableAmount, 10) }).map(
-            (_, index) => (
-              <span
-                key={index}
-                className="Dot"
-                style={{
-                  top: `calc(var(--pixel-size) * (13 + ${
-                    index >= dotCount ? 2 : 0
-                  }))`,
-                  left: `calc(0.95 * var(--pixel-size) * ${
-                    (index % dotCount) * 2
-                  })`,
-                }}
-              ></span>
-            )
-          )}
-        </>
-      )}
-    </div>
+    <span className="Cell">
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 9 16"
+        shapeRendering="crispEdges"
+        dangerouslySetInnerHTML={{
+          __html: characterMarkup(layers, sprite.stackableAmount),
+        }}
+      />
+      {text}
+    </span>
   );
 }
-
 export default function Row({ cells = [] }: { cells?: CellSprite[] }) {
   return (
-    <div className="Row">
-      {cells.map((cell, index) => (
-        <Cell
-          key={index}
-          layers={getFacingLayers(cell, undefined, cell.stackableAmount)}
-          stackableAmount={cell.stackableAmount}
-        />
+    <span className="Row">
+      {cells.map((sprite, index) => (
+        <Cell key={index} sprite={sprite} />
       ))}
-    </div>
+    </span>
   );
 }

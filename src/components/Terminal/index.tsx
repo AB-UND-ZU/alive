@@ -18,7 +18,7 @@ const controls = false;
 
 export const frameColor = colors.silver;
 
-export default function Terminal() {
+export default function Terminal({ children }: React.PropsWithChildren) {
   const dimensions = useDimensions();
 
   return (
@@ -46,6 +46,7 @@ export default function Terminal() {
           )
         )}
       </div>
+      {children}
       <Paused />
     </main>
   );

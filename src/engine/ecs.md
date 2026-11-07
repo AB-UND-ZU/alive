@@ -1,4 +1,4 @@
-# Engine and timing
+# Engine
 
 `ecs.ts` wraps the vendored ECS in a typed world API. Each level has a component tag; world queries include that tag so entities from another level do not participate in the active simulation.
 
@@ -27,3 +27,16 @@ Read the actual list before inserting a system. A later system may depend on an 
 `rerenderEntity` increments a renderable generation. `getEntityGeneration` includes reference frames, sequence states, and equipped entities. The renderer notifies subscribers when reference generations change. Changing component data alone may not notify the UI.
 
 See [world creation](../bindings/creation.md), [HTML sprite rendering](../components/Row/index.md), and the [test harness](../testing/harness.md).
+<!-- source-types -->
+
+## World
+
+```ts src/engine/ecs.ts
+export type World = ReturnType<typeof createWorld>;
+```
+
+## PatchedWorld
+
+```ts src/engine/ecs.ts
+export type PatchedWorld = ECSWorld & { ecs: World };
+```

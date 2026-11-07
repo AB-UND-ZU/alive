@@ -11,5 +11,12 @@
   "brewing",
   "building",
   "food",
-  "forging"
+  "forging",
+  "chat",
+  "game",
+  "skills",
+  "combat",
+  "gear",
+  "interface",
+  "trading"
 ]

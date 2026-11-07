@@ -19,3 +19,10 @@ The fixed tutorial inserts named rooms and locks. The Island combines terrain no
 Use `createAreaWorld` for a small feature test. It parses bordered area rows, installs the real systems, inserts the area, initializes the hero, and preloads the map. The documentation's walking, water, and pushing examples reuse that path.
 
 Test the resulting behavior, such as a mountain stopping a hero or a crate moving into free space. Avoid asserting every entity in a generated world when a small area can demonstrate the rule.
+<!-- source-types -->
+
+## CellType
+
+```ts src/bindings/creation.ts
+export type CellType = (typeof cellNames)[number];
+```

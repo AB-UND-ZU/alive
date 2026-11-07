@@ -206,9 +206,7 @@ function Entity({
         <Stack segments={particleSegments} layerCount={lootLayers} />
       )}
 
-      {isBright && (
-        <CoveredLight brightness={entity[LIGHT]!.brightness} />
-      )}
+      {isBright && <CoveredLight brightness={entity[LIGHT]!.brightness} />}
 
       {!!entity[SWIMMABLE] && !isFlying && (
         <Swimming

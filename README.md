@@ -2,7 +2,7 @@
 
 A browser adventure game made from layered DOS characters and sixteen terminal colors. Built with TypeScript, React, Three.js, and an entity component system.
 
-[Play](https://ab-und-zu.github.io/alive/) · [Field guide](https://ab-und-zu.github.io/alive/docs/)
+[Play](https://ab-und-zu.github.io/alive/) · [Documentation](https://ab-und-zu.github.io/alive/docs/)
 
 ![The start of an adventure](docs/media/game.png)
 
@@ -21,9 +21,8 @@ Player documentation lives in [docs/](docs/index.md). Technical notes live besid
 npm run docs:dev
 ```
 
-Open http://127.0.0.1:4173. Restart to rebuild after edits. `npm run docs:build` writes a static site to `.docs-build/`. See [documentation tools](src/documentation/index.md) for Markdown authoring, imported examples, browser checks, and GitHub Pages deployment.
+Open http://127.0.0.1:4173. Edits rebuild and reload the preview automatically. `npm run docs:build` writes a static site to `.docs-build/`. See [documentation tools](src/documentation/index.md) for Markdown authoring, imported examples, browser checks, and GitHub Pages deployment.
 
-The supplied `alive_Docs.pdf` is a design reference. The guide describes current code and marks unavailable features. [Research notes](src/documentation/scenes.md) record sources and visual evidence.
 
 ## Development
 

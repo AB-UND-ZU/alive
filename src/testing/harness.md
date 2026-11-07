@@ -1,4 +1,4 @@
-# Testing game features
+# Game Tests
 
 `harness.ts` boots game systems without React or WebGL. Use it for rules that should be deterministic. `render.tsx` adds the React Three test renderer when scene graph behavior matters.
 
@@ -17,3 +17,34 @@ Name the feature and its outcome: wading near land, blocking deep water, stoppin
 Jest setup seeds randomness and records sound calls. Slow suites cover larger generated worlds and rendering. Run `npm run test:fast` while working and `npm run test:all` when the affected feature needs the wider coverage.
 
 Documentation browser tests check the imported examples, pause/reset controls, navigation, page errors, and small-screen layout. See [documentation tools](../documentation/index.md).
+<!-- source-types -->
+
+## TestWorldOptions
+
+```ts src/testing/harness.ts
+export type TestWorldOptions = {
+  level?: LevelName;
+  /** replace default dimensions, e.g. to shrink the initialized area */
+  dimensions?: Partial<World["metadata"]["dimensions"]>;
+};
+```
+
+## AreaWorldOptions
+
+```ts src/testing/harness.ts
+export type AreaWorldOptions = {
+  level?: LevelName;
+  /** square map size, defaults to the larger side of the area */
+  size?: number;
+};
+```
+
+## HeroAction
+
+```ts src/testing/harness.ts
+export type HeroAction =
+  | "spell"
+  | "skill"
+  | "interact"
+  | NonNullable<Player["actionTriggered"]>;
+```

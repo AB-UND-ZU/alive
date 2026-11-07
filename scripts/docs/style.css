@@ -1,404 +1,697 @@
-@font-face {
-  font-family: DOS;
-  src: url("./fonts/MostPerfectDOSVGA.woff2") format("woff2");
-  font-display: swap;
-}
-:root {
-  color-scheme: dark;
-  --black: #000;
-  --silver: #c0c0c0;
-  --grey: #808080;
-  --white: #fff;
-  --aqua: #0ff;
-  --lime: #0f0;
-  --yellow: #ff0;
-  --red: #f00;
+.Docs {
+  --cell-height: 32px;
+  --cell-width: 18px;
+  --pixel-size: 2px;
+  font-size: 32px;
+  line-height: 32px;
+  height: auto;
+  min-height: 100vh;
+  max-width: none;
+  display: block;
+  text-align: left;
+  overflow: visible;
+  user-select: text;
 }
 * {
   box-sizing: border-box;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: normal;
+}
+html {
+  height: auto;
+  overflow: auto;
+  scroll-behavior: auto;
 }
 body {
   margin: 0;
-  background: var(--black);
-  color: var(--silver);
-  font-family: DOS, monospace;
-  font-size: 20px;
-  line-height: 1.45;
-}
-a {
-  color: var(--aqua);
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-a:focus-visible,
-button:focus-visible,
-summary:focus-visible,
-select:focus-visible {
-  outline: 2px solid var(--yellow);
-  outline-offset: 4px;
-}
-header {
-  display: flex;
-  align-items: center;
-  gap: 36px;
-  max-width: 1440px;
-  margin: auto;
-  padding: 24px 32px;
-  border-bottom: 2px solid var(--grey);
-}
-header > a:last-child {
-  margin-left: auto;
-}
-.brand {
-  color: var(--white);
-  font-size: 30px;
-  position: relative;
-  padding-left: 24px;
-  letter-spacing: 3px;
-}
-.heart {
-  color: var(--red);
-  position: absolute;
-  left: 0;
-  top: 5px;
-}
-.halo {
-  position: absolute;
-  left: 4px;
-  top: -8px;
-  color: var(--yellow);
-}
-header > span,
-.eyebrow {
-  color: var(--grey);
-  letter-spacing: 2px;
-}
-.layout {
-  max-width: 1440px;
-  display: grid;
-  grid-template-columns: 220px minmax(0, 820px) 180px;
-  gap: 36px;
-  margin: auto;
-  padding: 36px 32px;
-}
-nav {
-  font-size: 18px;
-}
-nav details {
-  margin-bottom: 28px;
-}
-summary {
-  color: var(--white);
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-nav a,
-aside a {
-  display: block;
-  margin: 8px 0;
-  padding-left: 16px;
-}
-nav a[aria-current] {
-  color: var(--lime);
-  border-left: 2px solid var(--lime);
-  padding-left: 14px;
-}
-nav .source {
-  padding: 0;
-  margin-top: 36px;
-}
-aside {
-  font-size: 16px;
-  color: var(--grey);
-}
-aside a {
-  padding: 0;
-  color: var(--silver);
-  margin-top: 14px;
-}
-h1 {
-  color: var(--white);
-  font-size: 40px;
-  line-height: 1.1;
-  margin: 8px 0 24px;
-  font-weight: normal;
-}
-h2 {
-  color: var(--yellow);
-  font-size: 26px;
-  font-weight: normal;
-  margin: 40px 0 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--grey);
-}
-h3 {
-  font-size: 22px;
-  font-weight: normal;
-  color: var(--white);
-}
-p,
-ul,
-ol {
-  margin: 16px 0;
-}
-li {
-  margin: 6px 0;
-}
-strong {
-  color: var(--white);
-  font-weight: normal;
-}
-code,
-pre {
-  font: inherit;
-  color: var(--white);
-}
-pre {
-  overflow: auto;
-  border: 1px solid var(--grey);
-  padding: 16px;
-}
-table {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: 18px;
-  margin: 20px 0;
-}
-th {
-  text-align: left;
-  color: var(--white);
-  font-weight: normal;
-}
-td,
-th {
-  padding: 8px;
-  border-bottom: 1px solid #808080;
-  vertical-align: top;
-}
-blockquote {
-  border-left: 2px solid var(--yellow);
-  margin: 24px 0;
-  padding-left: 20px;
-}
-figure {
-  margin: 24px 0;
-}
-img {
-  max-width: 100%;
-  height: auto;
-  image-rendering: pixelated;
-  border: 1px solid var(--grey);
-}
-figcaption {
-  font-size: 16px;
-  color: var(--grey);
-  margin-top: 8px;
-}
-.eyebrow {
-  font-size: 16px;
-  margin-top: 0;
-}
-footer {
-  margin-top: 48px;
-  padding-top: 16px;
-  border-top: 2px solid var(--grey);
-  font-size: 16px;
-  color: var(--grey);
 }
 button,
-select {
+input,
+a {
   font: inherit;
-  background: var(--black);
-  color: var(--white);
-  border: 1px solid var(--grey);
-  padding: 5px 10px;
+}
+button,
+input {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
   border-radius: 0;
+  color: inherit;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+button,
+a {
   cursor: pointer;
+  outline: 0;
 }
-button:hover {
-  color: var(--black);
-  background: var(--silver);
-}
-button[aria-pressed="true"] {
-  color: var(--lime);
-  border-color: var(--lime);
+button > .Pixels {
+  pointer-events: none;
 }
 button:disabled {
   cursor: default;
-  color: var(--grey);
 }
-.scene {
-  border: 2px solid var(--grey);
-  padding: 20px;
-  margin: 24px 0;
+.DocsHeader {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 80px;
+  background: var(--black);
+  z-index: 10;
 }
-.scene h3 {
-  margin: 0 0 12px;
-}
-.scene-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  border-top: 1px solid var(--grey);
-  padding-top: 14px;
-  margin-top: 16px;
-}
-.scene-screen {
-  min-height: 145px;
-  overflow: auto;
-}
-.scene-screen p {
-  margin: 10px 0;
-}
-.scene-status {
-  color: var(--lime);
-  min-height: 1.45em;
-}
-.scene-hint {
-  font-size: 16px;
-  color: var(--silver);
-}
-.scene-grid {
-  position: relative;
+.HeaderText {
   display: grid;
-  grid-template-columns: repeat(var(--columns), 24px);
-  grid-auto-rows: 36px;
-  width: max-content;
-  margin: 8px auto;
+  grid-template-columns: 306px minmax(0, 1fr);
+  gap: 36px;
+  padding: 0 max(36px, calc((100vw - 1680px) / 2 + 36px));
+  height: 32px;
 }
-.sprite {
-  position: relative;
+.HeaderText > a {
+  white-space: nowrap;
+}
+.HeaderRule {
+  height: 16px;
+  overflow: hidden;
+  width: 100%;
+}
+.DocsLayout {
+  display: grid;
+  grid-template-columns: 306px minmax(0, 1fr);
+  gap: 36px;
+  padding: 96px 36px 32px;
+  max-width: 1680px;
+  margin: auto;
+}
+html {
+  scroll-padding-top: 96px;
+}
+main {
+  min-width: 0;
+}
+p,
+h1,
+h2,
+h3,
+pre,
+ul,
+ol {
+  margin: 0 0 32px;
+}
+h2 {
+  margin-top: 64px;
+}
+p {
+  line-height: 32px;
+}
+.Text {
+  display: inline;
+  white-space: normal;
+}
+.Word {
+  display: inline-flex;
+  vertical-align: top;
+  white-space: pre;
+  break-inside: avoid;
+}
+.Pixels {
   display: inline-block;
-  width: 24px;
-  height: 36px;
-  vertical-align: middle;
-  line-height: 36px;
-  font-size: 36px;
-  flex-shrink: 0;
+  vertical-align: top;
 }
-.sprite span {
-  position: absolute;
-  inset: 0;
-  text-align: center;
+.Pixels > .Row {
+  justify-content: start;
+  width: max-content;
+}
+.Heading {
+  display: flex;
+  gap: 32px 36px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  overflow: auto;
+  padding: 0;
+}
+.HeadingWord {
+  display: inline-block;
+  flex: none;
+}
+.Item {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0 18px;
+  flex-wrap: wrap;
+}
+.Key {
+  display: inline-block;
+  vertical-align: top;
+}
+.TableScroll {
+  overflow: auto;
+  max-width: 100%;
+  margin-bottom: 32px;
+}
+table {
+  border-collapse: collapse;
+  table-layout: auto;
+  min-width: 100%;
+}
+td,
+th {
+  text-align: left;
+  vertical-align: top;
+  padding: 0 18px 32px 0;
+  min-width: 144px;
+  max-width: 432px;
+}
+th .Row {
+  justify-content: start;
+}
+pre {
   white-space: pre;
 }
-.item-row {
+.Parts {
+  display: inline;
+}
+.Parts > span {
+  display: inline-block;
+}
+.ButtonRow,
+.PageControls {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  margin: 8px 0;
+  gap: 32px 18px;
+  flex-wrap: wrap;
+  margin: 32px 0;
 }
-.skip {
-  position: absolute;
-  left: 16px;
-  top: -80px;
-  background: #000;
-  padding: 8px;
-  z-index: 2;
+.PageControls {
+  justify-content: space-between;
+  margin-top: 64px;
 }
-.skip:focus {
-  top: 8px;
+.GameButton {
+  display: inline-block;
+  text-align: left;
 }
-.scene select {
+.Preview {
+  margin: 0 0 32px;
+  min-width: 0;
+}
+.PreviewScroll {
+  overflow: auto;
   max-width: 100%;
-  margin-bottom: 12px;
+  width: max-content;
+  position: relative;
+  clip-path: inset(0);
+  isolation: isolate;
 }
-.scene-screen dl {
+.Preview iframe {
+  display: block;
+  border: 0;
+  outline: 0;
+  flex: none;
+}
+.Choice {
+  display: block;
+  margin-bottom: 32px;
+}
+.Choices,
+.Suggestions {
+  display: block;
+  max-height: 320px;
+  overflow: auto;
+  margin: 0 0 32px;
+}
+.Choices button,
+.Suggestions button {
+  display: block;
+  text-align: left;
+  max-width: 100%;
+}
+.Input {
+  display: block;
+  max-width: 100%;
+  margin: 0 0 32px;
+}
+.InputLabel {
+  display: block;
+}
+.InputTarget {
+  display: block;
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+  overflow: hidden;
+}
+.InputTarget input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+.Fighters {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 20px;
-  margin: 10px 0;
+  gap: 32px 36px;
 }
-.scene-screen dd {
-  color: var(--white);
+.Fighters > div {
+  min-width: 0;
+}
+.HeroPortrait {
+  display: block;
+  margin: 32px 0;
+  width: max-content;
+}
+.Fighters .InputLabel {
+  display: block;
+}
+.ItemIndex {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(288px, 1fr));
+  gap: 0 18px;
+  max-height: 512px;
+  overflow: auto;
+  margin: 0 0 32px;
+}
+.ItemIndex > span {
+  display: block;
+}
+.NavTree {
+  margin-bottom: 32px;
+}
+.NavGroup {
+  margin: 0 0 32px;
+}
+.NavSelection,
+.NavTitle,
+.NavGroupTitle {
+  display: block;
+  padding-left: 18px;
+  position: relative;
+  min-height: 32px;
+  max-width: 100%;
+}
+.NavGroupTitle {
+  margin-top: 32px;
+}
+.NavSelection > .Pixels,
+.NavSelection .Word {
+  max-width: 100%;
+}
+nav {
+  position: sticky;
+  top: 96px;
+  align-self: start;
+  max-height: calc(100vh - 128px);
+  overflow: auto;
+  z-index: 1;
+}
+.NavContent {
+  position: relative;
+}
+.NavSelection,
+.NavTitle {
+  display: flex;
+  padding-left: 0;
+  align-items: flex-start;
+}
+.NavCaret,
+.NavSpacer {
+  position: static;
+  flex: none;
+}
+.NavGroupTitle {
+  padding-left: 18px;
+}
+.NavSelection[aria-disabled="true"] {
+  cursor: default;
+}
+.Docs .Cell {
+  user-select: text;
+}
+::selection {
+  background: var(--green);
+  color: transparent;
+}
+ul,
+ol {
+  list-style: none;
+  padding-left: 0;
+}
+li {
+  margin: 0 0 32px;
+}
+li > p {
+  display: inline;
+}
+blockquote {
+  margin: 0 0 32px;
+  padding-left: 0;
+}
+output {
+  display: block;
+}
+.CodeScroll {
+  overflow: auto;
+  max-width: 100%;
+}
+.CodeBlock {
+  margin-bottom: 32px;
+}
+.CodeBody,
+.CodeFooter {
+  display: flex;
+  width: max-content;
+}
+.CodeNumbers {
+  flex: none;
+  user-select: none;
+}
+.CodeNumbers > div,
+.CodeSourceLine {
+  display: block;
+  height: 32px;
+}
+.CodeSourceLine {
+  white-space: pre;
+}
+.CodeSourceLine .Text {
+  white-space: pre;
+}
+.CodeBody pre {
+  flex: none;
   margin: 0;
+  white-space: pre;
 }
-@media (min-width: 1100px) {
-  nav,
-  aside {
-    position: sticky;
-    top: 24px;
-    align-self: start;
-    max-height: calc(100vh - 48px);
-    overflow: auto;
+.CodeChrome,
+.CodeChrome .Cell,
+.CodeNumbers .Cell {
+  user-select: none;
+}
+.CodeChrome {
+  flex: none;
+}
+.LargePreview {
+  display: block;
+  margin: 32px 0;
+}
+.GridEdge {
+  width: 18px;
+  min-width: 18px;
+  padding: 0;
+  background-repeat: repeat-y;
+  background-size: 18px 32px;
+  user-select: none;
+}
+.GridValue {
+  min-width: 0;
+  max-width: none;
+  padding: 0 18px;
+  vertical-align: top;
+}
+.GridValue > div {
+  display: block;
+}
+.GridRule > td {
+  padding: 0;
+  height: 32px;
+  line-height: 32px;
+  min-width: 0;
+}
+.GridRule .Cell {
+  user-select: none;
+}
+table {
+  table-layout: fixed;
+  min-width: 0;
+}
+.CatalogEntry {
+  margin-bottom: 64px;
+  scroll-margin-top: 32px;
+}
+@media (max-width: 1000px) {
+  .DocsLayout {
+    grid-template-columns: 306px minmax(0, 1fr);
+    gap: 18px;
+    padding: 96px 18px 32px;
+  }
+  .HeaderText {
+    padding: 0 18px;
+    grid-template-columns: 306px minmax(0, 1fr);
+    gap: 18px;
+  }
+  .Fighters {
+    grid-template-columns: 1fr;
   }
 }
-@media (max-width: 1100px) {
-  .layout {
-    grid-template-columns: 190px minmax(0, 1fr);
-    gap: 24px;
+@media (max-width: 760px) {
+  html {
+    scroll-padding-top: 128px;
   }
-  aside {
-    display: none;
-  }
-}
-@media (max-width: 700px) {
-  body {
-    font-size: 18px;
-  }
-  header {
-    padding: 18px 16px;
-    gap: 12px;
-  }
-  header > span {
-    display: none;
-  }
-  header > a:last-child {
-    font-size: 16px;
-  }
-  .layout {
+  .DocsLayout {
     display: block;
-    padding: 24px 16px;
+    padding: 128px 0 32px;
+  }
+  .DocsHeader {
+    height: 112px;
+  }
+  .HeaderText {
+    padding: 0 18px;
+    display: block;
+    height: 64px;
+  }
+  .HeaderText > a {
+    display: block;
   }
   nav {
-    border-bottom: 2px solid var(--grey);
-    margin-bottom: 28px;
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
+    position: relative;
+    top: 0;
+    max-height: 320px;
+    margin-bottom: 64px;
   }
-  nav details {
-    flex: 1;
-    min-width: 130px;
-  }
-  nav .source {
-    display: none;
-  }
-  nav a {
-    padding-left: 0;
-  }
-  nav a[aria-current] {
-    padding-left: 8px;
-  }
-  h1 {
-    font-size: 34px;
-  }
-  h2 {
-    font-size: 24px;
-  }
-  .scene {
-    padding: 12px;
+  .Fighters {
+    grid-template-columns: 1fr;
   }
   td,
   th {
-    padding: 6px 4px;
-    font-size: 16px;
-  }
-  .scene-grid {
-    grid-template-columns: repeat(var(--columns), 20px);
-    grid-auto-rows: 30px;
-  }
-  .scene-grid .sprite {
-    width: 20px;
-    height: 30px;
-    font-size: 30px;
-    line-height: 30px;
+    max-width: 324px;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  * {
-    scroll-behavior: auto;
+.CodeSurface {
+  position: relative;
+  flex: none;
+}
+.CodePixels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.CodePixels .Cell {
+  user-select: none;
+}
+.CodeSemantic {
+  position: relative;
+  color: transparent;
+  white-space: pre;
+  tab-size: 2;
+  line-height: 32px;
+  user-select: text;
+}
+.CodeSemantic span,
+.CodeSemantic a {
+  color: transparent;
+  user-select: text;
+}
+.CodeSemantic::selection,
+.CodeSemantic *::selection {
+  background: var(--green);
+  color: var(--white);
+}
+
+.NavSelection {
+  width: 306px;
+  white-space: pre;
+}
+.NavSelection > .Text {
+  flex: none;
+  white-space: pre;
+}
+.NavSelection .Word {
+  white-space: pre;
+}
+
+.CodeBody {
+  display: flex;
+  width: 100%;
+}
+.CodeBody > .CodeScroll {
+  min-width: 0;
+  flex: 1;
+  overflow: auto;
+}
+.CodeFooter {
+  position: relative;
+  width: max-content;
+}
+.CodeFooter > .GameButton {
+  position: absolute;
+  right: 18px;
+  top: 0;
+}
+.CodeNumbers {
+  text-align: right;
+}
+.CodeNumbers .Word {
+  white-space: pre;
+}
+
+.Preview[data-scene="interface"] iframe {
+  pointer-events: none;
+}
+
+.NavContent {
+  width: 306px;
+}
+
+.GridValue th {
+  color: var(--white);
+}
+th.GridValue .Word,
+th.GridValue .Word > .Row {
+  display: contents;
+}
+nav {
+  top: 80px;
+  max-height: calc(100vh - 80px);
+}
+h1.Heading {
+  margin-top: 32px;
+}
+@media (max-width: 760px) {
+  nav {
+    top: 0;
+    max-height: 320px;
+  }
+}
+
+.PreviewLoading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--black);
+  z-index: 5;
+  pointer-events: none;
+}
+.ModeLever {
+  display: flex;
+  align-items: flex-start;
+  margin: 32px 0;
+  text-align: left;
+}
+
+.InterfaceScroll {
+  overflow: auto;
+  max-width: 100%;
+  margin-bottom: 32px;
+}
+@media (min-width: 761px) {
+  nav {
+    isolation: isolate;
+  }
+}
+
+.TextCallout,
+.GlyphAtlas {
+  max-width: 100%;
+  overflow: auto;
+  margin-bottom: 32px;
+}
+.RichMention {
+  display: inline;
+}
+.RichMention > .Pixels {
+  display: inline-block;
+}
+
+.NavPointer {
+  flex: none;
+  width: 18px;
+  height: 32px;
+}
+.NavHoverPointer,
+.NavHoveredLabel {
+  display: none;
+}
+.NavText {
+  flex: none;
+  position: relative;
+  width: 288px;
+  height: 32px;
+  white-space: pre;
+}
+.NavText .Text {
+  white-space: pre;
+}
+.NavSelection:not([aria-current]):is(:hover, :focus-visible) .NavHoverPointer,
+.NavSelection:not([aria-current]):is(:hover, :focus-visible) .NavHoveredLabel {
+  display: block;
+}
+.NavSelection:not([aria-current]):is(:hover, :focus-visible) .NavNormalLabel {
+  display: none;
+}
+.NavContent:has(.NavSelection:not([aria-current]):is(:hover, :focus-visible))
+  .NavCurrentPointer {
+  display: none;
+}
+
+.Callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin: 32px 0;
+  max-width: 100%;
+}
+.Callout > .Pixels {
+  flex: none;
+}
+.Callout > div {
+  min-width: 0;
+}
+
+nav {
+  overflow: visible;
+}
+.NavViewport {
+  max-height: inherit;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.NavViewport::-webkit-scrollbar {
+  display: none;
+}
+.NavScroll {
+  position: absolute;
+  right: -18px;
+  top: 0;
+  width: 18px;
+  overflow: hidden;
+}
+.NavScroll button {
+  display: block;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.NavScroll [role="scrollbar"] {
+  cursor: pointer;
+}
+@media (max-width: 760px) {
+  .NavScroll {
+    right: 0;
   }
 }

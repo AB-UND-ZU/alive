@@ -1,0 +1,33 @@
+{
+  "Intro": ["index", "play"],
+  "Controls": ["interface", "keyboard-mouse", "touch"],
+  "World": ["map", "levels", "savegames", "timers"],
+  "Characters": ["factions", "classes", "npcs", "animals", "enemies", "bosses"],
+  "Combat": ["damage", "stats", "respawn"],
+  "Cells": ["units", "containers", "terrain", "structures", "plants"],
+  "Items": [
+    "slots",
+    "elements",
+    "trading",
+    "gear",
+    "resources",
+    "spells",
+    "skills",
+    "tools",
+    "consumables"
+  ],
+  "Interactions": [
+    "chat",
+    "tips",
+    "shops",
+    "quests",
+    "crafting",
+    "brewing",
+    "forging",
+    "harvesting",
+    "fishing",
+    "farming",
+    "building"
+  ],
+  "Rendering": ["sprites", "light", "threejs", "responsive", "animations"]
+}
