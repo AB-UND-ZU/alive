@@ -7,9 +7,9 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 - Read the surrounding code and relevant tests before changing a feature.
 - Keep code simple to read and follow. Use existing naming, formatting and file structure.
 - Reuse existing helpers, entity factories, sprites and balancing data. Add a helper only when it is needed and makes the code simpler.
-- Keep game rules in the engine or balancing files, rather than duplicating them in UI code or documentation examples.
+- Keep game rules in the engine or balancing files, rather than duplicating them in UI code or wiki examples.
 - Explain why only when the reason is not clear from the code. Avoid comments that repeat what the code does.
-- Use plain, readable English in documentation and UI text.
+- Use plain, readable English in wiki and UI text.
 
 ## Verify every change
 
@@ -18,7 +18,7 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 - A small change to a specific behavior may be verified manually. Record the steps and result, and adjust existing tests if needed.
 - Visual implementation needs a reference screenshot and inspection of the result. Check desktop and small screens, interaction states and readability. Record the screenshots and what was inspected.
 - Run checks appropriate to the affected code. `npm run check:fast` covers type checking, lint and fast tests; `npm run test:all` includes level generation and rendering tests. Run `npm run build` for production game changes.
-- For documentation, run `npm run docs:build` and `npm run docs:test`. Inspect the built pages and working examples in a browser after visual changes.
+- For wiki, run `npm run wiki:build` and `npm run wiki:test`. Inspect the built pages and working examples in a browser after visual changes.
 - Report what passed, what was checked manually, and any remaining limits. Do not claim checks that were not run.
 
 ## Find the right place
@@ -32,12 +32,12 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 - `src/components/`: React rendering and controls.
 - `src/testing/`: existing deterministic world and rendering helpers. Prefer these for game feature tests.
 
-## Keep documentation current
+## Keep wiki current
 
-- Put player-facing feature documentation in `docs/` as Markdown.
+- Put player-facing feature wiki in `wiki/` as Markdown.
 - Put important implementation details beside the source file as `filename.md`, for example `src/engine/ecs.md` for `ecs.ts`.
-- Use separate player and development chapters in the documentation UI.
+- Use separate player and development chapters in the wiki UI.
 - Check claims against current code and the game. Clearly identify unavailable or experimental features; do not present design plans as playable features.
 - Reference interactive scenes with fenced `scene` blocks. Import game code or data in the scene implementation rather than copying rules or recipe tables.
 - Match the game's DOS font, terminal palette, character sprites and box borders using simple HTML. Preserve keyboard access, readable contrast and responsive layouts.
-- See `src/documentation/index.md` for authoring, local preview and deployment.
+- See `src/wiki/index.md` for authoring, local preview and deployment.

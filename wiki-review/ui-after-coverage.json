@@ -1,0 +1,1140 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "startedAt": "2026-11-07T23:43:49.283Z",
+  "pages": [
+    {
+      "route": "development/types/types.html",
+      "source": "src/types.md",
+      "title": "Types",
+      "group": "Types",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/00-types_types/page.png",
+        "/tmp/alive-review-ui-final/00-types_types/internal-0.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1256,
+        "heading": "Types",
+        "ghosts": []
+      },
+      "overflows": [
+        {
+          "index": 0,
+          "x": 216,
+          "y": 15000,
+          "kind": "TableScroll"
+        }
+      ],
+      "status": "captured",
+      "refreshedAt": "2026-11-07T23:56:42.289Z"
+    },
+    {
+      "route": "development/ui/app.html",
+      "source": "src/components/App/index.md",
+      "title": "App",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/01-ui_app/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "App",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/camera.html",
+      "source": "src/components/Camera/index.md",
+      "title": "Camera",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/02-ui_camera/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Camera",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/controls.html",
+      "source": "src/components/Controls/index.md",
+      "title": "Controls",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/03-ui_controls/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1376,
+        "heading": "Controls",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/cursor.html",
+      "source": "src/components/Cursor/index.md",
+      "title": "Cursor",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/04-ui_cursor/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Cursor",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/debug.html",
+      "source": "src/components/Debug/index.md",
+      "title": "Debug",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/05-ui_debug/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Debug",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/dimensions.html",
+      "source": "src/components/Dimensions/index.md",
+      "title": "Dimensions",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/06-ui_dimensions/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Dimensions",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/dimensions/scrolling.html",
+      "source": "src/components/Dimensions/scrolling.md",
+      "title": "Viewport Styles",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/07-ui_dimensions_scrolling/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1088,
+        "heading": "Viewport Styles",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/dimensions/sizing.html",
+      "source": "src/components/Dimensions/sizing.md",
+      "title": "Cell Sizing",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/08-ui_dimensions_sizing/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 2080,
+        "heading": "Cell Sizing",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/animated.html",
+      "source": "src/components/Entity/Animated.md",
+      "title": "Animated",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/09-ui_entity_animated/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Animated",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/bar.html",
+      "source": "src/components/Entity/Bar.md",
+      "title": "Bar",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/10-ui_entity_bar/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Bar",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/box.html",
+      "source": "src/components/Entity/Box.md",
+      "title": "Box",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/11-ui_entity_box/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Box",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/coveredlight.html",
+      "source": "src/components/Entity/CoveredLight.md",
+      "title": "Covered Light",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/12-ui_entity_coveredlight/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1088,
+        "heading": "Covered Light",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/dots.html",
+      "source": "src/components/Entity/Dots.md",
+      "title": "Stack Dots",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/13-ui_entity_dots/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Stack Dots",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/fogofwar.html",
+      "source": "src/components/Entity/FogOfWar.md",
+      "title": "Fog Of War",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/14-ui_entity_fogofwar/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Fog Of War",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/instances.html",
+      "source": "src/components/Entity/Instances.md",
+      "title": "Instances",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/15-ui_entity_instances/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1952,
+        "heading": "Instances",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/layer.html",
+      "source": "src/components/Entity/Layer.md",
+      "title": "Layer",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/16-ui_entity_layer/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1504,
+        "heading": "Layer",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/shadowcache.html",
+      "source": "src/components/Entity/ShadowCache.md",
+      "title": "Shadow Cache",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/17-ui_entity_shadowcache/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Shadow Cache",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/sprite.html",
+      "source": "src/components/Entity/Sprite.md",
+      "title": "Sprite",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/18-ui_entity_sprite/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1184,
+        "heading": "Sprite",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/stack.html",
+      "source": "src/components/Entity/Stack.md",
+      "title": "Stack",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/19-ui_entity_stack/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1184,
+        "heading": "Stack",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/swimming.html",
+      "source": "src/components/Entity/Swimming.md",
+      "title": "Swimming",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/20-ui_entity_swimming/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Swimming",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity/geometries.html",
+      "source": "src/components/Entity/geometries.md",
+      "title": "Geometry Cache",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/21-ui_entity_geometries/page.png",
+        "/tmp/alive-review-ui-final/21-ui_entity_geometries/internal-1.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1344,
+        "heading": "Geometry Cache",
+        "ghosts": []
+      },
+      "overflows": [
+        {
+          "index": 1,
+          "x": 180,
+          "y": 0,
+          "kind": "CodeScroll"
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/entity.html",
+      "source": "src/components/Entity/index.md",
+      "title": "Entity",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/22-ui_entity/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Entity",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/joystick.html",
+      "source": "src/components/Joystick/index.md",
+      "title": "Joystick",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/23-ui_joystick/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Joystick",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/keyboard.html",
+      "source": "src/components/Keyboard/index.md",
+      "title": "Keyboard",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/24-ui_keyboard/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Keyboard",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/paused.html",
+      "source": "src/components/Paused/index.md",
+      "title": "Pause Overlay",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/25-ui_paused/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Pause Overlay",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/row/characters.html",
+      "source": "src/components/Row/characters.md",
+      "title": "Character Pixels",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/26-ui_row_characters/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1056,
+        "heading": "Character Pixels",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/row.html",
+      "source": "src/components/Row/index.md",
+      "title": "Character Rows",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/27-ui_row/page.png",
+        "/tmp/alive-review-ui-final/27-ui_row/internal-1.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1184,
+        "heading": "Character Rows",
+        "ghosts": []
+      },
+      "overflows": [
+        {
+          "index": 1,
+          "x": 162,
+          "y": 0,
+          "kind": "CodeScroll"
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/stats.html",
+      "source": "src/components/Stats/index.md",
+      "title": "Stats Hud",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/28-ui_stats/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Stats Hud",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/systems.html",
+      "source": "src/components/Systems/index.md",
+      "title": "Systems Renderer",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/29-ui_systems/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Systems Renderer",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/terminal.html",
+      "source": "src/components/Terminal/index.md",
+      "title": "Terminal",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/30-ui_terminal/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Terminal",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/ui/world.html",
+      "source": "src/components/World/index.md",
+      "title": "World Context",
+      "group": "UI",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/31-ui_world/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1216,
+        "heading": "World Context",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/app.html",
+      "source": "src/wiki/App.md",
+      "title": "Wiki App",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/32-wiki_app/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1696,
+        "heading": "Wiki App",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured",
+      "refreshedAt": "2026-11-07T23:56:44.710Z"
+    },
+    {
+      "route": "development/wiki/callout.html",
+      "source": "src/wiki/Callout.md",
+      "title": "Callout",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/33-wiki_callout/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Callout",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/catalogentry.html",
+      "source": "src/wiki/CatalogEntry.md",
+      "title": "Catalog Entries",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/34-wiki_catalogentry/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1248,
+        "heading": "Catalog Entries",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/codeblock.html",
+      "source": "src/wiki/CodeBlock.md",
+      "title": "Code Blocks",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/35-wiki_codeblock/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1216,
+        "heading": "Code Blocks",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/damage.html",
+      "source": "src/wiki/Damage.md",
+      "title": "Damage Calculator",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/36-wiki_damage/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1088,
+        "heading": "Damage Calculator",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/demoframe.html",
+      "source": "src/wiki/DemoFrame.md",
+      "title": "Demo Frame",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/37-wiki_demoframe/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Demo Frame",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/gamepreview.html",
+      "source": "src/wiki/GamePreview.md",
+      "title": "Game Previews",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/38-wiki_gamepreview/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Game Previews",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/gridtable.html",
+      "source": "src/wiki/GridTable.md",
+      "title": "Grid Tables",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/39-wiki_gridtable/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1408,
+        "heading": "Grid Tables",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/interfacediagram.html",
+      "source": "src/wiki/InterfaceDiagram.md",
+      "title": "Interface Diagram",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/40-wiki_interfacediagram/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Interface Diagram",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/interfacelabels.html",
+      "source": "src/wiki/InterfaceLabels.md",
+      "title": "Interface Labels",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/41-wiki_interfacelabels/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Interface Labels",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/largepreview.html",
+      "source": "src/wiki/LargePreview.md",
+      "title": "Large Preview",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/42-wiki_largepreview/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Large Preview",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/play.html",
+      "source": "src/wiki/Play.md",
+      "title": "Play Page",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/43-wiki_play/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Play Page",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/textgallery.html",
+      "source": "src/wiki/TextGallery.md",
+      "title": "Text Galleries",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/44-wiki_textgallery/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Text Galleries",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/widgets.html",
+      "source": "src/wiki/Widgets.md",
+      "title": "Data Widgets",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/45-wiki_widgets/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1088,
+        "heading": "Data Widgets",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/worldmap.html",
+      "source": "src/wiki/WorldMap.md",
+      "title": "World Map",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/46-wiki_worldmap/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "World Map",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/worldplants.html",
+      "source": "src/wiki/WorldPlants.md",
+      "title": "World Plants",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/47-wiki_worldplants/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "World Plants",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/catalog.html",
+      "source": "src/wiki/catalog.md",
+      "title": "Catalog",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/48-wiki_catalog/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1536,
+        "heading": "Catalog",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/codepage.html",
+      "source": "src/wiki/codePage.md",
+      "title": "Dos Code Page",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/49-wiki_codepage/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1184,
+        "heading": "Dos Code Page",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/commands.html",
+      "source": "src/wiki/commands.md",
+      "title": "Command Input",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/50-wiki_commands/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "Command Input",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/index.html",
+      "source": "src/wiki/index.md",
+      "title": "Wiki Build",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/51-wiki_index/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 2912,
+        "heading": "Wiki Build",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/presets.html",
+      "source": "src/wiki/presets.md",
+      "title": "Play Presets",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/52-wiki_presets/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1088,
+        "heading": "Play Presets",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/preview.html",
+      "source": "src/wiki/preview.md",
+      "title": "Game Frame",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/53-wiki_preview/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1504,
+        "heading": "Game Frame",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/references.html",
+      "source": "src/wiki/references.md",
+      "title": "References",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/54-wiki_references/page.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1048,
+        "heading": "References",
+        "ghosts": []
+      },
+      "overflows": [],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/scenes.html",
+      "source": "src/wiki/scenes.md",
+      "title": "Preview Scenes",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/55-wiki_scenes/page.png",
+        "/tmp/alive-review-ui-final/55-wiki_scenes/internal-1.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 2080,
+        "heading": "Preview Scenes",
+        "ghosts": []
+      },
+      "overflows": [
+        {
+          "index": 1,
+          "x": 18,
+          "y": 0,
+          "kind": "CodeScroll"
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/types.html",
+      "source": "src/wiki/types.md",
+      "title": "Document Types",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/56-wiki_types/page.png",
+        "/tmp/alive-review-ui-final/56-wiki_types/internal-2.png",
+        "/tmp/alive-review-ui-final/56-wiki_types/internal-4.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 3328,
+        "heading": "Document Types",
+        "ghosts": []
+      },
+      "overflows": [
+        {
+          "index": 2,
+          "x": 360,
+          "y": 0,
+          "kind": "CodeScroll"
+        },
+        {
+          "index": 4,
+          "x": 126,
+          "y": 0,
+          "kind": "CodeScroll"
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "route": "development/wiki/visuals.html",
+      "source": "src/wiki/visuals.md",
+      "title": "Wiki Visuals",
+      "group": "Wiki",
+      "screenshots": [
+        "/tmp/alive-review-ui-final/57-wiki_visuals/page.png",
+        "/tmp/alive-review-ui-final/57-wiki_visuals/internal-0.png"
+      ],
+      "errors": [],
+      "metrics": {
+        "documentWidth": 1440,
+        "height": 1768,
+        "heading": "Wiki Visuals",
+        "ghosts": []
+      },
+      "overflows": [
+        {
+          "index": 0,
+          "x": 0,
+          "y": 248,
+          "kind": "TableScroll"
+        }
+      ],
+      "status": "captured"
+    }
+  ],
+  "finishedAt": "2026-11-07T23:54:16.436Z",
+  "typeSourceCheck": {
+    "row": "AbilityStatssrc/engine/components/castable.ts",
+    "links": [
+      {
+        "text": "AbilityStats",
+        "href": "http://127.0.0.1:4173/development/components/castable.html#type-abilitystats"
+      },
+      {
+        "text": "src/engine/components/castable.ts",
+        "href": "http://127.0.0.1:4173/development/components/castable.html"
+      }
+    ]
+  },
+  "mobileHeading": "/tmp/alive-review-ui-final/mobile-heading.png",
+  "refreshFinishedAt": "2026-11-07T23:56:45.896Z",
+  "review": {
+    "inspectedRoutes": 58,
+    "inspectedCaptures": 65,
+    "contactSheets": "/tmp/alive-review-ui-final/contacts/",
+    "allCapturesInspected": true,
+    "eventSourceDisabledForStableAudit": true,
+    "focusedTests": "9 Jest tests; 2 Chromium tests passed",
+    "report": "wiki-review/ui-fixes.md",
+    "limits": [
+      "Complete desktop coverage; mobile sampled",
+      "Native Range selection, not exhaustive mouse-drag hit testing",
+      "Baseline Types traversal retained; final index destinations separately checked by root"
+    ]
+  }
+}

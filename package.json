@@ -41,10 +41,10 @@
     "eject": "react-scripts eject",
     "prepare": "git config core.hooksPath .githooks || true",
     "media:titles": "node scripts/regenerate-titles.cjs",
-    "docs:types": "node scripts/docs/types.mjs",
-    "docs:build": "node scripts/docs/build.mjs",
-    "docs:dev": "node scripts/docs/serve.mjs",
-    "docs:test": "node --test scripts/docs/types.test.mjs scripts/docs/item-sources.test.mjs scripts/docs/font.test.mjs && playwright test"
+    "wiki:types": "node scripts/wiki/types.mjs",
+    "wiki:build": "node scripts/wiki/build.mjs",
+    "wiki:dev": "node scripts/wiki/serve.mjs",
+    "wiki:test": "node --test scripts/wiki/types.test.mjs scripts/wiki/item-sources.test.mjs scripts/wiki/font.test.mjs && playwright test"
   },
   "eslintConfig": {
     "extends": [

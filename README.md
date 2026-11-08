@@ -2,9 +2,9 @@
 
 A browser adventure game made from layered DOS characters and sixteen terminal colors. Built with TypeScript, React, Three.js, and an entity component system.
 
-[Play](https://ab-und-zu.github.io/alive/) · [Documentation](https://ab-und-zu.github.io/alive/docs/)
+[Play](https://ab-und-zu.github.io/alive/) · [Wiki](https://ab-und-zu.github.io/alive/wiki/)
 
-![The start of an adventure](docs/media/game.png)
+![The start of an adventure](wiki/media/game.png)
 
 ## Run locally
 
@@ -13,15 +13,15 @@ npm ci
 npm start
 ```
 
-## Read and preview the docs
+## Read and preview the wiki
 
-Player documentation lives in [docs/](docs/index.md). Technical notes live beside the source files they explain. Both appear as separate chapters in the generated site.
+Player wiki lives in [wiki/](wiki/index.md). Technical notes live beside the source files they explain. Both appear as separate chapters in the generated site.
 
 ```sh
-npm run docs:dev
+npm run wiki:dev
 ```
 
-Open http://127.0.0.1:4173. Edits rebuild and reload the preview automatically. `npm run docs:build` writes a static site to `.docs-build/`. See [documentation tools](src/documentation/index.md) for Markdown authoring, imported examples, browser checks, and GitHub Pages deployment.
+Open http://127.0.0.1:4173. Edits rebuild and reload the preview automatically. `npm run wiki:build` writes a static site to `.wiki-build/`. See [wiki tools](src/wiki/index.md) for Markdown authoring, imported examples, browser checks, and GitHub Pages deployment.
 
 
 ## Development
@@ -33,10 +33,10 @@ npm run check:fast
 npm run test:all
 npm run build
 npx playwright install chromium
-npm run docs:test
+npm run wiki:test
 ```
 
-Fast checks cover types, lint, and small feature tests. The full suite includes generated levels and rendering. The documentation browser suite checks live examples, navigation, and responsive layout.
+Fast checks cover types, lint, and small feature tests. The full suite includes generated levels and rendering. The wiki browser suite checks live examples, navigation, and responsive layout.
 
 ## Title images
 

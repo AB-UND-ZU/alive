@@ -4,7 +4,7 @@
 | --- | --- |
 | [AbilityStats](engine/components/castable.md#type-abilitystats) | `src/engine/components/castable.ts` |
 | [Accessory](engine/components/equippable.md#type-accessory) | `src/engine/components/equippable.ts` |
-| [Acquisition](documentation/itemSources.md#type-acquisition) | `src/documentation/itemSources.ts` |
+| [Acquisition](wiki/itemSources.md#type-acquisition) | `src/wiki/itemSources.ts` |
 | [Action](components/Controls/index.md#type-action) | `src/components/Controls/index.tsx` |
 | [Actionable](engine/components/actionable.md#type-actionable) | `src/engine/components/actionable.ts` |
 | [Affectable](engine/components/affectable.md#type-affectable) | `src/engine/components/affectable.ts` |
@@ -29,7 +29,7 @@
 | [BurnSequence](engine/components/sequencable.md#type-burnsequence) | `src/engine/components/sequencable.ts` |
 | [Burnable](engine/components/burnable.md#type-burnable) | `src/engine/components/burnable.ts` |
 | [Castable](engine/components/castable.md#type-castable) | `src/engine/components/castable.ts` |
-| [CatalogIndexEntry](documentation/Widgets.md#type-catalogindexentry) | `src/documentation/Widgets.tsx` |
+| [CatalogIndexEntry](wiki/Widgets.md#type-catalogindexentry) | `src/wiki/Widgets.tsx` |
 | [CellSprite](components/Row/index.md#type-cellsprite) | `src/components/Row/index.tsx` |
 | [CellType](bindings/creation.md#type-celltype) | `src/bindings/creation.ts` |
 | [ClassDefinition](game/balancing/classes.md#type-classdefinition) | `src/game/balancing/classes.ts` |
@@ -53,7 +53,7 @@
 | [Countable](engine/components/stats.md#type-countable) | `src/engine/components/stats.ts` |
 | [Coverable](engine/components/coverable.md#type-coverable) | `src/engine/components/coverable.ts` |
 | [Craftable](engine/components/item.md#type-craftable) | `src/engine/components/item.ts` |
-| [DamageKind](documentation/Damage.md#type-damagekind) | `src/documentation/Damage.tsx` |
+| [DamageKind](wiki/Damage.md#type-damagekind) | `src/wiki/Damage.tsx` |
 | [DamageType](engine/components/castable.md#type-damagetype) | `src/engine/components/castable.ts` |
 | [Deal](engine/components/popup.md#type-deal) | `src/engine/components/popup.ts` |
 | [DecaySequence](engine/components/sequencable.md#type-decaysequence) | `src/engine/components/sequencable.ts` |
@@ -64,9 +64,6 @@
 | [DiscoverySequence](engine/components/sequencable.md#type-discoverysequence) | `src/engine/components/sequencable.ts` |
 | [Displacable](engine/components/displacable.md#type-displacable) | `src/engine/components/displacable.ts` |
 | [DisposeSequence](engine/components/sequencable.md#type-disposesequence) | `src/engine/components/sequencable.ts` |
-| [DocPage](documentation/types.md#type-docpage) | `src/documentation/types.ts` |
-| [DocToken](documentation/types.md#type-doctoken) | `src/documentation/types.ts` |
-| [DocsManifest](documentation/types.md#type-docsmanifest) | `src/documentation/types.ts` |
 | [DropSequence](engine/components/sequencable.md#type-dropsequence) | `src/engine/components/sequencable.ts` |
 | [Droppable](engine/components/droppable.md#type-droppable) | `src/engine/components/droppable.ts` |
 | [EffectType](engine/components/castable.md#type-effecttype) | `src/engine/components/castable.ts` |
@@ -142,7 +139,7 @@
 | [Message](engine/components/sequencable.md#type-message) | `src/engine/components/sequencable.ts` |
 | [Mountable](engine/components/mountable.md#type-mountable) | `src/engine/components/mountable.ts` |
 | [Movable](engine/components/movable.md#type-movable) | `src/engine/components/movable.ts` |
-| [Navigate](documentation/App.md#type-navigate) | `src/documentation/App.tsx` |
+| [Navigate](wiki/App.md#type-navigate) | `src/wiki/App.tsx` |
 | [NpcData](game/balancing/units.md#type-npcdata) | `src/game/balancing/units.ts` |
 | [NpcDistribution](game/balancing/units.md#type-npcdistribution) | `src/game/balancing/units.ts` |
 | [NpcSequence](engine/components/sequencable.md#type-npcsequence) | `src/engine/components/sequencable.ts` |
@@ -167,8 +164,8 @@
 | [PopupSequence](engine/components/sequencable.md#type-popupsequence) | `src/engine/components/sequencable.ts` |
 | [Popup](engine/components/popup.md#type-popup) | `src/engine/components/popup.ts` |
 | [Position](engine/components/position.md#type-position) | `src/engine/components/position.ts` |
-| [PresetName](documentation/presets.md#type-presetname) | `src/documentation/presets.ts` |
-| [PreviewBounds](documentation/LargePreview.md#type-previewbounds) | `src/documentation/LargePreview.tsx` |
+| [PresetName](wiki/presets.md#type-presetname) | `src/wiki/presets.ts` |
+| [PreviewBounds](wiki/LargePreview.md#type-previewbounds) | `src/wiki/LargePreview.tsx` |
 | [ProcStats](engine/components/castable.md#type-procstats) | `src/engine/components/castable.ts` |
 | [ProgressSequence](engine/components/sequencable.md#type-progresssequence) | `src/engine/components/sequencable.ts` |
 | [Projectile](engine/components/projectile.md#type-projectile) | `src/engine/components/projectile.ts` |
@@ -179,8 +176,8 @@
 | [Rechargable](engine/components/rechargable.md#type-rechargable) | `src/engine/components/rechargable.ts` |
 | [Rechargables](engine/components/item.md#type-rechargables) | `src/engine/components/item.ts` |
 | [Recipe](engine/components/popup.md#type-recipe) | `src/engine/components/popup.ts` |
-| [Reference](documentation/references.md#type-reference) | `src/documentation/references.tsx` |
 | [Reference](engine/components/reference.md#type-reference) | `src/engine/components/reference.ts` |
+| [Reference](wiki/references.md#type-reference) | `src/wiki/references.tsx` |
 | [Refillable](engine/components/refillable.md#type-refillable) | `src/engine/components/refillable.ts` |
 | [Reloadable](engine/components/item.md#type-reloadable) | `src/engine/components/item.ts` |
 | [Remainable](engine/components/remainable.md#type-remainable) | `src/engine/components/remainable.ts` |
@@ -193,7 +190,7 @@
 | [SaveItem](game/saves/index.md#type-saveitem) | `src/game/saves/index.ts` |
 | [SaveStatus](bindings/hooks.md#type-savestatus) | `src/bindings/hooks.ts` |
 | [SaveSummary](game/saves/index.md#type-savesummary) | `src/game/saves/index.ts` |
-| [SceneName](documentation/scenes.md#type-scenename) | `src/documentation/scenes.ts` |
+| [SceneName](wiki/scenes.md#type-scenename) | `src/wiki/scenes.ts` |
 | [Segment](components/Entity/Stack.md#type-segment) | `src/components/Entity/Stack.tsx` |
 | [Sequencable](engine/components/sequencable.md#type-sequencable) | `src/engine/components/sequencable.ts` |
 | [SequenceState](engine/components/sequencable.md#type-sequencestate) | `src/engine/components/sequencable.ts` |
@@ -250,6 +247,9 @@
 | [Weapon](engine/components/item.md#type-weapon) | `src/engine/components/item.ts` |
 | [WeatherSequence](engine/components/sequencable.md#type-weathersequence) | `src/engine/components/sequencable.ts` |
 | [Weather](engine/systems/water.md#type-weather) | `src/engine/systems/water.ts` |
+| [WikiManifest](wiki/types.md#type-wikimanifest) | `src/wiki/types.ts` |
+| [WikiPage](wiki/types.md#type-wikipage) | `src/wiki/types.ts` |
+| [WikiToken](wiki/types.md#type-wikitoken) | `src/wiki/types.ts` |
 | [WorldContext](bindings/hooks.md#type-worldcontext) | `src/bindings/hooks.ts` |
 | [WorldSnapshot](engine/snapshot.md#type-worldsnapshot) | `src/engine/snapshot.ts` |
 | [World](engine/ecs.md#type-world) | `src/engine/ecs.ts` |

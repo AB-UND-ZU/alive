@@ -1,0 +1,5020 @@
+{
+  "baseline": "767e346",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "pageCount": 48,
+  "screenshotCount": 403,
+  "supplementalScreenshots": [
+    {
+      "file": "/tmp/alive-gameplay-review/play-dungeon-loaded.png",
+      "visuallyInspected": true
+    },
+    {
+      "file": "/tmp/alive-gameplay-review/play-dungeon-focused.png",
+      "visuallyInspected": true
+    }
+  ],
+  "manualPlay": {
+    "menuSrc": "http://127.0.0.1:4173/preview.html#game/menu",
+    "menuX": "0",
+    "dungeonSrc": "http://127.0.0.1:4173/preview.html#game/dungeon",
+    "before": {
+      "x": "0",
+      "y": "0"
+    },
+    "after": {
+      "x": "1",
+      "y": "0"
+    },
+    "firstEscapeDialog": "",
+    "focusReleased": false,
+    "secondEscapeDialog": ""
+  },
+  "mobileSweep": false,
+  "pages": [
+    {
+      "index": 0,
+      "title": "ALIVE",
+      "route": "index.html",
+      "source": "wiki/index.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/00-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/00-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/00-002-page.png",
+          "label": "page",
+          "y": 1344,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/00-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/00-004-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 280,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1120
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 544,
+          "sw": 1026,
+          "sh": 544
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2344,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/00-contact-00.png"
+      ]
+    },
+    {
+      "index": 1,
+      "title": "Play",
+      "route": "intro/play.html",
+      "source": "wiki/play.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/01-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/01-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/01-002-page.png",
+          "label": "page",
+          "y": 832,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/01-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/01-004-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 312,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1152
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1832,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/01-contact-00.png"
+      ]
+    },
+    {
+      "index": 2,
+      "title": "Interface",
+      "route": "game-design/controls/interface.html",
+      "source": "wiki/interface.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/02-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/02-001-page.png",
+          "label": "page",
+          "y": 344,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1344,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/02-contact-00.png"
+      ]
+    },
+    {
+      "index": 3,
+      "title": "Keyboard/Mouse",
+      "route": "game-design/controls/keyboard-mouse.html",
+      "source": "wiki/keyboard-mouse.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/03-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/03-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/03-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/03-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/03-004-page.png",
+          "label": "page",
+          "y": 2784,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/03-005-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/03-006-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 248,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1088
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 3784,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/03-contact-00.png",
+        "/tmp/alive-gameplay-review/03-contact-01.png"
+      ]
+    },
+    {
+      "index": 4,
+      "title": "Touch",
+      "route": "game-design/controls/touch.html",
+      "source": "wiki/touch.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/04-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/04-001-page.png",
+          "label": "page",
+          "y": 600,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1600,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/04-contact-00.png"
+      ]
+    },
+    {
+      "index": 5,
+      "title": "Map",
+      "route": "game-design/world/map.html",
+      "source": "wiki/map.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/05-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/05-001-page.png",
+          "label": "page",
+          "y": 504,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1504,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/05-contact-00.png"
+      ]
+    },
+    {
+      "index": 6,
+      "title": "Levels",
+      "route": "game-design/world/levels.html",
+      "source": "wiki/levels.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/06-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/06-001-page.png",
+          "label": "page",
+          "y": 280,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1280,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/06-contact-00.png"
+      ]
+    },
+    {
+      "index": 7,
+      "title": "Savegames",
+      "route": "game-design/world/savegames.html",
+      "source": "wiki/savegames.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/07-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/07-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/07-002-page.png",
+          "label": "page",
+          "y": 1272,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 480,
+          "sw": 1026,
+          "sh": 480
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2272,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/07-contact-00.png"
+      ]
+    },
+    {
+      "index": 8,
+      "title": "Tick Timers",
+      "route": "game-design/world/timers.html",
+      "source": "wiki/timers.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/08-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/08-001-page.png",
+          "label": "page",
+          "y": 48,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 448,
+          "sw": 1026,
+          "sh": 448
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1048,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/08-contact-00.png"
+      ]
+    },
+    {
+      "index": 9,
+      "title": "Factions",
+      "route": "game-design/characters/factions.html",
+      "source": "wiki/factions.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/09-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/09-001-page.png",
+          "label": "page",
+          "y": 48,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 448,
+          "sw": 1026,
+          "sh": 448
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1048,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/09-contact-00.png"
+      ]
+    },
+    {
+      "index": 10,
+      "title": "Classes",
+      "route": "game-design/characters/classes.html",
+      "source": "wiki/classes.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/10-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/10-001-page.png",
+          "label": "page",
+          "y": 352,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/10-002-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/10-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/10-004-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 1112,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1952
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1352,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/10-contact-00.png"
+      ]
+    },
+    {
+      "index": 11,
+      "title": "NPCs",
+      "route": "game-design/characters/npcs.html",
+      "source": "wiki/npcs.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/11-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-006-page.png",
+          "label": "page",
+          "y": 4536,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-007-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-008-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 450,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-009-table.png",
+          "label": "table",
+          "table": 7,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/11-010-table.png",
+          "label": "table",
+          "table": 7,
+          "x": 126,
+          "y": 0,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 640,
+          "sw": 1026,
+          "sh": 640
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 480,
+          "sw": 1026,
+          "sh": 480
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 512,
+          "sw": 1026,
+          "sh": 512
+        },
+        {
+          "index": 5,
+          "w": 1026,
+          "h": 640,
+          "sw": 1476,
+          "sh": 640
+        },
+        {
+          "index": 6,
+          "w": 1026,
+          "h": 768,
+          "sw": 1026,
+          "sh": 768
+        },
+        {
+          "index": 7,
+          "w": 1026,
+          "h": 320,
+          "sw": 1152,
+          "sh": 320
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 5536,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/11-contact-00.png",
+        "/tmp/alive-gameplay-review/11-contact-01.png"
+      ]
+    },
+    {
+      "index": 12,
+      "title": "Animals",
+      "route": "game-design/characters/animals.html",
+      "source": "wiki/animals.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/12-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/12-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/12-002-page.png",
+          "label": "page",
+          "y": 1368,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/12-003-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/12-004-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 396,
+          "y": 0,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 480,
+          "sw": 1026,
+          "sh": 480
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 192,
+          "sw": 1026,
+          "sh": 192
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 672,
+          "sw": 1422,
+          "sh": 672
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2368,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/12-contact-00.png"
+      ]
+    },
+    {
+      "index": 13,
+      "title": "Enemies",
+      "route": "game-design/characters/enemies.html",
+      "source": "wiki/enemies.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/13-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-006-page.png",
+          "label": "page",
+          "y": 4800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-007-page.png",
+          "label": "page",
+          "y": 5600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-008-page.png",
+          "label": "page",
+          "y": 6400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-009-page.png",
+          "label": "page",
+          "y": 6880,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-010-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/13-011-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 0,
+          "y": 184,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 576,
+          "sw": 1026,
+          "sh": 576
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 608,
+          "sw": 1026,
+          "sh": 608
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 800,
+          "sw": 1026,
+          "sh": 800
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 768,
+          "sw": 1026,
+          "sh": 768
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1024
+        },
+        {
+          "index": 5,
+          "w": 1026,
+          "h": 640,
+          "sw": 1026,
+          "sh": 640
+        },
+        {
+          "index": 6,
+          "w": 1026,
+          "h": 704,
+          "sw": 1026,
+          "sh": 704
+        },
+        {
+          "index": 7,
+          "w": 1026,
+          "h": 608,
+          "sw": 1026,
+          "sh": 608
+        },
+        {
+          "index": 8,
+          "w": 1026,
+          "h": 800,
+          "sw": 1026,
+          "sh": 800
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 7880,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/13-contact-00.png",
+        "/tmp/alive-gameplay-review/13-contact-01.png"
+      ]
+    },
+    {
+      "index": 14,
+      "title": "Bosses",
+      "route": "game-design/characters/bosses.html",
+      "source": "wiki/bosses.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/14-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/14-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/14-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/14-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/14-004-page.png",
+          "label": "page",
+          "y": 2848,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/14-005-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/14-006-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 56,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 896
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 672,
+          "sw": 1026,
+          "sh": 672
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 800,
+          "sw": 1026,
+          "sh": 800
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 544,
+          "sw": 1026,
+          "sh": 544
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 3848,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/14-contact-00.png",
+        "/tmp/alive-gameplay-review/14-contact-01.png"
+      ]
+    },
+    {
+      "index": 15,
+      "title": "Damage",
+      "route": "game-design/combat/damage.html",
+      "source": "wiki/damage.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/15-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/15-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/15-002-page.png",
+          "label": "page",
+          "y": 1112,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2112,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/15-contact-00.png"
+      ]
+    },
+    {
+      "index": 16,
+      "title": "Stats",
+      "route": "game-design/combat/stats.html",
+      "source": "wiki/stats.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/16-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/16-001-page.png",
+          "label": "page",
+          "y": 352,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/16-002-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/16-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/16-004-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 1112,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1952
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1352,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/16-contact-00.png"
+      ]
+    },
+    {
+      "index": 17,
+      "title": "Respawn",
+      "route": "game-design/combat/respawn.html",
+      "source": "wiki/respawn.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/17-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/17-001-page.png",
+          "label": "page",
+          "y": 48,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1048,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/17-contact-00.png"
+      ]
+    },
+    {
+      "index": 18,
+      "title": "Units",
+      "route": "game-design/cells/units.html",
+      "source": "wiki/units.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/18-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/18-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/18-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/18-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/18-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/18-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/18-006-page.png",
+          "label": "page",
+          "y": 4312,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 608,
+          "sw": 1026,
+          "sh": 608
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 512,
+          "sw": 1026,
+          "sh": 512
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 608,
+          "sw": 1026,
+          "sh": 608
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 480,
+          "sw": 1026,
+          "sh": 480
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 576,
+          "sw": 1026,
+          "sh": 576
+        },
+        {
+          "index": 5,
+          "w": 1026,
+          "h": 608,
+          "sw": 1026,
+          "sh": 608
+        },
+        {
+          "index": 6,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 5312,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/18-contact-00.png",
+        "/tmp/alive-gameplay-review/18-contact-01.png"
+      ]
+    },
+    {
+      "index": 19,
+      "title": "Containers",
+      "route": "game-design/cells/containers.html",
+      "source": "wiki/containers.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/19-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-004-page.png",
+          "label": "page",
+          "y": 3152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-005-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-006-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-007-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 882,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-008-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-009-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 846,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-010-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 882,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-011-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 760,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-012-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 846,
+          "y": 760,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-013-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 882,
+          "y": 760,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-014-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-015-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 0,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-016-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 0,
+          "y": 760,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-017-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/19-018-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 0,
+          "y": 664,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1908,
+          "sh": 1600
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1600
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1504
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 4152,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/19-contact-00.png",
+        "/tmp/alive-gameplay-review/19-contact-01.png",
+        "/tmp/alive-gameplay-review/19-contact-02.png",
+        "/tmp/alive-gameplay-review/19-contact-03.png"
+      ]
+    },
+    {
+      "index": 20,
+      "title": "Terrain",
+      "route": "game-design/cells/terrain.html",
+      "source": "wiki/terrain.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/20-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/20-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/20-002-page.png",
+          "label": "page",
+          "y": 824,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 640,
+          "sw": 1026,
+          "sh": 640
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1824,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/20-contact-00.png"
+      ]
+    },
+    {
+      "index": 21,
+      "title": "Structures",
+      "route": "game-design/cells/structures.html",
+      "source": "wiki/structures.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/21-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/21-001-page.png",
+          "label": "page",
+          "y": 48,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 256,
+          "sw": 1026,
+          "sh": 256
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1048,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/21-contact-00.png"
+      ]
+    },
+    {
+      "index": 22,
+      "title": "Plants",
+      "route": "game-design/cells/plants.html",
+      "source": "wiki/plants.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/22-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-006-page.png",
+          "label": "page",
+          "y": 4800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-007-page.png",
+          "label": "page",
+          "y": 5600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-008-page.png",
+          "label": "page",
+          "y": 5824,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-009-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/22-010-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 0,
+          "y": 56,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 576,
+          "sw": 1026,
+          "sh": 576
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 480,
+          "sw": 1026,
+          "sh": 480
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 608,
+          "sw": 1026,
+          "sh": 608
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 768,
+          "sw": 1026,
+          "sh": 768
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 832,
+          "sw": 1026,
+          "sh": 832
+        },
+        {
+          "index": 5,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 896
+        },
+        {
+          "index": 6,
+          "w": 1026,
+          "h": 672,
+          "sw": 1026,
+          "sh": 672
+        },
+        {
+          "index": 7,
+          "w": 1026,
+          "h": 544,
+          "sw": 1026,
+          "sh": 544
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 6824,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/22-contact-00.png",
+        "/tmp/alive-gameplay-review/22-contact-01.png"
+      ]
+    },
+    {
+      "index": 23,
+      "title": "Slots",
+      "route": "game-design/items/slots.html",
+      "source": "wiki/slots.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/23-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/23-001-page.png",
+          "label": "page",
+          "y": 320,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/23-002-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/23-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 376,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1216
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1320,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/23-contact-00.png"
+      ]
+    },
+    {
+      "index": 24,
+      "title": "Elements",
+      "route": "game-design/items/elements.html",
+      "source": "wiki/elements.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/24-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/24-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/24-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/24-003-page.png",
+          "label": "page",
+          "y": 1688,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 448,
+          "sw": 1026,
+          "sh": 448
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 448,
+          "sw": 1026,
+          "sh": 448
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2688,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/24-contact-00.png"
+      ]
+    },
+    {
+      "index": 25,
+      "title": "Trading",
+      "route": "game-design/items/trading.html",
+      "source": "wiki/trading.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/25-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/25-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/25-002-page.png",
+          "label": "page",
+          "y": 1056,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/25-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/25-004-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 408,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1248
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2056,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/25-contact-00.png"
+      ]
+    },
+    {
+      "index": 26,
+      "title": "Gear",
+      "route": "game-design/items/gear.html",
+      "source": "wiki/gear.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/26-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-006-page.png",
+          "label": "page",
+          "y": 4800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-007-page.png",
+          "label": "page",
+          "y": 5600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-008-page.png",
+          "label": "page",
+          "y": 6400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-009-page.png",
+          "label": "page",
+          "y": 7200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-010-page.png",
+          "label": "page",
+          "y": 7904,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-011-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-012-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-013-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-014-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-015-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 3384,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-016-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 3744,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-017-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-018-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 846,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-019-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 1692,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-020-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 2538,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-021-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 3384,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-022-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 3744,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-023-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-024-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-025-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-026-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-027-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 3384,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-028-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 4230,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-029-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 4554,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-030-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-031-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-032-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-033-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-034-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 3330,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-035-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 0,
+          "y": 344,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-036-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 846,
+          "y": 344,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-037-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 1692,
+          "y": 344,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-038-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 2538,
+          "y": 344,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-039-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 3330,
+          "y": 344,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-040-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-041-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-042-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-043-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-044-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 3384,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-045-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 3744,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-046-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 0,
+          "y": 88,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-047-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 846,
+          "y": 88,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-048-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 1692,
+          "y": 88,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-049-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 2538,
+          "y": 88,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-050-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 3384,
+          "y": 88,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-051-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 3744,
+          "y": 88,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-052-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-053-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-054-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-055-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-056-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 3384,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-057-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 3474,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-058-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 0,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-059-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 846,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-060-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 1692,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-061-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 2538,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-062-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 3384,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-063-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 3474,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-064-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-065-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-066-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-067-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-068-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 3384,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-069-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 4068,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-070-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 0,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-071-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 846,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-072-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 1692,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-073-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 2538,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-074-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 3384,
+          "y": 152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/26-075-table.png",
+          "label": "table",
+          "table": 5,
+          "x": 4068,
+          "y": 152,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 4770,
+          "sh": 992
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 832,
+          "sw": 5580,
+          "sh": 832
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 840,
+          "sw": 4356,
+          "sh": 1184
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 840,
+          "sw": 4770,
+          "sh": 928
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 840,
+          "sw": 4500,
+          "sh": 1024
+        },
+        {
+          "index": 5,
+          "w": 1026,
+          "h": 840,
+          "sw": 5094,
+          "sh": 992
+        },
+        {
+          "index": 6,
+          "w": 1026,
+          "h": 544,
+          "sw": 1026,
+          "sh": 544
+        },
+        {
+          "index": 7,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 8,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 9,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 8904,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/26-contact-00.png",
+        "/tmp/alive-gameplay-review/26-contact-01.png",
+        "/tmp/alive-gameplay-review/26-contact-02.png",
+        "/tmp/alive-gameplay-review/26-contact-03.png",
+        "/tmp/alive-gameplay-review/26-contact-04.png",
+        "/tmp/alive-gameplay-review/26-contact-05.png",
+        "/tmp/alive-gameplay-review/26-contact-06.png",
+        "/tmp/alive-gameplay-review/26-contact-07.png",
+        "/tmp/alive-gameplay-review/26-contact-08.png",
+        "/tmp/alive-gameplay-review/26-contact-09.png",
+        "/tmp/alive-gameplay-review/26-contact-10.png",
+        "/tmp/alive-gameplay-review/26-contact-11.png",
+        "/tmp/alive-gameplay-review/26-contact-12.png"
+      ]
+    },
+    {
+      "index": 27,
+      "title": "Resources",
+      "route": "game-design/items/resources.html",
+      "source": "wiki/resources.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/27-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-006-page.png",
+          "label": "page",
+          "y": 4800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-007-page.png",
+          "label": "page",
+          "y": 5600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-008-page.png",
+          "label": "page",
+          "y": 6400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-009-page.png",
+          "label": "page",
+          "y": 7200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-010-page.png",
+          "label": "page",
+          "y": 8000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-011-page.png",
+          "label": "page",
+          "y": 8800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-012-page.png",
+          "label": "page",
+          "y": 9600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/27-013-page.png",
+          "label": "page",
+          "y": 9816,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 256,
+          "sw": 1026,
+          "sh": 256
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 256,
+          "sw": 1026,
+          "sh": 256
+        },
+        {
+          "index": 5,
+          "w": 1026,
+          "h": 256,
+          "sw": 1026,
+          "sh": 256
+        },
+        {
+          "index": 6,
+          "w": 1026,
+          "h": 288,
+          "sw": 1026,
+          "sh": 288
+        },
+        {
+          "index": 7,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 8,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 9,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 10,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 11,
+          "w": 1026,
+          "h": 256,
+          "sw": 1026,
+          "sh": 256
+        },
+        {
+          "index": 12,
+          "w": 1026,
+          "h": 288,
+          "sw": 1026,
+          "sh": 288
+        },
+        {
+          "index": 13,
+          "w": 1026,
+          "h": 256,
+          "sw": 1026,
+          "sh": 256
+        },
+        {
+          "index": 14,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 15,
+          "w": 1026,
+          "h": 288,
+          "sw": 1026,
+          "sh": 288
+        },
+        {
+          "index": 16,
+          "w": 1026,
+          "h": 288,
+          "sw": 1026,
+          "sh": 288
+        },
+        {
+          "index": 17,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 18,
+          "w": 1026,
+          "h": 256,
+          "sw": 1026,
+          "sh": 256
+        },
+        {
+          "index": 19,
+          "w": 1026,
+          "h": 288,
+          "sw": 1026,
+          "sh": 288
+        },
+        {
+          "index": 20,
+          "w": 1026,
+          "h": 288,
+          "sw": 1026,
+          "sh": 288
+        },
+        {
+          "index": 21,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 22,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 23,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 24,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 25,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 26,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 27,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 10816,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/27-contact-00.png",
+        "/tmp/alive-gameplay-review/27-contact-01.png",
+        "/tmp/alive-gameplay-review/27-contact-02.png"
+      ]
+    },
+    {
+      "index": 28,
+      "title": "Spells",
+      "route": "game-design/items/spells.html",
+      "source": "wiki/spells.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/28-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-006-page.png",
+          "label": "page",
+          "y": 4632,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-007-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-008-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-009-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-010-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-011-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 3384,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-012-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 4104,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-013-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 248,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-014-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 846,
+          "y": 248,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-015-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 1692,
+          "y": 248,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-016-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 2538,
+          "y": 248,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-017-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 3384,
+          "y": 248,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-018-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 4104,
+          "y": 248,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-019-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-020-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-021-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-022-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-023-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 3384,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-024-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 3528,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-025-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 0,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-026-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 846,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-027-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 1692,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-028-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 2538,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-029-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 3384,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-030-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 3528,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-031-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-032-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-033-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-034-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-035-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 3384,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-036-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 4032,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-037-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 0,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-038-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 846,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-039-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 1692,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-040-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 2538,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-041-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 3384,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-042-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 4032,
+          "y": 184,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-043-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-044-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 846,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-045-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 1692,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-046-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 2538,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-047-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 3384,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-048-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 4032,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-049-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 0,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-050-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 846,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-051-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 1692,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-052-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 2538,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-053-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 3384,
+          "y": 312,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/28-054-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 4032,
+          "y": 312,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 5130,
+          "sh": 1088
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 840,
+          "sw": 4554,
+          "sh": 1152
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 840,
+          "sw": 5058,
+          "sh": 1024
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 840,
+          "sw": 5058,
+          "sh": 1152
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 5632,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/28-contact-00.png",
+        "/tmp/alive-gameplay-review/28-contact-01.png",
+        "/tmp/alive-gameplay-review/28-contact-02.png",
+        "/tmp/alive-gameplay-review/28-contact-03.png",
+        "/tmp/alive-gameplay-review/28-contact-04.png",
+        "/tmp/alive-gameplay-review/28-contact-05.png",
+        "/tmp/alive-gameplay-review/28-contact-06.png",
+        "/tmp/alive-gameplay-review/28-contact-07.png",
+        "/tmp/alive-gameplay-review/28-contact-08.png",
+        "/tmp/alive-gameplay-review/28-contact-09.png"
+      ]
+    },
+    {
+      "index": 29,
+      "title": "Skills",
+      "route": "game-design/items/skills.html",
+      "source": "wiki/skills.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/29-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-006-page.png",
+          "label": "page",
+          "y": 4384,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-007-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-008-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 72,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-009-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-010-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 72,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-011-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-012-table.png",
+          "label": "table",
+          "table": 2,
+          "x": 144,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-013-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-014-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 144,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-015-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 0,
+          "y": 120,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-016-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 144,
+          "y": 120,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-017-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/29-018-table.png",
+          "label": "table",
+          "table": 4,
+          "x": 324,
+          "y": 0,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 672,
+          "sw": 1098,
+          "sh": 672
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 768,
+          "sw": 1098,
+          "sh": 768
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 704,
+          "sw": 1170,
+          "sh": 704
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 840,
+          "sw": 1170,
+          "sh": 960
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 544,
+          "sw": 1350,
+          "sh": 544
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 5384,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/29-contact-00.png",
+        "/tmp/alive-gameplay-review/29-contact-01.png",
+        "/tmp/alive-gameplay-review/29-contact-02.png",
+        "/tmp/alive-gameplay-review/29-contact-03.png"
+      ]
+    },
+    {
+      "index": 30,
+      "title": "Tools",
+      "route": "game-design/items/tools.html",
+      "source": "wiki/tools.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/30-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/30-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/30-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/30-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/30-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/30-005-page.png",
+          "label": "page",
+          "y": 3864,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 672,
+          "sw": 1026,
+          "sh": 672
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 576,
+          "sw": 1026,
+          "sh": 576
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 640,
+          "sw": 1026,
+          "sh": 640
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 512,
+          "sw": 1026,
+          "sh": 512
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 480,
+          "sw": 1026,
+          "sh": 480
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 4864,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/30-contact-00.png"
+      ]
+    },
+    {
+      "index": 31,
+      "title": "Consumables",
+      "route": "game-design/items/consumables.html",
+      "source": "wiki/consumables.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/31-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-006-page.png",
+          "label": "page",
+          "y": 4800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-007-page.png",
+          "label": "page",
+          "y": 5600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-008-page.png",
+          "label": "page",
+          "y": 6400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-009-page.png",
+          "label": "page",
+          "y": 7200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-010-page.png",
+          "label": "page",
+          "y": 8000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-011-page.png",
+          "label": "page",
+          "y": 8800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-012-page.png",
+          "label": "page",
+          "y": 9600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-013-page.png",
+          "label": "page",
+          "y": 10400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-014-page.png",
+          "label": "page",
+          "y": 11200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-015-page.png",
+          "label": "page",
+          "y": 12000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-016-page.png",
+          "label": "page",
+          "y": 12800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-017-page.png",
+          "label": "page",
+          "y": 13600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-018-page.png",
+          "label": "page",
+          "y": 14400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-019-page.png",
+          "label": "page",
+          "y": 15200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-020-page.png",
+          "label": "page",
+          "y": 16000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-021-page.png",
+          "label": "page",
+          "y": 16800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-022-page.png",
+          "label": "page",
+          "y": 17240,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-023-table.png",
+          "label": "table",
+          "table": 37,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/31-024-table.png",
+          "label": "table",
+          "table": 37,
+          "x": 720,
+          "y": 0,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 5,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 6,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 7,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 8,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 9,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 10,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 11,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 12,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 13,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 14,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 15,
+          "w": 1026,
+          "h": 288,
+          "sw": 1026,
+          "sh": 288
+        },
+        {
+          "index": 16,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 17,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        },
+        {
+          "index": 18,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        },
+        {
+          "index": 19,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 20,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 21,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        },
+        {
+          "index": 22,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 23,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 24,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 25,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 26,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 27,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        },
+        {
+          "index": 28,
+          "w": 1026,
+          "h": 256,
+          "sw": 1026,
+          "sh": 256
+        },
+        {
+          "index": 29,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 30,
+          "w": 1026,
+          "h": 256,
+          "sw": 1026,
+          "sh": 256
+        },
+        {
+          "index": 31,
+          "w": 1026,
+          "h": 320,
+          "sw": 1026,
+          "sh": 320
+        },
+        {
+          "index": 32,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 33,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 34,
+          "w": 1026,
+          "h": 224,
+          "sw": 1026,
+          "sh": 224
+        },
+        {
+          "index": 35,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 36,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        },
+        {
+          "index": 37,
+          "w": 1026,
+          "h": 608,
+          "sw": 1746,
+          "sh": 608
+        },
+        {
+          "index": 38,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 18240,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/31-contact-00.png",
+        "/tmp/alive-gameplay-review/31-contact-01.png",
+        "/tmp/alive-gameplay-review/31-contact-02.png",
+        "/tmp/alive-gameplay-review/31-contact-03.png",
+        "/tmp/alive-gameplay-review/31-contact-04.png"
+      ]
+    },
+    {
+      "index": 32,
+      "title": "Chat",
+      "route": "game-design/interactions/chat.html",
+      "source": "wiki/chat.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/32-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-002-page.png",
+          "label": "page",
+          "y": 1600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-003-page.png",
+          "label": "page",
+          "y": 2400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-004-page.png",
+          "label": "page",
+          "y": 3200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-005-page.png",
+          "label": "page",
+          "y": 4000,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-006-page.png",
+          "label": "page",
+          "y": 4800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-007-page.png",
+          "label": "page",
+          "y": 5600,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-008-page.png",
+          "label": "page",
+          "y": 6400,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-009-page.png",
+          "label": "page",
+          "y": 7200,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-010-page.png",
+          "label": "page",
+          "y": 7368,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-011-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-012-table.png",
+          "label": "table",
+          "table": 1,
+          "x": 0,
+          "y": 568,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-013-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/32-014-table.png",
+          "label": "table",
+          "table": 3,
+          "x": 0,
+          "y": 344,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 448,
+          "sw": 1026,
+          "sh": 448
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1408
+        },
+        {
+          "index": 2,
+          "w": 1026,
+          "h": 768,
+          "sw": 1026,
+          "sh": 768
+        },
+        {
+          "index": 3,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 1184
+        },
+        {
+          "index": 4,
+          "w": 1026,
+          "h": 544,
+          "sw": 1026,
+          "sh": 544
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 8368,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/32-contact-00.png",
+        "/tmp/alive-gameplay-review/32-contact-01.png",
+        "/tmp/alive-gameplay-review/32-contact-02.png"
+      ]
+    },
+    {
+      "index": 33,
+      "title": "Tips",
+      "route": "game-design/interactions/tips.html",
+      "source": "wiki/tips.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/33-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/33-001-page.png",
+          "label": "page",
+          "y": 48,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 384,
+          "sw": 1026,
+          "sh": 384
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1048,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/33-contact-00.png"
+      ]
+    },
+    {
+      "index": 34,
+      "title": "Shops",
+      "route": "game-design/interactions/shops.html",
+      "source": "wiki/shops.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/34-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/34-001-page.png",
+          "label": "page",
+          "y": 216,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1216,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/34-contact-00.png"
+      ]
+    },
+    {
+      "index": 35,
+      "title": "Quests",
+      "route": "game-design/interactions/quests.html",
+      "source": "wiki/quests.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/35-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/35-001-page.png",
+          "label": "page",
+          "y": 696,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 480,
+          "sw": 1026,
+          "sh": 480
+        },
+        {
+          "index": 1,
+          "w": 1026,
+          "h": 544,
+          "sw": 1026,
+          "sh": 544
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1696,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/35-contact-00.png"
+      ]
+    },
+    {
+      "index": 36,
+      "title": "Crafting",
+      "route": "game-design/interactions/crafting.html",
+      "source": "wiki/crafting.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/36-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/36-001-page.png",
+          "label": "page",
+          "y": 792,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 608,
+          "sw": 1026,
+          "sh": 608
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1792,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/36-contact-00.png"
+      ]
+    },
+    {
+      "index": 37,
+      "title": "Brewing",
+      "route": "game-design/interactions/brewing.html",
+      "source": "wiki/brewing.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/37-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-002-page.png",
+          "label": "page",
+          "y": 1024,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-004-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-005-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 1488,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-006-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 2232,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-007-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 2976,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-008-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 3720,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-009-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 4464,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/37-010-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 4696,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 5536
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2024,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/37-contact-00.png",
+        "/tmp/alive-gameplay-review/37-contact-01.png"
+      ]
+    },
+    {
+      "index": 38,
+      "title": "Forging",
+      "route": "game-design/interactions/forging.html",
+      "source": "wiki/forging.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/38-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/38-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/38-002-page.png",
+          "label": "page",
+          "y": 1056,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/38-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/38-004-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/38-005-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 1488,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/38-006-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 2232,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/38-007-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 2976,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/38-008-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 3096,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 3936
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2056,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/38-contact-00.png",
+        "/tmp/alive-gameplay-review/38-contact-01.png"
+      ]
+    },
+    {
+      "index": 39,
+      "title": "Harvesting",
+      "route": "game-design/interactions/harvesting.html",
+      "source": "wiki/harvesting.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/39-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/39-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/39-002-page.png",
+          "label": "page",
+          "y": 1088,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/39-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/39-004-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/39-005-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 1488,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/39-006-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 1688,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 2528
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2088,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/39-contact-00.png",
+        "/tmp/alive-gameplay-review/39-contact-01.png"
+      ]
+    },
+    {
+      "index": 40,
+      "title": "Fishing",
+      "route": "game-design/interactions/fishing.html",
+      "source": "wiki/fishing.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/40-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/40-001-page.png",
+          "label": "page",
+          "y": 664,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1664,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/40-contact-00.png"
+      ]
+    },
+    {
+      "index": 41,
+      "title": "Farming",
+      "route": "game-design/interactions/farming.html",
+      "source": "wiki/farming.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/41-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/41-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/41-002-page.png",
+          "label": "page",
+          "y": 824,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 608,
+          "sw": 1026,
+          "sh": 608
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1824,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/41-contact-00.png"
+      ]
+    },
+    {
+      "index": 42,
+      "title": "Building",
+      "route": "game-design/interactions/building.html",
+      "source": "wiki/building.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/42-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/42-001-page.png",
+          "label": "page",
+          "y": 800,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/42-002-page.png",
+          "label": "page",
+          "y": 1152,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/42-003-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/42-004-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 744,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/42-005-table.png",
+          "label": "table",
+          "table": 0,
+          "x": 0,
+          "y": 1272,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 840,
+          "sw": 1026,
+          "sh": 2112
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 2152,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/42-contact-00.png"
+      ]
+    },
+    {
+      "index": 43,
+      "title": "Sprites",
+      "route": "game-design/rendering/sprites.html",
+      "source": "wiki/sprites.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/43-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/43-001-page.png",
+          "label": "page",
+          "y": 152,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 416,
+          "sw": 1026,
+          "sh": 416
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1152,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/43-contact-00.png"
+      ]
+    },
+    {
+      "index": 44,
+      "title": "Light",
+      "route": "game-design/rendering/light.html",
+      "source": "wiki/light.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/44-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/44-001-page.png",
+          "label": "page",
+          "y": 792,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 352,
+          "sw": 1026,
+          "sh": 352
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1792,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/44-contact-00.png"
+      ]
+    },
+    {
+      "index": 45,
+      "title": "ThreeJS",
+      "route": "game-design/rendering/threejs.html",
+      "source": "wiki/threejs.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/45-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/45-001-page.png",
+          "label": "page",
+          "y": 312,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 480,
+          "sw": 1026,
+          "sh": 480
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1312,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/45-contact-00.png"
+      ]
+    },
+    {
+      "index": 46,
+      "title": "Responsive",
+      "route": "game-design/rendering/responsive.html",
+      "source": "wiki/responsive.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/46-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/46-001-page.png",
+          "label": "page",
+          "y": 88,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [
+        {
+          "index": 0,
+          "w": 1026,
+          "h": 448,
+          "sw": 1026,
+          "sh": 448
+        }
+      ],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1088,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/46-contact-00.png"
+      ]
+    },
+    {
+      "index": 47,
+      "title": "Animations",
+      "route": "game-design/rendering/animations.html",
+      "source": "wiki/animations.md",
+      "screenshots": [
+        {
+          "file": "/tmp/alive-gameplay-review/47-000-page.png",
+          "label": "page",
+          "y": 0,
+          "visuallyInspected": true
+        },
+        {
+          "file": "/tmp/alive-gameplay-review/47-001-page.png",
+          "label": "page",
+          "y": 280,
+          "visuallyInspected": true
+        }
+      ],
+      "tables": [],
+      "errors": [],
+      "status": "captured",
+      "documentHeight": 1280,
+      "overflow": false,
+      "visuallyInspected": true,
+      "inspectionMethod": "Every captured position reviewed with view_image through labelled contact sheets",
+      "contactSheets": [
+        "/tmp/alive-gameplay-review/47-contact-00.png"
+      ]
+    }
+  ]
+}

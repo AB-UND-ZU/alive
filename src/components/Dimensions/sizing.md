@@ -9,7 +9,7 @@ Calculates one dimensions object for React and CSS. A glyph is 9 by 16 source pi
 | `terminalWidth`, `terminalHeight` | Space left for the world after the HUD |
 | `renderedColumns`, `renderedRows` | Visible cells plus overscan |
 
-`calculateDimensions` and `DimensionsProvider` accept optional `visibleColumns`, `visibleRows` and `topHudRows` targets. Defaults remain 21 columns, 20 rows and four stat rows for the game. Documentation frames use 23 columns and remove unused stat rows while retaining fifteen world rows. `Dimensions` forwards the same options to its context and CSS-variable writer, including after browser resize.
+`calculateDimensions` and `DimensionsProvider` accept optional `visibleColumns`, `visibleRows` and `topHudRows` targets. Defaults remain 21 columns, 20 rows and four stat rows for the game. Wiki frames use 23 columns and remove unused stat rows while retaining fifteen world rows. `Dimensions` forwards the same options to its context and CSS-variable writer, including after browser resize.
 
 `DimensionsProvider` updates the context after resize. `useResizeListener` also serves the CSS-variable writer.
 <!-- source-types -->

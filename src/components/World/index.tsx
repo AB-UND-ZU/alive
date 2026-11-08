@@ -122,7 +122,7 @@ export default function World({
   const { ecs } = current;
 
   const saveGame = useCallback(() => {
-    // Composed documentation scenes must not overwrite playable saves.
+    // Composed wiki scenes must not overwrite playable saves.
     if (!persistent || suspendedRef.current || !canSave(ecs)) return;
 
     setSaveStatus({ saving: true });

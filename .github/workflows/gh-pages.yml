@@ -24,15 +24,15 @@ jobs:
         run: npm run lint
       - name: Run all tests
         run: npm run test:all
-      - name: Verify documentation
-        run: npm run docs:test
+      - name: Verify wiki
+        run: npm run wiki:test
       # build type checks, but skips its own lint
       - name: Build page
         run: npm run build
         env:
           DISABLE_ESLINT_PLUGIN: true
-      - name: Build documentation under /docs
-        run: npm run docs:build -- build/docs
+      - name: Build wiki under /wiki
+        run: npm run wiki:build -- build/wiki
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:

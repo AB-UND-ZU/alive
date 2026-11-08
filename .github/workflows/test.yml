@@ -24,7 +24,7 @@ jobs:
         run: npm run lint
       - name: Run all tests
         run: npm run test:all
-      - name: Verify documentation
-        run: npm run docs:test
-      - name: Build documentation
-        run: npm run docs:build
+      - name: Verify wiki
+        run: npm run wiki:test
+      - name: Build wiki
+        run: npm run wiki:build

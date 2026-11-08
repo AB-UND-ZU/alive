@@ -1,6 +1,6 @@
 const { defineConfig } = require("@playwright/test");
 module.exports = defineConfig({
-  testDir: "./scripts/docs/tests",
+  testDir: "./scripts/wiki/tests",
   fullyParallel: false,
   workers: 1,
   timeout: 30000,
@@ -15,8 +15,8 @@ module.exports = defineConfig({
     },
   },
   webServer: {
-    command: "npm run docs:dev",
-    url: "http://127.0.0.1:4173/__docs_health",
+    command: "npm run wiki:dev",
+    url: "http://127.0.0.1:4173/__wiki_health",
     reuseExistingServer: !process.env.CI,
   },
 });

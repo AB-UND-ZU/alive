@@ -1,6 +1,6 @@
 # Saved games
 
-`index.ts` creates and upgrades saved games and keeps a list of save summaries for the menu. `storage.ts` stores them in the browser's IndexedDB. Players find the controls in [Savegames](../../../docs/savegames.md).
+`index.ts` creates and upgrades saved games and keeps a list of save summaries for the menu. `storage.ts` stores them in the browser's IndexedDB. Players find the controls in [Savegames](../../../wiki/savegames.md).
 
 ## Saving
 

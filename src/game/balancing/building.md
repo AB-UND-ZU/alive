@@ -12,7 +12,7 @@
 | level       | Required hammer build stat                     |
 | effort      | Work needed after placement                    |
 
-Change costs and supported variants in this registry. Player-facing [Building](../../../docs/building.md) imports it, so no separate recipe table needs updating.
+Change costs and supported variants in this registry. Player-facing [Building](../../../wiki/building.md) imports it, so no separate recipe table needs updating.
 <!-- source-types -->
 
 ## Construction

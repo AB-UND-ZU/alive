@@ -1,0 +1,2248 @@
+{
+  "summary": {
+    "playerPages": 49,
+    "inspectedPages": 49,
+    "visits": 138,
+    "screenshots": 348,
+    "desktopWidth": 1440,
+    "phoneWidth": 390,
+    "baseRuntimeErrors": 0,
+    "documentOverflowVisits": 0
+  },
+  "method": "All 49 player pages inspected at desktop and phone widths. Base captures sample top, middle and end; follow-ups cover new Structures content and source corrections. Native preview frame screenshots in base/follow-up phases are prior references; native-frame and final-details phases verify corrected 23x15 geometry and unclipped HUDs. Each of the 48 base contact sheets and 11 follow-up sheets was visually inspected, with targeted full-size images for suspected defects. This does not exhaust every engine interaction or horizontal cell of every catalog table.",
+  "coverage": [
+    {
+      "source": "wiki/index.md",
+      "route": "index.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/index.md",
+          "route": "index.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/00-1440-0.png",
+            "/tmp/alive-gameplay-final/00-1440-1.png",
+            "/tmp/alive-gameplay-final/00-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/index.md",
+          "route": "index.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/00-390-0.png",
+            "/tmp/alive-gameplay-final/00-390-1.png",
+            "/tmp/alive-gameplay-final/00-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/play.md",
+      "route": "intro/play.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/play.md",
+          "route": "intro/play.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/01-1440-0.png",
+            "/tmp/alive-gameplay-final/01-1440-1.png",
+            "/tmp/alive-gameplay-final/01-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/play.md",
+          "route": "intro/play.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/01-390-0.png",
+            "/tmp/alive-gameplay-final/01-390-1.png",
+            "/tmp/alive-gameplay-final/01-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/interface.md",
+      "route": "game-design/controls/interface.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/interface.md",
+          "route": "game-design/controls/interface.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/02-1440-0.png",
+            "/tmp/alive-gameplay-final/02-1440-1.png",
+            "/tmp/alive-gameplay-final/02-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/interface.md",
+          "route": "game-design/controls/interface.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/02-390-0.png",
+            "/tmp/alive-gameplay-final/02-390-1.png",
+            "/tmp/alive-gameplay-final/02-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/keyboard-mouse.md",
+      "route": "game-design/controls/keyboard-mouse.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/keyboard-mouse.md",
+          "route": "game-design/controls/keyboard-mouse.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/03-1440-0.png",
+            "/tmp/alive-gameplay-final/03-1440-1.png",
+            "/tmp/alive-gameplay-final/03-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/keyboard-mouse.md",
+          "route": "game-design/controls/keyboard-mouse.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/03-390-0.png",
+            "/tmp/alive-gameplay-final/03-390-1.png",
+            "/tmp/alive-gameplay-final/03-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/keyboard-mouse.md",
+          "route": "game-design/controls/keyboard-mouse.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/keyboard-mouse-1440-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/keyboard-mouse.md",
+          "route": "game-design/controls/keyboard-mouse.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/keyboard-mouse-390-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "route": "game-design/controls/keyboard-mouse.html",
+          "width": 1440,
+          "scene": "movement",
+          "geometry": {
+            "top": -1.3359375,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-representatives/movement-1440.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/keyboard-mouse.md"
+        },
+        {
+          "route": "game-design/controls/keyboard-mouse.html",
+          "width": 390,
+          "scene": "movement",
+          "geometry": {
+            "top": -1.3359375,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-representatives/movement-390.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/keyboard-mouse.md"
+        }
+      ]
+    },
+    {
+      "source": "wiki/touch.md",
+      "route": "game-design/controls/touch.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/touch.md",
+          "route": "game-design/controls/touch.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/04-1440-0.png",
+            "/tmp/alive-gameplay-final/04-1440-1.png",
+            "/tmp/alive-gameplay-final/04-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/touch.md",
+          "route": "game-design/controls/touch.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/04-390-0.png",
+            "/tmp/alive-gameplay-final/04-390-1.png",
+            "/tmp/alive-gameplay-final/04-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "route": "game-design/controls/touch.html",
+          "width": 1440,
+          "scene": "touch",
+          "geometry": {
+            "top": -1.3359375,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-representatives/touch-1440.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/touch.md"
+        },
+        {
+          "route": "game-design/controls/touch.html",
+          "width": 390,
+          "scene": "touch",
+          "geometry": {
+            "top": -1.3359375,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-representatives/touch-390.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/touch.md"
+        }
+      ]
+    },
+    {
+      "source": "wiki/levels.md",
+      "route": "game-design/world/levels.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/levels.md",
+          "route": "game-design/world/levels.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/05-1440-0.png",
+            "/tmp/alive-gameplay-final/05-1440-1.png",
+            "/tmp/alive-gameplay-final/05-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/levels.md",
+          "route": "game-design/world/levels.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/05-390-0.png",
+            "/tmp/alive-gameplay-final/05-390-1.png",
+            "/tmp/alive-gameplay-final/05-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/levels.md",
+          "route": "game-design/world/levels.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/levels-1440-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/levels.md",
+          "route": "game-design/world/levels.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/levels-390-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "route": "game-design/world/levels.html",
+          "width": 1440,
+          "captures": [
+            "/tmp/alive-gameplay-last-details/levels-1440-0.png"
+          ],
+          "phase": "final-details",
+          "source": "wiki/levels.md"
+        },
+        {
+          "route": "game-design/world/levels.html",
+          "width": 390,
+          "captures": [
+            "/tmp/alive-gameplay-last-details/levels-390-0.png"
+          ],
+          "phase": "final-details",
+          "source": "wiki/levels.md"
+        }
+      ]
+    },
+    {
+      "source": "wiki/map.md",
+      "route": "game-design/world/minimap.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/map.md",
+          "route": "game-design/world/minimap.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/06-1440-0.png",
+            "/tmp/alive-gameplay-final/06-1440-1.png",
+            "/tmp/alive-gameplay-final/06-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/map.md",
+          "route": "game-design/world/minimap.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/06-390-0.png",
+            "/tmp/alive-gameplay-final/06-390-1.png",
+            "/tmp/alive-gameplay-final/06-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/map.md",
+          "route": "game-design/world/minimap.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/map-1440-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/map.md",
+          "route": "game-design/world/minimap.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/map-390-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        }
+      ]
+    },
+    {
+      "source": "wiki/savegames.md",
+      "route": "game-design/world/savegames.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/savegames.md",
+          "route": "game-design/world/savegames.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/07-1440-0.png",
+            "/tmp/alive-gameplay-final/07-1440-1.png",
+            "/tmp/alive-gameplay-final/07-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/savegames.md",
+          "route": "game-design/world/savegames.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/07-390-0.png",
+            "/tmp/alive-gameplay-final/07-390-1.png",
+            "/tmp/alive-gameplay-final/07-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/timers.md",
+      "route": "game-design/world/timers.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/timers.md",
+          "route": "game-design/world/timers.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/08-1440-0.png",
+            "/tmp/alive-gameplay-final/08-1440-1.png",
+            "/tmp/alive-gameplay-final/08-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/timers.md",
+          "route": "game-design/world/timers.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/08-390-0.png",
+            "/tmp/alive-gameplay-final/08-390-1.png",
+            "/tmp/alive-gameplay-final/08-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/timers.md",
+          "route": "game-design/world/timers.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/timers-1440-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/timers.md",
+          "route": "game-design/world/timers.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/timers-390-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        }
+      ]
+    },
+    {
+      "source": "wiki/sounds.md",
+      "route": "game-design/world/sounds.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/sounds.md",
+          "route": "game-design/world/sounds.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/09-1440-0.png",
+            "/tmp/alive-gameplay-final/09-1440-1.png",
+            "/tmp/alive-gameplay-final/09-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/sounds.md",
+          "route": "game-design/world/sounds.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/09-390-0.png",
+            "/tmp/alive-gameplay-final/09-390-1.png",
+            "/tmp/alive-gameplay-final/09-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/factions.md",
+      "route": "game-design/characters/factions.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/factions.md",
+          "route": "game-design/characters/factions.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/10-1440-0.png",
+            "/tmp/alive-gameplay-final/10-1440-1.png",
+            "/tmp/alive-gameplay-final/10-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/factions.md",
+          "route": "game-design/characters/factions.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/10-390-0.png",
+            "/tmp/alive-gameplay-final/10-390-1.png",
+            "/tmp/alive-gameplay-final/10-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/classes.md",
+      "route": "game-design/characters/classes.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/classes.md",
+          "route": "game-design/characters/classes.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/11-1440-0.png",
+            "/tmp/alive-gameplay-final/11-1440-1.png",
+            "/tmp/alive-gameplay-final/11-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/classes.md",
+          "route": "game-design/characters/classes.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/11-390-0.png",
+            "/tmp/alive-gameplay-final/11-390-1.png",
+            "/tmp/alive-gameplay-final/11-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/classes.md",
+          "route": "game-design/characters/classes.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/classes-1440-0.png",
+            "/tmp/alive-gameplay-supplement/classes-1440-1.png",
+            "/tmp/alive-gameplay-supplement/classes-1440-right.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/classes.md",
+          "route": "game-design/characters/classes.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/classes-390-0.png",
+            "/tmp/alive-gameplay-supplement/classes-390-1.png",
+            "/tmp/alive-gameplay-supplement/classes-390-right.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "route": "game-design/characters/classes.html",
+          "width": 1440,
+          "captures": [
+            "/tmp/alive-gameplay-representatives/classes-1440-0.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/classes.md"
+        },
+        {
+          "route": "game-design/characters/classes.html",
+          "width": 390,
+          "captures": [
+            "/tmp/alive-gameplay-representatives/classes-390-0.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/classes.md"
+        }
+      ]
+    },
+    {
+      "source": "wiki/npcs.md",
+      "route": "game-design/characters/npcs.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/npcs.md",
+          "route": "game-design/characters/npcs.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/12-1440-0.png",
+            "/tmp/alive-gameplay-final/12-1440-1.png",
+            "/tmp/alive-gameplay-final/12-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/npcs.md",
+          "route": "game-design/characters/npcs.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/12-390-0.png",
+            "/tmp/alive-gameplay-final/12-390-1.png",
+            "/tmp/alive-gameplay-final/12-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/animals.md",
+      "route": "game-design/characters/animals.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/animals.md",
+          "route": "game-design/characters/animals.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/13-1440-0.png",
+            "/tmp/alive-gameplay-final/13-1440-1.png",
+            "/tmp/alive-gameplay-final/13-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/animals.md",
+          "route": "game-design/characters/animals.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/13-390-0.png",
+            "/tmp/alive-gameplay-final/13-390-1.png",
+            "/tmp/alive-gameplay-final/13-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/enemies.md",
+      "route": "game-design/characters/enemies.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/enemies.md",
+          "route": "game-design/characters/enemies.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/14-1440-0.png",
+            "/tmp/alive-gameplay-final/14-1440-1.png",
+            "/tmp/alive-gameplay-final/14-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/enemies.md",
+          "route": "game-design/characters/enemies.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/14-390-0.png",
+            "/tmp/alive-gameplay-final/14-390-1.png",
+            "/tmp/alive-gameplay-final/14-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/bosses.md",
+      "route": "game-design/characters/bosses.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/bosses.md",
+          "route": "game-design/characters/bosses.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/15-1440-0.png",
+            "/tmp/alive-gameplay-final/15-1440-1.png",
+            "/tmp/alive-gameplay-final/15-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/bosses.md",
+          "route": "game-design/characters/bosses.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/15-390-0.png",
+            "/tmp/alive-gameplay-final/15-390-1.png",
+            "/tmp/alive-gameplay-final/15-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/bosses.md",
+          "route": "game-design/characters/bosses.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/bosses-1440-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/bosses.md",
+          "route": "game-design/characters/bosses.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/bosses-390-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        }
+      ]
+    },
+    {
+      "source": "wiki/damage.md",
+      "route": "game-design/combat/damage.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/damage.md",
+          "route": "game-design/combat/damage.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/16-1440-0.png",
+            "/tmp/alive-gameplay-final/16-1440-1.png",
+            "/tmp/alive-gameplay-final/16-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/damage.md",
+          "route": "game-design/combat/damage.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/16-390-0.png",
+            "/tmp/alive-gameplay-final/16-390-1.png",
+            "/tmp/alive-gameplay-final/16-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/damage.md",
+          "route": "game-design/combat/damage.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/damage-1440-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/damage.md",
+          "route": "game-design/combat/damage.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/damage-390-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "route": "game-design/combat/damage.html",
+          "width": 1440,
+          "captures": [
+            "/tmp/alive-gameplay-representatives/damage-1440-0.png",
+            "/tmp/alive-gameplay-representatives/damage-1440-1.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/damage.md"
+        },
+        {
+          "route": "game-design/combat/damage.html",
+          "width": 390,
+          "captures": [
+            "/tmp/alive-gameplay-representatives/damage-390-0.png",
+            "/tmp/alive-gameplay-representatives/damage-390-1.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/damage.md"
+        }
+      ]
+    },
+    {
+      "source": "wiki/stats.md",
+      "route": "game-design/combat/stats.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/stats.md",
+          "route": "game-design/combat/stats.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/17-1440-0.png",
+            "/tmp/alive-gameplay-final/17-1440-1.png",
+            "/tmp/alive-gameplay-final/17-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/stats.md",
+          "route": "game-design/combat/stats.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/17-390-0.png",
+            "/tmp/alive-gameplay-final/17-390-1.png",
+            "/tmp/alive-gameplay-final/17-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/respawn.md",
+      "route": "game-design/combat/respawn.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/respawn.md",
+          "route": "game-design/combat/respawn.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/18-1440-0.png",
+            "/tmp/alive-gameplay-final/18-1440-1.png",
+            "/tmp/alive-gameplay-final/18-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/respawn.md",
+          "route": "game-design/combat/respawn.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/18-390-0.png",
+            "/tmp/alive-gameplay-final/18-390-1.png",
+            "/tmp/alive-gameplay-final/18-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/units.md",
+      "route": "game-design/cells/units.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/units.md",
+          "route": "game-design/cells/units.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/19-1440-0.png",
+            "/tmp/alive-gameplay-final/19-1440-1.png",
+            "/tmp/alive-gameplay-final/19-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/units.md",
+          "route": "game-design/cells/units.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/19-390-0.png",
+            "/tmp/alive-gameplay-final/19-390-1.png",
+            "/tmp/alive-gameplay-final/19-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/containers.md",
+      "route": "game-design/cells/containers.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/containers.md",
+          "route": "game-design/cells/containers.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/20-1440-0.png",
+            "/tmp/alive-gameplay-final/20-1440-1.png",
+            "/tmp/alive-gameplay-final/20-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/containers.md",
+          "route": "game-design/cells/containers.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/20-390-0.png",
+            "/tmp/alive-gameplay-final/20-390-1.png",
+            "/tmp/alive-gameplay-final/20-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/terrain.md",
+      "route": "game-design/cells/terrain.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/terrain.md",
+          "route": "game-design/cells/terrain.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/21-1440-0.png",
+            "/tmp/alive-gameplay-final/21-1440-1.png",
+            "/tmp/alive-gameplay-final/21-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/terrain.md",
+          "route": "game-design/cells/terrain.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/21-390-0.png",
+            "/tmp/alive-gameplay-final/21-390-1.png",
+            "/tmp/alive-gameplay-final/21-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/terrain.md",
+          "route": "game-design/cells/terrain.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/terrain-1440-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/terrain.md",
+          "route": "game-design/cells/terrain.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/terrain-390-0.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        }
+      ]
+    },
+    {
+      "source": "wiki/structures.md",
+      "route": "game-design/cells/structures.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/structures.md",
+          "route": "game-design/cells/structures.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/structures-1440-0.png",
+            "/tmp/alive-gameplay-supplement/structures-1440-1.png",
+            "/tmp/alive-gameplay-supplement/structures-1440-2.png",
+            "/tmp/alive-gameplay-supplement/structures-1440-right.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/structures.md",
+          "route": "game-design/cells/structures.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/structures-390-0.png",
+            "/tmp/alive-gameplay-supplement/structures-390-1.png",
+            "/tmp/alive-gameplay-supplement/structures-390-2.png",
+            "/tmp/alive-gameplay-supplement/structures-390-right.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "route": "game-design/cells/structures.html",
+          "width": 1440,
+          "captures": [
+            "/tmp/alive-gameplay-last-details/structures-1440-0.png",
+            "/tmp/alive-gameplay-last-details/structures-1440-1.png"
+          ],
+          "phase": "final-details",
+          "source": "wiki/structures.md"
+        },
+        {
+          "route": "game-design/cells/structures.html",
+          "width": 390,
+          "captures": [
+            "/tmp/alive-gameplay-last-details/structures-390-0.png",
+            "/tmp/alive-gameplay-last-details/structures-390-1.png"
+          ],
+          "phase": "final-details",
+          "source": "wiki/structures.md"
+        }
+      ]
+    },
+    {
+      "source": "wiki/plants.md",
+      "route": "game-design/cells/plants.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/plants.md",
+          "route": "game-design/cells/plants.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/22-1440-0.png",
+            "/tmp/alive-gameplay-final/22-1440-1.png",
+            "/tmp/alive-gameplay-final/22-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/plants.md",
+          "route": "game-design/cells/plants.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/22-390-0.png",
+            "/tmp/alive-gameplay-final/22-390-1.png",
+            "/tmp/alive-gameplay-final/22-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/slots.md",
+      "route": "game-design/items/slots.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/slots.md",
+          "route": "game-design/items/slots.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/23-1440-0.png",
+            "/tmp/alive-gameplay-final/23-1440-1.png",
+            "/tmp/alive-gameplay-final/23-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/slots.md",
+          "route": "game-design/items/slots.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/23-390-0.png",
+            "/tmp/alive-gameplay-final/23-390-1.png",
+            "/tmp/alive-gameplay-final/23-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/elements.md",
+      "route": "game-design/items/elements.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/elements.md",
+          "route": "game-design/items/elements.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/24-1440-0.png",
+            "/tmp/alive-gameplay-final/24-1440-1.png",
+            "/tmp/alive-gameplay-final/24-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/elements.md",
+          "route": "game-design/items/elements.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/24-390-0.png",
+            "/tmp/alive-gameplay-final/24-390-1.png",
+            "/tmp/alive-gameplay-final/24-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/elements.md",
+          "route": "game-design/items/elements.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/elements-1440-0.png",
+            "/tmp/alive-gameplay-supplement/elements-1440-right.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/elements.md",
+          "route": "game-design/items/elements.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/elements-390-0.png",
+            "/tmp/alive-gameplay-supplement/elements-390-right.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        }
+      ]
+    },
+    {
+      "source": "wiki/gear.md",
+      "route": "game-design/items/gear.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/gear.md",
+          "route": "game-design/items/gear.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/25-1440-0.png",
+            "/tmp/alive-gameplay-final/25-1440-1.png",
+            "/tmp/alive-gameplay-final/25-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/gear.md",
+          "route": "game-design/items/gear.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/25-390-0.png",
+            "/tmp/alive-gameplay-final/25-390-1.png",
+            "/tmp/alive-gameplay-final/25-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/resources.md",
+      "route": "game-design/items/resources.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/resources.md",
+          "route": "game-design/items/resources.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/26-1440-0.png",
+            "/tmp/alive-gameplay-final/26-1440-1.png",
+            "/tmp/alive-gameplay-final/26-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/resources.md",
+          "route": "game-design/items/resources.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/26-390-0.png",
+            "/tmp/alive-gameplay-final/26-390-1.png",
+            "/tmp/alive-gameplay-final/26-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/spells.md",
+      "route": "game-design/items/spells.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/spells.md",
+          "route": "game-design/items/spells.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/27-1440-0.png",
+            "/tmp/alive-gameplay-final/27-1440-1.png",
+            "/tmp/alive-gameplay-final/27-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/spells.md",
+          "route": "game-design/items/spells.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/27-390-0.png",
+            "/tmp/alive-gameplay-final/27-390-1.png",
+            "/tmp/alive-gameplay-final/27-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "route": "game-design/items/spells.html",
+          "width": 1440,
+          "scene": "abilities",
+          "geometry": {
+            "top": 14.6640625,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-representatives/abilities-1440.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/spells.md"
+        },
+        {
+          "route": "game-design/items/spells.html",
+          "width": 390,
+          "scene": "abilities",
+          "geometry": {
+            "top": 14.6640625,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-representatives/abilities-390.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/spells.md"
+        },
+        {
+          "route": "game-design/items/spells.html",
+          "width": 1440,
+          "scene": "abilities",
+          "geometry": {
+            "top": 30.6640625,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-last-details/abilities-1440.png"
+          ],
+          "phase": "final-details",
+          "source": "wiki/spells.md"
+        },
+        {
+          "route": "game-design/items/spells.html",
+          "width": 390,
+          "scene": "abilities",
+          "geometry": {
+            "top": 30.6640625,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-last-details/abilities-390.png"
+          ],
+          "phase": "final-details",
+          "source": "wiki/spells.md"
+        }
+      ]
+    },
+    {
+      "source": "wiki/skills.md",
+      "route": "game-design/items/skills.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/skills.md",
+          "route": "game-design/items/skills.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/28-1440-0.png",
+            "/tmp/alive-gameplay-final/28-1440-1.png",
+            "/tmp/alive-gameplay-final/28-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/skills.md",
+          "route": "game-design/items/skills.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/28-390-0.png",
+            "/tmp/alive-gameplay-final/28-390-1.png",
+            "/tmp/alive-gameplay-final/28-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/tools.md",
+      "route": "game-design/items/tools.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/tools.md",
+          "route": "game-design/items/tools.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/29-1440-0.png",
+            "/tmp/alive-gameplay-final/29-1440-1.png",
+            "/tmp/alive-gameplay-final/29-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/tools.md",
+          "route": "game-design/items/tools.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/29-390-0.png",
+            "/tmp/alive-gameplay-final/29-390-1.png",
+            "/tmp/alive-gameplay-final/29-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/consumables.md",
+      "route": "game-design/items/consumables.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/consumables.md",
+          "route": "game-design/items/consumables.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/30-1440-0.png",
+            "/tmp/alive-gameplay-final/30-1440-1.png",
+            "/tmp/alive-gameplay-final/30-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/consumables.md",
+          "route": "game-design/items/consumables.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/30-390-0.png",
+            "/tmp/alive-gameplay-final/30-390-1.png",
+            "/tmp/alive-gameplay-final/30-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "route": "game-design/items/consumables.html",
+          "width": 1440,
+          "scene": "food",
+          "geometry": {
+            "top": 14.6640625,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-representatives/food-1440.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/consumables.md"
+        },
+        {
+          "route": "game-design/items/consumables.html",
+          "width": 390,
+          "scene": "food",
+          "geometry": {
+            "top": 14.6640625,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-representatives/food-390.png"
+          ],
+          "phase": "native-frame",
+          "source": "wiki/consumables.md"
+        },
+        {
+          "route": "game-design/items/consumables.html",
+          "width": 1440,
+          "scene": "food",
+          "geometry": {
+            "top": 30.6640625,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-last-details/food-1440.png"
+          ],
+          "phase": "final-details",
+          "source": "wiki/consumables.md"
+        },
+        {
+          "route": "game-design/items/consumables.html",
+          "width": 390,
+          "scene": "food",
+          "geometry": {
+            "top": 30.6640625,
+            "height": 480,
+            "rows": "15",
+            "columns": "23"
+          },
+          "captures": [
+            "/tmp/alive-gameplay-last-details/food-390.png"
+          ],
+          "phase": "final-details",
+          "source": "wiki/consumables.md"
+        }
+      ]
+    },
+    {
+      "source": "wiki/chat.md",
+      "route": "game-design/interactions/chat.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/chat.md",
+          "route": "game-design/interactions/chat.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/31-1440-0.png",
+            "/tmp/alive-gameplay-final/31-1440-1.png",
+            "/tmp/alive-gameplay-final/31-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/chat.md",
+          "route": "game-design/interactions/chat.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/31-390-0.png",
+            "/tmp/alive-gameplay-final/31-390-1.png",
+            "/tmp/alive-gameplay-final/31-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/dialogs.md",
+      "route": "game-design/interactions/dialogs.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/dialogs.md",
+          "route": "game-design/interactions/dialogs.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/32-1440-0.png",
+            "/tmp/alive-gameplay-final/32-1440-1.png",
+            "/tmp/alive-gameplay-final/32-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/dialogs.md",
+          "route": "game-design/interactions/dialogs.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/32-390-0.png",
+            "/tmp/alive-gameplay-final/32-390-1.png",
+            "/tmp/alive-gameplay-final/32-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/signs.md",
+      "route": "game-design/interactions/signs.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/signs.md",
+          "route": "game-design/interactions/signs.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/33-1440-0.png",
+            "/tmp/alive-gameplay-final/33-1440-1.png",
+            "/tmp/alive-gameplay-final/33-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/signs.md",
+          "route": "game-design/interactions/signs.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/33-390-0.png",
+            "/tmp/alive-gameplay-final/33-390-1.png",
+            "/tmp/alive-gameplay-final/33-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/shops.md",
+      "route": "game-design/interactions/shops.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/shops.md",
+          "route": "game-design/interactions/shops.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/34-1440-0.png",
+            "/tmp/alive-gameplay-final/34-1440-1.png",
+            "/tmp/alive-gameplay-final/34-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/shops.md",
+          "route": "game-design/interactions/shops.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/34-390-0.png",
+            "/tmp/alive-gameplay-final/34-390-1.png",
+            "/tmp/alive-gameplay-final/34-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/quests.md",
+      "route": "game-design/interactions/quests.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/quests.md",
+          "route": "game-design/interactions/quests.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/35-1440-0.png",
+            "/tmp/alive-gameplay-final/35-1440-1.png",
+            "/tmp/alive-gameplay-final/35-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/quests.md",
+          "route": "game-design/interactions/quests.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/35-390-0.png",
+            "/tmp/alive-gameplay-final/35-390-1.png",
+            "/tmp/alive-gameplay-final/35-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/crafting.md",
+      "route": "game-design/interactions/crafting.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/crafting.md",
+          "route": "game-design/interactions/crafting.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/36-1440-0.png",
+            "/tmp/alive-gameplay-final/36-1440-1.png",
+            "/tmp/alive-gameplay-final/36-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/crafting.md",
+          "route": "game-design/interactions/crafting.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/36-390-0.png",
+            "/tmp/alive-gameplay-final/36-390-1.png",
+            "/tmp/alive-gameplay-final/36-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/brewing.md",
+      "route": "game-design/interactions/brewing.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/brewing.md",
+          "route": "game-design/interactions/brewing.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/37-1440-0.png",
+            "/tmp/alive-gameplay-final/37-1440-1.png",
+            "/tmp/alive-gameplay-final/37-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/brewing.md",
+          "route": "game-design/interactions/brewing.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/37-390-0.png",
+            "/tmp/alive-gameplay-final/37-390-1.png",
+            "/tmp/alive-gameplay-final/37-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/forging.md",
+      "route": "game-design/interactions/forging.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/forging.md",
+          "route": "game-design/interactions/forging.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/38-1440-0.png",
+            "/tmp/alive-gameplay-final/38-1440-1.png",
+            "/tmp/alive-gameplay-final/38-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/forging.md",
+          "route": "game-design/interactions/forging.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/38-390-0.png",
+            "/tmp/alive-gameplay-final/38-390-1.png",
+            "/tmp/alive-gameplay-final/38-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/harvesting.md",
+      "route": "game-design/interactions/harvesting.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/harvesting.md",
+          "route": "game-design/interactions/harvesting.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/39-1440-0.png",
+            "/tmp/alive-gameplay-final/39-1440-1.png",
+            "/tmp/alive-gameplay-final/39-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/harvesting.md",
+          "route": "game-design/interactions/harvesting.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/39-390-0.png",
+            "/tmp/alive-gameplay-final/39-390-1.png",
+            "/tmp/alive-gameplay-final/39-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/fishing.md",
+      "route": "game-design/interactions/fishing.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/fishing.md",
+          "route": "game-design/interactions/fishing.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/40-1440-0.png",
+            "/tmp/alive-gameplay-final/40-1440-1.png",
+            "/tmp/alive-gameplay-final/40-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/fishing.md",
+          "route": "game-design/interactions/fishing.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/40-390-0.png",
+            "/tmp/alive-gameplay-final/40-390-1.png",
+            "/tmp/alive-gameplay-final/40-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/farming.md",
+      "route": "game-design/interactions/farming.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/farming.md",
+          "route": "game-design/interactions/farming.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/41-1440-0.png",
+            "/tmp/alive-gameplay-final/41-1440-1.png",
+            "/tmp/alive-gameplay-final/41-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/farming.md",
+          "route": "game-design/interactions/farming.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/41-390-0.png",
+            "/tmp/alive-gameplay-final/41-390-1.png",
+            "/tmp/alive-gameplay-final/41-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/farming.md",
+          "route": "game-design/interactions/farming.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/farming-1440-0.png",
+            "/tmp/alive-gameplay-supplement/farming-1440-right.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        },
+        {
+          "source": "wiki/farming.md",
+          "route": "game-design/interactions/farming.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-supplement/farming-390-0.png",
+            "/tmp/alive-gameplay-supplement/farming-390-right.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "follow-up"
+        }
+      ]
+    },
+    {
+      "source": "wiki/building.md",
+      "route": "game-design/interactions/building.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/building.md",
+          "route": "game-design/interactions/building.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/42-1440-0.png",
+            "/tmp/alive-gameplay-final/42-1440-1.png",
+            "/tmp/alive-gameplay-final/42-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/building.md",
+          "route": "game-design/interactions/building.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/42-390-0.png",
+            "/tmp/alive-gameplay-final/42-390-1.png",
+            "/tmp/alive-gameplay-final/42-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/sprites.md",
+      "route": "game-design/rendering/sprites.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/sprites.md",
+          "route": "game-design/rendering/sprites.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/43-1440-0.png",
+            "/tmp/alive-gameplay-final/43-1440-1.png",
+            "/tmp/alive-gameplay-final/43-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/sprites.md",
+          "route": "game-design/rendering/sprites.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/43-390-0.png",
+            "/tmp/alive-gameplay-final/43-390-1.png",
+            "/tmp/alive-gameplay-final/43-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/light.md",
+      "route": "game-design/rendering/light.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/light.md",
+          "route": "game-design/rendering/light.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/44-1440-0.png",
+            "/tmp/alive-gameplay-final/44-1440-1.png",
+            "/tmp/alive-gameplay-final/44-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/light.md",
+          "route": "game-design/rendering/light.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/44-390-0.png",
+            "/tmp/alive-gameplay-final/44-390-1.png",
+            "/tmp/alive-gameplay-final/44-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/threejs.md",
+      "route": "game-design/rendering/threejs.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/threejs.md",
+          "route": "game-design/rendering/threejs.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/45-1440-0.png",
+            "/tmp/alive-gameplay-final/45-1440-1.png",
+            "/tmp/alive-gameplay-final/45-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/threejs.md",
+          "route": "game-design/rendering/threejs.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/45-390-0.png",
+            "/tmp/alive-gameplay-final/45-390-1.png",
+            "/tmp/alive-gameplay-final/45-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/responsive.md",
+      "route": "game-design/rendering/responsive.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/responsive.md",
+          "route": "game-design/rendering/responsive.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/46-1440-0.png",
+            "/tmp/alive-gameplay-final/46-1440-1.png",
+            "/tmp/alive-gameplay-final/46-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/responsive.md",
+          "route": "game-design/rendering/responsive.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/46-390-0.png",
+            "/tmp/alive-gameplay-final/46-390-1.png",
+            "/tmp/alive-gameplay-final/46-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    },
+    {
+      "source": "wiki/animations.md",
+      "route": "game-design/rendering/animations.html",
+      "inspected": true,
+      "visits": [
+        {
+          "source": "wiki/animations.md",
+          "route": "game-design/rendering/animations.html",
+          "width": 1440,
+          "height": 1000,
+          "captures": [
+            "/tmp/alive-gameplay-final/47-1440-0.png",
+            "/tmp/alive-gameplay-final/47-1440-1.png",
+            "/tmp/alive-gameplay-final/47-1440-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        },
+        {
+          "source": "wiki/animations.md",
+          "route": "game-design/rendering/animations.html",
+          "width": 390,
+          "height": 844,
+          "captures": [
+            "/tmp/alive-gameplay-final/47-390-0.png",
+            "/tmp/alive-gameplay-final/47-390-1.png",
+            "/tmp/alive-gameplay-final/47-390-2.png"
+          ],
+          "errors": [],
+          "overflow": false,
+          "phase": "base"
+        }
+      ]
+    }
+  ]
+}

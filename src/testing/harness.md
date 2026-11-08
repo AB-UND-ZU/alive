@@ -16,7 +16,7 @@ Name the feature and its outcome: wading near land, blocking deep water, stoppin
 
 Jest setup seeds randomness and records sound calls. Slow suites cover larger generated worlds and rendering. Run `npm run test:fast` while working and `npm run test:all` when the affected feature needs the wider coverage.
 
-Documentation browser tests check imported examples, focus and dialog controls, navigation, page errors and small-screen layout. See [documentation tools](../documentation/index.md).
+Wiki browser tests check imported examples, focus and dialog controls, navigation, page errors and small-screen layout. See [wiki tools](../wiki/index.md).
 <!-- source-types -->
 
 ## TestWorldOptions

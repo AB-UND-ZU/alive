@@ -22,9 +22,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# documentation output and browser checks
-/.docs-build
+# wiki output and browser checks
+/.wiki-build
 /playwright-report
 /test-results
 
-.docs-dev/
+.wiki-dev/
