@@ -1,16 +1,8 @@
-# RENDERABLE
+# Renderable
 
 Stores a generation counter used to invalidate rendering.
 
-`Renderable`
-
-| Field | Type |
-| --- | --- |
-| `generation` | `number` |
-
-Attach with `world.addComponentToEntity(entity, RENDERABLE, data)`. Query with `world.getEntities([RENDERABLE])`.
-
-Systems: `action`, `ai`, `ballistics`, `build`, `burn`, `click`, `collect`, `consume`, `damage`, `drop`, `enter`, `fate`, `fishing`, `focus`, `freeze`, `harvest`, `homing`, `immersion`, `interact`, `leveling`, `magic`, `map`, `movement`, `needle`, `popup`, `push`, `renderer`, `sequence`, `spike`, `text`, `tick.test`, `trigger`, `vessel`, `visibility`, `water`.
+Call `rerenderEntity` from [Renderer](../systems/renderer.md) after a visible mutation. Rendering also includes generations from references, sequences and equipped items.
 <!-- source-types -->
 
 ## Renderable

@@ -1,18 +1,13 @@
-# FOG
+# Fog
 
 Separates unexplored, remembered, and currently visible cells.
 
-`Fog`
+[Visibility](../systems/visibility.md) changes visibility as sight moves. Terrain can remain remembered; moving units need current sight.
 
-| Field | Type |
-| --- | --- |
-| `visibility` | `"hidden" \| "fog" \| "visible"` |
-| `type` | `"air" \| "terrain" \| "object" \| "unit" \| "float"` |
-| `fixed?` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, FOG, data)`. Query with `world.getEntities([FOG])`.
-
-Systems: `ai`, `damage`, `drop`, `fate`, `freeze`, `harvest`, `homing`, `leveling`, `magic`, `movement`, `popup`, `trigger`, `visibility`, `water`.
+| Field        | Meaning                                                                          |
+| ------------ | -------------------------------------------------------------------------------- |
+| `visibility` | hidden: unexplored; fog: remembered; visible: currently in sight.                |
+| `type`       | Controls how terrain, objects, units and other layers participate in visibility. |
 <!-- source-types -->
 
 ## Fog

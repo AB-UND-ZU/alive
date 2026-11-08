@@ -1,0 +1,156 @@
+[
+  {
+    "route": "characters/classes",
+    "selector": "table",
+    "width": 1026,
+    "height": 896,
+    "errors": []
+  },
+  {
+    "route": "cells/plants",
+    "selector": "[data-catalog-unit=\"rotten\"]",
+    "width": 1026,
+    "height": 448,
+    "errors": []
+  },
+  {
+    "route": "cells/units",
+    "selector": ".CatalogOverview",
+    "width": 216,
+    "height": 224,
+    "errors": []
+  },
+  {
+    "route": "cells/structures",
+    "selector": "[data-catalog-unit=\"sign\"]",
+    "width": 1026,
+    "height": 640,
+    "errors": []
+  },
+  {
+    "route": "items/gear",
+    "selector": "[data-catalog-item=\"sword\"]",
+    "width": 1026,
+    "height": 1088,
+    "errors": []
+  },
+  {
+    "route": "items/gear",
+    "selector": "[data-catalog-item=\"utility\"]",
+    "width": 1026,
+    "height": 736,
+    "errors": []
+  },
+  {
+    "route": "items/consumables",
+    "selector": "[data-catalog-item=\"potion\"]",
+    "width": 1026,
+    "height": 1984,
+    "errors": []
+  },
+  {
+    "route": "items/resources",
+    "selector": "[data-catalog-item=\"materials\"]",
+    "width": 1026,
+    "height": 1280,
+    "errors": []
+  },
+  {
+    "route": "items/skills",
+    "selector": "[data-catalog-item=\"totem\"]",
+    "width": 1026,
+    "height": 864,
+    "errors": []
+  },
+  {
+    "route": "characters/bosses",
+    "selector": "[data-catalog-unit=\"oakBoss\"]",
+    "width": 1026,
+    "height": 1088,
+    "errors": []
+  },
+  {
+    "route": "interactions/building",
+    "selector": "main table",
+    "width": 1026,
+    "height": 2176,
+    "errors": []
+  },
+  {
+    "route": "characters/classes",
+    "selector": "table",
+    "width": 882,
+    "height": 896,
+    "errors": []
+  },
+  {
+    "route": "cells/plants",
+    "selector": "[data-catalog-unit=\"rotten\"]",
+    "width": 390,
+    "height": 448,
+    "errors": []
+  },
+  {
+    "route": "cells/units",
+    "selector": ".CatalogOverview",
+    "width": 216,
+    "height": 224,
+    "errors": []
+  },
+  {
+    "route": "cells/structures",
+    "selector": "[data-catalog-unit=\"sign\"]",
+    "width": 390,
+    "height": 640,
+    "errors": []
+  },
+  {
+    "route": "items/gear",
+    "selector": "[data-catalog-item=\"sword\"]",
+    "width": 390,
+    "height": 1088,
+    "errors": []
+  },
+  {
+    "route": "items/gear",
+    "selector": "[data-catalog-item=\"utility\"]",
+    "width": 390,
+    "height": 768,
+    "errors": []
+  },
+  {
+    "route": "items/consumables",
+    "selector": "[data-catalog-item=\"potion\"]",
+    "width": 390,
+    "height": 1984,
+    "errors": []
+  },
+  {
+    "route": "items/resources",
+    "selector": "[data-catalog-item=\"materials\"]",
+    "width": 390,
+    "height": 1280,
+    "errors": []
+  },
+  {
+    "route": "items/skills",
+    "selector": "[data-catalog-item=\"totem\"]",
+    "width": 390,
+    "height": 864,
+    "errors": []
+  },
+  {
+    "route": "characters/bosses",
+    "selector": "[data-catalog-unit=\"oakBoss\"]",
+    "width": 390,
+    "height": 1088,
+    "errors": []
+  },
+  {
+    "route": "interactions/building",
+    "selector": "main table",
+    "width": 918,
+    "height": 2176,
+    "errors": []
+  }
+]

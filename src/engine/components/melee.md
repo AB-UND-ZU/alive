@@ -1,17 +1,8 @@
-# MELEE
+# Melee
 
-Stores an equipped melee weapon’s attack state.
+Stores the attacker's melee facing and hit count.
 
-`Melee`
-
-| Field | Type |
-| --- | --- |
-| `facing?` | `Orientation` |
-| `hits` | `0` |
-
-Attach with `world.addComponentToEntity(entity, MELEE, data)`. Query with `world.getEntities([MELEE])`.
-
-Systems: `collect`, `damage`, `fate`, `spike`.
+[Damage](../systems/damage.md) reads this state on the attacker. The equipped weapon is referenced by [Equippable](equippable.md), not stored here.
 <!-- source-types -->
 
 ## Melee

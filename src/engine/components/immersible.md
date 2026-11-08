@@ -1,17 +1,12 @@
-# IMMERSIBLE
+# Immersible
 
 Marks terrain that immerses ground units.
 
-`Immersible`
+[Immersion](../systems/immersion.md) detects ground units entering the cell. [Movement](../systems/movement.md) separately decides whether the water is walkable.
 
-| Field | Type |
-| --- | --- |
-| `type` | `"water"` |
-| `deep` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, IMMERSIBLE, data)`. Query with `world.getEntities([IMMERSIBLE])`.
-
-Systems: `build`, `freeze`, `immersion`, `water`.
+| Field  | Meaning                                                                                |
+| ------ | -------------------------------------------------------------------------------------- |
+| `deep` | Distinguishes deep water from shallow water; walkability also depends on nearby cells. |
 <!-- source-types -->
 
 ## Immersible

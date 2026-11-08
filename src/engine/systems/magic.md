@@ -1,33 +1,14 @@
 # Magic
 
-Updates ability effects and their affected targets.
+Applies cast effects to targets and turns received stat changes into their visual effects.
 
+| Input                                  | Work                                                 |
+| -------------------------------------- | ---------------------------------------------------- |
+| Castable / Exertable                   | Resolve the owning cast and its affected targets     |
+| Damage or healing                      | Apply relationship checks and the combat calculation |
+| Burn or freeze                         | Start the corresponding effect state                 |
+| Received resources or damage over time | Emit the matching markers and effects                |
 
-## Queries
+The cast's target history prevents unintended repeated hits. [Damage](damage.md) supplies shared combat helpers; [Burn](burn.md), [Freeze](freeze.md) and [Sequence](sequence.md) advance the effects.
 
-```ts src/engine/systems/magic.ts
-world.getEntities([CASTABLE, SEQUENCABLE]);
-```
-
-```ts src/engine/systems/magic.ts
-world.getEntities([RENDERABLE, REFERENCE]);
-```
-
-```ts src/engine/systems/magic.ts
-world.getEntities([POSITION, CASTABLE, RENDERABLE]);
-```
-
-```ts src/engine/systems/magic.ts
-world.getEntities([POSITION, EXERTABLE]);
-```
-
-```ts src/engine/systems/magic.ts
-world.getEntities([SEQUENCABLE, PLAYER, STATS]);
-```
-
-```ts src/engine/systems/magic.ts
-world.getEntities([ SEQUENCABLE, AFFECTABLE, STATS, POSITION, ]);
-```
-
-Initialize received stats and damage-over-time caches from existing entities. Restoring a snapshot must not replay old damage or pickup effects. See [saved games](../../game/saves/index.md).
-
+Initialize received-stat and damage-over-time caches from existing entities on setup. Restoring a [saved world](../../game/saves/index.md) must not replay old damage or pickups.

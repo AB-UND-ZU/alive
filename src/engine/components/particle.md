@@ -1,21 +1,8 @@
-# PARTICLE
+# Particle
 
 Configures a temporary visual particle.
 
-`Particle`
-
-| Field | Type |
-| --- | --- |
-| `offsetX` | `number` |
-| `offsetY` | `number` |
-| `offsetZ` | `number` |
-| `animatedOrigin?` | `Point` |
-| `amount?` | `number` |
-| `duration?` | `number` |
-
-Attach with `world.addComponentToEntity(entity, PARTICLE, data)`. Query with `world.getEntities([PARTICLE])`.
-
-Systems: `sequence`.
+[Sequence](../systems/sequence.md) owns particle lifetime through its sequence state. Remove sequence particles with the sequence disposal helpers.
 <!-- source-types -->
 
 ## Particle

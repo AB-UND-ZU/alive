@@ -1,42 +1,15 @@
 # Layer
 
-Draws a single colored font glyph at the correct game height.
+Draws one colored glyph at its stack elevation. Full-block characters use cached box geometry; other characters use cached font shapes.
 
-```tsx
-Layer({
-  layer,
-  offsetZ,
-  props,
-}: {
-  props: LayerProps;
-  layer: LayerType;
-  offsetZ: number;
-})
-Glyph({
-  char,
-  receiveShadow,
-  position,
-  children,
-}: {
-  char: string;
-  receiveShadow: boolean;
-  position: [number, number, number];
-  children: React.ReactNode;
-})
-InstancedGlyph({
-  char,
-  lambert,
-  color,
-  darkness,
-  position,
-}: {
-  char: string;
-  lambert: boolean;
-  color: THREE.Color;
-  darkness?: SpringValue<number>;
-  position: [number, number, number];
-})
-```
+| Layer state | Rendering path |
+| --- | --- |
+| Opaque | `Instance` in a shared batch |
+| Animated opacity | Individual glyph with an animated material |
+| Receives shadows | Lambert material |
+| Unlit UI or effect | Basic material |
+
+`colorFactor` darkens elevated stack layers. `offsetZ` keeps their order; `LayerProps` carries opacity, darkness and movement settings from `Sprite`.
 <!-- source-types -->
 
 ## LayerProps

@@ -1,5 +1,13 @@
-# Character pixels
+# Character Pixels
 
-`characterMask` rasterizes the bundled font outlines onto their native 9 × 16 grid. Coordinates are rounded to source pixels; no browser text layers overlap.
+`characterMask` rasterizes a font outline onto its native 9 by 16 grid. Coordinates are rounded to source pixels before layers are combined.
 
-`composeCharacterPixels` applies sprite layers in order, then stack dots. `characterMarkup` caches the composed pixel rectangles. Each cell draws one SVG with those rectangles; no character layers overlap. `Cell` displays it at the current cell dimensions and retains one transparent character for text selection.
+```text cell-composition.txt
+font masks + sprite colors
+  -> composeCharacterPixels
+  -> stack dots
+  -> cached SVG rectangles
+  -> one Cell
+```
+
+`characterMarkup` caches the final rectangles. For stacked sprites, `Cell` scales that single drawing without selectable fallback text. Single-layer glyphs use the actual DOS font instead.

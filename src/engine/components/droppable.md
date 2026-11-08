@@ -1,17 +1,8 @@
-# DROPPABLE
+# Droppable
 
 Tracks decay and loot release.
 
-`Droppable`
-
-| Field | Type |
-| --- | --- |
-| `decayed` | `boolean` |
-| `evaporate?` | `{ sprite: Sprite; fast: boolean }` |
-
-Attach with `world.addComponentToEntity(entity, DROPPABLE, data)`. Query with `world.getEntities([DROPPABLE])`.
-
-Systems: `ai`, `drop`, `fate`, `harvest`, `homing`, `magic`, `trigger`.
+[Drop](../systems/drop.md) releases inventory, waits for decay and removes spent entities. Use the normal drop/disposal path so inventory and map entries stay consistent.
 <!-- source-types -->
 
 ## Droppable

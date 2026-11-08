@@ -3,41 +3,42 @@
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 32px 36px;
-  width: max-content;
+  width: 684px;
   max-width: 100%;
   margin-bottom: 32px;
 }
-.DamageFighter,
-.DamageActions {
-  flex: 0 0 252px;
+.DamageFighter {
+  flex: 0 0 324px;
   min-width: 0;
   max-width: 100%;
 }
 .DamageFighter .LargePreview {
   margin: 0;
 }
-.DamagePanel .Input {
-  display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  margin: 0;
-}
-.DamagePanel .InputLabel {
-  flex: 1;
-  min-width: 0;
-}
-.DamagePanel .InputTarget {
-  flex: none;
-}
 .DamagePanel .Choice,
 .DamagePanel .Choices,
 .DamagePanel .ButtonRow {
   margin: 0;
 }
-.DamagePanel .Choices {
-  display: flex;
-  flex-wrap: wrap;
-}
 .DamageResult {
-  margin: 32px 0;
+  display: block;
+  margin: 0;
+}
+.Stepper {
+  width: max-content;
+  max-width: 100%;
+}
+.StepperControls {
+  display: flex;
+  gap: 0;
+}
+.StepperControls > .GameButton {
+  margin-top: 32px;
+  height: 32px;
+}
+.StepperControls .Input {
+  margin: 0;
+}
+.StepperControls .InputLabel {
+  display: none;
 }

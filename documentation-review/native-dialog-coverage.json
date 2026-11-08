@@ -1,0 +1,334 @@
+{
+  "screenshots": "/tmp/alive-popup-review/",
+  "galleryVisits": [
+    {
+      "slug": "chat",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "dialogs",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "signs",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 8
+    },
+    {
+      "slug": "forging",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 3
+    },
+    {
+      "slug": "brewing",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 3
+    },
+    {
+      "slug": "gear",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 4
+    },
+    {
+      "slug": "stats",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "slots",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "classes",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 2
+    },
+    {
+      "slug": "savegames",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 2
+    },
+    {
+      "slug": "shops",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 2
+    },
+    {
+      "slug": "quests",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "crafting",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "building",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "farming",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "consumables",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "spells",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "skills",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "tools",
+      "width": 1440,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "chat",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "dialogs",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "signs",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 8
+    },
+    {
+      "slug": "forging",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 3
+    },
+    {
+      "slug": "brewing",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 3
+    },
+    {
+      "slug": "gear",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 4
+    },
+    {
+      "slug": "stats",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "slots",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "classes",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 2
+    },
+    {
+      "slug": "savegames",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 2
+    },
+    {
+      "slug": "shops",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 2
+    },
+    {
+      "slug": "quests",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "crafting",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "building",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "farming",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "consumables",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "spells",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "skills",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    },
+    {
+      "slug": "tools",
+      "width": 390,
+      "errors": [],
+      "overflow": false,
+      "dialogs": 1
+    }
+  ],
+  "correctedVisits": [
+    {
+      "route": "game-design/items/consumables.html",
+      "width": 1440,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "game-design/items/skills.html",
+      "width": 1440,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "game-design/interactions/forging.html",
+      "width": 1440,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "game-design/interactions/brewing.html",
+      "width": 1440,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "game-design/interactions/quests.html",
+      "width": 1440,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "game-design/items/consumables.html",
+      "width": 390,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "game-design/items/skills.html",
+      "width": 390,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "game-design/interactions/forging.html",
+      "width": 390,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "game-design/interactions/brewing.html",
+      "width": 390,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "game-design/interactions/quests.html",
+      "width": 390,
+      "errors": [],
+      "overflow": false
+    }
+  ],
+  "questTables": "quests-table-{0,1,2}-{1440,390}[-right].png; refreshed after native stat markup support"
+}

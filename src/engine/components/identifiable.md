@@ -1,16 +1,8 @@
-# IDENTIFIABLE
+# Identifiable
 
 Names an entity for quests, commands, and lookups.
 
-`Identifiable`
-
-| Field | Type |
-| --- | --- |
-| `name` | `string` |
-
-Attach with `world.addComponentToEntity(entity, IDENTIFIABLE, data)`. Query with `world.getEntities([IDENTIFIABLE])`.
-
-Systems: `ai`, `collect`, `damage`, `drop`, `homing`, `interact`, `trigger`.
+Use `setIdentifier` when naming an entity so lookup caches stay consistent. [AI](../systems/ai.md) and quest sequences use these stable names instead of hard-coded entity IDs.
 <!-- source-types -->
 
 ## Identifiable

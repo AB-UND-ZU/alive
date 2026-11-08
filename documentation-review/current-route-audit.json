@@ -1,0 +1,1392 @@
+{
+  "summary": {
+    "manifestRoutes": 270,
+    "routesChecked": 270,
+    "internalLinks": 6716,
+    "anchorLinks": 5809,
+    "externalLinks": 2,
+    "brokenLinks": 0,
+    "runtimeErrors": 0,
+    "httpErrors": 0,
+    "documentOverflow": 0,
+    "duplicateIdPages": 0,
+    "duplicateParagraphPages": 0,
+    "unknownTextPages": 1,
+    "playerMarkupPagesChecked": 49,
+    "rawMarkupPages": 0,
+    "rawInfinityPages": 0
+  },
+  "coverage": [
+    {
+      "route": "index.html",
+      "ids": 4,
+      "links": 7
+    },
+    {
+      "route": "intro/play.html",
+      "ids": 0,
+      "links": 8
+    },
+    {
+      "route": "game-design/controls/interface.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "game-design/controls/keyboard-mouse.html",
+      "ids": 4,
+      "links": 17
+    },
+    {
+      "route": "game-design/controls/touch.html",
+      "ids": 3,
+      "links": 2
+    },
+    {
+      "route": "game-design/world/levels.html",
+      "ids": 5,
+      "links": 27
+    },
+    {
+      "route": "game-design/world/minimap.html",
+      "ids": 1,
+      "links": 6
+    },
+    {
+      "route": "game-design/world/savegames.html",
+      "ids": 6,
+      "links": 7
+    },
+    {
+      "route": "game-design/world/timers.html",
+      "ids": 1,
+      "links": 9
+    },
+    {
+      "route": "game-design/world/sounds.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "game-design/characters/factions.html",
+      "ids": 11,
+      "links": 1
+    },
+    {
+      "route": "game-design/characters/classes.html",
+      "ids": 5,
+      "links": 94
+    },
+    {
+      "route": "game-design/characters/npcs.html",
+      "ids": 15,
+      "links": 138
+    },
+    {
+      "route": "game-design/characters/animals.html",
+      "ids": 10,
+      "links": 77
+    },
+    {
+      "route": "game-design/characters/enemies.html",
+      "ids": 23,
+      "links": 206
+    },
+    {
+      "route": "game-design/characters/bosses.html",
+      "ids": 5,
+      "links": 48
+    },
+    {
+      "route": "game-design/combat/damage.html",
+      "ids": 3,
+      "links": 18
+    },
+    {
+      "route": "game-design/combat/stats.html",
+      "ids": 45,
+      "links": 67
+    },
+    {
+      "route": "game-design/combat/respawn.html",
+      "ids": 1,
+      "links": 5
+    },
+    {
+      "route": "game-design/cells/units.html",
+      "ids": 10,
+      "links": 73
+    },
+    {
+      "route": "game-design/cells/containers.html",
+      "ids": 11,
+      "links": 112
+    },
+    {
+      "route": "game-design/cells/terrain.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "game-design/cells/structures.html",
+      "ids": 5,
+      "links": 9
+    },
+    {
+      "route": "game-design/cells/plants.html",
+      "ids": 12,
+      "links": 89
+    },
+    {
+      "route": "game-design/items/slots.html",
+      "ids": 12,
+      "links": 27
+    },
+    {
+      "route": "game-design/items/elements.html",
+      "ids": 5,
+      "links": 36
+    },
+    {
+      "route": "game-design/items/gear.html",
+      "ids": 12,
+      "links": 1182
+    },
+    {
+      "route": "game-design/items/resources.html",
+      "ids": 42,
+      "links": 228
+    },
+    {
+      "route": "game-design/items/spells.html",
+      "ids": 6,
+      "links": 980
+    },
+    {
+      "route": "game-design/items/skills.html",
+      "ids": 6,
+      "links": 195
+    },
+    {
+      "route": "game-design/items/tools.html",
+      "ids": 6,
+      "links": 92
+    },
+    {
+      "route": "game-design/items/consumables.html",
+      "ids": 34,
+      "links": 373
+    },
+    {
+      "route": "game-design/interactions/chat.html",
+      "ids": 3,
+      "links": 3
+    },
+    {
+      "route": "game-design/interactions/dialogs.html",
+      "ids": 1,
+      "links": 5
+    },
+    {
+      "route": "game-design/interactions/signs.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "game-design/interactions/shops.html",
+      "ids": 1,
+      "links": 54
+    },
+    {
+      "route": "game-design/interactions/quests.html",
+      "ids": 6,
+      "links": 91
+    },
+    {
+      "route": "game-design/interactions/crafting.html",
+      "ids": 1,
+      "links": 18
+    },
+    {
+      "route": "game-design/interactions/brewing.html",
+      "ids": 1,
+      "links": 172
+    },
+    {
+      "route": "game-design/interactions/forging.html",
+      "ids": 1,
+      "links": 699
+    },
+    {
+      "route": "game-design/interactions/harvesting.html",
+      "ids": 1,
+      "links": 108
+    },
+    {
+      "route": "game-design/interactions/fishing.html",
+      "ids": 1,
+      "links": 9
+    },
+    {
+      "route": "game-design/interactions/farming.html",
+      "ids": 2,
+      "links": 26
+    },
+    {
+      "route": "game-design/interactions/building.html",
+      "ids": 19,
+      "links": 102
+    },
+    {
+      "route": "game-design/rendering/sprites.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "game-design/rendering/light.html",
+      "ids": 2,
+      "links": 6
+    },
+    {
+      "route": "game-design/rendering/threejs.html",
+      "ids": 1,
+      "links": 6
+    },
+    {
+      "route": "game-design/rendering/responsive.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "game-design/rendering/animations.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/engine/hooks.html",
+      "ids": 3,
+      "links": 3
+    },
+    {
+      "route": "development/engine/ecs.html",
+      "ids": 7,
+      "links": 8
+    },
+    {
+      "route": "development/engine/snapshot.html",
+      "ids": 7,
+      "links": 1
+    },
+    {
+      "route": "development/engine/wfc/haven.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/engine/wfc/town.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/engine/wfc/wfc.html",
+      "ids": 7,
+      "links": 9
+    },
+    {
+      "route": "development/engine/game/assets/commands.html",
+      "ids": 3,
+      "links": 1
+    },
+    {
+      "route": "development/engine/game/assets/descriptions.html",
+      "ids": 6,
+      "links": 29
+    },
+    {
+      "route": "development/engine/game/assets/font.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/engine/game/assets/npcs.html",
+      "ids": 2,
+      "links": 4
+    },
+    {
+      "route": "development/engine/game/assets/templates.html",
+      "ids": 3,
+      "links": 8
+    },
+    {
+      "route": "development/engine/game/assets/ui.html",
+      "ids": 3,
+      "links": 2
+    },
+    {
+      "route": "development/engine/game/assets/utils.html",
+      "ids": 4,
+      "links": 6
+    },
+    {
+      "route": "development/engine/game/assets/warp.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/engine/game/balancing/building.html",
+      "ids": 2,
+      "links": 7
+    },
+    {
+      "route": "development/engine/game/balancing/classes.html",
+      "ids": 3,
+      "links": 8
+    },
+    {
+      "route": "development/engine/game/balancing/forging.html",
+      "ids": 4,
+      "links": 11
+    },
+    {
+      "route": "development/engine/game/balancing/harvesting.html",
+      "ids": 2,
+      "links": 4
+    },
+    {
+      "route": "development/engine/game/balancing/units.html",
+      "ids": 6,
+      "links": 33
+    },
+    {
+      "route": "development/engine/game/math/matrix.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/engine/game/math/std.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/engine/game/math/tracing.html",
+      "ids": 4,
+      "links": 13
+    },
+    {
+      "route": "development/engine/game/saves.html",
+      "ids": 8,
+      "links": 8
+    },
+    {
+      "route": "development/engine/game/saves/storage.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/engine/game/sound.html",
+      "ids": 2,
+      "links": 0
+    },
+    {
+      "route": "development/engine/game/sound/resumable.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/engine/testing/harness.html",
+      "ids": 6,
+      "links": 4
+    },
+    {
+      "route": "development/engine/testing/island.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/entities/creation.html",
+      "ids": 5,
+      "links": 1
+    },
+    {
+      "route": "development/entities/entities.html",
+      "ids": 3,
+      "links": 160
+    },
+    {
+      "route": "development/systems/action.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/ai.html",
+      "ids": 1,
+      "links": 4
+    },
+    {
+      "route": "development/systems/ballistics.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/build.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/burn.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/systems/click.html",
+      "ids": 1,
+      "links": 4
+    },
+    {
+      "route": "development/systems/collect.html",
+      "ids": 1,
+      "links": 4
+    },
+    {
+      "route": "development/systems/consume.html",
+      "ids": 3,
+      "links": 5
+    },
+    {
+      "route": "development/systems/damage.html",
+      "ids": 1,
+      "links": 6
+    },
+    {
+      "route": "development/systems/drop.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/enter.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/systems/fate.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/fishing.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/focus.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/systems/freeze.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/systems/harvest.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/homing.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/immersion.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/initialize.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/interact.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/systems/leveling.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/systems/magic.html",
+      "ids": 1,
+      "links": 5
+    },
+    {
+      "route": "development/systems/map.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/systems/movement.html",
+      "ids": 1,
+      "links": 4
+    },
+    {
+      "route": "development/systems/needle.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/systems/popup.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/push.html",
+      "ids": 1,
+      "links": 4
+    },
+    {
+      "route": "development/systems/renderer.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/sequence.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/systems/spike.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/text.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/systems/tick.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/systems/trigger.html",
+      "ids": 1,
+      "links": 5
+    },
+    {
+      "route": "development/systems/vessel.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/systems/visibility.html",
+      "ids": 2,
+      "links": 6
+    },
+    {
+      "route": "development/systems/water.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/actionable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/affectable.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/attackable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/baitable.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/behaviour.html",
+      "ids": 3,
+      "links": 2
+    },
+    {
+      "route": "development/components/belongable.html",
+      "ids": 3,
+      "links": 2
+    },
+    {
+      "route": "development/components/blockable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/brewable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/buildable.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/bumpable.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/burnable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/castable.html",
+      "ids": 8,
+      "links": 8
+    },
+    {
+      "route": "development/components/clickable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/collectable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/collidable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/conditionable.html",
+      "ids": 3,
+      "links": 7
+    },
+    {
+      "route": "development/components/coverable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/displacable.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/droppable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/enterable.html",
+      "ids": 2,
+      "links": 4
+    },
+    {
+      "route": "development/components/equippable.html",
+      "ids": 6,
+      "links": 2
+    },
+    {
+      "route": "development/components/exertable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/farmable.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/fishable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/focusable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/fog.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/forgable.html",
+      "ids": 3,
+      "links": 5
+    },
+    {
+      "route": "development/components/fragment.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/freezable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/harvestable.html",
+      "ids": 4,
+      "links": 3
+    },
+    {
+      "route": "development/components/homing.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/hookable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/identifiable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/immersible.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/inventory.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/item.html",
+      "ids": 19,
+      "links": 25
+    },
+    {
+      "route": "development/components/layer.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/level.html",
+      "ids": 4,
+      "links": 12
+    },
+    {
+      "route": "development/components/light.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/liquid.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/lockable.html",
+      "ids": 2,
+      "links": 6
+    },
+    {
+      "route": "development/components/lootable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/melee.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/mountable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/movable.html",
+      "ids": 2,
+      "links": 4
+    },
+    {
+      "route": "development/components/npc.html",
+      "ids": 3,
+      "links": 3
+    },
+    {
+      "route": "development/components/orientable.html",
+      "ids": 3,
+      "links": 3
+    },
+    {
+      "route": "development/components/particle.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/player.html",
+      "ids": 2,
+      "links": 7
+    },
+    {
+      "route": "development/components/poi.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/popup.html",
+      "ids": 7,
+      "links": 18
+    },
+    {
+      "route": "development/components/position.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/projectile.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/pushable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/rechargable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/reference.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/refillable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/remainable.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/renderable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/revivable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/sequencable.html",
+      "ids": 45,
+      "links": 132
+    },
+    {
+      "route": "development/components/shootable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/soul.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/spawnable.html",
+      "ids": 2,
+      "links": 8
+    },
+    {
+      "route": "development/components/spikable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/sprite.html",
+      "ids": 4,
+      "links": 7
+    },
+    {
+      "route": "development/components/stats.html",
+      "ids": 7,
+      "links": 8
+    },
+    {
+      "route": "development/components/sticky.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/components/structurable.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/swimmable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/tempo.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/tooltip.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/trackable.html",
+      "ids": 2,
+      "links": 3
+    },
+    {
+      "route": "development/components/vanishable.html",
+      "ids": 2,
+      "links": 4
+    },
+    {
+      "route": "development/components/viewable.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/components/warpable.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/types/types.html",
+      "ids": 1,
+      "links": 374
+    },
+    {
+      "route": "development/ui/app.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/ui/camera.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/ui/controls.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/ui/cursor.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/debug.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/dimensions.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/ui/dimensions/scrolling.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/ui/dimensions/sizing.html",
+      "ids": 3,
+      "links": 0
+    },
+    {
+      "route": "development/ui/entity/animated.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/entity/bar.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/ui/entity/box.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/ui/entity/coveredlight.html",
+      "ids": 2,
+      "links": 0
+    },
+    {
+      "route": "development/ui/entity/dots.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/entity/fogofwar.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/entity/instances.html",
+      "ids": 3,
+      "links": 1
+    },
+    {
+      "route": "development/ui/entity/layer.html",
+      "ids": 2,
+      "links": 2
+    },
+    {
+      "route": "development/ui/entity/shadowcache.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/entity/sprite.html",
+      "ids": 2,
+      "links": 5
+    },
+    {
+      "route": "development/ui/entity/stack.html",
+      "ids": 2,
+      "links": 4
+    },
+    {
+      "route": "development/ui/entity/swimming.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/entity/geometries.html",
+      "ids": 2,
+      "links": 0
+    },
+    {
+      "route": "development/ui/entity.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/joystick.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/keyboard.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/paused.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/ui/row/characters.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/row.html",
+      "ids": 3,
+      "links": 1
+    },
+    {
+      "route": "development/ui/stats.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/systems.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/ui/terminal.html",
+      "ids": 1,
+      "links": 4
+    },
+    {
+      "route": "development/ui/world.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/acquisitionsources.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/app.html",
+      "ids": 2,
+      "links": 0
+    },
+    {
+      "route": "development/docs/bossdiagram.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/callout.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/catalogentry.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/docs/cellreference.html",
+      "ids": 1,
+      "links": 3
+    },
+    {
+      "route": "development/docs/codeblock.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/commandbuilder.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/damage.html",
+      "ids": 2,
+      "links": 1
+    },
+    {
+      "route": "development/docs/demoframe.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/dialogsnapshot.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/dungeonmap.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/equippedpreview.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/farmingprogression.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/docs/gamepreview.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/gridcenterednote.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/gridtable.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/interfacediagram.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/interfacelabels.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/largepreview.html",
+      "ids": 2,
+      "links": 0
+    },
+    {
+      "route": "development/docs/minimap.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/minimapdata.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/pausesnapshot.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/play.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/sounds.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/staticinterface.html",
+      "ids": 1,
+      "links": 4
+    },
+    {
+      "route": "development/docs/structureoverview.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/textgallery.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/touchcontrols.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/warpmap.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/docs/widgets.html",
+      "ids": 2,
+      "links": 4
+    },
+    {
+      "route": "development/docs/worlddiagram.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/worldmap.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/worldplants.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/catalog.html",
+      "ids": 1,
+      "links": 2
+    },
+    {
+      "route": "development/docs/codepage.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/commands.html",
+      "ids": 1,
+      "links": 1
+    },
+    {
+      "route": "development/docs/index.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/interface.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/itemsources.html",
+      "ids": 2,
+      "links": 5
+    },
+    {
+      "route": "development/docs/presets.html",
+      "ids": 2,
+      "links": 0
+    },
+    {
+      "route": "development/docs/preview-engine.html",
+      "ids": 1,
+      "links": 0
+    },
+    {
+      "route": "development/docs/preview.html",
+      "ids": 1,
+      "links": 5
+    },
+    {
+      "route": "development/docs/references.html",
+      "ids": 2,
+      "links": 0
+    },
+    {
+      "route": "development/docs/scenes.html",
+      "ids": 2,
+      "links": 5
+    },
+    {
+      "route": "development/docs/types.html",
+      "ids": 4,
+      "links": 3
+    },
+    {
+      "route": "development/docs/visuals.html",
+      "ids": 1,
+      "links": 1
+    }
+  ],
+  "findings": {
+    "rawInfinity": [],
+    "rawMarkup": [],
+    "brokenLinks": [],
+    "runtimeErrors": [],
+    "httpErrors": [],
+    "overflow": [],
+    "duplicateIds": [],
+    "duplicateParagraphs": [],
+    "unknownTextCandidates": [
+      {
+        "route": "game-design/characters/classes.html",
+        "text": [
+          "???"
+        ],
+        "classification": "Valid native hidden class name",
+        "source": "src/game/assets/pixels.ts:266 displayedClasses includes ???"
+      }
+    ]
+  },
+  "method": "Desktop Chromium at 1440x1000; all canonical SPA routes; a fresh page for each Gameplay route and every 15 Development routes; HMR disabled. Validated same-origin absolute and relative links, aliases, local resources and fragment targets. All pages also scan data text outside pre/code and the GlyphAtlas for raw Infinity/∞. Player pages also scan rendered text outside pre/code for unrendered [[key/item/unit/stat/button/data: markup; development authoring examples are excluded. Repeated native frame titles are expected labels; duplicate prose detection checks paragraphs outside table cells. This structural audit complements the separate visual and mobile reviews; it does not execute every demo or check external web destinations. Raw DOM detail: /tmp/alive-current-route-audit.json."
+}

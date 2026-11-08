@@ -1,14 +1,5 @@
 # Focus
 
-Tracks highlighted targets and focus markers.
+Maintains quest, enemy and grave highlights, including transitions between targets.
 
-
-## Queries
-
-```ts src/engine/systems/focus.ts
-world.getEntities([RENDERABLE, REFERENCE]);
-```
-
-```ts src/engine/systems/focus.ts
-world.getEntities([FOCUSABLE, RENDERABLE, POSITION]);
-```
+[Focusable](../components/focusable.md) holds current and pending target IDs. Missing or removed targets clear the highlight; a changed target starts its transition. The compass target can follow its carrier after a drop. [Needle](needle.md) turns that target into a direction after focus has been updated.

@@ -1,6 +1,13 @@
 # Skills
 
-[[key:Shift]] uses the skill. [[key:Q]] switches between skill and tool.
+```widget
+popup equip:skill
+```
+
+| Key | Action |
+| --- | --- |
+| [[key:Shift]] | Use the equipped skill |
+| [[key:Q]] | Switch between skill and tool |
 
 ```widget
 items skills

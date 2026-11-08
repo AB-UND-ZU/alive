@@ -1,9 +1,5 @@
-# Paused
+# Pause Overlay
 
-Draws the start, loading, and pause overlays and handles resume input.
+Shows the start, loading and pause state above the terminal. In a playable level it offers Resume, Menu and Save using the game's button sprites. The row below reports the latest save, progress or failure.
 
-```tsx
-Paused()
-```
-
-In a playable level, the pause overlay also renders Resume, Menu and Save with the game's button sprites. Save is disabled while saving or when the hero cannot be saved. The row below it shows the latest save name, progress or failure. The main menu only offers Resume. See [Savegames](../../../docs/savegames.md).
+Save is disabled while a write is running or when the hero cannot be saved. The main menu only offers Resume. Resume input returns control to the game; storage behavior belongs to `World`. See [Savegames](../../../docs/savegames.md).

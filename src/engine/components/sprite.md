@@ -1,26 +1,14 @@
-# SPRITE
+# Sprite
 
 Stores ordered colored character layers and directional or quantity variants.
 
-`Layer`
+[World rendering](../../components/Systems/index.md) and the [HTML compositor](../../components/Row/index.md) draw the same ordered layers.
 
-| Field | Type |
-| --- | --- |
-| `char` | `string` |
-| `color` | `string` |
-
-`Sprite`
-
-| Field | Type |
-| --- | --- |
-| `name` | `string` |
-| `layers` | `Layer[]` |
-| `facing?` | `Partial<Record<Orientation, Layer[]>>` |
-| `amounts?` | `Partial<Record<Amount, Layer[]>>` |
-
-Attach with `world.addComponentToEntity(entity, SPRITE, data)`. Query with `world.getEntities([SPRITE])`.
-
-Systems: `ai`, `ballistics`, `burn`, `collect`, `consume`, `damage`, `drop`, `fate`, `freeze`, `harvest`, `homing`, `immersion`, `leveling`, `magic`, `movement`, `sequence`, `text`, `trigger`, `water`.
+| Field     | Meaning                                                                    |
+| --------- | -------------------------------------------------------------------------- |
+| `layers`  | Later layers are drawn over earlier layers.                                |
+| `facing`  | Directional replacements; missing directions fall back to the base layers. |
+| `amounts` | Layer variants for single, double and multiple quantities.                 |
 <!-- source-types -->
 
 ## Amount

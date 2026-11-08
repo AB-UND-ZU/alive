@@ -1,3 +1,11 @@
 # Callout
 
-A greater-than character precedes the content. The shared text renderer handles wrapping; the marker uses the game's green palette and character sprites. No border or animation is added.
+Places a lime greater-than marker beside each line of wrapping content. Prose is white; sprite icons retain their game colors. Markdown blockquotes use this component.
+
+> Saved.
+
+```md callout.md
+> Saved.
+```
+
+`children` supplies the content; an optional `label` gives the note an accessible name.

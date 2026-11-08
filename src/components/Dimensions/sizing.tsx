@@ -30,9 +30,7 @@ export type Dimensions = {
   hudRows: number;
 };
 
-const visibleColumns = 21;
 const maxColumns = 32;
-const visibleRows = 20;
 export const pixels = 16;
 export const aspectRatio = 9 / 16; // of DOS font
 const hudHeight = 8;
@@ -40,7 +38,17 @@ const hudHeight = 8;
 const overscanColumns = 1;
 export const overscanRows = 1;
 
-const calculateDimensions: () => Dimensions = () => {
+export type DimensionOptions = {
+  visibleColumns?: number;
+  visibleRows?: number;
+  topHudRows?: number;
+};
+
+export const calculateDimensions = ({
+  visibleColumns = 21,
+  visibleRows = 20,
+  topHudRows = hudHeight / 2,
+}: DimensionOptions = {}): Dimensions => {
   const screenWidth = window.innerWidth;
   const screenHeight = window.innerHeight;
   const horizontalMinimum = Math.floor(
@@ -62,10 +70,13 @@ const calculateDimensions: () => Dimensions = () => {
   const topOffset = cellHeight / -2;
   const bottomOffset = (cellHeight * -6.5) / 12;
   const terminalHeight =
-    screenHeight - cellHeight * hudHeight - topOffset - bottomOffset;
+    screenHeight -
+    cellHeight * (topHudRows + hudHeight / 2) -
+    topOffset -
+    bottomOffset;
   const terminalWidth = Math.min(screenWidth, maxColumns * cellWidth);
   const renderedColumns = Math.min(columns, maxColumns) + overscanColumns;
-  const renderedRows = rows - hudHeight + overscanRows;
+  const renderedRows = rows - topHudRows - hudHeight / 2 + overscanRows;
   const renderedDiagonal = Math.sqrt(
     renderedColumns ** 2 * aspectRatio + renderedRows ** 2
   );
@@ -101,22 +112,39 @@ export const DimensionsContext = createContext<Dimensions>(initialDimensions);
 
 export const useDimensions = () => useContext(DimensionsContext);
 
-export function DimensionsProvider(props: React.PropsWithChildren) {
-  const [dimensions, setDimensions] = useState(initialDimensions);
+export function DimensionsProvider({
+  options,
+  children,
+}: React.PropsWithChildren<{ options?: DimensionOptions }>) {
+  const [dimensions, setDimensions] = useState(() =>
+    calculateDimensions(options)
+  );
 
-  useResizeListener(setDimensions);
+  useResizeListener(setDimensions, options);
 
-  return <DimensionsContext.Provider {...props} value={dimensions} />;
+  return (
+    <DimensionsContext.Provider value={dimensions}>
+      {children}
+    </DimensionsContext.Provider>
+  );
 }
 
 export const useResizeListener = (
-  listener: (dimensions: Dimensions) => void
+  listener: (dimensions: Dimensions) => void,
+  options?: DimensionOptions
 ) => {
+  const visibleColumns = options?.visibleColumns;
+  const visibleRows = options?.visibleRows;
+  const topHudRows = options?.topHudRows;
   const callback = useCallback(() => {
-    const dimensions = calculateDimensions();
+    const dimensions = calculateDimensions({
+      visibleColumns,
+      visibleRows,
+      topHudRows,
+    });
 
     listener(dimensions);
-  }, [listener]);
+  }, [listener, visibleColumns, visibleRows, topHudRows]);
 
   // provide dimensions before first render and call listener initially
   useLayoutEffect(callback, [callback]);

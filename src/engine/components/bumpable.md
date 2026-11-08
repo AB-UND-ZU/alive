@@ -1,17 +1,12 @@
-# BUMPABLE
+# Bumpable
 
 Records a bump direction and the generation that produced it.
 
-`Bumpable`
+[Click](../systems/click.md), [Movement](../systems/movement.md) and combat use the bump generation and direction to distinguish a new attempt from a held input.
 
-| Field | Type |
-| --- | --- |
-| `generation` | `number` |
-| `orientation?` | `Orientation` |
-
-Attach with `world.addComponentToEntity(entity, BUMPABLE, data)`. Query with `world.getEntities([BUMPABLE])`.
-
-Systems: `ai`, `click`, `collect`, `damage`, `fate`, `fishing`, `harvest`, `homing`, `magic`, `movement`, `spike`.
+| Field        | Meaning                                         |
+| ------------ | ----------------------------------------------- |
+| `generation` | Changes for a new bump; it is not elapsed time. |
 <!-- source-types -->
 
 ## Bumpable

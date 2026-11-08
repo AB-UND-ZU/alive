@@ -1,3 +1,4 @@
+import { getWarpMap, warpBlink } from "./warp";
 import {
   decayHeight,
   dialogHeight,
@@ -69,7 +70,6 @@ import {
 } from "../../engine/systems/map";
 import { rerenderEntity } from "../../engine/systems/renderer";
 import {
-  canWarp,
   getSelectedConstruction,
   openDoor,
 } from "../../engine/systems/trigger";
@@ -410,7 +410,7 @@ import {
 } from "../../engine/systems/enter";
 import { Spawnable, SPAWNABLE } from "../../engine/components/spawnable";
 import { ClassKey, getClassData } from "../balancing/classes";
-import { getSelectedLevel, levelConfig } from "../levels";
+import { levelConfig } from "../levels";
 import { getActiveViewable } from "../../bindings/hooks";
 import {
   calculateWeatherIntensity,
@@ -6896,14 +6896,9 @@ export const displayBrew: Sequence<PopupSequence> = (world, entity, state) => {
   };
 };
 
-const warpHeight = 5;
-const warpWidth = 11;
-const warpBlink = 2;
-
 export const displayWarp: Sequence<PopupSequence> = (world, entity, state) => {
   const generation = world.metadata.gameEntity[RENDERABLE].generation;
   const blinkGeneration = Math.floor(generation / warpBlink) * warpBlink;
-  const showPlayer = generation % (warpBlink * 2) < warpBlink;
 
   // value container to rerender content
   if (!state.particles.blink) {
@@ -6931,61 +6926,7 @@ export const displayWarp: Sequence<PopupSequence> = (world, entity, state) => {
     blinkParticle[PARTICLE].amount = blinkGeneration;
   }
 
-  const map: Sprite[][] = [
-    ...(
-      (entity[POPUP] as Popup).lines[entity[POPUP].horizontalIndex] || []
-    ).map((line) => [...line, ...repeat(none, frameWidth - 4 - line.length)]),
-  ];
-  const selectedLevel = getSelectedLevel(world, entity);
-  const level = selectedLevel && levelConfig[selectedLevel];
-  const currentLevel = selectedLevel === world.metadata.gameEntity[LEVEL].name;
-  const lockedLevel = !currentLevel && !canWarp(world, {}, entity);
-
-  const warpColor = lockedLevel
-    ? colors.red
-    : currentLevel
-    ? colors.white
-    : colors.lime;
-
-  const content = level
-    ? overlay(
-        map,
-        ...[
-          [
-            ...repeat([], level.mapOffsetY),
-            ...pixelFrame(
-              warpWidth,
-              warpHeight,
-              warpColor,
-              lockedLevel || currentLevel ? "dashed" : "thick",
-              [],
-              createText(level?.name || "", colors.black, warpColor)
-            ),
-          ],
-          [
-            ...repeat([], level.mapOffsetY + (warpHeight - 1) / 2),
-            [
-              lockedLevel
-                ? blocked
-                : showPlayer
-                ? mergeSprites(shadow, createText("\u010b", warpColor)[0])
-                : none,
-            ],
-          ],
-        ].map((layer) =>
-          layer.map((line) =>
-            centerSprites(
-              [
-                ...repeat(none, level.mapOffsetX * 2),
-                ...line,
-                ...repeat(none, level.mapOffsetX * -2),
-              ],
-              frameWidth - 2
-            )
-          )
-        )
-      )
-    : map;
+  const { content, level, lockedLevel, currentLevel } = getWarpMap(world, entity);
 
   const popupResult = renderPopup(
     world,

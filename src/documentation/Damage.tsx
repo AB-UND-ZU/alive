@@ -11,7 +11,7 @@ import { getItemStats } from "../game/balancing/equipment";
 import { getStatColor, mergeSprites } from "../game/assets/ui";
 import { none } from "../game/assets/sprites";
 import { colors } from "../game/assets/colors";
-import { Text, Input, Choice, Button, StatLabel } from "./visuals";
+import { Text, Stepper, Choice, Button, StatLabel, ItemView } from "./visuals";
 import "./Damage.css";
 type DamageKind = "melee" | "magic" | "true";
 const sword: Partial<Item> = { weapon: "sword", material: "iron" };
@@ -58,21 +58,35 @@ export function Damage() {
             sprite: { ...attackerSprite, name: attackerClass.sprite.name },
           }}
         />
-        <Input
-          compact
+        <ItemView item={weapon} />
+        <Choice
+          label="Damage"
+          value={kind}
+          values={["melee", "magic", "true"]}
+          onChange={(value) => {
+            const next = value as DamageKind;
+            setKind(next);
+            if (next !== "true")
+              setAmount(getItemStats(next === "magic" ? wand : sword)[next]);
+          }}
+        />
+        <Stepper
+          label="Weapon damage"
+          labelContent={<Text>Item damage</Text>}
+          value={amount}
+          onChange={setAmount}
+        />
+        <Stepper
           label="Attacker Power"
           labelContent={<StatLabel stat="power" />}
-          type="number"
-          value={String(power)}
-          onChange={(v) => setPower(Number(v))}
+          value={power}
+          onChange={setPower}
         />
-        <Input
-          compact
+        <Stepper
           label="Attacker Wisdom"
           labelContent={<StatLabel stat="wisdom" />}
-          type="number"
-          value={String(wisdom)}
-          onChange={(v) => setWisdom(Number(v))}
+          value={wisdom}
+          onChange={setWisdom}
         />
       </section>
       <section className="DamageFighter">
@@ -85,49 +99,27 @@ export function Damage() {
             },
           }}
         />
-        <Input
-          compact
+        <ItemView item={shield} />
+        <Stepper
           label="Defender Armor"
           labelContent={<StatLabel stat="armor" />}
-          type="number"
-          value={String(armor)}
-          onChange={(v) => setArmor(Number(v))}
+          value={armor}
+          onChange={setArmor}
         />
-        <Input
-          compact
+        <Stepper
           label="Defender Resist"
           labelContent={<StatLabel stat="resist" />}
-          type="number"
-          value={String(resist)}
-          onChange={(v) => setResist(Number(v))}
+          value={resist}
+          onChange={setResist}
         />
-      </section>
-      <section className="DamageActions">
-        <Choice
-          label="Damage"
-          value={kind}
-          values={["melee", "magic", "true"]}
-          onChange={(value) => {
-            const next = value as DamageKind;
-            setKind(next);
-            if (next !== "true")
-              setAmount(getItemStats(next === "magic" ? wand : sword)[next]);
-          }}
-        />
-        <Input
-          compact
-          label="Weapon damage"
-          labelContent={<StatLabel stat={kind} />}
-          type="number"
-          value={String(amount)}
-          onChange={(v) => setAmount(Number(v))}
+        <Stepper
+          label="Defender HP"
+          labelContent={<StatLabel stat="hp" />}
+          value={hp}
+          onChange={setHp}
         />
         <output className="DamageResult" aria-label={status}>
-          <Text color={getStatColor(kind)}>{`${damage} damage`}</Text>
-          <div>
-            <StatLabel stat="hp" />{" "}
-            <Text color={getStatColor("hp")}>{`${health}/30`}</Text>
-          </div>
+          <Text color={getStatColor(kind)}>{`${damage} damage received`}</Text>
         </output>
         <div className="ButtonRow">
           <Button palette="lime" onClick={() => setHp(result.hp)}>

@@ -1,3 +1,5 @@
+import { ensureMinimapSnapshot } from "./minimap-snapshot.mjs";
+import { aliasFont } from "./font.mjs";
 import ts from "typescript";
 import { readFile, writeFile, mkdir, readdir, rm, cp } from "node:fs/promises";
 import path from "node:path";
@@ -22,6 +24,11 @@ async function files(dir) {
   return result.sort();
 }
 export async function buildDocs(output = ".docs-build") {
+  await ensureMinimapSnapshot(root);
+  const { generateItemSources } = await import(
+    `./item-sources.mjs?${Date.now()}`
+  );
+  await generateItemSources(root);
   const out = path.resolve(root, output);
   if (
     ![".docs-build", ".docs-dev", "build/docs"].includes(
@@ -42,6 +49,9 @@ export async function buildDocs(output = ".docs-build") {
         "ALIVE",
         "UI",
         "ECS",
+        "WFC",
+        "AI",
+        "POI",
         "NPC",
         "NPCs",
         "HP",
@@ -61,12 +71,23 @@ export async function buildDocs(output = ".docs-build") {
         level: "inline",
         start: (s) => s.indexOf("[["),
         tokenizer(s) {
-          const m = /^\[\[(key|item|button):([^\]]+)\]\]/.exec(s);
+          const m = /^\[\[(key|item|unit|stat|button|data):([^\]]+)\]\]/.exec(
+            s
+          );
           if (m) return { type: "game", raw: m[0], kind: m[1], value: m[2] };
         },
       },
     ],
   });
+  const font = JSON.parse(
+    await readFile(path.join(root, "src/game/assets/font.json"), "utf8")
+  );
+  const aliases = JSON.parse(
+    await readFile(
+      path.join(root, "src/documentation/glyphAliases.json"),
+      "utf8"
+    )
+  );
   const navigation = JSON.parse(
     await readFile(path.join(root, "scripts/docs/navigation.json"), "utf8")
   );
@@ -88,6 +109,8 @@ export async function buildDocs(output = ".docs-build") {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
   const oldOverviews = {
+    trading: "shops",
+    tips: "dialogs",
     crates: "containers",
     abilities: "spells",
     characters: "classes",
@@ -140,7 +163,7 @@ export async function buildDocs(output = ".docs-build") {
           ? (group === "Intro"
               ? "intro/"
               : "game-design/" + slug(group) + "/") +
-            name +
+            (name === "map" ? "minimap" : name) +
             ".html"
           : "development/" + slug(group) + "/" + implementationName + ".html";
       return {
@@ -149,10 +172,15 @@ export async function buildDocs(output = ".docs-build") {
         route,
         aliases: [
           ...(oldRoute !== route ? [oldRoute] : []),
+          ...(source === "docs/map.md"
+            ? ["game-design/world/map.html", "minimap.html"]
+            : []),
           ...Object.entries(oldOverviews)
             .filter(([, target]) => source === `docs/${target}.md`)
             .flatMap(([name]) =>
-              name === "crates"
+              name === "trading"
+                ? ["trading.html", "game-design/items/trading.html"]
+                : name === "crates"
                 ? ["crates.html", "game-design/cells/crates.html"]
                 : [name + ".html"]
             ),
@@ -171,6 +199,27 @@ export async function buildDocs(output = ".docs-build") {
     })
   );
   const routes = new Set();
+  for (const page of pages) {
+    const unsupported = new Set();
+    parser.walkTokens(page.tokens, (token) => {
+      if (!["text", "codespan", "code"].includes(token.type)) return;
+      if (token.type === "code" && ["scene", "widget"].includes(token.lang))
+        return;
+      for (const character of token.text || "")
+        if (
+          !/[\n\r\t]/.test(character) &&
+          !font.glyphs[character] &&
+          !aliases[character]
+        )
+          unsupported.add(character);
+    });
+    if (unsupported.size)
+      throw Error(
+        `${page.source}: unsupported font characters ${[...unsupported].join(
+          " "
+        )}`
+      );
+  }
   for (const page of pages)
     for (const route of [page.route, ...page.aliases]) {
       if (routes.has(route))
@@ -186,6 +235,8 @@ export async function buildDocs(output = ".docs-build") {
       : 2000 + implementationGroups.indexOf(page.group);
   pages.sort((a, b) => rank(a) - rank(b));
   const bySource = new Map(pages.map((p) => [p.source, p]));
+  bySource.set("docs/trading.md", bySource.get("docs/shops.md"));
+  bySource.set("docs/tips.md", bySource.get("docs/dialogs.md"));
   const sceneIds = JSON.parse(
     await readFile(path.join(root, "src/documentation/scenes.json"), "utf8")
   );
@@ -211,54 +262,6 @@ export async function buildDocs(output = ".docs-build") {
       )
         throw Error("Unknown scene " + token.text);
     });
-  for (const page of pages)
-    parser.walkTokens(page.tokens, (token) => {
-      if (
-        token.type !== "code" ||
-        !/^(tsx?|jsx?|json)(?:\s|$)/.test(token.lang || "")
-      )
-        return;
-      const scanner = ts.createScanner(
-        ts.ScriptTarget.Latest,
-        false,
-        ts.LanguageVariant.JSX,
-        token.text
-      );
-      const lines = [[]];
-      for (
-        let current = scanner.scan();
-        current !== ts.SyntaxKind.EndOfFileToken;
-        current = scanner.scan()
-      ) {
-        const value = scanner.getTokenText();
-        const kind =
-          current === ts.SyntaxKind.SingleLineCommentTrivia ||
-          current === ts.SyntaxKind.MultiLineCommentTrivia
-            ? "comment"
-            : current === ts.SyntaxKind.StringLiteral ||
-              [
-                ts.SyntaxKind.NoSubstitutionTemplateLiteral,
-                ts.SyntaxKind.TemplateHead,
-                ts.SyntaxKind.TemplateMiddle,
-                ts.SyntaxKind.TemplateTail,
-              ].includes(current)
-            ? "string"
-            : current === ts.SyntaxKind.NumericLiteral ||
-              current === ts.SyntaxKind.BigIntLiteral
-            ? "number"
-            : current >= ts.SyntaxKind.FirstKeyword &&
-              current <= ts.SyntaxKind.LastKeyword
-            ? "keyword"
-            : current === ts.SyntaxKind.Identifier && /^[A-Z]/.test(value)
-            ? "type"
-            : "plain";
-        value.split("\n").forEach((text, index) => {
-          if (index) lines.push([]);
-          if (text) lines[lines.length - 1].push({ text, kind });
-        });
-      }
-      token.syntax = lines;
-    });
   const references = {};
   const sourceTypes = new Map();
   const sourceImports = new Map();
@@ -281,6 +284,10 @@ export async function buildDocs(output = ".docs-build") {
         true
       );
       page.references ||= {};
+      references[page.source.replace(/\.md$/, extension)] = {
+        href: page.route,
+        kind: "code",
+      };
       sourceTypes.set(page.source.replace(/\.md$/, extension), page.references);
       sourceImports.set(page, ast.statements.filter(ts.isImportDeclaration));
       for (const node of ast.statements) {
@@ -349,11 +356,106 @@ export async function buildDocs(output = ".docs-build") {
       if (bindings && ts.isNamedImports(bindings))
         for (const entry of bindings.elements) {
           const reference =
-            target?.[entry.propertyName?.text || entry.name.text] ||
-            references[entry.propertyName?.text || entry.name.text];
+            target?.[entry.propertyName?.text || entry.name.text];
           if (reference) page.references[entry.name.text] = reference;
         }
     }
+  for (const page of pages)
+    parser.walkTokens(page.tokens, (token) => {
+      if (
+        token.type !== "code" ||
+        !/^(tsx?|jsx?|json)(?:\s|$)/.test(token.lang || "")
+      )
+        return;
+      const snippet = ts.createSourceFile(
+        "example.tsx",
+        token.text,
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TSX
+      );
+      const uses = new Map();
+      const visit = (node) => {
+        if (ts.isIdentifier(node)) {
+          const parent = node.parent;
+          const declarationName =
+            parent.name === node &&
+            (ts.isDeclarationStatement(parent) ||
+              ts.isVariableDeclaration(parent) ||
+              ts.isParameter(parent) ||
+              ts.isPropertySignature(parent) ||
+              ts.isPropertyDeclaration(parent) ||
+              ts.isMethodDeclaration(parent) ||
+              ts.isMethodSignature(parent) ||
+              ts.isBindingElement(parent) ||
+              ts.isEnumMember(parent) ||
+              ts.isTypeParameterDeclaration(parent));
+          if (
+            !declarationName &&
+            !ts.isPropertyAccessExpression(parent) &&
+            !ts.isPropertyAssignment(parent) &&
+            !ts.isImportSpecifier(parent) &&
+            !ts.isImportClause(parent) &&
+            !ts.isJsxAttribute(parent)
+          ) {
+            const reference = (
+              page.source.startsWith("src/") ? page.references : references
+            )?.[node.text];
+            if (reference) uses.set(node.getStart(snippet), reference.href);
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(snippet);
+      const scanner = ts.createScanner(
+        ts.ScriptTarget.Latest,
+        false,
+        ts.LanguageVariant.JSX,
+        token.text
+      );
+      const lines = [[]];
+      for (
+        let current = scanner.scan();
+        current !== ts.SyntaxKind.EndOfFileToken;
+        current = scanner.scan()
+      ) {
+        const value = scanner.getTokenText();
+        const kind =
+          current === ts.SyntaxKind.SingleLineCommentTrivia ||
+          current === ts.SyntaxKind.MultiLineCommentTrivia
+            ? "comment"
+            : current === ts.SyntaxKind.StringLiteral ||
+              [
+                ts.SyntaxKind.NoSubstitutionTemplateLiteral,
+                ts.SyntaxKind.TemplateHead,
+                ts.SyntaxKind.TemplateMiddle,
+                ts.SyntaxKind.TemplateTail,
+              ].includes(current)
+            ? "string"
+            : current === ts.SyntaxKind.NumericLiteral ||
+              current === ts.SyntaxKind.BigIntLiteral
+            ? "number"
+            : current >= ts.SyntaxKind.FirstKeyword &&
+              current <= ts.SyntaxKind.LastKeyword
+            ? "keyword"
+            : current === ts.SyntaxKind.Identifier && /^[A-Z]/.test(value)
+            ? "type"
+            : "plain";
+        value.split("\n").forEach((text, index) => {
+          if (index) lines.push([]);
+          if (text)
+            lines[lines.length - 1].push({
+              text,
+              kind,
+              ...(current === ts.SyntaxKind.Identifier &&
+              uses.has(scanner.getTokenPos())
+                ? { href: uses.get(scanner.getTokenPos()) }
+                : {}),
+            });
+        });
+      }
+      token.syntax = lines;
+    });
   for (const page of pages) delete page.references?.default;
   for (const page of pages)
     parser.walkTokens(page.tokens, (token) => {
@@ -400,6 +502,13 @@ export async function buildDocs(output = ".docs-build") {
   await cp(path.join(root, "public/fonts"), path.join(out, "assets/fonts"), {
     recursive: true,
   });
+  await writeFile(
+    path.join(out, "assets/fonts/AliveDocs.woff"),
+    aliasFont(
+      await readFile(path.join(root, "public/fonts/MostPerfectDOSVGA.woff")),
+      aliases
+    )
+  );
   await cp(path.join(root, "docs/media"), path.join(out, "media"), {
     recursive: true,
   });
@@ -431,6 +540,7 @@ export async function buildDocs(output = ".docs-build") {
     entryPoints: {
       app: "src/documentation/App.tsx",
       preview: "src/documentation/preview.tsx",
+      interface: "src/documentation/interface.tsx",
     },
     outdir: path.join(out, "assets"),
     plugins: [
@@ -465,8 +575,12 @@ export async function buildDocs(output = ".docs-build") {
       );
     }
   await writeFile(
+    path.join(out, "interface-preview.html"),
+    '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,"><link rel="stylesheet" href="assets/interface.css"><script defer src="assets/interface.js"></script></head><body><div id="root"></div></body></html>'
+  );
+  await writeFile(
     path.join(out, "preview.html"),
-    '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,"><link rel="stylesheet" href="assets/preview.css"><style>html,body,#root{margin:0;height:100%;overflow:hidden}body{background:#000}.InterfaceLabels{position:absolute;inset:0;pointer-events:none;z-index:3}.preview .Paused{display:none}.preview-movement .Stats,.preview-water .Stats,.preview-pushing .Stats{visibility:hidden}.preview-movement .Controls>.Row,.preview-water .Controls>.Row,.preview-pushing .Controls>.Row{visibility:hidden}.preview .LeftEdge,.preview .RightEdge{display:none}.DemoFrame{position:absolute;inset:0;pointer-events:none;z-index:2;overflow:hidden}.DemoFrame .Row{justify-content:center}.DemoActions{position:absolute;top:calc(var(--cell-height) * 2);right:var(--pixel-size);display:flex;z-index:4}.preview:not(.preview-interface) .Controls{top:var(--bottom-offset)}.preview:not(.preview-interface) .Controls>.Row:nth-of-type(3){justify-content:flex-start;padding-left:calc((100% - 21 * var(--cell-width)) / 2)}.DemoActions button{background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}.DemoActions .Row{width:max-content}.preview .Menu{pointer-events:none}.preview:not(.preview-interface) .Stats>.Row:nth-last-child(2){visibility:hidden}.preview:not(.preview-interface) .Stats>.Row:last-of-type,.preview .Controls>.Row:nth-of-type(2){visibility:hidden}.preview-interface{pointer-events:none}.preview-combat .Stats>.Row:nth-of-type(2),.preview-food .Stats>.Row:nth-of-type(2),.preview-skills .Stats>.Row:nth-of-type(2){visibility:hidden}.preview-classes .Stats{visibility:hidden}.preview-harvesting .Stats,.preview-fishing .Stats,.preview-farming .Stats,.preview-crafting .Stats,.preview-brewing .Stats,.preview-forging .Stats,.preview-building .Stats,.preview-trading .Stats,.preview-gear .Stats,.preview-chat .Stats{visibility:hidden}.preview-movement .Skill,.preview-movement .Spell,.preview-water .Skill,.preview-water .Spell,.preview-pushing .Skill,.preview-pushing .Spell{pointer-events:none}</style><script defer src="assets/preview.js"></script></head><body><div id="root"></div></body></html>'
+    '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,"><link rel="stylesheet" href="assets/preview.css"><script defer src="assets/preview.js"></script></head><body><div id="root"></div></body></html>'
   );
   console.log(
     `Built ${pages.length} Markdown routes in ${path.relative(root, out)}`

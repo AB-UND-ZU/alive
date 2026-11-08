@@ -1,27 +1,8 @@
 # Sprite
 
-Draws an ordered set of sprite layers.
+Expands a sprite into ordered `Layer` components. `getFacingLayers` selects its direction and amount variant before rendering, so the renderer uses the same sprite definitions as game UI.
 
-```tsx
-AnimatedSprite({
-  sprite,
-  facing,
-  amount,
-  offsetX,
-  offsetY,
-  offsetZ,
-  layerProps,
-}: SpriteProps)
-Sprite({
-  sprite,
-  facing,
-  amount,
-  offsetX,
-  offsetY,
-  offsetZ,
-  layerProps,
-}: SpriteProps)
-```
+`Sprite` applies cell offsets and shared layer properties. `AnimatedSprite` additionally moves from the supplied animated origin. The parent stack supplies the elevation used to keep one segment above another.
 <!-- source-types -->
 
 ## SpriteProps

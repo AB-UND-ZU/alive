@@ -1,17 +1,5 @@
 # Box
 
-Builds a cell-sized mesh or directional half-cell mesh from shared geometry.
+Renders shared box geometry in cell coordinates. `height` controls its vertical thickness and `offset` its elevation. An optional orientation selects a directional half-cell shape.
 
-```tsx
-Box({
-  height,
-  offset = 0,
-  children,
-  orientation,
-  ...props
-}: ThreeElements["mesh"] & {
-  height: number;
-  offset?: number;
-  orientation?: Orientation;
-})
-```
+Geometry comes from `getBoxGeometry`; materials are supplied as children. Reusing the geometry avoids allocating a new GPU buffer for every mounted box.

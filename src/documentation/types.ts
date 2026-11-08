@@ -8,6 +8,7 @@ export type DocToken = {
   lang?: string;
   syntax?: {
     text: string;
+    href?: string;
     kind: "plain" | "keyword" | "string" | "number" | "comment" | "type";
   }[][];
   kind?: string;

@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { displayedClasses } from "../game/assets/pixels";
 import { PresetName } from "./presets";
 import { createDialog } from "../game/assets/ui";
-import { Pixels } from "./visuals";
+import { Pixels, Text } from "./visuals";
+import "./preview-layout.css";
+import { GridCenteredNote } from "./GridCenteredNote";
 import { Choice } from "./visuals";
-import { sceneDefinitions, SceneName } from "./scenes";
+import { sceneDefinitions, sceneLayout, SceneName } from "./scenes";
 
 export function GamePreview({
   name,
@@ -34,12 +37,14 @@ export function GamePreview({
     dialog?: string;
     automatic?: boolean;
   }>({});
-  const [width, setWidth] = useState(576);
+  const [width, setWidth] = useState(
+    name === "game" || name === "interface" ? 576 : 414
+  );
   const options: Partial<Record<SceneName, string[]>> = {
     abilities: ["wave", "beam", "trap", "dash", "bolt", "blast"],
     skills: ["slash", "bow", "spear", "wand", "zap", "block", "totem"],
     harvesting: ["axe", "pickaxe", "shovel"],
-    classes: ["rogue", "knight", "mage", "scout", "???"],
+    classes: [...displayedClasses],
   };
   const send = (type: string) =>
     frame.current?.contentWindow?.postMessage({ type }, window.location.origin);
@@ -63,6 +68,7 @@ export function GamePreview({
       if (event.data.type === "preview-reset") {
         ready.current = false;
         setReady(false);
+        setState({});
         pending.current = visible.current ? "view" : "pause";
         setActive(false);
         setRevision((n) => n + 1);
@@ -116,10 +122,10 @@ export function GamePreview({
     const resize = new ResizeObserver(([entry]) =>
       setWidth(
         Math.max(
-          378,
+          name === "game" || name === "interface" ? 378 : 414,
           name === "game" || name === "interface"
             ? Math.min(576, Math.floor(entry.contentRect.width / 18) * 18)
-            : 378
+            : 414
         )
       )
     );
@@ -174,35 +180,48 @@ export function GamePreview({
           }}
         />
       )}
-      <div className="PreviewScroll">
-        {!isReady && (
-          <div className="PreviewLoading" role="status">
-            <Pixels rows={[createDialog("Loading map...")]} />
-          </div>
-        )}
-        {loaded ? (
-          <iframe
-            key={`${name}-${revision}`}
-            ref={frame}
-            title={sceneDefinitions[name].title}
-            tabIndex={name === "interface" ? -1 : 0}
-            src={`${base}preview.html${testMode ? "?test" : ""}#${name}${
-              preset || option ? "/" + encodeURIComponent(preset || option) : ""
-            }`}
-            style={{ width, height: 640 }}
-            data-x={state.x}
-            data-y={state.y}
-            data-hp={state.hp}
-            data-dialog={state.dialog}
-            data-auto={state.automatic}
-          />
-        ) : (
-          <div
-            className="PreviewPlaceholder"
-            style={{ width, height: 640 }}
-            aria-label="Preview loads when visible"
-          />
-        )}
+      <div className="PreviewLayout">
+        <div className="PreviewScroll">
+          {!isReady && (
+            <div className="PreviewLoading" role="status">
+              <Pixels rows={[createDialog("Loading map...")]} />
+            </div>
+          )}
+          {loaded ? (
+            <iframe
+              key={`${name}-${revision}`}
+              ref={frame}
+              title={sceneDefinitions[name].title}
+              tabIndex={name === "interface" ? -1 : 0}
+              src={`${base}preview.html${testMode ? "?test" : ""}#${name}${
+                preset || option
+                  ? "/" + encodeURIComponent(preset || option)
+                  : ""
+              }`}
+              style={{
+                width,
+                height: sceneLayout(name).height,
+              }}
+              data-x={state.x}
+              data-y={state.y}
+              data-hp={state.hp}
+              data-dialog={state.dialog}
+              data-auto={state.automatic}
+            />
+          ) : (
+            <div
+              className="PreviewPlaceholder"
+              style={{
+                width,
+                height: sceneLayout(name).height,
+              }}
+              aria-label="Preview loads when visible"
+            />
+          )}
+        </div>
+        <GridCenteredNote>
+          <Text>{sceneDefinitions[name].instruction}</Text>
+        </GridCenteredNote>
       </div>
     </section>
   );

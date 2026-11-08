@@ -1,16 +1,12 @@
-# STRUCTURABLE
+# Structurable
 
 Tracks a multi-cell structure and its fragments.
 
-`Structurable`
+[Fragment](fragment.md) entities point back to this root. [Damage](../systems/damage.md) and [Enter](../systems/enter.md) resolve the shared structure through those references.
 
-| Field | Type |
-| --- | --- |
-| `rigid?` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, STRUCTURABLE, data)`. Query with `world.getEntities([STRUCTURABLE])`.
-
-Systems: `burn`, `damage`, `drop`, `enter`, `movement`, `spike`, `visibility`.
+| Field   | Meaning                                                                  |
+| ------- | ------------------------------------------------------------------------ |
+| `rigid` | Treat structure fragments as one body for movement and collision checks. |
 <!-- source-types -->
 
 ## Structurable

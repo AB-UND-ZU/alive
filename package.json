@@ -44,7 +44,7 @@
     "docs:types": "node scripts/docs/types.mjs",
     "docs:build": "node scripts/docs/build.mjs",
     "docs:dev": "node scripts/docs/serve.mjs",
-    "docs:test": "playwright test"
+    "docs:test": "node --test scripts/docs/types.test.mjs scripts/docs/item-sources.test.mjs scripts/docs/font.test.mjs && playwright test"
   },
   "eslintConfig": {
     "extends": [

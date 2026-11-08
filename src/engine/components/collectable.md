@@ -1,10 +1,8 @@
-# COLLECTABLE
+# Collectable
 
-Configures how an entity collects nearby drops.
+Allows an inventory holder to collect nearby drops.
 
-Attach with `world.addComponentToEntity(entity, COLLECTABLE, data)`. Query with `world.getEntities([COLLECTABLE])`.
-
-Systems: `collect`, `fate`.
+[Collect](../systems/collect.md) looks for this marker with inventory, movement and stats. It does not store pickup rules itself.
 <!-- source-types -->
 
 ## Collectable

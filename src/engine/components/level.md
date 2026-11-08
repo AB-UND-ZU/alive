@@ -1,24 +1,16 @@
-# LEVEL
+# Level
 
 Stores the active level’s dimensions, cell matrices, spatial map, and generation data.
 
-`Level`
+[Initialize](../systems/initialize.md) creates cells lazily. [Map](../systems/map.md) maintains spatial registration and walkability.
 
-| Field | Type |
-| --- | --- |
-| `name` | `LevelName` |
-| `map` | `Record<number, Record<number, Record<string, Entity>>>` |
-| `walkable` | `Matrix<0 \| 1>` |
-| `biomes` | `Matrix<BiomeName>` |
-| `cells` | `Matrix<CellType>` |
-| `objects` | `Matrix<CellType[] \| undefined>` |
-| `cellPositions` | `Record<string, Position[]>` |
-| `size` | `number` |
-| `initialized` | `Matrix<boolean>` |
-
-Attach with `world.addComponentToEntity(entity, LEVEL, data)`. Query with `world.getEntities([LEVEL])`.
-
-Systems: `ai`, `ballistics`, `consume`, `damage`, `drop`, `fishing`, `freeze`, `harvest`, `homing`, `immersion`, `initialize`, `interact`, `leveling`, `magic`, `map`, `movement`, `needle`, `popup`, `renderer`, `text`, `trigger`, `vessel`, `visibility`, `water`.
+| Field         | Meaning                                               |
+| ------------- | ----------------------------------------------------- |
+| `size`        | Width and height of the square wrapping level.        |
+| `cells`       | Cell kinds in a column-first [x][y] matrix.           |
+| `objects`     | Object kinds stored at each [x][y] cell.              |
+| `initialized` | Whether the entities for each cell have been created. |
+| `map`         | Registered entities grouped by x, y and entity ID.    |
 <!-- source-types -->
 
 ## LevelName

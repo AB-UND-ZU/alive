@@ -1,19 +1,14 @@
-# VIEWABLE
+# Viewable
 
 Defines camera activation, priority, spring, and fractional position.
 
-`Viewable`
+[View hooks](../../bindings/hooks.md) choose the active entity with the highest priority. Dialogs temporarily override the normal hero or building viewpoint.
 
-| Field | Type |
-| --- | --- |
-| `active` | `boolean` |
-| `priority` | `number` |
-| `spring?` | `SpringConfig` |
-| `fraction?` | `Position` |
-
-Attach with `world.addComponentToEntity(entity, VIEWABLE, data)`. Query with `world.getEntities([VIEWABLE])`.
-
-Systems: `ai`, `enter`, `fate`, `initialize`, `interact`, `popup`, `trigger`.
+| Field      | Meaning                                                 |
+| ---------- | ------------------------------------------------------- |
+| `active`   | Only active viewpoints participate in camera selection. |
+| `priority` | Higher values take precedence; popups normally use 90.  |
+| `fraction` | Sub-cell camera offset.                                 |
 <!-- source-types -->
 
 ## Viewable

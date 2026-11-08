@@ -1,5 +1,17 @@
 # DOS Code Page
 
-`codePage437` lists the 256 DOS character positions in byte order. Split it into sixteen rows of sixteen characters to draw the atlas. Hexadecimal row and column labels identify each byte.
+`codePage437` lists all 256 character positions in byte order. The atlas groups them into sixteen rows and columns; its hexadecimal labels identify each byte.
 
-The font stores the pictures for bytes 1–31 at U+0100–U+011E, and the house at byte 127 at U+011F. The array uses those font keys so the atlas draws the same arrows, symbols and faces as the game. Byte zero is blank. ASCII and the extended characters keep their ordinary Unicode equivalents.
+| Byte | Symbol | Font key |
+| --- | --- | --- |
+| 03 | ♥ | U+0102 |
+| 0B | ♂ | U+010A |
+| 0C | ♀ | U+010B |
+| 18 | ↑ | U+0117 |
+| 7F | ⌂ | U+011F |
+
+The font stores graphical controls at U+0100 through U+011E. `glyphAliases.json` maps their normal Unicode symbols, including the female symbol, to those keys. Byte zero is blank; printable ASCII and extended characters keep their Unicode equivalents.
+
+The same alias data is used by text rendering and build validation.
+
+The documentation build adds these Unicode aliases to the bundled WOFF character table without changing its glyphs or widths. Prose and code can then keep readable Unicode in their actual text nodes and clipboard content. Native game sprites keep their original font keys.

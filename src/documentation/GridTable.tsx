@@ -1,4 +1,5 @@
 import {
+  CSSProperties,
   ReactNode,
   isValidElement,
   useCallback,
@@ -7,20 +8,27 @@ import {
   useRef,
   useState,
 } from "react";
-import { Pixels, Text, textSprites } from "./visuals";
+import {
+  Pixels,
+  Text,
+  textSprites,
+  NativeRule,
+  TableContext,
+  TextColorContext,
+  Count,
+} from "./visuals";
 import { ReferenceContext, ReferenceText } from "./references";
 import { colors } from "../game/assets/colors";
-import { characterMarkup } from "../components/Row/characters";
 import "./GridTable.css";
-const edgeImage = `url("data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 16">${characterMarkup(
-    [{ char: "│", color: colors.silver }]
-  )}</svg>`
-)}")`;
+const edgeSprite = {
+  name: "table rule",
+  layers: [{ char: "│", color: colors.silver }],
+};
 const emptyCell = (value: ReactNode): boolean => {
-  if (value === null || value === undefined || value === false) return true;
+  if (value === null || value === undefined || value === false || value === 0)
+    return true;
   if (typeof value === "string")
-    return !value.trim() || value.trim() === "None";
+    return !value.trim() || value.trim() === "None" || value.trim() === "0";
   if (isValidElement<{ children?: ReactNode; text?: string }>(value)) {
     if (value.type === Text) return emptyCell(value.props.children);
     if (value.type === ReferenceText) return emptyCell(value.props.text);
@@ -31,13 +39,11 @@ export function GridTable({
   headers,
   rows,
   compact = false,
-  framed = false,
   rowHeaders = true,
 }: {
-  headers: string[];
+  headers: ReactNode[];
   rows: ReactNode[][];
   compact?: boolean;
-  framed?: boolean;
   rowHeaders?: boolean;
 }) {
   const { decorations = {} } = useContext(ReferenceContext);
@@ -46,9 +52,22 @@ export function GridTable({
   );
   const container = useRef<HTMLDivElement>(null),
     table = useRef<HTMLTableElement>(null);
+  const [rowLines, setRowLines] = useState<number[]>([]);
   const [widths, setWidths] = useState(() => headers.map(() => 6));
   const layout = useCallback(() => {
     if (!container.current || !table.current) return;
+    const nextRowLines = Array.from(table.current.rows).map((row) =>
+      Math.max(1, Math.ceil(row.clientHeight / 32))
+    );
+    setRowLines((previous) =>
+      previous.join() === nextRowLines.join() ? previous : nextRowLines
+    );
+    const headerText = headers.map((header, column) =>
+      typeof header === "string"
+        ? header
+        : table.current!.querySelector(`thead [data-column="${column}"]`)
+            ?.textContent || ""
+    );
     const cells = headers.map((_, column) =>
       Array.from(
         table.current!.querySelectorAll<HTMLElement>(
@@ -63,7 +82,7 @@ export function GridTable({
           return texts.map((text) => text.textContent || "").join(" ");
         const visible = cell.cloneNode(true) as HTMLElement;
         visible
-          .querySelectorAll(".SpriteState:not(.StateIdle), .LargePreview")
+          .querySelectorAll(".SpriteState:not(.StateIdle), .Pixels")
           .forEach((state) => state.remove());
         return visible.textContent || "";
       })
@@ -72,8 +91,19 @@ export function GridTable({
       Math.max(
         compact ? 1 : 6,
         ...cells[column].flatMap((cell) =>
-          Array.from(cell.querySelectorAll(".LargePreview .Row")).map(
-            (row) => row.querySelectorAll(".Cell").length + (compact ? 0 : 2)
+          cell.querySelector(".Key")
+            ? [
+                Math.ceil(
+                  (cell.firstElementChild as HTMLElement)?.scrollWidth / 18
+                ) + (compact ? 0 : 2),
+              ]
+            : []
+        ),
+        ...cells[column].flatMap((cell) =>
+          Array.from(cell.querySelectorAll(".Pixels > .Row")).map(
+            (row) =>
+              Math.ceil(row.getBoundingClientRect().width / 18) +
+              (compact ? 0 : 2)
           )
         ),
         ...cells[column].flatMap((cell) =>
@@ -81,10 +111,12 @@ export function GridTable({
             .filter((mention) => mention.querySelector(".Pixels"))
             .map(
               (mention) =>
-                (mention.textContent || "").length + (compact ? 0 : 2)
+                Math.ceil(mention.getBoundingClientRect().width / 18) +
+                (compact ? 0 : 2) +
+                (mention.closest(".FrameScroll") ? 2 : 0)
             )
         ),
-        ...[headers[column], ...values].flatMap((value) =>
+        ...[headerText[column], ...values].flatMap((value) =>
           (value.match(/\S+/g) || []).map(
             (word) => word.length + (compact ? 0 : 2)
           )
@@ -97,17 +129,14 @@ export function GridTable({
         Math.min(
           24,
           Math.max(
-            headers[column].length + (compact ? 0 : 2),
+            headerText[column].length + (compact ? 0 : 2),
             ...values.map((value) => value.length + (compact ? 0 : 2))
           )
         )
       )
     );
     const available =
-      Math.floor(container.current.clientWidth / 18) -
-      headers.length +
-      1 -
-      (framed ? 2 : 0);
+      Math.floor(container.current.clientWidth / 18) - headers.length + 1;
     const next = [...minima];
     let extra = Math.max(
       0,
@@ -129,42 +158,33 @@ export function GridTable({
     setWidths((previous) =>
       previous.join() === next.join() ? previous : next
     );
-  }, [headers, compact, framed]);
+  }, [headers, compact]);
   useLayoutEffect(layout, [layout, visibleRows]);
   useLayoutEffect(() => {
     const observer = new ResizeObserver(layout);
     if (container.current) observer.observe(container.current);
     return () => observer.disconnect();
   }, [layout]);
-  const rule = (kind: "header" | "row" | "top" | "bottom", key: string) => {
-    const [left, middle, right, line] =
-      kind === "header"
-        ? ["╞", "╪", "╡", "═"]
-        : kind === "top"
-        ? ["┌", "┬", "┐", "─"]
-        : kind === "bottom"
-        ? ["└", "┴", "┘", "─"]
-        : ["├", "┼", "┤", "─"];
-    const first = (framed ? left : "") + line.repeat(widths[0]);
-    const rest =
-      (widths.length > 1
-        ? middle +
-          widths
-            .slice(1)
-            .map((width) => line.repeat(width))
-            .join(middle)
-        : "") + (framed ? right : "");
-    const firstSpan = framed ? 2 : 1;
-    const totalSpan = headers.length * 2 - 1 + (framed ? 2 : 0);
+  const rule = (kind: "header" | "row", key: string) => {
+    const [middle, line] = kind === "header" ? ["╪", "═"] : ["┼", "─"];
+    const rest = widths
+      .slice(1)
+      .map((width) => line.repeat(width))
+      .join(middle);
     return (
       <tr className="GridRule" key={key} aria-hidden="true">
-        <td className="GridFrozenRule" colSpan={firstSpan}>
-          <Pixels rows={[textSprites(first, colors.silver)]} />
+        <td className="GridFrozenRule">
+          <Pixels rows={[textSprites(line.repeat(widths[0]), colors.silver)]} />
         </td>
-        {rest && (
-          <td colSpan={totalSpan - firstSpan}>
-            <Pixels rows={[textSprites(rest, colors.silver)]} />
-          </td>
+        {widths.length > 1 && (
+          <>
+            <td className="GridFrozenEdge">
+              <Pixels rows={[textSprites(middle, colors.silver)]} />
+            </td>
+            <td colSpan={headers.length * 2 - 3}>
+              <Pixels rows={[textSprites(rest, colors.silver)]} />
+            </td>
+          </>
         )}
       </tr>
     );
@@ -183,19 +203,23 @@ export function GridTable({
     }
     return <ReferenceText text={value} />;
   };
-  const cells = (values: ReactNode[], header = false) => {
+  const cells = (values: ReactNode[], header = false, rowIndex = 0) => {
     return [
       ...values.flatMap((value, column) => {
         const Tag = header || (rowHeaders && column === 0) ? "th" : "td";
         return [
-          ...(column || framed
+          ...(column
             ? [
                 <td
-                  className="GridEdge"
+                  className={`GridEdge${column === 1 ? " GridFrozenEdge" : ""}`}
                   key={`edge-${column}`}
                   aria-hidden="true"
-                  style={{ backgroundImage: edgeImage }}
-                />,
+                >
+                  <NativeRule
+                    sprite={edgeSprite}
+                    lines={rowLines[rowIndex] || 1}
+                  />
+                </td>,
               ]
             : []),
           <Tag
@@ -207,7 +231,7 @@ export function GridTable({
             }
             style={{
               width: widths[column] * 18,
-              ...(column === 0 ? { left: framed ? 18 : 0 } : {}),
+              ...(column === 0 ? { left: 0 } : {}),
             }}
           >
             <div>
@@ -217,6 +241,12 @@ export function GridTable({
                 ) : (
                   cellText(value)
                 )
+              ) : typeof value === "number" ? (
+                <Count value={value} />
+              ) : header ? (
+                <TextColorContext.Provider value={colors.white}>
+                  {value}
+                </TextColorContext.Provider>
               ) : (
                 value
               )}
@@ -224,58 +254,47 @@ export function GridTable({
           </Tag>,
         ];
       }),
-      ...(framed
-        ? [
-            <td
-              key="end"
-              className="GridEdge"
-              aria-hidden="true"
-              style={{ backgroundImage: edgeImage }}
-            />,
-          ]
-        : []),
     ];
   };
   return (
-    <div className="TableScroll" ref={container}>
-      <table
-        ref={table}
-        className={`GridTable ${compact ? "CompactGrid" : ""} ${
-          framed ? "FramedGrid" : ""
-        }`}
-        style={{
-          width:
-            (widths.reduce((sum, width) => sum + width, 0) +
-              headers.length -
-              1 +
-              (framed ? 2 : 0)) *
-            18,
-        }}
-      >
-        <colgroup>
-          {widths.flatMap((width, index) => [
-            ...(index || framed
-              ? [<col key={`edge-${index}`} style={{ width: 18 }} />]
-              : []),
-            <col key={index} style={{ width: width * 18 }} />,
-          ])}
-          {framed && <col style={{ width: 18 }} />}
-        </colgroup>
-        <thead>
-          {framed && rule("top", "top")}
-          <tr>{cells(headers, true)}</tr>
-          {rule("header", "header")}
-        </thead>
-        <tbody>
-          {visibleRows.flatMap((row, index) => [
-            <tr key={index}>{cells(row)}</tr>,
-            ...(index < visibleRows.length - 1
-              ? [rule("row", `line-${index}`)]
-              : []),
-          ])}
-          {framed && rule("bottom", "bottom")}
-        </tbody>
-      </table>
-    </div>
+    <TableContext.Provider value>
+      <div className="TableScroll" ref={container}>
+        <table
+          ref={table}
+          className={`GridTable ${compact ? "CompactGrid" : ""}`}
+          style={
+            {
+              "--frozen-left": `${widths[0] * 18}px`,
+              width:
+                (widths.reduce((sum, width) => sum + width, 0) +
+                  headers.length -
+                  1) *
+                18,
+            } as CSSProperties
+          }
+        >
+          <colgroup>
+            {widths.flatMap((width, index) => [
+              ...(index
+                ? [<col key={`edge-${index}`} style={{ width: 18 }} />]
+                : []),
+              <col key={index} style={{ width: width * 18 }} />,
+            ])}
+          </colgroup>
+          <thead>
+            <tr>{cells(headers, true)}</tr>
+            {rule("header", "header")}
+          </thead>
+          <tbody>
+            {visibleRows.flatMap((row, index) => [
+              <tr key={index}>{cells(row, false, index * 2 + 2)}</tr>,
+              ...(index < visibleRows.length - 1
+                ? [rule("row", `line-${index}`)]
+                : []),
+            ])}
+          </tbody>
+        </table>
+      </div>
+    </TableContext.Provider>
   );
 }

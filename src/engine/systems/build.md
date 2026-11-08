@@ -1,18 +1,11 @@
 # Build
 
-Places constructions and tracks work on them.
+Places construction plans and applies building or repair work on the actor's action generation.
 
+| State                             | Result                                       |
+| --------------------------------- | -------------------------------------------- |
+| Valid hammer condition and target | Spend one work action                        |
+| Plot health below maximum         | Keep the unfinished plot                     |
+| Plot health reaches maximum       | Replace it with the cell stored in Buildable |
 
-## Queries
-
-```ts src/engine/systems/build.ts
-world.getEntities([RENDERABLE, REFERENCE]);
-```
-
-```ts src/engine/systems/build.ts
-world.getEntities([ BUILDABLE, POSITION, RENDERABLE, STATS, ]);
-```
-
-```ts src/engine/systems/build.ts
-world.getEntities([ POSITION, MOVABLE, EQUIPPABLE, CONDITIONABLE, ORIENTABLE, ]);
-```
+Checks `lastInteraction` so the same generation cannot also move or attack. [Buildable](../components/buildable.md) stores the finished cell; [Stats](../components/stats.md) stores progress. Plans, costs and ground restrictions come from [building data](../../game/balancing/building.md).

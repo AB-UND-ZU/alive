@@ -1,21 +1,8 @@
-# HOMING
+# Homing
 
 Tracks an effect following a target.
 
-`Homing`
-
-| Field | Type |
-| --- | --- |
-| `type` | `"oakTower" \| "oakHedge" \| "oakLily" \| "ilexTulip" \| "ironDisc" \| "goldDisc" \| "ironOrbit"` |
-| `target?` | `number` |
-| `positions` | `Position[]` |
-| `ttl?` | `number` |
-| `generation` | `number` |
-| `decayedGeneration?` | `number` |
-
-Attach with `world.addComponentToEntity(entity, HOMING, data)`. Query with `world.getEntities([HOMING])`.
-
-Systems: `ai`, `homing`, `magic`.
+[Homing](../systems/homing.md) advances the stored path and target state. [AI](../systems/ai.md) creates the boss and projectile patterns that use it.
 <!-- source-types -->
 
 ## Homing

@@ -1,8 +1,8 @@
-# STICKY
+# Sticky
 
 Marks an entity rendered relative to the view.
 
-Attach with `world.addComponentToEntity(entity, STICKY, data)`. Query with `world.getEntities([STICKY])`.
+[World rendering](../../components/Systems/index.md) positions these entities relative to the active viewpoint. The marker contains no offsets itself.
 <!-- source-types -->
 
 ## Sticky

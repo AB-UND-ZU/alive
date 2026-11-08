@@ -18,6 +18,7 @@ async function walk(dir) {
 const marker = "\n<!-- source-types -->\n";
 let count = 0;
 const index = [];
+const documents = [];
 for (const file of await walk("src")) {
   const source = await readFile(file, "utf8"),
     ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
@@ -33,23 +34,19 @@ for (const file of await walk("src")) {
   try {
     previous = await readFile(target, "utf8");
   } catch {
-    previous = `# ${path.basename(file)}\n`;
+    throw new Error(
+      `Write ${target} with the module contract before generating its types.`
+    );
   }
-  const prefix = previous
-    .split(marker)[0]
-    .replace(
-      /```(?:ts|tsx)[^\n]*\n(?:export\s+)?(?:type|interface|enum)\s+[\s\S]*?```\n*/g,
-      ""
-    )
-    .trimEnd();
+  const prefix = previous.split(marker)[0].trimEnd();
   const sections = declarations.map(
     (node) =>
       `## ${node.name.text}\n\n\`\`\`ts ${file}\n${node.getText(ast)}\n\`\`\``
   );
-  await writeFile(
+  documents.push({
     target,
-    prefix + marker + "\n" + sections.join("\n\n") + "\n"
-  );
+    text: prefix + marker + "\n" + sections.join("\n\n") + "\n",
+  });
   count += declarations.length;
   for (const node of declarations)
     index.push(
@@ -59,6 +56,7 @@ for (const file of await walk("src")) {
       )}#type-${node.name.text.toLowerCase()}) | \`${file}\` |`
     );
 }
+for (const { target, text } of documents) await writeFile(target, text);
 console.log(`Documented ${count} source types.`);
 
 await writeFile(

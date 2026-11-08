@@ -1,4 +1,20 @@
-# types.ts
+# Document Types
+
+The builder passes one typed manifest to the React documentation app.
+
+```text manifest-flow.txt
+Markdown -> DocToken[]
+             DocPage
+               DocsManifest -> App
+```
+
+| Type | Responsibility |
+| --- | --- |
+| `DocToken` | A Markdown node, its children and optional syntax chunks with resolved identifier links |
+| `DocPage` | Source path, canonical route, menu group, content and source-local references |
+| `DocsManifest` | Game version, pages, title and reference destinations |
+
+A page alias preserves an older URL. `navigation` controls menu inclusion; `disabled` retains an unavailable entry. Syntax metadata belongs to the build so the browser does not parse or guess code references.
 <!-- source-types -->
 
 ## DocToken
@@ -14,6 +30,7 @@ export type DocToken = {
   lang?: string;
   syntax?: {
     text: string;
+    href?: string;
     kind: "plain" | "keyword" | "string" | "number" | "comment" | "type";
   }[][];
   kind?: string;

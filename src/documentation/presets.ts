@@ -10,6 +10,7 @@ import { preloadLevel } from "../engine/ecs";
 import { normalize } from "../game/math/std";
 import { up4Center } from "../game/levels/tutorial/areas";
 import { calculateVision } from "../engine/systems/visibility";
+import { commandItems } from "../game/assets/commands";
 
 export const presets = {
   menu: {
@@ -86,8 +87,8 @@ export function createPresetWorld(name: PresetName) {
       amount: 1,
       bound: false,
     },
-    { accessory: "map", amount: 1, bound: false },
-    { accessory: "compass", amount: 1, bound: false },
+    { ...commandItems.map, amount: 1, bound: false },
+    { ...commandItems.compass, amount: 1, bound: false },
   ];
   if (advanced)
     equipment.push(

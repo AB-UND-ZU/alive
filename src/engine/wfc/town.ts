@@ -13,7 +13,7 @@ import { getDefinition } from "./utils";
 import { Wave, WaveFunctionCollapse } from "./wfc";
 
 const definition = getDefinition("air");
-const mapTiles: Record<string, string> = {
+export const townTiles: Readonly<Record<string, string>> = {
   air: "",
   gap: "",
   hedge: "hedge",
@@ -213,7 +213,7 @@ export default function generateTown(width: number, height: number) {
       const offsetY = innY - y + 1;
       if (offsetX === 0 && offsetY === 0) return "fountain";
 
-      const cell = mapTiles[wfc.tileNames[tileMatrix[x - 1][y - 1]]];
+      const cell = townTiles[wfc.tileNames[tileMatrix[x - 1][y - 1]]];
 
       if (
         !cell &&

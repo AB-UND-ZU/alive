@@ -1,6 +1,12 @@
 # Consumables
 
-Use food and potions to restore stats. Open the item menu with [[key:E]], select an item and confirm.
+```widget
+popup inspect:food
+```
+
+Use food and potions to restore stats. Select an item and confirm to consume it.
+
+[[key:E]] opens quick actions; [[key:B]] opens the Bag.
 
 Percentage effects use the maximum stat. [[item:thorn]] hurts when consumed.
 

@@ -1,23 +1,14 @@
-# MOVABLE
+# Movable
 
 Stores directional input, movement timing, reference frame, and travel state.
 
-`Movable`
+[Movement](../systems/movement.md) consumes directional input when the referenced clock advances. Other actions set `lastInteraction` to prevent a second action in that generation.
 
-| Field | Type |
-| --- | --- |
-| `orientations` | `Orientation[]` |
-| `pendingOrientation?` | `Orientation` |
-| `momentum?` | `Orientation` |
-| `reference` | `number` |
-| `spring?` | `SpringConfig` |
-| `lastInteraction` | `number` |
-| `flying` | `boolean` |
-| `swimming` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, MOVABLE, data)`. Query with `world.getEntities([MOVABLE])`.
-
-Systems: `action`, `ai`, `ballistics`, `build`, `click`, `collect`, `consume`, `damage`, `drop`, `enter`, `fate`, `fishing`, `freeze`, `harvest`, `homing`, `magic`, `map`, `movement.test`, `movement`, `needle`, `popup`, `push`, `renderer`, `spike`, `trigger`, `vessel`.
+| Field             | Meaning                                                     |
+| ----------------- | ----------------------------------------------------------- |
+| `orientations`    | Ordered movement input; the first direction is tried first. |
+| `reference`       | Entity ID of the action clock.                              |
+| `lastInteraction` | Last action generation already consumed, not a timestamp.   |
 <!-- source-types -->
 
 ## Movable

@@ -18,5 +18,8 @@
   "combat",
   "gear",
   "interface",
-  "trading"
+  "trading",
+  "light",
+  "structures",
+  "touch"
 ]

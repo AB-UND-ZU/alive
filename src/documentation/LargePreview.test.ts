@@ -1,5 +1,7 @@
-import { previewRows } from "./LargePreview";
+import { previewRows, previewBounds, previewGridRows } from "./LargePreview";
 import { colors } from "../game/assets/colors";
+import { getUnitSprite } from "../game/assets/utils";
+import { leaves, stem } from "../game/assets/sprites";
 import {
   characterWidth,
   composeCharacterPixels,
@@ -47,4 +49,53 @@ describe("large sprite portraits", () => {
       })
     ).toEqual([]);
   });
+  it("keeps an oak trunk aligned below its canopy when cropping the whole tree", () => {
+    const rows = previewRows([leaves, stem]);
+    const last = rows[rows.length - 1];
+    expect(
+      last.some((cell) =>
+        cell.layers.some((layer) => layer.color === colors.maroon)
+      )
+    ).toBe(true);
+    expect(last[0].layers.every((layer) => layer.color === colors.black)).toBe(
+      true
+    );
+    expect(
+      last[last.length - 1].layers.every(
+        (layer) => layer.color === colors.black
+      )
+    ).toBe(true);
+  });
+  it("keeps related native portraits on the same cropped pixel coordinates", () => {
+    const sprites = [getUnitSprite("cactus1"), getUnitSprite("cactus2")];
+    const bounds = previewBounds(sprites)!;
+    const rows = sprites.map((sprite) => previewRows(sprite, bounds));
+    expect(rows[0].length).toBe(rows[1].length);
+    expect(
+      rows[0].every((row) => row.length === bounds.right - bounds.left + 1)
+    ).toBe(true);
+    expect(rows[1].every((row) => row.length === rows[0][0].length)).toBe(true);
+    const native = composeCharacterPixels(sprites[0].layers);
+    const first = rows[0][0][0];
+    expect(first.layers[0].color).toBe(
+      native[bounds.top * characterWidth + bounds.left] || colors.black
+    );
+  });
+});
+
+test("a large multi-cell portrait keeps horizontal fragments in their native positions", () => {
+  const sprite = {
+    name: "Block",
+    layers: [{ char: "█", color: colors.white }],
+  };
+  const grid = previewGridRows([[sprite, sprite, sprite]]);
+  expect(grid[0]).toHaveLength(characterWidth * 3);
+  expect(grid).toHaveLength(8);
+  expect(
+    grid.every((row) =>
+      row.every((cell) =>
+        cell.layers.every((layer) => layer.color === colors.white)
+      )
+    )
+  ).toBe(true);
 });

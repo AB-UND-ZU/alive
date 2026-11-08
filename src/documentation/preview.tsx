@@ -1,12 +1,14 @@
+import { enableTouchEmulation, TouchCursor } from "./TouchControls";
 import { createPresetWorld, PresetName } from "./presets";
 import { DemoFrame } from "./DemoFrame";
-import { InterfaceLabels } from "./InterfaceLabels";
 import { muteAudio } from "../game/sound/resumable";
+import { findPath, relativeOrientations } from "../game/math/path";
+import { getIdentifierAndComponents } from "../engine/utils";
 import { getTab } from "../engine/systems/popup";
+import { isInteractable } from "../engine/systems/freeze";
 import { getHero } from "../testing/harness";
 import { parseCommand, executeCommand } from "../game/assets/commands";
-import Row from "../components/Row";
-import { createButton } from "../game/assets/ui";
+import { Button } from "./visuals";
 import { createRoot } from "react-dom/client";
 import { useEffect } from "react";
 import World from "../components/World";
@@ -15,17 +17,25 @@ import Dimensions from "../components/Dimensions";
 import Terminal from "../components/Terminal";
 import Controls from "../components/Controls";
 import Stats from "../components/Stats";
-import { createPreviewWorld, sceneDefinitions, SceneName } from "./scenes";
+import {
+  createPreviewWorld,
+  sceneDefinitions,
+  sceneLayout,
+  movementGoals,
+  SceneName,
+} from "./scenes";
 import "../components/App/index.css";
+import "./preview-engine.css";
 muteAudio();
 const [scene, option = ""] = window.location.hash.slice(1).split("/");
 const name = (scene || "game") as SceneName;
+if (name === "touch") void enableTouchEmulation();
 function DemoActions() {
   if (name === "game" || name === "interface") return null;
   return (
     <div className="DemoActions">
-      <button
-        aria-label="Reset"
+      <Button
+        palette="red"
         onClick={() =>
           window.parent.postMessage(
             { type: "preview-reset" },
@@ -33,8 +43,8 @@ function DemoActions() {
           )
         }
       >
-        <Row cells={createButton("RESET", 7, false, false, false, "red")} />
-      </button>
+        Reset
+      </Button>
     </div>
   );
 }
@@ -45,6 +55,7 @@ function Bridge() {
     let focused = false;
     let automatic = false;
     let autoIndex = 0;
+    let openingPopup = false;
     let timer: ReturnType<typeof setInterval> | undefined;
     const stop = () => {
       clearInterval(timer);
@@ -108,18 +119,68 @@ function Bridge() {
       if (
         name === "game" ||
         name === "interface" ||
-        !sceneDefinitions[name].keys.length ||
-        autoIndex >= sceneDefinitions[name].keys.length
+        (name !== "movement" && !sceneDefinitions[name].keys.length) ||
+        autoIndex >=
+          (name === "movement"
+            ? movementGoals.length
+            : sceneDefinitions[name].keys.length)
       )
         return;
       automatic = true;
       timer = setInterval(() => {
         const keys = sceneDefinitions[name].keys;
-        const key = keys[autoIndex++];
+        const hero = ecs && getHero(ecs);
+        if (!hero) return;
+        if (openingPopup && hero.PLAYER?.popup) {
+          openingPopup = false;
+          autoIndex++;
+        }
+        let key: string | undefined = keys[autoIndex];
+        if (name === "movement" && ecs) {
+          let goal = movementGoals[autoIndex];
+          const apple = getIdentifierAndComponents(ecs, "maze_apple", ["ITEM"]);
+          const reached =
+            autoIndex === 0
+              ? apple?.ITEM.carrier === ecs.getEntityId(hero)
+              : goal &&
+                hero.POSITION.x === goal.x &&
+                hero.POSITION.y === goal.y;
+          if (reached) goal = movementGoals[++autoIndex];
+          if (!goal) {
+            stop();
+            return;
+          }
+          const next = findPath(
+            ecs.metadata.gameEntity.LEVEL.walkable,
+            hero.POSITION,
+            goal,
+            true,
+            true
+          )[0];
+          if (!next) return;
+          const direction = relativeOrientations(ecs, hero.POSITION, next)[0];
+          key = "Arrow" + direction[0].toUpperCase() + direction.slice(1);
+        }
         if (!key) {
           stop();
           return;
         }
+        if (
+          key === "Enter" &&
+          name !== "chat" &&
+          !hero.PLAYER?.popup &&
+          (!ecs?.metadata.interact.active ||
+            !isInteractable(ecs, hero) ||
+            !document.querySelector("#interact:not([hidden])"))
+        )
+          return;
+        if (
+          key === "Enter" &&
+          !hero.PLAYER?.popup &&
+          ecs?.getEntityById(ecs.metadata.interact.active)?.POPUP
+        ) {
+          openingPopup = true;
+        } else if (name !== "movement") autoIndex++;
         window.dispatchEvent(
           new KeyboardEvent("keydown", { key, bubbles: true })
         );
@@ -128,7 +189,9 @@ function Bridge() {
             window.dispatchEvent(
               new KeyboardEvent("keyup", { key, bubbles: true })
             ),
-          240
+          key.startsWith("Arrow") && (hero.PLAYER?.popup || name === "movement")
+            ? 60
+            : 240
         );
       }, 800);
     };
@@ -171,7 +234,7 @@ function Bridge() {
         if (!focused) autoplay();
       }
     };
-    const report = setInterval(() => {
+    const reportState = () => {
       const hero = ecs && getHero(ecs);
       window.parent.postMessage(
         {
@@ -187,7 +250,9 @@ function Bridge() {
         },
         window.location.origin
       );
-    }, 200);
+    };
+    const report = setInterval(reportState, 200);
+    reportState();
     const focus = () => {
       focused = true;
       stop();
@@ -211,6 +276,11 @@ function Bridge() {
         window.location.origin
       );
     };
+    const touchFocus = () => {
+      window.focus();
+      focus();
+    };
+    window.addEventListener("touchstart", touchFocus, true);
     window.addEventListener("focus", focus);
     window.addEventListener("blur", blur);
     window.addEventListener("message", listener);
@@ -223,6 +293,7 @@ function Bridge() {
       clearInterval(report);
       window.removeEventListener("keydown", capture, true);
       window.removeEventListener("keyup", capture, true);
+      window.removeEventListener("touchstart", touchFocus, true);
       window.removeEventListener("focus", focus);
       window.removeEventListener("blur", blur);
       window.removeEventListener("message", listener);
@@ -232,7 +303,22 @@ function Bridge() {
 }
 createRoot(document.getElementById("root")!).render(
   <Dimensions
-    className={`App ${name === "game" ? "" : "preview preview-" + name}`}
+    className={`App ${
+      name === "game"
+        ? ""
+        : name === "interface"
+        ? "preview-interface"
+        : "preview preview-" + name
+    }`}
+    options={
+      name === "game" || name === "interface"
+        ? undefined
+        : {
+            visibleColumns: 23,
+            visibleRows: sceneLayout(name).rows,
+            topHudRows: sceneLayout(name).topHudRows,
+          }
+    }
   >
     <World
       persistent={name === "game"}
@@ -246,13 +332,13 @@ createRoot(document.getElementById("root")!).render(
     >
       <Stats />
       <Terminal>
-        {name !== "game" && <DemoFrame island={name === "interface"} />}
+        {name !== "game" && name !== "interface" && <DemoFrame />}
       </Terminal>
       <Controls compact={name !== "game" && name !== "interface"}>
         <DemoActions />
       </Controls>
+      {name === "touch" && <TouchCursor />}
       <Bridge />
-      {name === "interface" && <InterfaceLabels />}
     </World>
   </Dimensions>
 );

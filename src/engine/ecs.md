@@ -12,19 +12,19 @@ Metadata holds level entities, render counters, listeners, interaction state, an
 
 ## Reference frames
 
-A movable entity points to a reference entity with its own tick interval and accumulated delta. The tick system advances reference generations. Most systems skip work when their relevant generation has not changed.
+A movable entity points to a reference entity with its own tick interval and accumulated delta. The [Tick system](systems/tick.md) advances reference generations. Most systems skip work when their relevant generation has not changed.
 
-`components/Systems` advances simulation at 30 fixed updates per second. Action intervals can span several updates. World ticks, hero haste, and animation sequences use different reference frames; an update is not necessarily one movement.
+The [React systems loop](../components/Systems/index.md) advances simulation at 30 fixed updates per second. Action intervals can span several updates. World ticks, hero haste, and animation sequences use different reference frames; an update is not necessarily one movement.
 
 ## System order
 
-The order in `createSystems` is part of the behavior. Initialization and ticking come first. Input triggers, popups, tools, collection, pushing, damage, and movement precede effects, sequences, fate, visibility, rendering, and map cleanup.
+The order in `createSystems` is part of the behavior. Initialization and ticking come first. Freeze and AI run before input triggers. Push, spike and damage run before normal movement. Entering, terrain effects, interactions and magic follow movement. Sequences finish before fate, drops, visibility, renderer notifications and final map cleanup.
 
 Read the actual list before inserting a system. A later system may depend on an entity or generation created earlier in the same update. Do not alphabetize the list.
 
 ## Rendering changes
 
-`rerenderEntity` increments a renderable generation. `getEntityGeneration` includes reference frames, sequence states, and equipped entities. The renderer notifies subscribers when reference generations change. Changing component data alone may not notify the UI.
+`rerenderEntity` in [Renderer](systems/renderer.md) increments a renderable generation. `getEntityGeneration` includes reference frames, sequence states, and equipped entities. The renderer notifies subscribers when reference generations change. Changing component data alone may not notify the UI.
 
 See [world creation](../bindings/creation.md), [HTML sprite rendering](../components/Row/index.md), and the [test harness](../testing/harness.md).
 <!-- source-types -->

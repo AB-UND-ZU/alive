@@ -1,4 +1,22 @@
-# units.ts
+# Unit Data
+
+Defines unit stats, appearance, equipment, behavior names and weighted drops. Creation resolves a definition into state for one entity.
+
+| Function         | Contract                                                             |
+| ---------------- | -------------------------------------------------------------------- |
+| generateNpcKey   | Pick an NPC key using the supplied distribution weights              |
+| generateUnitData | Sample one drop option, copy stats and create fresh pattern memories |
+| generateNpcData  | Generate the same unit data with its NPC type key                    |
+
+| Registry              | Contents                           |
+| --------------------- | ---------------------------------- |
+| unitDefinitions       | Base definitions for all unit keys |
+| unitBackdrops         | Additional world sprite layers     |
+| unitSwimmingBackdrops | Backdrop variants while swimming   |
+
+`generateUnitData` fills missing unit stats, sets maximum HP/MP from the initial stats and resolves harvesting work. Its drop selection uses randomness; callers needing repeatable output must seed randomness through the [test harness](../../testing/harness.md).
+
+[World creation](../../bindings/creation.md) attaches the data and creates carried items. Use [unit sprite helpers](../assets/utils.md) for a portrait with equipment rather than reading the bare body sprite.
 <!-- source-types -->
 
 ## UnitKey

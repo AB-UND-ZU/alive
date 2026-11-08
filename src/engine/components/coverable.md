@@ -1,16 +1,8 @@
-# COVERABLE
+# Coverable
 
-Controls covered terrain and reveal state.
+Marks snow cover that can be cleared.
 
-`Coverable`
-
-| Field | Type |
-| --- | --- |
-| `type` | `"snow"` |
-
-Attach with `world.addComponentToEntity(entity, COVERABLE, data)`. Query with `world.getEntities([COVERABLE])`.
-
-Systems: `freeze`.
+[Freeze](../systems/freeze.md) creates snow cover and clears it when clicked. The only current cover type is `snow`.
 <!-- source-types -->
 
 ## Coverable

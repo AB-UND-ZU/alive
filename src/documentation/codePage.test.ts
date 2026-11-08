@@ -1,4 +1,5 @@
 import { codePage437 } from "./codePage";
+import glyphAliases from "./glyphAliases.json";
 import font from "../game/assets/font.json";
 
 test("the DOS atlas contains all 256 positions in code-page order", () => {
@@ -27,4 +28,13 @@ test("graphical controls use the game font's glyphs rather than control codes", 
   expect(codePage437[127]).toBe("\u011f");
   for (const character of codePage437)
     expect(font.glyphs).toHaveProperty([character]);
+});
+
+test("Unicode graphical symbols map to the matching DOS font positions", () => {
+  expect(glyphAliases["♀"]).toBe(codePage437[12]);
+  expect(glyphAliases["♂"]).toBe(codePage437[11]);
+  expect(glyphAliases["♥"]).toBe(codePage437[3]);
+  for (const alias of Object.values(glyphAliases))
+    for (const character of alias)
+      expect(font.glyphs).toHaveProperty([character]);
 });

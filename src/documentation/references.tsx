@@ -2,12 +2,51 @@ import { createContext, ReactNode, useContext } from "react";
 import { Text, Pixels, LinkStyleContext } from "./visuals";
 import { colors } from "../game/assets/colors";
 import { Sprite } from "../engine/components/sprite";
+import {
+  mapDiscovery,
+  stats,
+  logging,
+  mining,
+  fishing,
+  farming,
+  build,
+  aura,
+} from "../game/assets/sprites";
+import { shop, forge, brew, craft } from "../game/assets/ui";
+
+export const featureSprites: Record<string, Sprite> = {
+  levels: mapDiscovery,
+  world: mapDiscovery,
+  "world map": mapDiscovery,
+  map: mapDiscovery,
+  maps: mapDiscovery,
+  minimap: mapDiscovery,
+  minimaps: mapDiscovery,
+  stats,
+  aura,
+  shop: { ...shop, name: "Shop" },
+  shops: { ...shop, name: "Shop" },
+  trading: { ...shop, name: "Shop" },
+  forging: { ...forge, name: "Forging" },
+  forge: { ...forge, name: "Forging" },
+  brewing: { ...brew, name: "Brewing" },
+  brew: { ...brew, name: "Brewing" },
+  crafting: { ...craft, name: "Crafting" },
+  craft: { ...craft, name: "Crafting" },
+  fishing,
+  mining,
+  logging,
+  farming,
+  building: build,
+  build,
+};
 export type Reference = {
   href: string;
   kind: "type" | "code" | "item" | "unit" | "feature";
 };
 export const ReferenceContext = createContext<{
   route?: string;
+  implementation?: boolean;
   entries: Record<string, Reference>;
   features?: Record<string, Reference>;
   decorations?: Record<
@@ -27,11 +66,13 @@ export function ReferenceText({
   color = colors.silver,
   implementation = false,
   decorate = true,
+  suffix,
 }: {
   text: string;
   color?: string;
   implementation?: boolean;
   decorate?: boolean;
+  suffix?: ReactNode;
 }) {
   const {
     entries,
@@ -39,65 +80,103 @@ export function ReferenceText({
     decorations = {},
     link,
     pattern,
+    implementation: sourcePage,
   } = useContext(ReferenceContext);
   const insideLink = useContext(LinkStyleContext);
+  if (insideLink.linked)
+    return (
+      <Text color={color} suffix={suffix} code={implementation}>
+        {text}
+      </Text>
+    );
+  if (implementation || sourcePage) {
+    const candidate = entries[text];
+    const reference =
+      implementation &&
+      (candidate?.kind === "code" || candidate?.kind === "type") &&
+      (sourcePage || /[A-Z]/.test(text) || text.startsWith("src/"))
+        ? candidate
+        : undefined;
+    const content = (
+      <Text color={color} suffix={suffix} code={implementation}>
+        {text}
+      </Text>
+    );
+    return <>{reference ? link(reference.href, content) : content}</>;
+  }
+  const chunks: { text: string; punctuation: string }[] = [];
+  for (let part of pattern ? text.split(pattern).filter(Boolean) : [text]) {
+    const punctuation = chunks.length && part.match(/^[.,!?;:)\]}]+/)?.[0];
+    if (punctuation) {
+      chunks[chunks.length - 1].punctuation += punctuation;
+      part = part.slice(punctuation.length);
+    }
+    if (part) chunks.push({ text: part, punctuation: "" });
+  }
   return (
     <>
-      {text
-        .split(pattern || /([A-Za-z_][A-Za-z_0-9]*)/)
-        .filter(Boolean)
-        .map((part, i) => {
-          const key = part.toLowerCase();
-          const candidate = implementation
-            ? entries[part] || entries[key]
-            : features[key] || entries[part] || entries[key];
-          const unmatchedItem =
-            !implementation &&
-            candidate?.kind === "item" &&
-            !decorations[key]?.sprite &&
-            !features[key];
-          const reference = unmatchedItem
-            ? undefined
-            : (candidate?.kind === "type" || candidate?.kind === "code") &&
-              !implementation &&
-              !/[A-Z][a-z]+[A-Z]/.test(part)
-            ? undefined
-            : candidate;
-          const decoration = decorate && !implementation && decorations[key];
-          const content = (
-            <MentionStyle
-              preserveColor={Boolean(decoration) || insideLink.preserveColor}
-            >
-              <span className="RichMention">
-                {decoration && decoration.sprite && (
-                  <>
-                    <Pixels
-                      rows={[[decoration.sprite]]}
-                      label={decoration.sprite.name}
-                    />
-                  </>
-                )}
-                <Text
-                  color={
-                    (decoration && decoration.color) ||
-                    (decoration && decoration.sprite ? colors.grey : color)
-                  }
-                >
-                  {(decoration &&
-                    (decoration.name || decoration.sprite?.name)) ||
-                    part}
+      {chunks.map((chunk, index) => {
+        const key = chunk.text.toLowerCase();
+        const reference = features[key];
+        const nativeFeature = featureSprites[key];
+        const decoration = nativeFeature
+          ? {
+              sprite: nativeFeature,
+              name: chunk.text.charAt(0).toUpperCase() + chunk.text.slice(1),
+              color: colors.grey,
+            }
+          : decorate &&
+            reference &&
+            decorations[key] &&
+            (decorations[key].sprite ||
+              decorations[key].color ||
+              decorations[key].name)
+          ? decorations[key]
+          : undefined;
+        const tail =
+          chunk.punctuation || (index === chunks.length - 1 && suffix) ? (
+            <>
+              {chunk.punctuation && (
+                <Text color={color} link={false}>
+                  {chunk.punctuation}
                 </Text>
-              </span>
-            </MentionStyle>
-          );
-          return (
-            <span key={i}>
-              {reference && !insideLink.linked
-                ? link(reference.href, content)
-                : content}
+              )}
+              {index === chunks.length - 1 && suffix}
+            </>
+          ) : undefined;
+        const content = (
+          <MentionStyle
+            preserveColor={Boolean(decoration) || insideLink.preserveColor}
+          >
+            <span className="RichMention">
+              {decoration?.sprite && (
+                <Pixels
+                  rows={[[decoration.sprite]]}
+                  label={decoration.sprite.name}
+                />
+              )}
+              <Text
+                color={
+                  decoration?.color ||
+                  (decoration?.sprite ? colors.grey : color)
+                }
+                suffix={tail}
+              >
+                {decoration?.name || chunk.text}
+              </Text>
             </span>
-          );
-        })}
+          </MentionStyle>
+        );
+        return reference ? (
+          <span key={index}>
+            {link(reference.href, content, Boolean(decoration?.sprite))}
+          </span>
+        ) : (
+          <Text key={index} color={color} suffix={tail}>
+            {chunk.text}
+          </Text>
+        );
+      })}
     </>
   );
 }
@@ -133,5 +212,5 @@ export function ReferenceLink({
     sprite && (candidate?.kind === "type" || candidate?.kind === "code")
       ? features[name.toLowerCase()]
       : candidate || features[name.toLowerCase()];
-  return <>{reference ? link(reference.href, content) : content}</>;
+  return <>{reference ? link(reference.href, content, true) : content}</>;
 }

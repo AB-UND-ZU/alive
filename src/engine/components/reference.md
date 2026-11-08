@@ -1,19 +1,14 @@
-# REFERENCE
+# Reference
 
 Stores a clock interval, elapsed time, and suspension state.
 
-`Reference`
+[Tick](../systems/tick.md) advances the clock. [Movement](../systems/movement.md) and other action systems read its render generation to run once per action interval.
 
-| Field | Type |
-| --- | --- |
-| `tick` | `number` |
-| `delta` | `number` |
-| `suspended` | `boolean` |
-| `suspensionCounter` | `number` |
-
-Attach with `world.addComponentToEntity(entity, REFERENCE, data)`. Query with `world.getEntities([REFERENCE])`.
-
-Systems: `action`, `ballistics`, `build`, `burn`, `click`, `collect`, `consume`, `damage`, `drop`, `enter`, `fate`, `fishing`, `focus`, `freeze`, `harvest`, `homing`, `immersion`, `interact`, `leveling`, `magic`, `movement.test`, `movement`, `needle`, `popup`, `push`, `renderer`, `sequence`, `spike`, `text`, `tick.test`, `tick`, `trigger`, `vessel`, `visibility`.
+| Field               | Meaning                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| `tick`              | Action interval in milliseconds.                                                                  |
+| `delta`             | Accumulated elapsed milliseconds.                                                                 |
+| `suspensionCounter` | -1: keep ticking; 0: suspend at the next ready tick; positive: remaining ticks before suspension. |
 <!-- source-types -->
 
 ## Reference

@@ -1,0 +1,112 @@
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  background: #000;
+}
+.preview .Paused {
+  display: none;
+}
+.preview .LeftEdge,
+.preview .RightEdge {
+  display: none;
+}
+.preview .Terminal {
+  flex: none;
+  height: var(--terminal-height);
+}
+.DemoFrame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+.DemoFrame .Row {
+  justify-content: center;
+}
+.DemoActions {
+  position: absolute;
+  top: calc(var(--cell-height) * 2);
+  right: var(--pixel-size);
+  display: flex;
+  z-index: 4;
+}
+.preview .Controls {
+  top: var(--bottom-offset);
+}
+.preview .Controls > .Row:nth-of-type(3) {
+  justify-content: flex-start;
+  padding-left: calc((100% - 23 * var(--cell-width)) / 2);
+}
+.DemoActions button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.DemoActions .Row {
+  width: max-content;
+}
+.preview .Stats {
+  flex: none;
+  height: 0;
+  margin-bottom: 0;
+}
+.preview .Stats > .Row {
+  display: none;
+}
+.preview .Stats .Menu,
+.preview .Stats .Quick {
+  display: none;
+}
+.preview-abilities .Stats,
+.preview-food .Stats {
+  height: var(--cell-height);
+}
+.preview-abilities .Stats > .StatMP,
+.preview-food .Stats > .StatHP {
+  display: flex;
+}
+.preview-food .Stats > .StatXP {
+  display: flex;
+  position: absolute;
+  top: 0;
+  right: var(--pixel-size);
+}
+.preview-food .StatXP > .StatProgress,
+.preview-food .StatXP > .StatMenu {
+  display: none;
+}
+.preview-food .Stats .Quick {
+  display: block;
+  top: 0;
+  bottom: 0;
+}
+.preview .Stats .StatBorder,
+.preview .Controls > .Row:nth-of-type(2) {
+  visibility: hidden;
+}
+.preview-light .Controls > .Row,
+.preview-movement .Controls > .Row,
+.preview-water .Controls > .Row,
+.preview-pushing .Controls > .Row {
+  visibility: hidden;
+}
+.preview-movement .Skill,
+.preview-movement .Spell,
+.preview-water .Skill,
+.preview-water .Spell,
+.preview-pushing .Skill,
+.preview-pushing .Spell {
+  pointer-events: none;
+}
+.preview-interface {
+  pointer-events: none;
+}

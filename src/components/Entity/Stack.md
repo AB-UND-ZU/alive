@@ -1,16 +1,8 @@
 # Stack
 
-Draws a quantity-dependent item stack.
+Renders the ordered segments returned for an entity's body, items and effects. Each segment supplies a sprite, orientation, amount, offsets and layer properties.
 
-```tsx
-Stack({
-  segments,
-  layerCount,
-}: {
-  segments: Segment[];
-  layerCount: number;
-})
-```
+World offsets are converted to renderer coordinates. The number of preceding glyph layers determines each segment's elevation. Segments with an animated origin use `AnimatedSprite`; the others use `Sprite`.
 <!-- source-types -->
 
 ## Segment

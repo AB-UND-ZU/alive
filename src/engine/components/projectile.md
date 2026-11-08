@@ -1,19 +1,8 @@
-# PROJECTILE
+# Projectile
 
 Stores projectile travel and impact data.
 
-`Projectile`
-
-| Field | Type |
-| --- | --- |
-| `damage` | `number` |
-| `material` | `Material` |
-| `moved` | `boolean` |
-| `shadow` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, PROJECTILE, data)`. Query with `world.getEntities([PROJECTILE])`.
-
-Systems: `ballistics`.
+[Ballistics](../systems/ballistics.md) resolves travel and impact. The running arrow sequence holds its origin, range and caster.
 <!-- source-types -->
 
 ## Projectile

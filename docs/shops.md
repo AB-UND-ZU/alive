@@ -1,8 +1,19 @@
 # Shops
 
-A shop opens a trading dialog with buy and sell tabs. Select an offer, check its price and stock, then confirm.
+```widget
+popup buy sell
+```
 
-[Trading](trading.md) lists the configured offers.
+Choose a buy or sell tab. Each deal requires its full price and available stock.
+
+| Key | Action |
+| --- | --- |
+| [[key:Enter]] | Confirm the selected deal |
+| [[key:Escape]] | Close the shop |
+
+```widget
+trading
+```
 
 ```scene
 trading

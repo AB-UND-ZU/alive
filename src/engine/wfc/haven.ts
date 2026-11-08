@@ -25,7 +25,7 @@ const havenDefinition: Definition = {
   },
 };
 
-const mapTiles: Record<string, string> = {
+export const havenTiles: Readonly<Record<string, string>> = {
   fountain: "sand",
   air: "sand",
   sand: "",
@@ -210,7 +210,7 @@ export default function generateHaven(
     const havenMatrix = matrixFactory(
       width,
       height,
-      (x, y) => mapTiles[wfc.tileNames[tileMatrix[x][y]]]
+      (x, y) => havenTiles[wfc.tileNames[tileMatrix[x][y]]]
     );
 
     havenMatrix[innDelta.x][innDelta.y] = "fountain";

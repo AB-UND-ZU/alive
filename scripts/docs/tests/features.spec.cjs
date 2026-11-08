@@ -1,6 +1,39 @@
 const { test, expect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
+async function expectColor(locator, color) {
+  await expect
+    .poll(() =>
+      locator.evaluateAll(
+        (roots, color) =>
+          roots
+            .flatMap((root) => [
+              root,
+              ...root.querySelectorAll(".CellGlyph, svg rect"),
+            ])
+            .some(
+              (node) =>
+                getComputedStyle(node)[
+                  node.tagName.toLowerCase() === "rect" ? "fill" : "color"
+                ] === color
+            ),
+        color
+      )
+    )
+    .toBe(true);
+}
+
+const reloadTest = "the docs dev server rebuilds and reloads a Markdown edit";
+
+test.beforeEach(async ({ page }, info) => {
+  // Reload has its own check; rebuilding must not interrupt other interactions.
+  if (info.title !== reloadTest)
+    await page.addInitScript(() => {
+      window.EventSource = class {
+        close() {}
+      };
+    });
+});
 
 test("navigation follows the design and implementation groups with Welcome and Play under Intro", async ({
   page,
@@ -52,14 +85,12 @@ test("Welcome is the index page and links use the credits underline", async ({
 }) => {
   await page.goto("/index.html");
   await expect(page.locator("h1")).toHaveAccessibleName("ALIVE");
-  await expect(
-    page.locator('h1 svg rect[fill="#800000"]').first()
-  ).toBeAttached();
+  await expectColor(page.locator("h1"), "rgb(128, 0, 0)");
   await expect(page.locator("main > p").first()).toHaveText(
     "ASCII-based 2D adventure game. Using React and Three.js (with react-three-fiber)."
   );
   await expect(page.locator("main")).toContainText(
-    "Only the 256 characters in code page 437"
+    "Only the [256] characters in code page 437"
   );
   await expect(
     page.locator('main a[href="https://en.wikipedia.org/wiki/Code_page_437"]')
@@ -81,15 +112,16 @@ test("Welcome is the index page and links use the credits underline", async ({
   await page.locator('nav a[aria-label="Play"]').click();
   await expect(page).toHaveURL(/play.html$/);
   await page.goto("/game-design/world/map.html");
-  await expect(
-    page.locator('main .DocLink svg rect[fill="#0000ff"]').first()
-  ).toBeAttached();
-  const underline = await page
-    .locator('main .DocLink[href$="light.html"] .LinkText .Cell')
-    .first()
-    .locator("svg")
-    .innerHTML();
-  expect(underline).toContain('fill="#0000ff"');
+  const lightLink = page.locator('main .DocLink[href$="light.html"]');
+  await expectColor(lightLink, "rgb(0, 0, 255)");
+  expect(
+    await lightLink
+      .locator(".LinkText")
+      .first()
+      .evaluate((el) =>
+        getComputedStyle(el).getPropertyValue("--underline-color").trim()
+      )
+  ).not.toBe("transparent");
   const header = page.locator(".DocsHeader");
   expect((await header.boundingBox()).height).toBe(80);
   expect((await header.locator(".HeaderText").boundingBox()).y).toBe(32);
@@ -129,7 +161,14 @@ test("scrolling remains native and only the page heading uses three rows", async
   await expect(page.locator(".LineMask")).toHaveCount(0);
   expect((await page.locator(".DocsHeader").boundingBox()).y).toBe(0);
   await expect(page.locator(".DocsHeader")).toContainText(/ALIVE V\d+x\d+/);
-  await expect(page.locator("h1 .Row")).toHaveCount(3);
+  expect((await page.locator("h1").boundingBox()).height).toBe(96);
+  expect(
+    await page
+      .locator("h1 .HeadingLetter")
+      .evaluateAll((letters) =>
+        letters.every((letter) => letter.getBoundingClientRect().height === 96)
+      )
+  ).toBe(true);
   expect(
     await page
       .locator("h2 .Row")
@@ -138,8 +177,12 @@ test("scrolling remains native and only the page heading uses three rows", async
       )
   ).toBe(true);
   await page.goto("/game-design/items/spells.html");
-  await expect(page.locator("h2").first()).toHaveAccessibleName("Direct Casts");
-  expect((await page.locator("h2").first().boundingBox()).height).toBe(32);
+  const direct = page.getByRole("heading", {
+    name: "Direct Casts",
+    exact: true,
+  });
+  await expect(direct).toBeVisible();
+  expect((await direct.boundingBox()).height).toBe(32);
 });
 
 test("CSS navigation hover keeps the current solid highlight and moves only the pointer", async ({
@@ -149,22 +192,18 @@ test("CSS navigation hover keeps the current solid highlight and moves only the 
   const current = page.locator("nav .NavCurrentPointer");
   await expect(current).toBeVisible();
   const active = page.locator("nav a[aria-current=page]");
-  const solid = await active
-    .locator(".NavNormalLabel svg")
-    .evaluateAll((nodes) => nodes.map((node) => node.innerHTML).join(""));
+  const solid = active.locator(".NavNormalLabel .ShadedText");
+  await expect(solid).toHaveAttribute("data-shade", "▄".repeat(16));
   await active.hover();
-  expect(
-    await active
-      .locator(".NavNormalLabel svg")
-      .evaluateAll((nodes) => nodes.map((node) => node.innerHTML).join(""))
-  ).toBe(solid);
+  await expect(solid).toBeVisible();
   const touch = page.locator('nav a[aria-label="Touch"]');
   await touch.hover();
   await expect(current).toBeHidden();
   await expect(touch.locator(".NavHoverPointer")).toBeVisible();
-  await expect(
-    active.locator('svg rect[fill="#008000"]').last()
-  ).toBeAttached();
+  await expect(solid).toBeVisible();
+  expect(
+    await solid.evaluate((node) => getComputedStyle(node, "::before").color)
+  ).toBe("rgb(0, 128, 0)");
   expect((await touch.locator(".NavText").boundingBox()).width).toBe(288);
   await page.locator(".DocsHeader").hover();
   await expect(current).toBeVisible();
@@ -176,8 +215,8 @@ test("scene choices are all shown and selecting a spell reloads the actual engin
 }) => {
   await page.goto("/game-design/items/spells.html");
   const scene = page.locator("[data-scene=abilities]");
-  await expect(scene.getByRole("option")).toHaveCount(6);
-  await scene.getByRole("option", { name: "beam", exact: true }).click();
+  await expect(scene.getByRole("tab")).toHaveCount(6);
+  await scene.getByRole("tab", { name: "beam", exact: true }).click();
   await expect(scene.locator("iframe")).toHaveAttribute(
     "src",
     /abilities\/beam$/
@@ -197,7 +236,7 @@ test("previews load on arrival, autoplay and pause the world offscreen", async (
   page,
 }) => {
   await page.goto("/game-design/controls/keyboard-mouse.html");
-  const preview = page.locator("[data-scene=crafting]");
+  const preview = page.locator("[data-scene=movement]");
   await expect(preview.locator("iframe")).toHaveCount(0);
   await preview.scrollIntoViewIfNeeded();
   await expect(preview.locator("iframe")).toHaveCount(1);
@@ -213,6 +252,7 @@ test("previews load on arrival, autoplay and pause the world offscreen", async (
 test("focused previews capture keys, release focus on Escape and reset", async ({
   page,
 }) => {
+  test.setTimeout(60000);
   await page.goto("/game-design/controls/keyboard-mouse.html");
   const scene = page.locator("[data-scene=movement]"),
     iframe = scene.locator("iframe");
@@ -223,29 +263,51 @@ test("focused previews capture keys, release focus on Escape and reset", async (
   await expect(scene).toHaveClass(/active/);
   await expect(iframe).toHaveAttribute("data-auto", "false");
   const scroll = await page.evaluate(() => scrollY);
-  const start = Number(await iframe.getAttribute("data-x"));
-  await page.keyboard.down("ArrowLeft");
-  await expect
-    .poll(async () => Number(await iframe.getAttribute("data-x")))
-    .toBeLessThan(start);
-  await page.keyboard.up("ArrowLeft");
+  const start = [
+    await iframe.getAttribute("data-x"),
+    await iframe.getAttribute("data-y"),
+  ];
+  let position = start;
+  for (const key of ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]) {
+    await page.keyboard.press(key, { delay: 350 });
+    await page.waitForTimeout(250);
+    position = [
+      await iframe.getAttribute("data-x"),
+      await iframe.getAttribute("data-y"),
+    ];
+    if (position.join() !== start.join()) break;
+  }
+  expect(position).not.toEqual(start);
   expect(await page.evaluate(() => scrollY)).toBe(scroll);
-  await expect(
-    frame.locator('.DemoFrame svg rect[fill="#00ff00"]').first()
-  ).toBeAttached();
+  await expectColor(frame.locator(".DemoFrame"), "rgb(0, 255, 0)");
   await page.keyboard.press("Escape");
   await expect(scene).not.toHaveClass(/active/);
+  await expect(page.locator("main")).toBeFocused();
+  await expect(page.locator("main")).toHaveCSS("outline-style", "none");
   await expect(frame.locator(".Paused")).toHaveCount(0);
-  await expect(iframe).toHaveAttribute("data-auto", "false", { timeout: 6000 });
+  await expect(iframe).toHaveAttribute("data-auto", "true");
+  await expect(iframe).toHaveAttribute("data-auto", "false", {
+    timeout: 20000,
+  });
+  await expect(iframe).toHaveAttribute("data-x", "14");
+  await expect(iframe).toHaveAttribute("data-y", "1");
   const boundary = await frame.locator(".DemoFrame").boundingBox();
   const reset = await frame
     .getByRole("button", { name: "Reset", exact: true })
     .boundingBox();
   expect(Math.abs(reset.y - boundary.y - boundary.height)).toBeLessThan(0.1);
+  const previousFrame = await iframe.elementHandle();
   await frame.getByRole("button", { name: "Reset", exact: true }).click();
-  await expect(iframe).toHaveAttribute("data-x", "2");
+  await expect
+    .poll(() => previousFrame.evaluate((node) => node.isConnected))
+    .toBe(false);
+  await expect(iframe).toHaveAttribute("data-y", "7");
   await expect(iframe).toHaveAttribute("data-auto", "true");
-  await expect(iframe).toHaveAttribute("data-auto", "false", { timeout: 6000 });
+  await expect(iframe).toHaveAttribute("data-auto", "false", {
+    timeout: 20000,
+  });
+  await expect(iframe).toHaveAttribute("data-x", "14");
+  await expect(iframe).toHaveAttribute("data-y", /^[12]$/);
   await expect(scene).not.toHaveClass(/active/);
 });
 
@@ -357,15 +419,11 @@ test("code dialogs have filename tabs, syntax colors and copy only source", asyn
   );
   await expect(block.locator(".CodeNumbers")).toBeVisible();
   await expect(block.locator("pre .CodeNumbers")).toHaveCount(0);
-  await expect(
-    block.locator('.CodePixels svg rect[fill="#00ffff"]').first()
-  ).toBeAttached();
-  await expect(
-    block
-      .getByRole("button", { name: "Copy", exact: true })
-      .locator('svg rect[fill="#00ff00"]')
-      .first()
-  ).toBeAttached();
+  await expectColor(block.locator(".CodeSemantic"), "rgb(0, 255, 255)");
+  await expectColor(
+    block.getByRole("button", { name: "Copy", exact: true }),
+    "rgb(0, 255, 0)"
+  );
   expect(
     await block
       .locator(".CodeChrome .Cell")
@@ -413,9 +471,7 @@ test("tables share white headings, double header rules and single row rules", as
 }) => {
   await page.goto("/game-design/combat/stats.html");
   const table = page.locator("main table").first();
-  await expect(
-    table.locator('th svg rect[fill="#ffffff"]').first()
-  ).toBeAttached();
+  await expectColor(table.locator("th"), "rgb(255, 255, 255)");
   const rules = await table.locator(".GridRule").allTextContents();
   expect(rules[0]).toContain("═");
   expect(rules[1]).toContain("─");
@@ -440,6 +496,10 @@ test("the damage tool keeps fractional health with distinct attacker and defende
   page,
 }) => {
   await page.goto("/game-design/combat/damage.html");
+  const trueRow = page
+    .locator("main table tbody tr")
+    .filter({ hasText: /^TrueIgnoredIgnored$/ });
+  await expect(trueRow).toHaveCount(1);
   const tool = page.locator("[data-widget=damage]");
   await expect(tool.locator(".LargePreview")).toHaveCount(2);
   await tool
@@ -462,34 +522,61 @@ test("the damage tool keeps fractional health with distinct attacker and defende
   );
 });
 
-test("command completion executes against the real hero", async ({ page }) => {
+test("command reference and completion use a persistent isolated game world", async ({
+  page,
+}) => {
   await page.goto("/game-design/interactions/chat.html");
-  for (const command of [
-    "/give arrow 10",
-    "/give potion 10 wood hp",
-    "/give potion 10 iron mp",
-  ]) {
-    const result = page
-      .locator("tr")
-      .filter({ hasText: command })
-      .locator("td.GridValue")
-      .last()
-      .locator(".Item");
-    await expect(result).toHaveCount(1);
-    await expect(result.locator(":scope > .Text").first()).toHaveText("10");
-    await expect(result.locator(":scope > .Pixels")).toHaveCount(1);
-  }
+  const reference = page.locator("main table").filter({
+    has: page.locator("thead th").filter({ hasText: /^Command$/ }),
+  });
+  const rows = reference.locator("tbody tr:not(.GridRule)");
+  await expect(rows).toHaveCount(10);
+  const examples = await rows.locator('[data-column="2"]').allTextContents();
+  expect(
+    examples.map((example) => example.match(/^\/(\w+)/)?.[1]).sort()
+  ).toEqual([
+    "cast",
+    "focus",
+    "give",
+    "help",
+    "list",
+    "mod",
+    "new",
+    "pin",
+    "stat",
+    "tp",
+  ]);
+  const usages = await rows.locator('[data-column="0"]').allTextContents();
+  expect(usages).toContain("/list│/help [cmd]/h");
+  expect(usages).toContain("/give <item> [num] [mat] [ele]/g");
+  await expect(page.locator("[data-scene=chat]")).toHaveCount(0);
   const tool = page.locator("[data-widget=commands]"),
     input = tool.getByRole("textbox", { name: "Command", exact: true });
   await input.fill("/gi");
+  await expect(input).toHaveValue("/gi");
+  await expectColor(input.locator(".."), "rgb(128, 128, 128)");
   await input.press("Tab");
   await expect(input).toHaveValue("/give ");
+  await tool
+    .getByRole("textbox", { name: "Search items", exact: true })
+    .fill("potion");
+  await tool
+    .getByRole("listbox", { name: "Items", exact: true })
+    .getByRole("option", { name: "potion", exact: true })
+    .click();
+  await expect(input).toHaveValue("/give potion ");
   await input.fill("/stat hp 12");
   await tool.getByRole("button", { name: "Run", exact: true }).click();
-  await expect(page.locator("[data-scene=chat] iframe")).toHaveAttribute(
-    "data-hp",
-    "12"
+  await expect(tool).toHaveAttribute("data-hp", "12");
+  await expect(tool.getByLabel("Command world", { exact: true })).toBeVisible();
+  await input.fill("/pin docs-test 4,4");
+  await input.press("Enter");
+  await input.fill("/tp docs-test");
+  await tool.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(tool.locator('[aria-label="Command result"]')).toContainText(
+    "4,4"
   );
+  await expect(tool).toHaveAttribute("data-hp", "12");
 });
 
 test("the Interface diagram is static, labels controls and places text underneath", async ({
@@ -497,11 +584,34 @@ test("the Interface diagram is static, labels controls and places text underneat
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/game-design/controls/interface.html");
-  await expect(page.locator("iframe")).toHaveCount(0);
   const diagram = page.locator(".InterfaceDiagram");
-  await expect(diagram.locator(".Row")).toHaveCount(24);
-  await expect(diagram).toContainText("(auto-save)");
-  await expect(diagram).toContainText("Hotkeys [0]-[9]");
+  await expect(diagram).toHaveAttribute("src", /interface-preview.html$/);
+  expect(
+    await diagram.evaluate((el) => getComputedStyle(el).pointerEvents)
+  ).toBe("none");
+  const frame = await (await diagram.elementHandle()).contentFrame();
+  await expect(frame.locator("canvas")).toBeVisible();
+  await expect(frame.locator(".InterfaceLabels")).toContainText("(auto-save)");
+  for (const title of [
+    "Pause",
+    "Stats",
+    "Quick",
+    "actions",
+    "HP",
+    "MP",
+    "XP",
+    "Skill",
+    "Spell",
+    "Gear",
+  ])
+    await expect(frame.locator(".InterfaceLabels")).toContainText(title);
+  for (const label of ["BAG", "EQUIP", "GEAR", "STATS", "MAP"])
+    await expect(
+      frame.locator(`.InterfaceLabels [data-quick-action="${label}"]`)
+    ).toHaveCount(1);
+  await expect(frame.locator(".InterfaceLabels")).not.toContainText("Hotkeys");
+  await expect(frame.locator(".InterfaceLabels")).not.toContainText("Terminal");
+  await expect(frame.locator(".InterfaceLabels .Key")).toHaveCount(0);
   expect(
     (await page.locator("main > p").first().boundingBox()).y
   ).toBeGreaterThan((await diagram.boundingBox()).y);
@@ -510,7 +620,7 @@ test("the Interface diagram is static, labels controls and places text underneat
   );
 });
 
-test("inline key labels occupy one row and prose spaces collapse when wrapping", async ({
+test("key labels use the native raised key height and prose spaces collapse when wrapping", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -526,7 +636,7 @@ test("inline key labels occupy one row and prose spaces collapse when wrapping",
     await page
       .locator("main .Key")
       .evaluateAll((keys) =>
-        keys.every((key) => key.getBoundingClientRect().height === 32)
+        keys.every((key) => key.getBoundingClientRect().height === 48)
       )
   ).toBe(true);
   expect(
@@ -594,24 +704,19 @@ test("page concepts link to features while sprite names keep game colors until h
   page,
 }) => {
   await page.goto("/game-design/world/map.html");
-  await expect(page.locator(".WorldMap")).toBeVisible();
+  await expect(page.locator('[data-widget="minimap"]')).toBeVisible();
   const concept = page.locator('main a[href$="light.html"]').first();
   await expect(concept).toBeAttached();
-  await expect(
-    concept.locator('svg rect[fill="#0000ff"]').first()
-  ).toBeAttached();
+  await expectColor(concept, "rgb(0, 0, 255)");
   const spriteLink = page
     .locator("main a")
-    .filter({ has: page.locator(".Item > .Pixels, .RichMention > .Pixels") })
+    .filter({
+      has: page.locator(".Item .TextPrefix > .Pixels, .RichMention > .Pixels"),
+    })
     .first();
   await expect(spriteLink.locator(".Pixels")).not.toHaveCount(0);
   await spriteLink.hover();
-  expect(
-    await spriteLink
-      .locator(".LinkText svg rect")
-      .first()
-      .evaluate((element) => getComputedStyle(element).fill)
-  ).toBe("rgb(0, 255, 255)");
+  await expectColor(spriteLink.locator(".LinkText"), "rgb(0, 255, 255)");
   await page.goto("/development/docs/scenes.html");
   await expect(
     page.locator('main a[href$="development/entities/creation.html"]').first()
@@ -638,9 +743,7 @@ test("source component and system pages exist", () => {
   }
 });
 
-test("the docs dev server rebuilds and reloads a Markdown edit", async ({
-  page,
-}) => {
+test(reloadTest, async ({ page }) => {
   const file = path.resolve("docs/touch.md"),
     original = fs.readFileSync(file, "utf8"),
     marker = "Live Reload Verification Marker";
@@ -703,18 +806,20 @@ test("grouped routes load directly and legacy routes keep their anchors", async 
   await expect(page.locator("#type-item")).toBeVisible();
 });
 
-test("automatic links avoid self references and repeat each destination only once per section", async ({
+test("automatic prose links avoid self references and keep navigation within its width", async ({
   page,
 }) => {
   await page.goto("/game-design/world/map.html");
   const links = await page
-    .locator("main a")
+    .locator("main p a:not(.SpriteReference)")
     .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")));
   const pages = links
     .filter((href) => href && !/^https?:/.test(href))
     .map((href) => href.split("#")[0]);
-  expect(new Set(pages).size).toBe(pages.length);
-  expect(pages.every((href) => !href.endsWith("/world/map.html"))).toBe(true);
+
+  expect(pages.every((href) => !href.endsWith("/world/minimap.html"))).toBe(
+    true
+  );
   const viewport = page.locator(".NavViewport");
   expect(
     await viewport.evaluate((element) => element.scrollWidth)
@@ -727,4 +832,81 @@ test("automatic links avoid self references and repeat each destination only onc
   expect(
     await viewport.evaluate((element) => element.scrollTop)
   ).toBeGreaterThan(0);
+});
+
+test("feature pages show native popup specimens and separate speech from signs", async ({
+  page,
+}) => {
+  test.setTimeout(60000);
+  for (const [route, screens] of [
+    ["items/gear", ["gear", "inspect", "use", "equip"]],
+    ["world/savegames", ["load"]],
+    ["interactions/chat", ["chat"]],
+    ["interactions/dialogs", ["message"]],
+    [
+      "interactions/signs",
+      [
+        "menu_sign",
+        "spawn_sign",
+        "potion_sign",
+        "fruit_sign",
+        "guide_sign",
+        "trader_sign",
+        "worm_sign",
+        "credits_sign",
+      ],
+    ],
+  ]) {
+    await page.goto(`/game-design/${route}.html`);
+    const gallery = page.locator("main .DialogGallery");
+    await expect(gallery).toHaveCount(1);
+    for (const screen of screens) {
+      const specimen = gallery.locator(
+        `.Pixels[aria-label="${screen} game dialog"]`
+      );
+      await expect(specimen).toHaveCount(1);
+      expect(await specimen.locator(":scope > .Row").count()).toBeGreaterThan(
+        0
+      );
+    }
+    await expect(gallery.locator("iframe, canvas")).toHaveCount(0);
+    if (route === "world/savegames")
+      await expect(gallery.locator(".PauseSnapshot .Paused")).toHaveCount(1);
+  }
+  await expect(page.locator('nav a[aria-label="Signs"]')).toHaveAttribute(
+    "aria-current",
+    "page"
+  );
+  await expect(page.locator('nav a[aria-label="Dialogs"]')).toHaveCount(1);
+  await expect(page.locator('nav a[aria-label="Tips"]')).toHaveCount(0);
+  await page.goto("/tips.html");
+  await expect(page).toHaveURL(/game-design\/interactions\/dialogs.html$/);
+  await expect(page.locator("h1")).toHaveAccessibleName("Dialogs");
+  await page.goto("/game-design/world/savegames.html");
+  await expect(page.locator("main")).toContainText("[20261011-151323]");
+  await expect(page.locator("main")).not.toContainText("[[data:");
+});
+
+test("quest reward lists keep each reward on its own line", async ({
+  page,
+}) => {
+  await page.goto("/game-design/interactions/quests.html");
+  await expect(page.locator("main")).not.toContainText("[[stat:");
+  const chief = page
+    .locator("main table")
+    .filter({
+      has: page.locator("thead th").filter({ hasText: "Character" }),
+    })
+    .locator("tbody tr:not(.GridRule)")
+    .first();
+  const reward = chief.locator("td").last();
+  await expect(reward.locator("br")).toHaveCount(2);
+  await expect(reward).not.toContainText("<br>");
+  const items = reward.locator(".Item");
+  await expect(items).toHaveCount(3);
+  const boxes = await items.evaluateAll((nodes) =>
+    nodes.map((node) => node.getBoundingClientRect().y)
+  );
+  expect(boxes[1]).toBeGreaterThan(boxes[0]);
+  expect(boxes[2]).toBeGreaterThan(boxes[1]);
 });

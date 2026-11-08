@@ -1,33 +1,15 @@
-# STATS
+# Stats
 
 Stores current and maximum resources, combat attributes, caps, and bar modifiers.
 
-`Countable`
+[Consume](../systems/consume.md) applies equipment changes; [Damage](../systems/damage.md) changes health; [Leveling](../systems/leveling.md) grows class stats.
 
-| Field | Type |
-| --- | --- |
-| `hp` | `number` |
-| `maxHp` | `number` |
-| `maxHpCap` | `number` |
-| `mp` | `number` |
-| `maxMp` | `number` |
-| `maxMpCap` | `number` |
-| `xp` | `number` |
-| `maxXp` | `number` |
-| `maxXpCap` | `number` |
-| `level` | `number` |
-
-`BarModifier`
-
-| Field | Type |
-| --- | --- |
-| `scale?` | `number` |
-| `offsetX?` | `number` |
-| `offsetY?` | `number` |
-
-Attach with `world.addComponentToEntity(entity, STATS, data)`. Query with `world.getEntities([STATS])`.
-
-Systems: `action`, `ai`, `ballistics`, `build`, `collect`, `consume`, `damage`, `drop`, `fate`, `harvest`, `homing`, `leveling`, `magic`, `popup`, `spike`, `trigger`.
+| Field      | Meaning                                                   |
+| ---------- | --------------------------------------------------------- |
+| `hp`       | May be fractional even when the HUD shows a whole number. |
+| `maxHpCap` | Limit when increasing maximum health.                     |
+| `maxMpCap` | Limit when increasing maximum mana.                       |
+| `maxXpCap` | Stored cap field; current XP thresholds come from the class level table.           |
 <!-- source-types -->
 
 ## Countable

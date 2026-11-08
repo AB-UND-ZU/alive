@@ -1,10 +1,8 @@
-# PUSHABLE
+# Pushable
 
 Allows an entity to initiate pushes.
 
-Attach with `world.addComponentToEntity(entity, PUSHABLE, data)`. Query with `world.getEntities([PUSHABLE])`.
-
-Systems: `fate`, `push`.
+[Push](../systems/push.md) checks this marker on the entity initiating a push. A movable crate uses [Displacable](displacable.md).
 <!-- source-types -->
 
 ## Pushable

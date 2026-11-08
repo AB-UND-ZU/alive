@@ -1,10 +1,13 @@
-# CONDITIONABLE
+# Conditionable
 
 Stores active skill and tool conditions.
 
-Attach with `world.addComponentToEntity(entity, CONDITIONABLE, data)`. Query with `world.getEntities([CONDITIONABLE])`.
+[Trigger](../systems/trigger.md) starts conditions. [Harvest](../systems/harvest.md), [Fishing](../systems/fishing.md), [Build](../systems/build.md) and [Magic](../systems/magic.md) consume the relevant condition.
 
-Systems: `action`, `build`, `damage`, `fate`, `fishing`, `harvest`, `interact`, `magic`, `trigger`.
+| Field        | Meaning                                               |
+| ------------ | ----------------------------------------------------- |
+| `item`       | Entity ID of the skill or tool used by the condition. |
+| `generation` | Action generation used to advance the condition.      |
 <!-- source-types -->
 
 ## ConditionType

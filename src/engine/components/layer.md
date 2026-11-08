@@ -1,16 +1,8 @@
-# LAYER
+# Layer
 
 Stores structure-layer membership for indoor and outdoor rendering.
 
-`Layer`
-
-| Field | Type |
-| --- | --- |
-| `structure?` | `number` |
-
-Attach with `world.addComponentToEntity(entity, LAYER, data)`. Query with `world.getEntities([LAYER])`.
-
-Systems: `ai`, `drop`, `enter`, `fate`, `magic`, `movement`, `visibility`, `water`.
+[Enter](../systems/enter.md) sets structure membership when entering or leaving a building. An absent `structure` means the entity is outside.
 <!-- source-types -->
 
 ## Layer

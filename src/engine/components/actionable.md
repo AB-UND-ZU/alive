@@ -1,10 +1,8 @@
-# ACTIONABLE
+# Actionable
 
 Tracks available contextual actions and queued spell, skill, and interaction input.
 
-Attach with `world.addComponentToEntity(entity, ACTIONABLE, data)`. Query with `world.getEntities([ACTIONABLE])`.
-
-Systems: `action`, `ai`, `collect`, `fate`, `fishing`, `popup.test`, `popup`, `trigger`.
+[Action](../systems/action.md) discovers nearby targets. [Trigger](../systems/trigger.md) consumes queued spell, skill and tool input.
 <!-- source-types -->
 
 ## Actionable

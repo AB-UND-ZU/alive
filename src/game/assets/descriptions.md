@@ -1,4 +1,22 @@
-# descriptions.ts
+# Descriptions
+
+Resolves item sprites and the description rows shown by game dialogs. Material, element and stat variants share the same registries.
+
+| Registry        | Contents                                   |
+| --------------- | ------------------------------------------ |
+| entitySprites   | Plain stackables and stat pickups          |
+| materialSprites | Material-based equipment and resources     |
+| elementSprites  | Element-based variants                     |
+| statSprites     | Material/stat combinations such as potions |
+
+| Function             | Contract                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| getEntityDescription | Return a configured description, derive and cache it, or fall back to the sprite name |
+| getItemDescription   | Resolve the item's configuration and return its description rows                      |
+
+Description callbacks are evaluated lazily to avoid circular initialization between sprite and balancing modules. Derived descriptions use current equipment and [consumption rules](../../engine/systems/consume.md), rather than a separate text copy of their values.
+
+Use [item helpers](utils.md) for the normal icon/name format. Unknown item configurations return an empty description.
 <!-- source-types -->
 
 ## PartialDescriptionTemplate

@@ -1,70 +1,14 @@
-# POPUP
+# Popup
 
 Stores dialog tabs, selection, deals, recipes, and focus.
 
-`Deal`
+[Popup](../systems/popup.md) updates selections and confirms actions. Create dialogs with `createPopup` so their selection arrays, view and sequence are initialized together.
 
-| Field | Type |
-| --- | --- |
-| `item` | `Omit<Item, "carrier" \| "bound">` |
-| `stock` | `number` |
-| `prices` | `Omit<Item, "carrier" \| "bound">[]` |
-| `carrier?` | `number` |
-
-`Ingredients`
-
-| Field | Type |
-| --- | --- |
-| `item` | `Omit<Item, "carrier" \| "bound">` |
-| `parts` | `Omit<Item, "carrier" \| "bound">[]` |
-
-`Recipe`
-
-| Field | Type |
-| --- | --- |
-| `item` | `Omit<Item, "carrier" \| "bound">` |
-| `options` | `Omit<Item, "carrier" \| "bound">[][]` |
-| `duration` | `number` |
-
-`Target`
-
-| Field | Type |
-| --- | --- |
-| `unit` | `UnitKey` |
-| `identifier?` | `string` |
-| `amount` | `number` |
-
-`Focus`
-
-| Field | Type |
-| --- | --- |
-| `identifier?` | `string` |
-| `targetId?` | `number` |
-| `position?` | `Position` |
-| `highlight` | `NonNullable<Focusable["highlight"]>` |
-| `quadrant?` | `Position` |
-
-`Popup`
-
-| Field | Type |
-| --- | --- |
-| `active` | `boolean` |
-| `verticalIndezes` | `number[]` |
-| `horizontalIndex` | `number` |
-| `selections` | `number[][]` |
-| `deals` | `Deal[]` |
-| `ingredients` | `Ingredients[]` |
-| `recipes` | `Recipe[]` |
-| `lines` | `Sprite[][][]` |
-| `targets` | `Target[]` |
-| `focuses` | `Focus[]` |
-| `choices` | `Omit<Item, "carrier" \| "bound">[]` |
-| `viewpoint` | `number` |
-| `tabs` | `(typeof popups)[number][]` |
-
-Attach with `world.addComponentToEntity(entity, POPUP, data)`. Query with `world.getEntities([POPUP])`.
-
-Systems: `action`, `build`, `consume`, `drop`, `harvest`, `interact`, `map`, `popup.test`, `popup`, `trigger`.
+| Field             | Meaning                                            |
+| ----------------- | -------------------------------------------------- |
+| `verticalIndezes` | Cursor row for each tab; keep the source spelling. |
+| `selections`      | Selected path within each tab.                     |
+| `viewpoint`       | Entity ID used for the popup camera.               |
 <!-- source-types -->
 
 ## Deal

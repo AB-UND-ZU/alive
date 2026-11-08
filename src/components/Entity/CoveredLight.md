@@ -1,16 +1,8 @@
-# CoveredLight
+# Covered Light
 
-Draws light for covered terrain.
+Adds a shadow-casting point light and a dark cover outside its radius. `brightness` sets the radius after the quarter-cell adjustment used by this renderer.
 
-```tsx
-InvertedRingGeometry({
-  width,
-  height,
-  innerRadius,
-  segments = 64,
-}: InvertedRingProps)
-CoveredLight({ brightness }: { brightness: number })
-```
+`InvertedRingGeometry` creates a plane with a circular hole. It rebuilds only when its dimensions or radius change and disposes replaced geometry. The oversized cover remains clipped by the camera, so ordinary movement does not rebuild it.
 <!-- source-types -->
 
 ## InvertedRingProps

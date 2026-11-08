@@ -1,5 +1,29 @@
 import { characterMask, composeCharacterPixels } from "./characters";
 
+test("complementary half blocks preserve their pixels with a solid lower-color background", () => {
+  expect(
+    composeCharacterPixels([
+      { char: "▀", color: "red" },
+      { char: "▄", color: "blue" },
+    ])
+  ).toEqual(
+    composeCharacterPixels([
+      { char: "█", color: "blue" },
+      { char: "▀", color: "red" },
+    ])
+  );
+});
+
+test("transparent crop spaces do not change border or title pixels", () => {
+  const layers = [
+    { char: "█", color: "white" },
+    { char: "A", color: "black" },
+  ];
+  expect(
+    composeCharacterPixels([...layers, { char: " ", color: "black" }])
+  ).toEqual(composeCharacterPixels(layers));
+});
+
 describe("stacked character rendering", () => {
   it("fills a cell without seams and combines the two half blocks", () => {
     expect(characterMask("█").filter(Boolean)).toHaveLength(9 * 16);

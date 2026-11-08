@@ -1089,6 +1089,13 @@ export default function Controls({
     }
   }, []);
 
+  const releaseTouch = useCallback(() => {
+    touchOrigin.current = undefined;
+    pressedOrientations.current = [];
+    setJoystickOrientations([]);
+    handleMove([]);
+  }, [handleMove]);
+
   const handleTouchMove = useCallback(
     (event: TouchEvent) => {
       if (!paused) {
@@ -1136,10 +1143,7 @@ export default function Controls({
       }
 
       if (event.touches.length !== 1) {
-        touchOrigin.current = undefined;
-        pressedOrientations.current = [];
-        setJoystickOrientations([]);
-        handleMove(pressedOrientations.current);
+        releaseTouch();
         return false;
       }
 
@@ -1189,7 +1193,14 @@ export default function Controls({
 
       return false;
     },
-    [handleAction, handleMove, setJoystickOrientations, paused, popupTab]
+    [
+      handleAction,
+      handleMove,
+      releaseTouch,
+      setJoystickOrientations,
+      paused,
+      popupTab,
+    ]
   );
 
   const handleVisibility = useCallback(() => {
@@ -1199,11 +1210,17 @@ export default function Controls({
   }, [setPaused]);
 
   useEffect(() => {
+    // A touch target can disappear after moving away from an interaction.
+    const releasePointer = (event: PointerEvent) => {
+      if (event.pointerType === "touch") releaseTouch();
+    };
+    window.addEventListener("pointerup", releasePointer, true);
+    window.addEventListener("pointercancel", releasePointer, true);
     window.addEventListener("keydown", handleKey);
     window.addEventListener("keyup", handleKey);
 
-    window.addEventListener("touchstart", handleTouchMove);
-    window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchstart", handleTouchMove, { passive: false });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", handleTouchMove);
     window.addEventListener("touchcancel", handleTouchMove);
 
@@ -1212,6 +1229,8 @@ export default function Controls({
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
+      window.removeEventListener("pointerup", releasePointer, true);
+      window.removeEventListener("pointercancel", releasePointer, true);
       window.removeEventListener("keydown", handleKey);
       window.removeEventListener("keyup", handleKey);
 
@@ -1224,7 +1243,13 @@ export default function Controls({
 
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [handleKey, handleMouseMove, handleTouchMove, handleVisibility]);
+  }, [
+    handleKey,
+    handleMouseMove,
+    handleTouchMove,
+    handleVisibility,
+    releaseTouch,
+  ]);
 
   const emptySpell = createButton(
     isTouch ? "SPELL" : "SPACE",
@@ -1421,25 +1446,27 @@ export default function Controls({
       )}
       <div className="Skill" id="skill" onClick={handleSkill} />
       <div className="Spell" id="spell" onClick={handleSpell} />
-      {interactable && (
-        <div
-          className="Interact"
-          id="interact"
-          onClick={handleInteract}
-          style={
-            {
-              "--interact-x":
-                signedDistance(position.x, interactable.position.x, size) -
-                fraction.x,
-              "--interact-y":
-                signedDistance(position.y, interactable.position.y, size) -
-                fraction.y,
-              "--interact-width": interactable.size.x,
-              "--interact-height": interactable.size.y,
-            } as React.CSSProperties
-          }
-        />
-      )}
+      {/* Keep the touch target attached when moving away hides its prompt. */}
+      <div
+        className="Interact"
+        id="interact"
+        hidden={!interactable}
+        onClick={handleInteract}
+        style={
+          interactable
+            ? ({
+                "--interact-x":
+                  signedDistance(position.x, interactable.position.x, size) -
+                  fraction.x,
+                "--interact-y":
+                  signedDistance(position.y, interactable.position.y, size) -
+                  fraction.y,
+                "--interact-width": interactable.size.x,
+                "--interact-height": interactable.size.y,
+              } as React.CSSProperties)
+            : undefined
+        }
+      />
       {Array.from({ length: popupTabs }).map((_, index) => (
         <div
           key={index}

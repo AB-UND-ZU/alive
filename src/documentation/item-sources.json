@@ -1,0 +1,552 @@
+{
+  "items": [
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "accessory": "compass",
+        "material": "iron",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 879
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 3
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 888
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 3
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 939
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "consume": "key",
+        "material": "iron",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 947
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "tool": "shovel",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 956
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "tool": "axe",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 961
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "tool": "hook",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 966
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 3
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1112
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stackable": "resource",
+        "material": "iron",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1120
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 5
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1204
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stackable": "resource",
+        "material": "iron",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1212
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "offhand": "shield",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1221
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "spell": "wave",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1223
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "spell": "beam",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1229
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "spell": "trap",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1234
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "spell": "dash",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1239
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 5
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1300
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "consume": "key",
+        "material": "gold",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1308
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stackable": "resource",
+        "material": "iron",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1317
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "weapon": "spear",
+        "skill": "spear",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1326
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "weapon": "wand",
+        "skill": "wand",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1332
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "skill": "bow",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1338
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "skill": "slash",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1343
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "skill": "zap",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1348
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "skill": "block",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1353
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "skill": "totem",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1358
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 3
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1418
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stackable": "coin",
+        "amount": 5
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1426
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stackable": "resource",
+        "material": "iron",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1434
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stackable": "coin",
+        "amount": 50
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1483
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "stackable": "letter",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1491
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "accessory": "boots",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1499
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "accessory": "torch",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1500
+    },
+    {
+      "npc": "earthChief",
+      "method": "quest",
+      "item": {
+        "accessory": "map",
+        "material": "gold",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 1501
+    },
+    {
+      "npc": "fireChief",
+      "method": "quest",
+      "item": {
+        "stackable": "resource",
+        "material": "gold",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2012
+    },
+    {
+      "npc": "fireChief",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 10
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2021
+    },
+    {
+      "npc": "fireChief",
+      "method": "quest",
+      "item": {
+        "tool": "pickaxe",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2029
+    },
+    {
+      "npc": "fireChief",
+      "method": "quest",
+      "item": {
+        "stackable": "resource",
+        "material": "gold",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2107
+    },
+    {
+      "npc": "fireChief",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 3
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2116
+    },
+    {
+      "npc": "fireChief",
+      "method": "quest",
+      "item": {
+        "accessory": "ring",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2124
+    },
+    {
+      "npc": "fireChief",
+      "method": "quest",
+      "item": {
+        "accessory": "amulet",
+        "material": "wood",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2129
+    },
+    {
+      "npc": "fireGateGuard",
+      "method": "quest",
+      "item": {
+        "stackable": "resource",
+        "material": "gold",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2199
+    },
+    {
+      "npc": "fireGateGuard",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 5
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2208
+    },
+    {
+      "npc": "fireSmith",
+      "method": "quest",
+      "item": {
+        "stackable": "resource",
+        "material": "gold",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2283
+    },
+    {
+      "npc": "fireSmith",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 5
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2292
+    },
+    {
+      "npc": "fireDruid",
+      "method": "quest",
+      "item": {
+        "stackable": "resource",
+        "material": "gold",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2414
+    },
+    {
+      "npc": "fireDruid",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 5
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2423
+    },
+    {
+      "npc": "fireNomad",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 5
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2652
+    },
+    {
+      "npc": "fireNomad",
+      "method": "quest",
+      "item": {
+        "stackable": "schema",
+        "amount": 1
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2707
+    },
+    {
+      "npc": "fireNomad",
+      "method": "quest",
+      "item": {
+        "stat": "xp",
+        "amount": 3
+      },
+      "source": "src/game/assets/npcs.ts",
+      "line": 2722
+    }
+  ],
+  "unresolved": [],
+  "natural": [
+    {
+      "unit": "chick",
+      "item": {
+        "stackable": "egg",
+        "amount": 1,
+        "bound": false
+      },
+      "source": "src/engine/systems/ai.ts",
+      "line": 618
+    }
+  ]
+}

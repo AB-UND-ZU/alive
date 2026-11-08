@@ -1,0 +1,30 @@
+.Preview {
+  container-type: inline-size;
+}
+.PreviewLayout {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.PreviewInstruction {
+  margin: 0;
+  min-width: 0;
+  max-width: 100%;
+  padding-top: 0;
+}
+.PreviewInstruction .Text {
+  white-space: normal;
+}
+.Preview[data-scene="game"] .PreviewInstruction {
+  padding-top: 0;
+}
+@container (max-width: 650px) {
+  .PreviewInstruction {
+    padding-top: 0;
+  }
+  .PreviewLayout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+}

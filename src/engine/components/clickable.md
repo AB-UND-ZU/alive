@@ -1,17 +1,8 @@
-# CLICKABLE
+# Clickable
 
 Records a pending pointer click.
 
-`Clickable`
-
-| Field | Type |
-| --- | --- |
-| `clicked` | `boolean` |
-| `player` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, CLICKABLE, data)`. Query with `world.getEntities([CLICKABLE])`.
-
-Systems: `ai`, `click`, `freeze`, `movement`.
+[Click](../systems/click.md) turns the pending click into movement or interaction. [Freeze](../systems/freeze.md) also handles clicks on snow cover.
 <!-- source-types -->
 
 ## Clickable

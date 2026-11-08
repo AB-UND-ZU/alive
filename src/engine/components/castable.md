@@ -1,36 +1,13 @@
-# CASTABLE
+# Castable
 
 Describes a spell’s damage, effects, range, caster, and hit tracking.
 
-`ProcStats`
+[Trigger](../systems/trigger.md) creates casts. [Magic](../systems/magic.md) applies them to targets; [Damage](../systems/damage.md) supplies damage and relationship checks.
 
-| Field | Type |
-| --- | --- |
-| `drain` | `number` |
-| `knock` | `number` |
-
-`BuffStats`
-
-| Field | Type |
-| --- | --- |
-| `addHaste` | `number` |
-| `addPower` | `number` |
-| `addArmor` | `number` |
-| `addWisdom` | `number` |
-| `addResist` | `number` |
-
-`AbilityStats`
-
-| Field | Type |
-| --- | --- |
-| `duration` | `number` |
-| `range` | `number` |
-| `retrigger` | `number` |
-| `reproc` | `number` |
-
-Attach with `world.addComponentToEntity(entity, CASTABLE, data)`. Query with `world.getEntities([CASTABLE])`.
-
-Systems: `action`, `ai`, `burn`, `damage`, `drop`, `homing`, `leveling`, `magic`, `movement`, `trigger`.
+| Field      | Meaning                                                         |
+| ---------- | --------------------------------------------------------------- |
+| `caster`   | Entity ID used for ownership and faction checks.                |
+| `affected` | Per-target hit history for this cast; shared by its area cells. |
 <!-- source-types -->
 
 ## DamageType

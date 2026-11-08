@@ -43,7 +43,7 @@ const waterCells = ["water_shallow", "water_deep"];
  * The island is centered at 0,0 and wraps around the map edges, so the matrix
  * is shifted by half the map to center the island, see `toMatrix`.
  */
-const getPlayableMatrix = (world: World) => {
+export const getPlayableMatrix = (world: World) => {
   const level = world.metadata.gameEntity[LEVEL];
   const blockedKinds = new Map<string, boolean>();
   const matrix = createMatrix(level.size * 2, level.size * 2, 0);
@@ -79,7 +79,7 @@ const getPlayableMatrix = (world: World) => {
   return matrix;
 };
 
-const toMatrix = (world: World, position: Position) => {
+export const toMatrix = (world: World, position: Position) => {
   const half = world.metadata.gameEntity[LEVEL].size / 2;
   return { x: position.x + half, y: position.y + half };
 };

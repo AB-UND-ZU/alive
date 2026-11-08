@@ -1,23 +1,8 @@
-# TOOLTIP
+# Tooltip
 
 Stores proximity text and dialog timing.
 
-`Tooltip`
-
-| Field | Type |
-| --- | --- |
-| `idle?` | `Sprite` |
-| `dialogs` | `Sprite[][]` |
-| `nextDialog` | `number` |
-| `persistent` | `boolean` |
-| `override?` | `"visible" \| "hidden"` |
-| `changed?` | `boolean` |
-| `enemy?` | `boolean` |
-| `lastTooltip?` | `number` |
-
-Attach with `world.addComponentToEntity(entity, TOOLTIP, data)`. Query with `world.getEntities([TOOLTIP])`.
-
-Systems: `ai`, `fate`, `popup`, `text`, `trigger`.
+[Text](../systems/text.md) selects and advances messages. `override` can force visibility independently of the usual nearby-target choice.
 <!-- source-types -->
 
 ## Tooltip

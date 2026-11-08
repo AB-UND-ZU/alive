@@ -1,7 +1,3 @@
-# FogOfWar
+# Fog Of War
 
-Draws the fog state of a cell.
-
-```tsx
-FogOfWar()
-```
+Renders the fixed `fogOfWar` sprite at `fogHeight`, without light or shadow shading. `Entity` decides when the overlay is needed from visibility and loot state; this component only draws it.

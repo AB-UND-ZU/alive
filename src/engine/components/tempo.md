@@ -1,16 +1,8 @@
-# TEMPO
+# Tempo
 
 Modifies action timing on a cell.
 
-`Tempo`
-
-| Field | Type |
-| --- | --- |
-| `amount` | `number` |
-
-Attach with `world.addComponentToEntity(entity, TEMPO, data)`. Query with `world.getEntities([TEMPO])`.
-
-Systems: `freeze`, `harvest`, `movement`.
+[Movement](../systems/movement.md) includes terrain tempo in action timing. [Harvest](../systems/harvest.md) and [Freeze](../systems/freeze.md) change ground that affects it.
 <!-- source-types -->
 
 ## Tempo

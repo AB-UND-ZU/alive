@@ -1,22 +1,17 @@
-import { useState, useContext, useLayoutEffect, useRef } from "react";
+import { Fragment, useState, useContext, useLayoutEffect, useRef } from "react";
 import { Sprite } from "../engine/components/sprite";
 import { Orientation } from "../engine/components/orientable";
 import { popupCorner, popupSide } from "../game/assets/sprites";
 import { createTab, getFacingLayers } from "../game/assets/ui";
 import { colors } from "../game/assets/colors";
-import { Button, Pixels, Text, LinkStyleContext } from "./visuals";
+import { Button, Pixels, Text } from "./visuals";
 import { ReferenceContext } from "./references";
 import { DocToken } from "./types";
+import "./CodeBlock.css";
 const facing = (sprite: Sprite, orientation: Orientation): Sprite => ({
   ...sprite,
   layers: getFacingLayers(sprite, orientation),
 });
-const referenceClass = (href: string) =>
-  "CodeRef" +
-  [...href]
-    .reduce((hash, char) => (Math.imul(hash, 31) + char.charCodeAt(0)) | 0, 0)
-    .toString(36)
-    .replace("-", "n");
 const syntaxColors = {
   plain: colors.white,
   keyword: colors.aqua,
@@ -25,50 +20,6 @@ const syntaxColors = {
   comment: colors.grey,
   type: colors.teal,
 };
-function SemanticCode({ text }: { text: string }) {
-  const { entries, pattern, link } = useContext(ReferenceContext);
-  return (
-    <>
-      {text.split(pattern || /([A-Za-z_][A-Za-z_0-9]*)/).map((part, i) => {
-        const reference = entries[part] || entries[part.toLowerCase()];
-        return (
-          <span
-            key={i}
-            className={reference ? referenceClass(reference.href) : undefined}
-          >
-            {reference ? link(reference.href, part) : part}
-          </span>
-        );
-      })}
-    </>
-  );
-}
-function HighlightedCode({ text, color }: { text: string; color: string }) {
-  const { entries, pattern } = useContext(ReferenceContext);
-  return (
-    <>
-      {text.split(pattern || /([A-Za-z_][A-Za-z_0-9]*)/).map((part, index) => {
-        const reference = entries[part] || entries[part.toLowerCase()];
-        return (
-          <span
-            key={index}
-            className={reference ? referenceClass(reference.href) : undefined}
-          >
-            <LinkStyleContext.Provider
-              value={{
-                linked: !!reference,
-                hovered: false,
-                preserveColor: false,
-              }}
-            >
-              <Text color={color}>{part}</Text>
-            </LinkStyleContext.Provider>
-          </span>
-        );
-      })}
-    </>
-  );
-}
 export function CodeBlock({
   text,
   language = "",
@@ -81,13 +32,7 @@ export function CodeBlock({
   syntax?: DocToken["syntax"];
 }) {
   const [copied, setCopied] = useState(false);
-  const { entries, pattern } = useContext(ReferenceContext);
-  const referenced = new Set(
-    text
-      .split(pattern || /([A-Za-z_][A-Za-z_0-9]*)/)
-      .map((part) => (entries[part] || entries[part.toLowerCase()])?.href)
-      .filter(Boolean)
-  );
+  const { link } = useContext(ReferenceContext);
   const [lang, explicit] = language.split(/\s+/, 2);
   const filename =
     explicit?.replace(/^file=/, "") ||
@@ -96,28 +41,44 @@ export function CodeBlock({
         (/^(tsx?|jsx?)$/.test(lang) ? `.${lang}` : ".ts")
       : source.replace(/^docs\//, "").replace(/\.md$/, "") +
         `.${!lang || lang === "text" ? "txt" : lang}`);
+  const basename = filename.split("/").pop() || filename;
   const lines = text.split("\n"),
     digits = String(lines.length).length;
   const width = Math.max(
-    filename.length + 2,
+    1,
     ...lines.map((line) => line.replace(/\t/g, "  ").length)
   );
   const gutter = digits * 18;
   const container = useRef<HTMLElement>(null);
-  const [columns, setColumns] = useState(30);
+  const [available, setAvailable] = useState(30);
   useLayoutEffect(() => {
+    const measure = (width: number) => {
+      if (width > 0)
+        setAvailable(Math.max(6, Math.floor(width / 18) - digits - 2));
+    };
+    measure(container.current?.clientWidth || 0);
     const observer = new ResizeObserver(([entry]) =>
-      setColumns(
-        Math.max(6, Math.floor(entry.contentRect.width / 18) - digits - 2)
-      )
+      measure(entry.contentRect.width)
     );
     if (container.current) observer.observe(container.current);
     return () => observer.disconnect();
   }, [digits]);
+  const columns = Math.min(available, Math.max(8, width, basename.length + 2));
   const tab =
-    filename.length > columns - 2
-      ? "." + filename.slice(-(columns - 3))
-      : filename;
+    basename.length > columns - 2
+      ? "." + basename.slice(-(columns - 3))
+      : basename;
+  let nextPart = 0;
+  const tokenLines = lines.map((line, index) =>
+    (syntax?.[index] || [{ text: line, kind: "plain" as const }]).map(
+      (part) => ({
+        ...part,
+        href:
+          part.kind === "plain" || part.kind === "type" ? part.href : undefined,
+        id: nextPart++,
+      })
+    )
+  );
   const border = (top: boolean) => [
     facing(popupCorner, top ? "up" : "left"),
     ...(top ? createTab(tab, tab.length + 2, true) : []),
@@ -129,19 +90,12 @@ export function CodeBlock({
   const wall = (side: Orientation) =>
     Array.from({ length: lines.length }, () => [facing(popupSide, side)]);
   return (
-    <section className="CodeBlock" aria-label={filename} ref={container}>
-      <style>
-        {[...referenced]
-          .map(
-            (href) =>
-              `.CodeBlock:has(.CodeSemantic .${referenceClass(
-                href!
-              )}:is(:hover,:focus-within)) .CodePixels .${referenceClass(
-                href!
-              )} .LinkText svg rect{fill:${colors.aqua}}`
-          )
-          .join("\n")}
-      </style>
+    <section
+      className="CodeBlock"
+      aria-label={filename}
+      title={filename}
+      ref={container}
+    >
       <div>
         <div className="CodeChrome" style={{ marginLeft: gutter }}>
           <Pixels rows={[border(true)]} />
@@ -155,37 +109,37 @@ export function CodeBlock({
             style={{ width: gutter }}
             aria-hidden="true"
           >
-            {lines.map((_, i) => (
-              <div key={i}>
-                <Text color={colors.grey}>{`${String(i + 1).padStart(
-                  digits
-                )}`}</Text>
+            {lines.map((_, index) => (
+              <div key={index}>
+                <Text color={colors.grey}>
+                  {String(index + 1).padStart(digits)}
+                </Text>
               </div>
             ))}
           </div>
           <div className="CodeChrome">
             <Pixels rows={wall("left")} />
           </div>
-          <div className="CodeScroll">
+          <div className="CodeScroll" key={source + "\n" + text}>
             <div className="CodeSurface" style={{ width: width * 18 }}>
-              <div className="CodePixels" aria-hidden="true">
-                {lines.map((line, i) => (
-                  <div className="CodeSourceLine" key={i}>
-                    {(
-                      syntax?.[i] || [{ text: line, kind: "plain" as const }]
-                    ).map((part, j) => (
-                      <HighlightedCode
-                        key={j}
-                        color={syntaxColors[part.kind]}
-                        text={part.text.replace(/\t/g, "  ")}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
               <pre className="CodeSemantic" aria-label={text}>
                 <code>
-                  <SemanticCode text={text} />
+                  {tokenLines.map((line, index) => (
+                    <Fragment key={index}>
+                      {index > 0 && "\n"}
+                      {line.map((part) => (
+                        <span
+                          key={part.id}
+                          className={`CodePart${part.id} CellGlyph`}
+                          style={{ color: syntaxColors[part.kind] }}
+                        >
+                          {part.href
+                            ? link(part.href, part.text, true)
+                            : part.text}
+                        </span>
+                      ))}
+                    </Fragment>
+                  ))}
                 </code>
               </pre>
             </div>

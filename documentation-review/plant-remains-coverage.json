@@ -1,0 +1,50 @@
+[
+  {
+    "route": "cells/plants",
+    "selector": "#world-tree",
+    "viewport": 1440,
+    "height": 544,
+    "width": 1026,
+    "errors": []
+  },
+  {
+    "route": "cells/plants",
+    "selector": "#world-palm",
+    "viewport": 1440,
+    "height": 608,
+    "width": 1026,
+    "errors": []
+  },
+  {
+    "route": "cells/plants",
+    "selector": "#world-oak",
+    "viewport": 1440,
+    "height": 608,
+    "width": 1026,
+    "errors": []
+  },
+  {
+    "route": "cells/plants",
+    "selector": "#world-tree",
+    "viewport": 390,
+    "height": 544,
+    "width": 390,
+    "errors": []
+  },
+  {
+    "route": "cells/plants",
+    "selector": "#world-palm",
+    "viewport": 390,
+    "height": 608,
+    "width": 390,
+    "errors": []
+  },
+  {
+    "route": "cells/plants",
+    "selector": "#world-oak",
+    "viewport": 390,
+    "height": 608,
+    "width": 390,
+    "errors": []
+  }
+]

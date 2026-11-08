@@ -1,16 +1,8 @@
-# REVIVABLE
+# Revivable
 
 Controls revival state.
 
-`Revivable`
-
-| Field | Type |
-| --- | --- |
-| `available` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, REVIVABLE, data)`. Query with `world.getEntities([REVIVABLE])`.
-
-Systems: `fate`, `interact`.
+[Interact](../systems/interact.md) checks whether revival is available. [Fate](../systems/fate.md) creates the death and revival state.
 <!-- source-types -->
 
 ## Revivable

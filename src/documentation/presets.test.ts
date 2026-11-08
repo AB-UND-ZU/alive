@@ -3,12 +3,19 @@ import { assertHero, advance } from "../testing/harness";
 import { up4Center } from "../game/levels/tutorial/areas";
 import { normalize } from "../game/math/std";
 import { LEVEL } from "../engine/components/level";
+import { getItemSprite } from "../game/assets/utils";
+import { ITEM } from "../engine/components/item";
+import { missing } from "../game/assets/sprites";
 test("Dungeon preset equips a playable hero in the real tutorial", () => {
   const world = createPresetWorld("dungeon"),
     hero = assertHero(world);
   expect(world.metadata.gameEntity[LEVEL].name).toBe("LEVEL_TUTORIAL");
   expect(hero.EQUIPPABLE?.weapon).toBeDefined();
   expect(hero.STATS?.hp).toBeGreaterThan(0);
+  for (const slot of ["map", "compass"] as const) {
+    const item = world.assertByIdAndComponents(hero.EQUIPPABLE![slot]!, [ITEM]);
+    expect(getItemSprite(item[ITEM]).name).not.toBe(missing.name);
+  }
 });
 test("Bandit preset starts inside the boss room with combat gear", () => {
   const world = createPresetWorld("bandit"),

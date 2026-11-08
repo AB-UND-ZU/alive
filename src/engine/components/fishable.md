@@ -1,16 +1,8 @@
-# FISHABLE
+# Fishable
 
-Stores the fishing state of a fish.
+Stores the population of a fish habitat.
 
-`Fishable`
-
-| Field | Type |
-| --- | --- |
-| `population` | `number` |
-
-Attach with `world.addComponentToEntity(entity, FISHABLE, data)`. Query with `world.getEntities([FISHABLE])`.
-
-Systems: `ai`.
+[AI](../systems/ai.md) manages habitat population and creates or removes the visible fish. Individual hook attachment uses [Hookable](hookable.md).
 <!-- source-types -->
 
 ## Fishable

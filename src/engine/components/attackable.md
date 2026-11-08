@@ -1,16 +1,8 @@
-# ATTACKABLE
+# Attackable
 
 Marks a target as attackable and configures its scratch effect.
 
-`Attackable`
-
-| Field | Type |
-| --- | --- |
-| `scratchColor?` | `string` |
-
-Attach with `world.addComponentToEntity(entity, ATTACKABLE, data)`. Query with `world.getEntities([ATTACKABLE])`.
-
-Systems: `ai`, `damage`, `fate`, `homing`, `magic`, `spike`, `trigger`.
+[Damage](../systems/damage.md) uses this marker when choosing melee targets. `scratchColor` colors the hit effect.
 <!-- source-types -->
 
 ## Attackable

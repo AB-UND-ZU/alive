@@ -2,13 +2,7 @@
 
 Marks a point of interest.
 
-`Poi`
-
-| Field | Type |
-| --- | --- |
-| `sprite` | `Sprite` |
-
-Attach with `world.addComponentToEntity(entity, POI, data)`. Query with `world.getEntities([POI])`.
+The map popup draws `sprite` instead of the entity's world sprite. [Fog](fog.md) determines whether the point has been discovered.
 <!-- source-types -->
 
 ## Poi

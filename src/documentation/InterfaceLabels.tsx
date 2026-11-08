@@ -1,48 +1,82 @@
 import { useDimensions } from "../components/Dimensions";
 import Row from "../components/Row";
-import { createText } from "../game/assets/ui";
+import {
+  createText,
+  createButton,
+  getStatSprite,
+  getStatColor,
+} from "../game/assets/ui";
 import { colors } from "../game/assets/colors";
 export function InterfaceLabels() {
-  const { padding } = useDimensions();
-  const indent = (columns: number) => " ".repeat(Math.max(0, columns));
-  const labels = [
-    { top: 4, text: indent(padding) + "↑ Pause    ↑ Stats" },
-    { top: 5, text: indent(padding + 3) + "↑ HP / MP / XP" },
-    { top: 6, text: indent(padding + 14) + "Use ↑" },
-    { top: 7, text: "← Terminal →" },
-    { top: 8, text: "  Move and inspect" },
-    { top: 11, text: "Equipped actions ↓" },
-    { top: 15, text: indent(padding + 1) + "Skill Spell" },
-    { top: 16, text: indent(padding + 3) + "↓     ↓" },
-  ];
+  const d = useDimensions();
+  const left = (d.columns - 21) / 2;
+  const line = (x: number, y: number, text: string) => (
+    <div
+      key={x + ":" + y}
+      style={{
+        position: "absolute",
+        left: x * d.cellWidth,
+        top: y * d.cellHeight,
+      }}
+    >
+      <Row cells={createText(text, colors.white, colors.black)} />
+    </div>
+  );
   return (
     <div
       className="InterfaceLabels"
-      role="img"
-      aria-label="Pause, stats, terminal and equipped action controls"
+      aria-label="Pause, stats, quick actions, skill, spell and gear controls"
     >
-      {labels.map(({ top, text }) => (
+      {line(left + 1, 0, "\u0117")}
+      {line(left - 1, 1, "Pause")}
+      {line(left - 4, 2, "(auto-save)")}
+      {line(left + 9, 0, "\u0117")}
+      {line(left + 7, 1, "Stats")}
+      {(["hp", "mp", "xp"] as const).map((stat, index) => (
         <div
-          key={top}
+          key={stat}
+          data-stat-label={stat}
           style={{
             position: "absolute",
-            top: `calc(var(--cell-height) * ${top})`,
-            left: 0,
+            left: (left + 8) * d.cellWidth,
+            top: (index + 2) * d.cellHeight,
           }}
         >
           <Row
-            cells={createText(
-              text
-                .replaceAll("↑", "\u0117")
-                .replaceAll("↓", "\u0118")
-                .replaceAll("←", "\u011a")
-                .replaceAll("→", "\u0119"),
-              colors.white,
-              colors.black
-            )}
+            cells={[
+              getStatSprite(stat, "display"),
+              ...createText(
+                stat.toUpperCase(),
+                getStatColor(stat),
+                colors.black
+              ),
+            ]}
           />
         </div>
       ))}
+      {line(left + 18, 0, "\u0117")}
+      {line(left + 16, 1, "Quick")}
+      {line(left + 15, 2, "actions")}
+      {["BAG", "EQUIP", "GEAR", "STATS", "MAP"].map((label, index) => (
+        <div
+          key={label}
+          aria-label={label}
+          data-quick-action={label}
+          style={{
+            position: "absolute",
+            left: (left + 15) * d.cellWidth,
+            top: (index + 3) * d.cellHeight,
+          }}
+        >
+          <Row cells={createButton(label, 7, false, false, false, "yellow")} />
+        </div>
+      ))}
+      {line(left + 1, 10, "Skill")}
+      {line(left + 3, 11, "\u0118")}
+      {line(left + 7, 10, "Spell")}
+      {line(left + 9, 11, "\u0118")}
+      {line(left + 15, 10, "Gear")}
+      {line(left + 16.5, 11, "\u0118")}
     </div>
   );
 }

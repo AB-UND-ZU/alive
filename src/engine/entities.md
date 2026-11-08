@@ -1,4 +1,23 @@
-# entities.ts
+# Entity Factories
+
+Typed factories attach the required component data and, normally, the current level tag. Factory names describe common entity shapes; [world creation](../bindings/creation.md) supplies their gameplay data.
+
+| Contract            | Behavior                                                         |
+| ------------------- | ---------------------------------------------------------------- |
+| Required components | Every component listed by the factory needs a value in its input |
+| Component data      | Attached as supplied; mutable data must belong to this entity    |
+| Level tag           | Added automatically unless the factory opts out                  |
+| Return value        | Entity data with its required components known to TypeScript     |
+
+```ts src/engine/entities.ts
+const counter = createCounter(world, {
+  RENDERABLE: { generation: 0 },
+});
+```
+
+`Entity` describes the component map. `TypedEntity<C>` requires the components in C and makes the others optional; it does not prove at runtime that a component exists. Use the [World assertion helpers](ecs.md) when reading an entity ID from a stored reference.
+
+Factories do not register positioned entities immediately. [Map](systems/map.md) handles new registrations at update cleanup; [preloading](ecs.md) runs that registration before initial rendering.
 <!-- source-types -->
 
 ## Entity

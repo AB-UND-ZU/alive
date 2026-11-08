@@ -1,16 +1,8 @@
-# REMAINABLE
+# Remainable
 
 Describes remains left after destruction.
 
-`Remainable`
-
-| Field | Type |
-| --- | --- |
-| `cell?` | `CellType` |
-
-Attach with `world.addComponentToEntity(entity, REMAINABLE, data)`. Query with `world.getEntities([REMAINABLE])`.
-
-Systems: `burn`, `drop`.
+[Drop](../systems/drop.md) and [Burn](../systems/burn.md) use the replacement cell after destruction. An absent `cell` leaves no explicit replacement.
 <!-- source-types -->
 
 ## Remainable

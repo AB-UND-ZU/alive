@@ -15,15 +15,9 @@
 }
 .TableScroll:has(> .GridTable) {
   position: relative;
-  max-height: calc(100dvh - 160px);
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   isolation: isolate;
-}
-.GridTable thead {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  background: #000;
 }
 .GridTable .GridValue[data-column="0"],
 .GridTable .GridFrozenRule {
@@ -36,9 +30,26 @@
 .GridTable thead .GridFrozenRule {
   z-index: 4;
 }
-.GridTable.FramedGrid tr > .GridEdge:first-child {
+
+.GridTable .GridEdge {
+  position: relative;
+  background: none;
+}
+
+.GridTable .GridFrozenEdge {
   position: sticky;
-  left: 0;
-  z-index: 2;
+  left: var(--frozen-left);
+  z-index: 3;
   background-color: #000;
+}
+.GridTable thead .GridFrozenEdge {
+  z-index: 5;
+}
+@media (max-width: 450px) {
+  .GridTable .GridValue[data-column="0"],
+  .GridTable .GridFrozenRule { position: static; }
+  .GridTable .GridFrozenEdge {
+    position: relative;
+    left: 0;
+  }
 }

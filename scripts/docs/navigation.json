@@ -1,14 +1,13 @@
 {
   "Intro": ["index", "play"],
   "Controls": ["interface", "keyboard-mouse", "touch"],
-  "World": ["map", "levels", "savegames", "timers"],
+  "World": ["levels", "map", "savegames", "timers", "sounds"],
   "Characters": ["factions", "classes", "npcs", "animals", "enemies", "bosses"],
   "Combat": ["damage", "stats", "respawn"],
   "Cells": ["units", "containers", "terrain", "structures", "plants"],
   "Items": [
     "slots",
     "elements",
-    "trading",
     "gear",
     "resources",
     "spells",
@@ -18,7 +17,8 @@
   ],
   "Interactions": [
     "chat",
-    "tips",
+    "dialogs",
+    "signs",
     "shops",
     "quests",
     "crafting",

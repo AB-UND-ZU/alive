@@ -1,17 +1,33 @@
-import { itemPage, unitPage, getEffectSprite, previewItem } from "./catalog";
+import { JoystickReference } from "./TouchControls";
+import { DialogSnapshot } from "./DialogSnapshot";
+import { CommandReference } from "./CommandBuilder";
+import { Literal } from "./visuals";
+import {
+  itemPage,
+  unitPage,
+  getEffectSprite,
+  previewItem,
+  catalogItems,
+  isDocumentedUnit,
+} from "./catalog";
 import { CodeBlock } from "./CodeBlock";
+import { Callout } from "./Callout";
 import {
   ReferenceContext,
   ReferenceText,
   referenceId,
   Reference,
+  featureSprites,
 } from "./references";
 import { getItemSprite, getUnitSprite } from "../game/assets/utils";
 import { UnitKey } from "../game/balancing/units";
 import { generateUnitData } from "../game/balancing/units";
+import { DungeonMap } from "./DungeonMap";
 import { WorldMap } from "./WorldMap";
+import { WarpMap } from "./WarpMap";
 import { unitDefinitions } from "../game/balancing/units";
 import { classDefinitions } from "../game/balancing/classes";
+import { displayedClasses } from "../game/assets/pixels";
 import {
   ReactNode,
   createContext,
@@ -33,6 +49,9 @@ import {
   Pixels,
   Key,
   ItemView,
+  UnitView,
+  StatLabel,
+  ProseContext,
   Button,
   PlainTable,
   TabTitle,
@@ -49,9 +68,11 @@ import {
   statConfig,
   getStatSprite,
   getStatColor,
+  mergeSprites,
   Stats as DisplayStats,
 } from "../game/assets/ui";
 import { Item } from "../engine/components/item";
+import { unitStats } from "../engine/components/stats";
 import { colors } from "../game/assets/colors";
 import {
   scrollBarTop,
@@ -100,27 +121,45 @@ const slug = (s: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
-const references = { ...manifest.references };
-for (const [name, item] of Object.entries(commandItems))
-  references[name] = {
+const references: Record<string, Reference> = { ...manifest.references };
+const sourcePaths = Object.fromEntries(
+  Object.entries(manifest.references).filter(([name]) =>
+    name.startsWith("src/")
+  )
+);
+for (const [name, item] of Object.entries(catalogItems)) {
+  references[name] = references["item:" + name] = {
     href: `${featureRoute(itemPage(item))}#${referenceId(name)}`,
     kind: "item",
   };
-for (const [name, unit] of Object.entries(unitDefinitions))
-  references[name] = {
+}
+for (const [name, unit] of Object.entries(unitDefinitions).filter(([key]) =>
+  isDocumentedUnit(key)
+)) {
+  references[name] = references["unit:" + name] = {
     href: `${featureRoute(unitPage(name, unit))}#${referenceId(name)}`,
     kind: "unit",
   };
+}
 for (const [name, reference] of Object.entries(references))
-  if (!references[name.toLowerCase()])
+  if (
+    reference.kind !== "code" &&
+    reference.kind !== "type" &&
+    !references[name.toLowerCase()]
+  )
     references[name.toLowerCase()] = reference;
-for (const name of Object.keys(classDefinitions))
+for (const name of displayedClasses)
   references[name] = {
     href: `${featureRoute("classes")}#${referenceId(name) || "unknown-class"}`,
     kind: "unit",
   };
 for (const [name, reference] of Object.entries(references)) {
-  if (reference.kind === "type" || reference.kind === "code") continue;
+  if (
+    reference.kind === "type" ||
+    reference.kind === "code" ||
+    name.includes(":")
+  )
+    continue;
   const display = name.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
   references[display] = reference;
   references[
@@ -136,7 +175,21 @@ for (const page of manifest.pages.filter(
   if (name.endsWith("s")) features[name.slice(0, -1)] = features[name];
 }
 const featureAliases: Record<string, string> = {
-  world: "map",
+  trading: "shops",
+  tips: "dialogs",
+  world: "levels",
+  aura: "stats#aura",
+  "world map": "levels",
+  terrain: "terrain",
+  grounds: "terrain",
+  portal: "levels#portals",
+  portals: "levels#portals",
+  "wood house": "structures#wood-house",
+  "desert fort": "structures#desert-fort",
+  lever: "structures#lever",
+  map: "map",
+  maps: "map",
+  minimap: "map",
   element: "elements",
   elements: "elements",
   fire: "elements#fire",
@@ -149,9 +202,9 @@ const featureAliases: Record<string, string> = {
   presets: "play",
   "test mode": "play",
   "arrow keys": "keyboard-mouse",
-  "earth town": "map",
-  "fire town": "map",
-  "fire haven": "map",
+  "earth town": "quests#earth-town",
+  "fire town": "quests#fire-haven",
+  "fire haven": "quests#fire-haven",
   save: "savegames",
   slot: "slots",
   slots: "slots",
@@ -185,6 +238,10 @@ const featureAliases: Record<string, string> = {
   workbench: "crafting",
   kettle: "brewing",
   anvil: "forging",
+  mine: "harvesting",
+  mines: "harvesting",
+  mining: "harvesting",
+  logging: "harvesting",
   death: "respawn",
   fog: "light",
   shadow: "light",
@@ -203,6 +260,16 @@ for (const [name, target] of Object.entries(featureAliases)) {
 }
 delete features.characters;
 delete features.character;
+for (const name of displayedClasses) features[name] = references[name];
+for (const stat of Object.keys(statConfig)) {
+  const unitStat = (unitStats as readonly string[]).includes(stat);
+  const reference: Reference = {
+    href: featureRoute("stats") + "#stat-" + referenceId(stat),
+    kind: "feature",
+  };
+  references["stat:" + stat] = reference;
+  if (unitStat) features[stat.toLowerCase()] = reference;
+}
 const decorations: Record<
   string,
   {
@@ -222,7 +289,7 @@ for (const stat of Object.keys(statConfig) as (keyof DisplayStats)[]) {
   decorations[stat.toLowerCase()] = {
     sprite: getStatSprite(stat, "display"),
     color: getStatColor(stat),
-    ...(stat === "true" ? { name: "True" } : {}),
+    name: stat === "true" ? "True" : getStatSprite(stat, "display").name,
   };
 }
 references.bolt = {
@@ -236,7 +303,7 @@ references.blast = {
 references.resource = { href: featureRoute("resources"), kind: "item" };
 if (decorations.bolt) decorations.bolt.name = "Bolt";
 if (decorations.blast) decorations.blast.name = "Blast";
-for (const name of Object.keys(unitDefinitions)) {
+for (const name of Object.keys(unitDefinitions).filter(isDocumentedUnit)) {
   const data = generateUnitData(name as UnitKey);
   const decoration = {
     sprite: { ...getUnitSprite(name as UnitKey), name: data.sprite.name },
@@ -252,8 +319,14 @@ for (const name of Object.keys(unitDefinitions)) {
   decorations[display] = decoration;
   decorations[display + "s"] = decoration;
 }
-for (const [name, definition] of Object.entries(classDefinitions))
-  decorations[name] = { sprite: definition.sprite };
+for (const name of displayedClasses)
+  decorations[name] = {
+    sprite: mergeSprites(
+      classDefinitions[name].backdrop || none,
+      classDefinitions[name].sprite
+    ),
+    name: classDefinitions[name].sprite.name,
+  };
 delete decorations.level;
 for (const [element, color] of Object.entries({
   earth: colors.green,
@@ -279,17 +352,35 @@ decorations["fire haven"] = {
 };
 for (const [name, color] of Object.entries(colors))
   decorations[name] = { color: color === colors.black ? colors.silver : color };
+const automaticFeatures = Object.fromEntries(
+  Object.entries(features).filter(
+    ([name]) =>
+      ![
+        "world",
+        "player",
+        "hero",
+        "level",
+        "earth",
+        "fire",
+        "water",
+        "air",
+      ].includes(name)
+  )
+);
 const patternFor = (entries: Record<string, unknown>) =>
   new RegExp(
     "\\b(" +
       Object.keys(entries)
-        .filter((key) => /\w/.test(key))
+        .filter((key) => /\w/.test(key) && !key.includes(":"))
         .sort((a, b) => b.length - a.length)
         .map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
         .join("|") +
       ")\\b",
     "gi"
   );
+const explicitReferences = Object.fromEntries(
+  Object.entries(references).filter(([name]) => name.includes(":"))
+);
 type Navigate = (route: string) => void;
 const LinkPolicyContext = createContext<{
   route: string;
@@ -315,6 +406,13 @@ function Link({
 }) {
   const policy = useContext(LinkPolicyContext);
   const id = useId();
+  const destination = manifest.pages.find(
+    (page) => page.route === canonicalRoute(href.split("#")[0])
+  );
+  const feature =
+    !automatic && destination?.source.startsWith("docs/")
+      ? featureSprites[destination.source.slice(5, -3)]
+      : undefined;
   if (policy && !/^(https?:|mailto:)/.test(href)) {
     const [route, anchor] = href.split("#");
     const target = canonicalRoute(route || policy.route);
@@ -326,7 +424,7 @@ function Link({
     )
       return <>{children}</>;
     const key = target === policy.route ? target + "#" + anchor : target;
-    if (!navigation) {
+    if (automatic && !navigation) {
       const owner = policy.targets.get(key);
       if (owner && owner !== id) return <>{children}</>;
       policy.targets.set(key, id);
@@ -355,7 +453,14 @@ function Link({
       <LinkStyleContext.Provider
         value={{ linked: styled, hovered: false, preserveColor: false }}
       >
-        {children}
+        {feature ? (
+          <span className="RichMention">
+            <Pixels rows={[[feature]]} label={feature.name} />
+            {children}
+          </span>
+        ) : (
+          children
+        )}
       </LinkStyleContext.Provider>
     </a>
   );
@@ -364,15 +469,72 @@ function Inline({
   tokens,
   navigate,
   color = colors.silver,
+  literal = false,
+  suffix,
 }: {
   tokens: DocToken[];
   navigate: Navigate;
   color?: string;
+  literal?: boolean;
+  suffix?: ReactNode;
 }) {
+  const parts = tokens.map((token) => ({ ...token }));
+  const endings = new Map<number, string>();
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (!["link", "strong", "em", "codespan", "game"].includes(parts[i].type))
+      continue;
+    const next = parts[i + 1];
+    if (next.type !== "text") continue;
+    const text = next.text || next.raw || "";
+    const punctuation = text.match(/^[.,!?;:)\]}]+/)?.[0];
+    if (!punctuation) continue;
+    endings.set(i, punctuation);
+    next.text = text.slice(punctuation.length);
+    next.raw = next.text;
+  }
+  const lastPart =
+    parts.length -
+    1 -
+    [...parts]
+      .reverse()
+      .findIndex((part) =>
+        Boolean(part.text || part.raw || part.value || part.tokens?.length)
+      );
   return (
     <>
-      {tokens.map((token, i) => {
+      {parts.map((token, i) => {
+        const ending =
+          endings.has(i) || (i === lastPart && suffix) ? (
+            <>
+              {endings.has(i) && (
+                <Text color={color} link={false}>
+                  {endings.get(i)!}
+                </Text>
+              )}
+              {i === lastPart && suffix}
+            </>
+          ) : undefined;
+        if (token.type === "game" && ending)
+          return (
+            <span className="Word" key={i}>
+              <Inline
+                tokens={[token]}
+                navigate={navigate}
+                color={color}
+                literal={literal}
+              />
+              {ending}
+            </span>
+          );
         if (token.type === "game") {
+          if (token.kind === "data")
+            return <Literal key={i}>{token.value!}</Literal>;
+          if (token.kind === "stat")
+            return (
+              <StatLabel key={i} stat={token.value! as keyof DisplayStats} />
+            );
+          if (token.kind === "unit")
+            return <UnitView key={i} unit={token.value! as UnitKey} />;
           if (token.kind === "key")
             return <Key key={i} label={token.value!} compact />;
           if (token.kind === "button")
@@ -406,6 +568,8 @@ function Inline({
                 tokens={token.tokens || []}
                 navigate={navigate}
                 color={colors.silver}
+                literal
+                suffix={ending}
               />
             </Link>
           );
@@ -416,21 +580,40 @@ function Inline({
               tokens={token.tokens || []}
               navigate={navigate}
               color={colors.white}
+              literal={literal}
+              suffix={ending}
             />
           );
         if (token.type === "codespan")
           return (
-            <ReferenceText
-              key={i}
-              text={decode(token.text || "")}
-              implementation
-            />
+            <code key={i} className="InlineCode">
+              {literal ? (
+                <Text color={color} suffix={ending} code>
+                  {decode(token.text || "")}
+                </Text>
+              ) : (
+                <ReferenceText
+                  text={decode(token.text || "")}
+                  implementation
+                  suffix={ending}
+                />
+              )}
+            </code>
           );
-        if (token.type === "br") return <br key={i} />;
-        return (
+        if (
+          token.type === "br" ||
+          (token.type === "html" && /^<br\s*\/?>$/i.test(token.raw || ""))
+        )
+          return <br key={i} />;
+        return literal ? (
+          <Text key={i} color={color} suffix={ending}>
+            {decode(token.text || token.raw || "")}
+          </Text>
+        ) : (
           <ReferenceText
             key={i}
             color={color}
+            suffix={ending}
             text={decode(token.text || token.raw || "")}
           />
         );
@@ -489,8 +672,19 @@ function Markdown({
       );
     if (token.type === "paragraph")
       return (
-        <p key={index}>
-          <Inline tokens={token.tokens || []} navigate={navigate} />
+        <p
+          key={index}
+          className={
+            token.tokens?.some(
+              (part) => part.type === "game" && part.kind === "key"
+            )
+              ? "ControlParagraph"
+              : undefined
+          }
+        >
+          <ProseContext.Provider value>
+            <Inline tokens={token.tokens || []} navigate={navigate} />
+          </ProseContext.Provider>
         </p>
       );
     if (token.type === "code") {
@@ -509,12 +703,24 @@ function Markdown({
         )
       )
         return <TextGallery key={index} name={token.text!.trim()} />;
+      if (token.lang === "widget" && token.text!.trim() === "touch-joystick")
+        return <JoystickReference key={index} />;
+      if (token.lang === "widget" && token.text!.trim().startsWith("popup "))
+        return (
+          <DialogSnapshot key={index} screens={token.text!.trim().slice(6)} />
+        );
+      if (token.lang === "widget" && token.text!.trim() === "command-reference")
+        return <CommandReference key={index} />;
+      if (token.lang === "widget" && token.text!.trim() === "warp-map")
+        return <WarpMap key={index} />;
+      if (token.lang === "widget" && token.text!.trim() === "dungeon-map")
+        return <DungeonMap key={index} />;
       if (token.lang === "widget" && token.text!.trim() === "world-map")
         return <WorldMap key={index} />;
       if (token.lang === "widget" && token.text!.trim() === "play")
         return <Play key={index} base={base} />;
       if (token.lang === "widget" && token.text!.trim() === "interface")
-        return <InterfaceDiagram key={index} />;
+        return <InterfaceDiagram key={index} base={base} />;
       if (token.lang === "widget")
         return <Widget key={index} name={token.text!.trim()} />;
       return (
@@ -536,6 +742,12 @@ function Markdown({
           )}
           rows={(token.rows || []).map((row) =>
             row.map((cell) => {
+              if (
+                cell.tokens.length === 1 &&
+                cell.tokens[0].type === "text" &&
+                /^(?:0|None)$/.test(cell.tokens[0].text?.trim() || "")
+              )
+                return null;
               const list =
                 cell.tokens.length > 1 &&
                 cell.tokens.every((part, index) =>
@@ -580,13 +792,13 @@ function Markdown({
     }
     if (token.type === "blockquote")
       return (
-        <blockquote key={index}>
+        <Callout key={index}>
           <Markdown
             tokens={token.tokens || []}
             navigate={navigate}
             source={source}
           />
-        </blockquote>
+        </Callout>
       );
     if (token.type === "text")
       return (
@@ -811,10 +1023,16 @@ function DocumentationHeader({ navigate }: { navigate: Navigate }) {
           label="Alive documentation"
           styled={false}
         >
-          <Text color={colors.maroon}>ALIVE </Text>
-          <Text color={colors.grey}>{manifest.version}</Text>
+          <Text color={colors.maroon} continuous>
+            {"ALIVE "}
+          </Text>
+          <Text color={colors.grey} continuous>
+            {manifest.version}
+          </Text>
         </Link>
-        <Text color={colors.white}>DOCUMENTATION</Text>
+        <Text color={colors.white} continuous>
+          DOCUMENTATION
+        </Text>
       </div>
       <div className="HeaderRule">
         <Pixels rows={[textSprites("─".repeat(columns), colors.silver)]} />
@@ -882,15 +1100,14 @@ function App() {
     <ReferenceContext.Provider
       value={{
         route: page.route,
-        entries: { ...references, ...page.references },
-        features,
-        decorations,
-        pattern: patternFor({
-          ...references,
-          ...page.references,
-          ...features,
-          ...decorations,
-        }),
+        implementation: page.chapter === "Development",
+        entries:
+          page.chapter === "Development"
+            ? { ...sourcePaths, ...explicitReferences, ...page.references }
+            : references,
+        features: page.chapter === "Development" ? {} : automaticFeatures,
+        decorations: page.chapter === "Development" ? {} : decorations,
+        pattern: patternFor(automaticFeatures),
         link: (href, children, navigation) => (
           <Link
             href={href}

@@ -1,27 +1,14 @@
 # Instances
 
-Shares Three.js instance buffers across repeated glyph and sprite geometry.
+Batches opaque glyphs and boxes that share geometry and material settings. `InstanceRoot` updates the shared Three.js buffers before rendering; `Instance` registers a transform anchor in a batch and unregisters it on unmount.
 
-```tsx
-InstanceRoot()
-Instance({
-  batchKey,
-  geometry,
-  lambert,
-  color,
-  darkness,
-  position,
-  userData,
-}: {
-  batchKey: string;
-  geometry: THREE.BufferGeometry;
-  lambert: boolean;
-  color: THREE.Color;
-  darkness?: SpringValue<number>;
-  position: [number, number, number];
-  userData?: Record<string, unknown>;
-})
-```
+| Input | Role |
+| --- | --- |
+| `batchKey`, `geometry`, `lambert` | Select the shared batch |
+| `position`, `userData` | Place the anchor in its parent group |
+| `color`, `darkness` | Update the instance color without registering it again |
+
+`Layer` uses this path for opaque artwork. Independently fading glyphs use their own animated material instead.
 <!-- source-types -->
 
 ## Entry

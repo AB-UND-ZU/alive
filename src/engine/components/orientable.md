@@ -1,16 +1,8 @@
-# ORIENTABLE
+# Orientable
 
 Stores the direction used for attacks and directional sprites.
 
-`Orientable`
-
-| Field | Type |
-| --- | --- |
-| `facing?` | `Orientation` |
-
-Attach with `world.addComponentToEntity(entity, ORIENTABLE, data)`. Query with `world.getEntities([ORIENTABLE])`.
-
-Systems: `ai`, `ballistics`, `build`, `burn`, `click`, `collect`, `damage`, `drop`, `fate`, `fishing`, `freeze`, `harvest`, `homing`, `interact`, `leveling`, `magic`, `movement`, `needle`, `popup`, `push`, `spike`, `trigger`, `vessel`.
+[Movement](../systems/movement.md) and attacks update facing. [Sprite helpers](../../game/assets/ui.md) use it to select directional layers.
 <!-- source-types -->
 
 ## Orientation

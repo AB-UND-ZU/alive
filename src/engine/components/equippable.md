@@ -1,10 +1,8 @@
-# EQUIPPABLE
+# Equippable
 
 References the equipped items for each equipment slot.
 
-Attach with `world.addComponentToEntity(entity, EQUIPPABLE, data)`. Query with `world.getEntities([EQUIPPABLE])`.
-
-Systems: `action`, `ai`, `build`, `collect`, `consume`, `damage`, `drop`, `fate`, `fishing`, `harvest`, `magic`, `map`, `movement`, `popup`, `renderer`, `spike`, `trigger`, `vessel`.
+Slots hold item entity IDs, not item definitions. An absent key means an empty slot. [Consume](../systems/consume.md) observes equipment changes and applies their stat bonuses.
 <!-- source-types -->
 
 ## Slot

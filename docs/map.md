@@ -1,11 +1,15 @@
-# Map
+# Minimap
 
-[[key:M]] opens the map when [[item:map]] is equipped. Explore to reveal terrain and landmarks. [[item:compass]] points toward its target. Walking past a level edge brings you to its opposite side.
+Equip [[item:map]] and press [[key:M]] to see discovered terrain and landmarks. The green marker shows your position. Each view below shows the same explored Island at a different zoom.
 
 ```widget
-world-map
+minimap
 ```
 
-Island shape and landmark positions change with each new game. The mountain range separates the jungle and desert; a central passage connects them. The glacier and ocean wrap around the mainland.
+| Key                 | Action                          |
+| ------------------- | ------------------------------- |
+| [[key:M]]           | Open with [[item:map]] equipped |
+| [[key:↑]] [[key:↓]] | Change zoom                     |
+| [[key:Escape]]      | Close                           |
 
-Carry [[item:torch]] to increase vision. [Light](light.md) explains unexplored and remembered cells.
+Explore to reveal cells. A [[item:compass]] points toward its target. Walking past an edge brings you to the opposite side of the level. See [Light](light.md) for unexplored and remembered terrain.

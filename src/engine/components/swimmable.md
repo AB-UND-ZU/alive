@@ -1,17 +1,8 @@
-# SWIMMABLE
+# Swimmable
 
 Tracks immersion and swimming appearance.
 
-`Swimmable`
-
-| Field | Type |
-| --- | --- |
-| `swimming` | `boolean` |
-| `sprite?` | `Sprite` |
-
-Attach with `world.addComponentToEntity(entity, SWIMMABLE, data)`. Query with `world.getEntities([SWIMMABLE])`.
-
-Systems: `burn`, `drop`, `fate`, `freeze`, `immersion`, `leveling`, `magic`, `trigger`.
+[Immersion](../systems/immersion.md) changes the swimming flag and stores the original sprite while a swimming appearance is shown.
 <!-- source-types -->
 
 ## Swimmable

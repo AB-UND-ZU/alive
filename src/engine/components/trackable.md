@@ -1,17 +1,8 @@
-# TRACKABLE
+# Trackable
 
 Stores a compass or marker target.
 
-`Trackable`
-
-| Field | Type |
-| --- | --- |
-| `target?` | `number` |
-| `quadrant?` | `Position` |
-
-Attach with `world.addComponentToEntity(entity, TRACKABLE, data)`. Query with `world.getEntities([TRACKABLE])`.
-
-Systems: `fate`, `needle`, `popup`, `trigger`.
+[Needle](../systems/needle.md) points toward the target across wrapping edges. [Focus](../systems/focus.md) updates the target used by quest and grave markers.
 <!-- source-types -->
 
 ## Trackable

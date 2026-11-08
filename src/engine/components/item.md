@@ -1,35 +1,14 @@
-# ITEM
+# Item
 
 Describes an item’s kind, material, element, quantity, and carrier.
 
-`ConditionableStats`
+[Collect](../systems/collect.md) changes item ownership; [Consume](../systems/consume.md) applies usable items and equipment. Keep `carrier` and the holder's [Inventory](inventory.md) in sync.
 
-| Field | Type |
-| --- | --- |
-| `absorb` | `number` |
-
-`Item`
-
-| Field | Type |
-| --- | --- |
-| `carrier` | `number` |
-| `amount` | `number` |
-| `material?` | `Material` |
-| `element?` | `Element` |
-| `accessory?` | `Accessory` |
-| `weapon?` | `Weapon` |
-| `offhand?` | `Offhand` |
-| `spell?` | `Spell` |
-| `skill?` | `Skill` |
-| `tool?` | `Tool` |
-| `stat?` | `keyof UnitStats` |
-| `consume?` | `Consumable` |
-| `stackable?` | `Stackable` |
-| `bound` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, ITEM, data)`. Query with `world.getEntities([ITEM])`.
-
-Systems: `action`, `ai`, `ballistics`, `build`, `burn`, `collect`, `consume`, `damage`, `drop`, `fate`, `focus`, `harvest`, `leveling`, `magic`, `needle`, `popup`, `trigger`, `vessel`.
+| Field     | Meaning                                                                                 |
+| --------- | --------------------------------------------------------------------------------------- |
+| `carrier` | Holder entity ID; -1 means no carrier.                                                  |
+| `bound`   | Bound items are excluded from normal death drops.                                       |
+| `amount`  | Stack size or remaining doses; some NPC equipment uses zero to hide its inventory icon. |
 <!-- source-types -->
 
 ## Element

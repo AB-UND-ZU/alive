@@ -6,4 +6,8 @@
 
 `unitGroups` combines material and color variants through the actual sprite name or source family key. Chests share a family, as do colored prisms, eyes and orbs. All source keys remain available for references.
 
-`previewItem` supplies the canonical command item's default material for an untiered equipment portrait. Zero-amount weapons stay hidden, matching concealed melee claws. `getEffectSprite` uses the real particle templates for bolt and blast actions, which have no inventory icons.
+`previewItem` supplies the canonical command item's default material for an untiered equipment or consumable portrait. Zero-amount weapons stay hidden, matching concealed melee claws. `getEffectSprite` uses the real particle templates for bolt and blast actions, which have no inventory icons.
+
+`unitComparisonStats` creates only equipment records in a minimal ECS and calls `getEntityDisplayStats`, so displayed attributes include equipped bonuses and the same haste/vision offsets as the game. The Damage row uses the NPC caster's balancing overrides, including concealed weapons. Stat pickup entries require a production recipe, trade or unit reference; command-only aliases remain available in the command documentation.
+
+Enemy overview groups distinguish Ilex and Oak Adds from ordinary roaming enemies. Hedge entries stay in the detailed comparisons but are omitted from that overview. Golem Limb is the right-hand column of the Golem comparison. Sign remains under Units. Torch and Boots are separate accessory comparisons so every reachable upgrade stays visible.

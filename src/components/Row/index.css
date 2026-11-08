@@ -27,3 +27,38 @@
   pointer-events: none;
   user-select: none;
 }
+
+.CellGlyph {
+  color: var(--glyph-color);
+  font-size: var(--cell-height);
+  line-height: var(--cell-height);
+  font-synthesis: none;
+  -webkit-font-smoothing: none;
+}
+
+.CellRun {
+  white-space: pre;
+}
+.SpriteCell {
+  user-select: none;
+}
+.CellRun[data-underlay] { isolation: isolate; }
+.CellRun[data-underlay]::before {
+  content: attr(data-underlay);
+  position: absolute;
+  inset: 0;
+  color: var(--underlay-color);
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+}
+.CellRun[data-glyph]::after { content: attr(data-glyph); user-select: none; pointer-events: none; }
+.CellRun[data-mask]::after {
+  content: attr(data-mask);
+  position: absolute;
+  inset: 0;
+  color: var(--mask-color);
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+}

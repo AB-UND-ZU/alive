@@ -1,10 +1,8 @@
-# DISPLACABLE
+# Displacable
 
 Allows movement caused by pushing or sliding.
 
-Attach with `world.addComponentToEntity(entity, DISPLACABLE, data)`. Query with `world.getEntities([DISPLACABLE])`.
-
-Systems: `freeze`, `magic`, `push`.
+[Push](../systems/push.md) moves displaced objects. [Magic](../systems/magic.md) uses it for knockback; [Freeze](../systems/freeze.md) keeps sliding momentum active.
 <!-- source-types -->
 
 ## Displacable

@@ -1,16 +1,12 @@
-# EXERTABLE
+# Exertable
 
 Links a cell effect to the cast that produced it.
 
-`Exertable`
+[Magic](../systems/magic.md) resolves `castable` as the owning cast entity. Multiple area cells can therefore share one cast and its hit history.
 
-| Field | Type |
-| --- | --- |
-| `castable` | `number` |
-
-Attach with `world.addComponentToEntity(entity, EXERTABLE, data)`. Query with `world.getEntities([EXERTABLE])`.
-
-Systems: `action`, `ai`, `damage`, `homing`, `magic`, `movement`.
+| Field      | Meaning                                           |
+| ---------- | ------------------------------------------------- |
+| `castable` | Entity ID of the cast that owns this effect cell. |
 <!-- source-types -->
 
 ## Exertable

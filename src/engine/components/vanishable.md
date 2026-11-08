@@ -1,19 +1,8 @@
-# VANISHABLE
+# Vanishable
 
 Controls disappearance.
 
-`Vanishable`
-
-| Field | Type |
-| --- | --- |
-| `type` | `"plant" \| "evaporate"` |
-| `cells` | `{ cell: CellType; delta: Position }[]` |
-| `decayed` | `boolean` |
-| `evaporate?` | `{ sprite: Sprite; fast: boolean }` |
-
-Attach with `world.addComponentToEntity(entity, VANISHABLE, data)`. Query with `world.getEntities([VANISHABLE])`.
-
-Systems: `drop`.
+[Drop](../systems/drop.md) advances the disappearance and creates the listed replacement cells at their relative offsets.
 <!-- source-types -->
 
 ## Vanishable

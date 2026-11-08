@@ -1,7 +1,11 @@
 # Classes
 
 ```widget
-classes
+popup class style
 ```
 
-Experience stops at level 10. Scout and Unknown stay at level 1; higher rows show the same stats.
+Rogue is available in normal play. The other class choices are enabled in Test Mode. The table shows levels 1–10.
+
+```widget
+classes
+```

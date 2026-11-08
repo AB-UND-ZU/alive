@@ -1,7 +1,5 @@
 # Keyboard
 
-Draws the touch keyboard and maps displayed keys to chat input.
+Renders the game's touch keyboard and writes key presses to chat input. Its four pages contain lowercase letters, uppercase letters, numbers and special characters.
 
-```tsx
-Keyboard()
-```
+The key and socket sprites come from game assets. Modifier keys switch pages; delete edits the input. Hero/world context controls when the keyboard is available.

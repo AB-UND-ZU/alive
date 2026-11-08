@@ -1,18 +1,12 @@
 # Push
 
-Moves pushable objects when their destination is free.
+Lets a push-capable unit move a displaced object into a free destination.
 
+| Check                                        | Result                                      |
+| -------------------------------------------- | ------------------------------------------- |
+| Actor action already consumed or unavailable | Skip the push                               |
+| Target destination blocked                   | Leave the object in place                   |
+| Valid displaced target                       | Move it and consume the actor's action      |
+| Idle box or drifting vessel                  | Suspend its movement clock when appropriate |
 
-## Queries
-
-```ts src/engine/systems/push.ts
-world.getEntities([RENDERABLE, REFERENCE]);
-```
-
-```ts src/engine/systems/push.ts
-world.getEntities([POSITION, MOVABLE, DISPLACABLE]);
-```
-
-```ts src/engine/systems/push.ts
-world.getEntities([POSITION, MOVABLE, PUSHABLE]);
-```
+[Pushable](../components/pushable.md) belongs to the actor; [Displacable](../components/displacable.md) belongs to the moved object. Push runs before [Damage](damage.md) and [Movement](movement.md).

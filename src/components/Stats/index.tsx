@@ -157,6 +157,7 @@ function StatsInner({
       ) : (
         <>
           <Row
+            className="StatHP"
             cells={
               flipped
                 ? [...repeat(none, 5), ...hpProgress, ...repeat(none, 3)]
@@ -164,6 +165,7 @@ function StatsInner({
             }
           />
           <Row
+            className="StatMP"
             cells={
               flipped
                 ? [
@@ -182,27 +184,27 @@ function StatsInner({
                   ]
             }
           />
-          <Row
-            cells={
-              flipped
-                ? [
-                    ...useButton,
-                    ...createProgress(stats, "xp", progressWidth),
-                    ...pauseButton,
-                  ]
-                : [
-                    ...pauseButton,
-                    ...createProgress(stats, "xp", progressWidth),
-                    ...useButton,
-                  ]
-            }
-          />
+          <div className="Row StatXP">
+            <Row
+              className={flipped ? "StatQuick" : "StatMenu"}
+              cells={flipped ? useButton : pauseButton}
+            />
+            <Row
+              className="StatProgress"
+              cells={createProgress(stats, "xp", progressWidth)}
+            />
+            <Row
+              className={flipped ? "StatMenu" : "StatQuick"}
+              cells={flipped ? pauseButton : useButton}
+            />
+          </div>
         </>
       )}
       {Array.from({ length: dimensions.hudRows - 4 }).map((_, index) => (
         <Row key={index} />
       ))}
       <Row
+        className="StatBorder"
         cells={createText("─".repeat(width + padding * 2 + 1), frameColor)}
       />
       {!initial && <div className="Menu" id="menu" onClick={handleMenu} />}

@@ -45,7 +45,6 @@ export function TextGallery({ name }: { name: string }) {
     >
       <PlainTable
         compact
-        framed
         headers={["", ...hex]}
         rows={Array.from({ length: 16 }, (_, row) => [
           <Text key={row} color={colors.grey}>

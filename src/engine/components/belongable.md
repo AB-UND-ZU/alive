@@ -1,16 +1,8 @@
-# BELONGABLE
+# Belongable
 
 Assigns the faction used for cooperation and hostility checks.
 
-`Belongable`
-
-| Field | Type |
-| --- | --- |
-| `faction` | `Faction` |
-
-Attach with `world.addComponentToEntity(entity, BELONGABLE, data)`. Query with `world.getEntities([BELONGABLE])`.
-
-Systems: `ai`, `ballistics`, `burn`, `damage`, `drop`, `fate`, `homing`, `leveling`, `magic`, `text`, `trigger`.
+[Damage](../systems/damage.md) uses the faction for hostility, cooperation and friendly-fire checks. The same relationship checks apply to healing.
 <!-- source-types -->
 
 ## Faction

@@ -1,9 +1,5 @@
-# Systems
+# Systems Renderer
 
-Advances the ECS at 30 fixed updates per second and renders visible entities around the viewpoint.
+Advances the ECS at 30 fixed updates per second while the world is running. It accumulates render-frame time, bounds catch-up work and skips updates while paused or suspended.
 
-```tsx
-Systems()
-```
-
-Screen shake starts from the restored hero's received damage, so loading a save does not shake for earlier hits. A viewpoint jump resets overscan immediately.
+The same component renders entities around the viewpoint and applies screen shake after new damage. Loading a hero seeds the damage counter, so old hits do not shake a restored game. A viewpoint jump resets overscan immediately.

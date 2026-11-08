@@ -1,7 +1,5 @@
 # Cursor
 
-Draws contextual pointer and hover state.
+Creates the body's arrow cursor from a fixed pixel bitmap. `useDimensions` supplies its scale and hotspot. Both normal and double-resolution images are cached until the pixel size changes.
 
-```tsx
-Cursor()
-```
+The component returns a style element. It does not track entities or choose a cursor from hover state.

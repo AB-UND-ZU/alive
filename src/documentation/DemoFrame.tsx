@@ -11,30 +11,34 @@ export function DemoFrame({ island = false }: { island?: boolean }) {
     const focus = () => setFocused(true),
       blur = () => setFocused(false);
     window.addEventListener("focus", focus);
+    window.addEventListener("touchstart", focus, true);
     window.addEventListener("blur", blur);
     return () => {
       window.removeEventListener("focus", focus);
+      window.removeEventListener("touchstart", focus, true);
       window.removeEventListener("blur", blur);
     };
   }, []);
   const columns = island
     ? Math.floor(dimensions.terminalWidth / dimensions.cellWidth)
-    : 21;
+    : 23;
   const rows = island
     ? Math.round(dimensions.terminalHeight / dimensions.cellHeight)
-    : 13;
+    : 15;
   const color = focused ? colors.lime : colors.silver;
   return (
     <div
       className="DemoFrame"
       aria-hidden="true"
+      data-columns={columns}
+      data-rows={rows}
       style={
         island
           ? undefined
           : {
-              left:
-                (dimensions.terminalWidth - columns * dimensions.cellWidth) / 2,
-              top: dimensions.terminalHeight / 2 - 6.5 * dimensions.cellHeight,
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
               width: columns * dimensions.cellWidth,
               height: rows * dimensions.cellHeight,
             }

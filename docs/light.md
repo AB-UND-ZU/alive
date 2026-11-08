@@ -12,8 +12,8 @@ Vision reveals nearby cells. Terrain and buildings block sight; explored ground 
 
 ## Shadows
 
-Enter a building to reveal its interior and hide the roof. Outside cells are hidden until you leave.
+Enter a [building](structures.md) to reveal its interior and hide the roof. Outside cells are hidden until you leave.
 
 ```scene
-movement
+light
 ```

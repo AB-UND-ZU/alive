@@ -2,15 +2,7 @@
 
 Identifies an NPC type and its behavior data.
 
-`Npc`
-
-| Field | Type |
-| --- | --- |
-| `type` | `NpcType` |
-
-Attach with `world.addComponentToEntity(entity, NPC, data)`. Query with `world.getEntities([NPC])`.
-
-Systems: `ai`, `ballistics`, `consume`, `damage`, `drop`, `harvest`, `magic`, `movement`, `trigger`.
+[Unit data](../../game/balancing/units.md) resolves this key into stats, equipment and behavior. [Damage](../systems/damage.md) and abilities can apply NPC-specific equipment values.
 <!-- source-types -->
 
 ## NpcType

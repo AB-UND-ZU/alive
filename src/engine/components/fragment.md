@@ -1,16 +1,8 @@
-# FRAGMENT
+# Fragment
 
 Links a structure fragment to its root entity.
 
-`Fragment`
-
-| Field | Type |
-| --- | --- |
-| `structure` | `number` |
-
-Attach with `world.addComponentToEntity(entity, FRAGMENT, data)`. Query with `world.getEntities([FRAGMENT])`.
-
-Systems: `action`, `ai`, `ballistics`, `burn`, `click`, `damage`, `drop`, `enter`, `harvest`, `magic`, `movement`, `trigger`, `visibility`.
+[Enter](../systems/enter.md) resolves the root structure. [Damage](../systems/damage.md) uses that relationship when a hit lands on a limb.
 <!-- source-types -->
 
 ## Fragment

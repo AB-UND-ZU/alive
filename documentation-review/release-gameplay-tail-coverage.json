@@ -1,0 +1,6303 @@
+{
+  "reviewedAt": "2026-11-08T22:51:08.287536+00:00",
+  "captureRoot": "/tmp/alive-release-gameplay",
+  "scope": {
+    "first": 25,
+    "last": 48,
+    "desktopRoutes": 24,
+    "phoneSamples": 7,
+    "contactSheets": 91,
+    "images": 320
+  },
+  "limitations": [
+    "PreviewScroll iframe scrollers were not included by the baseline endpoint capture script; their rightmost edge requires a separate targeted check.",
+    "Baseline native popup particle text was intermittently absent from screenshots; root reproduced populated native ECS state and fresh screenshots."
+  ],
+  "pages": [
+    {
+      "index": 25,
+      "route": "game-design/items/elements.html",
+      "source": "docs/elements.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "25-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "25-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "25-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "25-1440-003.png",
+          "kind": "body",
+          "y": 2296,
+          "band": 3
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 352,
+          "height": 352,
+          "client": 1008,
+          "width": 1008,
+          "rows": 352,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 288,
+          "height": 384,
+          "client": 1008,
+          "width": 1008,
+          "rows": 384,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 396,
+          "y": 736,
+          "height": 384,
+          "client": 1008,
+          "width": 1008,
+          "rows": 384,
+          "visible": true
+        },
+        {
+          "index": 3,
+          "x": 396,
+          "y": 384,
+          "height": 544,
+          "client": 1008,
+          "width": 1008,
+          "rows": 544,
+          "visible": true
+        },
+        {
+          "index": 4,
+          "x": 396,
+          "y": 296,
+          "height": 544,
+          "client": 1008,
+          "width": 1008,
+          "rows": 544,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "source": "docs/gear.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "26-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "26-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "26-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "26-1440-003.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 2844
+        },
+        {
+          "file": "26-1440-004.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 5688
+        },
+        {
+          "file": "26-1440-005.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "26-1440-006.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "26-1440-007.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 3,
+          "left": 2763
+        },
+        {
+          "file": "26-1440-008.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 3,
+          "left": 5526
+        },
+        {
+          "file": "26-1440-009.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "26-1440-010.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 4,
+          "left": 2718
+        },
+        {
+          "file": "26-1440-011.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 4,
+          "left": 5436
+        },
+        {
+          "file": "26-1440-012.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "26-1440-013.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 5,
+          "left": 2727
+        },
+        {
+          "file": "26-1440-014.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 5,
+          "left": 5454
+        },
+        {
+          "file": "26-1440-015.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "26-1440-016.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "26-1440-017.png",
+          "kind": "horizontal",
+          "y": 6400,
+          "scroller": 6,
+          "left": 2718
+        },
+        {
+          "file": "26-1440-018.png",
+          "kind": "horizontal",
+          "y": 6400,
+          "scroller": 6,
+          "left": 5436
+        },
+        {
+          "file": "26-1440-019.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        },
+        {
+          "file": "26-1440-020.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 7,
+          "left": 2772
+        },
+        {
+          "file": "26-1440-021.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 7,
+          "left": 5544
+        },
+        {
+          "file": "26-1440-022.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "26-1440-023.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        },
+        {
+          "file": "26-1440-024.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "26-1440-025.png",
+          "kind": "body",
+          "y": 10024,
+          "band": 13
+        },
+        {
+          "file": "26-1440-026.png",
+          "kind": "scene-focus",
+          "y": 10024,
+          "scene": "gear",
+          "pageMoved": false,
+          "active": true
+        },
+        {
+          "file": "26-1440-027.png",
+          "kind": "scene-escape",
+          "y": 10024,
+          "scene": "gear",
+          "active": true
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 320,
+          "height": 272,
+          "client": 1008,
+          "width": 1008,
+          "rows": 272,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 368,
+          "height": 512,
+          "client": 1008,
+          "width": 1008,
+          "rows": 512,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 396,
+          "y": 944,
+          "height": 992,
+          "client": 1008,
+          "width": 6696,
+          "rows": 992,
+          "visible": true
+        },
+        {
+          "index": 3,
+          "x": 396,
+          "y": 400,
+          "height": 896,
+          "client": 1008,
+          "width": 6534,
+          "rows": 896,
+          "visible": true
+        },
+        {
+          "index": 4,
+          "x": 396,
+          "y": 560,
+          "height": 1152,
+          "client": 1008,
+          "width": 6444,
+          "rows": 1152,
+          "visible": true
+        },
+        {
+          "index": 5,
+          "x": 396,
+          "y": 976,
+          "height": 992,
+          "client": 1008,
+          "width": 6462,
+          "rows": 992,
+          "visible": true
+        },
+        {
+          "index": 6,
+          "x": 396,
+          "y": 432,
+          "height": 960,
+          "client": 1008,
+          "width": 6444,
+          "rows": 960,
+          "visible": true
+        },
+        {
+          "index": 7,
+          "x": 396,
+          "y": 656,
+          "height": 1056,
+          "client": 1008,
+          "width": 6552,
+          "rows": 1056,
+          "visible": true
+        },
+        {
+          "index": 8,
+          "x": 396,
+          "y": 976,
+          "height": 672,
+          "client": 1008,
+          "width": 1008,
+          "rows": 672,
+          "visible": true
+        },
+        {
+          "index": 9,
+          "x": 396,
+          "y": 912,
+          "height": 512,
+          "client": 1008,
+          "width": 1008,
+          "rows": 512,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "gear",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 27,
+      "route": "game-design/items/resources.html",
+      "source": "docs/resources.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "27-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "27-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "27-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 198
+        },
+        {
+          "file": "27-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 396
+        },
+        {
+          "file": "27-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "27-1440-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 522
+        },
+        {
+          "file": "27-1440-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 1044
+        },
+        {
+          "file": "27-1440-007.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "27-1440-008.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "27-1440-009.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 684
+        },
+        {
+          "file": "27-1440-010.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 1368
+        },
+        {
+          "file": "27-1440-011.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "27-1440-012.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "27-1440-013.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 666
+        },
+        {
+          "file": "27-1440-014.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 1332
+        },
+        {
+          "file": "27-1440-015.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "27-1440-016.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "27-1440-017.png",
+          "kind": "horizontal",
+          "y": 6400,
+          "scroller": 5,
+          "left": 126
+        },
+        {
+          "file": "27-1440-018.png",
+          "kind": "horizontal",
+          "y": 6400,
+          "scroller": 5,
+          "left": 252
+        },
+        {
+          "file": "27-1440-019.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        },
+        {
+          "file": "27-1440-020.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 6,
+          "left": 81
+        },
+        {
+          "file": "27-1440-021.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 6,
+          "left": 162
+        },
+        {
+          "file": "27-1440-022.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "27-1440-023.png",
+          "kind": "body",
+          "y": 8152,
+          "band": 11
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 448,
+          "height": 1184,
+          "client": 1008,
+          "width": 1404,
+          "rows": 1184,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 896,
+          "height": 1152,
+          "client": 1008,
+          "width": 2052,
+          "rows": 1152,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 396,
+          "y": 512,
+          "height": 1408,
+          "client": 1008,
+          "width": 2376,
+          "rows": 1408,
+          "visible": true
+        },
+        {
+          "index": 3,
+          "x": 396,
+          "y": 384,
+          "height": 1024,
+          "client": 1008,
+          "width": 2340,
+          "rows": 1024,
+          "visible": true
+        },
+        {
+          "index": 4,
+          "x": 396,
+          "y": 672,
+          "height": 672,
+          "client": 1008,
+          "width": 1008,
+          "rows": 672,
+          "visible": true
+        },
+        {
+          "index": 5,
+          "x": 396,
+          "y": 608,
+          "height": 736,
+          "client": 1008,
+          "width": 1260,
+          "rows": 736,
+          "visible": true
+        },
+        {
+          "index": 6,
+          "x": 396,
+          "y": 608,
+          "height": 768,
+          "client": 1008,
+          "width": 1170,
+          "rows": 768,
+          "visible": true
+        },
+        {
+          "index": 7,
+          "x": 396,
+          "y": 640,
+          "height": 352,
+          "client": 1008,
+          "width": 1008,
+          "rows": 352,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 28,
+      "route": "game-design/items/spells.html",
+      "source": "docs/spells.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "28-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "28-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "28-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 2763
+        },
+        {
+          "file": "28-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 5526
+        },
+        {
+          "file": "28-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "28-1440-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 2763
+        },
+        {
+          "file": "28-1440-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 5526
+        },
+        {
+          "file": "28-1440-007.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "28-1440-008.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "28-1440-009.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 2763
+        },
+        {
+          "file": "28-1440-010.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 5526
+        },
+        {
+          "file": "28-1440-011.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "28-1440-012.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 3,
+          "left": 2763
+        },
+        {
+          "file": "28-1440-013.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 3,
+          "left": 5526
+        },
+        {
+          "file": "28-1440-014.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "28-1440-015.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "28-1440-016.png",
+          "kind": "body",
+          "y": 6216,
+          "band": 8
+        },
+        {
+          "file": "28-1440-017.png",
+          "kind": "scene-focus",
+          "y": 6216,
+          "scene": "abilities",
+          "pageMoved": false,
+          "active": true
+        },
+        {
+          "file": "28-1440-018.png",
+          "kind": "scene-escape",
+          "y": 6216,
+          "scene": "abilities",
+          "active": false
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 400,
+          "height": 1152,
+          "client": 1008,
+          "width": 6534,
+          "rows": 1152,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 816,
+          "height": 1184,
+          "client": 1008,
+          "width": 6534,
+          "rows": 1184,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 396,
+          "y": 464,
+          "height": 1056,
+          "client": 1008,
+          "width": 6534,
+          "rows": 1056,
+          "visible": true
+        },
+        {
+          "index": 3,
+          "x": 396,
+          "y": 784,
+          "height": 1184,
+          "client": 1008,
+          "width": 6534,
+          "rows": 1184,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "abilities",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 29,
+      "route": "game-design/items/skills.html",
+      "source": "docs/skills.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "29-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "29-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "29-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 198
+        },
+        {
+          "file": "29-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 396
+        },
+        {
+          "file": "29-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "29-1440-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 198
+        },
+        {
+          "file": "29-1440-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 396
+        },
+        {
+          "file": "29-1440-007.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "29-1440-008.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 3,
+          "left": 198
+        },
+        {
+          "file": "29-1440-009.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 3,
+          "left": 396
+        },
+        {
+          "file": "29-1440-010.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "29-1440-011.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 4,
+          "left": 198
+        },
+        {
+          "file": "29-1440-012.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 4,
+          "left": 396
+        },
+        {
+          "file": "29-1440-013.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "29-1440-014.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 5,
+          "left": 225
+        },
+        {
+          "file": "29-1440-015.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 5,
+          "left": 450
+        },
+        {
+          "file": "29-1440-016.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "29-1440-017.png",
+          "kind": "body",
+          "y": 5128,
+          "band": 7
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 640,
+          "height": 208,
+          "client": 1008,
+          "width": 1008,
+          "rows": 208,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 368,
+          "height": 768,
+          "client": 1008,
+          "width": 1404,
+          "rows": 768,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 396,
+          "y": 400,
+          "height": 800,
+          "client": 1008,
+          "width": 1404,
+          "rows": 800,
+          "visible": true
+        },
+        {
+          "index": 3,
+          "x": 396,
+          "y": 464,
+          "height": 768,
+          "client": 1008,
+          "width": 1404,
+          "rows": 768,
+          "visible": true
+        },
+        {
+          "index": 4,
+          "x": 396,
+          "y": 496,
+          "height": 800,
+          "client": 1008,
+          "width": 1404,
+          "rows": 800,
+          "visible": true
+        },
+        {
+          "index": 5,
+          "x": 396,
+          "y": 560,
+          "height": 672,
+          "client": 1008,
+          "width": 1458,
+          "rows": 672,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "skills",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 30,
+      "route": "game-design/items/tools.html",
+      "source": "docs/tools.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "30-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "30-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "30-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "30-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "30-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "30-1440-005.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "30-1440-006.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "30-1440-007.png",
+          "kind": "body",
+          "y": 4856,
+          "band": 7
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 704,
+          "height": 224,
+          "client": 1008,
+          "width": 1008,
+          "rows": 224,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 448,
+          "height": 768,
+          "client": 1008,
+          "width": 1008,
+          "rows": 768,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 396,
+          "y": 480,
+          "height": 672,
+          "client": 1008,
+          "width": 1008,
+          "rows": 672,
+          "visible": true
+        },
+        {
+          "index": 3,
+          "x": 396,
+          "y": 416,
+          "height": 736,
+          "client": 1008,
+          "width": 1008,
+          "rows": 736,
+          "visible": true
+        },
+        {
+          "index": 4,
+          "x": 396,
+          "y": 416,
+          "height": 640,
+          "client": 1008,
+          "width": 1008,
+          "rows": 640,
+          "visible": true
+        },
+        {
+          "index": 5,
+          "x": 396,
+          "y": 320,
+          "height": 544,
+          "client": 1008,
+          "width": 1008,
+          "rows": 544,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "harvesting",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 31,
+      "route": "game-design/items/consumables.html",
+      "source": "docs/consumables.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "31-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "31-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "31-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 756
+        },
+        {
+          "file": "31-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 1512
+        },
+        {
+          "file": "31-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "31-1440-005.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "31-1440-006.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 1,
+          "left": 585
+        },
+        {
+          "file": "31-1440-007.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 1,
+          "left": 1170
+        },
+        {
+          "file": "31-1440-008.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "31-1440-009.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 594
+        },
+        {
+          "file": "31-1440-010.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 1188
+        },
+        {
+          "file": "31-1440-011.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "31-1440-012.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "31-1440-013.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 207
+        },
+        {
+          "file": "31-1440-014.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 414
+        },
+        {
+          "file": "31-1440-015.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "31-1440-016.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "31-1440-017.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        },
+        {
+          "file": "31-1440-018.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 5,
+          "left": 684
+        },
+        {
+          "file": "31-1440-019.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 5,
+          "left": 1368
+        },
+        {
+          "file": "31-1440-020.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "31-1440-021.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        },
+        {
+          "file": "31-1440-022.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "31-1440-023.png",
+          "kind": "body",
+          "y": 9992,
+          "band": 13
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 944,
+          "height": 1120,
+          "client": 1008,
+          "width": 2520,
+          "rows": 1120,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 528,
+          "height": 1120,
+          "client": 1008,
+          "width": 2178,
+          "rows": 1120,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 396,
+          "y": 912,
+          "height": 1088,
+          "client": 1008,
+          "width": 2196,
+          "rows": 1088,
+          "visible": true
+        },
+        {
+          "index": 3,
+          "x": 396,
+          "y": 464,
+          "height": 1376,
+          "client": 1008,
+          "width": 1422,
+          "rows": 1376,
+          "visible": true
+        },
+        {
+          "index": 4,
+          "x": 396,
+          "y": 304,
+          "height": 832,
+          "client": 1008,
+          "width": 1008,
+          "rows": 832,
+          "visible": true
+        },
+        {
+          "index": 5,
+          "x": 396,
+          "y": 400,
+          "height": 1824,
+          "client": 1008,
+          "width": 2376,
+          "rows": 1824,
+          "visible": true
+        },
+        {
+          "index": 6,
+          "x": 396,
+          "y": 688,
+          "height": 672,
+          "client": 1008,
+          "width": 1008,
+          "rows": 672,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "food",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 32,
+      "route": "game-design/interactions/chat.html",
+      "source": "docs/chat.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "32-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "32-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "32-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "32-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "32-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "32-1440-005.png",
+          "kind": "body",
+          "y": 3816,
+          "band": 5
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 608,
+          "height": 528,
+          "client": 1008,
+          "width": 1008,
+          "rows": 528,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 592,
+          "height": 2272,
+          "client": 1008,
+          "width": 1008,
+          "rows": 2272,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 33,
+      "route": "game-design/interactions/dialogs.html",
+      "source": "docs/dialogs.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "33-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "33-1440-001.png",
+          "kind": "body",
+          "y": 392,
+          "band": 1
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 704,
+          "height": 416,
+          "client": 1008,
+          "width": 1008,
+          "rows": 416,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 34,
+      "route": "game-design/interactions/signs.html",
+      "source": "docs/signs.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "34-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "34-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "34-1440-002.png",
+          "kind": "body",
+          "y": 1400,
+          "band": 2
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 552,
+          "height": 288,
+          "client": 1008,
+          "width": 1008,
+          "rows": 288,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 35,
+      "route": "game-design/interactions/shops.html",
+      "source": "docs/shops.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "35-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "35-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "35-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "35-1440-003.png",
+          "kind": "body",
+          "y": 1992,
+          "band": 3
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 736,
+          "height": 208,
+          "client": 1008,
+          "width": 1008,
+          "rows": 208,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 976,
+          "height": 1248,
+          "client": 1008,
+          "width": 1008,
+          "rows": 1248,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "trading",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 36,
+      "route": "game-design/interactions/quests.html",
+      "source": "docs/quests.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "36-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "36-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "36-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "36-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "36-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "36-1440-005.png",
+          "kind": "body",
+          "y": 3496,
+          "band": 5
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 592,
+          "height": 1152,
+          "client": 1008,
+          "width": 1008,
+          "rows": 1152,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 400,
+          "height": 640,
+          "client": 1008,
+          "width": 1008,
+          "rows": 640,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 396,
+          "y": 464,
+          "height": 320,
+          "client": 1008,
+          "width": 1008,
+          "rows": 320,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 37,
+      "route": "game-design/interactions/crafting.html",
+      "source": "docs/crafting.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "37-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "37-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "37-1440-002.png",
+          "kind": "body",
+          "y": 1112,
+          "band": 2
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 736,
+          "height": 608,
+          "client": 1008,
+          "width": 1008,
+          "rows": 608,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "crafting",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 38,
+      "route": "game-design/interactions/brewing.html",
+      "source": "docs/brewing.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "38-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "38-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "38-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "38-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "38-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "38-1440-005.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "38-1440-006.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "38-1440-007.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "38-1440-008.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "38-1440-009.png",
+          "kind": "body",
+          "y": 6552,
+          "band": 9
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 448,
+          "height": 5536,
+          "client": 1008,
+          "width": 1008,
+          "rows": 5536,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "brewing",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "source": "docs/forging.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "39-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "39-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "39-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "39-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "39-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "39-1440-005.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "39-1440-006.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "39-1440-007.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "39-1440-008.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "39-1440-009.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        },
+        {
+          "file": "39-1440-010.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "39-1440-011.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        },
+        {
+          "file": "39-1440-012.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "39-1440-013.png",
+          "kind": "body",
+          "y": 10400,
+          "band": 13
+        },
+        {
+          "file": "39-1440-014.png",
+          "kind": "body",
+          "y": 11200,
+          "band": 14
+        },
+        {
+          "file": "39-1440-015.png",
+          "kind": "body",
+          "y": 12000,
+          "band": 15
+        },
+        {
+          "file": "39-1440-016.png",
+          "kind": "body",
+          "y": 12800,
+          "band": 16
+        },
+        {
+          "file": "39-1440-017.png",
+          "kind": "body",
+          "y": 13600,
+          "band": 17
+        },
+        {
+          "file": "39-1440-018.png",
+          "kind": "body",
+          "y": 14400,
+          "band": 18
+        },
+        {
+          "file": "39-1440-019.png",
+          "kind": "body",
+          "y": 15200,
+          "band": 19
+        },
+        {
+          "file": "39-1440-020.png",
+          "kind": "body",
+          "y": 16000,
+          "band": 20
+        },
+        {
+          "file": "39-1440-021.png",
+          "kind": "body",
+          "y": 16088,
+          "band": 21
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 640,
+          "height": 14880,
+          "client": 1008,
+          "width": 1008,
+          "rows": 14880,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "forging",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 40,
+      "route": "game-design/interactions/harvesting.html",
+      "source": "docs/harvesting.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "40-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "40-1440-001.png",
+          "kind": "horizontal",
+          "y": 0,
+          "scroller": 0,
+          "left": 9
+        },
+        {
+          "file": "40-1440-002.png",
+          "kind": "horizontal",
+          "y": 0,
+          "scroller": 0,
+          "left": 18
+        },
+        {
+          "file": "40-1440-003.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "40-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "40-1440-005.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "40-1440-006.png",
+          "kind": "body",
+          "y": 3112,
+          "band": 4
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 368,
+          "height": 2880,
+          "client": 1008,
+          "width": 1026,
+          "rows": 2880,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "harvesting",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 41,
+      "route": "game-design/interactions/fishing.html",
+      "source": "docs/fishing.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "41-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "41-1440-001.png",
+          "kind": "body",
+          "y": 632,
+          "band": 1
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 448,
+          "height": 416,
+          "client": 1008,
+          "width": 1008,
+          "rows": 416,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "fishing",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 42,
+      "route": "game-design/interactions/farming.html",
+      "source": "docs/farming.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "42-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "42-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "42-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 171
+        },
+        {
+          "file": "42-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 342
+        },
+        {
+          "file": "42-1440-004.png",
+          "kind": "body",
+          "y": 1560,
+          "band": 2
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 768,
+          "height": 736,
+          "client": 1008,
+          "width": 1008,
+          "rows": 736,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 396,
+          "y": 832,
+          "height": 160,
+          "client": 1008,
+          "width": 1350,
+          "rows": 160,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "farming",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 43,
+      "route": "game-design/interactions/building.html",
+      "source": "docs/building.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "43-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "43-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "43-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "43-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "43-1440-004.png",
+          "kind": "body",
+          "y": 2808,
+          "band": 4
+        },
+        {
+          "file": "43-1440-005.png",
+          "kind": "scene-focus",
+          "y": 2808,
+          "scene": "building",
+          "pageMoved": false,
+          "active": true
+        },
+        {
+          "file": "43-1440-006.png",
+          "kind": "scene-escape",
+          "y": 2808,
+          "scene": "building",
+          "active": true
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 864,
+          "height": 2176,
+          "client": 1008,
+          "width": 1008,
+          "rows": 2176,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "building",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 44,
+      "route": "game-design/rendering/sprites.html",
+      "source": "docs/sprites.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "44-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "44-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "44-1440-002.png",
+          "kind": "body",
+          "y": 1144,
+          "band": 2
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 576,
+          "height": 416,
+          "client": 1008,
+          "width": 1008,
+          "rows": 416,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 45,
+      "route": "game-design/rendering/light.html",
+      "source": "docs/light.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "45-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "45-1440-001.png",
+          "kind": "body",
+          "y": 760,
+          "band": 1
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 384,
+          "height": 352,
+          "client": 1008,
+          "width": 1008,
+          "rows": 352,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "light",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 46,
+      "route": "game-design/rendering/threejs.html",
+      "source": "docs/threejs.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "46-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "46-1440-001.png",
+          "kind": "body",
+          "y": 48,
+          "band": 1
+        }
+      ],
+      "scrollers": [],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 47,
+      "route": "game-design/rendering/responsive.html",
+      "source": "docs/responsive.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "47-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "47-1440-001.png",
+          "kind": "body",
+          "y": 88,
+          "band": 1
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 396,
+          "y": 416,
+          "height": 448,
+          "client": 1008,
+          "width": 1008,
+          "rows": 448,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 48,
+      "route": "game-design/rendering/animations.html",
+      "source": "docs/animations.md",
+      "width": 1440,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "48-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "48-1440-001.png",
+          "kind": "body",
+          "y": 248,
+          "band": 1
+        },
+        {
+          "file": "48-1440-002.png",
+          "kind": "scene-focus",
+          "y": 248,
+          "scene": "abilities",
+          "pageMoved": false,
+          "active": true
+        },
+        {
+          "file": "48-1440-003.png",
+          "kind": "scene-escape",
+          "y": 248,
+          "scene": "abilities",
+          "active": false
+        }
+      ],
+      "scrollers": [],
+      "scenes": [
+        {
+          "scene": "abilities",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 25,
+      "route": "game-design/items/elements.html",
+      "source": "docs/elements.md",
+      "width": 390,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "25-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "25-390-001.png",
+          "kind": "horizontal",
+          "y": 0,
+          "scroller": 0,
+          "left": 228
+        },
+        {
+          "file": "25-390-002.png",
+          "kind": "horizontal",
+          "y": 0,
+          "scroller": 0,
+          "left": 456
+        },
+        {
+          "file": "25-390-003.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "25-390-004.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 21
+        },
+        {
+          "file": "25-390-005.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 42
+        },
+        {
+          "file": "25-390-006.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "25-390-007.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 21
+        },
+        {
+          "file": "25-390-008.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 42
+        },
+        {
+          "file": "25-390-009.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "25-390-010.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 3,
+          "left": 120
+        },
+        {
+          "file": "25-390-011.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 3,
+          "left": 240
+        },
+        {
+          "file": "25-390-012.png",
+          "kind": "body",
+          "y": 3128,
+          "band": 4
+        },
+        {
+          "file": "25-390-013.png",
+          "kind": "horizontal",
+          "y": 3128,
+          "scroller": 4,
+          "left": 120
+        },
+        {
+          "file": "25-390-014.png",
+          "kind": "horizontal",
+          "y": 3128,
+          "scroller": 4,
+          "left": 240
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 18,
+          "y": 832,
+          "height": 352,
+          "client": 354,
+          "width": 810,
+          "rows": 352,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 18,
+          "y": 864,
+          "height": 512,
+          "client": 354,
+          "width": 396,
+          "rows": 512,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 18,
+          "y": 640,
+          "height": 512,
+          "client": 354,
+          "width": 396,
+          "rows": 512,
+          "visible": true
+        },
+        {
+          "index": 3,
+          "x": 18,
+          "y": 416,
+          "height": 544,
+          "client": 354,
+          "width": 594,
+          "rows": 544,
+          "visible": true
+        },
+        {
+          "index": 4,
+          "x": 18,
+          "y": 296,
+          "height": 544,
+          "client": 354,
+          "width": 594,
+          "rows": 544,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "source": "docs/gear.md",
+      "width": 390,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "26-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "26-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "26-390-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "26-390-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "26-390-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "26-390-005.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 1,
+          "left": 129
+        },
+        {
+          "file": "26-390-006.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 1,
+          "left": 258
+        },
+        {
+          "file": "26-390-007.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "26-390-008.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 2,
+          "left": 3171
+        },
+        {
+          "file": "26-390-009.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 2,
+          "left": 6342
+        },
+        {
+          "file": "26-390-010.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "26-390-011.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 3090
+        },
+        {
+          "file": "26-390-012.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 6180
+        },
+        {
+          "file": "26-390-013.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "26-390-014.png",
+          "kind": "horizontal",
+          "y": 5600,
+          "scroller": 4,
+          "left": 3045
+        },
+        {
+          "file": "26-390-015.png",
+          "kind": "horizontal",
+          "y": 5600,
+          "scroller": 4,
+          "left": 6090
+        },
+        {
+          "file": "26-390-016.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "26-390-017.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        },
+        {
+          "file": "26-390-018.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 5,
+          "left": 3054
+        },
+        {
+          "file": "26-390-019.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 5,
+          "left": 6108
+        },
+        {
+          "file": "26-390-020.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "26-390-021.png",
+          "kind": "horizontal",
+          "y": 8000,
+          "scroller": 6,
+          "left": 3045
+        },
+        {
+          "file": "26-390-022.png",
+          "kind": "horizontal",
+          "y": 8000,
+          "scroller": 6,
+          "left": 6090
+        },
+        {
+          "file": "26-390-023.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        },
+        {
+          "file": "26-390-024.png",
+          "kind": "horizontal",
+          "y": 8800,
+          "scroller": 7,
+          "left": 3099
+        },
+        {
+          "file": "26-390-025.png",
+          "kind": "horizontal",
+          "y": 8800,
+          "scroller": 7,
+          "left": 6198
+        },
+        {
+          "file": "26-390-026.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "26-390-027.png",
+          "kind": "body",
+          "y": 10400,
+          "band": 13
+        },
+        {
+          "file": "26-390-028.png",
+          "kind": "horizontal",
+          "y": 10400,
+          "scroller": 8,
+          "left": 273
+        },
+        {
+          "file": "26-390-029.png",
+          "kind": "horizontal",
+          "y": 10400,
+          "scroller": 8,
+          "left": 546
+        },
+        {
+          "file": "26-390-030.png",
+          "kind": "body",
+          "y": 11200,
+          "band": 14
+        },
+        {
+          "file": "26-390-031.png",
+          "kind": "horizontal",
+          "y": 11200,
+          "scroller": 9,
+          "left": 273
+        },
+        {
+          "file": "26-390-032.png",
+          "kind": "horizontal",
+          "y": 11200,
+          "scroller": 9,
+          "left": 546
+        },
+        {
+          "file": "26-390-033.png",
+          "kind": "body",
+          "y": 11896,
+          "band": 15
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 18,
+          "y": 768,
+          "height": 288,
+          "client": 354,
+          "width": 354,
+          "rows": 288,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 18,
+          "y": 416,
+          "height": 576,
+          "client": 354,
+          "width": 612,
+          "rows": 576,
+          "visible": true
+        },
+        {
+          "index": 2,
+          "x": 18,
+          "y": 256,
+          "height": 992,
+          "client": 354,
+          "width": 6696,
+          "rows": 992,
+          "visible": true
+        },
+        {
+          "index": 3,
+          "x": 18,
+          "y": 512,
+          "height": 896,
+          "client": 354,
+          "width": 6534,
+          "rows": 896,
+          "visible": true
+        },
+        {
+          "index": 4,
+          "x": 18,
+          "y": 672,
+          "height": 1152,
+          "client": 354,
+          "width": 6444,
+          "rows": 1152,
+          "visible": true
+        },
+        {
+          "index": 5,
+          "x": 18,
+          "y": 288,
+          "height": 992,
+          "client": 354,
+          "width": 6462,
+          "rows": 992,
+          "visible": true
+        },
+        {
+          "index": 6,
+          "x": 18,
+          "y": 544,
+          "height": 960,
+          "client": 354,
+          "width": 6444,
+          "rows": 960,
+          "visible": true
+        },
+        {
+          "index": 7,
+          "x": 18,
+          "y": 768,
+          "height": 1056,
+          "client": 354,
+          "width": 6552,
+          "rows": 1056,
+          "visible": true
+        },
+        {
+          "index": 8,
+          "x": 18,
+          "y": 288,
+          "height": 704,
+          "client": 354,
+          "width": 900,
+          "rows": 704,
+          "visible": true
+        },
+        {
+          "index": 9,
+          "x": 18,
+          "y": 256,
+          "height": 544,
+          "client": 354,
+          "width": 900,
+          "rows": 544,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "gear",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 32,
+      "route": "game-design/interactions/chat.html",
+      "source": "docs/chat.md",
+      "width": 390,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "32-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "32-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "32-390-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 48
+        },
+        {
+          "file": "32-390-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 96
+        },
+        {
+          "file": "32-390-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "32-390-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 174
+        },
+        {
+          "file": "32-390-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 348
+        },
+        {
+          "file": "32-390-007.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "32-390-008.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "32-390-009.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "32-390-010.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "32-390-011.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "32-390-012.png",
+          "kind": "body",
+          "y": 5784,
+          "band": 8
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 18,
+          "y": 320,
+          "height": 608,
+          "client": 354,
+          "width": 450,
+          "rows": 608,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 18,
+          "y": 576,
+          "height": 2816,
+          "client": 354,
+          "width": 702,
+          "rows": 2816,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 33,
+      "route": "game-design/interactions/dialogs.html",
+      "source": "docs/dialogs.md",
+      "width": 390,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "33-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "33-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "33-390-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 48
+        },
+        {
+          "file": "33-390-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 96
+        },
+        {
+          "file": "33-390-004.png",
+          "kind": "body",
+          "y": 1416,
+          "band": 2
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 18,
+          "y": 448,
+          "height": 640,
+          "client": 354,
+          "width": 450,
+          "rows": 640,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "source": "docs/forging.md",
+      "width": 390,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "39-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "39-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "39-390-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "39-390-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "39-390-004.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 0,
+          "left": 147
+        },
+        {
+          "file": "39-390-005.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 0,
+          "left": 294
+        },
+        {
+          "file": "39-390-006.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "39-390-007.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "39-390-008.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "39-390-009.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "39-390-010.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "39-390-011.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        },
+        {
+          "file": "39-390-012.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "39-390-013.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        },
+        {
+          "file": "39-390-014.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "39-390-015.png",
+          "kind": "body",
+          "y": 10400,
+          "band": 13
+        },
+        {
+          "file": "39-390-016.png",
+          "kind": "body",
+          "y": 11200,
+          "band": 14
+        },
+        {
+          "file": "39-390-017.png",
+          "kind": "body",
+          "y": 12000,
+          "band": 15
+        },
+        {
+          "file": "39-390-018.png",
+          "kind": "body",
+          "y": 12800,
+          "band": 16
+        },
+        {
+          "file": "39-390-019.png",
+          "kind": "body",
+          "y": 13600,
+          "band": 17
+        },
+        {
+          "file": "39-390-020.png",
+          "kind": "body",
+          "y": 14400,
+          "band": 18
+        },
+        {
+          "file": "39-390-021.png",
+          "kind": "body",
+          "y": 15200,
+          "band": 19
+        },
+        {
+          "file": "39-390-022.png",
+          "kind": "body",
+          "y": 16000,
+          "band": 20
+        },
+        {
+          "file": "39-390-023.png",
+          "kind": "body",
+          "y": 16800,
+          "band": 21
+        },
+        {
+          "file": "39-390-024.png",
+          "kind": "body",
+          "y": 17528,
+          "band": 22
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 18,
+          "y": 320,
+          "height": 14880,
+          "client": 354,
+          "width": 648,
+          "rows": 14880,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "forging",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 42,
+      "route": "game-design/interactions/farming.html",
+      "source": "docs/farming.md",
+      "width": 390,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "42-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "42-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "42-390-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 156
+        },
+        {
+          "file": "42-390-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 312
+        },
+        {
+          "file": "42-390-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "42-390-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 498
+        },
+        {
+          "file": "42-390-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 996
+        },
+        {
+          "file": "42-390-007.png",
+          "kind": "body",
+          "y": 2264,
+          "band": 3
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 18,
+          "y": 512,
+          "height": 768,
+          "client": 354,
+          "width": 666,
+          "rows": 768,
+          "visible": true
+        },
+        {
+          "index": 1,
+          "x": 18,
+          "y": 608,
+          "height": 160,
+          "client": 354,
+          "width": 1350,
+          "rows": 160,
+          "visible": true
+        }
+      ],
+      "scenes": [
+        {
+          "scene": "farming",
+          "ready": true
+        }
+      ],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    },
+    {
+      "index": 47,
+      "route": "game-design/rendering/responsive.html",
+      "source": "docs/responsive.md",
+      "width": 390,
+      "height": 1000,
+      "captures": [
+        {
+          "file": "47-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "47-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "47-390-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 12
+        },
+        {
+          "file": "47-390-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 24
+        },
+        {
+          "file": "47-390-004.png",
+          "kind": "body",
+          "y": 952,
+          "band": 2
+        }
+      ],
+      "scrollers": [
+        {
+          "index": 0,
+          "x": 18,
+          "y": 256,
+          "height": 640,
+          "client": 354,
+          "width": 378,
+          "rows": 640,
+          "visible": true
+        }
+      ],
+      "scenes": [],
+      "errors": [],
+      "overflow": false,
+      "visuallyInspected": true,
+      "reviewer": "tables_links",
+      "inspectionStatus": "all stored body bands, listed horizontal endpoints and scene focus/escape captures inspected"
+    }
+  ],
+  "sheets": [
+    {
+      "index": 25,
+      "route": "game-design/items/elements.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-25-1440-00.png",
+      "captures": [
+        {
+          "file": "25-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "25-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "25-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "25-1440-003.png",
+          "kind": "body",
+          "y": 2296,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-26-1440-00.png",
+      "captures": [
+        {
+          "file": "26-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "26-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "26-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "26-1440-003.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 2844
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-26-1440-01.png",
+      "captures": [
+        {
+          "file": "26-1440-004.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 5688
+        },
+        {
+          "file": "26-1440-005.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "26-1440-006.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "26-1440-007.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 3,
+          "left": 2763
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-26-1440-02.png",
+      "captures": [
+        {
+          "file": "26-1440-008.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 3,
+          "left": 5526
+        },
+        {
+          "file": "26-1440-009.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "26-1440-010.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 4,
+          "left": 2718
+        },
+        {
+          "file": "26-1440-011.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 4,
+          "left": 5436
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-26-1440-03.png",
+      "captures": [
+        {
+          "file": "26-1440-012.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "26-1440-013.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 5,
+          "left": 2727
+        },
+        {
+          "file": "26-1440-014.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 5,
+          "left": 5454
+        },
+        {
+          "file": "26-1440-015.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-26-1440-04.png",
+      "captures": [
+        {
+          "file": "26-1440-016.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "26-1440-017.png",
+          "kind": "horizontal",
+          "y": 6400,
+          "scroller": 6,
+          "left": 2718
+        },
+        {
+          "file": "26-1440-018.png",
+          "kind": "horizontal",
+          "y": 6400,
+          "scroller": 6,
+          "left": 5436
+        },
+        {
+          "file": "26-1440-019.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-26-1440-05.png",
+      "captures": [
+        {
+          "file": "26-1440-020.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 7,
+          "left": 2772
+        },
+        {
+          "file": "26-1440-021.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 7,
+          "left": 5544
+        },
+        {
+          "file": "26-1440-022.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "26-1440-023.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-26-1440-06.png",
+      "captures": [
+        {
+          "file": "26-1440-024.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "26-1440-025.png",
+          "kind": "body",
+          "y": 10024,
+          "band": 13
+        },
+        {
+          "file": "26-1440-026.png",
+          "kind": "scene-focus",
+          "y": 10024,
+          "scene": "gear",
+          "pageMoved": false,
+          "active": true
+        },
+        {
+          "file": "26-1440-027.png",
+          "kind": "scene-escape",
+          "y": 10024,
+          "scene": "gear",
+          "active": true
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "route": "game-design/items/resources.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-27-1440-00.png",
+      "captures": [
+        {
+          "file": "27-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "27-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "27-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 198
+        },
+        {
+          "file": "27-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 396
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "route": "game-design/items/resources.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-27-1440-01.png",
+      "captures": [
+        {
+          "file": "27-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "27-1440-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 522
+        },
+        {
+          "file": "27-1440-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 1044
+        },
+        {
+          "file": "27-1440-007.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "route": "game-design/items/resources.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-27-1440-02.png",
+      "captures": [
+        {
+          "file": "27-1440-008.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "27-1440-009.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 684
+        },
+        {
+          "file": "27-1440-010.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 1368
+        },
+        {
+          "file": "27-1440-011.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "route": "game-design/items/resources.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-27-1440-03.png",
+      "captures": [
+        {
+          "file": "27-1440-012.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "27-1440-013.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 666
+        },
+        {
+          "file": "27-1440-014.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 1332
+        },
+        {
+          "file": "27-1440-015.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "route": "game-design/items/resources.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-27-1440-04.png",
+      "captures": [
+        {
+          "file": "27-1440-016.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "27-1440-017.png",
+          "kind": "horizontal",
+          "y": 6400,
+          "scroller": 5,
+          "left": 126
+        },
+        {
+          "file": "27-1440-018.png",
+          "kind": "horizontal",
+          "y": 6400,
+          "scroller": 5,
+          "left": 252
+        },
+        {
+          "file": "27-1440-019.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "route": "game-design/items/resources.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-27-1440-05.png",
+      "captures": [
+        {
+          "file": "27-1440-020.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 6,
+          "left": 81
+        },
+        {
+          "file": "27-1440-021.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 6,
+          "left": 162
+        },
+        {
+          "file": "27-1440-022.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "27-1440-023.png",
+          "kind": "body",
+          "y": 8152,
+          "band": 11
+        }
+      ]
+    },
+    {
+      "index": 28,
+      "route": "game-design/items/spells.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-28-1440-00.png",
+      "captures": [
+        {
+          "file": "28-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "28-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "28-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 2763
+        },
+        {
+          "file": "28-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 5526
+        }
+      ]
+    },
+    {
+      "index": 28,
+      "route": "game-design/items/spells.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-28-1440-01.png",
+      "captures": [
+        {
+          "file": "28-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "28-1440-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 2763
+        },
+        {
+          "file": "28-1440-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 5526
+        },
+        {
+          "file": "28-1440-007.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 28,
+      "route": "game-design/items/spells.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-28-1440-02.png",
+      "captures": [
+        {
+          "file": "28-1440-008.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "28-1440-009.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 2763
+        },
+        {
+          "file": "28-1440-010.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 5526
+        },
+        {
+          "file": "28-1440-011.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        }
+      ]
+    },
+    {
+      "index": 28,
+      "route": "game-design/items/spells.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-28-1440-03.png",
+      "captures": [
+        {
+          "file": "28-1440-012.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 3,
+          "left": 2763
+        },
+        {
+          "file": "28-1440-013.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 3,
+          "left": 5526
+        },
+        {
+          "file": "28-1440-014.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "28-1440-015.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        }
+      ]
+    },
+    {
+      "index": 28,
+      "route": "game-design/items/spells.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-28-1440-04.png",
+      "captures": [
+        {
+          "file": "28-1440-016.png",
+          "kind": "body",
+          "y": 6216,
+          "band": 8
+        },
+        {
+          "file": "28-1440-017.png",
+          "kind": "scene-focus",
+          "y": 6216,
+          "scene": "abilities",
+          "pageMoved": false,
+          "active": true
+        },
+        {
+          "file": "28-1440-018.png",
+          "kind": "scene-escape",
+          "y": 6216,
+          "scene": "abilities",
+          "active": false
+        }
+      ]
+    },
+    {
+      "index": 29,
+      "route": "game-design/items/skills.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-29-1440-00.png",
+      "captures": [
+        {
+          "file": "29-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "29-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "29-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 198
+        },
+        {
+          "file": "29-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 396
+        }
+      ]
+    },
+    {
+      "index": 29,
+      "route": "game-design/items/skills.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-29-1440-01.png",
+      "captures": [
+        {
+          "file": "29-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "29-1440-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 198
+        },
+        {
+          "file": "29-1440-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 396
+        },
+        {
+          "file": "29-1440-007.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 29,
+      "route": "game-design/items/skills.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-29-1440-02.png",
+      "captures": [
+        {
+          "file": "29-1440-008.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 3,
+          "left": 198
+        },
+        {
+          "file": "29-1440-009.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 3,
+          "left": 396
+        },
+        {
+          "file": "29-1440-010.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "29-1440-011.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 4,
+          "left": 198
+        }
+      ]
+    },
+    {
+      "index": 29,
+      "route": "game-design/items/skills.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-29-1440-03.png",
+      "captures": [
+        {
+          "file": "29-1440-012.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 4,
+          "left": 396
+        },
+        {
+          "file": "29-1440-013.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "29-1440-014.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 5,
+          "left": 225
+        },
+        {
+          "file": "29-1440-015.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 5,
+          "left": 450
+        }
+      ]
+    },
+    {
+      "index": 29,
+      "route": "game-design/items/skills.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-29-1440-04.png",
+      "captures": [
+        {
+          "file": "29-1440-016.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "29-1440-017.png",
+          "kind": "body",
+          "y": 5128,
+          "band": 7
+        }
+      ]
+    },
+    {
+      "index": 30,
+      "route": "game-design/items/tools.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-30-1440-00.png",
+      "captures": [
+        {
+          "file": "30-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "30-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "30-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "30-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 30,
+      "route": "game-design/items/tools.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-30-1440-01.png",
+      "captures": [
+        {
+          "file": "30-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "30-1440-005.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "30-1440-006.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "30-1440-007.png",
+          "kind": "body",
+          "y": 4856,
+          "band": 7
+        }
+      ]
+    },
+    {
+      "index": 31,
+      "route": "game-design/items/consumables.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-31-1440-00.png",
+      "captures": [
+        {
+          "file": "31-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "31-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "31-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 756
+        },
+        {
+          "file": "31-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 1512
+        }
+      ]
+    },
+    {
+      "index": 31,
+      "route": "game-design/items/consumables.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-31-1440-01.png",
+      "captures": [
+        {
+          "file": "31-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "31-1440-005.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "31-1440-006.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 1,
+          "left": 585
+        },
+        {
+          "file": "31-1440-007.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 1,
+          "left": 1170
+        }
+      ]
+    },
+    {
+      "index": 31,
+      "route": "game-design/items/consumables.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-31-1440-02.png",
+      "captures": [
+        {
+          "file": "31-1440-008.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "31-1440-009.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 594
+        },
+        {
+          "file": "31-1440-010.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 2,
+          "left": 1188
+        },
+        {
+          "file": "31-1440-011.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        }
+      ]
+    },
+    {
+      "index": 31,
+      "route": "game-design/items/consumables.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-31-1440-03.png",
+      "captures": [
+        {
+          "file": "31-1440-012.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "31-1440-013.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 207
+        },
+        {
+          "file": "31-1440-014.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 414
+        },
+        {
+          "file": "31-1440-015.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        }
+      ]
+    },
+    {
+      "index": 31,
+      "route": "game-design/items/consumables.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-31-1440-04.png",
+      "captures": [
+        {
+          "file": "31-1440-016.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "31-1440-017.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        },
+        {
+          "file": "31-1440-018.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 5,
+          "left": 684
+        },
+        {
+          "file": "31-1440-019.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 5,
+          "left": 1368
+        }
+      ]
+    },
+    {
+      "index": 31,
+      "route": "game-design/items/consumables.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-31-1440-05.png",
+      "captures": [
+        {
+          "file": "31-1440-020.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "31-1440-021.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        },
+        {
+          "file": "31-1440-022.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "31-1440-023.png",
+          "kind": "body",
+          "y": 9992,
+          "band": 13
+        }
+      ]
+    },
+    {
+      "index": 32,
+      "route": "game-design/interactions/chat.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-32-1440-00.png",
+      "captures": [
+        {
+          "file": "32-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "32-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "32-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "32-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 32,
+      "route": "game-design/interactions/chat.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-32-1440-01.png",
+      "captures": [
+        {
+          "file": "32-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "32-1440-005.png",
+          "kind": "body",
+          "y": 3816,
+          "band": 5
+        }
+      ]
+    },
+    {
+      "index": 33,
+      "route": "game-design/interactions/dialogs.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-33-1440-00.png",
+      "captures": [
+        {
+          "file": "33-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "33-1440-001.png",
+          "kind": "body",
+          "y": 392,
+          "band": 1
+        }
+      ]
+    },
+    {
+      "index": 34,
+      "route": "game-design/interactions/signs.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-34-1440-00.png",
+      "captures": [
+        {
+          "file": "34-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "34-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "34-1440-002.png",
+          "kind": "body",
+          "y": 1400,
+          "band": 2
+        }
+      ]
+    },
+    {
+      "index": 35,
+      "route": "game-design/interactions/shops.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-35-1440-00.png",
+      "captures": [
+        {
+          "file": "35-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "35-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "35-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "35-1440-003.png",
+          "kind": "body",
+          "y": 1992,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 36,
+      "route": "game-design/interactions/quests.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-36-1440-00.png",
+      "captures": [
+        {
+          "file": "36-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "36-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "36-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "36-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 36,
+      "route": "game-design/interactions/quests.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-36-1440-01.png",
+      "captures": [
+        {
+          "file": "36-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "36-1440-005.png",
+          "kind": "body",
+          "y": 3496,
+          "band": 5
+        }
+      ]
+    },
+    {
+      "index": 37,
+      "route": "game-design/interactions/crafting.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-37-1440-00.png",
+      "captures": [
+        {
+          "file": "37-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "37-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "37-1440-002.png",
+          "kind": "body",
+          "y": 1112,
+          "band": 2
+        }
+      ]
+    },
+    {
+      "index": 38,
+      "route": "game-design/interactions/brewing.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-38-1440-00.png",
+      "captures": [
+        {
+          "file": "38-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "38-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "38-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "38-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 38,
+      "route": "game-design/interactions/brewing.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-38-1440-01.png",
+      "captures": [
+        {
+          "file": "38-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "38-1440-005.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "38-1440-006.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "38-1440-007.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        }
+      ]
+    },
+    {
+      "index": 38,
+      "route": "game-design/interactions/brewing.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-38-1440-02.png",
+      "captures": [
+        {
+          "file": "38-1440-008.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "38-1440-009.png",
+          "kind": "body",
+          "y": 6552,
+          "band": 9
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-39-1440-00.png",
+      "captures": [
+        {
+          "file": "39-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "39-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "39-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "39-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-39-1440-01.png",
+      "captures": [
+        {
+          "file": "39-1440-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "39-1440-005.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "39-1440-006.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "39-1440-007.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-39-1440-02.png",
+      "captures": [
+        {
+          "file": "39-1440-008.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "39-1440-009.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        },
+        {
+          "file": "39-1440-010.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "39-1440-011.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-39-1440-03.png",
+      "captures": [
+        {
+          "file": "39-1440-012.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "39-1440-013.png",
+          "kind": "body",
+          "y": 10400,
+          "band": 13
+        },
+        {
+          "file": "39-1440-014.png",
+          "kind": "body",
+          "y": 11200,
+          "band": 14
+        },
+        {
+          "file": "39-1440-015.png",
+          "kind": "body",
+          "y": 12000,
+          "band": 15
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-39-1440-04.png",
+      "captures": [
+        {
+          "file": "39-1440-016.png",
+          "kind": "body",
+          "y": 12800,
+          "band": 16
+        },
+        {
+          "file": "39-1440-017.png",
+          "kind": "body",
+          "y": 13600,
+          "band": 17
+        },
+        {
+          "file": "39-1440-018.png",
+          "kind": "body",
+          "y": 14400,
+          "band": 18
+        },
+        {
+          "file": "39-1440-019.png",
+          "kind": "body",
+          "y": 15200,
+          "band": 19
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-39-1440-05.png",
+      "captures": [
+        {
+          "file": "39-1440-020.png",
+          "kind": "body",
+          "y": 16000,
+          "band": 20
+        },
+        {
+          "file": "39-1440-021.png",
+          "kind": "body",
+          "y": 16088,
+          "band": 21
+        }
+      ]
+    },
+    {
+      "index": 40,
+      "route": "game-design/interactions/harvesting.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-40-1440-00.png",
+      "captures": [
+        {
+          "file": "40-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "40-1440-001.png",
+          "kind": "horizontal",
+          "y": 0,
+          "scroller": 0,
+          "left": 9
+        },
+        {
+          "file": "40-1440-002.png",
+          "kind": "horizontal",
+          "y": 0,
+          "scroller": 0,
+          "left": 18
+        },
+        {
+          "file": "40-1440-003.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        }
+      ]
+    },
+    {
+      "index": 40,
+      "route": "game-design/interactions/harvesting.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-40-1440-01.png",
+      "captures": [
+        {
+          "file": "40-1440-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "40-1440-005.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "40-1440-006.png",
+          "kind": "body",
+          "y": 3112,
+          "band": 4
+        }
+      ]
+    },
+    {
+      "index": 41,
+      "route": "game-design/interactions/fishing.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-41-1440-00.png",
+      "captures": [
+        {
+          "file": "41-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "41-1440-001.png",
+          "kind": "body",
+          "y": 632,
+          "band": 1
+        }
+      ]
+    },
+    {
+      "index": 42,
+      "route": "game-design/interactions/farming.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-42-1440-00.png",
+      "captures": [
+        {
+          "file": "42-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "42-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "42-1440-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 171
+        },
+        {
+          "file": "42-1440-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 342
+        }
+      ]
+    },
+    {
+      "index": 42,
+      "route": "game-design/interactions/farming.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-42-1440-01.png",
+      "captures": [
+        {
+          "file": "42-1440-004.png",
+          "kind": "body",
+          "y": 1560,
+          "band": 2
+        }
+      ]
+    },
+    {
+      "index": 43,
+      "route": "game-design/interactions/building.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-43-1440-00.png",
+      "captures": [
+        {
+          "file": "43-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "43-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "43-1440-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "43-1440-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 43,
+      "route": "game-design/interactions/building.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-43-1440-01.png",
+      "captures": [
+        {
+          "file": "43-1440-004.png",
+          "kind": "body",
+          "y": 2808,
+          "band": 4
+        },
+        {
+          "file": "43-1440-005.png",
+          "kind": "scene-focus",
+          "y": 2808,
+          "scene": "building",
+          "pageMoved": false,
+          "active": true
+        },
+        {
+          "file": "43-1440-006.png",
+          "kind": "scene-escape",
+          "y": 2808,
+          "scene": "building",
+          "active": true
+        }
+      ]
+    },
+    {
+      "index": 44,
+      "route": "game-design/rendering/sprites.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-44-1440-00.png",
+      "captures": [
+        {
+          "file": "44-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "44-1440-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "44-1440-002.png",
+          "kind": "body",
+          "y": 1144,
+          "band": 2
+        }
+      ]
+    },
+    {
+      "index": 45,
+      "route": "game-design/rendering/light.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-45-1440-00.png",
+      "captures": [
+        {
+          "file": "45-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "45-1440-001.png",
+          "kind": "body",
+          "y": 760,
+          "band": 1
+        }
+      ]
+    },
+    {
+      "index": 46,
+      "route": "game-design/rendering/threejs.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-46-1440-00.png",
+      "captures": [
+        {
+          "file": "46-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "46-1440-001.png",
+          "kind": "body",
+          "y": 48,
+          "band": 1
+        }
+      ]
+    },
+    {
+      "index": 47,
+      "route": "game-design/rendering/responsive.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-47-1440-00.png",
+      "captures": [
+        {
+          "file": "47-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "47-1440-001.png",
+          "kind": "body",
+          "y": 88,
+          "band": 1
+        }
+      ]
+    },
+    {
+      "index": 48,
+      "route": "game-design/rendering/animations.html",
+      "width": 1440,
+      "path": "/tmp/alive-release-gameplay/sheet-48-1440-00.png",
+      "captures": [
+        {
+          "file": "48-1440-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "48-1440-001.png",
+          "kind": "body",
+          "y": 248,
+          "band": 1
+        },
+        {
+          "file": "48-1440-002.png",
+          "kind": "scene-focus",
+          "y": 248,
+          "scene": "abilities",
+          "pageMoved": false,
+          "active": true
+        },
+        {
+          "file": "48-1440-003.png",
+          "kind": "scene-escape",
+          "y": 248,
+          "scene": "abilities",
+          "active": false
+        }
+      ]
+    },
+    {
+      "index": 25,
+      "route": "game-design/items/elements.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-25-390-00.png",
+      "captures": [
+        {
+          "file": "25-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "25-390-001.png",
+          "kind": "horizontal",
+          "y": 0,
+          "scroller": 0,
+          "left": 228
+        },
+        {
+          "file": "25-390-002.png",
+          "kind": "horizontal",
+          "y": 0,
+          "scroller": 0,
+          "left": 456
+        },
+        {
+          "file": "25-390-003.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        }
+      ]
+    },
+    {
+      "index": 25,
+      "route": "game-design/items/elements.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-25-390-01.png",
+      "captures": [
+        {
+          "file": "25-390-004.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 21
+        },
+        {
+          "file": "25-390-005.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 1,
+          "left": 42
+        },
+        {
+          "file": "25-390-006.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "25-390-007.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 21
+        }
+      ]
+    },
+    {
+      "index": 25,
+      "route": "game-design/items/elements.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-25-390-02.png",
+      "captures": [
+        {
+          "file": "25-390-008.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 2,
+          "left": 42
+        },
+        {
+          "file": "25-390-009.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        },
+        {
+          "file": "25-390-010.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 3,
+          "left": 120
+        },
+        {
+          "file": "25-390-011.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 3,
+          "left": 240
+        }
+      ]
+    },
+    {
+      "index": 25,
+      "route": "game-design/items/elements.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-25-390-03.png",
+      "captures": [
+        {
+          "file": "25-390-012.png",
+          "kind": "body",
+          "y": 3128,
+          "band": 4
+        },
+        {
+          "file": "25-390-013.png",
+          "kind": "horizontal",
+          "y": 3128,
+          "scroller": 4,
+          "left": 120
+        },
+        {
+          "file": "25-390-014.png",
+          "kind": "horizontal",
+          "y": 3128,
+          "scroller": 4,
+          "left": 240
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-26-390-00.png",
+      "captures": [
+        {
+          "file": "26-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "26-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "26-390-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "26-390-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-26-390-01.png",
+      "captures": [
+        {
+          "file": "26-390-004.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "26-390-005.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 1,
+          "left": 129
+        },
+        {
+          "file": "26-390-006.png",
+          "kind": "horizontal",
+          "y": 3200,
+          "scroller": 1,
+          "left": 258
+        },
+        {
+          "file": "26-390-007.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-26-390-02.png",
+      "captures": [
+        {
+          "file": "26-390-008.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 2,
+          "left": 3171
+        },
+        {
+          "file": "26-390-009.png",
+          "kind": "horizontal",
+          "y": 4000,
+          "scroller": 2,
+          "left": 6342
+        },
+        {
+          "file": "26-390-010.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "26-390-011.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 3090
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-26-390-03.png",
+      "captures": [
+        {
+          "file": "26-390-012.png",
+          "kind": "horizontal",
+          "y": 4800,
+          "scroller": 3,
+          "left": 6180
+        },
+        {
+          "file": "26-390-013.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "26-390-014.png",
+          "kind": "horizontal",
+          "y": 5600,
+          "scroller": 4,
+          "left": 3045
+        },
+        {
+          "file": "26-390-015.png",
+          "kind": "horizontal",
+          "y": 5600,
+          "scroller": 4,
+          "left": 6090
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-26-390-04.png",
+      "captures": [
+        {
+          "file": "26-390-016.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "26-390-017.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        },
+        {
+          "file": "26-390-018.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 5,
+          "left": 3054
+        },
+        {
+          "file": "26-390-019.png",
+          "kind": "horizontal",
+          "y": 7200,
+          "scroller": 5,
+          "left": 6108
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-26-390-05.png",
+      "captures": [
+        {
+          "file": "26-390-020.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "26-390-021.png",
+          "kind": "horizontal",
+          "y": 8000,
+          "scroller": 6,
+          "left": 3045
+        },
+        {
+          "file": "26-390-022.png",
+          "kind": "horizontal",
+          "y": 8000,
+          "scroller": 6,
+          "left": 6090
+        },
+        {
+          "file": "26-390-023.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-26-390-06.png",
+      "captures": [
+        {
+          "file": "26-390-024.png",
+          "kind": "horizontal",
+          "y": 8800,
+          "scroller": 7,
+          "left": 3099
+        },
+        {
+          "file": "26-390-025.png",
+          "kind": "horizontal",
+          "y": 8800,
+          "scroller": 7,
+          "left": 6198
+        },
+        {
+          "file": "26-390-026.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "26-390-027.png",
+          "kind": "body",
+          "y": 10400,
+          "band": 13
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-26-390-07.png",
+      "captures": [
+        {
+          "file": "26-390-028.png",
+          "kind": "horizontal",
+          "y": 10400,
+          "scroller": 8,
+          "left": 273
+        },
+        {
+          "file": "26-390-029.png",
+          "kind": "horizontal",
+          "y": 10400,
+          "scroller": 8,
+          "left": 546
+        },
+        {
+          "file": "26-390-030.png",
+          "kind": "body",
+          "y": 11200,
+          "band": 14
+        },
+        {
+          "file": "26-390-031.png",
+          "kind": "horizontal",
+          "y": 11200,
+          "scroller": 9,
+          "left": 273
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "route": "game-design/items/gear.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-26-390-08.png",
+      "captures": [
+        {
+          "file": "26-390-032.png",
+          "kind": "horizontal",
+          "y": 11200,
+          "scroller": 9,
+          "left": 546
+        },
+        {
+          "file": "26-390-033.png",
+          "kind": "body",
+          "y": 11896,
+          "band": 15
+        }
+      ]
+    },
+    {
+      "index": 32,
+      "route": "game-design/interactions/chat.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-32-390-00.png",
+      "captures": [
+        {
+          "file": "32-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "32-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "32-390-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 48
+        },
+        {
+          "file": "32-390-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 96
+        }
+      ]
+    },
+    {
+      "index": 32,
+      "route": "game-design/interactions/chat.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-32-390-01.png",
+      "captures": [
+        {
+          "file": "32-390-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "32-390-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 174
+        },
+        {
+          "file": "32-390-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 348
+        },
+        {
+          "file": "32-390-007.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 32,
+      "route": "game-design/interactions/chat.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-32-390-02.png",
+      "captures": [
+        {
+          "file": "32-390-008.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "32-390-009.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        },
+        {
+          "file": "32-390-010.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "32-390-011.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        }
+      ]
+    },
+    {
+      "index": 32,
+      "route": "game-design/interactions/chat.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-32-390-03.png",
+      "captures": [
+        {
+          "file": "32-390-012.png",
+          "kind": "body",
+          "y": 5784,
+          "band": 8
+        }
+      ]
+    },
+    {
+      "index": 33,
+      "route": "game-design/interactions/dialogs.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-33-390-00.png",
+      "captures": [
+        {
+          "file": "33-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "33-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "33-390-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 48
+        },
+        {
+          "file": "33-390-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 96
+        }
+      ]
+    },
+    {
+      "index": 33,
+      "route": "game-design/interactions/dialogs.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-33-390-01.png",
+      "captures": [
+        {
+          "file": "33-390-004.png",
+          "kind": "body",
+          "y": 1416,
+          "band": 2
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-39-390-00.png",
+      "captures": [
+        {
+          "file": "39-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "39-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "39-390-002.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "39-390-003.png",
+          "kind": "body",
+          "y": 2400,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-39-390-01.png",
+      "captures": [
+        {
+          "file": "39-390-004.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 0,
+          "left": 147
+        },
+        {
+          "file": "39-390-005.png",
+          "kind": "horizontal",
+          "y": 2400,
+          "scroller": 0,
+          "left": 294
+        },
+        {
+          "file": "39-390-006.png",
+          "kind": "body",
+          "y": 3200,
+          "band": 4
+        },
+        {
+          "file": "39-390-007.png",
+          "kind": "body",
+          "y": 4000,
+          "band": 5
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-39-390-02.png",
+      "captures": [
+        {
+          "file": "39-390-008.png",
+          "kind": "body",
+          "y": 4800,
+          "band": 6
+        },
+        {
+          "file": "39-390-009.png",
+          "kind": "body",
+          "y": 5600,
+          "band": 7
+        },
+        {
+          "file": "39-390-010.png",
+          "kind": "body",
+          "y": 6400,
+          "band": 8
+        },
+        {
+          "file": "39-390-011.png",
+          "kind": "body",
+          "y": 7200,
+          "band": 9
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-39-390-03.png",
+      "captures": [
+        {
+          "file": "39-390-012.png",
+          "kind": "body",
+          "y": 8000,
+          "band": 10
+        },
+        {
+          "file": "39-390-013.png",
+          "kind": "body",
+          "y": 8800,
+          "band": 11
+        },
+        {
+          "file": "39-390-014.png",
+          "kind": "body",
+          "y": 9600,
+          "band": 12
+        },
+        {
+          "file": "39-390-015.png",
+          "kind": "body",
+          "y": 10400,
+          "band": 13
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-39-390-04.png",
+      "captures": [
+        {
+          "file": "39-390-016.png",
+          "kind": "body",
+          "y": 11200,
+          "band": 14
+        },
+        {
+          "file": "39-390-017.png",
+          "kind": "body",
+          "y": 12000,
+          "band": 15
+        },
+        {
+          "file": "39-390-018.png",
+          "kind": "body",
+          "y": 12800,
+          "band": 16
+        },
+        {
+          "file": "39-390-019.png",
+          "kind": "body",
+          "y": 13600,
+          "band": 17
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-39-390-05.png",
+      "captures": [
+        {
+          "file": "39-390-020.png",
+          "kind": "body",
+          "y": 14400,
+          "band": 18
+        },
+        {
+          "file": "39-390-021.png",
+          "kind": "body",
+          "y": 15200,
+          "band": 19
+        },
+        {
+          "file": "39-390-022.png",
+          "kind": "body",
+          "y": 16000,
+          "band": 20
+        },
+        {
+          "file": "39-390-023.png",
+          "kind": "body",
+          "y": 16800,
+          "band": 21
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "route": "game-design/interactions/forging.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-39-390-06.png",
+      "captures": [
+        {
+          "file": "39-390-024.png",
+          "kind": "body",
+          "y": 17528,
+          "band": 22
+        }
+      ]
+    },
+    {
+      "index": 42,
+      "route": "game-design/interactions/farming.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-42-390-00.png",
+      "captures": [
+        {
+          "file": "42-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "42-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "42-390-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 156
+        },
+        {
+          "file": "42-390-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 312
+        }
+      ]
+    },
+    {
+      "index": 42,
+      "route": "game-design/interactions/farming.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-42-390-01.png",
+      "captures": [
+        {
+          "file": "42-390-004.png",
+          "kind": "body",
+          "y": 1600,
+          "band": 2
+        },
+        {
+          "file": "42-390-005.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 498
+        },
+        {
+          "file": "42-390-006.png",
+          "kind": "horizontal",
+          "y": 1600,
+          "scroller": 1,
+          "left": 996
+        },
+        {
+          "file": "42-390-007.png",
+          "kind": "body",
+          "y": 2264,
+          "band": 3
+        }
+      ]
+    },
+    {
+      "index": 47,
+      "route": "game-design/rendering/responsive.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-47-390-00.png",
+      "captures": [
+        {
+          "file": "47-390-000.png",
+          "kind": "body",
+          "y": 0,
+          "band": 0
+        },
+        {
+          "file": "47-390-001.png",
+          "kind": "body",
+          "y": 800,
+          "band": 1
+        },
+        {
+          "file": "47-390-002.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 12
+        },
+        {
+          "file": "47-390-003.png",
+          "kind": "horizontal",
+          "y": 800,
+          "scroller": 0,
+          "left": 24
+        }
+      ]
+    },
+    {
+      "index": 47,
+      "route": "game-design/rendering/responsive.html",
+      "width": 390,
+      "path": "/tmp/alive-release-gameplay/sheet-47-390-01.png",
+      "captures": [
+        {
+          "file": "47-390-004.png",
+          "kind": "body",
+          "y": 952,
+          "band": 2
+        }
+      ]
+    }
+  ]
+}

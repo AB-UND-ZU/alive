@@ -1,9 +1,18 @@
 # Grid Tables
 
-All tables use one shared component with inner vertical rules, a double header separator and single row separators. Outer edges are omitted. Widths use whole character cells, favor full header words and compact body content, and stop growing when the content fits. Overflow stays inside the table.
+Uses inner vertical rules, a double header separator and single row separators. The first column is a row header by default.
 
-Lists of items use separate lines. Header labels stay white; body mentions use the same sprite and link styling as prose.
+| State | Value |
+| ----- | ----- |
+| Ready | 1     |
+| Empty | 0     |
 
-The font atlas opts into compact cells and a frame for the 16-by-16 CP437 grid. All ordinary data tables omit their outer border.
+| Prop              | Meaning                                           |
+| ----------------- | ------------------------------------------------- |
+| `headers`, `rows` | Header labels or React elements, and cell content |
+| `rowHeaders`      | Mark the first body cell as a row header          |
+| `compact`         | Dense cells, used by the font atlas               |
 
-Large tables scroll inside their own area. The header and first column stay visible while comparing values. The first column uses row headers by default; stat and equipment labels reuse the game icons. Empty and `None` cells are blank, and rows without data are omitted. A zero value remains visible.
+Widths use whole character cells and keep words intact. Large tables retain their natural height and scroll sideways with sticky first-column labels. Header rows scroll with the page. On narrow phone layouts, the whole table scrolls so a wide row label cannot obscure the data. Dividers stay positioned within their own cells when the frozen column is disabled. Sprite/name groups and preview widths are measured as units; hidden button faces do not inflate a column. The existing layout pass measures vertical rules too, so single-glyph rules use the font without adding an observer per cell.
+
+Empty, `None` and zero cells are blank. Rows without data are omitted; literal command values such as `none` remain visible. Item lists occupy separate lines. Key combinations stay horizontal.

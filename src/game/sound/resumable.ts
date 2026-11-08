@@ -18,7 +18,7 @@ export const suspendAudio = () => audioContext.suspend();
 
 export const ensureAudio = () => {
   if (!isPlaying()) {
-    audioContext.resume();
+    return audioContext.resume();
   }
 };
 

@@ -4,6 +4,7 @@
 | --- | --- |
 | [AbilityStats](engine/components/castable.md#type-abilitystats) | `src/engine/components/castable.ts` |
 | [Accessory](engine/components/equippable.md#type-accessory) | `src/engine/components/equippable.ts` |
+| [Acquisition](documentation/itemSources.md#type-acquisition) | `src/documentation/itemSources.ts` |
 | [Action](components/Controls/index.md#type-action) | `src/components/Controls/index.tsx` |
 | [Actionable](engine/components/actionable.md#type-actionable) | `src/engine/components/actionable.ts` |
 | [Affectable](engine/components/affectable.md#type-affectable) | `src/engine/components/affectable.ts` |
@@ -28,6 +29,7 @@
 | [BurnSequence](engine/components/sequencable.md#type-burnsequence) | `src/engine/components/sequencable.ts` |
 | [Burnable](engine/components/burnable.md#type-burnable) | `src/engine/components/burnable.ts` |
 | [Castable](engine/components/castable.md#type-castable) | `src/engine/components/castable.ts` |
+| [CatalogIndexEntry](documentation/Widgets.md#type-catalogindexentry) | `src/documentation/Widgets.tsx` |
 | [CellSprite](components/Row/index.md#type-cellsprite) | `src/components/Row/index.tsx` |
 | [CellType](bindings/creation.md#type-celltype) | `src/bindings/creation.ts` |
 | [ClassDefinition](game/balancing/classes.md#type-classdefinition) | `src/game/balancing/classes.ts` |
@@ -57,6 +59,7 @@
 | [DecaySequence](engine/components/sequencable.md#type-decaysequence) | `src/engine/components/sequencable.ts` |
 | [Definition](engine/wfc/wfc.md#type-definition) | `src/engine/wfc/wfc.ts` |
 | [DialogSequence](engine/components/sequencable.md#type-dialogsequence) | `src/engine/components/sequencable.ts` |
+| [DimensionOptions](components/Dimensions/sizing.md#type-dimensionoptions) | `src/components/Dimensions/sizing.tsx` |
 | [Dimensions](components/Dimensions/sizing.md#type-dimensions) | `src/components/Dimensions/sizing.tsx` |
 | [DiscoverySequence](engine/components/sequencable.md#type-discoverysequence) | `src/engine/components/sequencable.ts` |
 | [Displacable](engine/components/displacable.md#type-displacable) | `src/engine/components/displacable.ts` |
@@ -85,6 +88,7 @@
 | [Focus](engine/components/popup.md#type-focus) | `src/engine/components/popup.ts` |
 | [Focusable](engine/components/focusable.md#type-focusable) | `src/engine/components/focusable.ts` |
 | [Fog](engine/components/fog.md#type-fog) | `src/engine/components/fog.ts` |
+| [FontCell](components/Row/index.md#type-fontcell) | `src/components/Row/index.tsx` |
 | [Font](components/Entity/geometries.md#type-font) | `src/components/Entity/geometries.ts` |
 | [Forgable](engine/components/forgable.md#type-forgable) | `src/engine/components/forgable.ts` |
 | [ForgeOptionResult](game/balancing/forging.md#type-forgeoptionresult) | `src/game/balancing/forging.ts` |
@@ -164,6 +168,7 @@
 | [Popup](engine/components/popup.md#type-popup) | `src/engine/components/popup.ts` |
 | [Position](engine/components/position.md#type-position) | `src/engine/components/position.ts` |
 | [PresetName](documentation/presets.md#type-presetname) | `src/documentation/presets.ts` |
+| [PreviewBounds](documentation/LargePreview.md#type-previewbounds) | `src/documentation/LargePreview.tsx` |
 | [ProcStats](engine/components/castable.md#type-procstats) | `src/engine/components/castable.ts` |
 | [ProgressSequence](engine/components/sequencable.md#type-progresssequence) | `src/engine/components/sequencable.ts` |
 | [Projectile](engine/components/projectile.md#type-projectile) | `src/engine/components/projectile.ts` |

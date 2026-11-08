@@ -1,22 +1,8 @@
-# SPAWNABLE
+# Spawnable
 
 Stores class, appearance, light, and spawn position.
 
-`Spawnable`
-
-| Field | Type |
-| --- | --- |
-| `classKey` | `ClassKey` |
-| `hairColor` | `string` |
-| `position` | `Position` |
-| `light` | `Light` |
-| `viewable` | `Viewable` |
-| `compassId?` | `number` |
-| `quest?` | `SequenceState<QuestSequence>` |
-
-Attach with `world.addComponentToEntity(entity, SPAWNABLE, data)`. Query with `world.getEntities([SPAWNABLE])`.
-
-Systems: `drop`, `fate`, `leveling`, `text`, `trigger`.
+[Fate](../systems/fate.md) restores the saved appearance, vision and viewpoint when respawning. `position` is the return point, not the current [Position](position.md).
 <!-- source-types -->
 
 ## Spawnable

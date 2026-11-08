@@ -1,18 +1,13 @@
-# BAITABLE
+# Baitable
 
 Links fishing bait to its caster and caught target.
 
-`Baitable`
+[Fishing](../systems/fishing.md) pairs the bait with a [Hookable](hookable.md) entity; [Trigger](../systems/trigger.md) starts reeling it in.
 
-| Field | Type |
-| --- | --- |
-| `caught?` | `number` |
-| `caster` | `number` |
-| `amount` | `number` |
-
-Attach with `world.addComponentToEntity(entity, BAITABLE, data)`. Query with `world.getEntities([BAITABLE])`.
-
-Systems: `ai`, `fishing`, `trigger`.
+| Field    | Meaning                                       |
+| -------- | --------------------------------------------- |
+| `caster` | Entity ID of the unit that cast the hook.     |
+| `caught` | Entity ID of the hooked target, when present. |
 <!-- source-types -->
 
 ## Baitable

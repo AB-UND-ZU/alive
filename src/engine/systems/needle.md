@@ -1,14 +1,5 @@
 # Needle
 
-Updates directional markers for tracked targets.
+Turns a tracked target into the compass needle's facing direction.
 
-
-## Queries
-
-```ts src/engine/systems/needle.ts
-world.getEntities([RENDERABLE, REFERENCE]);
-```
-
-```ts src/engine/systems/needle.ts
-world.getEntities([ ORIENTABLE, TRACKABLE, RENDERABLE, ]);
-```
+[Trackable](../components/trackable.md) identifies the target and optional wrapping quadrant. Target changes and movement invalidate the cached direction; a missing target resets the needle. [Focus](focus.md) updates quest and grave targets before this system runs.

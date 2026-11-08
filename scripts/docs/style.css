@@ -1,4 +1,12 @@
+@font-face {
+  font-family: "Alive Docs DOS";
+  src: url("fonts/AliveDocs.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
 .Docs {
+  font-family: "Alive Docs DOS", "Perfect DOS VGA 437 Win", monospace;
   --cell-height: 32px;
   --cell-width: 18px;
   --pixel-size: 2px;
@@ -65,7 +73,7 @@ button:disabled {
 .HeaderText {
   display: grid;
   grid-template-columns: 306px minmax(0, 1fr);
-  gap: 36px;
+  gap: 54px;
   padding: 0 max(36px, calc((100vw - 1680px) / 2 + 36px));
   height: 32px;
 }
@@ -79,9 +87,9 @@ button:disabled {
 }
 .DocsLayout {
   display: grid;
-  grid-template-columns: 306px minmax(0, 1fr);
-  gap: 36px;
-  padding: 96px 36px 32px;
+  grid-template-columns: 324px minmax(0, 1fr);
+  gap: 54px;
+  padding: 96px 36px 32px 18px;
   max-width: 1680px;
   margin: auto;
 }
@@ -90,6 +98,7 @@ html {
 }
 main {
   min-width: 0;
+  outline: none;
 }
 p,
 h1,
@@ -430,14 +439,14 @@ table {
 }
 @media (max-width: 1000px) {
   .DocsLayout {
-    grid-template-columns: 306px minmax(0, 1fr);
-    gap: 18px;
-    padding: 96px 18px 32px;
+    grid-template-columns: 324px minmax(0, 1fr);
+    gap: 54px;
+    padding: 96px 18px 32px 0;
   }
   .HeaderText {
     padding: 0 18px;
     grid-template-columns: 306px minmax(0, 1fr);
-    gap: 18px;
+    gap: 54px;
   }
   .Fighters {
     grid-template-columns: 1fr;
@@ -449,7 +458,7 @@ table {
   }
   .DocsLayout {
     display: block;
-    padding: 128px 0 32px;
+    padding: 128px 18px 32px;
   }
   .DocsHeader {
     height: 112px;
@@ -467,6 +476,9 @@ table {
     top: 0;
     max-height: 320px;
     margin-bottom: 64px;
+    margin-left: -18px;
+    width: 342px;
+    max-width: calc(100% + 18px);
   }
   .Fighters {
     grid-template-columns: 1fr;
@@ -480,28 +492,17 @@ table {
   position: relative;
   flex: none;
 }
-.CodePixels {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  user-select: none;
-}
-.CodePixels .Cell {
-  user-select: none;
-}
 .CodeSemantic {
   position: relative;
-  color: transparent;
+  color: var(--white);
   white-space: pre;
   tab-size: 2;
   line-height: 32px;
   user-select: text;
 }
-.CodeSemantic span,
-.CodeSemantic a {
-  color: transparent;
-  user-select: text;
-}
+.CodeSemantic span, .CodeSemantic a { user-select: text; }
+.CodeSemantic a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; }
+.CodeSemantic a:is(:hover, :focus-visible) { color: var(--aqua); }
 .CodeSemantic::selection,
 .CodeSemantic *::selection {
   background: var(--green);
@@ -659,6 +660,9 @@ h1.Heading {
 .Callout > div {
   min-width: 0;
 }
+.Callout > div > :last-child {
+  margin-bottom: 0;
+}
 
 nav {
   overflow: visible;
@@ -695,3 +699,16 @@ nav {
     right: 0;
   }
 }
+
+.ControlParagraph { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0 18px; min-height:48px; }
+.InterfaceDiagram { display:block; }
+.WorldDiagram { width:max-content; max-width:100%; }
+
+.DialogGallery { display:flex; flex-wrap:wrap; gap:32px 18px; align-items:flex-start; margin:0 0 32px; }
+.DialogSnapshot { margin:0; max-width:100%; overflow-x:auto; }
+.DialogSnapshot figcaption { margin-bottom:32px; }
+.PauseSnapshot { width:342px; pointer-events:none; }
+.PauseSnapshot .Paused { position:static; overflow:visible; }
+.PauseSnapshot .Cover,.PauseSnapshot .Resume { display:none; }
+.PauseSnapshot .Overlay { position:static; height:auto; display:flex; justify-content:flex-start; }
+.PauseSnapshot .PauseButton { pointer-events:none; }

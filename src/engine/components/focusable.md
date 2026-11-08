@@ -1,18 +1,13 @@
-# FOCUSABLE
+# Focusable
 
 Marks quest, enemy, or grave focus targets.
 
-`Focusable`
+[Focus](../systems/focus.md) follows target changes and creates highlights. [Trackable](trackable.md) stores the compass target.
 
-| Field | Type |
-| --- | --- |
-| `target?` | `number` |
-| `pendingTarget?` | `number` |
-| `highlight?` | `"quest" \| "tombstone" \| "enemy"` |
-
-Attach with `world.addComponentToEntity(entity, FOCUSABLE, data)`. Query with `world.getEntities([FOCUSABLE])`.
-
-Systems: `focus`, `popup`.
+| Field           | Meaning                                              |
+| --------------- | ---------------------------------------------------- |
+| `target`        | Current target entity ID.                            |
+| `pendingTarget` | Next target entity ID, applied after the transition. |
 <!-- source-types -->
 
 ## Focusable

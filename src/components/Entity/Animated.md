@@ -1,18 +1,5 @@
 # Animated
 
-Animates entity position and visual changes with springs.
+Moves a Three.js group toward its world position with a spring. It pauses with the world and updates the spring when its configuration changes.
 
-```tsx
-Animated({
-  position,
-  spring,
-  bumpOrientation,
-  bumpGeneration,
-  ...props
-}: {
-  position: Vector3Tuple;
-  spring?: SpringConfig;
-  bumpOrientation?: Orientation;
-  bumpGeneration?: number;
-})
-```
+A new `bumpGeneration` with a `bumpOrientation` first offsets the group in that direction, then returns it to the supplied position. Generation tracking prevents the same bump from replaying on an unrelated render. Child rendering props pass through to the animated group.

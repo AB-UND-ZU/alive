@@ -1,9 +1,5 @@
 # Terminal
 
-Mounts the Three.js canvas, normal camera, entity instances, systems loop, terminal edges, and pause overlay.
+Mounts the Three.js canvas and the rows that frame it. The canvas contains `InstanceRoot`, `ShadowCache`, ambient light, `Camera` and `Systems`.
 
-```tsx
-Terminal()
-```
-
-Children render above the game canvas, before the pause overlay. Documentation uses this slot for its character-cell frame.
+Children appear above the canvas, before the pause overlay. Feature previews use that slot for their aligned character-cell frame. Local `stats` and `controls` flags enable profiling panels and orbit controls during renderer development; both are off by default.

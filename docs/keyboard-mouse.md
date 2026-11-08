@@ -1,16 +1,17 @@
 # Keyboard/Mouse
 
-Move with the arrow keys or WASD. Nearby objects and equipped items determine the available actions.
+Move with the arrow keys or WASD.
 
 | Keyboard                                                                           | Action                                   |
 | ---------------------------------------------------------------------------------- | ---------------------------------------- |
-| [[key:↑]] [[key:←]] [[key:↓]] [[key:→]] or [[key:W]] [[key:A]] [[key:S]] [[key:D]] | Move                                     |
+| [[key:↑]] [[key:←]] [[key:↓]] [[key:→]] | Move                                     |
+| [[key:W]] [[key:A]] [[key:S]] [[key:D]] | Move |
 | [[key:Enter]]                                                                      | Interact; confirm selection              |
 | [[key:Space]]                                                                      | Spell; current spell-side action         |
 | [[key:Shift]]                                                                      | Skill or tool                            |
 | [[key:Q]]                                                                          | Switch skill / tool                      |
-| [[key:B]]                                                                          | Inspect                                  |
-| [[key:E]]                                                                          | Use an item                              |
+| [[key:B]]                                                                          | View bag |
+| [[key:E]]                                                                          | Quick actions |
 | [[key:G]]                                                                          | Gear                                     |
 | [[key:T]]                                                                          | Stats                                    |
 | [[key:M]]                                                                          | Map                                      |
@@ -22,28 +23,34 @@ Move with the arrow keys or WASD. Nearby objects and equipped items determine th
 
 Click an on-screen action to use it. Click or tap a dialog row to select it; confirm with its action button.
 
-The current action depends on nearby objects and equipped items.
+Nearby objects and equipped items determine the current action.
 
 | Button           | Target                                      |
 | ---------------- | ------------------------------------------- |
 | [[button:OPEN]]  | Locked door; matching [[item:key]] required |
-| [[button:QUEST]] | Sign or character with a quest              |
+| [[button:READ]] | [[unit:sign]] |
+| [[button:QUEST]] | Character with a quest |
 | [[button:SHOP]]  | Trader                                      |
 | [[button:CRAFT]] | Workbench                                   |
-| [[button:WAVE]]  | Equipped [[item:wave]]                      |
+| [[button:SPELL]] | Equipped spell, such as [[item:wave]] or [[item:beam]] |
+| [[button:SKILL]] | Equipped skill or tool, such as [[item:slash]] or [[item:axe]] |
 
 ## Dialogs
 
-[[key:↑]] / [[key:↓]] select a row. [[key:←]] / [[key:→]] change a choice. [[key:Enter]] confirms. [[key:Tab]] changes tabs. [[key:Escape]] closes.
+| Key | Action |
+| --- | --- |
+| [[key:↑]] [[key:↓]] | Select a row |
+| [[key:←]] [[key:→]] | Change a choice |
+| [[key:Enter]] | Confirm |
+| [[key:Tab]] | Change tabs |
+| [[key:Escape]] | Close |
 
 ## Pause
 
 [[key:Escape]] or the Pause control pauses and saves. The pause screen offers [[button:RESUME]], [[button:MENU]] and [[button:SAVE]]. Switching browser tabs also pauses. See [Savegames](savegames.md) for Continue and deleting saves.
 
-```scene
-movement
-```
+## Movement
 
 ```scene
-crafting
+movement
 ```

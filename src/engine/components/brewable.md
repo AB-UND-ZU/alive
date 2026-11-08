@@ -1,16 +1,8 @@
-# BREWABLE
+# Brewable
 
 Stores a kettle’s recipe queue.
 
-`Brewable`
-
-| Field | Type |
-| --- | --- |
-| `queue` | `{ item: Omit<Item, "carrier" \| "bound">; generation?: number; duration: number; }[]` |
-
-Attach with `world.addComponentToEntity(entity, BREWABLE, data)`. Query with `world.getEntities([BREWABLE])`.
-
-Systems: `harvest`.
+[Harvest](../systems/harvest.md) advances the queue and places completed items in the kettle inventory.
 <!-- source-types -->
 
 ## Brewable

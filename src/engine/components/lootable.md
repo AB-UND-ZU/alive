@@ -1,16 +1,12 @@
-# LOOTABLE
+# Lootable
 
 Marks an inventory that nearby units can loot.
 
-`Lootable`
+[Collect](../systems/collect.md) transfers the contained items. [Drop](../systems/drop.md) removes an empty loot entity when `disposable` is true.
 
-| Field | Type |
-| --- | --- |
-| `disposable` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, LOOTABLE, data)`. Query with `world.getEntities([LOOTABLE])`.
-
-Systems: `collect`, `drop`, `leveling`.
+| Field        | Meaning                                                    |
+| ------------ | ---------------------------------------------------------- |
+| `disposable` | Remove this loot entity after its inventory becomes empty. |
 <!-- source-types -->
 
 ## Lootable

@@ -22,3 +22,62 @@
 .CatalogLines > div {
   display: block;
 }
+
+.CatalogGroup > span {
+  display: block;
+}
+.DropDialog + .DropDialog {
+  margin-top: 0;
+}
+
+.CatalogLines .CatalogDescription {
+  margin: 0;
+}
+.ClassProgression > .Text,
+.ClassProgression > .ClassLevel {
+  display: block;
+  height: 32px;
+}
+.ClassLevel {
+  display: flex !important;
+  white-space: nowrap;
+}
+.CatalogDrops .Item,
+.CatalogDrops .Parts > span {
+  white-space: nowrap;
+}
+
+.CatalogDrops .Item {
+  flex-wrap: nowrap;
+}
+.CatalogDrops .Text {
+  white-space: nowrap;
+}
+
+.CatalogGrouped {
+  row-gap: 32px !important;
+}
+.CatalogSources .DropDialog,
+.CatalogSources .RecipeSource {
+  margin: 0;
+}
+.CatalogSources .DropDialog .FrameContent {
+  white-space: nowrap;
+}
+
+.CatalogSpawns > div {
+  white-space: nowrap;
+  height: 32px;
+}
+
+.ClassExtraStat {
+  display: flex;
+  white-space: nowrap;
+  height: 32px;
+}
+.ClassExtraStat > * {
+  flex-shrink: 0;
+}
+.ClassExtraStat .NativeText {
+  white-space: pre;
+}

@@ -1288,6 +1288,10 @@ class Presets extends Params {
   }
 }
 
+export const soundPresets = Object.getOwnPropertyNames(
+  Presets.prototype
+).filter((name) => name !== "constructor") as (keyof Presets)[];
+
 export const play = (
   preset: keyof Presets,
   { delay = 0, notes = 1, spacing = 0, pattern, ...options }: SfxOptions = {}

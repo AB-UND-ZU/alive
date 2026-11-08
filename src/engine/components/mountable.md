@@ -1,18 +1,8 @@
-# MOUNTABLE
+# Mountable
 
 Tracks a vessel and its passenger.
 
-`Mountable`
-
-| Field | Type |
-| --- | --- |
-| `passenger?` | `number` |
-| `medium` | `"water" \| "rails"` |
-| `spring?` | `SpringConfig` |
-
-Attach with `world.addComponentToEntity(entity, MOUNTABLE, data)`. Query with `world.getEntities([MOUNTABLE])`.
-
-Systems: `click`, `interact`, `movement`, `push`, `trigger`, `vessel`.
+[Vessel](../systems/vessel.md) coordinates the vessel and passenger. [Interact](../systems/interact.md) handles boarding and leaving.
 <!-- source-types -->
 
 ## Mountable

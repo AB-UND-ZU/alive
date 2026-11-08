@@ -4,8 +4,16 @@ import { brewingRecipes } from "../game/balancing/brewing";
 import { purchasableItems } from "../game/balancing/trading";
 import { buildConstructions } from "../game/balancing/building";
 import { getForgeOptions } from "../game/balancing/forging";
-import { getItemStats } from "../game/balancing/equipment";
-import { unitDefinitions } from "../game/balancing/units";
+import { getItemStats, getEquipmentStats } from "../game/balancing/equipment";
+import { createWorld } from "../engine";
+import { TypedEntity } from "../engine/entities";
+import { Equipment } from "../engine/components/equippable";
+import { npcTypes } from "../engine/components/npc";
+import {
+  getEntityDisplayStats,
+  getEntityEquipmentStats,
+} from "../engine/systems/damage";
+import { unitDefinitions, generateUnitData } from "../game/balancing/units";
 import { bolt, blast } from "../game/assets/templates/particles";
 import { commandItems } from "../game/assets/commands";
 import { getItemSprite } from "../game/assets/utils";
@@ -27,9 +35,14 @@ export const itemCategory = (item: Partial<Item>) =>
       (item.stackable && item.stackable in stackableConsumptions)
     ? "consumables"
     : "resources";
+export const isDocumentedUnit = (key: string) => key !== "chestBoss";
 export const unitCategory = (key: string, unit: UnitDefinition) =>
-  /boss/i.test(key) ||
-  unit.patternNames.some((name) => /boss|^ilex$/.test(name))
+  ["rose", "violet", "clover"].includes(key)
+    ? "enemies"
+    : /Totem$/.test(key)
+    ? "skills"
+    : /boss/i.test(key) ||
+      unit.patternNames.some((name) => /boss|^ilex$/.test(name))
     ? "bosses"
     : unit.faction === "animal"
     ? "animals"
@@ -40,8 +53,8 @@ export const unitCategory = (key: string, unit: UnitDefinition) =>
     : "units";
 
 export const isPlantUnit = (key: string, unit: UnitDefinition) =>
-  unit.harvestable === "plant" ||
-  /hedge|cactus|tumbleweed|clover|rose|violet|tulip|lily/i.test(key);
+  ["cactus1", "cactus2", "hedge1", "hedge2", "tumbleweed"].includes(key) &&
+  (Boolean(unit.harvestable) || key === "tumbleweed");
 
 export const fishItems = Array.from(
   new Map(
@@ -61,10 +74,14 @@ export const itemPage = (item: Partial<Item>) =>
     : itemCategory(item);
 
 export const unitPage = (key: string, unit: UnitDefinition) =>
-  isContainer(key)
+  key === "rotten"
+    ? "plants"
+    : isContainer(key)
     ? "containers"
     : isPlantUnit(key, unit)
     ? "plants"
+    : /oakHedge|Tulip|Lily/.test(key)
+    ? "enemies"
     : unitCategory(key, unit);
 
 export const displayName = (key: string) =>
@@ -81,21 +98,28 @@ export const displayName = (key: string) =>
 export const previewItem = (item: Partial<Item>) => ({
   ...item,
   ...(!item.material &&
-  !item.element &&
-  (item.weapon || item.offhand || item.skill || item.tool || item.accessory)
+  (item.weapon ||
+    item.offhand ||
+    item.spell ||
+    item.skill ||
+    item.tool ||
+    item.accessory ||
+    item.consume)
     ? {
         material:
           commandItems[
             item.weapon ||
               item.offhand ||
+              item.spell ||
               item.skill ||
               item.tool ||
               item.accessory ||
+              item.consume ||
               ""
           ]?.material,
       }
     : {}),
-  ...(item.spell && !item.element ? { element: "fire" as const } : {}),
+
   ...(item.consume === "potion" && !item.stat ? { stat: "hp" as const } : {}),
 });
 
@@ -120,7 +144,7 @@ const itemKind = (item: Partial<Item>) =>
   item.consume ||
   item.stat ||
   item.stackable;
-const referencedItems: Partial<Item>[] = [
+export const referencedItems: Partial<Item>[] = [
   ...purchasableItems,
   ...craftingIngredients.flatMap((recipe) => [recipe.item, ...recipe.parts]),
   ...brewingRecipes.flatMap((recipe) => [
@@ -128,10 +152,12 @@ const referencedItems: Partial<Item>[] = [
     ...recipe.options.flat(),
   ]),
   ...buildConstructions.flatMap((plan) => plan.parts),
-  ...Object.values(unitDefinitions).flatMap((unit) => [
-    ...unit.equipments,
-    ...unit.drops.flatMap((drop) => drop.items),
-  ]),
+  ...Object.entries(unitDefinitions)
+    .filter(([key]) => isDocumentedUnit(key))
+    .flatMap(([, unit]) => [
+      ...unit.equipments,
+      ...unit.drops.flatMap((drop) => drop.items),
+    ]),
 ];
 const identityKeys = [
   "weapon",
@@ -153,6 +179,14 @@ const itemIdentity = (item: Partial<Item>) =>
       .map((key) => [key, item[key]])
   ) as Partial<Item>;
 export const itemVariants = (definition: Partial<Item>): Partial<Item>[] => {
+  if (
+    definition.stat &&
+    !definition.consume &&
+    !referencedItems.some(
+      (item) => !item.consume && item.stat === definition.stat
+    )
+  )
+    return [];
   if (!definition.material || definition.stackable === "resource")
     return [previewItem(definition)];
   const queue = referencedItems
@@ -218,6 +252,44 @@ export const catalogItems = Object.fromEntries(
 );
 
 export const isContainer = (key: string) => /chest|^pot$|^box$/i.test(key);
+
+export function unitComparisonStats(key: UnitKey) {
+  const unit = unitDefinitions[key];
+  const world = createWorld();
+  const caster = npcTypes.find((type) => type === key);
+  const entity: TypedEntity<"STATS" | "EQUIPPABLE"> = {
+    STATS: generateUnitData(key).stats,
+    ...(caster ? { NPC: { type: caster } } : {}),
+    EQUIPPABLE: {},
+  };
+  unit.equipments.forEach((item) => {
+    const slot: Equipment | undefined = item.weapon
+      ? "weapon"
+      : item.offhand
+      ? "offhand"
+      : item.spell
+      ? "spell"
+      : item.skill
+      ? "skill"
+      : item.tool
+      ? "tool"
+      : item.accessory;
+    if (!slot) return;
+    const equipped = world.createEntity();
+    world.addComponentToEntity(equipped, "ITEM", { ...item, carrier: 0 });
+    entity.EQUIPPABLE[slot] = world.getEntityId(equipped);
+    if (item.weapon && item.skill)
+      entity.EQUIPPABLE.skill = world.getEntityId(equipped);
+  });
+  const stats = getEntityDisplayStats(world, entity);
+  const attacks = unit.equipments.flatMap((item) => [
+    ...(item.weapon ? [getEquipmentStats(item, caster)] : []),
+    ...(item.spell || (item.skill && item.weapon !== "spear")
+      ? [getItemStats(item, caster)]
+      : []),
+  ]);
+  return { stats, attacks, bonuses: getEntityEquipmentStats(world, entity) };
+}
 export const unitFamily = (key: string) => {
   if (/chest/i.test(key)) return "chest";
   const name = unitDefinitions[key as UnitKey]?.sprite.name;
@@ -234,8 +306,121 @@ export const unitFamily = (key: string) => {
 export const unitGroups = (keys: UnitKey[]) => {
   const groups = new Map<string, UnitKey[]>();
   for (const key of keys) {
+    if (!isDocumentedUnit(key)) continue;
     const family = unitFamily(key);
     groups.set(family, [...(groups.get(family) || []), key]);
   }
   return [...groups.values()];
+};
+
+const resourceFamilies = [
+  { name: "currency", title: "Currency", keys: ["coin", "nugget", "ingot"] },
+  {
+    name: "materials",
+    title: "Materials",
+    keys: ["wood", "iron", "gold", "diamond", "ruby"],
+  },
+  {
+    name: "gathered",
+    title: "Gathered",
+    keys: ["stick", "plank", "ore", "crystal", "mineral"],
+  },
+  {
+    name: "seeds",
+    title: "Seeds",
+    keys: ["berry", "flower", "leaf", "grain", "wheat", "spore"],
+  },
+  { name: "earthworks", title: "Earthworks", keys: ["sand", "gravel"] },
+  {
+    name: "quest-items",
+    title: "Quest items",
+    keys: ["golem", "letter", "schema"],
+  },
+  {
+    name: "projectiles",
+    title: "Projectiles",
+    keys: ["arrow", "bomb", "charge"],
+  },
+];
+const gearFamilies = [
+  { name: "utility", title: "Utility", keys: ["compass", "map"] },
+];
+const foodFamilies = [
+  {
+    name: "fishing",
+    title: "Fishing",
+    keys: fishItems.map((item) => item.stackable!),
+  },
+  {
+    name: "food",
+    title: "Food",
+    keys: ["bread", "egg", "apple", "shroom", "banana", "coconut"],
+  },
+  {
+    name: "forage",
+    title: "Forage",
+    keys: ["fruit", "herb", "sapling", "thorn", "algae"],
+  },
+  {
+    name: "meals",
+    title: "Meals",
+    keys: ["granola", "juice", "toast", "tea", "curry", "soup"],
+  },
+  { name: "pickups", title: "Pickups", keys: ["hp", "mp", "xp"] },
+];
+export function itemCatalogFamilies(category?: string) {
+  const available = Object.entries(catalogItems).filter(
+    ([, item]) => !category || itemPage(item) === category
+  );
+  const configured =
+    category === "resources"
+      ? resourceFamilies
+      : category === "consumables"
+      ? foodFamilies
+      : category === "gear"
+      ? gearFamilies
+      : [];
+  const grouped = configured
+    .map((group) => ({
+      ...group,
+      entries: group.keys.flatMap((name) =>
+        available.some(([key]) => key === name)
+          ? [{ name, definition: catalogItems[name] }]
+          : []
+      ),
+    }))
+    .filter((group) => group.entries.length);
+  const assigned = new Set(
+    grouped.flatMap((group) => group.entries.map((entry) => entry.name))
+  );
+  return [
+    ...grouped,
+    ...available
+      .filter(([key]) => !assigned.has(key))
+      .map(([name, definition]) => ({
+        name,
+        title: getItemSprite(previewItem(definition), "display").name,
+        keys: [name],
+        entries: [{ name, definition }],
+      })),
+  ];
+}
+export const itemOverviewGroup = (key: string) =>
+  [...resourceFamilies, ...foodFamilies, ...gearFamilies].find((group) =>
+    group.keys.includes(key)
+  )?.title;
+export const unitOverviewGroup = (key: UnitKey) => {
+  const unit = unitDefinitions[key];
+  return ["ilexTulip", "oakLily", "oakTower"].includes(key)
+    ? "Adds"
+    : ["rose", "violet", "clover"].includes(key)
+    ? "Plants"
+    : unit.patternNames.some((pattern) => pattern.includes("tower")) ||
+      /Tower$/.test(key)
+    ? "Towers"
+    : unit.equipments.some((item) => item.spell)
+    ? "Casters"
+    : unitFamily(key) === "golem"
+    ? "Elites"
+    : "Units";
 };

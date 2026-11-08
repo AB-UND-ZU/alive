@@ -1,19 +1,14 @@
-# LIGHT
+# Light
 
 Defines rendered light, fog visibility, darkness, and half-cell orientation.
 
-`Light`
+[Visibility](../systems/visibility.md) uses the sight radius; [World rendering](../../components/Systems/index.md) uses the light and shadow values.
 
-| Field | Type |
-| --- | --- |
-| `brightness` | `number` |
-| `visibility` | `number` |
-| `darkness` | `number` |
-| `orientation?` | `Orientation` |
-
-Attach with `world.addComponentToEntity(entity, LIGHT, data)`. Query with `world.getEntities([LIGHT])`.
-
-Systems: `consume`, `enter`, `fate`, `text`, `trigger`, `visibility`.
+| Field        | Meaning                         |
+| ------------ | ------------------------------- |
+| `brightness` | Radius used for rendered light. |
+| `visibility` | Radius used for fog of war.     |
+| `darkness`   | Shadow radius.                  |
 <!-- source-types -->
 
 ## Light

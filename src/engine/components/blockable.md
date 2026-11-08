@@ -1,10 +1,8 @@
-# BLOCKABLE
+# Blockable
 
-Marks a cell as blocking movement or interaction.
+Marks an entity that blocks other interaction targets in its cell.
 
-Attach with `world.addComponentToEntity(entity, BLOCKABLE, data)`. Query with `world.getEntities([BLOCKABLE])`.
-
-Systems: `action`.
+`getBlockable` in [Action](../systems/action.md) checks this marker before choosing another target in the cell. Solid movement obstacles use [Collidable](collidable.md).
 <!-- source-types -->
 
 ## Blockable

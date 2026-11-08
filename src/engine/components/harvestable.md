@@ -1,28 +1,14 @@
-# HARVESTABLE
+# Harvestable
 
 Stores resource type and remaining work.
 
-`Harvestable`
+[Harvest](../systems/harvest.md) reads the resource key and applies tool work. [Harvesting data](../../game/balancing/harvesting.md) supplies the matching tool, durability and yields.
 
-| Field | Type |
-| --- | --- |
-| `resource` | `Resource` |
-| `amount` | `number` |
-| `maximum` | `number` |
-
-`HarvestStats`
-
-| Field | Type |
-| --- | --- |
-| `logging` | `number` |
-| `mining` | `number` |
-| `fishing` | `number` |
-| `farming` | `number` |
-| `build` | `number` |
-
-Attach with `world.addComponentToEntity(entity, HARVESTABLE, data)`. Query with `world.getEntities([HARVESTABLE])`.
-
-Systems: `ai`, `build`, `drop`, `harvest`, `homing`, `trigger`, `water`.
+| Field      | Meaning                        |
+| ---------- | ------------------------------ |
+| `resource` | Key into the harvesting rules. |
+| `amount`   | Remaining harvesting work.     |
+| `maximum`  | Initial harvesting work limit. |
 <!-- source-types -->
 
 ## Resource

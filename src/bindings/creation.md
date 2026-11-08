@@ -4,7 +4,7 @@
 
 ## Areas and cells
 
-`insertArea` translates a character map through its legend. For example, `♀` creates a player, `█` a mountain, `■` a tutorial crate, `~` shallow water, and `≈` deep water. Unknown characters must not silently become a documented feature.
+`insertArea` translates a character map through its legend. For example, `♀` creates a player, `█` a mountain, `■` a tutorial crate, `~` shallow water, and `≈` deep water. Unrecognized characters leave air and log an error unless `override` is enabled.
 
 Coordinates wrap using the active level size. `createCell` can create several entities for one cell, including background and structure pieces. Multi-cell objects use fragments that refer back to a root structure.
 

@@ -1,10 +1,8 @@
-# WARPABLE
+# Warpable
 
-Stores a level transition target.
+Marks a portal as a warp interaction target.
 
-Attach with `world.addComponentToEntity(entity, WARPABLE, data)`. Query with `world.getEntities([WARPABLE])`.
-
-Systems: `action`.
+[Action](../systems/action.md) recognizes this empty portal marker. The destination comes from the popup selection and level configuration, not a Warpable field.
 <!-- source-types -->
 
 ## Warpable

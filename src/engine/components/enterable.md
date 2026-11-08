@@ -1,17 +1,8 @@
-# ENTERABLE
+# Enterable
 
 Stores building or room entry information.
 
-`Enterable`
-
-| Field | Type |
-| --- | --- |
-| `sprite` | `Sprite` |
-| `orientation?` | `Orientation \| null` |
-
-Attach with `world.addComponentToEntity(entity, ENTERABLE, data)`. Query with `world.getEntities([ENTERABLE])`.
-
-Systems: `enter`, `harvest`, `trigger`.
+[Enter](../systems/enter.md) uses the entry sprite and orientation to choose the interior view. [Layer](layer.md) records which structure contains an entity.
 <!-- source-types -->
 
 ## Enterable

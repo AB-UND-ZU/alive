@@ -1,16 +1,8 @@
-# INVENTORY
+# Inventory
 
 Stores carried item entity IDs.
 
-`Inventory`
-
-| Field | Type |
-| --- | --- |
-| `items` | `number[]` |
-
-Attach with `world.addComponentToEntity(entity, INVENTORY, data)`. Query with `world.getEntities([INVENTORY])`.
-
-Systems: `action`, `ai`, `ballistics`, `burn`, `collect`, `consume`, `damage`, `drop`, `fate`, `fishing`, `harvest`, `homing`, `leveling`, `map`, `popup`, `trigger`.
+The array contains item entity IDs. [Collect](../systems/collect.md) transfers items into it; [Drop](../systems/drop.md) releases them. Each carried [Item](item.md) also records its carrier.
 <!-- source-types -->
 
 ## Inventory

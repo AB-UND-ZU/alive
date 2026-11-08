@@ -1,5 +1,9 @@
 # Savegames
 
+```widget
+popup pause load
+```
+
 Pausing saves the current game in this browser. Use Continue in the main menu to load it.
 
 | Action | Result |
@@ -11,11 +15,13 @@ Pausing saves the current game in this browser. Use Continue in the main menu to
 
 Switching browser tabs also pauses and saves. Saving is unavailable in the main menu, during loading and while stepping through a portal.
 
-Each new game gets one save. Saving again replaces it. The name below [[button:SAVE]] is the last save's local date and time: `20261011-151323` means 11 October 2026 at 15:13:23.
+Each new game gets one save. Saving again replaces it. The name below [[button:SAVE]] is the last save's local date and time: [[data:20261011-151323]] means [[data:11 October 2026 at 15:13:23]].
 
 ## Continue
 
-The main menu's Continue portal opens when a save exists. Walk to it and interact with [[key:Enter]]. Select a save and confirm [[button:LOAD]]. Play resumes at the saved position, with the saved world, stats and items.
+The main menu's Continue portal opens when a save exists. Select a save and confirm [[button:LOAD]]. Play resumes at the saved position, with the saved world, stats and items.
+
+[[key:Enter]] interacts with the Continue portal.
 
 | Save list | Shows |
 | --- | --- |

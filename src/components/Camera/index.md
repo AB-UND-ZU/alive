@@ -1,9 +1,10 @@
 # Camera
 
-Moves the orthographic camera toward the active viewpoint using the game’s spring settings.
+Positions the orthographic camera from `useViewpoint`. World x coordinates use the cell aspect ratio; world y is inverted for the renderer. Zoom follows the current cell height.
 
-```tsx
-Camera()
-```
-
-The viewpoint's `jump` flag makes the initial camera position immediate for both newly generated and restored worlds. Later movement uses the spring.
+| Input | Effect |
+| --- | --- |
+| `position` and `fraction` | Target cell and partial-cell offset |
+| `config` | Movement spring |
+| `jump` | Move immediately, including the first restored frame |
+| `paused` | Pause the spring |

@@ -1,16 +1,8 @@
-# REFILLABLE
+# Refillable
 
 Stores a refillable resource or container state.
 
-`Refillable`
-
-| Field | Type |
-| --- | --- |
-| `element` | `Element` |
-
-Attach with `world.addComponentToEntity(entity, REFILLABLE, data)`. Query with `world.getEntities([REFILLABLE])`.
-
-Systems: `harvest`.
+[Harvest](../systems/harvest.md) reads `element` when a bucket is filled from this source.
 <!-- source-types -->
 
 ## Refillable

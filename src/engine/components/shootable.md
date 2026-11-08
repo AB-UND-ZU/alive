@@ -1,16 +1,8 @@
-# SHOOTABLE
+# Shootable
 
-Configures ranged shooting.
+Records arrows stuck in a target so they can be recovered with its loot.
 
-`Shootable`
-
-| Field | Type |
-| --- | --- |
-| `shots` | `number` |
-
-Attach with `world.addComponentToEntity(entity, SHOOTABLE, data)`. Query with `world.getEntities([SHOOTABLE])`.
-
-Systems: `ai`, `ballistics`, `drop`, `fate`, `homing`, `magic`, `sequence`.
+[Ballistics](../systems/ballistics.md) increments `shots` when an arrow sticks. [Drop](../systems/drop.md) returns those arrows with the target's loot.
 <!-- source-types -->
 
 ## Shootable

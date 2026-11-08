@@ -1,6 +1,12 @@
 # Slots
 
-Open gear with [[key:G]]. Equip an item in its matching slot.
+```widget
+popup gear
+```
+
+Equip an item in its matching slot.
+
+[[key:G]] opens gear.
 
 ```widget
 slots

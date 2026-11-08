@@ -1,14 +1,13 @@
-# World
+# World Context
 
-Creates a level, owns pause and suspension state, and provides the world context. `createInitialWorld` injects a composed preview world; ordinary play still generates the menu.
+Owns level creation, pause/suspension state and the world context used by the HUD, controls and renderer.
 
-```tsx
-World({
-  createInitialWorld,
-  children,
-}: React.PropsWithChildren<{ createInitialWorld?: () => GameWorld }>)
-```
+| Prop | Behavior |
+| --- | --- |
+| `createInitialWorld` | Inject a composed world instead of generating the menu |
+| `persistent` | Enable storage; defaults off for injected worlds and on for ordinary play |
+| `children` | UI mounted inside the world context |
 
-Pausing saves playable worlds to [local storage](../../game/saves/storage.md). Returning to the menu also saves. Continue restores a snapshot, connects UI callbacks, installs systems and preloads the world before remounting children. Save status is exposed through the world context.
+Pausing a playable world and returning to the menu save to [local storage](../../game/saves/storage.md). Continue restores a snapshot, reconnects UI callbacks and systems, preloads the world, then remounts its children.
 
-Injected `createInitialWorld` scenes skip storage reads and writes by default. The `persistent` prop enables normal saving for Play presets; feature snippets leave it off so they cannot create or overwrite real saves.
+Play presets enable persistence. Feature snippets leave it off, so their experiments cannot overwrite a real save.

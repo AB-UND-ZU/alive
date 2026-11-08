@@ -1,10 +1,8 @@
-# COLLIDABLE
+# Collidable
 
 Marks a solid obstacle.
 
-Attach with `world.addComponentToEntity(entity, COLLIDABLE, data)`. Query with `world.getEntities([COLLIDABLE])`.
-
-Systems: `ai`, `magic`, `movement`.
+[Movement](../systems/movement.md) checks this marker when testing walkability. Being attackable and being solid are separate properties.
 <!-- source-types -->
 
 ## Collidable

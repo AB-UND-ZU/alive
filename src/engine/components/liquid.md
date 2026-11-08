@@ -1,18 +1,13 @@
-# LIQUID
+# Liquid
 
-Marks liquid terrain.
+Tracks splash, drop and bubble effects.
 
-`Liquid`
+[Water](../systems/water.md) advances these effects using its elapsed clock. Water terrain itself uses [Immersible](immersible.md).
 
-| Field | Type |
-| --- | --- |
-| `type` | `"splash" \| "drop" \| "bubble"` |
-| `timestamp?` | `number` |
-| `amount` | `number` |
-
-Attach with `world.addComponentToEntity(entity, LIQUID, data)`. Query with `world.getEntities([LIQUID])`.
-
-Systems: `build`, `water`.
+| Field       | Meaning                                                          |
+| ----------- | ---------------------------------------------------------------- |
+| `timestamp` | Start time on the water system's elapsed clock, in milliseconds. |
+| `amount`    | Current visual stage of the splash, drop or bubble.              |
 <!-- source-types -->
 
 ## Liquid

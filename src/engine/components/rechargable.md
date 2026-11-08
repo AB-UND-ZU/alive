@@ -1,16 +1,8 @@
-# RECHARGABLE
+# Rechargable
 
-Tracks charge regeneration.
+Records whether a hit can produce a charge drop.
 
-`Rechargable`
-
-| Field | Type |
-| --- | --- |
-| `hit` | `boolean` |
-
-Attach with `world.addComponentToEntity(entity, RECHARGABLE, data)`. Query with `world.getEntities([RECHARGABLE])`.
-
-Systems: `ai`, `damage`, `drop`.
+[Damage](../systems/damage.md) marks eligible hits. [Drop](../systems/drop.md) turns the recorded hit into a charge drop; this is not a timed regeneration clock.
 <!-- source-types -->
 
 ## Rechargable

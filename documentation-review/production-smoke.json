@@ -1,0 +1,67 @@
+{
+  "origin": "http://127.0.0.1:4174/docs/",
+  "results": [
+    {
+      "route": "index.html",
+      "width": 1440,
+      "current": "http://127.0.0.1:4174/docs/index.html",
+      "overflow": false
+    },
+    {
+      "route": "game-design/characters/classes.html",
+      "width": 1440,
+      "current": "http://127.0.0.1:4174/docs/game-design/characters/classes.html",
+      "classes": 40,
+      "overflow": false
+    },
+    {
+      "route": "game-design/world/levels.html",
+      "width": 1440,
+      "current": "http://127.0.0.1:4174/docs/game-design/world/levels.html",
+      "overflow": false
+    },
+    {
+      "route": "game-design/controls/keyboard-mouse.html",
+      "width": 1440,
+      "current": "http://127.0.0.1:4174/docs/game-design/controls/keyboard-mouse.html",
+      "scene": {
+        "canvas": true,
+        "top": -1.3359375,
+        "height": 480
+      },
+      "overflow": false
+    },
+    {
+      "route": "index.html",
+      "width": 390,
+      "current": "http://127.0.0.1:4174/docs/index.html",
+      "overflow": false
+    },
+    {
+      "route": "game-design/characters/classes.html",
+      "width": 390,
+      "current": "http://127.0.0.1:4174/docs/game-design/characters/classes.html",
+      "classes": 40,
+      "overflow": false
+    },
+    {
+      "route": "game-design/world/levels.html",
+      "width": 390,
+      "current": "http://127.0.0.1:4174/docs/game-design/world/levels.html",
+      "overflow": false
+    },
+    {
+      "route": "game-design/controls/keyboard-mouse.html",
+      "width": 390,
+      "current": "http://127.0.0.1:4174/docs/game-design/controls/keyboard-mouse.html",
+      "scene": {
+        "canvas": true,
+        "top": -1.3359375,
+        "height": 480
+      },
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "requests": []
+}

@@ -1,18 +1,11 @@
 # Enter
 
-Switches between building interiors and the outside view.
+Updates building membership after entities move. Interior membership determines which roof and outside cells are hidden.
 
+| Data      | Use                                   |
+| --------- | ------------------------------------- |
+| Layer     | Current structure root                |
+| Enterable | Entry appearance and orientation      |
+| Fragment  | Resolve a multi-cell structure's root |
 
-## Queries
-
-```ts src/engine/systems/enter.ts
-world.getEntities([RENDERABLE, REFERENCE]);
-```
-
-```ts src/engine/systems/enter.ts
-world.getEntities([LAYER, POSITION, RENDERABLE]);
-```
-
-```ts src/engine/systems/enter.ts
-world.getEntities([ENTERABLE, RENDERABLE, FRAGMENT, LAYER]);
-```
+Runs after [Movement](movement.md), and checks the relevant entity generation before repeating work. [Visibility](visibility.md) then applies the resulting inside/outside view.
