@@ -14,7 +14,7 @@ Playtime counts world updates outside the main menu. Kills and deaths are totals
 
 ## Storage
 
-Summaries and saves are separate object stores in one database. The menu reads only summaries; a whole world is read when loading. `storeGame` also asks the browser to persist site storage, to reduce eviction when space runs low; the browser may decline. Clearing site data still deletes them.
+Summaries and saves are separate object stores in one database. The menu normally reads only summaries. An older summary also reads its saved world so both records can upgrade before the menu cache is published. Current saves keep the summaries-only path. `storeGame` also asks the browser to persist site storage, to reduce eviction when space runs low; the browser may decline. Clearing site data still deletes them.
 
 The summaries are kept in memory, latest first, because popups render synchronously. They are read once on start and updated after each save or erase. Erasing removes the summary right away and deletes the stored save through `world.metadata.eraseGame`.
 
@@ -26,11 +26,13 @@ Some systems keep values from previous updates to react to changes. Systems are 
 
 ## Upgrading saves
 
-Each save stores the package version. When a release changes world data, such as component fields or sprite names, add an entry to `saveUpgrades` with that release's version. `upgradeSave` passes a save through every upgrade newer than its version, in version order, and sets the version after each step. Releases without changes need no entry.
+Each save stores the package version. When a release changes world data, such as component fields or sprite names, add an entry to `saveUpgrades` with that release's version. `upgradeSave` passes a save through every upgrade newer than its version, in version order, and sets the version after each step. An entry can also advance the stored release without changing world data. The [[data:0.5.0]] entry keeps the snapshot unchanged.
+
+Loading the save list upgrades older records automatically in one transaction across the summary and snapshot stores. No confirmation or load action is needed. The cache changes only after that transaction commits. Missing worlds or snapshots stay unchanged. A newer actual save is never downgraded; its cached summary carries the actual version even if its stored summary is stale.
 
 Saves from newer versions can't be loaded. The saves dialog shows them in dark red.
 
-Test upgrades with saved data from the previous version. The tests in `index.test.ts` cover ordering and refusal with example upgrades.
+Test upgrades with saved data from the previous version. The tests in `index.test.ts` cover ordering and refusal with example upgrades. `scripts/wiki/tests/savegames.spec.cjs` uses real browser IndexedDB and a native [[data:0.4.0]] fixture to check automatic list upgrades, graph preservation, rollback and concurrent writes.
 <!-- source-types -->
 
 ## SaveItem

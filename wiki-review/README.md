@@ -1,8 +1,8 @@
 # Wiki review
 
-Baseline: `767e346`. Subsequent changes are uncommitted for review.
+Baseline: `767e346`. The visual review is committed as `1f029e7`; the Wiki rename is committed as `b468d52`. Statements about uncommitted changes in earlier reports describe those earlier review stages.
 
-Latest fixes and evidence: [Release Visual Review](release-visual-review.md). The checks cover 270 routes and all 49 player pages. Earlier complete reviews remain below with their original scope.
+Latest release checks: [0.5.0](release-0.5.0.md). Visual fixes and evidence: [Release Visual Review](release-visual-review.md). The checks cover 270 routes and all 49 player pages. Earlier complete reviews remain below with their original scope.
 
 ## Earlier visual coverage
 

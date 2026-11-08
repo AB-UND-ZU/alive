@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "a8c460f0aa80a4d2ab4b3a77c1f460d7dad01812",
+  "sourceVersion": "0.4.0",
+  "level": "LEVEL_TUTORIAL",
+  "seed": 2026,
+  "createdAtLocal": "2026-10-11 15:13:23",
+  "generator": "Native createTestWorld({level:\"LEVEL_TUTORIAL\"}) and createSave from the source commit, via scripts under /tmp/alive-save040-research during preparation",
+  "fixture": "0.4.0-tutorial.v8.gz",
+  "serialization": "gzip of native v8.serialize; preserves Infinity and shared references",
+  "sha256": "5f9d20a8051510d4eb6902a865072fcc43db4d43ef7c43f192623e8cdc8b6186",
+  "compressedBytes": 125031,
+  "entities": 7171,
+  "itemEntities": 103,
+  "npcEntities": 3,
+  "heroId": 2532
+}

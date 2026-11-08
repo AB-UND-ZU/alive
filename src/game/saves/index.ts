@@ -35,7 +35,7 @@ export type SaveSummary = {
 export type SaveGame = SaveSummary & { snapshot: WorldSnapshot };
 
 /**
- * Chain of save upgrades, each for the release that changed the world data.
+ * Chain of save upgrades for releases that change data or its stored version.
  * A save is passed through all upgrades newer than its version in order, e.g.
  *
  *   { version: "0.5.0", upgrade: (save) => ({ ...save, ... }) },
@@ -43,7 +43,10 @@ export type SaveGame = SaveSummary & { snapshot: WorldSnapshot };
 export const saveUpgrades: {
   version: string;
   upgrade: (save: SaveGame) => SaveGame;
-}[] = [];
+}[] = [
+  // World data is unchanged; refresh the stored release and its summary.
+  { version: "0.5.0", upgrade: (save) => save },
+];
 
 export const compareVersions = (left: string, right: string) => {
   const leftParts = left.split(".").map((part) => parseInt(part, 10) || 0);

@@ -31,7 +31,7 @@ The main menu's Continue portal opens when a save exists. Select a save and conf
 | Totals | Deaths, kills and time played |
 | Dark red entry | Saved by a newer game version; cannot load |
 
-Older saves pass through any available version upgrades when loaded.
+Older saves upgrade automatically when the save list loads. Your saved world and progress stay intact.
 
 To delete a selected save, choose [[button:ERASE]], then [[button:YES]]. [[button:BACK]] cancels. Erased saves cannot be restored.
 

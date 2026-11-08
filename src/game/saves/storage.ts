@@ -1,7 +1,10 @@
 import { World } from "../../engine";
 import { restoreSnapshot } from "../../engine/snapshot";
 import {
+  compareVersions,
   createSave,
+  isLoadable,
+  saveVersion,
   getSummary,
   SaveGame,
   SaveSummary,
@@ -51,9 +54,48 @@ const runTransaction = async <T>(
 };
 
 export const loadSaveSummaries = async () => {
-  const summaries = await runTransaction<SaveSummary[]>("readonly", (store) =>
-    store.objectStore(summaryStore).getAll()
-  );
+  let upgradeError: unknown;
+  const summaries = await runTransaction<SaveSummary[]>(
+    "readwrite",
+    (transaction) => {
+      const summariesStore = transaction.objectStore(summaryStore);
+      const savesStore = transaction.objectStore(saveStore);
+      const request = summariesStore.getAll();
+
+      // Current saves can be listed without reading their world snapshots.
+      request.onsuccess = () => {
+        request.result.forEach((summary, index) => {
+          if (compareVersions(summary.version, saveVersion) >= 0) return;
+
+          const saved = savesStore.get(summary.id);
+          saved.onsuccess = () => {
+            const save: SaveGame | undefined = saved.result;
+            if (!save) return;
+            if (!isLoadable(save)) {
+              // A stale summary must not offer a newer world as loadable.
+              request.result[index] = { ...summary, version: save.version };
+              return;
+            }
+            if (!save.snapshot) return;
+
+            try {
+              const upgraded = upgradeSave(save);
+              const updated = getSummary(upgraded);
+              if (upgraded !== save) savesStore.put(upgraded);
+              summariesStore.put(updated);
+              request.result[index] = updated;
+            } catch (error) {
+              upgradeError = error;
+              transaction.abort();
+            }
+          };
+        });
+      };
+      return request;
+    }
+  ).catch((error) => {
+    throw upgradeError ?? error;
+  });
   setSaveSummaries(summaries || []);
 };
 

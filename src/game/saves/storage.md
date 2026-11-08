@@ -4,7 +4,7 @@
 
 | Function | Result |
 | --- | --- |
-| `loadSaveSummaries` | Read summaries into the synchronous menu cache |
+| `loadSaveSummaries` | Upgrade older records atomically, then populate the synchronous menu cache |
 | `storeGame` | Capture the world, replace its save and update the summary cache after writing |
 | `restoreGame` | Read and upgrade a save, then restore its snapshot without systems |
 | `eraseGame` | Delete the summary and snapshot in one transaction |
@@ -12,3 +12,5 @@
 The caller installs systems and preloads a restored world. Erasing from the popup removes the cached summary separately. Storage failures reject the returned promise; World displays save failures in the pause screen.
 
 `storeGame` requests persistent browser storage. The browser may decline; clearing site data still removes saves. See [saved games](index.md) and [snapshots](../../engine/snapshot.md).
+
+`loadSaveSummaries` opens one readwrite transaction across both stores. Current summaries need no snapshot reads. For older summaries, the actual full record determines whether to upgrade; missing snapshots and future saves remain untouched. Upgraded worlds and summaries commit together before the cache is published. A failed upgrade aborts the transaction and rejects with the original error.
