@@ -8,25 +8,8 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-const fills = (locator) =>
-  locator.evaluateAll((roots) => {
-    const nodes = roots
-      .flatMap((root) => [
-        root,
-        ...root.querySelectorAll("svg rect, .CellGlyph"),
-      ])
-      .filter((node) => node.matches("svg rect, .CellGlyph"));
-    return [
-      ...new Set(
-        nodes.map(
-          (node) =>
-            getComputedStyle(node)[
-              node.classList.contains("CellGlyph") ? "color" : "fill"
-            ]
-        )
-      ),
-    ];
-  });
+const { renderedColors } = require("./rendered-colors.cjs");
+const fills = (locator) => locator.evaluateAll(renderedColors);
 
 test("item links underline and recolor only the name", async ({ page }) => {
   await page.goto("/crafting.html");

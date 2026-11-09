@@ -1,6 +1,6 @@
 # Cell Sizing
 
-Calculates one dimensions object for React and CSS. A glyph is 9 by 16 source pixels. Each source pixel uses a whole number of CSS pixels. Choose the largest step that fits the target 21 columns and 20 rows, with a minimum scale of one. Cell width and height keep the font's 9 by 16 ratio.
+Calculates one dimensions object for React and CSS. A glyph is 9 by 16 source pixels. Cell height is the smaller whole-pixel height that fits the target 21 columns or 20 rows; cell width keeps the font's aspect ratio.
 
 | Values | Meaning |
 | --- | --- |

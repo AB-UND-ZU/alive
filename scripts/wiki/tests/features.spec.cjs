@@ -1,24 +1,11 @@
 const { test, expect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
+const { renderedColors } = require("./rendered-colors.cjs");
 async function expectColor(locator, color) {
   await expect
-    .poll(() =>
-      locator.evaluateAll(
-        (roots, color) =>
-          roots
-            .flatMap((root) => [
-              root,
-              ...root.querySelectorAll(".CellGlyph, svg rect"),
-            ])
-            .some(
-              (node) =>
-                getComputedStyle(node)[
-                  node.tagName.toLowerCase() === "rect" ? "fill" : "color"
-                ] === color
-            ),
-        color
-      )
+    .poll(async () =>
+      (await locator.evaluateAll(renderedColors)).includes(color)
     )
     .toBe(true);
 }
@@ -201,9 +188,7 @@ test("CSS navigation hover keeps the current solid highlight and moves only the 
   await expect(current).toBeHidden();
   await expect(touch.locator(".NavHoverPointer")).toBeVisible();
   await expect(solid).toBeVisible();
-  expect(
-    await solid.evaluate((node) => getComputedStyle(node, "::before").color)
-  ).toBe("rgb(0, 128, 0)");
+  await expectColor(solid, "rgb(0, 128, 0)");
   expect((await touch.locator(".NavText").boundingBox()).width).toBe(288);
   await page.locator(".WikiHeader").hover();
   await expect(current).toBeVisible();

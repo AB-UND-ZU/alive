@@ -16,7 +16,7 @@ test("Interface loads native controls after navigation from Welcome", async ({
   const iframe = page.locator(".InterfaceDiagram");
   await expect(iframe).toHaveAttribute(
     "src",
-    "http://127.0.0.1:4173/interface-preview.html"
+    new URL("/interface-preview.html", page.url()).href
   );
   const frame = await (await iframe.elementHandle()).contentFrame();
   await expect(frame.locator("canvas")).toBeVisible();

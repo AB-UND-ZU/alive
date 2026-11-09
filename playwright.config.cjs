@@ -1,11 +1,12 @@
 const { defineConfig } = require("@playwright/test");
+const port = process.env.WIKI_PORT || 4173;
 module.exports = defineConfig({
   testDir: "./scripts/wiki/tests",
   fullyParallel: false,
   workers: 1,
   timeout: 30000,
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: `http://127.0.0.1:${port}`,
     viewport: { width: 1440, height: 1000 },
     launchOptions: {
       args: ["--disable-gpu"],
@@ -16,7 +17,7 @@ module.exports = defineConfig({
   },
   webServer: {
     command: "npm run wiki:dev",
-    url: "http://127.0.0.1:4173/__wiki_health",
+    url: `http://127.0.0.1:${port}/__wiki_health`,
     reuseExistingServer: !process.env.CI,
   },
 });

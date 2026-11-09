@@ -1,13 +1,5 @@
 # Character Pixels
 
-`characterMask` rasterizes a font outline onto its native 9 by 16 grid. Coordinates are rounded to source pixels before layers are combined.
+`composeCharacterPixels` resolves sprite layers and count dots on the font's 9 by 16 grid. `rowImage` puts those final pixels into one cached bitmap. Ordinary text is drawn separately with the font.
 
-```text cell-composition.txt
-font masks + sprite colors
-  -> composeCharacterPixels
-  -> stack dots
-  -> cached SVG rectangles
-  -> one Cell
-```
-
-`characterMarkup` caches the final rectangles. For stacked sprites, `Cell` scales that single drawing without selectable fallback text. Single-layer glyphs use the actual DOS font instead.
+The bitmap has a one-pixel sampling border. Cell spacing and internal sprite coordinates stay unchanged. Server rendering uses the existing SVG rectangles from `characterMarkup` as a fallback.

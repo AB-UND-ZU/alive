@@ -5,6 +5,7 @@ test("the type index keeps a destination for every declaration", async ({
 }) => {
   await page.goto("/development/types/types.html");
   const rows = page.locator("main tbody tr:not(.GridRule)");
+  await expect(rows.first()).toBeVisible();
   expect(await rows.count()).toBeGreaterThan(200);
   const missing = await rows.evaluateAll((rows) =>
     rows

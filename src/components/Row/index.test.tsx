@@ -25,22 +25,27 @@ test("native and composed icons add no fallback characters to copied text", () =
     <Row cells={[heart, mapDiscovery, ...createText("HP")]} />
   );
   expect(text(view)).toBe("HP");
-  expect(view.match(/<svg/g)).toHaveLength(1);
+  expect(view.match(/<img/g)).toHaveLength(1);
   expect(view.match(/data-glyph=/g)).toHaveLength(1);
 });
 
-test("enlarged pixel pairs batch into native font runs without SVG geometry", () => {
-  const cell = {
-    name: "preview_pixel_pair",
+test("stacked sprite pixels are resolved into one graphic per cell", () => {
+  const sprite = {
+    name: "pixel_pair",
     layers: [
       { char: "▀", color: colors.red },
       { char: "▄", color: colors.blue },
     ],
   };
-  const view = renderToStaticMarkup(<Row cells={[cell, cell, cell]} />);
-  expect(view).not.toContain("svg");
-  expect(view).toContain('data-cells="3"');
-  expect(view).toContain('data-glyph="▀▀▀"');
-  expect(view).toContain("background:#0000ff");
+  const view = renderToStaticMarkup(<Row cells={[sprite, sprite]} />);
+  expect(view.match(/<img/g)).toHaveLength(1);
+  expect(decodeURIComponent(view)).toContain('fill="#ff0000"');
+  expect(decodeURIComponent(view)).toContain('fill="#0000ff"');
   expect(text(view)).toBe("");
+});
+
+test("block art keeps real characters available for copying", () => {
+  const view = renderToStaticMarkup(<Row cells={createText("Use ███ here")} />);
+  expect(text(view)).toBe("Use ███ here");
+  expect(view.match(/<img/g)).toHaveLength(1);
 });

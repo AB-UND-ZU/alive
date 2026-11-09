@@ -30,13 +30,13 @@ Read [AGENTS.md](AGENTS.md) before editing. Reuse the local style and game helpe
 
 ```sh
 npm run check:fast
-npm run test:all
+npm run test:slow
 npm run build
 npx playwright install chromium
 npm run wiki:test
 ```
 
-Fast checks cover types, lint, and small feature tests. `test:all` also checks game integration and rendering. The wiki browser suite checks live examples, navigation, and responsive layout.
+Fast checks cover types, lint, and small feature tests. `test:slow` checks game integration and rendering; `test:all` runs both test groups. The pre-commit hook runs lint only, so run the checks above before committing code changes. The wiki browser suite checks live examples, navigation, and responsive layout.
 
 Run `npm run test:generation` only when changing level generation or generation-dependent fixtures. CI uses `npm run test:ci` to run game and generation tests together, report coverage and enforce the thresholds in `package.json`.
 

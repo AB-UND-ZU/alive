@@ -15,8 +15,34 @@ import {
   Palette,
 } from "../../game/assets/ui";
 
-const markup = (cell: Element) =>
-  cell.querySelector("svg")?.innerHTML.replaceAll("></rect>", "/>");
+const markup = (cell: Element) => {
+  if (!cell.matches(".SpriteCell")) return;
+  const row = cell.parentElement;
+  const own = cell.querySelector("img");
+  const image = own || row?.querySelector(":scope > .RowPixels");
+  const source = image?.getAttribute("src");
+  if (!source?.startsWith("data:image/svg+xml,")) return;
+  const offset = own
+    ? 0
+    : Array.from(row?.children || [])
+        .slice(0, Array.from(row?.children || []).indexOf(cell))
+        .reduce(
+          (sum, child) =>
+            sum +
+            (child.matches(".Cell")
+              ? Number(child.getAttribute("data-cells") || 1)
+              : 0),
+          0
+        );
+  const document = new DOMParser().parseFromString(
+    decodeURIComponent(source.split(",")[1]),
+    "image/svg+xml"
+  );
+  return document
+    .querySelector(`[data-cell="${offset}"]`)
+    ?.innerHTML.replaceAll(' xmlns="http://www.w3.org/2000/svg"', "")
+    .replaceAll("></rect>", "/>");
+};
 
 // Disabled letters are composed pixels, with no selectable fallback text.
 const disabledLetters = new Map(
@@ -24,10 +50,12 @@ const disabledLetters = new Map(
     [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].map(
       (letter) =>
         [
-          characterMarkup([
-            ...getButtonDisabled(palette).layers,
-            ...createText(letter, buttonPalettes[palette].text)[0].layers,
-          ]),
+          characterMarkup(
+            [
+              ...getButtonDisabled(palette).layers,
+              ...createText(letter, buttonPalettes[palette].text)[0].layers,
+            ]
+          ),
           letter,
         ] as const
     )
@@ -58,7 +86,9 @@ export const showsLayers = (cell: Element, layers: Layer[], index = 0) => {
   if (svg !== undefined) return svg === characterMarkup(layers);
 
   const style = (cell as HTMLElement).style;
-  const background = style.backgroundColor.replace(
+  const background = (
+    style.getPropertyValue("--cell-background") || style.backgroundColor
+  ).replace(
     /rgb\((\d+), (\d+), (\d+)\)/,
     (_, r, g, b) =>
       `#${[r, g, b]

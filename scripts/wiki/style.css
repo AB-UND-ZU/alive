@@ -58,6 +58,7 @@ a {
   outline: 0;
 }
 button > .Pixels {
+  overflow: hidden;
   pointer-events: none;
 }
 button:disabled {

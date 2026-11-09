@@ -146,7 +146,9 @@ it("keeps the complete native title in a narrow frame with its requested backgro
   const frame = screen.getByLabelText("Contents");
   expect(frame).toHaveTextContent("CONTENTS");
   expect(frame).toHaveStyle({ maxWidth: "216px" });
-  expect(screen.getByText("CONTENTS")).toHaveStyle({ background: "#008000" });
+  expect(screen.getByText("CONTENTS")).toHaveStyle({
+    "--cell-background": "#008000",
+  });
 });
 
 it.each([Infinity, -Infinity])(
@@ -154,7 +156,7 @@ it.each([Infinity, -Infinity])(
   (value) => {
     const view = renderToStaticMarkup(<Count value={value} />);
     expect(view).toContain('aria-label="99+"');
-    expect(view).toContain('fill="#c0c0c0"');
+    expect(decodeURIComponent(view)).toContain('fill="#c0c0c0"');
     expect(view).not.toContain("Infinity");
   }
 );

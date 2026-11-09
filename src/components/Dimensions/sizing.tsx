@@ -55,12 +55,9 @@ export const calculateDimensions = ({
     screenWidth / visibleColumns / aspectRatio
   );
   const verticalMinimum = Math.floor(screenHeight / visibleRows);
-  const pixelSize = Math.max(
-    1,
-    Math.floor(Math.min(horizontalMinimum, verticalMinimum) / pixels)
-  );
-  const cellHeight = pixelSize * pixels;
+  const cellHeight = Math.min(horizontalMinimum, verticalMinimum);
   const cellWidth = cellHeight * aspectRatio;
+  const pixelSize = cellHeight / pixels;
   const columns = Math.ceil(screenWidth / cellWidth);
   const rows = Math.ceil(screenHeight / cellHeight);
   const padding = Math.max(

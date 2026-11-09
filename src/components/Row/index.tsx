@@ -1,12 +1,13 @@
 import { CSSProperties } from "react";
-import { Sprite } from "../../engine/components/sprite";
+import { Layer, Sprite } from "../../engine/components/sprite";
 import { getFacingLayers } from "../../game/assets/ui";
-import { characterMarkup } from "./characters";
+import { rowImage } from "./characters";
 import "./index.css";
 
 export type CellSprite = Sprite & { stackableAmount?: number };
 type FontCell = {
   text: string;
+  backgroundLayers: Layer[];
   color: string;
   background?: string;
   selectable: boolean;
@@ -18,18 +19,8 @@ function fontCell(sprite: CellSprite): FontCell | undefined {
   if (sprite.stackableAmount && sprite.stackableAmount > 1) return;
   const layers = getFacingLayers(sprite);
   const selectable = sprite.name === "text_generic";
-  if (
-    !selectable &&
-    layers.length === 2 &&
-    layers[0].char === "▀" &&
-    layers[1].char === "▄"
-  )
-    return {
-      text: "▀",
-      color: layers[0].color,
-      background: layers[1].color,
-      selectable: false,
-    };
+  if (!selectable && sprite.name !== "button_generic" && layers.length > 1)
+    return;
   const foreground = selectable ? layers[layers.length - 1] : undefined;
   const base = selectable ? layers.slice(0, -1) : layers;
   const solid = base.map((layer) => layer.char).lastIndexOf("█");
@@ -53,17 +44,36 @@ function fontCell(sprite: CellSprite): FontCell | undefined {
   )
     return;
   const glyph = foreground || visible[visible.length - 1];
+  if (glyph && /^[\u2500-\u259f]$/.test(glyph.char)) return;
   return {
     text: glyph?.char || " ",
     color: glyph?.color || "transparent",
     background: solid >= 0 ? base[solid].color : undefined,
+    backgroundLayers: [
+      ...(solid >= 0 ? [base[solid]] : []),
+      ...(underlay ? [underlay] : []),
+      ...(mask ? [mask] : []),
+    ],
     selectable,
     underlay,
     mask,
   };
 }
 
-function FontRun({ cell, count }: { cell: FontCell; count: number }) {
+function FontRun({
+  cell,
+  count,
+  paint = true,
+}: {
+  cell: FontCell;
+  count: number;
+  paint?: boolean;
+}) {
+  const background = paint
+    ? rowImage(
+        Array.from({ length: count }, () => ({ layers: cell.backgroundLayers }))
+      )
+    : undefined;
   return (
     <span
       className="Cell CellGlyph CellRun"
@@ -79,30 +89,60 @@ function FontRun({ cell, count }: { cell: FontCell; count: number }) {
           "--mask-color": cell.mask?.color,
           width: `calc(var(--cell-width) * ${count})`,
           flexBasis: `calc(var(--cell-width) * ${count})`,
-          background: cell.background,
+          "--cell-background": cell.background,
           userSelect: cell.selectable ? "text" : "none",
+          WebkitUserSelect: cell.selectable ? "text" : "none",
         } as CSSProperties
       }
     >
+      {background && (
+        <img
+          className="CellBackground"
+          src={background}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+        />
+      )}
       {cell.selectable ? cell.text : null}
     </span>
   );
 }
 
-export function Cell({ sprite }: { sprite: CellSprite }) {
+export function Cell({
+  sprite,
+  paint = true,
+}: {
+  sprite: CellSprite;
+  paint?: boolean;
+}) {
   const native = fontCell(sprite);
-  if (native) return <FontRun cell={native} count={1} />;
+  if (native) return <FontRun cell={native} count={1} paint={paint} />;
   const layers = getFacingLayers(sprite, undefined, sprite.stackableAmount);
+  const selectable = sprite.name === "text_generic";
   return (
-    <span className="Cell SpriteCell" aria-hidden="true">
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 9 16"
-        shapeRendering="crispEdges"
-        dangerouslySetInnerHTML={{
-          __html: characterMarkup(layers, sprite.stackableAmount),
-        }}
-      />
+    <span
+      className="Cell SpriteCell"
+      aria-hidden={selectable ? undefined : true}
+      data-glyph={
+        sprite.name === "button_generic"
+          ? layers[layers.length - 1]?.char
+          : undefined
+      }
+      style={{
+        userSelect: selectable ? "text" : "none",
+        WebkitUserSelect: selectable ? "text" : "none",
+      }}
+    >
+      {selectable ? layers[layers.length - 1]?.char : null}
+      {paint && (
+        <img
+          aria-hidden="true"
+          alt=""
+          draggable={false}
+          src={rowImage([{ layers, amount: sprite.stackableAmount }])}
+        />
+      )}
     </span>
   );
 }
@@ -115,8 +155,15 @@ export default function Row({
   className?: string;
 }) {
   const runs: { cell?: FontCell; sprite: CellSprite; count: number }[] = [];
+  const graphics: { layers: Layer[]; amount?: number }[] = [];
   for (const sprite of cells) {
     const cell = fontCell(sprite);
+    graphics.push({
+      layers: cell
+        ? cell.backgroundLayers
+        : getFacingLayers(sprite, undefined, sprite.stackableAmount),
+      amount: cell ? undefined : sprite.stackableAmount,
+    });
     const previous = runs[runs.length - 1];
     if (
       cell &&
@@ -133,13 +180,31 @@ export default function Row({
       previous.count++;
     } else runs.push({ cell, sprite, count: 1 });
   }
+  const image = rowImage(graphics);
   return (
     <span className={`Row${className ? " " + className : ""}`}>
+      {image && (
+        <img
+          className="RowPixels"
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          src={image}
+          style={{
+            width: `calc(var(--cell-width) * ${cells.length} + var(--pixel-size) * 2)`,
+          }}
+        />
+      )}
       {runs.map((run, index) =>
         run.cell ? (
-          <FontRun key={index} cell={run.cell} count={run.count} />
+          <FontRun
+            key={index}
+            cell={run.cell}
+            count={run.count}
+            paint={false}
+          />
         ) : (
-          <Cell key={index} sprite={run.sprite} />
+          <Cell key={index} sprite={run.sprite} paint={false} />
         )
       )}
     </span>

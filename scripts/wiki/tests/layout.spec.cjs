@@ -21,22 +21,16 @@ test("Contents groups start together and only stacked group rows have a gap", as
       .locator(".FrameEdge .CellRun")
       .evaluateAll((cells) =>
         cells.some(
-          (cell) => getComputedStyle(cell).backgroundColor === "rgb(0, 128, 0)"
+          (cell) =>
+            getComputedStyle(cell).getPropertyValue("--cell-background") ===
+            "#008000"
         )
       )
   ).toBe(true);
+  const { renderedColors } = require("./rendered-colors.cjs");
   expect(
-    await overview
-      .locator(".FrameEdge .CellGlyph, .FrameEdge svg rect")
-      .evaluateAll((nodes) =>
-        nodes.some(
-          (node) =>
-            getComputedStyle(node)[
-              node.tagName.toLowerCase() === "rect" ? "fill" : "color"
-            ] === "rgb(0, 128, 0)"
-        )
-      )
-  ).toBe(true);
+    await overview.locator(".FrameEdge").evaluateAll(renderedColors)
+  ).toContain("rgb(0, 128, 0)");
   const grid = overview.locator(".CatalogGrouped");
   const geometry = await grid.evaluate((node) => ({
     columns: getComputedStyle(node).gridTemplateColumns.split(" ").length,
