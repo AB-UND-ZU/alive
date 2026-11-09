@@ -9,6 +9,7 @@
 | [Actionable](engine/components/actionable.md#type-actionable) | `src/engine/components/actionable.ts` |
 | [Affectable](engine/components/affectable.md#type-affectable) | `src/engine/components/affectable.ts` |
 | [Amount](engine/components/sprite.md#type-amount) | `src/engine/components/sprite.ts` |
+| [AnvilEntity](features/workstations/helpers.md#type-anvilentity) | `src/features/workstations/helpers.ts` |
 | [AreaWorldOptions](testing/harness.md#type-areaworldoptions) | `src/testing/harness.ts` |
 | [ArrowSequence](engine/components/sequencable.md#type-arrowsequence) | `src/engine/components/sequencable.ts` |
 | [Attackable](engine/components/attackable.md#type-attackable) | `src/engine/components/attackable.ts` |
@@ -55,6 +56,7 @@
 | [Craftable](engine/components/item.md#type-craftable) | `src/engine/components/item.ts` |
 | [DamageKind](wiki/Damage.md#type-damagekind) | `src/wiki/Damage.tsx` |
 | [DamageType](engine/components/castable.md#type-damagetype) | `src/engine/components/castable.ts` |
+| [Database](game/saves/testing.md#type-database) | `src/game/saves/testing.ts` |
 | [Deal](engine/components/popup.md#type-deal) | `src/engine/components/popup.ts` |
 | [DecaySequence](engine/components/sequencable.md#type-decaysequence) | `src/engine/components/sequencable.ts` |
 | [Definition](engine/wfc/wfc.md#type-definition) | `src/engine/wfc/wfc.ts` |
@@ -65,6 +67,7 @@
 | [Displacable](engine/components/displacable.md#type-displacable) | `src/engine/components/displacable.ts` |
 | [DisposeSequence](engine/components/sequencable.md#type-disposesequence) | `src/engine/components/sequencable.ts` |
 | [DropSequence](engine/components/sequencable.md#type-dropsequence) | `src/engine/components/sequencable.ts` |
+| [Drop](features/combat/helpers.md#type-drop) | `src/features/combat/helpers.ts` |
 | [Droppable](engine/components/droppable.md#type-droppable) | `src/engine/components/droppable.ts` |
 | [EffectType](engine/components/castable.md#type-effecttype) | `src/engine/components/castable.ts` |
 | [Element](engine/components/item.md#type-element) | `src/engine/components/item.ts` |
@@ -97,6 +100,7 @@
 | [Freezable](engine/components/freezable.md#type-freezable) | `src/engine/components/freezable.ts` |
 | [FreezeSequence](engine/components/sequencable.md#type-freezesequence) | `src/engine/components/sequencable.ts` |
 | [Gear](engine/components/equippable.md#type-gear) | `src/engine/components/equippable.ts` |
+| [GivenItem](testing/harness.md#type-givenitem) | `src/testing/harness.ts` |
 | [HarvestConfig](game/balancing/harvesting.md#type-harvestconfig) | `src/game/balancing/harvesting.ts` |
 | [HarvestStats](engine/components/harvestable.md#type-harveststats) | `src/engine/components/harvestable.ts` |
 | [Harvestable](engine/components/harvestable.md#type-harvestable) | `src/engine/components/harvestable.ts` |
@@ -160,6 +164,7 @@
 | [Poi](engine/components/poi.md#type-poi) | `src/engine/components/poi.ts` |
 | [Point](game/math/std.md#type-point) | `src/game/math/std.ts` |
 | [PointerSequence](engine/components/sequencable.md#type-pointersequence) | `src/engine/components/sequencable.ts` |
+| [PopupEntity](features/workstations/helpers.md#type-popupentity) | `src/features/workstations/helpers.ts` |
 | [PopupSelection](game/assets/utils.md#type-popupselection) | `src/game/assets/utils.ts` |
 | [PopupSequence](engine/components/sequencable.md#type-popupsequence) | `src/engine/components/sequencable.ts` |
 | [Popup](engine/components/popup.md#type-popup) | `src/engine/components/popup.ts` |
@@ -203,7 +208,9 @@
 | [SmokeSequence](engine/components/sequencable.md#type-smokesequence) | `src/engine/components/sequencable.ts` |
 | [Soul](engine/components/soul.md#type-soul) | `src/engine/components/soul.ts` |
 | [Spawnable](engine/components/spawnable.md#type-spawnable) | `src/engine/components/spawnable.ts` |
+| [SpellItem](features/spells/helpers.md#type-spellitem) | `src/features/spells/helpers.ts` |
 | [SpellSequence](engine/components/sequencable.md#type-spellsequence) | `src/engine/components/sequencable.ts` |
+| [SpellWorldOptions](features/spells/helpers.md#type-spellworldoptions) | `src/features/spells/helpers.ts` |
 | [Spell](engine/components/item.md#type-spell) | `src/engine/components/item.ts` |
 | [Spikable](engine/components/spikable.md#type-spikable) | `src/engine/components/spikable.ts` |
 | [SpriteDefinition](game/assets/descriptions.md#type-spritedefinition) | `src/game/assets/descriptions.ts` |
@@ -220,6 +227,7 @@
 | [Stats](game/assets/ui.md#type-stats) | `src/game/assets/ui.ts` |
 | [StepAnimations](game/assets/utils.md#type-stepanimations) | `src/game/assets/utils.ts` |
 | [Sticky](engine/components/sticky.md#type-sticky) | `src/engine/components/sticky.ts` |
+| [Store](game/saves/testing.md#type-store) | `src/game/saves/testing.ts` |
 | [Structurable](engine/components/structurable.md#type-structurable) | `src/engine/components/structurable.ts` |
 | [Swimmable](engine/components/swimmable.md#type-swimmable) | `src/engine/components/swimmable.ts` |
 | [Tag](engine/wfc/wfc.md#type-tag) | `src/engine/wfc/wfc.ts` |

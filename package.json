@@ -66,6 +66,7 @@
       "!src/**/*.test.{ts,tsx}",
       "!src/engine/vendor/**",
       "!src/features/**",
+      "!src/wiki/**",
       "!src/testing/**",
       "!src/index.tsx"
     ],
@@ -76,10 +77,10 @@
     ],
     "coverageThreshold": {
       "global": {
-        "statements": 85,
-        "branches": 83,
-        "functions": 82,
-        "lines": 86
+        "statements": 87,
+        "branches": 84,
+        "functions": 86,
+        "lines": 88
       }
     }
   },

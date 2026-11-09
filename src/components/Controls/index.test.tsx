@@ -37,13 +37,29 @@ import {
   step,
   walk,
 } from "../../testing/harness";
-import { readRow, readRows, renderHud } from "./testing";
+import {
+  isDisabledCell,
+  readCells,
+  readRow,
+  readRows,
+  renderHud,
+  showsLayers,
+} from "./testing";
+import {
+  buttonPalettes,
+  createProgress,
+  getFacingLayers,
+  Palette,
+} from "../../game/assets/ui";
 import { CONDITIONABLE } from "../../engine/components/conditionable";
 import { frameHeight, frameWidth } from "../../game/assets/utils";
 import { getIndexFromKey } from "../Keyboard";
 import { REVIVABLE } from "../../engine/components/revivable";
 import { purchasableItems } from "../../game/balancing/trading";
 import { createShop, getTraderDeal } from "../../features/workstations/helpers";
+import Stats from "../Stats";
+
+const palettes = Object.keys(buttonPalettes) as Palette[];
 
 const area = `
 |         |
@@ -99,17 +115,15 @@ const getProjectiles = (world: World) => world.getEntities([PROJECTILE]);
 const getButtons = (container: HTMLElement, flipped = false) => {
   const rows = Array.from(container.querySelectorAll("footer > .Row"));
   const frameIndex = rows.findIndex((row) => readRow(row).startsWith("─"));
-  const cells = Array.from(rows[frameIndex + 1].querySelectorAll(".Cell"));
+  const cells = readCells(rows[frameIndex + 1]);
   const offset = flipped ? 8 : 0;
-  const readButton = (button: Element[]) => ({
+  const readButton = (button: typeof cells) => ({
     label: button
-      .map((cell) => cell.querySelector(".Layer:last-child")?.textContent)
+      .map(({ char }) => char)
       .join("")
       .replace(/[^A-Z]/g, ""),
-    disabled: button.some((cell) =>
-      Array.from(cell.querySelectorAll(".Layer")).some(
-        (layer) => layer.textContent === "░"
-      )
+    disabled: button.some(({ element, index }) =>
+      palettes.some((palette) => isDisabledCell(element, palette, index))
     ),
   });
   const left = readButton(cells.slice(offset, offset + 6));
@@ -722,9 +736,72 @@ describe("equipment display", () => {
   );
 });
 
+describe.each([false, true])("stats HUD with flipped=%s", (flipped) => {
+  const setupStats = (paused = false) => {
+    const world = createAreaWorld(area);
+    const hero = world.assertComponents(assertHero(world), [STATS, PLAYER]);
+    Object.assign(hero[STATS], {
+      hp: 8,
+      maxHp: 20,
+      mp: 4,
+      maxMp: 7,
+      xp: 3,
+      maxXp: 10,
+    });
+    const setPaused = jest.fn();
+    const view = renderHud(world, <Stats />, { flipped, paused, setPaused });
+    return { ...view, world, hero, setPaused };
+  };
+
+  it("shows the hero's HP, MP and XP values in the HUD", () => {
+    const { container, hero } = setupStats();
+
+    for (const stat of ["hp", "mp", "xp"] as const) {
+      const selector =
+        stat === "xp" ? ".StatProgress" : `.Stat${stat.toUpperCase()}`;
+      const cells = readCells(container.querySelector(selector)!);
+      const offset = stat === "xp" ? 0 : flipped ? 5 : 3;
+      const progress = createProgress(hero[STATS], stat, 13, stat !== "hp");
+      expect(progress).toHaveLength(13);
+      for (const [index, sprite] of progress.entries()) {
+        const cell = cells[index + offset];
+        expect(
+          showsLayers(cell.element, getFacingLayers(sprite), cell.index)
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("keeps pause and quick actions working", () => {
+    const { container, world, hero, setPaused } = setupStats();
+    const header = container.querySelector("header")!;
+    expect(header).toHaveClass(flipped ? "StatsFlipped" : "Stats");
+
+    fireEvent.click(getTouchArea(container, "menu"));
+    const toggle = setPaused.mock.calls[0][0] as (value: boolean) => boolean;
+    expect(toggle(false)).toBe(true);
+    expect(toggle(true)).toBe(false);
+
+    fireEvent.click(getTouchArea(container, "quick"));
+    tick(world, 20);
+    expect(getTab(world, getMenu(world))).toBe("use");
+    expect(isInPopup(world, hero)).toBeTruthy();
+  });
+
+  it("doesn't open quick actions while paused", () => {
+    const { container, world, hero, tick } = setupStats(true);
+
+    fireEvent.click(getTouchArea(container, "quick"));
+    tick(20);
+
+    expect(hero[PLAYER].actionTriggered).toBeUndefined();
+    expect(isInPopup(world, hero)).toBeFalsy();
+  });
+});
+
 describe("touch controls", () => {
   const touch = (
-    type: "touchStart" | "touchMove" | "touchEnd",
+    type: "touchStart" | "touchMove" | "touchEnd" | "touchCancel",
     points: [number, number][],
     target: Element = document.body
   ) =>
@@ -767,7 +844,7 @@ describe("touch controls", () => {
   it("doesn't show a prompt without anything to interact with", () => {
     const { container } = setup();
 
-    expect(queryTouchArea(container, "interact")).not.toBeInTheDocument();
+    expect(queryTouchArea(container, "interact")).not.toBeVisible();
   });
 
   it("tapping tab areas changes the shop tab", () => {
@@ -866,6 +943,72 @@ describe("touch controls", () => {
     touch("touchMove", [[104, 103]]);
 
     expect(hero[MOVABLE].orientations).toEqual([]);
+  });
+
+  it.each(["pointerup", "pointercancel"])(
+    "%s releases a touch drag even without a touchend event",
+    (type) => {
+      const { hero, container, tick } = setup();
+      touch("touchStart", [[100, 100]]);
+      touch("touchMove", [[160, 100]]);
+      expect(hero[MOVABLE].orientations[0]).toBe("right");
+
+      const event = new Event(type, { bubbles: true });
+      Object.defineProperty(event, "pointerType", { value: "touch" });
+      fireEvent(window, event);
+
+      expect(hero[MOVABLE].orientations).toEqual([]);
+      expect(container.querySelector(".Joystick")).not.toBeInTheDocument();
+      tick(20);
+      const stopped = { ...hero[POSITION] };
+      tick(20);
+      expect(hero[POSITION]).toEqual(stopped);
+    }
+  );
+
+  it("releases a drag after walking away from its interaction prompt", () => {
+    const { world, hero, container } = setup([], {}, "|  ♀D  |", {
+      D: "wood_door",
+    });
+    const prompt = getTouchArea(container, "interact");
+    expect(prompt).toBeVisible();
+
+    touch("touchStart", [[100, 100]], prompt);
+    touch("touchMove", [[40, 100]], prompt);
+    runUntil(world, () => !world.metadata.interact.active);
+
+    expect(getTouchArea(container, "interact")).toBe(prompt);
+    expect(prompt).not.toBeVisible();
+    const event = new Event("pointerup", { bubbles: true });
+    Object.defineProperty(event, "pointerType", { value: "touch" });
+    fireEvent(prompt, event);
+
+    expect(hero[MOVABLE].orientations).toEqual([]);
+    expect(container.querySelector(".Joystick")).not.toBeInTheDocument();
+  });
+
+  it("a mouse pointer release doesn't cancel held keyboard movement", () => {
+    const { hero } = setup();
+    press("ArrowRight");
+    const event = new Event("pointerup", { bubbles: true });
+    Object.defineProperty(event, "pointerType", { value: "mouse" });
+
+    fireEvent(window, event);
+
+    expect(hero[MOVABLE].orientations).toEqual(["right"]);
+    release("ArrowRight");
+    expect(hero[MOVABLE].orientations).toEqual([]);
+  });
+
+  it("cancelling a touch clears the joystick and stops walking", () => {
+    const { hero, container } = setup();
+    touch("touchStart", [[100, 100]]);
+    touch("touchMove", [[160, 100]]);
+
+    touch("touchCancel", []);
+
+    expect(hero[MOVABLE].orientations).toEqual([]);
+    expect(container.querySelector(".Joystick")).not.toBeInTheDocument();
   });
 
   it("a second finger stops walking", () => {

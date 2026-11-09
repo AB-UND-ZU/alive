@@ -3,6 +3,7 @@ import { render } from "@testing-library/react";
 import Joystick from ".";
 import { Orientation } from "../../engine/components/orientable";
 import { colors } from "../../game/assets/colors";
+import { readCell, showsLayers } from "../Controls/testing";
 
 const arrows: Record<Orientation, string> = {
   up: "ė",
@@ -12,9 +13,9 @@ const arrows: Record<Orientation, string> = {
 };
 
 const getArrow = (container: HTMLElement, orientation: Orientation) =>
-  Array.from(container.querySelectorAll(".Layer")).find(
-    (layer) => layer.textContent === arrows[orientation]
-  ) as HTMLElement | undefined;
+  Array.from(container.querySelectorAll(".Cell")).find(
+    (cell) => readCell(cell) === arrows[orientation]
+  );
 
 describe("joystick", () => {
   it("highlights the main direction and dims the secondary one", () => {
@@ -22,8 +23,16 @@ describe("joystick", () => {
       <Joystick orientations={["right", "down"]} origin={[100, 100]} />
     );
 
-    expect(getArrow(container, "right")).toHaveStyle({ color: colors.white });
-    expect(getArrow(container, "down")).toHaveStyle({ color: colors.grey });
+    expect(
+      showsLayers(getArrow(container, "right")!, [
+        { char: arrows.right, color: colors.white },
+      ])
+    ).toBe(true);
+    expect(
+      showsLayers(getArrow(container, "down")!, [
+        { char: arrows.down, color: colors.grey },
+      ])
+    ).toBe(true);
     expect(getArrow(container, "up")).toBeUndefined();
     expect(getArrow(container, "left")).toBeUndefined();
   });

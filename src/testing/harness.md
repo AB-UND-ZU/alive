@@ -16,13 +16,17 @@ Pass `legend` to map extra characters to any cell name handled by `createCell`, 
 
 `giveItems` puts items into an inventory and equips gear into free slots, like a first pickup. `getItems` and `countItems` read carried items, e.g. `countItems(world, hero, { stackable: "arrow" })`. `getEntitiesAt` and `findEntityAt` look up entities in a cell. `face` turns the hero before casting or using a tool.
 
+## Saved games
+
+`saveAndLoad` in `saves.ts` saves a world and loads it like a saved game: the snapshot passes the structured clone algorithm IndexedDB uses, and systems start fresh. Continue playing the returned world and assert the feature still works, not only that its data was copied.
+
 ## What to assert
 
 Name the feature and its outcome: wading near land, blocking deep water, stopping on release, or opening a matching lock. Check relevant component state or visible output. Keep setup small and use existing factories.
 
 Gameplay feature tests live in `src/features/`, grouped by area with one file per feature, station, spell, skill or tool.
 
-Jest setup seeds randomness and records sound calls. Slow suites cover larger generated worlds and rendering. Run `npm run test:fast` while working and `npm run test:all` when the affected feature needs the wider coverage. `npm run test:coverage` runs all tests with a coverage report in `coverage/`; CI adds its summary to the job and uploads the HTML report.
+Jest setup seeds randomness and records sound calls. Slow suites cover larger generated worlds and rendering. Run `npm run test:fast` while working and `npm run test:all` when the affected feature needs the wider coverage. `npm run test:coverage` runs all tests with a coverage report in `coverage/`; CI adds its summary to the job, uploads the HTML report and fails below the thresholds in `package.json`. Wiki site code is left out, as the Wiki browser tests cover it.
 
 Wiki browser tests check imported examples, focus and dialog controls, navigation, page errors and small-screen layout. See [wiki tools](../wiki/index.md).
 <!-- source-types -->
@@ -44,6 +48,8 @@ export type AreaWorldOptions = {
   level?: LevelName;
   /** square map size, defaults to the larger side of the area */
   size?: number;
+  /** extra characters mapped to any cell type, e.g. `{ D: "iron_door" }` */
+  legend?: Record<string, string>;
 };
 ```
 
@@ -55,4 +61,10 @@ export type HeroAction =
   | "skill"
   | "interact"
   | NonNullable<Player["actionTriggered"]>;
+```
+
+## GivenItem
+
+```ts src/testing/harness.ts
+export type GivenItem = Omit<Item, "carrier" | "bound"> & { bound?: boolean };
 ```

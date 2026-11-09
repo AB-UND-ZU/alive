@@ -82,6 +82,7 @@ describe("list command", () => {
       "/mod god",
       "/mod pve",
       "/mod pvp",
+      "/mod reset",
       "/mod swim",
       "/mod walk",
     ]);
