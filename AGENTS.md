@@ -33,6 +33,11 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 - `src/components/`: React rendering and controls.
 - `src/testing/`: existing deterministic world and rendering helpers. Prefer these for game feature tests.
 
+## Version bumps
+
+- When making a new version, update the package version and regenerate the title media with `npm run media:titles`.
+- Also capture a fresh in-game title-screen screenshot with the new version visible and save it as `media/game.png`. Wait for the opening visibility animation to finish so the whole title is visible. Keep it alongside the other media assets and preserve the README image link to it. Inspect the regenerated images and screenshot before finishing.
+
 ## Keep wiki current
 
 - Put player-facing feature wiki in `wiki/` as Markdown.

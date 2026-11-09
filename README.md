@@ -4,7 +4,7 @@ A browser adventure game made from layered DOS characters and sixteen terminal c
 
 [Play](https://ab-und-zu.github.io/alive/) · [Wiki](https://ab-und-zu.github.io/alive/wiki/)
 
-![The start of an adventure](wiki/media/game.png)
+![Alive title screen](media/game.png)
 
 ## Run locally
 
@@ -40,6 +40,8 @@ Fast checks cover types, lint, and small feature tests. `test:slow` checks game 
 
 Run `npm run test:generation` only when changing level generation or generation-dependent fixtures. CI uses `npm run test:ci` to run game and generation tests together, report coverage and enforce the thresholds in `package.json`.
 
-## Title images
+## Version bumps
 
 After changing the package version, run `npm run media:titles` to regenerate the transparent `media/title-*.png` images. Requires ImageMagick 7 (`magick`). The script uses the bundled DOS font, game colors, and cell proportions.
+
+Also capture a fresh [in-game title screen](media/game.png) with the new version visible. Save it as `media/game.png` alongside the other media assets, and inspect both the screenshot and regenerated title images.
