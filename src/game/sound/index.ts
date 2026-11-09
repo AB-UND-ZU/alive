@@ -1292,11 +1292,76 @@ export const soundPresets = Object.getOwnPropertyNames(
   Presets.prototype
 ).filter((name) => name !== "constructor") as (keyof Presets)[];
 
+const createParams = (preset: keyof Presets, options: SfxOptions) => {
+  const params = new Params();
+
+  if (preset in params) return sfxr.generate(preset as keyof Params);
+
+  const presets = new Presets();
+  if (typeof presets[preset] === "function") {
+    (presets[preset] as Function)(options);
+    return presets;
+  }
+
+  return params;
+};
+
+// jsfxr scales every sample by this factor of the sound volume
+const getGain = (params: Params) => Math.exp(params.sound_vol) - 1;
+
+// Synthesizing a long sound takes several frames on phones, and rain or fires
+// play many per second. Replay a few synthesized variants of each sound at
+// the requested volume instead, as proximity only changes the volume.
+const poolVariants = 4;
+const poolSize = 32;
+const soundPool = new Map<string, { audio: any; gain: number }[]>();
+let pooledCount = 0;
+
+const playPooled = (
+  preset: keyof Presets,
+  delay: number,
+  options: SfxOptions
+) => {
+  const params = createParams(preset, options);
+  const gain = getGain(params);
+  const { proximity, ...shape } = options;
+  const key = JSON.stringify([preset, shape]);
+  const variants = soundPool.get(key) || [];
+
+  // keep recently played sounds last to drop the least recent ones first
+  soundPool.delete(key);
+  soundPool.set(key, variants);
+
+  if (variants.length >= poolVariants) {
+    const variant = variants[random(0, variants.length - 1)];
+    variant.audio.setVolume(gain / variant.gain).play(delay);
+    return;
+  }
+
+  const audio = new ResumableSoundEffect(params).generate().getAudio();
+  audio.play(delay);
+
+  if (gain === 0) return;
+
+  variants.push({ audio, gain });
+  pooledCount += 1;
+  for (const [pooledKey, pooled] of soundPool) {
+    if (pooledCount <= poolSize) break;
+    pooledCount -= pooled.length;
+    soundPool.delete(pooledKey);
+  }
+};
+
 export const play = (
   preset: keyof Presets,
   { delay = 0, notes = 1, spacing = 0, pattern, ...options }: SfxOptions = {}
 ) => {
   if (!isPlaying()) return;
+
+  if (notes === 1 && !pattern) {
+    playPooled(preset, delay, options);
+    return;
+  }
 
   let wave: any;
   let first = 1;
@@ -1306,20 +1371,10 @@ export const play = (
     // leave out rests, e.g. empty chars
     if (pattern && !pattern[note - 1]) continue;
 
-    let params = new Params();
-
-    if (preset in params) {
-      params = sfxr.generate(preset as keyof Params);
-    } else {
-      const presets = new Presets();
-      if (typeof presets[preset] === "function") {
-        (presets[preset] as Function)(
-          notes > 1 ? { ...options, variant: note } : options
-        );
-        params = presets;
-      }
-    }
-
+    const params = createParams(
+      preset,
+      notes > 1 ? { ...options, variant: note } : options
+    );
     const noteWave: any = new ResumableSoundEffect(params).generate();
 
     if (!wave) {

@@ -20,6 +20,8 @@ Synthesizes sound effects from named presets. `play` does nothing until the game
 | pattern   | True entries play; false entries leave rests |
 
 Notes are mixed into one buffer so their relative timing survives delayed frames. With multiple notes, the note index selects each variant. Use the existing preset and options rather than encoding new audio in a UI component.
+
+Synthesizing takes several frames on phones, and rain or nearby fires request several sounds per second. Single sounds are therefore synthesized as up to 4 random variants per preset and options except `proximity`, then a random variant is replayed. `proximity` only sets the volume, so a replay applies it through its gain node with the same loudness as a new synthesis. At most 32 variants are kept, dropping the least recently played sounds first. Melodies with `notes` or `pattern` are synthesized on every call.
 <!-- source-types -->
 
 ## SfxOptions
