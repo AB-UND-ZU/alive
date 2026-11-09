@@ -1,21 +1,42 @@
 import Entity from ".";
-import { assertHero, createAreaWorld, step } from "../../testing/harness";
-import { renderScene } from "../../testing/render";
+import {
+  assertHero,
+  createAreaWorld,
+  FRAME,
+  step,
+} from "../../testing/harness";
+import { createWorldContext, renderScene } from "../../testing/render";
+import { WorldProvider } from "../../bindings/hooks";
 import { POSITION } from "../../engine/components/position";
 import { SPRITE } from "../../engine/components/sprite";
 import { RENDERABLE } from "../../engine/components/renderable";
 import { ORIENTABLE } from "../../engine/components/orientable";
 import { getFacingLayers } from "../../game/assets/ui";
-import { getEntityGeneration } from "../../engine/systems/renderer";
-import { World } from "../../engine";
+import {
+  getEntityGeneration,
+  rerenderEntity,
+} from "../../engine/systems/renderer";
+import { entities, World } from "../../engine";
 import { TypedEntity } from "../../engine/entities";
-import type { ReactThreeTest } from "@react-three/test-renderer";
+import ReactThreeTestRenderer, {
+  type ReactThreeTest,
+} from "@react-three/test-renderer";
+import { Globals } from "@react-spring/three";
+import { raf } from "@react-spring/rafz";
+import * as THREE from "three";
+import { PARTICLE } from "../../engine/components/particle";
+import { REFERENCE } from "../../engine/components/reference";
+import { SEQUENCABLE } from "../../engine/components/sequencable";
+import { smokeLight } from "../../game/assets/sprites";
+import { particleHeight } from "./utils";
 
 // the font is loaded over the network, provide it from disk instead.
 // glyphs are tagged with their char to be found in the scene
 jest.mock("@react-three/drei", () => {
   const { Font } = require("three-stdlib");
-  const font = new Font(require("../../../public/fonts/MostPerfectDOSVGA.json"));
+  const font = new Font(
+    require("../../../public/fonts/MostPerfectDOSVGA.json")
+  );
   return {
     ...jest.requireActual("@react-three/drei"),
     useFont: () => font,
@@ -86,5 +107,120 @@ describe("Entity", () => {
 
     expect(container.position.x).toBeCloseTo(3 * aspectRatio);
     expect(container.position.y).toBeCloseTo(-2);
+  });
+
+  describe("particles", () => {
+    // animate springs on a clock advanced by rendered frames
+    let clock = 0;
+    beforeAll(() => Globals.assign({ now: () => clock }));
+    afterAll(() => Globals.assign({ now: () => performance.now() }));
+
+    const getParticleGlyphs = (scene: ReactThreeTest.Renderer["scene"]) => {
+      scene.instance.updateMatrixWorld(true);
+      return scene
+        .findAll((node) => ["~", "≈"].includes(node.instance.userData?.char))
+        .map((node) => {
+          const position = node.instance.getWorldPosition(new THREE.Vector3());
+          return {
+            char: node.instance.userData.char as string,
+            x: +position.x.toFixed(3),
+            y: +position.y.toFixed(3),
+          };
+        })
+        .sort((first, second) => first.x - second.x);
+    };
+
+    it("moves a changed particle while its siblings stay in place", async () => {
+      const world = createAreaWorld(area);
+      const hero = world.assertComponents(assertHero(world), [
+        POSITION,
+        SPRITE,
+        RENDERABLE,
+        SEQUENCABLE,
+      ]);
+      const frame = entities.createFrame(world, {
+        [REFERENCE]: {
+          tick: -1,
+          delta: 0,
+          suspended: false,
+          suspensionCounter: -1,
+        },
+        [RENDERABLE]: { generation: 1 },
+      });
+      const createSmoke = (offsetX: number) =>
+        entities.createParticle(world, {
+          [PARTICLE]: {
+            offsetX,
+            offsetY: -1,
+            offsetZ: particleHeight,
+            animatedOrigin: { x: offsetX, y: 0 },
+            amount: 1,
+            duration: 350,
+          },
+          [RENDERABLE]: { generation: 1 },
+          [SPRITE]: smokeLight,
+        });
+      const still = createSmoke(-1);
+      const rising = createSmoke(1);
+      hero[SEQUENCABLE].states.smoke = {
+        name: "smokeWind",
+        reference: world.getEntityId(frame),
+        elapsed: 0,
+        args: { generation: 0, extinguish: 0, simmer: false },
+        particles: {
+          still: world.getEntityId(still),
+          rising: world.getEntityId(rising),
+        },
+      };
+      const render = () => (
+        <Entity
+          entity={hero}
+          x={hero[POSITION].x}
+          y={hero[POSITION].y}
+          generation={getEntityGeneration(world, hero)}
+          inRadius
+          inside={false}
+          outside={false}
+        />
+      );
+      const { renderer, advanceFrames } = await renderScene(world, render());
+      // the test renderer skips global effects that advance springs
+      const settle = async () => {
+        for (let frame = 0; frame < 15; frame += 1) {
+          clock += FRAME;
+          await advanceFrames(1);
+          raf.advance();
+        }
+      };
+      await settle();
+      const [stillBefore, risingBefore] = getParticleGlyphs(renderer.scene);
+
+      const update = async () => {
+        rerenderEntity(world, frame);
+        await ReactThreeTestRenderer.act(async () =>
+          renderer.update(
+            <WorldProvider value={createWorldContext(world)}>
+              {render()}
+            </WorldProvider>
+          )
+        );
+        await settle();
+        return getParticleGlyphs(renderer.scene);
+      };
+
+      // rise one more cell
+      rising[PARTICLE].offsetY = -2;
+      const [stillRisen, risen] = await update();
+
+      expect(stillRisen).toEqual(stillBefore);
+      expect(risen).toEqual({ ...risingBefore, y: risingBefore.y + 1 });
+
+      // thicken in place
+      rising[PARTICLE].amount = 2;
+      const [stillThick, thick] = await update();
+
+      expect(stillThick).toEqual(stillBefore);
+      expect(thick).toEqual({ ...risen, char: "≈" });
+    });
   });
 });

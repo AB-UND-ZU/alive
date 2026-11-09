@@ -94,18 +94,24 @@ export const createSequence = <T extends keyof Sequencable["states"], A>(
   };
 };
 
+const hasStates = (sequencable: Sequencable) => {
+  for (const _ in sequencable.states) return true;
+  return false;
+};
+
 export default function setupSequence(world: World) {
   const onUpdate = (delta: number) => {
-    // to keep track of expired sequences
-    const sequenceFrames = world
-      .getEntities([REFERENCE, RENDERABLE])
-      .reduce((frames, entity) => {
-        frames[world.getEntityId(entity)] = {};
-        return frames;
-      }, {} as Record<number, { [sequencableId: number]: boolean }>);
+    // frames created during this update have higher IDs and are kept
+    const firstNewId = (world.metadata.ecs as unknown as { nextId: number })
+      .nextId;
+
+    // to keep track of expired sequences, by frame and sequencable entity
+    const sequenceFrames = new Map<number, Map<number, boolean>>();
 
     for (const entity of world.getEntities([SEQUENCABLE, RENDERABLE])) {
       const sequencable = entity[SEQUENCABLE] as Sequencable;
+      if (!hasStates(sequencable)) continue;
+
       const states = { ...sequencable.states };
 
       for (const sequenceName in states) {
@@ -120,9 +126,16 @@ export default function setupSequence(world: World) {
         const result = sequence(world, entity, sequenceState as any); // trust me TypeScript i'm an engineer
 
         // ignore newly added sequence frames
-        if (sequenceState.reference in sequenceFrames) {
-          sequenceFrames[sequenceState.reference][world.getEntityId(entity)] =
-            result.finished;
+        if (
+          sequenceState.reference < firstNewId &&
+          REFERENCE in sequenceEntity
+        ) {
+          let frameSequences = sequenceFrames.get(sequenceState.reference);
+          if (!frameSequences) {
+            frameSequences = new Map();
+            sequenceFrames.set(sequenceState.reference, frameSequences);
+          }
+          frameSequences.set(world.getEntityId(entity), result.finished);
         }
 
         if (result.updated || result.finished) {
@@ -146,17 +159,13 @@ export default function setupSequence(world: World) {
       }
     }
 
-    // delete finished sequence frames
-    for (const sequenceId in sequenceFrames) {
-      const frame = world.assertByIdAndComponents(parseInt(sequenceId), [
-        RENDERABLE,
-      ]);
-      const entitySequences = Object.entries(sequenceFrames[sequenceId]);
+    // delete finished sequence frames in ascending order
+    const frameIds = [...sequenceFrames.keys()].sort((a, b) => a - b);
+    for (const frameId of frameIds) {
+      const frame = world.assertByIdAndComponents(frameId, [RENDERABLE]);
+      const entitySequences = [...sequenceFrames.get(frameId)!.values()];
 
-      if (
-        entitySequences.length > 0 &&
-        entitySequences.every(([_, finished]) => finished)
-      ) {
+      if (entitySequences.every((finished) => finished)) {
         disposeFrame(world, frame);
       }
     }

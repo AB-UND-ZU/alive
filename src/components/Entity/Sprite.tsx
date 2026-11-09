@@ -3,6 +3,7 @@ import { stack, stackHeight } from "./utils";
 import { getFacingLayers } from "../../game/assets/ui";
 import { useWorld } from "../../bindings/hooks";
 import { Orientation } from "../../engine/components/orientable";
+import { memo } from "react";
 import { animated, useSpring } from "@react-spring/three";
 import Layer, { LayerProps } from "./Layer";
 import { useDimensions } from "../Dimensions";
@@ -17,7 +18,7 @@ type SpriteProps = {
   layerProps: LayerProps;
 };
 
-export function AnimatedSprite({
+function AnimatedSpriteComponent({
   sprite,
   facing,
   amount,
@@ -65,7 +66,7 @@ export function AnimatedSprite({
   );
 }
 
-export default function Sprite({
+function SpriteComponent({
   sprite,
   facing,
   amount,
@@ -93,3 +94,29 @@ export default function Sprite({
     </group>
   );
 }
+
+const isSameLayerProps = (prev: LayerProps, next: LayerProps) =>
+  prev.isTransparent === next.isTransparent &&
+  prev.opacity === next.opacity &&
+  prev.darkness === next.darkness &&
+  prev.animatedOrigin?.x === next.animatedOrigin?.x &&
+  prev.animatedOrigin?.y === next.animatedOrigin?.y &&
+  prev.receiveShadow === next.receiveShadow &&
+  prev.colorFactor === next.colorFactor &&
+  prev.duration === next.duration;
+
+// a changed particle rerenders its whole entity, so skip unchanged siblings
+const isSameSprite = (prev: SpriteProps, next: SpriteProps) =>
+  prev.sprite === next.sprite &&
+  prev.facing === next.facing &&
+  prev.amount === next.amount &&
+  prev.offsetX === next.offsetX &&
+  prev.offsetY === next.offsetY &&
+  prev.offsetZ === next.offsetZ &&
+  isSameLayerProps(prev.layerProps, next.layerProps);
+
+export const AnimatedSprite = memo(AnimatedSpriteComponent, isSameSprite);
+
+const Sprite = memo(SpriteComponent, isSameSprite);
+
+export default Sprite;
