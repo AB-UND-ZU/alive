@@ -8,8 +8,25 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-const { renderedColors } = require("./rendered-colors.cjs");
-const fills = (locator) => locator.evaluateAll(renderedColors);
+const fills = (locator) =>
+  locator.evaluateAll((roots) => {
+    const nodes = roots
+      .flatMap((root) => [
+        root,
+        ...root.querySelectorAll("svg rect, .Layer, .NativeText"),
+      ])
+      .filter((node) => node.matches("svg rect, .Layer, .NativeText"));
+    return [
+      ...new Set(
+        nodes.map(
+          (node) =>
+            getComputedStyle(node)[
+              node.matches("rect") ? "fill" : "color"
+            ]
+        )
+      ),
+    ];
+  });
 
 test("item links underline and recolor only the name", async ({ page }) => {
   await page.goto("/crafting.html");
@@ -99,7 +116,7 @@ test("catalog comparisons show supported variants with their real stats", async 
     .filter({ hasText: /Melee$/ })
     .locator("..")
     .locator(`[data-column="${earth}"]`);
-  await expect(melee).toHaveText(/10.*Melee/);
+  await expect(melee).toHaveText(/1\s*0.*Melee/);
   await expect(melee.locator('a[href$="stats.html#stat-melee"]')).toHaveCount(
     1
   );
@@ -137,18 +154,18 @@ test("catalog comparisons show supported variants with their real stats", async 
     ]) {
       await expect(
         levels.nth(index).locator('a[href$="stats.html#stat-hp"]')
-      ).toContainText(String(hp));
+      ).toContainText(new RegExp(String(hp).split("").join("\\s*")));
       await expect(
         levels.nth(index).locator('a[href$="stats.html#stat-mp"]')
-      ).toContainText(String(mp));
+      ).toContainText(new RegExp(String(mp).split("").join("\\s*")));
     }
   }
   const extra = classes
     .locator('th[scope="row"]')
-    .filter({ hasText: /^Extra stats$/i })
+    .filter({ hasText: /^Extra.*stats$/i })
     .locator("..");
-  await expect(extra.locator('[data-column="1"]')).toContainText(/\+1.*Power/);
-  await expect(extra.locator('[data-column="1"]')).toContainText(/\+1.*Haste/);
+  await expect(extra.locator('[data-column="1"]')).toContainText(/\+\s*1.*Power/);
+  await expect(extra.locator('[data-column="1"]')).toContainText(/\+\s*1.*Haste/);
   await expect(page.locator("main .CatalogVariant")).toHaveCount(0);
   await page.goto("/game-design/characters/enemies.html#prism");
   await expect(
@@ -342,7 +359,7 @@ test("body glyphs use the font while callout lines and native keys keep their ge
     svg: element.querySelectorAll("svg").length,
   }));
   await expect(
-    callout.locator(":scope > .Pixels .CellGlyph").first()
+    callout.locator(":scope > .Pixels .Layer").first()
   ).toHaveCSS("color", "rgb(0, 255, 0)");
   expect(note.markers).toBe(note.lines);
   expect(note.markers).toBeGreaterThan(1);

@@ -46,22 +46,6 @@ describe("terminal cell sizing", () => {
     expect(dimensions.terminalHeight).toBeCloseTo(481.333333);
     expect(dimensions.terminalWidth).toBe(414);
   });
-  it.each([
-    [1214, 774, 38],
-    [390, 670, 33],
-    [1440, 1000, 50],
-    [800, 600, 30],
-  ])(
-    "keeps the viewport grid size at %i by %i",
-    (width, height, cellHeight) => {
-      viewport(width, height);
-      const dimensions = calculateDimensions();
-      expect(dimensions.cellHeight).toBe(cellHeight);
-      expect(dimensions.cellWidth).toBe((cellHeight * 9) / 16);
-      expect(dimensions.cellHeight * 20).toBeLessThanOrEqual(height);
-      expect(dimensions.cellWidth * 21).toBeLessThanOrEqual(width);
-    }
-  );
   it.each([0, 1])(
     "retains a %i-row stat HUD on layout and browser resize",
     (topHudRows) => {

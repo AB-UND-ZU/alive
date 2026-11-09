@@ -4,7 +4,7 @@ Calculates one dimensions object for React and CSS. A glyph is 9 by 16 source pi
 
 | Values | Meaning |
 | --- | --- |
-| `cellWidth`, `cellHeight`, `pixelSize` | Glyph and source-pixel sizes in CSS pixels |
+| `cellWidth`, `cellHeight`, `pixelSize` | Physical glyph and source-pixel sizes |
 | `columns`, `rows`, `padding` | Viewport cells and centered HUD padding |
 | `terminalWidth`, `terminalHeight` | Space left for the world after the HUD |
 | `renderedColumns`, `renderedRows` | Visible cells plus overscan |

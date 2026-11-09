@@ -1,4 +1,6 @@
+/* eslint-disable testing-library/no-node-access -- inspect serialized sprite media separately from its text labels */
 import { renderToStaticMarkup } from "react-dom/server";
+import { readRows } from "../components/Controls/testing";
 import { render, screen } from "@testing-library/react";
 import {
   StatLabel,
@@ -11,7 +13,14 @@ import {
   Frame,
 } from "./visuals";
 
-const text = (view: string) => view.replace(/<[^>]*>/g, "");
+const text = (view: string) => {
+  const element = document.createElement("div");
+  element.innerHTML = view;
+  element.querySelectorAll(".Pixels").forEach((node) => {
+    node.textContent = readRows(node as HTMLElement).join("").replace(/[^0-9%]/g, "");
+  });
+  return element.textContent || "";
+};
 
 beforeAll(() => {
   global.ResizeObserver = class {
@@ -134,7 +143,7 @@ it("renders the native frame title as ordinary font text", () => {
       Ingredients
     </Frame>
   );
-  expect(screen.getByLabelText("Crafting")).toHaveTextContent("CRAFTING");
+  expect(readRows(screen.getByLabelText("Crafting"))[0]).toContain("CRAFTING");
 });
 
 it("keeps the complete native title in a narrow frame with its requested background", () => {
@@ -144,11 +153,9 @@ it("keeps the complete native title in a narrow frame with its requested backgro
     </Frame>
   );
   const frame = screen.getByLabelText("Contents");
-  expect(frame).toHaveTextContent("CONTENTS");
+  expect(readRows(frame)[0]).toContain("CONTENTS");
   expect(frame).toHaveStyle({ maxWidth: "216px" });
-  expect(screen.getByText("CONTENTS")).toHaveStyle({
-    "--cell-background": "#008000",
-  });
+  expect(frame.innerHTML).toContain("color: rgb(0, 128, 0)");
 });
 
 it.each([Infinity, -Infinity])(
@@ -156,7 +163,7 @@ it.each([Infinity, -Infinity])(
   (value) => {
     const view = renderToStaticMarkup(<Count value={value} />);
     expect(view).toContain('aria-label="99+"');
-    expect(decodeURIComponent(view)).toContain('fill="#c0c0c0"');
+    expect(view).toContain("color:#c0c0c0");
     expect(view).not.toContain("Infinity");
   }
 );

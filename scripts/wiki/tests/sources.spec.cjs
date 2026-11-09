@@ -35,9 +35,16 @@ test("timers list each native haste interval and the multiline assignment", asyn
   const rows = page.locator(
     'main table tbody tr:not(.GridRule) th[scope="row"]'
   );
-  const labels = (await rows.allTextContents()).map((x) =>
-    x.replace(/\s+/g, "")
-  );
+  const labels = await rows.evaluateAll(nodes => nodes.map(node => {
+    const copy = node.cloneNode(true);
+    copy.querySelectorAll(".Pixels").forEach(sprite => {
+      const value = Array.from(sprite.querySelectorAll(".Cell")).map(cell =>
+        Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
+      ).join("").replace(/[^0-9-]/g, "");
+      sprite.replaceWith(value);
+    });
+    return copy.textContent.replace(/\s+/g, "");
+  }));
   expect(labels).toEqual([
     "Worldreference",
     "-1Haste",

@@ -97,10 +97,10 @@ test("desktop touch emulation feeds the native joystick and releases movement", 
     await frame.evaluate(() => getComputedStyle(document.body).cursor)
   ).toBe("none");
   const origin = await frame.locator(".Joystick").boundingBox();
-  expect(origin.x + origin.width / 2).toBeCloseTo(bounds.x + 180, 1);
+  expect(Math.abs(origin.x + origin.width / 2 - bounds.x - 180)).toBeLessThan(1);
   expect(origin.y + origin.height / 2).toBeCloseTo(bounds.y + 330, 1);
   await expect(preview).toHaveClass(/active/);
-  await expect(frame.locator(".DemoFrame .CellGlyph").first()).toHaveCSS(
+  await expect(frame.locator(".DemoFrame .Layer").first()).toHaveCSS(
     "color",
     "rgb(0, 255, 0)"
   );

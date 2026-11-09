@@ -1,3 +1,9 @@
+.WikiLink:is(:hover, :focus-visible)
+  .LinkText
+  svg
+  rect:not(.TextSuffix *, .TextPrefix *) {
+  fill: #00ffff;
+}
 .GameButton.SpriteStates,
 .GameSelection.SpriteStates {
   display: inline-grid;
@@ -31,10 +37,8 @@
   overflow-x: auto;
 }
 .TextFrame {
-  overflow: hidden;
   display: block;
 }
-.FrameEdge .Pixels { overflow: visible; }
 .FrameEdge {
   display: block;
   height: 32px;
@@ -183,10 +187,12 @@ h1.Heading:has(.HeadingNewLine) .HeadingWord {
   white-space: nowrap;
 }
 .RichText > .NativeText, .Item .NativeText, .RichMention .NativeText { white-space: pre; }
+.ShadedText { position: relative; isolation: isolate; }
+.ShadedText::before { content: attr(data-shade); position: absolute; inset: 0; z-index: -1; color: #008000; white-space: pre; user-select: none; pointer-events: none; }
 .GameTab.SpriteStates { display: inline-grid; }
 .Choice > .Choices { display: flex; flex-wrap: nowrap; gap: var(--pixel-size); }
-.Wiki .Row { display: block; white-space: pre; text-align: left; }
-.Wiki .Cell { vertical-align: top; }
+.Wiki .Row { display: block; white-space: pre; text-align: left; line-height: var(--cell-height); }
+.Wiki .Cell { display: inline-block; vertical-align: top; margin-left: 0; }
 .RichText, .RichMention, .Item, .GridValue .Item, .TextPrefix { display: inline; white-space: nowrap; }
 .Pixels:not(.SelectablePixels) { user-select: none; }
 .Wiki .SingleRowPixels > .Row { display: inline; }

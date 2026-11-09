@@ -111,14 +111,14 @@ test("double clicking selects a complete word in the font run", async ({
     "adventure"
   );
 });
-test("copying an item omits both font icons and composed sprites", async ({
+test("copying an item retains its name and normalizes cell spacing", async ({
   page,
 }) => {
   await page.goto("/game-design/interactions/crafting.html");
   const item = page.locator("main .Item").first();
   const expected = await item.textContent();
   expect(expected.length).toBeGreaterThan(0);
-  expect(await copy(page, item)).toBe(expected);
+  expect(await copy(page, item)).toBe(expected.replaceAll("\u00a0", " "));
   expect(await item.locator("svg").allTextContents()).toEqual(
     Array(await item.locator("svg").count()).fill("")
   );

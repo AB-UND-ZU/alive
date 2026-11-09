@@ -13,24 +13,32 @@ test("Contents groups start together and only stacked group rows have a gap", as
 }) => {
   await page.goto("/game-design/items/resources.html");
   const overview = page.locator(".CatalogOverview").first();
-  await expect(overview.locator(".FrameEdge").first()).toContainText(
-    "CONTENTS"
-  );
+  expect(await overview.locator(".FrameEdge .Row").first().evaluate(row =>
+    Array.from(row.querySelectorAll(".Cell")).map(cell =>
+      Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
+    ).join("")
+  )).toContain("CONTENTS");
   expect(
     await overview
-      .locator(".FrameEdge .CellRun")
+      .locator(".FrameEdge .Layer")
       .evaluateAll((cells) =>
         cells.some(
-          (cell) =>
-            getComputedStyle(cell).getPropertyValue("--cell-background") ===
-            "#008000"
+          (cell) => getComputedStyle(cell).color === "rgb(0, 128, 0)"
         )
       )
   ).toBe(true);
-  const { renderedColors } = require("./rendered-colors.cjs");
   expect(
-    await overview.locator(".FrameEdge").evaluateAll(renderedColors)
-  ).toContain("rgb(0, 128, 0)");
+    await overview
+      .locator(".FrameEdge .Layer, .FrameEdge svg rect")
+      .evaluateAll((nodes) =>
+        nodes.some(
+          (node) =>
+            getComputedStyle(node)[
+              node.tagName.toLowerCase() === "rect" ? "fill" : "color"
+            ] === "rgb(0, 128, 0)"
+        )
+      )
+  ).toBe(true);
   const grid = overview.locator(".CatalogGrouped");
   const geometry = await grid.evaluate((node) => ({
     columns: getComputedStyle(node).gridTemplateColumns.split(" ").length,

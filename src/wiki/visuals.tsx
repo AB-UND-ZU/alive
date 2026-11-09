@@ -16,7 +16,6 @@ import { Item } from "../engine/components/item";
 import { Equipment } from "../engine/components/equippable";
 import {
   createText,
-  addBackground,
   createCountable,
   buttonPalettes,
   createSpriteButton,
@@ -323,30 +322,22 @@ export function Text({
         } as React.CSSProperties
       }
     >
-      {shade ? (
-        <Pixels
-          rows={[
-            addBackground(createText(text, actualColor), colors.green, shade),
-          ]}
-        />
-      ) : code ? (
-        codeWords.map((part, index) => (
-          <Fragment key={index}>
-            {part}
-            {index < codeWords.length - 1 && <wbr />}
-          </Fragment>
-        ))
-      ) : parts.length === 1 ? (
-        text
-      ) : (
-        parts.map((part, index) =>
-          /^(Infinity|∞|99\+)$/.test(part) ? (
-            <Count key={index} value={Infinity} color={actualColor} />
-          ) : (
-            part
-          )
-        )
-      )}
+      {code
+        ? codeWords.map((part, index) => (
+            <Fragment key={index}>
+              {part}
+              {index < codeWords.length - 1 && <wbr />}
+            </Fragment>
+          ))
+        : parts.length === 1
+        ? text
+        : parts.map((part, index) =>
+            /^(Infinity|∞|99\+)$/.test(part) ? (
+              <Count key={index} value={Infinity} color={actualColor} />
+            ) : (
+              part
+            )
+          )}
     </span>
   );
   return prefix || suffix ? (

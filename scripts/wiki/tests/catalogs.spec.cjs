@@ -12,7 +12,11 @@ test("class choices match the game selector and show compact progression", async
     "Mage",
     "???",
   ]);
-  const labels = await table.locator('tbody th[scope="row"]').allTextContents();
+  const labels = await table.locator('tbody th[scope="row"]').evaluateAll(nodes => nodes.map(node => {
+    const copy = node.cloneNode(true);
+    copy.querySelectorAll(".Pixels").forEach(sprite => sprite.remove());
+    return copy.textContent;
+  }));
   expect(labels.map((label) => label.toLowerCase())).toContain("extra stats");
   expect(labels.find((label) => label.startsWith("Level"))).toBe(
     "Level" + Array.from({ length: 10 }, (_, i) => "#" + (i + 1)).join("")
@@ -20,7 +24,7 @@ test("class choices match the game selector and show compact progression", async
   await expect(table.locator(".ClassLevel")).toHaveCount(40);
   await expect(table.locator(".ClassExtraStat")).toHaveCount(9);
   const progression = table.locator(".ClassLevel").first();
-  await expect(progression).toContainText("25");
+  await expect(progression).toContainText(/2\s*5/);
   await expect(progression.locator(".Pixels")).toHaveCount(2);
   const gaps = await table.locator(".ClassLevel").evaluateAll((rows) =>
     rows.map((row) => {
@@ -117,7 +121,7 @@ test("item comparisons show native consumption, aura and elemental bonuses", asy
   const row = (entry, label) =>
     entry
       .locator('th[scope="row"]')
-      .filter({ hasText: new RegExp("^" + label + "$", "i") })
+      .filter({ hasText: new RegExp(label.split(" ").join("[\\s\\S]*") + "$", "i") })
       .locator("..");
   await page.goto("/game-design/characters/animals.html#fish");
   const fish = page.locator('[data-catalog-item="fish"]');

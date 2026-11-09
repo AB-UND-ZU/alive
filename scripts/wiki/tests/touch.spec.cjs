@@ -23,10 +23,10 @@ test("Interface loads native controls after navigation from Welcome", async ({
   await expect
     .poll(() =>
       frame
-        .locator(".Controls .CellGlyph")
+        .locator(".Controls .Cell")
         .evaluateAll((nodes) =>
           nodes
-            .map((node) => node.textContent || node.dataset.glyph || "")
+            .map((node) => Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
             .join("")
         )
     )
@@ -34,10 +34,10 @@ test("Interface loads native controls after navigation from Welcome", async ({
   await expect
     .poll(() =>
       frame
-        .locator(".Controls .CellGlyph")
+        .locator(".Controls .Cell")
         .evaluateAll((nodes) =>
           nodes
-            .map((node) => node.textContent || node.dataset.glyph || "")
+            .map((node) => Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
             .join("")
         )
     )
@@ -45,10 +45,10 @@ test("Interface loads native controls after navigation from Welcome", async ({
   await expect
     .poll(() =>
       frame
-        .locator(".Controls .CellGlyph")
+        .locator(".Controls .Cell")
         .evaluateAll((nodes) =>
           nodes
-            .map((node) => node.textContent || node.dataset.glyph || "")
+            .map((node) => Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
             .join("")
         )
     )

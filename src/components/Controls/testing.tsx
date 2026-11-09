@@ -15,98 +15,35 @@ import {
   Palette,
 } from "../../game/assets/ui";
 
-const markup = (cell: Element) => {
-  if (!cell.matches(".SpriteCell")) return;
-  const row = cell.parentElement;
-  const own = cell.querySelector("img");
-  const image = own || row?.querySelector(":scope > .RowPixels");
-  const source = image?.getAttribute("src");
-  if (!source?.startsWith("data:image/svg+xml,")) return;
-  const offset = own
-    ? 0
-    : Array.from(row?.children || [])
-        .slice(0, Array.from(row?.children || []).indexOf(cell))
-        .reduce(
-          (sum, child) =>
-            sum +
-            (child.matches(".Cell")
-              ? Number(child.getAttribute("data-cells") || 1)
-              : 0),
-          0
-        );
-  const document = new DOMParser().parseFromString(
-    decodeURIComponent(source.split(",")[1]),
-    "image/svg+xml"
-  );
-  return document
-    .querySelector(`[data-cell="${offset}"]`)
-    ?.innerHTML.replaceAll(' xmlns="http://www.w3.org/2000/svg"', "")
-    .replaceAll("></rect>", "/>");
-};
-
-// Disabled letters are composed pixels, with no selectable fallback text.
-const disabledLetters = new Map(
-  (Object.keys(buttonPalettes) as Palette[]).flatMap((palette) =>
-    [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].map(
-      (letter) =>
-        [
-          characterMarkup(
-            [
-              ...getButtonDisabled(palette).layers,
-              ...createText(letter, buttonPalettes[palette].text)[0].layers,
-            ]
-          ),
-          letter,
-        ] as const
-    )
-  )
-);
-
-/** Visible text and glyphs, including characters held in a batched font run. */
+/** The foreground character at a cell's logical position. */
 export const readCell = (cell: Element) =>
-  cell.textContent ||
-  cell.getAttribute("data-glyph") ||
-  disabledLetters.get(markup(cell) || "") ||
-  " ".repeat(Number(cell.getAttribute("data-cells")) || 1);
+  Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " ";
 
 export const readCells = (row: Element) =>
-  Array.from(row.querySelectorAll(".Cell")).flatMap((element) =>
-    [...readCell(element)].map((char, index) => ({ element, char, index }))
-  );
+  Array.from(row.querySelectorAll(".Cell")).map((element) => ({
+    element,
+    char: readCell(element),
+    index: 0,
+  }));
 
-/** Text of a row at its logical cell positions, independent of batching. */
 export const readRow = (row: Element) =>
   readCells(row)
     .map(({ char }) => char)
     .join("");
 
-/** Whether a cell's pixels are exactly the given layers. */
-export const showsLayers = (cell: Element, layers: Layer[], index = 0) => {
-  const svg = markup(cell);
-  if (svg !== undefined) return svg === characterMarkup(layers);
-
-  const style = (cell as HTMLElement).style;
-  const background = (
-    style.getPropertyValue("--cell-background") || style.backgroundColor
-  ).replace(
-    /rgb\((\d+), (\d+), (\d+)\)/,
-    (_, r, g, b) =>
-      `#${[r, g, b]
-        .map((value) => Number(value).toString(16).padStart(2, "0"))
-        .join("")}`
+export const showsLayers = (cell: Element, layers: Layer[], _index = 0) => {
+  const drawn = Array.from(cell.querySelectorAll<HTMLElement>(".Layer")).map(
+    (layer) => ({
+      char: layer.textContent || " ",
+      color: layer.style.color.replace(
+        /rgb\((\d+), (\d+), (\d+)\)/,
+        (_, r, g, b) =>
+          `#${[r, g, b]
+            .map((value) => Number(value).toString(16).padStart(2, "0"))
+            .join("")}`
+      ),
+    })
   );
-  const drawn: Layer[] = background ? [{ char: "█", color: background }] : [];
-  for (const name of ["underlay", "mask"]) {
-    const char = cell.getAttribute(`data-${name}`)?.[index];
-    if (char)
-      drawn.push({ char, color: style.getPropertyValue(`--${name}-color`) });
-  }
-  const glyph = cell.getAttribute("data-glyph") || cell.textContent;
-  if (glyph?.[index])
-    drawn.push({
-      char: glyph[index],
-      color: style.getPropertyValue("--glyph-color"),
-    });
   return characterMarkup(drawn) === characterMarkup(layers);
 };
 

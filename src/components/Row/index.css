@@ -1,67 +1,28 @@
 .Row {
-  position: relative;
-  isolation: isolate;
   display: flex;
   justify-content: center;
   height: var(--cell-height);
-  line-height: var(--cell-height);
-  flex: none;
 }
+
 .Cell {
-  display: inline-block;
   position: relative;
-  flex: 0 0 var(--cell-width);
-  width: var(--cell-width);
   height: var(--cell-height);
-  color: transparent;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  white-space: pre;
-  line-height: var(--cell-height);
+  width: var(--cell-width);
+  overflow: hidden;
+  margin-left: -0.5px;
 }
 
-.Cell > img,
-.RowPixels {
+.Layer {
+  display: block;
   position: absolute;
-  top: calc(-1 * var(--pixel-size));
-  height: calc(100% + var(--pixel-size) * 2);
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  pointer-events: none;
-  user-select: none;
-  overflow: visible;
+  inset: 0;
+  font-size: calc(var(--cell-height) * 1.02);
 }
 
-.CellGlyph {
-  color: var(--glyph-color);
-  font-size: var(--cell-height);
-  line-height: var(--cell-height);
-  font-synthesis: none;
-  -webkit-font-smoothing: none;
-}
-
-.CellRun {
-  isolation: isolate;
-  white-space: pre;
-}
-.SpriteCell {
-  user-select: none;
-}
-.CellBackground {
-  z-index: -1;
-}
-.CellRun[data-glyph]::after {
-  content: attr(data-glyph);
-  user-select: none;
-  pointer-events: none;
-}
-
-.Cell > img {
-  left: calc(-1 * var(--pixel-size));
-  width: calc(100% + var(--pixel-size) * 2);
-}
-.RowPixels {
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: -1;
+.Dot {
+  display: block;
+  position: absolute;
+  width: var(--pixel-size);
+  height: var(--pixel-size);
+  background-color: var(--silver);
 }

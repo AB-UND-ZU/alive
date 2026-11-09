@@ -1,11 +1,31 @@
 const { test, expect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
-const { renderedColors } = require("./rendered-colors.cjs");
+const logicalText = (element) => {
+  const copy = element.cloneNode(true);
+  copy.querySelectorAll(".Cell").forEach(cell => cell.replaceWith(
+    Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
+  ));
+  return copy.textContent;
+};
 async function expectColor(locator, color) {
   await expect
-    .poll(async () =>
-      (await locator.evaluateAll(renderedColors)).includes(color)
+    .poll(() =>
+      locator.evaluateAll(
+        (roots, color) =>
+          roots
+            .flatMap((root) => [
+              root,
+              ...root.querySelectorAll("*"),
+            ])
+            .some(
+              (node) =>
+                getComputedStyle(node)[
+                  node.tagName.toLowerCase() === "rect" ? "fill" : "color"
+                ] === color
+            ),
+        color
+      )
     )
     .toBe(true);
 }
@@ -86,10 +106,13 @@ test("Welcome is the index page and links use the credits underline", async ({
   const positions = await page
     .locator(".NavGroup, .NavTitle")
     .evaluateAll((elements) =>
-      elements.map((el) => ({
-        text: el.textContent,
-        y: el.getBoundingClientRect().y,
-      }))
+      elements.map((el) => {
+        const copy = el.cloneNode(true);
+        copy.querySelectorAll(".Cell").forEach(cell => cell.replaceWith(
+          Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
+        ));
+        return { text: copy.textContent, y: el.getBoundingClientRect().y };
+      })
     );
   expect(positions.find((p) => p.text.includes("[INTRO]")).y).toBeLessThan(
     positions.find(
@@ -188,7 +211,9 @@ test("CSS navigation hover keeps the current solid highlight and moves only the 
   await expect(current).toBeHidden();
   await expect(touch.locator(".NavHoverPointer")).toBeVisible();
   await expect(solid).toBeVisible();
-  await expectColor(solid, "rgb(0, 128, 0)");
+  expect(
+    await solid.evaluate((node) => getComputedStyle(node, "::before").color)
+  ).toBe("rgb(0, 128, 0)");
   expect((await touch.locator(".NavText").boundingBox()).width).toBe(288);
   await page.locator(".WikiHeader").hover();
   await expect(current).toBeVisible();
@@ -481,9 +506,9 @@ test("the damage tool keeps fractional health with distinct attacker and defende
   page,
 }) => {
   await page.goto("/game-design/combat/damage.html");
-  const trueRow = page
-    .locator("main table tbody tr")
-    .filter({ hasText: /^TrueIgnoredIgnored$/ });
+  const trueRow = page.getByRole("row", {
+    name: "True Ignored Ignored", exact: true,
+  });
   await expect(trueRow).toHaveCount(1);
   const tool = page.locator("[data-widget=damage]");
   await expect(tool.locator(".LargePreview")).toHaveCount(2);
@@ -576,7 +601,7 @@ test("the Interface diagram is static, labels controls and places text underneat
   ).toBe("none");
   const frame = await (await diagram.elementHandle()).contentFrame();
   await expect(frame.locator("canvas")).toBeVisible();
-  await expect(frame.locator(".InterfaceLabels")).toContainText("(auto-save)");
+  expect(await frame.locator(".InterfaceLabels").evaluate(logicalText)).toContain("(auto-save)");
   for (const title of [
     "Pause",
     "Stats",
@@ -589,7 +614,7 @@ test("the Interface diagram is static, labels controls and places text underneat
     "Spell",
     "Gear",
   ])
-    await expect(frame.locator(".InterfaceLabels")).toContainText(title);
+    expect(await frame.locator(".InterfaceLabels").evaluate(logicalText)).toContain(title);
   for (const label of ["BAG", "EQUIP", "GEAR", "STATS", "MAP"])
     await expect(
       frame.locator(`.InterfaceLabels [data-quick-action="${label}"]`)
