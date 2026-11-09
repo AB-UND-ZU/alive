@@ -15,7 +15,9 @@ const entries = {
 };
 
 test("the Map item stays yellow while world and Levels references use the green warp icon", () => {
-  const view = renderToStaticMarkup(<ItemView item={commandItems.map} />);
+  const view = decodeURIComponent(
+    renderToStaticMarkup(<ItemView item={commandItems.map} />)
+  );
   expect(view).toContain('fill="#ffff00"');
   expect(view).not.toContain('fill="#00ff00"');
   expect(featureSprites.levels).toBe(mapDiscovery);

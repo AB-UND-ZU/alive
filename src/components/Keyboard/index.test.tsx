@@ -12,7 +12,8 @@ import { POPUP } from "../../engine/components/popup";
 import { getTab, getTabSelections } from "../../engine/systems/popup";
 import { assertIdentifierAndComponents } from "../../engine/utils";
 import { act as perform, createAreaWorld, step } from "../../testing/harness";
-import { readRows, renderHud } from "../Controls/testing";
+import { readCells, renderHud, showsLayers } from "../Controls/testing";
+import { parseSprite } from "../../game/assets/ui";
 
 const width = 210;
 const height = 120;
@@ -49,9 +50,20 @@ const setup = (paused = false) => {
   const typed = () =>
     getTabSelections(world, getMenu(world)).map(getKeyFromIndex).join("");
 
-  const keys = () => readRows(view.container).join("\n");
+  const expectKeys = (row: number, text: string) => {
+    const renderedRow = view.container.querySelectorAll(
+      ".KeyboardOverlay > .Row"
+    )[row * 2];
+    const cells = readCells(renderedRow);
+    [...text].forEach((char, column) => {
+      const { element, index } = cells[(row === 2 ? 3 : 1) + column * 2];
+      expect(
+        showsLayers(element, parseSprite(`\x0f█\x00${char}`).layers, index)
+      ).toBe(true);
+    });
+  };
 
-  return { world, tap, tapAt, typed, keys, ...view };
+  return { world, tap, tapAt, typed, expectKeys, ...view };
 };
 
 // the bottom row starts with the shift key and ends with the page key
@@ -66,10 +78,10 @@ const spaceKey = letter(2, 7) as [number, number];
 
 describe("on-screen keyboard", () => {
   it("shows the lowercase letters first", () => {
-    const { keys } = setup();
+    const { expectKeys } = setup();
 
-    expect(keys()).toMatch(/q.w.e.r.t.y.u.i.o.p/);
-    expect(keys()).toMatch(/z.x.c.v.b.n.m/);
+    expectKeys(0, "qwertyuiop");
+    expectKeys(2, "zxcvbnm");
   });
 
   it("types tapped letters into the chat", () => {
@@ -103,32 +115,32 @@ describe("on-screen keyboard", () => {
   });
 
   it("shift switches to uppercase letters and back", () => {
-    const { tap, typed, keys } = setup();
+    const { tap, typed, expectKeys } = setup();
 
     tap(...shiftKey);
-    expect(keys()).toMatch(/Q.W.E.R.T.Y/);
+    expectKeys(0, "QWERTY");
     tap(0, 0);
 
     tap(...shiftKey);
-    expect(keys()).toMatch(/q.w.e.r.t.y/);
+    expectKeys(0, "qwerty");
     tap(0, 0);
 
     expect(typed()).toBe("Qq");
   });
 
   it("the page key switches to numbers and the special page", () => {
-    const { tap, typed, keys } = setup();
+    const { tap, typed, expectKeys } = setup();
 
     tap(...pageKey);
-    expect(keys()).toMatch(/1.2.3.4.5.6.7.8.9.0/);
+    expectKeys(0, "1234567890");
     tap(0, 0);
 
     tap(...shiftKey);
-    expect(keys()).toMatch(/\[.\].\{.\}/);
+    expectKeys(0, "[]{}");
     tap(0, 4);
 
     tap(...pageKey);
-    expect(keys()).toMatch(/q.w.e.r.t.y/);
+    expectKeys(0, "qwerty");
     tap(0, 0);
 
     expect(typed()).toBe("1#q");
