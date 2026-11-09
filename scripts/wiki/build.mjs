@@ -1,4 +1,3 @@
-import { ensureMinimapSnapshot } from "./minimap-snapshot.mjs";
 import { aliasFont } from "./font.mjs";
 import ts from "typescript";
 import { readFile, writeFile, mkdir, readdir, rm, cp } from "node:fs/promises";
@@ -24,7 +23,6 @@ async function files(dir) {
   return result.sort();
 }
 export async function buildWiki(output = ".wiki-build") {
-  await ensureMinimapSnapshot(root);
   const { generateItemSources } = await import(
     `./item-sources.mjs?${Date.now()}`
   );

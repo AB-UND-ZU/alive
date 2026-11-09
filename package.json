@@ -45,6 +45,7 @@
     "media:titles": "node scripts/regenerate-titles.cjs",
     "wiki:types": "node scripts/wiki/types.mjs",
     "wiki:build": "node scripts/wiki/build.mjs",
+    "wiki:minimap": "node scripts/wiki/minimap-snapshot.mjs",
     "wiki:dev": "node scripts/wiki/serve.mjs",
     "wiki:test": "node --test scripts/wiki/types.test.mjs scripts/wiki/item-sources.test.mjs scripts/wiki/font.test.mjs && playwright test"
   },

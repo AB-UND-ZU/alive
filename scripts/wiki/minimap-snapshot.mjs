@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile, readdir, mkdtemp, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { JSDOM } from "jsdom";
 
 async function sourceFiles(folder) {
@@ -16,7 +16,7 @@ async function sourceFiles(folder) {
   }
   return result.sort();
 }
-export async function ensureMinimapSnapshot(root) {
+export async function rebuildMinimapSnapshot(root) {
   const target = path.join(root, "src/wiki/minimap.json");
   const hash = createHash("sha256");
   const sources = [
@@ -35,10 +35,6 @@ export async function ensureMinimapSnapshot(root) {
     hash.update(path.relative(root, file)).update(await readFile(file));
   hash.update(await readFile(new URL(import.meta.url)));
   const sourceHash = hash.digest("hex");
-  try {
-    if (JSON.parse(await readFile(target, "utf8")).sourceHash === sourceHash)
-      return;
-  } catch {}
   const temporary = await mkdtemp(path.join(os.tmpdir(), "alive-minimap-"));
   const dom = new JSDOM("<!doctype html><html><body></body></html>", {
     url: "http://localhost/",
@@ -93,4 +89,16 @@ export async function ensureMinimapSnapshot(root) {
     dom.window.close();
     await rm(temporary, { recursive: true, force: true });
   }
+}
+
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  const root = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../.."
+  );
+  await rebuildMinimapSnapshot(root);
+  console.log("Rebuilt src/wiki/minimap.json");
 }

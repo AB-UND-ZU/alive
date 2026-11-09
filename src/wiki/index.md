@@ -6,9 +6,12 @@
 | `npm run wiki:build`               | Generate `.wiki-build/`                    |
 | `npm run wiki:build -- build/wiki` | Generate the deployment subtree            |
 | `npm run wiki:types`               | Refresh adjacent source type definitions   |
+| `npm run wiki:minimap`             | Explicitly regenerate the minimap snapshot |
 | `npm run wiki:test`                | Generator and browser checks               |
 
 The preview server rebuilds and reloads the browser after Markdown, React, CSS, font or build-script changes. The current URL stays open. Page content comes from Markdown in `wiki/` and `src/`. Links resolve to generated HTML.
+
+Builds and previews read the committed `src/wiki/minimap.json` without updating it. Run `wiki:minimap` only when you want to regenerate the Island sample, then review and commit the snapshot. Game source changes do not trigger regeneration.
 
 | Markdown                   | Output                                  |
 | -------------------------- | --------------------------------------- |

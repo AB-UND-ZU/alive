@@ -20,6 +20,7 @@ Alive is a browser adventure game built with TypeScript, React, Three.js and an 
 - Before committing code changes, agents run `npm run check:fast` for type checking, lint and fast tests, and `npm run test:slow` for game integration and rendering. The pre-commit hook runs lint only. `npm run test:all` runs both test groups. Run `npm run build` for production game changes.
 - Run `npm run test:generation` only when changing level generation or generation-dependent fixtures. CI always runs generation and the other game tests together with coverage through `npm run test:ci`.
 - For wiki, run `npm run wiki:build` and `npm run wiki:test`. Inspect the built pages and working examples in a browser after visual changes.
+- Rebuild `src/wiki/minimap.json` with `npm run wiki:minimap` only when the user explicitly asks. Normal wiki builds and previews must reuse the committed snapshot.
 - Report what passed, what was checked manually, and any remaining limits. Do not claim checks that were not run.
 
 ## Find the right place
