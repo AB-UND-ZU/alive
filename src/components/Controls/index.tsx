@@ -1361,10 +1361,8 @@ export default function Controls({
         ]}
       />
       <Row
-        cells={createText(
-          "─".repeat(dimensions.visibleColumns + dimensions.padding * 2 + 1),
-          frameColor
-        )}
+        className="ControlsEdge"
+        cells={createText("─".repeat(dimensions.renderedColumns), frameColor)}
       />
       {Array.from({ length: dimensions.hudRows - 4 }).map((_, index) => (
         <Row key={index} />

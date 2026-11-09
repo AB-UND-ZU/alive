@@ -12,7 +12,7 @@ import { colors } from "../../game/assets/colors";
 <Row cells={createText("Alive", colors.lime)} />
 ```
 
-`characters.ts` combines sprite layers on their native pixel grid before display. Wiki uses whole 18 by 32 pixel cells; the game derives its cell size from the viewport.
+`characters.ts` combines sprite layers on their native pixel grid before display. Wiki uses whole 18 by 32 pixel cells. The game picks a whole source-pixel scale from the viewport. Cell ink is not individually clipped, so adjacent glyphs can meet at the shared pixel boundary.
 <!-- source-types -->
 
 ## CellSprite

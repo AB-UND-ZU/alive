@@ -46,6 +46,24 @@ describe("terminal cell sizing", () => {
     expect(dimensions.terminalHeight).toBeCloseTo(481.333333);
     expect(dimensions.terminalWidth).toBe(414);
   });
+  it.each([
+    [1214, 774, 2],
+    [390, 670, 2],
+    [1440, 1000, 3],
+    [800, 600, 1],
+  ])(
+    "fits whole font pixels in a %i by %i viewport",
+    (width, height, pixelSize) => {
+      viewport(width, height);
+      const dimensions = calculateDimensions();
+
+      expect(dimensions.pixelSize).toBe(pixelSize);
+      expect(dimensions.cellWidth).toBe(9 * pixelSize);
+      expect(dimensions.cellHeight).toBe(16 * pixelSize);
+      expect(dimensions.cellWidth * 21).toBeLessThanOrEqual(width);
+      expect(dimensions.cellHeight * 20).toBeLessThanOrEqual(height);
+    }
+  );
   it.each([0, 1])(
     "retains a %i-row stat HUD on layout and browser resize",
     (topHudRows) => {

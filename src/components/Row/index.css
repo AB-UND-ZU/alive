@@ -11,7 +11,6 @@
   flex: 0 0 var(--cell-width);
   width: var(--cell-width);
   height: var(--cell-height);
-  overflow: hidden;
   color: transparent;
   image-rendering: pixelated;
   white-space: pre;
@@ -26,6 +25,7 @@
   image-rendering: pixelated;
   pointer-events: none;
   user-select: none;
+  overflow: visible;
 }
 
 .CellGlyph {

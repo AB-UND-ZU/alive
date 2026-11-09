@@ -11,6 +11,10 @@
   margin-top: calc(var(--bottom-offset) - var(--cell-height));
 }
 
+.ControlsEdge {
+  overflow: hidden;
+}
+
 .Spell {
   position: absolute;
   left: calc(50% - 4 * var(--cell-width));
