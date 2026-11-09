@@ -1,6 +1,6 @@
 # Wiki Visuals
 
-Uses the game's sprites, palette and composited `Row` cells. Body cells are 18 by 32 pixels. Ordinary text uses continuous font runs, including links and code. Native rows batch adjacent characters with matching colors and backgrounds. Icons contain no hidden fallback characters. Composite icon/count/name references stay on one line. Sprite names underline only on hover or keyboard focus; page links stay blue and underlined. Literal uses white brackets only within prose; table values remain unbracketed. Text remains selectable and wraps between words; code keeps its original spacing. Inline Markdown keeps punctuation with the preceding word across links and emphasis, without preventing long labels from wrapping.
+Uses the game's sprites, palette and composited `Row` cells. Body cells are 18 by 32 pixels. Ordinary text uses continuous font runs, including links and code. Rows keep one cell per sprite. Single layers use the font; multiple layers resolve to one SVG. Icons contain no hidden fallback characters. Composite icon/count/name references stay on one line. Sprite names underline only on hover or keyboard focus; page links stay blue and underlined. Literal uses white brackets only within prose; table values remain unbracketed. Text remains selectable and wraps between words; code keeps its original spacing. Inline Markdown keeps punctuation with the preceding word across links and emphasis, without preventing long labels from wrapping.
 
 | Component                                          | Use                                                                                                                                                     |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -14,7 +14,7 @@ Uses the game's sprites, palette and composited `Row` cells. Body cells are 18 b
 | `StatLabel`, `SlotLabel`                           | Actual stat colors or empty equipment-slot icons; stat `value` precedes its icon, `showName` controls the label and `percentage` adds % before the icon |
 | `PlainTable`                                       | Shared `GridTable` renderer                                                                                                                             |
 
-Named sprite links retain dialog colors. Gray names use silver underscores; other names use their own color. Native text decoration leaves glyph descenders readable. Only the name changes to aqua on hover; counts and icons keep their colors. Page links use blue.
+Named sprite links retain dialog colors. Gray names use silver underscores; other names use their own color. The font's `_` glyph tiles behind linked text as a background. It wraps with the text and adds nothing to copied paragraphs. Only the name changes to aqua on hover; counts and icons keep their colors. Page links use blue.
 
 Keys use the original two keyboard rows, clipped to their visible one-and-a-half-cell height. A long heading word scrolls locally instead of breaking into letter fragments.
 

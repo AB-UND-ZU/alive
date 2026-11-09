@@ -4,7 +4,7 @@ const path = require("node:path");
 const logicalText = (element) => {
   const copy = element.cloneNode(true);
   copy.querySelectorAll(".Cell").forEach(cell => cell.replaceWith(
-    Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
+    cell.getAttribute("data-glyph") || Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
   ));
   return copy.textContent;
 };
@@ -109,7 +109,7 @@ test("Welcome is the index page and links use the credits underline", async ({
       elements.map((el) => {
         const copy = el.cloneNode(true);
         copy.querySelectorAll(".Cell").forEach(cell => cell.replaceWith(
-          Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
+          cell.getAttribute("data-glyph") || Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
         ));
         return { text: copy.textContent, y: el.getBoundingClientRect().y };
       })

@@ -17,7 +17,9 @@ import {
 
 /** The foreground character at a cell's logical position. */
 export const readCell = (cell: Element) =>
-  Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " ";
+  cell.getAttribute("data-glyph") ||
+  Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent ||
+  " ";
 
 export const readCells = (row: Element) =>
   Array.from(row.querySelectorAll(".Cell")).map((element) => ({
@@ -32,6 +34,11 @@ export const readRow = (row: Element) =>
     .join("");
 
 export const showsLayers = (cell: Element, layers: Layer[], _index = 0) => {
+  const svg = cell.querySelector("svg");
+  if (svg)
+    return (
+      svg.innerHTML.replaceAll("></rect>", "/>") === characterMarkup(layers)
+    );
   const drawn = Array.from(cell.querySelectorAll<HTMLElement>(".Layer")).map(
     (layer) => ({
       char: layer.textContent || " ",

@@ -9,23 +9,24 @@ test("text fills one logical cell per character", () => {
   for (const letter of "Bag") expect(view).toContain(`>${letter}</span>`);
 });
 
-test("sprite layers retain their order and colors", () => {
+test("layered sprites resolve covered pixels into one graphic", () => {
   const view = renderToStaticMarkup(
     <Row
       cells={[
         {
           name: "layered",
           layers: [
-            { char: "▀", color: colors.red },
-            { char: "▄", color: colors.blue },
+            { char: "█", color: colors.red },
+            { char: "█", color: colors.blue },
           ],
         },
       ]}
     />
   );
-  expect(view).toContain("color:#ff0000");
-  expect(view).toContain("color:#0000ff");
-  expect(view.indexOf("▀")).toBeLessThan(view.indexOf("▄"));
+  expect(view.match(/<svg/g)).toHaveLength(1);
+  expect(view).not.toContain('class="Layer"');
+  expect(view).not.toContain('fill="#ff0000"');
+  expect(view).toContain('fill="#0000ff"');
 });
 
 test("stack dots show amounts above one and stop at ten", () => {

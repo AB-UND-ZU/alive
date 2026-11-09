@@ -26,7 +26,7 @@ test("Interface loads native controls after navigation from Welcome", async ({
         .locator(".Controls .Cell")
         .evaluateAll((nodes) =>
           nodes
-            .map((node) => Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
+            .map((node) => node.getAttribute("data-glyph") || Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
             .join("")
         )
     )
@@ -37,7 +37,7 @@ test("Interface loads native controls after navigation from Welcome", async ({
         .locator(".Controls .Cell")
         .evaluateAll((nodes) =>
           nodes
-            .map((node) => Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
+            .map((node) => node.getAttribute("data-glyph") || Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
             .join("")
         )
     )
@@ -48,7 +48,7 @@ test("Interface loads native controls after navigation from Welcome", async ({
         .locator(".Controls .Cell")
         .evaluateAll((nodes) =>
           nodes
-            .map((node) => Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
+            .map((node) => node.getAttribute("data-glyph") || Array.from(node.querySelectorAll(".Layer")).pop()?.textContent || " ")
             .join("")
         )
     )

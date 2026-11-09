@@ -15,15 +15,15 @@ test("Contents groups start together and only stacked group rows have a gap", as
   const overview = page.locator(".CatalogOverview").first();
   expect(await overview.locator(".FrameEdge .Row").first().evaluate(row =>
     Array.from(row.querySelectorAll(".Cell")).map(cell =>
-      Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
+      cell.getAttribute("data-glyph") || Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
     ).join("")
   )).toContain("CONTENTS");
   expect(
     await overview
-      .locator(".FrameEdge .Layer")
+      .locator(".FrameEdge .Layer, .FrameEdge svg rect")
       .evaluateAll((cells) =>
         cells.some(
-          (cell) => getComputedStyle(cell).color === "rgb(0, 128, 0)"
+          (cell) => getComputedStyle(cell)[cell.matches("rect") ? "fill" : "color"] === "rgb(0, 128, 0)"
         )
       )
   ).toBe(true);

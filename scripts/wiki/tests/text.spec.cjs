@@ -160,3 +160,26 @@ test("readable Unicode uses the native glyph and copies unchanged", async ({
   expect(await copy(page, source)).toBe(expected);
   expect(errors).toEqual([]);
 });
+
+test("glyph underlines stay behind wrapped links and never enter copied prose", async ({ page }) => {
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/index.html");
+    const link = page.locator('main a[href="https://en.wikipedia.org/wiki/Code_page_437"]');
+    const paragraph = link.locator("xpath=ancestor::p");
+    const expected = await paragraph.textContent();
+    await link.scrollIntoViewIfNeeded();
+    const text = link.locator(".LinkText");
+    await expect(text).toHaveCSS("text-decoration-line", "none");
+    await expect(text).not.toHaveCSS("background-image", "none");
+    const normal = await text.evaluate(node => getComputedStyle(node).backgroundImage);
+    expect(decodeURIComponent(normal)).toContain("<rect");
+    expect(await copy(page, paragraph)).toBe(expected);
+    await page.evaluate(() => getSelection().removeAllRanges());
+    await link.hover();
+    await expect(text).toHaveCSS("color", "rgb(0, 255, 255)");
+    expect(await text.evaluate(node => getComputedStyle(node).backgroundImage)).not.toBe(normal);
+    expect(await copy(page, paragraph)).toBe(expected);
+    expect(expected).not.toMatch(/[_\n]/);
+  }
+});

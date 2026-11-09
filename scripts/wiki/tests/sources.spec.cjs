@@ -39,7 +39,7 @@ test("timers list each native haste interval and the multiline assignment", asyn
     const copy = node.cloneNode(true);
     copy.querySelectorAll(".Pixels").forEach(sprite => {
       const value = Array.from(sprite.querySelectorAll(".Cell")).map(cell =>
-        Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
+        cell.getAttribute("data-glyph") || Array.from(cell.querySelectorAll(".Layer")).pop()?.textContent || " "
       ).join("").replace(/[^0-9-]/g, "");
       sprite.replaceWith(value);
     });

@@ -164,21 +164,24 @@ h1.Heading:has(.HeadingNewLine) .HeadingWord {
   display: inline;
   white-space: normal;
   -webkit-font-smoothing: none;
+  -webkit-user-select: text;
 }
 .NativeText.PreText { white-space: pre; }
 .NativeText.MultilineText { white-space: pre-line; }
-.LinkText, .UnderlinedText {
-  text-decoration: underline;
-  text-decoration-color: var(--underline-color, currentColor);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 2px;
-  text-decoration-skip-ink: auto;
+.LinkText, .UnderlinedText, .CodeSemantic a {
+  text-decoration: none;
+  background-image: var(--link-underline);
+  background-size: var(--cell-width) var(--cell-height);
+  background-position: left bottom;
+  background-repeat: repeat-x;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
-.SpriteLinkText { text-decoration: none; }
-.WikiLink:is(:hover, :focus-visible) .SpriteLinkText { text-decoration: underline; }
-.WikiLink:is(:hover, :focus-visible) .LinkText:not(.TextPrefix *, .TextSuffix *) {
+.SpriteLinkText { background-image: none; }
+.WikiLink:is(:hover, :focus-visible) .LinkText:not(.TextPrefix *, .TextSuffix *),
+.CodeSemantic a:is(:hover, :focus-visible) {
   color: #00ffff !important;
-  text-decoration-color: #00ffff;
+  background-image: var(--link-hover-underline);
 }
 .RichText, .Item, .RichMention, .GridValue .Item {
   display: inline-flex;

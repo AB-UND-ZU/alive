@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { ReferenceContext, ReferenceText, featureSprites } from "./references";
 import { LinkStyleContext, ItemView, UnitView } from "./visuals";
 import { commandItems } from "../game/assets/commands";
@@ -16,11 +16,9 @@ const entries = {
 
 test("the Map item stays yellow while world and Levels references use the green warp icon", () => {
   render(<ItemView item={commandItems.map} />);
-  const map = within(screen.getByLabelText("Map"));
-  expect(map.getByText("≡")).toHaveStyle({ color: colors.yellow });
-  expect(map.getByText("·")).toHaveStyle({ color: colors.yellow });
-  for (const layer of map.getAllByText(/\S/))
-    expect(layer).not.toHaveStyle({ color: colors.lime });
+  const map = screen.getByLabelText("Map").innerHTML;
+  expect(map).toContain(`fill="${colors.yellow}"`);
+  expect(map).not.toContain(`fill="${colors.lime}"`);
   expect(featureSprites.levels).toBe(mapDiscovery);
   expect(featureSprites.world).toBe(mapDiscovery);
   expect(featureSprites["world map"]).toBe(mapDiscovery);

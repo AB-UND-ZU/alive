@@ -11,6 +11,7 @@ import {
   useRef,
 } from "react";
 import Row from "../components/Row";
+import { underlineImage } from "./underline";
 import { Sprite } from "../engine/components/sprite";
 import { Item } from "../engine/components/item";
 import { Equipment } from "../engine/components/equippable";
@@ -318,6 +319,9 @@ export function Text({
           "--glyph-color": actualColor,
           "--underline-color":
             actualColor === colors.grey ? colors.silver : actualColor,
+          "--link-underline": (linked || hovered) && actualColor !== colors.blue
+            ? underlineImage(actualColor === colors.grey ? colors.silver : actualColor)
+            : undefined,
           "--text-shade": shade,
         } as React.CSSProperties
       }

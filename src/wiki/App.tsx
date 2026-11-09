@@ -1,3 +1,4 @@
+import { underlineImage } from "./underline";
 import { JoystickReference } from "./TouchControls";
 import { DialogSnapshot } from "./DialogSnapshot";
 import { CommandReference } from "./CommandBuilder";
@@ -1120,7 +1121,10 @@ function App() {
         ),
       }}
     >
-      <div className="TerminalPage">
+      <div className="TerminalPage" style={{
+        "--link-underline": underlineImage(colors.blue),
+        "--link-hover-underline": underlineImage(colors.aqua),
+      } as React.CSSProperties}>
         <WikiHeader navigate={navigate} />
         <div className="WikiLayout">
           <Navigation page={page} navigate={navigate} />

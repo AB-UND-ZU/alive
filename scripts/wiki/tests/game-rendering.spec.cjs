@@ -66,3 +66,37 @@ test("the bottom terminal edge stays inside the centered game frame", async ({
     "#000000"
   );
 });
+
+test("layered cells have no internal seams at fractional scale", async ({ page }) => {
+  const { build } = require("esbuild");
+  const result = await build({
+    stdin: { resolveDir: process.cwd(), loader: "tsx", contents: `
+      import { createRoot } from "react-dom/client";
+      import Row from "./src/components/Row";
+      import "./src/index.css";
+      const sprite = {name:"solid", layers:[{char:"▀",color:"#ffffff"},{char:"▄",color:"#ffffff"}]};
+      createRoot(document.getElementById("root")).render(<Row cells={[sprite]} />);
+    ` },
+    bundle: true, write: false, outdir: "out", jsx: "automatic",
+    loader: { ".woff": "dataurl", ".woff2": "dataurl" },
+    define: { "process.env.NODE_ENV": '"production"', "process.env.PUBLIC_URL": '""' },
+    logLevel: "silent",
+  });
+  await page.route("**/rendering.html", route => route.fulfill({
+    contentType: "text/html", body: '<!doctype html><div id="root"></div>',
+  }));
+  await page.goto("/rendering.html");
+  await page.addStyleTag({content: result.outputFiles.find(file => file.path.endsWith(".css")).text});
+  await page.addStyleTag({content: ':root{--cell-height:33px;--cell-width:18.5625px;--pixel-size:2.0625px} body{margin:0;background:black;min-height:2000px} #root{position:absolute;left:12.234px;top:300.671px;width:40px}'});
+  await page.addScriptTag({content: result.outputFiles.find(file => file.path.endsWith(".js")).text});
+  await expect(page.locator(".Cell > svg")).toHaveCount(1);
+  await expect(page.locator(".Cell .Layer")).toHaveCount(0);
+  for (const width of [40, 12]) for (const zoom of [0.67, 1, 1.25, 1.75, 2.5]) {
+    await page.evaluate(({zoom, width}) => {
+      document.getElementById("root").style.width = width + "px";
+      document.body.style.zoom = String(zoom); window.scrollTo(0,127);
+    }, {zoom, width});
+    const box = await page.locator(".Cell").boundingBox();
+    await expectSolid(page, {x:box.x+2,y:box.y+2,width:box.width-4,height:box.height-4}, "#ffffff");
+  }
+});

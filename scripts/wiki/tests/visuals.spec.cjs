@@ -40,12 +40,14 @@ test("item links underline and recolor only the name", async ({ page }) => {
   expect(await fills(count)).toEqual(["rgb(128, 128, 128)"]);
   expect(await fills(name)).toEqual(["rgb(128, 128, 128)"]);
   await expect(name.first()).toHaveCSS("text-decoration-line", "none");
+  await expect(name.first()).toHaveCSS("background-image", "none");
 
   const icon = item.locator(".TextPrefix > .Pixels");
   const iconColors = await fills(icon);
   await item.hover();
   expect(await fills(name)).toEqual(["rgb(0, 255, 255)"]);
-  await expect(name.first()).toHaveCSS("text-decoration-line", "underline");
+  await expect(name.first()).toHaveCSS("text-decoration-line", "none");
+  await expect(name.first()).not.toHaveCSS("background-image", "none");
   expect(await fills(count)).toEqual(["rgb(128, 128, 128)"]);
   expect(await fills(icon)).toEqual(iconColors);
   await page.goto("/npcs.html");
