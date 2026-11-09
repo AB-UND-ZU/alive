@@ -1,5 +1,7 @@
+/* eslint-disable testing-library/no-node-access -- scope prices and fishing chances to their displayed row */
 import { render, screen, within, cleanup } from "@testing-library/react";
 import { AcquisitionSources } from "./AcquisitionSources";
+import { readRows } from "../components/Controls/testing";
 import { ReferenceContext } from "./references";
 import { unitDefinitions } from "../game/balancing/units";
 
@@ -55,15 +57,22 @@ test("one Drop frame lists every native coin-producing unit without summaries or
 });
 test("Shops show both native prices and Fishing shows every supported level chance", () => {
   renderSources({ stackable: "ore" });
-  expect(screen.getByLabelText("Shops")).toHaveTextContent(
-    "2Coin (Buy)1Coin (Sell)"
-  );
+  const shops = within(screen.getByLabelText("Shops"));
+  for (const [label, amount] of [
+    ["(Buy)", "2"],
+    ["(Sell)", "1"],
+  ]) {
+    const price = within(shops.getByText(label).closest("div")!);
+    expect(price.getByText(amount)).toBeInTheDocument();
+    expect(price.getByText("Coin")).toBeInTheDocument();
+  }
   cleanup();
   renderSources({ stackable: "salmon" });
   const fishing = screen.getByLabelText("Fishing");
-  for (const chance of [54, 30, 14])
-    expect(fishing).toHaveTextContent(`${chance}%`);
-  expect(fishing).toHaveTextContent("1Fishing");
-  expect(fishing).toHaveTextContent("2Fishing");
-  expect(fishing).toHaveTextContent("3Fishing");
+  for (const [index, chance] of [54, 30, 14].entries()) {
+    const row = within(fishing).getByText(String(chance)).closest("div")!;
+    expect(row).toHaveTextContent(`${chance}%`);
+    expect(within(row).getByText("Fishing")).toBeInTheDocument();
+    expect(readRows(row)[0]).toMatch(new RegExp(`^${index + 1}`));
+  }
 });

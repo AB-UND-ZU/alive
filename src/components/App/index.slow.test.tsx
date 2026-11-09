@@ -1,6 +1,7 @@
 /* eslint-disable testing-library/no-node-access -- UI is drawn as glyph spans without accessible roles */
 import { act, fireEvent, render } from "@testing-library/react";
 import App from ".";
+import { readRows } from "../Controls/testing";
 import type { World } from "../../engine";
 import { assertHero, step } from "../../testing/harness";
 import { MOVABLE } from "../../engine/components/movable";
@@ -26,15 +27,8 @@ jest.mock("../Stats", () => ({
   },
 }));
 
-// read DOM rows of text sprites, taking the topmost layer of each cell
 const readOverlay = (container: HTMLElement) =>
-  Array.from(container.querySelectorAll(".Paused .Overlay .Row"))
-    .map((row) =>
-      Array.from(row.querySelectorAll(".Cell"))
-        .map((cell) => cell.textContent)
-        .join("")
-    )
-    .join("\n");
+  readRows(container, ".Paused .Overlay .Row").join("\n");
 
 const boot = () => {
   const view = render(<App />);

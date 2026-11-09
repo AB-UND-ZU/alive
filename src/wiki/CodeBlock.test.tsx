@@ -1,6 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react";
 import { ReactNode } from "react";
 import { CodeBlock } from "./CodeBlock";
+import { readRows } from "../components/Controls/testing";
 import { ReferenceContext } from "./references";
 
 beforeAll(() => {
@@ -93,14 +94,18 @@ test("a code dialog retains its usable width when a hidden observer reports zero
         {} as ResizeObserver
       )
     );
-    expect(screen.getByTitle("example.ts")).toHaveTextContent("EXAMPLE.TS");
+    expect(readRows(screen.getByTitle("example.ts")).join("\n")).toContain(
+      "EXAMPLE.TS"
+    );
     act(() =>
       resize(
         [{ contentRect: { width: 0 } } as ResizeObserverEntry],
         {} as ResizeObserver
       )
     );
-    expect(screen.getByTitle("example.ts")).toHaveTextContent("EXAMPLE.TS");
+    expect(readRows(screen.getByTitle("example.ts")).join("\n")).toContain(
+      "EXAMPLE.TS"
+    );
   } finally {
     global.ResizeObserver = OriginalObserver;
   }
